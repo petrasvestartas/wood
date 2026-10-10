@@ -124,3 +124,11 @@ One rectangular notch over the middle half of the joint line, merged into both m
 Your own outlines, given as pairs (face 0, face 1) in the unit box, the floor's thickness along x, the wall's along y, z along the joint line; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face of the wall cuts a slot into its bottom edge, 20 past the floor's top, and one on each face of the floor cuts a notch into its mitred edge, 40 past the wall's inner face, each over its own stretch of the joint line.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_custom.cpp
+
+## Angles
+
+![ss_e_op_1 at 120 degrees](elements/element_joint_plate_ss_e_op_angle_120.png)
+
+The same floor and wall folded 120 degrees instead of 90, their side faces mitred on the bisector: the fingers of `ss_e_op_1` keep their shape at the angle. The oracle runs every design of the family on its defaults at 90, 120 and 150 degrees (`op@120`, `op@150`); `ss_e_op_3` to `ss_e_op_6` fail there as they fail at 90, their merged loops leaving the stock, so the picture shows `ss_e_op_1`.
+
+\include{lineno} elements/element_joint_plate_ss_e_op_angle_120.cpp

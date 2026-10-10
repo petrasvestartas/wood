@@ -78,6 +78,7 @@ struct Row {
     double own = 0.0; // The volume of the joint's own solid: a key, else zero.
     size_t drills = 0;
     double ms = 0.0;
+    std::vector<std::vector<double>> keys; // Each loose key's shape: its volume, then its loops' edge lengths sorted.
     std::vector<std::string> failures;
 };
 
@@ -106,16 +107,47 @@ static std::string file_name(const std::string& id) {
     return name;
 }
 
+/// The angle fixtures per family, each running every design of the family on its defaults (a variant id of two parts): the floor and wall at
+/// 120 and 150 degrees beside the right angle, the rotated pair folded 90, 120 and 150 degrees, the upright skewed in plan at 60 and 75 degrees
+/// and leaning at 80, the crossing at 60 and 45 degrees, and the in-plane pair on a slanted seam and on a seam shorter than both plates.
+static const std::vector<std::pair<std::string, std::string>> ANGLE_FIXTURES = {
+    {"op", "120"}, {"op", "150"},
+    {"r", "90"}, {"r", "120"}, {"r", "150"},
+    {"ts", "skew60"}, {"ts", "skew75"}, {"ts", "lean80"},
+    {"cr", "60"}, {"cr", "45"},
+    {"ip", "trapezoid"}, {"ip", "short"},
+};
+
+/// The loose-key designs, whose keys must keep their shape on every fixture: never sheared or scaled by the joint volume's change of basis.
+static const std::vector<std::string> RIGID_KEYS = {"ss_e_ip_2", "ss_e_ip_5", "ss_e_r_2", "ss_e_r_3"};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Fixtures - the pairs of the element examples, kept joined, moved by xform before the contact is found
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Two 300 x 400 x 40 plates edge to edge in one plane: ss_e_ip, ss_e_r (with the scene set to treat every side-side joint as rotated) and side removal.
-static Fixture pair_in_plane(WoodSession& scene, const Xform& xform) {
+/// Two 40 thick plates edge to edge in one plane: ss_e_ip, ss_e_r (with the scene set to treat every side-side joint as rotated) and
+/// side removal. The shape is "" for two 300 x 400 plates, "trapezoid" for the seam slanted to 75 degrees from the bottom edges, "short" for a 300 x 200
+/// right plate in the middle of the left one's 400 edge, a seam shorter than both plates.
+static Fixture pair_in_plane(WoodSession& scene, const Xform& xform, const std::string& shape = "") {
+
+    // the slanted seam's top end, the seam at 75 degrees to the bottom edges
+    const double slant = 300.0 - 400.0 / std::tan(75.0 * std::numbers::pi / 180.0);
+    std::array<std::vector<Point>, 2> outlines;
+    if (shape == "trapezoid")
+        outlines = {{{{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {slant, 400.0, 0.0}, {0.0, 400.0, 0.0}}, {{300.0, 0.0, 0.0}, {600.0, 0.0, 0.0}, {600.0, 400.0, 0.0}, {slant, 400.0, 0.0}}}};
+    else if (shape == "short")
+        outlines = {{{{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}}, {{300.0, 100.0, 0.0}, {600.0, 100.0, 0.0}, {600.0, 300.0, 0.0}, {300.0, 300.0, 0.0}}}};
 
     Fixture f;
-    f.a = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "left");
-    f.b = Plate::from_rectangle({300.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "right");
+    if (shape.empty()) {
+        f.a = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "left");
+        f.b = Plate::from_rectangle({300.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "right");
+    } else {
+        const Polyline left = Polyline(outlines[0]).closed();
+        const Polyline right = Polyline(outlines[1]).closed();
+        f.a = std::make_shared<Plate>(left, left.transformed(Xform::translation(0.0, 0.0, 40.0)), "left");
+        f.b = std::make_shared<Plate>(right, right.transformed(Xform::translation(0.0, 0.0, 40.0)), "right");
+    }
     f.a->place(xform);
     f.b->place(xform);
     scene.add(f.a);
@@ -127,13 +159,25 @@ static Fixture pair_in_plane(WoodSession& scene, const Xform& xform) {
     return f;
 }
 
-/// A floor and a wall meeting at a right angle, their side faces mitred on one plane: ss_e_op; the joint's first side is the wall, the male of an out-of-plane pair being the second plate of the contact.
-static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform) {
+/// A 300 x 400 floor and a 300 high wall, both 40 thick, meeting at the dihedral angle (degrees) on the 400 seam, their side faces mitred on the
+/// bisector through the outer and the inner corner: ss_e_op, and ss_e_r folded; at 90 the right-angle corner of the examples. The joint's first
+/// side is the wall, the male of an out-of-plane pair being the second plate of the contact.
+static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform, double dihedral = 90.0) {
 
-    const Polyline floor_bottom({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}});
-    const Polyline floor_top({{0.0, 0.0, 40.0}, {260.0, 0.0, 40.0}, {260.0, 400.0, 40.0}, {0.0, 400.0, 40.0}, {0.0, 0.0, 40.0}});
-    const Polyline wall_bottom({{300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {300.0, 400.0, 300.0}, {300.0, 0.0, 300.0}, {300.0, 0.0, 0.0}});
-    const Polyline wall_top({{260.0, 0.0, 40.0}, {260.0, 400.0, 40.0}, {260.0, 400.0, 300.0}, {260.0, 0.0, 300.0}, {260.0, 0.0, 40.0}});
+    // the wall leaves the outer corner at the dihedral from the floor's -x, its inner face 40 toward the floor, the mitre through the inner corner
+    const double angle = dihedral * std::numbers::pi / 180.0;
+    const Vector up(-std::cos(angle), 0.0, std::sin(angle));
+    const Vector inward(-std::sin(angle), 0.0, -std::cos(angle));
+    const Vector along(0.0, 400.0, 0.0);
+    const Point outer(300.0, 0.0, 0.0);
+    const double inset = 40.0 * (1.0 + std::cos(angle)) / std::sin(angle);
+    const Point inner(300.0 - inset, 0.0, 40.0);
+    const Point wall_end = outer + up * 300.0;
+
+    const Polyline floor_bottom({{0.0, 0.0, 0.0}, outer, outer + along, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}});
+    const Polyline floor_top({{0.0, 0.0, 40.0}, inner, inner + along, {0.0, 400.0, 40.0}, {0.0, 0.0, 40.0}});
+    const Polyline wall_bottom({outer, outer + along, wall_end + along, wall_end, outer});
+    const Polyline wall_top({inner, inner + along, wall_end + inward * 40.0 + along, wall_end + inward * 40.0, inner});
 
     Fixture f;
     f.a = std::make_shared<Plate>(floor_bottom, floor_top, "floor");
@@ -149,12 +193,25 @@ static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform) {
     return f;
 }
 
-/// An upright 250 x 250 plate standing in the middle of a 400 x 400 base: ts_e_p; the joint's first side is the upright.
-static Fixture pair_top_side(WoodSession& scene, const Xform& xform) {
+/// An upright 250 x 250 x 40 plate standing on the middle of a 400 x 400 base: ts_e_p; the joint's first side is the upright. Its foot runs at
+/// the plan angle (degrees) to the base's x axis, 90 along y, and it leans toward its normal to the lean angle from the base, 90 upright, its
+/// foot kept flat on the base and its height 250.
+static Fixture pair_top_side(WoodSession& scene, const Xform& xform, double plan = 90.0, double lean = 90.0) {
+
+    const double plan_angle = plan * std::numbers::pi / 180.0;
+    const double tilt = (90.0 - lean) * std::numbers::pi / 180.0;
+    const Vector foot(std::cos(plan_angle), std::sin(plan_angle), 0.0);
+    const Vector normal = foot.cross(Vector(0.0, 0.0, 1.0));
+    const Vector rise = Vector(0.0, 0.0, 250.0) + normal * (250.0 * std::tan(tilt));
+    const Point corner = Point(200.0, 200.0, 40.0) - foot * 125.0 - normal * 20.0;
+    const Polyline face({corner, corner + foot * 250.0, corner + foot * 250.0 + rise, corner + rise, corner});
 
     Fixture f;
     f.a = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 400.0, 40.0, "base");
-    f.b = Plate::from_rectangle({180.0, 75.0, 40.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 250.0, 250.0, 40.0, "upright");
+    if (plan == 90.0 && lean == 90.0)
+        f.b = Plate::from_rectangle({180.0, 75.0, 40.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 250.0, 250.0, 40.0, "upright");
+    else
+        f.b = std::make_shared<Plate>(face, face.transformed(Xform::translation(normal[0] * 40.0, normal[1] * 40.0, 0.0)), "upright");
     f.a->place(xform);
     f.b->place(xform);
     scene.add(f.a);
@@ -183,12 +240,17 @@ static Fixture pair_top_top(WoodSession& scene, const Xform& xform) {
     return f;
 }
 
-/// Two upright 400 x 200 x 40 plates crossing at their middles: cr_c_ip.
-static Fixture pair_cross(WoodSession& scene, const Xform& xform) {
+/// Two upright 400 x 200 x 40 plates crossing at their middles, the second at the angle (degrees) to the first: cr_c_ip.
+static Fixture pair_cross(WoodSession& scene, const Xform& xform, double angle = 90.0) {
+
+    const double radians = angle * std::numbers::pi / 180.0;
+    const Vector along(std::cos(radians), std::sin(radians), 0.0);
+    const Vector normal = along.cross(Vector(0.0, 0.0, 1.0));
+    const Point origin = Point(200.0, 0.0, 0.0) - along * 200.0 - normal * 20.0;
 
     Fixture f;
     f.a = Plate::from_rectangle({0.0, 20.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "first");
-    f.b = Plate::from_rectangle({180.0, -200.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "second");
+    f.b = Plate::from_rectangle(origin, along, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "second");
     f.a->place(xform);
     f.b->place(xform);
     scene.add(f.a);
@@ -200,26 +262,41 @@ static Fixture pair_cross(WoodSession& scene, const Xform& xform) {
     return f;
 }
 
-/// The fixture of a family prefix.
-static Fixture make_fixture(const std::string& family, WoodSession& scene, const Xform& xform) {
+/// The fixture of a family token: the family prefix, then after an @ the angle or shape of an angle fixture (op@120, r@150, ts@skew60, ts@lean80, cr@45, ip@trapezoid).
+static Fixture make_fixture(const std::string& token, WoodSession& scene, const Xform& xform) {
+
+    const size_t at = token.find('@');
+    const std::string family = token.substr(0, at);
+    const std::string shape = at == std::string::npos ? "" : token.substr(at + 1);
 
     if (family == "ip")
-        return pair_in_plane(scene, xform);
+        return pair_in_plane(scene, xform, shape);
     if (family == "r") {
         scene.settings.all_treated_as_rotated = true;
         scene.settings.rotated_joint_as_average = true;
-        return pair_in_plane(scene, xform);
+        if (shape.empty())
+            return pair_in_plane(scene, xform);
+        // a rotated design keeps the contact's order
+        Fixture f = pair_out_of_plane(scene, xform, std::stod(shape));
+        f.target0 = f.a;
+        f.target1 = f.b;
+        return f;
     }
     if (family == "op")
-        return pair_out_of_plane(scene, xform);
-    if (family == "ts")
+        return pair_out_of_plane(scene, xform, shape.empty() ? 90.0 : std::stod(shape));
+    if (family == "ts") {
+        if (shape.starts_with("skew"))
+            return pair_top_side(scene, xform, std::stod(shape.substr(4)), 90.0);
+        if (shape.starts_with("lean"))
+            return pair_top_side(scene, xform, 90.0, std::stod(shape.substr(4)));
         return pair_top_side(scene, xform);
+    }
     if (family == "tt")
         return pair_top_top(scene, xform);
     if (family == "cr")
-        return pair_cross(scene, xform);
+        return pair_cross(scene, xform, shape.empty() ? 90.0 : std::stod(shape));
 
-    throw std::invalid_argument("no fixture for family " + family);
+    throw std::invalid_argument("no fixture for family " + token);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -338,10 +415,10 @@ static Built build_variant(const std::string& id, const Xform& xform) {
 
     const std::vector<std::string> parts = split(id, '/');
     Built built;
-    built.family = parts[0];
+    built.family = parts[0].substr(0, parts[0].find('@'));
     built.library = parts[1];
     built.scene = std::make_shared<WoodSession>(id);
-    built.fixture = make_fixture(built.family, *built.scene, xform);
+    built.fixture = make_fixture(parts[0], *built.scene, xform);
     built.joint = make_variant(parts);
 
     const Fixture& f = built.fixture;
@@ -525,6 +602,18 @@ static bool overcut_by_design(const std::string& library) {
     return library == "cr_c_ip_2" || library == "cr_c_ip_3" || library == "cr_c_ip_4" || library == "cr_c_ip_5";
 }
 
+/// What 2024's clip grid can leave of a crossing: the cross slots are merged into the outlines clipped at two decimals (CONTACT_GRID) in each
+/// plate's own frame, so a slot wall oblique to that frame stands up to half a grid step off, over the walls the two stocks share: half the
+/// grid times the surface of their crossing block. Zero for every other family and for a crossing at a right angle within a millionth.
+static double clip_grid_allowance(const Built& built) {
+
+    if (built.family != "cr")
+        return 0.0;
+
+    const Mesh block = solid_boolean(built.fixture.a->element_geometry_mesh(), built.fixture.b->element_geometry_mesh(), SolidOperation::intersect);
+    return block.number_of_faces() == 0 ? 0.0 : 0.5 * CONTACT_GRID * block.area();
+}
+
 /// C3: the members do not overlap after the joint, within OVERCUT_REL for a design 2024 over-cut; a cross pair overlapped before it, so the check is not empty.
 static void check_overlap(const Built& built, Row& row) {
 
@@ -534,7 +623,7 @@ static void check_overlap(const Built& built, Row& row) {
     row.volume_b = compute_volume(b.model_geometry_mesh());
     row.overlap = boolean_volume(a.model_geometry_mesh(), b.model_geometry_mesh(), SolidOperation::intersect);
 
-    const double allowed = (overcut_by_design(built.library) ? OVERCUT_REL : ZERO_REL) * std::min(row.volume_a, row.volume_b);
+    const double allowed = (overcut_by_design(built.library) ? OVERCUT_REL : ZERO_REL) * std::min(row.volume_a, row.volume_b) + clip_grid_allowance(built);
     if (row.overlap > allowed)
         fail(row, "C3", fmt::format("the members overlap by {:.6g} mm3", row.overlap));
     if (built.family == "cr") {
@@ -577,8 +666,9 @@ static void check_fit(const Built& built, Row& row) {
     const double taken_b = boolean_volume(b.element_geometry_mesh(), b.model_geometry_mesh(), SolidOperation::subtract);
     const double filled_by_b = boolean_volume(b.model_geometry_mesh(), a.element_geometry_mesh(), SolidOperation::intersect);
     const double filled_by_a = boolean_volume(a.model_geometry_mesh(), b.element_geometry_mesh(), SolidOperation::intersect);
-    const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh());
-    const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh());
+    const double grid = clip_grid_allowance(built);
+    const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh()) + grid;
+    const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh()) + grid;
 
     const bool removal_only = built.library.starts_with("side_removal") || built.library == "ss_e_ip_custom" || built.library == "ss_e_op_custom" || built.library == "ss_e_r_custom"
                               || built.library == "ts_e_p_custom" || built.library == "ts_e_p_4";
@@ -847,6 +937,58 @@ static void check_golden(const Built& built, Row& row) {
 // The run
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// C14, measured: each loose key's shape on this fixture, its volume and its loops' edge lengths sorted, compared across the fixtures in main.
+static void measure_keys(const Built& built, Row& row) {
+
+    if (std::find(RIGID_KEYS.begin(), RIGID_KEYS.end(), built.library) == RIGID_KEYS.end())
+        return;
+
+    const Joint& joint = *built.joint;
+    for (const std::array<Polyline, 2>& body : joint.bodies()) {
+        std::vector<double> shape = {compute_volume(Mesh::loft({body[0]}, {body[1]}, true))};
+        std::vector<double> edges;
+        for (const Polyline& loop : body)
+            for (size_t i = 0; i + 1 < loop.point_count(); i++)
+                edges.push_back(loop[i].distance(loop[i + 1]));
+        std::sort(edges.begin(), edges.end());
+        shape.insert(shape.end(), edges.begin(), edges.end());
+        row.keys.push_back(shape);
+    }
+}
+
+/// C14: every loose key on an angle fixture has the shape of a key on the design's own fixture, within VOLUME_REL of its volume and CLOSE of
+/// each edge: the keys are rigid, whatever the angle or the seam.
+static void check_rigid_keys(std::vector<Row>& rows) {
+
+    for (Row& row : rows) {
+        const size_t at = row.id.find('@');
+        if (at == std::string::npos || row.keys.empty())
+            continue;
+        const std::string reference_id = row.id.substr(0, at) + row.id.substr(row.id.find('/'));
+        const Row* reference = nullptr;
+        for (const Row& other : rows)
+            if (other.id == reference_id)
+                reference = &other;
+        if (!reference || reference->keys.empty()) {
+            fail(row, "C14", "no keys on the design's own fixture to compare with");
+            continue;
+        }
+        for (size_t k = 0; k < row.keys.size(); k++) {
+            bool matched = false;
+            for (const std::vector<double>& shape : reference->keys) {
+                if (shape.size() != row.keys[k].size())
+                    continue;
+                bool same = std::abs(shape[0] - row.keys[k][0]) <= VOLUME_REL * std::max(shape[0], 1.0) + CLOSE;
+                for (size_t i = 1; same && i < shape.size(); i++)
+                    same = std::abs(shape[i] - row.keys[k][i]) <= 1e-6;
+                matched = matched || same;
+            }
+            if (!matched)
+                fail(row, "C14", fmt::format("key {} of {:.6g} mm3 has no counterpart among the {} keys of {}", k, row.keys[k][0], reference->keys.size(), reference_id));
+        }
+    }
+}
+
 /// A check by name; each runs under its own guard, so one that throws is a failure of that variant and the next still runs.
 struct Check {
     const char* name;
@@ -864,6 +1006,18 @@ static const Check CHECKS[] = {
     {"C10", check_round_trip},
     {"C10", check_rigid_motion},
     {"C11", check_golden},
+    {"C14", measure_keys},
+};
+
+/// The checks of an angle fixture: outlines, solids, overlap, conservation, fit, the goldens and the keys' shapes.
+static const Check ANGLE_CHECKS[] = {
+    {"C1", check_outlines},
+    {"C2", check_solids},
+    {"C3", check_overlap},
+    {"C4", check_conservation},
+    {"C6", check_fit},
+    {"C11", check_golden},
+    {"C14", measure_keys},
 };
 
 /// One variant built and put through every check.
@@ -875,11 +1029,14 @@ static Row run_variant(const std::string& id) {
 
     try {
         const Built built = build_variant(id, Xform::identity());
-        for (const Check& check : CHECKS) {
+        const bool angle = id.find('@') != std::string::npos;
+        const Check* checks = angle ? ANGLE_CHECKS : CHECKS;
+        const size_t count = angle ? std::size(ANGLE_CHECKS) : std::size(CHECKS);
+        for (size_t c = 0; c < count; c++) {
             try {
-                check.run(built, row);
+                checks[c].run(built, row);
             } catch (const std::exception& e) {
-                fail(row, check.name, std::string("throws: ") + e.what());
+                fail(row, checks[c].name, std::string("throws: ") + e.what());
             }
         }
     } catch (const std::exception& e) {
@@ -895,12 +1052,21 @@ int main(int argc, char** argv) {
     std::vector<std::string> ids;
     for (int i = 1; i < argc; i++)
         ids.emplace_back(argv[i]);
-    if (ids.empty())
+    if (ids.empty()) {
         ids = VARIANTS;
+        // every design on its defaults on each angle fixture of its family
+        for (const std::pair<std::string, std::string>& fixture : ANGLE_FIXTURES)
+            for (const std::string& id : VARIANTS) {
+                const std::vector<std::string> parts = split(id, '/');
+                if (parts.size() == 2 && parts[0] == fixture.first)
+                    ids.push_back(fixture.first + "@" + fixture.second + "/" + parts[1]);
+            }
+    }
 
     std::vector<Row> rows;
     for (const std::string& id : ids)
         rows.push_back(run_variant(id));
+    check_rigid_keys(rows);
 
     // the table
     std::cout << std::left << std::setw(34) << "variant" << std::right << std::setw(12) << "V_a" << std::setw(12) << "V_b" << std::setw(12) << "lost"

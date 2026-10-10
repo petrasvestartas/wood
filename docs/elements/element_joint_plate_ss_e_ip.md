@@ -79,3 +79,11 @@ An eight-point tooth pocket into each edge per division, each reversed, two on t
 Your own outlines, given as pairs (face 0 at y = -0.5, face 1 at y = 0.5) in the unit box, x across the seam scaled to the thickness, z along it; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face cuts a notch half a thickness deep into the male plate's edge over one stretch of the seam, and one into the female's over another.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_custom.cpp
+
+## Angles
+
+![ss_e_ip_1 on a seam at 75 degrees](elements/element_joint_plate_ss_e_ip_angle_75.png)
+
+Two plates whose seam runs at 75 degrees to their edges: the fingers of `ss_e_ip_1` keep their shape along the slanted seam. The oracle runs every design of the family on its defaults on that seam and on a seam shorter than both plates (`ip@trapezoid`, `ip@short`), and checks the loose keys of `ss_e_ip_2` and `ss_e_ip_5` rigid: every key on those fixtures has the volume and the edge lengths of a key on the straight seam.
+
+\include{lineno} elements/element_joint_plate_ss_e_ip_angle_75.cpp

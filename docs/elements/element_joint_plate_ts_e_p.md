@@ -86,3 +86,11 @@ The snap-fit tenon, 2024's literals, a copy per division spread along the joint 
 Your own outlines in the unit box, pairs (face 0, face 1) per side, kept pair by pair as the 2024 library kept a custom design: the outlines carry the fabrication type nothing, and only a closed rectangle of five points, or a line of two, is merged into the plate's edge; here a rectangle on each face of the upright cuts a notch into its bottom edge, and the rectangles on the base's faces, where 2024 merged nothing, stay features and cut nothing.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_custom.cpp
+
+## Angles
+
+![ts_e_p_3 skewed 60 degrees](elements/element_joint_plate_ts_e_p_angle_60.png)
+
+The upright's foot at 60 degrees to the base's edges in plan: the tenons and mortises of `ts_e_p_3` follow the skewed contact. The oracle runs every design of the family on its defaults skewed 60 and 75 degrees and leaning 80 degrees from the base (`ts@skew60`, `ts@skew75`, `ts@lean80`), the foot kept flat on the base.
+
+\include{lineno} elements/element_joint_plate_ts_e_p_angle_60.cpp

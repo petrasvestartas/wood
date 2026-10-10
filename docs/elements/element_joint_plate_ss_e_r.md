@@ -76,3 +76,11 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts; kept as 2024 wrote it, the merged form swaps the sides last and hands each plate its own side slab outside its stock, so no side is removed and only the tile's conic slivers cut. 2024 named it as id 58 but dispatched `side_removal(true)` for it, so no 2025 reference dataset reaches it; it is the 2024 function, not a design the solver chooses.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.cpp
+
+## Angles
+
+![ss_e_r_0 at 120 degrees](elements/element_joint_plate_ss_e_r_angle_120.png)
+
+Two plates folded 120 degrees on a mitred seam, the scene reading the contact as rotated: the slices of `ss_e_r_0` follow the seam. The oracle runs every design of the family on its defaults folded 90, 120 and 150 degrees (`r@90`, `r@120`, `r@150`); the key designs `ss_e_r_2` and `ss_e_r_3` own no key yet, there or in plane, so their keys' rigidity is not measured until they do.
+
+\include{lineno} elements/element_joint_plate_ss_e_r_angle_120.cpp

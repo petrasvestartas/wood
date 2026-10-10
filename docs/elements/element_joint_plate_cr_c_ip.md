@@ -86,3 +86,11 @@ The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the 
 Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: the outlines carry the fabrication type nothing, and only a closed rectangle of five points, or a line of two, is merged into the plate's outline; here the slots split the cross's depth unequally, 60 down from the first plate's top edge and 140 up from the second's bottom edge, where `cr_c_ip_0` halves it. The id 39.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_custom.cpp
+
+## Angles
+
+![cr_c_ip_2 crossing at 45 degrees](elements/element_joint_plate_cr_c_ip_angle_45.png)
+
+Two plates crossing at 45 degrees: the milled half-laps of `cr_c_ip_2` follow the oblique crossing. The oracle runs every design of the family on its defaults crossing at 60 and 45 degrees (`cr@60`, `cr@45`); the slots are merged clipped on 2024's 0.01 mm grid in each plate's frame, so an oblique slot wall may stand half a grid step off, which the oracle allows over the walls of the crossing block and no more.
+
+\include{lineno} elements/element_joint_plate_cr_c_ip_angle_45.cpp

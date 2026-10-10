@@ -79,8 +79,10 @@ public:
     }
     std::string str() const override;
 
-protected:
+    /// The joint's own solids, each a bottom and a top loop to loft: a connector's parts, a key design's keys; empty for a joint that owns none.
     virtual std::vector<std::array<Polyline, 2>> bodies() const;
+
+protected:
     virtual void write_proto(wood_proto::Joint& proto) const;
     virtual void read_proto(const wood_proto::Joint& proto);
     void compute_geometry_mesh_impl() override;

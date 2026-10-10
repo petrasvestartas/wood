@@ -15,6 +15,7 @@ const double CLEARANCE = 1e-6; // an edge must keep the drill radius plus this f
 const double STEEP = 0.2; // a drill crossing a face at a cosine below this is too oblique for a clean ellipse
 const int SAMPLES = 64; // points sampled along a hole loop to find how far it reaches along the axis
 const double VOLUME = 1e-3; // relative volume deviation the exact solid may show against the mesh it replaces
+const double PLANAR_VOLUME = 1e-9; // the same for a solid of planar faces only, whose tessellation is exact: a face the BRep lost shows
 const double BORE_SLACK = 0.15; // share of the bored volume the kernel's tessellated volume may miss besides, its polygons lying inside the true circles
 const double SQUARE = 1e-9; // a hole loop spanning less than this along its drill is square to it: the bore surface ends exactly on it, which the kernel meshes on its grid
 const double AXIS = 1e-4; // two drills whose radii, directions, axis offsets and span gap all lie within this are one bore
@@ -1113,7 +1114,8 @@ static bool check_volume(
 
     const double expected = compute_volume(mesh) - removed;
 
-    if (brep.is_solid() && std::abs(brep.volume() - expected) <= VOLUME * expected + BORE_SLACK * removed)
+    const double tolerance = drills.empty() ? PLANAR_VOLUME : VOLUME;
+    if (brep.is_solid() && std::abs(brep.volume() - expected) <= tolerance * expected + BORE_SLACK * removed)
         return true;
 
     if constexpr (TRACE) {
