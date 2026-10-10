@@ -25,6 +25,7 @@ An element is built from its own parameters only. Whatever another element does 
 | [JointPlate cr_c_ip](@ref elements_joint_plate_cr_c_ip) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip_0` to `_5`, `_custom` |
 | [JointPlate tt_e_p](@ref elements_joint_plate_tt_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_tt_e_p_0` to `_5`, `_custom` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact`, `_wedge`, `_rectangle_plate`, `_tie`, `_centred_pins`, `_headed_pins` |
+| [JointBeam hilti](@ref elements_joint_hilti) | `wood_element_joint_beam.h` | `element_joint_hilti`, `_angles` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
 
@@ -45,6 +46,7 @@ An element is built from its own parameters only. Whatever another element does 
 - @subpage elements_joint_plate_cr_c_ip
 - @subpage elements_joint_plate_tt_e_p
 - @subpage elements_joint_beam
+- @subpage elements_joint_hilti
 - @subpage elements_pin
 - @subpage elements_connector_part
 

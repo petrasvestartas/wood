@@ -156,6 +156,10 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
   (cpp, py and rust together) instead of writing it in wood.
 - A helper two files need lives once in the module's internal header, never as two
   `static` copies.
+- Writing a new geometry helper when the kernel already has a similar method is highly
+  discouraged: compose the kernel's calls (`Xform::frame_to_world`, `Polyline::transformed`,
+  `Plane::project`, `Polyline::from_sides`, `Intersection`, `Closest`, ...) where the step
+  is used, and only when nothing close exists write the missing step, once.
 
 
 ## Examples folder

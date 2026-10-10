@@ -146,6 +146,29 @@ public:
         int sides = 16
     );
 
+    /// The Hilti connector across the straight seam of two slabs, flat or folded up: two identical plywood halves, each a trapezoid wing
+    /// widening away from the seam on a rectangular neck, sunk square to the seam face one in each slab; a threaded rod, its pin, through
+    /// both necks and both discs; a round disc taking the nut on the outer end of each half. Target i gets the pocket of its half and of
+    /// its disc and an obround access slot milled from its top face, as long as the half, over the half's outer end. The parts keep their
+    /// shape at every fold angle; only the pockets and the slots follow the slabs. Null when the contact has no straight seam or a member is no Plate.
+    static std::shared_ptr<JointBeam> hilti(
+        const Element& a,
+        const Element& b,
+        const InteractionContactFace& contact,
+        double half_length = 140.0,     // a half along the rod, the seam to its outer end
+        double neck_length = 50.0,      // the rectangular neck at the seam
+        double wing_width = 120.0,      // the wing at the half's outer end
+        double neck_width = 50.0,       // the neck, and the wing where it starts
+        double thickness = 50.0,        // the plywood across the slab
+        double rod_diameter = 16.0,     // the threaded rod
+        double disc_diameter = 70.0,    // the round disc under each nut
+        double disc_thickness = 8.0,
+        double slot_width = 60.0,       // the obround access slot
+        double lift = 0.0,              // the rod above the middle of the seam face, 0 at mid-thickness
+        double rod_overhang = 15.0,     // the rod past each disc, the nut
+        int sides = 32                  // the disc's and the slot ends' polygon, and the rod's chord tolerance
+    );
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════

@@ -17,6 +17,7 @@ static std::shared_ptr<JointBeam> rectangle_plate(const Element& column, const E
 static std::shared_ptr<JointBeam> tie(const Element& a, const Element& b, const InteractionContactFace& contact, ...)
 static std::shared_ptr<JointBeam> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...)
 static std::shared_ptr<JointBeam> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16)
+static std::shared_ptr<JointBeam> hilti(const Element& a, const Element& b, const InteractionContactFace& contact, double half_length = 140.0, ...)   // see the hilti page
 
 std::shared_ptr<Interaction> interaction(size_t target) const
 std::vector<std::shared_ptr<Joint>> children() const
@@ -128,3 +129,7 @@ Pins from a beam's far face into the joist ending on it, in each `PinLayout`: co
 | `radius`, `length`, `sides` | 2, 200, 16 | each pin |
 
 \include{lineno} elements/element_joint_beam_headed_pins.cpp
+
+## Hilti
+
+The Hilti connector across the mitred seam of two CLT slabs, flat or folded up to 50 degrees, two identical plywood half-dovetails on one threaded rod with a disc at each end, has its own page with its examples: [JointBeam hilti](@ref elements_joint_hilti).
