@@ -1,3 +1,21 @@
+/// A bottom side of the half-lap, the ring on its four corners extended as 2024 extended the closed polyline: its first
+/// segment by `extension_first` and its third by `extension_second` along the plate, then its second and fourth 0.6 up and
+/// down so the cut clears the plate, both ends each and in that order. The corners are extended as points and the ring
+/// closed on them afterwards, since Polyline::extend_segment_equally(int) leaves a closed ring open on its first and last segment.
+static Polyline bottom_side(const Point& a, const Point& b, const Point& c, const Point& d, double extension_first, double extension_second) {
+
+    Point q0 = a;
+    Point q1 = b;
+    Point q2 = c;
+    Point q3 = d;
+    Polyline::extend_segment_equally(q0, q1, extension_first);
+    Polyline::extend_segment_equally(q2, q3, extension_second);
+    Polyline::extend_segment_equally(q1, q2, 0.6);
+    Polyline::extend_segment_equally(q3, q0, 0.6);
+
+    return Polyline({q0, q1, q2, q3, q0});
+}
+
 /// The body cr_c_ip_2 to cr_c_ip_5 share, as 2024 wrote it four times: the half-lap's sixteen points on the shift, five
 /// rings on them (the centre, two top sides, two bottom sides), the bottom sides extended along the plate by
 /// `extension_first` on their first segment and `extension_second` on their third, both ends each, and 0.6 up and down
@@ -34,19 +52,9 @@ static void cr_c_ip_core(
         Polyline({p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0}), // center
         Polyline({p[1] - v0, p[0] + v0, p[8] + v0, p[9] - v0, p[1] - v0}), // top side 0
         Polyline({p[3] + v0, p[2] - v0, p[10] - v0, p[11] + v0, p[3] + v0}), // top side 1
-        Polyline({p[2], p[1], p[13], p[14], p[2]}), // bottom side 0
-        Polyline({p[0], p[3], p[15], p[12], p[0]}), // bottom side 1
+        bottom_side(p[2], p[1], p[13], p[14], extension_first, extension_second), // bottom side 0
+        bottom_side(p[0], p[3], p[15], p[12], extension_first, extension_second), // bottom side 1
     };
-
-    // the bottom sides extended to both sides, then vertically, to compensate for irregularities
-    for (size_t i = 3; i < 5; i++) {
-        rings[i].extend_segment_equally(0, extension_first);
-        rings[i].extend_segment_equally(2, extension_second);
-    }
-    for (size_t i = 3; i < 5; i++) {
-        rings[i].extend_segment_equally(1, 0.6);
-        rings[i].extend_segment_equally(3, 0.6);
-    }
     rings.insert(rings.end(), drills.begin(), drills.end());
 
     // face 1 offset along each ring's normal, the male rotated into the other plate

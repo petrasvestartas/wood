@@ -6,6 +6,8 @@ annen_grid_small
 cross_brussels_sports_tower
 cross_corners
 cross_square_reciprocal_iseya
+cross_square_reciprocal_two_sides
+cross_vda_corner
 cross_vda_hexshell
 cross_vda_hexshell_reciprocal
 cross_vda_shell

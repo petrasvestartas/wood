@@ -178,11 +178,27 @@ bool MergeModifier::merges_into_outline(const InteractionFeaturePlate& joint, bo
     return types[0][0] == FabricationType::edge_insertion || types[0][0] == FabricationType::insert_between_multiple_edges;
 }
 
-MergeModifier::ClipFrame MergeModifier::clip_frame(const Polyline& face, const Plane& plane) {
+/// The face normal as 2024 computed it for its plate planes: over the outline's vertices, the closing point dropped, the sum of the cross product of the edge in with the edge out, unitized. The plate's own plane carries the Newell normal, the same direction to its last bits, and whether a component of the normal is exactly zero picks CGAL's base1 of the face, so the clip frame takes 2024's bits.
+static Vector clip_normal(const Polyline& outline) {
 
+    const std::vector<Point>& points = outline.get_points();
+    const size_t count = outline.is_closed() ? points.size() - 1 : points.size();
+    Vector normal(0.0, 0.0, 0.0);
+    for (size_t i = 0; i < count; i++) {
+        const Point& previous = points[(i + count - 1) % count];
+        const Point& next = points[(i + 1) % count];
+        normal += (points[i] - previous).cross(next - points[i]);
+    }
+
+    return normal.normalized();
+}
+
+MergeModifier::ClipFrame MergeModifier::clip_frame(size_t face) const {
+
+    // 2024 gave the bottom plane the normal of the bottom outline and the top plane its negative, and CGAL's bases follow the sign: the top face's x axis turns with it
+    const Vector normal = face == 0 ? clip_normal(plate.polylines[0]) : -clip_normal(plate.polylines[0]);
     ClipFrame frame;
-    frame.origin = face.get_point(0);
-    const Vector normal = plane.z_axis().normalized();
+    frame.origin = plate.polylines[face].get_point(0);
     frame.x_axis = cgal_base1(normal);
     frame.y_axis = normal.cross(frame.x_axis).normalized();
 
@@ -238,8 +254,8 @@ Polyline MergeModifier::on_clipper_points(const Polyline& run, const Polyline& f
 
 void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>, 2>& outlines) {
 
-    // clipped as 2024 clipped: the kernel's clip of the outlines on Clipper2's grid gives the run and its edge parameters, Clipper2's own clip gives the run its points, so the slot lands where the 2025 reference puts it
-    const ClipFrame frame_bottom = clip_frame(plate.polylines[0], plate.planes[0]);
+    // clipped as 2024 clipped: the kernel's clip of the outlines on Clipper2's grid gives the run and its edge parameters, Clipper2's own clip in 2024's frame gives the run its points, so the slot lands where the 2025 reference puts it
+    const ClipFrame frame_bottom = clip_frame(0);
     Polyline clipped_bottom;
     std::pair<double, double> parameters_bottom;
     if (!Intersection::closed_and_open_paths_2d(
@@ -252,7 +268,7 @@ void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>,
         return;
     clipped_bottom = on_clipper_points(clipped_bottom, plate.polylines[0], outlines[0][0], frame_bottom);
 
-    const ClipFrame frame_top = clip_frame(plate.polylines[1], plate.planes[1]);
+    const ClipFrame frame_top = clip_frame(1);
     Polyline clipped_top;
     std::pair<double, double> parameters_top;
     if (!Intersection::closed_and_open_paths_2d(

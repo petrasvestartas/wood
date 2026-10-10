@@ -15,12 +15,15 @@ static const double PLANAR = 1e-6; // mm, a loop's distance from its plane
 static const double VOLUME_REL = 1e-9; // relative, planar solids against each other and a round trip
 static const double ROUND_REL = 1e-3; // relative, a BRep with cylinders against its polygonal mesh
 static const double ZERO_REL = 1e-6; // relative to a member, an overlap, material outside the stock, a fit
+static const double OVERCUT_REL = 2e-3; // relative to a member, the overlap of a design 2024 over-cut on purpose (overcut_by_design): measured 0 to 4044 mm3 of 3.03e6 on the fixture, 72000 with the rings left open
+static const double UNFILLED_REL = 0.1; // relative to the stock a member lost, what the other leaves unfilled in a design 2024 over-cut: measured 4.5 % to 7.5 % for cr_c_ip_2 to cr_c_ip_4 (7488 to 12499 of 165133 to 167658 mm3)
+static const double UNFILLED_BITS_REL = 0.4; // the same for cr_c_ip_5, whose bits nothing fills: measured 28 % to 31 % (52236 of 186118, 63518 of 202471 mm3)
 static const double HOLE_REL = 1e-2; // relative, the polygonal drill mesh against pi r^2 L
 static const double GOLDEN_TOL = 1e-6; // mm, a golden coordinate
 static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face contact: the 2024 solver clipped the face quads at two decimals in the face's own frame, so a joint moved rigidly lands on another grid and its outlines move by up to this
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here.
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
     "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
     "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
@@ -32,7 +35,7 @@ static const std::vector<std::string> VARIANTS = {
     "ts/ts_e_p_3/16/0.25", "ts/ts_e_p_3/24/0.75", "ts/ts_e_p_4", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
     "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/6/1.0",
     "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5", "r/side_removal_ss_e_r_1/1/0.5",
-    "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/1.0", "cr/cr_c_ip_4",
+    "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/0.75", "cr/cr_c_ip_4",
     "cr/cr_c_ip_4/0.25", "cr/cr_c_ip_5", "cr/cr_c_ip_5/0.75", "cr/cr_c_ip_custom",
     "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/60/8", "tt/tt_e_p_3/60/8", "tt/tt_e_p_4/60/8", "tt/tt_e_p_5/60/8", "tt/tt_e_p_3/30/4",
 };
@@ -513,7 +516,13 @@ static void check_solids(const Built& built, Row& row) {
         fail(row, "C2", fmt::format("the joint's own solid is closed {} with volume {:.6g}", body.is_closed(), row.own));
 }
 
-/// C3: the members do not overlap after the joint; a cross pair overlapped before it, so the check is not empty.
+/// cr_c_ip_2 to cr_c_ip_5 as 2024 wrote them: the bottom sides of the half-lap are extended 0.15 along the plate and 0.6 along their slant "to compensate for irregularities", so the wedge each plate loses runs past the other plate's faces below the lap's middle, a margin the other does not fill, and stops 0.075 short of them at the middle, a sliver both plates keep; cr_c_ip_5 bores its bits besides, which nothing fills. The 2025 reference solver builds the same rings on this fixture, to 6e-6 mm, so the misfit is the design's: the oracle bounds it by what it measured (OVERCUT_REL, UNFILLED_REL, UNFILLED_BITS_REL) instead of expecting none.
+static bool overcut_by_design(const std::string& library) {
+
+    return library == "cr_c_ip_2" || library == "cr_c_ip_3" || library == "cr_c_ip_4" || library == "cr_c_ip_5";
+}
+
+/// C3: the members do not overlap after the joint, within OVERCUT_REL for a design 2024 over-cut; a cross pair overlapped before it, so the check is not empty.
 static void check_overlap(const Built& built, Row& row) {
 
     const Plate& a = *built.fixture.a;
@@ -522,7 +531,8 @@ static void check_overlap(const Built& built, Row& row) {
     row.volume_b = compute_volume(b.model_geometry_mesh());
     row.overlap = boolean_volume(a.model_geometry_mesh(), b.model_geometry_mesh(), SolidOperation::intersect);
 
-    if (row.overlap > ZERO_REL * std::min(row.volume_a, row.volume_b))
+    const double allowed = (overcut_by_design(built.library) ? OVERCUT_REL : ZERO_REL) * std::min(row.volume_a, row.volume_b);
+    if (row.overlap > allowed)
         fail(row, "C3", fmt::format("the members overlap by {:.6g} mm3", row.overlap));
     if (built.family == "cr") {
         const double before = boolean_volume(a.element_geometry_mesh(), b.element_geometry_mesh(), SolidOperation::intersect);
@@ -574,6 +584,16 @@ static void check_fit(const Built& built, Row& row) {
             fail(row, "C6", fmt::format("a removal fills {:.6g} and {:.6g} mm3 of the other member", filled_by_a, filled_by_b));
         if (!(taken_a + taken_b > 0.0))
             fail(row, "C6", "a removal took nothing away");
+        return;
+    }
+
+    // a design 2024 over-cut: each member fills no more than the other lost, and leaves no more of it unfilled than the design measured
+    if (overcut_by_design(built.library)) {
+        const double unfilled = built.library == "cr_c_ip_5" ? UNFILLED_BITS_REL : UNFILLED_REL;
+        if (filled_by_b > taken_a + tolerance_a || taken_a - filled_by_b > unfilled * taken_a)
+            fail(row, "C6", fmt::format("{} lost {:.6g} mm3, {} fills {:.6g} of it", a.name, taken_a, b.name, filled_by_b));
+        if (filled_by_a > taken_b + tolerance_b || taken_b - filled_by_a > unfilled * taken_b)
+            fail(row, "C6", fmt::format("{} lost {:.6g} mm3, {} fills {:.6g} of it", b.name, taken_b, a.name, filled_by_a));
         return;
     }
 

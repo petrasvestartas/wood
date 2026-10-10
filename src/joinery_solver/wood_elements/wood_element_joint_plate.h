@@ -150,7 +150,6 @@ public:
     // cr_c_ip
     // ═══════════════════════════════════════════════════════════════════════════
 
-    static std::shared_ptr<JointPlate> cr_c_ip_0();
     // Cross in-plane, contact 30, ids 30-39 as 2024 numbered them: 30 cr_c_ip_0 (the family default id), 31 cr_c_ip_1,
     // 32 cr_c_ip_2, 33 cr_c_ip_3, 34 cr_c_ip_4, 35 cr_c_ip_5, 38 side_removal, 39 cr_c_ip_custom; an id without an entry
     // takes cr_c_ip_0. The family has no divisions; the shift default is the family's 0.5, and it sets the width of the
@@ -162,6 +161,7 @@ public:
     // segment and shortened 0.075 on the other as 2024 built the Brussels sports tower.
 
 
+    static std::shared_ptr<JointPlate> cr_c_ip_0();
     static std::shared_ptr<JointPlate> cr_c_ip_1(double shift = 0.5);
 
     static std::shared_ptr<JointPlate> cr_c_ip_2(double shift = 0.5);

@@ -78,6 +78,9 @@ public:
         double distance_squared
     );
 
+    /// True when the side's first outline is an edge insertion (edge_insertion, insert_between_multiple_edges, or untyped), what the outline passes stitch in, or a custom pair of no type whose second copy has two points or five, the line and the rectangle 2024 merged whatever the type; a hole, a mill, a slice, a cut, a conic or a drill is not. A side removal's mill_project rectangle stays out on purpose: 2024 clipped it into the outline whatever its type, and its clip of a rectangle oblique to the face leaves the outline crossing itself, as the 2025 hex block reference shows; the session cuts the removal as a solid instead.
+    static bool merges_into_outline(const InteractionFeaturePlate& joint, bool male_or_female);
+
 private:
     /// Squared perpendicular distance from p to the infinite line through line_a and line_b.
     static double perpendicular_distance_squared(const Point& p, const Point& line_a, const Point& line_b);
@@ -99,13 +102,13 @@ private:
         bool male_or_female
     ) const;
 
-    /// The frame 2024 clipped a face in: the face outline's first point, CGAL's base1 of the face plane and the normal's cross with it.
-    static ClipFrame clip_frame(const Polyline& face, const Plane& plane);
+    /// The frame 2024 clipped a face in: the face outline's first point, CGAL's base1 of the plane 2024 gave the face (the bottom outline's normal as 2024 summed it, negated for the top face) and the normal's cross with it. The frame sets which way Clipper2 reads every edge, and with it the side a crossing rounds to.
+    ClipFrame clip_frame(size_t face) const;
 
     /// The outline on 2024's clip grid: each point's two coordinates in the frame rounded to CLIP_GRID, as Clipper2 rounds every vertex it takes at two decimals, and the point put back on the face, so the kernel's clip sees the outlines Clipper2 saw.
     static Polyline on_clip_grid(const Polyline& outline, const ClipFrame& frame);
 
-    /// The run with each point moved onto the nearest point, within a grid step, of Clipper2's own clip of the joint outline against the face outline at two decimals, the clip 2024 ran: Clipper2 keeps a vertex on the grid, truncates the intersection of two slanted edges toward zero and rounds one on a horizontal edge to the nearest, and the 2025 reference holds every slot where it put them. A point no result point is near keeps its grid position.
+    /// The run with each point moved onto the nearest point, within two grid steps, of Clipper2's own clip of the joint outline against the face outline at two decimals in 2024's frame, the clip 2024 ran: Clipper2 keeps a vertex on the grid and rounds a crossing by the way it reads the edges, and the 2025 reference holds every slot where it put them. A point no result point is near keeps its grid position.
     static Polyline on_clipper_points(const Polyline& run, const Polyline& face, const Polyline& joint, const ClipFrame& frame);
 
     /// Clips the rectangle joint against both outlines on the 2024 clip grid and inserts the clipped runs.
@@ -138,9 +141,6 @@ private:
         int joint_id,
         bool male_or_female
     );
-
-    /// True when the side's first outline is an edge insertion (edge_insertion, insert_between_multiple_edges, or untyped), what the outline passes stitch in, or a custom pair of no type whose second copy has two points or five, the line and the rectangle 2024 merged whatever the type; a hole, a mill, a slice, a cut, a conic or a drill is not.
-    static bool merges_into_outline(const InteractionFeaturePlate& joint, bool male_or_female);
 
     /// The merged pair without what the stitching leaves meaningless, both loops kept in step vertex for vertex: a point repeated on a face, or a corner a run folds back over on a face, where the loop reverses along its own edge, as a male outline rising from the mitre corner does on a right-angle pair, goes from both loops when the other face loses no shape by it, its vertex there repeated, folded or on the edge between its neighbours; all within the merge's distance, the contact grid having moved the oriented outlines off the corners by microns. 2024 kept them all and its right-angle loops crossed themselves. The closing points stay in step.
     void drop_folded_corners(Polyline& merged_bottom, Polyline& merged_top) const;
