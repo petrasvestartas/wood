@@ -133,13 +133,13 @@ Mesh Joint::body_mesh() const {
         return Mesh::loft(bottom, top, true);
     }
 
-    Mesh mesh;
+    // a key cut from the plates is the whole of the joint's own solid, the pieces its loops make included
+    Mesh mesh = key_mesh();
+    if (mesh.number_of_faces() > 0)
+        return mesh;
 
     for (const std::array<Polyline, 2>& body : bodies())
         append_mesh(mesh, Mesh::loft({body[0]}, {body[1]}, true));
-
-    if (mesh.number_of_faces() == 0)
-        mesh = key_mesh();
 
     if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
         return *_geometry_mesh;
@@ -152,8 +152,15 @@ const Mesh& Joint::element_geometry_mesh() const {
     if (!mesh_) {
         mesh_ = body_mesh();
 
-        for (const Line& axis : drill_axes())
-            append_mesh(*mesh_, drill_mesh(axis, line_radius, chord_tolerance));
+        // a pin through a key is one solid with it; a joint's other pins stand on their own
+        const bool keyed = key_mesh().number_of_faces() > 0;
+        for (const Line& axis : drill_axes()) {
+            const Mesh pin = drill_mesh(axis, line_radius, chord_tolerance);
+            if (keyed)
+                mesh_ = solid_boolean(*mesh_, pin, SolidOperation::add);
+            else
+                append_mesh(*mesh_, pin);
+        }
     }
 
     return *mesh_;
@@ -169,11 +176,11 @@ const BRep& Joint::element_geometry_brep() const {
             }
             brep_ = brep_between_loops(bottom, top);
         } else {
-            const std::vector<std::array<Polyline, 2>> parts = bodies();
+            const Mesh key = key_mesh();
+            const std::vector<std::array<Polyline, 2>> parts = key.number_of_faces() > 0 ? std::vector<std::array<Polyline, 2>>() : bodies();
             brep_ = BRep();
             for (const std::array<Polyline, 2>& body : parts)
                 append_brep(*brep_, brep_between_loops({body[0]}, {body[1]}));
-            const Mesh key = parts.empty() ? key_mesh() : Mesh();
             if (key.number_of_faces() > 0)
                 brep_ = mesh_brep(key);
             else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_brep)

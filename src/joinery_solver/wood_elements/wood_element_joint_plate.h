@@ -263,7 +263,8 @@ public:
     /// The drill lines of one side of a connection, a pair its builder repeats once.
     static std::vector<Line> side_drills(const InteractionFeaturePlate& connection, int side);
 
-    /// The loose key of ss_e_r_2 and ss_e_r_3, what each plate loses to its side's solids united; empty for every other design. The
+    /// The loose key of ss_e_r_2, ss_e_r_3, ss_e_ip_3 and ss_e_ip_4, what each plate loses to its side's solids united with the notches
+    /// of the in-plane runs; empty for every other design. The
     /// constructors and the solver call it once the connections are built, with the plates they join.
     void compute_key(const std::vector<std::shared_ptr<Plate>>& elements);
 

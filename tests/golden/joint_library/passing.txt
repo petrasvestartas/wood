@@ -6,6 +6,7 @@ ip/ss_e_ip_1/16/1.0
 ip/ss_e_ip_2
 ip/ss_e_ip_2/4
 ip/ss_e_ip_2/2
+ip/ss_e_ip_3
 ip/ss_e_ip_5
 ip/ss_e_ip_5/4
 ip/ss_e_ip_5/6
@@ -115,10 +116,13 @@ cr@45/cr_c_ip_5
 ip@trapezoid/ss_e_ip_0
 ip@trapezoid/ss_e_ip_1
 ip@trapezoid/ss_e_ip_2
+ip@trapezoid/ss_e_ip_3
 ip@trapezoid/ss_e_ip_5
 ip@trapezoid/ss_e_ip_custom
 ip@short/ss_e_ip_0
 ip@short/ss_e_ip_1
 ip@short/ss_e_ip_2
+ip@short/ss_e_ip_3
+ip@short/ss_e_ip_4
 ip@short/ss_e_ip_5
 ip@short/ss_e_ip_custom

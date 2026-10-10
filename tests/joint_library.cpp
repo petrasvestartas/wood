@@ -692,9 +692,10 @@ static void check_fit(const Built& built, Row& row) {
         return;
     }
 
-    // a key design: neither member reaches into the other, the joint's own solid fills both pockets
+    // a key design: neither member reaches into the other, the joint's own solid fills both pockets; its pins' ends out of the plates fill none
     if (filled_by_a <= tolerance_b && filled_by_b <= tolerance_a && taken_a > tolerance_a && taken_b > tolerance_b) {
-        const double key = compute_volume(built.joint->element_geometry_mesh());
+        const Mesh stock = solid_boolean(a.element_geometry_mesh(), b.element_geometry_mesh(), SolidOperation::add);
+        const double key = boolean_volume(built.joint->element_geometry_mesh(), stock, SolidOperation::intersect);
         if (std::abs(key - taken_a - taken_b) > tolerance_a + tolerance_b)
             fail(row, "C6", fmt::format("the members lost {:.6g} and {:.6g} mm3 to pockets, the joint's own solid is {:.6g}", taken_a, taken_b, key));
         return;

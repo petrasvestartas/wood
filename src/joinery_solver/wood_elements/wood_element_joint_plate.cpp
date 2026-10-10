@@ -986,17 +986,24 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
-        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3")
+        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3" && connection.name != "ss_e_ip_3" && connection.name != "ss_e_ip_4")
             continue;
 
-        // each side's pockets, the stock its plate loses to its solids, united into the one key
+        // the pieces the key fills: each side's milled pockets, and the in-plane notches its runs leave along the seam
+        std::vector<Mesh> pieces;
+        for (const std::array<Polyline, 2>& body : bodies())
+            pieces.push_back(Mesh::loft({body[0]}, {body[1]}, true));
+
+        // what each plate loses to them, united into the one key
         for (int side = 0; side < 2; side++) {
             const int index = index_of_plate(elements, side == 0 ? connection.element_a : connection.element_b);
             if (index < 0)
                 continue;
 
             const Mesh& stock = elements[index]->element_geometry_mesh();
-            for (const Mesh& piece : side_solids(connection, side)) {
+            std::vector<Mesh> side_pieces = side_solids(connection, side);
+            side_pieces.insert(side_pieces.end(), pieces.begin(), pieces.end());
+            for (const Mesh& piece : side_pieces) {
                 const Mesh pocket = solid_boolean(stock, piece, SolidOperation::intersect);
                 if (pocket.number_of_faces() > 0)
                     key = key.number_of_faces() == 0 ? pocket : solid_boolean(key, pocket, SolidOperation::add);
