@@ -3,10 +3,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// ss_e_r_3: the diamond pockets of two plates folded along a shared edge, their contact read as rotated, and the key that fills both, drawn apart.
+/// ss_e_r_0: the four slices of two plates folded along a shared edge, their contact read as rotated, drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_plate_ss_e_r_3");
+    WoodSession scene("element_joint_plate_ss_e_r_0");
     scene.settings.all_treated_as_rotated = true;
     scene.settings.rotated_joint_as_average = true;
 
@@ -22,16 +22,14 @@ int main() {
 
     // the joint from their contact, added, and passed to each plate in its target order
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-    const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3();
+    const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_0();
     joint->orient(contact, {left, right}, scene.settings);
-    joint->is_visible = true; // the key is the joint's own piece
     scene.add(joint);
     scene.add_interaction(joint, left, joint->interaction(0));
     scene.add_interaction(joint, right, joint->interaction(1));
 
-    // drawn apart along the mitre's normal, the direction the plates slide together, so both pockets read, the key half way
+    // drawn apart along the mitre's normal, the direction the plates slide together, so both sides read
     right->place(Xform::translation(129.904, 0.0, 75.0));
-    joint->place(Xform::translation(64.952, 0.0, 37.5));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -40,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated design ss_e_r_3 on one pair, on its defaults: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, a diamond pocket milled into each plate per division, the count geometric, one every 300 of the joint line, each tile a 120 * shift square stepped along the joint line in that size, and the joint's own key that fills both pockets, cut from the plates; the right plate is moved 150 along the mitre's normal so both pockets read, the key 75, half way.
+The rotated design ss_e_r_0 on one pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, each joint volume split in half through the thickness and the halves offset along the joint line, four slices on each plate taken in world space without orienting; the right plate is moved 150 along the mitre's normal so both sides read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -49,7 +47,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_plate_ss_e_r_3 --parallel 6 && ./build/element_joint_plate_ss_e_r_3 && ../bash/publish-scene.sh --target element_joint_plate_ss_e_r_3
+cmake --build build --target element_joint_plate_ss_e_r_0 --parallel 6 && ./build/element_joint_plate_ss_e_r_0 && ../bash/publish-scene.sh --target element_joint_plate_ss_e_r_0
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
