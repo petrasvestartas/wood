@@ -27,7 +27,6 @@ Every example is the same pair: two upright 400 x 200 plates 40 thick crossing a
 ## cr_c_ip_0: the plain slot
 
 ![cr_c_ip_0](elements/element_joint_plate_cr_c_ip_0.png)
-![cr_c_ip_0, the lifted plate](elements/element_joint_plate_cr_c_ip_0_joint.png)
 
 The family default: a rectangle merged into each plate's outline over half the cross's depth, a slot from the top of the first plate and from the bottom of the second, clipped into the outline by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid in the frame of the face. The id 30, every cross dataset but Brussels.
 
@@ -36,7 +35,6 @@ The family default: a rectangle merged into each plate's outline over half the c
 ## cr_c_ip_1: the sliced half-lap
 
 ![cr_c_ip_1](elements/element_joint_plate_cr_c_ip_1.png)
-![cr_c_ip_1, the lifted plate](elements/element_joint_plate_cr_c_ip_1_joint.png)
 
 The half-lap as nine rings per plate on the shift, every one a solid taken from the plate: the centre square and the two top sides milled, the two bottom sides and the four corner wedges sliced; face 1 is every ring offset along its normal, the male the female with its axes swapped and its depth flipped, as 2024 built it. The id 31.
 
@@ -45,7 +43,6 @@ The half-lap as nine rings per plate on the shift, every one a solid taken from 
 ## cr_c_ip_2: the milled half-lap
 
 ![cr_c_ip_2](elements/element_joint_plate_cr_c_ip_2.png)
-![cr_c_ip_2, the lifted plate](elements/element_joint_plate_cr_c_ip_2_joint.png)
 
 The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body here: the centre square milled, the two top sides as the two sheer walls between each ring and its offset, the two bottom sides milled, their first and third segments extended 0.15 along the plate at both ends and their slanted segments 0.6 up and down so the cut clears the plate; no drill. The id 32.
 
@@ -54,7 +51,6 @@ The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body he
 ## cr_c_ip_3: two diagonal drills
 
 ![cr_c_ip_3](elements/element_joint_plate_cr_c_ip_3.png)
-![cr_c_ip_3, the lifted plate](elements/element_joint_plate_cr_c_ip_3_joint.png)
 
 The milled half-lap of `cr_c_ip_2` and two diagonal drills through the lap, each a line in the unit box bored through both plates. The id 33.
 
@@ -63,7 +59,6 @@ The milled half-lap of `cr_c_ip_2` and two diagonal drills through the lap, each
 ## cr_c_ip_4: one vertical drill
 
 ![cr_c_ip_4](elements/element_joint_plate_cr_c_ip_4.png)
-![cr_c_ip_4, the lifted plate](elements/element_joint_plate_cr_c_ip_4_joint.png)
 
 The milled half-lap of `cr_c_ip_2` and one vertical drill down the centre of the lap, along the cross's depth through both plates; the line keeps where 2024 declared it, where 2024 offset it too, reading past its ring and length arrays. The id 34.
 
@@ -72,7 +67,6 @@ The milled half-lap of `cr_c_ip_2` and one vertical drill down the centre of the
 ## cr_c_ip_5: the Brussels half-lap
 
 ![cr_c_ip_5](elements/element_joint_plate_cr_c_ip_5.png)
-![cr_c_ip_5, the lifted plate](elements/element_joint_plate_cr_c_ip_5_joint.png)
 
 The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the bottom sides extended 0.27 on their first segment and shortened 0.075 on their third, a vertical 50 mm bit down the centre of the lap and a horizontal 10 mm bit below it, each bored through both plates, the bits named in `FabricationType` as `drill_50` and `drill_10`. The id 35, the Brussels dataset.
 
@@ -81,9 +75,8 @@ The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the 
 ## cr_c_ip_custom: your own outlines
 
 ![cr_c_ip_custom](elements/element_joint_plate_cr_c_ip_custom.png)
-![cr_c_ip_custom, the lifted plate](elements/element_joint_plate_cr_c_ip_custom_joint.png)
 
-Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: the outlines carry the fabrication type nothing, and only a closed rectangle of five points, or a line of two, is merged into the plate's outline; here the slots split the cross's depth unequally, 60 down from the first plate's top edge and 140 up from the second's bottom edge, where `cr_c_ip_0` halves it. The id 39.
+Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: each pair is inserted between the plate's edges as `cr_c_ip_0` is; here the slots split the cross's depth unequally, 60 down from the first plate's top edge and 140 up from the second's bottom edge, where `cr_c_ip_0` halves it. The id 39.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_custom.cpp
 

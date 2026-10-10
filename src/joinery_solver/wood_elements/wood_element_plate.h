@@ -60,6 +60,11 @@ public:
     /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
+    /// Two plates end to end, "left" and "right", the rotated side-to-side pair the ss_e_r designs are for, as the hex blocks of
+    /// Rossiniere meet: each `length` x `width` x `thickness`, their side faces on the plane x = length, the right one twisted by
+    /// `twist_degrees` about that plane's normal, so the two seam edges cross at the centre of the contact.
+    static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0);
+
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
     static std::shared_ptr<Plate> from_element(Element element);
 

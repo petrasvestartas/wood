@@ -21,12 +21,11 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated (the seam lines of a fold are parallel, so without the flag the detector would read it out of plane) and to average the joint volumes, the joint oriented on their face contact and passed to each plate with `add_interaction`, the right plate moved 150 along the mitre's normal afterwards, the direction the plates slide together, so both sides read; every page shows the pair and a close-up. The joint's unit box puts the seam across x, the thickness along y and the joint line along z. `ss_e_r_2` and `ss_e_r_3` are key designs: each plate loses a pocket on its side of the seam, a tile 120 * shift square per division stepped along the joint line in that size, and the joint owns the loose key that fills both, the two pockets' straight prisms united as 2024 milled them, one rigid piece through the fold, so those examples turn `is_visible` on and move the key half way; every other design cuts the plates only and the joint stays hidden.
+Every example is the same pair, `Plate::pair_rotated(20.0)`: two 300 x 400 blocks 100 thick end to end, the right one twisted 20 degrees about the seam's normal, as the Rossinière hex blocks meet, drawn apart along the seam's normal. A twisted seam takes no finger joint: `ss_e_r_2` and `ss_e_r_3` mill a pocket into each block and the joint owns the key that fills both; `ss_e_r_0` and `side_removal` only prepare the seam faces.
 
 ## ss_e_r_0: four slices
 
 ![ss_e_r_0](elements/element_joint_plate_ss_e_r_0.png)
-![ss_e_r_0, the seam](elements/element_joint_plate_ss_e_r_0_joint.png)
 
 The averaged joint volume split in half through the thickness, each half sliced off the plates four ways along the joint line, the slices widened by the joint scale; no key, nothing is oriented, the slices lie in world space, so on this pair they are slivers at the seam corners.
 
@@ -35,7 +34,6 @@ The averaged joint volume split in half through the thickness, each half sliced 
 ## ss_e_r_2: hook pockets and key
 
 ![ss_e_r_2](elements/element_joint_plate_ss_e_r_2.png)
-![ss_e_r_2, the keys](elements/element_joint_plate_ss_e_r_2_joint.png)
 
 A hook pocket milled into each plate per division, two on this seam, each pocket the unit profile projected from one face to the other, and the joint's own key that fills both pockets, drawn half way between the plates.
 
@@ -44,7 +42,6 @@ A hook pocket milled into each plate per division, two on this seam, each pocket
 ## ss_e_r_3: diamond pockets and key
 
 ![ss_e_r_3](elements/element_joint_plate_ss_e_r_3.png)
-![ss_e_r_3, the keys](elements/element_joint_plate_ss_e_r_3_joint.png)
 
 A diamond pocket milled into each plate per division, two on this seam, and the joint's own key that fills both pockets, drawn half way between the plates.
 
@@ -53,7 +50,6 @@ A diamond pocket milled into each plate per division, two on this seam, and the 
 ## ss_e_r_custom: your own outlines
 
 ![ss_e_r_custom](elements/element_joint_plate_ss_e_r_custom.png)
-![ss_e_r_custom, the seam](elements/element_joint_plate_ss_e_r_custom_joint.png)
 
 Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the seam, y through the thickness, z along the joint line; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face of the male plate cuts a notch half a thickness deep into its mitred edge over one stretch of the joint line, and one on each face of the female cuts the same notch into hers over another.
 
@@ -62,7 +58,6 @@ Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the
 ## side_removal: the side faces milled off
 
 ![side_removal](elements/element_joint_plate_ss_e_r_side_removal.png)
-![side_removal, the seam](elements/element_joint_plate_ss_e_r_side_removal_joint.png)
 
 Each plate's side face, widened at its convex corners and up and down by the joint scale, milled off along its normal, the female's by the scale plus 2, the male's by the scale, the sides swapped as 2024 swapped them; the session cuts each removal as a solid, where 2024 clipped the rectangle into the outline, and at the default scale the removals are slivers along the seam.
 
@@ -71,7 +66,6 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 ## side_removal_ss_e_r_1: the arc tenon tile
 
 ![side_removal_ss_e_r_1](elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.png)
-![side_removal_ss_e_r_1, the seam](elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1_joint.png)
 
 Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts; kept as 2024 wrote it, the merged form swaps the sides last and hands each plate its own side slab outside its stock, so no side is removed and only the tile's conic slivers cut. 2024 named it as id 58 but dispatched `side_removal(true)` for it, so no 2025 reference dataset reaches it; it is the 2024 function, not a design the solver chooses.
 

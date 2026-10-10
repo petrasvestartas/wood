@@ -76,7 +76,7 @@ An eight-point tooth pocket into each edge per division, each reversed, two on t
 
 ![ss_e_ip_custom](elements/element_joint_plate_ss_e_ip_custom.png)
 
-A tile you draw yourself: three jigsaw tabs, each a round head of radius 10 on a neck 9 wide, drawn in the unit box as the library's own in-plane designs draw theirs, per face an open profile from one end of the joint line to the other and the seam as a two-point line. The box spans about a plate thickness across the seam (x) and the whole joint line along it (z), so a round head is sized in millimetres against each: 10 / 40 across, 10 / 400 along. Each plate merges its side of the profile into its outline, as the 2024 library merged a custom pair.
+A feather joint you write yourself: eight sharp V teeth alternating across the seam, per face an open profile and its end line, as `ss_e_ip_0` is written; both plates merge their side of it into the edge.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_custom.cpp
 

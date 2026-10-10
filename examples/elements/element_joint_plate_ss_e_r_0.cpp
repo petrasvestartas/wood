@@ -7,16 +7,12 @@ using namespace wood_session;
 int main() {
 
     WoodSession scene("element_joint_plate_ss_e_r_0");
-    scene.settings.all_treated_as_rotated = true;
     scene.settings.rotated_joint_as_average = true;
 
-    // two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, the side faces mitred on the bisector
-    const Polyline left_bottom({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}});
-    const Polyline left_top({{0.0, 0.0, 40.0}, {276.906, 0.0, 40.0}, {276.906, 400.0, 40.0}, {0.0, 400.0, 40.0}, {0.0, 0.0, 40.0}});
-    const Polyline right_bottom({{300.0, 0.0, 0.0}, {450.0, 0.0, 259.808}, {450.0, 400.0, 259.808}, {300.0, 400.0, 0.0}, {300.0, 0.0, 0.0}});
-    const Polyline right_top({{276.906, 0.0, 40.0}, {415.359, 0.0, 279.808}, {415.359, 400.0, 279.808}, {276.906, 400.0, 40.0}, {276.906, 0.0, 40.0}});
-    const std::shared_ptr<Plate> left = std::make_shared<Plate>(left_bottom, left_top, "left");
-    const std::shared_ptr<Plate> right = std::make_shared<Plate>(right_bottom, right_top, "right");
+    // two 300 x 400 blocks 100 thick end to end, their side faces on one plane, the right one twisted 20 degrees about the seam's normal
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_rotated(20.0);
+    const std::shared_ptr<Plate> left = pair[0];
+    const std::shared_ptr<Plate> right = pair[1];
     scene.add(left);
     scene.add(right);
 
@@ -29,7 +25,7 @@ int main() {
     scene.add_interaction(joint, right, joint->interaction(1));
 
     // drawn apart along the mitre's normal, the direction the plates slide together, so both sides read
-    right->place(Xform::translation(129.904, 0.0, 75.0));
+    right->place(Xform::translation(150.0, 0.0, 0.0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

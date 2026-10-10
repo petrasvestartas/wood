@@ -27,7 +27,6 @@ Every example is the same pair: a 400 x 400 base plate and a 250 x 250 upright s
 ## ts_e_p_0: three fixed tenons
 
 ![ts_e_p_0](elements/element_joint_plate_ts_e_p_0.png)
-![ts_e_p_0, the upright](elements/element_joint_plate_ts_e_p_0_joint.png)
 
 Three tenons on the upright's bottom edge over the middle five sevenths of the joint line, each the base's thickness deep, and three mortises through the base, 2024's literals with no parameters.
 
@@ -36,7 +35,6 @@ Three tenons on the upright's bottom edge over the middle five sevenths of the j
 ## ts_e_p_1: the Annen tenons
 
 ![ts_e_p_1](elements/element_joint_plate_ts_e_p_1.png)
-![ts_e_p_1, the upright](elements/element_joint_plate_ts_e_p_1_joint.png)
 
 The two fixed tenons of the Annen project on the upright's bottom edge, one run with the full-height edge marker, each the base's thickness deep, and two mortises through the base, 2024's literals with no parameters.
 
@@ -45,7 +43,6 @@ The two fixed tenons of the Annen project on the upright's bottom edge, one run 
 ## ts_e_p_2: every point visited
 
 ![ts_e_p_2](elements/element_joint_plate_ts_e_p_2.png)
-![ts_e_p_2, the upright](elements/element_joint_plate_ts_e_p_2_joint.png)
 
 The parametric tenons that visit every interpolation point of the joint line, the division count geometric, made even and kept between 2 and 20, so one tenon on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon.
 
@@ -54,7 +51,6 @@ The parametric tenons that visit every interpolation point of the joint line, th
 ## ts_e_p_3: a tenon per four divisions
 
 ![ts_e_p_3](elements/element_joint_plate_ts_e_p_3.png)
-![ts_e_p_3, the upright](elements/element_joint_plate_ts_e_p_3_joint.png)
 
 The family default: the parametric tenons that skip every other point pair, a tenon per four divisions, the division count geometric, made a multiple of four and kept between 8 and 100, so two tenons on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon; `ts_e_p_3` six times with other divisions and shifts is on the [JointPlate page](@ref elements_joint_plate).
 
@@ -63,7 +59,6 @@ The family default: the parametric tenons that skip every other point pair, a te
 ## ts_e_p_4: the milled wedge
 
 ![ts_e_p_4](elements/element_joint_plate_ts_e_p_4.png)
-![ts_e_p_4, the upright](elements/element_joint_plate_ts_e_p_4_joint.png)
 
 The fixed wedge design 2024 kept as 240 literal points: four mill pockets through the base, and on the upright two wedge flanks, two walls and two caps milled along its faces and two slices, every outline a solid taken from its plate's stock, written twice as 2024 doubled them; the pockets are left for a loose wedge 2024 never modelled. The ids 23 and 24.
 
@@ -72,7 +67,6 @@ The fixed wedge design 2024 kept as 240 literal points: four mill pockets throug
 ## ts_e_p_5: the snap-fit tenon
 
 ![ts_e_p_5](elements/element_joint_plate_ts_e_p_5.png)
-![ts_e_p_5, the upright](elements/element_joint_plate_ts_e_p_5_joint.png)
 
 The snap-fit tenon, 2024's literals, a copy per division spread along the joint line, one here, the copies run into one outline on the upright's bottom edge and a mortise through the base per copy; the design is unit scale, its unit z the upright's thickness times the joint scale instead of the joint line, so the tenon keeps the upright's thickness and its hook runs through the base and out below it as 2024 drew it. The id 25, the box and the snap-fit datasets.
 
@@ -81,9 +75,8 @@ The snap-fit tenon, 2024's literals, a copy per division spread along the joint 
 ## ts_e_p_custom: your own outlines
 
 ![ts_e_p_custom](elements/element_joint_plate_ts_e_p_custom.png)
-![ts_e_p_custom, the upright](elements/element_joint_plate_ts_e_p_custom_joint.png)
 
-A tile you draw yourself in the unit box: two dovetailed tenons, 50 long where they leave the upright and 70 at their ends. The upright's outlines are an open profile per face from one end of the joint line to the other, cut into its edge as the library's own tenons are; the base's are a closed rectangle per mortise and face, 70 long so the heads pass, cut as holes. 2024 kept a custom pair uncut, so its base never took the mortises; `ts_e_p_custom` cuts each side as the library's top-side designs do.
+Two tenons you write yourself, as `ts_e_p_0` is written: per upright face the tenon profile and its end line, cut into its edge; per base face one rectangle per mortise, cut as a hole.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_custom.cpp
 

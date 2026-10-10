@@ -55,7 +55,6 @@ Six holes on the largest inscribed circle, its radius scaled by the shift 0.95, 
 
 ![tt_e_p_3](elements/element_joint_plate_tt_e_p_3.png)
 ![tt_e_p_3, the plan](elements/element_joint_plate_tt_e_p_3_plan.png)
-![tt_e_p_3, the joint](elements/element_joint_plate_tt_e_p_3_joint.png)
 
 The contact offset inward by the shift, 20 mm, as 2024's Clipper inset it, and a hole every 60 along that ring.
 

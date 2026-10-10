@@ -98,6 +98,22 @@ std::shared_ptr<Plate> Plate::from_rectangle(
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_rotated(double twist_degrees, double length, double width, double thickness) {
+
+    // the right plate's width and thickness axes, the left's turned about the seam normal x
+    const double twist = twist_degrees * Tolerance::PI / 180.0;
+    const Vector twisted_y(0.0, std::cos(twist), std::sin(twist));
+    const Vector twisted_z(0.0, -std::sin(twist), std::cos(twist));
+
+    // both side faces centred on the same point of the seam plane
+    const Point seam_centre(length, width * 0.5, thickness * 0.5);
+    const Point right_origin = seam_centre - twisted_y * (width * 0.5) - twisted_z * (thickness * 0.5);
+
+    const std::shared_ptr<Plate> left = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "left");
+    const std::shared_ptr<Plate> right = from_rectangle(right_origin, Vector(1.0, 0.0, 0.0), twisted_y, length, width, thickness, "right");
+    return {left, right};
+}
+
 std::vector<std::shared_ptr<Plate>> Plate::row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
 
     std::vector<std::shared_ptr<Plate>> plates;

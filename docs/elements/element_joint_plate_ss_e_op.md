@@ -38,7 +38,6 @@ Every example is the same pair: a 300 x 400 floor plate and a 300 high wall plat
 ## ss_e_op_0: three fingers
 
 ![ss_e_op_0](elements/element_joint_plate_ss_e_op_0.png)
-![ss_e_op_0, the joint](elements/element_joint_plate_ss_e_op_0_joint.png)
 
 The fixed three-finger joint merged into both mitred edges: the floor's three fingers reach under the wall, the wall notched for them over its thickness.
 
@@ -47,7 +46,6 @@ The fixed three-finger joint merged into both mitred edges: the floor's three fi
 ## ss_e_op_1: parametric fingers
 
 ![ss_e_op_1](elements/element_joint_plate_ss_e_op_1.png)
-![ss_e_op_1, the joint](elements/element_joint_plate_ss_e_op_1_joint.png)
 
 Eight divisions at the family's shift 0.64: four fingers on the floor in four notches of the wall; on its defaults the count is geometric, one division every 450 of the joint line and at least two, which on this 400 seam is one finger.
 
@@ -56,7 +54,6 @@ Eight divisions at the family's shift 0.64: four fingers on the floor in four no
 ## ss_e_op_2: fingers with a non-uniform shift
 
 ![ss_e_op_2](elements/element_joint_plate_ss_e_op_2.png)
-![ss_e_op_2, the joint](elements/element_joint_plate_ss_e_op_2_joint.png)
 
 Eight divisions at the shift 0.64: the zigzag of `ss_e_op_1` with its central pairs moved twice as far as the outer ones and the sign flipped past the middle, so the fingers splay, the wall's fingers hanging below its edge into the floor's splayed notches.
 
@@ -65,7 +62,6 @@ Eight divisions at the shift 0.64: the zigzag of `ss_e_op_1` with its central pa
 ## ss_e_op_3: mitre tenon and mortise
 
 ![ss_e_op_3](elements/element_joint_plate_ss_e_op_3.png)
-![ss_e_op_3, the joint](elements/element_joint_plate_ss_e_op_3_joint.png)
 
 One fixed tenon over the middle of the joint line on the wall, and in the floor its mortise, a see-through hole in a lip that the floor's edge extends under the wall around it.
 
@@ -74,7 +70,6 @@ One fixed tenon over the middle of the joint line on the wall, and in the floor 
 ## ss_e_op_4: chamfered tenons and through mortises
 
 ![ss_e_op_4](elements/element_joint_plate_ss_e_op_4.png)
-![ss_e_op_4, the joint](elements/element_joint_plate_ss_e_op_4_joint.png)
 
 On its defaults: the geometric division count, one tenon on this 400 seam, chamfered at its end, on the wall, the floor's edge modified over the joint's length and a through mortise per tenon. As drawn today the wall's faces render as a frame around an empty middle, the tenon's chamfer bows and the floor shows two dots on its near side: the design's merge into the mitred outlines is not right yet.
 
@@ -83,7 +78,6 @@ On its defaults: the geometric division count, one tenon on this 400 seam, chamf
 ## ss_e_op_5: linked tenons
 
 ![ss_e_op_5](elements/element_joint_plate_ss_e_op_5.png)
-![ss_e_op_5, the joint](elements/element_joint_plate_ss_e_op_5_joint.png)
 
 On its defaults and with no linked joint: `ss_e_op_4` with the tenon box lengthened to -0.75 of the unit box, chamfered tenons on the wall and a through mortise per tenon in the floor; on the solver's datasets the design also builds the one or two joints linked to it and the merge sequences that stitch them.
 
@@ -92,7 +86,6 @@ On its defaults and with no linked joint: `ss_e_op_4` with the tenon box lengthe
 ## ss_e_op_6: the Vidy wall
 
 ![ss_e_op_6](elements/element_joint_plate_ss_e_op_6.png)
-![ss_e_op_6, the joint](elements/element_joint_plate_ss_e_op_6_joint.png)
 
 `ss_e_op_5` with the divisions of its second linked joint disabled, the Vidy wall version that merges its tenons with one side only; with no linked joint, as here, it is the tenons and mortises of `ss_e_op_5`.
 
@@ -109,7 +102,6 @@ Where ss_e_op_5 and ss_e_op_6 are used: the first node of the dataset vidy_corne
 ## ss_e_op_17: fingers with flat mitre caps
 
 ![ss_e_op_17](elements/element_joint_plate_ss_e_op_17.png)
-![ss_e_op_17, the joint](elements/element_joint_plate_ss_e_op_17_joint.png)
 
 Four divisions, two fingers: `ss_e_op_0` with the finger count parametric and the mitre capped flat at both ends of the joint line. As drawn today both plates render as frames around an empty middle: the design's merge into the mitred outlines is not right yet.
 
@@ -118,7 +110,6 @@ Four divisions, two fingers: `ss_e_op_0` with the finger count parametric and th
 ## ss_e_op_tutorial: one notch
 
 ![ss_e_op_tutorial](elements/element_joint_plate_ss_e_op_tutorial.png)
-![ss_e_op_tutorial, the joint](elements/element_joint_plate_ss_e_op_tutorial_joint.png)
 
 One rectangular notch over the middle half of the joint line, merged into both mitred edges: the floor's tongue reaches under the wall, the wall notched for it; the worked example of writing a new design.
 
@@ -127,7 +118,6 @@ One rectangular notch over the middle half of the joint line, merged into both m
 ## ss_e_op_custom: your own outlines
 
 ![ss_e_op_custom](elements/element_joint_plate_ss_e_op_custom.png)
-![ss_e_op_custom, the joint](elements/element_joint_plate_ss_e_op_custom_joint.png)
 
 A tile you draw yourself: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, drawn as the library's own `ss_e_op_0` draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends, at your own stations along the joint line. An open profile is merged into the edge as the library's fingers are, where 2024 left a custom pair uncut; a closed rectangle is clipped into the plate as 2024 clipped it.
 
