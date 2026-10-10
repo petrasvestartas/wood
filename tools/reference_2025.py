@@ -7,10 +7,15 @@ the yml tunables and the sidecars (insertion vectors, joint types, three valence
 
     /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py            # every plate dataset
     /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py inplane_hilti annen_box
+    /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py --volumes outofplane_box   # detection dump to stdout
 
 Per dataset the json holds, per plate in obj order, the merged outlines of output type 4 (the
 legacy interleaved layout: hole pairs first, the outer top and bottom last) and, per plate again,
 the joint polylines of output type 3.
+
+--volumes prints the detection stage instead of writing json: per plate, the joint lines of output
+type 1 (L) and the joint volumes of output type 2 (V), six decimals, to compare with wood's
+InteractionFeaturePlate joint_lines and joint_volumes.
 """
 
 import json
@@ -241,6 +246,27 @@ def solve(name):
     }
 
 
+def print_detection(name):
+    """One dataset's joint lines and joint volumes from the reference solver, per plate, to stdout."""
+    values, pairs, vectors, types, three, adjacency = read_inputs(name)
+    apply_globals(values)
+
+    parameters = [float(v) for v in values["joints_parameters_and_types"]]
+    extension = [float(v) for v in values.get("joint_volume_extension", ["0", "0", "0"])]
+    scale = [float(v) for v in values.get("joint_scale", ["1", "1", "1"])]
+    search_type = SEARCH_TYPES[values.get("search_type", "face_to_face")]
+
+    lines, _, _ = get_connection_zones(pairs, vectors, types, three, adjacency, parameters, search_type, scale, 1, extension, [], [], False)
+    volumes, _, _ = get_connection_zones(pairs, vectors, types, three, adjacency, parameters, search_type, scale, 2, extension, [], [], False)
+
+    for i in range(len(pairs) // 2):
+        print(f"PLATE {i}")
+        for tag, polylines in (("L", lines), ("V", volumes)):
+            for k, polyline in enumerate(polylines[i] if i < len(polylines) else []):
+                coords = " ".join(f"{p[0]:.6f} {p[1]:.6f} {p[2]:.6f}" for p in polyline.points)
+                print(f"{tag} {k}: {coords}")
+
+
 def dataset_names():
     names = sorted(f[:-4] for f in os.listdir(DATA) if f.endswith(".yml"))
     return [n for n in names if n not in NOT_PLATES]
@@ -258,6 +284,13 @@ def dump(name):
 
 def main(argv):
     os.makedirs(OUT, exist_ok=True)
+
+    # the detection dump: no json, the lines and volumes of every named dataset to stdout
+    if len(argv) > 2 and argv[1] == "--volumes":
+        for name in argv[2:]:
+            print(f"DATASET {name}")
+            print_detection(name)
+        return 0
 
     # one dataset: solve it here, so a crash of the reference solver is this process's exit code
     if len(argv) == 2:

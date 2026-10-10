@@ -53,27 +53,10 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     thickness = Point::distance(cen0, planes[1].project(cen0));
 
     for (size_t j = 0; j < n_sides; j++) {
+        // the side plane through the quad's three corners, framed as CGAL framed it
         const Vector n = (pp0[j] - pp0[j + 1]).cross(pp1[j + 1] - pp0[j + 1]);
-        const double anx = std::abs(n[0]);
-        const double any = std::abs(n[1]);
-        const double anz = std::abs(n[2]);
-        Vector sb1;
-        if (anx < 1e-12)
-            sb1 = Vector(1, 0, 0);
-        else if (any < 1e-12)
-            sb1 = Vector(0, 1, 0);
-        else if (anz < 1e-12)
-            sb1 = Vector(0, 0, 1);
-        else if (anx <= any && anx <= anz)
-            sb1 = Vector(0, -n[2], n[1]);
-        else if (any <= anx && any <= anz)
-            sb1 = Vector(-n[2], 0, n[0]);
-        else
-            sb1 = Vector(-n[1], n[0], 0);
-
-        Vector sb2 = n.cross(sb1);
-        sb1.normalize_self();
-        sb2.normalize_self();
+        const Vector sb1 = cgal_base1(n);
+        const Vector sb2 = n.cross(sb1).normalized();
         planes[2 + j] = Plane(pp0[j + 1], sb1, sb2);
         polylines[2 + j] = Polyline({pp0[j], pp0[j + 1], pp1[j + 1], pp1[j], pp0[j]});
     }

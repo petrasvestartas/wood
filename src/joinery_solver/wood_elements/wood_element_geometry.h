@@ -66,6 +66,9 @@ BRep brep_sections(const std::vector<Polyline>& sections);
 /// Unit Newell normal of a planar loop, the closing point ignored: right for a concave loop, where the corner-cross sum of Vector::average_normal can flip.
 Vector compute_newell(const std::vector<Point>& points);
 
+/// CGAL's Plane_3::base1 for a plane of this normal, unit: the world axis the normal is exactly perpendicular to, x before y before z, else the smallest component zeroed and the other two swapped with one sign flipped. The 2024 solver framed every plate face with it; Plane::base1 of the kernel skips the world-axis cases, so an axis-aligned face gets another frame there.
+Vector cgal_base1(const Vector& normal);
+
 /// One plane per face of a mesh, origin at the face centroid, Newell normal along the face ring; what contact detection compares.
 std::vector<Plane> face_planes(const Mesh& mesh);
 

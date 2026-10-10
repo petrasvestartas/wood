@@ -17,6 +17,7 @@ static const double ROUND_REL = 1e-3; // relative, a BRep with cylinders against
 static const double ZERO_REL = 1e-6; // relative to a member, an overlap, material outside the stock, a fit
 static const double HOLE_REL = 1e-2; // relative, the polygonal drill mesh against pi r^2 L
 static const double GOLDEN_TOL = 1e-6; // mm, a golden coordinate
+static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face contact: the 2024 solver clipped the face quads at two decimals in the face's own frame, so a joint moved rigidly lands on another grid and its outlines move by up to this
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 
 /// Every design of the library with its default and a non-default parameter set: "family/library/parameters...".
@@ -657,7 +658,7 @@ static void check_round_trip(const Built& built, Row& row) {
         fail(row, "C10", "the joint does not come back whole");
 }
 
-/// C10b: the same variant built on the pair moved by a rotation and a translation gives the same volumes and the moved outlines; a mirror is refused.
+/// C10b: the same variant built on the pair moved by a rotation and a translation gives the same volumes and the moved outlines within the contact grid, the volumes within the grid swept over the member's surface; a mirror is refused.
 static void check_rigid_motion(const Built& built, Row& row) {
 
     const Xform motion = Xform::translation(1234.0, -567.0, 89.0) * Xform::rotation_z(37.0, true);
@@ -666,9 +667,10 @@ static void check_rigid_motion(const Built& built, Row& row) {
     const std::array<std::shared_ptr<Plate>, 2> plates = {built.fixture.a, built.fixture.b};
     const std::array<std::shared_ptr<Plate>, 2> moved_plates = {moved.fixture.a, moved.fixture.b};
     for (size_t k = 0; k < 2; k++) {
-        const double volume = compute_volume(plates[k]->model_geometry_mesh());
+        const Mesh& mesh = plates[k]->model_geometry_mesh();
+        const double volume = compute_volume(mesh);
         const double moved_volume = compute_volume(moved_plates[k]->model_geometry_mesh());
-        if (std::abs(volume - moved_volume) > VOLUME_REL * volume)
+        if (std::abs(volume - moved_volume) > std::max(VOLUME_REL * volume, CONTACT_GRID * mesh.area()))
             fail(row, "C10", fmt::format("{} volume {:.9g} becomes {:.9g} under a rigid motion", plates[k]->name, volume, moved_volume));
         const std::vector<Polyline> loops = oracle::merged_loops(*plates[k]);
         const std::vector<Polyline> moved_loops = oracle::merged_loops(*moved_plates[k]);
@@ -678,7 +680,7 @@ static void check_rigid_motion(const Built& built, Row& row) {
         }
         for (size_t i = 0; i < loops.size(); i++) {
             const double deviation = oracle::point_set_distance(loops[i].transformed(motion), moved_loops[i]);
-            if (deviation > 1e-6)
+            if (deviation > CONTACT_GRID)
                 fail(row, "C10", fmt::format("{} loop {} deviates {:.3g} mm under a rigid motion", plates[k]->name, i, deviation));
         }
     }

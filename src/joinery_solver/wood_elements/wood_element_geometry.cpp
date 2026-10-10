@@ -71,6 +71,25 @@ Vector compute_newell(const std::vector<Point>& points) {
     return normal.normalized();
 }
 
+Vector cgal_base1(const Vector& normal) {
+
+    if (normal[0] == 0.0)
+        return Vector(1.0, 0.0, 0.0);
+    if (normal[1] == 0.0)
+        return Vector(0.0, 1.0, 0.0);
+    if (normal[2] == 0.0)
+        return Vector(0.0, 0.0, 1.0);
+
+    const double ax = std::abs(normal[0]);
+    const double ay = std::abs(normal[1]);
+    const double az = std::abs(normal[2]);
+    if (ax <= ay && ax <= az)
+        return Vector(0.0, -normal[2], normal[1]).normalized();
+    if (ay <= ax && ay <= az)
+        return Vector(-normal[2], 0.0, normal[0]).normalized();
+    return Vector(-normal[1], normal[0], 0.0).normalized();
+}
+
 std::vector<Plane> face_planes(const Mesh& mesh) {
 
     std::vector<Plane> planes;

@@ -41,13 +41,12 @@ bool faces_coplanar(
     double cos_angle,
     double coplanar_tolerance);
 
-/// Largest overlap of two coplanar outlines as a closed polygon in `plane0`, via Clipper2 on the `clipper_scale` grid; areas at or below `clipper_area` are none; coplanarity is a precondition, triangles count only when `include_triangles`.
+/// The first overlap of two coplanar outlines as a closed polygon in `plane0`, clipped as the 2024 solver clipped it: in the frame of the first outline point and CGAL's bases of the plane, on Clipper2's 0.01 mm grid, so every joint line and volume follows that grid; areas at or below `clipper_area` are none; coplanarity is a precondition, triangles count only when `include_triangles`.
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
     const Plane& plane0,
     bool include_triangles,
-    int64_t clipper_scale,
     double clipper_area,
     Polyline& out_area);
 
