@@ -129,7 +129,7 @@ One rectangular notch over the middle half of the joint line, merged into both m
 ![ss_e_op_custom](elements/element_joint_plate_ss_e_op_custom.png)
 ![ss_e_op_custom, the joint](elements/element_joint_plate_ss_e_op_custom_joint.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, the floor's thickness along x, the wall's along y, z along the joint line; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face of the wall cuts a slot into its bottom edge, 20 past the floor's top, and one on each face of the floor cuts a notch into its mitred edge, 40 past the wall's inner face, each over its own stretch of the joint line.
+A tile you draw yourself: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, drawn as the library's own `ss_e_op_0` draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends, at your own stations along the joint line. An open profile is merged into the edge as the library's fingers are, where 2024 left a custom pair uncut; a closed rectangle is clipped into the plate as 2024 clipped it.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_custom.cpp
 

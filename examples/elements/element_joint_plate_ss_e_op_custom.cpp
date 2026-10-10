@@ -18,19 +18,38 @@ int main() {
     scene.add(floor);
     scene.add(wall);
 
-    // the outlines in the joint's unit box, mapped onto the corner the plates share: the floor's thickness along x, the wall's
-    // along y, z along the joint line; a pair per side, the wall's at y = 0.5 (face 0) and y = -0.5 (face 1), the floor's at
-    // x = 0.5 (face 0) and x = -0.5 (face 1); as 2024 merged a custom pair, a closed rectangle of five points is clipped into
-    // the plate: here a slot into the wall's bottom edge, 20 past the floor's top, and a notch into the floor's mitred edge,
-    // 40 past the wall's inner face, each over its own stretch of the joint line
-    const std::vector<Polyline> male = {
-        Polyline({{-1.0, 0.5, 0.4}, {1.0, 0.5, 0.4}, {1.0, 0.5, 0.1}, {-1.0, 0.5, 0.1}, {-1.0, 0.5, 0.4}}),
-        Polyline({{-1.0, -0.5, 0.4}, {1.0, -0.5, 0.4}, {1.0, -0.5, 0.1}, {-1.0, -0.5, 0.1}, {-1.0, -0.5, 0.4}}),
-    };
-    const std::vector<Polyline> female = {
-        Polyline({{0.5, -1.0, -0.1}, {0.5, 1.0, -0.1}, {0.5, 1.0, -0.4}, {0.5, -1.0, -0.4}, {0.5, -1.0, -0.1}}),
-        Polyline({{-0.5, -1.0, -0.1}, {-0.5, 1.0, -0.1}, {-0.5, 1.0, -0.4}, {-0.5, -1.0, -0.4}, {-0.5, -1.0, -0.1}}),
-    };
+    // the user's tile in the joint's unit box, mapped onto the corner the plates share: the floor's thickness along x, the wall's along y,
+    // z along the 400 long joint line; three fingers on the floor, wide, narrow, wide, and the sockets they fill in the wall, at the user's own
+    // stations along the joint line
+    // (z = +-0.42, +-0.18, +-0.06: fingers of 96, 48 and 96 on the 400 joint line), drawn as the library's own ss_e_op_0 draws its fingers: per face a zigzag
+    // across the thickness and the two-point line of the joint's ends, the wall's on y = 0.5 (face 0) and y = -0.5 (face 1), the floor's
+    // on x = 0.5 (face 0) and x = -0.5 (face 1)
+    const double a = 0.42;
+    const double b = 0.18;
+    const double c = 0.06;
+    std::array<std::vector<Polyline>, 2> wall_faces;
+    std::array<std::vector<Polyline>, 2> floor_faces;
+    for (int face = 0; face < 2; face++) {
+        const double side = face == 0 ? 0.5 : -0.5;
+        floor_faces[face] = {
+            Polyline({
+                Point(side, 0.5, -a), Point(side, -0.5, -a), Point(side, -0.5, -b), Point(side, 0.5, -b),
+                Point(side, 0.5, -c), Point(side, -0.5, -c), Point(side, -0.5, c), Point(side, 0.5, c),
+                Point(side, 0.5, b), Point(side, -0.5, b), Point(side, -0.5, a), Point(side, 0.5, a),
+            }),
+            Polyline({Point(side, 0.5, -0.5), Point(side, 0.5, 0.5)}),
+        };
+        wall_faces[face] = {
+            Polyline({
+                Point(-0.5, side, a), Point(0.5, side, a), Point(0.5, side, b), Point(-0.5, side, b),
+                Point(-0.5, side, c), Point(0.5, side, c), Point(0.5, side, -c), Point(-0.5, side, -c),
+                Point(-0.5, side, -b), Point(0.5, side, -b), Point(0.5, side, -a), Point(-0.5, side, -a),
+            }),
+            Polyline({Point(-0.5, side, 0.5), Point(-0.5, side, -0.5)}),
+        };
+    }
+    const std::vector<Polyline> male = {wall_faces[0][0], wall_faces[1][0], wall_faces[0][1], wall_faces[1][1]};
+    const std::vector<Polyline> female = {floor_faces[0][0], floor_faces[1][0], floor_faces[0][1], floor_faces[1][1]};
 
     // the joint from their contact, added, and passed to each plate in its target order: the wall first, the male of an out-of-plane pair
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(floor, wall);
@@ -50,7 +69,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_custom on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, your own outlines in its unit box, the box mapped onto the corner the plates share; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate: here a rectangle on each face of the wall cuts a slot into its bottom edge, 20 past the floor's top, and one on each face of the floor cuts a notch into its mitred edge, 40 past the wall's inner face, each over its own stretch of the joint line; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
+The out-of-plane design ss_e_op_custom on one pair: a floor and a wall meeting at a right angle on a mitre, joined by a tile the user draws in the joint's unit box: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, at the user's own stations z = +-0.42, +-0.18, +-0.06. The tile is drawn as the library's own ss_e_op_0 draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends; ss_e_op_custom merges an open profile into the edge as the library's fingers are merged (2024 left it uncut), a closed rectangle is clipped as 2024 clipped it. The joint is oriented on the face contact and passed to each plate with add_interaction, the wall first; the wall is moved off along the mitre's normal so the fingers and the sockets read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
