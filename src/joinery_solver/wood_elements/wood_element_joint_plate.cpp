@@ -1022,7 +1022,7 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
-        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3" && connection.name != "ss_e_ip_3" && connection.name != "ss_e_ip_4")
+        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3" && connection.name != "ss_e_ip_3" && connection.name != "ss_e_ip_4" && connection.name != "tt_e_p_custom")
             continue;
 
         // the pieces the key fills: each side's milled pockets, and the in-plane notches its runs leave along the seam
@@ -1030,8 +1030,9 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
         for (const std::array<Polyline, 2>& body : bodies())
             pieces.push_back(Mesh::loft({body[0]}, {body[1]}, true));
 
-        // the rotated keys are the straight prisms 2024 milled, both sides' pockets united, not trimmed by the folded plates
-        if (connection.name == "ss_e_r_2" || connection.name == "ss_e_r_3") {
+        // the rotated keys are the straight prisms 2024 milled, both sides' pockets united, not trimmed by the folded plates; a custom
+        // top-top joint's milled pockets make its key the same way, the loose piece hidden between the stacked plates
+        if (connection.name == "ss_e_r_2" || connection.name == "ss_e_r_3" || connection.name == "tt_e_p_custom") {
             for (int side = 0; side < 2; side++)
                 for (const Mesh& piece : side_solids(connection, side))
                     key = key.number_of_faces() == 0 ? piece : solid_boolean(key, piece, SolidOperation::add);

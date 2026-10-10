@@ -28,12 +28,14 @@ int main() {
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
     const std::shared_ptr<JointPlate> joint = JointPlate::tt_e_p_custom(male, female);
     joint->orient(contact, {lower, upper});
+    joint->is_visible = true; // the key is the joint's own piece
     scene.add(joint);
     scene.add_interaction(joint, lower, joint->interaction(0));
     scene.add_interaction(joint, upper, joint->interaction(1));
 
-    // drawn apart along the plates' normal, the direction the upper plate drops onto the lower one, so the outlines on both read
-    upper->place(Xform::translation(0.0, 0.0, 150.0));
+    // drawn apart along the plates' normal, the key half way, the direction the upper plate drops onto the lower one, so the outlines on both read
+    upper->place(Xform::translation(0.0, 0.0, 300.0));
+    joint->place(Xform::translation(0.0, 0.0, 150.0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
