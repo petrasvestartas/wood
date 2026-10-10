@@ -30,6 +30,7 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
     for f in op op@120 op@150; do for d in 4 8 12; do echo "$f/ss_e_op_1/$d/0.5"; done; done
     for f in ts ts@skew75 ts@lean80; do for d in 8 16 24; do echo "$f/ts_e_p_3/$d/0.5"; done; done
     for f in ip ip@trapezoid ip@short; do for d in 4 8 12; do echo "$f/ss_e_ip_1/$d/0.5"; done; done
+    for s in 0.5 0.64 0.9; do for d in 4 8 12; do echo "tpl/chevron/ss_e_op_1/$d/$s"; done; done
 )
 rm -f "$OUT"/*.png
 for pb in "$WORK"/tiles/*.pb; do
@@ -70,6 +71,7 @@ rows() { local IFS=" " design=$1 divisions=$2; shift 2; for row in "$@"; do for 
 sweep ss_e_op_1_angles "ss_e_op_1 at 90, 120 and 150 degrees (rows): divisions (columns)" 3 plates $(rows ss_e_op_1 "4 8 12" "90 degrees|op" "120 degrees|op@120" "150 degrees|op@150")
 sweep ts_e_p_3_angles "ts_e_p_3 square, skewed 75, leaning 80 (rows): divisions (columns)" 3 plates $(rows ts_e_p_3 "8 16 24" "square|ts" "skewed 75 degrees|ts@skew75" "leaning 80 degrees|ts@lean80")
 sweep ss_e_ip_1_seams "ss_e_ip_1 on a straight, slanted and short seam (rows): divisions (columns)" 3 plates $(rows ss_e_ip_1 "4 8 12" "straight seam|ip" "slanted seam|ip@trapezoid" "short seam|ip@short")
+sweep ss_e_op_1_chevron "ss_e_op_1 on a pair of the Chevron template: shift (rows) and divisions (columns)" 3 plates $(for s in 0.5 0.64 0.9; do for d in 4 8 12; do echo "shift $s, divisions $d|tpl/chevron/ss_e_op_1/$d/$s"; done; done)
 sweep tt_e_p_2 "tt_e_p_2: divisions (rows) and shift (columns)" 2 plates $(for d in 4 6 8; do for s in 0.5 0.95; do echo "divisions $d, shift $s|tt/tt_e_p_2/$d/$s/8"; done; done)
 sweep tt_e_p_3_4_5 "tt_e_p_3, tt_e_p_4, tt_e_p_5 (rows): division length (columns)" 3 plates $(for n in 3 4; do for l in 30 60 90; do echo "tt_e_p_$n, length $l|tt/tt_e_p_$n/$l/12/8"; done; done; for l in 30 60 90; do echo "tt_e_p_5, length $l|tt/tt_e_p_5/$l/0.95/8"; done)
 # only the pictures the page shows

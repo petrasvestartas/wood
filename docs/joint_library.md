@@ -182,6 +182,10 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_tutorial(); // a f
 
 ![ss_e_op_1 at 90, 120 and 150 degrees](joint_library/sweep_ss_e_op_1_angles.png)
 
+**Where it is used.** The same fingers on a pair of plates taken from the Chevron template (`src/templates/folding`, on the first Annen surface): its first two plates that meet side to side at a fold, copied into a scene of their own, the shift (rows) and the divisions (columns) as a user would set them on that pair.
+
+![ss_e_op_1 on a Chevron pair](joint_library/sweep_ss_e_op_1_chevron.png)
+
 ss_e_op_2 moves the central pairs twice as far as the outer ones. At shift 1 its outline crosses itself and no solid is built, in 2024 as here.
 
 ![ss_e_op_2 sweep](joint_library/sweep_ss_e_op_2.png)

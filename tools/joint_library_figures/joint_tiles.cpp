@@ -6,6 +6,7 @@
 #define main joint_library_main
 #include "../../tests/joint_library.cpp"
 #undef main
+#include "src/templates/folding/chevron.h"
 
 namespace {
 using namespace wood_session;
@@ -241,6 +242,57 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
     scene.pb_dump(fmt::format("{}/beam_{}_{:g}.pb", dir, design, angle));
 }
 
+/// A design on a pair of plates taken from a template, where it is used: the first two plates of the Chevron on the first Annen surface
+/// that meet side to side at a fold, copied into a scene of their own, joined by the design with the given divisions and shift, the second lifted 400 off along
+/// the contact.
+///   id: tpl/chevron/<design>/<divisions>/<shift>, written to <dir>/tpl_chevron_<design>_<divisions>_<shift>.pb
+static void write_template_scene(const std::string& id, const std::string& dir) {
+
+    const std::vector<std::string> parts = split(id, '/');
+    const std::string& design = parts.at(2);
+    const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces((config::session_data_dir() / "annen_surfaces.json").string());
+    const Chevron chevron(surfaces.at(0));
+    const std::vector<std::shared_ptr<Plate>> plates = chevron.get_elements_numbered<Plate>("plate");
+
+    // the first two plates that meet side to side at a fold, copied
+    WoodSession scene("tpl_chevron_" + design);
+    std::shared_ptr<Plate> first;
+    std::shared_ptr<Plate> second;
+    std::shared_ptr<InteractionContactFace> contact;
+    for (size_t i = 0; i < plates.size() && !contact; i++)
+        for (size_t j = i + 1; j < plates.size() && !contact; j++) {
+            WoodSession probe("probe");
+            const std::shared_ptr<Plate> a = std::make_shared<Plate>(*plates[i]);
+            const std::shared_ptr<Plate> b = std::make_shared<Plate>(*plates[j]);
+            probe.add(a);
+            probe.add(b);
+            const std::shared_ptr<InteractionContactFace> touch = probe.compute_face_contact(a, b);
+            const bool folded = std::abs(a->planes[0].z_axis().dot(b->planes[0].z_axis())) < 0.95;
+            if (touch && touch->type == ContactType::side_side && folded) {
+                first = a;
+                second = b;
+                scene.add(first);
+                scene.add(second);
+                contact = scene.compute_face_contact(first, second);
+            }
+        }
+    if (!contact)
+        throw std::runtime_error("no two chevron plates touch");
+
+    // the design on them, as the oracle builds a variant
+    const std::shared_ptr<JointPlate> joint = make_variant({"op", design, parts.at(3), parts.at(4)});
+    joint->orient(contact, {first, second}, scene.settings);
+    scene.add(joint);
+    for (size_t i = 0; i < joint->interaction_count(); i++)
+        scene.add_interaction(joint, scene.get_element<Plate>(joint->interaction_target(i)), joint->interaction(i));
+    Vector apart = compute_newell(contact->polygon.get_points()).normalized();
+    if ((second->element_geometry_mesh().centroid() - first->element_geometry_mesh().centroid()).dot(apart) < 0.0)
+        apart = apart * -1.0;
+    second->place(Xform::translation(apart[0] * 400.0, apart[1] * 400.0, apart[2] * 400.0));
+
+    scene.pb_dump(fmt::format("{}/tpl_chevron_{}_{}_{}.pb", dir, design, parts.at(3), parts.at(4)));
+}
+
 int main(int argc, char** argv) {
 
     if (argc < 2)
@@ -252,7 +304,9 @@ int main(int argc, char** argv) {
 
     for (const std::string& id : ids) {
         try {
-            if (id.starts_with("beam/"))
+            if (id.starts_with("tpl/"))
+                write_template_scene(id, argv[1]);
+            else if (id.starts_with("beam/"))
                 write_beam_scene(id, argv[1]);
             else
                 write_scene(id, argv[1]);
