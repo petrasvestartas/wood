@@ -79,6 +79,10 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_5(
 
 ![ss_e_ip_1 sweep](joint_library/sweep_ss_e_ip_1.png)
 
+**On other seams.** The same dovetails on a seam square to the plates, on a seam slanted to 75 degrees and on a seam shorter than both plates: the divisions are counted along the seam itself.
+
+![ss_e_ip_1 on straight, slanted and short seams](joint_library/sweep_ss_e_ip_1_seams.png)
+
 ss_e_ip_2 and ss_e_ip_5 cut butterfly pockets across the seam, one per division. The butterfly key itself is not modelled as a piece, as in 2024.
 
 ![ss_e_ip_2 and ss_e_ip_5 sweep](joint_library/sweep_ss_e_ip_2_5.png)
@@ -174,6 +178,10 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_tutorial(); // a f
 
 ![ss_e_op_1 sweep](joint_library/sweep_ss_e_op_1.png)
 
+**At other angles.** The same divisions on the floor and wall folded 90, 120 and 150 degrees, the mitre on the bisector: the fingers keep their count and lean, their length follows the mitre.
+
+![ss_e_op_1 at 90, 120 and 150 degrees](joint_library/sweep_ss_e_op_1_angles.png)
+
 ss_e_op_2 moves the central pairs twice as far as the outer ones. At shift 1 its outline crosses itself and no solid is built, in 2024 as here.
 
 ![ss_e_op_2 sweep](joint_library/sweep_ss_e_op_2.png)
@@ -228,7 +236,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(
 const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed design, no parameters
 ```
 
-\image html joint_library/ts_ts_e_p_4.png "ts_e_p_4, on the plates" width=70%
+\image html joint_library/beam_ts_e_p_4_90.png "ts_e_p_4, a beam ending square on the side of another" width=70%
+\image html joint_library/beam_ts_e_p_4_60.png "ts_e_p_4, a beam ending at 60 degrees on the side of another" width=70%
 \image html joint_library/ts_ts_e_p_custom.png "ts_e_p_custom, on the plates" width=70%
 \image html joint_library/ts_side_removal_0_0.5.png "side_removal top to side, on the plates" width=70%
 
@@ -237,14 +246,28 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed des
 ![ts_e_p_2 sweep](joint_library/sweep_ts_e_p_2.png)
 ![ts_e_p_3 sweep](joint_library/sweep_ts_e_p_3.png)
 
-ts_e_p_5, the snap fit, is not drawn here: the oracle skips it because 2024's literals put its hook through the base by design. The datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
+**At other angles.** The same tenons on an upright square to the base, skewed 60 degrees in plan and leaning 80 degrees: the mortises follow the upright's footprint.
+
+![ts_e_p_3 square, skewed and leaning](joint_library/sweep_ts_e_p_3_angles.png)
+
+ts_e_p_5, the snap fit: each tenon ends in a hook that snaps under the base. The thesis names it only in the text (p.86, p.91). The oracle does not check it, because 2024's literals put its hook through the base by design; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
+
+\image html joint_library/ts_ts_e_p_5_unit.png "ts_e_p_5: snap fit, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_5(
+    0  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
+\image html joint_library/ts_ts_e_p_5.png "ts_e_p_5: snap fit, on the plates" width=70%
 
 ## ss_e_r: side to side, rotated {#joint_library_ss_e_r}
 
-Two plates folded on a shared side face; ids 50 to 59. ss_e_r_2 and ss_e_r_3 each mill one pocket per plate across the seam and own the loose key that fills both.
+Two plates folded on a shared side face; ids 50 to 59. The pictures fold the pair 120 degrees about the shared edge, the contact read as rotated. ss_e_r_2 and ss_e_r_3 each mill one pocket per plate across the seam and own the loose key that fills both.
 
-\image html joint_library/r_ss_e_r_0.png "ss_e_r_0, on the plates" width=70%
-\image html joint_library/r_ss_e_r_2_4_0.5_unit.png "ss_e_r_2: keys, 4 divisions, unit box" width=60%
+\image html joint_library/r@120_ss_e_r_0.png "ss_e_r_0, on the plates" width=70%
+\image html joint_library/r@120_ss_e_r_2_4_0.5_unit.png "ss_e_r_2: keys, 4 divisions, unit box" width=60%
 
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_2(
@@ -253,8 +276,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_2(
 );
 ```
 
-\image html joint_library/r_ss_e_r_2_4_0.5.png "ss_e_r_2: keys, 4 divisions, on the plates" width=70%
-\image html joint_library/r_ss_e_r_3_4_0.5_unit.png "ss_e_r_3: keys, 4 divisions, unit box" width=60%
+\image html joint_library/r@120_ss_e_r_2_4_0.5.png "ss_e_r_2: keys, 4 divisions, on the plates" width=70%
+\image html joint_library/r@120_ss_e_r_3_4_0.5_unit.png "ss_e_r_3: keys, 4 divisions, unit box" width=60%
 
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3(
@@ -263,7 +286,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3(
 );
 ```
 
-\image html joint_library/r_ss_e_r_3_4_0.5.png "ss_e_r_3: keys, 4 divisions, on the plates" width=70%
+\image html joint_library/r@120_ss_e_r_3_4_0.5.png "ss_e_r_3: keys, 4 divisions, on the plates" width=70%
 \image html joint_library/r_ss_e_r_custom.png "ss_e_r_custom, on the plates" width=70%
 \image html joint_library/r_side_removal_0_0.5.png "side_removal rotated, on the plates" width=70%
 \image html joint_library/r_side_removal_1_0.5.png "side_removal merged with the joint, on the plates" width=70%
@@ -275,7 +298,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3(
 
 ## cr_c_ip: cross {#joint_library_cr_c_ip}
 
-Two plates crossing through each other's slots; ids 30 to 39. The box is the crossing: each plate keeps one half of it. cr_c_ip_0 is the plain half-lap. cr_c_ip_1 to 5 are the conic half-laps of the thesis (Fig. 5.51, 5.55), whose side cuts let the plates slide in at an angle; cr_c_ip_3 to 5 add drills.
+Two members crossing through each other's slots; ids 30 to 39. The cross joints belong to beams, as chapter 5 of the thesis draws them (Fig 5.51 row C, 5.55, 5.56): `JointBeam::from_contact` solves the design on the boxes of the two beams' volumes and cuts each beam with what its box loses, the merged half-lap, the conic side cuts as solids and the drills as exact bores. The pictures show two beams of half-width 75 crossing at 90 and 60 degrees, the upper one lifted 300 off, the drills as 16 mm dowels. The plate crossings of the datasets (cross_vda_*, the reciprocal grids) take the same designs. The box is the crossing: each plate keeps one half of it. cr_c_ip_0 is the plain half-lap. cr_c_ip_1 to 5 are the conic half-laps of the thesis (Fig. 5.51, 5.55), whose side cuts let the plates slide in at an angle; cr_c_ip_3 to 5 add drills.
 
 \image html joint_library/cr_cr_c_ip_0_unit.png "cr_c_ip_0: half-lap, unit box" width=60%
 
@@ -283,7 +306,8 @@ Two plates crossing through each other's slots; ids 30 to 39. The box is the cro
 const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_0(); // a fixed design, no parameters
 ```
 
-\image html joint_library/cr_cr_c_ip_0.png "cr_c_ip_0: half-lap, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_0_90.png "cr_c_ip_0: half-lap, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_0_60.png "cr_c_ip_0: half-lap, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_1_0.5_unit.png "cr_c_ip_1: conic half-lap, unit box" width=60%
 
 ```cpp
@@ -292,7 +316,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_1(
 );
 ```
 
-\image html joint_library/cr_cr_c_ip_1_0.5.png "cr_c_ip_1: conic half-lap, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_1_90.png "cr_c_ip_1: conic half-lap, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_1_60.png "cr_c_ip_1: conic half-lap, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_2_unit.png "cr_c_ip_2, unit box" width=60%
 
 ```cpp
@@ -301,7 +326,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_2(
 );
 ```
 
-\image html joint_library/cr_cr_c_ip_2.png "cr_c_ip_2, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_2_90.png "cr_c_ip_2, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_2_60.png "cr_c_ip_2, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_3_unit.png "cr_c_ip_3, unit box" width=60%
 
 ```cpp
@@ -310,7 +336,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_3(
 );
 ```
 
-\image html joint_library/cr_cr_c_ip_3.png "cr_c_ip_3, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_3_90.png "cr_c_ip_3, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_3_60.png "cr_c_ip_3, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_4_unit.png "cr_c_ip_4, unit box" width=60%
 
 ```cpp
@@ -319,7 +346,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_4(
 );
 ```
 
-\image html joint_library/cr_cr_c_ip_4.png "cr_c_ip_4, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_4_90.png "cr_c_ip_4, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_4_60.png "cr_c_ip_4, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_5_unit.png "cr_c_ip_5, unit box" width=60%
 
 ```cpp
@@ -328,7 +356,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_5(
 );
 ```
 
-\image html joint_library/cr_cr_c_ip_5.png "cr_c_ip_5, on the plates" width=70%
+\image html joint_library/beam_cr_c_ip_5_90.png "cr_c_ip_5, on two beams crossing at 90 degrees" width=70%
+\image html joint_library/beam_cr_c_ip_5_60.png "cr_c_ip_5, on two beams crossing at 60 degrees" width=70%
 \image html joint_library/cr_cr_c_ip_custom.png "cr_c_ip_custom, on the plates" width=70%
 
 **Shift.** The shift narrows the half-lap's centre square, 0 the widest and 1 the narrowest. Above 0.85 the slanted side cuts of cr_c_ip_2 to 5 cross over and the ring folds onto itself, in 2024 as here.
