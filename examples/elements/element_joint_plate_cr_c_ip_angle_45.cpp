@@ -8,9 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_cr_c_ip_angle_45");
 
-    // two 400 x 200 plates 40 thick standing upright, the second crossing the first at 45 degrees in plan
-    const std::shared_ptr<Plate> first = Plate::from_rectangle({0.0, 20.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "first");
-    const std::shared_ptr<Plate> second = Plate::from_rectangle({44.437, -127.279, 0.0}, {0.707, 0.707, 0.0}, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "second");
+    // two upright 400 x 200 plates 40 thick, the second crossing the first at 45 degrees in plan
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_crossing(45.0);
+    const std::shared_ptr<Plate> first = pair[0];
+    const std::shared_ptr<Plate> second = pair[1];
     scene.add(first);
     scene.add(second);
 

@@ -8,10 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_tt_e_p_1");
 
-    // two 400 x 300 plates 40 thick, the upper one turned about the vertical, its bottom on the lower one's top, so their contact is
-    // an irregular polygon, its centre apart from its polylabel
-    const std::shared_ptr<Plate> lower = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 300.0, 40.0, "lower");
-    const std::shared_ptr<Plate> upper = Plate::from_rectangle({150.0, -60.0, 40.0}, {0.8, 0.6, 0.0}, {-0.6, 0.8, 0.0}, 400.0, 300.0, 40.0, "upper");
+    // two 400 x 300 plates 40 thick stacked, the upper one turned about the vertical, so their contact is an irregular polygon
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_stacked();
+    const std::shared_ptr<Plate> lower = pair[0];
+    const std::shared_ptr<Plate> upper = pair[1];
     scene.add(lower);
     scene.add(upper);
 

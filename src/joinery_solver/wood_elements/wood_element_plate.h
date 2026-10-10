@@ -60,6 +60,26 @@ public:
     /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
+    /// Two plates edge to edge in one plane, "left" and "right", each `length` x `width` x `thickness`, meeting on the plane x = length:
+    /// the in-plane side-to-side pair (ss_e_ip).
+    static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double length = 300.0, double width = 400.0, double thickness = 40.0);
+
+    /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`, the wall turned `angle_degrees`
+    /// from the floor's top, their side faces mitred on the bisector: the out-of-plane side-to-side pair (ss_e_op).
+    static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0);
+
+    /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`, the
+    /// upright's foot turned `angle_degrees` from the base's x axis: the top-to-side pair (ts_e_p).
+    static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0);
+
+    /// Two upright plates `length` x `height` x `thickness` crossing at their middles, "first" along x and "second" turned `angle_degrees`
+    /// from it in plan: the cross pair (cr_c_ip).
+    static std::array<std::shared_ptr<Plate>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0);
+
+    /// Two plates `length` x `width` x `thickness` stacked face on face, "lower" and "upper", the upper turned `twist_degrees` about the
+    /// vertical, so their contact is an irregular polygon: the top-to-top pair (tt_e_p).
+    static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 36.8698976, double length = 400.0, double width = 300.0, double thickness = 40.0);
+
     /// Two plates end to end, "left" and "right", the rotated side-to-side pair the ss_e_r designs are for, as the hex blocks of
     /// Rossiniere meet: each `length` x `width` x `thickness`, their side faces on the plane x = length, the right one twisted by
     /// `twist_degrees` about that plane's normal, so the two seam edges cross at the centre of the contact.

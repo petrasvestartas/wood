@@ -8,9 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_ts_e_p_angle_60");
 
-    // a 400 x 400 base and a 250 x 250 upright, both 40 thick, the upright's foot on the base's middle at 60 degrees to its x axis
-    const std::shared_ptr<Plate> base = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 400.0, 40.0, "base");
-    const std::shared_ptr<Plate> upright = Plate::from_rectangle({120.179, 101.747, 40.0}, {0.5, 0.866, 0.0}, {0.0, 0.0, 1.0}, 250.0, 250.0, 40.0, "upright");
+    // a 400 x 400 base and a 250 x 250 upright on its middle, both 40 thick, the upright at 60 degrees to the base's x axis
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_top_side(60.0);
+    const std::shared_ptr<Plate> base = pair[0];
+    const std::shared_ptr<Plate> upright = pair[1];
     scene.add(base);
     scene.add(upright);
 

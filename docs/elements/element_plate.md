@@ -10,6 +10,14 @@ A timber plate: a bottom and a top outline, one side face per edge. Its joints c
 Plate(const Polyline& bottom, const Polyline& top, const std::string& name = "plate")
 static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name = "plate")
 static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates")
+
+// pairs, one per joint family's configuration, for examples and tests
+static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double length = 300.0, double width = 400.0, double thickness = 40.0)                                   // ss_e_ip: edge to edge
+static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0)   // ss_e_op: mitred fold
+static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0)     // ss_e_r: end to end, twisted
+static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0)  // ts_e_p: upright on a base
+static std::array<std::shared_ptr<Plate>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0)    // cr_c_ip: crossing uprights
+static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 36.87, double length = 400.0, double width = 300.0, double thickness = 40.0)     // tt_e_p: stacked, turned
 ```
 
 ## Parameters

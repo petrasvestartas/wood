@@ -9,6 +9,10 @@ A beam on a polyline axis: a square of a radius, or a profile swept along it, se
 ```cpp
 Beam(const Polyline& axis, double radius, const std::string& name = "beam")
 Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vector<Vector>& directions = {}, const std::string& name = "beam")
+
+// pairs, one per joint family's configuration, for examples and tests
+static std::array<std::shared_ptr<Beam>, 2> pair_crossing(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0)   // cr_c_ip: crossing at their middles
+static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0)        // ts_e_p: the second ending on the first
 ```
 
 ## Parameters

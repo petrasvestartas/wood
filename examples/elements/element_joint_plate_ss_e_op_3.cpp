@@ -8,13 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_ss_e_op_3");
 
-    // a floor and a wall meeting at a right angle, their side faces mitred on one plane
-    const Polyline floor_bottom({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}});
-    const Polyline floor_top({{0.0, 0.0, 40.0}, {260.0, 0.0, 40.0}, {260.0, 400.0, 40.0}, {0.0, 400.0, 40.0}, {0.0, 0.0, 40.0}});
-    const Polyline wall_bottom({{300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {300.0, 400.0, 300.0}, {300.0, 0.0, 300.0}, {300.0, 0.0, 0.0}});
-    const Polyline wall_top({{260.0, 0.0, 40.0}, {260.0, 400.0, 40.0}, {260.0, 400.0, 300.0}, {260.0, 0.0, 300.0}, {260.0, 0.0, 40.0}});
-    const std::shared_ptr<Plate> floor = std::make_shared<Plate>(floor_bottom, floor_top, "floor");
-    const std::shared_ptr<Plate> wall = std::make_shared<Plate>(wall_bottom, wall_top, "wall");
+    // a 300 x 400 floor and a 300 high wall, both 40 thick, at a right angle, mitred on the bisector
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_folded(90.0);
+    const std::shared_ptr<Plate> floor = pair[0];
+    const std::shared_ptr<Plate> wall = pair[1];
     scene.add(floor);
     scene.add(wall);
 

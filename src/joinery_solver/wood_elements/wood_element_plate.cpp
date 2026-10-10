@@ -98,6 +98,67 @@ std::shared_ptr<Plate> Plate::from_rectangle(
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double length, double width, double thickness) {
+
+    const std::shared_ptr<Plate> left = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "left");
+    const std::shared_ptr<Plate> right = from_rectangle(Point(length, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "right");
+    return {left, right};
+}
+
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_folded(double angle_degrees, double length, double width, double height, double thickness) {
+
+    // the wall rises from the outer corner, its inner face offset by the thickness, the inner corner where it meets the floor's top
+    const double angle = angle_degrees * Tolerance::PI / 180.0;
+    const Point outer(length, 0.0, 0.0);
+    const Vector up(-std::cos(angle), 0.0, std::sin(angle));
+    const Vector inward(-std::sin(angle), 0.0, -std::cos(angle));
+    const Point inner = outer + inward * thickness + up * (thickness * (1.0 + std::cos(angle)) / std::sin(angle));
+    const Vector along(0.0, width, 0.0);
+
+    const Polyline floor_bottom({Point(0.0, 0.0, 0.0), outer, outer + along, Point(0.0, 0.0, 0.0) + along, Point(0.0, 0.0, 0.0)});
+    const Polyline floor_top({Point(0.0, 0.0, thickness), inner, inner + along, Point(0.0, 0.0, thickness) + along, Point(0.0, 0.0, thickness)});
+    const Point outer_end = outer + up * height;
+    const Point inner_end = outer + inward * thickness + up * height;
+    const Polyline wall_bottom({outer, outer + along, outer_end + along, outer_end, outer});
+    const Polyline wall_top({inner, inner + along, inner_end + along, inner_end, inner});
+    return {std::make_shared<Plate>(floor_bottom, floor_top, "floor"), std::make_shared<Plate>(wall_bottom, wall_top, "wall")};
+}
+
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_top_side(double angle_degrees, double base_size, double upright_size, double thickness) {
+
+    const double angle = angle_degrees * Tolerance::PI / 180.0;
+    const Vector foot(std::cos(angle), std::sin(angle), 0.0);
+    const Vector side = foot.cross(Vector(0.0, 0.0, 1.0));
+    const Point centre(0.5 * base_size, 0.5 * base_size, thickness);
+    const Point origin = centre - foot * (0.5 * upright_size) - side * (0.5 * thickness);
+    const std::shared_ptr<Plate> base = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), base_size, base_size, thickness, "base");
+    const std::shared_ptr<Plate> upright = from_rectangle(origin, foot, Vector(0.0, 0.0, 1.0), upright_size, upright_size, thickness, "upright");
+    return {base, upright};
+}
+
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_crossing(double angle_degrees, double length, double height, double thickness) {
+
+    const double angle = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(angle), std::sin(angle), 0.0);
+    const Vector side = along.cross(Vector(0.0, 0.0, 1.0));
+    const Point centre(0.5 * length, 0.0, 0.0);
+    const Point origin = centre - along * (0.5 * length) - side * (0.5 * thickness);
+    const std::shared_ptr<Plate> first = from_rectangle(Point(0.0, 0.5 * thickness, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), length, height, thickness, "first");
+    const std::shared_ptr<Plate> second = from_rectangle(origin, along, Vector(0.0, 0.0, 1.0), length, height, thickness, "second");
+    return {first, second};
+}
+
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_stacked(double twist_degrees, double length, double width, double thickness) {
+
+    const double twist = twist_degrees * Tolerance::PI / 180.0;
+    const Vector x(std::cos(twist), std::sin(twist), 0.0);
+    const Vector y(-std::sin(twist), std::cos(twist), 0.0);
+    const Point centre(0.55 * length, 0.6 * width, thickness);
+    const std::shared_ptr<Plate> lower = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "lower");
+    const std::shared_ptr<Plate> upper = from_rectangle(centre - x * (0.5 * length) - y * (0.5 * width), x, y, length, width, thickness, "upper");
+    return {lower, upper};
+}
+
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_rotated(double twist_degrees, double length, double width, double thickness) {
 
     // the right plate's width and thickness axes, the left's turned about the seam normal x

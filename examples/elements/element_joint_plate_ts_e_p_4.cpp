@@ -8,9 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_ts_e_p_4");
 
-    // a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick
-    const std::shared_ptr<Plate> base = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 400.0, 40.0, "base");
-    const std::shared_ptr<Plate> upright = Plate::from_rectangle({180.0, 75.0, 40.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 250.0, 250.0, 40.0, "upright");
+    // a 400 x 400 base and a 250 x 250 upright on its middle, both 40 thick
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_top_side(90.0);
+    const std::shared_ptr<Plate> base = pair[0];
+    const std::shared_ptr<Plate> upright = pair[1];
     scene.add(base);
     scene.add(upright);
 

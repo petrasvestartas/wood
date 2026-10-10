@@ -8,24 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_ss_e_ip_3");
 
-    const std::shared_ptr<Plate> left = Plate::from_rectangle(
-        {0.0, 0.0, 0.0},
-        {1.0, 0.0, 0.0},
-        {0.0, 1.0, 0.0},
-        300.0,
-        400.0,
-        40.0,
-        "left"
-    );
-    const std::shared_ptr<Plate> right = Plate::from_rectangle(
-        {300.0, 0.0, 0.0},
-        {1.0, 0.0, 0.0},
-        {0.0, 1.0, 0.0},
-        300.0,
-        400.0,
-        40.0,
-        "right"
-    );
+    // two 300 x 400 plates 40 thick, edge to edge
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_in_plane();
+    const std::shared_ptr<Plate> left = pair[0];
+    const std::shared_ptr<Plate> right = pair[1];
     scene.add(left);
     scene.add(right);
 

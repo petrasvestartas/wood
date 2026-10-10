@@ -8,9 +8,10 @@ int main() {
 
     WoodSession scene("element_joint_plate_ss_e_op_angle_120");
 
-    // a 300 x 400 floor and a 300 high wall, both 40 thick, meeting at 120 degrees on the 400 seam, mitred on the bisector
-    const std::shared_ptr<Plate> floor = std::make_shared<Plate>(Polyline({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {0.0, 400.0, 0.0}, {0.0, 0.0, 0.0}}), Polyline({{0.0, 0.0, 40.0}, {276.906, 0.0, 40.0}, {276.906, 400.0, 40.0}, {0.0, 400.0, 40.0}, {0.0, 0.0, 40.0}}), "floor");
-    const std::shared_ptr<Plate> wall = std::make_shared<Plate>(Polyline({{300.0, 0.0, 0.0}, {300.0, 400.0, 0.0}, {450.0, 400.0, 259.808}, {450.0, 0.0, 259.808}, {300.0, 0.0, 0.0}}), Polyline({{276.906, 0.0, 40.0}, {276.906, 400.0, 40.0}, {415.359, 400.0, 279.808}, {415.359, 0.0, 279.808}, {276.906, 0.0, 40.0}}), "wall");
+    // a 300 x 400 floor and a 300 high wall, both 40 thick, at 120 degrees, mitred on the bisector
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_folded(120.0);
+    const std::shared_ptr<Plate> floor = pair[0];
+    const std::shared_ptr<Plate> wall = pair[1];
     scene.add(floor);
     scene.add(wall);
 
