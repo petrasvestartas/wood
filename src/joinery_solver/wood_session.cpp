@@ -1768,9 +1768,12 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
 
         // and the cut the plate joint on its box leaves the target, as a solid it loses
         const size_t side = static_cast<size_t>(std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin());
-        if (side < 2 && beam_joint->member_cuts[side].number_of_faces() > 0) {
+        if (side < 2 && (beam_joint->member_cuts[side].number_of_faces() > 0 || !beam_joint->member_drills[side].empty())) {
             InteractionFeatureSolid member_cut;
             member_cut.mesh = beam_joint->member_cuts[side];
+            member_cut.drills = beam_joint->member_drills[side];
+            member_cut.drill_radius = joint->line_radius;
+            member_cut.drill_tolerance = joint->chord_tolerance;
             host_solid_feature(*this, *joint, std::move(member_cut), target);
         }
 

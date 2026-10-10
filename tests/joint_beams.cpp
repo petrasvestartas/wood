@@ -94,8 +94,106 @@ static void check_phanomema_node() {
     std::cout << "joint_beams: phanomema_node's five pairs joined and cut, each pair's overlap at least 95 % gone" << std::endl;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Cross joints on beams: the half-lap and the conic half-laps of the thesis (Fig 5.51, 5.55)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Two beams of half-width 75 crossing in plan at 90, 60 and 45 degrees, joined by each cross design cr_c_ip_0 to 5 (ids 30 to 35): the
+/// pair's overlap is gone, the beams lost at least their overlap, each a closed solid, and the designs with drills bore the beams with
+/// exact cylinders.
+static void check_crossings() {
+
+    for (const double angle : {90.0, 60.0, 45.0}) {
+        for (int id = 30; id <= 35; id++) {
+            WoodSession scene(fmt::format("crossing_{:g}_{}", angle, id));
+            scene.settings.joint_parameters[11] = id;
+            const double turn = angle * std::numbers::pi / 180.0;
+            const Vector along(std::cos(turn), std::sin(turn), 0.0);
+            const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
+            const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({Point(0.0, 0.0, 0.0) - along * 600.0, Point(0.0, 0.0, 0.0) + along * 600.0}), 75.0, "beam");
+            a->name = "beam_a";
+            b->name = "beam_b";
+            scene.add(a);
+            scene.add(b);
+            scene.compute_axis_contacts(20.0);
+            scene.compute_beam_features(500.0, 0.91, 1);
+
+            std::shared_ptr<JointBeam> joint;
+            for (const std::shared_ptr<Element>& element : *scene.objects.elements)
+                if (std::shared_ptr<JointBeam> found = std::dynamic_pointer_cast<JointBeam>(element))
+                    joint = found;
+            check(joint != nullptr, fmt::format("the beams crossing at {:g} degrees are joined by cr_c_ip id {}", angle, id));
+            const std::string design = fmt::format("cr_c_ip_{}", id - 30);
+            check(joint->joinery.name == design, fmt::format("the crossing at {:g} degrees takes {}, not {}", angle, design, joint->joinery.name));
+
+            const double before = boolean_volume(a->element_geometry_mesh(), b->element_geometry_mesh(), SolidOperation::intersect);
+            const double after = boolean_volume(a->model_geometry_mesh(), b->model_geometry_mesh(), SolidOperation::intersect);
+            check(after <= KEPT_OVERLAP * before, fmt::format("id {} at {:g} degrees leaves {:.1f} of the {:.1f} mm3 overlap", id, angle, after, before));
+
+            double lost = 0.0;
+            for (const std::shared_ptr<Beam>& member : {a, b}) {
+                const Mesh& model = member->model_geometry_mesh();
+                check(model.is_closed(), fmt::format("{} is a closed solid after id {} at {:g} degrees", member->name, id, angle));
+                lost += compute_volume(member->element_geometry_mesh()) - compute_volume(model);
+            }
+            check(lost >= before * (1.0 - KEPT_OVERLAP), fmt::format("the beams lost {:.0f} mm3 to id {} at {:g} degrees, less than their overlap {:.0f}", lost, id, angle, before));
+
+            // the designs with drills (cr_c_ip_3 to 5) bore both beams with exact cylinders
+            size_t cylinders = 0;
+            for (const std::shared_ptr<Beam>& member : {a, b})
+                for (const BRepFace& face : member->model_geometry_brep().m_faces)
+                    cylinders += member->model_geometry_brep().m_surfaces[face.surface_index].is_rational();
+            if (id >= 33)
+                check(cylinders > 0, fmt::format("id {} at {:g} degrees bores no exact cylinder", id, angle));
+
+            std::cout << fmt::format("joint_beams: cr_c_ip id {} at {:g} degrees: overlap {:.0f} to {:.0f} mm3, the beams lost {:.0f}, {} exact bores", id, angle, before, after, lost, cylinders) << std::endl;
+        }
+    }
+}
+
+/// A beam ending on the side of another, square and at 60 degrees, joined by the wedge ts_e_p_4 (id 24), whose milled pockets and wedge
+/// flanks are solids: both beams cut, closed, their overlap gone. The tenon designs ts_e_p_2 and 3 on such a tee are open: at 90 degrees
+/// the beams lose 14.6e6 mm3 for an overlap of 1.7e6, at 60 degrees ts_e_p_3 leaves 1.2e6 of the overlap (as before the solids were
+/// carried onto beams).
+static void check_tees() {
+
+    for (const double angle : {90.0, 60.0}) {
+        for (const int id : {24}) {
+            WoodSession scene(fmt::format("tee_{:g}_{}", angle, id));
+            scene.settings.joint_parameters[8] = id;
+            const double turn = angle * std::numbers::pi / 180.0;
+            const Vector along(std::cos(turn), std::sin(turn), 0.0);
+            const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
+            const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0) + along * 600.0}), 75.0, "beam");
+            a->name = "beam_a";
+            b->name = "beam_b";
+            scene.add(a);
+            scene.add(b);
+            scene.compute_axis_contacts(20.0);
+            scene.compute_beam_features(500.0, 0.91, 1);
+
+            std::shared_ptr<JointBeam> joint;
+            for (const std::shared_ptr<Element>& element : *scene.objects.elements)
+                if (std::shared_ptr<JointBeam> found = std::dynamic_pointer_cast<JointBeam>(element))
+                    joint = found;
+            check(joint != nullptr, fmt::format("the tee at {:g} degrees is joined by id {}", angle, id));
+            const double before = boolean_volume(a->element_geometry_mesh(), b->element_geometry_mesh(), SolidOperation::intersect);
+            const double after = boolean_volume(a->model_geometry_mesh(), b->model_geometry_mesh(), SolidOperation::intersect);
+            double lost = 0.0;
+            for (const std::shared_ptr<Beam>& member : {a, b}) {
+                check(member->model_geometry_mesh().is_closed(), fmt::format("{} is a closed solid after id {} at {:g} degrees", member->name, id, angle));
+                lost += compute_volume(member->element_geometry_mesh()) - compute_volume(member->model_geometry_mesh());
+            }
+            std::cout << fmt::format("joint_beams: tee {} ({}) at {:g} degrees: overlap {:.0f} to {:.0f} mm3, the beams lost {:.0f}", joint->joinery.name, id, angle, before, after, lost) << std::endl;
+            check(after <= KEPT_OVERLAP * before, fmt::format("{} at {:g} degrees leaves {:.1f} of the {:.1f} mm3 overlap", joint->joinery.name, angle, after, before));
+        }
+    }
+}
+
 int main() {
 
     check_phanomema_node();
+    check_crossings();
+    check_tees();
     return 0;
 }

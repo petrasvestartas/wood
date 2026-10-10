@@ -59,7 +59,8 @@ JointBeam::JointBeam(
 
 /// The plate joint 2024 built on a beam pair: the two boxes the volumes make, [0] to [1] the first beam's and [2] to [3] the second's, solved as
 /// plates with the settings' rows, an end-to-end pair searched as a crossing; inside the zone of both boxes each beam then keeps what its box
-/// keeps of the joint, its tenons with it, and loses the rest: the other box and its own mortises.
+/// keeps of the joint, its tenons with it, and loses the rest: the other box and its own mortises, with what the design mills as a solid
+/// and its drills.
 static void compute_joinery(JointBeam& joint, const Settings& settings) {
 
     WoodSession boxes("beam_joint_boxes");
@@ -83,18 +84,26 @@ static void compute_joinery(JointBeam& joint, const Settings& settings) {
     for (size_t i = 0; i < 2; i++) {
         joint.joinery_sides[i] = joint.joinery.element_a == box[i]->guid() ? 0 : 1;
         const Features& merged = box[i]->features;
-        if (merged.top.empty() || merged.top.size() != merged.bottom.size())
-            continue;
 
         // the zone less the loft of the box's outer outline, its tenons kept, united with every hole's prism, its mortises: one solid, as
         // a mortise opens onto the other box and a shell beside it would share that face
-        Mesh cut = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
-        for (size_t k = 1; k < merged.top.size(); k++) {
-            const Mesh mortise = Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true);
-            cut = cut.number_of_faces() == 0 ? mortise : solid_boolean(cut, mortise, SolidOperation::add);
+        Mesh cut;
+        if (!merged.top.empty() && merged.top.size() == merged.bottom.size()) {
+            cut = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
+            for (size_t k = 1; k < merged.top.size(); k++) {
+                const Mesh mortise = Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true);
+                cut = cut.number_of_faces() == 0 ? mortise : solid_boolean(cut, mortise, SolidOperation::add);
+            }
         }
+
+        // what the design mills from its box as a solid (the conic cross cuts, the milled key pockets), which no outline merge carries
+        for (const Mesh& piece : JointPlate::side_solids(joint.joinery, joint.joinery_sides[i]))
+            cut = cut.number_of_faces() == 0 ? piece : solid_boolean(cut, piece, SolidOperation::add);
         if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
             joint.member_cuts[i] = cut;
+
+        // and the design's drills on its box, bored into the beam exactly
+        joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
     }
 }
 

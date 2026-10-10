@@ -31,6 +31,7 @@ public:
     InteractionFeaturePlate joinery; // A beam-to-beam joint's plate joint, as 2024 built it on the two boxes its volumes make: [0] and [1] on the first beam's box, [2] and [3] on the second's; empty when the boxes take no joint.
     std::array<int, 2> joinery_sides = {-1, -1}; // Which side of the plate joint each target is, 0 its male and 1 its female; -1 without a joint.
     std::array<Mesh, 2> member_cuts; // What each target loses to a beam-to-beam joint inside the zone of both boxes: all but what its box keeps of the plate joint; empty without one.
+    std::array<std::vector<Line>, 2> member_drills; // The plate joint's drills each target is bored along, its box's side of them; empty without any.
     std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the pins at an end where the pin leaves the target; a blind hole stops at its pin.
