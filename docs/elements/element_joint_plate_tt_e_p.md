@@ -83,6 +83,6 @@ The largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of 
 ![tt_e_p_custom](elements/element_joint_plate_tt_e_p_custom.png)
 ![tt_e_p_custom, the plan](elements/element_joint_plate_tt_e_p_custom_plan.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact.
+Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact. Here a hidden butterfly key: a bow-tie pocket milled into each plate from the contact face, and the key, the joint's own piece, set in both.
 
 \include{lineno} elements/element_joint_plate_tt_e_p_custom.cpp
