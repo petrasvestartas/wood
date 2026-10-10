@@ -281,7 +281,7 @@ flowchart TB
     CC --> CD["contact detection: face, cross, axis"]
     CD --> ST[("edge interactions: contacts")]
     CF --> AP["adjacent_pairs: sidecar or OBB BVH search"]
-    AP --> FD["feature detection: one InteractionFeaturePlate per pair, Plate flip when asked"]
+    AP --> FD["feature detection: one InteractionFeaturePlate per pair, Plate::swap_planes when asked"]
     FD --> TV["three valence: shadow joints, annen alignment"]
     TV --> FC["construction and joint registry: unit outlines onto the volumes"]
     FC --> MM["merge: cut outlines into each plate"]
@@ -302,7 +302,7 @@ flowchart LR
 
 - `WoodSession::yaml_load` reads the dataset yml into the scene's `settings` and the dataset paths, the obj into plates, and the four sidecars onto the scene (`adjacency`, `three_valence`) and the plates (insertion vectors, feature types).
 - `compute_face_contacts` runs `wood_contact_detection` over every element pair the OBB/BVH search returns and stores one `InteractionContactFace` per overlapping face pair on the pair's edge; `compute_cross_contacts`, `compute_line_contacts` and `compute_axis_contacts` add `InteractionContactCross` and `InteractionContactAxis` the same way.
-- `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `InteractionFeaturePlate` or nothing; when a joint wants the other face first the second plate is flipped through `Plate::flip`, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then contacts onto plate-pair edges, joint elements into the scene, and directed feature edges from each joint to its host plates.
+- `compute_features` runs `wood_feature_solver`: `adjacent_pairs` (the sidecar or the search), `wood_feature_detection` on each pair (one `InteractionFeaturePlate` or nothing; when an in-plane joint finds the second plate's top plane nearer, its planes are swapped through `Plate::swap_planes`, outlines kept as the 2025 solver kept them, which resets every cache), `wood_three_valence` (shadow joints, annen alignment), `wood_feature_construction` + the joint registry (unit-box outlines, oriented onto the volumes), `wood_merge_modifier` (the cut outlines stitched into each plate's `features`), then contacts onto plate-pair edges, joint elements into the scene, and directed feature edges from each joint to its host plates.
 - `compute_beam_features` runs `wood_feature_detection_beam` on every axis contact between two beams: four volume rectangles per pair, one `InteractionFeatureBeam` each.
 - `compute_face_contacts(level)` pairs elements under the same tree node at that depth, 0 the whole scene, 1 the root's branches; `3_elements_tree` pairs across its storeys with 0.
 - `pb_dump` writes the `wood_proto.WoodSession`, every stale element lofting itself, and cutting itself by its `cuts`, as it is serialized. Contacts and joints are already on their elements as features, put there when they were computed: a contact on its edge's first element, a joint on both hosts; the viewer draws the elements' geometry and every visible feature in the default grey, and the tree stays exactly as the caller built it.
@@ -320,7 +320,7 @@ flowchart LR
 
 - **Global mutable configuration.** 39 globals in `wood_config.h` were the real inputs of every algorithm. Gone: `Settings` is a value the scene holds and every algorithm and builder takes by reference; `config` keeps the catalogue and the paths.
 - **A dependency pointing the wrong way.** `Beam::joint_volumes` ran the solver from inside an element. Gone: `axis_contacts` and `beam_to_beam` live in the algorithms and `compute_axis_contacts` / `compute_beam_features` run on the scene's beams like the plate pipeline.
-- **The solver mutating its inputs.** Detection swapped a plate's faces behind the kernel's cache. Removing the swap changes eight datasets, so it is a real step of the method, not a leak: `Plate::flip` owns it and resets every cache, and contact detection reads the kernel's cached outlines again.
+- **The solver mutating its inputs.** Detection swapped a plate's faces behind the kernel's cache. Removing the swap changes eight datasets, so it is a real step of the method, not a leak: `Plate::swap_planes` owns it, swaps the planes and keeps the outlines as the 2025 solver did, and resets every cache, and contact detection reads the kernel's cached outlines again.
 - **The joint library dispatched by hand.** Seven switches over id ranges known only there. Gone: one table, id to family and builder, the family ranges and defaults beside it.
 - **`InteractionFeaturePlate` carrying solver scratch.** Run indices and trace counters. Gone: joints link by guid, every feature has its own guid, the counters live in `DetectionTrace` for callers that ask. The pair and the contact are still stored on the joint as well as on the edge and as the contact it names, by choice; `WoodSession::consistent` checks they agree and the round trip asserts it.
 - **Two hand-written serializers per class.** Gone: JSON is derived from the proto message; the one reader left is for element payloads of older files.

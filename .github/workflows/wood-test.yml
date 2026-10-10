@@ -64,3 +64,44 @@ jobs:
     - name: Run all datasets
       run: |
         stdbuf -oL -eL timeout 600 build/main_all_datasets
+
+    # The geometry oracle: every plate joint design on a joined pair, checked for closed
+    # outlines, closed solids, no interpenetration, material conservation, male-female fit,
+    # drills, a protobuf round trip, a rigid motion and the committed goldens under
+    # tests/golden/joint_library. The table names every failing variant; exit 1 only when a
+    # variant of tests/golden/joint_library/passing.txt fails, a regression.
+    - name: Joint library oracle
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_library
+
+    # The scoreboard against the 2025 CGAL solver: tests/golden/reference_2025/<name>.json
+    # (committed, written by tools/reference_2025.py) against the port's merged outlines per
+    # plate. Exit 1 when a dataset throws or one listed in matched.txt stops matching.
+    - name: Reference datasets
+      run: |
+        stdbuf -oL -eL timeout 600 build/reference_datasets
+
+    # The Hilti connector folded 0 to 50 degrees: the same parts at every angle, inside their slabs, filling their pockets.
+    - name: Hilti connector
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_hilti
+
+    # The connectors' pins: headed pins bore their pre-drilled holes, the let-in plate's pins run across their members.
+    - name: Pins
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_pins
+
+    # The beam dataset: every pair joined as 2024 joined it, on the boxes of its volumes, and its beams cut.
+    - name: Beam joints
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_beams
+
+    # The boundary family: b_0 on a border contact and through the dataset boundary_side, against the 2025 reference.
+    - name: Border joints
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_border
+
+    # Joint types and insertion vectors by points and lines: every sidecar dataset solved through the two functions gives the sidecars' joints.
+    - name: Plate assignment
+      run: |
+        stdbuf -oL -eL timeout 600 build/plate_assignment

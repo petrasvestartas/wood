@@ -677,8 +677,7 @@ for (size_t k = 0; k < 2; k++) {
         *column.a,
         *column.b,
         *quarter_connectors.column_plates[k],
-        *column.face,
-        guide.size_outer_ribs
+        *column.face
     );
 }
 

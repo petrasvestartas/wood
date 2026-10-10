@@ -9,10 +9,38 @@ static Polyline yz_profile_at_x(double x, const double data[][2], size_t n) {
     return Polyline(pts);
 }
 
-/// ss_e_r_1: miter tenon-mortise - a 39-point arc profile in the yz-plane at x=0 and x=0.5; conic cuts, unit_scale.
-static void ss_e_r_1(InteractionFeaturePlate& joint) {
+/// ss_e_r_1: the miter tenon-mortise tile of side_removal_ss_e_r_1, a profile and its box marker in the yz-plane, the female
+/// at x = 0.5 and 0, the male at x = 0 and 0.5; type 1 the 15-point arc that side_removal_ss_e_r_1 tiles, any other type the
+/// 39-point arc; conic cuts, no unit scale of its own, as 2024: the caller that tiles it turns the unit scale on. The male and
+/// female profiles coincide, so alone on a pair it is no joint: 2024 gave it no id, and the library does not expose it.
+static void ss_e_r_1(InteractionFeaturePlate& joint, int type = 1) {
 
     joint.name = "ss_e_r_1";
+
+    static const double yz_1[][2] = {
+        {-0.625, -0.2        },
+        {-0.625,  0.2        },
+        { 0.125798405, 0.062633245 },
+        { 0.141579173, 0.057404662 },
+        { 0.155319467, 0.04804651  },
+        { 0.16596445,  0.035277208 },
+        { 0.172696911, 0.020077054 },
+        { 0.175,       0.003612957 },
+        { 0.175,      -0.003612957 },
+        { 0.172696911,-0.020077054 },
+        { 0.16596445, -0.035277208 },
+        { 0.155319467,-0.04804651  },
+        { 0.141579173,-0.057404662 },
+        { 0.125798405,-0.062633245 },
+        {-0.625,      -0.2         },
+    };
+    static const double yz_marker_1[][2] = {
+        {-0.625, -0.2 },
+        {-0.625,  0.2 },
+        { 0.175,  0.2 },
+        { 0.175, -0.2 },
+        {-0.625, -0.2 },
+    };
 
     static const double yz[][2] = {
         {-0.825,  0.0         },
@@ -63,16 +91,19 @@ static void ss_e_r_1(InteractionFeaturePlate& joint) {
         {-0.825,  0.39066965 },
     };
 
-    joint.female_outlines[0] = { yz_profile_at_x(0.5, yz, 39), yz_profile_at_x(0.5, yz_marker, 5) };
-    joint.female_outlines[1] = { yz_profile_at_x(0.0, yz, 39), yz_profile_at_x(0.0, yz_marker, 5) };
+    const bool arc_15 = type == 1;
+    const double (*profile)[2] = arc_15 ? yz_1 : yz;
+    const double (*marker)[2] = arc_15 ? yz_marker_1 : yz_marker;
+    const size_t count = arc_15 ? 15 : 39;
 
-    joint.male_outlines[0] = { yz_profile_at_x(0.0, yz, 39), yz_profile_at_x(0.0, yz_marker, 5) };
-    joint.male_outlines[1] = { yz_profile_at_x(0.5, yz, 39), yz_profile_at_x(0.5, yz_marker, 5) };
+    joint.female_outlines[0] = { yz_profile_at_x(0.5, profile, count), yz_profile_at_x(0.5, marker, 5) };
+    joint.female_outlines[1] = { yz_profile_at_x(0.0, profile, count), yz_profile_at_x(0.0, marker, 5) };
+
+    joint.male_outlines[0] = { yz_profile_at_x(0.0, profile, count), yz_profile_at_x(0.0, marker, 5) };
+    joint.male_outlines[1] = { yz_profile_at_x(0.5, profile, count), yz_profile_at_x(0.5, marker, 5) };
 
     joint.female_fabrication_types[0] = { FabricationType::conic, FabricationType::conic };
     joint.female_fabrication_types[1] = { FabricationType::conic, FabricationType::conic };
     joint.male_fabrication_types[0] = { FabricationType::conic_reverse, FabricationType::conic_reverse };
     joint.male_fabrication_types[1] = { FabricationType::conic_reverse, FabricationType::conic_reverse };
-
-    joint.unit_scale = true;
 }

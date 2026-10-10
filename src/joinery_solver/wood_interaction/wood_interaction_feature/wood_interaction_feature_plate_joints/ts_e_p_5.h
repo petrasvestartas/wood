@@ -1,5 +1,8 @@
-/// ts_e_p_5: repeating tenon-mortise - `divisions` copies along z, the male concatenated into one outline per face,
-/// the female one rectangle per copy plus a bounding rectangle; unit_scale.
+/// ts_e_p_5: the snap-fit tenon, 2024's literals, a copy per division along z, the copies spread over the joint line's length
+/// (times scale[2]) measured in the volume's thickness edge, the first moved from the centre to the end and each next back by one
+/// step; per male face the copies run into one outline and its two-point edge marker, both edge insertions, per female face a
+/// mortise rectangle per copy and the rectangle that bounds them, every one a hole. Unit scale: oriented, the unit z keeps the
+/// distance 2024 pinned every joint to, the first plate's thickness, instead of stretching to the joint line.
 static void ts_e_p_5(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_5";

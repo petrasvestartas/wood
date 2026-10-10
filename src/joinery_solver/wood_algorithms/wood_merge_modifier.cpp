@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_merge_modifier.h"
 #include "wood_session.h"
+#include "wood_element_geometry.h"
 using namespace session_cpp;
 
 constexpr bool TRACE = false;
@@ -20,11 +21,11 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distanc
             log = &log_file;
     }
 
-    top_points = plate.polylines[0].get_points();
-    bottom_points = plate.polylines[1].get_points();
+    bottom_points = plate.polylines[0].get_points();
+    top_points = plate.polylines[1].get_points();
     joint_planes = plate.planes;
-    top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
     bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
+    top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
     this->distance_squared = distance_squared;
 }
 
@@ -45,17 +46,18 @@ std::vector<Polyline> MergeModifier::apply(
 
     state.insert_side_joints(membership, joints);
 
-    Polyline merged_top = build_merged_outline(state.top_points, state.top_runs, state.top_original_front);
     Polyline merged_bottom = build_merged_outline(state.bottom_points, state.bottom_runs, state.bottom_original_front);
-    state.close_corner(merged_top, merged_bottom);
+    Polyline merged_top = build_merged_outline(state.top_points, state.top_runs, state.top_original_front);
+    state.close_corner(merged_bottom, merged_top);
+    state.drop_folded_corners(merged_bottom, merged_top);
 
     std::vector<Polyline> result;
     state.cut_holes_top_bottom(membership, joints, result);
     state.cut_holes_side(membership, joints, result);
-    result.push_back(merged_top);
     result.push_back(merged_bottom);
+    result.push_back(merged_top);
 
-    state.log_result(merged_top, merged_bottom);
+    state.log_result(merged_bottom, merged_top);
     return result;
 }
 
@@ -103,21 +105,21 @@ void MergeModifier::log_plate() const {
     stream << "\n";
 }
 
-void MergeModifier::log_result(const Polyline& merged_top, const Polyline& merged_bottom) const {
+void MergeModifier::log_result(const Polyline& merged_bottom, const Polyline& merged_top) const {
 
     if (!log)
         return;
 
     std::ofstream& stream = *log;
     stream << "  MERGED el=" << plate_index
-        << " top.n=" << merged_top.point_count()
         << " bot.n=" << merged_bottom.point_count()
-        << (merged_top.point_count() != merged_bottom.point_count() ? " COUNT_MISMATCH" : "")
+        << " top.n=" << merged_top.point_count()
+        << (merged_bottom.point_count() != merged_top.point_count() ? " COUNT_MISMATCH" : "")
         << "\n";
-    stream << "  merged_top:";
-    log_points(stream, merged_top);
-    stream << "\n  merged_bot:";
+    stream << "  merged_bot:";
     log_points(stream, merged_bottom);
+    stream << "\n  merged_top:";
+    log_points(stream, merged_top);
     stream << "\n";
 }
 
@@ -135,57 +137,155 @@ std::array<std::vector<Polyline>, 2>* MergeModifier::joint_outlines(
     if (outlines[0][1].point_count() < 2 || outlines[1][1].point_count() < 2)
         return nullptr;
 
-    const Point marker_top = outlines[0][1].get_point(0);
-    const Point marker_bottom = outlines[1][1].get_point(0);
-    const double distance_top = Point::distance(marker_top, plate.planes[0].project(marker_top));
+    const Point marker_bottom = outlines[0][1].get_point(0);
+    const Point marker_top = outlines[1][1].get_point(0);
     const double distance_bottom = Point::distance(marker_bottom, plate.planes[0].project(marker_bottom));
-    const bool is_reversed = (distance_top * distance_top) > (distance_bottom * distance_bottom);
+    const double distance_top = Point::distance(marker_top, plate.planes[0].project(marker_top));
+    const bool is_reversed = (distance_bottom * distance_bottom) > (distance_top * distance_top);
 
     if (log) {
         *log << "  J el=" << plate_index << " i=" << face
              << " jid=" << joint_id << " mf=" << (male_or_female ? 'M' : 'F')
              << " jt=" << joint.joint_type
-             << " ep_top0=(" << marker_top[0] << "," << marker_top[1] << "," << marker_top[2]
-             << ") ep_bot0=(" << marker_bottom[0] << "," << marker_bottom[1] << "," << marker_bottom[2]
-             << ") d_top=" << distance_top << " d_bot=" << distance_bottom
+             << " ep_bot0=(" << marker_bottom[0] << "," << marker_bottom[1] << "," << marker_bottom[2]
+             << ") ep_top0=(" << marker_top[0] << "," << marker_top[1] << "," << marker_top[2]
+             << ") d_bot=" << distance_bottom << " d_top=" << distance_top
              << " reversed=" << (is_reversed ? 1 : 0);
     }
 
-    if (is_reversed)
+    if (is_reversed) {
+        std::array<std::vector<int>, 2>& types = male_or_female ? joint.male_fabrication_types : joint.female_fabrication_types;
         std::swap(outlines[0], outlines[1]);
+        std::swap(types[0], types[1]);
+    }
 
     return &outlines;
 }
 
+bool MergeModifier::merges_into_outline(const InteractionFeaturePlate& joint, bool male_or_female) {
+
+    const std::array<std::vector<int>, 2>& types = male_or_female ? joint.male_fabrication_types : joint.female_fabrication_types;
+    if (types[0].empty())
+        return true;
+
+    // a custom pair, written twice with no type as 2024 kept it: 2024 switched on the second copy's size whatever the type, so a line of two points is inserted and a rectangle of five clipped in, and every other outline passes through uncut
+    if (types[0][0] == FabricationType::nothing) {
+        const std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
+        const size_t marker = outlines[0].size() > 1 ? outlines[0][1].point_count() : 0;
+        return marker == 2 || marker == 5;
+    }
+
+    return types[0][0] == FabricationType::edge_insertion || types[0][0] == FabricationType::insert_between_multiple_edges;
+}
+
+/// The face normal as 2024 computed it for its plate planes: over the outline's vertices, the closing point dropped, the sum of the cross product of the edge in with the edge out, unitized. The plate's own plane carries the Newell normal, the same direction to its last bits, and whether a component of the normal is exactly zero picks CGAL's base1 of the face, so the clip frame takes 2024's bits.
+static Vector clip_normal(const Polyline& outline) {
+
+    const std::vector<Point>& points = outline.get_points();
+    const size_t count = outline.is_closed() ? points.size() - 1 : points.size();
+    Vector normal(0.0, 0.0, 0.0);
+    for (size_t i = 0; i < count; i++) {
+        const Point& previous = points[(i + count - 1) % count];
+        const Point& next = points[(i + 1) % count];
+        normal += (points[i] - previous).cross(next - points[i]);
+    }
+
+    return normal.normalized();
+}
+
+MergeModifier::ClipFrame MergeModifier::clip_frame(size_t face) const {
+
+    // 2024 gave the bottom plane the normal of the bottom outline and the top plane its negative, and CGAL's bases follow the sign: the top face's x axis turns with it
+    const Vector normal = face == 0 ? clip_normal(plate.polylines[0]) : -clip_normal(plate.polylines[0]);
+    ClipFrame frame;
+    frame.origin = plate.polylines[face].get_point(0);
+    frame.x_axis = cgal_base1(normal);
+    frame.y_axis = normal.cross(frame.x_axis).normalized();
+
+    return frame;
+}
+
+Polyline MergeModifier::on_clip_grid(const Polyline& outline, const ClipFrame& frame) {
+
+    std::vector<Point> points;
+    for (const Point& point : outline.get_points()) {
+        const Vector d = point - frame.origin;
+        const double u = std::round(d.dot(frame.x_axis) * CLIP_SCALE) * CLIP_GRID;
+        const double v = std::round(d.dot(frame.y_axis) * CLIP_SCALE) * CLIP_GRID;
+        points.push_back(frame.origin + frame.x_axis * u + frame.y_axis * v);
+    }
+
+    return Polyline(points);
+}
+
+Polyline MergeModifier::on_clipper_points(const Polyline& run, const Polyline& face, const Polyline& joint, const ClipFrame& frame) {
+
+    // the clip as 2024 ran it: the joint outline an open subject with its closing vertex, the face outline the clip, two decimals
+    Clipper2Lib::ClipperD clipper(CLIP_DECIMALS);
+    clipper.AddOpenSubject(Clipper2Lib::PathsD{clipper_path(joint, frame.origin, frame.x_axis, frame.y_axis, true)});
+    clipper.AddClip(Clipper2Lib::PathsD{clipper_path(face, frame.origin, frame.x_axis, frame.y_axis, false)});
+    Clipper2Lib::PathsD closed;
+    Clipper2Lib::PathsD open;
+    clipper.Execute(Clipper2Lib::ClipType::Intersection, Clipper2Lib::FillRule::NonZero, closed, open);
+
+    // each run point onto the nearest point Clipper2 returned, within two grid steps: a kept vertex lies on it, an intersection within a step of it on each axis
+    const double within = 2.0 * CLIP_GRID;
+    std::vector<Point> points;
+    for (const Point& point : run.get_points()) {
+        const Vector d = point - frame.origin;
+        const double u = d.dot(frame.x_axis);
+        const double v = d.dot(frame.y_axis);
+        double nearest = within * within;
+        Point moved = point;
+        for (const Clipper2Lib::PathD& path : open) {
+            for (const Clipper2Lib::PointD& q : path) {
+                const double distance = (q.x - u) * (q.x - u) + (q.y - v) * (q.y - v);
+                if (distance < nearest) {
+                    nearest = distance;
+                    moved = frame.origin + frame.x_axis * q.x + frame.y_axis * q.y;
+                }
+            }
+        }
+        points.push_back(moved);
+    }
+
+    return Polyline(points);
+}
+
 void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>, 2>& outlines) {
 
-    Polyline clipped_top;
-    std::pair<double, double> parameters_top;
-    if (!Intersection::closed_and_open_paths_2d(
-        plate.polylines[0],
-        outlines[0][0],
-        plate.planes[0],
-        clipped_top,
-        parameters_top
-    ))
-        return;
-
+    // clipped as 2024 clipped: the kernel's clip of the outlines on Clipper2's grid gives the run and its edge parameters, Clipper2's own clip in 2024's frame gives the run its points, so the slot lands where the 2025 reference puts it
+    const ClipFrame frame_bottom = clip_frame(0);
     Polyline clipped_bottom;
     std::pair<double, double> parameters_bottom;
     if (!Intersection::closed_and_open_paths_2d(
-        plate.polylines[1],
-        outlines[1][0],
-        plate.planes[1],
+        on_clip_grid(plate.polylines[0], frame_bottom),
+        on_clip_grid(outlines[0][0], frame_bottom),
+        plate.planes[0],
         clipped_bottom,
         parameters_bottom
     ))
         return;
+    clipped_bottom = on_clipper_points(clipped_bottom, plate.polylines[0], outlines[0][0], frame_bottom);
 
-    const size_t key_top = (size_t)(EDGE_SCALE * std::floor(parameters_top.first)) + (size_t)(FRACTION_SCALE * std::fmod(parameters_top.first, 1.0));
+    const ClipFrame frame_top = clip_frame(1);
+    Polyline clipped_top;
+    std::pair<double, double> parameters_top;
+    if (!Intersection::closed_and_open_paths_2d(
+        on_clip_grid(plate.polylines[1], frame_top),
+        on_clip_grid(outlines[1][0], frame_top),
+        plate.planes[1],
+        clipped_top,
+        parameters_top
+    ))
+        return;
+    clipped_top = on_clipper_points(clipped_top, plate.polylines[1], outlines[1][0], frame_top);
+
     const size_t key_bottom = (size_t)(EDGE_SCALE * std::floor(parameters_bottom.first)) + (size_t)(FRACTION_SCALE * std::fmod(parameters_bottom.first, 1.0));
+    const size_t key_top = (size_t)(EDGE_SCALE * std::floor(parameters_top.first)) + (size_t)(FRACTION_SCALE * std::fmod(parameters_top.first, 1.0));
 
-    top_runs.insert({key_top, {parameters_top, clipped_top.get_points()}});
     bottom_runs.insert({key_bottom, {parameters_bottom, clipped_bottom.get_points()}});
+    top_runs.insert({key_top, {parameters_top, clipped_top.get_points()}});
 }
 
 MergeModifier::RelocatedCorners MergeModifier::corner_intersections(
@@ -197,29 +297,29 @@ MergeModifier::RelocatedCorners MergeModifier::corner_intersections(
 
     const std::vector<Plane>& planes = joint_planes;
     RelocatedCorners corners;
-    corners.has_top_at_previous = z_axis_valid && Intersection::plane_plane_plane(
-        planes[2 + previous],
-        planes[face],
-        planes[0],
-        corners.top_at_previous
-    );
-    corners.has_top_at_next = z_axis_valid && Intersection::plane_plane_plane(
-        planes[2 + next],
-        planes[face],
-        planes[0],
-        corners.top_at_next
-    );
     corners.has_bottom_at_previous = z_axis_valid && Intersection::plane_plane_plane(
         planes[2 + previous],
         planes[face],
-        planes[1],
+        planes[0],
         corners.bottom_at_previous
     );
     corners.has_bottom_at_next = z_axis_valid && Intersection::plane_plane_plane(
         planes[2 + next],
         planes[face],
-        planes[1],
+        planes[0],
         corners.bottom_at_next
+    );
+    corners.has_top_at_previous = z_axis_valid && Intersection::plane_plane_plane(
+        planes[2 + previous],
+        planes[face],
+        planes[1],
+        corners.top_at_previous
+    );
+    corners.has_top_at_next = z_axis_valid && Intersection::plane_plane_plane(
+        planes[2 + next],
+        planes[face],
+        planes[1],
+        corners.top_at_next
     );
 
     return corners;
@@ -227,63 +327,63 @@ MergeModifier::RelocatedCorners MergeModifier::corner_intersections(
 
 void MergeModifier::relocate_previous_corners(
     size_t face,
-    const Point& top_start,
     const Point& bottom_start,
+    const Point& top_start,
     RelocatedCorners& corners
 ) const {
 
     if (last_id != (int)face - 1)
         return;
 
-    const Point top_edge_a = plate.polylines[0].get_point(face - 2);
-    const Point top_edge_b = plate.polylines[0].get_point(face - 1);
-    const Point bottom_edge_a = plate.polylines[1].get_point(face - 2);
-    const Point bottom_edge_b = plate.polylines[1].get_point(face - 1);
-    const bool top_is_offset = perpendicular_distance_squared(top_start, top_edge_a, top_edge_b) > distance_squared;
+    const Point bottom_edge_a = plate.polylines[0].get_point(face - 2);
+    const Point bottom_edge_b = plate.polylines[0].get_point(face - 1);
+    const Point top_edge_a = plate.polylines[1].get_point(face - 2);
+    const Point top_edge_b = plate.polylines[1].get_point(face - 1);
     const bool bottom_is_offset = perpendicular_distance_squared(bottom_start, bottom_edge_a, bottom_edge_b) > distance_squared;
+    const bool top_is_offset = perpendicular_distance_squared(top_start, top_edge_a, top_edge_b) > distance_squared;
 
-    if (!top_is_offset && !bottom_is_offset)
+    if (!bottom_is_offset && !top_is_offset)
         return;
 
     const std::vector<Plane>& planes = joint_planes;
-    Point top;
     Point bottom;
-    const bool has_top = Intersection::plane_plane_plane(
-        planes[face],
-        planes[face - 1],
-        planes[0],
-        top
-    );
+    Point top;
     const bool has_bottom = Intersection::plane_plane_plane(
         planes[face],
         planes[face - 1],
-        planes[1],
+        planes[0],
         bottom
     );
+    const bool has_top = Intersection::plane_plane_plane(
+        planes[face],
+        planes[face - 1],
+        planes[1],
+        top
+    );
 
-    if (has_top && has_bottom) {
-        corners.top_at_previous = top;
+    if (has_bottom && has_top) {
         corners.bottom_at_previous = bottom;
+        corners.top_at_previous = top;
     }
 }
 
 bool MergeModifier::relocate_edge_vertices(std::array<std::vector<Polyline>, 2>& outlines, size_t face) {
 
-    const Point top_start = outlines[0][1].get_point(0);
-    const Point top_end = outlines[0][1].get_point(1);
-    const Point bottom_start = outlines[1][1].get_point(0);
-    const Point bottom_end = outlines[1][1].get_point(1);
-    const Vector x_axis = top_end - top_start;
-    const Vector y_axis = top_start - bottom_start;
+    const Point bottom_start = outlines[0][1].get_point(0);
+    const Point bottom_end = outlines[0][1].get_point(1);
+    const Point top_start = outlines[1][1].get_point(0);
+    const Point top_end = outlines[1][1].get_point(1);
+    const Vector x_axis = bottom_end - bottom_start;
+    const Vector y_axis = bottom_start - top_start;
     const Vector z_axis = x_axis.cross(y_axis);
     const bool z_axis_valid = z_axis.magnitude() > 1e-12;
     if (z_axis_valid)
-        joint_planes[face] = Plane::from_point_normal(top_start, z_axis);
+        joint_planes[face] = Plane::from_point_normal(bottom_start, z_axis);
 
-    if (top_points.size() < 4 || joint_planes.size() != top_points.size() + 1)
+    if (bottom_points.size() < 4 || joint_planes.size() != bottom_points.size() + 1)
         return false;
 
-    const size_t edge_count = top_points.size() - 1;
+    const size_t edge_count = bottom_points.size() - 1;
     const int edge_index = static_cast<int>(face) - 2;
     const int previous = ((int)edge_count + edge_index - 1) % (int)edge_count;
     const int next = (edge_index + 1) % (int)edge_count;
@@ -295,25 +395,25 @@ bool MergeModifier::relocate_edge_vertices(std::array<std::vector<Polyline>, 2>&
     );
     relocate_previous_corners(
         face,
-        top_start,
         bottom_start,
+        top_start,
         corners
     );
 
-    if (corners.has_top_at_previous)
-        top_points[edge_index] = corners.top_at_previous;
-    if (corners.has_top_at_next)
-        top_points[next] = corners.top_at_next;
     if (corners.has_bottom_at_previous)
         bottom_points[edge_index] = corners.bottom_at_previous;
     if (corners.has_bottom_at_next)
         bottom_points[next] = corners.bottom_at_next;
+    if (corners.has_top_at_previous)
+        top_points[edge_index] = corners.top_at_previous;
+    if (corners.has_top_at_next)
+        top_points[next] = corners.top_at_next;
 
-    last_top_segment = {{top_start, top_end}};
     last_bottom_segment = {{bottom_start, bottom_end}};
+    last_top_segment = {{top_start, top_end}};
     if (face == 2) {
-        first_top_segment = last_top_segment;
         first_bottom_segment = last_bottom_segment;
+        first_top_segment = last_top_segment;
     }
 
     last_id = (int)face;
@@ -333,7 +433,7 @@ void MergeModifier::flip_and_insert_cut(
     if (reference.point_count() >= 1) {
         const Point front = reference.get_point(0);
         const Point back = reference.get_point(reference.point_count() - 1);
-        const Point reference_point = top_points[edge_index + 1];
+        const Point reference_point = bottom_points[edge_index + 1];
         const double front_distance_squared = (front - reference_point).magnitude_squared();
         const double back_distance_squared = (back - reference_point).magnitude_squared();
         const bool flipped = front_distance_squared < back_distance_squared;
@@ -372,8 +472,8 @@ void MergeModifier::flip_and_insert_cut(
              << "\n";
     }
 
-    top_runs.insert({sort_key, {parameters, outlines[0][0].get_points()}});
-    bottom_runs.insert({sort_key, {parameters, outlines[1][0].get_points()}});
+    bottom_runs.insert({sort_key, {parameters, outlines[0][0].get_points()}});
+    top_runs.insert({sort_key, {parameters, outlines[1][0].get_points()}});
 }
 
 void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints) {
@@ -388,7 +488,7 @@ void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<i
                 joint_id,
                 male_or_female
             );
-            if (!outlines)
+            if (!outlines || !merges_into_outline(joint, male_or_female))
                 continue;
 
             const size_t marker = (*outlines)[0][1].point_count();
@@ -456,39 +556,105 @@ Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, s
     return Polyline(merged);
 }
 
-void MergeModifier::close_corner(Polyline& merged_top, Polyline& merged_bottom) const {
+/// True when the point lies on the segment from a to b within the tolerance: closer than its root to the line, between the ends.
+static bool on_segment(const Point& point, const Point& a, const Point& b, double tolerance_squared) {
 
-    if (last_id != (int)top_points.size())
+    const Vector direction = b - a;
+    const double length_squared = direction.magnitude_squared();
+    if (length_squared < tolerance_squared)
+        return (point - a).magnitude_squared() < tolerance_squared;
+
+    const double parameter = (point - a).dot(direction) / length_squared;
+    if (parameter < 0.0 || parameter > 1.0)
+        return false;
+
+    return (point - (a + direction * parameter)).magnitude_squared() < tolerance_squared;
+}
+
+/// True when the loop is degenerate at vertex i within the tolerance: the vertex repeats the one before it, or the loop turns back on itself there, the next vertex lying on the edge in or the previous on the edge out.
+static bool degenerate_at(const std::vector<Point>& points, size_t i, double tolerance_squared) {
+
+    const size_t count = points.size();
+    const Point& previous = points[(i + count - 1) % count];
+    const Point& vertex = points[i];
+    const Point& next = points[(i + 1) % count];
+    if ((vertex - previous).magnitude_squared() < tolerance_squared)
+        return true;
+
+    return on_segment(next, previous, vertex, tolerance_squared) || on_segment(previous, vertex, next, tolerance_squared);
+}
+
+/// True when vertex i says nothing about the loop's shape within the tolerance: it is degenerate, or it lies on the edge from its previous vertex to its next, so the loop is the same polygon without it.
+static bool silent_at(const std::vector<Point>& points, size_t i, double tolerance_squared) {
+
+    const size_t count = points.size();
+
+    return degenerate_at(points, i, tolerance_squared) || on_segment(points[i], points[(i + count - 1) % count], points[(i + 1) % count], tolerance_squared);
+}
+
+void MergeModifier::drop_folded_corners(Polyline& merged_bottom, Polyline& merged_top) const {
+
+    std::vector<Point> bottom = merged_bottom.get_points();
+    std::vector<Point> top = merged_top.get_points();
+    for (std::vector<Point>* points : {&bottom, &top})
+        if (points->size() > 1 && points->front() == points->back())
+            points->pop_back();
+
+    // the loops are one sequence seen on two faces: a vertex degenerate on one face goes from both when neither face loses shape by it, and the fold it leaves behind is looked at again
+    bool changed = bottom.size() == top.size() && bottom.size() >= 3;
+    while (changed) {
+        changed = false;
+        for (size_t i = 0; i < bottom.size() && bottom.size() >= 3; i++) {
+            const bool degenerate = degenerate_at(bottom, i, distance_squared) || degenerate_at(top, i, distance_squared);
+            if (!degenerate || !silent_at(bottom, i, distance_squared) || !silent_at(top, i, distance_squared))
+                continue;
+            bottom.erase(bottom.begin() + static_cast<long>(i));
+            top.erase(top.begin() + static_cast<long>(i));
+            changed = true;
+            break;
+        }
+    }
+
+    for (std::vector<Point>* points : {&bottom, &top})
+        if (!points->empty())
+            points->push_back(points->front());
+    merged_bottom = Polyline(bottom);
+    merged_top = Polyline(top);
+}
+
+void MergeModifier::close_corner(Polyline& merged_bottom, Polyline& merged_top) const {
+
+    if (last_id != (int)bottom_points.size())
         return;
 
-    if (!((first_top_segment[0] - first_top_segment[1]).magnitude_squared() > distance_squared))
+    if (!((first_bottom_segment[0] - first_bottom_segment[1]).magnitude_squared() > distance_squared))
         return;
 
-    const Line first_top = Line::from_points(first_top_segment[0], first_top_segment[1]);
-    const Line last_top = Line::from_points(last_top_segment[0], last_top_segment[1]);
     const Line first_bottom = Line::from_points(first_bottom_segment[0], first_bottom_segment[1]);
     const Line last_bottom = Line::from_points(last_bottom_segment[0], last_bottom_segment[1]);
-    Point top_close;
+    const Line first_top = Line::from_points(first_top_segment[0], first_top_segment[1]);
+    const Line last_top = Line::from_points(last_top_segment[0], last_top_segment[1]);
     Point bottom_close;
-    const bool has_top = Intersection::line_line_3d(first_top, last_top, top_close);
+    Point top_close;
     const bool has_bottom = Intersection::line_line_3d(first_bottom, last_bottom, bottom_close);
+    const bool has_top = Intersection::line_line_3d(first_top, last_top, top_close);
 
-    if (!has_top || !has_bottom)
+    if (!has_bottom || !has_top)
         return;
 
-    std::vector<Point> closed_top = merged_top.get_points();
     std::vector<Point> closed_bottom = merged_bottom.get_points();
-    if (!closed_top.empty())
-        closed_top[0] = top_close;
+    std::vector<Point> closed_top = merged_top.get_points();
     if (!closed_bottom.empty())
         closed_bottom[0] = bottom_close;
-    if (closed_top.size() > 1)
-        closed_top.back() = closed_top.front();
+    if (!closed_top.empty())
+        closed_top[0] = top_close;
     if (closed_bottom.size() > 1)
         closed_bottom.back() = closed_bottom.front();
+    if (closed_top.size() > 1)
+        closed_top.back() = closed_top.front();
 
-    merged_top = Polyline(closed_top);
     merged_bottom = Polyline(closed_bottom);
+    merged_top = Polyline(closed_top);
 }
 
 void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair<int, bool>>>& membership, std::vector<InteractionFeaturePlate>& joints, std::vector<Polyline>& result) const {
@@ -503,26 +669,29 @@ void MergeModifier::cut_holes_top_bottom(const std::vector<std::vector<std::pair
             if (outlines[0].empty() || outlines[1].empty())
                 continue;
 
-            const Point top_back = outlines[0].back().get_point(0);
-            const Point bottom_back = outlines[1].back().get_point(0);
-            const double distance_top = Point::distance(top_back, plate.planes[0].project(top_back));
+            const Point bottom_back = outlines[0].back().get_point(0);
+            const Point top_back = outlines[1].back().get_point(0);
             const double distance_bottom = Point::distance(bottom_back, plate.planes[0].project(bottom_back));
-            if ((distance_top * distance_top) > (distance_bottom * distance_bottom)) {
+            const double distance_top = Point::distance(top_back, plate.planes[0].project(top_back));
+            if ((distance_bottom * distance_bottom) > (distance_top * distance_top)) {
                 std::swap(outlines[0], outlines[1]);
                 std::swap(cut_types[0], cut_types[1]);
             }
 
             const size_t outline_count = outlines[0].size() > 1 ? outlines[0].size() - 1 : 0;
             for (size_t outline_index = 0; outline_index < outline_count && outline_index < outlines[1].size(); outline_index++) {
-                Polyline top = outlines[0][outline_index];
-                Polyline bottom = outlines[1][outline_index];
-                if (!top.is_clockwise(plate.planes[0])) {
-                    top.reverse();
+                if (outline_index < cut_types[0].size() && cut_types[0][outline_index] != FabricationType::hole)
+                    continue;
+
+                Polyline bottom = outlines[0][outline_index];
+                Polyline top = outlines[1][outline_index];
+                if (!bottom.is_clockwise(plate.planes[0])) {
                     bottom.reverse();
+                    top.reverse();
                 }
 
-                result.push_back(top);
                 result.push_back(bottom);
+                result.push_back(top);
             }
         }
     }
@@ -551,11 +720,11 @@ void MergeModifier::cut_holes_side(const std::vector<std::vector<std::pair<int, 
             if (hole_indices.empty())
                 continue;
 
-            const Point top_back = outlines[0].back().get_point(0);
-            const Point bottom_back = outlines[1].back().get_point(0);
-            const double distance_top = Point::distance(top_back, plate.planes[0].project(top_back));
+            const Point bottom_back = outlines[0].back().get_point(0);
+            const Point top_back = outlines[1].back().get_point(0);
             const double distance_bottom = Point::distance(bottom_back, plate.planes[0].project(bottom_back));
-            if ((distance_top * distance_top) > (distance_bottom * distance_bottom)) {
+            const double distance_top = Point::distance(top_back, plate.planes[0].project(top_back));
+            if ((distance_bottom * distance_bottom) > (distance_top * distance_top)) {
                 std::swap(outlines[0], outlines[1]);
                 std::swap(cut_types[0], cut_types[1]);
             }
@@ -565,15 +734,15 @@ void MergeModifier::cut_holes_side(const std::vector<std::vector<std::pair<int, 
                 if (cut_index >= (int)outlines[0].size() || cut_index >= (int)outlines[1].size())
                     continue;
 
-                Polyline top = outlines[0][cut_index];
-                Polyline bottom = outlines[1][cut_index];
-                if (!top.is_clockwise(plate.planes[0])) {
-                    top.reverse();
+                Polyline bottom = outlines[0][cut_index];
+                Polyline top = outlines[1][cut_index];
+                if (!bottom.is_clockwise(plate.planes[0])) {
                     bottom.reverse();
+                    top.reverse();
                 }
 
-                result.push_back(top);
                 result.push_back(bottom);
+                result.push_back(top);
             }
         }
     }

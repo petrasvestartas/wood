@@ -17,7 +17,7 @@ namespace wood_session {
 struct Settings {
     SearchType search_type = face_to_face; // The detection pass (yml `search_type`).
     std::vector<double> joint_parameters = {300, 0.5, 3, 450, 0.64, 15, 450, 0.5, 20, 300, 0.5, 30, 6, 0.95, 40, 300, 0.5, 58, 300, 1.0, 60}; // Joint-family triples [division_length (mm), shift, joint id]; families 0=ss_e_ip 1=ss_e_op 2=ts_e_p 3=cr_c_ip 4=tt_e_p 5=ss_e_r 6=b.
-    std::vector<double> joint_volume_extension = {0.0, 0.0, 0.0}; // Additive [width, height, length] extension (mm) of joint volumes: one triple for every joint type, or one per type (side-side, top-side, top-top, cross).
+    std::vector<double> joint_volume_extension = {0.0, 0.0, 0.0}; // Additive [width, height, length] extension (mm) of joint volumes: one triple for every joint, or one per joint in the order they are found, the last for every later one, as 2024 indexed them.
     std::array<double, 3> joint_scale = {1.0, 1.0, 1.0}; // Multiplicative [sx, sy, sz] scale of joint geometry before insertion; 1 = no change.
     double dihedral_angle = 150.0; // Degrees; rotated-joint threshold.
     bool all_treated_as_rotated = false; // Force the rotated geometry path.

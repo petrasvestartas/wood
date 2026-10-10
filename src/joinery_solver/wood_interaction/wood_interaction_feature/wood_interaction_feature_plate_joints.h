@@ -9,6 +9,8 @@ using namespace wood_session;
 
 /// Every wood_interaction_feature_plate_joints/*.h once, into the including TU's anonymous namespace; the consumer includes wood_session.h itself, before this file.
 #include "wood_interaction_feature_plate_joints/custom_outlines.h"
+#include "wood_interaction_feature_plate_joints/custom_pairs.h"
+#include "wood_interaction_feature_plate_joints/unit_scale_distance.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ss_e_ip: side-side in-plane, type 12
@@ -23,7 +25,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ss_e_ip_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_op: side-side out-of-plane, type 11 (ss_e_op_5 calls ss_e_op_4)
+// ss_e_op: side-side out-of-plane, type 11 (ss_e_op_5 calls ss_e_op_4, ss_e_op_6 calls ss_e_op_5)
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "wood_interaction_feature_plate_joints/ss_e_op_0.h"
@@ -32,6 +34,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ss_e_op_3.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_4.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_5.h"
+#include "wood_interaction_feature_plate_joints/ss_e_op_6.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_17.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_custom.h"
 #include "wood_interaction_feature_plate_joints/ss_e_op_tutorial.h"
@@ -44,6 +47,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ts_e_p_1.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_2.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_3.h"
+#include "wood_interaction_feature_plate_joints/ts_e_p_4.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_5.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_custom.h"
 
@@ -58,6 +62,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/tt_e_p_3.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_4.h"
 #include "wood_interaction_feature_plate_joints/tt_e_p_5.h"
+#include "wood_interaction_feature_plate_joints/tt_e_p_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // cr_c_ip: cross in-plane, type 30
@@ -73,10 +78,11 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/cr_c_ip_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_r: side-side relief, type 13
+// ss_e_r: side-side rotated, type 13 (side_removal_ss_e_r_1 tiles ss_e_r_1)
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "wood_interaction_feature_plate_joints/ss_e_r_0.h"
+#include "wood_interaction_feature_plate_joints/ss_e_r_1.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_core.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_2.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_3.h"

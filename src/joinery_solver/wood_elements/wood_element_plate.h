@@ -60,6 +60,11 @@ public:
     /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
+    /// Two plates end to end, "left" and "right", the rotated side-to-side pair the ss_e_r designs are for, as the hex blocks of
+    /// Rossiniere meet: each `length` x `width` x `thickness`, their side faces on the plane x = length, the right one twisted by
+    /// `twist_degrees` about that plane's normal, so the two seam edges cross at the centre of the contact.
+    static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0);
+
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
     static std::shared_ptr<Plate> from_element(Element element);
 
@@ -75,8 +80,14 @@ public:
 
 
 
-    /// Swaps bottom and top, outlines and planes, and drops every cache the kernel and the plate hold; detection asks for it when a joint wants the other face first.
-    void flip();
+    /// Swaps the bottom and top planes, keeps the outlines, and drops every cache the kernel and the plate hold; detection asks for it when
+    /// an in-plane joint finds the plate's top plane nearer, as the 2025 solver swapped the planes of its element and nothing else, so a
+    /// later contact pairs the swapped plane with the outline of that index.
+    void swap_planes();
+
+    /// The index a face has in the tables given with the plate (feature_types, insertion_vectors, the sidecars): the face itself, or on a
+    /// reversed plate the other outline's face and the sides counted backwards; the mapping is its own inverse.
+    int given_face(int face) const;
 
 
     /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.

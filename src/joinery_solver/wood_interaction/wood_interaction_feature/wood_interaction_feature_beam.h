@@ -15,6 +15,8 @@ public:
 
     int end_type = 0; // 0 crossing, 1 side to end, 2 end to end.
     std::array<Polyline, 4> volumes; // [0] and [1] on the edge's first beam, [2] and [3] on the second.
+    Vector normal; // The normal of the two axes where they meet, the frame of a crossing.
+    std::array<Vector, 2> axes; // Each beam's axis direction where they meet, the edge's first beam then the second.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry

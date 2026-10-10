@@ -59,6 +59,7 @@ class WoodSession : public Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
     std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. yaml_load fills it from the adjacency sidecar; pb_dump writes it.
+    std::vector<std::array<int, 2>> borders; // Plate and side face of every boundary joint, the self-adjacency rows `v v f f` of the adjacency sidecar; compute_features makes a family 60 joint on each.
     std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. yaml_load fills it from the three_valence sidecar; pb_dump writes it.
     std::unordered_map<std::string, std::string> definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
 
@@ -115,6 +116,28 @@ public:
 
     /// The largest face contact of the pair, nullptr when disjoint; plate contacts include joinery volumes.
     std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
+
+    /// The border contact of a plate's side face, as 2024's border_to_face made it for a self-adjacency: the side quad as the polygon, the
+    /// average of its two side edges as both lines, and two thin rectangles across the thickness around that line as the volumes, a quarter of
+    /// the half thickness each way along the face's normal; nullptr for an outer face or a plate without that side.
+    static std::shared_ptr<InteractionContactFace> compute_border_contact(const Plate& plate, int face);
+
+    /// Joint types by points, as the plugin's dots set them: on every plate a point snaps to the side face whose middle line, between its
+    /// bottom and top edges, lies nearest and within snap_radius, or for a negative type to the bottom or top face whose outline is nearer,
+    /// and writes the absolute value of its type into that plate's feature_types, the table a *_joints_types.txt sidecar gives; a face
+    /// several points reach takes the largest of their types, as a joint takes the larger type of its two faces. Like a sidecar, which
+    /// gives every plate a row, a call with points gives every plate a table, -1 on the faces it lacked; a call with none changes nothing.
+    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius);
+
+    /// Joint types by points named as the user interface writes them, a text by each point: the name of a library design ("ss_e_ip_1",
+    /// "ts_e_p_3", "ss_e_op/side_removal", JointPlate::library_id), or "" for no joint. A point takes the face it lies nearest to: a side
+    /// face when it is nearer to a side face's middle line than to any bottom or top outline, else the bottom or top face, then as above.
+    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius);
+
+    /// Insertion vectors by lines: on every plate a line's start snaps to the side face whose middle line lies nearest and within
+    /// snap_radius, and its direction becomes that face's insertion vector, the table a *_insertion_vectors.txt sidecar gives; other faces
+    /// keep theirs. Like a sidecar, a call with lines gives every plate a table, zero on the faces it lacked; a call with none changes nothing.
+    void assign_insertion_vectors_by_lines(const std::vector<Line>& lines, double snap_radius);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
@@ -404,8 +427,8 @@ public:
     void erase_contacts(std::string_view kind);
 
 private:
-    /// Adds every target of the joint through add_interaction, adding the joint first when it is not in the session.
-    void apply_joint(const std::shared_ptr<Joint>& joint, bool merge);
+
+    bool merge_deferred = false; // True while compute_features adds its joints: each plate is merged once, in 2024's joint order, after the last.
 
     /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.
     std::shared_ptr<Interaction> add_joint_interaction(const std::shared_ptr<Joint>& joint, const std::shared_ptr<Element>& target, std::shared_ptr<Interaction> interaction);

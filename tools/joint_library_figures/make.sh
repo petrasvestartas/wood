@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Every picture of docs/joint_library.md, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
+# design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box (its parameters are the page's code
+# snippets), and <id>.png, the oracle's pair drawn
+# apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.
+#   bash tools/joint_library_figures/make.sh
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+WORK=$(mktemp -d)
+OUT=docs/images/joint_library
+BG="rgb(248,248,248)"
+mkdir -p "$WORK/tiles" "$WORK/sweep" "$OUT"
+cmake --build build --target joint_tiles --parallel 6 > /dev/null
+
+# every design the oracle builds, each scene shot as it is
+./build/joint_tiles "$WORK/tiles"
+# the rotated designs on a pair folded 120 degrees, and the snap fit, which the oracle does not list
+./build/joint_tiles "$WORK/tiles" "r@120/ss_e_r_0" "r@120/ss_e_r_2/4/0.5" "r@120/ss_e_r_3/4/0.5" "ts/ts_e_p_5"
+# the designs that belong to beams: the cross joints on two crossing beams, the wedge on a tee, square and at 60 degrees
+./build/joint_tiles "$WORK/tiles" $(for d in cr_c_ip_0 cr_c_ip_1 cr_c_ip_2 cr_c_ip_3 cr_c_ip_4 cr_c_ip_5 ts_e_p_4; do echo "beam/$d/90 beam/$d/60"; done)
+./build/joint_tiles "$WORK/sweep" $(
+    for d in 4 8 12; do for s in 0.0 0.5 1.0; do echo "ip/ss_e_ip_1/$d/$s op/ss_e_op_1/$d/$s op/ss_e_op_2/$d/$s"; done; done
+    for d in 4 8 16; do for s in 0.25 0.5 0.75; do echo "ts/ts_e_p_2/$d/$s ts/ts_e_p_3/$d/$s"; done; done
+    for n in 1 2 3 4 5; do for s in 0.25 0.5 0.75; do echo "cr/cr_c_ip_$n/$s"; done; done
+    for d in 2 4 6; do echo "r/ss_e_r_2/$d/0.5 r/ss_e_r_3/$d/0.5 ip/ss_e_ip_2/$d ip/ss_e_ip_5/$d"; done
+    for t in 0 0.25 0.5; do for c in 0 1; do echo "op/ss_e_op_4/8/$t/$c/1"; done; done
+    for d in 4 8 12; do echo "op/ss_e_op_5/$d/0 op/ss_e_op_6/$d op/ss_e_op_17/$d"; done
+    for d in 4 6 8; do for s in 0.5 0.95; do echo "tt/tt_e_p_2/$d/$s/8"; done; done
+    for l in 30 60 90; do echo "tt/tt_e_p_3/$l/12/8 tt/tt_e_p_4/$l/12/8 tt/tt_e_p_5/$l/0.95/8"; done
+    for f in op op@120 op@150; do for d in 4 8 12; do echo "$f/ss_e_op_1/$d/0.5"; done; done
+    for f in ts ts@skew75 ts@lean80; do for d in 8 16 24; do echo "$f/ts_e_p_3/$d/0.5"; done; done
+    for f in ip ip@trapezoid ip@short; do for d in 4 8 12; do echo "$f/ss_e_ip_1/$d/0.5"; done; done
+    for s in 0.5 0.64 0.9; do for d in 4 8 12; do echo "tpl/chevron/ss_e_op_1/$d/$s"; done; done
+)
+rm -f "$OUT"/*.png
+for pb in "$WORK"/tiles/*.pb; do
+    png="$OUT/$(basename "$pb" .pb).png"
+    bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+done
+for pb in "$WORK"/sweep/*.pb; do
+    bash tools/shoot_native.sh "$WORK/sweep/$(basename "$pb" .pb).png" "$pb" > /dev/null
+done
+
+# a sweep: its name, title (for the reader of this script), columns, the picture kind (unit or plates) and label|id pairs
+sweep() {
+    local name=$1 columns=$3 kind=$4
+    shift 4
+    local args=()
+    for pair in "$@"; do
+        local file="${pair#*|}"
+        file="$WORK/sweep/${file//\//_}"
+        [ "$kind" = unit ] && file+="_unit"
+        args+=(-label "${pair%%|*}" "$file.png")
+    done
+    montage "${args[@]}" -tile "${columns}x" -geometry 960x720+24+24 -pointsize 40 -background "$BG" -depth 8 -colors 256 "$OUT/sweep_$name.png"
+}
+grid() { local IFS=" "; for d in $2; do for s in $3; do echo "divisions $d, shift $s|$1/$d/$s"; done; done; }
+IFS=$'\n'
+sweep ss_e_ip_1 "ss_e_ip_1: divisions (rows) and shift (columns)" 3 unit $(grid ip/ss_e_ip_1 "4 8 12" "0.0 0.5 1.0")
+sweep ss_e_op_1 "ss_e_op_1: divisions (rows) and shift (columns)" 3 unit $(grid op/ss_e_op_1 "4 8 12" "0.0 0.5 1.0")
+sweep ss_e_op_2 "ss_e_op_2: divisions (rows) and shift (columns)" 3 unit $(grid op/ss_e_op_2 "4 8 12" "0.0 0.5 1.0")
+sweep ts_e_p_2 "ts_e_p_2: divisions (rows) and shift (columns)" 3 unit $(grid ts/ts_e_p_2 "4 8 16" "0.25 0.5 0.75")
+sweep ts_e_p_3 "ts_e_p_3: divisions (rows) and shift (columns)" 3 unit $(grid ts/ts_e_p_3 "4 8 16" "0.25 0.5 0.75")
+sweep cr_c_ip "cr_c_ip_1 to cr_c_ip_5 (rows): shift (columns)" 3 plates $(for n in 1 2 3 4 5; do for s in 0.25 0.5 0.75; do echo "cr_c_ip_$n, shift $s|cr/cr_c_ip_$n/$s"; done; done)
+sweep ss_e_r "ss_e_r_2 and ss_e_r_3 (rows): divisions (columns)" 3 plates $(for n in 2 3; do for d in 2 4 6; do echo "ss_e_r_$n, divisions $d|r/ss_e_r_$n/$d/0.5"; done; done)
+sweep ss_e_ip_2_5 "ss_e_ip_2 and ss_e_ip_5 (rows): divisions (columns)" 3 plates $(for n in 2 5; do for d in 2 4 6; do echo "ss_e_ip_$n, divisions $d|ip/ss_e_ip_$n/$d"; done; done)
+sweep ss_e_op_4 "ss_e_op_4, 8 divisions: taper (rows) and chamfer (columns)" 2 unit $(for t in 0 0.25 0.5; do for c in 0 1; do echo "taper $t, chamfer $c|op/ss_e_op_4/8/$t/$c/1"; done; done)
+sweep ss_e_op_5_6_17 "ss_e_op_5, ss_e_op_6, ss_e_op_17 (rows): divisions (columns)" 3 unit $(for d in 4 8 12; do echo "ss_e_op_5, divisions $d|op/ss_e_op_5/$d/0"; done; for n in 6 17; do for d in 4 8 12; do echo "ss_e_op_$n, divisions $d|op/ss_e_op_$n/$d"; done; done)
+# a fixture's rows: label|fixture, then divisions across
+rows() { local IFS=" " design=$1 divisions=$2; shift 2; for row in "$@"; do for d in $divisions; do echo "${row%%|*}, divisions $d|${row#*|}/$design/$d/0.5"; done; done; }
+sweep ss_e_op_1_angles "ss_e_op_1 at 90, 120 and 150 degrees (rows): divisions (columns)" 3 plates $(rows ss_e_op_1 "4 8 12" "90 degrees|op" "120 degrees|op@120" "150 degrees|op@150")
+sweep ts_e_p_3_angles "ts_e_p_3 square, skewed 75, leaning 80 (rows): divisions (columns)" 3 plates $(rows ts_e_p_3 "8 16 24" "square|ts" "skewed 75 degrees|ts@skew75" "leaning 80 degrees|ts@lean80")
+sweep ss_e_ip_1_seams "ss_e_ip_1 on a straight, slanted and short seam (rows): divisions (columns)" 3 plates $(rows ss_e_ip_1 "4 8 12" "straight seam|ip" "slanted seam|ip@trapezoid" "short seam|ip@short")
+sweep ss_e_op_1_chevron "ss_e_op_1 on a pair of the Chevron template: shift (rows) and divisions (columns)" 3 plates $(for s in 0.5 0.64 0.9; do for d in 4 8 12; do echo "shift $s, divisions $d|tpl/chevron/ss_e_op_1/$d/$s"; done; done)
+sweep tt_e_p_2 "tt_e_p_2: divisions (rows) and shift (columns)" 2 plates $(for d in 4 6 8; do for s in 0.5 0.95; do echo "divisions $d, shift $s|tt/tt_e_p_2/$d/$s/8"; done; done)
+sweep tt_e_p_3_4_5 "tt_e_p_3, tt_e_p_4, tt_e_p_5 (rows): division length (columns)" 3 plates $(for n in 3 4; do for l in 30 60 90; do echo "tt_e_p_$n, length $l|tt/tt_e_p_$n/$l/12/8"; done; done; for l in 30 60 90; do echo "tt_e_p_5, length $l|tt/tt_e_p_5/$l/0.95/8"; done)
+# only the pictures the page shows
+for f in "$OUT"/*.png; do
+    grep -q "joint_library/$(basename "$f")" docs/joint_library.md || rm "$f"
+done
+rm -rf "$WORK"

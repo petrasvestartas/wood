@@ -1,7 +1,8 @@
-/// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_core; the caller sets unit_scale_distance to the thickness.
-static void ss_e_r_2(InteractionFeaturePlate& joint) {
+/// ss_e_r_2: hook-style mill-project tenon, tiled along z by ss_e_r_core on the male plate's thickness.
+static void ss_e_r_2(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
 
     joint.name = "ss_e_r_2";
+    joint.unit_scale_distance = unit_scale_distance(joint, elements);
 
     static const double m0[][3] = {
         {0.2,  0.275, 0.166667}, {-0.116667, 0.275, 0.166667},

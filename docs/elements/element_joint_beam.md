@@ -8,15 +8,16 @@ A joint between beams or members: the feature volumes of a beam-to-beam joint, o
 
 ```cpp
 // beam to beam, on the axis contact of two beams
-static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0)
+static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 
 // connectors, on the face contact of two members
 static std::shared_ptr<JointBeam> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...)
 static std::shared_ptr<Plate> let_in_plate(const Element& rib, const InteractionContactFace& contact, double width = 30.0, double back = 220.0, double front = 265.0, double height = 250.0)
-static std::shared_ptr<JointBeam> rectangle_plate(const Element& column, const Element& rib, const Plate& plate, const InteractionContactFace& contact, double pin_length, ...)
+static std::shared_ptr<JointBeam> rectangle_plate(const Element& column, const Element& rib, const Plate& plate, const InteractionContactFace& contact, double pin_radius = 25.0, ...)   // each pin across its member face to face
 static std::shared_ptr<JointBeam> tie(const Element& a, const Element& b, const InteractionContactFace& contact, ...)
 static std::shared_ptr<JointBeam> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...)
 static std::shared_ptr<JointBeam> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16)
+static std::shared_ptr<JointBeam> hilti(const Element& a, const Element& b, const InteractionContactFace& contact, double half_length = 140.0, ...)   // see the hilti page
 
 std::shared_ptr<Interaction> interaction(size_t target) const
 std::vector<std::shared_ptr<Joint>> children() const
@@ -38,7 +39,9 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 
 ![Beam to beam](elements/element_joint_beam_from_contact.png)
 
-A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes.
+A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes. As 2024 joined beams, the two volumes of a pair are made boxes and joined as plates with the settings' rows (a side-to-end pair as top-to-side, an end-to-end pair searched as a crossing); the plate joint is kept on the joint (`joinery`) and inside the zone of both boxes each beam keeps what its box keeps, its tenons with it, and loses the rest, the other box and its mortises, as a solid it hosts. On the dataset `phanomema_node` the five pairs, their volumes and every beam's joint outlines match the 2025 reference solver; `tests/joint_beams.cpp` measures the cuts.
+
+The interaction keeps the axes' `normal` and their two directions where they meet (`axes`), and `insertion(target)` says how each member comes off the joint: a crossing along the normal away from the other box, a side or end pair along the axis that points apart; the two are opposite. The picture pulls the beams 250 apart along `insertion(1)`. Connectors give the same: the beam and the joist of headed pins come apart across their contact, a let-in plate leaves along its face.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
@@ -128,3 +131,7 @@ Pins from a beam's far face into the joist ending on it, in each `PinLayout`: co
 | `radius`, `length`, `sides` | 2, 200, 16 | each pin |
 
 \include{lineno} elements/element_joint_beam_headed_pins.cpp
+
+## Hilti
+
+The Hilti connector across the mitred seam of two CLT slabs, flat or folded up to 50 degrees, two identical plywood half-dovetails on one threaded rod with a disc at each end, has its own page with its examples: [JointBeam hilti](@ref elements_joint_hilti).

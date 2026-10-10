@@ -14,6 +14,19 @@ using namespace session_cpp;
 
 Plate::Plate() : WoodElement("plate") {}
 
+/// The normal of a bottom outline: Newell's on a planar outline, exact where its coordinates are; on a warped one the sum of its corners'
+/// normals, as 2024's average_normal tilted it, turned to Newell's side, since on an outline of tenons the reflex corners can outweigh the rest.
+static Vector outline_normal(const Polyline& outline) {
+
+    const Vector newell = compute_newell(outline.get_points()).normalized();
+    Vector corners = Vector::average_normal(outline.get_points());
+    if (corners.dot(newell) < 0.0)
+        corners = corners * -1.0;
+
+    // the two agree on a planar outline but for rounding, which would turn the face's frame where its axes compare equal
+    return (corners - newell).magnitude() <= 1e-9 ? newell : corners;
+}
+
 /// A bad outline pair degrades to an empty element, which detection skips, rather than taking a dataset run down.
 Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : WoodElement(name) {
 
@@ -28,14 +41,14 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
         return;
     }
 
-    Vector normal = compute_newell(pp0.get_points());
+    Vector normal = outline_normal(pp0);
     const Point c0 = pp0.center();
     const Point last_p1 = pp1[pp1.point_count() - 1];
     const double last_z = (last_p1 - c0).dot(normal);
     if (last_z > 0) {
         pp0.reverse();
         pp1.reverse();
-        normal = compute_newell(pp0.get_points());
+        normal = outline_normal(pp0);
         reversed = true;
     }
 
@@ -53,27 +66,10 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     thickness = Point::distance(cen0, planes[1].project(cen0));
 
     for (size_t j = 0; j < n_sides; j++) {
+        // the side plane through the quad's three corners, framed as CGAL framed it
         const Vector n = (pp0[j] - pp0[j + 1]).cross(pp1[j + 1] - pp0[j + 1]);
-        const double anx = std::abs(n[0]);
-        const double any = std::abs(n[1]);
-        const double anz = std::abs(n[2]);
-        Vector sb1;
-        if (anx < 1e-12)
-            sb1 = Vector(1, 0, 0);
-        else if (any < 1e-12)
-            sb1 = Vector(0, 1, 0);
-        else if (anz < 1e-12)
-            sb1 = Vector(0, 0, 1);
-        else if (anx <= any && anx <= anz)
-            sb1 = Vector(0, -n[2], n[1]);
-        else if (any <= anx && any <= anz)
-            sb1 = Vector(-n[2], 0, n[0]);
-        else
-            sb1 = Vector(-n[1], n[0], 0);
-
-        Vector sb2 = n.cross(sb1);
-        sb1.normalize_self();
-        sb2.normalize_self();
+        const Vector sb1 = cgal_base1(n);
+        const Vector sb2 = n.cross(sb1).normalized();
         planes[2 + j] = Plane(pp0[j + 1], sb1, sb2);
         polylines[2 + j] = Polyline({pp0[j], pp0[j + 1], pp1[j + 1], pp1[j], pp0[j]});
     }
@@ -100,6 +96,22 @@ std::shared_ptr<Plate> Plate::from_rectangle(
         height
     );
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
+}
+
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_rotated(double twist_degrees, double length, double width, double thickness) {
+
+    // the right plate's width and thickness axes, the left's turned about the seam normal x
+    const double twist = twist_degrees * Tolerance::PI / 180.0;
+    const Vector twisted_y(0.0, std::cos(twist), std::sin(twist));
+    const Vector twisted_z(0.0, -std::sin(twist), std::cos(twist));
+
+    // both side faces centred on the same point of the seam plane
+    const Point seam_centre(length, width * 0.5, thickness * 0.5);
+    const Point right_origin = seam_centre - twisted_y * (width * 0.5) - twisted_z * (thickness * 0.5);
+
+    const std::shared_ptr<Plate> left = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "left");
+    const std::shared_ptr<Plate> right = from_rectangle(right_origin, Vector(1.0, 0.0, 0.0), twisted_y, length, width, thickness, "right");
+    return {left, right};
 }
 
 std::vector<std::shared_ptr<Plate>> Plate::row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
@@ -218,10 +230,8 @@ BRep Plate::trimmed_brep() const {
     return features.top.empty() ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
 }
 
-void Plate::flip() {
+void Plate::swap_planes() {
 
-    if (polylines.size() > 1)
-        std::swap(polylines[0], polylines[1]);
     if (planes.size() > 1)
         std::swap(planes[0], planes[1]);
     reset();
@@ -356,6 +366,17 @@ std::vector<ElementFeature> Plate::face_features() const {
     }
 
     return out;
+}
+
+int Plate::given_face(int face) const {
+
+    if (!reversed)
+        return face;
+    if (face < 2)
+        return 1 - face;
+
+    const int side_count = static_cast<int>(planes.size()) - 2;
+    return 2 + (side_count - 1 - (face - 2));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

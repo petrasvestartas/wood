@@ -28,7 +28,7 @@ const wood_floor::FloorGuide& square_guide() {
 const double EXACT_SUPPORT = 500671.261678; // the support's exact BRep volume, cylinders and hexagons
 const double CARVED_OUTER_RIB = 98407909.203913; // an outer rib of the square carved by every connector of the floor: its rectangle plate pocket and pins, and the block pins
 const double HEAD_CUT = 34771221.351479; // what the six head cuts take from the column
-const double PLATE_POCKETS = 3888727.411870; // what the two column plates' pockets and pin bores take from the column in the floor
+const double PLATE_POCKETS = 4590643.957133; // what the two column plates' pockets and pin bores take from the column in the floor, the pins across the column face to face, and the pre-drilled holes of the headed pins into it
 
 /// The exact bores of a BRep: its rational surfaces, cylinders.
 size_t count_bores(const BRep& brep) {

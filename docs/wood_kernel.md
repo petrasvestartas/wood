@@ -9,7 +9,7 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
+| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::swap_planes` is the recorded mid-run plane swap (outlines kept, as the 2025 solver kept them); `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
 | `src/joinery_solver/wood_elements/wood_element_geometry.h/.cpp` | what the elements share: `sweep_sections`, `brep_sections`, `compute_newell`, `face_planes`, `compute_volume`, `is_geometry_feature` |
 | `src/joinery_solver/wood_elements/wood_profile.h/.cpp` | `profile_rectangle`, `profile_round`, `profile_w`, `profile_hss`, `profile_double`, `profile_slab_band`, `profile_t`, `compute_size`, `profile_section` |
 | `src/templates/grid/grid_plan.h/.cpp` | the plan geometry of the grid template (`compute_pieces` of a line against rings, `compute_arrangement` mapping the kernel's `Mesh::from_arrangement` sources to pattern and ring ids, `compute_wall_ring` of a core, direction polygons at a node; sections, ring booleans, offsets and the line split are the kernel's `Mesh::section_by_plane`, `BooleanPolyline::compute_regions`, `Polyline::offset_sides` / `Intersection::offset_in_3d` and `Line::split_at_crossings`) and the records and joint rules `grid_joints.cpp` and `grid.cpp` share |
@@ -215,7 +215,7 @@ The plate vector is in-out: each `Plate` gets its `features`, its `insertion_vec
 8. **Orient.** `joint_orient_to_connection_area` (`wood_algorithms/wood_feature_construction.cpp`): `apply_unit_scale` (moves
    the two volume quads to `unit_scale_distance` apart when `unit_scale`), then
    `Xform::from_change_of_basis(vols[0], vols[1])` for male and `(vols[2], vols[3])` for
-   female outlines. Ids 15/16 (ss_e_op_5) orient their shadow joints and call
+   female outlines. Ids 15/16 (ss_e_op_5, ss_e_op_6) orient their shadow joints and call
    `merge_linked_joints`. `no_orient` skips this.
 9. **Merge.** Build `j_mf[element][face] = [(joint_idx, is_male)]` (extra last slot for shadow
    joints), call `merge_joints_for_element` (`wood_merge.cpp`) per plate, and de-interleave
@@ -239,16 +239,15 @@ and `side_removal*` constructors take the plate vector too and have their own he
 | joint_type | group | id range | prefix | ids wired in `joint_create_geometry` |
 |---|---|---|---|---|
 | 12 | 0 | 1-9 | `ss_e_ip` | 1→ss_e_ip_1, 2→_0, 3→_2, 4→_3, 5→_4, 6→_5, 8→side_removal, 9→ss_e_ip_custom |
-| 11 | 1 | 10-19 | `ss_e_op` | 10→_1, 11→_2, 12→_0, 13→_3, 14→_4, 15/16→_5 (with/without divisions), 17→_17, 18→_tutorial, 19→_custom |
+| 11 | 1 | 10-19 | `ss_e_op` | 10→_1, 11→_2, 12→_0, 13→_3, 14→_4, 15→_5, 16→_6 (ss_e_op_5 without the second link's divisions), 18→side_removal, 19→_custom; 17 takes the family default _1 (ss_e_op_17 and ss_e_op_tutorial by name only) |
 | 20 | 2 | 20-29 | `ts_e_p` | 20/22→_3, 21→_2, 23→_0, 25→_5, 28→side_removal, 29→_custom |
 | 30 | 3 | 30-39 | `cr_c_ip` | 30-35→_0.._5, 38→side_removal, 39→_custom |
 | 40 | 4 | 40-49 | `tt_e_p` | 40-45→_0.._5 (no custom slot wired) |
-| 13 | 5 | 50-59 | `ss_e_r` | 54→_3, 55→_2, 56→_0, 57→side_removal, 58→side_removal_ss_e_r_1_port, 59→_custom |
+| 13 | 5 | 50-59 | `ss_e_r` | 54→_3, 55→_2, 56→_0, 57→side_removal, 58→side_removal merged with the joint, 59→_custom; any other id takes side_removal (side_removal_ss_e_r_1 by name only; ss_e_r_1 is its tile, no design) |
 | 60 | 6 | 60-69 | `b` | 60→b_0, 69→b_custom |
 
 Note the id → function number is not identity (id 10 is `ss_e_op_1`, id 12 is `ss_e_op_0`).
 An id with no case prints `not ported, using family default` once and falls back.
-`joints/ss_e_r_1.h` exists but is not included by the aggregator.
 
 ### Unit-box convention
 
@@ -278,8 +277,9 @@ joint). `joint.name` must be set to the function name. Tiling along z uses `join
 ### Custom joints at runtime
 
 The `*_custom` constructors read `config::CUSTOM_JOINTS_<FAMILY>_MALE` / `_FEMALE`
-(`wood_config.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) of one base tooth,
-tiled `divisions` times along z (`ss_e_ip_custom.h` documents the tiling). Fill the vectors in
+(`wood_config.h`): pairs `(i, i+1)` = (face-0 polyline, face-1 polyline) in the unit box, each
+kept as its own polyline on its face, written twice, fabrication type nothing, as 2024 did
+(`ss_e_ip_custom.h`): no tiling, no unit scale, the box is mapped onto the contact. Fill the vectors in
 C++ (the yml loader skips them), then select the family's custom id (9, 19, 29, 39, 59, 69).
 `reset_defaults()` clears them.
 
@@ -333,7 +333,7 @@ How wood uses it (`wood_session.h/.cpp`):
 | 4 | Endpoint marker missing or 1-point in `*_outlines[k][1]` | Merge skips the joint (or, before the guard, relocated vertices to the origin); always end each outline list with `{front, back}` |
 | 5 | `unit_scale` false on a thickness-dependent tooth | Geometry is stretched by the change of basis; set `unit_scale = true` and let `apply_unit_scale` size the volumes |
 | 6 | Cache key is `"id;shift;divisions"`, not edge length; first joint wins | Do not sort joints before the geometry loop; `divisions` must differ for a different tooth count |
-| 7 | `face_to_face_wood` asks for element b's faces 0/1 to be flipped mid-run | `detect_features` calls `Plate::flip`, which resets every cache; never keep face indices of a plate across pairs |
+| 7 | `face_to_face_wood` asks for element b's planes 0/1 to be swapped mid-run | `detect_features` calls `Plate::swap_planes`, which keeps the outlines and resets every cache; never keep face indices of a plate across pairs |
 | 8 | `get_connection_zones` on a copied plate vector | The result lives on the plates (`features`, `insertion_vectors`, `reversed`); pass the scene's own `shared_ptr` vector |
 | 9 | `settings.joint_parameters` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
 | 10 | `Session` has no virtual destructor | Do not own a `WoodSession` through a `Session*` |

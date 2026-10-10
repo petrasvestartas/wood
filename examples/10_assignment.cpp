@@ -1,5 +1,4 @@
 #include "wood_session.h"
-#include "wood_assignment.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -28,13 +27,8 @@ int main() {
         )
     );
 
-    assign_feature_types(
-        wood_session.plates(),
-        wood_session.settings,
-        {Point(1000, 250, 0), Point(500, 250, 40)},
-        {3, -40}
-    );
-    assign_insertion_vectors(wood_session.plates(), wood_session.settings, {Line::from_points(Point(1000, 250, 0), Point(1000, 250, 300))});
+    wood_session.assign_joint_types_by_points({Point(1000, 250, 0), Point(500, 250, 40)}, {3, -40}, 1.0);
+    wood_session.assign_insertion_vectors_by_lines({Line::from_points(Point(1000, 250, 0), Point(1000, 250, 300))}, 1.0);
 
     for (const std::shared_ptr<Plate>& plate : wood_session.plates()) {
         std::cout << plate->name << " feature types:";

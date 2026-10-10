@@ -5,6 +5,8 @@
 #include "wood_element_plate.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
+#include "wood_interaction_feature_plate.h"
+#include "wood_settings.h"
 
 using namespace session_cpp;
 
@@ -26,11 +28,16 @@ public:
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {{{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}}; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.
 
     InteractionFeatureBeam feature; // The beam-to-beam feature: the four volume rectangles of the male and female corners; empty for a connector.
+    InteractionFeaturePlate joinery; // A beam-to-beam joint's plate joint, as 2024 built it on the two boxes its volumes make: [0] and [1] on the first beam's box, [2] and [3] on the second's; empty when the boxes take no joint.
+    std::array<int, 2> joinery_sides = {-1, -1}; // Which side of the plate joint each target is, 0 its male and 1 its female; -1 without a joint.
+    std::array<Mesh, 2> member_cuts; // What each target loses to a beam-to-beam joint inside the zone of both boxes: all but what its box keeps of the plate joint; empty without one.
+    std::array<std::vector<Line>, 2> member_drills; // The plate joint's drills each target is bored along, its box's side of them; empty without any.
     std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
     std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
     double drill_overshoot = 0.0; // How far a target's holes run past the pins at an end where the pin leaves the target; a blind hole stops at its pin.
     std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
+    std::vector<Vector> insertions; // A connector's direction each target slides off it, in targets order; a beam-to-beam joint reads its feature instead.
 
     JointBeam();
 
@@ -54,14 +61,16 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A beam-to-beam joint on the axis contact of two beams; null when none fits.
+    /// A beam-to-beam joint on the axis contact of two beams, null when no volume fits: its two volumes made boxes and the plate joint the
+    /// settings' rows give them, as 2024 built beam joints, each beam then cut to the shape its box takes inside the volume.
     static std::shared_ptr<JointBeam> from_contact(
         const Beam& source,
         const Beam& target,
         const InteractionContactAxis& contact,
         double volume_length,
         double cross_or_side_to_end,
-        int flip_male = 0
+        int flip_male = 0,
+        const Settings& settings = Settings()
     );
 
     /// The wedge connector on the face contact of two members: a profile prism with horizontal pins and a pocket in each member.
@@ -90,13 +99,12 @@ public:
         double height = 250.0
     );
 
-    /// The joint that lets a plate into a column and a rib: a pocket in both and four pins through all three.
+    /// The joint that lets a plate into a column and a rib: a pocket in both and four pins through all three, each pin across its member face to face.
     static std::shared_ptr<JointBeam> rectangle_plate(
         const Element& column,
         const Element& rib,
         const Plate& plate,
         const InteractionContactFace& contact,
-        double pin_length,
         double pin_radius = 25.0,
         double margin_x = 6.05,
         double margin_z = 3.0,
@@ -146,12 +154,41 @@ public:
         int sides = 16
     );
 
+    /// The Hilti connector across the straight seam of two CLT slabs, flat or folded: the 2024 Hilti joint (ss_e_r_2, id 55) with its
+    /// parts. Target i gets its half of the bow-tie pocket milled from the top: the neck across the seam widening into the wing, straight
+    /// to its end, the far corners rounded by the router, depth under the seam's top edge, as 2024 milled it on a flat pair. The parts are
+    /// a straight bow-tie of two plywood halves (a neck and a wing each), a steel disc recessed in each end and one bolt through both: the
+    /// same solids at every fold, so a folded pair, its tops falling away from the ridge, leaves the wings standing out, as on the test
+    /// series. The defaults are the product's (240 x 90 x 93 mm cutout, a 27.7 x 40 neck, a 40 mm router) on CLT of at least 120 mm.
+    /// Null when the contact has no straight seam or a member is no Plate.
+    static std::shared_ptr<JointBeam> hilti(
+        const Element& a,
+        const Element& b,
+        const InteractionContactFace& contact,
+        double half_length = 120.0,     // the seam to the pocket's end, half the 240 mm cutout
+        double neck_length = 27.7,      // the neck across the seam, half in each pocket
+        double neck_width = 40.0,       // the neck
+        double taper_end = 74.4,        // the seam to where the wing reaches its width
+        double wing_width = 90.0,       // the wing, the cutout's width
+        double depth = 93.0,            // the pocket, from the top down
+        double height = 90.0,           // the parts, their top depth - height under the top
+        double rod_diameter = 12.0,     // the bolt
+        double disc_diameter = 50.0,    // the steel disc under each nut, recessed in its wing's end
+        double disc_thickness = 6.0,
+        double router_radius = 20.0,    // the far corners of each pocket, a 40 mm router
+        int sides = 32                  // the discs', the rounded corners' and the bolt's polygon
+    );
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Whether this is a connector, with parts, cutters or pre-drilled pins of its own, rather than a beam-to-beam joint.
     bool is_connector() const;
+
+    /// The direction target i slides off the joint and the other members, unit: a crossing along the normal of the two axes, away from the
+    /// other beam's box; a side-to-end or end-to-end pair along the ending beam's axis; a connector as its factory recorded it.
+    Vector insertion(size_t target) const;
 
     /// The interaction this joint puts on its target i: a connector's cutters and bores, pre-drilled holes, or feature volumes.
     std::shared_ptr<Interaction> interaction(size_t target) const override;

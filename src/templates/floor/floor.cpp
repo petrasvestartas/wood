@@ -373,8 +373,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 *column.a,
                 *column.b,
                 *quarter_connectors.column_plates[k],
-                *column.face,
-                guide.size_outer_ribs
+                *column.face
             );
         }
 

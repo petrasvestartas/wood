@@ -61,6 +61,12 @@ int main() {
     scene.add_interaction(butt, tee_a, butt->interaction(0));
     scene.add_interaction(butt, tee_b, butt->interaction(1));
 
+    // drawn apart: each pair's second beam moved 250 along the way it comes off the first, so the cuts read
+    const Vector crossing_off = lap->insertion(1) * 250.0;
+    const Vector tee_off = butt->insertion(1) * 250.0;
+    crossing_b->place(Xform::translation(crossing_off[0], crossing_off[1], crossing_off[2]));
+    tee_b->place(Xform::translation(tee_off[0], tee_off[1], tee_off[2]));
+
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -68,7 +74,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two pairs of 60 radius beams on straight axes: a crossing, where the axes meet halfway along both, and a T, where the second axis ends on the first; each axis contact (InteractionContactAxis: the closest segment and where it sits on each axis) makes JointBeam::from_contact with 400 long feature volumes, the feature volumes are added as the joint and passed to each beam with add_interaction.
+Two pairs of 60 radius beams on straight axes: a crossing, where the axes meet halfway along both, and a T, where the second axis ends on the first; each axis contact (InteractionContactAxis: the closest segment and where it sits on each axis) makes JointBeam::from_contact with 400 long feature volumes; as 2024 joined beams, the two volumes of each pair are made boxes and joined as plates, the crossing by the cross half-lap cr_c_ip_0 and the T by the top-to-side tenons ts_e_p_3, and each beam is cut to what its box keeps inside the two boxes; the joint is added and passed to each beam with add_interaction, and each pair's second beam is moved 250 along JointBeam::insertion(1), the way it comes off the first, so the cuts read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

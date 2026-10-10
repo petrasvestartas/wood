@@ -1,0 +1,176 @@
+{
+ "semantics": [
+  {
+   "fabrication_type": "MECHANISM: how a joint reaches a plate and where merge-vs-hole is decided",
+   "old_behaviour": "face_to_face builds wood::joint (m[2]/f[2] outline lists, m_boolean_type/f_boolean_type one per outline); element::j_mf[face] lists (joint id, is_male) per element face; element::merge_joints(joints, output) runs only for output_type 4 and writes [hole_top, hole_bot, ..., pline0_new, pline1_new] per element; closed_mesh_from_polylines lofts that list. merge_joints reads the cut type ONLY to pick hole loops on side faces; everything else is decided by the point count of outline [1] (2 = line insertion, 5 = rectangle clip, else skipped).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_main.cpp:2104-2107; 351933c:cmake/src/wood/include/wood_element.cpp:655-668, 740-775, 774 (switch on (male_or_female,true)[1].size()), 816 (case 2), 1049 (case 5), 1106-1108 (default continue), 1374 (only cut-type read), 1421-1423 (output order)",
+   "current_behaviour": "JointPlate::orient(contact,{a,b}) -> construct -> builder fills InteractionFeaturePlate.male_outlines/female_outlines + male_fabrication_types/female_fabrication_types -> joint_orient_to_connection_area. JointPlate::interaction(i) returns a copy with target_side=i+1. WoodSession::add_interaction(JointPlate) rewrites connection.element_a/element_b from the target, hosts the 'joint' ElementFeature (all outlines, types dropped), then merge_features({plate}, get_plate_features()) -> MergeModifier::apply -> plate->features.top/bottom -> Plate::trimmed_mesh/brep lofts them. MergeModifier reads FabricationType only at cut_holes_side (hole); insert_side_joints dispatches on the marker point count exactly like the old code. No path turns any type into an InteractionFeatureSolid on the plate (Plate::solid_features exists but JointPlate never fills it).",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:693-712, 743-761, 932-963; src/joinery_solver/wood_session.cpp:794-829; src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:13-43, 110-141; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:35-60, 379-415 (394-401 marker dispatch), 548 (only type read); src/joinery_solver/wood_elements/wood_element_plate.cpp:213-219; src/joinery_solver/wood_elements/wood_element.h:13; src/joinery_solver/wood_elements/wood_element.cpp:71-73, 84-90; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate.cpp:177-193",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "nothing (0)",
+   "old_behaviour": "Documented as 'do not merge' but merge_joints never reads it: an outline tagged nothing is merged like any other if its [1] marker has 2 or 5 points. Old custom joints set it (ss_e_ip_custom etc.).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint.h:64-70; 351933c:cmake/src/wood/include/wood_element.cpp:774-1108 (no type check); 351933c:cmake/src/wood/include/wood_joint_lib.cpp:1557-1568, 2290-2301",
+   "current_behaviour": "Enum value 0; never read by MergeModifier, JointPlate or Plate; an outline tagged nothing is merged by marker count exactly as before. Current custom_outlines sets edge_insertion instead.",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:7; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:379-415; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:36-39",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "hole (1)",
+   "old_behaviour": "Side-face joints: entries at even indices whose type == hole become inner loops (top/bottom pair), after a top/bottom swap by marker distance to planes[0] and forced clockwise winding about planes[0]. Top/bottom-face joints (ts_e_p female, tt_e_p): EVERY outline but the last becomes a hole pair regardless of its type (the last is the bounding rectangle / marker).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:1352-1413 (1372-1375 type check, k += 2), 1285-1343 (1326 k < size-1, no type check)",
+   "current_behaviour": "Identical: cut_holes_side collects cut_types[0][k]==hole for k += 2, swaps outlines+types when reversed, forces clockwise; cut_holes_top_bottom pushes every outline but the last with no type check. Holes land as loops [1..] of features.top/bottom and are lofted by brep_between_loops (caps carry the holes). Note: in docs/images/elements/element_joint_plate_ts_e_p.png the female mortises render as closed dark boxes, not through-holes (cause not verified: brep cap/hole handling or viewer).",
+   "current_ref": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:531-580, 494-529; src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:128-137; src/joinery_solver/wood_elements/wood_element_geometry.cpp:282-303",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "edge_insertion (2)",
+   "old_behaviour": "Marker [1] with 2 points: joint plane rebuilt from the two marker lines, plate corners relocated by 3-plane intersections (prev/next side plane x joint plane x top/bottom), previous corner snapped when the previous edge also carried a joint, run reversed when its front is nearer the edge end, inserted at key id+0.1..id+0.9 replacing the edge; closing corner moved to the first/last line intersection. Marker with 5 points: rectangle clipped against the outline (intersection_closed_and_open_paths_2D) and the clipped run inserted.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:816-1024 (case 2), 1049-1106 (case 5), 1130-1250 (merge of runs), 1242 (close corner)",
+   "current_behaviour": "Same algorithm: relocate_edge_vertices + relocate_previous_corners + flip_and_insert_cut for a 2-point marker, insert_rectangle_cut (Intersection::closed_and_open_paths_2d) for a 5-point marker, build_merged_outline, close_corner.",
+   "current_ref": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:270-321, 228-268, 323-377, 160-189, 417-457, 459-492",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "insert_between_multiple_edges (3)",
+   "old_behaviour": "No distinct branch: handled by the same marker dispatch as edge_insertion (ss_e_op_3 male/female runs have a 2-point marker -> case 2; ts_e_p_0 female bounding rectangle tagged with it is the skipped last outline of the hole pass).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:774-1108; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:2001-2002, 3562-3563",
+   "current_behaviour": "No distinct branch either; same marker dispatch. ss_e_op_3.h, ts_e_p_0.h tag it the same way.",
+   "current_ref": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:379-415; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/ss_e_op_3.h:28-31; .../ts_e_p_0.h:52-55",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "slice (4), slice_projectsheer (5)",
+   "old_behaviour": "Beam cut types (comment 'always projected'); set by ss_e_r_0 and the beam constructors. merge_joints does not know them: on a plate they are merged by marker count like any outline; the solid cut existed only in the export/CNC consumer (not read in this audit, unverified).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_cut.h:28-29; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:2377-2378; 351933c:cmake/src/wood/include/wood_element.cpp:774-1108",
+   "current_behaviour": "b_0.h emits four slice rectangles with a 5-point second outline; nothing consumes the type: MergeModifier would treat it as a rectangle clip if the target is a Plate, no InteractionFeatureSolid is produced, no plane cut on a Beam from a JointPlate.",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_0.h:72-76; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:394-397; src/joinery_solver/wood_session.cpp:794-829",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "mill (6), mill_project (7), mill_projectsheer (8)",
+   "old_behaviour": "ss_e_ip_3 / ss_e_ip_4 tag their x-y scarf profiles mill_project (+drill lines). merge_joints has no mill branch: because outline [1] is a 2-point line the profile (which lies in the plane perpendicular to the joint line, spanning the whole thickness) is inserted into the plate outline by case 2. Whether any old dataset ever ran ss_e_ip_3/4 through output_type 4 is unverified.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:970, 1114-1115, 1119, 1315-1316; 351933c:cmake/src/wood/include/wood_element.cpp:774-1024",
+   "current_behaviour": "Identical: ss_e_ip_3.h / ss_e_ip_4.h tag mill_project; insert_side_joints sees marker==2 and inserts the profile into the outline (the wedge-like tenon on both plates); no Manifold/solid path (apply_solid_features, solid_features_brep exist but JointPlate never feeds them).",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/ss_e_ip_3.h:40-43; .../ss_e_ip_4.h:48-51; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:379-415; src/joinery_solver/wood_elements/wood_element_geometry.h:20,23",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "cut (9), cut_project (10), cut_projectsheer (11), cut_reverse (12)",
+   "old_behaviour": "Beam types set by ss_e_r_1 variants / beam constructors; never read by the plate merge.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_cut.h:35-38; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:2497-2501, 2712-2716",
+   "current_behaviour": "Enum values only; no reader anywhere in the plate path (only hole and drill are ever compared).",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:16-19; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:548; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:784-788",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "conic (13), conic_reverse (14)",
+   "old_behaviour": "Beam types (ss_e_r_1 three-valence variants); never read by the plate merge.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_cut.h:40-41; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:3042-3084",
+   "current_behaviour": "Enum values only; no reader.",
+   "current_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:20-21",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "drill (15)",
+   "old_behaviour": "get_joints_geometry's drill branch is dead code (`continue;` precedes the type check). In merge_joints a top/bottom-face joint's drill lines (tt_e_p) flow into the hole pass as 2-point 'holes' (every outline but the last); side-face drill entries (ss_e_ip_3/4) are ignored. The old mesh builder dropped short/degenerate polylines before lofting (filter at cgal_polyline_mesh_util.cpp:289-292, condition not read).",
+   "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:41-42, 1326-1340, 1372-1375; 351933c:cmake/src/wood/include/cgal_polyline_mesh_util.cpp:289-292",
+   "current_behaviour": "JointPlate::drill_axes collects drill lines and Joint::element_geometry_mesh appends cylinders on the (hidden) joint element only; the plate gets no hole: the add_interaction JointPlate branch never calls host_drills nor adds an InteractionFeatureSolid with drills. tt_e_p 2-point lines still flow into cut_holes_top_bottom as hole loops of features.top/bottom (degenerate loops; effect on brep_between_loops unverified; docs screenshot shows lines, no holes).",
+   "current_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:779-797; src/joinery_solver/wood_elements/wood_element_joint.cpp:143-153; src/joinery_solver/wood_session.cpp:794-829 (no drill handling) vs 1418-1480, 1663-1680 (host_drills only for Joint/JointBeam); src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/tt_e_p_drills.h:57-70; src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:515-526",
+   "matches": "yes"
+  },
+  {
+   "fabrication_type": "MECHANISM: male/female role (which plate takes m[] vs f[])",
+   "old_behaviour": "Type 11 (side-side out-of-plane) builds ONE shared corner-block volume pair and then swaps el_ids/face_ids/joint_lines so the MALE is the second element (comment: needed for non-symmetrical joints); m[] is designed for the plate whose faces are the block's +-Y planes, f[] for +-X. merge_joints applies m[] to v0 and f[] to v1 via j_mf.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_main.cpp:884-885, 897-900, 905-930 (928 el_ids swap), 954; 351933c:cmake/src/wood/include/wood_joint.cpp:342-348 (xform1 falls back to volumes[0],[1])",
+   "current_behaviour": "Detection identical (swap at feature_detection.cpp:654-656, single pair 670-671; orient falls back to xf0 for the female). Solver path keeps it (compute_features pushes the detector's joint; add_plate_joint reads connection.element_a/b). Direct example path loses it: face_contacts_for_pair only swaps lines/volumes back to (ea,eb) order (volumes[2],[3] are copies of [0],[1], so a no-op) and cannot carry the role; JointPlate::orient sets element_a = elements[0] (reverse only for side_top); add_interaction then rewrites element_a/element_b from whichever plate receives interaction(0)/(1).",
+   "current_ref": "src/joinery_solver/wood_algorithms/wood_feature_detection.cpp:224-240, 572-674 (654-656, 670-671); src/joinery_solver/wood_algorithms/wood_feature_construction.cpp:102-120; src/joinery_solver/wood_algorithms/wood_contact_detection.cpp:398-415; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:700-712; src/joinery_solver/wood_session.cpp:807, 243-254, 1288-1335",
+   "matches": "no"
+  },
+  {
+   "fabrication_type": "MECHANISM: top/bottom assignment of the merged outlines",
+   "old_behaviour": "merge_joints copies pline0 = polylines[0], pline1 = polylines[1] and emits [..., pline0_new, pline1_new]; closed_mesh_from_polylines takes the pair in that order and orients the mesh by the average normal / base plane side.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:668-669, 1421-1423; 351933c:cmake/src/wood/include/cgal_polyline_mesh_util.cpp:331-353",
+   "current_behaviour": "MergeModifier.top_points = polylines[0], bottom_points = polylines[1]; merge_features stores merged_top (polylines[0]) in features.top and merged_bottom in features.bottom, while Plate.h documents polylines[0] as bottom; Plate::trimmed_mesh/brep loft (features.bottom, features.top) i.e. (polylines[1]-side, polylines[0]-side), the reverse of element_geometry's loft({polylines[0]},{polylines[1]}); face_features maps face 0 -> features.bottom. Whether the kernel loft/brep orients by order or by geometry is not verified.",
+   "current_ref": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:23-24, 48-56; src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:131-136; src/joinery_solver/wood_elements/wood_element_plate.h:10-14, 21; src/joinery_solver/wood_elements/wood_element_plate.cpp:198, 214, 218, 182-185, 345",
+   "matches": "unknown"
+  },
+  {
+   "fabrication_type": "MECHANISM: unit-cube orientation (change of basis)",
+   "old_behaviour": "change_basis maps the unit cube [-0.5,0.5]^3 (origin -0.5,-0.5,-0.5) to O=rect0[0], X=rect0[1]-rect0[0], Y=rect0[3]-rect0[0], Z=rect1[0]-rect0[0]; male uses volumes[0],[1], female volumes[2],[3] when present else the male pair.",
+   "old_ref": "351933c:cmake/src/wood/include/wood_joint.cpp:103-116, 342-348",
+   "current_behaviour": "Xform::from_change_of_basis uses the same four points; joint_orient_to_connection_area applies xf0 to male outlines and xf1 (or xf0) to female outlines; unit_scale handled by apply_unit_scale.",
+   "current_ref": "session/session_cpp/src/xform.cpp:344-361; src/joinery_solver/wood_algorithms/wood_feature_construction.cpp:69-120",
+   "matches": "yes"
+  }
+ ],
+ "bugs": [
+  {
+   "title": "Type-11 male/female role is dropped on the direct (example) path: the floor gets the male outlines although the shared corner-block frame designates it female",
+   "file": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp",
+   "line": 709,
+   "description": "side_side_out_of_plane builds one shared block volume pair and swaps el_ids so the male is the SECOND element (wood_feature_detection.cpp:654-656, 670-671; identical to old wood_main.cpp:928, whose comment says the order is needed for non-symmetrical joints). The male unit geometry (m[] runs in the block's y=+-0.5 planes) therefore belongs to eb, the female (f[] in x=+-0.5) to ea. face_contacts_for_pair (wood_contact_detection.cpp:409-413) can only swap lines/volumes back to (ea,eb) order, and since volumes[2],[3] are copies of [0],[1] that swap changes nothing; the role is not carried by InteractionContactFace. JointPlate::orient then sets element_a = elements[0] = floor (reverse handled only for side_top at 700-702) and WoodSession::add_interaction (wood_session.cpp:807) rewrites element_a/element_b from whichever plate receives interaction(0)/(1). Both plates are oriented with the same xf0 (wood_feature_construction.cpp:111-113), so the floor's merged outline receives runs lying in the WALL's face planes with x reaching -1 (one half-block beyond the floor's faces: ss_e_op_3.h:20,24) and the wall receives the female slot/hole rectangles lying in the FLOOR's face planes (ss_e_op_3.h:7-16). Symmetric finger joints (ss_e_op_1/2/4/5) hide the swap because exchanging the two finger patterns yields the same block subdivision; the asymmetric ss_e_op_3 shows it as a box hanging off one plate and a hole/box in the wrong plane on the other. The solver path (compute_features -> add_plate_joint) keeps the detector's roles and is unaffected.",
+   "example_joint": "element_joint_plate_ss_e_op (ss_e_op_3; latent in ss_e_op_4/5 and every ss_e_op_*/ss_e_r direct use)",
+   "severity": "high"
+  },
+  {
+   "title": "MergeModifier merges every side-face outline into the plate outline regardless of FabricationType: mill_project profiles of ss_e_ip_3/4 become wedge tenons on both plates",
+   "file": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp",
+   "line": 394,
+   "description": "insert_side_joints dispatches purely on the point count of outline [1] (2 -> relocate_edge_vertices + flip_and_insert_cut, 5 -> insert_rectangle_cut); the only FabricationType ever read is hole in cut_holes_side (line 548). ss_e_ip_3.h/ss_e_ip_4.h emit mill_project scarf profiles that lie in the plane perpendicular to the joint line (points span y from -0.5 to 0.5, i.e. both face planes) with a 2-point second outline, so the profile is spliced into the plate's edge as if it were an edge insertion, on male and female alike (both tag mill_project). The old merge_joints had the same marker-only dispatch (351933c:wood_element.cpp:774-1108), so this is a pre-existing semantic gap, not a port regression, but it is the direct cause of the wedge-like tenon on both plates. The drill entries (indices 2..5) are never applied.",
+   "example_joint": "element_joint_plate_ss_e_ip (ss_e_ip_3, ss_e_ip_4)",
+   "severity": "high"
+  },
+  {
+   "title": "No solid-cut path for plate joints: mill/slice/cut/conic/drill outlines are never turned into InteractionFeatureSolid on the Plate; drills never hole the plates",
+   "file": "src/joinery_solver/wood_session.cpp",
+   "line": 794,
+   "description": "The JointPlate branch of add_interaction (794-829) only hosts the 'joint' ElementFeature and runs merge_features; it never builds an InteractionFeatureSolid (Plate::solid_features, apply_solid_features / solid_features_brep in wood_element_geometry.h:20,23 are only used by Joint/JointBeam cutters, 1498-1680) and never calls host_drills. JointPlate::interaction (wood_element_joint_plate.cpp:759-761) returns only the InteractionFeaturePlate. JointPlate::drill_axes (779-797) feeds cylinders into the hidden joint element's own geometry (wood_element_joint.cpp:148-150) only. Consequence: ss_e_ip_3/4 pockets and dowels, tt_e_p_0..5 drills, b_0 slices leave the target plate untouched (docs/images/elements/element_joint_plate_tt_e_p.png shows lines, no holes). tt_e_p 2-point drill lines additionally flow into cut_holes_top_bottom (515-526) as 2-point 'hole' loops of features.top/bottom (loft effect unverified).",
+   "example_joint": "element_joint_plate_tt_e_p (all), element_joint_plate_ss_e_ip (ss_e_ip_3, ss_e_ip_4), b_0",
+   "severity": "high"
+  },
+  {
+   "title": "Merged outlines stored top/bottom-inverted relative to Plate's own face naming; trimmed loft order is the reverse of the stock loft",
+   "file": "src/joinery_solver/wood_algorithms/wood_feature_solver.cpp",
+   "line": 131,
+   "description": "MergeModifier.top_points = plate.polylines[0] (wood_merge_modifier.cpp:23) and apply() emits merged_top first; merge_features puts it in features.top and the polylines[1] outline in features.bottom, whereas Plate.h:21 defines polylines[0] as bottom. Plate::trimmed_mesh/brep then loft (features.bottom, features.top) = (polylines[1]-side, polylines[0]-side) while element_geometry_mesh lofts ({polylines[0]}, {polylines[1]}) (wood_element_plate.cpp:198 vs 214/218), and face_features (345) / from_element (182-185) attach the polylines[1]-derived outline to face 0. The hole pairs follow the same inversion so the loft is self-consistent but upside-down vs the stock; whether Mesh::loft / brep_between_loops orient faces by argument order (inside-out solid) or by geometry is not verified.",
+   "example_joint": "every plate with a merged joint (ss_e_ip_0.., ss_e_op_.., ts_e_p_..)",
+   "severity": "medium"
+  },
+  {
+   "title": "Female hole loops render as closed boxes on the face (observed), hole-in-cap handling unverified",
+   "file": "src/joinery_solver/wood_elements/wood_element_geometry.cpp",
+   "line": 282,
+   "description": "brep_between_loops passes bottom[1..]/top[1..] as holes of the two caps and one quad per hole edge. In docs/images/elements/element_joint_plate_ts_e_p.png the ts_e_p_0/1/2 female mortises appear as dark closed boxes on the base plate rather than see-through holes; combined with bug 1 this is the 'box' seen on the ss_e_op_3 female. Not reproduced by execution (read-only task); candidate causes: BRep::from_polylines cap/hole handling, hole winding (cut_holes_* force clockwise about planes[0] while the outer ring is counter-clockwise about it, wood_element_plate.cpp:31-40), or the viewer. Verify by lofting one ts_e_p_0 female and inspecting the cap faces.",
+   "example_joint": "element_joint_plate_ts_e_p (ts_e_p_0, ts_e_p_1, ts_e_p_2), element_joint_plate_ss_e_op (ss_e_op_3 female holes)",
+   "severity": "medium"
+  },
+  {
+   "title": "Male/female of a JointPlate is decided by add_interaction call order, not by the contact",
+   "file": "src/joinery_solver/wood_session.cpp",
+   "line": 807,
+   "description": "`(side == 0 ? found->element_a : found->element_b) = target->guid();` makes whichever plate receives interaction(0) the male after the outlines were already oriented; swapping the two add_interaction lines in an example silently swaps the cut geometry between plates. This is what lets bug 1 land on the floor; a fix for bug 1 must also make this line respect (or assert against) the connection's stored roles.",
+   "example_joint": "element_joint_plate_ss_e_op.cpp:36-37, element_joint_plate_ss_e_ip.cpp:113-114",
+   "severity": "medium"
+  },
+  {
+   "title": "joint_outlines swaps a joint's top/bottom outlines without swapping its fabrication types",
+   "file": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp",
+   "line": 154,
+   "description": "insert_side_joints' joint_outlines swaps outlines[0]/[1] when reversed but leaves male/female_fabrication_types alone, whereas cut_holes_top_bottom (511-512) and cut_holes_side (559-560) swap both. Harmless today only because every builder writes identical type lists for both faces; a builder with per-face types (ss_e_op_4 female_modify_outline variants in the old library, 351933c:wood_joint_lib.cpp:2175-2190) would read the wrong list.",
+   "example_joint": "any asymmetric-per-face builder (none in the examples today)",
+   "severity": "low"
+  }
+ ],
+ "fix_plan": [
+  "1. Carry the detector's male/female role through the direct path. Either (a) make face_contacts_for_pair return the contact oriented male-first (flip face_a/face_b, lines, volumes when joint.element_a != ea) and add the role to InteractionContactFace, or (b) in JointPlate::orient(contact, elements) re-run face_to_face_wood(elements[0], elements[1]) and take element_a/element_b, joint_lines and joint_volumes from its result (the same code compute_features trusts). Then make WoodSession::add_interaction (wood_session.cpp:807) only validate that the target matches the connection's stored side instead of overwriting it, and throw when the user passes interaction(0) to the female. Verify with element_joint_plate_ss_e_op: the ss_e_op_3 plate that owns the +-Y block faces gets the tab/slot run, the other gets the slot plus through-mortise, no vertex of a merged outline leaves its own plate's face planes.",
+  "2. Dispatch MergeModifier on FabricationType, not marker count: in insert_side_joints read cut_types[0][0] (after the same top/bottom swap) and only let edge_insertion and insert_between_multiple_edges reach relocate_edge_vertices/flip_and_insert_cut or insert_rectangle_cut; skip nothing, mill*, slice*, cut*, conic*, drill. Keep cut_holes_side/cut_holes_top_bottom as they are. Also swap the fabrication types together with the outlines in joint_outlines (wood_merge_modifier.cpp:154-155). This removes the wedge tenons from ss_e_ip_3/4 immediately (they then show no joint until step 3).",
+  "3. Add the solid path for plate joints: in the JointPlate branch of add_interaction (or in a JointPlate::solid_features(side) helper), convert each mill/mill_project/slice/cut*/conic* outline pair (outlines[0][k] with outlines[1][k], k stepping by the builder's pairing) into an InteractionFeatureSolid cutter (loft of the pair, projected onto the plate's face planes for *_project), push it to plate->solid_features in the plate's frame, and turn FabricationType::drill 2-point lines into cut->drills plus host_drills, reusing apply_solid_features / solid_features_brep (wood_element_geometry.h:20,23) and the existing Joint cutter code path (wood_session.cpp:1498-1680). Verify ss_e_ip_3/4 pockets and dowel holes and tt_e_p holes in the plates, and that the merged outline stays untouched for these types.",
+  "4. Fix the merged-outline naming: in merge_features store the polylines[0]-derived outline in features.bottom and the polylines[1]-derived one in features.top (or rename MergeModifier's top_points/bottom_points to match Plate.h), keep Plate::trimmed_mesh/brep lofting in the same order as element_geometry_mesh/brep, and check from_element/face_features agree. Confirm with compute_volume sign / BRep face normals that the trimmed solid is not inside-out.",
+  "5. Reproduce the hole-as-box rendering with one ts_e_p_0 pair: dump the female's trimmed BRep and check the cap faces carry the hole loops and the hole quads point inward; fix brep_between_loops / BRep::from_polylines or the hole winding accordingly (holes must be opposite to the outer ring for the cap triangulation). Re-check ss_e_op_3's female mortise after step 1.",
+  "6. Decide and document the 'nothing' semantics (skip in merge, per the old comment) and remove the dead enum values from builders that misuse them; add a unit check that every builder's fabrication-type list length equals its outline count per face.",
+  "7. Add regression tests per plate family in the examples/tests: for each ss_e_op_*, ss_e_ip_*, ts_e_p_*, tt_e_p_* pair assert (a) every merged-outline vertex lies on its own plate's two face planes, (b) hole loops are coplanar with the plate faces and wound opposite to the outer ring, (c) mill/drill joints leave the outline unchanged and produce solid_features / drill features, (d) male and female plates differ for asymmetric designs.",
+  "8. Re-run every element_joint_plate_* example locally, then regenerate the docs screenshots with bash wood/tools/screenshot_element_docs.sh: one or more images PER PAIR of elements (not one image for the whole row), framed and zoomed so each joint's cut and insert are clearly visible and understandable, and update docs/elements/element_joint_plate*.md sections to reference them; push only after the CI check per wood_research/CLAUDE.md."
+ ]
+}

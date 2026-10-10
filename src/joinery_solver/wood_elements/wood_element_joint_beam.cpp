@@ -57,17 +57,68 @@ JointBeam::JointBeam(
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The plate joint 2024 built on a beam pair: the two boxes the volumes make, [0] to [1] the first beam's and [2] to [3] the second's, solved as
+/// plates with the settings' rows, an end-to-end pair searched as a crossing; inside the zone of both boxes each beam then keeps what its box
+/// keeps of the joint, its tenons with it, and loses the rest: the other box and its own mortises, with what the design mills as a solid
+/// and its drills.
+static void compute_joinery(JointBeam& joint, const Settings& settings) {
+
+    WoodSession boxes("beam_joint_boxes");
+    boxes.settings = settings;
+    boxes.settings.search_type = joint.feature.end_type == 2 ? SearchType::cross_joint : SearchType::face_to_face;
+    const std::array<std::shared_ptr<Plate>, 2> box = {
+        std::make_shared<Plate>(joint.feature.volumes[0], joint.feature.volumes[1], "box_0"),
+        std::make_shared<Plate>(joint.feature.volumes[2], joint.feature.volumes[3], "box_1"),
+    };
+    boxes.add(box[0]);
+    boxes.add(box[1]);
+
+    const std::vector<InteractionFeaturePlate> joints = boxes.compute_features();
+    if (joints.empty())
+        return;
+
+    joint.joinery = joints.front();
+
+    // the joint's zone, both boxes: inside it each beam keeps what its box keeps and loses the rest
+    const Mesh zone = solid_boolean(box[0]->element_geometry_mesh(), box[1]->element_geometry_mesh(), SolidOperation::add);
+    for (size_t i = 0; i < 2; i++) {
+        joint.joinery_sides[i] = joint.joinery.element_a == box[i]->guid() ? 0 : 1;
+        const Features& merged = box[i]->features;
+
+        // the zone less the loft of the box's outer outline, its tenons kept, united with every hole's prism, its mortises: one solid, as
+        // a mortise opens onto the other box and a shell beside it would share that face
+        Mesh cut;
+        if (!merged.top.empty() && merged.top.size() == merged.bottom.size()) {
+            cut = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
+            for (size_t k = 1; k < merged.top.size(); k++) {
+                const Mesh mortise = Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true);
+                cut = cut.number_of_faces() == 0 ? mortise : solid_boolean(cut, mortise, SolidOperation::add);
+            }
+        }
+
+        // what the design mills from its box as a solid (the conic cross cuts, the milled key pockets), which no outline merge carries
+        for (const Mesh& piece : JointPlate::side_solids(joint.joinery, joint.joinery_sides[i]))
+            cut = cut.number_of_faces() == 0 ? piece : solid_boolean(cut, piece, SolidOperation::add);
+        if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
+            joint.member_cuts[i] = cut;
+
+        // and the design's drills on its box, bored into the beam exactly
+        joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
+    }
+}
+
 std::shared_ptr<JointBeam> JointBeam::from_contact(
     const Beam& source,
     const Beam& target,
     const InteractionContactAxis& contact,
     double volume_length,
     double cross_or_side_to_end,
-    int flip_male
+    int flip_male,
+    const Settings& settings
 ) {
 
+    // the four volume rectangles, the first beam's pair then the second's
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-
     if (!beam_to_beam(
         source,
         target,
@@ -78,8 +129,10 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
         joint->feature
     ))
         return nullptr;
-
     joint->targets = {source.guid(), target.guid()};
+
+    // the plate joint on the boxes and the cut it leaves each beam
+    compute_joinery(*joint, settings);
 
     return joint;
 }
@@ -275,6 +328,17 @@ static std::string connector_name(const InteractionContactFace& contact, const s
     return contact.name.empty() ? fallback : "connector_" + contact.name;
 }
 
+/// How the two members of a face contact come apart: each along the contact's normal, away from the contact toward its own body.
+static std::vector<Vector> pulled_apart(const Element& a, const Element& b, const InteractionContactFace& contact) {
+
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    Vector normal = compute_newell(points).normalized();
+    if ((b.element_geometry_mesh().centroid() - Point::centroid(points)).dot(normal) < 0.0)
+        normal = normal * -1.0;
+
+    return {normal * -1.0, normal};
+}
+
 /// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, pins every pin_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
 std::shared_ptr<JointBeam> JointBeam::wedge(
     const Element& a,
@@ -320,6 +384,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
     joint->name = connector_name(contact, "wedge");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     std::array<std::vector<Point>, 2> ends;
 
@@ -535,13 +600,12 @@ std::shared_ptr<Plate> JointBeam::let_in_plate(
     return plate;
 }
 
-/// The plate let into the column and the rib: its box raised by overshoot cut out of both, two pins in the column and two in the rib, margin_x and margin_z radii in from its ends and its top and bottom, pin_length long but flush with their member, each bored through its member and the plate; aimed at the column, the rib, then the plate.
+/// The plate let into the column and the rib: its box raised by overshoot cut out of both, two pins in the column and two in the rib, margin_x and margin_z radii in from its ends and its top and bottom, each across its member from face to face, bored through its member and the plate; aimed at the column, the rib, then the plate.
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Element& column,
     const Element& rib,
     const Plate& plate,
     const InteractionContactFace& contact,
-    double pin_length,
     double pin_radius,
     double margin_x,
     double margin_z,
@@ -565,6 +629,9 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     joint->name = connector_name(contact, "rectangle_plate");
     joint->is_visible = true;
     joint->targets = {column.guid(), rib.guid(), plate.guid()};
+    // the column and the rib come apart across their contact, the plate lifts out of its pocket
+    joint->insertions = pulled_apart(column, rib, contact);
+    joint->insertions.push_back(Vector(0.0, 0.0, 1.0));
 
     const std::array<Polyline, 2> pocket = frame_box(
         origin,
@@ -577,7 +644,8 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     );
     joint->cutters = {{pocket}, {pocket}, {}};
 
-    const double half = 0.5 * pin_length;
+    // a probe far longer than any member, which flush_pin trims to the member's stretch: the pin from one face of its member to the other
+    const double half = 1e5;
 
     // two pins in the column, two in the rib, each flush with its own member only
     for (const auto& [station, member] : std::array<std::pair<double, const Element*>, 2>{{{low[0] + margin_x * pin_radius, &column}, {high[0] - margin_x * pin_radius, &rib}}})
@@ -687,6 +755,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(
     joint->name = connector_name(contact, "tie");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
 
@@ -898,6 +967,7 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
     joint->cutters = {{}, {}};
 
     for (const std::array<double, 2>& corner : extreme_corners(ring)) {
@@ -1035,6 +1105,7 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     joint->is_visible = true;
     joint->pre_drill = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     // each pin through its station on the contact, from its head on the far face of `through`, length long into `into`
     for (const std::array<double, 2>& station : stations) {
@@ -1054,12 +1125,179 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     return joint;
 }
 
+/// A loop in a slab's frame (origin on the seam's top edge, x across the seam into the slab, y along it, z the top's normal), at bottom
+/// and at top: its outline points in the x-y plane, moved down or up along z.
+static std::array<Polyline, 2> hilti_prism(const Xform& frame, const std::vector<Point>& outline, double bottom, double top) {
+
+    // an outline that starts at the neck's end repeats its first corner: each corner once
+    std::vector<Point> corners;
+    for (const Point& point : outline)
+        if (corners.empty() || point.distance(corners.back()) > Tolerance::APPROXIMATION)
+            corners.push_back(point);
+    const Polyline loop = Polyline(corners).closed();
+
+    return {loop.transformed(frame * Xform::translation(0.0, 0.0, bottom)), loop.transformed(frame * Xform::translation(0.0, 0.0, top))};
+}
+
+/// The half bow-tie of the 2024 Hilti joint (ss_e_r_2, id 55) in a slab's frame, from start across the seam to end: the neck neck_width
+/// wide to neck_end, the wing widening to wing_width at taper_end, straight on to end; its two far corners rounded by the router's
+/// radius when one is given, quarters of the kernel's circle of sides.
+static std::vector<Point> hilti_outline(double start, double end, double neck_end, double taper_end, double neck_width, double wing_width, double router_radius, int sides) {
+
+    std::vector<Point> outline = {
+        Point(start, -0.5 * neck_width, 0.0),
+        Point(neck_end, -0.5 * neck_width, 0.0),
+        Point(taper_end, -0.5 * wing_width, 0.0),
+    };
+
+    // the far side: a sharp corner, or a quarter of the router's circle at each corner from the wing's side to the end's
+    if (router_radius <= 0.0) {
+        outline.emplace_back(end, -0.5 * wing_width, 0.0);
+        outline.emplace_back(end, 0.5 * wing_width, 0.0);
+    } else {
+        const int quarter = std::max(sides / 4, 1);
+        const std::vector<Point> circle = Polyline::from_sides(4 * quarter, router_radius, false).get_points();
+        for (int corner = 0; corner < 2; corner++) {
+            const Point centre(end - router_radius, (corner == 0 ? -1.0 : 1.0) * (0.5 * wing_width - router_radius), 0.0);
+            // the circle starts on +x and turns to +y: its fourth quarter runs from -y to +x, its first from +x to +y
+            const int first = corner == 0 ? 3 * quarter : 0;
+            for (int k = 0; k <= quarter; k++) {
+                const Point& point = circle[(first + k) % (4 * quarter)];
+                outline.emplace_back(centre[0] + point[0], centre[1] + point[1], 0.0);
+            }
+        }
+    }
+
+    outline.emplace_back(taper_end, 0.5 * wing_width, 0.0);
+    outline.emplace_back(neck_end, 0.5 * neck_width, 0.0);
+    outline.emplace_back(start, 0.5 * neck_width, 0.0);
+
+    return outline;
+}
+
+/// A disc's two loops: the kernel's polygon of sides around the rod, from start to end along x, its centre height z.
+static std::array<Polyline, 2> hilti_disc(const Xform& frame, double start, double end, double z, double radius, int sides) {
+
+    // the circle's plane across the rod: its x along the seam, its y up, its normal along the rod
+    const Xform across = Xform::from_axes(Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0));
+    const Polyline circle = Polyline::from_sides(sides, radius, true);
+
+    return {circle.transformed(frame * Xform::translation(start, 0.0, z) * across), circle.transformed(frame * Xform::translation(end, 0.0, z) * across)};
+}
+
+std::shared_ptr<JointBeam> JointBeam::hilti(
+    const Element& a,
+    const Element& b,
+    const InteractionContactFace& contact,
+    double half_length,
+    double neck_length,
+    double neck_width,
+    double taper_end,
+    double wing_width,
+    double depth,
+    double height,
+    double rod_diameter,
+    double disc_diameter,
+    double disc_thickness,
+    double router_radius,
+    int sides
+) {
+
+    // the seam: its face's normal from a into b, its direction along the longest edge of the contact
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    if (points.size() < 4)
+        return nullptr;
+
+    Vector x = compute_newell(points).normalized();
+    const Point centre = Point::centroid(points);
+    if ((b.element_geometry_mesh().centroid() - centre).dot(x) < 0.0)
+        x = x * -1.0;
+
+    Vector along;
+    double longest = 0.0;
+    for (size_t i = 0; i < points.size(); i++) {
+        const Vector edge = points[(i + 1) % points.size()] - points[i];
+        if (edge.magnitude() > longest) {
+            longest = edge.magnitude();
+            along = edge.normalized();
+        }
+    }
+    if (longest <= 0.0)
+        return nullptr;
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = connector_name(contact, "hilti");
+    joint->is_visible = true;
+    joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
+    joint->line_radius = 0.5 * rod_diameter;
+    joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);
+
+    // the bow-tie's frame on the seam's top edge, the middle of the contact's two corners highest up, its z up between the two slabs' tops
+    Vector z = x.cross(along).normalized();
+    if (z.dot(Vector(0.0, 0.0, 1.0)) < 0.0)
+        z = z * -1.0;
+    std::vector<Point> corners = points;
+    std::sort(corners.begin(), corners.end(), [&](const Point& p, const Point& q) { return (p - centre).dot(z) > (q - centre).dot(z); });
+    const Point origin = corners[0] + (corners[1] - corners[0]) * 0.5;
+
+    // per slab: its half of the bow-tie and its disc as parts, its pocket as its cutter, in the half's frame (x across the seam into the slab)
+    const double part_top = height - depth;
+    const double rod_z = part_top - 0.5 * height;
+    const double neck_end = 0.5 * neck_length;
+    std::array<Point, 2> rod_ends;
+    for (int side = 0; side < 2; side++) {
+        if (!dynamic_cast<const Plate*>(side == 0 ? &a : &b))
+            return nullptr;
+        const Vector into = side == 0 ? x * -1.0 : x;
+        const Xform frame = Xform::frame_to_world(origin, into, z.cross(into), z);
+
+        // the half: its neck from the seam and its wing, rounded like its pocket's corners, which it could not otherwise sit in; its top
+        // under the seam's top edge by what the pocket is deeper than the part
+        joint->parts.push_back(hilti_prism(frame, hilti_outline(0.0, half_length - disc_thickness, neck_end, taper_end, neck_width, wing_width, router_radius, sides), part_top - height, part_top));
+        joint->parts.push_back(hilti_disc(frame, half_length - disc_thickness, half_length, rod_z, 0.5 * disc_diameter, sides));
+        rod_ends[side] = Point(half_length, 0.0, rod_z).transformed(frame);
+
+        // the pocket: the 2024 half bow-tie milled from the top, 1 mm past the seam so the cut shares no face with the seam face, its far
+        // corners the router's, depth under the seam's top edge and up through the slab's top, which a fold only lowers
+        joint->cutters.push_back({hilti_prism(frame, hilti_outline(-1.0, half_length, neck_end, taper_end, neck_width, wing_width, router_radius, sides), -depth, 1.0)});
+    }
+
+    // the bolt from disc to disc through both halves
+    joint->drill_lines = {Line::from_points(rod_ends[0], rod_ends[1])};
+
+    return joint;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
 bool JointBeam::is_connector() const {
     return !parts.empty() || !cutters.empty() || pre_drill;
+}
+
+Vector JointBeam::insertion(size_t target) const {
+
+    if (is_connector())
+        return target < insertions.size() ? insertions[target] : Vector(0.0, 0.0, 0.0);
+
+    // each beam's box centre, and the way from the other's to this target's
+    const std::array<Point, 2> centres = {
+        Point::centroid({feature.volumes[0][0], feature.volumes[0][2], feature.volumes[1][0], feature.volumes[1][2]}),
+        Point::centroid({feature.volumes[2][0], feature.volumes[2][2], feature.volumes[3][0], feature.volumes[3][2]}),
+    };
+    const size_t other = target == 0 ? 1 : 0;
+    const Vector away = centres[target] - centres[other];
+
+    // a crossing slides along the normal of the axes; a pair with an end along the axis of the beam that ends, the one more along the way apart
+    Vector direction = feature.normal;
+    if (feature.end_type != 0)
+        direction = std::abs(feature.axes[0].dot(away)) >= std::abs(feature.axes[1].dot(away)) ? feature.axes[0] : feature.axes[1];
+    if (direction.dot(away) < 0.0)
+        direction = direction * -1.0;
+
+    return direction.normalized();
 }
 
 std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
@@ -1092,6 +1330,7 @@ std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
     if (target == 1) {
         std::swap(volumes->volumes[0], volumes->volumes[2]);
         std::swap(volumes->volumes[1], volumes->volumes[3]);
+        std::swap(volumes->axes[0], volumes->axes[1]);
     }
 
     return volumes;
@@ -1188,6 +1427,11 @@ void JointBeam::place(const Xform& xform) {
 
     for (Polyline& volume : feature.volumes)
         volume = volume.transformed(xform);
+    feature.normal = feature.normal.transformed(xform);
+    for (Vector& axis : feature.axes)
+        axis = axis.transformed(xform);
+    for (Vector& insertion : insertions)
+        insertion = insertion.transformed(xform);
 
     for (std::array<Polyline, 2>& part : parts)
         part = {part[0].transformed(xform), part[1].transformed(xform)};
@@ -1219,6 +1463,10 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
     proto.set_drill_overshoot(drill_overshoot);
     proto.set_pre_drill(pre_drill);
 
+    for (const Vector& insertion : insertions)
+        if (!proto.add_insertions()->ParseFromString(insertion.pb_dumps()))
+            throw std::runtime_error("Invalid connector insertion");
+
     for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid connector cut");
@@ -1245,6 +1493,9 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
 
     drill_overshoot = proto.drill_overshoot();
     pre_drill = proto.pre_drill();
+
+    for (const session_proto::Vector& insertion : proto.insertions())
+        insertions.push_back(Vector::pb_loads(insertion.SerializeAsString()));
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));

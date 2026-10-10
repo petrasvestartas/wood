@@ -4,11 +4,13 @@
 #include "wood_element_column.h"
 #include "wood_element_beam_variable.h"
 #include "wood_feature_detection.h"
+#include "wood_element_geometry.h"
 #include "../src/clipper2/clipper.h"
 using namespace session_cpp;
 using namespace wood_session;
 
 constexpr bool TRACE = false;
+constexpr int CONTACT_DECIMALS = 2; // Clipper decimals of a face overlap: the 2024 solver clipped the face quads at two, and every joint line and volume follows that grid.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Face contacts
@@ -196,83 +198,32 @@ bool faces_coplanar(
     return sq_dist0 < coplanar_tolerance && sq_dist1 < coplanar_tolerance;
 }
 
-/// An outline as a Clipper path in the plane's 2D frame, scaled to integers and without its closing vertex.
-static Clipper2Lib::Path64 outline_to_clipper_path(
-    const Polyline& outline,
-    const Point& origin,
-    const Vector& x_axis,
-    const Vector& y_axis,
-    double scale
-) {
-
-    Clipper2Lib::Path64 path;
-    const size_t n = outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
-    path.reserve(n);
-    for (size_t k = 0; k < n; ++k) {
-        const Vector d = outline.get_point(k) - origin;
-        const double u = d.dot(x_axis);
-        const double v = d.dot(y_axis);
-        path.emplace_back(
-            static_cast<int64_t>(std::llround(u * scale)),
-            static_cast<int64_t>(std::llround(v * scale))
-        );
-    }
-
-    return path;
-}
-
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
     const Plane& plane0,
     bool include_triangles,
-    int64_t clipper_scale,
     double clipper_area,
     Polyline& out_area) {
 
     if (outline0.point_count() < 3 || outline1.point_count() < 3)
         return false;
 
+    // the frame the 2024 solver clipped in: the first outline point, CGAL's bases of the face plane
     const Point origin = outline0.get_point(0);
-    const Vector xax = plane0.base1();
-    const Vector yax = plane0.base2();
-    const double scale = static_cast<double>(clipper_scale);
+    const Vector zax = plane0.z_axis().normalized();
+    const Vector xax = cgal_base1(zax);
+    const Vector yax = zax.cross(xax).normalized();
 
-    const Clipper2Lib::Paths64 subject{
-        outline_to_clipper_path(
-            outline0,
-            origin,
-            xax,
-            yax,
-            scale
-        )
-    };
-    const Clipper2Lib::Paths64 clip{
-        outline_to_clipper_path(
-            outline1,
-            origin,
-            xax,
-            yax,
-            scale
-        )
-    };
-    const Clipper2Lib::Paths64 solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero);
+    const Clipper2Lib::PathsD subject{clipper_path(outline0, origin, xax, yax, false)};
+    const Clipper2Lib::PathsD clip{clipper_path(outline1, origin, xax, yax, false)};
+    const Clipper2Lib::PathsD solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero, CONTACT_DECIMALS);
 
     if (solution.empty())
         return false;
 
-    const Clipper2Lib::Path64* best = nullptr;
-    double best_area = -1.0;
-    for (const Clipper2Lib::Path64& path : solution) {
-        const double a = std::abs(Clipper2Lib::Area(path));
-        if (a > best_area) {
-            best_area = a;
-            best = &path;
-        }
-    }
-
-    const Clipper2Lib::Path64 cleaned = Clipper2Lib::SimplifyPath(*best, scale / 1024.0, true);
-    const size_t nc = cleaned.size();
+    const Clipper2Lib::PathD& first = solution[0];
+    const size_t nc = first.size();
 
     if (nc < 3)
         return false;
@@ -280,16 +231,13 @@ bool face_overlap_area(
     if (nc == 3 && !include_triangles)
         return false;
 
-    if (std::abs(Clipper2Lib::Area(cleaned)) / (scale * scale) <= clipper_area)
+    if (std::abs(Clipper2Lib::Area(first)) <= clipper_area)
         return false;
 
     std::vector<Point> pts;
     pts.reserve(nc + 1);
-    for (const Clipper2Lib::Point64& q : cleaned) {
-        const double u = static_cast<double>(q.x) / scale;
-        const double v = static_cast<double>(q.y) / scale;
-        pts.push_back(origin + xax * u + yax * v);
-    }
+    for (const Clipper2Lib::PointD& q : first)
+        pts.push_back(origin + xax * q.x + yax * q.y);
     pts.push_back(pts.front());
 
     out_area = Polyline(pts);
@@ -367,7 +315,6 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
                 outlines_b[j],
                 planes_a[i],
                 triangles,
-                settings.clipper_scale,
                 settings.clipper_area,
                 polygon
             )) {
@@ -399,7 +346,7 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
         for (auto& contact : contacts) {
             InteractionFeaturePlate joint;
             bool flip = false;
-            if (!face_to_face_wood(static_cast<Plate&>(ea), static_cast<Plate&>(eb), {0, 1},
+            if (!face_to_face_wood(static_cast<Plate&>(ea), static_cast<Plate&>(eb), {0, 1}, 0,
                                    settings, 0, joint, flip, nullptr, &contact))
                 continue;
             contact.lines = joint.joint_lines;

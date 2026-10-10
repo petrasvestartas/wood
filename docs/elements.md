@@ -2,13 +2,13 @@
 
 [TOC]
 
-The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and one picture and example per case. Every example is a CMake target under `examples/elements/` that writes `data/output/pb/live.pb` for the viewer; the pictures are drawn by `tools/render_element_docs.py` at opacity 0.75 with the element features and a layer panel of the scene.
+The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and one picture and example per case. Every example is a CMake target under `examples/elements/` that writes `data/output/pb/live.pb` for the viewer; the pictures are screenshots of the real viewer by `tools/screenshot_element_docs.sh`, with every layer, the element interactions and attributes, the Arctic look and the orthographic isometric view; `tools/shoot_pictures.sh` shoots the ones `docs/plans/pictures_to_shoot.txt` lists.
 
 An element is built from its own parameters only. Whatever another element does to it comes through `WoodSession::add_interaction(source, target, interaction)`: a contact, a plate joint's outline feature, an `InteractionFeatureSolid` that adds a solid to its stock or takes one away, or an `InteractionFeaturePlane` that cuts it by a plane.
 
 | Element | Header | Examples |
 | --- | --- | --- |
-| [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate`, `element_plate_holes`, `element_plate_session` |
+| [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate`, `element_plate_holes`, `element_plate_session`, `element_plate_assign_joints` |
 | [Beam](@ref elements_beam) | `wood_element_beam.h` | `element_beam` |
 | [BeamVariable](@ref elements_beam_variable) | `wood_element_beam_variable.h` | `element_beam_variable`, `element_beam_variable_cut` |
 | [Column](@ref elements_column) | `wood_element_column.h` | `element_column`, `element_column_session` |
@@ -17,8 +17,17 @@ An element is built from its own parameters only. Whatever another element does 
 | [CutPlane](@ref elements_cut_plane) | `wood_element_cut_plane.h` | `element_beam_variable_cut` |
 | [Profiles](@ref elements_profile) | `wood_profile.h` | `element_profile` |
 | [Joint](@ref elements_joint) | `wood_element_joint.h` | `element_joint_drill`, `element_joint_cutter` |
-| [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_ts_e_p`, `_ss_e_ip`, `_ss_e_op`, `_cr_c_ip`, `_tt_e_p`, `_parameters` |
+| [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_parameters` |
+| [JointPlate ts_e_p](@ref elements_joint_plate_ts_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_ts_e_p_0` to `_5`, `_custom`, `_angle_60` |
+| [JointPlate ss_e_ip](@ref elements_joint_plate_ss_e_ip) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_ip_0` to `_5`, `_custom`, `_angle_75` |
+| [JointPlate ss_e_op](@ref elements_joint_plate_ss_e_op) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_op_0` to `_6`, `_17`, `_tutorial`, `_custom`, `_angle_120` |
+| [JointPlate ss_e_r](@ref elements_joint_plate_ss_e_r) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_r_0`, `_2`, `_3`, `_custom`, `_side_removal`, `_side_removal_ss_e_r_1`, `_angle_120` |
+| [JointPlate cr_c_ip](@ref elements_joint_plate_cr_c_ip) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip_0` to `_5`, `_custom`, `_angle_45` |
+| [JointPlate tt_e_p](@ref elements_joint_plate_tt_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_tt_e_p_0` to `_5`, `_custom` |
+| [Joint library](@ref joint_library) | every plate joint design as its male and female tile, with its parameters swept | `tools/joint_library_figures/make.sh` |
+| [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_b_0` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact`, `_wedge`, `_rectangle_plate`, `_tie`, `_centred_pins`, `_headed_pins` |
+| [JointBeam hilti](@ref elements_joint_hilti) | `wood_element_joint_beam.h` | `element_joint_hilti`, `_angles` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
 
@@ -32,7 +41,15 @@ An element is built from its own parameters only. Whatever another element does 
 - @subpage elements_profile
 - @subpage elements_joint
 - @subpage elements_joint_plate
+- @subpage elements_joint_plate_ts_e_p
+- @subpage elements_joint_plate_ss_e_ip
+- @subpage elements_joint_plate_ss_e_op
+- @subpage elements_joint_plate_ss_e_r
+- @subpage elements_joint_plate_cr_c_ip
+- @subpage elements_joint_plate_tt_e_p
+- @subpage joint_library
 - @subpage elements_joint_beam
+- @subpage elements_joint_hilti
 - @subpage elements_pin
 - @subpage elements_connector_part
 

@@ -45,3 +45,11 @@ Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add
 Several plates from two rails, as a bed row of the floor: `Plate::row_between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them; the example adds them to a WoodSession.
 
 \include{lineno} elements/element_plate_session.cpp
+
+## Joint types by points and lines
+
+![Joint types by points and lines](elements/element_plate_assign_joints.png)
+
+The eight plates of `annen_box_pair` read from the dataset's obj without its sidecars: `WoodSession::assign_joint_types_by_points(points, names, snap_radius)` writes the joint design each point names (`"ts_e_p_3"`, `"ss_e_op_1"`, `""` for none) on the face it lies on, as the plugin's dots and their text set them. The face is a side face when the point is nearer a side face's middle line than any bottom or top outline, else the bottom or top face. `JointPlate::library_id` gives each name its 2024 id, and the overload with integer ids takes a sidecar's numbers (negative for the bottom or top face). Then `WoodSession::assign_insertion_vectors_by_lines(lines, snap_radius)` writes each line's direction on the face its start lies on: a line drawn at a plate edge turns that edge's joint; `compute_features` then makes the 13 joints the sidecars `*_joints_types.txt` and `*_insertion_vectors.txt` give. A face several points reach takes the largest type, as a joint takes the larger type of its two faces; `tests/plate_assignment.cpp` proves both functions against every sidecar dataset, Annen and Vidy.
+
+\include{lineno} elements/element_plate_assign_joints.cpp

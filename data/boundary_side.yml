@@ -1,0 +1,92 @@
+# The boundary family on one plate: the adjacency row 0 0 2 2 pairs the plate with itself on side face 2, the self-adjacency 2024's
+# border_to_face turned into a family 60 joint, b_0 by the row 6 default; its slices stand outside the face and the plate stays whole.
+# Files, relative to this yaml. A missing key means the solver derives it.
+obj: boundary_side.obj
+adjacency: boundary_side_adjacency.txt
+search_type: face_to_face
+
+# ── Joint algorithm tunables ───────────────────────────────────────────────
+# 7 rows x 3 cols: (division_length, shift, joint_type_id) per joint family
+joints_parameters_and_types:
+  - 300      # row 0 ss_e_ip [0]: division_length (mm)
+  - 0.5      # row 0 ss_e_ip [1]: shift (0..1)
+  - 3        # row 0 ss_e_ip [2]: joint_type_id  (default 3)
+  - 450      # row 1 ss_e_op [0]: division_length (mm)
+  - 0.64     # row 1 ss_e_op [1]: shift (0..1)
+  - 15       # row 1 ss_e_op [2]: joint_type_id  (default 15)
+  - 450      # row 2 ts_e_p  [0]: division_length (mm)
+  - 0.5      # row 2 ts_e_p  [1]: shift (0..1)
+  - 20       # row 2 ts_e_p  [2]: joint_type_id  (default 20)
+  - 300      # row 3 cr_c_ip [0]: division_length (mm)
+  - 0.5      # row 3 cr_c_ip [1]: shift (0..1)
+  - 30       # row 3 cr_c_ip [2]: joint_type_id  (default 30)
+  - 6        # row 4 tt_e_p  [0]: division_length (mm)
+  - 0.95     # row 4 tt_e_p  [1]: shift (0..1)
+  - 40       # row 4 tt_e_p  [2]: joint_type_id  (default 40)
+  - 300      # row 5 ss_e_r  [0]: division_length (mm)
+  - 0.5      # row 5 ss_e_r  [1]: shift (0..1)
+  - 58       # row 5 ss_e_r  [2]: joint_type_id  (default 58)
+  - 300      # row 6 b       [0]: division_length (mm)
+  - 1.0      # row 6 b       [1]: shift (0..1)
+  - 60       # row 6 b       [2]: joint_type_id  (default 60)
+# joint_volume_extension and joint_scale do NOT override each other — they act
+# on different pipeline stages and compose:
+#   1. joint_volume_extension (additive mm) extends the raw volume polylines and
+#      joint_lines in wood_face_to_face.cpp.
+#   2. joint_scale (multiplicative) is read inside the joint constructor
+#      (e.g. ss_e_ip_2 does edge_length *= scale[2]) to lay out tooth positions.
+#   3. For unit_scale=true joints (ss_e_ip_2 butterfly, ss_e_r_*, ts_e_p_5),
+#      apply_unit_scale (wood_joint.cpp:32) resizes the volume along the joint
+#      axis to plate_thickness, ERASING joint_volume_extension[2] LENGTH but
+#      leaving joint_scale[2] intact (the constructor consumed it earlier).
+#
+# (width, height, length) extension applied to the per-joint volume + 2 dead pad slots.
+#
+# Important: for joint variants that set unit_scale=true (default ss_e_ip_2 / id 3,
+# also ss_e_r and ts_e_p_5), apply_unit_scale (wood_joint.cpp:32) FORCES the volume
+# along the joint-axis direction back to a fixed unit_scale_distance (= plate
+# thickness for type-12/13). That overwrites any ext_l (LENGTH) extension on the
+# joint centerlines, so [2] is silently a no-op for those joints. The cross-axis
+# (WIDTH) and through-thickness (HEIGHT) extensions survive because apply_unit_scale
+# only translates along the joint axis. To make LENGTH visible for the hello case,
+# change joints_parameters_and_types row 0 col 2 (ss_e_ip joint_type_id) from 3 to 1
+# — ss_e_ip_1 leaves unit_scale=false and the volume keeps its raw ±ext_l span.
+joint_volume_extension:
+  - 0.0      # width
+  - 0.0      # height
+  - 0.0      # length
+
+# Multiplicative scale (sx, sy, sz). Distinct from joint_volume_extension above:
+# * joint_volume_extension is ADDITIVE in mm (volume edges grow by +/-value).
+# * joint_scale is MULTIPLICATIVE, dimensionless (1.0 = no change, 2.0 = double).
+# Wired into WoodJoint::scale in wood_main.cpp; consumed by ss_e_ip_2 (butterfly,
+# edge_length *= scale[2]), ss_e_r_*, and ts_e_p_5. Use this knob to scale a
+# unit-scale joint along its axis without disabling apply_unit_scale.
+joint_scale:
+  - 1.0      # [0] sx: b_0 widens its slices this much past the side face's edges
+  - 1.0      # [1] sy: b_0's slices reach this plus 5 mm out of the side face
+  - 1.0      # [2] sz: b_0's outer slice planes this plus 15 mm from the face's middle
+# degrees; rotated-joint threshold above this dihedral
+face_to_face_side_to_side_joints_dihedral_angle: 150.0
+# force every ss joint into the rotated geometry path
+face_to_face_side_to_side_joints_all_treated_as_rotated: false
+# averaged plane for rotated joints (vs either input plane)
+face_to_face_side_to_side_joints_rotated_joint_as_average: false
+
+# ── Tolerances ─────────────────────────────────────────────────────────────
+# mm; AABB inflation + point-merge tolerance (wood DISTANCE)
+distance: 0.1
+# mm**2; squared coplanarity tolerance (wood DISTANCE_SQUARED)
+distance_squared: 0.01
+# RADIANS; angular tolerance, used as cos(angle) (wood ANGLE)
+angle: 0.11
+# consecutive-duplicate-points removal in load_plates
+duplicate_pts_tol: 0.0
+# mm; filters out joints shorter than this (wood LIMIT_MIN_JOINT_LENGTH)
+limit_min_joint_length: 0.0
+
+# ── Clipper2 layer ─────────────────────────────────────────────────────────
+# upstream Clipper2 integer scale (wood CLIPPER_SCALE)
+clipper_scale: 1000000
+# upstream Clipper2 minimum polygon area (wood CLIPPER_AREA)
+clipper_area: 0.01

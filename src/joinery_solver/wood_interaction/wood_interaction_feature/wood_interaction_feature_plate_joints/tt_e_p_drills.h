@@ -1,41 +1,37 @@
-/// Both plates found, a first joint volume with 3+ points, an area with min_area+ points.
-static bool drill_ready(
+/// The two drill directions of a top-top pair, as 2024 read them off the first joint volume: dir0 is the volume's second edge, its
+/// point 1 to its point 2, unit, which runs from the contact into the first plate (element_a, 2024's v0), scaled by that plate's
+/// thickness; dir1 is the reverse, into the second plate, scaled by its thickness. False, and no drills, when a plate is missing or
+/// the volume has no second edge, where 2024 would have read past the end.
+static bool drill_directions(
     const InteractionFeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
-    int& v0,
-    int& v1,
-    size_t min_area
-) {
-
-    v0 = index_of_plate(elements, joint.element_a);
-    v1 = index_of_plate(elements, joint.element_b);
-    if (v0 < 0 || v0 >= (int)elements.size() || v1 < 0 || v1 >= (int)elements.size())
-        return false;
-    if (!joint.joint_volumes[0])
-        return false;
-    if (joint.joint_volumes[0]->point_count() < 3)
-        return false;
-
-    return joint.contact.polygon.point_count() >= min_area;
-}
-
-/// dir0: the first volume's [1]->[2] edge, unit, times plate v0's thickness; dir1: the reverse times v1's.
-static void drill_axes(
-    const InteractionFeaturePlate& joint,
-    double t0,
-    double t1,
     Vector& dir0,
     Vector& dir1
 ) {
-    const Polyline& jv0 = *joint.joint_volumes[0];
-    dir0 = jv0.get_point(1) - jv0.get_point(2);
-    dir0.normalize_self();
-    dir1 = -dir0;
-    dir0 = dir0 * t0;
-    dir1 = dir1 * t1;
+
+    const int v0 = index_of_plate(elements, joint.element_a);
+    const int v1 = index_of_plate(elements, joint.element_b);
+    if (v0 < 0 || v1 < 0)
+        return false;
+    if (!joint.joint_volumes[0] || joint.joint_volumes[0]->point_count() < 3)
+        return false;
+    if (joint.contact.polygon.point_count() < 3)
+        return false;
+
+    const Polyline& volume = *joint.joint_volumes[0];
+    Vector axis = volume.get_point(1) - volume.get_point(2);
+    axis.normalize_self();
+    dir0 = axis * elements[v0]->thickness;
+    dir1 = -axis * elements[v1]->thickness;
+
+    return true;
 }
 
-/// One two-point drill line per point on every face, twice per face as the merge expects.
+/// One drill per point, laid out as 2024 laid it: a two-point line from the point one plate thickness along the drill direction,
+/// written twice on each face of each side, every copy of type drill, in world space (no orient). Each side records the line through
+/// the other plate, as 2024 did and the 2025 reference still lists it per plate: the male the line along dir1 by the female's
+/// thickness, the female the line along dir0 by the male's. The session bores each plate with the lines of the other side, the ones
+/// that run through it.
 static void emit_drills(
     InteractionFeaturePlate& joint,
     const std::vector<Point>& points,
@@ -43,142 +39,75 @@ static void emit_drills(
     const Vector& dir1
 ) {
 
-    for (int f = 0; f < 2; f++) {
-        joint.male_outlines[f].clear();
-        joint.female_outlines[f].clear();
-        joint.male_fabrication_types[f].clear();
-        joint.female_fabrication_types[f].clear();
-        joint.male_outlines[f].reserve(points.size() * 2);
-        joint.female_outlines[f].reserve(points.size() * 2);
-        joint.male_fabrication_types[f].reserve(points.size() * 2);
-        joint.female_fabrication_types[f].reserve(points.size() * 2);
+    for (int face = 0; face < 2; face++) {
+        joint.male_outlines[face].clear();
+        joint.female_outlines[face].clear();
+        joint.male_fabrication_types[face].clear();
+        joint.female_fabrication_types[face].clear();
+        joint.male_outlines[face].reserve(points.size() * 2);
+        joint.female_outlines[face].reserve(points.size() * 2);
+        joint.male_fabrication_types[face].reserve(points.size() * 2);
+        joint.female_fabrication_types[face].reserve(points.size() * 2);
     }
 
-    for (const Point& pt : points) {
-        const Polyline line0({pt, pt + dir0});
-        const Polyline line1({pt, pt + dir1});
-        for (int f = 0; f < 2; f++) {
-            joint.female_outlines[f].push_back(line0);
-            joint.female_outlines[f].push_back(line0);
-            joint.male_outlines[f].push_back(line1);
-            joint.male_outlines[f].push_back(line1);
-            joint.male_fabrication_types[f].push_back(FabricationType::drill);
-            joint.male_fabrication_types[f].push_back(FabricationType::drill);
-            joint.female_fabrication_types[f].push_back(FabricationType::drill);
-            joint.female_fabrication_types[f].push_back(FabricationType::drill);
+    for (const Point& point : points) {
+        const Polyline line0({point, point + dir0});
+        const Polyline line1({point, point + dir1});
+        for (int face = 0; face < 2; face++) {
+            joint.male_outlines[face].push_back(line1);
+            joint.male_outlines[face].push_back(line1);
+            joint.female_outlines[face].push_back(line0);
+            joint.female_outlines[face].push_back(line0);
+            joint.male_fabrication_types[face].push_back(FabricationType::drill);
+            joint.male_fabrication_types[face].push_back(FabricationType::drill);
+            joint.female_fabrication_types[face].push_back(FabricationType::drill);
+            joint.female_fabrication_types[face].push_back(FabricationType::drill);
         }
     }
 }
 
-/// The area offset inward by shift, divided every division_distance; the last vertex too when the ring is open.
-static std::vector<Point> offset_boundary_points(
-    const Polyline& area,
-    double shift,
-    double division_distance,
-    double open_tolerance
-) {
+/// The contact ring offset inward by shift as 2024's clipper offset_in_3d moved it: Clipper2's miter inflate by -shift at its default
+/// two decimals, in the frame of the ring's own plane at its first point, the first path it returns when that covers more than 0.0001
+/// square units, turned to start nearest the ring's first point and closed; the contact itself when Clipper returns nothing or next
+/// to nothing, a ring the offset swallows. The kernel's Intersection::offset_in_3d is a plain miter that turns a swallowed ring into
+/// a self-crossing bow-tie instead, so 2024's Clipper call is made here, in 2024's frame: the kernel's plane picks CGAL's base vectors,
+/// but for a normal with a component of exactly zero, where CGAL takes that axis. The ring still lands a grid step from the 2025
+/// reference's at some vertices: the kernel vendors Clipper2 2.0.1, whose miter and concave joins round apart from the 1.x the reference
+/// was built with, and 1.x keeps a 0.01 edge at an almost flat concave corner, one more drill on that ring.
+static Polyline offset_contact(const InteractionFeaturePlate& joint, double shift) {
 
-    Polyline poly = area;
+    const Polyline& contact = joint.contact.polygon;
     Point origin;
     Plane plane;
-    poly.get_fast_plane(origin, plane);
-    const double offset_distance = -shift;
-    Intersection::offset_in_3d(poly, plane, offset_distance);
+    contact.get_fast_plane(origin, plane);
+    const Point first = contact[0];
+    const Vector x_axis = plane.base1();
+    const Vector y_axis = plane.base2();
 
+    // the ring inset in its frame, as 2024 asked Clipper
+    const Clipper2Lib::PathD path = clipper_path(contact, first, x_axis, y_axis, false);
+    const Clipper2Lib::PathsD inset = Clipper2Lib::InflatePaths(
+        {path},
+        -shift,
+        Clipper2Lib::JoinType::Miter,
+        Clipper2Lib::EndType::Polygon
+    );
+    if (inset.empty() || std::abs(Clipper2Lib::Area(inset[0])) <= 0.0001)
+        return contact;
+
+    // back in world space, from the vertex nearest the contact's first point, closed
+    const Clipper2Lib::PathD& ring = inset[0];
+    size_t start = 0;
+    for (size_t i = 1; i < ring.size(); i++)
+        if (Clipper2Lib::DistanceSqr(ring[i], path[0]) < Clipper2Lib::DistanceSqr(ring[start], path[0]))
+            start = i;
     std::vector<Point> points;
-    for (size_t i = 0; i + 1 < poly.point_count(); i++) {
-        const double seg_len = Point::distance(poly[i], poly[i + 1]);
-        const int divisions = (int)std::min(100.0, seg_len / division_distance);
-        const std::vector<Point> dp = Polyline::interpolate_points(
-            poly[i],
-            poly[i + 1],
-            divisions,
-            2
-        );
-        points.insert(points.end(), dp.begin(), dp.end());
+    points.reserve(ring.size() + 1);
+    for (size_t i = 0; i < ring.size(); i++) {
+        const Clipper2Lib::PointD& p = ring[(start + i) % ring.size()];
+        points.push_back(first + x_axis * p.x + y_axis * p.y);
     }
+    points.push_back(points[0]);
 
-    if (poly.point_count() > 0) {
-        const Vector gap = poly[0] - poly[poly.point_count() - 1];
-        if (gap.magnitude_squared() > open_tolerance)
-            points.push_back(poly[poly.point_count() - 1]);
-    }
-
-    return points;
+    return Polyline(points);
 }
-
-/// One drill through the area centroid.
-static void centroid_drill(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
-
-    int v0;
-    int v1;
-    if (!drill_ready(
-        joint,
-        elements,
-        v0,
-        v1,
-        3
-    ))
-        return;
-
-    Vector dir0;
-    Vector dir1;
-    drill_axes(
-        joint,
-        elements[v0]->thickness,
-        elements[v1]->thickness,
-        dir0,
-        dir1
-    );
-    emit_drills(
-        joint,
-        {joint.contact.polygon.center()},
-        dir0,
-        dir1
-    );
-}
-
-/// Drills along the offset area boundary.
-static void boundary_drill(
-    InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
-    double division_distance,
-    double open_tolerance
-) {
-
-    int v0;
-    int v1;
-    if (!drill_ready(
-        joint,
-        elements,
-        v0,
-        v1,
-        4
-    ))
-        return;
-    if (division_distance <= 0.0)
-        return;
-
-    const std::vector<Point> points = offset_boundary_points(
-        joint.contact.polygon,
-        joint.shift,
-        division_distance,
-        open_tolerance
-    );
-    Vector dir0;
-    Vector dir1;
-    drill_axes(
-        joint,
-        elements[v0]->thickness,
-        elements[v1]->thickness,
-        dir0,
-        dir1
-    );
-    emit_drills(
-        joint,
-        points,
-        dir0,
-        dir1
-    );
-}
-

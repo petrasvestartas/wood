@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "clipper2/clipper.h"
 #include "wood_interaction_feature_solid.h"
 #include "wood_interaction_feature_plane.h"
 
@@ -14,6 +15,12 @@ Mesh solid_boolean(const Mesh& source, const Mesh& cutter,
 
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it: the offcuts fall away.
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
+
+/// True when Manifold takes the mesh as a solid: closed, every edge on two faces, no face through another; what every cutter must be.
+bool manifold_solid(const Mesh& mesh);
+
+/// Several closed meshes as one, every shell with its own vertices and faces: what a cutter of touching, overlapping or nested pieces is, since a boolean takes a cutter's bodies apart and unites them inside Manifold, where a union made first and read back loses to its own coincident faces.
+Mesh shells_side_by_side(const std::vector<Mesh>& pieces);
 std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatureSolid& cut);
 
 /// Uses polygon booleans for matching extrusions; the other differences in a row go to Manifold as one batch keeping the largest solid, intersections and unions one by one.
@@ -60,13 +67,19 @@ BRep brep_sections(const std::vector<Polyline>& sections);
 /// Unit Newell normal of a planar loop, the closing point ignored: right for a concave loop, where the corner-cross sum of Vector::average_normal can flip.
 Vector compute_newell(const std::vector<Point>& points);
 
+/// CGAL's Plane_3::base1 for a plane of this normal, unit: the world axis the normal is exactly perpendicular to, x before y before z, else the smallest component zeroed and the other two swapped with one sign flipped. The 2024 solver framed every plate face with it; Plane::base1 of the kernel skips the world-axis cases, so an axis-aligned face gets another frame there.
+Vector cgal_base1(const Vector& normal);
+
+/// An outline as a Clipper2 path in the 2D frame (origin, x_axis, y_axis): every vertex for an open subject, else a closed outline without its closing vertex; what the 2024 solver handed Clipper2 for a face overlap and for a joint outline clipped into a face.
+Clipper2Lib::PathD clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, bool open);
+
 /// One plane per face of a mesh, origin at the face centroid, Newell normal along the face ring; what contact detection compares.
 std::vector<Plane> face_planes(const Mesh& mesh);
 
 /// The enclosed volume of a closed mesh, a holed cap summed over its face triangulation where the loft or a plane cut left one; Mesh::volume() fans the outer ring alone and counts the hole as solid.
 double compute_volume(const Mesh& mesh);
 
-/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
+/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes, the side faces the walls Mesh::loft builds between the loops, a quad whose corners share no plane split into the two triangles the volume fans it into, so the BRep and the mesh enclose the same volume.
 BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<Polyline>& top);
 
 /// The solid cut by every plane in turn, each keeping the side its normal points to; a mesh stays a mesh, a BRep a BRep.

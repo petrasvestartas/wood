@@ -866,6 +866,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     kPartsFieldNumber = 18,
     kCuttersFieldNumber = 19,
     kSolidFeaturesFieldNumber = 21,
+    kInsertionsFieldNumber = 24,
     kKindFieldNumber = 11,
     kBeamFeatureFieldNumber = 5,
     kCutterExtrusionFieldNumber = 14,
@@ -1066,6 +1067,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
   ::google::protobuf::RepeatedPtrField<::wood_proto::InteractionFeatureSolid>* PROTOBUF_NONNULL _internal_mutable_solid_features();
 
   public:
+  // repeated .session_proto.Vector insertions = 24;
+  [[nodiscard]] int insertions_size() const;
+  private:
+  int _internal_insertions_size() const;
+
+  public:
+  void clear_insertions() ;
+  [[nodiscard]] const ::session_proto::Vector& insertions(int index) const;
+  [[nodiscard]] ::session_proto::Vector* PROTOBUF_NONNULL mutable_insertions(int index);
+  ::session_proto::Vector* PROTOBUF_NONNULL add_insertions();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>&
+  insertions() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+  mutable_insertions();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>& _internal_insertions() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL _internal_mutable_insertions();
+
+  public:
   // string kind = 11;
   void clear_kind() ;
   [[nodiscard]] const ::std::string& kind() const;
@@ -1221,8 +1242,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<5, 22,
-                          11, 52,
+      ::google::protobuf::internal::TcParseTable<5, 23,
+                          12, 52,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -1259,6 +1280,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Joint final : public ::google::prot
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > parts_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::JointCutter > cutters_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Vector > insertions_;
     ::google::protobuf::internal::ArenaStringPtr kind_;
     ::session_proto::Interaction* PROTOBUF_NULLABLE beam_feature_;
     ::session_proto::Vector* PROTOBUF_NULLABLE cutter_extrusion_;
@@ -1518,7 +1540,7 @@ Joint::_internal_mutable_connections() {
 
 // .session_proto.Interaction beam_feature = 5;
 inline bool Joint::has_beam_feature() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000400U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000800U);
   PROTOBUF_ASSUME(!value || _impl_.beam_feature_ != nullptr);
   return value;
 }
@@ -1539,16 +1561,16 @@ inline void Joint::unsafe_arena_set_allocated_beam_feature(
   }
   _impl_.beam_feature_ = reinterpret_cast<::session_proto::Interaction*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Joint.beam_feature)
 }
 inline ::session_proto::Interaction* PROTOBUF_NULLABLE Joint::release_beam_feature() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::session_proto::Interaction* released = _impl_.beam_feature_;
   _impl_.beam_feature_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1568,7 +1590,7 @@ inline ::session_proto::Interaction* PROTOBUF_NULLABLE Joint::unsafe_arena_relea
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Joint.beam_feature)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::session_proto::Interaction* temp = _impl_.beam_feature_;
   _impl_.beam_feature_ = nullptr;
   return temp;
@@ -1583,7 +1605,7 @@ inline ::session_proto::Interaction* PROTOBUF_NONNULL Joint::_internal_mutable_b
 }
 inline ::session_proto::Interaction* PROTOBUF_NONNULL Joint::mutable_beam_feature()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   ::session_proto::Interaction* _msg = _internal_mutable_beam_feature();
   // @@protoc_insertion_point(field_mutable:wood_proto.Joint.beam_feature)
   return _msg;
@@ -1600,9 +1622,9 @@ inline void Joint::set_allocated_beam_feature(::session_proto::Interaction* PROT
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
   }
 
   _impl_.beam_feature_ = reinterpret_cast<::session_proto::Interaction*>(value);
@@ -1613,7 +1635,7 @@ inline void Joint::set_allocated_beam_feature(::session_proto::Interaction* PROT
 inline void Joint::clear_variant() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.variant_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
 }
 inline ::int32_t Joint::variant() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.variant)
@@ -1621,7 +1643,7 @@ inline ::int32_t Joint::variant() const {
 }
 inline void Joint::set_variant(::int32_t value) {
   _internal_set_variant(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.variant)
 }
 inline ::int32_t Joint::_internal_variant() const {
@@ -1637,7 +1659,7 @@ inline void Joint::_internal_set_variant(::int32_t value) {
 inline void Joint::clear_division_distance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.division_distance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
 }
 inline double Joint::division_distance() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.division_distance)
@@ -1645,7 +1667,7 @@ inline double Joint::division_distance() const {
 }
 inline void Joint::set_division_distance(double value) {
   _internal_set_division_distance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.division_distance)
 }
 inline double Joint::_internal_division_distance() const {
@@ -1661,7 +1683,7 @@ inline void Joint::_internal_set_division_distance(double value) {
 inline void Joint::clear_shift() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.shift_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
 }
 inline double Joint::shift() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.shift)
@@ -1669,7 +1691,7 @@ inline double Joint::shift() const {
 }
 inline void Joint::set_shift(double value) {
   _internal_set_shift(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.shift)
 }
 inline double Joint::_internal_shift() const {
@@ -1685,7 +1707,7 @@ inline void Joint::_internal_set_shift(double value) {
 inline void Joint::clear_line_radius() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.line_radius_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00008000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
 }
 inline double Joint::line_radius() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.line_radius)
@@ -1693,7 +1715,7 @@ inline double Joint::line_radius() const {
 }
 inline void Joint::set_line_radius(double value) {
   _internal_set_line_radius(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00008000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.line_radius)
 }
 inline double Joint::_internal_line_radius() const {
@@ -1709,7 +1731,7 @@ inline void Joint::_internal_set_line_radius(double value) {
 inline void Joint::clear_generated() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generated_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
 }
 inline bool Joint::generated() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.generated)
@@ -1717,7 +1739,7 @@ inline bool Joint::generated() const {
 }
 inline void Joint::set_generated(bool value) {
   _internal_set_generated(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.generated)
 }
 inline bool Joint::_internal_generated() const {
@@ -1733,7 +1755,7 @@ inline void Joint::_internal_set_generated(bool value) {
 inline void Joint::clear_kind() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.kind_.ClearToEmpty();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
 }
 inline const ::std::string& Joint::kind() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -1743,13 +1765,13 @@ inline const ::std::string& Joint::kind() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void Joint::set_kind(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   _impl_.kind_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.Joint.kind)
 }
 inline ::std::string* PROTOBUF_NONNULL Joint::mutable_kind()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   ::std::string* _s = _internal_mutable_kind();
   // @@protoc_insertion_point(field_mutable:wood_proto.Joint.kind)
   return _s;
@@ -1769,10 +1791,10 @@ inline ::std::string* PROTOBUF_NONNULL Joint::_internal_mutable_kind() {
 inline ::std::string* PROTOBUF_NULLABLE Joint::release_kind() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Joint.kind)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000200U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000400U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   auto* released = _impl_.kind_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.kind_.Set("", GetArena());
@@ -1782,9 +1804,9 @@ inline ::std::string* PROTOBUF_NULLABLE Joint::release_kind() {
 inline void Joint::set_allocated_kind(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
   }
   _impl_.kind_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.kind_.IsDefault()) {
@@ -1797,7 +1819,7 @@ inline void Joint::set_allocated_kind(::std::string* PROTOBUF_NULLABLE value) {
 inline void Joint::clear_chord_tolerance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.chord_tolerance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00080000U);
 }
 inline double Joint::chord_tolerance() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.chord_tolerance)
@@ -1805,7 +1827,7 @@ inline double Joint::chord_tolerance() const {
 }
 inline void Joint::set_chord_tolerance(double value) {
   _internal_set_chord_tolerance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.chord_tolerance)
 }
 inline double Joint::_internal_chord_tolerance() const {
@@ -1869,7 +1891,7 @@ Joint::_internal_mutable_cutter_profile() {
 
 // .session_proto.Vector cutter_extrusion = 14;
 inline bool Joint::has_cutter_extrusion() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000800U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00001000U);
   PROTOBUF_ASSUME(!value || _impl_.cutter_extrusion_ != nullptr);
   return value;
 }
@@ -1890,16 +1912,16 @@ inline void Joint::unsafe_arena_set_allocated_cutter_extrusion(
   }
   _impl_.cutter_extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Joint.cutter_extrusion)
 }
 inline ::session_proto::Vector* PROTOBUF_NULLABLE Joint::release_cutter_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   ::session_proto::Vector* released = _impl_.cutter_extrusion_;
   _impl_.cutter_extrusion_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -1919,7 +1941,7 @@ inline ::session_proto::Vector* PROTOBUF_NULLABLE Joint::unsafe_arena_release_cu
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Joint.cutter_extrusion)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   ::session_proto::Vector* temp = _impl_.cutter_extrusion_;
   _impl_.cutter_extrusion_ = nullptr;
   return temp;
@@ -1934,7 +1956,7 @@ inline ::session_proto::Vector* PROTOBUF_NONNULL Joint::_internal_mutable_cutter
 }
 inline ::session_proto::Vector* PROTOBUF_NONNULL Joint::mutable_cutter_extrusion()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   ::session_proto::Vector* _msg = _internal_mutable_cutter_extrusion();
   // @@protoc_insertion_point(field_mutable:wood_proto.Joint.cutter_extrusion)
   return _msg;
@@ -1951,9 +1973,9 @@ inline void Joint::set_allocated_cutter_extrusion(::session_proto::Vector* PROTO
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
   }
 
   _impl_.cutter_extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
@@ -2012,13 +2034,13 @@ Joint::_internal_mutable_drill_lines() {
 
 // optional int32 operation = 16;
 inline bool Joint::has_operation() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00020000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00040000U);
   return value;
 }
 inline void Joint::clear_operation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.operation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00020000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00040000U);
 }
 inline ::int32_t Joint::operation() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.operation)
@@ -2026,7 +2048,7 @@ inline ::int32_t Joint::operation() const {
 }
 inline void Joint::set_operation(::int32_t value) {
   _internal_set_operation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00020000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00040000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.operation)
 }
 inline ::int32_t Joint::_internal_operation() const {
@@ -2040,14 +2062,14 @@ inline void Joint::_internal_set_operation(::int32_t value) {
 
 // .wood_proto.JointPlateParameters plate_parameters = 17;
 inline bool Joint::has_plate_parameters() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00001000U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00002000U);
   PROTOBUF_ASSUME(!value || _impl_.plate_parameters_ != nullptr);
   return value;
 }
 inline void Joint::clear_plate_parameters() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.plate_parameters_ != nullptr) _impl_.plate_parameters_->Clear();
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
 }
 inline const ::wood_proto::JointPlateParameters& Joint::_internal_plate_parameters() const {
   ::google::protobuf::internal::TSanRead(&_impl_);
@@ -2066,16 +2088,16 @@ inline void Joint::unsafe_arena_set_allocated_plate_parameters(
   }
   _impl_.plate_parameters_ = reinterpret_cast<::wood_proto::JointPlateParameters*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.Joint.plate_parameters)
 }
 inline ::wood_proto::JointPlateParameters* PROTOBUF_NULLABLE Joint::release_plate_parameters() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::JointPlateParameters* released = _impl_.plate_parameters_;
   _impl_.plate_parameters_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -2095,7 +2117,7 @@ inline ::wood_proto::JointPlateParameters* PROTOBUF_NULLABLE Joint::unsafe_arena
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.Joint.plate_parameters)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::JointPlateParameters* temp = _impl_.plate_parameters_;
   _impl_.plate_parameters_ = nullptr;
   return temp;
@@ -2110,7 +2132,7 @@ inline ::wood_proto::JointPlateParameters* PROTOBUF_NONNULL Joint::_internal_mut
 }
 inline ::wood_proto::JointPlateParameters* PROTOBUF_NONNULL Joint::mutable_plate_parameters()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   ::wood_proto::JointPlateParameters* _msg = _internal_mutable_plate_parameters();
   // @@protoc_insertion_point(field_mutable:wood_proto.Joint.plate_parameters)
   return _msg;
@@ -2127,9 +2149,9 @@ inline void Joint::set_allocated_plate_parameters(::wood_proto::JointPlateParame
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+    SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
   }
 
   _impl_.plate_parameters_ = reinterpret_cast<::wood_proto::JointPlateParameters*>(value);
@@ -2245,7 +2267,7 @@ Joint::_internal_mutable_cutters() {
 inline void Joint::clear_drill_overshoot() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.drill_overshoot_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00080000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00100000U);
 }
 inline double Joint::drill_overshoot() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.drill_overshoot)
@@ -2253,7 +2275,7 @@ inline double Joint::drill_overshoot() const {
 }
 inline void Joint::set_drill_overshoot(double value) {
   _internal_set_drill_overshoot(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00080000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00100000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.drill_overshoot)
 }
 inline double Joint::_internal_drill_overshoot() const {
@@ -2319,7 +2341,7 @@ Joint::_internal_mutable_solid_features() {
 inline void Joint::clear_pre_drill() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.pre_drill_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00400000U);
 }
 inline bool Joint::pre_drill() const {
   // @@protoc_insertion_point(field_get:wood_proto.Joint.pre_drill)
@@ -2327,7 +2349,7 @@ inline bool Joint::pre_drill() const {
 }
 inline void Joint::set_pre_drill(bool value) {
   _internal_set_pre_drill(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
   // @@protoc_insertion_point(field_set:wood_proto.Joint.pre_drill)
 }
 inline bool Joint::_internal_pre_drill() const {
@@ -2337,6 +2359,56 @@ inline bool Joint::_internal_pre_drill() const {
 inline void Joint::_internal_set_pre_drill(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.pre_drill_ = value;
+}
+
+// repeated .session_proto.Vector insertions = 24;
+inline int Joint::_internal_insertions_size() const {
+  return _internal_insertions().size();
+}
+inline int Joint::insertions_size() const {
+  return _internal_insertions_size();
+}
+inline const ::session_proto::Vector& Joint::insertions(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.Joint.insertions)
+  return _internal_insertions().Get(index);
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL Joint::mutable_insertions(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.Joint.insertions)
+  return _internal_mutable_insertions()->Mutable(index);
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL Joint::add_insertions()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Vector* _add =
+      _internal_mutable_insertions()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_add:wood_proto.Joint.insertions)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>& Joint::insertions() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.Joint.insertions)
+  return _internal_insertions();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+Joint::mutable_insertions() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.Joint.insertions)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_insertions();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>&
+Joint::_internal_insertions() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.insertions_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+Joint::_internal_mutable_insertions() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.insertions_;
 }
 
 // -------------------------------------------------------------------
