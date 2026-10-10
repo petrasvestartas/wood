@@ -52,3 +52,18 @@ draw the panel offscreen, or headless Chromium can run the web viewer on this GP
 `docs/plans/thesis_chapter5_coverage.md` corrected: Vidy is not in chapter 5; the snap fit is text only; the rectangular beam half-lap is
 covered while the conic beam cross joints, skewed and bent beams and fasteners through a beam cross are not; the butterfly key on beams
 (Fig 5.37 A) is missing; `JointBeam::tie` covers part of the short-end butterfly key; the top-to-top spacing of p.98.
+
+## Progress (10 October, night)
+
+- Done: drill clearance (C7 proves it); the conic cross joints and the wedge cut beams with exact bores (`joint_beams` at 90, 60, 45
+  degrees); the layer-panel screenshots (`tools/shoot_ui.sh`, `tools/shoot_elements_ui.sh`); the Vidy node example; the snap fit, the folded
+  ss_e_r pair and the beams on the page; custom tiles that cut: ss_e_ip_custom (three jigsaw tabs), ts_e_p_custom (dovetailed tenons, the
+  base's mortises cut as holes), ss_e_op_custom (fingers at the user's stations, an open profile merged as the library's fingers are).
+- Open:
+  - tt_e_p_custom: giving its tile a cut (a closed pair a milled pocket, a two-point pair a drill) fails the oracle's rigid-motion check, the
+    tile landing differently once the pair is moved: the top-top joint volumes take the frame of the contact's minimum-area rectangle, whose
+    first corner and winding are not fixed under a motion. The frame has to be made rigid first.
+  - The tenon designs ts_e_p_2 and 3 on a square beam tee take most of a beam (14.6e6 mm3 for an overlap of 1.7e6), and at 60 degrees leave
+    1.2e6 of the overlap; as before the solids were carried onto beams.
+  - ss_e_ip_3 and 4 on beams: a side-by-side beam contact that picks the in-plane family is not built yet.
+  - ss_e_r_custom and cr_c_ip_custom cut 2024's rectangle notches; their examples keep them.
