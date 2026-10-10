@@ -32,7 +32,7 @@ int main() {
             scene.add(slabs[side], group);
         }
 
-        // the connector from their face contact, the same parts at every angle, its pockets and slots following the slabs
+        // the connector from their face contact, the same parts at every angle, its pockets following the slabs
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
         const std::shared_ptr<JointBeam> hilti = JointBeam::hilti(*slabs[0], *slabs[1], *contact);
         hilti->name = fmt::format("hilti_{:g}", angle);
@@ -48,7 +48,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six pairs of 600 x 400 CLT slabs 200 thick, folded 0, 10, 20, 30, 40 and 50 degrees on a mitred seam, one row per angle 600 apart along the seam, each pair in its group fold_<angle>; JointBeam::hilti with its defaults on every pair: the halves, discs and rod are the same solids at every angle, never sheared or scaled: from above every pair reads as the test series does, a slot, the bow-tie across the seam just under the top, a slot, and the more a pair folds the more its straight bow-tie stands out of the falling tops; the pockets and the obround access slots milled from the top faces follow the slabs; tests/joint_hilti.cpp checks the parts identical at all six angles, in their slabs or standing out of the top, and the slabs losing only their pockets and slots.
+Six pairs of 600 x 400 CLT slabs 200 thick, folded 0, 10, 20, 30, 40 and 50 degrees on a mitred seam, one row per angle 600 apart along the seam, each pair in its group fold_<angle>; JointBeam::hilti with the product's defaults on every pair: the halves, discs and bolt are the same solids at every angle, never sheared or scaled, so the more a pair folds the more its straight bow-tie stands out of the falling tops, as in the test series; the bow-tie pockets milled 93 deep from the top faces follow the slabs; tests/joint_hilti.cpp checks the parts identical at all six angles, in their slabs or standing out of the top, and the slabs losing only their pockets.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

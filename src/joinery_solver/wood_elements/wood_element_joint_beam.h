@@ -153,29 +153,29 @@ public:
         int sides = 16
     );
 
-    /// The Hilti connector across the straight seam of two slabs, flat or folded up: two identical plywood halves, each a trapezoid wing
-    /// widening away from the seam on a rectangular neck, the two a straight bow-tie across the seam just under the slabs' top; a threaded
-    /// rod, its pin, through both necks and both discs; a round disc taking the nut on the outer end of each half. Target i gets the pocket
-    /// of its half milled from its top face, the seat of its disc, and an obround access slot milled from its top face from the wing's end
-    /// outwards, as long as the half. The parts keep their shape at every fold angle, so a folded slab leaves its wing standing out of its
-    /// top, as on the test series; only the pockets and the slots follow the slabs. Null when the contact has no straight seam or a member
-    /// is no Plate.
+    /// The Hilti connector across the straight seam of two CLT slabs, flat or folded: the 2024 Hilti joint (ss_e_r_2, id 55) with its
+    /// parts. Target i gets its half of the bow-tie pocket milled from the top: the neck across the seam widening into the wing, straight
+    /// to its end, the far corners rounded by the router, depth under the seam's top edge, as 2024 milled it on a flat pair. The parts are
+    /// a straight bow-tie of two plywood halves (a neck and a wing each), a steel disc recessed in each end and one bolt through both: the
+    /// same solids at every fold, so a folded pair, its tops falling away from the ridge, leaves the wings standing out, as on the test
+    /// series. The defaults are the product's (240 x 90 x 93 mm cutout, a 27.7 x 40 neck, a 40 mm router) on CLT of at least 120 mm.
+    /// Null when the contact has no straight seam or a member is no Plate.
     static std::shared_ptr<JointBeam> hilti(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,
-        double half_length = 140.0,     // a half along the rod, the seam to its outer end
-        double neck_length = 50.0,      // the rectangular neck at the seam
-        double wing_width = 120.0,      // the wing at the half's outer end
-        double neck_width = 50.0,       // the neck, and the wing where it starts
-        double height = 100.0,          // the half from its top down, the plywood's layers along the neck
-        double rod_diameter = 16.0,     // the threaded rod
-        double disc_diameter = 70.0,    // the round disc under each nut
-        double disc_thickness = 8.0,
-        double slot_width = 80.0,       // the obround access slot, wider than the disc it takes
-        double cover = 20.0,            // the slabs' top at the seam down to the halves' top
-        double rod_overhang = 15.0,     // the rod past each disc, the nut
-        int sides = 32                  // the disc's and the slot ends' polygon, and the rod's chord tolerance
+        double half_length = 120.0,     // the seam to the pocket's end, half the 240 mm cutout
+        double neck_length = 27.7,      // the neck across the seam, half in each pocket
+        double neck_width = 40.0,       // the neck
+        double taper_end = 74.4,        // the seam to where the wing reaches its width
+        double wing_width = 90.0,       // the wing, the cutout's width
+        double depth = 93.0,            // the pocket, from the top down
+        double height = 90.0,           // the parts, their top depth - height under the top
+        double rod_diameter = 12.0,     // the bolt
+        double disc_diameter = 50.0,    // the steel disc under each nut, recessed in its wing's end
+        double disc_thickness = 6.0,
+        double router_radius = 20.0,    // the far corners of each pocket, a 40 mm router
+        int sides = 32                  // the discs', the rounded corners' and the bolt's polygon
     );
 
     // ═══════════════════════════════════════════════════════════════════════════

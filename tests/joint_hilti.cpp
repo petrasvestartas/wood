@@ -96,9 +96,9 @@ static std::vector<std::vector<double>> check_angle(double angle) {
     scene.add_interaction(hilti, left, hilti->interaction(0));
     scene.add_interaction(hilti, right, hilti->interaction(1));
 
-    check(hilti->parts.size() == 4 && hilti->drill_lines.size() == 1, fmt::format("{:g} degrees: {} parts and {} rods, not 2 halves, 2 discs and 1 rod", angle, hilti->parts.size(), hilti->drill_lines.size()));
+    check(hilti->parts.size() == 4 && hilti->drill_lines.size() == 1, fmt::format("{:g} degrees: {} parts and {} bolts, not 2 halves, 2 discs and 1 bolt", angle, hilti->parts.size(), hilti->drill_lines.size()));
 
-    // per slab: its half and disc inside its stock, clear of its cut model, and the stock covered by the model, the parts and the slot
+    // per slab: its half and disc in its stock or above its top and clear of its cut model, and the slab losing only its pocket
     const std::array<std::shared_ptr<Plate>, 2> slabs = {left, right};
     for (size_t side = 0; side < 2; side++) {
         const std::shared_ptr<Plate>& slab = slabs[side];
@@ -114,12 +114,12 @@ static std::vector<std::vector<double>> check_angle(double angle) {
             if (plane.z_axis()[2] > top.z_axis()[2])
                 top = plane;
 
-        std::vector<Mesh> filling = {model};
         for (size_t index : {2 * side, 2 * side + 1}) {
             const Mesh part = hilti->part_mesh(index);
             const double volume = compute_volume(part);
             // a part is inside its slab, or stands out of its top where the fold lowers the top under the straight bow-tie, as on the test series
-            const Mesh outside = solid_boolean(part, stock, SolidOperation::subtract);
+            // shrunk a thousandth about its centre, so its face on the seam face leaves no sheet of the subtraction behind
+            const Mesh outside = solid_boolean(part.transformed(Xform::scale_uniform(part.centroid(), 1.0 - 1e-3)), stock, SolidOperation::subtract);
             double below = 0.0;
             for (const std::pair<const size_t, VertexData>& vertex : outside.vertex)
                 below = std::max(below, -top.signed_distance(vertex.second.position()));
@@ -128,22 +128,17 @@ static std::vector<std::vector<double>> check_angle(double angle) {
             const Mesh shrunk = part.transformed(Xform::scale_uniform(part.centroid(), 1.0 - 1e-3));
             const double overlap = boolean_volume(shrunk, model, SolidOperation::intersect);
             check(overlap <= ZERO_REL * volume, fmt::format("{:g} degrees: part {} overlaps the cut {} by {:.3f} mm3", angle, index, slab->name, overlap));
-            filling.push_back(part);
         }
-        // what the slab loses on purpose: the pocket open to the top over its half, and the access slot
-        for (size_t cutter : {0, 2}) {
-            const std::array<Polyline, 2>& loops = hilti->cutters[side][cutter];
-            filling.push_back(Mesh::loft({loops[0]}, {loops[1]}, true));
-        }
-        const Mesh gap = solid_difference(stock, filling);
+
+        const std::array<Polyline, 2>& pocket = hilti->cutters[side][0];
+        const Mesh gap = solid_difference(stock, {model, Mesh::loft({pocket[0]}, {pocket[1]}, true)});
         const double unfilled = gap.number_of_faces() == 0 ? 0.0 : compute_volume(gap);
-        check(unfilled <= ZERO_REL * compute_volume(hilti->part_mesh(2 * side)), fmt::format("{:g} degrees: {} lost {:.3f} mm3 neither its parts, its pocket nor its slot account for", angle, slab->name, unfilled));
+        check(unfilled <= ZERO_REL * compute_volume(hilti->part_mesh(2 * side)), fmt::format("{:g} degrees: {} lost {:.3f} mm3 its pocket does not account for", angle, slab->name, unfilled));
     }
 
-    // the rod through both halves and both discs, each part bored exactly
-    const Line& rod = hilti->drill_lines[0];
+    // the bolt through both halves and both discs, every part bored exactly
     for (size_t index = 0; index < 4; index++) {
-        check(!inside_stretches(hilti->part_mesh(index), rod).empty(), fmt::format("{:g} degrees: the rod misses part {}", angle, index));
+        check(!inside_stretches(hilti->part_mesh(index), hilti->drill_lines[0]).empty(), fmt::format("{:g} degrees: the bolt misses part {}", angle, index));
         check(cylinders(hilti->part_brep(index)) > 0, fmt::format("{:g} degrees: part {} has no exact bore", angle, index));
     }
 
@@ -175,6 +170,6 @@ int main() {
                 check(std::abs(flat[index][k] - folded[index][k]) <= SAME * std::max(1.0, std::abs(flat[index][k])), fmt::format("part {} at {:g} degrees differs from the flat one at number {}: {:.9g} against {:.9g}", index, ANGLES[a], k, folded[index][k], flat[index][k]));
     }
 
-    std::cout << fmt::format("joint_hilti: halves of {:.0f} mm3 and discs of {:.0f} mm3 identical at 0 to 50 degrees, in their slabs or standing out of the top, the slabs losing only their pockets and slots, bored by the rod", flat[0][0], flat[1][0]) << std::endl;
+    std::cout << fmt::format("joint_hilti: halves of {:.0f} mm3 and discs of {:.0f} mm3 identical at 0 to 50 degrees, in their slabs or standing out of the top, each slab losing only its 2024 bow-tie pocket, bored by the bolt", flat[0][0], flat[1][0]) << std::endl;
     return 0;
 }
