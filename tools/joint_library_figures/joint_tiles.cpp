@@ -1,6 +1,6 @@
 // The scenes of docs/joint_library.md, two session files per design for the viewer, never overlapping: <id>_unit.pb, the design's male and
-// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates', with <id>_unit.txt, the parameters the
-// user can change and their values, the legend under its picture; and <id>.pb, the oracle's pair joined
+// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates', with <id>_unit.txt, its factory call with
+// the parameters the user can change, the page's code snippet; and <id>.pb, the oracle's pair joined
 // by it, the plates with the merged outlines and any solid the joint owns as BReps.
 //   ./build/joint_tiles <out_dir> [family/library/parameters ...]     every oracle variant when no id is given
 #define main joint_library_main
@@ -69,8 +69,9 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
     return false;
 }
 
-/// What the user can change in the design, one line each with its value in the picture under the factory call; a fixed design says so.
-static std::string unit_legend(const Built& built, const InteractionFeaturePlate& unit) {
+/// The design's factory call as the page's code snippet: each argument the user can change with its value in the picture and what it does;
+/// a fixed design takes none.
+static std::string unit_snippet(const Built& built, const InteractionFeaturePlate& unit) {
 
     const std::map<std::string, std::string> shift_meaning = {
         {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},
@@ -90,11 +91,10 @@ static std::string unit_legend(const Built& built, const InteractionFeaturePlate
 
     const auto names = editable.find(built.library);
     if (names == editable.end())
-        return fmt::format("JointPlate::{}()\nno parameters: a fixed design", built.library);
+        return fmt::format("const std::shared_ptr<JointPlate> joint = JointPlate::{}(); // a fixed design, no parameters", built.library);
 
     const JointPlateParameters& p = built.joint->parameters;
-    std::string arguments;
-    std::string lines;
+    std::vector<std::pair<std::string, std::string>> arguments;
     for (const std::string& name : names->second) {
         std::string value;
         std::string meaning;
@@ -114,10 +114,19 @@ static std::string unit_legend(const Built& built, const InteractionFeaturePlate
             value = p.disable_divisions ? "true" : "false";
             meaning = "the second linked joint (Vidy) without divisions";
         }
-        arguments += fmt::format("{}{} = {}", arguments.empty() ? "" : ", ", name, value);
-        lines += fmt::format("\n{} = {}: {}", name, value, meaning);
+        arguments.push_back({value, fmt::format("{}: {}", name, meaning)});
     }
-    return fmt::format("JointPlate::{}({}){}", built.library, arguments, lines);
+
+    // one argument per line, its comment aligned after the widest value
+    size_t widest = 0;
+    for (const std::pair<std::string, std::string>& argument : arguments)
+        widest = std::max(widest, argument.first.size() + 1);
+    std::string snippet = fmt::format("const std::shared_ptr<JointPlate> joint = JointPlate::{}(", built.library);
+    for (size_t i = 0; i < arguments.size(); i++) {
+        const std::string value = arguments[i].first + (i + 1 < arguments.size() ? "," : "");
+        snippet += fmt::format("\n    {:<{}} // {}", value, widest, arguments[i].second);
+    }
+    return snippet + "\n);";
 }
 
 /// The unit box and the outlines in it, scaled to BOX.
@@ -178,7 +187,7 @@ static void write_scene(const std::string& id, const std::string& dir) {
         WoodSession unit_scene(name + "_unit");
         add_unit_box(unit_scene, unit);
         unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
-        std::ofstream(dir + "/" + name + "_unit.txt") << unit_legend(built, unit) << std::endl;
+        std::ofstream(dir + "/" + name + "_unit.txt") << unit_snippet(built, unit) << std::endl;
     }
 
     // the pair drawn apart, the second plate moved along the contact from the first so the merged outlines read, a key half way and shown

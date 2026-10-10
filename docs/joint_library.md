@@ -4,7 +4,7 @@
 
 Every plate joint of the library drawn the way the Joinery Solver (Vestartas 2021, chapter 5) and the old compas_wood pages drew it: a joint is a pair of cuts in a unit box, the **male** cut for one plate and the **female** cut for the other, placed on the contact by a change of basis from the box to the joint's two volume rectangles. Each design has two pictures, never drawn over each other:
 
-- **the unit box:** the design's male outlines (pink) and female outlines (blue) in the box; where the two cuts are the same line, as in plane, the pink is drawn on the bottom face and the blue on the top. Under the box: the factory call with the values drawn, and what each parameter the user can change does. A plate joint is outlines and nothing else: the solver merges them into the plates' outlines, so they are drawn as polylines;
+- **the unit box:** the design's male outlines (pink) and female outlines (blue) in the box; where the two cuts are the same line, as in plane, the pink is drawn on the bottom face and the blue on the top. Under the box, a code snippet: the factory call with the values drawn, each parameter the user can change commented with what it does. A plate joint is outlines and nothing else: the solver merges them into the plates' outlines, so they are drawn as polylines;
 - **on the plates:** the pair as the solver joins it, drawn apart along the contact so the merged outlines read. The plates are the solids they become, and what the joint owns as a solid is drawn as a solid: the loose keys of ss_e_r_2, ss_e_r_3, ss_e_ip_3 and ss_e_ip_4, half way between the plates, and the drills as exact round holes.
 
 Every design is built by `tests/joint_library.cpp` on its fixture pair and oriented on the plates' contact, so the pictures show the designs' results, not drawings of them. `tools/joint_library_figures/joint_tiles.cpp` writes the two session files of each design, and `make.sh` draws them all with the session viewer's own renderer (`tools/shoot_native.sh`: Arctic shading, black outlines, the orthographic isometric view).
@@ -24,16 +24,53 @@ Parameters, as `JointPlate`'s constructors take them:
 Two plates in one plane meeting on a side face; ids 1 to 9. The box spans both thicknesses across the seam and the joint line along it.
 
 \image html joint_library/ip_ss_e_ip_0_unit.png "ss_e_ip_0: fixed dovetail, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_0(); // a fixed design, no parameters
+```
+
 \image html joint_library/ip_ss_e_ip_0.png "ss_e_ip_0: fixed dovetail, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_1_8_0.5_unit.png "ss_e_ip_1: parametric dovetails, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_1(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the dovetail lean: straight at 0.5, one way at 0, the other at 1
+);
+```
+
 \image html joint_library/ip_ss_e_ip_1_8_0.5.png "ss_e_ip_1: parametric dovetails, 8 divisions, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_2_4_unit.png "ss_e_ip_2: butterfly pockets, 4 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_2(
+    4  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
 \image html joint_library/ip_ss_e_ip_2_4.png "ss_e_ip_2: butterfly pockets, 4 divisions, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_3_unit.png "ss_e_ip_3: milled key, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_3(); // a fixed design, no parameters
+```
+
 \image html joint_library/ip_ss_e_ip_3.png "ss_e_ip_3: milled key, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_4_unit.png "ss_e_ip_4: milled key with pins, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_4(); // a fixed design, no parameters
+```
+
 \image html joint_library/ip_ss_e_ip_4.png "ss_e_ip_4: milled key with pins, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_5_4_unit.png "ss_e_ip_5: butterfly pockets, 4 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_5(
+    4  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
 \image html joint_library/ip_ss_e_ip_5_4.png "ss_e_ip_5: butterfly pockets, 4 divisions, on the plates" width=70%
 \image html joint_library/ip_ss_e_ip_custom.png "ss_e_ip_custom, on the plates" width=70%
 \image html joint_library/ip_side_removal_0_0.5.png "side_removal in plane, on the plates" width=70%
@@ -51,22 +88,84 @@ ss_e_ip_2 and ss_e_ip_5 cut butterfly pockets across the seam, one per division.
 Two plates at an angle on a mitred side face, a floor and a wall; ids 10 to 19. The box is the mitre's strip, with the floor's thickness along x, the wall's along y and the joint line along z.
 
 \image html joint_library/op_ss_e_op_0_unit.png "ss_e_op_0: three fingers, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_0(); // a fixed design, no parameters
+```
+
 \image html joint_library/op_ss_e_op_0.png "ss_e_op_0: three fingers, on the plates" width=70%
 \image html joint_library/op_ss_e_op_1_8_0.5_unit.png "ss_e_op_1: fingers, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_1(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the fingers' lean through the thickness, only above 0.5
+);
+```
+
 \image html joint_library/op_ss_e_op_1_8_0.5.png "ss_e_op_1: fingers, 8 divisions, on the plates" width=70%
 \image html joint_library/op_ss_e_op_2_8_0.5_unit.png "ss_e_op_2: fingers with a non-uniform shift, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_2(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the fingers' lean through the thickness, only above 0.5
+);
+```
+
 \image html joint_library/op_ss_e_op_2_8_0.5.png "ss_e_op_2: fingers with a non-uniform shift, 8 divisions, on the plates" width=70%
 \image html joint_library/op_ss_e_op_3_unit.png "ss_e_op_3: one tenon, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_3(); // a fixed design, no parameters
+```
+
 \image html joint_library/op_ss_e_op_3.png "ss_e_op_3: one tenon, on the plates" width=70%
 \image html joint_library/op_ss_e_op_4_8_0_0_1_unit.png "ss_e_op_4: tenons, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_4(
+    8,     // divisions: how many teeth along the joint line; 0 takes them from its length
+    0,     // taper: the tenons' side lean
+    false  // chamfer: bevelled tenon ends inside the floor
+);
+```
+
 \image html joint_library/op_ss_e_op_4_8_0_0_1.png "ss_e_op_4: tenons, 8 divisions, on the plates" width=70%
 \image html joint_library/op_ss_e_op_5_8_0_unit.png "ss_e_op_5: linked tenons, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_5(
+    8,     // divisions: how many teeth along the joint line; 0 takes them from its length
+    false  // disable_divisions: the second linked joint (Vidy) without divisions
+);
+```
+
 \image html joint_library/op_ss_e_op_5_8_0.png "ss_e_op_5: linked tenons, 8 divisions, on the plates" width=70%
 \image html joint_library/op_ss_e_op_6_8_unit.png "ss_e_op_6: Vidy wall, 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_6(
+    8  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
 \image html joint_library/op_ss_e_op_6_8.png "ss_e_op_6: Vidy wall, 8 divisions, on the plates" width=70%
 \image html joint_library/op_ss_e_op_17_4_unit.png "ss_e_op_17, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_17(
+    4  // divisions: how many teeth along the joint line; 0 takes them from its length
+);
+```
+
 \image html joint_library/op_ss_e_op_17_4.png "ss_e_op_17, on the plates" width=70%
 \image html joint_library/op_ss_e_op_tutorial_unit.png "ss_e_op_tutorial, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_tutorial(); // a fixed design, no parameters
+```
+
 \image html joint_library/op_ss_e_op_tutorial.png "ss_e_op_tutorial, on the plates" width=70%
 \image html joint_library/op_ss_e_op_custom.png "ss_e_op_custom, on the plates" width=70%
 \image html joint_library/op_side_removal_1_0.5.png "side_removal out of plane, on the plates" width=70%
@@ -90,14 +189,45 @@ ss_e_op_2 moves the central pairs twice as far as the outer ones. At shift 1 its
 An upright standing on a base's top face; ids 20 to 29. The box is the base's thickness under the upright: the upright's thickness along x, the base's along y, the joint line along z. The male tile is the tenons; the female tile is the base strip with their mortises.
 
 \image html joint_library/ts_ts_e_p_0_unit.png "ts_e_p_0, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_0(); // a fixed design, no parameters
+```
+
 \image html joint_library/ts_ts_e_p_0.png "ts_e_p_0, on the plates" width=70%
 \image html joint_library/ts_ts_e_p_1_unit.png "ts_e_p_1, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_1(); // a fixed design, no parameters
+```
+
 \image html joint_library/ts_ts_e_p_1.png "ts_e_p_1, on the plates" width=70%
 \image html joint_library/ts_ts_e_p_2_8_0.5_unit.png "ts_e_p_2: 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_2(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the tenon width against the gap
+);
+```
+
 \image html joint_library/ts_ts_e_p_2_8_0.5.png "ts_e_p_2: 8 divisions, on the plates" width=70%
 \image html joint_library/ts_ts_e_p_3_8_0.5_unit.png "ts_e_p_3: 8 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(
+    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the tenon width against the gap
+);
+```
+
 \image html joint_library/ts_ts_e_p_3_8_0.5.png "ts_e_p_3: 8 divisions, on the plates" width=70%
 \image html joint_library/ts_ts_e_p_4_unit.png "ts_e_p_4, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed design, no parameters
+```
+
 \image html joint_library/ts_ts_e_p_4.png "ts_e_p_4, on the plates" width=70%
 \image html joint_library/ts_ts_e_p_custom.png "ts_e_p_custom, on the plates" width=70%
 \image html joint_library/ts_side_removal_0_0.5.png "side_removal top to side, on the plates" width=70%
@@ -115,8 +245,24 @@ Two plates folded on a shared side face; ids 50 to 59. ss_e_r_2 and ss_e_r_3 eac
 
 \image html joint_library/r_ss_e_r_0.png "ss_e_r_0, on the plates" width=70%
 \image html joint_library/r_ss_e_r_2_4_0.5_unit.png "ss_e_r_2: keys, 4 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_2(
+    4,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the size of each key along the joint line
+);
+```
+
 \image html joint_library/r_ss_e_r_2_4_0.5.png "ss_e_r_2: keys, 4 divisions, on the plates" width=70%
 \image html joint_library/r_ss_e_r_3_4_0.5_unit.png "ss_e_r_3: keys, 4 divisions, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_r_3(
+    4,   // divisions: how many teeth along the joint line; 0 takes them from its length
+    0.5  // shift: the size of each key along the joint line
+);
+```
+
 \image html joint_library/r_ss_e_r_3_4_0.5.png "ss_e_r_3: keys, 4 divisions, on the plates" width=70%
 \image html joint_library/r_ss_e_r_custom.png "ss_e_r_custom, on the plates" width=70%
 \image html joint_library/r_side_removal_0_0.5.png "side_removal rotated, on the plates" width=70%
@@ -132,16 +278,56 @@ Two plates folded on a shared side face; ids 50 to 59. ss_e_r_2 and ss_e_r_3 eac
 Two plates crossing through each other's slots; ids 30 to 39. The box is the crossing: each plate keeps one half of it. cr_c_ip_0 is the plain half-lap. cr_c_ip_1 to 5 are the conic half-laps of the thesis (Fig. 5.51, 5.55), whose side cuts let the plates slide in at an angle; cr_c_ip_3 to 5 add drills.
 
 \image html joint_library/cr_cr_c_ip_0_unit.png "cr_c_ip_0: half-lap, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_0(); // a fixed design, no parameters
+```
+
 \image html joint_library/cr_cr_c_ip_0.png "cr_c_ip_0: half-lap, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_1_0.5_unit.png "cr_c_ip_1: conic half-lap, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_1(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 \image html joint_library/cr_cr_c_ip_1_0.5.png "cr_c_ip_1: conic half-lap, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_2_unit.png "cr_c_ip_2, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_2(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 \image html joint_library/cr_cr_c_ip_2.png "cr_c_ip_2, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_3_unit.png "cr_c_ip_3, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_3(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 \image html joint_library/cr_cr_c_ip_3.png "cr_c_ip_3, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_4_unit.png "cr_c_ip_4, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_4(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 \image html joint_library/cr_cr_c_ip_4.png "cr_c_ip_4, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_5_unit.png "cr_c_ip_5, unit box" width=60%
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_5(
+    0.5  // shift: how narrow the half-lap's centre square is: 0 widest, 1 narrowest
+);
+```
+
 \image html joint_library/cr_cr_c_ip_5.png "cr_c_ip_5, on the plates" width=70%
 \image html joint_library/cr_cr_c_ip_custom.png "cr_c_ip_custom, on the plates" width=70%
 
