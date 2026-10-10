@@ -10,7 +10,7 @@ using namespace wood_session;
 // solver's (tests/golden/reference_2025/<name>.json, written by tools/reference_2025.py from the same data inputs)
 // ═══════════════════════════════════════════════════════════════════════════
 
-static const double REPEAT_TOLERANCE = 1e-2; // mm, two consecutive vertices closer than the 0.01 grid 2024 clipped on are one: the reference keeps some 0.006 apart where a merge leaves a corner twice (cross_vda_single_arch plate 37)
+static const double REPEAT_TOLERANCE = Settings().distance; // mm, two consecutive vertices this close are one corner, at their middle: the merge drops a corner repeated within the datasets' distance where 2024 kept it twice, 0.006 to 0.02 apart (cross_vda_single_arch plates 37 and 67, hexboxes 24 and 25), and keeps one copy of the two
 static const double MATCH_TOLERANCE = 1.5e-2; // mm, a reference outline is matched when every point has a twin this close: the merges clip on 2024's 0.01 grid, and the kernel's Clipper2 2.0.1 rounds some vertices one grid step from where the reference's Clipper2 1.x put them, up to the grid's diagonal 0.0141 (cross_ibois_pavilion 0.011, cross_vda_single_arch 0.0057)
 static const double DRILL_TOLERANCE = 2e-2; // mm, a reference drill line is matched when both ends have a twin this close: the rings tt_e_p_3 and tt_e_p_4 drill are Clipper2 offsets on its 0.01 grid, and the kernel's Clipper2 2.0.1 puts some miter vertices one grid step from where the reference's Clipper2 1.x put them, up to 0.0141 mm on the diagonal; the frame is 2024's, the reference's own contact offset in it gives the kernel's ring
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/reference_2025";
@@ -32,12 +32,31 @@ struct Score {
 // Reference and comparison
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The loop as a shape: without its repeated (within REPEAT_TOLERANCE) and its forward-collinear vertices, which carry no geometry. 2024 kept the repeated points its merge made and the corners a run passes straight through; the merge drops them now, so both sides are compared as shapes.
+/// The loop as a shape: a corner written twice within REPEAT_TOLERANCE one corner at their middle, and without its forward-collinear vertices, which carry no geometry. 2024 kept the repeated points its merge made and the corners a run passes straight through; the merge drops them now, so both sides are compared as shapes.
 static Polyline shape(Polyline loop) {
 
-    loop.remove_consecutive_duplicates(REPEAT_TOLERANCE);
-    loop.merge_collinear();
-    return loop;
+    std::vector<Point> points = loop.get_points();
+    const bool closed = points.size() > 1 && (points.front() - points.back()).magnitude() <= REPEAT_TOLERANCE;
+    if (closed)
+        points.pop_back();
+
+    std::vector<Point> corners;
+    for (const Point& point : points) {
+        if (!corners.empty() && (point - corners.back()).magnitude() <= REPEAT_TOLERANCE)
+            corners.back() = Point::mid_point(corners.back(), point);
+        else
+            corners.push_back(point);
+    }
+    if (corners.size() > 1 && (corners.front() - corners.back()).magnitude() <= REPEAT_TOLERANCE) {
+        corners.front() = Point::mid_point(corners.front(), corners.back());
+        corners.pop_back();
+    }
+    if (closed && !corners.empty())
+        corners.push_back(corners.front());
+
+    Polyline result(corners);
+    result.merge_collinear();
+    return result;
 }
 
 /// The reference outlines per plate from the json record, without the two-point drill lines 2024's merge wrote among them, which reference_drills compares.
@@ -136,7 +155,7 @@ static std::vector<Line> unique_drills(const std::vector<Line>& lines) {
     for (const Line& line : lines) {
         bool seen = false;
         for (const Line& kept : unique)
-            if (drill_distance(line, kept) <= 1e-9)
+            if (drill_distance(line, kept) <= DRILL_TOLERANCE)
                 seen = true;
         if (!seen)
             unique.push_back(line);

@@ -14,8 +14,10 @@ cross_vda_corner
 cross_vda_hexshell
 cross_vda_hexshell_reciprocal
 cross_vda_shell
+cross_vda_single_arch
 hello
 hexbox_and_corner
+hexboxes
 inplane_differentdirections
 inplane_hexshell
 inplane_hilti
