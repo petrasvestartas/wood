@@ -14,19 +14,29 @@ int main() {
     scene.add(base);
     scene.add(upright);
 
-    // the outlines in the joint's unit box, mapped onto the contact: the upright's thickness along x, the base's along y, z along
-    // the joint line; a pair per side, the upright's at x = 0.5 (face 0) and x = -0.5 (face 1), the base's at y = -0.5 (face 0)
-    // and y = 0.5 (face 1); as 2024 merged a custom pair, a closed rectangle of five points is clipped into the plate's edge:
-    // here a notch into the upright's bottom edge, 20 past the base's top, over the upper stretch of the joint line; the base's
-    // rectangles lie on its face, where 2024 merged nothing, so they stay features and the base is not cut
-    const std::vector<Polyline> male = {
-        Polyline({{0.5, 1.0, 0.4}, {0.5, -1.0, 0.4}, {0.5, -1.0, 0.1}, {0.5, 1.0, 0.1}, {0.5, 1.0, 0.4}}),
-        Polyline({{-0.5, 1.0, 0.4}, {-0.5, -1.0, 0.4}, {-0.5, -1.0, 0.1}, {-0.5, 1.0, 0.1}, {-0.5, 1.0, 0.4}}),
-    };
-    const std::vector<Polyline> female = {
-        Polyline({{-1.0, -0.5, -0.1}, {1.0, -0.5, -0.1}, {1.0, -0.5, -0.4}, {-1.0, -0.5, -0.4}, {-1.0, -0.5, -0.1}}),
-        Polyline({{-1.0, 0.5, -0.1}, {1.0, 0.5, -0.1}, {1.0, 0.5, -0.4}, {-1.0, 0.5, -0.4}, {-1.0, 0.5, -0.1}}),
-    };
+    // the user's tile in the joint's unit box, mapped onto the contact: the upright's thickness along x, the base's along y, z along the
+    // 250 long joint line; two dovetailed tenons, each 50 long at the base and 70 at its end, reaching down through the base: the upright's
+    // profile per face (x = 0.5 face 0, x = -0.5 face 1) an open polyline from one end of the joint line to the other, cut into its edge;
+    // the base's mortises per face (y = -0.5 face 0, y = 0.5 face 1) a closed rectangle each, 70 long so the tenons' heads pass, cut as holes
+    std::array<std::vector<Point>, 2> profile;
+    for (int face = 0; face < 2; face++) {
+        const double x = face == 0 ? 0.5 : -0.5;
+        profile[face] = {Point(x, -0.5, 0.5)};
+        for (const double centre : {0.25, -0.25}) {
+            profile[face].insert(profile[face].end(), {
+                Point(x, -0.5, centre + 0.1), Point(x, 0.5, centre + 0.14), Point(x, 0.5, centre - 0.14), Point(x, -0.5, centre - 0.1),
+            });
+        }
+        profile[face].push_back(Point(x, -0.5, -0.5));
+    }
+    std::array<std::vector<Polyline>, 2> mortises;
+    for (int face = 0; face < 2; face++) {
+        const double y = face == 0 ? -0.5 : 0.5;
+        for (const double centre : {0.25, -0.25})
+            mortises[face].push_back(Polyline({{-0.5, y, centre + 0.14}, {0.5, y, centre + 0.14}, {0.5, y, centre - 0.14}, {-0.5, y, centre - 0.14}, {-0.5, y, centre + 0.14}}));
+    }
+    const std::vector<Polyline> male = {Polyline(profile[0]), Polyline(profile[1])};
+    const std::vector<Polyline> female = {mortises[0][0], mortises[1][0], mortises[0][1], mortises[1][1]};
 
     // the joint from their contact, added, and passed to each plate in its target order: the upright first, the male of a top-side pair
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
@@ -46,7 +56,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-side design ts_e_p_custom on one pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, the upright its male side and the base its female, your own outlines in its unit box, the box mapped onto the contact; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate's edge: here a rectangle on each face of the upright cuts a notch into its bottom edge, 20 past the base's top, over the upper stretch of the joint line, and the rectangles on the base's faces, where 2024 merged nothing, stay features and cut nothing; the joint owns no piece and stays hidden; the upright is lifted 120 afterwards, along the base's normal, so the tenons and the mortises both read.
+The top-side design ts_e_p_custom on one pair: a 400 x 400 base and a 250 x 250 upright standing on its top, both 40 thick, joined by a tile the user draws in the joint's unit box: two dovetailed tenons, 50 long where they leave the upright and 70 at their ends, reaching down through the base. The upright's profile is an open polyline per face from one end of the joint line to the other, cut into its edge; the base's mortises are a closed rectangle each per face, 70 long so the tenons' heads pass, cut as holes. 2024 left a custom pair uncut, so its base never took the mortises; ts_e_p_custom cuts each side as the library's own top-side designs do. The joint is oriented on the face contact and passed to each plate with add_interaction, the upright first; the upright is lifted 120 off afterwards so tenons and mortises read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -83,7 +83,7 @@ The snap-fit tenon, 2024's literals, a copy per division spread along the joint 
 ![ts_e_p_custom](elements/element_joint_plate_ts_e_p_custom.png)
 ![ts_e_p_custom, the upright](elements/element_joint_plate_ts_e_p_custom_joint.png)
 
-Your own outlines in the unit box, pairs (face 0, face 1) per side, kept pair by pair as the 2024 library kept a custom design: the outlines carry the fabrication type nothing, and only a closed rectangle of five points, or a line of two, is merged into the plate's edge; here a rectangle on each face of the upright cuts a notch into its bottom edge, and the rectangles on the base's faces, where 2024 merged nothing, stay features and cut nothing.
+A tile you draw yourself in the unit box: two dovetailed tenons, 50 long where they leave the upright and 70 at their ends. The upright's outlines are an open profile per face from one end of the joint line to the other, cut into its edge as the library's own tenons are; the base's are a closed rectangle per mortise and face, 70 long so the heads pass, cut as holes. 2024 kept a custom pair uncut, so its base never took the mortises; `ts_e_p_custom` cuts each side as the library's top-side designs do.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_custom.cpp
 
