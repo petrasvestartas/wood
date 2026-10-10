@@ -63,10 +63,11 @@ covered while the conic beam cross joints, skewed and bent beams and fasteners t
   - tt_e_p_custom: giving its tile a cut (a closed pair a milled pocket, a two-point pair a drill) fails the oracle's rigid-motion check, the
     tile landing differently once the pair is moved: the top-top joint volumes take the frame of the contact's minimum-area rectangle, whose
     first corner and winding are not fixed under a motion. The frame has to be made rigid first.
-  - The tenon designs ts_e_p_2 and 3 on a square beam tee take most of a beam (14.6e6 mm3 for an overlap of 1.7e6), and at 60 degrees leave
-    1.2e6 of the overlap; as before the solids were carried onto beams. Measured: the male beam loses 0.56e6, right; the female beam loses
-    14.06e6 of its 27e6, though its cut (the zone less its box, with the two mortises, 4.69e6) holds only 0.75e6 of it. The cut is a
-    manifold solid of the right volume (its mortises too), the beam carries no cut planes, only that one solid feature: the loss appears
-    when the cut is hosted on the female beam. Next: the frame `host_solid_feature` moves the cut through (joint to target), on a tee.
+  - The tenon designs ts_e_p_2 and 3 on a square beam tee of two equal beams cut the female beam in two: the tenons are as wide as the male
+    box, which is as wide as the female, so each mortise runs through the female's whole width, and `solid_difference` keeps the larger
+    piece (575 of 1200 mm, the 14e6 mm3 "lost"). Measured: the cut is a clean solid that shares only its two mortises (0.75e6) with the
+    beam; stock less cut is the larger half. The thesis scales the tenon down inside a rectangular beam (Fig 5.41 C); on beams the male
+    box should be narrowed before the plate design runs (a width inset of the box, or the joint volume extension), so the mortise stays
+    inside the female. To decide: the inset (a share of the width, or a fixed wood thickness each side).
   - ss_e_ip_3 and 4 on beams: a side-by-side beam contact that picks the in-plane family is not built yet.
   - ss_e_r_custom and cr_c_ip_custom cut 2024's rectangle notches; their examples keep them.
