@@ -166,7 +166,11 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
 /// Instances take part as world views: one a joint lands on is promoted before the joint is stored, any other dropped unchanged; a stored plate placed off identity takes its view back.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType search_type) {
 
-    std::vector<std::shared_ptr<Plate>> elements = world_elements<Plate>();
+    // a plate left empty, as the outlines of a beam dataset's axes leave it, has no faces to join
+    std::vector<std::shared_ptr<Plate>> elements;
+    for (const std::shared_ptr<Plate>& plate : world_elements<Plate>())
+        if (plate->polylines.size() >= 2)
+            elements.push_back(plate);
     if (elements.empty())
         return {};
 

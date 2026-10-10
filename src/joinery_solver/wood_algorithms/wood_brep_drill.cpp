@@ -1153,6 +1153,15 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
         return std::nullopt;
     }
 
+    // a sliver a boolean left, its corners on one line, has no plane to trim on: the kernel cannot tessellate it
+    for (const PlanarFace& face : faces)
+        if (compute_newell(face.points).magnitude() <= 1e-9) {
+            if constexpr (TRACE)
+                std::cout << fmt::format("a face of {} corners has no area", face.points.size()) << std::endl;
+
+            return std::nullopt;
+        }
+
     split_sides(faces);
 
     const NurbsCurve circle = Primitives::circle(
