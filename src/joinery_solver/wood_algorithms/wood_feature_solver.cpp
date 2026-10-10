@@ -86,7 +86,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
         );
 
         if (swap_planes_b)
-            elements[index_b]->flip();
+            elements[index_b]->swap_planes();
 
         if (!ok)
             continue;

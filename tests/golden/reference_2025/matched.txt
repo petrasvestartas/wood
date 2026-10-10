@@ -3,6 +3,7 @@ annen_box_pair
 annen_corner
 annen_grid_full_arch
 annen_grid_small
+cross_and_sides_corner
 cross_brussels_sports_tower
 cross_corners
 cross_square_reciprocal_iseya
@@ -14,6 +15,7 @@ cross_vda_shell
 hello
 hexbox_and_corner
 inplane_differentdirections
+inplane_hexshell
 inplane_hilti
 outofplane_box
 outofplane_box_miter
@@ -21,10 +23,13 @@ outofplane_dodecahedron
 outofplane_icosahedron
 outofplane_octahedron
 outofplane_tetra
+simple_corners
 simple_corners_combined
+simple_corners_diff_lengths
 top_to_side_box
 top_to_side_corners
 top_to_side_snap_fit
+top_to_side_test
 top_to_top_pairs
 vda_floor_0
 vda_floor_1

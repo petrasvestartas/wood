@@ -196,8 +196,8 @@ public:
     // fills that offset ring with a lattice of the division length, from its first corner on a rectangle, about the centre of its
     // bounding rectangle otherwise; tt_e_p_5 inscribes 2024's largest empty rectangle in the contact, inset by 1 - shift of its
     // shorter extent, and drills its edges every division length, or fills it with a grid of that step when the length is negative.
-    // `radius` is the pin's, a property of the hole the port bores and no 2024 parameter. 2024 wrote each plate the line through
-    // the other plate; the port gives each plate the line through itself, so the hole is bored where the dowel goes.
+    // `radius` is the pin's, a property of the hole the port bores and no 2024 parameter. Each side records the line through the
+    // other plate, as 2024 wrote it and the 2025 reference lists it; the session bores each plate with the other side's lines.
 
     static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0);
 

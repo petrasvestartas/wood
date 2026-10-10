@@ -201,10 +201,8 @@ BRep Plate::trimmed_brep() const {
     return features.top.empty() ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
 }
 
-void Plate::flip() {
+void Plate::swap_planes() {
 
-    if (polylines.size() > 1)
-        std::swap(polylines[0], polylines[1]);
     if (planes.size() > 1)
         std::swap(planes[0], planes[1]);
     reset();

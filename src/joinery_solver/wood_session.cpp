@@ -1609,13 +1609,18 @@ static void host_plate_joint_side(
     if (!to_joint)
         throw std::invalid_argument("Cutter source has a singular placement");
 
+    const Mesh stock = plate->element_geometry_mesh().transformed(*to_joint * scene.world_xform(plate->guid()));
     InteractionFeatureSolid cut = plate_joint_cutter(
         connection,
         side,
         joint->line_radius,
         joint->chord_tolerance,
-        plate->element_geometry_mesh().transformed(*to_joint * scene.world_xform(plate->guid()))
+        stock
     );
+
+    // a top-top pin joint records on each side the line through the other plate, as 2024 did: the plate is bored with the other side's lines
+    if (connection.name.starts_with("tt_e_p"))
+        cut.drills = plate_joint_cutter(connection, 1 - side, joint->line_radius, joint->chord_tolerance, stock).drills;
     const std::vector<Line> drills = cut.drills;
 
     if (cut.mesh.number_of_faces() == 0 && drills.empty()) {

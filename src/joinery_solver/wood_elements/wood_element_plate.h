@@ -75,8 +75,10 @@ public:
 
 
 
-    /// Swaps bottom and top, outlines and planes, and drops every cache the kernel and the plate hold; detection asks for it when a joint wants the other face first.
-    void flip();
+    /// Swaps the bottom and top planes, keeps the outlines, and drops every cache the kernel and the plate hold; detection asks for it when
+    /// an in-plane joint finds the plate's top plane nearer, as the 2025 solver swapped the planes of its element and nothing else, so a
+    /// later contact pairs the swapped plane with the outline of that index.
+    void swap_planes();
 
 
     /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.

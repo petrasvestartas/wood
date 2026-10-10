@@ -9,7 +9,7 @@ named here exists in the current tree.
 
 | Path | Contents |
 |---|---|
-| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::flip` is the recorded mid-run face swap; `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
+| `src/joinery_solver/wood_elements/wood_element_{plate,column,block,beam}.h/.cpp` | `Plate`, `Column`, `Block`, `Beam` : `session_cpp::Element`; `Plate::swap_planes` is the recorded mid-run plane swap (outlines kept, as the 2025 solver kept them); `cuts` on a beam, column or block are the planes its model solid is cut by; `element_data` is `wood_proto.{Plate,Beam,Column,Block}` |
 | `src/joinery_solver/wood_elements/wood_element_geometry.h/.cpp` | what the elements share: `sweep_sections`, `brep_sections`, `compute_newell`, `face_planes`, `compute_volume`, `is_geometry_feature` |
 | `src/joinery_solver/wood_elements/wood_profile.h/.cpp` | `profile_rectangle`, `profile_round`, `profile_w`, `profile_hss`, `profile_double`, `profile_slab_band`, `profile_t`, `compute_size`, `profile_section` |
 | `src/templates/grid/grid_plan.h/.cpp` | the plan geometry of the grid template (`compute_pieces` of a line against rings, `compute_arrangement` mapping the kernel's `Mesh::from_arrangement` sources to pattern and ring ids, `compute_wall_ring` of a core, direction polygons at a node; sections, ring booleans, offsets and the line split are the kernel's `Mesh::section_by_plane`, `BooleanPolyline::compute_regions`, `Polyline::offset_sides` / `Intersection::offset_in_3d` and `Line::split_at_crossings`) and the records and joint rules `grid_joints.cpp` and `grid.cpp` share |
@@ -333,7 +333,7 @@ How wood uses it (`wood_session.h/.cpp`):
 | 4 | Endpoint marker missing or 1-point in `*_outlines[k][1]` | Merge skips the joint (or, before the guard, relocated vertices to the origin); always end each outline list with `{front, back}` |
 | 5 | `unit_scale` false on a thickness-dependent tooth | Geometry is stretched by the change of basis; set `unit_scale = true` and let `apply_unit_scale` size the volumes |
 | 6 | Cache key is `"id;shift;divisions"`, not edge length; first joint wins | Do not sort joints before the geometry loop; `divisions` must differ for a different tooth count |
-| 7 | `face_to_face_wood` asks for element b's faces 0/1 to be flipped mid-run | `detect_features` calls `Plate::flip`, which resets every cache; never keep face indices of a plate across pairs |
+| 7 | `face_to_face_wood` asks for element b's planes 0/1 to be swapped mid-run | `detect_features` calls `Plate::swap_planes`, which keeps the outlines and resets every cache; never keep face indices of a plate across pairs |
 | 8 | `get_connection_zones` on a copied plate vector | The result lives on the plates (`features`, `insertion_vectors`, `reversed`); pass the scene's own `shared_ptr` vector |
 | 9 | `settings.joint_parameters` shorter than 21 entries | Falls back to built-in defaults with a warning; keep 7 x 3 entries in the yml |
 | 10 | `Session` has no virtual destructor | Do not own a `WoodSession` through a `Session*` |

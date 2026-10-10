@@ -11,7 +11,7 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 
 static const double MATCH_TOLERANCE = 1e-3; // mm, a reference outline is matched when every point has a twin this close
-static const double DRILL_TOLERANCE = 2e-2; // mm, a reference drill line is matched when both ends have a twin this close: 2024 rounded the rings its drills stand on at two decimals in a frame of their own, so a coordinate may fall a hundredth either way
+static const double DRILL_TOLERANCE = 2e-2; // mm, a reference drill line is matched when both ends have a twin this close: the rings tt_e_p_3 and tt_e_p_4 drill are Clipper2 offsets on its 0.01 grid, and the kernel's Clipper2 2.0.1 puts some miter vertices one grid step from where the reference's Clipper2 1.x put them, up to 0.0141 mm on the diagonal; the frame is 2024's, the reference's own contact offset in it gives the kernel's ring
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/reference_2025";
 static const std::string MATCHED_FILE = GOLDEN_DIR + "/matched.txt"; // The datasets that matched when the goldens were last accepted: a regression of one fails the run.
 
@@ -20,7 +20,7 @@ struct Score {
     std::string dataset;
     size_t plates = 0;
     size_t matched_plates = 0;
-    size_t drills = 0; // The dataset's drill lines, repeats dropped.
+    size_t drills = 0; // The drill lines of every plate, each plate's repeats dropped.
     bool matched = false;
     std::string deviation; // The first deviation, empty when matched.
     double worst = 0.0; // The largest distance of an outline or a drill line from its nearest reference twin, over the plates whose outline counts agree.
@@ -138,34 +138,51 @@ static std::vector<Line> unique_drills(const std::vector<Line>& lines) {
     return unique;
 }
 
-/// The reference drill lines of the dataset: the two-point joint polylines of output type 3 over every plate.
-static std::vector<Line> reference_drills(const nlohmann::json& record) {
+/// The reference drill lines per plate: the two-point joint polylines of output type 3, each plate's own list.
+static std::vector<std::vector<Line>> reference_drills(const nlohmann::json& record) {
 
-    std::vector<Line> lines;
-    for (const nlohmann::json& plate : record.at("joints"))
+    std::vector<std::vector<Line>> plates;
+    for (const nlohmann::json& plate : record.at("joints")) {
+        std::vector<Line> lines;
         for (const nlohmann::json& polyline : plate)
             if (polyline.size() == 2)
                 lines.push_back(Line::from_points(
                     Point(polyline[0][0].get<double>(), polyline[0][1].get<double>(), polyline[0][2].get<double>()),
                     Point(polyline[1][0].get<double>(), polyline[1][1].get<double>(), polyline[1][2].get<double>())
                 ));
-
-    return unique_drills(lines);
-}
-
-/// The port's drill lines of the dataset: the drill axes of every plate joint, the drill-typed two-point outlines as the builders wrote them.
-static std::vector<Line> wood_drills(const WoodSession& scene) {
-
-    std::vector<Line> lines;
-    for (const std::shared_ptr<JointPlate>& joint : scene.get_elements<JointPlate>()) {
-        const std::vector<Line> axes = joint->drill_axes();
-        lines.insert(lines.end(), axes.begin(), axes.end());
+        plates.push_back(unique_drills(lines));
     }
 
-    return unique_drills(lines);
+    return plates;
 }
 
-/// Empty when the dataset's drill lines are the reference's, taken as one set over every plate: the port bores each plate along the line through itself where 2024 wrote each plate the line through the other plate of its pair, so the lines agree over the pair and not plate by plate. Else the first deviation; `worst` grows to the largest distance of a drill line from its nearest reference twin.
+/// The port's drill lines per plate: every side of every plate joint gives its drill-typed two-point outlines to its own plate, the male
+/// to element_a and the female to element_b, as 2024 listed them on the plate the side belongs to.
+static std::vector<std::vector<Line>> wood_drills(const WoodSession& scene, const std::vector<std::shared_ptr<Plate>>& plates) {
+
+    std::vector<std::vector<Line>> lines(plates.size());
+    for (const std::shared_ptr<JointPlate>& joint : scene.get_elements<JointPlate>()) {
+        for (const InteractionFeaturePlate& connection : joint->connections) {
+            for (int side = 0; side < 2; side++) {
+                const int plate = index_of_plate(plates, side == 0 ? connection.element_a : connection.element_b);
+                const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
+                const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
+                if (plate < 0)
+                    continue;
+                for (size_t k = 0; k < std::min(outlines[0].size(), types[0].size()); k++)
+                    if (is_drill(types[0][k]) && outlines[0][k].point_count() == 2)
+                        lines[plate].push_back(Line::from_points(outlines[0][k][0], outlines[0][k][1]));
+            }
+        }
+    }
+    for (std::vector<Line>& plate : lines)
+        plate = unique_drills(plate);
+
+    return lines;
+}
+
+/// Empty when one plate's drill lines are the reference's for that plate, each within DRILL_TOLERANCE of its own twin. Else the first
+/// deviation; `worst` grows to the largest distance of a drill line from its nearest reference twin.
 static std::string compare_drills(const std::vector<Line>& drills, const std::vector<Line>& reference, double& worst) {
 
     if (drills.size() != reference.size())
@@ -221,13 +238,20 @@ static Score run(const std::string& name) {
                     score.deviation = fmt::format("plate {}: {}", i, deviation);
             }
 
-            // the drill lines of the whole dataset
-            const std::vector<Line> drills = wood_drills(scene);
-            score.drills = drills.size();
-            const std::string deviation = compare_drills(drills, reference_drills(record), score.worst);
-            if (!deviation.empty() && score.deviation.empty())
-                score.deviation = deviation;
-            score.matched = score.matched_plates == plates.size() && deviation.empty();
+            // the drill lines plate by plate
+            const std::vector<std::vector<Line>> drills = wood_drills(scene, plates);
+            const std::vector<std::vector<Line>> reference_lines = reference_drills(record);
+            bool drills_matched = true;
+            for (size_t i = 0; i < plates.size(); i++) {
+                score.drills += drills[i].size();
+                const std::string deviation = compare_drills(drills[i], i < reference_lines.size() ? reference_lines[i] : std::vector<Line>(), score.worst);
+                if (deviation.empty())
+                    continue;
+                drills_matched = false;
+                if (score.deviation.empty())
+                    score.deviation = fmt::format("plate {}: {}", i, deviation);
+            }
+            score.matched = score.matched_plates == plates.size() && drills_matched;
         }
     } catch (const std::exception& e) {
         score.deviation = std::string("throws: ") + e.what();
