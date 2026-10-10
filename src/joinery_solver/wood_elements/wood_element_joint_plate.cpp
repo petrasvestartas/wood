@@ -1058,6 +1058,167 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
     invalidate_geometry();
 }
 
+/// A loop in a slab's frame (origin on the seam's top edge, x across the seam into the slab, y along it, z the top's normal), at bottom
+/// and at top: its outline points in the x-y plane, moved down or up along z.
+static std::array<Polyline, 2> hilti_prism(const Xform& frame, const std::vector<Point>& outline, double bottom, double top) {
+
+    // an outline that starts at the neck's end repeats its first corner: each corner once
+    std::vector<Point> corners;
+    for (const Point& point : outline)
+        if (corners.empty() || point.distance(corners.back()) > Tolerance::APPROXIMATION)
+            corners.push_back(point);
+    const Polyline loop = Polyline(corners).closed();
+
+    return {loop.transformed(frame * Xform::translation(0.0, 0.0, bottom)), loop.transformed(frame * Xform::translation(0.0, 0.0, top))};
+}
+
+/// The half bow-tie of the 2024 Hilti joint (ss_e_r_2, id 55) in a slab's frame, from start across the seam to end: the neck neck_width
+/// wide to neck_end, the wing widening to wing_width at taper_end, straight on to end; its two far corners rounded by the router's
+/// radius when one is given, quarters of the kernel's circle of sides.
+static std::vector<Point> hilti_outline(double start, double end, double neck_end, double taper_end, double neck_width, double wing_width, double router_radius, int sides) {
+
+    std::vector<Point> outline = {
+        Point(start, -0.5 * neck_width, 0.0),
+        Point(neck_end, -0.5 * neck_width, 0.0),
+        Point(taper_end, -0.5 * wing_width, 0.0),
+    };
+
+    // the far side: a sharp corner, or a quarter of the router's circle at each corner from the wing's side to the end's
+    if (router_radius <= 0.0) {
+        outline.emplace_back(end, -0.5 * wing_width, 0.0);
+        outline.emplace_back(end, 0.5 * wing_width, 0.0);
+    } else {
+        const int quarter = std::max(sides / 4, 1);
+        const std::vector<Point> circle = Polyline::from_sides(4 * quarter, router_radius, false).get_points();
+        for (int corner = 0; corner < 2; corner++) {
+            const Point centre(end - router_radius, (corner == 0 ? -1.0 : 1.0) * (0.5 * wing_width - router_radius), 0.0);
+            // the circle starts on +x and turns to +y: its fourth quarter runs from -y to +x, its first from +x to +y
+            const int first = corner == 0 ? 3 * quarter : 0;
+            for (int k = 0; k <= quarter; k++) {
+                const Point& point = circle[(first + k) % (4 * quarter)];
+                outline.emplace_back(centre[0] + point[0], centre[1] + point[1], 0.0);
+            }
+        }
+    }
+
+    outline.emplace_back(taper_end, 0.5 * wing_width, 0.0);
+    outline.emplace_back(neck_end, 0.5 * neck_width, 0.0);
+    outline.emplace_back(start, 0.5 * neck_width, 0.0);
+
+    return outline;
+}
+
+/// A disc's two loops: the kernel's polygon of sides around the rod, from start to end along x, its centre height z.
+static std::array<Polyline, 2> hilti_disc(const Xform& frame, double start, double end, double z, double radius, int sides) {
+
+    // the circle's plane across the rod: its x along the seam, its y up, its normal along the rod
+    const Xform across = Xform::from_axes(Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0));
+    const Polyline circle = Polyline::from_sides(sides, radius, true);
+
+    return {circle.transformed(frame * Xform::translation(start, 0.0, z) * across), circle.transformed(frame * Xform::translation(end, 0.0, z) * across)};
+}
+
+std::shared_ptr<JointPlate> JointPlate::hilti(
+    const Plate& a,
+    const Plate& b,
+    const InteractionContactFace& contact,
+    double half_length,
+    double neck_length,
+    double neck_width,
+    double taper_end,
+    double wing_width,
+    double depth,
+    double height,
+    double rod_diameter,
+    double disc_diameter,
+    double disc_thickness,
+    double router_radius,
+    int sides
+) {
+
+    // the seam: its face's normal from a into b, its direction along the longest edge of the contact
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    if (points.size() < 4)
+        return nullptr;
+
+    Vector x = compute_newell(points).normalized();
+    const Point centre = Point::centroid(points);
+    if ((b.element_geometry_mesh().centroid() - centre).dot(x) < 0.0)
+        x = x * -1.0;
+
+    Vector along;
+    double longest = 0.0;
+    for (size_t i = 0; i < points.size(); i++) {
+        const Vector edge = points[(i + 1) % points.size()] - points[i];
+        if (edge.magnitude() > longest) {
+            longest = edge.magnitude();
+            along = edge.normalized();
+        }
+    }
+    if (longest <= 0.0)
+        return nullptr;
+
+    // the bow-tie's frame on the seam's top edge, the middle of the contact's two corners highest up, its z up between the two slabs' tops
+    Vector z = x.cross(along).normalized();
+    if (z.dot(Vector(0.0, 0.0, 1.0)) < 0.0)
+        z = z * -1.0;
+    std::vector<Point> corners = points;
+    std::sort(corners.begin(), corners.end(), [&](const Point& p, const Point& q) { return (p - centre).dot(z) > (q - centre).dot(z); });
+    const Point origin = corners[0] + (corners[1] - corners[0]) * 0.5;
+
+    // the joint on the pair, its outlines in world space
+    InteractionFeaturePlate connection;
+    connection.name = "hilti";
+    connection.element_a = a.guid();
+    connection.element_b = b.guid();
+    connection.contact = contact;
+    connection.joint_type = 13;
+    connection.no_orient = true;
+
+    // per slab: its pocket milled from the top, and its half of the key with its disc, in the half's frame (x across the seam into the slab)
+    const double part_top = height - depth;
+    const double rod_z = part_top - 0.5 * height;
+    const double neck_end = 0.5 * neck_length;
+    std::array<Point, 2> rod_ends;
+    std::vector<Mesh> key_pieces;
+    for (int side = 0; side < 2; side++) {
+        const Vector into = side == 0 ? x * -1.0 : x;
+        const Xform frame = Xform::frame_to_world(origin, into, z.cross(into), z);
+
+        // the pocket: the 2024 half bow-tie milled from the top, 1 mm past the seam so the cut shares no face with the seam face, its far
+        // corners the router's, depth under the seam's top edge and up through the slab's top, which a fold only lowers
+        const std::array<Polyline, 2> pocket = hilti_prism(frame, hilti_outline(-1.0, half_length, neck_end, taper_end, neck_width, wing_width, router_radius, sides), -depth, 1.0);
+        std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? connection.male_outlines : connection.female_outlines;
+        std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
+        outlines[0].push_back(pocket[0]);
+        outlines[1].push_back(pocket[1]);
+        types[0].push_back(FabricationType::mill);
+        types[1].push_back(FabricationType::mill);
+
+        // the half: its neck from the seam and its wing, rounded like its pocket's corners, its top under the seam's top edge by what the
+        // pocket is deeper than the half; the disc recessed in the wing's end
+        const std::array<Polyline, 2> half = hilti_prism(frame, hilti_outline(0.0, half_length - disc_thickness, neck_end, taper_end, neck_width, wing_width, router_radius, sides), part_top - height, part_top);
+        const std::array<Polyline, 2> disc = hilti_disc(frame, half_length - disc_thickness, half_length, rod_z, 0.5 * disc_diameter, sides);
+        key_pieces.push_back(loft_stations({half[0], half[1]}));
+        key_pieces.push_back(loft_stations({disc[0], disc[1]}));
+        rod_ends[side] = Point(half_length, 0.0, rod_z).transformed(frame);
+    }
+
+    // the key: both halves and both discs, one solid, the bolt from disc to disc through it, inside the pockets
+    const std::shared_ptr<JointPlate> joint = std::make_shared<JointPlate>();
+    joint->name = "hilti";
+    joint->is_visible = true;
+    joint->line_radius = 0.5 * rod_diameter;
+    joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);
+    joint->connections = {std::move(connection)};
+    joint->drill_lines = {Line::from_points(rod_ends[0], rod_ends[1])};
+    for (const Mesh& piece : key_pieces)
+        joint->key = joint->key.number_of_faces() == 0 ? piece : solid_boolean(joint->key, piece, SolidOperation::add);
+    joint->invalidate_geometry();
+
+    return joint;
+}
+
 Mesh JointPlate::key_mesh() const {
     return key;
 }

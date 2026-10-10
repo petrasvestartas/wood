@@ -837,3 +837,48 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
 }
 
 }
+
+/// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
+std::vector<Point> merge_collinear(const Polyline& polygon) {
+
+    std::vector<Point> points = polygon.get_points();
+
+    if (polygon.is_closed())
+        points.pop_back();
+
+    for (size_t pass = 0; pass < points.size() + 1; pass++) {
+        const size_t n = points.size();
+
+        if (n < 3)
+            return points;
+
+        std::vector<Point> kept;
+        bool dropped = false;
+
+        for (size_t i = 0; i < n; i++) {
+            const Vector v1 = points[i] - points[(i + n - 1) % n];
+            const Vector v2 = points[(i + 1) % n] - points[i];
+            const double l1 = v1.magnitude();
+            const double l2 = v2.magnitude();
+
+            if (l1 < 1e-9 || (l2 >= 1e-9 && v1.cross(v2).magnitude() / (l1 * l2) < 1e-3)) {
+                dropped = true;
+                continue;
+            }
+
+            kept.push_back(points[i]);
+        }
+
+        if (!dropped)
+            return kept;
+
+        points = kept;
+    }
+
+    return points;
+}
+
+/// The chord tolerance that makes a drill of radius a prism of sides sides.
+double sides_tolerance(double radius, int sides) {
+    return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
+}

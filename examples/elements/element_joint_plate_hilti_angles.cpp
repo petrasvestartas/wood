@@ -6,7 +6,7 @@ using namespace wood_session;
 /// The Hilti connector on six pairs of 200 mm CLT slabs folded 0 to 50 degrees, one row per angle as in the test series.
 int main() {
 
-    WoodSession scene("element_joint_hilti_angles");
+    WoodSession scene("element_joint_plate_hilti_angles");
 
     for (int row = 0; row < 6; row++) {
         const double angle = 10.0 * row;
@@ -34,7 +34,7 @@ int main() {
 
         // the connector from their face contact, the same parts at every angle, its pockets following the slabs
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
-        const std::shared_ptr<JointBeam> hilti = JointBeam::hilti(*slabs[0], *slabs[1], *contact);
+        const std::shared_ptr<JointPlate> hilti = JointPlate::hilti(*slabs[0], *slabs[1], *contact);
         hilti->name = fmt::format("hilti_{:g}", angle);
         scene.add(hilti, group);
         scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
@@ -48,7 +48,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six pairs of 600 x 400 CLT slabs 200 thick, folded 0, 10, 20, 30, 40 and 50 degrees on a mitred seam, one row per angle 600 apart along the seam, each pair in its group fold_<angle>; JointBeam::hilti with the product's defaults on every pair: the halves, discs and bolt are the same solids at every angle, never sheared or scaled, so the more a pair folds the more its straight bow-tie stands out of the falling tops, as in the test series; the bow-tie pockets milled 93 deep from the top faces follow the slabs; tests/joint_hilti.cpp checks the parts identical at all six angles, in their slabs or standing out of the top, and the slabs losing only their pockets.
+Six pairs of 600 x 400 CLT slabs 200 thick, folded 0, 10, 20, 30, 40 and 50 degrees on a mitred seam, one row per angle 600 apart along the seam, each pair in its group fold_<angle>; JointPlate::hilti with the product's defaults on every pair: the halves, discs and bolt are the same solids at every angle, never sheared or scaled, so the more a pair folds the more its straight bow-tie stands out of the falling tops, as in the test series; the bow-tie pockets milled 93 deep from the top faces follow the slabs; tests/joint_hilti.cpp checks the parts identical at all six angles, in their slabs or standing out of the top, and the slabs losing only their pockets.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -57,7 +57,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_hilti_angles --parallel 6 && ./build/element_joint_hilti_angles && ../bash/publish-scene.sh --target element_joint_hilti_angles
+cmake --build build --target element_joint_plate_hilti_angles --parallel 6 && ./build/element_joint_plate_hilti_angles && ../bash/publish-scene.sh --target element_joint_plate_hilti_angles
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

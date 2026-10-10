@@ -116,3 +116,9 @@ std::vector<T> transformed_list(const std::vector<T>& items, const Xform& xform)
 std::vector<ElementFeature> transformed_features(const std::vector<ElementFeature>& features, const Xform& xform);
 
 } // namespace wood_session
+
+/// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
+std::vector<Point> merge_collinear(const Polyline& polygon);
+
+/// The chord tolerance that makes a drill of radius a prism of sides sides.
+double sides_tolerance(double radius, int sides);

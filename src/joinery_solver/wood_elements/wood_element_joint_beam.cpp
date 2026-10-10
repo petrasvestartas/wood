@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "element_joint.pb.h"
 #include "wood_session.h"
+#include "wood_element_geometry.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
 #include "wood_element_pin.h"
@@ -137,46 +138,6 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
     return joint;
 }
 
-/// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
-static std::vector<Point> merge_collinear(const Polyline& polygon) {
-
-    std::vector<Point> points = polygon.get_points();
-
-    if (polygon.is_closed())
-        points.pop_back();
-
-    for (size_t pass = 0; pass < points.size() + 1; pass++) {
-        const size_t n = points.size();
-
-        if (n < 3)
-            return points;
-
-        std::vector<Point> kept;
-        bool dropped = false;
-
-        for (size_t i = 0; i < n; i++) {
-            const Vector v1 = points[i] - points[(i + n - 1) % n];
-            const Vector v2 = points[(i + 1) % n] - points[i];
-            const double l1 = v1.magnitude();
-            const double l2 = v2.magnitude();
-
-            if (l1 < 1e-9 || (l2 >= 1e-9 && v1.cross(v2).magnitude() / (l1 * l2) < 1e-3)) {
-                dropped = true;
-                continue;
-            }
-
-            kept.push_back(points[i]);
-        }
-
-        if (!dropped)
-            return kept;
-
-        points = kept;
-    }
-
-    return points;
-}
-
 /// The longest edge of the contact whose middle is not below the corners' mean height, start to end in the polygon's winding.
 static Line top_edge(const std::vector<Point>& points) {
 
@@ -214,11 +175,6 @@ static Point frame_point(
     double z
 ) {
     return origin + axes[0] * x + axes[1] * y + axes[2] * z;
-}
-
-/// The chord tolerance that makes a drill of radius a prism of sides sides.
-static double sides_tolerance(double radius, int sides) {
-    return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
 }
 
 /// The pin clipped flush to the members it passes through: from where its axis first enters one of them to where it last leaves one, an end that lies inside a member kept as it is; unchanged when it meets none.
@@ -1121,150 +1077,6 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
 
     joint->line_radius = radius;
     joint->chord_tolerance = sides_tolerance(radius, sides);
-
-    return joint;
-}
-
-/// A loop in a slab's frame (origin on the seam's top edge, x across the seam into the slab, y along it, z the top's normal), at bottom
-/// and at top: its outline points in the x-y plane, moved down or up along z.
-static std::array<Polyline, 2> hilti_prism(const Xform& frame, const std::vector<Point>& outline, double bottom, double top) {
-
-    // an outline that starts at the neck's end repeats its first corner: each corner once
-    std::vector<Point> corners;
-    for (const Point& point : outline)
-        if (corners.empty() || point.distance(corners.back()) > Tolerance::APPROXIMATION)
-            corners.push_back(point);
-    const Polyline loop = Polyline(corners).closed();
-
-    return {loop.transformed(frame * Xform::translation(0.0, 0.0, bottom)), loop.transformed(frame * Xform::translation(0.0, 0.0, top))};
-}
-
-/// The half bow-tie of the 2024 Hilti joint (ss_e_r_2, id 55) in a slab's frame, from start across the seam to end: the neck neck_width
-/// wide to neck_end, the wing widening to wing_width at taper_end, straight on to end; its two far corners rounded by the router's
-/// radius when one is given, quarters of the kernel's circle of sides.
-static std::vector<Point> hilti_outline(double start, double end, double neck_end, double taper_end, double neck_width, double wing_width, double router_radius, int sides) {
-
-    std::vector<Point> outline = {
-        Point(start, -0.5 * neck_width, 0.0),
-        Point(neck_end, -0.5 * neck_width, 0.0),
-        Point(taper_end, -0.5 * wing_width, 0.0),
-    };
-
-    // the far side: a sharp corner, or a quarter of the router's circle at each corner from the wing's side to the end's
-    if (router_radius <= 0.0) {
-        outline.emplace_back(end, -0.5 * wing_width, 0.0);
-        outline.emplace_back(end, 0.5 * wing_width, 0.0);
-    } else {
-        const int quarter = std::max(sides / 4, 1);
-        const std::vector<Point> circle = Polyline::from_sides(4 * quarter, router_radius, false).get_points();
-        for (int corner = 0; corner < 2; corner++) {
-            const Point centre(end - router_radius, (corner == 0 ? -1.0 : 1.0) * (0.5 * wing_width - router_radius), 0.0);
-            // the circle starts on +x and turns to +y: its fourth quarter runs from -y to +x, its first from +x to +y
-            const int first = corner == 0 ? 3 * quarter : 0;
-            for (int k = 0; k <= quarter; k++) {
-                const Point& point = circle[(first + k) % (4 * quarter)];
-                outline.emplace_back(centre[0] + point[0], centre[1] + point[1], 0.0);
-            }
-        }
-    }
-
-    outline.emplace_back(taper_end, 0.5 * wing_width, 0.0);
-    outline.emplace_back(neck_end, 0.5 * neck_width, 0.0);
-    outline.emplace_back(start, 0.5 * neck_width, 0.0);
-
-    return outline;
-}
-
-/// A disc's two loops: the kernel's polygon of sides around the rod, from start to end along x, its centre height z.
-static std::array<Polyline, 2> hilti_disc(const Xform& frame, double start, double end, double z, double radius, int sides) {
-
-    // the circle's plane across the rod: its x along the seam, its y up, its normal along the rod
-    const Xform across = Xform::from_axes(Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0));
-    const Polyline circle = Polyline::from_sides(sides, radius, true);
-
-    return {circle.transformed(frame * Xform::translation(start, 0.0, z) * across), circle.transformed(frame * Xform::translation(end, 0.0, z) * across)};
-}
-
-std::shared_ptr<JointBeam> JointBeam::hilti(
-    const Element& a,
-    const Element& b,
-    const InteractionContactFace& contact,
-    double half_length,
-    double neck_length,
-    double neck_width,
-    double taper_end,
-    double wing_width,
-    double depth,
-    double height,
-    double rod_diameter,
-    double disc_diameter,
-    double disc_thickness,
-    double router_radius,
-    int sides
-) {
-
-    // the seam: its face's normal from a into b, its direction along the longest edge of the contact
-    const std::vector<Point> points = merge_collinear(contact.polygon);
-    if (points.size() < 4)
-        return nullptr;
-
-    Vector x = compute_newell(points).normalized();
-    const Point centre = Point::centroid(points);
-    if ((b.element_geometry_mesh().centroid() - centre).dot(x) < 0.0)
-        x = x * -1.0;
-
-    Vector along;
-    double longest = 0.0;
-    for (size_t i = 0; i < points.size(); i++) {
-        const Vector edge = points[(i + 1) % points.size()] - points[i];
-        if (edge.magnitude() > longest) {
-            longest = edge.magnitude();
-            along = edge.normalized();
-        }
-    }
-    if (longest <= 0.0)
-        return nullptr;
-
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = connector_name(contact, "hilti");
-    joint->is_visible = true;
-    joint->targets = {a.guid(), b.guid()};
-    joint->insertions = pulled_apart(a, b, contact);
-    joint->line_radius = 0.5 * rod_diameter;
-    joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);
-
-    // the bow-tie's frame on the seam's top edge, the middle of the contact's two corners highest up, its z up between the two slabs' tops
-    Vector z = x.cross(along).normalized();
-    if (z.dot(Vector(0.0, 0.0, 1.0)) < 0.0)
-        z = z * -1.0;
-    std::vector<Point> corners = points;
-    std::sort(corners.begin(), corners.end(), [&](const Point& p, const Point& q) { return (p - centre).dot(z) > (q - centre).dot(z); });
-    const Point origin = corners[0] + (corners[1] - corners[0]) * 0.5;
-
-    // per slab: its half of the bow-tie and its disc as parts, its pocket as its cutter, in the half's frame (x across the seam into the slab)
-    const double part_top = height - depth;
-    const double rod_z = part_top - 0.5 * height;
-    const double neck_end = 0.5 * neck_length;
-    std::array<Point, 2> rod_ends;
-    for (int side = 0; side < 2; side++) {
-        if (!dynamic_cast<const Plate*>(side == 0 ? &a : &b))
-            return nullptr;
-        const Vector into = side == 0 ? x * -1.0 : x;
-        const Xform frame = Xform::frame_to_world(origin, into, z.cross(into), z);
-
-        // the half: its neck from the seam and its wing, rounded like its pocket's corners, which it could not otherwise sit in; its top
-        // under the seam's top edge by what the pocket is deeper than the part
-        joint->parts.push_back(hilti_prism(frame, hilti_outline(0.0, half_length - disc_thickness, neck_end, taper_end, neck_width, wing_width, router_radius, sides), part_top - height, part_top));
-        joint->parts.push_back(hilti_disc(frame, half_length - disc_thickness, half_length, rod_z, 0.5 * disc_diameter, sides));
-        rod_ends[side] = Point(half_length, 0.0, rod_z).transformed(frame);
-
-        // the pocket: the 2024 half bow-tie milled from the top, 1 mm past the seam so the cut shares no face with the seam face, its far
-        // corners the router's, depth under the seam's top edge and up through the slab's top, which a fold only lowers
-        joint->cutters.push_back({hilti_prism(frame, hilti_outline(-1.0, half_length, neck_end, taper_end, neck_width, wing_width, router_radius, sides), -depth, 1.0)});
-    }
-
-    // the bolt from disc to disc through both halves
-    joint->drill_lines = {Line::from_points(rod_ends[0], rod_ends[1])};
 
     return joint;
 }

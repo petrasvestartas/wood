@@ -6,7 +6,7 @@ using namespace wood_session;
 /// The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitred seam, drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_hilti");
+    WoodSession scene("element_joint_plate_hilti");
 
     // two 600 x 400 slabs 200 thick falling 15 degrees each from the ridge along y, their seam faces mitred on x = 0
     const double half_angle = 15.0 * Tolerance::PI / 180.0;
@@ -30,7 +30,7 @@ int main() {
 
     // the connector from their face contact, added, and passed to each slab in its target order
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
-    const std::shared_ptr<JointBeam> hilti = JointBeam::hilti(*slabs[0], *slabs[1], *contact);
+    const std::shared_ptr<JointPlate> hilti = JointPlate::hilti(*slabs[0], *slabs[1], *contact);
     hilti->name = "hilti";
     scene.add(hilti);
     scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
@@ -46,7 +46,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two 600 x 400 CLT slabs 200 thick folded 30 degrees, each falling 15 degrees from the ridge along y, their seam faces mitred on the vertical plane x = 0; JointBeam::hilti on their face contact with the product's defaults, the 2024 Hilti joint (ss_e_r_2) with its parts: each slab gets its half of the 240 x 90 bow-tie pocket milled 93 deep from the top, a 27.7 x 40 neck across the seam widening into a 90 wide wing at 74.4, its far corners rounded by a 40 mm router; the parts are a straight bow-tie of two plywood halves 90 deep, a 50 mm steel disc 6 thick recessed in each wing's end and an M12 bolt from disc to disc. The connector is added and passed to each slab with add_interaction, its halves, discs and bolt nested under it; the right slab is moved 300 off along the seam's normal afterwards so its pocket reads.
+Two 600 x 400 CLT slabs 200 thick folded 30 degrees, each falling 15 degrees from the ridge along y, their seam faces mitred on the vertical plane x = 0; JointPlate::hilti on their face contact with the product's defaults, the 2024 Hilti joint (ss_e_r_2) with its parts: each slab gets its half of the 240 x 90 bow-tie pocket milled 93 deep from the top, a 27.7 x 40 neck across the seam widening into a 90 wide wing at 74.4, its far corners rounded by a 40 mm router; the parts are a straight bow-tie of two plywood halves 90 deep, a 50 mm steel disc 6 thick recessed in each wing's end and an M12 bolt from disc to disc. The connector is added and passed to each slab with add_interaction, its halves, discs and bolt nested under it; the right slab is moved 300 off along the seam's normal afterwards so its pocket reads.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -55,7 +55,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_hilti --parallel 6 && ./build/element_joint_hilti && ../bash/publish-scene.sh --target element_joint_hilti
+cmake --build build --target element_joint_plate_hilti --parallel 6 && ./build/element_joint_plate_hilti && ../bash/publish-scene.sh --target element_joint_plate_hilti
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
