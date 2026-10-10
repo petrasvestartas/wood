@@ -248,8 +248,15 @@ public:
     void construct(InteractionFeaturePlate connection, const std::function<void(InteractionFeaturePlate&)>& builder);
     std::shared_ptr<InteractionFeaturePlate> interaction_feature(int side, size_t connection = 0) const;
 
-    /// The interaction this joint puts on its target i, side i of its first connection: interaction_feature(i, 0).
+    /// The interaction this joint puts on its target i: side i % 2 of connection i / 2, so a one-pair joint's targets are its male and its female
+    /// plate and a joint of grouped connections (Annen, Vidy) lists both sides of every connection in order.
     std::shared_ptr<Interaction> interaction(size_t target) const override;
+
+    /// How many interactions the joint puts on plates: both sides of every connection.
+    size_t interaction_count() const;
+
+    /// The plate interaction(i) acts on, by guid: side i % 2 of connection i / 2.
+    const std::string& interaction_target(size_t target) const;
     static void build_geometry(std::vector<InteractionFeaturePlate>& connections,
                                std::vector<std::shared_ptr<Plate>>& elements,
                                const std::vector<std::vector<int>>& types, const Settings& settings);

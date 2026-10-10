@@ -544,7 +544,12 @@ void WoodSession::compute_beam_features(double volume_length, double cross_or_si
             if (!joint)
                 continue;
             joint->generated = true;
-            apply_joint(joint, false);
+
+            // the joint in its family's group, then what it does to each beam it joins, in its target order
+            add(joint, group_named(joint->element_type_name(), group_named("joints")));
+            const std::vector<std::string> targets = joint->targets;
+            for (size_t i = 0; i < targets.size(); i++)
+                add_interaction(joint, get_element<Element>(targets[i]), joint->interaction(i));
         }
     }
 }
@@ -875,8 +880,10 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
             plate,
             feature
         );
-        std::vector<InteractionFeaturePlate> joints = get_plate_features();
-        merge_features({plate}, joints);
+        if (!merge_deferred) {
+            std::vector<InteractionFeaturePlate> joints = get_plate_features();
+            merge_features({plate}, joints);
+        }
         return feature;
     }
 
@@ -1336,43 +1343,6 @@ std::vector<Line> WoodSession::pre_drill_lines(const std::string& guid) const {
 }  // namespace wood_session
 
 namespace wood_session {
-
-static void add_plate_joint(WoodSession& scene, const std::shared_ptr<JointPlate>& joint, bool merge) {
-
-    std::vector<std::shared_ptr<Plate>> plates;
-    std::unordered_set<std::string> seen;
-
-    for (size_t i = 0; i < joint->connections.size(); ++i) {
-        const InteractionFeaturePlate& connection = joint->connections[i];
-
-        for (int side = 0; side < 2; ++side) {
-            const std::string& id = side == 0 ? connection.element_a : connection.element_b;
-            const std::shared_ptr<Plate> plate = scene.get_element<Plate>(id);
-
-            if (!plate)
-                throw std::invalid_argument("Joint target is not a stored plate: " + id);
-
-            if (seen.insert(id).second)
-                plates.push_back(plate);
-
-            host_plate_joint_side(
-                scene,
-                joint,
-                connection,
-                side,
-                plate,
-                joint->interaction_feature(side, i)
-            );
-        }
-    }
-
-    joint->targets.assign(seen.begin(), seen.end());
-
-    if (merge) {
-        std::vector<InteractionFeaturePlate> connections = scene.get_plate_features();
-        scene.merge_features(plates, connections);
-    }
-}
 
 /// A connector's holes in one target, in the connector's frame: the pins that pass through the target as cut so far, each end run on by the overshoot where the pin leaves the target there, tested just beyond the pin's own end in the target's frame, so a blind hole stops at its pin.
 static std::vector<Line> target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
@@ -1835,30 +1805,5 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
     return interaction;
 }
 
-void WoodSession::apply_joint(const std::shared_ptr<Joint>& joint, bool merge) {
-
-    if (!joint)
-        throw std::invalid_argument("Missing joint");
-
-    if (!get_element<Joint>(joint->guid()))
-        add(joint);
-
-    if (const std::shared_ptr<JointPlate> plate = std::dynamic_pointer_cast<JointPlate>(joint)) {
-        add_plate_joint(*this, plate, merge);
-        return;
-    }
-
-    // every target in order, as the caller would one by one
-    const std::vector<std::string> targets = joint->targets;
-
-    for (size_t i = 0; i < targets.size(); i++) {
-        const std::shared_ptr<Element> target = get_element<Element>(targets[i]);
-
-        if (!target)
-            throw std::invalid_argument("Missing joint target");
-
-        add_interaction(joint, target, joint->interaction(i));
-    }
-}
 
 }

@@ -216,7 +216,6 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         settings.angle
     );
     build_feature_geometry(elements, joints, feature_types);
-    merge_features(elements, joints);
 
     std::unordered_set<std::string> jointed;
     for (const InteractionFeaturePlate& joint : joints) {
@@ -253,6 +252,8 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
                 unite(a->second, b->second);
         }
     }
+    // the plates are merged once all joints are on them, in the joints' order, as 2024 merged them
+    merge_deferred = true;
     std::map<int, std::vector<int>> groups;
     for (size_t i = 0; i < joints.size(); ++i)
         groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
@@ -281,8 +282,14 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         element->name = indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
         element->compute_key(elements);
-        apply_joint(element, false);
+
+        // the joint in its family's group, then what it does to each plate it joins, both sides of every connection in order
+        add(element, group_named(element->element_type_name(), group_named("joints")));
+        for (size_t i = 0; i < element->interaction_count(); i++)
+            add_interaction(element, get_element<Plate>(element->interaction_target(i)), element->interaction(i));
     }
+    merge_deferred = false;
+    merge_features(elements, joints);
 
     return joints;
 }

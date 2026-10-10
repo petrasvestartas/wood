@@ -780,7 +780,20 @@ std::shared_ptr<InteractionFeaturePlate> JointPlate::interaction_feature(int sid
 }
 
 std::shared_ptr<Interaction> JointPlate::interaction(size_t target) const {
-    return interaction_feature(static_cast<int>(target), 0);
+    return interaction_feature(static_cast<int>(target % 2), target / 2);
+}
+
+size_t JointPlate::interaction_count() const {
+    return 2 * connections.size();
+}
+
+const std::string& JointPlate::interaction_target(size_t target) const {
+
+    if (target >= interaction_count())
+        throw std::out_of_range("JointPlate interaction target is out of range");
+
+    const InteractionFeaturePlate& connection = connections[target / 2];
+    return target % 2 == 0 ? connection.element_a : connection.element_b;
 }
 
 /// The direction across a seam within a run's face, the run's normal crossed with the seam: taken from one run of a design, it measures every run of it on one scale.

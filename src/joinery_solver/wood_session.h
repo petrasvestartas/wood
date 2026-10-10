@@ -422,8 +422,8 @@ public:
     void erase_contacts(std::string_view kind);
 
 private:
-    /// Adds every target of the joint through add_interaction, adding the joint first when it is not in the session.
-    void apply_joint(const std::shared_ptr<Joint>& joint, bool merge);
+
+    bool merge_deferred = false; // True while compute_features adds its joints: each plate is merged once, in 2024's joint order, after the last.
 
     /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.
     std::shared_ptr<Interaction> add_joint_interaction(const std::shared_ptr<Joint>& joint, const std::shared_ptr<Element>& target, std::shared_ptr<Interaction> interaction);
