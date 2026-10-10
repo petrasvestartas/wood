@@ -10,7 +10,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 // the library designs, each by its own name and parameters
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
-static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line
+static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; ss_e_r_1 is the tile of side_removal_ss_e_r_1, not a design of its own
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) .. tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05)
@@ -43,7 +43,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 | --- | --- | --- |
 | [`ss_e_ip`](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge in one plane, their fingers interlocking along the normal, a loose key on the key designs |
 | [`ss_e_op`](@ref elements_joint_plate_ss_e_op) | side to side, out of plane | two plates at an angle on a shared side face, a floor and a wall at a corner, fingers on both edges or the wall's tenons through the floor's mortises |
-| `ts_e_p` | top to side | a plate standing on another's face |
+| [`ts_e_p`](@ref elements_joint_plate_ts_e_p) | top to side | a plate standing on another's face, the upright's tenons through the base's mortises |
 | `ss_e_r` | side to side, rotated | two side faces whose edges cross, or any side-to-side pair under `settings.all_treated_as_rotated` |
 | `cr_c_ip` | cross | two plates passing through each other (`compute_cross_contact`) |
 | `tt_e_p` | top to top | two plates stacked face on face |
@@ -51,11 +51,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## ts_e_p: top to side
 
-![ts_e_p](elements/element_joint_plate_ts_e_p.png)
-
-`ts_e_p_0` to `ts_e_p_5` on their defaults, tenons on the upright and mortises through the base, the upright lifted off to show both: the fixed three tenons of `ts_e_p_0` and the two Annen tenons of `ts_e_p_1`, the parametric dovetails `ts_e_p_2` and `ts_e_p_3` (the family default, ids 20 and 22), the milled wedge `ts_e_p_4` (ids 23 and 24), and the snap-fit tenon `ts_e_p_5` (id 25), which keeps the upright's thickness along the joint line instead of stretching to it; `ts_e_p_custom` takes your own pairs as 2024 kept them.
-
-\include{lineno} elements/element_joint_plate_ts_e_p.cpp
+`ts_e_p_0` to `ts_e_p_5` and `ts_e_p_custom` on an upright standing in the middle of a base, each design with its own example and pictures on the [ts_e_p page](@ref elements_joint_plate_ts_e_p): the fixed three tenons of `ts_e_p_0` and the two Annen tenons of `ts_e_p_1`, the parametric tenons `ts_e_p_2` and `ts_e_p_3` (the family default, ids 20 and 22), the milled wedge `ts_e_p_4` (ids 23 and 24), the snap-fit tenon `ts_e_p_5` (id 25), which keeps the upright's thickness along the joint line instead of stretching to it, and the custom outlines, kept pair by pair as 2024 kept them.
 
 ## ss_e_ip: in plane
 
