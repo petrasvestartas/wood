@@ -78,6 +78,7 @@ op@150/ss_e_op_2
 op@150/ss_e_op_tutorial
 op@150/ss_e_op_custom
 r@90/ss_e_r_0
+r@90/ss_e_r_2
 r@90/ss_e_r_3
 r@90/ss_e_r_custom
 r@120/ss_e_r_0

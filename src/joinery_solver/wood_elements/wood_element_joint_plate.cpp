@@ -994,7 +994,15 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
         for (const std::array<Polyline, 2>& body : bodies())
             pieces.push_back(Mesh::loft({body[0]}, {body[1]}, true));
 
-        // what each plate loses to them, united into the one key
+        // the rotated keys are the straight prisms 2024 milled, both sides' pockets united, not trimmed by the folded plates
+        if (connection.name == "ss_e_r_2" || connection.name == "ss_e_r_3") {
+            for (int side = 0; side < 2; side++)
+                for (const Mesh& piece : side_solids(connection, side))
+                    key = key.number_of_faces() == 0 ? piece : solid_boolean(key, piece, SolidOperation::add);
+            continue;
+        }
+
+        // the in-plane keys are what each plate loses to them, united into the one key, flush with the plates
         for (int side = 0; side < 2; side++) {
             const int index = index_of_plate(elements, side == 0 ? connection.element_a : connection.element_b);
             if (index < 0)

@@ -40,7 +40,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated design ss_e_r_3 on one pair, on its defaults: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, a diamond pocket milled into each plate per division, the count geometric, one every 300 of the joint line, each tile a 120 * shift square stepped along the joint line in that size, and the joint's own key that fills both pockets, cut from the plates; the right plate is moved 150 along the mitre's normal so both pockets read, the key 75, half way.
+The rotated design ss_e_r_3 on one pair, on its defaults: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, a diamond pocket milled into each plate per division, the count geometric, one every 300 of the joint line, each tile a 120 * shift square stepped along the joint line in that size, and the joint's own key that fills both pockets, their straight prisms united, one rigid piece through the fold; the right plate is moved 150 along the mitre's normal so both pockets read, the key 75, half way.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
