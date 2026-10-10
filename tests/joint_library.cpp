@@ -1,4 +1,5 @@
 #include "oracle_polyline.h"
+#include "session.pb.h"
 #include <chrono>
 #include <iomanip>
 #include <numbers>
@@ -616,17 +617,16 @@ static void check_fit(const Built& built, Row& row) {
         fail(row, "C6", fmt::format("the members fill each other, yet the joint owns a solid of {:.6g} mm3", row.own));
 }
 
-/// C7: a pin joint declares axes, and each member is bored along the axes inside it: a drill feature and a cylinder per axis, the hole volume pi r^2 L.
+/// C7: a pin joint declares axes, and every design with drills bores each member along the axes inside it: a drill feature and an exact cylinder per axis; on a pin joint the hole volume is pi r^2 L.
 static void check_drills(const Built& built, Row& row) {
 
-    // a custom pair carries the user's outlines with no type and no drills, as 2024 kept it
-    if (built.family != "tt" || built.library == "tt_e_p_custom")
-        return;
-
+    // a custom pair carries the user's outlines with no type and no drills, as 2024 kept it; only a pin joint must declare drills
     const std::vector<Line> axes = built.joint->drill_axes();
     row.drills = axes.size();
+    const bool pins = built.family == "tt" && built.library != "tt_e_p_custom";
     if (axes.empty()) {
-        fail(row, "C7", "the pin joint declares no drill axes");
+        if (pins)
+            fail(row, "C7", "the pin joint declares no drill axes");
         return;
     }
 
@@ -647,10 +647,54 @@ static void check_drills(const Built& built, Row& row) {
         const size_t bores = cylinders(plate->model_geometry_brep());
         if (bores != inside)
             fail(row, "C7", fmt::format("{} BRep has {} cylinders for {} axes inside it", who, bores, inside));
+        // what a hole takes is measurable alone on a pin joint; a design that also mills or slices shares that volume
+        if (!pins)
+            continue;
         const double expected = std::numbers::pi * radius * radius * length;
         const double removed = compute_volume(plate->element_geometry_mesh()) - compute_volume(plate->model_geometry_mesh());
         if (std::abs(removed - expected) > HOLE_REL * std::max(expected, 1.0))
             fail(row, "C7", fmt::format("{} lost {:.6g} mm3 to its holes, pi r^2 L gives {:.6g}", who, removed, expected));
+    }
+}
+
+/// C13: the geometry the file carries for each plate, as the viewer reads it from the raw session message, is the cut model: a BRep with one exact cylinder per bore the model has, of the model's volume.
+static void check_written(const Built& built, Row& row) {
+
+    session_proto::Session proto;
+    if (!proto.ParseFromString(built.scene->pb_dumps())) {
+        fail(row, "C13", "the written session does not parse");
+        return;
+    }
+
+    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+        const session_proto::Element* written = nullptr;
+        for (const session_proto::Element& element : proto.objects().elements())
+            if (element.guid() == plate->guid())
+                written = &element;
+        if (!written) {
+            fail(row, "C13", plate->name + " is not in the written file");
+            continue;
+        }
+
+        const double model = compute_volume(plate->model_geometry_mesh());
+        const size_t bores = cylinders(plate->model_geometry_brep());
+        double volume = 0.0;
+        size_t written_bores = 0;
+        if (written->geometry_type() == "BRep") {
+            const BRep brep = BRep::pb_loads(written->geometry_data());
+            volume = brep.volume();
+            written_bores = cylinders(brep);
+        } else {
+            volume = compute_volume(Mesh::pb_loads(written->geometry_data()));
+        }
+
+        if (bores > 0 && written->geometry_type() != "BRep")
+            fail(row, "C13", fmt::format("{} has {} bores but is written as a {}, its holes faceted", plate->name, bores, written->geometry_type()));
+        if (written_bores != bores)
+            fail(row, "C13", fmt::format("{} is written with {} exact cylinders, its model has {}", plate->name, written_bores, bores));
+        const double tolerance = bores > 0 ? ROUND_REL : VOLUME_REL;
+        if (std::abs(volume - model) > tolerance * model)
+            fail(row, "C13", fmt::format("{} is written with {:.9g} mm3, its cut model has {:.9g}", plate->name, volume, model));
     }
 }
 
@@ -816,6 +860,7 @@ static const Check CHECKS[] = {
     {"C4", check_conservation},
     {"C6", check_fit},
     {"C7", check_drills},
+    {"C13", check_written},
     {"C10", check_round_trip},
     {"C10", check_rigid_motion},
     {"C11", check_golden},

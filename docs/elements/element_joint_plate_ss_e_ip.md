@@ -52,7 +52,7 @@ A butterfly pocket into each edge per division, two on this seam, and the joint'
 
 ![ss_e_ip_3](elements/element_joint_plate_ss_e_ip_3.png)
 
-A slanted key groove milled the length of the seam into each edge, its profile projected from face to face, and four drills through the thickness, two in each plate; the joint owns no piece, each plate hosts its groove and drills; the right plate moved 200 off.
+A slanted key groove milled the length of the seam into each edge, its profile projected from face to face, and a drill through the thickness of each plate, a third of the way across the seam (2024 listed each of the two lines twice); the joint owns no piece, each plate hosts its groove and its bore, an exact cylinder; the right plate moved 200 off.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_3.cpp
 
@@ -60,7 +60,7 @@ A slanted key groove milled the length of the seam into each edge, its profile p
 
 ![ss_e_ip_4](elements/element_joint_plate_ss_e_ip_4.png)
 
-Two slanted key grooves crossing each other milled into each edge, each projected from face to face, and four drills through the thickness, two in each plate; the right plate moved 200 off.
+Two slanted key grooves crossing each other milled into each edge, each projected from face to face, and a drill through the thickness of each plate; its axis lies in the end face of the first groove, as 2024 placed it, so the groove halves the bore and it is drawn faceted, the one bore of the library the exact builder cannot make; the right plate moved 200 off.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_4.cpp
 

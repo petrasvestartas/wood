@@ -923,11 +923,13 @@ std::vector<Line> JointPlate::drill_axes() const {
             const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
             for (size_t i = 0; i < std::min(outlines[0].size(), types[0].size()); ++i) {
                 const Polyline& line = outlines[0][i];
-                if (!is_drill(types[0][i]) || line.point_count() != 2)
+                if (!is_drill(types[0][i]) || line.point_count() != 2 || (line[1] - line[0]).magnitude_squared() <= 1e-12)
                     continue;
-                if (i > 0 && outlines[0][i - 1].get_points() == line.get_points())
-                    continue;
-                if ((line[1] - line[0]).magnitude_squared() > 1e-12)
+                // 2024 doubled every pair and both sides list a pin through both plates: each axis once, either way round
+                bool listed = false;
+                for (const Line& axis : result)
+                    listed = listed || (axis.start() == line[0] && axis.end() == line[1]) || (axis.start() == line[1] && axis.end() == line[0]);
+                if (!listed)
                     result.push_back(Line::from_points(line[0], line[1]));
             }
         }

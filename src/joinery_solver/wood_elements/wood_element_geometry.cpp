@@ -800,14 +800,33 @@ Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>&
 BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
 
     std::vector<Drill> drills;
+    double chord_tolerance = 0.0;
 
     for (const InteractionFeatureSolid& cut : cuts)
-        for (const Line& drill : cut.drills)
+        for (const Line& drill : cut.drills) {
             drills.push_back({drill, cut.drill_radius});
+            chord_tolerance = cut.drill_tolerance;
+        }
 
-    if (!drills.empty())
-        if (std::optional<BRep> exact = drilled_brep(apply_solid_features(mesh, cuts, false), drills))
+    if (!drills.empty()) {
+        const Mesh milled = apply_solid_features(mesh, cuts, false);
+
+        if (std::optional<BRep> exact = drilled_brep(milled, drills))
             return *exact;
+
+        // a bore that grazes an edge or another bore is subtracted faceted first, so every other bore stays an exact cylinder
+        const std::array<std::vector<Drill>, 2> split = split_clear_drills(milled, drills);
+
+        if (!split[0].empty() && !split[1].empty()) {
+            std::vector<Mesh> grazing;
+
+            for (const Drill& drill : split[1])
+                grazing.push_back(drill_mesh(drill.axis, drill.radius, chord_tolerance));
+
+            if (std::optional<BRep> exact = drilled_brep(solid_difference(milled, grazing), split[0]))
+                return *exact;
+        }
+    }
 
     const Mesh cut = apply_solid_features(mesh, cuts);
 

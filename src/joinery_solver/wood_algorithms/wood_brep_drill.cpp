@@ -1213,6 +1213,37 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     return brep;
 }
 
+std::array<std::vector<Drill>, 2> split_clear_drills(const Mesh& mesh, const std::vector<Drill>& given) {
+
+    const std::vector<Drill> drills = merged_drills(given);
+    std::vector<PlanarFace> faces = planar_faces(mesh);
+
+    if (faces.empty())
+        return {std::vector<Drill>(), drills};
+
+    split_sides(faces);
+    std::vector<Stretch> stretches;
+
+    for (size_t i = 0; i < drills.size(); i++) {
+        const std::vector<Stretch> found = compute_stretches(faces, drills[i], i);
+        stretches.insert(stretches.end(), found.begin(), found.end());
+    }
+
+    // a drill is clear when every one of its stretches is
+    std::vector<bool> clear(drills.size(), true);
+
+    for (size_t s = 0; s < stretches.size(); s++)
+        if (clear[stretches[s].drill] && !is_clear(faces, drills, stretches, s))
+            clear[stretches[s].drill] = false;
+
+    std::array<std::vector<Drill>, 2> split;
+
+    for (size_t i = 0; i < drills.size(); i++)
+        split[clear[i] ? 0 : 1].push_back(drills[i]);
+
+    return split;
+}
+
 std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line) {
 
     const std::vector<PlanarFace> faces = planar_faces(mesh);

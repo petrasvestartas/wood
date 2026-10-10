@@ -1551,7 +1551,7 @@ static InteractionFeatureSolid plate_joint_cutter(
         if (outline_pair_repeated(outlines, k))
             continue;
 
-        if (types[0][k] == FabricationType::drill) {
+        if (is_drill(types[0][k])) {
             if (bottom.point_count() == 2 && (bottom[1] - bottom[0]).magnitude_squared() > 1e-12)
                 cut.drills.push_back(Line::from_points(bottom[0], bottom[1]));
             continue;
