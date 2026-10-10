@@ -1,103 +1,125 @@
-// The tiles of docs/joint_library.md: every design the oracle builds, joined on its fixture pair, written as what each plate keeps inside
-// the joint's volume box, the plates whole and the key, one text file per design for draw_tile.py and draw_sweep.py.
+// The scenes of docs/joint_library.md, two session files per design for the viewer, never overlapping: <id>_unit.pb, the design's male and
+// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates'; and <id>.pb, the oracle's pair joined
+// by it, the plates with the merged outlines and any solid the joint owns as BReps.
 //   ./build/joint_tiles <out_dir> [family/library/parameters ...]     every oracle variant when no id is given
 #define main joint_library_main
 #include "../../tests/joint_library.cpp"
 #undef main
-#include "remesh_cdt.h"
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Writing
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// The corners of a mesh ring.
-static std::vector<Point> ring_points(const Mesh& mesh, const std::vector<size_t>& ring) {
-
-    std::vector<Point> points;
-    for (size_t key : ring)
-        points.push_back(*mesh.vertex_point(key));
-
-    return points;
+namespace {
+using namespace wood_session;
+#include "wood_interaction_feature_plate_joints.h"
 }
 
-/// One face line: F x y z x y z ...
-static void write_face(std::ofstream& out, const std::vector<Point>& points) {
+static const double BOX = 200.0; // mm, the unit box
+static const double APART = 250.0; // mm, the second plate moved off the first
+static const Color MALE = Color(0.86f, 0.43f, 0.16f);
+static const Color FEMALE = Color(0.16f, 0.43f, 0.78f);
+static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
 
-    out << "F";
-    for (const Point& point : points)
-        out << " " << point[0] << " " << point[1] << " " << point[2];
-    out << "\n";
+// ═══════════════════════════════════════════════════════════════════════════
+// The unit box
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The design's outlines in its unit box, the library function run on a joint with the built one's parameters; false for a design that is
+/// built on the plates in their own space (top to top, side removal, custom), which has no unit box to draw.
+static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
+
+    const InteractionFeaturePlate& built_connection = built.joint->connections.at(0);
+    const JointPlateParameters& p = built.joint->parameters;
+    unit.divisions = built_connection.divisions;
+    unit.shift = built_connection.shift;
+    const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
+    std::vector<InteractionFeaturePlate> no_joints;
+
+    const std::map<std::string, std::function<void()>> designs = {
+        {"ss_e_ip_0", [&] { ss_e_ip_0(unit); }}, {"ss_e_ip_1", [&] { ss_e_ip_1(unit); }}, {"ss_e_ip_2", [&] { ss_e_ip_2(unit, plates); }},
+        {"ss_e_ip_3", [&] { ss_e_ip_3(unit); }}, {"ss_e_ip_4", [&] { ss_e_ip_4(unit); }}, {"ss_e_ip_5", [&] { ss_e_ip_5(unit, plates); }},
+        {"ss_e_op_0", [&] { ss_e_op_0(unit); }}, {"ss_e_op_1", [&] { ss_e_op_1(unit); }}, {"ss_e_op_2", [&] { ss_e_op_2(unit); }},
+        {"ss_e_op_3", [&] { ss_e_op_3(unit); }},
+        {"ss_e_op_4", [&] { ss_e_op_4(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
+        {"ss_e_op_5", [&] { ss_e_op_5(unit, no_joints, p.disable_divisions); }}, {"ss_e_op_6", [&] { ss_e_op_6(unit, no_joints); }},
+        {"ss_e_op_17", [&] { ss_e_op_17(unit); }}, {"ss_e_op_tutorial", [&] { ss_e_op_tutorial(unit); }},
+        {"ts_e_p_0", [&] { ts_e_p_0(unit); }}, {"ts_e_p_1", [&] { ts_e_p_1(unit); }}, {"ts_e_p_2", [&] { ts_e_p_2(unit); }},
+        {"ts_e_p_3", [&] { ts_e_p_3(unit); }}, {"ts_e_p_4", [&] { ts_e_p_4(unit); }}, {"ts_e_p_5", [&] { ts_e_p_5(unit); }},
+        {"cr_c_ip_0", [&] { cr_c_ip_0(unit); }}, {"cr_c_ip_1", [&] { cr_c_ip_1(unit); }}, {"cr_c_ip_2", [&] { cr_c_ip_2(unit); }},
+        {"cr_c_ip_3", [&] { cr_c_ip_3(unit); }}, {"cr_c_ip_4", [&] { cr_c_ip_4(unit); }}, {"cr_c_ip_5", [&] { cr_c_ip_5(unit); }},
+        {"ss_e_r_2", [&] { ss_e_r_2(unit, plates); }}, {"ss_e_r_3", [&] { ss_e_r_3(unit, plates); }},
+    };
+
+    const auto design = designs.find(built.library);
+    if (design == designs.end())
+        return false;
+    design->second();
+    return true;
 }
 
-/// A part: every face as its polygon, a face with holes as the triangles of its ring and hole rings in its own plane.
-static void write_mesh(std::ofstream& out, const Mesh& mesh, const std::string& kind) {
+/// The unit box and the outlines in it, scaled to BOX.
+static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit) {
 
-    out << "P 0 " << kind << "\n";
-    for (const std::pair<const size_t, std::vector<size_t>>& entry : mesh.face) {
-        const std::vector<Point> outer = ring_points(mesh, entry.second);
-        const auto holes = mesh.get_face_holes().find(entry.first);
-        if (holes == mesh.get_face_holes().end() || holes->second.empty()) {
-            write_face(out, outer);
-            continue;
-        }
+    const std::shared_ptr<TreeNode> group = scene.group_named("unit_box");
+    const Xform place = Xform::scale_uniform(Point(0.0, 0.0, 0.0), BOX);
 
-        const Vector normal = Vector::average_normal(outer);
-        const Plane plane = Plane::from_point_normal(outer[0], normal);
-        const Xform to_plane = Xform::world_to_frame(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis());
-        std::vector<Point> corners = outer;
-        std::vector<Polyline> rings = {Polyline(outer).transformed(to_plane)};
-        for (const std::vector<size_t>& hole : holes->second) {
-            std::vector<Point> points = ring_points(mesh, hole);
-            if (Vector::average_normal(points).dot(normal) > 0.0)
-                std::reverse(points.begin(), points.end());
-            rings.push_back(Polyline(points).transformed(to_plane));
-            corners.insert(corners.end(), points.begin(), points.end());
-        }
+    // the box's twelve edges
+    const double h = 0.5;
+    for (int axis = 0; axis < 3; axis++)
+        for (double u : {-h, h})
+            for (double v : {-h, h}) {
+                std::array<double, 3> start = {u, v, -h};
+                std::array<double, 3> end = {u, v, h};
+                std::rotate(start.begin(), start.begin() + 2 - axis, start.end());
+                std::rotate(end.begin(), end.begin() + 2 - axis, end.end());
+                auto edge = std::make_shared<Polyline>(std::vector<Point>{Point(start[0], start[1], start[2]), Point(end[0], end[1], end[2])});
+                *edge = edge->transformed(place);
+                edge->linecolor = EDGE;
+                edge->width = 1.0;
+                scene.add_polyline(edge, group);
+            }
 
-        for (const std::array<int, 3>& triangle : RemeshCDT::triangulate(rings)) {
-            const Point& a = corners[triangle[0]];
-            const Point& b = corners[triangle[1]];
-            const Point& c = corners[triangle[2]];
-            if ((b - a).cross(c - a).dot(normal) < 0.0)
-                write_face(out, {a, c, b});
-            else
-                write_face(out, {a, b, c});
-        }
-    }
+    // every male and female outline of both faces, the 2-point seam markers left out
+    for (int side = 0; side < 2; side++)
+        for (int face = 0; face < 2; face++)
+            for (const Polyline& outline : side == 0 ? unit.male_outlines[face] : unit.female_outlines[face]) {
+                if (outline.point_count() < 3)
+                    continue;
+                auto drawn = std::make_shared<Polyline>(outline.transformed(place));
+                drawn->linecolor = side == 0 ? MALE : FEMALE;
+                drawn->width = 3.0;
+                drawn->name = fmt::format("{}_face_{}", side == 0 ? "male" : "female", face);
+                scene.add_polyline(drawn, group);
+            }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Tiles
+// Scenes
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One design: its name and parameters, the box, the male and female tiles, the plates and the key.
-static void write_tiles(const std::string& id, const std::string& dir) {
+/// One design's scenes: its unit box alone when it has one, and its pair as the oracle joins it.
+static void write_scene(const std::string& id, const std::string& dir) {
 
-    const Built built = build_variant(id, Xform::identity());
-    const InteractionFeaturePlate& connection = built.joint->connections.at(0);
+    Built built = build_variant(id, Xform::identity());
     std::string name = id;
     std::replace(name.begin(), name.end(), '/', '_');
-    std::ofstream out(dir + "/" + name + ".txt");
-    out << "N " << id << " " << connection.name << " divisions " << connection.divisions << " shift " << connection.shift << "\n";
 
-    // the tiles: each plate's cut solid inside the volume box, shrunk 1e-4 so that a plate face lying on the box is not a sheet of the result
-    const std::array<std::shared_ptr<Plate>, 2> plates = {built.fixture.target0, built.fixture.target1};
-    if (connection.joint_volumes[0] && connection.joint_volumes[1]) {
-        for (int side = 0; side < 2; side++) {
-            const int first = side == 1 && connection.joint_volumes[2] && connection.joint_volumes[3] ? 2 : 0;
-            const Polyline& near = *connection.joint_volumes[first];
-            const Polyline& far = *connection.joint_volumes[first + 1];
-            Mesh box = Mesh::loft({near}, {far});
-            box.transform(Xform::scale_uniform(near.center() + (far.center() - near.center()) * 0.5, 1.0 - 1e-4));
-            write_mesh(out, solid_boolean(plates[side]->model_geometry_mesh(), box, SolidOperation::intersect), side == 0 ? "male" : "female");
-        }
+    // the unit box, a scene of its own
+    InteractionFeaturePlate unit;
+    if (unit_outlines(built, unit)) {
+        WoodSession unit_scene(name + "_unit");
+        add_unit_box(unit_scene, unit);
+        unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
     }
 
-    // the plates as the solver cuts them, and the joint's own piece
-    write_mesh(out, plates[0]->model_geometry_mesh(), "male_plate");
-    write_mesh(out, plates[1]->model_geometry_mesh(), "female_plate");
-    if (!built.joint->key_mesh().face.empty())
-        write_mesh(out, built.joint->key_mesh(), "key");
+    // the pair drawn apart, the second plate moved along the contact from the first so the merged outlines read, a key half way and shown
+    const Fixture& fixture = built.fixture;
+    Vector apart = fixture.cross
+        ? fixture.a->planes[0].z_axis().cross(fixture.b->planes[0].z_axis()).normalized()
+        : compute_newell(fixture.face->polygon.get_points()).normalized();
+    if ((fixture.b->element_geometry_mesh().centroid() - fixture.a->element_geometry_mesh().centroid()).dot(apart) < 0.0)
+        apart = apart * -1.0;
+    fixture.b->place(Xform::translation(apart[0] * APART, apart[1] * APART, apart[2] * APART));
+    built.joint->place(Xform::translation(apart[0] * 0.5 * APART, apart[1] * 0.5 * APART, apart[2] * 0.5 * APART));
+    built.joint->is_visible = built.joint->key_mesh().number_of_faces() > 0;
+    built.scene->pb_dump(dir + "/" + name + ".pb");
 }
 
 int main(int argc, char** argv) {
@@ -111,7 +133,7 @@ int main(int argc, char** argv) {
 
     for (const std::string& id : ids) {
         try {
-            write_tiles(id, argv[1]);
+            write_scene(id, argv[1]);
         } catch (const std::exception& e) {
             std::cout << id << ": " << e.what() << std::endl;
         }

@@ -26,13 +26,12 @@ Compare `JointBeam::hilti` with any older implementation (wood_research, compas_
 
 ## 4. Pictures from the session viewer, Arctic with black outlines
 
-- Build `session_viewer` locally (Trunk) and serve it; github.io is not reachable from the cloud session.
-- Drive headless Chromium on the software Vulkan driver (lavapipe) with WebGPU.
-- Shoot with `Arctic On` (soft shadows) and the black outlines, orthographic isometric view; no more matplotlib.
-- A tool to shoot any example's `live.pb` this way.
+- Headless Chromium on the software Vulkan driver gave white screenshots, and github.io is not reachable from the cloud session. So the pictures are drawn by the viewer's own renderer without a browser: `tools/wood_shot.rs`, built as an example of session_viewer, on the native headless GPU (lavapipe when there is no GPU).
+- `Arctic On` (soft shadows) and the black outlines, orthographic isometric view fitted; no more matplotlib.
+- `tools/shoot_native.sh` shoots any session file, or builds and runs an element example and shoots its `live.pb` into `docs/images/elements`.
 
 ## 5. What a picture shows
 
-- Plate joints that merge into the outlines (every `JointPlate` design except the key and drill parts): their outlines only, polylines. The plates with the merged outlines, and the joint's male and female outlines in the unit box.
+- Plate joints that merge into the outlines (every `JointPlate` design except the key and drill parts): their outlines only, polylines, in the unit box, a picture of its own; the plates with the merged outlines, drawn apart, a second picture, never overlapping the first.
 - Joints that are solid booleans (keys, drills, pins, the Hilti parts, beam joints, cutters): solids, as BReps.
 - Redo the joint library page and the element pages' pictures this way.
