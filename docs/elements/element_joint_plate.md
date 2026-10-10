@@ -12,7 +12,7 @@ static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), 
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
 static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; ss_e_r_1 is the tile of side_removal_ss_e_r_1, not a design of its own
-static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
+static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) .. tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05)
 static std::shared_ptr<JointPlate> b_0()
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5)
@@ -65,7 +65,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ![cr_c_ip](elements/element_joint_plate_cr_c_ip.png)
 
-`cr_c_ip_0` to `cr_c_ip_5` on two upright plates crossing, oriented on their `InteractionContactCross`, the second plate lifted to show the slots.
+`cr_c_ip_0` to `cr_c_ip_5` on two upright plates crossing, oriented on their `InteractionContactCross`, the second plate lifted to show the slots: the plain slot `cr_c_ip_0` (id 30, the family default, a rectangle merged into each plate's outline over half the cross's depth, clipped into it by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid), and the milled half-lap `cr_c_ip_1` to `cr_c_ip_5` (ids 31 to 35), every outline a solid taken from the plate, its centre square narrowed by the shift, with 2024's drills: two diagonal in `cr_c_ip_3`, one vertical in `cr_c_ip_4`, a vertical 50 mm and a horizontal 10 mm bit in `cr_c_ip_5`, whose bottom sides are extended 0.27 on one segment and shortened 0.075 on the other as 2024 built the Brussels sports tower; `cr_c_ip_custom` (id 39) keeps your outlines pair by pair as 2024 kept them.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip.cpp
 

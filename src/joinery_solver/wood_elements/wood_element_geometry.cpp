@@ -90,6 +90,19 @@ Vector cgal_base1(const Vector& normal) {
     return Vector(-normal[1], normal[0], 0.0).normalized();
 }
 
+Clipper2Lib::PathD clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, const bool open) {
+
+    Clipper2Lib::PathD path;
+    const size_t n = !open && outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
+    path.reserve(n);
+    for (size_t k = 0; k < n; ++k) {
+        const Vector d = outline.get_point(k) - origin;
+        path.emplace_back(d.dot(x_axis), d.dot(y_axis));
+    }
+
+    return path;
+}
+
 std::vector<Plane> face_planes(const Mesh& mesh) {
 
     std::vector<Plane> planes;

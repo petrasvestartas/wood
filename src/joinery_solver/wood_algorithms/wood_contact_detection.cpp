@@ -198,25 +198,6 @@ bool faces_coplanar(
     return sq_dist0 < coplanar_tolerance && sq_dist1 < coplanar_tolerance;
 }
 
-/// An outline as a Clipper path in the plane's 2D frame, without its closing vertex.
-static Clipper2Lib::PathD outline_to_clipper_path(
-    const Polyline& outline,
-    const Point& origin,
-    const Vector& x_axis,
-    const Vector& y_axis
-) {
-
-    Clipper2Lib::PathD path;
-    const size_t n = outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
-    path.reserve(n);
-    for (size_t k = 0; k < n; ++k) {
-        const Vector d = outline.get_point(k) - origin;
-        path.emplace_back(d.dot(x_axis), d.dot(y_axis));
-    }
-
-    return path;
-}
-
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
@@ -234,22 +215,8 @@ bool face_overlap_area(
     const Vector xax = cgal_base1(zax);
     const Vector yax = zax.cross(xax).normalized();
 
-    const Clipper2Lib::PathsD subject{
-        outline_to_clipper_path(
-            outline0,
-            origin,
-            xax,
-            yax
-        )
-    };
-    const Clipper2Lib::PathsD clip{
-        outline_to_clipper_path(
-            outline1,
-            origin,
-            xax,
-            yax
-        )
-    };
+    const Clipper2Lib::PathsD subject{clipper_path(outline0, origin, xax, yax, false)};
+    const Clipper2Lib::PathsD clip{clipper_path(outline1, origin, xax, yax, false)};
     const Clipper2Lib::PathsD solution = Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero, CONTACT_DECIMALS);
 
     if (solution.empty())

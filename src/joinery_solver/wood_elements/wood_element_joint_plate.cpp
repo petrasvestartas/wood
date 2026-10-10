@@ -914,7 +914,7 @@ std::vector<Line> JointPlate::drill_axes() const {
             const std::array<std::vector<int>, 2>& types = side == 0 ? connection.male_fabrication_types : connection.female_fabrication_types;
             for (size_t i = 0; i < std::min(outlines[0].size(), types[0].size()); ++i) {
                 const Polyline& line = outlines[0][i];
-                if (types[0][i] != FabricationType::drill || line.point_count() != 2)
+                if (!is_drill(types[0][i]) || line.point_count() != 2)
                     continue;
                 if (i > 0 && outlines[0][i - 1].get_points() == line.get_points())
                     continue;
@@ -1521,24 +1521,36 @@ std::shared_ptr<JointPlate> JointPlate::cr_c_ip_1(double shift) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::cr_c_ip_2() {
+std::shared_ptr<JointPlate> JointPlate::cr_c_ip_2(double shift) {
 
-    return from_library("cr_c_ip_2", 30);
+    const std::shared_ptr<JointPlate> joint = from_library("cr_c_ip_2", 30);
+    joint->shift = shift;
+
+    return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::cr_c_ip_3() {
+std::shared_ptr<JointPlate> JointPlate::cr_c_ip_3(double shift) {
 
-    return from_library("cr_c_ip_3", 30);
+    const std::shared_ptr<JointPlate> joint = from_library("cr_c_ip_3", 30);
+    joint->shift = shift;
+
+    return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::cr_c_ip_4() {
+std::shared_ptr<JointPlate> JointPlate::cr_c_ip_4(double shift) {
 
-    return from_library("cr_c_ip_4", 30);
+    const std::shared_ptr<JointPlate> joint = from_library("cr_c_ip_4", 30);
+    joint->shift = shift;
+
+    return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::cr_c_ip_5() {
+std::shared_ptr<JointPlate> JointPlate::cr_c_ip_5(double shift) {
 
-    return from_library("cr_c_ip_5", 30);
+    const std::shared_ptr<JointPlate> joint = from_library("cr_c_ip_5", 30);
+    joint->shift = shift;
+
+    return joint;
 }
 
 std::shared_ptr<JointPlate> JointPlate::cr_c_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {

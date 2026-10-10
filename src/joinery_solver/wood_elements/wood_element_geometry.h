@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "clipper2/clipper.h"
 #include "wood_interaction_feature_solid.h"
 #include "wood_interaction_feature_plane.h"
 
@@ -68,6 +69,9 @@ Vector compute_newell(const std::vector<Point>& points);
 
 /// CGAL's Plane_3::base1 for a plane of this normal, unit: the world axis the normal is exactly perpendicular to, x before y before z, else the smallest component zeroed and the other two swapped with one sign flipped. The 2024 solver framed every plate face with it; Plane::base1 of the kernel skips the world-axis cases, so an axis-aligned face gets another frame there.
 Vector cgal_base1(const Vector& normal);
+
+/// An outline as a Clipper2 path in the 2D frame (origin, x_axis, y_axis): every vertex for an open subject, else a closed outline without its closing vertex; what the 2024 solver handed Clipper2 for a face overlap and for a joint outline clipped into a face.
+Clipper2Lib::PathD clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, bool open);
 
 /// One plane per face of a mesh, origin at the face centroid, Newell normal along the face ring; what contact detection compares.
 std::vector<Plane> face_planes(const Mesh& mesh);

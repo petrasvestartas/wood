@@ -151,16 +151,26 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     static std::shared_ptr<JointPlate> cr_c_ip_0();
+    // Cross in-plane, contact 30, ids 30-39 as 2024 numbered them: 30 cr_c_ip_0 (the family default id), 31 cr_c_ip_1,
+    // 32 cr_c_ip_2, 33 cr_c_ip_3, 34 cr_c_ip_4, 35 cr_c_ip_5, 38 side_removal, 39 cr_c_ip_custom; an id without an entry
+    // takes cr_c_ip_0. The family has no divisions; the shift default is the family's 0.5, and it sets the width of the
+    // half-lap's centre square in cr_c_ip_1 to cr_c_ip_5: 0 the widest, 1 the narrowest. The unit box puts the first
+    // plate's thickness along x, the second's along y and the cross's depth along z: cr_c_ip_0 is the plain slot, a
+    // rectangle merged into each plate's outline over half its depth; cr_c_ip_1 to cr_c_ip_5 are the milled half-lap,
+    // every outline a solid taken from the plate, with 2024's drills: two diagonal in cr_c_ip_3, one vertical in
+    // cr_c_ip_4, a vertical 50 mm and a horizontal 10 mm bit in cr_c_ip_5, whose bottom sides are extended 0.27 on one
+    // segment and shortened 0.075 on the other as 2024 built the Brussels sports tower.
+
 
     static std::shared_ptr<JointPlate> cr_c_ip_1(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> cr_c_ip_2();
+    static std::shared_ptr<JointPlate> cr_c_ip_2(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> cr_c_ip_3();
+    static std::shared_ptr<JointPlate> cr_c_ip_3(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> cr_c_ip_4();
+    static std::shared_ptr<JointPlate> cr_c_ip_4(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> cr_c_ip_5();
+    static std::shared_ptr<JointPlate> cr_c_ip_5(double shift = 0.5);
 
     static std::shared_ptr<JointPlate> cr_c_ip_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 

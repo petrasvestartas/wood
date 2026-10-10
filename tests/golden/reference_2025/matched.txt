@@ -4,6 +4,11 @@ annen_corner
 annen_grid_full_arch
 annen_grid_small
 cross_brussels_sports_tower
+cross_corners
+cross_square_reciprocal_iseya
+cross_vda_hexshell
+cross_vda_hexshell_reciprocal
+cross_vda_shell
 hello
 hexbox_and_corner
 inplane_differentdirections

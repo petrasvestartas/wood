@@ -23,8 +23,18 @@ private:
         bool has_top_at_next = false; // Whether the three planes met at the top next corner.
     };
 
+    /// The 2D frame a face is clipped in.
+    struct ClipFrame {
+        Point origin; // The face outline's first point.
+        Vector x_axis; // CGAL's base1 of the face plane.
+        Vector y_axis; // The normal's cross with it.
+    };
+
     static constexpr double EDGE_SCALE = 1000000.0; // Sort keys pack the edge id scaled by this.
     static constexpr double FRACTION_SCALE = 1000.0; // Sort keys pack the sub-edge fraction scaled by this.
+    static constexpr int CLIP_DECIMALS = 2; // The decimals 2024 gave Clipper2's ClipperD when it clipped the open joint outline against the face outline, in the frame of the face's first point and CGAL's bases of its plane.
+    static constexpr double CLIP_SCALE = 128.0; // ClipperD's scale at those decimals, the power of two above 10^2 (its radix rule, #25): what a coordinate is multiplied by before it is rounded to an integer.
+    static constexpr double CLIP_GRID = 1.0 / CLIP_SCALE; // mm, the grid that clip left every slot on, 1/128, where the 2025 reference holds them.
     const Plate& plate; // The plate being merged.
     int plate_index = -1; // Position of the plate in the element list, for the log.
     std::ofstream log_file; // The diagnostic log file, open only when tracing.
@@ -89,7 +99,16 @@ private:
         bool male_or_female
     ) const;
 
-    /// Clips the rectangle joint against both outlines and inserts the clipped runs.
+    /// The frame 2024 clipped a face in: the face outline's first point, CGAL's base1 of the face plane and the normal's cross with it.
+    static ClipFrame clip_frame(const Polyline& face, const Plane& plane);
+
+    /// The outline on 2024's clip grid: each point's two coordinates in the frame rounded to CLIP_GRID, as Clipper2 rounds every vertex it takes at two decimals, and the point put back on the face, so the kernel's clip sees the outlines Clipper2 saw.
+    static Polyline on_clip_grid(const Polyline& outline, const ClipFrame& frame);
+
+    /// The run with each point moved onto the nearest point, within a grid step, of Clipper2's own clip of the joint outline against the face outline at two decimals, the clip 2024 ran: Clipper2 keeps a vertex on the grid, truncates the intersection of two slanted edges toward zero and rounds one on a horizontal edge to the nearest, and the 2025 reference holds every slot where it put them. A point no result point is near keeps its grid position.
+    static Polyline on_clipper_points(const Polyline& run, const Polyline& face, const Polyline& joint, const ClipFrame& frame);
+
+    /// Clips the rectangle joint against both outlines on the 2024 clip grid and inserts the clipped runs.
     void insert_rectangle_cut(const std::array<std::vector<Polyline>, 2>& outlines);
 
     /// Intersects the joint plane with its neighbours and the bottom/top planes; a degenerate joint plane leaves the corners in place.

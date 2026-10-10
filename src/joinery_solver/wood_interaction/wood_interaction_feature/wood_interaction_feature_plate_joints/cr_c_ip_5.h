@@ -1,27 +1,12 @@
-/// cr_c_ip_5: five base rings, one vertical and one horizontal drill, asymmetric side extension (1.8 / -0.5).
+/// cr_c_ip_5: the five rings of the half-lap, the bottom sides extended 0.27 on their first segment and shortened 0.075
+/// on their third, the asymmetry 2024 gave the Brussels sports tower, a vertical pin of a 50 mm bit through the centre
+/// and a horizontal one of a 10 mm bit below the lap.
 static void cr_c_ip_5(InteractionFeaturePlate& joint) {
 
     joint.name = "cr_c_ip_5";
-
     const std::vector<Polyline> drills = {
         Polyline({Point(0.0, 0.0, -1.0), Point(0.0, 0.0, 1.0)}),
         Polyline({Point(-0.5, 0.0, -0.55), Point(0.5, 0.0, -0.55)}),
     };
-    const std::vector<int> ct = {
-        FabricationType::mill_project, FabricationType::mill_project,
-        FabricationType::slice_projectsheer, FabricationType::slice_projectsheer, FabricationType::slice_projectsheer, FabricationType::slice_projectsheer,
-        FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project,
-        FabricationType::drill, FabricationType::drill, FabricationType::drill, FabricationType::drill,
-    };
-
-    cr_c_ip_core(
-        joint,
-        drills,
-        0.15,
-        0.6,
-        1.8,
-        -0.5,
-        2,
-        ct
-    );
+    cr_c_ip_core(joint, 0.15 * 1.8, -0.15 * 0.5, drills, {FabricationType::drill_50, FabricationType::drill_10});
 }

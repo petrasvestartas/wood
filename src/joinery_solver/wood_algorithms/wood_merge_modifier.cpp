@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_merge_modifier.h"
 #include "wood_session.h"
+#include "wood_element_geometry.h"
 using namespace session_cpp;
 
 constexpr bool TRACE = false;
@@ -177,29 +178,92 @@ bool MergeModifier::merges_into_outline(const InteractionFeaturePlate& joint, bo
     return types[0][0] == FabricationType::edge_insertion || types[0][0] == FabricationType::insert_between_multiple_edges;
 }
 
+MergeModifier::ClipFrame MergeModifier::clip_frame(const Polyline& face, const Plane& plane) {
+
+    ClipFrame frame;
+    frame.origin = face.get_point(0);
+    const Vector normal = plane.z_axis().normalized();
+    frame.x_axis = cgal_base1(normal);
+    frame.y_axis = normal.cross(frame.x_axis).normalized();
+
+    return frame;
+}
+
+Polyline MergeModifier::on_clip_grid(const Polyline& outline, const ClipFrame& frame) {
+
+    std::vector<Point> points;
+    for (const Point& point : outline.get_points()) {
+        const Vector d = point - frame.origin;
+        const double u = std::round(d.dot(frame.x_axis) * CLIP_SCALE) * CLIP_GRID;
+        const double v = std::round(d.dot(frame.y_axis) * CLIP_SCALE) * CLIP_GRID;
+        points.push_back(frame.origin + frame.x_axis * u + frame.y_axis * v);
+    }
+
+    return Polyline(points);
+}
+
+Polyline MergeModifier::on_clipper_points(const Polyline& run, const Polyline& face, const Polyline& joint, const ClipFrame& frame) {
+
+    // the clip as 2024 ran it: the joint outline an open subject with its closing vertex, the face outline the clip, two decimals
+    Clipper2Lib::ClipperD clipper(CLIP_DECIMALS);
+    clipper.AddOpenSubject(Clipper2Lib::PathsD{clipper_path(joint, frame.origin, frame.x_axis, frame.y_axis, true)});
+    clipper.AddClip(Clipper2Lib::PathsD{clipper_path(face, frame.origin, frame.x_axis, frame.y_axis, false)});
+    Clipper2Lib::PathsD closed;
+    Clipper2Lib::PathsD open;
+    clipper.Execute(Clipper2Lib::ClipType::Intersection, Clipper2Lib::FillRule::NonZero, closed, open);
+
+    // each run point onto the nearest point Clipper2 returned, within two grid steps: a kept vertex lies on it, an intersection within a step of it on each axis
+    const double within = 2.0 * CLIP_GRID;
+    std::vector<Point> points;
+    for (const Point& point : run.get_points()) {
+        const Vector d = point - frame.origin;
+        const double u = d.dot(frame.x_axis);
+        const double v = d.dot(frame.y_axis);
+        double nearest = within * within;
+        Point moved = point;
+        for (const Clipper2Lib::PathD& path : open) {
+            for (const Clipper2Lib::PointD& q : path) {
+                const double distance = (q.x - u) * (q.x - u) + (q.y - v) * (q.y - v);
+                if (distance < nearest) {
+                    nearest = distance;
+                    moved = frame.origin + frame.x_axis * q.x + frame.y_axis * q.y;
+                }
+            }
+        }
+        points.push_back(moved);
+    }
+
+    return Polyline(points);
+}
+
 void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>, 2>& outlines) {
 
+    // clipped as 2024 clipped: the kernel's clip of the outlines on Clipper2's grid gives the run and its edge parameters, Clipper2's own clip gives the run its points, so the slot lands where the 2025 reference puts it
+    const ClipFrame frame_bottom = clip_frame(plate.polylines[0], plate.planes[0]);
     Polyline clipped_bottom;
     std::pair<double, double> parameters_bottom;
     if (!Intersection::closed_and_open_paths_2d(
-        plate.polylines[0],
-        outlines[0][0],
+        on_clip_grid(plate.polylines[0], frame_bottom),
+        on_clip_grid(outlines[0][0], frame_bottom),
         plate.planes[0],
         clipped_bottom,
         parameters_bottom
     ))
         return;
+    clipped_bottom = on_clipper_points(clipped_bottom, plate.polylines[0], outlines[0][0], frame_bottom);
 
+    const ClipFrame frame_top = clip_frame(plate.polylines[1], plate.planes[1]);
     Polyline clipped_top;
     std::pair<double, double> parameters_top;
     if (!Intersection::closed_and_open_paths_2d(
-        plate.polylines[1],
-        outlines[1][0],
+        on_clip_grid(plate.polylines[1], frame_top),
+        on_clip_grid(outlines[1][0], frame_top),
         plate.planes[1],
         clipped_top,
         parameters_top
     ))
         return;
+    clipped_top = on_clipper_points(clipped_top, plate.polylines[1], outlines[1][0], frame_top);
 
     const size_t key_bottom = (size_t)(EDGE_SCALE * std::floor(parameters_bottom.first)) + (size_t)(FRACTION_SCALE * std::fmod(parameters_bottom.first, 1.0));
     const size_t key_top = (size_t)(EDGE_SCALE * std::floor(parameters_top.first)) + (size_t)(FRACTION_SCALE * std::fmod(parameters_top.first, 1.0));
