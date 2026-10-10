@@ -31,6 +31,7 @@
 #include "google/protobuf/extension_set.h"  // IWYU pragma: export
 #include "google/protobuf/unknown_field_set.h"
 #include "polyline.pb.h"
+#include "vector.pb.h"
 // @@protoc_insertion_point(includes)
 
 // Must be included last.
@@ -216,6 +217,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
   // accessors -------------------------------------------------------
   enum : int {
     kVolumesFieldNumber = 2,
+    kAxesFieldNumber = 5,
+    kNormalFieldNumber = 4,
     kEndTypeFieldNumber = 1,
   };
   // repeated .session_proto.Polyline volumes = 2;
@@ -238,6 +241,41 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
   ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF_NONNULL _internal_mutable_volumes();
 
   public:
+  // repeated .session_proto.Vector axes = 5;
+  [[nodiscard]] int axes_size() const;
+  private:
+  int _internal_axes_size() const;
+
+  public:
+  void clear_axes() ;
+  [[nodiscard]] const ::session_proto::Vector& axes(int index) const;
+  [[nodiscard]] ::session_proto::Vector* PROTOBUF_NONNULL mutable_axes(int index);
+  ::session_proto::Vector* PROTOBUF_NONNULL add_axes();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>&
+  axes() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+  mutable_axes();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>& _internal_axes() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL _internal_mutable_axes();
+
+  public:
+  // .session_proto.Vector normal = 4;
+  [[nodiscard]] bool has_normal() const;
+  void clear_normal() ;
+  [[nodiscard]] const ::session_proto::Vector& normal() const;
+  [[nodiscard]] ::session_proto::Vector* PROTOBUF_NULLABLE release_normal();
+  ::session_proto::Vector* PROTOBUF_NONNULL mutable_normal();
+  void set_allocated_normal(::session_proto::Vector* PROTOBUF_NULLABLE value);
+  void unsafe_arena_set_allocated_normal(::session_proto::Vector* PROTOBUF_NULLABLE value);
+  ::session_proto::Vector* PROTOBUF_NULLABLE unsafe_arena_release_normal();
+
+  private:
+  const ::session_proto::Vector& _internal_normal() const;
+  ::session_proto::Vector* PROTOBUF_NONNULL _internal_mutable_normal();
+
+  public:
   // int32 end_type = 1;
   void clear_end_type() ;
   [[nodiscard]] ::int32_t end_type() const;
@@ -252,8 +290,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<1, 2,
-                          1, 0,
+      ::google::protobuf::internal::TcParseTable<3, 4,
+                          3, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -282,6 +320,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
     ::google::protobuf::internal::HasBits<1> _has_bits_;
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > volumes_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Vector > axes_;
+    ::session_proto::Vector* PROTOBUF_NULLABLE normal_;
     ::int32_t end_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -309,7 +349,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureBeam final : publ
 inline void InteractionFeatureBeam::clear_end_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.end_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
 }
 inline ::int32_t InteractionFeatureBeam::end_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureBeam.end_type)
@@ -317,7 +357,7 @@ inline ::int32_t InteractionFeatureBeam::end_type() const {
 }
 inline void InteractionFeatureBeam::set_end_type(::int32_t value) {
   _internal_set_end_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureBeam.end_type)
 }
 inline ::int32_t InteractionFeatureBeam::_internal_end_type() const {
@@ -377,6 +417,149 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 InteractionFeatureBeam::_internal_mutable_volumes() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.volumes_;
+}
+
+// .session_proto.Vector normal = 4;
+inline bool InteractionFeatureBeam::has_normal() const {
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000004U);
+  PROTOBUF_ASSUME(!value || _impl_.normal_ != nullptr);
+  return value;
+}
+inline const ::session_proto::Vector& InteractionFeatureBeam::_internal_normal() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  const ::session_proto::Vector* p = _impl_.normal_;
+  return p != nullptr ? *p : *::google::protobuf::internal::MessageGlobalsBase::ToDefaultInstance<::session_proto::Vector>(&::session_proto::Vector_globals_);
+}
+inline const ::session_proto::Vector& InteractionFeatureBeam::normal() const ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureBeam.normal)
+  return _internal_normal();
+}
+inline void InteractionFeatureBeam::unsafe_arena_set_allocated_normal(
+    ::session_proto::Vector* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (GetArena() == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.normal_);
+  }
+  _impl_.normal_ = reinterpret_cast<::session_proto::Vector*>(value);
+  if (value != nullptr) {
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeatureBeam.normal)
+}
+inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureBeam::release_normal() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::session_proto::Vector* released = _impl_.normal_;
+  _impl_.normal_ = nullptr;
+  if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
+    auto* old = reinterpret_cast<::google::protobuf::MessageLite*>(released);
+    released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    if (GetArena() == nullptr) {
+      delete old;
+    }
+  } else {
+    if (GetArena() != nullptr) {
+      released = ::google::protobuf::internal::DuplicateIfNonNull(released);
+    }
+  }
+  return released;
+}
+inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureBeam::unsafe_arena_release_normal() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureBeam.normal)
+
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::session_proto::Vector* temp = _impl_.normal_;
+  _impl_.normal_ = nullptr;
+  return temp;
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureBeam::_internal_mutable_normal() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.normal_ == nullptr) {
+    auto* p = Super_::DefaultConstruct<::session_proto::Vector>(GetArena());
+    _impl_.normal_ = reinterpret_cast<::session_proto::Vector*>(p);
+  }
+  return _impl_.normal_;
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureBeam::mutable_normal()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ::session_proto::Vector* _msg = _internal_mutable_normal();
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureBeam.normal)
+  return _msg;
+}
+inline void InteractionFeatureBeam::set_allocated_normal(::session_proto::Vector* PROTOBUF_NULLABLE value) {
+  ::google::protobuf::Arena* message_arena = GetArena();
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (message_arena == nullptr) {
+    delete reinterpret_cast<::google::protobuf::MessageLite*>(_impl_.normal_);
+  }
+
+  if (value != nullptr) {
+    ::google::protobuf::Arena* submessage_arena = reinterpret_cast<::google::protobuf::Message*>(value)->GetArena();
+    if (message_arena != submessage_arena) {
+      value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
+    }
+    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  } else {
+    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  }
+
+  _impl_.normal_ = reinterpret_cast<::session_proto::Vector*>(value);
+  // @@protoc_insertion_point(field_set_allocated:wood_proto.InteractionFeatureBeam.normal)
+}
+
+// repeated .session_proto.Vector axes = 5;
+inline int InteractionFeatureBeam::_internal_axes_size() const {
+  return _internal_axes().size();
+}
+inline int InteractionFeatureBeam::axes_size() const {
+  return _internal_axes_size();
+}
+inline const ::session_proto::Vector& InteractionFeatureBeam::axes(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureBeam.axes)
+  return _internal_axes().Get(index);
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureBeam::mutable_axes(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureBeam.axes)
+  return _internal_mutable_axes()->Mutable(index);
+}
+inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureBeam::add_axes()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Vector* _add =
+      _internal_mutable_axes()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionFeatureBeam.axes)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>& InteractionFeatureBeam::axes() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionFeatureBeam.axes)
+  return _internal_axes();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+InteractionFeatureBeam::mutable_axes() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000002U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeatureBeam.axes)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_axes();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Vector>&
+InteractionFeatureBeam::_internal_axes() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.axes_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Vector>* PROTOBUF_NONNULL
+InteractionFeatureBeam::_internal_mutable_axes() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.axes_;
 }
 
 #ifdef __GNUC__

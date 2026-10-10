@@ -3,6 +3,7 @@ syntax = "proto3";
 package wood_proto;
 
 import "polyline.proto";
+import "vector.proto";
 
 // The state of an InteractionFeatureBeam beyond the kernel Interaction: the four volume rectangles cut where two axes meet.
 message InteractionFeatureBeam {
@@ -10,4 +11,6 @@ message InteractionFeatureBeam {
   repeated session_proto.Polyline volumes = 2;  // 4 rectangles: 2 on the first beam, 2 on the second
   reserved 3;
   reserved "contact_guid";
+  session_proto.Vector normal = 4;              // The normal of the two axes where they meet
+  repeated session_proto.Vector axes = 5;       // Each beam's axis direction there, the first beam's then the second's
 }

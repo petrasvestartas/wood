@@ -62,10 +62,26 @@ static void check_phanomema_node() {
         const Mesh zone = solid_boolean(Mesh::loft({joint->feature.volumes[0]}, {joint->feature.volumes[1]}, true), Mesh::loft({joint->feature.volumes[2]}, {joint->feature.volumes[3]}, true), SolidOperation::add);
         const double in_zone = rest.number_of_faces() == 0 ? 0.0 : boolean_volume(rest, zone, SolidOperation::intersect);
         check(before > 0.0, fmt::format("{} and {} overlapped before their joint", a->name, b->name));
+        // the two beams come apart in opposite directions, each away from the other's box
+        const Vector first = joint->insertion(0);
+        const Vector second = joint->insertion(1);
+        check(std::abs(first.magnitude() - 1.0) <= 1e-9 && std::abs(first.dot(second) + 1.0) <= 1e-9, fmt::format("{} and {} come apart in opposite unit directions, their dot {:.9f}", a->name, b->name, first.dot(second)));
+
         check(after <= KEPT_OVERLAP * before, fmt::format("{} and {} still overlap by {:.1f} of their {:.1f} mm3 after the joint", a->name, b->name, after, before));
         std::cout << fmt::format("joint_beams: {} and {} overlapped {:.0f} mm3, {:.0f} after the joint, {:.0f} of it inside the joint's zone", a->name, b->name, before, after, in_zone) << std::endl;
     }
     check(joints == 5, fmt::format("{} beam joints, not the reference's 5", joints));
+
+    // the axes' normal and directions where they meet travel with the joint through the file
+    const WoodSession restored = WoodSession::pb_loads(scene.pb_dumps());
+    for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
+        const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element);
+        if (!joint || joint->is_connector())
+            continue;
+        const std::shared_ptr<JointBeam> twin = restored.get_element<JointBeam>(joint->guid());
+        check(twin && (twin->feature.normal - joint->feature.normal).magnitude() <= 1e-9 && (twin->feature.axes[1] - joint->feature.axes[1]).magnitude() <= 1e-9 && (twin->insertion(0) - joint->insertion(0)).magnitude() <= 1e-9,
+              joint->name + " keeps its normal, its axes and its insertions through the file");
+    }
 
     for (const std::shared_ptr<Beam>& member : members) {
         const Mesh& model = member->model_geometry_mesh();

@@ -42,10 +42,10 @@ static const std::vector<std::string> VARIANTS = {
     "tt/tt_e_p_5/60/0.95/8", "tt/tt_e_p_5/-60/0.95/8", "tt/tt_e_p_custom",
 };
 
-/// Designs no fixture can orient or no pair check can hold: plate_contact_family has no family for the boundary type 60; ts_e_p_5's 2024 literals put its mortises 3.65e-6 units inside the base's faces and run its snap-fit hook 3.4 units past the base's top, through the base and out below it, so its loops leave the faces and its material leaves the stock by design, and its copies overlap on a 250 mm joint line from four divisions up; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
+/// Designs no fixture can orient or no pair check can hold: the boundary type 60 joins one plate on its border contact, not a pair; ts_e_p_5's 2024 literals put its mortises 3.65e-6 units inside the base's faces and run its snap-fit hook 3.4 units past the base's top, through the base and out below it, so its loops leave the faces and its material leaves the stock by design, and its copies overlap on a 250 mm joint line from four divisions up; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
 static const std::vector<std::string> SKIPPED = {
-    "b/b_0: no contact family for joint type 60, orient throws (dataset only)",
-    "b/b_custom: no contact family for joint type 60, orient throws (dataset only)",
+    "b/b_0: a border joint on one plate, no pair to check (tests/joint_border checks it against the 2025 reference)",
+    "b/b_custom: a border joint on one plate, no pair to check, no 2025 reference reaches it",
     "ts/ts_e_p_5: the 2024 literals leave the faces by 1.5e-4 mm and the hook leaves the stock by design (dataset only)",
 };
 

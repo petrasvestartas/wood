@@ -145,6 +145,8 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
 
     if (adjacency.empty())
         adjacency = io::load_adjacency(config::DATA_SET_ADJACENCY);
+    if (borders.empty())
+        borders = io::load_borders(config::DATA_SET_ADJACENCY);
     if (three_valence.empty())
         three_valence = io::load_three_valence(config::DATA_SET_THREE_VALENCE);
 
@@ -187,6 +189,25 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     }
 
     std::vector<InteractionFeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
+
+    // a boundary joint on every border: the family 60 joint of a plate's side face alone, as 2024 made one for a self-adjacency
+    for (const std::array<int, 2>& border : borders) {
+        if (border[0] < 0 || border[0] >= static_cast<int>(elements.size()))
+            continue;
+        const std::shared_ptr<InteractionContactFace> contact = compute_border_contact(*elements[border[0]], border[1]);
+        if (!contact)
+            continue;
+        InteractionFeaturePlate joint;
+        joint.element_a = elements[border[0]]->guid();
+        joint.element_b = joint.element_a;
+        joint.contact = *contact;
+        joint.joint_type = 60;
+        joint.joint_lines = contact->lines;
+        for (size_t k = 0; k < 4; k++)
+            joint.joint_volumes[k] = contact->volumes[k];
+        joint.guid() = ::guid();
+        joints.push_back(std::move(joint));
+    }
     link_three_valence_joints(
         three_valence,
         elements,
@@ -249,7 +270,9 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
             const auto female = get_element<Element>(joint.element_b);
             if (!male || !female)
                 continue;
-            add_interaction(male, female, joint.to_contact());
+            // a border joint has its one plate: no edge between two plates to carry the contact
+            if (male != female)
+                add_interaction(male, female, joint.to_contact());
             element->connections.push_back(joint);
         }
         if (element->connections.empty())

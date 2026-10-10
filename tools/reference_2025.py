@@ -190,8 +190,9 @@ def read_inputs(name):
     adjacency = []
     path = sidecar(values, "adjacency", name)
     if path:
+        # a row of two elements, or two elements and their faces: a plate paired with itself on a face is a boundary joint
         for row in read_rows(path, int):
-            adjacency.extend([row[0], row[1], -1, -1])
+            adjacency.extend([row[0], row[1], row[2] if len(row) > 3 else -1, row[3] if len(row) > 3 else -1])
 
     return values, pairs, vectors, types, three, adjacency
 

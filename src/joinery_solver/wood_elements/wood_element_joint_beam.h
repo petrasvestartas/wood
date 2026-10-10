@@ -36,6 +36,7 @@ public:
     double drill_overshoot = 0.0; // How far a target's holes run past the pins at an end where the pin leaves the target; a blind hole stops at its pin.
     std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
+    std::vector<Vector> insertions; // A connector's direction each target slides off it, in targets order; a beam-to-beam joint reads its feature instead.
 
     JointBeam();
 
@@ -181,6 +182,10 @@ public:
 
     /// Whether this is a connector, with parts, cutters or pre-drilled pins of its own, rather than a beam-to-beam joint.
     bool is_connector() const;
+
+    /// The direction target i slides off the joint and the other members, unit: a crossing along the normal of the two axes, away from the
+    /// other beam's box; a side-to-end or end-to-end pair along the ending beam's axis; a connector as its factory recorded it.
+    Vector insertion(size_t target) const;
 
     /// The interaction this joint puts on its target i: a connector's cutters and bores, pre-drilled holes, or feature volumes.
     std::shared_ptr<Interaction> interaction(size_t target) const override;

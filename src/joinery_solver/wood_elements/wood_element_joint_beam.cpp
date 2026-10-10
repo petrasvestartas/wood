@@ -319,6 +319,17 @@ static std::string connector_name(const InteractionContactFace& contact, const s
     return contact.name.empty() ? fallback : "connector_" + contact.name;
 }
 
+/// How the two members of a face contact come apart: each along the contact's normal, away from the contact toward its own body.
+static std::vector<Vector> pulled_apart(const Element& a, const Element& b, const InteractionContactFace& contact) {
+
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    Vector normal = compute_newell(points).normalized();
+    if ((b.element_geometry_mesh().centroid() - Point::centroid(points)).dot(normal) < 0.0)
+        normal = normal * -1.0;
+
+    return {normal * -1.0, normal};
+}
+
 /// The wedge: a prism of the profile, apex down, along the contact's top edge, cut horizontally at the edge's level, shortened by length_margin at both ends, the end nearest the end plane on that plane instead, pins every pin_spacing flush with the members and a box pocket pocket_depth deep under the wedge face on each member's side; aimed at a then b.
 std::shared_ptr<JointBeam> JointBeam::wedge(
     const Element& a,
@@ -364,6 +375,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
     joint->name = connector_name(contact, "wedge");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     std::array<std::vector<Point>, 2> ends;
 
@@ -608,6 +620,9 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     joint->name = connector_name(contact, "rectangle_plate");
     joint->is_visible = true;
     joint->targets = {column.guid(), rib.guid(), plate.guid()};
+    // the column and the rib come apart across their contact, the plate lifts out of its pocket
+    joint->insertions = pulled_apart(column, rib, contact);
+    joint->insertions.push_back(Vector(0.0, 0.0, 1.0));
 
     const std::array<Polyline, 2> pocket = frame_box(
         origin,
@@ -731,6 +746,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(
     joint->name = connector_name(contact, "tie");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     const std::array<std::array<double, 3>, 4> pieces = {{{-half, -neck, head_width}, {-neck, 0.0, neck_width}, {0.0, neck, neck_width}, {neck, half, head_width}}};
 
@@ -942,6 +958,7 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
     joint->cutters = {{}, {}};
 
     for (const std::array<double, 2>& corner : extreme_corners(ring)) {
@@ -1079,6 +1096,7 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
     joint->is_visible = true;
     joint->pre_drill = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     // each pin through its station on the contact, from its head on the far face of `through`, length long into `into`
     for (const std::array<double, 2>& station : stations) {
@@ -1204,6 +1222,7 @@ std::shared_ptr<JointBeam> JointBeam::hilti(
     joint->name = connector_name(contact, "hilti");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
 
     // the rod through both halves and both discs, its nut past each
     const Point rod_centre = centre + z * lift;
@@ -1254,6 +1273,29 @@ bool JointBeam::is_connector() const {
     return !parts.empty() || !cutters.empty() || pre_drill;
 }
 
+Vector JointBeam::insertion(size_t target) const {
+
+    if (is_connector())
+        return target < insertions.size() ? insertions[target] : Vector(0.0, 0.0, 0.0);
+
+    // each beam's box centre, and the way from the other's to this target's
+    const std::array<Point, 2> centres = {
+        Point::centroid({feature.volumes[0][0], feature.volumes[0][2], feature.volumes[1][0], feature.volumes[1][2]}),
+        Point::centroid({feature.volumes[2][0], feature.volumes[2][2], feature.volumes[3][0], feature.volumes[3][2]}),
+    };
+    const size_t other = target == 0 ? 1 : 0;
+    const Vector away = centres[target] - centres[other];
+
+    // a crossing slides along the normal of the axes; a pair with an end along the axis of the beam that ends, the one more along the way apart
+    Vector direction = feature.normal;
+    if (feature.end_type != 0)
+        direction = std::abs(feature.axes[0].dot(away)) >= std::abs(feature.axes[1].dot(away)) ? feature.axes[0] : feature.axes[1];
+    if (direction.dot(away) < 0.0)
+        direction = direction * -1.0;
+
+    return direction.normalized();
+}
+
 std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
 
     // pins: their holes are pre-drilled lines the targets read, nothing is cut
@@ -1284,6 +1326,7 @@ std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
     if (target == 1) {
         std::swap(volumes->volumes[0], volumes->volumes[2]);
         std::swap(volumes->volumes[1], volumes->volumes[3]);
+        std::swap(volumes->axes[0], volumes->axes[1]);
     }
 
     return volumes;
@@ -1380,6 +1423,11 @@ void JointBeam::place(const Xform& xform) {
 
     for (Polyline& volume : feature.volumes)
         volume = volume.transformed(xform);
+    feature.normal = feature.normal.transformed(xform);
+    for (Vector& axis : feature.axes)
+        axis = axis.transformed(xform);
+    for (Vector& insertion : insertions)
+        insertion = insertion.transformed(xform);
 
     for (std::array<Polyline, 2>& part : parts)
         part = {part[0].transformed(xform), part[1].transformed(xform)};
@@ -1411,6 +1459,10 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
     proto.set_drill_overshoot(drill_overshoot);
     proto.set_pre_drill(pre_drill);
 
+    for (const Vector& insertion : insertions)
+        if (!proto.add_insertions()->ParseFromString(insertion.pb_dumps()))
+            throw std::runtime_error("Invalid connector insertion");
+
     for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid connector cut");
@@ -1437,6 +1489,9 @@ void JointBeam::read_proto(const wood_proto::Joint& proto) {
 
     drill_overshoot = proto.drill_overshoot();
     pre_drill = proto.pre_drill();
+
+    for (const session_proto::Vector& insertion : proto.insertions())
+        insertions.push_back(Vector::pb_loads(insertion.SerializeAsString()));
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));

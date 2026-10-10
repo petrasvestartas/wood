@@ -59,6 +59,7 @@ class WoodSession : public Session {
 public:
     Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
     std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. yaml_load fills it from the adjacency sidecar; pb_dump writes it.
+    std::vector<std::array<int, 2>> borders; // Plate and side face of every boundary joint, the self-adjacency rows `v v f f` of the adjacency sidecar; compute_features makes a family 60 joint on each.
     std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. yaml_load fills it from the three_valence sidecar; pb_dump writes it.
     std::unordered_map<std::string, std::string> definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
 
@@ -115,6 +116,11 @@ public:
 
     /// The largest face contact of the pair, nullptr when disjoint; plate contacts include joinery volumes.
     std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
+
+    /// The border contact of a plate's side face, as 2024's border_to_face made it for a self-adjacency: the side quad as the polygon, the
+    /// average of its two side edges as both lines, and two thin rectangles across the thickness around that line as the volumes, a quarter of
+    /// the half thickness each way along the face's normal; nullptr for an outer face or a plate without that side.
+    static std::shared_ptr<InteractionContactFace> compute_border_contact(const Plate& plate, int face);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);

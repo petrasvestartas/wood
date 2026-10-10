@@ -426,6 +426,46 @@ std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(std::s
     return std::make_shared<InteractionContactFace>(*largest);
 }
 
+std::shared_ptr<InteractionContactFace> WoodSession::compute_border_contact(const Plate& plate, int face) {
+
+    if (face < 2 || plate.polylines.size() < 2 || face >= static_cast<int>(plate.polylines.size()) || face >= static_cast<int>(plate.planes.size()))
+        return nullptr;
+
+    // the average of the face's two side edges, projected to span them
+    const Polyline& bottom = plate.polylines[0];
+    const Polyline& top = plate.polylines[1];
+    const std::array<Point, 4> ends = {bottom[face - 2], top[face - 2], bottom[face - 1], top[face - 1]};
+    Point average_start;
+    Point average_end;
+    Polyline::line_line_average(ends[0], ends[1], ends[2], ends[3], average_start, average_end);
+    Point start;
+    Point end;
+    if (!Polyline::line_from_projected_points(average_start, average_end, {ends[0], ends[1], ends[2], ends[3]}, start, end))
+        return nullptr;
+
+    // x along that line, z the face's normal out of the plate, y across the thickness; the line runs from the end farther from the face's first edge
+    const double half = 0.5 * plate.thickness;
+    const Vector z = plate.planes[face].z_axis().normalized();
+    const Vector x = (end - start).normalized();
+    const Vector y = z.cross(x).normalized();
+    Point p0 = start;
+    Point p1 = end;
+    const Point first_edge = Point::mid_point(plate.polylines[face][0], plate.polylines[face][1]);
+    if (first_edge.distance(p0) < first_edge.distance(p1))
+        std::swap(p0, p1);
+
+    // two rectangles a thickness apart across the plate, each a quarter of the half thickness either way along the normal
+    std::array<Polyline, 2> rectangles;
+    for (size_t k = 0; k < 2; k++) {
+        const Vector across = y * (k == 0 ? -half : half);
+        const Vector along = z * (0.25 * half);
+        rectangles[k] = Polyline({p0 + across - along, p0 + across + along, p1 + across + along, p1 + across - along, p0 + across - along});
+    }
+
+    const Line line = Line::from_points(start, end);
+    return std::make_shared<InteractionContactFace>(face, face, ContactType::border, plate.polylines[face], std::array<Line, 2>{line, line}, std::array<Polyline, 4>{rectangles[0], rectangles[1], rectangles[0], rectangles[1]});
+}
+
 void WoodSession::compute_axis_contacts(double min_distance) {
 
     erase_contacts("axis");

@@ -47,12 +47,12 @@ constexpr InteractionFeatureBeam::ParseTableT_ InteractionFeatureBeam::InternalG
     {
       PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_._has_bits_),
       0, // no _extensions_
-      2, 8,  // max_field_number, fast_idx_mask
+      5, 56,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294967292,  // skipmap
+      4294967268,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      2,  // num_field_entries
-      1,  // num_aux_entries
+      4,  // num_field_entries
+      3,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -61,27 +61,53 @@ constexpr InteractionFeatureBeam::ParseTableT_ InteractionFeatureBeam::InternalG
       ::_pbi::TcParser::GetTable<::wood_proto::InteractionFeatureBeam>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
+      {::_pbi::TcParser::MiniParse, {}},
+      // int32 end_type = 1;
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionFeatureBeam, _impl_.end_type_), 3>(),
+       {8, 3, 0,
+        PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_)}},
       // repeated .session_proto.Polyline volumes = 2;
       {::_pbi::TcParser::FastMtR1,
        {18, 0, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.volumes_)}},
-      // int32 end_type = 1;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionFeatureBeam, _impl_.end_type_), 1>(),
-       {8, 1, 0,
-        PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_)}},
+      {::_pbi::TcParser::MiniParse, {}},
+      // .session_proto.Vector normal = 4;
+      {::_pbi::TcParser::FastMtS1,
+       {34, 2, 1,
+        PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.normal_)}},
+      // repeated .session_proto.Vector axes = 5;
+      {::_pbi::TcParser::FastMtR1,
+       {42, 1, 2,
+        PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.axes_)}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
     }}, {{
       // int32 end_type = 1;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_), _Internal::kHasBitsOffset + 1, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // repeated .session_proto.Polyline volumes = 2;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.volumes_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // .session_proto.Vector normal = 4;
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.normal_), _Internal::kHasBitsOffset + 2, 1, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      // repeated .session_proto.Vector axes = 5;
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.axes_), _Internal::kHasBitsOffset + 1, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::session_proto::Polyline>()},
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Polyline_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
         #endif
     }},
     {{
@@ -98,6 +124,12 @@ inline constexpr InteractionFeatureBeam::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.volumes_)>()
          }
         ,
+        axes_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionFeatureBeam,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.axes_)>()
+         }
+        ,
+        normal_{nullptr},
         end_type_{0} {}
 
 template <typename>
@@ -202,11 +234,15 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_._has_bits_),
-        5, // hasbit index offset
+        7, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.end_type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.volumes_),
-        1,
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.normal_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.axes_),
+        3,
         0,
+        2,
+        1,
 };
 
 static const ::_pbi::MigrationSchema
@@ -220,25 +256,28 @@ static const ::_pbi::MessageGlobalsBase* PROTOBUF_NONNULL const
 const char descriptor_table_protodef_interaction_5ffeature_5fbeam_2eproto[] ABSL_ATTRIBUTE_SECTION_VARIABLE(
     protodesc_cold) = {
     "\n\036interaction_feature_beam.proto\022\nwood_p"
-    "roto\032\016polyline.proto\"h\n\026InteractionFeatu"
-    "reBeam\022\020\n\010end_type\030\001 \001(\005\022(\n\007volumes\030\002 \003("
-    "\0132\027.session_proto.PolylineJ\004\010\003\020\004R\014contac"
-    "t_guidb\006proto3"
+    "roto\032\016polyline.proto\032\014vector.proto\"\264\001\n\026I"
+    "nteractionFeatureBeam\022\020\n\010end_type\030\001 \001(\005\022"
+    "(\n\007volumes\030\002 \003(\0132\027.session_proto.Polylin"
+    "e\022%\n\006normal\030\004 \001(\0132\025.session_proto.Vector"
+    "\022#\n\004axes\030\005 \003(\0132\025.session_proto.VectorJ\004\010"
+    "\003\020\004R\014contact_guidb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
-    descriptor_table_interaction_5ffeature_5fbeam_2eproto_deps[1] = {
+    descriptor_table_interaction_5ffeature_5fbeam_2eproto_deps[2] = {
         &::descriptor_table_polyline_2eproto,
+        &::descriptor_table_vector_2eproto,
 };
 static ::absl::once_flag descriptor_table_interaction_5ffeature_5fbeam_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fbeam_2eproto = {
     false,
     false,
-    174,
+    265,
     descriptor_table_protodef_interaction_5ffeature_5fbeam_2eproto,
     "interaction_feature_beam.proto",
     &descriptor_table_interaction_5ffeature_5fbeam_2eproto_once,
     descriptor_table_interaction_5ffeature_5fbeam_2eproto_deps,
-    1,
+    2,
     1,
     schemas,
     file_message_globals,
@@ -253,6 +292,16 @@ void InteractionFeatureBeam::clear_volumes() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.volumes_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000001U);
+}
+void InteractionFeatureBeam::clear_normal() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  if (_impl_.normal_ != nullptr) _impl_.normal_->Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+}
+void InteractionFeatureBeam::clear_axes() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.axes_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
 }
 InteractionFeatureBeam::InteractionFeatureBeam(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -274,6 +323,13 @@ PROTOBUF_NDEBUG_INLINE InteractionFeatureBeam::Impl_::Impl_(
               PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.volumes_)>()
           , arena, from.volumes_
         }
+        ,
+        axes_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::InteractionFeatureBeam,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.axes_)>()
+          , arena, from.axes_
+        }
      {}
 
 InteractionFeatureBeam::InteractionFeatureBeam(
@@ -290,6 +346,10 @@ InteractionFeatureBeam::InteractionFeatureBeam(
   _internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
+  ::uint32_t cached_has_bits = _impl_._has_bits_[0];
+  _impl_.normal_ = (CheckHasBit(cached_has_bits, 0x00000004U))
+                 ? Super_::CopyConstruct(arena, *from._impl_.normal_)
+                 : nullptr;
   _impl_.end_type_ = from._impl_.end_type_;
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.InteractionFeatureBeam)
@@ -301,11 +361,21 @@ PROTOBUF_NDEBUG_INLINE InteractionFeatureBeam::Impl_::Impl_(
             ::wood_proto::InteractionFeatureBeam,
             PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.volumes_)>()
          }
+        ,
+        axes_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionFeatureBeam,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureBeam, _impl_.axes_)>()
+         }
      {}
 
 inline void InteractionFeatureBeam::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   new (&_impl_) Impl_(internal_visibility(), arena);
-  _impl_.end_type_ = {};
+  ::memset(reinterpret_cast<char*>(&_impl_) +
+               offsetof(Impl_, normal_),
+           0,
+           offsetof(Impl_, end_type_) -
+               offsetof(Impl_, normal_) +
+               sizeof(Impl_::end_type_));
 }
 InteractionFeatureBeam::~InteractionFeatureBeam() {
   // @@protoc_insertion_point(destructor:wood_proto.InteractionFeatureBeam)
@@ -318,6 +388,7 @@ inline void InteractionFeatureBeam::SharedDtor(MessageLite& self) {
   }
   this_._internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
   ABSL_DCHECK(this_.GetArena() == nullptr);
+  delete this_._impl_.normal_;
   this_._impl_.~Impl_();
 }
 
@@ -354,8 +425,17 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
   ::uint32_t cached_has_bits [[maybe_unused]] = 0;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (CheckHasBit(cached_has_bits, 0x00000001U)) {
-    _impl_.volumes_.Clear();
+  if (BatchCheckHasBit(cached_has_bits, 0x00000007U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000001U)) {
+      _impl_.volumes_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _impl_.axes_.Clear();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      ABSL_DCHECK(this_._impl_.normal_ != nullptr);
+      this_._impl_.normal_->Clear();
+    }
   }
   this_._impl_.end_type_ = 0;
   _impl_._has_bits_.Clear();
@@ -382,7 +462,7 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // int32 end_type = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (this_._internal_end_type() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<1>(
@@ -398,6 +478,25 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
       const auto& repfield = this_._internal_volumes().Get(i);
       target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
           2, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
+  }
+
+  // .session_proto.Vector normal = 4;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+        4, *this_._impl_.normal_, this_._impl_.normal_->GetCachedSize(), target,
+        stream);
+  }
+
+  // repeated .session_proto.Vector axes = 5;
+  if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_axes_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_axes().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          5, repfield, repfield.GetCachedSize(), target,
           stream);
     }
   }
@@ -425,7 +524,7 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     // repeated .session_proto.Polyline volumes = 2;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       total_size += 1UL * this_._internal_volumes_size();
@@ -433,8 +532,20 @@ PROTOBUF_NOINLINE void InteractionFeatureBeam::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // int32 end_type = 1;
+    // repeated .session_proto.Vector axes = 5;
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      total_size += 1UL * this_._internal_axes_size();
+      for (const auto& msg : this_._internal_axes()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // .session_proto.Vector normal = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += 1 +
+                    ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.normal_);
+    }
+    // int32 end_type = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (this_._internal_end_type() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_end_type());
@@ -459,13 +570,26 @@ void InteractionFeatureBeam::MergeImpl(::google::protobuf::MessageLite& to_msg,
   (void)cached_has_bits;
 
   cached_has_bits = from._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x00000003U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000000fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _this->_internal_mutable_volumes()->InternalMergeFromWithArena(
           ::google::protobuf::MessageLite::internal_visibility(), arena,
           from._internal_volumes());
     }
     if (CheckHasBit(cached_has_bits, 0x00000002U)) {
+      _this->_internal_mutable_axes()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_axes());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      ABSL_DCHECK(from._impl_.normal_ != nullptr);
+      if (_this->_impl_.normal_ == nullptr) {
+        _this->_impl_.normal_ = Super_::CopyConstruct(arena, *from._impl_.normal_);
+      } else {
+        _this->_impl_.normal_->MergeFrom(*from._impl_.normal_);
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (from._internal_end_type() != 0) {
         _this->_impl_.end_type_ = from._impl_.end_type_;
       }
@@ -489,7 +613,13 @@ void InteractionFeatureBeam::InternalSwap(InteractionFeatureBeam* PROTOBUF_RESTR
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.volumes_.InternalSwap(&other->_impl_.volumes_);
-  swap(_impl_.end_type_, other->_impl_.end_type_);
+  _impl_.axes_.InternalSwap(&other->_impl_.axes_);
+  ::google::protobuf::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.end_type_)
+      + sizeof(InteractionFeatureBeam::_impl_.end_type_)
+      - PROTOBUF_FIELD_OFFSET(InteractionFeatureBeam, _impl_.normal_)>(
+          reinterpret_cast<char*>(&_impl_.normal_),
+          reinterpret_cast<char*>(&other->_impl_.normal_));
 }
 
 ::google::protobuf::Metadata InteractionFeatureBeam::GetMetadata() const {

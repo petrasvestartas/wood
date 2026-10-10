@@ -94,3 +94,8 @@ jobs:
     - name: Beam joints
       run: |
         stdbuf -oL -eL timeout 600 build/joint_beams
+
+    # The boundary family: b_0 on a border contact and through the dataset boundary_side, against the 2025 reference.
+    - name: Border joints
+      run: |
+        stdbuf -oL -eL timeout 600 build/joint_border

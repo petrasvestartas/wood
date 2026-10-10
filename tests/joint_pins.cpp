@@ -85,6 +85,11 @@ static void check_headed_pins() {
         check(cylinders(member->model_geometry_brep()) == inside, fmt::format("{} BRep has {} exact bores for {} pins", member->name, cylinders(member->model_geometry_brep()), inside));
     }
 
+    // the beam and the joist come apart across their contact, the joist away from the beam
+    const Vector beam_way = pins->insertion(0);
+    const Vector joist_way = pins->insertion(1);
+    check(std::abs(beam_way.dot(joist_way) + 1.0) <= 1e-9 && joist_way.dot(Vector(0.0, 1.0, 0.0)) > 1.0 - 1e-9, fmt::format("the joist comes off along +y, the beam along -y: ({:.3f} {:.3f} {:.3f})", joist_way[0], joist_way[1], joist_way[2]));
+
     std::cout << "joint_pins: headed pins bore 3 exact pre-drilled holes into the beam and the joist" << std::endl;
 }
 

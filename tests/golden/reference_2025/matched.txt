@@ -3,6 +3,7 @@ annen_box_pair
 annen_corner
 annen_grid_full_arch
 annen_grid_small
+boundary_side
 cross_and_sides_corner
 cross_brussels_sports_tower
 cross_corners

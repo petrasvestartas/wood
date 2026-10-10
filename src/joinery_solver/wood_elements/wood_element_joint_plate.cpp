@@ -700,11 +700,14 @@ static int plate_contact_family(const JointPlate& joint, const InteractionContac
             family = 20;
         else if (type == ContactType::top_top)
             family = 40;
+        else if (type == ContactType::border)
+            family = 60;
     }
 
     const bool compatible = ((family == 11 || family == 12 || family == 13) && type == ContactType::side_side)
         || (family == 20 && type == ContactType::side_top)
-        || (family == 40 && type == ContactType::top_top);
+        || (family == 40 && type == ContactType::top_top)
+        || (family == 60 && type == ContactType::border);
     if (!compatible)
         throw std::invalid_argument("The selected joint does not support this contact type");
 
@@ -719,8 +722,10 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactFace>& contact, 
 void JointPlate::orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
     if (!contact)
         throw std::invalid_argument("JointPlate needs a face contact");
-    if (!elements.empty() && (elements.size() != 2 || !elements[0] || !elements[1]))
-        throw std::invalid_argument("A face joint needs two plates in contact order");
+    // a border contact has its one plate, every other face contact its two in contact order
+    const size_t plates = contact->type == ContactType::border ? 1 : 2;
+    if (!elements.empty() && (elements.size() != plates || !elements[0] || !elements.back()))
+        throw std::invalid_argument(plates == 1 ? "A border joint needs its one plate" : "A face joint needs two plates in contact order");
 
     // the male is the plate the detector designates: the second of an out-of-plane pair, the side-face one of a side-top pair, else the first
     const int family = plate_contact_family(*this, *contact, elements, settings);
@@ -735,6 +740,11 @@ void JointPlate::orient(const std::shared_ptr<InteractionContactFace>& contact, 
     if (elements.size() == 2) {
         connection.element_a = elements[reverse ? 1 : 0]->guid();
         connection.element_b = elements[reverse ? 0 : 1]->guid();
+    }
+    // a border joint has one plate, both ends of its edge
+    if (elements.size() == 1 && contact->type == ContactType::border) {
+        connection.element_a = elements[0]->guid();
+        connection.element_b = elements[0]->guid();
     }
     construct(std::move(connection), settings, elements);
 }
