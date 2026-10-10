@@ -46,7 +46,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 | [`ts_e_p`](@ref elements_joint_plate_ts_e_p) | top to side | a plate standing on another's face, the upright's tenons through the base's mortises |
 | `ss_e_r` | side to side, rotated | two side faces whose edges cross, or any side-to-side pair under `settings.all_treated_as_rotated` |
 | [`cr_c_ip`](@ref elements_joint_plate_cr_c_ip) | cross | two plates passing through each other (`compute_cross_contact`), a slot or a half-lap into each over its share of the depth |
-| `tt_e_p` | top to top | two plates stacked face on face |
+| [`tt_e_p`](@ref elements_joint_plate_tt_e_p) | top to top | two plates stacked face on face |
 | `b` | boundary | found by the solver only |
 
 ## ts_e_p: top to side
@@ -71,11 +71,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## tt_e_p: top to top
 
-![tt_e_p](elements/element_joint_plate_tt_e_p.png)
-
-`tt_e_p_0` to `tt_e_p_5` on two stacked plates, each drilling pins through both, as 2024 laid them: one at the centre of the contact, one at its polylabel, six on its inscribed circle scaled by the shift, the ring of the contact offset inward by the shift drilled every division length, a lattice of the division length in that ring, and the edges of the largest rectangle 2024 inscribed in the contact; `tt_e_p_custom` keeps your own outline pairs; the upper plate lifted to show the holes.
-
-\include{lineno} elements/element_joint_plate_tt_e_p.cpp
+`tt_e_p_0` to `tt_e_p_5` and `tt_e_p_custom` on two stacked plates, the upper one turned so their contact is an irregular octagon, each design with its own example and pictures on the [tt_e_p page](@ref elements_joint_plate_tt_e_p): every design drills pins through both plates as 2024 laid them, one at the centre of the contact (`tt_e_p_0`, id 40, the family default), one at its polylabel (`tt_e_p_1`), six on its inscribed circle scaled by the shift (`tt_e_p_2`), the ring of the contact offset inward by the shift drilled every division length (`tt_e_p_3`), a lattice of the division length in that ring (`tt_e_p_4`), and the edges of the largest rectangle 2024 inscribed in the contact (`tt_e_p_5`); `tt_e_p_custom` keeps your own outline pairs.
 
 ## Parameters
 
