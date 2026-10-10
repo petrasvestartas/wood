@@ -887,9 +887,6 @@ bool top_top(F2F& s, FaceCandidate& c) {
         return false;
     }
 
-    Polyline vol_a = *rect;
-    Polyline vol_b = *rect;
-
     Vector dir = c.dir_set
         ? (i < s.el0.insertion_vectors().size() ? s.el0.insertion_vectors()[i] : s.el0.planes[i].z_axis())
         : s.el0.planes[i].z_axis();
@@ -897,6 +894,31 @@ bool top_top(F2F& s, FaceCandidate& c) {
         dir = s.el0.planes[i].z_axis();
         dir.normalize_self();
     }
+
+    // the rectangle from its longest edge, at the corner first in the first plate's frame, wound about dir: the frame a tile is mapped into
+    // stays with the plates, where the hull's first corner would turn it with a rigid motion
+    const Plane& frame = s.el0.planes[i];
+    std::array<Point, 4> corners = {rect->get_point(0), rect->get_point(1), rect->get_point(2), rect->get_point(3)};
+    if ((corners[1] - corners[0]).cross(corners[3] - corners[0]).dot(dir) < 0.0)
+        std::swap(corners[1], corners[3]);
+    double longest = 0.0;
+    for (size_t k = 0; k < 4; k++)
+        longest = std::max(longest, Point::distance(corners[k], corners[(k + 1) % 4]));
+    size_t start = 4;
+    for (size_t k = 0; k < 4; k++) {
+        if (Point::distance(corners[k], corners[(k + 1) % 4]) < longest - 1e-6)
+            continue;
+        if (start == 4) {
+            start = k;
+            continue;
+        }
+        const double dx = (corners[k] - corners[start]).dot(frame.x_axis());
+        const double dy = (corners[k] - corners[start]).dot(frame.y_axis());
+        if (dx < -1e-6 || (std::abs(dx) <= 1e-6 && dy < -1e-6))
+            start = k;
+    }
+    Polyline vol_a({corners[start], corners[(start + 1) % 4], corners[(start + 2) % 4], corners[(start + 3) % 4], corners[start]});
+    Polyline vol_b = vol_a;
 
     const int next_plane_0 = (i == 0) ? 1 : 0;
     const int next_plane_1 = (j == 0) ? 1 : 0;

@@ -207,7 +207,7 @@ static void write_scene(const std::string& id, const std::string& dir) {
 
 /// A design that belongs to beams, on two beams of half-width 75: a cross design (cr_c_ip_*) on two beams crossing in plan at the angle, the
 /// wedge ts_e_p_4 on a beam ending on the side of another; the second beam lifted 300 off along z after the joint, so both cuts read.
-///   id: beam/<design>/<angle>, written to <dir>/beam_<design>_<angle>.pb
+///   id: beam/<design>/<angle>[/<second beam's half-width>], written to <dir>/beam_<design>_<angle>[_<half-width>].pb
 static void write_beam_scene(const std::string& id, const std::string& dir) {
 
     const std::vector<std::string> parts = split(id, '/');
@@ -222,7 +222,8 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
     const Vector along(std::cos(turn), -std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
     const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
-    const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), 75.0, "beam");
+    const double b_half_width = parts.size() > 3 ? std::stod(parts.at(3)) : 75.0;
+    const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), b_half_width, "beam");
     a->name = "beam_a";
     b->name = "beam_b";
     scene.add(a);
@@ -239,7 +240,7 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
         }
     b->place(Xform::translation(0.0, 0.0, 300.0));
 
-    scene.pb_dump(fmt::format("{}/beam_{}_{:g}.pb", dir, design, angle));
+    scene.pb_dump(fmt::format("{}/beam_{}_{:g}{}.pb", dir, design, angle, parts.size() > 3 ? "_" + parts.at(3) : ""));
 }
 
 /// A design on a pair of plates taken from a template, where it is used: the first two plates of the Chevron on the first Annen surface

@@ -322,7 +322,7 @@ static Polyline rectangle(int fixed_axis, double fixed, int swing_axis, double z
     return Polyline(points);
 }
 
-/// The male and female unit outlines of a custom design, face 0 then face 1 of each: the side and top-side families keep theirs pair by pair as 2024 did, so they get the rectangles 2024 merged, a notch into each member over its own stretch of the joint line (the top-side female lies on the base's face, where 2024 merged nothing, so only the upright is notched); the cross family stitches its pairs as edge insertions.
+/// The male and female unit outlines of a custom design, face 0 then face 1 of each: the top-top family a hidden butterfly key's pockets; the side and top-side families keep theirs pair by pair as 2024 did, so they get the rectangles 2024 merged, a notch into each member over its own stretch of the joint line (the top-side female lies on the base's face, where 2024 merged nothing, so only the upright is notched); the cross family stitches its pairs as edge insertions.
 static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& family) {
 
     if (family == "op")
@@ -335,6 +335,15 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         const Polyline female0({{-0.5, 0.5, 1.0}, {-0.5, -0.5, 1.0}, {-0.5, -0.5, 0.0}, {-0.5, 0.5, 0.0}, {-0.5, 0.5, 1.0}});
         const Polyline female1({{0.5, 0.5, 1.0}, {0.5, -0.5, 1.0}, {0.5, -0.5, 0.0}, {0.5, 0.5, 0.0}, {0.5, 0.5, 1.0}});
         return {std::vector<Polyline>{male0, male1}, std::vector<Polyline>{female0, female1}};
+    }
+
+    // top to top: a hidden butterfly key, its pocket milled half a thickness into each plate at the contact (y = 0), the lower plate's from
+    // y = -0.25 to 0, the upper's from 0 to 0.25
+    if (family == "tt") {
+        const auto bow_tie = [](double y) {
+            return Polyline({{-0.3, y, -0.15}, {0.0, y, -0.06}, {0.3, y, -0.15}, {0.3, y, 0.15}, {0.0, y, 0.06}, {-0.3, y, 0.15}, {-0.3, y, -0.15}});
+        };
+        return {std::vector<Polyline>{bow_tie(-0.25), bow_tie(0.0)}, std::vector<Polyline>{bow_tie(0.0), bow_tie(0.25)}};
     }
 
     // in plane and rotated: a notch into the male's edge and one into the female's, over their own stretches
