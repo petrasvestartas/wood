@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// ss_e_op_custom: your own outlines in the joint's unit box on a floor and a wall plate mitred at a right angle, drawn apart.
+/// ss_e_op_custom: your own rectangles in the joint's unit box, a slot into the wall and a notch into the floor of a pair mitred at a right angle, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_ss_e_op_custom");
@@ -20,14 +20,16 @@ int main() {
 
     // the outlines in the joint's unit box, mapped onto the corner the plates share: the floor's thickness along x, the wall's
     // along y, z along the joint line; a pair per side, the wall's at y = 0.5 (face 0) and y = -0.5 (face 1), the floor's at
-    // x = 0.5 (face 0) and x = -0.5 (face 1): a dovetail on the wall, wider at the floor's top, and its mirror on the floor
+    // x = 0.5 (face 0) and x = -0.5 (face 1); as 2024 merged a custom pair, a closed rectangle of five points is clipped into
+    // the plate: here a slot into the wall's bottom edge, 20 past the floor's top, and a notch into the floor's mitred edge,
+    // 40 past the wall's inner face, each over its own stretch of the joint line
     const std::vector<Polyline> male = {
-        Polyline({{-0.5, 0.5, -0.2}, {0.5, 0.5, -0.3}, {0.5, 0.5, 0.3}, {-0.5, 0.5, 0.2}}),
-        Polyline({{-0.5, -0.5, -0.2}, {0.5, -0.5, -0.3}, {0.5, -0.5, 0.3}, {-0.5, -0.5, 0.2}}),
+        Polyline({{-1.0, 0.5, 0.4}, {1.0, 0.5, 0.4}, {1.0, 0.5, 0.1}, {-1.0, 0.5, 0.1}, {-1.0, 0.5, 0.4}}),
+        Polyline({{-1.0, -0.5, 0.4}, {1.0, -0.5, 0.4}, {1.0, -0.5, 0.1}, {-1.0, -0.5, 0.1}, {-1.0, -0.5, 0.4}}),
     };
     const std::vector<Polyline> female = {
-        Polyline({{0.5, 0.5, -0.2}, {0.5, -0.5, -0.3}, {0.5, -0.5, 0.3}, {0.5, 0.5, 0.2}}),
-        Polyline({{-0.5, 0.5, -0.2}, {-0.5, -0.5, -0.3}, {-0.5, -0.5, 0.3}, {-0.5, 0.5, 0.2}}),
+        Polyline({{0.5, -1.0, -0.1}, {0.5, 1.0, -0.1}, {0.5, 1.0, -0.4}, {0.5, -1.0, -0.4}, {0.5, -1.0, -0.1}}),
+        Polyline({{-0.5, -1.0, -0.1}, {-0.5, 1.0, -0.1}, {-0.5, 1.0, -0.4}, {-0.5, -1.0, -0.4}, {-0.5, -1.0, -0.1}}),
     };
 
     // the joint from their contact, added, and passed to each plate in its target order: the wall first, the male of an out-of-plane pair
@@ -48,7 +50,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_custom on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, your own outlines in its unit box, here a dovetail on the wall's two faces over the band beside the floor's thickness and its mirror on the floor's two faces over the strip under the wall; as the 2024 library kept it, the custom outlines carry the fabrication type nothing, so the plates stay uncut and each shows its side of the outlines as a feature on both faces, the box mapped onto the corner the plates share; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
+The out-of-plane design ss_e_op_custom on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, your own outlines in its unit box, the box mapped onto the corner the plates share; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate: here a rectangle on each face of the wall cuts a slot into its bottom edge, 20 past the floor's top, and one on each face of the floor cuts a notch into its mitred edge, 40 past the wall's inner face, each over its own stretch of the joint line; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

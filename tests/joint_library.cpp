@@ -239,11 +239,28 @@ static Polyline zigzag(int fixed_axis, double fixed, int swing_axis, bool z_up) 
     return Polyline(points);
 }
 
-/// The male and female unit outlines of a custom design, face 0 then face 1 of each.
+/// A closed rectangle of five points on one face of the unit box: `fixed_axis` held at `fixed`, spanning -1 to 1 on `swing_axis` and z0 to z1 along z; what 2024 merged of a custom pair, clipped into the plate as a notch.
+static Polyline rectangle(int fixed_axis, double fixed, int swing_axis, double z0, double z1) {
+
+    const std::array<double, 5> swing = {-1.0, 1.0, 1.0, -1.0, -1.0};
+    const std::array<double, 5> z = {z0, z0, z1, z1, z0};
+    std::vector<Point> points;
+
+    for (size_t i = 0; i < 5; i++) {
+        Point p(0.0, 0.0, z[i]);
+        p[fixed_axis] = fixed;
+        p[swing_axis] = swing[i];
+        points.push_back(p);
+    }
+
+    return Polyline(points);
+}
+
+/// The male and female unit outlines of a custom design, face 0 then face 1 of each: the side families keep theirs pair by pair as 2024 did, so they get the rectangles 2024 merged, a notch into each member over its own stretch of the joint line; the top-side and cross families stitch theirs as edge insertions.
 static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& family) {
 
     if (family == "op")
-        return {std::vector<Polyline>{zigzag(1, 0.5, 0, false), zigzag(1, -0.5, 0, false)}, std::vector<Polyline>{zigzag(0, 0.5, 1, true), zigzag(0, -0.5, 1, true)}};
+        return {std::vector<Polyline>{rectangle(1, 0.5, 0, 0.4, 0.1), rectangle(1, -0.5, 0, 0.4, 0.1)}, std::vector<Polyline>{rectangle(0, 0.5, 1, -0.1, -0.4), rectangle(0, -0.5, 1, -0.1, -0.4)}};
     if (family == "ts")
         return {std::vector<Polyline>{zigzag(0, 0.5, 1, true), zigzag(0, -0.5, 1, true)}, std::vector<Polyline>{zigzag(0, 0.5, 1, true), zigzag(0, -0.5, 1, true)}};
     if (family == "cr") {
@@ -254,8 +271,8 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         return {std::vector<Polyline>{male0, male1}, std::vector<Polyline>{female0, female1}};
     }
 
-    // in plane and rotated: the same zigzag on both members, as ss_e_ip_0
-    return {std::vector<Polyline>{zigzag(1, -0.5, 0, true), zigzag(1, 0.5, 0, true)}, std::vector<Polyline>{zigzag(1, -0.5, 0, true), zigzag(1, 0.5, 0, true)}};
+    // in plane and rotated: a notch into the male's edge and one into the female's, over their own stretches
+    return {std::vector<Polyline>{rectangle(1, -0.5, 0, 0.4, 0.1), rectangle(1, 0.5, 0, 0.4, 0.1)}, std::vector<Polyline>{rectangle(1, -0.5, 0, -0.1, -0.4), rectangle(1, 0.5, 0, -0.1, -0.4)}};
 }
 
 static int integer(const std::vector<std::string>& parts, size_t index, int fallback) {
@@ -552,7 +569,7 @@ static void check_conservation(const Built& built, Row& row) {
         fail(row, "C4", fmt::format("the models sum to {:.9g} mm3, their union is {:.9g}", sum, after_volume));
 }
 
-/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal fills nothing; a pin joint is measured by C7 instead.
+/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal and a custom pair of a side family, which only take away, fill nothing; a pin joint is measured by C7 instead.
 static void check_fit(const Built& built, Row& row) {
 
     if (built.family == "tt")
@@ -567,11 +584,12 @@ static void check_fit(const Built& built, Row& row) {
     const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh());
     const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh());
 
-    if (built.library.starts_with("side_removal")) {
+    const bool removal_only = built.library.starts_with("side_removal") || built.library == "ss_e_ip_custom" || built.library == "ss_e_op_custom" || built.library == "ss_e_r_custom";
+    if (removal_only) {
         if (filled_by_a > tolerance_b || filled_by_b > tolerance_a)
-            fail(row, "C6", fmt::format("a side removal fills {:.6g} and {:.6g} mm3 of the other member", filled_by_a, filled_by_b));
+            fail(row, "C6", fmt::format("a removal fills {:.6g} and {:.6g} mm3 of the other member", filled_by_a, filled_by_b));
         if (!(taken_a + taken_b > 0.0))
-            fail(row, "C6", "a side removal took nothing away");
+            fail(row, "C6", "a removal took nothing away");
         return;
     }
 

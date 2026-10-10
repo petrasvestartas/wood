@@ -167,6 +167,13 @@ bool MergeModifier::merges_into_outline(const InteractionFeaturePlate& joint, bo
     if (types[0].empty())
         return true;
 
+    // a custom pair, written twice with no type as 2024 kept it: 2024 switched on the second copy's size whatever the type, so a line of two points is inserted and a rectangle of five clipped in, and every other outline passes through uncut
+    if (types[0][0] == FabricationType::nothing) {
+        const std::array<std::vector<Polyline>, 2>& outlines = male_or_female ? joint.male_outlines : joint.female_outlines;
+        const size_t marker = outlines[0].size() > 1 ? outlines[0][1].point_count() : 0;
+        return marker == 2 || marker == 5;
+    }
+
     return types[0][0] == FabricationType::edge_insertion || types[0][0] == FabricationType::insert_between_multiple_edges;
 }
 
@@ -469,13 +476,6 @@ Polyline MergeModifier::build_merged_outline(const std::vector<Point>& points, s
     return Polyline(merged);
 }
 
-void MergeModifier::close_corner(Polyline& merged_bottom, Polyline& merged_top) const {
-
-    if (last_id != (int)bottom_points.size())
-        return;
-
-    if (!((first_bottom_segment[0] - first_bottom_segment[1]).magnitude_squared() > distance_squared))
-        return;
 /// True when the point lies on the segment from a to b within the tolerance: closer than its root to the line, between the ends.
 static bool on_segment(const Point& point, const Point& a, const Point& b, double tolerance_squared) {
 
@@ -542,6 +542,13 @@ void MergeModifier::drop_folded_corners(Polyline& merged_bottom, Polyline& merge
     merged_top = Polyline(top);
 }
 
+void MergeModifier::close_corner(Polyline& merged_bottom, Polyline& merged_top) const {
+
+    if (last_id != (int)bottom_points.size())
+        return;
+
+    if (!((first_bottom_segment[0] - first_bottom_segment[1]).magnitude_squared() > distance_squared))
+        return;
 
     const Line first_bottom = Line::from_points(first_bottom_segment[0], first_bottom_segment[1]);
     const Line last_bottom = Line::from_points(last_bottom_segment[0], last_bottom_segment[1]);

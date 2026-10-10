@@ -76,6 +76,6 @@ An eight-point tooth pocket into each edge per division, each reversed, two on t
 
 ![ss_e_ip_custom](elements/element_joint_plate_ss_e_ip_custom.png)
 
-A dovetail on each face into the male plate and its mirror into the female, given as pairs (face 0 at y = -0.5, face 1 at y = 0.5) in the unit box; as the 2024 library kept it, custom outlines carry the fabrication type nothing, so the plates stay uncut and each shows its side of the outlines as a feature on both faces, the box mapped onto the whole contact; the right plate moved 120 off.
+Your own outlines, given as pairs (face 0 at y = -0.5, face 1 at y = 0.5) in the unit box, x across the seam scaled to the thickness, z along it; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face cuts a notch half a thickness deep into the male plate's edge over one stretch of the seam, and one into the female's over another.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_custom.cpp
