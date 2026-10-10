@@ -1592,14 +1592,6 @@ std::shared_ptr<JointPlate> JointPlate::ss_e_r_0() {
     return ss_e_r("ss_e_r_0");
 }
 
-std::shared_ptr<JointPlate> JointPlate::ss_e_r_1(int type) {
-
-    const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_1");
-    joint->parameters.type = type;
-
-    return joint;
-}
-
 std::shared_ptr<JointPlate> JointPlate::ss_e_r_2(int divisions, double shift) {
 
     const std::shared_ptr<JointPlate> joint = ss_e_r("ss_e_r_2");
@@ -1634,8 +1626,6 @@ bool JointPlate::compute_ss_e_r(InteractionFeaturePlate& connection, const std::
 
     if (parameters.library == "ss_e_r_0")
         ::ss_e_r_0(connection);
-    else if (parameters.library == "ss_e_r_1")
-        ::ss_e_r_1(connection, parameters.type);
     else if (parameters.library == "ss_e_r_2")
         ::ss_e_r_2(connection, elements);
     else if (parameters.library == "ss_e_r_3")
@@ -1735,7 +1725,6 @@ std::string JointPlateParameters::pb_dumps() const {
     proto.set_disable_divisions(disable_divisions);
     proto.set_distance_squared(distance_squared);
     proto.set_merge_with_joint(merge_with_joint);
-    proto.set_type(type);
 
     for (int i = 0; i < 2; ++i) {
         proto.add_x(x[i]);
@@ -1773,8 +1762,6 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
 
     if (proto.has_modify_outline())
         parameters.modify_outline = proto.modify_outline();
-    if (proto.has_type())
-        parameters.type = proto.type();
 
     if (proto.x_size() != 2 || proto.y_size() != 2 || proto.z_size() != 2)
         throw std::runtime_error("Invalid finger extents");

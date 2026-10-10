@@ -245,12 +245,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointPlateParameters final : public
     kContactTypeFieldNumber = 2,
     kDivisionsFieldNumber = 3,
     kTaperFieldNumber = 4,
+    kDistanceSquaredFieldNumber = 11,
     kChamferFieldNumber = 5,
     kModifyOutlineFieldNumber = 6,
     kDisableDivisionsFieldNumber = 10,
     kMergeWithJointFieldNumber = 12,
-    kTypeFieldNumber = 15,
-    kDistanceSquaredFieldNumber = 11,
   };
   // repeated double x = 7;
   [[nodiscard]] int x_size() const;
@@ -394,6 +393,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointPlateParameters final : public
   void _internal_set_taper(double value);
 
   public:
+  // double distance_squared = 11;
+  void clear_distance_squared() ;
+  [[nodiscard]] double distance_squared() const;
+  void set_distance_squared(double value);
+
+  private:
+  double _internal_distance_squared() const;
+  void _internal_set_distance_squared(double value);
+
+  public:
   // bool chamfer = 5;
   void clear_chamfer() ;
   [[nodiscard]] bool chamfer() const;
@@ -435,32 +444,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointPlateParameters final : public
   void _internal_set_merge_with_joint(bool value);
 
   public:
-  // optional int32 type = 15;
-  [[nodiscard]] bool has_type() const;
-  void clear_type() ;
-  [[nodiscard]] ::int32_t type() const;
-  void set_type(::int32_t value);
-
-  private:
-  ::int32_t _internal_type() const;
-  void _internal_set_type(::int32_t value);
-
-  public:
-  // double distance_squared = 11;
-  void clear_distance_squared() ;
-  [[nodiscard]] double distance_squared() const;
-  void set_distance_squared(double value);
-
-  private:
-  double _internal_distance_squared() const;
-  void _internal_set_distance_squared(double value);
-
-  public:
   // @@protoc_insertion_point(class_scope:wood_proto.JointPlateParameters)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<4, 15,
+      ::google::protobuf::internal::TcParseTable<4, 14,
                           2, 55,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -498,12 +486,11 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointPlateParameters final : public
     ::int32_t contact_type_;
     ::int32_t divisions_;
     double taper_;
+    double distance_squared_;
     bool chamfer_;
     bool modify_outline_;
     bool disable_divisions_;
     bool merge_with_joint_;
-    ::int32_t type_;
-    double distance_squared_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -2550,7 +2537,7 @@ inline void JointPlateParameters::_internal_set_taper(double value) {
 inline void JointPlateParameters::clear_chamfer() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.chamfer_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
 }
 inline bool JointPlateParameters::chamfer() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.chamfer)
@@ -2558,7 +2545,7 @@ inline bool JointPlateParameters::chamfer() const {
 }
 inline void JointPlateParameters::set_chamfer(bool value) {
   _internal_set_chamfer(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.chamfer)
 }
 inline bool JointPlateParameters::_internal_chamfer() const {
@@ -2572,13 +2559,13 @@ inline void JointPlateParameters::_internal_set_chamfer(bool value) {
 
 // optional bool modify_outline = 6;
 inline bool JointPlateParameters::has_modify_outline() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000400U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000800U);
   return value;
 }
 inline void JointPlateParameters::clear_modify_outline() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.modify_outline_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
 }
 inline bool JointPlateParameters::modify_outline() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.modify_outline)
@@ -2586,7 +2573,7 @@ inline bool JointPlateParameters::modify_outline() const {
 }
 inline void JointPlateParameters::set_modify_outline(bool value) {
   _internal_set_modify_outline(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
   // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.modify_outline)
 }
 inline bool JointPlateParameters::_internal_modify_outline() const {
@@ -2755,7 +2742,7 @@ JointPlateParameters::_internal_mutable_z() {
 inline void JointPlateParameters::clear_disable_divisions() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.disable_divisions_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000800U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
 }
 inline bool JointPlateParameters::disable_divisions() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.disable_divisions)
@@ -2763,7 +2750,7 @@ inline bool JointPlateParameters::disable_divisions() const {
 }
 inline void JointPlateParameters::set_disable_divisions(bool value) {
   _internal_set_disable_divisions(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000800U);
+  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
   // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.disable_divisions)
 }
 inline bool JointPlateParameters::_internal_disable_divisions() const {
@@ -2779,7 +2766,7 @@ inline void JointPlateParameters::_internal_set_disable_divisions(bool value) {
 inline void JointPlateParameters::clear_distance_squared() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.distance_squared_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00004000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
 }
 inline double JointPlateParameters::distance_squared() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.distance_squared)
@@ -2787,7 +2774,7 @@ inline double JointPlateParameters::distance_squared() const {
 }
 inline void JointPlateParameters::set_distance_squared(double value) {
   _internal_set_distance_squared(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00004000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.distance_squared)
 }
 inline double JointPlateParameters::_internal_distance_squared() const {
@@ -2803,7 +2790,7 @@ inline void JointPlateParameters::_internal_set_distance_squared(double value) {
 inline void JointPlateParameters::clear_merge_with_joint() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.merge_with_joint_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00001000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
 }
 inline bool JointPlateParameters::merge_with_joint() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.merge_with_joint)
@@ -2811,7 +2798,7 @@ inline bool JointPlateParameters::merge_with_joint() const {
 }
 inline void JointPlateParameters::set_merge_with_joint(bool value) {
   _internal_set_merge_with_joint(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00001000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
   // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.merge_with_joint)
 }
 inline bool JointPlateParameters::_internal_merge_with_joint() const {
@@ -2921,34 +2908,6 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 JointPlateParameters::_internal_mutable_female() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.female_;
-}
-
-// optional int32 type = 15;
-inline bool JointPlateParameters::has_type() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00002000U);
-  return value;
-}
-inline void JointPlateParameters::clear_type() {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00002000U);
-}
-inline ::int32_t JointPlateParameters::type() const {
-  // @@protoc_insertion_point(field_get:wood_proto.JointPlateParameters.type)
-  return _internal_type();
-}
-inline void JointPlateParameters::set_type(::int32_t value) {
-  _internal_set_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00002000U);
-  // @@protoc_insertion_point(field_set:wood_proto.JointPlateParameters.type)
-}
-inline ::int32_t JointPlateParameters::_internal_type() const {
-  ::google::protobuf::internal::TSanRead(&_impl_);
-  return _impl_.type_;
-}
-inline void JointPlateParameters::_internal_set_type(::int32_t value) {
-  ::google::protobuf::internal::TSanWrite(&_impl_);
-  _impl_.type_ = value;
 }
 
 #ifdef __GNUC__

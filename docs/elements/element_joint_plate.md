@@ -11,7 +11,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
 static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
-static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5), ss_e_r_1(int type = 1)   // 0 divisions: one every 300 mm of the joint line
+static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; ss_e_r_1 is the tile of side_removal_ss_e_r_1, not a design of its own
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) .. tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05)
 static std::shared_ptr<JointPlate> b_0()

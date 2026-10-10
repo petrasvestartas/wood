@@ -9,9 +9,10 @@ static Polyline yz_profile_at_x(double x, const double data[][2], size_t n) {
     return Polyline(pts);
 }
 
-/// ss_e_r_1: miter tenon-mortise, a profile and its box marker in the yz-plane, the female at x = 0.5 and 0, the male at
-/// x = 0 and 0.5; type 1 the 15-point arc that side_removal_ss_e_r_1 tiles, any other type the 39-point arc; conic cuts,
-/// no unit scale of its own, as 2024: the caller that tiles it turns the unit scale on.
+/// ss_e_r_1: the miter tenon-mortise tile of side_removal_ss_e_r_1, a profile and its box marker in the yz-plane, the female
+/// at x = 0.5 and 0, the male at x = 0 and 0.5; type 1 the 15-point arc that side_removal_ss_e_r_1 tiles, any other type the
+/// 39-point arc; conic cuts, no unit scale of its own, as 2024: the caller that tiles it turns the unit scale on. The male and
+/// female profiles coincide, so alone on a pair it is no joint: 2024 gave it no id, and the library does not expose it.
 static void ss_e_r_1(InteractionFeaturePlate& joint, int type = 1) {
 
     joint.name = "ss_e_r_1";

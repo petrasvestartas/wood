@@ -52,5 +52,4 @@ message JointPlateParameters {
   bool merge_with_joint = 12;
   repeated session_proto.Polyline male = 13;
   repeated session_proto.Polyline female = 14;
-  optional int32 type = 15;
 }

@@ -29,9 +29,8 @@ static const std::vector<std::string> VARIANTS = {
     "op/ss_e_op_5/8/1", "op/ss_e_op_6", "op/ss_e_op_6/8", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
     "ts/ts_e_p_0", "ts/ts_e_p_1", "ts/ts_e_p_2/8/0.5", "ts/ts_e_p_2/16/0.25", "ts/ts_e_p_3/8/0.5", "ts/ts_e_p_3/16/0.0",
     "ts/ts_e_p_3/24/1.0", "ts/ts_e_p_5/4", "ts/ts_e_p_5/8", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
-    "r/ss_e_r_0", "r/ss_e_r_1", "r/ss_e_r_1/0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5",
-    "r/ss_e_r_3/6/1.0", "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5",
-    "r/side_removal_ss_e_r_1/1/0.5",
+    "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/6/1.0",
+    "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5", "r/side_removal_ss_e_r_1/1/0.5",
     "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_3", "cr/cr_c_ip_4", "cr/cr_c_ip_5", "cr/cr_c_ip_custom",
     "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/60/8", "tt/tt_e_p_3/60/8", "tt/tt_e_p_4/60/8", "tt/tt_e_p_5/60/8", "tt/tt_e_p_3/30/4",
 };
@@ -302,7 +301,6 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "ts_e_p_custom") return JointPlate::ts_e_p_custom(custom[0], custom[1]);
 
     if (library == "ss_e_r_0") return JointPlate::ss_e_r_0();
-    if (library == "ss_e_r_1") return JointPlate::ss_e_r_1(integer(parts, 2, 1));
     if (library == "ss_e_r_2") return JointPlate::ss_e_r_2(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "ss_e_r_3") return JointPlate::ss_e_r_3(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "ss_e_r_custom") return JointPlate::ss_e_r_custom(custom[0], custom[1]);

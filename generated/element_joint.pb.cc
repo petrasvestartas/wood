@@ -51,11 +51,11 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
     {
       PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_._has_bits_),
       0, // no _extensions_
-      15, 120,  // max_field_number, fast_idx_mask
+      14, 120,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294934528,  // skipmap
+      4294950912,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      15,  // num_field_entries
+      14,  // num_field_entries
       2,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
@@ -83,12 +83,12 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
        {33, 8, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.taper_)}},
       // bool chamfer = 5;
-      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.chamfer_), 9>(),
-       {40, 9, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.chamfer_), 10>(),
+       {40, 10, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.chamfer_)}},
       // optional bool modify_outline = 6;
-      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.modify_outline_), 10>(),
-       {48, 10, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.modify_outline_), 11>(),
+       {48, 11, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.modify_outline_)}},
       // repeated double x = 7;
       {::_pbi::TcParser::FastF64P1,
@@ -103,16 +103,16 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
        {74, 2, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.z_)}},
       // bool disable_divisions = 10;
-      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.disable_divisions_), 11>(),
-       {80, 11, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.disable_divisions_), 12>(),
+       {80, 12, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.disable_divisions_)}},
       // double distance_squared = 11;
       {::_pbi::TcParser::FastF64S1,
-       {89, 14, 0,
+       {89, 9, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.distance_squared_)}},
       // bool merge_with_joint = 12;
-      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.merge_with_joint_), 12>(),
-       {96, 12, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<bool, offsetof(JointPlateParameters, _impl_.merge_with_joint_), 13>(),
+       {96, 13, 0,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_)}},
       // repeated .session_proto.Polyline male = 13;
       {::_pbi::TcParser::FastMtR1,
@@ -122,10 +122,7 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
       {::_pbi::TcParser::FastMtR1,
        {114, 4, 1,
         PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.female_)}},
-      // optional int32 type = 15;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(JointPlateParameters, _impl_.type_), 13>(),
-       {120, 13, 0,
-        PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.type_)}},
+      {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
     }}, {{
@@ -138,9 +135,9 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
       // double taper = 4;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.taper_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // bool chamfer = 5;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.chamfer_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.chamfer_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
       // optional bool modify_outline = 6;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.modify_outline_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.modify_outline_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
       // repeated double x = 7;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.x_), _Internal::kHasBitsOffset + 0, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
       // repeated double y = 8;
@@ -148,17 +145,15 @@ constexpr JointPlateParameters::ParseTableT_ JointPlateParameters::InternalGener
       // repeated double z = 9;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.z_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
       // bool disable_divisions = 10;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.disable_divisions_), _Internal::kHasBitsOffset + 11, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.disable_divisions_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
       // double distance_squared = 11;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.distance_squared_), _Internal::kHasBitsOffset + 14, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.distance_squared_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // bool merge_with_joint = 12;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_), _Internal::kHasBitsOffset + 12, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
+      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kBool)},
       // repeated .session_proto.Polyline male = 13;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.male_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .session_proto.Polyline female = 14;
       {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.female_), _Internal::kHasBitsOffset + 4, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
-      // optional int32 type = 15;
-      {PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.type_), _Internal::kHasBitsOffset + 13, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -215,12 +210,11 @@ inline constexpr JointPlateParameters::Impl_::Impl_(
         contact_type_{0},
         divisions_{0},
         taper_{0},
+        distance_squared_{0},
         chamfer_{false},
         modify_outline_{false},
         disable_divisions_{false},
-        merge_with_joint_{false},
-        type_{0},
-        distance_squared_{0} {}
+        merge_with_joint_{false} {}
 
 template <typename>
 constexpr JointPlateParameters::JointPlateParameters(::_pbi::ConstantInitialized,
@@ -921,7 +915,7 @@ const ::uint32_t
         0,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_._has_bits_),
-        18, // hasbit index offset
+        17, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.library_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.contact_type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.divisions_),
@@ -936,22 +930,20 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.merge_with_joint_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.male_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.female_),
-        PROTOBUF_FIELD_OFFSET(::wood_proto::JointPlateParameters, _impl_.type_),
         5,
         6,
         7,
         8,
-        9,
         10,
+        11,
         0,
         1,
         2,
-        11,
-        14,
         12,
+        9,
+        13,
         3,
         4,
-        13,
 };
 
 static const ::_pbi::MigrationSchema
@@ -992,7 +984,7 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     "od_proto.InteractionFeatureSolid\022\021\n\tpre_"
     "drill\030\027 \001(\010B\014\n\n_operationJ\004\010\026\020\027\"5\n\013Joint"
     "Cutter\022&\n\005loops\030\001 \003(\0132\027.session_proto.Po"
-    "lyline\"\374\002\n\024JointPlateParameters\022\017\n\007libra"
+    "lyline\"\340\002\n\024JointPlateParameters\022\017\n\007libra"
     "ry\030\001 \001(\t\022\024\n\014contact_type\030\002 \001(\005\022\021\n\tdivisi"
     "ons\030\003 \001(\005\022\r\n\005taper\030\004 \001(\001\022\017\n\007chamfer\030\005 \001("
     "\010\022\033\n\016modify_outline\030\006 \001(\010H\000\210\001\001\022\t\n\001x\030\007 \003("
@@ -1000,8 +992,8 @@ const char descriptor_table_protodef_element_5fjoint_2eproto[] ABSL_ATTRIBUTE_SE
     "ions\030\n \001(\010\022\030\n\020distance_squared\030\013 \001(\001\022\030\n\020"
     "merge_with_joint\030\014 \001(\010\022%\n\004male\030\r \003(\0132\027.s"
     "ession_proto.Polyline\022\'\n\006female\030\016 \003(\0132\027."
-    "session_proto.Polyline\022\021\n\004type\030\017 \001(\005H\001\210\001"
-    "\001B\021\n\017_modify_outlineB\007\n\005_typeb\006proto3"
+    "session_proto.PolylineB\021\n\017_modify_outlin"
+    "eb\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fjoint_2eproto_deps[6] = {
@@ -1016,7 +1008,7 @@ static ::absl::once_flag descriptor_table_element_5fjoint_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fjoint_2eproto = {
     false,
     false,
-    1357,
+    1329,
     descriptor_table_protodef_element_5fjoint_2eproto,
     "element_joint.proto",
     &descriptor_table_element_5fjoint_2eproto_once,
@@ -2256,9 +2248,9 @@ JointPlateParameters::JointPlateParameters(
                offsetof(Impl_, contact_type_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, contact_type_),
-           offsetof(Impl_, distance_squared_) -
+           offsetof(Impl_, merge_with_joint_) -
                offsetof(Impl_, contact_type_) +
-               sizeof(Impl_::distance_squared_));
+               sizeof(Impl_::merge_with_joint_));
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.JointPlateParameters)
 }
@@ -2297,9 +2289,9 @@ inline void JointPlateParameters::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE are
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, contact_type_),
            0,
-           offsetof(Impl_, distance_squared_) -
+           offsetof(Impl_, merge_with_joint_) -
                offsetof(Impl_, contact_type_) +
-               sizeof(Impl_::distance_squared_));
+               sizeof(Impl_::merge_with_joint_));
 }
 JointPlateParameters::~JointPlateParameters() {
   // @@protoc_insertion_point(destructor:wood_proto.JointPlateParameters)
@@ -2376,12 +2368,12 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
                  reinterpret_cast<char*>(&this_._impl_.contact_type_)) +
                  sizeof(_impl_.divisions_));
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
     ::memset(&this_._impl_.taper_, 0,
              static_cast<::size_t>(
-                 reinterpret_cast<char*>(&this_._impl_.distance_squared_) -
+                 reinterpret_cast<char*>(&this_._impl_.merge_with_joint_) -
                  reinterpret_cast<char*>(&this_._impl_.taper_)) +
-                 sizeof(_impl_.distance_squared_));
+                 sizeof(_impl_.merge_with_joint_));
   }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
@@ -2444,7 +2436,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
   }
 
   // bool chamfer = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (this_._internal_chamfer() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -2453,7 +2445,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
   }
 
   // optional bool modify_outline = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteBoolToArray(
         6, this_._internal_modify_outline(), target);
@@ -2481,7 +2473,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
   }
 
   // bool disable_divisions = 10;
-  if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
     if (this_._internal_disable_divisions() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -2490,7 +2482,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
   }
 
   // double distance_squared = 11;
-  if (CheckHasBit(cached_has_bits, 0x00004000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_distance_squared()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -2499,7 +2491,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
   }
 
   // bool merge_with_joint = 12;
-  if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
     if (this_._internal_merge_with_joint() != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteBoolToArray(
@@ -2531,13 +2523,6 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
     }
   }
 
-  // optional int32 type = 15;
-  if (CheckHasBit(cached_has_bits, 0x00002000U)) {
-    target =
-        ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<15>(
-            stream, this_._internal_type(), target);
-  }
-
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2561,7 +2546,7 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
 
   ::_pbi::Prefetch5LinesFrom7Lines(&this_);
   cached_has_bits = this_._impl_._has_bits_[0];
-  total_size += static_cast<bool>(0x00000400U & cached_has_bits) * 2;
+  total_size += static_cast<bool>(0x00000800U & cached_has_bits) * 2;
   if (BatchCheckHasBit(cached_has_bits, 0x000000ffU)) {
     // repeated double x = 7;
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
@@ -2629,40 +2614,35 @@ PROTOBUF_NOINLINE void JointPlateParameters::Clear() {
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00007b00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00003700U)) {
     // double taper = 4;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_taper()) != 0) {
         total_size += 9;
       }
     }
-    // bool chamfer = 5;
+    // double distance_squared = 11;
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_distance_squared()) != 0) {
+        total_size += 9;
+      }
+    }
+    // bool chamfer = 5;
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (this_._internal_chamfer() != 0) {
         total_size += 2;
       }
     }
     // bool disable_divisions = 10;
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (this_._internal_disable_divisions() != 0) {
         total_size += 2;
       }
     }
     // bool merge_with_joint = 12;
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (this_._internal_merge_with_joint() != 0) {
         total_size += 2;
-      }
-    }
-    // optional int32 type = 15;
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
-      total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
-          this_._internal_type());
-    }
-    // double distance_squared = 11;
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
-      if (::absl::bit_cast<::uint64_t>(this_._internal_distance_squared()) != 0) {
-        total_size += 9;
       }
     }
   }
@@ -2724,36 +2704,33 @@ void JointPlateParameters::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x00007f00U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x00003f00U)) {
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_taper()) != 0) {
         _this->_impl_.taper_ = from._impl_.taper_;
       }
     }
     if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (::absl::bit_cast<::uint64_t>(from._internal_distance_squared()) != 0) {
+        _this->_impl_.distance_squared_ = from._impl_.distance_squared_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (from._internal_chamfer() != 0) {
         _this->_impl_.chamfer_ = from._impl_.chamfer_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
       _this->_impl_.modify_outline_ = from._impl_.modify_outline_;
     }
-    if (CheckHasBit(cached_has_bits, 0x00000800U)) {
+    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
       if (from._internal_disable_divisions() != 0) {
         _this->_impl_.disable_divisions_ = from._impl_.disable_divisions_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00001000U)) {
+    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
       if (from._internal_merge_with_joint() != 0) {
         _this->_impl_.merge_with_joint_ = from._impl_.merge_with_joint_;
-      }
-    }
-    if (CheckHasBit(cached_has_bits, 0x00002000U)) {
-      _this->_impl_.type_ = from._impl_.type_;
-    }
-    if (CheckHasBit(cached_has_bits, 0x00004000U)) {
-      if (::absl::bit_cast<::uint64_t>(from._internal_distance_squared()) != 0) {
-        _this->_impl_.distance_squared_ = from._impl_.distance_squared_;
       }
     }
   }
@@ -2783,8 +2760,8 @@ void JointPlateParameters::InternalSwap(JointPlateParameters* PROTOBUF_RESTRICT 
   _impl_.female_.InternalSwap(&other->_impl_.female_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.library_, &other->_impl_.library_, arena);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.distance_squared_)
-      + sizeof(JointPlateParameters::_impl_.distance_squared_)
+      PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.merge_with_joint_)
+      + sizeof(JointPlateParameters::_impl_.merge_with_joint_)
       - PROTOBUF_FIELD_OFFSET(JointPlateParameters, _impl_.contact_type_)>(
           reinterpret_cast<char*>(&_impl_.contact_type_),
           reinterpret_cast<char*>(&other->_impl_.contact_type_));
