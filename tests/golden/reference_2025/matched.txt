@@ -7,6 +7,7 @@ boundary_side
 cross_and_sides_corner
 cross_brussels_sports_tower
 cross_corners
+cross_ibois_pavilion
 cross_square_reciprocal_iseya
 cross_square_reciprocal_two_sides
 cross_vda_corner

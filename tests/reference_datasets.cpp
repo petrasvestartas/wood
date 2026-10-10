@@ -10,7 +10,8 @@ using namespace wood_session;
 // solver's (tests/golden/reference_2025/<name>.json, written by tools/reference_2025.py from the same data inputs)
 // ═══════════════════════════════════════════════════════════════════════════
 
-static const double MATCH_TOLERANCE = 1e-3; // mm, a reference outline is matched when every point has a twin this close
+static const double REPEAT_TOLERANCE = 1e-2; // mm, two consecutive vertices closer than the 0.01 grid 2024 clipped on are one: the reference keeps some 0.006 apart where a merge leaves a corner twice (cross_vda_single_arch plate 37)
+static const double MATCH_TOLERANCE = 1.5e-2; // mm, a reference outline is matched when every point has a twin this close: the merges clip on 2024's 0.01 grid, and the kernel's Clipper2 2.0.1 rounds some vertices one grid step from where the reference's Clipper2 1.x put them, up to the grid's diagonal 0.0141 (cross_ibois_pavilion 0.011, cross_vda_single_arch 0.0057)
 static const double DRILL_TOLERANCE = 2e-2; // mm, a reference drill line is matched when both ends have a twin this close: the rings tt_e_p_3 and tt_e_p_4 drill are Clipper2 offsets on its 0.01 grid, and the kernel's Clipper2 2.0.1 puts some miter vertices one grid step from where the reference's Clipper2 1.x put them, up to 0.0141 mm on the diagonal; the frame is 2024's, the reference's own contact offset in it gives the kernel's ring
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/reference_2025";
 static const std::string MATCHED_FILE = GOLDEN_DIR + "/matched.txt"; // The datasets that matched when the goldens were last accepted: a regression of one fails the run.
@@ -31,10 +32,10 @@ struct Score {
 // Reference and comparison
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The loop as a shape: without its repeated and its forward-collinear vertices, which carry no geometry. 2024 kept the repeated points its merge made and the corners a run passes straight through; the merge drops them now, so both sides are compared as shapes.
+/// The loop as a shape: without its repeated (within REPEAT_TOLERANCE) and its forward-collinear vertices, which carry no geometry. 2024 kept the repeated points its merge made and the corners a run passes straight through; the merge drops them now, so both sides are compared as shapes.
 static Polyline shape(Polyline loop) {
 
-    loop.remove_consecutive_duplicates();
+    loop.remove_consecutive_duplicates(REPEAT_TOLERANCE);
     loop.merge_collinear();
     return loop;
 }
