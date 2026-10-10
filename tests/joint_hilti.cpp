@@ -108,23 +108,36 @@ static std::vector<std::vector<double>> check_angle(double angle) {
         const BRep& brep = slab->model_geometry_brep();
         check(brep.is_valid() && brep.is_solid(), fmt::format("{:g} degrees: {} model BRep valid {} solid {}", angle, slab->name, brep.is_valid(), brep.is_solid()));
 
+        // the top face: the slab's plane facing up the most
+        Plane top = slab->planes[0];
+        for (const Plane& plane : slab->planes)
+            if (plane.z_axis()[2] > top.z_axis()[2])
+                top = plane;
+
         std::vector<Mesh> filling = {model};
         for (size_t index : {2 * side, 2 * side + 1}) {
             const Mesh part = hilti->part_mesh(index);
             const double volume = compute_volume(part);
-            const double inside = boolean_volume(part, stock, SolidOperation::intersect);
-            check(std::abs(inside - volume) <= ZERO_REL * volume, fmt::format("{:g} degrees: part {} has {:.3f} of its {:.3f} mm3 outside {}", angle, index, volume - inside, volume, slab->name));
+            // a part is inside its slab, or stands out of its top where the fold lowers the top under the straight bow-tie, as on the test series
+            const Mesh outside = solid_boolean(part, stock, SolidOperation::subtract);
+            double below = 0.0;
+            for (const std::pair<const size_t, VertexData>& vertex : outside.vertex)
+                below = std::max(below, -top.signed_distance(vertex.second.position()));
+            check(below <= 1e-6 * SLAB_THICKNESS, fmt::format("{:g} degrees: part {} leaves {} {:.6f} below its top", angle, index, slab->name, below));
             // shrunk a thousandth about its centre, so a face it shares with its pocket's wall is no overlap and a real one stays
             const Mesh shrunk = part.transformed(Xform::scale_uniform(part.centroid(), 1.0 - 1e-3));
             const double overlap = boolean_volume(shrunk, model, SolidOperation::intersect);
             check(overlap <= ZERO_REL * volume, fmt::format("{:g} degrees: part {} overlaps the cut {} by {:.3f} mm3", angle, index, slab->name, overlap));
             filling.push_back(part);
         }
-        const std::array<Polyline, 2>& slot = hilti->cutters[side][2];
-        filling.push_back(Mesh::loft({slot[0]}, {slot[1]}, true));
+        // what the slab loses on purpose: the pocket open to the top over its half, and the access slot
+        for (size_t cutter : {0, 2}) {
+            const std::array<Polyline, 2>& loops = hilti->cutters[side][cutter];
+            filling.push_back(Mesh::loft({loops[0]}, {loops[1]}, true));
+        }
         const Mesh gap = solid_difference(stock, filling);
         const double unfilled = gap.number_of_faces() == 0 ? 0.0 : compute_volume(gap);
-        check(unfilled <= ZERO_REL * compute_volume(hilti->part_mesh(2 * side)), fmt::format("{:g} degrees: {} lost {:.3f} mm3 neither its half, its disc nor its slot fill", angle, slab->name, unfilled));
+        check(unfilled <= ZERO_REL * compute_volume(hilti->part_mesh(2 * side)), fmt::format("{:g} degrees: {} lost {:.3f} mm3 neither its parts, its pocket nor its slot account for", angle, slab->name, unfilled));
     }
 
     // the rod through both halves and both discs, each part bored exactly
@@ -162,6 +175,6 @@ int main() {
                 check(std::abs(flat[index][k] - folded[index][k]) <= SAME * std::max(1.0, std::abs(flat[index][k])), fmt::format("part {} at {:g} degrees differs from the flat one at number {}: {:.9g} against {:.9g}", index, ANGLES[a], k, folded[index][k], flat[index][k]));
     }
 
-    std::cout << fmt::format("joint_hilti: halves of {:.0f} mm3 and discs of {:.0f} mm3 identical at 0 to 50 degrees, inside their slabs, filling their pockets, bored by the rod", flat[0][0], flat[1][0]) << std::endl;
+    std::cout << fmt::format("joint_hilti: halves of {:.0f} mm3 and discs of {:.0f} mm3 identical at 0 to 50 degrees, in their slabs or standing out of the top, the slabs losing only their pockets and slots, bored by the rod", flat[0][0], flat[1][0]) << std::endl;
     return 0;
 }

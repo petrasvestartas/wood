@@ -1117,8 +1117,8 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
 }
 
 /// One half's two loops in its frame (origin on the rod at the seam, x along the rod into its slab, y along the seam, z up): the wing on
-/// its neck outlined in the plane of the rod and the seam, a thickness apart across it, the neck starting at start along the rod.
-static std::array<Polyline, 2> hilti_half(const Xform& frame, double start, double half_length, double neck_length, double wing_width, double neck_width, double thickness) {
+/// its neck outlined in the plane of the rod and the seam, one loop at bottom and one at top, the neck starting at start along the rod.
+static std::array<Polyline, 2> hilti_half(const Xform& frame, double start, double half_length, double neck_length, double wing_width, double neck_width, double bottom, double top) {
 
     const std::vector<Point> outline = {
         Point(start, -0.5 * neck_width, 0.0),
@@ -1130,7 +1130,7 @@ static std::array<Polyline, 2> hilti_half(const Xform& frame, double start, doub
     };
     const Polyline loop = Polyline(outline).closed();
 
-    return {loop.transformed(frame * Xform::translation(0.0, 0.0, -0.5 * thickness)), loop.transformed(frame * Xform::translation(0.0, 0.0, 0.5 * thickness))};
+    return {loop.transformed(frame * Xform::translation(0.0, 0.0, bottom)), loop.transformed(frame * Xform::translation(0.0, 0.0, top))};
 }
 
 /// One disc's two loops: the kernel's polygon of sides around the rod, at start and at end along it.
@@ -1180,12 +1180,12 @@ std::shared_ptr<JointBeam> JointBeam::hilti(
     double neck_length,
     double wing_width,
     double neck_width,
-    double thickness,
+    double height,
     double rod_diameter,
     double disc_diameter,
     double disc_thickness,
     double slot_width,
-    double lift,
+    double cover,
     double rod_overhang,
     int sides
 ) {
@@ -1224,20 +1224,24 @@ std::shared_ptr<JointBeam> JointBeam::hilti(
     joint->targets = {a.guid(), b.guid()};
     joint->insertions = pulled_apart(a, b, contact);
 
-    // the rod through both halves and both discs, its nut past each
-    const Point rod_centre = centre + z * lift;
+    // the rod through both halves and both discs, its nut past each, at the halves' middle, their top cover under the seam's highest point
+    double ridge = 0.0;
+    for (const Point& point : points)
+        ridge = std::max(ridge, (point - centre).dot(z));
+    const Point rod_centre = centre + z * (ridge - cover - 0.5 * height);
     const double rod_half = half_length + disc_thickness + rod_overhang;
     joint->drill_lines = {Line::from_points(rod_centre - x * rod_half, rod_centre + x * rod_half)};
     joint->line_radius = 0.5 * rod_diameter;
     joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);
 
-    // per slab: its half and its disc as parts, the same solids and the access slot as its cutters
+    // per slab: its half and its disc as parts; its pocket, the disc's seat and the access slot as its cutters
     for (const Element* slab : {&a, &b}) {
         const Vector into = slab == &a ? x * -1.0 : x;
         const Xform frame = Xform::frame_to_world(rod_centre, into, z.cross(into), z);
-        const std::array<Polyline, 2> half = hilti_half(frame, 0.0, half_length, neck_length, wing_width, neck_width, thickness);
-        // its pocket starts 1 mm across the seam, so the cut shares no face with the slab's seam face
-        const std::array<Polyline, 2> pocket = hilti_half(frame, -1.0, half_length, neck_length, wing_width, neck_width, thickness);
+        const std::array<Polyline, 2> half = hilti_half(frame, 0.0, half_length, neck_length, wing_width, neck_width, -0.5 * height, 0.5 * height);
+        // the pocket is milled from the top: it starts 1 mm across the seam, so the cut shares no face with the seam face, and rises past
+        // the slab's top over the whole half, which a fold only lowers
+        const std::array<Polyline, 2> pocket = hilti_half(frame, -1.0, half_length, neck_length, wing_width, neck_width, -0.5 * height, 0.5 * height + cover + half_length);
         const std::array<Polyline, 2> disc = hilti_disc(frame, half_length, half_length + disc_thickness, 0.5 * disc_diameter, sides);
 
         // the top face: the slab's plane facing up the most
@@ -1256,7 +1260,8 @@ std::shared_ptr<JointBeam> JointBeam::hilti(
                 for (const Point& point : loop.get_points())
                     depth = std::max(depth, -top.signed_distance(point));
 
-        const std::array<Polyline, 2> slot = hilti_slot(frame, top, rod_half - half_length, rod_half, slot_width, depth, sides);
+        // from the wing's end, 1 mm into the pocket, outwards as long as the half
+        const std::array<Polyline, 2> slot = hilti_slot(frame, top, half_length - 1.0, 2.0 * half_length, slot_width, depth, sides);
         joint->parts.push_back(half);
         joint->parts.push_back(disc);
         joint->cutters.push_back({pocket, disc, slot});
