@@ -46,7 +46,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two 600 x 400 CLT slabs 200 thick folded 30 degrees, each falling 15 degrees from the ridge along y, their seam faces mitred on the vertical plane x = 0; JointPlate::hilti on their face contact with the product's defaults, the 2024 Hilti joint (ss_e_r_2) with its parts: each slab gets its half of the 240 x 90 bow-tie pocket milled 93 deep from the top, a 27.7 x 40 neck across the seam widening into a 90 wide wing at 74.4, its far corners rounded by a 40 mm router; the parts are a straight bow-tie of two plywood halves 90 deep, a 50 mm steel disc 6 thick recessed in each wing's end and an M12 bolt from disc to disc. The connector is added and passed to each slab with add_interaction, its halves, discs and bolt nested under it; the right slab is moved 300 off along the seam's normal afterwards so its pocket reads.
+The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitred seam, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

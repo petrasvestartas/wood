@@ -42,7 +42,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-to-top design tt_e_p_custom on one pair: two 400 x 300 plates 40 thick, the upper one turned about the vertical, its bottom on the lower one's top, so their contact is an irregular octagon. Your own outlines in the joint's unit box: a bow-tie pair per plate, from the contact face to half the plate's thickness, milled as a pocket into each plate; a loose butterfly key of the same outline, set in both pockets, locks the plates against sliding and pulling apart and stays hidden between them. The joint is oriented on the face contact and passed to each plate with add_interaction; the upper plate is lifted 150 afterwards so both pockets read.
+tt_e_p_custom: your own outlines on two stacked plates, a hidden butterfly key pocket milled into each, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

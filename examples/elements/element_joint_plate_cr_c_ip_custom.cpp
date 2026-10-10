@@ -48,7 +48,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The cross design cr_c_ip_custom on one pair: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y; the joint takes your own outlines in its unit box, the first plate's thickness along x, the second's along y and the cross's depth along z, is oriented on their cross contact (compute_cross_contact) and passed to each plate with add_interaction; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate: here the male pair, the first plate's on a cross, cuts a slot 60 deep down from its top edge and the female pair cuts one 140 deep up from the second plate's bottom edge, the cross's depth split unequally where cr_c_ip_0 halves it; the joint owns no piece and stays hidden; the second plate is lifted 250 afterwards, along the cross's depth, so both slots read.
+cr_c_ip_custom: your own rectangles in the joint's unit box, an unequal slot into each of two upright plates crossing at their middles, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

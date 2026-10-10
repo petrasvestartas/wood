@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ts_e_p_3 on two beams in a tee: its two tenons would sever the first beam, so from_contact cuts the single milled tenon of ts_e_p_4; the second beam is lifted 300.
+ts_e_p_3 on a beam tee: the two plate tenons would sever the first beam, so one milled tenon, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

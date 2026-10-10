@@ -45,7 +45,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two 1600 long beams 200 wide and 300 deep side by side, touching on their long faces; JointBeam::wedge on their face contact stops 300 short of each end of the contact's top edge, its triangular WEDGE_PROFILE hangs below that edge, a pocket 133 deep is cut under each slanted face into each beam, and pins run across through the wedge every 320; the wedge is added and passed to each beam with add_interaction, its part and pins nested under it; the right beam is moved 300 off afterwards so the pockets read.
+A wedge connector between two beams side by side: a prism let into both, pinned across, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_4 on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, on its defaults: a geometric division count, one every 450 of the joint line and at least two, chamfered tenons on the wall inserted between the mitred edges, the floor's edge modified around them and a through mortise, a hole on each face, per tenon; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
+ss_e_op_4: the parametric chamfered tenons and through mortises of a floor and a wall plate mitred at a right angle, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

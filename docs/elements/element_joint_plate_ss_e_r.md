@@ -2,7 +2,7 @@
 
 [TOC]
 
-The side-to-side rotated family: a design cut into the side faces of two plates that meet edge to edge, the contact read as rotated when the two alignment lines of the seam cross, before the dihedral test that sorts parallel seams into in-plane and out-of-plane, or when the scene reads every side-to-side contact so (`settings.all_treated_as_rotated`), the joint volumes averaged between the plates under `settings.rotated_joint_as_average`; the 2024 library's joint type 13, ids 50 to 59 (54 `ss_e_r_3`, 55 `ss_e_r_2`, 56 `ss_e_r_0`, 57 `side_removal`, 58 `side_removal` merged with the joint, the family default, 59 `ss_e_r_custom`; an id without an entry takes `side_removal`), used wherever a 2024 side-to-side seam's lines cross, and forced on every seam of the hex block of Rossinière (`data/hex_block_rossiniere.yml`, the merged side removal) and of the Hilti in-plane dataset (`data/inplane_hilti.yml`, `ss_e_r_2`). `ss_e_r_1` is no design of its own: it is the arc tenon tile `side_removal_ss_e_r_1` lays in the side face, with no id and no dispatch in 2024, and alone on a pair its male and female profiles coincide.
+The side-to-side rotated family: a design cut into the side faces of two plates that meet edge to edge, the contact read as rotated when the two alignment lines of the seam cross, before the dihedral test that sorts parallel seams into in-plane and out-of-plane, or when the scene reads every side-to-side contact so (`settings.all_treated_as_rotated`), the joint volumes averaged between the plates under `settings.rotated_joint_as_average`.
 
 ## Constructors
 
@@ -21,7 +21,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair, `Plate::pair_rotated(20.0)`: two 300 x 400 blocks 100 thick end to end, the right one twisted 20 degrees about the seam's normal, as the Rossinière hex blocks meet, drawn apart along the seam's normal. A twisted seam takes no finger joint: `ss_e_r_2` and `ss_e_r_3` mill a pocket into each block and the joint owns the key that fills both; `ss_e_r_0` and `side_removal` only prepare the seam faces.
+Every example is the same pair, `Plate::pair_rotated(20.0)`: two 300 x 400 blocks 100 thick end to end, the right one twisted 20 degrees about the seam's normal, as the Rossinière hex blocks meet, drawn apart along the seam's normal.
 
 ## ss_e_r_0: four slices
 
@@ -69,7 +69,7 @@ A diamond pocket milled into each plate per division, two on this seam, and the 
 
 ![ss_e_r_custom](elements/element_joint_plate_ss_e_r_custom.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the seam, y through the thickness, z along the joint line; as the 2024 library kept a custom pair, they carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate, every other outline passing through uncut and shown as a feature: here a rectangle on each face of the male plate cuts a notch half a thickness deep into its mitred edge over one stretch of the joint line, and one on each face of the female cuts the same notch into hers over another.
+Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the seam, y through the thickness, z along the joint line.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_custom.cpp
 
@@ -77,7 +77,7 @@ Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the
 
 ![side_removal](elements/element_joint_plate_ss_e_r_side_removal.png)
 
-Each plate's side face, widened at its convex corners and up and down by the joint scale, milled off along its normal, the female's by the scale plus 2, the male's by the scale, the sides swapped as 2024 swapped them; the session cuts each removal as a solid, where 2024 clipped the rectangle into the outline, and at the default scale the removals are slivers along the seam.
+Each plate's side face, widened at its convex corners and up and down by the joint scale, milled off along its normal, the female's by the scale plus 2, the male's by the scale, the sides swapped as 2024 swapped them.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal.cpp
 
@@ -85,7 +85,7 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 
 ![side_removal_ss_e_r_1](elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.png)
 
-Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts; kept as 2024 wrote it, the merged form swaps the sides last and hands each plate its own side slab outside its stock, so no side is removed and only the tile's conic slivers cut. 2024 named it as id 58 but dispatched `side_removal(true)` for it, so no 2025 reference dataset reaches it; it is the 2024 function, not a design the solver chooses.
+Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.cpp
 
@@ -97,8 +97,8 @@ Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_
 
 ## Angles
 
-![ss_e_r_0 at 120 degrees](elements/element_joint_plate_ss_e_r_angle_120.png)
+![ss_e_r_0 at a 40 degree twist](elements/element_joint_plate_ss_e_r_angle_40.png)
 
-Two plates folded 120 degrees on a mitred seam, the scene reading the contact as rotated: the slices of `ss_e_r_0` follow the seam. The oracle runs every design of the family on its defaults folded 90, 120 and 150 degrees (`r@90`, `r@120`, `r@150`); the key designs `ss_e_r_2` and `ss_e_r_3` own no key yet, there or in plane, so their keys' rigidity is not measured until they do.
+Two plates folded 120 degrees on a mitred seam, the scene reading the contact as rotated: the slices of `ss_e_r_0` follow the seam.
 
-\include{lineno} elements/element_joint_plate_ss_e_r_angle_120.cpp
+\include{lineno} elements/element_joint_plate_ss_e_r_angle_40.cpp

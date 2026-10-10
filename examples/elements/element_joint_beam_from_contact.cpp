@@ -74,7 +74,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two pairs of 60 radius beams on straight axes: a crossing, where the axes meet halfway along both, and a T, where the second axis ends on the first; each axis contact (InteractionContactAxis: the closest segment and where it sits on each axis) makes JointBeam::from_contact with 400 long feature volumes; as 2024 joined beams, the two volumes of each pair are made boxes and joined as plates, the crossing by the cross half-lap cr_c_ip_0 and the T by the top-to-side tenons ts_e_p_3, and each beam is cut to what its box keeps inside the two boxes; the joint is added and passed to each beam with add_interaction, and each pair's second beam is moved 250 along JointBeam::insertion(1), the way it comes off the first, so the cuts read.
+Beam-to-beam joints from the axis contact of two beams: a crossing and a side-to-end.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

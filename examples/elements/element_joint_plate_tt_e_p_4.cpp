@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-to-top design tt_e_p_4 on one pair: two 400 x 300 plates 40 thick, the upper one turned about the vertical, its x axis (0.8, 0.6), its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon; the joint is oriented on their face contact and passed to each plate with add_interaction, the contact offset inward by the shift, 20 mm, and a lattice of pin holes of radius 8 with a step of 60 filling that ring from its first corner, each drilled one plate thickness into each plate, a cylinder through each; the joint owns no piece and stays hidden; the upper plate is lifted 150 afterwards, along the plates' normal, so the holes in both read.
+tt_e_p_4: a lattice of pin holes 60 apart inside the contact of two stacked plates offset 20 inward, drilled through both, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

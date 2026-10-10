@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ss_e_op_1 with eight divisions on a 300 x 400 floor and a 300 high wall, both 40 thick, folded 120 degrees on their 400 seam, their side faces mitred on the bisector through the outer and the inner corner, as the oracle's op@120 fixture; the fingers keep the family's shape at the angle, merged into both mitred edges; the wall is moved 150 along the mitre's normal afterwards so both edges read.
+ss_e_op_1 on a floor and a wall folded 120 degrees, their side faces mitred on the bisector, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

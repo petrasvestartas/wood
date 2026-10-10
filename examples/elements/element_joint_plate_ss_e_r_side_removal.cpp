@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated family's side_removal on one pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, each plate's side face, widened at its convex corners and up and down by the joint scale, milled off along its normal, the female's by the scale plus 2, the male's by the scale, the sides swapped as 2024 swapped them; the right plate is moved 150 along the mitre's normal so both faces read.
+side_removal on a rotated pair: the side faces of two plates folded along a shared edge milled off by the joint scale, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

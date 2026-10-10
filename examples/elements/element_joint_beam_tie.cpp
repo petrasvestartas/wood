@@ -39,7 +39,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two 1000 long beams 200 wide and 300 deep end to end; JointBeam::tie on their face contact makes an 800 long bow-tie key in four pieces, 200 long, 40 wide heads and a 20 wide neck, 58.5 deep and 138.5 below the contact's top edge, with a pocket 80 deep in each beam; the key is added and passed to each beam with add_interaction; the second beam is moved 400 off afterwards so the pockets read.
+A bow-tie key across the end-to-end contact of two beams, let into both, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

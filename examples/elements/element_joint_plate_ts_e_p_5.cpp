@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-side design ts_e_p_5 on one pair, on its defaults: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, the upright its male side and the base its female, the snap-fit tenon, 2024's literals, a copy per division spread along the joint line, the division count geometric, one every 450 of the joint line, so one copy here, the copies run into one outline on the upright's bottom edge and a mortise through the base per copy, a hole on each of its faces; the design is unit scale, its unit z the upright's thickness instead of the joint line, so the tenon keeps the upright's thickness, and its hook runs through the base and out below it as 2024 drew it; the joint owns no piece and stays hidden; the upright is lifted 120 afterwards, along the base's normal, so the tenons and the mortises both read.
+ts_e_p_5: the snap-fit tenon of an upright plate standing on a base plate, its hook run through the base, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -37,7 +37,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_5 on one pair, on its defaults: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint is oriented on their face contact and passed to each plate with add_interaction, an eight-point tooth pocket into each edge per division, each reversed, the count geometric, one every 300 of the joint line, the tooth scaled to the male plate's thickness; the joint is drawn, its pieces the keys that fill both pockets; the right plate is moved 200 along the seam's normal and the keys 100 afterwards so the pockets and the keys read.
+ss_e_ip_5: the reversed-tooth keys of two plates edge to edge in one plane, on its defaults, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cr_c_ip_5 on two beams crossing at right angles: the Brussels half-lap, cut into both beams as solids; the second beam is lifted 300.
+cr_c_ip_5 on beams: the Brussels half-lap, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

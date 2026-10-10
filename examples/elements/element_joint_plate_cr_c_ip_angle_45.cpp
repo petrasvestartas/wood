@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cr_c_ip_2 on its defaults on two upright 400 x 200 plates 40 thick crossing at their middles at 45 degrees in plan, as the oracle's cr@45 fixture: each milled half-lap follows the oblique crossing, its walls on the 0.01 mm grid 2024 clipped the slots on; the second plate is lifted 250 afterwards so both half-laps read.
+cr_c_ip_2 on two upright plates crossing at 45 degrees at their middles, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

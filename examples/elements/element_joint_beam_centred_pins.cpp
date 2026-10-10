@@ -37,7 +37,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A 300 square block 200 high on a 400 square block 200 high; JointBeam::centred_pins on their face contact stands a pin 8 in radius and 160 long at each corner of the contact inset by 50, half in each block, and bores both; the pins are added and passed to each block with add_interaction.
+Pins centred across the contact of two stacked blocks, bored into both.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

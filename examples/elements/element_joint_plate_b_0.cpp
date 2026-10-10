@@ -28,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The boundary family on one plate: a 300 x 200 plate 40 thick, the border contact of its side face 2 (WoodSession::compute_border_contact, 2024's border_to_face: the average of the face's two side edges and two thin rectangles across the thickness around it), and JointPlate::b_0 oriented on it with the plate alone, as the solver makes it for an adjacency row pairing a plate with itself on a face; its four slice rectangles, 0.25 and 16 either side of the face's middle, stand 6 out of the face and a millimetre past the plate's faces, exactly as the 2025 reference writes them, and cut nothing from the plate; the joint is shown so the slices read.
+b_0, the boundary family: a joint on one plate's side face alone, its four slices standing outside the face.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

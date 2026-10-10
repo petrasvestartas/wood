@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_1 on one pair, eight divisions and the shift 0.5: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint is oriented on their face contact and passed to each plate with add_interaction, its zigzag of square fingers, 20 deep, merged into both edges, four on each plate; on its defaults the count is geometric, one division every 300 of the joint line, at least two and even, which on this 400 seam is a single tongue; the right plate is moved 120 along the seam's normal afterwards so both edges read. The joint owns no piece and stays hidden.
+ss_e_ip_1: the parametric finger joint of two plates edge to edge in one plane, eight divisions, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

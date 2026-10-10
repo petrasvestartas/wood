@@ -48,7 +48,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six pairs of 600 x 400 CLT slabs 200 thick, folded 0, 10, 20, 30, 40 and 50 degrees on a mitred seam, one row per angle 600 apart along the seam, each pair in its group fold_<angle>; JointPlate::hilti with the product's defaults on every pair: the halves, discs and bolt are the same solids at every angle, never sheared or scaled, so the more a pair folds the more its straight bow-tie stands out of the falling tops, as in the test series; the bow-tie pockets milled 93 deep from the top faces follow the slabs; tests/joint_hilti.cpp checks the parts identical at all six angles, in their slabs or standing out of the top, and the slabs losing only their pockets.
+The Hilti connector on six pairs of 200 mm CLT slabs folded 0 to 50 degrees, one row per angle as in the test series.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

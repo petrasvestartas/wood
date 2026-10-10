@@ -32,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A Vidy node, the four-valence connection of the Vidy theatre's double-layer walls and roof: the first node of the dataset vidy_corner, its two wall plates (6 and 7) and its two roof plates (9 and 8), copied into a session of their own with the dataset's settings and the node as a three-valence group with the Vidy instruction 1. compute_features joins the walls to the roof plates with the linked tenons ss_e_op_5 (id 15) and adds the shadow joint that links the two layers, so both wall layers send tenons up through the two-layer roof; each joint is an element in the joints group, passed to its plates with add_interaction. Vidy goes beyond chapter 5 of the thesis, whose four-plate nodes are in plane (Fig 5.32 B) or the platonic solids (Fig 5.33).
+One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons ss_e_op_5 and their shadow joint.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

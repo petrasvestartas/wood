@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-side design ts_e_p_0 on one pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, the upright its male side and the base its female, three fixed tenons on the upright's bottom edge over the middle five sevenths of the joint line, each the base's thickness deep, and three mortises through the base, a hole on each of its faces, 2024's literals with no parameters; the joint owns no piece and stays hidden; the upright is lifted 120 afterwards, along the base's normal, so the tenons and the mortises both read.
+ts_e_p_0: the three fixed tenons of an upright plate standing on a base plate, through three mortises in the base, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

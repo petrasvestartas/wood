@@ -2,7 +2,7 @@
 
 [TOC]
 
-The top-to-top family: two plates stacked face on face, pinned through their contact by holes drilled one plate thickness into each, as the 2024 library laid them; the 2024 library's joint type 40, ids 40 to 49 (40 `tt_e_p_0`, the family's default id, 41 `tt_e_p_1`, 42 `tt_e_p_2`, 43 `tt_e_p_3`, 44 `tt_e_p_4`, 45 `tt_e_p_5`, 48 `side_removal`, 49 `tt_e_p_custom`; any other id takes `tt_e_p_0`), used on the solver's stacked datasets.
+The top-to-top family: two plates stacked face on face, pinned through their contact by holes drilled one plate thickness into each, as the 2024 library laid them.
 
 ## Constructors
 
@@ -22,7 +22,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: two 400 x 300 plates 40 thick, the lower one on the world axes, the upper one turned about the vertical, its x axis (0.8, 0.6) and its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon whose centre lies apart from its polylabel. The joint is oriented on their face contact and passed to each plate with `add_interaction`, the lower plate first; every design drills, a two-point line per hole one plate thickness deep into each plate, of fabrication type drill, bored as a cylinder of the pin's radius, 8 in the examples. The upper plate is then lifted 150 along the plates' normal, the direction it drops onto the lower one, so the holes in both read; every page shows the pair and the plan. No design of this family owns a piece: the holes belong to the plates and the joint stays hidden.
+Every example is the same pair: two 400 x 300 plates 40 thick, the lower one on the world axes, the upper one turned about the vertical, its x axis (0.8, 0.6) and its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon whose centre lies apart from its polylabel.
 
 ## tt_e_p_0: the centre
 
@@ -83,6 +83,6 @@ The largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of 
 ![tt_e_p_custom](elements/element_joint_plate_tt_e_p_custom.png)
 ![tt_e_p_custom, the plan](elements/element_joint_plate_tt_e_p_custom_plan.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact. Here a hidden butterfly key: each plate is milled a bow-tie pocket from the contact face to half its thickness, and a loose key of the same outline, set in both pockets, locks the plates together.
+Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact.
 
 \include{lineno} elements/element_joint_plate_tt_e_p_custom.cpp

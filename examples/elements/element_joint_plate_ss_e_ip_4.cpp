@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_4 on one pair: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint is oriented on their face contact and passed to each plate with add_interaction, two slanted key grooves crossing each other milled into each edge, each projected from face to face, and four drills through the thickness, two in each plate; the joint owns no piece and stays hidden, each plate hosts its grooves and its two drills; the right plate is moved 200 along the seam's normal afterwards so both grooves read.
+ss_e_ip_4: the two crossed milled keys and four drills of two plates edge to edge in one plane, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

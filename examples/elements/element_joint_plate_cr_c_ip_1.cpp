@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The cross design cr_c_ip_1 on one pair, on its default shift 0.5: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y; the joint is oriented on their cross contact (compute_cross_contact) and passed to each plate with add_interaction, the half-lap as nine rings per plate, every one a solid taken from the plate: the centre square and the two top sides milled, the two bottom sides and the four corner wedges sliced, the centre square narrowed by the shift, 0 the widest and 1 the narrowest; the joint owns no piece and stays hidden; the second plate is lifted 250 afterwards, along the cross's depth, so both half-laps read.
+cr_c_ip_1: the sliced half-lap of two upright plates crossing at their middles, nine rings per plate on the shift, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

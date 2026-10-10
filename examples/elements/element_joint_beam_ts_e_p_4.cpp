@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ts_e_p_4 on two beams in a tee: the milled wedge, cut into both beams as solids; the second beam is lifted 300.
+ts_e_p_4 on beams: the milled wedge, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

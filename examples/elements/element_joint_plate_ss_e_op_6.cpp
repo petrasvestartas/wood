@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_6 on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, ss_e_op_5 with the divisions of its second linked joint disabled, the Vidy wall version that merges its tenons with one side only; with no linked joint, as here, it is the lengthened tenons and through mortises of ss_e_op_5; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
+ss_e_op_6: the Vidy wall tenons of a floor and a wall plate mitred at a right angle with no linked joint, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

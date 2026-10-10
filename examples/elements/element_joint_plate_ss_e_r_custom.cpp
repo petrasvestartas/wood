@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated design ss_e_r_custom on one pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint takes your own outlines in its unit box, is oriented on their face contact and passed to each plate with add_interaction; as the 2024 library kept a custom pair, the outlines carry the fabrication type nothing and only a closed rectangle of five points, or a line of two, is merged into the plate: here a rectangle on each face of the male plate cuts a notch half a thickness deep into its mitred edge over one stretch of the fold and one on each face of the female cuts the same notch into hers over another; the right plate is moved 150 along the mitre's normal afterwards.
+ss_e_r_custom: your own rectangles in the joint's unit box, a notch into each of two plates folded along a shared edge, their contact read as rotated, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

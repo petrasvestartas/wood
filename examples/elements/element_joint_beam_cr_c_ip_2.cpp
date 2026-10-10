@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cr_c_ip_2 on two beams crossing at right angles: the milled half-lap, cut into both beams as solids; the second beam is lifted 300.
+cr_c_ip_2 on beams: the milled half-lap, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

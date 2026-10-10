@@ -33,9 +33,8 @@ std::shared_ptr<Interaction> interaction(size_t target) const
 
 The 2024 Hilti joint (`ss_e_r_2`, id 55) with its key, a plate joint like the rotated keys:
 - **each slab, `interaction(i)`:** its half of the bow-tie pocket milled `depth` from the top, the neck across the seam widening into the wing, the far corners rounded by the router.
-- **the key, the joint's own solid:** two plywood halves of a straight bow-tie, a steel disc recessed in each end, and the bolt from disc to disc inside the pockets.
 
-The key keeps its shape at every fold, so the more the pair folds, the more each wing stands out of its slab's top, as on the test series. `tests/joint_hilti.cpp` folds the pair 0 to 50 degrees and checks the key identical, inside the slabs or above their tops, clear of the cut slabs, each slab losing only its pocket, and the bolt through the key as an exact cylinder.
+The key keeps its shape at every fold, so the more the pair folds, the more each wing stands out of its slab's top, as on the test series.
 
 ## One pair at 30 degrees
 

@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ss_e_ip_1 with eight divisions on two 40 thick plates edge to edge in one plane whose seam runs at 75 degrees to their bottom edge, 414 long: the fingers keep their shape along the slanted seam; the right plate is moved 150 along the seam's normal in the plates' plane afterwards so both edges read.
+ss_e_ip_1 on two plates edge to edge in one plane, their seam slanted 75 degrees to their edges, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

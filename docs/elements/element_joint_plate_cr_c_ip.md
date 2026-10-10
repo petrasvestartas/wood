@@ -2,7 +2,7 @@
 
 [TOC]
 
-The cross family: a design cut where two plates pass through each other in their planes, a slot or a half-lap into each over its share of the cross's depth, found by `compute_cross_contact`; the 2024 library's contact type 30, ids 30 to 39 (30 `cr_c_ip_0`, the family default id, 31 `cr_c_ip_1`, 32 `cr_c_ip_2`, 33 `cr_c_ip_3`, 34 `cr_c_ip_4`, 35 `cr_c_ip_5`, 38 `side_removal`, 39 `cr_c_ip_custom`; an id without an entry takes `cr_c_ip_0`), used on every cross dataset (`data/cross_*.yml`, id 30, `cr_c_ip_0`) but the Brussels sports tower (`data/cross_brussels_sports_tower.yml`, id 35, `cr_c_ip_5`).
+The cross family: a design cut where two plates pass through each other in their planes, a slot or a half-lap into each over its share of the cross's depth, found by `compute_cross_contact`.
 
 The same designs on two crossing beams: [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip).
 
@@ -24,7 +24,7 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y, the joint oriented on their cross contact and passed to each plate with `add_interaction`, the first plate its target 0 and the second its target 1, the second plate lifted 250 afterwards along the cross's depth, the direction the plates slide into each other, so both cuts read; every section shows the pair and a close-up on the lifted plate. The joint's unit box puts one plate's thickness along x, the other's along y and the cross's depth along z, its middle at z = 0, as 2024's library drew the family: the male side, target 0, is the first plate, its faces at y = -0.5 and 0.5, cut on the z < 0 half, from the middle of the cross to its top edge here; the female, the second, its faces at x = -0.5 and 0.5, is cut on the z > 0 half, to its bottom edge. No design owns a piece, so the joint stays hidden. `cr_c_ip_0` and `cr_c_ip_custom` merge their rectangles into the plates' outlines, so the slots are cut from the plates; the half-laps of `cr_c_ip_1` to `cr_c_ip_5` are solids taken from the plates, every ring drawn on its plate as a cut feature, with the drills as the lines 2024 declared them.
+Every example is the same pair: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y, the joint oriented on their cross contact and passed to each plate with `add_interaction`, the first plate its target 0 and the second its target 1, the second plate lifted 250 afterwards along the cross's depth, the direction the plates slide into each other, so both cuts read.
 
 ## cr_c_ip_0: the plain slot
 
@@ -36,7 +36,7 @@ Every example is the same pair: two upright 400 x 200 plates 40 thick crossing a
 const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_0(); // a fixed design, no parameters
 ```
 
-The family default: a rectangle merged into each plate's outline over half the cross's depth, a slot from the top of the first plate and from the bottom of the second, clipped into the outline by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid in the frame of the face. The id 30, every cross dataset but Brussels.
+The family default: a rectangle merged into each plate's outline over half the cross's depth, a slot from the top of the first plate and from the bottom of the second, clipped into the outline by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid in the frame of the face.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_0.cpp
 
@@ -68,7 +68,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_2(
 );
 ```
 
-The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body here: the centre square milled, the two top sides as the two sheer walls between each ring and its offset, the two bottom sides milled, their first and third segments extended 0.15 along the plate at both ends and their slanted segments 0.6 up and down so the cut clears the plate; no drill. The id 32.
+The five rings 2024 wrote four times for `cr_c_ip_2` to `cr_c_ip_5`, one body here: the centre square milled, the two top sides as the two sheer walls between each ring and its offset, the two bottom sides milled, their first and third segments extended 0.15 along the plate at both ends and their slanted segments 0.6 up and down so the cut clears the plate.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_2.cpp
 
@@ -116,7 +116,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_5(
 );
 ```
 
-The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the bottom sides extended 0.27 on their first segment and shortened 0.075 on their third, a vertical 50 mm bit down the centre of the lap and a horizontal 10 mm bit below it, each bored through both plates, the bits named in `FabricationType` as `drill_50` and `drill_10`. The id 35, the Brussels dataset.
+The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the bottom sides extended 0.27 on their first segment and shortened 0.075 on their third, a vertical 50 mm bit down the centre of the lap and a horizontal 10 mm bit below it, each bored through both plates, the bits named in `FabricationType` as `drill_50` and `drill_10`.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_5.cpp
 
@@ -124,7 +124,7 @@ The milled half-lap with the asymmetry 2024 gave the Brussels sports tower, the 
 
 ![cr_c_ip_custom](elements/element_joint_plate_cr_c_ip_custom.png)
 
-Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: each pair is inserted between the plate's edges as `cr_c_ip_0` is; here the slots split the cross's depth unequally, 60 down from the first plate's top edge and 140 up from the second's bottom edge, where `cr_c_ip_0` halves it. The id 39.
+Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: each pair is inserted between the plate's edges as `cr_c_ip_0` is.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_custom.cpp
 
@@ -138,6 +138,6 @@ Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's o
 
 ![cr_c_ip_2 crossing at 45 degrees](elements/element_joint_plate_cr_c_ip_angle_45.png)
 
-Two plates crossing at 45 degrees: the milled half-laps of `cr_c_ip_2` follow the oblique crossing. The oracle runs every design of the family on its defaults crossing at 60 and 45 degrees (`cr@60`, `cr@45`); the slots are merged clipped on 2024's 0.01 mm grid in each plate's frame, so an oblique slot wall may stand half a grid step off, which the oracle allows over the walls of the crossing block and no more.
+Two plates crossing at 45 degrees: the milled half-laps of `cr_c_ip_2` follow the oblique crossing.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_angle_45.cpp

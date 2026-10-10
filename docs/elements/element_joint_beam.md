@@ -38,9 +38,9 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 
 ![Beam to beam](elements/element_joint_beam_from_contact.png)
 
-A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes. As 2024 joined beams, the two volumes of a pair are made boxes and joined as plates with the settings' rows (a side-to-end pair as top-to-side, an end-to-end pair searched as a crossing); the plate joint is kept on the joint (`joinery`) and inside the zone of both boxes each beam keeps what its box keeps, its tenons with it, and loses the rest, the other box and its mortises, as a solid it hosts. On the dataset `phanomema_node` the five pairs, their volumes and every beam's joint outlines match the 2025 reference solver; `tests/joint_beams.cpp` measures the cuts.
+A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes.
 
-The interaction keeps the axes' `normal` and their two directions where they meet (`axes`), and `insertion(target)` says how each member comes off the joint: a crossing along the normal away from the other box, a side or end pair along the axis that points apart; the two are opposite. The picture pulls the beams 250 apart along `insertion(1)`. Connectors give the same: the beam and the joist of headed pins come apart across their contact, a let-in plate leaves along its face.
+The interaction keeps the axes' `normal` and their two directions where they meet (`axes`), and `insertion(target)` says how each member comes off the joint: a crossing along the normal away from the other box, a side or end pair along the axis that points apart.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |

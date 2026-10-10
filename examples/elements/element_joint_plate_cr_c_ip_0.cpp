@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The cross design cr_c_ip_0 on one pair, the family default: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y; the joint is oriented on their cross contact (compute_cross_contact) and passed to each plate with add_interaction, a rectangle merged into each plate's outline over half the cross's depth, clipped into it by Clipper2 at two decimals as 2024 clipped it, a slot from the top of the first and from the bottom of the second; the joint owns no piece and stays hidden; the second plate is lifted 250 afterwards, along the cross's depth, so both slots read.
+cr_c_ip_0: the plain slot of two upright plates crossing at their middles, a slot into each over half the cross's depth, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The cross design cr_c_ip_5 on one pair, on its default shift 0.5: two upright 400 x 200 plates 40 thick crossing at their middles, the first along x and the second along y; the joint is oriented on their cross contact (compute_cross_contact) and passed to each plate with add_interaction, the five rings of the milled half-lap, their bottom sides extended 0.27 on their first segment and shortened 0.075 on their third as 2024 built the Brussels sports tower (data/cross_brussels_sports_tower.yml, id 35), a vertical 50 mm bit down the centre of the lap and a horizontal 10 mm bit below it, each bored through both plates; the joint owns no piece and stays hidden; the second plate is lifted 250 afterwards, along the cross's depth, so both half-laps and the bits read.
+cr_c_ip_5: the Brussels half-lap of two upright plates crossing at their middles, its bottom sides extended unequally, a 50 mm bit down the centre and a 10 mm bit below the lap, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

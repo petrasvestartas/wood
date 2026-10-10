@@ -61,7 +61,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The parameters of a library design: ts_e_p_3 on the same upright and base six times, the first row with 8, 16 and 24 divisions at shift 0.5, two, four and six tenons (a tenon per four divisions, at least eight), the second with 16 divisions at shift 0, 0.25 and 1, the tenon sides leaning one way at 0, straight at 0.5 and the other way at 1, dovetails that lock the upright.
+One design, ts_e_p_3, with its divisions and shift changed, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

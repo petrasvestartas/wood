@@ -25,7 +25,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A 300 square block 200 high and Joint::drill along a vertical axis through its middle, 25 in radius; the drill is added hidden and passed to the block with add_interaction, which takes the hole away.
+A joint that drills: a hole along an axis through a block.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

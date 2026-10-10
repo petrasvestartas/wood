@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated design ss_e_r_0 on one pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, each joint volume split in half through the thickness and the halves offset along the joint line, four slices on each plate taken in world space without orienting; the right plate is moved 150 along the mitre's normal so both sides read.
+ss_e_r_0: the four slices of two plates folded along a shared edge, their contact read as rotated, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -49,7 +49,7 @@ scene.add_interaction(joint, upright, joint->interaction(0));
 scene.add_interaction(joint, base, joint->interaction(1));
 ```
 
-The target order is the joint's, not the contact's: `orient` turns a side-to-top contact so target 0 is the plate standing on the other (its tenons) and target 1 the plate it stands on (its mortises), and an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male (the wall of a floor and wall corner); every other family keeps the contact's order. `add_interaction` refuses a side handed to the other plate, so the order cannot swap the cuts between them. What a side merges into its plate's outline (edge insertions, holes) and what it takes out as a solid (mills, slices, cuts, conics, drills) is decided by each outline's `FabricationType`. Each design belongs to one contact family, by the first letters of its name:
+The target order is the joint's, not the contact's: `orient` turns a side-to-top contact so target 0 is the plate standing on the other (its tenons) and target 1 the plate it stands on (its mortises), and an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male (the wall of a floor and wall corner).
 
 | Family | Contact | Plates |
 | --- | --- | --- |
@@ -75,7 +75,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## ss_e_r: rotated
 
-`ss_e_r_0`, `ss_e_r_2`, `ss_e_r_3`, `ss_e_r_custom`, `side_removal` and `side_removal_ss_e_r_1` on two plates folded 120 degrees along a shared edge, the scene reading every side-to-side contact as rotated, each design with its own example and picture on the [ss_e_r page](@ref elements_joint_plate_ss_e_r): the four slices of `ss_e_r_0`, the key designs `ss_e_r_2` (hook pockets) and `ss_e_r_3` (diamond pockets), whose keys the joint owns, the custom outlines, and the side removals, plain and with the `ss_e_r_1` arc tenon tile.
+`ss_e_r_0`, `ss_e_r_2`, `ss_e_r_3`, `ss_e_r_custom`, `side_removal` and `side_removal_ss_e_r_1` on two blocks end to end, one twisted about the seam (`Plate::pair_rotated`), each design with its own example and picture on the [ss_e_r page](@ref elements_joint_plate_ss_e_r).
 
 ## cr_c_ip: cross
 
@@ -83,13 +83,13 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## tt_e_p: top to top
 
-`tt_e_p_0` to `tt_e_p_5` and `tt_e_p_custom` on two stacked plates, the upper one turned so their contact is an irregular octagon, each design with its own example and pictures on the [tt_e_p page](@ref elements_joint_plate_tt_e_p): every design drills pins through both plates as 2024 laid them, one at the centre of the contact (`tt_e_p_0`, id 40, the family default), one at its polylabel (`tt_e_p_1`), six on its inscribed circle scaled by the shift (`tt_e_p_2`), the ring of the contact offset inward by the shift drilled every division length (`tt_e_p_3`), a lattice of the division length in that ring (`tt_e_p_4`), and the edges of the largest rectangle 2024 inscribed in the contact (`tt_e_p_5`); `tt_e_p_custom` keeps your own outline pairs.
+`tt_e_p_0` to `tt_e_p_5` and `tt_e_p_custom` on two stacked plates, the upper one turned so their contact is an irregular octagon, each design with its own example and pictures on the [tt_e_p page](@ref elements_joint_plate_tt_e_p): every design drills pins through both plates as 2024 laid them, one at the centre of the contact (`tt_e_p_0`, id 40, the family default), one at its polylabel (`tt_e_p_1`), six on its inscribed circle scaled by the shift (`tt_e_p_2`), the ring of the contact offset inward by the shift drilled every division length (`tt_e_p_3`), a lattice of the division length in that ring (`tt_e_p_4`), and the edges of the largest rectangle 2024 inscribed in the contact (`tt_e_p_5`).
 
 ## b: boundary {#elements_joint_plate_b}
 
 ![b_0 on a side face](elements/element_joint_plate_b_0.png)
 
-`b_0` (id 60) on a 300 x 200 plate 40 thick: `WoodSession::compute_border_contact(plate, 2)` makes the border contact of side face 2 as 2024's `border_to_face` did, and the joint is oriented on the plate alone; its four slice rectangles, 0.25 and 16 either side of the face's middle, stand 6 out of the face and a millimetre past the plate's faces, exactly as the 2025 reference writes them, and the plate keeps its stock. The solver makes the same joint for an adjacency row `a a f f`, as in the dataset `boundary_side`.
+`b_0` (id 60) on a 300 x 200 plate 40 thick: `WoodSession::compute_border_contact(plate, 2)` makes the border contact of side face 2 as 2024's `border_to_face` did, and the joint is oriented on the plate alone.
 
 \include{lineno} elements/element_joint_plate_b_0.cpp
 
@@ -115,7 +115,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## Not shown
 
-- `ss_e_r_*` need a rotated contact: the [ss_e_r page](@ref elements_joint_plate_ss_e_r) folds its pair 120 degrees and reads the contact as rotated with `settings.all_treated_as_rotated`; `side_removal_ss_e_r_1` is shown there too, no 2025 reference dataset reaches it.
+- `ss_e_r_*` need a rotated contact: the [ss_e_r page](@ref elements_joint_plate_ss_e_r) twists its pair about the seam (`Plate::pair_rotated`); `side_removal_ss_e_r_1` is shown there too, no 2025 reference dataset reaches it.
 - `side_removal` on the same corner removes the whole wall instead of its side; it is meant for the solver, where it merges with the joint on that edge.
 - `b_custom` keeps your outline pairs on a border contact; no 2025 reference dataset reaches it.
 - `JointAnnen` and `JointVidy` are built from a whole dataset's plates, connections and groups, not from one contact.

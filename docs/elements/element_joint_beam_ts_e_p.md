@@ -2,7 +2,7 @@
 
 [TOC]
 
-Tee joints on a beam ending on the side of another: the plate library's top-side designs, chosen by `settings.joint_parameters[8]`, cut into both beams as solids by `JointBeam::from_contact`. A beam's end has room for one tenon only: where a design would sever a beam or leave the two overlapping inside the joint, `from_contact` cuts the single milled tenon of `ts_e_p_4` instead.
+Tee joints on a beam ending on the side of another: the plate library's top-side designs, chosen by `settings.joint_parameters[8]`, cut into both beams as solids by `JointBeam::from_contact`.
 
 ## Constructors
 

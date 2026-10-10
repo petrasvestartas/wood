@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The rotated family's side_removal_ss_e_r_1 under merge_with_joint on one pair: two 300 x 400 plates 40 thick folded 120 degrees along their shared edge, their side faces mitred on the bisector, the scene set to read every side-to-side contact as rotated; the joint is oriented on their face contact and passed to each plate with add_interaction, the side removal outlines of both faces and the ss_e_r_1 arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts; kept as 2024 wrote it, the merged form swaps the sides last and hands each plate its own side slab outside its stock, so no side is removed and only the tile's conic slivers cut; the right plate is moved 150 along the mitre's normal so both sides read.
+side_removal_ss_e_r_1 merged: the ss_e_r_1 arc tile at the middle of the joint line of two plates folded along a shared edge, the side removal 2024 swapped off the stock, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

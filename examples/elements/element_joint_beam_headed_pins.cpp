@@ -52,7 +52,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Three T joints, each a 120 wide, 300 deep beam with a 100 wide joist ending on its side; JointBeam::headed_pins on their face contact drives pins 5 in radius and 200 long from the beam's far face through it into the joist end, pre-drilled, laid out by PinLayout: corners, a vertical column of 3 and a horizontal row of 3, 20 in from the contact's edges; the pins are added and passed to each member with add_interaction.
+Headed pins through a beam into the end of another, in each PinLayout.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

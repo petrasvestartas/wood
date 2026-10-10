@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-to-top design tt_e_p_5 on one pair: two 400 x 300 plates 40 thick, the upper one turned about the vertical, its x axis (0.8, 0.6), its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon; the joint is oriented on their face contact and passed to each plate with add_interaction, the largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of its shorter extent, and a pin hole of radius 8 every 60 along its edges, each drilled one plate thickness into each plate, a cylinder through each; the joint owns no piece and stays hidden; the upper plate is lifted 150 afterwards, along the plates' normal, so the holes in both read.
+tt_e_p_5: pin holes every 60 along the largest rectangle inscribed in the contact of two stacked plates, scaled 0.95, drilled through both, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

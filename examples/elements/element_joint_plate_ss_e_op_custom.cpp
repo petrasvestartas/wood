@@ -66,7 +66,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_custom on one pair: a floor and a wall meeting at a right angle on a mitre, joined by a tile the user draws in the joint's unit box: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, at the user's own stations z = +-0.42, +-0.18, +-0.06. The tile is drawn as the library's own ss_e_op_0 draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends; ss_e_op_custom merges an open profile into the edge as the library's fingers are merged (2024 left it uncut), a closed rectangle is clipped as 2024 clipped it. The joint is oriented on the face contact and passed to each plate with add_interaction, the wall first; the wall is moved off along the mitre's normal so the fingers and the sockets read.
+ss_e_op_custom: your own rectangles in the joint's unit box, a slot into the wall and a notch into the floor of a pair mitred at a right angle, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ts_e_p_custom on an upright standing on a base: your own two tenons, written as the library writes ts_e_p_0, cut into the upright's edge, and their mortises cut through the base.
+ts_e_p_custom: your own two tenons on an upright plate and their mortises in the base, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

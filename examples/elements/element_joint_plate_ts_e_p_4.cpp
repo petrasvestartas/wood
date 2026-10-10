@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-side design ts_e_p_4 on one pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, the upright its male side and the base its female, the fixed wedge design 2024 kept as literals, four mill pockets through the base, and on the upright two wedge flanks, two walls and two caps milled along its faces and two slices, every outline a solid taken from its plate's stock, the pockets left for a loose wedge 2024 never modelled; the joint owns no piece and stays hidden; the upright is lifted 120 afterwards, along the base's normal, so the tenons and the mortises both read.
+ts_e_p_4: the milled wedge of an upright plate standing on a base plate, the wedge pockets in the base and the flanks, walls, caps and slices of the upright, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

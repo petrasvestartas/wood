@@ -2,7 +2,7 @@
 
 [TOC]
 
-The top-to-side family: a design cut where a plate stands on the face of another, tenons on the bottom edge of the standing plate, the upright, and mortises through the plate it stands on, the base; the 2024 library's contact type 20, ids 20 to 29 (20 `ts_e_p_3`, the family default id, 21 `ts_e_p_2`, 22 `ts_e_p_3`, 23 and 24 `ts_e_p_4`, 2024's case 23 ran `ts_e_p_0` and fell through into `ts_e_p_4`, 25 `ts_e_p_5`, 28 `side_removal`, 29 `ts_e_p_custom`; an id without an entry takes `ts_e_p_3`; `ts_e_p_0` and `ts_e_p_1` are reached by name only), used on the top-to-side datasets: the corners and the test (`data/top_to_side_corners.yml`, `data/top_to_side_test.yml`, id 20, `ts_e_p_3`), the box and the snap fit (`data/top_to_side_box.yml`, `data/top_to_side_snap_fit.yml`, id 25, `ts_e_p_5`).
+The top-to-side family: a design cut where a plate stands on the face of another, tenons on the bottom edge of the standing plate, the upright, and mortises through the plate it stands on, the base.
 
 On a beam ending on another: [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p).
 
@@ -24,7 +24,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick, the joint oriented on their face contact and passed to each plate with `add_interaction`, the upright first (target 0, the male of a top-side pair, whichever plate the contact listed first) and the base second (target 1, the female), the upright lifted 120 along the base's normal afterwards, the direction it drops onto the base, so the tenons and the mortises both read; every design shows the pair and a close-up fitted on the upright. The joint's unit box puts the upright's thickness along x, the base's along y and the joint line along z; the tenons are merged into the upright's outline as edge insertions, the mortises are holes through the base, a loop on each of its faces, and the last female outline, the rectangle that bounds the mortises, is dropped by the merge as 2024 dropped it. No design of the family owns a piece: the joint stays hidden and only the plates are cut; `ts_e_p_4` leaves pockets for a loose wedge 2024 never modelled.
+Every example is the same pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick, the joint oriented on their face contact and passed to each plate with `add_interaction`, the upright first (target 0, the male of a top-side pair, whichever plate the contact listed first) and the base second (target 1, the female), the upright lifted 120 along the base's normal afterwards, the direction it drops onto the base, so the tenons and the mortises both read.
 
 ## ts_e_p_0: three fixed tenons
 
@@ -84,7 +84,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(
 );
 ```
 
-The family default: the parametric tenons that skip every other point pair, a tenon per four divisions, the division count geometric, made a multiple of four and kept between 8 and 100, so two tenons on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon; `ts_e_p_3` six times with other divisions and shifts is on the [JointPlate page](@ref elements_joint_plate).
+The family default: the parametric tenons that skip every other point pair, a tenon per four divisions, the division count geometric, made a multiple of four and kept between 8 and 100, so two tenons on this 250 mm line, the sides straight at shift 0.5, and a mortise through the base per tenon.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_3.cpp
 
@@ -98,7 +98,7 @@ The family default: the parametric tenons that skip every other point pair, a te
 const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_4(); // a fixed design, no parameters
 ```
 
-The fixed wedge design 2024 kept as 240 literal points: four mill pockets through the base, and on the upright two wedge flanks, two walls and two caps milled along its faces and two slices, every outline a solid taken from its plate's stock, written twice as 2024 doubled them; the pockets are left for a loose wedge 2024 never modelled. The ids 23 and 24.
+The fixed wedge design 2024 kept as 240 literal points: four mill pockets through the base, and on the upright two wedge flanks, two walls and two caps milled along its faces and two slices, every outline a solid taken from its plate's stock, written twice as 2024 doubled them.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_4.cpp
 
@@ -114,7 +114,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_5(
 );
 ```
 
-The snap-fit tenon, 2024's literals, a copy per division spread along the joint line, one here, the copies run into one outline on the upright's bottom edge and a mortise through the base per copy; the design is unit scale, its unit z the upright's thickness times the joint scale instead of the joint line, so the tenon keeps the upright's thickness and its hook runs through the base and out below it as 2024 drew it. The id 25, the box and the snap-fit datasets.
+The snap-fit tenon, 2024's literals, a copy per division spread along the joint line, one here, the copies run into one outline on the upright's bottom edge and a mortise through the base per copy.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_5.cpp
 

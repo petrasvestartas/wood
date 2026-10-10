@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The out-of-plane design ss_e_op_1 on one pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face; the joint is oriented on their face contact and passed to each plate with add_interaction, the wall its male side and the floor its female, eight divisions at the family's shift 0.64, a zigzag of fingers merged into both mitred edges, each plate's fingers in the other's notches; the joint owns no piece and stays hidden; the wall is moved 100 out and 100 up afterwards, along the mitre's normal, so both sides read.
+ss_e_op_1: the parametric finger joint of a floor and a wall plate mitred at a right angle, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

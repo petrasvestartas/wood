@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_0 on one pair: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint is oriented on their face contact and passed to each plate with add_interaction, its fixed zigzag of fingers, 20 deep, merged into both edges, each plate's fingers in the other's notches; the right plate is moved 120 along the seam's normal afterwards so both edges read. The joint owns no piece and stays hidden.
+ss_e_ip_0: the fixed three-finger joint of two plates edge to edge in one plane, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

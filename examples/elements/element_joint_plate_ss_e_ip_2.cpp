@@ -37,7 +37,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The in-plane design ss_e_ip_2 on one pair, on its defaults: two 300 x 400 plates 40 thick meeting edge to edge in one plane; the joint is oriented on their face contact and passed to each plate with add_interaction, a butterfly pocket into each edge per division, the count geometric, one every 300 of the joint line, the tooth scaled to the male plate's thickness; the joint is drawn, its pieces the butterfly keys that fill both pockets; the right plate is moved 160 along the seam's normal and the keys 80 afterwards so the pockets and the keys read.
+ss_e_ip_2: the butterfly key of two plates edge to edge in one plane, on its defaults, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

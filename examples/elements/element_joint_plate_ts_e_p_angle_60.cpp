@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ts_e_p_3 on its defaults on a 400 x 400 base and a 250 x 250 upright, both 40 thick, the upright standing on the base's middle with its foot at 60 degrees to the base's x axis, as the oracle's ts@skew60 fixture: the tenons and the mortises follow the skewed contact; the upright is lifted 150 afterwards so the mortises read.
+ts_e_p_3 on an upright standing on a base, its foot skewed 60 degrees to the base's edges in plan, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

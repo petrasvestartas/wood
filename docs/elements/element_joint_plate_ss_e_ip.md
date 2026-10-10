@@ -2,7 +2,7 @@
 
 [TOC]
 
-The side-to-side in-plane family: a design cut into the edges of two plates that meet edge to edge in one plane, so the fingers interlock along the plates' normal and a key, where the design has one, drops into both pockets; the 2024 library's joint type 12, ids 1 to 9 (1 `ss_e_ip_1`, the family default, 2 `ss_e_ip_0`, 3 `ss_e_ip_2`, 4 `ss_e_ip_3`, 5 `ss_e_ip_4`, 6 `ss_e_ip_5`, 8 `side_removal`, 9 `ss_e_ip_custom`), used on its in-plane datasets: the hexshell, the butterflies, the Hilti and the different-directions sets.
+The side-to-side in-plane family: a design cut into the edges of two plates that meet edge to edge in one plane, so the fingers interlock along the plates' normal and a key, where the design has one, drops into both pockets.
 
 ## Constructors
 
@@ -22,7 +22,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: two 300 x 400 plates 40 thick edge to edge in one plane, the joint oriented on their face contact and passed to each plate with `add_interaction`, the right plate moved off along the seam's normal afterwards, in the plates' plane, so both edges read. The joint's unit box maps x across the seam to the plate thickness (the fingers are 20 deep on each side), y through the thickness and z along the joint line. A design whose male and female runs fill each other (`ss_e_ip_0`, `ss_e_ip_1`) owns no piece and the joint stays hidden; a key design (`ss_e_ip_2`, `ss_e_ip_5`) owns the keys, drawn as the joint's own solids, so the example turns `is_visible` on.
+Every example is the same pair: two 300 x 400 plates 40 thick edge to edge in one plane, the joint oriented on their face contact and passed to each plate with `add_interaction`, the right plate moved off along the seam's normal afterwards, in the plates' plane, so both edges read.
 
 ## ss_e_ip_0: three fingers
 
@@ -81,7 +81,7 @@ A butterfly pocket into each edge per division, two on this seam, and the joint'
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_3(); // a fixed design, no parameters
 ```
 
-A slanted key groove milled the length of the seam into each edge, its profile projected from face to face, and a drill through the thickness of each plate, a third of the way across the seam (2024 listed each of the two lines twice); the joint owns no piece, each plate hosts its groove and its bore, an exact cylinder; the right plate moved 200 off.
+A slanted key groove milled the length of the seam into each edge, its profile projected from face to face, and a drill through the thickness of each plate, a third of the way across the seam (2024 listed each of the two lines twice).
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_3.cpp
 
@@ -95,7 +95,7 @@ A slanted key groove milled the length of the seam into each edge, its profile p
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_ip_4(); // a fixed design, no parameters
 ```
 
-Two slanted key grooves crossing each other milled into each edge, each projected from face to face, and a drill through the thickness of each plate; its axis lies in the end face of the first groove, as 2024 placed it, so the groove halves the bore and it is drawn faceted, the one bore of the library the exact builder cannot make; the right plate moved 200 off.
+Two slanted key grooves crossing each other milled into each edge, each projected from face to face, and a drill through the thickness of each plate.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_4.cpp
 
@@ -141,6 +141,6 @@ ss_e_ip_2 and ss_e_ip_5 cut butterfly pockets across the seam, one per division.
 
 ![ss_e_ip_1 on a seam at 75 degrees](elements/element_joint_plate_ss_e_ip_angle_75.png)
 
-Two plates whose seam runs at 75 degrees to their edges: the fingers of `ss_e_ip_1` keep their shape along the slanted seam. The oracle runs every design of the family on its defaults on that seam and on a seam shorter than both plates (`ip@trapezoid`, `ip@short`), and checks the loose keys of `ss_e_ip_2` and `ss_e_ip_5` rigid: every key on those fixtures has the volume and the edge lengths of a key on the straight seam.
+Two plates whose seam runs at 75 degrees to their edges: the fingers of `ss_e_ip_1` keep their shape along the slanted seam.
 
 \include{lineno} elements/element_joint_plate_ss_e_ip_angle_75.cpp
