@@ -269,6 +269,9 @@ target_compile_definitions(rust_elements PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURREN
 # The geometry oracle: every plate joint design measured on a joined pair, goldens under tests/golden/joint_library.
 ADD_EXE(joint_library                    tests/joint_library.cpp)
 target_compile_definitions(joint_library PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+# The tiles of docs/joint_library.md: every oracle design written as what each plate keeps inside the joint's box (tools/joint_library_figures/make.sh).
+ADD_EXE(joint_tiles                      tools/joint_library_figures/joint_tiles.cpp)
+target_compile_definitions(joint_tiles PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # The scoreboard: every dataset against the 2025 solver's merged outlines in tests/golden/reference_2025 (tools/reference_2025.py).
 ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
 target_compile_definitions(reference_datasets PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
