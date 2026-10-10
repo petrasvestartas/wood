@@ -1,17 +1,20 @@
 // A session file rendered with the viewer's own egui interface over it, the layer panel open with every row expanded, without a
 // browser or a GPU: a winit window on a virtual X display (Xvfb), Mesa's lavapipe Vulkan, the page's ?cmd= lines run one per frame
 // as the web viewer runs them, then the frame (scene + panels) read back with Gpu::render_offscreen.
-// The panels (app::ui) compile natively only under cfg(test), so this example is a test; and two native stubs keep them closed, so
-// it includes a symlink mirror of src/ (examples/ui_shot_src) with two patched files: app/ui/mod.rs (Ui::publish returns on
-// native: it writes the panel state onto the page canvas through web_sys, which panics off wasm) and app/feedback.rs (the
-// layer-panel functions use the panel state under cfg(test) instead of the native no-ops). wood/tools/shoot_ui.sh makes the
+// The panels (app::ui) compile natively only under cfg(test), so this example is a test; and native stubs keep them closed, so
+// it includes a symlink mirror of src/ (examples/ui_shot_src) with three patched files: app/ui/mod.rs (Ui::publish returns on
+// native: it writes the panel state onto the page canvas through web_sys, which panics off wasm), app/feedback.rs (the
+// layer-panel functions use the panel state under cfg(test) instead of the native no-ops) and state.rs (logical_size divides the
+// device pixels by the window's scale factor, as a browser's CSS pixels do, so the panels draw at that pixel density). wood/tools/shoot_ui.sh makes the
 // mirror, builds and runs this, and converts the PPM:
-//   bash wood/tools/shoot_ui.sh <out.png> <scene.pb> [width height]
+//   bash wood/tools/shoot_ui.sh <out.png> <scene.pb> [width height]     (default 3200 x 2000 at scale 2)
 // by hand, after the mirror exists:
-//   Xvfb :99 -screen 0 1920x1200x24 &
+//   Xvfb :99 -screen 0 3840x2400x24 &
 //   DISPLAY=:99 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json REGEN_PROTO=0 UI_SHOT_IN=<in.pb> UI_SHOT_OUT=<out.ppm> \
 //     cargo test --release --example ui_shot --target x86_64-unknown-linux-gnu -- --exact shot::ui_shot --nocapture
-// Optional: UI_SHOT_SIZE=1600x1000 (window pixels), UI_SHOT_CMD="Layers All;Element Interactions On;..." (default: the docs line).
+// Optional: UI_SHOT_SIZE=3200x2000 (device pixels), UI_SHOT_SCALE=2 (device pixels per interface pixel, the browser's devicePixelRatio),
+// UI_SHOT_VIEW=iso|iso_back (View Isometric or View Isometric Back in the default line),
+// UI_SHOT_CMD="Layers All;Element Interactions On;..." (replaces the default docs line, UI_SHOT_VIEW then ignored).
 #[cfg(not(target_arch = "wasm32"))]
 include!("ui_shot_src/lib.rs"); // src/ mirrored by symlinks, app/ui/mod.rs patched: see the header
 
@@ -30,7 +33,7 @@ mod shot {
     use winit::platform::x11::EventLoopBuilderExtX11;
     use winit::window::{Window, WindowId};
 
-    const COMMANDS: &str = "Layers All;Element Interactions On;Element Attributes On;Arctic On;View Isometric;View Orthographic;Fit";
+    const COMMANDS: &str = "Layers All;Element Interactions On;Element Attributes On;Arctic On;{view};View Orthographic;Fit";
 
     struct Shot {
         input: String,
@@ -75,7 +78,11 @@ mod shot {
                 ui.frame(&mut state);
                 state.render();
             }
-            let commands = std::env::var("UI_SHOT_CMD").unwrap_or_else(|_| COMMANDS.into());
+            let view = match std::env::var("UI_SHOT_VIEW").as_deref() {
+                Ok("iso_back") => "View Isometric Back",
+                _ => "View Isometric",
+            };
+            let commands = std::env::var("UI_SHOT_CMD").unwrap_or_else(|_| COMMANDS.replace("{view}", view));
             for line in commands.split(';').map(str::trim).filter(|line| !line.is_empty()) {
                 let message = state.run_command(line).unwrap_or_else(|error| error);
                 let rows = crate::app::ui::layers::STATE.with_borrow(|model| model.rows.len());
@@ -119,9 +126,12 @@ mod shot {
         let mut shot = Shot {
             input: std::env::var("UI_SHOT_IN").expect("UI_SHOT_IN: the .pb to render"),
             output: std::env::var("UI_SHOT_OUT").expect("UI_SHOT_OUT: the .ppm to write"),
-            size: size.unwrap_or((1600, 1000)),
+            size: size.unwrap_or((3200, 2000)),
             error: None,
         };
+        // the interface scale: winit reads it on X11 when the event loop opens
+        let scale: f64 = std::env::var("UI_SHOT_SCALE").ok().and_then(|s| s.parse().ok()).unwrap_or(2.0);
+        unsafe { std::env::set_var("WINIT_X11_SCALE_FACTOR", scale.to_string()) };
         let event_loop = EventLoop::builder().with_any_thread(true).build().unwrap();
         event_loop.run_app(&mut shot).unwrap();
         if let Some(error) = shot.error {

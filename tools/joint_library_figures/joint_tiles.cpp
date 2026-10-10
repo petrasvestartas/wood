@@ -2,7 +2,7 @@
 // female outlines in its unit box, polylines since a plate joint is outlines merged into the plates', with <id>_unit.txt, its factory call with
 // the parameters the user can change, the page's code snippet; and <id>.pb, the oracle's pair joined
 // by it, the plates with the merged outlines and any solid the joint owns as BReps.
-//   ./build/joint_tiles <out_dir> [family/library/parameters ...]     every oracle variant when no id is given
+//   ./build/joint_tiles <out_dir> [family/library/parameters ... | beam/<design>/<angle> ...]     every oracle variant when no id is given
 #define main joint_library_main
 #include "../../tests/joint_library.cpp"
 #undef main
@@ -34,8 +34,9 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         unit.male_outlines[face].clear();
         unit.female_outlines[face].clear();
     }
-    // a butterfly design tiles its teeth along the joint line far past the box: one tooth shows the design, the plates show the divisions
-    if (built.library == "ss_e_ip_2" || built.library == "ss_e_ip_5")
+    // a butterfly, key or snap-fit design tiles its teeth along the joint line far past the box: one tooth shows the design, the plates
+    // show the divisions
+    if (built.library == "ss_e_ip_2" || built.library == "ss_e_ip_5" || built.library == "ss_e_r_2" || built.library == "ss_e_r_3" || built.library == "ts_e_p_5")
         unit.divisions = 1;
     const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
     std::vector<InteractionFeaturePlate> no_joints;
@@ -203,6 +204,42 @@ static void write_scene(const std::string& id, const std::string& dir) {
     built.scene->pb_dump(dir + "/" + name + ".pb");
 }
 
+/// A design that belongs to beams, on two beams of half-width 75: a cross design (cr_c_ip_*) on two beams crossing in plan at the angle, the
+/// wedge ts_e_p_4 on a beam ending on the side of another; the second beam lifted 300 off along z after the joint, so both cuts read.
+///   id: beam/<design>/<angle>, written to <dir>/beam_<design>_<angle>.pb
+static void write_beam_scene(const std::string& id, const std::string& dir) {
+
+    const std::vector<std::string> parts = split(id, '/');
+    const std::string& design = parts.at(1);
+    const double angle = std::stod(parts.at(2));
+    const bool cross = design.starts_with("cr_c_ip_");
+
+    WoodSession scene("beam_" + design);
+    scene.settings.joint_parameters[cross ? 11 : 8] = JointPlate::library_id(design);
+    const double turn = angle * std::numbers::pi / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
+    const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), 75.0, "beam");
+    a->name = "beam_a";
+    b->name = "beam_b";
+    scene.add(a);
+    scene.add(b);
+    scene.compute_axis_contacts(20.0);
+    scene.compute_beam_features(500.0, 0.91, 1);
+
+    // the design's drills as 16 mm dowels, the joint passed to each beam again with that radius
+    for (const std::shared_ptr<Element>& element : *scene.objects.elements)
+        if (const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element)) {
+            joint->line_radius = 8.0;
+            scene.add_interaction(joint, a, joint->interaction(0));
+            scene.add_interaction(joint, b, joint->interaction(1));
+        }
+    b->place(Xform::translation(0.0, 0.0, 300.0));
+
+    scene.pb_dump(fmt::format("{}/beam_{}_{:g}.pb", dir, design, angle));
+}
+
 int main(int argc, char** argv) {
 
     if (argc < 2)
@@ -214,7 +251,10 @@ int main(int argc, char** argv) {
 
     for (const std::string& id : ids) {
         try {
-            write_scene(id, argv[1]);
+            if (id.starts_with("beam/"))
+                write_beam_scene(id, argv[1]);
+            else
+                write_scene(id, argv[1]);
         } catch (const std::exception& e) {
             std::cout << id << ": " << e.what() << std::endl;
         }
