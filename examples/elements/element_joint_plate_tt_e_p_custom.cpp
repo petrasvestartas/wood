@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// tt_e_p_custom: your own rectangles in the joint's unit box on the faces of two stacked plates, drawn apart.
+/// tt_e_p_custom: your own outlines on two stacked plates, a hidden butterfly key pocket milled into each, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_tt_e_p_custom");
@@ -15,16 +15,14 @@ int main() {
     scene.add(lower);
     scene.add(upper);
 
-    // the outlines in the joint's unit box, mapped onto the contact: x across the contact, y along the plates' normal, from the
-    // lower plate's bottom at y = -0.5 through the contact at y = 0 to the upper plate's top at y = 0.5, z along the contact;
-    // a pair per side, the lower plate's on its bottom and its top (face 0, face 1), the upper plate's on its bottom and its top,
-    // here a rectangle over the middle half of the contact on each; as 2024 kept a custom pair, the outlines carry the
-    // fabrication type nothing, and a top-top contact has no edge to merge them into, so they stay features and cut nothing
-    const Polyline bottom({{-0.25, -0.5, -0.25}, {0.25, -0.5, -0.25}, {0.25, -0.5, 0.25}, {-0.25, -0.5, 0.25}, {-0.25, -0.5, -0.25}});
-    const Polyline middle({{-0.25, 0.0, -0.25}, {0.25, 0.0, -0.25}, {0.25, 0.0, 0.25}, {-0.25, 0.0, 0.25}, {-0.25, 0.0, -0.25}});
-    const Polyline top({{-0.25, 0.5, -0.25}, {0.25, 0.5, -0.25}, {0.25, 0.5, 0.25}, {-0.25, 0.5, 0.25}, {-0.25, 0.5, -0.25}});
-    const std::vector<Polyline> male = {bottom, middle};
-    const std::vector<Polyline> female = {middle, top};
+    // a hidden butterfly key in the joint's unit box: x across the contact, y along the plates' normal from the lower plate's
+    // bottom (-0.5) through the contact (0) to the upper plate's top (0.5), z along the contact; each plate is milled a bow-tie
+    // pocket half its thickness deep from the contact face, and a loose key of the same outline locks the two together
+    const auto bow_tie = [](double y) {
+        return Polyline({{-0.3, y, -0.15}, {0.0, y, -0.06}, {0.3, y, -0.15}, {0.3, y, 0.15}, {0.0, y, 0.06}, {-0.3, y, 0.15}, {-0.3, y, -0.15}});
+    };
+    const std::vector<Polyline> male = {bow_tie(-0.25), bow_tie(0.0)};
+    const std::vector<Polyline> female = {bow_tie(0.0), bow_tie(0.25)};
 
     // the joint from their face contact, added, and passed to each plate in its target order
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
@@ -44,7 +42,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The top-to-top design tt_e_p_custom on one pair: two 400 x 300 plates 40 thick, the upper one turned about the vertical, its x axis (0.8, 0.6), its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon; the joint is oriented on their face contact and passed to each plate with add_interaction, your own outlines in its unit box, the box mapped onto the contact: x across it, y along the plates' normal from the lower plate's bottom to the upper plate's top, z along it; a rectangle over the middle half of the contact on each face of each plate, kept pair by pair as the 2024 library kept a custom design, of fabrication type nothing; a top-top contact has no edge to merge a rectangle into, so the outlines stay features and cut nothing; the joint owns no piece and stays hidden; the upper plate is lifted 150 afterwards, along the plates' normal, so the outlines on both read.
+The top-to-top design tt_e_p_custom on one pair: two 400 x 300 plates 40 thick, the upper one turned about the vertical, its bottom on the lower one's top, so their contact is an irregular octagon. Your own outlines in the joint's unit box: a bow-tie pair per plate, from the contact face to half the plate's thickness, milled as a pocket into each plate; a loose butterfly key of the same outline, set in both pockets, locks the plates against sliding and pulling apart and stays hidden between them. The joint is oriented on the face contact and passed to each plate with add_interaction; the upper plate is lifted 150 afterwards so both pockets read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

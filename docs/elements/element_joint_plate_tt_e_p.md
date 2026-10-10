@@ -84,6 +84,6 @@ The largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of 
 ![tt_e_p_custom](elements/element_joint_plate_tt_e_p_custom.png)
 ![tt_e_p_custom, the plan](elements/element_joint_plate_tt_e_p_custom_plan.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact; as 2024 kept a custom pair they carry the fabrication type nothing, and a top-top contact has no edge to merge them into, so the rectangle over the middle half of the contact on each face stays a feature and cuts nothing.
+Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact. Here a hidden butterfly key: each plate is milled a bow-tie pocket from the contact face to half its thickness, and a loose key of the same outline, set in both pockets, locks the plates together.
 
 \include{lineno} elements/element_joint_plate_tt_e_p_custom.cpp
