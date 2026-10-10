@@ -93,7 +93,7 @@ Eight divisions at the shift 0.64: the zigzag of `ss_e_op_1` with its central pa
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_3(); // a fixed design, no parameters
 ```
 
-One fixed tenon over the middle of the joint line on the wall, and in the floor its mortise, a see-through hole in a lip that the floor's edge extends under the wall around it.
+One fixed tenon over the middle of the joint line on the wall, through the floor and flush with its bottom, and its mortise in a lip the floor's edge extends under the wall; the lip still runs a thickness past the wall, as 2024 drew it.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_3.cpp
 

@@ -1,4 +1,5 @@
-/// ss_e_op_3: miter tenon-mortise - four female outlines (two insert_between, two hole), two male.
+/// ss_e_op_3: miter tenon-mortise - four female outlines (two insert_between, two hole), two male. 2024 ran the tenon half a thickness
+/// past the floor; here it ends flush with the floor's bottom. The floor's lip around the mortise still runs a thickness past the wall.
 static void ss_e_op_3(InteractionFeaturePlate& joint) {
 
     joint.name = "ss_e_op_3";
@@ -17,11 +18,11 @@ static void ss_e_op_3(InteractionFeaturePlate& joint) {
     };
 
     joint.male_outlines[0] = {
-        Polyline({Point(-0.5,-0.5,0.3), Point(0.5,-0.5,0.3), Point(0.5,-0.5,0.25), Point(-1,-0.5,0.25), Point(-1,-0.5,-0.25), Point(0.5,-0.5,-0.25), Point(0.5,-0.5,-0.3), Point(-0.5,-0.5,-0.3)}),
+        Polyline({Point(-0.5,-0.5,0.3), Point(0.5,-0.5,0.3), Point(0.5,-0.5,0.25), Point(-0.5,-0.5,0.25), Point(-0.5,-0.5,-0.25), Point(0.5,-0.5,-0.25), Point(0.5,-0.5,-0.3), Point(-0.5,-0.5,-0.3)}),
         Polyline({Point(-0.5,-0.5,0.3), Point(-0.5,-0.5,-0.3)}),
     };
     joint.male_outlines[1] = {
-        Polyline({Point(0.5,0.5,0.3), Point(0.510075,0.5,0.3), Point(0.5,0.5,0.25), Point(-1,0.5,0.25), Point(-1,0.5,-0.25), Point(0.5,0.5,-0.25), Point(0.510075,0.5,-0.3), Point(0.5,0.5,-0.3)}),
+        Polyline({Point(0.5,0.5,0.3), Point(0.510075,0.5,0.3), Point(0.5,0.5,0.25), Point(-0.5,0.5,0.25), Point(-0.5,0.5,-0.25), Point(0.5,0.5,-0.25), Point(0.510075,0.5,-0.3), Point(0.5,0.5,-0.3)}),
         Polyline({Point(0.5,0.5,0.3), Point(0.5,0.5,-0.3)}),
     };
 
