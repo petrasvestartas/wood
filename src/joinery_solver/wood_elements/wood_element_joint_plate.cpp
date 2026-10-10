@@ -138,8 +138,9 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
     case 22:
         ts_e_p_3(joint);
         return true;
-    case 23:
-        ts_e_p_0(joint);
+    case 23: // 2024 ran ts_e_p_0 here and fell through into ts_e_p_4, which overwrote all of it
+    case 24:
+        ts_e_p_4(joint);
         return true;
     case 25:
         ts_e_p_5(joint);
@@ -477,7 +478,6 @@ struct CachedJointGeometry {
     std::array<std::vector<int>, 2> male_fabrication_types;   // Male cut types, top and bottom.
     std::array<std::vector<int>, 2> female_fabrication_types; // Female cut types, top and bottom.
     bool unit_scale;                                          // Whether the constructor scales the unit cube.
-    double unit_scale_distance;                               // The distance the unit cube is scaled by.
 };
 
 /// Wood's get_key number format: std::to_string truncated at two decimals.
@@ -497,7 +497,7 @@ std::string joint_cache_key(const int id_representing_joint_name, const Interact
     return std::to_string(id_representing_joint_name) + ";" + cache_key_number(joint.shift) + ";" + cache_key_number((double)joint.divisions);
 }
 
-/// Unit geometry from the cache when the key is known, else from the constructor and cached afterwards; only type 12 (butterflies) is cached, caching the other types regressed top_to_side_box and vda_floor_0.
+/// Unit geometry from the cache when the key is known, else from the constructor and cached afterwards, as 2024 reused it: every joint without linked joints reads the cache, every joint that is oriented writes it (a side removal is not), and what is transferred is the geometry, the types and the unit scale flag, never the unit scale distance, which stays the joint's own. The reuse is part of the reference: a unit-scale design built on the first joint's volume serves every joint of its key, as top_to_side_snap_fit shows.
 void reuse_or_create_geometry(
     InteractionFeaturePlate& joint,
     const FamilyParameters& family,
@@ -505,18 +505,10 @@ void reuse_or_create_geometry(
     std::map<std::string, CachedJointGeometry>& unique_joints_cache) {
 
     const std::string cache_key = joint_cache_key(family.id, joint);
-    const bool use_cache = (joint.joint_type == 12) && joint.linked_joints.empty();
+    const bool use_cache = joint.linked_joints.empty();
 
     const auto cache_entry = use_cache ? unique_joints_cache.find(cache_key) : unique_joints_cache.end();
-    if (!use_cache) {
-        joint_create_geometry(
-            joint,
-            family.division_distance,
-            family.shift,
-            family.id,
-            context
-        );
-    } else if (cache_entry != unique_joints_cache.end()) {
+    if (cache_entry != unique_joints_cache.end()) {
         const CachedJointGeometry& cached = cache_entry->second;
         joint.name = cached.name;
         joint.male_outlines = cached.male_outlines;
@@ -524,26 +516,28 @@ void reuse_or_create_geometry(
         joint.male_fabrication_types = cached.male_fabrication_types;
         joint.female_fabrication_types = cached.female_fabrication_types;
         joint.unit_scale = cached.unit_scale;
-        joint.unit_scale_distance = cached.unit_scale_distance;
-    } else {
-        joint_create_geometry(
-            joint,
-            family.division_distance,
-            family.shift,
-            family.id,
-            context
-        );
-
-        CachedJointGeometry cached;
-        cached.name = joint.name;
-        cached.male_outlines = joint.male_outlines;
-        cached.female_outlines = joint.female_outlines;
-        cached.male_fabrication_types = joint.male_fabrication_types;
-        cached.female_fabrication_types = joint.female_fabrication_types;
-        cached.unit_scale = joint.unit_scale;
-        cached.unit_scale_distance = joint.unit_scale_distance;
-        unique_joints_cache.emplace(cache_key, std::move(cached));
+        return;
     }
+
+    joint_create_geometry(
+        joint,
+        family.division_distance,
+        family.shift,
+        family.id,
+        context
+    );
+
+    if (!use_cache || joint.no_orient)
+        return;
+
+    CachedJointGeometry cached;
+    cached.name = joint.name;
+    cached.male_outlines = joint.male_outlines;
+    cached.female_outlines = joint.female_outlines;
+    cached.male_fabrication_types = joint.male_fabrication_types;
+    cached.female_fabrication_types = joint.female_fabrication_types;
+    cached.unit_scale = joint.unit_scale;
+    unique_joints_cache.emplace(cache_key, std::move(cached));
 }
 
 /// One joint: scale and thickness, unit geometry, orientation to the connection area, merge of the linked shadows.
@@ -557,11 +551,10 @@ void build_feature_geometry(
     std::vector<InteractionFeaturePlate>& all_joints = context.all_joints;
     joint.scale = context.settings.joint_scale;
 
-    if (joint.joint_type == 13 || joint.joint_type == 12) {
-        const int element_index = index_of_plate(elements, joint.element_a);
-        if (element_index >= 0 && element_index < (int)elements.size())
-            joint.unit_scale_distance = elements[element_index]->thickness;
-    }
+    // the distance a unit-scale design keeps along the joint line, as 2024 pinned every joint: the first plate's thickness by scale[2]
+    const int element_index = index_of_plate(elements, joint.element_a);
+    if (element_index >= 0 && element_index < (int)elements.size())
+        joint.unit_scale_distance = elements[element_index]->thickness * joint.scale[2];
 
     joint_get_divisions(joint, family.division_distance);
     joint.shift = family.shift;
@@ -1018,10 +1011,10 @@ void JointPlate::compute_parameters(InteractionFeaturePlate& connection, const s
     if (parameters.divisions > 0)
         connection.divisions = parameters.divisions;
 
+    // the distance a unit-scale design keeps along the joint line, as 2024 pinned every joint: the first plate's thickness by scale[2]
     const int index = index_of_plate(elements, connection.element_a);
-
-    if (index >= 0 && (connection.joint_type == 12 || connection.joint_type == 13))
-        connection.unit_scale_distance = elements[index]->thickness;
+    if (index >= 0)
+        connection.unit_scale_distance = elements[index]->thickness * connection.scale[2];
 }
 
 void JointPlate::compute_library(
@@ -1336,6 +1329,8 @@ bool JointPlate::compute_ss_e_op(InteractionFeaturePlate& connection, std::vecto
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+// A top-side design on its 2024 family defaults, the class defaults: geometric divisions every 450 mm of the joint line, shift 0.5.
+
 std::shared_ptr<JointPlate> JointPlate::ts_e_p_0() {
 
     return from_library("ts_e_p_0", 20);
@@ -1362,6 +1357,11 @@ std::shared_ptr<JointPlate> JointPlate::ts_e_p_3(int divisions, double shift) {
     joint->shift = shift;
 
     return joint;
+}
+
+std::shared_ptr<JointPlate> JointPlate::ts_e_p_4() {
+
+    return from_library("ts_e_p_4", 20);
 }
 
 std::shared_ptr<JointPlate> JointPlate::ts_e_p_5(int divisions) {
@@ -1394,6 +1394,8 @@ bool JointPlate::compute_ts_e_p(InteractionFeaturePlate& connection, const Setti
         ::ts_e_p_2(connection);
     else if (parameters.library == "ts_e_p_3")
         ::ts_e_p_3(connection);
+    else if (parameters.library == "ts_e_p_4")
+        ::ts_e_p_4(connection);
     else if (parameters.library == "ts_e_p_5")
         ::ts_e_p_5(connection);
     else if (parameters.library == "ts_e_p_custom")

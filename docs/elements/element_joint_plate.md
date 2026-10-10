@@ -10,7 +10,7 @@ A joint between two plates: a design of the joint library, oriented on the plate
 // the library designs, each by its own name and parameters
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
-static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 4)
+static std::shared_ptr<JointPlate> ts_e_p_0() .. ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line
 static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; ss_e_r_1 is the tile of side_removal_ss_e_r_1, not a design of its own
 static std::shared_ptr<JointPlate> cr_c_ip_0() .. cr_c_ip_5()
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0, double chord_tolerance = 0.05) .. tt_e_p_5(double spacing = 30.0, double radius = 1.0, double chord_tolerance = 0.05)
@@ -53,7 +53,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ![ts_e_p](elements/element_joint_plate_ts_e_p.png)
 
-`ts_e_p_0` to `ts_e_p_3`, tenons on the upright and mortises through the base, the upright lifted off to show both.
+`ts_e_p_0` to `ts_e_p_5` on their defaults, tenons on the upright and mortises through the base, the upright lifted off to show both: the fixed three tenons of `ts_e_p_0` and the two Annen tenons of `ts_e_p_1`, the parametric dovetails `ts_e_p_2` and `ts_e_p_3` (the family default, ids 20 and 22), the milled wedge `ts_e_p_4` (ids 23 and 24), and the snap-fit tenon `ts_e_p_5` (id 25), which keeps the upright's thickness along the joint line instead of stretching to it; `ts_e_p_custom` takes your own pairs as 2024 kept them.
 
 \include{lineno} elements/element_joint_plate_ts_e_p.cpp
 

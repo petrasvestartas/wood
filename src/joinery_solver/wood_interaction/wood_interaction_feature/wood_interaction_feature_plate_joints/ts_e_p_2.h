@@ -1,4 +1,6 @@
-/// ts_e_p_2: parametric tenon-mortise visiting every interpolation point; female holes from every four male points plus a bounding rectangle.
+/// ts_e_p_2: the parametric tenons visiting every interpolation point, 2 to 20 divisions made even, the tenon sides leaning by the
+/// shift; per female face a mortise rectangle from every four male points and the rectangle that bounds them, every one a hole
+/// (the merge drops the last, the bound, as 2024 did), per male face the zigzag and its two-point edge marker, both edge insertions.
 static void ts_e_p_2(InteractionFeaturePlate& joint) {
 
     joint.name = "ts_e_p_2";
@@ -100,15 +102,8 @@ static void ts_e_p_2(InteractionFeaturePlate& joint) {
             last.get_point(3), last.get_point(0), first.get_point(0)}));
     }
 
-    for (int f = 0; f < 2; f++) {
-        std::vector<int> cuts;
-        cuts.reserve(joint.female_outlines[f].size());
-        for (size_t k = 0; k + 1 < joint.female_outlines[f].size(); k++)
-            cuts.push_back(FabricationType::hole);
-        cuts.push_back(FabricationType::insert_between_multiple_edges);
-        joint.female_fabrication_types[f] = std::move(cuts);
-    }
-
+    const std::vector<int> female_types(joint.female_outlines[0].size(), FabricationType::hole);
+    joint.female_fabrication_types = {female_types, female_types};
     joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
     joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
 }

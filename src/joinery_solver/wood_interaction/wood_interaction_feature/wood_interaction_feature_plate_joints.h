@@ -47,6 +47,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/ts_e_p_1.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_2.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_3.h"
+#include "wood_interaction_feature_plate_joints/ts_e_p_4.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_5.h"
 #include "wood_interaction_feature_plate_joints/ts_e_p_custom.h"
 

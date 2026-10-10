@@ -103,15 +103,26 @@ public:
     // ts_e_p
     // ═══════════════════════════════════════════════════════════════════════════
 
+    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 ts_e_p_3 (the family default id), 21 ts_e_p_2, 22 ts_e_p_3,
+    // 23 and 24 ts_e_p_4 (2024's case 23 ran ts_e_p_0 and fell through into ts_e_p_4), 25 ts_e_p_5, 28 side_removal,
+    // 29 ts_e_p_custom; an id without an entry takes ts_e_p_3; ts_e_p_0 and ts_e_p_1 are reached by name only. A zero division
+    // count takes the geometric count, the joint line's length over the family's 450 mm; the shift default is the family's 0.5.
+    // The unit box puts the upright's thickness along x, the base's along y and the joint line along z: the male is the upright,
+    // its tenons merged into its outline, the female the base, its mortises holes through it, the last female outline the
+    // rectangle that bounds them. ts_e_p_5 is unit scale: oriented, its unit z keeps the upright's thickness, the distance 2024
+    // pinned every joint to, the thickness of its first plate times scale[2].
+
     static std::shared_ptr<JointPlate> ts_e_p_0();
 
     static std::shared_ptr<JointPlate> ts_e_p_1();
 
-    static std::shared_ptr<JointPlate> ts_e_p_2(int divisions = 8, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ts_e_p_2(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> ts_e_p_3(int divisions = 8, double shift = 0.5);
+    static std::shared_ptr<JointPlate> ts_e_p_3(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> ts_e_p_5(int divisions = 4);
+    static std::shared_ptr<JointPlate> ts_e_p_4();
+
+    static std::shared_ptr<JointPlate> ts_e_p_5(int divisions = 0);
 
     static std::shared_ptr<JointPlate> ts_e_p_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 

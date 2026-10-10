@@ -13,6 +13,8 @@ int main() {
         JointPlate::ts_e_p_1(),
         JointPlate::ts_e_p_2(),
         JointPlate::ts_e_p_3(),
+        JointPlate::ts_e_p_4(),
+        JointPlate::ts_e_p_5(),
     };
 
     for (size_t i = 0; i < joints.size(); i++) {
@@ -59,7 +61,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The side-to-top family ts_e_p, one design per pair: ts_e_p_0 to ts_e_p_3, each an upright 250 x 250 plate standing in the middle of a 400 x 400 base, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, tenons on the upright and mortises through the base; the upright is lifted 200 afterwards so both read.
+The side-to-top family ts_e_p, one design per pair: ts_e_p_0 to ts_e_p_5 on their defaults, each an upright 250 x 250 plate standing in the middle of a 400 x 400 base, both 40 thick; the joint is oriented on their face contact and passed to each plate with add_interaction, tenons on the upright and mortises through the base (ts_e_p_4 mills its wedge pockets and slices instead, ts_e_p_5 keeps its snap-fit tenon at the upright's thickness); the upright is lifted 200 afterwards so both read.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
