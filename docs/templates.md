@@ -6,7 +6,7 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 
 | Template | Header | Example | Elements |
 | --- | --- | --- | --- |
-| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | `TranslationShell`: one mitred, chamfered plate per swept quad |
+| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | `TranslationShell`: one mitered, chamfered plate per swept quad |
 | [Reflex fold](@ref templates_folding) | `folding/reflex_fold.h` | `templates_folding_1_reflex_fold` | one plate per fold |
 | [Chevron](@ref templates_folding) | `folding/chevron.h` | `templates_folding_2_chevron` | four plates per face of an Annen surface |
 | [Diamond mesh](@ref templates_folding) | `folding/diamond_mesh.h` | `templates_folding_3_diamond_mesh` | one plate per triangle of a rhombus pattern |

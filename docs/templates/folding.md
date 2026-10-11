@@ -60,12 +60,12 @@ points.push_back(moved.value_or(previous));
 
 ### Plates
 
-Every quad becomes a plate mitred at its folds, its corners chamfered (`mitred_plates`, shared by the shells and folding templates).
+Every quad becomes a plate mitered at its folds, its corners chamfered (`mitered_plates`, shared by the shells and folding templates).
 
 ![plates](templates/templates_folding_1_reflex_fold_plates.webp)
 
 ```cpp
-const std::vector<std::shared_ptr<Plate>> folds = mitred_plates(
+const std::vector<std::shared_ptr<Plate>> folds = mitered_plates(
     _mesh,
     thickness,
     chamfer_bottom,
@@ -253,12 +253,12 @@ triangles.push_back({next, c, centre});
 
 ### Plates
 
-Every triangle becomes a plate mitred at its folds, its corners chamfered.
+Every triangle becomes a plate mitered at its folds, its corners chamfered.
 
 ![plates](templates/templates_folding_3_diamond_mesh_plates.webp)
 
 ```cpp
-const std::vector<std::shared_ptr<Plate>> triangles = mitred_plates(
+const std::vector<std::shared_ptr<Plate>> triangles = mitered_plates(
     _mesh,
     thickness,
     chamfer,

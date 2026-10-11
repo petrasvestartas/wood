@@ -57,7 +57,7 @@ and supply the elements in reversed order when orienting or adding the interacti
 | Side-side in plane | `side_side_inplane_three_fingers` through `side_side_inplane_tooth_keys`, `side_side_inplane_custom` | Divisions, shift, custom outlines |
 | Side-side out of plane | `side_side_outplane_three_fingers` through `side_side_outplane_linked_tenons_wall`, `side_side_outplane_capped_fingers`, `side_side_outplane_notch`, `side_side_outplane_custom` | Divisions, taper, chamfer, outline modification and bounds |
 | Side-to-top | `top_side_three_tenons`, `top_side_annen_tenons`, `top_side_dense_tenons`, `top_side_tenons`, `top_side_snap_fit`, `top_side_custom` | Divisions and shift on parametric designs |
-| Rotated side-side | `side_side_rotated_mitre` through `side_side_rotated_keys`, `side_side_rotated_custom` | Design-specific dimensions and outlines |
+| Rotated side-side | `side_side_rotated_miter` through `side_side_rotated_keys`, `side_side_rotated_custom` | Design-specific dimensions and outlines |
 | Cross | `cross_slot` through `cross_brussels_half_lap`, `cross_custom` | Design-specific dimensions and outlines |
 | Top-to-top | `top_top_centre_pin` through `top_top_rectangle_pins` | Drill radius, chord tolerance, count or spacing |
 | Other | `border`, `border_custom`, `side_removal`, `jupiter_scarf_port` | Outlines, merge and shift options |

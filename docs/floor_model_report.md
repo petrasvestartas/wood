@@ -36,7 +36,7 @@ appended to `relationships()`.
 | | square | 3000 x 2400 |
 |---|---|---|
 | `pin_rib_beam` (outer rib into seam beam) | 16 | 16 |
-| `pin_beam_mitre` (red, seam beam into oculus beam) | 16 | 16 |
+| `pin_beam_miter` (red, seam beam into oculus beam) | 16 | 16 |
 | `pin_rib_corner` (blue, inner rib end through the beam corner) | 16 | 16 |
 | `pin_ring` (ring pinwheel corners) | 8 | 8 |
 | `pin_oculus` (ring toe pins into the quarters' oculus beams) | 16 | 16 |

@@ -6,7 +6,7 @@ Plates on the faces of a mesh, joined by connector plates that cross every inter
 
 ## vda_mesh
 
-`wood_cross::VdaMesh` is a session that turns any mesh into one mitred plate per face and a row of connector plates across every interior edge.
+`wood_cross::VdaMesh` is a session that turns any mesh into one mitered plate per face and a row of connector plates across every interior edge.
 
 ![vda mesh](templates/templates_cross_1_vda_mesh_all.webp)
 
@@ -102,7 +102,7 @@ else
 
 ### Plates
 
-Each face plane is offset to the bottom and top of every layer and consecutive edge planes, or the bisector at a nearly straight corner, cut its outline there, so neighbouring plates meet in mitres.
+Each face plane is offset to the bottom and top of every layer and consecutive edge planes, or the bisector at a nearly straight corner, cut its outline there, so neighbouring plates meet in miters.
 
 ![plates](templates/templates_cross_1_vda_mesh_plates.webp)
 

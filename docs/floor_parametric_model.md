@@ -346,7 +346,7 @@ rotated ring then meets only quarters 0 and 2 (6 of 8 ring contacts, nearest fac
 away), while a ring built from the four quarters' own planes closes on itself
 (`ring_bearing_probe.py`: beam overlap 0.000, ring area not covered by the beams 0.000 on five
 bays) and covers every quarter's oculus beam face, 253629.409 mm2: measured with the probe's
-mitred D2 ring (`guide_3000x2400_mirror.txt:204-209`). For the pinwheel from the four planes the
+mitered D2 ring (`guide_3000x2400_mirror.txt:204-209`). For the pinwheel from the four planes the
 coverage is a condition, not a construction: ring beam q's outer face ends exactly at the corner
 O_q at one end (`tilted_{q+1}` passes through O_q at z 0, `:246-248`, `:1340`) and
 `inner_beams / sin(theta)` short of the corner O_{q-1} at the other (theta = the oculus corner
@@ -830,7 +830,7 @@ struct Floor {
 std::vector<wood_session::SolidCut> column_cuts(const Quarter& quarter);       // The six head cutters as solid difference cuts of the column, drawn as its "cut" features.
 
 /// What two members share and the connector that belongs to it; the pin kinds are pre-drilled lines both members read.
-enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_pins, pin_rib_beam, pin_beam_mitre, pin_rib_corner, pin_ring, pin_oculus };
+enum class Relation { support, column_plate, cross_lap, seam_tie, seam_wedge, oculus_wedge, block_pins, pin_rib_beam, pin_beam_miter, pin_rib_corner, pin_ring, pin_oculus };
 /// A member of the floor by quarter (-1 for the ring, the columns and the supports), family and index.
 struct MemberRef { int quarter; Family family; size_t index; int row = -1; std::string name() const; };
 /// One relationship: the two members, the shared plane, the contact polygon read from their outlines, and the seam or corner it belongs to.
@@ -1052,10 +1052,10 @@ the place from the row's kind and `seam_or_corner` holds its index; no name is p
 
 | place | relations | group |
 |---|---|---|
-| quarter q | `block_pins`, `pin_rib_beam`, `pin_beam_mitre`, `pin_rib_corner` | `quarter_model_q > connectors_q` |
+| quarter q | `block_pins`, `pin_rib_beam`, `pin_beam_miter`, `pin_rib_corner` | `quarter_model_q > connectors_q` |
 | oculus | `oculus_wedge`, `pin_ring`, `pin_oculus` | `oculus > connectors_oculus` |
 | column q | `column_plate`, `cross_lap` (and `support`, already in `column_model_q`; the head cuts are the column's own features) | `column_model_q > connectors_column_q` |
-| seam k | `seam_wedge`, `seam_tie` (the two quarters' mitre pins at a seam stay in their own quarters) | `floor_model > seams > seam_k` |
+| seam k | `seam_wedge`, `seam_tie` (the two quarters' miter pins at a seam stay in their own quarters) | `floor_model > seams > seam_k` |
 
 `connector_group(session, members, row)` finds the group among its parent's children or adds it
 after them the first time; the parents are kept in `FloorMembers` (`group`, `oculus`,
@@ -1098,8 +1098,8 @@ cantilever_model
 ```
 
 Counts: 12 connectors per quarter, 16 in the oculus, 3 per column and 2 per seam, 84 in all, on
-the square and on 3000 x 2400 (1 per seam, 80, with `seam_through_ribs`); the pb keeps the tree (`floor_elements` checks both). The mitre
-pins (`pin_beam_mitre`) of two quarters put their heads at one point of a seam plane but join
+the square and on 3000 x 2400 (1 per seam, 80, with `seam_through_ribs`); the pb keeps the tree (`floor_elements` checks both). The miter
+pins (`pin_beam_miter`) of two quarters put their heads at one point of a seam plane but join
 members of one quarter, so they stay in that quarter.
 
 ### 8.1 Pins
@@ -1125,7 +1125,7 @@ different heights are never closer than the height step:
 | kind | per | members (a side member, b the one butting on it) | rule | levels below the datum |
 |---|---|---|---|---|
 | `pin_rib_beam` | quarter, k = 0, 1 | outer rib k, seam beam 0 / 2 | along the seam beam's axis from the rib's outer face: 100 through the rib, 100 into the beam end | h / 4, h / 2 (49.3, 98.5): the rib's lower part at its seam end carries the tie key and its pocket from 138.5 down |
-| `pin_beam_mitre` (red) | quarter, k = 0, 1 | seam beam 0 / 2, oculus beam | along the oculus beam's axis from the seam plane, across the beam end on the seam beam's inner face: 84.9 through the seam beam, 115.1 into the oculus beam, the tip short of the oculus wedge | 2 / 7, 5 / 7 at k = 0; 3 / 7, 6 / 7 at k = 1 (the two quarters' mitres at one seam put their heads at one point of the seam plane) |
+| `pin_beam_miter` (red) | quarter, k = 0, 1 | seam beam 0 / 2, oculus beam | along the oculus beam's axis from the seam plane, across the beam end on the seam beam's inner face: 84.9 through the seam beam, 115.1 into the oculus beam, the tip short of the oculus wedge | 2 / 7, 5 / 7 at k = 0; 3 / 7, 6 / 7 at k = 1 (the two quarters' miters at one seam put their heads at one point of the seam plane) |
 | `pin_rib_corner` (blue) | quarter, k = 0, 1 | oculus beam, inner rib k, through seam beam 0 / 2 | along the inner rib's axis from where it leaves the tilted face: through the beam corner (the seam beam's end and the oculus beam) into the rib end, crossing the red in plan | 1 / 7, 4 / 7 |
 | `pin_ring` | oculus corner q | ring beam q, ring beam q + 1 | the pinwheel butt: along ring beam q + 1's axis from ring beam q's tilted face, through q (45.2 / 52.6 at the two levels, the tilted face leaning) into q + 1 | 3 / 7, 6 / 7 |
 | `pin_oculus` | quarter q, end k | ring beam q, quarter q's oculus beam | toe pins from the ring's inner face (driven from the oculus) through the ring and the oculus wedge contact into the quarter's oculus beam towards the corner; the head and angle the 200 line with the largest clearance (coarse 5 mm / 2 deg grid, refined at 0.25 mm / 0.1 deg) from the ring's end, the oculus beam's back face, tilted face and end, and the wedge, whose band (half the beam thickness either side of the contact) it crosses before the wedge starts, 1.5 beam thicknesses from the contact's end | 3 / 7, 6 / 7 at k = 0; 2 / 7, 5 / 7 at k = 1 |
@@ -1137,8 +1137,8 @@ end and 15 mm either side of its axis. They are drilled before the seam wedge go
 `check_pins` lets them cross that wedge. No ties are made.
 
 The levels are chosen so that pins that cross in plan never share a level: at a quarter's oculus
-corner the mitre, the rib end and the oculus pins of that side take six different sevenths, the
-two quarters' mitres at a seam differ, and the ring pins differ from the next quarter's oculus
+corner the miter, the rib end and the oculus pins of that side take six different sevenths, the
+two quarters' miters at a seam differ, and the ring pins differ from the next quarter's oculus
 pins they cross.
 
 The oculus rule. The oculus members meet each other only at the four pinwheel corners, where ring

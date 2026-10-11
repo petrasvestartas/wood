@@ -24,7 +24,7 @@ holds an edge from the connector to every target. The viewer draws each pin as a
 | kind | rule | square | 3000 x 2400 |
 |---|---|---|---|
 | `pin_rib_beam` | outer rib into the seam beam, along the beam, at h/4 and h/2 (above the tie pocket) | 16 | 16 |
-| `pin_beam_mitre` (red) | seam beam into the oculus beam, along the oculus beam from the seam plane | 16 | 16 |
+| `pin_beam_miter` (red) | seam beam into the oculus beam, along the oculus beam from the seam plane | 16 | 16 |
 | `pin_rib_corner` (blue) | along the inner rib axis through the beam corner into the rib end | 16 | 16 |
 | `pin_ring` | ring pinwheel corners: through ring q along ring q + 1 | 8 | 8 |
 | `pin_oculus` | toe pins from the ring's inner face into the quarters' oculus beams, beyond the wedge | 16 | 16 |
@@ -32,7 +32,7 @@ holds an edge from the connector to every target. The viewer draws each pin as a
 
 Every location has 2 horizontal pins at two heights of the 197 mm joint depth. At an oculus corner,
 pins that cross in plan sit at different sevenths of the depth: red and blue interleave, and the
-two quarters' mitre pins at a seam differ.
+two quarters' miter pins at a seam differ.
 
 ## The oculus rule
 
