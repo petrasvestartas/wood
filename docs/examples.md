@@ -36,7 +36,7 @@ Select a library design by its actual name and parameters:
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(plate0, plate1);
-const std::shared_ptr<JointPlate> joint = JointPlate::tee_tenons(8, 0.5);
+const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
 joint->orient(contact, {plate0, plate1}, scene.settings);
 scene.add(joint);
 scene.add_interaction(joint, plate0, joint->interaction(0));
@@ -54,12 +54,12 @@ and supply the elements in reversed order when orienting or adding the interacti
 
 | Library family | Named factories | Parameters vary by design |
 | --- | --- | --- |
-| Side-side in plane | `in_plane_three_fingers` through `in_plane_tooth_keys`, `in_plane_custom` | Divisions, shift, custom outlines |
-| Side-side out of plane | `corner_three_fingers` through `corner_linked_tenons_wall`, `corner_capped_fingers`, `corner_notch`, `corner_custom` | Divisions, taper, chamfer, outline modification and bounds |
-| Side-to-top | `tee_three_tenons`, `tee_annen_tenons`, `tee_dense_tenons`, `tee_tenons`, `tee_snap_fit`, `tee_custom` | Divisions and shift on parametric designs |
-| Rotated side-side | `rotated_mitre` through `rotated_keys`, `rotated_custom` | Design-specific dimensions and outlines |
+| Side-side in plane | `side_side_inplane_three_fingers` through `side_side_inplane_tooth_keys`, `side_side_inplane_custom` | Divisions, shift, custom outlines |
+| Side-side out of plane | `side_side_outplane_three_fingers` through `side_side_outplane_linked_tenons_wall`, `side_side_outplane_capped_fingers`, `side_side_outplane_notch`, `side_side_outplane_custom` | Divisions, taper, chamfer, outline modification and bounds |
+| Side-to-top | `top_side_three_tenons`, `top_side_annen_tenons`, `top_side_dense_tenons`, `top_side_tenons`, `top_side_snap_fit`, `top_side_custom` | Divisions and shift on parametric designs |
+| Rotated side-side | `side_side_rotated_mitre` through `side_side_rotated_keys`, `side_side_rotated_custom` | Design-specific dimensions and outlines |
 | Cross | `cross_slot` through `cross_brussels_half_lap`, `cross_custom` | Design-specific dimensions and outlines |
-| Top-to-top | `stacked_centre_pin` through `stacked_rectangle_pins` | Drill radius, chord tolerance, count or spacing |
+| Top-to-top | `top_top_centre_pin` through `top_top_rectangle_pins` | Drill radius, chord tolerance, count or spacing |
 | Other | `border`, `border_custom`, `side_removal`, `jupiter_scarf_port` | Outlines, merge and shift options |
 
 Exact signatures are declared together in `wood_element_joint_plate.h`.

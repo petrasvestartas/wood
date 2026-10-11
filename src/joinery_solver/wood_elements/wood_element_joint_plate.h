@@ -40,46 +40,46 @@ public:
     double shift = 0.5;
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // in_plane
+    // side_side_inplane
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Side-to-side in plane, contact 12, ids 1-9 as 2024 numbered them: 1 in_plane_dovetails (the family default), 2 in_plane_three_fingers,
-    // 3 in_plane_butterfly_keys, 4 in_plane_splayed_scarf, 5 in_plane_cross_splayed_scarf, 6 in_plane_tooth_keys, 8 side_removal, 9 in_plane_custom. A zero division count takes
+    // Side-to-side in plane, contact 12, ids 1-9 as 2024 numbered them: 1 side_side_inplane_dovetails (the family default), 2 side_side_inplane_three_fingers,
+    // 3 side_side_inplane_butterfly_keys, 4 side_side_inplane_splayed_scarf, 5 side_side_inplane_cross_splayed_scarf, 6 side_side_inplane_tooth_keys, 8 side_removal, 9 side_side_inplane_custom. A zero division count takes
     // the geometric count, the joint line's length over the family's 300 mm; the shift default is the family's 0.5.
 
-    static std::shared_ptr<JointPlate> in_plane_three_fingers();
+    static std::shared_ptr<JointPlate> side_side_inplane_three_fingers();
 
-    static std::shared_ptr<JointPlate> in_plane_dovetails(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlate> side_side_inplane_dovetails(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> in_plane_butterfly_keys(int divisions = 0);
+    static std::shared_ptr<JointPlate> side_side_inplane_butterfly_keys(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> in_plane_splayed_scarf();
+    static std::shared_ptr<JointPlate> side_side_inplane_splayed_scarf();
 
-    static std::shared_ptr<JointPlate> in_plane_cross_splayed_scarf();
+    static std::shared_ptr<JointPlate> side_side_inplane_cross_splayed_scarf();
 
-    static std::shared_ptr<JointPlate> in_plane_tooth_keys(int divisions = 0);
+    static std::shared_ptr<JointPlate> side_side_inplane_tooth_keys(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> in_plane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+    static std::shared_ptr<JointPlate> side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // corner
+    // side_side_outplane
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Side-to-side out of plane, contact 11, ids 10-19 as 2024 numbered them: 10 corner_fingers, 11 corner_graded_fingers, 12 corner_three_fingers,
-    // 13 corner_mitre_tenon, 14 corner_tenons, 15 corner_linked_tenons (the family default id), 16 corner_linked_tenons_wall, 18 side_removal, 19 corner_custom;
-    // an id without an entry, such as 17, takes corner_fingers. A zero division count takes the geometric count, the joint
-    // line's length over the family's 450 mm; the shift default is the family's 0.64. corner_capped_fingers and corner_notch
+    // Side-to-side out of plane, contact 11, ids 10-19 as 2024 numbered them: 10 side_side_outplane_fingers, 11 side_side_outplane_graded_fingers, 12 side_side_outplane_three_fingers,
+    // 13 side_side_outplane_mitre_tenon, 14 side_side_outplane_tenons, 15 side_side_outplane_linked_tenons (the family default id), 16 side_side_outplane_linked_tenons_wall, 18 side_removal, 19 side_side_outplane_custom;
+    // an id without an entry, such as 17, takes side_side_outplane_fingers. A zero division count takes the geometric count, the joint
+    // line's length over the family's 450 mm; the shift default is the family's 0.64. side_side_outplane_capped_fingers and side_side_outplane_notch
     // are designs of this port, reached by name only.
 
-    static std::shared_ptr<JointPlate> corner_three_fingers();
+    static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();
 
-    static std::shared_ptr<JointPlate> corner_fingers(int divisions = 0, double shift = 0.64);
+    static std::shared_ptr<JointPlate> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate> corner_graded_fingers(int divisions = 0, double shift = 0.64);
+    static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate> corner_mitre_tenon();
+    static std::shared_ptr<JointPlate> side_side_outplane_mitre_tenon();
 
-    static std::shared_ptr<JointPlate> corner_tenons(
+    static std::shared_ptr<JointPlate> side_side_outplane_tenons(
         int divisions = 0,
         double taper = 0.0,
         bool chamfer = true,
@@ -89,70 +89,70 @@ public:
         const std::array<double, 2>& z = {-0.5, 0.5}
     );
 
-    static std::shared_ptr<JointPlate> corner_linked_tenons(int divisions = 0, bool disable_divisions = false);
+    static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
 
-    static std::shared_ptr<JointPlate> corner_linked_tenons_wall(int divisions = 0);
+    static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> corner_capped_fingers(int divisions = 4);
+    static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
 
-    static std::shared_ptr<JointPlate> corner_notch();
+    static std::shared_ptr<JointPlate> side_side_outplane_notch();
 
-    static std::shared_ptr<JointPlate> corner_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+    static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // tee
+    // top_side
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 tee_tenons (the family default id), 21 tee_dense_tenons, 22 tee_tenons,
-    // 23 and 24 tee_milled_wedge (2024's case 23 ran tee_three_tenons and fell through into tee_milled_wedge), 25 tee_snap_fit, 28 side_removal,
-    // 29 tee_custom; an id without an entry takes tee_tenons; tee_three_tenons and tee_annen_tenons are reached by name only. A zero division
+    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_tenons,
+    // 23 and 24 top_side_milled_wedge (2024's case 23 ran top_side_three_tenons and fell through into top_side_milled_wedge), 25 top_side_snap_fit, 28 side_removal,
+    // 29 top_side_custom; an id without an entry takes top_side_tenons; top_side_three_tenons and top_side_annen_tenons are reached by name only. A zero division
     // count takes the geometric count, the joint line's length over the family's 450 mm; the shift default is the family's 0.5.
     // The unit box puts the upright's thickness along x, the base's along y and the joint line along z: the male is the upright,
     // its tenons merged into its outline, the female the base, its mortises holes through it, the last female outline the
-    // rectangle that bounds them. tee_snap_fit is unit scale: oriented, its unit z keeps the upright's thickness, the distance 2024
+    // rectangle that bounds them. top_side_snap_fit is unit scale: oriented, its unit z keeps the upright's thickness, the distance 2024
     // pinned every joint to, the thickness of its first plate times scale[2].
 
-    static std::shared_ptr<JointPlate> tee_three_tenons();
+    static std::shared_ptr<JointPlate> top_side_three_tenons();
 
-    static std::shared_ptr<JointPlate> tee_annen_tenons();
+    static std::shared_ptr<JointPlate> top_side_annen_tenons();
 
-    static std::shared_ptr<JointPlate> tee_dense_tenons(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> tee_tenons(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlate> top_side_tenons(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> tee_milled_wedge();
+    static std::shared_ptr<JointPlate> top_side_milled_wedge();
 
-    static std::shared_ptr<JointPlate> tee_snap_fit(int divisions = 0);
+    static std::shared_ptr<JointPlate> top_side_snap_fit(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> tee_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+    static std::shared_ptr<JointPlate> top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // rotated
+    // side_side_rotated
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 rotated_keys, 55 rotated_hooks, 56 rotated_mitre,
-    // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 rotated_custom; an id without
+    // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 side_side_rotated_keys, 55 side_side_rotated_hooks, 56 side_side_rotated_mitre,
+    // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 side_side_rotated_custom; an id without
     // an entry takes side_removal. A zero division count takes the geometric count, the joint line's length over the
-    // family's 300 mm; the shift default is the family's 0.5. rotated_hooks and rotated_keys are key designs: each plate is
+    // family's 300 mm; the shift default is the family's 0.5. side_side_rotated_hooks and side_side_rotated_keys are key designs: each plate is
     // milled a pocket on its side of the seam and the joint owns the loose key that fills both.
 
-    static std::shared_ptr<JointPlate> rotated_mitre();
+    static std::shared_ptr<JointPlate> side_side_rotated_mitre();
 
-    static std::shared_ptr<JointPlate> rotated_hooks(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlate> side_side_rotated_hooks(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> rotated_keys(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlate> side_side_rotated_keys(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> rotated_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+    static std::shared_ptr<JointPlate> side_side_rotated_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-    /// The Hilti connector of the in-plane family (in_plane) across the straight seam of two CLT slabs side to side, flat or folded a little:
-    /// the 2024 Hilti joint (rotated_hooks, id 55) with its
+    /// The Hilti connector of the in-plane family (side_side_inplane) across the straight seam of two CLT slabs side to side, flat or folded a little:
+    /// the 2024 Hilti joint (side_side_rotated_hooks, id 55) with its
     /// key. Each slab gets its half of the bow-tie pocket milled from the top: the neck across the seam widening into the wing, straight
     /// to its end, the far corners rounded by the router, depth under the seam's top edge. The key is a straight bow-tie of two plywood
     /// halves with a steel disc recessed in each end and the bolt from disc to disc, inside the pockets: the same solids at
     /// every fold, so a folded pair, its tops falling away from the ridge, leaves the wings standing out. The defaults are the product's
     /// (240 x 90 x 93 mm cutout, a 27.7 x 40 neck, a 40 mm router) on CLT of at least 120 mm. Null when the contact is not side to side
     /// or has no straight seam.
-    static std::shared_ptr<JointPlate> in_plane_hilti(
+    static std::shared_ptr<JointPlate> side_side_inplane_hilti(
         const Plate& a,
         const Plate& b,
         const InteractionContactFace& contact,
@@ -207,35 +207,35 @@ public:
     static std::shared_ptr<JointPlate> border_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // stacked
+    // top_top
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Top to top, contact 40, ids 40-49 as 2024 numbered them: 40 stacked_centre_pin (the family default id), 41 stacked_polylabel_pin, 42 stacked_circle_pins,
-    // 43 stacked_ring_pins, 44 stacked_grid_pins, 45 stacked_rectangle_pins, 48 side_removal, 49 stacked_custom; an id without an entry takes stacked_centre_pin. Every design
+    // Top to top, contact 40, ids 40-49 as 2024 numbered them: 40 top_top_centre_pin (the family default id), 41 top_top_polylabel_pin, 42 top_top_circle_pins,
+    // 43 top_top_ring_pins, 44 top_top_grid_pins, 45 top_top_rectangle_pins, 48 side_removal, 49 top_top_custom; an id without an entry takes top_top_centre_pin. Every design
     // drills: a two-point line per hole from the contact, one plate thickness deep, twice on each face of each side, every copy of
     // type drill, in world space (no orient); the family's 2024 defaults are division length 6 and shift 0.95, and each design reads
-    // them its own way. stacked_centre_pin drills the centre of the contact, stacked_polylabel_pin its polylabel, the centre of its largest inscribed circle;
-    // stacked_circle_pins puts `divisions` holes on that circle with its radius scaled by the shift, from 45 degrees on along the edge nearest
-    // the centre; stacked_ring_pins offsets the contact inward by the shift (millimetres) and drills its ring every division length; stacked_grid_pins
+    // them its own way. top_top_centre_pin drills the centre of the contact, top_top_polylabel_pin its polylabel, the centre of its largest inscribed circle;
+    // top_top_circle_pins puts `divisions` holes on that circle with its radius scaled by the shift, from 45 degrees on along the edge nearest
+    // the centre; top_top_ring_pins offsets the contact inward by the shift (millimetres) and drills its ring every division length; top_top_grid_pins
     // fills that offset ring with a lattice of the division length, from its first corner on a rectangle, about the centre of its
-    // bounding rectangle otherwise; stacked_rectangle_pins inscribes 2024's largest empty rectangle in the contact, inset by 1 - shift of its
+    // bounding rectangle otherwise; top_top_rectangle_pins inscribes 2024's largest empty rectangle in the contact, inset by 1 - shift of its
     // shorter extent, and drills its edges every division length, or fills it with a grid of that step when the length is negative.
     // `radius` is the pin's, a property of the hole the port bores and no 2024 parameter. Each side records the line through the
     // other plate, as 2024 wrote it and the 2025 reference lists it; the session bores each plate with the other side's lines.
 
-    static std::shared_ptr<JointPlate> stacked_centre_pin(double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_centre_pin(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_polylabel_pin(double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_polylabel_pin(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_grid_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_grid_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+    static std::shared_ptr<JointPlate> top_top_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> stacked_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+    static std::shared_ptr<JointPlate> top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // side_removal
@@ -264,10 +264,10 @@ public:
                double shift = 0.5, const Settings& settings = Settings());
     static std::shared_ptr<JointPlate> side_to_top(int variant = 20, double division_distance = 450.0, double shift = 0.5);
 
-    /// The joint id 2024's tables give a design by its name, the id a *_joints_types.txt sidecar or a point's type holds: "in_plane_dovetails" 1,
-    /// "tee_tenons" 20, "cross_slot" 30, "rotated_hooks" 55, "border" 60, ...; a side removal by its family, "in_plane/side_removal" 8 to
-    /// "rotated/side_removal_merged" 58; "" 0, no joint. Throws for an unknown name and for a design 2024 reaches by name only (tee_three_tenons,
-    /// tee_annen_tenons, corner_capped_fingers, corner_notch).
+    /// The joint id 2024's tables give a design by its name, the id a *_joints_types.txt sidecar or a point's type holds: "side_side_inplane_dovetails" 1,
+    /// "top_side_tenons" 20, "cross_slot" 30, "side_side_rotated_hooks" 55, "border" 60, ...; a side removal by its family, "side_side_inplane/side_removal" 8 to
+    /// "side_side_rotated/side_removal_merged" 58; "" 0, no joint. Throws for an unknown name and for a design 2024 reaches by name only (top_side_three_tenons,
+    /// top_side_annen_tenons, side_side_outplane_capped_fingers, side_side_outplane_notch).
     static int library_id(const std::string& name);
     void orient(const std::shared_ptr<InteractionContactFace>& contact, const Settings& settings = Settings());
     void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings = Settings());
@@ -301,8 +301,8 @@ public:
     /// The drill lines of one side of a connection, a pair its builder repeats once.
     static std::vector<Line> side_drills(const InteractionFeaturePlate& connection, int side);
 
-    /// The loose key of rotated_hooks, rotated_keys and stacked_custom, both sides' pocket prisms united as 2024 milled them, straight through the fold; of in_plane_splayed_scarf
-    /// and in_plane_cross_splayed_scarf, what each plate loses to its side's solids united with the notches of the in-plane runs; empty for every other design. The
+    /// The loose key of side_side_rotated_hooks, side_side_rotated_keys and top_top_custom, both sides' pocket prisms united as 2024 milled them, straight through the fold; of side_side_inplane_splayed_scarf
+    /// and side_side_inplane_cross_splayed_scarf, what each plate loses to its side's solids united with the notches of the in-plane runs; empty for every other design. The
     /// constructors and the solver call it once the connections are built, with the plates they join.
     void compute_key(const std::vector<std::shared_ptr<Plate>>& elements);
 
@@ -316,9 +316,9 @@ public:
 
 private:
     static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
-    static std::shared_ptr<JointPlate> in_plane(const std::string& library);
-    static std::shared_ptr<JointPlate> corner(const std::string& library);
-    static std::shared_ptr<JointPlate> rotated(const std::string& library);
+    static std::shared_ptr<JointPlate> side_side_inplane(const std::string& library);
+    static std::shared_ptr<JointPlate> side_side_outplane(const std::string& library);
+    static std::shared_ptr<JointPlate> side_side_rotated(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<Plate>>& elements,
@@ -326,13 +326,13 @@ private:
         const Settings& settings
     ) const;
     void compute_parameters(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
-    bool compute_in_plane(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
-    bool compute_corner(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;
-    bool compute_tee(InteractionFeaturePlate& connection, const Settings& settings) const;
-    bool compute_rotated(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
+    bool compute_side_side_inplane(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
+    bool compute_side_side_outplane(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const;
+    bool compute_top_side(InteractionFeaturePlate& connection, const Settings& settings) const;
+    bool compute_side_side_rotated(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_cross(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_b(InteractionFeaturePlate& connection, const Settings& settings) const;
-    bool compute_stacked(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
+    bool compute_top_top(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const;
     bool compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const;
 
 protected:

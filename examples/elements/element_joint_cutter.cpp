@@ -8,11 +8,7 @@ int main() {
 
     WoodSession scene("element_joint_cutter");
 
-    const std::shared_ptr<BeamVariable> beam = BeamVariable::between(
-        Polyline::rectangle({0.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1200.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "beam"
-    );
+    const std::shared_ptr<BeamVariable> beam = BeamVariable::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
     scene.add(beam);
 
     // a notch: a closed box subtracted from the beam

@@ -8,10 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_centred_pins");
 
-    const Polyline lower_loop = Polyline::rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 400.0);
-    const Polyline upper_loop = Polyline::rectangle({50.0, 50.0, 200.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 300.0);
-    const std::shared_ptr<Block> lower = std::make_shared<Block>(std::vector<Polyline>{lower_loop, lower_loop.translated({0.0, 0.0, 200.0})}, "lower");
-    const std::shared_ptr<Block> upper = std::make_shared<Block>(std::vector<Polyline>{upper_loop, upper_loop.translated({0.0, 0.0, 200.0})}, "upper");
+    const std::array<std::shared_ptr<Block>, 2> blocks = Block::pair_stacked();
+    const std::shared_ptr<Block> lower = blocks[0];
+    const std::shared_ptr<Block> upper = blocks[1];
     scene.add(lower);
     scene.add(upper);
 

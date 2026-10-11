@@ -9,7 +9,7 @@ static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_o
     return Polyline(v);
 }
 
-/// rotated_hooks/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
+/// side_side_rotated_hooks/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
 /// every joint volume rebuilt as a 120*shift square. The caller has set unit_scale_distance to the male plate's thickness.
 static void rotated_core(
     InteractionFeaturePlate& joint,

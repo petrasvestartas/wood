@@ -55,7 +55,7 @@ The interaction keeps the axes' `normal` and `axes`; `insertion(target)` gives t
 | Page | Contact | Designs |
 | --- | --- | --- |
 | [cross](@ref elements_joint_beam_cross) | two beams crossing | `cross_slot` to `cross_brussels_half_lap` |
-| [tee](@ref elements_joint_beam_tee) | a beam ending on another | `tee_milled_wedge` |
-| [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `in_plane_splayed_scarf`, `in_plane_cross_splayed_scarf`, `rotated_mitre` |
+| [top_side](@ref elements_joint_beam_top_side) | a beam ending on another | `top_side_milled_wedge` |
+| [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `side_side_inplane_splayed_scarf`, `side_side_inplane_cross_splayed_scarf`, `side_side_rotated_mitre` |
 | [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `butterfly_key` |
 | [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |

@@ -39,6 +39,18 @@ public:
     /// A straight beam between two end sections, its axis from the first section's centroid to the last's; the ends may be slanted.
     static std::shared_ptr<BeamVariable> between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
 
+    /// A straight beam of rectangular section, `length` along the horizontal `direction` from `start`, the bottom middle of its first end: `width` across and `height` up z.
+    static std::shared_ptr<BeamVariable> box(const Point& start, const Vector& direction, double length, double width, double height, const std::string& name = "beam");
+
+    /// Two beams along x touching side by side: "left" on negative y, "right" on positive y.
+    static std::array<std::shared_ptr<BeamVariable>, 2> pair_side_by_side(double length = 1600.0, double width = 200.0, double height = 300.0);
+
+    /// Two beams along x end to end: "first" ends where "second" starts.
+    static std::array<std::shared_ptr<BeamVariable>, 2> pair_end_to_end(double length = 1000.0, double width = 200.0, double height = 300.0);
+
+    /// A "beam" along x and a "joist" as long, running along y from the middle of its side.
+    static std::array<std::shared_ptr<BeamVariable>, 2> pair_tee(double length = 600.0, double width = 120.0, double joist_width = 160.0, double height = 300.0);
+
     /// The beam an Element tagged "BeamVariable" describes, same guid; a missing payload leaves the axis and sections empty.
     static std::shared_ptr<BeamVariable> from_element(Element element);
 

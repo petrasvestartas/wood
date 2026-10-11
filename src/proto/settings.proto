@@ -6,7 +6,7 @@ import "polyline.proto";
 
 // User joint outlines for one family: male and female (face0, face1) pairs.
 message CustomJoint {
-  string family = 1;                          // "in_plane", "corner", "tee", "cross", "stacked", "rotated" or "border"
+  string family = 1;                          // "side_side_inplane", "side_side_outplane", "top_side", "cross", "top_top", "side_side_rotated" or "border"
   repeated session_proto.Polyline male = 2;   // Male outline pairs
   repeated session_proto.Polyline female = 3; // Female outline pairs
 }

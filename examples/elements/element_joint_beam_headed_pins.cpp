@@ -11,19 +11,13 @@ int main() {
     const std::array<PinLayout, 3> layouts = {PinLayout::corners, PinLayout::vertical, PinLayout::horizontal};
 
     for (size_t i = 0; i < layouts.size(); i++) {
-        const double x = 800.0 * i;
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("layout_{}", i));
 
-        const std::shared_ptr<BeamVariable> beam = BeamVariable::between(
-            Polyline::rectangle({x, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
-            Polyline::rectangle({x + 600.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
-            fmt::format("beam_{}", i)
-        );
-        const std::shared_ptr<BeamVariable> joist = BeamVariable::between(
-            Polyline::rectangle({x + 220.0, 120.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 160.0, 300.0),
-            Polyline::rectangle({x + 220.0, 720.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 160.0, 300.0),
-            fmt::format("joist_{}", i)
-        );
+        const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_tee();
+        const std::shared_ptr<BeamVariable> beam = beams[0];
+        const std::shared_ptr<BeamVariable> joist = beams[1];
+        beam->place(Xform::translation(800.0 * i, 0.0, 0.0));
+        joist->place(Xform::translation(800.0 * i, 0.0, 0.0));
         scene.add(beam, group);
         scene.add(joist, group);
 

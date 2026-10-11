@@ -8,16 +8,8 @@ int main() {
 
     WoodSession scene("element_joint_beam_rectangle_plate");
 
-    const std::shared_ptr<Column> column = std::make_shared<Column>(
-        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}),
-        Polyline::rectangle({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 220.0, 220.0),
-        "column"
-    );
-    const std::shared_ptr<BeamVariable> rib = BeamVariable::between(
-        Polyline::rectangle({110.0, -60.0, 700.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 400.0),
-        Polyline::rectangle({1400.0, -60.0, 700.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 400.0),
-        "rib"
-    );
+    const std::shared_ptr<Column> column = Column::square(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}), Plane({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}), 220.0);
+    const std::shared_ptr<BeamVariable> rib = BeamVariable::box({110.0, 0.0, 700.0}, {1.0, 0.0, 0.0}, 1290.0, 120.0, 400.0, "rib");
     scene.add(column);
     scene.add(rib);
 

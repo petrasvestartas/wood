@@ -3,18 +3,18 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One design, tee_tenons, with its divisions and shift changed, drawn apart.
+/// One design, top_side_tenons, with its divisions and shift changed, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_parameters");
 
     const std::vector<std::shared_ptr<JointPlate>> joints = {
-        JointPlate::tee_tenons(8, 0.5),
-        JointPlate::tee_tenons(16, 0.5),
-        JointPlate::tee_tenons(24, 0.5),
-        JointPlate::tee_tenons(16, 0.0),
-        JointPlate::tee_tenons(16, 0.25),
-        JointPlate::tee_tenons(16, 1.0),
+        JointPlate::top_side_tenons(8, 0.5),
+        JointPlate::top_side_tenons(16, 0.5),
+        JointPlate::top_side_tenons(24, 0.5),
+        JointPlate::top_side_tenons(16, 0.0),
+        JointPlate::top_side_tenons(16, 0.25),
+        JointPlate::top_side_tenons(16, 1.0),
     };
 
     for (size_t i = 0; i < joints.size(); i++) {
@@ -61,7 +61,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-One design, tee_tenons, with its divisions and shift changed, drawn apart.
+One design, top_side_tenons, with its divisions and shift changed, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

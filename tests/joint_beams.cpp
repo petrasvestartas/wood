@@ -152,9 +152,9 @@ static void check_crossings() {
     }
 }
 
-/// A beam ending on the side of another, square and at 60 degrees, joined by the wedge tee_milled_wedge (id 24), whose milled pockets and wedge
-/// flanks are solids: both beams cut, closed, their overlap gone. The tenon designs tee_dense_tenons and 3 on such a tee are open: at 90 degrees
-/// the beams lose 14.6e6 mm3 for an overlap of 1.7e6, at 60 degrees tee_tenons leaves 1.2e6 of the overlap (as before the solids were
+/// A beam ending on the side of another, square and at 60 degrees, joined by the wedge top_side_milled_wedge (id 24), whose milled pockets and wedge
+/// flanks are solids: both beams cut, closed, their overlap gone. The tenon designs top_side_dense_tenons and top_side_tenons on such a tee are open: at 90 degrees
+/// the beams lose 14.6e6 mm3 for an overlap of 1.7e6, at 60 degrees top_side_tenons leaves 1.2e6 of the overlap (as before the solids were
 /// carried onto beams).
 static void check_tees() {
 
@@ -191,12 +191,12 @@ static void check_tees() {
     }
 }
 
-/// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by in_plane_splayed_scarf
-/// and 4, at 90 and 60 degrees trimmed on the mitre by rotated_mitre; the extensions' overlap is gone and the pair keeps the wood of its two
+/// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by side_side_inplane_splayed_scarf
+/// and 4, at 90 and 60 degrees trimmed on the mitre by side_side_rotated_mitre; the extensions' overlap is gone and the pair keeps the wood of its two
 /// 1200 mm axes and of the extensions at their free ends and no more, less the pins' bores.
 static void check_end_to_end() {
 
-    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "in_plane_splayed_scarf"}, {0.0, "in_plane_cross_splayed_scarf"}, {90.0, "rotated_mitre"}, {60.0, "rotated_mitre"}}};
+    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "side_side_inplane_splayed_scarf"}, {0.0, "side_side_inplane_cross_splayed_scarf"}, {90.0, "side_side_rotated_mitre"}, {60.0, "side_side_rotated_mitre"}}};
     for (const std::pair<double, std::string>& end_case : cases) {
         WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
         scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);

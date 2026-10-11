@@ -8,14 +8,7 @@ int main() {
 
     WoodSession scene("element_plate_holes");
 
-    const Polyline bottom = Polyline::rectangle(
-        {0.0, 0.0, 0.0},
-        {1.0, 0.0, 0.0},
-        {0.0, 1.0, 0.0},
-        600.0,
-        400.0
-    );
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(bottom, bottom.translated({0.0, 0.0, 40.0}), "plate");
+    const std::shared_ptr<Plate> plate = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 600.0, 400.0, 40.0);
     scene.add(plate);
 
     for (const Point& centre : std::vector<Point>{{100.0, 100.0, 0.0}, {500.0, 100.0, 0.0}, {500.0, 300.0, 0.0}, {100.0, 300.0, 0.0}}) {

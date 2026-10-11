@@ -31,13 +31,13 @@ static const std::map<std::string, std::string> SHIFT_MEANING = { // What the sh
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The design's outlines in its unit box, the library function run on a joint with the built one's parameters, a custom design's the
-/// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, rotated_mitre) or leaves the
+/// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, side_side_rotated_mitre) or leaves the
 /// box empty, which has no unit box to draw.
 static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 
     const InteractionFeaturePlate& built_connection = built.joint->connections.at(0);
     const JointPlateParameters& p = built.joint->parameters;
-    // the built connection's lines, scale and parameters, which some designs read (in_plane_butterfly_keys its tooth pitch), its outlines cleared
+    // the built connection's lines, scale and parameters, which some designs read (side_side_inplane_butterfly_keys its tooth pitch), its outlines cleared
     unit = built_connection;
     for (int face = 0; face < 2; face++) {
         unit.male_outlines[face].clear();
@@ -45,24 +45,24 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
     }
     // a butterfly, key or snap-fit design tiles its teeth along the joint line far past the box: one tooth shows the design, the plates
     // show the divisions
-    if (built.library == "in_plane_butterfly_keys" || built.library == "in_plane_tooth_keys" || built.library == "rotated_hooks" || built.library == "rotated_keys" || built.library == "tee_snap_fit")
+    if (built.library == "side_side_inplane_butterfly_keys" || built.library == "side_side_inplane_tooth_keys" || built.library == "side_side_rotated_hooks" || built.library == "side_side_rotated_keys" || built.library == "top_side_snap_fit")
         unit.divisions = 1;
     const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
     std::vector<InteractionFeaturePlate> no_joints;
 
     const std::map<std::string, std::function<void()>> designs = {
-        {"in_plane_three_fingers", [&] { in_plane_three_fingers(unit); }}, {"in_plane_dovetails", [&] { in_plane_dovetails(unit); }}, {"in_plane_butterfly_keys", [&] { in_plane_butterfly_keys(unit, plates); }},
-        {"in_plane_splayed_scarf", [&] { in_plane_splayed_scarf(unit); }}, {"in_plane_cross_splayed_scarf", [&] { in_plane_cross_splayed_scarf(unit); }}, {"in_plane_tooth_keys", [&] { in_plane_tooth_keys(unit, plates); }},
-        {"corner_three_fingers", [&] { corner_three_fingers(unit); }}, {"corner_fingers", [&] { corner_fingers(unit); }}, {"corner_graded_fingers", [&] { corner_graded_fingers(unit); }},
-        {"corner_mitre_tenon", [&] { corner_mitre_tenon(unit); }},
-        {"corner_tenons", [&] { corner_tenons(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
-        {"corner_linked_tenons", [&] { corner_linked_tenons(unit, no_joints, p.disable_divisions); }}, {"corner_linked_tenons_wall", [&] { corner_linked_tenons_wall(unit, no_joints); }},
-        {"corner_capped_fingers", [&] { corner_capped_fingers(unit); }}, {"corner_notch", [&] { corner_notch(unit); }},
-        {"tee_three_tenons", [&] { tee_three_tenons(unit); }}, {"tee_annen_tenons", [&] { tee_annen_tenons(unit); }}, {"tee_dense_tenons", [&] { tee_dense_tenons(unit); }},
-        {"tee_tenons", [&] { tee_tenons(unit); }}, {"tee_milled_wedge", [&] { tee_milled_wedge(unit); }}, {"tee_snap_fit", [&] { tee_snap_fit(unit); }},
+        {"side_side_inplane_three_fingers", [&] { side_side_inplane_three_fingers(unit); }}, {"side_side_inplane_dovetails", [&] { side_side_inplane_dovetails(unit); }}, {"side_side_inplane_butterfly_keys", [&] { side_side_inplane_butterfly_keys(unit, plates); }},
+        {"side_side_inplane_splayed_scarf", [&] { side_side_inplane_splayed_scarf(unit); }}, {"side_side_inplane_cross_splayed_scarf", [&] { side_side_inplane_cross_splayed_scarf(unit); }}, {"side_side_inplane_tooth_keys", [&] { side_side_inplane_tooth_keys(unit, plates); }},
+        {"side_side_outplane_three_fingers", [&] { side_side_outplane_three_fingers(unit); }}, {"side_side_outplane_fingers", [&] { side_side_outplane_fingers(unit); }}, {"side_side_outplane_graded_fingers", [&] { side_side_outplane_graded_fingers(unit); }},
+        {"side_side_outplane_mitre_tenon", [&] { side_side_outplane_mitre_tenon(unit); }},
+        {"side_side_outplane_tenons", [&] { side_side_outplane_tenons(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
+        {"side_side_outplane_linked_tenons", [&] { side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions); }}, {"side_side_outplane_linked_tenons_wall", [&] { side_side_outplane_linked_tenons_wall(unit, no_joints); }},
+        {"side_side_outplane_capped_fingers", [&] { side_side_outplane_capped_fingers(unit); }}, {"side_side_outplane_notch", [&] { side_side_outplane_notch(unit); }},
+        {"top_side_three_tenons", [&] { top_side_three_tenons(unit); }}, {"top_side_annen_tenons", [&] { top_side_annen_tenons(unit); }}, {"top_side_dense_tenons", [&] { top_side_dense_tenons(unit); }},
+        {"top_side_tenons", [&] { top_side_tenons(unit); }}, {"top_side_milled_wedge", [&] { top_side_milled_wedge(unit); }}, {"top_side_snap_fit", [&] { top_side_snap_fit(unit); }},
         {"cross_slot", [&] { cross_slot(unit); }}, {"cross_sliced_half_lap", [&] { cross_sliced_half_lap(unit); }}, {"cross_half_lap", [&] { cross_half_lap(unit); }},
         {"cross_half_lap_diagonal_drills", [&] { cross_half_lap_diagonal_drills(unit); }}, {"cross_half_lap_drill", [&] { cross_half_lap_drill(unit); }}, {"cross_brussels_half_lap", [&] { cross_brussels_half_lap(unit); }},
-        {"rotated_hooks", [&] { rotated_hooks(unit, plates); }}, {"rotated_keys", [&] { rotated_keys(unit, plates); }},
+        {"side_side_rotated_hooks", [&] { side_side_rotated_hooks(unit, plates); }}, {"side_side_rotated_keys", [&] { side_side_rotated_keys(unit, plates); }},
         {"jupiter_scarf", [&] { jupiter_scarf(unit); }},
     };
 
@@ -80,7 +80,7 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         return false;
     design->second();
 
-    // a design that cuts only on the plates (in_plane_butterfly_keys's pockets) leaves the box empty
+    // a design that cuts only on the plates (side_side_inplane_butterfly_keys's pockets) leaves the box empty
     for (const auto* outlines : {&unit.male_outlines, &unit.female_outlines})
         for (const std::vector<Polyline>& face : *outlines)
             for (const Polyline& outline : face)
@@ -94,11 +94,11 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 static std::string unit_snippet(const Built& built, const InteractionFeaturePlate& unit) {
 
     const std::map<std::string, std::vector<std::string>> editable = {
-        {"in_plane_dovetails", {"divisions", "shift"}}, {"in_plane_butterfly_keys", {"divisions"}}, {"in_plane_tooth_keys", {"divisions"}},
-        {"corner_fingers", {"divisions", "shift"}}, {"corner_graded_fingers", {"divisions", "shift"}}, {"corner_tenons", {"divisions", "taper", "chamfer"}},
-        {"corner_linked_tenons", {"divisions", "disable_divisions"}}, {"corner_linked_tenons_wall", {"divisions"}}, {"corner_capped_fingers", {"divisions"}},
-        {"tee_dense_tenons", {"divisions", "shift"}}, {"tee_tenons", {"divisions", "shift"}},
-        {"rotated_hooks", {"divisions", "shift"}}, {"rotated_keys", {"divisions", "shift"}},
+        {"side_side_inplane_dovetails", {"divisions", "shift"}}, {"side_side_inplane_butterfly_keys", {"divisions"}}, {"side_side_inplane_tooth_keys", {"divisions"}},
+        {"side_side_outplane_fingers", {"divisions", "shift"}}, {"side_side_outplane_graded_fingers", {"divisions", "shift"}}, {"side_side_outplane_tenons", {"divisions", "taper", "chamfer"}},
+        {"side_side_outplane_linked_tenons", {"divisions", "disable_divisions"}}, {"side_side_outplane_linked_tenons_wall", {"divisions"}}, {"side_side_outplane_capped_fingers", {"divisions"}},
+        {"top_side_dense_tenons", {"divisions", "shift"}}, {"top_side_tenons", {"divisions", "shift"}},
+        {"side_side_rotated_hooks", {"divisions", "shift"}}, {"side_side_rotated_keys", {"divisions", "shift"}},
         {"cross_sliced_half_lap", {"shift"}}, {"cross_half_lap", {"shift"}}, {"cross_half_lap_diagonal_drills", {"shift"}}, {"cross_half_lap_drill", {"shift"}}, {"cross_brussels_half_lap", {"shift"}},
     };
 
@@ -218,9 +218,9 @@ static std::string add_unit_annotations(WoodSession& scene, const Built& built, 
 
     // each parameter the design takes: the divisions as a dimension along z beside the box, a tick at every division; the rest in the legend
     const std::map<std::string, std::vector<std::string>> editable = {
-        {"in_plane_dovetails", {"divisions", "shift"}}, {"corner_fingers", {"divisions", "shift"}}, {"corner_graded_fingers", {"divisions", "shift"}},
-        {"corner_tenons", {"divisions", "taper", "chamfer"}}, {"corner_linked_tenons", {"divisions"}}, {"corner_linked_tenons_wall", {"divisions"}}, {"corner_capped_fingers", {"divisions"}},
-        {"tee_dense_tenons", {"divisions", "shift"}}, {"tee_tenons", {"divisions", "shift"}},
+        {"side_side_inplane_dovetails", {"divisions", "shift"}}, {"side_side_outplane_fingers", {"divisions", "shift"}}, {"side_side_outplane_graded_fingers", {"divisions", "shift"}},
+        {"side_side_outplane_tenons", {"divisions", "taper", "chamfer"}}, {"side_side_outplane_linked_tenons", {"divisions"}}, {"side_side_outplane_linked_tenons_wall", {"divisions"}}, {"side_side_outplane_capped_fingers", {"divisions"}},
+        {"top_side_dense_tenons", {"divisions", "shift"}}, {"top_side_tenons", {"divisions", "shift"}},
         {"cross_sliced_half_lap", {"shift"}}, {"cross_half_lap", {"shift"}}, {"cross_half_lap_diagonal_drills", {"shift"}}, {"cross_half_lap_drill", {"shift"}}, {"cross_brussels_half_lap", {"shift"}},
     };
     const auto names = editable.find(built.library);
@@ -306,7 +306,7 @@ static void write_scene(const std::string& id, const std::string& dir) {
 }
 
 /// A design that belongs to beams, on two beams of half-width 75: a cross design (cross_*) on two beams crossing in plan at the angle, the
-/// wedge tee_milled_wedge on a beam ending on the side of another; the second beam lifted 300 off along z after the joint, so both cuts read.
+/// wedge top_side_milled_wedge on a beam ending on the side of another; the second beam lifted 300 off along z after the joint, so both cuts read.
 ///   id: beam/<design>/<angle>[/<second beam's half-width>], written to <dir>/beam_<design>_<angle>[_<half-width>].pb
 static void write_beam_scene(const std::string& id, const std::string& dir) {
 

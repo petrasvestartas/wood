@@ -18,17 +18,17 @@ An element is built from its own parameters; what others do to it comes through 
 | [Profiles](@ref elements_profile) | `wood_profile.h` | `element_profile` |
 | [Joint](@ref elements_joint) | `wood_element_joint.h` | `element_joint_drill`, `element_joint_cutter` |
 | [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_parameters` |
-| [JointPlate tee](@ref elements_joint_plate_tee) | `wood_element_joint_plate.h` | `element_joint_plate_tee_three_tenons` to `_5`, `_custom` |
-| [JointPlate in_plane](@ref elements_joint_plate_in_plane) | `wood_element_joint_plate.h` | `element_joint_plate_in_plane_three_fingers` to `_5`, `_custom`, `_hilti`, `_hilti_angles` |
-| [JointPlate corner](@ref elements_joint_plate_corner) | `wood_element_joint_plate.h` | `element_joint_plate_corner_three_fingers` to `_6`, `_17`, `_tutorial`, `_custom` |
-| [JointPlate rotated](@ref elements_joint_plate_rotated) | `wood_element_joint_plate.h` | `element_joint_plate_rotated_mitre`, `_2`, `_3`, `_custom`, `_side_removal`, `_jupiter_scarf` |
+| [JointPlate top_side](@ref elements_joint_plate_top_side) | `wood_element_joint_plate.h` | `element_joint_plate_top_side_three_tenons` to `_snap_fit`, `_custom` |
+| [JointPlate side_side_inplane](@ref elements_joint_plate_side_side_inplane) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_inplane_three_fingers` to `_tooth_keys`, `_custom`, `_hilti`, `_hilti_angles` |
+| [JointPlate side_side_outplane](@ref elements_joint_plate_side_side_outplane) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_outplane_three_fingers` to `_linked_tenons_wall`, `_capped_fingers`, `_notch`, `_custom` |
+| [JointPlate side_side_rotated](@ref elements_joint_plate_side_side_rotated) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_rotated_mitre`, `_hooks`, `_keys`, `_custom`, `_side_removal`, `_jupiter_scarf` |
 | [JointPlate cross](@ref elements_joint_plate_cross) | `wood_element_joint_plate.h` | `element_joint_plate_cross_slot`, `_custom` |
-| [JointPlate stacked](@ref elements_joint_plate_stacked) | `wood_element_joint_plate.h` | `element_joint_plate_stacked_centre_pin` to `_5`, `_custom` |
-| [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_border` |
+| [JointPlate top_top](@ref elements_joint_plate_top_top) | `wood_element_joint_plate.h` | `element_joint_plate_top_top_centre_pin` to `_rectangle_pins`, `_custom` |
+| [JointPlate border](@ref elements_joint_plate_border) | `wood_element_joint_plate.h` | `element_joint_plate_border` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
-| [JointBeam cross](@ref elements_joint_beam_cross) | `wood_element_joint_beam.h` | `element_joint_beam_cross_slot` to `_5` |
-| [JointBeam tee](@ref elements_joint_beam_tee) | `wood_element_joint_beam.h` | `element_joint_beam_tee_milled_wedge` |
-| [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_in_plane_splayed_scarf`, `_in_plane_cross_splayed_scarf`, `_rotated_mitre` |
+| [JointBeam cross](@ref elements_joint_beam_cross) | `wood_element_joint_beam.h` | `element_joint_beam_cross_slot` to `_brussels_half_lap` |
+| [JointBeam top_side](@ref elements_joint_beam_top_side) | `wood_element_joint_beam.h` | `element_joint_beam_top_side_milled_wedge` |
+| [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_side_side_inplane_splayed_scarf`, `_side_side_inplane_cross_splayed_scarf`, `_side_side_rotated_mitre` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
@@ -44,15 +44,15 @@ An element is built from its own parameters; what others do to it comes through 
 - @subpage elements_profile
 - @subpage elements_joint
 - @subpage elements_joint_plate
-- @subpage elements_joint_plate_tee
-- @subpage elements_joint_plate_in_plane
-- @subpage elements_joint_plate_corner
-- @subpage elements_joint_plate_rotated
+- @subpage elements_joint_plate_top_side
+- @subpage elements_joint_plate_side_side_inplane
+- @subpage elements_joint_plate_side_side_outplane
+- @subpage elements_joint_plate_side_side_rotated
 - @subpage elements_joint_plate_cross
-- @subpage elements_joint_plate_stacked
+- @subpage elements_joint_plate_top_top
 - @subpage elements_joint_beam
 - @subpage elements_joint_beam_cross
-- @subpage elements_joint_beam_tee
+- @subpage elements_joint_beam_top_side
 - @subpage elements_joint_beam_end_to_end
 - @subpage elements_joint_beam_connectors
 - @subpage elements_joint_beam_pins

@@ -129,8 +129,8 @@ public:
     /// gives every plate a row, a call with points gives every plate a table, -1 on the faces it lacked; a call with none changes nothing.
     void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius);
 
-    /// Joint types by points named as the user interface writes them, a text by each point: the name of a library design ("in_plane_dovetails",
-    /// "tee_tenons", "corner/side_removal", JointPlate::library_id), or "" for no joint. A point takes the face it lies nearest to: a side
+    /// Joint types by points named as the user interface writes them, a text by each point: the name of a library design ("side_side_inplane_dovetails",
+    /// "top_side_tenons", "side_side_outplane/side_removal", JointPlate::library_id), or "" for no joint. A point takes the face it lies nearest to: a side
     /// face when it is nearer to a side face's middle line than to any bottom or top outline, else the bottom or top face, then as above.
     void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius);
 

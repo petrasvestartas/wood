@@ -10,9 +10,9 @@ int main() {
     WoodSession wood_session = WoodSession::obj_load(DATASET);
 
     Settings& s = wood_session.settings;
-    s.joint_parameters[1 * 3 + 0] = 200;   // corner family: division length
-    s.joint_parameters[1 * 3 + 2] = 10;    // corner family: joint id
-    s.joint_parameters[2 * 3 + 2] = 20;    // tee family: joint id
+    s.joint_parameters[1 * 3 + 0] = 200;   // side_side_outplane family: division length
+    s.joint_parameters[1 * 3 + 2] = 10;    // side_side_outplane family: joint id
+    s.joint_parameters[2 * 3 + 2] = 20;    // top_side family: joint id
     s.joint_volume_extension = {0, 0, 10};
     s.joint_scale = {1.0, 1.0, 1.0};
     s.distance = 0.1;

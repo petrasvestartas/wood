@@ -12,7 +12,7 @@ Beam(const Polyline& axis, const std::vector<Polyline>& profile, const std::vect
 
 // pairs, one per joint family's configuration, for examples and tests
 static std::array<std::shared_ptr<Beam>, 2> pair_crossing(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0)   // cross: crossing at their middles
-static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0)        // tee: the second ending on the first
+static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0)        // top_side: the second ending on the first
 static std::array<std::shared_ptr<Beam>, 2> pair_end_to_end(double angle_degrees = 0.0, double radius = 75.0, double length = 1200.0, double extension = 150.0)   // splice or mitre at a shared axis end
 ```
 

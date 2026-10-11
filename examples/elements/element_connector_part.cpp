@@ -8,16 +8,9 @@ int main() {
 
     WoodSession scene("element_connector_part");
 
-    const std::shared_ptr<BeamVariable> left = BeamVariable::between(
-        Polyline::rectangle({0.0, -200.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1600.0, -200.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "left"
-    );
-    const std::shared_ptr<BeamVariable> right = BeamVariable::between(
-        Polyline::rectangle({0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1600.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "right"
-    );
+    const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_side_by_side();
+    const std::shared_ptr<BeamVariable> left = beams[0];
+    const std::shared_ptr<BeamVariable> right = beams[1];
     left->is_visible = false;
     right->is_visible = false;
     scene.add(left);

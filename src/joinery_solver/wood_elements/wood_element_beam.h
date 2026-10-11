@@ -64,7 +64,7 @@ public:
 
     /// Two beams in a tee, "first" along x through the origin and "second" ending on its axis, turned `angle_degrees` from it in plan, each
     /// `length` long and `radius` in half-width, the second's solid running one radius past its axis ends, to the first's far face, the
-    /// stock its through tenon is kept from: the side-to-end pair a tee joint (tee) is cut into.
+    /// stock its through tenon is kept from: the side-to-end pair a top-side joint (top_side) is cut into.
     static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
 
     /// Two beams meeting end to end at the origin, "first" along x ending there and "second" starting there, turned `angle_degrees` from

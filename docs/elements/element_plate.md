@@ -12,12 +12,12 @@ static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& 
 static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates")
 
 // pairs, one per joint family's configuration, for examples and tests
-static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0)      // in_plane: edge to edge, in line or in a shallow V
-static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0)   // corner: mitred fold
-static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0)     // rotated: end to end, twisted
-static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0)  // tee: upright or leaning on a base
+static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0)      // side_side_inplane: edge to edge, in line or in a shallow V
+static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0)   // side_side_outplane: mitred fold
+static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0)     // side_side_rotated: end to end, twisted
+static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0)  // top_side: upright or leaning on a base
 static std::array<std::shared_ptr<Plate>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0)    // cross: crossing uprights
-static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 0.0, double length = 400.0, double width = 300.0, double thickness = 40.0)       // stacked: stacked, shifted, turned
+static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 0.0, double length = 400.0, double width = 300.0, double thickness = 40.0)       // top_top: stacked, shifted, turned
 ```
 
 ## Parameters

@@ -10,7 +10,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A plate-to-plate joint: the pair, the face contact it was solved from, its parameters, the cut outlines per element per face and the two element features the hosts carry; name is the joint library variant ("in_plane_butterfly_keys", "side_removal"), empty before construction. The solver builds it in place; the session stores it whole.
+/// A plate-to-plate joint: the pair, the face contact it was solved from, its parameters, the cut outlines per element per face and the two element features the hosts carry; name is the joint library variant ("side_side_inplane_butterfly_keys", "side_removal"), empty before construction. The solver builds it in place; the session stores it whole.
 class InteractionFeaturePlate : public InteractionFeature {
 public:
     static constexpr std::string_view INTERACTION_TYPE = "InteractionFeaturePlate"; // The tag the kernel writes and the registry reads.

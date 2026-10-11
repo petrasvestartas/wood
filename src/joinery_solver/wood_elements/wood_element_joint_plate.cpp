@@ -18,12 +18,12 @@ using namespace wood_session;
 /// The id of every design 2024's tables reach, by name and by its 2024 name: the inverse of the build_ switches below, a side removal by its family.
 const std::unordered_map<std::string, int> LIBRARY_IDS = {
     {"", 0},
-    {"in_plane_dovetails", 1}, {"in_plane_three_fingers", 2}, {"in_plane_butterfly_keys", 3}, {"in_plane_splayed_scarf", 4}, {"in_plane_cross_splayed_scarf", 5}, {"in_plane_tooth_keys", 6}, {"in_plane/side_removal", 8}, {"in_plane_custom", 9},
-    {"corner_fingers", 10}, {"corner_graded_fingers", 11}, {"corner_three_fingers", 12}, {"corner_mitre_tenon", 13}, {"corner_tenons", 14}, {"corner_linked_tenons", 15}, {"corner_linked_tenons_wall", 16}, {"corner/side_removal", 18}, {"corner_custom", 19},
-    {"tee_tenons", 20}, {"tee_dense_tenons", 21}, {"tee_milled_wedge", 24}, {"tee_snap_fit", 25}, {"tee/side_removal", 28}, {"tee_custom", 29},
+    {"side_side_inplane_dovetails", 1}, {"side_side_inplane_three_fingers", 2}, {"side_side_inplane_butterfly_keys", 3}, {"side_side_inplane_splayed_scarf", 4}, {"side_side_inplane_cross_splayed_scarf", 5}, {"side_side_inplane_tooth_keys", 6}, {"side_side_inplane/side_removal", 8}, {"side_side_inplane_custom", 9},
+    {"side_side_outplane_fingers", 10}, {"side_side_outplane_graded_fingers", 11}, {"side_side_outplane_three_fingers", 12}, {"side_side_outplane_mitre_tenon", 13}, {"side_side_outplane_tenons", 14}, {"side_side_outplane_linked_tenons", 15}, {"side_side_outplane_linked_tenons_wall", 16}, {"side_side_outplane/side_removal", 18}, {"side_side_outplane_custom", 19},
+    {"top_side_tenons", 20}, {"top_side_dense_tenons", 21}, {"top_side_milled_wedge", 24}, {"top_side_snap_fit", 25}, {"top_side/side_removal", 28}, {"top_side_custom", 29},
     {"cross_slot", 30}, {"cross_sliced_half_lap", 31}, {"cross_half_lap", 32}, {"cross_half_lap_diagonal_drills", 33}, {"cross_half_lap_drill", 34}, {"cross_brussels_half_lap", 35}, {"cross/side_removal", 38}, {"cross_custom", 39},
-    {"stacked_centre_pin", 40}, {"stacked_polylabel_pin", 41}, {"stacked_circle_pins", 42}, {"stacked_ring_pins", 43}, {"stacked_grid_pins", 44}, {"stacked_rectangle_pins", 45}, {"stacked/side_removal", 48}, {"stacked_custom", 49},
-    {"rotated_keys", 54}, {"rotated_hooks", 55}, {"rotated_mitre", 56}, {"rotated/side_removal", 57}, {"rotated/side_removal_merged", 58}, {"rotated_custom", 59},
+    {"top_top_centre_pin", 40}, {"top_top_polylabel_pin", 41}, {"top_top_circle_pins", 42}, {"top_top_ring_pins", 43}, {"top_top_grid_pins", 44}, {"top_top_rectangle_pins", 45}, {"top_top/side_removal", 48}, {"top_top_custom", 49},
+    {"side_side_rotated_keys", 54}, {"side_side_rotated_hooks", 55}, {"side_side_rotated_mitre", 56}, {"side_side_rotated/side_removal", 57}, {"side_side_rotated/side_removal_merged", 58}, {"side_side_rotated_custom", 59},
     {"border", 60}, {"border_custom", 69},
     // the same designs by their 2024 names
     {"ss_e_ip_1", 1}, {"ss_e_ip_0", 2}, {"ss_e_ip_2", 3}, {"ss_e_ip_3", 4}, {"ss_e_ip_4", 5}, {"ss_e_ip_5", 6}, {"ss_e_ip_custom", 9},
@@ -83,28 +83,28 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 1:
-        in_plane_dovetails(joint);
+        side_side_inplane_dovetails(joint);
         return true;
     case 2:
-        in_plane_three_fingers(joint);
+        side_side_inplane_three_fingers(joint);
         return true;
     case 3:
-        in_plane_butterfly_keys(joint, context.elements);
+        side_side_inplane_butterfly_keys(joint, context.elements);
         return true;
     case 4:
-        in_plane_splayed_scarf(joint);
+        side_side_inplane_splayed_scarf(joint);
         return true;
     case 5:
-        in_plane_cross_splayed_scarf(joint);
+        side_side_inplane_cross_splayed_scarf(joint);
         return true;
     case 6:
-        in_plane_tooth_keys(joint, context.elements);
+        side_side_inplane_tooth_keys(joint, context.elements);
         return true;
     case 8:
         side_removal(joint, context.elements);
         return true;
     case 9:
-        in_plane_custom(joint, context.settings);
+        side_side_inplane_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -115,31 +115,31 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
 
     switch (id) {
     case 10:
-        corner_fingers(joint);
+        side_side_outplane_fingers(joint);
         return true;
     case 11:
-        corner_graded_fingers(joint);
+        side_side_outplane_graded_fingers(joint);
         return true;
     case 12:
-        corner_three_fingers(joint);
+        side_side_outplane_three_fingers(joint);
         return true;
     case 13:
-        corner_mitre_tenon(joint);
+        side_side_outplane_mitre_tenon(joint);
         return true;
     case 14:
-        corner_tenons(joint);
+        side_side_outplane_tenons(joint);
         return true;
     case 15:
-        corner_linked_tenons(joint, context.all_joints, false);
+        side_side_outplane_linked_tenons(joint, context.all_joints, false);
         return true;
     case 16:
-        corner_linked_tenons_wall(joint, context.all_joints);
+        side_side_outplane_linked_tenons_wall(joint, context.all_joints);
         return true;
     case 18:
         side_removal(joint, context.elements);
         return true;
     case 19:
-        corner_custom(joint, context.settings);
+        side_side_outplane_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -150,26 +150,26 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 20:
-        tee_tenons(joint);
+        top_side_tenons(joint);
         return true;
     case 21:
-        tee_dense_tenons(joint);
+        top_side_dense_tenons(joint);
         return true;
     case 22:
-        tee_tenons(joint);
+        top_side_tenons(joint);
         return true;
-    case 23: // 2024 ran tee_three_tenons here and fell through into tee_milled_wedge, which overwrote all of it
+    case 23: // 2024 ran top_side_three_tenons here and fell through into top_side_milled_wedge, which overwrote all of it
     case 24:
-        tee_milled_wedge(joint);
+        top_side_milled_wedge(joint);
         return true;
     case 25:
-        tee_snap_fit(joint);
+        top_side_snap_fit(joint);
         return true;
     case 28:
         side_removal(joint, context.elements);
         return true;
     case 29:
-        tee_custom(joint, context.settings);
+        top_side_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -212,28 +212,28 @@ static bool build_toptop(const int id, InteractionFeaturePlate& joint, BuildCont
 
     switch (id) {
     case 40:
-        stacked_centre_pin(joint, context.elements);
+        top_top_centre_pin(joint, context.elements);
         return true;
     case 41:
-        stacked_polylabel_pin(joint, context.elements);
+        top_top_polylabel_pin(joint, context.elements);
         return true;
     case 42:
-        stacked_circle_pins(joint, context.elements);
+        top_top_circle_pins(joint, context.elements);
         return true;
     case 43:
-        stacked_ring_pins(joint, context.elements, context.settings);
+        top_top_ring_pins(joint, context.elements, context.settings);
         return true;
     case 44:
-        stacked_grid_pins(joint, context.elements);
+        top_top_grid_pins(joint, context.elements);
         return true;
     case 45:
-        stacked_rectangle_pins(joint, context.elements, context.settings);
+        top_top_rectangle_pins(joint, context.elements, context.settings);
         return true;
     case 48:
         side_removal(joint, context.elements);
         return true;
     case 49:
-        stacked_custom(joint, context.settings);
+        top_top_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -244,13 +244,13 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 54:
-        rotated_keys(joint, context.elements);
+        side_side_rotated_keys(joint, context.elements);
         return true;
     case 55:
-        rotated_hooks(joint, context.elements);
+        side_side_rotated_hooks(joint, context.elements);
         return true;
     case 56:
-        rotated_mitre(joint);
+        side_side_rotated_mitre(joint);
         return true;
     case 57:
         side_removal(joint, context.elements);
@@ -259,7 +259,7 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
         side_removal(joint, context.elements, true);
         return true;
     case 59:
-        rotated_custom(joint, context.settings);
+        side_side_rotated_custom(joint, context.settings);
         return true;
     default:
         return false;
@@ -306,19 +306,19 @@ bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& con
 void build_family_default(const int family, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (family) {
     case 0:
-        in_plane_dovetails(joint);
+        side_side_inplane_dovetails(joint);
         return;
     case 1:
-        corner_fingers(joint);
+        side_side_outplane_fingers(joint);
         return;
     case 2:
-        tee_tenons(joint);
+        top_side_tenons(joint);
         return;
     case 3:
         cross_slot(joint);
         return;
     case 4:
-        stacked_centre_pin(joint, context.elements);
+        top_top_centre_pin(joint, context.elements);
         return;
     case 5:
         side_removal(joint, context.elements);
@@ -351,15 +351,15 @@ void joint_create_geometry(
 
     const int family = family_of(id) >= 0 ? family_of(id) : family_of_type(joint.joint_type);
     if (family == 1 && id < 0) {
-        corner_linked_tenons(joint, context.all_joints, false);
+        side_side_outplane_linked_tenons(joint, context.all_joints, false);
         return;
     }
 
     if (family < 0) {
         if (joint.joint_type == 11 || joint.joint_type == 12)
-            corner_fingers(joint);
+            side_side_outplane_fingers(joint);
         else if (joint.joint_type == 20)
-            tee_tenons(joint);
+            top_side_tenons(joint);
         return;
     }
 
@@ -650,7 +650,7 @@ int JointPlate::library_id(const std::string& name) {
     if (found != LIBRARY_IDS.end())
         return found->second;
 
-    if (name == "tee_three_tenons" || name == "tee_annen_tenons" || name == "corner_capped_fingers" || name == "corner_notch")
+    if (name == "top_side_three_tenons" || name == "top_side_annen_tenons" || name == "side_side_outplane_capped_fingers" || name == "side_side_outplane_notch")
         throw std::invalid_argument(fmt::format("{} has no id in 2024's tables: it is reached by name only, through its JointPlate constructor", name));
     throw std::invalid_argument(fmt::format("no joint design is named {}", name));
 }
@@ -1030,7 +1030,7 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
-        if (connection.name != "rotated_hooks" && connection.name != "rotated_keys" && connection.name != "in_plane_splayed_scarf" && connection.name != "in_plane_cross_splayed_scarf" && connection.name != "stacked_custom" && connection.name != "jupiter_scarf")
+        if (connection.name != "side_side_rotated_hooks" && connection.name != "side_side_rotated_keys" && connection.name != "side_side_inplane_splayed_scarf" && connection.name != "side_side_inplane_cross_splayed_scarf" && connection.name != "top_top_custom" && connection.name != "jupiter_scarf")
             continue;
 
         // the Jupiter's key fills the slot both plates are notched around: the prism of its outline pair
@@ -1047,7 +1047,7 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
 
         // the rotated keys are the straight prisms 2024 milled, both sides' pockets united, not trimmed by the folded plates; a custom
         // top-top joint's milled pockets make its key the same way, the loose piece hidden between the stacked plates
-        if (connection.name == "rotated_hooks" || connection.name == "rotated_keys" || connection.name == "stacked_custom") {
+        if (connection.name == "side_side_rotated_hooks" || connection.name == "side_side_rotated_keys" || connection.name == "top_top_custom") {
             for (int side = 0; side < 2; side++)
                 for (const Mesh& piece : side_solids(connection, side))
                     key = key.number_of_faces() == 0 ? piece : solid_boolean(key, piece, SolidOperation::add);
@@ -1091,7 +1091,7 @@ static std::array<Polyline, 2> hilti_prism(const Xform& frame, const std::vector
     return {loop.transformed(frame * Xform::translation(0.0, 0.0, bottom)), loop.transformed(frame * Xform::translation(0.0, 0.0, top))};
 }
 
-/// The half bow-tie of the 2024 Hilti joint (rotated_hooks, id 55) in a slab's frame, from start across the seam to end: the neck neck_width
+/// The half bow-tie of the 2024 Hilti joint (side_side_rotated_hooks, id 55) in a slab's frame, from start across the seam to end: the neck neck_width
 /// wide to neck_end, the wing widening to wing_width at taper_end, straight on to end; its two far corners rounded by the router's
 /// radius when one is given, quarters of the kernel's circle of sides.
 static std::vector<Point> hilti_outline(double start, double end, double neck_end, double taper_end, double neck_width, double wing_width, double router_radius, int sides) {
@@ -1137,7 +1137,7 @@ static std::array<Polyline, 2> hilti_disc(const Xform& frame, double start, doub
     return {circle.transformed(frame * Xform::translation(start, 0.0, z) * across), circle.transformed(frame * Xform::translation(end, 0.0, z) * across)};
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_hilti(
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_hilti(
     const Plate& a,
     const Plate& b,
     const InteractionContactFace& contact,
@@ -1225,7 +1225,7 @@ std::shared_ptr<JointPlate> JointPlate::in_plane_hilti(
 
     // the key: both halves and both discs, one solid, the bolt from disc to disc through it, inside the pockets
     const std::shared_ptr<JointPlate> joint = std::make_shared<JointPlate>();
-    joint->name = "in_plane_hilti";
+    joint->name = "side_side_inplane_hilti";
     joint->is_visible = true;
     joint->line_radius = 0.5 * rod_diameter;
     joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);
@@ -1343,20 +1343,20 @@ void JointPlate::compute_library(
     const Settings& settings
 ) const {
 
-    if (parameters.library.starts_with("in_plane_")) {
-        if (compute_in_plane(connection, elements, settings))
+    if (parameters.library.starts_with("side_side_inplane_")) {
+        if (compute_side_side_inplane(connection, elements, settings))
             return;
-    } else if (parameters.library.starts_with("corner_")) {
-        if (compute_corner(connection, connections, settings))
+    } else if (parameters.library.starts_with("side_side_outplane_")) {
+        if (compute_side_side_outplane(connection, connections, settings))
             return;
-    } else if (parameters.library.starts_with("tee_")) {
-        if (compute_tee(connection, settings))
+    } else if (parameters.library.starts_with("top_side_")) {
+        if (compute_top_side(connection, settings))
             return;
-    } else if (parameters.library.starts_with("stacked_")) {
-        if (compute_stacked(connection, elements, settings))
+    } else if (parameters.library.starts_with("top_top_")) {
+        if (compute_top_top(connection, elements, settings))
             return;
-    } else if (parameters.library.starts_with("rotated_")) {
-        if (compute_rotated(connection, elements, settings))
+    } else if (parameters.library.starts_with("side_side_rotated_")) {
+        if (compute_side_side_rotated(connection, elements, settings))
             return;
     } else if (parameters.library.starts_with("cross_")) {
         if (compute_cross(connection, settings))
@@ -1398,7 +1398,7 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
         if (!connection.no_orient)
             joint_orient_to_connection_area(connection);
 
-    if (parameters.library == "corner_linked_tenons" || parameters.library == "corner_linked_tenons_wall")
+    if (parameters.library == "side_side_outplane_linked_tenons" || parameters.library == "side_side_outplane_linked_tenons_wall")
         for (InteractionFeaturePlate& connection : joints)
             if (!connection.linked_joints.empty())
                 merge_linked_joints(connection, joints);
@@ -1413,7 +1413,7 @@ void JointPlate::construct(std::vector<InteractionFeaturePlate> joints, const st
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// An in-plane design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
-std::shared_ptr<JointPlate> JointPlate::in_plane(const std::string& library) {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane(const std::string& library) {
 
     const std::shared_ptr<JointPlate> joint = from_library(library, 12);
     joint->division_distance = 300.0;
@@ -1422,49 +1422,49 @@ std::shared_ptr<JointPlate> JointPlate::in_plane(const std::string& library) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_three_fingers() {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_three_fingers() {
 
-    return in_plane("in_plane_three_fingers");
+    return side_side_inplane("side_side_inplane_three_fingers");
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_dovetails(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_dovetails(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = in_plane("in_plane_dovetails");
+    const std::shared_ptr<JointPlate> joint = side_side_inplane("side_side_inplane_dovetails");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_butterfly_keys(int divisions) {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_butterfly_keys(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = in_plane("in_plane_butterfly_keys");
+    const std::shared_ptr<JointPlate> joint = side_side_inplane("side_side_inplane_butterfly_keys");
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_splayed_scarf() {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_splayed_scarf() {
 
-    return in_plane("in_plane_splayed_scarf");
+    return side_side_inplane("side_side_inplane_splayed_scarf");
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_cross_splayed_scarf() {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_cross_splayed_scarf() {
 
-    return in_plane("in_plane_cross_splayed_scarf");
+    return side_side_inplane("side_side_inplane_cross_splayed_scarf");
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_tooth_keys(int divisions) {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_tooth_keys(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = in_plane("in_plane_tooth_keys");
+    const std::shared_ptr<JointPlate> joint = side_side_inplane("side_side_inplane_tooth_keys");
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::in_plane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = in_plane("in_plane_custom");
+    const std::shared_ptr<JointPlate> joint = side_side_inplane("side_side_inplane_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1474,22 +1474,22 @@ std::shared_ptr<JointPlate> JointPlate::in_plane_custom(const std::vector<Polyli
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_in_plane(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
+bool JointPlate::compute_side_side_inplane(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
 
-    if (parameters.library == "in_plane_three_fingers")
-        ::in_plane_three_fingers(connection);
-    else if (parameters.library == "in_plane_dovetails")
-        ::in_plane_dovetails(connection);
-    else if (parameters.library == "in_plane_butterfly_keys")
-        ::in_plane_butterfly_keys(connection, elements);
-    else if (parameters.library == "in_plane_splayed_scarf")
-        ::in_plane_splayed_scarf(connection);
-    else if (parameters.library == "in_plane_cross_splayed_scarf")
-        ::in_plane_cross_splayed_scarf(connection);
-    else if (parameters.library == "in_plane_tooth_keys")
-        ::in_plane_tooth_keys(connection, elements);
-    else if (parameters.library == "in_plane_custom")
-        ::in_plane_custom(connection, settings);
+    if (parameters.library == "side_side_inplane_three_fingers")
+        ::side_side_inplane_three_fingers(connection);
+    else if (parameters.library == "side_side_inplane_dovetails")
+        ::side_side_inplane_dovetails(connection);
+    else if (parameters.library == "side_side_inplane_butterfly_keys")
+        ::side_side_inplane_butterfly_keys(connection, elements);
+    else if (parameters.library == "side_side_inplane_splayed_scarf")
+        ::side_side_inplane_splayed_scarf(connection);
+    else if (parameters.library == "side_side_inplane_cross_splayed_scarf")
+        ::side_side_inplane_cross_splayed_scarf(connection);
+    else if (parameters.library == "side_side_inplane_tooth_keys")
+        ::side_side_inplane_tooth_keys(connection, elements);
+    else if (parameters.library == "side_side_inplane_custom")
+        ::side_side_inplane_custom(connection, settings);
     else
         return false;
 
@@ -1501,7 +1501,7 @@ bool JointPlate::compute_in_plane(InteractionFeaturePlate& connection, const std
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// An out-of-plane design on its 2024 family defaults: geometric divisions every 450 mm of the joint line, shift 0.64.
-std::shared_ptr<JointPlate> JointPlate::corner(const std::string& library) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane(const std::string& library) {
 
     const std::shared_ptr<JointPlate> joint = from_library(library, 11);
     joint->division_distance = 450.0;
@@ -1510,35 +1510,35 @@ std::shared_ptr<JointPlate> JointPlate::corner(const std::string& library) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_three_fingers() {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_three_fingers() {
 
-    return corner("corner_three_fingers");
+    return side_side_outplane("side_side_outplane_three_fingers");
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_fingers(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_fingers(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_fingers");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_fingers");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_graded_fingers(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_graded_fingers(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_graded_fingers");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_graded_fingers");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_mitre_tenon() {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_mitre_tenon() {
 
-    return corner("corner_mitre_tenon");
+    return side_side_outplane("side_side_outplane_mitre_tenon");
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_tenons(
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_tenons(
     int divisions,
     double taper,
     bool chamfer,
@@ -1548,7 +1548,7 @@ std::shared_ptr<JointPlate> JointPlate::corner_tenons(
     const std::array<double, 2>& z
 ) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_tenons");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_tenons");
     joint->parameters.divisions = divisions;
     joint->parameters.taper = taper;
     joint->parameters.chamfer = chamfer;
@@ -1560,39 +1560,39 @@ std::shared_ptr<JointPlate> JointPlate::corner_tenons(
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_linked_tenons(int divisions, bool disable_divisions) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_linked_tenons(int divisions, bool disable_divisions) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_linked_tenons");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_linked_tenons");
     joint->parameters.divisions = divisions;
     joint->parameters.disable_divisions = disable_divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_linked_tenons_wall(int divisions) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_linked_tenons_wall(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_linked_tenons_wall");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_linked_tenons_wall");
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_capped_fingers(int divisions) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_capped_fingers(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_capped_fingers");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_capped_fingers");
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_notch() {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_notch() {
 
-    return corner("corner_notch");
+    return side_side_outplane("side_side_outplane_notch");
 }
 
-std::shared_ptr<JointPlate> JointPlate::corner_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = corner("corner_custom");
+    const std::shared_ptr<JointPlate> joint = side_side_outplane("side_side_outplane_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1602,18 +1602,18 @@ std::shared_ptr<JointPlate> JointPlate::corner_custom(const std::vector<Polyline
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_corner(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const {
+bool JointPlate::compute_side_side_outplane(InteractionFeaturePlate& connection, std::vector<InteractionFeaturePlate>& connections, const Settings& settings) const {
 
-    if (parameters.library == "corner_three_fingers")
-        ::corner_three_fingers(connection);
-    else if (parameters.library == "corner_fingers")
-        ::corner_fingers(connection);
-    else if (parameters.library == "corner_graded_fingers")
-        ::corner_graded_fingers(connection);
-    else if (parameters.library == "corner_mitre_tenon")
-        ::corner_mitre_tenon(connection);
-    else if (parameters.library == "corner_tenons")
-        ::corner_tenons(
+    if (parameters.library == "side_side_outplane_three_fingers")
+        ::side_side_outplane_three_fingers(connection);
+    else if (parameters.library == "side_side_outplane_fingers")
+        ::side_side_outplane_fingers(connection);
+    else if (parameters.library == "side_side_outplane_graded_fingers")
+        ::side_side_outplane_graded_fingers(connection);
+    else if (parameters.library == "side_side_outplane_mitre_tenon")
+        ::side_side_outplane_mitre_tenon(connection);
+    else if (parameters.library == "side_side_outplane_tenons")
+        ::side_side_outplane_tenons(
             connection,
             parameters.taper,
             parameters.chamfer,
@@ -1625,16 +1625,16 @@ bool JointPlate::compute_corner(InteractionFeaturePlate& connection, std::vector
             parameters.z[0],
             parameters.z[1]
         );
-    else if (parameters.library == "corner_linked_tenons")
-        ::corner_linked_tenons(connection, connections, parameters.disable_divisions);
-    else if (parameters.library == "corner_linked_tenons_wall")
-        ::corner_linked_tenons_wall(connection, connections);
-    else if (parameters.library == "corner_capped_fingers")
-        ::corner_capped_fingers(connection);
-    else if (parameters.library == "corner_notch")
-        ::corner_notch(connection);
-    else if (parameters.library == "corner_custom")
-        ::corner_custom(connection, settings);
+    else if (parameters.library == "side_side_outplane_linked_tenons")
+        ::side_side_outplane_linked_tenons(connection, connections, parameters.disable_divisions);
+    else if (parameters.library == "side_side_outplane_linked_tenons_wall")
+        ::side_side_outplane_linked_tenons_wall(connection, connections);
+    else if (parameters.library == "side_side_outplane_capped_fingers")
+        ::side_side_outplane_capped_fingers(connection);
+    else if (parameters.library == "side_side_outplane_notch")
+        ::side_side_outplane_notch(connection);
+    else if (parameters.library == "side_side_outplane_custom")
+        ::side_side_outplane_custom(connection, settings);
     else
         return false;
 
@@ -1647,50 +1647,50 @@ bool JointPlate::compute_corner(InteractionFeaturePlate& connection, std::vector
 
 // A top-side design on its 2024 family defaults, the class defaults: geometric divisions every 450 mm of the joint line, shift 0.5.
 
-std::shared_ptr<JointPlate> JointPlate::tee_three_tenons() {
+std::shared_ptr<JointPlate> JointPlate::top_side_three_tenons() {
 
-    return from_library("tee_three_tenons", 20);
+    return from_library("top_side_three_tenons", 20);
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_annen_tenons() {
+std::shared_ptr<JointPlate> JointPlate::top_side_annen_tenons() {
 
-    return from_library("tee_annen_tenons", 20);
+    return from_library("top_side_annen_tenons", 20);
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_dense_tenons(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::top_side_dense_tenons(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("tee_dense_tenons", 20);
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_dense_tenons", 20);
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_tenons(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::top_side_tenons(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("tee_tenons", 20);
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_tenons", 20);
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_milled_wedge() {
+std::shared_ptr<JointPlate> JointPlate::top_side_milled_wedge() {
 
-    return from_library("tee_milled_wedge", 20);
+    return from_library("top_side_milled_wedge", 20);
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_snap_fit(int divisions) {
+std::shared_ptr<JointPlate> JointPlate::top_side_snap_fit(int divisions) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("tee_snap_fit", 20);
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_snap_fit", 20);
     joint->parameters.divisions = divisions;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::tee_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("tee_custom", 20);
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_custom", 20);
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1700,22 +1700,22 @@ std::shared_ptr<JointPlate> JointPlate::tee_custom(const std::vector<Polyline>& 
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_tee(InteractionFeaturePlate& connection, const Settings& settings) const {
+bool JointPlate::compute_top_side(InteractionFeaturePlate& connection, const Settings& settings) const {
 
-    if (parameters.library == "tee_three_tenons")
-        ::tee_three_tenons(connection);
-    else if (parameters.library == "tee_annen_tenons")
-        ::tee_annen_tenons(connection);
-    else if (parameters.library == "tee_dense_tenons")
-        ::tee_dense_tenons(connection);
-    else if (parameters.library == "tee_tenons")
-        ::tee_tenons(connection);
-    else if (parameters.library == "tee_milled_wedge")
-        ::tee_milled_wedge(connection);
-    else if (parameters.library == "tee_snap_fit")
-        ::tee_snap_fit(connection);
-    else if (parameters.library == "tee_custom")
-        ::tee_custom(connection, settings);
+    if (parameters.library == "top_side_three_tenons")
+        ::top_side_three_tenons(connection);
+    else if (parameters.library == "top_side_annen_tenons")
+        ::top_side_annen_tenons(connection);
+    else if (parameters.library == "top_side_dense_tenons")
+        ::top_side_dense_tenons(connection);
+    else if (parameters.library == "top_side_tenons")
+        ::top_side_tenons(connection);
+    else if (parameters.library == "top_side_milled_wedge")
+        ::top_side_milled_wedge(connection);
+    else if (parameters.library == "top_side_snap_fit")
+        ::top_side_snap_fit(connection);
+    else if (parameters.library == "top_side_custom")
+        ::top_side_custom(connection, settings);
     else
         return false;
 
@@ -1728,9 +1728,9 @@ bool JointPlate::compute_tee(InteractionFeaturePlate& connection, const Settings
 
 // A top-top design on its 2024 family defaults: division length 6 and shift 0.95, each read the design's own way; the radius is the pin's.
 
-std::shared_ptr<JointPlate> JointPlate::stacked_centre_pin(double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_centre_pin(double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_centre_pin", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_centre_pin", 40);
     joint->line_radius = radius;
     joint->division_distance = 6.0;
     joint->shift = 0.95;
@@ -1738,9 +1738,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_centre_pin(double radius) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_polylabel_pin(double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_polylabel_pin(double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_polylabel_pin", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_polylabel_pin", 40);
     joint->line_radius = radius;
     joint->division_distance = 6.0;
     joint->shift = 0.95;
@@ -1748,9 +1748,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_polylabel_pin(double radius) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_circle_pins(int divisions, double shift, double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_circle_pins(int divisions, double shift, double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_circle_pins", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_circle_pins", 40);
     joint->line_radius = radius;
     joint->division_distance = divisions;
     joint->shift = shift;
@@ -1758,9 +1758,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_circle_pins(int divisions, doubl
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_ring_pins(double division_length, double shift, double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_ring_pins(double division_length, double shift, double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_ring_pins", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_ring_pins", 40);
     joint->line_radius = radius;
     joint->division_distance = division_length;
     joint->shift = shift;
@@ -1768,9 +1768,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_ring_pins(double division_length
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_grid_pins(double division_length, double shift, double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_grid_pins(double division_length, double shift, double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_grid_pins", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_grid_pins", 40);
     joint->line_radius = radius;
     joint->division_distance = division_length;
     joint->shift = shift;
@@ -1778,9 +1778,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_grid_pins(double division_length
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_rectangle_pins(double division_length, double shift, double radius) {
+std::shared_ptr<JointPlate> JointPlate::top_top_rectangle_pins(double division_length, double shift, double radius) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_rectangle_pins", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_rectangle_pins", 40);
     joint->line_radius = radius;
     joint->division_distance = division_length;
     joint->shift = shift;
@@ -1788,9 +1788,9 @@ std::shared_ptr<JointPlate> JointPlate::stacked_rectangle_pins(double division_l
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::stacked_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = from_library("stacked_custom", 40);
+    const std::shared_ptr<JointPlate> joint = from_library("top_top_custom", 40);
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1800,22 +1800,22 @@ std::shared_ptr<JointPlate> JointPlate::stacked_custom(const std::vector<Polylin
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_stacked(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
+bool JointPlate::compute_top_top(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
 
-    if (parameters.library == "stacked_custom") {
-        ::stacked_custom(connection, settings);
+    if (parameters.library == "top_top_custom") {
+        ::top_top_custom(connection, settings);
         return true;
     }
 
     if (elements.size() < 2)
         throw std::invalid_argument("Drill joints require the participating plates in orient(contact, elements)");
 
-    if (parameters.library == "stacked_centre_pin") {
-        ::stacked_centre_pin(connection, elements);
+    if (parameters.library == "top_top_centre_pin") {
+        ::top_top_centre_pin(connection, elements);
         return true;
     }
-    if (parameters.library == "stacked_polylabel_pin") {
-        ::stacked_polylabel_pin(connection, elements);
+    if (parameters.library == "top_top_polylabel_pin") {
+        ::top_top_polylabel_pin(connection, elements);
         return true;
     }
 
@@ -1826,14 +1826,14 @@ bool JointPlate::compute_stacked(InteractionFeaturePlate& connection, const std:
         connection.contact.polygon = offset_contact(connection, 2.0 * line_radius);
 
     bool known = true;
-    if (parameters.library == "stacked_circle_pins")
-        ::stacked_circle_pins(connection, elements);
-    else if (parameters.library == "stacked_ring_pins")
-        ::stacked_ring_pins(connection, elements, settings);
-    else if (parameters.library == "stacked_grid_pins")
-        ::stacked_grid_pins(connection, elements);
-    else if (parameters.library == "stacked_rectangle_pins")
-        ::stacked_rectangle_pins(connection, elements, settings);
+    if (parameters.library == "top_top_circle_pins")
+        ::top_top_circle_pins(connection, elements);
+    else if (parameters.library == "top_top_ring_pins")
+        ::top_top_ring_pins(connection, elements, settings);
+    else if (parameters.library == "top_top_grid_pins")
+        ::top_top_grid_pins(connection, elements);
+    else if (parameters.library == "top_top_rectangle_pins")
+        ::top_top_rectangle_pins(connection, elements, settings);
     else
         known = false;
 
@@ -1929,7 +1929,7 @@ bool JointPlate::compute_cross(InteractionFeaturePlate& connection, const Settin
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A rotated design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
-std::shared_ptr<JointPlate> JointPlate::rotated(const std::string& library) {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated(const std::string& library) {
 
     const std::shared_ptr<JointPlate> joint = from_library(library, 13);
     joint->division_distance = 300.0;
@@ -1938,32 +1938,32 @@ std::shared_ptr<JointPlate> JointPlate::rotated(const std::string& library) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::rotated_mitre() {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated_mitre() {
 
-    return rotated("rotated_mitre");
+    return side_side_rotated("side_side_rotated_mitre");
 }
 
-std::shared_ptr<JointPlate> JointPlate::rotated_hooks(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated_hooks(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = rotated("rotated_hooks");
+    const std::shared_ptr<JointPlate> joint = side_side_rotated("side_side_rotated_hooks");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::rotated_keys(int divisions, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated_keys(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlate> joint = rotated("rotated_keys");
+    const std::shared_ptr<JointPlate> joint = side_side_rotated("side_side_rotated_keys");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::rotated_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
 
-    const std::shared_ptr<JointPlate> joint = rotated("rotated_custom");
+    const std::shared_ptr<JointPlate> joint = side_side_rotated("side_side_rotated_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1973,16 +1973,16 @@ std::shared_ptr<JointPlate> JointPlate::rotated_custom(const std::vector<Polylin
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-bool JointPlate::compute_rotated(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
+bool JointPlate::compute_side_side_rotated(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
 
-    if (parameters.library == "rotated_mitre")
-        ::rotated_mitre(connection);
-    else if (parameters.library == "rotated_hooks")
-        ::rotated_hooks(connection, elements);
-    else if (parameters.library == "rotated_keys")
-        ::rotated_keys(connection, elements);
-    else if (parameters.library == "rotated_custom")
-        ::rotated_custom(connection, settings);
+    if (parameters.library == "side_side_rotated_mitre")
+        ::side_side_rotated_mitre(connection);
+    else if (parameters.library == "side_side_rotated_hooks")
+        ::side_side_rotated_hooks(connection, elements);
+    else if (parameters.library == "side_side_rotated_keys")
+        ::side_side_rotated_keys(connection, elements);
+    else if (parameters.library == "side_side_rotated_custom")
+        ::side_side_rotated_custom(connection, settings);
     else
         return false;
 

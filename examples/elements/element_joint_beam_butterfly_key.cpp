@@ -8,16 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_butterfly_key");
 
-    const std::shared_ptr<BeamVariable> first = BeamVariable::between(
-        Polyline::rectangle({0.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1000.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "first"
-    );
-    const std::shared_ptr<BeamVariable> second = BeamVariable::between(
-        Polyline::rectangle({1000.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({2000.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "second"
-    );
+    const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_end_to_end();
+    const std::shared_ptr<BeamVariable> first = beams[0];
+    const std::shared_ptr<BeamVariable> second = beams[1];
     scene.add(first);
     scene.add(second);
 

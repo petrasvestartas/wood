@@ -26,28 +26,28 @@ static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face conta
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt"; // The variants that passed when the list was last accepted: one of them failing fails the run.
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. corner_tenons keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of corner_linked_tenons. corner_tenons and corner_linked_tenons fail C4 and C6 on the mitred fixture by 2024's construction, the floor's edge a thickness past the mitre and the tenons out of the floor's far face: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre, and the polyhedra and Vidy datasets join them. The designs and parameters no 2024 dataset used and no fixture holds are not listed: in_plane_cross_splayed_scarf (a beam joint), corner_mitre_tenon and corner_linked_tenons_wall (tenons into their mortises), corner_graded_fingers at the shift 1 (its loops cross), cross_half_lap_diagonal_drills at the shift 0.75. tee_tenons stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cross_half_lap to cross_brussels_half_lap stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. side_side_outplane_tenons keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of side_side_outplane_linked_tenons. side_side_outplane_tenons and side_side_outplane_linked_tenons fail C4 and C6 on the mitred fixture by 2024's construction, the floor's edge a thickness past the mitre and the tenons out of the floor's far face: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre, and the polyhedra and Vidy datasets join them. The designs and parameters no 2024 dataset used and no fixture holds are not listed: side_side_inplane_cross_splayed_scarf (a beam joint), side_side_outplane_mitre_tenon and side_side_outplane_linked_tenons_wall (tenons into their mortises), side_side_outplane_graded_fingers at the shift 1 (its loops cross), cross_half_lap_diagonal_drills at the shift 0.75. top_side_tenons stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cross_half_lap to cross_brussels_half_lap stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
-    "ip/in_plane_three_fingers", "ip/in_plane_dovetails", "ip/in_plane_dovetails/8/0.5", "ip/in_plane_dovetails/4/0.0", "ip/in_plane_dovetails/16/1.0", "ip/in_plane_butterfly_keys", "ip/in_plane_butterfly_keys/4",
-    "ip/in_plane_butterfly_keys/2", "ip/in_plane_splayed_scarf", "ip/in_plane_tooth_keys", "ip/in_plane_tooth_keys/4", "ip/in_plane_tooth_keys/6", "ip/in_plane_custom",
+    "ip/side_side_inplane_three_fingers", "ip/side_side_inplane_dovetails", "ip/side_side_inplane_dovetails/8/0.5", "ip/side_side_inplane_dovetails/4/0.0", "ip/side_side_inplane_dovetails/16/1.0", "ip/side_side_inplane_butterfly_keys", "ip/side_side_inplane_butterfly_keys/4",
+    "ip/side_side_inplane_butterfly_keys/2", "ip/side_side_inplane_splayed_scarf", "ip/side_side_inplane_tooth_keys", "ip/side_side_inplane_tooth_keys/4", "ip/side_side_inplane_tooth_keys/6", "ip/side_side_inplane_custom",
     "ip/side_removal/0/0.5", "ip/jupiter_scarf",
-    "op/corner_three_fingers", "op/corner_fingers", "op/corner_fingers/8/0.5", "op/corner_fingers/6/0.0", "op/corner_graded_fingers", "op/corner_graded_fingers/8/0.5", "op/corner_tenons", "op/corner_tenons/8/0/0/1", "op/corner_tenons/8/0.1/1/1", "op/corner_tenons/8/0.5/0/1", "op/corner_linked_tenons", "op/corner_linked_tenons/8/0",
-    "op/corner_linked_tenons/8/1", "op/corner_capped_fingers/4", "op/corner_notch", "op/corner_custom", "op/side_removal/1/0.5",
-    "ts/tee_three_tenons", "ts/tee_annen_tenons", "ts/tee_dense_tenons", "ts/tee_dense_tenons/8/0.5", "ts/tee_dense_tenons/16/0.25", "ts/tee_tenons", "ts/tee_tenons/8/0.5",
-    "ts/tee_tenons/16/0.25", "ts/tee_tenons/24/0.75", "ts/tee_milled_wedge", "ts/tee_custom", "ts/side_removal/0/0.5",
-    "r/rotated_mitre", "r/rotated_hooks", "r/rotated_hooks/4/0.5", "r/rotated_hooks/2/0.25", "r/rotated_keys", "r/rotated_keys/4/0.5", "r/rotated_keys/6/1.0",
-    "r/rotated_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5",
+    "op/side_side_outplane_three_fingers", "op/side_side_outplane_fingers", "op/side_side_outplane_fingers/8/0.5", "op/side_side_outplane_fingers/6/0.0", "op/side_side_outplane_graded_fingers", "op/side_side_outplane_graded_fingers/8/0.5", "op/side_side_outplane_tenons", "op/side_side_outplane_tenons/8/0/0/1", "op/side_side_outplane_tenons/8/0.1/1/1", "op/side_side_outplane_tenons/8/0.5/0/1", "op/side_side_outplane_linked_tenons", "op/side_side_outplane_linked_tenons/8/0",
+    "op/side_side_outplane_linked_tenons/8/1", "op/side_side_outplane_capped_fingers/4", "op/side_side_outplane_notch", "op/side_side_outplane_custom", "op/side_removal/1/0.5",
+    "ts/top_side_three_tenons", "ts/top_side_annen_tenons", "ts/top_side_dense_tenons", "ts/top_side_dense_tenons/8/0.5", "ts/top_side_dense_tenons/16/0.25", "ts/top_side_tenons", "ts/top_side_tenons/8/0.5",
+    "ts/top_side_tenons/16/0.25", "ts/top_side_tenons/24/0.75", "ts/top_side_milled_wedge", "ts/top_side_custom", "ts/side_removal/0/0.5",
+    "r/side_side_rotated_mitre", "r/side_side_rotated_hooks", "r/side_side_rotated_hooks/4/0.5", "r/side_side_rotated_hooks/2/0.25", "r/side_side_rotated_keys", "r/side_side_rotated_keys/4/0.5", "r/side_side_rotated_keys/6/1.0",
+    "r/side_side_rotated_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5",
     "cr/cross_slot", "cr/cross_sliced_half_lap/0.5", "cr/cross_sliced_half_lap/0.25", "cr/cross_half_lap", "cr/cross_half_lap/0.0", "cr/cross_half_lap_diagonal_drills", "cr/cross_half_lap_drill",
     "cr/cross_half_lap_drill/0.25", "cr/cross_brussels_half_lap", "cr/cross_brussels_half_lap/0.75", "cr/cross_custom",
-    "tt/stacked_centre_pin/8", "tt/stacked_polylabel_pin/8", "tt/stacked_circle_pins/6/0.95/8", "tt/stacked_circle_pins/5/0.5/8", "tt/stacked_ring_pins/60/12/8", "tt/stacked_ring_pins/30/12/8", "tt/stacked_grid_pins/60/12/8",
-    "tt/stacked_rectangle_pins/60/0.95/8", "tt/stacked_rectangle_pins/-60/0.95/8", "tt/stacked_custom",
+    "tt/top_top_centre_pin/8", "tt/top_top_polylabel_pin/8", "tt/top_top_circle_pins/6/0.95/8", "tt/top_top_circle_pins/5/0.5/8", "tt/top_top_ring_pins/60/12/8", "tt/top_top_ring_pins/30/12/8", "tt/top_top_grid_pins/60/12/8",
+    "tt/top_top_rectangle_pins/60/0.95/8", "tt/top_top_rectangle_pins/-60/0.95/8", "tt/top_top_custom",
 };
 
-/// Designs no fixture can orient or no pair check can hold: the boundary type 60 joins one plate on its border contact, not a pair; tee_snap_fit's 2024 literals put its mortises 3.65e-6 units inside the base's faces and run its snap-fit hook 3.4 units past the base's top, through the base and out below it, so its loops leave the faces and its material leaves the stock by design, and its copies overlap on a 250 mm joint line from four divisions up; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
+/// Designs no fixture can orient or no pair check can hold: the boundary type 60 joins one plate on its border contact, not a pair; top_side_snap_fit's 2024 literals put its mortises 3.65e-6 units inside the base's faces and run its snap-fit hook 3.4 units past the base's top, through the base and out below it, so its loops leave the faces and its material leaves the stock by design, and its copies overlap on a 250 mm joint line from four divisions up; the datasets top_to_side_box and top_to_side_snap_fit prove it against the 2025 reference.
 static const std::vector<std::string> SKIPPED = {
     "b/border: a border joint on one plate, no pair to check (tests/joint_border checks it against the 2025 reference)",
     "b/border_custom: a border joint on one plate, no pair to check, no 2025 reference reaches it",
-    "ts/tee_snap_fit: the 2024 literals leave the faces by 1.5e-4 mm and the hook leaves the stock by design (dataset only)",
+    "ts/top_side_snap_fit: the 2024 literals leave the faces by 1.5e-4 mm and the hook leaves the stock by design (dataset only)",
 };
 
 /// The pair a variant is joined on: the plates in contact order, their contact, and the target of each interaction side.
@@ -99,7 +99,7 @@ static std::vector<std::string> split(const std::string& text, char separator) {
     return parts;
 }
 
-/// The id as a file name: "ip/in_plane_dovetails/8/0.5" -> "ip_in_plane_dovetails_8_0.5".
+/// The id as a file name: "ip/side_side_inplane_dovetails/8/0.5" -> "ip_side_side_inplane_dovetails_8_0.5".
 static std::string file_name(const std::string& id) {
 
     std::string name = id;
@@ -120,13 +120,13 @@ static const std::vector<std::pair<std::string, std::string>> ANGLE_FIXTURES = {
 };
 
 /// The loose-key designs, whose keys must keep their shape on every fixture: never sheared or scaled by the joint volume's change of basis.
-static const std::vector<std::string> RIGID_KEYS = {"in_plane_butterfly_keys", "in_plane_tooth_keys", "rotated_hooks", "rotated_keys"};
+static const std::vector<std::string> RIGID_KEYS = {"side_side_inplane_butterfly_keys", "side_side_inplane_tooth_keys", "side_side_rotated_hooks", "side_side_rotated_keys"};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Fixtures - the pairs of the element examples, kept joined, moved by xform before the contact is found
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Two 40 thick plates edge to edge in one plane: in_plane, rotated (with the scene set to treat every side-side joint as rotated) and
+/// Two 40 thick plates edge to edge in one plane: side_side_inplane, side_side_rotated (with the scene set to treat every side-side joint as rotated) and
 /// side removal. The shape is "" for two 300 x 400 plates, "trapezoid" for the seam slanted to 75 degrees from the bottom edges, "short" for a 300 x 200
 /// right plate in the middle of the left one's 400 edge, a seam shorter than both plates.
 static Fixture pair_in_plane(WoodSession& scene, const Xform& xform, const std::string& shape = "") {
@@ -161,7 +161,7 @@ static Fixture pair_in_plane(WoodSession& scene, const Xform& xform, const std::
 }
 
 /// A 300 x 400 floor and a 300 high wall, both 40 thick, meeting at the dihedral angle (degrees) on the 400 seam, their side faces mitred on the
-/// bisector through the outer and the inner corner: corner, and rotated folded; at 90 the right-angle corner of the examples. The joint's first
+/// bisector through the outer and the inner corner: side_side_outplane, and side_side_rotated folded; at 90 the right-angle corner of the examples. The joint's first
 /// side is the wall, the male of an out-of-plane pair being the second plate of the contact.
 static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform, double dihedral = 90.0) {
 
@@ -194,7 +194,7 @@ static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform, double 
     return f;
 }
 
-/// An upright 250 x 250 x 40 plate standing on the middle of a 400 x 400 base: tee; the joint's first side is the upright. Its foot runs at
+/// An upright 250 x 250 x 40 plate standing on the middle of a 400 x 400 base: top_side; the joint's first side is the upright. Its foot runs at
 /// the plan angle (degrees) to the base's x axis, 90 along y, and it leans toward its normal to the lean angle from the base, 90 upright, its
 /// foot kept flat on the base and its height 250.
 static Fixture pair_top_side(WoodSession& scene, const Xform& xform, double plan = 90.0, double lean = 90.0) {
@@ -224,7 +224,7 @@ static Fixture pair_top_side(WoodSession& scene, const Xform& xform, double plan
     return f;
 }
 
-/// Two 400 x 300 x 40 plates stacked, the upper one 150 along: stacked.
+/// Two 400 x 300 x 40 plates stacked, the upper one 150 along: top_top.
 static Fixture pair_top_top(WoodSession& scene, const Xform& xform) {
 
     Fixture f;
@@ -407,37 +407,37 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     const std::string& library = parts[1];
     const std::array<std::vector<Polyline>, 2> custom = custom_outlines(family);
 
-    if (library == "in_plane_three_fingers") return JointPlate::in_plane_three_fingers();
-    if (library == "in_plane_dovetails") return JointPlate::in_plane_dovetails(integer(parts, 2, 0), number(parts, 3, 0.5));
-    if (library == "in_plane_butterfly_keys") return JointPlate::in_plane_butterfly_keys(integer(parts, 2, 0));
-    if (library == "in_plane_splayed_scarf") return JointPlate::in_plane_splayed_scarf();
-    if (library == "in_plane_cross_splayed_scarf") return JointPlate::in_plane_cross_splayed_scarf();
-    if (library == "in_plane_tooth_keys") return JointPlate::in_plane_tooth_keys(integer(parts, 2, 0));
-    if (library == "in_plane_custom") return JointPlate::in_plane_custom(custom[0], custom[1]);
+    if (library == "side_side_inplane_three_fingers") return JointPlate::side_side_inplane_three_fingers();
+    if (library == "side_side_inplane_dovetails") return JointPlate::side_side_inplane_dovetails(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "side_side_inplane_butterfly_keys") return JointPlate::side_side_inplane_butterfly_keys(integer(parts, 2, 0));
+    if (library == "side_side_inplane_splayed_scarf") return JointPlate::side_side_inplane_splayed_scarf();
+    if (library == "side_side_inplane_cross_splayed_scarf") return JointPlate::side_side_inplane_cross_splayed_scarf();
+    if (library == "side_side_inplane_tooth_keys") return JointPlate::side_side_inplane_tooth_keys(integer(parts, 2, 0));
+    if (library == "side_side_inplane_custom") return JointPlate::side_side_inplane_custom(custom[0], custom[1]);
 
-    if (library == "corner_three_fingers") return JointPlate::corner_three_fingers();
-    if (library == "corner_fingers") return JointPlate::corner_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
-    if (library == "corner_graded_fingers") return JointPlate::corner_graded_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
-    if (library == "corner_mitre_tenon") return JointPlate::corner_mitre_tenon();
-    if (library == "corner_tenons") return JointPlate::corner_tenons(integer(parts, 2, 0), number(parts, 3, 0.0), integer(parts, 4, 1) != 0, integer(parts, 5, 1) != 0);
-    if (library == "corner_linked_tenons") return JointPlate::corner_linked_tenons(integer(parts, 2, 0), integer(parts, 3, 0) != 0);
-    if (library == "corner_linked_tenons_wall") return JointPlate::corner_linked_tenons_wall(integer(parts, 2, 0));
-    if (library == "corner_capped_fingers") return JointPlate::corner_capped_fingers(integer(parts, 2, 4));
-    if (library == "corner_notch") return JointPlate::corner_notch();
-    if (library == "corner_custom") return JointPlate::corner_custom(custom[0], custom[1]);
+    if (library == "side_side_outplane_three_fingers") return JointPlate::side_side_outplane_three_fingers();
+    if (library == "side_side_outplane_fingers") return JointPlate::side_side_outplane_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
+    if (library == "side_side_outplane_graded_fingers") return JointPlate::side_side_outplane_graded_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
+    if (library == "side_side_outplane_mitre_tenon") return JointPlate::side_side_outplane_mitre_tenon();
+    if (library == "side_side_outplane_tenons") return JointPlate::side_side_outplane_tenons(integer(parts, 2, 0), number(parts, 3, 0.0), integer(parts, 4, 1) != 0, integer(parts, 5, 1) != 0);
+    if (library == "side_side_outplane_linked_tenons") return JointPlate::side_side_outplane_linked_tenons(integer(parts, 2, 0), integer(parts, 3, 0) != 0);
+    if (library == "side_side_outplane_linked_tenons_wall") return JointPlate::side_side_outplane_linked_tenons_wall(integer(parts, 2, 0));
+    if (library == "side_side_outplane_capped_fingers") return JointPlate::side_side_outplane_capped_fingers(integer(parts, 2, 4));
+    if (library == "side_side_outplane_notch") return JointPlate::side_side_outplane_notch();
+    if (library == "side_side_outplane_custom") return JointPlate::side_side_outplane_custom(custom[0], custom[1]);
 
-    if (library == "tee_three_tenons") return JointPlate::tee_three_tenons();
-    if (library == "tee_annen_tenons") return JointPlate::tee_annen_tenons();
-    if (library == "tee_dense_tenons") return JointPlate::tee_dense_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
-    if (library == "tee_tenons") return JointPlate::tee_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
-    if (library == "tee_milled_wedge") return JointPlate::tee_milled_wedge();
-    if (library == "tee_snap_fit") return JointPlate::tee_snap_fit(integer(parts, 2, 0));
-    if (library == "tee_custom") return JointPlate::tee_custom(custom[0], custom[1]);
+    if (library == "top_side_three_tenons") return JointPlate::top_side_three_tenons();
+    if (library == "top_side_annen_tenons") return JointPlate::top_side_annen_tenons();
+    if (library == "top_side_dense_tenons") return JointPlate::top_side_dense_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "top_side_tenons") return JointPlate::top_side_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "top_side_milled_wedge") return JointPlate::top_side_milled_wedge();
+    if (library == "top_side_snap_fit") return JointPlate::top_side_snap_fit(integer(parts, 2, 0));
+    if (library == "top_side_custom") return JointPlate::top_side_custom(custom[0], custom[1]);
 
-    if (library == "rotated_mitre") return JointPlate::rotated_mitre();
-    if (library == "rotated_hooks") return JointPlate::rotated_hooks(integer(parts, 2, 0), number(parts, 3, 0.5));
-    if (library == "rotated_keys") return JointPlate::rotated_keys(integer(parts, 2, 0), number(parts, 3, 0.5));
-    if (library == "rotated_custom") return JointPlate::rotated_custom(custom[0], custom[1]);
+    if (library == "side_side_rotated_mitre") return JointPlate::side_side_rotated_mitre();
+    if (library == "side_side_rotated_hooks") return JointPlate::side_side_rotated_hooks(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "side_side_rotated_keys") return JointPlate::side_side_rotated_keys(integer(parts, 2, 0), number(parts, 3, 0.5));
+    if (library == "side_side_rotated_custom") return JointPlate::side_side_rotated_custom(custom[0], custom[1]);
 
     if (library == "cross_slot") return JointPlate::cross_slot();
     if (library == "cross_sliced_half_lap") return JointPlate::cross_sliced_half_lap(number(parts, 2, 0.5));
@@ -447,13 +447,13 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "cross_brussels_half_lap") return JointPlate::cross_brussels_half_lap(number(parts, 2, 0.5));
     if (library == "cross_custom") return JointPlate::cross_custom(custom[0], custom[1]);
 
-    if (library == "stacked_centre_pin") return JointPlate::stacked_centre_pin(number(parts, 2, 1.0));
-    if (library == "stacked_polylabel_pin") return JointPlate::stacked_polylabel_pin(number(parts, 2, 1.0));
-    if (library == "stacked_circle_pins") return JointPlate::stacked_circle_pins(integer(parts, 2, 6), number(parts, 3, 0.95), number(parts, 4, 1.0));
-    if (library == "stacked_ring_pins") return JointPlate::stacked_ring_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
-    if (library == "stacked_grid_pins") return JointPlate::stacked_grid_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
-    if (library == "stacked_rectangle_pins") return JointPlate::stacked_rectangle_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
-    if (library == "stacked_custom") return JointPlate::stacked_custom(custom[0], custom[1]);
+    if (library == "top_top_centre_pin") return JointPlate::top_top_centre_pin(number(parts, 2, 1.0));
+    if (library == "top_top_polylabel_pin") return JointPlate::top_top_polylabel_pin(number(parts, 2, 1.0));
+    if (library == "top_top_circle_pins") return JointPlate::top_top_circle_pins(integer(parts, 2, 6), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "top_top_ring_pins") return JointPlate::top_top_ring_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "top_top_grid_pins") return JointPlate::top_top_grid_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "top_top_rectangle_pins") return JointPlate::top_top_rectangle_pins(number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0));
+    if (library == "top_top_custom") return JointPlate::top_top_custom(custom[0], custom[1]);
 
     if (library == "side_removal") return JointPlate::side_removal(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
     if (library == "jupiter_scarf") return JointPlate::jupiter_scarf();
@@ -705,7 +705,7 @@ static void check_conservation(const Built& built, Row& row) {
         fail(row, "C4", fmt::format("the models sum to {:.9g} mm3, their union is {:.9g}", sum, after_volume));
 }
 
-/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal, which only takes away, fills nothing, and neither does tee_milled_wedge, whose pockets take a loose wedge 2024 never modelled and whose male pieces lie in the base's thickness, under an upright standing on it; a pin joint is measured by C7 instead.
+/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal, which only takes away, fills nothing, and neither does top_side_milled_wedge, whose pockets take a loose wedge 2024 never modelled and whose male pieces lie in the base's thickness, under an upright standing on it; a pin joint is measured by C7 instead.
 static void check_fit(const Built& built, Row& row) {
 
     if (built.family == "tt")
@@ -721,7 +721,7 @@ static void check_fit(const Built& built, Row& row) {
     const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh()) + grid;
     const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh()) + grid;
 
-    const bool removal_only = (built.library.starts_with("side_removal") && built.library != "jupiter_scarf") || built.library == "tee_milled_wedge";
+    const bool removal_only = (built.library.starts_with("side_removal") && built.library != "jupiter_scarf") || built.library == "top_side_milled_wedge";
     if (removal_only) {
         if (filled_by_a > tolerance_b || filled_by_b > tolerance_a)
             fail(row, "C6", fmt::format("a removal fills {:.6g} and {:.6g} mm3 of the other member", filled_by_a, filled_by_b));
@@ -773,7 +773,7 @@ static void check_drills(const Built& built, Row& row) {
     // a custom pair carries the user's outlines with no type and no drills, as 2024 kept it; only a pin joint must declare drills
     const std::vector<Line> axes = built.joint->drill_axes();
     row.drills = axes.size();
-    const bool pins = built.family == "tt" && built.library != "stacked_custom";
+    const bool pins = built.family == "tt" && built.library != "top_top_custom";
     if (axes.empty()) {
         if (pins)
             fail(row, "C7", "the pin joint declares no drill axes");
@@ -783,7 +783,7 @@ static void check_drills(const Built& built, Row& row) {
     const double radius = built.joint->line_radius;
 
     // a drill pattern keeps one radius of wood between every hole and the edge of the contact: each axis two radii inside it
-    if (pins && built.library != "stacked_centre_pin" && built.library != "stacked_polylabel_pin") {
+    if (pins && built.library != "top_top_centre_pin" && built.library != "top_top_polylabel_pin") {
         const Polyline& contact = built.joint->connections.at(0).contact.polygon;
         Point origin;
         Plane plane;
