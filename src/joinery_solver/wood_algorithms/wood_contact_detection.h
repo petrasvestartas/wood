@@ -24,7 +24,7 @@ struct DetectionTrace {
 // Face contacts - broad phase
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Candidate element pairs (i, j) with i < j: inflated OBB per element, a BVH over their AABBs, then an OBB/OBB SAT test; `names` selects by name, empty means everything.
+/// Candidate element pairs (i, j) with i < j, sorted by i then j: inflated OBB per element, a BVH over their AABBs, then an OBB/OBB SAT test; `names` selects by name, empty means everything.
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<std::shared_ptr<Element>>& elements,
     double inflate,

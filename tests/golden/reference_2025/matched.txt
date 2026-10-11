@@ -18,6 +18,7 @@ cross_vda_single_arch
 hello
 hexbox_and_corner
 hexboxes
+inplane_butterflies
 inplane_differentdirections
 inplane_hexshell
 inplane_hilti

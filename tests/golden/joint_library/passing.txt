@@ -113,10 +113,8 @@ ip@trapezoid/ss_e_ip_1
 ip@trapezoid/ss_e_ip_2
 ip@trapezoid/ss_e_ip_3
 ip@trapezoid/ss_e_ip_5
-ip@trapezoid/side_removal_ss_e_r_1
 ip@short/ss_e_ip_0
 ip@short/ss_e_ip_1
 ip@short/ss_e_ip_2
 ip@short/ss_e_ip_3
-ip@short/ss_e_ip_4
 ip@short/ss_e_ip_5

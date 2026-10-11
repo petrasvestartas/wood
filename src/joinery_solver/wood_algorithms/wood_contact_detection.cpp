@@ -172,6 +172,9 @@ std::vector<std::pair<int, int>> adjacency_search(
                 pairs.emplace_back((int)i, j);
     }
 
+    // in order of i, then j, as 2024's tree search found them: joints of one design and key reuse the first one's unit geometry, so the order decides it
+    std::sort(pairs.begin(), pairs.end());
+
     return pairs;
 }
 

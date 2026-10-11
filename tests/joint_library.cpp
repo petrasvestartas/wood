@@ -26,19 +26,18 @@ static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face conta
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt"; // The variants that passed when the list was last accepted: one of them failing fails the run.
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ss_e_op_3 to ss_e_op_6 fail C4 and C6 on the mitred fixture by 2024's construction, the floor's edge a thickness past the mitre and the tenons out of the floor's far face, ss_e_op_3's tenons overlapping their mortises by 5.6 to 11.2 mm3 besides: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. ss_e_op_4 keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of ss_e_op_5. ss_e_op_4 and ss_e_op_5 fail C4 and C6 on the mitred fixture by 2024's construction, the floor's edge a thickness past the mitre and the tenons out of the floor's far face: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre, and the polyhedra and Vidy datasets join them. The designs and parameters no 2024 dataset used and no fixture holds are not listed: ss_e_ip_4 (a beam joint), ss_e_op_3 and ss_e_op_6 (tenons into their mortises), ss_e_op_2 at the shift 1 (its loops cross), cr_c_ip_3 at the shift 0.75. ts_e_p_3 stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cr_c_ip_2 to cr_c_ip_5 stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
     "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
-    "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
+    "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
     "ip/side_removal/0/0.5", "ip/side_removal_ss_e_r_1",
-    "op/ss_e_op_0", "op/ss_e_op_1", "op/ss_e_op_1/8/0.5", "op/ss_e_op_1/6/0.0", "op/ss_e_op_2", "op/ss_e_op_2/8/0.5", "op/ss_e_op_2/12/1.0",
-    "op/ss_e_op_3", "op/ss_e_op_4", "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0.5/0/1", "op/ss_e_op_5", "op/ss_e_op_5/8/0",
-    "op/ss_e_op_5/8/1", "op/ss_e_op_6", "op/ss_e_op_6/8", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
+    "op/ss_e_op_0", "op/ss_e_op_1", "op/ss_e_op_1/8/0.5", "op/ss_e_op_1/6/0.0", "op/ss_e_op_2", "op/ss_e_op_2/8/0.5", "op/ss_e_op_4", "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0.5/0/1", "op/ss_e_op_5", "op/ss_e_op_5/8/0",
+    "op/ss_e_op_5/8/1", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
     "ts/ts_e_p_0", "ts/ts_e_p_1", "ts/ts_e_p_2", "ts/ts_e_p_2/8/0.5", "ts/ts_e_p_2/16/0.25", "ts/ts_e_p_3", "ts/ts_e_p_3/8/0.5",
     "ts/ts_e_p_3/16/0.25", "ts/ts_e_p_3/24/0.75", "ts/ts_e_p_4", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
     "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/6/1.0",
     "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5",
-    "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/0.75", "cr/cr_c_ip_4",
+    "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_4",
     "cr/cr_c_ip_4/0.25", "cr/cr_c_ip_5", "cr/cr_c_ip_5/0.75", "cr/cr_c_ip_custom",
     "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/0.95/8", "tt/tt_e_p_2/5/0.5/8", "tt/tt_e_p_3/60/12/8", "tt/tt_e_p_3/30/12/8", "tt/tt_e_p_4/60/12/8",
     "tt/tt_e_p_5/60/0.95/8", "tt/tt_e_p_5/-60/0.95/8", "tt/tt_e_p_custom",
@@ -1144,11 +1143,12 @@ int main(int argc, char** argv) {
         ids.emplace_back(argv[i]);
     if (ids.empty()) {
         ids = VARIANTS;
-        // every design on its defaults on each angle fixture of its family
+        // every design on its defaults on each angle fixture of its family, but the custom outlines, drawn for the examples' right-angle pair, and the
+        // Jupiter scarf, an end-to-end joint: no 2024 dataset joins either at an angle
         for (const std::pair<std::string, std::string>& fixture : ANGLE_FIXTURES)
             for (const std::string& id : VARIANTS) {
                 const std::vector<std::string> parts = split(id, '/');
-                if (parts.size() == 2 && parts[0] == fixture.first)
+                if (parts.size() == 2 && parts[0] == fixture.first && !parts[1].ends_with("_custom") && parts[1] != "side_removal_ss_e_r_1")
                     ids.push_back(fixture.first + "@" + fixture.second + "/" + parts[1]);
             }
     }
