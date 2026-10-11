@@ -24,13 +24,13 @@ std::shared_ptr<Interaction> interaction(size_t target) const
 
 Every example shows two pairs, `Plate::pair_stacked(0.0)` and `Plate::pair_stacked(30.0)`: two stacked plates, square and turned 30 degrees, the upper one lifted.
 
+With a pin radius, every hole keeps one diameter of wood to the contact's edge and, along a ring, to the next hole.
+
 ## top_top_centre_pin: the centre
 
 ![top_top_centre_pin](elements/element_joint_plate_top_top_centre_pin.png)
 
 ![top_top_centre_pin, the unit box: male pink, female blue](joint_library/tt_top_top_centre_pin_8_unit.png)
-![top_top_centre_pin, the plan](elements/element_joint_plate_top_top_centre_pin_plan.png)
-
 One hole at the centre of the contact, drilled through both plates.
 
 \include{lineno} elements/element_joint_plate_top_top_centre_pin.cpp
@@ -40,8 +40,6 @@ One hole at the centre of the contact, drilled through both plates.
 ![top_top_polylabel_pin](elements/element_joint_plate_top_top_polylabel_pin.png)
 
 ![top_top_polylabel_pin, the unit box: male pink, female blue](joint_library/tt_top_top_polylabel_pin_8_unit.png)
-![top_top_polylabel_pin, the plan](elements/element_joint_plate_top_top_polylabel_pin_plan.png)
-
 One hole at the polylabel of the contact, the centre of its largest inscribed circle.
 
 \include{lineno} elements/element_joint_plate_top_top_polylabel_pin.cpp
@@ -51,8 +49,6 @@ One hole at the polylabel of the contact, the centre of its largest inscribed ci
 ![top_top_circle_pins](elements/element_joint_plate_top_top_circle_pins.png)
 
 ![top_top_circle_pins, the unit box: male pink, female blue](joint_library/tt_top_top_circle_pins_6_0.95_8_unit.png)
-![top_top_circle_pins, the plan](elements/element_joint_plate_top_top_circle_pins_plan.png)
-
 Six holes on the largest inscribed circle, its radius scaled by the shift 0.95.
 
 \include{lineno} elements/element_joint_plate_top_top_circle_pins.cpp
@@ -62,8 +58,6 @@ Six holes on the largest inscribed circle, its radius scaled by the shift 0.95.
 ![top_top_ring_pins](elements/element_joint_plate_top_top_ring_pins.png)
 
 ![top_top_ring_pins, the unit box: male pink, female blue](joint_library/tt_top_top_ring_pins_60_12_8_unit.png)
-![top_top_ring_pins, the plan](elements/element_joint_plate_top_top_ring_pins_plan.png)
-
 The contact offset inward by the shift, 20 mm, and a hole every 60 along that ring.
 
 \include{lineno} elements/element_joint_plate_top_top_ring_pins.cpp
@@ -73,8 +67,6 @@ The contact offset inward by the shift, 20 mm, and a hole every 60 along that ri
 ![top_top_grid_pins](elements/element_joint_plate_top_top_grid_pins.png)
 
 ![top_top_grid_pins, the unit box: male pink, female blue](joint_library/tt_top_top_grid_pins_60_12_8_unit.png)
-![top_top_grid_pins, the plan](elements/element_joint_plate_top_top_grid_pins_plan.png)
-
 The contact offset inward by 20 and filled with a lattice of holes 60 apart from the ring's first corner.
 
 \include{lineno} elements/element_joint_plate_top_top_grid_pins.cpp
@@ -84,8 +76,6 @@ The contact offset inward by 20 and filled with a lattice of holes 60 apart from
 ![top_top_rectangle_pins](elements/element_joint_plate_top_top_rectangle_pins.png)
 
 ![top_top_rectangle_pins, the unit box: male pink, female blue](joint_library/tt_top_top_rectangle_pins_60_0.95_8_unit.png)
-![top_top_rectangle_pins, the plan](elements/element_joint_plate_top_top_rectangle_pins_plan.png)
-
 The largest empty rectangle in the contact and a hole every 60 along its edges; a negative length fills a grid.
 
 \include{lineno} elements/element_joint_plate_top_top_rectangle_pins.cpp
@@ -95,8 +85,6 @@ The largest empty rectangle in the contact and a hole every 60 along its edges; 
 ![top_top_custom](elements/element_joint_plate_top_top_custom.png)
 
 ![top_top_custom, the unit box: male pink, female blue](joint_library/tt_top_top_custom_unit.png)
-![top_top_custom, the plan](elements/element_joint_plate_top_top_custom_plan.png)
-
 Your own outlines in the unit box; here a hidden butterfly key in a bow-tie pocket milled into each plate.
 
 \include{lineno} elements/element_joint_plate_top_top_custom.cpp

@@ -86,6 +86,33 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
     for (size_t i = 0; i < 2; i++)
         joint.joinery_sides[i] = joint.joinery.element_a == box[i]->guid() ? 0 : 1;
 
+    // end to end, a design that only redraws the seam (jupiter_scarf): each beam loses the prism beyond its side's seam line, toward the other box
+    if (end_to_end && joint.joinery.name == "jupiter_scarf") {
+        for (size_t i = 0; i < 2; i++) {
+            const int side = joint.joinery_sides[i];
+            const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? joint.joinery.male_outlines : joint.joinery.female_outlines;
+            const Polyline& bottom = outlines[0][0];
+            const Polyline& top = outlines[1][0];
+            const Point first = bottom.get_point(0);
+            const Point last = bottom.get_point(bottom.point_count() - 1);
+            Vector beyond = (top.get_point(0) - first).cross(last - first).normalized();
+            if (beyond.dot(box[1 - i]->polylines[0].center() - first) < 0.0)
+                beyond = beyond * -1.0;
+            beyond = beyond * (4.0 * (last - first).magnitude());
+            std::array<Polyline, 2> faces;
+            for (size_t f = 0; f < 2; f++) {
+                const Polyline& line = f == 0 ? bottom : top;
+                std::vector<Point> points = line.get_points();
+                points.push_back(points.back() + beyond);
+                points.push_back(points.front() + beyond);
+                points.push_back(points.front());
+                faces[f] = Polyline(points);
+            }
+            joint.member_cuts[i] = Mesh::loft({faces[0]}, {faces[1]}, true);
+        }
+        return;
+    }
+
     // end to end: what both sides mill, and each beam's cut its own pieces and the other box past them, side by side for the boolean to unite
     if (end_to_end) {
         std::array<std::vector<Mesh>, 2> pieces = {JointPlate::side_solids(joint.joinery, 0), JointPlate::side_solids(joint.joinery, 1)};
@@ -170,7 +197,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
                 away = {(p.end() - p.start()).normalized(), (q.end() - q.start()).normalized()};
             }
 
-    // at an angle, side_side_rotated_mitre: each beam's extension trimmed on the mitre, the plane through the shared end bisecting the axes, by a
+    // at an angle, side_side_rotated_miter: each beam's extension trimmed on the miter, the plane through the shared end bisecting the axes, by a
     // block on the other beam's side of it
     if (end_to_end && std::abs(away[0].dot(away[1])) < 0.999) {
         const Vector normal = (away[0] - away[1]).normalized();
@@ -182,7 +209,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
             const Vector beyond = normal * (i == 0 ? -reach : reach);
             joint->member_cuts[i] = Mesh::loft({face}, {face.transformed(Xform::translation(beyond[0], beyond[1], beyond[2]))}, true);
         }
-        joint->joinery.name = "side_side_rotated_mitre";
+        joint->joinery.name = "side_side_rotated_miter";
         joint->joinery_sides = {0, 1};
         return joint;
     }

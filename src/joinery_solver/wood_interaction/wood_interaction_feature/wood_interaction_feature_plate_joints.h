@@ -31,7 +31,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/side_side_outplane_three_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_graded_fingers.h"
-#include "wood_interaction_feature_plate_joints/side_side_outplane_mitre_tenon.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_miter_tenon.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
@@ -81,7 +81,7 @@ using namespace wood_session;
 // side_side_rotated: side-side rotated, type 13 (jupiter_scarf is the trait de Jupiter of two plates in line)
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/side_side_rotated_mitre.h"
+#include "wood_interaction_feature_plate_joints/side_side_rotated_miter.h"
 #include "wood_interaction_feature_plate_joints/rotated_core.h"
 #include "wood_interaction_feature_plate_joints/side_side_rotated_hooks.h"
 #include "wood_interaction_feature_plate_joints/side_side_rotated_keys.h"

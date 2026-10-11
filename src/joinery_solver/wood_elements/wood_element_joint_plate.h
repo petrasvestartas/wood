@@ -44,7 +44,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     // Side-to-side in plane, contact 12, ids 1-9 as 2024 numbered them: 1 side_side_inplane_dovetails (the family default), 2 side_side_inplane_three_fingers,
-    // 3 side_side_inplane_butterfly_keys, 4 side_side_inplane_splayed_scarf, 5 side_side_inplane_cross_splayed_scarf, 6 side_side_inplane_tooth_keys, 8 side_removal, 9 side_side_inplane_custom. A zero division count takes
+    // 3 side_side_inplane_butterfly_keys, 4 side_side_inplane_splayed_scarf, 5 side_side_inplane_cross_splayed_scarf, 6 side_side_inplane_tooth_keys, 7 jupiter_scarf (not 2024's), 8 side_removal, 9 side_side_inplane_custom. A zero division count takes
     // the geometric count, the joint line's length over the family's 300 mm; the shift default is the family's 0.5.
 
     static std::shared_ptr<JointPlate> side_side_inplane_three_fingers();
@@ -66,7 +66,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     // Side-to-side out of plane, contact 11, ids 10-19 as 2024 numbered them: 10 side_side_outplane_fingers, 11 side_side_outplane_graded_fingers, 12 side_side_outplane_three_fingers,
-    // 13 side_side_outplane_mitre_tenon, 14 side_side_outplane_tenons, 15 side_side_outplane_linked_tenons (the family default id), 16 side_side_outplane_linked_tenons_wall, 18 side_removal, 19 side_side_outplane_custom;
+    // 13 side_side_outplane_miter_tenon, 14 side_side_outplane_tenons, 15 side_side_outplane_linked_tenons (the family default id), 16 side_side_outplane_linked_tenons_wall, 18 side_removal, 19 side_side_outplane_custom;
     // an id without an entry, such as 17, takes side_side_outplane_fingers. A zero division count takes the geometric count, the joint
     // line's length over the family's 450 mm; the shift default is the family's 0.64. side_side_outplane_capped_fingers and side_side_outplane_notch
     // are designs of this port, reached by name only.
@@ -77,7 +77,7 @@ public:
 
     static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate> side_side_outplane_mitre_tenon();
+    static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();
 
     static std::shared_ptr<JointPlate> side_side_outplane_tenons(
         int divisions = 0,
@@ -130,13 +130,13 @@ public:
     // side_side_rotated
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 side_side_rotated_keys, 55 side_side_rotated_hooks, 56 side_side_rotated_mitre,
+    // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 side_side_rotated_keys, 55 side_side_rotated_hooks, 56 side_side_rotated_miter,
     // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 side_side_rotated_custom; an id without
     // an entry takes side_removal. A zero division count takes the geometric count, the joint line's length over the
     // family's 300 mm; the shift default is the family's 0.5. side_side_rotated_hooks and side_side_rotated_keys are key designs: each plate is
     // milled a pocket on its side of the seam and the joint owns the loose key that fills both.
 
-    static std::shared_ptr<JointPlate> side_side_rotated_mitre();
+    static std::shared_ptr<JointPlate> side_side_rotated_miter();
 
     static std::shared_ptr<JointPlate> side_side_rotated_hooks(int divisions = 0, double shift = 0.5);
 

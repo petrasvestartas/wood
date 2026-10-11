@@ -22,7 +22,7 @@ int main() {
     };
     const std::vector<Polyline> outlines = {profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)};
 
-    // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the mitre: in line and in a shallow V of 165 degrees, the second pair 800 along y, each in its group
+    // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the miter: in line and in a shallow V of 165 degrees, the second pair 800 along y, each in its group
     for (const double angle : {180.0, 165.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_in_plane(angle);

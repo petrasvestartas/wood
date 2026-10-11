@@ -1,9 +1,9 @@
-/// side_side_outplane_mitre_tenon: miter tenon-mortise - four female outlines (two insert_between, two hole), two male; the tenon and its mortise 0.3 of the
+/// side_side_outplane_miter_tenon: miter tenon-mortise - four female outlines (two insert_between, two hole), two male; the tenon and its mortise 0.3 of the
 /// joint line wide, a shoulder of 0.15 on each side. 2024 ran the tenon half a thickness
 /// past the floor; here it ends flush with the floor's bottom. The floor's lip around the mortise still runs a thickness past the wall.
-static void side_side_outplane_mitre_tenon(InteractionFeaturePlate& joint) {
+static void side_side_outplane_miter_tenon(InteractionFeaturePlate& joint) {
 
-    joint.name = "side_side_outplane_mitre_tenon";
+    joint.name = "side_side_outplane_miter_tenon";
 
     joint.female_outlines[0] = {
         Polyline({Point(0.5,0.5,0.3), Point(0.5,-1.499975,0.3), Point(0.5,-1.499975,-0.3), Point(0.5,0.5,-0.3)}),

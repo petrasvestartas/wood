@@ -9,7 +9,7 @@ using namespace wood_session;
 // TranslationShell
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A shell of mitred plates, a cross section swept along a profile.
+/// A shell of mitered plates, a cross section swept along a profile.
 ///
 /// Fields: the two input curves and the plate sizes; every plate is in the session as `plate_<i>`.
 class TranslationShell : public WoodSession {
@@ -75,8 +75,8 @@ inline TranslationShell::TranslationShell(
     const Mesh mesh = compute_mesh(sections);
     add_mesh(mesh, add_group("mesh"));
 
-    // plates: one mitred plate per quad, thickness deep, its sharp corners chamfered
-    const std::vector<std::shared_ptr<Plate>> plates = mitred_plates(
+    // plates: one mitered plate per quad, thickness deep, its sharp corners chamfered
+    const std::vector<std::shared_ptr<Plate>> plates = mitered_plates(
         mesh,
         thickness,
         chamfer,

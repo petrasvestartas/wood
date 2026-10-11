@@ -18,7 +18,7 @@ static const double APART = 250.0; // mm, the second plate moved off the first
 static const Color MALE = Color(0.807f, 0.063f, 0.258f);   // the viewer's x axis pink #E8478B, linear: the viewer encodes line colours to sRGB
 static const Color FEMALE = Color(0.015f, 0.305f, 0.823f); // the viewer's z axis blue #2196EA, linear
 static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
-static const std::map<std::string, std::string> SHIFT_MEANING = { // What the shift does in each family, for the snippet and the tile's legend.
+static const std::map<std::string, std::string> SHIFT_MEANING = { // What the shift does in each family, for the snippet.
     {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},
     {"op", "the fingers' lean through the thickness, only above 0.5"},
     {"ts", "the tenon width against the gap"},
@@ -31,7 +31,7 @@ static const std::map<std::string, std::string> SHIFT_MEANING = { // What the sh
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The design's outlines in its unit box, the library function run on a joint with the built one's parameters, a custom design's the
-/// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, side_side_rotated_mitre) or leaves the
+/// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, side_side_rotated_miter) or leaves the
 /// box empty, which has no unit box to draw.
 static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 
@@ -54,7 +54,7 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         {"side_side_inplane_three_fingers", [&] { side_side_inplane_three_fingers(unit); }}, {"side_side_inplane_dovetails", [&] { side_side_inplane_dovetails(unit); }}, {"side_side_inplane_butterfly_keys", [&] { side_side_inplane_butterfly_keys(unit, plates); }},
         {"side_side_inplane_splayed_scarf", [&] { side_side_inplane_splayed_scarf(unit); }}, {"side_side_inplane_cross_splayed_scarf", [&] { side_side_inplane_cross_splayed_scarf(unit); }}, {"side_side_inplane_tooth_keys", [&] { side_side_inplane_tooth_keys(unit, plates); }},
         {"side_side_outplane_three_fingers", [&] { side_side_outplane_three_fingers(unit); }}, {"side_side_outplane_fingers", [&] { side_side_outplane_fingers(unit); }}, {"side_side_outplane_graded_fingers", [&] { side_side_outplane_graded_fingers(unit); }},
-        {"side_side_outplane_mitre_tenon", [&] { side_side_outplane_mitre_tenon(unit); }},
+        {"side_side_outplane_miter_tenon", [&] { side_side_outplane_miter_tenon(unit); }},
         {"side_side_outplane_tenons", [&] { side_side_outplane_tenons(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
         {"side_side_outplane_linked_tenons", [&] { side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions); }}, {"side_side_outplane_linked_tenons_wall", [&] { side_side_outplane_linked_tenons_wall(unit, no_joints); }},
         {"side_side_outplane_capped_fingers", [&] { side_side_outplane_capped_fingers(unit); }}, {"side_side_outplane_notch", [&] { side_side_outplane_notch(unit); }},
@@ -183,68 +183,26 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
         }
 }
 
-/// The unit tile's annotations: an axis tripod at the box's corner, a dimension along the seam with a tick per division, and the labels for
-/// shoot_native.sh, one "x y z|text" per line for a text at a point, "|text" for a line of the legend under the drawing.
-static std::string add_unit_annotations(WoodSession& scene, const Built& built, const InteractionFeaturePlate& unit) {
+/// The unit tile's annotations: an axis tripod at the origin, an arrow along x, y and z a third of the box long, and the labels for
+/// shoot_native.sh, one "x y z|text" line per letter at its arrow's tip.
+static std::string add_unit_annotations(WoodSession& scene) {
 
     const std::shared_ptr<TreeNode> group = scene.group_named("annotations");
-    const double h = 0.5 * BOX;
-    std::string labels;
-    const auto label = [&labels](const Point& point, const std::string& text) {
-        labels += fmt::format("{} {} {}|{}\n", point[0], point[1], point[2], text);
-    };
-    const auto line = [&scene, &group](const Point& start, const Point& end) {
-        auto drawn = std::make_shared<Polyline>(std::vector<Point>{start, end});
-        drawn->linecolor = Color(0.05f, 0.05f, 0.05f);
-        drawn->width = 3.0;
-        scene.add_polyline(drawn, group);
-    };
-
-    // the axis tripod: an arrow along each box edge leaving the corner (-h, -h, -h), a third of the box long, its letter at the tip
-    const Point corner(-h, -h, -h);
+    const Point origin(0.0, 0.0, 0.0);
     const std::array<Vector, 3> axes = {Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0)};
     const std::array<std::string, 3> letters = {"x", "y", "z"};
+    std::string labels;
     for (size_t a = 0; a < 3; a++) {
-        const Point tip = corner + axes[a] * (0.35 * BOX);
+        const Point tip = origin + axes[a] * (0.35 * BOX);
         const Vector back = axes[a] * (-0.06 * BOX);
         const Vector side = axes[(a + 1) % 3] * (0.03 * BOX);
-        line(corner, tip);
-        line(tip, tip + back + side);
-        line(tip, tip + back - side);
-        label(tip, letters[a]);
-    }
-    labels += "|x across the seam, y through the plates, z along the seam\n";
-    labels += "|pink: the male plate's cut, blue: the female plate's cut\n";
-
-    // each parameter the design takes: the divisions as a dimension along z beside the box, a tick at every division; the rest in the legend
-    const std::map<std::string, std::vector<std::string>> editable = {
-        {"side_side_inplane_dovetails", {"divisions", "shift"}}, {"side_side_outplane_fingers", {"divisions", "shift"}}, {"side_side_outplane_graded_fingers", {"divisions", "shift"}},
-        {"side_side_outplane_tenons", {"divisions", "taper", "chamfer"}}, {"side_side_outplane_linked_tenons", {"divisions"}}, {"side_side_outplane_linked_tenons_wall", {"divisions"}}, {"side_side_outplane_capped_fingers", {"divisions"}},
-        {"top_side_dense_tenons", {"divisions", "shift"}}, {"top_side_tenons", {"divisions", "shift"}},
-        {"cross_sliced_half_lap", {"shift"}}, {"cross_half_lap", {"shift"}}, {"cross_half_lap_diagonal_drills", {"shift"}}, {"cross_half_lap_drill", {"shift"}}, {"cross_brussels_half_lap", {"shift"}},
-    };
-    const auto names = editable.find(built.library);
-    if (names == editable.end())
-        return labels;
-
-    const JointPlateParameters& p = built.joint->parameters;
-    for (const std::string& name : names->second) {
-        if (name == "divisions") {
-            const int divisions = std::max(1, built.joint->connections.at(0).divisions);
-            const double x = 1.2 * h;
-            line(Point(x, -h, -h), Point(x, -h, h));
-            for (int k = 0; k <= divisions; k++) {
-                const double z = -h + BOX * k / divisions;
-                line(Point(x - 0.04 * BOX, -h, z), Point(x + 0.04 * BOX, -h, z));
-            }
-            label(Point(x + 0.06 * BOX, -h, 0.0), fmt::format("{} divisions", divisions));
-        } else if (name == "shift") {
-            labels += fmt::format("|shift {:g}: {}\n", unit.shift, SHIFT_MEANING.at(built.family));
-        } else if (name == "taper") {
-            labels += fmt::format("|taper {:g}: the tenons' side lean\n", p.taper);
-        } else {
-            labels += fmt::format("|chamfer {}: bevelled tenon ends\n", p.chamfer ? "true" : "false");
+        for (const std::array<Point, 2>& segment : std::array<std::array<Point, 2>, 3>{{{origin, tip}, {tip, tip + back + side}, {tip, tip + back - side}}}) {
+            const std::shared_ptr<Polyline> drawn = std::make_shared<Polyline>(std::vector<Point>{segment[0], segment[1]});
+            drawn->linecolor = Color(0.05f, 0.05f, 0.05f);
+            drawn->width = 3.0;
+            scene.add_polyline(drawn, group);
         }
+        labels += fmt::format("{} {} {}|{}\n", tip[0], tip[1], tip[2], letters[a]);
     }
     return labels;
 }
@@ -265,7 +223,7 @@ static void write_scene(const std::string& id, const std::string& dir) {
     if (unit_outlines(built, unit)) {
         WoodSession unit_scene(name + "_unit");
         add_unit_box(unit_scene, unit);
-        const std::string labels = add_unit_annotations(unit_scene, built, unit);
+        const std::string labels = add_unit_annotations(unit_scene);
         unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
         std::ofstream(dir + "/" + name + "_unit.txt") << unit_snippet(built, unit) << std::endl;
         std::ofstream(dir + "/" + name + "_unit.labels") << labels;

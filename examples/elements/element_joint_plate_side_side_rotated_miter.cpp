@@ -3,10 +3,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_rotated_mitre: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees, each drawn apart.
+/// side_side_rotated_miter: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees, each drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_plate_side_side_rotated_mitre");
+    WoodSession scene("element_joint_plate_side_side_rotated_miter");
     scene.settings.rotated_joint_as_average = true;
     scene.settings.all_treated_as_rotated = true;
 
@@ -24,7 +24,7 @@ int main() {
 
         // the joint from their contact, added, and passed to each plate in its target order
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_mitre();
+        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_miter();
         joint->orient(contact, {left, right}, scene.settings);
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
@@ -43,7 +43,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_mitre: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees, each drawn apart.
+side_side_rotated_miter: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -52,7 +52,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_plate_side_side_rotated_mitre --parallel 6 && ./build/element_joint_plate_side_side_rotated_mitre && ../bash/publish-scene.sh --target element_joint_plate_side_side_rotated_mitre
+cmake --build build --target element_joint_plate_side_side_rotated_miter --parallel 6 && ./build/element_joint_plate_side_side_rotated_miter && ../bash/publish-scene.sh --target element_joint_plate_side_side_rotated_miter
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

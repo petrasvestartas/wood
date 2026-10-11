@@ -21,18 +21,17 @@ An element is built from its own parameters; what others do to it comes through 
 | [JointPlate top_side](@ref elements_joint_plate_top_side) | `wood_element_joint_plate.h` | `element_joint_plate_top_side_three_tenons` to `_snap_fit`, `_custom` |
 | [JointPlate side_side_inplane](@ref elements_joint_plate_side_side_inplane) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_inplane_three_fingers` to `_tooth_keys`, `_custom`, `_hilti`, `_hilti_angles` |
 | [JointPlate side_side_outplane](@ref elements_joint_plate_side_side_outplane) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_outplane_three_fingers` to `_linked_tenons_wall`, `_capped_fingers`, `_notch`, `_custom` |
-| [JointPlate side_side_rotated](@ref elements_joint_plate_side_side_rotated) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_rotated_mitre`, `_hooks`, `_keys`, `_custom`, `_side_removal`, `_jupiter_scarf` |
+| [JointPlate side_side_rotated](@ref elements_joint_plate_side_side_rotated) | `wood_element_joint_plate.h` | `element_joint_plate_side_side_rotated_miter`, `_hooks`, `_keys`, `_custom`, `_side_removal` |
 | [JointPlate cross](@ref elements_joint_plate_cross) | `wood_element_joint_plate.h` | `element_joint_plate_cross_slot`, `_custom` |
 | [JointPlate top_top](@ref elements_joint_plate_top_top) | `wood_element_joint_plate.h` | `element_joint_plate_top_top_centre_pin` to `_rectangle_pins`, `_custom` |
 | [JointPlate border](@ref elements_joint_plate_border) | `wood_element_joint_plate.h` | `element_joint_plate_border` |
-| [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
+| [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_wedge` |
 | [JointBeam cross](@ref elements_joint_beam_cross) | `wood_element_joint_beam.h` | `element_joint_beam_cross_slot` to `_brussels_half_lap` |
 | [JointBeam top_side](@ref elements_joint_beam_top_side) | `wood_element_joint_beam.h` | `element_joint_beam_top_side_milled_wedge` |
-| [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_side_side_inplane_splayed_scarf`, `_side_side_inplane_cross_splayed_scarf`, `_side_side_rotated_mitre` |
+| [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_side_side_inplane_splayed_scarf`, `_side_side_inplane_cross_splayed_scarf`, `_side_side_rotated_miter`, `_jupiter_scarf` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
-| [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
 
 - @subpage elements_plate
 - @subpage elements_beam
@@ -57,7 +56,6 @@ An element is built from its own parameters; what others do to it comes through 
 - @subpage elements_joint_beam_connectors
 - @subpage elements_joint_beam_pins
 - @subpage elements_pin
-- @subpage elements_connector_part
 
 ## How joints are used
 
@@ -76,6 +74,6 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 | [Joint](@ref elements_joint) | an axis, a mesh, a profile | drills, subtracts, adds or keeps a solid |
 | [JointPlate](@ref elements_joint_plate) | a face or cross contact of two plates, a library design by name | cuts the design's outline into both plates |
 | [JointBeam](@ref elements_joint_beam), beam to beam | an axis contact of two beams | the feature volumes of a lap or a butt |
-| [JointBeam](@ref elements_joint_beam), connector | a face contact of two members | pockets and bores; its parts ([ConnectorPart](@ref elements_connector_part)) and [Pins](@ref elements_pin) nest under it |
+| [JointBeam](@ref elements_joint_beam), connector | a face contact of two members | pockets and bores; its parts and [Pins](@ref elements_pin) nest under it |
 
 The interaction belongs to its target, which hosts the cut, pocket and holes.

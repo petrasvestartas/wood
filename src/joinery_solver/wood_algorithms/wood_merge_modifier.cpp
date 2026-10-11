@@ -491,8 +491,9 @@ void MergeModifier::insert_side_joints(const std::vector<std::vector<std::pair<i
             if (!outlines || !merges_into_outline(joint, male_or_female))
                 continue;
 
+            // a rectangle of five clipped in, as 2024 did; a custom joint's closed outline of more points the same way
             const size_t marker = (*outlines)[0][1].point_count();
-            if (marker == 5) {
+            if (marker == 5 || (marker > 5 && joint.name.ends_with("_custom") && (*outlines)[0][1].is_closed())) {
                 insert_rectangle_cut(*outlines);
                 continue;
             }

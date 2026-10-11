@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The element pages' pictures on a machine with no GPU and no browser: each example under examples/elements built and run, its live.pb shot
 # by tools/shoot_ui.sh with the viewer's interface, the layer panel open with every row, the elements alone (no attributes, no interaction features), Arctic,
-# the orthographic isometric view (the back view for a column, whose head and cuts face the inside of the floor, the top view for beams joined end to end, whose scarves and mitres read in plan), 3200 x 2000.
+# the orthographic isometric view (the back view for a column, whose head and cuts face the inside of the floor), 3200 x 2000.
 #   bash wood/tools/shoot_elements_ui.sh                       every example
 #   bash wood/tools/shoot_elements_ui.sh element_plate ...     the ones named
 #   OUT=<dir> writes the pictures there instead of docs/images/elements
@@ -16,7 +16,7 @@ fi
 cmake --build build --target "$@" --parallel 6 > /dev/null
 for name in "$@"; do
     view=iso
-    case "$name" in element_column*) view=iso_back ;; element_joint_beam_side_side_inplane_*|element_joint_beam_side_side_rotated_mitre) view=top ;; esac
+    case "$name" in element_column*) view=iso_back ;; esac
     if ! ./build/"$name" > /dev/null 2>&1; then
         echo "$name: the example failed"
         continue

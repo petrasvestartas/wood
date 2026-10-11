@@ -211,17 +211,17 @@ double compute_open(
     return context.framing.node == 0 && !continued && !butted ? -column : open;
 }
 
-/// The two angular neighbours of member index among the members of its rank, the through pair left out unless every member of the top rank mitres.
+/// The two angular neighbours of member index among the members of its rank, the through pair left out unless every member of the top rank miters.
 std::vector<size_t> compute_neighbours(
     const std::vector<Member>& members,
     size_t index,
     const std::pair<std::optional<size_t>, std::optional<size_t>>& through,
-    bool mitre
+    bool miter
 ) {
 
     std::vector<size_t> equal;
     for (size_t j = 0; j < members.size(); j++)
-        if (members[j].rank == members[index].rank && (mitre || !is_through(through, j)))
+        if (members[j].rank == members[index].rank && (miter || !is_through(through, j)))
             equal.push_back(j);
 
     const size_t at = std::find(equal.begin(), equal.end(), index) - equal.begin();
@@ -259,9 +259,9 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
     int top = 0;
     for (const Member& member : members)
         top += member.rank == members[*through.first].rank ? 1 : 0;
-    const bool mitre = top > 1 && !compute_continuation(members, *through.first, false);
+    const bool miter = top > 1 && !compute_continuation(members, *through.first, false);
 
-    if (is_through(through, me) && !mitre) {
+    if (is_through(through, me) && !miter) {
         const std::optional<size_t> partner = me == *through.first ? through.second : through.first;
         const double open = partner ? 0.0 : compute_open(
             context,
@@ -276,7 +276,7 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
     }
 
     for (size_t k = 0; k < members.size(); k++) {
-        const bool over = members[k].rank > members[me].rank || (!mitre && is_through(through, k));
+        const bool over = members[k].rank > members[me].rank || (!miter && is_through(through, k));
         if (k == me || !over || !is_sharing_height(members[me], members[k], context.tolerance))
             continue;
 
@@ -302,7 +302,7 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
         members,
         me,
         through,
-        mitre
+        miter
     ))
         if (k != me && !is_parallel(members[k].direction, direction) && is_sharing_height(members[me], members[k], context.tolerance))
             add_plane(end.planes, compute_bisector(origin, direction, members[k].direction));

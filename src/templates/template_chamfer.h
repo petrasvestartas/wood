@@ -4,8 +4,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One plate per mesh face, its outlines mitred at every fold and its corners sharper than chamfer_angle cut back.
-inline std::vector<std::shared_ptr<Plate>> mitred_plates(
+/// One plate per mesh face, its outlines mitered at every fold and its corners sharper than chamfer_angle cut back.
+inline std::vector<std::shared_ptr<Plate>> mitered_plates(
     const Mesh& mesh,
     double thickness,
     double chamfer_bottom,

@@ -61,11 +61,11 @@ public:
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
     /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`, a shallow V,
-    /// 180 in line, each `length` x `width` x `thickness` from the seam, the seam their mitre: the in-plane side-to-side pair (side_side_inplane).
+    /// 180 in line, each `length` x `width` x `thickness` from the seam, the seam their miter: the in-plane side-to-side pair (side_side_inplane).
     static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0);
 
     /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`, the wall turned `angle_degrees`
-    /// from the floor's top, their side faces mitred on the bisector: the out-of-plane side-to-side pair (side_side_outplane).
+    /// from the floor's top, their side faces mitered on the bisector: the out-of-plane side-to-side pair (side_side_outplane).
     static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0);
 
     /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`, its foot

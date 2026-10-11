@@ -19,7 +19,7 @@ static std::shared_ptr<JointPlate> side_side_inplane_cross_splayed_scarf();     
 static std::shared_ptr<JointPlate> side_side_inplane_tooth_keys(int divisions = 0);                      // a reversed eight-point tooth key per division, scaled to the male plate's thickness
 static std::shared_ptr<JointPlate> side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);  // your own outlines, pairs (face 0, face 1) in the unit box
 
-// the Hilti connector on the face contact of two slabs side to side, their seam faces mitred so the contact is the seam; null on any other contact
+// the Hilti connector on the face contact of two slabs side to side, their seam faces mitered so the contact is the seam; null on any other contact
 static std::shared_ptr<JointPlate> side_side_inplane_hilti(
     const Plate& a,
     const Plate& b,

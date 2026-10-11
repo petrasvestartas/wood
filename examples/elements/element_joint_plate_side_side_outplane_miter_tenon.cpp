@@ -3,12 +3,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_outplane_mitre_tenon: the fixed mitre tenon and mortise of a floor and a wall plate mitred at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+/// side_side_outplane_miter_tenon: the fixed miter tenon and mortise of a floor and a wall plate mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_plate_side_side_outplane_mitre_tenon");
+    WoodSession scene("element_joint_plate_side_side_outplane_miter_tenon");
 
-    // a 300 x 400 floor and a 300 high wall, both 40 thick, mitred on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
+    // a 300 x 400 floor and a 300 high wall, both 40 thick, mitered on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_folded(angle);
@@ -22,7 +22,7 @@ int main() {
 
         // the joint from their contact, added, and passed to each plate in its target order
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(floor, wall);
-        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_mitre_tenon();
+        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon();
         joint->orient(contact, {floor, wall});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
@@ -41,7 +41,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_outplane_mitre_tenon: the fixed mitre tenon and mortise of a floor and a wall plate mitred at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+side_side_outplane_miter_tenon: the fixed miter tenon and mortise of a floor and a wall plate mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -50,7 +50,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_plate_side_side_outplane_mitre_tenon --parallel 6 && ./build/element_joint_plate_side_side_outplane_mitre_tenon && ../bash/publish-scene.sh --target element_joint_plate_side_side_outplane_mitre_tenon
+cmake --build build --target element_joint_plate_side_side_outplane_miter_tenon --parallel 6 && ./build/element_joint_plate_side_side_outplane_miter_tenon && ../bash/publish-scene.sh --target element_joint_plate_side_side_outplane_miter_tenon
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -24,7 +24,7 @@ static void check(bool ok, const std::string& message) {
         throw std::runtime_error(message);
 }
 
-/// A slab folded half the angle down from the ridge along y, on side -1 (x < 0) or +1, its seam face mitred on x = 0.
+/// A slab folded half the angle down from the ridge along y, on side -1 (x < 0) or +1, its seam face mitered on x = 0.
 static std::shared_ptr<Plate> folded_slab(double angle, double side, const std::string& name) {
 
     const double half = 0.5 * angle * std::numbers::pi / 180.0;

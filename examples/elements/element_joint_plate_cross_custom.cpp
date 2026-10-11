@@ -3,25 +3,23 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// cross_custom: your own rectangles in the joint's unit box, an unequal slot into each of two upright plates crossing at their middles, on the pairs square and crossing at 60 degrees, each drawn apart.
+/// cross_custom: Manis's half-lap with a funnel mouth, a slot chamfered open at its mouth in each of two upright plates crossing at their middles, on the pairs square and crossing at 60 degrees, each drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_cross_custom");
 
-    // the outlines in the joint's unit box, mapped onto the cross: one plate's thickness along x, the other's along y and the
-    // cross's depth along z, its middle at z = 0, as 2024's library drew the family; a pair per side, the male's on the faces at
-    // y = 0.5 and y = -0.5, the first plate's on this pair, the male of a cross, and the female's on the faces at x = -0.5 and
-    // x = 0.5, the second's; as 2024 merged a custom pair, a closed rectangle of five points is clipped into the plate's outline:
-    // here the slots split the depth unequally, the male's from the first plate's top edge, where cross_slot starts its slot, to
-    // z = -0.4, 60 deep, and the female's from the second plate's bottom edge to the same z = -0.4, 140 deep
-    const std::vector<Polyline> male = {
-        Polyline({{0.5, 0.5, -1.0}, {-0.5, 0.5, -1.0}, {-0.5, 0.5, -0.4}, {0.5, 0.5, -0.4}, {0.5, 0.5, -1.0}}),
-        Polyline({{0.5, -0.5, -1.0}, {-0.5, -0.5, -1.0}, {-0.5, -0.5, -0.4}, {0.5, -0.5, -0.4}, {0.5, -0.5, -1.0}}),
+    // Manis's half-lap with a funnel mouth (IBOIS, add_halflap) in the joint's unit box, mapped onto the cross: one plate's thickness along
+    // x, the other's along y and the cross's depth along z, its middle at z = 0; a closed outline per face clipped into each plate, the
+    // male's on the faces at y = 0.5 and y = -0.5, the female's on x = -0.5 and x = 0.5: each slot straight from its bottom at z = -0.4, then
+    // chamfered out at 45 degrees by a quarter of the thickness on each side, so the other plate slides in
+    const auto male_slot = [](double y) {
+        return Polyline({{0.75, y, -1.0}, {-0.75, y, -1.0}, {-0.5, y, -0.75}, {-0.5, y, -0.4}, {0.5, y, -0.4}, {0.5, y, -0.75}, {0.75, y, -1.0}});
     };
-    const std::vector<Polyline> female = {
-        Polyline({{-0.5, 0.5, 1.0}, {-0.5, -0.5, 1.0}, {-0.5, -0.5, -0.4}, {-0.5, 0.5, -0.4}, {-0.5, 0.5, 1.0}}),
-        Polyline({{0.5, 0.5, 1.0}, {0.5, -0.5, 1.0}, {0.5, -0.5, -0.4}, {0.5, 0.5, -0.4}, {0.5, 0.5, 1.0}}),
+    const auto female_slot = [](double x) {
+        return Polyline({{x, -0.75, 1.0}, {x, 0.75, 1.0}, {x, 0.5, 0.75}, {x, 0.5, -0.4}, {x, -0.5, -0.4}, {x, -0.5, 0.75}, {x, -0.75, 1.0}});
     };
+    const std::vector<Polyline> male = {male_slot(0.5), male_slot(-0.5)};
+    const std::vector<Polyline> female = {female_slot(-0.5), female_slot(0.5)};
 
     // two upright 400 x 200 plates 40 thick crossing at their middles: square and crossing at 60 degrees, the second pair 800 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
@@ -56,7 +54,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cross_custom: your own rectangles in the joint's unit box, an unequal slot into each of two upright plates crossing at their middles, on the pairs square and crossing at 60 degrees, each drawn apart.
+cross_custom: Manis's half-lap with a funnel mouth, a slot chamfered open at its mouth in each of two upright plates crossing at their middles, on the pairs square and crossing at 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

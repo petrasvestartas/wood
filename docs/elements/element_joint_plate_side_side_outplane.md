@@ -12,7 +12,7 @@ The side-to-side out-of-plane family: fingers and notches, or tenons and mortise
 static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();                                        // three fixed fingers
 static std::shared_ptr<JointPlate> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);  // a zigzag of fingers, at least two divisions and even
 static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);  // the zigzag with a non-uniform shift, the central pairs moved twice the outer, at least four divisions
-static std::shared_ptr<JointPlate> side_side_outplane_mitre_tenon();                                        // one fixed tenon on the wall through a mortise in the floor
+static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();                                        // one fixed tenon on the wall through a mortise in the floor
 static std::shared_ptr<JointPlate> side_side_outplane_tenons(
     int divisions = 0,
     double taper = 0.0,                                                                 // the tenon sides' lean
@@ -24,7 +24,7 @@ static std::shared_ptr<JointPlate> side_side_outplane_tenons(
 );                                                                                      // chamfered tenons on the wall, a through mortise per tenon in the floor
 static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);  // side_side_outplane_tenons on this joint and its one or two linked joints, the tenons lengthened to -0.75
 static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);                       // side_side_outplane_linked_tenons with the second link's divisions disabled, the Vidy wall
-static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);                      // side_side_outplane_three_fingers with divisions / 2 fingers and flat mitre caps, by name only
+static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);                      // side_side_outplane_three_fingers with divisions / 2 fingers and flat miter caps, by name only
 static std::shared_ptr<JointPlate> side_side_outplane_notch();                                 // one rectangular notch, the worked example of a new design, by name only
 static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);  // your own outlines, pairs (face 0, face 1) in the unit box
 
@@ -33,7 +33,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example shows two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a floor and a wall on a mitred corner, square and folded to 60 degrees. The wall is target 0, the male.
+Every example shows two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a floor and a wall on a mitered corner, square and folded to 60 degrees. The wall is target 0, the male.
 
 ## side_side_outplane_three_fingers: three fingers
 
@@ -45,7 +45,7 @@ Every example shows two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folde
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_three_fingers(); // a fixed design, no parameters
 ```
 
-The fixed three-finger joint merged into both mitred edges: the floor's three fingers reach under the wall, the wall notched for them over its thickness.
+The fixed three-finger joint merged into both mitered edges: the floor's three fingers reach under the wall, the wall notched for them over its thickness.
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_three_fingers.cpp
 
@@ -83,19 +83,19 @@ Eight divisions at shift 0.64: the zigzag of `side_side_outplane_fingers` with s
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_graded_fingers.cpp
 
-## side_side_outplane_mitre_tenon: mitre tenon and mortise
+## side_side_outplane_miter_tenon: miter tenon and mortise
 
-![side_side_outplane_mitre_tenon](elements/element_joint_plate_side_side_outplane_mitre_tenon.png)
+![side_side_outplane_miter_tenon](elements/element_joint_plate_side_side_outplane_miter_tenon.png)
 
-![side_side_outplane_mitre_tenon, the unit box: male pink, female blue](joint_library/op_side_side_outplane_mitre_tenon_unit.png)
+![side_side_outplane_miter_tenon, the unit box: male pink, female blue](joint_library/op_side_side_outplane_miter_tenon_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_mitre_tenon(); // a fixed design, no parameters
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon(); // a fixed design, no parameters
 ```
 
 One tenon, 0.3 of the seam wide, in the middle of the wall's edge, through a mortise in a lip of the floor.
 
-\include{lineno} elements/element_joint_plate_side_side_outplane_mitre_tenon.cpp
+\include{lineno} elements/element_joint_plate_side_side_outplane_miter_tenon.cpp
 
 ## side_side_outplane_tenons: chamfered tenons and through mortises
 
@@ -111,7 +111,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_tenons(
 );
 ```
 
-On its defaults: one chamfered tenon on the wall and a through mortise in the floor; the merge into mitred outlines is not right yet.
+On its defaults: one chamfered tenon on the wall and a through mortise in the floor; the merge into mitered outlines is not right yet.
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_tenons.cpp
 
@@ -156,7 +156,7 @@ Where side_side_outplane_linked_tenons and side_side_outplane_linked_tenons_wall
 
 \include{lineno} elements/element_joint_plate_vidy_node.cpp
 
-## side_side_outplane_capped_fingers: fingers with flat mitre caps
+## side_side_outplane_capped_fingers: fingers with flat miter caps
 
 ![side_side_outplane_capped_fingers](elements/element_joint_plate_side_side_outplane_capped_fingers.png)
 
@@ -168,7 +168,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_
 );
 ```
 
-Four divisions, two fingers, the mitre capped flat at both ends; the merge into mitred outlines is not right yet.
+Four divisions, two fingers, the miter capped flat at both ends; the merge into mitered outlines is not right yet.
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_capped_fingers.cpp
 
@@ -202,7 +202,7 @@ A custom tile: three fingers on the floor, wide, narrow, wide, and the sockets t
 
 ![side_side_outplane_fingers sweep](joint_library/sweep_side_side_outplane_fingers.png)
 
-**At other angles.** The same fingers at 90, 120 and 150 degrees: they keep their count and lean with the mitre.
+**At other angles.** The same fingers at 90, 120 and 150 degrees: they keep their count and lean with the miter.
 
 ![side_side_outplane_fingers at 90, 120 and 150 degrees](joint_library/sweep_side_side_outplane_fingers_angles.png)
 

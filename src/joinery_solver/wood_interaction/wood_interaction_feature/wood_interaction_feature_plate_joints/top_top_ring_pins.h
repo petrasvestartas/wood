@@ -1,8 +1,9 @@
 /// top_top_ring_pins, id 43: drills along the contact offset inward by shift, every division_length of its ring, as 2024's
 /// offset_and_divide_to_points laid them: each edge divided (int)min(100, length / division_length) times from its start point, and the
 /// ring's last point too when the ring is open by more than distance_squared; the contact itself when the offset swallows the ring,
-/// as 2024 drilled the contact when Clipper returned nothing.
-static void top_top_ring_pins(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
+/// as 2024 drilled the contact when Clipper returned nothing. With a drill radius, a point nearer than two diameters to the last one kept,
+/// or the last to the first, is dropped, so one diameter of wood stays between every two holes.
+static void top_top_ring_pins(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings, double radius) {
 
     joint.name = "top_top_ring_pins";
     joint.no_orient = true;
@@ -26,5 +27,13 @@ static void top_top_ring_pins(InteractionFeaturePlate& joint, const std::vector<
     if ((ring[0] - ring[last]).magnitude_squared() > settings.distance_squared)
         points.push_back(ring[last]);
 
-    emit_drills(joint, points, dir0, dir1);
+    // the points two diameters apart
+    std::vector<Point> spaced;
+    for (const Point& point : points)
+        if (spaced.empty() || Point::distance(spaced.back(), point) >= 4.0 * radius)
+            spaced.push_back(point);
+    if (spaced.size() > 2 && Point::distance(spaced.back(), spaced.front()) < 4.0 * radius)
+        spaced.pop_back();
+
+    emit_drills(joint, spaced, dir0, dir1);
 }

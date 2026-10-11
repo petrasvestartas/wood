@@ -11,7 +11,7 @@ static std::array<std::shared_ptr<Beam>, 2> Beam::pair_end_to_end(double angle_d
 static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 ```
 
-In line, the splice is the in-plane design of `settings.joint_parameters[2]`; at an angle, the beams are trimmed on the mitre.
+In line, the splice is the in-plane design of `settings.joint_parameters[2]`; at an angle, the beams are trimmed on the miter.
 
 ## side_side_inplane_splayed_scarf: the splayed scarf
 
@@ -33,10 +33,20 @@ The same scarf with the upper and lower halves of the depth splayed in opposite 
 
 \include{lineno} elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.cpp
 
-## side_side_rotated_mitre: the mitre
+## side_side_rotated_miter: the miter
 
-![side_side_rotated_mitre](elements/element_joint_beam_side_side_rotated_mitre.png)
+![side_side_rotated_miter](elements/element_joint_beam_side_side_rotated_miter.png)
 
 `Beam::pair_end_to_end(90.0)` and `Beam::pair_end_to_end(60.0)`: each extension trimmed on the plane through the shared end bisecting the axes; the second beam is moved 300.
 
-\include{lineno} elements/element_joint_beam_side_side_rotated_mitre.cpp
+\include{lineno} elements/element_joint_beam_side_side_rotated_miter.cpp
+
+## jupiter_scarf: the trait de Jupiter
+
+![jupiter_scarf](elements/element_joint_beam_jupiter_scarf.png)
+
+![jupiter_scarf, the unit box: male pink, female blue](joint_library/ip_jupiter_scarf_unit.png)
+
+`Beam::pair_end_to_end(0.0)`: a scarf through the depth with abouts, two slopes, the redan and the key slot; the second beam moved 300 along the axis.
+
+\include{lineno} elements/element_joint_beam_jupiter_scarf.cpp

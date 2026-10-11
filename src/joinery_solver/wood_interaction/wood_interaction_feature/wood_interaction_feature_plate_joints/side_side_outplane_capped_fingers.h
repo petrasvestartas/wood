@@ -1,4 +1,4 @@
-/// side_side_outplane_capped_fingers: side_side_outplane_three_fingers with N = div/2 fingers over the whole joint line, its ends squared as side_side_outplane_fingers squares them: every run starts and ends on the floor's bottom level and the wall's inner face, where the markers relocate the plate corners, so the mitre becomes a butt at the plate ends and both faces of a plate carry the same vertices.
+/// side_side_outplane_capped_fingers: side_side_outplane_three_fingers with N = div/2 fingers over the whole joint line, its ends squared as side_side_outplane_fingers squares them: every run starts and ends on the floor's bottom level and the wall's inner face, where the markers relocate the plate corners, so the miter becomes a butt at the plate ends and both faces of a plate carry the same vertices.
 static void side_side_outplane_capped_fingers(InteractionFeaturePlate& joint) {
 
     joint.name = "side_side_outplane_capped_fingers";

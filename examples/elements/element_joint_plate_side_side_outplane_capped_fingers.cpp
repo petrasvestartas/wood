@@ -3,12 +3,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_outplane_capped_fingers: the fingers with flat mitre caps of a floor and a wall plate mitred at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+/// side_side_outplane_capped_fingers: the fingers with flat miter caps of a floor and a wall plate mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_outplane_capped_fingers");
 
-    // a 300 x 400 floor and a 300 high wall, both 40 thick, mitred on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
+    // a 300 x 400 floor and a 300 high wall, both 40 thick, mitered on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_folded(angle);
@@ -41,7 +41,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_outplane_capped_fingers: the fingers with flat mitre caps of a floor and a wall plate mitred at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+side_side_outplane_capped_fingers: the fingers with flat miter caps of a floor and a wall plate mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

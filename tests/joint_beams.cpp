@@ -192,11 +192,11 @@ static void check_tees() {
 }
 
 /// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by side_side_inplane_splayed_scarf
-/// and 4, at 90 and 60 degrees trimmed on the mitre by side_side_rotated_mitre; the extensions' overlap is gone and the pair keeps the wood of its two
+/// and 4, at 90 and 60 degrees trimmed on the miter by side_side_rotated_miter; the extensions' overlap is gone and the pair keeps the wood of its two
 /// 1200 mm axes and of the extensions at their free ends and no more, less the pins' bores.
 static void check_end_to_end() {
 
-    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "side_side_inplane_splayed_scarf"}, {0.0, "side_side_inplane_cross_splayed_scarf"}, {90.0, "side_side_rotated_mitre"}, {60.0, "side_side_rotated_mitre"}}};
+    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "side_side_inplane_splayed_scarf"}, {0.0, "side_side_inplane_cross_splayed_scarf"}, {90.0, "side_side_rotated_miter"}, {60.0, "side_side_rotated_miter"}}};
     for (const std::pair<double, std::string>& end_case : cases) {
         WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
         scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);

@@ -3,11 +3,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_rotated_mitre on beams: a mitre trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
+/// side_side_rotated_miter on beams: a miter trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_beam_side_side_rotated_mitre");
-    scene.settings.joint_parameters[17] = JointPlate::library_id("side_side_rotated_mitre");
+    WoodSession scene("element_joint_beam_side_side_rotated_miter");
+    scene.settings.joint_parameters[17] = JointPlate::library_id("side_side_rotated_miter");
 
     // two 150 x 150 beams 1200 long: meeting square and at 60 degrees, the second pair 2000 along x, each in its group
     for (const double angle : {90.0, 60.0}) {
@@ -40,7 +40,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_mitre on beams: a mitre trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
+side_side_rotated_miter on beams: a miter trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -49,7 +49,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_beam_side_side_rotated_mitre --parallel 6 && ./build/element_joint_beam_side_side_rotated_mitre && ../bash/publish-scene.sh --target element_joint_beam_side_side_rotated_mitre
+cmake --build build --target element_joint_beam_side_side_rotated_miter --parallel 6 && ./build/element_joint_beam_side_side_rotated_miter && ../bash/publish-scene.sh --target element_joint_beam_side_side_rotated_miter
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

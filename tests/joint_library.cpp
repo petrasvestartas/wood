@@ -26,7 +26,7 @@ static const double CONTACT_GRID = 0.01; // mm, the Clipper grid of a face conta
 static const std::string GOLDEN_DIR = std::string(WOOD_SOURCE_DIR) + "/tests/golden/joint_library";
 static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt"; // The variants that passed when the list was last accepted: one of them failing fails the run.
 
-/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. side_side_outplane_tenons keeps its female outline modified: without it its mortises lie outside the mitred face, whole only as the linked joint of side_side_outplane_linked_tenons. side_side_outplane_tenons and side_side_outplane_linked_tenons fail C4 and C6 on the mitred fixture by 2024's construction, the floor's edge a thickness past the mitre and the tenons out of the floor's far face: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre, and the polyhedra and Vidy datasets join them. The designs and parameters no 2024 dataset used and no fixture holds are not listed: side_side_inplane_cross_splayed_scarf (a beam joint), side_side_outplane_mitre_tenon and side_side_outplane_linked_tenons_wall (tenons into their mortises), side_side_outplane_graded_fingers at the shift 1 (its loops cross), cross_half_lap_diagonal_drills at the shift 0.75. top_side_tenons stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cross_half_lap to cross_brussels_half_lap stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
+/// Every design of the library with its default and a non-default parameter set: "family/library/parameters...". The top-top rings and lattices keep their offset above the pin radius: a hole tangent to a side face is a BRep boolean no kernel takes. side_side_outplane_tenons keeps its female outline modified: without it its mortises lie outside the mitered face, whole only as the linked joint of side_side_outplane_linked_tenons. side_side_outplane_tenons and side_side_outplane_linked_tenons fail C4 and C6 on the mitered fixture by 2024's construction, the floor's edge a thickness past the miter and the tenons out of the floor's far face: the port matches the 2025 reference point for point there, to 2.3e-5 mm, the dataset out_of_plane_mitre, and the polyhedra and Vidy datasets join them. The designs and parameters no 2024 dataset used and no fixture holds are not listed: side_side_inplane_cross_splayed_scarf (a beam joint), side_side_outplane_miter_tenon and side_side_outplane_linked_tenons_wall (tenons into their mortises), side_side_outplane_graded_fingers at the shift 1 (its loops cross), cross_half_lap_diagonal_drills at the shift 0.75. top_side_tenons stays off the shifts 0 and 1: there its tenon sides lean by a whole point spacing and the mortise rectangles fold onto themselves, in 2024 as here. cross_half_lap to cross_brussels_half_lap stay below the shift 0.85: there the 0.6 extension of the bottom sides' slanted segments crosses their upper ends over and the ring folds onto itself, in 2024 as here.
 static const std::vector<std::string> VARIANTS = {
     "ip/side_side_inplane_three_fingers", "ip/side_side_inplane_dovetails", "ip/side_side_inplane_dovetails/8/0.5", "ip/side_side_inplane_dovetails/4/0.0", "ip/side_side_inplane_dovetails/16/1.0", "ip/side_side_inplane_butterfly_keys", "ip/side_side_inplane_butterfly_keys/4",
     "ip/side_side_inplane_butterfly_keys/2", "ip/side_side_inplane_splayed_scarf", "ip/side_side_inplane_tooth_keys", "ip/side_side_inplane_tooth_keys/4", "ip/side_side_inplane_tooth_keys/6", "ip/side_side_inplane_custom",
@@ -35,7 +35,7 @@ static const std::vector<std::string> VARIANTS = {
     "op/side_side_outplane_linked_tenons/8/1", "op/side_side_outplane_capped_fingers/4", "op/side_side_outplane_notch", "op/side_side_outplane_custom", "op/side_removal/1/0.5",
     "ts/top_side_three_tenons", "ts/top_side_annen_tenons", "ts/top_side_dense_tenons", "ts/top_side_dense_tenons/8/0.5", "ts/top_side_dense_tenons/16/0.25", "ts/top_side_tenons", "ts/top_side_tenons/8/0.5",
     "ts/top_side_tenons/16/0.25", "ts/top_side_tenons/24/0.75", "ts/top_side_milled_wedge", "ts/top_side_custom", "ts/side_removal/0/0.5",
-    "r/side_side_rotated_mitre", "r/side_side_rotated_hooks", "r/side_side_rotated_hooks/4/0.5", "r/side_side_rotated_hooks/2/0.25", "r/side_side_rotated_keys", "r/side_side_rotated_keys/4/0.5", "r/side_side_rotated_keys/6/1.0",
+    "r/side_side_rotated_miter", "r/side_side_rotated_hooks", "r/side_side_rotated_hooks/4/0.5", "r/side_side_rotated_hooks/2/0.25", "r/side_side_rotated_keys", "r/side_side_rotated_keys/4/0.5", "r/side_side_rotated_keys/6/1.0",
     "r/side_side_rotated_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5",
     "cr/cross_slot", "cr/cross_sliced_half_lap/0.5", "cr/cross_sliced_half_lap/0.25", "cr/cross_half_lap", "cr/cross_half_lap/0.0", "cr/cross_half_lap_diagonal_drills", "cr/cross_half_lap_drill",
     "cr/cross_half_lap_drill/0.25", "cr/cross_brussels_half_lap", "cr/cross_brussels_half_lap/0.75", "cr/cross_custom",
@@ -160,12 +160,12 @@ static Fixture pair_in_plane(WoodSession& scene, const Xform& xform, const std::
     return f;
 }
 
-/// A 300 x 400 floor and a 300 high wall, both 40 thick, meeting at the dihedral angle (degrees) on the 400 seam, their side faces mitred on the
+/// A 300 x 400 floor and a 300 high wall, both 40 thick, meeting at the dihedral angle (degrees) on the 400 seam, their side faces mitered on the
 /// bisector through the outer and the inner corner: side_side_outplane, and side_side_rotated folded; at 90 the right-angle corner of the examples. The joint's first
 /// side is the wall, the male of an out-of-plane pair being the second plate of the contact.
 static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform, double dihedral = 90.0) {
 
-    // the wall leaves the outer corner at the dihedral from the floor's -x, its inner face 40 toward the floor, the mitre through the inner corner
+    // the wall leaves the outer corner at the dihedral from the floor's -x, its inner face 40 toward the floor, the miter through the inner corner
     const double angle = dihedral * std::numbers::pi / 180.0;
     const Vector up(-std::cos(angle), 0.0, std::sin(angle));
     const Vector inward(-std::sin(angle), 0.0, -std::cos(angle));
@@ -418,7 +418,7 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "side_side_outplane_three_fingers") return JointPlate::side_side_outplane_three_fingers();
     if (library == "side_side_outplane_fingers") return JointPlate::side_side_outplane_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
     if (library == "side_side_outplane_graded_fingers") return JointPlate::side_side_outplane_graded_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
-    if (library == "side_side_outplane_mitre_tenon") return JointPlate::side_side_outplane_mitre_tenon();
+    if (library == "side_side_outplane_miter_tenon") return JointPlate::side_side_outplane_miter_tenon();
     if (library == "side_side_outplane_tenons") return JointPlate::side_side_outplane_tenons(integer(parts, 2, 0), number(parts, 3, 0.0), integer(parts, 4, 1) != 0, integer(parts, 5, 1) != 0);
     if (library == "side_side_outplane_linked_tenons") return JointPlate::side_side_outplane_linked_tenons(integer(parts, 2, 0), integer(parts, 3, 0) != 0);
     if (library == "side_side_outplane_linked_tenons_wall") return JointPlate::side_side_outplane_linked_tenons_wall(integer(parts, 2, 0));
@@ -434,7 +434,7 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "top_side_snap_fit") return JointPlate::top_side_snap_fit(integer(parts, 2, 0));
     if (library == "top_side_custom") return JointPlate::top_side_custom(custom[0], custom[1]);
 
-    if (library == "side_side_rotated_mitre") return JointPlate::side_side_rotated_mitre();
+    if (library == "side_side_rotated_miter") return JointPlate::side_side_rotated_miter();
     if (library == "side_side_rotated_hooks") return JointPlate::side_side_rotated_hooks(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "side_side_rotated_keys") return JointPlate::side_side_rotated_keys(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "side_side_rotated_custom") return JointPlate::side_side_rotated_custom(custom[0], custom[1]);

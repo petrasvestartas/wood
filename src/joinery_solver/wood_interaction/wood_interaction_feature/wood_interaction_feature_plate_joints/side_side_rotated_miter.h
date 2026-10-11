@@ -1,7 +1,7 @@
-/// side_side_rotated_mitre: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
-static void side_side_rotated_mitre(InteractionFeaturePlate& joint) {
+/// side_side_rotated_miter: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
+static void side_side_rotated_miter(InteractionFeaturePlate& joint) {
 
-    joint.name = "side_side_rotated_mitre";
+    joint.name = "side_side_rotated_miter";
 
     if (!joint.joint_volumes[0] || !joint.joint_volumes[1])
         return;

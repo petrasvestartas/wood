@@ -3,12 +3,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitred seam, drawn apart.
+/// The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitered seam, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_hilti");
 
-    // two 600 x 400 slabs 200 thick falling 15 degrees each from the ridge along y, their seam faces mitred on x = 0
+    // two 600 x 400 slabs 200 thick falling 15 degrees each from the ridge along y, their seam faces mitered on x = 0
     const double half_angle = 15.0 * Tolerance::PI / 180.0;
     std::array<std::shared_ptr<Plate>, 2> slabs;
     for (int side = 0; side < 2; side++) {
@@ -45,7 +45,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitred seam, drawn apart.
+The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitered seam, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

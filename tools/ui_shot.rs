@@ -13,7 +13,7 @@
 //   DISPLAY=:99 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json REGEN_PROTO=0 UI_SHOT_IN=<in.pb> UI_SHOT_OUT=<out.ppm> \
 //     cargo test --release --example ui_shot --target x86_64-unknown-linux-gnu -- --exact shot::ui_shot --nocapture
 // Optional: UI_SHOT_SIZE=3200x2000 (device pixels), UI_SHOT_SCALE=2 (device pixels per interface pixel, the browser's devicePixelRatio),
-// UI_SHOT_VIEW=iso|iso_back|top (View Isometric, View Isometric Back or View Top in the default line),
+// UI_SHOT_VIEW=iso|iso_back|top (View Isometric, View Isometric Back or View Top in the default line), UI_SHOT_ZOOM=2 (wheel steps after Fit),
 // UI_SHOT_CMD="Layers All;Arctic On;..." (replaces the default docs line, UI_SHOT_VIEW then ignored).
 #[cfg(not(target_arch = "wasm32"))]
 include!("ui_shot_src/lib.rs"); // src/ mirrored by symlinks, app/ui/mod.rs patched: see the header
@@ -33,7 +33,7 @@ mod shot {
     use winit::platform::x11::EventLoopBuilderExtX11;
     use winit::window::{Window, WindowId};
 
-    const COMMANDS: &str = "Layers All;Arctic On;{view};View Orthographic;Fit";
+    const COMMANDS: &str = "Element Interactions Off;Element Attributes Off;Layers All;Arctic On;{view};View Orthographic;Fit";
 
     struct Shot {
         input: String,
@@ -91,6 +91,10 @@ mod shot {
                 ui.frame(&mut state);
                 state.render();
             }
+
+            // closer than Fit, UI_SHOT_ZOOM wheel steps of 10 percent each
+            let zoom: f32 = std::env::var("UI_SHOT_ZOOM").ok().and_then(|s| s.parse().ok()).unwrap_or(2.0);
+            state.camera.zoom(zoom);
 
             // the shading settles over a few frames, then the frame with the panels is read back
             let mut pixels = Vec::new();

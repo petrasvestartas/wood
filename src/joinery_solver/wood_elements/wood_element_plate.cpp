@@ -100,21 +100,21 @@ std::shared_ptr<Plate> Plate::from_rectangle(
 
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
 
-    // the left plate along x into the seam, the right one out of it folded up about the seam by 180 - angle, a shallow V; the seam their mitre through the fold line at mid thickness
+    // the left plate along x into the seam, the right one out of it folded up about the seam by 180 - angle, a shallow V; the seam their miter through the fold line at mid thickness
     const double fold = (180.0 - angle_degrees) * Tolerance::PI / 180.0;
     const Point centre(length, 0.0, 0.5 * thickness);
     const std::array<Vector, 2> along = {Vector(1.0, 0.0, 0.0), Vector(std::cos(fold), 0.0, std::sin(fold))};
     const std::array<Vector, 2> up = {Vector(0.0, 0.0, 1.0), Vector(-std::sin(fold), 0.0, std::cos(fold))};
-    const Vector mitre = (along[0] + along[1]).normalized();
+    const Vector miter = (along[0] + along[1]).normalized();
     const Vector across(0.0, width, 0.0);
 
-    // each plate's bottom and top face: from where it meets the mitre to its far end, length along its axis from the fold line
+    // each plate's bottom and top face: from where it meets the miter to its far end, length along its axis from the fold line
     std::array<std::array<Polyline, 2>, 2> faces;
     for (int side = 0; side < 2; side++) {
         const double sign = side == 0 ? -1.0 : 1.0;
         for (int face = 0; face < 2; face++) {
             const Vector offset = up[side] * ((face == 0 ? -0.5 : 0.5) * thickness);
-            const Point seam = centre + offset - along[side] * (offset.dot(mitre) / along[side].dot(mitre));
+            const Point seam = centre + offset - along[side] * (offset.dot(miter) / along[side].dot(miter));
             const Point far = centre + offset + along[side] * (sign * length);
             faces[side][face] = Polyline({seam, far, far + across, seam + across, seam});
         }

@@ -15,9 +15,9 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 # every design the oracle builds, each scene shot as it is
 ./build/joint_tiles "$WORK/tiles"
 # the rotated designs on a pair folded 120 degrees, and the snap fit, which the oracle does not list
-./build/joint_tiles "$WORK/tiles" "r@120/side_side_rotated_mitre" "r@120/side_side_rotated_hooks/4/0.5" "r@120/side_side_rotated_keys/4/0.5" "ts/top_side_snap_fit"
+./build/joint_tiles "$WORK/tiles" "r@120/side_side_rotated_miter" "r@120/side_side_rotated_hooks/4/0.5" "r@120/side_side_rotated_keys/4/0.5" "ts/top_side_snap_fit"
 # the trait de Jupiter, which the oracle joins in plane, and the designs the oracle does not list
-./build/joint_tiles "$WORK/tiles" "ip/jupiter_scarf" "ip/side_side_inplane_cross_splayed_scarf" "op/side_side_outplane_mitre_tenon" "op/side_side_outplane_linked_tenons_wall/8"
+./build/joint_tiles "$WORK/tiles" "ip/jupiter_scarf" "ip/side_side_inplane_cross_splayed_scarf" "op/side_side_outplane_miter_tenon" "op/side_side_outplane_linked_tenons_wall/8"
 # the designs that belong to beams: the cross joints on two crossing beams, the wedge on a tee, square and at 60 degrees
 ./build/joint_tiles "$WORK/tiles" $(for d in cross_slot cross_sliced_half_lap cross_half_lap cross_half_lap_diagonal_drills cross_half_lap_drill cross_brussels_half_lap top_side_milled_wedge; do echo "beam/$d/90 beam/$d/60"; done)
 ./build/joint_tiles "$WORK/sweep" $(

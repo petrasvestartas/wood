@@ -3,25 +3,28 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_side_custom: your own outlines, one tapered through tenon on an upright plate and its tapered mortise in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
+/// top_side_custom: Manis's chamfered tenons, two through tenons narrowing to their tips on an upright plate and their tapered mortises in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_top_side_custom");
 
-    // one tapered through tenon in the unit box: x the upright's thickness, y the base's from its top (-0.5) to its bottom (0.5), z along
-    // the joint line; per upright face the tenon profile, half the joint line wide at the base's top and 0.3 at its bottom, and its end
-    // line, per base face the mortise, the same widths, so the tenon wedges home from above
+    // Manis's chamfered tenons (IBOIS, add_chamfered_tenons) in the unit box: x the upright's thickness, y the base's from its top (-0.5)
+    // to its bottom (0.5), z along the joint line; two through tenons 0.2 of the joint line wide at the base's top narrowing to 0.12 at its
+    // bottom, centred at z = -0.22 and 0.22, per upright face the profile and its end line, per base face each mortise at both widths
     const auto profile = [](double x) {
-        return Polyline({{x, -0.5, -0.35}, {x, -0.5, -0.25}, {x, 0.5, -0.15}, {x, 0.5, 0.15}, {x, -0.5, 0.25}, {x, -0.5, 0.35}});
+        return Polyline({
+            {x, -0.5, -0.45}, {x, -0.5, -0.32}, {x, 0.5, -0.28}, {x, 0.5, -0.16}, {x, -0.5, -0.12},
+            {x, -0.5, 0.12}, {x, 0.5, 0.16}, {x, 0.5, 0.28}, {x, -0.5, 0.32}, {x, -0.5, 0.45},
+        });
     };
     const auto end_line = [](double x) {
-        return Polyline({{x, -0.5, -0.35}, {x, -0.5, 0.35}});
+        return Polyline({{x, -0.5, -0.45}, {x, -0.5, 0.45}});
     };
-    const auto mortise = [](double y, double half) {
-        return Polyline({{-0.5, y, half}, {0.5, y, half}, {0.5, y, -half}, {-0.5, y, -half}, {-0.5, y, half}});
+    const auto mortise = [](double centre, double y, double half) {
+        return Polyline({{-0.5, y, centre + half}, {0.5, y, centre + half}, {0.5, y, centre - half}, {-0.5, y, centre - half}, {-0.5, y, centre + half}});
     };
     const std::vector<Polyline> male = {profile(0.5), profile(-0.5), end_line(0.5), end_line(-0.5)};
-    const std::vector<Polyline> female = {mortise(-0.5, 0.25), mortise(0.5, 0.15)};
+    const std::vector<Polyline> female = {mortise(-0.22, -0.5, 0.1), mortise(-0.22, 0.5, 0.06), mortise(0.22, -0.5, 0.1), mortise(0.22, 0.5, 0.06)};
 
     // a 400 x 400 base and a 250 x 250 upright on its middle, both 40 thick: upright and leaning to 60 degrees, the second pair 800 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
@@ -56,7 +59,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_custom: your own outlines, one tapered through tenon on an upright plate and its tapered mortise in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
+top_side_custom: Manis's chamfered tenons, two through tenons narrowing to their tips on an upright plate and their tapered mortises in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

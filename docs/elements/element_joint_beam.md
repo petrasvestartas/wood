@@ -34,11 +34,7 @@ scene.add_interaction(wedge, left, wedge->interaction(0));
 scene.add_interaction(wedge, right, wedge->interaction(1));
 ```
 
-## Beam to beam
-
-![Beam to beam](elements/element_joint_beam_from_contact.png)
-
-A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes.
+## from_contact
 
 The interaction keeps the axes' `normal` and `axes`; `insertion(target)` gives the direction each member comes off the joint.
 
@@ -48,14 +44,12 @@ The interaction keeps the axes' `normal` and `axes`; `insertion(target)` gives t
 | `cross_or_side_to_end` | | where on the axes a contact stops being a crossing and becomes an end: a crossing, a side-to-end or an end-to-end |
 | `flip_male` | 0 | turns which corners of the volumes are male |
 
-\include{lineno} elements/element_joint_beam_from_contact.cpp
-
 ## Families
 
 | Page | Contact | Designs |
 | --- | --- | --- |
 | [cross](@ref elements_joint_beam_cross) | two beams crossing | `cross_slot` to `cross_brussels_half_lap` |
 | [top_side](@ref elements_joint_beam_top_side) | a beam ending on another | `top_side_milled_wedge` |
-| [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `side_side_inplane_splayed_scarf`, `side_side_inplane_cross_splayed_scarf`, `side_side_rotated_mitre` |
+| [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `side_side_inplane_splayed_scarf`, `side_side_inplane_cross_splayed_scarf`, `side_side_rotated_miter`, `jupiter_scarf` |
 | [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `butterfly_key` |
 | [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |

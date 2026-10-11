@@ -13,7 +13,7 @@ int main() {
         const double half_angle = 0.5 * angle * Tolerance::PI / 180.0;
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("fold_{:g}", angle));
 
-        // two 600 x 400 slabs 200 thick falling half the angle each from the ridge, mitred on x = 0, the row 600 along y
+        // two 600 x 400 slabs 200 thick falling half the angle each from the ridge, mitered on x = 0, the row 600 along y
         std::array<std::shared_ptr<Plate>, 2> slabs;
         for (int side = 0; side < 2; side++) {
             const double sign = side == 0 ? -1.0 : 1.0;

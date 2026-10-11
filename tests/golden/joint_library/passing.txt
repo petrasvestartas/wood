@@ -35,7 +35,7 @@ ts/top_side_tenons/24/0.75
 ts/top_side_milled_wedge
 ts/top_side_custom
 ts/side_removal/0/0.5
-r/side_side_rotated_mitre
+r/side_side_rotated_miter
 r/side_side_rotated_hooks
 r/side_side_rotated_hooks/4/0.5
 r/side_side_rotated_hooks/2/0.25
@@ -74,13 +74,13 @@ op@150/side_side_outplane_three_fingers
 op@150/side_side_outplane_fingers
 op@150/side_side_outplane_graded_fingers
 op@150/side_side_outplane_notch
-r@90/side_side_rotated_mitre
+r@90/side_side_rotated_miter
 r@90/side_side_rotated_hooks
 r@90/side_side_rotated_keys
-r@120/side_side_rotated_mitre
+r@120/side_side_rotated_miter
 r@120/side_side_rotated_hooks
 r@120/side_side_rotated_keys
-r@150/side_side_rotated_mitre
+r@150/side_side_rotated_miter
 r@150/side_side_rotated_hooks
 r@150/side_side_rotated_keys
 ts@skew60/top_side_three_tenons

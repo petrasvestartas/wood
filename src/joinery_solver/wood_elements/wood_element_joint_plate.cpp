@@ -18,12 +18,12 @@ using namespace wood_session;
 /// The id of every design 2024's tables reach, by name and by its 2024 name: the inverse of the build_ switches below, a side removal by its family.
 const std::unordered_map<std::string, int> LIBRARY_IDS = {
     {"", 0},
-    {"side_side_inplane_dovetails", 1}, {"side_side_inplane_three_fingers", 2}, {"side_side_inplane_butterfly_keys", 3}, {"side_side_inplane_splayed_scarf", 4}, {"side_side_inplane_cross_splayed_scarf", 5}, {"side_side_inplane_tooth_keys", 6}, {"side_side_inplane/side_removal", 8}, {"side_side_inplane_custom", 9},
-    {"side_side_outplane_fingers", 10}, {"side_side_outplane_graded_fingers", 11}, {"side_side_outplane_three_fingers", 12}, {"side_side_outplane_mitre_tenon", 13}, {"side_side_outplane_tenons", 14}, {"side_side_outplane_linked_tenons", 15}, {"side_side_outplane_linked_tenons_wall", 16}, {"side_side_outplane/side_removal", 18}, {"side_side_outplane_custom", 19},
+    {"side_side_inplane_dovetails", 1}, {"side_side_inplane_three_fingers", 2}, {"side_side_inplane_butterfly_keys", 3}, {"side_side_inplane_splayed_scarf", 4}, {"side_side_inplane_cross_splayed_scarf", 5}, {"side_side_inplane_tooth_keys", 6}, {"jupiter_scarf", 7}, {"side_side_inplane/side_removal", 8}, {"side_side_inplane_custom", 9},
+    {"side_side_outplane_fingers", 10}, {"side_side_outplane_graded_fingers", 11}, {"side_side_outplane_three_fingers", 12}, {"side_side_outplane_miter_tenon", 13}, {"side_side_outplane_tenons", 14}, {"side_side_outplane_linked_tenons", 15}, {"side_side_outplane_linked_tenons_wall", 16}, {"side_side_outplane/side_removal", 18}, {"side_side_outplane_custom", 19},
     {"top_side_tenons", 20}, {"top_side_dense_tenons", 21}, {"top_side_milled_wedge", 24}, {"top_side_snap_fit", 25}, {"top_side/side_removal", 28}, {"top_side_custom", 29},
     {"cross_slot", 30}, {"cross_sliced_half_lap", 31}, {"cross_half_lap", 32}, {"cross_half_lap_diagonal_drills", 33}, {"cross_half_lap_drill", 34}, {"cross_brussels_half_lap", 35}, {"cross/side_removal", 38}, {"cross_custom", 39},
     {"top_top_centre_pin", 40}, {"top_top_polylabel_pin", 41}, {"top_top_circle_pins", 42}, {"top_top_ring_pins", 43}, {"top_top_grid_pins", 44}, {"top_top_rectangle_pins", 45}, {"top_top/side_removal", 48}, {"top_top_custom", 49},
-    {"side_side_rotated_keys", 54}, {"side_side_rotated_hooks", 55}, {"side_side_rotated_mitre", 56}, {"side_side_rotated/side_removal", 57}, {"side_side_rotated/side_removal_merged", 58}, {"side_side_rotated_custom", 59},
+    {"side_side_rotated_keys", 54}, {"side_side_rotated_hooks", 55}, {"side_side_rotated_miter", 56}, {"side_side_rotated/side_removal", 57}, {"side_side_rotated/side_removal_merged", 58}, {"side_side_rotated_custom", 59},
     {"border", 60}, {"border_custom", 69},
     // the same designs by their 2024 names
     {"ss_e_ip_1", 1}, {"ss_e_ip_0", 2}, {"ss_e_ip_2", 3}, {"ss_e_ip_3", 4}, {"ss_e_ip_4", 5}, {"ss_e_ip_5", 6}, {"ss_e_ip_custom", 9},
@@ -100,6 +100,9 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
     case 6:
         side_side_inplane_tooth_keys(joint, context.elements);
         return true;
+    case 7:
+        jupiter_scarf(joint);
+        return true;
     case 8:
         side_removal(joint, context.elements);
         return true;
@@ -124,7 +127,7 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
         side_side_outplane_three_fingers(joint);
         return true;
     case 13:
-        side_side_outplane_mitre_tenon(joint);
+        side_side_outplane_miter_tenon(joint);
         return true;
     case 14:
         side_side_outplane_tenons(joint);
@@ -221,7 +224,7 @@ static bool build_toptop(const int id, InteractionFeaturePlate& joint, BuildCont
         top_top_circle_pins(joint, context.elements);
         return true;
     case 43:
-        top_top_ring_pins(joint, context.elements, context.settings);
+        top_top_ring_pins(joint, context.elements, context.settings, 0.0);
         return true;
     case 44:
         top_top_grid_pins(joint, context.elements);
@@ -250,7 +253,7 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
         side_side_rotated_hooks(joint, context.elements);
         return true;
     case 56:
-        side_side_rotated_mitre(joint);
+        side_side_rotated_miter(joint);
         return true;
     case 57:
         side_removal(joint, context.elements);
@@ -1533,9 +1536,9 @@ std::shared_ptr<JointPlate> JointPlate::side_side_outplane_graded_fingers(int di
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::side_side_outplane_mitre_tenon() {
+std::shared_ptr<JointPlate> JointPlate::side_side_outplane_miter_tenon() {
 
-    return side_side_outplane("side_side_outplane_mitre_tenon");
+    return side_side_outplane("side_side_outplane_miter_tenon");
 }
 
 std::shared_ptr<JointPlate> JointPlate::side_side_outplane_tenons(
@@ -1610,8 +1613,8 @@ bool JointPlate::compute_side_side_outplane(InteractionFeaturePlate& connection,
         ::side_side_outplane_fingers(connection);
     else if (parameters.library == "side_side_outplane_graded_fingers")
         ::side_side_outplane_graded_fingers(connection);
-    else if (parameters.library == "side_side_outplane_mitre_tenon")
-        ::side_side_outplane_mitre_tenon(connection);
+    else if (parameters.library == "side_side_outplane_miter_tenon")
+        ::side_side_outplane_miter_tenon(connection);
     else if (parameters.library == "side_side_outplane_tenons")
         ::side_side_outplane_tenons(
             connection,
@@ -1819,17 +1822,17 @@ bool JointPlate::compute_top_top(InteractionFeaturePlate& connection, const std:
         return true;
     }
 
-    // a drill pattern is laid on the contact less a border of two drill radii, so one radius of wood stays between every hole and the
-    // plate's edge; its shift is measured inside that border
+    // a drill pattern is laid on the contact less a border of three drill radii, so one diameter of wood stays between every hole and
+    // the plate's edge; its shift is measured inside that border
     const Polyline contact = connection.contact.polygon;
     if (line_radius > 0.0)
-        connection.contact.polygon = offset_contact(connection, 2.0 * line_radius);
+        connection.contact.polygon = offset_contact(connection, 3.0 * line_radius);
 
     bool known = true;
     if (parameters.library == "top_top_circle_pins")
         ::top_top_circle_pins(connection, elements);
     else if (parameters.library == "top_top_ring_pins")
-        ::top_top_ring_pins(connection, elements, settings);
+        ::top_top_ring_pins(connection, elements, settings, line_radius);
     else if (parameters.library == "top_top_grid_pins")
         ::top_top_grid_pins(connection, elements);
     else if (parameters.library == "top_top_rectangle_pins")
@@ -1938,9 +1941,9 @@ std::shared_ptr<JointPlate> JointPlate::side_side_rotated(const std::string& lib
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::side_side_rotated_mitre() {
+std::shared_ptr<JointPlate> JointPlate::side_side_rotated_miter() {
 
-    return side_side_rotated("side_side_rotated_mitre");
+    return side_side_rotated("side_side_rotated_miter");
 }
 
 std::shared_ptr<JointPlate> JointPlate::side_side_rotated_hooks(int divisions, double shift) {
@@ -1975,8 +1978,8 @@ std::shared_ptr<JointPlate> JointPlate::side_side_rotated_custom(const std::vect
 
 bool JointPlate::compute_side_side_rotated(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) const {
 
-    if (parameters.library == "side_side_rotated_mitre")
-        ::side_side_rotated_mitre(connection);
+    if (parameters.library == "side_side_rotated_miter")
+        ::side_side_rotated_miter(connection);
     else if (parameters.library == "side_side_rotated_hooks")
         ::side_side_rotated_hooks(connection, elements);
     else if (parameters.library == "side_side_rotated_keys")

@@ -42,7 +42,7 @@ public:
         double cut_offset_factor = 1.0,
         const std::map<std::pair<size_t, size_t>, Vector>& frame_ups = {},
         BeamUp beam_up = BeamUp::OwningFace,
-        wood_reciprocal::CornerJoint corner_joint = wood_reciprocal::CornerJoint::Mitre,
+        wood_reciprocal::CornerJoint corner_joint = wood_reciprocal::CornerJoint::Miter,
         const std::map<std::pair<size_t, size_t>, int>& through_priority = {},
         const std::string& name = "reciprocal_move"
     );
@@ -131,7 +131,7 @@ inline ReciprocalMove::ReciprocalMove(
             if (axis.beam)
                 add_line(axis.line, axes);
 
-    // frame: a straight beam on every naked edge, mitred, or butted at the corners
+    // frame: a straight beam on every naked edge, mitered, or butted at the corners
     _frame = wood_reciprocal::boundary_frame(
         _faces.faces,
         _faces.owners,
