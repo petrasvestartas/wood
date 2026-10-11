@@ -190,10 +190,44 @@ static void check_tees() {
     }
 }
 
+/// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by ss_e_ip_3
+/// and 4, at 90 and 60 degrees trimmed on the mitre by ss_e_r_0; the extensions' overlap is gone and the pair keeps the wood of its two
+/// 1200 mm axes and of the extensions at their free ends and no more, less the pins' bores.
+static void check_end_to_end() {
+
+    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "ss_e_ip_3"}, {0.0, "ss_e_ip_4"}, {90.0, "ss_e_r_0"}, {60.0, "ss_e_r_0"}}};
+    for (const std::pair<double, std::string>& end_case : cases) {
+        WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
+        scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);
+        const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_end_to_end(end_case.first);
+        scene.add(pair[0]);
+        scene.add(pair[1]);
+        const InteractionContactAxis contact(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0);
+        const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*pair[0], *pair[1], contact, 600.0, 0.91, 0, scene.settings);
+        check(joint != nullptr && joint->joinery.name == end_case.second, fmt::format("the beams at {:g} degrees take {}", end_case.first, end_case.second));
+        scene.add(joint);
+        scene.add_interaction(joint, pair[0], joint->interaction(0));
+        scene.add_interaction(joint, pair[1], joint->interaction(1));
+
+        const double before = boolean_volume(pair[0]->element_geometry_mesh(), pair[1]->element_geometry_mesh(), SolidOperation::intersect);
+        const double after = boolean_volume(pair[0]->model_geometry_mesh(), pair[1]->model_geometry_mesh(), SolidOperation::intersect);
+        double kept = 0.0;
+        for (const std::shared_ptr<Beam>& member : pair) {
+            check(member->model_geometry_mesh().is_closed(), fmt::format("{} is a closed solid after {} at {:g} degrees", member->name, end_case.second, end_case.first));
+            kept += compute_volume(member->model_geometry_mesh());
+        }
+        const double axes = 2.0 * (1200.0 + 150.0) * 150.0 * 150.0;
+        std::cout << fmt::format("joint_beams: {} at {:g} degrees: overlap {:.0f} to {:.0f} mm3, the pair keeps {:.0f} of its axes' and free ends' {:.0f}", end_case.second, end_case.first, before, after, kept, axes) << std::endl;
+        check(before > 0.0 && after <= 1e-6 * before, fmt::format("{} at {:g} degrees leaves {:.1f} of the {:.1f} mm3 overlap", end_case.second, end_case.first, after, before));
+        check(std::abs(kept - axes) <= 0.01 * axes, fmt::format("{} at {:g} degrees keeps {:.0f} mm3, not its axes' {:.0f}", end_case.second, end_case.first, kept, axes));
+    }
+}
+
 int main() {
 
     check_phanomema_node();
     check_crossings();
     check_tees();
+    check_end_to_end();
     return 0;
 }

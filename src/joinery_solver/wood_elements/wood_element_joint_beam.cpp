@@ -61,8 +61,9 @@ JointBeam::JointBeam(
 /// The plate joint 2024 built on a beam pair: the two boxes the volumes make, [0] to [1] the first beam's and [2] to [3] the second's, solved as
 /// plates with the settings' rows, an end-to-end pair searched as a crossing; inside the zone of both boxes each beam then keeps what its box
 /// keeps of the joint, its tenons with it, and loses the rest: the other box and its own mortises, with what the design mills as a solid
-/// and its drills.
-static void compute_joinery(JointBeam& joint, const Settings& settings) {
+/// and its drills. Beams meeting end to end both run on through the zone, their extensions: each loses only what the design mills from it
+/// and the other box past the joint.
+static void compute_joinery(JointBeam& joint, const Settings& settings, bool end_to_end) {
 
     WoodSession boxes("beam_joint_boxes");
     boxes.settings = settings;
@@ -82,8 +83,24 @@ static void compute_joinery(JointBeam& joint, const Settings& settings) {
 
     // the joint's zone, both boxes: inside it each beam keeps what its box keeps and loses the rest
     const Mesh zone = solid_boolean(box[0]->element_geometry_mesh(), box[1]->element_geometry_mesh(), SolidOperation::add);
-    for (size_t i = 0; i < 2; i++) {
+    for (size_t i = 0; i < 2; i++)
         joint.joinery_sides[i] = joint.joinery.element_a == box[i]->guid() ? 0 : 1;
+
+    // end to end: what both sides mill, and each beam's cut its own pieces and the other box past them, side by side for the boolean to unite
+    if (end_to_end) {
+        std::array<std::vector<Mesh>, 2> pieces = {JointPlate::side_solids(joint.joinery, 0), JointPlate::side_solids(joint.joinery, 1)};
+        std::vector<Mesh> both = pieces[0];
+        both.insert(both.end(), pieces[1].begin(), pieces[1].end());
+        for (size_t i = 0; i < 2; i++) {
+            std::vector<Mesh> cut = pieces[joint.joinery_sides[i]];
+            cut.push_back(solid_difference(box[1 - i]->element_geometry_mesh(), both));
+            joint.member_cuts[i] = shells_side_by_side(cut);
+            joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
+        }
+        return;
+    }
+
+    for (size_t i = 0; i < 2; i++) {
         const Features& merged = box[i]->features;
 
         // the zone less the loft of the box's outer outline, its tenons kept, united with every hole's prism, its mortises: one solid, as
@@ -132,8 +149,39 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
         return nullptr;
     joint->targets = {source.guid(), target.guid()};
 
+    // beams meeting end to end: an end of the one segment on an end of the other, each axis direction pointing away from it
+    const Line a = source.axis.get_lines()[contact.segment_a];
+    const Line b = target.axis.get_lines()[contact.segment_b];
+    bool end_to_end = false;
+    Point shared;
+    std::array<Vector, 2> away;
+    for (const Line& p : {a, Line::from_points(a.end(), a.start())})
+        for (const Line& q : {b, Line::from_points(b.end(), b.start())})
+            if (!end_to_end && p.start().distance(q.start()) < Tolerance::APPROXIMATION) {
+                end_to_end = true;
+                shared = p.start();
+                away = {(p.end() - p.start()).normalized(), (q.end() - q.start()).normalized()};
+            }
+
+    // at an angle, ss_e_r_0: each beam's extension trimmed on the mitre, the plane through the shared end bisecting the axes, by a
+    // block on the other beam's side of it
+    if (end_to_end && std::abs(away[0].dot(away[1])) < 0.999) {
+        const Vector normal = (away[0] - away[1]).normalized();
+        const Vector x_axis = normal.cross(std::abs(normal.dot(Vector::z_axis())) < 0.9 ? Vector::z_axis() : Vector::x_axis()).normalized();
+        const Vector y_axis = normal.cross(x_axis).normalized();
+        const double reach = 4.0 * (std::max(source.radius(contact.segment_a), target.radius(contact.segment_b)) + std::max(source.extension, target.extension));
+        const Polyline face = Polyline::rectangle(shared - x_axis * reach - y_axis * reach, x_axis, y_axis, 2.0 * reach, 2.0 * reach);
+        for (size_t i = 0; i < 2; i++) {
+            const Vector beyond = normal * (i == 0 ? -reach : reach);
+            joint->member_cuts[i] = Mesh::loft({face}, {face.transformed(Xform::translation(beyond[0], beyond[1], beyond[2]))}, true);
+        }
+        joint->joinery.name = "ss_e_r_0";
+        joint->joinery_sides = {0, 1};
+        return joint;
+    }
+
     // the plate joint on the boxes and the cut it leaves each beam
-    compute_joinery(*joint, settings);
+    compute_joinery(*joint, settings, end_to_end);
 
     // a beam ending on another has room for one tenon: where the design severs a beam or leaves the two overlapping inside the joint, cut the single milled
     // tenon of ts_e_p_4 instead
@@ -166,7 +214,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
             *joint = JointBeam();
             beam_to_beam(source, target, contact, volume_length, cross_or_side_to_end, flip_male, joint->feature);
             joint->targets = {source.guid(), target.guid()};
-            compute_joinery(*joint, single);
+            compute_joinery(*joint, single, false);
         }
     }
 

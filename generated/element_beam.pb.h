@@ -226,6 +226,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
     kSolidFeaturesFieldNumber = 7,
     kPlaneFeaturesFieldNumber = 8,
     kAxisFieldNumber = 1,
+    kExtensionFieldNumber = 9,
     kAllowedTypeFieldNumber = 4,
   };
   // repeated double radii = 2;
@@ -362,6 +363,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
   ::session_proto::Polyline* PROTOBUF_NONNULL _internal_mutable_axis();
 
   public:
+  // double extension = 9;
+  void clear_extension() ;
+  [[nodiscard]] double extension() const;
+  void set_extension(double value);
+
+  private:
+  double _internal_extension() const;
+  void _internal_set_extension(double value);
+
+  public:
   // int32 allowed_type = 4;
   void clear_allowed_type() ;
   [[nodiscard]] ::int32_t allowed_type() const;
@@ -376,7 +387,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<3, 8,
+      ::google::protobuf::internal::TcParseTable<4, 9,
                           6, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -412,6 +423,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Beam final : public ::google::proto
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeatureSolid > solid_features_;
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE axis_;
+    double extension_;
     ::int32_t allowed_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -733,7 +745,7 @@ Beam::_internal_mutable_directions() {
 inline void Beam::clear_allowed_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.allowed_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
 }
 inline ::int32_t Beam::allowed_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.Beam.allowed_type)
@@ -741,7 +753,7 @@ inline ::int32_t Beam::allowed_type() const {
 }
 inline void Beam::set_allowed_type(::int32_t value) {
   _internal_set_allowed_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   // @@protoc_insertion_point(field_set:wood_proto.Beam.allowed_type)
 }
 inline ::int32_t Beam::_internal_allowed_type() const {
@@ -851,6 +863,30 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 Beam::_internal_mutable_profile() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.profile_;
+}
+
+// double extension = 9;
+inline void Beam::clear_extension() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.extension_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+}
+inline double Beam::extension() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Beam.extension)
+  return _internal_extension();
+}
+inline void Beam::set_extension(double value) {
+  _internal_set_extension(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  // @@protoc_insertion_point(field_set:wood_proto.Beam.extension)
+}
+inline double Beam::_internal_extension() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.extension_;
+}
+inline void Beam::_internal_set_extension(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.extension_ = value;
 }
 
 #ifdef __GNUC__

@@ -56,5 +56,6 @@ The interaction keeps the axes' `normal` and their two directions where they mee
 | --- | --- | --- |
 | [cr_c_ip](@ref elements_joint_beam_cr_c_ip) | two beams crossing | `cr_c_ip_0` to `cr_c_ip_5` |
 | [ts_e_p](@ref elements_joint_beam_ts_e_p) | a beam ending on another | `ts_e_p_4` |
+| [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `ss_e_ip_3`, `ss_e_ip_4`, `ss_e_r_0` |
 | [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `tie` |
 | [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |
