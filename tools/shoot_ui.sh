@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # A screenshot of the session viewer WITH its interface (the egui layer panel open, every row expanded, the command line), without a
 # browser or a GPU: tools/ui_shot.rs runs the viewer's own State and egui panels in a winit window on Xvfb with Mesa's lavapipe,
-# runs "Layers All;Element Interactions On;Element Attributes On;Arctic On;View Isometric;View Orthographic;Fit" one line a frame
+# runs "Layers All;Arctic On;View Isometric;View Orthographic;Fit" one line a frame, the elements alone: no attributes and no interaction features
 # and reads the frame back at twice the interface density (3200 x 2000 device pixels for a 1600 x 1000 interface, as a browser at
 # devicePixelRatio 2). ui_shot.rs includes a symlink mirror of the viewer's src/ with three native stubs patched (see its header);
 # this script remakes that mirror when the viewer's sources change, so it follows them without rebuilding for every shot. Needs Xvfb and libxkbcommon-x11-0.
 #   bash wood/tools/shoot_ui.sh <out.png> <scene.pb> [width height]     default 3200 2000
-#   env: UI_SHOT_SCALE=2 (interface scale), UI_SHOT_VIEW=iso|iso_back, UI_SHOT_CMD="Layers All;...;Fit" (replaces the whole line)
+#   env: UI_SHOT_SCALE=2 (interface scale), UI_SHOT_VIEW=iso|iso_back|top, UI_SHOT_CMD="Layers All;...;Fit" (replaces the whole line)
 set -euo pipefail
 WOOD="$(cd "$(dirname "$0")/.." && pwd)"
 VIEWER="${SESSION_VIEWER:-$WOOD/../session/session_viewer}"

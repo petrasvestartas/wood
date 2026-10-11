@@ -17,13 +17,17 @@ In line, the splice is the in-plane design of `settings.joint_parameters[2]`: ea
 
 ![ss_e_ip_3](elements/element_joint_beam_ss_e_ip_3.png)
 
-`Beam::pair_end_to_end(0.0)`: a splayed scarf with shoulders through the depth and two pins across; the second beam is moved 300 along the axis.
+![ss_e_ip_3, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_3_unit.png)
+
+`Beam::pair_end_to_end(0.0)`, in line only, as a scarf joins beams in line: a splayed scarf with shoulders through the depth and two pins across; the second beam is moved 300 along the axis.
 
 \include{lineno} elements/element_joint_beam_ss_e_ip_3.cpp
 
 ## ss_e_ip_4: the cross-splayed scarf
 
 ![ss_e_ip_4](elements/element_joint_beam_ss_e_ip_4.png)
+
+![ss_e_ip_4, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_4_unit.png)
 
 The same scarf with the upper and lower halves of the depth splayed in opposite directions, so the beams lock sideways both ways.
 
@@ -33,6 +37,6 @@ The same scarf with the upper and lower halves of the depth splayed in opposite 
 
 ![ss_e_r_0](elements/element_joint_beam_ss_e_r_0.png)
 
-`Beam::pair_end_to_end(90.0)`: each extension trimmed on the plane through the shared end bisecting the axes; the second beam is moved 300.
+`Beam::pair_end_to_end(90.0)` and `Beam::pair_end_to_end(60.0)`: each extension trimmed on the plane through the shared end bisecting the axes; the second beam is moved 300.
 
 \include{lineno} elements/element_joint_beam_ss_e_r_0.cpp

@@ -1544,11 +1544,12 @@ static InteractionFeatureSolid plate_joint_cutter(
     cut.drill_tolerance = chord_tolerance;
     cut.drills = JointPlate::side_drills(connection, side);
 
-    // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would only trouble the boolean
+    // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would
+    // only trouble the boolean; the user's own pieces all stay, as one may lie in a tongue their outline merges past the stock's edge
     std::vector<Mesh> pieces;
     for (const Mesh& piece : JointPlate::side_solids(connection, side)) {
         const Mesh taken = solid_boolean(stock, piece, SolidOperation::intersect);
-        if (taken.number_of_faces() > 0 && compute_volume(taken) > 1e-9 * compute_volume(piece))
+        if (connection.name.ends_with("_custom") || (taken.number_of_faces() > 0 && compute_volume(taken) > 1e-9 * compute_volume(piece)))
             pieces.push_back(piece);
     }
 

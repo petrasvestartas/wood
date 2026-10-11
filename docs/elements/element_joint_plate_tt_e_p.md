@@ -22,11 +22,13 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: two 400 x 300 plates 40 thick, the lower one on the world axes, the upper one turned about the vertical, its x axis (0.8, 0.6) and its corner at (150, -60), its bottom on the lower one's top, so their contact is an irregular octagon whose centre lies apart from its polylabel.
+Every example joins two pairs, `Plate::pair_stacked(0.0)` and `Plate::pair_stacked(30.0)`: two 400 x 300 plates 40 thick stacked, the upper one's centre shifted, square and turned 30 degrees about the vertical, the joint oriented on their face contact and passed to each plate with `add_interaction`, the upper plate lifted afterwards.
 
 ## tt_e_p_0: the centre
 
 ![tt_e_p_0](elements/element_joint_plate_tt_e_p_0.png)
+
+![tt_e_p_0, the unit box: male pink, female blue](joint_library/tt_tt_e_p_0_8_unit.png)
 ![tt_e_p_0, the plan](elements/element_joint_plate_tt_e_p_0_plan.png)
 
 One hole at the centre of the contact, drilled through both plates.
@@ -36,6 +38,8 @@ One hole at the centre of the contact, drilled through both plates.
 ## tt_e_p_1: the polylabel
 
 ![tt_e_p_1](elements/element_joint_plate_tt_e_p_1.png)
+
+![tt_e_p_1, the unit box: male pink, female blue](joint_library/tt_tt_e_p_1_8_unit.png)
 ![tt_e_p_1, the plan](elements/element_joint_plate_tt_e_p_1_plan.png)
 
 One hole at the polylabel of the contact, the centre of the largest circle inscribed in it, which on this octagon lies apart from the centre of `tt_e_p_0`.
@@ -45,6 +49,8 @@ One hole at the polylabel of the contact, the centre of the largest circle inscr
 ## tt_e_p_2: holes on the inscribed circle
 
 ![tt_e_p_2](elements/element_joint_plate_tt_e_p_2.png)
+
+![tt_e_p_2, the unit box: male pink, female blue](joint_library/tt_tt_e_p_2_6_0.95_8_unit.png)
 ![tt_e_p_2, the plan](elements/element_joint_plate_tt_e_p_2_plan.png)
 
 Six holes on the largest inscribed circle, its radius scaled by the shift 0.95, from 45 degrees on in a frame along the contact edge nearest the centre.
@@ -54,6 +60,8 @@ Six holes on the largest inscribed circle, its radius scaled by the shift 0.95, 
 ## tt_e_p_3: holes along the offset ring
 
 ![tt_e_p_3](elements/element_joint_plate_tt_e_p_3.png)
+
+![tt_e_p_3, the unit box: male pink, female blue](joint_library/tt_tt_e_p_3_60_12_8_unit.png)
 ![tt_e_p_3, the plan](elements/element_joint_plate_tt_e_p_3_plan.png)
 
 The contact offset inward by the shift, 20 mm, as 2024's Clipper inset it, and a hole every 60 along that ring.
@@ -63,6 +71,8 @@ The contact offset inward by the shift, 20 mm, as 2024's Clipper inset it, and a
 ## tt_e_p_4: a lattice in the offset ring
 
 ![tt_e_p_4](elements/element_joint_plate_tt_e_p_4.png)
+
+![tt_e_p_4, the unit box: male pink, female blue](joint_library/tt_tt_e_p_4_60_12_8_unit.png)
 ![tt_e_p_4, the plan](elements/element_joint_plate_tt_e_p_4_plan.png)
 
 The contact offset inward by 20 and filled with a lattice of holes 60 apart from the ring's first corner.
@@ -72,6 +82,8 @@ The contact offset inward by 20 and filled with a lattice of holes 60 apart from
 ## tt_e_p_5: holes along the largest rectangle
 
 ![tt_e_p_5](elements/element_joint_plate_tt_e_p_5.png)
+
+![tt_e_p_5, the unit box: male pink, female blue](joint_library/tt_tt_e_p_5_60_0.95_8_unit.png)
 ![tt_e_p_5, the plan](elements/element_joint_plate_tt_e_p_5_plan.png)
 
 The largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of its shorter extent, and a hole every 60 along its edges; a negative division length fills it with a grid of that step instead.
@@ -81,6 +93,8 @@ The largest empty rectangle 2024 inscribed in the contact, inset by 1 - 0.95 of 
 ## tt_e_p_custom: your own outlines
 
 ![tt_e_p_custom](elements/element_joint_plate_tt_e_p_custom.png)
+
+![tt_e_p_custom, the unit box: male pink, female blue](joint_library/tt_tt_e_p_custom_unit.png)
 ![tt_e_p_custom, the plan](elements/element_joint_plate_tt_e_p_custom_plan.png)
 
 Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the contact, y along the plates' normal from the lower plate's bottom at -0.5 through the contact at 0 to the upper plate's top at 0.5, z along the contact. Here a hidden butterfly key: a bow-tie pocket milled into each plate from the contact face, and the key, the joint's own piece, set in both.

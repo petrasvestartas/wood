@@ -144,13 +144,15 @@ public:
 
     static std::shared_ptr<JointPlate> ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-    /// The Hilti connector across the straight seam of two CLT slabs, flat or folded: the 2024 Hilti joint (ss_e_r_2, id 55) with its
+    /// The Hilti connector of the in-plane family (ss_e_ip) across the straight seam of two CLT slabs side to side, flat or folded a little:
+    /// the 2024 Hilti joint (ss_e_r_2, id 55) with its
     /// key. Each slab gets its half of the bow-tie pocket milled from the top: the neck across the seam widening into the wing, straight
     /// to its end, the far corners rounded by the router, depth under the seam's top edge. The key is a straight bow-tie of two plywood
     /// halves with a steel disc recessed in each end and the bolt from disc to disc, inside the pockets: the same solids at
     /// every fold, so a folded pair, its tops falling away from the ridge, leaves the wings standing out. The defaults are the product's
-    /// (240 x 90 x 93 mm cutout, a 27.7 x 40 neck, a 40 mm router) on CLT of at least 120 mm. Null when the contact has no straight seam.
-    static std::shared_ptr<JointPlate> hilti(
+    /// (240 x 90 x 93 mm cutout, a 27.7 x 40 neck, a 40 mm router) on CLT of at least 120 mm. Null when the contact is not side to side
+    /// or has no straight seam.
+    static std::shared_ptr<JointPlate> ss_e_ip_hilti(
         const Plate& a,
         const Plate& b,
         const InteractionContactFace& contact,

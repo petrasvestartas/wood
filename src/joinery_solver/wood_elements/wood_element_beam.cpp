@@ -51,6 +51,7 @@ std::array<std::shared_ptr<Beam>, 2> Beam::pair_tee(double angle_degrees, double
     const Point origin(0.0, 0.0, 0.0);
     const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
     const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    second->extension = radius;
     return {first, second};
 }
 

@@ -13,8 +13,8 @@
 //   DISPLAY=:99 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json REGEN_PROTO=0 UI_SHOT_IN=<in.pb> UI_SHOT_OUT=<out.ppm> \
 //     cargo test --release --example ui_shot --target x86_64-unknown-linux-gnu -- --exact shot::ui_shot --nocapture
 // Optional: UI_SHOT_SIZE=3200x2000 (device pixels), UI_SHOT_SCALE=2 (device pixels per interface pixel, the browser's devicePixelRatio),
-// UI_SHOT_VIEW=iso|iso_back (View Isometric or View Isometric Back in the default line),
-// UI_SHOT_CMD="Layers All;Element Interactions On;..." (replaces the default docs line, UI_SHOT_VIEW then ignored).
+// UI_SHOT_VIEW=iso|iso_back|top (View Isometric, View Isometric Back or View Top in the default line),
+// UI_SHOT_CMD="Layers All;Arctic On;..." (replaces the default docs line, UI_SHOT_VIEW then ignored).
 #[cfg(not(target_arch = "wasm32"))]
 include!("ui_shot_src/lib.rs"); // src/ mirrored by symlinks, app/ui/mod.rs patched: see the header
 
@@ -33,7 +33,7 @@ mod shot {
     use winit::platform::x11::EventLoopBuilderExtX11;
     use winit::window::{Window, WindowId};
 
-    const COMMANDS: &str = "Layers All;Element Interactions On;Element Attributes On;Arctic On;{view};View Orthographic;Fit";
+    const COMMANDS: &str = "Layers All;Arctic On;{view};View Orthographic;Fit";
 
     struct Shot {
         input: String,
@@ -80,6 +80,7 @@ mod shot {
             }
             let view = match std::env::var("UI_SHOT_VIEW").as_deref() {
                 Ok("iso_back") => "View Isometric Back",
+                Ok("top") => "View Top",
                 _ => "View Isometric",
             };
             let commands = std::env::var("UI_SHOT_CMD").unwrap_or_else(|_| COMMANDS.replace("{view}", view));

@@ -305,40 +305,75 @@ static Fixture make_fixture(const std::string& token, WoodSession& scene, const 
 // Variants - a library factory per id, the custom designs on unit outlines
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A closed rectangle of five points on one face of the unit box: `fixed_axis` held at `fixed`, spanning -1 to 1 on `swing_axis` and z0 to z1 along z, starting at `first_swing`, the end the merge's clip walks in from, so it lies outside the plate; what 2024 merged of a custom pair, clipped into the plate as a notch.
-static Polyline rectangle(int fixed_axis, double fixed, int swing_axis, double z0, double z1, double first_swing = -1.0) {
-
-    const std::array<double, 5> swing = {first_swing, -first_swing, -first_swing, first_swing, first_swing};
-    const std::array<double, 5> z = {z0, z0, z1, z1, z0};
-    std::vector<Point> points;
-
-    for (size_t i = 0; i < 5; i++) {
-        Point p(0.0, 0.0, z[i]);
-        p[fixed_axis] = fixed;
-        p[swing_axis] = swing[i];
-        points.push_back(p);
-    }
-
-    return Polyline(points);
-}
-
-/// The male and female unit outlines of a custom design, face 0 then face 1 of each: the top-top family a hidden butterfly key's pockets; the side and top-side families keep theirs pair by pair as 2024 did, so they get the rectangles 2024 merged, a notch into each member over its own stretch of the joint line (the top-side female lies on the base's face, where 2024 merged nothing, so only the upright is notched); the cross family stitches its pairs as edge insertions.
+/// The male and female unit outlines of a custom design, face 0 then face 1 of each pair, the ones its element example draws: in plane a
+/// feather of sharp teeth, out of plane three fingers at the user's own stations, top to side one tapered through tenon, rotated a half-lap
+/// step along the whole seam, across the slots of an unequal depth, top to top a hidden butterfly key's pockets.
 static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& family) {
 
-    if (family == "op")
-        return {std::vector<Polyline>{rectangle(1, 0.5, 0, 0.4, 0.1), rectangle(1, -0.5, 0, 0.4, 0.1)}, std::vector<Polyline>{rectangle(0, 0.5, 1, -0.1, -0.4), rectangle(0, -0.5, 1, -0.1, -0.4)}};
-    if (family == "ts")
-        return {std::vector<Polyline>{rectangle(0, 0.5, 1, 0.4, 0.1, 1.0), rectangle(0, -0.5, 1, 0.4, 0.1, 1.0)}, std::vector<Polyline>{rectangle(1, -0.5, 0, -0.1, -0.4), rectangle(1, 0.5, 0, -0.1, -0.4)}};
+    if (family == "ip") {
+        const auto profile = [](double y) {
+            std::vector<Point> points = {Point(0.0, y, 0.5)};
+            for (int i = 0; i <= 8; i++)
+                points.push_back(Point(i % 2 == 0 ? -0.5 : 0.5, y, 0.45 - i * 0.1125));
+            points.push_back(Point(0.0, y, -0.5));
+            return Polyline(points);
+        };
+        const auto end_line = [](double y) {
+            return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
+        };
+        const std::vector<Polyline> outlines = {profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)};
+        return {outlines, outlines};
+    }
+
+    if (family == "op") {
+        const double a = 0.42;
+        const double b = 0.18;
+        const double c = 0.06;
+        std::array<std::vector<Polyline>, 2> wall_faces;
+        std::array<std::vector<Polyline>, 2> floor_faces;
+        for (int face = 0; face < 2; face++) {
+            const double side = face == 0 ? 0.5 : -0.5;
+            floor_faces[face] = {
+                Polyline({
+                    Point(side, 0.5, -a), Point(side, -0.5, -a), Point(side, -0.5, -b), Point(side, 0.5, -b),
+                    Point(side, 0.5, -c), Point(side, -0.5, -c), Point(side, -0.5, c), Point(side, 0.5, c),
+                    Point(side, 0.5, b), Point(side, -0.5, b), Point(side, -0.5, a), Point(side, 0.5, a),
+                }),
+                Polyline({Point(side, 0.5, -0.5), Point(side, 0.5, 0.5)}),
+            };
+            wall_faces[face] = {
+                Polyline({
+                    Point(-0.5, side, a), Point(0.5, side, a), Point(0.5, side, b), Point(-0.5, side, b),
+                    Point(-0.5, side, c), Point(0.5, side, c), Point(0.5, side, -c), Point(-0.5, side, -c),
+                    Point(-0.5, side, -b), Point(0.5, side, -b), Point(0.5, side, -a), Point(-0.5, side, -a),
+                }),
+                Polyline({Point(-0.5, side, 0.5), Point(-0.5, side, -0.5)}),
+            };
+        }
+        return {std::vector<Polyline>{wall_faces[0][0], wall_faces[1][0], wall_faces[0][1], wall_faces[1][1]}, std::vector<Polyline>{floor_faces[0][0], floor_faces[1][0], floor_faces[0][1], floor_faces[1][1]}};
+    }
+
+    if (family == "ts") {
+        const auto profile = [](double x) {
+            return Polyline({{x, -0.5, -0.35}, {x, -0.5, -0.25}, {x, 0.5, -0.15}, {x, 0.5, 0.15}, {x, -0.5, 0.25}, {x, -0.5, 0.35}});
+        };
+        const auto end_line = [](double x) {
+            return Polyline({{x, -0.5, -0.35}, {x, -0.5, 0.35}});
+        };
+        const auto mortise = [](double y, double half) {
+            return Polyline({{-0.5, y, half}, {0.5, y, half}, {0.5, y, -half}, {-0.5, y, -half}, {-0.5, y, half}});
+        };
+        return {std::vector<Polyline>{profile(0.5), profile(-0.5), end_line(0.5), end_line(-0.5)}, std::vector<Polyline>{mortise(-0.5, 0.25), mortise(0.5, 0.15)}};
+    }
+
     if (family == "cr") {
-        const Polyline male0({{0.5, 0.5, -1.0}, {-0.5, 0.5, -1.0}, {-0.5, 0.5, 0.0}, {0.5, 0.5, 0.0}, {0.5, 0.5, -1.0}});
-        const Polyline male1({{0.5, -0.5, -1.0}, {-0.5, -0.5, -1.0}, {-0.5, -0.5, 0.0}, {0.5, -0.5, 0.0}, {0.5, -0.5, -1.0}});
-        const Polyline female0({{-0.5, 0.5, 1.0}, {-0.5, -0.5, 1.0}, {-0.5, -0.5, 0.0}, {-0.5, 0.5, 0.0}, {-0.5, 0.5, 1.0}});
-        const Polyline female1({{0.5, 0.5, 1.0}, {0.5, -0.5, 1.0}, {0.5, -0.5, 0.0}, {0.5, 0.5, 0.0}, {0.5, 0.5, 1.0}});
+        const Polyline male0({{0.5, 0.5, -1.0}, {-0.5, 0.5, -1.0}, {-0.5, 0.5, -0.4}, {0.5, 0.5, -0.4}, {0.5, 0.5, -1.0}});
+        const Polyline male1({{0.5, -0.5, -1.0}, {-0.5, -0.5, -1.0}, {-0.5, -0.5, -0.4}, {0.5, -0.5, -0.4}, {0.5, -0.5, -1.0}});
+        const Polyline female0({{-0.5, 0.5, 1.0}, {-0.5, -0.5, 1.0}, {-0.5, -0.5, -0.4}, {-0.5, 0.5, -0.4}, {-0.5, 0.5, 1.0}});
+        const Polyline female1({{0.5, 0.5, 1.0}, {0.5, -0.5, 1.0}, {0.5, -0.5, -0.4}, {0.5, 0.5, -0.4}, {0.5, 0.5, 1.0}});
         return {std::vector<Polyline>{male0, male1}, std::vector<Polyline>{female0, female1}};
     }
 
-    // top to top: a hidden butterfly key, its pocket milled half a thickness into each plate at the contact (y = 0), the lower plate's from
-    // y = -0.25 to 0, the upper's from 0 to 0.25
     if (family == "tt") {
         const auto bow_tie = [](double y) {
             return Polyline({{-0.3, y, -0.15}, {0.0, y, -0.06}, {0.3, y, -0.15}, {0.3, y, 0.15}, {0.0, y, 0.06}, {-0.3, y, 0.15}, {-0.3, y, -0.15}});
@@ -346,8 +381,14 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         return {std::vector<Polyline>{bow_tie(-0.25), bow_tie(0.0)}, std::vector<Polyline>{bow_tie(0.0), bow_tie(0.25)}};
     }
 
-    // in plane and rotated: a notch into the male's edge and one into the female's, over their own stretches
-    return {std::vector<Polyline>{rectangle(1, -0.5, 0, 0.4, 0.1), rectangle(1, 0.5, 0, 0.4, 0.1)}, std::vector<Polyline>{rectangle(1, -0.5, 0, -0.1, -0.4), rectangle(1, 0.5, 0, -0.1, -0.4)}};
+    // rotated: the step
+    const auto edge = [](double y) {
+        return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
+    };
+    const auto strip = [](double x0, double y) {
+        return Polyline({{x0, y, 0.6}, {-0.5, y, 0.6}, {-0.5, y, -0.6}, {x0, y, -0.6}, {x0, y, 0.6}});
+    };
+    return {std::vector<Polyline>{edge(-0.5), edge(0.5), edge(-0.5), edge(0.5), strip(0.0, 0.0), strip(0.0, 0.5)}, std::vector<Polyline>{strip(0.1, -0.5), strip(0.1, 0.0)}};
 }
 
 static int integer(const std::vector<std::string>& parts, size_t index, int fallback) {
@@ -665,7 +706,7 @@ static void check_conservation(const Built& built, Row& row) {
         fail(row, "C4", fmt::format("the models sum to {:.9g} mm3, their union is {:.9g}", sum, after_volume));
 }
 
-/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal and a custom pair of a side or top-side family, which only take away, fill nothing, and so does ts_e_p_4, whose pockets take a loose wedge 2024 never modelled and whose male pieces lie in the base's thickness, under an upright standing on it; a pin joint is measured by C7 instead.
+/// C6: the stock one member lost to the joint is what the other now fills inside that stock, or the joint's own key when neither reaches into the other; a side removal, which only takes away, fills nothing, and neither does ts_e_p_4, whose pockets take a loose wedge 2024 never modelled and whose male pieces lie in the base's thickness, under an upright standing on it; a pin joint is measured by C7 instead.
 static void check_fit(const Built& built, Row& row) {
 
     if (built.family == "tt")
@@ -681,8 +722,7 @@ static void check_fit(const Built& built, Row& row) {
     const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh()) + grid;
     const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh()) + grid;
 
-    const bool removal_only = (built.library.starts_with("side_removal") && built.library != "side_removal_ss_e_r_1") || built.library == "ss_e_ip_custom" || built.library == "ss_e_op_custom" || built.library == "ss_e_r_custom"
-                              || built.library == "ts_e_p_custom" || built.library == "ts_e_p_4";
+    const bool removal_only = (built.library.starts_with("side_removal") && built.library != "side_removal_ss_e_r_1") || built.library == "ts_e_p_4";
     if (removal_only) {
         if (filled_by_a > tolerance_b || filled_by_b > tolerance_a)
             fail(row, "C6", fmt::format("a removal fills {:.6g} and {:.6g} mm3 of the other member", filled_by_a, filled_by_b));

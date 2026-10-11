@@ -222,10 +222,10 @@ https://petrasvestartas.github.io/session/
     `element_<type>_<case>.cpp`, showing them through `add_interaction(source, target, feature)`.
   - `docs/images/elements/<example>.png`: a screenshot of the real viewer by
     `bash wood/tools/screenshot_element_docs.sh <example> ...`: it publishes the example to the live
-    viewer and opens it with `?cmd=Layers All;Element Interactions On;Element Attributes On;Arctic On;View Isometric;View
-    Orthographic;Fit` in a Chrome window on the GPU (`tools/screenshot_viewer.mjs`, which starts
+    viewer and opens it with `?cmd=Layers All;Arctic On;View Isometric;View Orthographic;Fit` in a Chrome window on the GPU (`tools/screenshot_viewer.mjs`, which starts
     Chrome with the radeon Vulkan env of the user's launcher; any other Chrome loses its WebGPU
-    device). The layer panel is expanded, the base plane shows its pink, yellow-green and blue axes.
+    device). The layer panel is expanded; the picture shows the elements alone, never their attributes (base plane, outlines)
+    or interaction features.
   - `docs/elements/element_<type>.md` (`{#elements_<type>}`, `[TOC]` under the title): one sentence
     on what it is, a `## Constructors` section with the constructors as a code block, then one `##`
     section per case with its picture, one line naming what it shows and the example by

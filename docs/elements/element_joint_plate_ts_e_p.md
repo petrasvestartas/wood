@@ -24,7 +24,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: a 400 x 400 base plate and a 250 x 250 upright standing in the middle of its top face, both 40 thick, the joint oriented on their face contact and passed to each plate with `add_interaction`, the upright first (target 0, the male of a top-side pair, whichever plate the contact listed first) and the base second (target 1, the female), the upright lifted 120 along the base's normal afterwards, the direction it drops onto the base, so the tenons and the mortises both read.
+Every example joins two pairs, `Plate::pair_top_side(90.0)` and `Plate::pair_top_side(60.0)`: a 400 x 400 base and a 250 x 250 upright on the middle of its top, both 40 thick, upright and leaning to 60 degrees, the joint oriented on their face contact and passed to each plate with `add_interaction`, the upright first (target 0, the male of a top-side pair) and the base second, the upright lifted afterwards along the line between the plates' centres.
 
 ## ts_e_p_0: three fixed tenons
 
@@ -122,7 +122,9 @@ The snap-fit tenon, 2024's literals, a copy per division spread along the joint 
 
 ![ts_e_p_custom](elements/element_joint_plate_ts_e_p_custom.png)
 
-Two tenons you write yourself, as `ts_e_p_0` is written: per upright face the tenon profile and its end line, cut into its edge; per base face one rectangle per mortise, cut as a hole.
+![ts_e_p_custom, the unit box: male pink, female blue](joint_library/ts_ts_e_p_custom_unit.png)
+
+One tapered through tenon you write yourself: per upright face the tenon profile, half the joint line wide at the base's top and 0.3 at its bottom, and its end line, cut into its edge; per base face the mortise of the same widths, cut as a tapered hole, so the tenon wedges home from above.
 
 \include{lineno} elements/element_joint_plate_ts_e_p_custom.cpp
 
@@ -141,11 +143,3 @@ ts_e_p_5, the snap fit: each tenon ends in a hook that snaps under the base. The
 
 
 \image html joint_library/ts_ts_e_p_5.png "ts_e_p_5: snap fit, on the plates" width=70%
-
-## Angles
-
-![ts_e_p_3 skewed 60 degrees](elements/element_joint_plate_ts_e_p_angle_60.png)
-
-The upright's foot at 60 degrees to the base's edges in plan: the tenons and mortises of `ts_e_p_3` follow the skewed contact. The oracle runs every design of the family on its defaults skewed 60 and 75 degrees and leaning 80 degrees from the base (`ts@skew60`, `ts@skew75`, `ts@lean80`), the foot kept flat on the base.
-
-\include{lineno} elements/element_joint_plate_ts_e_p_angle_60.cpp

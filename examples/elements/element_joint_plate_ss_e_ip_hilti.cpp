@@ -6,7 +6,7 @@ using namespace wood_session;
 /// The Hilti connector between two 200 mm CLT slabs folded 30 degrees on a mitred seam, drawn apart.
 int main() {
 
-    WoodSession scene("element_joint_plate_hilti");
+    WoodSession scene("element_joint_plate_ss_e_ip_hilti");
 
     // two 600 x 400 slabs 200 thick falling 15 degrees each from the ridge along y, their seam faces mitred on x = 0
     const double half_angle = 15.0 * Tolerance::PI / 180.0;
@@ -30,8 +30,7 @@ int main() {
 
     // the connector from their face contact, added, and passed to each slab in its target order
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
-    const std::shared_ptr<JointPlate> hilti = JointPlate::hilti(*slabs[0], *slabs[1], *contact);
-    hilti->name = "hilti";
+    const std::shared_ptr<JointPlate> hilti = JointPlate::ss_e_ip_hilti(*slabs[0], *slabs[1], *contact);
     scene.add(hilti);
     scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
     scene.add_interaction(hilti, slabs[1], hilti->interaction(1));
@@ -55,7 +54,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target element_joint_plate_hilti --parallel 6 && ./build/element_joint_plate_hilti && ../bash/publish-scene.sh --target element_joint_plate_hilti
+cmake --build build --target element_joint_plate_ss_e_ip_hilti --parallel 6 && ./build/element_joint_plate_ss_e_ip_hilti && ../bash/publish-scene.sh --target element_joint_plate_ss_e_ip_hilti
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

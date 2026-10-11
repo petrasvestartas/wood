@@ -74,7 +74,7 @@ static std::array<double, 2> check_angle(double angle) {
 
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
     check(contact != nullptr, fmt::format("{:g} degrees: the slabs have no face contact", angle));
-    const std::shared_ptr<JointPlate> hilti = JointPlate::hilti(*left, *right, *contact);
+    const std::shared_ptr<JointPlate> hilti = JointPlate::ss_e_ip_hilti(*left, *right, *contact);
     check(hilti != nullptr, fmt::format("{:g} degrees: no connector on the seam", angle));
     scene.add(hilti);
     scene.add_interaction(hilti, left, hilti->interaction(0));

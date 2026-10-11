@@ -23,8 +23,9 @@ static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
 // The unit box
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The design's outlines in its unit box, the library function run on a joint with the built one's parameters; false for a design that is
-/// built on the plates in their own space (top to top, side removal, custom) or leaves the box empty, which has no unit box to draw.
+/// The design's outlines in its unit box, the library function run on a joint with the built one's parameters, a custom design's the
+/// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, ss_e_r_0) or leaves the
+/// box empty, which has no unit box to draw.
 static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 
     const InteractionFeaturePlate& built_connection = built.joint->connections.at(0);
@@ -55,7 +56,17 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         {"cr_c_ip_0", [&] { cr_c_ip_0(unit); }}, {"cr_c_ip_1", [&] { cr_c_ip_1(unit); }}, {"cr_c_ip_2", [&] { cr_c_ip_2(unit); }},
         {"cr_c_ip_3", [&] { cr_c_ip_3(unit); }}, {"cr_c_ip_4", [&] { cr_c_ip_4(unit); }}, {"cr_c_ip_5", [&] { cr_c_ip_5(unit); }},
         {"ss_e_r_2", [&] { ss_e_r_2(unit, plates); }}, {"ss_e_r_3", [&] { ss_e_r_3(unit, plates); }},
+        {"side_removal_ss_e_r_1", [&] { side_removal_ss_e_r_1(unit); }},
     };
+
+    // a custom design: the user's pairs, face 0 then face 1
+    if (built.library.ends_with("_custom")) {
+        for (int side = 0; side < 2; side++)
+            for (size_t i = 0; i + 1 < p.outlines[side].size(); i += 2)
+                for (int face = 0; face < 2; face++)
+                    (side == 0 ? unit.male_outlines : unit.female_outlines)[face].push_back(p.outlines[side][i + face]);
+        return true;
+    }
 
     const auto design = designs.find(built.library);
     if (design == designs.end())
@@ -190,6 +201,27 @@ static void write_scene(const std::string& id, const std::string& dir) {
         add_unit_box(unit_scene, unit);
         unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
         std::ofstream(dir + "/" + name + "_unit.txt") << unit_snippet(built, unit) << std::endl;
+    }
+
+    // a design built in world space: its outlines and drills as built on the contact, a scene of their own
+    else {
+        WoodSession unit_scene(name + "_unit");
+        const std::shared_ptr<TreeNode> group = unit_scene.group_named("joint");
+        const InteractionFeaturePlate& connection = built.joint->connections.at(0);
+        for (int side = 0; side < 2; side++)
+            for (int face = 0; face < 2; face++)
+                for (const Polyline& outline : side == 0 ? connection.male_outlines[face] : connection.female_outlines[face]) {
+                    auto drawn = std::make_shared<Polyline>(outline);
+                    drawn->linecolor = side == 0 ? MALE : FEMALE;
+                    drawn->width = 6.0;
+                    unit_scene.add_polyline(drawn, group);
+                }
+        auto contact = std::make_shared<Polyline>(built.fixture.face ? built.fixture.face->polygon : Polyline());
+        contact->linecolor = EDGE;
+        contact->width = 2.0;
+        if (contact->point_count() > 0)
+            unit_scene.add_polyline(contact, group);
+        unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
     }
 
     // the pair drawn apart, the second plate moved along the contact from the first so the merged outlines read, a key half way and shown

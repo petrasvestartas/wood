@@ -18,11 +18,11 @@ An element is built from its own parameters only. Whatever another element does 
 | [Profiles](@ref elements_profile) | `wood_profile.h` | `element_profile` |
 | [Joint](@ref elements_joint) | `wood_element_joint.h` | `element_joint_drill`, `element_joint_cutter` |
 | [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_parameters` |
-| [JointPlate ts_e_p](@ref elements_joint_plate_ts_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_ts_e_p_0` to `_5`, `_custom`, `_angle_60` |
-| [JointPlate ss_e_ip](@ref elements_joint_plate_ss_e_ip) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_ip_0` to `_5`, `_custom`, `_angle_75` |
-| [JointPlate ss_e_op](@ref elements_joint_plate_ss_e_op) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_op_0` to `_6`, `_17`, `_tutorial`, `_custom`, `_angle_120` |
-| [JointPlate ss_e_r](@ref elements_joint_plate_ss_e_r) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_r_0`, `_2`, `_3`, `_custom`, `_side_removal`, `_side_removal_ss_e_r_1`, `_angle_120` |
-| [JointPlate cr_c_ip](@ref elements_joint_plate_cr_c_ip) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip_0` to `_5`, `_custom`, `_angle_45` |
+| [JointPlate ts_e_p](@ref elements_joint_plate_ts_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_ts_e_p_0` to `_5`, `_custom` |
+| [JointPlate ss_e_ip](@ref elements_joint_plate_ss_e_ip) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_ip_0` to `_5`, `_custom`, `_hilti`, `_hilti_angles` |
+| [JointPlate ss_e_op](@ref elements_joint_plate_ss_e_op) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_op_0` to `_6`, `_17`, `_tutorial`, `_custom` |
+| [JointPlate ss_e_r](@ref elements_joint_plate_ss_e_r) | `wood_element_joint_plate.h` | `element_joint_plate_ss_e_r_0`, `_2`, `_3`, `_custom`, `_side_removal`, `_side_removal_ss_e_r_1` |
+| [JointPlate cr_c_ip](@ref elements_joint_plate_cr_c_ip) | `wood_element_joint_plate.h` | `element_joint_plate_cr_c_ip_0`, `_custom` |
 | [JointPlate tt_e_p](@ref elements_joint_plate_tt_e_p) | `wood_element_joint_plate.h` | `element_joint_plate_tt_e_p_0` to `_5`, `_custom` |
 | [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_b_0` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
@@ -31,7 +31,6 @@ An element is built from its own parameters only. Whatever another element does 
 | [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_ss_e_ip_3`, `_ss_e_ip_4`, `_ss_e_r_0` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_tie` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
-| [JointPlate hilti](@ref elements_joint_plate_hilti) | `wood_element_joint_plate.h` | `element_joint_plate_hilti`, `_angles` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
 
@@ -57,7 +56,6 @@ An element is built from its own parameters only. Whatever another element does 
 - @subpage elements_joint_beam_end_to_end
 - @subpage elements_joint_beam_connectors
 - @subpage elements_joint_beam_pins
-- @subpage elements_joint_plate_hilti
 - @subpage elements_pin
 - @subpage elements_connector_part
 

@@ -21,11 +21,13 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair, `Plate::pair_rotated(20.0)`: two 300 x 400 blocks 100 thick end to end, the right one twisted 20 degrees about the seam's normal, as the Rossinière hex blocks meet, drawn apart along the seam's normal.
+Every example joins two pairs, `Plate::pair_rotated(0.0)` and `Plate::pair_rotated(20.0)`: two 300 x 400 blocks 100 thick end to end, side by side and the right one twisted 20 degrees about the seam's normal, as the Rossinière hex blocks meet, the contact read as rotated (`settings.all_treated_as_rotated`), drawn apart along the line between their centres.
 
 ## ss_e_r_0: four slices
 
 ![ss_e_r_0](elements/element_joint_plate_ss_e_r_0.png)
+
+![ss_e_r_0, the unit box: male pink, female blue](joint_library/r_ss_e_r_0_unit.png)
 
 The averaged joint volume split in half through the thickness, each half sliced off the plates four ways along the joint line, the slices widened by the joint scale; no key, nothing is oriented, the slices lie in world space, so on this pair they are slivers at the seam corners.
 
@@ -69,13 +71,17 @@ A diamond pocket milled into each plate per division, two on this seam, and the 
 
 ![ss_e_r_custom](elements/element_joint_plate_ss_e_r_custom.png)
 
-Your own outlines, given as pairs (face 0, face 1) in the unit box, x across the seam, y through the thickness, z along the joint line.
+![ss_e_r_custom, the unit box: male pink, female blue](joint_library/r_ss_e_r_custom_unit.png)
+
+A half-lap step you write yourself along the whole seam: an open profile pair moves the male's edge half a thickness across the seam, a closed pair is milled between its two outlines, so the male's upper half and the female's lower half come off over that strip and the male's tongue fills the female's rebate. Shown on the pair side by side only: on the twisted pair the plates' faces are not parallel, and no straight step fits them.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_custom.cpp
 
 ## side_removal: the side faces milled off
 
 ![side_removal](elements/element_joint_plate_ss_e_r_side_removal.png)
+
+![side_removal, the unit box: male pink, female blue](joint_library/r_side_removal_0_0.5_unit.png)
 
 Each plate's side face, widened at its convex corners and up and down by the joint scale, milled off along its normal, the female's by the scale plus 2, the male's by the scale, the sides swapped as 2024 swapped them.
 
@@ -84,6 +90,8 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 ## side_removal_ss_e_r_1: the trait de Jupiter
 
 ![side_removal_ss_e_r_1](elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.png)
+
+![side_removal_ss_e_r_1, the unit box: male pink, female blue](joint_library/ip_side_removal_ss_e_r_1_unit.png)
 
 `Plate::pair_in_plane()`: a scarf through the thickness, an about at each end of the joint line, two slopes six thicknesses long and the redan between them, where the key drives through the slot both plates are notched around.
 
@@ -94,11 +102,3 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 **Divisions.** One key per division.
 
 ![ss_e_r sweep](joint_library/sweep_ss_e_r.png)
-
-## Angles
-
-![ss_e_r_0 at a 40 degree twist](elements/element_joint_plate_ss_e_r_angle_40.png)
-
-Two plates folded 120 degrees on a mitred seam, the scene reading the contact as rotated: the slices of `ss_e_r_0` follow the seam.
-
-\include{lineno} elements/element_joint_plate_ss_e_r_angle_40.cpp

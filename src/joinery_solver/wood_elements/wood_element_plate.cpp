@@ -98,11 +98,34 @@ std::shared_ptr<Plate> Plate::from_rectangle(
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double length, double width, double thickness) {
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
 
-    const std::shared_ptr<Plate> left = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "left");
-    const std::shared_ptr<Plate> right = from_rectangle(Point(length, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "right");
-    return {left, right};
+    // the left plate along x into the seam, the right one out of it turned by the bend, the seam their mitre through its centre
+    const double bend = (180.0 - angle_degrees) * Tolerance::PI / 180.0;
+    const Point centre(length, 0.5 * width, 0.0);
+    const std::array<Vector, 2> along = {Vector(1.0, 0.0, 0.0), Vector(std::cos(bend), std::sin(bend), 0.0)};
+    const Vector normal = (along[0] + along[1]).normalized();
+
+    // each plate's two long edges from where they meet the mitre to its far end, length along its axis from the seam centre
+    std::array<Polyline, 2> bottoms;
+    for (int side = 0; side < 2; side++) {
+        const Vector across = Vector(0.0, 0.0, 1.0).cross(along[side]) * (0.5 * width);
+        const double sign = side == 0 ? -1.0 : 1.0;
+        std::array<Point, 2> seam;
+        std::array<Point, 2> far;
+        for (int edge = 0; edge < 2; edge++) {
+            const Vector offset = edge == 0 ? -across : across;
+            seam[edge] = centre + offset - along[side] * (offset.dot(normal) / along[side].dot(normal));
+            far[edge] = centre + offset + along[side] * (sign * length);
+        }
+        bottoms[side] = Polyline({seam[0], far[0], far[1], seam[1], seam[0]});
+    }
+
+    const Xform lift = Xform::translation(0.0, 0.0, thickness);
+    return {
+        std::make_shared<Plate>(bottoms[0], bottoms[0].transformed(lift), "left"),
+        std::make_shared<Plate>(bottoms[1], bottoms[1].transformed(lift), "right"),
+    };
 }
 
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_folded(double angle_degrees, double length, double width, double height, double thickness) {
@@ -126,13 +149,16 @@ std::array<std::shared_ptr<Plate>, 2> Plate::pair_folded(double angle_degrees, d
 
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_top_side(double angle_degrees, double base_size, double upright_size, double thickness) {
 
-    const double angle = angle_degrees * Tolerance::PI / 180.0;
-    const Vector foot(std::cos(angle), std::sin(angle), 0.0);
-    const Vector side = foot.cross(Vector(0.0, 0.0, 1.0));
-    const Point centre(0.5 * base_size, 0.5 * base_size, thickness);
-    const Point origin = centre - foot * (0.5 * upright_size) - side * (0.5 * thickness);
+    // the upright's face rising from a foot along y on the base's middle, leaning off the vertical toward x, its other face the
+    // thickness along x so that both feet stand on the base's top
+    const double tilt = (90.0 - angle_degrees) * Tolerance::PI / 180.0;
+    const Vector foot(0.0, upright_size, 0.0);
+    const Vector rise(upright_size * std::tan(tilt), 0.0, upright_size);
+    const Point corner(0.5 * (base_size - thickness), 0.5 * (base_size - upright_size), thickness);
+    const Polyline face({corner, corner + foot, corner + foot + rise, corner + rise, corner});
+
     const std::shared_ptr<Plate> base = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), base_size, base_size, thickness, "base");
-    const std::shared_ptr<Plate> upright = from_rectangle(origin, foot, Vector(0.0, 0.0, 1.0), upright_size, upright_size, thickness, "upright");
+    const std::shared_ptr<Plate> upright = std::make_shared<Plate>(face, face.transformed(Xform::translation(thickness, 0.0, 0.0)), "upright");
     return {base, upright};
 }
 

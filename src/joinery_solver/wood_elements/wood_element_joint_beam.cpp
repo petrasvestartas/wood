@@ -100,23 +100,30 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
         return;
     }
 
+    // per box, the zone outside the loft of its outer outline, its tenons kept, and its pockets: every hole's prism (its mortises) and
+    // what the design mills from it as a solid (the conic cross cuts, the milled key pockets), which no outline merge carries
+    std::array<Mesh, 2> outside;
+    std::array<std::vector<Mesh>, 2> pockets;
     for (size_t i = 0; i < 2; i++) {
         const Features& merged = box[i]->features;
-
-        // the zone less the loft of the box's outer outline, its tenons kept, united with every hole's prism, its mortises: one solid, as
-        // a mortise opens onto the other box and a shell beside it would share that face
-        Mesh cut;
         if (!merged.top.empty() && merged.top.size() == merged.bottom.size()) {
-            cut = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
-            for (size_t k = 1; k < merged.top.size(); k++) {
-                const Mesh mortise = Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true);
-                cut = cut.number_of_faces() == 0 ? mortise : solid_boolean(cut, mortise, SolidOperation::add);
-            }
+            outside[i] = solid_difference(zone, {Mesh::loft({merged.bottom[0]}, {merged.top[0]}, true)});
+            for (size_t k = 1; k < merged.top.size(); k++)
+                pockets[i].push_back(Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true));
         }
-
-        // what the design mills from its box as a solid (the conic cross cuts, the milled key pockets), which no outline merge carries
         for (const Mesh& piece : JointPlate::side_solids(joint.joinery, joint.joinery_sides[i]))
-            cut = cut.number_of_faces() == 0 ? piece : solid_boolean(cut, piece, SolidOperation::add);
+            pockets[i].push_back(piece);
+    }
+
+    for (size_t i = 0; i < 2; i++) {
+        // a beam ending on another keeps, as its tenon, what the other beam's pockets take out of that beam
+        if (joint.feature.end_type == 1 && joint.joinery_sides[i] == 0 && outside[i].number_of_faces() > 0 && !pockets[1 - i].empty())
+            outside[i] = solid_difference(outside[i], pockets[1 - i]);
+
+        // the outside and the pockets, one solid, as a mortise opens onto the other box and a shell beside it would share that face
+        Mesh cut = outside[i];
+        for (const Mesh& pocket : pockets[i])
+            cut = cut.number_of_faces() == 0 ? pocket : solid_boolean(cut, pocket, SolidOperation::add);
         if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
             joint.member_cuts[i] = cut;
 

@@ -1129,7 +1129,7 @@ static std::array<Polyline, 2> hilti_disc(const Xform& frame, double start, doub
     return {circle.transformed(frame * Xform::translation(start, 0.0, z) * across), circle.transformed(frame * Xform::translation(end, 0.0, z) * across)};
 }
 
-std::shared_ptr<JointPlate> JointPlate::hilti(
+std::shared_ptr<JointPlate> JointPlate::ss_e_ip_hilti(
     const Plate& a,
     const Plate& b,
     const InteractionContactFace& contact,
@@ -1147,9 +1147,9 @@ std::shared_ptr<JointPlate> JointPlate::hilti(
     int sides
 ) {
 
-    // the seam: its face's normal from a into b, its direction along the longest edge of the contact
+    // the seam, of two slabs side to side: its face's normal from a into b, its direction along the longest edge of the contact
     const std::vector<Point> points = merge_collinear(contact.polygon);
-    if (points.size() < 4)
+    if (contact.type != ContactType::side_side || points.size() < 4)
         return nullptr;
 
     Vector x = compute_newell(points).normalized();
@@ -1217,7 +1217,7 @@ std::shared_ptr<JointPlate> JointPlate::hilti(
 
     // the key: both halves and both discs, one solid, the bolt from disc to disc through it, inside the pockets
     const std::shared_ptr<JointPlate> joint = std::make_shared<JointPlate>();
-    joint->name = "hilti";
+    joint->name = "ss_e_ip_hilti";
     joint->is_visible = true;
     joint->line_radius = 0.5 * rod_diameter;
     joint->chord_tolerance = sides_tolerance(joint->line_radius, sides);

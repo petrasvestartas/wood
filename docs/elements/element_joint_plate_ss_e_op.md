@@ -33,7 +33,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example is the same pair: a 300 x 400 floor plate and a 300 high wall plate, both 40 thick, meeting at a right angle on a mitred side face, the joint oriented on their face contact and passed to each plate with `add_interaction`, the wall first: `orient` turns an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male.
+Every example joins two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a 300 x 400 floor and a 300 high wall, both 40 thick, mitred on the bisector, square and folded to 60 degrees, the joint oriented on their face contact and passed to each plate with `add_interaction`, the wall first: `orient` turns an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male.
 
 ## ss_e_op_0: three fingers
 
@@ -190,6 +190,8 @@ One rectangular notch over the middle half of the joint line, merged into both m
 
 ![ss_e_op_custom](elements/element_joint_plate_ss_e_op_custom.png)
 
+![ss_e_op_custom, the unit box: male pink, female blue](joint_library/op_ss_e_op_custom_unit.png)
+
 A tile you draw yourself: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, drawn as the library's own `ss_e_op_0` draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends, at your own stations along the joint line.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_custom.cpp
@@ -217,11 +219,3 @@ ss_e_op_2 moves the central pairs twice as far as the outer ones. At shift 1 its
 ![ss_e_op_4 sweep](joint_library/sweep_ss_e_op_4.png)
 
 ![ss_e_op_5, ss_e_op_6 and ss_e_op_17 sweep](joint_library/sweep_ss_e_op_5_6_17.png)
-
-## Angles
-
-![ss_e_op_1 at 120 degrees](elements/element_joint_plate_ss_e_op_angle_120.png)
-
-The same floor and wall folded 120 degrees instead of 90, their side faces mitred on the bisector: the fingers of `ss_e_op_1` keep their shape at the angle.
-
-\include{lineno} elements/element_joint_plate_ss_e_op_angle_120.cpp

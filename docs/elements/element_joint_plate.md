@@ -9,10 +9,11 @@ A joint between two plates: a design of the joint library, oriented on the plate
 ```cpp
 // the library designs, each by its own name and parameters
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
+static std::shared_ptr<JointPlate> ss_e_ip_hilti(const Plate& a, const Plate& b, const InteractionContactFace& contact, ...)   // the Hilti connector, side to side only
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
 static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
 static std::shared_ptr<JointPlate> ss_e_r_0(), ss_e_r_2(int divisions = 0, double shift = 0.5), ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line
-static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; see the cr_c_ip page
+static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; the half-laps on the JointBeam cr_c_ip page
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0), tt_e_p_1(double radius = 1.0), tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0), tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the 2024 family defaults, each design reading them its own way; the radius is the pin's
 static std::shared_ptr<JointPlate> b_0()
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1()
@@ -67,7 +68,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## ss_e_ip: in plane
 
-`ss_e_ip_0` to `ss_e_ip_5` and `ss_e_ip_custom` on two plates edge to edge in one plane, each design with its own example and picture on the [ss_e_ip page](@ref elements_joint_plate_ss_e_ip): the finger designs `ss_e_ip_0` and `ss_e_ip_1`, the key designs `ss_e_ip_2` (butterflies) and `ss_e_ip_5` (reversed teeth), whose keys the joint owns, the milled grooves with drills `ss_e_ip_3` and `ss_e_ip_4`, and the custom outlines.
+`ss_e_ip_0` to `ss_e_ip_5` and `ss_e_ip_custom` on two plates edge to edge in one plane, each design with its own example and picture on the [ss_e_ip page](@ref elements_joint_plate_ss_e_ip): the finger designs `ss_e_ip_0` and `ss_e_ip_1`, the key designs `ss_e_ip_2` (butterflies) and `ss_e_ip_5` (reversed teeth), whose keys the joint owns, the milled grooves with drills `ss_e_ip_3` and `ss_e_ip_4`, the custom outlines, and the Hilti connector `ss_e_ip_hilti`.
 
 ## ss_e_op: out of plane
 
@@ -79,7 +80,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## cr_c_ip: cross
 
-`cr_c_ip_0` to `cr_c_ip_5` and `cr_c_ip_custom` on two upright plates crossing at their middles, oriented on their `InteractionContactCross`, each design with its own example and pictures on the [cr_c_ip page](@ref elements_joint_plate_cr_c_ip): the plain slot `cr_c_ip_0` (id 30, the family default, a rectangle merged into each plate's outline over half the cross's depth, clipped by Clipper2 at two decimals as 2024 clipped it), the sliced half-lap `cr_c_ip_1` and the milled half-laps `cr_c_ip_2` to `cr_c_ip_5` (ids 31 to 35), every outline a solid taken from the plate, its centre square narrowed by the shift, with 2024's drills, two diagonal in `cr_c_ip_3`, one vertical in `cr_c_ip_4`, a vertical 50 mm and a horizontal 10 mm bit in `cr_c_ip_5`, the Brussels sports tower's design, and the custom outlines, kept pair by pair as 2024 kept them.
+`cr_c_ip_0` and `cr_c_ip_custom` on two upright plates crossing at their middles, oriented on their `InteractionContactCross`, on the [cr_c_ip page](@ref elements_joint_plate_cr_c_ip): the plain slot `cr_c_ip_0` (id 30, the family default, a rectangle merged into each plate's outline over half the cross's depth) and your own slots. The half-laps `cr_c_ip_1` to `cr_c_ip_5` (ids 31 to 35, with 2024's drills and the Brussels sports tower's bits) are beam joints, on the [JointBeam cr_c_ip page](@ref elements_joint_beam_cr_c_ip).
 
 ## tt_e_p: top to top
 

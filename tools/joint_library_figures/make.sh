@@ -16,6 +16,8 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 ./build/joint_tiles "$WORK/tiles"
 # the rotated designs on a pair folded 120 degrees, and the snap fit, which the oracle does not list
 ./build/joint_tiles "$WORK/tiles" "r@120/ss_e_r_0" "r@120/ss_e_r_2/4/0.5" "r@120/ss_e_r_3/4/0.5" "ts/ts_e_p_5"
+# the trait de Jupiter, which the oracle joins in plane
+./build/joint_tiles "$WORK/tiles" "ip/side_removal_ss_e_r_1"
 # the designs that belong to beams: the cross joints on two crossing beams, the wedge on a tee, square and at 60 degrees
 ./build/joint_tiles "$WORK/tiles" $(for d in cr_c_ip_0 cr_c_ip_1 cr_c_ip_2 cr_c_ip_3 cr_c_ip_4 cr_c_ip_5 ts_e_p_4; do echo "beam/$d/90 beam/$d/60"; done)
 ./build/joint_tiles "$WORK/sweep" $(
