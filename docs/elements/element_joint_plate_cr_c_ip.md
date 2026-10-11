@@ -24,7 +24,7 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example shows two pairs, `Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`: two plates crossing square and at 60 degrees, the second lifted to show the slots.
+Every example shows two pairs, `Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`: two plates crossing square and at 60 degrees, the second moved down out of its slot.
 
 ## cr_c_ip_0: the plain slot
 

@@ -11,7 +11,7 @@ static std::array<std::shared_ptr<Beam>, 2> Beam::pair_crossing(double angle_deg
 static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 ```
 
-Every example shows two pairs, `Beam::pair_crossing(90.0)` and `Beam::pair_crossing(60.0)`: two beams crossing square and at 60 degrees.
+Every example shows two pairs, `Beam::pair_crossing(90.0)` and `Beam::pair_crossing(60.0)`: two beams crossing square and at 60 degrees, the second moved down out of its notch.
 
 ## cr_c_ip_0: the plain slot
 

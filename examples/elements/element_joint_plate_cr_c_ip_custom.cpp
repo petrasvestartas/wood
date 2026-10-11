@@ -44,8 +44,8 @@ int main() {
         scene.add_interaction(joint, first, joint->interaction(0));
         scene.add_interaction(joint, second, joint->interaction(1));
 
-        // drawn apart 250 up, so both sides read
-        const Vector apart(0.0, 0.0, 250.0);
+        // drawn apart 250 down, the way the second plate comes out of its slot
+        const Vector apart(0.0, 0.0, -250.0);
         second->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 

@@ -29,8 +29,8 @@ int main() {
         scene.add_interaction(joint, first, joint->interaction(0));
         scene.add_interaction(joint, second, joint->interaction(1));
 
-        // drawn apart: the second beam moved off the first
-        second->place(Xform::translation(0.0, 0.0, 300.0));
+        // drawn apart: the second beam moved down off the first, the way it comes out of its notch
+        second->place(Xform::translation(0.0, 0.0, -300.0));
     }
 
     std::cout << scene << std::endl;
