@@ -93,7 +93,7 @@ Eight divisions at shift 0.64: the zigzag of `ss_e_op_1` with splayed fingers.
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_3(); // a fixed design, no parameters
 ```
 
-One tenon in the middle of the wall's edge, through a mortise in a lip of the floor.
+One tenon, 0.3 of the seam wide, in the middle of the wall's edge, through a mortise in a lip of the floor.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_3.cpp
 
