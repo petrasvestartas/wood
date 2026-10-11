@@ -78,16 +78,16 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/cr_c_ip_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_r: side-side rotated, type 13 (side_removal_ss_e_r_1 tiles ss_e_r_1)
+// ss_e_r: side-side rotated, type 13 (side_removal_ss_e_r_1 is the trait de Jupiter of two plates in line)
 // ═══════════════════════════════════════════════════════════════════════════
 
 #include "wood_interaction_feature_plate_joints/ss_e_r_0.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_1.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_core.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_2.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_3.h"
 #include "wood_interaction_feature_plate_joints/ss_e_r_custom.h"
 #include "wood_interaction_feature_plate_joints/side_removal.h"
+#include "wood_interaction_feature_plate_joints/side_removal_ss_e_r_1.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // b: beam, type 60

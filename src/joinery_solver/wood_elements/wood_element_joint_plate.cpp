@@ -968,7 +968,7 @@ std::vector<Line> JointPlate::drill_axes() const {
     }
     return result;
 }
-/// True when the pair k of the side's outlines equals an earlier pair point for point: the second copy a builder pushes, as the 2024 library doubled every pair and side_removal_ss_e_r_1 lists the tile once to mill and once as a reverse conic.
+/// True when the pair k of the side's outlines equals an earlier pair point for point: the second copy a builder pushes, as the 2024 library doubled every pair.
 static bool outline_pair_repeated(const std::array<std::vector<Polyline>, 2>& outlines, size_t k) {
 
     for (size_t j = 0; j < k; j++)
@@ -1022,8 +1022,15 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
-        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3" && connection.name != "ss_e_ip_3" && connection.name != "ss_e_ip_4" && connection.name != "tt_e_p_custom")
+        if (connection.name != "ss_e_r_2" && connection.name != "ss_e_r_3" && connection.name != "ss_e_ip_3" && connection.name != "ss_e_ip_4" && connection.name != "tt_e_p_custom" && connection.name != "side_removal_ss_e_r_1")
             continue;
+
+        // the Jupiter's key fills the slot both plates are notched around: the prism of its outline pair
+        if (connection.name == "side_removal_ss_e_r_1") {
+            if (connection.male_outlines[0].size() > 2 && connection.male_outlines[1].size() > 2)
+                key = Mesh::loft({connection.male_outlines[0][2]}, {connection.male_outlines[1][2]}, true);
+            continue;
+        }
 
         // the pieces the key fills: each side's milled pockets, and the in-plane notches its runs leave along the seam
         std::vector<Mesh> pieces;
@@ -1056,6 +1063,9 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
         }
     }
 
+    // a joint with a key shows it: the key is the joint's own piece
+    if (key.number_of_faces() > 0)
+        is_visible = true;
     invalidate_geometry();
 }
 
@@ -1984,13 +1994,9 @@ std::shared_ptr<JointPlate> JointPlate::side_removal(bool merge_with_joint, doub
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::side_removal_ss_e_r_1(bool merge_with_joint, double shift) {
+std::shared_ptr<JointPlate> JointPlate::side_removal_ss_e_r_1() {
 
-    const std::shared_ptr<JointPlate> joint = from_library("side_removal_ss_e_r_1", 13);
-    joint->parameters.merge_with_joint = merge_with_joint;
-    joint->shift = shift;
-
-    return joint;
+    return from_library("side_removal_ss_e_r_1", 12);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2002,7 +2008,7 @@ bool JointPlate::compute_side_removal(InteractionFeaturePlate& connection, const
     if (parameters.library == "side_removal")
         ::side_removal(connection, elements, parameters.merge_with_joint);
     else if (parameters.library == "side_removal_ss_e_r_1")
-        ::side_removal_ss_e_r_1(connection, elements, parameters.merge_with_joint);
+        ::side_removal_ss_e_r_1(connection);
     else
         return false;
 

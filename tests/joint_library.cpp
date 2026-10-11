@@ -30,14 +30,14 @@ static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt"; // The vari
 static const std::vector<std::string> VARIANTS = {
     "ip/ss_e_ip_0", "ip/ss_e_ip_1", "ip/ss_e_ip_1/8/0.5", "ip/ss_e_ip_1/4/0.0", "ip/ss_e_ip_1/16/1.0", "ip/ss_e_ip_2", "ip/ss_e_ip_2/4",
     "ip/ss_e_ip_2/2", "ip/ss_e_ip_3", "ip/ss_e_ip_4", "ip/ss_e_ip_5", "ip/ss_e_ip_5/4", "ip/ss_e_ip_5/6", "ip/ss_e_ip_custom",
-    "ip/side_removal/0/0.5",
+    "ip/side_removal/0/0.5", "ip/side_removal_ss_e_r_1",
     "op/ss_e_op_0", "op/ss_e_op_1", "op/ss_e_op_1/8/0.5", "op/ss_e_op_1/6/0.0", "op/ss_e_op_2", "op/ss_e_op_2/8/0.5", "op/ss_e_op_2/12/1.0",
     "op/ss_e_op_3", "op/ss_e_op_4", "op/ss_e_op_4/8/0/0/1", "op/ss_e_op_4/8/0.1/1/1", "op/ss_e_op_4/8/0.5/0/1", "op/ss_e_op_5", "op/ss_e_op_5/8/0",
     "op/ss_e_op_5/8/1", "op/ss_e_op_6", "op/ss_e_op_6/8", "op/ss_e_op_17/4", "op/ss_e_op_tutorial", "op/ss_e_op_custom", "op/side_removal/1/0.5",
     "ts/ts_e_p_0", "ts/ts_e_p_1", "ts/ts_e_p_2", "ts/ts_e_p_2/8/0.5", "ts/ts_e_p_2/16/0.25", "ts/ts_e_p_3", "ts/ts_e_p_3/8/0.5",
     "ts/ts_e_p_3/16/0.25", "ts/ts_e_p_3/24/0.75", "ts/ts_e_p_4", "ts/ts_e_p_custom", "ts/side_removal/0/0.5",
     "r/ss_e_r_0", "r/ss_e_r_2", "r/ss_e_r_2/4/0.5", "r/ss_e_r_2/2/0.25", "r/ss_e_r_3", "r/ss_e_r_3/4/0.5", "r/ss_e_r_3/6/1.0",
-    "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5", "r/side_removal_ss_e_r_1/0/0.5", "r/side_removal_ss_e_r_1/1/0.5",
+    "r/ss_e_r_custom", "r/side_removal/0/0.5", "r/side_removal/1/0.5",
     "cr/cr_c_ip_0", "cr/cr_c_ip_1/0.5", "cr/cr_c_ip_1/0.25", "cr/cr_c_ip_2", "cr/cr_c_ip_2/0.0", "cr/cr_c_ip_3", "cr/cr_c_ip_3/0.75", "cr/cr_c_ip_4",
     "cr/cr_c_ip_4/0.25", "cr/cr_c_ip_5", "cr/cr_c_ip_5/0.75", "cr/cr_c_ip_custom",
     "tt/tt_e_p_0/8", "tt/tt_e_p_1/8", "tt/tt_e_p_2/6/0.95/8", "tt/tt_e_p_2/5/0.5/8", "tt/tt_e_p_3/60/12/8", "tt/tt_e_p_3/30/12/8", "tt/tt_e_p_4/60/12/8",
@@ -416,7 +416,7 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "tt_e_p_custom") return JointPlate::tt_e_p_custom(custom[0], custom[1]);
 
     if (library == "side_removal") return JointPlate::side_removal(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
-    if (library == "side_removal_ss_e_r_1") return JointPlate::side_removal_ss_e_r_1(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
+    if (library == "side_removal_ss_e_r_1") return JointPlate::side_removal_ss_e_r_1();
 
     throw std::invalid_argument("no factory for " + library);
 }
@@ -681,7 +681,7 @@ static void check_fit(const Built& built, Row& row) {
     const double tolerance_a = ZERO_REL * compute_volume(a.element_geometry_mesh()) + grid;
     const double tolerance_b = ZERO_REL * compute_volume(b.element_geometry_mesh()) + grid;
 
-    const bool removal_only = built.library.starts_with("side_removal") || built.library == "ss_e_ip_custom" || built.library == "ss_e_op_custom" || built.library == "ss_e_r_custom"
+    const bool removal_only = (built.library.starts_with("side_removal") && built.library != "side_removal_ss_e_r_1") || built.library == "ss_e_ip_custom" || built.library == "ss_e_op_custom" || built.library == "ss_e_r_custom"
                               || built.library == "ts_e_p_custom" || built.library == "ts_e_p_4";
     if (removal_only) {
         if (filled_by_a > tolerance_b || filled_by_b > tolerance_a)
@@ -707,6 +707,15 @@ static void check_fit(const Built& built, Row& row) {
         const double key = boolean_volume(built.joint->element_geometry_mesh(), stock, SolidOperation::intersect);
         if (std::abs(key - taken_a - taken_b) > tolerance_a + tolerance_b)
             fail(row, "C6", fmt::format("the members lost {:.6g} and {:.6g} mm3 to pockets, the joint's own solid is {:.6g}", taken_a, taken_b, key));
+        return;
+    }
+
+    // a member reaches into the other and a key fills what neither does, the Jupiter's: what both lost is what the other fills and the key
+    if (row.own > tolerance_a + tolerance_b) {
+        const Mesh stock = solid_boolean(a.element_geometry_mesh(), b.element_geometry_mesh(), SolidOperation::add);
+        const double key = boolean_volume(built.joint->element_geometry_mesh(), stock, SolidOperation::intersect);
+        if (taken_a + tolerance_a < filled_by_b || taken_b + tolerance_b < filled_by_a || std::abs(taken_a - filled_by_b + taken_b - filled_by_a - key) > tolerance_a + tolerance_b)
+            fail(row, "C6", fmt::format("the members lost {:.6g} and {:.6g} mm3, fill {:.6g} and {:.6g} of each other, the key is {:.6g}", taken_a, taken_b, filled_by_b, filled_by_a, key));
         return;
     }
 

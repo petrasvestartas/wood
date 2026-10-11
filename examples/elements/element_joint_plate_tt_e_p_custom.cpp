@@ -28,7 +28,6 @@ int main() {
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
     const std::shared_ptr<JointPlate> joint = JointPlate::tt_e_p_custom(male, female);
     joint->orient(contact, {lower, upper});
-    joint->is_visible = true; // the key is the joint's own piece
     scene.add(joint);
     scene.add_interaction(joint, lower, joint->interaction(0));
     scene.add_interaction(joint, upper, joint->interaction(1));

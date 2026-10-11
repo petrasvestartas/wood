@@ -134,9 +134,7 @@ public:
     // 57 side_removal, 58 side_removal merged with the joint (the family default id), 59 ss_e_r_custom; an id without
     // an entry takes side_removal. A zero division count takes the geometric count, the joint line's length over the
     // family's 300 mm; the shift default is the family's 0.5. ss_e_r_2 and ss_e_r_3 are key designs: each plate is
-    // milled a pocket on its side of the seam and the joint owns the loose key that fills both. ss_e_r_1 is no design
-    // of its own: it is the tenon tile side_removal_ss_e_r_1 lays in the side face, with no id and no dispatch in 2024,
-    // and alone on a pair its male and female profiles coincide, so it is not exposed.
+    // milled a pocket on its side of the seam and the joint owns the loose key that fills both.
 
     static std::shared_ptr<JointPlate> ss_e_r_0();
 
@@ -241,15 +239,16 @@ public:
     // side_removal
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // The side faces of a pair milled off by the joint scale, on every side-side, side-top and cross family (ids x8);
-    // side_removal_ss_e_r_1 is the rotated family's, merging the ss_e_r_1 tile into the male side under merge_with_joint.
-    // 2024 named side_removal_ss_e_r_1 as id 58 but dispatched side_removal(merge) for it, so no 2025 reference holds it;
-    // its merged form, kept as 2024 wrote it, swaps the sides last, hands each plate its own side slab outside its stock
-    // and so removes no side: only the tile's conic slivers cut. It is the 2024 function, not a design the solver reaches.
+    // The side faces of a pair milled off by the joint scale, on every side-side, side-top and cross family (ids x8).
 
     static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5);
+    // The trait de Jupiter of two plates in line (contact 12): a scarf through the thickness, an about at each end of the joint
+    // line, two slopes and the redan between them, where a key drives through a slot both plates are notched around; the key
+    // is the joint's own. 2024's side_removal_ss_e_r_1, the side removal with the ss_e_r_1 arc tile, removed no side and was
+    // reached by no table, so the name carries this design.
+
+    static std::shared_ptr<JointPlate> side_removal_ss_e_r_1();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors

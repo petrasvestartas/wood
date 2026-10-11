@@ -12,6 +12,7 @@ ip/ss_e_ip_5/4
 ip/ss_e_ip_5/6
 ip/ss_e_ip_custom
 ip/side_removal/0/0.5
+ip/side_removal_ss_e_r_1
 op/ss_e_op_0
 op/ss_e_op_1
 op/ss_e_op_1/8/0.5
@@ -44,8 +45,6 @@ r/ss_e_r_3/6/1.0
 r/ss_e_r_custom
 r/side_removal/0/0.5
 r/side_removal/1/0.5
-r/side_removal_ss_e_r_1/0/0.5
-r/side_removal_ss_e_r_1/1/0.5
 cr/cr_c_ip_0
 cr/cr_c_ip_1/0.5
 cr/cr_c_ip_1/0.25
@@ -94,16 +93,19 @@ ts@skew60/ts_e_p_1
 ts@skew60/ts_e_p_2
 ts@skew60/ts_e_p_3
 ts@skew60/ts_e_p_4
+ts@skew60/ts_e_p_custom
 ts@skew75/ts_e_p_0
 ts@skew75/ts_e_p_1
 ts@skew75/ts_e_p_2
 ts@skew75/ts_e_p_3
 ts@skew75/ts_e_p_4
+ts@skew75/ts_e_p_custom
 ts@lean80/ts_e_p_0
 ts@lean80/ts_e_p_1
 ts@lean80/ts_e_p_2
 ts@lean80/ts_e_p_3
 ts@lean80/ts_e_p_4
+ts@lean80/ts_e_p_custom
 cr@60/cr_c_ip_0
 cr@60/cr_c_ip_2
 cr@60/cr_c_ip_3
@@ -120,6 +122,7 @@ ip@trapezoid/ss_e_ip_2
 ip@trapezoid/ss_e_ip_3
 ip@trapezoid/ss_e_ip_5
 ip@trapezoid/ss_e_ip_custom
+ip@trapezoid/side_removal_ss_e_r_1
 ip@short/ss_e_ip_0
 ip@short/ss_e_ip_1
 ip@short/ss_e_ip_2

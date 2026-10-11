@@ -14,7 +14,7 @@ static std::shared_ptr<JointPlate> ss_e_r_2(int divisions = 0, double shift = 0.
 static std::shared_ptr<JointPlate> ss_e_r_3(int divisions = 0, double shift = 0.5);  // a diamond pocket into each plate per division, and the key that fills both
 static std::shared_ptr<JointPlate> ss_e_r_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);  // your own outlines, pairs (face 0, face 1) in the unit box
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5);           // each plate's side face milled off by the joint scale, the male's outlines doubled under merge_with_joint
-static std::shared_ptr<JointPlate> side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5);  // side_removal and, under merge_with_joint, the ss_e_r_1 arc tenon tile at the middle of the joint line
+static std::shared_ptr<JointPlate> side_removal_ss_e_r_1();  // the trait de Jupiter of two plates in line: abouts, slopes, the redan and its key
 
 // placed on the plates' face contact, then passed to each plate in its target order
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings = Settings())
@@ -81,11 +81,11 @@ Each plate's side face, widened at its convex corners and up and down by the joi
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal.cpp
 
-## side_removal_ss_e_r_1: the arc tenon tile
+## side_removal_ss_e_r_1: the trait de Jupiter
 
 ![side_removal_ss_e_r_1](elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.png)
 
-Under `merge_with_joint`, the side removal outlines of both faces and the `ss_e_r_1` arc tile oriented on two 20 x 20 rectangles at the middle of the joint line, offset by the conic allowance, cut out of the male's third outline and appended as conic, mill and reverse conic cuts.
+`Plate::pair_in_plane()`: a scarf through the thickness, an about at each end of the joint line, two slopes six thicknesses long and the redan between them, where the key drives through the slot both plates are notched around.
 
 \include{lineno} elements/element_joint_plate_ss_e_r_side_removal_ss_e_r_1.cpp
 

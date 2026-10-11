@@ -11,11 +11,11 @@ A joint between two plates: a design of the joint library, oriented on the plate
 static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
 static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
 static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
-static std::shared_ptr<JointPlate> ss_e_r_0() .. ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; ss_e_r_1 is the tile of side_removal_ss_e_r_1, not a design of its own
+static std::shared_ptr<JointPlate> ss_e_r_0(), ss_e_r_2(int divisions = 0, double shift = 0.5), ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line
 static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; see the cr_c_ip page
 static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0), tt_e_p_1(double radius = 1.0), tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0), tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the 2024 family defaults, each design reading them its own way; the radius is the pin's
 static std::shared_ptr<JointPlate> b_0()
-static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1(bool merge_with_joint = false, double shift = 0.5)
+static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1()
 static std::shared_ptr<JointPlate> <family>_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female)
 
 // placed on a contact, then passed to each plate
@@ -115,7 +115,7 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 ## Not shown
 
-- `ss_e_r_*` need a rotated contact: the [ss_e_r page](@ref elements_joint_plate_ss_e_r) twists its pair about the seam (`Plate::pair_rotated`); `side_removal_ss_e_r_1` is shown there too, no 2025 reference dataset reaches it.
+- `ss_e_r_*` need a rotated contact: the [ss_e_r page](@ref elements_joint_plate_ss_e_r) twists its pair about the seam (`Plate::pair_rotated`); `side_removal_ss_e_r_1`, the trait de Jupiter of two plates in line, is shown there too.
 - `side_removal` on the same corner removes the whole wall instead of its side; it is meant for the solver, where it merges with the joint on that edge.
 - `b_custom` keeps your outline pairs on a border contact; no 2025 reference dataset reaches it.
 - `JointAnnen` and `JointVidy` are built from a whole dataset's plates, connections and groups, not from one contact.
