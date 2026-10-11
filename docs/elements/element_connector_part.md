@@ -2,7 +2,7 @@
 
 [TOC]
 
-One solid of a connector, its plate, wedge or key, with the connector's cuts and the exact bores of its pins; a child of the connector in the tree.
+One solid of a connector (plate, wedge or key) with its cuts and pin bores; a child of the connector.
 
 ## Constructors
 
@@ -11,7 +11,7 @@ ConnectorPart(const JointBeam& connector, size_t index, const std::string& name)
 std::vector<std::shared_ptr<Joint>> JointBeam::children() const
 ```
 
-A part is not made by hand: `JointBeam::children()` gives a connector's parts and pins, and the session nests them under the connector when it is added (@ref elements_joint_beam).
+`JointBeam::children()` gives a connector's parts and pins, nested under it when added (@ref elements_joint_beam).
 
 ## The parts of a wedge
 

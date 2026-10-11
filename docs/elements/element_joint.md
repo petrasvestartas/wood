@@ -2,7 +2,7 @@
 
 [TOC]
 
-A joint: what one element cuts, drills or adds to another, as loops, a solid, a profile or drill lines; the base of JointPlate, JointBeam and Pin.
+What one element cuts, drills or adds to another; the base of JointPlate, JointBeam and Pin.
 
 ## Constructors
 
@@ -19,7 +19,7 @@ std::shared_ptr<Interaction> interaction(size_t target) const
 
 ## How it is used
 
-A joint is added, usually hidden, and passed to the element it acts on; `interaction(0)` is its solid, its drills, its profile and its operation as one `InteractionFeatureSolid`:
+A joint is added, usually hidden, and `interaction(0)` passes it to its target as one `InteractionFeatureSolid`:
 
 ```cpp
 scene.add(drill);
@@ -44,7 +44,7 @@ A 25 radius hole along a vertical axis through a block.
 
 ![A solid and a profile](elements/element_joint_cutter.png)
 
-A box mesh subtracted from a beam's top, and a closed profile extruded across it that keeps only its inside, trimming the underside to a V.
+A box subtracted from a beam's top, and a closed profile that trims the underside to a V.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
@@ -56,4 +56,4 @@ A box mesh subtracted from a beam's top, and a closed profile extruded across it
 
 ## A support seat
 
-`Joint::support(support, column)` lets a @ref elements_support "Support"'s head plate into the column end and drills its pins; its picture and example are on the Column page, @ref elements_column.
+`Joint::support(support, column)` lets a @ref elements_support "Support"'s head plate into the column end; shown on @ref elements_column.

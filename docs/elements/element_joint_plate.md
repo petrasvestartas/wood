@@ -14,7 +14,7 @@ static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), 
 static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
 static std::shared_ptr<JointPlate> ss_e_r_0(), ss_e_r_2(int divisions = 0, double shift = 0.5), ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line
 static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; the half-laps on the JointBeam cr_c_ip page
-static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0), tt_e_p_1(double radius = 1.0), tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0), tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the 2024 family defaults, each design reading them its own way; the radius is the pin's
+static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0), tt_e_p_1(double radius = 1.0), tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0), tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the family defaults, each design reading them its own way; the radius is the pin's
 static std::shared_ptr<JointPlate> b_0()
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1()
 static std::shared_ptr<JointPlate> <family>_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female)
@@ -25,21 +25,9 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-## The unit box
-
-A plate joint is a pair of cuts in a unit box: the male (pink) for one plate and the female (blue) for the other, placed on the contact by a change of basis from the box to the joint's two volume rectangles. Each design's section on its family page shows its unit box with the factory call under it.
-
-| Parameter | Designs | What it does |
-| --- | --- | --- |
-| `divisions` | ss_e_ip_1, ss_e_ip_2, ss_e_ip_5, ss_e_op_1, ss_e_op_2, ss_e_op_4 to 6, ss_e_op_17, ts_e_p_2, ts_e_p_3, ts_e_p_5, ss_e_r_2, ss_e_r_3, tt_e_p_2 | how many fingers, tenons, keys or drill rows along the joint line; 0 takes the joint line's length over the family's division length (300 mm in plane and rotated, 450 mm out of plane and top to side) |
-| `shift` | ss_e_ip_1, ss_e_op_1, ss_e_op_2, ts_e_p_2, ts_e_p_3, ss_e_r_2, ss_e_r_3, cr_c_ip_1 to 5, tt_e_p_2 to 5 | in-plane fingers: the dovetail lean. Out-of-plane fingers lean only above 0.5, because 2024 reads a shift of 0 as no lean. Tenons: the tenon width against the gap. Cross joints: how narrow the half-lap's centre square is |
-| `taper`, `chamfer`, `modify_outline`, `x`, `y`, `z` | ss_e_op_4 | the tenons' side lean, chamfered ends, the floor's edge cut around the tenons, and the tenon box inside the unit box |
-| `disable_divisions` | ss_e_op_5 | the second linked joint (Vidy) without divisions |
-| `division_length`, `radius` | tt_e_p_0 to 5 | the drill spacing along the contour and the drill radius |
-
 ## How it is used
 
-A design is made by name, oriented on the contact of its two plates, added, and passed to each plate in its target order:
+A design is made by name on the contact of two plates, added, and passed to each plate. The male (pink) is target 0, the female (blue) target 1.
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
@@ -50,47 +38,23 @@ scene.add_interaction(joint, upright, joint->interaction(0));
 scene.add_interaction(joint, base, joint->interaction(1));
 ```
 
-The target order is the joint's, not the contact's: `orient` turns a side-to-top contact so target 0 is the plate standing on the other (its tenons) and target 1 the plate it stands on (its mortises), and an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male (the wall of a floor and wall corner).
+## Families
 
-| Family | Contact | Plates |
+| Family | Contact | Pair |
 | --- | --- | --- |
-| [`ss_e_ip`](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge in one plane, their fingers interlocking along the normal, a loose key on the key designs |
-| [`ss_e_op`](@ref elements_joint_plate_ss_e_op) | side to side, out of plane | two plates at an angle on a shared side face, a floor and a wall at a corner, fingers on both edges or the wall's tenons through the floor's mortises |
-| [`ts_e_p`](@ref elements_joint_plate_ts_e_p) | top to side | a plate standing on another's face, the upright's tenons through the base's mortises |
-| `ss_e_r` | side to side, rotated | two side faces whose edges cross, or any side-to-side pair under `settings.all_treated_as_rotated` |
-| [`cr_c_ip`](@ref elements_joint_plate_cr_c_ip) | cross | two plates passing through each other (`compute_cross_contact`), a slot or a half-lap into each over its share of the depth |
-| [`tt_e_p`](@ref elements_joint_plate_tt_e_p) | top to top | two plates stacked face on face |
-| [`b`](@ref elements_joint_plate_b) | border (`compute_border_contact`) | one plate's side face alone, an adjacency row pairing a plate with itself on that face |
-
-## ts_e_p: top to side
-
-`ts_e_p_0` to `ts_e_p_5` and `ts_e_p_custom` on an upright standing in the middle of a base, each design with its own example and pictures on the [ts_e_p page](@ref elements_joint_plate_ts_e_p): the fixed three tenons of `ts_e_p_0` and the two Annen tenons of `ts_e_p_1`, the parametric tenons `ts_e_p_2` and `ts_e_p_3` (the family default, ids 20 and 22), the milled wedge `ts_e_p_4` (ids 23 and 24), the snap-fit tenon `ts_e_p_5` (id 25), which keeps the upright's thickness along the joint line instead of stretching to it, and the custom outlines, kept pair by pair as 2024 kept them.
-
-## ss_e_ip: in plane
-
-`ss_e_ip_0` to `ss_e_ip_5` and `ss_e_ip_custom` on two plates edge to edge in one plane, each design with its own example and picture on the [ss_e_ip page](@ref elements_joint_plate_ss_e_ip): the finger designs `ss_e_ip_0` and `ss_e_ip_1`, the key designs `ss_e_ip_2` (butterflies) and `ss_e_ip_5` (reversed teeth), whose keys the joint owns, the milled grooves with drills `ss_e_ip_3` and `ss_e_ip_4`, the custom outlines, and the Hilti connector `ss_e_ip_hilti`.
-
-## ss_e_op: out of plane
-
-`ss_e_op_0` to `ss_e_op_6`, `ss_e_op_17`, `ss_e_op_tutorial` and `ss_e_op_custom` on a floor and a wall mitred at a right angle, each design with its own example and pictures on the [ss_e_op page](@ref elements_joint_plate_ss_e_op): the finger designs `ss_e_op_0`, `ss_e_op_1`, `ss_e_op_2` and `ss_e_op_17`, the one-notch `ss_e_op_tutorial`, the tenon and mortise designs `ss_e_op_3`, `ss_e_op_4`, `ss_e_op_5` and `ss_e_op_6`, whose tenons on the wall pass through mortises in the floor, and the custom outlines.
-
-## ss_e_r: rotated
-
-`ss_e_r_0`, `ss_e_r_2`, `ss_e_r_3`, `ss_e_r_custom`, `side_removal` and `side_removal_ss_e_r_1` on two blocks end to end, one twisted about the seam (`Plate::pair_rotated`), each design with its own example and picture on the [ss_e_r page](@ref elements_joint_plate_ss_e_r).
-
-## cr_c_ip: cross
-
-`cr_c_ip_0` and `cr_c_ip_custom` on two upright plates crossing at their middles, oriented on their `InteractionContactCross`, on the [cr_c_ip page](@ref elements_joint_plate_cr_c_ip): the plain slot `cr_c_ip_0` (id 30, the family default, a rectangle merged into each plate's outline over half the cross's depth) and your own slots. The half-laps `cr_c_ip_1` to `cr_c_ip_5` (ids 31 to 35, with 2024's drills and the Brussels sports tower's bits) are beam joints, on the [JointBeam cr_c_ip page](@ref elements_joint_beam_cr_c_ip).
-
-## tt_e_p: top to top
-
-`tt_e_p_0` to `tt_e_p_5` and `tt_e_p_custom` on two stacked plates, the upper one turned so their contact is an irregular octagon, each design with its own example and pictures on the [tt_e_p page](@ref elements_joint_plate_tt_e_p): every design drills pins through both plates as 2024 laid them, one at the centre of the contact (`tt_e_p_0`, id 40, the family default), one at its polylabel (`tt_e_p_1`), six on its inscribed circle scaled by the shift (`tt_e_p_2`), the ring of the contact offset inward by the shift drilled every division length (`tt_e_p_3`), a lattice of the division length in that ring (`tt_e_p_4`), and the edges of the largest rectangle 2024 inscribed in the contact (`tt_e_p_5`).
+| [ss_e_ip](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge |
+| [ss_e_op](@ref elements_joint_plate_ss_e_op) | side to side, out of plane | a floor and a wall at a corner |
+| [ts_e_p](@ref elements_joint_plate_ts_e_p) | top to side | a plate standing on another |
+| [ss_e_r](@ref elements_joint_plate_ss_e_r) | side to side, rotated | two plates twisted about their seam |
+| [cr_c_ip](@ref elements_joint_plate_cr_c_ip) | cross | two plates passing through each other |
+| [tt_e_p](@ref elements_joint_plate_tt_e_p) | top to top | two plates stacked face on face |
+| [b](@ref elements_joint_plate_b) | border | one plate's side face |
 
 ## b: boundary {#elements_joint_plate_b}
 
 ![b_0 on a side face](elements/element_joint_plate_b_0.png)
 
-`b_0` (id 60) on a 300 x 200 plate 40 thick: `WoodSession::compute_border_contact(plate, 2)` makes the border contact of side face 2 as 2024's `border_to_face` did, and the joint is oriented on the plate alone.
+`b_0` on one side face of a plate, its border contact made by `WoodSession::compute_border_contact(plate, 2)`.
 
 \include{lineno} elements/element_joint_plate_b_0.cpp
 
@@ -100,23 +64,10 @@ The target order is the joint's, not the contact's: `orient` turns a side-to-top
 
 `ts_e_p_3` six times: back row 8, 16 and 24 divisions, front row shift 0, 0.25 and 1.
 
-| Parameter | Default | What it changes in 3D |
+| Parameter | Default | What it changes |
 | --- | --- | --- |
-| `divisions` | per design | how many tenons, fingers or slots the contact is split into (`ts_e_p_3`: a tenon per four, at least eight) |
-| `shift` | 0.5 | how the tenon sides lean: square at 0.5, a dovetail one way below and the other way above |
-| `radius` (`tt_e_p`) | 1.0 | the radius of every pin hole |
-| `division_length` (`tt_e_p_3..5`) | 6 | the distance between pins along the ring, in the lattice or along the rectangle's edges; negative in `tt_e_p_5`, a grid of that step inside the rectangle |
-| `shift` (`tt_e_p_2..5`) | 0.95 | `tt_e_p_2` and `tt_e_p_5` scale the inscribed circle or rectangle by it; `tt_e_p_3` and `tt_e_p_4` offset the contact inward by it, in millimetres |
-| `divisions` (`tt_e_p_2`) | 6 | how many pins stand on the circle |
-| `taper`, `chamfer`, `x`, `y`, `z` (`ss_e_op_4`) | 0, true, ±0.5 | the finger taper, chamfered finger ends, the finger box in the joint's unit frame |
-| `merge_with_joint` (`side_removal`) | false | the side removal merged into a joint already on that edge |
-| `male`, `female` (`*_custom`) | | your own outlines in the joint's unit frame |
+| `divisions` | 0 | how many fingers, tenons or keys along the seam; 0: one per 300 mm (in plane, rotated) or 450 mm (out of plane, top to side) |
+| `shift` | 0.5 | the lean of the finger or tenon sides; for cross joints, how narrow the half-lap |
+| `male`, `female` (`*_custom`) | | your own outlines in the unit box |
 
 \include{lineno} elements/element_joint_plate_parameters.cpp
-
-## Not shown
-
-- `ss_e_r_*` need a rotated contact: the [ss_e_r page](@ref elements_joint_plate_ss_e_r) twists its pair about the seam (`Plate::pair_rotated`); `side_removal_ss_e_r_1`, the trait de Jupiter of two plates in line, is shown there too.
-- `side_removal` on the same corner removes the whole wall instead of its side; it is meant for the solver, where it merges with the joint on that edge.
-- `b_custom` keeps your outline pairs on a border contact; no 2025 reference dataset reaches it.
-- `JointAnnen` and `JointVidy` are built from a whole dataset's plates, connections and groups, not from one contact.

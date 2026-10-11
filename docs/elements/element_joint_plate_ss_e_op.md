@@ -2,12 +2,12 @@
 
 [TOC]
 
-The side-to-side out-of-plane family: a design cut into the edges of two plates that meet at an angle on a shared side face, a floor and a wall at a corner, so the fingers of one plate sit in the notches of the other, or the wall's tenons pass through mortises in the floor.
+The side-to-side out-of-plane family: fingers and notches, or tenons and mortises, where two plates meet at an angle.
 
 ## Constructors
 
 ```cpp
-// a zero division count is geometric: one division every 450 mm of the joint line, the family's 2024 division length;
+// a zero division count is geometric: one division every 450 mm of the joint line, the family's division length;
 // the shift is the family's 0.64
 static std::shared_ptr<JointPlate> ss_e_op_0();                                        // three fixed fingers
 static std::shared_ptr<JointPlate> ss_e_op_1(int divisions = 0, double shift = 0.64);  // a zigzag of fingers, at least two divisions and even
@@ -33,7 +33,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example joins two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a 300 x 400 floor and a 300 high wall, both 40 thick, mitred on the bisector, square and folded to 60 degrees, the joint oriented on their face contact and passed to each plate with `add_interaction`, the wall first: `orient` turns an out-of-plane contact so target 0 is the second plate of the contact, the one the detector makes the male.
+Every example shows two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a floor and a wall on a mitred corner, square and folded to 60 degrees. The wall is target 0, the male.
 
 ## ss_e_op_0: three fingers
 
@@ -62,7 +62,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_1(
 );
 ```
 
-Eight divisions at the family's shift 0.64: four fingers on the floor in four notches of the wall; on its defaults the count is geometric, one division every 450 of the joint line and at least two, which on this 400 seam is one finger.
+Eight divisions at shift 0.64: four fingers on the floor in four notches of the wall.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_1.cpp
 
@@ -79,7 +79,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_2(
 );
 ```
 
-Eight divisions at the shift 0.64: the zigzag of `ss_e_op_1` with its central pairs moved twice as far as the outer ones and the sign flipped past the middle, so the fingers splay, the wall's fingers hanging below its edge into the floor's splayed notches.
+Eight divisions at shift 0.64: the zigzag of `ss_e_op_1` with splayed fingers.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_2.cpp
 
@@ -93,7 +93,7 @@ Eight divisions at the shift 0.64: the zigzag of `ss_e_op_1` with its central pa
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_3(); // a fixed design, no parameters
 ```
 
-One fixed tenon over the middle of the joint line on the wall, through the floor and flush with its bottom, and its mortise in a lip the floor's edge extends under the wall; the lip still runs a thickness past the wall, as 2024 drew it.
+One tenon in the middle of the wall's edge, through a mortise in a lip of the floor.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_3.cpp
 
@@ -111,7 +111,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_4(
 );
 ```
 
-On its defaults: the geometric division count, one tenon on this 400 seam, chamfered at its end, on the wall, the floor's edge modified over the joint's length and a through mortise per tenon. As drawn today the wall's faces render as a frame around an empty middle, the tenon's chamfer bows and the floor shows two dots on its near side: the design's merge into the mitred outlines is not right yet.
+On its defaults: one chamfered tenon on the wall and a through mortise in the floor; the merge into mitred outlines is not right yet.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_4.cpp
 
@@ -128,7 +128,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_5(
 );
 ```
 
-On its defaults and with no linked joint: `ss_e_op_4` with the tenon box lengthened to -0.75 of the unit box, chamfered tenons on the wall and a through mortise per tenon in the floor; on the solver's datasets the design also builds the one or two joints linked to it and the merge sequences that stitch them.
+`ss_e_op_4` with longer chamfered tenons on the wall and a through mortise per tenon in the floor.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_5.cpp
 
@@ -144,7 +144,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_6(
 );
 ```
 
-`ss_e_op_5` with the divisions of its second linked joint disabled, the Vidy wall version that merges its tenons with one side only; with no linked joint, as here, it is the tenons and mortises of `ss_e_op_5`.
+`ss_e_op_5` with its second linked joint's divisions disabled; with no linked joint, the same tenons and mortises.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_6.cpp
 
@@ -152,7 +152,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_6(
 
 ![a Vidy node, with the viewer's layers](elements/element_joint_plate_vidy_node.png)
 
-Where ss_e_op_5 and ss_e_op_6 are used: the first node of the dataset vidy_corner, two wall plates and two roof plates in a session of their own, the node as a three-valence group with the Vidy instruction 1.
+Where ss_e_op_5 and ss_e_op_6 are used: a Vidy corner node of two wall plates and two roof plates.
 
 \include{lineno} elements/element_joint_plate_vidy_node.cpp
 
@@ -168,7 +168,7 @@ const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_17(
 );
 ```
 
-Four divisions, two fingers: `ss_e_op_0` with the finger count parametric and the mitre capped flat at both ends of the joint line. As drawn today both plates render as frames around an empty middle: the design's merge into the mitred outlines is not right yet.
+Four divisions, two fingers, the mitre capped flat at both ends; the merge into mitred outlines is not right yet.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_17.cpp
 
@@ -182,7 +182,7 @@ Four divisions, two fingers: `ss_e_op_0` with the finger count parametric and th
 const std::shared_ptr<JointPlate> joint = JointPlate::ss_e_op_tutorial(); // a fixed design, no parameters
 ```
 
-One rectangular notch over the middle half of the joint line, merged into both mitred edges: the floor's tongue reaches under the wall, the wall notched for it; the worked example of writing a new design.
+One rectangular notch over the middle half of the joint line: the floor's tongue under the wall.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_tutorial.cpp
 
@@ -192,25 +192,25 @@ One rectangular notch over the middle half of the joint line, merged into both m
 
 ![ss_e_op_custom, the unit box: male pink, female blue](joint_library/op_ss_e_op_custom_unit.png)
 
-A tile you draw yourself: three fingers on the floor, wide, narrow, wide (96, 48 and 96 of the 400 joint line), and the sockets they fill in the wall, drawn as the library's own `ss_e_op_0` draws its fingers, per face a zigzag across the thickness and the two-point line of the joint's ends, at your own stations along the joint line.
+A custom tile: three fingers on the floor, wide, narrow, wide, and the sockets they fill in the wall.
 
 \include{lineno} elements/element_joint_plate_ss_e_op_custom.cpp
 
 ## Parameters
 
-**Divisions and shift.** Divisions set the number of fingers. The shift skews the fingers through the thickness into a dovetail only above 0.5: 2024 reads a shift of 0 as no shift, so 0 and 0.5 give the same straight fingers.
+**Divisions and shift.** Divisions set the number of fingers; a shift above 0.5 skews them into a dovetail.
 
 ![ss_e_op_1 sweep](joint_library/sweep_ss_e_op_1.png)
 
-**At other angles.** The same divisions on the floor and wall folded 90, 120 and 150 degrees, the mitre on the bisector: the fingers keep their count and lean, their length follows the mitre.
+**At other angles.** The same fingers at 90, 120 and 150 degrees: they keep their count and lean with the mitre.
 
 ![ss_e_op_1 at 90, 120 and 150 degrees](joint_library/sweep_ss_e_op_1_angles.png)
 
-**Where it is used.** The same fingers on a pair of plates taken from the Chevron template (`src/templates/folding`, on the first Annen surface): its first two plates that meet side to side at a fold, copied into a scene of their own, the shift (rows) and the divisions (columns) as a user would set them on that pair.
+**Where it is used.** Two plates from the Chevron template (`src/templates/folding`), the shift in rows and divisions in columns.
 
 ![ss_e_op_1 on a Chevron pair](joint_library/sweep_ss_e_op_1_chevron.png)
 
-ss_e_op_2 moves the central pairs twice as far as the outer ones. At shift 1 its outline crosses itself and no solid is built, in 2024 as here.
+ss_e_op_2 moves the central pairs twice as far as the outer ones; at shift 1 its outline crosses itself and no solid is built.
 
 ![ss_e_op_2 sweep](joint_library/sweep_ss_e_op_2.png)
 

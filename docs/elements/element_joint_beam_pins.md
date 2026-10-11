@@ -2,7 +2,7 @@
 
 [TOC]
 
-Pins on the face contact of two members, laid out by `PinLayout`: each a `Pin`, one cylinder along its axis, bored into the members it passes.
+Pins on the face contact of two members, laid out by `PinLayout`, each a `Pin` bored into both.
 
 ## Centred pins
 

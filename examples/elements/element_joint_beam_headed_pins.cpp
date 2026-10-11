@@ -20,8 +20,8 @@ int main() {
             fmt::format("beam_{}", i)
         );
         const std::shared_ptr<BeamVariable> joist = BeamVariable::between(
-            Polyline::rectangle({x + 250.0, 120.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
-            Polyline::rectangle({x + 250.0, 720.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
+            Polyline::rectangle({x + 220.0, 120.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 160.0, 300.0),
+            Polyline::rectangle({x + 220.0, 720.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 160.0, 300.0),
             fmt::format("joist_{}", i)
         );
         scene.add(beam, group);
@@ -34,10 +34,10 @@ int main() {
             *joist,
             *contact,
             layouts[i],
-            3,
-            20.0,
-            0.0,
-            5.0
+            3,    // count
+            30.0, // offset: two and a half diameters of wood to the contact's edges
+            0.0,  // shift
+            5.0   // radius
         );
         pins->name = fmt::format("pins_{}", i);
         scene.add(pins, group);

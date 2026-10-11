@@ -769,7 +769,7 @@ static Polyline tie_section(
 }
 
 /// The key: length long along the contact normal, top below the contact's top edge, heads head_width wide over head_length at both ends and the neck neck_width wide between, depth deep at the seam deepening straight to end_depth at its ends; each member gets a flat-bottomed pocket pocket_depth deep of its head and neck boxes, the neck overshoot past the seam; aimed at a then b, the defaults the OBJ template's.
-std::shared_ptr<JointBeam> JointBeam::tie(
+std::shared_ptr<JointBeam> JointBeam::butterfly_key(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -798,7 +798,7 @@ std::shared_ptr<JointBeam> JointBeam::tie(
     const double neck = half - head_length;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = connector_name(contact, "tie");
+    joint->name = connector_name(contact, "butterfly_key");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
     joint->insertions = pulled_apart(a, b, contact);

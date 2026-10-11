@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// ss_e_ip_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and bent to 150 degrees, each drawn apart.
+/// ss_e_ip_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and in a shallow V of 165 degrees, each drawn apart.
 int main() {
 
     WoodSession scene("element_joint_plate_ss_e_ip_custom");
@@ -22,8 +22,8 @@ int main() {
     };
     const std::vector<Polyline> outlines = {profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)};
 
-    // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the mitre: in line and bent to 150 degrees, the second pair 800 along y, each in its group
-    for (const double angle : {180.0, 150.0}) {
+    // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the mitre: in line and in a shallow V of 165 degrees, the second pair 800 along y, each in its group
+    for (const double angle : {180.0, 165.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_in_plane(angle);
         const std::shared_ptr<Plate> left = pair[0];
@@ -55,7 +55,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-ss_e_ip_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and bent to 150 degrees, each drawn apart.
+ss_e_ip_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and in a shallow V of 165 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

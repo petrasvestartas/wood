@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Every joint-unit picture of the JointPlate family pages, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
-# design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box (its parameters are the page's code
-# snippets), and <id>.png, the oracle's pair drawn
+# design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box at half scale, its axes, sides and parameters
+# labelled, and <id>.png, the oracle's pair drawn
 # apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.
 #   bash tools/joint_library_figures/make.sh
 set -euo pipefail
@@ -16,8 +16,8 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 ./build/joint_tiles "$WORK/tiles"
 # the rotated designs on a pair folded 120 degrees, and the snap fit, which the oracle does not list
 ./build/joint_tiles "$WORK/tiles" "r@120/ss_e_r_0" "r@120/ss_e_r_2/4/0.5" "r@120/ss_e_r_3/4/0.5" "ts/ts_e_p_5"
-# the trait de Jupiter, which the oracle joins in plane
-./build/joint_tiles "$WORK/tiles" "ip/side_removal_ss_e_r_1"
+# the trait de Jupiter, which the oracle joins in plane, and the designs the oracle does not list
+./build/joint_tiles "$WORK/tiles" "ip/side_removal_ss_e_r_1" "ip/ss_e_ip_4" "op/ss_e_op_3" "op/ss_e_op_6/8"
 # the designs that belong to beams: the cross joints on two crossing beams, the wedge on a tee, square and at 60 degrees
 ./build/joint_tiles "$WORK/tiles" $(for d in cr_c_ip_0 cr_c_ip_1 cr_c_ip_2 cr_c_ip_3 cr_c_ip_4 cr_c_ip_5 ts_e_p_4; do echo "beam/$d/90 beam/$d/60"; done)
 ./build/joint_tiles "$WORK/sweep" $(
@@ -37,7 +37,12 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 rm -f "$OUT"/*.png
 for pb in "$WORK"/tiles/*.pb; do
     png="$OUT/$(basename "$pb" .pb).png"
-    bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+    labels="${pb%.pb}.labels"
+    if [ -f "$labels" ]; then
+        LABELS="$labels" bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+    else
+        bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+    fi
 done
 for pb in "$WORK"/sweep/*.pb; do
     bash tools/shoot_native.sh "$WORK/sweep/$(basename "$pb" .pb).png" "$pb" > /dev/null

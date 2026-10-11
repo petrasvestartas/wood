@@ -60,9 +60,8 @@ public:
     /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 
-    /// Two plates edge to edge in one plane, "left" along x and "right" turned in that plane so the two meet at `angle_degrees`, 180 in
-    /// line, each `length` x `width` x `thickness` along its axis from the seam's centre (length, width / 2), the seam their mitre: the
-    /// in-plane side-to-side pair (ss_e_ip).
+    /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`, a shallow V,
+    /// 180 in line, each `length` x `width` x `thickness` from the seam, the seam their mitre: the in-plane side-to-side pair (ss_e_ip).
     static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0);
 
     /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`, the wall turned `angle_degrees`

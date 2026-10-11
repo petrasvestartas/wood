@@ -100,31 +100,29 @@ std::shared_ptr<Plate> Plate::from_rectangle(
 
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
 
-    // the left plate along x into the seam, the right one out of it turned by the bend, the seam their mitre through its centre
-    const double bend = (180.0 - angle_degrees) * Tolerance::PI / 180.0;
-    const Point centre(length, 0.5 * width, 0.0);
-    const std::array<Vector, 2> along = {Vector(1.0, 0.0, 0.0), Vector(std::cos(bend), std::sin(bend), 0.0)};
-    const Vector normal = (along[0] + along[1]).normalized();
+    // the left plate along x into the seam, the right one out of it folded up about the seam by 180 - angle, a shallow V; the seam their mitre through the fold line at mid thickness
+    const double fold = (180.0 - angle_degrees) * Tolerance::PI / 180.0;
+    const Point centre(length, 0.0, 0.5 * thickness);
+    const std::array<Vector, 2> along = {Vector(1.0, 0.0, 0.0), Vector(std::cos(fold), 0.0, std::sin(fold))};
+    const std::array<Vector, 2> up = {Vector(0.0, 0.0, 1.0), Vector(-std::sin(fold), 0.0, std::cos(fold))};
+    const Vector mitre = (along[0] + along[1]).normalized();
+    const Vector across(0.0, width, 0.0);
 
-    // each plate's two long edges from where they meet the mitre to its far end, length along its axis from the seam centre
-    std::array<Polyline, 2> bottoms;
+    // each plate's bottom and top face: from where it meets the mitre to its far end, length along its axis from the fold line
+    std::array<std::array<Polyline, 2>, 2> faces;
     for (int side = 0; side < 2; side++) {
-        const Vector across = Vector(0.0, 0.0, 1.0).cross(along[side]) * (0.5 * width);
         const double sign = side == 0 ? -1.0 : 1.0;
-        std::array<Point, 2> seam;
-        std::array<Point, 2> far;
-        for (int edge = 0; edge < 2; edge++) {
-            const Vector offset = edge == 0 ? -across : across;
-            seam[edge] = centre + offset - along[side] * (offset.dot(normal) / along[side].dot(normal));
-            far[edge] = centre + offset + along[side] * (sign * length);
+        for (int face = 0; face < 2; face++) {
+            const Vector offset = up[side] * ((face == 0 ? -0.5 : 0.5) * thickness);
+            const Point seam = centre + offset - along[side] * (offset.dot(mitre) / along[side].dot(mitre));
+            const Point far = centre + offset + along[side] * (sign * length);
+            faces[side][face] = Polyline({seam, far, far + across, seam + across, seam});
         }
-        bottoms[side] = Polyline({seam[0], far[0], far[1], seam[1], seam[0]});
     }
 
-    const Xform lift = Xform::translation(0.0, 0.0, thickness);
     return {
-        std::make_shared<Plate>(bottoms[0], bottoms[0].transformed(lift), "left"),
-        std::make_shared<Plate>(bottoms[1], bottoms[1].transformed(lift), "right"),
+        std::make_shared<Plate>(faces[0][0], faces[0][1], "left"),
+        std::make_shared<Plate>(faces[1][0], faces[1][1], "right"),
     };
 }
 

@@ -2,13 +2,13 @@
 
 [TOC]
 
-Connectors on the face contact of two members: a part of their own (a wedge, a let-in plate, a bow-tie key) with the pockets it cuts into both members and its pins, nested under it as `ConnectorPart` and `Pin` elements.
+Connectors on the face contact of two members: a wedge, let-in plate or butterfly key, its pockets and its pins.
 
 ## Wedge
 
 ![Wedge](elements/element_joint_beam_wedge.png)
 
-A wedge between two beams side by side, pinned across, the right beam moved off to show its pocket.
+A wedge let into two beams side by side and pinned across; the right beam is moved off to show the pocket.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ A wedge between two beams side by side, pinned across, the right beam moved off 
 
 ![Let-in plate](elements/element_joint_beam_rectangle_plate.png)
 
-A plate let into a column and the rib ending on it, two pins in each, each through its member and the plate.
+A steel plate let into a column and a rib from the top, flush, with two pins through each member and the plate.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
@@ -39,18 +39,18 @@ A plate let into a column and the rib ending on it, two pins in each, each throu
 
 \include{lineno} elements/element_joint_beam_rectangle_plate.cpp
 
-## Tie
+## Butterfly key
 
-![Tie](elements/element_joint_beam_tie.png)
+![Butterfly key](elements/element_joint_beam_butterfly_key.png)
 
-A bow-tie key across two beams end to end, the second moved off to show its pocket.
+A key of two heads and a neck inlaid across the seam of two beams end to end, holding them together.
 
-| Parameter | Default | What it changes in 3D |
+| Parameter | Default | What it changes |
 | --- | --- | --- |
-| `top` | 138.5 | how far below the contact's top edge the key starts |
-| `length` | 800 | the key's length across the joint |
-| `head_length`, `head_width`, `neck_width` | 200, 40, 20 | the bow-tie outline: its two heads and the neck between them |
-| `depth`, `end_depth` | 58.5, 70.4 | the key's depth at the middle and at its ends |
-| `pocket_depth`, `overshoot` | 80, 10 | the pockets in the members |
+| `top` | 138.5 | how far below the beams' top the key starts; 0 is flush |
+| `length` | 800 | the key's length across the seam |
+| `head_length`, `head_width`, `neck_width` | 200, 40, 20 | the two heads and the neck between them |
+| `depth`, `end_depth` | 58.5, 70.4 | the key's depth at the seam and at its ends |
+| `pocket_depth` | 80 | the pockets' depth |
 
-\include{lineno} elements/element_joint_beam_tie.cpp
+\include{lineno} elements/element_joint_beam_butterfly_key.cpp

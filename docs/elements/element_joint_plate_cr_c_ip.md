@@ -2,9 +2,9 @@
 
 [TOC]
 
-The cross family: a design cut where two plates pass through each other in their planes, a slot or a half-lap into each over its share of the cross's depth, found by `compute_cross_contact`.
+The cross family: a slot or half-lap where two plates pass through each other, found by `compute_cross_contact`.
 
-The plates take the plain slot and your own outlines; the half-laps `cr_c_ip_1` to `cr_c_ip_5` are beam joints, shown on two crossing beams: [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip).
+Plates take the plain slot and custom outlines; the half-laps are beam joints: [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip).
 
 ## Constructors
 
@@ -24,7 +24,7 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const
 ```
 
-Every example joins two pairs, `Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`: two upright 400 x 200 plates 40 thick crossing at their middles, square and at 60 degrees, the joint oriented on their cross contact and passed to each plate with `add_interaction`, the second plate lifted 250 afterwards, the direction the plates slide into each other.
+Every example shows two pairs, `Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`: two plates crossing square and at 60 degrees, the second lifted to show the slots.
 
 ## cr_c_ip_0: the plain slot
 
@@ -36,7 +36,7 @@ Every example joins two pairs, `Plate::pair_crossing(90.0)` and `Plate::pair_cro
 const std::shared_ptr<JointPlate> joint = JointPlate::cr_c_ip_0(); // a fixed design, no parameters
 ```
 
-The family default: a rectangle merged into each plate's outline over half the cross's depth, a slot from the top of the first plate and from the bottom of the second, clipped into the outline by Clipper2 at two decimals as 2024 clipped it, which leaves the slot on a 1/128 mm grid in the frame of the face.
+The family default: a slot over half the cross's depth, from the top of the first plate and the bottom of the second.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_0.cpp
 
@@ -46,6 +46,6 @@ The family default: a rectangle merged into each plate's outline over half the c
 
 ![cr_c_ip_custom, the unit box: male pink, female blue](joint_library/cr_cr_c_ip_custom_unit.png)
 
-Your own outlines in the unit box, pairs (face 0, face 1) per side, the male's on the faces at y = -0.5 and 0.5, the first plate's on this pair, and the female's on the faces at x = -0.5 and 0.5, the second's, kept pair by pair as the 2024 library kept a custom design: each pair is inserted between the plate's edges as `cr_c_ip_0` is.
+Your own outlines in the unit box: the male's pairs on the y faces, the female's on the x faces.
 
 \include{lineno} elements/element_joint_plate_cr_c_ip_custom.cpp

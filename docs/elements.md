@@ -2,9 +2,9 @@
 
 [TOC]
 
-The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and one picture and example per case. Every example is a CMake target under `examples/elements/` that writes `data/output/pb/live.pb` for the viewer; the pictures are screenshots of the real viewer by `tools/screenshot_element_docs.sh`, with every layer, the element interactions and attributes, the Arctic look and the orthographic isometric view; `tools/shoot_pictures.sh` shoots the ones `docs/plans/pictures_to_shoot.txt` lists.
+The timber elements under `src/joinery_solver/wood_elements/`, one page each: what it is, its constructors, and a picture and an example per case.
 
-An element is built from its own parameters only. Whatever another element does to it comes through `WoodSession::add_interaction(source, target, interaction)`: a contact, a plate joint's outline feature, an `InteractionFeatureSolid` that adds a solid to its stock or takes one away, or an `InteractionFeaturePlane` that cuts it by a plane.
+An element is built from its own parameters; what others do to it comes through `WoodSession::add_interaction(source, target, interaction)`.
 
 | Element | Header | Examples |
 | --- | --- | --- |
@@ -27,9 +27,9 @@ An element is built from its own parameters only. Whatever another element does 
 | [JointPlate b](@ref elements_joint_plate_b) | `wood_element_joint_plate.h` | `element_joint_plate_b_0` |
 | [JointBeam](@ref elements_joint_beam) | `wood_element_joint_beam.h` | `element_joint_beam_from_contact` |
 | [JointBeam cr_c_ip](@ref elements_joint_beam_cr_c_ip) | `wood_element_joint_beam.h` | `element_joint_beam_cr_c_ip_0` to `_5` |
-| [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p) | `wood_element_joint_beam.h` | `element_joint_beam_ts_e_p_3`, `_4` |
+| [JointBeam ts_e_p](@ref elements_joint_beam_ts_e_p) | `wood_element_joint_beam.h` | `element_joint_beam_ts_e_p_4` |
 | [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_ss_e_ip_3`, `_ss_e_ip_4`, `_ss_e_r_0` |
-| [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_tie` |
+| [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 | [ConnectorPart](@ref elements_connector_part) | `wood_element_connector_part.h` | `element_connector_part` |
@@ -61,7 +61,7 @@ An element is built from its own parameters only. Whatever another element does 
 
 ## How joints are used
 
-A joint is an element, and what it does is an interaction. Every connection is made in three steps: the joint computes itself from the contact of the members it joins, it is added, and it is passed to each member with `add_interaction`, in its target order:
+A joint is an element, and what it does is an interaction: it is computed from the contact, added, and passed to each member:
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
@@ -78,4 +78,4 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 | [JointBeam](@ref elements_joint_beam), beam to beam | an axis contact of two beams | the feature volumes of a lap or a butt |
 | [JointBeam](@ref elements_joint_beam), connector | a face contact of two members | pockets and bores; its parts ([ConnectorPart](@ref elements_connector_part)) and [Pins](@ref elements_pin) nest under it |
 
-The interaction belongs to its target, the element the joint acts on: the target hosts the cut, the pocket and the holes; the joint keeps only what it is.
+The interaction belongs to its target, which hosts the cut, pocket and holes.

@@ -2,7 +2,7 @@
 
 [TOC]
 
-Joints at the shared axis end of two beams whose solids run past it by `Beam::extension`: the joint cuts each extension back, so the beams are modelled long and cut first.
+Joints at the shared axis end of two beams, cutting back each `Beam::extension`.
 
 ## Constructors
 
@@ -11,7 +11,7 @@ static std::array<std::shared_ptr<Beam>, 2> Beam::pair_end_to_end(double angle_d
 static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 ```
 
-In line, the splice is the in-plane design of `settings.joint_parameters[2]`: each beam loses what the design mills from it and the other beam's box past the joint. At an angle, the beams are trimmed on the mitre.
+In line, the splice is the in-plane design of `settings.joint_parameters[2]`; at an angle, the beams are trimmed on the mitre.
 
 ## ss_e_ip_3: the splayed scarf
 
@@ -19,7 +19,7 @@ In line, the splice is the in-plane design of `settings.joint_parameters[2]`: ea
 
 ![ss_e_ip_3, the unit box: male pink, female blue](joint_library/ip_ss_e_ip_3_unit.png)
 
-`Beam::pair_end_to_end(0.0)`, in line only, as a scarf joins beams in line: a splayed scarf with shoulders through the depth and two pins across; the second beam is moved 300 along the axis.
+`Beam::pair_end_to_end(0.0)`: a splayed scarf with shoulders and two pins; the second beam moved 300 along the axis.
 
 \include{lineno} elements/element_joint_beam_ss_e_ip_3.cpp
 

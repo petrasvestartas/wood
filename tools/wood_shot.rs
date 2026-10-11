@@ -1,6 +1,7 @@
 // A session file rendered as the viewer draws it, without a browser: the native headless GPU (any Vulkan, Mesa's lavapipe on a
 // machine without a GPU), Arctic shading and black outlines on, the orthographic isometric view fitted to the scene.
-//   copied into session_viewer/examples by tools/shoot_native.sh, which builds it with cargo run --release --example wood_shot -- <in.pb> <out.ppm> [width height] [iso|iso_back|top|front]
+//   copied into session_viewer/examples by tools/shoot_native.sh, which builds it with cargo run --release --example wood_shot -- <in.pb> <out.ppm> [width height] [iso|iso_back|top|front] [labels.in labels.out]
+//   labels.in: one "x y z|text" per line in scene units; labels.out: the same lines as "px py|text", the pixel each point lands on.
 #[cfg(not(target_arch = "wasm32"))]
 include!("../src/lib.rs");
 
@@ -36,6 +37,24 @@ fn main() -> anyhow::Result<()> {
     camera.set_view(view);
     camera.perspective = false;
     camera.fit(&scene.tables.bounds, aspect);
+
+    // each label's point projected to its pixel
+    if let (Some(labels_in), Some(labels_out)) = (args.get(6), args.get(7)) {
+        let view_proj = camera.view_proj_anchored(aspect, &session_rust::Point::new(0.0, 0.0, 0.0));
+        let mut out = String::new();
+        for line in std::fs::read_to_string(labels_in)?.lines() {
+            let Some((xyz, text)) = line.split_once('|') else { continue };
+            let v: Vec<f64> = xyz.split_whitespace().filter_map(|t| t.parse().ok()).collect();
+            if v.len() != 3 {
+                continue;
+            }
+            let clip = view_proj.transform_point(&session_rust::Point::new(v[0], v[1], v[2]));
+            let px = (clip[0] + 1.0) * 0.5 * f64::from(width);
+            let py = (1.0 - clip[1]) * 0.5 * f64::from(height);
+            out += &format!("{px:.1} {py:.1}|{text}\n");
+        }
+        std::fs::write(labels_out, out)?;
+    }
     scene.upload_to(&mut gpu);
     gpu.find_solids(|row| scene.solid_faces(row));
 

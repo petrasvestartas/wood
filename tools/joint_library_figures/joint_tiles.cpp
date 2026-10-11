@@ -18,6 +18,13 @@ static const double APART = 250.0; // mm, the second plate moved off the first
 static const Color MALE = Color(0.807f, 0.063f, 0.258f);   // the viewer's x axis pink #E8478B, linear: the viewer encodes line colours to sRGB
 static const Color FEMALE = Color(0.015f, 0.305f, 0.823f); // the viewer's z axis blue #2196EA, linear
 static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
+static const std::map<std::string, std::string> SHIFT_MEANING = { // What the shift does in each family, for the snippet and the tile's legend.
+    {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},
+    {"op", "the fingers' lean through the thickness, only above 0.5"},
+    {"ts", "the tenon width against the gap"},
+    {"r", "the size of each key along the joint line"},
+    {"cr", "how narrow the half-lap's centre square is: 0 widest, 1 narrowest"},
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // The unit box
@@ -86,13 +93,6 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
 /// a fixed design takes none.
 static std::string unit_snippet(const Built& built, const InteractionFeaturePlate& unit) {
 
-    const std::map<std::string, std::string> shift_meaning = {
-        {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},
-        {"op", "the fingers' lean through the thickness, only above 0.5"},
-        {"ts", "the tenon width against the gap"},
-        {"r", "the size of each key along the joint line"},
-        {"cr", "how narrow the half-lap's centre square is: 0 widest, 1 narrowest"},
-    };
     const std::map<std::string, std::vector<std::string>> editable = {
         {"ss_e_ip_1", {"divisions", "shift"}}, {"ss_e_ip_2", {"divisions"}}, {"ss_e_ip_5", {"divisions"}},
         {"ss_e_op_1", {"divisions", "shift"}}, {"ss_e_op_2", {"divisions", "shift"}}, {"ss_e_op_4", {"divisions", "taper", "chamfer"}},
@@ -116,7 +116,7 @@ static std::string unit_snippet(const Built& built, const InteractionFeaturePlat
             meaning = "how many teeth along the joint line; 0 takes them from its length";
         } else if (name == "shift") {
             value = fmt::format("{:g}", unit.shift);
-            meaning = shift_meaning.at(built.family);
+            meaning = SHIFT_MEANING.at(built.family);
         } else if (name == "taper") {
             value = fmt::format("{:g}", p.taper);
             meaning = "the tenons' side lean";
@@ -183,6 +183,72 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
         }
 }
 
+/// The unit tile's annotations: an axis tripod at the box's corner, a dimension along the seam with a tick per division, and the labels for
+/// shoot_native.sh, one "x y z|text" per line for a text at a point, "|text" for a line of the legend under the drawing.
+static std::string add_unit_annotations(WoodSession& scene, const Built& built, const InteractionFeaturePlate& unit) {
+
+    const std::shared_ptr<TreeNode> group = scene.group_named("annotations");
+    const double h = 0.5 * BOX;
+    std::string labels;
+    const auto label = [&labels](const Point& point, const std::string& text) {
+        labels += fmt::format("{} {} {}|{}\n", point[0], point[1], point[2], text);
+    };
+    const auto line = [&scene, &group](const Point& start, const Point& end) {
+        auto drawn = std::make_shared<Polyline>(std::vector<Point>{start, end});
+        drawn->linecolor = Color(0.05f, 0.05f, 0.05f);
+        drawn->width = 3.0;
+        scene.add_polyline(drawn, group);
+    };
+
+    // the axis tripod: an arrow along each box edge leaving the corner (-h, -h, -h), a third of the box long, its letter at the tip
+    const Point corner(-h, -h, -h);
+    const std::array<Vector, 3> axes = {Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0)};
+    const std::array<std::string, 3> letters = {"x", "y", "z"};
+    for (size_t a = 0; a < 3; a++) {
+        const Point tip = corner + axes[a] * (0.35 * BOX);
+        const Vector back = axes[a] * (-0.06 * BOX);
+        const Vector side = axes[(a + 1) % 3] * (0.03 * BOX);
+        line(corner, tip);
+        line(tip, tip + back + side);
+        line(tip, tip + back - side);
+        label(tip, letters[a]);
+    }
+    labels += "|x across the seam, y through the plates, z along the seam\n";
+    labels += "|pink: the male plate's cut, blue: the female plate's cut\n";
+
+    // each parameter the design takes: the divisions as a dimension along z beside the box, a tick at every division; the rest in the legend
+    const std::map<std::string, std::vector<std::string>> editable = {
+        {"ss_e_ip_1", {"divisions", "shift"}}, {"ss_e_op_1", {"divisions", "shift"}}, {"ss_e_op_2", {"divisions", "shift"}},
+        {"ss_e_op_4", {"divisions", "taper", "chamfer"}}, {"ss_e_op_5", {"divisions"}}, {"ss_e_op_6", {"divisions"}}, {"ss_e_op_17", {"divisions"}},
+        {"ts_e_p_2", {"divisions", "shift"}}, {"ts_e_p_3", {"divisions", "shift"}},
+        {"cr_c_ip_1", {"shift"}}, {"cr_c_ip_2", {"shift"}}, {"cr_c_ip_3", {"shift"}}, {"cr_c_ip_4", {"shift"}}, {"cr_c_ip_5", {"shift"}},
+    };
+    const auto names = editable.find(built.library);
+    if (names == editable.end())
+        return labels;
+
+    const JointPlateParameters& p = built.joint->parameters;
+    for (const std::string& name : names->second) {
+        if (name == "divisions") {
+            const int divisions = std::max(1, built.joint->connections.at(0).divisions);
+            const double x = 1.2 * h;
+            line(Point(x, -h, -h), Point(x, -h, h));
+            for (int k = 0; k <= divisions; k++) {
+                const double z = -h + BOX * k / divisions;
+                line(Point(x - 0.04 * BOX, -h, z), Point(x + 0.04 * BOX, -h, z));
+            }
+            label(Point(x + 0.06 * BOX, -h, 0.0), fmt::format("{} divisions", divisions));
+        } else if (name == "shift") {
+            labels += fmt::format("|shift {:g}: {}\n", unit.shift, SHIFT_MEANING.at(built.family));
+        } else if (name == "taper") {
+            labels += fmt::format("|taper {:g}: the tenons' side lean\n", p.taper);
+        } else {
+            labels += fmt::format("|chamfer {}: bevelled tenon ends\n", p.chamfer ? "true" : "false");
+        }
+    }
+    return labels;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Scenes
 // ═══════════════════════════════════════════════════════════════════════════
@@ -199,8 +265,10 @@ static void write_scene(const std::string& id, const std::string& dir) {
     if (unit_outlines(built, unit)) {
         WoodSession unit_scene(name + "_unit");
         add_unit_box(unit_scene, unit);
+        const std::string labels = add_unit_annotations(unit_scene, built, unit);
         unit_scene.pb_dump(dir + "/" + name + "_unit.pb");
         std::ofstream(dir + "/" + name + "_unit.txt") << unit_snippet(built, unit) << std::endl;
+        std::ofstream(dir + "/" + name + "_unit.labels") << labels;
     }
 
     // a design built in world space: its outlines and drills as built on the contact, a scene of their own

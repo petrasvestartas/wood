@@ -14,7 +14,7 @@ static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& t
 static std::shared_ptr<JointBeam> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...)
 static std::shared_ptr<Plate> let_in_plate(const Element& rib, const InteractionContactFace& contact, double width = 30.0, double back = 220.0, double front = 265.0, double height = 250.0)
 static std::shared_ptr<JointBeam> rectangle_plate(const Element& column, const Element& rib, const Plate& plate, const InteractionContactFace& contact, double pin_radius = 25.0, ...)   // each pin across its member face to face
-static std::shared_ptr<JointBeam> tie(const Element& a, const Element& b, const InteractionContactFace& contact, ...)
+static std::shared_ptr<JointBeam> butterfly_key(const Element& a, const Element& b, const InteractionContactFace& contact, ...)
 static std::shared_ptr<JointBeam> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...)
 static std::shared_ptr<JointBeam> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16)
 
@@ -24,7 +24,7 @@ std::vector<std::shared_ptr<Joint>> children() const
 
 ## How it is used
 
-Every connector is made the same way: from the contact of the members it joins, added, and passed to each member in its target order. Its parts and pins nest under it as `ConnectorPart` and `Pin` elements, in `CONNECTOR_COLOR`:
+A connector is made from the contact of its members, added, and passed to each member in target order. Its parts and pins nest under it:
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
@@ -40,7 +40,7 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 
 A crossing and a side-to-end of 60 radius beams, each joint's feature volumes from the closest point of their axes.
 
-The interaction keeps the axes' `normal` and their two directions where they meet (`axes`), and `insertion(target)` says how each member comes off the joint: a crossing along the normal away from the other box, a side or end pair along the axis that points apart.
+The interaction keeps the axes' `normal` and `axes`; `insertion(target)` gives the direction each member comes off the joint.
 
 | Parameter | Default | What it changes in 3D |
 | --- | --- | --- |
@@ -57,5 +57,5 @@ The interaction keeps the axes' `normal` and their two directions where they mee
 | [cr_c_ip](@ref elements_joint_beam_cr_c_ip) | two beams crossing | `cr_c_ip_0` to `cr_c_ip_5` |
 | [ts_e_p](@ref elements_joint_beam_ts_e_p) | a beam ending on another | `ts_e_p_4` |
 | [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `ss_e_ip_3`, `ss_e_ip_4`, `ss_e_r_0` |
-| [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `tie` |
+| [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `butterfly_key` |
 | [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |

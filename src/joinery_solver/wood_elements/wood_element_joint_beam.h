@@ -112,8 +112,8 @@ public:
         int pin_sides = 16
     );
 
-    /// The seam connector: a bow-tie key across the end-to-end contact of two members, with a pocket in each.
-    static std::shared_ptr<JointBeam> tie(
+    /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
+    static std::shared_ptr<JointBeam> butterfly_key(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,

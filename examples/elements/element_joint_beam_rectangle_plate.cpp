@@ -9,7 +9,7 @@ int main() {
     WoodSession scene("element_joint_beam_rectangle_plate");
 
     const std::shared_ptr<Column> column = std::make_shared<Column>(
-        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1200.0}),
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}),
         Polyline::rectangle({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 220.0, 220.0),
         "column"
     );
@@ -23,12 +23,22 @@ int main() {
 
     // the plate and its connector from their contact, added, and the connector passed to the column, the rib and the plate
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(column, rib);
-    const std::shared_ptr<Plate> plate = JointBeam::let_in_plate(*rib, *contact);
+    const std::shared_ptr<Plate> plate = JointBeam::let_in_plate(
+        *rib,
+        *contact,
+        30.0,  // width
+        150.0, // back: into the column, short of its far face
+        200.0, // front: into the rib
+        250.0  // height: down from the tops, flush
+    );
     const std::shared_ptr<JointBeam> pins = JointBeam::rectangle_plate(
         *column,
         *rib,
         *plate,
-        *contact
+        *contact,
+        25.0, // pin_radius
+        3.0,  // margin_x: a pin diameter and a half in from the plate's ends
+        3.0   // margin_z: a pin diameter and a half in from its top and bottom
     );
     plate->name = "plate";
     pins->name = "plate_pins";
