@@ -1597,7 +1597,7 @@ static void host_plate_joint_side(
     );
 
     // a top-top pin joint records on each side the line through the other plate, as 2024 did: the plate is bored with the other side's lines
-    if (connection.name.starts_with("tt_e_p"))
+    if (connection.name.starts_with("stacked"))
         cut.drills = plate_joint_cutter(connection, 1 - side, joint->line_radius, joint->chord_tolerance, stock).drills;
     const std::vector<Line> drills = cut.drills;
 

@@ -98,7 +98,7 @@ static void check_phanomema_node() {
 // Cross joints on beams: the half-lap and the conic half-laps of the thesis (Fig 5.51, 5.55)
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Two beams of half-width 75 crossing in plan at 90, 60 and 45 degrees, joined by each cross design cr_c_ip_0 to 5 (ids 30 to 35): the
+/// Two beams of half-width 75 crossing in plan at 90, 60 and 45 degrees, joined by each cross design cross_slot to 5 (ids 30 to 35): the
 /// pair's overlap is gone, the beams lost at least their overlap, each a closed solid, and the designs with drills bore the beams with
 /// exact cylinders.
 static void check_crossings() {
@@ -122,8 +122,9 @@ static void check_crossings() {
             for (const std::shared_ptr<Element>& element : *scene.objects.elements)
                 if (std::shared_ptr<JointBeam> found = std::dynamic_pointer_cast<JointBeam>(element))
                     joint = found;
-            check(joint != nullptr, fmt::format("the beams crossing at {:g} degrees are joined by cr_c_ip id {}", angle, id));
-            const std::string design = fmt::format("cr_c_ip_{}", id - 30);
+            check(joint != nullptr, fmt::format("the beams crossing at {:g} degrees are joined by cross id {}", angle, id));
+            const std::array<std::string, 6> designs = {"cross_slot", "cross_sliced_half_lap", "cross_half_lap", "cross_half_lap_diagonal_drills", "cross_half_lap_drill", "cross_brussels_half_lap"};
+            const std::string design = designs[id - 30];
             check(joint->joinery.name == design, fmt::format("the crossing at {:g} degrees takes {}, not {}", angle, design, joint->joinery.name));
 
             const double before = boolean_volume(a->element_geometry_mesh(), b->element_geometry_mesh(), SolidOperation::intersect);
@@ -138,7 +139,7 @@ static void check_crossings() {
             }
             check(lost >= before * (1.0 - KEPT_OVERLAP), fmt::format("the beams lost {:.0f} mm3 to id {} at {:g} degrees, less than their overlap {:.0f}", lost, id, angle, before));
 
-            // the designs with drills (cr_c_ip_3 to 5) bore both beams with exact cylinders
+            // the designs with drills (cross_half_lap_diagonal_drills to 5) bore both beams with exact cylinders
             size_t cylinders = 0;
             for (const std::shared_ptr<Beam>& member : {a, b})
                 for (const BRepFace& face : member->model_geometry_brep().m_faces)
@@ -146,14 +147,14 @@ static void check_crossings() {
             if (id >= 33)
                 check(cylinders > 0, fmt::format("id {} at {:g} degrees bores no exact cylinder", id, angle));
 
-            std::cout << fmt::format("joint_beams: cr_c_ip id {} at {:g} degrees: overlap {:.0f} to {:.0f} mm3, the beams lost {:.0f}, {} exact bores", id, angle, before, after, lost, cylinders) << std::endl;
+            std::cout << fmt::format("joint_beams: cross id {} at {:g} degrees: overlap {:.0f} to {:.0f} mm3, the beams lost {:.0f}, {} exact bores", id, angle, before, after, lost, cylinders) << std::endl;
         }
     }
 }
 
-/// A beam ending on the side of another, square and at 60 degrees, joined by the wedge ts_e_p_4 (id 24), whose milled pockets and wedge
-/// flanks are solids: both beams cut, closed, their overlap gone. The tenon designs ts_e_p_2 and 3 on such a tee are open: at 90 degrees
-/// the beams lose 14.6e6 mm3 for an overlap of 1.7e6, at 60 degrees ts_e_p_3 leaves 1.2e6 of the overlap (as before the solids were
+/// A beam ending on the side of another, square and at 60 degrees, joined by the wedge tee_milled_wedge (id 24), whose milled pockets and wedge
+/// flanks are solids: both beams cut, closed, their overlap gone. The tenon designs tee_dense_tenons and 3 on such a tee are open: at 90 degrees
+/// the beams lose 14.6e6 mm3 for an overlap of 1.7e6, at 60 degrees tee_tenons leaves 1.2e6 of the overlap (as before the solids were
 /// carried onto beams).
 static void check_tees() {
 
@@ -190,12 +191,12 @@ static void check_tees() {
     }
 }
 
-/// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by ss_e_ip_3
-/// and 4, at 90 and 60 degrees trimmed on the mitre by ss_e_r_0; the extensions' overlap is gone and the pair keeps the wood of its two
+/// Two extended beams of half-width 75 meeting end to end, their solids running 150 past the shared axis end: in line spliced by in_plane_splayed_scarf
+/// and 4, at 90 and 60 degrees trimmed on the mitre by rotated_mitre; the extensions' overlap is gone and the pair keeps the wood of its two
 /// 1200 mm axes and of the extensions at their free ends and no more, less the pins' bores.
 static void check_end_to_end() {
 
-    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "ss_e_ip_3"}, {0.0, "ss_e_ip_4"}, {90.0, "ss_e_r_0"}, {60.0, "ss_e_r_0"}}};
+    const std::array<std::pair<double, std::string>, 4> cases = {{{0.0, "in_plane_splayed_scarf"}, {0.0, "in_plane_cross_splayed_scarf"}, {90.0, "rotated_mitre"}, {60.0, "rotated_mitre"}}};
     for (const std::pair<double, std::string>& end_case : cases) {
         WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
         scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);

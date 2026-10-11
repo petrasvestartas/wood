@@ -36,8 +36,8 @@ int main() {
         )
     );
 
-    wood_session.settings.joint_parameters[0 * 3 + 2] = 9;   // ss_e_ip id 9: the custom variant
-    wood_session.settings.custom_joints["ss_e_ip"] = {
+    wood_session.settings.joint_parameters[0 * 3 + 2] = 9;   // in_plane id 9: the custom variant
+    wood_session.settings.custom_joints["in_plane"] = {
         std::vector<Polyline>{tooth(-0.5, -SEAM_DEPTH), tooth(0.5, -SEAM_DEPTH)},
         std::vector<Polyline>{tooth(-0.5, SEAM_DEPTH), tooth(0.5, SEAM_DEPTH)},
     };

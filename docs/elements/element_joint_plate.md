@@ -8,15 +8,15 @@ A joint between two plates: a design of the joint library, oriented on the plate
 
 ```cpp
 // the library designs, each by its own name and parameters
-static std::shared_ptr<JointPlate> ss_e_ip_0() .. ss_e_ip_5(int divisions = 0), ss_e_ip_1(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the ss_e_ip page
-static std::shared_ptr<JointPlate> ss_e_ip_hilti(const Plate& a, const Plate& b, const InteractionContactFace& contact, ...)   // the Hilti connector, side to side only
-static std::shared_ptr<JointPlate> ss_e_op_0() .. ss_e_op_6(int divisions = 0), ss_e_op_17(int divisions = 4), ss_e_op_tutorial()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the ss_e_op page
-static std::shared_ptr<JointPlate> ts_e_p_0(), ts_e_p_1(), ts_e_p_4(), ts_e_p_5(int divisions = 0), ts_e_p_2(int divisions = 0, double shift = 0.5), ts_e_p_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the ts_e_p page
-static std::shared_ptr<JointPlate> ss_e_r_0(), ss_e_r_2(int divisions = 0, double shift = 0.5), ss_e_r_3(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line
-static std::shared_ptr<JointPlate> cr_c_ip_0(), cr_c_ip_1(double shift = 0.5) .. cr_c_ip_5(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; the half-laps on the JointBeam cr_c_ip page
-static std::shared_ptr<JointPlate> tt_e_p_0(double radius = 1.0), tt_e_p_1(double radius = 1.0), tt_e_p_2(int divisions = 6, double shift = 0.95, double radius = 1.0), tt_e_p_3(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. tt_e_p_5(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the family defaults, each design reading them its own way; the radius is the pin's
-static std::shared_ptr<JointPlate> b_0()
-static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), side_removal_ss_e_r_1()
+static std::shared_ptr<JointPlate> in_plane_three_fingers() .. in_plane_tooth_keys(int divisions = 0), in_plane_dovetails(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line; see the in_plane page
+static std::shared_ptr<JointPlate> in_plane_hilti(const Plate& a, const Plate& b, const InteractionContactFace& contact, ...)   // the Hilti connector, side to side only
+static std::shared_ptr<JointPlate> corner_three_fingers() .. corner_linked_tenons_wall(int divisions = 0), corner_capped_fingers(int divisions = 4), corner_notch()   // 0 divisions: one every 450 mm of the joint line, shift 0.64; see the corner page
+static std::shared_ptr<JointPlate> tee_three_tenons(), tee_annen_tenons(), tee_milled_wedge(), tee_snap_fit(int divisions = 0), tee_dense_tenons(int divisions = 0, double shift = 0.5), tee_tenons(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 450 mm of the joint line, shift 0.5; see the tee page
+static std::shared_ptr<JointPlate> rotated_mitre(), rotated_hooks(int divisions = 0, double shift = 0.5), rotated_keys(int divisions = 0, double shift = 0.5)   // 0 divisions: one every 300 mm of the joint line
+static std::shared_ptr<JointPlate> cross_slot(), cross_sliced_half_lap(double shift = 0.5) .. cross_brussels_half_lap(double shift = 0.5)   // no divisions; the shift narrows the half-lap's centre square, 0 the widest, 1 the narrowest; the half-laps on the JointBeam cross page
+static std::shared_ptr<JointPlate> stacked_centre_pin(double radius = 1.0), stacked_polylabel_pin(double radius = 1.0), stacked_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0), stacked_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0) .. stacked_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0)   // the family defaults, each design reading them its own way; the radius is the pin's
+static std::shared_ptr<JointPlate> border()
+static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), jupiter_scarf()
 static std::shared_ptr<JointPlate> <family>_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female)
 
 // placed on a contact, then passed to each plate
@@ -31,7 +31,7 @@ A design is made by name on the contact of two plates, added, and passed to each
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
-const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(16, 0.5);
+const std::shared_ptr<JointPlate> joint = JointPlate::tee_tenons(16, 0.5);
 joint->orient(contact, {base, upright});
 scene.add(joint);
 scene.add_interaction(joint, upright, joint->interaction(0));
@@ -42,27 +42,27 @@ scene.add_interaction(joint, base, joint->interaction(1));
 
 | Family | Contact | Pair |
 | --- | --- | --- |
-| [ss_e_ip](@ref elements_joint_plate_ss_e_ip) | side to side, in plane | two plates edge to edge |
-| [ss_e_op](@ref elements_joint_plate_ss_e_op) | side to side, out of plane | a floor and a wall at a corner |
-| [ts_e_p](@ref elements_joint_plate_ts_e_p) | top to side | a plate standing on another |
-| [ss_e_r](@ref elements_joint_plate_ss_e_r) | side to side, rotated | two plates twisted about their seam |
-| [cr_c_ip](@ref elements_joint_plate_cr_c_ip) | cross | two plates passing through each other |
-| [tt_e_p](@ref elements_joint_plate_tt_e_p) | top to top | two plates stacked face on face |
+| [in_plane](@ref elements_joint_plate_in_plane) | side to side, in plane | two plates edge to edge |
+| [corner](@ref elements_joint_plate_corner) | side to side, out of plane | a floor and a wall at a corner |
+| [tee](@ref elements_joint_plate_tee) | top to side | a plate standing on another |
+| [rotated](@ref elements_joint_plate_rotated) | side to side, rotated | two plates twisted about their seam |
+| [cross](@ref elements_joint_plate_cross) | cross | two plates passing through each other |
+| [stacked](@ref elements_joint_plate_stacked) | top to top | two plates stacked face on face |
 | [b](@ref elements_joint_plate_b) | border | one plate's side face |
 
 ## b: boundary {#elements_joint_plate_b}
 
-![b_0 on a side face](elements/element_joint_plate_b_0.png)
+![border on a side face](elements/element_joint_plate_border.png)
 
-`b_0` on one side face of a plate, its border contact made by `WoodSession::compute_border_contact(plate, 2)`.
+`border` on one side face of a plate, its border contact made by `WoodSession::compute_border_contact(plate, 2)`.
 
-\include{lineno} elements/element_joint_plate_b_0.cpp
+\include{lineno} elements/element_joint_plate_border.cpp
 
 ## Parameters
 
-![parameters of ts_e_p_3](elements/element_joint_plate_parameters.png)
+![parameters of tee_tenons](elements/element_joint_plate_parameters.png)
 
-`ts_e_p_3` six times: back row 8, 16 and 24 divisions, front row shift 0, 0.25 and 1.
+`tee_tenons` six times: back row 8, 16 and 24 divisions, front row shift 0, 0.25 and 1.
 
 | Parameter | Default | What it changes |
 | --- | --- | --- |

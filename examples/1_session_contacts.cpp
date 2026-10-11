@@ -54,7 +54,7 @@ int main() {
             )
         }
     );
-    const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
+    const std::shared_ptr<JointPlate> joint = JointPlate::tee_tenons(8, 0.5);
     joint->is_visible = false; // joints start hidden, the viewer lists them with the lamp off; true draws it
     plate0->is_locked = true; // the viewer opens it with the lock on: it cannot be selected or moved
 

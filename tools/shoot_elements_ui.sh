@@ -16,7 +16,7 @@ fi
 cmake --build build --target "$@" --parallel 6 > /dev/null
 for name in "$@"; do
     view=iso
-    case "$name" in element_column*) view=iso_back ;; element_joint_beam_ss_e_*) view=top ;; esac
+    case "$name" in element_column*) view=iso_back ;; element_joint_beam_in_plane_*|element_joint_beam_rotated_mitre) view=top ;; esac
     if ! ./build/"$name" > /dev/null 2>&1; then
         echo "$name: the example failed"
         continue

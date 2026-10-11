@@ -99,7 +99,7 @@ static void check_names() {
     const std::vector<int> types = {20, 20, 20, 20, 20, 20, 20, 10, 20, 20, 20, 10, 0};
     std::vector<std::string> names;
     for (const int type : types)
-        names.push_back(type == 20 ? "ts_e_p_3" : type == 10 ? "ss_e_op_1" : "");
+        names.push_back(type == 20 ? "tee_tenons" : type == 10 ? "corner_fingers" : "");
 
     std::array<std::vector<InteractionFeaturePlate>, 2> runs;
     std::array<std::vector<std::vector<Polyline>>, 2> outlines;
@@ -125,7 +125,7 @@ static void check_names() {
 
     bool refused = false;
     try {
-        JointPlate::library_id("ts_e_p_9");
+        JointPlate::library_id("tee_9");
     } catch (const std::invalid_argument&) {
         refused = true;
     }

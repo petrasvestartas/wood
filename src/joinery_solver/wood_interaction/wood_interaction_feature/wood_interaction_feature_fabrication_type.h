@@ -20,8 +20,8 @@ enum FabricationType : int {
     conic = 13, // Beam: a conic cut.
     conic_reverse = 14, // Beam: a conic cut with the kept side reversed.
     drill = 15, // Plate or beam: a vertical drill.
-    drill_50 = 16, // Plate or beam: a drill 2024 named for a 50 mm bit, the vertical pin of cr_c_ip_5; bored like a drill.
-    drill_10 = 17, // Plate or beam: a drill 2024 named for a 10 mm bit, the horizontal pin of cr_c_ip_5; bored like a drill.
+    drill_50 = 16, // Plate or beam: a drill 2024 named for a 50 mm bit, the vertical pin of cross_brussels_half_lap; bored like a drill.
+    drill_10 = 17, // Plate or beam: a drill 2024 named for a 10 mm bit, the horizontal pin of cross_brussels_half_lap; bored like a drill.
 };
 
 /// Whether a type is bored as a drill: drill and the two named bits of 2024.

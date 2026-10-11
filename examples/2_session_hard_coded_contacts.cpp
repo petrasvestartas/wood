@@ -54,7 +54,7 @@ int main() {
             )
         }
     );
-    const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
+    const std::shared_ptr<JointPlate> joint = JointPlate::tee_tenons(8, 0.5);
 
     wood_session.add(plate0);
     wood_session.add(plate1);

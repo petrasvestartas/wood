@@ -7,7 +7,7 @@
 `Floor::compute_connectors` and `Floor::add_connectors` are private steps called by the constructor.
 `compute_connectors` makes one joint element per contact.
 Every seam and oculus contact gets a wedge.
-Every column contact gets a column plate let into the column and its rib, with a `cr_c_ip` half lap between the two plates of a column.
+Every column contact gets a column plate let into the column and its rib, with a `cross` half lap between the two plates of a column.
 Every block-to-rib contact gets centred pins.
 Every butt joint gets headed pins, pre-drilled into both members; page 10 shows them.
 `add_connectors` adds each with `add` and puts it on its members with `add_interaction`.
@@ -141,9 +141,9 @@ Code: `JointBeam::rectangle_plate`, [wood_element_joint_beam.cpp](https://github
 
 <span style="color:#E8478B">■ a</span> `column_plate_0_0`   <span style="color:#F2CC0C">■ b</span> `column_plate_0_1`   <span style="color:#A3A3A3">■ context</span> the column
 
-The two plates of a column cross inside its head. `compute_cross_contact(plates[0], plates[1])` finds the crossing; `JointPlate::cr_c_ip_0()`, oriented on it, is the half lap. `add_connectors` adds it last, and each `add_interaction(lap, plate, lap->interaction(i))` merges the lap into that plate's outlines.
+The two plates of a column cross inside its head. `compute_cross_contact(plates[0], plates[1])` finds the crossing; `JointPlate::cross_slot()`, oriented on it, is the half lap. `add_connectors` adds it last, and each `add_interaction(lap, plate, lap->interaction(i))` merges the lap into that plate's outlines.
 
-Code: `Floor::compute_connectors`, `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::compute_cross_contact`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `JointPlate::cr_c_ip_0`, [wood_element_joint_plate.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_plate.h).
+Code: `Floor::compute_connectors`, `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `WoodSession::compute_cross_contact`, [wood_session.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_session.cpp); `JointPlate::cross_slot`, [wood_element_joint_plate.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_plate.h).
 
 ## 263. The block pins
 

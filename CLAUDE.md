@@ -14,7 +14,7 @@ steps apply only when changing the kernels; wood remains a C++ consumer.
 functions and the standard section banners. Keep one header/source pair for Joint, JointPlate and JointBeam. Plate factories,
 parameters, Annen and Vidy stay in the JointPlate pair; use sections and small
 functions instead of files per factory or family. Expose library designs by their
-actual names, such as `JointPlate::ts_e_p_3`, with their own parameters.
+actual names, such as `JointPlate::tee_tenons`, with their own parameters.
 Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
 completion accurately. Generated protobuf files follow the generator's format.
 

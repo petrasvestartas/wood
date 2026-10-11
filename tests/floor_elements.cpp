@@ -983,7 +983,7 @@ void check_quarter_pins() {
     std::cout << fmt::format("floor_elements: {} pin sets of {} pins on the wedge blocks of the quarters, every pin half in each member, every drilled member exact, round trip pass", sets.size(), pins) << std::endl;
 }
 
-/// The two plates of every column half-lapped by a cr_c_ip cross lap merged into their outlines: each plate closed, the two touching without overlap, the same volume taken out of both.
+/// The two plates of every column half-lapped by a cross cross lap merged into their outlines: each plate closed, the two touching without overlap, the same volume taken out of both.
 void check_cross_laps(const WoodSession& scene, const std::vector<std::shared_ptr<JointPlate>>& laps) {
 
     for (const std::shared_ptr<JointPlate>& lap : laps) {

@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons ss_e_op_5 and their shadow joint.
+/// One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons corner_linked_tenons and their shadow joint.
 int main() {
 
     // the four plates of the first node of vidy_corner, its walls 6 and 7, its roof plates 9 and 8, with the dataset's settings
@@ -32,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons ss_e_op_5 and their shadow joint.
+One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons corner_linked_tenons and their shadow joint.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

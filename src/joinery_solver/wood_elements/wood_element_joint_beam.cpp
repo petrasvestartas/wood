@@ -170,7 +170,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
                 away = {(p.end() - p.start()).normalized(), (q.end() - q.start()).normalized()};
             }
 
-    // at an angle, ss_e_r_0: each beam's extension trimmed on the mitre, the plane through the shared end bisecting the axes, by a
+    // at an angle, rotated_mitre: each beam's extension trimmed on the mitre, the plane through the shared end bisecting the axes, by a
     // block on the other beam's side of it
     if (end_to_end && std::abs(away[0].dot(away[1])) < 0.999) {
         const Vector normal = (away[0] - away[1]).normalized();
@@ -182,7 +182,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
             const Vector beyond = normal * (i == 0 ? -reach : reach);
             joint->member_cuts[i] = Mesh::loft({face}, {face.transformed(Xform::translation(beyond[0], beyond[1], beyond[2]))}, true);
         }
-        joint->joinery.name = "ss_e_r_0";
+        joint->joinery.name = "rotated_mitre";
         joint->joinery_sides = {0, 1};
         return joint;
     }
@@ -191,7 +191,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
     compute_joinery(*joint, settings, end_to_end);
 
     // a beam ending on another has room for one tenon: where the design severs a beam or leaves the two overlapping inside the joint, cut the single milled
-    // tenon of ts_e_p_4 instead
+    // tenon of tee_milled_wedge instead
     if (joint->feature.end_type == 1 && joint->joinery.joint_type == 20) {
         const std::array<const Mesh*, 2> stocks = {&source.element_geometry_mesh(), &target.element_geometry_mesh()};
         std::array<Mesh, 2> kept = {*stocks[0], *stocks[1]};
@@ -217,7 +217,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
 
         if (fails) {
             Settings single = settings;
-            single.joint_parameters[8] = JointPlate::library_id("ts_e_p_4");
+            single.joint_parameters[8] = JointPlate::library_id("tee_milled_wedge");
             *joint = JointBeam();
             beam_to_beam(source, target, contact, volume_length, cross_or_side_to_end, flip_male, joint->feature);
             joint->targets = {source.guid(), target.guid()};

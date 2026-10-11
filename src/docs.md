@@ -13,7 +13,7 @@ A model is built with two calls: `add(element, group)` puts an element in the sc
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
-const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3();
+const std::shared_ptr<JointPlate> joint = JointPlate::tee_tenons();
 joint->orient(contact, {base, upright});
 scene.add(joint);
 scene.add_interaction(joint, upright, joint->interaction(0));

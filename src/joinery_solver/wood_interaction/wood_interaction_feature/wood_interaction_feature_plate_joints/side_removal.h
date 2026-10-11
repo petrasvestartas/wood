@@ -1,4 +1,4 @@
-/// The outlines 2024's side_removal and side_removal_ss_e_r_1 both begin with: each side face widened at its convex corners by
+/// The outlines 2024's side_removal and jupiter_scarf both begin with: each side face widened at its convex corners by
 /// scale[0] and up and down by scale[1], the male's outlines the female's side face pushed scale[2] into the male and, with the shift
 /// on under a merge, scale[2] + 2 + shift as well, the female's the male's side face pushed scale[2] + 2 into the female: two
 /// mill_project pairs per side, four on the shifted male; no orient. 2024 swapped v0 and v1 and then built m from v0, while the
