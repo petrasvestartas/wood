@@ -1,19 +1,15 @@
 /// A bottom side of the half-lap, the ring on its four corners extended as 2024 extended the closed polyline: its first
 /// segment by `extension_first` and its third by `extension_second` along the plate, then its second and fourth 0.6 up and
-/// down so the cut clears the plate, both ends each and in that order. The corners are extended as points and the ring
-/// closed on them afterwards, since Polyline::extend_segment_equally(int) leaves a closed ring open on its first and last segment.
+/// down so the cut clears the plate, both ends each and in that order.
 static Polyline bottom_side(const Point& a, const Point& b, const Point& c, const Point& d, double extension_first, double extension_second) {
 
-    Point q0 = a;
-    Point q1 = b;
-    Point q2 = c;
-    Point q3 = d;
-    Polyline::extend_segment_equally(q0, q1, extension_first);
-    Polyline::extend_segment_equally(q2, q3, extension_second);
-    Polyline::extend_segment_equally(q1, q2, 0.6);
-    Polyline::extend_segment_equally(q3, q0, 0.6);
+    Polyline ring({a, b, c, d, a});
+    ring.extend_segment_equally(0, extension_first);
+    ring.extend_segment_equally(2, extension_second);
+    ring.extend_segment_equally(1, 0.6);
+    ring.extend_segment_equally(3, 0.6);
 
-    return Polyline({q0, q1, q2, q3, q0});
+    return ring;
 }
 
 /// The body cr_c_ip_2 to cr_c_ip_5 share, as 2024 wrote it four times: the half-lap's sixteen points on the shift, five
