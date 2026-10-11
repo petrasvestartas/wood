@@ -1,4 +1,4 @@
-//! Beam: a section swept along a polyline axis, mitred at every interior vertex.
+//! Beam: a section swept along a polyline axis, mitered at every interior vertex.
 
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{
