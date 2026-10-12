@@ -538,6 +538,252 @@ static void queen_post() {
     scene.pb_dump(pb_path("butt_truss_queen_post"));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Graphic statics: trusses drawn as chord polylines and web lines
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// True when the node lies on the beam's axis, between its ends or on one.
+static bool on_axis(const Beam& beam, const Point& node) {
+
+    const Line axis = Line::from_points(beam.axis[0], beam.axis[1]);
+    return Point::distance(axis.closest_point(node, true).second, node) < 1e-6;
+}
+
+/// A chord drawn as a polyline: one beam per straight segment, the nodes between collinear segments merged, mitered at every kink.
+static std::vector<std::shared_ptr<Beam>> add_chord(WoodSession& scene, const std::vector<Point>& nodes, const std::string& name) {
+
+    // kinks: the ends and every node where the polyline turns
+    std::vector<Point> kinks = {nodes.front()};
+    for (size_t i = 1; i + 1 < nodes.size(); i++)
+        if ((nodes[i] - kinks.back()).normalized().cross((nodes[i + 1] - nodes[i]).normalized()).magnitude() > 1e-9)
+            kinks.push_back(nodes[i]);
+    kinks.push_back(nodes.back());
+
+    // segments: one beam between every two kinks, mitered with the one before
+    std::vector<std::shared_ptr<Beam>> segments;
+    for (size_t k = 0; k + 1 < kinks.size(); k++) {
+        segments.push_back(std::make_shared<Beam>(Polyline({kinks[k], kinks[k + 1]}), 80.0, fmt::format("{}_{}", name, k)));
+        add_drawn(scene, segments.back());
+        if (k > 0)
+            miter(scene, segments[k - 1], segments[k]);
+    }
+    return segments;
+}
+
+/// A truss from its drawing: chord polylines, web lines and end posts. Chords sharing an end butted at the heel, every web stopping on each
+/// chord segment it ends on, each end post under the chords running on over it, and the webs and posts at a node mitered with their neighbours.
+static void add_truss(
+    const std::string& name,
+    const std::vector<std::pair<std::string, std::vector<Point>>>& chords,
+    const std::vector<std::array<Point, 2>>& webs,
+    const std::vector<std::array<Point, 2>>& posts
+) {
+
+    WoodSession scene(name);
+
+    // chords: one beam per straight segment, mitered at the kinks
+    std::vector<std::vector<std::shared_ptr<Beam>>> segments;
+    for (const std::pair<std::string, std::vector<Point>>& chord : chords)
+        segments.push_back(add_chord(scene, chord.second, chord.first));
+
+    // heels: two chords ending at the same node, their end segments butted
+    for (size_t a = 0; a < chords.size(); a++)
+        for (size_t b = a + 1; b < chords.size(); b++)
+            for (size_t end_a = 0; end_a < 2; end_a++)
+                for (size_t end_b = 0; end_b < 2; end_b++) {
+                    const Point& node_a = end_a == 0 ? chords[a].second.front() : chords[a].second.back();
+                    const Point& node_b = end_b == 0 ? chords[b].second.front() : chords[b].second.back();
+                    if (Point::distance(node_a, node_b) > 1e-6)
+                        continue;
+                    const std::shared_ptr<Beam>& first = end_a == 0 ? segments[a].front() : segments[a].back();
+                    const std::shared_ptr<Beam>& second = end_b == 0 ? segments[b].front() : segments[b].back();
+                    add_butt(scene, JointBeam::butt(*first, *second), first, second);
+                }
+
+    // webs: each stops on every chord segment it ends on, at a kink on both
+    std::vector<std::shared_ptr<Beam>> members;
+    for (size_t i = 0; i < webs.size(); i++) {
+        const bool vertical = std::abs(webs[i][0][0] - webs[i][1][0]) < 1e-6;
+        members.push_back(std::make_shared<Beam>(Polyline({webs[i][0], webs[i][1]}), 60.0, fmt::format("{}_{}", vertical ? "vertical" : "diagonal", i)));
+        add_drawn(scene, members.back());
+        for (const Point& end : webs[i])
+            for (const std::vector<std::shared_ptr<Beam>>& chord : segments)
+                for (const std::shared_ptr<Beam>& segment : chord)
+                    if (on_axis(*segment, end))
+                        stop(scene, segment, members.back());
+    }
+
+    // end posts: between the chords, each chord segment ending on it running on over it
+    for (size_t i = 0; i < posts.size(); i++) {
+        members.push_back(std::make_shared<Beam>(Polyline({posts[i][0], posts[i][1]}), 80.0, fmt::format("end_post_{}", i)));
+        add_drawn(scene, members.back());
+        for (const Point& end : posts[i])
+            for (const std::vector<std::shared_ptr<Beam>>& chord : segments)
+                for (const std::shared_ptr<Beam>& segment : chord)
+                    if (on_axis(*segment, end))
+                        add_butt(scene, JointBeam::butt(*segment, *members.back()), segment, members.back());
+    }
+
+    // nodes: the webs and posts at each node in turn around it, every one mitered with the next, never across the widest gap
+    std::vector<Point> nodes;
+    for (const std::shared_ptr<Beam>& member : members)
+        for (const Point& end : {member->axis[0], member->axis[1]})
+            if (std::none_of(nodes.begin(), nodes.end(), [&](const Point& node) { return Point::distance(node, end) < 1e-6; }))
+                nodes.push_back(end);
+    for (const Point& node : nodes) {
+        std::vector<std::pair<double, std::shared_ptr<Beam>>> around;
+        for (const std::shared_ptr<Beam>& member : members)
+            for (size_t e = 0; e < 2; e++)
+                if (Point::distance(member->axis[e], node) < 1e-6) {
+                    const Vector away = member->axis[1 - e] - node;
+                    around.emplace_back(std::atan2(away[2], away[0]), member);
+                }
+        if (around.size() < 2)
+            continue;
+        std::sort(around.begin(), around.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+        size_t widest = around.size() - 1;
+        double gap = around.front().first + 2.0 * Tolerance::PI - around.back().first;
+        for (size_t k = 0; k + 1 < around.size(); k++)
+            if (around[k + 1].first - around[k].first > gap) {
+                gap = around[k + 1].first - around[k].first;
+                widest = k;
+            }
+        for (size_t k = 1; k < around.size(); k++) {
+            const size_t first = (widest + k) % around.size();
+            const size_t second = (widest + k + 1) % around.size();
+            miter(scene, around[first].second, around[second].second);
+        }
+    }
+
+    scene.pb_dump(pb_path(name));
+}
+
+/// Cambered verticals: a pitched top chord over a bottom chord flat at the heels and cambered up to 900 at the middle, eight panels, a vertical at
+/// every inner panel point and no diagonal.
+static void cambered_verticals() {
+
+    const std::array<double, 9> bottom_heights = {0.0, 0.0, 300.0, 600.0, 900.0, 600.0, 300.0, 0.0, 0.0};
+    std::vector<Point> bottom;
+    std::vector<std::array<Point, 2>> webs;
+    for (int i = 0; i <= 8; i++) {
+        const double x = 1500.0 * i;
+        bottom.emplace_back(x, 0.0, bottom_heights[i]);
+        if (i > 0 && i < 8)
+            webs.push_back({Point(x, 0.0, bottom_heights[i]), Point(x, 0.0, 2700.0 * (1.0 - std::abs(x - 6000.0) / 6000.0))});
+    }
+    const std::vector<Point> top = {{0.0, 0.0, 0.0}, {6000.0, 0.0, 2700.0}, {12000.0, 0.0, 0.0}};
+    add_truss("butt_truss_cambered_verticals", {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {});
+}
+
+/// Funicular arch: a polygonal arch with a level crown over a straight tie, inclined webs from the tie's nodes to the nearest arch nodes.
+static void funicular_arch() {
+
+    const std::vector<Point> top = {{0.0, 0.0, 0.0}, {1500.0, 0.0, 1300.0}, {4000.0, 0.0, 2200.0}, {8000.0, 0.0, 2200.0}, {10500.0, 0.0, 1300.0}, {12000.0, 0.0, 0.0}};
+    const std::vector<Point> bottom = {{0.0, 0.0, 0.0}, {2400.0, 0.0, 0.0}, {4800.0, 0.0, 0.0}, {7200.0, 0.0, 0.0}, {9600.0, 0.0, 0.0}, {12000.0, 0.0, 0.0}};
+    const std::vector<std::array<Point, 2>> webs = {
+        {bottom[1], top[1]},
+        {bottom[1], top[2]},
+        {bottom[2], top[2]},
+        {bottom[3], top[3]},
+        {bottom[4], top[3]},
+        {bottom[4], top[4]},
+    };
+    add_truss("butt_truss_funicular_arch", {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {});
+}
+
+/// Lens: a polygonal arch over a sagging polygon, the two meeting at the heels, a hanger between every two inner nodes.
+static void lens() {
+
+    const std::vector<Point> top = {{0.0, 0.0, 0.0}, {2000.0, 0.0, 1100.0}, {4000.0, 0.0, 1600.0}, {8000.0, 0.0, 1600.0}, {10000.0, 0.0, 1100.0}, {12000.0, 0.0, 0.0}};
+    const std::vector<Point> bottom = {{0.0, 0.0, 0.0}, {2000.0, 0.0, -700.0}, {4000.0, 0.0, -1100.0}, {8000.0, 0.0, -1100.0}, {10000.0, 0.0, -700.0}, {12000.0, 0.0, 0.0}};
+    std::vector<std::array<Point, 2>> webs;
+    for (size_t i = 1; i + 1 < top.size(); i++)
+        webs.push_back({bottom[i], top[i]});
+    add_truss("butt_truss_lens", {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {});
+}
+
+/// Triangulated arch: an outer and an inner polygonal chord springing from the same two supports, no tie, webs zigzagging between their
+/// nodes and a vertical at the crown.
+static void triangulated_arch() {
+
+    const std::vector<Point> outer = {{0.0, 0.0, 0.0}, {800.0, 0.0, 3000.0}, {2800.0, 0.0, 5000.0}, {6000.0, 0.0, 5800.0}, {9200.0, 0.0, 5000.0}, {11200.0, 0.0, 3000.0}, {12000.0, 0.0, 0.0}};
+    const std::vector<Point> inner = {{0.0, 0.0, 0.0}, {1100.0, 0.0, 2600.0}, {3000.0, 0.0, 4300.0}, {6000.0, 0.0, 5000.0}, {9000.0, 0.0, 4300.0}, {10900.0, 0.0, 2600.0}, {12000.0, 0.0, 0.0}};
+    const std::vector<std::array<Point, 2>> webs = {
+        {inner[1], outer[1]},
+        {inner[1], outer[2]},
+        {inner[2], outer[2]},
+        {inner[2], outer[3]},
+        {inner[3], outer[3]},
+        {inner[4], outer[3]},
+        {inner[4], outer[4]},
+        {inner[5], outer[4]},
+        {inner[5], outer[5]},
+    };
+    add_truss("butt_truss_triangulated_arch", {{"outer_chord", outer}, {"inner_chord", inner}}, webs, {});
+}
+
+/// Sloped: a truss climbing to the right, a heel at the left, a level middle panel, the bottom chord 1200 under the top chord, a vertical at every
+/// inner node, one diagonal per panel falling to the right and an end post at the right.
+static void sloped() {
+
+    const std::array<double, 7> top_heights = {0.0, 1600.0, 2200.0, 2200.0, 2800.0, 3400.0, 4000.0};
+    const std::array<double, 7> bottom_heights = {0.0, 400.0, 1000.0, 1000.0, 1600.0, 2200.0, 2800.0};
+    std::vector<Point> top;
+    std::vector<Point> bottom;
+    for (int i = 0; i <= 6; i++) {
+        top.emplace_back(2000.0 * i, 0.0, top_heights[i]);
+        bottom.emplace_back(2000.0 * i, 0.0, bottom_heights[i]);
+    }
+    std::vector<std::array<Point, 2>> webs;
+    for (int i = 1; i <= 5; i++)
+        webs.push_back({bottom[i], top[i]});
+    for (int i = 1; i <= 5; i++)
+        webs.push_back({top[i], bottom[i + 1]});
+    add_truss("butt_truss_sloped", {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {{{bottom[6], top[6]}}});
+}
+
+/// A Pratt with end posts: six panels over a straight bottom chord, the top chord through the given heights, an end post at each end, a vertical
+/// at every inner node and diagonals falling towards the middle.
+static void posted_pratt(const std::string& name, const std::array<double, 7>& heights) {
+
+    std::vector<Point> top;
+    std::vector<Point> bottom;
+    for (int i = 0; i <= 6; i++) {
+        top.emplace_back(2000.0 * i, 0.0, heights[i]);
+        bottom.emplace_back(2000.0 * i, 0.0, 0.0);
+    }
+    std::vector<std::array<Point, 2>> webs;
+    for (int i = 1; i <= 5; i++)
+        webs.push_back({bottom[i], top[i]});
+    for (int i = 0; i < 3; i++) {
+        webs.push_back({top[i], bottom[i + 1]});
+        webs.push_back({top[6 - i], bottom[5 - i]});
+    }
+    add_truss(name, {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {{{bottom[0], top[0]}}, {{bottom[6], top[6]}}});
+}
+
+/// Flat peaked: a flat Pratt with end posts whose top chord rises to a peak at 8000 over the right half, the diagonals falling to the right but
+/// for the two from the peak down to its neighbouring bottom nodes.
+static void flat_peaked() {
+
+    const std::array<double, 7> heights = {2000.0, 2000.0, 2000.0, 2000.0, 3200.0, 2000.0, 2000.0};
+    std::vector<Point> top;
+    std::vector<Point> bottom;
+    for (int i = 0; i <= 6; i++) {
+        top.emplace_back(2000.0 * i, 0.0, heights[i]);
+        bottom.emplace_back(2000.0 * i, 0.0, 0.0);
+    }
+    std::vector<std::array<Point, 2>> webs;
+    for (int i = 1; i <= 5; i++)
+        webs.push_back({bottom[i], top[i]});
+    for (int i = 0; i < 3; i++)
+        webs.push_back({top[i], bottom[i + 1]});
+    webs.push_back({top[4], bottom[3]});
+    webs.push_back({top[4], bottom[5]});
+    webs.push_back({top[5], bottom[6]});
+    add_truss("butt_truss_flat_peaked", {{"top_chord", top}, {"bottom_chord", bottom}}, webs, {{{bottom[0], top[0]}}, {{bottom[6], top[6]}}});
+}
+
 /// Classic timber trusses drawn as lines, every member a straight beam, chords running through, webs butted on them and mitered where they meet.
 int main() {
 
@@ -554,12 +800,21 @@ int main() {
     pratt_bridge();
     parker();
     k_truss();
+    cambered_verticals();
+    funicular_arch();
+    lens();
+    triangulated_arch();
+    sloped();
+    posted_pratt("butt_truss_pratt_flat", {2000.0, 2000.0, 2000.0, 2000.0, 2000.0, 2000.0, 2000.0});
+    flat_peaked();
+    posted_pratt("butt_truss_bowstring", {1500.0, 2100.0, 2500.0, 2650.0, 2500.0, 2100.0, 1500.0});
+    posted_pratt("butt_truss_pitched_posts", {1500.0, 1500.0 + 1100.0 / 3.0, 1500.0 + 2200.0 / 3.0, 2600.0, 1500.0 + 2200.0 / 3.0, 1500.0 + 1100.0 / 3.0, 1500.0});
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Classic trusses from the HAER truss identification sheets, each drawn as the user draws it, every member a straight beam of square section on a line between two nodes (red) in the xz plane, chords 160 and webs 120 wide: king post, queen post, Pratt, Howe, Fink, Belgian and scissors roof trusses, and Warren, Warren with verticals, Pratt, Parker and K bridge trusses. Chords run through, a polygonal top chord one beam per straight segment; every web stops on each chord it ends on by JointBeam::butt_top_side, two webs ending at one node and two top chord members meeting at a kink are mitered by JointBeam::butt_side_side, and each top chord stands on the bottom chord's end at the heel by JointBeam::butt. Each truss is its own scene, data/output/pb/butt_truss_<name>.pb.
+Classic trusses from the HAER truss identification sheets, each drawn as the user draws it, every member a straight beam of square section on a line between two nodes (red) in the xz plane, chords 160 and webs 120 wide: king post, queen post, Pratt, Howe, Fink, Belgian and scissors roof trusses, and Warren, Warren with verticals, Pratt, Parker and K bridge trusses; and nine graphic-statics form diagrams drawn as chord polylines and web lines: cambered verticals, funicular arch, lens, triangulated arch, sloped, flat Pratt, flat peaked, bowstring and pitched with end posts. Chords run through, a polygonal top chord one beam per straight segment; every web stops on each chord it ends on by JointBeam::butt_top_side, two webs ending at one node and two top chord members meeting at a kink are mitered by JointBeam::butt_side_side, and each top chord stands on the bottom chord's end at the heel by JointBeam::butt, an end post under the chords by JointBeam::butt with the chords running on. Each truss is its own scene, data/output/pb/butt_truss_<name>.pb.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
