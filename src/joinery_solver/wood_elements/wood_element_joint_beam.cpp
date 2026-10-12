@@ -6,7 +6,6 @@
 #include "wood_brep_drill.h"
 #include "wood_element_pin.h"
 #include "wood_element_connector_part.h"
-#include "convex_hull.h"
 #include "../src/clipper2/clipper.h"
 
 namespace wood_session {
@@ -797,223 +796,522 @@ static Polyline tie_section(
 }
 
 /// The key: length long along the contact normal, top below the contact's top edge, heads head_width wide over head_length at both ends and the neck neck_width wide between, depth deep at the seam deepening straight to end_depth at its ends; each member gets a flat-bottomed pocket pocket_depth deep of its head and neck boxes, the neck overshoot past the seam; aimed at a then b, the defaults the OBJ template's.
-/// How far points spread along a direction.
-static double extent_along(const std::vector<Point>& points, const Vector& direction) {
+/// A member end as drawn: its face, closed, the unit direction out of it and the face's centre.
+struct ButtEnd {
+    Polyline face;
+    Vector out;
+    Point centre;
+};
 
-    double low = std::numeric_limits<double>::max();
-    double high = -std::numeric_limits<double>::max();
-    for (const Point& point : points) {
-        low = std::min(low, Vector(point[0], point[1], point[2]).dot(direction));
-        high = std::max(high, Vector(point[0], point[1], point[2]).dot(direction));
-    }
+/// A member as drawn, before any joint: its ends, its long faces as closed loops with their outward normals, the line or the polygon it
+/// was drawn on, its depth across and its uncut solid.
+struct ButtMember {
+    std::vector<ButtEnd> ends;
+    std::vector<Polyline> sides;
+    std::vector<Vector> normals;
+    std::vector<Point> drawn;
+    bool flat = false;
+    double depth = 0.0;
+    Mesh solid;
+};
 
-    return high - low;
+/// A loop's points without the closing repeat.
+static std::vector<Point> loop_points(const Polyline& loop) {
+
+    std::vector<Point> points = loop.get_points();
+    if (points.size() > 1 && Point::distance(points.front(), points.back()) < 1e-9)
+        points.pop_back();
+
+    return points;
 }
 
-/// The convex hull, in the plane's own coordinates, of the points lying on a plane: a member's face as its solid's corners on the face's plane.
-static std::vector<Point> face_hull(const std::vector<Point>& points, const Plane& plane, double tolerance) {
+/// The mean of points.
+static Point mean_point(const std::vector<Point>& points) {
 
-    std::vector<Point> flat;
+    Vector sum(0.0, 0.0, 0.0);
     for (const Point& point : points)
-        if (std::abs((point - plane.origin()).dot(plane.z_axis())) < tolerance)
-            flat.emplace_back((point - plane.origin()).dot(plane.x_axis()), (point - plane.origin()).dot(plane.y_axis()), 0.0);
+        sum = sum + Vector(point[0], point[1], point[2]);
+    sum = sum / (double)points.size();
 
-    // the hull without corners closer than the tolerance or on a straight run, which a loft would fold into faces of no area
-    const std::vector<Point> hull = ConvexHull::hull_2d(flat);
-    std::vector<Point> corners;
-    for (size_t i = 0; i < hull.size(); i++) {
-        const Point& previous = hull[(i + hull.size() - 1) % hull.size()];
-        const Point& next = hull[(i + 1) % hull.size()];
-        const Vector in = hull[i] - previous;
-        const Vector on = next - hull[i];
-        if (in.magnitude() > tolerance && on.magnitude() > tolerance && std::abs(in[0] * on[1] - in[1] * on[0]) > tolerance * (in.magnitude() + on.magnitude()))
-            corners.push_back(hull[i]);
+    return Point(sum[0], sum[1], sum[2]);
+}
+
+/// A loop closed and its Newell normal turned away from a point inside the member.
+static std::pair<Polyline, Vector> outward_loop(std::vector<Point> points, const Point& inside) {
+
+    Vector normal = compute_newell(points).normalized();
+    if (normal.dot(mean_point(points) - inside) < 0.0)
+        normal = normal * -1.0;
+    points.push_back(points.front());
+
+    return {Polyline(points), normal};
+}
+
+/// A swept member, a beam or a column, from its sections along its axis: an end at each end section looking out along the axis, and a
+/// long face per section edge and span.
+static ButtMember swept_member(const std::vector<Polyline>& sections, const std::vector<Point>& axis, const Mesh& solid) {
+
+    ButtMember member;
+    member.solid = solid;
+    member.drawn = axis;
+
+    // the long faces, span by span, each turned away from its span's centre
+    for (size_t j = 0; j + 1 < sections.size(); j++) {
+        const std::vector<Point> near = loop_points(sections[j]);
+        const std::vector<Point> far = loop_points(sections[j + 1]);
+        std::vector<Point> both = near;
+        both.insert(both.end(), far.begin(), far.end());
+        const Point centre = mean_point(both);
+        for (size_t k = 0; k < near.size(); k++) {
+            const size_t next = (k + 1) % near.size();
+            const std::pair<Polyline, Vector> side = outward_loop({near[k], near[next], far[next], far[k]}, centre);
+            member.sides.push_back(side.first);
+            member.normals.push_back(side.second);
+        }
     }
 
-    return corners;
+    // the two ends, out along the first and the last span
+    const std::vector<Point> first = loop_points(sections.front());
+    const std::vector<Point> last = loop_points(sections.back());
+    member.ends.push_back({sections.front(), (axis[0] - axis[1]).normalized(), mean_point(first)});
+    member.ends.push_back({sections.back(), (axis[axis.size() - 1] - axis[axis.size() - 2]).normalized(), mean_point(last)});
+
+    // its depth, the side of the square its first section spans
+    for (const Point& a : first)
+        for (const Point& b : first)
+            member.depth = std::max(member.depth, Point::distance(a, b) / std::sqrt(2.0));
+
+    return member;
 }
 
-/// The convex outline, closed, of the points lying on a plane, in space.
-static Polyline face_outline(const std::vector<Point>& points, const Plane& plane, double tolerance) {
+/// A member from a beam, a column or a plate as drawn.
+static ButtMember butt_member(const Element& element) {
 
-    std::vector<Point> outline;
-    for (const Point& point : face_hull(points, plane, tolerance))
-        outline.push_back(plane.origin() + plane.x_axis() * point[0] + plane.y_axis() * point[1]);
-    if (outline.size() > 2)
-        outline.push_back(outline.front());
+    if (const Beam* beam = dynamic_cast<const Beam*>(&element))
+        return swept_member(beam->sections(), beam->axis.get_points(), beam->element_geometry_mesh());
 
-    return Polyline(outline);
-}
+    if (const Column* column = dynamic_cast<const Column*>(&element))
+        return swept_member({column->section, column->section.translated(column->axis.to_vector())}, {column->axis.start(), column->axis.end()}, column->element_geometry_mesh());
 
-/// Whether a point, projected onto the plane, falls inside a hull in the plane's coordinates or on its rim within the tolerance, whichever
-/// way the hull turns.
-static bool over_hull(const std::vector<Point>& hull, const Plane& plane, const Point& point, double tolerance) {
+    const Plate* plate = dynamic_cast<const Plate*>(&element);
+    if (!plate)
+        throw std::invalid_argument("A butt joins beams, columns and plates");
 
-    const double u = (point - plane.origin()).dot(plane.x_axis());
-    const double v = (point - plane.origin()).dot(plane.y_axis());
-    int positive = 0;
-    int negative = 0;
-    for (size_t i = 0; i < hull.size(); i++) {
-        const Point& a = hull[i];
-        const Point& b = hull[(i + 1) % hull.size()];
-        const double length = std::hypot(b[0] - a[0], b[1] - a[1]);
-        const double side = ((b[0] - a[0]) * (v - a[1]) - (b[1] - a[1]) * (u - a[0])) / std::max(length, 1e-12);
-        positive += side > tolerance;
-        negative += side < -tolerance;
+    ButtMember member;
+    member.solid = plate->element_geometry_mesh();
+    member.flat = true;
+    const std::vector<Point> bottom = loop_points(plate->polylines[0]);
+    const std::vector<Point> top = loop_points(plate->polylines[1]);
+    std::vector<Point> both = bottom;
+    both.insert(both.end(), top.begin(), top.end());
+    const Point centre = mean_point(both);
+    member.depth = Point::distance(mean_point(bottom), mean_point(top));
+
+    // the polygon it was drawn on, halfway between its faces
+    for (size_t i = 0; i < bottom.size(); i++)
+        member.drawn.push_back(bottom[i] + (top[i] - bottom[i]) * 0.5);
+
+    // its two faces and an end at each edge, looking out in its plane
+    for (const std::vector<Point>* face : {&bottom, &top}) {
+        const std::pair<Polyline, Vector> side = outward_loop(*face, centre);
+        member.sides.push_back(side.first);
+        member.normals.push_back(side.second);
+    }
+    for (size_t i = 0; i < bottom.size(); i++) {
+        const size_t next = (i + 1) % bottom.size();
+        const std::pair<Polyline, Vector> end = outward_loop({bottom[i], bottom[next], top[next], top[i]}, centre);
+        member.ends.push_back({end.first, end.second, mean_point({bottom[i], bottom[next], top[next], top[i]})});
     }
 
-    return hull.size() > 2 && (positive == 0 || negative == 0);
+    return member;
 }
 
-/// An outline extruded along a direction past a plane and kept on the plane's back side: a member's end face run on to another's face,
-/// exact where the plane crosses the end face obliquely, which a loft onto the plane would fold.
-static Mesh extruded_to(const Polyline& outline, const Vector& direction, const Plane& plane, double size) {
+/// Where an end's line, through its centre along its direction, meets the line or polygon the other member was drawn on: how far along
+/// the end's direction, and how far it misses; a drawn line's ends run on by reach, so a member drawn short still meets; in line or in
+/// plane, halfway to the other's end; none when the end runs parallel beside it.
+static std::optional<std::array<double, 2>> meeting(const ButtEnd& end, const ButtMember& other, double reach) {
 
-    double reach = 0.0;
-    for (const Point& point : outline.get_points())
-        reach = std::max(reach, (plane.origin() - point).dot(plane.z_axis()) / direction.dot(plane.z_axis()));
-    const Mesh block = Mesh::loft({outline}, {outline.translated(direction * (reach + size))}, true);
+    if (other.flat) {
+        const Plane plane = Plane::from_points(other.drawn);
+        const double along = end.out.dot(plane.z_axis());
 
-    const Point foot = outline.center() - plane.z_axis() * (outline.center() - plane.origin()).dot(plane.z_axis());
-    const Polyline square = Polyline::rectangle(foot - plane.x_axis() * (4.0 * size) - plane.y_axis() * (4.0 * size), plane.x_axis(), plane.y_axis(), 8.0 * size, 8.0 * size);
-    const Mesh back = Mesh::loft({square}, {square.translated(plane.z_axis() * (-8.0 * size))}, true);
+        // in its plane, an edge on edge: halfway to where the end's line crosses the polygon's rim nearest the end, clear of its corners, where side_side_inplane meets
+        if (std::abs(along) < 0.05) {
+            if (std::abs((end.centre - plane.origin()).dot(plane.z_axis())) > 0.5 * other.depth)
+                return std::nullopt;
+            std::optional<std::array<double, 2>> crossing;
+            for (size_t i = 0; i < other.drawn.size(); i++) {
+                const Point& start = other.drawn[i];
+                const Vector edge = other.drawn[(i + 1) % other.drawn.size()] - start;
+                const Vector normal = edge.cross(plane.z_axis());
+                const double facing = end.out.dot(normal);
+                if (std::abs(facing) < 1e-9)
+                    continue;
+                const double t = (start - end.centre).dot(normal) / facing;
+                const double s = (end.centre + end.out * t - start).dot(edge) / edge.dot(edge);
+                const double margin = 0.5 * other.depth / edge.magnitude();
+                if (s > margin && s < 1.0 - margin && (!crossing || std::abs(t) < 2.0 * std::abs((*crossing)[0])))
+                    crossing = std::array<double, 2>{0.5 * t, 0.0};
+            }
+            return crossing;
+        }
+        const double t = (plane.origin() - end.centre).dot(plane.z_axis()) / along;
+        const Point point = end.centre + end.out * t;
+        std::vector<Point> flat;
+        for (const Point& corner : other.drawn)
+            flat.emplace_back((corner - plane.origin()).dot(plane.x_axis()), (corner - plane.origin()).dot(plane.y_axis()), 0.0);
+        if (Polyline(flat).point_in_polygon_2d(Point((point - plane.origin()).dot(plane.x_axis()), (point - plane.origin()).dot(plane.y_axis()), 0.0)))
+            return std::array<double, 2>{t, 0.0};
+        std::vector<Point> loop = other.drawn;
+        loop.push_back(loop.front());
+        size_t edge = 0;
+        Point closest;
+        return std::array<double, 2>{t, Polyline(loop).closest_distance_and_point(point, edge, closest)};
+    }
 
-    return solid_boolean(block, back, SolidOperation::intersect);
+    std::optional<std::array<double, 2>> best;
+    for (size_t j = 0; j + 1 < other.drawn.size(); j++) {
+        const Vector span = other.drawn[j + 1] - other.drawn[j];
+        const double length = span.magnitude();
+        const Vector along = span / length;
+        const double cosine = end.out.dot(along);
+        const Vector gap = other.drawn[j] - end.centre;
+
+        // in line, an end on an end: halfway to the other's nearer end, where side_side_inplane meets
+        if (1.0 - std::abs(cosine) < 1e-6) {
+            const bool facing = cosine > 0.0 ? j == 0 : j + 2 == other.drawn.size();
+            if (!facing)
+                continue;
+            const Point& tip = cosine > 0.0 ? other.drawn[j] : other.drawn[j + 1];
+            const Vector across = gap - end.out * gap.dot(end.out);
+            const std::array<double, 2> met = {0.5 * (tip - end.centre).dot(end.out), across.magnitude()};
+            if (!best || met[1] < (*best)[1])
+                best = met;
+            continue;
+        }
+        const double t = (gap.dot(end.out) - cosine * gap.dot(along)) / (1.0 - cosine * cosine);
+        const double low = j == 0 ? -reach : 0.0;
+        const double high = j + 2 == other.drawn.size() ? length + reach : length;
+        const double s = std::clamp((end.out * t - gap).dot(along), low, high);
+        const double miss = Point::distance(end.centre + end.out * t, other.drawn[j] + along * s);
+        if (!best || miss < (*best)[1])
+            best = std::array<double, 2>{t, miss};
+    }
+
+    return best;
 }
 
-std::shared_ptr<JointBeam> JointBeam::butt(Element& running, Element& butting) {
+/// The member's end that reaches the other, its line meeting what the other was drawn on within reach along it and within half the larger
+/// depth across, or within reach of a polygon's rim; the nearest when more do.
+static std::optional<size_t> reaching_end(const ButtMember& member, const ButtMember& other, double reach) {
+
+    std::optional<size_t> found;
+    double nearest = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < member.ends.size(); i++) {
+        const std::optional<std::array<double, 2>> met = meeting(member.ends[i], other, reach);
+        const double across = other.flat ? reach : 0.5 * std::max(member.depth, other.depth);
+        if (met && std::abs((*met)[0]) <= reach && (*met)[1] <= across && std::abs((*met)[0]) < nearest) {
+            nearest = std::abs((*met)[0]);
+            found = i;
+        }
+    }
+
+    return found;
+}
+
+/// The member's long face an end's line crosses, turned toward the end (facing) or away from it, the one it crosses nearest its rim, then
+/// nearest the end; none when it crosses none within reach.
+static std::optional<Plane> crossed_side(const ButtMember& member, const ButtEnd& end, bool facing, double reach) {
+
+    std::optional<Plane> found;
+    double best_miss = std::numeric_limits<double>::max();
+    double best_t = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < member.sides.size(); i++) {
+        const Vector& normal = member.normals[i];
+        const double along = end.out.dot(normal);
+        if ((facing ? -along : along) < 0.3)
+            continue;
+        const std::vector<Point> corners = loop_points(member.sides[i]);
+        const Plane plane = Plane::from_point_normal(corners[0], normal);
+        const double t = (plane.origin() - end.centre).dot(normal) / along;
+        const Point point = end.centre + end.out * t;
+        std::vector<Point> flat;
+        for (const Point& corner : corners)
+            flat.emplace_back((corner - plane.origin()).dot(plane.x_axis()), (corner - plane.origin()).dot(plane.y_axis()), 0.0);
+        size_t edge = 0;
+        Point closest;
+        const double miss = Polyline(flat).point_in_polygon_2d(Point((point - plane.origin()).dot(plane.x_axis()), (point - plane.origin()).dot(plane.y_axis()), 0.0))
+            ? 0.0
+            : member.sides[i].closest_distance_and_point(point, edge, closest);
+        if (miss > reach)
+            continue;
+        if (miss < best_miss - 1e-6 || (std::abs(miss - best_miss) <= 1e-6 && std::abs(t) < best_t)) {
+            best_miss = miss;
+            best_t = std::abs(t);
+            found = plane;
+        }
+    }
+
+    return found;
+}
+
+/// What an end gains and loses to stop on a plane: its face run on along its direction past the plane, and the wood beyond the plane around
+/// the end, so the end is the plane wherever it was drawn, short of it, past it or across it.
+static std::array<InteractionFeatureSolid, 2> end_cut(const ButtEnd& end, const Plane& plane, double size) {
+
+    // the plane turned to look out of the member
+    const Vector normal = plane.z_axis().dot(end.out) > 0.0 ? plane.z_axis() : plane.z_axis() * -1.0;
+    const std::vector<Point> corners = loop_points(end.face);
+    double short_of = 0.0;
+    double radius = 0.0;
+    for (const Point& corner : corners) {
+        short_of = std::max(short_of, (plane.origin() - corner).dot(normal) / end.out.dot(normal));
+        radius = std::max(radius, Point::distance(corner, end.centre));
+    }
+
+    // the run-on, the end face swept past the plane
+    std::array<InteractionFeatureSolid, 2> cut;
+    if (short_of > 1e-6)
+        cut[0] = InteractionFeatureSolid(Mesh::loft({end.face}, {end.face.translated(end.out * (short_of + size))}, true), SolidOperation::add);
+
+    // the wood beyond the plane, a square box around the end on it
+    const Plane beyond = Plane::from_point_normal(end.centre - normal * (end.centre - plane.origin()).dot(normal), normal);
+    const double half = radius + 2.0 * size;
+    const Polyline square = Polyline::rectangle(beyond.origin() - beyond.x_axis() * half - beyond.y_axis() * half, beyond.x_axis(), beyond.y_axis(), 2.0 * half, 2.0 * half);
+    cut[1] = InteractionFeatureSolid(Mesh::loft({square}, {square.translated(normal * (short_of + radius + 4.0 * size))}, true), SolidOperation::subtract);
+
+    return cut;
+}
+
+/// How a butt resolves the case its members' ends make: as read from them, every corner side_side, or the second member's side on the first's top.
+enum class ButtMode {
+    automatic,
+    side_side,
+    top_side,
+};
+
+/// The butt of two members in a mode: the configuration their ends make, each reaching end's plane, and what each end gains and loses to
+/// stop on it.
+static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b, double reach, ButtMode mode) {
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
-    joint->name = "butt";
     joint->is_butt = true;
-    joint->targets = {running.guid(), butting.guid()};
+    joint->targets = {a.guid(), b.guid()};
 
-    // both solids' corners, centres and the size of the pair: the running member as earlier joints left it, cut and run on, so a corner
-    // runs on from what the member keeps and a corner run on twice closes
-    const std::vector<Point> running_points = running.model_geometry_mesh().to_vertices_and_faces().first;
-    const std::vector<Point> butting_points = butting.model_geometry_mesh().to_vertices_and_faces().first;
-    Point running_centre(0.0, 0.0, 0.0);
-    Point butting_centre(0.0, 0.0, 0.0);
-    for (const Point& point : running_points)
-        running_centre = running_centre + Vector(point[0], point[1], point[2]) / (double)running_points.size();
-    for (const Point& point : butting_points)
-        butting_centre = butting_centre + Vector(point[0], point[1], point[2]) / (double)butting_points.size();
-    double size = 0.0;
-    for (const std::vector<Point>* points : {&running_points, &butting_points})
-        for (const Point& point : *points)
-            size = std::max({size, Point::distance(point, running_centre), Point::distance(point, butting_centre)});
-    const double tolerance = 1e-3 * size;
+    // both members as drawn, and the ends that reach the other
+    const std::array<ButtMember, 2> members = {butt_member(a), butt_member(b)};
+    const double size = std::max(members[0].depth, members[1].depth);
+    const double within = reach > 0.0 ? reach : size;
+    std::array<std::optional<size_t>, 2> ends = {reaching_end(members[0], members[1], within), reaching_end(members[1], members[0], within)};
 
-    // the running member's face the butting member looks at: of the faces some butting corner stands over, the one the butting member's
-    // centre lies farthest in front of; over a face, so a curved or polygonal member's far faces, whose planes run past it, never win
-    const std::vector<Plane> running_planes = running.planes();
-    Plane face;
-    double farthest = -std::numeric_limits<double>::max();
-    for (const Plane& plane : running_planes) {
-        const std::vector<Point> hull = face_hull(running_points, plane, tolerance);
-        bool over = false;
-        for (const Point& point : butting_points)
-            over = over || over_hull(hull, plane, point, tolerance);
-        if (!over)
-            continue;
-        const double distance = (butting_centre - plane.origin()).dot(plane.z_axis());
-        if (distance > farthest) {
-            farthest = distance;
-            face = plane;
-        }
-    }
+    // top_side asked: only the second member's end, on the first, wherever the first's own end lies
+    if (mode == ButtMode::top_side && ends[1])
+        ends[0] = std::nullopt;
 
-    // the running member's end toward the butting member: a face across the face found, looking toward the butting member's centre, along
-    // which the running member is long, at least twice its depth across that face, a beam's end or a plate's edge, never a beam's side
-    const double depth = extent_along(running_points, face.z_axis());
-    const Vector toward = (butting_centre - running_centre).normalized();
-    std::optional<Plane> end;
-    double most = 0.2;
-    for (const Plane& plane : running_planes) {
-        if (std::abs(plane.z_axis().dot(face.z_axis())) > 0.5 || extent_along(running_points, plane.z_axis()) < 2.0 * depth)
-            continue;
-        if (plane.z_axis().dot(toward) > most) {
-            most = plane.z_axis().dot(toward);
-            end = plane;
-        }
-    }
-
-    // a corner when that end face reaches into the butting member: one of its corners, the middles of its edges or its centre strictly inside
-    // the butting solid, probed along the end's normal; a member passing beside the end is no corner
-    bool corner = false;
-    if (end) {
-        const std::vector<Point> rim = face_outline(running_points, *end, tolerance).get_points();
-        std::vector<Point> samples;
-        Point centre(0.0, 0.0, 0.0);
-        for (size_t i = 0; i + 1 < rim.size(); i++) {
-            samples.push_back(rim[i]);
-            samples.push_back(rim[i] + (rim[i + 1] - rim[i]) * 0.5);
-            centre = centre + Vector(rim[i][0], rim[i][1], rim[i][2]) / (double)(rim.size() - 1);
-        }
-        samples.push_back(centre);
-        for (const Point& sample : samples) {
-            const Line probe = Line::from_points(sample - end->z_axis() * (2.0 * size), sample + end->z_axis() * (2.0 * size));
-            for (const std::array<double, 2>& stretch : inside_stretches(butting.model_geometry_mesh(), probe))
-                corner = corner || (stretch[0] < 2.0 * size - tolerance && stretch[1] > 2.0 * size + tolerance);
-        }
-    }
-
-    // at a corner the running member runs on to the butting member's outer face, the face turned most along the end, each corner of its end
-    // face moved along the end's normal onto it, so an oblique corner closes flush
-    std::vector<Point> ends;
-    if (corner) {
-        const Polyline outline = face_outline(running_points, *end, tolerance);
-        const Vector out = end->z_axis();
-        std::optional<Plane> outer;
-        double aligned = 0.2;
-        for (const Plane& plane : butting.planes()) {
-            const double alignment = plane.z_axis().dot(out);
-            const bool farther = outer && std::abs(alignment - aligned) < 1e-6 && (plane.origin() - outer->origin()).dot(out) > 0.0;
-            if (alignment > aligned + 1e-6 || farther) {
-                aligned = alignment;
-                outer = plane;
-            }
-        }
-        if (outer && outline.point_count() > 3) {
-            const Mesh block = extruded_to(outline, out, *outer, size);
-            ends = block.to_vertices_and_faces().first;
-            joint->butt_solids[0] = InteractionFeatureSolid(block, SolidOperation::add);
-        }
-    }
-
-    // a butting member drawn short of the face runs on to it: its end facing the face, each corner moved along the end's normal onto the face
-    double nearest = std::numeric_limits<double>::max();
-    for (const Point& point : butting_points)
-        nearest = std::min(nearest, (point - face.origin()).dot(face.z_axis()));
-    if (nearest > tolerance) {
-        std::optional<Plane> short_end;
-        double facing = 0.2;
-        for (const Plane& plane : butting.planes()) {
-            if (-plane.z_axis().dot(face.z_axis()) > facing) {
-                facing = -plane.z_axis().dot(face.z_axis());
-                short_end = plane;
-            }
-        }
-        if (short_end) {
-            const Polyline outline = face_outline(butting_points, *short_end, tolerance);
-            const Plane front(face.origin(), face.y_axis(), face.x_axis());
-            if (outline.point_count() > 3)
-                joint->butt_solids[1] = InteractionFeatureSolid(extruded_to(outline, short_end->z_axis(), front, size), SolidOperation::add);
-        }
+    // no end reaching: a cross when the solids share wood, nothing when they do not touch
+    if (!ends[0] && !ends[1]) {
+        if (solid_boolean(members[0].solid, members[1].solid, SolidOperation::intersect).number_of_faces() == 0)
+            return nullptr;
+        joint->configuration = ButtConfiguration::cross;
+        joint->name = "cross";
         return joint;
     }
 
-    // the butting member cut behind the running member's face, over the face itself and what the corner adds to it, so a member passing
-    // beside the running one, an overhang or the far side of a valley, keeps its wood
-    std::vector<Point> on_face = running_points;
-    on_face.insert(on_face.end(), ends.begin(), ends.end());
-    const Polyline outline = face_outline(on_face, face, tolerance);
-    if (outline.point_count() > 3) {
-        const Vector behind = face.z_axis() * (-4.0 * size);
-        joint->butt_solids[1] = InteractionFeatureSolid(Mesh::loft({outline}, {outline.translated(behind)}, true), SolidOperation::subtract);
+    // one end: top_side, the end stopping on the other's face that looks at it
+    if (!ends[0] || !ends[1]) {
+        const size_t on = ends[0] ? 0 : 1;
+        joint->configuration = ButtConfiguration::top_side;
+        joint->butt_planes[on] = crossed_side(members[1 - on], members[on].ends[*ends[on]], true, within);
+    }
+
+    // both ends: side_side_inplane in line, top_side at a square corner, side_side_outplane, a miter, at an oblique one
+    if (ends[0] && ends[1]) {
+        const ButtEnd& end_a = members[0].ends[*ends[0]];
+        const ButtEnd& end_b = members[1].ends[*ends[1]];
+        const double cosine = end_a.out.dot(end_b.out);
+        if (cosine < -0.9) {
+            joint->configuration = ButtConfiguration::side_side_inplane;
+            const Point middle = end_a.centre + (end_b.centre - end_a.centre) * 0.5;
+            const Plane halfway = Plane::from_point_normal(middle, (end_a.out - end_b.out).normalized());
+            joint->butt_planes = {halfway, halfway};
+        } else if (mode != ButtMode::side_side && std::abs(cosine) < std::sin(10.0 * Tolerance::TO_RADIANS)) {
+            joint->configuration = ButtConfiguration::top_side;
+            joint->butt_planes[0] = crossed_side(members[1], end_a, false, within);
+            joint->butt_planes[1] = crossed_side(members[0], end_b, true, within);
+        } else {
+            joint->configuration = ButtConfiguration::side_side_outplane;
+            const std::optional<Plane> outer_a = crossed_side(members[0], end_b, false, within);
+            const std::optional<Plane> inner_a = crossed_side(members[0], end_b, true, within);
+            const std::optional<Plane> outer_b = crossed_side(members[1], end_a, false, within);
+            const std::optional<Plane> inner_b = crossed_side(members[1], end_a, true, within);
+            if (outer_a && inner_a && outer_b && inner_b) {
+                const std::optional<Line> outer = Intersection::plane_plane(*outer_a, *outer_b);
+                const std::optional<Line> inner = Intersection::plane_plane(*inner_a, *inner_b);
+                if (outer && inner) {
+                    const Vector normal = outer->to_direction().cross(inner->start() - outer->start());
+                    if (normal.magnitude() > 1e-9) {
+                        const Plane halfway = Plane::from_point_normal(outer->start(), normal.normalized());
+                        joint->butt_planes = {halfway, halfway};
+                    }
+                }
+            }
+        }
+    }
+
+    // named by its configuration
+    const std::array<std::string, 5> names = {"none", "cross", "top_side", "side_side_outplane", "side_side_inplane"};
+    joint->name = names[(size_t)joint->configuration];
+
+    // each reaching end run on and cut on its plane, a plate's edge run on in its plane between its neighbours
+    const std::array<const Element*, 2> elements = {&a, &b};
+    for (size_t i = 0; i < 2; i++) {
+        if (!ends[i] || !joint->butt_planes[i])
+            continue;
+        const std::array<InteractionFeatureSolid, 2> cut = end_cut(members[i].ends[*ends[i]], *joint->butt_planes[i], size);
+        joint->butt_ends[i] = (int)*ends[i];
+        joint->butt_extensions[i] = cut[0];
+        joint->butt_solids[i] = cut[1];
+        if (const Plate* plate = dynamic_cast<const Plate*>(elements[i])) {
+            const std::array<Mesh, 2> edge = JointBeam::plate_end(*plate, *ends[i], {{*ends[i], *joint->butt_planes[i]}}, size);
+            joint->butt_extensions[i] = InteractionFeatureSolid(edge[0], SolidOperation::add);
+            joint->butt_solids[i] = InteractionFeatureSolid(edge[1], SolidOperation::subtract);
+        }
     }
 
     return joint;
+}
+
+std::array<Mesh, 2> JointBeam::plate_end(const Plate& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot) {
+
+    // the plate as drawn, flat in its mid-plane, an outline turned counterclockwise before it is lofted into a solid
+    const ButtMember member = butt_member(plate);
+    const size_t count = member.drawn.size();
+    const Plane middle = Plane::from_points(member.drawn);
+    const auto flat = [&middle](const Point& point) { return Point((point - middle.origin()).dot(middle.x_axis()), (point - middle.origin()).dot(middle.y_axis()), 0.0); };
+    const auto prism = [&middle](std::vector<Point> outline, double half, const Vector& shear) {
+        double area = 0.0;
+        for (size_t k = 0; k < outline.size(); k++)
+            area += outline[k][0] * outline[(k + 1) % outline.size()][1] - outline[(k + 1) % outline.size()][0] * outline[k][1];
+        if (area < 0.0)
+            std::reverse(outline.begin(), outline.end());
+        std::vector<Point> bottom;
+        std::vector<Point> top;
+        for (const Point& corner : outline) {
+            bottom.push_back(middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] + (middle.z_axis() + shear) * half);
+            top.push_back(middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] - (middle.z_axis() + shear) * half);
+        }
+        bottom.push_back(bottom.front());
+        top.push_back(top.front());
+        return Mesh::loft({Polyline(bottom)}, {Polyline(top)}, true);
+    };
+    const auto crossing = [](const std::array<Point, 2>& first, const std::array<Point, 2>& second) -> std::optional<Point> {
+        const Vector u = first[1] - first[0];
+        const Vector v = second[1] - second[0];
+        const double denominator = u[0] * v[1] - u[1] * v[0];
+        if (std::abs(denominator) < 1e-9 * u.magnitude() * v.magnitude())
+            return std::nullopt;
+        const Vector gap = second[0] - first[0];
+        return first[0] + u * ((gap[0] * v[1] - gap[1] * v[0]) / denominator);
+    };
+
+    // each edge's line as drawn, its plane's line when butted, how far the plane leans out per unit across the plate, and the line it runs
+    // on to: the plane's line overshoot past it and past the lean when that runs out
+    std::vector<std::array<Point, 2>> drawn(count);
+    std::vector<std::optional<std::array<Point, 2>>> cut(count);
+    std::vector<std::array<Point, 2>> bound(count);
+    std::vector<Vector> outward(count);
+    std::vector<Vector> slant(count, Vector(0.0, 0.0, 0.0));
+    std::vector<bool> runs(count, false);
+    for (size_t j = 0; j < count; j++) {
+        drawn[j] = {flat(member.drawn[j]), flat(member.drawn[(j + 1) % count])};
+        bound[j] = drawn[j];
+        outward[j] = Vector(member.ends[j].out.dot(middle.x_axis()), member.ends[j].out.dot(middle.y_axis()), 0.0).normalized();
+        if (!planes.contains(j))
+            continue;
+        const std::optional<Line> line = Intersection::plane_plane(planes.at(j), middle);
+        if (!line)
+            continue;
+        cut[j] = std::array<Point, 2>{flat(line->start()), flat(line->end())};
+        const Vector out = middle.x_axis() * outward[j][0] + middle.y_axis() * outward[j][1];
+        slant[j] = out * (-planes.at(j).z_axis().dot(middle.z_axis()) / planes.at(j).z_axis().dot(out));
+        const double past = overshoot + 0.5 * member.depth * slant[j].magnitude();
+        const std::array<Point, 2> moved = {(*cut[j])[0] + outward[j] * past, (*cut[j])[1] + outward[j] * past};
+        for (const Point& corner : drawn[j]) {
+            const Vector along = (*cut[j])[1] - (*cut[j])[0];
+            const Point foot = (*cut[j])[0] + along * ((corner - (*cut[j])[0]).dot(along) / along.dot(along));
+            runs[j] = runs[j] || (foot - corner).dot(outward[j]) + 0.5 * member.depth * slant[j].magnitude() > 1e-6;
+        }
+        if (runs[j])
+            bound[j] = moved;
+    }
+    std::array<Mesh, 2> result;
+    if (!cut[end])
+        return result;
+
+    // the run-on, between the drawn edge and its moved line, bounded by its neighbours' lines, run out where they run out
+    const size_t before = (end + count - 1) % count;
+    const size_t after = (end + 1) % count;
+    if (runs[end]) {
+        const std::array<std::optional<Point>, 4> corners = {crossing(drawn[end], bound[before]), crossing(drawn[end], bound[after]), crossing(bound[end], bound[after]), crossing(bound[end], bound[before])};
+        if (corners[0] && corners[1] && corners[2] && corners[3])
+            result[0] = prism({*corners[0], *corners[1], *corners[2], *corners[3]}, 0.5 * member.depth, Vector(0.0, 0.0, 0.0));
+    }
+
+    // the wood beyond the edge's plane, a box past its line leaning with the plane; at a concave corner, a valley, only what lies beyond the butted neighbour's
+    // plane too, so the valley keeps what lies under the neighbour, while at a convex corner all beyond either plane goes
+    const std::array<Point, 2>& line = *cut[end];
+    const Vector tangent = (line[1] - line[0]).normalized();
+    const Point middle_point = drawn[end][0] + (drawn[end][1] - drawn[end][0]) * 0.5;
+    const Point foot = line[0] + tangent * (middle_point - line[0]).dot(tangent);
+    double reach = overshoot;
+    double area = 0.0;
+    for (size_t k = 0; k < count; k++) {
+        reach = std::max(reach, 4.0 * Point::distance(drawn[k][0], middle_point));
+        area += drawn[k][0][0] * drawn[k][1][1] - drawn[k][1][0] * drawn[k][0][1];
+    }
+    std::vector<Point> box = {foot - tangent * reach, foot + tangent * reach, foot + tangent * reach + outward[end] * reach, foot - tangent * reach + outward[end] * reach};
+    for (const size_t neighbour : {before, after}) {
+        const Vector first = neighbour == after ? drawn[end][1] - drawn[end][0] : drawn[neighbour][1] - drawn[neighbour][0];
+        const Vector second = neighbour == after ? drawn[neighbour][1] - drawn[neighbour][0] : drawn[end][1] - drawn[end][0];
+        const bool concave = (first[0] * second[1] - first[1] * second[0]) * area < 0.0;
+        if (!cut[neighbour] || !concave)
+            continue;
+        const Vector along = (*cut[neighbour])[1] - (*cut[neighbour])[0];
+        Vector normal = Vector(-along[1], along[0], 0.0);
+        if (normal.dot(outward[neighbour]) < 0.0)
+            normal = normal * -1.0;
+        std::vector<Point> clipped;
+        for (size_t k = 0; k < box.size(); k++) {
+            const Point& p = box[k];
+            const Point& q = box[(k + 1) % box.size()];
+            const double sp = normal.dot(p - (*cut[neighbour])[0]);
+            const double sq = normal.dot(q - (*cut[neighbour])[0]);
+            if (sp >= 0.0)
+                clipped.push_back(p);
+            if ((sp >= 0.0) != (sq >= 0.0))
+                clipped.push_back(p + (q - p) * (sp / (sp - sq)));
+        }
+        box = clipped;
+    }
+    if (box.size() > 2)
+        result[1] = prism(box, 0.5 * member.depth + overshoot, slant[end]);
+
+    return result;
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt(const Element& a, const Element& b, double reach) {
+
+    return butt_joint(a, b, reach, ButtMode::automatic);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_side_side(const Element& a, const Element& b, double reach) {
+
+    return butt_joint(a, b, reach, ButtMode::side_side);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_top_side(const Element& top, const Element& side, double reach) {
+
+    return butt_joint(top, side, reach, ButtMode::top_side);
 }
 
 std::shared_ptr<JointBeam> JointBeam::butterfly_key(

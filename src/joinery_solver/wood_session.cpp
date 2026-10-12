@@ -1519,7 +1519,7 @@ static void host_solid_feature(
     bool replaced = false;
 
     for (InteractionFeatureSolid& stored : *cuts)
-        if (stored.source == source.guid()) {
+        if (stored.source == source.guid() && stored.operation == cut.operation) {
             stored = cut;
             replaced = true;
         }
@@ -1747,13 +1747,39 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
         return cut;
     }
 
-    // a butt: the block the target gains or loses, nothing when it gains none
+    // a butt: the run-on the target's end gains and the wood it loses beyond its end plane, nothing for a target it leaves whole
     if (beam_joint && beam_joint->is_butt) {
         Session::remove_interaction(joint, target);
         if (!cut)
             throw std::invalid_argument("A butt's interaction is its InteractionFeatureSolid");
+        const size_t index = std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin();
+        if (index < 2 && beam_joint->butt_extensions[index].mesh.number_of_faces() > 0)
+            host_solid_feature(*this, *joint, beam_joint->butt_extensions[index], target);
         if (cut->mesh.number_of_faces() > 0)
             add_solid_interaction(joint, target, cut);
+
+        // a plate's butted edges together: each run on between its neighbours' run-ons, filling their corners, and cut short of its neighbours' wood
+        if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(target)) {
+            std::vector<std::pair<std::shared_ptr<JointBeam>, size_t>> butts;
+            std::map<size_t, Plane> planes;
+            for (const std::string& guid : graph.neighbors(target->guid())) {
+                const std::shared_ptr<JointBeam> butt = std::dynamic_pointer_cast<JointBeam>(get_object<Element>(guid));
+                if (!butt || !butt->is_butt)
+                    continue;
+                const size_t side = std::find(butt->targets.begin(), butt->targets.end(), target->guid()) - butt->targets.begin();
+                if (side >= 2 || butt->butt_ends[side] < 0 || !butt->butt_planes[side])
+                    continue;
+                butts.emplace_back(butt, side);
+                planes[(size_t)butt->butt_ends[side]] = *butt->butt_planes[side];
+            }
+            for (const std::pair<std::shared_ptr<JointBeam>, size_t>& butt : butts) {
+                const std::array<Mesh, 2> edge = JointBeam::plate_end(*plate, (size_t)butt.first->butt_ends[butt.second], planes, plate->thickness);
+                if (edge[0].number_of_faces() > 0)
+                    host_solid_feature(*this, *butt.first, InteractionFeatureSolid(edge[0], SolidOperation::add), target);
+                if (edge[1].number_of_faces() > 0)
+                    host_solid_feature(*this, *butt.first, InteractionFeatureSolid(edge[1], SolidOperation::subtract), target);
+            }
+        }
         return cut;
     }
 

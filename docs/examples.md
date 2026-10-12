@@ -27,8 +27,8 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
 | `20_butt_frame` | A timber-frame wall from lines: sill, head, posts and braces butted flat |
 | `21_butt_house` | A small house from plates on mid-planes: floor, walls and roof butted flat |
-| `22_butt_gallery` | Twelve butt cases mixing beams, columns and plates: oblique, short, curved and polygonal members |
-| `23_butt_zigzag` | Walls on a zigzag plan and a folded roof on a zigzag section, every fold cut flat |
+| `22_butt_pairs` | Butt pairs of beams, columns and plates: top_side, side_side out of plane and in plane, cross |
+| `23_butt_assemblies` | Butt pairs combined: a braced frame, a curved sill, a pentagon floor, zigzag walls and a folded roof |
 
 Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
@@ -146,7 +146,7 @@ See @subpage cutting_gallery for the API, geometry limits and Cloudflare command
 
 ## Butt joints
 
-Members drawn as lines and mid-planes overlap where they meet; `JointBeam::butt(running, butting)` cuts the butting member flat on the running member's face and runs the running member on to the butting member's outer face at a corner (@ref elements_joint_beam_butt).
+Members drawn as lines and mid-planes, red, overlap where they meet. `JointBeam::butt(a, b)` reads how their ends meet and runs on and cuts each end on one plane, so they meet face to face (@ref elements_joint_beam_butt).
 
 ### 20_butt_frame
 
@@ -160,73 +160,133 @@ Members drawn as lines and mid-planes overlap where they meet; `JointBeam::butt(
 
 \include{lineno} 21_butt_house.cpp
 
-### 22_butt_gallery
+### 22_butt_pairs
 
-Each case is its own scene, `butt_<case>.pb`.
+Each pair is its own scene, `butt_pair_<case>.pb`, its joint named by its configuration.
 
-#### brace
+#### beam_top_side
 
-A brace between a post and a sill, both ends oblique.
+A post on a beam.
 
-![butt_brace](examples/butt_brace.png)
+![butt_pair_beam_top_side](examples/butt_pair_beam_top_side.png)
 
-#### rafter
+#### beam_top_side_oblique
 
-A rafter on a wall plate and a ridge.
+A strut on a beam at 60 degrees.
 
-![butt_rafter](examples/butt_rafter.png)
+![butt_pair_beam_top_side_oblique](examples/butt_pair_beam_top_side_oblique.png)
 
-#### beam_on_column
+#### beam_top_side_end
 
-A beam on a column head.
+Two beams meeting at their ends: the first runs on, the second stops on it.
 
-![butt_beam_on_column](examples/butt_beam_on_column.png)
+![butt_pair_beam_top_side_end](examples/butt_pair_beam_top_side_end.png)
 
-#### beam_into_column
+#### beam_top_side_end_past
 
-A beam into the side of a column at 60 degrees.
+The same, drawn past each other.
 
-![butt_beam_into_column](examples/butt_beam_into_column.png)
+![butt_pair_beam_top_side_end_past](examples/butt_pair_beam_top_side_end_past.png)
 
-#### joists_into_wall
+#### beam_top_side_end_short
 
-A square and a skew joist into a wall.
+The same, drawn short of each other.
 
-![butt_joists_into_wall](examples/butt_joists_into_wall.png)
+![butt_pair_beam_top_side_end_short](examples/butt_pair_beam_top_side_end_short.png)
 
-#### wall_on_beam
+#### beam_side_side_outplane
+
+Two beams at 120 degrees, cut on the miter.
+
+![butt_pair_beam_side_side_outplane](examples/butt_pair_beam_side_side_outplane.png)
+
+#### beam_side_side_outplane_square
+
+Two beams at 90 degrees, cut on the miter by `butt_side_side`.
+
+![butt_pair_beam_side_side_outplane_square](examples/butt_pair_beam_side_side_outplane_square.png)
+
+#### beam_side_side_inplane
+
+Two beams in line.
+
+![butt_pair_beam_side_side_inplane](examples/butt_pair_beam_side_side_inplane.png)
+
+#### beam_cross
+
+Two beams crossing: nothing cut.
+
+![butt_pair_beam_cross](examples/butt_pair_beam_cross.png)
+
+#### plate_top_side
+
+A wall on another wall's middle.
+
+![butt_pair_plate_top_side](examples/butt_pair_plate_top_side.png)
+
+#### plate_top_side_end
+
+Two walls at a corner: the first runs on.
+
+![butt_pair_plate_top_side_end](examples/butt_pair_plate_top_side_end.png)
+
+#### plate_side_side_outplane
+
+Two walls at 120 degrees, cut on the miter.
+
+![butt_pair_plate_side_side_outplane](examples/butt_pair_plate_side_side_outplane.png)
+
+#### plate_side_side_inplane
+
+Two walls in line.
+
+![butt_pair_plate_side_side_inplane](examples/butt_pair_plate_side_side_inplane.png)
+
+#### plate_top_side_floor
+
+A wall on a floor.
+
+![butt_pair_plate_top_side_floor](examples/butt_pair_plate_top_side_floor.png)
+
+#### plate_cross
+
+Two walls crossing: nothing cut.
+
+![butt_pair_plate_cross](examples/butt_pair_plate_cross.png)
+
+#### column_top_side_plate
+
+A column under a slab.
+
+![butt_pair_column_top_side_plate](examples/butt_pair_column_top_side_plate.png)
+
+#### plate_top_side_beam
 
 A wall on a beam.
 
-![butt_wall_on_beam](examples/butt_wall_on_beam.png)
+![butt_pair_plate_top_side_beam](examples/butt_pair_plate_top_side_beam.png)
 
-#### columns_on_slab
+#### beam_top_side_plate
 
-Columns above and below a slab.
+A beam into a wall at 60 degrees in plan.
 
-![butt_columns_on_slab](examples/butt_columns_on_slab.png)
+![butt_pair_beam_top_side_plate](examples/butt_pair_beam_top_side_plate.png)
 
-#### walls_at_120
+\include{lineno} 22_butt_pairs.cpp
 
-Two walls at 120 degrees.
+### 23_butt_assemblies
 
-![butt_walls_at_120](examples/butt_walls_at_120.png)
+Each assembly is its own scene, `butt_<assembly>.pb`.
 
-#### wall_under_roof
+#### brace_frame
 
-A wall under a roof sloped 25 degrees.
+A post on a sill and a brace between them.
 
-![butt_wall_under_roof](examples/butt_wall_under_roof.png)
-
-#### short_joist
-
-A joist drawn 200 short, run on to the wall.
-
-![butt_short_joist](examples/butt_short_joist.png)
+![butt_brace_frame](examples/butt_brace_frame.png)
 
 #### curved_sill
 
-Posts on an arc sill of eight segments.
+Two posts on a sill of eight segments on an arc.
 
 ![butt_curved_sill](examples/butt_curved_sill.png)
 
@@ -236,20 +296,16 @@ Walls on a pentagon floor, one with a sloped top.
 
 ![butt_polygon_floor](examples/butt_polygon_floor.png)
 
-\include{lineno} 22_butt_gallery.cpp
-
-### 23_butt_zigzag
-
 #### zigzag_walls
 
-Four walls on a zigzag plan, on a floor.
+Walls on a zigzag in plan, on a floor.
 
 ![butt_zigzag_walls](examples/butt_zigzag_walls.png)
 
 #### folded_roof
 
-Four roof plates on a zigzag section, over two gables.
+A roof on a zigzag in section over two gables, its eaves overhanging them.
 
 ![butt_folded_roof](examples/butt_folded_roof.png)
 
-\include{lineno} 23_butt_zigzag.cpp
+\include{lineno} 23_butt_assemblies.cpp

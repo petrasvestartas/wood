@@ -21,6 +21,15 @@ enum class PinLayout {
     horizontal, // A row of count pins along the contact.
 };
 
+/// How two members meet, read from their ends, named by the faces that meet: the case a butt makes, and the joint family that fits it.
+enum class ButtConfiguration {
+    none, // They do not touch.
+    cross, // They cross, no end reaching the other: a cross joint, nothing butted.
+    top_side, // One member's side, its end, on the other's top, its long face: at the other's middle, or at its end where the first runs on.
+    side_side_outplane, // Both ends, out of plane, cut on the plane halfway: a miter.
+    side_side_inplane, // Both ends, in line or in plane, cut on the plane halfway: a splice.
+};
+
 /// Element that represents a joint between beams: a beam-to-beam joint with feature volumes, or a connector with parts, cutters and pins.
 class JointBeam : public Joint {
 public:
@@ -38,8 +47,12 @@ public:
     std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
     std::vector<Vector> insertions; // A connector's direction each target slides off it, in targets order; a beam-to-beam joint reads its feature instead.
-    std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's: the block the running member gains at a corner (empty elsewhere), and what the butting member loses behind the running member's face or gains up to it when drawn short.
-    bool is_butt = false; // A butt: each target takes its butt_solids entry, nothing else.
+    std::array<InteractionFeatureSolid, 2> butt_extensions; // A butt's: what each target's end gains, run on past its end plane; empty for a target the butt leaves whole.
+    std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's: what each target loses beyond its end plane, so the run-on stops on it; empty for a target the butt leaves whole.
+    std::array<std::optional<Plane>, 2> butt_planes; // A butt's: each target's end plane, its normal out of the member; none for a target the butt leaves whole.
+    std::array<int, 2> butt_ends = {-1, -1}; // A butt's: which end of each target it stops, a beam's 0 or 1, a plate's edge; -1 for a target it leaves whole.
+    ButtConfiguration configuration = ButtConfiguration::none; // A butt's: how the two members meet, read from their ends.
+    bool is_butt = false; // A butt: each target takes its butt_extensions and butt_solids entries, nothing else.
 
     JointBeam();
 
@@ -114,11 +127,26 @@ public:
         int pin_sides = 16
     );
 
-    /// A butt of two members, beams or plates, joined flat: target 0 runs, target 1 butts. The butting member is cut on the running member's
-    /// face that looks at it, so it ends flush against that face, run on to the face when drawn short of it, cut on it when drawn past it;
-    /// where the running member's end lies inside the butting member, a corner, it runs on to the butting member's outer face, so the corner
-    /// closes flush outside, square or oblique. Each reads the members as the earlier joints left them.
-    static std::shared_ptr<JointBeam> butt(Element& running, Element& butting);
+    /// A butt of two members drawn as lines and polygons, beams, columns or plates: each member end that reaches the other, an end face within
+    /// `reach` of it short or past, is run on and cut on one plane, so the two meet face to face. top_side: one end on the other's face, or a
+    /// corner square within 10 degrees, a running on to b's outer face and b stopping on a's inner face. side_side_outplane: an oblique corner,
+    /// both cut on the miter. side_side_inplane: both on the plane halfway. cross, no end reaching: nothing cut. `reach` 0 takes the larger
+    /// member depth. The drawn, uncut members decide, so the order butts are added in does not matter; nullptr when they do not touch.
+    static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
+
+    /// What a plate's edge `end` gains and loses to stop on its plane in `planes`, the planes of all its butted edges by edge: the run-on out to
+    /// the plane and `overshoot` past it, between its neighbours' edges run out to theirs too, so two run-on edges fill their corner, empty
+    /// when the edge runs in; and the wood beyond the plane, at a concave corner only what lies beyond the butted neighbour's plane too, so a
+    /// valley keeps what lies under the neighbour. The session calls it on every butt of a plate, so all its edges agree.
+    static std::array<Mesh, 2> plate_end(const Plate& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot);
+
+    /// A butt whose corner, square or oblique, is side_side_outplane, a miter: both ends cut on the plane through the outer and the inner
+    /// meeting edges.
+    static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
+
+    /// A butt top_side whose second member's side, its end, stops on the first member's top, the first left whole even where its own end lies
+    /// at the same node, as a brace on a post that stands on the sill beside it.
+    static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
 
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
     static std::shared_ptr<JointBeam> butterfly_key(

@@ -2,22 +2,31 @@
 
 [TOC]
 
-A flat butt of two members, beams or plates drawn on lines and mid-planes: the butting member is cut on the running member's face, and at a corner the running member runs on to the butting member's outer face.
+A butt of two members drawn on lines and mid-planes, beams, columns or plates: each end that reaches the other is run on and cut on one plane, so the two meet face to face. How the ends meet decides the configuration:
+
+| Configuration | Ends | Cut |
+|---|---|---|
+| `top_side` | one end on the other's face, or both at a square corner | the end on the face; at a corner the first runs on to the second's outer face |
+| `side_side_outplane` | both, at an oblique corner | both on the miter |
+| `side_side_inplane` | both, in line or in plane | both on the plane halfway |
+| `cross` | none | nothing |
+
+The drawn members decide, so the order butts are added in does not matter. A plate's butted edges are run on and cut together, so its corners close and a valley keeps its wood.
 
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> butt(Element& running, Element& butting);   // target 0 runs, target 1 butts
+static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);              // the configuration read from the ends
+static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);    // every corner on the miter
+static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0); // the second's end on the first
 static std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");   // a wall centred on its footprint line
 ```
-
-Each butt reads its running member as the earlier butts left it, cut and run on: join slabs to walls before walls to walls, so a wall corner runs on from what the wall keeps.
 
 ## Beams
 
 ![Beams](elements/element_joint_beam_butt.png)
 
-A post on the middle of a sill and one on its end: each post is cut on the sill's top, the sill runs on to the end post's outer face.
+A post on the middle of a sill and one on its end: each post stops on the sill's top, the sill runs on to the end post's outer face.
 
 \include{lineno} elements/element_joint_beam_butt.cpp
 
@@ -25,6 +34,6 @@ A post on the middle of a sill and one on its end: each post is cut on the sill'
 
 ![Plates](elements/element_joint_beam_butt_plates.png)
 
-Two walls on a floor meeting at a corner: the walls are cut on the floor's top and the floor runs on under them; the short wall is cut on the long wall's inner face and the long wall runs on to its outer face.
+Two walls on a floor meeting at a corner: the floor runs on under the walls, which stop on its top; the long wall runs on to the short wall's outer face.
 
 \include{lineno} elements/element_joint_beam_butt_plates.cpp

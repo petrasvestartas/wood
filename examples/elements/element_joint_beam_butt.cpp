@@ -8,9 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_butt");
 
-    // two 150 x 150 beams on axes meeting at a node: a tee, the post standing on the middle of the sill, and a corner, the post on its end
+    // two 150 x 150 beams on axes meeting at a node: top_side, the post standing on the middle of the sill, and top_side at an end, the post on the sill's end
     for (const double x : {0.0, 1600.0}) {
-        const std::shared_ptr<TreeNode> group = scene.add_group(x == 0.0 ? "tee" : "corner");
+        const std::shared_ptr<TreeNode> group = scene.add_group(x == 0.0 ? "top_side" : "top_side_end");
         const double node = x == 0.0 ? 0.0 : 600.0;
         const std::shared_ptr<Beam> sill = std::make_shared<Beam>(Polyline({{x - 600.0, 0.0, 0.0}, {x + 600.0, 0.0, 0.0}}), 75.0, "sill");
         const std::shared_ptr<Beam> post = std::make_shared<Beam>(Polyline({{x + node, 0.0, 0.0}, {x + node, 0.0, 800.0}}), 75.0, "post");
@@ -39,7 +39,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A butt of two 150 x 150 beams whose axes meet at a node: in the tee the post is cut on the sill's top face and stands flush on it; in the corner the post is cut the same way and the sill runs on to the post's far face, so the corner closes flush.
+A butt of two 150 x 150 beams whose axes meet at a node: in top_side the post is cut on the sill's top face and stands flush on it; at the end the post is cut the same way and the sill runs on to the post's far face, so the corner closes flush.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

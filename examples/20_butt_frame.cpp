@@ -27,19 +27,30 @@ int main() {
         scene.add_polyline(axis, scene.group_named("input"));
     }
 
-    // the butts, running member first: the posts stand on the sill and carry the head, which run on over the corner posts; the braces butt on the sill, the head and the posts
-    const std::vector<std::array<std::shared_ptr<Beam>, 2>> pairs = {
+    // the posts on the sill and under the head, which run on over the corner posts: butts read from the drawn members
+    const std::vector<std::array<std::shared_ptr<Beam>, 2>> posts = {
         {sill, left_post}, {sill, middle_post}, {sill, right_post},
         {head, left_post}, {head, middle_post}, {head, right_post},
-        {sill, left_brace}, {left_post, left_brace}, {head, left_brace}, {middle_post, left_brace},
-        {sill, right_brace}, {right_post, right_brace}, {head, right_brace}, {middle_post, right_brace},
     };
-    for (const std::array<std::shared_ptr<Beam>, 2>& pair : pairs) {
+    for (const std::array<std::shared_ptr<Beam>, 2>& pair : posts) {
         const std::shared_ptr<JointBeam> butt = JointBeam::butt(*pair[0], *pair[1]);
-        butt->name = fmt::format("butt_{}_{}", pair[0]->name, pair[1]->name);
+        butt->name = fmt::format("{}_{}_{}", butt->name, pair[0]->name, pair[1]->name);
         scene.add(butt);
         scene.add_interaction(butt, pair[0], butt->interaction(0));
         scene.add_interaction(butt, pair[1], butt->interaction(1));
+    }
+
+    // the braces stopping on the sill, the head and the posts, top_side even at the corner nodes where a post's foot lies beside the brace's
+    const std::vector<std::array<std::shared_ptr<Beam>, 2>> braces = {
+        {sill, left_brace}, {left_post, left_brace}, {head, left_brace}, {middle_post, left_brace},
+        {sill, right_brace}, {right_post, right_brace}, {head, right_brace}, {middle_post, right_brace},
+    };
+    for (const std::array<std::shared_ptr<Beam>, 2>& pair : braces) {
+        const std::shared_ptr<JointBeam> top_side = JointBeam::butt_top_side(*pair[0], *pair[1]);
+        top_side->name = fmt::format("{}_{}_{}", top_side->name, pair[0]->name, pair[1]->name);
+        scene.add(top_side);
+        scene.add_interaction(top_side, pair[0], top_side->interaction(0));
+        scene.add_interaction(top_side, pair[1], top_side->interaction(1));
     }
 
     std::cout << scene << std::endl;
