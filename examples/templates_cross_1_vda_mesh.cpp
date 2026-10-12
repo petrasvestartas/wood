@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The vda mesh on its default dome: a mitred plate per face, two connector plates across every interior edge.
+/// The vda mesh on its default dome: a mitered plate per face, two connector plates across every interior edge.
 int main() {
 
     wood_cross::VdaMesh vda(
@@ -36,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in mitres, and two connector frames and plates across every interior edge, each step in its group.
+The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in miters, and two connector frames and plates across every interior edge, each step in its group.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

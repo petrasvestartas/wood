@@ -1,0 +1,97 @@
+/// A tooth tiled `divisions` times along z, copy i shifted by mv_end + mv_step * i.
+static std::vector<Point> tile_tooth_along_z(
+    const std::vector<Point>& base,
+    int divisions,
+    double mv_end,
+    double mv_step
+) {
+
+    std::vector<Point> out;
+    out.reserve(base.size() * divisions);
+    for (int i = 0; i < divisions; ++i) {
+        const double dz = mv_end + mv_step * i;
+        for (const Point& p : base)
+            out.emplace_back(p[0], p[1], p[2] + dz);
+    }
+
+    return out;
+}
+
+/// side_side_inplane_butterfly_keys: butterfly (X-fix) joint - `divisions` copies of a four-point tooth tiled along z; unit_scale pinned to the
+/// male plate's thickness, the tooth pitch the joint line's length (times scale z) over the divisions, in thicknesses.
+static void side_side_inplane_butterfly_keys(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements) {
+
+    joint.name = "side_side_inplane_butterfly_keys";
+    joint.unit_scale_distance = unit_scale_distance(joint, elements);
+
+    const double edge_length = joint.joint_lines[0].length() * joint.scale[2];
+    const int divisions = joint.divisions;
+    const double joint_volume_edge_length = joint.unit_scale_distance;
+    const double move_length_scaled = edge_length / (divisions * joint_volume_edge_length);
+    const double total_length_scaled = edge_length / joint_volume_edge_length;
+    const double mv_end  = (total_length_scaled * 0.5) - (move_length_scaled * 0.5);
+    const double mv_step = -move_length_scaled;
+
+    const std::vector<Point> base_m0 = {
+        Point( 0.0, -0.5,  0.1166666667),
+        Point(-0.5, -0.5,  0.4),
+        Point(-0.5, -0.5, -0.4),
+        Point( 0.0, -0.5, -0.1166666667),
+    };
+    const std::vector<Point> base_m1 = {
+        Point( 0.0,  0.5,  0.1166666667),
+        Point(-0.5,  0.5,  0.4),
+        Point(-0.5,  0.5, -0.4),
+        Point( 0.0,  0.5, -0.1166666667),
+    };
+    const std::vector<Point> base_f0 = {
+        Point( 0.0, -0.5,  0.1166666667),
+        Point( 0.5, -0.5,  0.4),
+        Point( 0.5, -0.5, -0.4),
+        Point( 0.0, -0.5, -0.1166666667),
+    };
+    const std::vector<Point> base_f1 = {
+        Point( 0.0,  0.5,  0.1166666667),
+        Point( 0.5,  0.5,  0.4),
+        Point( 0.5,  0.5, -0.4),
+        Point( 0.0,  0.5, -0.1166666667),
+    };
+
+    const std::vector<Point> m0 = tile_tooth_along_z(
+        base_m0,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> m1 = tile_tooth_along_z(
+        base_m1,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> f0 = tile_tooth_along_z(
+        base_f0,
+        divisions,
+        mv_end,
+        mv_step
+    );
+    const std::vector<Point> f1 = tile_tooth_along_z(
+        base_f1,
+        divisions,
+        mv_end,
+        mv_step
+    );
+
+    joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
+    joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
+
+    joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
+    joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
+
+    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+
+    joint.unit_scale = true;
+}

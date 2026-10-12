@@ -2,7 +2,7 @@
 
 [TOC]
 
-A steel column base with the manufacturer's dimensions on a plane: base plate, tube, head plate, pins and anchors. `Joint::support` lets its head plate into a column end and drills the column pins, a subtract feature from the joint.
+A steel column base: base plate, tube, head plate, pins and anchors. `Joint::support` lets it into a column end.
 
 ## Constructors
 
@@ -32,6 +32,6 @@ static std::shared_ptr<Joint> Joint::support(const Support& support, const Colum
 
 ![On a plane](elements/element_support.png)
 
-A support on the xy plane, written as its exact BRep: the round parts and the four anchor holes of the base plate are exact cylinders.
+A support on the xy plane as its exact BRep.
 
 \include{lineno} elements/element_support.cpp

@@ -35,6 +35,9 @@ std::vector<Drill> merged_drills(std::vector<Drill> drills);
 /// The closed solid of a mesh with planar faces as a BRep with exact round holes, coplanar faces merged and every edge shared one-to-one; empty when a drill passes within its radius of an edge or of another drill, or a face is not planar.
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& drills);
 
+/// The drills merged as drilled_brep merges them, split by whether it can bore each exactly: [0] every stretch clear of the face edges and of the other drills and steep enough, [1] the others, all of them when a face is not planar.
+std::array<std::vector<Drill>, 2> split_clear_drills(const Mesh& mesh, const std::vector<Drill>& drills);
+
 /// The stretches where the line's infinite extension runs inside a closed mesh with planar faces, as parameter pairs in mm from its start, the line's own ends not clipping them.
 std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line);
 

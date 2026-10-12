@@ -253,7 +253,7 @@ compute_face_contacts(0);
 
 ## Joints
 
-Every column point ranks its members: the highest runs through, the rest butt into its side or the column face, and only a pure corner is mitred.
+Every column point ranks its members: the highest runs through, the rest butt into its side or the column face, and only a pure corner is mitered.
 
 ![Heads the girders rest on](templates/templates_grid_5_framing_head_section.webp)
 

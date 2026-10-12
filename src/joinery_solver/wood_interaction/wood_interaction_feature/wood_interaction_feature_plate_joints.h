@@ -9,86 +9,92 @@ using namespace wood_session;
 
 /// Every wood_interaction_feature_plate_joints/*.h once, into the including TU's anonymous namespace; the consumer includes wood_session.h itself, before this file.
 #include "wood_interaction_feature_plate_joints/custom_outlines.h"
+#include "wood_interaction_feature_plate_joints/custom_pairs.h"
+#include "wood_interaction_feature_plate_joints/unit_scale_distance.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_ip: side-side in-plane, type 12
+// side_side_inplane: side-side in-plane, type 12
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/ss_e_ip_0.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_1.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_2.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_3.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_4.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_5.h"
-#include "wood_interaction_feature_plate_joints/ss_e_ip_custom.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_three_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_dovetails.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_butterfly_keys.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_splayed_scarf.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_cross_splayed_scarf.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_tooth_keys.h"
+#include "wood_interaction_feature_plate_joints/side_side_inplane_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_op: side-side out-of-plane, type 11 (ss_e_op_5 calls ss_e_op_4)
+// side_side_outplane: side-side out-of-plane, type 11 (side_side_outplane_linked_tenons calls side_side_outplane_tenons, side_side_outplane_linked_tenons_wall calls side_side_outplane_linked_tenons)
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/ss_e_op_0.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_1.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_2.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_3.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_4.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_5.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_17.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_custom.h"
-#include "wood_interaction_feature_plate_joints/ss_e_op_tutorial.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_three_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_graded_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_miter_tenon.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_tenons.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_capped_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_custom.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_notch.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ts_e_p: top-side, type 20
+// top_side: top-side, type 20
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/ts_e_p_0.h"
-#include "wood_interaction_feature_plate_joints/ts_e_p_1.h"
-#include "wood_interaction_feature_plate_joints/ts_e_p_2.h"
-#include "wood_interaction_feature_plate_joints/ts_e_p_3.h"
-#include "wood_interaction_feature_plate_joints/ts_e_p_5.h"
-#include "wood_interaction_feature_plate_joints/ts_e_p_custom.h"
+#include "wood_interaction_feature_plate_joints/top_side_three_tenons.h"
+#include "wood_interaction_feature_plate_joints/top_side_annen_tenons.h"
+#include "wood_interaction_feature_plate_joints/top_side_dense_tenons.h"
+#include "wood_interaction_feature_plate_joints/top_side_tenons.h"
+#include "wood_interaction_feature_plate_joints/top_side_milled_wedge.h"
+#include "wood_interaction_feature_plate_joints/top_side_snap_fit.h"
+#include "wood_interaction_feature_plate_joints/top_side_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// tt_e_p: top-top drills, type 40
+// top_top: top-top drills, type 40
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/tt_e_p_drills.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_0.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_1.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_2.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_3.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_4.h"
-#include "wood_interaction_feature_plate_joints/tt_e_p_5.h"
+#include "wood_interaction_feature_plate_joints/stacked_drills.h"
+#include "wood_interaction_feature_plate_joints/top_top_centre_pin.h"
+#include "wood_interaction_feature_plate_joints/top_top_polylabel_pin.h"
+#include "wood_interaction_feature_plate_joints/top_top_circle_pins.h"
+#include "wood_interaction_feature_plate_joints/top_top_ring_pins.h"
+#include "wood_interaction_feature_plate_joints/top_top_grid_pins.h"
+#include "wood_interaction_feature_plate_joints/top_top_rectangle_pins.h"
+#include "wood_interaction_feature_plate_joints/top_top_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// cr_c_ip: cross in-plane, type 30
+// cross: cross in-plane, type 30
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/cr_c_ip_0.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_1.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_core.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_2.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_3.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_4.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_5.h"
-#include "wood_interaction_feature_plate_joints/cr_c_ip_custom.h"
+#include "wood_interaction_feature_plate_joints/cross_slot.h"
+#include "wood_interaction_feature_plate_joints/cross_sliced_half_lap.h"
+#include "wood_interaction_feature_plate_joints/cross_core.h"
+#include "wood_interaction_feature_plate_joints/cross_half_lap.h"
+#include "wood_interaction_feature_plate_joints/cross_half_lap_diagonal_drills.h"
+#include "wood_interaction_feature_plate_joints/cross_half_lap_drill.h"
+#include "wood_interaction_feature_plate_joints/cross_brussels_half_lap.h"
+#include "wood_interaction_feature_plate_joints/cross_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
-// ss_e_r: side-side relief, type 13
+// side_side_rotated: side-side rotated, type 13 (jupiter_scarf is the trait de Jupiter of two plates in line)
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/ss_e_r_0.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_core.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_2.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_3.h"
-#include "wood_interaction_feature_plate_joints/ss_e_r_custom.h"
+#include "wood_interaction_feature_plate_joints/side_side_rotated_miter.h"
+#include "wood_interaction_feature_plate_joints/rotated_core.h"
+#include "wood_interaction_feature_plate_joints/side_side_rotated_hooks.h"
+#include "wood_interaction_feature_plate_joints/side_side_rotated_keys.h"
+#include "wood_interaction_feature_plate_joints/side_side_rotated_custom.h"
 #include "wood_interaction_feature_plate_joints/side_removal.h"
+#include "wood_interaction_feature_plate_joints/jupiter_scarf.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // b: beam, type 60
 // ═══════════════════════════════════════════════════════════════════════════
 
-#include "wood_interaction_feature_plate_joints/b_0.h"
-#include "wood_interaction_feature_plate_joints/b_custom.h"
+#include "wood_interaction_feature_plate_joints/border.h"
+#include "wood_interaction_feature_plate_joints/border_custom.h"
 
 #ifdef _MSC_VER
 #pragma warning(pop)

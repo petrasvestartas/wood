@@ -17,6 +17,7 @@ public:
     std::vector<Vector> directions; // Section up direction per segment; a segment without one takes the contact normal.
     int allowed_type = -1; // Which contacts this beam accepts: 0 crossing only, 1 side-to-end and end-to-end, -1 any.
     std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    double extension = 0.0; // Length the solid runs past each axis end: the stock an end joint at the axis end cuts back.
     std::vector<Polyline> profile; // Section loops in the profile frame, loop 0 the outline, then holes lofted on a one-segment axis; empty takes the square of the radius.
 
 protected:
@@ -57,6 +58,19 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// Two beams crossing at their middles, "first" along x and "second" turned `angle_degrees` from it in plan, each `length` long and
+    /// `radius` in half-width, their axes meeting at the origin: the pair a crossing joint (cross) is cut into.
+    static std::array<std::shared_ptr<Beam>, 2> pair_crossing(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
+
+    /// Two beams in a tee, "first" along x through the origin and "second" ending on its axis, turned `angle_degrees` from it in plan, each
+    /// `length` long and `radius` in half-width, the second's solid running one radius past its axis ends, to the first's far face, the
+    /// stock its through tenon is kept from: the side-to-end pair a top-side joint (top_side) is cut into.
+    static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
+
+    /// Two beams meeting end to end at the origin, "first" along x ending there and "second" starting there, turned `angle_degrees` from
+    /// it in plan, each `length` long on its axis and its solid running `extension` past both axis ends: the pair an end joint trims, 0 a splice.
+    static std::array<std::shared_ptr<Beam>, 2> pair_end_to_end(double angle_degrees = 0.0, double radius = 75.0, double length = 1200.0, double extension = 150.0);
+
     /// The beam an Element tagged "Beam" describes, same guid; a missing payload leaves the axis empty.
     static std::shared_ptr<Beam> from_element(Element element);
 
@@ -70,7 +84,7 @@ public:
     /// True when the beam carries an up direction for that segment.
     bool has_direction(int segment) const;
 
-    /// One closed outline per axis vertex, the profile's loop 0 or the square of the segment's radius, along the bisector at an interior vertex; empty when the beam has no radius.
+    /// One closed outline per axis vertex, the profile's loop 0 or the square of the segment's radius, along the bisector at an interior vertex, the end ones moved out by extension; empty when the beam has no radius.
     std::vector<Polyline> sections() const;
 
     /// The parametric shape alone, before joints or cuts as a Mesh; computed on first access and cached independently until invalidate_geometry() or place().

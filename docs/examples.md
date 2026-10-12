@@ -25,6 +25,11 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `17_solid_features` | Solid difference, intersection, union and an arbitrary mesh cutter |
 | `18_cutting_gallery` | Loads the three saved cutting scenes into one viewer gallery |
 | `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
+| `20_butt_frame` | A timber-frame wall from lines: sill, head, posts and braces butted flat |
+| `21_butt_house` | A small house from plates on mid-planes: floor, walls and roof butted flat |
+| `22_butt_pairs` | Butt pairs of beams, columns and plates: top_side, side_side out of plane and in plane, cross |
+| `23_butt_assemblies` | Butt pairs combined: a braced frame, a curved sill, a pentagon floor, zigzag walls and a folded roof |
+| `24_butt_trusses` | Twelve roof and bridge trusses from lines: webs top_side on the chords, side_side where they share a node |
 
 Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
@@ -36,7 +41,7 @@ Select a library design by its actual name and parameters:
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(plate0, plate1);
-const std::shared_ptr<JointPlate> joint = JointPlate::ts_e_p_3(8, 0.5);
+const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
 joint->orient(contact, {plate0, plate1}, scene.settings);
 scene.add(joint);
 scene.add_interaction(joint, plate0, joint->interaction(0));
@@ -54,13 +59,13 @@ and supply the elements in reversed order when orienting or adding the interacti
 
 | Library family | Named factories | Parameters vary by design |
 | --- | --- | --- |
-| Side-side in plane | `ss_e_ip_0` through `ss_e_ip_5`, `ss_e_ip_custom` | Divisions, shift, custom outlines |
-| Side-side out of plane | `ss_e_op_0` through `ss_e_op_5`, `ss_e_op_17`, `ss_e_op_tutorial`, `ss_e_op_custom` | Divisions, taper, chamfer, outline modification and bounds |
-| Side-to-top | `ts_e_p_0`, `ts_e_p_1`, `ts_e_p_2`, `ts_e_p_3`, `ts_e_p_5`, `ts_e_p_custom` | Divisions and shift on parametric designs |
-| Rotated side-side | `ss_e_r_0` through `ss_e_r_3`, `ss_e_r_custom` | Design-specific dimensions and outlines |
-| Cross | `cr_c_ip_0` through `cr_c_ip_5`, `cr_c_ip_custom` | Design-specific dimensions and outlines |
-| Top-to-top | `tt_e_p_0` through `tt_e_p_5` | Drill radius, chord tolerance, count or spacing |
-| Other | `b_0`, `b_custom`, `side_removal`, `side_removal_ss_e_r_1_port` | Outlines, merge and shift options |
+| Side-side in plane | `side_side_inplane_three_fingers` through `side_side_inplane_tooth_keys`, `side_side_inplane_custom` | Divisions, shift, custom outlines |
+| Side-side out of plane | `side_side_outplane_three_fingers` through `side_side_outplane_linked_tenons_wall`, `side_side_outplane_capped_fingers`, `side_side_outplane_notch`, `side_side_outplane_custom` | Divisions, taper, chamfer, outline modification and bounds |
+| Side-to-top | `top_side_three_tenons`, `top_side_annen_tenons`, `top_side_dense_tenons`, `top_side_tenons`, `top_side_snap_fit`, `top_side_custom` | Divisions and shift on parametric designs |
+| Rotated side-side | `side_side_rotated_miter` through `side_side_rotated_keys`, `side_side_rotated_custom` | Design-specific dimensions and outlines |
+| Cross | `cross_slot` through `cross_brussels_half_lap`, `cross_custom` | Design-specific dimensions and outlines |
+| Top-to-top | `top_top_centre_pin` through `top_top_rectangle_pins` | Drill radius, chord tolerance, count or spacing |
+| Other | `border`, `border_custom`, `side_removal`, `jupiter_scarf_port` | Outlines, merge and shift options |
 
 Exact signatures are declared together in `wood_element_joint_plate.h`.
 `19_plate_joint_library` demonstrates six side-to-top configurations and writes
@@ -139,3 +144,247 @@ See @subpage cutting_gallery for the API, geometry limits and Cloudflare command
 ### 18_cutting_gallery
 
 \include{lineno} 18_cutting_gallery.cpp
+
+## Butt joints
+
+Members drawn as lines and mid-planes, red, overlap where they meet. `JointBeam::butt(a, b)` reads how their ends meet and runs on and cuts each end on one plane, so they meet face to face (@ref elements_joint_beam_butt).
+
+### 20_butt_frame
+
+![20_butt_frame](examples/20_butt_frame.png)
+
+\include{lineno} 20_butt_frame.cpp
+
+### 21_butt_house
+
+![21_butt_house](examples/21_butt_house.png)
+
+\include{lineno} 21_butt_house.cpp
+
+### 22_butt_pairs
+
+Each pair is its own scene, `butt_pair_<case>.pb`, its joint named by its configuration.
+
+#### beam_top_side
+
+A post on a beam.
+
+![butt_pair_beam_top_side](examples/butt_pair_beam_top_side.png)
+
+#### beam_top_side_oblique
+
+A strut on a beam at 60 degrees.
+
+![butt_pair_beam_top_side_oblique](examples/butt_pair_beam_top_side_oblique.png)
+
+#### beam_top_side_end
+
+Two beams meeting at their ends: the first runs on, the second stops on it.
+
+![butt_pair_beam_top_side_end](examples/butt_pair_beam_top_side_end.png)
+
+#### beam_top_side_end_past
+
+The same, drawn past each other.
+
+![butt_pair_beam_top_side_end_past](examples/butt_pair_beam_top_side_end_past.png)
+
+#### beam_top_side_end_short
+
+The same, drawn short of each other.
+
+![butt_pair_beam_top_side_end_short](examples/butt_pair_beam_top_side_end_short.png)
+
+#### beam_side_side_outplane
+
+Two beams at 120 degrees, cut on the miter.
+
+![butt_pair_beam_side_side_outplane](examples/butt_pair_beam_side_side_outplane.png)
+
+#### beam_side_side_outplane_square
+
+Two beams at 90 degrees, cut on the miter by `butt_side_side`.
+
+![butt_pair_beam_side_side_outplane_square](examples/butt_pair_beam_side_side_outplane_square.png)
+
+#### beam_side_side_inplane
+
+Two beams in line.
+
+![butt_pair_beam_side_side_inplane](examples/butt_pair_beam_side_side_inplane.png)
+
+#### beam_cross
+
+Two beams crossing: nothing cut.
+
+![butt_pair_beam_cross](examples/butt_pair_beam_cross.png)
+
+#### plate_top_side
+
+A wall on another wall's middle.
+
+![butt_pair_plate_top_side](examples/butt_pair_plate_top_side.png)
+
+#### plate_top_side_end
+
+Two walls at a corner: the first runs on.
+
+![butt_pair_plate_top_side_end](examples/butt_pair_plate_top_side_end.png)
+
+#### plate_side_side_outplane
+
+Two walls at 120 degrees, cut on the miter.
+
+![butt_pair_plate_side_side_outplane](examples/butt_pair_plate_side_side_outplane.png)
+
+#### plate_side_side_inplane
+
+Two walls in line.
+
+![butt_pair_plate_side_side_inplane](examples/butt_pair_plate_side_side_inplane.png)
+
+#### plate_top_side_floor
+
+A wall on a floor.
+
+![butt_pair_plate_top_side_floor](examples/butt_pair_plate_top_side_floor.png)
+
+#### plate_cross
+
+Two walls crossing: nothing cut.
+
+![butt_pair_plate_cross](examples/butt_pair_plate_cross.png)
+
+#### column_top_side_plate
+
+A column under a slab.
+
+![butt_pair_column_top_side_plate](examples/butt_pair_column_top_side_plate.png)
+
+#### plate_top_side_beam
+
+A wall on a beam.
+
+![butt_pair_plate_top_side_beam](examples/butt_pair_plate_top_side_beam.png)
+
+#### beam_top_side_plate
+
+A beam into a wall at 60 degrees in plan.
+
+![butt_pair_beam_top_side_plate](examples/butt_pair_beam_top_side_plate.png)
+
+\include{lineno} 22_butt_pairs.cpp
+
+### 23_butt_assemblies
+
+Each assembly is its own scene, `butt_<assembly>.pb`.
+
+#### brace_frame
+
+A post on a sill and a brace between them.
+
+![butt_brace_frame](examples/butt_brace_frame.png)
+
+#### curved_sill
+
+Two posts on a sill of eight segments on an arc.
+
+![butt_curved_sill](examples/butt_curved_sill.png)
+
+#### polygon_floor
+
+Walls on a pentagon floor, one with a sloped top.
+
+![butt_polygon_floor](examples/butt_polygon_floor.png)
+
+#### zigzag_walls
+
+Walls on a zigzag in plan, on a floor.
+
+![butt_zigzag_walls](examples/butt_zigzag_walls.png)
+
+#### folded_roof
+
+A roof on a zigzag in section over two gables, its eaves overhanging them.
+
+![butt_folded_roof](examples/butt_folded_roof.png)
+
+\include{lineno} 23_butt_assemblies.cpp
+
+### 24_butt_trusses
+
+The trusses of the HAER truss identification sheets, each its own scene, `butt_truss_<name>.pb`: chords run through, every web stops top_side on the chords it ends on, and webs that share a node are cut side_side on the plane halfway.
+
+#### king_post
+
+King post.
+
+![butt_truss_king_post](examples/butt_truss_king_post.png)
+
+#### queen_post
+
+Queen post.
+
+![butt_truss_queen_post](examples/butt_truss_queen_post.png)
+
+#### pratt
+
+Pratt roof truss.
+
+![butt_truss_pratt](examples/butt_truss_pratt.png)
+
+#### howe
+
+Howe roof truss.
+
+![butt_truss_howe](examples/butt_truss_howe.png)
+
+#### fink
+
+Fink.
+
+![butt_truss_fink](examples/butt_truss_fink.png)
+
+#### belgian
+
+Belgian.
+
+![butt_truss_belgian](examples/butt_truss_belgian.png)
+
+#### scissors
+
+Scissors.
+
+![butt_truss_scissors](examples/butt_truss_scissors.png)
+
+#### warren
+
+Warren.
+
+![butt_truss_warren](examples/butt_truss_warren.png)
+
+#### warren_verticals
+
+Warren with verticals.
+
+![butt_truss_warren_verticals](examples/butt_truss_warren_verticals.png)
+
+#### pratt_bridge
+
+Pratt bridge truss with inclined end posts.
+
+![butt_truss_pratt_bridge](examples/butt_truss_pratt_bridge.png)
+
+#### parker
+
+Parker, a polygonal top chord.
+
+![butt_truss_parker](examples/butt_truss_parker.png)
+
+#### k_truss
+
+K-truss.
+
+![butt_truss_k_truss](examples/butt_truss_k_truss.png)
+
+\include{lineno} 24_butt_trusses.cpp

@@ -21,6 +21,21 @@ Block::Block(const std::vector<Polyline>& loops, const std::string& name) : Wood
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+std::shared_ptr<Block> Block::box(const Point& corner, double x_size, double y_size, double height, const std::string& name) {
+
+    const Polyline bottom = Polyline::rectangle(corner, Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), x_size, y_size);
+    const Polyline top = bottom.translated(Vector(0.0, 0.0, height));
+    return std::make_shared<Block>(std::vector<Polyline>{bottom, top}, name);
+}
+
+std::array<std::shared_ptr<Block>, 2> Block::pair_stacked(double lower_size, double upper_size, double height) {
+
+    const double inset = 0.5 * (lower_size - upper_size);
+    const std::shared_ptr<Block> lower = box(Point(0.0, 0.0, 0.0), lower_size, lower_size, height, "lower");
+    const std::shared_ptr<Block> upper = box(Point(inset, inset, height), upper_size, upper_size, height, "upper");
+    return {lower, upper};
+}
+
 std::shared_ptr<Block> Block::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

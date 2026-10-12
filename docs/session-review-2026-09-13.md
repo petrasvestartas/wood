@@ -100,7 +100,7 @@ unchanged for that link. At `:206`, division counts are clamped before conversio
 to an integer, including tiny positive spacing; zero, negative, or NaN spacing
 selects one division, and non-finite line lengths are ignored.
 
-`src/joinery_solver/joints/ss_e_op_5.h:9` validates both linked indices before
+`src/joinery_solver/joints/side_side_outplane_linked_tenons.h:9` validates both linked indices before
 accessing either joint. At `:12`, rebuilding geometry replaces old linking
 sequences rather than appending another set and breaking the merge count check.
 

@@ -2,7 +2,7 @@
 
 [TOC]
 
-A column: a section swept along its axis. Anything else comes through interactions: a block glued on adds to its stock, a cutter, a joint or a connector takes a solid away, each with `add_interaction(source, column, InteractionFeatureSolid(mesh, operation))`.
+A column: a section swept along its axis, shaped by others through `add_interaction(source, column, InteractionFeatureSolid(mesh, operation))`.
 
 ## Constructors
 
@@ -34,6 +34,6 @@ A 200 x 300 rectangle swept along a 3500 axis; the axis and the section are its 
 
 ![The floor's column as a session](elements/element_column_session.png)
 
-A column with glued blocks and cuts is several elements and the features they put on it: `Floor::add_column(corner)` adds each with `add` and puts it on the column with `add_interaction`, sized by the guide: the 220 shaft, two blocks glued on for the 340 head (`SolidOperation::add`, hidden once glued), the support with its joint's seat and pins, and six hidden cutter plates taking away the faces the ribs and the column blocks bear on (`SolidOperation::subtract`).
+`Floor::add_column(corner)`: the 220 shaft, two glued head blocks (`SolidOperation::add`), the support, and six hidden cutters (`SolidOperation::subtract`).
 
 \include{lineno} elements/element_column_session.cpp

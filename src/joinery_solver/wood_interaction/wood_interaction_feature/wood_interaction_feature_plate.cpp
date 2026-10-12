@@ -65,8 +65,11 @@ void InteractionFeaturePlate::sync_features() {
         f.outlines.clear();
         f.outlines.reserve(outlines[0].size() + outlines[1].size());
 
+        // every outline of both faces but a marker of no length, the zero-length pair some designs give an insertion, which draws as two dots
         for (int face = 0; face < 2; ++face)
-            f.outlines.insert(f.outlines.end(), outlines[face].begin(), outlines[face].end());
+            for (const Polyline& outline : outlines[face])
+                if (outline.length() > 0.0)
+                    f.outlines.push_back(outline);
     }
 }
 

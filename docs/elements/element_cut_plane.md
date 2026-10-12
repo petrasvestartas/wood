@@ -2,7 +2,7 @@
 
 [TOC]
 
-A cutting plane as an element, drawn as a square: it cuts other elements by its plane feature, `add_interaction(cut_plane, element, cut_plane->feature())`, the element keeping the side the normal points to.
+A cutting plane drawn as a square; `add_interaction(cut_plane, element, cut_plane->feature())` keeps the side the normal points to.
 
 ## Constructors
 

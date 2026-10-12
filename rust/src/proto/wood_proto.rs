@@ -453,7 +453,7 @@ pub struct InteractionFeaturePlateBeam {}
 /// User joint outlines for one family: male and female (face0, face1) pairs.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CustomJoint {
-    /// "ss_e_ip", "ss_e_op", "ts_e_p", "cr_c_ip", "tt_e_p", "ss_e_r" or "b"
+    /// "side_side_inplane", "side_side_outplane", "top_side", "cross", "top_top", "side_side_rotated" or "border"
     #[prost(string, tag = "1")]
     pub family: ::prost::alloc::string::String,
     /// Male outline pairs

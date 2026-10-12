@@ -373,8 +373,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 *column.a,
                 *column.b,
                 *quarter_connectors.column_plates[k],
-                *column.face,
-                guide.size_outer_ribs
+                *column.face
             );
         }
 
@@ -385,7 +384,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         if (!crossing)
             throw std::runtime_error(fmt::format("quarter {}: the two column plates do not cross", q));
 
-        quarter_connectors.cross_lap = JointPlate::cr_c_ip_0();
+        quarter_connectors.cross_lap = JointPlate::cross_slot();
         quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
         quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 

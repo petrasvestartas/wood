@@ -27,6 +27,40 @@ std::shared_ptr<BeamVariable> BeamVariable::between(const Polyline& first, const
     return std::make_shared<BeamVariable>(axis, std::vector<Polyline>{first, last}, name);
 }
 
+std::shared_ptr<BeamVariable> BeamVariable::box(const Point& start, const Vector& direction, double length, double width, double height, const std::string& name) {
+
+    const Vector along = direction.normalized();
+    const Vector up(0.0, 0.0, 1.0);
+    const Vector across = up.cross(along);
+    const Point corner = start - across * (0.5 * width);
+    const Polyline first = Polyline::rectangle(corner, across, up, width, height);
+    const Polyline last = Polyline::rectangle(corner + along * length, across, up, width, height);
+    return between(first, last, name);
+}
+
+std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_side_by_side(double length, double width, double height) {
+
+    const Vector x(1.0, 0.0, 0.0);
+    const std::shared_ptr<BeamVariable> left = box(Point(0.0, -0.5 * width, 0.0), x, length, width, height, "left");
+    const std::shared_ptr<BeamVariable> right = box(Point(0.0, 0.5 * width, 0.0), x, length, width, height, "right");
+    return {left, right};
+}
+
+std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_end_to_end(double length, double width, double height) {
+
+    const Vector x(1.0, 0.0, 0.0);
+    const std::shared_ptr<BeamVariable> first = box(Point(0.0, 0.0, 0.0), x, length, width, height, "first");
+    const std::shared_ptr<BeamVariable> second = box(Point(length, 0.0, 0.0), x, length, width, height, "second");
+    return {first, second};
+}
+
+std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_tee(double length, double width, double joist_width, double height) {
+
+    const std::shared_ptr<BeamVariable> beam = box(Point(0.0, 0.5 * width, 0.0), Vector(1.0, 0.0, 0.0), length, width, height, "beam");
+    const std::shared_ptr<BeamVariable> joist = box(Point(0.5 * length, width, 0.0), Vector(0.0, 1.0, 0.0), length, joist_width, height, "joist");
+    return {beam, joist};
+}
+
 std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();

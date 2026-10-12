@@ -41,6 +41,12 @@ public:
     /// The block an Element describes, same guid: any element whose geometry is a mesh; a "Solid" payload gives the loops and cuts back.
     static std::shared_ptr<Block> from_element(Element element);
 
+    /// An upright box: its bottom `x_size` by `y_size` from `corner` along x and y, `height` up z.
+    static std::shared_ptr<Block> box(const Point& corner, double x_size, double y_size, double height, const std::string& name = "block");
+
+    /// Two square boxes stacked: "lower" `lower_size` wide from the origin, "upper" `upper_size` wide centred on its top, each `height` high.
+    static std::array<std::shared_ptr<Block>, 2> pair_stacked(double lower_size = 400.0, double upper_size = 300.0, double height = 200.0);
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════

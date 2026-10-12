@@ -50,7 +50,7 @@ axes.push_back(Axis{{edge.first, edge.second}, Line::from_points(mid - dir * hal
 
 ### Frame
 
-A straight beam on every naked edge, its section mirrored across every mitre, butted at the corners.
+A straight beam on every naked edge, its section mirrored across every miter, butted at the corners.
 
 ![frame](templates/templates_reciprocal_1_rotation_frame.webp)
 

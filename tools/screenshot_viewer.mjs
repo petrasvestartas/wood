@@ -2,14 +2,16 @@
 // SHOT_ZOOM (default 1.6) zooms the page as the browser's zoom does, so the layer panel and its text come out large in the 1600 x 1000 picture; SHOT_SCALE=2 writes it at 3200 x 2000.
 // SHOT_QUERY adds viewer settings to the URL: SHOT_QUERY=thickness=0.5 draws the mesh edges thin under the Arctic outlines.
 import { spawn } from "node:child_process";
-import { writeFileSync, mkdtempSync } from "node:fs";
+import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const [out, ...commands] = process.argv.slice(2);
 const port = 9333;
+// a profile of its own per run, some 60 MB Chrome writes, removed once Chrome has left it
+const profile = mkdtempSync(join(tmpdir(), "shot-"));
 const chrome = spawn("google-chrome", [
-  `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), "shot-"))}`,
+  `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
   "--window-size=1600,1000", "--enable-unsafe-webgpu", "--ozone-platform=wayland", "--use-angle=vulkan", "--enable-features=Vulkan",
   "--ignore-gpu-blocklist", "--no-first-run", "--new-window", "about:blank",
 ], { stdio: "ignore", env: { ...process.env, VK_DRIVER_FILES: "/usr/share/vulkan/icd.d/radeon_icd.json", __EGL_VENDOR_LIBRARY_FILENAMES: "/usr/share/glvnd/egl_vendor.d/50_mesa.json" } });
@@ -49,4 +51,9 @@ const shot = await send("Page.captureScreenshot", { format: "png" });
 writeFileSync(out, Buffer.from(shot.result.data, "base64"));
 console.log(logs.slice(0, 8).join("\n"));
 ws.close();
+// Chrome's helpers keep writing the profile after the main process has gone: retried for a while, never fatal
+const forget_profile = (tries) => {
+  try { rmSync(profile, { recursive: true, force: true }); } catch { if (tries > 0) setTimeout(() => forget_profile(tries - 1), 500); }
+};
+chrome.once("exit", () => forget_profile(40));
 chrome.kill();

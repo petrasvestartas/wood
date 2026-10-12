@@ -1,0 +1,32 @@
+# The element examples whose pictures are missing or stale, one per line; tools/shoot_pictures.sh shoots them.
+# T1
+element_joint_plate_tt_e_p_0
+element_joint_plate_tt_e_p_1
+element_joint_plate_tt_e_p_2
+element_joint_plate_tt_e_p_3
+element_joint_plate_tt_e_p_4
+element_joint_plate_tt_e_p_5
+element_joint_plate_tt_e_p_custom
+# T2
+element_joint_plate_cr_c_ip_5
+element_joint_plate_ss_e_ip_3
+element_joint_plate_ss_e_ip_4
+# T3
+element_joint_hilti
+element_joint_hilti_angles
+# T4
+element_joint_plate_ss_e_op_angle_120
+element_joint_plate_ss_e_r_angle_120
+element_joint_plate_ts_e_p_angle_60
+element_joint_plate_cr_c_ip_angle_45
+element_joint_plate_ss_e_ip_angle_75
+# T5
+element_joint_plate_b_0
+element_joint_beam_from_contact
+element_joint_beam_rectangle_plate
+element_joint_beam_headed_pins
+# T6
+element_plate_assign_joints
+# T7
+element_joint_plate_ss_e_r_2
+element_joint_plate_ss_e_r_3

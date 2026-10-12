@@ -71,9 +71,9 @@ inline DiamondMesh::DiamondMesh(
     _mesh = compute_mesh();
     add_mesh(_mesh, add_group("mesh"));
 
-    // plates: one plate per triangle, mitred at the folds, its corners chamfered
+    // plates: one plate per triangle, mitered at the folds, its corners chamfered
     const std::shared_ptr<TreeNode> plates = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> triangles = mitred_plates(
+    const std::vector<std::shared_ptr<Plate>> triangles = mitered_plates(
         _mesh,
         thickness,
         chamfer,

@@ -15,9 +15,11 @@ nlohmann::ordered_json json_of(const google::protobuf::Message& message) {
     std::string text;
     google::protobuf::json::MessageToJsonString(message, &text, options).IgnoreError();
 
+    // the parsed message kept in a local: a range over the items of a temporary outlives it
+    nlohmann::ordered_json parsed = nlohmann::ordered_json::parse(text);
     nlohmann::ordered_json data = nlohmann::ordered_json::object();
     data["type"] = message.GetDescriptor()->name();
-    for (auto& [key, value] : nlohmann::ordered_json::parse(text).items())
+    for (auto& [key, value] : parsed.items())
         data[key] = std::move(value);
 
     return data;

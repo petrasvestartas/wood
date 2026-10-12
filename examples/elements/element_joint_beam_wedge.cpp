@@ -8,16 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_wedge");
 
-    const std::shared_ptr<BeamVariable> left = BeamVariable::between(
-        Polyline::rectangle({0.0, -200.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1600.0, -200.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "left"
-    );
-    const std::shared_ptr<BeamVariable> right = BeamVariable::between(
-        Polyline::rectangle({0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1600.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "right"
-    );
+    const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_side_by_side();
+    const std::shared_ptr<BeamVariable> left = beams[0];
+    const std::shared_ptr<BeamVariable> right = beams[1];
     scene.add(left);
     scene.add(right);
 
@@ -45,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two 1600 long beams 200 wide and 300 deep side by side, touching on their long faces; JointBeam::wedge on their face contact stops 300 short of each end of the contact's top edge, its triangular WEDGE_PROFILE hangs below that edge, a pocket 133 deep is cut under each slanted face into each beam, and pins run across through the wedge every 320; the wedge is added and passed to each beam with add_interaction, its part and pins nested under it; the right beam is moved 300 off afterwards so the pockets read.
+A wedge connector between two beams side by side: a prism let into both, pinned across, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

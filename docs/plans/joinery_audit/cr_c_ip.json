@@ -1,0 +1,182 @@
+{
+ "family": {
+  "family": "cr_c_ip",
+  "variants": [
+   {
+    "name": "cr_c_ip_0",
+    "status": "ported",
+    "current_location": "JointPlate::cr_c_ip_0 (src/joinery_solver/wood_elements/wood_element_joint_plate.h:124, src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1343-1346, dispatch :1390-1391 and id 30 at :165-167, family-3 default :293-296) + src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_0.h:1-29",
+    "old_params": "none (scale=1 local; 351933c:cmake/src/wood/include/wood_joint_lib.cpp:4587); family default for unknown id in 30-39 is cr_c_ip_0 (351933c:cmake/src/wood/include/wood_joint_lib.cpp:6486-6487)",
+    "current_params": "none (cr_c_ip_0()); s=1.0 local (cr_c_ip_0.h:5); family default for family 3 is cr_c_ip_0 (wood_element_joint_plate.cpp:293-296)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "same",
+    "differences": []
+   },
+   {
+    "name": "cr_c_ip_1",
+    "status": "ported",
+    "current_location": "JointPlate::cr_c_ip_1(double shift = 0.5) (wood_element_joint_plate.h:126, wood_element_joint_plate.cpp:1348-1354, dispatch :1392-1393, id 31 :168-170) + wood_interaction_feature_plate_joints/cr_c_ip_1.h:1-84",
+    "old_params": "joint.shift (default 0.5, 351933c:cmake/src/wood/include/wood_joint.h:94; from JOINTS_PARAMETERS_AND_TYPES row*3+1), clamped to [0,1] then mapped to s=0.05..0.4 (351933c:...wood_joint_lib.cpp:4610-4611); a=0.5-s, b=0.5, c=2(b-a), z=0.5 (:4613-4616); offsets {0.5,0.4,0.4,0.4,0.4,0.1,0.1,0.1,0.1} (:4659)",
+    "current_params": "shift (default 0.5) -> joint->shift -> connection.shift (wood_element_joint_plate.cpp:1351, :879); same clamp/map (cr_c_ip_1.h:6-7), a,b,c,z (:9-12), lengths (:36)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "same",
+    "differences": [
+     {
+      "what": "v0 formula guarded: old ((p0-p1)*(1/(2a)))*(0.5-a) unguarded; current inv_2a=0 when a<=1e-12. a is in [0.1,0.45] for any shift so the guard never triggers; no geometric effect.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4626",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_1.h:21-23",
+      "severity": "low"
+     },
+     {
+      "what": "Rotation xform: old rotation_in_xy_plane builds the matrix with the axes as columns (m00=x.x, m01=y.x, m02=z.x ...); current Xform::from_axes also stores the axes as columns (m[0..2]=col_x, m[4..6]=col_y, m[8..10]=col_z). With axes (0,1,0),(1,0,0),(0,0,-1) the matrix is symmetric anyway. Verified identical.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:419-423, 4657",
+      "new_ref": "/home/pv/brg/code_cpp/wood_research/session/session_cpp/src/xform.cpp:132-146; cr_c_ip_1.h:37",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "cr_c_ip_2",
+    "status": "partial",
+    "current_location": "JointPlate::cr_c_ip_2() (wood_element_joint_plate.h:128, wood_element_joint_plate.cpp:1356-1359, dispatch :1394-1395, id 32 :171-173) + wood_interaction_feature_plate_joints/cr_c_ip_2.h:1-22 calling cr_c_ip_core (cr_c_ip_core.h:3-121) with extra_drills={}, ext_side=0.15, ext_vert=0.6, factors 1.0/1.0, offset_min_pts=0",
+    "old_params": "joint.shift (default 0.5) mapped to s=0.05..0.4 (351933c:...wood_joint_lib.cpp:4725-4726); n=5 rings (:4743); extend_equally dist 0.15 on segments 0,2 and 0.6 on segments 1,3 of rings 3 and 4, proportion 0 (:4774-4783); offsets {0.5,0.4,0.4,0.4,0.4} (:4793); offset applied when size()!=0 (:4803)",
+    "current_params": "no shift argument; uses JointPlate::shift member default 0.5 (wood_element_joint_plate.h:40 -> connection.shift at wood_element_joint_plate.cpp:879); s mapping cr_c_ip_core.h:14-15; ext_side 0.15, ext_vert 0.6 passed as (dist, proportion) pairs (cr_c_ip_core.h:40-47); offsets :54; offset condition point_count()>0 && i<5 (:64)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Rectangle extension uses the kernel's proportion mode instead of an absolute distance. Old: extend_equally(pline, seg, 0.15) = dist 0.15, proportion 0 -> unitized direction * 0.15 on both ends (351933c:cgal_polyline_util.cpp:464-486, 'proportion != 0 ? scale by vector : unitize*dist'). Current: base[3].extend_segment_equally(0, 0.15*1.0, 0.15*1.0) where the kernel signature is (segment_id, dist, proportion) (polyline.h:197) and proportion=0.15 != 0 selects the proportional branch p0 -= v*0.15, p1 += v*0.15 with v the un-normalized segment vector (polyline.cpp:1286-1301). Side segments 0 and 2 of rings 3/4 (p2->p1, p13->p14) have length 2a = 0.55 at shift 0.5, so each end moves 0.0825 instead of 0.15. Vertical segments 1 and 3 (p1->p13, p14->p2) have length z = 0.5, and extend_segment_equally(1, 0.6, 0.6) moves each end 0.3 instead of 0.6. The side-face rebuild at cr_c_ip_core.h:94-115 inherits these points, so all four slice_projectsheer side faces and the four mill_project faces differ from 2024. Fix: call extend_segment_equally(seg, dist) with proportion left 0.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4774-4783; 351933c:cmake/src/wood/include/cgal_polyline_util.cpp:464-486",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_core.h:40-47; /home/pv/brg/code_cpp/wood_research/session/session_cpp/src/polyline.h:197; /home/pv/brg/code_cpp/wood_research/session/session_cpp/src/polyline.cpp:800-815, 1286-1301",
+      "severity": "high"
+     },
+     {
+      "what": "shift parameter dropped from the public factory: old geometry depends on joint.shift (user-set per family row); current cr_c_ip_2() takes none and reads the JointPlate::shift member default 0.5. Same geometry at the default only.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4725; 351933c:cmake/src/wood/include/wood_joint.h:94",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:128, :40; src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:1356-1359, :879",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "cr_c_ip_3",
+    "status": "partial",
+    "current_location": "JointPlate::cr_c_ip_3() (wood_element_joint_plate.h:130, wood_element_joint_plate.cpp:1361-1364, dispatch :1396-1397, id 33 :174-176) + wood_interaction_feature_plate_joints/cr_c_ip_3.h:1-27 calling cr_c_ip_core with two diagonal drills, ext 0.15/0.6, factors 1.0/1.0, offset_min_pts=2",
+    "old_params": "joint.shift (default 0.5) mapped to s (351933c:...wood_joint_lib.cpp:4911-4912); n=7: 5 rings + 2 drill lines (0.3,0.041421,-0.928477)-(0.041421,0.3,0.928477) and (-0.3,-0.041421,-0.928477)-(-0.041421,-0.3,0.928477) (:4929-4948); extend dist 0.15 / 0.6, proportion 0 (:4957-4966); offset only when size()>2 (:4986)",
+    "current_params": "no shift argument (member default 0.5); drills identical (cr_c_ip_3.h:6-9); ext passed as (0.15,0.15) and (0.6,0.6) (cr_c_ip_core.h:40-47); offset when point_count()>2 && i<5 (:64)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Same extension defect as cr_c_ip_2: dist passed twice becomes proportion, so rings 3/4 and the rebuilt side faces are extended by 15% / 60% of segment length instead of 0.15 / 0.6 absolute units.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4957-4966",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_3.h:20-21; cr_c_ip_core.h:40-47",
+      "severity": "high"
+     },
+     {
+      "what": "shift parameter dropped from the public factory (geometry depends on joint.shift in 2024).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4911",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:130",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "cr_c_ip_4",
+    "status": "partial",
+    "current_location": "JointPlate::cr_c_ip_4() (wood_element_joint_plate.h:132, wood_element_joint_plate.cpp:1366-1369, dispatch :1398-1399, id 34 :177-179) + wood_interaction_feature_plate_joints/cr_c_ip_4.h:1-26 calling cr_c_ip_core with one vertical drill, ext 0.15/0.6, factors 1.0/1.0, offset_min_pts=1",
+    "old_params": "joint.shift (default 0.5) mapped to s (351933c:...wood_joint_lib.cpp:5100-5101); n=6: 5 rings + drill (0,0,-1)-(0,0,1) (:5118-5142); extend dist 0.15 / 0.6, proportion 0 (:5151-5160); offset when size()>1 (:5180), i.e. the drill line is offset too",
+    "current_params": "no shift argument (member default 0.5); drill identical (cr_c_ip_4.h:6-8); ext passed as (0.15,0.15)/(0.6,0.6); offset when point_count()>1 && i<5, so the drill (i=5) is never offset (cr_c_ip_core.h:64)",
+    "fabrication_types_match": "yes",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Same extension defect as cr_c_ip_2 (proportional instead of absolute extension of rings 3/4 and their side faces).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5151-5160",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_4.h:19-20; cr_c_ip_core.h:40-47",
+      "severity": "high"
+     },
+     {
+      "what": "Drill offset on face 1: old condition size()>1 offsets the 2-point drill line (i=5) by cross*lenghts[5], reading lenghts[5] past a 5-element array and f[1][i][2] past a 2-point polyline (undefined behaviour in 2024, result not reproducible); current skips it (i<5) so female/male face-1 drill equals face-0 drill. Not reproducible from the old source; flagged for awareness only.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5170, 5176, 5180-5182",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_core.h:64",
+      "severity": "low"
+     },
+     {
+      "what": "shift parameter dropped from the public factory.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5100",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:132",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "cr_c_ip_5",
+    "status": "partial",
+    "current_location": "JointPlate::cr_c_ip_5() (wood_element_joint_plate.h:134, wood_element_joint_plate.cpp:1371-1374, dispatch :1400-1401, id 35 :180-182) + wood_interaction_feature_plate_joints/cr_c_ip_5.h:1-27 calling cr_c_ip_core with drills (0,0,-1)-(0,0,1) and (-0.5,0,-0.55)-(0.5,0,-0.55), ext_side 0.15, ext_vert 0.6, factors 1.8/-0.5, offset_min_pts=2",
+    "old_params": "joint.shift (default 0.5) mapped to s (351933c:...wood_joint_lib.cpp:5302-5303); n=7 (:5320); asymmetric side extension: segment 0 dist 0.15*1.8=0.27, segment 2 dist -0.15*0.5=-0.075, on rings 3 and 4 (:5350-5353); vertical 0.6 on segments 1,3 (:5356-5359); offset when size()>2 (:5379); cut types drill_50, drill_50, drill_10, drill_10 for the two drill pairs (:5453, :5462)",
+    "current_params": "no shift argument (member default 0.5); drills identical (cr_c_ip_5.h:6-9); extend calls (0, 0.15*1.8, 0.15*-0.5) and (2, 0.15*1.8, 0.15*-0.5) (cr_c_ip_core.h:40-43), vertical (1, 0.6, 0.6) (:44-47); cut types drill x4 (cr_c_ip_5.h:14)",
+    "fabrication_types_match": "no",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Asymmetric side extension lost and misapplied: old extends segment 0 of rings 3/4 by +0.27 absolute and segment 2 by -0.075 absolute. Current passes (dist=0.27, proportion=-0.075) to BOTH segments 0 and 2; since proportion != 0 the kernel ignores dist and shrinks each of the two segments by 7.5% of its own length (polyline.cpp:1293-1295). Neither the 0.27 extension nor the per-segment asymmetry survives.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5350-5353",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_5.h:20-23; cr_c_ip_core.h:6-9, 40-43",
+      "severity": "high"
+     },
+     {
+      "what": "Vertical extension proportional (60% of a 0.5-long segment = 0.3) instead of 0.6 absolute, as in cr_c_ip_2.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5356-5359",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_core.h:44-47",
+      "severity": "high"
+     },
+     {
+      "what": "Fabrication types of the two drill pairs: old drill_50, drill_50, drill_10, drill_10 (enum values exist at 351933c:wood_cut.h:44-45); current FabricationType has no drill_50 / drill_10 (fabrication_type.h:6-23) and emits drill x4. In 2024 those two enum values are consumed nowhere else (git grep: only wood_cut.h and the library; absent from string_to_cut_type at wood_cut.h:48-72), and get_joints_geometry skips only wood::cut::drill when exposing (351933c:wood_element.cpp:42), so drill_50/drill_10 lines were exposed as geometry while plain drill lines were not. The current drill_axes() treats them as drills (wood_element_joint_plate.cpp:787).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5446-5464; 351933c:cmake/src/wood/include/wood_cut.h:43-45",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_5.h:10-15; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_fabrication_type.h:22",
+      "severity": "medium"
+     },
+     {
+      "what": "shift parameter dropped from the public factory.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5302",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.h:134",
+      "severity": "medium"
+     }
+    ]
+   },
+   {
+    "name": "cr_c_ip_custom",
+    "status": "partial",
+    "current_location": "JointPlate::cr_c_ip_custom(male, female) (wood_element_joint_plate.h:136, wood_element_joint_plate.cpp:1376-1382 -> parameters.outlines -> settings.custom_joints[\"cr_c_ip\"] at :937, dispatch :1402-1403, id 39 :186-188) + wood_interaction_feature_plate_joints/cr_c_ip_custom.h:1-5 -> shared custom_outlines.h:3-40",
+    "old_params": "globals CUSTOM_JOINTS_CR_C_IP_MALE / _FEMALE (351933c:cmake/src/wood/include/wood_globals.h:75-76); for i in steps of 2: m[0] <- MALE[i] twice, m[1] <- MALE[i+1] twice, m_boolean_type <- nothing twice; same for female (351933c:...wood_joint_lib.cpp:5488-5506)",
+    "current_params": "male, female vectors; custom_outlines concatenates every even polyline of each list into one point list per face, emits {Polyline(all points), Polyline({front, back})} per face, types edge_insertion x2 (custom_outlines.h:13-39); returns silently when a list has <2 entries or any concatenation is empty (:5-6, :27-28)",
+    "fabrication_types_match": "no",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Outline structure changed: old keeps each user pair as its own polyline, duplicated (2 entries per pair per face, N pairs -> 2N entries); current merges all pairs into ONE polyline per face plus a synthetic 2-point marker (always 2 entries per face). Multi-pair custom cross joints (several separate cut rectangles) collapse into one concatenated open polyline.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5488-5506",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:13-34",
+      "severity": "high"
+     },
+     {
+      "what": "Fabrication type: old nothing (do not merge) on every entry; current edge_insertion x2. For a cross joint the 2024 merge dispatches on the point count of outline [1] (351933c:wood_element.cpp:774) not on the type, but the exported types differ.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5494-5495, 5504-5505",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:36-39",
+      "severity": "medium"
+     },
+     {
+      "what": "Builder is not family specific: cr_c_ip_custom delegates to the same custom_outlines used by other families; only the settings key \"cr_c_ip\" distinguishes it. Old had its own loop over the cr_c_ip globals.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5476-5507",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_custom.h:2-5",
+      "severity": "low"
+     }
+    ]
+   }
+  ],
+  "insertion_direction": "OLD: cross joints are detected by plane_to_face (351933c:cmake/src/wood/include/wood_main.cpp:280-458, type=30 at :293). The outline of each plate is intersected with the two face planes of the other plate giving four segments cx0_py0, cx0_py1, cx1_py0, cx1_py1 (:329-348), all oriented like the first (:358-363). The middle line c of cx0_py1 and cx1_py0 is scaled x10 (:376-378); every segment start/end is projected onto c, lMin is the shortest overlap (from the last start to the first end) and lMax the full span (:381-399). midPlane passes through lMin's midpoint with lMin's direction as normal (:405-407); joint_area is midPlane cut with the four segments (:430). v = vector from midPlane\u2229lMax to the farther end of lMax (:416-417), lengthened by JOINT_VOLUME_EXTENSION[2] when positive (:421-426). joint_volumes[0] = joint_area + v, joint_volumes[1] = joint_area \u2212 v (:436-437); volumes [2],[3] are never set for type 30, so orient_to_connection_area builds xform0 from volumes [0],[1] and xform1 again from [0],[1] (351933c:cmake/src/wood/include/wood_joint.cpp:342-346), applying xform0 to m[0],m[1] and xform1 to f[0],f[1] (:248-267). The unit joint's z axis therefore maps onto \u00b1v, i.e. along the intersection line of the two plates (the direction of c / lMax), pointing from the mid plane toward the far end: cr_c_ip_0's female slot occupies z\u2208[0,1] and the male slot z\u2208[-1,0] (351933c:...wood_joint_lib.cpp:4588-4598), so each plate is slotted from an opposite end of the crossing line. An exploded picture moves plate a along +v and plate b along \u2212v (v = volumes[0].centroid \u2212 polygon.centroid). CURRENT: WoodSession::compute_cross_contact -> plane_to_face (src/joinery_solver/wood_session.cpp:522-543; src/joinery_solver/wood_algorithms/wood_contact_detection.cpp:622-...): same four segments oriented by dot with the first (:697-703), middle line c scaled 10 (:705-710), parameters cpt0/cpt1/cpt, lMin, lMax (:715-735), midPlane through lMin.center() with normal lMin direction (:737-749), v from midPlane\u2229lMax to the farther lMax end with optional extension[2] (:751-771), polygon = plane_4lines (:773-780), result.volumes[0] = polygon + v, [1] = polygon \u2212 v (:786-787), lines[0..1] from the polygon mid-points (:783-784). JointPlate::orient(InteractionContactCross) copies lines[0..1] and volumes[0..1] into joint_volumes[0],[1] with joint_type 30 (src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:719-742); joint_orient_to_connection_area maps male outlines by Xform::from_change_of_basis(vols[0], vols[1]) and female by the same xform when vols[2],[3] are absent (src/joinery_solver/wood_algorithms/wood_feature_construction.cpp:102-120). Same definition as 2024: insertion along \u00b1v, the plates' intersection line. Derivable in a picture from InteractionContactCross::volumes[0]/[1] and ::polygon, or from InteractionFeaturePlate::joint_volumes[0]/[1]. Only orientation-stage divergence: 2024 applied joint.scale (settings scale, default {1,1,1}) to all outlines before the change of basis (351933c:wood_joint.cpp:326-333); the port stores joint.scale (wood_element_joint_plate.cpp:562, :878) but never applies it (grep over src/joinery_solver finds only assignments) \u2014 no effect at the default.",
+  "notes": "Verification scope: every claim read from the cited files; nothing was built or run (READ-ONLY). Family-wide facts: (1) The dominant defect is in cr_c_ip_core.h:40-47 and affects cr_c_ip_2, _3, _4, _5 identically: Polyline::extend_segment_equally(segment_id, dist, proportion) (session_cpp/src/polyline.h:197) receives ext*factor_a as dist and ext*factor_b as proportion; a non-zero proportion makes the kernel scale by the raw segment vector and ignore dist (polyline.cpp:1286-1301), while 2024 extend_equally(pline, seg, dist) had proportion 0 and moved both ends by |dist| along the unit direction (351933c:cgal_polyline_util.cpp:464-486). At the default shift (s=0.225, a=0.275) the side segments of rings 3/4 are 0.55 long and the vertical ones 0.5, so the port extends 0.0825/0.3 where 2024 extended 0.15/0.6; cr_c_ip_5 additionally loses its +0.27 / -0.075 asymmetry. Correct form: base[k].extend_segment_equally(0, 0.15*fa); (2, 0.15*fb); (1, 0.6); (3, 0.6) with proportion left at 0, where fa/fb are 1/1 for 2..4 and 1.8/-0.5 for 5. (2) Everything else in cr_c_ip_core matches 2024 line by line: the 16-point layout (core:22-27 vs lib:4733-4739), v0 (core:29-31 vs lib:4741), the five rings (core:34-38 vs lib:4749-4755), offsets {0.5,0.4,0.4,0.4,0.4} by the ring normal (core:54,62-74 vs lib:4793-4805), rotation by axes (0,1,0),(1,0,0),(0,0,-1) (core:55 vs lib:4791), duplication of every polyline (core:83-92 vs lib:4829-4842), the side-face rebuild for ids 2 and 4 (core:94-115 vs lib:4848-4864), and identical male/female type lists (core:117-120). (3) Default parameters: 2024 shift default 0.5 (wood_joint.h:94), overridable per family via JOINTS_PARAMETERS_AND_TYPES[row*3+1]; current family path reads the same slot (wood_element_joint_plate.cpp:467, :571) and the factory path uses JointPlate::shift default 0.5 (h:40, cpp:879), but only cr_c_ip_1 exposes shift in its factory although 2..5 depend on it. divisions and unit_scale are unused by this family in both versions (unit_scale only for types 12/13: cpp:564-568, :886-887). (4) Plate application: 2024 merge_joints dispatches on the point count of outline index [1] of the face (351933c:wood_element.cpp:774): 5 points -> case (5) rectangle insertion using outline .front() (:1049-1073); drill lines are later in the list and never reach the merge; hole/drill type checks at :1374 and :42. Current MergeModifier::insert_side_joints does the same: marker = outlines[0][1].point_count(); 5 -> insert_rectangle_cut with outlines[0][0]/[1][0] (src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:394-397, 160-180). Because the library duplicates every polyline, [1] is the centre rectangle in both, so every cr_c_ip design is merged as the centre slot; the remaining rings/drills are exported as fabrication geometry only. (5) Current example examples/elements/element_joint_plate_cr_c_ip.cpp:11-18 builds cr_c_ip_0..5 on two 400x200x40 plates (:25-42) via compute_cross_contact + orient(contact, {first, second}) (:47-48); cr_c_ip_custom is not exercised by any example. 2024 cross tests (351933c:wood_test.cpp:2951-3522, e.g. type_plates_name_cross_corners :3016-3077) only set JOINT_VOLUME_EXTENSION[1]=2 and leave the joint types to the default (cr_c_ip_0 via the family default). (6) Unverified: whether the viewer-side consumers (drill_axes at wood_element_joint_plate.cpp:779-797, BRep cutting) treat slice_projectsheer / mill_project rings of cross joints the way the 2024 beam exporter did; not in scope of the geometry audit."
+ },
+ "verified": []
+}

@@ -1,0 +1,139 @@
+{
+ "family": {
+  "family": "b (boundary / beam-slice joints, type 60, ids 60-69)",
+  "variants": [
+   {
+    "name": "b_0",
+    "status": "partial",
+    "current_location": "JointPlate::b_0 (src/joinery_solver/wood_elements/wood_element_joint_plate.h:142, .cpp:1513-1516) + JointPlate::compute_b (.cpp:1530-1540) + builder src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_0.h:1-77; dispatch build_beam case 60 (.cpp:246-258) and build_family_default family 6 (.cpp:300-302)",
+    "old_params": "b_0(wood::joint&) 351933c:cmake/src/wood/include/wood_joint_lib.cpp:5866-5945. No per-joint parameters; reads joint.joint_volumes[0],[1] and joint.scale[0..2] (default {1,1,1}, 351933c:cmake/src/wood/include/wood_joint.h:97). Internal constants temp_scale_y=5 (5873), temp_scale_z=15 (5874), offset_from_center=0.25 (5875). Sets joint.orient=false (5870). Family defaults {division 300, shift 1.0, id 60} 351933c:cmake/src/wood/include/wood_globals.cpp:49-57 (row 7); divisions/shift unused by the body.",
+    "current_params": "JointPlate::b_0() takes nothing (wood_element_joint_plate.h:142). Builder reads joint.joint_volumes[0],[1] (b_0.h:7-13) and joint.scale (b_0.h:24-25,39,62), set from settings.joint_scale default {1,1,1} (wood_element_joint_plate.cpp:562 and :878, src/joinery_solver/wood_settings.h:21). Same constants 5.0 (b_0.h:39), 15.0 (b_0.h:62), 0.25 (b_0.h:61). Sets no_orient=true (b_0.h:5). Family row 6 defaults {300, 1.0, 60} (wood_settings.h:19, wood_element_joint_plate.cpp:417-418,425-447).",
+    "fabrication_types_match": "yes",
+    "geometry_match": "same",
+    "differences": [
+     {
+      "what": "The boundary joint itself is never created by the current solver. Old: an adjacency entry with v0==v1 (351933c:cmake/src/wood/include/wood_main.cpp:1393-1398) goes to border_to_face (wood_main.cpp:207-278) which builds joint_lines (234-235) and joint_volumes {rect0, rect1, rect0, rect1} (263-272) from side face f, and a joint of type 60 is emplaced (1511-1512) with j_mf (joint_id, male=true) on face f (1519). Current: load_adjacency reads bare pairs (src/joinery_solver/wood_io.cpp:14-27), detect_features runs only face_to_face_wood on each pair with no self-pair branch (src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:61-99), wood_feature_detection.cpp assigns joint_type 11/12/13/20/30/40 only (:500,672,746,871,939,969); grep for border/boundary/joint_type = 60 finds no detector. family_of_type(60) and parameter_row(60) exist (wood_element_joint_plate.cpp:50-51,417-418) but nothing produces a type-60 InteractionFeaturePlate, so b_0 is unreachable from the solver.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_main.cpp:207-278,1393-1398,1500-1522",
+      "new_ref": "src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:61-99; src/joinery_solver/wood_io.cpp:14-27; src/joinery_solver/wood_algorithms/wood_feature_detection.cpp:500,672,746,871,939,969",
+      "severity": "high"
+     },
+     {
+      "what": "JointPlate::b_0() cannot be oriented on any contact: plate_contact_family accepts only families 11/12/13 (side_side), 20 (side_top), 40 (top_top) and throws 'The selected joint does not support this contact type' for contact_type 60; compute_parameters also throws when connection.joint_type != 60. The only working path is JointPlate::construct(std::vector<InteractionFeaturePlate>, elements, settings) with a hand-built connection of joint_type 60 and joint_volumes[0],[1]. docs/elements/element_joint_plate.md:116 claims 'the solver places it', which it does not. No example exists (examples/elements has no b case).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6567-6580 (case 6 dispatch), wood_main.cpp:1511-1512",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:661-686,688-713,871-874,932-963; docs/elements/element_joint_plate.md:116",
+      "severity": "high"
+     },
+     {
+      "what": "Per-group joint scale dropped: old construct_joint_by_index set jo.scale from the scale argument as {s} x3, {s0,s1,s2} or per group scale[group*3+k] (and GLOBALS::JOINT_VOLUME_EXTENSION when empty); b_0 uses scale additively (x extension = scale[0] mm, y = scale[1]+5 mm, z = scale[2]+15 mm). Current: one triple settings.joint_scale for every joint. Same default {1,1,1}, so default geometry is identical; non-default per-family scales cannot be reproduced.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6160-6180; wood_joint.h:97",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:562,878; src/joinery_solver/wood_settings.h:21",
+      "severity": "medium"
+     },
+     {
+      "what": "Old merge treated the b_0 male outlines through element::merge: the switch on m[0][1].size() (5 points) goes to case (5), which intersects only m[0].front() / m[1].front() (rect0 / rect1) with the plate outlines on the two edge ids f0_0==f0_1==f; the slice cut type is never consulted by the plate merge (only hole at wood_element.cpp:1374 and drill at :42). Current MergeModifier::cut_holes_top_bottom treats the last outline as a 2-point marker and emits outlines[0].size()-1 pairs (for b_0's 4 rects: 3 pairs), cut_holes_side handles only FabricationType::hole; how a slice outline on a side face is applied in the current merge is not verified (not traced).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_element.cpp:774,1049-1105,1374",
+      "new_ref": "src/joinery_solver/wood_algorithms/wood_merge_modifier.cpp:494-529,531-570",
+      "severity": "medium"
+     },
+     {
+      "what": "Normal formula differs: old cgal::vector_util::average_normal sums cross_product(p[i]-p[i-1], p[i+1]-p[i]) over the 4 distinct vertices and unitizes; current uses the Newell formula over r[0..3]. Same direction and sign for a planar quad (both follow the vertex winding); not verified for degenerate input.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5905; 351933c:cmake/src/wood/include/cgal_vector_util.cpp:73-86",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_0.h:45-60",
+      "severity": "low"
+     },
+     {
+      "what": "Current builder returns silently when a volume is missing or has fewer than 5 points, or when the normal is degenerate (old had no guard and would index out of range). Old extend_equally returns early when dist==0; current moves by 0 (identical result). Point formulas otherwise identical: tween 0.5 (old 5879 / new 15-17), extend segments 1 and 3 by scale[0] with closure fix pline[0]=pline[4] for segment 3 (old 5882-5883 + cgal_polyline_util.cpp:464-505 / new 19-29), v=(r1-r0)*0.5 collapse (old 5887-5894 / new 31-36), push r0,r3,r4 by unit(v)*(scale[1]+5) (old 5896-5900 / new 37-43), shift by 2 (old 5911 + cgal_polyline_util.cpp:117-122 / new 64-65), rect0=+n*0.25, rect1=+n*(scale[2]+15), rect2=-n*0.25, rect3=-n*(scale[2]+15) (old 5906-5920 / new 61-70), m[0]={rect0,rect0,rect2,rect2}, m[1]={rect1,rect1,rect3,rect3} (old 5938-5939 / new 72-73), 4 x slice (old 5943 single m_boolean_type / new 75-76 both faces), no female outlines in either.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5879-5943",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/b_0.h:7-13,19-29,57-58",
+      "severity": "low"
+     }
+    ]
+   },
+   {
+    "name": "b_custom",
+    "status": "partial",
+    "current_location": "JointPlate::b_custom(male, female) (src/joinery_solver/wood_elements/wood_element_joint_plate.h:144, .cpp:1518-1524) + compute_b (.cpp:1534-1535) + builder wood_interaction_feature_plate_joints/b_custom.h:1-5 -> custom_outlines (wood_interaction_feature_plate_joints/custom_outlines.h:3-40); dispatch build_beam case 69 (.cpp:252-254); outlines reach the builder via parameters.outlines -> configuration.custom_joints[\"b\"] (.cpp:936-937) -> settings.custom(\"b\") (src/joinery_solver/wood_settings.h:33,40; wood_settings.cpp:13-19)",
+    "old_params": "b_custom(wood::joint&) 351933c:cmake/src/wood/include/wood_joint_lib.cpp:5947-5976; reads GLOBALS::CUSTOM_JOINTS_B_MALE / CUSTOM_JOINTS_B_FEMALE (wood_globals.h:81-82, wood_globals.cpp:72-73, default empty). joint.orient stays true (default wood_joint.h:90) so the geometry is unit-cube geometry oriented by orient_to_connection_area (wood_joint_lib.cpp:6603-6607) and cached by get_key (6262-6283).",
+    "current_params": "JointPlate::b_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female); no_orient not set, so joint_orient_to_connection_area runs (wood_element_joint_plate.cpp:951-953 / 579-581). custom_outlines requires cm.size()>=2 and cf.size()>=2 (custom_outlines.h:5-6).",
+    "fabrication_types_match": "no",
+    "geometry_match": "differs",
+    "differences": [
+     {
+      "what": "Polyline pair count and layout: old pushes every input pair twice unchanged: for each i step 2, m[0] += MALE[i], MALE[i]; m[1] += MALE[i+1], MALE[i+1] (and the same for f from FEMALE), so n input pairs give 2n outlines per face with no endpoint marker. Current concatenates all even polylines' points into one outline m0 and all odd into m1 (custom_outlines.h:13-25) and emits exactly 2 entries per face: [Polyline(m0), Polyline({m0.front(), m0.back()})] (30-34).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5952-5975",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:13-34",
+      "severity": "high"
+     },
+     {
+      "what": "Fabrication types: old m_boolean_type / f_boolean_type = wood::cut::nothing for every outline (two per input pair). Current male_fabrication_types / female_fabrication_types = {edge_insertion, edge_insertion} per face.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5957-5958,5973-5974",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:36-39",
+      "severity": "high"
+     },
+     {
+      "what": "Empty-side handling: old builds the male side alone or the female side alone (two independent loops; an empty global simply yields no outlines on that side; construct_joint_by_index drops the joint only when both m[0] and f[0] are empty, 6590-6600). Current returns with nothing when either list has fewer than 2 polylines or any concatenation is empty (custom_outlines.h:5-6,27-28).",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:5952-5975,6590-6600",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:5-6,27-28",
+      "severity": "medium"
+     },
+     {
+      "what": "Same reachability problem as b_0: no type-60 detection and plate_contact_family rejects contact_type 60, so the factory only works through construct(std::vector<InteractionFeaturePlate>, ...) with a hand-built joint_type 60 connection. Note custom_outlines.h is shared by every *_custom builder and the old ss_e_ip_custom (wood_joint_lib.cpp:1547-1570) has the identical duplicate-pair/nothing pattern as old b_custom, so the divergence is family-wide, not specific to b.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:1547-1570,6574-6577",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:661-686; src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/custom_outlines.h:1-40",
+      "severity": "high"
+     }
+    ]
+   },
+   {
+    "name": "construct_joint_by_index",
+    "status": "partial",
+    "current_location": "Split into family_of / family_of_type / id_matches (src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:27-60), build_joint + build_beam + build_family_default (.cpp:246-306), joint_create_geometry (.cpp:309-330), joint_id_for (.cpp:369-400), parameter_row / PARAMETER_DEFAULTS / family_parameters (.cpp:403-470), reuse_or_create_geometry / build_feature_geometry / build_features_geometry (.cpp:505-618), entered from WoodSession::build_feature_geometry -> JointPlate::build_geometry (src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:101-108, wood_element_joint_plate.cpp:818-827)",
+    "old_params": "construct_joint_by_index(elements, joints, default_parameters_for_four_types, scale) 351933c:cmake/src/wood/include/wood_joint_lib.cpp:5978-6625; called with GLOBALS::JOINTS_PARAMETERS_AND_TYPES (wood_main.cpp:2590-2591; defaults wood_globals.cpp:49-57, 7 rows x 3: row 6 = {300, 1.0, 60}); group 6 when jo.type==60 and id in 60..69 or -1 (6126-6130); case 60 -> b_0, 69 -> b_custom, default -> b_0 (6567-6580); joint_names[60]=\"b_0\", [69]=\"b_custom\" (6034-6035).",
+    "current_params": "family_parameters(settings, joint_type, id) reads settings.joint_parameters (>=21 doubles, wood_element_joint_plate.cpp:458) or PARAMETER_DEFAULTS (425-447, row 6 = {300, 1.0, 60}); parameter_row(60)=6 (417-418); build_beam 60 -> b_0, 69 -> b_custom (246-258), build_family_default 6 -> b_0 (300-302); id 0 or id outside the detected type's family builds nothing (320).",
+    "fabrication_types_match": "unknown",
+    "geometry_match": "unknown",
+    "differences": [
+     {
+      "what": "Group 6 is dead code in the current port: no InteractionFeaturePlate ever has joint_type 60 (see b_0 difference 1), so family_of_type(60), parameter_row(60), build_beam and build_family_default case 6 never execute.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_main.cpp:1500-1522; wood_joint_lib.cpp:6126-6130,6567-6580",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:50-51,246-258,300-302,417-418; src/joinery_solver/wood_algorithms/wood_feature_solver.cpp:61-99",
+      "severity": "high"
+     },
+     {
+      "what": "Scale argument dropped: old accepted scale of size 1 ({s,s,s}), 3, or 3 per group (scale[group*3+k]) and GLOBALS::JOINT_VOLUME_EXTENSION fallback; current sets joint.scale = settings.joint_scale (one triple) for every joint.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6160-6180",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:562,878",
+      "severity": "medium"
+     },
+     {
+      "what": "unit_scale_distance: old set jo.unit_scale_distance = elements[v0].thickness * jo.scale[2] for every joint; current sets it to thickness only (no * scale[2]) and only for joint_type 12 and 13. Irrelevant to b_0 (unit_scale false) but part of this function.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6232",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:564-568,884-887",
+      "severity": "low"
+     },
+     {
+      "what": "Cache: old cached every oriented joint (jo.orient true) under get_key (name;shift;divisions) and reused by transfer_geometry (6262-6283, 6603-6606); b_0 (orient=false) was never cached; b_custom was. Current caches only joint_type 12 (512), so b_custom is rebuilt per joint; result is the same geometry, only the reuse differs.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6262-6283,6601-6607; wood_joint.cpp:86-100",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:499-551",
+      "severity": "low"
+     },
+     {
+      "what": "Old required default_parameters_for_four_types.size() == exactly 21 to use the user vector (else the hard-coded division_length 1000 and shift 0.5 at 6046-6047 were used, and the id came from the group default only through the user vector); current accepts >=21 and falls back to PARAMETER_DEFAULTS per entry.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:6046-6047,6093-6097,6186-6196",
+      "new_ref": "src/joinery_solver/wood_elements/wood_element_joint_plate.cpp:450-470",
+      "severity": "low"
+     },
+     {
+      "what": "Old get_divisions stored length as the squared distance of joint_lines[0] (wood_joint.cpp:406) and divisions=clamp(ceil(sqrt(length)/division_distance),1,100) only when compute_geometrical_divisions and the line is non-empty; current joint_get_divisions stores the true length, same divisions formula, division_distance<=0 gives 1. Not used by b_0 / b_custom.",
+      "old_ref": "351933c:cmake/src/wood/include/wood_joint.cpp:395-415",
+      "new_ref": "src/joinery_solver/wood_algorithms/wood_feature_construction.cpp:218-229",
+      "severity": "low"
+     }
+    ]
+   }
+  ],
+  "insertion_direction": "OLD: a boundary joint is a self-adjacency (v0==v1, 351933c:cmake/src/wood/include/wood_main.cpp:1393-1398) on side face f>1 of one plate. border_to_face (wood_main.cpp:207-278) builds the frame: x_axis = the average line of the two side-edge segments Polyline0[0][f-2]->Polyline0[1][f-2] and [f-1] (226-232, 248-249), joint_lines[0]=[1]=that line (234-235); z_axis = Plane0[f].orthogonal_vector() unitized, i.e. the outward normal of side face f (244-245); y_axis = z x x, i.e. the plate thickness direction (252); p0/p1 ordered so p0 is nearer the top-face edge midpoint (255-258); half_dist = thickness/2 (241). joint_volumes = {rect0, rect1, rect0, rect1} with rect0 at -y*half_dist and rect1 at +y*half_dist (bottom/top), each a thin strip +-z*half_dist*0.25 around the edge line (263-272); the insertion_vectors0 parameter is accepted but never read (208 vs 211-277), so the element insertion vector plays no role. b_0 then (wood_joint_lib.cpp:5879-5920): mid = tween(vol0, vol1, 0.5) = the strip in the plate mid-plane; extended +-scale[0] along x; collapsed onto the edge line and pushed outward by scale[1]+5 mm along z (the side-face normal); z_axis := average_normal(mid) = +-plate normal (y); four slice rectangles are copies of that strip translated along the plate normal by +0.25, +(scale[2]+15), -0.25, -(scale[2]+15) mm (rect0..rect3, 5913-5920). orient=false (5870): the rectangles are already in world space and are not transformed by orient_to_connection_area (6603). So the family's working direction is the side-face outward normal (volume z, where the strip extends) and the slice stacking / cut direction is the plate normal (average_normal of the mid rectangle); no shift, no divisions. CURRENT: nothing builds these volumes (no border_to_face equivalent; grep border/boundary/joint_type = 60 finds none in src/joinery_solver); the builder takes joint_volumes[0],[1] as given (b_0.h:10-11), derives the strip axis from r[1]-r[0] (b_0.h:31, same as old v at 5887) and the stacking normal n by Newell over r[0..3] (b_0.h:45-60); off_near = n*0.25, off_far = n*(scale[2]+15) (61-62); no_orient=true (b_0.h:5) and build_feature_geometry skips joint_orient_to_connection_area for it (wood_element_joint_plate.cpp:579-581, 951-953). For an exploded picture: direction = n (b_0.h:60; old z_axis wood_joint_lib.cpp:5905), the (rect0,rect1) pair on +n, the (rect2,rect3) pair on -n; the strip itself extends from the edge line outward along the volume's z (old wood_main.cpp:244-245). JointPlate::orient copies joint_lines from contact.lines (wood_element_joint_plate.cpp:704) but rejects contact_type 60 (661-686), so no current contact supplies this frame.",
+  "notes": "All claims verified by reading the cited lines unless marked. Old b_0 has no female side and no f_boolean_type (wood_joint_lib.cpp:5941-5944 commented out); current likewise sets only male_outlines/male_fabrication_types (b_0.h:72-76). Old b_0 m_boolean_type is one vector of 4 shared by both faces; current writes the same 4 slice entries to [0] and [1] (equivalent per-polyline mapping). Old dispatcher for group 6: case 60 b_0, case 69 b_custom, default b_0 (6567-6580) == current build_beam + build_family_default (246-258, 300-302). Family defaults identical: {300, 1.0, 60} (wood_globals.cpp:56 vs wood_settings.h:19 and PARAMETER_DEFAULTS 444-446). No old test exercises b_0 / type 60: grep of 351933c:cmake/src/wood/include/wood_test.cpp for b_0, border, boundary finds nothing; input_adjacency vectors there (308, 451) were not inspected for self pairs. The current solver's handling of a slice fabrication type on a plate (how MergeModifier::apply consumes male outlines whose type is slice on a side face, membership for a self-joint) was NOT traced: cut_holes_side only reads FabricationType::hole (wood_merge_modifier.cpp:548); mark unverified. Current docs: docs/wood_kernel.md:247 lists 60->b_0, 69->b_custom; docs/elements/element_joint_plate.md:17 lists b_0() among constructors and :116 says the solver places it (it does not); docs/examples.md:63 names b_0/b_custom under 'Other' with no example file; examples/elements contains no b example (ls shows element_joint_plate_{cr_c_ip,parameters,ss_e_ip,ss_e_op,ts_e_p,tt_e_p}.cpp only). To make the port produce the 2024 geometry: (1) add a boundary detector equivalent to border_to_face producing joint_type 60, joint_lines and joint_volumes {rect0, rect1, rect0, rect1} from side face f of a single plate (self pair or explicit face request), registering the joint on that plate's face f as male; (2) let plate_contact_family / compute_parameters accept 60 or give b_0 its own orient entry point taking a plate and a side face; (3) decide how a slice outline is applied in MergeModifier (old: case (5) two-edge insertion of m[0].front()/m[1].front() with f0_0==f0_1, cut type ignored); (4) for b_custom, restore per-pair duplicated outlines with cut::nothing (or confirm the concatenated edge_insertion form is the intended new behaviour, since custom_outlines.h is shared by all _custom families); (5) if non-default scales matter, restore per-group scale triples."
+ },
+ "verified": []
+}

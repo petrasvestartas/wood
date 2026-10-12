@@ -10,14 +10,13 @@ constexpr bool TRACE = false;
 // Joint construction
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, int joint_type) {
+std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, size_t joint_id) {
 
     const size_t triples = extension.size() / 3;
     if (triples == 0)
         return {0.0, 0.0, 0.0};
 
-    const size_t klass = joint_type == 20 ? 1 : joint_type == 40 ? 2 : joint_type == 30 ? 3 : 0;
-    const size_t at = std::min(klass, triples - 1) * 3;
+    const size_t at = std::min(joint_id, triples - 1) * 3;
     return {extension[at], extension[at + 1], extension[at + 2]};
 }
 

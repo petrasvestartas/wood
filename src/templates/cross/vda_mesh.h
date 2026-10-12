@@ -11,7 +11,7 @@ namespace wood_cross {
 // VdaMesh
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The plates and connectors of a mesh, a session: a mitred plate per face and layer, connector plates across every interior edge.
+/// The plates and connectors of a mesh, a session: a mitered plate per face and layer, connector plates across every interior edge.
 ///
 /// Fields: the welded mesh and the plate and connector sizes.
 /// Every plate (`plate_<face>_<layer>`) and connector (`connector_<face0>_<face1>_<k>`) is found in the session by name.

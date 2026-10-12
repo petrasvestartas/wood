@@ -12,7 +12,8 @@ enum class ContactType : int {
     top_top = 2, // Both outer faces; refines to 40.
     end_top = 5, // Linear end against a plate outer face.
     end_end = 4, // Both linear end faces.
-    end_side = 3 // End to side for linear elements.
+    end_side = 3, // End to side for linear elements.
+    border = 6 // A plate's side face on its own, the boundary family's: no second element.
 };
 
 inline std::string_view to_string(ContactType type) {
@@ -24,6 +25,7 @@ inline std::string_view to_string(ContactType type) {
         case ContactType::end_top:   return "end_top";
         case ContactType::end_end:   return "end_end";
         case ContactType::end_side:  return "end_side";
+        case ContactType::border:    return "border";
     }
 
     return "unknown";

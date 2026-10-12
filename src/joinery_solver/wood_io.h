@@ -13,6 +13,9 @@ namespace io {
 /// Adjacent element pairs from the sidecar, one "a b" pair per line; empty when there is no sidecar.
 std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_name);
 
+/// The self-adjacency rows of an adjacency sidecar, `v v f f`, as (plate, side face): the boundary joints 2024's border_to_face made.
+std::vector<std::array<int, 2>> load_borders(const std::string& adjacency_name);
+
 /// Per element, one insertion vector per face slot from the sidecar; empty when there is no sidecar.
 std::vector<std::vector<Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count);
 

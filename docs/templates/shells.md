@@ -6,7 +6,7 @@ Plates and boards on a surface. Each template is a `WoodSession`: its constructo
 
 ## TranslationShell
 
-A shell of mitred plates, a cross section swept along a profile (`src/templates/shells/translation_shell.h`).
+A shell of mitered plates, a cross section swept along a profile (`src/templates/shells/translation_shell.h`).
 
 ![translation shell](templates/templates_shells_1_translation_shell_plates.webp)
 
@@ -66,12 +66,12 @@ return Mesh::from_vertices_and_faces(points, faces);
 
 ### plates
 
-One plate per quad, its sides mitred at every fold by `Mesh::miter_contours` and its sharp corners chamfered, named `plate_<i>`.
+One plate per quad, its sides mitered at every fold by `Mesh::miter_contours` and its sharp corners chamfered, named `plate_<i>`.
 
 ![plates](templates/templates_shells_1_translation_shell_plates.webp)
 
 ```cpp
-const std::vector<std::shared_ptr<Plate>> plates = mitred_plates(
+const std::vector<std::shared_ptr<Plate>> plates = mitered_plates(
     mesh,
     thickness,
     chamfer,

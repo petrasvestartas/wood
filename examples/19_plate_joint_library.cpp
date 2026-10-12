@@ -7,12 +7,12 @@ int main() {
 
     WoodSession scene("19_plate_joint_library");
     const std::vector<std::shared_ptr<JointPlate>> joints = {
-        JointPlate::ts_e_p_0(),
-        JointPlate::ts_e_p_1(),
-        JointPlate::ts_e_p_2(8, 0.5),
-        JointPlate::ts_e_p_3(8, 0.5),
-        JointPlate::ts_e_p_3(16, 0.25),
-        JointPlate::ts_e_p_5(4)
+        JointPlate::top_side_three_tenons(),
+        JointPlate::top_side_annen_tenons(),
+        JointPlate::top_side_dense_tenons(8, 0.5),
+        JointPlate::top_side_tenons(8, 0.5),
+        JointPlate::top_side_tenons(16, 0.25),
+        JointPlate::top_side_snap_fit(4)
     };
 
     for (size_t i = 0; i < joints.size(); ++i) {

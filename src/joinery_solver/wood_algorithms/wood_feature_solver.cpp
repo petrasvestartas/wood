@@ -79,6 +79,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
             *elements[index_a],
             *elements[index_b],
             {index_a, index_b},
+            joints.size(),
             settings,
             search_type,
             joint,
@@ -86,7 +87,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
         );
 
         if (swap_planes_b)
-            elements[index_b]->flip();
+            elements[index_b]->swap_planes();
 
         if (!ok)
             continue;
@@ -124,15 +125,16 @@ void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elem
         features.top.clear();
         features.bottom.clear();
 
+        // the bottom of every pair is the loop on the side of polylines[0], as Plate names its faces
         if (merged.size() >= 2) {
             const size_t hole_count = merged.size() - 2;
             features.top.reserve(1 + hole_count / 2);
             features.bottom.reserve(1 + hole_count / 2);
-            features.top.push_back(std::move(merged[merged.size() - 2]));
-            features.bottom.push_back(std::move(merged[merged.size() - 1]));
+            features.bottom.push_back(std::move(merged[merged.size() - 2]));
+            features.top.push_back(std::move(merged[merged.size() - 1]));
             for (size_t hole_index = 0; hole_index + 2 <= hole_count; hole_index += 2) {
-                features.top.push_back(std::move(merged[hole_index]));
-                features.bottom.push_back(std::move(merged[hole_index + 1]));
+                features.bottom.push_back(std::move(merged[hole_index]));
+                features.top.push_back(std::move(merged[hole_index + 1]));
             }
         }
 
@@ -144,6 +146,8 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
 
     if (adjacency.empty())
         adjacency = io::load_adjacency(config::DATA_SET_ADJACENCY);
+    if (borders.empty())
+        borders = io::load_borders(config::DATA_SET_ADJACENCY);
     if (three_valence.empty())
         three_valence = io::load_three_valence(config::DATA_SET_THREE_VALENCE);
 
@@ -165,7 +169,11 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
 /// Instances take part as world views: one a joint lands on is promoted before the joint is stored, any other dropped unchanged; a stored plate placed off identity takes its view back.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType search_type) {
 
-    std::vector<std::shared_ptr<Plate>> elements = world_elements<Plate>();
+    // a plate left empty, as the outlines of a beam dataset's axes leave it, has no faces to join
+    std::vector<std::shared_ptr<Plate>> elements;
+    for (const std::shared_ptr<Plate>& plate : world_elements<Plate>())
+        if (plate->polylines.size() >= 2)
+            elements.push_back(plate);
     if (elements.empty())
         return {};
 
@@ -182,6 +190,25 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     }
 
     std::vector<InteractionFeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
+
+    // a boundary joint on every border: the family 60 joint of a plate's side face alone, as 2024 made one for a self-adjacency
+    for (const std::array<int, 2>& border : borders) {
+        if (border[0] < 0 || border[0] >= static_cast<int>(elements.size()))
+            continue;
+        const std::shared_ptr<InteractionContactFace> contact = compute_border_contact(*elements[border[0]], border[1]);
+        if (!contact)
+            continue;
+        InteractionFeaturePlate joint;
+        joint.element_a = elements[border[0]]->guid();
+        joint.element_b = joint.element_a;
+        joint.contact = *contact;
+        joint.joint_type = 60;
+        joint.joint_lines = contact->lines;
+        for (size_t k = 0; k < 4; k++)
+            joint.joint_volumes[k] = contact->volumes[k];
+        joint.guid() = ::guid();
+        joints.push_back(std::move(joint));
+    }
     link_three_valence_joints(
         three_valence,
         elements,
@@ -189,7 +216,6 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         settings.angle
     );
     build_feature_geometry(elements, joints, feature_types);
-    merge_features(elements, joints);
 
     std::unordered_set<std::string> jointed;
     for (const InteractionFeaturePlate& joint : joints) {
@@ -226,6 +252,8 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
                 unite(a->second, b->second);
         }
     }
+    // the plates are merged once all joints are on them, in the joints' order, as 2024 merged them
+    merge_deferred = true;
     std::map<int, std::vector<int>> groups;
     for (size_t i = 0; i < joints.size(); ++i)
         groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
@@ -244,15 +272,24 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
             const auto female = get_element<Element>(joint.element_b);
             if (!male || !female)
                 continue;
-            add_interaction(male, female, joint.to_contact());
+            // a border joint has its one plate: no edge between two plates to carry the contact
+            if (male != female)
+                add_interaction(male, female, joint.to_contact());
             element->connections.push_back(joint);
         }
         if (element->connections.empty())
             continue;
         element->name = indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
-        apply_joint(element, false);
+        element->compute_key(elements);
+
+        // the joint in its family's group, then what it does to each plate it joins, both sides of every connection in order
+        add(element, group_named(element->element_type_name(), group_named("joints")));
+        for (size_t i = 0; i < element->interaction_count(); i++)
+            add_interaction(element, get_element<Plate>(element->interaction_target(i)), element->interaction(i));
     }
+    merge_deferred = false;
+    merge_features(elements, joints);
 
     return joints;
 }

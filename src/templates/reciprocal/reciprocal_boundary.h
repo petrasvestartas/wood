@@ -202,7 +202,7 @@ inline Plane beam_face_towards(
 
 /// How two frame beams whose sections do not mirror across their corner are joined.
 enum class CornerJoint {
-    Mitre, // Mitred anyway, with a step.
+    Miter, // Mitered anyway, with a step.
     Butt, // The higher through_priority beam runs through, the other is cut against it.
 };
 
@@ -227,7 +227,7 @@ struct BoundaryFrame {
     std::map<size_t, std::vector<CutFace>> inner_faces_at_vertex; // Boundary vertex -> the inner faces of the frame beams meeting there.
 };
 
-/// The up per naked half-edge, reflected across every mitre and its closure twist put at the bends.
+/// The up per naked half-edge, reflected across every miter and its closure twist put at the bends.
 inline std::vector<Vector> boundary_up_directions(
     const std::vector<std::pair<int, int>>& naked,
     const std::vector<std::vector<size_t>>& faces,
@@ -264,7 +264,7 @@ inline std::vector<Vector> boundary_up_directions(
         if (average.is_zero())
             average = Vector(0, 0, 1);
 
-        // transported: the first up reflected across every mitre along the loop
+        // transported: the first up reflected across every miter along the loop
         std::vector<Vector> transported(count);
         transported[0] = perpendicular_part(owner_normals[first], directions[0]);
 
@@ -332,8 +332,8 @@ inline std::vector<Vector> boundary_up_directions(
     return ups;
 }
 
-/// The mitre plane at a boundary vertex, the bisector of the arriving and leaving directions.
-inline Plane mitre_plane(const Point& vertex, const Vector& arriving, const Vector& leaving) {
+/// The miter plane at a boundary vertex, the bisector of the arriving and leaving directions.
+inline Plane miter_plane(const Point& vertex, const Vector& arriving, const Vector& leaving) {
 
     const Vector normal = arriving + leaving;
 
@@ -395,7 +395,7 @@ inline BoundaryFrame boundary_frame(
             frame.ups[k] = perpendicular_part(given->second, frame.directions[k]);
     }
 
-    // mitres: both ends of every frame beam
+    // miters: both ends of every frame beam
     frame.cut_from.resize(count);
     frame.cut_to.resize(count);
 
@@ -407,8 +407,8 @@ inline BoundaryFrame boundary_frame(
         if (dir.is_zero())
             continue;
 
-        frame.cut_from[k] = arriving.count(u) ? mitre_plane(points.at(u), arriving[u], dir) : Plane::from_point_normal(points.at(u), dir);
-        frame.cut_to[k] = leaving.count(v) ? mitre_plane(points.at(v), dir, leaving[v]) : Plane::from_point_normal(points.at(v), dir);
+        frame.cut_from[k] = arriving.count(u) ? miter_plane(points.at(u), arriving[u], dir) : Plane::from_point_normal(points.at(u), dir);
+        frame.cut_to[k] = leaving.count(v) ? miter_plane(points.at(v), dir, leaving[v]) : Plane::from_point_normal(points.at(v), dir);
     }
 
     // butts: at a corner whose sections do not mirror, the beam with the higher priority runs through
@@ -700,7 +700,7 @@ struct ReciprocalBeam {
     Polyline top; // The face at +up, corner i above corner i of bottom.
 };
 
-/// Whether the point lies within every bound of the face, a hair of tolerance for a hit on a mitre.
+/// Whether the point lies within every bound of the face, a hair of tolerance for a hit on a miter.
 inline bool within_bounds(const CutFace& face, const Point& point) {
 
     for (const Plane& bound : face.bounds)

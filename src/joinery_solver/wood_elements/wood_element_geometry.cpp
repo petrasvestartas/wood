@@ -71,6 +71,38 @@ Vector compute_newell(const std::vector<Point>& points) {
     return normal.normalized();
 }
 
+Vector cgal_base1(const Vector& normal) {
+
+    if (normal[0] == 0.0)
+        return Vector(1.0, 0.0, 0.0);
+    if (normal[1] == 0.0)
+        return Vector(0.0, 1.0, 0.0);
+    if (normal[2] == 0.0)
+        return Vector(0.0, 0.0, 1.0);
+
+    const double ax = std::abs(normal[0]);
+    const double ay = std::abs(normal[1]);
+    const double az = std::abs(normal[2]);
+    if (ax <= ay && ax <= az)
+        return Vector(0.0, -normal[2], normal[1]).normalized();
+    if (ay <= ax && ay <= az)
+        return Vector(-normal[2], 0.0, normal[0]).normalized();
+    return Vector(-normal[1], normal[0], 0.0).normalized();
+}
+
+Clipper2Lib::PathD clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, const bool open) {
+
+    Clipper2Lib::PathD path;
+    const size_t n = !open && outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
+    path.reserve(n);
+    for (size_t k = 0; k < n; ++k) {
+        const Vector d = outline.get_point(k) - origin;
+        path.emplace_back(d.dot(x_axis), d.dot(y_axis));
+    }
+
+    return path;
+}
+
 std::vector<Plane> face_planes(const Mesh& mesh) {
 
     std::vector<Plane> planes;
@@ -289,12 +321,22 @@ BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<P
         holes[1].push_back(top[loop]);
     }
 
-    for (size_t loop = 0; loop < bottom.size(); loop++) {
-        const Polyline& lower = bottom[loop];
-        const Polyline& upper = top[loop];
-        const size_t segment_count = lower.point_count() - 1;
-        for (size_t segment = 0; segment < segment_count; segment++) {
-            faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
+    // the side faces are the walls Mesh::loft builds between the same loops, so the two enclose one volume: a quad whose four corners share a plane stays a quad, one whose corners do not becomes the two triangles the volume fans it into, and a wall the loft already made a triangle stays one
+    const Mesh walls = Mesh::loft(bottom, top, false);
+    for (const size_t face : walls.faces()) {
+        const std::vector<size_t> ring = *walls.face_vertices(face);
+        std::vector<Point> corners;
+        for (const size_t vertex : ring)
+            corners.push_back(*walls.vertex_point(vertex));
+        std::vector<Polyline> sides;
+        if (corners.size() == 4 && !is_coplanar(corners))
+            sides = {Polyline({corners[0], corners[1], corners[2], corners[0]}), Polyline({corners[0], corners[2], corners[3], corners[0]})};
+        else {
+            corners.push_back(corners.front());
+            sides = {Polyline(corners)};
+        }
+        for (const Polyline& side : sides) {
+            faces.push_back(side);
             holes.push_back({});
         }
     }
@@ -758,14 +800,33 @@ Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>&
 BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
 
     std::vector<Drill> drills;
+    double chord_tolerance = 0.0;
 
     for (const InteractionFeatureSolid& cut : cuts)
-        for (const Line& drill : cut.drills)
+        for (const Line& drill : cut.drills) {
             drills.push_back({drill, cut.drill_radius});
+            chord_tolerance = cut.drill_tolerance;
+        }
 
-    if (!drills.empty())
-        if (std::optional<BRep> exact = drilled_brep(apply_solid_features(mesh, cuts, false), drills))
+    if (!drills.empty()) {
+        const Mesh milled = apply_solid_features(mesh, cuts, false);
+
+        if (std::optional<BRep> exact = drilled_brep(milled, drills))
             return *exact;
+
+        // a bore that grazes an edge or another bore is subtracted faceted first, so every other bore stays an exact cylinder
+        const std::array<std::vector<Drill>, 2> split = split_clear_drills(milled, drills);
+
+        if (!split[0].empty() && !split[1].empty()) {
+            std::vector<Mesh> grazing;
+
+            for (const Drill& drill : split[1])
+                grazing.push_back(drill_mesh(drill.axis, drill.radius, chord_tolerance));
+
+            if (std::optional<BRep> exact = drilled_brep(solid_difference(milled, grazing), split[0]))
+                return *exact;
+        }
+    }
 
     const Mesh cut = apply_solid_features(mesh, cuts);
 
@@ -775,4 +836,49 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
     return mesh_brep(cut);
 }
 
+}
+
+/// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
+std::vector<Point> merge_collinear(const Polyline& polygon) {
+
+    std::vector<Point> points = polygon.get_points();
+
+    if (polygon.is_closed())
+        points.pop_back();
+
+    for (size_t pass = 0; pass < points.size() + 1; pass++) {
+        const size_t n = points.size();
+
+        if (n < 3)
+            return points;
+
+        std::vector<Point> kept;
+        bool dropped = false;
+
+        for (size_t i = 0; i < n; i++) {
+            const Vector v1 = points[i] - points[(i + n - 1) % n];
+            const Vector v2 = points[(i + 1) % n] - points[i];
+            const double l1 = v1.magnitude();
+            const double l2 = v2.magnitude();
+
+            if (l1 < 1e-9 || (l2 >= 1e-9 && v1.cross(v2).magnitude() / (l1 * l2) < 1e-3)) {
+                dropped = true;
+                continue;
+            }
+
+            kept.push_back(points[i]);
+        }
+
+        if (!dropped)
+            return kept;
+
+        points = kept;
+    }
+
+    return points;
+}
+
+/// The chord tolerance that makes a drill of radius a prism of sides sides.
+double sides_tolerance(double radius, int sides) {
+    return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
 }

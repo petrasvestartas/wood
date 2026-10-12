@@ -8,11 +8,7 @@ int main() {
 
     WoodSession scene("element_joint_cutter");
 
-    const std::shared_ptr<BeamVariable> beam = BeamVariable::between(
-        Polyline::rectangle({0.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        Polyline::rectangle({1200.0, -100.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 200.0, 300.0),
-        "beam"
-    );
+    const std::shared_ptr<BeamVariable> beam = BeamVariable::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
     scene.add(beam);
 
     // a notch: a closed box subtracted from the beam
@@ -39,7 +35,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A 1200 long beam 200 wide and 300 deep: a Joint from a closed box mesh subtracts a 200 long notch from its top, and a Joint from a closed profile extruded across the beam keeps only what lies inside a profile whose bottom rises to a 120 high point at the middle, trimming the underside to a V; both are added hidden and passed to the beam with add_interaction.
+Joints that cut by a solid: a box taken away from a beam, and a profile it is trimmed to.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

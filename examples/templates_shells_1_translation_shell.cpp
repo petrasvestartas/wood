@@ -16,7 +16,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The translation shell template: a cross section swept along a profile, one quad per two neighbouring sections, one mitred and chamfered plate per quad, each step in its group.
+The translation shell template: a cross section swept along a profile, one quad per two neighbouring sections, one mitered and chamfered plate per quad, each step in its group.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

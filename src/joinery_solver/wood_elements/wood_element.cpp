@@ -36,8 +36,9 @@ static std::vector<InteractionFeatureSolid> features_of(const std::vector<Intera
 
 Mesh WoodElement::stock_mesh() const {
 
+    // the adds united in the element's own base plane, where its faces lie on the grid's planes, so coplanar faces stay coplanar
     std::vector<InteractionFeatureSolid> adds = features_of(solid_features, true);
-    const Plane plane = frame();
+    const Plane plane = base_plane().value_or(frame());
     const Xform to_world = Xform::frame_to_world(
         plane.origin(),
         plane.x_axis(),

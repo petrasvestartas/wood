@@ -24,7 +24,22 @@ static std::vector<std::pair<double, double>> to_plane(const std::vector<Point>&
     return plane;
 }
 
-/// The triangles of one face as vertex keys wound like the face: its cached triangulation, the face itself, or a constrained Delaunay triangulation of its points.
+/// The area-weighted normal of a set of triangles: the sum of their edge cross products, what their winding says the face's side is.
+static Vector triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& triangles) {
+
+    Vector sum(0.0, 0.0, 0.0);
+
+    for (const std::array<size_t, 3>& triangle : triangles) {
+        const Point a = mesh.vertex_point(triangle[0]).value();
+        const Point b = mesh.vertex_point(triangle[1]).value();
+        const Point c = mesh.vertex_point(triangle[2]).value();
+        sum += (b - a).cross(c - a);
+    }
+
+    return sum;
+}
+
+/// The triangles of one face as vertex keys wound like the face: its cached triangulation, the face itself, or a constrained Delaunay triangulation of its points; a set wound against the face's normal is turned as a whole, never one sliver at a time, whose own cross product is noise.
 static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_t face) {
 
     const std::vector<size_t> ring = mesh.face_vertices(face).value();
@@ -46,15 +61,9 @@ static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_
         for (const std::array<int, 3>& t : cdt_triangulate(to_plane(points, normal), {}))
             triangles.push_back({ring[t[0]], ring[t[1]], ring[t[2]]});
 
-    for (std::array<size_t, 3>& triangle : triangles) {
-        const Point a = mesh.vertex_point(triangle[0]).value();
-        const Point b = mesh.vertex_point(triangle[1]).value();
-        const Point c = mesh.vertex_point(triangle[2]).value();
-        const Vector side = (b - a).cross(c - a);
-
-        if (side.dot(normal) < 0.0)
+    if (triangles_normal(mesh, triangles).dot(normal) < 0.0)
+        for (std::array<size_t, 3>& triangle : triangles)
             std::swap(triangle[1], triangle[2]);
-    }
 
     return triangles;
 }
@@ -139,8 +148,8 @@ static void orient_shells(manifold::MeshGL64& gl) {
             std::swap(gl.triVerts[3 * t + 1], gl.triVerts[3 * t + 2]);
 }
 
-/// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean; throws unless the mesh is a closed manifold.
-static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
+/// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean, its status telling whether the mesh is a closed manifold.
+static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
 
     manifold::MeshGL64 gl;
     std::unordered_map<size_t, uint64_t> index;
@@ -158,12 +167,23 @@ static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
         }
 
     orient_shells(gl);
-    const manifold::Manifold solid(gl);
+
+    return manifold::Manifold(gl);
+}
+
+/// The mesh as a Manifold; throws unless the mesh is a closed manifold.
+static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
+
+    const manifold::Manifold solid = build_manifold(mesh, first_id);
 
     if (solid.Status() != manifold::Manifold::Error::NoError)
         throw std::invalid_argument("Solid booleans require closed meshes: Manifold status " + std::to_string(static_cast<int>(solid.Status())));
 
     return solid;
+}
+
+bool manifold_solid(const Mesh& mesh) {
+    return mesh.number_of_faces() > 0 && build_manifold(mesh, 0).Status() == manifold::Manifold::Error::NoError;
 }
 
 /// One past the largest face key, the id offset the next mesh's faces start from.
@@ -257,7 +277,42 @@ static std::vector<uint64_t> compute_loop(const manifold::MeshGL64& gl, const st
     return loop;
 }
 
-/// Adds one region: a polygon face carrying its triangles when it has a single boundary loop, else a face per triangle.
+/// Twice the area a loop of Manifold vertices encloses, by Newell: the length of the loop's normal.
+static double loop_area(const manifold::MeshGL64& gl, const std::vector<uint64_t>& loop) {
+
+    Vector normal(0.0, 0.0, 0.0);
+
+    for (size_t i = 0; i < loop.size(); i++) {
+        const uint64_t a = loop[i];
+        const uint64_t b = loop[(i + 1) % loop.size()];
+        const Point p(gl.vertProperties[3 * a], gl.vertProperties[3 * a + 1], gl.vertProperties[3 * a + 2]);
+        const Point q(gl.vertProperties[3 * b], gl.vertProperties[3 * b + 1], gl.vertProperties[3 * b + 2]);
+        normal += Vector((p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1]));
+    }
+
+    return normal.magnitude();
+}
+
+/// Twice the area of a set of Manifold triangles: the sum of their cross products' lengths.
+static double triangles_area(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
+
+    double area = 0.0;
+
+    for (const size_t t : triangles) {
+        std::array<Point, 3> corner;
+
+        for (size_t c = 0; c < 3; c++) {
+            const uint64_t v = gl.triVerts[3 * t + c];
+            corner[c] = Point(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+        }
+
+        area += (corner[1] - corner[0]).cross(corner[2] - corner[0]).magnitude();
+    }
+
+    return area;
+}
+
+/// Adds one region: a polygon face carrying its triangles when it has a single boundary loop enclosing the triangles' area, else a face per triangle; a loop through two of Manifold's vertices at one position runs over itself and encloses less, and so is not a face.
 static void add_region(
     Mesh& mesh,
     const manifold::MeshGL64& gl,
@@ -266,8 +321,9 @@ static void add_region(
 ) {
 
     const std::vector<uint64_t> loop = compute_loop(gl, triangles);
+    const double area = triangles_area(gl, triangles);
 
-    if (loop.size() >= 3) {
+    if (loop.size() >= 3 && std::abs(loop_area(gl, loop) - area) <= 1e-6 * area) {
         std::vector<size_t> face;
 
         for (const uint64_t vertex : loop)
@@ -421,6 +477,30 @@ Mesh solid_boolean(
         return from_manifold(a ^ b);
 
     return from_manifold(a + b, true);
+}
+
+Mesh shells_side_by_side(const std::vector<Mesh>& pieces) {
+
+    std::vector<Point> points;
+    std::vector<std::vector<size_t>> faces;
+
+    for (const Mesh& piece : pieces) {
+        std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = piece.to_vertices_and_faces();
+        const size_t first = points.size();
+        points.insert(points.end(), data.first.begin(), data.first.end());
+
+        for (std::vector<size_t>& face : data.second) {
+            for (size_t& vertex : face)
+                vertex += first;
+
+            faces.push_back(face);
+        }
+    }
+
+    if (faces.empty())
+        return Mesh();
+
+    return Mesh::from_vertices_and_faces(points, faces);
 }
 
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {

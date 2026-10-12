@@ -17,13 +17,38 @@ std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_nam
     if (adjacency_name.empty())
         return pairs;
 
+    // a row of two elements, or of two elements and their faces; a plate paired with itself is a border, which load_borders reads
     std::ifstream file(adjacency_name);
-    int a;
-    int b;
-    while (file >> a >> b)
-        pairs.emplace_back(a, b);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream row(line);
+        int a;
+        int b;
+        if (row >> a >> b && a != b)
+            pairs.emplace_back(a, b);
+    }
 
     return pairs;
+}
+
+std::vector<std::array<int, 2>> load_borders(const std::string& adjacency_name) {
+
+    std::vector<std::array<int, 2>> borders;
+    if (adjacency_name.empty())
+        return borders;
+
+    std::ifstream file(adjacency_name);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream row(line);
+        int a;
+        int b;
+        int face;
+        if (row >> a >> b >> face && a == b)
+            borders.push_back({a, face});
+    }
+
+    return borders;
 }
 
 std::vector<std::vector<Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count) {

@@ -189,6 +189,8 @@ bool beam_to_beam(
 
     out.end_type = sum;
     out.volumes = beam_vol;
+    out.normal = normal;
+    out.axes = {v0, v1};
     return true;
 }
 

@@ -1,0 +1,15 @@
+# a 300 x 200 x 40 plate whose side face 2 carries a boundary joint (family 60), from a self-adjacency row
+v 0 0 0
+v 300 0 0
+v 300 200 0
+v 0 200 0
+v 0 0 0
+curv 0 5 1 2 3 4 5
+end
+v 0 0 40
+v 300 0 40
+v 300 200 40
+v 0 200 40
+v 0 0 40
+curv 0 5 6 7 8 9 10
+end

@@ -30,6 +30,7 @@ message Joint {
   repeated InteractionFeatureSolid solid_features = 21;            // Cuts into a connector's own parts, a cross lap's slots say, in the connector's frame
   reserved 22;                                  // Was nested; a connector's children in the tree now say it
   bool pre_drill = 23;                          // A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
+  repeated session_proto.Vector insertions = 24; // A connector's direction each target slides off it, in targets order
 }
 
 // The solids a connector cuts out of one target, as bottom, top loop pairs.

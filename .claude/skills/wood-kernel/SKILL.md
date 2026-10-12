@@ -62,10 +62,10 @@ Show the 7-step protocol with a minimal code template:
 **Minimal code template:**
 ```cpp
 // wood_joint_lib.h
-void ss_e_ip_N(wood::joint& j);
+void in_plane_N(wood::joint& j);
 
 // wood_joint_lib.cpp
-void ss_e_ip_N(wood::joint& j) {
+void in_plane_N(wood::joint& j) {
     j.name = __func__;
     j.unit_scale = true;
 

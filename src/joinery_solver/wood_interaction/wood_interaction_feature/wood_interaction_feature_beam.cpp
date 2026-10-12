@@ -30,6 +30,12 @@ std::string InteractionFeatureBeam::interaction_data_dumps() const {
         if (!proto.add_volumes()->ParseFromString(volume.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
 
+    if (!proto.mutable_normal()->ParseFromString(normal.pb_dumps()))
+        throw std::runtime_error("Failed to parse Vector protobuf data");
+    for (const Vector& axis : axes)
+        if (!proto.add_axes()->ParseFromString(axis.pb_dumps()))
+            throw std::runtime_error("Failed to parse Vector protobuf data");
+
     return proto.SerializeAsString();
 }
 
@@ -44,6 +50,11 @@ InteractionFeatureBeam InteractionFeatureBeam::interaction_data_loads(const std:
 
     for (int k = 0; k < 4 && k < proto.volumes_size(); ++k)
         feature.volumes[k] = Polyline::pb_loads(proto.volumes(k).SerializeAsString());
+
+    if (proto.has_normal())
+        feature.normal = Vector::pb_loads(proto.normal().SerializeAsString());
+    for (int k = 0; k < 2 && k < proto.axes_size(); ++k)
+        feature.axes[k] = Vector::pb_loads(proto.axes(k).SerializeAsString());
 
     return feature;
 }

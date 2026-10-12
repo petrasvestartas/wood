@@ -11,19 +11,13 @@ int main() {
     const std::array<PinLayout, 3> layouts = {PinLayout::corners, PinLayout::vertical, PinLayout::horizontal};
 
     for (size_t i = 0; i < layouts.size(); i++) {
-        const double x = 800.0 * i;
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("layout_{}", i));
 
-        const std::shared_ptr<BeamVariable> beam = BeamVariable::between(
-            Polyline::rectangle({x, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
-            Polyline::rectangle({x + 600.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
-            fmt::format("beam_{}", i)
-        );
-        const std::shared_ptr<BeamVariable> joist = BeamVariable::between(
-            Polyline::rectangle({x + 250.0, 120.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
-            Polyline::rectangle({x + 250.0, 720.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
-            fmt::format("joist_{}", i)
-        );
+        const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_tee();
+        const std::shared_ptr<BeamVariable> beam = beams[0];
+        const std::shared_ptr<BeamVariable> joist = beams[1];
+        beam->place(Xform::translation(800.0 * i, 0.0, 0.0));
+        joist->place(Xform::translation(800.0 * i, 0.0, 0.0));
         scene.add(beam, group);
         scene.add(joist, group);
 
@@ -34,10 +28,10 @@ int main() {
             *joist,
             *contact,
             layouts[i],
-            3,
-            20.0,
-            0.0,
-            5.0
+            3,    // count
+            30.0, // offset: two and a half diameters of wood to the contact's edges
+            0.0,  // shift
+            5.0   // radius
         );
         pins->name = fmt::format("pins_{}", i);
         scene.add(pins, group);
@@ -52,7 +46,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Three T joints, each a 120 wide, 300 deep beam with a 100 wide joist ending on its side; JointBeam::headed_pins on their face contact drives pins 5 in radius and 200 long from the beam's far face through it into the joist end, pre-drilled, laid out by PinLayout: corners, a vertical column of 3 and a horizontal row of 3, 20 in from the contact's edges; the pins are added and passed to each member with add_interaction.
+Headed pins through a beam into the end of another, in each PinLayout.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -34,6 +34,39 @@ Beam::Beam(
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+std::array<std::shared_ptr<Beam>, 2> Beam::pair_crossing(double angle_degrees, double radius, double length) {
+
+    const double turn = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin - along * (length * 0.5), origin + along * (length * 0.5)}), radius, "second");
+    return {first, second};
+}
+
+std::array<std::shared_ptr<Beam>, 2> Beam::pair_tee(double angle_degrees, double radius, double length) {
+
+    const double turn = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    second->extension = radius;
+    return {first, second};
+}
+
+std::array<std::shared_ptr<Beam>, 2> Beam::pair_end_to_end(double angle_degrees, double radius, double length, double extension) {
+
+    const double turn = angle_degrees * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), std::sin(turn), 0.0);
+    const Point origin(0.0, 0.0, 0.0);
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length, 0.0, 0.0), origin}), radius, "first");
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    first->extension = extension;
+    second->extension = extension;
+    return {first, second};
+}
+
 std::shared_ptr<Beam> Beam::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
@@ -66,6 +99,7 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
     for (const session_proto::Vector& direction : proto.directions())
         beam->directions.push_back(Vector::pb_loads(direction.SerializeAsString()));
     beam->allowed_type = proto.allowed_type();
+    beam->extension = proto.extension();
     for (const session_proto::Plane& cut : proto.cuts())
         beam->cuts.push_back(Plane::pb_loads(cut.SerializeAsString()));
     for (const session_proto::Polyline& ring : proto.profile())
@@ -106,17 +140,22 @@ std::vector<Polyline> Beam::sections() const {
             along = along.normalized() + (points[i] - points[i - 1]).normalized();
 
         const Vector up = has_direction(segment) ? directions[segment] : Vector::z_axis();
+        Point station = points[i];
+        if (i == 0)
+            station = station - along.normalized() * extension;
+        if (i == segments)
+            station = station + along.normalized() * extension;
         // a square of the segment's radius, or the profile's outer loop
         if (profile.empty())
             sections.push_back(square_section(
-                points[i],
+                station,
                 along,
                 up,
                 radius(segment)
             ));
         else
             sections.push_back(profile_section(
-                points[i],
+                station,
                 along,
                 up,
                 profile[0]
@@ -131,12 +170,13 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
 
     const Vector along = beam.axis.get_point(1) - beam.axis.get_point(0);
     const Vector up = beam.has_direction(0) ? beam.directions[0] : Vector::z_axis();
+    const Vector reach = along.normalized() * beam.extension;
 
     std::pair<std::vector<Polyline>, std::vector<Polyline>> ends;
     for (const Polyline& ring : beam.profile) {
         ends.first.push_back(
             profile_section(
-                beam.axis.get_point(0),
+                beam.axis.get_point(0) - reach,
                 along,
                 up,
                 ring
@@ -144,7 +184,7 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
         );
         ends.second.push_back(
             profile_section(
-                beam.axis.get_point(1),
+                beam.axis.get_point(1) + reach,
                 along,
                 up,
                 ring
@@ -224,6 +264,7 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     for (const InteractionFeaturePlane& feature : plane_features)
         beam->plane_features.push_back(feature.transformed(xform));
     beam->profile = profile;
+    beam->extension = extension;
     beam->set_features(transformed_features(_features, xform));
     beam->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -289,7 +330,7 @@ AABB Beam::aabb(double inflate) const {
     for (const double radius : radii)
         reach = std::max(reach, radius);
 
-    return AABB::from_polyline(axis, inflate + reach);
+    return AABB::from_polyline(axis, inflate + reach + extension);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -319,6 +360,7 @@ std::string Beam::element_data_dumps() const {
         if (!proto.add_directions()->ParseFromString(direction.pb_dumps()))
             throw std::runtime_error("Failed to parse Vector protobuf data");
     proto.set_allowed_type(allowed_type);
+    proto.set_extension(extension);
     for (const Plane& cut : cuts)
         if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Failed to parse Plane protobuf data");

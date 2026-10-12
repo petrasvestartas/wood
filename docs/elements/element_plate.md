@@ -2,14 +2,23 @@
 
 [TOC]
 
-A timber plate: a bottom and a top outline, one side face per edge. Its joints come as merged outline features (`InteractionFeaturePlate`), solids added or taken away as `InteractionFeatureSolid`.
+A timber plate: a bottom and a top outline, one side face per edge; joints come as `InteractionFeaturePlate` or `InteractionFeatureSolid`.
 
 ## Constructors
 
 ```cpp
 Plate(const Polyline& bottom, const Polyline& top, const std::string& name = "plate")
 static std::shared_ptr<Plate> from_rectangle(const Point& origin, const Vector& x_axis, const Vector& y_axis, double width, double height, double thickness, const std::string& name = "plate")
+static std::shared_ptr<Plate> from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate")
 static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates")
+
+// pairs, one per joint family's configuration, for examples and tests
+static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0)      // side_side_inplane: edge to edge, in line or in a shallow V
+static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0)   // side_side_outplane: mitered fold
+static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0)     // side_side_rotated: end to end, twisted
+static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0)  // top_side: upright or leaning on a base
+static std::array<std::shared_ptr<Plate>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0)    // cross: crossing uprights
+static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 0.0, double length = 400.0, double width = 300.0, double thickness = 40.0)       // top_top: stacked, shifted, turned
 ```
 
 ## Parameters
@@ -34,7 +43,7 @@ Its bottom outline, any closed polygon, and the same outline 40 above; the two o
 
 ![With holes](elements/element_plate_holes.png)
 
-Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add_interaction(hole, plate, InteractionFeatureSolid(drills, radius))`, a solid feature of drills alone; written as BReps, the holes are exact cylinders.
+Four hidden `Joint::drill` holes taken away through `add_interaction(hole, plate, InteractionFeatureSolid(drills, radius))`.
 
 \include{lineno} elements/element_plate_holes.cpp
 
@@ -42,6 +51,14 @@ Four hidden hole elements (`Joint::drill`) each take a 30 hole away through `add
 
 ![Lofted between two rails](elements/element_plate_session.png)
 
-Several plates from two rails, as a bed row of the floor: `Plate::row_between(bottom, top)` lofts one plate per rail segment between two bottom rails and two top rails and returns them; the example adds them to a WoodSession.
+A row of plates lofted between two bottom and two top rails by `Plate::row_between(bottom, top)`.
 
 \include{lineno} elements/element_plate_session.cpp
+
+## Joint types by points and lines
+
+![Joint types by points and lines](elements/element_plate_assign_joints.png)
+
+The eight `annen_box_pair` plates, joints set by `WoodSession::assign_joint_types_by_points` and `WoodSession::assign_insertion_vectors_by_lines`.
+
+\include{lineno} elements/element_plate_assign_joints.cpp
