@@ -20,11 +20,23 @@ int main() {
     for (const std::shared_ptr<Plate>& wall : walls)
         scene.add(wall);
 
-    // the butts, running plate first: the long walls run on past the short ones at the corners, the floor and the roof run on under and over every wall
+    // the mid-plane polygons as drawn, red over the solids
+    for (const std::shared_ptr<Plate>& plate : {floor, roof, walls[0], walls[1], walls[2], walls[3]}) {
+        std::vector<Point> points;
+        for (size_t i = 0; i < plate->polylines[0].point_count(); i++)
+            points.push_back(plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5);
+        std::shared_ptr<Polyline> outline = std::make_shared<Polyline>(points);
+        outline->linecolor = Color(0.85f, 0.1f, 0.1f);
+        outline->width = 4.0;
+        scene.add_polyline(outline, scene.group_named("input"));
+    }
+
+    // the butts, running plate first, each on what the earlier ones left: the floor and the roof run on under and over every wall, then the
+    // long walls run on past the short ones at the corners
     const std::vector<std::array<std::shared_ptr<Plate>, 2>> pairs = {
-        {walls[0], walls[1]}, {walls[0], walls[3]}, {walls[2], walls[1]}, {walls[2], walls[3]},
         {floor, walls[0]}, {floor, walls[1]}, {floor, walls[2]}, {floor, walls[3]},
         {roof, walls[0]}, {roof, walls[1]}, {roof, walls[2]}, {roof, walls[3]},
+        {walls[0], walls[1]}, {walls[0], walls[3]}, {walls[2], walls[1]}, {walls[2], walls[3]},
     };
     for (const std::array<std::shared_ptr<Plate>, 2>& pair : pairs) {
         const std::shared_ptr<JointBeam> butt = JointBeam::butt(*pair[0], *pair[1]);

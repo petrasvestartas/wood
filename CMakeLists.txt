@@ -249,6 +249,8 @@ ADD_EXE(18_cutting_gallery               examples/18_cutting_gallery.cpp)
 ADD_EXE(19_plate_joint_library           examples/19_plate_joint_library.cpp)
 ADD_EXE(20_butt_frame                     examples/20_butt_frame.cpp)
 ADD_EXE(21_butt_house                     examples/21_butt_house.cpp)
+ADD_EXE(22_butt_gallery                   examples/22_butt_gallery.cpp)
+ADD_EXE(23_butt_zigzag                    examples/23_butt_zigzag.cpp)
 ADD_EXE(main_all_datasets                examples/main_all_datasets.cpp src/joinery_solver/wood_datasets.cpp)
 ADD_EXE(main_dataset_runner              examples/main_dataset_runner.cpp src/joinery_solver/wood_datasets.cpp)
 # main_cross_polylines is gone: it was built on session_cpp's ElementFeature /

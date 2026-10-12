@@ -38,7 +38,7 @@ public:
     std::vector<InteractionFeatureSolid> solid_features; // Cuts into the connector's own parts, in the connector's frame like an element's.
     bool pre_drill = false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
     std::vector<Vector> insertions; // A connector's direction each target slides off it, in targets order; a beam-to-beam joint reads its feature instead.
-    std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's: the block the running member gains to the butting member's far face (empty when it runs past) and what the butting member loses at the running member's face.
+    std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's: the block the running member gains at a corner (empty elsewhere), and what the butting member loses behind the running member's face or gains up to it when drawn short.
     bool is_butt = false; // A butt: each target takes its butt_solids entry, nothing else.
 
     JointBeam();
@@ -115,8 +115,9 @@ public:
     );
 
     /// A butt of two members, beams or plates, joined flat: target 0 runs, target 1 butts. The butting member is cut on the running member's
-    /// face that looks at it, so it ends flush against that face; where the running member's end lies inside the butting member, a corner,
-    /// it runs on to the butting member's far face, so the corner closes flush outside. A butting member running past the face is cut there.
+    /// face that looks at it, so it ends flush against that face, run on to the face when drawn short of it, cut on it when drawn past it;
+    /// where the running member's end lies inside the butting member, a corner, it runs on to the butting member's outer face, so the corner
+    /// closes flush outside, square or oblique. Each reads the members as the earlier joints left them.
     static std::shared_ptr<JointBeam> butt(Element& running, Element& butting);
 
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.

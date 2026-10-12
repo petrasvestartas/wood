@@ -17,8 +17,15 @@ int main() {
     const std::shared_ptr<Beam> right_post = std::make_shared<Beam>(Polyline({{3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}}), radius, "right_post");
     const std::shared_ptr<Beam> left_brace = std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "left_brace");
     const std::shared_ptr<Beam> right_brace = std::make_shared<Beam>(Polyline({{3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "right_brace");
-    for (const std::shared_ptr<Beam>& beam : {sill, head, left_post, middle_post, right_post, left_brace, right_brace})
+    for (const std::shared_ptr<Beam>& beam : {sill, head, left_post, middle_post, right_post, left_brace, right_brace}) {
         scene.add(beam);
+
+        // the axis as drawn, red over the solids
+        std::shared_ptr<Polyline> axis = std::make_shared<Polyline>(beam->axis);
+        axis->linecolor = Color(0.85f, 0.1f, 0.1f);
+        axis->width = 4.0;
+        scene.add_polyline(axis, scene.group_named("input"));
+    }
 
     // the butts, running member first: the posts stand on the sill and carry the head, which run on over the corner posts; the braces butt on the sill, the head and the posts
     const std::vector<std::array<std::shared_ptr<Beam>, 2>> pairs = {

@@ -89,12 +89,12 @@ static void plates() {
     scene.add(roof);
     for (const std::shared_ptr<Plate>& wall : walls)
         scene.add(wall);
-    for (const std::array<size_t, 2>& corner : std::array<std::array<size_t, 2>, 4>{{{0, 1}, {0, 3}, {2, 1}, {2, 3}}})
-        join(scene, walls[corner[0]], walls[corner[1]]);
     for (const std::shared_ptr<Plate>& wall : walls)
         join(scene, floor, wall);
     for (const std::shared_ptr<Plate>& wall : walls)
         join(scene, roof, wall);
+    for (const std::array<size_t, 2>& corner : std::array<std::array<size_t, 2>, 4>{{{0, 1}, {0, 3}, {2, 1}, {2, 3}}})
+        join(scene, walls[corner[0]], walls[corner[1]]);
 
     // the floor and the roof out to the walls' outer faces, the walls between the floor's top and the roof's bottom
     for (const std::shared_ptr<Plate>& slab : {floor, roof}) {

@@ -16,6 +16,17 @@ int main() {
     scene.add(long_wall);
     scene.add(short_wall);
 
+    // the mid-plane polygons as drawn, red over the solids
+    for (const std::shared_ptr<Plate>& plate : {floor, long_wall, short_wall}) {
+        std::vector<Point> points;
+        for (size_t i = 0; i < plate->polylines[0].point_count(); i++)
+            points.push_back(plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5);
+        std::shared_ptr<Polyline> outline = std::make_shared<Polyline>(points);
+        outline->linecolor = Color(0.85f, 0.1f, 0.1f);
+        outline->width = 4.0;
+        scene.add_polyline(outline);
+    }
+
     // the walls butt on the floor, which runs on under their outer faces; the short wall butts on the long one, which runs on to its outer face
     const std::array<std::array<std::shared_ptr<Plate>, 2>, 3> pairs = {{{floor, long_wall}, {floor, short_wall}, {long_wall, short_wall}}};
     for (const std::array<std::shared_ptr<Plate>, 2>& pair : pairs) {

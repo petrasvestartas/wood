@@ -11,7 +11,7 @@ static std::shared_ptr<JointBeam> butt(Element& running, Element& butting);   //
 static std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");   // a wall centred on its footprint line
 ```
 
-A running member that gets several butts reads what the earlier ones added, so a corner run on twice closes.
+Each butt reads its running member as the earlier butts left it, cut and run on: join slabs to walls before walls to walls, so a wall corner runs on from what the wall keeps.
 
 ## Beams
 

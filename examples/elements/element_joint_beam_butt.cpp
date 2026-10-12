@@ -17,6 +17,14 @@ int main() {
         scene.add(sill, group);
         scene.add(post, group);
 
+        // the axes as drawn, red over the solids
+        for (const std::shared_ptr<Beam>& beam : {sill, post}) {
+            std::shared_ptr<Polyline> axis = std::make_shared<Polyline>(beam->axis);
+            axis->linecolor = Color(0.85f, 0.1f, 0.1f);
+            axis->width = 4.0;
+            scene.add_polyline(axis, group);
+        }
+
         // the butt, added, and passed to the running sill and the butting post
         const std::shared_ptr<JointBeam> butt = JointBeam::butt(*sill, *post);
         scene.add(butt, group);

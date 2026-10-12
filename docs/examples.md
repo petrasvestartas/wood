@@ -27,6 +27,8 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
 | `20_butt_frame` | A timber-frame wall from lines: sill, head, posts and braces butted flat |
 | `21_butt_house` | A small house from plates on mid-planes: floor, walls and roof butted flat |
+| `22_butt_gallery` | Twelve butt cases mixing beams, columns and plates: oblique, short, curved and polygonal members |
+| `23_butt_zigzag` | Walls on a zigzag plan and a folded roof on a zigzag section, every fold cut flat |
 
 Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
@@ -157,3 +159,97 @@ Members drawn as lines and mid-planes overlap where they meet; `JointBeam::butt(
 ![21_butt_house](examples/21_butt_house.png)
 
 \include{lineno} 21_butt_house.cpp
+
+### 22_butt_gallery
+
+Each case is its own scene, `butt_<case>.pb`.
+
+#### brace
+
+A brace between a post and a sill, both ends oblique.
+
+![butt_brace](examples/butt_brace.png)
+
+#### rafter
+
+A rafter on a wall plate and a ridge.
+
+![butt_rafter](examples/butt_rafter.png)
+
+#### beam_on_column
+
+A beam on a column head.
+
+![butt_beam_on_column](examples/butt_beam_on_column.png)
+
+#### beam_into_column
+
+A beam into the side of a column at 60 degrees.
+
+![butt_beam_into_column](examples/butt_beam_into_column.png)
+
+#### joists_into_wall
+
+A square and a skew joist into a wall.
+
+![butt_joists_into_wall](examples/butt_joists_into_wall.png)
+
+#### wall_on_beam
+
+A wall on a beam.
+
+![butt_wall_on_beam](examples/butt_wall_on_beam.png)
+
+#### columns_on_slab
+
+Columns above and below a slab.
+
+![butt_columns_on_slab](examples/butt_columns_on_slab.png)
+
+#### walls_at_120
+
+Two walls at 120 degrees.
+
+![butt_walls_at_120](examples/butt_walls_at_120.png)
+
+#### wall_under_roof
+
+A wall under a roof sloped 25 degrees.
+
+![butt_wall_under_roof](examples/butt_wall_under_roof.png)
+
+#### short_joist
+
+A joist drawn 200 short, run on to the wall.
+
+![butt_short_joist](examples/butt_short_joist.png)
+
+#### curved_sill
+
+Posts on an arc sill of eight segments.
+
+![butt_curved_sill](examples/butt_curved_sill.png)
+
+#### polygon_floor
+
+Walls on a pentagon floor, one with a sloped top.
+
+![butt_polygon_floor](examples/butt_polygon_floor.png)
+
+\include{lineno} 22_butt_gallery.cpp
+
+### 23_butt_zigzag
+
+#### zigzag_walls
+
+Four walls on a zigzag plan, on a floor.
+
+![butt_zigzag_walls](examples/butt_zigzag_walls.png)
+
+#### folded_roof
+
+Four roof plates on a zigzag section, over two gables.
+
+![butt_folded_roof](examples/butt_folded_roof.png)
+
+\include{lineno} 23_butt_zigzag.cpp
