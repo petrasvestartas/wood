@@ -241,7 +241,8 @@ public:
     // side_removal
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // The side faces of a pair milled off by the joint scale, on every side-side, side-top and cross family (ids x8).
+    // The side faces of a pair milled off, on every side-side, side-top and cross family (ids x8): each plate cut from its neighbour's face
+    // back through the neighbour, so it keeps nothing inside it, and the joint scale in front of the face; a table id keeps 2024's strip only.
 
     static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5);
 

@@ -796,6 +796,97 @@ static Polyline tie_section(
 }
 
 /// The key: length long along the contact normal, top below the contact's top edge, heads head_width wide over head_length at both ends and the neck neck_width wide between, depth deep at the seam deepening straight to end_depth at its ends; each member gets a flat-bottomed pocket pocket_depth deep of its head and neck boxes, the neck overshoot past the seam; aimed at a then b, the defaults the OBJ template's.
+std::shared_ptr<JointBeam> JointBeam::butt(Element& running, Element& butting) {
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "butt";
+    joint->is_butt = true;
+    joint->targets = {running.guid(), butting.guid()};
+
+    // both solids' corners, centres and the size of the pair: the running member as earlier joints left it, so a corner run on twice closes
+    const WoodElement* running_wood = dynamic_cast<const WoodElement*>(&running);
+    const Mesh running_mesh = running_wood ? running_wood->stock_mesh() : running.element_geometry_mesh();
+    const std::vector<Point> running_points = running_mesh.to_vertices_and_faces().first;
+    const std::vector<Point> butting_points = butting.element_geometry_mesh().to_vertices_and_faces().first;
+    Point running_centre(0.0, 0.0, 0.0);
+    Point butting_centre(0.0, 0.0, 0.0);
+    for (const Point& point : running_points)
+        running_centre = running_centre + Vector(point[0], point[1], point[2]) / (double)running_points.size();
+    for (const Point& point : butting_points)
+        butting_centre = butting_centre + Vector(point[0], point[1], point[2]) / (double)butting_points.size();
+    double size = 0.0;
+    for (const std::vector<Point>* points : {&running_points, &butting_points})
+        for (const Point& point : *points)
+            size = std::max({size, Point::distance(point, running_centre), Point::distance(point, butting_centre)});
+    const double tolerance = 1e-6 * size;
+
+    // the running member's face the butting member looks at: the one the butting member's centre lies farthest in front of
+    const std::vector<Plane> running_planes = running.planes();
+    Plane face;
+    double farthest = -std::numeric_limits<double>::max();
+    for (const Plane& plane : running_planes) {
+        const double distance = (butting_centre - plane.origin()).dot(plane.z_axis());
+        if (distance > farthest) {
+            farthest = distance;
+            face = plane;
+        }
+    }
+
+    // the butting member cut behind that face: a block on the face, as wide and as deep as the pair
+    const Point foot = butting_centre - face.z_axis() * (butting_centre - face.origin()).dot(face.z_axis());
+    const Polyline square = Polyline::rectangle(foot - face.x_axis() * (2.0 * size) - face.y_axis() * (2.0 * size), face.x_axis(), face.y_axis(), 4.0 * size, 4.0 * size);
+    const Vector behind = face.z_axis() * (-4.0 * size);
+    joint->butt_solids[1] = InteractionFeatureSolid(Mesh::loft({square}, {square.translated(behind)}, true), SolidOperation::subtract);
+
+    // the running member's end toward the butting member: a face across the face found, looking toward the butting member's centre
+    const Vector toward = (butting_centre - running_centre).normalized();
+    std::optional<Plane> end;
+    double most = 0.2;
+    for (const Plane& plane : running_planes) {
+        if (std::abs(plane.z_axis().dot(face.z_axis())) > 0.5)
+            continue;
+        if (plane.z_axis().dot(toward) > most) {
+            most = plane.z_axis().dot(toward);
+            end = plane;
+        }
+    }
+
+    // a corner when that end lies inside the butting member: the running member gains its end face run on to the butting member's far face
+    if (!end)
+        return joint;
+    double nearest = std::numeric_limits<double>::max();
+    double far = -std::numeric_limits<double>::max();
+    for (const Point& point : butting_points) {
+        const double distance = (point - end->origin()).dot(end->z_axis());
+        nearest = std::min(nearest, distance);
+        far = std::max(far, distance);
+    }
+    if (!(nearest < -tolerance && far > tolerance))
+        return joint;
+
+    // the end face's outline: the running member's corners on its plane, in order around their centre
+    std::vector<Point> corners;
+    for (const Point& point : running_points)
+        if (std::abs((point - end->origin()).dot(end->z_axis())) < tolerance * 1e3)
+            corners.push_back(point);
+    if (corners.size() < 3)
+        return joint;
+    Point middle(0.0, 0.0, 0.0);
+    for (const Point& point : corners)
+        middle = middle + Vector(point[0], point[1], point[2]) / (double)corners.size();
+    const Vector x_axis = end->x_axis();
+    const Vector y_axis = end->y_axis();
+    std::sort(corners.begin(), corners.end(), [&](const Point& a, const Point& b) {
+        return std::atan2((a - middle).dot(y_axis), (a - middle).dot(x_axis)) < std::atan2((b - middle).dot(y_axis), (b - middle).dot(x_axis));
+    });
+    corners.erase(std::unique(corners.begin(), corners.end(), [&](const Point& a, const Point& b) { return Point::distance(a, b) < tolerance * 1e3; }), corners.end());
+    corners.push_back(corners.front());
+    const Polyline outline(corners);
+    joint->butt_solids[0] = InteractionFeatureSolid(Mesh::loft({outline}, {outline.translated(end->z_axis() * far)}, true), SolidOperation::add);
+
+    return joint;
+}
+
 std::shared_ptr<JointBeam> JointBeam::butterfly_key(
     const Element& a,
     const Element& b,
@@ -1230,6 +1321,10 @@ Vector JointBeam::insertion(size_t target) const {
 }
 
 std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
+
+    // a butt: the block this target gains or loses
+    if (is_butt)
+        return std::make_shared<InteractionFeatureSolid>(butt_solids.at(target));
 
     // pins: their holes are pre-drilled lines the targets read, nothing is cut
     if (pre_drill)

@@ -100,9 +100,3 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cross_brussels_half_lap(
 An asymmetric milled half-lap with a vertical 50 mm drill and a horizontal 10 mm drill (`drill_50`, `drill_10`).
 
 \include{lineno} elements/element_joint_beam_cross_brussels_half_lap.cpp
-
-## Parameters
-
-**Shift.** The shift narrows the centre square, 0 the widest; above 0.85 the slanted cuts cross and the ring folds.
-
-![cross sweep](joint_library/sweep_cross.png)

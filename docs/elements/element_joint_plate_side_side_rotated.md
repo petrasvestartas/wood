@@ -82,7 +82,7 @@ A custom half-lap step along the seam: the male's tongue fills the female's reba
 
 ![side_removal, the unit box: male pink, female blue](joint_library/r_side_removal_0_0.5_unit.png)
 
-Each plate's side face, widened by the joint scale, milled off along its normal.
+Each plate cut along its neighbour's side face, back through the neighbour and across the whole face, so the twisted pair meets flush; the square pair only touches and loses nothing.
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_side_removal.cpp
 

@@ -10,6 +10,9 @@ A joint between beams or members: the feature volumes of a beam-to-beam joint, o
 // beam to beam, on the axis contact of two beams
 static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings())
 
+// a flat butt of any two members, beams or plates
+static std::shared_ptr<JointBeam> butt(Element& running, Element& butting)
+
 // connectors, on the face contact of two members
 static std::shared_ptr<JointBeam> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...)
 static std::shared_ptr<Plate> let_in_plate(const Element& rib, const InteractionContactFace& contact, double width = 30.0, double back = 220.0, double front = 265.0, double height = 250.0)
@@ -51,5 +54,6 @@ The interaction keeps the axes' `normal` and `axes`; `insertion(target)` gives t
 | [cross](@ref elements_joint_beam_cross) | two beams crossing | `cross_slot` to `cross_brussels_half_lap` |
 | [top_side](@ref elements_joint_beam_top_side) | a beam ending on another | `top_side_milled_wedge` |
 | [end to end](@ref elements_joint_beam_end_to_end) | two extended beams sharing an axis end | `side_side_inplane_splayed_scarf`, `side_side_inplane_cross_splayed_scarf`, `side_side_rotated_miter`, `jupiter_scarf` |
+| [butt](@ref elements_joint_beam_butt) | any two members meeting, beams or plates | `butt` |
 | [connectors](@ref elements_joint_beam_connectors) | the face contact of two members | `wedge`, `rectangle_plate`, `butterfly_key` |
 | [pins](@ref elements_joint_beam_pins) | the face contact of two members | `centred_pins`, `headed_pins` |

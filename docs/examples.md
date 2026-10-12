@@ -25,6 +25,8 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `17_solid_features` | Solid difference, intersection, union and an arbitrary mesh cutter |
 | `18_cutting_gallery` | Loads the three saved cutting scenes into one viewer gallery |
 | `19_plate_joint_library` | Named side-to-top factories with different division and shift parameters |
+| `20_butt_frame` | A timber-frame wall from lines: sill, head, posts and braces butted flat |
+| `21_butt_house` | A small house from plates on mid-planes: floor, walls and roof butted flat |
 
 Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
@@ -139,3 +141,19 @@ See @subpage cutting_gallery for the API, geometry limits and Cloudflare command
 ### 18_cutting_gallery
 
 \include{lineno} 18_cutting_gallery.cpp
+
+## Butt joints
+
+Members drawn as lines and mid-planes overlap where they meet; `JointBeam::butt(running, butting)` cuts the butting member flat on the running member's face and runs the running member on to the butting member's outer face at a corner (@ref elements_joint_beam_butt).
+
+### 20_butt_frame
+
+![20_butt_frame](examples/20_butt_frame.png)
+
+\include{lineno} 20_butt_frame.cpp
+
+### 21_butt_house
+
+![21_butt_house](examples/21_butt_house.png)
+
+\include{lineno} 21_butt_house.cpp

@@ -29,6 +29,7 @@ An element is built from its own parameters; what others do to it comes through 
 | [JointBeam cross](@ref elements_joint_beam_cross) | `wood_element_joint_beam.h` | `element_joint_beam_cross_slot` to `_brussels_half_lap` |
 | [JointBeam top_side](@ref elements_joint_beam_top_side) | `wood_element_joint_beam.h` | `element_joint_beam_top_side_milled_wedge` |
 | [JointBeam end to end](@ref elements_joint_beam_end_to_end) | `wood_element_joint_beam.h` | `element_joint_beam_side_side_inplane_splayed_scarf`, `_side_side_inplane_cross_splayed_scarf`, `_side_side_rotated_miter`, `_jupiter_scarf` |
+| [JointBeam butt](@ref elements_joint_beam_butt) | `wood_element_joint_beam.h` | `element_joint_beam_butt`, `_butt_plates` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
@@ -53,6 +54,7 @@ An element is built from its own parameters; what others do to it comes through 
 - @subpage elements_joint_beam_cross
 - @subpage elements_joint_beam_top_side
 - @subpage elements_joint_beam_end_to_end
+- @subpage elements_joint_beam_butt
 - @subpage elements_joint_beam_connectors
 - @subpage elements_joint_beam_pins
 - @subpage elements_pin

@@ -23,7 +23,6 @@ cmake --build build --target joint_tiles --parallel 6 > /dev/null
 ./build/joint_tiles "$WORK/sweep" $(
     for d in 4 8 12; do for s in 0.0 0.5 1.0; do echo "ip/side_side_inplane_dovetails/$d/$s op/side_side_outplane_fingers/$d/$s op/side_side_outplane_graded_fingers/$d/$s"; done; done
     for d in 4 8 16; do for s in 0.25 0.5 0.75; do echo "ts/top_side_dense_tenons/$d/$s ts/top_side_tenons/$d/$s"; done; done
-    for d in cross_sliced_half_lap cross_half_lap cross_half_lap_diagonal_drills cross_half_lap_drill cross_brussels_half_lap; do for s in 0.25 0.5 0.75; do echo "cr/$d/$s"; done; done
     for d in 2 4 6; do echo "r/side_side_rotated_hooks/$d/0.5 r/side_side_rotated_keys/$d/0.5 ip/side_side_inplane_butterfly_keys/$d ip/side_side_inplane_tooth_keys/$d"; done
     for t in 0 0.25 0.5; do for c in 0 1; do echo "op/side_side_outplane_tenons/8/$t/$c/1"; done; done
     for d in 4 8 12; do echo "op/side_side_outplane_linked_tenons/$d/0 op/side_side_outplane_linked_tenons_wall/$d op/side_side_outplane_capped_fingers/$d"; done
@@ -68,7 +67,6 @@ sweep side_side_outplane_fingers "side_side_outplane_fingers: divisions (rows) a
 sweep side_side_outplane_graded_fingers "side_side_outplane_graded_fingers: divisions (rows) and shift (columns)" 3 unit $(grid op/side_side_outplane_graded_fingers "4 8 12" "0.0 0.5 1.0")
 sweep top_side_dense_tenons "top_side_dense_tenons: divisions (rows) and shift (columns)" 3 unit $(grid ts/top_side_dense_tenons "4 8 16" "0.25 0.5 0.75")
 sweep top_side_tenons "top_side_tenons: divisions (rows) and shift (columns)" 3 unit $(grid ts/top_side_tenons "4 8 16" "0.25 0.5 0.75")
-sweep cross "cross_sliced_half_lap to cross_brussels_half_lap (rows): shift (columns)" 3 plates $(for d in cross_sliced_half_lap cross_half_lap cross_half_lap_diagonal_drills cross_half_lap_drill cross_brussels_half_lap; do for s in 0.25 0.5 0.75; do echo "$d, shift $s|cr/$d/$s"; done; done)
 sweep side_side_rotated "side_side_rotated_hooks and side_side_rotated_keys (rows): divisions (columns)" 3 plates $(for n in hooks keys; do for d in 2 4 6; do echo "side_side_rotated_$n, divisions $d|r/side_side_rotated_$n/$d/0.5"; done; done)
 sweep side_side_inplane_keys "side_side_inplane_butterfly_keys and side_side_inplane_tooth_keys (rows): divisions (columns)" 3 plates $(for n in butterfly_keys tooth_keys; do for d in 2 4 6; do echo "side_side_inplane_$n, divisions $d|ip/side_side_inplane_$n/$d"; done; done)
 sweep side_side_outplane_tenons "side_side_outplane_tenons, 8 divisions: taper (rows) and chamfer (columns)" 2 unit $(for t in 0 0.25 0.5; do for c in 0 1; do echo "taper $t, chamfer $c|op/side_side_outplane_tenons/8/$t/$c/1"; done; done)

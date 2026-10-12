@@ -57,6 +57,9 @@ public:
         const std::string& name = "plate"
     );
 
+    /// A plate standing on a line and centred on it, a wall drawn on its footprint: the line the middle of its bottom edge, `height` up `up`, `thickness` across.
+    static std::shared_ptr<Plate> from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
+
     /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
     static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
 

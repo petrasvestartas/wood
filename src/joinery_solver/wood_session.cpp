@@ -1747,6 +1747,16 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(const std::share
         return cut;
     }
 
+    // a butt: the block the target gains or loses, nothing when it gains none
+    if (beam_joint && beam_joint->is_butt) {
+        Session::remove_interaction(joint, target);
+        if (!cut)
+            throw std::invalid_argument("A butt's interaction is its InteractionFeatureSolid");
+        if (cut->mesh.number_of_faces() > 0)
+            add_solid_interaction(joint, target, cut);
+        return cut;
+    }
+
     // a beam-to-beam joint: its volumes on the edge, hosted on the target as a joint feature
     if (beam_joint) {
         const std::shared_ptr<InteractionFeatureBeam> volumes = std::dynamic_pointer_cast<InteractionFeatureBeam>(interaction);

@@ -2017,7 +2017,7 @@ std::shared_ptr<JointPlate> JointPlate::jupiter_scarf() {
 bool JointPlate::compute_side_removal(InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements) const {
 
     if (parameters.library == "side_removal")
-        ::side_removal(connection, elements, parameters.merge_with_joint);
+        ::side_removal(connection, elements, parameters.merge_with_joint, true);
     else if (parameters.library == "jupiter_scarf")
         ::jupiter_scarf(connection);
     else

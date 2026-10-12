@@ -98,6 +98,14 @@ std::shared_ptr<Plate> Plate::from_rectangle(
     return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
+std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name) {
+
+    const Vector along = (base.end() - base.start()).normalized();
+    const Vector upward = up.normalized();
+    const Vector across = along.cross(upward).normalized();
+    return from_rectangle(base.start() - across * (0.5 * thickness), along, upward, base.length(), height, thickness, name);
+}
+
 std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
 
     // the left plate along x into the seam, the right one out of it folded up about the seam by 180 - angle, a shallow V; the seam their miter through the fold line at mid thickness
