@@ -76,10 +76,13 @@ static void pairs() {
     const auto wall = [](const Point& start, const Point& end) { return Plate::from_line(Line::from_points(start, end), Vector(0.0, 0.0, 1.0), 1500.0, 120.0, "wall"); };
     const auto near = [](double value, double expected, const std::string& what) { check(std::abs(value - expected) < FLUSH, fmt::format("{} at {}, not {}", what, value, expected)); };
 
-    // beams: top_side, top_side at an end drawn past and short, side_side_outplane, side_side_inplane and a cross
+    // beams: top_side, top_side at 18 degrees, top_side at an end drawn past and short, side_side_outplane, side_side_inplane and a cross
     std::shared_ptr<Beam> a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
     std::shared_ptr<Beam> b = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0});
     pair("beam_top_side", a, b, ButtConfiguration::top_side, [&] { near(extreme(*b, 2, false), 75.0, "beam_top_side: the post's foot"); near(extreme(*a, 0, true), 1000.0, "beam_top_side: the through beam's end"); });
+    a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
+    b = beam({0.0, 0.0, 0.0}, {-1902.1130325903071, 0.0, -618.03398874989485});
+    pair("beam_top_side_shallow", a, b, ButtConfiguration::top_side, [&] { near(extreme(*b, 2, true), -75.0, "beam_top_side_shallow: the strut's top at 18 degrees"); });
     for (const double drawn : {-150.0, 100.0}) {
         a = beam({drawn, 0.0, 0.0}, {1500.0, 0.0, 0.0});
         b = beam({0.0, 0.0, drawn}, {0.0, 0.0, 1500.0});

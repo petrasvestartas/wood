@@ -1074,9 +1074,10 @@ static std::array<InteractionFeatureSolid, 2> end_cut(const ButtEnd& end, const 
     if (short_of > 1e-6)
         cut[0] = InteractionFeatureSolid(Mesh::loft({end.face}, {end.face.translated(end.out * (short_of + size))}, true), SolidOperation::add);
 
-    // the wood beyond the plane, a square box around the end on it
+    // the wood beyond the plane, a square box around the end on it, wider where the member meets the plane at a shallow angle and its
+    // footprint there runs long
     const Plane beyond = Plane::from_point_normal(end.centre - normal * (end.centre - plane.origin()).dot(normal), normal);
-    const double half = radius + 2.0 * size;
+    const double half = (radius + 2.0 * size) / std::max(end.out.dot(normal), 0.1);
     const Polyline square = Polyline::rectangle(beyond.origin() - beyond.x_axis() * half - beyond.y_axis() * half, beyond.x_axis(), beyond.y_axis(), 2.0 * half, 2.0 * half);
     cut[1] = InteractionFeatureSolid(Mesh::loft({square}, {square.translated(normal * (short_of + radius + 4.0 * size))}, true), SolidOperation::subtract);
 
@@ -1124,13 +1125,15 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
         joint->butt_planes[on] = crossed_side(members[1 - on], members[on].ends[*ends[on]], true, within);
     }
 
-    // both ends: side_side_inplane in line, top_side at a square corner, side_side_outplane, a miter, at an oblique one
+    // both ends: nearly in line, both on the plane halfway, side_side_inplane when in line or in one plane, else a shallow side_side_outplane;
+    // top_side at a square corner; side_side_outplane, a miter, at an oblique one
     if (ends[0] && ends[1]) {
         const ButtEnd& end_a = members[0].ends[*ends[0]];
         const ButtEnd& end_b = members[1].ends[*ends[1]];
         const double cosine = end_a.out.dot(end_b.out);
         if (cosine < -0.9) {
-            joint->configuration = ButtConfiguration::side_side_inplane;
+            const bool coplanar = members[0].flat && members[1].flat && std::abs(Plane::from_points(members[0].drawn).z_axis().dot(Plane::from_points(members[1].drawn).z_axis())) > 0.996;
+            joint->configuration = cosine < -0.996 || coplanar ? ButtConfiguration::side_side_inplane : ButtConfiguration::side_side_outplane;
             const Point middle = end_a.centre + (end_b.centre - end_a.centre) * 0.5;
             const Plane halfway = Plane::from_point_normal(middle, (end_a.out - end_b.out).normalized());
             joint->butt_planes = {halfway, halfway};
