@@ -156,6 +156,10 @@ public:
     /// an end lies near the other, as a column through a tie at a node; nullptr when they do not touch.
     static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b);
 
+    /// A butt cross on a given lap plane: the first loses the second's wood in front of the plane, the second the first's behind, so several
+    /// members crossing at one point each keep a layer of the depth.
+    static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b, const Plane& lap);
+
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
     static std::shared_ptr<JointBeam> butterfly_key(
         const Element& a,

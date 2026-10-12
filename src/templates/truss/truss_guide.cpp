@@ -1749,4 +1749,23 @@ TrussGuide TrussGuide::trapezoid_king_crossed(double span, double height, double
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
+TrussGuide TrussGuide::topology_optimised(double span, double height, double chord_radius, double web_radius) {
+
+    const auto top = [&](double fraction) { return Point(fraction * span, 0.0, height); };
+    const auto bottom = [&](double fraction) { return Point(fraction * span, 0.0, 0.0); };
+
+    // the chords: the bottom chord straight, the top chord level from 0.13 to 0.87 of the span and sloping down to the supports
+    const std::vector<Polyline> chords = {Polyline({bottom(0.0), bottom(1.0)}), Polyline({bottom(0.0), top(0.13), top(0.33), top(0.5), top(0.67), top(0.87), bottom(1.0)})};
+
+    // the triangle at the middle, and per side a strut from the shoulder, the zigzag towards the middle and the long diagonal crossing it
+    std::vector<Line> webs = {Line::from_points(top(0.5), bottom(0.41)), Line::from_points(top(0.5), bottom(0.59))};
+    for (const Line& web : {Line::from_points(top(0.13), bottom(0.2)), Line::from_points(bottom(0.2), top(0.33)), Line::from_points(top(0.33), bottom(0.41)),
+             Line::from_points(top(0.13), bottom(0.41))}) {
+        webs.push_back(web);
+        webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
+    }
+
+    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
+}
+
 } // namespace wood_truss

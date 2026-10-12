@@ -75,6 +75,7 @@ int main() {
         {"cambered_crossed_lantern", wood_truss::TrussGuide::cambered_crossed_lantern()},
         {"arched_crossed_columns", wood_truss::TrussGuide::arched_crossed_columns()},
         {"trapezoid_king_crossed", wood_truss::TrussGuide::trapezoid_king_crossed()},
+        {"topology_optimised", wood_truss::TrussGuide::topology_optimised()},
     };
     for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
         wood_truss::Truss truss(guide.second, "truss_" + guide.first);

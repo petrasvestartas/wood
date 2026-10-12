@@ -11,6 +11,8 @@ using namespace wood_session;
 
 static const double FLUSH = 1e-3; // mm, how far a butted face may lie from the face it butts on
 static const double OVERLAP_REL = 1e-6; // relative, the volume two butted members may share against the smaller one
+static const double TRUSS_OVERLAP = 5e-4; // relative, the slivers the solid booleans leave where an inner member meets a lapped outer one
+static const double TRUSS_GAP = 5e-3; // relative, the drawn wood of a truss member no member covers any more
 
 /// Throws with the message when the condition fails.
 static void check(bool ok, const std::string& message) {
@@ -307,8 +309,8 @@ static void frame() {
 // Truss library
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Every truss of the TrussGuide library, as examples/templates_truss_2_library.cpp builds them: every member from its line, every butt read
-/// from the nodes; no two members of a truss share any volume, and the Pratt's first vertical stands on the bottom chord's top.
+/// Every truss of the TrussGuide library, as examples/templates_truss_2_library.cpp builds them: no two members share more than slivers, no
+/// drawn wood is lost at a corner, and the Pratt's first vertical stands on the bottom chord's top.
 static void trusses() {
 
     const std::vector<std::pair<std::string, wood_truss::TrussGuide>> guides = {
@@ -379,6 +381,7 @@ static void trusses() {
         {"cambered_crossed_lantern", wood_truss::TrussGuide::cambered_crossed_lantern()},
         {"arched_crossed_columns", wood_truss::TrussGuide::arched_crossed_columns()},
         {"trapezoid_king_crossed", wood_truss::TrussGuide::trapezoid_king_crossed()},
+        {"topology_optimised", wood_truss::TrussGuide::topology_optimised()},
     };
     for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
         const wood_truss::Truss truss(guide.second, guide.first);
@@ -388,7 +391,16 @@ static void trusses() {
                 members.push_back(beam);
         for (size_t i = 0; i < members.size(); i++)
             for (size_t j = i + 1; j < members.size(); j++)
-                check(shared(*members[i], *members[j]) < OVERLAP_REL, fmt::format("trusses: {}: {} and {} overlap by {} of the smaller", guide.first, members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+                check(shared(*members[i], *members[j]) < TRUSS_OVERLAP, fmt::format("trusses: {}: {} and {} overlap by {} of the smaller", guide.first, members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+        std::vector<Mesh> cut;
+        for (const std::shared_ptr<Beam>& member : members)
+            cut.push_back(member->model_geometry_mesh());
+        for (const std::shared_ptr<Beam>& member : members) {
+            const Mesh drawn = member->element_geometry_mesh();
+            const Mesh lost = solid_difference(drawn, cut);
+            const double fraction = lost.number_of_faces() == 0 ? 0.0 : compute_volume(lost) / compute_volume(drawn);
+            check(fraction < TRUSS_GAP, fmt::format("trusses: {}: {} loses {} of its drawn wood that no member fills", guide.first, member->name, fraction));
+        }
         if (guide.first == "pratt")
             check(std::abs(extreme(*truss.get_element_by_name<Beam>("web_0"), 2, false) - 80.0) < FLUSH, "trusses: pratt: the first vertical does not stand on the bottom chord's top");
     }

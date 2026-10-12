@@ -13,16 +13,17 @@ namespace wood_truss {
 /// The truss model, a session built from a guide: a beam per chord run, per web and per end post, then the butts the nodes call for, every
 /// one read from how the lines meet there.
 ///
+/// The members are ranked as a graph is pruned, the outer boundary of the lines first, then the boundary of what is left; boundary corners are
+/// made first and an inner member is let into the outer ones last, losing only the wood they have once cut.
+///
 /// - At a kink, the two runs side_side on the miter.
 /// - Where chords meet at their ends, a heel, JointBeam::butt reads the case; a chord's end on another chord's run stops top_side on it.
-/// - A web's or post's end on a run, or where several runs end, stops top_side on each run there; at a run's lone end the chord runs on over
-///   it, top_side at the end.
-/// - A web's or post's end on another web's or post's middle, as a K's on its vertical, stops top_side on it.
-/// - A chord's end on a web's or post's middle, as a tie on a column, stops top_side on it.
-/// - Any two members whose lines cross inside both, chords, webs or posts, get a half lap, JointBeam::butt_cross; one member can be crossed
-///   many times.
-/// - At a node, the webs and posts ending there, sorted by angle, side_side with each neighbour: on a chord never across the widest gap, at a
-///   node clear of the chords all the way round.
+/// - A web's or post's end on a run, or where several runs end, is let into each run there; at a run's lone end an outer chord runs on over
+///   it, top_side at the end, an inner member is let in.
+/// - A web's or post's end on another member's middle, as a K's on its vertical or a tie on a column, is let into it.
+/// - Members whose lines cross inside each get laps, JointBeam::butt_cross, each keeping a layer of the depth where several cross at a point.
+/// - At a node, an inner member is let into every outer one; those of one rank, sorted by angle, side_side with each neighbour, never across a
+///   member passing through: on a chord never across the widest gap, at a node clear of the chords all the way round.
 ///
 /// Members are named `chord_<c>_<s>`, `web_<w>` and `post_<p>`, read back by name; the guide's lines are drawn red in `input`.
 class Truss : public WoodSession {

@@ -294,6 +294,10 @@ public:
     /// Trapezoid with king post and crossed diagonals (roof catalogue Q): over `span`, the top chord up to shoulders `height` high at the quarter
     /// points and a ridge `ridge` high, verticals, the king post and both diagonals in the two middle panels.
     static TrussGuide trapezoid_king_crossed(double span = 12000.0, double height = 1880.0, double ridge = 2610.0, double chord_radius = 80.0, double web_radius = 60.0);
+
+    /// Topology-optimised beam: over `span`, a level top chord `height` high between sloped ends, a triangle at the middle and per side a
+    /// zigzag of webs with a crossed pair, as a density optimisation of a simply supported beam leaves them.
+    static TrussGuide topology_optimised(double span = 12000.0, double height = 1800.0, double chord_radius = 80.0, double web_radius = 60.0);
 };
 
 } // namespace wood_truss

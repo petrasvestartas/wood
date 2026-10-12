@@ -1096,7 +1096,7 @@ enum class ButtMode {
 
 /// The butt of two members in a mode: the configuration their ends make, each reaching end's plane, and what each end gains and loses to
 /// stop on it.
-static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b, double reach, ButtMode mode) {
+static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b, double reach, ButtMode mode, const std::optional<Plane>& lap = std::nullopt) {
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->is_butt = true;
@@ -1119,16 +1119,18 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
         joint->configuration = ButtConfiguration::cross;
         joint->name = "cross";
 
-        // two beams crossing, a half lap: on the plane halfway between their axes, each loses the other's wood on its own half
+        // two beams crossing, a lap: on the lap plane, by default halfway between their axes, the first loses the second's wood in front of it
+        // and the second the first's behind
         if (members[0].flat || members[1].flat)
             return joint;
         const std::array<Vector, 2> axes = {members[0].ends[1].centre - members[0].ends[0].centre, members[1].ends[1].centre - members[1].ends[0].centre};
         const Vector across = axes[0].cross(axes[1]);
         if (across.magnitude() < 1e-6 * axes[0].magnitude() * axes[1].magnitude())
             return joint;
-        const Vector normal = across.normalized();
-        const Point origin = members[0].ends[0].centre + normal * (0.5 * (members[1].ends[0].centre - members[0].ends[0].centre).dot(normal));
-        const Plane plane = Plane::from_point_normal(origin, normal);
+        const Vector halfway = across.normalized();
+        const Plane plane = lap ? *lap : Plane::from_point_normal(members[0].ends[0].centre + halfway * (0.5 * (members[1].ends[0].centre - members[0].ends[0].centre).dot(halfway)), halfway);
+        const Point origin = plane.origin();
+        const Vector normal = plane.z_axis();
         const double half = axes[0].magnitude() + axes[1].magnitude() + 4.0 * size;
         const Polyline square = Polyline::rectangle(origin - plane.x_axis() * half - plane.y_axis() * half, plane.x_axis(), plane.y_axis(), 2.0 * half, 2.0 * half);
         for (size_t i = 0; i < 2; i++) {
@@ -1345,6 +1347,11 @@ std::shared_ptr<JointBeam> JointBeam::butt_top_side(const Element& top, const El
 std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b) {
 
     return butt_joint(a, b, 0.0, ButtMode::cross);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b, const Plane& lap) {
+
+    return butt_joint(a, b, 0.0, ButtMode::cross, lap);
 }
 
 std::shared_ptr<JointBeam> JointBeam::butterfly_key(

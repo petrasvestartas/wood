@@ -8,17 +8,21 @@
 wood_truss::Truss truss(wood_truss::TrussGuide::pratt());
 ```
 
+The members are ranked as a graph is pruned: the members on the outer boundary of the lines first, columns and dangling legs included, then
+the boundary of what is left, and so on. Boundary corners are made first; an inner member is then let into the outer ones, losing only the
+wood they have once cut, so nothing is lost at a corner and nothing is cut twice.
+
 | Where the lines meet | Butt |
 | --- | --- |
 | a chord turns, a kink | the two runs `side_side` on the miter |
 | chords end at one node, a heel | `JointBeam::butt` reads the case |
 | a chord's end on another chord's run | `top_side` on it |
-| a web's or post's end on a run, or where several runs end | `top_side` on each run there |
-| a web's or post's end at a run's lone end | `top_side` at the end, the chord running on over it |
-| a web's end on another web's middle, a K | `top_side` on it |
-| a chord's end on a web's or post's middle, a tie on a column | `top_side` on it |
-| any two members crossing, chords, webs or posts | a half lap, `JointBeam::butt_cross`; a member can be crossed many times |
-| webs and posts ending at one node | sorted by angle, `side_side` with each neighbour; on a chord never across the widest gap |
+| a web's or post's end on a run, or where several runs end | let into each run there |
+| a web's or post's end at a run's lone end | the outer member runs on over it, `top_side` at the end; an inner member is let in |
+| a web's end on another web's middle, a K | let into it |
+| a chord's end on a web's or post's middle, a tie on a column | let into it |
+| members crossing, chords, webs or posts | laps, `JointBeam::butt_cross`, each keeping a layer of the depth where several cross at one point |
+| members ending at one node | an inner one let into every outer one; those of one rank `side_side` with each neighbour, never across a member passing through |
 
 ## Constructor
 
@@ -595,5 +599,13 @@ TrussGuide::trapezoid_king_crossed(double span = 12000.0, double height = 1880.0
 ```
 
 ![truss_trapezoid_king_crossed](templates/truss_trapezoid_king_crossed.png)
+
+### Topology optimised
+
+```cpp
+TrussGuide::topology_optimised(double span = 12000.0, double height = 1800.0, double chord_radius = 80.0, double web_radius = 60.0);
+```
+
+![truss_topology_optimised](templates/truss_topology_optimised.png)
 
 \include{lineno} templates_truss_2_library.cpp

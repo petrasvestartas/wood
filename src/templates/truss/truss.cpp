@@ -163,21 +163,142 @@ void Truss::add_web_butts() {
             off = point;
     const Plane plane = Plane::from_point_normal(far[0], along.cross(off - far[0]).normalized());
 
-    // each end on the runs: top_side on a run it lies on or where several runs end; at a run's lone end the chord runs on over it; where two
-    // runs end at a kink or a heel and the member stands outside the bend, one cut, what lies beyond both faces, so the end fits over the
-    // ridge the runs make instead of losing a V to each face
+    // the truss's plane coordinates of a vector, and the turn from one to another
     const auto flat = [&plane](const Vector& vector) { return std::array<double, 2>{vector.dot(plane.x_axis()), vector.dot(plane.y_axis())}; };
     const auto cross = [](const std::array<double, 2>& a, const std::array<double, 2>& b) { return a[0] * b[1] - a[1] * b[0]; };
+
+    // every member's line, the runs then the webs and posts
+    std::vector<std::pair<Line, std::shared_ptr<Beam>>> lines;
+    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+        lines.emplace_back(Line::from_points(run.first[0], run.first[1]), run.second);
+    lines.insert(lines.end(), members.begin(), members.end());
+
+    // the graph the lines draw: every end and crossing a vertex, each line split at the vertices on it into edges
+    std::vector<Point> vertices;
+    const auto vertex_of = [&vertices](const Point& point) {
+        for (size_t n = 0; n < vertices.size(); n++)
+            if (at(point, vertices[n]))
+                return n;
+        vertices.push_back(point);
+        return vertices.size() - 1;
+    };
+    for (const std::pair<Line, std::shared_ptr<Beam>>& line : lines) {
+        vertex_of(line.first.start());
+        vertex_of(line.first.end());
+    }
+    for (size_t i = 0; i < lines.size(); i++)
+        for (size_t j = i + 1; j < lines.size(); j++) {
+            double t_a = 0.0;
+            double t_b = 0.0;
+            if (Intersection::line_line_parameters(lines[i].first, lines[j].first, t_a, t_b, NODE_TOLERANCE, false) && t_a > 0.0 && t_a < 1.0 && t_b > 0.0 && t_b < 1.0)
+                vertex_of(lines[i].first.point_at(t_a));
+        }
+    struct Edge {
+        size_t from;
+        size_t to;
+        size_t line;
+    };
+    std::vector<Edge> edges;
+    for (size_t l = 0; l < lines.size(); l++) {
+        const Line& line = lines[l].first;
+        std::vector<std::pair<double, size_t>> on = {{0.0, vertex_of(line.start())}, {1.0, vertex_of(line.end())}};
+        for (size_t n = 0; n < vertices.size(); n++)
+            if (inside(vertices[n], {line.start(), line.end()}))
+                on.emplace_back((vertices[n] - line.start()).dot(line.to_vector()) / line.to_vector().dot(line.to_vector()), n);
+        std::sort(on.begin(), on.end());
+        for (size_t k = 0; k + 1 < on.size(); k++)
+            edges.push_back({on[k].second, on[k + 1].second, l});
+    }
+
+    // each member's rank, the graph pruned from its boundary: the edges on the outer face of what is left take the next rank, walked from the
+    // leftmost vertex keeping the outside on the left, until no edge is left
+    std::vector<int> rank(lines.size(), std::numeric_limits<int>::max());
+    std::vector<bool> left(edges.size(), true);
+    for (int layer = 0; std::find(left.begin(), left.end(), true) != left.end(); layer++) {
+        std::vector<bool> walked(vertices.size(), false);
+        std::vector<size_t> boundary;
+        while (true) {
+            std::optional<size_t> start;
+            for (size_t e = 0; e < edges.size(); e++)
+                if (left[e])
+                    for (const size_t n : {edges[e].from, edges[e].to})
+                        if (!walked[n] && (!start || flat(vertices[n] - vertices[0])[0] < flat(vertices[*start] - vertices[0])[0] - 1e-9
+                                || (std::abs(flat(vertices[n] - vertices[0])[0] - flat(vertices[*start] - vertices[0])[0]) <= 1e-9 && flat(vertices[n] - vertices[0])[1] < flat(vertices[*start] - vertices[0])[1])))
+                            start = n;
+            if (!start)
+                break;
+            size_t current = *start;
+            double back = Tolerance::PI;
+            std::optional<size_t> first;
+            for (size_t step = 0; step < 4 * edges.size(); step++) {
+                std::optional<size_t> next;
+                double turn = 0.0;
+                for (size_t e = 0; e < edges.size(); e++) {
+                    if (!left[e] || (edges[e].from != current && edges[e].to != current))
+                        continue;
+                    const std::array<double, 2> d = flat(vertices[edges[e].from == current ? edges[e].to : edges[e].from] - vertices[current]);
+                    double clockwise = std::fmod(back - std::atan2(d[1], d[0]) + 4.0 * Tolerance::PI, 2.0 * Tolerance::PI);
+                    clockwise = clockwise < 1e-9 ? 2.0 * Tolerance::PI : clockwise;
+                    if (!next || clockwise < turn) {
+                        next = e;
+                        turn = clockwise;
+                    }
+                }
+                if (!next || (first && *next == *first && current == *start))
+                    break;
+                if (!first)
+                    first = next;
+                boundary.push_back(*next);
+                const size_t other = edges[*next].from == current ? edges[*next].to : edges[*next].from;
+                const std::array<double, 2> d = flat(vertices[current] - vertices[other]);
+                back = std::atan2(d[1], d[0]);
+                current = other;
+            }
+
+            // the walked component done for this layer
+            std::vector<size_t> stack = {*start};
+            walked[*start] = true;
+            while (!stack.empty()) {
+                const size_t n = stack.back();
+                stack.pop_back();
+                for (size_t e = 0; e < edges.size(); e++)
+                    if (left[e] && (edges[e].from == n || edges[e].to == n))
+                        for (const size_t m : {edges[e].from, edges[e].to})
+                            if (!walked[m]) {
+                                walked[m] = true;
+                                stack.push_back(m);
+                            }
+            }
+        }
+        for (const size_t e : boundary) {
+            rank[edges[e].line] = std::min(rank[edges[e].line], layer);
+            left[e] = false;
+        }
+        if (boundary.empty())
+            break;
+    }
+    std::map<const Beam*, int> ranks;
+    for (size_t l = 0; l < lines.size(); l++)
+        ranks[lines[l].second.get()] = rank[l];
+
+    // inner members' ends let into outer ones, made last, in the order of the inner's rank, the graph pruned from its boundary
+    std::vector<std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>>> lets;
+    const auto let_in = [&lets](const std::shared_ptr<Beam>& outer, const std::shared_ptr<Beam>& inner) { lets.emplace_back(outer, inner); };
+
+    // each end on the runs: let into a run it lies on or into each run ending there; at a run's lone end the chord runs on over it unless the
+    // member is the inner one
     for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
         for (const Point& end : {member.first.start(), member.first.end()}) {
-            std::vector<std::pair<std::shared_ptr<JointBeam>, std::shared_ptr<Beam>>> stops;
+            std::vector<std::shared_ptr<Beam>> stops;
             std::vector<Vector> along;
             for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
                 const bool at_start = at(end, run.first[0]);
                 const bool at_end = at_start || at(end, run.first[1]);
                 if (inside(end, run.first) || (at_end && ending(end) > 1)) {
-                    stops.emplace_back(JointBeam::butt_top_side(*run.second, *member.second), run.second);
+                    stops.push_back(run.second);
                     along.push_back(at_end ? (at_start ? run.first[1] - run.first[0] : run.first[0] - run.first[1]) : Vector(0.0, 0.0, 0.0));
+                } else if (at_end && ranks[member.second.get()] > ranks[run.second.get()]) {
+                    let_in(run.second, member.second);
                 } else if (at_end) {
                     add_butt(JointBeam::butt_top_side_end(*run.second, *member.second), run.second, member.second);
                 }
@@ -187,7 +308,7 @@ void Truss::add_web_butts() {
             // on a run passing through, as a column under a valley, the runs ending clearly on its far side are not reached
             for (size_t k = 0; k < stops.size(); k++)
                 if (along[k].magnitude() == 0.0) {
-                    const std::array<double, 2> through = flat(stops[k].second->axis.get_lines()[0].to_vector().normalized());
+                    const std::array<double, 2> through = flat(stops[k]->axis.get_lines()[0].to_vector().normalized());
                     const double side = cross(through, flat(away.normalized()));
                     for (size_t j = stops.size(); j-- > 0;)
                         if (along[j].magnitude() > 0.0 && cross(through, flat(along[j].normalized())) * side < -0.1) {
@@ -196,34 +317,8 @@ void Truss::add_web_butts() {
                             k -= j < k ? 1 : 0;
                         }
                 }
-            const bool bend = stops.size() == 2 && along[0].magnitude() > 0.0 && along[1].magnitude() > 0.0 && stops[0].first && stops[1].first
-                && stops[0].first->butt_planes[1] && stops[1].first->butt_planes[1];
-            const double turn = bend ? cross(flat(along[0]), flat(along[1])) : 0.0;
-            const bool outside = bend && !(cross(flat(along[0]), flat(away)) * turn > 0.0 && cross(flat(away), flat(along[1])) * turn > 0.0);
-            if (outside) {
-                // each run's outer face, away from the other run, half a chord off its line, and the member losing what lies beyond both, kept on the
-                // run nearer its line
-                if (along[0].normalized().dot(away.normalized()) < along[1].normalized().dot(away.normalized())) {
-                    std::swap(stops[0], stops[1]);
-                    std::swap(along[0], along[1]);
-                }
-                const double size = 4.0 * away.magnitude();
-                Mesh wedge;
-                for (size_t r = 0; r < 2; r++) {
-                    const Vector line = along[r].normalized();
-                    Vector side = plane.z_axis().cross(line).normalized();
-                    if (side.dot(along[1 - r]) > 0.0)
-                        side = side * -1.0;
-                    const Plane face = Plane::from_point_normal(end + side * guide.chord_radius, side);
-                    const Polyline base = Polyline::rectangle(face.origin() - face.x_axis() * size - face.y_axis() * size, face.x_axis(), face.y_axis(), 2.0 * size, 2.0 * size);
-                    const Mesh half = Mesh::loft({base}, {base.translated(side * -size)}, true);
-                    wedge = wedge.number_of_faces() == 0 ? half : solid_boolean(wedge, half, SolidOperation::intersect);
-                }
-                stops[0].first->butt_solids[1].mesh = wedge;
-                stops.pop_back();
-            }
-            for (const std::pair<std::shared_ptr<JointBeam>, std::shared_ptr<Beam>>& stop : stops)
-                add_butt(stop.first, stop.second, member.second);
+            for (const std::shared_ptr<Beam>& stop : stops)
+                let_in(stop, member.second);
         }
 
     // each end on another web's or post's middle, as a K's on its vertical, top_side on it
@@ -231,21 +326,17 @@ void Truss::add_web_butts() {
         for (const Point& end : {member.first.start(), member.first.end()})
             for (const std::pair<Line, std::shared_ptr<Beam>>& other : members)
                 if (inside(end, {other.first.start(), other.first.end()}))
-                    add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
+                    let_in(other.second, member.second);
 
     // each run's end on a web's or post's middle, as a tie on a column, top_side on it
     for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
         for (const Point& end : run.first)
             for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
                 if (inside(end, {member.first.start(), member.first.end()}))
-                    add_butt(JointBeam::butt_top_side(*member.second, *run.second), member.second, run.second);
+                    let_in(member.second, run.second);
 
-    // each two members whose lines cross inside both, chords, webs or posts, a half lap at the crossing: one member crossed as often as others
-    // pass it
-    std::vector<std::pair<Line, std::shared_ptr<Beam>>> lines;
-    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
-        lines.emplace_back(Line::from_points(run.first[0], run.first[1]), run.second);
-    lines.insert(lines.end(), members.begin(), members.end());
+    // each point where members' lines cross inside each, chords, webs or posts, with the members crossing there
+    std::vector<std::pair<Point, std::vector<size_t>>> crossings;
     for (size_t i = 0; i < lines.size(); i++)
         for (size_t j = i + 1; j < lines.size(); j++) {
             const Line& a = lines[i].first;
@@ -255,9 +346,33 @@ void Truss::add_web_butts() {
             if (!Intersection::line_line_parameters(a, b, t_a, t_b, NODE_TOLERANCE, false))
                 continue;
             const Point crossing = a.point_at(t_a);
-            if (inside(crossing, {a.start(), a.end()}) && inside(crossing, {b.start(), b.end()}))
-                add_butt(JointBeam::butt_cross(*lines[i].second, *lines[j].second), lines[i].second, lines[j].second);
+            if (!inside(crossing, {a.start(), a.end()}) || !inside(crossing, {b.start(), b.end()}))
+                continue;
+            size_t c = 0;
+            while (c < crossings.size() && !at(crossings[c].first, crossing))
+                c++;
+            if (c == crossings.size())
+                crossings.push_back({crossing, {}});
+            for (const size_t k : {i, j})
+                if (std::find(crossings[c].second.begin(), crossings[c].second.end(), k) == crossings[c].second.end())
+                    crossings[c].second.push_back(k);
         }
+
+    // at each crossing every two members lapped, each keeping its own layer of the depth they share, a half each where two cross: one member
+    // crossed as often as others pass it
+    for (const std::pair<Point, std::vector<size_t>>& crossing : crossings) {
+        std::vector<size_t> crossed = crossing.second;
+        std::sort(crossed.begin(), crossed.end());
+        double depth = 2.0 * guide.chord_radius;
+        for (const size_t k : crossed)
+            depth = std::min(depth, 2.0 * lines[k].second->radius(0));
+        for (size_t i = 0; i < crossed.size(); i++)
+            for (size_t j = i + 1; j < crossed.size(); j++) {
+                const double layer = -0.5 * depth + depth * static_cast<double>(i + 1) / static_cast<double>(crossed.size());
+                const Plane lap = Plane::from_point_normal(crossing.first + plane.z_axis() * layer, plane.z_axis());
+                add_butt(JointBeam::butt_cross(*lines[crossed[i]].second, *lines[crossed[j]].second, lap), lines[crossed[i]].second, lines[crossed[j]].second);
+            }
+    }
 
     // every node a web or post ends at, once
     std::vector<Point> nodes;
@@ -270,8 +385,9 @@ void Truss::add_web_butts() {
                 nodes.push_back(end);
         }
 
-    // at each node, the members ending there sorted by the angle they leave at, each mitered with the next; on a chord the widest gap, the
-    // chord's side, left open, at a node clear of the chords all the way round
+    // at each node, the members ending there sorted by the angle they leave at: each inner one stopping on every outer one, those of one rank
+    // each mitered with the next of that rank unless a member passing through lies between them; on a chord the widest gap, the chord's side, left open, at a node clear of the chords all the
+    // way round
     for (const Point& node : nodes) {
         std::vector<std::pair<double, std::shared_ptr<Beam>>> around;
         for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
@@ -281,24 +397,85 @@ void Truss::add_web_butts() {
             const Vector away = from_start ? member.first.end() - member.first.start() : member.first.start() - member.first.end();
             around.emplace_back(std::atan2(away.dot(plane.y_axis()), away.dot(plane.x_axis())), member.second);
         }
-        if (around.size() < 2)
-            continue;
         std::sort(around.begin(), around.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
-        size_t widest = 0;
-        double gap = -1.0;
-        for (size_t k = 0; k < around.size(); k++) {
-            const double next = k + 1 < around.size() ? around[k + 1].first : around[0].first + 2.0 * Tolerance::PI;
-            if (next - around[k].first > gap) {
-                gap = next - around[k].first;
-                widest = k;
-            }
-        }
         bool on_chord = false;
         for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
             on_chord = on_chord || at(node, run.first[0]) || at(node, run.first[1]) || inside(node, run.first);
-        for (size_t k = 0; k < around.size(); k++)
-            if (k != widest || (!on_chord && around.size() > 2))
-                add_butt(JointBeam::butt_side_side(*around[k].second, *around[(k + 1) % around.size()].second), around[k].second, around[(k + 1) % around.size()].second);
+
+        // whether two members leaving at angles lie on opposite sides of a member passing through the node, never mitered across it
+        std::vector<std::array<double, 2>> passing;
+        for (const std::pair<Line, std::shared_ptr<Beam>>& line : lines)
+            if (inside(node, {line.first.start(), line.first.end()}))
+                passing.push_back(flat(line.first.to_vector().normalized()));
+        const auto apart = [&passing, &cross](double a, double b) {
+            for (const std::array<double, 2>& through : passing)
+                if (cross(through, {std::cos(a), std::sin(a)}) * cross(through, {std::cos(b), std::sin(b)}) < 0.0)
+                    return true;
+            return false;
+        };
+
+        // the inner on the outer
+        for (const std::pair<double, std::shared_ptr<Beam>>& outer : around)
+            for (const std::pair<double, std::shared_ptr<Beam>>& inner : around)
+                if (ranks[outer.second.get()] < ranks[inner.second.get()])
+                    let_in(outer.second, inner.second);
+
+        // each rank's members mitered round the node, the widest gap open
+        std::set<int> layers;
+        for (const std::pair<double, std::shared_ptr<Beam>>& member : around)
+            layers.insert(ranks[member.second.get()]);
+        for (const int layer : layers) {
+            std::vector<std::pair<double, std::shared_ptr<Beam>>> same;
+            for (const std::pair<double, std::shared_ptr<Beam>>& member : around)
+                if (ranks[member.second.get()] == layer)
+                    same.push_back(member);
+            if (same.size() < 2)
+                continue;
+            size_t widest = 0;
+            double gap = -1.0;
+            for (size_t k = 0; k < same.size(); k++) {
+                const double next = k + 1 < same.size() ? same[k + 1].first : same[0].first + 2.0 * Tolerance::PI;
+                if (next - same[k].first > gap) {
+                    gap = next - same[k].first;
+                    widest = k;
+                }
+            }
+            for (size_t k = 0; k < same.size(); k++) {
+                if (k == widest && (on_chord || same.size() <= 2))
+                    continue;
+                const std::pair<double, std::shared_ptr<Beam>>& a = same[k];
+                const std::pair<double, std::shared_ptr<Beam>>& b = same[(k + 1) % same.size()];
+                if (!apart(a.first, b.first))
+                    add_butt(JointBeam::butt_side_side(*a.second, *b.second), a.second, b.second);
+            }
+        }
+    }
+
+    // the lets, inner rank by inner rank: the inner, ending inside the outer and never run on, loses the outer as already cut, so the boundary
+    // is made first and each layer within is fitted to the one around it; several outers at a node take their union and nothing more; the outer
+    // a little thicker across the truss's plane, so none of its faces lies in the inner's and the cut is clean
+    const Xform thicker = Xform::frame_to_world(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis()) * Xform::scale_xyz(1.0, 1.0, 1.02)
+        * Xform::world_to_frame(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis());
+    std::stable_sort(lets.begin(), lets.end(), [&ranks](const auto& a, const auto& b) { return ranks[a.second.get()] < ranks[b.second.get()]; });
+    while (!lets.empty()) {
+
+        // the next let whose outer waits on no let of its own, so it is cut before anything is fitted to it
+        size_t next = 0;
+        for (size_t k = lets.size(); k-- > 0;) {
+            bool waiting = false;
+            for (const std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>>& other : lets)
+                waiting = waiting || other.second == lets[k].first;
+            if (!waiting)
+                next = k;
+        }
+        const std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>> let = lets[next];
+        lets.erase(lets.begin() + next);
+        const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*let.first, *let.second);
+        if (joint) {
+            joint->butt_extensions[1] = InteractionFeatureSolid();
+            joint->butt_solids[1] = InteractionFeatureSolid(let.first->model_geometry_mesh().transformed(thicker), SolidOperation::subtract);
+        }
+        add_butt(joint, let.first, let.second);
     }
 }
 
