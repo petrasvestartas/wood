@@ -22,7 +22,7 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
     // chords: the runs mitered at kinks, butted at heels
     add_chord_butts();
 
-    // webs and posts: on the chords, mitered with their neighbours at every node
+    // webs and posts: on the chords, lapped where they cross, mitered with their neighbours at every node
     add_web_butts();
 }
 
@@ -220,6 +220,21 @@ void Truss::add_web_butts() {
                 if (inside(end, {other.first.start(), other.first.end()}))
                     add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
 
+    // each two webs or posts whose lines cross inside both, a half lap at the crossing
+    for (size_t i = 0; i < members.size(); i++)
+        for (size_t j = i + 1; j < members.size(); j++) {
+            const Line& a = members[i].first;
+            const Line& b = members[j].first;
+            double t_a = 0.0;
+            double t_b = 0.0;
+            if (!Intersection::line_line_parameters(a, b, t_a, t_b, NODE_TOLERANCE, false))
+                continue;
+            const Point crossing = a.point_at(t_a);
+            if (t_a <= 0.0 || t_a >= 1.0 || t_b <= 0.0 || t_b >= 1.0 || !inside(crossing, {a.start(), a.end()}) || !inside(crossing, {b.start(), b.end()}))
+                continue;
+            add_butt(JointBeam::butt(*members[i].second, *members[j].second), members[i].second, members[j].second);
+        }
+
     // every node a web or post ends at, once
     std::vector<Point> nodes;
     for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
@@ -231,7 +246,8 @@ void Truss::add_web_butts() {
                 nodes.push_back(end);
         }
 
-    // at each node, the members ending there sorted by the angle they leave at, each mitered with the next, the widest gap left open
+    // at each node, the members ending there sorted by the angle they leave at, each mitered with the next; on a chord the widest gap, the
+    // chord's side, left open, at a node clear of the chords all the way round
     for (const Point& node : nodes) {
         std::vector<std::pair<double, std::shared_ptr<Beam>>> around;
         for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
@@ -253,8 +269,11 @@ void Truss::add_web_butts() {
                 widest = k;
             }
         }
+        bool on_chord = false;
+        for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+            on_chord = on_chord || at(node, run.first[0]) || at(node, run.first[1]) || inside(node, run.first);
         for (size_t k = 0; k < around.size(); k++)
-            if (k != widest)
+            if (k != widest || (!on_chord && around.size() > 2))
                 add_butt(JointBeam::butt_side_side(*around[k].second, *around[(k + 1) % around.size()].second), around[k].second, around[(k + 1) % around.size()].second);
     }
 }

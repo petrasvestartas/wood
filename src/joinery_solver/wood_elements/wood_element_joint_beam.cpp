@@ -1117,6 +1117,23 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
             return nullptr;
         joint->configuration = ButtConfiguration::cross;
         joint->name = "cross";
+
+        // two beams crossing, a half lap: on the plane halfway between their axes, each loses the other's wood on its own half
+        if (members[0].flat || members[1].flat)
+            return joint;
+        const std::array<Vector, 2> axes = {members[0].ends[1].centre - members[0].ends[0].centre, members[1].ends[1].centre - members[1].ends[0].centre};
+        const Vector across = axes[0].cross(axes[1]);
+        if (across.magnitude() < 1e-6 * axes[0].magnitude() * axes[1].magnitude())
+            return joint;
+        const Vector normal = across.normalized();
+        const Point origin = members[0].ends[0].centre + normal * (0.5 * (members[1].ends[0].centre - members[0].ends[0].centre).dot(normal));
+        const Plane plane = Plane::from_point_normal(origin, normal);
+        const double half = axes[0].magnitude() + axes[1].magnitude() + 4.0 * size;
+        const Polyline square = Polyline::rectangle(origin - plane.x_axis() * half - plane.y_axis() * half, plane.x_axis(), plane.y_axis(), 2.0 * half, 2.0 * half);
+        for (size_t i = 0; i < 2; i++) {
+            const Mesh side = Mesh::loft({square}, {square.translated(normal * (i == 0 ? half : -half))}, true);
+            joint->butt_solids[i] = InteractionFeatureSolid(solid_boolean(members[1 - i].solid, side, SolidOperation::intersect), SolidOperation::subtract);
+        }
         return joint;
     }
 

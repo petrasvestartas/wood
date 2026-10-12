@@ -214,7 +214,7 @@ Two beams in line.
 
 #### beam_cross
 
-Two beams crossing: nothing cut.
+Two beams crossing: a half lap.
 
 ![butt_pair_beam_cross](examples/butt_pair_beam_cross.png)
 

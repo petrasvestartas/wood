@@ -9,7 +9,7 @@ A butt of two members drawn on lines and mid-planes, beams, columns or plates: e
 | `top_side` | one end on the other's face, or both at a square corner | the end on the face; at a corner the first runs on to the second's outer face |
 | `side_side_outplane` | both, at an oblique corner | both on the miter |
 | `side_side_inplane` | both, in line or in plane | both on the plane halfway |
-| `cross` | none | nothing |
+| `cross` | none | two beams a half lap, each losing the other's wood on its half of the depth; plates nothing |
 
 The drawn members decide, so the order butts are added in does not matter. A plate's butted edges are run on and cut together, so its corners close and a valley keeps its wood.
 
