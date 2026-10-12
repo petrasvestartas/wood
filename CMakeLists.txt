@@ -107,6 +107,8 @@ set(WOOD_SOURCES
     src/templates/vault/vault.cpp
     src/templates/floor/floor_guide.cpp
     src/templates/floor/floor.cpp
+    src/templates/truss/truss_guide.cpp
+    src/templates/truss/truss.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -294,6 +296,7 @@ ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)
 ADD_EXE(templates_grid_4_reference         examples/templates_grid_4_reference.cpp)
 ADD_EXE(templates_grid_5_framing           examples/templates_grid_5_framing.cpp)
 ADD_EXE(templates_shells_2_gridshell              examples/templates_shells_2_gridshell.cpp)
+ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_shells_3_gridshell_iso          examples/templates_shells_3_gridshell_iso.cpp)
 ADD_EXE(shells_gridshell                          tests/shells_gridshell.cpp)
 ADD_EXE(element_plate                    examples/elements/element_plate.cpp)

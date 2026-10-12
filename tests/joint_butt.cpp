@@ -1,5 +1,6 @@
 #include "wood_session.h"
 #include "wood_element_geometry.h"
+#include "src/templates/truss/truss.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -302,9 +303,31 @@ static void frame() {
             check(shared(*all[i], *all[j]) < OVERLAP_REL, fmt::format("frame: {} and {} overlap by {} of the smaller", all[i]->name, all[j]->name, shared(*all[i], *all[j])));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Truss template
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The Pratt truss of examples/templates_truss_1_pratt.cpp: every member from its line, every butt read from the nodes; no two members share
+/// any volume and the verticals stand on the bottom chord's top.
+static void truss() {
+
+    const wood_truss::Truss pratt(wood_truss::TrussGuide::pratt());
+    std::vector<std::shared_ptr<Beam>> members = pratt.get_elements_numbered<Beam>("web");
+    for (size_t c = 0; c < 2; c++)
+        for (size_t s = 0; s < 2; s++)
+            if (const std::shared_ptr<Beam> run = pratt.get_element_by_name<Beam>(fmt::format("chord_{}_{}", c, s)))
+                members.push_back(run);
+    check(members.size() == 12, fmt::format("truss: {} members, not 9 webs, a bottom chord and two top chord runs", members.size()));
+    check(std::abs(extreme(*members[0], 2, false) - 80.0) < FLUSH, fmt::format("truss: the first vertical's foot at {}, not 80", extreme(*members[0], 2, false)));
+    for (size_t i = 0; i < members.size(); i++)
+        for (size_t j = i + 1; j < members.size(); j++)
+            check(shared(*members[i], *members[j]) < OVERLAP_REL, fmt::format("truss: {} and {} overlap by {} of the smaller", members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+}
+
 int main() {
 
     pairs();
+    truss();
     frame();
     folded_roof();
     beams();
