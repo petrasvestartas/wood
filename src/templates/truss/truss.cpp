@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "src/templates/truss/truss.h"
+#include "wood_element_geometry.h"
 
 namespace wood_truss {
 
@@ -144,24 +145,6 @@ void Truss::add_web_butts() {
     for (size_t p = 0; p < guide.posts.size(); p++)
         members.emplace_back(guide.posts[p], get_element_by_name<Beam>(fmt::format("post_{}", p)));
 
-    // each end on the runs: top_side on a run it lies on or where several runs end; at a run's lone end the chord runs on over it
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
-        for (const Point& end : {member.first.start(), member.first.end()})
-            for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
-                const bool at_end = at(end, run.first[0]) || at(end, run.first[1]);
-                if (inside(end, run.first) || (at_end && ending(end) > 1))
-                    add_butt(JointBeam::butt_top_side(*run.second, *member.second), run.second, member.second);
-                else if (at_end)
-                    add_butt(JointBeam::butt_top_side_end(*run.second, *member.second), run.second, member.second);
-            }
-
-    // each end on another web's or post's middle, as a K's on its vertical, top_side on it
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
-        for (const Point& end : {member.first.start(), member.first.end()})
-            for (const std::pair<Line, std::shared_ptr<Beam>>& other : members)
-                if (inside(end, {other.first.start(), other.first.end()}))
-                    add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
-
     // the truss's plane, for the angles of the members around a node: through its two nodes farthest apart and the node farthest off the
     // line between them
     std::vector<Point> points;
@@ -179,6 +162,63 @@ void Truss::add_web_butts() {
         if ((point - far[0]).cross(along).magnitude() > (off - far[0]).cross(along).magnitude())
             off = point;
     const Plane plane = Plane::from_point_normal(far[0], along.cross(off - far[0]).normalized());
+
+    // each end on the runs: top_side on a run it lies on or where several runs end; at a run's lone end the chord runs on over it; where two
+    // runs end at a kink or a heel and the member stands outside the bend, one cut, what lies beyond both faces, so the end fits over the
+    // ridge the runs make instead of losing a V to each face
+    const auto flat = [&plane](const Vector& vector) { return std::array<double, 2>{vector.dot(plane.x_axis()), vector.dot(plane.y_axis())}; };
+    const auto cross = [](const std::array<double, 2>& a, const std::array<double, 2>& b) { return a[0] * b[1] - a[1] * b[0]; };
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+        for (const Point& end : {member.first.start(), member.first.end()}) {
+            std::vector<std::pair<std::shared_ptr<JointBeam>, std::shared_ptr<Beam>>> stops;
+            std::vector<Vector> along;
+            for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
+                const bool at_start = at(end, run.first[0]);
+                const bool at_end = at_start || at(end, run.first[1]);
+                if (inside(end, run.first) || (at_end && ending(end) > 1)) {
+                    stops.emplace_back(JointBeam::butt_top_side(*run.second, *member.second), run.second);
+                    along.push_back(at_end ? (at_start ? run.first[1] - run.first[0] : run.first[0] - run.first[1]) : Vector(0.0, 0.0, 0.0));
+                } else if (at_end) {
+                    add_butt(JointBeam::butt_top_side_end(*run.second, *member.second), run.second, member.second);
+                }
+            }
+            const Vector away = at(end, member.first.start()) ? member.first.end() - member.first.start() : member.first.start() - member.first.end();
+            const bool bend = stops.size() == 2 && along[0].magnitude() > 0.0 && along[1].magnitude() > 0.0 && stops[0].first && stops[1].first
+                && stops[0].first->butt_planes[1] && stops[1].first->butt_planes[1];
+            const double turn = bend ? cross(flat(along[0]), flat(along[1])) : 0.0;
+            const bool outside = bend && !(cross(flat(along[0]), flat(away)) * turn > 0.0 && cross(flat(away), flat(along[1])) * turn > 0.0);
+            if (outside) {
+                // each run's outer face, away from the other run, half a chord off its line, and the member losing what lies beyond both, kept on the
+                // run nearer its line
+                if (along[0].normalized().dot(away.normalized()) < along[1].normalized().dot(away.normalized())) {
+                    std::swap(stops[0], stops[1]);
+                    std::swap(along[0], along[1]);
+                }
+                const double size = 4.0 * away.magnitude();
+                Mesh wedge;
+                for (size_t r = 0; r < 2; r++) {
+                    const Vector line = along[r].normalized();
+                    Vector side = plane.z_axis().cross(line).normalized();
+                    if (side.dot(along[1 - r]) > 0.0)
+                        side = side * -1.0;
+                    const Plane face = Plane::from_point_normal(end + side * guide.chord_radius, side);
+                    const Polyline base = Polyline::rectangle(face.origin() - face.x_axis() * size - face.y_axis() * size, face.x_axis(), face.y_axis(), 2.0 * size, 2.0 * size);
+                    const Mesh half = Mesh::loft({base}, {base.translated(side * -size)}, true);
+                    wedge = wedge.number_of_faces() == 0 ? half : solid_boolean(wedge, half, SolidOperation::intersect);
+                }
+                stops[0].first->butt_solids[1].mesh = wedge;
+                stops.pop_back();
+            }
+            for (const std::pair<std::shared_ptr<JointBeam>, std::shared_ptr<Beam>>& stop : stops)
+                add_butt(stop.first, stop.second, member.second);
+        }
+
+    // each end on another web's or post's middle, as a K's on its vertical, top_side on it
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+        for (const Point& end : {member.first.start(), member.first.end()})
+            for (const std::pair<Line, std::shared_ptr<Beam>>& other : members)
+                if (inside(end, {other.first.start(), other.first.end()}))
+                    add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
 
     // every node a web or post ends at, once
     std::vector<Point> nodes;
