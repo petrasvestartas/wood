@@ -1091,11 +1091,12 @@ enum class ButtMode {
     side_side,
     top_side,
     top_side_end,
+    cross,
 };
 
 /// The butt of two members in a mode: the configuration their ends make, each reaching end's plane, and what each end gains and loses to
 /// stop on it.
-static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b, double reach, ButtMode mode) {
+static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b, double reach, ButtMode mode, const std::optional<Plane>& lap = std::nullopt) {
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->is_butt = true;
@@ -1111,12 +1112,31 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
     if (mode == ButtMode::top_side && ends[1])
         ends[0] = std::nullopt;
 
-    // no end reaching: a cross when the solids share wood, nothing when they do not touch
-    if (!ends[0] && !ends[1]) {
+    // no end reaching, or a cross asked: a cross when the solids share wood, nothing when they do not touch
+    if (mode == ButtMode::cross || (!ends[0] && !ends[1])) {
         if (solid_boolean(members[0].solid, members[1].solid, SolidOperation::intersect).number_of_faces() == 0)
             return nullptr;
         joint->configuration = ButtConfiguration::cross;
         joint->name = "cross";
+
+        // two beams crossing, a lap: on the lap plane, by default halfway between their axes, the first loses the second's wood in front of it
+        // and the second the first's behind
+        if (members[0].flat || members[1].flat)
+            return joint;
+        const std::array<Vector, 2> axes = {members[0].ends[1].centre - members[0].ends[0].centre, members[1].ends[1].centre - members[1].ends[0].centre};
+        const Vector across = axes[0].cross(axes[1]);
+        if (across.magnitude() < 1e-6 * axes[0].magnitude() * axes[1].magnitude())
+            return joint;
+        const Vector halfway = across.normalized();
+        const Plane plane = lap ? *lap : Plane::from_point_normal(members[0].ends[0].centre + halfway * (0.5 * (members[1].ends[0].centre - members[0].ends[0].centre).dot(halfway)), halfway);
+        const Point origin = plane.origin();
+        const Vector normal = plane.z_axis();
+        const double half = axes[0].magnitude() + axes[1].magnitude() + 4.0 * size;
+        const Polyline square = Polyline::rectangle(origin - plane.x_axis() * half - plane.y_axis() * half, plane.x_axis(), plane.y_axis(), 2.0 * half, 2.0 * half);
+        for (size_t i = 0; i < 2; i++) {
+            const Mesh side = Mesh::loft({square}, {square.translated(normal * (i == 0 ? half : -half))}, true);
+            joint->butt_solids[i] = InteractionFeatureSolid(solid_boolean(members[1 - i].solid, side, SolidOperation::intersect), SolidOperation::subtract);
+        }
         return joint;
     }
 
@@ -1322,6 +1342,16 @@ std::shared_ptr<JointBeam> JointBeam::butt_top_side_end(const Element& top, cons
 std::shared_ptr<JointBeam> JointBeam::butt_top_side(const Element& top, const Element& side, double reach) {
 
     return butt_joint(top, side, reach, ButtMode::top_side);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b) {
+
+    return butt_joint(a, b, 0.0, ButtMode::cross);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b, const Plane& lap) {
+
+    return butt_joint(a, b, 0.0, ButtMode::cross, lap);
 }
 
 std::shared_ptr<JointBeam> JointBeam::butterfly_key(

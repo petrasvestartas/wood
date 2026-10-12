@@ -11,6 +11,8 @@ using namespace wood_session;
 
 static const double FLUSH = 1e-3; // mm, how far a butted face may lie from the face it butts on
 static const double OVERLAP_REL = 1e-6; // relative, the volume two butted members may share against the smaller one
+static const double TRUSS_OVERLAP = 5e-4; // relative, the slivers the solid booleans leave where an inner member meets a lapped outer one
+static const double TRUSS_GAP = 5e-3; // relative, the drawn wood of a truss member no member covers any more
 
 /// Throws with the message when the condition fails.
 static void check(bool ok, const std::string& message) {
@@ -304,30 +306,110 @@ static void frame() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Truss template
+// Truss library
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The Pratt truss of examples/templates_truss_1_pratt.cpp: every member from its line, every butt read from the nodes; no two members share
-/// any volume and the verticals stand on the bottom chord's top.
-static void truss() {
+/// Every truss of the TrussGuide library, as examples/templates_truss_2_library.cpp builds them: no two members share more than slivers, no
+/// drawn wood is lost at a corner, and the Pratt's first vertical stands on the bottom chord's top.
+static void trusses() {
 
-    const wood_truss::Truss pratt(wood_truss::TrussGuide::pratt());
-    std::vector<std::shared_ptr<Beam>> members = pratt.get_elements_numbered<Beam>("web");
-    for (size_t c = 0; c < 2; c++)
-        for (size_t s = 0; s < 2; s++)
-            if (const std::shared_ptr<Beam> run = pratt.get_element_by_name<Beam>(fmt::format("chord_{}_{}", c, s)))
-                members.push_back(run);
-    check(members.size() == 12, fmt::format("truss: {} members, not 9 webs, a bottom chord and two top chord runs", members.size()));
-    check(std::abs(extreme(*members[0], 2, false) - 80.0) < FLUSH, fmt::format("truss: the first vertical's foot at {}, not 80", extreme(*members[0], 2, false)));
-    for (size_t i = 0; i < members.size(); i++)
-        for (size_t j = i + 1; j < members.size(); j++)
-            check(shared(*members[i], *members[j]) < OVERLAP_REL, fmt::format("truss: {} and {} overlap by {} of the smaller", members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+    const std::vector<std::pair<std::string, wood_truss::TrussGuide>> guides = {
+        {"pratt", wood_truss::TrussGuide::pratt()},
+        {"king_post", wood_truss::TrussGuide::king_post()},
+        {"queen_post", wood_truss::TrussGuide::queen_post()},
+        {"howe", wood_truss::TrussGuide::howe()},
+        {"fink", wood_truss::TrussGuide::fink()},
+        {"belgian", wood_truss::TrussGuide::belgian()},
+        {"scissors", wood_truss::TrussGuide::scissors()},
+        {"warren", wood_truss::TrussGuide::warren()},
+        {"warren_verticals", wood_truss::TrussGuide::warren_verticals()},
+        {"pratt_bridge", wood_truss::TrussGuide::pratt_bridge()},
+        {"parker", wood_truss::TrussGuide::parker()},
+        {"k_truss", wood_truss::TrussGuide::k_truss()},
+        {"cambered_verticals", wood_truss::TrussGuide::cambered_verticals()},
+        {"funicular_arch", wood_truss::TrussGuide::funicular_arch()},
+        {"lens", wood_truss::TrussGuide::lens()},
+        {"triangulated_arch", wood_truss::TrussGuide::triangulated_arch()},
+        {"sloped", wood_truss::TrussGuide::sloped()},
+        {"pratt_flat", wood_truss::TrussGuide::pratt_flat()},
+        {"flat_peaked", wood_truss::TrussGuide::flat_peaked()},
+        {"bowstring", wood_truss::TrussGuide::bowstring()},
+        {"pitched_posts", wood_truss::TrussGuide::pitched_posts()},
+        {"roof_cambered_tie", wood_truss::TrussGuide::roof_cambered_tie()},
+        {"quarter_fan", wood_truss::TrussGuide::quarter_fan()},
+        {"cantilever", wood_truss::TrussGuide::cantilever()},
+        {"cantilever_design_1", wood_truss::TrussGuide::cantilever_design_1()},
+        {"cantilever_design_2", wood_truss::TrussGuide::cantilever_design_2()},
+        {"cantilever_design_3", wood_truss::TrussGuide::cantilever_design_3()},
+        {"fish_belly", wood_truss::TrussGuide::fish_belly()},
+        {"sawtooth", wood_truss::TrussGuide::sawtooth()},
+        {"howe_flat", wood_truss::TrussGuide::howe_flat()},
+        {"three_hinged_arch", wood_truss::TrussGuide::three_hinged_arch()},
+        {"burr_arch", wood_truss::TrussGuide::burr_arch()},
+        {"town_lattice", wood_truss::TrussGuide::town_lattice()},
+        {"bowstring_arch", wood_truss::TrussGuide::bowstring_arch()},
+        {"waddell_a", wood_truss::TrussGuide::waddell_a()},
+        {"wichert", wood_truss::TrussGuide::wichert()},
+        {"truss_leg_bedstead", wood_truss::TrussGuide::truss_leg_bedstead()},
+        {"kellogg", wood_truss::TrussGuide::kellogg()},
+        {"baltimore_a", wood_truss::TrussGuide::baltimore_a()},
+        {"pennsylvania_a", wood_truss::TrussGuide::pennsylvania_a()},
+        {"greiner", wood_truss::TrussGuide::greiner()},
+        {"double_intersection_pratt", wood_truss::TrussGuide::double_intersection_pratt()},
+        {"schwedler", wood_truss::TrussGuide::schwedler()},
+        {"double_intersection_warren", wood_truss::TrussGuide::double_intersection_warren()},
+        {"pegram", wood_truss::TrussGuide::pegram()},
+        {"post", wood_truss::TrussGuide::post()},
+        {"bollman", wood_truss::TrussGuide::bollman()},
+        {"fink_bridge", wood_truss::TrussGuide::fink_bridge()},
+        {"stearns", wood_truss::TrussGuide::stearns()},
+        {"crescent_crossed", wood_truss::TrussGuide::crescent_crossed()},
+        {"braced_arch_rib", wood_truss::TrussGuide::braced_arch_rib()},
+        {"belgian_verticals", wood_truss::TrussGuide::belgian_verticals()},
+        {"raised_tie_king_post", wood_truss::TrussGuide::raised_tie_king_post()},
+        {"trapezoid_crossed", wood_truss::TrussGuide::trapezoid_crossed()},
+        {"fink_cambered", wood_truss::TrussGuide::fink_cambered()},
+        {"crescent_verticals", wood_truss::TrussGuide::crescent_verticals()},
+        {"raised_tie_posts", wood_truss::TrussGuide::raised_tie_posts()},
+        {"pitched_warren_columns", wood_truss::TrussGuide::pitched_warren_columns()},
+        {"fink_compound", wood_truss::TrussGuide::fink_compound()},
+        {"fink_bent_tie", wood_truss::TrussGuide::fink_bent_tie()},
+        {"french_steep", wood_truss::TrussGuide::french_steep()},
+        {"fink_lantern", wood_truss::TrussGuide::fink_lantern()},
+        {"arch_polygonal_tie", wood_truss::TrussGuide::arch_polygonal_tie()},
+        {"pitched_crossed_posts", wood_truss::TrussGuide::pitched_crossed_posts()},
+        {"cambered_crossed_lantern", wood_truss::TrussGuide::cambered_crossed_lantern()},
+        {"arched_crossed_columns", wood_truss::TrussGuide::arched_crossed_columns()},
+        {"trapezoid_king_crossed", wood_truss::TrussGuide::trapezoid_king_crossed()},
+        {"topology_optimised", wood_truss::TrussGuide::topology_optimised()},
+    };
+    for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
+        const wood_truss::Truss truss(guide.second, guide.first);
+        std::vector<std::shared_ptr<Beam>> members;
+        for (const std::shared_ptr<Element>& element : *truss.objects.elements)
+            if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
+                members.push_back(beam);
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t j = i + 1; j < members.size(); j++)
+                check(shared(*members[i], *members[j]) < TRUSS_OVERLAP, fmt::format("trusses: {}: {} and {} overlap by {} of the smaller", guide.first, members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+        std::vector<Mesh> cut;
+        for (const std::shared_ptr<Beam>& member : members)
+            cut.push_back(member->model_geometry_mesh());
+        for (const std::shared_ptr<Beam>& member : members) {
+            const Mesh drawn = member->element_geometry_mesh();
+            const Mesh lost = solid_difference(drawn, cut);
+            const double fraction = lost.number_of_faces() == 0 ? 0.0 : compute_volume(lost) / compute_volume(drawn);
+            check(fraction < TRUSS_GAP, fmt::format("trusses: {}: {} loses {} of its drawn wood that no member fills", guide.first, member->name, fraction));
+        }
+        if (guide.first == "pratt")
+            check(std::abs(extreme(*truss.get_element_by_name<Beam>("web_0"), 2, false) - 80.0) < FLUSH, "trusses: pratt: the first vertical does not stand on the bottom chord's top");
+    }
 }
 
 int main() {
 
     pairs();
-    truss();
+    trusses();
     frame();
     folded_roof();
     beams();

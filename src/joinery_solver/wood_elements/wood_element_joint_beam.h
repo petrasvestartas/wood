@@ -24,7 +24,7 @@ enum class PinLayout {
 /// How two members meet, read from their ends, named by the faces that meet: the case a butt makes, and the joint family that fits it.
 enum class ButtConfiguration {
     none, // They do not touch.
-    cross, // They cross, no end reaching the other: a cross joint, nothing butted.
+    cross, // They cross, no end reaching the other: two beams a half lap, plates nothing.
     top_side, // One member's side, its end, on the other's top, its long face: at the other's middle, or at its end where the first runs on.
     side_side_outplane, // Both ends, out of plane, cut on the plane halfway: a miter.
     side_side_inplane, // Both ends, in line or in plane, cut on the plane halfway: a splice.
@@ -130,8 +130,8 @@ public:
     /// A butt of two members drawn as lines and polygons, beams, columns or plates: each member end that reaches the other, an end face within
     /// `reach` of it short or past, is run on and cut on one plane, so the two meet face to face. top_side: one end on the other's face, or a
     /// corner square within 10 degrees, a running on to b's outer face and b stopping on a's inner face. side_side_outplane: an oblique corner,
-    /// both cut on the miter. side_side_inplane: both on the plane halfway. cross, no end reaching: nothing cut. `reach` 0 takes the larger
-    /// member depth. The drawn, uncut members decide, so the order butts are added in does not matter; nullptr when they do not touch.
+    /// both cut on the miter. side_side_inplane: both on the plane halfway. cross, no end reaching: two beams take a half lap, each losing the
+    /// other's wood on its half of the depth. `reach` 0 takes the larger member depth. The drawn, uncut members decide, so the order butts are added in does not matter; nullptr when they do not touch.
     static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
 
     /// What a plate's edge `end` gains and loses to stop on its plane in `planes`, the planes of all its butted edges by edge: the run-on out to
@@ -151,6 +151,14 @@ public:
     /// A butt top_side at a corner of any angle, square or oblique: the first member runs on to the second's outer face and the second's
     /// end stops on the first, as a chord over an end post; a tee where only the second's end reaches.
     static std::shared_ptr<JointBeam> butt_top_side_end(const Element& top, const Element& side, double reach = 0.0);
+
+    /// A butt cross whatever the ends: two beams crossing take a half lap, each losing the other's wood on its half of the depth, even where
+    /// an end lies near the other, as a column through a tie at a node; nullptr when they do not touch.
+    static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b);
+
+    /// A butt cross on a given lap plane: the first loses the second's wood in front of the plane, the second the first's behind, so several
+    /// members crossing at one point each keep a layer of the depth.
+    static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b, const Plane& lap);
 
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
     static std::shared_ptr<JointBeam> butterfly_key(
