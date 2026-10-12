@@ -7,9 +7,10 @@ namespace wood_truss {
 // TrussGuide
 // ═══════════════════════════════════════════════════════════════════════════
 
-TrussGuide::TrussGuide(const std::vector<Polyline>& chords, const std::vector<Line>& webs, double chord_radius, double web_radius)
+TrussGuide::TrussGuide(const std::vector<Polyline>& chords, const std::vector<Line>& webs, const std::vector<Line>& posts, double chord_radius, double web_radius)
     : chords(chords),
       webs(webs),
+      posts(posts),
       chord_radius(chord_radius),
       web_radius(web_radius) {
 }

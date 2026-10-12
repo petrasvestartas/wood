@@ -21,15 +21,16 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
     // chords: the runs mitered at kinks, butted at heels
     add_chord_butts();
 
-    // webs: on the chords, over end posts, mitered at shared nodes
+    // webs and posts: on the chords, mitered with their neighbours at every node
     add_web_butts();
 }
 
 void Truss::add_input() {
 
     std::vector<Polyline> lines = guide.chords;
-    for (const Line& web : guide.webs)
-        lines.push_back(Polyline({web.start(), web.end()}));
+    for (const std::vector<Line>* members : {&guide.webs, &guide.posts})
+        for (const Line& member : *members)
+            lines.push_back(Polyline({member.start(), member.end()}));
     for (const Polyline& line : lines) {
         std::shared_ptr<Polyline> drawn = std::make_shared<Polyline>(line);
         drawn->linecolor = Color(0.85f, 0.1f, 0.1f);
@@ -51,6 +52,8 @@ void Truss::add_webs() {
 
     for (size_t w = 0; w < guide.webs.size(); w++)
         add(std::make_shared<Beam>(Polyline({guide.webs[w].start(), guide.webs[w].end()}), guide.web_radius, fmt::format("web_{}", w)), group_named("webs"));
+    for (size_t p = 0; p < guide.posts.size(); p++)
+        add(std::make_shared<Beam>(Polyline({guide.posts[p].start(), guide.posts[p].end()}), guide.chord_radius, fmt::format("post_{}", p)), group_named("webs"));
 }
 
 void Truss::add_butt(const std::shared_ptr<JointBeam>& butt, const std::shared_ptr<Beam>& a, const std::shared_ptr<Beam>& b) {
@@ -133,30 +136,69 @@ void Truss::add_web_butts() {
             count += at(node, run.first[0]) || at(node, run.first[1]);
         return count;
     };
-    const std::vector<std::shared_ptr<Beam>> webs = get_elements_numbered<Beam>("web");
 
-    // each web's ends: top_side on a run they lie on or end at with others; at a run's lone end, an end post, the chord runs on over it
-    for (size_t w = 0; w < webs.size(); w++)
-        for (const Point& end : {guide.webs[w].start(), guide.webs[w].end()})
+    // the webs and the posts with their lines
+    std::vector<std::pair<Line, std::shared_ptr<Beam>>> members;
+    for (size_t w = 0; w < guide.webs.size(); w++)
+        members.emplace_back(guide.webs[w], get_element_by_name<Beam>(fmt::format("web_{}", w)));
+    for (size_t p = 0; p < guide.posts.size(); p++)
+        members.emplace_back(guide.posts[p], get_element_by_name<Beam>(fmt::format("post_{}", p)));
+
+    // each end on the runs: top_side on a run it lies on or where several runs end; at a run's lone end the chord runs on over it
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+        for (const Point& end : {member.first.start(), member.first.end()})
             for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
-                const bool on = inside(end, run.first);
                 const bool at_end = at(end, run.first[0]) || at(end, run.first[1]);
-                if (on || (at_end && ending(end) > 1))
-                    add_butt(JointBeam::butt_top_side(*run.second, *webs[w]), run.second, webs[w]);
+                if (inside(end, run.first) || (at_end && ending(end) > 1))
+                    add_butt(JointBeam::butt_top_side(*run.second, *member.second), run.second, member.second);
                 else if (at_end)
-                    add_butt(JointBeam::butt(*run.second, *webs[w]), run.second, webs[w]);
+                    add_butt(JointBeam::butt_top_side_end(*run.second, *member.second), run.second, member.second);
             }
 
-    // webs ending at the same node, on the plane halfway
-    for (size_t v = 0; v < webs.size(); v++)
-        for (size_t w = v + 1; w < webs.size(); w++) {
-            bool shared = false;
-            for (const Point& a : {guide.webs[v].start(), guide.webs[v].end()})
-                for (const Point& b : {guide.webs[w].start(), guide.webs[w].end()})
-                    shared = shared || at(a, b);
-            if (shared)
-                add_butt(JointBeam::butt_side_side(*webs[v], *webs[w]), webs[v], webs[w]);
+    // the truss's plane, for the angles of the members around a node
+    std::vector<Point> points;
+    for (const Polyline& chord : guide.chords)
+        for (const Point& point : chord.get_points())
+            points.push_back(point);
+    const Plane plane = Plane::from_points(points);
+
+    // every node a web or post ends at, once
+    std::vector<Point> nodes;
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+        for (const Point& end : {member.first.start(), member.first.end()}) {
+            bool known = false;
+            for (const Point& node : nodes)
+                known = known || at(end, node);
+            if (!known)
+                nodes.push_back(end);
         }
+
+    // at each node, the members ending there sorted by the angle they leave at, each mitered with the next, the widest gap left open
+    for (const Point& node : nodes) {
+        std::vector<std::pair<double, std::shared_ptr<Beam>>> around;
+        for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
+            const bool from_start = at(member.first.start(), node);
+            if (!from_start && !at(member.first.end(), node))
+                continue;
+            const Vector away = from_start ? member.first.end() - member.first.start() : member.first.start() - member.first.end();
+            around.emplace_back(std::atan2(away.dot(plane.y_axis()), away.dot(plane.x_axis())), member.second);
+        }
+        if (around.size() < 2)
+            continue;
+        std::sort(around.begin(), around.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+        size_t widest = 0;
+        double gap = -1.0;
+        for (size_t k = 0; k < around.size(); k++) {
+            const double next = k + 1 < around.size() ? around[k + 1].first : around[0].first + 2.0 * Tolerance::PI;
+            if (next - around[k].first > gap) {
+                gap = next - around[k].first;
+                widest = k;
+            }
+        }
+        for (size_t k = 0; k < around.size(); k++)
+            if (k != widest)
+                add_butt(JointBeam::butt_side_side(*around[k].second, *around[(k + 1) % around.size()].second), around[k].second, around[(k + 1) % around.size()].second);
+    }
 }
 
 } // namespace wood_truss

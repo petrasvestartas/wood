@@ -148,6 +148,10 @@ public:
     /// at the same node, as a brace on a post that stands on the sill beside it.
     static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
 
+    /// A butt top_side at a corner of any angle, square or oblique: the first member runs on to the second's outer face and the second's
+    /// end stops on the first, as a chord over an end post; a tee where only the second's end reaches.
+    static std::shared_ptr<JointBeam> butt_top_side_end(const Element& top, const Element& side, double reach = 0.0);
+
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
     static std::shared_ptr<JointBeam> butterfly_key(
         const Element& a,

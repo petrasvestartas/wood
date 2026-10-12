@@ -1029,7 +1029,7 @@ static std::optional<Plane> crossed_side(const ButtMember& member, const ButtEnd
     for (size_t i = 0; i < member.sides.size(); i++) {
         const Vector& normal = member.normals[i];
         const double along = end.out.dot(normal);
-        if ((facing ? -along : along) < 0.3)
+        if ((facing ? -along : along) < 0.05)
             continue;
         const std::vector<Point> corners = loop_points(member.sides[i]);
         const Plane plane = Plane::from_point_normal(corners[0], normal);
@@ -1084,11 +1084,13 @@ static std::array<InteractionFeatureSolid, 2> end_cut(const ButtEnd& end, const 
     return cut;
 }
 
-/// How a butt resolves the case its members' ends make: as read from them, every corner side_side, or the second member's side on the first's top.
+/// How a butt resolves the case its members' ends make: as read from them, every corner side_side, the second member's side on the first's top,
+/// or at a corner of any angle the first running on over the second.
 enum class ButtMode {
     automatic,
     side_side,
     top_side,
+    top_side_end,
 };
 
 /// The butt of two members in a mode: the configuration their ends make, each reaching end's plane, and what each end gains and loses to
@@ -1137,7 +1139,7 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
             const Point middle = end_a.centre + (end_b.centre - end_a.centre) * 0.5;
             const Plane halfway = Plane::from_point_normal(middle, (end_a.out - end_b.out).normalized());
             joint->butt_planes = {halfway, halfway};
-        } else if (mode != ButtMode::side_side && std::abs(cosine) < std::sin(10.0 * Tolerance::TO_RADIANS)) {
+        } else if (mode == ButtMode::top_side_end || (mode != ButtMode::side_side && std::abs(cosine) < std::sin(10.0 * Tolerance::TO_RADIANS))) {
             joint->configuration = ButtConfiguration::top_side;
             joint->butt_planes[0] = crossed_side(members[1], end_a, false, within);
             joint->butt_planes[1] = crossed_side(members[0], end_b, true, within);
@@ -1310,6 +1312,11 @@ std::shared_ptr<JointBeam> JointBeam::butt(const Element& a, const Element& b, d
 std::shared_ptr<JointBeam> JointBeam::butt_side_side(const Element& a, const Element& b, double reach) {
 
     return butt_joint(a, b, reach, ButtMode::side_side);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_top_side_end(const Element& top, const Element& side, double reach) {
+
+    return butt_joint(top, side, reach, ButtMode::top_side_end);
 }
 
 std::shared_ptr<JointBeam> JointBeam::butt_top_side(const Element& top, const Element& side, double reach) {
