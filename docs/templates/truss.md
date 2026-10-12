@@ -227,22 +227,6 @@ TrussGuide::pitched_posts(double span = 12000.0, double height = 2000.0, double 
 
 ![truss_pitched_posts](templates/truss_pitched_posts.png)
 
-### Roof tied
-
-```cpp
-TrussGuide::pratt(12000.0, 1380.0, 6);
-```
-
-![truss_roof_tied](templates/truss_roof_tied.png)
-
-### Roof raised tie
-
-```cpp
-TrussGuide::roof_raised_tie(double span = 12000.0, double rise = 1380.0, double raise = 50.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_roof_raised_tie](templates/truss_roof_raised_tie.png)
-
 ### Roof cambered tie
 
 ```cpp
@@ -259,53 +243,13 @@ TrussGuide::quarter_fan(double span = 12000.0, double height = 5560.0, double ch
 
 ![truss_quarter_fan](templates/truss_quarter_fan.png)
 
-### Cantilever a
+### Cantilever
 
 ```cpp
-TrussGuide::cantilever_a(double span = 12000.0, double height = 1830.0, double chord_radius = 80.0, double web_radius = 60.0);
+TrussGuide::cantilever(double span = 12000.0, double height = 1830.0, double chord_radius = 80.0, double web_radius = 60.0);
 ```
 
-![truss_cantilever_a](templates/truss_cantilever_a.png)
-
-### Cantilever b
-
-```cpp
-TrussGuide::cantilever_b(double span = 12000.0, double height = 2800.0, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_cantilever_b](templates/truss_cantilever_b.png)
-
-### Cantilever c
-
-```cpp
-TrussGuide::cantilever_c(double span = 12000.0, double height = 2330.0, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_cantilever_c](templates/truss_cantilever_c.png)
-
-### Cantilever d
-
-```cpp
-TrussGuide::cantilever_d(double span = 12000.0, double height = 2290.0, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_cantilever_d](templates/truss_cantilever_d.png)
-
-### Cantilever e
-
-```cpp
-TrussGuide::cantilever_e(double span = 12000.0, double height = 2370.0, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_cantilever_e](templates/truss_cantilever_e.png)
-
-### Cantilever f
-
-```cpp
-TrussGuide::cantilever_f(double span = 12000.0, double height = 2280.0, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_cantilever_f](templates/truss_cantilever_f.png)
+![truss_cantilever](templates/truss_cantilever.png)
 
 ### Cantilever design 1
 
@@ -403,14 +347,6 @@ TrussGuide::wichert(double span = 12000.0, double height = 2320.0, double dip = 
 
 ![truss_wichert](templates/truss_wichert.png)
 
-### Pratt half hip
-
-```cpp
-TrussGuide::pratt_half_hip(double span = 12000.0, double height = 2400.0, int panels = 5, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_pratt_half_hip](templates/truss_pratt_half_hip.png)
-
 ### Truss leg bedstead
 
 ```cpp
@@ -418,22 +354,6 @@ TrussGuide::truss_leg_bedstead(double span = 12000.0, double height = 2500.0, do
 ```
 
 ![truss_truss_leg_bedstead](templates/truss_truss_leg_bedstead.png)
-
-### Camelback
-
-```cpp
-TrussGuide::camelback(double span = 13500.0, double height = 2800.0, double hip = 2000.0, int panels = 9, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_camelback](templates/truss_camelback.png)
-
-### Camelback subdivided
-
-```cpp
-TrussGuide::camelback_subdivided(double span = 13500.0, double height = 2150.0, double hip = 1570.0, int panels = 9, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_camelback_subdivided](templates/truss_camelback_subdivided.png)
 
 ### Kellogg
 
@@ -451,14 +371,6 @@ TrussGuide::baltimore_a(double span = 14000.0, double height = 2140.0, int panel
 
 ![truss_baltimore_a](templates/truss_baltimore_a.png)
 
-### Baltimore b
-
-```cpp
-TrussGuide::baltimore_b(double span = 14000.0, double height = 2140.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_baltimore_b](templates/truss_baltimore_b.png)
-
 ### Pennsylvania a
 
 ```cpp
@@ -466,22 +378,6 @@ TrussGuide::pennsylvania_a(double span = 14000.0, double height = 2160.0, double
 ```
 
 ![truss_pennsylvania_a](templates/truss_pennsylvania_a.png)
-
-### Pennsylvania b
-
-```cpp
-TrussGuide::pennsylvania_b(double span = 14000.0, double height = 2160.0, double hip = 1400.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_pennsylvania_b](templates/truss_pennsylvania_b.png)
-
-### Lenticular
-
-```cpp
-TrussGuide::lenticular(double span = 12000.0, double height = 1070.0, double sag = 1240.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
-```
-
-![truss_lenticular](templates/truss_lenticular.png)
 
 ### Greiner
 

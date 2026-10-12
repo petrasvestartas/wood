@@ -79,7 +79,7 @@ static bool inside(const Point& point, const std::array<Point, 2>& run) {
     const double t = (point - run[0]).dot(along) / along.dot(along);
     const Point foot = run[0] + along * t;
 
-    return Point::distance(point, foot) < Truss::NODE_TOLERANCE && !at(point, run[0]) && !at(point, run[1]);
+    return t > 0.0 && t < 1.0 && Point::distance(point, foot) < Truss::NODE_TOLERANCE && !at(point, run[0]) && !at(point, run[1]);
 }
 
 void Truss::add_chord_butts() {
@@ -183,6 +183,19 @@ void Truss::add_web_butts() {
                 }
             }
             const Vector away = at(end, member.first.start()) ? member.first.end() - member.first.start() : member.first.start() - member.first.end();
+
+            // on a run passing through, as a column under a valley, the runs ending clearly on its far side are not reached
+            for (size_t k = 0; k < stops.size(); k++)
+                if (along[k].magnitude() == 0.0) {
+                    const std::array<double, 2> through = flat(stops[k].second->axis.get_lines()[0].to_vector().normalized());
+                    const double side = cross(through, flat(away.normalized()));
+                    for (size_t j = stops.size(); j-- > 0;)
+                        if (along[j].magnitude() > 0.0 && cross(through, flat(along[j].normalized())) * side < -0.1) {
+                            stops.erase(stops.begin() + j);
+                            along.erase(along.begin() + j);
+                            k -= j < k ? 1 : 0;
+                        }
+                }
             const bool bend = stops.size() == 2 && along[0].magnitude() > 0.0 && along[1].magnitude() > 0.0 && stops[0].first && stops[1].first
                 && stops[0].first->butt_planes[1] && stops[1].first->butt_planes[1];
             const double turn = bend ? cross(flat(along[0]), flat(along[1])) : 0.0;

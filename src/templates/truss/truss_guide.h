@@ -114,9 +114,6 @@ public:
     static TrussGuide pitched_posts(double span = 12000.0, double height = 2000.0, double ridge = 3320.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
 
 
-    /// Raised tie roof truss: the Pratt roof truss with its tie raised by `raise` between the second panel points from the ends.
-    static TrussGuide roof_raised_tie(double span = 12000.0, double rise = 1380.0, double raise = 50.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
-
     /// Cambered tie roof truss: the rafters up to `rise` over `span`, a polygonal tie dipping `dip` at the first load point and
     /// rising to `camber` at the middle, verticals at the load points and diagonals down to the next vertical's foot, at the measured fractions.
     static TrussGuide roof_cambered_tie(double span = 12000.0, double rise = 2000.0, double camber = 500.0, double dip = 60.0, double chord_radius = 80.0, double web_radius = 60.0);
@@ -125,24 +122,9 @@ public:
     /// bottom chord, the interior a fan of members from both supports meeting at shared nodes, at the measured fractions.
     static TrussGuide quarter_fan(double span = 12000.0, double height = 5560.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Cantilever (a): a horizontal top chord `span` long from the upper wall support `height` over the lower one, a polygonal
+    /// Cantilever: a horizontal top chord `span` long from the upper wall support `height` over the lower one, a polygonal
     /// bottom chord rising to the tip, webs zigzagging between them, at the measured fractions.
-    static TrussGuide cantilever_a(double span = 12000.0, double height = 1830.0, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Cantilever (b): as (a), `span` and `height`, with its own nodes.
-    static TrussGuide cantilever_b(double span = 12000.0, double height = 2800.0, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Cantilever (c): as (a), `span` and `height`, with its own nodes.
-    static TrussGuide cantilever_c(double span = 12000.0, double height = 2330.0, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Cantilever (d): as (a), `span` and `height`, with its own nodes.
-    static TrussGuide cantilever_d(double span = 12000.0, double height = 2290.0, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Cantilever (e): as (a), `span` and `height`, with its own nodes.
-    static TrussGuide cantilever_e(double span = 12000.0, double height = 2370.0, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Cantilever (f): as (a), `span` and `height`, with its own nodes.
-    static TrussGuide cantilever_f(double span = 12000.0, double height = 2280.0, double chord_radius = 80.0, double web_radius = 60.0);
+    static TrussGuide cantilever(double span = 12000.0, double height = 1830.0, double chord_radius = 80.0, double web_radius = 60.0);
 
     /// Cantilever design 1: nodes A to F from the drawn side lengths, scaled to `span` from the wall to C and `height` from B
     /// to A, chords A-D-C and B-F-C, the wall member A-B a post.
@@ -160,110 +142,87 @@ public:
     /// measured fractions, eight panels, a vertical at each load point.
     static TrussGuide fish_belly(double span = 12000.0, double rise = 1720.0, double sag = 1150.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Sawtooth roof (HAER): `teeth` teeth over `span` on one tie, each a long rafter up to `height` at three quarters of the tooth with a W of
+    /// Sawtooth roof: `teeth` teeth over `span` on one tie, each a long rafter up to `height` at three quarters of the tooth with a W of
     /// four webs and a short steep rafter, a column `column` high under every valley.
     static TrussGuide sawtooth(double span = 12000.0, double height = 1800.0, double column = 2130.0, int teeth = 3, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Parallel-chord Howe roof truss (HAER): end posts `height` high over `span`, the top chord pitched up to `ridge`, `panels` panels (even),
+    /// Parallel-chord Howe roof truss: end posts `height` high over `span`, the top chord pitched up to `ridge`, `panels` panels (even),
     /// verticals and the diagonals rising towards the middle.
     static TrussGuide howe_flat(double span = 12000.0, double height = 1530.0, double ridge = 1890.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Three-hinged arch (HAER): two curved trusses from hinges `span` apart meeting at the crown hinge `height` high, each an outer and an inner
+    /// Three-hinged arch: two curved trusses from hinges `span` apart meeting at the crown hinge `height` high, each an outer and an inner
     /// polygon with rungs and diagonals between them, at the measured fractions.
     static TrussGuide three_hinged_arch(double span = 12000.0, double height = 3380.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Burr arch truss (HAER): a multiple king post truss `height` high over `span` on end posts, `panels` panels (even), its diagonals rising
+    /// Burr arch truss: a multiple king post truss `height` high over `span` on end posts, `panels` panels (even), its diagonals rising
     /// towards the middle, and an arch on a parabola from heel to heel up to `crown` through the verticals.
     static TrussGuide burr_arch(double span = 12000.0, double height = 2480.0, double crown = 1890.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Town lattice (HAER): chords `height` apart over `span` on end posts, `panels` lattice pitches, planks both ways from each chord node to the
+    /// Town lattice: chords `height` apart over `span` on end posts, `panels` lattice pitches, planks both ways from each chord node to the
     /// other chord two pitches on, those past the ends stopping on the end posts' middles.
     static TrussGuide town_lattice(double span = 12000.0, double height = 3000.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Bowstring arch truss (HAER): a polygonal arch up to `height` tied by the bottom chord over `span`, `panels` panels, verticals and crossed
+    /// Bowstring arch truss: a polygonal arch up to `height` tied by the bottom chord over `span`, `panels` panels, verticals and crossed
     /// diagonals in every inner panel.
     static TrussGuide bowstring_arch(double span = 11900.0, double height = 2490.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Waddell "A" truss (HAER): a king post truss over `span` up to `rise`, a vertical under each rafter's middle and a strut from there down to
+    /// Waddell "A" truss: a king post truss over `span` up to `rise`, a vertical under each rafter's middle and a strut from there down to
     /// the king post's foot.
     static TrussGuide waddell_a(double span = 12000.0, double rise = 4560.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Wichert truss (HAER): a Warren `height` high over `span` on end posts, `panels` half panels (half of it odd), continuous over a middle pier,
+    /// Wichert truss: a Warren `height` high over `span` on end posts, `panels` half panels (half of it odd), continuous over a middle pier,
     /// its bottom chord dipping `dip` to the pier.
     static TrussGuide wichert(double span = 12000.0, double height = 2320.0, double dip = 650.0, int panels = 10, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Pratt half-hip (HAER): a Pratt `height` high over `span`, `panels` panels (odd), inclined end posts reaching half a panel, crossed diagonals
-    /// in the middle panel.
-    static TrussGuide pratt_half_hip(double span = 12000.0, double height = 2400.0, int panels = 5, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Truss leg bedstead (HAER): a Pratt `height` high over `span`, `panels` panels (even), whose vertical end posts run on `leg` below the bottom
+    /// Truss leg bedstead: a Pratt `height` high over `span`, `panels` panels (even), whose vertical end posts run on `leg` below the bottom
     /// chord into the foundations.
     static TrussGuide truss_leg_bedstead(double span = 12000.0, double height = 2500.0, double leg = 900.0, int panels = 4, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Camelback (HAER): a Parker over `span`, `panels` panels (odd), whose top chord has exactly five slopes, from `hip` at the first panel point
-    /// to `height` at the third, crossed diagonals in the middle panel.
-    static TrussGuide camelback(double span = 13500.0, double height = 2800.0, double hip = 2000.0, int panels = 9, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Camelback with subdivided panels (HAER, A): the camelback with a sub-vertical up to the middle of each inner main diagonal and a sub-strut
-    /// from the panel's foot to it; `span`, `height`, `hip` and `panels` as the camelback.
-    static TrussGuide camelback_subdivided(double span = 13500.0, double height = 2150.0, double hip = 1570.0, int panels = 9, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Kellogg (HAER): a Pratt `height` high over `span` on inclined end posts, `panels` panels (even), with additional diagonals from the upper
+    /// Kellogg: a Pratt `height` high over `span` on inclined end posts, `panels` panels (even), with additional diagonals from the upper
     /// panel points to the middle of the lower panels.
     static TrussGuide kellogg(double span = 12000.0, double height = 2650.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Baltimore with sub-struts (HAER, A): a Pratt `height` high over `span` on inclined end posts, `panels` main panels (odd), each split by a
+    /// Baltimore with sub-struts: a Pratt `height` high over `span` on inclined end posts, `panels` main panels (odd), each split by a
     /// sub-vertical up to the middle of its main diagonal, a sub-strut from the panel's foot to it, crossed diagonals in the middle panel.
     static TrussGuide baltimore_a(double span = 14000.0, double height = 2140.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Baltimore with sub-ties (HAER, B): as A, `span`, `height` and `panels`, a sub-tie from the middle of each main diagonal up to the next
-    /// panel point.
-    static TrussGuide baltimore_b(double span = 14000.0, double height = 2140.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Pennsylvania with sub-struts (HAER, A): a Baltimore with sub-struts over `span`, `panels` main panels (odd), under a polygonal top chord
+    /// Pennsylvania with sub-struts: a Baltimore with sub-struts over `span`, `panels` main panels (odd), under a polygonal top chord
     /// rising on a parabola from `hip` at the first panel point to `height` at the middle.
     static TrussGuide pennsylvania_a(double span = 14000.0, double height = 2160.0, double hip = 1400.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Pennsylvania with sub-ties (HAER, B): a Baltimore with sub-ties under the polygonal top chord; `span`, `height`, `hip` and `panels` as A.
-    static TrussGuide pennsylvania_b(double span = 14000.0, double height = 2160.0, double hip = 1400.0, int panels = 7, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Lenticular (HAER): a Pratt over `span` between two parabolic chords, up to `height` and down to `sag`, meeting at the ends, `panels` panels
-    /// (even).
-    static TrussGuide lenticular(double span = 12000.0, double height = 1070.0, double sag = 1240.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
-
-    /// Greiner (HAER): a six-panel Pratt `height` high over `span` on inclined end posts whose middle diagonals are replaced by an inverted
+    /// Greiner: a six-panel Pratt `height` high over `span` on inclined end posts whose middle diagonals are replaced by an inverted
     /// bowstring hung `hang` above the bottom chord on the second verticals.
     static TrussGuide greiner(double span = 12000.0, double height = 2500.0, double hang = 400.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Double intersection Pratt (HAER, Whipple): a Pratt `height` high over `span` on inclined end posts, `panels` panels (even), its diagonals
+    /// Double intersection Pratt: a Pratt `height` high over `span` on inclined end posts, `panels` panels (even), its diagonals
     /// across two panels.
     static TrussGuide double_intersection_pratt(double span = 12000.0, double height = 2500.0, int panels = 12, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Schwedler (HAER): over `span`, `panels` panels (even), a Parker whose top chord rises over `sloped` panels at each end to `height`, a Pratt
+    /// Schwedler: over `span`, `panels` panels (even), a Parker whose top chord rises over `sloped` panels at each end to `height`, a Pratt
     /// in the sloped panels and a double intersection Pratt between them.
     static TrussGuide schwedler(double span = 14000.0, double height = 2960.0, int panels = 14, int sloped = 4, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Double intersection Warren (HAER): two Warren web systems superimposed between hip verticals, `height` high over `span` on inclined end
+    /// Double intersection Warren: two Warren web systems superimposed between hip verticals, `height` high over `span` on inclined end
     /// posts, `panels` panels.
     static TrussGuide double_intersection_warren(double span = 12000.0, double height = 2500.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Pegram (HAER): over `span`, a polygonal top chord up to `height` over nine panels, its nodes between the bottom nodes, webs zigzagging
+    /// Pegram: over `span`, a polygonal top chord up to `height` over nine panels, its nodes between the bottom nodes, webs zigzagging
     /// between them and crossed in the middle, at the measured fractions.
     static TrussGuide pegram(double span = 12060.0, double height = 2530.0, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Post (HAER): a rectangle `height` high over `span` on end posts, `panels` panels (even), inclined posts leaning to the middle from the half
+    /// Post: a rectangle `height` high over `span` on end posts, `panels` panels (even), inclined posts leaning to the middle from the half
     /// panel points and diagonals across two of them.
     static TrussGuide post(double span = 12000.0, double height = 2500.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Bollman (HAER): a rectangle `height` high over `span` on end posts, `panels` panels, verticals and diagonals from each end post's top to
+    /// Bollman: a rectangle `height` high over `span` on end posts, `panels` panels, verticals and diagonals from each end post's top to
     /// every bottom panel point.
     static TrussGuide bollman(double span = 12000.0, double height = 2500.0, int panels = 6, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Fink bridge (HAER): a rectangle `height` high over `span` on end posts, `panels` panels (a power of two), verticals and the Fink's
+    /// Fink bridge: a rectangle `height` high over `span` on end posts, `panels` panels (a power of two), verticals and the Fink's
     /// diagonals, from the end posts to the middle, then from every node so reached to the middles of the halves on each side.
     static TrussGuide fink_bridge(double span = 12000.0, double height = 2600.0, int panels = 8, double chord_radius = 80.0, double web_radius = 60.0);
 
-    /// Stearns (HAER): a six-panel Fink `height` high over `span` on inclined end posts with the verticals omitted at alternate panel points.
+    /// Stearns: a six-panel Fink `height` high over `span` on inclined end posts with the verticals omitted at alternate panel points.
     static TrussGuide stearns(double span = 12000.0, double height = 2580.0, double chord_radius = 80.0, double web_radius = 60.0);
     /// Crescent with crossed webs: an outer arc up to `height` and an inner arc up to `inner` from the same two supports `span`
     /// apart, the outer arc in `panels` (even) equal angles, two zigzags of webs between the arcs crossing in every panel.

@@ -515,30 +515,6 @@ TrussGuide TrussGuide::pitched_posts(double span, double height, double ridge, i
     return posted_pratt(heights, span / panels, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::roof_raised_tie(double span, double rise, double raise, int panels, double chord_radius, double web_radius) {
-
-    const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, rise * (1.0 - std::abs(i * panel - 0.5 * span) / (0.5 * span))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, std::min(i, panels - i) >= 2 ? raise : 0.0); };
-
-    // the chords: the tie raised between the second panel points from the ends, the rafters up to the ridge and down
-    std::vector<Point> tie;
-    for (int i = 0; i <= panels; i++)
-        tie.push_back(bottom(i));
-    const std::vector<Polyline> chords = {Polyline(tie), Polyline({top(0), top(panels / 2), top(panels)})};
-
-    // a vertical at every load point, the diagonals from each falling towards the middle
-    std::vector<Line> webs;
-    for (int i = 1; i < panels; i++)
-        webs.push_back(Line::from_points(bottom(i), top(i)));
-    for (int i = 1; i < panels / 2; i++) {
-        webs.push_back(Line::from_points(top(i), bottom(i + 1)));
-        webs.push_back(Line::from_points(top(panels - i), bottom(panels - i - 1)));
-    }
-
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
-}
-
 TrussGuide TrussGuide::roof_cambered_tie(double span, double rise, double camber, double dip, double chord_radius, double web_radius) {
 
     // the load points at the measured fractions of the span, on the straight rafters
@@ -602,12 +578,12 @@ TrussGuide TrussGuide::quarter_fan(double span, double height, double chord_radi
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-/// A cantilever from two wall supports: the top chord horizontal at `height` through the top nodes at fractions `top` of the span, the bottom
-/// chord from the lower support through the nodes at fractions `bottom` of the span and the height to the tip, webs zigzagging from the upper
-/// support between the bottom and the top nodes.
-static TrussGuide cantilever(double span, double height, const std::vector<double>& top, const std::vector<std::array<double, 2>>& bottom, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cantilever(double span, double height, double chord_radius, double web_radius) {
 
-    // the chords: the top chord straight, the bottom chord up to the tip
+    const std::vector<double> top = {0.0, 0.166667, 0.335833, 0.501667, 0.6725, 0.8375, 1.0};
+    const std::vector<std::array<double, 2>> bottom = {{0.0, 0.0}, {0.131667, 0.147541}, {0.2975, 0.114754}, {0.433333, 0.098361}, {0.625833, 0.202186}, {0.806667, 0.497268}};
+
+    // the chords: the top chord straight at the height, the bottom chord from the lower support up to the tip
     std::vector<Point> upper;
     for (const double fraction : top)
         upper.emplace_back(fraction * span, 0.0, height);
@@ -623,42 +599,6 @@ static TrussGuide cantilever(double span, double height, const std::vector<doubl
     }
 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_a(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.166667, 0.335833, 0.501667, 0.6725, 0.8375, 1.0},
-        {{0.0, 0.0}, {0.131667, 0.147541}, {0.2975, 0.114754}, {0.433333, 0.098361}, {0.625833, 0.202186}, {0.806667, 0.497268}}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_b(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.1675, 0.335833, 0.5025, 0.671667, 0.835, 1.0},
-        {{0.0, 0.0}, {0.128333, 0.125}, {0.330833, 0.310714}, {0.485, 0.396429}, {0.6425, 0.582143}, {0.820833, 0.757143}}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_c(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.1675, 0.334167, 0.5025, 0.67, 0.835, 1.0},
-        {{0.0, 0.0}, {0.125, 0.133047}, {0.295, 0.257511}, {0.449167, 0.390558}, {0.626667, 0.429185}, {0.7775, 0.527897}}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_d(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.166667, 0.333333, 0.5025, 0.671667, 0.836667, 1.0},
-        {{0.0, 0.0}, {0.136667, 0.161572}, {0.298333, 0.28821}, {0.448333, 0.401747}, {0.601667, 0.41048}, {0.8025, 0.489083}}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_e(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.17, 0.338333, 0.504167, 0.6725, 0.838333, 1.0},
-        {{0.0, 0.0}, {0.130833, 0.156118}, {0.304167, 0.308017}, {0.453333, 0.413502}, {0.604167, 0.451477}, {0.795833, 0.49789}}, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::cantilever_f(double span, double height, double chord_radius, double web_radius) {
-
-    return cantilever(span, height, {0.0, 0.1675, 0.335833, 0.503333, 0.67, 0.836667, 1.0},
-        {{0.0, 0.0}, {0.135, 0.144737}, {0.301667, 0.276316}, {0.433333, 0.372807}, {0.605833, 0.45614}, {0.818333, 0.552632}}, chord_radius, web_radius);
 }
 
 TrussGuide TrussGuide::cantilever_design_1(double span, double height, double chord_radius, double web_radius) {
@@ -784,9 +724,9 @@ TrussGuide TrussGuide::sawtooth(double span, double height, double column, int t
         webs.push_back(Line::from_points(second, apex));
     }
 
-    // a column under every valley and both ends
+    // a column under every valley and the far end
     std::vector<Line> posts;
-    for (int k = 0; k <= teeth; k++)
+    for (int k = 1; k <= teeth; k++)
         posts.push_back(Line::from_points(Point(k * tooth, 0.0, -column), Point(k * tooth, 0.0, 0.0)));
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
@@ -984,30 +924,6 @@ TrussGuide TrussGuide::wichert(double span, double height, double dip, int panel
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pratt_half_hip(double span, double height, int panels, double chord_radius, double web_radius) {
-
-    const double panel = span / panels;
-    const auto top = [&](double i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](double i) { return Point(i * panel, 0.0, 0.0); };
-
-    // the chords: the bottom chord straight, the top chord on inclined end posts reaching half a panel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({bottom(0), top(0.5), top(panels - 0.5), bottom(panels)})};
-
-    // a vertical at every inner panel point, the diagonals from the end posts' tops and then from each vertical's top falling towards the
-    // middle, both in the middle panel
-    std::vector<Line> webs;
-    for (int i = 1; i < panels; i++)
-        webs.push_back(Line::from_points(bottom(i), top(i)));
-    webs.push_back(Line::from_points(top(0.5), bottom(1)));
-    webs.push_back(Line::from_points(top(panels - 0.5), bottom(panels - 1)));
-    for (int i = 1; 2 * i < panels; i++) {
-        webs.push_back(Line::from_points(top(i), bottom(i + 1)));
-        webs.push_back(Line::from_points(top(panels - i), bottom(panels - i - 1)));
-    }
-
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
-}
-
 TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg, int panels, double chord_radius, double web_radius) {
 
     const double panel = span / panels;
@@ -1034,29 +950,6 @@ TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-/// The top nodes of a camelback: the heels, the hip at the first panel point, a straight slope up to the height at the third, level to the
-/// third from the far end, and down again: exactly five slopes.
-static std::vector<Point> camelback_top(double span, double height, double hip, int panels) {
-
-    std::vector<Point> top;
-    for (int i = 0; i <= panels; i++) {
-        const int from_end = std::min(i, panels - i);
-        const double z = from_end == 0 ? 0.0 : from_end >= 3 ? height : hip + (height - hip) * (from_end - 1) / 2.0;
-        top.emplace_back(i * span / panels, 0.0, z);
-    }
-
-    return top;
-}
-
-TrussGuide TrussGuide::camelback(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
-
-    // the chords: the bottom chord straight, the top chord of five slopes through every panel point
-    const std::vector<Point> top = camelback_top(span, height, hip, panels);
-    const std::vector<Polyline> chords = {Polyline({top.front(), top.back()}), Polyline(top)};
-
-    return TrussGuide(chords, pratt_webs(top), {}, chord_radius, web_radius);
-}
-
 /// The webs of a subdivided Pratt panel: the main diagonal from `upper` down to `lower`, a sub-vertical from the bottom chord up to its middle,
 /// and from its middle a sub-strut down to `strut` or a sub-tie up to `tie`, whichever is given.
 static void add_subdivided_panel(std::vector<Line>& webs, const Point& upper, const Point& lower, const std::optional<Point>& strut, const std::optional<Point>& tie) {
@@ -1068,34 +961,6 @@ static void add_subdivided_panel(std::vector<Line>& webs, const Point& upper, co
         webs.push_back(Line::from_points(*strut, middle));
     if (tie)
         webs.push_back(Line::from_points(middle, *tie));
-}
-
-TrussGuide TrussGuide::camelback_subdivided(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
-
-    // the chords: the bottom chord straight, the top chord of five slopes through every panel point
-    const std::vector<Point> top = camelback_top(span, height, hip, panels);
-    const auto bottom = [&](int i) { return Point(top[i][0], 0.0, 0.0); };
-    const std::vector<Polyline> chords = {Polyline({top.front(), top.back()}), Polyline(top)};
-
-    // a vertical at every inner panel point, a plain diagonal in each panel beside the hip verticals
-    std::vector<Line> webs;
-    for (int i = 1; i < panels; i++)
-        webs.push_back(Line::from_points(bottom(i), top[i]));
-    webs.push_back(Line::from_points(top[1], bottom(2)));
-    webs.push_back(Line::from_points(top[panels - 1], bottom(panels - 2)));
-
-    // the inner panels subdivided towards the middle, each main diagonal with a sub-vertical and a sub-strut from the panel's foot
-    for (int i = 2; 2 * i + 1 < panels; i++) {
-        add_subdivided_panel(webs, top[i], bottom(i + 1), bottom(i), std::nullopt);
-        add_subdivided_panel(webs, top[panels - i], bottom(panels - i - 1), bottom(panels - i), std::nullopt);
-    }
-
-    // the middle panel crossed, the sub-vertical up to the crossing
-    const int middle = panels / 2;
-    add_subdivided_panel(webs, top[middle], bottom(middle + 1), std::nullopt, std::nullopt);
-    webs.push_back(Line::from_points(bottom(middle), top[middle + 1]));
-
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
 TrussGuide TrussGuide::kellogg(double span, double height, int panels, double chord_radius, double web_radius) {
@@ -1186,43 +1051,9 @@ TrussGuide TrussGuide::baltimore_a(double span, double height, int panels, doubl
     return petit(pennsylvania_top(span, height, height, panels), true, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::baltimore_b(double span, double height, int panels, double chord_radius, double web_radius) {
-
-    return petit(pennsylvania_top(span, height, height, panels), false, chord_radius, web_radius);
-}
-
 TrussGuide TrussGuide::pennsylvania_a(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
 
     return petit(pennsylvania_top(span, height, hip, panels), true, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::pennsylvania_b(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
-
-    return petit(pennsylvania_top(span, height, hip, panels), false, chord_radius, web_radius);
-}
-
-TrussGuide TrussGuide::lenticular(double span, double height, double sag, int panels, double chord_radius, double web_radius) {
-
-    // the chords: two parabolas through the panel points, meeting at the ends
-    std::vector<Point> top;
-    std::vector<Point> bottom;
-    for (int i = 0; i <= panels; i++) {
-        const double u = (i - 0.5 * panels) / (0.5 * panels);
-        top.emplace_back(i * span / panels, 0.0, height * (1.0 - u * u));
-        bottom.emplace_back(i * span / panels, 0.0, -sag * (1.0 - u * u));
-    }
-    const std::vector<Polyline> chords = {Polyline(bottom), Polyline(top)};
-
-    // a vertical at every inner panel point, the diagonals from the top of each falling towards the middle
-    std::vector<Line> webs;
-    for (int i = 1; i < panels; i++)
-        webs.push_back(Line::from_points(bottom[i], top[i]));
-    for (int i = 1; i < panels / 2; i++) {
-        webs.push_back(Line::from_points(top[i], bottom[i + 1]));
-        webs.push_back(Line::from_points(top[panels - i], bottom[panels - i - 1]));
-    }
-
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
 TrussGuide TrussGuide::greiner(double span, double height, double hang, double chord_radius, double web_radius) {
