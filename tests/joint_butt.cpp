@@ -304,30 +304,54 @@ static void frame() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Truss template
+// Truss library
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The Pratt truss of examples/templates_truss_1_pratt.cpp: every member from its line, every butt read from the nodes; no two members share
-/// any volume and the verticals stand on the bottom chord's top.
-static void truss() {
+/// Every truss of the TrussGuide library, as examples/templates_truss_2_library.cpp builds them: every member from its line, every butt read
+/// from the nodes; no two members of a truss share any volume, and the Pratt's first vertical stands on the bottom chord's top.
+static void trusses() {
 
-    const wood_truss::Truss pratt(wood_truss::TrussGuide::pratt());
-    std::vector<std::shared_ptr<Beam>> members = pratt.get_elements_numbered<Beam>("web");
-    for (size_t c = 0; c < 2; c++)
-        for (size_t s = 0; s < 2; s++)
-            if (const std::shared_ptr<Beam> run = pratt.get_element_by_name<Beam>(fmt::format("chord_{}_{}", c, s)))
-                members.push_back(run);
-    check(members.size() == 12, fmt::format("truss: {} members, not 9 webs, a bottom chord and two top chord runs", members.size()));
-    check(std::abs(extreme(*members[0], 2, false) - 80.0) < FLUSH, fmt::format("truss: the first vertical's foot at {}, not 80", extreme(*members[0], 2, false)));
-    for (size_t i = 0; i < members.size(); i++)
-        for (size_t j = i + 1; j < members.size(); j++)
-            check(shared(*members[i], *members[j]) < OVERLAP_REL, fmt::format("truss: {} and {} overlap by {} of the smaller", members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+    const std::vector<std::pair<std::string, wood_truss::TrussGuide>> guides = {
+        {"king_post", wood_truss::TrussGuide::king_post()},
+        {"queen_post", wood_truss::TrussGuide::queen_post()},
+        {"pratt", wood_truss::TrussGuide::pratt()},
+        {"howe", wood_truss::TrussGuide::howe()},
+        {"fink", wood_truss::TrussGuide::fink()},
+        {"belgian", wood_truss::TrussGuide::belgian()},
+        {"scissors", wood_truss::TrussGuide::scissors()},
+        {"warren", wood_truss::TrussGuide::warren()},
+        {"warren_verticals", wood_truss::TrussGuide::warren_verticals()},
+        {"pratt_bridge", wood_truss::TrussGuide::pratt_bridge()},
+        {"parker", wood_truss::TrussGuide::parker()},
+        {"k_truss", wood_truss::TrussGuide::k_truss()},
+        {"cambered_verticals", wood_truss::TrussGuide::cambered_verticals()},
+        {"funicular_arch", wood_truss::TrussGuide::funicular_arch()},
+        {"lens", wood_truss::TrussGuide::lens()},
+        {"triangulated_arch", wood_truss::TrussGuide::triangulated_arch()},
+        {"sloped", wood_truss::TrussGuide::sloped()},
+        {"pratt_flat", wood_truss::TrussGuide::pratt_flat()},
+        {"flat_peaked", wood_truss::TrussGuide::flat_peaked()},
+        {"bowstring", wood_truss::TrussGuide::bowstring()},
+        {"pitched_posts", wood_truss::TrussGuide::pitched_posts()},
+    };
+    for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
+        const wood_truss::Truss truss(guide.second, guide.first);
+        std::vector<std::shared_ptr<Beam>> members;
+        for (const std::shared_ptr<Element>& element : *truss.objects.elements)
+            if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
+                members.push_back(beam);
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t j = i + 1; j < members.size(); j++)
+                check(shared(*members[i], *members[j]) < OVERLAP_REL, fmt::format("trusses: {}: {} and {} overlap by {} of the smaller", guide.first, members[i]->name, members[j]->name, shared(*members[i], *members[j])));
+        if (guide.first == "pratt")
+            check(std::abs(extreme(*truss.get_element_by_name<Beam>("web_0"), 2, false) - 80.0) < FLUSH, "trusses: pratt: the first vertical does not stand on the bottom chord's top");
+    }
 }
 
 int main() {
 
     pairs();
-    truss();
+    trusses();
     frame();
     folded_roof();
     beams();

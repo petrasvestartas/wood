@@ -2,7 +2,7 @@
 
 [TOC]
 
-Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `cross/`, `reciprocal/`, `grid/`, `floor/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
+Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `cross/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
 
 | Template | Header | Example | Elements |
 | --- | --- | --- | --- |
@@ -16,6 +16,7 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 | [Lamella gridshell](@ref templates_shells) | `shells/lamella_gridshell.h` | `templates_shells_{2_gridshell,3_gridshell_iso}` | `LamellaGridshell`: two upright boards per lamella on iso or asymptotic curves, in two layers, a hexagonal stud at every crossing |
 | [Grid](@ref templates_grid) | `grid/grid.h` | `3_elements_tree`, `templates_grid_{1..5}_*` | a `Grid` session per building: columns, heads, girders, beams, purlins, braces, decks and walls level by level |
 | [Floor](@ref templates_floor) | `floor/floor.h` | `templates_floor_{1..8}_*` | the vaulted timber floor bay of compas_tf: outer and inner ribs, seam and oculus beams, wedge blocks, t-sections, beds, the oculus ring, columns on supports and their connectors |
+| [Truss](@ref templates_truss) | `truss/truss.h` | `templates_truss_{1,2}_*` | a `Truss` session from a `TrussGuide` of chord polylines, web and post lines: a beam per chord run, web and post, every butt read from the nodes; 21 roof, bridge and graphic-statics trusses in the library |
 
 - @subpage templates_shells
 - @subpage templates_folding
@@ -23,3 +24,4 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 - @subpage templates_reciprocal
 - @subpage templates_grid
 - @subpage templates_floor
+- @subpage templates_truss

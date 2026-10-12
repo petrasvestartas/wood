@@ -17,6 +17,7 @@ namespace wood_truss {
 /// - Where chords meet at their ends, a heel, JointBeam::butt reads the case; a chord's end on another chord's run stops top_side on it.
 /// - A web's or post's end on a run, or where several runs end, stops top_side on each run there; at a run's lone end the chord runs on over
 ///   it, top_side at the end.
+/// - A web's or post's end on another web's or post's middle, as a K's on its vertical, stops top_side on it.
 /// - At a node, the webs and posts ending there, sorted by angle, side_side with each neighbour, never across the widest gap.
 ///
 /// Members are named `chord_<c>_<s>`, `web_<w>` and `post_<p>`, read back by name; the guide's lines are drawn red in `input`.

@@ -29,7 +29,6 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `21_butt_house` | A small house from plates on mid-planes: floor, walls and roof butted flat |
 | `22_butt_pairs` | Butt pairs of beams, columns and plates: top_side, side_side out of plane and in plane, cross |
 | `23_butt_assemblies` | Butt pairs combined: a braced frame, a curved sill, a pentagon floor, zigzag walls and a folded roof |
-| `24_butt_trusses` | Twelve roof and bridge trusses from lines: webs top_side on the chords, side_side where they share a node |
 
 Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
 
@@ -147,7 +146,7 @@ See @subpage cutting_gallery for the API, geometry limits and Cloudflare command
 
 ## Butt joints
 
-Members drawn as lines and mid-planes, red, overlap where they meet. `JointBeam::butt(a, b)` reads how their ends meet and runs on and cuts each end on one plane, so they meet face to face (@ref elements_joint_beam_butt).
+Members drawn as lines and mid-planes, red, overlap where they meet. `JointBeam::butt(a, b)` reads how their ends meet and runs on and cuts each end on one plane, so they meet face to face (@ref elements_joint_beam_butt). Trusses are made by the [Truss](@ref templates_truss) template.
 
 ### 20_butt_frame
 
@@ -311,80 +310,3 @@ A roof on a zigzag in section over two gables, its eaves overhanging them.
 
 \include{lineno} 23_butt_assemblies.cpp
 
-### 24_butt_trusses
-
-The trusses of the HAER truss identification sheets, each its own scene, `butt_truss_<name>.pb`: chords run through, every web stops top_side on the chords it ends on, and webs that share a node are cut side_side on the plane halfway.
-
-#### king_post
-
-King post.
-
-![butt_truss_king_post](examples/butt_truss_king_post.png)
-
-#### queen_post
-
-Queen post.
-
-![butt_truss_queen_post](examples/butt_truss_queen_post.png)
-
-#### pratt
-
-Pratt roof truss.
-
-![butt_truss_pratt](examples/butt_truss_pratt.png)
-
-#### howe
-
-Howe roof truss.
-
-![butt_truss_howe](examples/butt_truss_howe.png)
-
-#### fink
-
-Fink.
-
-![butt_truss_fink](examples/butt_truss_fink.png)
-
-#### belgian
-
-Belgian.
-
-![butt_truss_belgian](examples/butt_truss_belgian.png)
-
-#### scissors
-
-Scissors.
-
-![butt_truss_scissors](examples/butt_truss_scissors.png)
-
-#### warren
-
-Warren.
-
-![butt_truss_warren](examples/butt_truss_warren.png)
-
-#### warren_verticals
-
-Warren with verticals.
-
-![butt_truss_warren_verticals](examples/butt_truss_warren_verticals.png)
-
-#### pratt_bridge
-
-Pratt bridge truss with inclined end posts.
-
-![butt_truss_pratt_bridge](examples/butt_truss_pratt_bridge.png)
-
-#### parker
-
-Parker, a polygonal top chord.
-
-![butt_truss_parker](examples/butt_truss_parker.png)
-
-#### k_truss
-
-K-truss.
-
-![butt_truss_k_truss](examples/butt_truss_k_truss.png)
-
-\include{lineno} 24_butt_trusses.cpp

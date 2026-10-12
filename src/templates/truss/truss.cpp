@@ -155,12 +155,30 @@ void Truss::add_web_butts() {
                     add_butt(JointBeam::butt_top_side_end(*run.second, *member.second), run.second, member.second);
             }
 
-    // the truss's plane, for the angles of the members around a node
+    // each end on another web's or post's middle, as a K's on its vertical, top_side on it
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+        for (const Point& end : {member.first.start(), member.first.end()})
+            for (const std::pair<Line, std::shared_ptr<Beam>>& other : members)
+                if (inside(end, {other.first.start(), other.first.end()}))
+                    add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
+
+    // the truss's plane, for the angles of the members around a node: through its two nodes farthest apart and the node farthest off the
+    // line between them
     std::vector<Point> points;
     for (const Polyline& chord : guide.chords)
         for (const Point& point : chord.get_points())
             points.push_back(point);
-    const Plane plane = Plane::from_points(points);
+    std::array<Point, 2> far = {points[0], points[0]};
+    for (const Point& a : points)
+        for (const Point& b : points)
+            if (Point::distance(a, b) > Point::distance(far[0], far[1]))
+                far = {a, b};
+    const Vector along = (far[1] - far[0]).normalized();
+    Point off = far[0];
+    for (const Point& point : points)
+        if ((point - far[0]).cross(along).magnitude() > (off - far[0]).cross(along).magnitude())
+            off = point;
+    const Plane plane = Plane::from_point_normal(far[0], along.cross(off - far[0]).normalized());
 
     // every node a web or post ends at, once
     std::vector<Point> nodes;
