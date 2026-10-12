@@ -16,7 +16,8 @@ wood_truss::Truss truss(wood_truss::TrussGuide::pratt());
 | a web's or post's end on a run, or where several runs end | `top_side` on each run there |
 | a web's or post's end at a run's lone end | `top_side` at the end, the chord running on over it |
 | a web's end on another web's middle, a K | `top_side` on it |
-| two webs or posts crossing | a half lap, `JointBeam::butt`'s `cross` |
+| a chord's end on a web's or post's middle, a tie on a column | `top_side` on it |
+| any two members crossing, chords, webs or posts | a half lap, `JointBeam::butt_cross`; a member can be crossed many times |
 | webs and posts ending at one node | sorted by angle, `side_side` with each neighbour; on a chord never across the widest gap |
 
 ## Constructor

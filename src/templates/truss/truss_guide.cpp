@@ -930,13 +930,11 @@ TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg
     const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
     const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
 
-    // the chords: both straight, and the legs, end posts running on below the bottom chord, as chords the others butt on
-    const std::vector<Polyline> chords = {
-        Polyline({bottom(0), bottom(panels)}),
-        Polyline({top(0), top(panels)}),
-        Polyline({Point(0.0, 0.0, -leg), top(0)}),
-        Polyline({Point(span, 0.0, -leg), top(panels)}),
-    };
+    // the chords: both straight
+    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+
+    // the legs: columns from below the bottom chord, which ends on them, up to the top chord's ends
+    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -leg), top(0)), Line::from_points(Point(span, 0.0, -leg), top(panels))};
 
     // a vertical at every inner panel point, the diagonals from the top of each, the legs' too, falling towards the middle
     std::vector<Line> webs;
@@ -947,7 +945,7 @@ TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg
         webs.push_back(Line::from_points(top(panels - i), bottom(panels - i - 1)));
     }
 
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
+    return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
 /// The webs of a subdivided Pratt panel: the main diagonal from `upper` down to `lower`, a sub-vertical from the bottom chord up to its middle,
@@ -1478,18 +1476,18 @@ TrussGuide TrussGuide::raised_tie_posts(double span, double rise, double column,
     const std::vector<Point> lower = symmetric({Point(0.0, 0.0, 0.0), Point(post, 0.0, 0.0), Point(corner, 0.0, tie)}, span);
     const std::vector<Polyline> chords = {Polyline(lower), Polyline({top(0.0), ridge, top(span)})};
 
-    // per side: the post from the tie up to the rafter, the level member from there to the corner, a strut from the rafter between down to
-    // the corner, the vertical over the corner and the diagonal from it to the ridge
+    // per side: the level member from the rafter over the column to the corner, a strut from the rafter between down to the corner, the
+    // vertical over the corner and the diagonal from it to the ridge
     std::vector<Line> webs;
     const Point corner_node(corner, 0.0, tie);
-    for (const Line& web : {Line::from_points(Point(post, 0.0, 0.0), top(post)), Line::from_points(top(post), corner_node), Line::from_points(top(0.5 * (post + corner)), corner_node),
+    for (const Line& web : {Line::from_points(top(post), corner_node), Line::from_points(top(0.5 * (post + corner)), corner_node),
              Line::from_points(corner_node, top(corner)), Line::from_points(corner_node, ridge)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
 
-    // the columns under the posts
-    const std::vector<Line> posts = {Line::from_points(Point(post, 0.0, -column), Point(post, 0.0, 0.0)), Line::from_points(Point(span - post, 0.0, -column), Point(span - post, 0.0, 0.0))};
+    // the columns from the ground through the tie, which turns on them, up to the rafters
+    const std::vector<Line> posts = {Line::from_points(Point(post, 0.0, -column), top(post)), Line::from_points(Point(span - post, 0.0, -column), top(span - post))};
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
@@ -1500,13 +1498,11 @@ TrussGuide TrussGuide::pitched_warren_columns(double span, double height, double
     const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
     const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
 
-    // the chords: the bottom chord straight, the top chord pitched, the columns running on below the bottom chord, as chords the others butt on
-    const std::vector<Polyline> chords = {
-        Polyline({bottom(0), bottom(panels)}),
-        Polyline({top(0), top(panels / 2), top(panels)}),
-        Polyline({Point(0.0, 0.0, -column), top(0)}),
-        Polyline({Point(span, 0.0, -column), top(panels)}),
-    };
+    // the chords: the bottom chord straight, the top chord pitched
+    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+
+    // the columns from below the bottom chord, which ends on them, up to the top chord's ends
+    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -column), top(0)), Line::from_points(Point(span, 0.0, -column), top(panels))};
 
     // a vertical at every inner panel point, the diagonals alternating down and up from each column's top to the middle
     std::vector<Line> webs;
@@ -1518,7 +1514,7 @@ TrussGuide TrussGuide::pitched_warren_columns(double span, double height, double
         webs.push_back(down ? Line::from_points(top(panels - i), bottom(panels - i - 1)) : Line::from_points(bottom(panels - i), top(panels - i - 1)));
     }
 
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
+    return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
 TrussGuide TrussGuide::fink_compound(double span, double rise, double chord_radius, double web_radius) {
@@ -1705,17 +1701,14 @@ TrussGuide TrussGuide::arched_crossed_columns(double span, double height, double
     const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
     const auto arch = [&](int i) { return arc_at(span, crown, i * panel); };
 
-    // the chords: the arch from column to column through every panel point, the top chord pitched, the columns from below the arch's springing
-    // up to the top chord, as chords the others butt on
+    // the chords: the arch from column to column through every panel point, the top chord pitched
     std::vector<Point> lower;
     for (int i = 0; i <= panels; i++)
         lower.push_back(arch(i));
-    const std::vector<Polyline> chords = {
-        Polyline(lower),
-        Polyline({top(0), top(panels / 2), top(panels)}),
-        Polyline({Point(0.0, 0.0, -column), top(0)}),
-        Polyline({Point(span, 0.0, -column), top(panels)}),
-    };
+    const std::vector<Polyline> chords = {Polyline(lower), Polyline({top(0), top(panels / 2), top(panels)})};
+
+    // the columns from below the arch's springing, which ends on them, up to the top chord's ends
+    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -column), top(0)), Line::from_points(Point(span, 0.0, -column), top(panels))};
 
     // a vertical at every inner panel point, both diagonals in every panel
     std::vector<Line> webs;
@@ -1726,7 +1719,7 @@ TrussGuide TrussGuide::arched_crossed_columns(double span, double height, double
         webs.push_back(Line::from_points(arch(i), top(i + 1)));
     }
 
-    return TrussGuide(chords, webs, {}, chord_radius, web_radius);
+    return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
 TrussGuide TrussGuide::trapezoid_king_crossed(double span, double height, double ridge, double chord_radius, double web_radius) {

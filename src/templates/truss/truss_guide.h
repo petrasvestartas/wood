@@ -16,7 +16,7 @@ class TrussGuide {
 public:
     std::vector<Polyline> chords; // Each chord through its nodes, end to end; a node where it turns is a kink.
     std::vector<Line> webs; // Each web between two nodes, on a chord, at a kink or at a chord's end.
-    std::vector<Line> posts; // Each end post between two chord ends, the chords running on over it; as thick as a chord.
+    std::vector<Line> posts; // Each post, as thick as a chord: between two chord ends, the chords running on over it, or a column through the chords, ending them or crossed by them.
     double chord_radius = 80.0; // mm, half the chords' and the posts' square section.
     double web_radius = 60.0; // mm, half the webs' square section.
 

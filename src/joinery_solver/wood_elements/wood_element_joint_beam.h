@@ -152,6 +152,10 @@ public:
     /// end stops on the first, as a chord over an end post; a tee where only the second's end reaches.
     static std::shared_ptr<JointBeam> butt_top_side_end(const Element& top, const Element& side, double reach = 0.0);
 
+    /// A butt cross whatever the ends: two beams crossing take a half lap, each losing the other's wood on its half of the depth, even where
+    /// an end lies near the other, as a column through a tie at a node; nullptr when they do not touch.
+    static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b);
+
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
     static std::shared_ptr<JointBeam> butterfly_key(
         const Element& a,

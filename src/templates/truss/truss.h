@@ -18,7 +18,9 @@ namespace wood_truss {
 /// - A web's or post's end on a run, or where several runs end, stops top_side on each run there; at a run's lone end the chord runs on over
 ///   it, top_side at the end.
 /// - A web's or post's end on another web's or post's middle, as a K's on its vertical, stops top_side on it.
-/// - Two webs or posts whose lines cross inside both get a half lap at the crossing, the butt's cross.
+/// - A chord's end on a web's or post's middle, as a tie on a column, stops top_side on it.
+/// - Any two members whose lines cross inside both, chords, webs or posts, get a half lap, JointBeam::butt_cross; one member can be crossed
+///   many times.
 /// - At a node, the webs and posts ending there, sorted by angle, side_side with each neighbour: on a chord never across the widest gap, at a
 ///   node clear of the chords all the way round.
 ///
@@ -44,7 +46,7 @@ private:
     /// Runs side_side at every kink; at heels the case read by JointBeam::butt; a chord's end on another's run top_side.
     void add_chord_butts();
 
-    /// Each web's and post's ends on the runs and on other webs, the half laps where webs cross, and the side_side miters between
+    /// Each web's and post's ends on the runs and on other webs, chord ends on posts, the half laps wherever members cross, and the side_side miters between
     /// neighbours at every node.
     void add_web_butts();
 

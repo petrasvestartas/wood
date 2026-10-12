@@ -1091,6 +1091,7 @@ enum class ButtMode {
     side_side,
     top_side,
     top_side_end,
+    cross,
 };
 
 /// The butt of two members in a mode: the configuration their ends make, each reaching end's plane, and what each end gains and loses to
@@ -1111,8 +1112,8 @@ static std::shared_ptr<JointBeam> butt_joint(const Element& a, const Element& b,
     if (mode == ButtMode::top_side && ends[1])
         ends[0] = std::nullopt;
 
-    // no end reaching: a cross when the solids share wood, nothing when they do not touch
-    if (!ends[0] && !ends[1]) {
+    // no end reaching, or a cross asked: a cross when the solids share wood, nothing when they do not touch
+    if (mode == ButtMode::cross || (!ends[0] && !ends[1])) {
         if (solid_boolean(members[0].solid, members[1].solid, SolidOperation::intersect).number_of_faces() == 0)
             return nullptr;
         joint->configuration = ButtConfiguration::cross;
@@ -1339,6 +1340,11 @@ std::shared_ptr<JointBeam> JointBeam::butt_top_side_end(const Element& top, cons
 std::shared_ptr<JointBeam> JointBeam::butt_top_side(const Element& top, const Element& side, double reach) {
 
     return butt_joint(top, side, reach, ButtMode::top_side);
+}
+
+std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b) {
+
+    return butt_joint(a, b, 0.0, ButtMode::cross);
 }
 
 std::shared_ptr<JointBeam> JointBeam::butterfly_key(

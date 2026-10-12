@@ -233,19 +233,30 @@ void Truss::add_web_butts() {
                 if (inside(end, {other.first.start(), other.first.end()}))
                     add_butt(JointBeam::butt_top_side(*other.second, *member.second), other.second, member.second);
 
-    // each two webs or posts whose lines cross inside both, a half lap at the crossing
-    for (size_t i = 0; i < members.size(); i++)
-        for (size_t j = i + 1; j < members.size(); j++) {
-            const Line& a = members[i].first;
-            const Line& b = members[j].first;
+    // each run's end on a web's or post's middle, as a tie on a column, top_side on it
+    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+        for (const Point& end : run.first)
+            for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+                if (inside(end, {member.first.start(), member.first.end()}))
+                    add_butt(JointBeam::butt_top_side(*member.second, *run.second), member.second, run.second);
+
+    // each two members whose lines cross inside both, chords, webs or posts, a half lap at the crossing: one member crossed as often as others
+    // pass it
+    std::vector<std::pair<Line, std::shared_ptr<Beam>>> lines;
+    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+        lines.emplace_back(Line::from_points(run.first[0], run.first[1]), run.second);
+    lines.insert(lines.end(), members.begin(), members.end());
+    for (size_t i = 0; i < lines.size(); i++)
+        for (size_t j = i + 1; j < lines.size(); j++) {
+            const Line& a = lines[i].first;
+            const Line& b = lines[j].first;
             double t_a = 0.0;
             double t_b = 0.0;
             if (!Intersection::line_line_parameters(a, b, t_a, t_b, NODE_TOLERANCE, false))
                 continue;
             const Point crossing = a.point_at(t_a);
-            if (t_a <= 0.0 || t_a >= 1.0 || t_b <= 0.0 || t_b >= 1.0 || !inside(crossing, {a.start(), a.end()}) || !inside(crossing, {b.start(), b.end()}))
-                continue;
-            add_butt(JointBeam::butt(*members[i].second, *members[j].second), members[i].second, members[j].second);
+            if (inside(crossing, {a.start(), a.end()}) && inside(crossing, {b.start(), b.end()}))
+                add_butt(JointBeam::butt_cross(*lines[i].second, *lines[j].second), lines[i].second, lines[j].second);
         }
 
     // every node a web or post ends at, once
