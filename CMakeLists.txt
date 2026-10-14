@@ -377,6 +377,8 @@ ADD_EXE(templates_floor_2_column_model   examples/templates_floor_2_column_model
 ADD_EXE(templates_floor_3_contacts       examples/templates_floor_3_contacts.cpp)
 ADD_EXE(templates_floor_7_contacts_cantilevers examples/templates_floor_7_contacts_cantilevers.cpp)
 ADD_EXE(templates_floor_8_rectangle      examples/templates_floor_8_rectangle.cpp)
+ADD_EXE(templates_floor_9_orientation    examples/templates_floor_9_orientation.cpp)
+
 
 ADD_EXE(templates_vault_1_arch           examples/templates_vault_1_arch.cpp)
 ADD_EXE(templates_vault_2_barrel         examples/templates_vault_2_barrel.cpp)
