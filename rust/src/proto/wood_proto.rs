@@ -66,6 +66,9 @@ pub struct Beam {
     /// Section loops in the profile frame, loop 0 the outline, then holes; empty takes the square of the radius
     #[prost(message, repeated, tag = "6")]
     pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// Length the solid runs past each axis end, the stock an end joint cuts back
+    #[prost(double, tag = "9")]
+    pub extension: f64,
 }
 /// The state of a BeamVariable beyond the kernel Element: its straight axis, the sections lofted along it and its cuts.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -178,6 +181,9 @@ pub struct Joint {
     /// A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
     #[prost(bool, tag = "23")]
     pub pre_drill: bool,
+    /// A connector's direction each target slides off it, in targets order
+    #[prost(message, repeated, tag = "24")]
+    pub insertions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
 }
 /// The solids a connector cuts out of one target, as bottom, top loop pairs.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -357,6 +363,12 @@ pub struct InteractionFeatureBeam {
     /// 4 rectangles: 2 on the first beam, 2 on the second
     #[prost(message, repeated, tag = "2")]
     pub volumes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// The normal of the two axes where they meet
+    #[prost(message, optional, tag = "4")]
+    pub normal: ::core::option::Option<::session_rust::proto::Vector>,
+    /// Each beam's axis direction there, the first beam's then the second's
+    #[prost(message, repeated, tag = "5")]
+    pub axes: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
 }
 /// One face's outlines, so a per-face list can repeat.
 #[derive(Clone, PartialEq, ::prost::Message)]

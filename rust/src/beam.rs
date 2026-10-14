@@ -18,6 +18,7 @@ pub struct Beam {
     pub directions: Vec<Vector>, // Section up direction per segment; none takes z.
     pub allowed_type: i32, // Contacts it accepts: 0 crossing, 1 side-to-end and end-to-end, -1 any.
     pub cuts: Vec<Plane>,  // Planes the solid is cut by, kept by the C++ side.
+    pub extension: f64,    // Length the solid runs past each axis end: the stock an end joint at the axis end cuts back.
     pub profile: Vec<Polyline>, // Section loops in the profile frame; empty takes the square of the radius.
     pub solid_features: Vec<proto::InteractionFeatureSolid>, // Features other elements put on it, carried untouched.
     pub plane_features: Vec<proto::InteractionFeaturePlane>, // Planes other elements cut it by, carried untouched.
@@ -33,6 +34,7 @@ impl Beam {
             directions: Vec::new(),
             allowed_type: -1,
             cuts: Vec::new(),
+            extension: 0.0,
             profile,
             solid_features: Vec::new(),
             plane_features: Vec::new(),
@@ -56,6 +58,7 @@ impl Beam {
         let points = self.axis.get_points();
         let along = points[1].clone() - points[0].clone();
         let up = self.up(0);
+        let reach = along.normalized() * self.extension;
         let at = |point: &session_rust::Point| -> Vec<Polyline> {
             self.profile
                 .iter()
@@ -63,10 +66,10 @@ impl Beam {
                 .collect()
         };
 
-        Some((at(&points[0]), at(&points[1])))
+        Some((at(&(points[0].clone() - reach.clone())), at(&(points[1].clone() + reach))))
     }
 
-    /// One closed outline per axis vertex, along the bisector at an interior vertex; empty without a radius.
+    /// One closed outline per axis vertex, along the bisector at an interior vertex, the end ones moved out by extension; empty without a radius.
     pub fn sections(&self) -> Vec<Polyline> {
         let segments = self.axis.segment_count();
 
@@ -88,9 +91,19 @@ impl Beam {
 
             let up = self.up(segment);
             let radius = self.radii.get(segment).copied().unwrap_or(0.0);
+            let mut station = points[i].clone();
+
+            if i == 0 {
+                station = station - along.normalized() * self.extension;
+            }
+
+            if i == segments {
+                station = station + along.normalized() * self.extension;
+            }
+
             sections.push(match self.profile.first() {
-                Some(ring) => profile_section(&points[i], &along, &up, ring),
-                None => square_section(&points[i], &along, &up, radius),
+                Some(ring) => profile_section(&station, &along, &up, ring),
+                None => square_section(&station, &along, &up, radius),
             });
         }
 
@@ -113,6 +126,7 @@ impl WoodElement for Beam {
                 .map(Vector::from_proto)
                 .collect(),
             allowed_type: payload.allowed_type,
+            extension: payload.extension,
             cuts: payload.cuts.into_iter().map(Plane::from_proto).collect(),
             profile: payload
                 .profile
@@ -132,6 +146,7 @@ impl WoodElement for Beam {
             radii: self.radii.clone(),
             directions: self.directions.iter().map(Vector::to_proto).collect(),
             allowed_type: self.allowed_type,
+            extension: self.extension,
             cuts: self.cuts.iter().map(Plane::to_proto).collect(),
             profile: self.profile.iter().map(Polyline::to_proto).collect(),
         }
