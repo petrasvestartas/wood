@@ -8,7 +8,7 @@ using namespace wood_session;
 /// closed by a flat top.
 int main() {
 
-    PolygonFold fold(4, 12000.0, {0.0, 1800.0, 900.0, 3000.0}, 0.0, true, 240.0, "truncated_pyramid");
+    PolygonFold fold(4, 12000.0, {0.0, 1800.0, 900.0, 3000.0}, 0.0, true, 240.0, 0.0, "truncated_pyramid");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("truncated pyramid: {} sides, {} plates\n", fold.sides, plates.size());

@@ -8,7 +8,7 @@ using namespace wood_session;
 /// high, meeting along the lines from the corners to the centre.
 int main() {
 
-    PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false, 240.0, "triangle_fold");
+    PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false, 240.0, 0.0, "triangle_fold");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("triangle fold: {} sides, {} plates\n", fold.sides, plates.size());

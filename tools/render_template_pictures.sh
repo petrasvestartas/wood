@@ -51,6 +51,18 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
     "${RENDER[@]}" templates_folding_24_fan_fold plates
     "${RENDER[@]}" --view top --name plan templates_folding_24_fan_fold folds
+    "${RENDER[@]}" templates_folding_25_one_fold plates
+    "${RENDER[@]}" templates_folding_26_three_folds plates
+    "${RENDER[@]}" templates_folding_27_counter_centre plates
+    "${RENDER[@]}" templates_folding_28_ridge_to_valley plates
+    "${RENDER[@]}" templates_folding_29_elevated_ridge_to_valley plates
+    "${RENDER[@]}" templates_folding_30_alternate_fold plates
+    "${RENDER[@]}" templates_folding_31_deep_centre plates
+    "${RENDER[@]}" templates_folding_32_deep_centre_valley plates
+    "${RENDER[@]}" templates_folding_33_frame_ridge_to_valley plates
+    "${RENDER[@]}" templates_folding_34_a_frame plates
+    "${RENDER[@]}" templates_folding_35_pointed_arch plates
+    "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

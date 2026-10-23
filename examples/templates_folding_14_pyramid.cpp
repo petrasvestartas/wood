@@ -8,7 +8,7 @@ using namespace wood_session;
 /// stiffening the other pair.
 int main() {
 
-    PolygonFold fold(4, 9000.0, {0.0}, 6000.0, false, 240.0, "pyramid");
+    PolygonFold fold(4, 9000.0, {0.0}, 6000.0, false, 240.0, 0.0, "pyramid");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("pyramid: {} sides, {} plates\n", fold.sides, plates.size());

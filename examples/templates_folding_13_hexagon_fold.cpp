@@ -8,7 +8,7 @@ using namespace wood_session;
 /// highest at the edge and falling inwards.
 int main() {
 
-    PolygonFold fold(6, 12000.0, {0.0, 3600.0, 1500.0, 3000.0, 900.0, 2400.0}, 600.0, false, 240.0, "hexagon_fold");
+    PolygonFold fold(6, 12000.0, {0.0, 3600.0, 1500.0, 3000.0, 900.0, 2400.0}, 600.0, false, 240.0, 0.0, "hexagon_fold");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("hexagon fold: {} sides, {} plates\n", fold.sides, plates.size());

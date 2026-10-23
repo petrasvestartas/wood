@@ -15,6 +15,7 @@ The topology is the same in every system: plates one after another, each meeting
 | 229-230 | cross-folded surfaces over a square plan, subdivided from the corners, and their composition | [`CrossFold`](#cross_fold) |
 | 232 | structure systems of folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [`TriangleFold`](#triangle_fold) |
 | 229 | fans from the corners to the cross, ridges rising toward the centre | [`FanFold`](#fan_fold) |
+| 220-233 | the remaining variants of every page | [every topology by page](#folding_variants) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -447,6 +448,49 @@ TriangleFold fold(
 \include{lineno} templates_folding_20_triangle_square.cpp
 
 </details>
+
+## Every topology by page {#folding_variants}
+
+The remaining systems of Engel's pages, each an example of the templates above with its own stations, frame line, heights or folding:
+
+| page | system | example |
+| --- | --- | --- |
+| 220 | one fold: the edge stresses at the common fold keep their tendency | `templates_folding_25_one_fold` |
+| 220 | three folds: the side folds compensate each other through shear | `templates_folding_26_three_folds` |
+| 222 | counter profile in the centre, ridge to ridge | `templates_folding_27_counter_centre` |
+| 222 | counter-running folding, ridge to valley | `templates_folding_28_ridge_to_valley` |
+| 223 | centre fold elevated, ridge to valley | `templates_folding_29_elevated_ridge_to_valley` |
+| 223 | centre fold elevated, alternate folding | `templates_folding_30_alternate_fold` |
+| 224 | elevated centre profile deeper than the edge profiles, ridge to ridge | `templates_folding_31_deep_centre` |
+| 224 | elevated centre profile deeper, ridge to valley | `templates_folding_32_deep_centre_valley` |
+| 225 | two-hinged frame, ridge to valley | `templates_folding_33_frame_ridge_to_valley` |
+| 226 | two-hinged A-frame, ridge to valley | `templates_folding_34_a_frame` |
+| 227 | arch with a top hinge | `templates_folding_35_pointed_arch` |
+| 233 | variation of the truncated pyramid: the side trapezoids folded from their raised outer midpoints (`PolygonFold` `edge_lift`) | `templates_folding_36_folded_truncated_pyramid` |
+
+![25_one_fold](templates/templates_folding_25_one_fold_plates.webp)
+
+![26_three_folds](templates/templates_folding_26_three_folds_plates.webp)
+
+![27_counter_centre](templates/templates_folding_27_counter_centre_plates.webp)
+
+![28_ridge_to_valley](templates/templates_folding_28_ridge_to_valley_plates.webp)
+
+![29_elevated_ridge_to_valley](templates/templates_folding_29_elevated_ridge_to_valley_plates.webp)
+
+![30_alternate_fold](templates/templates_folding_30_alternate_fold_plates.webp)
+
+![31_deep_centre](templates/templates_folding_31_deep_centre_plates.webp)
+
+![32_deep_centre_valley](templates/templates_folding_32_deep_centre_valley_plates.webp)
+
+![33_frame_ridge_to_valley](templates/templates_folding_33_frame_ridge_to_valley_plates.webp)
+
+![34_a_frame](templates/templates_folding_34_a_frame_plates.webp)
+
+![35_pointed_arch](templates/templates_folding_35_pointed_arch_plates.webp)
+
+![36_folded_truncated_pyramid](templates/templates_folding_36_folded_truncated_pyramid_plates.webp)
 
 ## Reflex fold {#reflex_fold}
 

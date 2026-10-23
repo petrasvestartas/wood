@@ -1,0 +1,33 @@
+#include "wood_session.h"
+#include "src/templates/folding/counter_fold.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+/// The centre fold elevated over the edge folds, ridge to valley (Engel, p. 223).
+int main() {
+
+    CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_valley, 240.0, "elevated_ridge_to_valley");
+    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
+    std::cout << fold << std::endl;
+    std::cout << fmt::format("elevated ridge to valley: {} plates\n", plates.size());
+    fold.pb_dump(pb_path("live"));
+    return 0;
+}
+
+/*
+|||||||| DESCRIPTION ||||||||
+Step 29 of the folding templates: counter-running folding with the centre fold elevated over the edge folds, identical depth, ridge-to-valley folding, after Engel, Structure Systems, Folded plate structures (p. 223). The stations of step 6, every warped strip folded along its low diagonal: 40 planar plates 240 mm thick. Each step is a group: stations, mesh, folds, plates.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target templates_folding_29_elevated_ridge_to_valley --parallel 6 && ./build/templates_folding_29_elevated_ridge_to_valley && ../bash/publish-scene.sh --target templates_folding_29_elevated_ridge_to_valley
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
+*/
