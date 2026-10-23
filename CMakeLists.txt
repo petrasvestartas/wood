@@ -293,6 +293,8 @@ ADD_EXE(templates_chevron_1_chevron                examples/templates_chevron_1_
 ADD_EXE(templates_reciprocal_1_rotation    examples/templates_reciprocal_1_rotation.cpp)
 ADD_EXE(templates_reciprocal_2_move        examples/templates_reciprocal_2_move.cpp)
 ADD_EXE(templates_folding_2_diamond_mesh           examples/templates_folding_2_diamond_mesh.cpp)
+ADD_EXE(templates_folding_3_prismatic_fold         examples/templates_folding_3_prismatic_fold.cpp)
+ADD_EXE(templates_folding_4_folded_barrel          examples/templates_folding_4_folded_barrel.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)

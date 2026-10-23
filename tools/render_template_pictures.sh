@@ -19,6 +19,10 @@ fi
 if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_1_reflex_fold curves fold_planes mesh plates
     "${RENDER[@]}" templates_folding_2_diamond_mesh surface mesh plates
+    "${RENDER[@]}" templates_folding_3_prismatic_fold all profile folds mesh plates diaphragms edge_beams
+    "${RENDER[@]}" --view right --name end templates_folding_3_prismatic_fold all
+    "${RENDER[@]}" templates_folding_4_folded_barrel all
+    "${RENDER[@]}" --view right --name end templates_folding_4_folded_barrel all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

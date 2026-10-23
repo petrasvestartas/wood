@@ -13,10 +13,11 @@ inline std::vector<std::shared_ptr<Plate>> mitered_plates(
     double chamfer_angle
 ) {
 
+    // miter_contours offsets the second outline by twice the value it is given, so half the thickness makes plates thickness thick
     std::vector<std::shared_ptr<Plate>> plates;
     const std::vector<std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>> contours = Mesh::miter_contours(
         mesh,
-        thickness,
+        0.5 * thickness,
         chamfer_top,
         chamfer_bottom,
         false,
