@@ -30,8 +30,7 @@ struct WallGuide {
     double stud_depth = 160.0; // Frame depth across the wall, the insulation space.
     double stud_spacing = 625.0; // Stud centres, half a sheet.
     double header_depth = 200.0; // Header height over an opening.
-    double sheet_width = 1250.0; // Sheathing panel width; panels are also split at every opening edge.
-    double sheet_thickness = 15.0; // Sheathing thickness, on both faces of the frame.
+    double sheet_thickness = 15.0; // Sheathing thickness, one panel on each face of the frame.
     std::vector<Opening> openings = {
         {600.0, 1000.0, 0.0, 2100.0},
         {2525.0, 1250.0, 900.0, 2100.0},

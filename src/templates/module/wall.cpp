@@ -20,7 +20,7 @@ Wall::Wall(const WallGuide& guide, const std::string& name)
     // openings: per opening its king studs, header, sill and the cripples above and below it
     add_openings();
 
-    // sheathing: panels on both faces, split at the sheet width and at every opening edge
+    // sheathing: one panel on each face of the whole wall, every door a notch and every window a hole
     add_sheathing();
 
     // contacts: every member end on the member it stands on, every panel on every member under it, each drawn
@@ -196,42 +196,62 @@ void Wall::add_openings() {
 
 void Wall::add_sheathing() {
 
-    const std::vector<std::array<double, 2>> strips = compute_strips();
     const double face = 0.5 * guide.stud_depth;
     const Vector along(1.0, 0.0, 0.0);
     const Vector up(0.0, 0.0, 1.0);
+    std::vector<std::pair<double, size_t>> doors;
+
+    // doors: left to right, as the outline walks along the foot
+    for (size_t o = 0; o < guide.openings.size(); o++)
+        if (guide.openings[o].sill <= 0.0)
+            doors.push_back({guide.openings[o].x, o});
+
+    std::sort(doors.begin(), doors.end());
 
     for (size_t side = 0; side < 2; side++) {
         const std::shared_ptr<TreeNode> group = group_named(fmt::format("sheathing_{}", side));
         const double sign = side == 0 ? -1.0 : 1.0;
-        const double inner = sign * face;
-        const double outer = sign * (face + guide.sheet_thickness);
-        size_t count = 0;
+        const std::array<double, 2> levels = {sign * face, sign * (face + guide.sheet_thickness)};
+        std::array<Polyline, 2> outlines;
 
-        for (const std::array<double, 2>& strip : strips) {
-            const double middle = 0.5 * (strip[0] + strip[1]);
-            std::vector<std::array<double, 2>> spans = {{0.0, guide.height}};
+        // outline: the whole wall, every door a notch up from its foot
+        for (size_t k = 0; k < 2; k++) {
+            std::vector<Point> corners = {Point(0.0, levels[k], 0.0)};
 
-            // an opening over the strip leaves the panel below its sill and the one above its head
-            for (const Opening& opening : guide.openings)
-                if (middle > opening.x && middle < opening.x + opening.width) {
-                    spans.clear();
-
-                    if (opening.sill > 0.0)
-                        spans.push_back({0.0, opening.sill});
-
-                    spans.push_back({opening.head, guide.height});
-                }
-
-            for (const std::array<double, 2>& span : spans) {
-                const double width = strip[1] - strip[0];
-                const double height = span[1] - span[0];
-                const Polyline bottom = Polyline::rectangle(Point(strip[0], inner, span[0]), along, up, width, height);
-                const Polyline top = Polyline::rectangle(Point(strip[0], outer, span[0]), along, up, width, height);
-                add(std::make_shared<Plate>(bottom, top, fmt::format("sheathing_{}_{}", side, count)), group);
-                count++;
+            for (const std::pair<double, size_t>& entry : doors) {
+                const Opening& door = guide.openings[entry.second];
+                corners.push_back(Point(door.x, levels[k], 0.0));
+                corners.push_back(Point(door.x, levels[k], door.head));
+                corners.push_back(Point(door.x + door.width, levels[k], door.head));
+                corners.push_back(Point(door.x + door.width, levels[k], 0.0));
             }
+
+            corners.push_back(Point(guide.length, levels[k], 0.0));
+            corners.push_back(Point(guide.length, levels[k], guide.height));
+            corners.push_back(Point(0.0, levels[k], guide.height));
+            corners.push_back(corners[0]);
+            outlines[k] = Polyline(corners);
         }
+
+        const std::shared_ptr<Plate> panel = std::make_shared<Plate>(outlines[0], outlines[1], fmt::format("sheathing_{}", side));
+
+        // windows: a hole through both faces of the panel
+        Features features;
+        features.bottom.push_back(panel->polylines[0]);
+        features.top.push_back(panel->polylines[1]);
+
+        for (const Opening& opening : guide.openings) {
+            if (opening.sill <= 0.0)
+                continue;
+
+            const double height = opening.head - opening.sill;
+            features.bottom.push_back(Polyline::rectangle(Point(opening.x, levels[0], opening.sill), along, up, opening.width, height));
+            features.top.push_back(Polyline::rectangle(Point(opening.x, levels[1], opening.sill), along, up, opening.width, height));
+        }
+
+        panel->features = features;
+        panel->invalidate_geometry();
+        add(panel, group);
     }
 }
 
@@ -327,39 +347,6 @@ std::vector<double> Wall::compute_stud_positions() const {
 
     positions.push_back(guide.length - half);
     return positions;
-}
-
-std::vector<std::array<double, 2>> Wall::compute_strips() const {
-
-    std::vector<double> edges;
-
-    for (const Opening& opening : guide.openings) {
-        edges.push_back(opening.x);
-        edges.push_back(opening.x + opening.width);
-    }
-
-    std::vector<double> breaks = {0.0, guide.length};
-
-    // sheet breaks: every sheet width, unless an opening edge stands within two studs of it
-    for (double x = guide.sheet_width; x < guide.length; x += guide.sheet_width) {
-        bool near = false;
-
-        for (const double edge : edges)
-            if (std::abs(edge - x) < 2.0 * guide.stud_width)
-                near = true;
-
-        if (!near)
-            breaks.push_back(x);
-    }
-
-    breaks.insert(breaks.end(), edges.begin(), edges.end());
-    std::sort(breaks.begin(), breaks.end());
-    std::vector<std::array<double, 2>> strips;
-
-    for (size_t i = 0; i + 1 < breaks.size(); i++)
-        strips.push_back({breaks[i], breaks[i + 1]});
-
-    return strips;
 }
 
 }

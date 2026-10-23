@@ -21,7 +21,7 @@ wood_module::Wall wall(guide);
 | `stud_width`, `stud_depth` | 60, 160 | stud and rail section; the depth is the insulation space |
 | `stud_spacing` | 625 | stud centres, half a sheet |
 | `header_depth` | 200 | the header over every opening |
-| `sheet_width`, `sheet_thickness` | 1250, 15 | sheathing panels on both faces |
+| `sheet_thickness` | 15 | one sheathing panel on each face |
 | `openings` | a door at 600, a window at 2525 | `{x, width, sill, head}`, a sill of 0 a door |
 
 ### Frame
@@ -43,21 +43,27 @@ add_openings();
 
 ### Sheathing
 
-A `Plate` on each face, split at the sheet width and at every opening edge, a sheet break near an opening edge dropped so no sliver is left; over an opening a panel above the head and one below the sill.
+One `Plate` on each face over the whole wall: every door a notch up from the foot of its outline, every window a hole through both faces of the panel.
 
 ![sheathing](templates/templates_module_1_wall_sheathing.webp)
 
 ```cpp
-for (const std::array<double, 2>& span : spans) {
-    const Polyline bottom = Polyline::rectangle(Point(strip[0], inner, span[0]), along, up, width, height);
-    const Polyline top = Polyline::rectangle(Point(strip[0], outer, span[0]), along, up, width, height);
-    add(std::make_shared<Plate>(bottom, top, fmt::format("sheathing_{}_{}", side, count)), group);
+for (const std::pair<double, size_t>& entry : doors) {
+    const Opening& door = guide.openings[entry.second];
+    corners.push_back(Point(door.x, levels[k], 0.0));
+    corners.push_back(Point(door.x, levels[k], door.head));
+    corners.push_back(Point(door.x + door.width, levels[k], door.head));
+    corners.push_back(Point(door.x + door.width, levels[k], 0.0));
 }
 ```
 
+Seen through, at opacity 0.35, the frame between the two panels:
+
+![wall seen through](templates/templates_module_1_wall_inside.webp)
+
 ### Contacts
 
-`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 52 between the panels and the frame. No connector is made.
+`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 34 between the two panels and the 17 frame members. No connector is made.
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
