@@ -12,10 +12,10 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one frame module, a post at each corner over its full
-/// height and between them a floor and a ceiling, each an edge beam a wall wide along each long side and joists across flush with the
-/// room, the first and last at the ends, four corner posts between them, a framed wall between the posts on every
-/// closed side, the ceiling's long edge beam one deeper beam on every open one; the long sides between the modules of one room are open, a post at
+/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling, each an edge
+/// beam a wall wide along each long side over the whole length and joists across flush with the room, the first and last at the ends,
+/// four corner posts on the floor's edge beams under the ceiling's, a framed wall between the posts on every
+/// closed side, the ceiling's long edge beams deeper, reaching into the room, on the posts and long walls; the long sides between the modules of one room are open, a post at
 /// mid-length on each, so the room spans them; between two rooms one wall, in the module of the smaller room. Then the contacts in every module and between modules side by
 /// side and stacked. No connector is made.
 ///
@@ -36,7 +36,7 @@ public:
     /// Not assigned, as it is not copied.
     RoomModule& operator=(const RoomModule&) = delete;
 
-    /// Floor thickness: the depth of its edge beams.
+    /// Floor thickness: its joists between the board under them and the deck.
     double floor_thickness() const;
 
     /// Ceiling thickness: its joists between its lining and its top board.
@@ -57,11 +57,10 @@ private:
     void add_module(size_t storey, size_t column);
 
     /// Adds a floor or a ceiling named name from the module's corner at its underside: an edge beam a wall wide along each long side
-    /// between the corner posts, each reaching its hang below, one deeper beam; joists across between them, the first and last at the
-    /// module's ends, the rest dividing the length evenly, flush with the face to the room, the top of a floor, the underside of a
-    /// ceiling; between the edge beams a board flush with that face, the deck of a floor, the lining of a ceiling, and a board on the
-    /// joists' other face, a ceiling's flush with its top.
-    void add_box(const std::string& name, const Point& corner, bool floor, const std::array<double, 2>& hang, const std::shared_ptr<TreeNode>& parent);
+    /// over the whole length, under or on the posts, a ceiling's reaching the downstand depth below it; joists across between them, the first
+    /// and last at the module's ends, the rest dividing the length evenly; between the edge beams a board under the joists, a ceiling's
+    /// lining, and one over them, a floor's deck, flush with the edge beams on both faces.
+    void add_box(const std::string& name, const Point& corner, bool floor, const std::shared_ptr<TreeNode>& parent);
 
     /// The room of the module in a column and the number of modules it has.
     std::array<size_t, 2> room_of(size_t column) const;

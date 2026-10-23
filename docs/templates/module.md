@@ -233,10 +233,10 @@ What a module is, from Blumer Lehmann's pages, reference sheets, brochure drawin
 | | Blumer Lehmann | the default here |
 | --- | --- | --- |
 | structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
-| frame | the photo of a ZM10 module craned onto Friesenberg school and the lifted open modules of the Köln school: a post at each corner over the module's full height, the floor and the ceiling framed between them, walls only on the closed sides | four corner posts, a wall thick, over the full height; a framed wall between floor and ceiling on every closed side, the ends included |
-| floor and ceiling | handbook B8, detail 36 and the joints 34, 35: floor and ceiling two separate elements (Hohlkasten), edge beams and joists between a board under and a board over them, insulation inside; the ceiling carries only itself, the floor the room's loads; the lifted modules: a deep floor band, a thin ceiling band, its top flat, a deep edge beam along an open side | an edge beam a wall wide along each long side between the corner posts, joists across between them, the first and last at the module's ends, the same size, the boards between the edge beams over the whole length; the floor 190 x 280 edge beams, sixteen 80 x 200 joists under a 27 deck flush with the edge beams' tops, a 15 board under them; the ceiling thinner, 190 x 170 edge beams, sixteen 60 x 140 joists between a 15 lining and a 15 top board, flush on both faces; joists at most 625 apart |
-| downstand beams | handbook B8: open modules carry their ceilings on edge downstand beams (Randunterzüge) into the corner posts, often also intermediate ones; its classroom of open modules (fig. 11) shows a pair hanging below the ceiling at the joint | along every long side without a wall the ceiling's edge beam is one 190 x 470 beam, reaching 300 below the ceiling, the posts under it 2400 high |
-| end walls | the CAD model and the photos of open modules: the end walls stand between floor and ceiling, inside the corner posts | an end wall between floor and ceiling and between the corner posts, on the floor's deck over its end joist |
+| frame | the photo of a ZM10 module craned onto Friesenberg school and the lifted open modules of the Köln school: posts at the corners, the floor's and the ceiling's main beams along the long sides, walls only on the closed sides | four corner posts, a wall thick, on the floor's long edge beams under the ceiling's, which run the whole length over every post; a framed wall between them on every closed side |
+| floor and ceiling | handbook B8, detail 36 and the joints 34, 35: floor and ceiling two separate elements (Hohlkasten), edge beams and joists between a board under and a board over them, insulation inside; the ceiling carries only itself, the floor the room's loads; the lifted modules: a deep floor band, a flat top, deep edge beams along the ceiling | an edge beam a wall wide along each long side over the whole length, joists across between them, the first and last at the module's ends, the same size, a board under and a board over the joists, flush with the edge beams on both faces; the floor 280, 190 x 280 edge beams, sixteen 80 x 240 joists between a 15 board and a 25 deck; the ceiling 170, sixteen 60 x 140 joists between a 15 lining and a 15 top board; joists at most 625 apart |
+| ceiling edge beams | handbook B8: open modules carry their ceilings on edge downstand beams (Randunterzüge) into the corner posts, often also intermediate ones; its classroom of open modules (fig. 11) shows a pair hanging below the ceiling at the joint | both long edge beams of every ceiling 190 x 470, reaching 300 below it, on the posts and the long walls, 2400 high under them |
+| end walls | the CAD model and the photos of open modules: the end walls stand between floor and ceiling, inside the corner posts | an end wall between floor and ceiling and between the corner posts, 2700 high, on the floor's deck over its end joist |
 | rooms | a ZM10 classroom of 68 m2 spans more than one module; the brochure's bank pavilion plan draws a pair of posts side by side at mid-length of the open joint, one per module | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
 | walls between rooms | the pavilion plan draws one wall between two rooms, inside one module, its neighbour open against it | one wall, in the module of the smaller room, the lower column on a tie |
 | facade | ZM10 pavilions: every module end a bay of about 3 m with a window, three storeys, a corridor through the other ends with cased doors | the end at x 0 the facade with a window, the end at x length the corridor with a door |
@@ -255,18 +255,18 @@ wood_module::RoomModule room(guide);
 | `length`, `width`, `clear_height` | 9000, 3000, 2700 | a module's plan and the clear height inside |
 | `stud_width`, `stud_depth`, `stud_spacing` | 60, 160, 625 | the wall frame: its members, its depth and the stud grid from each wall's start |
 | `sheet_thickness` | 15 | a sheet on each face of a wall; a post is as wide as the wall |
-| `floor_depth`, `floor_joist_width`, `floor_joist_depth` | 280, 80, 200 | the floor: its edge beams' depth, a wall wide, and its joists across; the floor's thickness |
-| `deck_thickness` | 27 | the floor's deck between its edge beams, flush with their tops |
+| `floor_joist_width`, `floor_joist_depth` | 80, 240 | the floor's joists, the board under and the deck over them: the floor and its edge beams 280 |
+| `deck_thickness` | 25 | the floor's deck between its edge beams, flush with their tops |
 | `ceiling_joist_width`, `ceiling_joist_depth` | 60, 140 | the ceiling's joists, a board on each face: the ceiling 170 thick, thinner, it carries only itself |
-| `board_thickness`, `joist_spacing` | 15, 625 | the ceiling's lining and top board, the board under the floor's joists; the largest joist spacing |
-| `downstand_depth` | 300 | how far the ceiling's long edge beam reaches below it on a side without a wall |
+| `board_thickness`, `joist_spacing` | 15, 625 | the board under every floor's and ceiling's joists and the ceiling's top board; the largest joist spacing |
+| `downstand_depth` | 300 | how far the ceiling's long edge beams reach below it |
 | `side_posts` | 1 | posts along a long side without a wall, evenly between the corner posts |
-| `layouts` | a window 1500 x 1500 at the facade end, head 2400, a door at the corridor end | per module across, cycled: per wall its openings in its own frame, and a porch, the start wall set back |
+| `layouts` | a window 2100 x 1900 at the facade end, sill 600, head 2500, a door at the corridor end | per module across, cycled: per wall its openings in its own frame, and a porch, the start wall set back |
 | `rooms`, `storeys` | {2}, 1 | the modules side by side forming each room, modules stacked |
 
 ### Module
 
-A frame like the ones in the photos: a post at each corner over the full height, the floor and the ceiling between them, a wall between floor and ceiling on the closed sides, and the long side towards the other module of its room open, its ceiling's deep edge beam on a post at mid-length, beside the neighbour's:
+A frame like the ones in the photos: the floor and the ceiling, a post at each corner on the floor's long edge beam under the ceiling's, a wall between floor and ceiling on the closed sides, and the long side towards the other module of its room open, a post at mid-length beside the neighbour's:
 
 ![open-sided module](templates/templates_module_4_room_module_single.webp)
 
@@ -280,15 +280,15 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 ### Elements
 
-The floor and the ceiling each have an edge beam a wall wide along each long side, between the corner posts, so the posts, the walls and the edge beams stand in one strip along each side and storey over storey, the load going straight down. The joists run across between them, the first and the last at the module's ends, all the same size, flush with the face to the room, and the boards fill the width between the edge beams over the whole length. The floor's edge beams are 190 x 280, its sixteen 80 x 200 joists dividing the 9000 into fifteen bays of 595, its 27 deck on them flush with the edge beams' tops, a board under them:
+The floor and the ceiling each have an edge beam a wall wide along each long side over the whole length, the main beams: every post stands on the floor's and carries the ceiling's, so the posts, the walls and the edge beams stand in one strip along each side and storey over storey, edge beam on edge beam, the load going straight down. The joists run across between them, the first and the last at the module's ends, all the same size, between a board under and a board over them, flush with the edge beams on both faces. The floor is 280 thick, its edge beams 190 x 280, its sixteen 80 x 240 joists dividing the 9000 into fifteen bays of 595 between a 15 board and a 25 deck:
 
 ![floor](templates/templates_module_4_room_module_floor.webp)
 
-The ceiling is thinner, since it carries only itself, and flush on both faces: 190 x 170 edge beams, sixteen 60 x 140 joists between its 15 lining and its 15 top board. Along a long side without a wall its edge beam is one deeper 190 x 470 beam, reaching 300 below the ceiling, which carries it to the corner posts and the post at mid-length, the posts under it 2400 high:
+The ceiling is thinner, 170, since it carries only itself: sixteen 60 x 140 joists between its 15 lining and its 15 top board. Its two long edge beams are 190 x 470, reaching 300 below it, on the corner posts, the post at mid-length of an open side and the long walls, all 2400 high under them:
 
 ![ceiling](templates/templates_module_4_room_module_ceiling.webp)
 
-From the end, the two modules of the room side by side: the corner posts over the full height, the end walls between floor and ceiling, and the pair of deep edge beams at the joint:
+From the end, the two modules of the room side by side: the floor flush on both faces, the end walls between floor and ceiling, and the ceiling's deep edge beams over the corner posts on all four long sides:
 
 ![end view](templates/templates_module_4_room_module_section.webp)
 
@@ -302,7 +302,7 @@ Seen through, at opacity 0.95:
 
 ### Contacts
 
-`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the edge beams, posts and walls side by side and a ceiling's top board under the next floor, post on post. The room of two modules has 337 contacts in its frames and 406 with its sheets:
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the edge beams, posts and walls side by side and a ceiling's top board under the next floor, post on post. The room of two modules has 345 contacts in its frames and 390 with its sheets:
 
 ![contacts](templates/templates_module_4_room_module_contacts.webp)
 
@@ -335,7 +335,7 @@ The temporary bank pavilion of four modules from the brochure "Modulares Bauen" 
 | windows | 1620 wide, 330 from the inner corner, at both ends of modules 1 to 3; 1020 at the end of module 4; 720 for the WC | the same |
 | doors | module 1: a 1590 passage to the office; module 4: the 1.0 m entrance with a sidelight from the porch, two 0.9 m doors | the same |
 | porch | the start wall of module 4 set back 2730, open to the outside, a post at its corner | `porch = 2730` |
-| not drawn | sills, heads, heights; the exterior walls drawn 336 with insulation and cladding | windows 900 to 2400, doors to 2100, 2700 clear; walls 210; partitions inside the modules and cladding not built |
+| not drawn | sills, heads, heights; the exterior walls drawn 336 with insulation and cladding | end windows 600 to 2500, the WC window 1500 to 2100, doors to 2100, 2700 clear; walls 210; partitions inside the modules and cladding not built |
 
 The modules without their ceilings, from above as in the brochure, turned a quarter, and from the porch:
 
