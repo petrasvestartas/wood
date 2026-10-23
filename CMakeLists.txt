@@ -293,6 +293,7 @@ ADD_EXE(templates_folding_2_diamond_mesh           examples/templates_folding_2_
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
+ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_cassette_house.cpp)
 ADD_EXE(templates_grid_1_footprint         examples/templates_grid_1_footprint.cpp)
 ADD_EXE(templates_grid_2_solid             examples/templates_grid_2_solid.cpp)
 ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)

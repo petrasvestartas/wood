@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements, their contacts and the pins on them, nothing more. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene.
+Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene.
 
 ## Wall
 
@@ -57,7 +57,9 @@ for (const std::array<double, 2>& span : spans) {
 
 ### Contacts
 
-`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target; the pins come through the other. Each contact is named `<target>_on_<source>` and stored with `add_interaction`.
+`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 52 between the panels and the frame. No connector is made.
+
+![contacts](templates/templates_module_1_wall_contacts.webp)
 
 ```cpp
 const std::shared_ptr<Beam> source = end_i > end_j ? members[j] : members[i];
@@ -65,21 +67,6 @@ const std::shared_ptr<Beam> target = end_i > end_j ? members[i] : members[j];
 const std::shared_ptr<InteractionContactFace> face = compute_face_contact(source, target);
 face->name = fmt::format("{}_on_{}", target->name, source->name);
 add_interaction(source, target, face);
-```
-
-### Connectors
-
-`JointBeam::headed_pins` on every contact: two through a rail, header or king stud into the end of the member on it, and a column of pins through a panel into every stud and a row into every rail, one per 150 mm. Each is added and passed to both members.
-
-![connectors](templates/templates_module_1_wall_connectors.webp)
-
-```cpp
-for (size_t k = 0; k < connectors.frame.size(); k++) {
-    const std::shared_ptr<JointBeam>& pins = connectors.frame[k];
-    add(pins, group);
-    add_interaction(pins, contacts.frame[k].a, pins->interaction(0));
-    add_interaction(pins, contacts.frame[k].b, pins->interaction(1));
-}
 ```
 
 <details><summary>Example code: templates_module_1_wall.cpp</summary>
@@ -158,5 +145,32 @@ No connector is made yet: the contacts are where bolts or joints between cassett
 <details><summary>Example code: templates_module_2_cassette_shell.cpp</summary>
 
 \include{lineno} templates_module_2_cassette_shell.cpp
+
+</details>
+
+## Cassette house
+
+Many cassettes joined in space: a 6000 x 4000 gable house, walls 2700 high and the ridge at 4500, from `CassetteShell::house_mesh` (example `templates_module_3_cassette_house`). The four walls are split into panels on a grid with a door and a window in the front, a window in the back and one in each gable; each opening is a cell left out of the mesh, so the cassettes around it close it with their edge beams. A triangle stands over each end wall and two roof slopes run to the ridge.
+
+![cassette house](templates/templates_module_3_cassette_house_all.webp)
+
+```cpp
+wood_module::CassetteShell house(wood_module::CassetteShell::house_mesh(), 160.0, 20.0, 60.0, "cassette_house");
+```
+
+Every cassette is cut on the plane it shares with each neighbour: square where two panels of one wall meet in a plane, beveled at the wall corners, the eaves and the ridge. A gable triangle runs along the panels under it in a straight line; its plates skip those straight corners and its beams meet there square to the edge. Every contact between cassettes, one per shared mesh edge:
+
+![contacts](templates/templates_module_3_cassette_house_contacts.webp)
+
+```cpp
+// an edge plane parallel to the one before it continues that side: no corner between them
+for (const Plane& plane : _edge_planes[f])
+    if (sides.empty() || plane.z_axis().angle(sides.back().z_axis(), false, true) > 0.57)
+        sides.push_back(plane);
+```
+
+<details><summary>Example code: templates_module_3_cassette_house.cpp</summary>
+
+\include{lineno} templates_module_3_cassette_house.cpp
 
 </details>

@@ -23,12 +23,8 @@ Wall::Wall(const WallGuide& guide, const std::string& name)
     // sheathing: panels on both faces, split at the sheet width and at every opening edge
     add_sheathing();
 
-    // contacts: every member end on the member it stands on, every panel on every member under it
-    const WallContacts contacts = add_contacts();
-
-    // connectors: headed pins on every contact, built on the uncut members
-    const WallConnectors connectors = compute_connectors(contacts);
-    add_connectors(connectors, contacts);
+    // contacts: every member end on the member it stands on, every panel on every member under it, each drawn
+    add_contacts();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -243,9 +239,10 @@ void Wall::add_sheathing() {
 // Contacts
 // ═══════════════════════════════════════════════════════════════════════════
 
-WallContacts Wall::add_contacts() {
+void Wall::add_contacts() {
 
-    WallContacts contacts;
+    const std::shared_ptr<TreeNode> frame_group = group_named("contacts_frame");
+    const std::shared_ptr<TreeNode> sheathing_group = group_named("contacts_sheathing");
     std::vector<std::shared_ptr<Beam>> members;
     std::vector<std::shared_ptr<Plate>> panels;
 
@@ -257,7 +254,7 @@ WallContacts Wall::add_contacts() {
             panels.push_back(plate);
     }
 
-    // frame: the member that ends on the contact is its target, the pins come through the other
+    // frame: the member that ends on the contact is its target, the one it stands on the source
     for (size_t i = 0; i < members.size(); i++)
         for (size_t j = i + 1; j < members.size(); j++) {
             const std::shared_ptr<InteractionContactFace> probe = compute_face_contact(members[i], members[j]);
@@ -282,7 +279,7 @@ WallContacts Wall::add_contacts() {
             const std::shared_ptr<InteractionContactFace> face = compute_face_contact(source, target);
             face->name = fmt::format("{}_on_{}", target->name, source->name);
             add_interaction(source, target, face);
-            contacts.frame.push_back({source, target, face});
+            add_polyline(face->polygon, frame_group);
         }
 
     // sheathing: every panel on every member it covers
@@ -295,103 +292,8 @@ WallContacts Wall::add_contacts() {
 
             face->name = fmt::format("{}_on_{}", panel->name, frame->name);
             add_interaction(panel, frame, face);
-            contacts.sheathing.push_back({panel, frame, face});
+            add_polyline(face->polygon, sheathing_group);
         }
-
-    return contacts;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Connectors
-// ═══════════════════════════════════════════════════════════════════════════
-
-WallConnectors Wall::compute_connectors(const WallContacts& contacts) const {
-
-    WallConnectors connectors;
-
-    // frame: two pins through the source into the end of the target
-    for (const Contact& contact : contacts.frame) {
-        const std::shared_ptr<JointBeam> pins = JointBeam::headed_pins(
-            *contact.a,
-            *contact.b,
-            *contact.face,
-            PinLayout::vertical,
-            2,
-            PIN_INSET,
-            0.0,
-            PIN_RADIUS,
-            FRAME_PIN_LENGTH
-        );
-
-        if (!pins)
-            throw std::runtime_error("no room for the pins of " + contact.face->name);
-
-        connectors.frame.push_back(pins);
-    }
-
-    // sheathing: a row of pins through the panel along the member, one per pin spacing, a column on a stud and a row on a rail
-    for (const Contact& contact : contacts.sheathing) {
-        const std::vector<Point> corners = contact.face->polygon.get_points();
-        std::array<double, 3> low = {corners[0][0], corners[0][1], corners[0][2]};
-        std::array<double, 3> high = low;
-
-        for (const Point& corner : corners)
-            for (size_t axis = 0; axis < 3; axis++) {
-                low[axis] = std::min(low[axis], corner[axis]);
-                high[axis] = std::max(high[axis], corner[axis]);
-            }
-
-        const double tall = high[2] - low[2];
-        const double run = std::max(tall, std::max(high[0] - low[0], high[1] - low[1]));
-        const size_t count = std::max<size_t>(2, static_cast<size_t>(run / PIN_SPACING));
-        const PinLayout layout = tall >= run ? PinLayout::vertical : PinLayout::horizontal;
-        const std::shared_ptr<JointBeam> pins = JointBeam::headed_pins(
-            *contact.a,
-            *contact.b,
-            *contact.face,
-            layout,
-            count,
-            SHEATHING_PIN_INSET,
-            0.0,
-            PIN_RADIUS,
-            SHEATHING_PIN_LENGTH
-        );
-
-        if (!pins)
-            throw std::runtime_error("no room for the pins of " + contact.face->name);
-
-        connectors.sheathing.push_back(pins);
-    }
-
-    // names: in the order add_connectors adds them
-    for (size_t k = 0; k < connectors.frame.size(); k++)
-        connectors.frame[k]->name = fmt::format("connector_frame_{}", k);
-
-    for (size_t k = 0; k < connectors.sheathing.size(); k++)
-        connectors.sheathing[k]->name = fmt::format("connector_sheathing_{}", k);
-
-    return connectors;
-}
-
-void Wall::add_connectors(const WallConnectors& connectors, const WallContacts& contacts) {
-
-    const std::shared_ptr<TreeNode> group = group_named("connectors");
-
-    // frame pins: through the member a stud, header or sill stands on, into its end
-    for (size_t k = 0; k < connectors.frame.size(); k++) {
-        const std::shared_ptr<JointBeam>& pins = connectors.frame[k];
-        add(pins, group);
-        add_interaction(pins, contacts.frame[k].a, pins->interaction(0));
-        add_interaction(pins, contacts.frame[k].b, pins->interaction(1));
-    }
-
-    // sheathing pins: through the panel into the member under it
-    for (size_t k = 0; k < connectors.sheathing.size(); k++) {
-        const std::shared_ptr<JointBeam>& pins = connectors.sheathing[k];
-        add(pins, group);
-        add_interaction(pins, contacts.sheathing[k].a, pins->interaction(0));
-        add_interaction(pins, contacts.sheathing[k].b, pins->interaction(1));
-    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

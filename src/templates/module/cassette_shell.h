@@ -56,6 +56,15 @@ public:
     /// The fifteen-face dome of hexagons and pentagons of the VDA mesh.
     static Mesh default_mesh();
 
+    /// A gable house: four walls split into panels with a door and four windows left open, a triangle over each end wall and two roof
+    /// slopes to the ridge, one face per cassette, the floor open.
+    static Mesh house_mesh(
+        double length = 6000.0,
+        double width = 4000.0,
+        double height = 2700.0,
+        double ridge = 4500.0
+    );
+
     /// Per face its edge planes, each through its edge with its normal out of the face, shared by the two faces of an interior edge.
     const std::vector<std::vector<Plane>>& edge_planes() const;
 

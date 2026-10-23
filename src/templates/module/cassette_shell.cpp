@@ -58,6 +58,69 @@ Mesh CassetteShell::default_mesh() {
     return wood_cross::VdaMesh::default_mesh();
 }
 
+Mesh CassetteShell::house_mesh(
+    double length,
+    double width,
+    double height,
+    double ridge
+) {
+
+    const Vector up(0.0, 0.0, 1.0);
+    const std::vector<double> levels = {0.0, height / 3.0, height * 7.0 / 9.0, height};
+    const std::vector<double> long_breaks = {0.0, length / 6.0, length / 3.0, length * 2.0 / 3.0, length * 5.0 / 6.0, length};
+    const std::vector<double> gable_breaks = {0.0, width * 0.375, width * 0.625, width};
+
+    // the four walls counter-clockwise from above, each along its own direction so its normal points out; a door and a window in
+    // the front, a window in each gable and in the back, every opening a grid cell left out
+    const std::array<Point, 4> origins = {Point(0.0, 0.0, 0.0), Point(length, 0.0, 0.0), Point(length, width, 0.0), Point(0.0, width, 0.0)};
+    const std::array<Vector, 4> alongs = {Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, -1.0, 0.0)};
+    const std::array<std::vector<double>, 4> breaks = {long_breaks, gable_breaks, long_breaks, gable_breaks};
+    const std::array<std::vector<std::array<size_t, 2>>, 4> openings = {{
+        {{1, 0}, {1, 1}, {3, 1}},
+        {{1, 1}},
+        {{2, 1}},
+        {{1, 1}},
+    }};
+    std::vector<std::vector<Point>> faces;
+
+    for (size_t w = 0; w < 4; w++)
+        for (size_t i = 0; i + 1 < breaks[w].size(); i++)
+            for (size_t k = 0; k + 1 < levels.size(); k++) {
+                const std::array<size_t, 2> cell = {i, k};
+
+                if (std::find(openings[w].begin(), openings[w].end(), cell) != openings[w].end())
+                    continue;
+
+                const Point a = origins[w] + alongs[w] * breaks[w][i] + up * levels[k];
+                const Point b = origins[w] + alongs[w] * breaks[w][i + 1] + up * levels[k];
+                faces.push_back({a, b, b + up * (levels[k + 1] - levels[k]), a + up * (levels[k + 1] - levels[k])});
+            }
+
+    // gables: a triangle over each end wall from the ridge through the wall's breaks at the eaves, the ridge first so the first three
+    // corners are not in line
+    for (const size_t w : {1, 3}) {
+        std::vector<Point> gable = {origins[w] + alongs[w] * (0.5 * width) + up * ridge};
+
+        for (const double u : breaks[w])
+            gable.push_back(origins[w] + alongs[w] * u + up * height);
+
+        faces.push_back(gable);
+    }
+
+    // roof: per long wall a slope of quads from its eaves to the ridge, split at the wall's breaks
+    for (const size_t w : {0, 2}) {
+        const Vector inward = up.cross(alongs[w]) * (0.5 * width) + up * (ridge - height);
+
+        for (size_t i = 0; i + 1 < breaks[w].size(); i++) {
+            const Point a = origins[w] + alongs[w] * breaks[w][i] + up * height;
+            const Point b = origins[w] + alongs[w] * breaks[w][i + 1] + up * height;
+            faces.push_back({a, b, b + inward, a + inward});
+        }
+    }
+
+    return Mesh::from_polylines(faces, 1.0);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Accessors
 // ═══════════════════════════════════════════════════════════════════════════
@@ -180,10 +243,20 @@ void CassetteShell::add_plates() {
     for (size_t f = 0; f < _face_planes.size(); f++) {
         const std::shared_ptr<TreeNode> group = group_named(fmt::format("cassette_{}", f));
         const Plane& face = _face_planes[f];
-        const Polyline top_inner = Polyline::from_planes(_edge_planes[f], face.translate_by_normal(inner));
-        const Polyline top_outer = Polyline::from_planes(_edge_planes[f], face.translate_by_normal(outer));
-        const Polyline bottom_outer = Polyline::from_planes(_edge_planes[f], face.translate_by_normal(-outer));
-        const Polyline bottom_inner = Polyline::from_planes(_edge_planes[f], face.translate_by_normal(-inner));
+        std::vector<Plane> sides;
+
+        // an edge plane parallel to the one before it continues that side: no corner between them
+        for (const Plane& plane : _edge_planes[f])
+            if (sides.empty() || plane.z_axis().angle(sides.back().z_axis(), false, true) > 0.57)
+                sides.push_back(plane);
+
+        if (sides.size() > 1 && sides.front().z_axis().angle(sides.back().z_axis(), false, true) <= 0.57)
+            sides.pop_back();
+
+        const Polyline top_inner = Polyline::from_planes(sides, face.translate_by_normal(inner));
+        const Polyline top_outer = Polyline::from_planes(sides, face.translate_by_normal(outer));
+        const Polyline bottom_outer = Polyline::from_planes(sides, face.translate_by_normal(-outer));
+        const Polyline bottom_inner = Polyline::from_planes(sides, face.translate_by_normal(-inner));
         add(std::make_shared<Plate>(top_inner, top_outer, fmt::format("top_plate_{}", f)), group);
         add(std::make_shared<Plate>(bottom_outer, bottom_inner, fmt::format("bottom_plate_{}", f)), group);
     }
