@@ -1,6 +1,5 @@
 #pragma once
 #include "wood_session.h"
-#include "primitives.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -9,11 +8,13 @@ using namespace wood_session;
 /// diameter rising in a trumpet curve into a tower 26 m high, folded into sectors whose valleys run down to the columns and whose
 /// ridges end in a gable over the eaves, the folds shrinking into the tower. Every ridge and valley is a smooth NURBS curve, a meridian
 /// interpolated through the rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius and lifted
-/// to its height; every fold strip between two neighbouring meridians is one curved panel, a ruled NURBS surface between them, its
-/// inner face the ruled surface between the inner meridians, where the two panels' faces offset by the thickness meet. No facet, no
-/// triangle: the panels are curved, as the 5 cm sheathing on the uniaxially curved glulam of the built roof.
+/// to its height; every fold strip between two neighbouring meridians is one lamella, a PlateCurved: a closed curved solid whose outer
+/// face is the ruled NURBS surface between the two meridians, whose inner face is the one between the inner meridians, where the two
+/// neighbouring strips offset by the thickness meet, whose side faces run along the folds, shared with the neighbour as a miter, and
+/// whose caps close it at the eaves and at the top. No facet, no triangle: the lamellas are curved, as the 5 cm sheathing on the
+/// uniaxially curved glulam of the built roof.
 ///
-/// Fields: the plan, the curve, the fold and the thickness; the meridians and the panels are in the session.
+/// Fields: the plan, the curve, the fold and the thickness; the meridians and the lamellas are in the session.
 class CurvedFold : public WoodSession {
 public:
     const size_t sectors; // Folds around the axis, a ridge and a valley each.
@@ -24,7 +25,7 @@ public:
     const double gable; // mm, how far a ridge rises over its valleys at the eaves, the fold's depth, scaling with the radius up the tower.
     const double inset; // The valleys' radius inside the ridges', a fraction of the radius.
     const size_t rings; // Rings from the eaves to the top the meridians are interpolated through.
-    const double thickness; // mm, every panel.
+    const double thickness; // mm, every lamella.
 
     /// The curved fold as the session named name.
     explicit CurvedFold(
@@ -51,7 +52,7 @@ private:
     /// eaves and vertical at the tower, its height, the fold's depth and the valleys' inset scaled with the radius.
     std::vector<std::vector<Point>> compute_rings() const;
 
-    /// The same points on the panels' inner faces: at every point the line where the two strips beside it, offset inwards by the
+    /// The same points on the lamellas' inner faces: at every point the line where the two strips beside it, offset inwards by the
     /// thickness, meet, cut by the point's level.
     std::vector<std::vector<Point>> compute_inner_rings(const std::vector<std::vector<Point>>& stars) const;
 };
@@ -102,13 +103,12 @@ inline CurvedFold::CurvedFold(
         add_polyline(Polyline(outer_points), meridians);
     }
 
-    // panels: every fold strip one curved panel, the ruled surface between its two meridians on the outer face and on the inner face
-    const std::shared_ptr<TreeNode> outer_faces = add_group("panels_outer");
-    const std::shared_ptr<TreeNode> inner_faces = add_group("panels_inner");
+    // lamellas: every fold strip one curved plate between its two meridians, its inner face between the inner ones, capped at both ends
+    const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
 
     for (size_t j = 0; j < count; j++) {
-        add_nurbssurface(Primitives::create_ruled(outer[j], outer[(j + 1) % count]), outer_faces);
-        add_nurbssurface(Primitives::create_ruled(inner[j], inner[(j + 1) % count]), inner_faces);
+        const size_t next = (j + 1) % count;
+        add(std::make_shared<PlateCurved>(outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)), lamellas);
     }
 }
 

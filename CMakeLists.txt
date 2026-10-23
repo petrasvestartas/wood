@@ -85,6 +85,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element.cpp
     src/joinery_solver/wood_elements/wood_element_cut_plane.cpp
     src/joinery_solver/wood_elements/wood_element_plate.cpp
+    src/joinery_solver/wood_elements/wood_element_plate_curved.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
     src/joinery_solver/wood_elements/wood_element_support.cpp
@@ -346,6 +347,7 @@ ADD_EXE(element_plate                    examples/elements/element_plate.cpp)
 ADD_EXE(element_plate_holes              examples/elements/element_plate_holes.cpp)
 ADD_EXE(element_plate_session            examples/elements/element_plate_session.cpp)
 ADD_EXE(element_plate_assign_joints      examples/elements/element_plate_assign_joints.cpp)
+ADD_EXE(element_plate_curved             examples/elements/element_plate_curved.cpp)
 ADD_EXE(element_beam                     examples/elements/element_beam.cpp)
 ADD_EXE(element_beam_variable            examples/elements/element_beam_variable.cpp)
 ADD_EXE(element_beam_variable_cut        examples/elements/element_beam_variable_cut.cpp)

@@ -14,6 +14,7 @@
 #include "wood_element_beam_variable.h"
 #include "wood_element_support.h"
 #include "wood_element_plate.h"
+#include "wood_element_plate_curved.h"
 #include "wood_config.h"
 #include "wood_feature_construction.h"
 #include "wood_instance.h"

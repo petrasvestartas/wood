@@ -16,7 +16,7 @@ The topology is the same in every system: plates one after another, each meeting
 | 232 | structure systems of folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [`TriangleFold`](#triangle_fold) |
 | 229 | fans from the corners to the cross, ridges rising toward the centre | [`FanFold`](#fan_fold) |
 | 220-233 | the remaining variants of every page | [every topology by page](#folding_variants) |
-| - | curved folding after Knie's Zauberhut (Blumer Lehmann, 2020), curved NURBS panels | [`CurvedFold`](#curved_fold) |
+| - | curved folding after Knie's Zauberhut (Blumer Lehmann, 2020), curved lamellas | [`CurvedFold`](#curved_fold) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -452,7 +452,7 @@ TriangleFold fold(
 
 ## Curved folding {#curved_fold}
 
-The folded tent roof of Knie's Zauberhut in Rapperswil (Blumer Lehmann with Carlos Martinez Architekten, 2020; [project page](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/free-form/knies-zauberhut.html)): a freestanding folded shell of 32 m diameter rising into a tower 26 m high with a round top of 7 m, its valleys running down to concrete columns, its ridges ending in a gable over the eaves between them (`folding/curved_fold.h`, example `templates_folding_37_curved_fold`). Every ridge and valley is a smooth NURBS curve, a meridian interpolated through rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius, flat at the eaves and vertical at the tower, and lifted to its height. Every fold strip between two neighbouring meridians is one curved panel, a ruled NURBS surface between them (`Primitives::create_ruled`), with no facet and no triangle, as the 5 cm sheathing on the uniaxially curved glulam of the built roof; its inner face is the ruled surface between the inner meridians, where the two neighbouring strips offset by the thickness meet.
+The folded tent roof of Knie's Zauberhut in Rapperswil (Blumer Lehmann with Carlos Martinez Architekten, 2020; [project page](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/free-form/knies-zauberhut.html)): a freestanding folded shell of 32 m diameter rising into a tower 26 m high with a round top of 7 m, its valleys running down to concrete columns, its ridges ending in a gable over the eaves between them (`folding/curved_fold.h`, example `templates_folding_37_curved_fold`). Every ridge and valley is a smooth NURBS curve, a meridian interpolated through rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius, flat at the eaves and vertical at the tower, and lifted to its height. Every fold strip between two neighbouring meridians is one lamella, a [`PlateCurved`](@ref elements_plate_curved) in the group `lamellas`, named `lamella_<j>`: a closed curved solid of six exact NURBS patches, with no facet and no triangle, as the 5 cm sheathing on the uniaxially curved glulam of the built roof. Its outer face is the ruled surface between the two meridians, its inner face the one between the inner meridians, where the two neighbouring strips offset by the thickness meet; its side faces run along the folds, so two neighbours share their side face as mitered planar plates do, and a cap closes it at the eaves and at the top.
 
 ```cpp
 CurvedFold fold(
@@ -468,7 +468,7 @@ CurvedFold fold(
 );
 ```
 
-![curved fold](templates/templates_folding_37_curved_fold_panels_outer.webp)
+![curved fold](templates/templates_folding_37_curved_fold_lamellas.webp)
 
 ![curved fold elevation](templates/templates_folding_37_curved_fold_elevation.webp)
 

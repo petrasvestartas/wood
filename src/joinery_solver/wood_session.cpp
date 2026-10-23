@@ -1665,10 +1665,11 @@ bool WoodSession::placed(const std::string& name, const std::string& prefix) {
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        // a pin or a connector part, which a connector draws on its own, a support with its round parts, or a member its joints cut
+        // a pin or a connector part, which a connector draws on its own, a support with its round parts, a curved plate, or a member its joints cut
         const bool connector_child = std::dynamic_pointer_cast<Pin>(element) || std::dynamic_pointer_cast<ConnectorPart>(element);
+        const bool round = std::dynamic_pointer_cast<Support>(element) || std::dynamic_pointer_cast<PlateCurved>(element);
 
-        if (connector_child || std::dynamic_pointer_cast<Support>(element) || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
+        if (connector_child || round || (!std::dynamic_pointer_cast<Joint>(element) && element->model_geometry_mesh().number_of_vertices() != element->element_geometry_mesh().number_of_vertices()))
             element->compute_geometry_brep();
     }
 }

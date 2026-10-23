@@ -9,6 +9,7 @@ An element is built from its own parameters; what others do to it comes through 
 | Element | Header | Examples |
 | --- | --- | --- |
 | [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate`, `element_plate_holes`, `element_plate_session`, `element_plate_assign_joints` |
+| [PlateCurved](@ref elements_plate_curved) | `wood_element_plate_curved.h` | `element_plate_curved` |
 | [Beam](@ref elements_beam) | `wood_element_beam.h` | `element_beam` |
 | [BeamVariable](@ref elements_beam_variable) | `wood_element_beam_variable.h` | `element_beam_variable`, `element_beam_variable_cut` |
 | [Column](@ref elements_column) | `wood_element_column.h` | `element_column`, `element_column_session` |
@@ -35,6 +36,7 @@ An element is built from its own parameters; what others do to it comes through 
 | [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 
 - @subpage elements_plate
+- @subpage elements_plate_curved
 - @subpage elements_beam
 - @subpage elements_beam_variable
 - @subpage elements_column
