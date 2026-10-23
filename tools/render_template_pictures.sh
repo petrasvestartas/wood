@@ -17,29 +17,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = shells ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
-    "${RENDER[@]}" templates_folding_1_reflex_fold curves fold_planes mesh plates
-    "${RENDER[@]}" templates_folding_2_diamond_mesh surface mesh plates
-    "${RENDER[@]}" templates_folding_3_prismatic_fold all profile folds mesh plates diaphragms
-    "${RENDER[@]}" --view right --name end templates_folding_3_prismatic_fold all
+    "${RENDER[@]}" templates_folding_1_reflex_fold plates
+    "${RENDER[@]}" templates_folding_2_diamond_mesh plates
+    "${RENDER[@]}" templates_folding_3_prismatic_fold all
     "${RENDER[@]}" templates_folding_4_folded_barrel all
-    "${RENDER[@]}" --view right --name end templates_folding_4_folded_barrel all
-    "${RENDER[@]}" templates_folding_5_counter_fold stations mesh plates
-    "${RENDER[@]}" --view top --name plan templates_folding_5_counter_fold folds
-    "${RENDER[@]}" --view right --name end templates_folding_5_counter_fold plates
+    "${RENDER[@]}" templates_folding_5_counter_fold plates
     "${RENDER[@]}" templates_folding_6_elevated_fold plates
-    "${RENDER[@]}" --view top --name plan templates_folding_6_elevated_fold folds
     "${RENDER[@]}" templates_folding_7_conical_fold plates
-    "${RENDER[@]}" --view top --name plan templates_folding_7_conical_fold folds
-    "${RENDER[@]}" --view right --name end templates_folding_7_conical_fold plates
     "${RENDER[@]}" templates_folding_8_two_hinged_frame plates
-    "${RENDER[@]}" --view front --name section templates_folding_8_two_hinged_frame plates
-    "${RENDER[@]}" --view right --name side templates_folding_8_two_hinged_frame plates
-    "${RENDER[@]}" --view top --name plan templates_folding_8_two_hinged_frame plates
     "${RENDER[@]}" templates_folding_9_three_hinged_frame plates
-    "${RENDER[@]}" --view front --name section templates_folding_9_three_hinged_frame plates
     "${RENDER[@]}" templates_folding_10_three_hinged_arch plates
-    "${RENDER[@]}" --view front --name section templates_folding_10_three_hinged_arch plates
-    "${RENDER[@]}" --size 6000x4000 --crop 0.0,0.25,0.3,0.75 --name corner templates_folding_8_two_hinged_frame plates
     "${RENDER[@]}" templates_folding_11_triangle_fold plates
     "${RENDER[@]}" templates_folding_12_square_fold plates
     "${RENDER[@]}" templates_folding_13_hexagon_fold plates
@@ -54,26 +41,19 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_22_triangle_pentagon plates
     "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
     "${RENDER[@]}" templates_folding_24_fan_fold plates
-    "${RENDER[@]}" --view top --name plan templates_folding_24_fan_fold folds
     "${RENDER[@]}" templates_folding_25_one_fold plates
     "${RENDER[@]}" templates_folding_26_three_folds plates
     "${RENDER[@]}" templates_folding_27_counter_centre plates
-    "${RENDER[@]}" --view top --name plan templates_folding_27_counter_centre folds
     "${RENDER[@]}" templates_folding_28_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_29_elevated_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_30_alternate_fold plates
     "${RENDER[@]}" templates_folding_31_deep_centre plates
-    "${RENDER[@]}" --view right --name end templates_folding_31_deep_centre plates
     "${RENDER[@]}" templates_folding_32_deep_centre_valley plates
     "${RENDER[@]}" templates_folding_33_frame_ridge_to_valley plates
-    "${RENDER[@]}" --view top --name plan templates_folding_33_frame_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_34_a_frame plates
-    "${RENDER[@]}" --view front --name section templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
-    "${RENDER[@]}" --view front --name section templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
     "${RENDER[@]}" templates_folding_37_curved_fold lamellas
-    "${RENDER[@]}" --view front --name elevation templates_folding_37_curved_fold lamellas
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
