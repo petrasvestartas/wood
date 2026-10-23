@@ -63,6 +63,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
+    "${RENDER[@]}" templates_folding_37_curved_fold plates
+    "${RENDER[@]}" --view front --name elevation templates_folding_37_curved_fold plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

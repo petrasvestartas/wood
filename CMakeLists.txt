@@ -327,6 +327,7 @@ ADD_EXE(templates_folding_33_frame_ridge_to_valley examples/templates_folding_33
 ADD_EXE(templates_folding_34_a_frame               examples/templates_folding_34_a_frame.cpp)
 ADD_EXE(templates_folding_35_pointed_arch          examples/templates_folding_35_pointed_arch.cpp)
 ADD_EXE(templates_folding_36_folded_truncated_pyramid examples/templates_folding_36_folded_truncated_pyramid.cpp)
+ADD_EXE(templates_folding_37_curved_fold           examples/templates_folding_37_curved_fold.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
