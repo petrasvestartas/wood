@@ -88,7 +88,7 @@ A segmented shell of hollow cassettes after the BUGA Wood Pavilion 2019, one per
 ![cassette shell](templates/templates_module_2_cassette_shell_all.webp)
 
 ```cpp
-wood_module::CassetteShell shell;  // or CassetteShell(mesh, depth, plate_thickness, beam_width, openings, stud_spacing)
+wood_module::CassetteShell shell;  // or CassetteShell(mesh, depth, plate_thickness, beam_width, openings, stud_spacing, ranks)
 ```
 
 | Parameter | Default | Controls |
@@ -99,6 +99,7 @@ wood_module::CassetteShell shell;  // or CassetteShell(mesh, depth, plate_thickn
 | `beam_width` | 60 | edge beam width square to its edge plane, and every stud's and frame member's |
 | `openings` | none | per face its `{x, width, sill, head}` in the face frame: x along its first edge, y up the face |
 | `stud_spacing` | 0, none | studs along every face's first edge between the edge beams |
+| `ranks` | none, miters | per face its rank at a T joint, the lower running through square and the other cut on its face |
 
 ### Planes
 
@@ -135,7 +136,7 @@ add(std::make_shared<Plate>(bottom_loop, top_loop, fmt::format("edge_beam_{}_{}"
 
 ![two cassettes](templates/templates_module_2_cassette_shell_cassette_8.webp)
 
-Every contact between cassettes drawn in `contacts` as a red mesh, one per interior edge of the mesh:
+Every contact between cassettes drawn in `contacts` as a red mesh: on each of the 29 interior edges the two plates and the two beams meet on the bisector, 104 contacts in all:
 
 ![contacts](templates/templates_module_2_cassette_shell_contacts.webp)
 
@@ -170,15 +171,30 @@ wood_module::CassetteShell house(
     60.0,
     wood_module::CassetteShell::house_openings(),
     625.0,
+    wood_module::CassetteShell::house_ranks(),
     "cassette_house"
 );
 ```
 
-Each cassette is a big panel on either side with its openings cut out, and between them the edge beams on its boundary, studs every 625 mm, rafters on the roof, and around every opening two jambs, a header and under a window a sill; a door stands on the bottom beam. Every edge beam is cut on the plane its edge shares with the neighbouring cassette, the dihedral bisector of the two faces. Where three cassettes meet, at the eaves corners and at the gable apexes, the three bisector planes meet in one line, so the corners close; a gable split into a wall and a triangle would make four meet there, and four do not. Seen through, at opacity 0.95:
+Each cassette is a big panel on either side with its openings cut out, and between them the edge beams on its boundary, studs every 625 mm, rafters on the roof, and around every opening two jambs, a header and under a window a sill; a door stands on the bottom beam.
+
+The cassettes meet in T joints, not miters, so the fewest cuts are inclined: `house_ranks` puts the roof slopes over everything, the front slope over the back one at the ridge, and the long walls past the gable ends. The cassette of lower rank runs through with a square end, out past the other's far side; the other is cut on its face. Wall and gable meet square, and so do gable and roof, whose plane holds the gable's normal; only the wall tops under the slope and the back slope at the ridge are cut at an angle. Inside a cassette the edge beams butt the same way, the more level one running through. Only the hex shell keeps its miters.
+
+```cpp
+// T, cut: on the side of the neighbour's cassette that faces this one
+if (!through) {
+    const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
+    const Point surface = other.origin() + other.z_axis() * (side * 0.5 * depth);
+    planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
+    continue;
+}
+```
+
+Seen through, at opacity 0.95:
 
 ![cassette house seen through](templates/templates_module_3_cassette_house_inside.webp)
 
-One gable end, its studs cut on the inner faces of the sloped beams, the window framed:
+One gable end, square on every side: its sides stop on the long walls, its top under the roof; its studs cut on the inner faces of the sloped beams, the window framed:
 
 ![gable end](templates/templates_module_3_cassette_house_gable.webp)
 
@@ -187,11 +203,11 @@ One gable end, its studs cut on the inner faces of the sloped beams, the window 
 std::vector<std::array<Plane, 2>> runs = {{inner_planes[low_side], inner_planes[high_side]}};
 ```
 
-The left gable end and the roof over it, the apex where the gable and the two slopes meet:
+The roof over the front wall and the left gable end, both running under it with the roof overhanging them square:
 
 ![gable and roof](templates/templates_module_3_cassette_house_gable_roof.webp)
 
-Every contact between cassettes as a red mesh, one per shared edge, 11 in all:
+Every contact between cassettes as a red mesh, a cut cassette's plates and beams on the face of the one running through, 43 in all:
 
 ![contacts](templates/templates_module_3_cassette_house_contacts.webp)
 

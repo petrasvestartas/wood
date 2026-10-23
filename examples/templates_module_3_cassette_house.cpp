@@ -14,6 +14,7 @@ int main() {
         60.0,
         wood_module::CassetteShell::house_openings(),
         625.0,
+        wood_module::CassetteShell::house_ranks(),
         "cassette_house"
     );
     std::cout << house << std::endl;
@@ -26,7 +27,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber modules: a 6000 x 4000 gable house of six cassettes, walls 2700 high and the ridge at 4500, one cassette per whole face: the front, the two gable ends as pentagons, the back and the two roof slopes. Each cassette is 160 deep: a 20 mm panel on either side with its openings cut out, a door and a window in the front, a window in the back and in each gable, and between the panels 60 mm edge beams on its boundary, studs and rafters every 625 mm cut on the inner faces of the edge beams, and two jambs, a header and under a window a sill around every opening. Every edge beam is cut on the plane its edge shares with the neighbouring cassette, so where three cassettes meet the corner closes. Every contact between cassettes is detected and drawn in contacts as a red mesh; no connector is made.
+Step 3 of the timber modules: a 6000 x 4000 gable house of six cassettes, walls 2700 high and the ridge at 4500, one cassette per whole face: the front, the two gable ends as pentagons, the back and the two roof slopes. Each cassette is 160 deep: a 20 mm panel on either side with its openings cut out, a door and a window in the front, a window in the back and in each gable, and between the panels 60 mm edge beams on its boundary, studs and rafters every 625 mm cut on the inner faces of the edge beams, and two jambs, a header and under a window a sill around every opening. The cassettes meet in T joints, the roof slopes running over the walls and gable ends and the long walls past the gable ends, each running through square and the other cut on its face, so the fewest cuts are inclined; inside a cassette the more level beam runs through. Every contact between cassettes is detected and drawn in contacts as a red mesh; no connector is made.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

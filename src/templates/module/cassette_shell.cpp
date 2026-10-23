@@ -14,6 +14,7 @@ CassetteShell::CassetteShell(
     double beam_width,
     const std::vector<std::vector<Opening>>& openings,
     double stud_spacing,
+    const std::vector<int>& ranks,
     const std::string& name
 )
     : WoodSession(name),
@@ -22,7 +23,8 @@ CassetteShell::CassetteShell(
       plate_thickness(plate_thickness),
       beam_width(beam_width),
       openings(openings),
-      stud_spacing(stud_spacing) {
+      stud_spacing(stud_spacing),
+      ranks(ranks) {
 
     // mesh: the welded input mesh, a plane per face and the face across every face edge
     add_mesh(this->mesh, group_named("mesh"));
@@ -33,11 +35,11 @@ CassetteShell::CassetteShell(
     const std::vector<std::vector<long long>> neighbours = compute_neighbours();
     _neighbours = neighbours;
 
-    // edge planes: per face edge the plane both cells cut their beams on, its normal out of the face
+    // edge planes: per face edge the plane its cassette ends on, a miter or a T, its normal out of the face
     const std::vector<std::vector<Plane>> edge_planes = compute_edge_planes();
     _edge_planes = edge_planes;
 
-    // miter planes: per face corner the plane halfway between its two edge planes
+    // miter planes: per face corner the plane halfway between its two edge planes, where the beams miter
     const std::vector<std::vector<Plane>> miter_planes = compute_miter_planes();
     _miter_planes = miter_planes;
 
@@ -91,6 +93,10 @@ Mesh CassetteShell::house_mesh(
     };
 
     return Mesh::from_polylines(faces, 1.0);
+}
+
+std::vector<int> CassetteShell::house_ranks() {
+    return {2, 4, 3, 4, 0, 1};
 }
 
 std::vector<std::vector<Opening>> CassetteShell::house_openings() {
@@ -178,24 +184,67 @@ std::vector<std::vector<Plane>> CassetteShell::compute_edge_planes() const {
 
     for (size_t f = 0; f < faces.size(); f++) {
         const std::vector<std::pair<size_t, size_t>> face_edges = mesh.face_edges(faces[f]).value();
+        const Plane& face = _face_planes[f];
 
         for (size_t j = 0; j < face_edges.size(); j++) {
             const Point start = mesh.vertex_point(face_edges[j].first).value();
             const Point end = mesh.vertex_point(face_edges[j].second).value();
             const Point middle = Point::mid_point(start, end);
-            Vector lean = _face_planes[f].z_axis();
+            const long long g = _neighbours[f][j];
 
-            if (_neighbours[f][j] >= 0)
-                lean += _face_planes[static_cast<size_t>(_neighbours[f][j])].z_axis();
-
-            // the normal square to the edge and to the average normal, turned out of the face
-            Vector out = (end - start).cross(lean);
+            // naked edge: square to the face
+            Vector out = (end - start).cross(face.z_axis());
             out.normalize_self();
 
-            if ((_face_planes[f].origin() - middle).dot(out) > 0.0)
+            if ((face.origin() - middle).dot(out) > 0.0)
                 out = out * -1.0;
 
-            planes[f].push_back(Plane::from_point_normal(middle, out));
+            if (g < 0) {
+                planes[f].push_back(Plane::from_point_normal(middle, out));
+                continue;
+            }
+
+            const Plane& other = _face_planes[static_cast<size_t>(g)];
+
+            // miter: the plane through the edge leaning on the average normal of the two faces
+            if (ranks.empty()) {
+                Vector lean = (end - start).cross(face.z_axis() + other.z_axis());
+                lean.normalize_self();
+
+                if ((face.origin() - middle).dot(lean) > 0.0)
+                    lean = lean * -1.0;
+
+                planes[f].push_back(Plane::from_point_normal(middle, lean));
+                continue;
+            }
+
+            const bool through = ranks[f] < ranks[static_cast<size_t>(g)] || (ranks[f] == ranks[static_cast<size_t>(g)] && static_cast<long long>(f) < g);
+
+            // T, cut: on the side of the neighbour's cassette that faces this one
+            if (!through) {
+                const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
+                const Point surface = other.origin() + other.z_axis() * (side * 0.5 * depth);
+                planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
+                continue;
+            }
+
+            // T, through: square to the face, out as far as the neighbour's cassette reaches past the edge
+            double reach = 0.0;
+
+            for (const double a : {-0.5 * depth, 0.5 * depth})
+                for (const double b : {-0.5 * depth, 0.5 * depth}) {
+                    Line corner;
+
+                    if (!Intersection::plane_plane(face.translate_by_normal(a), other.translate_by_normal(b), corner))
+                        continue;
+
+                    const Vector direction = corner.to_direction();
+                    const Point origin = corner.point_at(0.0);
+                    const Point closest = origin + direction * ((middle - origin).dot(direction) / direction.dot(direction));
+                    reach = std::max(reach, (closest - middle).dot(out));
+                }
+
+            planes[f].push_back(Plane::from_point_normal(middle + out * reach, out));
         }
     }
 
@@ -292,10 +341,29 @@ void CassetteShell::add_edge_beams() {
         const Plane top = _face_planes[f].translate_by_normal(level);
         const size_t n = _edge_planes[f].size();
 
+        const std::vector<std::pair<size_t, size_t>> face_edges = mesh.face_edges(mesh.faces()[f]).value();
+        std::vector<double> steepness;
+
+        for (const std::pair<size_t, size_t>& edge : face_edges)
+            steepness.push_back(std::abs((mesh.vertex_point(edge.second).value() - mesh.vertex_point(edge.first).value()).normalized().dot(Vector(0.0, 0.0, 1.0))));
+
         for (size_t j = 0; j < n; j++) {
             const Plane& outer = _edge_planes[f][j];
             const Plane inner = outer.translate_by_normal(-beam_width);
-            const std::vector<Plane> sides = {outer, _miter_planes[f][j], inner, _miter_planes[f][(j + n - 1) % n]};
+            const size_t next = (j + 1) % n;
+            const size_t previous = (j + n - 1) % n;
+            Plane end_plane = _miter_planes[f][j];
+            Plane start_plane = _miter_planes[f][previous];
+
+            // butted: the more level beam runs through to the other's outer face, the steeper stops on its inner face
+            if (!ranks.empty()) {
+                const bool over_next = steepness[j] < steepness[next] - 1e-6 || (std::abs(steepness[j] - steepness[next]) <= 1e-6 && j < next);
+                const bool over_previous = steepness[j] < steepness[previous] - 1e-6 || (std::abs(steepness[j] - steepness[previous]) <= 1e-6 && j < previous);
+                end_plane = over_next ? _edge_planes[f][next] : _edge_planes[f][next].translate_by_normal(-beam_width);
+                start_plane = over_previous ? _edge_planes[f][previous] : _edge_planes[f][previous].translate_by_normal(-beam_width);
+            }
+
+            const std::vector<Plane> sides = {outer, end_plane, inner, start_plane};
             const Polyline bottom_loop = Polyline::from_planes(sides, bottom);
             const Polyline top_loop = Polyline::from_planes(sides, top);
             add(std::make_shared<Plate>(bottom_loop, top_loop, fmt::format("edge_beam_{}_{}", f, j)), group);
@@ -466,12 +534,12 @@ CassetteContacts CassetteShell::add_contacts() {
 
     CassetteContacts contacts;
 
-    // inside: every two plates and beams of a cassette that touch
+    // parts: every plate and beam of every cassette, by name
     const std::array<std::string, 7> kinds = {"top_plate", "bottom_plate", "edge_beam", "stud", "jamb", "header", "sill"};
+    std::vector<std::vector<std::shared_ptr<Plate>>> parts(_face_planes.size());
 
     for (size_t f = 0; f < _face_planes.size(); f++) {
         const std::string place = std::to_string(f);
-        std::vector<std::shared_ptr<Plate>> parts;
 
         for (const std::shared_ptr<Element>& element : *objects.elements)
             for (const std::string& kind : kinds) {
@@ -480,36 +548,38 @@ CassetteContacts CassetteShell::add_contacts() {
                 const bool whole = named && (element->name.size() == prefix.size() || element->name[prefix.size()] == '_');
 
                 if (whole && std::dynamic_pointer_cast<Plate>(element))
-                    parts.push_back(std::dynamic_pointer_cast<Plate>(element));
-            }
-
-        for (size_t a = 0; a < parts.size(); a++)
-            for (size_t b = a + 1; b < parts.size(); b++) {
-                const std::shared_ptr<InteractionContactFace> face = add_contact(parts[a], parts[b]);
-
-                if (face)
-                    contacts.inside.push_back({parts[a], parts[b], face});
+                    parts[f].push_back(std::dynamic_pointer_cast<Plate>(element));
             }
     }
 
-    // between: the beams of the two cassettes on every interior edge, once per edge
-    for (size_t f = 0; f < _face_planes.size(); f++)
-        for (size_t j = 0; j < _neighbours[f].size(); j++) {
-            const long long g = _neighbours[f][j];
+    // inside: every two parts of a cassette that touch
+    for (size_t f = 0; f < parts.size(); f++)
+        for (size_t a = 0; a < parts[f].size(); a++)
+            for (size_t b = a + 1; b < parts[f].size(); b++) {
+                const std::shared_ptr<InteractionContactFace> face = add_contact(parts[f][a], parts[f][b]);
 
-            if (g < static_cast<long long>(f))
+                if (face)
+                    contacts.inside.push_back({parts[f][a], parts[f][b], face});
+            }
+
+    // between: every two parts of the two cassettes on an interior edge that touch, once per edge
+    for (size_t f = 0; f < parts.size(); f++)
+        for (const long long g : _neighbours[f]) {
+            if (g <= static_cast<long long>(f))
                 continue;
 
-            const std::vector<long long>& across = _neighbours[static_cast<size_t>(g)];
-            const size_t i = static_cast<size_t>(std::find(across.begin(), across.end(), static_cast<long long>(f)) - across.begin());
-            const std::shared_ptr<Plate> beam = get_element_by_name<Plate>(fmt::format("edge_beam_{}_{}", f, j));
-            const std::shared_ptr<Plate> other = get_element_by_name<Plate>(fmt::format("edge_beam_{}_{}", g, i));
-            const std::shared_ptr<InteractionContactFace> face = add_contact(beam, other);
+            const size_t found = contacts.between.size();
 
-            if (!face)
+            for (const std::shared_ptr<Plate>& a : parts[f])
+                for (const std::shared_ptr<Plate>& b : parts[static_cast<size_t>(g)]) {
+                    const std::shared_ptr<InteractionContactFace> face = add_contact(a, b);
+
+                    if (face)
+                        contacts.between.push_back({a, b, face});
+                }
+
+            if (contacts.between.size() == found)
                 throw std::runtime_error(fmt::format("cassettes {} and {} do not touch across their edge", f, g));
-
-            contacts.between.push_back({beam, other, face});
         }
 
     return contacts;

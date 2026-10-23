@@ -26,10 +26,10 @@ struct CassetteContacts {
 
 /// A shell of hollow timber cassettes after the BUGA Wood Pavilion 2019, a session: per mesh face one cassette, a top and a bottom
 /// plate over the whole face with its openings cut out, and between them an edge beam on every face edge, studs at the stud
-/// spacing and a frame around every opening. The outer face of each edge beam lies on the plane its edge shares with the
-/// neighbouring cassette, so it is cut at the angle between the two, its ends mitered with the next beam; where three cassettes
-/// meet at a corner their three planes meet in one line, so the corner closes. Neighbouring cassettes meet beam to beam; the
-/// contacts are detected, no connector is made.
+/// spacing and a frame around every opening. Two cassettes meet either on a miter, the bisector plane of their faces, as on the hex
+/// shell, or with ranks in a T: the cassette of lower rank runs through with a square end and the other is cut on its face, so the
+/// fewest cuts are inclined. The edge beams of one cassette meet the same way: mitered, or with ranks butted, the more level beam
+/// running through. The contacts are detected, no connector is made.
 ///
 /// Fields: the welded mesh, the cassette sizes, the openings and the stud spacing.
 /// Every cassette is a group `cassette_<f>` of `top_plate_<f>`, `bottom_plate_<f>`, `edge_beam_<f>_<j>`, `stud_<f>_<k>`,
@@ -43,6 +43,7 @@ public:
     const double beam_width; // Edge beam width square to its edge plane, and every stud's and frame member's width.
     const std::vector<std::vector<Opening>> openings; // Per face its openings in the face frame: x along its first edge, y up the face; a sill of 0 a door on the first edge's beam.
     const double stud_spacing; // Stud centres along the first edge of every face, 0 for none.
+    const std::vector<int> ranks; // Per face its rank at a T joint, the lower running through; empty for miters on the bisector planes.
 
     /// The cassettes of the mesh as the session named name.
     explicit CassetteShell(
@@ -52,6 +53,7 @@ public:
         double beam_width = 60.0,
         const std::vector<std::vector<Opening>>& openings = {},
         double stud_spacing = 0.0,
+        const std::vector<int>& ranks = {},
         const std::string& name = "cassette_shell"
     );
 
@@ -72,6 +74,10 @@ public:
         double height = 2700.0,
         double ridge = 4500.0
     );
+
+    /// The ranks of house_mesh per face: the roof slopes over everything, the front slope over the back one at the ridge, the long walls
+    /// past the gable ends.
+    static std::vector<int> house_ranks();
 
     /// The openings of house_mesh per face: a door and a window in the front, a window in the back and in each gable end.
     static std::vector<std::vector<Opening>> house_openings();
@@ -98,7 +104,8 @@ private:
     /// Per face edge the face on its other side, -1 on a naked edge.
     std::vector<std::vector<long long>> compute_neighbours() const;
 
-    /// Per face edge the plane through the edge leaning on the average normal of its faces, its normal out of the face.
+    /// Per face edge the plane its cassette ends on, its normal out of the face: without ranks the bisector of the two faces; with ranks
+    /// the face of the neighbour that runs through, or square to the face and past the neighbour's far side where this one runs through.
     std::vector<std::vector<Plane>> compute_edge_planes() const;
 
     /// Per face corner the plane halfway between the edge planes that meet there.
