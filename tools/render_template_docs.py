@@ -136,8 +136,8 @@ def main(arguments: list) -> None:
         scene = pathlib.Path(tmp) / "scene.pb"
         run_example(name, scene)
 
-        for group in groups:
-            branch = pathlib.Path(tmp) / f"{group}.pb"
+        for index, group in enumerate(groups):
+            branch = pathlib.Path(tmp) / f"branch_{index}.pb"
             subprocess.run(
                 [str(PYTHON), "-c", BRANCH, str(scene), group, str(branch)],
                 check=True,

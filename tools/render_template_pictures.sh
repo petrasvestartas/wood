@@ -52,9 +52,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --view right --size 8000x5333 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
     "${RENDER[@]}" templates_module_4_room_module all
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_4_room_module all
-    "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_rails+module_0_0_floor_studs
+    "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_rails+module_0_0_floor_studs+module_0_0_floor_noggings
     "${RENDER[@]}" --name single templates_module_4_room_module module_0_1
     "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_start_rails+module_0_0_wall_start_studs+module_0_0_wall_start_opening_0
     "${RENDER[@]}" --name contacts templates_module_4_room_module contacts_frame+contacts_sheathing
     "${RENDER[@]}" templates_module_5_module_block all
+    "${RENDER[@]}" templates_module_6_bank_pavilion all
+    PAVILION=module_0_0_floor+module_0_0_posts+module_0_0_wall_front+module_0_0_wall_back+module_0_0_wall_start+module_0_0_wall_end
+    PAVILION+=+module_0_1_floor+module_0_1_posts+module_0_1_wall_start+module_0_1_wall_end
+    PAVILION+=+module_0_2_floor+module_0_2_posts+module_0_2_wall_start+module_0_2_wall_end
+    PAVILION+=+module_0_3_floor+module_0_3_posts+module_0_3_wall_front+module_0_3_wall_back+module_0_3_wall_start+module_0_3_wall_end
+    "${RENDER[@]}" --view top --name plan templates_module_6_bank_pavilion "$PAVILION"
+    "${RENDER[@]}" --name open templates_module_6_bank_pavilion "$PAVILION"
 fi

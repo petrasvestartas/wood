@@ -224,21 +224,23 @@ Every contact between cassettes as a red mesh, a cut cassette's plates and beams
 
 ## Room module
 
-Timber room modules after the modules of Blumer Lehmann, a room of two and a block of them (`module/room_module.h`, examples `templates_module_4_room_module` and `templates_module_5_module_block`).
+Timber room modules after the modules of Blumer Lehmann, a room of two, a block of them and the bank pavilion of their brochure (`module/room_module.h`, examples `templates_module_4_room_module`, `templates_module_5_module_block` and `templates_module_6_bank_pavilion`).
 
 ![room of two modules](templates/templates_module_4_room_module_all.webp)
 
-What a module is, from Blumer Lehmann's pages, reference sheets and project photos:
+What a module is, from Blumer Lehmann's pages, reference sheets, brochure drawings and factory photos:
 
 | | Blumer Lehmann | the default here |
 | --- | --- | --- |
 | structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
 | frame | the photo of a ZM10 module craned onto Friesenberg school: a thick floor and ceiling box, a post at each end of an open long side, walls only on the closed sides | four corner posts, a wall thick, between the floor and the ceiling; a framed wall between the posts on every closed side |
-| rooms | a ZM10 classroom of 68 m2 spans more than one module, a post at the joint inside; in Luxembourg two modules form one room of twice the area | `modules_per_room` modules side by side form one room, the long sides between them open; rooms keep a wall each between them |
+| floor and ceiling | factory photos of an open-sided module: a wide boundary beam all round the floor and the ceiling, joists across about 1.25 m apart, a line along the middle, boards over them; the brochure sections draw floor and ceiling together about a sixth of the clear height | a rim of 160 wide boundary beams, 100 wide joists dividing the length evenly at most 1250 apart, a row of noggings at mid-width, 200 deep with a 25 deck on each face |
+| rooms | a ZM10 classroom of 68 m2 spans more than one module; the brochure's bank pavilion plan draws a pair of posts side by side at mid-length of the open joint, one per module | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
+| walls between rooms | the pavilion plan draws one wall between two rooms, inside one module, its neighbour open against it | one wall, in the module of the smaller room, the lower column on a tie |
 | facade | ZM10 pavilions: every module end a bay of about 3 m with a window, three storeys, a corridor through the other ends with cased doors | the end at x 0 the facade with a window, the end at x length the corridor with a door |
 | plan | 3 x 9 m outside (Chäserrugg modules; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 3000 |
 | height | 2.7 m clear inside (Permapack office module) | 2700 clear, 3200 outside |
-| stacking | side by side freely, stacked up to three storeys | `columns` side by side, `storeys` stacked |
+| stacking | side by side freely, stacked up to three storeys | `rooms` side by side, `storeys` stacked |
 | road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t | 3000 wide, 3200 high |
 
 ```cpp
@@ -249,28 +251,31 @@ wood_module::RoomModule room(guide);
 | Parameter | Default | Controls |
 | --- | --- | --- |
 | `length`, `width`, `clear_height` | 9000, 3000, 2700 | a module's plan and the clear height inside |
-| `stud_width` | 60 | every frame member's size in the plane of its element |
-| `stud_depth`, `joist_depth` | 160, 200 | the wall frame and the floor and ceiling frame depth |
-| `stud_spacing` | 625 | studs and joists from each element's start |
-| `sheet_thickness`, `deck_thickness` | 15, 25 | a sheet on each face of a wall, a deck on each face of a floor and a ceiling; a post is as wide as the wall |
-| `openings` | a window at the facade end, a door at the corridor end | per wall in its own frame |
-| `columns`, `modules_per_room`, `storeys` | 2, 2, 1 | modules side by side, how many form one room, modules stacked |
+| `stud_width`, `stud_depth`, `stud_spacing` | 60, 160, 625 | the wall frame: its members, its depth and the stud grid from each wall's start |
+| `sheet_thickness` | 15 | a sheet on each face of a wall; a post is as wide as the wall |
+| `rim_width`, `joist_width`, `joist_depth` | 160, 100, 200 | the floor and ceiling frame: boundary beams, joists across and their common depth |
+| `joist_spacing`, `deck_thickness` | 1250, 25 | the largest joist spacing, the joists dividing the length evenly; a deck on each face |
+| `side_posts` | 1 | posts along a long side open inside a room, evenly between the corner posts |
+| `layouts` | a window at the facade end, a door at the corridor end | per module across, cycled: per wall its openings in its own frame, and a porch, the start wall set back |
+| `rooms`, `storeys` | {2}, 1 | the modules side by side forming each room, modules stacked |
 
 ### Module
 
-A frame like the one in the photo: the floor and the ceiling over the whole module, a post at each corner, a wall between the posts on the closed sides, and the long side towards the other module of its room open, the floor and ceiling spanning between the end posts:
+A frame like the one in the photo: the floor and the ceiling over the whole module, a post at each corner, a wall between the posts on the closed sides, and the long side towards the other module of its room open, a post at mid-length, beside the neighbour's:
 
 ![open-sided module](templates/templates_module_4_room_module_single.webp)
 
 ```cpp
-// long sides: a wall between the posts, or open towards a neighbour of the same room
-const bool front_open = column % guide.modules_per_room != 0;
-const bool back_open = (column + 1) % guide.modules_per_room != 0 && column + 1 < guide.columns;
+// long sides: open towards a neighbour of the same room; between two rooms one wall, in the module of the smaller room
+const bool front_inside = column > 0 && previous[0] == room[0];
+const bool back_inside = column + 1 < columns() && next[0] == room[0];
+const bool front_wall = column == 0 || (!front_inside && room[1] < previous[1]);
+const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= next[1]);
 ```
 
 ### Elements
 
-Every element is a `FramedPanel`, the wall's framing in a plane: rails along its foot and top, an edge stud at both ends, studs on the grid, a jamb stud either side of every opening with the header and sill between them, and a sheet on each face. The floor and the ceiling lie flat over the whole module, their rails the rim joists and their studs the joists, 625 apart across it:
+Every element is a `FramedPanel`, the wall's framing in a plane: rails along its foot and top, an edge stud at both ends, studs on the grid, a jamb stud either side of every opening with the header and sill between them, rows of noggings between the studs, and a sheet on each face. The floor and the ceiling lie flat over the whole module, their rails and edge studs the 160 wide rim of boundary beams that carries the module between its posts, their studs the joists across it, seven dividing the 9000 into eight bays of 1125, and a row of noggings at mid-width, as in the factory photo:
 
 ![floor](templates/templates_module_4_room_module_floor.webp)
 
@@ -284,7 +289,7 @@ Seen through, at opacity 0.95:
 
 ### Contacts
 
-`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the floors, ceilings and posts of a room along their open sides, the walls of two rooms back to back, and a ceiling deck under the next floor. The room of two modules has 312 contacts in its frames and 398 with its sheets:
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the floors, ceilings and posts of a room along their open sides, the wall between two rooms and the open neighbour against it, and a ceiling deck under the next floor. The room of two modules has 321 contacts in its frames and 410 with its sheets:
 
 ![contacts](templates/templates_module_4_room_module_contacts.webp)
 
@@ -296,12 +301,45 @@ Four modules side by side and three storeys like the ZM10 school pavilions, two 
 
 ```cpp
 wood_module::RoomModuleGuide guide;
-guide.columns = 4;
+guide.rooms = {2, 2};
 guide.storeys = 3;
 wood_module::RoomModule block(guide, "module_block");
 ```
 
-Sources: [Blumer Lehmann, Holzmodulbau](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/holzmodulbau.html), with the photo of a ZM10 module placed at Friesenberg; [ZM10 Zurich](https://www.blumer-lehmann.com/referenzen/referenzholz-temporaerer-schulraum-zm10-zuerich.html); [Permapack office module](https://blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/verkaufsdoku-occasionsmodul-permapack-geisser-blumer-lehmann.pdf); [DBZ 2019, from mountain café to office](https://www.blumer-lehmann.com/en/dam/jcr:e6a4a58b-e1a0-4898-87d2-8c7f182b7488/2019-12-dbz-modulbau-modul-recycling-vom-bergcafe-zum-buero.pdf); [Ernst & Sohn 2019, timber modules for schools](https://www.blumer-lehmann.com/en/dam/jcr:8ad14105-9d05-4ec2-acd1-a55a9b9ca526/2019-09-ernst-und-sohn-special-kindertagesstaetten-mehr-spielraum-mit-holzmodulbauten-in-kinderbetreuung-und-schule.pdf); [Kanton St. Gallen, special transport permits](https://www.sg.ch/verkehr/strassenverkehr/sonderbewilligungen/ausnahmefahrzeuge-und--transporte.html).
+### Bank pavilion
+
+The temporary bank pavilion of four modules from the brochure "Modulares Bauen" (Blumer Lehmann 2025, p. 17, "Grundriss mit 4 Modulen"), rebuilt from its plan. The plan has no figures; it is measured on its vector drawing at the 3.0 m module axis grid, 45.55 pt, so 65.86 mm per pt, which its doors confirm: their swings scale to 0.70, 0.89 and 1.00 m, the standard 70, 90 and 100 cm doors.
+
+![bank pavilion](templates/templates_module_6_bank_pavilion_all.webp)
+
+| | measured on the plan | built |
+| --- | --- | --- |
+| modules | 4 on a 3.0 m axis grid, a meeting room, an open office of two, a module with the entrance porch | `rooms = {1, 2, 1}`, 3000 wide |
+| length | 9850 clear between the end walls, the axes along 9630 | 10270 with its 210 end walls, 9850 clear |
+| office | 6000 clear between the walls of modules 1 and 4, open between modules 2 and 3 | 6000 clear |
+| walls between rooms | one, 210, inside module 1 and inside module 4 | one, in the module of the smaller room |
+| posts | a pair at mid-length of the open joint, 210 each; at the corners as wide as the wall | `side_posts = 1`, a wall thick |
+| windows | 1620 wide, 330 from the inner corner, at both ends of modules 1 to 3; 1020 at the end of module 4; 720 for the WC | the same |
+| doors | module 1: a 1590 passage to the office; module 4: the 1.0 m entrance with a sidelight from the porch, two 0.9 m doors | the same |
+| porch | the start wall of module 4 set back 2730, open to the outside, a post at its corner | `porch = 2730` |
+| not drawn | sills, heads, heights; the exterior walls drawn 336 with insulation and cladding | 900 and 2100 for windows, 2100 for doors, 2700 clear; walls 210; partitions inside the modules and cladding not built |
+
+The modules without their ceilings, from above as in the brochure, turned a quarter, and from the porch:
+
+![pavilion plan](templates/templates_module_6_bank_pavilion_plan.webp)
+
+![pavilion open](templates/templates_module_6_bank_pavilion_open.webp)
+
+```cpp
+wood_module::RoomModuleGuide guide;
+guide.length = 10270.0;
+guide.stud_depth = 180.0;
+guide.rooms = {1, 2, 1};
+guide.layouts = { /* per module: the openings of its walls and its porch, measured on the plan */ };
+wood_module::RoomModule pavilion(guide, "bank_pavilion");
+```
+
+Sources: [Blumer Lehmann, Modulares Bauen brochure 2025](https://www.blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/modulbau-broschuere-arbeiten-wohnen-leben-blumer-lehmann.pdf), its bank pavilion plans and school sections; [Blumer Lehmann, Holzmodulbau](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/holzmodulbau.html), with the photo of a ZM10 module placed at Friesenberg; [ZM10 Zurich](https://www.blumer-lehmann.com/referenzen/referenzholz-temporaerer-schulraum-zm10-zuerich.html); [Permapack office module](https://blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/verkaufsdoku-occasionsmodul-permapack-geisser-blumer-lehmann.pdf); [DBZ 2019, from mountain café to office](https://www.blumer-lehmann.com/en/dam/jcr:e6a4a58b-e1a0-4898-87d2-8c7f182b7488/2019-12-dbz-modulbau-modul-recycling-vom-bergcafe-zum-buero.pdf); [Ernst & Sohn 2019, timber modules for schools](https://www.blumer-lehmann.com/en/dam/jcr:8ad14105-9d05-4ec2-acd1-a55a9b9ca526/2019-09-ernst-und-sohn-special-kindertagesstaetten-mehr-spielraum-mit-holzmodulbauten-in-kinderbetreuung-und-schule.pdf); [Kanton St. Gallen, special transport permits](https://www.sg.ch/verkehr/strassenverkehr/sonderbewilligungen/ausnahmefahrzeuge-und--transporte.html).
 
 <details><summary>Example code: templates_module_4_room_module.cpp</summary>
 
@@ -312,5 +350,11 @@ Sources: [Blumer Lehmann, Holzmodulbau](https://www.blumer-lehmann.com/bauprojek
 <details><summary>Example code: templates_module_5_module_block.cpp</summary>
 
 \include{lineno} templates_module_5_module_block.cpp
+
+</details>
+
+<details><summary>Example code: templates_module_6_bank_pavilion.cpp</summary>
+
+\include{lineno} templates_module_6_bank_pavilion.cpp
 
 </details>

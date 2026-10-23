@@ -27,7 +27,10 @@ FramedPanel::FramedPanel(
     add_openings();
 
     // studs: the edge studs, and the studs on the grid of the stud spacing where no edge or jamb stud stands, cripples over and under the openings
-    add_studs();
+    const std::vector<std::array<double, 2>> studs = add_studs();
+
+    // noggings: per row a block between every two neighbouring studs
+    add_noggings(studs);
 
     // sheathing: one sheet on each face of the whole panel, every door a notch and every window a hole
     add_sheathing();
@@ -40,7 +43,7 @@ FramedPanel::FramedPanel(
 void FramedPanel::add_rails() {
 
     const std::shared_ptr<TreeNode> rails = group("rails");
-    const double half = 0.5 * guide.stud_width;
+    const double half = 0.5 * guide.rim_width;
     std::vector<std::array<double, 2>> runs = {{0.0, guide.length}};
 
     // doors: the bottom rail stops at both sides of the clear opening
@@ -67,7 +70,7 @@ void FramedPanel::add_rails() {
         const std::shared_ptr<Beam> rail = member(
             local(runs[i][0], 0.0, half),
             local(runs[i][1], 0.0, half),
-            guide.stud_width,
+            guide.rim_width,
             base.y_axis(),
             fmt::format("bottom_rail_{}", i)
         );
@@ -78,7 +81,7 @@ void FramedPanel::add_rails() {
     const std::shared_ptr<Beam> rail = member(
         local(0.0, 0.0, top),
         local(guide.length, 0.0, top),
-        guide.stud_width,
+        guide.rim_width,
         base.y_axis(),
         "top_rail"
     );
@@ -89,8 +92,8 @@ void FramedPanel::add_openings() {
 
     const double w = guide.stud_width;
     const double half = 0.5 * w;
-    const double foot = w;
-    const double top = guide.height - w;
+    const double foot = guide.rim_width;
+    const double top = guide.height - guide.rim_width;
 
     for (size_t o = 0; o < guide.openings.size(); o++) {
         const Opening& opening = guide.openings[o];
@@ -138,21 +141,30 @@ void FramedPanel::add_openings() {
     }
 }
 
-void FramedPanel::add_studs() {
+std::vector<std::array<double, 2>> FramedPanel::add_studs() {
 
     const std::shared_ptr<TreeNode> studs = group("studs");
     const double w = guide.stud_width;
     const double half = 0.5 * w;
-    const double foot = w;
-    const double top = guide.height - w;
+    const double rim = guide.rim_width;
+    const double foot = rim;
+    const double top = guide.height - rim;
+    std::vector<std::array<double, 2>> places;
     size_t count = 0;
 
-    // edge studs: at both ends of the panel
-    for (const double x : {half, guide.length - half}) {
+    // jamb studs: either side of every opening
+    for (const Opening& opening : guide.openings) {
+        places.push_back({opening.x - half, half});
+        places.push_back({opening.x + opening.width + half, half});
+    }
+
+    // edge studs: at both ends of the panel, as wide as the rails
+    for (const double x : {0.5 * rim, guide.length - 0.5 * rim}) {
+        places.push_back({x, 0.5 * rim});
         const std::shared_ptr<Beam> stud = member(
             local(x, 0.0, foot),
             local(x, 0.0, top),
-            w,
+            rim,
             base.x_axis(),
             fmt::format("stud_{}", count)
         );
@@ -162,7 +174,7 @@ void FramedPanel::add_studs() {
 
     // studs: on the grid of the stud spacing from the panel's start, where no edge or jamb stud stands, so a stud doubles a jamb only
     // where the opening is off the grid; inside an opening cripples over its header and under its sill
-    for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) {
+    for (double x = guide.stud_spacing; x + half < guide.length - rim; x += guide.stud_spacing) {
         std::vector<std::array<double, 2>> runs = {{foot, top}};
         std::shared_ptr<TreeNode> place = studs;
         std::string part = fmt::format("stud_{}", count);
@@ -201,8 +213,45 @@ void FramedPanel::add_studs() {
             _session.add(stud, place);
         }
 
+        if (runs.size() == 1 && runs[0][0] == foot && runs[0][1] == top)
+            places.push_back({x, half});
+
         if (!runs.empty())
             count++;
+    }
+
+    std::sort(places.begin(), places.end());
+    return places;
+}
+
+void FramedPanel::add_noggings(const std::vector<std::array<double, 2>>& studs) {
+
+    const std::shared_ptr<TreeNode> noggings = group("noggings");
+
+    for (size_t row = 0; row < guide.noggings.size(); row++) {
+        const double height = guide.noggings[row];
+
+        for (size_t i = 0; i + 1 < studs.size(); i++) {
+            const double left = studs[i][0] + studs[i][1];
+            const double right = studs[i + 1][0] - studs[i + 1][1];
+            bool opening_bay = false;
+
+            // openings: no nogging between the jamb studs, where the cripples stand
+            for (const Opening& opening : guide.openings)
+                opening_bay = opening_bay || (left >= opening.x - Tolerance::APPROXIMATION && right <= opening.x + opening.width + Tolerance::APPROXIMATION);
+
+            if (opening_bay || right - left < Tolerance::APPROXIMATION)
+                continue;
+
+            const std::shared_ptr<Beam> nogging = member(
+                local(left, 0.0, height),
+                local(right, 0.0, height),
+                guide.stud_width,
+                base.y_axis(),
+                fmt::format("nogging_{}_{}", row, i)
+            );
+            _session.add(nogging, noggings);
+        }
     }
 }
 

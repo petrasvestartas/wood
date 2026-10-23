@@ -12,12 +12,12 @@ namespace wood_module {
 
 /// A timber-frame panel in a plane, added to a session: rails along its foot and top, the bottom rail split at every door, an edge
 /// stud at both ends, per opening a jamb stud either side with the header and the sill between them, studs on the grid of the stud
-/// spacing where no edge or jamb stud stands, cripples over and under the openings, and one sheet on each face, every door a notch
-/// and every window a hole. A wall stands in its plane; a floor or a ceiling lies in it, its rails the rim joists and its studs the
+/// spacing where no edge or jamb stud stands, cripples over and under the openings, rows of noggings between the studs, and one sheet
+/// on each face, every door a notch and every window a hole. A wall stands in its plane; a floor or a ceiling lies in it, its rails the rim joists and its studs the
 /// joists.
 ///
 /// Fields: the guide and the plane it is built in, x along the panel, y up it, the frame centred on the plane across it.
-/// Every member is named `<name>_<part>` under the group `<name>`, its parts `rails`, `studs`, `opening_<o>`, `sheathing_<side>`;
+/// Every member is named `<name>_<part>` under the group `<name>`, its parts `rails`, `studs`, `opening_<o>`, `noggings`, `sheathing_<side>`;
 /// with no name the parts are named alone under the session's root.
 class FramedPanel {
 public:
@@ -45,8 +45,12 @@ private:
     void add_openings();
 
     /// Adds the edge studs and a stud at every multiple of the stud spacing from the panel's start where no edge or jamb stud stands;
-    /// one inside an opening is a cripple over its header and under its sill, in opening_<o>.
-    void add_studs();
+    /// one inside an opening is a cripple over its header and under its sill, in opening_<o>. Returns every full-height stud and jamb
+    /// stud as its centre along the panel and its half width, left to right.
+    std::vector<std::array<double, 2>> add_studs();
+
+    /// Adds per row of noggings a block between every two neighbouring studs, none between the jamb studs of an opening, in noggings.
+    void add_noggings(const std::vector<std::array<double, 2>>& studs);
 
     /// Adds one sheet on each face of the whole panel, every door a notch and every window a hole, in sheathing_0 and sheathing_1.
     void add_sheathing();

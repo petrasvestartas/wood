@@ -12,14 +12,15 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling lying flat with
-/// their joists on the grid, four corner posts between them, and a framed wall between the posts on every closed side; the long sides
-/// between the modules of one room are open, so the room spans them with only the posts at the joints. Then the contacts in every module
-/// and between modules side by side and stacked. No connector is made.
+/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling lying flat, each
+/// a rim of boundary beams around the joists with noggings at mid-width, four corner posts between them, and a framed wall between the
+/// posts on every closed side; the long sides between the modules of one room are open, a post at mid-length on each, so the room spans
+/// them; between two rooms one wall, in the module of the smaller room. Then the contacts in every module and between modules side by
+/// side and stacked. No connector is made.
 ///
 /// Fields: `guide`, the RoomModuleGuide it is built from.
 /// Every module is a group `module_<storey>_<column>` of the FramedPanels `<module>_floor`, `<module>_ceiling`, `<module>_wall_start`,
-/// `<module>_wall_end` and, on a closed long side, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
+/// `<module>_wall_end` and, on a long side it closes, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
 /// every member of a panel is named `<panel>_<part>`, read back by name.
 class RoomModule : public WoodSession {
 public:
@@ -43,9 +44,16 @@ public:
     /// One module's height: the floor, the clear height and the ceiling.
     double module_height() const;
 
+    /// Modules side by side: those of every room.
+    size_t columns() const;
+
 private:
-    /// Adds the module of a storey and a column: its floor and ceiling, its four corner posts and its walls on the closed sides.
+    /// Adds the module of a storey and a column: its floor and ceiling, its corner posts, the posts along its sides open inside its room,
+    /// and its walls on the sides it closes.
     void add_module(size_t storey, size_t column);
+
+    /// The room of the module in a column and the number of modules it has.
+    std::array<size_t, 2> room_of(size_t column) const;
 };
 
 }

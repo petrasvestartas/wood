@@ -299,6 +299,7 @@ ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_ca
 ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_cassette_house.cpp)
 ADD_EXE(templates_module_4_room_module            examples/templates_module_4_room_module.cpp)
 ADD_EXE(templates_module_5_module_block           examples/templates_module_5_module_block.cpp)
+ADD_EXE(templates_module_6_bank_pavilion          examples/templates_module_6_bank_pavilion.cpp)
 ADD_EXE(templates_grid_1_footprint         examples/templates_grid_1_footprint.cpp)
 ADD_EXE(templates_grid_2_solid             examples/templates_grid_2_solid.cpp)
 ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)
