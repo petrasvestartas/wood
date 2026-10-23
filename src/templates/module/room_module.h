@@ -12,9 +12,9 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one frame module, a joint apart from the next, a floor box
-/// and a ceiling, each two long edge beams a wall wide and joists across between them flush with the room, a full height end wall at
-/// each end, four corner posts between them, a framed wall between the posts on every
+/// Timber room modules, a session built from a guide: per storey and column one frame module, a post at each corner over its full
+/// height and between them a floor and a ceiling, each an edge beam a wall wide along each long side and joists across flush with the
+/// room, the first and last at the ends, four corner posts between them, a framed wall between the posts on every
 /// closed side, the ceiling's long edge beam one deeper beam on every open one; the long sides between the modules of one room are open, a post at
 /// mid-length on each, so the room spans them; between two rooms one wall, in the module of the smaller room. Then the contacts in every module and between modules side by
 /// side and stacked. No connector is made.
@@ -56,12 +56,12 @@ private:
     /// and its walls on the sides it closes.
     void add_module(size_t storey, size_t column);
 
-    /// Adds a floor or a ceiling named name from the module's corner at its underside: two edge beams a wall wide along the long sides
-    /// over the whole length, each reaching its hang below, one deeper beam; joists across between them over the field along x from
-    /// ends[0] to ends[1], the first and last at its ends, the rest dividing it evenly, flush with the face to the room, the top of a
-    /// floor, the underside of a ceiling; in the field a board flush with that face, the deck of a floor, the lining of a ceiling, and a
-    /// board on the joists' other face, a ceiling's flush with its top.
-    void add_box(const std::string& name, const Point& corner, bool floor, const std::array<double, 2>& ends, const std::array<double, 2>& hang, const std::shared_ptr<TreeNode>& parent);
+    /// Adds a floor or a ceiling named name from the module's corner at its underside: an edge beam a wall wide along each long side
+    /// between the corner posts, each reaching its hang below, one deeper beam; joists across between them, the first and last at the
+    /// module's ends, the rest dividing the length evenly, flush with the face to the room, the top of a floor, the underside of a
+    /// ceiling; between the edge beams a board flush with that face, the deck of a floor, the lining of a ceiling, and a board on the
+    /// joists' other face, a ceiling's flush with its top.
+    void add_box(const std::string& name, const Point& corner, bool floor, const std::array<double, 2>& hang, const std::shared_ptr<TreeNode>& parent);
 
     /// The room of the module in a column and the number of modules it has.
     std::array<size_t, 2> room_of(size_t column) const;
