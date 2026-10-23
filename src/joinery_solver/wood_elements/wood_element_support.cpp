@@ -86,7 +86,7 @@ static Polyline ring(
     std::vector<Point> points;
 
     for (int k = 0; k < corners; k++) {
-        const double angle = start + 2.0 * M_PI * k / corners;
+        const double angle = start + Tolerance::TWO_PI * k / corners;
         points.push_back(
             local(
                 support,
@@ -110,7 +110,7 @@ static std::array<Polyline, 2> hexagon(
     double top
 ) {
 
-    const double radius = across_flats / (2.0 * std::cos(M_PI / 6.0));
+    const double radius = across_flats / (2.0 * std::cos(Tolerance::PI / 6.0));
 
     return {
         ring(
@@ -249,11 +249,11 @@ Line Support::column_axis(double top_z) const {
 std::vector<Line> Support::pins() const {
 
     const double radius = pin_circle_diameter * 0.5;
-    const double tilt = pin_angle * 0.5 * M_PI / 180.0;
+    const double tilt = pin_angle * 0.5 * Tolerance::TO_RADIANS;
     std::vector<Line> lines;
 
     for (int i = 0; i < pin_count; i++) {
-        const double angle = 2.0 * M_PI * i / pin_count;
+        const double angle = Tolerance::TWO_PI * i / pin_count;
         const Vector outward = plane.x_axis() * std::cos(angle) + plane.y_axis() * std::sin(angle);
         const Point start = at(height) + outward * radius;
         const Vector direction = outward * std::sin(tilt) + plane.z_axis() * std::cos(tilt);

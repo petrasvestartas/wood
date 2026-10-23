@@ -66,7 +66,7 @@ static Polyline head_circle(const Support& support, double level) {
     std::vector<Point> points;
 
     for (int k = 0; k < corners; k++) {
-        const double angle = 2.0 * M_PI * k / corners;
+        const double angle = Tolerance::TWO_PI * k / corners;
         points.push_back(support.at(level) + support.plane.x_axis() * (radius * std::cos(angle)) + support.plane.y_axis() * (radius * std::sin(angle)));
     }
 

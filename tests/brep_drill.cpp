@@ -89,7 +89,7 @@ void check_drilled(
 int main() {
 
     const double r = 5.0;
-    const double area = M_PI * r * r;
+    const double area = Tolerance::PI * r * r;
 
     check_drilled(
         block(),
@@ -100,7 +100,7 @@ int main() {
         "drill_through"
     );
 
-    const double tilt = 20.0 * M_PI / 180.0;
+    const double tilt = 20.0 * Tolerance::TO_RADIANS;
     const Vector d(std::sin(tilt), 0.0, std::cos(tilt));
     check_drilled(
         block(),
@@ -125,7 +125,7 @@ int main() {
         {{Line::from_points(Point(30, 30, -10), Point(30, 30, 60)), r}, {Line::from_points(Point(70, 70, 60), Point(70, 70, 20)), 4.0}},
         9,
         2,
-        area * 50.0 + M_PI * 16.0 * 30.0,
+        area * 50.0 + Tolerance::PI * 16.0 * 30.0,
         "drill_two"
     );
 

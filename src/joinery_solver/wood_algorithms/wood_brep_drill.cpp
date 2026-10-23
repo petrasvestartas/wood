@@ -1098,7 +1098,7 @@ static bool add_bore(
         d,
         stretch.t1
     );
-    drilling.removed += M_PI * drill.radius * drill.radius * (c1 - c0).magnitude();
+    drilling.removed += Tolerance::PI * drill.radius * drill.radius * (c1 - c0).magnitude();
 
     return true;
 }

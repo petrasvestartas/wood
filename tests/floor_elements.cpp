@@ -195,7 +195,7 @@ double faceted_area(double radius, double chord_tolerance) {
 
     const int n = circle_segments(radius, chord_tolerance);
 
-    return 0.5 * n * radius * radius * std::sin(2.0 * M_PI / n);
+    return 0.5 * n * radius * radius * std::sin(Tolerance::TWO_PI / n);
 }
 
 /// The support under the column: closed, near the exact solid, its joint cutting exactly the head plate pocket and the pins, the glued head blocks and the six inclined faces the column's own features removing their volume, and every dimension through a round trip.
@@ -304,7 +304,7 @@ void check_nested(
             const std::string name = parts == 1 ? connector.name + "_part" : fmt::format("{}_part_{}", connector.name, i);
             check(std::dynamic_pointer_cast<ConnectorPart>(child) && child->name == name, connector.name + " part child " + child->name);
         } else {
-            const double cylinder = M_PI * connector.line_radius * connector.line_radius * connector.drill_lines[i - parts].length();
+            const double cylinder = Tolerance::PI * connector.line_radius * connector.line_radius * connector.drill_lines[i - parts].length();
             check(std::dynamic_pointer_cast<Pin>(child) && child->name == fmt::format("{}_pin_{}", connector.name, i - parts) && std::abs(child->model_geometry_brep().volume() - cylinder) < 1e-2 * cylinder, connector.name + " pin child " + child->name);
         }
     }

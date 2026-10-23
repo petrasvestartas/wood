@@ -880,5 +880,5 @@ std::vector<Point> merge_collinear(const Polyline& polygon) {
 
 /// The chord tolerance that makes a drill of radius a prism of sides sides.
 double sides_tolerance(double radius, int sides) {
-    return 2.0 * radius * std::pow(std::sin(M_PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
+    return 2.0 * radius * std::pow(std::sin(Tolerance::PI / (2.0 * sides)), 2) * (1.0 + 1e-9);
 }
