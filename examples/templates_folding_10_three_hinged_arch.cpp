@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The three-hinged arch of Engel's folded plate structures (p. 227): six segments of a 24 m arch 9 m high, its folds deepest at the
-/// haunches and narrowing to hinges at the feet and the crown.
+/// The three-hinged arch of Engel's folded plate structures (p. 227): an octagonal arch 21.5 m wide and 20.5 m high on point
+/// feet, hinged at the crown.
 int main() {
 
-    FoldedFrame frame(FoldedFrame::arch(24000.0, 9000.0, 6), 4, 2000.0, {300.0, 1800.0, 2400.0, 300.0, 2400.0, 1800.0, 300.0});
+    FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
     const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
     std::cout << frame << std::endl;
-    std::cout << fmt::format("three-hinged arch: {} stations, {} plates\n", frame.frame.point_count(), plates.size());
+    std::cout << fmt::format("three hinged arch: {} plates\n", plates.size());
     frame.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 10 of the folding templates: the three-hinged arch after Engel, Structure Systems, Folded plate structures (p. 227). The arch's inner line has six segments with their corners on a circular arc 24 m wide and 9 m high; at every corner a zigzag of four ridges, plates 2000 across, stands in the plane halving the corner, 300 deep at the feet and the crown, the three hinges, 1800 and 2400 towards the haunches; the phase turning at every corner, every strip folds ridge to ridge into two planar 120 mm triangles: 96 plates. Each step is a group: frame, stations, mesh, folds, plates.
+Step 10 of the folding templates: the three-hinged arch after Engel, Structure Systems, Folded plate structures (p. 227). Five 5 m bays over a 21.5 m span, 20.5 m high at Engel's proportions: from a point foot at the bay's centre the fold line rises to the ankle's level line at 0.29 of the height, the knee bulging out 0.23 of the span, the haunch's valley at 0.59 and its ridge at 0.67, the crown's corners over 0.27 of the span and the hinge at mid-span, where ridge and valley meet in one line along the bays; the diagonals from the crown corners cross at the mid-span bay edges, the big X of Engel's plan: 140 planar plates 120 mm thick. Each step is a group: zigzag, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

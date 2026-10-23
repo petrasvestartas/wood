@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The three-hinged frame of Engel's folded plate structures, ridge folding (p. 226): the portal's roof deepest at its quarter
-/// points and narrowing to a hinge at mid-span.
+/// The three-hinged frame of Engel's folded plate structures, ridge folding (p. 226): the roof peaks over the quarter points of
+/// the span and dips to a hinge at mid-span.
 int main() {
 
-    FoldedFrame frame(FoldedFrame::portal(30000.0, 5000.0, 4), 4, 2000.0, {300.0, 2000.0, 900.0, 2800.0, 300.0, 2800.0, 900.0, 2000.0, 300.0});
+    FoldedFrame frame(FoldedFrame::three_hinged_frame(), 4250.0, 4, 120.0, "three_hinged_frame");
     const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
     std::cout << frame << std::endl;
-    std::cout << fmt::format("three-hinged frame: {} stations, {} plates\n", frame.frame.point_count(), plates.size());
+    std::cout << fmt::format("three hinged frame: {} plates\n", plates.size());
     frame.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 9 of the folding templates: the three-hinged frame with ridge folding after Engel, Structure Systems, Folded plate structures (p. 226). The portal of step 8 with corners at the ceiling's quarter points: the depth 300 at both feet and at mid-span, the three hinges, 2000 at the knees of the columns, 900 at the eaves and 2800 at the roof's quarter points, so the roof rises to two ridges and dips to the hinge between them as in Engel's section; the phase turning at every corner, every strip folds ridge to ridge into two planar 120 mm triangles: 128 plates. Each step is a group: frame, stations, mesh, folds, plates.
+Step 9 of the folding templates: the three-hinged frame with ridge folding after Engel, Structure Systems, Folded plate structures (p. 226). A 30 m portal of four 4.25 m bays on point feet at the bay centres, 6250 to the eaves, the knee bulging out 1900 at half the column; the roof rises from the eaves to its ridge 8250 high over the quarter points of the span and dips to the hinge 6800 high at mid-span over a flat ceiling. The fold line runs foot, eaves corner, knee, quarter-point ridge, mid-span ceiling corner, hinge, so the diagonals from the eaves corners cross at the quarter-point ridge, the star of Engel's plan, and the diamonds of his side elevation stand on the knees: 64 planar plates 120 mm thick. Each step is a group: zigzag, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

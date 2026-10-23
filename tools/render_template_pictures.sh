@@ -25,12 +25,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" --view right --name end templates_folding_4_folded_barrel all
     "${RENDER[@]}" templates_folding_5_counter_fold stations mesh plates
     "${RENDER[@]}" --view top --name plan templates_folding_5_counter_fold folds
+    "${RENDER[@]}" --view right --name end templates_folding_5_counter_fold plates
     "${RENDER[@]}" templates_folding_6_elevated_fold plates
     "${RENDER[@]}" --view top --name plan templates_folding_6_elevated_fold folds
     "${RENDER[@]}" templates_folding_7_conical_fold plates
     "${RENDER[@]}" --view top --name plan templates_folding_7_conical_fold folds
+    "${RENDER[@]}" --view right --name end templates_folding_7_conical_fold plates
     "${RENDER[@]}" templates_folding_8_two_hinged_frame plates
     "${RENDER[@]}" --view front --name section templates_folding_8_two_hinged_frame plates
+    "${RENDER[@]}" --view right --name side templates_folding_8_two_hinged_frame plates
+    "${RENDER[@]}" --view top --name plan templates_folding_8_two_hinged_frame plates
     "${RENDER[@]}" templates_folding_9_three_hinged_frame plates
     "${RENDER[@]}" --view front --name section templates_folding_9_three_hinged_frame plates
     "${RENDER[@]}" templates_folding_10_three_hinged_arch plates
@@ -54,14 +58,19 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_25_one_fold plates
     "${RENDER[@]}" templates_folding_26_three_folds plates
     "${RENDER[@]}" templates_folding_27_counter_centre plates
+    "${RENDER[@]}" --view top --name plan templates_folding_27_counter_centre folds
     "${RENDER[@]}" templates_folding_28_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_29_elevated_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_30_alternate_fold plates
     "${RENDER[@]}" templates_folding_31_deep_centre plates
+    "${RENDER[@]}" --view right --name end templates_folding_31_deep_centre plates
     "${RENDER[@]}" templates_folding_32_deep_centre_valley plates
     "${RENDER[@]}" templates_folding_33_frame_ridge_to_valley plates
+    "${RENDER[@]}" --view top --name plan templates_folding_33_frame_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_34_a_frame plates
+    "${RENDER[@]}" --view front --name section templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
+    "${RENDER[@]}" --view front --name section templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
     "${RENDER[@]}" templates_folding_37_curved_fold lamellas
     "${RENDER[@]}" --view front --name elevation templates_folding_37_curved_fold lamellas

@@ -174,8 +174,9 @@ inline Mesh merged_coplanar(const Mesh& mesh) {
 
 /// One plate per mesh face, mitered at every fold; at a node where three or more plates meet, every corner is cut only as far as it
 /// crosses into another plate's share of the node: for every other plate there, the plane bisecting the two plates' planes through the
-/// node separates them, as the miter plane does two neighbours, and a corner on the wrong side of the deepest such plane is cut by it,
-/// on both outlines, its outer corner kept where only the inner one crosses. Plates on both sides of every bisector cannot meet, and a
+/// node separates them, as the miter plane does two neighbours, and a corner on the wrong side of the deepest such plane is cut by it
+/// moved 1 mm into the plate, on both outlines, so the cut is one planar face with no edge of zero length; a plane that would take
+/// more than half an edge is not used. Plates on both sides of every bisector cannot meet, and a
 /// corner that crosses none keeps its point. Neighbouring coplanar faces are merged into one plate first. A free edge lying in one of
 /// edge_planes is cut by that plane.
 inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes = {}) {
@@ -224,10 +225,24 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
             // the deepest bisector the corner crosses: per other plate at the node the plane through the node halving the two planes,
             // its normal towards this plate's centre
             std::optional<Plane> cut;
-            double deepest = 1e-6;
+            double deepest = 0.01;
+            bool on_edge_plane = false;
 
-            for (size_t q = 0; others.size() > 2 && q < others.size(); q++) {
+            // a corner on an edge plane is cut by that plane, not at its node
+            for (const Plane& plane : edge_planes)
+                on_edge_plane = on_edge_plane || std::abs((outer[i] - plane.origin()).dot(plane.z_axis())) < 0.01;
+
+            for (size_t q = 0; !on_edge_plane && others.size() > 2 && q < others.size(); q++) {
                 if (others[q] == p)
+                    continue;
+
+                // a neighbour across one of the corner's two edges is already separated by their miter plane
+                bool neighbour = false;
+
+                for (const Point& point : std::get<2>(contours[others[q]]))
+                    neighbour = neighbour || key(point) == key(outer[before]) || key(point) == key(outer[after]);
+
+                if (neighbour)
                     continue;
 
                 Vector across = normal - std::get<4>(contours[others[q]]);
@@ -238,11 +253,22 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
                 if ((centres[p] - outer[i]).dot(across) < 0.0)
                     across = across * -1.0;
 
-                const double depth = std::max(-(outer[i] - outer[i]).dot(across), -(inner[i] - outer[i]).dot(across));
+                const double depth = -(inner[i] - outer[i]).dot(across);
+                const Plane candidate = Plane::from_point_normal(outer[i] + across * 1.0, across);
 
-                if (depth > deepest) {
+                // a plane that crosses an edge of either outline beyond its far end would cut away the edge, no corner: skipped
+                bool within = true;
+
+                for (const std::vector<Point>* points : {&outer, &inner})
+                    for (const size_t neighbour : {before, after}) {
+                        const double start = ((*points)[i] - candidate.origin()).dot(candidate.z_axis());
+                        const double end = ((*points)[neighbour] - candidate.origin()).dot(candidate.z_axis());
+                        within = within && start < 0.0 && end > 0.0 && -start < 0.5 * (end - start);
+                    }
+
+                if (depth > deepest && within) {
                     deepest = depth;
-                    cut = Plane::from_point_normal(outer[i], across);
+                    cut = candidate;
                 }
             }
 
@@ -268,7 +294,7 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
 
         // free edges in an edge plane: every inner point under an outer point on the plane, with an outer neighbour on it too, moved
         // onto the plane along its edge to the neighbour off the plane, or square to the free edge where both neighbours are on it; a
-        // corner touching the plane alone, its inner point past it, cut by the plane on the inner outline, its outer point doubled
+        // corner touching the plane alone, its inner point past it, cut on both outlines by the plane moved 1 mm inwards
         for (const Plane& plane : edge_planes) {
             const size_t m = top.size();
             const std::function<double(const Point&)> side = [&](const Point& point) {
@@ -302,8 +328,9 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
                         along = Line::from_points(bottom[k], bottom[k] + normal.cross(top[after] - top[before]));
 
                     const std::optional<Point> point = Intersection::line_plane(along, plane, false);
+                    const bool near = point && (*point - bottom[k]).magnitude() < 10.0 * thickness;
                     top_cut.push_back(top[k]);
-                    bottom_cut.push_back(point.value_or(bottom[k]));
+                    bottom_cut.push_back(near ? *point : bottom[k]);
                     continue;
                 }
 
@@ -313,10 +340,14 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
                     continue;
                 }
 
+                // both outlines cut by the plane moved 1 mm inwards, so the cut is one planar face with no edge of zero length
+                const Plane inwards = Plane::from_point_normal(plane.origin() + plane.z_axis() * (inside > 0.0 ? 1.0 : -1.0), plane.z_axis());
+
                 for (const size_t neighbour : {before, after}) {
-                    const std::optional<Point> point = Intersection::line_plane(Line::from_points(bottom[k], bottom[neighbour]), plane, false);
-                    top_cut.push_back(top[k]);
-                    bottom_cut.push_back(point.value_or(bottom[k]));
+                    const std::optional<Point> outer_point = Intersection::line_plane(Line::from_points(top[k], top[neighbour]), inwards, false);
+                    const std::optional<Point> inner_point = Intersection::line_plane(Line::from_points(bottom[k], bottom[neighbour]), inwards, false);
+                    top_cut.push_back(outer_point.value_or(top[k]));
+                    bottom_cut.push_back(inner_point.value_or(bottom[k]));
                 }
             }
 

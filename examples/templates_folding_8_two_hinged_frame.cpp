@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The two-hinged frame of Engel's folded plate structures, ridge-to-ridge folding (p. 225): a 30 m portal 5 m high,
-/// its folds deepest at the knees of the columns and at mid-span, the phase turning at every corner.
+/// The two-hinged frame of Engel's folded plate structures, ridge-to-ridge folding (p. 225): a 30 m portal of four 4.5 m bays,
+/// its columns bulging out at the knee, its roof folded from the eaves corners to the ridge.
 int main() {
 
     FoldedFrame frame;
     const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
     std::cout << frame << std::endl;
-    std::cout << fmt::format("two-hinged frame: {} stations, {} plates\n", frame.frame.point_count(), plates.size());
+    std::cout << fmt::format("two hinged frame: {} plates\n", plates.size());
     frame.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the folding templates: a linear structure system of folded surfaces after Engel, Structure Systems, Folded plate structures (p. 225), the two-hinged frame with ridge-to-ridge folding. The frame's inner line, the valleys of its folds, is a portal 30 m wide and 5 m high, each column straight with a corner at mid-height and the ceiling straight with a corner at mid-span; at every corner a zigzag of four ridges, plates 2000 across, stands in the plane halving the corner, its ridges offset outwards along the bisector by the depth: 300 at the hinged feet, 2000 at the knees of the columns, 900 at the eaves and 3200 at mid-span, so the columns bulge out and the roof rises to its ridge as in Engel's section. The phase turns at every corner, so every strip warps and folds ridge to ridge into two planar 120 mm triangles: 96 plates. Each step is a group: frame, stations, mesh, folds, plates.
+Step 8 of the folding templates: a linear structure system of folded surfaces after Engel, Structure Systems, Folded plate structures (p. 225), the two-hinged frame with ridge-to-ridge folding, read off the book's plan and both elevations. Half a bay is one fold line from the foot to the crown, zigzagging between the bay's edge, the frame's inner line of valleys, and the bay's centre, the ridges: the foot, hinged along the whole bay, the knee bulging out 2200 at half the 5800 column, the eaves corner, the ridge top 8750 high at mid-span and the ceiling peak 6600 under it; every point makes a planar triangle with the last valley and the last ridge, so a column is a pyramid of plates around its knee, a vertical plate at every bay edge, and the roof folds from the eaves corners up to the ridge top, the ridge running straight from the knee through the frame's inner corner to the top, the diamonds of Engel's side elevation and the hexagons of his plan. Mirrored over mid-span and over the bay's centre and repeated over four 4.5 m bays: 64 planar plates 120 mm thick, flush along both sides. Each step is a group: zigzag, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

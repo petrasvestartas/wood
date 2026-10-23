@@ -1,24 +1,24 @@
 #include "wood_session.h"
-#include "src/templates/folding/counter_fold.h"
+#include "src/templates/folding/conical_fold.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Conical folding, a continuous fold profile with its upper edge cut by sloping planes (Engel, p. 224): one zigzag of five ridges over
-/// an 18 m span, its valleys level, its ridges 600 high at the ends and 1800 at mid-span.
+/// Conical folding, a continuous fold profile with its upper edge cut by sloping planes (Engel, p. 224): four folds over a 14.4 m
+/// span, their valleys level, their ridges 1500 high at mid-span and cut down to 600 at the ends.
 int main() {
 
-    CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 120.0, "conical_fold");
+    ConicalFold fold;
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("conical fold: {} stations, {} plates\n", fold.stations.size(), plates.size());
+    std::cout << fmt::format("conical fold: {} plates\n", plates.size());
     fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 7 of the folding templates: a surface with conical folding after Engel, Structure Systems, Folded plate structures (p. 224), a continuous fold profile with its upper edge cut by sloping planes. One zigzag of five ridges, 1500 across, over an 18 m span, its valleys level, its ridges 600 high at both ends and 1800 at mid-span; a strip between a level valley and a sloping ridge is warped, so it folds along its diagonal into two planar 120 mm triangles, the plates fanning out from the high ridges at mid-span: forty plates. Each step is a group: stations, mesh, folds, plates.
+Step 7 of the folding templates: a surface with conical folding after Engel, Structure Systems, Folded plate structures (p. 224), a continuous fold profile with its upper edge cut by a sloping plane, read off the book's plan and both elevations. Four folds of plates 1500 across, their valleys level over a 14.4 m span and their ridges 1500 high, are cut by two planes sloping from 600 above the valleys at either end up to the ridges at mid-span: below the cut every flank keeps its plane, a pentagon from the valley line to its cut edge, which rises from the end to the ridge point at mid-span and falls again, and above it the cut is a thin triangle per fold and half span, from the flat top of the fold at the end to the ridge point, so the end profiles are trapezoids and the middle a sharp zigzag, the elongated X of every fold in Engel's plan: 16 planar plates 120 mm thick, flush along both sides. Each step is a group: stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

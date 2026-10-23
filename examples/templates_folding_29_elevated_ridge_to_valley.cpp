@@ -7,7 +7,7 @@ using namespace wood_session;
 /// The centre fold elevated over the edge folds, ridge to valley (Engel, p. 223).
 int main() {
 
-    CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_valley, 120.0, "elevated_ridge_to_valley");
+    CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_valley, 120.0, "elevated_ridge_to_valley");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("elevated ridge to valley: {} plates\n", plates.size());
@@ -17,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 29 of the folding templates: counter-running folding with the centre fold elevated over the edge folds, identical depth, ridge-to-valley folding, after Engel, Structure Systems, Folded plate structures (p. 223). The stations of step 6, every warped strip folded along its low diagonal: 40 planar plates 120 mm thick. Each step is a group: stations, mesh, folds, plates.
+Step 29 of the folding templates: the centre fold elevated over the edge folds with ridge-to-valley folding after Engel, Structure Systems, Folded plate structures (p. 223): the stations of step 6, every warped strip folded along the diagonal through its low corners, from the ends' odd fold lines, their valleys, to the centre's even ones, so the diagonals cross at the centre on the even lines and the centre station creases at every fold, the vertical line of Engel's plan: 32 planar plates 120 mm thick, flush along both sides. Each step is a group: stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

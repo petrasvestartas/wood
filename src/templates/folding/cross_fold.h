@@ -113,10 +113,19 @@ inline CrossFold::CrossFold(
     add_mesh(_mesh, add_group("mesh"));
 
     // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other
+    // the corners are cut back, by just that spread, so they do not pass through each other; the edges on the plan's sides cut flush
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness))
+    const double half_x = 0.5 * size * static_cast<double>(columns);
+    const double half_y = 0.5 * size * static_cast<double>(rows);
+    const std::vector<Plane> sides = {
+        Plane::from_point_normal(Point(-half_x, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
+        Plane::from_point_normal(Point(half_x, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
+        Plane::from_point_normal(Point(0.0, -half_y, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(Point(0.0, half_y, 0.0), Vector(0.0, 1.0, 0.0)),
+    };
+
+    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

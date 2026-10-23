@@ -7,10 +7,11 @@ using namespace session_cpp;
 using namespace wood_session;
 
 /// A folded plate whose profile changes along the span, after Engel, Structure Systems, Folded plate structures (pp. 222-224):
-/// fold profiles at stations along x, counter-running (the ridges of one where the next has its valleys), raised or deepened towards
+/// fold profiles at stations along x, counter-running (the ridges of one where the next has its valleys), elevated or deepened in
 /// the middle, their points joined station to station by straight fold lines. A strip between two fold lines is then warped, so it
 /// folds along one of its diagonals into two planar triangles: through its high corners (ridge-to-ridge folding), through its low
-/// corners (ridge-to-valley folding) or the one and the other strip by strip (alternate folding). A strip still planar stays one plate.
+/// corners (ridge-to-valley folding) or fold by fold the one and the other (alternate folding). A strip still planar stays one plate,
+/// and two triangles that lie in one plane, as either side of the straight fold lines of the elevated centre, are one plate too.
 /// Every face is planar, so every plate is, whatever its thickness.
 ///
 /// Fields: the stations, the folding and the thickness; the stations, the fold lines, the mesh and the plates are in the session.
@@ -22,7 +23,7 @@ public:
 
     /// The fold through stations as the session named name.
     explicit CounterFold(
-        const std::vector<Polyline>& stations = counter_running(5, 1500.0, 1500.0, 18000.0),
+        const std::vector<Polyline>& stations = counter_running(4, 1500.0, 1500.0, 13500.0),
         Folding folding = Folding::ridge_to_ridge,
         double thickness = 120.0,
         const std::string& name = "counter_fold"
@@ -44,17 +45,19 @@ public:
     /// Counter-running folding of the same depth and elevation (p. 222): the zigzag at the start, its counter profile at the end.
     static std::vector<Polyline> counter_running(size_t ridges, double fold_width, double depth, double span);
 
-    /// The counter profile in the middle (pp. 222, 223): the zigzag at both ends, its counter profile at mid-span rise higher and
-    /// middle_depth deep; rise 0 and middle_depth depth is the counter profile in centre, rise above 0 the centre fold elevated.
-    static std::vector<Polyline> counter_centre(size_t ridges, double fold_width, double depth, double span, double rise, double middle_depth);
+    /// The counter profile in the centre (p. 222): the zigzag at both ends, its counter profile at mid-span, the same depth and
+    /// elevation, so every fold line rises or falls by the depth to the centre; folded ridge to valley the diagonals run from the
+    /// edges' valleys to the centre's, where they cross in the stars of Engel's plan.
+    static std::vector<Polyline> counter_centre(size_t ridges, double fold_width, double depth, double span);
 
-    /// Conical folding (p. 224): one zigzag throughout, its valleys level, its ridges cut by sloping planes, depth at both ends and
-    /// middle_depth at mid-span.
-    static std::vector<Polyline> conical(size_t ridges, double fold_width, double depth, double span, double middle_depth);
+    /// The centre fold elevated over the edge folds (pp. 223, 224): the zigzag at both ends starting on a ridge, and at mid-span its
+    /// counter profile lifted by the depth, so its valleys stand level with the edges' ridges and the even fold lines run straight
+    /// through, while the odd ones rise from the edges' valleys to the centre's ridges middle_depth higher: the same depth as the
+    /// edges on p. 223, a larger one on p. 224.
+    static std::vector<Polyline> elevated_centre(size_t ridges, double fold_width, double depth, double span, double middle_depth);
 
 private:
     Mesh _mesh;
-
 };
 
 inline CounterFold::CounterFold(
@@ -74,7 +77,8 @@ inline CounterFold::CounterFold(
     for (const Polyline& station : stations)
         add_polyline(station, profiles);
 
-    // mesh: every strip one planar quad or two triangles on the folding's diagonal, a point's height its z
+    // mesh: every strip one planar quad or two triangles on the folding's diagonal, a point's height its z; two faces in one plane
+    // joined, so a fold line the folding leaves straight is no fold
     std::vector<std::vector<double>> heights;
 
     for (const Polyline& station : stations) {
@@ -84,7 +88,7 @@ inline CounterFold::CounterFold(
             heights.back().push_back(station[i][2]);
     }
 
-    _mesh = fold_strips(stations, heights, folding);
+    _mesh = merge_coplanar(fold_strips(stations, heights, folding));
     add_mesh(_mesh, add_group("mesh"));
 
     // folds: every edge of the mesh, the fold lines between stations and the diagonals
@@ -133,18 +137,18 @@ inline std::vector<Polyline> CounterFold::counter_running(size_t ridges, double 
     return {zigzag(0.0, ridges, fold_width, depth, 0.0, false), zigzag(span, ridges, fold_width, depth, 0.0, true)};
 }
 
-inline std::vector<Polyline> CounterFold::counter_centre(size_t ridges, double fold_width, double depth, double span, double rise, double middle_depth) {
+inline std::vector<Polyline> CounterFold::counter_centre(size_t ridges, double fold_width, double depth, double span) {
     return {
         zigzag(0.0, ridges, fold_width, depth, 0.0, false),
-        zigzag(0.5 * span, ridges, fold_width, middle_depth, rise, true),
+        zigzag(0.5 * span, ridges, fold_width, depth, 0.0, true),
         zigzag(span, ridges, fold_width, depth, 0.0, false),
     };
 }
 
-inline std::vector<Polyline> CounterFold::conical(size_t ridges, double fold_width, double depth, double span, double middle_depth) {
+inline std::vector<Polyline> CounterFold::elevated_centre(size_t ridges, double fold_width, double depth, double span, double middle_depth) {
     return {
-        zigzag(0.0, ridges, fold_width, depth, 0.0, false),
-        zigzag(0.5 * span, ridges, fold_width, middle_depth, 0.0, false),
-        zigzag(span, ridges, fold_width, depth, 0.0, false),
+        zigzag(0.0, ridges, fold_width, depth, 0.0, true),
+        zigzag(0.5 * span, ridges, fold_width, middle_depth, depth, false),
+        zigzag(span, ridges, fold_width, depth, 0.0, true),
     };
 }

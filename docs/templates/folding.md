@@ -9,7 +9,8 @@ The topology is the same in every system: plates one after another, each meeting
 | pages | Engel | template |
 | --- | --- | --- |
 | 219-221 | singly folded plate: threefold action, advantages over a rib slab, the number of folds, stiffening of the profile and of the free edges | [`PrismaticFold`](#prismatic_fold) |
-| 222-224 | surfaces with counter-running folding and with conical folding | [`CounterFold`](#counter_fold) |
+| 222-224 | surfaces with counter-running folding: the counter profile at the end or in the centre, the centre elevated, the elevated centre deeper | [`CounterFold`](#counter_fold) |
+| 224 | conical folding: a continuous fold profile with its upper edge cut by sloping planes | [`ConicalFold`](#conical_fold) |
 | 225-227 | linear structure systems of folded surfaces: two- and three-hinged frames, arches | [`FoldedFrame`](#folded_frame) |
 | 228, 231-233 | interpenetrating folded surfaces over a polygon plan, the pyramid and the truncated pyramid | [`PolygonFold`](#polygon_fold) |
 | 229-230 | cross-folded surfaces over a square plan, subdivided from the corners, and their composition | [`CrossFold`](#cross_fold) |
@@ -137,28 +138,27 @@ PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0,
 
 </details>
 
-## Counter-running and conical folding {#counter_fold}
+## Counter-running folding {#counter_fold}
 
-Fold profiles at stations along the span, joined station to station by straight fold lines (`folding/counter_fold.h`, examples `templates_folding_5_counter_fold`, `templates_folding_6_elevated_fold` and `templates_folding_7_conical_fold`). Engel (pp. 222-224) changes the profile along the span: counter-running, the ridges of one station standing where the next has its valleys; raised towards the middle; deeper towards the middle. A strip between two fold lines then has four corners that are not in one plane, a warped strip, so it cannot be one plate: it folds along one of its diagonals into two triangles, and a triangle is always planar. Which diagonal folds is the difference between Engel's ridge-to-ridge folding (First-zu-First), through the strip's two high corners, so the ridges run diagonally from the ridges of one station to those of the next, and ridge-to-valley folding (First-zu-Kehle), through its two low corners, a valley; alternate folding (Wechselfaltung) takes the one and the other strip by strip. A strip still planar, two stations of the same profile, stays one quad. Measured on all three systems with all three foldings: 300 plates, every one 120.00 thick, its outlines in their planes within 0.00001 mm and its faces parallel.
+Fold profiles at stations along the span, joined station to station by straight fold lines (`folding/counter_fold.h`, examples `templates_folding_5_counter_fold`, `templates_folding_6_elevated_fold` and the variants of pp. 222-224 below). Engel (pp. 222-224) changes the profile along the span: counter-running, the ridges of one station standing where the next has its valleys; the counter profile in the centre; the centre elevated; the elevated centre deeper. A strip between two fold lines then has four corners that are not in one plane, a warped strip, so it cannot be one plate: it folds along one of its diagonals into two triangles, and a triangle is always planar. Which diagonal folds is the difference between Engel's ridge-to-ridge folding (First-zu-First), through the strip's two high corners, so a ridge runs diagonally from the ridge of one station to that of the next, and ridge-to-valley folding (First-zu-Kehle), through its two low corners, a valley; alternate folding (Wechselfaltung) takes the one and the other fold by fold. A strip still planar stays one quad, and two triangles that lie in one plane are joined into one plate (`merge_coplanar`, `fold_strips.h`), so a fold line the folding leaves straight, as the even lines of the elevated centre, is no fold. Every system was read off the book's plan and both elevations: the pattern of diagonals in plan, where they cross and which are ridges, the silhouette along and across the span, the depth at the ends and the centre.
 
 ![counter-running fold](templates/templates_folding_5_counter_fold_plates.webp)
 
 ```cpp
 CounterFold fold(
-    CounterFold::counter_running(5, 1500.0, 1500.0, 18000.0),   // five ridges, 1500 across and deep, over 18 m
-    Folding::ridge_to_ridge,                      // the diagonal every warped strip folds along
+    CounterFold::counter_running(4, 1500.0, 1500.0, 13500.0),   // four ridges, 1500 across and deep, over 13.5 m
+    Folding::ridge_to_ridge,                                   // the diagonal every warped strip folds along
     120.0                                                      // thickness
 );
 ```
 
-| Engel | stations | `CounterFold::` |
-| --- | --- | --- |
-| counter-running folding, same depth of the profiles and same elevation above ground (p. 222) | the zigzag at the start, its counter profile at the end | `counter_running(ridges, fold_width, depth, span)` |
-| counter profile in the centre (p. 222) | the zigzag at both ends, its counter profile at mid-span | `counter_centre(ridges, fold_width, depth, span, 0.0, depth)` |
-| centre fold elevated over the edge folds, identical depth (p. 223) | the counter profile at mid-span raised | `counter_centre(ridges, fold_width, depth, span, rise, depth)` |
-| elevated centre profile deeper than the edge profiles (p. 224) | the counter profile at mid-span raised and deeper | `counter_centre(ridges, fold_width, depth, span, rise, middle_depth)` |
-| conical folding: a continuous profile, its upper edge cut by sloping planes (p. 224) | one zigzag throughout, valleys level, the ridges higher at mid-span | `conical(ridges, fold_width, depth, span, middle_depth)` |
-| ridge-to-ridge, ridge-to-valley, alternate folding (pp. 222, 223) | the diagonal of every warped strip | `Folding::ridge_to_ridge`, `ridge_to_valley`, `alternate` |
+| Engel | stations | `CounterFold::` | example |
+| --- | --- | --- | --- |
+| counter-running folding, same depth of the profiles and same elevation above ground, ridge to ridge (p. 222) | the zigzag at the start, its counter profile at the end | `counter_running(ridges, fold_width, depth, span)` | `templates_folding_5_counter_fold` |
+| the same, ridge to valley (p. 222) | the same, `Folding::ridge_to_valley` | `counter_running(...)` | `templates_folding_28_ridge_to_valley` |
+| counter profile in the centre, ridge to valley (p. 222) | the zigzag at both ends, its counter profile at mid-span | `counter_centre(ridges, fold_width, depth, span)` | `templates_folding_27_counter_centre` |
+| centre fold elevated over the edge folds, identical depth, ridge to ridge, ridge to valley, alternate (p. 223) | the zigzag at both ends starting on a ridge, its counter profile at mid-span lifted by the depth | `elevated_centre(ridges, fold_width, depth, span, depth)` | `templates_folding_6_elevated_fold`, `29_elevated_ridge_to_valley`, `30_alternate_fold` |
+| elevated centre profile deeper than the edge profiles, ridge to ridge, ridge to valley (p. 224) | the same, the centre deeper | `elevated_centre(ridges, fold_width, depth, span, middle_depth)` | `templates_folding_31_deep_centre`, `32_deep_centre_valley` |
 
 ### Stations
 
@@ -173,13 +173,13 @@ for (size_t i = 0; i <= 2 * ridges; i++)
 
 ### Mesh
 
-Per strip between two stations and two fold lines: one quad when its fourth corner lies on the plane of the other three, else two triangles on the folding's diagonal, all facing in.
+Per strip between two stations and two fold lines: one quad when its fourth corner lies on the plane of the other three, else two triangles on the folding's diagonal, all facing in. Alternate folding turns fold by fold, a fold being the two strips about an even fold line, the edge fold first ridge to valley.
 
 ![mesh](templates/templates_folding_5_counter_fold_mesh.webp)
 
 ```cpp
-const bool high_ac = points[a][2] + points[c][2] > points[b][2] + points[d][2];
-const bool ridge = folding == Folding::ridge_to_ridge || (folding == Folding::alternate && i % 2 == 0);
+const bool high_ac = height[a] + height[c] > height[b] + height[d];
+const bool ridge = folding == Folding::ridge_to_ridge || (folding == Folding::alternate && ((i + 1) / 2) % 2 == 1);
 
 if (high_ac == ridge) {
     faces.push_back({a, b, c});
@@ -192,39 +192,49 @@ if (high_ac == ridge) {
 
 ### Folds
 
-Every edge of the mesh: the fold lines between the stations and the diagonals. From above, as Engel draws the plan, the ridges zigzag from one end to the other:
+Every edge of the mesh: the fold lines between the stations and the diagonals. From above, as Engel draws the plan, the ridges zigzag from one end to the other, meeting at the ends:
 
 ![plan](templates/templates_folding_5_counter_fold_plan.webp)
 
 ### Plates
 
-One plate per triangle, mitered at every fold, as for the singly folded plate.
+One plate per face, mitered at every fold, as for the singly folded plate; from the end the strips cross in Engel's X's:
 
-![plates](templates/templates_folding_5_counter_fold_plates.webp)
+![end](templates/templates_folding_5_counter_fold_end.webp)
+
+### Counter profile in the centre
+
+The zigzag at both ends and its counter profile at mid-span, the same depth and elevation (p. 222), folded ridge to valley: the diagonals run from the ends' valleys to the centre's and cross there in the stars of Engel's plan, one at every second fold line.
+
+![counter centre](templates/templates_folding_27_counter_centre_plates.webp)
+
+![counter centre plan](templates/templates_folding_27_counter_centre_plan.webp)
 
 ### Elevated centre
 
-The centre fold elevated over the edge folds (p. 223): the zigzag at both ends, its counter profile at mid-span 3000 higher, ridge to ridge.
+The centre fold elevated over the edge folds (p. 223): the zigzag at both ends starts on a ridge, and the counter profile at mid-span is lifted by the depth, so its valleys stand level with the ends' ridges and the even fold lines run straight through the span, the level line of Engel's front elevation, while the odd ones rise from the ends' valleys to the centre's ridges, twice the depth high. Ridge to ridge, the diagonals run from the ends' even lines to the centre's odd ones; either side of a straight line the two triangles are one plane and one plate, so the centre station creases only at the odd lines, as the plan draws it.
 
 ![elevated fold](templates/templates_folding_6_elevated_fold_plates.webp)
 
 ![elevated fold plan](templates/templates_folding_6_elevated_fold_plan.webp)
 
 ```cpp
-CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_ridge, 120.0, "elevated_fold");
+CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_ridge, 120.0, "elevated_fold");
 ```
 
-### Conical folding
+Ridge to valley the diagonals go the other way, from the ends' valleys to the centre's even lines, and the centre creases at every fold; alternate folding takes the two by turns, so half the straight lines and half the centre's creases vanish into quads:
 
-Sloped folding (p. 224, Abgeschrägte Faltung): one zigzag throughout, its valleys level and its ridges 600 high at both ends and 1800 at mid-span. A strip between a level valley and a sloping ridge is warped, so the plates fan out from the high ridges at mid-span, crossing in plan as Engel draws them.
+![elevated ridge to valley](templates/templates_folding_29_elevated_ridge_to_valley_plates.webp)
 
-![conical fold](templates/templates_folding_7_conical_fold_plates.webp)
+![alternate fold](templates/templates_folding_30_alternate_fold_plates.webp)
 
-![conical fold plan](templates/templates_folding_7_conical_fold_plan.webp)
+### Deeper centre
 
-```cpp
-CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 120.0, "conical_fold");
-```
+The elevated centre profile deeper than the edge profiles (p. 224): the same construction with the ends 1000 deep and the centre 1800, so the odd fold lines rise 2800 and the end elevation shows Engel's tall diamonds, each with the odd fold line through it.
+
+![deep centre](templates/templates_folding_31_deep_centre_plates.webp)
+
+![deep centre end](templates/templates_folding_31_deep_centre_end.webp)
 
 <details><summary>Example code: templates_folding_5_counter_fold.cpp</summary>
 
@@ -238,6 +248,37 @@ CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Foldin
 
 </details>
 
+## Conical folding {#conical_fold}
+
+A continuous fold profile with its upper edge cut by sloping planes (p. 224, Abgeschrägte Faltung; `folding/conical_fold.h`, example `templates_folding_7_conical_fold`). The folds run the whole span with level valleys and ridges `depth` high, and two planes sloping up from `end_depth` above the valleys at either end to the ridges at mid-span cut the top off. Below the cut every flank keeps its plane: a pentagon from the valley line up to its cut edge, which rises from the end to the ridge point at mid-span and falls again. Above it the cut is a thin triangle per fold and half span in the sloping plane, from the flat top of the fold at the end to the ridge point. So the end profiles are trapezoids and the middle a sharp zigzag, and in plan every fold is the elongated X Engel draws, the cut edges of its two flanks crossing at the ridge point.
+
+![conical fold](templates/templates_folding_7_conical_fold_plates.webp)
+
+![conical fold plan](templates/templates_folding_7_conical_fold_plan.webp)
+
+![conical fold end](templates/templates_folding_7_conical_fold_end.webp)
+
+```cpp
+ConicalFold fold(
+    4,         // folds
+    1500.0,    // every flank across in plan
+    1500.0,    // the ridges over the valleys at mid-span
+    600.0,     // the cut over the valleys at either end
+    14400.0,   // span
+    120.0      // thickness
+);
+```
+
+```cpp
+// the flank pentagons, from the valley line up to the cut edge through the ridge point
+face({Point(0.0, valley, 0.0), Point(0.0, valley + run, end_depth), peak, Point(span, valley + run, end_depth), Point(span, valley, 0.0)});
+face({Point(0.0, next, 0.0), Point(0.0, next - run, end_depth), peak, Point(span, next - run, end_depth), Point(span, next, 0.0)});
+
+// the cut triangles in the sloping planes, from the flat end of the fold to the ridge point
+face({Point(0.0, valley + run, end_depth), Point(0.0, next - run, end_depth), peak});
+face({Point(span, valley + run, end_depth), Point(span, next - run, end_depth), peak});
+```
+
 <details><summary>Example code: templates_folding_7_conical_fold.cpp</summary>
 
 \include{lineno} templates_folding_7_conical_fold.cpp
@@ -246,50 +287,83 @@ CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Foldin
 
 ## Folded frames and arches {#folded_frame}
 
-A frame or an arch whose cross section is a fold profile (`folding/folded_frame.h`, examples `templates_folding_8_two_hinged_frame`, `templates_folding_9_three_hinged_frame`, `templates_folding_10_three_hinged_arch`). Engel (pp. 225-227): the folded surface becomes a linear structure system, its fold depth following the moments, small at a hinge, deep at a knee. The frame line is the inner line, the valleys. At every corner the zigzag stands in the plane halving the corner, its ridges offset outwards along the bisector by the depth over the cosine of the half corner, so a ridge between two corners of one phase is parallel to the frame line and its strips planar. The phase turns at every corner, so the strips warp and fold into triangles on `fold_strips`, shared with `CounterFold`: the diamonds of Engel's elevations. Measured on both frames with all three foldings: 598 plates, every one 120.00 thick, planar within 0.00001 mm.
+A frame or an arch of triangular plates, bay by bay along y (`folding/folded_frame.h`, examples `templates_folding_8_two_hinged_frame`, `templates_folding_9_three_hinged_frame`, `templates_folding_10_three_hinged_arch` and the variants below). Engel (pp. 225-227): the folded surface becomes a linear structure system, its fold depth following the moments, small at a hinge, deep at a knee. Every system was read off the book's front elevation (the frame's outline: feet, knees, eaves, ridge, hinges), its side elevation (the diamonds and kites of the folds, where the depth is large and where it vanishes) and its plan (which diagonals run across, and where they cross). Half a bay is one fold line, a `zigzag` from the foot to the crown at mid-span between two rails: the bay's edge y 0, where the valleys lie, the frame's inner line, and the bay's centre y bay / 2, where the ridges lie, bulging out at the knees. Every point of the zigzag makes a planar triangle with the last point on each rail, so the plates are exactly the triangles of Engel's plans. The crown is the zigzag's last two points at mid-span; the other half of the span mirrors the zigzag, the other half of the bay mirrors the rails, and the bays repeat along y. All six systems together: 460 plates, every one a planar triangle 120 mm thick, cut back at the nodes by `node_cut_plates` and flush along both sides.
 
 ![two-hinged frame](templates/templates_folding_8_two_hinged_frame_plates.webp)
 
 ```cpp
 FoldedFrame frame(
-    FoldedFrame::portal(30000.0, 5000.0, 2),                      // inner line: columns with a knee, the ceiling with a corner at mid-span
-    4,                                                            // ridges
-    2000.0,                                                       // fold width
-    {300.0, 2000.0, 900.0, 3200.0, 900.0, 2000.0, 300.0},         // depth per corner: hinges 300, knees 2000, ridge 3200
-    true,                                                         // phase turning at every corner
-    Folding::ridge_to_ridge,
-    120.0                                                         // thickness
+    FoldedFrame::two_hinged_frame(),   // the fold line of half a bay: foot, knee, eaves corner, ridge top, ceiling peak
+    4500.0,                            // bay
+    4,                                 // bays
+    120.0                              // thickness
 );
 ```
 
-| Engel | frame line | depths |
-| --- | --- | --- |
-| two-hinged frame, ridge-to-ridge folding (p. 225) | `portal(30000, 5000, 2)` | 300 at the feet, deepest at the knees and the ridge |
-| two-hinged frame, ridge-to-valley folding (p. 225) | the same | the same, `Folding::ridge_to_valley` |
-| three-hinged frame, ridge folding (p. 226) | `portal(30000, 5000, 4)` | 300 at the feet and at mid-span, the three hinges |
-| three-hinged arch (p. 227) | `arch(24000, 9000, 6)` | 300 at the feet and the crown |
+| Engel | `FoldedFrame::` | the fold line | example |
+| --- | --- | --- | --- |
+| two-hinged frame, ridge-to-ridge folding (p. 225) | `two_hinged_frame()` | foot (a line along the bay edge), knee bulging out, eaves corner, ridge top at mid-span, ceiling peak under it: a vertical plate at every bay edge, the roof folded from the eaves corners to the ridge | `templates_folding_8_two_hinged_frame` |
+| two-hinged frame, ridge-to-valley folding (p. 225) | `two_hinged_frame(..., Folding::ridge_to_valley)` | point foot, eaves corner, knee, ceiling peak, ridge top: two plates per column on a point, the roof a fan from the knee to the mid-span corners | `templates_folding_33_frame_ridge_to_valley` |
+| three-hinged frame, ridge folding (p. 226) | `three_hinged_frame()` | point foot, eaves corner, knee, ridge over the quarter point, mid-span ceiling corner, hinge: the diagonals from the eaves cross at the quarter-point ridge | `templates_folding_9_three_hinged_frame` |
+| two-hinged A-frame, ridge-to-valley folding (p. 226) | `a_frame()` | foot at the bay edge, knee, waist at the bay centre, apex, ridge: the diagonals from the feet cross at the waist, a star of six plates | `templates_folding_34_a_frame` |
+| arch with a top hinge (p. 227) | `top_hinged_arch()` | foot, trunk valley, knee, haunch valley, ridge peak over 0.36 of the span, its valley, the hinge at mid-span | `templates_folding_35_pointed_arch` |
+| three-hinged arch (p. 227) | `three_hinged_arch()` | foot, ankle, knee, haunch valley, haunch ridge, crown corners over 0.27 of the span, the hinge at mid-span | `templates_folding_10_three_hinged_arch` |
 
-The section shows the inner line straight and the folds bulging out at the knees and rising to the ridge, as Engel draws it:
+The section shows Engel's outline: the columns bulging out at the knee, the roof rising to its ridge over the flat ceiling peak:
 
 ![two-hinged frame section](templates/templates_folding_8_two_hinged_frame_section.webp)
 
-```cpp
-const double miter = 1.0 / bisector.dot(after);
-const bool turned = counter && k % 2 == 1;
+From the side the folds are his diamonds, deepest at the knees, and from above his plan, the ridge running straight from the knee through the eaves corner to the ridge top:
 
-for (size_t i = 0; i <= 2 * ridges; i++) {
-    const double height = (i % 2 == 1) != turned ? depths[k] : 0.0;
-    points.push_back(frame[k] + y * (fold_width * static_cast<double>(i)) + bisector * (height * miter));
+![two-hinged frame side](templates/templates_folding_8_two_hinged_frame_side.webp)
+
+![two-hinged frame plan](templates/templates_folding_8_two_hinged_frame_plan.webp)
+
+```cpp
+for (size_t i = 0; i < count; i++) {
+    const Point& point = zigzag[i];
+
+    if (valley && ridge)
+        triangles.push_back({*valley, *ridge, point});
+
+    if (std::abs(point[1] - 0.5 * bay) < std::abs(point[1]))
+        ridge = point;
+    else
+        valley = point;
 }
 ```
 
+### Ridge to valley
+
+The same portal with the other fold line (p. 225, bottom): the columns stand on points at the bay centres and the roof folds from the knee straight to the ceiling peak, the valley, so the lines of the plan run from the knee to the mid-span corners.
+
+![frame ridge to valley](templates/templates_folding_33_frame_ridge_to_valley_plates.webp)
+
+![frame ridge to valley plan](templates/templates_folding_33_frame_ridge_to_valley_plan.webp)
+
 ### Three-hinged frame
+
+The roof peaks over the quarter points of the span and dips to the hinge at mid-span over a flat ceiling (p. 226, top); in plan the diagonals from the eaves corners cross at the quarter-point ridge, the star of Engel's drawing.
 
 ![three-hinged frame](templates/templates_folding_9_three_hinged_frame_plates.webp)
 
 ![three-hinged frame section](templates/templates_folding_9_three_hinged_frame_section.webp)
 
-### Three-hinged arch
+### A-frame
+
+Two legs from feet at the bay edges to the apex, their diagonals crossing at the waist, the star of six plates of Engel's plan (p. 226, bottom); the kites of his side elevation hang from the ridge.
+
+![a frame](templates/templates_folding_34_a_frame_plates.webp)
+
+![a frame section](templates/templates_folding_34_a_frame_section.webp)
+
+### Arches
+
+The arch with a top hinge (p. 227, top): nearly vertical legs, a narrow trunk, the ridge peaking either side of the hinge at mid-span. The three-hinged arch (p. 227, bottom): an octagonal arch on point feet, its ankles' level line, the crown's ridge and valley meeting in one line along the bays at the hinge, the big X of Engel's plan at mid-span.
+
+![pointed arch](templates/templates_folding_35_pointed_arch_plates.webp)
+
+![pointed arch section](templates/templates_folding_35_pointed_arch_section.webp)
 
 ![three-hinged arch](templates/templates_folding_10_three_hinged_arch_plates.webp)
 
@@ -486,7 +560,7 @@ The remaining systems of Engel's pages, each an example of the templates above w
 | --- | --- | --- |
 | 220 | one fold: the edge stresses at the common fold keep their tendency | `templates_folding_25_one_fold` |
 | 220 | three folds: the side folds compensate each other through shear | `templates_folding_26_three_folds` |
-| 222 | counter profile in the centre, ridge to ridge | `templates_folding_27_counter_centre` |
+| 222 | counter profile in the centre, ridge to valley | `templates_folding_27_counter_centre` |
 | 222 | counter-running folding, ridge to valley | `templates_folding_28_ridge_to_valley` |
 | 223 | centre fold elevated, ridge to valley | `templates_folding_29_elevated_ridge_to_valley` |
 | 223 | centre fold elevated, alternate folding | `templates_folding_30_alternate_fold` |
@@ -494,7 +568,7 @@ The remaining systems of Engel's pages, each an example of the templates above w
 | 224 | elevated centre profile deeper, ridge to valley | `templates_folding_32_deep_centre_valley` |
 | 225 | two-hinged frame, ridge to valley | `templates_folding_33_frame_ridge_to_valley` |
 | 226 | two-hinged A-frame, ridge to valley | `templates_folding_34_a_frame` |
-| 227 | arch with a top hinge | `templates_folding_35_pointed_arch` |
+| 227 | arch with a top hinge, the ridge peaking either side of it | `templates_folding_35_pointed_arch` |
 | 233 | variation of the truncated pyramid: the side trapezoids folded from their raised outer midpoints (`PolygonFold` `edge_lift`) | `templates_folding_36_folded_truncated_pyramid` |
 
 ![25_one_fold](templates/templates_folding_25_one_fold_plates.webp)

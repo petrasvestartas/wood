@@ -4,20 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The arch with a top hinge (Engel, p. 227): a tall arch 12 m wide and 11 m high, narrowing to hinges at the feet and the crown.
+/// The arch with a top hinge (Engel, p. 227): nearly vertical legs 26 m high, the ridge peaking either side of the hinge at
+/// mid-span.
 int main() {
 
-    FoldedFrame fold(FoldedFrame::arch(12000.0, 11000.0, 6), 4, 2000.0, {300.0, 1500.0, 2000.0, 300.0, 2000.0, 1500.0, 300.0}, true, Folding::ridge_to_ridge, 120.0, "pointed_arch");
-    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
-    std::cout << fold << std::endl;
+    FoldedFrame frame(FoldedFrame::top_hinged_arch(), 4950.0, 4, 120.0, "pointed_arch");
+    const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
+    std::cout << frame << std::endl;
     std::cout << fmt::format("pointed arch: {} plates\n", plates.size());
-    fold.pb_dump(pb_path("live"));
+    frame.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 35 of the folding templates: the arch with a hinge at the crown after Engel, Structure Systems, Folded plate structures (p. 227). The arch's inner line has six segments on a circular arc 12 m wide and 11 m high, steep like Engel's; the fold 300 deep at the feet and at the crown hinge, 1500 and 2000 towards the haunches, the phase turning at every corner, every warped strip folded ridge to ridge: 96 planar plates 120 mm thick. Each step is a group: frame, stations, mesh, folds, plates.
+Step 35 of the folding templates: the arch with a hinge at the crown after Engel, Structure Systems, Folded plate structures (p. 227). Four 4.95 m bays over a 17.9 m span, 26.1 m high at Engel's proportions: from a point foot at the bay's centre a narrow trunk rises to its valley at a third of the height and its knee at 0.57, the haunch's valley at 0.885 of the height a fifth of the span in, the ridge peaks over 0.36 of the span with its valley straight below it, and dips to the hinge at mid-span, 0.93 of the height, where the two halves meet on the level valleys: 96 planar plates 120 mm thick. Each step is a group: zigzag, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
