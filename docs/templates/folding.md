@@ -11,6 +11,7 @@ The topology is the same in every system: plates one after another, each meeting
 | 219-221 | singly folded plate: threefold action, advantages over a rib slab, the number of folds, stiffening of the profile and of the free edges | [`PrismaticFold`](#prismatic_fold) |
 | 222-224 | surfaces with counter-running folding and with conical folding | [`CounterFold`](#counter_fold) |
 | 225-227 | linear structure systems of folded surfaces: two- and three-hinged frames, arches | [`FoldedFrame`](#folded_frame) |
+| 228, 231-233 | interpenetrating folded surfaces over a polygon plan, the pyramid and the truncated pyramid | [`PolygonFold`](#polygon_fold) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -24,7 +25,7 @@ A fold profile across y carried straight along x over the span, one plate per fo
 PrismaticFold fold(
     PrismaticFold::zigzag(4, 1500.0, 1200.0),   // four ridges, plates 1500 across in plan, 1200 deep
     12000.0,                                   // span
-    240.0,                                     // thickness
+    480.0,                                     // thickness
     3,                                         // diaphragms: both ends and mid-span
     400.0                                      // edge flange
 );
@@ -34,8 +35,8 @@ PrismaticFold fold(
 | --- | --- | --- |
 | profile | a zigzag of ridges and valleys, the supports under the valleys (p. 219) | four ridges, eight plates 1500 across in plan and 1200 deep, 12 m wide |
 | span | the folds span between end supports; the depth is the construction height | 12 m, the depth a tenth of the span |
-| plates | each fold plane a slab, a beam and a truss member | 240 mm, mitered at every fold |
-| stiffening of the profile | the fold profile deforms: the lower edges spread, the plates buckle, the fold angles change; transverse diaphragms below or above the folds, or rigid frames below them (p. 221) | a diaphragm under the folds at both ends and at mid-span, 240 mm, one plate across the profile between the flanges, down to their bottom |
+| plates | each fold plane a slab, a beam and a truss member | 480 mm, mitered at every fold |
+| stiffening of the profile | the fold profile deforms: the lower edges spread, the plates buckle, the fold angles change; transverse diaphragms below or above the folds, or rigid frames below them (p. 221) | a diaphragm under the folds at both ends and at mid-span, 480 mm, one plate across the profile between the flanges, down to their bottom |
 | stiffening of the free edges | the outer plates buckle under components normal to their plane; a vertical edge beam for shallow folding, a horizontal one for steep folding (p. 221) | a 400 flange folded down at each free edge, the folds being shallow (38.7 degrees), mitered like every other fold |
 
 ### Profile
@@ -73,7 +74,7 @@ for (size_t i = 0; i + 1 < count; i++)
 
 ### Plates
 
-Every quad becomes a plate 240 thick, its sides at the folds on the bisector planes, so neighbours meet over the whole fold. Measured on the example: every outline lies in its plane within 0.00001 mm, and the two faces are parallel and 240.00 apart.
+Every quad becomes a plate 480 thick, its sides at the folds on the bisector planes, so neighbours meet over the whole fold. Measured on the example: every outline lies in its plane within 0.00001 mm, and the two faces are parallel and 480.00 apart.
 
 ![plates](templates/templates_folding_3_prismatic_fold_plates.webp)
 
@@ -116,7 +117,7 @@ Engel (p. 220): with one fold the edge stresses at the common edge have the same
 ![folded barrel end](templates/templates_folding_4_folded_barrel_end.webp)
 
 ```cpp
-PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 240.0, 2, 0.0, "folded_barrel");
+PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 480.0, 2, 0.0, "folded_barrel");
 ```
 
 <details><summary>Example code: templates_folding_3_prismatic_fold.cpp</summary>
@@ -133,7 +134,7 @@ PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 240.0,
 
 ## Counter-running and conical folding {#counter_fold}
 
-Fold profiles at stations along the span, joined station to station by straight fold lines (`folding/counter_fold.h`, examples `templates_folding_5_counter_fold`, `templates_folding_6_elevated_fold` and `templates_folding_7_conical_fold`). Engel (pp. 222-224) changes the profile along the span: counter-running, the ridges of one station standing where the next has its valleys; raised towards the middle; deeper towards the middle. A strip between two fold lines then has four corners that are not in one plane, a warped strip, so it cannot be one plate: it folds along one of its diagonals into two triangles, and a triangle is always planar. Which diagonal folds is the difference between Engel's ridge-to-ridge folding (First-zu-First), through the strip's two high corners, so the ridges run diagonally from the ridges of one station to those of the next, and ridge-to-valley folding (First-zu-Kehle), through its two low corners, a valley; alternate folding (Wechselfaltung) takes the one and the other strip by strip. A strip still planar, two stations of the same profile, stays one quad. Measured on all three systems with all three foldings: 300 plates, every one 240.00 thick, its outlines in their planes within 0.00001 mm and its faces parallel.
+Fold profiles at stations along the span, joined station to station by straight fold lines (`folding/counter_fold.h`, examples `templates_folding_5_counter_fold`, `templates_folding_6_elevated_fold` and `templates_folding_7_conical_fold`). Engel (pp. 222-224) changes the profile along the span: counter-running, the ridges of one station standing where the next has its valleys; raised towards the middle; deeper towards the middle. A strip between two fold lines then has four corners that are not in one plane, a warped strip, so it cannot be one plate: it folds along one of its diagonals into two triangles, and a triangle is always planar. Which diagonal folds is the difference between Engel's ridge-to-ridge folding (First-zu-First), through the strip's two high corners, so the ridges run diagonally from the ridges of one station to those of the next, and ridge-to-valley folding (First-zu-Kehle), through its two low corners, a valley; alternate folding (Wechselfaltung) takes the one and the other strip by strip. A strip still planar, two stations of the same profile, stays one quad. Measured on all three systems with all three foldings: 300 plates, every one 480.00 thick, its outlines in their planes within 0.00001 mm and its faces parallel.
 
 ![counter-running fold](templates/templates_folding_5_counter_fold_plates.webp)
 
@@ -141,7 +142,7 @@ Fold profiles at stations along the span, joined station to station by straight 
 CounterFold fold(
     CounterFold::counter_running(5, 1500.0, 1500.0, 18000.0),   // five ridges, 1500 across and deep, over 18 m
     Folding::ridge_to_ridge,                      // the diagonal every warped strip folds along
-    240.0                                                      // thickness
+    480.0                                                      // thickness
 );
 ```
 
@@ -205,7 +206,7 @@ The centre fold elevated over the edge folds (p. 223): the zigzag at both ends, 
 ![elevated fold plan](templates/templates_folding_6_elevated_fold_plan.webp)
 
 ```cpp
-CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_ridge, 240.0, "elevated_fold");
+CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_ridge, 480.0, "elevated_fold");
 ```
 
 ### Conical folding
@@ -217,7 +218,7 @@ Sloped folding (p. 224, Abgeschrägte Faltung): one zigzag throughout, its valle
 ![conical fold plan](templates/templates_folding_7_conical_fold_plan.webp)
 
 ```cpp
-CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 240.0, "conical_fold");
+CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 480.0, "conical_fold");
 ```
 
 <details><summary>Example code: templates_folding_5_counter_fold.cpp</summary>
@@ -240,7 +241,7 @@ CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Foldin
 
 ## Folded frames and arches {#folded_frame}
 
-A frame or an arch whose cross section is a fold profile (`folding/folded_frame.h`, examples `templates_folding_8_two_hinged_frame`, `templates_folding_9_three_hinged_frame`, `templates_folding_10_three_hinged_arch`). Engel (pp. 225-227): the folded surface becomes a linear structure system, its fold depth following the moments, small at a hinge, deep at a knee. The frame line is the inner line, the valleys. At every corner the zigzag stands in the plane halving the corner, its ridges offset outwards along the bisector by the depth over the cosine of the half corner, so a ridge between two corners of one phase is parallel to the frame line and its strips planar. The phase turns at every corner, so the strips warp and fold into triangles on `fold_strips`, shared with `CounterFold`: the diamonds of Engel's elevations. Measured on both frames with all three foldings: 598 plates, every one 240.00 thick, planar within 0.00001 mm.
+A frame or an arch whose cross section is a fold profile (`folding/folded_frame.h`, examples `templates_folding_8_two_hinged_frame`, `templates_folding_9_three_hinged_frame`, `templates_folding_10_three_hinged_arch`). Engel (pp. 225-227): the folded surface becomes a linear structure system, its fold depth following the moments, small at a hinge, deep at a knee. The frame line is the inner line, the valleys. At every corner the zigzag stands in the plane halving the corner, its ridges offset outwards along the bisector by the depth over the cosine of the half corner, so a ridge between two corners of one phase is parallel to the frame line and its strips planar. The phase turns at every corner, so the strips warp and fold into triangles on `fold_strips`, shared with `CounterFold`: the diamonds of Engel's elevations. Measured on both frames with all three foldings: 598 plates, every one 480.00 thick, planar within 0.00001 mm.
 
 ![two-hinged frame](templates/templates_folding_8_two_hinged_frame_plates.webp)
 
@@ -252,7 +253,7 @@ FoldedFrame frame(
     {300.0, 2000.0, 900.0, 3200.0, 900.0, 2000.0, 300.0},         // depth per corner: hinges 300, knees 2000, ridge 3200
     true,                                                         // phase turning at every corner
     Folding::ridge_to_ridge,
-    240.0                                                         // thickness
+    480.0                                                         // thickness
 );
 ```
 
@@ -304,6 +305,51 @@ for (size_t i = 0; i <= 2 * ridges; i++) {
 <details><summary>Example code: templates_folding_10_three_hinged_arch.cpp</summary>
 
 \include{lineno} templates_folding_10_three_hinged_arch.cpp
+
+</details>
+
+## Folds over a polygon plan {#polygon_fold}
+
+Singly folded surfaces, one per side of a regular polygon plan, their folds parallel to that side, interpenetrating along the lines from the corners to the centre (`folding/polygon_fold.h`, examples `templates_folding_11_triangle_fold` to `templates_folding_15_truncated_pyramid`). Every fold is a concentric copy of the plan at one height, so a band between two rings in one sector lies between two parallel edges and is a planar trapezoid, whatever the heights. The centre is an apex, the pyramid, or the innermost ring closed by a flat top, the truncated pyramid.
+
+```cpp
+PolygonFold fold(
+    4,                                              // sides
+    12000.0,                                        // circumradius
+    {0.0, 1800.0, 900.0, 2700.0, 1800.0, 3600.0},  // ring heights from the edge inwards
+    4500.0,                                         // apex
+    false,                                          // truncated: a flat top instead of the apex
+    480.0                                           // thickness
+);
+```
+
+| Engel | example | rings |
+| --- | --- | --- |
+| triangular plan, horizontal ridges (p. 228) | `templates_folding_11_triangle_fold` | 3 sides, ridges all 1800 |
+| square plan, ridges rising toward the centre (p. 228) | `templates_folding_12_square_fold` | 4 sides, rising to a 4500 apex |
+| hexagonal plan, ridges sloping to the centre (p. 228) | `templates_folding_13_hexagon_fold` | 6 sides, falling to a 600 centre |
+| pyramidal folded plate (p. 231) | `templates_folding_14_pyramid` | 4 sides, one ring, a 6000 apex |
+| doubly folded truncated pyramid (p. 233) | `templates_folding_15_truncated_pyramid` | 4 sides, a flat top |
+
+![square fold](templates/templates_folding_12_square_fold_plates.webp)
+
+![triangle fold](templates/templates_folding_11_triangle_fold_plates.webp)
+
+![hexagon fold](templates/templates_folding_13_hexagon_fold_plates.webp)
+
+![pyramid](templates/templates_folding_14_pyramid_plates.webp)
+
+![truncated pyramid](templates/templates_folding_15_truncated_pyramid_plates.webp)
+
+### Corners
+
+Where three or more plates meet at a vertex, their mitered corners would pass through each other. As the reflex fold does, every corner of both outlines is cut back along its two edges by the chamfer (`mitered_plates(mesh, thickness, chamfer, chamfer, 180.0)`, every corner below 180 degrees), here the thickness; neighbours cut the same length off their shared edge, so their miter faces still meet, and a small opening is left at the vertex. `CounterFold`, `FoldedFrame` and `PolygonFold` all cut their corners this way; the singly folded plate has only two plates at a vertex and keeps them sharp.
+
+![corners](templates/templates_folding_8_two_hinged_frame_corner.webp)
+
+<details><summary>Example code: templates_folding_12_square_fold.cpp</summary>
+
+\include{lineno} templates_folding_12_square_fold.cpp
 
 </details>
 

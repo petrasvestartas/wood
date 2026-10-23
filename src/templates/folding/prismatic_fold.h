@@ -25,7 +25,7 @@ public:
     explicit PrismaticFold(
         const Polyline& profile = zigzag(4, 1500.0, 1200.0),
         double span = 12000.0,
-        double thickness = 240.0,
+        double thickness = 480.0,
         size_t diaphragms = 3,
         double edge_flange = 400.0,
         const std::string& name = "prismatic_fold"

@@ -24,7 +24,7 @@ public:
     explicit CounterFold(
         const std::vector<Polyline>& stations = counter_running(5, 1500.0, 1500.0, 18000.0),
         Folding folding = Folding::ridge_to_ridge,
-        double thickness = 240.0,
+        double thickness = 480.0,
         const std::string& name = "counter_fold"
     );
 
@@ -98,10 +98,11 @@ inline CounterFold::CounterFold(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face, mitered at the folds
+    // plates: one plate per face, mitered at the folds, every corner cut back by the thickness on both faces, as the reflex fold
+    // does, so the plates meeting at a vertex do not pass through each other
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0))
+    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0))
         add(plate, plates);
 }
 

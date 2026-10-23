@@ -35,6 +35,12 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" --view front --name section templates_folding_9_three_hinged_frame plates
     "${RENDER[@]}" templates_folding_10_three_hinged_arch plates
     "${RENDER[@]}" --view front --name section templates_folding_10_three_hinged_arch plates
+    "${RENDER[@]}" --size 6000x4000 --crop 0.0,0.25,0.3,0.75 --name corner templates_folding_8_two_hinged_frame plates
+    "${RENDER[@]}" templates_folding_11_triangle_fold plates
+    "${RENDER[@]}" templates_folding_12_square_fold plates
+    "${RENDER[@]}" templates_folding_13_hexagon_fold plates
+    "${RENDER[@]}" templates_folding_14_pyramid plates
+    "${RENDER[@]}" templates_folding_15_truncated_pyramid plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
