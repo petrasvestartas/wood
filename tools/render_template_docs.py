@@ -56,14 +56,15 @@ def run_example(name: str, out: pathlib.Path) -> None:
         shutil.copy(live, out)
 
 
-def render(pb: pathlib.Path, view: str, opacity: str = "1") -> Image.Image:
-    """The scene at the given opacity in the Arctic view, cropped to what it draws."""
+def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> Image.Image:
+    """The scene at the given opacity and size in the Arctic view, cropped to what it draws."""
+    width, height = size.split("x")
     env = dict(
         os.environ,
         VIEWER_SHEETS="0",
         VIEWER_OPACITY=opacity,
-        VIEWER_W="2400",
-        VIEWER_H="1600",
+        VIEWER_W=width,
+        VIEWER_H=height,
         VIEWER_THICKNESS="2",
         VIEWER_VIEW=view,
         VIEWER_PLANE_SIZE=os.environ.get("VIEWER_PLANE_SIZE", "0"),
@@ -98,22 +99,28 @@ def render(pb: pathlib.Path, view: str, opacity: str = "1") -> Image.Image:
     return image.crop(box)
 
 
+def option(arguments: list, flag: str, default: str) -> str:
+    """The value after flag, taken out of arguments, or default when flag is not given."""
+    if flag not in arguments:
+        return default
+
+    index = arguments.index(flag)
+    value = arguments[index + 1]
+    del arguments[index : index + 2]
+    return value
+
+
 def main(arguments: list) -> None:
-    """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last; `--view top` for a plan, `--opacity 0.4` to see inside."""
-    view = "iso"
+    """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last.
 
-    if "--view" in arguments:
-        index = arguments.index("--view")
-        view = arguments[index + 1]
-        del arguments[index : index + 2]
-
-    opacity = "1"
-
-    if "--opacity" in arguments:
-        index = arguments.index("--opacity")
-        opacity = arguments[index + 1]
-        del arguments[index : index + 2]
-
+    `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--crop 0.4,0.3,0.6,0.5` to keep that
+    share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp.
+    """
+    view = option(arguments, "--view", "iso")
+    opacity = option(arguments, "--opacity", "1")
+    size = option(arguments, "--size", "2400x1600")
+    crop = option(arguments, "--crop", "")
+    rename = option(arguments, "--name", "")
     name, groups = arguments[0], arguments[1:] or ["all"]
     IMAGES.mkdir(parents=True, exist_ok=True)
 
@@ -128,8 +135,21 @@ def main(arguments: list) -> None:
                 check=True,
                 capture_output=True,
             )
-            picture = IMAGES / f"{name}_{group.split('+')[-1]}.webp"
-            render(branch, view, opacity).save(picture, quality=90)
+            picture = IMAGES / f"{name}_{rename or group.split('+')[-1]}.webp"
+            image = render(branch, view, opacity, size)
+
+            if crop:
+                left, top, right, bottom = (float(share) for share in crop.split(","))
+                image = image.crop(
+                    (
+                        int(image.width * left),
+                        int(image.height * top),
+                        int(image.width * right),
+                        int(image.height * bottom),
+                    )
+                )
+
+            image.save(picture, quality=90)
             print(picture.relative_to(WOOD))
 
 

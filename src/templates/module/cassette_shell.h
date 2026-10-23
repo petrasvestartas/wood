@@ -14,10 +14,10 @@ namespace wood_module {
 /// The contacts of a cassette shell.
 ///
 /// - `inside`: within a cassette, every two of its plates and beams that touch.
-/// - `between`: across every interior mesh edge, the edge beams of the two cassettes face to face on the plane they share.
+/// - `between`: across every interior mesh edge, every two parts of the two cassettes that touch.
 struct CassetteContacts {
     std::vector<Contact> inside; // `<a>_on_<b>` within every cassette.
-    std::vector<Contact> between; // `<a>_on_<b>` across every interior edge, `a` the beam of the edge's lower face.
+    std::vector<Contact> between; // `<a>_on_<b>` across every interior edge, `a` a part of the edge's lower face.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -40,9 +40,9 @@ public:
     const Mesh mesh; // The input mesh of planar faces, welded at 0.01.
     const double depth; // Cassette depth along the face normal, plates included.
     const double plate_thickness; // Top and bottom plate thickness.
-    const double beam_width; // Edge beam width square to its edge plane, and every stud's and frame member's width.
-    const std::vector<std::vector<Opening>> openings; // Per face its openings in the face frame: x along its first edge, y up the face; a sill of 0 a door on the first edge's beam.
-    const double stud_spacing; // Stud centres along the first edge of every face, 0 for none.
+    const double beam_width; // Every edge beam's, stud's and frame member's width, one section for all.
+    const std::vector<std::vector<Opening>> openings; // Per face its windows in the face frame: x along its first edge, y up the face; a door is a notch in the face itself.
+    const double stud_spacing; // Largest distance between stud centres along the first edge of every face, 0 for none.
     const std::vector<int> ranks; // Per face its rank at a T joint, the lower running through; empty for miters on the bisector planes.
 
     /// The cassettes of the mesh as the session named name.
@@ -66,8 +66,8 @@ public:
     /// The fifteen-face dome of hexagons and pentagons of the VDA mesh.
     static Mesh default_mesh();
 
-    /// A gable house, one face per cassette, the floor open: the front, the right gable end, the back, the left gable end, the front
-    /// and the back roof slope, each face's first edge along its foot or its eaves.
+    /// A gable house, one face per cassette, the floor open: the front with its door a notch from the ground, the right gable end, the
+    /// back, the left gable end, the front and the back roof slope, each face's first edge along its foot or its eaves.
     static Mesh house_mesh(
         double length = 6000.0,
         double width = 4000.0,
@@ -79,8 +79,8 @@ public:
     /// past the gable ends.
     static std::vector<int> house_ranks();
 
-    /// The openings of house_mesh per face: a door and a window in the front, a window in the back and in each gable end.
-    static std::vector<std::vector<Opening>> house_openings();
+    /// The windows of house_mesh per face: one in the front, one in the back and one in each gable end.
+    static std::vector<std::vector<Opening>> house_windows();
 
     /// Per face its edge planes, each through its edge with its normal out of the face, shared by the two faces of an interior edge.
     const std::vector<std::vector<Plane>>& edge_planes() const;
@@ -117,10 +117,11 @@ private:
     /// Adds per face edge its beam between the plates under cassette_<f>.
     void add_edge_beams();
 
-    /// Adds per opening its two jambs, its header and under a window its sill, between the plates under cassette_<f>.
+    /// Adds per opening its two jambs, its header and its sill, between the plates under cassette_<f>.
     void add_opening_frames();
 
-    /// Adds per face the studs at the stud spacing between the edge beams, cut on their inner faces, split by the openings they meet.
+    /// Adds per face, between every two posts, the edge beams running up the face and the jambs, as few studs as keep the stud spacing,
+    /// evenly apart, their ends on the inner faces of the beams over and under them, split by the openings they stand in.
     void add_studs();
 
     /// The rectangle from (u, v) width along x and height along y of face f's frame, level along its normal.

@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the timber modules: the segmented hex shell after the BUGA Wood Pavilion 2019 on the fifteen-face dome of the VDA mesh. Each cell is a hollow cassette 200 deep: a 20 mm top and bottom plate and between them an edge beam 60 wide on every face edge, its outer face on the plane the edge shares with the neighbouring cell, so it is cut at the angle between the two cells, its ends mitered with the next beam. Inside every cassette each plate touches each beam and every beam the next; between cassettes the two beams on an interior edge touch face to face on their shared plane, every such contact detected and drawn in contacts. No connector is made yet.
+Step 2 of the timber modules: the segmented hex shell after the BUGA Wood Pavilion 2019 on the fifteen-face dome of the VDA mesh. Each cell is a hollow cassette 200 deep: a 20 mm top and bottom plate and between them an edge beam 60 wide on every face edge, its outer face on the plane the edge shares with the neighbouring cell, so it is cut at the angle between the two cells, its ends mitered with the next beam. Every two parts of a cassette that touch and every two parts of two neighbouring cassettes that touch, the two plates and the two beams on each of the 29 interior edges, are face contacts, those between cassettes drawn in contacts as red meshes. No connector is made yet.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

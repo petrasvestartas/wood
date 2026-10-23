@@ -14,11 +14,11 @@ Wall::Wall(const WallGuide& guide, const std::string& name)
     // rails: the bottom rail, split at every door, and the top rail along the whole wall
     add_rails();
 
-    // studs: a stud at every stud spacing that no opening takes
-    add_studs();
-
-    // openings: per opening its king studs, header, sill and the cripples above and below it
+    // openings: per opening its king studs, header and under a window its sill
     add_openings();
+
+    // studs: the end studs, and between every two posts as few studs as keep the spacing, evenly apart, cripples over and under the openings
+    add_studs();
 
     // sheathing: one panel on each face of the whole wall, every door a notch and every window a hole
     add_sheathing();
@@ -80,36 +80,6 @@ void Wall::add_rails() {
     add(rail, rails);
 }
 
-void Wall::add_studs() {
-
-    const std::shared_ptr<TreeNode> studs = group_named("studs");
-    const double half = 0.5 * guide.stud_width;
-    const Vector across(1.0, 0.0, 0.0);
-    size_t count = 0;
-
-    for (const double x : compute_stud_positions()) {
-        bool taken = false;
-
-        // an opening takes the stud that stands in its clear width or on its king studs
-        for (const Opening& opening : guide.openings)
-            if (x + half > opening.x - guide.stud_width && x - half < opening.x + opening.width + guide.stud_width)
-                taken = true;
-
-        if (taken)
-            continue;
-
-        const std::shared_ptr<Beam> stud = member(
-            Point(x, 0.0, guide.stud_width),
-            Point(x, 0.0, guide.height - guide.stud_width),
-            guide.stud_width,
-            across,
-            fmt::format("stud_{}", count)
-        );
-        add(stud, studs);
-        count++;
-    }
-}
-
 void Wall::add_openings() {
 
     const double half = 0.5 * guide.stud_width;
@@ -139,11 +109,11 @@ void Wall::add_openings() {
         }
 
         // header: across the opening between the king studs, its underside the opening's head
-        const double header_z = opening.head + 0.5 * guide.header_depth;
+        const double header_z = opening.head + half;
         const std::shared_ptr<Beam> header = member(
             Point(left, 0.0, header_z),
             Point(right, 0.0, header_z),
-            guide.header_depth,
+            guide.stud_width,
             up,
             fmt::format("header_{}", o)
         );
@@ -161,32 +131,75 @@ void Wall::add_openings() {
             );
             add(sill, group);
         }
+    }
+}
 
-        // cripples: the studs at the stud spacing inside the opening, above the header and below the sill
-        size_t count = 0;
+void Wall::add_studs() {
 
-        for (const double x : compute_stud_positions()) {
-            if (x - half < left || x + half > right)
-                continue;
+    const std::shared_ptr<TreeNode> studs = group_named("studs");
+    const double half = 0.5 * guide.stud_width;
+    const Vector across(1.0, 0.0, 0.0);
+    const double foot = guide.stud_width;
+    const double top = guide.height - guide.stud_width;
 
-            const std::shared_ptr<Beam> above = member(
-                Point(x, 0.0, opening.head + guide.header_depth),
-                Point(x, 0.0, top),
-                guide.stud_width,
-                across,
-                fmt::format("cripple_top_{}_{}", o, count)
-            );
-            add(above, group);
+    // posts: the two end studs and every king stud, by their centres along the wall
+    std::vector<double> posts = {half, guide.length - half};
 
-            if (opening.sill > 0.0) {
-                const std::shared_ptr<Beam> below = member(
-                    Point(x, 0.0, foot),
-                    Point(x, 0.0, opening.sill - guide.stud_width),
+    for (const Opening& opening : guide.openings) {
+        posts.push_back(opening.x - half);
+        posts.push_back(opening.x + opening.width + half);
+    }
+
+    std::sort(posts.begin(), posts.end());
+    size_t count = 0;
+
+    for (const double x : {posts.front(), posts.back()}) {
+        const std::shared_ptr<Beam> stud = member(
+            Point(x, 0.0, foot),
+            Point(x, 0.0, top),
+            guide.stud_width,
+            across,
+            fmt::format("stud_{}", count)
+        );
+        add(stud, studs);
+        count++;
+    }
+
+    // between every two posts as few studs as keep the stud spacing, evenly apart; inside an opening cripples over its header and under its sill
+    for (size_t p = 0; p + 1 < posts.size(); p++) {
+        const double span = posts[p + 1] - posts[p];
+        const int between = static_cast<int>(std::ceil(span / guide.stud_spacing - 1e-9)) - 1;
+
+        for (int k = 1; k <= between; k++) {
+            const double x = posts[p] + span * k / (between + 1);
+            std::vector<std::array<double, 2>> runs = {{foot, top}};
+            std::shared_ptr<TreeNode> group = studs;
+            std::string name = fmt::format("stud_{}", count);
+
+            for (size_t o = 0; o < guide.openings.size(); o++) {
+                const Opening& opening = guide.openings[o];
+
+                if (x < opening.x || x > opening.x + opening.width)
+                    continue;
+
+                runs = {{opening.head + guide.stud_width, top}};
+
+                if (opening.sill > 0.0)
+                    runs.push_back({foot, opening.sill - guide.stud_width});
+
+                group = group_named(fmt::format("opening_{}", o));
+                name = fmt::format("cripple_{}_{}", o, count);
+            }
+
+            for (size_t r = 0; r < runs.size(); r++) {
+                const std::shared_ptr<Beam> stud = member(
+                    Point(x, 0.0, runs[r][0]),
+                    Point(x, 0.0, runs[r][1]),
                     guide.stud_width,
                     across,
-                    fmt::format("cripple_bottom_{}_{}", o, count)
+                    runs.size() == 1 ? name : fmt::format("{}_{}", name, r)
                 );
-                add(below, group);
+                add(stud, group);
             }
 
             count++;
@@ -335,18 +348,6 @@ std::shared_ptr<Beam> Wall::member(
     const Polyline axis({start, end});
     const std::vector<Polyline> profile = profile_rectangle(guide.stud_depth, size);
     return std::make_shared<Beam>(axis, profile, std::vector<Vector>{up}, name);
-}
-
-std::vector<double> Wall::compute_stud_positions() const {
-
-    const double half = 0.5 * guide.stud_width;
-    std::vector<double> positions = {half};
-
-    for (double x = guide.stud_spacing; x < guide.length - guide.stud_width; x += guide.stud_spacing)
-        positions.push_back(x);
-
-    positions.push_back(guide.length - half);
-    return positions;
 }
 
 }

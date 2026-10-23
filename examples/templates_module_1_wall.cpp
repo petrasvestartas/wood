@@ -19,7 +19,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the timber modules: a 4800 x 2700 framed wall with the default WallGuide, a door and a window. Bottom and top rails, the bottom rail stopping at the door, studs every 625 mm, per opening two king studs, a header and for the window a sill with cripples above and below, then one 15 mm sheathing panel on each face over the whole wall, the door a notch and the window a hole. Every member end on the member it stands on and every panel on every member under it is a face contact, stored as their interaction and drawn in contacts_frame and contacts_sheathing; no connector is made. The wall is a group of beams and plates in the tree, nothing more.
+Step 1 of the timber modules: a 4800 x 2700 framed wall with the default WallGuide, a door and a window. Bottom and top rails, the bottom rail stopping at the door, per opening two king studs, a header and for the window a sill, then the studs: between every two posts, the end studs and the king studs, as few as keep 625 mm, evenly apart, cripples over the door and over and under the window; every member is 60 x 160. Then one 15 mm sheathing panel on each face over the whole wall, the door a notch and the window a hole. Every member end on the member it stands on and every panel on every member under it is a face contact, stored as their interaction and drawn in contacts_frame and contacts_sheathing; no connector is made. The wall is a group of beams and plates in the tree, nothing more.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

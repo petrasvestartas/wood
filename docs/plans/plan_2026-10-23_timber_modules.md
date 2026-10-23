@@ -43,8 +43,11 @@ section and picture per constructor block.
 
 Examples: one cassette, then the shell. Same docs pattern.
 
-## Questions
+## Decisions (2026-10-23)
 
-- Start with the wall module only, or both families at once?
-- Wall: sheathing on one face or both, and is there insulation space (stud depth) to show?
-- Cassette: should neighbouring cassettes be joined with finger joints, bolts, or both?
+- The wall module came first; the cassette shell and a gable house of cassettes followed, in `docs/templates/module.md`.
+- Sheathing is one panel on each face, the door a notch and the windows holes; every frame member has one section and the studs
+  between two posts are spaced evenly, so no two parallel members stand side by side.
+- No connectors yet: the modules detect every contact, between members, panels and cassettes; bolts between cassettes come later.
+- Cassettes meet in T joints by rank, one running through square and the other cut on its face, so the fewest cuts are inclined;
+  only the hex shell keeps its miters on the bisector planes.
