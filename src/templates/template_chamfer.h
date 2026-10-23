@@ -267,35 +267,63 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
         }
 
         // free edges in an edge plane: every inner point under an outer point on the plane, with an outer neighbour on it too, moved
-        // onto the plane along its edge to the neighbour off the plane, or square to the free edge where both neighbours are on it
-        const size_t m = top.size();
-        std::vector<Point> moved = bottom;
-
+        // onto the plane along its edge to the neighbour off the plane, or square to the free edge where both neighbours are on it; a
+        // corner touching the plane alone, its inner point past it, cut by the plane on the inner outline, its outer point doubled
         for (const Plane& plane : edge_planes) {
-            const std::function<bool(size_t)> on = [&](size_t k) {
-                return std::abs((top[k] - plane.origin()).dot(plane.z_axis())) < 0.01;
+            const size_t m = top.size();
+            const std::function<double(const Point&)> side = [&](const Point& point) {
+                return (point - plane.origin()).dot(plane.z_axis());
             };
+            const std::function<bool(size_t)> on = [&](size_t k) {
+                return std::abs(side(top[k])) < 0.01;
+            };
+            double inside = 0.0;
+
+            for (const Point& point : top)
+                inside += side(point);
+
+            std::vector<Point> top_cut;
+            std::vector<Point> bottom_cut;
 
             for (size_t k = 0; k < m; k++) {
                 const size_t before = (k + m - 1) % m;
                 const size_t after = (k + 1) % m;
 
-                if (!on(k) || (!on(before) && !on(after)))
+                if (!on(k)) {
+                    top_cut.push_back(top[k]);
+                    bottom_cut.push_back(bottom[k]);
                     continue;
+                }
 
-                Line along = Line::from_points(bottom[k], bottom[on(before) ? after : before]);
+                if (on(before) || on(after)) {
+                    Line along = Line::from_points(bottom[k], bottom[on(before) ? after : before]);
 
-                if (on(before) && on(after))
-                    along = Line::from_points(bottom[k], bottom[k] + normal.cross(top[after] - top[before]));
+                    if (on(before) && on(after))
+                        along = Line::from_points(bottom[k], bottom[k] + normal.cross(top[after] - top[before]));
 
-                const std::optional<Point> point = Intersection::line_plane(along, plane, false);
+                    const std::optional<Point> point = Intersection::line_plane(along, plane, false);
+                    top_cut.push_back(top[k]);
+                    bottom_cut.push_back(point.value_or(bottom[k]));
+                    continue;
+                }
 
-                if (point)
-                    moved[k] = *point;
+                if (side(bottom[k]) * inside >= 0.0) {
+                    top_cut.push_back(top[k]);
+                    bottom_cut.push_back(bottom[k]);
+                    continue;
+                }
+
+                for (const size_t neighbour : {before, after}) {
+                    const std::optional<Point> point = Intersection::line_plane(Line::from_points(bottom[k], bottom[neighbour]), plane, false);
+                    top_cut.push_back(top[k]);
+                    bottom_cut.push_back(point.value_or(bottom[k]));
+                }
             }
+
+            top = top_cut;
+            bottom = bottom_cut;
         }
 
-        bottom = moved;
         top.push_back(top[0]);
         bottom.push_back(bottom[0]);
         plates.push_back(std::make_shared<Plate>(Polyline(bottom), Polyline(top), fmt::format("plate_{}", plates.size())));

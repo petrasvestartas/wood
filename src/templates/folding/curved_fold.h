@@ -49,7 +49,8 @@ public:
 
 private:
     /// Per ring from the eaves up its star of 2 sectors points, a ridge and a valley in turn: the trumpet curve's radius, flat at the
-    /// eaves and vertical at the tower, its height, the fold's depth and the valleys' inset scaled with the radius.
+    /// eaves and vertical at the tower, its height, the fold's depth and the valleys' inset scaled with the radius; the top ring cut flat
+    /// by the plane at the tower's height, so the lamellas end level.
     std::vector<std::vector<Point>> compute_rings() const;
 
     /// The same points on the lamellas' inner faces: at every point the line where the two strips beside it, offset inwards by the
@@ -128,7 +129,7 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {
             const double angle = 2.0 * Tolerance::PI * static_cast<double>(j) / static_cast<double>(count);
             const bool ridge = j % 2 == 0;
             const double r = ridge ? ring_radius : ring_radius * (1.0 - inset);
-            const double z = ring_height + (ridge ? gable * fade : 0.0);
+            const double z = k + 1 == rings ? height : ring_height + (ridge ? gable * fade : 0.0);
             star.push_back(Point(r * std::cos(angle), r * std::sin(angle), z));
         }
 

@@ -99,12 +99,17 @@ inline CounterFold::CounterFold(
     }
 
     // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges along the span cut flush by the
-    // side planes y 0 and y width
+    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges cut flush by the side planes
+    // y 0 and y width and by the end stations' planes
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     const double width = stations[0][stations[0].point_count() - 1][1];
-    const std::vector<Plane> sides = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)), Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0))};
+    const std::vector<Plane> sides = {
+        Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(stations.front()[0], Vector(1.0, 0.0, 0.0)),
+        Plane::from_point_normal(stations.back()[0], Vector(1.0, 0.0, 0.0)),
+    };
 
     for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
         add(plate, plates);

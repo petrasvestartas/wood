@@ -106,12 +106,18 @@ inline FoldedFrame::FoldedFrame(
     }
 
     // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges along the span cut flush by the
-    // side planes y 0 and y width
+    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges cut flush by the side planes
+    // y 0 and y width and the feet by the end stations' planes
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     const double width = stations.first[0][stations.first[0].point_count() - 1][1];
-    const std::vector<Plane> sides = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)), Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0))};
+    const size_t last = frame.point_count() - 1;
+    const std::vector<Plane> sides = {
+        Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(frame[0], frame[1] - frame[0]),
+        Plane::from_point_normal(frame[last], frame[last] - frame[last - 1]),
+    };
 
     for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
         add(plate, plates);

@@ -99,10 +99,12 @@ inline PrismaticFold::PrismaticFold(
     _mesh = compute_mesh();
     add_mesh(_mesh, add_group("mesh"));
 
-    // plates: one plate per fold, mitered at the folds
+    // plates: one plate per fold, mitered at the folds, its ends cut flush by the planes x 0 and x span
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0))
+    const std::vector<Plane> ends = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), x), Plane::from_point_normal(Point(span, 0.0, 0.0), x)};
+
+    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0, ends))
         add(plate, plates);
 
     // diaphragms: under the folds at both ends and evenly between, one plate each across the whole profile, filling it under the
