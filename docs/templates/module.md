@@ -57,7 +57,7 @@ for (const std::array<double, 2>& span : spans) {
 
 ### Contacts
 
-`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 52 between the panels and the frame. No connector is made.
+`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 52 between the panels and the frame. No connector is made.
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
@@ -127,7 +127,7 @@ add(std::make_shared<Plate>(bottom_loop, top_loop, fmt::format("edge_beam_{}_{}"
 
 ![two cassettes](templates/templates_module_2_cassette_shell_cassette_8.webp)
 
-Every contact between cassettes drawn in `contacts`, one per interior edge of the mesh:
+Every contact between cassettes drawn in `contacts` as a red mesh, one per interior edge of the mesh:
 
 ![contacts](templates/templates_module_2_cassette_shell_contacts.webp)
 
@@ -158,7 +158,7 @@ Many cassettes joined in space: a 6000 x 4000 gable house, walls 2700 high and t
 wood_module::CassetteShell house(wood_module::CassetteShell::house_mesh(), 160.0, 20.0, 60.0, "cassette_house");
 ```
 
-Every cassette is cut on the plane it shares with each neighbour: square where two panels of one wall meet in a plane, beveled at the wall corners, the eaves and the ridge. A gable triangle runs along the panels under it in a straight line; its plates skip those straight corners and its beams meet there square to the edge. Every contact between cassettes, one per shared mesh edge:
+Every cassette is cut on the plane it shares with each neighbour: square where two panels of one wall meet in a plane, beveled at the wall corners, the eaves and the ridge. A gable triangle runs along the panels under it in a straight line; its plates skip those straight corners and its beams meet there square to the edge. Every contact between cassettes as a red mesh, one per shared mesh edge:
 
 ![contacts](templates/templates_module_3_cassette_house_contacts.webp)
 

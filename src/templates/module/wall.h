@@ -43,7 +43,7 @@ private:
     void add_sheathing();
 
     /// Searches the contact between every two frame members and every panel and frame member, stores it as their interaction and
-    /// draws its polygon in contacts_frame or contacts_sheathing.
+    /// draws its polygon as a red mesh in contacts_frame or contacts_sheathing.
     void add_contacts();
 
     /// A frame member from start to end, stud_depth across the wall and size along up.

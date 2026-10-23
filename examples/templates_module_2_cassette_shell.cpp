@@ -10,7 +10,7 @@ int main() {
     wood_module::CassetteShell shell;
     std::cout << shell << std::endl;
 
-    const size_t contacts = shell.get_branch("contacts").objects.polylines->size();
+    const size_t contacts = shell.get_branch("contacts").objects.meshes->size();
     std::cout << fmt::format("cassette shell: {} cassettes, {} contacts between them", shell.mesh.number_of_faces(), contacts) << std::endl;
     shell.pb_dump(pb_path("live"));
     return 0;

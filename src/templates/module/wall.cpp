@@ -279,7 +279,9 @@ void Wall::add_contacts() {
             const std::shared_ptr<InteractionContactFace> face = compute_face_contact(source, target);
             face->name = fmt::format("{}_on_{}", target->name, source->name);
             add_interaction(source, target, face);
-            add_polyline(face->polygon, frame_group);
+            Mesh patch = Mesh::from_polylines(std::vector<Polyline>{face->polygon});
+            patch.set_objectcolor(Color::red());
+            add_mesh(patch, frame_group);
         }
 
     // sheathing: every panel on every member it covers
@@ -292,7 +294,9 @@ void Wall::add_contacts() {
 
             face->name = fmt::format("{}_on_{}", panel->name, frame->name);
             add_interaction(panel, frame, face);
-            add_polyline(face->polygon, sheathing_group);
+            Mesh patch = Mesh::from_polylines(std::vector<Polyline>{face->polygon});
+            patch.set_objectcolor(Color::red());
+            add_mesh(patch, sheathing_group);
         }
 }
 

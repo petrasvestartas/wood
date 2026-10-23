@@ -30,7 +30,7 @@ struct CassetteContacts {
 ///
 /// Fields: the welded mesh and the cassette sizes.
 /// Every cassette is a group `cassette_<f>` of `top_plate_<f>`, `bottom_plate_<f>` and `edge_beam_<f>_<j>`, read back by name; the
-/// polygon of every contact between cassettes is drawn in `contacts`.
+/// polygon of every contact between cassettes is drawn in `contacts` as a red mesh.
 class CassetteShell : public WoodSession {
 public:
     const Mesh mesh; // The input mesh of planar faces, welded at 0.01.

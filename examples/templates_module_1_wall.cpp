@@ -10,8 +10,8 @@ int main() {
     wood_module::Wall wall;
     std::cout << wall << std::endl;
 
-    const size_t frame = wall.get_branch("contacts_frame").objects.polylines->size();
-    const size_t sheathing = wall.get_branch("contacts_sheathing").objects.polylines->size();
+    const size_t frame = wall.get_branch("contacts_frame").objects.meshes->size();
+    const size_t sheathing = wall.get_branch("contacts_sheathing").objects.meshes->size();
     std::cout << fmt::format("wall: {} frame contacts, {} sheathing contacts", frame, sheathing) << std::endl;
     wall.pb_dump(pb_path("live"));
     return 0;

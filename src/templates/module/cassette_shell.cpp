@@ -45,8 +45,11 @@ CassetteShell::CassetteShell(
     const CassetteContacts contacts = add_contacts();
     const std::shared_ptr<TreeNode> contact_group = group_named("contacts");
 
-    for (const Contact& contact : contacts.between)
-        add_polyline(contact.face->polygon, contact_group);
+    for (const Contact& contact : contacts.between) {
+        Mesh patch = Mesh::from_polylines(std::vector<Polyline>{contact.face->polygon});
+        patch.set_objectcolor(Color::red());
+        add_mesh(patch, contact_group);
+    }
 
 }
 
