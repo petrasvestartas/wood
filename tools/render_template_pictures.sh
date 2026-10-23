@@ -45,7 +45,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --name two_cassettes templates_module_2_cassette_shell cassette_4+cassette_8
     "${RENDER[@]}" templates_module_3_cassette_house all contacts
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_3_cassette_house all
-    "${RENDER[@]}" --opacity 0.95 --name front templates_module_3_cassette_house cassette_0
+    "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
     "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
     "${RENDER[@]}" --opacity 0.95 --name gable_roof templates_module_3_cassette_house cassette_4+cassette_5+cassette_0+cassette_3
 fi

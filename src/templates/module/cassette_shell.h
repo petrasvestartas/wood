@@ -27,8 +27,8 @@ struct CassetteContacts {
 /// A shell of hollow timber cassettes after the BUGA Wood Pavilion 2019, a session: per mesh face one cassette, a top and a bottom
 /// plate over the whole face with its openings cut out, and between them an edge beam on every face edge, studs at the stud
 /// spacing and a frame around every opening. Two cassettes meet either on a miter, the bisector plane of their faces, as on the hex
-/// shell, or with ranks in a T: the cassette of lower rank runs through with a square end and the other is cut on its face, so the
-/// fewest cuts are inclined. The edge beams of one cassette meet the same way: mitered, or with ranks butted, the more level beam
+/// shell, or with ranks in a T: the cassette of lower rank runs through and ends flush with the other's outer face, the other is cut
+/// on its inner face, so the fewest cuts are inclined. The edge beams of one cassette meet the same way: mitered, or with ranks butted, the more level beam
 /// running through. The contacts are detected, no connector is made.
 ///
 /// Fields: the welded mesh, the cassette sizes, the openings and the stud spacing.
@@ -105,7 +105,7 @@ private:
     std::vector<std::vector<long long>> compute_neighbours() const;
 
     /// Per face edge the plane its cassette ends on, its normal out of the face: without ranks the bisector of the two faces; with ranks
-    /// the face of the neighbour that runs through, or square to the face and past the neighbour's far side where this one runs through.
+    /// the near face of the neighbour that runs through, or the far face of the neighbour where this one runs through, flush with it.
     std::vector<std::vector<Plane>> compute_edge_planes() const;
 
     /// Per face corner the plane halfway between the edge planes that meet there.

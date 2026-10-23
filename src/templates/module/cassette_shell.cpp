@@ -239,31 +239,11 @@ std::vector<std::vector<Plane>> CassetteShell::compute_edge_planes() const {
 
             const bool through = ranks[f] < ranks[static_cast<size_t>(g)] || (ranks[f] == ranks[static_cast<size_t>(g)] && static_cast<long long>(f) < g);
 
-            // T, cut: on the side of the neighbour's cassette that faces this one
-            if (!through) {
-                const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
-                const Point surface = other.origin() + other.z_axis() * (side * 0.5 * depth);
-                planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
-                continue;
-            }
-
-            // T, through: square to the face, out as far as the neighbour's cassette reaches past the edge
-            double reach = 0.0;
-
-            for (const double a : {-0.5 * depth, 0.5 * depth})
-                for (const double b : {-0.5 * depth, 0.5 * depth}) {
-                    Line corner;
-
-                    if (!Intersection::plane_plane(face.translate_by_normal(a), other.translate_by_normal(b), corner))
-                        continue;
-
-                    const Vector direction = corner.to_direction();
-                    const Point origin = corner.point_at(0.0);
-                    const Point closest = origin + direction * ((middle - origin).dot(direction) / direction.dot(direction));
-                    reach = std::max(reach, (closest - middle).dot(out));
-                }
-
-            planes[f].push_back(Plane::from_point_normal(middle + out * reach, out));
+            // T: this cassette is cut on the near side of the neighbour where it stops, or ends flush with its far side where it runs through
+            const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
+            const double reach = through ? -side : side;
+            const Point surface = other.origin() + other.z_axis() * (reach * 0.5 * depth);
+            planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
         }
     }
 

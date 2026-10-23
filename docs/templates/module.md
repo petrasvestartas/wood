@@ -180,23 +180,21 @@ wood_module::CassetteShell house(
 
 Each cassette is one panel on either side with its windows cut out, and between them the edge beams on its boundary, the jambs, header and sill of every window, and the studs, rafters on the roof. The posts are the edge beams that run up the face, the door's among them, and the jambs; between every two of them as few studs as keep 625 mm stand evenly apart, their ends cut on the inner faces of the beams over and under them, so a stud over the door or under a gable slope is a cripple, and one inside a window is split over its header and under its sill. Every member is 60 wide.
 
-The cassettes meet in T joints, not miters, so the fewest cuts are inclined: `house_ranks` puts the roof slopes over everything, the front slope over the back one at the ridge, and the long walls past the gable ends. The cassette of lower rank runs through with a square end, out past the other's far side; the other is cut on its face. Wall and gable meet square, and so do gable and roof, whose plane holds the gable's normal; only the wall tops under the slope and the back slope at the ridge are cut at an angle. Inside a cassette the edge beams butt the same way, the more level one running through. Only the hex shell keeps its miters.
+The cassettes meet in T joints, not miters, so the fewest cuts are inclined: `house_ranks` puts the roof slopes over everything, the front slope over the back one at the ridge, and the long walls past the gable ends. The cassette of lower rank runs through and ends flush with the other's outer face; the other is cut on the through cassette's inner face. Wall and gable meet square, and so do gable and roof, whose plane holds the gable's normal; at the eaves the roof ends in a plumb cut flush with the wall's outer face, the wall top is cut to the roof's underside, and at the ridge the front slope ends flush with the top of the back slope: the only cuts at an angle. Inside a cassette the edge beams butt the same way, the more level one running through. Only the hex shell keeps its miters.
 
 ```cpp
-// T, cut: on the side of the neighbour's cassette that faces this one
-if (!through) {
-    const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
-    const Point surface = other.origin() + other.z_axis() * (side * 0.5 * depth);
-    planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
-    continue;
-}
+// T: this cassette is cut on the near side of the neighbour where it stops, or ends flush with its far side where it runs through
+const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
+const double reach = through ? -side : side;
+const Point surface = other.origin() + other.z_axis() * (reach * 0.5 * depth);
+planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
 ```
 
 Seen through, at opacity 0.95:
 
 ![cassette house seen through](templates/templates_module_3_cassette_house_inside.webp)
 
-The front, the door a notch from the ground with a cripple over it, the window framed with cripples over and under it, the studs evenly between the posts:
+The front alone: the door a notch from the ground and the window a hole through both panels; in the whole house the openings show the inside of the walls behind them. Its frame, the door with a cripple over it, the window with cripples over and under it and the studs evenly between the posts, is in the picture seen through above.
 
 ![front](templates/templates_module_3_cassette_house_front.webp)
 
@@ -213,7 +211,7 @@ One gable end, square on every side: its sides stop on the long walls, its top u
 
 ![gable end](templates/templates_module_3_cassette_house_gable.webp)
 
-The roof over the front wall and the left gable end, both running under it with the roof overhanging them square:
+The roof over the front wall and the left gable end, both running under it, the roof's edges flush with their outer faces:
 
 ![gable and roof](templates/templates_module_3_cassette_house_gable_roof.webp)
 
