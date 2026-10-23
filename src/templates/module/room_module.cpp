@@ -1,4 +1,5 @@
 #include "src/templates/module/room_module.h"
+#include "wood_profile.h"
 
 namespace wood_module {
 
@@ -66,22 +67,45 @@ void RoomModule::add_module(size_t storey, size_t column) {
     const FramedPanel floor(*this, slab_guide, floor_plane, module + "_floor", group);
     const FramedPanel ceiling(*this, slab_guide, ceiling_plane, module + "_ceiling", group);
 
-    // long walls: on the floor deck under the ceiling along the whole module, running past the end walls
+    // posts: at the four corners, a wall thick, on the floor deck under the ceiling, carrying the ceiling where a side is open
+    const std::shared_ptr<TreeNode> posts = group_named(module + "_posts", group);
+    const std::array<std::array<double, 2>, 4> places = {{
+        {0.5 * wall, 0.5 * wall},
+        {guide.length - 0.5 * wall, 0.5 * wall},
+        {guide.length - 0.5 * wall, guide.width - 0.5 * wall},
+        {0.5 * wall, guide.width - 0.5 * wall},
+    }};
+
+    for (size_t k = 0; k < 4; k++) {
+        const Point foot = origin + x * places[k][0] + y * places[k][1] + z * floor_top;
+        const Polyline axis({foot, foot + z * guide.clear_height});
+        add(std::make_shared<Beam>(axis, profile_rectangle(wall, wall), std::vector<Vector>{x}, fmt::format("{}_post_{}", module, k)), posts);
+    }
+
+    // long sides: a wall between the posts, or open towards a neighbour of the same room
+    const bool front_open = column % guide.modules_per_room != 0;
+    const bool back_open = (column + 1) % guide.modules_per_room != 0 && column + 1 < guide.columns;
     WallGuide long_guide;
-    long_guide.length = guide.length;
+    long_guide.length = guide.length - 2.0 * wall;
     long_guide.height = guide.clear_height;
     long_guide.stud_width = guide.stud_width;
     long_guide.stud_depth = guide.stud_depth;
     long_guide.stud_spacing = guide.stud_spacing;
     long_guide.sheet_thickness = guide.sheet_thickness;
-    long_guide.openings = guide.openings[0];
-    const Plane front_plane(origin + y * (0.5 * wall) + z * floor_top, x, z);
-    const FramedPanel front(*this, long_guide, front_plane, module + "_wall_front", group);
-    long_guide.openings = guide.openings[1];
-    const Plane back_plane(origin + x * guide.length + y * (guide.width - 0.5 * wall) + z * floor_top, x * -1.0, z);
-    const FramedPanel back(*this, long_guide, back_plane, module + "_wall_back", group);
 
-    // end walls: between the long walls, at the module's start and at its end
+    if (!front_open) {
+        long_guide.openings = guide.openings[0];
+        const Plane front_plane(origin + x * wall + y * (0.5 * wall) + z * floor_top, x, z);
+        const FramedPanel front(*this, long_guide, front_plane, module + "_wall_front", group);
+    }
+
+    if (!back_open) {
+        long_guide.openings = guide.openings[1];
+        const Plane back_plane(origin + x * (guide.length - wall) + y * (guide.width - 0.5 * wall) + z * floor_top, x * -1.0, z);
+        const FramedPanel back(*this, long_guide, back_plane, module + "_wall_back", group);
+    }
+
+    // ends: a wall between the posts, the facade end with its window at x 0, the corridor end with its door
     WallGuide end_guide = long_guide;
     end_guide.length = guide.width - 2.0 * wall;
     end_guide.openings = guide.openings[2];

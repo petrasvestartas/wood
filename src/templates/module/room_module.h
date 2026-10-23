@@ -12,14 +12,15 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one module of six framed elements, a floor and a
-/// ceiling lying flat with their joists on the grid, and four walls standing on the floor deck under the ceiling, the two long walls
-/// running past the two end walls; then the contacts in every module and between modules side by side and stacked. No connector is
-/// made.
+/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling lying flat with
+/// their joists on the grid, four corner posts between them, and a framed wall between the posts on every closed side; the long sides
+/// between the modules of one room are open, so the room spans them with only the posts at the joints. Then the contacts in every module
+/// and between modules side by side and stacked. No connector is made.
 ///
 /// Fields: `guide`, the RoomModuleGuide it is built from.
-/// Every module is a group `module_<storey>_<column>` of the FramedPanels `<module>_floor`, `<module>_ceiling`, `<module>_wall_front`,
-/// `<module>_wall_back`, `<module>_wall_start` and `<module>_wall_end`, every member named `<panel>_<part>`, read back by name.
+/// Every module is a group `module_<storey>_<column>` of the FramedPanels `<module>_floor`, `<module>_ceiling`, `<module>_wall_start`,
+/// `<module>_wall_end` and, on a closed long side, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
+/// every member of a panel is named `<panel>_<part>`, read back by name.
 class RoomModule : public WoodSession {
 public:
     const RoomModuleGuide guide; // The geometry the modules are built from; every element is in the session.
@@ -43,7 +44,7 @@ public:
     double module_height() const;
 
 private:
-    /// Adds the module of a storey and a column: its floor, its four walls and its ceiling, each a framed panel under the module's group.
+    /// Adds the module of a storey and a column: its floor and ceiling, its four corner posts and its walls on the closed sides.
     void add_module(size_t storey, size_t column);
 };
 

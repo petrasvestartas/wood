@@ -53,7 +53,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" templates_module_4_room_module all
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_4_room_module all
     "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_rails+module_0_0_floor_studs
-    "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_front_rails+module_0_0_wall_front_studs+module_0_0_wall_front_opening_0+module_0_0_wall_front_opening_1
+    "${RENDER[@]}" --name single templates_module_4_room_module module_0_1
+    "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_start_rails+module_0_0_wall_start_studs+module_0_0_wall_start_opening_0
     "${RENDER[@]}" --name contacts templates_module_4_room_module contacts_frame+contacts_sheathing
     "${RENDER[@]}" templates_module_5_module_block all
 fi
