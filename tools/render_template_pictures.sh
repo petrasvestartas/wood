@@ -41,6 +41,14 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_13_hexagon_fold plates
     "${RENDER[@]}" templates_folding_14_pyramid plates
     "${RENDER[@]}" templates_folding_15_truncated_pyramid plates
+    "${RENDER[@]}" templates_folding_16_cross_fold plates
+    "${RENDER[@]}" templates_folding_17_cross_fold_divided plates
+    "${RENDER[@]}" templates_folding_18_cross_fold_sloping plates
+    "${RENDER[@]}" templates_folding_19_fold_composition plates
+    "${RENDER[@]}" templates_folding_20_triangle_square plates
+    "${RENDER[@]}" templates_folding_21_triangle_triangle plates
+    "${RENDER[@]}" templates_folding_22_triangle_pentagon plates
+    "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

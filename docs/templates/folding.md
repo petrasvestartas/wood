@@ -12,6 +12,8 @@ The topology is the same in every system: plates one after another, each meeting
 | 222-224 | surfaces with counter-running folding and with conical folding | [`CounterFold`](#counter_fold) |
 | 225-227 | linear structure systems of folded surfaces: two- and three-hinged frames, arches | [`FoldedFrame`](#folded_frame) |
 | 228, 231-233 | interpenetrating folded surfaces over a polygon plan, the pyramid and the truncated pyramid | [`PolygonFold`](#polygon_fold) |
+| 229-230 | cross-folded surfaces over a square plan, subdivided from the corners, and their composition | [`CrossFold`](#cross_fold) |
+| 232 | structure systems of folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [`TriangleFold`](#triangle_fold) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -350,6 +352,72 @@ Where three or more plates meet at a vertex, their mitered corners would pass th
 <details><summary>Example code: templates_folding_12_square_fold.cpp</summary>
 
 \include{lineno} templates_folding_12_square_fold.cpp
+
+</details>
+
+## Cross folds {#cross_fold}
+
+The waterbomb fold of a square sheet (`folding/cross_fold.h`, examples `templates_folding_16_cross_fold` to `templates_folding_19_fold_composition`): straight fold lines from the centre to the four corners, the diagonals, and to the edges' midpoints, the cross; every half edge between a corner and a midpoint can be divided again, a fold line to every division point. Every face between two straight fold lines through the centre is a planar triangle, whatever the heights; the edge points alternate low and high from the corners, so the fold lines alternate valley and ridge. The centre's height sets Engel's ridges rising toward the centre or sloping to it (p. 229). Units in columns and rows compose a larger roof (p. 230), their shared edge points welded so neighbouring plates meet mitered.
+
+```cpp
+CrossFold fold(
+    18000.0,   // square side
+    3,         // divisions of every half edge
+    0.0,       // low: corners and every second division point
+    3000.0,    // high: the other division points
+    6000.0,    // centre
+    240.0,     // thickness
+    1, 1       // columns, rows
+);
+```
+
+| Engel | example |
+| --- | --- |
+| the waterbomb: diagonals valleys, cross ridges rising toward the centre (p. 229) | `templates_folding_16_cross_fold`, 8 triangles |
+| subdivided from the four corners (p. 229) | `templates_folding_17_cross_fold_divided`, 24 triangles |
+| ridges sloping toward the centre (p. 229) | `templates_folding_18_cross_fold_sloping` |
+| composition over square plans (p. 230) | `templates_folding_19_fold_composition`, 4 x 3 units, 96 triangles |
+
+![cross fold](templates/templates_folding_16_cross_fold_plates.webp)
+
+![cross fold divided](templates/templates_folding_17_cross_fold_divided_plates.webp)
+
+![cross fold sloping](templates/templates_folding_18_cross_fold_sloping_plates.webp)
+
+![fold composition](templates/templates_folding_19_fold_composition_plates.webp)
+
+<details><summary>Example code: templates_folding_17_cross_fold_divided.cpp</summary>
+
+\include{lineno} templates_folding_17_cross_fold_divided.cpp
+
+</details>
+
+## Folded triangular surfaces {#triangle_fold}
+
+A regular polygon plan cut by the lines joining its edges' midpoints into a triangle at every corner, the polygon of the midpoints one flat face or split into triangles to a raised centre (`folding/triangle_fold.h`, examples `templates_folding_20_triangle_square` to `templates_folding_23_triangle_hexagon`, Engel p. 232). Every face is a triangle or a flat polygon at one height, so every plate is planar: the corners on the supports, the midpoints high, the corner triangles folding down.
+
+```cpp
+TriangleFold fold(
+    4,          // sides
+    12000.0,    // circumradius
+    0.0,        // corners
+    4000.0,     // edges' midpoints
+    7000.0,     // centre; equal to the midpoints keeps their polygon one flat face
+    240.0       // thickness
+);
+```
+
+![square](templates/templates_folding_20_triangle_square_plates.webp)
+
+![triangle](templates/templates_folding_21_triangle_triangle_plates.webp)
+
+![pentagon](templates/templates_folding_22_triangle_pentagon_plates.webp)
+
+![hexagon](templates/templates_folding_23_triangle_hexagon_plates.webp)
+
+<details><summary>Example code: templates_folding_20_triangle_square.cpp</summary>
+
+\include{lineno} templates_folding_20_triangle_square.cpp
 
 </details>
 
