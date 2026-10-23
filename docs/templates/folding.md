@@ -9,6 +9,7 @@ The topology is the same in every system: plates one after another, each meeting
 | pages | Engel | template |
 | --- | --- | --- |
 | 219-221 | singly folded plate: threefold action, advantages over a rib slab, the number of folds, stiffening of the profile and of the free edges | [`PrismaticFold`](#prismatic_fold) |
+| 222-224 | surfaces with counter-running folding and with conical folding | [`CounterFold`](#counter_fold) |
 | 225-227 | linear structure systems of folded surfaces: frames and arches | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -130,6 +131,113 @@ PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 
 <details><summary>Example code: templates_folding_4_folded_barrel.cpp</summary>
 
 \include{lineno} templates_folding_4_folded_barrel.cpp
+
+</details>
+
+## Counter-running and conical folding {#counter_fold}
+
+Fold profiles at stations along the span, joined station to station by straight fold lines (`folding/counter_fold.h`, examples `templates_folding_5_counter_fold`, `templates_folding_6_elevated_fold` and `templates_folding_7_conical_fold`). Engel (pp. 222-224) changes the profile along the span: counter-running, the ridges of one station standing where the next has its valleys; raised towards the middle; deeper towards the middle. A strip between two fold lines then has four corners that are not in one plane, a warped strip, so it cannot be one plate: it folds along one of its diagonals into two triangles, and a triangle is always planar. Which diagonal folds is the difference between Engel's ridge-to-ridge folding (First-zu-First), through the strip's two high corners, so the ridges run diagonally from the ridges of one station to those of the next, and ridge-to-valley folding (First-zu-Kehle), through its two low corners, a valley; alternate folding (Wechselfaltung) takes the one and the other strip by strip. A strip still planar, two stations of the same profile, stays one quad. Measured on all three systems with all three foldings: 300 plates, every one 60.00 thick, its outlines in their planes within 0.00001 mm and its faces parallel.
+
+![counter-running fold](templates/templates_folding_5_counter_fold_plates.webp)
+
+```cpp
+CounterFold fold(
+    CounterFold::counter_running(5, 1500.0, 1500.0, 18000.0),   // five ridges, 1500 across and deep, over 18 m
+    CounterFold::Folding::ridge_to_ridge,                      // the diagonal every warped strip folds along
+    60.0                                                       // thickness
+);
+```
+
+| Engel | stations | `CounterFold::` |
+| --- | --- | --- |
+| counter-running folding, same depth of the profiles and same elevation above ground (p. 222) | the zigzag at the start, its counter profile at the end | `counter_running(ridges, fold_width, depth, span)` |
+| counter profile in the centre (p. 222) | the zigzag at both ends, its counter profile at mid-span | `counter_centre(ridges, fold_width, depth, span, 0.0, depth)` |
+| centre fold elevated over the edge folds, identical depth (p. 223) | the counter profile at mid-span raised | `counter_centre(ridges, fold_width, depth, span, rise, depth)` |
+| elevated centre profile deeper than the edge profiles (p. 224) | the counter profile at mid-span raised and deeper | `counter_centre(ridges, fold_width, depth, span, rise, middle_depth)` |
+| conical folding: a continuous profile, its upper edge cut by sloping planes (p. 224) | one zigzag throughout, valleys level, the ridges higher at mid-span | `conical(ridges, fold_width, depth, span, middle_depth)` |
+| ridge-to-ridge, ridge-to-valley, alternate folding (pp. 222, 223) | the diagonal of every warped strip | `Folding::ridge_to_ridge`, `ridge_to_valley`, `alternate` |
+
+### Stations
+
+The fold profiles along the span, each a zigzag in a yz plane; the counter profile starts on a ridge, so its ridges stand over the other's valleys.
+
+![stations](templates/templates_folding_5_counter_fold_stations.webp)
+
+```cpp
+for (size_t i = 0; i <= 2 * ridges; i++)
+    points.push_back(Point(x, fold_width * static_cast<double>(i), elevation + ((i % 2 == 1) != counter ? depth : 0.0)));
+```
+
+### Mesh
+
+Per strip between two stations and two fold lines: one quad when its fourth corner lies on the plane of the other three, else two triangles on the folding's diagonal, all facing in.
+
+![mesh](templates/templates_folding_5_counter_fold_mesh.webp)
+
+```cpp
+const bool high_ac = points[a][2] + points[c][2] > points[b][2] + points[d][2];
+const bool ridge = folding == Folding::ridge_to_ridge || (folding == Folding::alternate && i % 2 == 0);
+
+if (high_ac == ridge) {
+    faces.push_back({a, b, c});
+    faces.push_back({a, c, d});
+} else {
+    faces.push_back({a, b, d});
+    faces.push_back({b, c, d});
+}
+```
+
+### Folds
+
+Every edge of the mesh: the fold lines between the stations and the diagonals. From above, as Engel draws the plan, the ridges zigzag from one end to the other:
+
+![plan](templates/templates_folding_5_counter_fold_plan.webp)
+
+### Plates
+
+One plate per triangle, mitered at every fold, as for the singly folded plate.
+
+![plates](templates/templates_folding_5_counter_fold_plates.webp)
+
+### Elevated centre
+
+The centre fold elevated over the edge folds (p. 223): the zigzag at both ends, its counter profile at mid-span 3000 higher, ridge to ridge.
+
+![elevated fold](templates/templates_folding_6_elevated_fold_plates.webp)
+
+![elevated fold plan](templates/templates_folding_6_elevated_fold_plan.webp)
+
+```cpp
+CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), CounterFold::Folding::ridge_to_ridge, 60.0, "elevated_fold");
+```
+
+### Conical folding
+
+Sloped folding (p. 224, Abgeschrägte Faltung): one zigzag throughout, its valleys level and its ridges 600 high at both ends and 1800 at mid-span. A strip between a level valley and a sloping ridge is warped, so the plates fan out from the high ridges at mid-span, crossing in plan as Engel draws them.
+
+![conical fold](templates/templates_folding_7_conical_fold_plates.webp)
+
+![conical fold plan](templates/templates_folding_7_conical_fold_plan.webp)
+
+```cpp
+CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), CounterFold::Folding::ridge_to_ridge, 60.0, "conical_fold");
+```
+
+<details><summary>Example code: templates_folding_5_counter_fold.cpp</summary>
+
+\include{lineno} templates_folding_5_counter_fold.cpp
+
+</details>
+
+<details><summary>Example code: templates_folding_6_elevated_fold.cpp</summary>
+
+\include{lineno} templates_folding_6_elevated_fold.cpp
+
+</details>
+
+<details><summary>Example code: templates_folding_7_conical_fold.cpp</summary>
+
+\include{lineno} templates_folding_7_conical_fold.cpp
 
 </details>
 

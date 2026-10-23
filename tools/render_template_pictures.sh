@@ -23,6 +23,12 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" --view right --name end templates_folding_3_prismatic_fold all
     "${RENDER[@]}" templates_folding_4_folded_barrel all
     "${RENDER[@]}" --view right --name end templates_folding_4_folded_barrel all
+    "${RENDER[@]}" templates_folding_5_counter_fold stations mesh plates
+    "${RENDER[@]}" --view top --name plan templates_folding_5_counter_fold folds
+    "${RENDER[@]}" templates_folding_6_elevated_fold plates
+    "${RENDER[@]}" --view top --name plan templates_folding_6_elevated_fold folds
+    "${RENDER[@]}" templates_folding_7_conical_fold plates
+    "${RENDER[@]}" --view top --name plan templates_folding_7_conical_fold folds
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
