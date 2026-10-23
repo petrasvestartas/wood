@@ -103,6 +103,7 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | `main_all_datasets`, `main_dataset_runner` | the sweep, and one dataset of it |
 | `main_session_round_trip`, `main_element_mapping_check` | round-trip checks, exit code = failures |
 | `templates_shells_1_translation_shell`, `templates_folding_1_reflex_fold`, `templates_folding_2_diamond_mesh`, `templates_chevron_1_chevron`, `templates_cross_1_vda_mesh`, `templates_reciprocal_2_move`, `templates_reciprocal_1_rotation` | each shell template built with its defaults and written to `live.pb` as a mesh plus its plates |
+| `templates_module_1_wall` | `src/templates/module/wall.h`: a framed wall module with a door and a window, beams and sheathing plates on both faces, a face contact and headed pins on every pair that touches |
 | `templates_grid_1_footprint` | `src/templates/grid/grid.h` on footprints with patterns (workflow B), side by side: orthogonal with purlins and facade, skewed, radial, triangular, hex, irregular, courtyard, pentagon, U with two cores; every joint a plane cut, written to `live.pb` |
 | `templates_grid_2_solid` | the same from massing solids sliced at the elevations (workflow A): box, prism, taper, setback, atrium, curved |
 | `templates_grid_3_lines` | the same from drawn lines and surfaces (workflow C): the crea dataset and a braced frame |

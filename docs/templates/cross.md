@@ -155,7 +155,9 @@ const Polyline bottom = Polyline::rectangle(
 
 ### Cross laps
 
-Every connector crosses a plate of each of its two faces; `compute_cross_contact` finds the crossing, a `JointPlate::cross_slot` is oriented on it and merged into both outlines, a slot over half the depth in the connector and in the plate.
+Every connector crosses a plate of each of its two faces; `compute_cross_contact` finds the crossing, a `JointPlate::cross_slot` is oriented on it and merged into both outlines, a slot over half the depth in the connector and in the plate. The plates alone, close up: every edge carries the empty slots its connectors stand in, their walls on the connector's faces.
+
+![cross laps](templates/templates_cross_1_vda_mesh_cross_laps.webp)
 
 ```cpp
 const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(connector, plate);

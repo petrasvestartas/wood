@@ -1,4 +1,3 @@
-import fcntl
 import os
 import pathlib
 import shutil
@@ -9,13 +8,22 @@ import tempfile
 from PIL import Image, ImageChops
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
+WINDOWS = os.name == "nt"
 RENDERER = (
-    WOOD.parent
+    WOOD.parent / "session/session_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
+    if WINDOWS
+    else WOOD.parent
     / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 )
-PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
+PYTHON = WOOD.parent / (
+    "session/session_py/.venv/Scripts/python.exe"
+    if WINDOWS
+    else "session/session_py/.venv/bin/python"
+)
 IMAGES = WOOD / "docs" / "images" / "templates"
-BUILD = pathlib.Path(os.environ.get("WOOD_BUILD", WOOD / "build"))
+BUILD = pathlib.Path(
+    os.environ.get("WOOD_BUILD", WOOD / "build" / "Release" if WINDOWS else WOOD / "build")
+)
 LOCK = pathlib.Path(tempfile.gettempdir()) / "wood_live_pb.lock"
 
 BRANCH = r"""
@@ -35,7 +43,15 @@ def run_example(name: str, out: pathlib.Path) -> None:
     live = WOOD / "data" / "output" / "pb" / "live.pb"
 
     with open(LOCK, "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        if WINDOWS:
+            import msvcrt
+
+            msvcrt.locking(lock.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock, fcntl.LOCK_EX)
+
         subprocess.run([str(BUILD / name)], check=True, capture_output=True, cwd=WOOD)
         shutil.copy(live, out)
 
