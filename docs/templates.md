@@ -12,6 +12,7 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 | [Diamond mesh](@ref templates_folding) | `folding/diamond_mesh.h` | `templates_folding_2_diamond_mesh` | one plate per triangle of a rhombus pattern |
 | [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | one plate per face plus connector plates across every interior edge |
 | [Wall module](@ref templates_module) | `module/wall.h` | `templates_module_1_wall` | `Wall`: rails, studs, king studs, headers, sills and cripples as beams, sheathing plates on both faces, a face contact and headed pins on every member and panel that touch |
+| [Cassette shell](@ref templates_module) | `module/cassette_shell.h` | `templates_module_2_cassette_shell` | `CassetteShell`: per mesh face a hollow cassette, two thin plates and mitered edge beams cut on the bevel the cell shares with its neighbour, the contacts between cassettes detected |
 | [Reciprocal move](@ref templates_reciprocal) | `reciprocal/reciprocal_move.h` | `templates_reciprocal_2_move` | a beam on every other edge of each face, moved past its neighbours, inside a straight frame |
 | [Reciprocal rotation](@ref templates_reciprocal) | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_1_rotation` | a beam on every interior edge, turned about its midpoint, inside a straight frame |
 | [Grid](@ref templates_grid) | `grid/grid.h` | `3_elements_tree`, `templates_grid_{1..5}_*` | a `Grid` session per building: columns, heads, girders, beams, purlins, braces, decks and walls level by level |

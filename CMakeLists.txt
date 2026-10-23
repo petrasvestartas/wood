@@ -110,6 +110,7 @@ set(WOOD_SOURCES
     src/templates/truss/truss_guide.cpp
     src/templates/truss/truss.cpp
     src/templates/module/wall.cpp
+    src/templates/module/cassette_shell.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -291,6 +292,7 @@ ADD_EXE(templates_reciprocal_2_move        examples/templates_reciprocal_2_move.
 ADD_EXE(templates_folding_2_diamond_mesh           examples/templates_folding_2_diamond_mesh.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
+ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
 ADD_EXE(templates_grid_1_footprint         examples/templates_grid_1_footprint.cpp)
 ADD_EXE(templates_grid_2_solid             examples/templates_grid_2_solid.cpp)
 ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)

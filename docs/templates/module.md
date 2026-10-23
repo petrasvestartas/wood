@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR: a module is a name in the tree, a group of `Beam` and `Plate` elements, their contacts and the pins on them, nothing more. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene.
+Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements, their contacts and the pins on them, nothing more. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene.
 
 ## Wall
 
@@ -85,5 +85,78 @@ for (size_t k = 0; k < connectors.frame.size(); k++) {
 <details><summary>Example code: templates_module_1_wall.cpp</summary>
 
 \include{lineno} templates_module_1_wall.cpp
+
+</details>
+
+## Cassette shell
+
+A segmented shell of hollow cassettes after the BUGA Wood Pavilion 2019, one per face of a mesh of planar hexagons and pentagons (`module/cassette_shell.h`, example `templates_module_2_cassette_shell`). Instead of one thick panel each cell is two thin plates with edge beams between them.
+
+![cassette shell](templates/templates_module_2_cassette_shell_all.webp)
+
+```cpp
+wood_module::CassetteShell shell;  // or CassetteShell(mesh, depth, plate_thickness, beam_width)
+```
+
+| Parameter | Default | Controls |
+| --- | --- | --- |
+| `mesh` | `default_mesh()`, the fifteen-face VDA dome | one cassette per face |
+| `depth` | 200 | cassette depth along the face normal, plates included |
+| `plate_thickness` | 20 | top and bottom plate |
+| `beam_width` | 60 | edge beam width square to its edge plane |
+
+### Planes
+
+Per face edge one plane through the edge, leaning on the average normal of the two cells and pointing out of the face; both cassettes on an edge cut their sides on it, so cells at an angle meet on a bevel. Per corner the plane halfway between its two edge planes miters the beams, square to the edge where the two edges run in line.
+
+```cpp
+Vector out = (end - start).cross(lean);
+out.normalize_self();
+
+if ((_face_planes[f].origin() - middle).dot(out) > 0.0)
+    out = out * -1.0;
+
+planes[f].push_back(Plane::from_point_normal(middle, out));
+```
+
+### Cassette
+
+A top and a bottom plate cut by the edge planes, and per edge a beam between them: its outer face on the edge plane, its inner face `beam_width` in, its ends on the miter planes, each a `Plate` lofted between its loops at the two plate levels, so its outer face is cut at the angle between the two cells.
+
+![cassette](templates/templates_module_2_cassette_shell_cassette_4.webp)
+
+```cpp
+const Plane& outer = _edge_planes[f][j];
+const Plane inner = outer.translate_by_normal(-beam_width);
+const std::vector<Plane> sides = {outer, _miter_planes[f][j], inner, _miter_planes[f][(j + n - 1) % n]};
+const Polyline bottom_loop = Polyline::from_planes(sides, bottom);
+const Polyline top_loop = Polyline::from_planes(sides, top);
+add(std::make_shared<Plate>(bottom_loop, top_loop, fmt::format("edge_beam_{}_{}", f, j)), group);
+```
+
+### Contacts
+
+`compute_face_contact` inside every cassette, each plate on each beam and every beam on the next at its miter, and between cassettes the two beams on every interior edge, face to face on the bevel they share; a pair that should touch and does not throws. Two neighbouring cassettes, the contact red on its host beam:
+
+![two cassettes](templates/templates_module_2_cassette_shell_cassette_8.webp)
+
+Every contact between cassettes drawn in `contacts`, one per interior edge of the mesh:
+
+![contacts](templates/templates_module_2_cassette_shell_contacts.webp)
+
+```cpp
+const std::shared_ptr<Plate> beam = get_element_by_name<Plate>(fmt::format("edge_beam_{}_{}", f, j));
+const std::shared_ptr<Plate> other = get_element_by_name<Plate>(fmt::format("edge_beam_{}_{}", g, i));
+const std::shared_ptr<InteractionContactFace> face = add_contact(beam, other);
+
+if (!face)
+    throw std::runtime_error(fmt::format("cassettes {} and {} do not touch across their edge", f, g));
+```
+
+No connector is made yet: the contacts are where bolts or joints between cassettes will go.
+
+<details><summary>Example code: templates_module_2_cassette_shell.cpp</summary>
+
+\include{lineno} templates_module_2_cassette_shell.cpp
 
 </details>
