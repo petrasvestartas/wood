@@ -16,7 +16,7 @@ The topology is the same in every system: plates one after another, each meeting
 | 232 | structure systems of folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [`TriangleFold`](#triangle_fold) |
 | 229 | fans from the corners to the cross, ridges rising toward the centre | [`FanFold`](#fan_fold) |
 | 220-233 | the remaining variants of every page | [every topology by page](#folding_variants) |
-| - | curved folding after Knie's Zauberhut (Blumer Lehmann, 2020) | [`CurvedFold`](#curved_fold) |
+| - | curved folding after Knie's Zauberhut (Blumer Lehmann, 2020), curved NURBS panels | [`CurvedFold`](#curved_fold) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -452,7 +452,7 @@ TriangleFold fold(
 
 ## Curved folding {#curved_fold}
 
-The folded tent roof of Knie's Zauberhut in Rapperswil (Blumer Lehmann with Carlos Martinez Architekten, 2020; [project page](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/free-form/knies-zauberhut.html)): a freestanding folded shell of 32 m diameter rising into a tower 26 m high with a round top of 7 m, its valleys running down to concrete columns, its ridges ending in a gable over the eaves between them (`folding/curved_fold.h`, example `templates_folding_37_curved_fold`). The curved folds are discretised in rings: every ring is the same star of ridge and valley points scaled by the trumpet curve's radius, flat at the eaves and vertical at the tower, and lifted to its height, the fold's depth and the valleys' inset scaling with it. The two ring segments of a band between two rings are therefore parallel, and every band is a planar trapezoid, a ruled strip of the curved fold.
+The folded tent roof of Knie's Zauberhut in Rapperswil (Blumer Lehmann with Carlos Martinez Architekten, 2020; [project page](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/free-form/knies-zauberhut.html)): a freestanding folded shell of 32 m diameter rising into a tower 26 m high with a round top of 7 m, its valleys running down to concrete columns, its ridges ending in a gable over the eaves between them (`folding/curved_fold.h`, example `templates_folding_37_curved_fold`). Every ridge and valley is a smooth NURBS curve, a meridian interpolated through rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius, flat at the eaves and vertical at the tower, and lifted to its height. Every fold strip between two neighbouring meridians is one curved panel, a ruled NURBS surface between them (`Primitives::create_ruled`), with no facet and no triangle, as the 5 cm sheathing on the uniaxially curved glulam of the built roof; its inner face is the ruled surface between the inner meridians, where the two neighbouring strips offset by the thickness meet.
 
 ```cpp
 CurvedFold fold(
@@ -463,12 +463,12 @@ CurvedFold fold(
     26000.0,   // tower's top
     4000.0,    // gable: a ridge over its valleys at the eaves
     0.1,       // valleys' inset
-    14,        // rings
+    14,        // rings the meridians are interpolated through
     120.0      // thickness
 );
 ```
 
-![curved fold](templates/templates_folding_37_curved_fold_plates.webp)
+![curved fold](templates/templates_folding_37_curved_fold_panels_outer.webp)
 
 ![curved fold elevation](templates/templates_folding_37_curved_fold_elevation.webp)
 

@@ -1,30 +1,30 @@
 #pragma once
 #include "wood_session.h"
-#include "src/templates/template_chamfer.h"
+#include "primitives.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
 /// A curved folded tent roof after Knie's Zauberhut, Rapperswil (Blumer Lehmann, Carlos Martinez Architekten, 2020): a roof of 32 m
 /// diameter rising in a trumpet curve into a tower 26 m high, folded into sectors whose valleys run down to the columns and whose
-/// ridges end in a gable over the eaves, the folds shrinking into the tower. The curved folds are discretised in rings: every ring the
-/// same star of ridge and valley points around the axis scaled by the trumpet curve's radius and lifted to its height, the fold's
-/// depth and the valleys' inset scaling with it, so the two ring segments of a band between two rings are parallel and every band is a
-/// planar trapezoid, a ruled strip of the curved fold; a band whose segments are not parallel would fold into two planar triangles.
-/// Every plate is planar, whatever its thickness.
+/// ridges end in a gable over the eaves, the folds shrinking into the tower. Every ridge and valley is a smooth NURBS curve, a meridian
+/// interpolated through the rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius and lifted
+/// to its height; every fold strip between two neighbouring meridians is one curved panel, a ruled NURBS surface between them, its
+/// inner face the ruled surface between the inner meridians, where the two panels' faces offset by the thickness meet. No facet, no
+/// triangle: the panels are curved, as the 5 cm sheathing on the uniaxially curved glulam of the built roof.
 ///
-/// Fields: the plan, the curve, the fold and the thickness; the meridians, the mesh and the plates are in the session.
+/// Fields: the plan, the curve, the fold and the thickness; the meridians and the panels are in the session.
 class CurvedFold : public WoodSession {
 public:
     const size_t sectors; // Folds around the axis, a ridge and a valley each.
     const double radius; // mm, the eaves' radius at the ridges.
-    const double top_radius; // mm, the round tower's radius at the top.
+    const double top_radius; // mm, the tower's radius at the top.
     const double eave; // mm, the valleys' height at the eaves, on the columns.
     const double height; // mm, the tower's top.
     const double gable; // mm, how far a ridge rises over its valleys at the eaves, the fold's depth, scaling with the radius up the tower.
-    const double inset; // The valleys' radius inside the ridges' at the eaves, a fraction of the radius.
-    const size_t rings; // Rings from the eaves to the top, the curve's discretisation.
-    const double thickness; // mm, every plate.
+    const double inset; // The valleys' radius inside the ridges', a fraction of the radius.
+    const size_t rings; // Rings from the eaves to the top the meridians are interpolated through.
+    const double thickness; // mm, every panel.
 
     /// The curved fold as the session named name.
     explicit CurvedFold(
@@ -46,15 +46,14 @@ public:
     /// Not assigned, as it is not copied.
     CurvedFold& operator=(const CurvedFold&) = delete;
 
-    /// The folded mesh, the plates' outer faces, one face per plate.
-    const Mesh& mesh() const;
-
 private:
-    Mesh _mesh;
-
     /// Per ring from the eaves up its star of 2 sectors points, a ridge and a valley in turn: the trumpet curve's radius, flat at the
     /// eaves and vertical at the tower, its height, the fold's depth and the valleys' inset scaled with the radius.
     std::vector<std::vector<Point>> compute_rings() const;
+
+    /// The same points on the panels' inner faces: at every point the line where the two strips beside it, offset inwards by the
+    /// thickness, meet, cut by the point's level.
+    std::vector<std::vector<Point>> compute_inner_rings(const std::vector<std::vector<Point>>& stars) const;
 };
 
 inline CurvedFold::CurvedFold(
@@ -77,61 +76,40 @@ inline CurvedFold::CurvedFold(
       height(height),
       gable(gable),
       inset(inset),
-      rings(std::max<size_t>(rings, 2)),
+      rings(std::max<size_t>(rings, 3)),
       thickness(thickness) {
 
-    // meridians: the ridge and valley curves from the eaves to the top through every ring
-    const std::vector<std::vector<Point>> stars = compute_rings();
     const size_t count = 2 * sectors;
+    const std::vector<std::vector<Point>> stars = compute_rings();
+    const std::vector<std::vector<Point>> inner_stars = compute_inner_rings(stars);
+
+    // meridians: every ridge and valley a NURBS curve through the rings, on the outer and on the inner face
+    std::vector<NurbsCurve> outer;
+    std::vector<NurbsCurve> inner;
     const std::shared_ptr<TreeNode> meridians = add_group("meridians");
 
     for (size_t j = 0; j < count; j++) {
-        std::vector<Point> curve;
+        std::vector<Point> outer_points;
+        std::vector<Point> inner_points;
 
-        for (const std::vector<Point>& star : stars)
-            curve.push_back(star[j]);
-
-        add_polyline(Polyline(curve), meridians);
-    }
-
-    // mesh: per band between two rings and two meridians a planar quad where its ring segments are parallel, else two triangles
-    std::vector<Point> points;
-    std::vector<std::vector<size_t>> faces;
-
-    for (const std::vector<Point>& star : stars)
-        points.insert(points.end(), star.begin(), star.end());
-
-    for (size_t k = 0; k + 1 < stars.size(); k++)
-        for (size_t j = 0; j < count; j++) {
-            const size_t next = (j + 1) % count;
-            const size_t a = k * count + j;
-            const size_t b = k * count + next;
-            const size_t c = (k + 1) * count + next;
-            const size_t d = (k + 1) * count + j;
-            const Vector normal = (points[d] - points[a]).cross(points[b] - points[a]).normalized();
-
-            if (std::abs((points[c] - points[a]).dot(normal)) < 1.0) {
-                faces.push_back({a, d, c, b});
-                continue;
-            }
-
-            faces.push_back({a, d, c});
-            faces.push_back({a, c, b});
+        for (size_t k = 0; k < stars.size(); k++) {
+            outer_points.push_back(stars[k][j]);
+            inner_points.push_back(inner_stars[k][j]);
         }
 
-    _mesh = Mesh::from_vertices_and_faces(points, faces);
-    add_mesh(_mesh, add_group("mesh"));
+        outer.push_back(NurbsCurve::create_interpolated(outer_points));
+        inner.push_back(NurbsCurve::create_interpolated(inner_points));
+        add_polyline(Polyline(outer_points), meridians);
+    }
 
-    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart the
-    // corners are cut back, by just that spread
-    const std::shared_ptr<TreeNode> plates = add_group("plates");
+    // panels: every fold strip one curved panel, the ruled surface between its two meridians on the outer face and on the inner face
+    const std::shared_ptr<TreeNode> outer_faces = add_group("panels_outer");
+    const std::shared_ptr<TreeNode> inner_faces = add_group("panels_inner");
 
-    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness))
-        add(plate, plates);
-}
-
-inline const Mesh& CurvedFold::mesh() const {
-    return _mesh;
+    for (size_t j = 0; j < count; j++) {
+        add_nurbssurface(Primitives::create_ruled(outer[j], outer[(j + 1) % count]), outer_faces);
+        add_nurbssurface(Primitives::create_ruled(inner[j], inner[(j + 1) % count]), inner_faces);
+    }
 }
 
 inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {
@@ -158,4 +136,40 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {
     }
 
     return stars;
+}
+
+inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std::vector<std::vector<Point>>& stars) const {
+
+    const size_t count = 2 * sectors;
+    std::vector<std::vector<Point>> inner;
+
+    for (size_t k = 0; k < stars.size(); k++) {
+        // the band below the last ring, the one above every other
+        const size_t band = std::min(k, stars.size() - 2);
+        const std::vector<Point>& low = stars[band];
+        const std::vector<Point>& high = stars[band + 1];
+        std::vector<Point> ring;
+
+        for (size_t j = 0; j < count; j++) {
+            // the strips before and after the point, their planes moved inwards by the thickness
+            std::array<Plane, 2> offsets;
+
+            for (size_t side = 0; side < 2; side++) {
+                const size_t a = (j + count - 1 + side) % count;
+                const size_t b = (a + 1) % count;
+                Vector normal = (high[a] - low[a]).cross(low[b] - low[a]);
+                normal.normalize_self();
+                offsets[side] = Plane::from_point_normal(low[a] + normal * thickness, normal);
+            }
+
+            const std::optional<Line> fold = Intersection::plane_plane(offsets[0], offsets[1]);
+            const Plane level = Plane::from_point_normal(stars[k][j], Vector(0.0, 0.0, 1.0));
+            const std::optional<Point> point = fold ? Intersection::line_plane(*fold, level, false) : std::nullopt;
+            ring.push_back(point.value_or(stars[k][j]));
+        }
+
+        inner.push_back(ring);
+    }
+
+    return inner;
 }
