@@ -8,7 +8,7 @@ using namespace wood_session;
 /// each, side by side, their shared edges welded.
 int main() {
 
-    CrossFold fold(6000.0, 1, 0.0, 1200.0, 2400.0, 120.0, 4, 3, "fold_composition");
+    CrossFold fold(6000.0, 1, 0.0, 1200.0, 1800.0, 120.0, 4, 3, "fold_composition");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("fold composition: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 19 of the folding templates: the composition of surfaces folded crosswise over square plans after Engel, Structure Systems, Folded plate structures (p. 230). Twelve units of the waterbomb fold of step 16, 6 m squares in four columns and three rows, 24 by 18 m; in each the diagonals are valleys ending on the corners at 0 and the cross ridges ending at the edges' midpoints at 1200, rising to the unit's centre at 2400; the units share their edge points, so two units' plates meet mitered along their common edge: 96 planar triangles 120 mm thick, their corners cut back only where needed. Each step is a group: folds, mesh, plates.
+Step 19 of the folding templates: the composition of surfaces folded crosswise over square plans after Engel, Structure Systems, Folded plate structures (p. 230). Twelve units of the waterbomb fold of step 16, 6 m squares in four columns and three rows, 24 by 18 m; in each the diagonals are valleys ending on the corners at 0 and the cross ridges ending at the edges' midpoints at 1200, rising to the unit's centre at 1800; the units share their edge points, so two units' plates meet mitered along their common edge: 96 planar triangles 120 mm thick, their corners cut back only where needed. Each step is a group: folds, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

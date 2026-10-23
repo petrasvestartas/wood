@@ -348,7 +348,7 @@ PolygonFold fold(
 
 ### Corners
 
-Where three or more plates meet at a node, the bisector planes of the folds around it need not meet in one line, so the plates' inner corners there spread apart and their corners would pass through each other. `node_cut_plates` (`template_chamfer.h`) measures that spread per node, the largest distance between two of its plates' inner corners, and cuts every corner at that node back along its two edges by just that much, on both outlines; neighbours cut the same length off their shared edge, so their miter faces still meet. A node of two plates, or one whose inner corners meet in one point, as at a pyramid's apex, keeps its corners sharp. `CounterFold`, `FoldedFrame`, `PolygonFold`, `CrossFold`, `TriangleFold` and `FanFold` all cut their corners this way.
+Where three or more plates meet at a node, the bisector planes of the folds around it need not meet in one line, so their corners would pass through each other. `node_cut_plates` (`template_chamfer.h`) cuts each corner individually and only as far as needed: for every other plate at the node it takes the plane through the node halving the two plates' planes, which separates them as the miter plane separates two neighbours, and cuts the corner by the deepest such plane it crosses, on both outlines; a corner crossing none, every corner of a two-plate node and every corner where the plates meet in one point, as at a pyramid's apex, stays sharp. Plates on both sides of every bisector cannot meet. Before that, neighbouring coplanar faces are merged into one plate (`merged_coplanar`): two coplanar triangles become one bigger triangle, and a vertex left straight on the merged outline is dropped unless another plate still needs it.
 
 ![corners](templates/templates_folding_8_two_hinged_frame_corner.webp)
 
@@ -368,7 +368,7 @@ CrossFold fold(
     3,         // divisions of every half edge
     0.0,       // low: corners and every second division point
     3000.0,    // high: the other division points
-    6000.0,    // centre
+    4500.0,    // centre
     120.0,     // thickness
     1, 1       // columns, rows
 );

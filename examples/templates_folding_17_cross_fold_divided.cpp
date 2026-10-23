@@ -8,7 +8,7 @@ using namespace wood_session;
 /// valley and ridge from the corners, 24 planar triangles.
 int main() {
 
-    CrossFold fold(18000.0, 3, 0.0, 3000.0, 6000.0, 120.0, 1, 1, "cross_fold_divided");
+    CrossFold fold(18000.0, 3, 0.0, 3000.0, 4500.0, 120.0, 1, 1, "cross_fold_divided");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("cross fold divided: {} divisions, {} plates\n", fold.divisions, plates.size());

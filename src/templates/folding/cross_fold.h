@@ -33,7 +33,7 @@ public:
         size_t divisions = 1,
         double low = 0.0,
         double high = 3000.0,
-        double centre = 6000.0,
+        double centre = 4500.0,
         double thickness = 120.0,
         size_t columns = 1,
         size_t rows = 1,
