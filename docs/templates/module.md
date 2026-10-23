@@ -57,7 +57,7 @@ for (const std::pair<double, size_t>& entry : doors) {
 }
 ```
 
-Seen through, at opacity 0.35, the frame between the two panels:
+Seen through, at opacity 0.95, the frame between the two panels:
 
 ![wall seen through](templates/templates_module_1_wall_inside.webp)
 
@@ -174,7 +174,7 @@ wood_module::CassetteShell house(
 );
 ```
 
-Each cassette is a big panel on either side with its openings cut out, and between them the edge beams on its boundary, studs every 625 mm, rafters on the roof, and around every opening two jambs, a header and under a window a sill; a door stands on the bottom beam. Every edge beam is cut on the plane its edge shares with the neighbouring cassette, the dihedral bisector of the two faces. Where three cassettes meet, at the eaves corners and at the gable apexes, the three bisector planes meet in one line, so the corners close; a gable split into a wall and a triangle would make four meet there, and four do not. Seen through, at opacity 0.35:
+Each cassette is a big panel on either side with its openings cut out, and between them the edge beams on its boundary, studs every 625 mm, rafters on the roof, and around every opening two jambs, a header and under a window a sill; a door stands on the bottom beam. Every edge beam is cut on the plane its edge shares with the neighbouring cassette, the dihedral bisector of the two faces. Where three cassettes meet, at the eaves corners and at the gable apexes, the three bisector planes meet in one line, so the corners close; a gable split into a wall and a triangle would make four meet there, and four do not. Seen through, at opacity 0.95:
 
 ![cassette house seen through](templates/templates_module_3_cassette_house_inside.webp)
 
