@@ -50,4 +50,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --view right --name section templates_module_3_cassette_house all
     "${RENDER[@]}" --view right --size 8000x5333 --crop 0.0,0.36,0.14,0.52 --name eave templates_module_3_cassette_house all
     "${RENDER[@]}" --view right --size 8000x5333 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
+    "${RENDER[@]}" templates_module_4_room_module all
+    "${RENDER[@]}" --opacity 0.95 --name inside templates_module_4_room_module all
+    "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_rails+module_0_0_floor_studs
+    "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_front_rails+module_0_0_wall_front_studs+module_0_0_wall_front_opening_0+module_0_0_wall_front_opening_1
+    "${RENDER[@]}" --name contacts templates_module_4_room_module contacts_frame+contacts_sheathing
+    "${RENDER[@]}" templates_module_5_module_block all
 fi

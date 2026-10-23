@@ -2,11 +2,11 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, so a member is doubled only where an opening is off the grid. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
+Timber modules from beams and panels, after the kit-of-parts buildings of AUAR, the hollow cassettes of the BUGA Wood Pavilion 2019 and the room modules of Blumer Lehmann: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, so a member is doubled only where an opening is off the grid. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
 
 ## Wall
 
-A framed wall with a door and a window, one panel on each face (`module/wall.h`, example `templates_module_1_wall`).
+A framed wall with a door and a window, one panel on each face (`module/wall.h`, example `templates_module_1_wall`): one `FramedPanel` standing in the xz plane (`module/framed_panel.h`), the framing every module's walls, floors and ceilings share.
 
 ![wall](templates/templates_module_1_wall_all.webp)
 
@@ -58,16 +58,16 @@ Seen through, at opacity 0.95, the frame between the two panels:
 
 ### Contacts
 
-`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 34 between the two panels and the 17 frame members. No connector is made.
+`add_module_contacts` (`module/module_contact.h`) searches the face contact between every two frame members and between every sheet and frame member whose boxes touch. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 34 between the two panels and the 17 frame members. No connector is made.
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
 ```cpp
-const std::shared_ptr<Beam> source = end_i > end_j ? members[j] : members[i];
-const std::shared_ptr<Beam> target = end_i > end_j ? members[i] : members[j];
-const std::shared_ptr<InteractionContactFace> face = compute_face_contact(source, target);
-face->name = fmt::format("{}_on_{}", target->name, source->name);
-add_interaction(source, target, face);
+// side by side, as a jamb and a stud next to it: neither ends on the other
+const bool beside = std::max(end_i, end_j) < 0.9;
+const std::shared_ptr<Beam> source = !beside && end_i > end_j ? beam_j : beam_i;
+const std::shared_ptr<Beam> target = !beside && end_i > end_j ? beam_i : beam_j;
+const std::shared_ptr<InteractionContactFace> face = session.compute_face_contact(source, target);
 ```
 
 <details><summary>Example code: templates_module_1_wall.cpp</summary>
@@ -219,5 +219,90 @@ Every contact between cassettes as a red mesh, a cut cassette's plates and beams
 <details><summary>Example code: templates_module_3_cassette_house.cpp</summary>
 
 \include{lineno} templates_module_3_cassette_house.cpp
+
+</details>
+
+## Room module
+
+A timber room module after the modules of Blumer Lehmann, and a block of them (`module/room_module.h`, examples `templates_module_4_room_module` and `templates_module_5_module_block`).
+
+![room module](templates/templates_module_4_room_module_all.webp)
+
+What the module is built from, from Blumer Lehmann's own pages and reference sheets:
+
+| | Blumer Lehmann | the default here |
+| --- | --- | --- |
+| structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
+| elements | walls, ceilings and floors prefabricated with services, insulation, sound and fire protection | a floor and a ceiling element, four wall elements |
+| plan | 3 x 9 m outside (Chäserrugg modules, later an office in Luxembourg; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 3000 |
+| height | 2.7 m clear inside (Permapack office module) | 2700 clear, 3200 outside |
+| combining | side by side freely, stacked up to three storeys; upper modules also turned across the lower ones | `columns` side by side along the long walls, `storeys` stacked |
+| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t | 3000 wide, 3200 high |
+
+```cpp
+wood_module::RoomModuleGuide guide;  // 9000 x 3000, 2700 clear, a door and three windows
+wood_module::RoomModule module(guide);
+```
+
+| Parameter | Default | Controls |
+| --- | --- | --- |
+| `length`, `width`, `clear_height` | 9000, 3000, 2700 | the module's plan and the clear height inside |
+| `stud_width` | 60 | every member's size in the plane of its element |
+| `stud_depth`, `joist_depth` | 160, 200 | the wall frame and the floor and ceiling frame depth |
+| `stud_spacing` | 625 | studs and joists from each element's start |
+| `sheet_thickness`, `deck_thickness` | 15, 25 | one sheet on each face of a wall, one deck on each face of a floor and a ceiling |
+| `openings` | two windows front, one back, a door in the first end wall | per wall in its own frame |
+| `columns`, `storeys` | 1, 1 | modules side by side and stacked |
+
+### Elements
+
+Every element is a `FramedPanel`, the wall's framing in a plane: rails along its foot and top, an edge stud at both ends, studs on the grid, a jamb stud either side of every opening with the header and sill between them, and a sheet on each face. The floor and the ceiling lie flat over the whole module, their rails the rim joists and their studs the joists, 625 apart across it:
+
+![floor](templates/templates_module_4_room_module_floor.webp)
+
+The walls stand on the floor deck under the ceiling, the two long walls running past the two end walls; the front wall's first window falls on the grid, its jambs taking the place of two grid studs, the second is off it, a grid stud kept beside its jamb:
+
+![front wall](templates/templates_module_4_room_module_wall.webp)
+
+```cpp
+// long walls: on the floor deck under the ceiling along the whole module, running past the end walls
+const Plane front_plane(origin + y * (0.5 * wall) + z * floor_top, x, z);
+const FramedPanel front(*this, long_guide, front_plane, module + "_wall_front", group);
+```
+
+Seen through, at opacity 0.95:
+
+![room module seen through](templates/templates_module_4_room_module_inside.webp)
+
+### Contacts
+
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, a wall's rails on the floor deck and under the ceiling deck, the sheets on the members under them; between modules a long wall against its neighbour's and a ceiling deck under the next floor. One module has 182 contacts in its frames and 253 with its sheets:
+
+![contacts](templates/templates_module_4_room_module_contacts.webp)
+
+### Block
+
+Two modules side by side along their long walls and three storeys, the most Blumer Lehmann stacks; each module keeps its own floor, walls and ceiling, as a room module does:
+
+![module block](templates/templates_module_5_module_block_all.webp)
+
+```cpp
+wood_module::RoomModuleGuide guide;
+guide.columns = 2;
+guide.storeys = 3;
+wood_module::RoomModule block(guide, "module_block");
+```
+
+Sources: [Blumer Lehmann, Holzmodulbau](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/holzmodulbau.html); [Permapack office module](https://blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/verkaufsdoku-occasionsmodul-permapack-geisser-blumer-lehmann.pdf); [DBZ 2019, from mountain café to office](https://www.blumer-lehmann.com/en/dam/jcr:e6a4a58b-e1a0-4898-87d2-8c7f182b7488/2019-12-dbz-modulbau-modul-recycling-vom-bergcafe-zum-buero.pdf); [Ernst & Sohn 2019, timber modules for schools](https://www.blumer-lehmann.com/en/dam/jcr:8ad14105-9d05-4ec2-acd1-a55a9b9ca526/2019-09-ernst-und-sohn-special-kindertagesstaetten-mehr-spielraum-mit-holzmodulbauten-in-kinderbetreuung-und-schule.pdf); [Kanton St. Gallen, special transport permits](https://www.sg.ch/verkehr/strassenverkehr/sonderbewilligungen/ausnahmefahrzeuge-und--transporte.html).
+
+<details><summary>Example code: templates_module_4_room_module.cpp</summary>
+
+\include{lineno} templates_module_4_room_module.cpp
+
+</details>
+
+<details><summary>Example code: templates_module_5_module_block.cpp</summary>
+
+\include{lineno} templates_module_5_module_block.cpp
 
 </details>

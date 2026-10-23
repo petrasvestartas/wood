@@ -109,7 +109,10 @@ set(WOOD_SOURCES
     src/templates/floor/floor.cpp
     src/templates/truss/truss_guide.cpp
     src/templates/truss/truss.cpp
+    src/templates/module/framed_panel.cpp
+    src/templates/module/module_contact.cpp
     src/templates/module/wall.cpp
+    src/templates/module/room_module.cpp
     src/templates/module/cassette_shell.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
@@ -294,6 +297,8 @@ ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
 ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_cassette_house.cpp)
+ADD_EXE(templates_module_4_room_module            examples/templates_module_4_room_module.cpp)
+ADD_EXE(templates_module_5_module_block           examples/templates_module_5_module_block.cpp)
 ADD_EXE(templates_grid_1_footprint         examples/templates_grid_1_footprint.cpp)
 ADD_EXE(templates_grid_2_solid             examples/templates_grid_2_solid.cpp)
 ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)
