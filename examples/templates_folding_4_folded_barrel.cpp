@@ -8,7 +8,7 @@ using namespace wood_session;
 /// 12 m span, its form and action approaching a cylindrical shell, a diaphragm at each end.
 int main() {
 
-    PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 2, 0.0, "folded_barrel");
+    PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel");
     const std::vector<std::shared_ptr<Plate>> plates = barrel.get_elements_numbered<Plate>("plate");
     std::cout << barrel << std::endl;
     std::cout << fmt::format("folded barrel: {} plates over {} mm\n", plates.size(), barrel.span);
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 4 of the folding templates: the system with many folds after Engel, Structure Systems, Folded plate structures (p. 220). The more folds a profile has, the more the edge stresses of its plates balance each other through shear, until its form and action approach those of a cylindrical shell: seven folds, eight 60 mm plates with their corners on a circular arc 12 m wide and 4 m high, carried straight over a 12 m span, a diaphragm closing each end under the folds. Each step is a group: profile, folds, mesh, plates, diaphragms.
+Step 4 of the folding templates: the system with many folds after Engel, Structure Systems, Folded plate structures (p. 220). The more folds a profile has, the more the edge stresses of its plates balance each other through shear, until its form and action approach those of a cylindrical shell: seven folds, eight 120 mm plates with their corners on a circular arc 12 m wide and 4 m high, carried straight over a 12 m span, a diaphragm closing each end under the folds. Each step is a group: profile, folds, mesh, plates, diaphragms.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

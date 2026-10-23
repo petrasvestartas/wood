@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the folding templates: a surface with counter-running folding after Engel, Structure Systems, Folded plate structures (p. 222), same depth of fold profiles and same elevation above ground. A zigzag of five ridges, ten plates each 1500 across in plan and 1500 deep, 15 m wide, at the start of an 18 m span, and its counter profile, ridges where the start has its valleys, at the end; their points joined by straight fold lines, every strip between two fold lines is warped and folds ridge to ridge, along the diagonal through its two high corners, into two planar 60 mm plates: twenty triangles, the ridges running diagonally from the ridges of one end to the ridges of the other. Each step is a group: stations, mesh, folds, plates.
+Step 5 of the folding templates: a surface with counter-running folding after Engel, Structure Systems, Folded plate structures (p. 222), same depth of fold profiles and same elevation above ground. A zigzag of five ridges, ten plates each 1500 across in plan and 1500 deep, 15 m wide, at the start of an 18 m span, and its counter profile, ridges where the start has its valleys, at the end; their points joined by straight fold lines, every strip between two fold lines is warped and folds ridge to ridge, along the diagonal through its two high corners, into two planar 120 mm plates: twenty triangles, the ridges running diagonally from the ridges of one end to the ridges of the other. Each step is a group: stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

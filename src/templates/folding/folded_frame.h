@@ -33,7 +33,7 @@ public:
         const std::vector<double>& depths = {300.0, 2000.0, 900.0, 3200.0, 900.0, 2000.0, 300.0},
         bool counter = true,
         Folding folding = Folding::ridge_to_ridge,
-        double thickness = 60.0,
+        double thickness = 120.0,
         const std::string& name = "folded_frame"
     );
 

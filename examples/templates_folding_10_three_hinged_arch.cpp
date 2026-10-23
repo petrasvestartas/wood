@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 10 of the folding templates: the three-hinged arch after Engel, Structure Systems, Folded plate structures (p. 227). The arch's inner line has six segments with their corners on a circular arc 24 m wide and 9 m high; at every corner a zigzag of four ridges, plates 2000 across, stands in the plane halving the corner, 300 deep at the feet and the crown, the three hinges, 1800 and 2400 towards the haunches; the phase turning at every corner, every strip folds ridge to ridge into two planar 60 mm triangles: 96 plates. Each step is a group: frame, stations, mesh, folds, plates.
+Step 10 of the folding templates: the three-hinged arch after Engel, Structure Systems, Folded plate structures (p. 227). The arch's inner line has six segments with their corners on a circular arc 24 m wide and 9 m high; at every corner a zigzag of four ridges, plates 2000 across, stands in the plane halving the corner, 300 deep at the feet and the crown, the three hinges, 1800 and 2400 towards the haunches; the phase turning at every corner, every strip folds ridge to ridge into two planar 120 mm triangles: 96 plates. Each step is a group: frame, stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

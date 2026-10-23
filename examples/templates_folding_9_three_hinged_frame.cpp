@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 9 of the folding templates: the three-hinged frame with ridge folding after Engel, Structure Systems, Folded plate structures (p. 226). The portal of step 8 with corners at the ceiling's quarter points: the depth 300 at both feet and at mid-span, the three hinges, 2000 at the knees of the columns, 900 at the eaves and 2800 at the roof's quarter points, so the roof rises to two ridges and dips to the hinge between them as in Engel's section; the phase turning at every corner, every strip folds ridge to ridge into two planar 60 mm triangles: 128 plates. Each step is a group: frame, stations, mesh, folds, plates.
+Step 9 of the folding templates: the three-hinged frame with ridge folding after Engel, Structure Systems, Folded plate structures (p. 226). The portal of step 8 with corners at the ceiling's quarter points: the depth 300 at both feet and at mid-span, the three hinges, 2000 at the knees of the columns, 900 at the eaves and 2800 at the roof's quarter points, so the roof rises to two ridges and dips to the hinge between them as in Engel's section; the phase turning at every corner, every strip folds ridge to ridge into two planar 120 mm triangles: 128 plates. Each step is a group: frame, stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

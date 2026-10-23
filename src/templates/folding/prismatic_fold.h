@@ -25,7 +25,7 @@ public:
     explicit PrismaticFold(
         const Polyline& profile = zigzag(4, 1500.0, 1200.0),
         double span = 12000.0,
-        double thickness = 60.0,
+        double thickness = 120.0,
         size_t diaphragms = 3,
         double edge_flange = 400.0,
         const std::string& name = "prismatic_fold"
@@ -63,9 +63,9 @@ private:
     /// One quad per profile segment between its two fold lines, facing in, so the plates grow inwards from it.
     Mesh compute_mesh() const;
 
-    /// The diaphragms' outlines, one per run of the inner profile between two points within a plate thickness of its lowest level,
-    /// closed along the lowest level.
-    std::vector<Polyline> compute_diaphragm_outlines(const std::vector<Point>& inner) const;
+    /// The diaphragm's outline: the whole inner profile, the flanges' inner faces included, closed along the folded profile's lowest
+    /// level, a free edge above it dropped vertically onto it.
+    Polyline compute_diaphragm_outline(const std::vector<Point>& inner) const;
 };
 
 inline PrismaticFold::PrismaticFold(
@@ -105,24 +105,17 @@ inline PrismaticFold::PrismaticFold(
     for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0))
         add(plate, plates);
 
-    // diaphragms: under the folds at both ends and evenly between, each filling the inside of the profile without its flanges down to
-    // its lowest level
-    std::vector<Point> inner = compute_inner_profile();
-
-    if (edge_flange > 0.0)
-        inner = std::vector<Point>(inner.begin() + 1, inner.end() - 1);
-
-    const std::vector<Polyline> outlines = compute_diaphragm_outlines(inner);
+    // diaphragms: under the folds at both ends and evenly between, one plate each across the whole profile, filling it under the
+    // plates' inner faces between the flanges down to their bottom
+    const Polyline outline = compute_diaphragm_outline(compute_inner_profile());
     const std::shared_ptr<TreeNode> stiffeners = add_group("diaphragms");
 
     for (size_t k = 0; k < diaphragms; k++) {
         const double along = diaphragms == 1 ? 0.5 * (span - thickness) : (span - thickness) * static_cast<double>(k) / static_cast<double>(diaphragms - 1);
 
-        for (size_t i = 0; i < outlines.size(); i++) {
-            const Polyline bottom = outlines[i].transformed(Xform::translation(along, 0.0, 0.0));
-            const Polyline top = outlines[i].transformed(Xform::translation(along + thickness, 0.0, 0.0));
-            add(std::make_shared<Plate>(bottom, top, fmt::format("diaphragm_{}_{}", k, i)), stiffeners);
-        }
+        const Polyline bottom = outline.transformed(Xform::translation(along, 0.0, 0.0));
+        const Polyline top = outline.transformed(Xform::translation(along + thickness, 0.0, 0.0));
+        add(std::make_shared<Plate>(bottom, top, fmt::format("diaphragm_{}", k)), stiffeners);
     }
 }
 
@@ -222,42 +215,22 @@ inline Mesh PrismaticFold::compute_mesh() const {
     return Mesh::from_vertices_and_faces(points, faces);
 }
 
-inline std::vector<Polyline> PrismaticFold::compute_diaphragm_outlines(const std::vector<Point>& inner) const {
+inline Polyline PrismaticFold::compute_diaphragm_outline(const std::vector<Point>& inner) const {
 
-    double lowest = inner[0][2];
+    double lowest = _folded[0][2];
 
-    for (const Point& point : inner)
-        lowest = std::min(lowest, point[2]);
+    for (size_t i = 0; i < _folded.point_count(); i++)
+        lowest = std::min(lowest, _folded[i][2]);
 
-    // runs: from one point on the lowest level to the next, each with a point above it a diaphragm
-    std::vector<Polyline> outlines;
-    std::vector<Point> run;
+    // the inner profile, a free edge above the lowest level dropped onto it, closed along it
+    std::vector<Point> points = inner;
 
-    for (const Point& point : inner) {
-        const bool base = point[2] - lowest < thickness;
+    if (points.back()[2] - lowest > 1.0)
+        points.push_back(Point(points.back()[0], points.back()[1], lowest));
 
-        if (!base && run.empty())
-            continue;
+    if (points.front()[2] - lowest > 1.0)
+        points.insert(points.begin(), Point(points.front()[0], points.front()[1], lowest));
 
-        run.push_back(point);
-
-        // a run closed along the lowest level, a free edge above it dropped onto it
-        if (base && run.size() > 2) {
-            std::vector<Point> outline = run;
-
-            if (outline.back()[2] - lowest > 1.0)
-                outline.push_back(Point(outline.back()[0], outline.back()[1], lowest));
-
-            if (outline.front()[2] - lowest > 1.0)
-                outline.push_back(Point(outline.front()[0], outline.front()[1], lowest));
-
-            outline.push_back(outline.front());
-            outlines.push_back(Polyline(outline));
-        }
-
-        if (base)
-            run = {point};
-    }
-
-    return outlines;
+    points.push_back(points.front());
+    return Polyline(points);
 }
