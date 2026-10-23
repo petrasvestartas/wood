@@ -19,7 +19,7 @@ fi
 if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_1_reflex_fold curves fold_planes mesh plates
     "${RENDER[@]}" templates_folding_2_diamond_mesh surface mesh plates
-    "${RENDER[@]}" templates_folding_3_prismatic_fold all profile folds mesh plates diaphragms edge_beams
+    "${RENDER[@]}" templates_folding_3_prismatic_fold all profile folds mesh plates diaphragms
     "${RENDER[@]}" --view right --name end templates_folding_3_prismatic_fold all
     "${RENDER[@]}" templates_folding_4_folded_barrel all
     "${RENDER[@]}" --view right --name end templates_folding_4_folded_barrel all
@@ -29,6 +29,12 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" --view top --name plan templates_folding_6_elevated_fold folds
     "${RENDER[@]}" templates_folding_7_conical_fold plates
     "${RENDER[@]}" --view top --name plan templates_folding_7_conical_fold folds
+    "${RENDER[@]}" templates_folding_8_two_hinged_frame plates
+    "${RENDER[@]}" --view front --name section templates_folding_8_two_hinged_frame plates
+    "${RENDER[@]}" templates_folding_9_three_hinged_frame plates
+    "${RENDER[@]}" --view front --name section templates_folding_9_three_hinged_frame plates
+    "${RENDER[@]}" templates_folding_10_three_hinged_arch plates
+    "${RENDER[@]}" --view front --name section templates_folding_10_three_hinged_arch plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

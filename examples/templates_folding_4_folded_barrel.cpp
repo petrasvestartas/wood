@@ -8,7 +8,7 @@ using namespace wood_session;
 /// 12 m span, its form and action approaching a cylindrical shell, a diaphragm at each end.
 int main() {
 
-    PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 2, 0.0, 0.0, "folded_barrel");
+    PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 2, 0.0, "folded_barrel");
     const std::vector<std::shared_ptr<Plate>> plates = barrel.get_elements_numbered<Plate>("plate");
     std::cout << barrel << std::endl;
     std::cout << fmt::format("folded barrel: {} plates over {} mm\n", plates.size(), barrel.span);

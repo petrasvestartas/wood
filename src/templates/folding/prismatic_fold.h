@@ -1,6 +1,5 @@
 #pragma once
 #include "wood_session.h"
-#include "wood_profile.h"
 #include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
@@ -9,18 +8,18 @@ using namespace wood_session;
 /// A singly folded plate after Engel, Structure Systems, Folded plate structures (pp. 219-221): a fold profile across y carried
 /// straight along x over the span, one plate per fold. Each plate carries as a slab between its folds, as a deep beam along the span
 /// and with its neighbours as a truss across it. Transverse diaphragms under the folds stiffen the profile against changing its fold
-/// angles, edge beams the free edges against buckling: a vertical beam beside a shallow fold, a horizontal one beside a steep fold.
+/// angles; a flange folded on at each free edge stiffens it against buckling (p. 221, Randversteifer), vertical beside a shallow fold,
+/// horizontal and reaching out beside a steep one, mitered like every other fold.
 ///
-/// Fields: the profile, the span and the member sizes; the profile, the fold lines, the mesh, the plates, the diaphragms and the
-/// edge beams are in the session, each in its group.
+/// Fields: the profile, the span and the member sizes; the profile, the fold lines, the mesh, the plates and the diaphragms are in
+/// the session, each in its group.
 class PrismaticFold : public WoodSession {
 public:
     const Polyline profile; // The fold profile in the yz plane at x 0, running along +y, a fold at every inner point.
     const double span; // mm along x, the folds' length between the end supports.
     const double thickness; // mm, every plate and diaphragm.
     const size_t diaphragms; // Transverse diaphragms under the folds, one at each end and the rest evenly between; 0 for none.
-    const double edge_beam_width; // mm, the edge beams' smaller side; 0 for none.
-    const double edge_beam_depth; // mm, the edge beams' larger side, vertical beside a shallow fold, horizontal beside a steep one.
+    const double edge_flange; // mm, the flange folded on at each free edge; 0 for none.
 
     /// The folded plate of profile over span as the session named name.
     explicit PrismaticFold(
@@ -28,8 +27,7 @@ public:
         double span = 12000.0,
         double thickness = 60.0,
         size_t diaphragms = 3,
-        double edge_beam_width = 200.0,
-        double edge_beam_depth = 400.0,
+        double edge_flange = 400.0,
         const std::string& name = "prismatic_fold"
     );
 
@@ -38,6 +36,9 @@ public:
 
     /// Not assigned, as it is not copied.
     PrismaticFold& operator=(const PrismaticFold&) = delete;
+
+    /// The profile with its edge flanges, the cross section of every plate.
+    const Polyline& folded_profile() const;
 
     /// The folded quad mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
@@ -50,9 +51,13 @@ public:
     static Polyline polygon(size_t folds, double width, double rise);
 
 private:
+    Polyline _folded;
     Mesh _mesh;
 
-    /// The profile's points moved onto the plates' inner faces: every fold along its bisector, the free edges square to their plate.
+    /// The profile with a flange at each free edge: down beside a shallow fold, outwards beside a steep one.
+    Polyline compute_folded_profile() const;
+
+    /// The folded profile's points moved onto the plates' inner faces: every fold along its bisector, the free edges square to their plate.
     std::vector<Point> compute_inner_profile() const;
 
     /// One quad per profile segment between its two fold lines, facing in, so the plates grow inwards from it.
@@ -68,8 +73,7 @@ inline PrismaticFold::PrismaticFold(
     double span,
     double thickness,
     size_t diaphragms,
-    double edge_beam_width,
-    double edge_beam_depth,
+    double edge_flange,
     const std::string& name
 )
     : WoodSession(name),
@@ -77,20 +81,19 @@ inline PrismaticFold::PrismaticFold(
       span(span),
       thickness(thickness),
       diaphragms(diaphragms),
-      edge_beam_width(edge_beam_width),
-      edge_beam_depth(edge_beam_depth) {
+      edge_flange(edge_flange) {
 
     const Vector x(1.0, 0.0, 0.0);
-    const Vector z(0.0, 0.0, 1.0);
 
-    // profile: the fold profile at the start of the span
-    add_polyline(profile, add_group("profile"));
+    // profile: the fold profile at the start of the span, a flange folded on at each free edge
+    _folded = compute_folded_profile();
+    add_polyline(_folded, add_group("profile"));
 
-    // folds: a fold line along the span at every profile point, ridges, valleys and the two free edges
+    // folds: a fold line along the span at every profile point, ridges, valleys, the flanges' folds and the two free edges
     const std::shared_ptr<TreeNode> folds = add_group("folds");
 
-    for (size_t i = 0; i < profile.point_count(); i++)
-        add_polyline(Polyline({profile[i], profile[i] + x * span}), folds);
+    for (size_t i = 0; i < _folded.point_count(); i++)
+        add_polyline(Polyline({_folded[i], _folded[i] + x * span}), folds);
 
     // mesh: one quad per profile segment between its fold lines, facing in
     _mesh = compute_mesh();
@@ -102,8 +105,13 @@ inline PrismaticFold::PrismaticFold(
     for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0))
         add(plate, plates);
 
-    // diaphragms: under the folds at both ends and evenly between, each filling the profile's inside down to its lowest level
-    const std::vector<Point> inner = compute_inner_profile();
+    // diaphragms: under the folds at both ends and evenly between, each filling the inside of the profile without its flanges down to
+    // its lowest level
+    std::vector<Point> inner = compute_inner_profile();
+
+    if (edge_flange > 0.0)
+        inner = std::vector<Point>(inner.begin() + 1, inner.end() - 1);
+
     const std::vector<Polyline> outlines = compute_diaphragm_outlines(inner);
     const std::shared_ptr<TreeNode> stiffeners = add_group("diaphragms");
 
@@ -116,28 +124,31 @@ inline PrismaticFold::PrismaticFold(
             add(std::make_shared<Plate>(bottom, top, fmt::format("diaphragm_{}_{}", k, i)), stiffeners);
         }
     }
+}
 
-    // edge beams: along both free edges under the plate, vertical beside a shallow fold, horizontal and reaching out beside a steep one
-    if (edge_beam_width > 0.0 && edge_beam_depth > 0.0) {
-        const std::shared_ptr<TreeNode> beams = add_group("edge_beams");
-        const size_t last = profile.point_count() - 1;
-
-        for (size_t side = 0; side < 2; side++) {
-            const Point edge = inner[side == 0 ? 0 : last];
-            const Vector slope = side == 0 ? profile[1] - profile[0] : profile[last - 1] - profile[last];
-            const double outward = side == 0 ? -1.0 : 1.0;
-            const bool steep = std::abs(slope[2]) > std::abs(slope[1]);
-            const double across = steep ? edge_beam_depth : edge_beam_width;
-            const double up = steep ? edge_beam_width : edge_beam_depth;
-            const Point start = Point(0.0, edge[1] + outward * (steep ? 0.5 * across : 0.0), edge[2] - 0.5 * up);
-            const Polyline axis({start, start + x * span});
-            add(std::make_shared<Beam>(axis, profile_rectangle(across, up), std::vector<Vector>{z}, fmt::format("edge_beam_{}", side)), beams);
-        }
-    }
+inline const Polyline& PrismaticFold::folded_profile() const {
+    return _folded;
 }
 
 inline const Mesh& PrismaticFold::mesh() const {
     return _mesh;
+}
+
+inline Polyline PrismaticFold::compute_folded_profile() const {
+
+    if (edge_flange <= 0.0)
+        return profile;
+
+    // a flange per free edge: down beside a shallow end plate, outwards along y beside a steep one
+    const size_t last = profile.point_count() - 1;
+    std::vector<Point> points = profile.get_points();
+    const Vector start_slope = profile[1] - profile[0];
+    const Vector end_slope = profile[last - 1] - profile[last];
+    const bool start_steep = std::abs(start_slope[2]) > std::abs(start_slope[1]);
+    const bool end_steep = std::abs(end_slope[2]) > std::abs(end_slope[1]);
+    points.insert(points.begin(), profile[0] + (start_steep ? Vector(0.0, -edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange)));
+    points.push_back(profile[last] + (end_steep ? Vector(0.0, edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange)));
+    return Polyline(points);
 }
 
 inline Polyline PrismaticFold::zigzag(size_t ridges, double fold_width, double depth) {
@@ -168,12 +179,12 @@ inline Polyline PrismaticFold::polygon(size_t folds, double width, double rise) 
 
 inline std::vector<Point> PrismaticFold::compute_inner_profile() const {
 
-    const size_t count = profile.point_count();
+    const size_t count = _folded.point_count();
     std::vector<Vector> normals;
 
     // segment normals: the profile's direction turned to its inside, -z for a profile running along +y
     for (size_t i = 0; i + 1 < count; i++) {
-        const Vector along = (profile[i + 1] - profile[i]).normalized();
+        const Vector along = (_folded[i + 1] - _folded[i]).normalized();
         normals.push_back(Vector(0.0, along[2], -along[1]));
     }
 
@@ -181,13 +192,13 @@ inline std::vector<Point> PrismaticFold::compute_inner_profile() const {
 
     for (size_t i = 0; i < count; i++) {
         if (i == 0 || i + 1 == count) {
-            inner.push_back(profile[i] + normals[i == 0 ? 0 : i - 1] * thickness);
+            inner.push_back(_folded[i] + normals[i == 0 ? 0 : i - 1] * thickness);
             continue;
         }
 
         Vector bisector = normals[i - 1] + normals[i];
         bisector.normalize_self();
-        inner.push_back(profile[i] + bisector * (thickness / bisector.dot(normals[i])));
+        inner.push_back(_folded[i] + bisector * (thickness / bisector.dot(normals[i])));
     }
 
     return inner;
@@ -196,13 +207,13 @@ inline std::vector<Point> PrismaticFold::compute_inner_profile() const {
 inline Mesh PrismaticFold::compute_mesh() const {
 
     const Vector x(1.0, 0.0, 0.0);
-    const size_t count = profile.point_count();
+    const size_t count = _folded.point_count();
     std::vector<Point> points;
     std::vector<std::vector<size_t>> faces;
 
     for (size_t i = 0; i < count; i++) {
-        points.push_back(profile[i]);
-        points.push_back(profile[i] + x * span);
+        points.push_back(_folded[i]);
+        points.push_back(_folded[i] + x * span);
     }
 
     for (size_t i = 0; i + 1 < count; i++)

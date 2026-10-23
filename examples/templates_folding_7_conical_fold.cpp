@@ -8,7 +8,7 @@ using namespace wood_session;
 /// an 18 m span, its valleys level, its ridges 600 high at the ends and 1800 at mid-span.
 int main() {
 
-    CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), CounterFold::Folding::ridge_to_ridge, 60.0, "conical_fold");
+    CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 60.0, "conical_fold");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("conical fold: {} stations, {} plates\n", fold.stations.size(), plates.size());

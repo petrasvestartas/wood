@@ -10,7 +10,8 @@ The topology is the same in every system: plates one after another, each meeting
 | --- | --- | --- |
 | 219-221 | singly folded plate: threefold action, advantages over a rib slab, the number of folds, stiffening of the profile and of the free edges | [`PrismaticFold`](#prismatic_fold) |
 | 222-224 | surfaces with counter-running folding and with conical folding | [`CounterFold`](#counter_fold) |
-| 225-227 | linear structure systems of folded surfaces: frames and arches | [`ReflexFold`](#reflex_fold) |
+| 225-227 | linear structure systems of folded surfaces: two- and three-hinged frames, arches | [`FoldedFrame`](#folded_frame) |
+| - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
 ## Singly folded plate {#prismatic_fold}
@@ -25,8 +26,7 @@ PrismaticFold fold(
     12000.0,                                   // span
     60.0,                                      // thickness
     3,                                         // diaphragms: both ends and mid-span
-    200.0,                                     // edge beam width
-    400.0                                      // edge beam depth
+    400.0                                      // edge flange
 );
 ```
 
@@ -36,7 +36,7 @@ PrismaticFold fold(
 | span | the folds span between end supports; the depth is the construction height | 12 m, the depth a tenth of the span |
 | plates | each fold plane a slab, a beam and a truss member | 60 mm, mitered at every fold |
 | stiffening of the profile | the fold profile deforms: the lower edges spread, the plates buckle, the fold angles change; transverse diaphragms below or above the folds, or rigid frames below them (p. 221) | a diaphragm under the folds at both ends and at mid-span, 60 mm |
-| stiffening of the free edges | the outer plates buckle under components normal to their plane; a vertical edge beam for shallow folding, a horizontal one for steep folding (p. 221) | a 200 x 400 beam along each free edge, vertical, the folds being shallow (38.7 degrees) |
+| stiffening of the free edges | the outer plates buckle under components normal to their plane; a vertical edge beam for shallow folding, a horizontal one for steep folding (p. 221) | a 400 flange folded down at each free edge, the folds being shallow (38.7 degrees), mitered like every other fold |
 
 ### Profile
 
@@ -51,13 +51,13 @@ for (size_t i = 0; i <= 2 * ridges; i++)
 
 ### Folds
 
-A fold line along the span at every profile point: the ridges, the valleys and the two free edges.
+A fold line along the span at every profile point: the ridges, the valleys, the flanges' folds and the two free edges.
 
 ![folds](templates/templates_folding_3_prismatic_fold_folds.webp)
 
 ```cpp
-for (size_t i = 0; i < profile.point_count(); i++)
-    add_polyline(Polyline({profile[i], profile[i] + x * span}), folds);
+for (size_t i = 0; i < _folded.point_count(); i++)
+    add_polyline(Polyline({_folded[i], _folded[i] + x * span}), folds);
 ```
 
 ### Mesh
@@ -91,22 +91,19 @@ The transverse diaphragms below the folds (p. 221, Untergesetzte Querscheiben): 
 ```cpp
 Vector bisector = normals[i - 1] + normals[i];
 bisector.normalize_self();
-inner.push_back(profile[i] + bisector * (thickness / bisector.dot(normals[i])));
+inner.push_back(_folded[i] + bisector * (thickness / bisector.dot(normals[i])));
 ```
 
-### Edge beams
+### Edge flanges
 
-A beam along each free edge under the outer plate: vertical beside a shallow fold, horizontal and reaching outwards beside a steep one (p. 221, Randversteifer).
-
-![edge beams](templates/templates_folding_3_prismatic_fold_edge_beams.webp)
+The free edges stiffened by a flange folded onto the outer plate (p. 221, Randversteifer): down beside a shallow fold, outwards beside a steep one. The flange is one more segment of the profile, so it is mitered and cut like every other fold.
 
 ```cpp
-const bool steep = std::abs(slope[2]) > std::abs(slope[1]);
-const double across = steep ? edge_beam_depth : edge_beam_width;
-const double up = steep ? edge_beam_width : edge_beam_depth;
+points.insert(points.begin(), profile[0] + (start_steep ? Vector(0.0, -edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange)));
+points.push_back(profile[last] + (end_steep ? Vector(0.0, edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange)));
 ```
 
-From the end, the four diaphragms under the ridges and the two edge beams:
+From the end, the four diaphragms under the ridges and the two flanges:
 
 ![end](templates/templates_folding_3_prismatic_fold_end.webp)
 
@@ -119,7 +116,7 @@ Engel (p. 220): with one fold the edge stresses at the common edge have the same
 ![folded barrel end](templates/templates_folding_4_folded_barrel_end.webp)
 
 ```cpp
-PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 2, 0.0, 0.0, "folded_barrel");
+PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 60.0, 2, 0.0, "folded_barrel");
 ```
 
 <details><summary>Example code: templates_folding_3_prismatic_fold.cpp</summary>
@@ -143,7 +140,7 @@ Fold profiles at stations along the span, joined station to station by straight 
 ```cpp
 CounterFold fold(
     CounterFold::counter_running(5, 1500.0, 1500.0, 18000.0),   // five ridges, 1500 across and deep, over 18 m
-    CounterFold::Folding::ridge_to_ridge,                      // the diagonal every warped strip folds along
+    Folding::ridge_to_ridge,                      // the diagonal every warped strip folds along
     60.0                                                       // thickness
 );
 ```
@@ -208,7 +205,7 @@ The centre fold elevated over the edge folds (p. 223): the zigzag at both ends, 
 ![elevated fold plan](templates/templates_folding_6_elevated_fold_plan.webp)
 
 ```cpp
-CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), CounterFold::Folding::ridge_to_ridge, 60.0, "elevated_fold");
+CounterFold fold(CounterFold::counter_centre(5, 1500.0, 1500.0, 18000.0, 3000.0, 1500.0), Folding::ridge_to_ridge, 60.0, "elevated_fold");
 ```
 
 ### Conical folding
@@ -220,7 +217,7 @@ Sloped folding (p. 224, Abgeschrägte Faltung): one zigzag throughout, its valle
 ![conical fold plan](templates/templates_folding_7_conical_fold_plan.webp)
 
 ```cpp
-CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), CounterFold::Folding::ridge_to_ridge, 60.0, "conical_fold");
+CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Folding::ridge_to_ridge, 60.0, "conical_fold");
 ```
 
 <details><summary>Example code: templates_folding_5_counter_fold.cpp</summary>
@@ -238,6 +235,75 @@ CounterFold fold(CounterFold::conical(5, 1500.0, 600.0, 18000.0, 1800.0), Counte
 <details><summary>Example code: templates_folding_7_conical_fold.cpp</summary>
 
 \include{lineno} templates_folding_7_conical_fold.cpp
+
+</details>
+
+## Folded frames and arches {#folded_frame}
+
+A frame or an arch whose cross section is a fold profile (`folding/folded_frame.h`, examples `templates_folding_8_two_hinged_frame`, `templates_folding_9_three_hinged_frame`, `templates_folding_10_three_hinged_arch`). Engel (pp. 225-227): the folded surface becomes a linear structure system, its fold depth following the moments, small at a hinge, deep at a knee. The frame line is the inner line, the valleys. At every corner the zigzag stands in the plane halving the corner, its ridges offset outwards along the bisector by the depth over the cosine of the half corner, so a ridge between two corners of one phase is parallel to the frame line and its strips planar. The phase turns at every corner, so the strips warp and fold into triangles on `fold_strips`, shared with `CounterFold`: the diamonds of Engel's elevations. Measured on both frames with all three foldings: 598 plates, every one 60.00 thick, planar within 0.00001 mm.
+
+![two-hinged frame](templates/templates_folding_8_two_hinged_frame_plates.webp)
+
+```cpp
+FoldedFrame frame(
+    FoldedFrame::portal(30000.0, 5000.0, 2),                      // inner line: columns with a knee, the ceiling with a corner at mid-span
+    4,                                                            // ridges
+    2000.0,                                                       // fold width
+    {300.0, 2000.0, 900.0, 3200.0, 900.0, 2000.0, 300.0},         // depth per corner: hinges 300, knees 2000, ridge 3200
+    true,                                                         // phase turning at every corner
+    Folding::ridge_to_ridge,
+    60.0                                                          // thickness
+);
+```
+
+| Engel | frame line | depths |
+| --- | --- | --- |
+| two-hinged frame, ridge-to-ridge folding (p. 225) | `portal(30000, 5000, 2)` | 300 at the feet, deepest at the knees and the ridge |
+| two-hinged frame, ridge-to-valley folding (p. 225) | the same | the same, `Folding::ridge_to_valley` |
+| three-hinged frame, ridge folding (p. 226) | `portal(30000, 5000, 4)` | 300 at the feet and at mid-span, the three hinges |
+| three-hinged arch (p. 227) | `arch(24000, 9000, 6)` | 300 at the feet and the crown |
+
+The section shows the inner line straight and the folds bulging out at the knees and rising to the ridge, as Engel draws it:
+
+![two-hinged frame section](templates/templates_folding_8_two_hinged_frame_section.webp)
+
+```cpp
+const double miter = 1.0 / bisector.dot(after);
+const bool turned = counter && k % 2 == 1;
+
+for (size_t i = 0; i <= 2 * ridges; i++) {
+    const double height = (i % 2 == 1) != turned ? depths[k] : 0.0;
+    points.push_back(frame[k] + y * (fold_width * static_cast<double>(i)) + bisector * (height * miter));
+}
+```
+
+### Three-hinged frame
+
+![three-hinged frame](templates/templates_folding_9_three_hinged_frame_plates.webp)
+
+![three-hinged frame section](templates/templates_folding_9_three_hinged_frame_section.webp)
+
+### Three-hinged arch
+
+![three-hinged arch](templates/templates_folding_10_three_hinged_arch_plates.webp)
+
+![three-hinged arch section](templates/templates_folding_10_three_hinged_arch_section.webp)
+
+<details><summary>Example code: templates_folding_8_two_hinged_frame.cpp</summary>
+
+\include{lineno} templates_folding_8_two_hinged_frame.cpp
+
+</details>
+
+<details><summary>Example code: templates_folding_9_three_hinged_frame.cpp</summary>
+
+\include{lineno} templates_folding_9_three_hinged_frame.cpp
+
+</details>
+
+<details><summary>Example code: templates_folding_10_three_hinged_arch.cpp</summary>
+
+\include{lineno} templates_folding_10_three_hinged_arch.cpp
 
 </details>
 

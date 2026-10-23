@@ -1,6 +1,7 @@
 #pragma once
 #include "wood_session.h"
 #include "src/templates/template_chamfer.h"
+#include "src/templates/folding/fold_strips.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -15,13 +16,6 @@ using namespace wood_session;
 /// Fields: the stations, the folding and the thickness; the stations, the fold lines, the mesh and the plates are in the session.
 class CounterFold : public WoodSession {
 public:
-    /// The diagonal a warped strip folds along.
-    enum class Folding {
-        ridge_to_ridge, // Through its two high corners, a ridge running diagonally from the ridge of one station to the next's.
-        ridge_to_valley, // Through its two low corners, a valley running diagonally between them.
-        alternate, // Ridge to ridge in one strip, ridge to valley in the next.
-    };
-
     const std::vector<Polyline> stations; // The fold profiles along +x, each in a yz plane running along +y, all with one point count.
     const Folding folding; // The diagonal every warped strip folds along.
     const double thickness; // mm, every plate.
@@ -61,8 +55,6 @@ public:
 private:
     Mesh _mesh;
 
-    /// Per strip between two stations and two fold lines one quad when planar, else two triangles on the folding's diagonal, facing in.
-    Mesh compute_mesh() const;
 };
 
 inline CounterFold::CounterFold(
@@ -82,8 +74,17 @@ inline CounterFold::CounterFold(
     for (const Polyline& station : stations)
         add_polyline(station, profiles);
 
-    // mesh: every strip one planar quad or two triangles on the folding's diagonal
-    _mesh = compute_mesh();
+    // mesh: every strip one planar quad or two triangles on the folding's diagonal, a point's height its z
+    std::vector<std::vector<double>> heights;
+
+    for (const Polyline& station : stations) {
+        heights.push_back({});
+
+        for (size_t i = 0; i < station.point_count(); i++)
+            heights.back().push_back(station[i][2]);
+    }
+
+    _mesh = fold_strips(stations, heights, folding);
     add_mesh(_mesh, add_group("mesh"));
 
     // folds: every edge of the mesh, the fold lines between stations and the diagonals
@@ -136,45 +137,4 @@ inline std::vector<Polyline> CounterFold::conical(size_t ridges, double fold_wid
         zigzag(0.5 * span, ridges, fold_width, middle_depth, 0.0, false),
         zigzag(span, ridges, fold_width, depth, 0.0, false),
     };
-}
-
-inline Mesh CounterFold::compute_mesh() const {
-
-    const size_t row = stations[0].point_count();
-    std::vector<Point> points;
-    std::vector<std::vector<size_t>> faces;
-
-    for (const Polyline& station : stations)
-        for (size_t i = 0; i < row; i++)
-            points.push_back(station[i]);
-
-    for (size_t s = 0; s + 1 < stations.size(); s++)
-        for (size_t i = 0; i + 1 < row; i++) {
-            const size_t a = s * row + i;
-            const size_t b = a + 1;
-            const size_t c = a + row + 1;
-            const size_t d = a + row;
-
-            // planar strip: one quad, the fourth corner on the plane of the other three
-            const Vector normal = (points[b] - points[a]).cross(points[d] - points[a]).normalized();
-
-            if (std::abs((points[c] - points[a]).dot(normal)) < 1.0) {
-                faces.push_back({a, b, c, d});
-                continue;
-            }
-
-            // warped strip: the diagonal through its high corners for a ridge, through its low ones for a valley
-            const bool high_ac = points[a][2] + points[c][2] > points[b][2] + points[d][2];
-            const bool ridge = folding == Folding::ridge_to_ridge || (folding == Folding::alternate && i % 2 == 0);
-
-            if (high_ac == ridge) {
-                faces.push_back({a, b, c});
-                faces.push_back({a, c, d});
-            } else {
-                faces.push_back({a, b, d});
-                faces.push_back({b, c, d});
-            }
-        }
-
-    return Mesh::from_vertices_and_faces(points, faces);
 }
