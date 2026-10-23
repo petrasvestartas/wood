@@ -8,7 +8,7 @@ using namespace wood_session;
 /// stiffening the other pair.
 int main() {
 
-    PolygonFold fold(4, 9000.0, {0.0}, 6000.0, false, 240.0, 0.0, "pyramid");
+    PolygonFold fold(4, 9000.0, {0.0}, 6000.0, false, 120.0, 0.0, "pyramid");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("pyramid: {} sides, {} plates\n", fold.sides, plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 14 of the folding templates: the pyramidal folded plate after Engel, Structure Systems, Folded plate structures (p. 231): over a square plan on a 9 m circumradius four triangular plates rise to an apex at 6000, each acting as a slab, as a plate and with its neighbours as a truss, each pair of opposite faces stiffening the other pair: four plates 240 mm thick. Each step is a group: rings, mesh, plates.
+Step 14 of the folding templates: the pyramidal folded plate after Engel, Structure Systems, Folded plate structures (p. 231): over a square plan on a 9 m circumradius four triangular plates rise to an apex at 6000, each acting as a slab, as a plate and with its neighbours as a truss, each pair of opposite faces stiffening the other pair: four plates 120 mm thick. Each step is a group: rings, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

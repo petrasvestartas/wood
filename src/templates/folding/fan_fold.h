@@ -31,7 +31,7 @@ public:
         double middle = 600.0,
         double centre = 3000.0,
         double depth = 1800.0,
-        double thickness = 240.0,
+        double thickness = 120.0,
         const std::string& name = "fan_fold"
     );
 
@@ -115,11 +115,11 @@ inline FanFold::FanFold(
     _mesh = Mesh::from_vertices_and_faces(points, faces);
     add_mesh(_mesh, add_group("mesh"));
 
-    // plates: one plate per triangle, mitered at the folds, every corner cut back by the thickness so the plates meeting at a vertex
-    // do not pass through each other
+    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
+    // the corners are cut back, by just that spread, so they do not pass through each other
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0))
+    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness))
         add(plate, plates);
 }
 

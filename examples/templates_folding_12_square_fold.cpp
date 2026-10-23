@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 12 of the folding templates: singly folded surfaces over a square plan with ridges rising toward the centre after Engel, Structure Systems, Folded plate structures (p. 228). The plan a square on a 12 m circumradius; six concentric rings at 0, 1800, 900, 2700, 1800 and 3600, valleys and ridges rising to an apex at 4500, every band in a sector a planar trapezoid, the four sectors meeting along the diagonals: 24 plates 240 mm thick. Each step is a group: rings, mesh, plates.
+Step 12 of the folding templates: singly folded surfaces over a square plan with ridges rising toward the centre after Engel, Structure Systems, Folded plate structures (p. 228). The plan a square on a 12 m circumradius; six concentric rings at 0, 1800, 900, 2700, 1800 and 3600, valleys and ridges rising to an apex at 4500, every band in a sector a planar trapezoid, the four sectors meeting along the diagonals: 24 plates 120 mm thick. Each step is a group: rings, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

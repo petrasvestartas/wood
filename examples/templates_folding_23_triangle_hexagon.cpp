@@ -8,7 +8,7 @@ using namespace wood_session;
 /// centre.
 int main() {
 
-    TriangleFold fold(6, 12000.0, 0.0, 4000.0, 7000.0, 240.0, "triangle_hexagon");
+    TriangleFold fold(6, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_hexagon");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("triangle hexagon: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular hexagon on a 12 m circumradius; a triangle at every corner between its edges' midpoints, and the hexagon of the midpoints split into six triangles to the centre: corners at 0, midpoints at 4000, centre at 7000; twelve planar triangles 240 mm thick. Each step is a group: mesh, folds, plates.
+Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular hexagon on a 12 m circumradius; a triangle at every corner between its edges' midpoints, and the hexagon of the midpoints split into six triangles to the centre: corners at 0, midpoints at 4000, centre at 7000; twelve planar triangles 120 mm thick. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

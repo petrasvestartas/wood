@@ -8,7 +8,7 @@ using namespace wood_session;
 /// centre.
 int main() {
 
-    TriangleFold fold(5, 12000.0, 0.0, 4000.0, 7000.0, 240.0, "triangle_pentagon");
+    TriangleFold fold(5, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_pentagon");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("triangle pentagon: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 22 of the folding templates: folded triangular surfaces over a pentagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular pentagon on a 12 m circumradius; a triangle at every corner between its edges' midpoints, and the pentagon of the midpoints split into five triangles to the centre: corners at 0, midpoints at 4000, centre at 7000; ten planar triangles 240 mm thick. Each step is a group: mesh, folds, plates.
+Step 22 of the folding templates: folded triangular surfaces over a pentagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular pentagon on a 12 m circumradius; a triangle at every corner between its edges' midpoints, and the pentagon of the midpoints split into five triangles to the centre: corners at 0, midpoints at 4000, centre at 7000; ten planar triangles 120 mm thick. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

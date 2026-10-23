@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 20 of the folding templates: a structure system of folded triangular surfaces over a square plan after Engel, Structure Systems, Folded plate structures (p. 232). A square on a 12 m circumradius; the lines joining its edges' midpoints cut a triangle off every corner, and the cross from the centre splits the square of the midpoints into four more: the corners on the supports at 0, the midpoints at 4000, the centre at 7000; eight planar triangles 240 mm thick, their corners cut back by the thickness. Each step is a group: mesh, folds, plates.
+Step 20 of the folding templates: a structure system of folded triangular surfaces over a square plan after Engel, Structure Systems, Folded plate structures (p. 232). A square on a 12 m circumradius; the lines joining its edges' midpoints cut a triangle off every corner, and the cross from the centre splits the square of the midpoints into four more: the corners on the supports at 0, the midpoints at 4000, the centre at 7000; eight planar triangles 120 mm thick, their corners cut back only where needed. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

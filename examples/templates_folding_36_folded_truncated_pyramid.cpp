@@ -8,7 +8,7 @@ using namespace wood_session;
 /// edge's raised midpoint.
 int main() {
 
-    PolygonFold fold(4, 12000.0, {0.0, 3000.0}, 0.0, true, 240.0, 1500.0, "folded_truncated_pyramid");
+    PolygonFold fold(4, 12000.0, {0.0, 3000.0}, 0.0, true, 120.0, 1500.0, "folded_truncated_pyramid");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("folded truncated pyramid: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 36 of the folding templates: a variation for folding a given basic structure form after Engel, Structure Systems, Folded plate structures (p. 233). The truncated pyramid over a square on a 12 m circumradius, its top 3000 high; every side trapezoid folds into three planar triangles from the midpoint of its outer edge, raised 1500, a fold running from it to both top corners: twelve triangles and the flat top, 13 plates 240 mm thick. Each step is a group: rings, mesh, plates.
+Step 36 of the folding templates: a variation for folding a given basic structure form after Engel, Structure Systems, Folded plate structures (p. 233). The truncated pyramid over a square on a 12 m circumradius, its top 3000 high; every side trapezoid folds into three planar triangles from the midpoint of its outer edge, raised 1500, a fold running from it to both top corners: twelve triangles and the flat top, 13 plates 120 mm thick. Each step is a group: rings, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

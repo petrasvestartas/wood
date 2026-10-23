@@ -8,7 +8,7 @@ using namespace wood_session;
 /// high, meeting along the lines from the corners to the centre.
 int main() {
 
-    PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false, 240.0, 0.0, "triangle_fold");
+    PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false, 120.0, 0.0, "triangle_fold");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("triangle fold: {} sides, {} plates\n", fold.sides, plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 11 of the folding templates: structure systems through interpenetration of folded surfaces after Engel, Structure Systems, Folded plate structures (p. 228), singly folded surfaces over a triangular plan with horizontal ridges. The plan an equilateral triangle on a 12 m circumradius; six concentric rings alternate valley at 0 and ridge at 1800, so every band between two rings in a sector is a planar trapezoid between two parallel edges, the three sectors' folds meeting along the lines from the corners to the centre, the last triangles meeting at the centre at 0: 18 plates 240 mm thick. Each step is a group: rings, mesh, plates.
+Step 11 of the folding templates: structure systems through interpenetration of folded surfaces after Engel, Structure Systems, Folded plate structures (p. 228), singly folded surfaces over a triangular plan with horizontal ridges. The plan an equilateral triangle on a 12 m circumradius; six concentric rings alternate valley at 0 and ridge at 1800, so every band between two rings in a sector is a planar trapezoid between two parallel edges, the three sectors' folds meeting along the lines from the corners to the centre, the last triangles meeting at the centre at 0: 18 plates 120 mm thick. Each step is a group: rings, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

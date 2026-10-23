@@ -8,7 +8,7 @@ using namespace wood_session;
 /// compensating each other through shear.
 int main() {
 
-    PrismaticFold fold(PrismaticFold::polygon(3, 12000.0, 3500.0), 12000.0, 240.0, 2, 0.0, "three_folds");
+    PrismaticFold fold(PrismaticFold::polygon(3, 12000.0, 3500.0), 12000.0, 120.0, 2, 0.0, "three_folds");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("three folds: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 26 of the folding templates: the system with three folds after Engel, Structure Systems, Folded plate structures (p. 220): four plates with their corners on a 12 m wide arch rising 3500, carried straight over a 12 m span; the edge stresses at the side folds have opposite tendency and largely compensate each other through shear. Four 240 mm plates and a diaphragm at each end. Each step is a group: profile, folds, mesh, plates, diaphragms.
+Step 26 of the folding templates: the system with three folds after Engel, Structure Systems, Folded plate structures (p. 220): four plates with their corners on a 12 m wide arch rising 3500, carried straight over a 12 m span; the edge stresses at the side folds have opposite tendency and largely compensate each other through shear. Four 120 mm plates and a diaphragm at each end. Each step is a group: profile, folds, mesh, plates, diaphragms.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -8,7 +8,7 @@ using namespace wood_session;
 /// valley and ridge from the corners, 24 planar triangles.
 int main() {
 
-    CrossFold fold(18000.0, 3, 0.0, 3000.0, 6000.0, 240.0, 1, 1, "cross_fold_divided");
+    CrossFold fold(18000.0, 3, 0.0, 3000.0, 6000.0, 120.0, 1, 1, "cross_fold_divided");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("cross fold divided: {} divisions, {} plates\n", fold.divisions, plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 17 of the folding templates: the cross fold of step 16 subdivided from the four corners after Engel, Structure Systems, Folded plate structures (p. 229). Every half edge between a corner and a midpoint is divided into three, so 24 straight fold lines run from the centre to the edge, alternating valley at 0 and ridge at 3000 from every corner, the diagonals valleys and the cross ridges; every face between two of them is a planar triangle: 24 plates 240 mm thick. Each step is a group: folds, mesh, plates.
+Step 17 of the folding templates: the cross fold of step 16 subdivided from the four corners after Engel, Structure Systems, Folded plate structures (p. 229). Every half edge between a corner and a midpoint is divided into three, so 24 straight fold lines run from the centre to the edge, alternating valley at 0 and ridge at 3000 from every corner, the diagonals valleys and the cross ridges; every face between two of them is a planar triangle: 24 plates 120 mm thick. Each step is a group: folds, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

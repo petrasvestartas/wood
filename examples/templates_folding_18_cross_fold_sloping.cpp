@@ -8,7 +8,7 @@ using namespace wood_session;
 /// 4500 high at the edge and falling to the centre at 1500.
 int main() {
 
-    CrossFold fold(18000.0, 3, 1500.0, 4500.0, 1500.0, 240.0, 1, 1, "cross_fold_sloping");
+    CrossFold fold(18000.0, 3, 1500.0, 4500.0, 1500.0, 120.0, 1, 1, "cross_fold_sloping");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("cross fold sloping: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 18 of the folding templates: cross-folded surfaces spanned diagonally over a square plan, ridges sloping toward the centre, after Engel, Structure Systems, Folded plate structures (p. 229). An 18 m square, every half edge divided into three, 24 straight fold lines from the centre to the edge alternating valley ending at 1500 and ridge ending at 4500 from every corner, all falling to the centre at 1500, so the surface dips to the middle where Engel's rising version peaks; every face a planar triangle: 24 plates 240 mm thick. Each step is a group: folds, mesh, plates.
+Step 18 of the folding templates: cross-folded surfaces spanned diagonally over a square plan, ridges sloping toward the centre, after Engel, Structure Systems, Folded plate structures (p. 229). An 18 m square, every half edge divided into three, 24 straight fold lines from the centre to the edge alternating valley ending at 1500 and ridge ending at 4500 from every corner, all falling to the centre at 1500, so the surface dips to the middle where Engel's rising version peaks; every face a planar triangle: 24 plates 120 mm thick. Each step is a group: folds, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

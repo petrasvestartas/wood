@@ -32,7 +32,7 @@ public:
         const std::vector<double>& heights = {0.0, 1800.0, 900.0, 2700.0, 1800.0, 3600.0},
         double apex = 4500.0,
         bool truncated = false,
-        double thickness = 240.0,
+        double thickness = 120.0,
         double edge_lift = 0.0,
         const std::string& name = "polygon_fold"
     );
@@ -86,11 +86,11 @@ inline PolygonFold::PolygonFold(
     _mesh = compute_mesh(rings);
     add_mesh(_mesh, add_group("mesh"));
 
-    // plates: one plate per face, mitered at the folds, every corner cut back by the thickness on both faces, as the reflex fold
-    // does, so the plates meeting at a vertex do not pass through each other
+    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
+    // the corners are cut back, by just that spread, so they do not pass through each other
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0))
+    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness))
         add(plate, plates);
 }
 

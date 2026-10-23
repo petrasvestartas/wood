@@ -8,7 +8,7 @@ using namespace wood_session;
 /// midpoints, the middle triangle flat and raised.
 int main() {
 
-    TriangleFold fold(3, 12000.0, 0.0, 4500.0, 4500.0, 240.0, "triangle_triangle");
+    TriangleFold fold(3, 12000.0, 0.0, 4500.0, 4500.0, 120.0, "triangle_triangle");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("triangle triangle: {} plates\n", plates.size());
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 21 of the folding templates: folded triangular surfaces over a triangular plan after Engel, Structure Systems, Folded plate structures (p. 232). An equilateral triangle on a 12 m circumradius cut into four by the lines joining its edges' midpoints: the three corner triangles fold down from the midpoints at 4500 to the corners at 0, the middle triangle stays flat at 4500; four planar triangles 240 mm thick. Each step is a group: mesh, folds, plates.
+Step 21 of the folding templates: folded triangular surfaces over a triangular plan after Engel, Structure Systems, Folded plate structures (p. 232). An equilateral triangle on a 12 m circumradius cut into four by the lines joining its edges' midpoints: the three corner triangles fold down from the midpoints at 4500 to the corners at 0, the middle triangle stays flat at 4500; four planar triangles 120 mm thick. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -33,7 +33,7 @@ public:
         const std::vector<double>& depths = {300.0, 2000.0, 900.0, 3200.0, 900.0, 2000.0, 300.0},
         bool counter = true,
         Folding folding = Folding::ridge_to_ridge,
-        double thickness = 240.0,
+        double thickness = 120.0,
         const std::string& name = "folded_frame"
     );
 
@@ -105,15 +105,15 @@ inline FoldedFrame::FoldedFrame(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face, mitered at the folds, every corner cut back by the thickness on both faces, as the reflex fold
-    // does, so the plates meeting at a vertex do not pass through each other; the free edges along the span cut flush by the side
-    // planes y 0 and y width
+    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
+    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges along the span cut flush by the
+    // side planes y 0 and y width
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     const double width = stations.first[0][stations.first[0].point_count() - 1][1];
     const std::vector<Plane> sides = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)), Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0))};
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0, sides))
+    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

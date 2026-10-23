@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 16 of the folding templates: a cross-folded surface over a square plan after Engel, Structure Systems, Folded plate structures (p. 229), the waterbomb fold of a square sheet. An 18 m square, fold lines from the centre to its four corners, the diagonals, valleys ending at 0, and to its edges' midpoints, the cross, ridges ending at 3000, all meeting at the centre 6000 high, the ridges rising toward it; every face between two straight fold lines through the centre is a planar triangle: eight plates 240 mm thick, their corners cut back by the thickness so the eight meeting at the centre do not pass through each other. Each step is a group: folds, mesh, plates.
+Step 16 of the folding templates: a cross-folded surface over a square plan after Engel, Structure Systems, Folded plate structures (p. 229), the waterbomb fold of a square sheet. An 18 m square, fold lines from the centre to its four corners, the diagonals, valleys ending at 0, and to its edges' midpoints, the cross, ridges ending at 3000, all meeting at the centre 6000 high, the ridges rising toward it; every face between two straight fold lines through the centre is a planar triangle: eight plates 120 mm thick, their corners cut back only where needed so the eight meeting at the centre do not pass through each other. Each step is a group: folds, mesh, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

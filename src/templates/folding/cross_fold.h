@@ -34,7 +34,7 @@ public:
         double low = 0.0,
         double high = 3000.0,
         double centre = 6000.0,
-        double thickness = 240.0,
+        double thickness = 120.0,
         size_t columns = 1,
         size_t rows = 1,
         const std::string& name = "cross_fold"
@@ -112,11 +112,11 @@ inline CrossFold::CrossFold(
     _mesh = Mesh::from_vertices_and_faces(points, faces);
     add_mesh(_mesh, add_group("mesh"));
 
-    // plates: one plate per triangle, mitered at the folds, every corner cut back by the thickness so the plates meeting at the centre
-    // do not pass through each other
+    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
+    // the corners are cut back, by just that spread, so they do not pass through each other
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0))
+    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness))
         add(plate, plates);
 }
 
