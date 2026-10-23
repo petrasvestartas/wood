@@ -47,5 +47,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_3_cassette_house all
     "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
     "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
-    "${RENDER[@]}" --opacity 0.95 --name gable_roof templates_module_3_cassette_house cassette_4+cassette_5+cassette_0+cassette_3
+    "${RENDER[@]}" --view right --name section templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --size 4800x3200 --crop 0.0,0.36,0.14,0.52 --name eave templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --size 4800x3200 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
 fi

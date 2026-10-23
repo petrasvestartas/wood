@@ -211,9 +211,13 @@ One gable end, square on every side: its sides stop on the long walls, its top u
 
 ![gable end](templates/templates_module_3_cassette_house_gable.webp)
 
-The roof over the front wall and the left gable end, both running under it, the roof's edges flush with their outer faces:
+Looking along the ridge, both eaves are clean: each slope ends in a plumb cut flush with its wall's outer face and each wall's top is cut along the slope's underside; at the ridge the front slope runs through, its end flush with the top of the back slope:
 
-![gable and roof](templates/templates_module_3_cassette_house_gable_roof.webp)
+![section along the ridge](templates/templates_module_3_cassette_house_section.webp)
+
+An eave and the ridge close up:
+
+![eave](templates/templates_module_3_cassette_house_eave.webp) ![ridge](templates/templates_module_3_cassette_house_ridge.webp)
 
 Every contact between cassettes as a red mesh, a cut cassette's plates and beams on the face of the one running through, 43 in all:
 
