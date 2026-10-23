@@ -14,6 +14,7 @@ The topology is the same in every system: plates one after another, each meeting
 | 228, 231-233 | interpenetrating folded surfaces over a polygon plan, the pyramid and the truncated pyramid | [`PolygonFold`](#polygon_fold) |
 | 229-230 | cross-folded surfaces over a square plan, subdivided from the corners, and their composition | [`CrossFold`](#cross_fold) |
 | 232 | structure systems of folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [`TriangleFold`](#triangle_fold) |
+| 229 | fans from the corners to the cross, ridges rising toward the centre | [`FanFold`](#fan_fold) |
 | - | a free-form zigzag carried along an arch | [`ReflexFold`](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [`DiamondMesh`](#diamond_mesh) |
 
@@ -389,6 +390,32 @@ CrossFold fold(
 <details><summary>Example code: templates_folding_17_cross_fold_divided.cpp</summary>
 
 \include{lineno} templates_folding_17_cross_fold_divided.cpp
+
+</details>
+
+## Fans from the corners {#fan_fold}
+
+The cross from the edges' midpoints to the centre divides a square into four quarters, and in every quarter straight fold lines fan out from its corner to points along the two half cross lines and to the centre (`folding/fan_fold.h`, example `templates_folding_24_fan_fold`, Engel p. 229, ridges rising toward the centre). Every face between two lines from one corner is a planar triangle; the cross rises from the midpoints to the centre, every second point raised by the fold depth, so the fan's lines alternate ridge and valley and the cross folds too, shared by the two quarters beside it.
+
+```cpp
+FanFold fold(
+    18000.0,   // square side
+    3,         // points along every half cross line
+    0.0,       // corners
+    600.0,     // edges' midpoints
+    3000.0,    // centre
+    600.0,     // fold depth of every second point
+    240.0      // thickness
+);
+```
+
+![fan fold](templates/templates_folding_24_fan_fold_plates.webp)
+
+![fan fold plan](templates/templates_folding_24_fan_fold_plan.webp)
+
+<details><summary>Example code: templates_folding_24_fan_fold.cpp</summary>
+
+\include{lineno} templates_folding_24_fan_fold.cpp
 
 </details>
 

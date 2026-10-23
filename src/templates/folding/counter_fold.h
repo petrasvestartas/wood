@@ -99,10 +99,14 @@ inline CounterFold::CounterFold(
     }
 
     // plates: one plate per face, mitered at the folds, every corner cut back by the thickness on both faces, as the reflex fold
-    // does, so the plates meeting at a vertex do not pass through each other
+    // does, so the plates meeting at a vertex do not pass through each other; the free edges along the span cut flush by the side
+    // planes y 0 and y width
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0))
+    const double width = stations[0][stations[0].point_count() - 1][1];
+    const std::vector<Plane> sides = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)), Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0))};
+
+    for (const std::shared_ptr<Plate>& plate : mitered_plates(_mesh, thickness, thickness, thickness, 180.0, sides))
         add(plate, plates);
 }
 

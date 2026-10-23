@@ -314,6 +314,7 @@ ADD_EXE(templates_folding_20_triangle_square       examples/templates_folding_20
 ADD_EXE(templates_folding_21_triangle_triangle     examples/templates_folding_21_triangle_triangle.cpp)
 ADD_EXE(templates_folding_22_triangle_pentagon     examples/templates_folding_22_triangle_pentagon.cpp)
 ADD_EXE(templates_folding_23_triangle_hexagon      examples/templates_folding_23_triangle_hexagon.cpp)
+ADD_EXE(templates_folding_24_fan_fold               examples/templates_folding_24_fan_fold.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)

@@ -49,6 +49,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_21_triangle_triangle plates
     "${RENDER[@]}" templates_folding_22_triangle_pentagon plates
     "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
+    "${RENDER[@]}" templates_folding_24_fan_fold plates
+    "${RENDER[@]}" --view top --name plan templates_folding_24_fan_fold folds
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
