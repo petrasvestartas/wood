@@ -30,7 +30,7 @@ public:
         double corner = 0.0,
         double middle = 600.0,
         double centre = 3000.0,
-        double depth = 600.0,
+        double depth = 1800.0,
         double thickness = 240.0,
         const std::string& name = "fan_fold"
     );

@@ -404,7 +404,7 @@ FanFold fold(
     0.0,       // corners
     600.0,     // edges' midpoints
     3000.0,    // centre
-    600.0,     // fold depth of every second point
+    1800.0,    // fold depth of every second point
     240.0      // thickness
 );
 ```
