@@ -6,7 +6,7 @@
 #define main joint_library_main
 #include "../../tests/joint_library.cpp"
 #undef main
-#include "src/templates/folding/chevron.h"
+#include "src/templates/chevron/chevron.h"
 
 namespace {
 using namespace wood_session;

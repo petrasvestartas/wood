@@ -1,0 +1,50 @@
+# Timber modules: framed wall panels, then hollow hex cassettes (plan, 2026-10-23)
+
+Two new template families, each a `WoodSession` built from a guide, following the floor pattern
+(`src/templates/floor`): members, then contacts, then connectors, every joint an element added with
+`add` and `add_interaction`.
+
+References: AUAR (https://auar.io/), a kit of beams and panels put together into wall, floor and roof
+modules; BUGA Wood Pavilion 2019 (ITKE / ICD Stuttgart), 376 hollow cassettes, each two thin
+plates (top and bottom) closed by edge beams cut at the angle of the neighbouring cassette, the
+neighbours joined by finger joints, bolts and screws.
+
+## 1. `src/templates/module/` — the wall module (start here)
+
+`ModuleGuide`: a wall outline (length, height, thickness) and its openings (door and window
+rectangles with sill and head heights). `WallModule : WoodSession` makes:
+
+1. **studs**: `Beam` posts at a stud spacing (default 625 mm, half a 1250 sheet), extra studs at
+   each side of every opening;
+2. **plates**: bottom and top `Beam` rails along the whole length;
+3. **openings**: a header over and a sill under each opening, trimmer studs carrying the header;
+4. **sheathing**: `Plate` panels on one or both faces, split at the sheet width, cut out at the
+   openings;
+5. **contacts**: `compute_face_contact` stud to rail, stud to header, panel to every member it lies on;
+6. **connectors**: butt joints stud to rail (`JointBeam` cut), `JointBeam::headed_pins` panel to
+   frame along each stud, a lap or the plate joint library between neighbouring panels.
+
+Examples: `templates_module_1_wall` (a plain wall), `templates_module_2_openings` (a door and two
+windows), then a corner and a T between two modules. Docs page `docs/templates/module.md`, one
+section and picture per constructor block.
+
+## 2. `src/templates/cassette/` — the segmented hex shell
+
+`CassetteShell : WoodSession` from a surface or a hex-dominant mesh:
+
+1. **cells**: a hexagonal pattern on the surface (planarised, reuse the `VdaMesh` face/edge/bisector
+   planes: the edge plane between two cells is already the shared cut);
+2. **plates**: per cell a thin top and bottom `Plate` (e.g. 20 + 20 mm), offset along the face normal;
+3. **edge beams**: per cell edge a `Beam` between the two plates, its outer face on the shared edge
+   plane (the inclined cut), its ends mitered on the corner bisectors;
+4. **contacts**: plate to beam inside a cassette, beam to beam across every interior edge;
+5. **connectors**: plate to beam screwed (`headed_pins`), beam to beam across cells by finger joints
+   from the plate library or `centred_pins` (the BUGA bolts).
+
+Examples: one cassette, then the shell. Same docs pattern.
+
+## Questions
+
+- Start with the wall module only, or both families at once?
+- Wall: sheathing on one face or both, and is there insulation space (stud depth) to show?
+- Cassette: should neighbouring cassettes be joined with finger joints, bolts, or both?

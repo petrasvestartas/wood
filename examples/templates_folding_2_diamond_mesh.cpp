@@ -33,7 +33,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_folding_3_diamond_mesh --parallel 6 && ./build/templates_folding_3_diamond_mesh && ../bash/publish-scene.sh --target templates_folding_3_diamond_mesh
+cmake --build build --target templates_folding_2_diamond_mesh --parallel 6 && ./build/templates_folding_2_diamond_mesh && ../bash/publish-scene.sh --target templates_folding_2_diamond_mesh
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

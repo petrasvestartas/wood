@@ -8,13 +8,26 @@ using namespace wood_session;
 namespace wood_cross {
 
 // ═══════════════════════════════════════════════════════════════════════════
+// CrossLap
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The cross slot where a connector passes through a face plate, with the two plates it joins in its target order.
+struct CrossLap {
+    std::shared_ptr<JointPlate> joint; // cross_lap_<face0>_<face1>_<k>_<face>_<layer>, merged into both outlines.
+    std::shared_ptr<Plate> connector; // connector_<face0>_<face1>_<k>, the joint's target 0.
+    std::shared_ptr<Plate> plate; // plate_<face>_<layer>, the joint's target 1.
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // VdaMesh
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The plates and connectors of a mesh, a session: a mitered plate per face and layer, connector plates across every interior edge.
+/// The plates and connectors of a mesh, a session: a mitered plate per face and layer, connector plates across every interior edge,
+/// joined to the plates they pass through by a cross slot.
 ///
 /// Fields: the welded mesh and the plate and connector sizes.
-/// Every plate (`plate_<face>_<layer>`) and connector (`connector_<face0>_<face1>_<k>`) is found in the session by name.
+/// Every plate (`plate_<face>_<layer>`), connector (`connector_<face0>_<face1>_<k>`) and cross slot
+/// (`cross_lap_<face0>_<face1>_<k>_<face>_<layer>`) is found in the session by name.
 class VdaMesh : public WoodSession {
 public:
     const Mesh mesh; // The input mesh, welded at 0.01.
@@ -101,6 +114,9 @@ private:
 
     /// Per connector frame, the bottom and top rectangle connector_thickness apart along the edge.
     std::vector<std::vector<std::array<Polyline, 2>>> compute_connector_outlines() const;
+
+    /// Per connector and plate of its two faces, the cross slot where they cross, oriented on the crossing; throws on a pair that does not cross.
+    std::vector<CrossLap> compute_cross_laps() const;
 
     /// The closed outline where consecutive edge planes cross the base plane, nearly parallel neighbours merged.
     static Polyline outline(const Plane& base, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bisector_planes);
@@ -197,6 +213,16 @@ inline VdaMesh::VdaMesh(
             const std::string connector_name = fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
             add(std::make_shared<Plate>(loops[0], loops[1], connector_name), connectors);
         }
+
+    // cross_laps: a cross slot where every connector passes through a plate of its two faces, merged into both outlines
+    const std::vector<CrossLap> cross_laps = compute_cross_laps();
+    const std::shared_ptr<TreeNode> cross_lap_group = group_named("cross_laps");
+
+    for (const CrossLap& lap : cross_laps) {
+        add(lap.joint, cross_lap_group);
+        add_interaction(lap.joint, lap.connector, lap.joint->interaction(0));
+        add_interaction(lap.joint, lap.plate, lap.joint->interaction(1));
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -490,6 +516,33 @@ inline std::vector<std::vector<std::array<Polyline, 2>>> VdaMesh::compute_connec
         }
 
     return outlines;
+}
+
+inline std::vector<CrossLap> VdaMesh::compute_cross_laps() const {
+
+    std::vector<CrossLap> laps;
+
+    for (size_t e = 0; e < _connector_outlines.size(); e++)
+        for (size_t k = 0; k < _connector_outlines[e].size(); k++) {
+            const std::string connector_name = fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
+            const std::shared_ptr<Plate> connector = get_element_by_name<Plate>(connector_name);
+
+            for (const size_t face : _edge_faces[e])
+                for (size_t layer = 0; layer < _face_outlines[face].size(); layer++) {
+                    const std::shared_ptr<Plate> plate = get_element_by_name<Plate>(fmt::format("plate_{}_{}", face, layer));
+                    const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(connector, plate);
+
+                    if (!crossing)
+                        throw std::runtime_error(fmt::format("{} does not cross {}", connector_name, plate->name));
+
+                    const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
+                    joint->orient(crossing, {connector, plate});
+                    joint->name = fmt::format("cross_lap_{}_{}_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k, face, layer);
+                    laps.push_back({joint, connector, plate});
+                }
+        }
+
+    return laps;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

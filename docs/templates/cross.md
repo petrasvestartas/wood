@@ -2,11 +2,11 @@
 
 [TOC]
 
-Plates on the faces of a mesh, joined by connector plates that cross every interior edge.
+Plates on the faces of a mesh, joined by connector plates that cross every interior edge, each connector let into both plates by a cross slot.
 
 ## vda_mesh
 
-`wood_cross::VdaMesh` is a session that turns any mesh into one mitered plate per face and a row of connector plates across every interior edge.
+`wood_cross::VdaMesh` is a session that turns any mesh into one mitered plate per face and a row of connector plates across every interior edge, every connector joined to the plates it passes through by a cross slot.
 
 ![vda mesh](templates/templates_cross_1_vda_mesh_all.webp)
 
@@ -35,7 +35,8 @@ vda_mesh
 ├── bisector_planes    Plane per face corner
 ├── plates             Plate plate_<face>_<layer>
 ├── connector_frames   Plane per connector
-└── connectors         Plate connector_<face0>_<face1>_<k>
+├── connectors         Plate connector_<face0>_<face1>_<k>
+└── cross_laps         JointPlate cross_lap_<face0>_<face1>_<k>_<face>_<layer>
 ```
 
 ### Mesh
@@ -150,6 +151,28 @@ const Polyline bottom = Polyline::rectangle(
     connector_width,
     connector_height
 );
+```
+
+### Cross laps
+
+Every connector crosses a plate of each of its two faces; `compute_cross_contact` finds the crossing, a `JointPlate::cross_slot` is oriented on it and merged into both outlines, a slot over half the depth in the connector and in the plate.
+
+```cpp
+const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(connector, plate);
+
+if (!crossing)
+    throw std::runtime_error(fmt::format("{} does not cross {}", connector_name, plate->name));
+
+const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
+joint->orient(crossing, {connector, plate});
+```
+
+```cpp
+for (const CrossLap& lap : cross_laps) {
+    add(lap.joint, cross_lap_group);
+    add_interaction(lap.joint, lap.connector, lap.joint->interaction(0));
+    add_interaction(lap.joint, lap.plate, lap.joint->interaction(1));
+}
 ```
 
 <details><summary>Example code: templates_cross_1_vda_mesh.cpp</summary>

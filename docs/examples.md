@@ -30,7 +30,7 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `22_butt_pairs` | Butt pairs of beams, columns and plates: top_side, side_side out of plane and in plane, cross |
 | `23_butt_assemblies` | Butt pairs combined: a braced frame, a curved sill, a pentagon floor, zigzag walls and a folded roof |
 
-Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example. `templates_shells_2_gridshell`, the lamella gridshell, exits 1 unless every stud touches its four boards and no two elements overlap.
+Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example.
 
 The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
 

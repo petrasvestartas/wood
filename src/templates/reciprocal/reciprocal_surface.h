@@ -6,7 +6,7 @@
 #include "line.h"
 #include "intersection.h"
 #include "xform.h"
-#include "src/templates/folding/chevron.h"
+#include "src/templates/chevron/chevron.h"
 #include "reciprocal_boundary.h"
 
 #include <algorithm>

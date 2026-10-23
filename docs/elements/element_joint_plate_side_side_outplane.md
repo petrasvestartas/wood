@@ -206,7 +206,7 @@ A custom tile: three fingers on the floor, wide, narrow, wide, and the sockets t
 
 ![side_side_outplane_fingers at 90, 120 and 150 degrees](joint_library/sweep_side_side_outplane_fingers_angles.png)
 
-**Where it is used.** Two plates from the Chevron template (`src/templates/folding`), the shift in rows and divisions in columns.
+**Where it is used.** Two plates from the Chevron template (`src/templates/chevron`), the shift in rows and divisions in columns.
 
 ![side_side_outplane_fingers on a Chevron pair](joint_library/sweep_side_side_outplane_fingers_chevron.png)
 
