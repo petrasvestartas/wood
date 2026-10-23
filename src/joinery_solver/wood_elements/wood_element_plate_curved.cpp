@@ -179,22 +179,8 @@ BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) cons
 
 const Mesh& PlateCurved::element_geometry_mesh() const {
 
-    if (!_element_geometry_mesh) {
-        // every face on the surface grid at the kernel's default quality, the planar sides included, so a side with curved edges is rebuilt on its neighbours' edge samples instead of its four corners
-        std::vector<std::vector<Point>> polygons;
-
-        for (const Mesh& face : element_geometry_brep().face_meshes_q(true, 20.0, 0.005))
-            for (const std::pair<const size_t, std::vector<size_t>>& entry : face.face) {
-                std::vector<Point> polygon;
-
-                for (const size_t vertex : entry.second)
-                    polygon.push_back(face.vertex.at(vertex).position());
-
-                polygons.push_back(polygon);
-            }
-
-        _element_geometry_mesh = Mesh::from_polylines(polygons, 1e-6);
-    }
+    if (!_element_geometry_mesh)
+        _element_geometry_mesh = element_geometry_brep().mesh();
 
     return *_element_geometry_mesh;
 }

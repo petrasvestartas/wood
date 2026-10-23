@@ -34,7 +34,7 @@ int main() {
         "{} faces, solid {}, volume {:.0f} mm3\n",
         plate->element_geometry_brep().face_count(),
         plate->element_geometry_brep().is_solid(),
-        plate->element_geometry_mesh().volume()
+        plate->element_geometry_brep().volume()
     );
     scene.pb_dump(pb_path("live"));
     return 0;
