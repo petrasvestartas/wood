@@ -60,8 +60,9 @@ LARGEST = 8000  # px, the widest frame the viewer renders; supersampling stays u
 
 
 def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> tuple:
-    """The scene at the given opacity in the Arctic view, rendered at up to twice size so its lines can be scaled down thin and smooth,
-    cropped to what it draws; with the factor it was rendered larger by."""
+    """The scene at the given opacity in the Arctic view, rendered at up to twice size as a high-density screen draws it, so the Arctic
+    outline and the pen keep the viewer's own widths when scaled down smooth, cropped to what it draws; with the factor it was rendered
+    larger by."""
     width, height = (int(side) for side in size.split("x"))
     factor = max(1, min(2, LARGEST // width))
     env = dict(
@@ -70,7 +71,8 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> tuple:
         VIEWER_OPACITY=opacity,
         VIEWER_W=str(width * factor),
         VIEWER_H=str(height * factor),
-        VIEWER_THICKNESS="2",
+        VIEWER_DPR=str(factor),
+        VIEWER_THICKNESS="1",
         VIEWER_VIEW=view,
         VIEWER_PLANE_SIZE=os.environ.get("VIEWER_PLANE_SIZE", "0"),
         VIEWER_NO_GRID="1",
@@ -120,7 +122,8 @@ def main(arguments: list) -> None:
 
     `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--crop 0.4,0.3,0.6,0.5` to keep that
     share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp.
-    Every picture renders at twice its size, up to LARGEST wide, and is scaled down, so its outlines come out thin and smooth.
+    Every picture renders at twice its size, up to LARGEST wide, at two pixels per CSS pixel as the viewer on a high-density screen, and
+    is scaled down, so the Arctic outline stays bold and black and the edges thin and smooth.
     """
     view = option(arguments, "--view", "iso")
     opacity = option(arguments, "--opacity", "1")
