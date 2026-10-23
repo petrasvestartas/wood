@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR, the hollow cassettes of the BUGA Wood Pavilion 2019 and the room modules of Blumer Lehmann: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, so a member is doubled only where an opening is off the grid. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
+Timber modules from beams and panels, after the kit-of-parts buildings of AUAR, the hollow cassettes of the BUGA Wood Pavilion 2019 and the room modules of Blumer Lehmann: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, a grid stud closer than half the spacing to a jamb or an edge stud left out, so no member is doubled. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
 
 ## Wall
 
@@ -26,13 +26,13 @@ wood_module::Wall wall(guide);
 
 ### Frame
 
-The rails, the bottom one stopping at the door; per opening a full-height jamb stud either side, the header between them and under a window a sill; then the studs on the grid. A stud stands at every multiple of the stud spacing from the wall's start, so the studs line up with the sheet edges whatever the openings are; an opening brings its own jamb studs, a grid stud that falls on a jamb is that jamb, and one beside it stays, so a member is doubled only where the opening is off the grid. A grid stud inside an opening is a cripple over its header and under its sill. Every member is a `Beam` of `profile_rectangle(stud_depth, stud_width)`; the red faces are the contacts found between them.
+The rails, the bottom one stopping at the door; per opening a full-height jamb stud either side, the header between them and under a window a sill; then the studs on the grid. A stud stands at every multiple of the stud spacing from the wall's start, so the studs line up with the sheet edges whatever the openings are; an opening brings its own jamb studs, and a grid stud closer than half the spacing to a jamb or an edge stud is left out, the bay beside it already narrower than the spacing, so no member is ever doubled. A grid stud inside an opening is a cripple over its header and under its sill. Every member is a `Beam` of `profile_rectangle(stud_depth, stud_width)`; the red faces are the contacts found between them.
 
 ![frame](templates/templates_module_1_wall_frame.webp)
 
 ```cpp
-// studs: on the grid of the stud spacing from the wall's start, where no edge or jamb stud stands, so a stud doubles a jamb only
-// where the opening is off the grid; inside an opening cripples over its header and under its sill
+// studs: on the grid of the stud spacing from the panel's start, where no edge or jamb stud stands and none stands closer than half
+// the spacing, the bay beside it already narrower; inside an opening cripples over its header and under its sill
 for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) {
 ```
 
@@ -58,7 +58,7 @@ Seen through, at opacity 0.95, the frame between the two panels:
 
 ### Contacts
 
-`add_module_contacts` (`module/module_contact.h`) searches the face contact between every two frame members and between every sheet and frame member whose boxes touch. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 34 between the two panels and the 17 frame members. No connector is made.
+`add_module_contacts` (`module/module_contact.h`) searches the face contact between every two frame members and between every sheet and frame member whose boxes touch. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 26 in the frame, 32 between the two panels and the 16 frame members. No connector is made.
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
@@ -302,7 +302,7 @@ Seen through, at opacity 0.95:
 
 ### Contacts
 
-`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the edge beams, posts and walls side by side and a ceiling's top board under the next floor, post on post. The room of two modules has 345 contacts in its frames and 390 with its sheets:
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the edge beams, posts and walls side by side and a ceiling's top board under the next floor, post on post. The room of two modules has 333 contacts in its frames and 378 with its sheets:
 
 ![contacts](templates/templates_module_4_room_module_contacts.webp)
 

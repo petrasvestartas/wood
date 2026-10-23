@@ -26,7 +26,7 @@ FramedPanel::FramedPanel(
     // openings: per opening a jamb stud either side, the header between them and under a window its sill
     add_openings();
 
-    // studs: the edge studs, and the studs on the grid of the stud spacing where no edge or jamb stud stands, cripples over and under the openings
+    // studs: the edge studs, and the studs on the grid of the stud spacing where no edge or jamb stud stands within half the spacing, cripples over and under the openings
     add_studs();
 
     // sheathing: one sheet on each face of the whole panel, every door a notch and every window a hole
@@ -160,12 +160,17 @@ void FramedPanel::add_studs() {
         count++;
     }
 
-    // studs: on the grid of the stud spacing from the panel's start, where no edge or jamb stud stands, so a stud doubles a jamb only
-    // where the opening is off the grid; inside an opening cripples over its header and under its sill
+    // studs: on the grid of the stud spacing from the panel's start, where no edge or jamb stud stands and none stands closer than half
+    // the spacing, the bay beside it already narrower; inside an opening cripples over its header and under its sill
     for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) {
         std::vector<std::array<double, 2>> runs = {{foot, top}};
         std::shared_ptr<TreeNode> place = studs;
         std::string part = fmt::format("stud_{}", count);
+        bool crowded = x - half < 0.5 * guide.stud_spacing || guide.length - half - x < 0.5 * guide.stud_spacing;
+
+        for (const Opening& opening : guide.openings)
+            if (std::abs(x - (opening.x - half)) < 0.5 * guide.stud_spacing || std::abs(x - (opening.x + opening.width + half)) < 0.5 * guide.stud_spacing)
+                crowded = true;
 
         for (size_t o = 0; o < guide.openings.size(); o++) {
             const Opening& opening = guide.openings[o];
@@ -189,6 +194,9 @@ void FramedPanel::add_studs() {
             part = fmt::format("cripple_{}_{}", o, count);
             break;
         }
+
+        if (place == studs && crowded)
+            runs.clear();
 
         for (size_t r = 0; r < runs.size(); r++) {
             const std::shared_ptr<Beam> stud = member(
