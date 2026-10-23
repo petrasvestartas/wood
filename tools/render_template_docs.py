@@ -56,12 +56,12 @@ def run_example(name: str, out: pathlib.Path) -> None:
         shutil.copy(live, out)
 
 
-def render(pb: pathlib.Path, view: str) -> Image.Image:
-    """The scene at opacity 1 in the Arctic view, cropped to what it draws."""
+def render(pb: pathlib.Path, view: str, opacity: str = "1") -> Image.Image:
+    """The scene at the given opacity in the Arctic view, cropped to what it draws."""
     env = dict(
         os.environ,
         VIEWER_SHEETS="0",
-        VIEWER_OPACITY="1",
+        VIEWER_OPACITY=opacity,
         VIEWER_W="2400",
         VIEWER_H="1600",
         VIEWER_THICKNESS="2",
@@ -99,12 +99,19 @@ def render(pb: pathlib.Path, view: str) -> Image.Image:
 
 
 def main(arguments: list) -> None:
-    """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last; `--view top` for a plan."""
+    """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last; `--view top` for a plan, `--opacity 0.4` to see inside."""
     view = "iso"
 
     if "--view" in arguments:
         index = arguments.index("--view")
         view = arguments[index + 1]
+        del arguments[index : index + 2]
+
+    opacity = "1"
+
+    if "--opacity" in arguments:
+        index = arguments.index("--opacity")
+        opacity = arguments[index + 1]
         del arguments[index : index + 2]
 
     name, groups = arguments[0], arguments[1:] or ["all"]
@@ -122,7 +129,7 @@ def main(arguments: list) -> None:
                 capture_output=True,
             )
             picture = IMAGES / f"{name}_{group.split('+')[-1]}.webp"
-            render(branch, view).save(picture, quality=90)
+            render(branch, view, opacity).save(picture, quality=90)
             print(picture.relative_to(WOOD))
 
 

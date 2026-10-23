@@ -4,10 +4,18 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A gable house of cassettes: walls with a door and windows, two gable triangles and two roof slopes, the contacts between cassettes detected.
+/// A gable house of six cassettes, one per wall, gable end and roof slope, each two panels with its openings cut out and a framed core between.
 int main() {
 
-    wood_module::CassetteShell house(wood_module::CassetteShell::house_mesh(), 160.0, 20.0, 60.0, "cassette_house");
+    wood_module::CassetteShell house(
+        wood_module::CassetteShell::house_mesh(),
+        160.0,
+        20.0,
+        60.0,
+        wood_module::CassetteShell::house_openings(),
+        625.0,
+        "cassette_house"
+    );
     std::cout << house << std::endl;
 
     const size_t contacts = house.get_branch("contacts").objects.meshes->size();
@@ -18,7 +26,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber modules: a 6000 x 4000 gable house of cassettes, walls 2700 high and the ridge at 4500. The four walls are split into panels on a grid with a door and a window in the front, a window in the back and one in each gable, each opening a cell left out so the cassettes around it close it with their edge beams. A triangle stands over each end wall and two roof slopes run to the ridge. Every cassette is 160 deep, two 20 mm plates and 60 mm edge beams, cut on the plane it shares with each neighbour: square where two panels of a wall meet in one plane, beveled at the wall corners, the eaves and the ridge. Every contact between cassettes is detected and drawn in contacts; no connector is made.
+Step 3 of the timber modules: a 6000 x 4000 gable house of six cassettes, walls 2700 high and the ridge at 4500, one cassette per whole face: the front, the two gable ends as pentagons, the back and the two roof slopes. Each cassette is 160 deep: a 20 mm panel on either side with its openings cut out, a door and a window in the front, a window in the back and in each gable, and between the panels 60 mm edge beams on its boundary, studs and rafters every 625 mm cut on the inner faces of the edge beams, and two jambs, a header and under a window a sill around every opening. Every edge beam is cut on the plane its edge shares with the neighbouring cassette, so where three cassettes meet the corner closes. Every contact between cassettes is detected and drawn in contacts as a red mesh; no connector is made.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

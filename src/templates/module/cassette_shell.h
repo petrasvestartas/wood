@@ -1,5 +1,6 @@
 #pragma once
 #include "src/templates/module/module_contact.h"
+#include "src/templates/module/wall_guide.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -12,7 +13,7 @@ namespace wood_module {
 
 /// The contacts of a cassette shell.
 ///
-/// - `inside`: within a cassette, each plate on each of its edge beams and every two neighbouring edge beams at their miter.
+/// - `inside`: within a cassette, every two of its plates and beams that touch.
 /// - `between`: across every interior mesh edge, the edge beams of the two cassettes face to face on the plane they share.
 struct CassetteContacts {
     std::vector<Contact> inside; // `<a>_on_<b>` within every cassette.
@@ -23,20 +24,25 @@ struct CassetteContacts {
 // CassetteShell
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A segmented shell of hollow timber cassettes after the BUGA Wood Pavilion 2019, a session: per mesh face a thin top and bottom
-/// plate with an edge beam on every face edge between them, the outer face of each beam on the plane its edge shares with the
-/// neighbouring cell, so it is cut at the angle between the two cells, its ends mitered with the next beam. Neighbouring cassettes
-/// meet beam to beam; the contacts are detected, no connector is made yet.
+/// A shell of hollow timber cassettes after the BUGA Wood Pavilion 2019, a session: per mesh face one cassette, a top and a bottom
+/// plate over the whole face with its openings cut out, and between them an edge beam on every face edge, studs at the stud
+/// spacing and a frame around every opening. The outer face of each edge beam lies on the plane its edge shares with the
+/// neighbouring cassette, so it is cut at the angle between the two, its ends mitered with the next beam; where three cassettes
+/// meet at a corner their three planes meet in one line, so the corner closes. Neighbouring cassettes meet beam to beam; the
+/// contacts are detected, no connector is made.
 ///
-/// Fields: the welded mesh and the cassette sizes.
-/// Every cassette is a group `cassette_<f>` of `top_plate_<f>`, `bottom_plate_<f>` and `edge_beam_<f>_<j>`, read back by name; the
-/// polygon of every contact between cassettes is drawn in `contacts` as a red mesh.
+/// Fields: the welded mesh, the cassette sizes, the openings and the stud spacing.
+/// Every cassette is a group `cassette_<f>` of `top_plate_<f>`, `bottom_plate_<f>`, `edge_beam_<f>_<j>`, `stud_<f>_<k>`,
+/// `jamb_<f>_<o>_<side>`, `header_<f>_<o>` and `sill_<f>_<o>`, read back by name; the polygon of every contact between cassettes is
+/// drawn in `contacts` as a red mesh.
 class CassetteShell : public WoodSession {
 public:
     const Mesh mesh; // The input mesh of planar faces, welded at 0.01.
     const double depth; // Cassette depth along the face normal, plates included.
     const double plate_thickness; // Top and bottom plate thickness.
-    const double beam_width; // Edge beam width square to its edge plane.
+    const double beam_width; // Edge beam width square to its edge plane, and every stud's and frame member's width.
+    const std::vector<std::vector<Opening>> openings; // Per face its openings in the face frame: x along its first edge, y up the face; a sill of 0 a door on the first edge's beam.
+    const double stud_spacing; // Stud centres along the first edge of every face, 0 for none.
 
     /// The cassettes of the mesh as the session named name.
     explicit CassetteShell(
@@ -44,6 +50,8 @@ public:
         double depth = 200.0,
         double plate_thickness = 20.0,
         double beam_width = 60.0,
+        const std::vector<std::vector<Opening>>& openings = {},
+        double stud_spacing = 0.0,
         const std::string& name = "cassette_shell"
     );
 
@@ -56,14 +64,17 @@ public:
     /// The fifteen-face dome of hexagons and pentagons of the VDA mesh.
     static Mesh default_mesh();
 
-    /// A gable house: four walls split into panels with a door and four windows left open, a triangle over each end wall and two roof
-    /// slopes to the ridge, one face per cassette, the floor open.
+    /// A gable house, one face per cassette, the floor open: the front, the right gable end, the back, the left gable end, the front
+    /// and the back roof slope, each face's first edge along its foot or its eaves.
     static Mesh house_mesh(
         double length = 6000.0,
         double width = 4000.0,
         double height = 2700.0,
         double ridge = 4500.0
     );
+
+    /// The openings of house_mesh per face: a door and a window in the front, a window in the back and in each gable end.
+    static std::vector<std::vector<Opening>> house_openings();
 
     /// Per face its edge planes, each through its edge with its normal out of the face, shared by the two faces of an interior edge.
     const std::vector<std::vector<Plane>>& edge_planes() const;
@@ -73,12 +84,16 @@ public:
 
 private:
     std::vector<Plane> _face_planes;
+    std::vector<Plane> _face_frames;
     std::vector<std::vector<Plane>> _edge_planes;
     std::vector<std::vector<Plane>> _miter_planes;
     std::vector<std::vector<long long>> _neighbours;
 
     /// The plane of every face at its centroid along its normal.
     std::vector<Plane> compute_face_planes() const;
+
+    /// The frame of every face: origin at its first corner, x along its first edge, y up the face, z its normal.
+    std::vector<Plane> compute_face_frames() const;
 
     /// Per face edge the face on its other side, -1 on a naked edge.
     std::vector<std::vector<long long>> compute_neighbours() const;
@@ -89,11 +104,27 @@ private:
     /// Per face corner the plane halfway between the edge planes that meet there.
     std::vector<std::vector<Plane>> compute_miter_planes() const;
 
-    /// Adds per face its top and bottom plate under cassette_<f>.
+    /// Adds per face its top and bottom plate under cassette_<f>, the openings cut out of both.
     void add_plates();
 
     /// Adds per face edge its beam between the plates under cassette_<f>.
     void add_edge_beams();
+
+    /// Adds per opening its two jambs, its header and under a window its sill, between the plates under cassette_<f>.
+    void add_opening_frames();
+
+    /// Adds per face the studs at the stud spacing between the edge beams, cut on their inner faces, split by the openings they meet.
+    void add_studs();
+
+    /// The rectangle from (u, v) width along x and height along y of face f's frame, level along its normal.
+    Polyline face_rectangle(
+        size_t f,
+        double level,
+        double u,
+        double v,
+        double width,
+        double height
+    ) const;
 
     /// Searches the contacts inside every cassette and across every interior edge, stores them and returns them.
     CassetteContacts add_contacts();
