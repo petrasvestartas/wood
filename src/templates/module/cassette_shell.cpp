@@ -49,10 +49,10 @@ CassetteShell::CassetteShell(
     // edge beams: per face edge a beam between the plates, outer face on the edge plane, ends on the miter planes
     add_edge_beams();
 
-    // opening frames: per opening two jambs, a header and under a window a sill
+    // opening frames: per window the header and the sill between its jamb studs
     add_opening_frames();
 
-    // studs: at the stud spacing between the edge beams, split by the openings
+    // studs: the jamb studs of every window, and a stud on the grid of the stud spacing that no post takes, cripples in the windows
     add_studs();
 
     // contacts: plates on beams and beams on beams inside every cassette, beam on beam between every two cassettes, those drawn
@@ -379,24 +379,13 @@ void CassetteShell::add_opening_frames() {
 
         for (size_t o = 0; o < openings[f].size(); o++) {
             const Opening& opening = openings[f][o];
-            const double foot = opening.sill - w;
-            const double height = opening.head + w - foot;
 
-            // jambs: either side of the opening from the sill's underside to the header's top
-            const std::array<double, 2> jambs = {opening.x - w, opening.x + opening.width};
-
-            for (size_t side = 0; side < 2; side++) {
-                const Polyline bottom = face_rectangle(f, -level, jambs[side], foot, w, height);
-                const Polyline top = face_rectangle(f, level, jambs[side], foot, w, height);
-                add(std::make_shared<Plate>(bottom, top, fmt::format("jamb_{}_{}_{}", f, o, side)), group);
-            }
-
-            // header: across the opening over its head
+            // header: between the jamb studs, over the opening's head
             const Polyline header_bottom = face_rectangle(f, -level, opening.x, opening.head, opening.width, w);
             const Polyline header_top = face_rectangle(f, level, opening.x, opening.head, opening.width, w);
             add(std::make_shared<Plate>(header_bottom, header_top, fmt::format("header_{}_{}", f, o)), group);
 
-            // sill: across the opening under it
+            // sill: between the jamb studs under the opening
             const Polyline sill_bottom = face_rectangle(f, -level, opening.x, opening.sill - w, opening.width, w);
             const Polyline sill_top = face_rectangle(f, level, opening.x, opening.sill - w, opening.width, w);
             add(std::make_shared<Plate>(sill_bottom, sill_top, fmt::format("sill_{}_{}", f, o)), group);
@@ -425,16 +414,18 @@ void CassetteShell::add_studs() {
         const Polyline inner = Polyline::from_planes(inner_planes, _face_planes[f]);
         std::vector<std::array<double, 2>> corners;
         double area = 0.0;
+        double length = 0.0;
 
         for (size_t i = 0; i < n; i++) {
             const Vector offset = inner[i] - frame.origin();
             corners.push_back({offset.dot(frame.x_axis()), offset.dot(frame.y_axis())});
+            length = std::max(length, corners.back()[0]);
         }
 
         for (size_t i = 0; i < n; i++)
             area += corners[i][0] * corners[(i + 1) % n][1] - corners[(i + 1) % n][0] * corners[i][1];
 
-        // posts: the edge beams that run up the face, each on the outer side of its inner face, and the jambs of every opening
+        // posts: the edge beams that run up the face, each on the outer side of its inner face, and the jamb studs of every window
         const std::vector<Opening> face_openings = f < openings.size() ? openings[f] : std::vector<Opening>();
         std::vector<std::array<double, 2>> posts;
 
@@ -454,89 +445,117 @@ void CassetteShell::add_studs() {
             posts.push_back({opening.x + opening.width, opening.x + opening.width + w});
         }
 
-        std::sort(posts.begin(), posts.end());
+        // uprights: the jamb studs either side of every window, then a stud on every multiple of the stud spacing from the face's first
+        // corner that no post takes, so a stud doubles a jamb only where the window is off the grid; and whether each is a jamb
+        std::vector<double> centres;
+        std::vector<std::string> names;
+        std::vector<bool> jamb;
+
+        for (size_t o = 0; o < face_openings.size(); o++) {
+            const Opening& opening = face_openings[o];
+            const std::array<double, 2> places = {opening.x - 0.5 * w, opening.x + opening.width + 0.5 * w};
+
+            for (size_t side = 0; side < 2; side++) {
+                centres.push_back(places[side]);
+                names.push_back(fmt::format("jamb_stud_{}_{}_{}", f, o, side));
+                jamb.push_back(true);
+            }
+        }
+
         size_t count = 0;
 
-        // between every two posts as few studs as keep the stud spacing, evenly apart
-        for (size_t p = 0; p + 1 < posts.size(); p++) {
-            const double first = posts[p][1] - 0.5 * w;
-            const double last = posts[p + 1][0] + 0.5 * w;
-            const double span = last - first;
-            const int between = static_cast<int>(std::ceil(span / stud_spacing - 1e-9)) - 1;
+        for (double u = stud_spacing; u < length; u += stud_spacing) {
+            bool taken = false;
 
-            for (int k = 1; k <= between; k++) {
-                const double u = first + span * k / (between + 1);
-                std::vector<Plane> tops;
-                std::vector<Plane> bottoms;
-                std::array<size_t, 2> top_sides = {n, n};
-                std::array<size_t, 2> bottom_sides = {n, n};
+            for (const std::array<double, 2>& post : posts)
+                if (u + 0.5 * w > post[0] && u - 0.5 * w < post[1])
+                    taken = true;
 
-                // the beams over and under the stud at either side of it, its ends on their inner faces
-                for (size_t side = 0; side < 2; side++) {
-                    const double sample = side == 0 ? u - 0.5 * w + 1e-3 : u + 0.5 * w - 1e-3;
-                    double low = std::numeric_limits<double>::max();
-                    double high = std::numeric_limits<double>::lowest();
+            for (const Opening& opening : face_openings)
+                if (u - 0.5 * w >= opening.x && u + 0.5 * w <= opening.x + opening.width)
+                    taken = false;
 
-                    for (size_t i = 0; i < n; i++) {
-                        const std::array<double, 2>& a = corners[(i + n - 1) % n];
-                        const std::array<double, 2>& b = corners[i];
+            if (taken)
+                continue;
 
-                        if (std::abs(b[0] - a[0]) < 1e-9 || (a[0] - sample) * (b[0] - sample) > 0.0)
-                            continue;
+            centres.push_back(u);
+            names.push_back(fmt::format("stud_{}_{}", f, count));
+            jamb.push_back(false);
+            count++;
+        }
 
-                        const double v = a[1] + (sample - a[0]) / (b[0] - a[0]) * (b[1] - a[1]);
+        for (size_t s = 0; s < centres.size(); s++) {
+            const double u = centres[s];
+            std::vector<Plane> tops;
+            std::vector<Plane> bottoms;
+            std::array<size_t, 2> top_sides = {n, n};
+            std::array<size_t, 2> bottom_sides = {n, n};
 
-                        if (v < low) {
-                            low = v;
-                            bottom_sides[side] = i;
-                        }
+            // the beams over and under the upright at either side of it, its ends on their inner faces
+            for (size_t side = 0; side < 2; side++) {
+                const double sample = side == 0 ? u - 0.5 * w + 1e-3 : u + 0.5 * w - 1e-3;
+                double low = std::numeric_limits<double>::max();
+                double high = std::numeric_limits<double>::lowest();
 
-                        if (v > high) {
-                            high = v;
-                            top_sides[side] = i;
-                        }
-                    }
-                }
+                for (size_t i = 0; i < n; i++) {
+                    const std::array<double, 2>& a = corners[(i + n - 1) % n];
+                    const std::array<double, 2>& b = corners[i];
 
-                if (top_sides[0] == n || top_sides[1] == n || bottom_sides[0] == n || bottom_sides[1] == n)
-                    continue;
-
-                tops.push_back(inner_planes[top_sides[0]]);
-                bottoms.push_back(inner_planes[bottom_sides[1]]);
-
-                if (top_sides[1] != top_sides[0])
-                    tops.push_back(inner_planes[top_sides[1]]);
-
-                if (bottom_sides[0] != bottom_sides[1])
-                    bottoms.push_back(inner_planes[bottom_sides[0]]);
-
-                // runs: the whole height; inside a window above its header and below its sill
-                std::vector<std::array<std::vector<Plane>, 2>> runs = {{bottoms, tops}};
-
-                for (const Opening& opening : face_openings) {
-                    if (u < opening.x || u > opening.x + opening.width)
+                    if (std::abs(b[0] - a[0]) < 1e-9 || (a[0] - sample) * (b[0] - sample) > 0.0)
                         continue;
 
-                    const std::vector<Plane> over = {Plane::from_point_normal(frame.origin() + frame.y_axis() * (opening.head + w), frame.y_axis())};
-                    const std::vector<Plane> under = {Plane::from_point_normal(frame.origin() + frame.y_axis() * (opening.sill - w), frame.y_axis())};
-                    const std::array<std::vector<Plane>, 2> above = {over, tops};
-                    const std::array<std::vector<Plane>, 2> below = {bottoms, under};
-                    runs = {above, below};
-                }
+                    const double v = a[1] + (sample - a[0]) / (b[0] - a[0]) * (b[1] - a[1]);
 
-                const Plane left = Plane::from_point_normal(frame.origin() + frame.x_axis() * (u - 0.5 * w), frame.x_axis());
-                const Plane right = Plane::from_point_normal(frame.origin() + frame.x_axis() * (u + 0.5 * w), frame.x_axis());
+                    if (v < low) {
+                        low = v;
+                        bottom_sides[side] = i;
+                    }
 
-                for (const std::array<std::vector<Plane>, 2>& run : runs) {
-                    std::vector<Plane> sides = {left};
-                    sides.insert(sides.end(), run[1].begin(), run[1].end());
-                    sides.push_back(right);
-                    sides.insert(sides.end(), run[0].begin(), run[0].end());
-                    const Polyline bottom = Polyline::from_planes(sides, _face_planes[f].translate_by_normal(-level));
-                    const Polyline top = Polyline::from_planes(sides, _face_planes[f].translate_by_normal(level));
-                    add(std::make_shared<Plate>(bottom, top, fmt::format("stud_{}_{}", f, count)), group);
-                    count++;
+                    if (v > high) {
+                        high = v;
+                        top_sides[side] = i;
+                    }
                 }
+            }
+
+            if (top_sides[0] == n || top_sides[1] == n || bottom_sides[0] == n || bottom_sides[1] == n)
+                continue;
+
+            tops.push_back(inner_planes[top_sides[0]]);
+            bottoms.push_back(inner_planes[bottom_sides[1]]);
+
+            if (top_sides[1] != top_sides[0])
+                tops.push_back(inner_planes[top_sides[1]]);
+
+            if (bottom_sides[0] != bottom_sides[1])
+                bottoms.push_back(inner_planes[bottom_sides[0]]);
+
+            // runs: the whole height; a stud inside a window over its header and under its sill
+            std::vector<std::array<std::vector<Plane>, 2>> runs = {{bottoms, tops}};
+
+            for (const Opening& opening : face_openings) {
+                if (jamb[s] || u < opening.x || u > opening.x + opening.width)
+                    continue;
+
+                const std::vector<Plane> over = {Plane::from_point_normal(frame.origin() + frame.y_axis() * (opening.head + w), frame.y_axis())};
+                const std::vector<Plane> under = {Plane::from_point_normal(frame.origin() + frame.y_axis() * (opening.sill - w), frame.y_axis())};
+                const std::array<std::vector<Plane>, 2> above = {over, tops};
+                const std::array<std::vector<Plane>, 2> below = {bottoms, under};
+                runs = {above, below};
+            }
+
+            const Plane left = Plane::from_point_normal(frame.origin() + frame.x_axis() * (u - 0.5 * w), frame.x_axis());
+            const Plane right = Plane::from_point_normal(frame.origin() + frame.x_axis() * (u + 0.5 * w), frame.x_axis());
+
+            for (size_t r = 0; r < runs.size(); r++) {
+                std::vector<Plane> sides = {left};
+                sides.insert(sides.end(), runs[r][1].begin(), runs[r][1].end());
+                sides.push_back(right);
+                sides.insert(sides.end(), runs[r][0].begin(), runs[r][0].end());
+                const Polyline bottom = Polyline::from_planes(sides, _face_planes[f].translate_by_normal(-level));
+                const Polyline top = Polyline::from_planes(sides, _face_planes[f].translate_by_normal(level));
+                const std::string name = runs.size() == 1 ? names[s] : fmt::format("{}_{}", names[s], r);
+                add(std::make_shared<Plate>(bottom, top, name), group);
             }
         }
     }
@@ -565,7 +584,7 @@ CassetteContacts CassetteShell::add_contacts() {
     CassetteContacts contacts;
 
     // parts: every plate and beam of every cassette, by name
-    const std::array<std::string, 7> kinds = {"top_plate", "bottom_plate", "edge_beam", "stud", "jamb", "header", "sill"};
+    const std::array<std::string, 7> kinds = {"top_plate", "bottom_plate", "edge_beam", "stud", "jamb_stud", "header", "sill"};
     std::vector<std::vector<std::shared_ptr<Plate>>> parts(_face_planes.size());
 
     for (size_t f = 0; f < _face_planes.size(); f++) {

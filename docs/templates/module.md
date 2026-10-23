@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, no two parallel members stand side by side, and the studs between two posts are spaced evenly. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
+Timber modules from beams and panels, after the kit-of-parts buildings of AUAR and the hollow cassettes of the BUGA Wood Pavilion 2019: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, so a member is doubled only where an opening is off the grid. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
 
 ## Wall
 
@@ -18,26 +18,22 @@ wood_module::Wall wall(guide);
 | Parameter | Default | Controls |
 | --- | --- | --- |
 | `length`, `height` | 4800, 2700 | the wall's size, foot at z 0 |
-| `stud_width` | 60 | every member's size in the plane of the wall: studs, rails, king studs, headers and sills |
+| `stud_width` | 60 | every member's size in the plane of the wall: studs, rails, jamb studs, headers and sills |
 | `stud_depth` | 160 | frame depth across the wall, the insulation space |
-| `stud_spacing` | 625 | the largest distance between stud centres; the studs between two posts are spaced evenly |
+| `stud_spacing` | 625 | stud centres from the wall's start, half a 1250 sheet; 600 for 1200 sheets, 400 for a stiffer wall |
 | `sheet_thickness` | 15 | one sheathing panel on each face |
 | `openings` | a door at 600, a window at 2525 | `{x, width, sill, head}`, a sill of 0 a door |
 
 ### Frame
 
-The rails, the bottom one stopping at the door; per opening two king studs, a header and under a window a sill; then the studs. The posts are the two end studs and every king stud; between every two of them as few studs as keep the stud spacing stand evenly apart, and one that falls inside an opening is a cripple over its header and under its sill. Every member is a `Beam` of `profile_rectangle(stud_depth, stud_width)`; the red faces are the contacts found between them.
+The rails, the bottom one stopping at the door; per opening a full-height jamb stud either side, the header between them and under a window a sill; then the studs on the grid. A stud stands at every multiple of the stud spacing from the wall's start, so the studs line up with the sheet edges whatever the openings are; an opening brings its own jamb studs, a grid stud that falls on a jamb is that jamb, and one beside it stays, so a member is doubled only where the opening is off the grid. A grid stud inside an opening is a cripple over its header and under its sill. Every member is a `Beam` of `profile_rectangle(stud_depth, stud_width)`; the red faces are the contacts found between them.
 
 ![frame](templates/templates_module_1_wall_frame.webp)
 
 ```cpp
-// between every two posts as few studs as keep the stud spacing, evenly apart; inside an opening cripples over its header and under its sill
-for (size_t p = 0; p + 1 < posts.size(); p++) {
-    const double span = posts[p + 1] - posts[p];
-    const int between = static_cast<int>(std::ceil(span / guide.stud_spacing - 1e-9)) - 1;
-
-    for (int k = 1; k <= between; k++) {
-        const double x = posts[p] + span * k / (between + 1);
+// studs: on the grid of the stud spacing from the wall's start, where no edge or jamb stud stands, so a stud doubles a jamb only
+// where the opening is off the grid; inside an opening cripples over its header and under its sill
+for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) {
 ```
 
 ### Sheathing
@@ -62,7 +58,7 @@ Seen through, at opacity 0.95, the frame between the two panels:
 
 ### Contacts
 
-`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 32 in the frame, 38 between the two panels and the 19 frame members. No connector is made.
+`compute_face_contact` between every two frame members and between every panel and frame member. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 28 in the frame, 34 between the two panels and the 17 frame members. No connector is made.
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
@@ -97,7 +93,7 @@ wood_module::CassetteShell shell;  // or CassetteShell(mesh, depth, plate_thickn
 | `plate_thickness` | 20 | top and bottom plate |
 | `beam_width` | 60 | every edge beam's, stud's and frame member's width, one section for all |
 | `openings` | none | per face its `{x, width, sill, head}` in the face frame: x along its first edge, y up the face |
-| `stud_spacing` | 0, none | the largest distance between stud centres; the studs between two posts are spaced evenly |
+| `stud_spacing` | 0, none | stud centres from every face's first corner along its first edge; every window is framed by its own jamb studs |
 | `ranks` | none, miters | per face its rank at a T joint, the lower running through square and the other cut on its face |
 
 ### Planes
@@ -178,7 +174,7 @@ wood_module::CassetteShell house(
 );
 ```
 
-Each cassette is one panel on either side with its windows cut out, and between them the edge beams on its boundary, the jambs, header and sill of every window, and the studs, rafters on the roof. The posts are the edge beams that run up the face, the door's among them, and the jambs; between every two of them as few studs as keep 625 mm stand evenly apart, their ends cut on the inner faces of the beams over and under them, so a stud over the door or under a gable slope is a cripple, and one inside a window is split over its header and under its sill. Every member is 60 wide.
+Each cassette is one panel on either side with its windows cut out, and between them the edge beams on its boundary, the jamb studs, header and sill of every window, and the studs, rafters on the roof. The studs stand on the 625 mm grid from each face's first corner, the same logic as the wall: a grid stud that falls on an edge beam running up the face or on a jamb is that member, one beside it stays, and one inside a window is split over its header and under its sill. Their ends are cut on the inner faces of the beams over and under them, so a stud over the door or under a gable slope is a cripple. Every member is 60 wide.
 
 The cassettes meet in T joints, not miters, so the fewest cuts are inclined: `house_ranks` puts the roof slopes over everything, the front slope over the back one at the ridge, and the long walls past the gable ends. The cassette of lower rank runs through and ends flush with the other's outer face; the other is cut on the through cassette's inner face. Wall and gable meet square, and so do gable and roof, whose plane holds the gable's normal; at the eaves the roof ends in a plumb cut flush with the wall's outer face, the wall top is cut to the roof's underside, and at the ridge the front slope ends flush with the top of the back slope: the only cuts at an angle. Inside a cassette the edge beams butt the same way, the more level one running through. Only the hex shell keeps its miters.
 
@@ -194,17 +190,14 @@ Seen through, at opacity 0.95:
 
 ![cassette house seen through](templates/templates_module_3_cassette_house_inside.webp)
 
-The front alone: the door a notch from the ground and the window a hole through both panels; in the whole house the openings show the inside of the walls behind them. Its frame, the door with a cripple over it, the window with cripples over and under it and the studs evenly between the posts, is in the picture seen through above.
+The front alone: the door a notch from the ground and the window a hole through both panels; in the whole house the openings show the inside of the walls behind them. Its frame, the door with a cripple over it, the window with its jamb studs and cripples over and under it and the studs on the grid, is in the picture seen through above.
 
 ![front](templates/templates_module_3_cassette_house_front.webp)
 
 ```cpp
-// between every two posts as few studs as keep the stud spacing, evenly apart
-for (size_t p = 0; p + 1 < posts.size(); p++) {
-    const double first = posts[p][1] - 0.5 * w;
-    const double last = posts[p + 1][0] + 0.5 * w;
-    const double span = last - first;
-    const int between = static_cast<int>(std::ceil(span / stud_spacing - 1e-9)) - 1;
+// uprights: the jamb studs either side of every window, then a stud on every multiple of the stud spacing from the face's first
+// corner that no post takes, so a stud doubles a jamb only where the window is off the grid; and whether each is a jamb
+for (double u = stud_spacing; u < length; u += stud_spacing) {
 ```
 
 One gable end, square on every side: its sides stop on the long walls, its top under the roof; its studs cut on the inner faces of the sloped beams, the window framed:

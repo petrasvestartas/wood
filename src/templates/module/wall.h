@@ -14,7 +14,7 @@ namespace wood_module {
 /// contacts between them; no connector is made.
 ///
 /// Fields: `guide`, the WallGuide it is built from.
-/// Members are named `bottom_rail_<i>`, `top_rail`, `stud_<i>`, `king_stud_<o>_<side>`, `header_<o>`, `sill_<o>` and
+/// Members are named `bottom_rail_<i>`, `top_rail`, `stud_<i>`, `jamb_stud_<o>_<side>`, `header_<o>`, `sill_<o>` and
 /// `sheathing_<side>`, cripples as `cripple_<o>_<i>_<run>`, read back by name; every member has the same section.
 class Wall : public WoodSession {
 public:
@@ -33,11 +33,11 @@ private:
     /// Adds the bottom rail, split at every door, and the top rail, in rails.
     void add_rails();
 
-    /// Adds per opening its two king studs, its header and under a window its sill, in opening_<o>.
+    /// Adds per opening a full-height jamb stud either side, the header between them and under a window its sill, in opening_<o>.
     void add_openings();
 
-    /// Adds the end studs and, between every two posts, as few studs as keep the stud spacing, evenly apart; one inside an opening is a
-    /// cripple over its header and under its sill, in opening_<o>.
+    /// Adds the edge studs and a stud at every multiple of the stud spacing from the wall's start where no edge or jamb stud stands; one
+    /// inside an opening is a cripple over its header and under its sill, in opening_<o>.
     void add_studs();
 
     /// Adds one panel on each face of the whole wall, every door a notch and every window a hole, sheathing_0 and sheathing_1.

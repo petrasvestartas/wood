@@ -33,7 +33,7 @@ struct CassetteContacts {
 ///
 /// Fields: the welded mesh, the cassette sizes, the openings and the stud spacing.
 /// Every cassette is a group `cassette_<f>` of `top_plate_<f>`, `bottom_plate_<f>`, `edge_beam_<f>_<j>`, `stud_<f>_<k>`,
-/// `jamb_<f>_<o>_<side>`, `header_<f>_<o>` and `sill_<f>_<o>`, read back by name; the polygon of every contact between cassettes is
+/// `jamb_stud_<f>_<o>_<side>`, `header_<f>_<o>` and `sill_<f>_<o>`, read back by name; the polygon of every contact between cassettes is
 /// drawn in `contacts` as a red mesh.
 class CassetteShell : public WoodSession {
 public:
@@ -42,7 +42,7 @@ public:
     const double plate_thickness; // Top and bottom plate thickness.
     const double beam_width; // Every edge beam's, stud's and frame member's width, one section for all.
     const std::vector<std::vector<Opening>> openings; // Per face its windows in the face frame: x along its first edge, y up the face; a door is a notch in the face itself.
-    const double stud_spacing; // Largest distance between stud centres along the first edge of every face, 0 for none.
+    const double stud_spacing; // Stud centres from the first corner of every face along its first edge, 0 for none; every window is framed by its own jamb studs.
     const std::vector<int> ranks; // Per face its rank at a T joint, the lower running through; empty for miters on the bisector planes.
 
     /// The cassettes of the mesh as the session named name.
@@ -117,11 +117,12 @@ private:
     /// Adds per face edge its beam between the plates under cassette_<f>.
     void add_edge_beams();
 
-    /// Adds per opening its two jambs, its header and its sill, between the plates under cassette_<f>.
+    /// Adds per window its header and its sill between the jamb studs, under cassette_<f>.
     void add_opening_frames();
 
-    /// Adds per face, between every two posts, the edge beams running up the face and the jambs, as few studs as keep the stud spacing,
-    /// evenly apart, their ends on the inner faces of the beams over and under them, split by the openings they stand in.
+    /// Adds per face the jamb studs of every window and a stud on every multiple of the stud spacing from the face's first corner that no
+    /// post, an edge beam running up the face or a jamb, takes; their ends on the inner faces of the beams over and under them, a stud
+    /// inside a window split over its header and under its sill.
     void add_studs();
 
     /// The rectangle from (u, v) width along x and height along y of face f's frame, level along its normal.
