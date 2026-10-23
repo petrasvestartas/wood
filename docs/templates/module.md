@@ -234,14 +234,14 @@ What a module is, from Blumer Lehmann's pages, reference sheets, brochure drawin
 | --- | --- | --- |
 | structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
 | frame | the photo of a ZM10 module craned onto Friesenberg school: a thick floor and ceiling box, a post at each end of an open long side, walls only on the closed sides | four corner posts, a wall thick, between the floor and the ceiling; a framed wall between the posts on every closed side |
-| floor and ceiling | factory photos of an open-sided module: a wide boundary beam all round the floor and the ceiling, joists across about 1.25 m apart, a line along the middle, boards over them; the brochure sections draw floor and ceiling together about a sixth of the clear height | a rim of 160 wide boundary beams, 100 wide joists dividing the length evenly at most 1250 apart, a row of noggings at mid-width, 200 deep with a 25 deck on each face |
+| floor and ceiling | factory photos of an open-sided module: a deep primary beam along each long side of the floor and of the ceiling, spanning between the corner posts, secondary joists across about 1.25 m apart, boards over them | two primary beams 240 x 400, glulam for about a 9 m span (span / 22), 100 x 200 joists across between them dividing the length evenly at most 1250 apart, the end joists at the module's ends; the floor's 25 deck on top and a board under its joists, the ceiling's lining below and a board on its joists |
 | rooms | a ZM10 classroom of 68 m2 spans more than one module; the brochure's bank pavilion plan draws a pair of posts side by side at mid-length of the open joint, one per module | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
 | walls between rooms | the pavilion plan draws one wall between two rooms, inside one module, its neighbour open against it | one wall, in the module of the smaller room, the lower column on a tie |
 | facade | ZM10 pavilions: every module end a bay of about 3 m with a window, three storeys, a corridor through the other ends with cased doors | the end at x 0 the facade with a window, the end at x length the corridor with a door |
 | plan | 3 x 9 m outside (Chäserrugg modules; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 3000 |
-| height | 2.7 m clear inside (Permapack office module) | 2700 clear, 3200 outside |
+| height | 2.7 m clear inside (Permapack office module) | 2700 clear, 3550 outside |
 | stacking | side by side freely, stacked up to three storeys | `rooms` side by side, `storeys` stacked |
-| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t | 3000 wide, 3200 high |
+| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t | 3000 wide, 3550 high on a low loader |
 
 ```cpp
 wood_module::RoomModuleGuide guide;  // two modules of 9000 x 3000 forming one room, 2700 clear
@@ -253,8 +253,9 @@ wood_module::RoomModule room(guide);
 | `length`, `width`, `clear_height` | 9000, 3000, 2700 | a module's plan and the clear height inside |
 | `stud_width`, `stud_depth`, `stud_spacing` | 60, 160, 625 | the wall frame: its members, its depth and the stud grid from each wall's start |
 | `sheet_thickness` | 15 | a sheet on each face of a wall; a post is as wide as the wall |
-| `rim_width`, `joist_width`, `joist_depth` | 160, 100, 200 | the floor and ceiling frame: boundary beams, joists across and their common depth |
-| `joist_spacing`, `deck_thickness` | 1250, 25 | the largest joist spacing, the joists dividing the length evenly; a deck on each face |
+| `primary_width`, `primary_depth` | 240, 400 | the floor and ceiling primary beams along both long sides |
+| `joist_width`, `joist_depth`, `joist_spacing` | 100, 200, 1250 | the secondary joists across between them, flush at the deck, dividing the length evenly at most this far apart |
+| `deck_thickness` | 25 | a floor's deck and a ceiling's lining over the whole module, a board on the joists' other face |
 | `side_posts` | 1 | posts along a long side open inside a room, evenly between the corner posts |
 | `layouts` | a window at the facade end, a door at the corridor end | per module across, cycled: per wall its openings in its own frame, and a porch, the start wall set back |
 | `rooms`, `storeys` | {2}, 1 | the modules side by side forming each room, modules stacked |
@@ -275,11 +276,11 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 ### Elements
 
-Every element is a `FramedPanel`, the wall's framing in a plane: rails along its foot and top, an edge stud at both ends, studs on the grid, a jamb stud either side of every opening with the header and sill between them, rows of noggings between the studs, and a sheet on each face. The floor and the ceiling lie flat over the whole module, their rails and edge studs the 160 wide rim of boundary beams that carries the module between its posts, their studs the joists across it, seven dividing the 9000 into eight bays of 1125, and a row of noggings at mid-width, as in the factory photo:
+The floor and the ceiling are two primary beams along the long sides, which carry the module between its corner posts, and the secondary joists across between them, nine dividing the 9000 into eight equal bays, the end joists at the module's ends, as in the factory photo. The floor's joists are flush with the top of its primary beams under the deck, the ceiling's with their underside over the lining:
 
 ![floor](templates/templates_module_4_room_module_floor.webp)
 
-The facade end wall between the posts, its window framed by jamb studs:
+Every wall is a `FramedPanel`, the wall's framing in a plane: rails along its foot and top, an edge stud at both ends, studs on the grid, a jamb stud either side of every opening with the header and sill between them, and a sheet on each face. The facade end wall between the posts, its window framed by jamb studs:
 
 ![facade end wall](templates/templates_module_4_room_module_wall.webp)
 
@@ -289,7 +290,7 @@ Seen through, at opacity 0.95:
 
 ### Contacts
 
-`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the floors, ceilings and posts of a room along their open sides, the wall between two rooms and the open neighbour against it, and a ceiling deck under the next floor. The room of two modules has 321 contacts in its frames and 410 with its sheets:
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the floors, ceilings and posts of a room along their open sides, the wall between two rooms and the open neighbour against it, and a ceiling deck under the next floor. The room of two modules has 257 contacts in its frames and 344 with its sheets:
 
 ![contacts](templates/templates_module_4_room_module_contacts.webp)
 

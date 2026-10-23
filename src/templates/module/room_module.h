@@ -12,15 +12,15 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling lying flat, each
-/// a rim of boundary beams around the joists with noggings at mid-width, four corner posts between them, and a framed wall between the
+/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling, each two primary
+/// beams along the long sides and joists across between them, four corner posts between them, and a framed wall between the
 /// posts on every closed side; the long sides between the modules of one room are open, a post at mid-length on each, so the room spans
 /// them; between two rooms one wall, in the module of the smaller room. Then the contacts in every module and between modules side by
 /// side and stacked. No connector is made.
 ///
 /// Fields: `guide`, the RoomModuleGuide it is built from.
-/// Every module is a group `module_<storey>_<column>` of the FramedPanels `<module>_floor`, `<module>_ceiling`, `<module>_wall_start`,
-/// `<module>_wall_end` and, on a long side it closes, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
+/// Every module is a group `module_<storey>_<column>` of its floor and ceiling `<module>_floor` and `<module>_ceiling`, each its
+/// `_beams` and `_decks`, of the FramedPanels `<module>_wall_start`, `<module>_wall_end` and, on a long side it closes, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
 /// every member of a panel is named `<panel>_<part>`, read back by name.
 class RoomModule : public WoodSession {
 public:
@@ -35,7 +35,7 @@ public:
     /// Not assigned, as it is not copied.
     RoomModule& operator=(const RoomModule&) = delete;
 
-    /// Floor or ceiling element thickness: the joists and a deck on each face.
+    /// Floor or ceiling thickness: the primary beams and the deck.
     double slab_thickness() const;
 
     /// Wall element thickness: the studs and a sheet on each face.
@@ -51,6 +51,12 @@ private:
     /// Adds the module of a storey and a column: its floor and ceiling, its corner posts, the posts along its sides open inside its room,
     /// and its walls on the sides it closes.
     void add_module(size_t storey, size_t column);
+
+    /// Adds a floor or a ceiling named name from the module's corner at its underside: two primary beams along the long sides, joists
+    /// across between them dividing the length evenly, the end joists at the module's ends, flush with the primary beams at the deck;
+    /// a floor's deck over the top and a board under the joists between the primary beams, a ceiling's lining under the whole and a
+    /// board on the joists.
+    void add_slab(const std::string& name, const Point& corner, bool floor, const std::shared_ptr<TreeNode>& parent);
 
     /// The room of the module in a column and the number of modules it has.
     std::array<size_t, 2> room_of(size_t column) const;

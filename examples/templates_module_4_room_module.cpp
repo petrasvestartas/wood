@@ -19,7 +19,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 4 of the timber modules: one room of two room modules after the timber modules of Blumer Lehmann, each 9000 x 3000 in plan, 2700 clear inside, 3200 high, joined along their long sides. Each module is a frame: a floor and a ceiling element lying flat, 200 deep with a 25 mm deck on each face, a rim of 160 wide boundary beams around seven 100 wide joists across it in eight equal bays and a row of noggings at mid-width, four posts at its corners, and a framed wall between the posts on every closed side, 160 deep with a 15 mm sheet on each face; the side between the two modules is left open, a post of each at mid-length, so the room is 6 m wide. The corridor ends have a door, the facade ends a window. Every member and sheet that touches another is a face contact; no connector is made.
+Step 4 of the timber modules: one room of two room modules after the timber modules of Blumer Lehmann, each 9000 x 3000 in plan, 2700 clear inside, 3550 high, joined along their long sides. Each module is a frame: a floor and a ceiling, each two 240 x 400 primary beams along the long sides and nine 100 x 200 joists across between them in eight equal bays, the floor's 25 mm deck on top, the ceiling's lining below, four posts at its corners, and a framed wall between the posts on every closed side, 160 deep with a 15 mm sheet on each face; the side between the two modules is left open, a post of each at mid-length, so the room is 6 m wide. The corridor ends have a door, the facade ends a window. Every member and sheet that touches another is a face contact; no connector is made.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

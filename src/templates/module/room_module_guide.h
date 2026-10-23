@@ -21,9 +21,9 @@ struct ModuleLayout {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The geometry of timber room modules in mm, after the modules of Blumer Lehmann: about 3 x 9 m in plan, the width a Swiss standing
-/// permit carries on the road (3 m), 2.7 m clear inside. A module is a frame: a floor and a ceiling element lying flat, each a rim of
-/// wide boundary beams around thinner joists across it with a row of noggings at mid-width, carried at the four corners by posts, and
-/// a framed wall only on each closed side. Modules stand side by side along their long sides; those of one room leave the sides
+/// permit carries on the road (3 m), 2.7 m clear inside. A module is a frame: a floor and a ceiling, each two primary beams along the
+/// long sides with secondary joists across between them, carried at the four corners by posts, and a framed wall only on each closed
+/// side. Modules stand side by side along their long sides; those of one room leave the sides
 /// between them open, with a pair of posts at mid-length, so a room spans several modules. Between two rooms stands one wall, in the
 /// module of the smaller room, the neighbour open against it. Modules stack up to three storeys. x along the module, y across it, z
 /// up, the first module's corner at the origin.
@@ -35,11 +35,12 @@ struct RoomModuleGuide {
     double stud_depth = 160.0; // Wall frame depth, the insulation space.
     double stud_spacing = 625.0; // Stud centres from each wall's start, half a 1250 sheet.
     double sheet_thickness = 15.0; // Wall sheathing, one sheet on each face; a post is as wide as the wall.
-    double rim_width = 160.0; // Floor and ceiling boundary beams, the long rims and the end rims, which carry the module between its posts.
-    double joist_width = 100.0; // Floor and ceiling joists across the module between the long rims.
-    double joist_depth = 200.0; // Floor and ceiling frame depth, rims and joists flush.
-    double joist_spacing = 1250.0; // Largest joist spacing, the joists dividing the module's length evenly between the end rims.
-    double deck_thickness = 25.0; // Floor and ceiling deck, one sheet on each face.
+    double primary_width = 240.0; // Floor and ceiling primary beams along both long sides, spanning the module's length between its corners.
+    double primary_depth = 400.0; // Primary beam depth, about a 9 m span over 22 in glulam.
+    double joist_width = 100.0; // Secondary joists across the module between the primary beams.
+    double joist_depth = 200.0; // Joist depth, flush with the primary beams at the deck: the top of a floor, the underside of a ceiling.
+    double joist_spacing = 1250.0; // Largest joist spacing, the joists dividing the module's length evenly, the end joists at its ends.
+    double deck_thickness = 25.0; // A floor's deck over its top and a ceiling's lining under it; a board on the joists' other face between the primary beams.
     size_t side_posts = 1; // Posts along a long side open inside a room, evenly between the corner posts, one at mid-length by default.
     std::vector<ModuleLayout> layouts = {
         {{{{}, {}, {{560.0, 1500.0, 900.0, 2100.0}}, {{810.0, 1000.0, 0.0, 2100.0}}}}, 0.0},
