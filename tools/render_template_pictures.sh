@@ -27,7 +27,7 @@ fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
     "${RENDER[@]}" templates_cross_1_vda_mesh all mesh face_planes edge_planes bisector_planes plates connector_frames connectors
-    "${RENDER[@]}" --size 4800x3200 --crop 0.25,0.05,0.75,0.55 --name cross_laps templates_cross_1_vda_mesh plates
+    "${RENDER[@]}" --size 8000x5333 --crop 0.25,0.05,0.75,0.55 --name cross_laps templates_cross_1_vda_mesh plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = reciprocal ]; then
@@ -48,6 +48,6 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
     "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
     "${RENDER[@]}" --view right --name section templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --size 4800x3200 --crop 0.0,0.36,0.14,0.52 --name eave templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --size 4800x3200 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --size 8000x5333 --crop 0.0,0.36,0.14,0.52 --name eave templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --size 8000x5333 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
 fi

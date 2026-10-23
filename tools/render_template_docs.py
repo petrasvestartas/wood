@@ -56,15 +56,20 @@ def run_example(name: str, out: pathlib.Path) -> None:
         shutil.copy(live, out)
 
 
-def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> Image.Image:
-    """The scene at the given opacity and size in the Arctic view, cropped to what it draws."""
-    width, height = size.split("x")
+LARGEST = 8000  # px, the widest frame the viewer renders; supersampling stays under it
+
+
+def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> tuple:
+    """The scene at the given opacity in the Arctic view, rendered at up to twice size so its lines can be scaled down thin and smooth,
+    cropped to what it draws; with the factor it was rendered larger by."""
+    width, height = (int(side) for side in size.split("x"))
+    factor = max(1, min(2, LARGEST // width))
     env = dict(
         os.environ,
         VIEWER_SHEETS="0",
         VIEWER_OPACITY=opacity,
-        VIEWER_W=width,
-        VIEWER_H=height,
+        VIEWER_W=str(width * factor),
+        VIEWER_H=str(height * factor),
         VIEWER_THICKNESS="2",
         VIEWER_VIEW=view,
         VIEWER_PLANE_SIZE=os.environ.get("VIEWER_PLANE_SIZE", "0"),
@@ -88,7 +93,7 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> Image.Image:
         .point(lambda v: 255 if v > 12 else 0)
     )
     box = mask.getbbox()
-    margin = 40
+    margin = 40 * factor
     box = (
         max(0, box[0] - margin),
         max(0, box[1] - margin),
@@ -96,7 +101,7 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> Image.Image:
         min(image.height, box[3] + margin),
     )
 
-    return image.crop(box)
+    return image.crop(box), factor
 
 
 def option(arguments: list, flag: str, default: str) -> str:
@@ -115,6 +120,7 @@ def main(arguments: list) -> None:
 
     `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--crop 0.4,0.3,0.6,0.5` to keep that
     share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp.
+    Every picture renders at twice its size, up to LARGEST wide, and is scaled down, so its outlines come out thin and smooth.
     """
     view = option(arguments, "--view", "iso")
     opacity = option(arguments, "--opacity", "1")
@@ -136,7 +142,7 @@ def main(arguments: list) -> None:
                 capture_output=True,
             )
             picture = IMAGES / f"{name}_{rename or group.split('+')[-1]}.webp"
-            image = render(branch, view, opacity, size)
+            image, factor = render(branch, view, opacity, size)
 
             if crop:
                 left, top, right, bottom = (float(share) for share in crop.split(","))
@@ -148,6 +154,9 @@ def main(arguments: list) -> None:
                         int(image.height * bottom),
                     )
                 )
+
+            if factor > 1:
+                image = image.resize((image.width // factor, image.height // factor), Image.LANCZOS)
 
             image.save(picture, quality=90)
             print(picture.relative_to(WOOD))
