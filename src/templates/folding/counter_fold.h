@@ -24,7 +24,7 @@ public:
     explicit CounterFold(
         const std::vector<Polyline>& stations = counter_running(5, 1500.0, 1500.0, 18000.0),
         Folding folding = Folding::ridge_to_ridge,
-        double thickness = 480.0,
+        double thickness = 240.0,
         const std::string& name = "counter_fold"
     );
 

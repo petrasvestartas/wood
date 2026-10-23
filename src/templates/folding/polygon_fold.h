@@ -30,7 +30,7 @@ public:
         const std::vector<double>& heights = {0.0, 1800.0, 900.0, 2700.0, 1800.0, 3600.0},
         double apex = 4500.0,
         bool truncated = false,
-        double thickness = 480.0,
+        double thickness = 240.0,
         const std::string& name = "polygon_fold"
     );
 
