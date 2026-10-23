@@ -234,30 +234,32 @@ What a module is, from Blumer Lehmann's pages, reference sheets, brochure drawin
 | --- | --- | --- |
 | structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
 | frame | the photo of a ZM10 module craned onto Friesenberg school: a thick floor and ceiling box, a post at each end of an open long side, walls only on the closed sides | four corner posts, a wall thick, between the floor and the ceiling; a framed wall between the posts on every closed side |
-| floor and ceiling | handbook B8, detail 36 and the joints 34, 35: floor and ceiling two separate boxes (Hohlkasten), edge beams all round and joists of one depth between a board under and a board over them, insulation inside, so flush on both faces; the ceiling carries only itself, the floor the room's loads | a floor box 200 x 240 edge beams, 80 x 240 joists, a 15 board under and a 27 deck over, 282 thick; a ceiling box 120 x 160 edge beams, 60 x 160 joists, a 15 board on each face, 190 thick; joists at most 625 apart, dividing the length between the end beams evenly |
+| floor and ceiling | handbook B8, detail 36 and the joints 34, 35: floor and ceiling two separate boxes (Hohlkasten), edge beams all round and joists of one depth between a board under and a board over them, insulation inside, so flush on both faces; the ceiling carries only itself, the floor the room's loads | boxes framed by four edge beams of one size, a wall wide, flush all round, the joists shallower and flush with the face to the room, the boards in the field between the edge beams: a floor of 190 x 280 edge beams, 80 x 200 joists under a 27 deck flush with their tops, a 15 board under the joists, 280 thick; the ceiling the floor turned over, 190 x 200 edge beams, 60 x 140 joists on a 15 lining flush with their undersides, a 15 board on top, 200 thick; joists at most 625 apart, dividing the length between the end beams evenly |
 | downstand beams | handbook B8: open modules carry their ceilings on edge downstand beams (Randunterzüge) into the corner posts, often also intermediate ones; its classroom of open modules (fig. 11) shows a pair hanging below the ceiling at the joint | a 190 x 300 downstand beam, a wall wide, under the ceiling along every long side without a wall, the posts under it 2400 high |
 | rooms | a ZM10 classroom of 68 m2 spans more than one module; the brochure's bank pavilion plan draws a pair of posts side by side at mid-length of the open joint, one per module | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
 | walls between rooms | the pavilion plan draws one wall between two rooms, inside one module, its neighbour open against it | one wall, in the module of the smaller room, the lower column on a tie |
 | facade | ZM10 pavilions: every module end a bay of about 3 m with a window, three storeys, a corridor through the other ends with cased doors | the end at x 0 the facade with a window, the end at x length the corridor with a door |
-| plan | 3 x 9 m outside (Chäserrugg modules; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 3000 |
-| height | 2.7 m clear inside (Permapack office module); handbook B8: 2.50, 2.75 or 3.00 m clear, up to 4.00 | 2700 clear, 3172 outside |
+| plan | 3 x 9 m outside (Chäserrugg modules; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 2950 |
+| joint | handbook B8: makers build 2.95 m modules on a 3.00 m grid, the transport straps inside the permitted width; the walls doubled at a joint, the gap filled with insulation | `joint = 50`, the modules 2950 wide on a 3000 grid |
+| height | 2.7 m clear inside (Permapack office module); handbook B8: 2.50, 2.75 or 3.00 m clear, up to 4.00 | 2700 clear, 3180 outside |
 | stacking | side by side freely, stacked up to three storeys | `rooms` side by side, `storeys` stacked |
-| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t; handbook B8: 2.55 m wide without a permit, 3.00 m with a yearly one, lengths 6, 9, 12 or 15 m | 3000 wide, 3172 high |
+| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t; handbook B8: 2.55 m wide without a permit, 3.00 m with a yearly one, lengths 6, 9, 12 or 15 m | 2950 wide, 3180 high |
 
 ```cpp
-wood_module::RoomModuleGuide guide;  // two modules of 9000 x 3000 forming one room, 2700 clear
+wood_module::RoomModuleGuide guide;  // two modules of 9000 x 2950 on a 3000 grid forming one room, 2700 clear
 wood_module::RoomModule room(guide);
 ```
 
 | Parameter | Default | Controls |
 | --- | --- | --- |
-| `length`, `width`, `clear_height` | 9000, 3000, 2700 | a module's plan and the clear height inside |
+| `length`, `width`, `clear_height` | 9000, 2950, 2700 | a module's plan and the clear height inside |
+| `joint` | 50 | the gap between modules side by side, the grid the width and the joint |
 | `stud_width`, `stud_depth`, `stud_spacing` | 60, 160, 625 | the wall frame: its members, its depth and the stud grid from each wall's start |
 | `sheet_thickness` | 15 | a sheet on each face of a wall; a post is as wide as the wall |
-| `floor_depth`, `floor_edge_width`, `floor_joist_width` | 240, 200, 80 | the floor box: its depth, its edge beams all round and its joists across |
-| `floor_deck_thickness` | 27 | the floor's deck over its box |
-| `ceiling_depth`, `ceiling_edge_width`, `ceiling_joist_width` | 160, 120, 60 | the ceiling box, lighter: it carries only itself |
-| `board_thickness`, `joist_spacing` | 15, 625 | the board under the floor box and on both faces of the ceiling box; the largest joist spacing |
+| `floor_depth`, `floor_joist_width`, `floor_joist_depth` | 280, 80, 200 | the floor: its edge beams' depth, a wall wide, and its joists across |
+| `floor_deck_thickness` | 27 | the floor's deck between its edge beams, flush with their tops |
+| `ceiling_depth`, `ceiling_joist_width`, `ceiling_joist_depth` | 200, 60, 140 | the ceiling, lighter: it carries only itself |
+| `board_thickness`, `joist_spacing` | 15, 625 | the ceiling's lining and the board on the other face of every box's joists; the largest joist spacing |
 | `downstand_depth` | 300 | the ceiling downstand beam under a long side without a wall, a wall wide |
 | `side_posts` | 1 | posts along a long side without a wall, evenly between the corner posts |
 | `layouts` | a window at the facade end, a door at the corridor end | per module across, cycled: per wall its openings in its own frame, and a porch, the start wall set back |
@@ -279,15 +281,15 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 ### Elements
 
-The floor and the ceiling are boxes as in the handbook's details: edge beams along both long sides and across both ends, joists across between the long ones, all one depth, so the board under and the board over them are flush. The floor box is 200 x 240 at its edges, where a wall or a post stands, with fourteen 80 x 240 joists dividing the 8800 between its end beams into fifteen bays of 587:
+The floor and the ceiling are boxes framed by four edge beams of one size, along both long sides and across both ends, flush all round. Every edge beam is a wall wide, so the posts, the walls, the downstand beams and the edge beams of both boxes stand in one strip along each side and storey over storey, the load going straight down. The joists are shallower, across between the long edge beams and flush with the face to the room, and the boards fill the field between the edge beams without covering them. The floor's edge beams are 190 x 280, its fourteen 80 x 200 joists dividing the 8810 between its end beams into fifteen bays of 587, its 27 deck on them flush with the edge beams' tops, a board under them:
 
 ![floor](templates/templates_module_4_room_module_floor.webp)
 
-The ceiling box is lighter, 120 x 160 at its edges with 60 x 160 joists, since it carries only itself. Along a long side without a wall it rests on a 190 x 300 downstand beam, a wall wide, which carries it to the corner posts and the post at mid-length, the posts under it 2400 high:
+The ceiling is the floor turned over and lighter, since it carries only itself: 190 x 200 edge beams, 60 x 140 joists on its lining, flush with the edge beams' undersides, a board on top. Along a long side without a wall it rests on a 190 x 300 downstand beam, a wall wide, which carries it to the corner posts and the post at mid-length, the posts under it 2400 high:
 
 ![ceiling](templates/templates_module_4_room_module_ceiling.webp)
 
-From the end, the two modules of the room: the floor boxes, the end walls, the ceiling boxes and the pair of downstand beams at the joint:
+From the end, the two modules of the room, 50 apart: the floor boxes, the end walls, the ceiling boxes and the pair of downstand beams at the joint:
 
 ![end view](templates/templates_module_4_room_module_section.webp)
 
@@ -301,7 +303,7 @@ Seen through, at opacity 0.95:
 
 ### Contacts
 
-`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules the floors, ceilings and posts of a room along their open sides, the wall between two rooms and the open neighbour against it, and a ceiling deck under the next floor. The room of two modules has 324 contacts in its frames and 406 with its sheets:
+`add_module_contacts`, shared with the wall: every two members and sheets whose boxes touch get a face contact, the posts and walls on the floor deck and under the ceiling deck, the sheets on the members under them; between modules only the ceiling's top board under the next floor, since modules side by side stand a joint apart, joined on site. The room of two modules has 340 contacts in its frames and 364 with its sheets:
 
 ![contacts](templates/templates_module_4_room_module_contacts.webp)
 
@@ -326,9 +328,9 @@ The temporary bank pavilion of four modules from the brochure "Modulares Bauen" 
 
 | | measured on the plan | built |
 | --- | --- | --- |
-| modules | 4 on a 3.0 m axis grid, a meeting room, an open office of two, a module with the entrance porch | `rooms = {1, 2, 1}`, 3000 wide |
+| modules | 4 on a 3.0 m axis grid, a meeting room, an open office of two, a module with the entrance porch | `rooms = {1, 2, 1}`, 2950 wide with 50 joints, on the 3000 grid |
 | length | 9850 clear between the end walls, the axes along 9630 | 10270 with its 210 end walls, 9850 clear |
-| office | 6000 clear between the walls of modules 1 and 4, open between modules 2 and 3 | 6000 clear |
+| office | 6000 clear between the walls of modules 1 and 4, open between modules 2 and 3 | 6050 clear, its three joints included |
 | walls between rooms | one, 210, inside module 1 and inside module 4 | one, in the module of the smaller room |
 | posts | a pair at mid-length of the open joint, 210 each; at the corners as wide as the wall | `side_posts = 1`, a wall thick, on every long side without a wall, also against the walls of modules 1 and 4 |
 | windows | 1620 wide, 330 from the inner corner, at both ends of modules 1 to 3; 1020 at the end of module 4; 720 for the WC | the same |

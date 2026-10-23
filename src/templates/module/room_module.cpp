@@ -25,11 +25,11 @@ RoomModule::RoomModule(const RoomModuleGuide& guide, const std::string& name)
 // ═══════════════════════════════════════════════════════════════════════════
 
 double RoomModule::floor_thickness() const {
-    return guide.board_thickness + guide.floor_depth + guide.floor_deck_thickness;
+    return guide.floor_depth;
 }
 
 double RoomModule::ceiling_thickness() const {
-    return 2.0 * guide.board_thickness + guide.ceiling_depth;
+    return guide.ceiling_depth;
 }
 
 double RoomModule::wall_thickness() const {
@@ -66,7 +66,7 @@ std::array<size_t, 2> RoomModule::room_of(size_t column) const {
 // Module
 // ═══════════════════════════════════════════════════════════════════════════
 
-void RoomModule::add_box(const std::string& name, const Point& corner, double depth, double edge, double joist, double bottom, double top, const std::shared_ptr<TreeNode>& parent) {
+void RoomModule::add_box(const std::string& name, const Point& corner, bool floor, double depth, double joist_width, double joist_depth, double room, const std::shared_ptr<TreeNode>& parent) {
 
     const std::shared_ptr<TreeNode> box = group_named(name, parent);
     const std::shared_ptr<TreeNode> beams = group_named(name + "_beams", box);
@@ -74,46 +74,53 @@ void RoomModule::add_box(const std::string& name, const Point& corner, double de
     const Vector x(1.0, 0.0, 0.0);
     const Vector y(0.0, 1.0, 0.0);
     const Vector z(0.0, 0.0, 1.0);
-    const Point base = corner + z * (bottom + 0.5 * depth);
+    const double edge = wall_thickness();
+    const double board = guide.board_thickness;
     const double inner = guide.width - 2.0 * edge;
+    const Point field = corner + x * edge + y * edge;
 
-    // edge beams: along both long sides over the whole length, and across both ends between them
+    // edge beams: a wall wide, along both long sides over the whole length, and across both ends between them
     for (size_t side = 0; side < 2; side++) {
-        const Point start = base + y * (side == 0 ? 0.5 * edge : guide.width - 0.5 * edge);
+        const Point start = corner + y * (side == 0 ? 0.5 * edge : guide.width - 0.5 * edge) + z * (0.5 * depth);
         const Polyline axis({start, start + x * guide.length});
         add(std::make_shared<Beam>(axis, profile_rectangle(edge, depth), std::vector<Vector>{z}, fmt::format("{}_edge_{}", name, side)), beams);
     }
 
     for (size_t side = 0; side < 2; side++) {
-        const Point start = base + x * (side == 0 ? 0.5 * edge : guide.length - 0.5 * edge) + y * edge;
+        const Point start = corner + x * (side == 0 ? 0.5 * edge : guide.length - 0.5 * edge) + y * edge + z * (0.5 * depth);
         const Polyline axis({start, start + y * inner});
         add(std::make_shared<Beam>(axis, profile_rectangle(edge, depth), std::vector<Vector>{z}, fmt::format("{}_end_{}", name, side)), beams);
     }
 
-    // joists: across between the long edge beams, dividing the length between the end beams evenly
+    // joists: across between the long edge beams, dividing the length between the end beams evenly, under the deck of a floor, on the
+    // lining of a ceiling
+    const double joists_base = floor ? depth - room - joist_depth : room;
     const double span = guide.length - edge;
     const size_t bays = static_cast<size_t>(std::ceil(span / guide.joist_spacing));
 
     for (size_t i = 1; i < bays; i++) {
-        const Point start = base + x * (0.5 * edge + span * static_cast<double>(i) / static_cast<double>(bays)) + y * edge;
+        const double along = 0.5 * edge + span * static_cast<double>(i) / static_cast<double>(bays);
+        const Point start = corner + x * along + y * edge + z * (joists_base + 0.5 * joist_depth);
         const Polyline axis({start, start + y * inner});
-        add(std::make_shared<Beam>(axis, profile_rectangle(joist, depth), std::vector<Vector>{z}, fmt::format("{}_joist_{}", name, i - 1)), beams);
+        add(std::make_shared<Beam>(axis, profile_rectangle(joist_width, joist_depth), std::vector<Vector>{z}, fmt::format("{}_joist_{}", name, i - 1)), beams);
     }
 
-    // boards: one under the box and one over it, over the whole module
-    const Polyline bottom_lower = Polyline::rectangle(corner, x, y, guide.length, guide.width);
-    const Polyline bottom_upper = Polyline::rectangle(corner + z * bottom, x, y, guide.length, guide.width);
-    add(std::make_shared<Plate>(bottom_lower, bottom_upper, name + "_bottom"), boards);
-    const Polyline top_lower = Polyline::rectangle(corner + z * (bottom + depth), x, y, guide.length, guide.width);
-    const Polyline top_upper = Polyline::rectangle(corner + z * (bottom + depth + top), x, y, guide.length, guide.width);
-    add(std::make_shared<Plate>(top_lower, top_upper, name + "_top"), boards);
+    // boards: in the field between the edge beams, the deck or lining flush with the face to the room, a board on the joists' other face
+    const double room_base = floor ? depth - room : 0.0;
+    const double other_base = floor ? joists_base - board : joists_base + joist_depth;
+    const Polyline room_lower = Polyline::rectangle(field + z * room_base, x, y, guide.length - 2.0 * edge, inner);
+    const Polyline room_upper = Polyline::rectangle(field + z * (room_base + room), x, y, guide.length - 2.0 * edge, inner);
+    add(std::make_shared<Plate>(room_lower, room_upper, name + (floor ? "_deck" : "_lining")), boards);
+    const Polyline other_lower = Polyline::rectangle(field + z * other_base, x, y, guide.length - 2.0 * edge, inner);
+    const Polyline other_upper = Polyline::rectangle(field + z * (other_base + board), x, y, guide.length - 2.0 * edge, inner);
+    add(std::make_shared<Plate>(other_lower, other_upper, name + "_board"), boards);
 }
 
 void RoomModule::add_module(size_t storey, size_t column) {
 
     const std::string module = fmt::format("module_{}_{}", storey, column);
     const std::shared_ptr<TreeNode> group = group_named(module);
-    const Vector corner(0.0, guide.width * static_cast<double>(column), module_height() * static_cast<double>(storey));
+    const Vector corner(0.0, (guide.width + guide.joint) * static_cast<double>(column), module_height() * static_cast<double>(storey));
     const Point origin = Point(0.0, 0.0, 0.0) + corner;
     const double wall = wall_thickness();
     const double floor_top = floor_thickness();
@@ -122,9 +129,10 @@ void RoomModule::add_module(size_t storey, size_t column) {
     const Vector y(0.0, 1.0, 0.0);
     const Vector z(0.0, 0.0, 1.0);
 
-    // floor and ceiling: a box each, the floor's deeper with its deck on top, the ceiling's lighter between its lining and its top board
-    add_box(module + "_floor", origin, guide.floor_depth, guide.floor_edge_width, guide.floor_joist_width, guide.board_thickness, guide.floor_deck_thickness, group);
-    add_box(module + "_ceiling", origin + z * ceiling_bottom, guide.ceiling_depth, guide.ceiling_edge_width, guide.ceiling_joist_width, guide.board_thickness, guide.board_thickness, group);
+    // floor and ceiling: a box each, its edge beams a wall wide under the walls and posts; the floor's joists and deck flush with its
+    // top, the lighter ceiling turned over, its joists and lining flush with its underside
+    add_box(module + "_floor", origin, true, guide.floor_depth, guide.floor_joist_width, guide.floor_joist_depth, guide.floor_deck_thickness, group);
+    add_box(module + "_ceiling", origin + z * ceiling_bottom, false, guide.ceiling_depth, guide.ceiling_joist_width, guide.ceiling_joist_depth, guide.board_thickness, group);
 
     // long sides: open towards a neighbour of the same room; between two rooms one wall, in the module of the smaller room, the lower
     // column on a tie; a wall on the outside
