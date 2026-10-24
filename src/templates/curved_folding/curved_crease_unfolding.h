@@ -6,22 +6,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding: flat plates cut as bands with curved edges, stacked and hinged to their neighbours along those edges, open like an
-/// accordion; a curved hinge forces every plate to bend about its rulings, so the stack rises into a corrugated vault, every crease
-/// keeping its plane and its curvature growing as the cut edge's over the cosine of the opening, and the hinges alternating between the
-/// two faces of the stack (the axis shift) so it folds completely closed. Drawn open, with the plates mitred on their crease planes, on
-/// parallel planes or on inclined ones. The given crease is a planar curve on one of the planes; the plate after it is the developable strip of rulings leaving it
-/// perpendicular to it at the opening to its plane, toward the curve's concave side, cut by the next plane, and the plate before it is
-/// that strip's mirror image in the crease's plane; every further plate is the mirror image of its neighbour in the plane of their shared
-/// crease, cut by the plane beyond it. Every crease stays planar and every plate a trimmed developable, cut from a flat band with curved
-/// edges. Planes fanned around a horizontal axis above the vault draw its ends in (synclastic), below it spread them; planes tilted alternately about the span articulate the ridges and valleys at the apex or at the supports, about a
-/// vertical axis to the sides; planes fanned around a vertical axis close the vault into a corrugated dome or, on a flaring
-/// crease, a funnel column.
-///
-/// Drawn open: with inclined planes the stack folds closed only by bending its rulings, so the plates are mitred, the
-/// two faces of every plate cut by the planes of its two creases, where its neighbours meet it as its mirror image.
-///
-/// Fields: the crease, the opening, the planes, the thickness and the sampling; the plates and the creases are in the session.
+/// Curved-crease unfolding: flat bands with curved edges hinged to their neighbours on planar creases, opened like an accordion
+/// into a corrugated vault, every plate the mirror image of its neighbour in their crease's plane.
 class CurvedCreaseUnfolding : public WoodSession {
 public:
     const NurbsCurve crease; // The given crease, a planar curve on one of the planes.
@@ -30,6 +16,11 @@ public:
     const double thickness; // mm, every plate.
     const size_t samples; // Rulings per plate the creases are interpolated through.
 
+private:
+    double _distortion = 0.0; // The largest relative length error of any plate's development.
+    double _drift = 0.0; // mm, how far the creases' feet leave the given crease's floor.
+
+public:
     /// The plates between every two planes as the session named name.
     CurvedCreaseUnfolding(
         const NurbsCurve& crease,
@@ -51,9 +42,7 @@ public:
         return _distortion;
     }
 
-    /// mm, how far the creases' feet rise above or sink below the given crease's, its ends on the floor: 0 for vertical planes, and
-    /// small for planes turned in pairs that cancel; a vault whose planes all lean about the span lifts its supports toward its ends,
-    /// every mirror image in a leaning plane tilting the rulings at the feet out of the floor.
+    /// mm, how far the creases' feet rise above or sink below the given crease's, its ends on the floor; 0 for vertical planes.
     double drift() const {
         return _drift;
     }
@@ -61,45 +50,53 @@ public:
     /// The catenary span wide and rise high over the x axis in the xz plane, centred on the origin, interpolated through points.
     static NurbsCurve catenary(double span, double rise, size_t points = 32);
 
-    /// count + 1 planes through the axis from origin, each turned by angle (radians) about the axis from the one before, the middle one
-    /// containing first: a dome's or a funnel's meridian planes around a vertical axis, a vault drawn in or spread over a horizontal one.
-    static std::vector<Plane> fan(const Point& origin, const Vector& axis, const Vector& first, size_t count, double angle);
+    /// count + 1 planes through the axis from origin, each turned by angle (radians) from the one before, the middle containing first.
+    static std::vector<Plane> fan(
+        const Point& origin,
+        const Vector& axis,
+        const Vector& first,
+        size_t count,
+        double angle
+    );
 
-    /// count + 1 planes spacing apart along along, the middle one through origin and square to along, every second one from it turned by
-    /// tilt and -tilt in turn (radians) about axis through its point, so the turns of the mirror images cancel and the vault runs straight:
-    /// plates alternately wider at one end of the crease and at the other (axis vertical), or at the apex and at the supports (axis along
-    /// the span, at origin's height).
-    static std::vector<Plane> zigzag(const Point& origin, const Vector& along, const Vector& axis, size_t count, double spacing, double tilt);
+    /// count + 1 planes spacing apart along along, every second one from the middle turned by tilt and -tilt in turn about axis.
+    static std::vector<Plane> zigzag(
+        const Point& origin,
+        const Vector& along,
+        const Vector& axis,
+        size_t count,
+        double spacing,
+        double tilt
+    );
 
-    /// count + 1 planes spacing apart along along, the middle one through origin and square to along, the i-th from it turned by i lean
-    /// (radians) about axis through its point: with axis along the span on the floor the supports keep their spacing and the planes lean
-    /// toward the middle at the apex (lean > 0, a synclastic vault) or away from it (lean < 0, anticlastic).
-    static std::vector<Plane> leaning(const Point& origin, const Vector& along, const Vector& axis, size_t count, double spacing, double lean);
+    /// count + 1 planes spacing apart along along, the i-th from the middle turned by i lean (radians) about axis.
+    static std::vector<Plane> leaning(
+        const Point& origin,
+        const Vector& along,
+        const Vector& axis,
+        size_t count,
+        double spacing,
+        double lean
+    );
 
 private:
-    double _distortion = 0.0;
-    double _drift = 0.0;
-
-    /// One plate's mid-surface: the crease points on its first plane, the rulings' unit directions and the faces' unit normals.
+    /// One plate's mid-surface along its crease.
     struct Strip {
-        std::vector<Point> points;
-        std::vector<Vector> rulings;
-        std::vector<Vector> normals;
+        std::vector<Point> points; // The crease points on the plate's first plane.
+        std::vector<Vector> rulings; // The rulings' unit directions.
+        std::vector<Vector> normals; // The faces' unit normals.
     };
 
     /// The plane the crease lies on, the nearest to its ends and middle.
     size_t compute_start() const;
 
-    /// The strip of the plate after the crease: the crease sampled, the rulings at the opening to its plane toward the crease's concave
-    /// side and to the side the next plane cuts them on, the normals the tangent crossed with the ruling.
+    /// The strip of the plate after the crease: the crease sampled, its rulings at the opening toward its concave side.
     Strip compute_first(size_t start) const;
 
-    /// The plates from the strip on plane from toward the last plane (step 1) or the first (step -1), plate_<k> between planes k and
-    /// k + 1 in the group plates, each one's far crease crease_<k> in the group creases; the strip mirrored in the far plane each time.
+    /// The plates from the strip on plane from toward the last plane (step 1) or the first (step -1), each with its far crease.
     void add_plates(Strip strip, size_t from, int step);
 
-    /// The strip of the plate beyond the plane: the rulings mirrored in it and turned to leave the crease on its far side, the normals
-    /// mirrored, the points kept for the caller to move onto the plane.
+    /// The strip of the plate beyond the plane: the rulings mirrored and turned to leave the crease, the normals mirrored.
     static Strip mirrored(const Strip& strip, const Plane& plane);
 
     /// Where the line from point along direction meets the plane, as a distance along the direction; -1 when parallel.
@@ -158,9 +155,14 @@ inline NurbsCurve CurvedCreaseUnfolding::catenary(double span, double rise, size
 
     for (int i = 0; i < 200; i++) {
         const double a = 0.5 * (low + high);
-        (a * (std::cosh(0.5 * span / a) - 1.0) > rise ? low : high) = a;
+
+        if (a * (std::cosh(0.5 * span / a) - 1.0) > rise)
+            low = a;
+        else
+            high = a;
     }
 
+    // the curve through its points
     const double a = 0.5 * (low + high);
     std::vector<Point> curve;
 
@@ -183,10 +185,11 @@ inline size_t CurvedCreaseUnfolding::compute_start() const {
     double nearest = std::numeric_limits<double>::infinity();
 
     for (size_t i = 0; i < planes.size(); i++) {
+        const Vector normal = planes[i].z_axis().normalized();
         double distance = 0.0;
 
         for (const Point& point : points)
-            distance = std::max(distance, std::abs((point - planes[i].origin()).dot(planes[i].z_axis().normalized())));
+            distance = std::max(distance, std::abs((point - planes[i].origin()).dot(normal)));
 
         if (distance < nearest) {
             nearest = distance;
@@ -202,11 +205,12 @@ inline CurvedCreaseUnfolding::Strip CurvedCreaseUnfolding::compute_first(size_t 
     // the crease sampled, on its plane
     const Vector normal = planes[start].z_axis().normalized();
     const Plane& next = planes[start + 1 < planes.size() ? start + 1 : start - 1];
+    const double domain = crease.domain_end() - crease.domain_start();
     Strip strip;
     std::vector<Vector> tangents;
 
     for (size_t j = 0; j <= samples; j++) {
-        const double t = crease.domain_start() + (crease.domain_end() - crease.domain_start()) * static_cast<double>(j) / static_cast<double>(samples);
+        const double t = crease.domain_start() + domain * static_cast<double>(j) / static_cast<double>(samples);
         strip.points.push_back(crease.point_at(t));
         tangents.push_back(crease.tangent_at(t).normalized());
 
@@ -227,6 +231,7 @@ inline CurvedCreaseUnfolding::Strip CurvedCreaseUnfolding::compute_first(size_t 
     const Vector inward = (turning >= 0.0 ? normal.cross(tangents[middle]) : tangents[middle].cross(normal)).normalized();
     const double side = cut(strip.points[middle], inward * c + normal * s, next) > 0.0 ? 1.0 : -1.0;
 
+    // the rulings and the face normals
     for (size_t j = 0; j <= samples; j++) {
         const Vector across = (turning >= 0.0 ? normal.cross(tangents[j]) : tangents[j].cross(normal)).normalized();
         const Vector ruling = (across * c + normal * (side * s)).normalized();
@@ -242,6 +247,9 @@ inline void CurvedCreaseUnfolding::add_plates(Strip strip, size_t from, int step
     const std::shared_ptr<TreeNode> plates = group_named("plates");
     const std::shared_ptr<TreeNode> creases = group_named("creases");
     const double half = 0.5 * thickness;
+    const double start_height = crease.point_at(crease.domain_start())[2];
+    const double end_height = crease.point_at(crease.domain_end())[2];
+    const double floor = std::min(start_height, end_height);
 
     for (size_t k = from; step > 0 ? k + 1 < planes.size() : k > 0; k += step) {
         // the four edges: each face's rulings, half the thickness off the mid-surface, cut by the plate's two planes
@@ -264,21 +272,25 @@ inline void CurvedCreaseUnfolding::add_plates(Strip strip, size_t from, int step
             }
         }
 
+        // the plate
         const NurbsCurve outer_a = NurbsCurve::create_interpolated(edges[0], CurveNurbsKnotStyle::Uniform);
         const NurbsCurve outer_b = NurbsCurve::create_interpolated(edges[1], CurveNurbsKnotStyle::Uniform);
         const NurbsCurve inner_a = NurbsCurve::create_interpolated(edges[2], CurveNurbsKnotStyle::Uniform);
         const NurbsCurve inner_b = NurbsCurve::create_interpolated(edges[3], CurveNurbsKnotStyle::Uniform);
-        add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("plate_{}", std::min(k, next))), plates);
+        const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
+            outer_a,
+            outer_b,
+            inner_a,
+            inner_b,
+            fmt::format("plate_{}", std::min(k, next))
+        );
+        add(plate, plates);
 
         // its development, the proof it is cut flat
         const Development development(outer_a, outer_b, samples);
         _distortion = std::max(_distortion, development.distortion);
 
-        // the crease it ends on, its feet against the given crease's: the ends of it at the floor, its lowest end and any as low
-        const double start_height = crease.point_at(crease.domain_start())[2];
-        const double end_height = crease.point_at(crease.domain_end())[2];
-        const double floor = std::min(start_height, end_height);
-
+        // the crease it ends on, its feet against the given crease's: the ends of it at the floor
         if (start_height < floor + 1.0)
             _drift = std::max(_drift, std::abs(ends.front()[2] - floor));
 
@@ -319,7 +331,13 @@ inline double CurvedCreaseUnfolding::cut(const Point& point, const Vector& direc
     return (plane.origin() - point).dot(normal) / along;
 }
 
-inline std::vector<Plane> CurvedCreaseUnfolding::fan(const Point& origin, const Vector& axis, const Vector& first, size_t count, double angle) {
+inline std::vector<Plane> CurvedCreaseUnfolding::fan(
+    const Point& origin,
+    const Vector& axis,
+    const Vector& first,
+    size_t count,
+    double angle
+) {
 
     const Vector k = axis.normalized();
     const Vector start = (first - k * first.dot(k)).normalized();
@@ -334,7 +352,14 @@ inline std::vector<Plane> CurvedCreaseUnfolding::fan(const Point& origin, const 
     return planes;
 }
 
-inline std::vector<Plane> CurvedCreaseUnfolding::zigzag(const Point& origin, const Vector& along, const Vector& axis, size_t count, double spacing, double tilt) {
+inline std::vector<Plane> CurvedCreaseUnfolding::zigzag(
+    const Point& origin,
+    const Vector& along,
+    const Vector& axis,
+    size_t count,
+    double spacing,
+    double tilt
+) {
 
     const Vector a = along.normalized();
     const Vector k = axis.normalized();
@@ -352,7 +377,14 @@ inline std::vector<Plane> CurvedCreaseUnfolding::zigzag(const Point& origin, con
     return planes;
 }
 
-inline std::vector<Plane> CurvedCreaseUnfolding::leaning(const Point& origin, const Vector& along, const Vector& axis, size_t count, double spacing, double lean) {
+inline std::vector<Plane> CurvedCreaseUnfolding::leaning(
+    const Point& origin,
+    const Vector& along,
+    const Vector& axis,
+    size_t count,
+    double spacing,
+    double lean
+) {
 
     const Vector a = along.normalized();
     const Vector k = axis.normalized();

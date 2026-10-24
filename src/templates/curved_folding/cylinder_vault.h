@@ -6,38 +6,28 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Structure systems through interpenetration of cylindrical surfaces: equal circular cylinders
-/// over a regular polygon, one segment per side, meeting their neighbours in the vertical planes through the corners and the centre.
-/// Two equal cylinders mirrored in a plane meet in that plane, so every crease is a planar curve, an ellipse arc, straight in plan and
-/// curved in elevation, and the segments on both sides of it are each other's mirror image: the same planar curved crease the
-/// reflection fold makes. Two kinds: the groin vault, every segment's generatrices running level from its side toward the centre, its
-/// crown at the height of the arch's top; and the pavilion or cloister vault, the generatrices along the sides, the segments rising from
-/// the walls to a peak over the centre.
-///
-/// Every segment is one panel, a PlateCurved: its outer face the exact cylinder between its two end curves, the sections of the segment
-/// by the vertical planes its generatrices run between, one multi-span rational arc each, a span per plane with a C0 knot where the
-/// generatrices change from one plane to the next (the groin's crease, two half ellipses meeting at the apex); its inner face the
-/// thickness under it, the cylinder of the smaller radius, whose sections by the same planes are its inner meridians, so two panels
-/// across a crease share their side face; its caps the first and the last generatrix, drawn in from the corner or the apex to where
-/// they are a millimetre long, so the solid has no zero-length edge. Every panel is bent about one axis and cut from a flat panel, as
-/// glulam or curved cross-laminated timber is; its development is checked and drawn in the flat pattern beside the model.
-///
-/// Fields: the polygon, the cylinders, the kind, the walls and the thickness; the plan, the panels and the flat pattern are in the session.
+/// Equal circular cylinders over a regular polygon, a segment per side meeting its neighbours on planar creases: a groin or a
+/// pavilion vault, one curved panel per segment.
 class CylinderVault : public WoodSession {
 public:
     /// How the cylinders sit on the polygon.
     enum class Kind {
-        Groin, // A segment per side, its generatrices level from the side toward the centre; the segments meet on the lines from the corners to the centre.
-        Cloister // A segment per side, its generatrices along the side, its profile the arc from the side up to the peak over the centre; the segments meet on the lines from the corners to the centre.
+        Groin, // Every segment's generatrices level from its side toward the centre.
+        Cloister // Every segment's generatrices along its side, rising to the peak over the centre.
     };
 
     const size_t sides; // The regular polygon's sides.
     const double edge; // mm, the polygon's side.
-    const double radius; // mm, every cylinder; the arch over a side is a half circle when it is half the side (groin), the peak is above the centre (cloister).
+    const double radius; // mm, every cylinder; at least half the side (groin) or the apothem (cloister).
     const Kind kind; // How the cylinders sit on the polygon.
     const double wall; // mm, the walls the cloister vault stands on, a flat panel under every side; 0 for none.
     const double thickness; // mm, every panel, under the cylinder.
 
+private:
+    double _distortion = 0.0; // The largest relative length error of any panel's development.
+    double _twist = 0.0; // The largest twist of any panel's generatrices out of the tangent planes.
+
+public:
     /// The vault as the session named name.
     CylinderVault(
         size_t sides = 4,
@@ -66,8 +56,7 @@ public:
     }
 
 private:
-    /// One cylinder segment: the circle its generatrices start from, their direction, the angles the segment spans, and the vertical
-    /// planes around its footprint on the plan, their normals pointing in.
+    /// One cylinder segment: its circle, its generatrices, the angles it spans and the vertical planes around its footprint.
     struct Segment {
         Point centre; // The circle's centre, on the cylinder's axis.
         Vector x; // The circle's direction at angle 90 degrees.
@@ -82,9 +71,6 @@ private:
         Point to; // The side's second corner.
     };
 
-    double _distortion = 0.0;
-    double _twist = 0.0;
-
     /// The polygon's corner i on the ground, counter-clockwise from the x axis, around the origin.
     Point corner(size_t i) const;
 
@@ -97,18 +83,28 @@ private:
     /// The point of the segment's circle at the angle.
     static Point on_circle(const Segment& segment, double radius, double angle);
 
-    /// Where the generatrix of the cylinder of the radius at the angle enters and leaves the footprint: the distances along the axis
-    /// from the circle, and the planes.
+    /// Where the generatrix at the angle enters and leaves the footprint: the distances along the axis and the planes.
     std::array<std::pair<double, size_t>, 2> clip(const Segment& segment, double radius, double angle) const;
 
-    /// The angles the meridians of the cylinder of the radius change their plane at, between its first and its last generatrix drawn in
-    /// to where they are a millimetre long: the spans of the panel's multi-span arcs, the outer and the inner cylinder each their own.
+    /// mm, the generatrix at the angle inside the footprint.
+    double generatrix_length(const Segment& segment, double radius, double angle) const;
+
+    /// The planes the generatrix at the angle enters and leaves the footprint by.
+    std::pair<size_t, size_t> generatrix_planes(const Segment& segment, double radius, double angle) const;
+
+    /// The angle between end and other where the generatrix is a millimetre long, by bisection.
+    double drawn_in(const Segment& segment, double radius, double end, double other) const;
+
+    /// The angles the meridians of the cylinder of the radius change their plane at, the spans of the panel's multi-span arcs.
     std::vector<double> compute_spans(const Segment& segment, double radius) const;
 
-    /// The arc of the given radius over the spans, one equal parameter step per span, so the outer and the inner meridian change their
-    /// plane at the same parameter and every side face is planar span by span; each span projected along the generatrices onto its plane at the given end (0 the
-    /// entry, 1 the exit): one rational quadratic NURBS with a C0 knot at every change of plane, the panel's meridian.
-    NurbsCurve compute_meridian(const Segment& segment, const std::vector<double>& spans, double radius, size_t end) const;
+    /// The meridian at the given end (0 the entry, 1 the exit): the arc over the spans projected span by span onto its plane.
+    NurbsCurve compute_meridian(
+        const Segment& segment,
+        const std::vector<double>& spans,
+        double radius,
+        size_t end
+    ) const;
 
     /// The footprints, in the group plan.
     void add_plan(const std::vector<Segment>& segments);
@@ -123,7 +119,15 @@ private:
     void add_flat(const std::vector<Development>& developments, double beside);
 };
 
-inline CylinderVault::CylinderVault(size_t sides, double edge, double radius, Kind kind, double wall, double thickness, const std::string& name)
+inline CylinderVault::CylinderVault(
+    size_t sides,
+    double edge,
+    double radius,
+    Kind kind,
+    double wall,
+    double thickness,
+    const std::string& name
+)
     : WoodSession(name),
       sides(std::max<size_t>(sides, 3)),
       edge(edge),
@@ -221,9 +225,11 @@ inline std::vector<CylinderVault::Segment> CylinderVault::compute_segments() con
         segment.corners = {from, to, centre};
         segment.from = from;
         segment.to = to;
+        const size_t count = segment.corners.size();
+        const Point inside = Point::centroid(segment.corners);
 
-        for (size_t c = 0; c < segment.corners.size(); c++)
-            segment.footprint.push_back(wall_plane(segment.corners[c], segment.corners[(c + 1) % segment.corners.size()], Point::centroid(segment.corners)));
+        for (size_t c = 0; c < count; c++)
+            segment.footprint.push_back(wall_plane(segment.corners[c], segment.corners[(c + 1) % count], inside));
 
         segments.push_back(segment);
     }
@@ -232,12 +238,13 @@ inline std::vector<CylinderVault::Segment> CylinderVault::compute_segments() con
 }
 
 inline Point CylinderVault::on_circle(const Segment& segment, double radius, double angle) {
+
     return segment.centre + segment.x * (radius * std::sin(angle)) + segment.y * (radius * std::cos(angle));
 }
 
 inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segment& segment, double radius, double angle) const {
 
-    // the level generatrix through the circle point, clipped by every plane of the footprint: the latest entry and the earliest exit, as distances along it
+    // the generatrix through the circle point clipped by every plane of the footprint: the latest entry and the earliest exit
     const Point point = on_circle(segment, radius, angle);
     std::pair<double, size_t> entry = {-std::numeric_limits<double>::infinity(), 0};
     std::pair<double, size_t> exit = {std::numeric_limits<double>::infinity(), 0};
@@ -262,33 +269,48 @@ inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segmen
     return {entry, exit};
 }
 
-inline std::vector<double> CylinderVault::compute_spans(const Segment& segment, double radius) const {
+inline double CylinderVault::generatrix_length(const Segment& segment, double radius, double angle) const {
 
-    const auto length = [&](double angle) {
-        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
-        return ends[1].first - ends[0].first;
-    };
-    const auto planes = [&](double angle) {
-        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
-        return std::make_pair(ends[0].second, ends[1].second);
-    };
+    const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
+
+    return ends[1].first - ends[0].first;
+}
+
+inline std::pair<size_t, size_t> CylinderVault::generatrix_planes(const Segment& segment, double radius, double angle) const {
+
+    const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
+
+    return std::make_pair(ends[0].second, ends[1].second);
+}
+
+inline double CylinderVault::drawn_in(const Segment& segment, double radius, double end, double other) const {
+
+    double short_angle = end;
+    double long_angle = other;
+
+    for (int step = 0; step < 60; step++) {
+        const double middle = 0.5 * (short_angle + long_angle);
+
+        if (generatrix_length(segment, radius, middle) < 1.0)
+            short_angle = middle;
+        else
+            long_angle = middle;
+    }
+
+    return long_angle;
+}
+
+inline std::vector<double> CylinderVault::compute_spans(const Segment& segment, double radius) const {
 
     // the first and the last generatrix drawn in to where they are a millimetre long, from the corner or the apex where they vanish
     double first = segment.start;
     double last = segment.end;
 
-    for (double* end : {&first, &last})
-        if (length(*end) < 1.0) {
-            double short_angle = *end;
-            double long_angle = end == &first ? last : first;
+    if (generatrix_length(segment, radius, first) < 1.0)
+        first = drawn_in(segment, radius, first, last);
 
-            for (int step = 0; step < 60; step++) {
-                const double middle = 0.5 * (short_angle + long_angle);
-                (length(middle) < 1.0 ? short_angle : long_angle) = middle;
-            }
-
-            *end = long_angle;
-        }
+    if (generatrix_length(segment, radius, last) < 1.0)
+        last = drawn_in(segment, radius, last, first);
 
     // every angle between them where the entry or the exit plane changes, found between fine samples by bisection
     std::vector<double> spans = {first};
@@ -297,15 +319,18 @@ inline std::vector<double> CylinderVault::compute_spans(const Segment& segment, 
     for (size_t k = 0; k < fine; k++) {
         double low = first + (last - first) * static_cast<double>(k) / static_cast<double>(fine);
         double high = first + (last - first) * static_cast<double>(k + 1) / static_cast<double>(fine);
+        const std::pair<size_t, size_t> at_low = generatrix_planes(segment, radius, low);
 
-        if (planes(low) == planes(high))
+        if (at_low == generatrix_planes(segment, radius, high))
             continue;
-
-        const std::pair<size_t, size_t> at_low = planes(low);
 
         for (int step = 0; step < 50; step++) {
             const double middle = 0.5 * (low + high);
-            (planes(middle) == at_low ? low : high) = middle;
+
+            if (generatrix_planes(segment, radius, middle) == at_low)
+                low = middle;
+            else
+                high = middle;
         }
 
         if (0.5 * (low + high) - spans.back() > 1e-6)
@@ -318,7 +343,12 @@ inline std::vector<double> CylinderVault::compute_spans(const Segment& segment, 
     return spans;
 }
 
-inline NurbsCurve CylinderVault::compute_meridian(const Segment& segment, const std::vector<double>& spans, double radius, size_t end) const {
+inline NurbsCurve CylinderVault::compute_meridian(
+    const Segment& segment,
+    const std::vector<double>& spans,
+    double radius,
+    size_t end
+) const {
 
     // every span of the arc as a rational quadratic Bezier projected along the generatrices onto the plane the span's generatrices end on
     std::vector<Point> points;
@@ -329,12 +359,17 @@ inline NurbsCurve CylinderVault::compute_meridian(const Segment& segment, const 
     for (size_t s = 0; s + 1 < spans.size(); s++) {
         const double from = spans[s];
         const double to = spans[s + 1];
-        const Plane& plane = segment.footprint[clip(segment, radius, 0.5 * (from + to))[end].second];
-        const NurbsCurve arc = Primitives::arc(on_circle(segment, radius, from), on_circle(segment, radius, 0.5 * (from + to)), on_circle(segment, radius, to)).transformed(Xform::project_to_plane_by_axis(plane, segment.axis));
+        const double middle = 0.5 * (from + to);
+        const size_t plane = clip(segment, radius, middle)[end].second;
+        const Xform onto = Xform::project_to_plane_by_axis(segment.footprint[plane], segment.axis);
+        const Point a = on_circle(segment, radius, from);
+        const Point b = on_circle(segment, radius, middle);
+        const Point c = on_circle(segment, radius, to);
+        const NurbsCurve arc = Primitives::arc(a, b, c).transformed(onto);
 
-        for (int c = s == 0 ? 0 : 1; c < 3; c++) {
-            points.push_back(arc.get_cv(c));
-            weights.push_back(arc.weight(c));
+        for (int cv = s == 0 ? 0 : 1; cv < 3; cv++) {
+            points.push_back(arc.get_cv(cv));
+            weights.push_back(arc.weight(cv));
         }
 
         knots.push_back(static_cast<double>(s + 1) / static_cast<double>(spans.size() - 1));
@@ -363,17 +398,23 @@ inline std::vector<Development> CylinderVault::add_panels(const std::vector<Segm
     std::vector<Development> developments;
 
     for (size_t i = 0; i < segments.size(); i++) {
-        // the panel's four meridians: the outer and the inner arc over the segment's spans, on the planes the generatrices enter and leave by
-        // each cylinder's own spans: the inner one crosses from plane to plane at its own angles, so each meridian is the exact section
-        // of its cylinder by the footprint's planes and the two panels at a crease share their side face
-        const double inner = segments[i].radius - thickness;
-        const std::vector<double> outer_spans = compute_spans(segments[i], segments[i].radius);
-        const std::vector<double> inner_spans = compute_spans(segments[i], inner);
-        const NurbsCurve outer_a = compute_meridian(segments[i], outer_spans, segments[i].radius, 0);
-        const NurbsCurve outer_b = compute_meridian(segments[i], outer_spans, segments[i].radius, 1);
-        const NurbsCurve inner_a = compute_meridian(segments[i], inner_spans, inner, 0);
-        const NurbsCurve inner_b = compute_meridian(segments[i], inner_spans, inner, 1);
-        add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("lamella_{}", i)), group);
+        // the four meridians, each cylinder over its own spans, so each is the exact section of its cylinder by the footprint's planes
+        const Segment& segment = segments[i];
+        const double inner = segment.radius - thickness;
+        const std::vector<double> outer_spans = compute_spans(segment, segment.radius);
+        const std::vector<double> inner_spans = compute_spans(segment, inner);
+        const NurbsCurve outer_a = compute_meridian(segment, outer_spans, segment.radius, 0);
+        const NurbsCurve outer_b = compute_meridian(segment, outer_spans, segment.radius, 1);
+        const NurbsCurve inner_a = compute_meridian(segment, inner_spans, inner, 0);
+        const NurbsCurve inner_b = compute_meridian(segment, inner_spans, inner, 1);
+        const std::shared_ptr<PlateCurved> panel = std::make_shared<PlateCurved>(
+            outer_a,
+            outer_b,
+            inner_a,
+            inner_b,
+            fmt::format("lamella_{}", i)
+        );
+        add(panel, group);
 
         // its development, the proof it is cut flat
         developments.emplace_back(outer_a, outer_b, 96);
@@ -389,7 +430,8 @@ inline void CylinderVault::add_walls(const std::vector<Segment>& segments) {
     const std::shared_ptr<TreeNode> group = add_group("walls");
 
     // the inner face's corners on the polygon a thickness inside, so two walls meet on the mitre through the corner and the centre
-    const double inset = 1.0 - thickness / std::cos(Tolerance::PI / static_cast<double>(sides)) / corner(0).distance(Point(0.0, 0.0, 0.0));
+    const double circumradius = corner(0).distance(Point(0.0, 0.0, 0.0));
+    const double inset = 1.0 - thickness / std::cos(Tolerance::PI / static_cast<double>(sides)) / circumradius;
 
     for (size_t i = 0; i < segments.size(); i++) {
         // a flat panel under the side: its outer face the side's plane from the ground to the wall's top, its inner face the thickness inward
@@ -401,7 +443,14 @@ inline void CylinderVault::add_walls(const std::vector<Segment>& segments) {
         const NurbsCurve outer_b = NurbsCurve::create(false, 1, {segment.from + top, segment.to + top});
         const NurbsCurve inner_a = NurbsCurve::create(false, 1, {from, to});
         const NurbsCurve inner_b = NurbsCurve::create(false, 1, {from + top, to + top});
-        add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("wall_{}", i)), group);
+        const std::shared_ptr<PlateCurved> panel = std::make_shared<PlateCurved>(
+            outer_a,
+            outer_b,
+            inner_a,
+            inner_b,
+            fmt::format("wall_{}", i)
+        );
+        add(panel, group);
     }
 }
 
@@ -416,15 +465,19 @@ inline void CylinderVault::add_flat(const std::vector<Development>& developments
     for (const std::shared_ptr<Element>& element : *objects.elements)
         if (const std::shared_ptr<PlateCurved> panel = std::dynamic_pointer_cast<PlateCurved>(element))
             for (const NurbsCurve* curve : {&panel->outer_a, &panel->outer_b})
-                for (size_t k = 0; k <= 16; k++)
-                    largest = std::max(largest, curve->point_at(curve->domain_start() + (curve->domain_end() - curve->domain_start()) * static_cast<double>(k) / 16.0)[0]);
+                for (size_t k = 0; k <= 16; k++) {
+                    const double domain = curve->domain_end() - curve->domain_start();
+                    const double t = curve->domain_start() + domain * static_cast<double>(k) / 16.0;
+                    largest = std::max(largest, curve->point_at(t)[0]);
+                }
 
     for (const Development& development : developments)
         for (size_t k = 0; k < development.outline.point_count(); k++)
             tallest = std::max(tallest, development.outline.get_point(k)[1]);
 
     for (size_t i = 0; i < developments.size(); i++) {
-        Polyline outline = developments[i].outline.transformed(Xform::translation(largest + beside, static_cast<double>(i) * (tallest + beside), 0.0));
+        const Xform place = Xform::translation(largest + beside, static_cast<double>(i) * (tallest + beside), 0.0);
+        Polyline outline = developments[i].outline.transformed(place);
         outline.name = fmt::format("flat_{}", i);
         add_polyline(outline, flat);
     }

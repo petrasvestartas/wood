@@ -6,34 +6,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folding of a cylindrical sheet, the construction of the IBOIS curved folded plates and of the linear structure systems of
-/// folded cylindrical surfaces, frames and arches. The sheet is a planar profile swept along one direction, a cylinder; at every fold its rulings turn about the folds' axis by the fold's angle, and the crease is the
-/// section of the sheet by the fold's plane, a planar curve, an ellipse arc when the profile is an arc. A fold is made in one of two
-/// ways, both with a planar crease. The reflection: the part of the sheet beyond the plane is mirrored in it, the plane bisecting
-/// the angle between the old rulings and the new, so the sheet is turned over, its bulge flips from a vault to a trough, and the whole
-/// sheet keeps one development; the crease is the long oval of a sharp kink. The mirror fold: the next
-/// segment is the mirror image of the one before in the plane bisecting the fold's angle, so the bulge is kept, a vault folds onto a
-/// vault; every segment is still an exact cylinder cut flat on its own, but the two sides of the crease
-/// develop as mirror images, not as one sheet. A frame's ridge or an arch's crown is the symmetry plane: the sheet ends on it and the
-/// folded half is mirrored in it, meeting itself along the plane's section, straight in plan.
-///
-/// Every part of the sheet between two creases, and between two consecutive curves of the profile, is one lamella, a PlateCurved: its
-/// outer face the exact cylinder between the two creases, the second the first projected along the rulings onto the next plane. The
-/// thickness is the sheet's own: the profile's section square to the rulings is offset once, every curve along its normal, the offsets
-/// of two curves meeting at an angle ending where they cross, of two meeting tangent sharing their end, and the sheet's free edges cut
-/// square to its chord, to either side of the sheet, and both are carried from plane to plane along the rulings exactly as the creases
-/// are. The material lies under the sheet in the first segment; a reflection turns the sheet over, so beyond it the material lies on
-/// the other offset, a mirror fold keeps it. At a mirror fold the two plates are each other's mirror image on either side of the plane,
-/// so they meet on the plane: a planar mitre. At a reflection both lie on one side of it, so every inner ruling runs on to the inner
-/// cylinder beyond: the mitre is the ruled face between the crease and that crossing, shared by the two. Every seam between
-/// two rows is the plane through the rulings, and the lamellas tile the folded slab with no gap.
-/// Every lamella develops flat without distortion, being a cylinder strip; its development is checked and drawn in the flat pattern
-/// beside the model, every lamella where it lies on the unrolled sheet. A column is the sheet itself: a reflection whose plane
-/// crosses the first segment higher in the middle of a barrel than at its cusps leaves a leg under every barrel that rises as an arch
-/// to the crease, the columns under the troughs of the arch with a top hinge.
-///
-/// Fields: the profile, the rulings' direction and length, the folds' axis, the folds, the symmetry plane, the thickness and the
-/// sampling; the creases, the lamellas and the flat pattern are in the session.
+/// A curved folding of a cylindrical sheet: a planar profile swept along its rulings and folded on planar creases by reflection
+/// or mirror folds, one curved lamella between every two creases and two profile curves.
 class ReflectionFold : public WoodSession {
 public:
     /// One fold of the sheet: where the rulings turn, by how much, and how.
@@ -43,15 +17,20 @@ public:
         bool reflected = true; // the reflection, the sheet turned over, when true; the mirror fold, the bulge kept, when false.
     };
 
-    const std::vector<NurbsCurve> profile; // The sheet's section: planar curves one after another sharing their ends, running one way, each a row of lamellas.
+    const std::vector<NurbsCurve> profile; // The sheet's section: planar curves end to end, each a row of lamellas.
     const Vector direction; // The rulings' unit direction before the first fold, the profile swept along it.
     const Vector axis; // The folds' unit axis, in every fold plane; the profile's plane is spanned by it and the sheet's width.
     const double length; // mm, the sheet along the rulings from its start to its end, when no symmetry plane ends it.
     const std::vector<Fold> folds; // The folds, in order along the rulings.
-    const std::optional<Plane> symmetry; // The folded sheet's plane of symmetry, where the sheet ends and its mirror image begins; none for a sheet with two free ends.
-    const double thickness; // mm, every lamella, on the sheet's physical underside: the side away from the profile's tangent crossed with the direction, kept through every fold.
-    const size_t samples; // Rulings per profile curve the creases are checked on; the offsets and mitres are interpolated through 16 times as many.
+    const std::optional<Plane> symmetry; // The plane the sheet ends on and is mirrored in; none for two free ends.
+    const double thickness; // mm, every lamella, on the sheet's underside, kept through every fold.
+    const size_t samples; // Rulings per profile curve the creases are checked on, 16 times as many for the offsets.
 
+private:
+    double _distortion = 0.0; // The largest relative length error of any lamella's development.
+    double _twist = 0.0; // The largest twist of any lamella's rulings out of the tangent planes.
+
+public:
     /// The fold as the session named name.
     ReflectionFold(
         const std::vector<NurbsCurve>& profile,
@@ -81,11 +60,25 @@ public:
         return _twist;
     }
 
-    /// A profile of count circular arcs side by side from start along across, each width wide and bulging rise toward up: rows of barrels.
-    static std::vector<NurbsCurve> arcs(const Point& start, const Vector& across, const Vector& up, size_t count, double width, double rise);
+    /// A profile of count circular arcs side by side from start along across, each width wide and bulging rise toward up.
+    static std::vector<NurbsCurve> arcs(
+        const Point& start,
+        const Vector& across,
+        const Vector& up,
+        size_t count,
+        double width,
+        double rise
+    );
 
-    /// An undulating profile from start along across: half_waves half sine waves, each half_wavelength long and amplitude high toward up, first up: a corrugation.
-    static std::vector<NurbsCurve> waves(const Point& start, const Vector& across, const Vector& up, size_t half_waves, double half_wavelength, double amplitude);
+    /// A corrugated profile from start along across: half_waves half sine waves half_wavelength long and amplitude high, first up.
+    static std::vector<NurbsCurve> waves(
+        const Point& start,
+        const Vector& across,
+        const Vector& up,
+        size_t half_waves,
+        double half_wavelength,
+        double amplitude
+    );
 
 private:
     /// One straight run of the sheet between two creases: its rulings and the planes it starts and ends on.
@@ -95,56 +88,87 @@ private:
         Plane end; // The plane its last crease lies in.
     };
 
-    double _distortion = 0.0;
-    double _twist = 0.0;
+    /// The profile's section square to the rulings and its offset, curve by curve, in the section's frame u, v.
+    struct Offsets {
+        std::vector<std::vector<std::array<double, 2>>> outer; // Every curve's section, densely sampled.
+        std::vector<std::vector<std::array<double, 2>>> inner; // Every curve's offset, the same samples moved the thickness.
+        std::vector<std::array<std::array<double, 2>, 2>> tangents; // Every curve's unit tangents at its start and end.
+    };
 
     /// The profile's plane, from its most different tangents, through its first point.
     Plane compute_profile_plane() const;
 
-    /// Every segment from the profile's plane to the end: at every fold the rulings turned about the axis, the fold's plane through the
-    /// station on the ruling from the profile's first point, bisecting the turn for a mirror fold and perpendicular to that for a
-    /// reflection; the end the symmetry plane or the profile's plane moved by length.
+    /// Every segment from the profile's plane to the end, the rulings turned about the axis at every fold.
     std::vector<Segment> compute_segments(const Plane& first) const;
 
-    /// Whether rulings in this direction cross the symmetry plane square: the segment and its mirror image are then one cylinder.
+    /// Whether rulings in this direction cross the symmetry plane square, the segment and its mirror image one cylinder.
     bool crosses_square(const Vector& rulings) const;
 
-    /// What carries segment j's sections from its start to its end: the projection along its rulings onto its end plane, or at a
-    /// crown, the last segment's rulings crossing the symmetry plane square, the mirror in that plane, the segment running on across
-    /// it to the mirror image of its start, one cylinder.
+    /// What carries segment j's sections onto its end: the projection along its rulings, or at a crown the mirror.
     Xform carry(const std::vector<Segment>& segments, size_t j) const;
 
-    /// Every crease, curve by curve of the profile: the profile on the first plane, then each crease projected along its segment's
-    /// rulings onto the next plane; checked to lie beyond the one before along every ruling, and no reflection's plane to stand on
-    /// the sheet, where its fold would be flat and the sheet would cross itself.
+    /// Every crease, curve by curve: the profile carried from plane to plane, checked to run forward and never fold flat.
     std::vector<std::vector<NurbsCurve>> compute_creases(const std::vector<Segment>& segments) const;
 
-    /// An inner profile on the profile's plane: the profile's section square to the rulings offset the thickness to one side of the sheet,
-    /// side 1 under it and -1 over it, every curve along its normal, the offsets of two curves meeting at an angle ending where they cross on the seam through
-    /// the cusp, of two meeting tangent sharing their end, the first and the last cut square to the section's chord at the sheet's free
-    /// edges; carried back onto the profile's plane along the rulings.
+    /// The profile offset the thickness under the sheet (side 1) or over it (-1), trimmed at seams and free edges.
     std::vector<NurbsCurve> compute_inner_profile(const Plane& first, double side) const;
 
-    /// The inner meridians on every cut, the one curve the two plates there share. The material lies under the sheet in the first
-    /// segment and changes side at every reflection, which turns the sheet over, not at a mirror fold; both offsets are carried from
-    /// plane to plane along the rulings as the creases are. At a mirror fold, a sheet end and the symmetry plane the plates lie on
-    /// either side of the plane and meet on it; at a reflection both lie on one side, and every inner ruling of the plate before runs on
-    /// to the plate beyond's inner cylinder, the mirror image of the other offset's.
-    std::vector<std::vector<NurbsCurve>> compute_inners(const std::vector<Segment>& segments, const std::array<std::vector<NurbsCurve>, 2>& profiles) const;
+    /// Every curve's section on the section plane and its offset the thickness to the side, in the frame u, v.
+    Offsets compute_offsets(
+        const Plane& section,
+        const Vector& u,
+        const Vector& v,
+        double side
+    ) const;
+
+    /// Every two offsets meeting at an angle trimmed to end where they cross, on the seam through the cusp.
+    void trim_seams(Offsets& offsets) const;
+
+    /// The inner meridians on every cut, the one curve the two plates there share.
+    std::vector<std::vector<NurbsCurve>> compute_inners(
+        const std::vector<Segment>& segments,
+        const std::array<std::vector<NurbsCurve>, 2>& profiles
+    ) const;
+
+    /// The offset's section on the plane as one dense chain across all rows, carried on past both free edges.
+    std::vector<std::array<double, 2>> compute_chain(const std::vector<NurbsCurve>& section, const Plane& plane) const;
+
+    /// The inner meridians beyond a reflection, where every inner ruling meets the mirror image of the chain's cylinder.
+    std::vector<NurbsCurve> compute_crossing(
+        const std::vector<NurbsCurve>& inner,
+        const std::vector<std::array<double, 2>>& chain,
+        const Segment& segment,
+        size_t j
+    ) const;
 
     /// Every crease on the folded sheet, crease_<j>, in the group creases.
     void add_creases(const std::vector<std::vector<NurbsCurve>>& creases);
 
     /// Every lamella, lamella_<segment>_<row>, in the group lamellas; its development returned for the flat pattern.
-    std::vector<Development> add_lamellas(const std::vector<std::vector<NurbsCurve>>& creases, const std::vector<std::vector<NurbsCurve>>& inners);
+    std::vector<Development> add_lamellas(
+        const std::vector<std::vector<NurbsCurve>>& creases,
+        const std::vector<std::vector<NurbsCurve>>& inners
+    );
 
     /// The flat cutting pattern beside the model, every lamella's development where it lies on the unrolled sheet, in the group flat.
-    void add_flat(const std::vector<Development>& developments, const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, double beside);
+    void add_flat(
+        const std::vector<Development>& developments,
+        const std::vector<Segment>& segments,
+        const std::vector<std::vector<NurbsCurve>>& creases,
+        double beside
+    );
 
-    /// The mirror image of every lamella and crease in the symmetry plane, the plane's own section of the sheet as the last crease,
-    /// and the mirrored half's cutting pattern beyond the first's; at a crown the last segment's plates already run across the plane,
-    /// so they are not mirrored and the plane is no crease.
+    /// The mirror image in the symmetry plane of every lamella, crease and flat outline, except at a crown the crossing segment.
     void add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases, bool crown);
+
+    /// The mirror image of every lamella, segment s becoming beyond - s, the crossing segment skipped at a crown.
+    void add_mirrored_lamellas(size_t beyond, bool crown, size_t crossing);
+
+    /// The symmetry plane's own crease unless at a crown, and the mirror image of every crease.
+    void add_mirrored_creases(const std::vector<std::vector<NurbsCurve>>& creases, size_t beyond, bool crown);
+
+    /// The mirrored half's flat outlines turned over beyond the first half's, meeting it along the symmetry plane's section.
+    void add_mirrored_flat(size_t beyond, bool crown, size_t crossing);
 
     /// The reflection in the plane.
     static Xform reflection(const Plane& plane);
@@ -152,8 +176,31 @@ private:
     /// The vector turned about axis by angle (radians).
     static Vector turned(const Vector& vector, const Vector& axis, double angle);
 
-    /// The curve's point at the k-th of samples equal parameter steps.
+    /// The curve's parameter at the k-th of samples equal parameter steps.
     double parameter(const NurbsCurve& curve, size_t k) const;
+
+    /// The offset's coordinates in the frame u, v.
+    static std::array<double, 2> in_frame(const Vector& offset, const Vector& u, const Vector& v);
+
+    /// Where the lines through a along da and through b along db cross, as the distance along the first; none when parallel.
+    static std::optional<double> line_crossing(
+        const std::array<double, 2>& a,
+        const std::array<double, 2>& da,
+        const std::array<double, 2>& b,
+        const std::array<double, 2>& db
+    );
+
+    /// The offset trimmed or carried on along its end tangent to the line through a along da, at its end (last) or its start.
+    static void meet_line(
+        std::vector<std::array<double, 2>>& offset,
+        bool last,
+        const std::array<double, 2>& a,
+        const std::array<double, 2>& da,
+        const std::array<double, 2>& tangent
+    );
+
+    /// The chain resampled at count equal steps of its length.
+    static std::vector<std::array<double, 2>> resampled(const std::vector<std::array<double, 2>>& offset, size_t count);
 };
 
 inline ReflectionFold::ReflectionFold(
@@ -188,7 +235,10 @@ inline ReflectionFold::ReflectionFold(
     const std::vector<std::vector<NurbsCurve>> creases = compute_creases(segments);
 
     // profiles: the profile's section offset the thickness under and over the sheet, seams through the cusps, free edges square
-    const std::array<std::vector<NurbsCurve>, 2> profiles = {compute_inner_profile(first, 1.0), compute_inner_profile(first, -1.0)};
+    const std::array<std::vector<NurbsCurve>, 2> profiles = {
+        compute_inner_profile(first, 1.0),
+        compute_inner_profile(first, -1.0)
+    };
 
     // inners: the inner profile carried from plane to plane along the rulings, on every cut the one curve the two plates there share
     const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, profiles);
@@ -200,8 +250,7 @@ inline ReflectionFold::ReflectionFold(
     // flat: the cutting pattern beside the model, every lamella unfolded by its rulings
     add_flat(developments, segments, creases, 0.1 * length);
 
-    // symmetry: the folded half mirrored in its plane of symmetry, meeting itself along the plane's section of the sheet, or at a
-    // crown, where the last segment's rulings cross the plane square, running on in the last segment's plates, one across the plane
+    // symmetry: the folded half mirrored in its plane of symmetry, or at a crown run on across it in the last segment's plates
     if (symmetry)
         add_mirrored(creases, crosses_square(segments.back().direction));
 
@@ -210,7 +259,10 @@ inline ReflectionFold::ReflectionFold(
 }
 
 inline double ReflectionFold::parameter(const NurbsCurve& curve, size_t k) const {
-    return curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
+
+    const double domain = curve.domain_end() - curve.domain_start();
+
+    return curve.domain_start() + domain * static_cast<double>(k) / static_cast<double>(samples);
 }
 
 inline Plane ReflectionFold::compute_profile_plane() const {
@@ -236,7 +288,9 @@ inline Plane ReflectionFold::compute_profile_plane() const {
     if (std::abs(normal.dot(direction)) < 1e-6)
         throw std::invalid_argument("The profile's plane contains the direction, so the sheet has no width");
 
-    return Plane::from_point_normal(profile.front().point_at(profile.front().domain_start()), normal);
+    const Point origin = profile.front().point_at(profile.front().domain_start());
+
+    return Plane::from_point_normal(origin, normal);
 }
 
 inline std::vector<ReflectionFold::Segment> ReflectionFold::compute_segments(const Plane& first) const {
@@ -267,17 +321,24 @@ inline std::vector<ReflectionFold::Segment> ReflectionFold::compute_segments(con
     }
 
     // the last segment to the symmetry plane, or to the sheet's end across its rulings
+    const Point end = station + rulings * (length - before);
+
     if (symmetry)
         segments.push_back({rulings, start, *symmetry});
     else
-        segments.push_back({rulings, start, Plane::from_point_normal(station + rulings * (length - before), rulings)});
+        segments.push_back({rulings, start, Plane::from_point_normal(end, rulings)});
 
     return segments;
 }
 
 inline bool ReflectionFold::crosses_square(const Vector& rulings) const {
 
-    return symmetry && std::abs(rulings.normalized().dot(symmetry->z_axis().normalized())) > 1.0 - 1e-9;
+    if (!symmetry)
+        return false;
+
+    const Vector normal = symmetry->z_axis().normalized();
+
+    return std::abs(rulings.normalized().dot(normal)) > 1.0 - 1e-9;
 }
 
 inline Xform ReflectionFold::carry(const std::vector<Segment>& segments, size_t j) const {
@@ -294,6 +355,8 @@ inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_creases(cons
 
     for (size_t j = 0; j < segments.size(); j++) {
         const Segment& segment = segments[j];
+        const Vector end_normal = segment.end.z_axis().normalized();
+        const bool reflects = j + 1 < segments.size() && folds[j].reflected;
 
         if (std::abs(segment.end.z_axis().dot(segment.direction)) < 1e-9)
             throw std::invalid_argument(fmt::format("The plane ending segment {} runs along its rulings", j));
@@ -302,21 +365,23 @@ inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_creases(cons
         std::vector<NurbsCurve> next;
 
         for (size_t i = 0; i < profile.size(); i++) {
-            next.push_back(creases[j][i].transformed(to_end));
+            const NurbsCurve& curve = creases[j][i];
+            next.push_back(curve.transformed(to_end));
 
             // every ruling runs forward from this crease to the next, and a reflection's plane never stands on the sheet
             for (size_t k = 0; k <= samples; k++) {
-                const double t = parameter(creases[j][i], k);
-                const Point from = creases[j][i].point_at(t);
+                const double t = parameter(curve, k);
+                const Point from = curve.point_at(t);
                 const Point to = next.back().point_at(t);
                 const double along = (to - from).dot(segment.direction);
 
                 if (along < -1e-6)
                     throw std::invalid_argument(fmt::format("The plane ending segment {} lies behind its start at ruling {} of curve {}", j, k, i));
 
-                const Vector sheet_normal = creases[j][i].tangent_at(t).cross(segment.direction).normalized();
+                const Vector sheet_normal = curve.tangent_at(t).cross(segment.direction).normalized();
+                const double standing = std::abs(end_normal.dot(sheet_normal));
 
-                if (j + 1 < segments.size() && folds[j].reflected && std::abs(segment.end.z_axis().normalized().dot(sheet_normal)) < 0.05)
+                if (reflects && standing < 0.05)
                     throw std::invalid_argument(fmt::format("Fold {} stands on the sheet at ruling {} of curve {}, where its reflection would be flat", j, k, i));
             }
         }
@@ -331,143 +396,50 @@ inline std::vector<NurbsCurve> ReflectionFold::compute_inner_profile(const Plane
 
     // the section square to the rulings, through the profile's first point, with a frame u, v in it
     const Plane section = Plane::from_point_normal(first.origin(), direction);
-    const Xform to_section = Xform::project_to_plane_by_axis(section, direction);
     const Vector u = section.x_axis().normalized();
     const Vector v = direction.cross(u).normalized();
-    const std::function<std::array<double, 2>(const Point&)> flat = [&](const Point& point) {
-        const Vector offset = point - section.origin();
-        return std::array<double, 2>{offset.dot(u), offset.dot(v)};
-    };
-    const std::function<Point(const std::array<double, 2>&)> lifted = [&](const std::array<double, 2>& point) {
-        return section.origin() + u * point[0] + v * point[1];
-    };
 
-    // where the lines through a along da and through b along db cross, as the distance along the first
-    const std::function<std::optional<double>(const std::array<double, 2>&, const std::array<double, 2>&, const std::array<double, 2>&, const std::array<double, 2>&)> cross = [](const std::array<double, 2>& a, const std::array<double, 2>& da, const std::array<double, 2>& b, const std::array<double, 2>& db) -> std::optional<double> {
-        const double determinant = da[0] * db[1] - da[1] * db[0];
+    // offsets: every curve's section and its offset the thickness to the side
+    Offsets offsets = compute_offsets(
+        section,
+        u,
+        v,
+        side
+    );
 
-        if (std::abs(determinant) < 1e-12)
-            return std::nullopt;
+    // seams: two offsets meeting at an angle end where they cross
+    trim_seams(offsets);
 
-        return ((b[0] - a[0]) * db[1] - (b[1] - a[1]) * db[0]) / determinant;
-    };
-
-    // every curve's section and its offset: every sample moved the thickness to the underside along the section's normal, sampled
-    // densely enough that the chords the offset is trimmed and resampled on lie within a micrometre of it
-    const size_t dense = 64 * samples;
-    std::vector<std::vector<std::array<double, 2>>> outer(profile.size());
-    std::vector<std::vector<std::array<double, 2>>> inner(profile.size());
-    std::vector<std::array<std::array<double, 2>, 2>> tangents(profile.size());
-
-    for (size_t i = 0; i < profile.size(); i++) {
-        const NurbsCurve section_curve = profile[i].transformed(to_section);
-
-        for (size_t k = 0; k <= dense; k++) {
-            const double t = section_curve.domain_start() + (section_curve.domain_end() - section_curve.domain_start()) * static_cast<double>(k) / static_cast<double>(dense);
-            const Point point = section_curve.point_at(t);
-            const Vector normal = section_curve.tangent_at(t).cross(direction).normalized();
-            outer[i].push_back(flat(point));
-            inner[i].push_back(flat(point - normal * (side * thickness)));
-        }
-
-        const std::array<double, 2> start = flat(section.origin() + section_curve.tangent_at(section_curve.domain_start()).normalized());
-        const std::array<double, 2> end = flat(section.origin() + section_curve.tangent_at(section_curve.domain_end()).normalized());
-        tangents[i] = {start, end};
-    }
-
-    // where an offset meets a line through a along da: the first crossing walking in from its end (last) or its start, the offset
-    // trimmed there; past its end, the offset carried on along its end tangent to the line
-    const std::function<void(std::vector<std::array<double, 2>>&, bool, const std::array<double, 2>&, const std::array<double, 2>&, const std::array<double, 2>&)> meet_line = [&](std::vector<std::array<double, 2>>& offset, bool last, const std::array<double, 2>& a, const std::array<double, 2>& da, const std::array<double, 2>& tangent) {
-        const size_t m = offset.size();
-
-        for (size_t step = 0; step + 1 < m / 2; step++) {
-            const std::array<double, 2>& p = offset[last ? m - 1 - step : step];
-            const std::array<double, 2>& q = offset[last ? m - 2 - step : step + 1];
-            const std::array<double, 2> pq = {q[0] - p[0], q[1] - p[1]};
-            const std::optional<double> along = cross(p, pq, a, da);
-
-            if (along && *along >= 0.0 && *along <= 1.0) {
-                const std::array<double, 2> point = {p[0] + pq[0] * *along, p[1] + pq[1] * *along};
-
-                if (last) {
-                    offset.resize(m - 1 - step);
-                    offset.push_back(point);
-                } else {
-                    offset.erase(offset.begin(), offset.begin() + static_cast<long>(step) + 1);
-                    offset.insert(offset.begin(), point);
-                }
-
-                return;
-            }
-        }
-
-        const std::array<double, 2>& end = last ? offset.back() : offset.front();
-        const std::optional<double> along = cross(end, tangent, a, da);
-
-        if (!along)
-            return;
-
-        const std::array<double, 2> point = {end[0] + tangent[0] * *along, end[1] + tangent[1] * *along};
-
-        if (last)
-            offset.push_back(point);
-        else
-            offset.insert(offset.begin(), point);
-    };
-
-    // between two curves meeting at an angle, both offsets end where they cross: the plane through the cusp, the rulings and that
-    // point is the seam between the two rows; where they meet tangent the offsets already share their end
-    for (size_t i = 0; i + 1 < profile.size(); i++) {
-        const std::array<double, 2>& before = tangents[i][1];
-        const std::array<double, 2>& after = tangents[i + 1][0];
-
-        if (std::abs(before[0] * after[1] - before[1] * after[0]) < 1e-3 && before[0] * after[0] + before[1] * after[1] > 0.0)
-            continue;
-
-        // the seam's line: from the cusp through the crossing of the two offsets, carried on along their end tangents
-        const std::array<double, 2>& cusp = outer[i].back();
-        const std::array<double, 2>& a = inner[i].back();
-        const std::array<double, 2>& b = inner[i + 1].front();
-        const std::optional<double> along = cross(a, before, b, after);
-
-        if (!along)
-            continue;
-
-        const std::array<double, 2> corner = {a[0] + before[0] * *along, a[1] + before[1] * *along};
-        const std::array<double, 2> seam = {corner[0] - cusp[0], corner[1] - cusp[1]};
-        meet_line(inner[i], true, cusp, seam, before);
-        meet_line(inner[i + 1], false, cusp, seam, after);
-    }
-
-    // the sheet's two free edges cut square to its chord across the rulings, vertical for a level sheet
-    const std::array<double, 2> chord = {outer.back().back()[0] - outer.front().front()[0], outer.back().back()[1] - outer.front().front()[1]};
+    // free edges: the sheet's two ends cut square to its chord across the rulings, vertical for a level sheet
+    const std::array<double, 2>& first_point = offsets.outer.front().front();
+    const std::array<double, 2>& last_point = offsets.outer.back().back();
+    const std::array<double, 2> chord = {last_point[0] - first_point[0], last_point[1] - first_point[1]};
     const std::array<double, 2> square = {-chord[1], chord[0]};
-    meet_line(inner.front(), false, outer.front().front(), square, tangents.front()[0]);
-    meet_line(inner.back(), true, outer.back().back(), square, tangents.back()[1]);
+    meet_line(
+        offsets.inner.front(),
+        false,
+        first_point,
+        square,
+        offsets.tangents.front()[0]
+    );
+    meet_line(
+        offsets.inner.back(),
+        true,
+        last_point,
+        square,
+        offsets.tangents.back()[1]
+    );
 
-    // every offset back on the profile's plane along the rulings
+    // curves: every offset resampled at 16 samples + 1 equal steps of its length, so all share one knot vector, back on the profile's plane
     const Xform to_first = Xform::project_to_plane_by_axis(first, direction);
     std::vector<NurbsCurve> curves;
 
-    for (const std::vector<std::array<double, 2>>& offset : inner) {
-        // resampled at 16 samples + 1 equal steps of its length, so every inner curve, carried or crossed, has one knot vector
-        std::vector<double> lengths = {0.0};
-
-        for (size_t k = 1; k < offset.size(); k++)
-            lengths.push_back(lengths.back() + std::hypot(offset[k][0] - offset[k - 1][0], offset[k][1] - offset[k - 1][1]));
-
+    for (const std::vector<std::array<double, 2>>& offset : offsets.inner) {
         std::vector<Point> points;
-        size_t link = 0;
 
-        for (size_t k = 0; k <= 16 * samples; k++) {
-            const double length = lengths.back() * static_cast<double>(k) / static_cast<double>(16 * samples);
-
-            while (link + 2 < lengths.size() && lengths[link + 1] < length)
-                link++;
-
-            const double f = std::clamp((length - lengths[link]) / std::max(lengths[link + 1] - lengths[link], 1e-12), 0.0, 1.0);
-            const std::array<double, 2> point = {offset[link][0] + (offset[link + 1][0] - offset[link][0]) * f, offset[link][1] + (offset[link + 1][1] - offset[link][1]) * f};
-            points.push_back(to_first.transform_point(lifted(point)));
+        for (const std::array<double, 2>& point : resampled(offset, 16 * samples)) {
+            const Point lifted = section.origin() + u * point[0] + v * point[1];
+            points.push_back(to_first.transform_point(lifted));
         }
 
         curves.push_back(NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform));
@@ -476,24 +448,106 @@ inline std::vector<NurbsCurve> ReflectionFold::compute_inner_profile(const Plane
     return curves;
 }
 
-inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_inners(const std::vector<Segment>& segments, const std::array<std::vector<NurbsCurve>, 2>& profiles) const {
+inline ReflectionFold::Offsets ReflectionFold::compute_offsets(
+    const Plane& section,
+    const Vector& u,
+    const Vector& v,
+    double side
+) const {
 
-    // the two offsets carried as planar sections from plane to plane, and the side the material lies on in each segment: the first
-    // segment under the sheet, flipped at every reflection, which turns the sheet over, kept at a mirror fold
+    // every sample moved the thickness to the side along the section's normal, dense enough to trim and resample on its chords
+    const Xform to_section = Xform::project_to_plane_by_axis(section, direction);
+    const size_t dense = 64 * samples;
+    Offsets offsets;
+    offsets.outer.resize(profile.size());
+    offsets.inner.resize(profile.size());
+    offsets.tangents.resize(profile.size());
+
+    for (size_t i = 0; i < profile.size(); i++) {
+        const NurbsCurve section_curve = profile[i].transformed(to_section);
+        const double domain = section_curve.domain_end() - section_curve.domain_start();
+
+        for (size_t k = 0; k <= dense; k++) {
+            const double t = section_curve.domain_start() + domain * static_cast<double>(k) / static_cast<double>(dense);
+            const Point point = section_curve.point_at(t);
+            const Vector normal = section_curve.tangent_at(t).cross(direction).normalized();
+            const Point moved = point - normal * (side * thickness);
+            offsets.outer[i].push_back(in_frame(point - section.origin(), u, v));
+            offsets.inner[i].push_back(in_frame(moved - section.origin(), u, v));
+        }
+
+        // the unit tangents at both ends
+        const Point start = section.origin() + section_curve.tangent_at(section_curve.domain_start()).normalized();
+        const Point end = section.origin() + section_curve.tangent_at(section_curve.domain_end()).normalized();
+        offsets.tangents[i] = {in_frame(start - section.origin(), u, v), in_frame(end - section.origin(), u, v)};
+    }
+
+    return offsets;
+}
+
+inline void ReflectionFold::trim_seams(Offsets& offsets) const {
+
+    for (size_t i = 0; i + 1 < profile.size(); i++) {
+        // where the two curves meet tangent the offsets already share their end
+        const std::array<double, 2>& before = offsets.tangents[i][1];
+        const std::array<double, 2>& after = offsets.tangents[i + 1][0];
+        const double sine = before[0] * after[1] - before[1] * after[0];
+        const double cosine = before[0] * after[0] + before[1] * after[1];
+
+        if (std::abs(sine) < 1e-3 && cosine > 0.0)
+            continue;
+
+        // the seam's line: from the cusp through the crossing of the two offsets, carried on along their end tangents
+        const std::array<double, 2>& cusp = offsets.outer[i].back();
+        const std::array<double, 2>& a = offsets.inner[i].back();
+        const std::array<double, 2>& b = offsets.inner[i + 1].front();
+        const std::optional<double> along = line_crossing(
+            a,
+            before,
+            b,
+            after
+        );
+
+        if (!along)
+            continue;
+
+        const std::array<double, 2> corner = {a[0] + before[0] * *along, a[1] + before[1] * *along};
+        const std::array<double, 2> seam = {corner[0] - cusp[0], corner[1] - cusp[1]};
+        meet_line(
+            offsets.inner[i],
+            true,
+            cusp,
+            seam,
+            before
+        );
+        meet_line(
+            offsets.inner[i + 1],
+            false,
+            cusp,
+            seam,
+            after
+        );
+    }
+}
+
+inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_inners(
+    const std::vector<Segment>& segments,
+    const std::array<std::vector<NurbsCurve>, 2>& profiles
+) const {
+
+    // the two offsets carried as planar sections, and the material's side: under the sheet first, flipped at every reflection
     std::array<std::vector<NurbsCurve>, 2> sections = profiles;
     size_t side = 0;
     std::vector<std::vector<NurbsCurve>> inners = {profiles[0]};
 
     for (size_t j = 0; j < segments.size(); j++) {
-        const Segment& segment = segments[j];
         const Xform to_end = carry(segments, j);
 
         for (std::vector<NurbsCurve>& section : sections)
             for (NurbsCurve& curve : section)
                 curve = curve.transformed(to_end);
 
-        // a mirror fold, a sheet end or the symmetry plane: the two plates are each other's mirror image on either side of the plane
-        // and meet on it; this segment's inner meridians carried along its rulings onto it
+        // a mirror fold, a sheet end or the symmetry plane: this segment's inner meridians carried along its rulings onto the plane
         const bool reflected = j + 1 < segments.size() && folds[j].reflected;
 
         if (!reflected) {
@@ -506,90 +560,127 @@ inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_inners(const
             continue;
         }
 
-        // a reflection: the plate beyond is the mirror image of this one's continuation, its material on the other offset, and both
-        // lie on one side of the plane; every inner ruling of this plate runs on to the plate beyond's inner cylinder, which it meets
-        // where its mirror image meets the other offset's cylinder, where the image carried along the rulings onto the plane crosses
-        // that offset's section, a straight line across the plane
+        // a reflection: every inner ruling runs on to the plate beyond's inner cylinder, on the other offset
         side = 1 - side;
-        const Xform mirror = reflection(segment.end);
-        const Vector n = segment.end.z_axis().normalized();
-        const Vector u = segment.end.x_axis().normalized();
-        const Vector w = n.cross(u).normalized();
-        const std::function<std::array<double, 2>(const Vector&)> flat = [&](const Vector& offset) {
-            return std::array<double, 2>{offset.dot(u), offset.dot(w)};
-        };
-        const std::function<Vector(const Vector&)> along_rulings = [&](const Vector& vector) {
-            return vector - segment.direction * (vector.dot(n) / segment.direction.dot(n));
-        };
-
-        // the other offset's section as one dense chain across all rows, carried on past the sheet's two free edges along its end tangents
-        const size_t dense = 64 * samples;
-        std::vector<std::array<double, 2>> chain;
-
-        for (const NurbsCurve& curve : sections[side])
-            for (size_t k = 0; k <= dense; k++) {
-                const std::array<double, 2> point = flat(curve.point_at(curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(dense)) - segment.end.origin());
-
-                if (chain.empty() || std::hypot(point[0] - chain.back()[0], point[1] - chain.back()[1]) > 1e-6)
-                    chain.push_back(point);
-            }
-
-        const double far = 1000.0 * thickness;
-
-        for (const bool last : {false, true}) {
-            const std::array<double, 2>& end = last ? chain.back() : chain.front();
-            const std::array<double, 2>& inside = last ? chain[chain.size() - 2] : chain[1];
-            const double length = std::hypot(end[0] - inside[0], end[1] - inside[1]);
-            const std::array<double, 2> beyond = {end[0] + (end[0] - inside[0]) / length * far, end[1] + (end[1] - inside[1]) / length * far};
-
-            if (last)
-                chain.push_back(beyond);
-            else
-                chain.insert(chain.begin(), beyond);
-        }
-
-        const std::array<double, 2> image_direction = flat(along_rulings(mirror.transform_vector(segment.direction)));
-        std::vector<NurbsCurve> crossing;
-
-        for (const NurbsCurve& curve : inners.back()) {
-            std::vector<Point> points;
-
-            for (size_t k = 0; k <= 16 * samples; k++) {
-                const Point start = curve.point_at(curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(16 * samples));
-                const double expected = (segment.end.origin() - start).dot(n) / segment.direction.dot(n);
-                const Point image = mirror.transform_point(start);
-                const std::array<double, 2> origin = flat(image + segment.direction * ((segment.end.origin() - image).dot(n) / segment.direction.dot(n)) - segment.end.origin());
-                std::optional<double> nearest;
-
-                // the image line origin + s image_direction against every link of the chain, the crossing nearest the crease
-                for (size_t c = 0; c + 1 < chain.size(); c++) {
-                    const std::array<double, 2> link = {chain[c + 1][0] - chain[c][0], chain[c + 1][1] - chain[c][1]};
-                    const double determinant = image_direction[0] * link[1] - image_direction[1] * link[0];
-
-                    if (std::abs(determinant) < 1e-12)
-                        continue;
-
-                    const std::array<double, 2> gap = {chain[c][0] - origin[0], chain[c][1] - origin[1]};
-                    const double s = (gap[0] * link[1] - gap[1] * link[0]) / determinant;
-                    const double t = (gap[0] * image_direction[1] - gap[1] * image_direction[0]) / determinant;
-
-                    if (t >= 0.0 && t <= 1.0 && (!nearest || std::abs(s - expected) < std::abs(*nearest - expected)))
-                        nearest = s;
-                }
-
-                if (!nearest)
-                    throw std::invalid_argument(fmt::format("The plates at the reflection after segment {} do not meet on ruling {}", j, k));
-
-                points.push_back(start + segment.direction * *nearest);
-            }
-
-            crossing.push_back(NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform));
-        }
-
+        const std::vector<std::array<double, 2>> chain = compute_chain(sections[side], segments[j].end);
+        const std::vector<NurbsCurve> crossing = compute_crossing(
+            inners.back(),
+            chain,
+            segments[j],
+            j
+        );
         inners.push_back(crossing);
     }
 
     return inners;
+}
+
+inline std::vector<std::array<double, 2>> ReflectionFold::compute_chain(
+    const std::vector<NurbsCurve>& section,
+    const Plane& plane
+) const {
+
+    // the plane's frame u, w
+    const Vector n = plane.z_axis().normalized();
+    const Vector u = plane.x_axis().normalized();
+    const Vector w = n.cross(u).normalized();
+
+    // the section's samples across all rows, no two closer than a micrometre
+    const size_t dense = 64 * samples;
+    std::vector<std::array<double, 2>> chain;
+
+    for (const NurbsCurve& curve : section) {
+        const double domain = curve.domain_end() - curve.domain_start();
+
+        for (size_t k = 0; k <= dense; k++) {
+            const double t = curve.domain_start() + domain * static_cast<double>(k) / static_cast<double>(dense);
+            const std::array<double, 2> point = in_frame(curve.point_at(t) - plane.origin(), u, w);
+
+            if (chain.empty() || std::hypot(point[0] - chain.back()[0], point[1] - chain.back()[1]) > 1e-6)
+                chain.push_back(point);
+        }
+    }
+
+    // carried on past the sheet's two free edges along its end tangents
+    const double far = 1000.0 * thickness;
+
+    for (const bool last : {false, true}) {
+        const std::array<double, 2>& end = last ? chain.back() : chain.front();
+        const std::array<double, 2>& inside = last ? chain[chain.size() - 2] : chain[1];
+        const double reach = std::hypot(end[0] - inside[0], end[1] - inside[1]);
+        const std::array<double, 2> beyond = {
+            end[0] + (end[0] - inside[0]) / reach * far,
+            end[1] + (end[1] - inside[1]) / reach * far
+        };
+
+        if (last)
+            chain.push_back(beyond);
+        else
+            chain.insert(chain.begin(), beyond);
+    }
+
+    return chain;
+}
+
+inline std::vector<NurbsCurve> ReflectionFold::compute_crossing(
+    const std::vector<NurbsCurve>& inner,
+    const std::vector<std::array<double, 2>>& chain,
+    const Segment& segment,
+    size_t j
+) const {
+
+    // the mirror in the plane, its frame u, w, and the image rulings' direction on it
+    const Plane& plane = segment.end;
+    const Xform mirror = reflection(plane);
+    const Vector n = plane.z_axis().normalized();
+    const Vector u = plane.x_axis().normalized();
+    const Vector w = n.cross(u).normalized();
+    const Vector image_rulings = mirror.transform_vector(segment.direction);
+    const Vector along = image_rulings - segment.direction * (image_rulings.dot(n) / segment.direction.dot(n));
+    const std::array<double, 2> image_direction = in_frame(along, u, w);
+    const size_t count = 16 * samples;
+    std::vector<NurbsCurve> crossing;
+
+    for (const NurbsCurve& curve : inner) {
+        const double domain = curve.domain_end() - curve.domain_start();
+        std::vector<Point> points;
+
+        for (size_t k = 0; k <= count; k++) {
+            // the ruling's start, its distance to the plane, and its mirror image's line on the plane
+            const double t = curve.domain_start() + domain * static_cast<double>(k) / static_cast<double>(count);
+            const Point start = curve.point_at(t);
+            const double expected = (plane.origin() - start).dot(n) / segment.direction.dot(n);
+            const Point image = mirror.transform_point(start);
+            const double reach = (plane.origin() - image).dot(n) / segment.direction.dot(n);
+            const std::array<double, 2> origin = in_frame(image + segment.direction * reach - plane.origin(), u, w);
+            std::optional<double> nearest;
+
+            // the image line origin + s image_direction against every link of the chain, the crossing nearest the crease
+            for (size_t c = 0; c + 1 < chain.size(); c++) {
+                const std::array<double, 2> link = {chain[c + 1][0] - chain[c][0], chain[c + 1][1] - chain[c][1]};
+                const double determinant = image_direction[0] * link[1] - image_direction[1] * link[0];
+
+                if (std::abs(determinant) < 1e-12)
+                    continue;
+
+                const std::array<double, 2> gap = {chain[c][0] - origin[0], chain[c][1] - origin[1]};
+                const double s = (gap[0] * link[1] - gap[1] * link[0]) / determinant;
+                const double r = (gap[0] * image_direction[1] - gap[1] * image_direction[0]) / determinant;
+
+                if (r >= 0.0 && r <= 1.0 && (!nearest || std::abs(s - expected) < std::abs(*nearest - expected)))
+                    nearest = s;
+            }
+
+            if (!nearest)
+                throw std::invalid_argument(fmt::format("The plates at the reflection after segment {} do not meet on ruling {}", j, k));
+
+            points.push_back(start + segment.direction * *nearest);
+        }
+
+        crossing.push_back(NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform));
+    }
+
+    return crossing;
 }
 
 inline void ReflectionFold::add_creases(const std::vector<std::vector<NurbsCurve>>& creases) {
@@ -609,7 +700,10 @@ inline void ReflectionFold::add_creases(const std::vector<std::vector<NurbsCurve
     }
 }
 
-inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<std::vector<NurbsCurve>>& creases, const std::vector<std::vector<NurbsCurve>>& inners) {
+inline std::vector<Development> ReflectionFold::add_lamellas(
+    const std::vector<std::vector<NurbsCurve>>& creases,
+    const std::vector<std::vector<NurbsCurve>>& inners
+) {
 
     const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
     std::vector<Development> developments;
@@ -619,7 +713,14 @@ inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<s
             // the outer meridians the two creases, the inner the shared ones on the same two cuts
             const NurbsCurve& outer_a = creases[j][i];
             const NurbsCurve& outer_b = creases[j + 1][i];
-            add(std::make_shared<PlateCurved>(outer_a, outer_b, inners[j][i], inners[j + 1][i], fmt::format("lamella_{}_{}", j, i)), lamellas);
+            const std::shared_ptr<PlateCurved> lamella = std::make_shared<PlateCurved>(
+                outer_a,
+                outer_b,
+                inners[j][i],
+                inners[j + 1][i],
+                fmt::format("lamella_{}_{}", j, i)
+            );
+            add(lamella, lamellas);
 
             // its development, the proof it is cut flat
             developments.emplace_back(outer_a, outer_b, samples);
@@ -630,7 +731,12 @@ inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<s
     return developments;
 }
 
-inline void ReflectionFold::add_flat(const std::vector<Development>& developments, const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, double beside) {
+inline void ReflectionFold::add_flat(
+    const std::vector<Development>& developments,
+    const std::vector<Segment>& segments,
+    const std::vector<std::vector<NurbsCurve>>& creases,
+    double beside
+) {
 
     const std::shared_ptr<TreeNode> flat = add_group("flat");
 
@@ -643,7 +749,8 @@ inline void ReflectionFold::add_flat(const std::vector<Development>& development
                 largest = std::max(largest, curve.point_at(parameter(curve, k))[0]);
 
     // every profile curve's start along the development: the lengths of the curves before it across the rulings
-    const Xform across = Xform::project_to_plane_by_axis(Plane::from_point_normal(Point(0.0, 0.0, 0.0), direction), direction);
+    const Plane square = Plane::from_point_normal(Point(0.0, 0.0, 0.0), direction);
+    const Xform across = Xform::project_to_plane_by_axis(square, direction);
     std::vector<double> starts = {0.0};
 
     for (const NurbsCurve& curve : profile)
@@ -656,10 +763,15 @@ inline void ReflectionFold::add_flat(const std::vector<Development>& development
         for (size_t i = 0; i < profile.size(); i++, index++) {
             double along = 0.0;
 
-            for (size_t m = 0; m < j; m++)
-                along += (creases[m + 1][i].point_at(creases[m + 1][i].domain_start()) - creases[m][i].point_at(creases[m][i].domain_start())).dot(segments[m].direction);
+            for (size_t m = 0; m < j; m++) {
+                const NurbsCurve& from = creases[m][i];
+                const NurbsCurve& to = creases[m + 1][i];
+                const Vector run = to.point_at(to.domain_start()) - from.point_at(from.domain_start());
+                along += run.dot(segments[m].direction);
+            }
 
-            Polyline outline = developments[index].outline.transformed(Xform::translation(largest + beside + starts[i], along, 0.0));
+            const Xform place = Xform::translation(largest + beside + starts[i], along, 0.0);
+            Polyline outline = developments[index].outline.transformed(place);
             outline.name = fmt::format("flat_{}_{}", j, i);
             add_polyline(outline, flat);
         }
@@ -667,26 +779,50 @@ inline void ReflectionFold::add_flat(const std::vector<Development>& development
 
 inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases, bool crown) {
 
-    const Xform mirror = reflection(*symmetry);
+    // segment s mirrored is segment beyond - s; at a crown the last segment already runs across the plane
     const size_t folded = creases.size() - 1;
-    const size_t crossing = folded - 1; // the last segment, at a crown already across the plane
-    const size_t beyond = crown ? 2 * folded - 2 : 2 * folded - 1; // segment s mirrored is segment beyond - s
+    const size_t crossing = folded - 1;
+    const size_t beyond = crown ? 2 * folded - 2 : 2 * folded - 1;
 
-    // the lamellas: the mirror image of every plate, the pair at the symmetry plane sharing its side face there
+    // lamellas: the mirror image of every plate, the pair at the symmetry plane sharing its side face there
+    add_mirrored_lamellas(beyond, crown, crossing);
+
+    // creases: the symmetry plane's own section of the sheet unless a plate runs across it, then every crease mirrored
+    add_mirrored_creases(creases, beyond, crown);
+
+    // flat: the mirrored half's developments beyond the first's, turned over so the two halves meet along the plane's section
+    add_mirrored_flat(beyond, crown, crossing);
+}
+
+inline void ReflectionFold::add_mirrored_lamellas(size_t beyond, bool crown, size_t crossing) {
+
+    const Xform mirror = reflection(*symmetry);
     const std::shared_ptr<TreeNode> lamellas = group_named("lamellas");
     const std::vector<std::shared_ptr<PlateCurved>> plates = get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates) {
-        const size_t segment = std::stoul(plate->name.substr(8, plate->name.find('_', 8) - 8));
-        const std::string row = plate->name.substr(plate->name.find('_', 8) + 1);
+        const size_t underscore = plate->name.find('_', 8);
+        const size_t segment = std::stoul(plate->name.substr(8, underscore - 8));
+        const std::string row = plate->name.substr(underscore + 1);
 
         if (crown && segment == crossing)
             continue;
 
-        add(std::make_shared<PlateCurved>(plate->outer_a.transformed(mirror), plate->outer_b.transformed(mirror), plate->inner_a.transformed(mirror), plate->inner_b.transformed(mirror), fmt::format("lamella_{}_{}", beyond - segment, row)), lamellas);
+        const std::shared_ptr<PlateCurved> image = std::make_shared<PlateCurved>(
+            plate->outer_a.transformed(mirror),
+            plate->outer_b.transformed(mirror),
+            plate->inner_a.transformed(mirror),
+            plate->inner_b.transformed(mirror),
+            fmt::format("lamella_{}_{}", beyond - segment, row)
+        );
+        add(image, lamellas);
     }
+}
 
-    // the creases: the symmetry plane's own section of the sheet unless a plate runs across it, then every crease mirrored
+inline void ReflectionFold::add_mirrored_creases(const std::vector<std::vector<NurbsCurve>>& creases, size_t beyond, bool crown) {
+
+    const Xform mirror = reflection(*symmetry);
+    const size_t folded = creases.size() - 1;
     const std::shared_ptr<TreeNode> group = group_named("creases");
     std::vector<Polyline> folded_creases;
 
@@ -694,6 +830,7 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
         if (polyline && polyline->name.rfind("crease_", 0) == 0)
             folded_creases.push_back(*polyline);
 
+    // the symmetry plane's own section of the sheet
     if (!crown) {
         std::vector<Point> ridge;
 
@@ -706,14 +843,17 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
         add_polyline(drawn, group);
     }
 
+    // every crease mirrored
     for (const Polyline& crease : folded_creases) {
         Polyline mirrored = crease.transformed(mirror);
         mirrored.name = fmt::format("crease_{}", beyond + 1 - std::stoul(crease.name.substr(7)));
         add_polyline(mirrored, group);
     }
+}
 
-    // the flat pattern: the mirrored half's developments beyond the first's, turned over so the two halves meet along the symmetry
-    // plane's section; at a crown that section is the middle of the crossing plates' first ruling, the turn closing on them
+inline void ReflectionFold::add_mirrored_flat(size_t beyond, bool crown, size_t crossing) {
+
+    // the first half's outlines and their top; at a crown the middle of the crossing plates' first ruling instead
     const std::shared_ptr<TreeNode> flat = group_named("flat");
     std::vector<Polyline> outlines;
     double top = -std::numeric_limits<double>::infinity();
@@ -721,10 +861,13 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
 
     for (const std::shared_ptr<Polyline>& polyline : *objects.polylines)
         if (polyline && polyline->name.rfind("flat_", 0) == 0) {
-            const size_t segment = std::stoul(polyline->name.substr(5, polyline->name.find('_', 5) - 5));
+            const size_t underscore = polyline->name.find('_', 5);
+            const size_t segment = std::stoul(polyline->name.substr(5, underscore - 5));
 
             if (crown && segment == crossing) {
-                middle = 0.5 * (polyline->get_point(0)[1] + polyline->get_point(polyline->point_count() - 2)[1]);
+                const double first = polyline->get_point(0)[1];
+                const double last = polyline->get_point(polyline->point_count() - 2)[1];
+                middle = 0.5 * (first + last);
                 continue;
             }
 
@@ -734,12 +877,20 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
                 top = std::max(top, polyline->get_point(k)[1]);
         }
 
-    const Xform turn_over = Xform::scale_non_uniform(Point(0.0, middle ? *middle : top + 0.05 * length, 0.0), 1.0, -1.0, 1.0);
+    // every outline turned over about the line the two halves meet on
+    const double hinge = middle ? *middle : top + 0.05 * length;
+    const Xform turn_over = Xform::scale_non_uniform(
+        Point(0.0, hinge, 0.0),
+        1.0,
+        -1.0,
+        1.0
+    );
 
     for (const Polyline& outline : outlines) {
-        const size_t segment = std::stoul(outline.name.substr(5, outline.name.find('_', 5) - 5));
+        const size_t underscore = outline.name.find('_', 5);
+        const size_t segment = std::stoul(outline.name.substr(5, underscore - 5));
         Polyline mirrored = outline.transformed(turn_over);
-        mirrored.name = fmt::format("flat_{}_{}", beyond - segment, outline.name.substr(outline.name.find('_', 5) + 1));
+        mirrored.name = fmt::format("flat_{}_{}", beyond - segment, outline.name.substr(underscore + 1));
         add_polyline(mirrored, flat);
     }
 }
@@ -747,7 +898,8 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
 inline Xform ReflectionFold::reflection(const Plane& plane) {
 
     const Vector n = plane.z_axis().normalized();
-    const double h = n.dot(Vector(plane.origin()[0], plane.origin()[1], plane.origin()[2]));
+    const Point origin = plane.origin();
+    const double h = n.dot(Vector(origin[0], origin[1], origin[2]));
     std::array<double, 16> m = {};
 
     for (int column = 0; column < 3; column++)
@@ -765,11 +917,129 @@ inline Xform ReflectionFold::reflection(const Plane& plane) {
 inline Vector ReflectionFold::turned(const Vector& vector, const Vector& axis, double angle) {
 
     const Vector k = axis.normalized();
+    const Vector parallel = k * (k.dot(vector) * (1.0 - std::cos(angle)));
 
-    return vector * std::cos(angle) + k.cross(vector) * std::sin(angle) + k * (k.dot(vector) * (1.0 - std::cos(angle)));
+    return vector * std::cos(angle) + k.cross(vector) * std::sin(angle) + parallel;
 }
 
-inline std::vector<NurbsCurve> ReflectionFold::arcs(const Point& start, const Vector& across, const Vector& up, size_t count, double width, double rise) {
+inline std::array<double, 2> ReflectionFold::in_frame(const Vector& offset, const Vector& u, const Vector& v) {
+
+    return std::array<double, 2>{offset.dot(u), offset.dot(v)};
+}
+
+inline std::optional<double> ReflectionFold::line_crossing(
+    const std::array<double, 2>& a,
+    const std::array<double, 2>& da,
+    const std::array<double, 2>& b,
+    const std::array<double, 2>& db
+) {
+
+    const double determinant = da[0] * db[1] - da[1] * db[0];
+
+    if (std::abs(determinant) < 1e-12)
+        return std::nullopt;
+
+    return ((b[0] - a[0]) * db[1] - (b[1] - a[1]) * db[0]) / determinant;
+}
+
+inline void ReflectionFold::meet_line(
+    std::vector<std::array<double, 2>>& offset,
+    bool last,
+    const std::array<double, 2>& a,
+    const std::array<double, 2>& da,
+    const std::array<double, 2>& tangent
+) {
+
+    // the first crossing walking in from the end or the start, the offset trimmed there
+    const size_t m = offset.size();
+
+    for (size_t step = 0; step + 1 < m / 2; step++) {
+        const std::array<double, 2>& p = offset[last ? m - 1 - step : step];
+        const std::array<double, 2>& q = offset[last ? m - 2 - step : step + 1];
+        const std::array<double, 2> pq = {q[0] - p[0], q[1] - p[1]};
+        const std::optional<double> along = line_crossing(
+            p,
+            pq,
+            a,
+            da
+        );
+
+        if (along && *along >= 0.0 && *along <= 1.0) {
+            const std::array<double, 2> point = {p[0] + pq[0] * *along, p[1] + pq[1] * *along};
+
+            if (last) {
+                offset.resize(m - 1 - step);
+                offset.push_back(point);
+            } else {
+                offset.erase(offset.begin(), offset.begin() + static_cast<long>(step) + 1);
+                offset.insert(offset.begin(), point);
+            }
+
+            return;
+        }
+    }
+
+    // none: the offset carried on past its end along its end tangent to the line
+    const std::array<double, 2>& end = last ? offset.back() : offset.front();
+    const std::optional<double> along = line_crossing(
+        end,
+        tangent,
+        a,
+        da
+    );
+
+    if (!along)
+        return;
+
+    const std::array<double, 2> point = {end[0] + tangent[0] * *along, end[1] + tangent[1] * *along};
+
+    if (last)
+        offset.push_back(point);
+    else
+        offset.insert(offset.begin(), point);
+}
+
+inline std::vector<std::array<double, 2>> ReflectionFold::resampled(
+    const std::vector<std::array<double, 2>>& offset,
+    size_t count
+) {
+
+    // the length along the chain at every point
+    std::vector<double> lengths = {0.0};
+
+    for (size_t k = 1; k < offset.size(); k++) {
+        const double link_length = std::hypot(offset[k][0] - offset[k - 1][0], offset[k][1] - offset[k - 1][1]);
+        lengths.push_back(lengths.back() + link_length);
+    }
+
+    // count equal steps of the length, each interpolated on the link it falls in
+    std::vector<std::array<double, 2>> points;
+    size_t link = 0;
+
+    for (size_t k = 0; k <= count; k++) {
+        const double distance = lengths.back() * static_cast<double>(k) / static_cast<double>(count);
+
+        while (link + 2 < lengths.size() && lengths[link + 1] < distance)
+            link++;
+
+        const double span = std::max(lengths[link + 1] - lengths[link], 1e-12);
+        const double f = std::clamp((distance - lengths[link]) / span, 0.0, 1.0);
+        const std::array<double, 2>& from = offset[link];
+        const std::array<double, 2>& to = offset[link + 1];
+        points.push_back({from[0] + (to[0] - from[0]) * f, from[1] + (to[1] - from[1]) * f});
+    }
+
+    return points;
+}
+
+inline std::vector<NurbsCurve> ReflectionFold::arcs(
+    const Point& start,
+    const Vector& across,
+    const Vector& up,
+    size_t count,
+    double width,
+    double rise
+) {
 
     const Vector a = across.normalized();
     const Vector u = up.normalized();
@@ -777,13 +1047,22 @@ inline std::vector<NurbsCurve> ReflectionFold::arcs(const Point& start, const Ve
 
     for (size_t i = 0; i < count; i++) {
         const Point from = start + a * (width * static_cast<double>(i));
-        curves.push_back(Primitives::arc(from, from + a * (0.5 * width) + u * rise, from + a * width));
+        const Point top = from + a * (0.5 * width) + u * rise;
+        const Point to = from + a * width;
+        curves.push_back(Primitives::arc(from, top, to));
     }
 
     return curves;
 }
 
-inline std::vector<NurbsCurve> ReflectionFold::waves(const Point& start, const Vector& across, const Vector& up, size_t half_waves, double half_wavelength, double amplitude) {
+inline std::vector<NurbsCurve> ReflectionFold::waves(
+    const Point& start,
+    const Vector& across,
+    const Vector& up,
+    size_t half_waves,
+    double half_wavelength,
+    double amplitude
+) {
 
     const Vector a = across.normalized();
     const Vector u = up.normalized();
@@ -796,7 +1075,9 @@ inline std::vector<NurbsCurve> ReflectionFold::waves(const Point& start, const V
 
         for (size_t k = 0; k <= points; k++) {
             const double s = static_cast<double>(k) / static_cast<double>(points);
-            wave.push_back(start + a * (half_wavelength * (static_cast<double>(i) + s)) + u * (sign * amplitude * std::sin(Tolerance::PI * s)));
+            const Vector run = a * (half_wavelength * (static_cast<double>(i) + s));
+            const Vector lift = u * (sign * amplitude * std::sin(Tolerance::PI * s));
+            wave.push_back(start + run + lift);
         }
 
         curves.push_back(NurbsCurve::create_interpolated(wave));
@@ -804,4 +1085,3 @@ inline std::vector<NurbsCurve> ReflectionFold::waves(const Point& start, const V
 
     return curves;
 }
-

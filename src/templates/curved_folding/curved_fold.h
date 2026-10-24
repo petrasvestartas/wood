@@ -4,17 +4,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folded tent roof after Knie's Zauberhut, Rapperswil: a roof of 32 m
-/// diameter rising in a trumpet curve into a tower 26 m high, folded into sectors whose valleys run down to the columns and whose
-/// ridges end in a gable over the eaves, the folds shrinking into the tower. Every ridge and valley is a smooth NURBS curve, a meridian
-/// interpolated through the rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius and lifted
-/// to its height; every fold strip between two neighbouring meridians is one lamella, a PlateCurved: a closed curved solid whose outer
-/// face is the ruled NURBS surface between the two meridians, whose inner face is the one between the inner meridians, where the two
-/// neighbouring strips offset by the thickness meet, whose side faces run along the folds, shared with the neighbour as a miter, and
-/// whose caps close it at the eaves and at the top. No facet, no triangle: the lamellas are curved, as the 5 cm sheathing on the
-/// uniaxially curved glulam of the built roof.
-///
-/// Fields: the plan, the curve, the fold and the thickness; the meridians and the lamellas are in the session.
+/// A curved folded tent roof after Knie's Zauberhut, Rapperswil: fold strips between NURBS ridges and valleys rising into a tower,
+/// one curved lamella each.
 class CurvedFold : public WoodSession {
 public:
     const size_t sectors; // Folds around the axis, a ridge and a valley each.
@@ -48,14 +39,20 @@ public:
     CurvedFold& operator=(const CurvedFold&) = delete;
 
 private:
-    /// Per ring from the eaves up its star of 2 sectors points, a ridge and a valley in turn: the trumpet curve's radius, flat at the
-    /// eaves and vertical at the tower, its height, the fold's depth and the valleys' inset scaled with the radius; the ridges' rise over
-    /// the valleys fading smoothly to nothing at the top, so the top ring lies in the plane at the tower's height and the lamellas end level.
+    /// Per ring from the eaves up its star of ridge and valley points, on the trumpet curve, the ridges fading level at the top.
     std::vector<std::vector<Point>> compute_rings() const;
 
-    /// The same points on the lamellas' inner faces: at every point the line where the two strips beside it, offset inwards by the
-    /// thickness, meet, cut by the point's level.
+    /// The same points on the lamellas' inner faces, where the two strips beside each, offset by the thickness, meet.
     std::vector<std::vector<Point>> compute_inner_rings(const std::vector<std::vector<Point>>& stars) const;
+
+    /// Every ridge and valley a NURBS curve through the rings, outer then inner, the outer drawn in the group meridians.
+    std::array<std::vector<NurbsCurve>, 2> add_meridians(
+        const std::vector<std::vector<Point>>& stars,
+        const std::vector<std::vector<Point>>& inner_stars
+    );
+
+    /// Every fold strip, lamella_<j>, in the group lamellas: one curved plate between two meridians.
+    void add_lamellas(const std::array<std::vector<NurbsCurve>, 2>& meridians);
 };
 
 inline CurvedFold::CurvedFold(
@@ -81,36 +78,15 @@ inline CurvedFold::CurvedFold(
       rings(std::max<size_t>(rings, 3)),
       thickness(thickness) {
 
-    const size_t count = 2 * sectors;
+    // rings: every ring's star of ridge and valley points on the outer and on the inner face
     const std::vector<std::vector<Point>> stars = compute_rings();
     const std::vector<std::vector<Point>> inner_stars = compute_inner_rings(stars);
 
     // meridians: every ridge and valley a NURBS curve through the rings, on the outer and on the inner face
-    std::vector<NurbsCurve> outer;
-    std::vector<NurbsCurve> inner;
-    const std::shared_ptr<TreeNode> meridians = add_group("meridians");
-
-    for (size_t j = 0; j < count; j++) {
-        std::vector<Point> outer_points;
-        std::vector<Point> inner_points;
-
-        for (size_t k = 0; k < stars.size(); k++) {
-            outer_points.push_back(stars[k][j]);
-            inner_points.push_back(inner_stars[k][j]);
-        }
-
-        outer.push_back(NurbsCurve::create_interpolated(outer_points));
-        inner.push_back(NurbsCurve::create_interpolated(inner_points));
-        add_polyline(Polyline(outer_points), meridians);
-    }
+    const std::array<std::vector<NurbsCurve>, 2> meridians = add_meridians(stars, inner_stars);
 
     // lamellas: every fold strip one curved plate between its two meridians, its inner face between the inner ones, capped at both ends
-    const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
-
-    for (size_t j = 0; j < count; j++) {
-        const size_t next = (j + 1) % count;
-        add(std::make_shared<PlateCurved>(outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)), lamellas);
-    }
+    add_lamellas(meridians);
 
     // contacts: every two lamellas that share a face, found by the session's contact detection
     compute_face_contacts(0);
@@ -166,6 +142,7 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std
                 offsets[side] = Plane::from_point_normal(low[a] + normal * thickness, normal);
             }
 
+            // their crossing cut by the point's level
             const std::optional<Line> fold = Intersection::plane_plane(offsets[0], offsets[1]);
             const Plane level = Plane::from_point_normal(stars[k][j], Vector(0.0, 0.0, 1.0));
             const std::optional<Point> point = fold ? Intersection::line_plane(*fold, level, false) : std::nullopt;
@@ -176,4 +153,50 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std
     }
 
     return inner;
+}
+
+inline std::array<std::vector<NurbsCurve>, 2> CurvedFold::add_meridians(
+    const std::vector<std::vector<Point>>& stars,
+    const std::vector<std::vector<Point>>& inner_stars
+) {
+
+    const size_t count = 2 * sectors;
+    std::array<std::vector<NurbsCurve>, 2> meridians;
+    const std::shared_ptr<TreeNode> group = add_group("meridians");
+
+    for (size_t j = 0; j < count; j++) {
+        std::vector<Point> outer_points;
+        std::vector<Point> inner_points;
+
+        for (size_t k = 0; k < stars.size(); k++) {
+            outer_points.push_back(stars[k][j]);
+            inner_points.push_back(inner_stars[k][j]);
+        }
+
+        meridians[0].push_back(NurbsCurve::create_interpolated(outer_points));
+        meridians[1].push_back(NurbsCurve::create_interpolated(inner_points));
+        add_polyline(Polyline(outer_points), group);
+    }
+
+    return meridians;
+}
+
+inline void CurvedFold::add_lamellas(const std::array<std::vector<NurbsCurve>, 2>& meridians) {
+
+    const size_t count = 2 * sectors;
+    const std::vector<NurbsCurve>& outer = meridians[0];
+    const std::vector<NurbsCurve>& inner = meridians[1];
+    const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
+
+    for (size_t j = 0; j < count; j++) {
+        const size_t next = (j + 1) % count;
+        const std::shared_ptr<PlateCurved> lamella = std::make_shared<PlateCurved>(
+            outer[j],
+            outer[next],
+            inner[j],
+            inner[next],
+            fmt::format("lamella_{}", j)
+        );
+        add(lamella, lamellas);
+    }
 }

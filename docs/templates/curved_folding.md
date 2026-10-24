@@ -82,7 +82,10 @@ The thickness is the sheet's own: the profile's section square to the rulings is
  const std::vector<std::vector<NurbsCurve>> creases = compute_creases(segments);
 
  // profiles: the profile's section offset the thickness under and over the sheet, seams through the cusps, free edges square
- const std::array<std::vector<NurbsCurve>, 2> profiles = {compute_inner_profile(first, 1.0), compute_inner_profile(first, -1.0)};
+ const std::array<std::vector<NurbsCurve>, 2> profiles = {
+     compute_inner_profile(first, 1.0),
+     compute_inner_profile(first, -1.0)
+ };
 
  // inners: the offsets carried from plane to plane along the rulings, on every cut the one curve the two plates there share
  const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, profiles);
