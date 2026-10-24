@@ -10,7 +10,8 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | the reflection principle; the IBOIS curved folded plate and Mendrisio pavilion; the linear systems of folded cylindrical surfaces | `templates_curved_folding_{2_reflection,3_curved_folded_plate,4_mendrisio_pavilion,13_two_hinged_frame,..,18_cantilever}` |
 | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | structure systems through interpenetration of cylindrical surfaces over regular polygons and their composition over a square grid | `templates_curved_folding_{5_groin_vault,..,12_cross_vault,19_vault_field}` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
-| [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease: the four ways two strips join on one curved crease | `templates_curved_folding_22_crease_quadrants` |
+| [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
+| [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, the top and bottom bulging out, the sides sagging in | `templates_curved_folding_31_curved_folded_beam` |
 | [`Development`](#development) | `curved_folding/development.h` | the unfolding of a ruled strip, the check that every lamella is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, how many contacts the session's contact detection finds between them, and the development distortion and ruling twist of the worst one; on every model below the distortion is at the rounding floor (1e-14), the lamellas being exact cylinders. The contacts are the seams: every two lamellas that share a face are found, so the count below each example is the proof that its mitres meet, creases times lamellas per crease plus the joints between neighbouring barrels of a row.
@@ -310,7 +311,7 @@ Structure systems through interpenetration of cylindrical surfaces: equal circul
 | `Groin` | one per side, over the triangle from the side to the centre | from the side toward the centre, tilted up by `rise` (negative: sloping) | the arch over the side, a circle of `radius` across the generatrices with its springings at the corners (a half circle when the radius is half the side) | the vertical planes from the corners to the centre, two half ellipses meeting at the apex |
 | `Cloister` | one per side, over the triangle, on a `wall` | along the side, horizontal | the arc of `radius` from the wall's top up to the peak over the centre | the vertical planes from the corners to the centre, quarter ellipses rising to the peak |
 
-Every segment is **one panel**, a `PlateCurved` named `lamella_<segment>`: its outer face the exact cylinder between the two vertical planes its generatrices run between; its meridians one rational quadratic NURBS each, a span per plane with a C0 knot where the generatrices change from one plane to the next (`compute_meridian`: the arc projected along the generatrices span by span, the groin's crease two half ellipses meeting at the apex); its inner face the cylinder of the smaller radius, whose sections by the same planes are its inner meridians, so two panels across a crease share their side face; its caps the first and the last generatrix, drawn in from the corner or the apex to where they are a millimetre long (`compute_spans`), so the solid has no zero-length edge. The cloister vault's walls are flat panels `wall_<segment>` in the group `walls`. Every panel is bent about one axis and cut from a flat panel; `add_flat()` lays every panel's development in a row beside the model, and `compute_face_contacts(0)` looks for the shared faces. The groin's crease is one C0 curve over two planes, so a panel's side face spans both diagonal planes and the session's whole-face contact detection does not pair it with its neighbours (0 contacts on the groin vaults, where the shared meridians agree to 1e-9 mm); the pavilion vault's walls and segments pair on single planes (8 contacts).
+Every segment is **one panel**, a `PlateCurved` named `lamella_<segment>`: its outer face the exact cylinder between the two vertical planes its generatrices run between; its meridians one rational quadratic NURBS each, a span per plane with a C0 knot where the generatrices change from one plane to the next (`compute_meridian`: the arc projected along the generatrices span by span, the groin's crease two half ellipses meeting at the apex); its inner face the cylinder of the smaller radius, whose sections by the same planes are its inner meridians, so two panels across a crease share their side face; its caps the first and the last generatrix, drawn in from the corner or the apex to where they are a millimetre long (`compute_spans`), so the solid has no zero-length edge. The cloister vault's walls are flat panels `wall_<segment>` in the group `walls`. Every panel is bent about one axis and cut from a flat panel; `add_flat()` lays every panel's development in a row beside the model, and `compute_face_contacts(0)` looks for the shared faces. The groin's crease is one C0 curve over two planes, so a panel's side face spans both diagonal planes, each half shared with one neighbour; the session's contact detection pairs the part of a face a neighbour shares, one contact per crease (4 on a groin vault, 8 on the pavilion vault with its walls).
 
 ```cpp
 CylinderVault vault(
@@ -660,12 +661,30 @@ An arc 4 m wide and 1.5 m high, strips 1200 mm wide and 40 mm thick, the rulings
 ![q1 to q4 on one arc](templates/templates_curved_folding_22_crease_quadrants_all.webp)
 
 ```cpp
-CreaseQuadrants quadrants(Primitives::arc(Point, Point(0.0, 0.0, 1500.0), Point), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
+CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_22_crease_quadrants.cpp</summary>
 
 \include{lineno} templates_curved_folding_22_crease_quadrants.cpp
+
+</details>
+
+## Curved-folded beam {#curved_folded_beam}
+
+`CurvedFoldedBeam(span, size, rise, sag, thickness, count)` (`curved_folding/curved_folded_beam.h`): a closed box spanning along x, square at the supports, of four plates, each a cylinder bent along the span with its rulings straight across. The two pairs fold opposite ways: the top and bottom plates bulge outward by `rise` toward mid-span, the sides sag inward by `sag`, so the beam deepens and narrows to mid-span. The four corners are the curved creases; every plate is mitred there, its inner face ending where it meets its neighbour's a thickness inside both, the mitre the ruled face between the crease and that inner crease, one face shared by the two plates. The ends are cut square at the supports. Beams side by side touch at the supports and leave lens-shaped gaps between them, widest at mid-span.
+
+Six beams 12 m long, 800 mm square at the supports, 1300 mm deep and 360 mm wide at mid-span, 27 mm plates; 24 plates, 24 closed solids, 24 contacts, development distortion 1.5e-15 (example `templates_curved_folding_31_curved_folded_beam`).
+
+![curved-folded beam](templates/templates_curved_folding_31_curved_folded_beam_all.webp)
+
+```cpp
+CurvedFoldedBeam beams;
+```
+
+<details><summary>Example code: templates_curved_folding_31_curved_folded_beam.cpp</summary>
+
+\include{lineno} templates_curved_folding_31_curved_folded_beam.cpp
 
 </details>
 

@@ -46,8 +46,10 @@ std::array<std::array<std::vector<Point>, 2>, 6> curved_faces(const PlateCurved&
     }};
 }
 
-/// Whether every point of one boundary lies within tolerance of the other, taken as a chain of segments, each clamped at its ends.
-bool boundary_on(const std::vector<Point>& points, const std::vector<Point>& other, double tolerance) {
+/// Per point of one boundary whether it lies within tolerance of the other, taken as a chain of segments, each clamped at its ends.
+std::vector<bool> boundary_on(const std::vector<Point>& points, const std::vector<Point>& other, double tolerance) {
+
+    std::vector<bool> on;
 
     for (const Point& point : points) {
         double nearest = std::numeric_limits<double>::infinity();
@@ -59,37 +61,62 @@ bool boundary_on(const std::vector<Point>& points, const std::vector<Point>& oth
             nearest = std::min(nearest, point.distance(other[k] + segment * t));
         }
 
-        if (nearest > tolerance)
-            return false;
+        on.push_back(nearest <= tolerance);
     }
 
-    return true;
+    return on;
 }
 
-/// The faces two curved plates share: a face of one whose two boundaries lie on the two boundaries of a face of the other, in either
-/// order, is a contact, its polygon the first boundary and the second walked back; outer and inner faces are tops, the rest sides.
+/// The faces two curved plates share: where both boundaries of a face of one lie on the two boundaries of a face of the other, in
+/// either order, along the longest run of samples, at least four and longer than ten tolerances, the whole face or the part of it
+/// one neighbour shares; the contact's polygon is that run of the first boundary and the second walked back. Outer and inner faces
+/// are tops, the rest sides.
 std::vector<InteractionContactFace> curved_contacts(const PlateCurved& a, const PlateCurved& b, double tolerance) {
 
-    const std::array<std::array<std::vector<Point>, 2>, 6> faces_a = curved_faces(a, 32);
+    const std::array<std::array<std::vector<Point>, 2>, 6> faces_a = curved_faces(a, 64);
     const std::array<std::array<std::vector<Point>, 2>, 6> faces_b = curved_faces(b, 256);
     std::vector<InteractionContactFace> contacts;
 
     for (size_t i = 0; i < 6; i++)
-        for (size_t j = 0; j < 6; j++) {
-            const bool same = boundary_on(faces_a[i][0], faces_b[j][0], tolerance) && boundary_on(faces_a[i][1], faces_b[j][1], tolerance);
-            const bool crossed = boundary_on(faces_a[i][0], faces_b[j][1], tolerance) && boundary_on(faces_a[i][1], faces_b[j][0], tolerance);
+        for (size_t j = 0; j < 6; j++)
+            for (size_t order = 0; order < 2; order++) {
+                // the samples where both boundaries lie on the other face's, and the longest run of them
+                const std::vector<bool> first = boundary_on(faces_a[i][0], faces_b[j][order], tolerance);
+                const std::vector<bool> second = boundary_on(faces_a[i][1], faces_b[j][1 - order], tolerance);
+                const size_t count = std::min(first.size(), second.size());
+                size_t best_start = 0;
+                size_t best_length = 0;
 
-            if (!same && !crossed)
-                continue;
+                for (size_t start = 0; start < count;) {
+                    size_t end = start;
 
-            std::vector<Point> polygon = faces_a[i][0];
-            polygon.insert(polygon.end(), faces_a[i][1].rbegin(), faces_a[i][1].rend());
-            polygon.push_back(polygon.front());
-            const bool top_a = i < 2;
-            const bool top_b = j < 2;
-            const ContactType type = top_a && top_b ? ContactType::top_top : top_a || top_b ? ContactType::side_top : ContactType::side_side;
-            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), type, Polyline(polygon));
-        }
+                    while (end < count && first[end] && second[end])
+                        end++;
+
+                    if (end - start > best_length) {
+                        best_start = start;
+                        best_length = end - start;
+                    }
+
+                    start = end + 1;
+                }
+
+                // a whole cap of two points, or a run long enough to be a face, not a corner where the boundaries converge
+                const bool whole = best_length == count;
+                const bool long_enough = best_length >= 4 && faces_a[i][0][best_start].distance(faces_a[i][0][best_start + best_length - 1]) > 10.0 * tolerance;
+
+                if (!(whole && count >= 2) && !long_enough)
+                    continue;
+
+                std::vector<Point> polygon(faces_a[i][0].begin() + best_start, faces_a[i][0].begin() + best_start + best_length);
+                polygon.insert(polygon.end(), faces_a[i][1].rbegin() + (faces_a[i][1].size() - best_start - best_length), faces_a[i][1].rbegin() + (faces_a[i][1].size() - best_start));
+                polygon.push_back(polygon.front());
+                const bool top_a = i < 2;
+                const bool top_b = j < 2;
+                const ContactType type = top_a && top_b ? ContactType::top_top : top_a || top_b ? ContactType::side_top : ContactType::side_side;
+                contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), type, Polyline(polygon));
+                break;
+            }
 
     return contacts;
 }

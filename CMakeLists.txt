@@ -358,6 +358,7 @@ ADD_EXE(templates_curved_folding_27_alternating_unfolding examples/templates_cur
 ADD_EXE(templates_curved_folding_28_sideways_unfolding   examples/templates_curved_folding_28_sideways_unfolding.cpp)
 ADD_EXE(templates_curved_folding_29_corrugated_dome      examples/templates_curved_folding_29_corrugated_dome.cpp)
 ADD_EXE(templates_curved_folding_30_corrugated_funnel    examples/templates_curved_folding_30_corrugated_funnel.cpp)
+ADD_EXE(templates_curved_folding_31_curved_folded_beam   examples/templates_curved_folding_31_curved_folded_beam.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)

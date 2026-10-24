@@ -56,36 +56,37 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
-    "${RENDER[@]}" templates_curved_folding_1_curved_fold lamellas
-    "${RENDER[@]}" templates_curved_folding_2_reflection lamellas
-    "${RENDER[@]}" templates_curved_folding_3_curved_folded_plate lamellas
-    "${RENDER[@]}" templates_curved_folding_4_mendrisio_pavilion lamellas
-    "${RENDER[@]}" templates_curved_folding_5_groin_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_6_groin_vault_sloping lamellas
-    "${RENDER[@]}" templates_curved_folding_7_groin_vault_rising lamellas
-    "${RENDER[@]}" templates_curved_folding_8_pavilion_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_9_pentagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_10_octagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_11_hexagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_12_cross_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_13_two_hinged_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_14_three_hinged_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_15_two_hinged_arch lamellas
-    "${RENDER[@]}" templates_curved_folding_16_arch_with_top_hinge lamellas
-    "${RENDER[@]}" templates_curved_folding_17_a_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_18_cantilever lamellas
-    "${RENDER[@]}" templates_curved_folding_19_vault_field lamellas
-    "${RENDER[@]}" templates_curved_folding_20_curved_crease_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_21_catenary_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_22_crease_quadrants all
-    "${RENDER[@]}" templates_curved_folding_23_synclastic_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_24_anticlastic_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_25_apex_level_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_26_support_level_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_27_alternating_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_28_sideways_unfolding plates
-    "${RENDER[@]}" templates_curved_folding_29_corrugated_dome plates
-    "${RENDER[@]}" templates_curved_folding_30_corrugated_funnel plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_1_curved_fold lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_2_reflection lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_3_curved_folded_plate lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_4_mendrisio_pavilion lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_5_groin_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_6_groin_vault_sloping lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_7_groin_vault_rising lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_8_pavilion_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_9_pentagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_10_octagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_11_hexagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_12_cross_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_13_two_hinged_frame lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_14_three_hinged_frame lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_15_two_hinged_arch lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_16_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_17_a_frame lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_18_cantilever lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_19_vault_field lamellas
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_20_curved_crease_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_21_catenary_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_22_crease_quadrants all
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_23_synclastic_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_24_anticlastic_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_25_apex_level_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_26_support_level_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_27_alternating_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_28_sideways_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_29_corrugated_dome plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_30_corrugated_funnel plates
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_31_curved_folded_beam all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

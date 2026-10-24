@@ -9,7 +9,7 @@ using namespace wood_session;
 int main() {
 
     CreaseQuadrants quadrants(
-        Primitives::arc(Point, Point(0.0, 0.0, 1500.0), Point),
+        Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)),
         40.0 * Tolerance::TO_RADIANS,
         1200.0,
         40.0
