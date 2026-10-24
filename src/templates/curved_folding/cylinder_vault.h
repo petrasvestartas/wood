@@ -112,14 +112,16 @@ private:
     /// The point of the segment's circle at the angle.
     static Point on_circle(const Segment& segment, double radius, double angle);
 
-    /// Where the generatrix at the angle enters and leaves the footprint: the distances along the axis from the circle, and the planes.
-    std::array<std::pair<double, size_t>, 2> clip(const Segment& segment, double angle) const;
+    /// Where the generatrix of the cylinder of the radius at the angle enters and leaves the footprint: the distances along the axis
+    /// from the circle, and the planes.
+    std::array<std::pair<double, size_t>, 2> clip(const Segment& segment, double radius, double angle) const;
 
-    /// The angles the segment's meridians change their plane at, between its first and its last generatrix drawn in to where they are
-    /// a millimetre long: the spans of the panel's multi-span arcs.
-    std::vector<double> compute_spans(const Segment& segment) const;
+    /// The angles the meridians of the cylinder of the radius change their plane at, between its first and its last generatrix drawn in
+    /// to where they are a millimetre long: the spans of the panel's multi-span arcs, the outer and the inner cylinder each their own.
+    std::vector<double> compute_spans(const Segment& segment, double radius) const;
 
-    /// The arc of the given radius over the spans, each span projected along the generatrices onto its plane at the given end (0 the
+    /// The arc of the given radius over the spans, one equal parameter step per span, so the outer and the inner meridian change their
+    /// plane at the same parameter and every side face is planar span by span; each span projected along the generatrices onto its plane at the given end (0 the
     /// entry, 1 the exit): one rational quadratic NURBS with a C0 knot at every change of plane, the panel's meridian.
     NurbsCurve compute_meridian(const Segment& segment, const std::vector<double>& spans, double radius, size_t end) const;
 
@@ -258,10 +260,10 @@ inline Point CylinderVault::on_circle(const Segment& segment, double radius, dou
     return segment.centre + segment.x * (radius * std::sin(angle)) + segment.y * (radius * std::cos(angle));
 }
 
-inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segment& segment, double angle) const {
+inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segment& segment, double radius, double angle) const {
 
     // the generatrix through the circle point, clipped in plan by every plane of the footprint: the latest entry and the earliest exit, as distances along the generatrix
-    const Point point = on_circle(segment, segment.radius, angle);
+    const Point point = on_circle(segment, radius, angle);
     const Point plan(point[0], point[1], 0.0);
     const Vector direction = Vector(segment.axis[0], segment.axis[1], 0.0).normalized();
     const double flat = Vector(segment.axis[0], segment.axis[1], 0.0).magnitude();
@@ -288,14 +290,14 @@ inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segmen
     return {entry, exit};
 }
 
-inline std::vector<double> CylinderVault::compute_spans(const Segment& segment) const {
+inline std::vector<double> CylinderVault::compute_spans(const Segment& segment, double radius) const {
 
     const auto length = [&](double angle) {
-        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, angle);
+        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
         return ends[1].first - ends[0].first;
     };
     const auto planes = [&](double angle) {
-        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, angle);
+        const std::array<std::pair<double, size_t>, 2> ends = clip(segment, radius, angle);
         return std::make_pair(ends[0].second, ends[1].second);
     };
 
@@ -355,7 +357,7 @@ inline NurbsCurve CylinderVault::compute_meridian(const Segment& segment, const 
     for (size_t s = 0; s + 1 < spans.size(); s++) {
         const double from = spans[s];
         const double to = spans[s + 1];
-        const Plane& plane = segment.footprint[clip(segment, 0.5 * (from + to))[end].second];
+        const Plane& plane = segment.footprint[clip(segment, radius, 0.5 * (from + to))[end].second];
         const NurbsCurve arc = Primitives::arc(on_circle(segment, radius, from), on_circle(segment, radius, 0.5 * (from + to)), on_circle(segment, radius, to)).transformed(Xform::project_to_plane_by_axis(plane, segment.axis));
 
         for (int c = s == 0 ? 0 : 1; c < 3; c++) {
@@ -363,7 +365,7 @@ inline NurbsCurve CylinderVault::compute_meridian(const Segment& segment, const 
             weights.push_back(arc.weight(c));
         }
 
-        knots.push_back((to - spans.front()) / (spans.back() - spans.front()));
+        knots.push_back(static_cast<double>(s + 1) / static_cast<double>(spans.size() - 1));
         mults.push_back(s + 2 < spans.size() ? 2 : 3);
     }
 
@@ -390,11 +392,15 @@ inline std::vector<Development> CylinderVault::add_panels(const std::vector<Segm
 
     for (size_t i = 0; i < segments.size(); i++) {
         // the panel's four meridians: the outer and the inner arc over the segment's spans, on the planes the generatrices enter and leave by
-        const std::vector<double> spans = compute_spans(segments[i]);
-        const NurbsCurve outer_a = compute_meridian(segments[i], spans, segments[i].radius, 0);
-        const NurbsCurve outer_b = compute_meridian(segments[i], spans, segments[i].radius, 1);
-        const NurbsCurve inner_a = compute_meridian(segments[i], spans, segments[i].radius - thickness, 0);
-        const NurbsCurve inner_b = compute_meridian(segments[i], spans, segments[i].radius - thickness, 1);
+        // each cylinder's own spans: the inner one crosses from plane to plane at its own angles, so each meridian is the exact section
+        // of its cylinder by the footprint's planes and the two panels at a crease share their side face
+        const double inner = segments[i].radius - thickness;
+        const std::vector<double> outer_spans = compute_spans(segments[i], segments[i].radius);
+        const std::vector<double> inner_spans = compute_spans(segments[i], inner);
+        const NurbsCurve outer_a = compute_meridian(segments[i], outer_spans, segments[i].radius, 0);
+        const NurbsCurve outer_b = compute_meridian(segments[i], outer_spans, segments[i].radius, 1);
+        const NurbsCurve inner_a = compute_meridian(segments[i], inner_spans, inner, 0);
+        const NurbsCurve inner_b = compute_meridian(segments[i], inner_spans, inner, 1);
         add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("lamella_{}", i)), group);
 
         // its development, the proof it is cut flat
