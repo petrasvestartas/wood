@@ -4,21 +4,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The IBOIS curved folded plate: a smooth wave section of alternating arcs, three crests, swept and reflected at the kinks of their polyline, a short rise, a long descending slope and a steep leg to the ground.
+/// A curved folded plate: a wave corrugation folded at the reverse folds of an arch of five segments spanning 13.5 m, every half wave
+/// of every segment a curved plate.
 int main() {
 
-    const double climb = 25.0 * Tolerance::TO_RADIANS;
-    const Vector along(std::cos(climb), 0.0, std::sin(climb));
-    const Vector up(-std::sin(climb), 0.0, std::cos(climb));
-    const Point foot(0.0, 12000.0, 0.0);
+    const double climb = 60.0 * Tolerance::TO_RADIANS;
+    const Vector along(0.0, std::cos(climb), std::sin(climb));
+    const Vector up(0.0, -std::sin(climb), std::cos(climb));
     ReflectionFold fold(
-        ReflectionFold::meander(foot, Vector(0.0, -1.0, 0.0), up, 6, 1200.0, 450.0),
+        ReflectionFold::waves(Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0),
         along,
-        Vector(0.0, -1.0, 0.0),
-        17000.0,
-        {{3000.0, -45.0 * Tolerance::TO_RADIANS, true}, {12000.0, -40.0 * Tolerance::TO_RADIANS, true}},
-        std::nullopt,
-        120.0
+        Vector(1.0, 0.0, 0.0),
+        18100.0,
+        {{3620.0, -30.0 * Tolerance::TO_RADIANS}, {7240.0, -30.0 * Tolerance::TO_RADIANS}, {10860.0, -30.0 * Tolerance::TO_RADIANS}, {14480.0, -30.0 * Tolerance::TO_RADIANS}}
     );
     std::cout << fold << std::endl;
 
@@ -35,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the curved folding templates: the IBOIS curved folded plate, a smooth wave section folded along a polyline, the curved counterpart of a zigzag folded plate. The section is a meander of six circular arcs, each 1200 wide and 450 deep, bulging up and down in turn and meeting tangent to each other, three crests across 7.2 m; it is swept along a polyline, a short rise at 25 degrees for 3 m, a reflection of 45 degrees at the ridge onto a slope falling 20 degrees for 9 m, and a reflection of 40 degrees onto a leg falling 60 degrees for 5 m to the ground. Every crease is the reflection plane's section of the wave, every half wave of every segment one lamella. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
+Step 3 of the curved folding templates: a curved folded plate. A wave corrugation, three sine waves of 3 m wavelength and 400 mm amplitude across a 9 m wide sheet, is swept along a polygonal arch of five segments of 3.62 m turning 30 degrees at each of four reverse folds, from 60 degrees up at one foot to 60 degrees down at the other, spanning 13.5 m and rising 4.9 m. Every reverse fold is a reflection of the sheet in the plane bisecting the kink, so every crease is that plane's section of the corrugation, a planar wave, and the sheet still unrolls flat. Every half wave of every segment is one lamella, a PlateCurved: the exact cylinder between its two creases, 120 mm thick, mitred where it meets the next lamella across a crease, its caps the straight rulings at the waves' cusps and the sheet's edges. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -44,7 +42,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_curved_folding_3_curved_folded_plate --parallel 6 && ./build/templates_curved_folding_3_curved_folded_plate && ./bash/publish-scene.sh --target templates_curved_folding_3_curved_folded_plate
+cmake --build build --target templates_curved_folding_3_curved_folded_plate --parallel 6 && ./build/templates_curved_folding_3_curved_folded_plate && ../bash/publish-scene.sh --target templates_curved_folding_3_curved_folded_plate
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

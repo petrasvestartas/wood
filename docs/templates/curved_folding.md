@@ -126,22 +126,20 @@ ReflectionFold fold(
 
 ### Curved folded plate {#curved_folded_plate}
 
-The IBOIS curved folded plate: a smooth wave section folded along a polyline, the curved counterpart of a zigzag folded plate. The section is a meander of six circular arcs, each 1200 wide and 450 deep, bulging up and down in turn and meeting tangent to each other, three crests across 7.2 m; it is swept along a polyline, a short rise at 25 degrees for 3 m, a reflection of 45 degrees at the ridge onto a slope falling 20 degrees for 9 m, and a reflection of 40 degrees onto a leg falling 60 degrees for 5 m to the ground. Every half wave of every segment is one lamella: 18 lamellas, 27 contacts, twelve on the two creases and fifteen between the arcs of the three segments (example `templates_curved_folding_3_curved_folded_plate`).
+A wave corrugation, three sine waves of 3 m wavelength and 400 mm amplitude across a 9 m wide sheet, swept along a polygonal arch of five segments of 3.62 m that turns 30 degrees at each of four reverse folds, from 60 degrees up at one foot to 60 degrees down at the other: 13.5 m span, 4.9 m rise. Every reverse fold is a reflection in the plane bisecting the kink, so every crease is a planar wave and the sheet still unrolls flat; every half wave of every segment is one lamella, 120 mm thick, mitred on the creases. 30 lamellas, 30 closed solids, 49 contacts (example `templates_curved_folding_3_curved_folded_plate`).
 
 ![curved folded plate](templates/templates_curved_folding_3_curved_folded_plate_lamellas.webp)
 
 ```cpp
-const double climb = 25.0 * Tolerance::TO_RADIANS;
-const Vector along(std::cos(climb), 0.0, std::sin(climb));
-const Vector up(-std::sin(climb), 0.0, std::cos(climb));
+const double climb = 60.0 * Tolerance::TO_RADIANS;
+const Vector along(0.0, std::cos(climb), std::sin(climb));
+const Vector up(0.0, -std::sin(climb), std::cos(climb));
 ReflectionFold fold(
- ReflectionFold::meander(Point(0.0, 12000.0, 0.0), Vector(0.0, -1.0, 0.0), up, 6, 1200.0, 450.0),
- along,
- Vector(0.0, -1.0, 0.0),
- 17000.0,
- {{3000.0, -45.0 * Tolerance::TO_RADIANS, true}, {12000.0, -40.0 * Tolerance::TO_RADIANS, true}},
- std::nullopt,
- 120.0
+    ReflectionFold::waves(Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0),
+    along,
+    Vector(1.0, 0.0, 0.0),
+    18100.0,
+    {{3620.0, -30.0 * Tolerance::TO_RADIANS}, {7240.0, -30.0 * Tolerance::TO_RADIANS}, {10860.0, -30.0 * Tolerance::TO_RADIANS}, {14480.0, -30.0 * Tolerance::TO_RADIANS}}
 );
 ```
 
