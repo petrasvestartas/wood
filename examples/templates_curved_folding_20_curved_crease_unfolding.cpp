@@ -4,13 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding: two flat plates hinged on a circular edge and opened 50 degrees into an arch 9 m wide and 4.5 m high.
+/// Curved-crease unfolding: four flat plates hinged on a circular edge and opened 50 degrees into an arch 9 m wide and 4.5 m high.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
         Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
         50.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 2, 1500.0, 0.0),
+        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0),
         40.0
     );
     std::cout << unfolding << std::endl;
@@ -28,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 20 of the curved folding templates: curved-crease unfolding. Two 40 mm plates, flat bands with circular edges, hinged on their curved edge and opened: the curved hinge forces each plate to bend about its rulings, so the pair rises into an arch. Three parallel planes 1500 mm apart, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees; every plate an exact cone. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
+Step 20 of the curved folding templates: curved-crease unfolding. Four 40 mm plates, flat bands with circular edges, hinged on their curved edge and opened: the curved hinge forces each plate to bend about its rulings, so the stack rises into an arch. Five parallel planes 1000 mm apart, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees; every plate an exact cone. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

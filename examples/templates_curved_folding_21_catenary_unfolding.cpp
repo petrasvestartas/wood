@@ -4,13 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding to a catenary: two plates opened 45 degrees into a catenary vault 10 m wide and 6 m high.
+/// Curved-crease unfolding to a catenary: four plates opened 45 degrees into a catenary vault 10 m wide and 6 m high.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
         CurvedCreaseUnfolding::catenary(10000.0, 6000.0),
         45.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 2, 1500.0, 0.0),
+        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0),
         40.0
     );
     std::cout << unfolding << std::endl;
@@ -28,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 21 of the curved folding templates: curved-crease unfolding to a catenary. Three parallel planes 1500 mm apart, the crease a catenary 10 m wide and 6 m high, the plates opened 45 degrees. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
+Step 21 of the curved folding templates: curved-crease unfolding to a catenary. Five parallel planes 1000 mm apart, the crease a catenary 10 m wide and 6 m high, the plates opened 45 degrees. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
