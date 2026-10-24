@@ -61,18 +61,14 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" --hide-contacts templates_curved_folding_3_curved_folded_plate lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_4_mendrisio_pavilion lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_5_groin_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_6_groin_vault_sloping lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_7_groin_vault_rising lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_8_pavilion_vault lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_9_pentagon_vault lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_10_octagon_vault lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_11_hexagon_vault lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_13_two_hinged_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_14_three_hinged_frame lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_15_two_hinged_arch lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_16_arch_with_top_hinge lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_17_a_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_18_cantilever lamellas
     "${RENDER[@]}" --hide-contacts templates_curved_folding_20_curved_crease_unfolding plates
     "${RENDER[@]}" --hide-contacts templates_curved_folding_21_catenary_unfolding plates
     "${RENDER[@]}" --hide-contacts templates_curved_folding_22_crease_quadrants all

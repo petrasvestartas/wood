@@ -4,10 +4,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// generatrices in one plane: the groin vault, two half barrels of 12 m span crossing over a square, meeting on the diagonals, every quarter one curved panel.
+/// The groin vault: two half barrels of 12 m span crossing over a square, every quarter one cylindrical panel.
 int main() {
 
-    CylinderVault vault(4, 12000.0, 6000.0, 0.0, CylinderVault::Kind::Groin);
+    CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
     std::cout << vault << std::endl;
 
     size_t solids = 0;
@@ -23,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the curved folding templates: Interpenetration of cylindrical surfaces, generatrices in one plane. Two equal half barrels of 12 m span and 6 m radius cross over a 12 m square, each kept where it is higher: the groin vault. Each of the four segments is a cylinder whose generatrices run horizontally from its side toward the centre, and two neighbouring segments are each other's mirror image in the vertical plane through their shared corner and the centre, so they meet in that plane along a planar curve, a half ellipse straight in plan and curved in elevation, the same planar curved crease the reflection fold makes. Every segment is one panel, a PlateCurved: its outer face the exact cylinder between the two vertical planes its generatrices run between, its meridians one rational arc each with a C0 knot where the generatrices change their plane (the groin's crease, two half ellipses meeting at the apex), 120 mm thick under the cylinder, its side faces the planar sections shared with the panel across the crease, its caps the first and the last generatrix drawn in to a millimetre from the corner or the apex; every panel is bent about one axis and cut from a flat panel, its development drawn in the group flat; the session's contact detection finds every shared face. Groups: plan (the segments' footprints), lamellas (lamella_<segment>), flat.
+Step 5 of the curved folding templates: the groin vault. Two half barrels of 12 m span and 6 m radius cross over a 12 m square; every quarter is a level cylinder from its side to the centre, and neighbours meet on half ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -7,8 +7,8 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | template | header | source | examples |
 | --- | --- | --- | --- |
 | [`CurvedFold`](#curved_fold_zauberhut) | `curved_folding/curved_fold.h` | Knie's Zauberhut, a tent roof of curved folds, the meridians interpolated | `templates_curved_folding_1_curved_fold` |
-| [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | the reflection principle; the IBOIS curved folded plate and Mendrisio pavilion; the linear systems of folded cylindrical surfaces | `templates_curved_folding_{2_reflection,3_curved_folded_plate,4_mendrisio_pavilion,13_two_hinged_frame,..,18_cantilever}` |
-| [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | structure systems through interpenetration of cylindrical surfaces over regular polygons and their composition over a square grid | `templates_curved_folding_{5_groin_vault,...,11_hexagon_vault}` |
+| [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | the reflection principle; the IBOIS curved folded plate and Mendrisio pavilion; the linear systems of folded cylindrical surfaces | `templates_curved_folding_{2_reflection,3_curved_folded_plate,4_mendrisio_pavilion,13_two_hinged_frame,15_two_hinged_arch,16_arch_with_top_hinge,17_a_frame}` |
+| [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | equal cylinders over a regular polygon meeting on planar creases | `templates_curved_folding_{5_groin_vault,8_pavilion_vault,9_pentagon_vault,10_octagon_vault,11_hexagon_vault}` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
 | [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, the top and bottom bulging out, the sides sagging in | `templates_curved_folding_31_curved_folded_beam` |
@@ -182,11 +182,9 @@ Linear structure systems of folded cylindrical surfaces: a row of four barrels, 
 | page | system | climb | folds: station, turn, kind | symmetry at x | barrels | lamellas, contacts | example |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 242 | two-hinged frame | 90, column 6 m | 6000, -76, reflection | 20000 | 600 high, inward | 16, 24 | `templates_curved_folding_13_two_hinged_frame` |
-| 242 | three-hinged frame | 90, column 6 m | 6000, -62; 14400, -23; 23400, -50, reflections | 17795, the hinge in the notch's bottom | 400 high, outward | 32, 52 | `templates_curved_folding_14_three_hinged_frame` |
 | 243 | two-hinged arch | 105, leg leaning out | 11000, -50; 22000, -50, mirror folds | 11000 | 2400 high | 24, 38 | `templates_curved_folding_15_two_hinged_arch` |
 | 243 | arch with top hinge | 90, legs | 300, -15; 18300, -40, reflections; 25300, -35, mirror fold | 13000 | 1600 deep | 28, 45 | `templates_curved_folding_16_arch_with_top_hinge` |
 | 244 | two-hinged A-frame | 110, foot leaning out | 5600, -60, reflection | 12500 | 1400 high | 16, 24 | `templates_curved_folding_17_a_frame` |
-| 244 | cantilevered beam on central supports | -3, roof 6.1 m up | 14000, -72; 19500, 150; 25000, -72, reflections | none | 600 deep troughs | 16, 24 | `templates_curved_folding_18_cantilever` |
 
 ```cpp
 const double climb = 90.0 * Tolerance::TO_RADIANS;
@@ -217,22 +215,6 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 <details><summary>Example code: templates_curved_folding_13_two_hinged_frame.cpp</summary>
 
 \include{lineno} templates_curved_folding_13_two_hinged_frame.cpp
-
-</details>
-
-#### Three-hinged frame {#three_hinged_frame}
-
-6 m columns, a roof of a steep slope and a shoulder per side, three reflections, and a notch at mid-span whose bottom, the hinge, is the plane of symmetry; the notch's slopes between the shoulder creases are the hatched ovals of the plan, the shoulders' rounded tops the top of the end elevation; span 36 m, shoulders 10.7 m, hinge 9.3 m (example `templates_curved_folding_14_three_hinged_frame`).
-
-![three-hinged frame](templates/templates_curved_folding_14_three_hinged_frame_lamellas.webp)
-
-```cpp
-ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 400.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{6000.0, -62.0 * Tolerance::TO_RADIANS, true}, {14400.0, -23.0 * Tolerance::TO_RADIANS, true}, {23400.0, -50.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(17795.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
-```
-
-<details><summary>Example code: templates_curved_folding_14_three_hinged_frame.cpp</summary>
-
-\include{lineno} templates_curved_folding_14_three_hinged_frame.cpp
 
 </details>
 
@@ -284,51 +266,25 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 
 </details>
 
-#### Cantilevered beam on central supports {#cantilever}
-
-A roof of four shallow barrels 39 m long, reflected down in the middle into a V of two legs, cantilevering 14 m both ways; the roof's two arms are a trough and a vault, every reflection turning the sheet over (example `templates_curved_folding_18_cantilever`).
-
-![cantilevered beam on central supports](templates/templates_curved_folding_18_cantilever_lamellas.webp)
-
-```cpp
-ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 600.0), along, Vector(0.0, -1.0, 0.0), 39000.0, {{14000.0, -72.0 * Tolerance::TO_RADIANS, true}, {19500.0, 150.0 * Tolerance::TO_RADIANS, true}, {25000.0, -72.0 * Tolerance::TO_RADIANS, true}}, std::nullopt, 120.0);
-```
-
-<details><summary>Example code: templates_curved_folding_18_cantilever.cpp</summary>
-
-\include{lineno} templates_curved_folding_18_cantilever.cpp
-
-</details>
-
 ## Cylinder vault {#cylinder_vault}
 
-Structure systems through interpenetration of cylindrical surfaces: equal circular cylinders over a regular polygon, one segment per side, meeting their neighbours in the vertical planes through the corners and the centre (`curved_folding/cylinder_vault.h`). `CylinderVault(sides, edge, radius, rise, kind, wall, thickness, name, placements)` has two kinds, and stands once at the origin or, with `placements`, once per given centre and scale:
+Equal cylinders over a regular polygon, one segment per side, meeting their neighbours in the vertical planes through the corners and the centre (`curved_folding/cylinder_vault.h`). Two equal cylinders mirrored in a plane meet in that plane, so every crease is a planar ellipse arc. `CylinderVault(sides, edge, radius, kind, wall, thickness)`:
 
-| kind | segment | generatrices | profile | creases |
-| --- | --- | --- | --- | --- |
-| `Groin` | one per side, over the triangle from the side to the centre | from the side toward the centre, tilted up by `rise` (negative: sloping) | the arch over the side, a circle of `radius` across the generatrices with its springings at the corners (a half circle when the radius is half the side) | the vertical planes from the corners to the centre, two half ellipses meeting at the apex |
-| `Cloister` | one per side, over the triangle, on a `wall` | along the side, horizontal | the arc of `radius` from the wall's top up to the peak over the centre | the vertical planes from the corners to the centre, quarter ellipses rising to the peak |
+| kind | generatrices | profile | creases |
+| --- | --- | --- | --- |
+| `Groin` | level, from the side to the centre | the arch over the side, springing at the corners; the crown at its top | half ellipses from the corners to the crown |
+| `Cloister` | level, along the side, on a `wall` | the arc from the wall's top to the peak over the centre | quarter ellipses from the corners to the peak |
 
-Every segment is **one panel**, a `PlateCurved` named `lamella_<segment>`: its outer face the exact cylinder between the two vertical planes its generatrices run between; its meridians one rational quadratic NURBS each, a span per plane with a C0 knot where the generatrices change from one plane to the next (`compute_meridian`: the arc projected along the generatrices span by span, the groin's crease two half ellipses meeting at the apex); its inner face the cylinder of the smaller radius, whose sections by the same planes are its inner meridians, so two panels across a crease share their side face; its caps the first and the last generatrix, drawn in from the corner or the apex to where they are a millimetre long (`compute_spans`), so the solid has no zero-length edge. The cloister vault's walls are flat panels `wall_<segment>` in the group `walls`. Every panel is bent about one axis and cut from a flat panel; `add_flat()` lays every panel's development in a row beside the model, and `compute_face_contacts(0)` looks for the shared faces. The groin's crease is one C0 curve over two planes, so a panel's side face spans both diagonal planes, each half shared with one neighbour; the session's contact detection pairs the part of a face a neighbour shares, one contact per crease (4 on a groin vault, 8 on the pavilion vault with its walls).
-
-```cpp
-CylinderVault vault(
- 4, // sides of the polygon
- 12000.0, // side
- 6000.0, // radius, a half circle over the side
- 0.0, // rise of the generatrices toward the centre, radians
- CylinderVault::Kind::Groin // generatrices from the side toward the centre
-);
-```
+Every segment is one `PlateCurved`, `lamella_<segment>`: its outer face the exact cylinder between the two vertical planes its generatrices run between, its inner face the cylinder `thickness` smaller cut by the same planes, so two panels at a crease share their side face. Each panel unfolds flat (`add_flat()`), and `compute_face_contacts(0)` finds one contact per crease.
 
 #### Groin vault {#groin_vault}
 
-generatrices in one plane: two half barrels of 12 m span crossing over a square, meeting on the diagonals, every quarter one panel (example `templates_curved_folding_5_groin_vault`).
+Two half barrels of 12 m span crossing over a square (example `templates_curved_folding_5_groin_vault`).
 
 ![groin vault](templates/templates_curved_folding_5_groin_vault_lamellas.webp)
 
 ```cpp
-CylinderVault vault(4, 12000.0, 6000.0, 0.0, CylinderVault::Kind::Groin);
+CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 ```
 
 <details><summary>Example code: templates_curved_folding_5_groin_vault.cpp</summary>
@@ -337,46 +293,14 @@ CylinderVault vault(4, 12000.0, 6000.0, 0.0, CylinderVault::Kind::Groin);
 
 </details>
 
-#### Generatrices sloping toward the centre {#groin_vault_sloping}
-
-the groin vault's generatrices tilted down 15 degrees toward the centre, the arches over the sides standing higher than the centre (example `templates_curved_folding_6_groin_vault_sloping`).
-
-![generatrices sloping toward the centre](templates/templates_curved_folding_6_groin_vault_sloping_lamellas.webp)
-
-```cpp
-CylinderVault vault(4, 12000.0, 6000.0, -15.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
-```
-
-<details><summary>Example code: templates_curved_folding_6_groin_vault_sloping.cpp</summary>
-
-\include{lineno} templates_curved_folding_6_groin_vault_sloping.cpp
-
-</details>
-
-#### Generatrices rising toward the centre {#groin_vault_rising}
-
-the generatrices tilted up 15 degrees, a dome of four cylinders (example `templates_curved_folding_7_groin_vault_rising`).
-
-![generatrices rising toward the centre](templates/templates_curved_folding_7_groin_vault_rising_lamellas.webp)
-
-```cpp
-CylinderVault vault(4, 12000.0, 6000.0, 15.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
-```
-
-<details><summary>Example code: templates_curved_folding_7_groin_vault_rising.cpp</summary>
-
-\include{lineno} templates_curved_folding_7_groin_vault_rising.cpp
-
-</details>
-
 #### Pavilion vault on walls {#pavilion_vault}
 
-right column: the pavilion (cloister) vault, the two barrels kept where they are lower. On a 12 m square stand four walls 4 m high, and on every wall a cylinder segment whose generatrices run along the wall, a quarter circle of 6 m radius from the wall's top up to the peak 6 m higher over the centre; the four segments are mirror images in the diagonal planes and meet in them along quarter ellipses rising from the corners to the peak; 4 panels and 4 walls, 8 contacts (example `templates_curved_folding_8_pavilion_vault`).
+Four cylinder segments on 4 m walls around a 12 m square, rising to the peak over the centre (example `templates_curved_folding_8_pavilion_vault`).
 
 ![pavilion vault on walls](templates/templates_curved_folding_8_pavilion_vault_lamellas.webp)
 
 ```cpp
-CylinderVault vault(4, 12000.0, 6000.0, 0.0, CylinderVault::Kind::Cloister, 4000.0);
+CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_8_pavilion_vault.cpp</summary>
@@ -385,14 +309,14 @@ CylinderVault vault(4, 12000.0, 6000.0, 0.0, CylinderVault::Kind::Cloister, 4000
 
 </details>
 
-#### Pentagonal plan with segments rising toward the centre {#pentagon_vault}
+#### Pentagon vault {#pentagon_vault}
 
-five half barrels of 8 m span, their generatrices tilted up 20 degrees to a point above the centre (example `templates_curved_folding_9_pentagon_vault`).
+Five half barrels of 8 m span (example `templates_curved_folding_9_pentagon_vault`).
 
-![pentagonal plan with segments rising toward the centre](templates/templates_curved_folding_9_pentagon_vault_lamellas.webp)
+![pentagon vault](templates/templates_curved_folding_9_pentagon_vault_lamellas.webp)
 
 ```cpp
-CylinderVault vault(5, 8000.0, 4000.0, 20.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
+CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
 <details><summary>Example code: templates_curved_folding_9_pentagon_vault.cpp</summary>
@@ -401,35 +325,35 @@ CylinderVault vault(5, 8000.0, 4000.0, 20.0 * Tolerance::TO_RADIANS, CylinderVau
 
 </details>
 
-#### Octagonal plan with segments sloping toward the centre {#octagon_vault}
+#### Hexagon vault {#hexagon_vault}
 
-eight half barrels of 6 m span tilted down 15 degrees to the centre, a star of arches around a dish (example `templates_curved_folding_10_octagon_vault`).
+Six half barrels of 8 m span (example `templates_curved_folding_11_hexagon_vault`).
 
-![octagonal plan with segments sloping toward the centre](templates/templates_curved_folding_10_octagon_vault_lamellas.webp)
-
-```cpp
-CylinderVault vault(8, 6000.0, 3000.0, -15.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
-```
-
-<details><summary>Example code: templates_curved_folding_10_octagon_vault.cpp</summary>
-
-\include{lineno} templates_curved_folding_10_octagon_vault.cpp
-
-</details>
-
-#### Hexagonal plan with rising cylinder segments {#hexagon_vault}
-
-six half barrels of 8 m span tilted up 25 degrees to a point above the centre (example `templates_curved_folding_11_hexagon_vault`).
-
-![hexagonal plan with rising cylinder segments](templates/templates_curved_folding_11_hexagon_vault_lamellas.webp)
+![hexagon vault](templates/templates_curved_folding_11_hexagon_vault_lamellas.webp)
 
 ```cpp
-CylinderVault vault(6, 8000.0, 4000.0, 25.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
+CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
 <details><summary>Example code: templates_curved_folding_11_hexagon_vault.cpp</summary>
 
 \include{lineno} templates_curved_folding_11_hexagon_vault.cpp
+
+</details>
+
+#### Octagon vault {#octagon_vault}
+
+Eight half barrels of 6 m span (example `templates_curved_folding_10_octagon_vault`).
+
+![octagon vault](templates/templates_curved_folding_10_octagon_vault_lamellas.webp)
+
+```cpp
+CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
+```
+
+<details><summary>Example code: templates_curved_folding_10_octagon_vault.cpp</summary>
+
+\include{lineno} templates_curved_folding_10_octagon_vault.cpp
 
 </details>
 

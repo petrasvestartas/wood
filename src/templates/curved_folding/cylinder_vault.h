@@ -10,9 +10,9 @@ using namespace wood_session;
 /// over a regular polygon, one segment per side, meeting their neighbours in the vertical planes through the corners and the centre.
 /// Two equal cylinders mirrored in a plane meet in that plane, so every crease is a planar curve, an ellipse arc, straight in plan and
 /// curved in elevation, and the segments on both sides of it are each other's mirror image: the same planar curved crease the
-/// reflection fold makes. Two kinds: the groin vault, every segment's generatrices running from its side toward the centre, in one
-/// plane, sloping toward the centre or rising toward it; and the pavilion or cloister vault, the generatrices along the sides, the segments
-/// rising from the walls to a peak over the centre.
+/// reflection fold makes. Two kinds: the groin vault, every segment's generatrices running level from its side toward the centre, its
+/// crown at the height of the arch's top; and the pavilion or cloister vault, the generatrices along the sides, the segments rising from
+/// the walls to a peak over the centre.
 ///
 /// Every segment is one panel, a PlateCurved: its outer face the exact cylinder between its two end curves, the sections of the segment
 /// by the vertical planes its generatrices run between, one multi-span rational arc each, a span per plane with a C0 knot where the
@@ -22,46 +22,31 @@ using namespace wood_session;
 /// they are a millimetre long, so the solid has no zero-length edge. Every panel is bent about one axis and cut from a flat panel, as
 /// glulam or curved cross-laminated timber is; its development is checked and drawn in the flat pattern beside the model.
 ///
-/// A vault may be placed more than once, at a centre and a scale each: a composition of cylindrical surfaces crossing diagonally
-/// over a square grid plan, a field of groin vaults with a larger one in the middle, is one groin vault placed on every bay of
-/// the grid and once more, at twice the scale, over the four bays in the middle.
-///
-/// Fields: the polygon, the cylinders, the kind, the walls, the thickness and the placements; the plan, the panels and the flat pattern
-/// are in the session.
+/// Fields: the polygon, the cylinders, the kind, the walls and the thickness; the plan, the panels and the flat pattern are in the session.
 class CylinderVault : public WoodSession {
 public:
-    /// Where a copy of the vault stands and how large it is.
-    struct Placement {
-        Point centre; // The polygon's centre on the ground.
-        double scale; // The polygon's and the cylinders' size against the given side and radius.
-    };
-
     /// How the cylinders sit on the polygon.
     enum class Kind {
-        Groin, // A segment per side, its generatrices from the side toward the centre, tilted by the rise; the segments meet on the lines from the corners to the centre.
+        Groin, // A segment per side, its generatrices level from the side toward the centre; the segments meet on the lines from the corners to the centre.
         Cloister // A segment per side, its generatrices along the side, its profile the arc from the side up to the peak over the centre; the segments meet on the lines from the corners to the centre.
     };
 
     const size_t sides; // The regular polygon's sides.
     const double edge; // mm, the polygon's side.
     const double radius; // mm, every cylinder; the arch over a side is a half circle when it is half the side (groin), the peak is above the centre (cloister).
-    const double rise; // radians, the groin vault's generatrices rising toward the centre, negative sloping; 0 for the cloister.
     const Kind kind; // How the cylinders sit on the polygon.
     const double wall; // mm, the walls the cloister vault stands on, a flat panel under every side; 0 for none.
     const double thickness; // mm, every panel, under the cylinder.
-    const std::vector<Placement> placements; // Every copy of the vault; one at the origin at scale 1 when none is given.
 
     /// The vault as the session named name.
     CylinderVault(
         size_t sides = 4,
         double edge = 12000.0,
         double radius = 6000.0,
-        double rise = 0.0,
         Kind kind = Kind::Groin,
         double wall = 0.0,
         double thickness = 120.0,
-        const std::string& name = "cylinder_vault",
-        const std::vector<Placement>& placements = {}
+        const std::string& name = "cylinder_vault"
     );
 
     /// Not copied, as a session is not.
@@ -88,7 +73,7 @@ private:
         Vector x; // The circle's direction at angle 90 degrees.
         Vector y; // The circle's direction at angle 0.
         Vector axis; // The generatrices' unit direction.
-        double radius; // mm, the cylinder, the vault's radius at the placement's scale.
+        double radius; // mm, the cylinder.
         double start; // radians, the first generatrix.
         double end; // radians, the last generatrix.
         std::vector<Plane> footprint; // The vertical planes around the segment, normals pointing in.
@@ -100,13 +85,13 @@ private:
     double _distortion = 0.0;
     double _twist = 0.0;
 
-    /// The polygon's corner i on the ground, counter-clockwise from the x axis, for the placement.
-    Point corner(const Placement& placement, size_t i) const;
+    /// The polygon's corner i on the ground, counter-clockwise from the x axis, around the origin.
+    Point corner(size_t i) const;
 
     /// The vertical plane through two points on the ground, its normal pointing toward a third.
     static Plane wall_plane(const Point& from, const Point& to, const Point& inside);
 
-    /// Every segment of the kind over the polygon, at every placement, lifted onto the walls.
+    /// Every segment of the kind over the polygon, lifted onto the walls.
     std::vector<Segment> compute_segments() const;
 
     /// The point of the segment's circle at the angle.
@@ -138,22 +123,17 @@ private:
     void add_flat(const std::vector<Development>& developments, double beside);
 };
 
-inline CylinderVault::CylinderVault(size_t sides, double edge, double radius, double rise, Kind kind, double wall, double thickness, const std::string& name, const std::vector<Placement>& placements)
+inline CylinderVault::CylinderVault(size_t sides, double edge, double radius, Kind kind, double wall, double thickness, const std::string& name)
     : WoodSession(name),
       sides(std::max<size_t>(sides, 3)),
       edge(edge),
       radius(radius),
-      rise(rise),
       kind(kind),
       wall(wall),
-      thickness(thickness),
-      placements(placements.empty() ? std::vector<Placement>{{Point(0.0, 0.0, 0.0), 1.0}} : placements) {
+      thickness(thickness) {
 
     if (edge <= 0.0 || radius <= thickness || thickness <= 0.0 || wall < 0.0)
         throw std::invalid_argument("A cylinder vault needs a side, a radius larger than its thickness, a thickness and no negative wall");
-
-    if (kind != Kind::Groin && std::abs(rise) > 1e-12)
-        throw std::invalid_argument("Only the groin vault's generatrices rise or slope toward the centre");
 
     if (kind != Kind::Cloister && wall > 0.0)
         throw std::invalid_argument("Only the cloister vault stands on walls");
@@ -178,12 +158,12 @@ inline CylinderVault::CylinderVault(size_t sides, double edge, double radius, do
     compute_face_contacts(0);
 }
 
-inline Point CylinderVault::corner(const Placement& placement, size_t i) const {
+inline Point CylinderVault::corner(size_t i) const {
 
-    const double circumradius = placement.scale * 0.5 * edge / std::sin(Tolerance::PI / static_cast<double>(sides));
+    const double circumradius = 0.5 * edge / std::sin(Tolerance::PI / static_cast<double>(sides));
     const double angle = 2.0 * Tolerance::PI * static_cast<double>(i % sides) / static_cast<double>(sides);
 
-    return placement.centre + Vector(circumradius * std::cos(angle), circumradius * std::sin(angle), 0.0);
+    return Point(circumradius * std::cos(angle), circumradius * std::sin(angle), 0.0);
 }
 
 inline Plane CylinderVault::wall_plane(const Point& from, const Point& to, const Point& inside) {
@@ -200,58 +180,53 @@ inline Plane CylinderVault::wall_plane(const Point& from, const Point& to, const
 inline std::vector<CylinderVault::Segment> CylinderVault::compute_segments() const {
 
     std::vector<Segment> segments;
+    const Point centre(0.0, 0.0, 0.0);
+    const double apothem = 0.5 * edge / std::tan(Tolerance::PI / static_cast<double>(sides));
 
-    for (const Placement& placement : placements)
-        for (size_t i = 0; i < sides; i++) {
-            const Point& centre = placement.centre;
-            const double edge = placement.scale * this->edge;
-            const double radius = placement.scale * this->radius;
-            const double apothem = 0.5 * edge / std::tan(Tolerance::PI / static_cast<double>(sides));
-            const Point from = corner(placement, i);
-            const Point to = corner(placement, i + 1);
-            const Point middle = Point::mid_point(from, to);
-            const Vector along = (to - from).normalized();
-            const Vector outward = (middle - centre).normalized();
-            const Vector lift(0.0, 0.0, wall);
-            Segment segment;
+    for (size_t i = 0; i < sides; i++) {
+        const Point from = corner(i);
+        const Point to = corner(i + 1);
+        const Point middle = Point::mid_point(from, to);
+        const Vector along = (to - from).normalized();
+        const Vector outward = (middle - centre).normalized();
+        Segment segment;
 
-            if (kind == Kind::Groin) {
-                // the arch over the side, a circle across the generatrices that rise by the rise toward the centre, its springings at the corners
-                if (radius < 0.5 * edge - 1e-6)
-                    throw std::invalid_argument("A groin vault's radius is at least half its side");
+        if (kind == Kind::Groin) {
+            // the arch over the side, its springings at the corners, its generatrices level toward the centre
+            if (radius < 0.5 * edge - 1e-6)
+                throw std::invalid_argument("A groin vault's radius is at least half its side");
 
-                const double below = std::sqrt(std::max(0.0, radius * radius - 0.25 * edge * edge)) / std::cos(rise);
-                segment.axis = -outward * std::cos(rise) + Vector(0.0, 0.0, std::sin(rise));
-                segment.centre = middle - Vector(0.0, 0.0, below);
-                segment.x = along;
-                segment.y = (Vector(0.0, 0.0, 1.0) - segment.axis * std::sin(rise)).normalized();
-                segment.start = -std::asin(0.5 * edge / radius);
-                segment.end = -segment.start;
-            } else {
-                // the arc from the side up to the peak over the centre, the generatrices along the side, on the wall
-                if (radius < apothem - 1e-6)
-                    throw std::invalid_argument("A cloister vault's radius is at least the polygon's apothem");
+            segment.axis = -outward;
+            segment.centre = middle - Vector(0.0, 0.0, std::sqrt(std::max(0.0, radius * radius - 0.25 * edge * edge)));
+            segment.x = along;
+            segment.y = Vector(0.0, 0.0, 1.0);
+            segment.start = -std::asin(0.5 * edge / radius);
+            segment.end = -segment.start;
+        } else {
+            // the arc from the side up to the peak over the centre, the generatrices along the side, on the wall
+            if (radius < apothem - 1e-6)
+                throw std::invalid_argument("A cloister vault's radius is at least the polygon's apothem");
 
-                const double peak = radius - std::sqrt(std::max(0.0, radius * radius - apothem * apothem));
-                segment.axis = along;
-                segment.centre = centre + lift + Vector(0.0, 0.0, peak - radius);
-                segment.x = outward;
-                segment.y = Vector(0.0, 0.0, 1.0);
-                segment.start = 0.0;
-                segment.end = std::atan2(apothem, radius - peak);
-            }
-
-            // the vertical planes around the footprint, normals pointing in, and the side under the segment
-            segment.radius = radius;
-            segment.corners = {from, to, centre};
-            segment.from = from;
-            segment.to = to;
-
-            for (size_t c = 0; c < segment.corners.size(); c++)
-                segment.footprint.push_back(wall_plane(segment.corners[c], segment.corners[(c + 1) % segment.corners.size()], Point::centroid(segment.corners)));
-
-            segments.push_back(segment);
+            const double peak = radius - std::sqrt(std::max(0.0, radius * radius - apothem * apothem));
+            segment.axis = along;
+            segment.centre = centre + Vector(0.0, 0.0, wall + peak - radius);
+            segment.x = outward;
+            segment.y = Vector(0.0, 0.0, 1.0);
+            segment.start = 0.0;
+            segment.end = std::atan2(apothem, radius - peak);
         }
+
+        // the vertical planes around the footprint, normals pointing in, and the side under the segment
+        segment.radius = radius;
+        segment.corners = {from, to, centre};
+        segment.from = from;
+        segment.to = to;
+
+        for (size_t c = 0; c < segment.corners.size(); c++)
+            segment.footprint.push_back(wall_plane(segment.corners[c], segment.corners[(c + 1) % segment.corners.size()], Point::centroid(segment.corners)));
+
+        segments.push_back(segment);
+    }
 
     return segments;
 }
@@ -262,23 +237,20 @@ inline Point CylinderVault::on_circle(const Segment& segment, double radius, dou
 
 inline std::array<std::pair<double, size_t>, 2> CylinderVault::clip(const Segment& segment, double radius, double angle) const {
 
-    // the generatrix through the circle point, clipped in plan by every plane of the footprint: the latest entry and the earliest exit, as distances along the generatrix
+    // the level generatrix through the circle point, clipped by every plane of the footprint: the latest entry and the earliest exit, as distances along it
     const Point point = on_circle(segment, radius, angle);
-    const Point plan(point[0], point[1], 0.0);
-    const Vector direction = Vector(segment.axis[0], segment.axis[1], 0.0).normalized();
-    const double flat = Vector(segment.axis[0], segment.axis[1], 0.0).magnitude();
     std::pair<double, size_t> entry = {-std::numeric_limits<double>::infinity(), 0};
     std::pair<double, size_t> exit = {std::numeric_limits<double>::infinity(), 0};
 
     for (size_t p = 0; p < segment.footprint.size(); p++) {
         const Plane& plane = segment.footprint[p];
-        const double speed = plane.z_axis().dot(direction);
-        const double distance = plane.z_axis().dot(plane.origin() - plan);
+        const double speed = plane.z_axis().dot(segment.axis);
+        const double distance = plane.z_axis().dot(plane.origin() - point);
 
         if (std::abs(speed) < 1e-12)
             continue;
 
-        const double s = distance / speed / flat;
+        const double s = distance / speed;
 
         if (speed > 0.0 && s > entry.first)
             entry = {s, p};

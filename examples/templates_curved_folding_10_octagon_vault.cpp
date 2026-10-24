@@ -4,10 +4,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// octagonal plan with segments sloping toward the centre: eight half barrels tilted down 15 degrees to the centre, a star of arches around a dish.
+/// The octagon groin vault: eight half barrels of 6 m span over a regular octagon, level, the crown at the arches' top.
 int main() {
 
-    CylinderVault vault(8, 6000.0, 3000.0, -15.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
+    CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
     std::cout << vault << std::endl;
 
     size_t solids = 0;
@@ -23,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 10 of the curved folding templates: an octagonal plan with segments sloping toward the centre. Eight half barrels of 6 m span over a regular octagon, each with its generatrices tilted down 15 degrees from its side toward the centre, the arches standing on the sides and the eight segments sinking to the centre, meeting in the vertical planes through the corners. Every segment is one panel, a PlateCurved: its outer face the exact cylinder between the two vertical planes its generatrices run between, its meridians one rational arc each with a C0 knot where the generatrices change their plane (the groin's crease, two half ellipses meeting at the apex), 120 mm thick under the cylinder, its side faces the planar sections shared with the panel across the crease, its caps the first and the last generatrix drawn in to a millimetre from the corner or the apex; every panel is bent about one axis and cut from a flat panel, its development drawn in the group flat; the session's contact detection finds every shared face. Groups: plan (the segments' footprints), lamellas (lamella_<segment>), flat.
+Step 10 of the curved folding templates: the octagon groin vault. Eight half barrels of 6 m span and 3 m radius over a regular octagon, every one a level cylinder from its side to the centre, so the crown is at the height of the arches' top; neighbours meet on half ellipses in the vertical planes through the corners and the centre. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
