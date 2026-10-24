@@ -80,9 +80,6 @@ public:
         return _twist;
     }
 
-    /// The placements of the field: a vault on every bay of a columns by rows grid of bays, except the middle 2 by 2, over which one vault stands at twice the scale; columns and rows even.
-    static std::vector<Placement> field(size_t columns, size_t rows, double bay);
-
 private:
     /// One cylinder segment: the circle its generatrices start from, their direction, the angles the segment spans, and the vertical
     /// planes around its footprint on the plan, their normals pointing in.
@@ -185,26 +182,6 @@ inline Point CylinderVault::corner(const Placement& placement, size_t i) const {
     const double angle = 2.0 * Tolerance::PI * static_cast<double>(i % sides) / static_cast<double>(sides);
 
     return placement.centre + Vector(circumradius * std::cos(angle), circumradius * std::sin(angle), 0.0);
-}
-
-inline std::vector<CylinderVault::Placement> CylinderVault::field(size_t columns, size_t rows, double bay) {
-
-    if (columns < 2 || rows < 2 || columns % 2 != 0 || rows % 2 != 0)
-        throw std::invalid_argument("A field has an even number of columns and rows, the middle four bays under the large vault");
-
-    std::vector<Placement> placements;
-
-    for (size_t column = 0; column < columns; column++)
-        for (size_t row = 0; row < rows; row++) {
-            const bool middle = (column + 1 == columns / 2 || column == columns / 2) && (row + 1 == rows / 2 || row == rows / 2);
-
-            if (!middle)
-                placements.push_back({Point(bay * (static_cast<double>(column) + 0.5 - 0.5 * static_cast<double>(columns)), bay * (static_cast<double>(row) + 0.5 - 0.5 * static_cast<double>(rows)), 0.0), 1.0});
-        }
-
-    placements.push_back({Point(0.0, 0.0, 0.0), 2.0});
-
-    return placements;
 }
 
 inline Plane CylinderVault::wall_plane(const Point& from, const Point& to, const Point& inside) {

@@ -8,7 +8,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | --- | --- | --- | --- |
 | [`CurvedFold`](#curved_fold_zauberhut) | `curved_folding/curved_fold.h` | Knie's Zauberhut, a tent roof of curved folds, the meridians interpolated | `templates_curved_folding_1_curved_fold` |
 | [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | the reflection principle; the IBOIS curved folded plate and Mendrisio pavilion; the linear systems of folded cylindrical surfaces | `templates_curved_folding_{2_reflection,3_curved_folded_plate,4_mendrisio_pavilion,13_two_hinged_frame,..,18_cantilever}` |
-| [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | structure systems through interpenetration of cylindrical surfaces over regular polygons and their composition over a square grid | `templates_curved_folding_{5_groin_vault,..,12_cross_vault,19_vault_field}` |
+| [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | structure systems through interpenetration of cylindrical surfaces over regular polygons and their composition over a square grid | `templates_curved_folding_{5_groin_vault,...,11_hexagon_vault}` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
 | [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, the top and bottom bulging out, the sides sagging in | `templates_curved_folding_31_curved_folded_beam` |
@@ -430,38 +430,6 @@ CylinderVault vault(6, 8000.0, 4000.0, 25.0 * Tolerance::TO_RADIANS, CylinderVau
 <details><summary>Example code: templates_curved_folding_11_hexagon_vault.cpp</summary>
 
 \include{lineno} templates_curved_folding_11_hexagon_vault.cpp
-
-</details>
-
-#### Cross-shaped plan with upright segments {#cross_vault}
-
-four half cylinders standing almost upright on the sides of a square, tilted 70 degrees toward the centre, so the vertical sides cut them in tall half ellipses, the lobes of the cross-shaped plan, and the four lean in to meet at the top (example `templates_curved_folding_12_cross_vault`).
-
-![cross-shaped plan with upright segments](templates/templates_curved_folding_12_cross_vault_lamellas.webp)
-
-```cpp
-CylinderVault vault(4, 8000.0, 4000.0, 70.0 * Tolerance::TO_RADIANS, CylinderVault::Kind::Groin);
-```
-
-<details><summary>Example code: templates_curved_folding_12_cross_vault.cpp</summary>
-
-\include{lineno} templates_curved_folding_12_cross_vault.cpp
-
-</details>
-
-#### Composition over a square grid {#vault_field}
-
-composition of cylindrical surfaces crossing diagonally over a square grid plan: a groin vault on every bay of a 6 by 4 grid of 6 m bays, and over the four bays in the middle one groin vault at twice the scale, standing up above the field; 84 panels (example `templates_curved_folding_19_vault_field`).
-
-![composition over a square grid](templates/templates_curved_folding_19_vault_field_lamellas.webp)
-
-```cpp
-CylinderVault vault(4, 6000.0, 3000.0, 0.0, CylinderVault::Kind::Groin, 0.0, 120.0, "vault_field", CylinderVault::field(6, 4, 6000.0));
-```
-
-<details><summary>Example code: templates_curved_folding_19_vault_field.cpp</summary>
-
-\include{lineno} templates_curved_folding_19_vault_field.cpp
 
 </details>
 
