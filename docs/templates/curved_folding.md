@@ -151,15 +151,14 @@ ReflectionFold fold(
 
 ### Mendrisio pavilion {#mendrisio_pavilion}
 
-The Mendrisio pavilion of IBOIS: 13.0 m long at the top and 12.0 m along the floor, 4.5 m wide, 3.4 m high, 77 mm curved cross-laminated timber. One shallow barrel, an arc 4.5 m wide and 400 high split at its crown into two panels, stands on the ground as the end wall, curved in plan and leaning out, is reflected at the eave onto the roof rising 10 degrees, which the reflection turns into a trough, and 700 mm further at the barrel's edges reflected again at the ridge crease onto the level middle, a vault, whose rulings cross the vertical plane of symmetry at mid-length square, so each of its two panels is one plate from ridge crease to ridge crease. The eave crease is the short oval where the wall meets the roof, the ridge crease the long oval reaching 5 m in from the end with its tip toward the middle, since the trough's crown line reaches the ridge plane 4.5 m later than its edges, as in the pavilion's top view; the wall's foot is the arc on the ground, its ends and the roof's long edges straight rulings, and the two halves of the barrel meet on the straight crown seam. 10 lamellas, 13 contacts: eight on the four crease planes, five on the crown seam (example `templates_curved_folding_4_mendrisio_pavilion`).
+The Mendrisio pavilion of IBOIS: 13 m long, 4.5 m wide, 3.4 m high, 77 mm curved cross-laminated timber. One shallow barrel, an arc 4.5 m wide and 400 mm high, stands as the end wall leaning out, is reflected at the eave onto the roof rising 10 degrees, a trough, and at the ridge crease onto the level middle, a vault whose rulings cross the plane of symmetry square, one plate from ridge to ridge. The eave crease is the short oval where the wall meets the roof, the ridge crease the long oval reaching 5 m in from the end. Five plates, four contacts, one per crease (example `templates_curved_folding_4_mendrisio_pavilion`).
 
 ![mendrisio pavilion](templates/templates_curved_folding_4_mendrisio_pavilion_lamellas.webp)
 
 ```cpp
 const Vector along(0.1719, 0.0, 0.9851); // the wall, leaning out 0.5 m over 2.9 m
 ReflectionFold fold(
- {Primitives::arc(Point(6000.0, -2250.0, 0.0), Point(6304.0, -1125.0, 0.0), Point(6400.0, 0.0, 0.0)),
- Primitives::arc(Point(6400.0, 0.0, 0.0), Point(6304.0, 1125.0, 0.0), Point(6000.0, 2250.0, 0.0))},
+ {Primitives::arc(Point(6000.0, -2250.0, 0.0), Point(6400.0, 0.0, 0.0), Point(6000.0, 2250.0, 0.0))},
  along,
  Vector(0.0, -1.0, 0.0),
  12000.0,
