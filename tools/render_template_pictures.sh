@@ -60,37 +60,44 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" templates_curved_folding_1_curved_fold lamellas
     "${RENDER[@]}" --view front --name elevation templates_curved_folding_1_curved_fold lamellas
     "${RENDER[@]}" templates_curved_folding_2_reflection_fold lamellas all
+    "${RENDER[@]}" --view right --name end templates_curved_folding_2_reflection_fold lamellas
     "${RENDER[@]}" templates_curved_folding_3_curved_folded_plate lamellas all
     "${RENDER[@]}" --view front --name section templates_curved_folding_3_curved_folded_plate lamellas
     "${RENDER[@]}" templates_curved_folding_4_groin_vault lamellas all
     "${RENDER[@]}" --view top --name plan templates_curved_folding_4_groin_vault lamellas
     "${RENDER[@]}" templates_curved_folding_5_groin_vault_sloping lamellas
     "${RENDER[@]}" templates_curved_folding_6_groin_vault_rising lamellas
-    "${RENDER[@]}" templates_curved_folding_7_diagonal_vault lamellas
-    "${RENDER[@]}" --view top --name plan templates_curved_folding_7_diagonal_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_8_cloister_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_9_triangle_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_10_pentagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_11_octagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_12_hexagon_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_13_cross_vault lamellas
-    "${RENDER[@]}" --view top --name plan templates_curved_folding_13_cross_vault lamellas
-    "${RENDER[@]}" templates_curved_folding_14_two_hinged_frame lamellas
-    "${RENDER[@]}" --view top --name plan templates_curved_folding_14_two_hinged_frame lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_14_two_hinged_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_15_three_hinged_frame lamellas
-    "${RENDER[@]}" --view top --name plan templates_curved_folding_15_three_hinged_frame lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_15_three_hinged_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_16_two_hinged_arch lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_16_two_hinged_arch lamellas
-    "${RENDER[@]}" templates_curved_folding_17_arch_with_top_hinge lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_17_arch_with_top_hinge lamellas
-    "${RENDER[@]}" templates_curved_folding_18_a_frame lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_18_a_frame lamellas
-    "${RENDER[@]}" templates_curved_folding_19_cantilever lamellas
-    "${RENDER[@]}" --view front --name section templates_curved_folding_19_cantilever lamellas
-    "${RENDER[@]}" templates_curved_folding_20_vault_field lamellas
-    "${RENDER[@]}" --view front --name elevation templates_curved_folding_20_vault_field lamellas
+    "${RENDER[@]}" --name lamellas templates_curved_folding_7_pavilion_vault lamellas+walls
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_7_pavilion_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_8_triangle_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_9_pentagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_10_octagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_11_hexagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_12_cross_vault lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_12_cross_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_13_two_hinged_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_13_two_hinged_frame lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_13_two_hinged_frame lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_13_two_hinged_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_14_three_hinged_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_14_three_hinged_frame lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_14_three_hinged_frame lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_14_three_hinged_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_15_two_hinged_arch lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_15_two_hinged_arch lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_15_two_hinged_arch lamellas
+    "${RENDER[@]}" --name lamellas templates_curved_folding_16_arch_with_top_hinge lamellas+posts
+    "${RENDER[@]}" --view front --name section templates_curved_folding_16_arch_with_top_hinge lamellas+posts
+    "${RENDER[@]}" --view right --name end templates_curved_folding_16_arch_with_top_hinge lamellas+posts
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_16_arch_with_top_hinge lamellas+posts
+    "${RENDER[@]}" templates_curved_folding_17_a_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_17_a_frame lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_17_a_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_18_cantilever lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_18_cantilever lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_18_cantilever lamellas
+    "${RENDER[@]}" templates_curved_folding_19_vault_field lamellas
+    "${RENDER[@]}" --view front --name elevation templates_curved_folding_19_vault_field lamellas
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

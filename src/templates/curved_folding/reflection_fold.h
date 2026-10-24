@@ -6,45 +6,64 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folding by sequential reflection, after Mitani and Igarashi, "Interactive Design of Planar Curved Folding by Reflection"
-/// (Pacific Graphics 2011) and Huffman's "Curvature and Creases" (1976): a developable sheet, a planar profile swept along one direction
-/// into a cylinder, is cut by a plane and the part beyond the plane is mirrored in it. The crease is the plane's section of the sheet, a
-/// planar curve; the mirrored part meets the rest without a gap and its development is unchanged, so the folded sheet still unfolds flat
-/// (Mitani's closure theorem). Repeating with one plane after another, each acting on the sheet as it lies after the folds before it,
-/// gives a sheet with as many planar curved creases as planes; the planes are given on the unfolded sheet and the fold beyond plane j is
-/// the composition of the reflections 1 to j. The same construction underlies Buri, Stotz and Weinand's curved folded plates (IBOIS,
-/// IABSE-IASS 2011), where an undulating profile is folded at the reverse folds of an arch, and Engel's linear systems of folded
-/// cylindrical surfaces (Structure Systems pp. 242-244), where a profile of arcs is folded into frames and arches. A frame's
-/// symmetric ridge is the other planar curved crease: not the sheet reflected beyond the plane, but the folded half and its mirror
-/// image meeting in the plane of symmetry along the plane's section of the sheet, straight in plan; given the `symmetry` plane, the
-/// sheet ends on it and the whole folded half is mirrored in it (Engel's two-hinged frame, arches and A-frame, p. 242-244).
+/// A curved folding of a cylindrical sheet, after Mitani and Igarashi, "Interactive Design of Planar Curved Folding by Reflection"
+/// (Pacific Graphics 2011), Huffman's "Curvature and Creases" (1976), Buri, Stotz and Weinand's curved folded plates (IBOIS, IABSE-IASS
+/// 2011) and Engel's linear systems of folded cylindrical surfaces (Structure Systems pp. 242-244). The sheet is a planar profile swept
+/// along one direction, a cylinder; at every fold its rulings turn about the folds' axis by the fold's angle, and the crease is the
+/// section of the sheet by the fold's plane, a planar curve, an ellipse arc when the profile is an arc. A fold is made in one of two
+/// ways, both with a planar crease. Mitani's reflection: the part of the sheet beyond the plane is mirrored in it, the plane bisecting
+/// the angle between the old rulings and the new, so the sheet is turned over, its bulge flips from a vault to a trough, and the whole
+/// sheet keeps one development, Mitani's closure theorem; the crease is the long oval of a sharp kink. Engel's mirror fold: the next
+/// segment is the mirror image of the one before in the plane bisecting the fold's angle, so the bulge is kept, a vault folds onto a
+/// vault, as his end elevations show; every segment is still an exact cylinder cut flat on its own, but the two sides of the crease
+/// develop as mirror images, not as one sheet. A frame's ridge or an arch's crown is the symmetry plane: the sheet ends on it and the
+/// folded half is mirrored in it, meeting itself along the plane's section, straight in plan.
 ///
-/// Every part of the sheet between two planes, and between two consecutive curves of the profile, is one lamella, a PlateCurved: its
-/// outer face the exact cylinder between the two creases, its inner face the thickness under it on the sheet's physical underside (a
-/// reflection swaps the sheet's faces, so the offset alternates sides on the unfolded sheet), its side faces at the creases the mitre
-/// of thick folded plates, the fold's bisector surface, where it meets its neighbour, and its caps the rulings at the profile
-/// curves' ends, where the lamellas of one fold meet along a straight line. Every lamella develops flat without distortion, being a
-/// cylinder strip; the development of each is checked and drawn in the flat cutting pattern beside the model.
+/// Every part of the sheet between two creases, and between two consecutive curves of the profile, is one lamella, a PlateCurved: its
+/// outer face the exact cylinder between the two creases, the second the first projected along the rulings onto the next plane; its
+/// inner face the thickness under it on the sheet's physical underside; its side faces at the creases the mitre where it meets its
+/// neighbour, the crease plane at a mirror fold and at the symmetry plane, the surface through the crease perpendicular to the plane at
+/// a reflection, where the two plates lie on either side with their exact thickness; its caps the rulings at the profile curves' ends.
+/// Every lamella develops flat without distortion, being a cylinder strip; its development is checked and drawn in the flat pattern
+/// beside the model, every lamella where it lies on the unrolled sheet. Posts, round columns under the sheet's first segment, stand on
+/// the ground as two half shells topped by the curves where their vertical generatrices meet the sheet.
 ///
-/// Fields: the profile, the rulings' direction and length, the planes, the thickness and the sampling; the sheet, the creases, the
-/// lamellas and the flat pattern are in the session.
+/// Fields: the profile, the rulings' direction and length, the folds' axis, the folds, the symmetry plane, the posts, the thickness
+/// and the sampling; the creases, the lamellas, the posts and the flat pattern are in the session.
 class ReflectionFold : public WoodSession {
 public:
+    /// One fold of the sheet: where the rulings turn, by how much, and how.
+    struct Fold {
+        double station; // mm along the rulings from the sheet's start, on the ruling through the profile's first point.
+        double angle; // radians, the rulings' turn about the axis, positive by the right hand.
+        bool reflected = true; // Mitani's reflection, the sheet turned over, when true; Engel's mirror fold, the bulge kept, when false.
+    };
+
+    /// A round column under the sheet's first segment: a cylinder of the radius from its foot on the ground up to the sheet, two half shells.
+    struct Post {
+        Point foot; // The axis's foot.
+        double radius; // mm, the column.
+    };
+
     const std::vector<NurbsCurve> profile; // The sheet's section: planar curves one after another sharing their ends, running one way, each a row of lamellas.
-    const Vector direction; // The rulings' unit direction, the profile swept along it.
-    const double length; // mm, the sheet along the rulings; with a symmetry plane, how far the mirror planes may reach at most.
-    const std::vector<Plane> planes; // The mirror planes on the unfolded sheet, in order along the rulings.
+    const Vector direction; // The rulings' unit direction before the first fold, the profile swept along it.
+    const Vector axis; // The folds' unit axis, in every fold plane; the profile's plane is spanned by it and the sheet's width.
+    const double length; // mm, the sheet along the rulings from its start to its end, when no symmetry plane ends it.
+    const std::vector<Fold> folds; // The folds, in order along the rulings.
     const std::optional<Plane> symmetry; // The folded sheet's plane of symmetry, where the sheet ends and its mirror image begins; none for a sheet with two free ends.
-    const double thickness; // mm, every lamella, on the sheet's physical underside: the side away from the profile's tangent crossed with the direction.
+    const std::vector<Post> posts; // The columns under the sheet's first segment, mirrored with it.
+    const double thickness; // mm, every lamella, on the sheet's physical underside: at the start the side away from the profile's tangent crossed with the direction.
     const size_t samples; // Rulings per profile curve the offsets and mitres are interpolated through.
 
-    /// The reflection fold as the session named name.
+    /// The fold as the session named name.
     ReflectionFold(
         const std::vector<NurbsCurve>& profile,
         const Vector& direction,
+        const Vector& axis,
         double length,
-        const std::vector<Plane>& planes,
+        const std::vector<Fold>& folds,
         const std::optional<Plane>& symmetry = std::nullopt,
+        const std::vector<Post>& posts = {},
         double thickness = 120.0,
         const std::string& name = "reflection_fold",
         size_t samples = 24
@@ -66,10 +85,6 @@ public:
         return _twist;
     }
 
-    /// Mirror planes on the unfolded sheet that turn the folded sheet about axis by the angles (radians, as seen on the folded model,
-    /// positive by the right hand), one at each station along the ruling through origin; the axis lies in every plane.
-    static std::vector<Plane> turns(const Point& origin, const Vector& direction, const Vector& axis, const std::vector<double>& stations, const std::vector<double>& angles);
-
     /// A profile of count circular arcs side by side from start along across, each width wide and bulging rise toward up: Engel's rows of barrels.
     static std::vector<NurbsCurve> arcs(const Point& start, const Vector& across, const Vector& up, size_t count, double width, double rise);
 
@@ -77,56 +92,72 @@ public:
     static std::vector<NurbsCurve> waves(const Point& start, const Vector& across, const Vector& up, size_t half_waves, double half_wavelength, double amplitude);
 
 private:
+    /// One straight run of the sheet between two creases: its rulings, the planes it starts and ends on, and which side its underside is.
+    struct Segment {
+        Vector direction; // The rulings' unit direction.
+        Plane start; // The plane the segment's first crease lies in.
+        Plane end; // The plane its last crease lies in.
+        double underside; // The physical underside's sign against the tangent crossed with the direction: -1 at the start, flipped by every reflection.
+    };
+
     double _distortion = 0.0;
     double _twist = 0.0;
 
-    /// The planes that bound the folds: the profile's plane at the start, the mirror planes, and at the end the profile's plane moved by
-    /// length, or the symmetry plane carried back onto the unfolded sheet by the last fold; each checked to cut every ruling of the sheet
-    /// in this order and never to stand on the sheet, where the fold would be flat.
-    std::vector<Plane> compute_cuts(const std::vector<Xform>& folds) const;
+    /// The profile's plane, from its most different tangents, through its first point.
+    Plane compute_profile_plane() const;
 
-    /// Fold j for the sheet beyond mirror plane j: the reflections in the planes 1 to j composed, fold 0 the identity.
-    std::vector<Xform> compute_folds() const;
+    /// Every segment from the profile's plane to the end: at every fold the rulings turned about the axis, the fold's plane through the
+    /// station on the ruling from the profile's first point, bisecting the turn for a mirror fold and perpendicular to that for a
+    /// reflection, the underside flipped by a reflection; the end the symmetry plane or the profile's plane moved by length.
+    std::vector<Segment> compute_segments(const Plane& first) const;
 
-    /// The profile moved the thickness to one side of the sheet, side -1 under and +1 over, curve by curve through the sampled points,
-    /// each curve's ends mitred with its neighbour where the profile has a kink.
-    std::vector<NurbsCurve> compute_offset(double side) const;
+    /// Every crease, curve by curve of the profile: the profile on the first plane, then each crease projected along its segment's
+    /// rulings onto the next plane; checked to lie beyond the one before along every ruling, and no reflection's plane to stand on
+    /// the sheet, where its fold would be flat and the sheet would cross itself.
+    std::vector<std::vector<NurbsCurve>> compute_creases(const std::vector<Segment>& segments) const;
 
-    /// The inner meridian of a plate at a mirror plane, on the unfolded sheet: every ruling of the plate's offset, the curve the thickness
-    /// to one side of the profile curve swept along the direction, cut by the fold's bisector surface, the surface through the crease
-    /// perpendicular to the mirror plane. The two plates at a crease lie on the two sides of that surface, so they neither overlap nor
-    /// leave a gap, each keeps its exact thickness, and their side faces lie in one surface; a thick folded plate's mitre.
-    NurbsCurve compute_mitre(const NurbsCurve& curve, const NurbsCurve& offset, const Plane& cut) const;
+    /// Every segment's offset curves: its first crease moved the thickness to its underside along the sheet's normal, curve by curve
+    /// through the sampled points, each curve's ends mitred with its neighbour where the profile has a kink.
+    std::vector<std::vector<NurbsCurve>> compute_offsets(const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases) const;
 
-    /// The unfolded sheet with the creases drawn on it, in the group sheet.
-    void add_sheet(const std::vector<Plane>& cuts);
+    /// A lamella's inner meridian at a crease: the segment's offset cut by the mitre, the crease's plane at a mirror fold, a sheet end
+    /// or the symmetry plane, or the surface through the crease perpendicular to the plane at a reflection, ruling by ruling.
+    NurbsCurve compute_inner(const NurbsCurve& crease, const NurbsCurve& offset, const Vector& direction, const Plane& plane, bool reflected) const;
 
-    /// Every crease on the folded sheet, in the group creases.
-    void add_creases(const std::vector<Plane>& cuts, const std::vector<Xform>& folds);
+    /// Every crease on the folded sheet, crease_<j>, in the group creases.
+    void add_creases(const std::vector<std::vector<NurbsCurve>>& creases);
 
-    /// Every lamella, lamella_<fold>_<row>, in the group lamellas; its development returned for the flat pattern.
-    std::vector<Development> add_lamellas(const std::vector<Plane>& cuts, const std::vector<Xform>& folds, const std::vector<NurbsCurve>& under, const std::vector<NurbsCurve>& over);
+    /// Every lamella, lamella_<segment>_<row>, in the group lamellas; its development returned for the flat pattern.
+    std::vector<Development> add_lamellas(const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, const std::vector<std::vector<NurbsCurve>>& offsets);
 
-    /// The flat cutting pattern beside the model, every lamella's development where it lies on the unfolded sheet, in the group flat.
-    void add_flat(const std::vector<Development>& developments, const std::vector<Plane>& cuts, double beside);
+    /// The flat cutting pattern beside the model, every lamella's development where it lies on the unrolled sheet, in the group flat.
+    void add_flat(const std::vector<Development>& developments, const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, double beside);
 
-    /// The mirror image of every lamella and crease in the symmetry plane, lamella_<2 folds - 1 - j>_<row>, the plane's own section of
-    /// the sheet as the last crease, and the mirrored half's cutting pattern beyond the first's.
-    void add_mirrored(const std::vector<Plane>& cuts, const std::vector<Xform>& folds);
+    /// Every post as two half shells, post_<k>_<half>, in the group posts.
+    void add_posts();
+
+    /// The mirror image of every lamella, crease and post in the symmetry plane, the plane's own section of the sheet as the last
+    /// crease, and the mirrored half's cutting pattern beyond the first's.
+    void add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases);
 
     /// The reflection in the plane.
     static Xform reflection(const Plane& plane);
 
     /// The vector turned about axis by angle (radians).
     static Vector turned(const Vector& vector, const Vector& axis, double angle);
+
+    /// The curve's point at the k-th of samples equal parameter steps.
+    double parameter(const NurbsCurve& curve, size_t k) const;
 };
 
 inline ReflectionFold::ReflectionFold(
     const std::vector<NurbsCurve>& profile,
     const Vector& direction,
+    const Vector& axis,
     double length,
-    const std::vector<Plane>& planes,
+    const std::vector<Fold>& folds,
     const std::optional<Plane>& symmetry,
+    const std::vector<Post>& posts,
     double thickness,
     const std::string& name,
     size_t samples
@@ -134,54 +165,54 @@ inline ReflectionFold::ReflectionFold(
     : WoodSession(name),
       profile(profile),
       direction(direction.normalized()),
+      axis(axis.normalized()),
       length(length),
-      planes(planes),
+      folds(folds),
       symmetry(symmetry),
+      posts(posts),
       thickness(thickness),
       samples(std::max<size_t>(samples, 4)) {
 
     if (profile.empty() || length <= 0.0 || thickness <= 0.0)
         throw std::invalid_argument("A reflection fold needs a profile, a length and a thickness");
 
-    // folds: the sheet beyond mirror plane j carried by the reflections 1 to j, Mitani's sequential reflection
-    const std::vector<Xform> folds = compute_folds();
+    // segments: the sheet's straight runs between the folds, each with its rulings, its two planes and its underside
+    const Plane first = compute_profile_plane();
+    const std::vector<Segment> segments = compute_segments(first);
 
-    // cuts: the sheet's end planes with the mirror planes between them, every one across all the rulings, in order; the end the symmetry plane pulled back onto the unfolded sheet when there is one
-    const std::vector<Plane> cuts = compute_cuts(folds);
+    // creases: every fold plane's section of the sheet, the profile carried along the rulings from plane to plane
+    const std::vector<std::vector<NurbsCurve>> creases = compute_creases(segments);
 
-    // offsets: the profile the thickness under the sheet and over it, the plates' inner faces on the unfolded sheet, since every reflection swaps the sheet's faces
-    const std::vector<NurbsCurve> under = compute_offset(-1.0);
-    const std::vector<NurbsCurve> over = compute_offset(1.0);
+    // offsets: every segment's first crease moved the thickness to the sheet's underside, the plates' inner faces
+    const std::vector<std::vector<NurbsCurve>> offsets = compute_offsets(segments, creases);
 
-    // sheet: the unfolded developable with its creases, Mitani's left column
-    add_sheet(cuts);
-
-    // creases: every mirror plane's section of the sheet, folded
-    add_creases(cuts, folds);
-
-    // lamellas: between two cuts and two profile curves one curved plate, its creases mitred with its neighbours
-    const std::vector<Development> developments = add_lamellas(cuts, folds, under, over);
+    // creases drawn, then the lamellas: between two creases and two profile curves one curved plate, mitred with its neighbours
+    add_creases(creases);
+    const std::vector<Development> developments = add_lamellas(segments, creases, offsets);
 
     // flat: the cutting pattern beside the model, every lamella unfolded by its rulings
-    add_flat(developments, cuts, 0.1 * length);
+    add_flat(developments, segments, creases, 0.1 * length);
+
+    // posts: the round columns under the sheet's first segment
+    add_posts();
 
     // symmetry: the folded half mirrored in its plane of symmetry, meeting itself along the plane's section of the sheet
     if (symmetry)
-        add_mirrored(cuts, folds);
+        add_mirrored(creases);
 }
 
-inline std::vector<Plane> ReflectionFold::compute_cuts(const std::vector<Xform>& folds) const {
+inline double ReflectionFold::parameter(const NurbsCurve& curve, size_t k) const {
+    return curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
+}
 
-    // the profile's plane: the normal from the two most different tangents, or across the direction when the profile is straight
-    std::vector<Point> points;
+inline Plane ReflectionFold::compute_profile_plane() const {
+
+    // the normal from the two most different tangents, or across the direction when the profile is straight
     std::vector<Vector> tangents;
 
     for (const NurbsCurve& curve : profile)
-        for (size_t k = 0; k <= samples; k++) {
-            const double t = curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-            points.push_back(curve.point_at(t));
-            tangents.push_back(curve.tangent_at(t).normalized());
-        }
+        for (size_t k = 0; k <= samples; k++)
+            tangents.push_back(curve.tangent_at(parameter(curve, k)).normalized());
 
     Vector normal = tangents.front().cross(tangents.back());
 
@@ -197,188 +228,181 @@ inline std::vector<Plane> ReflectionFold::compute_cuts(const std::vector<Xform>&
     if (std::abs(normal.dot(direction)) < 1e-6)
         throw std::invalid_argument("The profile's plane contains the direction, so the sheet has no width");
 
-    std::vector<Plane> cuts = {Plane::from_point_normal(points.front(), normal)};
-    cuts.insert(cuts.end(), planes.begin(), planes.end());
-
-    if (symmetry) {
-        const std::optional<Xform> back = folds.back().inverse();
-
-        if (!back)
-            throw std::invalid_argument("The folds cannot be undone");
-
-        cuts.push_back(Plane::from_point_normal(back->transform_point(symmetry->origin()), back->transform_vector(symmetry->z_axis())));
-    } else {
-        cuts.push_back(Plane::from_point_normal(points.front() + direction * length, normal));
-    }
-
-    // every ruling meets the cuts in order within the sheet, and no mirror plane stands on the sheet
-    for (size_t k = 0; k < points.size(); k++) {
-        double before = -1.0;
-        const Vector sheet_normal = tangents[k].cross(direction).normalized();
-
-        for (size_t j = 0; j < cuts.size(); j++) {
-            const double slope = cuts[j].z_axis().dot(direction);
-
-            if (std::abs(slope) < 1e-9)
-                throw std::invalid_argument(fmt::format("Cut plane {} runs along the rulings", j));
-
-            const double along = cuts[j].z_axis().dot(cuts[j].origin() - points[k]) / slope;
-
-            if (along < before - 1e-6 || (along > length + 1e-6 && !(symmetry && j + 1 == cuts.size())))
-                throw std::invalid_argument(fmt::format("Cut plane {} leaves the sheet or crosses the cut before it at ruling {}", j, k));
-
-            if (j > 0 && j + 1 < cuts.size() && std::abs(cuts[j].z_axis().dot(sheet_normal)) < 0.05)
-                throw std::invalid_argument(fmt::format("Mirror plane {} stands on the sheet at ruling {}, where its fold would be flat", j, k));
-
-            before = along;
-        }
-    }
-
-    return cuts;
+    return Plane::from_point_normal(profile.front().point_at(profile.front().domain_start()), normal);
 }
 
-inline std::vector<Xform> ReflectionFold::compute_folds() const {
+inline std::vector<ReflectionFold::Segment> ReflectionFold::compute_segments(const Plane& first) const {
 
-    std::vector<Xform> folds = {Xform::identity()};
+    std::vector<Segment> segments;
+    Plane start = first;
+    Vector rulings = direction;
+    Point station = first.origin();
+    double before = 0.0;
+    double underside = -1.0;
 
-    for (const Plane& plane : planes)
-        folds.push_back(folds.back() * reflection(plane));
+    for (size_t j = 0; j < folds.size(); j++) {
+        if (folds[j].station <= before)
+            throw std::invalid_argument(fmt::format("Fold {} is not beyond the fold before it", j));
 
-    return folds;
-}
+        // the fold's plane through its station: bisecting the turn for a mirror fold, across the bisector for a reflection
+        const Vector next = turned(rulings, axis, folds[j].angle);
+        const Vector normal = folds[j].reflected ? rulings - next : rulings + next;
 
-inline std::vector<NurbsCurve> ReflectionFold::compute_offset(double side) const {
+        if (normal.magnitude() < 1e-9)
+            throw std::invalid_argument(fmt::format("Fold {} turns by nothing or by a half turn", j));
 
-    // the sheet's top normal at every sample of every curve: the tangent crossed with the direction
-    std::vector<std::vector<Point>> points(profile.size());
-    std::vector<std::vector<Vector>> normals(profile.size());
-
-    for (size_t i = 0; i < profile.size(); i++)
-        for (size_t k = 0; k <= samples; k++) {
-            const double t = profile[i].domain_start() + (profile[i].domain_end() - profile[i].domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-            points[i].push_back(profile[i].point_at(t));
-            normals[i].push_back(profile[i].tangent_at(t).cross(direction).normalized());
-        }
-
-    // every curve moved along its normals, its ends along the mitre of its own and its neighbour's normal
-    std::vector<NurbsCurve> offset;
-
-    for (size_t i = 0; i < profile.size(); i++) {
-        std::vector<Point> moved;
-
-        for (size_t k = 0; k <= samples; k++) {
-            const Vector& own = normals[i][k];
-            const Vector& neighbour = k == 0 && i > 0 ? normals[i - 1].back() : k == samples && i + 1 < profile.size() ? normals[i + 1].front() : own;
-            const Vector mitre = (own + neighbour) * (1.0 / (1.0 + own.dot(neighbour)));
-            moved.push_back(points[i][k] + mitre * (side * thickness));
-        }
-
-        offset.push_back(NurbsCurve::create_interpolated(moved, CurveNurbsKnotStyle::Uniform));
+        station = station + rulings * (folds[j].station - before);
+        const Plane plane = Plane::from_point_normal(station, normal);
+        segments.push_back({rulings, start, plane, underside});
+        start = plane;
+        rulings = next;
+        before = folds[j].station;
+        underside *= folds[j].reflected ? -1.0 : 1.0;
     }
 
-    return offset;
+    // the last segment to the symmetry plane, or to the sheet's end across its rulings
+    if (symmetry)
+        segments.push_back({rulings, start, *symmetry, underside});
+    else
+        segments.push_back({rulings, start, Plane::from_point_normal(station + rulings * (length - before), rulings), underside});
+
+    return segments;
 }
 
-inline NurbsCurve ReflectionFold::compute_mitre(const NurbsCurve& curve, const NurbsCurve& offset, const Plane& cut) const {
+inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_creases(const std::vector<Segment>& segments) const {
 
-    const Xform to_cut = Xform::project_to_plane_by_axis(cut, direction);
-    const Vector normal = cut.z_axis().normalized();
+    std::vector<std::vector<NurbsCurve>> creases = {profile};
+
+    for (size_t j = 0; j < segments.size(); j++) {
+        const Segment& segment = segments[j];
+
+        if (std::abs(segment.end.z_axis().dot(segment.direction)) < 1e-9)
+            throw std::invalid_argument(fmt::format("The plane ending segment {} runs along its rulings", j));
+
+        const Xform to_end = Xform::project_to_plane_by_axis(segment.end, segment.direction);
+        std::vector<NurbsCurve> next;
+
+        for (size_t i = 0; i < profile.size(); i++) {
+            next.push_back(creases[j][i].transformed(to_end));
+
+            // every ruling runs forward from this crease to the next, and a reflection's plane never stands on the sheet
+            for (size_t k = 0; k <= samples; k++) {
+                const double t = parameter(creases[j][i], k);
+                const Point from = creases[j][i].point_at(t);
+                const Point to = next.back().point_at(t);
+                const double along = (to - from).dot(segment.direction);
+
+                if (along < -1e-6)
+                    throw std::invalid_argument(fmt::format("The plane ending segment {} lies behind its start at ruling {} of curve {}", j, k, i));
+
+                const Vector sheet_normal = creases[j][i].tangent_at(t).cross(segment.direction).normalized();
+
+                if (j + 1 < segments.size() && folds[j].reflected && std::abs(segment.end.z_axis().normalized().dot(sheet_normal)) < 0.05)
+                    throw std::invalid_argument(fmt::format("Fold {} stands on the sheet at ruling {} of curve {}, where its reflection would be flat", j, k, i));
+            }
+        }
+
+        creases.push_back(next);
+    }
+
+    return creases;
+}
+
+inline std::vector<std::vector<NurbsCurve>> ReflectionFold::compute_offsets(const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases) const {
+
+    std::vector<std::vector<NurbsCurve>> offsets;
+
+    for (size_t j = 0; j < segments.size(); j++) {
+        // the sheet's normal at every sample of every curve of the segment's first crease: the tangent crossed with the rulings
+        std::vector<std::vector<Point>> points(profile.size());
+        std::vector<std::vector<Vector>> normals(profile.size());
+
+        for (size_t i = 0; i < profile.size(); i++)
+            for (size_t k = 0; k <= samples; k++) {
+                const double t = parameter(creases[j][i], k);
+                points[i].push_back(creases[j][i].point_at(t));
+                normals[i].push_back(creases[j][i].tangent_at(t).cross(segments[j].direction).normalized());
+            }
+
+        // every curve moved along its normals to the underside, its ends along the mitre of its own and its neighbour's normal
+        std::vector<NurbsCurve> offset;
+
+        for (size_t i = 0; i < profile.size(); i++) {
+            std::vector<Point> moved;
+
+            for (size_t k = 0; k <= samples; k++) {
+                const Vector& own = normals[i][k];
+                const Vector& neighbour = k == 0 && i > 0 ? normals[i - 1].back() : k == samples && i + 1 < profile.size() ? normals[i + 1].front() : own;
+                const Vector mitre = (own + neighbour) * (1.0 / (1.0 + own.dot(neighbour)));
+                moved.push_back(points[i][k] + mitre * (segments[j].underside * thickness));
+            }
+
+            offset.push_back(NurbsCurve::create_interpolated(moved, CurveNurbsKnotStyle::Uniform));
+        }
+
+        offsets.push_back(offset);
+    }
+
+    return offsets;
+}
+
+inline NurbsCurve ReflectionFold::compute_inner(const NurbsCurve& crease, const NurbsCurve& offset, const Vector& rulings, const Plane& plane, bool reflected) const {
+
+    // a mirror fold, a sheet end or the symmetry plane: the offset's rulings cut by the plane itself
+    if (!reflected)
+        return offset.transformed(Xform::project_to_plane_by_axis(plane, rulings));
+
+    // a reflection: every offset ruling cut by the bisector surface, the surface through the crease perpendicular to the plane
+    const Vector normal = plane.z_axis().normalized();
     std::vector<Point> points;
 
     for (size_t k = 0; k <= samples; k++) {
-        // the crease point on this ruling and the crease's tangent there, the bisector surface's plane through them
-        const double t = curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-        const double s = offset.domain_start() + (offset.domain_end() - offset.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-        const Point crease = to_cut.transform_point(curve.point_at(t));
-        const Vector along = to_cut.transform_vector(curve.tangent_at(t));
-        const Vector bisector = along.cross(normal);
-        const double speed = bisector.dot(direction);
+        const Point on_crease = crease.point_at(parameter(crease, k));
+        const Vector bisector = crease.tangent_at(parameter(crease, k)).cross(normal);
+        const double speed = bisector.dot(rulings);
 
         if (bisector.magnitude() < 1e-12 || std::abs(speed) < 1e-9 * bisector.magnitude())
             throw std::invalid_argument(fmt::format("The fold's bisector surface runs along the rulings at ruling {}", k));
 
-        // the offset's ruling where it crosses the bisector surface
-        const Point start = offset.point_at(s);
-        points.push_back(start + direction * (bisector.dot(crease - start) / speed));
+        const Point start = offset.point_at(parameter(offset, k));
+        points.push_back(start + rulings * (bisector.dot(on_crease - start) / speed));
     }
 
     return NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform);
 }
 
-inline void ReflectionFold::add_sheet(const std::vector<Plane>& cuts) {
+inline void ReflectionFold::add_creases(const std::vector<std::vector<NurbsCurve>>& creases) {
 
-    const std::shared_ptr<TreeNode> sheet = add_group("sheet");
+    const std::shared_ptr<TreeNode> group = add_group("creases");
 
-    // the outline: the profile at the start, the last ruling, the profile at the end back and the first ruling
-    std::vector<Point> start;
-    std::vector<Point> end;
-    const Xform to_end = Xform::project_to_plane_by_axis(cuts.back(), direction);
-
-    for (const NurbsCurve& curve : profile)
-        for (size_t k = 0; k <= samples; k++) {
-            const double t = curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-            start.push_back(curve.point_at(t));
-            end.push_back(to_end.transform_point(start.back()));
-        }
-
-    std::vector<Point> outline = start;
-    outline.insert(outline.end(), end.rbegin(), end.rend());
-    outline.push_back(start.front());
-    Polyline polyline(outline);
-    polyline.name = "sheet_outline";
-    add_polyline(polyline, sheet);
-
-    // every crease where its mirror plane cuts the unfolded sheet
-    for (size_t j = 1; j + 1 < cuts.size(); j++) {
-        const Xform to_plane = Xform::project_to_plane_by_axis(cuts[j], direction);
+    for (size_t j = 1; j + 1 < creases.size(); j++) {
         std::vector<Point> crease;
 
-        for (const Point& point : start)
-            crease.push_back(to_plane.transform_point(point));
-
-        Polyline drawn(crease);
-        drawn.name = fmt::format("sheet_crease_{}", j);
-        add_polyline(drawn, sheet);
-    }
-}
-
-inline void ReflectionFold::add_creases(const std::vector<Plane>& cuts, const std::vector<Xform>& folds) {
-
-    const std::shared_ptr<TreeNode> creases = add_group("creases");
-
-    for (size_t j = 1; j + 1 < cuts.size(); j++) {
-        const Xform to_crease = folds[j] * Xform::project_to_plane_by_axis(cuts[j], direction);
-        std::vector<Point> crease;
-
-        for (const NurbsCurve& curve : profile)
-            for (size_t k = 0; k <= samples; k++) {
-                const double t = curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-                crease.push_back(to_crease.transform_point(curve.point_at(t)));
-            }
+        for (const NurbsCurve& curve : creases[j])
+            for (size_t k = 0; k <= samples; k++)
+                crease.push_back(curve.point_at(parameter(curve, k)));
 
         Polyline drawn(crease);
         drawn.name = fmt::format("crease_{}", j);
-        add_polyline(drawn, creases);
+        add_polyline(drawn, group);
     }
 }
 
-inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<Plane>& cuts, const std::vector<Xform>& folds, const std::vector<NurbsCurve>& under, const std::vector<NurbsCurve>& over) {
+inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, const std::vector<std::vector<NurbsCurve>>& offsets) {
 
     const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
     std::vector<Development> developments;
 
-    for (size_t j = 0; j + 1 < cuts.size(); j++) {
-        // this fold's inner side on the unfolded sheet, the other one than its neighbours'
-        const std::vector<NurbsCurve>& mine = j % 2 == 0 ? under : over;
-        const Xform to_start = Xform::project_to_plane_by_axis(cuts[j], direction);
-        const Xform to_end = Xform::project_to_plane_by_axis(cuts[j + 1], direction);
+    for (size_t j = 0; j < segments.size(); j++) {
+        const bool reflected_start = j > 0 && folds[j - 1].reflected;
+        const bool reflected_end = j < folds.size() && folds[j].reflected;
 
         for (size_t i = 0; i < profile.size(); i++) {
-            // the outer meridians: the profile curve on the two cuts, exact; the inner: the offset cut flush at the sheet's ends, by the fold's bisector at the creases
-            const NurbsCurve outer_a = profile[i].transformed(folds[j] * to_start);
-            const NurbsCurve outer_b = profile[i].transformed(folds[j] * to_end);
-            const NurbsCurve inner_a = j == 0 ? mine[i].transformed(folds[j] * to_start) : compute_mitre(profile[i], mine[i], cuts[j]).transformed(folds[j]);
-            const NurbsCurve inner_b = j + 2 == cuts.size() ? mine[i].transformed(folds[j] * to_end) : compute_mitre(profile[i], mine[i], cuts[j + 1]).transformed(folds[j]);
+            // the outer meridians the two creases, exact; the inner the offset cut by the mitre at each
+            const NurbsCurve& outer_a = creases[j][i];
+            const NurbsCurve& outer_b = creases[j + 1][i];
+            const NurbsCurve inner_a = compute_inner(outer_a, offsets[j][i], segments[j].direction, segments[j].start, reflected_start);
+            const NurbsCurve inner_b = compute_inner(outer_b, offsets[j][i], segments[j].direction, segments[j].end, reflected_end);
             add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("lamella_{}_{}", j, i)), lamellas);
 
             // its development, the proof it is cut flat
@@ -391,18 +415,17 @@ inline std::vector<Development> ReflectionFold::add_lamellas(const std::vector<P
     return developments;
 }
 
-inline void ReflectionFold::add_flat(const std::vector<Development>& developments, const std::vector<Plane>& cuts, double beside) {
+inline void ReflectionFold::add_flat(const std::vector<Development>& developments, const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, double beside) {
 
     const std::shared_ptr<TreeNode> flat = add_group("flat");
 
     // the pattern starts beside the model's largest x; its x runs along the profile's development, its y along the rulings
     double largest = -std::numeric_limits<double>::infinity();
 
-    for (const std::shared_ptr<Element>& element : *objects.elements)
-        if (const std::shared_ptr<PlateCurved> lamella = std::dynamic_pointer_cast<PlateCurved>(element))
-            for (const NurbsCurve* curve : {&lamella->outer_a, &lamella->outer_b})
-                for (size_t k = 0; k <= samples; k++)
-                    largest = std::max(largest, curve->point_at(curve->domain_start() + (curve->domain_end() - curve->domain_start()) * static_cast<double>(k) / static_cast<double>(samples))[0]);
+    for (const std::vector<NurbsCurve>& crease : creases)
+        for (const NurbsCurve& curve : crease)
+            for (size_t k = 0; k <= samples; k++)
+                largest = std::max(largest, curve.point_at(parameter(curve, k))[0]);
 
     // every profile curve's start along the development: the lengths of the curves before it across the rulings
     const Xform across = Xform::project_to_plane_by_axis(Plane::from_point_normal(Point(0.0, 0.0, 0.0), direction), direction);
@@ -411,53 +434,117 @@ inline void ReflectionFold::add_flat(const std::vector<Development>& development
     for (const NurbsCurve& curve : profile)
         starts.push_back(starts.back() + curve.transformed(across).length());
 
-    // every lamella's outline moved to its place: its row's start along x, its crease's distance along the ruling from the sheet's start along y
+    // every lamella's outline moved to its place: its row's start along x, the rulings run before its first crease along y
     size_t index = 0;
 
-    for (size_t j = 0; j + 1 < cuts.size(); j++) {
-        const Xform to_cut = Xform::project_to_plane_by_axis(cuts[j], direction);
-        const Xform to_sheet = Xform::project_to_plane_by_axis(cuts.front(), direction);
-
+    for (size_t j = 0; j < segments.size(); j++)
         for (size_t i = 0; i < profile.size(); i++, index++) {
-            const Point first = profile[i].point_at(profile[i].domain_start());
-            const double along = (to_cut.transform_point(first) - to_sheet.transform_point(first)).dot(direction);
+            double along = 0.0;
+
+            for (size_t m = 0; m < j; m++)
+                along += (creases[m + 1][i].point_at(creases[m + 1][i].domain_start()) - creases[m][i].point_at(creases[m][i].domain_start())).dot(segments[m].direction);
+
             Polyline outline = developments[index].outline.transformed(Xform::translation(largest + beside + starts[i], along, 0.0));
             outline.name = fmt::format("flat_{}_{}", j, i);
             add_polyline(outline, flat);
         }
-    }
 }
 
-inline void ReflectionFold::add_mirrored(const std::vector<Plane>& cuts, const std::vector<Xform>& folds) {
+inline void ReflectionFold::add_posts() {
+
+    if (posts.empty())
+        return;
+
+    const std::shared_ptr<TreeNode> group = add_group("posts");
+    const Vector vertical(0.0, 0.0, 1.0);
+    const Plane ground = Plane::from_point_normal(Point(0.0, 0.0, 0.0), vertical);
+
+    // where the vertical line through a point on the ground meets the sheet's first segment: the plane through the line along the rulings cuts the profile at the ruling the line crosses
+    const auto roof = [&](const Point& foot) {
+        const Plane sweep = Plane::from_point_normal(foot, vertical.cross(direction));
+        const Point top = foot + vertical * (10.0 * length);
+        const Line line(foot[0], foot[1], foot[2], top[0], top[1], top[2]);
+        std::optional<Point> lowest;
+
+        for (const NurbsCurve& curve : profile)
+            for (const double parameter : Intersection::curve_plane(curve, sweep, 1e-7)) {
+                const Point on = curve.point_at(parameter);
+                const Point far = on + direction * length;
+                const Line ruling(on[0], on[1], on[2], far[0], far[1], far[2]);
+                Point met;
+
+                if (Intersection::line_line(line, ruling, met, 1e-3) && met[2] > foot[2] && (!lowest || met[2] < (*lowest)[2]))
+                    lowest = met;
+            }
+
+        if (!lowest)
+            throw std::invalid_argument(fmt::format("No sheet above the post at {}", foot.str()));
+
+        return *lowest;
+    };
+
+    for (size_t k = 0; k < posts.size(); k++)
+        for (size_t half = 0; half < 2; half++) {
+            // the half circle's generatrices from the ground up to the sheet, outer and inner, at the same angles
+            std::array<std::vector<Point>, 4> curves;
+
+            for (size_t j = 0; j <= samples; j++) {
+                const double angle = Tolerance::PI * (static_cast<double>(half) + static_cast<double>(j) / static_cast<double>(samples)) + 0.5 * Tolerance::PI;
+
+                for (size_t shell = 0; shell < 2; shell++) {
+                    const double radius = posts[k].radius - thickness * static_cast<double>(shell);
+                    const Point foot = ground.project(posts[k].foot) + Vector(radius * std::cos(angle), radius * std::sin(angle), 0.0);
+                    curves[2 * shell].push_back(foot);
+                    curves[2 * shell + 1].push_back(roof(foot));
+                }
+            }
+
+            add(std::make_shared<PlateCurved>(
+                    NurbsCurve::create_interpolated(curves[0], CurveNurbsKnotStyle::Uniform),
+                    NurbsCurve::create_interpolated(curves[1], CurveNurbsKnotStyle::Uniform),
+                    NurbsCurve::create_interpolated(curves[2], CurveNurbsKnotStyle::Uniform),
+                    NurbsCurve::create_interpolated(curves[3], CurveNurbsKnotStyle::Uniform),
+                    fmt::format("post_{}_{}", k, half)
+                ),
+                group);
+        }
+}
+
+inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases) {
 
     const Xform mirror = reflection(*symmetry);
-    const size_t folded = cuts.size() - 1;
+    const size_t folded = creases.size() - 1;
 
     // the lamellas: the mirror image of every plate, the pair at the symmetry plane sharing its side face there
     const std::shared_ptr<TreeNode> lamellas = group_named("lamellas");
     const std::vector<std::shared_ptr<PlateCurved>> plates = get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates) {
-        const size_t fold = std::stoul(plate->name.substr(8, plate->name.find('_', 8) - 8));
+        const size_t segment = std::stoul(plate->name.substr(8, plate->name.find('_', 8) - 8));
         const std::string row = plate->name.substr(plate->name.find('_', 8) + 1);
-        add(std::make_shared<PlateCurved>(plate->outer_a.transformed(mirror), plate->outer_b.transformed(mirror), plate->inner_a.transformed(mirror), plate->inner_b.transformed(mirror), fmt::format("lamella_{}_{}", 2 * folded - 1 - fold, row)), lamellas);
+        add(std::make_shared<PlateCurved>(plate->outer_a.transformed(mirror), plate->outer_b.transformed(mirror), plate->inner_a.transformed(mirror), plate->inner_b.transformed(mirror), fmt::format("lamella_{}_{}", 2 * folded - 1 - segment, row)), lamellas);
+    }
+
+    // the posts: the mirror image of every half shell, post_<posts + k>_<half>
+    const std::vector<std::shared_ptr<PlateCurved>> shells = get_elements_placed<PlateCurved>("post");
+
+    for (const std::shared_ptr<PlateCurved>& shell : shells) {
+        const size_t post = std::stoul(shell->name.substr(5, shell->name.find('_', 5) - 5));
+        const std::string half = shell->name.substr(shell->name.find('_', 5) + 1);
+        add(std::make_shared<PlateCurved>(shell->outer_a.transformed(mirror), shell->outer_b.transformed(mirror), shell->inner_a.transformed(mirror), shell->inner_b.transformed(mirror), fmt::format("post_{}_{}", posts.size() + post, half)), group_named("posts"));
     }
 
     // the creases: the symmetry plane's own section of the sheet, then every crease mirrored
-    const std::shared_ptr<TreeNode> creases = group_named("creases");
-    const Xform to_end = folds.back() * Xform::project_to_plane_by_axis(cuts.back(), direction);
+    const std::shared_ptr<TreeNode> group = group_named("creases");
     std::vector<Point> ridge;
 
-    for (const NurbsCurve& curve : profile)
-        for (size_t k = 0; k <= samples; k++) {
-            const double t = curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples);
-            ridge.push_back(to_end.transform_point(curve.point_at(t)));
-        }
+    for (const NurbsCurve& curve : creases.back())
+        for (size_t k = 0; k <= samples; k++)
+            ridge.push_back(curve.point_at(parameter(curve, k)));
 
     Polyline drawn(ridge);
     drawn.name = fmt::format("crease_{}", folded);
-    add_polyline(drawn, creases);
-
+    add_polyline(drawn, group);
     std::vector<Polyline> folded_creases;
 
     for (const std::shared_ptr<Polyline>& polyline : *objects.polylines)
@@ -467,10 +554,10 @@ inline void ReflectionFold::add_mirrored(const std::vector<Plane>& cuts, const s
     for (const Polyline& crease : folded_creases) {
         Polyline mirrored = crease.transformed(mirror);
         mirrored.name = fmt::format("crease_{}", 2 * folded - std::stoul(crease.name.substr(7)));
-        add_polyline(mirrored, creases);
+        add_polyline(mirrored, group);
     }
 
-    // the flat pattern: the mirrored half's developments beyond the first's, turned over so the two halves face each other along the symmetry plane's section
+    // the flat pattern: the mirrored half's developments beyond the first's, turned over so the two halves meet along the symmetry plane's section
     const std::shared_ptr<TreeNode> flat = group_named("flat");
     std::vector<Polyline> outlines;
     double top = -std::numeric_limits<double>::infinity();
@@ -486,9 +573,9 @@ inline void ReflectionFold::add_mirrored(const std::vector<Plane>& cuts, const s
     const Xform turn_over = Xform::scale_non_uniform(Point(0.0, top + 0.05 * length, 0.0), 1.0, -1.0, 1.0);
 
     for (const Polyline& outline : outlines) {
-        const size_t fold = std::stoul(outline.name.substr(5, outline.name.find('_', 5) - 5));
+        const size_t segment = std::stoul(outline.name.substr(5, outline.name.find('_', 5) - 5));
         Polyline mirrored = outline.transformed(turn_over);
-        mirrored.name = fmt::format("flat_{}_{}", 2 * folded - 1 - fold, outline.name.substr(outline.name.find('_', 5) + 1));
+        mirrored.name = fmt::format("flat_{}_{}", 2 * folded - 1 - segment, outline.name.substr(outline.name.find('_', 5) + 1));
         add_polyline(mirrored, flat);
     }
 }
@@ -516,28 +603,6 @@ inline Vector ReflectionFold::turned(const Vector& vector, const Vector& axis, d
     const Vector k = axis.normalized();
 
     return vector * std::cos(angle) + k.cross(vector) * std::sin(angle) + k * (k.dot(vector) * (1.0 - std::cos(angle)));
-}
-
-inline std::vector<Plane> ReflectionFold::turns(const Point& origin, const Vector& direction, const Vector& axis, const std::vector<double>& stations, const std::vector<double>& angles) {
-
-    if (stations.size() != angles.size())
-        throw std::invalid_argument("Every station needs its angle");
-
-    // a reflection reverses the sense of every turn after it, so the angle on the unfolded sheet alternates its sign
-    const Vector d = direction.normalized();
-    std::vector<Plane> planes;
-
-    for (size_t j = 0; j < stations.size(); j++) {
-        const double angle = (j % 2 == 0 ? 1.0 : -1.0) * angles[j];
-        const Vector normal = d - turned(d, axis, angle);
-
-        if (normal.magnitude() < 1e-9)
-            throw std::invalid_argument(fmt::format("Turn {} is no turn", j));
-
-        planes.push_back(Plane::from_point_normal(origin + d * stations[j], normal));
-    }
-
-    return planes;
 }
 
 inline std::vector<NurbsCurve> ReflectionFold::arcs(const Point& start, const Vector& across, const Vector& up, size_t count, double width, double rise) {
