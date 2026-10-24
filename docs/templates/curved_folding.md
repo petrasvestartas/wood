@@ -10,6 +10,8 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | Mitani and Igarashi, *Interactive Design of Planar Curved Folding by Reflection*, Pacific Graphics 2011; Huffman 1976; Buri, Stotz and Weinand, *Curved Folded Plate Timber Structures*, IABSE-IASS 2011; Engel, *Structure Systems* pp. 242-244, reflections and mirror folds | `templates_curved_folding_{2_reflection_fold,3_curved_folded_plate,13_two_hinged_frame,...,18_cantilever}` |
 | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | Engel pp. 238-241, structure systems through interpenetration of cylindrical surfaces and their composition over a square grid | `templates_curved_folding_{4_groin_vault,...,12_cross_vault,19_vault_field}` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | Scheder-Bieschin, Van Mele and Block, *Curved-Crease Flat-Foldable Bending-Active Plate Structures*, DMSB 2023; Tachi, *Composite Rigid-Foldable Curved Origami Structure*, Transformables 2013; Shimoda, Tachi and Sato 2020, the axis shift | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding}` |
+| [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | Tachi 2013; Scheder-Bieschin, Van Mele and Block 2023, Figs. 2-3: the four ways two strips join on one curved crease | `templates_curved_folding_22_crease_quadrants` |
+| [`InclinedCreaseUnfolding`](#inclined_crease_unfolding) | `curved_folding/inclined_crease_unfolding.h` | Scheder-Bieschin, Van Mele and Block 2023, Figs. 10-12: synclastic and anticlastic vaults, articulated vaults, corrugated dome and funnel | `templates_curved_folding_{23_synclastic_unfolding,...,30_corrugated_funnel}` |
 | [`Development`](#development) | `curved_folding/development.h` | the unfolding of a ruled strip, the check that every lamella is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, and the development distortion and ruling twist of the worst one; on every model below both are at the rounding floor (1e-14 and 1e-8), the lamellas being exact cylinders.
@@ -477,8 +479,175 @@ CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0)
 
 </details>
 
-## Not built {#curved_folding_not_built}
+## Four quadrants of a crease {#crease_quadrants}
 
-The paper's inclined crease planes (Figs. 10-12: synclastic and anticlastic vaults, the corrugated dome and funnel from planes fanned around an axis) are not built: the planes no longer stay parallel while the stack opens, the rulings must readjust by bending, and the axis shift no longer closes the stack.
+`CreaseQuadrants` (`curved_folding/crease_quadrants.h`, Tachi 2013; Scheder-Bieschin, Van Mele and Block 2023, Figs. 2-3): a developable through a planar curved crease has its rulings r on one side of the crease plane and -r on the other, and their mirror images Mr and -Mr. Two strips joined on the crease take one ruling each, which gives the four ways a curved crease can join two plates: folded from one sheet or unfolded from two mirror sheets.
+
+| quadrant | rulings | kind | at the crease |
+| --- | --- | --- | --- |
+| Q1 | r, -Mr | folding: one sheet, both strips in front of the plane | convex for one strip, concave for the other; sector angles summing to 360, developable |
+| Q2 | r, Mr | unfolding: two mirror sheets | convex for both: synclastic, sector angles summing to less than 360 |
+| Q3 | Mr, -r | folding the other way, both strips behind the plane | as Q1 |
+| Q4 | -r, -Mr | unfolding | concave for both: anticlastic, sector angles summing to more than 360 |
+
+Every unfolding of this page alternates Q2 and Q4 creases. A folding is mitred on the plane through the crease square to it, an unfolding on the crease plane.
+
+### Q1 to Q4 on one arc {#crease_quadrants_example}
+
+An arc 4 m wide and 1.5 m high, strips 1200 mm wide and 40 mm thick, the rulings 40 degrees off the crease plane; from the left Q1, Q2, Q3, Q4 (example `templates_curved_folding_22_crease_quadrants`).
+
+![q1 to q4 on one arc](templates/templates_curved_folding_22_crease_quadrants_all.webp)
+
+```cpp
+CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_22_crease_quadrants.cpp</summary>
+
+\include{lineno} templates_curved_folding_22_crease_quadrants.cpp
+
+</details>
+
+## Curved-crease unfolding on inclined planes {#inclined_crease_unfolding}
+
+`InclinedCreaseUnfolding` (`curved_folding/inclined_crease_unfolding.h`, Scheder-Bieschin, Van Mele and Block 2023, Figs. 10-12): the open state of the unfolding with crease planes that are no longer parallel. The given crease lies on one of the planes; the plate after it is the strip of rulings leaving it square to it at the opening, toward its concave side, cut by the next plane, the plate before it its mirror image, and every further plate the mirror image of its neighbour in their shared crease plane. Every crease stays planar and every plate a developable cut from a flat band; the plates are mitred on the crease planes. Only the open state is drawn: with inclined planes the stack closes only by bending its rulings.
+
+| factory | planes | figure |
+| --- | --- | --- |
+| `leaning(origin, along, axis, count, spacing, lean)` | standing on the floor `spacing` apart, the i-th from the middle turned by i `lean` about the span: drawn in at the apex (synclastic) or spread (anticlastic) | 10b, 10c |
+| `zigzag(origin, along, axis, count, spacing, tilt)` | `spacing` apart, every second one turned by `tilt` and `-tilt` in turn about `axis` through its point, so the mirror images' turns cancel and the vault runs straight: about the span at the apex, the floor or half height (Fig. 11a, b, c), about a vertical axis to the sides (Fig. 12a) | 11, 12a |
+| `fan(origin, axis, first, count, angle)` | through one axis, `angle` apart: around a vertical axis a dome or a funnel | 12b, 12c |
+
+Two mirrors compose to a turn about the line where their planes meet. For planes that lean about the span that line runs high above or deep below the floor, so a synclastic or anticlastic vault built only by reflection lifts its supports toward its ends (`drift()`: 276 mm at the ends of 23 and 24, the paper's plans show the support lines bend too). Planes turned in pairs that cancel keep the supports within 30 to 50 mm, and vertical planes keep them on the floor exactly.
+
+### Synclastic vault {#synclastic_unfolding}
+
+The semicircle 9 m wide and 4.5 m high, seventeen planes 500 mm apart on the floor, each leaning 1 degree more toward the middle: the apex drawn in, the end arches leaning inward (Fig. 10b) (example `templates_curved_folding_23_synclastic_unfolding`).
+
+![synclastic vault](templates/templates_curved_folding_23_synclastic_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 1.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_23_synclastic_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_23_synclastic_unfolding.cpp
+
+</details>
+
+### Anticlastic vault {#anticlastic_unfolding}
+
+The same planes leaning 1 degree more away from the middle: the apex spread, the end arches leaning out, a saddle (Fig. 10c) (example `templates_curved_folding_24_anticlastic_unfolding`).
+
+![anticlastic vault](templates/templates_curved_folding_24_anticlastic_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, -1.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_24_anticlastic_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_24_anticlastic_unfolding.cpp
+
+</details>
+
+### Inclined about the span at the apex {#apex_level_unfolding}
+
+Every second plane turned 3 degrees, alternately each way, about a line along the span at the apex: the apex spacing constant, the supports alternately close and far, the ridges and valleys articulated at the feet (Fig. 11a) (example `templates_curved_folding_25_apex_level_unfolding`).
+
+![inclined about the span at the apex](templates/templates_curved_folding_25_apex_level_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 3.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_25_apex_level_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_25_apex_level_unfolding.cpp
+
+</details>
+
+### Inclined about the span at the floor {#support_level_unfolding}
+
+The same turned about a line on the floor: the supports keep their spacing and the apex alternates (Fig. 11b) (example `templates_curved_folding_26_support_level_unfolding`).
+
+![inclined about the span at the floor](templates/templates_curved_folding_26_support_level_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 3.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_26_support_level_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_26_support_level_unfolding.cpp
+
+</details>
+
+### Inclined about the span at half height {#alternating_unfolding}
+
+Every second plane turned 4 degrees about a line at half height: plates wide at the apex and narrow at the supports and the other way round, articulated alternately at both (Fig. 11c) (example `templates_curved_folding_27_alternating_unfolding`).
+
+![inclined about the span at half height](templates/templates_curved_folding_27_alternating_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 4.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_27_alternating_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_27_alternating_unfolding.cpp
+
+</details>
+
+### Inclined about a vertical axis {#sideways_unfolding}
+
+Every second plane turned 4 degrees about a vertical axis through the crown: the plane distance shrinks toward one foot and grows toward the other, the vault articulated to its sides (Fig. 12a) (example `templates_curved_folding_28_sideways_unfolding`).
+
+![inclined about a vertical axis](templates/templates_curved_folding_28_sideways_unfolding_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 16, 500.0, 4.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_28_sideways_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_28_sideways_unfolding.cpp
+
+</details>
+
+### Corrugated dome {#corrugated_dome}
+
+A meridian arc of a 6 m sphere up to 80 degrees, 25 meridian planes 15 degrees apart, the rulings at 60 degrees toward the centre: ridges the arc turned by 30 degrees, valleys its mirror images, a star at the base and an oculus of 2.1 m (Fig. 12b) (example `templates_curved_folding_29_corrugated_dome`).
+
+![corrugated dome](templates/templates_curved_folding_29_corrugated_dome_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(6000.0, 0.0, 0.0), Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)), Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))), 60.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 24, 15.0 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_29_corrugated_dome.cpp</summary>
+
+\include{lineno} templates_curved_folding_29_corrugated_dome.cpp
+
+</details>
+
+### Corrugated funnel {#corrugated_funnel}
+
+A quarter circle of 5 m radius flaring from a stem 0.8 m off the axis to a rim 5.8 m out and 5 m up, 33 meridian planes 11.25 degrees apart, the rulings at 75 degrees: a funnel column with a star at the rim (Fig. 12c) (example `templates_curved_folding_30_corrugated_funnel`).
+
+![corrugated funnel](templates/templates_curved_folding_30_corrugated_funnel_plates.webp)
+
+```cpp
+InclinedCreaseUnfolding unfolding(Primitives::arc(Point(800.0, 0.0, 0.0), Point(5800.0 - 5000.0 * std::cos(0.25 * Tolerance::PI), 0.0, 5000.0 * std::sin(0.25 * Tolerance::PI)), Point(5800.0, 0.0, 5000.0)), 75.0 * Tolerance::TO_RADIANS, InclinedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 32, 11.25 * Tolerance::TO_RADIANS), 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_30_corrugated_funnel.cpp</summary>
+
+\include{lineno} templates_curved_folding_30_corrugated_funnel.cpp
+
+</details>
+
+## Not built {#curved_folding_not_built}
 
 Engel's segments with tilted generatrices over a corner (the diagonal vault's generatrices sloping or rising) break the mirror symmetry of the midline planes, so their creases are not planar and they are not made. Huffman's cone reflected in planes across its axis (Albers' concentric circles), a corrugated round roof of conical lamellas, is the one developable base besides the cylinder the reflection would take exactly, and is left for a cone variant of the fold.

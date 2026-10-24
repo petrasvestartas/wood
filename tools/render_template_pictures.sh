@@ -101,6 +101,15 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" templates_curved_folding_20_curved_crease_unfolding all
     "${RENDER[@]}" --view front --name elevation templates_curved_folding_20_curved_crease_unfolding plates
     "${RENDER[@]}" templates_curved_folding_21_catenary_unfolding all
+    "${RENDER[@]}" templates_curved_folding_22_crease_quadrants all
+    "${RENDER[@]}" templates_curved_folding_23_synclastic_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_24_anticlastic_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_25_apex_level_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_26_support_level_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_27_alternating_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_28_sideways_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_29_corrugated_dome plates
+    "${RENDER[@]}" templates_curved_folding_30_corrugated_funnel plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
