@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Folded triangular surfaces over a square plan (Engel, p. 232): a triangle at every corner between the edges' midpoints, and four
-/// triangles from the midpoints to the raised centre.
+/// Folded triangular surfaces over a square plan (Engel, p. 232): a vertical gable on every edge, a triangle at every corner between
+/// the gables' peaks, and four triangles from the peaks to the raised centre.
 int main() {
 
     TriangleFold fold;
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("triangle square: {} plates\n", plates.size());
+    std::cout << fmt::format("triangle square: {}\n", plate_report(plates, fold.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 20 of the folding templates: a structure system of folded triangular surfaces over a square plan after Engel, Structure Systems, Folded plate structures (p. 232). A square on a 12 m circumradius; the lines joining its edges' midpoints cut a triangle off every corner, and the cross from the centre splits the square of the midpoints into four more: the corners on the supports at 0, the midpoints at 4000, the centre at 7000; eight planar triangles 120 mm thick, their corners cut back only where needed. Each step is a group: mesh, folds, plates.
+Step 20 of the folding templates: a structure system of folded triangular surfaces over a square plan after Engel, Structure Systems, Folded plate structures (p. 232). A square on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 5000 high, the lines joining the middles cut a triangle off every corner, folding down to the corner on the ground, and the cross from the centre at 6500 splits the square of the middles into four more: twelve planar triangles 120 mm thick, their corners cut back only where needed and their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

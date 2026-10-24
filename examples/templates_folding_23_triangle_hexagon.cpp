@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Folded triangular surfaces over a hexagonal plan (Engel, p. 232): a triangle at every corner, six from the midpoints to the raised
-/// centre.
+/// Folded triangular surfaces over a hexagonal plan (Engel, p. 232): a vertical gable on every edge, a triangle at every corner, six
+/// from the gables' peaks to the raised centre.
 int main() {
 
-    TriangleFold fold(6, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_hexagon");
+    TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("triangle hexagon: {} plates\n", plates.size());
+    std::cout << fmt::format("triangle hexagon: {}\n", plate_report(plates, fold.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular hexagon on a 12 m circumradius; a triangle at every corner between its edges' midpoints, and the hexagon of the midpoints split into six triangles to the centre: corners at 0, midpoints at 4000, centre at 7000; twelve planar triangles 120 mm thick. Each step is a group: mesh, folds, plates.
+Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular hexagon on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 4200 high, a triangle at every corner folds down from two peaks to the corner, and the hexagon of the middles is split into six triangles to the centre at 5300: eighteen planar triangles 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

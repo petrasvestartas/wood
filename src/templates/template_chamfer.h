@@ -362,3 +362,33 @@ inline std::vector<std::shared_ptr<Plate>> node_cut_plates(const Mesh& mesh, dou
 
     return plates;
 }
+
+/// One line on the plates as the folding examples print it: their count, the shortest edge of any outline, and either that every one
+/// is thickness thick with both its outlines planar, or the names of those that are not.
+inline std::string plate_report(const std::vector<std::shared_ptr<Plate>>& plates, double thickness) {
+
+    std::string failed;
+    double shortest = std::numeric_limits<double>::infinity();
+
+    for (const std::shared_ptr<Plate>& plate : plates) {
+        bool valid = std::abs(plate->thickness - thickness) < 0.1;
+
+        for (size_t k = 0; k < 2 && k < plate->polylines.size(); k++) {
+            const Polyline& outline = plate->polylines[k];
+            const Plane& plane = outline.get_plane();
+
+            for (size_t i = 0; i + 1 < outline.point_count(); i++) {
+                valid = valid && std::abs((outline[i] - plane.origin()).dot(plane.z_axis())) < 0.1;
+                shortest = std::min(shortest, (outline[i + 1] - outline[i]).magnitude());
+            }
+        }
+
+        if (!valid)
+            failed += (failed.empty() ? "" : ", ") + plate->name;
+    }
+
+    if (failed.empty())
+        return fmt::format("{} plates, every one {} mm thick with planar outlines, shortest edge {:.1f} mm", plates.size(), thickness, shortest);
+
+    return fmt::format("{} plates, shortest edge {:.1f} mm, not {} mm thick or planar: {}", plates.size(), shortest, thickness, failed);
+}

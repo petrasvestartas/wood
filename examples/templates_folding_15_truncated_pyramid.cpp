@@ -1,24 +1,24 @@
 #include "wood_session.h"
-#include "src/templates/folding/polygon_fold.h"
+#include "src/templates/folding/truncated_pyramid.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The doubly folded truncated pyramid, the basic structure form of Engel's variations (p. 233): a square plan folded in rings,
-/// closed by a flat top.
+/// The doubly folded truncated pyramid, the basic structure form of Engel's variations (p. 233): four trapezoids over a square plan
+/// closed by a flat top a third of the plan's size.
 int main() {
 
-    PolygonFold fold(4, 12000.0, {0.0, 1800.0, 900.0, 3000.0}, 0.0, true, 120.0, 0.0, "truncated_pyramid");
+    TruncatedPyramid fold;
     const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("truncated pyramid: {} sides, {} plates\n", fold.sides, plates.size());
+    std::cout << fmt::format("truncated pyramid: {}\n", plate_report(plates, fold.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 15 of the folding templates: the doubly folded truncated pyramid after Engel, Structure Systems, Folded plate structures (p. 233), the basic structure form his variations fold further. A square plan on a 12 m circumradius; four rings at 0, 1800, 900 and 3000, folded in a valley and a ridge, the innermost ring, a quarter of the plan, closed by a flat top: twelve trapezoids and the top, 13 plates 120 mm thick. Each step is a group: rings, mesh, plates.
+Step 15 of the folding templates: the doubly folded truncated pyramid after Engel, Structure Systems, Folded plate structures (p. 233), the basic structure form his variations fold further. An 18 m square on the ground, four trapezoids rising to a flat 6 m square top 6800 high, as his plan and perspective show: four trapezoids and the top, five plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -33,14 +33,13 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_14_pyramid plates
     "${RENDER[@]}" templates_folding_15_truncated_pyramid plates
     "${RENDER[@]}" templates_folding_16_cross_fold plates
-    "${RENDER[@]}" templates_folding_17_cross_fold_divided plates
+    "${RENDER[@]}" templates_folding_17_cross_fold_rising plates
     "${RENDER[@]}" templates_folding_18_cross_fold_sloping plates
     "${RENDER[@]}" templates_folding_19_fold_composition plates
     "${RENDER[@]}" templates_folding_20_triangle_square plates
     "${RENDER[@]}" templates_folding_21_triangle_triangle plates
     "${RENDER[@]}" templates_folding_22_triangle_pentagon plates
     "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
-    "${RENDER[@]}" templates_folding_24_fan_fold plates
     "${RENDER[@]}" templates_folding_25_one_fold plates
     "${RENDER[@]}" templates_folding_26_three_folds plates
     "${RENDER[@]}" templates_folding_27_counter_centre plates
@@ -53,6 +52,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
+    "${RENDER[@]}" templates_folding_38_truncated_pyramid_corner_folds plates
+    "${RENDER[@]}" templates_folding_39_truncated_pyramid_corner_edge_folds plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then

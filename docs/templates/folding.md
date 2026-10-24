@@ -14,9 +14,10 @@ Corners: where three or more plates meet at a node, the bisector planes of the f
 | 222-224 | counter-running folding: the counter profile at the end or in the centre, the centre elevated, the elevated centre deeper; ridge to ridge, ridge to valley, alternate | [Counter-running folding](#counter_fold) |
 | 224 | conical folding: a continuous fold profile with its upper edge cut by sloping planes | [Conical folding](#conical_fold) |
 | 225-227 | linear structure systems of folded surfaces: two- and three-hinged frames, the A-frame, arches | [Folded frames and arches](#folded_frame) |
-| 228, 231, 233 | interpenetrating folded surfaces over a polygon plan, the pyramid, the truncated pyramid and its folded variation | [Folds over a polygon plan](#polygon_fold) |
-| 229-230 | cross-folded surfaces over a square plan, subdivided, rising or sloping, and their composition | [Cross folds](#cross_fold) |
-| 229 | cross-folded surfaces with fans from the corners, ridges rising toward the centre | [Fans from the corners](#fan_fold) |
+| 228 | singly folded surfaces over triangular, square and hexagonal plans | [Singly folded surfaces](#single_fold) |
+| 229 | cross-folded surfaces spanned diagonally: ridges folded upwardly, rising or sloping toward the centre | [Cross-folded surfaces](#diagonal_fold) |
+| 230 | composition of cross-folded squares with a central star | [Composition](#fold_composition) |
+| 231, 233 | the pyramid, the doubly folded truncated pyramid and its three variations | [Pyramids](#truncated_pyramid) |
 | 232 | folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [Folded triangular surfaces](#triangle_fold) |
 | - | a free-form zigzag carried along an arch | [Reflex fold](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [Diamond mesh](#diamond_mesh) |
@@ -341,18 +342,18 @@ FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hin
 
 </details>
 
-## Folds over a polygon plan {#polygon_fold}
+## Singly folded surfaces over a polygon plan {#single_fold}
 
-`PolygonFold(sides, radius, heights, apex, truncated, thickness, edge_lift)` (`folding/polygon_fold.h`) builds one singly folded surface per side of a regular polygon plan of circumradius `radius`, its folds parallel to that side, the surfaces interpenetrating along the lines from the corners to the centre. Every fold is a concentric copy of the plan lifted to one of `heights`, from the edge inwards, so a band between two rings in one sector lies between two parallel edges and is a planar trapezoid, whatever the heights. The centre is an apex `apex` high, the pyramid, or with `truncated` the innermost ring closed by a flat top; `edge_lift` raises the midpoint of every side trapezoid's outer edge, folding it into three triangles (p. 233). Defaults: a square on a 12 m circumradius, rings at 0, 1800, 900, 2700, 1800 and 3600, an apex at 4500, 120 mm.
+`SingleFold` (`folding/single_fold.h`, Engel p. 228): over a regular polygon plan standing on its corners, every sector between two corner-to-centre lines is folded once, on the ridge from its edge middle to the centre, two triangles; the edge middle is raised, so an eave triangle rises from each ground edge to it: leaning out (`overhang` > 0, a star-shaped outline), vertical (a gable) or leaning in. The ridges are level, rising or falling to the centre.
 
 ### Triangular plan, horizontal ridges {#folding_triangle_fold}
 
-Interpenetrating folded surfaces over a triangular plan with horizontal ridges (p. 228): three sectors, six rings alternating valley at 0 and ridge at 1800; 18 plates.
+Three sectors, the ridges level from edge middle to centre at 7 m, the eave triangles leaning 2.9 m out over the corners on the ground, a star-shaped outline; 9 plates (p. 228).
 
-![triangle fold](templates/templates_folding_11_triangle_fold_plates.webp)
+![triangular plan, horizontal ridges](templates/templates_folding_11_triangle_fold_plates.webp)
 
 ```cpp
-PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false, 120.0, 0.0, "triangle_fold");
+SingleFold fold(3, 12000.0, 2900.0, 7000.0, 7000.0, 120.0, "triangle_fold");
 ```
 
 <details><summary>Example code: templates_folding_11_triangle_fold.cpp</summary>
@@ -363,12 +364,12 @@ PolygonFold fold(3, 12000.0, {0.0, 1800.0, 0.0, 1800.0, 0.0, 1800.0}, 0.0, false
 
 ### Square plan, ridges rising toward the centre {#folding_square_fold}
 
-Interpenetrating folded surfaces over a square plan with ridges rising toward the centre (p. 228), the defaults: four sectors meeting along the diagonals, the rings rising to an apex at 4500; 24 plates.
+A vertical gable on every edge to 5.4 m, the ridges rising to the apex at 6.9 m; 12 plates (p. 228).
 
-![square fold](templates/templates_folding_12_square_fold_plates.webp)
+![square plan, ridges rising toward the centre](templates/templates_folding_12_square_fold_plates.webp)
 
 ```cpp
-PolygonFold fold;
+SingleFold fold;
 ```
 
 <details><summary>Example code: templates_folding_12_square_fold.cpp</summary>
@@ -379,12 +380,12 @@ PolygonFold fold;
 
 ### Hexagonal plan, ridges sloping to the centre {#folding_hexagon_fold}
 
-Interpenetrating folded surfaces over a hexagonal plan with ridges sloping to the centre (p. 228): six sectors, the ridges highest at the edge and falling inwards to a centre at 600; 36 plates.
+The eave triangles leaning 2.1 m inward to peaks at 8.3 m, the ridges falling to the centre at 5.2 m; 18 plates (p. 228).
 
-![hexagon fold](templates/templates_folding_13_hexagon_fold_plates.webp)
+![hexagonal plan, ridges sloping to the centre](templates/templates_folding_13_hexagon_fold_plates.webp)
 
 ```cpp
-PolygonFold fold(6, 12000.0, {0.0, 3600.0, 1500.0, 3000.0, 900.0, 2400.0}, 600.0, false, 120.0, 0.0, "hexagon_fold");
+SingleFold fold(6, 12000.0, -2100.0, 8300.0, 5200.0, 120.0, "hexagon_fold");
 ```
 
 <details><summary>Example code: templates_folding_13_hexagon_fold.cpp</summary>
@@ -393,66 +394,18 @@ PolygonFold fold(6, 12000.0, {0.0, 3600.0, 1500.0, 3000.0, 900.0, 2400.0}, 600.0
 
 </details>
 
-### Pyramid {#folding_pyramid}
+## Cross-folded surfaces spanned diagonally {#diagonal_fold}
 
-The pyramidal folded plate (p. 231): four triangles over a square plan on a 9 m circumradius rising to an apex at 6000, each pair of opposite faces stiffening the other pair; 4 plates.
+`DiagonalFold` (`folding/diagonal_fold.h`, Engel p. 229): a square quartered by the cross from its edge middles, the edge middles on the ground; in each quarter the diagonal ridge from the corner to the centre is folded at one point, so a quarter is four triangles and the plan shows chevrons. `DiagonalHeights` sets the corner, the edge middle, the fold point, its position along the diagonal and the centre.
 
-![pyramid](templates/templates_folding_14_pyramid_plates.webp)
+### Ridges folded upwardly {#folding_cross_fold}
 
-```cpp
-PolygonFold fold(4, 9000.0, {0.0}, 6000.0, false, 120.0, 0.0, "pyramid");
-```
+The diagonal ridges folded up at their middles to 6.2 m, the corners and the centre at 3.3 m; 16 plates (p. 229).
 
-<details><summary>Example code: templates_folding_14_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_14_pyramid.cpp
-
-</details>
-
-### Truncated pyramid {#folding_truncated_pyramid}
-
-The doubly folded truncated pyramid, the basic form of Engel's variations (p. 233): four rings at 0, 1800, 900 and 3000, the innermost closed by a flat top; twelve trapezoids and the top, 13 plates.
-
-![truncated pyramid](templates/templates_folding_15_truncated_pyramid_plates.webp)
+![ridges folded upwardly](templates/templates_folding_16_cross_fold_plates.webp)
 
 ```cpp
-PolygonFold fold(4, 12000.0, {0.0, 1800.0, 900.0, 3000.0}, 0.0, true, 120.0, 0.0, "truncated_pyramid");
-```
-
-<details><summary>Example code: templates_folding_15_truncated_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_15_truncated_pyramid.cpp
-
-</details>
-
-### Folded truncated pyramid {#folding_folded_truncated_pyramid}
-
-A variation of the truncated pyramid (p. 233): the top 3000 high, every side trapezoid folded into three triangles from the midpoint of its outer edge raised 1500; twelve triangles and the top, 13 plates.
-
-![folded truncated pyramid](templates/templates_folding_36_folded_truncated_pyramid_plates.webp)
-
-```cpp
-PolygonFold fold(4, 12000.0, {0.0, 3000.0}, 0.0, true, 120.0, 1500.0, "folded_truncated_pyramid");
-```
-
-<details><summary>Example code: templates_folding_36_folded_truncated_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_36_folded_truncated_pyramid.cpp
-
-</details>
-
-## Cross folds {#cross_fold}
-
-`CrossFold(size, divisions, low, high, centre, thickness, columns, rows)` (`folding/cross_fold.h`) folds a square sheet like a waterbomb: straight fold lines from the centre to the four corners, the diagonals, and to the edges' midpoints, the cross, and every half edge between a corner and a midpoint divided into `divisions`, a fold line to every division point. The edge points alternate `low` and `high` from the corners, so the fold lines alternate valley and ridge, and every face between two straight fold lines through the centre is a planar triangle, whatever the heights. The `centre` height sets Engel's ridges rising toward the centre or sloping to it (p. 229); `columns` by `rows` units compose a larger roof (p. 230), their shared edge points welded so neighbouring plates meet mitered. Defaults: an 18 m square, no division, 0 and 3000 at the edge, 4500 at the centre, 120 mm, one unit.
-
-### Waterbomb fold {#folding_cross_fold}
-
-The cross-folded surface over a square plan (p. 229), the defaults: the diagonals valleys ending at 0, the cross ridges ending at 3000, all rising to the centre at 4500; 8 plates.
-
-![cross fold](templates/templates_folding_16_cross_fold_plates.webp)
-
-```cpp
-CrossFold fold;
+DiagonalFold fold;
 ```
 
 <details><summary>Example code: templates_folding_16_cross_fold.cpp</summary>
@@ -461,30 +414,30 @@ CrossFold fold;
 
 </details>
 
-### Subdivided from the corners {#folding_cross_fold_divided}
+### Ridges rising toward the centre {#folding_cross_fold_rising}
 
-The cross fold subdivided from the four corners (p. 229): every half edge divided into three, 24 fold lines alternating valley and ridge from every corner; 24 plates.
+The corners at 3.1 m, the fold point two thirds along at 4.9 m, the apex at 9 m; 16 plates (p. 229).
 
-![cross fold divided](templates/templates_folding_17_cross_fold_divided_plates.webp)
+![ridges rising toward the centre](templates/templates_folding_17_cross_fold_rising_plates.webp)
 
 ```cpp
-CrossFold fold(18000.0, 3, 0.0, 3000.0, 4500.0, 120.0, 1, 1, "cross_fold_divided");
+DiagonalFold fold(18000.0, {3100.0, 0.0, 4900.0, 0.67, 9000.0}, 120.0, "cross_fold_rising");
 ```
 
-<details><summary>Example code: templates_folding_17_cross_fold_divided.cpp</summary>
+<details><summary>Example code: templates_folding_17_cross_fold_rising.cpp</summary>
 
-\include{lineno} templates_folding_17_cross_fold_divided.cpp
+\include{lineno} templates_folding_17_cross_fold_rising.cpp
 
 </details>
 
 ### Ridges sloping toward the centre {#folding_cross_fold_sloping}
 
-The subdivided cross fold with its ridges sloping toward the centre (p. 229): the ridges ending 4500 high at the edge, the valleys at 1500, all falling to the centre at 1500, so the surface dips where the rising version peaks; 24 plates.
+The corners highest at 7 m, the fold point at 4.3 m, the centre at 3.5 m; 16 plates (p. 229).
 
-![cross fold sloping](templates/templates_folding_18_cross_fold_sloping_plates.webp)
+![ridges sloping toward the centre](templates/templates_folding_18_cross_fold_sloping_plates.webp)
 
 ```cpp
-CrossFold fold(18000.0, 3, 1500.0, 4500.0, 1500.0, 120.0, 1, 1, "cross_fold_sloping");
+DiagonalFold fold(18000.0, {7000.0, 0.0, 4300.0, 0.43, 3500.0}, 120.0, "cross_fold_sloping");
 ```
 
 <details><summary>Example code: templates_folding_18_cross_fold_sloping.cpp</summary>
@@ -493,14 +446,18 @@ CrossFold fold(18000.0, 3, 1500.0, 4500.0, 1500.0, 120.0, 1, 1, "cross_fold_slop
 
 </details>
 
-### Composition over square plans {#folding_fold_composition}
+## Composition of cross-folded squares {#fold_composition}
 
-The composition of surfaces folded crosswise over square plans (p. 230): twelve 6 m waterbomb units in four columns and three rows, 24 by 18 m, sharing their edge points; 96 plates.
+`FoldComposition` (`folding/fold_composition.h`, Engel p. 230): a field of square cells, each folded on its diagonals to a peak, the nodes alternating between the ground and a height as a chessboard, and one block of cells carrying a taller upward-folded star.
 
-![fold composition](templates/templates_folding_19_fold_composition_plates.webp)
+### Composition with a central star {#folding_fold_composition}
+
+Six by four cells of 12 m folded to peaks on a chessboard of ground and 4.6 m nodes, the middle two by two cells carrying one star 15 m high; 96 plates (p. 230).
+
+![composition with a central star](templates/templates_folding_19_fold_composition_plates.webp)
 
 ```cpp
-CrossFold fold(6000.0, 1, 0.0, 1200.0, 1800.0, 120.0, 4, 3, "fold_composition");
+FoldComposition fold;
 ```
 
 <details><summary>Example code: templates_folding_19_fold_composition.cpp</summary>
@@ -509,35 +466,99 @@ CrossFold fold(6000.0, 1, 0.0, 1200.0, 1800.0, 120.0, 4, 3, "fold_composition");
 
 </details>
 
-## Fans from the corners {#fan_fold}
+## Pyramids and truncated pyramids {#truncated_pyramid}
 
-`FanFold(size, divisions, corner, middle, centre, depth, thickness)` (`folding/fan_fold.h`) divides a square into four quarters by the cross from the edges' midpoints to the centre, and in every quarter straight fold lines fan out from its corner, `corner` high on the supports, to `divisions` points along each half cross line and to the centre. The cross rises from the midpoints at `middle` to the centre at `centre`, every second point raised by `depth`, so the fan's lines alternate ridge and valley and the cross folds too, shared by the two quarters beside it; every face between two lines from one corner is a planar triangle. Defaults: an 18 m square, three points per half cross line, 0, 600, 3000, 1800, 120 mm.
+`TruncatedPyramid` (`folding/truncated_pyramid.h`, Engel pp. 231, 233): a pyramid or truncated pyramid over a square, optionally folded further: `edge_fold` pulls each base edge's middle in and raises it (`FoldPoint {along, rise}`), `corner_fold` bends each corner line at a raised point; Engel's three variations of the doubly folded truncated pyramid.
 
-### Fan fold {#folding_fan_fold}
+### Pyramid {#folding_pyramid}
 
-Cross-folded surfaces with ridges rising toward the centre (p. 229), the defaults: four fans from the corners on an 18 m square; 32 plates.
+Four triangles over an 18 m square rising to an apex at 6 m; 4 plates (p. 231).
 
-![fan fold](templates/templates_folding_24_fan_fold_plates.webp)
+![pyramid](templates/templates_folding_14_pyramid_plates.webp)
 
 ```cpp
-FanFold fold;
+TruncatedPyramid fold(9000.0, 0.0, 6000.0, std::nullopt, std::nullopt, 120.0, "pyramid");
 ```
 
-<details><summary>Example code: templates_folding_24_fan_fold.cpp</summary>
+<details><summary>Example code: templates_folding_14_pyramid.cpp</summary>
 
-\include{lineno} templates_folding_24_fan_fold.cpp
+\include{lineno} templates_folding_14_pyramid.cpp
+
+</details>
+
+### Truncated pyramid, the basic form {#folding_truncated_pyramid}
+
+Four trapezoids and a flat 6 m top 6.8 m high over an 18 m square; 5 plates (p. 233).
+
+![truncated pyramid, the basic form](templates/templates_folding_15_truncated_pyramid_plates.webp)
+
+```cpp
+TruncatedPyramid fold;
+```
+
+<details><summary>Example code: templates_folding_15_truncated_pyramid.cpp</summary>
+
+\include{lineno} templates_folding_15_truncated_pyramid.cpp
+
+</details>
+
+### Variation 1: folded edges {#folding_folded_truncated_pyramid}
+
+Each base edge's middle pulled in a fifth and raised to 54 %, a fan of three triangles above it and a steep triangle below; 17 plates (p. 233).
+
+![variation 1: folded edges](templates/templates_folding_36_folded_truncated_pyramid_plates.webp)
+
+```cpp
+TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.21, 0.54}, std::nullopt, 120.0, "folded_truncated_pyramid");
+```
+
+<details><summary>Example code: templates_folding_36_folded_truncated_pyramid.cpp</summary>
+
+\include{lineno} templates_folding_36_folded_truncated_pyramid.cpp
+
+</details>
+
+### Variation 2: folded corners {#folding_truncated_pyramid_corner_folds}
+
+The corner lines bent at a fifth of their length, raised to half height, the sides fanning from the base middle on the ground; 21 plates (p. 233).
+
+![variation 2: folded corners](templates/templates_folding_38_truncated_pyramid_corner_folds_plates.webp)
+
+```cpp
+TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.07, 0.0}, FoldPoint{0.22, 0.5}, 120.0, "truncated_pyramid_corner_folds");
+```
+
+<details><summary>Example code: templates_folding_38_truncated_pyramid_corner_folds.cpp</summary>
+
+\include{lineno} templates_folding_38_truncated_pyramid_corner_folds.cpp
+
+</details>
+
+### Variation 3: folded corners and edges {#folding_truncated_pyramid_corner_edge_folds}
+
+The corner bends and the raised edge middles at the same half height, a level fold ring; 25 plates (p. 233).
+
+![variation 3: folded corners and edges](templates/templates_folding_39_truncated_pyramid_corner_edge_folds_plates.webp)
+
+```cpp
+TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.28, 0.5}, FoldPoint{0.22, 0.5}, 120.0, "truncated_pyramid_corner_edge_folds");
+```
+
+<details><summary>Example code: templates_folding_39_truncated_pyramid_corner_edge_folds.cpp</summary>
+
+\include{lineno} templates_folding_39_truncated_pyramid_corner_edge_folds.cpp
 
 </details>
 
 ## Folded triangular surfaces {#triangle_fold}
 
-`TriangleFold(sides, radius, corner, middle, centre, thickness)` (`folding/triangle_fold.h`) cuts a regular polygon plan by the lines joining its edges' midpoints into a triangle at every corner, and keeps the polygon of the midpoints one flat face, when `centre` equals `middle`, or splits it into triangles to a raised centre. The corners stand on the supports at `corner`, the midpoints at `middle`, so the corner triangles fold down and every face is a triangle or a flat polygon at one height, every plate planar (p. 232). Defaults: a square on a 12 m circumradius, corners at 0, midpoints at 4000, the centre at 7000, 120 mm.
+`TriangleFold` (`folding/triangle_fold.h`, Engel p. 232): a regular polygon plan cut by the lines joining its edge middles; a vertical gable stands on every edge up to its raised middle, the corner triangles fold down to the corners on the ground, and the polygon of the middles is split into triangles to a raised centre, or stays one flat face.
 
 ### Square plan {#folding_triangle_square}
 
-Folded triangular surfaces over a square plan (p. 232), the defaults: a triangle at every corner and four from the midpoints to the centre at 7000; 8 plates.
+Gables to 5.0 m, the centre at 6.5 m; 12 plates (p. 232).
 
-![triangle square](templates/templates_folding_20_triangle_square_plates.webp)
+![square plan](templates/templates_folding_20_triangle_square_plates.webp)
 
 ```cpp
 TriangleFold fold;
@@ -551,12 +572,12 @@ TriangleFold fold;
 
 ### Triangular plan {#folding_triangle_triangle}
 
-Folded triangular surfaces over a triangular plan (p. 232): the triangle cut into four, the corner triangles folding down from the midpoints at 4500, the middle triangle flat at 4500; 4 plates.
+Gables to 7.5 m, the middle triangle flat; 7 plates (p. 232).
 
-![triangle triangle](templates/templates_folding_21_triangle_triangle_plates.webp)
+![triangular plan](templates/templates_folding_21_triangle_triangle_plates.webp)
 
 ```cpp
-TriangleFold fold(3, 12000.0, 0.0, 4500.0, 4500.0, 120.0, "triangle_triangle");
+TriangleFold fold(3, 12000.0, 7500.0, 7500.0, 120.0, "triangle_triangle");
 ```
 
 <details><summary>Example code: templates_folding_21_triangle_triangle.cpp</summary>
@@ -567,12 +588,12 @@ TriangleFold fold(3, 12000.0, 0.0, 4500.0, 4500.0, 120.0, "triangle_triangle");
 
 ### Pentagonal plan {#folding_triangle_pentagon}
 
-Folded triangular surfaces over a pentagonal plan (p. 232): a triangle at every corner and five from the midpoints to the centre at 7000; 10 plates.
+Gables to 4.8 m, the centre at 6.0 m; 15 plates (p. 232).
 
-![triangle pentagon](templates/templates_folding_22_triangle_pentagon_plates.webp)
+![pentagonal plan](templates/templates_folding_22_triangle_pentagon_plates.webp)
 
 ```cpp
-TriangleFold fold(5, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_pentagon");
+TriangleFold fold(5, 12000.0, 4800.0, 6000.0, 120.0, "triangle_pentagon");
 ```
 
 <details><summary>Example code: templates_folding_22_triangle_pentagon.cpp</summary>
@@ -583,12 +604,12 @@ TriangleFold fold(5, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_pentagon");
 
 ### Hexagonal plan {#folding_triangle_hexagon}
 
-Folded triangular surfaces over a hexagonal plan (p. 232): a triangle at every corner and six from the midpoints to the centre at 7000; 12 plates.
+Gables to 4.2 m, the centre at 5.3 m; 18 plates (p. 232).
 
-![triangle hexagon](templates/templates_folding_23_triangle_hexagon_plates.webp)
+![hexagonal plan](templates/templates_folding_23_triangle_hexagon_plates.webp)
 
 ```cpp
-TriangleFold fold(6, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_hexagon");
+TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
 ```
 
 <details><summary>Example code: templates_folding_23_triangle_hexagon.cpp</summary>
