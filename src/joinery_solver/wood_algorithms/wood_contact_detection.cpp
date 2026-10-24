@@ -46,16 +46,22 @@ std::array<std::array<std::vector<Point>, 2>, 6> curved_faces(const PlateCurved&
     }};
 }
 
-/// Whether every point of one boundary lies within tolerance of the other, taken as a polyline.
+/// Whether every point of one boundary lies within tolerance of the other, taken as a chain of segments, each clamped at its ends.
 bool boundary_on(const std::vector<Point>& points, const std::vector<Point>& other, double tolerance) {
 
-    const Polyline line(other);
-    size_t edge = 0;
-    Point nearest;
+    for (const Point& point : points) {
+        double nearest = std::numeric_limits<double>::infinity();
 
-    for (const Point& point : points)
-        if (line.closest_distance_and_point(point, edge, nearest) > tolerance)
+        for (size_t k = 0; k + 1 < other.size(); k++) {
+            const Vector segment = other[k + 1] - other[k];
+            const double length = segment.dot(segment);
+            const double t = length > 0.0 ? std::clamp((point - other[k]).dot(segment) / length, 0.0, 1.0) : 0.0;
+            nearest = std::min(nearest, point.distance(other[k] + segment * t));
+        }
+
+        if (nearest > tolerance)
             return false;
+    }
 
     return true;
 }
