@@ -118,8 +118,8 @@ inline FoldComposition::FoldComposition(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other; the edges on the field's sides cut flush
+    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
+    // split so they meet on whole planar faces; the edges on the field's sides cut flush
     const std::shared_ptr<TreeNode> plates = add_group("plates");
     const std::vector<Plane> sides = {
         Plane::from_point_normal(Point(-half_x, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
@@ -128,7 +128,7 @@ inline FoldComposition::FoldComposition(
         Plane::from_point_normal(Point(0.0, half_y, 0.0), Vector(0.0, 1.0, 0.0)),
     };
 
-    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
+    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

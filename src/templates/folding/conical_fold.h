@@ -92,15 +92,15 @@ inline ConicalFold::ConicalFold(
             add_polyline(Polyline({*start, *end}), fold_lines);
     }
 
-    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges along the span cut flush by the
+    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
+    // split so they meet on whole planar faces; the free edges along the span cut flush by the
     // side planes y 0 and y width
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     const double width = 2.0 * fold_width * static_cast<double>(folds);
     const std::vector<Plane> sides = {Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)), Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0))};
 
-    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
+    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

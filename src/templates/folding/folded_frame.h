@@ -131,8 +131,8 @@ inline FoldedFrame::FoldedFrame(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
-    // the corners are cut back, by just that spread, so they do not pass through each other; the free edges cut flush by the side planes
+    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
+    // split so they meet on whole planar faces; the free edges cut flush by the side planes
     // y 0 and y width, the feet by the floor
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
@@ -143,7 +143,7 @@ inline FoldedFrame::FoldedFrame(
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0)),
     };
 
-    for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
+    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 
