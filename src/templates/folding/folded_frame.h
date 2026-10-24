@@ -25,7 +25,7 @@ public:
 
     /// The folded frame of bays bays of zigzag as the session named name.
     explicit FoldedFrame(
-        const Polyline& zigzag = two_hinged_frame(),
+        const Polyline& zigzag = two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0, Folding::ridge_to_ridge),
         double bay = 4500.0,
         size_t bays = 4,
         double thickness = 120.0,
