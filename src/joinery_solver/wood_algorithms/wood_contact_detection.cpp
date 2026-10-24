@@ -7,6 +7,7 @@
 #include "wood_element_geometry.h"
 #include "wood_element_plate_curved.h"
 #include "../src/clipper2/clipper.h"
+#include "closest.h"
 using namespace session_cpp;
 using namespace wood_session;
 
@@ -67,10 +68,53 @@ std::vector<bool> boundary_on(const std::vector<Point>& points, const std::vecto
     return on;
 }
 
+/// A face as the strip of triangles between its two sampled boundaries.
+Mesh face_strip(const std::array<std::vector<Point>, 2>& face) {
+
+    const size_t n = face[0].size();
+    std::vector<Point> vertices = face[0];
+    vertices.insert(vertices.end(), face[1].begin(), face[1].end());
+    std::vector<std::vector<size_t>> triangles;
+
+    for (size_t k = 0; k + 1 < n; k++) {
+        triangles.push_back({k, k + 1, n + k + 1});
+        triangles.push_back({k, n + k + 1, n + k});
+    }
+
+    return Mesh::from_vertices_and_faces(vertices, triangles);
+}
+
+/// Whether every point of a face's two boundaries lies within tolerance of another face's strip: a face lying inside the other, as a
+/// web's edge on the plate it stands on.
+bool face_within(const std::array<std::vector<Point>, 2>& face, const std::array<std::vector<Point>, 2>& other, double tolerance) {
+
+    if (face[0].size() < 3 || other[0].size() < 3)
+        return false;
+
+    // cheap first: the face inside the other's box, grown by the tolerance
+    std::vector<Point> corners = other[0];
+    corners.insert(corners.end(), other[1].begin(), other[1].end());
+    const AABB box = AABB::from_points(corners, tolerance);
+
+    for (const std::vector<Point>& boundary : face)
+        for (const Point& point : boundary)
+            if (std::abs(point[0] - box.cx) > box.hx || std::abs(point[1] - box.cy) > box.hy || std::abs(point[2] - box.cz) > box.hz)
+                return false;
+
+    const Mesh strip = face_strip(other);
+
+    for (const std::vector<Point>& boundary : face)
+        for (const Point& point : boundary)
+            if (std::get<2>(Closest::mesh_point(strip, point)) > tolerance)
+                return false;
+
+    return true;
+}
+
 /// The faces two curved plates share: where both boundaries of a face of one lie on the two boundaries of a face of the other, in
 /// either order, along the longest run of samples, at least four and longer than ten tolerances, the whole face or the part of it
-/// one neighbour shares; the contact's polygon is that run of the first boundary and the second walked back. Outer and inner faces
-/// are tops, the rest sides.
+/// one neighbour shares; the contact's polygon is that run of the first boundary and the second walked back. A face lying wholly
+/// inside a face of the other is shared too, its whole outline the polygon. Outer and inner faces are tops, the rest sides.
 std::vector<InteractionContactFace> curved_contacts(const PlateCurved& a, const PlateCurved& b, double tolerance) {
 
     const std::array<std::array<std::vector<Point>, 2>, 6> faces_a = curved_faces(a, 64);
@@ -78,7 +122,9 @@ std::vector<InteractionContactFace> curved_contacts(const PlateCurved& a, const 
     std::vector<InteractionContactFace> contacts;
 
     for (size_t i = 0; i < 6; i++)
-        for (size_t j = 0; j < 6; j++)
+        for (size_t j = 0; j < 6; j++) {
+            const size_t found = contacts.size();
+
             for (size_t order = 0; order < 2; order++) {
                 // the samples where both boundaries lie on the other face's, and the longest run of them
                 const std::vector<bool> first = boundary_on(faces_a[i][0], faces_b[j][order], tolerance);
@@ -117,6 +163,25 @@ std::vector<InteractionContactFace> curved_contacts(const PlateCurved& a, const 
                 contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), type, Polyline(polygon));
                 break;
             }
+
+            // a face lying wholly inside the other's: a web's edge on its plate's inner face, either way round
+            if (contacts.size() > found)
+                continue;
+
+            const bool a_within = face_within(faces_a[i], faces_b[j], tolerance);
+
+            if (!a_within && !face_within(faces_b[j], faces_a[i], tolerance))
+                continue;
+
+            const std::array<std::vector<Point>, 2>& face = a_within ? faces_a[i] : faces_b[j];
+            std::vector<Point> polygon = face[0];
+            polygon.insert(polygon.end(), face[1].rbegin(), face[1].rend());
+            polygon.push_back(polygon.front());
+            const bool top_a = i < 2;
+            const bool top_b = j < 2;
+            const ContactType type = top_a && top_b ? ContactType::top_top : top_a || top_b ? ContactType::side_top : ContactType::side_side;
+            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), type, Polyline(polygon));
+        }
 
     return contacts;
 }

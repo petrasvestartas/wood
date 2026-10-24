@@ -80,7 +80,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" --hide-contacts templates_curved_folding_28_sideways_unfolding plates
     "${RENDER[@]}" --hide-contacts templates_curved_folding_29_corrugated_dome plates
     "${RENDER[@]}" --hide-contacts templates_curved_folding_30_corrugated_funnel plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_31_curved_folded_beam all
+    "${RENDER[@]}" --hide-contacts --opacity 0.95 templates_curved_folding_31_curved_folded_beam all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

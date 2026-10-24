@@ -1,4 +1,4 @@
-# Folding {#templates_folding}
+# Folding flat {#templates_folding}
 
 [TOC]
 

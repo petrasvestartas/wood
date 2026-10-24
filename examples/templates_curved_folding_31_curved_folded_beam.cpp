@@ -4,8 +4,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Six closed curved-folded beams side by side: boxes of four cylinder plates spanning 12 m, the top and bottom bulging out and the
-/// sides sagging in toward mid-span.
+/// Six closed curved-folded beams side by side: boxes 400 wide and 800 high at the supports, the top and bottom bulging out, the
+/// sides sagging in, a web inside.
 int main() {
 
     CurvedFoldedBeam beams;
@@ -24,7 +24,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 31 of the curved folding templates: a closed curved-folded beam of four plates. A box spans 12 m along x, 800 mm square at the supports; each of its four plates is a cylinder bent along the span with its rulings straight across, and the two pairs fold opposite ways: the top and bottom plates bulge 250 mm outward toward mid-span, the sides sag 220 mm inward, so the beam is 1300 mm deep and 360 mm wide at mid-span. The corners are the curved creases; every plate is mitred there, its inner face ending where it meets its neighbour's a thickness inside both, the mitre the ruled face between the crease and that inner crease. The ends are cut square at the supports. Six beams 27 mm thick lie side by side, touching at the supports, lens-shaped gaps opening between them toward mid-span; the session's contact detection finds the four mitres of every beam. Groups: beam_<b> (beam_<b>_<k>).
+Step 31 of the curved folding templates: a closed curved-folded beam. A box spans 12 m along x, 400 mm wide and 800 mm high at the supports; its four plates are cylinders bent along the span with their rulings straight across: the top and bottom bulge 250 mm outward toward mid-span, the sides sag 80 mm inward, so the beam is 1300 mm deep and 240 mm wide at mid-span. Every corner is a curved crease, the two plates mitred on the ruled face between the crease and the inner crease. A flat web inside, between the inner faces of the top and bottom, divides the section. Six beams of 27 mm plates side by side; the contacts are the four mitres and the web's two edges of every beam. Groups: beam_<b>.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
