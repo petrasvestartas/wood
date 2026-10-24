@@ -6,14 +6,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Engel's structure systems through interpenetration of cylindrical surfaces (Structure Systems pp. 238-241): equal circular cylinders
+/// Structure systems through interpenetration of cylindrical surfaces: equal circular cylinders
 /// over a regular polygon, one segment per side, meeting their neighbours in the vertical planes through the corners and the centre.
 /// Two equal cylinders mirrored in a plane meet in that plane, so every crease is a planar curve, an ellipse arc, straight in plan and
 /// curved in elevation, and the segments on both sides of it are each other's mirror image: the same planar curved crease the
 /// reflection fold makes. Two kinds: the groin vault, every segment's generatrices running from its side toward the centre, in one
-/// plane, sloping toward the centre or rising toward it (p. 238 left, pp. 239-240 over triangles, pentagons, hexagons and octagons, and
-/// the cross-shaped plan of upright segments); and the pavilion or cloister vault, the generatrices along the sides, the segments
-/// rising from the walls to a peak over the centre (p. 238 right, on four walls).
+/// plane, sloping toward the centre or rising toward it; and the pavilion or cloister vault, the generatrices along the sides, the segments
+/// rising from the walls to a peak over the centre.
 ///
 /// Every segment is one panel, a PlateCurved: its outer face the exact cylinder between its two end curves, the sections of the segment
 /// by the vertical planes its generatrices run between, one multi-span rational arc each, a span per plane with a C0 knot where the
@@ -23,8 +22,8 @@ using namespace wood_session;
 /// they are a millimetre long, so the solid has no zero-length edge. Every panel is bent about one axis and cut from a flat panel, as
 /// glulam or curved cross-laminated timber is; its development is checked and drawn in the flat pattern beside the model.
 ///
-/// A vault may be placed more than once, at a centre and a scale each: Engel's composition of cylindrical surfaces crossing diagonally
-/// over a square grid plan (p. 241), a field of groin vaults with a larger one in the middle, is one groin vault placed on every bay of
+/// A vault may be placed more than once, at a centre and a scale each: a composition of cylindrical surfaces crossing diagonally
+/// over a square grid plan, a field of groin vaults with a larger one in the middle, is one groin vault placed on every bay of
 /// the grid and once more, at twice the scale, over the four bays in the middle.
 ///
 /// Fields: the polygon, the cylinders, the kind, the walls, the thickness and the placements; the plan, the panels and the flat pattern
@@ -81,7 +80,7 @@ public:
         return _twist;
     }
 
-    /// The placements of Engel's field (p. 241): a vault on every bay of a columns by rows grid of bays, except the middle 2 by 2, over which one vault stands at twice the scale; columns and rows even.
+    /// The placements of the field: a vault on every bay of a columns by rows grid of bays, except the middle 2 by 2, over which one vault stands at twice the scale; columns and rows even.
     static std::vector<Placement> field(size_t columns, size_t rows, double bay);
 
 private:
@@ -175,6 +174,9 @@ inline CylinderVault::CylinderVault(size_t sides, double edge, double radius, do
 
     // flat: the cutting pattern beside the model, every panel unfolded
     add_flat(developments, 0.25 * edge);
+
+    // contacts: every two panels that share a face, found by the session's contact detection
+    compute_face_contacts(0);
 }
 
 inline Point CylinderVault::corner(const Placement& placement, size_t i) const {

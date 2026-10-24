@@ -4,18 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Buri, Stotz and Weinand's curved folded plate (IBOIS, 2011): an undulating corrugation profile folded at the reverse folds of an arch of five segments spanning 13.5 m, every half wave of every segment a curved plate.
+/// The IBOIS curved folded plate: a smooth wave section of alternating arcs, three crests, swept and reflected at the kinks of their polyline, a short rise, a long descending slope and a steep leg to the ground.
 int main() {
 
-    const double climb = 60.0 * Tolerance::TO_RADIANS;
-    const Vector along(0.0, std::cos(climb), std::sin(climb));
-    const Vector up(0.0, -std::sin(climb), std::cos(climb));
+    const double climb = 25.0 * Tolerance::TO_RADIANS;
+    const Vector along(std::cos(climb), 0.0, std::sin(climb));
+    const Vector up(-std::sin(climb), 0.0, std::cos(climb));
+    const Point foot(0.0, 12000.0, 0.0);
     ReflectionFold fold(
-        ReflectionFold::waves(Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0),
+        ReflectionFold::meander(foot, Vector(0.0, -1.0, 0.0), up, 6, 1200.0, 450.0),
         along,
-        Vector(1.0, 0.0, 0.0),
-        18100.0,
-        {{3620.0, -30.0 * Tolerance::TO_RADIANS}, {7240.0, -30.0 * Tolerance::TO_RADIANS}, {10860.0, -30.0 * Tolerance::TO_RADIANS}, {14480.0, -30.0 * Tolerance::TO_RADIANS}}
+        Vector(0.0, -1.0, 0.0),
+        17000.0,
+        {{3000.0, -45.0 * Tolerance::TO_RADIANS, true}, {12000.0, -40.0 * Tolerance::TO_RADIANS, true}},
+        std::nullopt,
+        120.0
     );
     std::cout << fold << std::endl;
 
@@ -25,14 +28,14 @@ int main() {
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("curved folded plate: {} lamellas, {} closed solids, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.distortion(), fold.twist());
+    std::cout << fmt::format("curved folded plate: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
     fold.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the curved folding templates: the curved folded plate of Buri, Stotz and Weinand (IBOIS EPFL, Curved Folded Plate Timber Structures, IABSE-IASS 2011; built as the Mendrisio pavilion of 2013, 13.5 m span, 77 mm curved cross-laminated timber), made by Mitani's reflection. Buri's doubly corrugated surface has a corrugation profile across the span and a cross-section profile along it; with an undulating corrugation profile the surface is a cylinder, and every kink of the cross-section profile, a reverse fold, is a reflection of the sheet in the plane bisecting the kink. Here the corrugation is three sine waves of 3 m wavelength and 400 mm amplitude across a 9 m wide sheet, swept along a polygonal arch of five segments of 3.62 m turning 30 degrees at each of four reverse folds, from 60 degrees up at one foot to 60 degrees down at the other, spanning 13.5 m and rising 4.9 m; the stations are measured along the rulings from the sheet's first corner. Every crease is the bisecting plane's section of the corrugation, a planar undulating curve, and every half wave of every segment is one lamella. Every part of the sheet between two creases and two arcs is a lamella, a PlateCurved: the exact cylinder between its two creases, 120 mm thick on the sheet's physical underside, its side faces the mitre where it meets the next plate across the crease, the crease plane at a mirror fold and the bisector surface at a reflection, its caps the straight rulings at the arcs' cusps and the sheet's edges; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
+Step 3 of the curved folding templates: the IBOIS curved folded plate, a smooth wave section folded along a polyline, the curved counterpart of a zigzag folded plate. The section is a meander of six circular arcs, each 1200 wide and 450 deep, bulging up and down in turn and meeting tangent to each other, three crests across 7.2 m; it is swept along a polyline, a short rise at 25 degrees for 3 m, a reflection of 45 degrees at the ridge onto a slope falling 20 degrees for 9 m, and a reflection of 40 degrees onto a leg falling 60 degrees for 5 m to the ground. Every crease is the reflection plane's section of the wave, every half wave of every segment one lamella. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
@@ -41,7 +44,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_curved_folding_3_curved_folded_plate --parallel 6 && ./build/templates_curved_folding_3_curved_folded_plate && ../bash/publish-scene.sh --target templates_curved_folding_3_curved_folded_plate
+cmake --build build --target templates_curved_folding_3_curved_folded_plate --parallel 6 && ./build/templates_curved_folding_3_curved_folded_plate && ./bash/publish-scene.sh --target templates_curved_folding_3_curved_folded_plate
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -6,8 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The four quadrants of one planar curved crease, after Tachi (Transformables 2013) and Scheder-Bieschin, Van Mele and Block (DMSB 2023,
-/// Figs. 2-3): a developable through a planar crease has its rulings r on one side of the crease plane and -r on the other, and their
+/// The four quadrants of one planar curved crease: a developable through a planar crease has its rulings r on one side of the crease plane and -r on the other, and their
 /// mirror images Mr and -Mr in the plane. Two strips joined along the crease take one ruling each:
 ///
 /// | quadrant | rulings | kind | the two strips |
@@ -88,6 +87,9 @@ inline CreaseQuadrants::CreaseQuadrants(const NurbsCurve& crease, double opening
     add_quadrant(frame, 2, {{{1.0, 1.0}, {1.0, -1.0}}}, chord * step);
     add_quadrant(frame, 3, {{{1.0, -1.0}, {-1.0, -1.0}}}, chord * (2.0 * step));
     add_quadrant(frame, 4, {{{-1.0, -1.0}, {-1.0, 1.0}}}, chord * (3.0 * step));
+
+    // contacts: every two strips that share a face, found by the session's contact detection
+    compute_face_contacts(0);
 }
 
 inline CreaseQuadrants::Frame CreaseQuadrants::compute_frame() const {

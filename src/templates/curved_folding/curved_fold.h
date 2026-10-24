@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folded tent roof after Knie's Zauberhut, Rapperswil (Blumer Lehmann, Carlos Martinez Architekten, 2020): a roof of 32 m
+/// A curved folded tent roof after Knie's Zauberhut, Rapperswil: a roof of 32 m
 /// diameter rising in a trumpet curve into a tower 26 m high, folded into sectors whose valleys run down to the columns and whose
 /// ridges end in a gable over the eaves, the folds shrinking into the tower. Every ridge and valley is a smooth NURBS curve, a meridian
 /// interpolated through the rings, each ring the same star of ridge and valley points scaled by the trumpet curve's radius and lifted
@@ -111,6 +111,9 @@ inline CurvedFold::CurvedFold(
         const size_t next = (j + 1) % count;
         add(std::make_shared<PlateCurved>(outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)), lamellas);
     }
+
+    // contacts: every two lamellas that share a face, found by the session's contact detection
+    compute_face_contacts(0);
 }
 
 inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {

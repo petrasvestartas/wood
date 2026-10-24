@@ -179,8 +179,29 @@ BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) cons
 
 const Mesh& PlateCurved::element_geometry_mesh() const {
 
-    if (!_element_geometry_mesh)
-        _element_geometry_mesh = element_geometry_brep().mesh();
+    if (!_element_geometry_mesh) {
+        // every face's grid welded on its own and the faces put side by side unwelded, so a vertex on a crease belongs to one face and its normal is that face's: smooth shading inside every patch, a sharp edge on every BRep edge, nothing in between
+        Mesh mesh;
+
+        for (const Mesh& face : element_geometry_brep().face_meshes()) {
+            std::map<size_t, size_t> keys;
+
+            for (const std::pair<const size_t, std::vector<size_t>>& entry : face.face) {
+                std::vector<size_t> corners;
+
+                for (const size_t vertex : entry.second) {
+                    if (!keys.count(vertex))
+                        keys[vertex] = mesh.add_vertex(face.vertex.at(vertex).position());
+
+                    corners.push_back(keys[vertex]);
+                }
+
+                mesh.add_face(corners);
+            }
+        }
+
+        _element_geometry_mesh = mesh;
+    }
 
     return *_element_geometry_mesh;
 }
