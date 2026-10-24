@@ -71,7 +71,7 @@ A cylindrical sheet folded at planar creases (`curved_folding/reflection_fold.h`
 
 An optional `symmetry` plane is the other planar crease, a frame's ridge or an arch's crown: the sheet ends on the plane and the folded half is mirrored in it, the two halves meeting along the plane's section, straight in plan. A column is the sheet too: a reflection whose plane crosses the first segment higher in the middle of a barrel than at its cusps (a reflection's crease runs `rise / tan(angle / 2)` further along the rulings at the bulge than at the cusps) leaves a leg under every barrel rising as an arch to the crease.
 
-The thickness lies on one physical underside of the sheet through every fold: a reflection turns the midsurface over, never the plate's material, so the two plates at a crease have their thickness on the same side of the V and meet. Every seam is one shared curve: at a mirror fold, a sheet end and the symmetry plane the crease plane's section of the offset, where the two offsets are mirror images; at a reflection the exact curve where the two plates' offset cylinders cross, found ruling by ruling (every ruling of the offset before the crease, seen along the rulings beyond it, crosses the offset beyond); at a cusp between two curves of the profile the offset's mitred end, so the two caps are one face. The constructor is the recipe:
+The thickness is the sheet's own: the profile's section square to the rulings is offset once to each side, every curve along its normal, two curves meeting at an angle ending where their offsets cross (the seam between the two rows is the plane through the rulings there, vertical for symmetric barrels), two meeting tangent sharing their end, the sheet's free edges cut square to the section's chord; both offsets are carried from plane to plane along the rulings exactly as the creases are. The material lies under the sheet in the first segment; a reflection turns the sheet over, so beyond it the material lies on the other offset, while a mirror fold keeps it. At a mirror fold, a sheet end and the symmetry plane the two plates are each other's mirror image on either side of the plane and meet on it in one planar curve. At a reflection both plates lie on one side of the plane, so every inner ruling of the plate before runs on to the inner cylinder of the plate beyond, the mirror image of the other offset's: the mitre is the ruled face between the crease and that crossing. Every seam is one face the two plates share, and the session's contact detection finds one contact per seam.
 
 ```cpp
  // segments: the sheet's straight runs between the folds, each with its rulings and its two planes
@@ -81,11 +81,11 @@ The thickness lies on one physical underside of the sheet through every fold: a 
  // creases: every fold plane's section of the sheet, the profile carried along the rulings from plane to plane
  const std::vector<std::vector<NurbsCurve>> creases = compute_creases(segments);
 
- // offsets: every segment's first crease moved the thickness to the sheet's underside, the plates' inner faces
- const std::vector<std::vector<NurbsCurve>> offsets = compute_offsets(segments, creases);
+ // profiles: the profile's section offset the thickness under and over the sheet, seams through the cusps, free edges square
+ const std::array<std::vector<NurbsCurve>, 2> profiles = {compute_inner_profile(first, 1.0), compute_inner_profile(first, -1.0)};
 
- // inners: on every cut the one inner meridian the two plates there share, the mitre
- const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, creases, offsets);
+ // inners: the offsets carried from plane to plane along the rulings, on every cut the one curve the two plates there share
+ const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, profiles);
 
  // creases drawn, lamellas, flat, the mirrored half when there is a symmetry plane, and the contacts
 ```
@@ -100,7 +100,7 @@ The thickness lies on one physical underside of the sheet through every fold: a 
 | flat | the cutting pattern beside the model: every lamella's `Development` where it lies on the unrolled sheet, the rows along x and the rulings along y |
 | contacts | `compute_face_contacts(0)`: every shared face, the proof the seams meet |
 
-Three factories build the usual profiles: `ReflectionFold::arcs(start, across, up, count, width, rise)`, circular arcs side by side, rows of barrels; `ReflectionFold::meander(start, across, up, half_waves, half_wavelength, depth)`, circular arcs bulging up and down in turn and meeting tangent to each other, a smooth wave section; and `ReflectionFold::waves(..)`, half sine waves.
+Three factories build the usual profiles: `ReflectionFold::arcs(start, across, up, count, width, rise)`, circular arcs side by side, rows of barrels, and `ReflectionFold::waves(..)`, half sine waves.
 
 ### The reflection principle {#reflection_principle}
 
