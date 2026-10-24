@@ -5,33 +5,33 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A closed curved-folded beam: a box spanning along x, at the supports twice as high as wide, its four plates each a cylinder bent
+/// A closed curved-folded beam: a box spanning along x, at the supports twice as wide as high, its four plates each a cylinder bent
 /// along the span with its rulings straight across. The top and bottom plates bulge outward by rise toward mid-span, the side plates
-/// sag inward by sag, so the beam deepens and narrows to mid-span. The corners are the curved creases, every plate mitred there: its
+/// sag inward by sag, so the flat section at the supports deepens and narrows to mid-span. The corners are the curved creases, every plate mitred there: its
 /// inner face ends where it meets its neighbour's, both a thickness inside, the mitre the ruled face between the crease and that inner
-/// crease, shared by the two plates. Flat vertical webs inside divide the section, each between the inner faces of the top and bottom
-/// plates. The ends are cut square at the supports; beams side by side touch there.
+/// crease, shared by the two plates. Flat webs across the span at even stations divide the box, each filling its inner section, its
+/// edges on the four plates' inner faces. The ends are cut square at the supports; beams side by side touch there.
 ///
 /// Fields: the span, the width, the rise, the sag, the thickness, the webs, the count and the sampling; the plates are in the session.
 class CurvedFoldedBeam : public WoodSession {
 public:
     const double span; // mm, along x between the supports.
-    const double width; // mm, the section's width at the supports, its height twice that.
+    const double width; // mm, the section's width at the supports, its height half that.
     const double rise; // mm, how far the top and bottom plates bulge outward at mid-span.
     const double sag; // mm, how far the side plates sag inward at mid-span.
     const double thickness; // mm, every plate and web.
-    const size_t webs; // Flat webs inside every beam, evenly across its width.
+    const size_t webs; // Flat webs across every beam at even stations along the span.
     const size_t count; // Beams side by side along y, width apart.
     const size_t samples; // Rulings each plate is interpolated through.
 
     /// count curved-folded beams as the session named name.
     CurvedFoldedBeam(
         double span = 12000.0,
-        double width = 400.0,
+        double width = 800.0,
         double rise = 250.0,
         double sag = 80.0,
         double thickness = 27.0,
-        size_t webs = 1,
+        size_t webs = 5,
         size_t count = 6,
         const std::string& name = "curved_folded_beam",
         size_t samples = 48
@@ -56,7 +56,7 @@ private:
     std::array<std::vector<Point>, 2> compute_corner() const;
 
     /// Every beam's four plates, beam_<b>_<k> in the group beam_<b>: top, right, bottom and left, each between two corners, the corner
-    /// mirrored in the planes y 0 and z 0, and moved along y; then its webs, beam_<b>_<4 + w>.
+    /// mirrored in the planes y 0 and z 0, and moved along y; then its webs across the span, beam_<b>_<4 + w>.
     void add_beams(const std::array<std::vector<Point>, 2>& corner);
 };
 
@@ -71,12 +71,8 @@ inline CurvedFoldedBeam::CurvedFoldedBeam(double span, double width, double rise
       count(std::max<size_t>(count, 1)),
       samples(std::max<size_t>(samples, 4)) {
 
-    // the outermost web, half a thickness wide, stands clear of the sides' inner faces where they sag the most
-    const double clear = 0.5 * width - sag - 1.5 * thickness;
-    const double outermost = std::abs(-0.5 * width + width / static_cast<double>(webs + 1));
-
-    if (span <= 0.0 || width <= 0.0 || rise <= 0.0 || sag <= 0.0 || thickness <= 0.0 || sag >= 0.5 * width - 2.0 * thickness || (webs > 0 && outermost >= clear))
-        throw std::invalid_argument("A curved-folded beam needs a span, a width, a rise, a sag and a thickness that leave its webs inside");
+    if (span <= 0.0 || width <= 0.0 || rise <= 0.0 || sag <= 0.0 || thickness <= 0.0 || sag >= 0.5 * width - 2.0 * thickness)
+        throw std::invalid_argument("A curved-folded beam needs a span, a width, a rise, a sag well inside the width and a thickness");
 
     // corner: the top right crease and the inner crease under it, the mitre between them
     const std::array<std::vector<Point>, 2> corner = compute_corner();
@@ -124,8 +120,8 @@ inline std::array<std::vector<Point>, 2> CurvedFoldedBeam::compute_corner() cons
 
     for (size_t k = 0; k <= samples; k++) {
         const double x = -half + span * static_cast<double>(k) / static_cast<double>(samples);
-        corner[0].push_back(Point(x, profile(0.5 * width, -sag, x).first, profile(width, rise, x).first));
-        corner[1].push_back(Point(x, inner(0.5 * width, -sag, x), inner(width, rise, x)));
+        corner[0].push_back(Point(x, profile(0.5 * width, -sag, x).first, profile(0.25 * width, rise, x).first));
+        corner[1].push_back(Point(x, inner(0.5 * width, -sag, x), inner(0.25 * width, rise, x)));
     }
 
     return corner;
@@ -136,6 +132,7 @@ inline void CurvedFoldedBeam::add_beams(const std::array<std::vector<Point>, 2>&
     // the four corners as signs of y and z, and the plates between two of them: top, right, bottom, left
     const std::array<std::array<double, 2>, 4> corners = {{{1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}, {-1.0, 1.0}}};
     const std::array<std::array<size_t, 2>, 4> plates = {{{3, 0}, {0, 1}, {1, 2}, {2, 3}}};
+    const NurbsCurve inner_crease = NurbsCurve::create_interpolated(corner[1], CurveNurbsKnotStyle::Uniform);
 
     for (size_t b = 0; b < count; b++) {
         const std::shared_ptr<TreeNode> group = add_group(fmt::format("beam_{}", b));
@@ -162,20 +159,25 @@ inline void CurvedFoldedBeam::add_beams(const std::array<std::vector<Point>, 2>&
             _distortion = std::max(_distortion, development.distortion);
         }
 
-        // the webs: flat plates at even steps across the width, from the top plate's inner face down to the bottom plate's
+        // the webs: flat diaphragms across the span at even stations, each face the box's inner section where it stands, its corners
+        // on the inner crease, so its four edges lie on the four plates' inner faces
         for (size_t w = 0; w < webs; w++) {
-            const double y = shift - 0.5 * width + width * static_cast<double>(w + 1) / static_cast<double>(webs + 1);
+            const double station = -0.5 * span + span * static_cast<double>(w + 1) / static_cast<double>(webs + 1);
             std::array<NurbsCurve, 4> curves;
 
             for (size_t e = 0; e < 4; e++) {
-                const double face = y + (e < 2 ? -0.5 : 0.5) * thickness;
+                const double x = station + (e < 2 ? -0.5 : 0.5) * thickness;
                 const double side = e % 2 == 0 ? 1.0 : -1.0;
-                std::vector<Point> points;
+                double low = inner_crease.domain_start();
+                double high = inner_crease.domain_end();
 
-                for (const Point& point : corner[1])
-                    points.push_back(Point(point[0], face, side * point[2]));
+                for (int i = 0; i < 80; i++) {
+                    const double middle = 0.5 * (low + high);
+                    (inner_crease.point_at(middle)[0] < x ? low : high) = middle;
+                }
 
-                curves[e] = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform);
+                const Point point = inner_crease.point_at(0.5 * (low + high));
+                curves[e] = NurbsCurve::create(false, 1, {Point(x, shift - point[1], side * point[2]), Point(x, shift + point[1], side * point[2])});
             }
 
             add(std::make_shared<PlateCurved>(curves[0], curves[1], curves[2], curves[3], fmt::format("beam_{}_{}", b, 4 + w)), group);

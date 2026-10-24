@@ -11,7 +11,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | equal cylinders over a regular polygon meeting on planar creases | `templates_curved_folding_{5_groin_vault,8_pavilion_vault,9_pentagon_vault,10_octagon_vault,11_hexagon_vault}` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
-| [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, twice as high as wide at the supports, the top and bottom bulging out, the sides sagging in, webs inside | `templates_curved_folding_31_curved_folded_beam` |
+| [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, flat at the supports and deep at mid-span, the top and bottom bulging out, the sides sagging in, webs across the span | `templates_curved_folding_31_curved_folded_beam` |
 | [`Development`](#development) | `curved_folding/development.h` | the unfolding of a ruled strip, the check that every lamella is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, how many contacts the session's contact detection finds between them, and the development distortion and ruling twist of the worst one; on every model below the distortion is at the rounding floor (1e-14), the lamellas being exact cylinders. The contacts are the seams: every two lamellas that share a face are found, so the count below each example is the proof that its mitres meet, creases times lamellas per crease plus the joints between neighbouring barrels of a row.
@@ -562,9 +562,9 @@ CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0
 
 ## Curved-folded beam {#curved_folded_beam}
 
-`CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)` (`curved_folding/curved_folded_beam.h`): a closed box spanning along x, `width` wide and twice as high at the supports, of four cylinder plates with their rulings straight across. The top and bottom bulge outward by `rise` toward mid-span, the sides sag inward by `sag`. Every corner is a curved crease, the two plates mitred on the ruled face between the crease and the inner crease. `webs` flat webs inside divide the section, each between the inner faces of the top and bottom plates.
+`CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)` (`curved_folding/curved_folded_beam.h`): a closed box spanning along x, `width` wide and half as high at the supports, of four cylinder plates with their rulings straight across. The top and bottom bulge outward by `rise` toward mid-span, the sides sag inward by `sag`, so the flat section at the supports deepens to mid-span. Every corner is a curved crease, the two plates mitred on the ruled face between the crease and the inner crease. `webs` flat webs across the span divide the box, each filling its inner section, its edges on the four plates' inner faces.
 
-Six beams 12 m long, 400 by 800 mm at the supports, 240 by 1300 mm at mid-span, 27 mm plates and one web each: 30 plates, 36 contacts, the mitres and the webs' edges (example `templates_curved_folding_31_curved_folded_beam`).
+Six beams 12 m long, 800 by 400 mm at the supports, 640 by 900 mm at mid-span, 27 mm plates and five webs each: 54 plates, 144 contacts, the mitres and the webs' edges (example `templates_curved_folding_31_curved_folded_beam`).
 
 ![curved-folded beam](templates/templates_curved_folding_31_curved_folded_beam_all.webp)
 

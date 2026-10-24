@@ -84,11 +84,11 @@ Mesh face_strip(const std::array<std::vector<Point>, 2>& face) {
     return Mesh::from_vertices_and_faces(vertices, triangles);
 }
 
-/// Whether every point of a face's two boundaries lies within tolerance of another face's strip: a face lying inside the other, as a
-/// web's edge on the plate it stands on.
+/// Whether every point of a face's two boundaries, a cap's four corners, lies within tolerance of another face's strip: a face lying
+/// inside the other, as a web's edge on the plate it stands on.
 bool face_within(const std::array<std::vector<Point>, 2>& face, const std::array<std::vector<Point>, 2>& other, double tolerance) {
 
-    if (face[0].size() < 3 || other[0].size() < 3)
+    if (face[0].size() < 2 || other[0].size() < 3)
         return false;
 
     // cheap first: the face inside the other's box, grown by the tolerance

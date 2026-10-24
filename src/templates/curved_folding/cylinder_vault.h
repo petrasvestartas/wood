@@ -388,15 +388,19 @@ inline void CylinderVault::add_walls(const std::vector<Segment>& segments) {
 
     const std::shared_ptr<TreeNode> group = add_group("walls");
 
+    // the inner face's corners on the polygon a thickness inside, so two walls meet on the mitre through the corner and the centre
+    const double inset = 1.0 - thickness / std::cos(Tolerance::PI / static_cast<double>(sides)) / corner(0).distance(Point(0.0, 0.0, 0.0));
+
     for (size_t i = 0; i < segments.size(); i++) {
         // a flat panel under the side: its outer face the side's plane from the ground to the wall's top, its inner face the thickness inward
         const Segment& segment = segments[i];
-        const Vector inward = (Point::centroid(segment.corners) - Point::mid_point(segment.from, segment.to)).normalized() * thickness;
+        const Point from(segment.from[0] * inset, segment.from[1] * inset, 0.0);
+        const Point to(segment.to[0] * inset, segment.to[1] * inset, 0.0);
         const Vector top(0.0, 0.0, wall);
         const NurbsCurve outer_a = NurbsCurve::create(false, 1, {segment.from, segment.to});
         const NurbsCurve outer_b = NurbsCurve::create(false, 1, {segment.from + top, segment.to + top});
-        const NurbsCurve inner_a = NurbsCurve::create(false, 1, {segment.from + inward, segment.to + inward});
-        const NurbsCurve inner_b = NurbsCurve::create(false, 1, {segment.from + inward + top, segment.to + inward + top});
+        const NurbsCurve inner_a = NurbsCurve::create(false, 1, {from, to});
+        const NurbsCurve inner_b = NurbsCurve::create(false, 1, {from + top, to + top});
         add(std::make_shared<PlateCurved>(outer_a, outer_b, inner_a, inner_b, fmt::format("wall_{}", i)), group);
     }
 }

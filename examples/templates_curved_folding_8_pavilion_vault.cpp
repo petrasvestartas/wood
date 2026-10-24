@@ -23,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the curved folding templates: the pavilion vault. Four walls 4 m high on a 12 m square, on each a cylinder segment of 6 m radius along the wall rising to the peak over the centre; the segments meet on quarter ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. The walls are flat 120 mm panels. Groups: plan, lamellas, walls, flat.
+Step 8 of the curved folding templates: the pavilion vault. Four walls 4 m high on a 12 m square, on each a cylinder segment of 6 m radius along the wall rising to the peak over the centre; the segments meet on quarter ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. The walls are flat 120 mm panels mitred at the corners. Groups: plan, lamellas, walls, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
