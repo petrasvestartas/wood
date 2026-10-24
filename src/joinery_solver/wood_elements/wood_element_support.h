@@ -7,15 +7,18 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a column base, parametric after the Sherpa Power Base L 140 C: a drilled base plate on the slab, an adjustment nut, a threaded rod, a coupling nut and the head plate the column end is let onto; the dimensions default to the manufacturer's table.
+/// Element that represents a column base, parametric after the Sherpa Power Base L 140 C.
 class Support : public WoodElement {
 public:
-    static constexpr std::string_view ELEMENT_TYPE = "Support"; // The element_type this support is written under.
-    Plane plane = Plane::xy_plane(); // Base plate underside centre, z up the column, x along a base plate side.
+    static constexpr std::string_view ELEMENT_TYPE =
+        "Support"; // The element_type this support is written under.
+    Plane plane = Plane::xy_plane(
+    ); // Base plate underside centre, z up the column, x along a base plate side.
     double height = 150.0; // Base plate underside to head plate top, 150 to 200 by the adjustment.
     double head_plate_diameter = 106.0; // Head plate disc.
     double head_plate_thickness = 12.0; // Head plate disc.
-    double head_plate_recess = 12.0; // Depth the head plate is let into the column end, the datasheet's own thickness.
+    double head_plate_recess =
+        12.0; // Depth the head plate is let into the column end, the datasheet's own thickness.
     double base_plate_size = 140.0; // Square base plate side.
     double base_plate_thickness = 12.0; // Square base plate.
     double base_plate_hole_diameter = 15.0; // The four anchor drillings.
@@ -28,7 +31,8 @@ public:
     int pin_count = 3; // Pins from the head plate up into the column end.
     double pin_diameter = 8.0; // Column pins.
     double pin_length = 180.0; // Column pins.
-    double pin_angle = 25.0; // Degrees between a pair of opposed pins, half of it each off the axis.
+    double pin_angle =
+        25.0; // Degrees between a pair of opposed pins, half of it each off the axis.
     double pin_circle_diameter = 50.0; // Circle the pins start on, on the head plate top.
     double anchor_diameter = 12.0; // Anchors through the drillings into the slab.
     double anchor_embedment = 100.0; // Anchor depth below the plate underside.
@@ -37,7 +41,7 @@ public:
     /// A support at the world origin standing up z, with the manufacturer's dimensions.
     Support();
 
-    /// A support on plane: its origin the base plate underside centre, z up the column; `name` is the type flag face_contacts() filters on.
+    /// A support on plane.
     explicit Support(const Plane& plane, const std::string& name = "support");
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -80,7 +84,6 @@ public:
 
     /// One plane per face of the solid with a Newell normal.
     std::vector<Plane> compute_planes() const override;
-
 
     /// A copy moved by xform, guid and name kept; nullptr for a mirror.
     std::shared_ptr<Support> transformed(const Xform& xform) const;
@@ -134,4 +137,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

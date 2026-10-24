@@ -8,20 +8,39 @@ using namespace wood_session;
 int main() {
 
     CurvedCreaseUnfolding unfolding(
-        Primitives::arc(Point(6000.0, 0.0, 0.0), Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)), Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))),
+        Primitives::arc(
+            Point(6000.0, 0.0, 0.0),
+            Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)),
+            Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))
+        ),
         60.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 24, 15.0 * Tolerance::TO_RADIANS),
+        CurvedCreaseUnfolding::fan(
+            Point(0.0, 0.0, 0.0),
+            Vector(0.0, 0.0, 1.0),
+            Vector(1.0, 0.0, 0.0),
+            24,
+            15.0 * Tolerance::TO_RADIANS
+        ),
         40.0
     );
     std::cout << unfolding << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates = unfolding.get_elements_placed<PlateCurved>("plate");
+    const std::vector<std::shared_ptr<PlateCurved>> plates =
+        unfolding.get_elements_placed<PlateCurved>("plate");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("corrugated dome: {} plates, {} closed solids, {} contacts, development distortion {:.2e}, support drift {:.0f} mm\n", plates.size(), solids, unfolding.get_contacts().size(), unfolding.distortion(), unfolding.drift());
+    std::cout << fmt::format(
+        "corrugated dome: {} plates, {} closed solids, {} contacts, development distortion {:.2e}, "
+        "support drift {:.0f} mm\n",
+        plates.size(),
+        solids,
+        unfolding.get_contacts().size(),
+        unfolding.distortion(),
+        unfolding.drift()
+    );
     unfolding.pb_dump(pb_path("live"));
     return 0;
 }

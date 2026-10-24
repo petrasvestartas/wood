@@ -1,4 +1,3 @@
-/// side_side_outplane_fingers: parametric out-of-plane finger joint in the unit cube; m[1] comes from edges 0/1 and m[0] from 2/3.
 static void side_side_outplane_fingers(InteractionFeaturePlate& joint) {
 
     joint.name = "side_side_outplane_fingers";
@@ -6,30 +5,14 @@ static void side_side_outplane_fingers(InteractionFeaturePlate& joint) {
     int div = std::max(2, std::min(20, joint.divisions));
     div += div % 2;
 
-    std::vector<Point> arr0 = Point::interpolate(
-        Point(-0.5, 0.5,-0.5),
-        Point(-0.5, 0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr1 = Point::interpolate(
-        Point( 0.5, 0.5,-0.5),
-        Point( 0.5, 0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr2 = Point::interpolate(
-        Point( 0.5,-0.5,-0.5),
-        Point( 0.5,-0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr3 = Point::interpolate(
-        Point(-0.5,-0.5,-0.5),
-        Point(-0.5,-0.5, 0.5),
-        div,
-        0
-    );
+    std::vector<Point> arr0 =
+        Point::interpolate(Point(-0.5, 0.5, -0.5), Point(-0.5, 0.5, 0.5), div, 0);
+    std::vector<Point> arr1 =
+        Point::interpolate(Point(0.5, 0.5, -0.5), Point(0.5, 0.5, 0.5), div, 0);
+    std::vector<Point> arr2 =
+        Point::interpolate(Point(0.5, -0.5, -0.5), Point(0.5, -0.5, 0.5), div, 0);
+    std::vector<Point> arr3 =
+        Point::interpolate(Point(-0.5, -0.5, -0.5), Point(-0.5, -0.5, 0.5), div, 0);
     std::vector<Point>* arrays[4] = {&arr0, &arr1, &arr2, &arr3};
 
     const double vz = (joint.shift == 0) ? 0.0 : (joint.shift * 1.0 - 0.5) / (div + 1);
@@ -83,8 +66,16 @@ static void side_side_outplane_fingers(InteractionFeaturePlate& joint) {
         joint.female_outlines[idx] = {outline, endpoints};
     }
 
-    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.female_fabrication_types[0] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.female_fabrication_types[1] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.male_fabrication_types[0] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.male_fabrication_types[1] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
 }

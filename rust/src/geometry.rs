@@ -1,5 +1,3 @@
-//! The solid builders the element classes share, ported from wood_element_geometry.cpp and wood_profile.cpp.
-
 use session_rust::{
     BRep, BRepOrientation, BRepRef, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point, Polyline,
     Primitives, Tolerance, Vector, Xform,
@@ -197,7 +195,7 @@ fn compute_signed_volume(vertices: &[Point], faces: &[Vec<usize>]) -> f64 {
     total
 }
 
-/// The side faces of the strip under ring side j: one polygon when the strip is planar, else one quad per station pair.
+/// The side faces of the strip under ring side j.
 fn add_strip(
     vertices: &[Point],
     stations: usize,
@@ -373,7 +371,7 @@ fn side_quad(lower: &Polyline, upper: &Polyline, segment: usize) -> Option<Polyl
     ]))
 }
 
-/// The solid between bottom and top loops as a BRep, loop 0 the outline, then holes: one planar face per cap and per side quad, as C++ brep_between_loops.
+/// The solid between bottom and top loops as a BRep, loop 0 the outline, then holes.
 pub fn brep_between_loops(bottom: &[Polyline], top: &[Polyline]) -> BRep {
     if bottom.is_empty() || bottom.len() != top.len() {
         return BRep::new();
@@ -572,7 +570,7 @@ fn line_edge(brep: &mut BRep, from: usize, to: usize) -> usize {
     brep.add_edge(curve as i32, from as i32, to as i32)
 }
 
-/// A square plate of half side half and thickness on the xy plane, drilled through by exact circular holes of radius at the centres: planar caps trimmed by the square and the circles, four side faces and one cylinder per hole, as kernel BRep::create_block_with_hole does for one.
+/// Creates an exact square plate BRep with circular through holes.
 pub fn drilled_plate_brep(half: f64, thickness: f64, centres: &[[f64; 2]], radius: f64) -> BRep {
     let mut brep = BRep::new();
     brep.name = "drilled_plate".to_string();
@@ -584,7 +582,6 @@ pub fn drilled_plate_brep(half: f64, thickness: f64, centres: &[[f64; 2]], radiu
         }
     }
 
-    // bottom ring 0-3, top ring 4-7, each corner joined up; rings run counter-clockwise from above
     let bottom: Vec<usize> = (0..4)
         .map(|i| line_edge(&mut brep, i, (i + 1) % 4))
         .collect();
@@ -613,7 +610,6 @@ pub fn drilled_plate_brep(half: f64, thickness: f64, centres: &[[f64; 2]], radiu
         faces.push(BRepRef::new(face as i32, BRepOrientation::Forward));
     }
 
-    // one closed circle edge per hole at each cap and a straight seam between them
     let mut rings = Vec::new();
 
     for &[cx, cy] in centres {
@@ -686,7 +682,7 @@ pub fn drilled_plate_brep(half: f64, thickness: f64, centres: &[[f64; 2]], radiu
     brep
 }
 
-/// The cylinder of one hole, facing into the hole: the bottom circle, the seam both ways and the top circle bound it, as kernel body_face.
+/// The cylinder of one hole, facing into the hole.
 fn bore_face(
     brep: &mut BRep,
     cx: f64,

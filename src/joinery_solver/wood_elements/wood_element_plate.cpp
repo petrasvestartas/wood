@@ -11,11 +11,10 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
+Plate::Plate() : WoodElement("plate") {
+}
 
-Plate::Plate() : WoodElement("plate") {}
-
-/// The normal of a bottom outline: Newell's on a planar outline, exact where its coordinates are; on a warped one the sum of its corners'
-/// normals, as 2024's average_normal tilted it, turned to Newell's side, since on an outline of tenons the reflex corners can outweigh the rest.
+/// The normal of a bottom outline.
 static Vector outline_normal(const Polyline& outline) {
 
     const Vector newell = compute_newell(outline.get_points()).normalized();
@@ -23,21 +22,31 @@ static Vector outline_normal(const Polyline& outline) {
     if (corners.dot(newell) < 0.0)
         corners = corners * -1.0;
 
-    // the two agree on a planar outline but for rounding, which would turn the face's frame where its axes compare equal
     return (corners - newell).magnitude() <= 1e-9 ? newell : corners;
 }
 
 /// A bad outline pair degrades to an empty element, which detection skips, rather than taking a dataset run down.
-Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) : WoodElement(name) {
+Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name)
+    : WoodElement(name) {
 
     Polyline pp0 = bot;
     Polyline pp1 = top;
     if (pp0.point_count() < 3 || pp1.point_count() < 3) {
-        std::cerr << fmt::format("  WARNING: WoodElement built from outlines with {}/{} points (need >= 3 each) - element left empty.\n", pp0.point_count(), pp1.point_count());
+        std::cerr << fmt::format(
+            "  WARNING: WoodElement built from outlines with {}/{} points (need >= 3 each) - "
+            "element left empty.\n",
+            pp0.point_count(),
+            pp1.point_count()
+        );
         return;
     }
     if (pp1.point_count() < pp0.point_count()) {
-        std::cerr << fmt::format("  WARNING: WoodElement top outline has {} points but bottom has {} - element left empty (side faces would index past the end).\n", pp1.point_count(), pp0.point_count());
+        std::cerr << fmt::format(
+            "  WARNING: WoodElement top outline has {} points but bottom has {} - element left "
+            "empty (side faces would index past the end).\n",
+            pp1.point_count(),
+            pp0.point_count()
+        );
         return;
     }
 
@@ -66,7 +75,6 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
     thickness = Point::distance(cen0, planes[1].project(cen0));
 
     for (size_t j = 0; j < n_sides; j++) {
-        // the side plane through the quad's three corners, framed as CGAL framed it
         const Vector n = (pp0[j] - pp0[j + 1]).cross(pp1[j + 1] - pp0[j + 1]);
         const Vector sb1 = cgal_base1(n);
         const Vector sb2 = n.cross(sb1).normalized();
@@ -78,7 +86,6 @@ Plate::Plate(const Polyline& bot, const Polyline& top, const std::string& name) 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::shared_ptr<Plate> Plate::from_rectangle(
     const Point& origin,
     const Vector& x_axis,
@@ -88,41 +95,51 @@ std::shared_ptr<Plate> Plate::from_rectangle(
     double thickness,
     const std::string& name
 ) {
-    const Polyline bottom = Polyline::rectangle(
-        origin,
-        x_axis,
-        y_axis,
-        width,
-        height
+    const Polyline bottom = Polyline::rectangle(origin, x_axis, y_axis, width, height);
+    return std::make_shared<Plate>(
+        bottom, bottom.translated(x_axis.cross(y_axis) * thickness), name
     );
-    return std::make_shared<Plate>(bottom, bottom.translated(x_axis.cross(y_axis)*thickness), name);
 }
 
-std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name) {
+std::shared_ptr<Plate> Plate::from_line(
+    const Line& base, const Vector& up, double height, double thickness, const std::string& name
+) {
 
     const Vector along = (base.end() - base.start()).normalized();
     const Vector upward = up.normalized();
     const Vector across = along.cross(upward).normalized();
-    return from_rectangle(base.start() - across * (0.5 * thickness), along, upward, base.length(), height, thickness, name);
+    return from_rectangle(
+        base.start() - across * (0.5 * thickness),
+        along,
+        upward,
+        base.length(),
+        height,
+        thickness,
+        name
+    );
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
+std::array<std::shared_ptr<Plate>, 2>
+Plate::pair_in_plane(double angle_degrees, double length, double width, double thickness) {
 
-    // the left plate along x into the seam, the right one out of it folded up about the seam by 180 - angle, a shallow V; the seam their miter through the fold line at mid thickness
     const double fold = (180.0 - angle_degrees) * Tolerance::PI / 180.0;
     const Point centre(length, 0.0, 0.5 * thickness);
-    const std::array<Vector, 2> along = {Vector(1.0, 0.0, 0.0), Vector(std::cos(fold), 0.0, std::sin(fold))};
-    const std::array<Vector, 2> up = {Vector(0.0, 0.0, 1.0), Vector(-std::sin(fold), 0.0, std::cos(fold))};
+    const std::array<Vector, 2> along = {
+        Vector(1.0, 0.0, 0.0), Vector(std::cos(fold), 0.0, std::sin(fold))
+    };
+    const std::array<Vector, 2> up = {
+        Vector(0.0, 0.0, 1.0), Vector(-std::sin(fold), 0.0, std::cos(fold))
+    };
     const Vector miter = (along[0] + along[1]).normalized();
     const Vector across(0.0, width, 0.0);
 
-    // each plate's bottom and top face: from where it meets the miter to its far end, length along its axis from the fold line
     std::array<std::array<Polyline, 2>, 2> faces;
     for (int side = 0; side < 2; side++) {
         const double sign = side == 0 ? -1.0 : 1.0;
         for (int face = 0; face < 2; face++) {
             const Vector offset = up[side] * ((face == 0 ? -0.5 : 0.5) * thickness);
-            const Point seam = centre + offset - along[side] * (offset.dot(miter) / along[side].dot(miter));
+            const Point seam =
+                centre + offset - along[side] * (offset.dot(miter) / along[side].dot(miter));
             const Point far = centre + offset + along[side] * (sign * length);
             faces[side][face] = Polyline({seam, far, far + across, seam + across, seam});
         }
@@ -134,87 +151,163 @@ std::array<std::shared_ptr<Plate>, 2> Plate::pair_in_plane(double angle_degrees,
     };
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_folded(double angle_degrees, double length, double width, double height, double thickness) {
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_folded(
+    double angle_degrees, double length, double width, double height, double thickness
+) {
 
-    // the wall rises from the outer corner, its inner face offset by the thickness, the inner corner where it meets the floor's top
     const double angle = angle_degrees * Tolerance::PI / 180.0;
     const Point outer(length, 0.0, 0.0);
     const Vector up(-std::cos(angle), 0.0, std::sin(angle));
     const Vector inward(-std::sin(angle), 0.0, -std::cos(angle));
-    const Point inner = outer + inward * thickness + up * (thickness * (1.0 + std::cos(angle)) / std::sin(angle));
+    const Point inner =
+        outer + inward * thickness + up * (thickness * (1.0 + std::cos(angle)) / std::sin(angle));
     const Vector along(0.0, width, 0.0);
 
-    const Polyline floor_bottom({Point(0.0, 0.0, 0.0), outer, outer + along, Point(0.0, 0.0, 0.0) + along, Point(0.0, 0.0, 0.0)});
-    const Polyline floor_top({Point(0.0, 0.0, thickness), inner, inner + along, Point(0.0, 0.0, thickness) + along, Point(0.0, 0.0, thickness)});
+    const Polyline floor_bottom(
+        {Point(0.0, 0.0, 0.0),
+         outer,
+         outer + along,
+         Point(0.0, 0.0, 0.0) + along,
+         Point(0.0, 0.0, 0.0)}
+    );
+    const Polyline floor_top(
+        {Point(0.0, 0.0, thickness),
+         inner,
+         inner + along,
+         Point(0.0, 0.0, thickness) + along,
+         Point(0.0, 0.0, thickness)}
+    );
     const Point outer_end = outer + up * height;
     const Point inner_end = outer + inward * thickness + up * height;
     const Polyline wall_bottom({outer, outer + along, outer_end + along, outer_end, outer});
     const Polyline wall_top({inner, inner + along, inner_end + along, inner_end, inner});
-    return {std::make_shared<Plate>(floor_bottom, floor_top, "floor"), std::make_shared<Plate>(wall_bottom, wall_top, "wall")};
+    return {
+        std::make_shared<Plate>(floor_bottom, floor_top, "floor"),
+        std::make_shared<Plate>(wall_bottom, wall_top, "wall")
+    };
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_top_side(double angle_degrees, double base_size, double upright_size, double thickness) {
+std::array<std::shared_ptr<Plate>, 2> Plate::pair_top_side(
+    double angle_degrees, double base_size, double upright_size, double thickness
+) {
 
-    // the upright's face rising from a foot along y on the base's middle, leaning off the vertical toward x, its other face the
-    // thickness along x so that both feet stand on the base's top
     const double tilt = (90.0 - angle_degrees) * Tolerance::PI / 180.0;
     const Vector foot(0.0, upright_size, 0.0);
     const Vector rise(upright_size * std::tan(tilt), 0.0, upright_size);
     const Point corner(0.5 * (base_size - thickness), 0.5 * (base_size - upright_size), thickness);
     const Polyline face({corner, corner + foot, corner + foot + rise, corner + rise, corner});
 
-    const std::shared_ptr<Plate> base = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), base_size, base_size, thickness, "base");
-    const std::shared_ptr<Plate> upright = std::make_shared<Plate>(face, face.transformed(Xform::translation(thickness, 0.0, 0.0)), "upright");
+    const std::shared_ptr<Plate> base = from_rectangle(
+        Point(0.0, 0.0, 0.0),
+        Vector(1.0, 0.0, 0.0),
+        Vector(0.0, 1.0, 0.0),
+        base_size,
+        base_size,
+        thickness,
+        "base"
+    );
+    const std::shared_ptr<Plate> upright = std::make_shared<Plate>(
+        face, face.transformed(Xform::translation(thickness, 0.0, 0.0)), "upright"
+    );
     return {base, upright};
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_crossing(double angle_degrees, double length, double height, double thickness) {
+std::array<std::shared_ptr<Plate>, 2>
+Plate::pair_crossing(double angle_degrees, double length, double height, double thickness) {
 
     const double angle = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(angle), std::sin(angle), 0.0);
     const Vector side = along.cross(Vector(0.0, 0.0, 1.0));
     const Point centre(0.5 * length, 0.0, 0.0);
     const Point origin = centre - along * (0.5 * length) - side * (0.5 * thickness);
-    const std::shared_ptr<Plate> first = from_rectangle(Point(0.0, 0.5 * thickness, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), length, height, thickness, "first");
-    const std::shared_ptr<Plate> second = from_rectangle(origin, along, Vector(0.0, 0.0, 1.0), length, height, thickness, "second");
+    const std::shared_ptr<Plate> first = from_rectangle(
+        Point(0.0, 0.5 * thickness, 0.0),
+        Vector(1.0, 0.0, 0.0),
+        Vector(0.0, 0.0, 1.0),
+        length,
+        height,
+        thickness,
+        "first"
+    );
+    const std::shared_ptr<Plate> second =
+        from_rectangle(origin, along, Vector(0.0, 0.0, 1.0), length, height, thickness, "second");
     return {first, second};
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_stacked(double twist_degrees, double length, double width, double thickness) {
+std::array<std::shared_ptr<Plate>, 2>
+Plate::pair_stacked(double twist_degrees, double length, double width, double thickness) {
 
     const double twist = twist_degrees * Tolerance::PI / 180.0;
     const Vector x(std::cos(twist), std::sin(twist), 0.0);
     const Vector y(-std::sin(twist), std::cos(twist), 0.0);
     const Point centre(0.55 * length, 0.6 * width, thickness);
-    const std::shared_ptr<Plate> lower = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "lower");
-    const std::shared_ptr<Plate> upper = from_rectangle(centre - x * (0.5 * length) - y * (0.5 * width), x, y, length, width, thickness, "upper");
+    const std::shared_ptr<Plate> lower = from_rectangle(
+        Point(0.0, 0.0, 0.0),
+        Vector(1.0, 0.0, 0.0),
+        Vector(0.0, 1.0, 0.0),
+        length,
+        width,
+        thickness,
+        "lower"
+    );
+    const std::shared_ptr<Plate> upper = from_rectangle(
+        centre - x * (0.5 * length) - y * (0.5 * width), x, y, length, width, thickness, "upper"
+    );
     return {lower, upper};
 }
 
-std::array<std::shared_ptr<Plate>, 2> Plate::pair_rotated(double twist_degrees, double length, double width, double thickness) {
+std::array<std::shared_ptr<Plate>, 2>
+Plate::pair_rotated(double twist_degrees, double length, double width, double thickness) {
 
-    // the right plate's width and thickness axes, the left's turned about the seam normal x
     const double twist = twist_degrees * Tolerance::PI / 180.0;
     const Vector twisted_y(0.0, std::cos(twist), std::sin(twist));
     const Vector twisted_z(0.0, -std::sin(twist), std::cos(twist));
 
-    // both side faces centred on the same point of the seam plane
     const Point seam_centre(length, width * 0.5, thickness * 0.5);
-    const Point right_origin = seam_centre - twisted_y * (width * 0.5) - twisted_z * (thickness * 0.5);
+    const Point right_origin =
+        seam_centre - twisted_y * (width * 0.5) - twisted_z * (thickness * 0.5);
 
-    const std::shared_ptr<Plate> left = from_rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), length, width, thickness, "left");
-    const std::shared_ptr<Plate> right = from_rectangle(right_origin, Vector(1.0, 0.0, 0.0), twisted_y, length, width, thickness, "right");
+    const std::shared_ptr<Plate> left = from_rectangle(
+        Point(0.0, 0.0, 0.0),
+        Vector(1.0, 0.0, 0.0),
+        Vector(0.0, 1.0, 0.0),
+        length,
+        width,
+        thickness,
+        "left"
+    );
+    const std::shared_ptr<Plate> right = from_rectangle(
+        right_origin, Vector(1.0, 0.0, 0.0), twisted_y, length, width, thickness, "right"
+    );
     return {left, right};
 }
 
-std::vector<std::shared_ptr<Plate>> Plate::row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name) {
+std::vector<std::shared_ptr<Plate>> Plate::row_between(
+    const std::array<Polyline, 2>& bottom,
+    const std::array<Polyline, 2>& top,
+    const std::string& name
+) {
 
     std::vector<std::shared_ptr<Plate>> plates;
-    const size_t segments = std::min({bottom[0].point_count(), bottom[1].point_count(), top[0].point_count(), top[1].point_count()}) - 1;
+    const size_t segments = std::min(
+                                {bottom[0].point_count(),
+                                 bottom[1].point_count(),
+                                 top[0].point_count(),
+                                 top[1].point_count()}
+                            ) -
+                            1;
 
     for (size_t i = 0; i < segments; i++) {
-        const Polyline below = Polyline({bottom[0].get_point(i), bottom[0].get_point(i + 1), bottom[1].get_point(i + 1), bottom[1].get_point(i)}).closed();
-        const Polyline above = Polyline({top[0].get_point(i), top[0].get_point(i + 1), top[1].get_point(i + 1), top[1].get_point(i)}).closed();
+        const Polyline below = Polyline({bottom[0].get_point(i),
+                                         bottom[0].get_point(i + 1),
+                                         bottom[1].get_point(i + 1),
+                                         bottom[1].get_point(i)})
+                                   .closed();
+        const Polyline above = Polyline({top[0].get_point(i),
+                                         top[0].get_point(i + 1),
+                                         top[1].get_point(i + 1),
+                                         top[1].get_point(i)})
+                                   .closed();
         plates.push_back(std::make_shared<Plate>(below, above, fmt::format("{}_{}", name, i)));
     }
 
@@ -231,14 +324,17 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
     if (!bytes.empty() && bytes.front() == '{') {
         try {
             const nlohmann::json payload = nlohmann::json::parse(bytes);
-            if (payload.contains("bottom") && !payload["bottom"].is_null() && payload.contains("top") && !payload["top"].is_null()) {
+            if (payload.contains("bottom") && !payload["bottom"].is_null() &&
+                payload.contains("top") && !payload["top"].is_null()) {
                 if (payload.value("type", "") == "Plate") {
                     wood_proto::Plate proto;
                     message_from_json(payload, proto);
                     bottom = Polyline::pb_loads(proto.bottom().SerializeAsString());
                     top = Polyline::pb_loads(proto.top().SerializeAsString());
                     for (const auto& cut : proto.solid_features())
-                        saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+                        saved_cuts.push_back(
+                            InteractionFeatureSolid::pb_loads(cut.SerializeAsString())
+                        );
                 } else {
                     bottom = Polyline::jsonload(payload["bottom"]);
                     top = Polyline::jsonload(payload["top"]);
@@ -258,7 +354,8 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
             saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     }
 
-    std::shared_ptr<Plate> plate = bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();
+    std::shared_ptr<Plate> plate =
+        bottom.has_value() ? std::make_shared<Plate>(*bottom, *top) : std::make_shared<Plate>();
     static_cast<Element&>(*plate) = std::move(e);
     plate->reversed = reversed;
     plate->solid_features = std::move(saved_cuts);
@@ -285,7 +382,9 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
         }
 
         if (face == 0)
-            out.features.bottom.insert(out.features.bottom.end(), f.outlines.begin(), f.outlines.end());
+            out.features.bottom.insert(
+                out.features.bottom.end(), f.outlines.begin(), f.outlines.end()
+            );
         if (face == 1)
             out.features.top.insert(out.features.top.end(), f.outlines.begin(), f.outlines.end());
     }
@@ -296,11 +395,11 @@ std::shared_ptr<Plate> Plate::from_element(Element e) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 const Mesh& Plate::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
-        _element_geometry_mesh = polylines.size() < 2 ? Mesh() : Mesh::loft({polylines[0]}, {polylines[1]});
+        _element_geometry_mesh =
+            polylines.size() < 2 ? Mesh() : Mesh::loft({polylines[0]}, {polylines[1]});
     }
 
     return *_element_geometry_mesh;
@@ -309,7 +408,8 @@ const Mesh& Plate::element_geometry_mesh() const {
 const BRep& Plate::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
-        _element_geometry_brep = polylines.size() < 2 ? BRep() : brep_between_loops({polylines[0]}, {polylines[1]});
+        _element_geometry_brep =
+            polylines.size() < 2 ? BRep() : brep_between_loops({polylines[0]}, {polylines[1]});
     }
 
     return *_element_geometry_brep;
@@ -320,7 +420,8 @@ Mesh Plate::trimmed_mesh() const {
 }
 
 BRep Plate::trimmed_brep() const {
-    return features.top.empty() ? element_geometry_brep() : brep_between_loops(features.bottom, features.top);
+    return features.top.empty() ? element_geometry_brep()
+                                : brep_between_loops(features.bottom, features.top);
 }
 
 void Plate::swap_planes() {
@@ -345,7 +446,9 @@ std::shared_ptr<Plate> Plate::transformed(const Xform& xform) const {
     plate->planes = transformed_list(planes, xform);
     plate->thickness = thickness;
     plate->reversed = reversed;
-    plate->features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
+    plate->features = {
+        transformed_list(features.top, xform), transformed_list(features.bottom, xform)
+    };
     plate->feature_types = feature_types;
     plate->set_features(transformed_features(_features, xform));
     plate->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
@@ -445,16 +548,14 @@ std::vector<ElementFeature> Plate::face_features() const {
     for (size_t face = 0; face < face_count; face++) {
 
         const int type = face < feature_types.size() ? feature_types[face] : -1;
-        const std::vector<Polyline>& outlines = face == 0 ? features.bottom : (face == 1 ? features.top : none);
+        const std::vector<Polyline>& outlines =
+            face == 0 ? features.bottom : (face == 1 ? features.top : none);
         if (type < 0 && outlines.empty())
             continue;
 
         const std::string feature_type = type >= 0 ? "joint_type_" + std::to_string(type) : "cut";
         out.emplace_back(
-            feature_type,
-            static_cast<int>(face),
-            outlines,
-            "face_" + std::to_string(face)
+            feature_type, static_cast<int>(face), outlines, "face_" + std::to_string(face)
         );
     }
 
@@ -475,7 +576,6 @@ int Plate::given_face(int face) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 AABB Plate::aabb(double inflate) const {
 
     std::vector<Point> points;
@@ -499,7 +599,6 @@ nlohmann::ordered_json Plate::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Plate::element_data_dumps() const {
 
     wood_proto::Plate proto;
@@ -530,11 +629,11 @@ void Plate::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Plate::str() const {
 
     std::ostringstream os;
-    os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", thickness=" << thickness << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", thickness=" << thickness
+       << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
@@ -542,9 +641,9 @@ std::string Plate::str() const {
 std::string Plate::repr() const {
 
     std::ostringstream os;
-    os << "Plate(name=" << name << ", polylines=" << polylines.size() << ", planes=" << planes.size()
-       << ", reversed=" << (reversed ? "true" : "false") << ", thickness=" << thickness
-       << ", features=" << face_features().size() << ")";
+    os << "Plate(name=" << name << ", polylines=" << polylines.size()
+       << ", planes=" << planes.size() << ", reversed=" << (reversed ? "true" : "false")
+       << ", thickness=" << thickness << ", features=" << face_features().size() << ")";
 
     return os.str();
 }
@@ -556,7 +655,9 @@ std::optional<Plane> Plate::base_plane() const {
 
     const Polyline& bottom = polylines[0];
 
-    return frame_along(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), -planes[0].z_axis());
+    return frame_along(
+        bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), -planes[0].z_axis()
+    );
 }
 
-}  // namespace wood_session
+}

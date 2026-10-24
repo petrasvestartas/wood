@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The Hilti connector on six pairs of 200 mm CLT slabs folded 0 to 50 degrees, one row per angle as in the test series.
+/// The Hilti connector on six pairs of 200 mm CLT slabs folded 0 to 50 degrees.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_hilti_angles");
@@ -13,7 +13,6 @@ int main() {
         const double half_angle = 0.5 * angle * Tolerance::PI / 180.0;
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("fold_{:g}", angle));
 
-        // two 600 x 400 slabs 200 thick falling half the angle each from the ridge, mitered on x = 0, the row 600 along y
         std::array<std::shared_ptr<Plate>, 2> slabs;
         for (int side = 0; side < 2; side++) {
             const double sign = side == 0 ? -1.0 : 1.0;
@@ -21,7 +20,8 @@ int main() {
             const Vector up(sign * std::sin(half_angle), 0.0, std::cos(half_angle));
             const Vector along(0.0, 400.0, 0.0);
             const Point ridge(0.0, 600.0 * row, 0.0);
-            const Point seam_foot = ridge - up * 200.0 + down_slope * (200.0 * std::tan(half_angle));
+            const Point seam_foot =
+                ridge - up * 200.0 + down_slope * (200.0 * std::tan(half_angle));
             const Point far_foot = ridge - up * 200.0 + down_slope * 600.0;
             const Point far_top = ridge + down_slope * 600.0;
             slabs[side] = std::make_shared<Plate>(
@@ -32,9 +32,10 @@ int main() {
             scene.add(slabs[side], group);
         }
 
-        // the connector from their face contact, the same parts at every angle, its pockets following the slabs
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
-        const std::shared_ptr<JointPlate> hilti = JointPlate::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(slabs[0], slabs[1]);
+        const std::shared_ptr<JointPlate> hilti =
+            JointPlate::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
         hilti->name = fmt::format("side_side_inplane_hilti_{:g}", angle);
         scene.add(hilti, group);
         scene.add_interaction(hilti, slabs[0], hilti->interaction(0));

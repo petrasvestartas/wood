@@ -11,23 +11,36 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
+BeamVariable::BeamVariable() : WoodElement("beam_variable") {
+}
 
-BeamVariable::BeamVariable() : WoodElement("beam_variable") {}
-
-BeamVariable::BeamVariable(const Line& axis, const std::vector<Polyline>& sections, const std::string& name) : WoodElement(name), axis(axis), sections(sections) {}
+BeamVariable::BeamVariable(
+    const Line& axis, const std::vector<Polyline>& sections, const std::string& name
+)
+    : WoodElement(name), axis(axis), sections(sections) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
+std::shared_ptr<BeamVariable>
+BeamVariable::between(const Polyline& first, const Polyline& last, const std::string& name) {
 
-std::shared_ptr<BeamVariable> BeamVariable::between(const Polyline& first, const Polyline& last, const std::string& name) {
-
-    const Line axis = Line::from_points(Point::centroid(first.open_points()), Point::centroid(last.open_points()));
+    const Line axis = Line::from_points(
+        Point::centroid(first.open_points()), Point::centroid(last.open_points())
+    );
 
     return std::make_shared<BeamVariable>(axis, std::vector<Polyline>{first, last}, name);
 }
 
-std::shared_ptr<BeamVariable> BeamVariable::box(const Point& start, const Vector& direction, double length, double width, double height, const std::string& name) {
+std::shared_ptr<BeamVariable> BeamVariable::box(
+    const Point& start,
+    const Vector& direction,
+    double length,
+    double width,
+    double height,
+    const std::string& name
+) {
 
     const Vector along = direction.normalized();
     const Vector up(0.0, 0.0, 1.0);
@@ -38,26 +51,36 @@ std::shared_ptr<BeamVariable> BeamVariable::box(const Point& start, const Vector
     return between(first, last, name);
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_side_by_side(double length, double width, double height) {
+std::array<std::shared_ptr<BeamVariable>, 2>
+BeamVariable::pair_side_by_side(double length, double width, double height) {
 
     const Vector x(1.0, 0.0, 0.0);
-    const std::shared_ptr<BeamVariable> left = box(Point(0.0, -0.5 * width, 0.0), x, length, width, height, "left");
-    const std::shared_ptr<BeamVariable> right = box(Point(0.0, 0.5 * width, 0.0), x, length, width, height, "right");
+    const std::shared_ptr<BeamVariable> left =
+        box(Point(0.0, -0.5 * width, 0.0), x, length, width, height, "left");
+    const std::shared_ptr<BeamVariable> right =
+        box(Point(0.0, 0.5 * width, 0.0), x, length, width, height, "right");
     return {left, right};
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_end_to_end(double length, double width, double height) {
+std::array<std::shared_ptr<BeamVariable>, 2>
+BeamVariable::pair_end_to_end(double length, double width, double height) {
 
     const Vector x(1.0, 0.0, 0.0);
-    const std::shared_ptr<BeamVariable> first = box(Point(0.0, 0.0, 0.0), x, length, width, height, "first");
-    const std::shared_ptr<BeamVariable> second = box(Point(length, 0.0, 0.0), x, length, width, height, "second");
+    const std::shared_ptr<BeamVariable> first =
+        box(Point(0.0, 0.0, 0.0), x, length, width, height, "first");
+    const std::shared_ptr<BeamVariable> second =
+        box(Point(length, 0.0, 0.0), x, length, width, height, "second");
     return {first, second};
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2> BeamVariable::pair_tee(double length, double width, double joist_width, double height) {
+std::array<std::shared_ptr<BeamVariable>, 2>
+BeamVariable::pair_tee(double length, double width, double joist_width, double height) {
 
-    const std::shared_ptr<BeamVariable> beam = box(Point(0.0, 0.5 * width, 0.0), Vector(1.0, 0.0, 0.0), length, width, height, "beam");
-    const std::shared_ptr<BeamVariable> joist = box(Point(0.5 * length, width, 0.0), Vector(0.0, 1.0, 0.0), length, joist_width, height, "joist");
+    const std::shared_ptr<BeamVariable> beam =
+        box(Point(0.0, 0.5 * width, 0.0), Vector(1.0, 0.0, 0.0), length, width, height, "beam");
+    const std::shared_ptr<BeamVariable> joist = box(
+        Point(0.5 * length, width, 0.0), Vector(0.0, 1.0, 0.0), length, joist_width, height, "joist"
+    );
     return {beam, joist};
 }
 
@@ -84,7 +107,8 @@ std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
         beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
 
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
-        beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
+        beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()
+        ));
 
     return beam;
 }
@@ -93,8 +117,9 @@ std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The outline of the face of side k of four-cornered sections: corner k at every station along the beam, corner k + 1 back, both edges cut by every plane keeping the side its normal points to, closed; empty for other sections.
-static Polyline side_outline(const std::vector<Polyline>& sections, size_t k, const std::vector<Plane>& planes) {
+/// The outline of the face of side k of four-cornered sections.
+static Polyline
+side_outline(const std::vector<Polyline>& sections, size_t k, const std::vector<Plane>& planes) {
 
     if (sections.size() < 2)
         return Polyline();
@@ -168,7 +193,6 @@ Polyline BeamVariable::bottom() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 const Mesh& BeamVariable::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh)
@@ -202,7 +226,9 @@ std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) cons
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<BeamVariable> beam = std::make_shared<BeamVariable>(axis.transformed(xform), transformed_list(sections, xform), name);
+    std::shared_ptr<BeamVariable> beam = std::make_shared<BeamVariable>(
+        axis.transformed(xform), transformed_list(sections, xform), name
+    );
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
 
@@ -260,11 +286,8 @@ void BeamVariable::compute_geometry_features() {
     for (const Polyline& section : sections)
         stations.push_back(axis.closest_point(section.center(), false).second);
 
-    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(
-        Polyline(stations),
-        sections,
-        cutting_planes(*this)
-    );
+    const std::pair<Polyline, std::vector<Polyline>> trimmed =
+        trim_to_cuts(Polyline(stations), sections, cutting_planes(*this));
 
     std::vector<ElementFeature> next;
 
@@ -273,7 +296,6 @@ void BeamVariable::compute_geometry_features() {
     else
         next.push_back(polyline_feature("axis", Polyline({axis.start(), axis.end()})));
 
-    // the end sections only; the inner ones would draw lines across the merged faces
     std::vector<Polyline> ends;
 
     for (const Polyline& section : trimmed.second)
@@ -319,7 +341,6 @@ AABB BeamVariable::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 nlohmann::ordered_json BeamVariable::element_data_jsondump() const {
 
     wood_proto::BeamVariable proto;
@@ -333,7 +354,6 @@ nlohmann::ordered_json BeamVariable::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string BeamVariable::element_data_dumps() const {
 
     wood_proto::BeamVariable proto;
@@ -372,11 +392,12 @@ void BeamVariable::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string BeamVariable::str() const {
 
     std::ostringstream os;
-    os << "BeamVariable(name=" << name << ", sections=" << sections.size() << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "BeamVariable(name=" << name << ", sections=" << sections.size()
+       << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha
+       << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
@@ -386,7 +407,9 @@ std::optional<Plane> BeamVariable::base_plane() const {
     if (sections.empty() || sections[0].point_count() < 2)
         return std::nullopt;
 
-    return frame_along(axis.start(), sections[0].get_point(1) - sections[0].get_point(0), axis.to_vector());
+    return frame_along(
+        axis.start(), sections[0].get_point(1) - sections[0].get_point(0), axis.to_vector()
+    );
 }
 
-}  // namespace wood_session
+}

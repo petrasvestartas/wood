@@ -4,29 +4,27 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN = 8000.0; // side of the square bay
-const double RISE = 2500.0; // crown of the sail above the corners
-const double THICKNESS = 150.0; // of the webs
-const double STAR = 0.5; // star points at half the half span on the axes
-const double RIB = 200.0; // square rib section
-const int SUBDIVISIONS = 8; // sail control net and samples per rib
+const double SPAN = 8000.0;
+const double RISE = 2500.0;
+const double THICKNESS = 150.0;
+const double STAR = 0.5;
+const double RIB = 200.0;
+const int SUBDIVISIONS = 8;
 
 int main() {
 
     WoodSession wood_session("vault_star_vault");
-    for (const std::shared_ptr<Element>& element : wood_vault::star_vault(
-        SPAN,
-        RISE,
-        THICKNESS,
-        STAR,
-        RIB,
-        SUBDIVISIONS
-    ))
+    for (const std::shared_ptr<Element>& element :
+         wood_vault::star_vault(SPAN, RISE, THICKNESS, STAR, RIB, SUBDIVISIONS))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
 
-    std::cout << fmt::format("star vault: {} elements, {} contacts\n", wood_session.objects.elements->size(), wood_session.graph.number_of_edges());
+    std::cout << fmt::format(
+        "star vault: {} elements, {} contacts\n",
+        wood_session.objects.elements->size(),
+        wood_session.graph.number_of_edges()
+    );
     wood_session.pb_dump(pb_path("live"));
 
     return 0;

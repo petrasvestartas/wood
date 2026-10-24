@@ -30,14 +30,16 @@ static std::vector<Polyline> rings_from_pb(const wood_proto::PolylineList& list)
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlate - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 InteractionFeaturePlate::InteractionFeaturePlate()
-    : joint_lines{Line::from_points(Point(0, 0, 0), Point(0, 0, 0)), Line::from_points(Point(0, 0, 0), Point(0, 0, 0))} {}
+    : joint_lines{
+          Line::from_points(Point(0, 0, 0), Point(0, 0, 0)),
+          Line::from_points(Point(0, 0, 0), Point(0, 0, 0))
+      } {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlate - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionFeaturePlate::kind() const {
     return "plate";
 }
@@ -61,11 +63,11 @@ void InteractionFeaturePlate::sync_features() {
         f.name = name.empty() ? "joint_" + std::to_string(joint_type) : name;
         f.face_index = side == 0 ? contact.face_a : contact.face_b;
 
-        const std::array<std::vector<Polyline>, 2>& outlines = side == 0 ? male_outlines : female_outlines;
+        const std::array<std::vector<Polyline>, 2>& outlines =
+            side == 0 ? male_outlines : female_outlines;
         f.outlines.clear();
         f.outlines.reserve(outlines[0].size() + outlines[1].size());
 
-        // every outline of both faces but a marker of no length, the zero-length pair some designs give an insertion, which draws as two dots
         for (int face = 0; face < 2; ++face)
             for (const Polyline& outline : outlines[face])
                 if (outline.length() > 0.0)
@@ -89,7 +91,8 @@ std::shared_ptr<InteractionContact> InteractionFeaturePlate::to_contact() const 
         auto result = std::make_shared<InteractionContactFace>(contact);
         result->lines = joint_lines;
         for (int k = 0; k < 4; ++k)
-            result->volumes[k] = joint_volumes[k].value_or(joint_volumes[k % 2].value_or(Polyline()));
+            result->volumes[k] =
+                joint_volumes[k].value_or(joint_volumes[k % 2].value_or(Polyline()));
         return result;
     }
 
@@ -112,7 +115,6 @@ std::shared_ptr<InteractionContact> InteractionFeaturePlate::to_contact() const 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlate - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlate::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -133,12 +135,14 @@ std::string InteractionFeaturePlate::interaction_data_dumps() const {
             throw std::runtime_error("Failed to parse Line protobuf data");
         rings_pb(male_outlines[k], proto.add_male_outlines());
         rings_pb(female_outlines[k], proto.add_female_outlines());
-        wood_proto::IntList* male_types =
-        proto.add_male_fabrication_types();
-        male_types->mutable_values()->Add(male_fabrication_types[k].begin(), male_fabrication_types[k].end());
-        wood_proto::IntList* female_types =
-        proto.add_female_fabrication_types();
-        female_types->mutable_values()->Add(female_fabrication_types[k].begin(), female_fabrication_types[k].end());
+        wood_proto::IntList* male_types = proto.add_male_fabrication_types();
+        male_types->mutable_values()->Add(
+            male_fabrication_types[k].begin(), male_fabrication_types[k].end()
+        );
+        wood_proto::IntList* female_types = proto.add_female_fabrication_types();
+        female_types->mutable_values()->Add(
+            female_fabrication_types[k].begin(), female_fabrication_types[k].end()
+        );
     }
 
     for (const std::optional<Polyline>& volume : joint_volumes) {
@@ -191,7 +195,8 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
     j.element_b = proto.element_b();
 
     if (proto.has_contact())
-        j.contact = InteractionContactFace::interaction_data_loads(proto.contact().SerializeAsString());
+        j.contact =
+            InteractionContactFace::interaction_data_loads(proto.contact().SerializeAsString());
 
     j.joint_type = proto.joint_type();
 
@@ -211,12 +216,16 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
 
         if (k < proto.male_fabrication_types_size()) {
             const wood_proto::IntList& male_types = proto.male_fabrication_types(k);
-            j.male_fabrication_types[k].assign(male_types.values().begin(), male_types.values().end());
+            j.male_fabrication_types[k].assign(
+                male_types.values().begin(), male_types.values().end()
+            );
         }
 
         if (k < proto.female_fabrication_types_size()) {
             const wood_proto::IntList& female_types = proto.female_fabrication_types(k);
-            j.female_fabrication_types[k].assign(female_types.values().begin(), female_types.values().end());
+            j.female_fabrication_types[k].assign(
+                female_types.values().begin(), female_types.values().end()
+            );
         }
     }
 
@@ -241,7 +250,9 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
         std::vector<std::array<int, 4>> group;
 
         for (int q = 0; q + 3 < list.values_size(); q += 4)
-            group.push_back({list.values(q), list.values(q + 1), list.values(q + 2), list.values(q + 3)});
+            group.push_back(
+                {list.values(q), list.values(q + 1), list.values(q + 2), list.values(q + 3)}
+            );
 
         j.linked_joints_seq.push_back(std::move(group));
     }
@@ -250,7 +261,8 @@ InteractionFeaturePlate InteractionFeaturePlate::interaction_data_loads(const st
     j.no_orient = proto.no_orient();
 
     for (int k = 0; k < 2 && k < proto.element_features_size(); ++k) {
-        j.element_features[k] = ElementFeature::pb_loads(proto.element_features(k).SerializeAsString());
+        j.element_features[k] =
+            ElementFeature::pb_loads(proto.element_features(k).SerializeAsString());
         j.feature_guids[k] = proto.element_features(k).guid();
     }
 
@@ -263,7 +275,9 @@ std::shared_ptr<Interaction> InteractionFeaturePlate::clone() const {
 
 /// The registered factory: interaction_data bytes to a plate joint.
 static std::shared_ptr<Interaction> feature_plate_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionFeaturePlate>(InteractionFeaturePlate::interaction_data_loads(data));
+    return std::make_shared<InteractionFeaturePlate>(
+        InteractionFeaturePlate::interaction_data_loads(data)
+    );
 }
 
 void InteractionFeaturePlate::register_type() {
@@ -273,9 +287,16 @@ void InteractionFeaturePlate::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlate - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlate::str() const {
-    return fmt::format("InteractionFeaturePlate(type={}, elements=({},{}), faces=({},{}), name={})", joint_type, element_a, element_b, contact.face_a, contact.face_b, name.empty() ? "-" : name);
+    return fmt::format(
+        "InteractionFeaturePlate(type={}, elements=({},{}), faces=({},{}), name={})",
+        joint_type,
+        element_a,
+        element_b,
+        contact.face_a,
+        contact.face_b,
+        name.empty() ? "-" : name
+    );
 }
 
-} // namespace wood_session
+}

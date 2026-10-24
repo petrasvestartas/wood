@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Counter-running folding of the same depth and elevation, ridge to ridge (Engel, p. 222): a zigzag of four ridges at the start,
-/// its counter profile at the end of a 13.5 m span, every warped strip folded through its high corners into two planar triangles.
+/// Counter-running folding of the same depth and elevation, ridge to ridge .
 int main() {
 
     CounterFold fold;
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the folding templates: a surface with counter-running folding after Engel, Structure Systems, Folded plate structures (p. 222), the same depth of the fold profiles and the same elevation above ground, ridge-to-ridge folding, read off the book's plan and both elevations. A zigzag of four ridges, plates 1500 across and 1500 deep, stands at the start of a 13.5 m span, nine plates long, and its counter profile at the end, so every fold line runs from a valley to a ridge; every strip is warped and folds along the diagonal through its two high corners, a ridge running from the ridge of one end to the ridge of the other, the diagonals of neighbouring strips meeting at the ends in the zigzag of Engel's plan, the strips crossing in the X's of his end elevation: 16 planar plates 120 mm thick, flush along both sides. Each step is a group: stations, mesh, folds, plates.
+Step 5 of the folding templates: a surface with counter-running folding, the same depth of the fold profiles and the same elevation above ground, ridge-to-ridge folding, read off the construction's plan and both elevations. A zigzag of four ridges, plates 1500 across and 1500 deep, stands at the start of a 13.5 m span, nine plates long, and its counter profile at the end, so every fold line runs from a valley to a ridge; every strip is warped and folds along the diagonal through its two high corners, a ridge running from the ridge of one end to the ridge of the other, the diagonals of neighbouring strips meeting at the ends in the zigzag's plan, the strips crossing in the X's of his end elevation: 16 planar plates 120 mm thick, flush along both sides. Each step is a group: stations, mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

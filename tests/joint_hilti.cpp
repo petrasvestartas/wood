@@ -9,12 +9,11 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 // Tolerances and the fixture
 // ═══════════════════════════════════════════════════════════════════════════
-
-static const double SAME = 1e-6; // mm and mm3 relative, a part against itself at another angle
-static const double ZERO_REL = 1e-6; // relative to a part, an overlap or a gap
-static const double SLAB_WIDTH = 600.0; // along the slope, the seam to the far end
-static const double SLAB_DEPTH = 400.0; // along the seam
-static const double SLAB_THICKNESS = 200.0; // CLT
+static const double SAME = 1e-6;
+static const double ZERO_REL = 1e-6;
+static const double SLAB_WIDTH = 600.0;
+static const double SLAB_DEPTH = 400.0;
+static const double SLAB_THICKNESS = 200.0;
 static const std::vector<double> ANGLES = {0.0, 10.0, 20.0, 30.0, 40.0, 50.0};
 
 /// Throws with the message when the condition fails.
@@ -24,7 +23,7 @@ static void check(bool ok, const std::string& message) {
         throw std::runtime_error(message);
 }
 
-/// A slab folded half the angle down from the ridge along y, on side -1 (x < 0) or +1, its seam face mitered on x = 0.
+/// A slab folded half the angle down from the ridge along y, on side -1 (x < 0) or +1.
 static std::shared_ptr<Plate> folded_slab(double angle, double side, const std::string& name) {
 
     const double half = 0.5 * angle * std::numbers::pi / 180.0;
@@ -32,7 +31,8 @@ static std::shared_ptr<Plate> folded_slab(double angle, double side, const std::
     const Vector up(side * std::sin(half), 0.0, std::cos(half));
     const Vector along(0.0, SLAB_DEPTH, 0.0);
     const Point ridge(0.0, 0.0, 0.0);
-    const Point seam_foot = ridge - up * SLAB_THICKNESS + down_slope * (SLAB_THICKNESS * std::tan(half));
+    const Point seam_foot =
+        ridge - up * SLAB_THICKNESS + down_slope * (SLAB_THICKNESS * std::tan(half));
     const Point far_foot = ridge - up * SLAB_THICKNESS + down_slope * SLAB_WIDTH;
     const Point far_top = ridge + down_slope * SLAB_WIDTH;
 
@@ -63,7 +63,7 @@ static size_t cylinders(const BRep& brep) {
 // One fold angle
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The pair folded at the angle with its connector, checked; returns the key's volume and the bolt's length for the comparison across angles.
+/// The pair folded at the angle with its connector, checked.
 static std::array<double, 2> check_angle(double angle) {
 
     WoodSession scene(fmt::format("hilti_{:g}", angle));
@@ -74,7 +74,8 @@ static std::array<double, 2> check_angle(double angle) {
 
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
     check(contact != nullptr, fmt::format("{:g} degrees: the slabs have no face contact", angle));
-    const std::shared_ptr<JointPlate> hilti = JointPlate::side_side_inplane_hilti(*left, *right, *contact);
+    const std::shared_ptr<JointPlate> hilti =
+        JointPlate::side_side_inplane_hilti(*left, *right, *contact);
     check(hilti != nullptr, fmt::format("{:g} degrees: no connector on the seam", angle));
     scene.add(hilti);
     scene.add_interaction(hilti, left, hilti->interaction(0));
@@ -82,10 +83,14 @@ static std::array<double, 2> check_angle(double angle) {
 
     const Mesh key = hilti->key_mesh();
     const std::vector<Line> bolts = hilti->drill_axes();
-    check(key.is_closed() && bolts.size() == 1, fmt::format("{:g} degrees: key closed {} and {} bolts, not 1", angle, key.is_closed(), bolts.size()));
+    check(
+        key.is_closed() && bolts.size() == 1,
+        fmt::format(
+            "{:g} degrees: key closed {} and {} bolts, not 1", angle, key.is_closed(), bolts.size()
+        )
+    );
     const double key_volume = compute_volume(key);
 
-    // shrunk a thousandth about its centre, so a face the key shares with a pocket's wall is no overlap and a real one stays
     const Mesh shrunk = key.transformed(Xform::scale_uniform(key.centroid(), 1.0 - 1e-3));
 
     // per slab: the key clear of its cut model, and the slab losing only its pocket
@@ -97,9 +102,21 @@ static std::array<double, 2> check_angle(double angle) {
         const Mesh& stock = slab->element_geometry_mesh();
         const Mesh& model = slab->model_geometry_mesh();
         stocks.push_back(stock);
-        check(model.is_closed() && compute_volume(model) < compute_volume(stock), fmt::format("{:g} degrees: {} is not cut", angle, slab->name));
+        check(
+            model.is_closed() && compute_volume(model) < compute_volume(stock),
+            fmt::format("{:g} degrees: {} is not cut", angle, slab->name)
+        );
         const BRep& brep = slab->model_geometry_brep();
-        check(brep.is_valid() && brep.is_solid(), fmt::format("{:g} degrees: {} model BRep valid {} solid {}", angle, slab->name, brep.is_valid(), brep.is_solid()));
+        check(
+            brep.is_valid() && brep.is_solid(),
+            fmt::format(
+                "{:g} degrees: {} model BRep valid {} solid {}",
+                angle,
+                slab->name,
+                brep.is_valid(),
+                brep.is_solid()
+            )
+        );
 
         // the top face: the slab's plane facing up the most
         tops[side] = slab->planes[0];
@@ -108,24 +125,54 @@ static std::array<double, 2> check_angle(double angle) {
                 tops[side] = plane;
 
         const double overlap = boolean_volume(shrunk, model, SolidOperation::intersect);
-        check(overlap <= ZERO_REL * key_volume, fmt::format("{:g} degrees: the key overlaps the cut {} by {:.3f} mm3", angle, slab->name, overlap));
+        check(
+            overlap <= ZERO_REL * key_volume,
+            fmt::format(
+                "{:g} degrees: the key overlaps the cut {} by {:.3f} mm3",
+                angle,
+                slab->name,
+                overlap
+            )
+        );
 
-        const Mesh pocket = JointPlate::side_solids(hilti->connections[0], static_cast<int>(side)).at(0);
+        const Mesh pocket =
+            JointPlate::side_solids(hilti->connections[0], static_cast<int>(side)).at(0);
         const Mesh gap = solid_difference(stock, {model, pocket});
         const double unfilled = gap.number_of_faces() == 0 ? 0.0 : compute_volume(gap);
-        check(unfilled <= ZERO_REL * key_volume, fmt::format("{:g} degrees: {} lost {:.3f} mm3 its pocket does not account for", angle, slab->name, unfilled));
+        check(
+            unfilled <= ZERO_REL * key_volume,
+            fmt::format(
+                "{:g} degrees: {} lost {:.3f} mm3 its pocket does not account for",
+                angle,
+                slab->name,
+                unfilled
+            )
+        );
     }
 
-    // the key inside the slabs, or standing out of their tops where the fold lowers them under the straight bow-tie, as on the test series
     const Mesh outside = solid_difference(shrunk, stocks);
     double below = 0.0;
     for (const std::pair<const size_t, VertexData>& vertex : outside.vertex)
-        below = std::max(below, -std::max(tops[0].signed_distance(vertex.second.position()), tops[1].signed_distance(vertex.second.position())));
-    check(below <= 1e-6 * SLAB_THICKNESS, fmt::format("{:g} degrees: the key leaves the slabs {:.6f} below their tops", angle, below));
+        below = std::max(
+            below,
+            -std::max(
+                tops[0].signed_distance(vertex.second.position()),
+                tops[1].signed_distance(vertex.second.position())
+            )
+        );
+    check(
+        below <= 1e-6 * SLAB_THICKNESS,
+        fmt::format("{:g} degrees: the key leaves the slabs {:.6f} below their tops", angle, below)
+    );
 
-    // the bolt through the key, an exact cylinder
-    check(!inside_stretches(key, bolts[0]).empty(), fmt::format("{:g} degrees: the bolt misses the key", angle));
-    check(cylinders(hilti->element_geometry_brep()) > 0, fmt::format("{:g} degrees: the bolt is no exact cylinder", angle));
+    check(
+        !inside_stretches(key, bolts[0]).empty(),
+        fmt::format("{:g} degrees: the bolt misses the key", angle)
+    );
+    check(
+        cylinders(hilti->element_geometry_brep()) > 0,
+        fmt::format("{:g} degrees: the bolt is no exact cylinder", angle)
+    );
 
     return {key_volume, bolts[0].length()};
 }
@@ -133,18 +180,32 @@ static std::array<double, 2> check_angle(double angle) {
 // ═══════════════════════════════════════════════════════════════════════════
 // The run
 // ═══════════════════════════════════════════════════════════════════════════
-
 int main() {
 
     const std::array<double, 2> flat = check_angle(ANGLES[0]);
 
-    // the same key and bolt at every angle
     for (size_t a = 1; a < ANGLES.size(); a++) {
         const std::array<double, 2> folded = check_angle(ANGLES[a]);
         for (size_t k = 0; k < 2; k++)
-            check(std::abs(flat[k] - folded[k]) <= SAME * std::max(1.0, flat[k]), fmt::format("at {:g} degrees number {} differs from the flat one: {:.9g} against {:.9g}", ANGLES[a], k, folded[k], flat[k]));
+            check(
+                std::abs(flat[k] - folded[k]) <= SAME * std::max(1.0, flat[k]),
+                fmt::format(
+                    "at {:g} degrees number {} differs from the flat one: {:.9g} against {:.9g}",
+                    ANGLES[a],
+                    k,
+                    folded[k],
+                    flat[k]
+                )
+            );
     }
 
-    std::cout << fmt::format("joint_hilti: a key of {:.0f} mm3 and a bolt of {:.1f} mm identical at 0 to 50 degrees, in the slabs or standing out of their tops, each slab losing only its 2024 bow-tie pocket", flat[0], flat[1]) << std::endl;
+    std::cout << fmt::format(
+                     "joint_hilti: a key of {:.0f} mm3 and a bolt of {:.1f} mm identical at 0 to "
+                     "50 degrees, in the slabs or standing out of their tops, each slab losing "
+                     "only its 2024 bow-tie pocket",
+                     flat[0],
+                     flat[1]
+                 )
+              << std::endl;
     return 0;
 }

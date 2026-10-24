@@ -7,15 +7,14 @@ namespace wood_session {
 using namespace session_cpp;
 
 bool is_geometry_feature(std::string_view feature_type) {
-    return feature_type == "outline" || feature_type == "axis" || feature_type == "section" || feature_type == "top" || feature_type == "bottom";
+    return feature_type == "outline" || feature_type == "axis" || feature_type == "section" ||
+           feature_type == "top" || feature_type == "bottom";
 }
 
-ElementFeature polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index) {
+ElementFeature
+polyline_feature(std::string_view feature_type, const Polyline& polyline, int face_index) {
     return ElementFeature(
-        std::string(feature_type),
-        face_index,
-        {polyline},
-        std::string(feature_type)
+        std::string(feature_type), face_index, {polyline}, std::string(feature_type)
     );
 }
 
@@ -39,12 +38,7 @@ std::vector<ElementFeature> session_features(const Element& element) {
     return kept;
 }
 
-Polyline square_section(
-    const Point& at,
-    const Vector& direction,
-    const Vector& up,
-    double radius
-) {
+Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius) {
 
     const Vector along = direction.normalized();
     Vector rise = up.is_parallel_to(along) == 0 ? up : Vector::z_axis();
@@ -60,13 +54,17 @@ Polyline square_section(
     return Polyline({at - u - s, at - u + s, at + u + s, at + u - s, at - u - s});
 }
 
-/// The solid between matching bottom and top loops as a boundary representation: loop 0 the outer outline, the rest holes; one quad per edge of every loop.
+/// The solid between matching bottom and top loops as a boundary representation.
 Vector compute_newell(const std::vector<Point>& points) {
 
-    const size_t count = points.size() > 1 && points.front().distance(points.back()) < Tolerance::APPROXIMATION ? points.size() - 1 : points.size();
+    const size_t count =
+        points.size() > 1 && points.front().distance(points.back()) < Tolerance::APPROXIMATION
+            ? points.size() - 1
+            : points.size();
     Vector normal(0.0, 0.0, 0.0);
     for (size_t i = 0; i < count; i++)
-        normal += (points[i] - Point(0.0, 0.0, 0.0)).cross(points[(i + 1) % count] - Point(0.0, 0.0, 0.0));
+        normal += (points[i] - Point(0.0, 0.0, 0.0))
+                      .cross(points[(i + 1) % count] - Point(0.0, 0.0, 0.0));
 
     return normal.normalized();
 }
@@ -90,10 +88,17 @@ Vector cgal_base1(const Vector& normal) {
     return Vector(-normal[1], normal[0], 0.0).normalized();
 }
 
-Clipper2Lib::PathD clipper_path(const Polyline& outline, const Point& origin, const Vector& x_axis, const Vector& y_axis, const bool open) {
+Clipper2Lib::PathD clipper_path(
+    const Polyline& outline,
+    const Point& origin,
+    const Vector& x_axis,
+    const Vector& y_axis,
+    const bool open
+) {
 
     Clipper2Lib::PathD path;
-    const size_t n = !open && outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
+    const size_t n =
+        !open && outline.is_closed() ? outline.point_count() - 1 : outline.point_count();
     path.reserve(n);
     for (size_t k = 0; k < n; ++k) {
         const Vector d = outline.get_point(k) - origin;
@@ -116,18 +121,14 @@ std::vector<Plane> face_planes(const Mesh& mesh) {
 }
 
 /// The signed flux of one triangle of vertex keys about the origin, six times its tetrahedron volume.
-static double compute_flux(
-    const Mesh& mesh,
-    size_t a,
-    size_t b,
-    size_t c
-) {
+static double compute_flux(const Mesh& mesh, size_t a, size_t b, size_t c) {
 
     const Point p0 = *mesh.vertex_point(a);
     const Point p1 = *mesh.vertex_point(b);
     const Point p2 = *mesh.vertex_point(c);
 
-    return p0[0] * (p1[1] * p2[2] - p1[2] * p2[1]) + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2]) + p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);
+    return p0[0] * (p1[1] * p2[2] - p1[2] * p2[1]) + p0[1] * (p1[2] * p2[0] - p1[0] * p2[2]) +
+           p0[2] * (p1[0] * p2[1] - p1[1] * p2[0]);
 }
 
 double compute_volume(const Mesh& mesh) {
@@ -136,29 +137,19 @@ double compute_volume(const Mesh& mesh) {
     for (const size_t face : mesh.faces()) {
         if (mesh.get_triangulation().count(face)) {
             for (const std::array<size_t, 3>& triangle : mesh.get_triangulation().at(face))
-                total += compute_flux(
-                    mesh,
-                    triangle[0],
-                    triangle[1],
-                    triangle[2]
-                );
+                total += compute_flux(mesh, triangle[0], triangle[1], triangle[2]);
             continue;
         }
 
         const std::vector<size_t> ring = *mesh.face_vertices(face);
         for (size_t i = 1; i + 1 < ring.size(); i++)
-            total += compute_flux(
-                mesh,
-                ring[0],
-                ring[i],
-                ring[i + 1]
-            );
+            total += compute_flux(mesh, ring[0], ring[i], ring[i + 1]);
     }
 
     return std::abs(total) / 6.0;
 }
 
-const double COPLANAR = 1e-6; // a side strip whose points lie within this of one plane becomes one face; closer points are one
+const double COPLANAR = 1e-6;
 
 /// The points of every section without the closing point, empty unless all share one count of at least three.
 static std::vector<std::vector<Point>> compute_rings(const std::vector<Polyline>& sections) {
@@ -194,7 +185,9 @@ static bool is_coplanar(const std::vector<Point>& points) {
 }
 
 /// Six times the signed volume enclosed by the faces, positive when they face outwards.
-static double compute_signed_volume(const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces) {
+static double compute_signed_volume(
+    const std::vector<Point>& vertices, const std::vector<std::vector<size_t>>& faces
+) {
 
     double total = 0.0;
 
@@ -209,7 +202,7 @@ static double compute_signed_volume(const std::vector<Point>& vertices, const st
     return total;
 }
 
-/// The side faces of the strip under ring side j: one polygon when the strip is planar, else one quad per station pair.
+/// The side faces of the strip under ring side j.
 static void add_strip(
     const std::vector<Point>& vertices,
     size_t stations,
@@ -242,7 +235,8 @@ static void add_strip(
 }
 
 /// The face's points with repeats dropped, a stepped section collapsing a side onto its neighbour; empty when fewer than three are left.
-static std::vector<Point> compute_face_points(const std::vector<Point>& vertices, const std::vector<size_t>& face) {
+static std::vector<Point>
+compute_face_points(const std::vector<Point>& vertices, const std::vector<size_t>& face) {
 
     std::vector<Point> points;
 
@@ -276,13 +270,7 @@ Mesh loft_stations(const std::vector<Polyline>& sections) {
     std::vector<std::vector<size_t>> faces;
 
     for (size_t j = 0; j < count; j++)
-        add_strip(
-            vertices,
-            stations,
-            count,
-            j,
-            faces
-        );
+        add_strip(vertices, stations, count, j, faces);
 
     std::vector<size_t> start(count);
     std::vector<size_t> end(count);
@@ -330,7 +318,10 @@ BRep brep_between_loops(const std::vector<Polyline>& bottom, const std::vector<P
             corners.push_back(*walls.vertex_point(vertex));
         std::vector<Polyline> sides;
         if (corners.size() == 4 && !is_coplanar(corners))
-            sides = {Polyline({corners[0], corners[1], corners[2], corners[0]}), Polyline({corners[0], corners[2], corners[3], corners[0]})};
+            sides = {
+                Polyline({corners[0], corners[1], corners[2], corners[0]}),
+                Polyline({corners[0], corners[2], corners[3], corners[0]})
+            };
         else {
             corners.push_back(corners.front());
             sides = {Polyline(corners)};
@@ -360,7 +351,13 @@ BRep brep_sections(const std::vector<Polyline>& sections) {
 
         const size_t segment_count = lower.point_count() - 1;
         for (size_t segment = 0; segment < segment_count; segment++)
-            faces.push_back(Polyline({lower.get_point(segment), lower.get_point(segment + 1), upper.get_point(segment + 1), upper.get_point(segment), lower.get_point(segment)}));
+            faces.push_back(Polyline(
+                {lower.get_point(segment),
+                 lower.get_point(segment + 1),
+                 upper.get_point(segment + 1),
+                 upper.get_point(segment),
+                 lower.get_point(segment)}
+            ));
     }
 
     return BRep::from_polylines(faces, std::vector<std::vector<Polyline>>(faces.size()));
@@ -473,10 +470,11 @@ static double exit_parameter(const std::vector<Point>& points, const Plane& plan
 
 /// The axis point at parameter t on segment `segment`.
 static Point point_at(const std::vector<Point>& points, size_t segment, double t) {
-    return points[segment] + (points[segment + 1] - points[segment]) * (t - static_cast<double>(segment));
+    return points[segment] +
+           (points[segment + 1] - points[segment]) * (t - static_cast<double>(segment));
 }
 
-/// A closed ring cut by a plane, the part on the side its normal points to; empty when under three points are left.
+/// A closed ring cut by a plane.
 static Polyline clip_ring(const Polyline& ring, const Plane& plane) {
 
     const size_t n = ring.is_closed() ? ring.point_count() - 1 : ring.point_count();
@@ -515,21 +513,27 @@ static Polyline kept_ring(const Polyline& ring, const std::vector<Plane>& cuts, 
     return face;
 }
 
-/// The face cut `index` leaves on a member lofted through `sections`: every corner's edge from station to station met by the plane, then clipped by every other cut.
-static Polyline end_section(const std::vector<Polyline>& sections, const std::vector<Plane>& cuts, size_t index) {
+/// The face cut `index` leaves on a member lofted through `sections`.
+static Polyline
+end_section(const std::vector<Polyline>& sections, const std::vector<Plane>& cuts, size_t index) {
 
     const Plane& plane = cuts[index];
     std::vector<Point> corners;
 
     for (size_t j = 0; j < sections.front().point_count(); j++) {
 
-        // the station pair the corner crosses the plane between; a corner that never crosses extends its nearer end pair
         size_t i = 0;
-        while (i + 1 < sections.size() - 1 && signed_distance(plane, sections[i].get_point(j)) * signed_distance(plane, sections[i + 1].get_point(j)) > 0.0)
+        while (i + 1 < sections.size() - 1 &&
+               signed_distance(plane, sections[i].get_point(j)) *
+                       signed_distance(plane, sections[i + 1].get_point(j)) >
+                   0.0)
             i++;
 
-        if (signed_distance(plane, sections[i].get_point(j)) * signed_distance(plane, sections[i + 1].get_point(j)) > 0.0
-            && std::abs(signed_distance(plane, sections.front().get_point(j))) < std::abs(signed_distance(plane, sections.back().get_point(j))))
+        if (signed_distance(plane, sections[i].get_point(j)) *
+                    signed_distance(plane, sections[i + 1].get_point(j)) >
+                0.0 &&
+            std::abs(signed_distance(plane, sections.front().get_point(j))) <
+                std::abs(signed_distance(plane, sections.back().get_point(j))))
             i = 0;
 
         const Point a = sections[i].get_point(j);
@@ -546,7 +550,9 @@ static Polyline end_section(const std::vector<Polyline>& sections, const std::ve
     return kept_ring(Polyline(corners), cuts, index);
 }
 
-std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, const std::vector<Polyline>& sections, const std::vector<Plane>& cuts) {
+std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(
+    const Polyline& axis, const std::vector<Polyline>& sections, const std::vector<Plane>& cuts
+) {
 
     const std::vector<Point> points = axis.get_points();
     if (points.size() < 2 || cuts.empty())
@@ -583,7 +589,10 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, co
     std::vector<Polyline> rings;
 
     if (ringed)
-        rings.push_back(start_cut < 0 ? kept_ring(sections[0], cuts, cuts.size()) : end_section(sections, cuts, start_cut));
+        rings.push_back(
+            start_cut < 0 ? kept_ring(sections[0], cuts, cuts.size())
+                          : end_section(sections, cuts, start_cut)
+        );
 
     for (size_t i = first + 1; i <= last; i++) {
 
@@ -596,7 +605,10 @@ std::pair<Polyline, std::vector<Polyline>> trim_to_cuts(const Polyline& axis, co
     kept.push_back(point_at(points, last, end));
 
     if (ringed)
-        rings.push_back(end_cut < 0 ? kept_ring(sections[n], cuts, cuts.size()) : end_section(sections, cuts, end_cut));
+        rings.push_back(
+            end_cut < 0 ? kept_ring(sections[n], cuts, cuts.size())
+                        : end_section(sections, cuts, end_cut)
+        );
 
     return {Polyline(kept), rings};
 }
@@ -611,12 +623,7 @@ std::optional<Plane> frame_along(const Point& origin, const Vector& along, const
 
     const Vector x = across.normalized();
 
-    return Plane::from_frame(
-        origin,
-        x,
-        up.cross(x),
-        up
-    );
+    return Plane::from_frame(origin, x, up.cross(x), up);
 }
 
 bool is_mirror(const Xform& xform) {
@@ -628,7 +635,8 @@ bool is_mirror(const Xform& xform) {
     return x.cross(y).dot(z) < 0.0;
 }
 
-std::vector<ElementFeature> transformed_features(const std::vector<ElementFeature>& features, const Xform& xform) {
+std::vector<ElementFeature>
+transformed_features(const std::vector<ElementFeature>& features, const Xform& xform) {
 
     std::vector<ElementFeature> moved = clone(features);
 
@@ -637,7 +645,6 @@ std::vector<ElementFeature> transformed_features(const std::vector<ElementFeatur
 
     return moved;
 }
-
 
 static void offset_index(int& index, int amount) {
 
@@ -678,15 +685,51 @@ void append_brep(BRep& target, BRep source) {
         for (BRepRef& reference : solid.shells)
             offset_index(reference.index, target.m_shells.size());
 
-    target.m_surfaces.insert(target.m_surfaces.end(), std::make_move_iterator(source.m_surfaces.begin()), std::make_move_iterator(source.m_surfaces.end()));
-    target.m_curves_3d.insert(target.m_curves_3d.end(), std::make_move_iterator(source.m_curves_3d.begin()), std::make_move_iterator(source.m_curves_3d.end()));
-    target.m_curves_2d.insert(target.m_curves_2d.end(), std::make_move_iterator(source.m_curves_2d.begin()), std::make_move_iterator(source.m_curves_2d.end()));
-    target.m_vertices.insert(target.m_vertices.end(), std::make_move_iterator(source.m_vertices.begin()), std::make_move_iterator(source.m_vertices.end()));
-    target.m_edges.insert(target.m_edges.end(), std::make_move_iterator(source.m_edges.begin()), std::make_move_iterator(source.m_edges.end()));
-    target.m_wires.insert(target.m_wires.end(), std::make_move_iterator(source.m_wires.begin()), std::make_move_iterator(source.m_wires.end()));
-    target.m_faces.insert(target.m_faces.end(), std::make_move_iterator(source.m_faces.begin()), std::make_move_iterator(source.m_faces.end()));
-    target.m_shells.insert(target.m_shells.end(), std::make_move_iterator(source.m_shells.begin()), std::make_move_iterator(source.m_shells.end()));
-    target.m_solids.insert(target.m_solids.end(), std::make_move_iterator(source.m_solids.begin()), std::make_move_iterator(source.m_solids.end()));
+    target.m_surfaces.insert(
+        target.m_surfaces.end(),
+        std::make_move_iterator(source.m_surfaces.begin()),
+        std::make_move_iterator(source.m_surfaces.end())
+    );
+    target.m_curves_3d.insert(
+        target.m_curves_3d.end(),
+        std::make_move_iterator(source.m_curves_3d.begin()),
+        std::make_move_iterator(source.m_curves_3d.end())
+    );
+    target.m_curves_2d.insert(
+        target.m_curves_2d.end(),
+        std::make_move_iterator(source.m_curves_2d.begin()),
+        std::make_move_iterator(source.m_curves_2d.end())
+    );
+    target.m_vertices.insert(
+        target.m_vertices.end(),
+        std::make_move_iterator(source.m_vertices.begin()),
+        std::make_move_iterator(source.m_vertices.end())
+    );
+    target.m_edges.insert(
+        target.m_edges.end(),
+        std::make_move_iterator(source.m_edges.begin()),
+        std::make_move_iterator(source.m_edges.end())
+    );
+    target.m_wires.insert(
+        target.m_wires.end(),
+        std::make_move_iterator(source.m_wires.begin()),
+        std::make_move_iterator(source.m_wires.end())
+    );
+    target.m_faces.insert(
+        target.m_faces.end(),
+        std::make_move_iterator(source.m_faces.begin()),
+        std::make_move_iterator(source.m_faces.end())
+    );
+    target.m_shells.insert(
+        target.m_shells.end(),
+        std::make_move_iterator(source.m_shells.begin()),
+        std::make_move_iterator(source.m_shells.end())
+    );
+    target.m_solids.insert(
+        target.m_solids.end(),
+        std::make_move_iterator(source.m_solids.begin()),
+        std::make_move_iterator(source.m_solids.end())
+    );
 }
 
 void append_mesh(Mesh& target, const Mesh& source) {
@@ -761,7 +804,9 @@ BRep mesh_brep(const Mesh& mesh) {
     return BRep::from_polylines(faces, holes);
 }
 
-Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>& cuts, bool drills) {
+Mesh apply_solid_features(
+    Mesh mesh, const std::vector<InteractionFeatureSolid>& cuts, bool drills
+) {
 
     std::vector<Mesh> pending;
 
@@ -783,12 +828,7 @@ Mesh apply_solid_features(Mesh mesh, const std::vector<InteractionFeatureSolid>&
         else if (cut.operation == SolidOperation::subtract)
             pending.push_back(cut.mesh);
         else
-            mesh = solid_boolean(
-                mesh,
-                cut.mesh,
-                cut.operation,
-                cut.tolerance
-            );
+            mesh = solid_boolean(mesh, cut.mesh, cut.operation, cut.tolerance);
     }
 
     if (!pending.empty())
@@ -814,7 +854,6 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
         if (std::optional<BRep> exact = drilled_brep(milled, drills))
             return *exact;
 
-        // a bore that grazes an edge or another bore is subtracted faceted first, so every other bore stays an exact cylinder
         const std::array<std::vector<Drill>, 2> split = split_clear_drills(milled, drills);
 
         if (!split[0].empty() && !split[1].empty()) {
@@ -823,7 +862,8 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
             for (const Drill& drill : split[1])
                 grazing.push_back(drill_mesh(drill.axis, drill.radius, chord_tolerance));
 
-            if (std::optional<BRep> exact = drilled_brep(solid_difference(milled, grazing), split[0]))
+            if (std::optional<BRep> exact =
+                    drilled_brep(solid_difference(milled, grazing), split[0]))
                 return *exact;
         }
     }
@@ -838,7 +878,7 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
 
 }
 
-/// The contact polygon's corners without the closing point and without corners on a straight line through their neighbours, compas_tf's _merge_collinear_points.
+/// Returns contact corners without the closing point or collinear vertices.
 std::vector<Point> merge_collinear(const Polyline& polygon) {
 
     std::vector<Point> points = polygon.get_points();

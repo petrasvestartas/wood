@@ -24,70 +24,78 @@ struct DetectionTrace {
 // Face contacts - broad phase
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Candidate element pairs (i, j) with i < j, sorted by i then j: inflated OBB per element, a BVH over their AABBs, then an OBB/OBB SAT test; `names` selects by name, empty means everything.
+/// Candidate element pairs (i, j) with i < j, sorted by i then j.
 std::vector<std::pair<int, int>> adjacency_search(
     const std::vector<std::shared_ptr<Element>>& elements,
     double inflate,
-    const std::vector<std::string>& names = {});
+    const std::vector<std::string>& names = {}
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Face contacts - narrow phase
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// True when two faces touch back-to-back: z axes antiparallel within `cos_angle` (cos of config::ANGLE, radians) and each origin within `coplanar_tolerance` (a squared distance) of the other's plane; the z axes need not be unit length.
+/// True when two faces touch back-to-back.
 bool faces_coplanar(
-    const Plane& face0,
-    const Plane& face1,
-    double cos_angle,
-    double coplanar_tolerance);
+    const Plane& face0, const Plane& face1, double cos_angle, double coplanar_tolerance
+);
 
-/// The first overlap of two coplanar outlines as a closed polygon in `plane0`, clipped as the 2024 solver clipped it: in the frame of the first outline point and CGAL's bases of the plane, on Clipper2's 0.01 mm grid, so every joint line and volume follows that grid; areas at or below `clipper_area` are none; coplanarity is a precondition, triangles count only when `include_triangles`.
+/// The first overlap of two coplanar outlines as a closed polygon in `plane0`, clipped as the 2024 solver clipped it.
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
     const Plane& plane0,
     bool include_triangles,
     double clipper_area,
-    Polyline& out_area);
+    Polyline& out_area
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Face contacts - both phases
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Every contacting face pair between ONE element pair, ordered by face index; a triangular overlap counts unless both elements are plates and one face is a side; two curved plates touch where a face of one is ruled between curves lying on those of a face of the other, within ten times settings.distance; `trace`, when given, counts the coplanar and overlapping pairs.
+/// Every contacting face pair between ONE element pair, ordered by face index.
 std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea,
     Element& eb,
     const Settings& settings,
     DetectionTrace* trace = nullptr,
-    bool with_volumes = true);
+    bool with_volumes = true
+);
 
-/// Every face pair in contact across a set of elements, as (position of the first element, position of the second, the contact): adjacency_search within settings.distance, then faces_coplanar + face_overlap_area over each candidate.
+/// Every face pair in contact across a set of elements, as (position of the first element, position of the second.
 std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
     const std::vector<std::shared_ptr<Element>>& elements,
     const Settings& settings,
-    const std::vector<std::string>& names = {});
+    const std::vector<std::string>& names = {}
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Cross contacts
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Cross/lap contact detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing. A vertex within sqrt(distance_squared) of the other plate's plane is near-coplanar and rejects the crossing.
+/// Cross/lap contact detection between two plates from their bottom and top outlines and planes; by reference so the hot loop copies nothing.
 bool plane_to_face(
-    const Polyline& a_bottom, const Polyline& a_top,
-    const Polyline& b_bottom, const Polyline& b_top,
-    const Plane& a_plane_bottom, const Plane& a_plane_top,
-    const Plane& b_plane_bottom, const Plane& b_plane_top,
+    const Polyline& a_bottom,
+    const Polyline& a_top,
+    const Polyline& b_bottom,
+    const Polyline& b_top,
+    const Plane& a_plane_bottom,
+    const Plane& a_plane_top,
+    const Plane& b_plane_bottom,
+    const Plane& b_plane_top,
     double distance_squared,
     InteractionContactCross& result,
     double angle_tol = 5.0,
-    const std::array<double, 3>& extension = {0.0, 0.0, 0.0});
+    const std::array<double, 3>& extension = {0.0, 0.0, 0.0}
+);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Axis contacts
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The closest segment pair of every two beam axes within `min_distance`, one per beam pair, as (position of the first beam, position of the second, the contact).
-std::vector<std::tuple<int, int, InteractionContactAxis>> axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
+/// The closest segment pair of every two beam axes within `min_distance`.
+std::vector<std::tuple<int, int, InteractionContactAxis>>
+axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
 
-}  // namespace wood_session
+}

@@ -24,7 +24,8 @@ class FoldMesh {
 private:
     std::vector<Point> _points; // Every point gathered, one per vertex.
     std::vector<std::vector<size_t>> _faces; // Every face as vertex indices, in the order given.
-    std::map<std::array<long long, 3>, size_t> _welded; // Every point's rounded position to its vertex.
+    std::map<std::array<long long, 3>, size_t>
+        _welded; // Every point's rounded position to its vertex.
 
 public:
     /// The index of point, the one already gathered when a point lies within a hundredth of a millimetre of it.
@@ -75,7 +76,8 @@ inline Mesh FoldMesh::mesh() const {
     // winding: every face turned the same way
     Mesh mesh = Mesh::from_vertices_and_faces(_points, _faces);
     mesh.unify_winding();
-    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data =
+        mesh.to_vertices_and_faces();
     double up = 0.0;
 
     // facing down: the sheet flipped when its projected area faces up

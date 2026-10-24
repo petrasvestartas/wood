@@ -56,12 +56,8 @@ inline DiamondMesh::DiamondMesh(
     double chamfer_angle,
     const std::string& name
 )
-    : WoodSession(name),
-      surface(surface),
-      u_divisions(std::max(u_divisions, 1)),
-      v_divisions(std::max(v_divisions, 1)),
-      thickness(thickness),
-      chamfer(chamfer),
+    : WoodSession(name), surface(surface), u_divisions(std::max(u_divisions, 1)),
+      v_divisions(std::max(v_divisions, 1)), thickness(thickness), chamfer(chamfer),
       chamfer_angle(chamfer_angle) {
 
     // surface: the NURBS surface the pattern is laid on
@@ -73,13 +69,8 @@ inline DiamondMesh::DiamondMesh(
 
     // plates: one plate per triangle, mitered at the folds, its corners chamfered
     const std::shared_ptr<TreeNode> plates = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> triangles = mitered_plates(
-        _mesh,
-        thickness,
-        chamfer,
-        chamfer,
-        chamfer_angle
-    );
+    const std::vector<std::shared_ptr<Plate>> triangles =
+        mitered_plates(_mesh, thickness, chamfer, chamfer, chamfer_angle);
 
     for (const std::shared_ptr<Plate>& plate : triangles)
         add(plate, plates);
@@ -103,15 +94,7 @@ inline NurbsSurface DiamondMesh::default_surface() {
             points.push_back({width * i / 3.0, length * j / 3.0, z});
     }
 
-    NurbsSurface arch = NurbsSurface::create(
-        false,
-        false,
-        3,
-        3,
-        4,
-        4,
-        points
-    );
+    NurbsSurface arch = NurbsSurface::create(false, false, 3, 3, 4, 4, points);
     arch.set_domain(0, 0.0, width);
     arch.set_domain(1, 0.0, length);
     arch.transpose();

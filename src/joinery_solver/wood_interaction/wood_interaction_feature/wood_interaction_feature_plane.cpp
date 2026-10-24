@@ -9,14 +9,12 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlane - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 InteractionFeaturePlane::InteractionFeaturePlane(const Plane& plane) : plane(plane) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlane - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionFeaturePlane::kind() const {
     return "plane";
 }
@@ -32,7 +30,6 @@ InteractionFeaturePlane InteractionFeaturePlane::transformed(const Xform& xform)
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlane - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlane::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -81,9 +78,10 @@ void InteractionFeaturePlane::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlane - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlane::str() const {
-    return fmt::format("InteractionFeaturePlane(origin={}, normal={})", plane.origin().str(), plane.z_axis().str());
+    return fmt::format(
+        "InteractionFeaturePlane(origin={}, normal={})", plane.origin().str(), plane.z_axis().str()
+    );
 }
 
-} // namespace wood_session
+}

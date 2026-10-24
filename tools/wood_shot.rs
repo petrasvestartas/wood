@@ -1,7 +1,3 @@
-// A session file rendered as the viewer draws it, without a browser: the native headless GPU (any Vulkan, Mesa's lavapipe on a
-// machine without a GPU), Arctic shading and black outlines on, the orthographic isometric view fitted to the scene.
-//   copied into session_viewer/examples by tools/shoot_native.sh, which builds it with cargo run --release --example wood_shot -- <in.pb> <out.ppm> [width height] [iso|iso_back|top|front] [labels.in labels.out]
-//   labels.in: one "x y z|text" per line in scene units; labels.out: the same lines as "px py|text", the pixel each point lands on.
 #[cfg(not(target_arch = "wasm32"))]
 include!("../src/lib.rs");
 

@@ -10,14 +10,12 @@ namespace io {
 // ═══════════════════════════════════════════════════════════════════════════
 // Sidecars and obj
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::vector<std::pair<int, int>> load_adjacency(const std::string& adjacency_name) {
 
     std::vector<std::pair<int, int>> pairs;
     if (adjacency_name.empty())
         return pairs;
 
-    // a row of two elements, or of two elements and their faces; a plate paired with itself is a border, which load_borders reads
     std::ifstream file(adjacency_name);
     std::string line;
     while (std::getline(file, line)) {
@@ -51,7 +49,8 @@ std::vector<std::array<int, 2>> load_borders(const std::string& adjacency_name) 
     return borders;
 }
 
-std::vector<std::vector<Vector>> load_insertion_vectors(const std::string& insertion_vectors_name, size_t count) {
+std::vector<std::vector<Vector>>
+load_insertion_vectors(const std::string& insertion_vectors_name, size_t count) {
 
     std::vector<std::vector<Vector>> per_element(count);
     if (insertion_vectors_name.empty())
@@ -73,7 +72,8 @@ std::vector<std::vector<Vector>> load_insertion_vectors(const std::string& inser
     return per_element;
 }
 
-std::vector<std::vector<int>> load_feature_types(const std::string& joint_types_name, size_t count) {
+std::vector<std::vector<int>>
+load_feature_types(const std::string& joint_types_name, size_t count) {
 
     std::vector<std::vector<int>> per_element(count);
     if (joint_types_name.empty())
@@ -135,8 +135,6 @@ std::vector<Polyline> load_obj(const std::string& dataset_name, double duplicate
 // ═══════════════════════════════════════════════════════════════════════════
 // Writing a scene
 // ═══════════════════════════════════════════════════════════════════════════
-
-
 namespace {
 
 /// A plate's merged outlines in the legacy interleaved layout: [hole0_top, hole0_bot, ..., outer_top, outer_bot].
@@ -157,7 +155,7 @@ std::vector<Polyline> merged_outlines(const Features& f) {
     return merged;
 }
 
-}  // namespace
+}
 
 std::string pb_path(const std::string& name) {
     const std::filesystem::path dir = config::output_dir() / "pb";
@@ -191,4 +189,5 @@ void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& p
     }
 }
 
-}} // namespace wood_session::io
+}
+}

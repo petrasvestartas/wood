@@ -7,15 +7,9 @@ using namespace wood_session;
 /// The diamond mesh on its default arch: the surface, the rhombus mesh and one 40 mm plate per triangle.
 int main() {
 
-    DiamondMesh diamond(
-        DiamondMesh::default_surface(),
-        8,
-        4,
-        40.0,
-        10.0,
-        180.0
-    );
-    const std::vector<std::shared_ptr<Plate>> plates = diamond.get_elements_numbered<Plate>("plate");
+    DiamondMesh diamond(DiamondMesh::default_surface(), 8, 4, 40.0, 10.0, 180.0);
+    const std::vector<std::shared_ptr<Plate>> plates =
+        diamond.get_elements_numbered<Plate>("plate");
     std::cout << diamond << std::endl;
     std::cout << fmt::format("diamond mesh: {} plates\n", plates.size());
     diamond.pb_dump(pb_path("live"));

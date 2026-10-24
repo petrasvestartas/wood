@@ -12,15 +12,15 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
+Support::Support() : WoodElement("support") {
+}
 
-Support::Support() : WoodElement("support") {}
-
-Support::Support(const Plane& plane, const std::string& name) : WoodElement(name), plane(plane) {}
+Support::Support(const Plane& plane, const std::string& name) : WoodElement(name), plane(plane) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::shared_ptr<Support> Support::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
@@ -63,24 +63,14 @@ std::shared_ptr<Support> Support::from_element(Element e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The point at x, y, z in the support's frame.
-static Point local(
-    const Support& support,
-    double x,
-    double y,
-    double z
-) {
-    return support.plane.origin() + support.plane.x_axis() * x + support.plane.y_axis() * y + support.plane.z_axis() * z;
+static Point local(const Support& support, double x, double y, double z) {
+    return support.plane.origin() + support.plane.x_axis() * x + support.plane.y_axis() * y +
+           support.plane.z_axis() * z;
 }
 
 /// The closed ring of corners at radius about the axis at level z, the first at angle start, counter-clockwise about z.
 static Polyline ring(
-    const Support& support,
-    double cx,
-    double cy,
-    double radius,
-    int corners,
-    double start,
-    double z
+    const Support& support, double cx, double cy, double radius, int corners, double start, double z
 ) {
 
     std::vector<Point> points;
@@ -88,12 +78,7 @@ static Polyline ring(
     for (int k = 0; k < corners; k++) {
         const double angle = start + Tolerance::TWO_PI * k / corners;
         points.push_back(
-            local(
-                support,
-                cx + radius * std::cos(angle),
-                cy + radius * std::sin(angle),
-                z
-            )
+            local(support, cx + radius * std::cos(angle), cy + radius * std::sin(angle), z)
         );
     }
 
@@ -103,34 +88,14 @@ static Polyline ring(
 }
 
 /// The hexagon of a nut given across the flats, from level bottom to level top.
-static std::array<Polyline, 2> hexagon(
-    const Support& support,
-    double across_flats,
-    double bottom,
-    double top
-) {
+static std::array<Polyline, 2>
+hexagon(const Support& support, double across_flats, double bottom, double top) {
 
     const double radius = across_flats / (2.0 * std::cos(Tolerance::PI / 6.0));
 
     return {
-        ring(
-            support,
-            0.0,
-            0.0,
-            radius,
-            6,
-            0.0,
-            bottom
-        ),
-        ring(
-            support,
-            0.0,
-            0.0,
-            radius,
-            6,
-            0.0,
-            top
-        )
+        ring(support, 0.0, 0.0, radius, 6, 0.0, bottom),
+        ring(support, 0.0, 0.0, radius, 6, 0.0, top)
     };
 }
 
@@ -144,72 +109,37 @@ static std::array<std::vector<Polyline>, 2> base_plate(const Support& support) {
 
     for (size_t level = 0; level < 2; level++) {
         const double z = level == 0 ? 0.0 : support.base_plate_thickness;
-        loops[level].push_back(
-            Polyline(
-                {
-                    local(
-                        support,
-                        -half,
-                        -half,
-                        z
-                    ),
-                    local(
-                        support,
-                        half,
-                        -half,
-                        z
-                    ),
-                    local(
-                        support,
-                        half,
-                        half,
-                        z
-                    ),
-                    local(
-                        support,
-                        -half,
-                        half,
-                        z
-                    ),
-                    local(
-                        support,
-                        -half,
-                        -half,
-                        z
-                    )
-                }
-            )
-        );
+        loops[level].push_back(Polyline(
+            {local(support, -half, -half, z),
+             local(support, half, -half, z),
+             local(support, half, half, z),
+             local(support, -half, half, z),
+             local(support, -half, -half, z)}
+        ));
 
         for (const Line& anchor : support.anchors()) {
             const Point centre = anchor.start();
             const double cx = (centre - support.plane.origin()).dot(support.plane.x_axis());
             const double cy = (centre - support.plane.origin()).dot(support.plane.y_axis());
-            loops[level].push_back(
-                ring(
-                    support,
-                    cx,
-                    cy,
-                    radius,
-                    corners,
-                    0.0,
-                    z
-                )
-            );
+            loops[level].push_back(ring(support, cx, cy, radius, corners, 0.0, z));
         }
     }
 
     return loops;
 }
 
-/// The base plate as a BRep with its anchor holes exact cylinders: the plain plate drilled along every anchor, from just above it, so each hole runs through; the plate with polygonal holes when the drilling fails.
-static BRep base_plate_brep(const Support& support, const std::array<std::vector<Polyline>, 2>& plate) {
+/// The base plate as a BRep with its anchor holes exact cylinders.
+static BRep
+base_plate_brep(const Support& support, const std::array<std::vector<Polyline>, 2>& plate) {
 
     std::vector<Drill> holes;
 
     for (const Line& anchor : support.anchors()) {
         const Vector down = anchor.to_direction();
-        holes.push_back({Line::from_points(anchor.start() - down * 1.0, anchor.end()), support.base_plate_hole_diameter * 0.5});
+        holes.push_back(
+            {Line::from_points(anchor.start() - down * 1.0, anchor.end()),
+             support.base_plate_hole_diameter * 0.5}
+        );
     }
 
     const Mesh plate_mesh = Mesh::loft({plate[0][0]}, {plate[1][0]}, true);
@@ -227,12 +157,7 @@ static double coupling_level(const Support& support) {
 }
 
 Point Support::at(double level) const {
-    return local(
-        *this,
-        0.0,
-        0.0,
-        level
-    );
+    return local(*this, 0.0, 0.0, level);
 }
 
 Point Support::column_foot() const {
@@ -266,22 +191,14 @@ std::vector<Line> Support::pins() const {
 std::vector<Line> Support::anchors() const {
 
     const double half = base_plate_hole_spacing * 0.5;
-    const std::array<std::array<double, 2>, 4> corners = {{{-half, -half}, {half, -half}, {half, half}, {-half, half}}};
+    const std::array<std::array<double, 2>, 4> corners = {
+        {{-half, -half}, {half, -half}, {half, half}, {-half, half}}
+    };
     std::vector<Line> lines;
 
     for (const std::array<double, 2>& corner : corners) {
-        const Point head = local(
-            *this,
-            corner[0],
-            corner[1],
-            base_plate_thickness
-        );
-        const Point tip = local(
-            *this,
-            corner[0],
-            corner[1],
-            -anchor_embedment
-        );
+        const Point head = local(*this, corner[0], corner[1], base_plate_thickness);
+        const Point tip = local(*this, corner[0], corner[1], -anchor_embedment);
         lines.push_back(Line::from_points(head, tip));
     }
 
@@ -292,12 +209,8 @@ const Mesh& Support::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
-        const std::array<Polyline, 2> adjustment = hexagon(
-            *this,
-            adjustment_nut_across_flats,
-            base_plate_thickness,
-            adjustment_nut_top
-        );
+        const std::array<Polyline, 2> adjustment =
+            hexagon(*this, adjustment_nut_across_flats, base_plate_thickness, adjustment_nut_top);
         const std::array<Polyline, 2> coupling = hexagon(
             *this,
             coupling_nut_across_flats,
@@ -307,9 +220,23 @@ const Mesh& Support::element_geometry_mesh() const {
 
         Mesh mesh = Mesh::loft(plate[0], plate[1], true);
         append_mesh(mesh, Mesh::loft({adjustment[0]}, {adjustment[1]}, true));
-        append_mesh(mesh, drill_mesh(Line::from_points(at(adjustment_nut_top), at(coupling_level(*this))), rod_diameter * 0.5, chord_tolerance));
+        append_mesh(
+            mesh,
+            drill_mesh(
+                Line::from_points(at(adjustment_nut_top), at(coupling_level(*this))),
+                rod_diameter * 0.5,
+                chord_tolerance
+            )
+        );
         append_mesh(mesh, Mesh::loft({coupling[0]}, {coupling[1]}, true));
-        append_mesh(mesh, drill_mesh(Line::from_points(at(height - head_plate_thickness), at(height)), head_plate_diameter * 0.5, chord_tolerance));
+        append_mesh(
+            mesh,
+            drill_mesh(
+                Line::from_points(at(height - head_plate_thickness), at(height)),
+                head_plate_diameter * 0.5,
+                chord_tolerance
+            )
+        );
         _element_geometry_mesh = mesh;
     }
 
@@ -320,12 +247,8 @@ const BRep& Support::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
-        const std::array<Polyline, 2> adjustment = hexagon(
-            *this,
-            adjustment_nut_across_flats,
-            base_plate_thickness,
-            adjustment_nut_top
-        );
+        const std::array<Polyline, 2> adjustment =
+            hexagon(*this, adjustment_nut_across_flats, base_plate_thickness, adjustment_nut_top);
         const std::array<Polyline, 2> coupling = hexagon(
             *this,
             coupling_nut_across_flats,
@@ -335,9 +258,21 @@ const BRep& Support::element_geometry_brep() const {
 
         BRep brep = base_plate_brep(*this, plate);
         append_brep(brep, brep_between_loops({adjustment[0]}, {adjustment[1]}));
-        append_brep(brep, drill_brep(Line::from_points(at(adjustment_nut_top), at(coupling_level(*this))), rod_diameter * 0.5));
+        append_brep(
+            brep,
+            drill_brep(
+                Line::from_points(at(adjustment_nut_top), at(coupling_level(*this))),
+                rod_diameter * 0.5
+            )
+        );
         append_brep(brep, brep_between_loops({coupling[0]}, {coupling[1]}));
-        append_brep(brep, drill_brep(Line::from_points(at(height - head_plate_thickness), at(height)), head_plate_diameter * 0.5));
+        append_brep(
+            brep,
+            drill_brep(
+                Line::from_points(at(height - head_plate_thickness), at(height)),
+                head_plate_diameter * 0.5
+            )
+        );
         _element_geometry_brep = brep;
     }
 
@@ -393,7 +328,6 @@ void Support::compute_geometry_brep_impl() {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 nlohmann::ordered_json Support::element_data_jsondump() const {
 
     wood_proto::Support proto;
@@ -407,7 +341,6 @@ nlohmann::ordered_json Support::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Support::element_data_dumps() const {
 
     wood_proto::Support proto;
@@ -452,11 +385,12 @@ void Support::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Support::str() const {
 
     std::ostringstream os;
-    os << "Support(name=" << name << ", height=" << height << ", head_plate_diameter=" << head_plate_diameter << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "Support(name=" << name << ", height=" << height
+       << ", head_plate_diameter=" << head_plate_diameter << ", is_visible=" << std::boolalpha
+       << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
@@ -465,4 +399,4 @@ std::optional<Plane> Support::base_plane() const {
     return plane;
 }
 
-}  // namespace wood_session
+}

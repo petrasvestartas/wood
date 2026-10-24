@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The doubly folded truncated pyramid, the basic structure form of Engel's variations (p. 233): four trapezoids over a square plan
-/// closed by a flat top a third of the plan's size.
+/// The doubly folded truncated pyramid.
 int main() {
 
     TruncatedPyramid fold;
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 15 of the folding templates: the doubly folded truncated pyramid after Engel, Structure Systems, Folded plate structures (p. 233), the basic structure form his variations fold further. An 18 m square on the ground, four trapezoids rising to a flat 6 m square top 6800 high, as his plan and perspective show: four trapezoids and the top, five plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
+Step 15 of the folding templates: the doubly folded truncated pyramid, the basic structure form his variations fold further. An 18 m square on the ground, four trapezoids rising to a flat 6 m square top 6800 high, as his plan and perspective show: four trapezoids and the top, five plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

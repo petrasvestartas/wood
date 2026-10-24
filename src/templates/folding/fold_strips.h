@@ -5,15 +5,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The diagonal a warped strip of a fold folds along (Engel, Folded plate structures, pp. 222-224).
+/// The diagonal a warped strip of a fold folds along .
 enum class Folding {
-    ridge_to_ridge, // Through its two high corners, a ridge running diagonally from the ridge of one station to the next's.
-    ridge_to_valley, // Through its two low corners, a valley running diagonally between them.
-    alternate, // Fold by fold, the first ridge to valley, the next ridge to ridge.
+    ridge_to_ridge,
+    ridge_to_valley,
+    alternate,
 };
 
 /// The folded mesh through stations: per strip one planar quad, else two triangles on the folding's diagonal, facing -z.
-inline Mesh fold_strips(const std::vector<Polyline>& stations, const std::vector<std::vector<double>>& heights, Folding folding) {
+inline Mesh fold_strips(
+    const std::vector<Polyline>& stations,
+    const std::vector<std::vector<double>>& heights,
+    Folding folding
+) {
 
     const size_t row = stations[0].point_count();
     std::vector<Point> points;
@@ -99,7 +103,8 @@ inline std::vector<size_t> joined_across_edge(
 /// The mesh with every two coplanar faces sharing an edge joined, again and again, and the points no face uses left out.
 inline Mesh merge_coplanar(const Mesh& mesh) {
 
-    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data =
+        mesh.to_vertices_and_faces();
     const std::vector<Point>& points = data.first;
     std::vector<std::vector<size_t>> faces = data.second;
     bool merged = true;
@@ -117,7 +122,8 @@ inline Mesh merge_coplanar(const Mesh& mesh) {
             for (size_t i = 0; i < faces[f].size() && !merged; i++) {
                 const size_t u = faces[f][i];
                 const size_t v = faces[f][(i + 1) % faces[f].size()];
-                const std::map<std::pair<size_t, size_t>, size_t>::const_iterator other = across.find({v, u});
+                const std::map<std::pair<size_t, size_t>, size_t>::const_iterator other =
+                    across.find({v, u});
 
                 if (other == across.end() || other->second == f)
                     continue;

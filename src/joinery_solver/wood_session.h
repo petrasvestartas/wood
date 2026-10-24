@@ -27,7 +27,6 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint detection pipeline
 // ═══════════════════════════════════════════════════════════════════════════
-
 namespace wood_session {
 
 /// The solid cuts a plate, beam, column, block or connector carries, in its own frame; null for any other element.
@@ -37,17 +36,17 @@ const std::vector<InteractionFeatureSolid>* solid_features_of(const Element& ele
 
 /// WoodSession::compute_features over loose plates, solved in place with `settings`; returns every detected joint.
 std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
-        std::vector<std::shared_ptr<wood_session::Plate>>& elements,
-        const wood_session::Settings& settings = wood_session::Settings(),
-        SearchType search_type = face_to_face);
+    std::vector<std::shared_ptr<wood_session::Plate>>& elements,
+    const wood_session::Settings& settings = wood_session::Settings(),
+    SearchType search_type = face_to_face
+);
 
 namespace wood_session {
 
 using io::pb_path;
 
 /// True when the stored element is a T.
-template <class T>
-bool is_type(const Element& element) {
+template <class T> bool is_type(const Element& element) {
     return dynamic_cast<const T*>(&element) != nullptr;
 }
 
@@ -58,11 +57,14 @@ bool is_type(const Element& element) {
 /// A Session whose elements are plates, beams, columns and blocks, joined by interactions on its graph edges.
 class WoodSession : public Session {
 public:
-    Settings settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
-    std::vector<std::pair<int, int>> adjacency; // Plate pairs by position that compute_features classifies; empty lets adjacent_pairs() search. yaml_load fills it from the adjacency sidecar; pb_dump writes it.
-    std::vector<std::array<int, 2>> borders; // Plate and side face of every boundary joint, the self-adjacency rows `v v f f` of the adjacency sidecar; compute_features makes a family 60 joint on each.
-    std::vector<std::vector<int>> three_valence; // Three-valence groups: the first row [instruction], 0 annen alignment, 1 vidy shadow joints; then [s0, s1, e20, e31] rows. yaml_load fills it from the three_valence sidecar; pb_dump writes it.
-    std::unordered_map<std::string, std::string> definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
+    Settings
+        settings; // Every tunable the solver reads; yaml_load fills it from the dataset, pb_dump writes it with the scene.
+    std::vector<std::pair<int, int>>
+        adjacency; // Plate pairs by position that compute_features classifies.
+    std::vector<std::array<int, 2>> borders; // Plate and side face of every boundary joint.
+    std::vector<std::vector<int>> three_valence; // Three-valence groups.
+    std::unordered_map<std::string, std::string>
+        definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
 
     /// An empty scene; registers the element and interaction factories with the kernel.
     WoodSession();
@@ -74,7 +76,7 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A session name (`data/<name>.pb`) or a .pb path; the elements come back as Plate / Column / Block / Beam and the interactions as their wood types.
+    /// A session name (`data/<name>.pb`) or a .pb path.
     static WoodSession pb_load(const std::filesystem::path& path);
 
     /// A scene from wood_proto.WoodSession bytes, which any Session reader also opens.
@@ -116,39 +118,40 @@ public:
     void compute_face_contacts(int level = 0);
 
     /// The largest face contact of the pair, nullptr when disjoint; plate contacts include joinery volumes.
-    std::shared_ptr<InteractionContactFace> compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
+    std::shared_ptr<InteractionContactFace>
+    compute_face_contact(std::shared_ptr<Element> source, std::shared_ptr<Element> target);
 
-    /// The border contact of a plate's side face, as 2024's border_to_face made it for a self-adjacency: the side quad as the polygon, the
-    /// average of its two side edges as both lines, and two thin rectangles across the thickness around that line as the volumes, a quarter of
-    /// the half thickness each way along the face's normal; nullptr for an outer face or a plate without that side.
-    static std::shared_ptr<InteractionContactFace> compute_border_contact(const Plate& plate, int face);
+    /// The border contact of a plate's side face, as 2024's border_to_face made it for a self-adjacency.
+    static std::shared_ptr<InteractionContactFace>
+    compute_border_contact(const Plate& plate, int face);
 
-    /// Joint types by points, as the plugin's dots set them: on every plate a point snaps to the side face whose middle line, between its
-    /// bottom and top edges, lies nearest and within snap_radius, or for a negative type to the bottom or top face whose outline is nearer,
-    /// and writes the absolute value of its type into that plate's feature_types, the table a *_joints_types.txt sidecar gives; a face
-    /// several points reach takes the largest of their types, as a joint takes the larger type of its two faces. Like a sidecar, which
-    /// gives every plate a row, a call with points gives every plate a table, -1 on the faces it lacked; a call with none changes nothing.
-    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<int>& types, double snap_radius);
+    /// Joint types by points, as the plugin's dots set them.
+    void assign_joint_types_by_points(
+        const std::vector<Point>& points, const std::vector<int>& types, double snap_radius
+    );
 
-    /// Joint types by points named as the user interface writes them, a text by each point: the name of a library design ("side_side_inplane_dovetails",
-    /// "top_side_tenons", "side_side_outplane/side_removal", JointPlate::library_id), or "" for no joint. A point takes the face it lies nearest to: a side
-    /// face when it is nearer to a side face's middle line than to any bottom or top outline, else the bottom or top face, then as above.
-    void assign_joint_types_by_points(const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius);
+    /// Joint types by points named as the user interface writes them.
+    void assign_joint_types_by_points(
+        const std::vector<Point>& points, const std::vector<std::string>& names, double snap_radius
+    );
 
-    /// Insertion vectors by lines: on every plate a line's start snaps to the side face whose middle line lies nearest and within
-    /// snap_radius, and its direction becomes that face's insertion vector, the table a *_insertion_vectors.txt sidecar gives; other faces
-    /// keep theirs. Like a sidecar, a call with lines gives every plate a table, zero on the faces it lacked; a call with none changes nothing.
+    /// Insertion vectors by lines.
     void assign_insertion_vectors_by_lines(const std::vector<Line>& lines, double snap_radius);
 
     /// Elements that pass through each other: plane_to_face over every pair of plates, an InteractionContactCross per crossing.
     void compute_cross_contacts(double angle_tol = 30.0);
 
     /// The crossing of two plates that pass through each other, nullptr when they do not cross within angle_tol degrees.
-    std::shared_ptr<InteractionContactCross> compute_cross_contact(const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol = 30.0) const;
+    std::shared_ptr<InteractionContactCross> compute_cross_contact(
+        const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol = 30.0
+    ) const;
 
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
     void compute_line_contacts(double tolerance = -1.0);
-    void compute_lines_contacts(double tolerance = -1.0) { compute_line_contacts(tolerance); }
+
+    void compute_lines_contacts(double tolerance = -1.0) {
+        compute_line_contacts(tolerance);
+    }
 
     using Session::merge;
     using Session::graft;
@@ -178,16 +181,28 @@ public:
     void load_sidecars(const std::vector<std::shared_ptr<Plate>>& elements);
 
     /// Candidate pairs by position in elements: `adjacency` when the scene has one, else the OBB and BVH search within config::DISTANCE.
-    std::vector<std::pair<int, int>> adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const;
+    std::vector<std::pair<int, int>>
+    adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const;
 
     /// face_to_face_wood on every pair of elements, joints in pair order; a plate whose faces detection swapped is swapped in place.
-    std::vector<InteractionFeaturePlate> detect_features(const std::vector<std::shared_ptr<Plate>>& elements, const std::vector<std::pair<int, int>>& pairs, SearchType search_type);
+    std::vector<InteractionFeaturePlate> detect_features(
+        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::pair<int, int>>& pairs,
+        SearchType search_type
+    );
 
     /// Unit joinery geometry and its orientation for every joint, in order.
-    void build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types);
+    void build_feature_geometry(
+        std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<InteractionFeaturePlate>& joints,
+        const std::vector<std::vector<int>>& feature_types
+    );
 
     /// Merges every joint's cut outlines into its two plates' features.
-    void merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints);
+    void merge_features(
+        const std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<InteractionFeaturePlate>& joints
+    );
 
     /// True when each plate feature edge connects its joint element to the selected target, or a legacy pair matches its endpoints.
     bool consistent() const;
@@ -258,14 +273,11 @@ public:
     using Session::add;
 
     /// Session::add_element: the object itself, never a copy, so its guid is the guid on the wire.
-    std::shared_ptr<TreeNode> add(
-        std::shared_ptr<Element> element,
-        std::shared_ptr<TreeNode> parent = nullptr
-    );
+    std::shared_ptr<TreeNode>
+    add(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> parent = nullptr);
 
     /// The element with this guid as T, or null when the scene does not hold it as that type.
-    template <class T>
-    std::shared_ptr<T> get_element(const std::string& guid) const {
+    template <class T> std::shared_ptr<T> get_element(const std::string& guid) const {
 
         for (const std::shared_ptr<Element>& element : *objects.elements)
             if (element && element->guid() == guid)
@@ -275,8 +287,7 @@ public:
     }
 
     /// Every element of type T, in objects.elements order.
-    template <class T>
-    std::vector<std::shared_ptr<T>> get_elements() const {
+    template <class T> std::vector<std::shared_ptr<T>> get_elements() const {
 
         std::vector<std::shared_ptr<T>> out;
         for (const std::shared_ptr<Element>& element : *objects.elements)
@@ -287,8 +298,7 @@ public:
     }
 
     /// The element named name as T, or null when the scene holds none of that name and type.
-    template <class T>
-    std::shared_ptr<T> get_element_by_name(const std::string& name) const {
+    template <class T> std::shared_ptr<T> get_element_by_name(const std::string& name) const {
 
         for (const std::shared_ptr<Element>& element : *objects.elements)
             if (element && element->name == name)
@@ -402,11 +412,11 @@ public:
     std::shared_ptr<Element> world_view(const std::string& guid, const Xform& world) const;
 
     /// Every element and element instance as world geometry for the passes, in a stable order.
-    std::vector<std::shared_ptr<Element>> world_elements(const std::function<bool(const Element&)>& keep = nullptr) const;
+    std::vector<std::shared_ptr<Element>>
+    world_elements(const std::function<bool(const Element&)>& keep = nullptr) const;
 
     /// world_elements() of type T, instances included as views of T.
-    template <class T>
-    std::vector<std::shared_ptr<T>> world_elements() const {
+    template <class T> std::vector<std::shared_ptr<T>> world_elements() const {
 
         std::vector<std::shared_ptr<T>> out;
         for (const std::shared_ptr<Element>& element : world_elements(is_type<T>))
@@ -419,7 +429,10 @@ public:
     void host_feature(const std::string& guid, ElementFeature feature);
 
     /// Replaces each element key_of finds a class for by an instance of that class's definition; returns the number made.
-    size_t instance_by_key(const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of = element_key);
+    size_t instance_by_key(
+        const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of =
+            element_key
+    );
 
     /// Writes a pass's world view back onto the element or instance under its guid.
     void promote(const std::shared_ptr<Element>& view);
@@ -428,14 +441,22 @@ public:
     void erase_contacts(std::string_view kind);
 
 private:
-
-    bool merge_deferred = false; // True while compute_features adds its joints: each plate is merged once, in 2024's joint order, after the last.
+    bool merge_deferred =
+        false; // True while compute_features adds its joints: each plate is merged once, in 2024's joint order, after the last.
 
     /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.
-    std::shared_ptr<Interaction> add_joint_interaction(const std::shared_ptr<Joint>& joint, const std::shared_ptr<Element>& target, std::shared_ptr<Interaction> interaction);
+    std::shared_ptr<Interaction> add_joint_interaction(
+        const std::shared_ptr<Joint>& joint,
+        const std::shared_ptr<Element>& target,
+        std::shared_ptr<Interaction> interaction
+    );
 
     /// Hosts a solid cut on the target, replacing the source's earlier one, and stores it on their edge.
-    std::shared_ptr<Interaction> add_solid_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<InteractionFeatureSolid>& cut);
+    std::shared_ptr<Interaction> add_solid_interaction(
+        const std::shared_ptr<Element>& source,
+        const std::shared_ptr<Element>& target,
+        const std::shared_ptr<InteractionFeatureSolid>& cut
+    );
 };
 
-} // namespace wood_session
+}

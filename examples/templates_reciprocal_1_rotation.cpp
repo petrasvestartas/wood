@@ -5,10 +5,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const int SURFACE = 0; // 0 sinusoidal dome, 1 hypar, 2 pillow dome, 3 disc dome, 4 Annen arch, 5 Scherk saddle
-const int GRID = 0; // 0 quads, 1 hexagons, 2 dual hexagons
-const double CELL = 2000.0; // mm, the cell size on a surface
-const bool FRAME_VERTICAL = false; // the frame upright all round, else tilted with the surface
+const int SURFACE = 0;
+const int GRID = 0;
+const double CELL = 2000.0;
+const bool FRAME_VERTICAL = false;
 
 /// The surface of the case, its boundary curves flattened into planes; none for the sinusoidal dome.
 std::optional<NurbsSurface> case_surface() {
@@ -19,23 +19,13 @@ std::optional<NurbsSurface> case_surface() {
     if (SURFACE == 1)
         surface = wood_reciprocal::hypar_surface(12000.0, 10000.0, 3000.0);
     else if (SURFACE == 2)
-        surface = wood_reciprocal::pillow_dome_surface(
-            12000.0,
-            10000.0,
-            3000.0,
-            1200.0
-        );
+        surface = wood_reciprocal::pillow_dome_surface(12000.0, 10000.0, 3000.0, 1200.0);
     else if (SURFACE == 3)
         return wood_reciprocal::disc_dome_surface(8000.0, 3000.0);
     else if (SURFACE == 4)
         surface = wood_reciprocal::annen_surface(annen, 0);
     else if (SURFACE == 5)
-        surface = wood_reciprocal::scherk_surface(
-            12000.0,
-            10000.0,
-            2500.0,
-            1200.0
-        );
+        surface = wood_reciprocal::scherk_surface(12000.0, 10000.0, 2500.0, 1200.0);
 
     if (!surface)
         return std::nullopt;
@@ -47,26 +37,16 @@ std::optional<NurbsSurface> case_surface() {
 Mesh case_mesh(const std::optional<NurbsSurface>& surface) {
 
     if (!surface && GRID == 1)
-        return wood_reciprocal::sinusoidal_dome_hex_mesh(
-            12000.0,
-            10000.0,
-            3000.0,
-            CELL
-        );
+        return wood_reciprocal::sinusoidal_dome_hex_mesh(12000.0, 10000.0, 3000.0, CELL);
 
     if (surface && GRID == 1)
         return wood_reciprocal::hex_mesh_from_surface(*surface, CELL);
 
-    Mesh quads = wood_reciprocal::sinusoidal_dome_mesh(
-        12,
-        10,
-        12000.0,
-        10000.0,
-        3000.0
-    );
+    Mesh quads = wood_reciprocal::sinusoidal_dome_mesh(12, 10, 12000.0, 10000.0, 3000.0);
 
     if (surface)
-        quads = SURFACE == 3 ? wood_reciprocal::disc_quad_mesh(*surface, 8000.0, CELL) : wood_reciprocal::quad_mesh_from_surface(*surface, CELL);
+        quads = SURFACE == 3 ? wood_reciprocal::disc_quad_mesh(*surface, 8000.0, CELL)
+                             : wood_reciprocal::quad_mesh_from_surface(*surface, CELL);
 
     return GRID == 2 ? wood_reciprocal::dual_hex_mesh(quads) : quads;
 }
@@ -77,8 +57,14 @@ int main() {
     const std::optional<NurbsSurface> surface = case_surface();
     const Mesh mesh = case_mesh(surface);
     const std::vector<Vector> upright(4, Vector(0, 0, 1));
-    const std::map<std::pair<size_t, size_t>, Vector> frame_ups = surface ? wood_reciprocal::side_tilt_boundary_ups(mesh, *surface) : wood_reciprocal::side_tilt_boundary_ups(mesh, 45.0, FRAME_VERTICAL ? upright : std::vector<Vector>{});
-    const std::map<std::pair<size_t, size_t>, int> through = surface ? wood_reciprocal::through_side_priority(mesh, *surface) : wood_reciprocal::through_side_priority(mesh, 45.0);
+    const std::map<std::pair<size_t, size_t>, Vector> frame_ups =
+        surface ? wood_reciprocal::side_tilt_boundary_ups(mesh, *surface)
+                : wood_reciprocal::side_tilt_boundary_ups(
+                      mesh, 45.0, FRAME_VERTICAL ? upright : std::vector<Vector>{}
+                  );
+    const std::map<std::pair<size_t, size_t>, int> through =
+        surface ? wood_reciprocal::through_side_priority(mesh, *surface)
+                : wood_reciprocal::through_side_priority(mesh, 45.0);
 
     ReciprocalRotation rotation(
         mesh,
@@ -94,9 +80,16 @@ int main() {
     );
 
     if (surface)
-        rotation.add_nurbssurface(std::make_shared<NurbsSurface>(*surface), rotation.group_named("mesh"));
+        rotation.add_nurbssurface(
+            std::make_shared<NurbsSurface>(*surface), rotation.group_named("mesh")
+        );
 
-    std::cout << fmt::format("reciprocal rotation: {} faces, {} beams, {} frame beams\n", mesh.number_of_faces(), rotation.beams().size(), rotation.frame_beams().size());
+    std::cout << fmt::format(
+        "reciprocal rotation: {} faces, {} beams, {} frame beams\n",
+        mesh.number_of_faces(),
+        rotation.beams().size(),
+        rotation.frame_beams().size()
+    );
     rotation.pb_dump(pb_path("live"));
     return 0;
 }

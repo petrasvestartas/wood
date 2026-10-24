@@ -8,13 +8,17 @@ int main() {
 
     WoodSession scene("element_joint_plate_border");
 
-    // a 300 x 200 plate 40 thick
-    const Polyline bottom({{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 200.0, 0.0}, {0.0, 200.0, 0.0}, {0.0, 0.0, 0.0}});
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(bottom, bottom.transformed(Xform::translation(0.0, 0.0, 40.0)), "plate");
+    const Polyline bottom(
+        {{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 200.0, 0.0}, {0.0, 200.0, 0.0}, {0.0, 0.0, 0.0}
+        }
+    );
+    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(
+        bottom, bottom.transformed(Xform::translation(0.0, 0.0, 40.0)), "plate"
+    );
     scene.add(plate);
 
-    // the border contact of its side face 2, the joint oriented on it with the plate alone, added and passed to the plate
-    const std::shared_ptr<InteractionContactFace> contact = WoodSession::compute_border_contact(*plate, 2);
+    const std::shared_ptr<InteractionContactFace> contact =
+        WoodSession::compute_border_contact(*plate, 2);
     const std::shared_ptr<JointPlate> joint = JointPlate::border();
     joint->orient(contact, {plate});
     joint->is_visible = true;

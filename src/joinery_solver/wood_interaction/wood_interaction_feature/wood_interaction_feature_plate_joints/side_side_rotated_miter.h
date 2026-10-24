@@ -1,4 +1,3 @@
-/// side_side_rotated_miter: world-space relief - each volume split in half along the thickness, the halves offset four ways along the joint line; no orient.
 static void side_side_rotated_miter(InteractionFeaturePlate& joint) {
 
     joint.name = "side_side_rotated_miter";
@@ -45,11 +44,13 @@ static void side_side_rotated_miter(InteractionFeaturePlate& joint) {
     rh1.extend_edge_equally(3, y_ext);
 
     const double x_target = joint.scale[0];
-    const double factor_far  = (5.0 + x_len + x_target) / x_len;
+    const double factor_far = (5.0 + x_len + x_target) / x_len;
     const double factor_near = 0.25 / x_len;
     const std::array<Vector, 4> offsets = {
-        x * factor_near, x * factor_far,
-        x * -factor_near, x * -factor_far,
+        x * factor_near,
+        x * factor_far,
+        x * -factor_near,
+        x * -factor_far,
     };
 
     for (int fi = 0; fi < 2; fi++) {

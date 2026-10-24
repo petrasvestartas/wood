@@ -10,17 +10,30 @@ int main() {
 
     // 140 x 140 beams on axes drawn node to node: a 3000 wide, 2400 high wall
     const double radius = 70.0;
-    const std::shared_ptr<Beam> sill = std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}}), radius, "sill");
-    const std::shared_ptr<Beam> head = std::make_shared<Beam>(Polyline({{0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}}), radius, "head");
-    const std::shared_ptr<Beam> left_post = std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}}), radius, "left_post");
-    const std::shared_ptr<Beam> middle_post = std::make_shared<Beam>(Polyline({{1500.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "middle_post");
-    const std::shared_ptr<Beam> right_post = std::make_shared<Beam>(Polyline({{3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}}), radius, "right_post");
-    const std::shared_ptr<Beam> left_brace = std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "left_brace");
-    const std::shared_ptr<Beam> right_brace = std::make_shared<Beam>(Polyline({{3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "right_brace");
-    for (const std::shared_ptr<Beam>& beam : {sill, head, left_post, middle_post, right_post, left_brace, right_brace}) {
+    const std::shared_ptr<Beam> sill =
+        std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}}), radius, "sill");
+    const std::shared_ptr<Beam> head = std::make_shared<Beam>(
+        Polyline({{0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}}), radius, "head"
+    );
+    const std::shared_ptr<Beam> left_post = std::make_shared<Beam>(
+        Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}}), radius, "left_post"
+    );
+    const std::shared_ptr<Beam> middle_post = std::make_shared<Beam>(
+        Polyline({{1500.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "middle_post"
+    );
+    const std::shared_ptr<Beam> right_post = std::make_shared<Beam>(
+        Polyline({{3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}}), radius, "right_post"
+    );
+    const std::shared_ptr<Beam> left_brace = std::make_shared<Beam>(
+        Polyline({{0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "left_brace"
+    );
+    const std::shared_ptr<Beam> right_brace = std::make_shared<Beam>(
+        Polyline({{3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}}), radius, "right_brace"
+    );
+    for (const std::shared_ptr<Beam>& beam :
+         {sill, head, left_post, middle_post, right_post, left_brace, right_brace}) {
         scene.add(beam);
 
-        // the axis as drawn, red over the solids
         std::shared_ptr<Polyline> axis = std::make_shared<Polyline>(beam->axis);
         axis->linecolor = Color(0.85f, 0.1f, 0.1f);
         axis->width = 4.0;
@@ -29,8 +42,12 @@ int main() {
 
     // the posts on the sill and under the head, which run on over the corner posts: butts read from the drawn members
     const std::vector<std::array<std::shared_ptr<Beam>, 2>> posts = {
-        {sill, left_post}, {sill, middle_post}, {sill, right_post},
-        {head, left_post}, {head, middle_post}, {head, right_post},
+        {sill, left_post},
+        {sill, middle_post},
+        {sill, right_post},
+        {head, left_post},
+        {head, middle_post},
+        {head, right_post},
     };
     for (const std::array<std::shared_ptr<Beam>, 2>& pair : posts) {
         const std::shared_ptr<JointBeam> butt = JointBeam::butt(*pair[0], *pair[1]);
@@ -40,10 +57,15 @@ int main() {
         scene.add_interaction(butt, pair[1], butt->interaction(1));
     }
 
-    // the braces stopping on the sill, the head and the posts, top_side even at the corner nodes where a post's foot lies beside the brace's
     const std::vector<std::array<std::shared_ptr<Beam>, 2>> braces = {
-        {sill, left_brace}, {left_post, left_brace}, {head, left_brace}, {middle_post, left_brace},
-        {sill, right_brace}, {right_post, right_brace}, {head, right_brace}, {middle_post, right_brace},
+        {sill, left_brace},
+        {left_post, left_brace},
+        {head, left_brace},
+        {middle_post, left_brace},
+        {sill, right_brace},
+        {right_post, right_brace},
+        {head, right_brace},
+        {middle_post, right_brace},
     };
     for (const std::array<std::shared_ptr<Beam>, 2>& pair : braces) {
         const std::shared_ptr<JointBeam> top_side = JointBeam::butt_top_side(*pair[0], *pair[1]);

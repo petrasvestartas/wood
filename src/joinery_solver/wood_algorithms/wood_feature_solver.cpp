@@ -12,7 +12,8 @@ using namespace wood_session;
 /// membership[element][face] = [(joint index, is_male)]; shadow joints go to the extra last slot.
 std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per_face(
     const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<InteractionFeaturePlate>& all_joints) {
+    const std::vector<InteractionFeaturePlate>& all_joints
+) {
 
     const size_t element_count = elements.size();
     std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership(element_count);
@@ -33,32 +34,40 @@ std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per
         } else {
             const int face0 = joint.contact.face_a;
             const int face1 = joint.contact.face_b;
-            if (element0 >= 0 && element0 < (int)element_count && face0 >= 0 && face0 < (int)membership[element0].size())
+            if (element0 >= 0 && element0 < (int)element_count && face0 >= 0 &&
+                face0 < (int)membership[element0].size())
                 membership[element0][face0].push_back({(int)joint_index, true});
-            if (element1 >= 0 && element1 < (int)element_count && face1 >= 0 && face1 < (int)membership[element1].size())
+            if (element1 >= 0 && element1 < (int)element_count && face1 >= 0 &&
+                face1 < (int)membership[element1].size())
                 membership[element1][face1].push_back({(int)joint_index, false});
         }
     }
     return membership;
 }
 
-} // anonymous namespace
+}
 
 namespace wood_session {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Joints
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::vector<std::pair<int, int>> WoodSession::adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const {
+std::vector<std::pair<int, int>>
+WoodSession::adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const {
 
     if (!adjacency.empty())
         return adjacency;
 
-    return adjacency_search(std::vector<std::shared_ptr<Element>>(elements.begin(), elements.end()), settings.distance);
+    return adjacency_search(
+        std::vector<std::shared_ptr<Element>>(elements.begin(), elements.end()), settings.distance
+    );
 }
 
-std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vector<std::shared_ptr<Plate>>& elements, const std::vector<std::pair<int, int>>& pairs, SearchType search_type) {
+std::vector<InteractionFeaturePlate> WoodSession::detect_features(
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::pair<int, int>>& pairs,
+    SearchType search_type
+) {
 
     const int element_count = static_cast<int>(elements.size());
 
@@ -69,7 +78,14 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
         const int index_a = pairs[k].first;
         const int index_b = pairs[k].second;
         if (index_a < 0 || index_b < 0 || index_a >= element_count || index_b >= element_count) {
-            std::cerr << fmt::format("  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded - skipping.\n", k, index_a, index_b, element_count);
+            std::cerr << fmt::format(
+                "  WARNING: adjacency pair {} references elements ({}, {}) but only {} were loaded "
+                "- skipping.\n",
+                k,
+                index_a,
+                index_b,
+                element_count
+            );
             continue;
         }
 
@@ -99,18 +115,21 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(const std::vec
     return joints;
 }
 
-void WoodSession::build_feature_geometry(std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints, const std::vector<std::vector<int>>& feature_types) {
-    JointPlate::build_geometry(
-        joints,
-        elements,
-        feature_types,
-        settings
-    );
+void WoodSession::build_feature_geometry(
+    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<InteractionFeaturePlate>& joints,
+    const std::vector<std::vector<int>>& feature_types
+) {
+    JointPlate::build_geometry(joints, elements, feature_types, settings);
 }
 
-void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elements, std::vector<InteractionFeaturePlate>& joints) {
+void WoodSession::merge_features(
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<InteractionFeaturePlate>& joints
+) {
 
-    const std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership = joint_membership_per_face(elements, joints);
+    const std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership =
+        joint_membership_per_face(elements, joints);
     const size_t element_count = elements.size();
     for (size_t element_index = 0; element_index < element_count; element_index++) {
 
@@ -125,7 +144,6 @@ void WoodSession::merge_features(const std::vector<std::shared_ptr<Plate>>& elem
         features.top.clear();
         features.bottom.clear();
 
-        // the bottom of every pair is the loop on the side of polylines[0], as Plate names its faces
         if (merged.size() >= 2) {
             const size_t hole_count = merged.size() - 2;
             features.top.reserve(1 + hole_count / 2);
@@ -151,8 +169,10 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
     if (three_valence.empty())
         three_valence = io::load_three_valence(config::DATA_SET_THREE_VALENCE);
 
-    const std::vector<std::vector<Vector>> vectors = io::load_insertion_vectors(config::DATA_SET_INSERTION_VECTORS, elements.size());
-    const std::vector<std::vector<int>> types = io::load_feature_types(config::DATA_SET_JOINTS_TYPES, elements.size());
+    const std::vector<std::vector<Vector>> vectors =
+        io::load_insertion_vectors(config::DATA_SET_INSERTION_VECTORS, elements.size());
+    const std::vector<std::vector<int>> types =
+        io::load_feature_types(config::DATA_SET_JOINTS_TYPES, elements.size());
     for (size_t i = 0; i < elements.size(); ++i) {
         if (elements[i]->insertion_vectors().empty() && i < vectors.size())
             elements[i]->insertion_vectors() = vectors[i];
@@ -166,10 +186,9 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
     return compute_features(settings.search_type);
 }
 
-/// Instances take part as world views: one a joint lands on is promoted before the joint is stored, any other dropped unchanged; a stored plate placed off identity takes its view back.
+/// Instances take part as world views.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType search_type) {
 
-    // a plate left empty, as the outlines of a beam dataset's axes leave it, has no faces to join
     std::vector<std::shared_ptr<Plate>> elements;
     for (const std::shared_ptr<Plate>& plate : world_elements<Plate>())
         if (plate->polylines.size() >= 2)
@@ -189,13 +208,15 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         feature_types[i] = elements[i]->feature_types;
     }
 
-    std::vector<InteractionFeaturePlate> joints = detect_features(elements, adjacent_pairs(elements), search_type);
+    std::vector<InteractionFeaturePlate> joints =
+        detect_features(elements, adjacent_pairs(elements), search_type);
 
     // a boundary joint on every border: the family 60 joint of a plate's side face alone, as 2024 made one for a self-adjacency
     for (const std::array<int, 2>& border : borders) {
         if (border[0] < 0 || border[0] >= static_cast<int>(elements.size()))
             continue;
-        const std::shared_ptr<InteractionContactFace> contact = compute_border_contact(*elements[border[0]], border[1]);
+        const std::shared_ptr<InteractionContactFace> contact =
+            compute_border_contact(*elements[border[0]], border[1]);
         if (!contact)
             continue;
         InteractionFeaturePlate joint;
@@ -209,12 +230,7 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         joint.guid() = ::guid();
         joints.push_back(std::move(joint));
     }
-    link_three_valence_joints(
-        three_valence,
-        elements,
-        joints,
-        settings.angle
-    );
+    link_three_valence_joints(three_valence, elements, joints, settings.angle);
     build_feature_geometry(elements, joints, feature_types);
 
     std::unordered_set<std::string> jointed;
@@ -230,8 +246,15 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     std::vector<int> parent(joints.size());
     for (size_t i = 0; i < parent.size(); ++i)
         parent[i] = static_cast<int>(i);
-    auto root = [&](int i) { while (parent[i] != i) i = parent[i]; return i; };
-    auto unite = [&](int a, int b) { if (a >= 0 && b >= 0) parent[root(b)] = root(a); };
+    auto root = [&](int i) {
+        while (parent[i] != i)
+            i = parent[i];
+        return i;
+    };
+    auto unite = [&](int a, int b) {
+        if (a >= 0 && b >= 0)
+            parent[root(b)] = root(a);
+    };
     std::unordered_map<std::string, int> joint_indices;
     for (size_t i = 0; i < joints.size(); ++i)
         joint_indices[joints[i].guid()] = static_cast<int>(i);
@@ -239,7 +262,8 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         for (const auto& linked : joints[i].linked_joints)
             if (joint_indices.count(linked))
                 unite(static_cast<int>(i), joint_indices.at(linked));
-    const bool annen = three_valence.size() > 1 && (three_valence[0].empty() || three_valence[0][0] == 0);
+    const bool annen =
+        three_valence.size() > 1 && (three_valence[0].empty() || three_valence[0][0] == 0);
     if (annen) {
         const auto pairs = joints_by_element_pair(elements, joints);
         for (size_t i = 1; i < three_valence.size(); ++i) {
@@ -252,7 +276,6 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
                 unite(a->second, b->second);
         }
     }
-    // the plates are merged once all joints are on them, in the joints' order, as 2024 merged them
     merge_deferred = true;
     std::map<int, std::vector<int>> groups;
     for (size_t i = 0; i < joints.size(); ++i)
@@ -279,14 +302,16 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         }
         if (element->connections.empty())
             continue;
-        element->name = indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
+        element->name =
+            indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
         element->compute_key(elements);
 
-        // the joint in its family's group, then what it does to each plate it joins, both sides of every connection in order
         add(element, group_named(element->element_type_name(), group_named("joints")));
         for (size_t i = 0; i < element->interaction_count(); i++)
-            add_interaction(element, get_element<Plate>(element->interaction_target(i)), element->interaction(i));
+            add_interaction(
+                element, get_element<Plate>(element->interaction_target(i)), element->interaction(i)
+            );
     }
     merge_deferred = false;
     merge_features(elements, joints);
@@ -294,9 +319,13 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     return joints;
 }
 
-} // namespace wood_session
+}
 
-std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(std::vector<std::shared_ptr<wood_session::Plate>>& elements, const wood_session::Settings& settings, SearchType search_type) {
+std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
+    std::vector<std::shared_ptr<wood_session::Plate>>& elements,
+    const wood_session::Settings& settings,
+    SearchType search_type
+) {
 
     wood_session::WoodSession scene(wood_session::config::DATA_SET_INPUT_NAME);
     scene.settings = settings;

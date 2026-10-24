@@ -17,26 +17,16 @@ int main() {
 
     for (size_t i = 0; i < joints.size(); ++i) {
         const double offset = i * 600.0;
-        const std::shared_ptr<Plate> bottom = Plate::from_rectangle(
-            {offset, 0, 0},
-            {1, 0, 0},
-            {0, 1, 0},
-            400,
-            300,
-            40
-        );
-        const std::shared_ptr<Plate> upright = Plate::from_rectangle(
-            {offset + 150, 0, 40},
-            {0, 1, 0},
-            {0, 0, 1},
-            300,
-            250,
-            40
-        );
-        const std::shared_ptr<TreeNode> group = scene.add_group(joints[i]->parameters.library + " / " + std::to_string(i));
+        const std::shared_ptr<Plate> bottom =
+            Plate::from_rectangle({offset, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
+        const std::shared_ptr<Plate> upright =
+            Plate::from_rectangle({offset + 150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 250, 40);
+        const std::shared_ptr<TreeNode> group =
+            scene.add_group(joints[i]->parameters.library + " / " + std::to_string(i));
         scene.add(bottom, group);
         scene.add(upright, group);
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(bottom, upright);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(bottom, upright);
         joints[i]->orient(contact, {bottom, upright});
         scene.add(joints[i], group);
         scene.add_interaction(joints[i], upright, joints[i]->interaction(0));

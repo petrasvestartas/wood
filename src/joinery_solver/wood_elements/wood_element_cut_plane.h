@@ -7,13 +7,14 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a cutting plane: drawn as a square of size on its plane, it cuts other elements by its feature, add_interaction(cut_plane, element, cut_plane->feature()), the element keeping the side the normal points to.
+/// Element that represents a cutting plane.
 class CutPlane : public WoodElement {
 public:
     /// Its cutting plane.
     std::optional<Plane> base_plane() const override;
 
-    static constexpr std::string_view ELEMENT_TYPE = "CutPlane"; // The element_type this plane is written under.
+    static constexpr std::string_view ELEMENT_TYPE =
+        "CutPlane"; // The element_type this plane is written under.
     Plane plane; // The cutting plane; what it cuts keeps the side its normal points to.
     double size = 1000.0; // The side of the square it is drawn as.
 
@@ -22,7 +23,9 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A cutting plane drawn as a square of size.
-    explicit CutPlane(const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane");
+    explicit CutPlane(
+        const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane"
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -58,4 +61,4 @@ protected:
     void compute_geometry_brep_impl() override;
 };
 
-} // namespace wood_session
+}

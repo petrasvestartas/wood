@@ -7,28 +7,18 @@ int main() {
 
     WoodSession wood_session("assignment");
     wood_session.add(
-        Plate::from_rectangle(
-            Point(0, 0, 0),
-            Vector(1, 0, 0),
-            Vector(0, 1, 0),
-            1000,
-            500,
-            40
-        )
+        Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40)
     );
     wood_session.add(
-        Plate::from_rectangle(
-            Point(1000, 0, 0),
-            Vector(1, 0, 0),
-            Vector(0, 1, 0),
-            1000,
-            500,
-            40
-        )
+        Plate::from_rectangle(Point(1000, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 1000, 500, 40)
     );
 
-    wood_session.assign_joint_types_by_points({Point(1000, 250, 0), Point(500, 250, 40)}, {3, -40}, 1.0);
-    wood_session.assign_insertion_vectors_by_lines({Line::from_points(Point(1000, 250, 0), Point(1000, 250, 300))}, 1.0);
+    wood_session.assign_joint_types_by_points(
+        {Point(1000, 250, 0), Point(500, 250, 40)}, {3, -40}, 1.0
+    );
+    wood_session.assign_insertion_vectors_by_lines(
+        {Line::from_points(Point(1000, 250, 0), Point(1000, 250, 300))}, 1.0
+    );
 
     for (const std::shared_ptr<Plate>& plate : wood_session.plates()) {
         std::cout << plate->name << " feature types:";

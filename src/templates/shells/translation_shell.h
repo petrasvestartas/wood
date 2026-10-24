@@ -10,8 +10,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A shell of mitered plates, a cross section swept along a profile.
-///
-/// Fields: the two input curves and the plate sizes; every plate is in the session as `plate_<i>`.
 class TranslationShell : public WoodSession {
 public:
     const Polyline cross_section; // The curve that is swept.
@@ -52,12 +50,8 @@ inline TranslationShell::TranslationShell(
     double chamfer_angle,
     const std::string& name
 )
-    : WoodSession(name),
-      cross_section(cross_section),
-      profile(profile),
-      thickness(thickness),
-      chamfer(chamfer),
-      chamfer_angle(chamfer_angle) {
+    : WoodSession(name), cross_section(cross_section), profile(profile), thickness(thickness),
+      chamfer(chamfer), chamfer_angle(chamfer_angle) {
 
     // curves: the cross section and the profile it is swept along
     const std::shared_ptr<TreeNode> curves = add_group("curves");
@@ -76,13 +70,8 @@ inline TranslationShell::TranslationShell(
     add_mesh(mesh, add_group("mesh"));
 
     // plates: one mitered plate per quad, thickness deep, its sharp corners chamfered
-    const std::vector<std::shared_ptr<Plate>> plates = mitered_plates(
-        mesh,
-        thickness,
-        chamfer,
-        chamfer,
-        chamfer_angle
-    );
+    const std::vector<std::shared_ptr<Plate>> plates =
+        mitered_plates(mesh, thickness, chamfer, chamfer, chamfer_angle);
     const std::shared_ptr<TreeNode> plates_group = add_group("plates");
 
     for (const std::shared_ptr<Plate>& plate : plates)

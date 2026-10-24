@@ -10,26 +10,32 @@ namespace wood_session {
 /// Merged cut outlines of a plate, per face: [0] the outer boundary, [1..] holes.
 struct Features {
     std::vector<Polyline> top; // Top face: the outer outline first, then one outline per hole.
-    std::vector<Polyline> bottom; // Bottom face: the outer outline first, then one outline per hole.
+    std::vector<Polyline>
+        bottom; // Bottom face: the outer outline first, then one outline per hole.
 };
 
-/// Element that represents a timber plate: a bottom and a top outline, one side face per edge, and the joints cut into it. It carries two geometries, as a compas_model element does: element_geometry_mesh() / element_geometry_brep() give the plate alone, the loft of its two outlines, never cut; model_geometry_mesh() / model_geometry_brep() give the plate with its joints cut in, the loft of the merged outlines, the one to inspect and the one pb_dump writes. Neither is lofted until asked for.
+/// Element that represents a timber plate.
 class Plate : public WoodElement {
 public:
-    static constexpr std::string_view ELEMENT_TYPE = "Plate"; // The element_type this plate is written under.
-    static constexpr std::string_view LEGACY_ELEMENT_TYPE = "WoodElement"; // The element_type wood wrote before, still accepted on read.
-    std::vector<Polyline> polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
+    static constexpr std::string_view ELEMENT_TYPE =
+        "Plate"; // The element_type this plate is written under.
+    static constexpr std::string_view LEGACY_ELEMENT_TYPE =
+        "WoodElement"; // The element_type wood wrote before, still accepted on read.
+    std::vector<Polyline>
+        polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
     std::vector<Plane> planes; // One plane per outline, normals pointing out of the plate.
     double thickness = 0.0; // Distance between the bottom and the top plane.
-    bool reversed = false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
-    Features features; // Merged cut outlines after compute_features; empty before. Call invalidate_geometry() after assigning.
-    std::vector<int> feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide. The annen and vidy datasets only.
+    bool reversed =
+        false; // True when the constructor reversed both outlines to make the bottom normal point away from the top.
+    Features features; // Merged cut outlines after compute_features; empty before.
+    std::vector<int>
+        feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide.
 
 protected:
-    /// The plate before the solid cuts as a Mesh: the loft of the merged feature outlines once compute_features has run, else the plate alone.
+    /// The plate before the solid cuts as a Mesh.
     Mesh trimmed_mesh() const override;
 
-    /// The plate before the solid cuts as a BRep: the loft of the merged feature outlines once compute_features has run, else the plate alone.
+    /// The plate before the solid cuts as a BRep.
     BRep trimmed_brep() const override;
 
 public:
@@ -57,36 +63,70 @@ public:
         const std::string& name = "plate"
     );
 
-    /// A plate standing on a line and centred on it, a wall drawn on its footprint: the line the middle of its bottom edge, `height` up `up`, `thickness` across.
-    static std::shared_ptr<Plate> from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
+    /// A plate standing on a line and centred on it.
+    static std::shared_ptr<Plate> from_line(
+        const Line& base,
+        const Vector& up,
+        double height,
+        double thickness,
+        const std::string& name = "plate"
+    );
 
-    /// A row of plates lofted between two rails: segment i of the two bottom rails and of the two top rails make plate `<name>_<i>`, its bottom quad and its top quad.
-    static std::vector<std::shared_ptr<Plate>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plates");
+    /// A row of plates lofted between two rails.
+    static std::vector<std::shared_ptr<Plate>> row_between(
+        const std::array<Polyline, 2>& bottom,
+        const std::array<Polyline, 2>& top,
+        const std::string& name = "plates"
+    );
 
-    /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`, a shallow V,
-    /// 180 in line, each `length` x `width` x `thickness` from the seam, the seam their miter: the in-plane side-to-side pair (side_side_inplane).
-    static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0);
+    /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`.
+    static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(
+        double angle_degrees = 180.0,
+        double length = 300.0,
+        double width = 400.0,
+        double thickness = 40.0
+    );
 
-    /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`, the wall turned `angle_degrees`
-    /// from the floor's top, their side faces mitered on the bisector: the out-of-plane side-to-side pair (side_side_outplane).
-    static std::array<std::shared_ptr<Plate>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0);
+    /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`.
+    static std::array<std::shared_ptr<Plate>, 2> pair_folded(
+        double angle_degrees = 90.0,
+        double length = 300.0,
+        double width = 400.0,
+        double height = 300.0,
+        double thickness = 40.0
+    );
 
-    /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`, its foot
-    /// along y and its faces leaning toward x to `angle_degrees` from the base's top, 90 upright: the top-to-side pair (top_side).
-    static std::array<std::shared_ptr<Plate>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0);
+    /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`.
+    static std::array<std::shared_ptr<Plate>, 2> pair_top_side(
+        double angle_degrees = 90.0,
+        double base_size = 400.0,
+        double upright_size = 250.0,
+        double thickness = 40.0
+    );
 
-    /// Two upright plates `length` x `height` x `thickness` crossing at their middles, "first" along x and "second" turned `angle_degrees`
-    /// from it in plan: the cross pair (cross).
-    static std::array<std::shared_ptr<Plate>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0);
+    /// Creates two upright plates crossing at their centres at the specified angle.
+    static std::array<std::shared_ptr<Plate>, 2> pair_crossing(
+        double angle_degrees = 90.0,
+        double length = 400.0,
+        double height = 200.0,
+        double thickness = 40.0
+    );
 
-    /// Two plates `length` x `width` x `thickness` stacked face on face, "lower" and "upper", the upper's centre shifted to (0.55, 0.6)
-    /// of the lower's sides and turned `twist_degrees` about the vertical, 0 square to it: the top-to-top pair (top_top).
-    static std::array<std::shared_ptr<Plate>, 2> pair_stacked(double twist_degrees = 0.0, double length = 400.0, double width = 300.0, double thickness = 40.0);
+    /// Two plates `length` x `width` x `thickness` stacked face on face, "lower" and "upper".
+    static std::array<std::shared_ptr<Plate>, 2> pair_stacked(
+        double twist_degrees = 0.0,
+        double length = 400.0,
+        double width = 300.0,
+        double thickness = 40.0
+    );
 
-    /// Two plates end to end, "left" and "right", the rotated side-to-side pair the side_side_rotated designs are for, as the hex blocks of
-    /// Rossiniere meet: each `length` x `width` x `thickness`, their side faces on the plane x = length, the right one twisted by
-    /// `twist_degrees` about that plane's normal, so the two seam edges cross at the centre of the contact.
-    static std::array<std::shared_ptr<Plate>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0);
+    /// Two plates end to end, "left" and "right".
+    static std::array<std::shared_ptr<Plate>, 2> pair_rotated(
+        double twist_degrees = 10.0,
+        double length = 300.0,
+        double width = 400.0,
+        double thickness = 100.0
+    );
 
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
     static std::shared_ptr<Plate> from_element(Element element);
@@ -101,26 +141,20 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-
-
-    /// Swaps the bottom and top planes, keeps the outlines, and drops every cache the kernel and the plate hold; detection asks for it when
-    /// an in-plane joint finds the plate's top plane nearer, as the 2025 solver swapped the planes of its element and nothing else, so a
-    /// later contact pairs the swapped plane with the outline of that index.
+    /// Swaps the bottom and top planes, keeps the outlines, and drops every cache the kernel and the plate hold.
     void swap_planes();
 
-    /// The index a face has in the tables given with the plate (feature_types, insertion_vectors, the sidecars): the face itself, or on a
-    /// reversed plate the other outline's face and the sides counted backwards; the mapping is its own inverse.
+    /// The index a face has in the tables given with the plate (feature_types, insertion_vectors.
     int given_face(int face) const;
 
-
-    /// A copy moved by xform from the members alone, never the constructor: outlines, planes, merged features, element features and insertion vectors moved, thickness, reversed and feature types kept, guid and name too; no loft until one is asked for; nullptr for a mirror.
+    /// A copy moved by xform from the members alone, never the constructor.
     std::shared_ptr<Plate> transformed(const Xform& xform) const;
 
     /// Moves the solid, the element features and the insertion vectors, then the outlines, planes and merged features, and drops all cached lofts.
     void place(const Xform& xform) override;
 
 protected:
-    /// Writes the model geometry (cached, lofted here at the latest), the dimensions and the face features onto the Element, keeping the joint and contact features the session put there, the slot the session file and the viewer read; WoodSession::pb_dump calls it for every stale plate, so nothing lofts until a file is written or a geometry is asked for.
+    /// Writes the model geometry (cached, lofted here at the latest).
     void compute_geometry_mesh_impl() override;
 
     /// Write the model BRep and the element features into the session slot.
@@ -130,7 +164,6 @@ protected:
     void compute_geometry_features();
 
 public:
-
     /// Outline extent in the plate's own frame, thickness in z.
     Vector nominal_dimensions() const;
 
@@ -153,7 +186,7 @@ public:
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The outline payload as JSON: bottom, reversed, top, type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
+    /// The outline payload as JSON.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -205,4 +238,4 @@ public:
     }
 };
 
-} // namespace wood_session
+}

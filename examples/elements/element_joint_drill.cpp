@@ -11,7 +11,8 @@ int main() {
     const std::shared_ptr<Block> block = Block::box({0.0, 0.0, 0.0}, 300.0, 300.0, 200.0);
     scene.add(block);
 
-    const std::shared_ptr<Joint> drill = Joint::drill(Line::from_points({150.0, 150.0, 250.0}, {150.0, 150.0, -50.0}), 25.0);
+    const std::shared_ptr<Joint> drill =
+        Joint::drill(Line::from_points({150.0, 150.0, 250.0}, {150.0, 150.0, -50.0}), 25.0);
     drill->name = "drill";
     drill->is_visible = false;
     scene.add(drill);

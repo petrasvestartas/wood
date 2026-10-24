@@ -5,10 +5,7 @@ namespace wood_module {
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructor
 // ═══════════════════════════════════════════════════════════════════════════
-
-Wall::Wall(const WallGuide& guide, const std::string& name)
-    : WoodSession(name),
-      guide(guide) {
+Wall::Wall(const WallGuide& guide, const std::string& name) : WoodSession(name), guide(guide) {
 
     // frame and sheathing: the wall as a framed panel standing in the xz plane, its foot on the x axis
     const Plane upright(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0));

@@ -6,13 +6,15 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Folded triangular surfaces over a regular polygon plan after Engel (p. 232), a gable on every edge.
+/// Folded triangular surfaces over a regular polygon plan, a gable on every edge.
 class TriangleFold : public WoodSession {
 public:
     const size_t sides; // Sides of the regular polygon plan.
-    const double radius; // mm, the plan's circumradius, its corners on the circle around the origin.
+    const double
+        radius; // mm, the plan's circumradius, its corners on the circle around the origin.
     const double middle; // mm, the edges' middles' height, the gables' peaks.
-    const double centre; // mm, the centre's height; at the middles' height the polygon of the middles stays one flat face.
+    const double
+        centre; // mm, the centre's height; at the middles' height the polygon of the middles stays one flat face.
     const double thickness; // mm, every plate.
 
 private:
@@ -47,11 +49,7 @@ inline TriangleFold::TriangleFold(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      sides(sides),
-      radius(radius),
-      middle(middle),
-      centre(centre),
+    : WoodSession(name), sides(sides), radius(radius), middle(middle), centre(centre),
       thickness(thickness) {
 
     // points: the corners on the ground, the edges' middles raised, the centre

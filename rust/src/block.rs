@@ -1,5 +1,3 @@
-//! Block: a capped loft between a bottom and a top loop, holes paired in order, or a given mesh.
-
 use crate::element::WoodElement;
 use crate::geometry::{brep_between_loops, frame_along, mesh_brep};
 use crate::proto;
@@ -17,6 +15,7 @@ pub struct Block {
 }
 
 impl Block {
+
     /// A block lofted between a bottom and a top loop, then hole pairs.
     pub fn new(loops: Vec<Polyline>, name: &str) -> Self {
         Self {

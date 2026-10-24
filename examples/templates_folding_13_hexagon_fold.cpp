@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Singly folded surfaces over a hexagonal plan, ridges sloping to the centre (Engel, p. 228): six sectors folded once each, their
-/// ridges falling from the peaks over the edges to the lower centre, the eave triangles leaning inward.
+/// Singly folded surfaces over a hexagonal plan, ridges sloping to the centre .
 int main() {
 
     SingleFold fold(6, 12000.0, -2100.0, 8300.0, 5200.0, 120.0, "hexagon_fold");
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 13 of the folding templates: singly folded surfaces over a hexagonal plan with ridges sloping to the centre after Engel, Structure Systems, Folded plate structures (p. 228). A regular hexagon on a 12 m circumradius standing on its six corners; every edge's middle is pulled 2100 in from the edge and raised to 8300, the centre only 5200, so the six ridges slope down from the peaks to the centre and the eave triangles from the edges on the ground lean inward, seen in the plan as Engel hatches them; every sector is two planar triangles folded on its ridge: eighteen plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
+Step 13 of the folding templates: singly folded surfaces over a hexagonal plan with ridges sloping to the centre. A regular hexagon on a 12 m circumradius standing on its six corners; every edge's middle is pulled 2100 in from the edge and raised to 8300, the centre only 5200, so the six ridges slope down from the peaks to the centre and the eave triangles from the edges on the ground lean inward, seen in the plan; every sector is two planar triangles folded on its ridge: eighteen plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

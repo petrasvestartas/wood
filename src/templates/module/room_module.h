@@ -12,23 +12,16 @@ namespace wood_module {
 // RoomModule
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber room modules, a session built from a guide: per storey and column one frame module, a floor and a ceiling, each an edge
-/// beam a wall wide along each long side over the whole length and joists across flush with the room, the first and last at the ends,
-/// four corner posts on the floor's edge beams under the ceiling's, a framed wall between the posts on every
-/// closed side, the ceiling's long edge beams deeper, reaching into the room, on the posts and long walls; the long sides between the modules of one room are open, a post at
-/// mid-length on each, so the room spans them; between two rooms one wall, in the module of the smaller room. Then the contacts in every module and between modules side by
-/// side and stacked. No connector is made.
-///
-/// Fields: `guide`, the RoomModuleGuide it is built from.
-/// Every module is a group `module_<storey>_<column>` of its floor and ceiling boxes `<module>_floor` and `<module>_ceiling`, each its
-/// `_beams` and `_boards`, of the FramedPanels `<module>_wall_start`, `<module>_wall_end` and, on a long side it closes, `<module>_wall_front` or `<module>_wall_back`, and of the posts `<module>_post_<k>`;
-/// every member of a panel is named `<panel>_<part>`, read back by name.
+/// Timber room modules.
 class RoomModule : public WoodSession {
 public:
-    const RoomModuleGuide guide; // The geometry the modules are built from; every element is in the session.
+    const RoomModuleGuide
+        guide; // The geometry the modules are built from; every element is in the session.
 
     /// The modules of the guide as the session named name.
-    explicit RoomModule(const RoomModuleGuide& guide = RoomModuleGuide(), const std::string& name = "room_module");
+    explicit RoomModule(
+        const RoomModuleGuide& guide = RoomModuleGuide(), const std::string& name = "room_module"
+    );
 
     /// Not copied, as a session is not.
     RoomModule(const RoomModule&) = delete;
@@ -52,15 +45,16 @@ public:
     size_t columns() const;
 
 private:
-    /// Adds the module of a storey and a column: its floor and ceiling, its corner posts, the posts along its sides open inside its room,
-    /// and its walls on the sides it closes.
+    /// Adds the module of a storey and a column.
     void add_module(size_t storey, size_t column);
 
-    /// Adds a floor or a ceiling named name from the module's corner at its underside: an edge beam a wall wide along each long side
-    /// over the whole length, under or on the posts, a ceiling's reaching the downstand depth below it; joists across between them, the first
-    /// and last at the module's ends, the rest dividing the length evenly; between the edge beams a board under the joists, a ceiling's
-    /// lining, and one over them, a floor's deck, flush with the edge beams on both faces.
-    void add_box(const std::string& name, const Point& corner, bool floor, const std::shared_ptr<TreeNode>& parent);
+    /// Adds a floor or a ceiling named name from the module's corner at its underside.
+    void add_box(
+        const std::string& name,
+        const Point& corner,
+        bool floor,
+        const std::shared_ptr<TreeNode>& parent
+    );
 
     /// The room of the module in a column and the number of modules it has.
     std::array<size_t, 2> room_of(size_t column) const;

@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Cross-folded surfaces spanned diagonally over a square plan, ridges folded upwardly (Engel, p. 229): the diagonal ridges folded up
-/// at their middles, the corners and the centre level, the edges' middles on the ground.
+/// Cross-folded surfaces spanned diagonally over a square plan, ridges folded upwardly .
 int main() {
 
     DiagonalFold fold;
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 16 of the folding templates: cross-folded surfaces spanned diagonally over a square plan with the ridges folded upwardly after Engel, Structure Systems, Folded plate structures (p. 229). An 18 m square; the cross from the edges' middles to the centre divides it into four sectors, each a surface folded diagonally: the ridge from the corner to the centre is folded upward at its middle, 6200 high, while the corner and the centre are both 3300 high and the edges' middles stand on the ground, so every edge is a valley from corner to corner, the lines from middle to middle bend up over the ridges and the structure stands on the four middles; every sector is four planar triangles around its fold point: sixteen plates 120 mm thick, their edges on the plan's sides cut flush. Each step is a group: mesh, folds, plates.
+Step 16 of the folding templates: cross-folded surfaces spanned diagonally over a square plan with the ridges folded upwardly. An 18 m square; the cross from the edges' middles to the centre divides it into four sectors, each a surface folded diagonally: the ridge from the corner to the centre is folded upward at its middle, 6200 high, while the corner and the centre are both 3300 high and the edges' middles stand on the ground, so every edge is a valley from corner to corner, the lines from middle to middle bend up over the ridges and the structure stands on the four middles; every sector is four planar triangles around its fold point: sixteen plates 120 mm thick, their edges on the plan's sides cut flush. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -1,4 +1,3 @@
-/// cross_half_lap_drill: the five rings of the half-lap, the bottom sides extended 0.15 to each side, and one vertical drill through its centre.
 static void cross_half_lap_drill(InteractionFeaturePlate& joint) {
 
     joint.name = "cross_half_lap_drill";

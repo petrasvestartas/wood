@@ -1,6 +1,3 @@
-//! Rust -> C++: a session of one element per class, written here, which wood/tests/rust_elements.cpp loads.
-//! WOOD_WRITE_GOLDEN=1 rewrites tests/data/rust_elements.pb; otherwise the committed file must still match.
-
 mod common;
 
 use common::*;

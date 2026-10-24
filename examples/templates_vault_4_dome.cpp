@@ -4,31 +4,28 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double RADIUS = 4000.0; // intrados
-const double BOTTOM = 400.0; // thickness at the springing
-const double TOP = 250.0; // thickness at the oculus
+const double RADIUS = 4000.0;
+const double BOTTOM = 400.0;
+const double TOP = 250.0;
 const int MERIDIANS = 40;
 const int HOOPS = 20;
-const double OCULUS = 6.0; // degrees from the zenith
-const double SPRINGING = 90.0; // degrees from the zenith: a hemisphere
+const double OCULUS = 6.0;
+const double SPRINGING = 90.0;
 
 int main() {
 
     WoodSession wood_session("vault_dome");
-    for (const std::shared_ptr<Element>& element : wood_vault::dome(
-        RADIUS,
-        BOTTOM,
-        TOP,
-        MERIDIANS,
-        HOOPS,
-        OCULUS,
-        SPRINGING
-    ))
+    for (const std::shared_ptr<Element>& element :
+         wood_vault::dome(RADIUS, BOTTOM, TOP, MERIDIANS, HOOPS, OCULUS, SPRINGING))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
 
-    std::cout << fmt::format("dome: {} voussoirs, {} contacts\n", wood_session.objects.elements->size(), wood_session.graph.number_of_edges());
+    std::cout << fmt::format(
+        "dome: {} voussoirs, {} contacts\n",
+        wood_session.objects.elements->size(),
+        wood_session.graph.number_of_edges()
+    );
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -36,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A hemispherical dome of 4 m intrados radius with an oculus, 20 hoops of 40 voussoirs, every odd hoop shifted half a voussoir and every voussoir a hexagon bending at the joints above and below so the hoops close without gaps, 400 thick at the springing tapering to 250 at the oculus, after compas_dem's DomeTemplate; compute_face_contacts(0) pairs the voussoirs along their meridian joints and with the two voussoirs above and below.
+A hemispherical dome of 4 m intrados radius with an oculus, 20 hoops of 40 voussoirs, every odd hoop shifted half a voussoir and every voussoir a hexagon bending at the joints above and below so the hoops close without gaps, 400 thick at the springing tapering to 250 at the oculus; compute_face_contacts(0) pairs the voussoirs along their meridian joints and with the two voussoirs above and below.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

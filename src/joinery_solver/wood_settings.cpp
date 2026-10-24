@@ -9,7 +9,6 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // Settings - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 const std::array<std::vector<Polyline>, 2>& Settings::custom(const std::string& family) const {
 
     static const std::array<std::vector<Polyline>, 2> none;
@@ -44,13 +43,14 @@ Settings Settings::jsonload(const nlohmann::json& data) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Settings - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Settings::pb_dumps() const {
 
     wood_proto::Settings proto;
     proto.set_search_type(static_cast<int>(search_type));
     proto.mutable_joint_parameters()->Add(joint_parameters.begin(), joint_parameters.end());
-    proto.mutable_joint_volume_extension()->Add(joint_volume_extension.begin(), joint_volume_extension.end());
+    proto.mutable_joint_volume_extension()->Add(
+        joint_volume_extension.begin(), joint_volume_extension.end()
+    );
     proto.mutable_joint_scale()->Add(joint_scale.begin(), joint_scale.end());
     proto.set_dihedral_angle(dihedral_angle);
     proto.set_all_treated_as_rotated(all_treated_as_rotated);
@@ -88,7 +88,9 @@ Settings Settings::pb_loads(const std::string& data) {
     if (proto.joint_parameters_size() > 0)
         s.joint_parameters.assign(proto.joint_parameters().begin(), proto.joint_parameters().end());
     if (proto.joint_volume_extension_size() > 0)
-        s.joint_volume_extension.assign(proto.joint_volume_extension().begin(), proto.joint_volume_extension().end());
+        s.joint_volume_extension.assign(
+            proto.joint_volume_extension().begin(), proto.joint_volume_extension().end()
+        );
     for (int k = 0; k < 3 && k < proto.joint_scale_size(); ++k)
         s.joint_scale[k] = proto.joint_scale(k);
     s.dihedral_angle = proto.dihedral_angle();
@@ -113,4 +115,4 @@ Settings Settings::pb_loads(const std::string& data) {
     return s;
 }
 
-} // namespace wood_session
+}

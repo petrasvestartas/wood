@@ -8,10 +8,12 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-Beam::Beam() : WoodElement("beam") {}
+Beam::Beam() : WoodElement("beam") {
+}
 
 Beam::Beam(const Polyline& axis, double radius, const std::string& name)
-    : WoodElement(name), axis(axis), radii(axis.segment_count(), radius) {}
+    : WoodElement(name), axis(axis), radii(axis.segment_count(), radius) {
+}
 
 Beam::Beam(
     const Polyline& axis,
@@ -20,7 +22,9 @@ Beam::Beam(
     int allowed_type,
     const std::string& name
 )
-    : WoodElement(name), axis(axis), radii(radii), directions(directions), allowed_type(allowed_type) {}
+    : WoodElement(name), axis(axis), radii(radii), directions(directions),
+      allowed_type(allowed_type) {
+}
 
 Beam::Beam(
     const Polyline& axis,
@@ -28,40 +32,55 @@ Beam::Beam(
     const std::vector<Vector>& directions,
     const std::string& name
 )
-    : WoodElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0), directions(directions), profile(profile) {}
+    : WoodElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0),
+      directions(directions), profile(profile) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::array<std::shared_ptr<Beam>, 2> Beam::pair_crossing(double angle_degrees, double radius, double length) {
+std::array<std::shared_ptr<Beam>, 2>
+Beam::pair_crossing(double angle_degrees, double radius, double length) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
-    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin - along * (length * 0.5), origin + along * (length * 0.5)}), radius, "second");
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(
+        Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first"
+    );
+    const std::shared_ptr<Beam> second = std::make_shared<Beam>(
+        Polyline({origin - along * (length * 0.5), origin + along * (length * 0.5)}),
+        radius,
+        "second"
+    );
     return {first, second};
 }
 
-std::array<std::shared_ptr<Beam>, 2> Beam::pair_tee(double angle_degrees, double radius, double length) {
+std::array<std::shared_ptr<Beam>, 2>
+Beam::pair_tee(double angle_degrees, double radius, double length) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first");
-    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    const std::shared_ptr<Beam> first = std::make_shared<Beam>(
+        Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first"
+    );
+    const std::shared_ptr<Beam> second =
+        std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
     second->extension = radius;
     return {first, second};
 }
 
-std::array<std::shared_ptr<Beam>, 2> Beam::pair_end_to_end(double angle_degrees, double radius, double length, double extension) {
+std::array<std::shared_ptr<Beam>, 2>
+Beam::pair_end_to_end(double angle_degrees, double radius, double length, double extension) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first = std::make_shared<Beam>(Polyline({Point(-length, 0.0, 0.0), origin}), radius, "first");
-    const std::shared_ptr<Beam> second = std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    const std::shared_ptr<Beam> first =
+        std::make_shared<Beam>(Polyline({Point(-length, 0.0, 0.0), origin}), radius, "first");
+    const std::shared_ptr<Beam> second =
+        std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
     first->extension = extension;
     second->extension = extension;
     return {first, second};
@@ -108,14 +127,14 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
     for (const auto& cut : proto.solid_features())
         beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
-        beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
+        beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()
+        ));
     return beam;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 double Beam::radius(int segment) const {
     return segment >= 0 && segment < (int)radii.size() ? radii[segment] : 0.0;
 }
@@ -145,21 +164,10 @@ std::vector<Polyline> Beam::sections() const {
             station = station - along.normalized() * extension;
         if (i == segments)
             station = station + along.normalized() * extension;
-        // a square of the segment's radius, or the profile's outer loop
         if (profile.empty())
-            sections.push_back(square_section(
-                station,
-                along,
-                up,
-                radius(segment)
-            ));
+            sections.push_back(square_section(station, along, up, radius(segment)));
         else
-            sections.push_back(profile_section(
-                station,
-                along,
-                up,
-                profile[0]
-            ));
+            sections.push_back(profile_section(station, along, up, profile[0]));
     }
 
     return sections;
@@ -174,22 +182,8 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
 
     std::pair<std::vector<Polyline>, std::vector<Polyline>> ends;
     for (const Polyline& ring : beam.profile) {
-        ends.first.push_back(
-            profile_section(
-                beam.axis.get_point(0) - reach,
-                along,
-                up,
-                ring
-            )
-        );
-        ends.second.push_back(
-            profile_section(
-                beam.axis.get_point(1) + reach,
-                along,
-                up,
-                ring
-            )
-        );
+        ends.first.push_back(profile_section(beam.axis.get_point(0) - reach, along, up, ring));
+        ends.second.push_back(profile_section(beam.axis.get_point(1) + reach, along, up, ring));
     }
 
     return ends;
@@ -199,7 +193,8 @@ const Mesh& Beam::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         if (profile.size() > 1 && axis.segment_count() == 1) {
-            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends = profile_ends(*this);
+            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends =
+                profile_ends(*this);
             _element_geometry_mesh = Mesh::loft(ends.first, ends.second, true);
         } else
             _element_geometry_mesh = sweep_sections(sections());
@@ -212,7 +207,8 @@ const BRep& Beam::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         if (profile.size() > 1 && axis.segment_count() == 1) {
-            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends = profile_ends(*this);
+            const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends =
+                profile_ends(*this);
             _element_geometry_brep = brep_between_loops(ends.first, ends.second);
         } else
             _element_geometry_brep = brep_sections(sections());
@@ -233,8 +229,9 @@ std::vector<Plane> Beam::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }
 
-/// The up directions moved by xform; while xform tilts z every segment without one takes xform·z, the world z sections() used before the move.
-static std::vector<Vector> transformed_directions(const std::vector<Vector>& directions, size_t segments, const Xform& xform) {
+/// The up directions moved by xform.
+static std::vector<Vector>
+transformed_directions(const std::vector<Vector>& directions, size_t segments, const Xform& xform) {
 
     std::vector<Vector> moved = transformed_list(directions, xform);
     const Vector up = Vector::z_axis().transformed(xform);
@@ -336,7 +333,6 @@ AABB Beam::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 nlohmann::ordered_json Beam::element_data_jsondump() const {
 
     wood_proto::Beam proto;
@@ -349,7 +345,6 @@ nlohmann::ordered_json Beam::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Beam::element_data_dumps() const {
 
     wood_proto::Beam proto;
@@ -389,11 +384,12 @@ void Beam::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Beam::str() const {
 
     std::ostringstream os;
-    os << "Beam(name=" << name << ", segments=" << axis.segment_count() << ", radii=" << radii.size() << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "Beam(name=" << name << ", segments=" << axis.segment_count()
+       << ", radii=" << radii.size() << ", is_visible=" << std::boolalpha << is_visible
+       << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
@@ -411,4 +407,4 @@ std::optional<Plane> Beam::base_plane() const {
     return frame_along(axis.get_point(0), ring_edge, axis_direction);
 }
 
-} // namespace wood_session
+}

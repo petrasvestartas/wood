@@ -24,51 +24,66 @@ int main() {
     scene.add(column);
 
     const auto contact = std::make_shared<InteractionContactFace>(
-        2, 4, ContactType::side_side,
-        Polyline::rectangle(
-            {45, -5, 0},
-            {1, 0, 0},
-            {0, 1, 0},
-            10,
-            10
-        ));
+        2, 4, ContactType::side_side, Polyline::rectangle({45, -5, 0}, {1, 0, 0}, {0, 1, 0}, 10, 10)
+    );
     scene.add_interaction(beam, column, contact);
     const ElementFeature* hosted_contact = feature(*column, contact->guid());
-    check(hosted_contact && hosted_contact->face_index == 4 && !feature(*beam, contact->guid()), "a contact belongs to its target, face relative to it");
+    check(
+        hosted_contact && hosted_contact->face_index == 4 && !feature(*beam, contact->guid()),
+        "a contact belongs to its target, face relative to it"
+    );
 
     scene.add_interaction(column, beam, contact->flipped());
     check(!feature(*column, contact->guid()), "old contact host must be cleared");
     const ElementFeature* moved_contact = feature(*beam, contact->guid());
-    check(moved_contact && moved_contact->face_index == 2, "contact face is relative to its new host");
+    check(
+        moved_contact && moved_contact->face_index == 2, "contact face is relative to its new host"
+    );
     check(scene.get_interaction(beam, column).size() == 1, "contact is not duplicated");
 
     const auto joint = std::make_shared<InteractionFeatureBeam>();
     for (int i = 0; i < 4; ++i)
-        joint->volumes[i] = Polyline::rectangle(
-            {double(i), 0, 0},
-            {1, 0, 0},
-            {0, 1, 0},
-            2,
-            3
-        );
+        joint->volumes[i] = Polyline::rectangle({double(i), 0, 0}, {1, 0, 0}, {0, 1, 0}, 2, 3);
 
-    const auto stored = std::dynamic_pointer_cast<InteractionFeatureBeam>(scene.add_interaction(column, beam, joint));
+    const auto stored =
+        std::dynamic_pointer_cast<InteractionFeatureBeam>(scene.add_interaction(column, beam, joint)
+        );
     check(!feature(*beam, joint->guid()), "existing edge's first endpoint must not own the joint");
     check(feature(*column, joint->guid()), "joint belongs to the argument source");
     check(joint->volumes[0][0][0] == 0, "adding a reversed joint must not mutate caller geometry");
     scene.add_interaction(beam, column, joint);
     check(feature(*beam, joint->guid()), "reversed call transfers the joint");
     check(!feature(*column, joint->guid()), "joint has exactly one host");
-    check(scene.get_interaction(beam, column).size() == 2, "reusing a joint must not duplicate the record");
-    check(scene.graph.edges.at(beam->guid()).at(column->guid()).v0 == beam->guid(), "graph ordering stays stable");
-    check(stored->volumes[0][0][0] == 2, "stored geometry stays in edge order after ownership changes");
+    check(
+        scene.get_interaction(beam, column).size() == 2,
+        "reusing a joint must not duplicate the record"
+    );
+    check(
+        scene.graph.edges.at(beam->guid()).at(column->guid()).v0 == beam->guid(),
+        "graph ordering stays stable"
+    );
+    check(
+        stored->volumes[0][0][0] == 2, "stored geometry stays in edge order after ownership changes"
+    );
 
     const WoodSession restored = WoodSession::pb_loads(scene.pb_dumps());
-    check(feature(*restored.get_element<Element>(beam->guid()), joint->guid()), "protobuf preserves the joint host");
-    check(!feature(*restored.get_element<Element>(column->guid()), joint->guid()), "protobuf keeps one joint host");
+    check(
+        feature(*restored.get_element<Element>(beam->guid()), joint->guid()),
+        "protobuf preserves the joint host"
+    );
+    check(
+        !feature(*restored.get_element<Element>(column->guid()), joint->guid()),
+        "protobuf keeps one joint host"
+    );
     scene.add_interaction(column, beam, joint);
     scene.compute_beam_features(20, 0.5, 0);
-    check(!feature(*beam, joint->guid()) && !feature(*column, joint->guid()), "recomputation removes old features from either host");
+    check(
+        !feature(*beam, joint->guid()) && !feature(*column, joint->guid()),
+        "recomputation removes old features from either host"
+    );
     scene.remove_interaction(column, beam);
-    check(!feature(*beam, joint->guid()) && !feature(*beam, contact->guid()), "removing the edge clears its features");
+    check(
+        !feature(*beam, joint->guid()) && !feature(*beam, contact->guid()),
+        "removing the edge clears its features"
+    );
 }

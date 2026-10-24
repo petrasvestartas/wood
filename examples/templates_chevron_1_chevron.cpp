@@ -10,9 +10,12 @@ int main() {
     const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
     Chevron chevron(surfaces[0]);
-    const std::vector<std::shared_ptr<Plate>> plates = chevron.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<Plate>> plates =
+        chevron.get_elements_numbered<Plate>("plate");
     std::cout << chevron << std::endl;
-    std::cout << fmt::format("chevron: {} faces, {} plates\n", chevron.mesh().number_of_faces(), plates.size());
+    std::cout << fmt::format(
+        "chevron: {} faces, {} plates\n", chevron.mesh().number_of_faces(), plates.size()
+    );
     chevron.pb_dump(pb_path("live"));
     return 0;
 }

@@ -4,20 +4,27 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Six closed curved-folded beams side by side: boxes 800 wide and 400 high at the supports, the top and bottom bulging out, the
-/// sides sagging in, five webs across the span.
+/// Six closed curved-folded beams side by side.
 int main() {
 
     CurvedFoldedBeam beams;
     std::cout << beams << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates = beams.get_elements_placed<PlateCurved>("beam");
+    const std::vector<std::shared_ptr<PlateCurved>> plates =
+        beams.get_elements_placed<PlateCurved>("beam");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("curved folded beam: {} plates, {} closed solids, {} contacts, development distortion {:.2e}\n", plates.size(), solids, beams.get_contacts().size(), beams.distortion());
+    std::cout << fmt::format(
+        "curved folded beam: {} plates, {} closed solids, {} contacts, development distortion "
+        "{:.2e}\n",
+        plates.size(),
+        solids,
+        beams.get_contacts().size(),
+        beams.distortion()
+    );
     beams.pb_dump(pb_path("live"));
     return 0;
 }

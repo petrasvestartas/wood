@@ -12,7 +12,8 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The points in the plane of their normal, x along the first side and y the normal cross x, so the face winds counter-clockwise.
-static std::vector<std::pair<double, double>> to_plane(const std::vector<Point>& points, const Vector& normal) {
+static std::vector<std::pair<double, double>>
+to_plane(const std::vector<Point>& points, const Vector& normal) {
 
     const Vector x = (points[1] - points[0]).normalized();
     const Vector y = normal.normalized().cross(x);
@@ -24,8 +25,9 @@ static std::vector<std::pair<double, double>> to_plane(const std::vector<Point>&
     return plane;
 }
 
-/// The area-weighted normal of a set of triangles: the sum of their edge cross products, what their winding says the face's side is.
-static Vector triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& triangles) {
+/// The area-weighted normal of a set of triangles.
+static Vector
+triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& triangles) {
 
     Vector sum(0.0, 0.0, 0.0);
 
@@ -39,7 +41,7 @@ static Vector triangles_normal(const Mesh& mesh, const std::vector<std::array<si
     return sum;
 }
 
-/// The triangles of one face as vertex keys wound like the face: its cached triangulation, the face itself, or a constrained Delaunay triangulation of its points; a set wound against the face's normal is turned as a whole, never one sliver at a time, whose own cross product is noise.
+/// The triangles of one face as vertex keys wound like the face.
 static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_t face) {
 
     const std::vector<size_t> ring = mesh.face_vertices(face).value();
@@ -81,8 +83,8 @@ static uint64_t find_root(std::vector<uint64_t>& parent, uint64_t vertex) {
 
 /// The box of the vertices of one shell.
 struct Bounds {
-    std::array<double, 3> low = {1e300, 1e300, 1e300}; // Smallest coordinate per axis.
-    std::array<double, 3> high = {-1e300, -1e300, -1e300}; // Largest coordinate per axis.
+    std::array<double, 3> low = {1e300, 1e300, 1e300};
+    std::array<double, 3> high = {-1e300, -1e300, -1e300};
 };
 
 /// True when inner lies within outer on every axis.
@@ -95,7 +97,7 @@ static bool contains(const Bounds& outer, const Bounds& inner) {
     return true;
 }
 
-/// Turns every closed shell of the triangles outwards on its own: a shell enclosing a negative volume is reversed unless it lies inside an outward shell, where it is a cavity; so a cutter joining an outward pocket with inward drills cuts with both.
+/// Turns every closed shell of the triangles outwards on its own.
 static void orient_shells(manifold::MeshGL64& gl) {
 
     std::vector<uint64_t> parent(gl.NumVert());
@@ -105,7 +107,8 @@ static void orient_shells(manifold::MeshGL64& gl) {
 
     for (size_t t = 0; t < gl.NumTri(); t++)
         for (size_t c = 1; c < 3; c++)
-            parent[find_root(parent, gl.triVerts[3 * t + c])] = find_root(parent, gl.triVerts[3 * t]);
+            parent[find_root(parent, gl.triVerts[3 * t + c])] =
+                find_root(parent, gl.triVerts[3 * t]);
 
     std::map<uint64_t, double> volumes;
     std::map<uint64_t, Bounds> bounds;
@@ -116,11 +119,15 @@ static void orient_shells(manifold::MeshGL64& gl) {
 
         for (size_t c = 0; c < 3; c++) {
             const uint64_t v = gl.triVerts[3 * t + c];
-            corners[c] = Vector(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+            corners[c] = Vector(
+                gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
+            );
 
             for (size_t i = 0; i < 3; i++) {
-                bounds[root].low[i] = std::min(bounds[root].low[i], corners[c][static_cast<int>(i)]);
-                bounds[root].high[i] = std::max(bounds[root].high[i], corners[c][static_cast<int>(i)]);
+                bounds[root].low[i] =
+                    std::min(bounds[root].low[i], corners[c][static_cast<int>(i)]);
+                bounds[root].high[i] =
+                    std::max(bounds[root].high[i], corners[c][static_cast<int>(i)]);
             }
         }
 
@@ -148,7 +155,7 @@ static void orient_shells(manifold::MeshGL64& gl) {
             std::swap(gl.triVerts[3 * t + 1], gl.triVerts[3 * t + 2]);
 }
 
-/// The mesh as a Manifold, every triangle tagged with its face key plus first_id so the faces come back out of a boolean, its status telling whether the mesh is a closed manifold.
+/// The mesh as a Manifold.
 static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
 
     manifold::MeshGL64 gl;
@@ -162,7 +169,10 @@ static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
 
     for (const size_t face : mesh.faces())
         for (const std::array<size_t, 3>& triangle : face_triangles(mesh, face)) {
-            gl.triVerts.insert(gl.triVerts.end(), {index.at(triangle[0]), index.at(triangle[1]), index.at(triangle[2])});
+            gl.triVerts.insert(
+                gl.triVerts.end(),
+                {index.at(triangle[0]), index.at(triangle[1]), index.at(triangle[2])}
+            );
             gl.faceID.push_back(first_id + face);
         }
 
@@ -177,13 +187,17 @@ static manifold::Manifold to_manifold(const Mesh& mesh, uint64_t first_id) {
     const manifold::Manifold solid = build_manifold(mesh, first_id);
 
     if (solid.Status() != manifold::Manifold::Error::NoError)
-        throw std::invalid_argument("Solid booleans require closed meshes: Manifold status " + std::to_string(static_cast<int>(solid.Status())));
+        throw std::invalid_argument(
+            "Solid booleans require closed meshes: Manifold status " +
+            std::to_string(static_cast<int>(solid.Status()))
+        );
 
     return solid;
 }
 
 bool manifold_solid(const Mesh& mesh) {
-    return mesh.number_of_faces() > 0 && build_manifold(mesh, 0).Status() == manifold::Manifold::Error::NoError;
+    return mesh.number_of_faces() > 0 &&
+           build_manifold(mesh, 0).Status() == manifold::Manifold::Error::NoError;
 }
 
 /// One past the largest face key, the id offset the next mesh's faces start from.
@@ -202,7 +216,8 @@ static uint64_t face_id_span(const Mesh& mesh) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The triangles of one face id split into edge-connected regions.
-static std::vector<std::vector<size_t>> compute_regions(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
+static std::vector<std::vector<size_t>>
+compute_regions(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
 
     std::map<std::pair<uint64_t, uint64_t>, std::vector<size_t>> edges;
 
@@ -245,8 +260,9 @@ static std::vector<std::vector<size_t>> compute_regions(const manifold::MeshGL64
     return regions;
 }
 
-/// The one boundary loop of a region of triangles as vertex indices in winding order; empty when the region has a hole or touches itself.
-static std::vector<uint64_t> compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
+/// The one boundary loop of a region of triangles as vertex indices in winding order.
+static std::vector<uint64_t>
+compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
 
     std::set<std::pair<uint64_t, uint64_t>> directed;
 
@@ -257,7 +273,8 @@ static std::vector<uint64_t> compute_loop(const manifold::MeshGL64& gl, const st
     std::map<uint64_t, uint64_t> next;
 
     for (const std::pair<uint64_t, uint64_t>& edge : directed)
-        if (!directed.count({edge.second, edge.first}) && !next.emplace(edge.first, edge.second).second)
+        if (!directed.count({edge.second, edge.first}) &&
+            !next.emplace(edge.first, edge.second).second)
             return {};
 
     std::vector<uint64_t> loop = {next.begin()->first};
@@ -285,9 +302,17 @@ static double loop_area(const manifold::MeshGL64& gl, const std::vector<uint64_t
     for (size_t i = 0; i < loop.size(); i++) {
         const uint64_t a = loop[i];
         const uint64_t b = loop[(i + 1) % loop.size()];
-        const Point p(gl.vertProperties[3 * a], gl.vertProperties[3 * a + 1], gl.vertProperties[3 * a + 2]);
-        const Point q(gl.vertProperties[3 * b], gl.vertProperties[3 * b + 1], gl.vertProperties[3 * b + 2]);
-        normal += Vector((p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1]));
+        const Point p(
+            gl.vertProperties[3 * a], gl.vertProperties[3 * a + 1], gl.vertProperties[3 * a + 2]
+        );
+        const Point q(
+            gl.vertProperties[3 * b], gl.vertProperties[3 * b + 1], gl.vertProperties[3 * b + 2]
+        );
+        normal += Vector(
+            (p[1] - q[1]) * (p[2] + q[2]),
+            (p[2] - q[2]) * (p[0] + q[0]),
+            (p[0] - q[0]) * (p[1] + q[1])
+        );
     }
 
     return normal.magnitude();
@@ -303,7 +328,9 @@ static double triangles_area(const manifold::MeshGL64& gl, const std::vector<siz
 
         for (size_t c = 0; c < 3; c++) {
             const uint64_t v = gl.triVerts[3 * t + c];
-            corner[c] = Point(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+            corner[c] = Point(
+                gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
+            );
         }
 
         area += (corner[1] - corner[0]).cross(corner[2] - corner[0]).magnitude();
@@ -312,7 +339,7 @@ static double triangles_area(const manifold::MeshGL64& gl, const std::vector<siz
     return area;
 }
 
-/// Adds one region: a polygon face carrying its triangles when it has a single boundary loop enclosing the triangles' area, else a face per triangle; a loop through two of Manifold's vertices at one position runs over itself and encloses less, and so is not a face.
+/// Adds one region.
 static void add_region(
     Mesh& mesh,
     const manifold::MeshGL64& gl,
@@ -335,7 +362,11 @@ static void add_region(
             std::vector<std::array<size_t, 3>> triangulation;
 
             for (const size_t t : triangles)
-                triangulation.push_back({keys[gl.triVerts[3 * t]], keys[gl.triVerts[3 * t + 1]], keys[gl.triVerts[3 * t + 2]]});
+                triangulation.push_back(
+                    {keys[gl.triVerts[3 * t]],
+                     keys[gl.triVerts[3 * t + 1]],
+                     keys[gl.triVerts[3 * t + 2]]}
+                );
 
             mesh.set_face_triangulation(*key, triangulation);
         }
@@ -344,10 +375,12 @@ static void add_region(
     }
 
     for (const size_t t : triangles)
-        mesh.add_face({keys[gl.triVerts[3 * t]], keys[gl.triVerts[3 * t + 1]], keys[gl.triVerts[3 * t + 2]]});
+        mesh.add_face(
+            {keys[gl.triVerts[3 * t]], keys[gl.triVerts[3 * t + 1]], keys[gl.triVerts[3 * t + 2]]}
+        );
 }
 
-/// The Manifold as a mesh: the triangles that came from one input face merged back into one polygon per connected region; for a union the input faces that lie in one plane merge too, so a glued block's face and the face it continues become one.
+/// The Manifold as a mesh.
 static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = false) {
 
     const manifold::MeshGL64 gl = solid.GetMeshGL64();
@@ -355,7 +388,9 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
     std::vector<size_t> keys;
 
     for (size_t v = 0; v < gl.NumVert(); v++)
-        keys.push_back(mesh.add_vertex(Point(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2])));
+        keys.push_back(mesh.add_vertex(Point(
+            gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
+        )));
 
     std::map<uint64_t, std::vector<size_t>> faces;
 
@@ -363,9 +398,10 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
         faces[gl.faceID[t]].push_back(t);
 
     if (merge_planes) {
-        // every input face's plane from its area-weighted normal; a face joins the first one before it in the same plane
         const auto vertex = [&gl](uint64_t v) {
-            return Point(gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]);
+            return Point(
+                gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
+            );
         };
         std::vector<std::pair<uint64_t, Plane>> planes;
         std::map<uint64_t, std::vector<size_t>> grouped;
@@ -375,7 +411,7 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
             const Point origin = vertex(gl.triVerts[3 * face.second.front()]);
 
             for (size_t t : face.second) {
-                const Point a= vertex (gl.triVerts[3 * t]);
+                const Point a = vertex(gl.triVerts[3 * t]);
                 const Point b = vertex(gl.triVerts[3 * t + 1]);
                 const Point c = vertex(gl.triVerts[3 * t + 2]);
                 sum += (b - a).cross(c - a);
@@ -385,7 +421,8 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
             uint64_t into = face.first;
 
             for (const std::pair<uint64_t, Plane>& other : planes)
-                if (other.second.z_axis().dot(plane.z_axis()) > 1.0 - 1e-9 && std::abs(other.second.signed_distance(origin)) < 1e-6) {
+                if (other.second.z_axis().dot(plane.z_axis()) > 1.0 - 1e-9 &&
+                    std::abs(other.second.signed_distance(origin)) < 1e-6) {
                     into = other.first;
                     break;
                 }
@@ -402,17 +439,12 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
 
     for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces)
         for (const std::vector<size_t>& region : compute_regions(gl, face.second))
-            add_region(
-                mesh,
-                gl,
-                keys,
-                region
-            );
+            add_region(mesh, gl, keys, region);
 
     return mesh;
 }
 
-/// The largest solid of a Manifold that a cut may have split, by volume: the other solids are subtracted, so cavities inside the kept one, which Decompose also lists apart, stay open.
+/// The largest solid of a Manifold that a cut may have split, by volume.
 static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
 
     const std::vector<manifold::Manifold> pieces = solid.Decompose();
@@ -442,16 +474,13 @@ static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
 // Booleans
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The closed bodies of a cutter as separate Manifolds, so bodies that overlap, a pocket and the drills through it, act as their union.
+/// The closed bodies of a cutter as separate Manifolds, so bodies that overlap.
 static std::vector<manifold::Manifold> cutter_bodies(const Mesh& cutter, uint64_t first_id) {
     return to_manifold(cutter, first_id).Decompose();
 }
 
 Mesh solid_boolean(
-    const Mesh& source,
-    const Mesh& cutter,
-    SolidOperation operation,
-    double tolerance
+    const Mesh& source, const Mesh& cutter, SolidOperation operation, double tolerance
 ) {
 
     if (!std::isfinite(tolerance) || tolerance <= 0)
@@ -485,7 +514,8 @@ Mesh shells_side_by_side(const std::vector<Mesh>& pieces) {
     std::vector<std::vector<size_t>> faces;
 
     for (const Mesh& piece : pieces) {
-        std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = piece.to_vertices_and_faces();
+        std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data =
+            piece.to_vertices_and_faces();
         const size_t first = points.size();
         points.insert(points.end(), data.first.begin(), data.first.end());
 
@@ -520,7 +550,9 @@ Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {
         first_id += face_id_span(cutter);
     }
 
-    return from_manifold(largest_piece(manifold::Manifold::BatchBoolean(solids, manifold::OpType::Subtract)));
+    return from_manifold(
+        largest_piece(manifold::Manifold::BatchBoolean(solids, manifold::OpType::Subtract))
+    );
 }
 
 }

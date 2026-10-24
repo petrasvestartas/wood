@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// cross_slot: the plain slot of two upright plates crossing at their middles, a slot into each over half the cross's depth, on the pairs square and crossing at 60 degrees, each drawn apart.
+/// cross_slot.
 int main() {
 
     WoodSession scene("element_joint_plate_cross_slot");
@@ -20,8 +20,8 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactCross> contact = scene.compute_cross_contact(first, second);
+        const std::shared_ptr<InteractionContactCross> contact =
+            scene.compute_cross_contact(first, second);
         const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
         joint->orient(contact, {first, second});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
@@ -29,7 +29,6 @@ int main() {
         scene.add_interaction(joint, first, joint->interaction(0));
         scene.add_interaction(joint, second, joint->interaction(1));
 
-        // drawn apart 250 down, the way the second plate comes out of its slot
         const Vector apart(0.0, 0.0, -250.0);
         second->place(Xform::translation(apart[0], apart[1], apart[2]));
     }

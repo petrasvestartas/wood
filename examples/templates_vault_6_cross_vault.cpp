@@ -4,27 +4,26 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN = 6000.0; // side of the square bay
-const double RISE = 3000.0; // semicircular webs
-const double THICKNESS = 480.0; // out from the intrados, the compas_model proportion
-const int COURSES = 10; // per half arch of each web
-const int RINGS = 12; // along the bay side, in running bond
+const double SPAN = 6000.0;
+const double RISE = 3000.0;
+const double THICKNESS = 480.0;
+const int COURSES = 10;
+const int RINGS = 12;
 
 int main() {
 
     WoodSession wood_session("vault_cross_vault");
-    for (const std::shared_ptr<Element>& element : wood_vault::cross_vault(
-        SPAN,
-        RISE,
-        THICKNESS,
-        COURSES,
-        RINGS
-    ))
+    for (const std::shared_ptr<Element>& element :
+         wood_vault::cross_vault(SPAN, RISE, THICKNESS, COURSES, RINGS))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
 
-    std::cout << fmt::format("cross vault: {} voussoirs, {} contacts\n", wood_session.objects.elements->size(), wood_session.graph.number_of_edges());
+    std::cout << fmt::format(
+        "cross vault: {} voussoirs, {} contacts\n",
+        wood_session.objects.elements->size(),
+        wood_session.graph.number_of_edges()
+    );
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -32,7 +31,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A cross (groin) vault over a 6 m square bay in the stone pattern of compas_model's cross vault example (data/cross_vault.obj), made parametric: two semicircular barrels crossing, every web ten courses per half arch laid in running bond over twelve rings, the course at the crown shifted half a ring, and in every course one groin stone bent along the diagonal through both webs out to the first joint past the groin, the lowest a springer: 144 voussoirs and 40 groin stones, 184 blocks like the reference.
+A cross (groin) vault over a 6 m square bay: two semicircular barrels crossing, every web ten courses per half arch laid in running bond over twelve rings, the course at the crown shifted half a ring, and in every course one groin stone bent along the diagonal through both webs out to the first joint past the groin, the lowest a springer: 144 voussoirs and 40 groin stones, 184 blocks like the reference.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

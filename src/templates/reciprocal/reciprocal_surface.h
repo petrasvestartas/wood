@@ -28,13 +28,7 @@ namespace wood_reciprocal {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The nx by ny quad grid over width by depth, lifted by height times two half sine waves.
-inline Mesh sinusoidal_dome_mesh(
-    int nx,
-    int ny,
-    double width,
-    double depth,
-    double height
-) {
+inline Mesh sinusoidal_dome_mesh(int nx, int ny, double width, double depth, double height) {
 
     std::vector<Point> points;
 
@@ -42,7 +36,8 @@ inline Mesh sinusoidal_dome_mesh(
         for (int i = 0; i <= nx; i++) {
             const double x = width * i / nx;
             const double y = depth * j / ny;
-            const double z = height * std::sin(Tolerance::PI * x / width) * std::sin(Tolerance::PI * y / depth);
+            const double z =
+                height * std::sin(Tolerance::PI * x / width) * std::sin(Tolerance::PI * y / depth);
             points.push_back(Point(x, y, z));
         }
 
@@ -62,14 +57,7 @@ inline Mesh sinusoidal_dome_mesh(
 inline NurbsSurface hypar_surface(double width, double depth, double rise) {
 
     NurbsSurface surface;
-    surface.create_raw(
-        3,
-        false,
-        2,
-        2,
-        2,
-        2
-    );
+    surface.create_raw(3, false, 2, 2, 2, 2);
     surface.set_nurbsknot(0, 0, 0.0);
     surface.set_nurbsknot(0, 1, width);
     surface.set_nurbsknot(1, 0, 0.0);
@@ -87,22 +75,10 @@ inline double bicubic_inner_height(double rise) {
 }
 
 /// A bicubic dome over a rectangle whose sides bow out by bulge, its centre at rise.
-inline NurbsSurface pillow_dome_surface(
-    double width,
-    double depth,
-    double rise,
-    double bulge
-) {
+inline NurbsSurface pillow_dome_surface(double width, double depth, double rise, double bulge) {
 
     NurbsSurface surface;
-    surface.create_raw(
-        3,
-        false,
-        4,
-        4,
-        4,
-        4
-    );
+    surface.create_raw(3, false, 4, 4, 4, 4);
     const std::array<double, 4> us = {0.0, width / 3.0, 2.0 * width / 3.0, width};
     const std::array<double, 4> vs = {0.0, depth / 3.0, 2.0 * depth / 3.0, depth};
     const double inner = bicubic_inner_height(rise);
@@ -133,7 +109,7 @@ inline Vector circle_tangent(double angle) {
 inline NurbsSurface disc_dome_surface(double radius, double rise) {
 
     const double quarter = Tolerance::PI * 0.5;
-    const double handle = radius * 4.0 / 3.0 * std::tan(quarter / 4.0); // the cubic handle of a quarter arc
+    const double handle = radius * 4.0 / 3.0 * std::tan(quarter / 4.0);
     const double a00 = -3.0 * quarter / 2.0;
     const double a30 = a00 + quarter;
     const double a33 = a30 + quarter;
@@ -159,14 +135,7 @@ inline NurbsSurface disc_dome_surface(double radius, double rise) {
 
     const double inner = bicubic_inner_height(rise);
     NurbsSurface surface;
-    surface.create_raw(
-        3,
-        false,
-        4,
-        4,
-        4,
-        4
-    );
+    surface.create_raw(3, false, 4, 4, 4, 4);
 
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++) {
@@ -188,16 +157,9 @@ inline NurbsSurface scherk_surface(
 ) {
 
     const int count = 6;
-    const double scale = 1.0 / std::log(std::cos(reach)); // z = height at (u, v) = (0, reach)
+    const double scale = 1.0 / std::log(std::cos(reach));
     NurbsSurface surface;
-    surface.create_raw(
-        3,
-        false,
-        4,
-        4,
-        count,
-        count
-    );
+    surface.create_raw(3, false, 4, 4, count, count);
 
     for (int i = 0; i < count; i++)
         for (int j = 0; j < count; j++) {
@@ -205,10 +167,17 @@ inline NurbsSurface scherk_surface(
             const double t = (double)j / (count - 1);
             const double u = -reach + 2.0 * reach * s;
             const double v = -reach + 2.0 * reach * t;
-            const double bow_x = (i == 0 ? -1.0 : i == count - 1 ? 1.0 : 0.0) * bulge * std::sin(Tolerance::PI * t);
-            const double bow_y = (j == 0 ? -1.0 : j == count - 1 ? 1.0 : 0.0) * bulge * std::sin(Tolerance::PI * s);
+            const double bow_x = (i == 0           ? -1.0
+                                  : i == count - 1 ? 1.0
+                                                   : 0.0) *
+                                 bulge * std::sin(Tolerance::PI * t);
+            const double bow_y = (j == 0           ? -1.0
+                                  : j == count - 1 ? 1.0
+                                                   : 0.0) *
+                                 bulge * std::sin(Tolerance::PI * s);
             const bool low_edge = flat_low_edges && (i == 0 || i == count - 1);
-            const double z = low_edge ? -height : height * scale * std::log(std::cos(v) / std::cos(u));
+            const double z =
+                low_edge ? -height : height * scale * std::log(std::cos(v) / std::cos(u));
             surface.set_cv(i, j, {width * s + bow_x, depth * t + bow_y, z});
         }
 
@@ -221,7 +190,9 @@ inline NurbsSurface annen_surface(const std::string& json_path, size_t index) {
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(json_path);
 
     if (index >= surfaces.size())
-        throw std::out_of_range(fmt::format("annen_surface: {} holds {} surfaces, index {} asked", json_path, surfaces.size(), index));
+        throw std::out_of_range(fmt::format(
+            "annen_surface: {} holds {} surfaces, index {} asked", json_path, surfaces.size(), index
+        ));
 
     return surfaces[index];
 }
@@ -239,8 +210,12 @@ inline NurbsSurface flatten_surface_sides(const NurbsSurface& surface) {
 
         for (int k = 0; k <= 64; k++) {
             const double t = (double)k / 64;
-            const double u = side == 0 ? du.first : side == 1 ? du.second : du.first + (du.second - du.first) * t;
-            const double v = side == 2 ? dv.first : side == 3 ? dv.second : dv.first + (dv.second - dv.first) * t;
+            const double u = side == 0   ? du.first
+                             : side == 1 ? du.second
+                                         : du.first + (du.second - du.first) * t;
+            const double v = side == 2   ? dv.first
+                             : side == 3 ? dv.second
+                                         : dv.first + (dv.second - dv.first) * t;
             points.push_back(surface.point_at(u, v));
         }
 
@@ -306,7 +281,8 @@ struct ArcLengthMap {
 
         for (int k = 0; k <= samples; k++) {
             const double t = domain.first + (domain.second - domain.first) * k / samples;
-            const Point current = dir == 0 ? surface.point_at(t, constant) : surface.point_at(constant, t);
+            const Point current =
+                dir == 0 ? surface.point_at(t, constant) : surface.point_at(constant, t);
             map.total += k == 0 ? 0.0 : previous.distance(current);
             map.parameters.push_back(t);
             map.lengths.push_back(map.total);
@@ -337,7 +313,8 @@ inline bool faces_reversed_on(const NurbsSurface& surface) {
 
     const std::pair<double, double> du = surface.domain(0);
     const std::pair<double, double> dv = surface.domain(1);
-    const Vector normal = surface.normal_at((du.first + du.second) * 0.5, (dv.first + dv.second) * 0.5);
+    const Vector normal =
+        surface.normal_at((du.first + du.second) * 0.5, (dv.first + dv.second) * 0.5);
     return normal[2] < 0.0;
 }
 
@@ -377,10 +354,7 @@ inline Mesh quad_mesh_from_surface(const NurbsSurface& surface, double target_ed
 
 /// A quad mesh over the disc of radius: a central square and four patches out to the circle, lifted onto the dome.
 inline Mesh disc_quad_mesh(
-    const NurbsSurface& dome,
-    double radius,
-    double target_edge,
-    double square_ratio = 0.5
+    const NurbsSurface& dome, double radius, double target_edge, double square_ratio = 0.5
 ) {
 
     const double half = radius * square_ratio;
@@ -416,13 +390,15 @@ inline Mesh disc_quad_mesh(
 
         for (int i = 0; i < n; i++)
             for (int j = 0; j < m; j++)
-                polygons.push_back({rows[j][i], rows[j][i + 1], rows[j + 1][i + 1], rows[j + 1][i]});
+                polygons.push_back({rows[j][i], rows[j][i + 1], rows[j + 1][i + 1], rows[j + 1][i]}
+                );
     }
 
     // lifted: the vertical through every point onto the dome, its closest point when it misses
     for (std::vector<Point>& polygon : polygons)
         for (Point& point : polygon) {
-            const Line vertical = Line::from_points({point[0], point[1], -radius}, {point[0], point[1], radius});
+            const Line vertical =
+                Line::from_points({point[0], point[1], -radius}, {point[0], point[1], radius});
             const std::vector<Point> hits = dome.intersections_with_line(vertical);
             point = hits.empty() ? dome.closest_point(point) : hits.front();
         }
@@ -432,10 +408,7 @@ inline Mesh disc_quad_mesh(
 
 /// A convex polygon clipped to the side of an axis-aligned line at limit, above it when keep_above.
 inline std::vector<std::pair<double, double>> clip_polygon(
-    const std::vector<std::pair<double, double>>& polygon,
-    int axis,
-    double limit,
-    bool keep_above
+    const std::vector<std::pair<double, double>>& polygon, int axis, double limit, bool keep_above
 ) {
 
     std::vector<std::pair<double, double>> kept;
@@ -454,7 +427,9 @@ inline std::vector<std::pair<double, double>> clip_polygon(
 
         if (a_in != b_in) {
             const double t = va / (va - vb);
-            kept.emplace_back(a.first + (b.first - a.first) * t, a.second + (b.second - a.second) * t);
+            kept.emplace_back(
+                a.first + (b.first - a.first) * t, a.second + (b.second - a.second) * t
+            );
         }
     }
 
@@ -462,7 +437,8 @@ inline std::vector<std::pair<double, double>> clip_polygon(
 }
 
 /// Staggered pointy-top hexagons of edge about target_edge filling width by depth, clipped to it.
-inline std::vector<std::vector<std::pair<double, double>>> clipped_hex_lattice(double width, double depth, double target_edge) {
+inline std::vector<std::vector<std::pair<double, double>>>
+clipped_hex_lattice(double width, double depth, double target_edge) {
 
     const int rows = std::max(1, (int)std::lround(depth / (1.5 * target_edge)));
     const int columns = std::max(1, (int)std::lround(width / (std::sqrt(3.0) * target_edge)));
@@ -478,7 +454,10 @@ inline std::vector<std::vector<std::pair<double, double>>> clipped_hex_lattice(d
 
             for (int k = 0; k < 6; k++) {
                 const double angle = Tolerance::PI * (0.5 + k / 3.0);
-                polygon.emplace_back(cx + pitch * 0.5 * std::cos(angle) / std::cos(Tolerance::PI / 6.0), cy + edge * std::sin(angle));
+                polygon.emplace_back(
+                    cx + pitch * 0.5 * std::cos(angle) / std::cos(Tolerance::PI / 6.0),
+                    cy + edge * std::sin(angle)
+                );
             }
 
             polygon = clip_polygon(polygon, 0, 0.0, true);
@@ -490,10 +469,15 @@ inline std::vector<std::vector<std::pair<double, double>>> clipped_hex_lattice(d
             std::vector<std::pair<double, double>> cleaned;
 
             for (const std::pair<double, double>& q : polygon)
-                if (cleaned.empty() || std::hypot(q.first - cleaned.back().first, q.second - cleaned.back().second) > 1e-6)
+                if (cleaned.empty() ||
+                    std::hypot(q.first - cleaned.back().first, q.second - cleaned.back().second) >
+                        1e-6)
                     cleaned.push_back(q);
 
-            if (cleaned.size() > 1 && std::hypot(cleaned.front().first - cleaned.back().first, cleaned.front().second - cleaned.back().second) <= 1e-6)
+            if (cleaned.size() > 1 && std::hypot(
+                                          cleaned.front().first - cleaned.back().first,
+                                          cleaned.front().second - cleaned.back().second
+                                      ) <= 1e-6)
                 cleaned.pop_back();
 
             double area = 0.0;
@@ -512,7 +496,8 @@ inline std::vector<std::vector<std::pair<double, double>>> clipped_hex_lattice(d
 }
 
 /// The plan cells welded within a thousandth: their plan points at z = 0 and faces, reversed when asked.
-inline std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded_cells(const std::vector<std::vector<std::pair<double, double>>>& cells, bool reversed) {
+inline std::pair<std::vector<Point>, std::vector<std::vector<size_t>>>
+welded_cells(const std::vector<std::vector<std::pair<double, double>>>& cells, bool reversed) {
 
     std::map<std::pair<long long, long long>, size_t> index_of;
     std::vector<Point> points;
@@ -522,7 +507,9 @@ inline std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded_ce
         std::vector<size_t> face;
 
         for (const std::pair<double, double>& corner : cell) {
-            const std::pair<long long, long long> key{std::llround(corner.first * 1000.0), std::llround(corner.second * 1000.0)};
+            const std::pair<long long, long long> key{
+                std::llround(corner.first * 1000.0), std::llround(corner.second * 1000.0)
+            };
             std::map<std::pair<long long, long long>, size_t>::iterator found = index_of.find(key);
 
             if (found == index_of.end()) {
@@ -554,8 +541,10 @@ inline Mesh hex_mesh_from_surface(const NurbsSurface& surface, double target_edg
 
     const ArcLengthMap along_u = ArcLengthMap::of(surface, 0);
     const ArcLengthMap along_v = ArcLengthMap::of(surface, 1);
-    const std::vector<std::vector<std::pair<double, double>>> cells = clipped_hex_lattice(along_u.total, along_v.total, target_edge);
-    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded = welded_cells(cells, faces_reversed_on(surface));
+    const std::vector<std::vector<std::pair<double, double>>> cells =
+        clipped_hex_lattice(along_u.total, along_v.total, target_edge);
+    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded =
+        welded_cells(cells, faces_reversed_on(surface));
 
     for (Point& point : welded.first)
         point = surface.point_at(along_u.parameter_at(point[0]), along_v.parameter_at(point[1]));
@@ -564,24 +553,26 @@ inline Mesh hex_mesh_from_surface(const NurbsSurface& surface, double target_edg
 }
 
 /// The sinusoidal dome as a hexagonal mesh: the clipped lattice over its plan, lifted by its height function.
-inline Mesh sinusoidal_dome_hex_mesh(
-    double width,
-    double depth,
-    double height,
-    double target_edge
-) {
+inline Mesh
+sinusoidal_dome_hex_mesh(double width, double depth, double height, double target_edge) {
 
-    const std::vector<std::vector<std::pair<double, double>>> cells = clipped_hex_lattice(width, depth, target_edge);
-    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded = welded_cells(cells, false);
+    const std::vector<std::vector<std::pair<double, double>>> cells =
+        clipped_hex_lattice(width, depth, target_edge);
+    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> welded =
+        welded_cells(cells, false);
 
     for (Point& point : welded.first)
-        point[2] = height * std::sin(Tolerance::PI * point[0] / width) * std::sin(Tolerance::PI * point[1] / depth);
+        point[2] = height * std::sin(Tolerance::PI * point[0] / width) *
+                   std::sin(Tolerance::PI * point[1] / depth);
 
     return Mesh::from_vertices_and_faces(welded.first, welded.second);
 }
 
 /// True when the first dual corner turns before the second about the normal.
-inline bool angle_less(const std::pair<double, std::pair<std::string, Point>>& p, const std::pair<double, std::pair<std::string, Point>>& q) {
+inline bool angle_less(
+    const std::pair<double, std::pair<std::string, Point>>& p,
+    const std::pair<double, std::pair<std::string, Point>>& q
+) {
     return p.first < q.first;
 }
 
@@ -599,13 +590,14 @@ inline Mesh dual_hex_mesh(const Mesh& quads) {
             triangles.push_back({face[0], face[k], face[k + 1]});
     }
 
-    std::map<size_t, std::vector<size_t>> fans; // vertex -> the triangles around it
+    std::map<size_t, std::vector<size_t>> fans; // vertex -> the triangles around it.
 
     for (size_t t = 0; t < triangles.size(); t++)
         for (size_t vertex : triangles[t])
             fans[vertex].push_back(t);
 
-    std::map<size_t, std::vector<size_t>> naked_neighbours; // boundary vertex -> the far ends of its naked edges
+    std::map<size_t, std::vector<size_t>>
+        naked_neighbours; // boundary vertex -> the far ends of its naked edges.
     const std::vector<std::pair<size_t, size_t>> naked = quads.edges_on_boundary();
 
     for (const std::pair<size_t, size_t>& edge : naked) {
@@ -615,7 +607,7 @@ inline Mesh dual_hex_mesh(const Mesh& quads) {
 
     // cells: the corners round every vertex sorted by angle about its normal
     std::vector<Point> points;
-    std::map<std::string, size_t> index_of; // "t<i>", "e<u>_<v>", "v<k>" -> dual vertex
+    std::map<std::string, size_t> index_of; // "t<i>", "e<u>_<v>", "v<k>" -> dual vertex.
     std::vector<std::vector<size_t>> cells;
 
     for (const std::pair<const size_t, std::vector<size_t>>& fan : fans) {
@@ -636,32 +628,38 @@ inline Mesh dual_hex_mesh(const Mesh& quads) {
             const Point a = quads.vertex_point(triangles[t][0]).value();
             const Point b = quads.vertex_point(triangles[t][1]).value();
             const Point c = quads.vertex_point(triangles[t][2]).value();
-            const Point centroid((a[0] + b[0] + c[0]) / 3.0, (a[1] + b[1] + c[1]) / 3.0, (a[2] + b[2] + c[2]) / 3.0);
+            const Point centroid(
+                (a[0] + b[0] + c[0]) / 3.0, (a[1] + b[1] + c[1]) / 3.0, (a[2] + b[2] + c[2]) / 3.0
+            );
             const Vector d = centroid - centre;
-            around.push_back({std::atan2(d.dot(y_axis), d.dot(x_axis)), {fmt::format("t{}", t), centroid}});
+            around.push_back(
+                {std::atan2(d.dot(y_axis), d.dot(x_axis)), {fmt::format("t{}", t), centroid}}
+            );
         }
 
-        const std::map<size_t, std::vector<size_t>>::const_iterator boundary = naked_neighbours.find(vertex);
+        const std::map<size_t, std::vector<size_t>>::const_iterator boundary =
+            naked_neighbours.find(vertex);
         const bool on_boundary = boundary != naked_neighbours.end();
 
         if (on_boundary) {
             for (size_t other : boundary->second) {
                 const Point mid = Point::mid_point(centre, quads.vertex_point(other).value());
                 const Vector d = mid - centre;
-                const std::string name = fmt::format("e{}_{}", std::min(vertex, other), std::max(vertex, other));
+                const std::string name =
+                    fmt::format("e{}_{}", std::min(vertex, other), std::max(vertex, other));
                 around.push_back({std::atan2(d.dot(y_axis), d.dot(x_axis)), {name, mid}});
             }
         }
 
         std::sort(around.begin(), around.end(), angle_less);
 
-        // a boundary cell opens at its widest gap and closes through the vertex only at a real corner
         if (on_boundary) {
             size_t widest = 0;
             double widest_gap = -1.0;
 
             for (size_t k = 0; k < around.size(); k++) {
-                const double next = k + 1 < around.size() ? around[k + 1].first : around[0].first + 2.0 * Tolerance::PI;
+                const double next = k + 1 < around.size() ? around[k + 1].first
+                                                          : around[0].first + 2.0 * Tolerance::PI;
 
                 if (next - around[k].first > widest_gap) {
                     widest_gap = next - around[k].first;
@@ -669,7 +667,9 @@ inline Mesh dual_hex_mesh(const Mesh& quads) {
                 }
             }
 
-            std::rotate(around.begin(), around.begin() + (widest + 1) % around.size(), around.end());
+            std::rotate(
+                around.begin(), around.begin() + (widest + 1) % around.size(), around.end()
+            );
             const std::vector<size_t>& others = boundary->second;
             bool straight = false;
 
@@ -714,7 +714,12 @@ inline int nearest_domain_side(const NurbsSurface& surface, double u, double v) 
     const std::pair<double, double> dv = surface.domain(1);
     const double span_u = du.second - du.first;
     const double span_v = dv.second - dv.first;
-    const std::array<double, 4> distances = {(u - du.first) / span_u, (du.second - u) / span_u, (v - dv.first) / span_v, (dv.second - v) / span_v};
+    const std::array<double, 4> distances = {
+        (u - du.first) / span_u,
+        (du.second - u) / span_u,
+        (v - dv.first) / span_v,
+        (dv.second - v) / span_v
+    };
     return (int)(std::min_element(distances.begin(), distances.end()) - distances.begin());
 }
 
@@ -739,9 +744,16 @@ inline std::array<Plane, 4> side_planes(const Mesh& mesh, const NurbsSurface& su
     std::array<std::vector<size_t>, 4> sides;
 
     for (size_t vertex : boundary) {
-        const std::pair<double, double> uv = surface.closest_parameters(mesh.vertex_point(vertex).value());
-        const std::array<double, 4> distances = {(uv.first - du.first) / span_u, (du.second - uv.first) / span_u, (uv.second - dv.first) / span_v, (dv.second - uv.second) / span_v};
-        const int nearest = (int)(std::min_element(distances.begin(), distances.end()) - distances.begin());
+        const std::pair<double, double> uv =
+            surface.closest_parameters(mesh.vertex_point(vertex).value());
+        const std::array<double, 4> distances = {
+            (uv.first - du.first) / span_u,
+            (du.second - uv.first) / span_u,
+            (uv.second - dv.first) / span_v,
+            (dv.second - uv.second) / span_v
+        };
+        const int nearest =
+            (int)(std::min_element(distances.begin(), distances.end()) - distances.begin());
 
         for (int side = 0; side < 4; side++)
             if (side == nearest || distances[side] <= 0.02)
@@ -767,7 +779,8 @@ inline std::array<Plane, 4> side_planes(const Mesh& mesh, const NurbsSurface& su
             average = Vector(0, 0, 1);
 
         if (points.size() < 3) {
-            planes[side] = Plane::from_point_normal(points.empty() ? Point(0, 0, 0) : points.front(), average);
+            planes[side] =
+                Plane::from_point_normal(points.empty() ? Point(0, 0, 0) : points.front(), average);
             continue;
         }
 
@@ -815,7 +828,9 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(
     std::array<std::vector<std::pair<size_t, size_t>>, 4> keys;
     std::array<std::vector<Vector>, 4> directions;
     std::array<std::vector<Vector>, 4> normals;
-    std::array<Vector, 4> averages = {Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)};
+    std::array<Vector, 4> averages = {
+        Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0), Vector(0, 0, 0)
+    };
 
     // sides: every naked edge on its side with its direction and the surface normal, or the given vector
     for (const std::pair<size_t, size_t>& edge : naked) {
@@ -829,7 +844,8 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(
         const int side = nearest_domain_side(surface, uv.first, uv.second);
         const std::pair<size_t, size_t> key = edge_key(edge.first, edge.second);
         const Vector& face = edge_normals.at(key);
-        Vector normal = side_vectors ? (*side_vectors)[side] : surface.normal_at(uv.first, uv.second);
+        Vector normal =
+            side_vectors ? (*side_vectors)[side] : surface.normal_at(uv.first, uv.second);
 
         if (normal.dot(face) < 0.0)
             normal = -normal;
@@ -871,13 +887,16 @@ inline std::map<std::pair<size_t, size_t>, Vector> side_tilt_boundary_ups(
 }
 
 /// The through priority per naked edge: 1 on the u sides of the domain when u_sides_through, 0 on the others.
-inline std::map<std::pair<size_t, size_t>, int> through_side_priority(const Mesh& mesh, const NurbsSurface& surface, bool u_sides_through = true) {
+inline std::map<std::pair<size_t, size_t>, int>
+through_side_priority(const Mesh& mesh, const NurbsSurface& surface, bool u_sides_through = true) {
 
     std::map<std::pair<size_t, size_t>, int> priority;
     const std::vector<std::pair<size_t, size_t>> naked = mesh.edges_on_boundary();
 
     for (const std::pair<size_t, size_t>& edge : naked) {
-        const Point mid = Point::mid_point(mesh.vertex_point(edge.first).value(), mesh.vertex_point(edge.second).value());
+        const Point mid = Point::mid_point(
+            mesh.vertex_point(edge.first).value(), mesh.vertex_point(edge.second).value()
+        );
         const std::pair<double, double> uv = surface.closest_parameters(mid);
         const int side = nearest_domain_side(surface, uv.first, uv.second);
         const bool u_side = side == 0 || side == 1;

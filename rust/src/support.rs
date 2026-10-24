@@ -1,5 +1,3 @@
-//! Support: a column base of plates, nuts and a rod standing on a plane.
-
 use crate::element::WoodElement;
 use crate::geometry::{
     append_brep, append_mesh, brep_between_loops, circle_segments, drill_brep, drill_mesh,
@@ -38,6 +36,7 @@ pub struct Support {
 }
 
 impl Support {
+
     /// A support on a plane, its origin the base plate underside centre, with the default dimensions.
     pub fn new(plane: &Plane, name: &str) -> Self {
         Self {
@@ -283,7 +282,7 @@ impl WoodElement for Support {
         mesh
     }
 
-    /// All exact: the base plate with its four anchor holes as cylinders, the nuts, the rod and the head plate, as C++ writes them.
+    /// All exact.
     fn brep(&self) -> BRep {
         let adjustment = self.hexagon(
             self.adjustment_nut_across_flats,

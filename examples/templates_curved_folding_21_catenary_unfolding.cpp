@@ -10,18 +10,29 @@ int main() {
     CurvedCreaseUnfolding unfolding(
         CurvedCreaseUnfolding::catenary(10000.0, 6000.0),
         45.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0),
+        CurvedCreaseUnfolding::zigzag(
+            Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0
+        ),
         40.0
     );
     std::cout << unfolding << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates = unfolding.get_elements_placed<PlateCurved>("plate");
+    const std::vector<std::shared_ptr<PlateCurved>> plates =
+        unfolding.get_elements_placed<PlateCurved>("plate");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("catenary unfolding: {} plates, {} closed solids, {} contacts, development distortion {:.2e}, drift {:.3f} mm\n", plates.size(), solids, unfolding.get_contacts().size(), unfolding.distortion(), unfolding.drift());
+    std::cout << fmt::format(
+        "catenary unfolding: {} plates, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, drift {:.3f} mm\n",
+        plates.size(),
+        solids,
+        unfolding.get_contacts().size(),
+        unfolding.distortion(),
+        unfolding.drift()
+    );
     unfolding.pb_dump(pb_path("live"));
     return 0;
 }

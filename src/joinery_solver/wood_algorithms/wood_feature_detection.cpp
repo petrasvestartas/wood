@@ -6,12 +6,11 @@ using namespace session_cpp;
 using namespace wood_session;
 
 constexpr bool TRACE = false;
-constexpr double ZERO_LENGTH_SQUARED = 1e-6; // A joint line no longer than 1 mm is degenerate.
+constexpr double ZERO_LENGTH_SQUARED = 1e-6;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Feature detection
 // ═══════════════════════════════════════════════════════════════════════════
-
 namespace {
 
 /// Per-pair state shared by every classification stage of face_to_face_wood.
@@ -19,7 +18,7 @@ struct F2F {
     Plate& el0;
     Plate& el1;
     const std::pair<int, int> el_ids_in;
-    const size_t joint_id; // how many joints were found before this pair, which picks its extension
+    const size_t joint_id;
     std::pair<int, int> el_ids;
     std::pair<std::array<int, 2>, std::array<int, 2>> face_ids;
     const Settings& settings;
@@ -72,7 +71,8 @@ Plane average_plane(const Plate& el) {
 
     Plane avg_plane = Plane::xy_plane();
     if (el.polylines.size() >= 2 && !el.planes.empty()) {
-        const Point origin = Point::mid_point(el.polylines[0].get_point(0), el.polylines[1].get_point(0));
+        const Point origin =
+            Point::mid_point(el.polylines[0].get_point(0), el.polylines[1].get_point(0));
         const Vector normal = el.planes[0].z_axis();
         avg_plane = Plane::from_point_normal(origin, normal);
     }
@@ -90,7 +90,8 @@ bool alignment_line(
     const FaceCandidate& c,
     Line& joint_line,
     Polyline& joint_quads,
-    bool& has_quads) {
+    bool& has_quads
+) {
 
     const size_t i = c.i;
     const size_t j = c.j;
@@ -101,11 +102,8 @@ bool alignment_line(
     const Line segment = Line::from_points(Point::mid_point(a0, a1), Point::mid_point(b0, b1));
 
     if (!Intersection::polyline_plane_to_line(
-        c.joint_area,
-        avg_plane,
-        segment.start(),
-        joint_line
-    )) {
+            c.joint_area, avg_plane, segment.start(), joint_line
+        )) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("ppl{}_fail f({},{})", side, i, j);
         return false;
@@ -118,12 +116,8 @@ bool alignment_line(
     }
 
     if (!Intersection::quad_from_line_top_bottom_planes(
-        el.planes[face],
-        joint_line,
-        el.planes[0],
-        el.planes[1],
-        joint_quads
-    )) {
+            el.planes[face], joint_line, el.planes[0], el.planes[1], joint_quads
+        )) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("quad{}_fail f({},{})", side, i, j);
         return false;
@@ -134,7 +128,9 @@ bool alignment_line(
 }
 
 /// One face contact into a candidate: face ids, alignment lines, length checks, insertion direction.
-bool prepare_candidate(F2F& s, const wood_session::InteractionContactFace& contact, FaceCandidate& c) {
+bool prepare_candidate(
+    F2F& s, const wood_session::InteractionContactFace& contact, FaceCandidate& c
+) {
 
     c.i = static_cast<size_t>(contact.face_a);
     c.j = static_cast<size_t>(contact.face_b);
@@ -151,29 +147,13 @@ bool prepare_candidate(F2F& s, const wood_session::InteractionContactFace& conta
     c.joint_type = static_cast<int>(c.ctype);
 
     if (i > 1 && !alignment_line(
-        s,
-        s.el0,
-        s.avg_plane_0,
-        0,
-        i,
-        c,
-        c.joint_line0,
-        c.joint_quads0,
-        c.has_quads0
-    ))
+                     s, s.el0, s.avg_plane_0, 0, i, c, c.joint_line0, c.joint_quads0, c.has_quads0
+                 ))
         return false;
 
     if (j > 1 && !alignment_line(
-        s,
-        s.el1,
-        s.avg_plane_1,
-        1,
-        j,
-        c,
-        c.joint_line1,
-        c.joint_quads1,
-        c.has_quads1
-    ))
+                     s, s.el1, s.avg_plane_1, 1, j, c, c.joint_line1, c.joint_quads1, c.has_quads1
+                 ))
         return false;
 
     if (c.joint_type < 2) {
@@ -197,19 +177,11 @@ bool prepare_candidate(F2F& s, const wood_session::InteractionContactFace& conta
         c.joint_line1.extend_equally(ext_l);
         if (ext_l != 0.0 && i > 1)
             c.has_quads0 = Intersection::quad_from_line_top_bottom_planes(
-                s.el0.planes[i],
-                c.joint_line0,
-                s.el0.planes[0],
-                s.el0.planes[1],
-                c.joint_quads0
+                s.el0.planes[i], c.joint_line0, s.el0.planes[0], s.el0.planes[1], c.joint_quads0
             );
         if (ext_l != 0.0 && j > 1)
             c.has_quads1 = Intersection::quad_from_line_top_bottom_planes(
-                s.el1.planes[j],
-                c.joint_line1,
-                s.el1.planes[0],
-                s.el1.planes[1],
-                c.joint_quads1
+                s.el1.planes[j], c.joint_line1, s.el1.planes[0], s.el1.planes[1], c.joint_quads1
             );
     }
 
@@ -227,12 +199,9 @@ bool emit_joint(F2F& s, const FaceCandidate& c) {
     s.out_joint.element_a = s.guid_at(s.el_ids.first);
     s.out_joint.element_b = s.guid_at(s.el_ids.second);
     s.out_joint.contact = wood_session::InteractionContactFace(
-        s.face_ids.first[0],
-        s.face_ids.second[0],
-        c.ctype,
-        c.joint_area
+        s.face_ids.first[0], s.face_ids.second[0], c.ctype, c.joint_area
     );
-    s.out_joint.cross_faces = { s.face_ids.first[1], s.face_ids.second[1] };
+    s.out_joint.cross_faces = {s.face_ids.first[1], s.face_ids.second[1]};
     s.out_joint.joint_type = c.joint_type;
     s.out_joint.joint_lines = c.joint_lines;
     s.out_joint.joint_volumes = c.joint_volumes;
@@ -264,21 +233,21 @@ int alignment_lines_parallel(const F2F& s, const Line& joint_line0, const Line& 
 
 /// Local frame of the rotated joint: origin on the averaged segment, x along it, z the face normal.
 void rotated_frame(
-    const F2F& s,
-    const FaceCandidate& c,
-    Point& o,
-    Vector& x,
-    Vector& y,
-    Vector& z
+    const F2F& s, const FaceCandidate& c, Point& o, Vector& x, Vector& y, Vector& z
 ) {
 
     const Line& l0 = c.joint_line0;
     const Line& l1 = c.joint_line1;
     const double d_ss = Point::distance(l0.start(), l1.start());
     const double d_se = Point::distance(l0.start(), l1.end());
-    const Line axis = d_ss < d_se
-        ? Line::from_points(Point::mid_point(l0.start(), l1.start()), Point::mid_point(l0.end(), l1.end()))
-        : Line::from_points(Point::mid_point(l0.start(), l1.end()), Point::mid_point(l0.end(), l1.start()));
+    const Line axis =
+        d_ss < d_se
+            ? Line::from_points(
+                  Point::mid_point(l0.start(), l1.start()), Point::mid_point(l0.end(), l1.end())
+              )
+            : Line::from_points(
+                  Point::mid_point(l0.start(), l1.end()), Point::mid_point(l0.end(), l1.start())
+              );
 
     o = axis.start();
     x = axis.to_vector();
@@ -296,19 +265,12 @@ void rotated_frame(
     const Point& origin_1 = s.el1.planes[0].origin();
     const Point projected_0 = s.el0.planes[1].project(origin_0);
     const Point projected_1 = s.el1.planes[1].project(origin_1);
-    const double thick = std::max(
-        Point::distance(origin_0, projected_0),
-        Point::distance(origin_1, projected_1)
-    );
+    const double thick =
+        std::max(Point::distance(origin_0, projected_0), Point::distance(origin_1, projected_1));
     const Vector probe = y * thick * 2.0;
     const Line probe_line = Line::from_points(center + probe, center - probe);
     Line clipped;
-    if (Intersection::line_two_planes(
-        probe_line,
-        s.el0.planes[0],
-        s.el1.planes[1],
-        clipped
-    ))
+    if (Intersection::line_two_planes(probe_line, s.el0.planes[0], s.el1.planes[1], clipped))
         y = clipped.to_vector();
     x = y.cross(z);
 }
@@ -324,16 +286,12 @@ bool rotated_volumes(
     std::vector<Point>& rect,
     Vector& offset,
     Polyline& vol0,
-    Polyline& vol1) {
+    Polyline& vol1
+) {
 
     const std::array<double, 3> ext = s.ext();
 
-    const Xform world_to_local = Xform::world_to_frame(
-        o,
-        x,
-        y,
-        z
-    );
+    const Xform world_to_local = Xform::world_to_frame(o, x, y, z);
     std::vector<Point> proj;
     proj.reserve(c.joint_area.point_count());
     for (size_t k = 0; k < c.joint_area.point_count(); ++k) {
@@ -370,12 +328,7 @@ bool rotated_volumes(
         Point(xmin, ymin, zmin),
         Point(xmax, ymin, zmin),
     };
-    const Xform local_to_world = Xform::frame_to_world(
-        o,
-        x,
-        y,
-        z
-    );
+    const Xform local_to_world = Xform::frame_to_world(o, x, y, z);
     for (Point& p : rect)
         p.transform(local_to_world);
 
@@ -427,7 +380,8 @@ void rotated_dump(
     const Polyline& vol0,
     const Polyline& vol1,
     const std::vector<Point>& rect_local,
-    const Vector& offset_vector) {
+    const Vector& offset_vector
+) {
 
     const std::pair<int, int>& el_ids = s.el_ids;
     const size_t i = c.i;
@@ -437,7 +391,8 @@ void rotated_dump(
         return;
 
     std::ofstream flog(fp, std::ios::app);
-    flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j << "\n";
+    flog << "F2F type13 el=(" << el_ids.first << "," << el_ids.second << ") i=" << i << " j=" << j
+         << "\n";
     flog << "  vol0: ";
     for (const Point& p : vol0.get_points())
         flog << "(" << p[0] << "," << p[1] << "," << p[2] << ") ";
@@ -450,7 +405,8 @@ void rotated_dump(
     for (const Point& p : rect_local)
         flog << "(" << p[0] << "," << p[1] << "," << p[2] << ") ";
 
-    flog << "\n  offset_vec: (" << offset_vector[0] << "," << offset_vector[1] << "," << offset_vector[2] << ")\n";
+    flog << "\n  offset_vec: (" << offset_vector[0] << "," << offset_vector[1] << ","
+         << offset_vector[2] << ")\n";
 }
 
 /// Type 13: frame around the averaged alignment segment, projected bounding rectangle, extruded.
@@ -460,41 +416,16 @@ bool side_side_rotated(F2F& s, FaceCandidate& c) {
     Vector x;
     Vector y;
     Vector z;
-    rotated_frame(
-        s,
-        c,
-        o,
-        x,
-        y,
-        z
-    );
+    rotated_frame(s, c, o, x, y, z);
 
     std::vector<Point> rect;
     Vector offset;
     Polyline vol0;
     Polyline vol1;
-    if (!rotated_volumes(
-        s,
-        c,
-        o,
-        x,
-        y,
-        z,
-        rect,
-        offset,
-        vol0,
-        vol1
-    ))
+    if (!rotated_volumes(s, c, o, x, y, z, rect, offset, vol0, vol1))
         return false;
 
-    rotated_dump(
-        s,
-        c,
-        vol0,
-        vol1,
-        rect,
-        offset
-    );
+    rotated_dump(s, c, vol0, vol1, rect, offset);
 
     c.joint_volumes[0] = vol0;
     c.joint_volumes[1] = vol1;
@@ -522,12 +453,7 @@ bool overlap_average(F2F& s, FaceCandidate& c, Line& lj) {
 }
 
 /// End-cap planes along the joint axis, oriented by the insertion direction when one is set.
-void end_planes(
-    const FaceCandidate& c,
-    const Line& lj,
-    Plane& pl_end0,
-    Plane& pl_end1
-) {
+void end_planes(const FaceCandidate& c, const Line& lj, Plane& pl_end0, Plane& pl_end1) {
 
     const Vector lj_v = lj.to_vector();
     const Point lj_s = lj.start();
@@ -544,21 +470,11 @@ void end_planes(
 }
 
 /// Dihedral angle (degrees) of the joint edge in the tetrahedron (lj.start, lj.end, center0, center1).
-bool dihedral_angle(
-    F2F& s,
-    const FaceCandidate& c,
-    const Line& lj,
-    double& dihedral
-) {
+bool dihedral_angle(F2F& s, const FaceCandidate& c, const Line& lj, double& dihedral) {
 
     const Point center0 = s.avg_plane_0.project(s.el0.polylines[0].center());
     const Point center1 = s.avg_plane_1.project(s.el1.polylines[0].center());
-    dihedral = Point::dihedral_angle_deg(
-        lj.start(),
-        lj.end(),
-        center0,
-        center1
-    );
+    dihedral = Point::dihedral_angle_deg(lj.start(), lj.end(), center0, center1);
 
     if (dihedral < 20.0) {
         if (TRACE)
@@ -571,11 +487,7 @@ bool dihedral_angle(
 
 /// Type 11: probe the joint axis 90° in the face plane to pick the nearer planes, then an open 4-plane quad.
 bool side_side_out_of_plane(
-    F2F& s,
-    FaceCandidate& c,
-    const Line& lj,
-    const Plane& pl_end0,
-    const Plane& pl_end1
+    F2F& s, FaceCandidate& c, const Line& lj, const Plane& pl_end0, const Plane& pl_end1
 ) {
 
     const std::array<double, 3> ext = s.ext();
@@ -588,34 +500,19 @@ bool side_side_out_of_plane(
     Point p10;
     Point p11;
 
-    if (!Intersection::line_plane(
-        probe_line,
-        s.el0.planes[0],
-        p00,
-        false
-    )) {
+    if (!Intersection::line_plane(probe_line, s.el0.planes[0], p00, false)) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("lp0 f({},{})", i, j);
         return false;
     }
 
-    if (!Intersection::line_plane(
-        probe_line,
-        s.el1.planes[0],
-        p10,
-        false
-    )) {
+    if (!Intersection::line_plane(probe_line, s.el1.planes[0], p10, false)) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("lp1 f({},{})", i, j);
         return false;
     }
 
-    if (!Intersection::line_plane(
-        probe_line,
-        s.el1.planes[1],
-        p11,
-        false
-    )) {
+    if (!Intersection::line_plane(probe_line, s.el1.planes[1], p11, false)) {
         if (TRACE)
             s.dbg_fail_reason = fmt::format("lp2 f({},{})", i, j);
         return false;
@@ -624,9 +521,9 @@ bool side_side_out_of_plane(
     const bool farther = Point::distance(p00, p10) > Point::distance(p00, p11);
     std::array<Plane, 4> planes4;
     if (farther)
-        planes4 = { s.el1.planes[1], s.el0.planes[0], s.el1.planes[0], s.el0.planes[1] };
+        planes4 = {s.el1.planes[1], s.el0.planes[0], s.el1.planes[0], s.el0.planes[1]};
     else
-        planes4 = { s.el1.planes[0], s.el0.planes[0], s.el1.planes[1], s.el0.planes[1] };
+        planes4 = {s.el1.planes[0], s.el0.planes[0], s.el1.planes[1], s.el0.planes[1]};
 
     Polyline vol0;
     Polyline vol1;
@@ -675,12 +572,7 @@ bool side_side_out_of_plane(
 }
 
 /// Type 12: two planes offset ±half-thickness from the matched face, two 4-plane loops, four volumes.
-bool side_side_in_plane(
-    F2F& s,
-    FaceCandidate& c,
-    const Plane& pl_end0,
-    const Plane& pl_end1
-) {
+bool side_side_in_plane(F2F& s, FaceCandidate& c, const Plane& pl_end0, const Plane& pl_end1) {
 
     const std::array<double, 3> ext = s.ext();
     const size_t i = c.i;
@@ -701,8 +593,10 @@ bool side_side_in_plane(
     const Plane p1_0 = (w0 > w1) ? s.el1.planes[1] : s.el1.planes[0];
     const Plane p1_1 = (w0 > w1) ? s.el1.planes[0] : s.el1.planes[1];
 
-    const std::array<Plane, 4> loop_planes_0 = { offset_plane_0, s.el0.planes[0], offset_plane_1, s.el0.planes[1] };
-    const std::array<Plane, 4> loop_planes_1 = { offset_plane_0, p1_0, offset_plane_1, p1_1 };
+    const std::array<Plane, 4> loop_planes_0 = {
+        offset_plane_0, s.el0.planes[0], offset_plane_1, s.el0.planes[1]
+    };
+    const std::array<Plane, 4> loop_planes_1 = {offset_plane_0, p1_0, offset_plane_1, p1_1};
 
     Polyline vol0;
     Polyline vol1;
@@ -764,36 +658,15 @@ bool side_side(F2F& s, FaceCandidate& c) {
 
     Plane pl_end0;
     Plane pl_end1;
-    end_planes(
-        c,
-        lj,
-        pl_end0,
-        pl_end1
-    );
+    end_planes(c, lj, pl_end0, pl_end1);
 
     double dihedral = 0.0;
-    if (!dihedral_angle(
-        s,
-        c,
-        lj,
-        dihedral
-    ))
+    if (!dihedral_angle(s, c, lj, dihedral))
         return false;
 
     if (dihedral <= s.settings.dihedral_angle)
-        return side_side_out_of_plane(
-            s,
-            c,
-            lj,
-            pl_end0,
-            pl_end1
-        );
-    return side_side_in_plane(
-        s,
-        c,
-        pl_end0,
-        pl_end1
-    );
+        return side_side_out_of_plane(s, c, lj, pl_end0, pl_end1);
+    return side_side_in_plane(s, c, pl_end0, pl_end1);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -826,20 +699,10 @@ bool top_side(F2F& s, FaceCandidate& c) {
     const Polyline quad = male_first ? c.joint_quads0 : c.joint_quads1;
 
     Vector offset(0, 0, 0);
-    Intersection::orthogonal_vector_between_two_plane_pairs(
-        plane0_0,
-        plane1_0,
-        plane1_1,
-        offset
-    );
+    Intersection::orthogonal_vector_between_two_plane_pairs(plane0_0, plane1_0, plane1_1, offset);
     if (c.dir_set) {
         Vector scaled;
-        if (Intersection::scale_vector_to_distance_of_2planes(
-            c.dir,
-            plane1_0,
-            plane1_1,
-            scaled
-        ))
+        if (Intersection::scale_vector_to_distance_of_2planes(c.dir, plane1_0, plane1_1, scaled))
             offset = scaled;
     }
 
@@ -855,8 +718,8 @@ bool top_side(F2F& s, FaceCandidate& c) {
     const Point q2 = quad.get_point(2);
     const Point q3 = quad.get_point(3);
 
-    Polyline male_vol({ q0, q1, q1 + offset, q0 + offset, q0 });
-    Polyline female_vol({ q3, q2, q2 + offset, q3 + offset, q3 });
+    Polyline male_vol({q0, q1, q1 + offset, q0 + offset, q0});
+    Polyline female_vol({q3, q2, q2 + offset, q3 + offset, q3});
 
     male_vol.extend_edge_equally(0, ext[0]);
     male_vol.extend_edge_equally(2, ext[0]);
@@ -887,18 +750,18 @@ bool top_top(F2F& s, FaceCandidate& c) {
         return false;
     }
 
-    Vector dir = c.dir_set
-        ? (i < s.el0.insertion_vectors().size() ? s.el0.insertion_vectors()[i] : s.el0.planes[i].z_axis())
-        : s.el0.planes[i].z_axis();
+    Vector dir = c.dir_set ? (i < s.el0.insertion_vectors().size() ? s.el0.insertion_vectors()[i]
+                                                                   : s.el0.planes[i].z_axis())
+                           : s.el0.planes[i].z_axis();
     if (!dir.normalize_self()) {
         dir = s.el0.planes[i].z_axis();
         dir.normalize_self();
     }
 
-    // the rectangle from its longest edge, at the corner first in the first plate's frame, wound about dir: the frame a tile is mapped into
-    // stays with the plates, where the hull's first corner would turn it with a rigid motion
     const Plane& frame = s.el0.planes[i];
-    std::array<Point, 4> corners = {rect->get_point(0), rect->get_point(1), rect->get_point(2), rect->get_point(3)};
+    std::array<Point, 4> corners = {
+        rect->get_point(0), rect->get_point(1), rect->get_point(2), rect->get_point(3)
+    };
     if ((corners[1] - corners[0]).cross(corners[3] - corners[0]).dot(dir) < 0.0)
         std::swap(corners[1], corners[3]);
     double longest = 0.0;
@@ -917,7 +780,13 @@ bool top_top(F2F& s, FaceCandidate& c) {
         if (dx < -1e-6 || (std::abs(dx) <= 1e-6 && dy < -1e-6))
             start = k;
     }
-    Polyline vol_a({corners[start], corners[(start + 1) % 4], corners[(start + 2) % 4], corners[(start + 3) % 4], corners[start]});
+    Polyline vol_a(
+        {corners[start],
+         corners[(start + 1) % 4],
+         corners[(start + 2) % 4],
+         corners[(start + 3) % 4],
+         corners[start]}
+    );
     Polyline vol_b = vol_a;
 
     const int next_plane_0 = (i == 0) ? 1 : 0;
@@ -971,11 +840,18 @@ bool cross_fallback(F2F& s) {
     constexpr double CROSS_JOINT_PARALLEL_ANGLE_DEG = 30.0;
 
     const bool found = wood_session::plane_to_face(
-        s.el0.polylines[0], s.el0.polylines[1],
-        s.el1.polylines[0], s.el1.polylines[1],
-        s.el0.planes[0], s.el0.planes[1],
-        s.el1.planes[0], s.el1.planes[1],
-        s.settings.distance_squared, cj, CROSS_JOINT_PARALLEL_ANGLE_DEG, cj_ext
+        s.el0.polylines[0],
+        s.el0.polylines[1],
+        s.el1.polylines[0],
+        s.el1.polylines[1],
+        s.el0.planes[0],
+        s.el0.planes[1],
+        s.el1.planes[0],
+        s.el1.planes[1],
+        s.settings.distance_squared,
+        cj,
+        CROSS_JOINT_PARALLEL_ANGLE_DEG,
+        cj_ext
     );
     if (!found)
         return false;
@@ -983,27 +859,23 @@ bool cross_fallback(F2F& s) {
     s.out_joint.element_a = s.guid_at(s.el_ids.first);
     s.out_joint.element_b = s.guid_at(s.el_ids.second);
     s.out_joint.contact = wood_session::InteractionContactFace(
-        cj.faces_a[0],
-        cj.faces_b[0],
-        wood_session::ContactType::unknown,
-        cj.polygon
+        cj.faces_a[0], cj.faces_b[0], wood_session::ContactType::unknown, cj.polygon
     );
-    s.out_joint.cross_faces = { cj.faces_a[1], cj.faces_b[1] };
+    s.out_joint.cross_faces = {cj.faces_a[1], cj.faces_b[1]};
     s.out_joint.joint_type = 30;
     s.out_joint.joint_lines = {{
         Line::from_points(cj.lines[0].get_point(0), cj.lines[0].get_point(1)),
         Line::from_points(cj.lines[1].get_point(0), cj.lines[1].get_point(1)),
     }};
-    s.out_joint.joint_volumes = { cj.volumes[0], cj.volumes[1], std::nullopt, std::nullopt };
+    s.out_joint.joint_volumes = {cj.volumes[0], cj.volumes[1], std::nullopt, std::nullopt};
     return true;
 }
 
-}  // namespace
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // face_to_face_wood
 // ═══════════════════════════════════════════════════════════════════════════
-
 bool face_to_face_wood(
     Plate& el0,
     Plate& el1,
@@ -1019,23 +891,28 @@ bool face_to_face_wood(
 
     out_swap_planes_1 = false;
     F2F s = {
-        el0, el1, el_ids_in, joint_id, el_ids_in, { {{0,0}}, {{0,0}} },
+        el0,
+        el1,
+        el_ids_in,
+        joint_id,
+        el_ids_in,
+        {{{0, 0}}, {{0, 0}}},
         settings,
-        0.0, Plane::xy_plane(), Plane::xy_plane(), std::string(),
-        out_joint, out_swap_planes_1,
+        0.0,
+        Plane::xy_plane(),
+        Plane::xy_plane(),
+        std::string(),
+        out_joint,
+        out_swap_planes_1,
     };
     if (search_type != 1) {
         s.cos_angle = std::cos(settings.angle);
         s.avg_plane_0 = average_plane(el0);
         s.avg_plane_1 = average_plane(el1);
 
-        const std::vector<wood_session::InteractionContactFace> pair_contacts = face ? std::vector<InteractionContactFace>{*face} : wood_session::face_contacts_for_pair(
-            el0,
-            el1,
-            settings,
-            trace,
-            false
-        );
+        const std::vector<wood_session::InteractionContactFace> pair_contacts =
+            face ? std::vector<InteractionContactFace>{*face}
+                 : wood_session::face_contacts_for_pair(el0, el1, settings, trace, false);
 
         for (const wood_session::InteractionContactFace& contact : pair_contacts) {
             FaceCandidate c;
@@ -1055,8 +932,7 @@ bool face_to_face_wood(
         }
     }
 
-    if (search_type != 0 &&
-        el0.polylines.size() >= 2 && el1.polylines.size() >= 2 &&
+    if (search_type != 0 && el0.polylines.size() >= 2 && el1.polylines.size() >= 2 &&
         el0.planes.size() >= 2 && el1.planes.size() >= 2) {
         if (cross_fallback(s))
             return true;

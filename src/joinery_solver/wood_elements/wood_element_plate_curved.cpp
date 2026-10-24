@@ -14,7 +14,7 @@ static NurbsCurve unit_domain(const NurbsCurve& curve) {
     return unit;
 }
 
-/// The straight segment between two points as a degree one curve: a ruling, or a pcurve on a patch's domain when the points are (u, v, 0).
+/// The straight segment between two points as a degree one curve.
 static NurbsCurve segment(const Point& from, const Point& to) {
     return NurbsCurve::create(false, 1, {from, to});
 }
@@ -25,7 +25,8 @@ static int corner_vertex(const BRep& solid, const Point& point) {
     int nearest = 0;
 
     for (int i = 1; i < static_cast<int>(solid.m_vertices.size()); i++)
-        if (solid.m_vertices[i].point.distance(point) < solid.m_vertices[nearest].point.distance(point))
+        if (solid.m_vertices[i].point.distance(point) <
+            solid.m_vertices[nearest].point.distance(point))
             nearest = i;
 
     return nearest;
@@ -36,8 +37,10 @@ static int edge_between(const std::map<std::pair<int, int>, int>& edges, int a, 
     return edges.at({std::min(a, b), std::max(a, b)});
 }
 
-/// A face on the patch's whole domain: its wire the four edges between its corners counter-clockwise in uv, each with a straight pcurve along the domain's side in the edge's own direction.
-static int patch_face(BRep& solid, const NurbsSurface& patch, const std::map<std::pair<int, int>, int>& edges) {
+/// A face on the patch's whole domain.
+static int patch_face(
+    BRep& solid, const NurbsSurface& patch, const std::map<std::pair<int, int>, int>& edges
+) {
 
     const std::pair<double, double> du = patch.domain(0);
     const std::pair<double, double> dv = patch.domain(1);
@@ -60,7 +63,11 @@ static int patch_face(BRep& solid, const NurbsSurface& patch, const std::map<std
         const size_t next = (k + 1) % 4;
         const int edge = edge_between(edges, corners[k], corners[next]);
         const bool forward = solid.m_edges[edge].start_vertex == corners[k];
-        solid.add_pcurve(edge, surface, solid.add_curve_2d(forward ? segment(uv[k], uv[next]) : segment(uv[next], uv[k])));
+        solid.add_pcurve(
+            edge,
+            surface,
+            solid.add_curve_2d(forward ? segment(uv[k], uv[next]) : segment(uv[next], uv[k]))
+        );
         wire.push_back({edge, forward ? BRepOrientation::Forward : BRepOrientation::Reversed});
     }
 
@@ -88,7 +95,6 @@ static Vector patch_normal(const NurbsSurface& patch) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 PlateCurved::PlateCurved(
     const NurbsCurve& outer_a,
     const NurbsCurve& outer_b,
@@ -96,11 +102,7 @@ PlateCurved::PlateCurved(
     const NurbsCurve& inner_b,
     const std::string& name
 )
-    : WoodElement(name),
-      outer_a(outer_a),
-      outer_b(outer_b),
-      inner_a(inner_a),
-      inner_b(inner_b) {
+    : WoodElement(name), outer_a(outer_a), outer_b(outer_b), inner_a(inner_a), inner_b(inner_b) {
 
     if (!outer_a.is_valid() || !outer_b.is_valid() || !inner_a.is_valid() || !inner_b.is_valid())
         throw std::invalid_argument("A curved plate needs four valid meridians");
@@ -109,14 +111,16 @@ PlateCurved::PlateCurved(
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::array<NurbsSurface, 6> PlateCurved::compute_patches() const {
 
-    // the rulings at each end of the plate, the start cap's and the end cap's outer and inner edge
-    const NurbsCurve outer_start = segment(outer_a.point_at(outer_a.domain_start()), outer_b.point_at(outer_b.domain_start()));
-    const NurbsCurve inner_start = segment(inner_a.point_at(inner_a.domain_start()), inner_b.point_at(inner_b.domain_start()));
-    const NurbsCurve outer_end = segment(outer_a.point_at(outer_a.domain_end()), outer_b.point_at(outer_b.domain_end()));
-    const NurbsCurve inner_end = segment(inner_a.point_at(inner_a.domain_end()), inner_b.point_at(inner_b.domain_end()));
+    const NurbsCurve outer_start =
+        segment(outer_a.point_at(outer_a.domain_start()), outer_b.point_at(outer_b.domain_start()));
+    const NurbsCurve inner_start =
+        segment(inner_a.point_at(inner_a.domain_start()), inner_b.point_at(inner_b.domain_start()));
+    const NurbsCurve outer_end =
+        segment(outer_a.point_at(outer_a.domain_end()), outer_b.point_at(outer_b.domain_end()));
+    const NurbsCurve inner_end =
+        segment(inner_a.point_at(inner_a.domain_end()), inner_b.point_at(inner_b.domain_end()));
 
     // every patch ruled between two boundary curves, the faces opposite each other in pairs: outer and inner, side a and side b, start cap and end cap
     return {
@@ -147,13 +151,15 @@ BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) cons
     std::map<std::pair<int, int>, int> edges;
 
     for (int k = 0; k < 4; k++)
-        edges[{2 * k, 2 * k + 1}] = solid.add_edge(solid.add_curve_3d(unit_domain(meridians[k])), 2 * k, 2 * k + 1);
+        edges[{2 * k, 2 * k + 1}] =
+            solid.add_edge(solid.add_curve_3d(unit_domain(meridians[k])), 2 * k, 2 * k + 1);
 
     for (int end = 0; end < 2; end++)
         for (const std::pair<int, int>& ruling : rulings) {
             const int start = ruling.first + end;
             const int stop = ruling.second + end;
-            const NurbsCurve line = segment(solid.m_vertices[start].point, solid.m_vertices[stop].point);
+            const NurbsCurve line =
+                segment(solid.m_vertices[start].point, solid.m_vertices[stop].point);
             edges[{start, stop}] = solid.add_edge(solid.add_curve_3d(line), start, stop);
         }
 
@@ -180,7 +186,6 @@ BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) cons
 const Mesh& PlateCurved::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
-        // every face's grid welded on its own and the faces put side by side unwelded, so a vertex on a crease belongs to one face and its normal is that face's: smooth shading inside every patch, a sharp edge on every BRep edge, nothing in between
         Mesh mesh;
 
         for (const Mesh& face : element_geometry_brep().face_meshes()) {
@@ -244,4 +249,4 @@ void PlateCurved::compute_geometry_brep_impl() {
     set_features(session_features(*this));
 }
 
-} // namespace wood_session
+}

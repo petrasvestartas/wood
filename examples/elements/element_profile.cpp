@@ -22,7 +22,9 @@ int main() {
     for (size_t i = 0; i < profiles.size(); i++) {
         const double x = 700.0 * i;
         const Polyline axis({{x, 0.0, 0.0}, {x, 800.0, 0.0}});
-        scene.add(std::make_shared<Beam>(axis, profiles[i].second, std::vector<Vector>{}, profiles[i].first));
+        scene.add(std::make_shared<Beam>(
+            axis, profiles[i].second, std::vector<Vector>{}, profiles[i].first
+        ));
     }
 
     std::cout << scene << std::endl;

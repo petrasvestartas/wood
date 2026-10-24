@@ -5,24 +5,18 @@ namespace cutting_gallery {
 using namespace session_cpp;
 using namespace wood_session;
 
-inline Polyline rectangle(
-    double x,
-    double y,
-    double z,
-    double w,
-    double h
-) {
-    return Polyline::rectangle(
-        {x, y, z},
-        {1, 0, 0},
-        {0, 1, 0},
-        w,
-        h
-    );
+inline Polyline rectangle(double x, double y, double z, double w, double h) {
+    return Polyline::rectangle({x, y, z}, {1, 0, 0}, {0, 1, 0}, w, h);
 }
 
-inline void preview(WoodSession& scene, Mesh mesh, const std::string& name, Vector offset, Color color,
-                    const std::shared_ptr<TreeNode>& group) {
+inline void preview(
+    WoodSession& scene,
+    Mesh mesh,
+    const std::string& name,
+    Vector offset,
+    Color color,
+    const std::shared_ptr<TreeNode>& group
+) {
     mesh = mesh.transformed(Xform::translation(offset[0], offset[1], offset[2]));
     mesh.set_objectcolor(color);
     scene.add(std::make_shared<Element>(mesh, name), group);
@@ -33,17 +27,17 @@ inline void finish(WoodSession& scene, const std::string& name) {
     scene.pb_dump(pb_path("live"));
 }
 
-inline void cut_case(WoodSession& scene, const std::string& name, const std::shared_ptr<Element>& stock,
-                     const std::shared_ptr<Joint>& cutter, double row) {
+inline void cut_case(
+    WoodSession& scene,
+    const std::string& name,
+    const std::shared_ptr<Element>& stock,
+    const std::shared_ptr<Joint>& cutter,
+    double row
+) {
     const std::shared_ptr<TreeNode> group = scene.add_group(name);
     const Xform move = Xform::translation(600, row, 0);
     preview(
-        scene,
-        stock->element_geometry_mesh(),
-        "Stock",
-        {0, row, 0},
-        Color(0.72, 0.55, 0.34),
-        group
+        scene, stock->element_geometry_mesh(), "Stock", {0, row, 0}, Color(0.72, 0.55, 0.34), group
     );
     stock->place(move);
     cutter->place(move);

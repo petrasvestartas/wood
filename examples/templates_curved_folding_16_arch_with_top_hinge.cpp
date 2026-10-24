@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// arch with top hinge: the sheet of four barrels stands as legs rising as arches under the roof, is reflected at the eaves onto a steep roof and again onto a shoulder of troughs, mirror-folded to a level crown, one plate across the plane of symmetry; 26 m span.
+/// arch with top hinge.
 int main() {
 
     const double climb = 90.0 * Tolerance::TO_RADIANS;
@@ -16,19 +16,30 @@ int main() {
         along,
         Vector(0.0, -1.0, 0.0),
         30000.0,
-        {{300.0, -15.0 * Tolerance::TO_RADIANS, true}, {18300.0, -40.0 * Tolerance::TO_RADIANS, true}, {25300.0, -35.0 * Tolerance::TO_RADIANS, false}},
+        {{300.0, -15.0 * Tolerance::TO_RADIANS, true},
+         {18300.0, -40.0 * Tolerance::TO_RADIANS, true},
+         {25300.0, -35.0 * Tolerance::TO_RADIANS, false}},
         Plane::from_point_normal(Point(13000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
         120.0
     );
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("arch with top hinge: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "arch with top hinge: {} lamellas, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

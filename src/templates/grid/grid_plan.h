@@ -50,11 +50,7 @@ Polyline compute_wall_ring(const Polyline& core, double wall);
 
 /// Where the lines of two sides through a corner meet once each is moved out along its outward normal by its distance.
 Point compute_corner(
-    const Point& corner,
-    const Vector& before,
-    double a,
-    const Vector& after,
-    double b
+    const Point& corner, const Vector& before, double a, const Vector& after, double b
 );
 
 /// A piece of a line between its crossings with rings, and the ring and side each end stops on.
@@ -65,12 +61,8 @@ struct Piece {
 };
 
 /// A line cut where it crosses the rings.
-std::vector<Piece> compute_pieces(
-    const Line& line,
-    const std::vector<Polyline>& rings,
-    bool inside,
-    double tolerance
-);
+std::vector<Piece>
+compute_pieces(const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Arrangement
@@ -96,10 +88,12 @@ Mesh compute_arrangement(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Vertical plane along the side of a plan polygon the ray from origin along direction leaves through, normal out of the polygon.
-std::optional<Plane> compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction);
+std::optional<Plane>
+compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction);
 
 /// Reach of a plan polygon past a point along a plan direction: its farthest corner.
-double compute_reach(const std::vector<Point>& polygon, const Point& point, const Vector& direction);
+double
+compute_reach(const std::vector<Point>& polygon, const Point& point, const Vector& direction);
 
 /// Long plan rectangle of half-width about the line through origin along direction: the footprint of a member that runs through.
 std::vector<Point> compute_strip(const Point& origin, const Vector& direction, double half);
@@ -108,12 +102,14 @@ std::vector<Point> compute_strip(const Point& origin, const Vector& direction, d
 Plane compute_bisector(const Point& origin, const Vector& a, const Vector& b);
 
 /// Closed polygon about centre whose side j is perpendicular to directions[j] at distances[j]; the direction polygon of a node.
-Polyline compute_polygon(const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances);
+Polyline compute_polygon(
+    const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances
+);
 
 /// Unit plan directions of the edges at a plan vertex and their opposites, counter-clockwise, closer than 1 degree merged.
 std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex);
 
-} // namespace wood_grid::plan
+}
 
 namespace wood_grid::build {
 
@@ -126,8 +122,10 @@ struct Context {
     const Mesh& plan; // The level plan.
     const Framing& framing; // The framing the level is built with.
     double tolerance = 1.0; // Weld distance and coplanarity tolerance of the building.
-    const std::map<size_t, std::vector<Point>>& standing; // Sections of the columns standing under the level, at their head vertices.
-    const std::map<size_t, std::vector<Point>>& rising; // Sections of the columns rising from the level, at their feet.
+    const std::map<size_t, std::vector<Point>>&
+        standing; // Sections of the columns standing under the level, at their head vertices.
+    const std::map<size_t, std::vector<Point>>&
+        rising; // Sections of the columns rising from the level, at their feet.
 };
 
 /// A column of a storey: its foot on the lower level and its head on the upper one.
@@ -153,7 +151,8 @@ struct Member {
 struct End {
     double overrun = 0.0; // Length past the vertex the axis is built with.
     std::vector<Plane> planes; // Cut planes, each keeping the side its normal points to.
-    bool bearing = false; // True when a column cuts the end: the member bears there, however short it is.
+    bool bearing =
+        false; // True when a column cuts the end: the member bears there, however short it is.
 };
 
 /// A purlin station over a bay at z 0 with the cut planes of both ends.
@@ -211,12 +210,7 @@ double compute_slope_start(const Context& context, size_t vertex, const Member& 
 Plane compute_slope_face(const Context& context, size_t vertex, const Member& member);
 
 /// Plan intersection of two lines given by a point and a direction.
-Point compute_meet(
-    const Point& p,
-    const Vector& d,
-    const Point& q,
-    const Vector& e
-);
+Point compute_meet(const Point& p, const Vector& d, const Point& q, const Vector& e);
 
 /// Farthest corner of any column section at a vertex along a plan direction, 0 without a column.
 double compute_column_reach(const Context& context, size_t vertex, const Vector& direction);
@@ -228,7 +222,9 @@ std::vector<size_t> compute_loop(const Mesh& plan, size_t face);
 std::vector<std::pair<size_t, size_t>> compute_sides(const std::vector<size_t>& loop);
 
 /// Mean line direction of the plan edges in a family, opposite directions alike; none when no edge is in it.
-std::optional<Vector> compute_family_direction(const Mesh& plan, const std::vector<std::pair<size_t, size_t>>& edges, int family);
+std::optional<Vector> compute_family_direction(
+    const Mesh& plan, const std::vector<std::pair<size_t, size_t>>& edges, int family
+);
 
 /// How far the deck moves out from a plan edge.
 double compute_side(const Context& context, std::pair<size_t, size_t> edge);
@@ -236,27 +232,25 @@ double compute_side(const Context& context, std::pair<size_t, size_t> edge);
 /// The four corners of the walls of a core ring in plan, pinwheel.
 std::vector<std::vector<Point>> compute_core_quads(const Polyline& ring, double wall);
 
-/// True when the deck of a face sits in the bay, its top flush with the member tops and its corners cut by the heads.
+/// True when the deck of a face sits in the bay.
 bool is_flush(const Mesh& plan, size_t face, const Framing& framing);
 
 /// How far a bay deck moves out from a plan edge.
 double compute_inset(const Context& context, std::pair<size_t, size_t> edge);
 
 /// Deck loops of every floor face at z 0, largest first.
-std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context, const std::vector<Polyline>& cores);
+std::map<size_t, std::vector<Polyline>>
+compute_outlines(const Context& context, const std::vector<Polyline>& cores);
 
 /// Loops of a deck cut into equal strips across the deck span, as many as compute_bays lays over its width at panel.
-std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& loops, const Vector& span, double panel);
+std::vector<std::vector<Polyline>>
+compute_panels(const std::vector<Polyline>& loops, const Vector& span, double panel);
 
 /// The vertical plane of a side of the wall band round a core, normal away from the core, through at.
-Plane compute_wall_face(
-    const std::vector<Polyline>& outer,
-    int ring,
-    int side,
-    const Point& at
-);
+Plane compute_wall_face(const std::vector<Polyline>& outer, int ring, int side, const Point& at);
 
 /// Purlin stations of a system 2 face.
-std::vector<Station> compute_stations(const Context& context, size_t face, const std::vector<Polyline>& cores);
+std::vector<Station>
+compute_stations(const Context& context, size_t face, const std::vector<Polyline>& cores);
 
-} // namespace wood_grid::build
+}

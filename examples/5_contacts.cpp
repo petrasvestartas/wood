@@ -20,20 +20,48 @@ int main() {
         const std::string a = edge.v0.substr(0, 8);
         const std::string b = edge.v1.substr(0, 8);
 
-        for (const std::shared_ptr<Interaction>& interaction : wood_session.get_interaction(first, second)) {
+        for (const std::shared_ptr<Interaction>& interaction :
+             wood_session.get_interaction(first, second)) {
 
-            if (const InteractionContactFace* face = dynamic_cast<const InteractionContactFace*>(interaction.get()))
-                std::cout << fmt::format("face   {} f{} with {} f{} class {} points {}\n", a, face->face_a, b, face->face_b, contact_type_name(face->type), face->polygon.point_count());
+            if (const InteractionContactFace* face =
+                    dynamic_cast<const InteractionContactFace*>(interaction.get()))
+                std::cout << fmt::format(
+                    "face   {} f{} with {} f{} class {} points {}\n",
+                    a,
+                    face->face_a,
+                    b,
+                    face->face_b,
+                    contact_type_name(face->type),
+                    face->polygon.point_count()
+                );
 
-            if (const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(interaction.get()))
-                std::cout << fmt::format("axis   {} s{} with {} s{} gap {:.3f}\n", a, axis->segment_a, b, axis->segment_b, axis->segment.length());
+            if (const InteractionContactAxis* axis =
+                    dynamic_cast<const InteractionContactAxis*>(interaction.get()))
+                std::cout << fmt::format(
+                    "axis   {} s{} with {} s{} gap {:.3f}\n",
+                    a,
+                    axis->segment_a,
+                    b,
+                    axis->segment_b,
+                    axis->segment.length()
+                );
 
-            if (const InteractionContactCross* cross = dynamic_cast<const InteractionContactCross*>(interaction.get()))
-                std::cout << fmt::format("cross  {} f{},{} with {} f{},{}\n", a, cross->faces_a[0], cross->faces_a[1], b, cross->faces_b[0], cross->faces_b[1]);
+            if (const InteractionContactCross* cross =
+                    dynamic_cast<const InteractionContactCross*>(interaction.get()))
+                std::cout << fmt::format(
+                    "cross  {} f{},{} with {} f{},{}\n",
+                    a,
+                    cross->faces_a[0],
+                    cross->faces_a[1],
+                    b,
+                    cross->faces_b[0],
+                    cross->faces_b[1]
+                );
         }
     }
 
-    std::cout << wood_session.get_contacts().size() << " contacts on " << wood_session.interactions.size() << " interactions\n";
+    std::cout << wood_session.get_contacts().size() << " contacts on "
+              << wood_session.interactions.size() << " interactions\n";
 
     wood_session.pb_dump(pb_path("live"));
 

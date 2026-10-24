@@ -7,11 +7,12 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a timber member, the base of every wood element: its shape built from its own parameters, its stock that shape with every block other elements glue on, and its model the stock trimmed by its own planes with every solid other elements take away. The solid features come only through WoodSession::add_interaction(source, element, InteractionFeatureSolid).
+/// Element that represents a timber member.
 class WoodElement : public Element {
 public:
-    std::vector<InteractionFeatureSolid> solid_features; // The solid features other elements put on it, each in the element's frame naming its source: the adds make its stock, the subtracts cut its model.
-    std::vector<InteractionFeaturePlane> plane_features; // The planes other elements cut it by, each in the element's frame naming its source, the element keeping the side the normal points to.
+    std::vector<InteractionFeatureSolid>
+        solid_features; // The solid features other elements put on it.
+    std::vector<InteractionFeaturePlane> plane_features; // The planes other elements cut it by.
 
     using Element::Element;
 
@@ -19,7 +20,7 @@ public:
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The shape with every add feature united, in frame() on a 1e-6 mm grid so a glued block meets it on exactly one plane; the shape itself without add features.
+    /// Returns the shape united with its add features on the frame grid.
     Mesh stock_mesh() const;
 
     /// The planes of the plane features.
@@ -28,7 +29,7 @@ public:
     /// The trimmed stock cut by the plane features, with every subtract feature applied as a Mesh; cached until invalidate_geometry() or place().
     const Mesh& model_geometry_mesh() const override;
 
-    /// The trimmed stock cut by the plane features, with every subtract feature applied as a BRep, the drills exact cylinders; cached until invalidate_geometry() or place().
+    /// The trimmed stock cut by the plane features.
     const BRep& model_geometry_brep() const override;
 
     /// Drops the uncut and the cut solids and every other cache.
@@ -51,4 +52,4 @@ protected:
     virtual BRep trimmed_brep() const;
 };
 
-} // namespace wood_session
+}

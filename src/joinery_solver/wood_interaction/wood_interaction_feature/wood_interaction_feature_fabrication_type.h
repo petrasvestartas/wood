@@ -4,29 +4,30 @@ namespace wood_session {
 
 /// What each outline a feature emits does to the element body when it is fabricated; one per entry of male_outlines / female_outlines.
 enum FabricationType : int {
-    nothing = 0, // No cut.
-    hole = 1, // Plate: a hole through the face.
-    edge_insertion = 2, // Plate: an insertion along one edge.
-    insert_between_multiple_edges = 3, // Plate: an insertion spanning several edges.
-    slice = 4, // Beam: a slice through the volume.
-    slice_projectsheer = 5, // Beam: a slice projected and sheared.
-    mill = 6, // Beam: a milled pocket.
-    mill_project = 7, // Beam: a milled pocket projected onto the volume.
-    mill_projectsheer = 8, // Beam: a milled pocket projected and sheared.
-    cut = 9, // Beam: a cut.
-    cut_project = 10, // Beam: a cut projected onto the volume.
-    cut_projectsheer = 11, // Beam: a cut projected and sheared.
-    cut_reverse = 12, // Beam: a cut with the kept side reversed.
-    conic = 13, // Beam: a conic cut.
-    conic_reverse = 14, // Beam: a conic cut with the kept side reversed.
-    drill = 15, // Plate or beam: a vertical drill.
-    drill_50 = 16, // Plate or beam: a drill 2024 named for a 50 mm bit, the vertical pin of cross_brussels_half_lap; bored like a drill.
-    drill_10 = 17, // Plate or beam: a drill 2024 named for a 10 mm bit, the horizontal pin of cross_brussels_half_lap; bored like a drill.
+    nothing = 0,
+    hole = 1,
+    edge_insertion = 2,
+    insert_between_multiple_edges = 3,
+    slice = 4,
+    slice_projectsheer = 5,
+    mill = 6,
+    mill_project = 7,
+    mill_projectsheer = 8,
+    cut = 9,
+    cut_project = 10,
+    cut_projectsheer = 11,
+    cut_reverse = 12,
+    conic = 13,
+    conic_reverse = 14,
+    drill = 15,
+    drill_50 = 16,
+    drill_10 = 17,
 };
 
 /// Whether a type is bored as a drill: drill and the two named bits of 2024.
 inline bool is_drill(const int type) {
-    return type == FabricationType::drill || type == FabricationType::drill_50 || type == FabricationType::drill_10;
+    return type == FabricationType::drill || type == FabricationType::drill_50 ||
+           type == FabricationType::drill_10;
 }
 
-} // namespace wood_session
+}

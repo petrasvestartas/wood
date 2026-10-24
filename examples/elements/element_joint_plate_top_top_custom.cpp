@@ -3,16 +3,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_top_custom: your own outlines on two stacked plates, a hidden butterfly key pocket milled into each, on the pairs square and turned 30 degrees, each drawn apart.
+/// top_top_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_top_top_custom");
 
-    // a hidden butterfly key in the joint's unit box: x across the contact, y along the plates' normal from the lower plate's
-    // bottom (-0.5) through the contact (0) to the upper plate's top (0.5), z along the contact; each plate is milled a bow-tie
-    // pocket half its thickness deep from the contact face, and a loose key of the same outline locks the two together
     const auto bow_tie = [](double y) {
-        return Polyline({{-0.3, y, -0.15}, {0.0, y, -0.06}, {0.3, y, -0.15}, {0.3, y, 0.15}, {0.0, y, 0.06}, {-0.3, y, 0.15}, {-0.3, y, -0.15}});
+        return Polyline(
+            {{-0.3, y, -0.15},
+             {0.0, y, -0.06},
+             {0.3, y, -0.15},
+             {0.3, y, 0.15},
+             {0.0, y, 0.06},
+             {-0.3, y, 0.15},
+             {-0.3, y, -0.15}}
+        );
     };
     const std::vector<Polyline> male = {bow_tie(-0.25), bow_tie(0.0)};
     const std::vector<Polyline> female = {bow_tie(0.0), bow_tie(0.25)};
@@ -29,8 +34,8 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(lower, upper);
         const std::shared_ptr<JointPlate> joint = JointPlate::top_top_custom(male, female);
         joint->orient(contact, {lower, upper});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
@@ -38,7 +43,6 @@ int main() {
         scene.add_interaction(joint, lower, joint->interaction(0));
         scene.add_interaction(joint, upper, joint->interaction(1));
 
-        // drawn apart 300 up, so both sides read
         const Vector apart(0.0, 0.0, 300.0);
         upper->place(Xform::translation(apart[0], apart[1], apart[2]));
         joint->place(Xform::translation(apart[0] * 0.5, apart[1] * 0.5, apart[2] * 0.5));

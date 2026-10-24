@@ -4,29 +4,42 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folded plate: a wave corrugation folded at the reverse folds of an arch of five segments spanning 13.5 m, every half wave
-/// of every segment a curved plate.
+/// A curved folded plate.
 int main() {
 
     const double climb = 60.0 * Tolerance::TO_RADIANS;
     const Vector along(0.0, std::cos(climb), std::sin(climb));
     const Vector up(0.0, -std::sin(climb), std::cos(climb));
     ReflectionFold fold(
-        ReflectionFold::waves(Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0),
+        ReflectionFold::waves(
+            Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0
+        ),
         along,
         Vector(1.0, 0.0, 0.0),
         18100.0,
-        {{3620.0, -30.0 * Tolerance::TO_RADIANS}, {7240.0, -30.0 * Tolerance::TO_RADIANS}, {10860.0, -30.0 * Tolerance::TO_RADIANS}, {14480.0, -30.0 * Tolerance::TO_RADIANS}}
+        {{3620.0, -30.0 * Tolerance::TO_RADIANS},
+         {7240.0, -30.0 * Tolerance::TO_RADIANS},
+         {10860.0, -30.0 * Tolerance::TO_RADIANS},
+         {14480.0, -30.0 * Tolerance::TO_RADIANS}}
     );
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("curved folded plate: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "curved folded plate: {} lamellas, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

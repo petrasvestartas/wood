@@ -11,12 +11,15 @@ namespace wood_session {
 /// A beam-to-beam joint: the four volume rectangles cut where two axes meet, as Beam::joint_volumes builds them.
 class InteractionFeatureBeam : public InteractionFeature {
 public:
-    static constexpr std::string_view INTERACTION_TYPE = "InteractionFeatureBeam"; // The tag the kernel writes and the registry reads.
+    static constexpr std::string_view INTERACTION_TYPE =
+        "InteractionFeatureBeam"; // The tag the kernel writes and the registry reads.
 
     int end_type = 0; // 0 crossing, 1 side to end, 2 end to end.
-    std::array<Polyline, 4> volumes; // [0] and [1] on the edge's first beam, [2] and [3] on the second.
+    std::array<Polyline, 4>
+        volumes; // [0] and [1] on the edge's first beam, [2] and [3] on the second.
     Vector normal; // The normal of the two axes where they meet, the frame of a crossing.
-    std::array<Vector, 2> axes; // Each beam's axis direction where they meet, the edge's first beam then the second.
+    std::array<Vector, 2>
+        axes; // Each beam's axis direction where they meet, the edge's first beam then the second.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -52,4 +55,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

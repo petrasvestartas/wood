@@ -12,13 +12,14 @@ struct FoldPoint {
     double rise; // Share of the height.
 };
 
-/// The pyramid and truncated pyramid of Engel (pp. 231, 233) on a square plan, its sides folded at edge and corner points.
+/// The pyramid and truncated pyramid on a square plan, its sides folded at edge and corner points.
 class TruncatedPyramid : public WoodSession {
 public:
     const double half; // mm, half the base square's side, centred on the origin.
     const double top; // mm, half the top square's side, 0 for an apex.
     const double height; // mm, the top's height.
-    const std::optional<FoldPoint> edge_fold; // Every base edge's middle moved in and raised, or none.
+    const std::optional<FoldPoint>
+        edge_fold; // Every base edge's middle moved in and raised, or none.
     const std::optional<FoldPoint> corner_fold; // Every corner line bent at this point, or none.
     const double thickness; // mm, every plate.
 
@@ -56,13 +57,8 @@ inline TruncatedPyramid::TruncatedPyramid(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      half(half),
-      top(top),
-      height(height),
-      edge_fold(edge_fold),
-      corner_fold(corner_fold),
-      thickness(thickness) {
+    : WoodSession(name), half(half), top(top), height(height), edge_fold(edge_fold),
+      corner_fold(corner_fold), thickness(thickness) {
 
     // points: the base corners on the ground, the top corners, per corner line its fold point, per side its edge fold point
     const std::vector<Point> base = regular_polygon(4, half * std::sqrt(2.0), 0.0);

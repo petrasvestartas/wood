@@ -6,7 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A field of crosswise folded square cells after Engel (p. 230), a diagonal cross fold over the two by two block in its middle.
+/// A field of crosswise folded square cells.
 class FoldComposition : public WoodSession {
 public:
     const size_t columns; // Cells along x, even, the block in the middle.
@@ -60,15 +60,8 @@ inline FoldComposition::FoldComposition(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      columns(columns),
-      rows(rows),
-      cell(cell),
-      low(low),
-      high(high),
-      peak(peak),
-      star(star),
-      thickness(thickness) {
+    : WoodSession(name), columns(columns), rows(rows), cell(cell), low(low), high(high), peak(peak),
+      star(star), thickness(thickness) {
 
     // cells: four triangles from the corner nodes to the peak, the block's cells left to the star
     FoldMesh fold;
@@ -86,7 +79,9 @@ inline FoldComposition::FoldComposition(
                 compute_node(i + 1, j + 1),
                 compute_node(i, j + 1),
             };
-            const Point top(0.5 * (corners[0][0] + corners[2][0]), 0.5 * (corners[0][1] + corners[2][1]), peak);
+            const Point top(
+                0.5 * (corners[0][0] + corners[2][0]), 0.5 * (corners[0][1] + corners[2][1]), peak
+            );
 
             for (size_t k = 0; k < 4; k++)
                 fold.face({corners[k], corners[(k + 1) % 4], top});
@@ -110,10 +105,10 @@ inline FoldComposition::FoldComposition(
         if (!start || !end)
             continue;
 
-        const bool on_side = std::abs(std::abs((*start)[0]) - half_x) < 1.0
-            && std::abs(std::abs((*end)[0]) - half_x) < 1.0;
-        const bool on_front = std::abs(std::abs((*start)[1]) - half_y) < 1.0
-            && std::abs(std::abs((*end)[1]) - half_y) < 1.0;
+        const bool on_side = std::abs(std::abs((*start)[0]) - half_x) < 1.0 &&
+                             std::abs(std::abs((*end)[0]) - half_x) < 1.0;
+        const bool on_front = std::abs(std::abs((*start)[1]) - half_y) < 1.0 &&
+                              std::abs(std::abs((*end)[1]) - half_y) < 1.0;
 
         if (!on_side && !on_front)
             add_polyline(Polyline({*start, *end}), folds);
@@ -141,7 +136,8 @@ inline Point FoldComposition::compute_node(size_t i, size_t j) const {
     // height: the block's corners raised to the star's, else high at odd i + j and low at even
     const size_t block_i = columns / 2 - 1;
     const size_t block_j = rows / 2 - 1;
-    const bool block_corner = (i == block_i || i == block_i + 2) && (j == block_j || j == block_j + 2);
+    const bool block_corner =
+        (i == block_i || i == block_i + 2) && (j == block_j || j == block_j + 2);
     const double z = block_corner ? star.corner : ((i + j) % 2 == 1 ? high : low);
     const double x = cell * (static_cast<double>(i) - 0.5 * static_cast<double>(columns));
     const double y = cell * (static_cast<double>(j) - 0.5 * static_cast<double>(rows));

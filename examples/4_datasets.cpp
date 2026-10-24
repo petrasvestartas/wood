@@ -3,12 +3,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const std::string DATASET{config::Dataset::hex_block_rossiniere};   // config::Dataset::<name> autocompletes
+const std::string DATASET{config::Dataset::hex_block_rossiniere};
 
 int main() {
 
     WoodSession from_yaml = WoodSession::yaml_load(DATASET);
-    std::cout << from_yaml << " distance " << from_yaml.settings.distance << " search " << from_yaml.settings.search_type << "\n";
+    std::cout << from_yaml << " distance " << from_yaml.settings.distance << " search "
+              << from_yaml.settings.search_type << "\n";
 
     WoodSession from_obj = WoodSession::obj_load(DATASET);
     std::cout << from_obj << " plates from the obj alone, default settings\n";

@@ -7,10 +7,14 @@ using namespace wood_session;
 /// The development of a ruled strip between two curves, unfolded flat triangle by triangle, with its distortion and twist.
 class Development {
 public:
-    const size_t samples; // Rulings the strip is unfolded with, from the start of the curves to their end.
-    Polyline outline; // The flat outline, closed: the first curve's development, the last ruling, the second curve's back and the first ruling.
-    double distortion; // The largest relative change of a quad's unshared diagonal, 0 on a developable strip.
-    double twist; // The largest |ruling . (tangent_a x tangent_b)| of unit vectors, 0 on a developable strip.
+    const size_t
+        samples; // Rulings the strip is unfolded with, from the start of the curves to their end.
+    Polyline
+        outline; // The flat outline, closed: the first curve's development, the last ruling, the second curve's back and the first ruling.
+    double
+        distortion; // The largest relative change of a quad's unshared diagonal, 0 on a developable strip.
+    double
+        twist; // The largest |ruling . (tangent_a x tangent_b)| of unit vectors, 0 on a developable strip.
 
     /// The development of the strip between a and b, unfolded with the given number of rulings.
     Development(const NurbsCurve& a, const NurbsCurve& b, size_t samples = 64);
@@ -27,9 +31,7 @@ private:
 };
 
 inline Development::Development(const NurbsCurve& a, const NurbsCurve& b, size_t samples)
-    : samples(std::max<size_t>(samples, 2)),
-      distortion(0.0),
-      twist(0.0) {
+    : samples(std::max<size_t>(samples, 2)), distortion(0.0), twist(0.0) {
 
     // the rulings: the two curves sampled at equal normalized parameters, and the twist of each out of its tangents' plane
     std::vector<Point> starts;
@@ -77,7 +79,9 @@ inline Development::Development(const NurbsCurve& a, const NurbsCurve& b, size_t
         flat_ends.push_back(flat_end);
 
         const double diagonal = starts[k - 1].distance(ends[k]);
-        distortion = std::max(distortion, std::abs(flat_starts[k - 1].distance(flat_end) - diagonal) / diagonal);
+        distortion = std::max(
+            distortion, std::abs(flat_starts[k - 1].distance(flat_end) - diagonal) / diagonal
+        );
     }
 
     // the outline: along the first curve, back along the second, closed
@@ -88,15 +92,12 @@ inline Development::Development(const NurbsCurve& a, const NurbsCurve& b, size_t
 }
 
 inline Point Development::third_corner(
-    const Point& from,
-    const Point& to,
-    double from_distance,
-    double to_distance,
-    const Point& away
+    const Point& from, const Point& to, double from_distance, double to_distance, const Point& away
 ) {
 
     const double base = from.distance(to);
-    const double along = (from_distance * from_distance - to_distance * to_distance + base * base) / (2.0 * base);
+    const double along =
+        (from_distance * from_distance - to_distance * to_distance + base * base) / (2.0 * base);
     const double across = std::sqrt(std::max(0.0, from_distance * from_distance - along * along));
 
     Vector axis = to - from;

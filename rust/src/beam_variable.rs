@@ -1,5 +1,3 @@
-//! BeamVariable: closed sections of one point count lofted from station to station.
-
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{frame_along, loft_stations, mesh_brep};
 use crate::proto;
@@ -18,6 +16,7 @@ pub struct BeamVariable {
 }
 
 impl BeamVariable {
+
     /// A variable beam through its sections along an axis.
     pub fn new(axis: &Line, sections: Vec<Polyline>, name: &str) -> Self {
         Self {
@@ -129,7 +128,7 @@ impl WoodElement for BeamVariable {
     }
 }
 
-/// The face of side k of four-cornered sections: corner k at every station, corner k + 1 back, closed; empty for other sections, as C++ side_outline uncut.
+/// The face of side k of four-cornered sections.
 fn side_outline(sections: &[Polyline], k: usize) -> Polyline {
     if sections.len() < 2 || sections.iter().any(|section| section.point_count() != 5) {
         return Polyline::new(Vec::new());

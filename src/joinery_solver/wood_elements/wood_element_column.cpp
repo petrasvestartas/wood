@@ -13,21 +13,20 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
-Column::Column() : WoodElement("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {}
+Column::Column() : WoodElement("column"), axis(Line::from_points(Point(0, 0, 0), Point(0, 0, 0))) {
+}
 
 Column::Column(const Line& axis, const Polyline& section, const std::string& name)
-    : WoodElement(name), axis(axis), section(section) {}
+    : WoodElement(name), axis(axis), section(section) {
+}
 
 Column::Column(
-    const Mesh& solid,
-    const Line& axis,
-    const Polyline& section,
-    const std::string& name
+    const Mesh& solid, const Line& axis, const Polyline& section, const std::string& name
 )
-    : WoodElement(solid, name), axis(axis), section(section) {}
+    : WoodElement(solid, name), axis(axis), section(section) {
+}
 
-/// The profile x axis in world space: world x projected perpendicular to the axis (world y when the axis is along x), turned by rotation degrees about the axis.
+/// The profile x axis in world space.
 static Vector profile_x(const Line& axis, double rotation) {
 
     const Vector along = axis.to_vector().normalized();
@@ -38,7 +37,7 @@ static Vector profile_x(const Line& axis, double rotation) {
     return x.normalized().transformed(Xform::rotation(along, rotation, true));
 }
 
-/// The rotation that puts the profile x axis on x_world about the axis: its signed angle in degrees from the unturned profile x.
+/// The rotation that puts the profile x axis on x_world about the axis.
 static double compute_rotation(const Line& axis, const Vector& x_world) {
 
     const Vector along = axis.to_vector().normalized();
@@ -48,7 +47,8 @@ static double compute_rotation(const Line& axis, const Vector& x_world) {
 }
 
 /// Every profile loop placed at the axis base, x along profile_x and y along the axis cross it.
-static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<Polyline>& profile, double rotation) {
+static std::vector<Polyline>
+placed_profile(const Line& axis, const std::vector<Polyline>& profile, double rotation) {
 
     const Vector along = axis.to_vector().normalized();
     const Vector x = profile_x(axis, rotation);
@@ -66,10 +66,7 @@ static std::vector<Polyline> placed_profile(const Line& axis, const std::vector<
 }
 
 Column::Column(
-    const Line& axis,
-    const std::vector<Polyline>& profile,
-    double rotation,
-    const std::string& name
+    const Line& axis, const std::vector<Polyline>& profile, double rotation, const std::string& name
 )
     : WoodElement(name), axis(axis), profile(profile), rotation(rotation) {
 
@@ -82,12 +79,7 @@ Column::Column(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The point at (a, b) in the corner frame, moved along the frame normal to the axis base.
-static Point corner_point(
-    const Line& axis,
-    const Plane& corner,
-    double a,
-    double b
-) {
+static Point corner_point(const Line& axis, const Plane& corner, double a, double b) {
 
     const Point base = corner.origin() + corner.z_axis() * corner.signed_distance(axis.start());
 
@@ -96,62 +88,26 @@ static Point corner_point(
 
 /// The closed rectangle from (a0, b0) to (a1, b1) in the corner frame at the axis base.
 static Polyline corner_rectangle(
-    const Line& axis,
-    const Plane& corner,
-    double a0,
-    double b0,
-    double a1,
-    double b1
+    const Line& axis, const Plane& corner, double a0, double b0, double a1, double b1
 ) {
     return Polyline({
-        corner_point(
-            axis,
-            corner,
-            a0,
-            b0
-        ),
-        corner_point(
-            axis,
-            corner,
-            a1,
-            b0
-        ),
-        corner_point(
-            axis,
-            corner,
-            a1,
-            b1
-        ),
-        corner_point(
-            axis,
-            corner,
-            a0,
-            b1
-        ),
-    }).closed();
+                        corner_point(axis, corner, a0, b0),
+                        corner_point(axis, corner, a1, b0),
+                        corner_point(axis, corner, a1, b1),
+                        corner_point(axis, corner, a0, b1),
+                    })
+        .closed();
 }
 
-std::shared_ptr<Column> Column::square(
-    const Line& axis,
-    const Plane& corner,
-    double side,
-    const std::string& name
-) {
+std::shared_ptr<Column>
+Column::square(const Line& axis, const Plane& corner, double side, const std::string& name) {
     return std::make_shared<Column>(
-        axis,
-        corner_rectangle(
-            axis,
-            corner,
-            0.0,
-            0.0,
-            side,
-            side
-        ),
-        name
+        axis, corner_rectangle(axis, corner, 0.0, 0.0, side, side), name
     );
 }
 
-std::vector<std::shared_ptr<Block>> Column::head_blocks(double head_side, double head_height) const {
+std::vector<std::shared_ptr<Block>>
+Column::head_blocks(double head_side, double head_height) const {
 
     const Point origin = section.get_point(0);
     const Vector x = section.get_point(1) - origin;
@@ -169,14 +125,17 @@ std::vector<std::shared_ptr<Block>> Column::head_blocks(double head_side, double
     for (size_t i = 0; i < spans.size(); i++) {
         const auto [a0, b0, a1, b1] = spans[i];
         const Polyline base = Polyline({
-            origin + x.normalized() * a0 + y.normalized() * b0,
-            origin + x.normalized() * a1 + y.normalized() * b0,
-            origin + x.normalized() * a1 + y.normalized() * b1,
-            origin + x.normalized() * a0 + y.normalized() * b1,
-        }).closed();
+                                           origin + x.normalized() * a0 + y.normalized() * b0,
+                                           origin + x.normalized() * a1 + y.normalized() * b0,
+                                           origin + x.normalized() * a1 + y.normalized() * b1,
+                                           origin + x.normalized() * a0 + y.normalized() * b1,
+                                       })
+                                  .closed();
         const Polyline bottom_loop = base.translated(under);
         const Polyline top_loop = base.translated(axis.to_vector());
-        const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{bottom_loop, top_loop}, fmt::format("{}_head_{}", name, i));
+        const std::shared_ptr<Block> block = std::make_shared<Block>(
+            std::vector<Polyline>{bottom_loop, top_loop}, fmt::format("{}_head_{}", name, i)
+        );
         block->is_visible = false;
         blocks.push_back(block);
     }
@@ -224,10 +183,13 @@ std::shared_ptr<Column> Column::from_element(Element e) {
     column->rotation = proto.rotation();
 
     for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
-        column->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
+        column->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString())
+        );
 
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
-        column->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
+        column->plane_features.push_back(
+            InteractionFeaturePlane::pb_loads(feature.SerializeAsString())
+        );
 
     return column;
 }
@@ -238,7 +200,8 @@ std::shared_ptr<Column> Column::from_element(Element e) {
 
 /// The bottom loops of the solid: the placed profile when it has holes, else the section alone.
 static std::vector<Polyline> bottom_loops(const Column& column) {
-    return column.profile.size() > 1 ? placed_profile(column.axis, column.profile, column.rotation) : std::vector<Polyline>{column.section};
+    return column.profile.size() > 1 ? placed_profile(column.axis, column.profile, column.rotation)
+                                     : std::vector<Polyline>{column.section};
 }
 
 /// The loops moved to the axis top.
@@ -295,12 +258,7 @@ Plane Column::frame() const {
     const Vector z = axis.to_vector().normalized();
     const Vector x = (section.get_point(1) - section.get_point(0)).normalized();
 
-    return Plane::from_frame(
-        section.get_point(0),
-        x,
-        z.cross(x),
-        z
-    );
+    return Plane::from_frame(section.get_point(0), x, z.cross(x), z);
 }
 
 std::optional<Plane> Column::base_plane() const {
@@ -320,7 +278,8 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<Column> column = std::make_shared<Column>(axis.transformed(xform), section.transformed(xform), name);
+    std::shared_ptr<Column> column =
+        std::make_shared<Column>(axis.transformed(xform), section.transformed(xform), name);
     column->guid() = guid();
     column->cuts = transformed_list(cuts, xform);
 
@@ -331,7 +290,10 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
         column->plane_features.push_back(feature.transformed(xform));
 
     column->profile = profile;
-    column->rotation = profile.empty() ? rotation : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
+    column->rotation =
+        profile.empty()
+            ? rotation
+            : compute_rotation(column->axis, profile_x(axis, rotation).transformed(xform));
     column->set_features(transformed_features(_features, xform));
     column->set_insertion_vectors(transformed_list(_insertion_vectors, xform));
 
@@ -383,7 +345,8 @@ void Column::compute_geometry_features() {
     if (section.point_count() > 0)
         ends = {section, section.translated(axis.to_vector())};
 
-    const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(Polyline({axis.start(), axis.end()}), ends, cuts);
+    const std::pair<Polyline, std::vector<Polyline>> trimmed =
+        trim_to_cuts(Polyline({axis.start(), axis.end()}), ends, cuts);
 
     std::vector<ElementFeature> next;
     next.push_back(polyline_feature("axis", trimmed.first));
@@ -413,7 +376,6 @@ AABB Column::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 nlohmann::ordered_json Column::element_data_jsondump() const {
 
     wood_proto::Column proto;
@@ -426,7 +388,6 @@ nlohmann::ordered_json Column::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Column::element_data_dumps() const {
 
     wood_proto::Column proto;
@@ -466,13 +427,14 @@ void Column::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Column::str() const {
 
     std::ostringstream os;
-    os << "Column(name=" << name << ", axis_length=" << axis.length() << ", section_pts=" << section.point_count() << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "Column(name=" << name << ", axis_length=" << axis.length()
+       << ", section_pts=" << section.point_count() << ", is_visible=" << std::boolalpha
+       << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
 
-} // namespace wood_session
+}

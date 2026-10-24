@@ -8,7 +8,6 @@ int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_hilti");
 
-    // two 600 x 400 slabs 200 thick falling 15 degrees each from the ridge along y, their seam faces mitered on x = 0
     const double half_angle = 15.0 * Tolerance::PI / 180.0;
     std::array<std::shared_ptr<Plate>, 2> slabs;
     for (int side = 0; side < 2; side++) {
@@ -28,9 +27,10 @@ int main() {
         scene.add(slabs[side]);
     }
 
-    // the connector from their face contact, added, and passed to each slab in its target order
-    const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(slabs[0], slabs[1]);
-    const std::shared_ptr<JointPlate> hilti = JointPlate::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
+    const std::shared_ptr<InteractionContactFace> contact =
+        scene.compute_face_contact(slabs[0], slabs[1]);
+    const std::shared_ptr<JointPlate> hilti =
+        JointPlate::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
     scene.add(hilti);
     scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
     scene.add_interaction(hilti, slabs[1], hilti->interaction(1));

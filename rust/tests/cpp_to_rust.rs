@@ -1,5 +1,3 @@
-//! C++ -> Rust: every element a wood example dumped reads back as its class, field for field, with the same solid.
-
 mod common;
 
 use common::*;

@@ -6,12 +6,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Singly folded surfaces over a regular polygon plan after Engel (p. 228), every sector folded once on its ridge.
+/// Singly folded surfaces over a regular polygon plan, every sector folded once on its ridge.
 class SingleFold : public WoodSession {
 public:
     const size_t sides; // Sides of the regular polygon plan.
-    const double radius; // mm, the plan's circumradius, its corners on the circle around the origin, on the ground.
-    const double overhang; // mm, how far every edge's middle stands off the edge, outward when positive, inward when negative.
+    const double
+        radius; // mm, the plan's circumradius, its corners on the circle around the origin, on the ground.
+    const double
+        overhang; // mm, how far every edge's middle stands off the edge, outward when positive, inward when negative.
     const double gable; // mm, the height of every edge's middle, the ridges' outer ends.
     const double apex; // mm, the centre's height, the ridges' inner end.
     const double thickness; // mm, every plate.
@@ -50,12 +52,7 @@ inline SingleFold::SingleFold(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      sides(sides),
-      radius(radius),
-      overhang(overhang),
-      gable(gable),
-      apex(apex),
+    : WoodSession(name), sides(sides), radius(radius), overhang(overhang), gable(gable), apex(apex),
       thickness(thickness) {
 
     // points: the corners on the ground, every edge's middle stood off it and raised, the centre

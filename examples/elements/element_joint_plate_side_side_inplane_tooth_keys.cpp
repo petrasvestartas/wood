@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_inplane_tooth_keys: the reversed-tooth keys of two plates edge to edge in one plane, on its defaults, on the pairs in line and in a shallow V of 165 degrees, each drawn apart.
+/// side_side_inplane_tooth_keys.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_tooth_keys");
@@ -20,18 +20,18 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(left, right);
         const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_tooth_keys();
         joint->orient(contact, {left, right});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
-        joint->is_visible = true; // the keys are the joint's own pieces
+        joint->is_visible = true;
         scene.add(joint, group);
         scene.add_interaction(joint, left, joint->interaction(0));
         scene.add_interaction(joint, right, joint->interaction(1));
 
-        // drawn apart 200 along the line between the two plates' centres, so both sides read
-        const Vector apart = (right->polylines[0].center() - left->polylines[0].center()).normalized() * 200.0;
+        const Vector apart =
+            (right->polylines[0].center() - left->polylines[0].center()).normalized() * 200.0;
         right->place(Xform::translation(apart[0], apart[1], apart[2]));
         joint->place(Xform::translation(apart[0] * 0.5, apart[1] * 0.5, apart[2] * 0.5));
     }

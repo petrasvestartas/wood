@@ -17,7 +17,8 @@ int compute_role(const Mesh& plan, std::pair<size_t, size_t> edge, const Framing
     const int family = static_cast<int>(plan.edge_attribute(edge, "family").value_or(-1.0));
     int system = framing.system;
     int span = framing.span;
-    for (const size_t face : plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>())) {
+    for (const size_t face :
+         plan.edge_faces(edge.first, edge.second).value_or(std::vector<size_t>())) {
         system = static_cast<int>(plan.face_attribute(face, "system").value_or(system));
         span = static_cast<int>(plan.face_attribute(face, "span").value_or(span));
     }
@@ -37,7 +38,8 @@ int compute_role(const Mesh& plan, std::pair<size_t, size_t> edge, const Framing
 void compute_roles(Mesh& plan, const Framing& framing) {
 
     for (const std::pair<size_t, size_t>& edge : plan.edges()) {
-        if (framing.facade && plan.edge_attribute(edge, "boundary").value_or(0.0) == 1.0 && !plan.edge_attribute(edge, "wall"))
+        if (framing.facade && plan.edge_attribute(edge, "boundary").value_or(0.0) == 1.0 &&
+            !plan.edge_attribute(edge, "wall"))
             plan.set_edge_attribute(edge, "wall", 1.0);
         if (!plan.edge_attribute(edge, "role"))
             plan.set_edge_attribute(edge, "role", compute_role(plan, edge, framing));
@@ -47,10 +49,14 @@ void compute_roles(Mesh& plan, const Framing& framing) {
 std::string compute_name(int role) {
 
     switch (role) {
-        case 1: return "girder";
-        case 2: return "beam";
-        case 3: return "purlin";
-        default: return "brace";
+    case 1:
+        return "girder";
+    case 2:
+        return "beam";
+    case 3:
+        return "purlin";
+    default:
+        return "brace";
     }
 }
 
@@ -60,25 +66,34 @@ std::vector<Polyline> compute_profile(int role, const Framing& framing) {
     const std::vector<Polyline>& beam = profiles.beam.empty() ? profiles.girder : profiles.beam;
 
     switch (role) {
-        case 1: return profiles.girder;
-        case 2: return beam;
-        case 3: return profiles.purlin.empty() ? beam : profiles.purlin;
-        default: return profiles.brace.empty() ? beam : profiles.brace;
+    case 1:
+        return profiles.girder;
+    case 2:
+        return beam;
+    case 3:
+        return profiles.purlin.empty() ? beam : profiles.purlin;
+    default:
+        return profiles.brace.empty() ? beam : profiles.brace;
     }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Members
 // ═══════════════════════════════════════════════════════════════════════════
-
 Member compute_member(const Context& context, size_t vertex, size_t other) {
 
     const std::pair<size_t, size_t> edge(vertex, other);
     const int role = static_cast<int>(context.plan.edge_attribute(edge, "role").value_or(0.0));
-    const std::pair<double, double> size = wood_session::compute_size(compute_profile(role, context.framing));
+    const std::pair<double, double> size =
+        wood_session::compute_size(compute_profile(role, context.framing));
     const double drop = role == 1 ? context.framing.drop : 0.0;
-    const int rank = context.plan.edge_attribute(edge, "boundary").value_or(0.0) == 1.0 ? 7 : role == 1 ? 6 : role == 2 ? 5 : role == 3 ? 4 : 1;
-    const Vector direction = compute_direction(*context.plan.vertex_point(vertex), *context.plan.vertex_point(other));
+    const int rank = context.plan.edge_attribute(edge, "boundary").value_or(0.0) == 1.0 ? 7
+                     : role == 1                                                        ? 6
+                     : role == 2                                                        ? 5
+                     : role == 3                                                        ? 4
+                                                                                        : 1;
+    const Vector direction =
+        compute_direction(*context.plan.vertex_point(vertex), *context.plan.vertex_point(other));
 
     return {other, direction, role, rank, size.first, -drop, -drop - size.second};
 }
@@ -110,7 +125,8 @@ bool is_sharing_height(const Member& a, const Member& b, double tolerance) {
 }
 
 /// The member that continues index straight on within 45 degrees, the straightest.
-std::optional<size_t> compute_continuation(const std::vector<Member>& members, size_t index, bool equal) {
+std::optional<size_t>
+compute_continuation(const std::vector<Member>& members, size_t index, bool equal) {
 
     std::optional<size_t> straight;
     double best = std::cos(45.0 * Tolerance::TO_RADIANS);
@@ -126,15 +142,22 @@ std::optional<size_t> compute_continuation(const std::vector<Member>& members, s
 }
 
 /// Order of a member for the through choice.
-std::tuple<int, int, int, double> compute_priority(const std::vector<Member>& members, size_t index) {
+std::tuple<int, int, int, double>
+compute_priority(const std::vector<Member>& members, size_t index) {
 
     const double angle = std::atan2(members[index].direction[1], members[index].direction[0]);
 
-    return {-members[index].rank, compute_continuation(members, index, true) ? 0 : 1, compute_continuation(members, index, false) ? 0 : 1, angle < 0.0 ? angle + Tolerance::PI : angle};
+    return {
+        -members[index].rank,
+        compute_continuation(members, index, true) ? 0 : 1,
+        compute_continuation(members, index, false) ? 0 : 1,
+        angle < 0.0 ? angle + Tolerance::PI : angle
+    };
 }
 
 /// The member that runs through a vertex and its continuation of its rank.
-std::pair<std::optional<size_t>, std::optional<size_t>> compute_through(const std::vector<Member>& members) {
+std::pair<std::optional<size_t>, std::optional<size_t>>
+compute_through(const std::vector<Member>& members) {
 
     std::optional<size_t> through;
     for (size_t k = 0; k < members.size(); k++)
@@ -147,18 +170,21 @@ std::pair<std::optional<size_t>, std::optional<size_t>> compute_through(const st
 }
 
 /// True when index is the through member or its continuation.
-bool is_through(const std::pair<std::optional<size_t>, std::optional<size_t>>& through, size_t index) {
-    return (through.first && index == *through.first) || (through.second && index == *through.second);
+bool is_through(
+    const std::pair<std::optional<size_t>, std::optional<size_t>>& through, size_t index
+) {
+    return (through.first && index == *through.first) ||
+           (through.second && index == *through.second);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Cuts
 // ═══════════════════════════════════════════════════════════════════════════
-
 void add_plane(std::vector<Plane>& planes, const Plane& plane) {
 
     for (const Plane& other : planes)
-        if (other.z_axis().dot(plane.z_axis()) > 1.0 - 1e-9 && std::abs((plane.origin() - other.origin()).dot(other.z_axis())) < 1e-6)
+        if (other.z_axis().dot(plane.z_axis()) > 1.0 - 1e-9 &&
+            std::abs((plane.origin() - other.origin()).dot(other.z_axis())) < 1e-6)
             return;
 
     planes.push_back(plane);
@@ -178,10 +204,7 @@ void add_exit(
 
 /// How far the open end of the through member index runs past its vertex, negative outwards.
 double compute_open(
-    const Context& context,
-    size_t vertex,
-    const std::vector<Member>& members,
-    size_t index
+    const Context& context, size_t vertex, const std::vector<Member>& members, size_t index
 ) {
 
     const Vector direction = members[index].direction;
@@ -201,8 +224,13 @@ double compute_open(
         const Vector across = members[k].direction.cross(Vector(0.0, 0.0, 1.0));
         butted = true;
         for (const double sign : {-1.0, 1.0}) {
-            const double t = ((speed > 0.0 ? 1.0 : -1.0) * members[index].width / 2.0 - sign * members[k].width / 2.0 * across.dot(side)) / speed;
-            open = std::min(open, (members[k].direction * t + across * (sign * members[k].width / 2.0)).dot(direction));
+            const double t = ((speed > 0.0 ? 1.0 : -1.0) * members[index].width / 2.0 -
+                              sign * members[k].width / 2.0 * across.dot(side)) /
+                             speed;
+            open = std::min(
+                open,
+                (members[k].direction * t + across * (sign * members[k].width / 2.0)).dot(direction)
+            );
         }
     }
 
@@ -211,7 +239,7 @@ double compute_open(
     return context.framing.node == 0 && !continued && !butted ? -column : open;
 }
 
-/// The two angular neighbours of member index among the members of its rank, the through pair left out unless every member of the top rank miters.
+/// The two angular neighbours of member index among the members of its rank.
 std::vector<size_t> compute_neighbours(
     const std::vector<Member>& members,
     size_t index,
@@ -247,15 +275,11 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
     }
 
     if (context.framing.node != 0 && context.standing.count(vertex))
-        add_exit(
-            end.planes,
-            context.standing.at(vertex),
-            origin,
-            direction
-        );
+        add_exit(end.planes, context.standing.at(vertex), origin, direction);
     end.bearing = !end.planes.empty();
 
-    const std::pair<std::optional<size_t>, std::optional<size_t>> through = compute_through(members);
+    const std::pair<std::optional<size_t>, std::optional<size_t>> through =
+        compute_through(members);
     int top = 0;
     for (const Member& member : members)
         top += member.rank == members[*through.first].rank ? 1 : 0;
@@ -263,13 +287,10 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
 
     if (is_through(through, me) && !miter) {
         const std::optional<size_t> partner = me == *through.first ? through.second : through.first;
-        const double open = partner ? 0.0 : compute_open(
-            context,
-            vertex,
-            members,
-            me
-        );
-        const Plane stop = partner ? compute_bisector(origin, direction, members[*partner].direction) : Plane::from_point_normal(origin + direction * open, direction);
+        const double open = partner ? 0.0 : compute_open(context, vertex, members, me);
+        const Plane stop = partner
+                               ? compute_bisector(origin, direction, members[*partner].direction)
+                               : Plane::from_point_normal(origin + direction * open, direction);
         add_plane(end.planes, stop);
         end.overrun = std::max(0.0, -open) + context.framing.reach + 4.0 * members[me].width;
         return end;
@@ -280,16 +301,14 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
         if (k == me || !over || !is_sharing_height(members[me], members[k], context.tolerance))
             continue;
 
-        if (is_parallel(members[k].direction, direction) && members[k].direction.dot(direction) < 0.0 && is_through(through, k)) {
-            const double open = compute_open(
-                context,
-                vertex,
-                members,
-                k
+        if (is_parallel(members[k].direction, direction) &&
+            members[k].direction.dot(direction) < 0.0 && is_through(through, k)) {
+            const double open = compute_open(context, vertex, members, k);
+            add_plane(
+                end.planes,
+                Plane::from_point_normal(origin + members[k].direction * open, direction)
             );
-            add_plane(end.planes, Plane::from_point_normal(origin + members[k].direction * open, direction));
-        }
-        else if (!is_parallel(members[k].direction, direction))
+        } else if (!is_parallel(members[k].direction, direction))
             add_exit(
                 end.planes,
                 compute_strip(origin, members[k].direction, members[k].width / 2.0),
@@ -298,13 +317,9 @@ End compute_cuts(const Context& context, size_t vertex, size_t other) {
             );
     }
 
-    for (const size_t k : compute_neighbours(
-        members,
-        me,
-        through,
-        miter
-    ))
-        if (k != me && !is_parallel(members[k].direction, direction) && is_sharing_height(members[me], members[k], context.tolerance))
+    for (const size_t k : compute_neighbours(members, me, through, miter))
+        if (k != me && !is_parallel(members[k].direction, direction) &&
+            is_sharing_height(members[me], members[k], context.tolerance))
             add_plane(end.planes, compute_bisector(origin, direction, members[k].direction));
     end.overrun = end.planes.empty() ? 0.0 : context.framing.reach + 4.0 * members[me].width;
 
@@ -352,7 +367,8 @@ double compute_slope_start(const Context& context, size_t vertex, const Member& 
     const Vector side = Vector(0.0, 0.0, 1.0).cross(member.direction) * (member.width / 2.0);
     double start = 0.0;
     for (const double sign : {-1.0, 1.0}) {
-        const std::optional<Plane> exit = compute_exit(context.standing.at(vertex), centre + side * sign, member.direction);
+        const std::optional<Plane> exit =
+            compute_exit(context.standing.at(vertex), centre + side * sign, member.direction);
         if (exit)
             start = std::max(start, (exit->origin() - centre).dot(member.direction));
     }
@@ -362,7 +378,6 @@ double compute_slope_start(const Context& context, size_t vertex, const Member& 
             start = std::max(start, offset.dot(member.direction));
     }
 
-    // past the corner where its side crosses the side of a neighbour less than straight on
     for (const Member& other : compute_members(context, vertex)) {
         const double cosine = other.direction.dot(member.direction);
         const double sine = std::sqrt(std::max(0.0, 1.0 - cosine * cosine));
@@ -383,7 +398,9 @@ Plane compute_slope_face(const Context& context, size_t vertex, const Member& me
     const double bottom = compute_head_bottom(context, vertex);
     const Vector normal = direction * (top - bottom) + Vector(0.0, 0.0, reach - start);
 
-    return Plane::from_point_normal(centre + direction * reach + Vector(0.0, 0.0, bottom), normal.normalized());
+    return Plane::from_point_normal(
+        centre + direction * reach + Vector(0.0, 0.0, bottom), normal.normalized()
+    );
 }
 
 double compute_column_reach(const Context& context, size_t vertex, const Vector& direction) {
@@ -391,7 +408,10 @@ double compute_column_reach(const Context& context, size_t vertex, const Vector&
     double reach = 0.0;
     for (const std::map<size_t, std::vector<Point>>* columns : {&context.standing, &context.rising})
         if (columns->count(vertex))
-            reach = std::max(reach, compute_reach(columns->at(vertex), *context.plan.vertex_point(vertex), direction));
+            reach = std::max(
+                reach,
+                compute_reach(columns->at(vertex), *context.plan.vertex_point(vertex), direction)
+            );
 
     return reach;
 }
@@ -399,7 +419,6 @@ double compute_column_reach(const Context& context, size_t vertex, const Vector&
 // ═══════════════════════════════════════════════════════════════════════════
 // Outlines
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::vector<size_t> compute_loop(const Mesh& plan, size_t face) {
 
     std::vector<size_t> loop = *plan.face_vertices(face);
@@ -423,10 +442,14 @@ double compute_side(const Context& context, std::pair<size_t, size_t> edge) {
     if (context.plan.edge_attribute(edge, "boundary").value_or(0.0) != 1.0)
         return 0.0;
 
-    const Vector along = compute_direction(*context.plan.vertex_point(edge.first), *context.plan.vertex_point(edge.second));
+    const Vector along = compute_direction(
+        *context.plan.vertex_point(edge.first), *context.plan.vertex_point(edge.second)
+    );
     const Vector outward = along.cross(Vector(0.0, 0.0, 1.0));
     const int role = static_cast<int>(context.plan.edge_attribute(edge, "role").value_or(0.0));
-    double distance = role > 0 ? wood_session::compute_size(compute_profile(role, context.framing)).first / 2.0 : 0.0;
+    double distance =
+        role > 0 ? wood_session::compute_size(compute_profile(role, context.framing)).first / 2.0
+                 : 0.0;
     for (const size_t vertex : {edge.first, edge.second})
         distance = std::max(distance, compute_column_reach(context, vertex, outward));
 
@@ -439,12 +462,7 @@ bool is_larger(const Polyline& a, const Polyline& b) {
 }
 
 /// Plan intersection of two lines given by a point and a direction.
-Point compute_meet(
-    const Point& p,
-    const Vector& d,
-    const Point& q,
-    const Vector& e
-) {
+Point compute_meet(const Point& p, const Vector& d, const Point& q, const Vector& e) {
 
     const double denominator = d.cross(e)[2];
 
@@ -457,7 +475,9 @@ std::vector<std::vector<Point>> compute_core_quads(const Polyline& ring, double 
     const size_t count = corners.size();
     std::vector<Vector> normals;
     for (size_t i = 0; i < count; i++)
-        normals.push_back(compute_direction(corners[i], corners[(i + 1) % count]).cross(Vector(0.0, 0.0, 1.0)));
+        normals.push_back(
+            compute_direction(corners[i], corners[(i + 1) % count]).cross(Vector(0.0, 0.0, 1.0))
+        );
 
     std::vector<std::vector<Point>> quads;
     for (size_t i = 0; i < count; i++) {
@@ -468,32 +488,12 @@ std::vector<std::vector<Point>> compute_core_quads(const Polyline& ring, double 
         const Vector next = compute_direction(corners[after], corners[(i + 2) % count]);
         const Point inner = corners[i] - normals[before] * (wall / 2.0);
         const Point outer = corners[after] + normals[after] * (wall / 2.0);
-        quads.push_back({
-            compute_meet(
-                corners[i] + normals[i] * (wall / 2.0),
-                direction,
-                inner,
-                previous
-            ),
-            compute_meet(
-                corners[i] + normals[i] * (wall / 2.0),
-                direction,
-                outer,
-                next
-            ),
-            compute_meet(
-                corners[i] - normals[i] * (wall / 2.0),
-                direction,
-                outer,
-                next
-            ),
-            compute_meet(
-                corners[i] - normals[i] * (wall / 2.0),
-                direction,
-                inner,
-                previous
-            )
-        });
+        quads.push_back(
+            {compute_meet(corners[i] + normals[i] * (wall / 2.0), direction, inner, previous),
+             compute_meet(corners[i] + normals[i] * (wall / 2.0), direction, outer, next),
+             compute_meet(corners[i] - normals[i] * (wall / 2.0), direction, outer, next),
+             compute_meet(corners[i] - normals[i] * (wall / 2.0), direction, inner, previous)}
+        );
     }
 
     return quads;
@@ -508,24 +508,29 @@ std::vector<Polyline> compute_largest(std::vector<Polyline> rings) {
 
     std::vector<Polyline> kept = {rings[0]};
     for (size_t k = 1; k < rings.size(); k++)
-        if (compute_area(to_loop(rings[k])) < 0.0 && rings[0].point_in_polygon_2d(to_loop(rings[k])[0]))
+        if (compute_area(to_loop(rings[k])) < 0.0 &&
+            rings[0].point_in_polygon_2d(to_loop(rings[k])[0]))
             kept.push_back(rings[k]);
 
     return kept;
 }
 
 bool is_flush(const Mesh& plan, size_t face, const Framing& framing) {
-    return framing.node == 0 && static_cast<int>(plan.face_attribute(face, "system").value_or(framing.system)) == 1;
+    return framing.node == 0 &&
+           static_cast<int>(plan.face_attribute(face, "system").value_or(framing.system)) == 1;
 }
 
 double compute_inset(const Context& context, std::pair<size_t, size_t> edge) {
 
     const int role = static_cast<int>(context.plan.edge_attribute(edge, "role").value_or(0.0));
 
-    return role > 0 ? -wood_session::compute_size(compute_profile(role, context.framing)).first / 2.0 : 0.0;
+    return role > 0
+               ? -wood_session::compute_size(compute_profile(role, context.framing)).first / 2.0
+               : 0.0;
 }
 
-std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context, const std::vector<Polyline>& cores) {
+std::map<size_t, std::vector<Polyline>>
+compute_outlines(const Context& context, const std::vector<Polyline>& cores) {
 
     std::vector<Polyline> cutters;
     for (const Polyline& core : cores)
@@ -548,7 +553,8 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
 
         const Polyline flat = to_polyline(compute_flat(context.plan, loop));
         const Polyline offset = flat.offset_sides(distances);
-        const std::vector<Polyline> regions = BooleanPolyline::compute_regions({offset}, notches, 2);
+        const std::vector<Polyline> regions =
+            BooleanPolyline::compute_regions({offset}, notches, 2);
         const std::vector<Polyline> loops = compute_largest(regions);
         if (loops.empty())
             continue;
@@ -560,7 +566,8 @@ std::map<size_t, std::vector<Polyline>> compute_outlines(const Context& context,
     return outlines;
 }
 
-std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& loops, const Vector& span, double panel) {
+std::vector<std::vector<Polyline>>
+compute_panels(const std::vector<Polyline>& loops, const Vector& span, double panel) {
 
     if (panel <= 0.0 || loops.empty())
         return {loops};
@@ -579,8 +586,14 @@ std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& l
     std::vector<std::vector<Polyline>> panels;
     for (int k = 0; k < strips; k++) {
         const Point centre = origin + across * (low + (k + 0.5) * width);
-        const std::vector<Point> band = {centre - span * 1e7 - across * (width / 2.0), centre + span * 1e7 - across * (width / 2.0), centre + span * 1e7 + across * (width / 2.0), centre - span * 1e7 + across * (width / 2.0)};
-        const std::vector<Polyline> strip = compute_largest(BooleanPolyline::compute_regions(loops, {to_polyline(band)}, 0));
+        const std::vector<Point> band = {
+            centre - span * 1e7 - across * (width / 2.0),
+            centre + span * 1e7 - across * (width / 2.0),
+            centre + span * 1e7 + across * (width / 2.0),
+            centre - span * 1e7 + across * (width / 2.0)
+        };
+        const std::vector<Polyline> strip =
+            compute_largest(BooleanPolyline::compute_regions(loops, {to_polyline(band)}, 0));
         if (!strip.empty())
             panels.push_back(strip);
     }
@@ -591,15 +604,17 @@ std::vector<std::vector<Polyline>> compute_panels(const std::vector<Polyline>& l
 // ═══════════════════════════════════════════════════════════════════════════
 // Stations
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::optional<Vector> compute_family_direction(const Mesh& plan, const std::vector<std::pair<size_t, size_t>>& edges, int family) {
+std::optional<Vector> compute_family_direction(
+    const Mesh& plan, const std::vector<std::pair<size_t, size_t>>& edges, int family
+) {
 
     Vector sum(0.0, 0.0, 0.0);
     for (const std::pair<size_t, size_t>& edge : edges) {
         if (static_cast<int>(plan.edge_attribute(edge, "family").value_or(-1.0)) != family)
             continue;
 
-        const Vector direction = compute_direction(*plan.vertex_point(edge.first), *plan.vertex_point(edge.second));
+        const Vector direction =
+            compute_direction(*plan.vertex_point(edge.first), *plan.vertex_point(edge.second));
         const double doubled = 2.0 * std::atan2(direction[1], direction[0]);
         sum += Vector(std::cos(doubled), std::sin(doubled), 0.0);
     }
@@ -611,12 +626,7 @@ std::optional<Vector> compute_family_direction(const Mesh& plan, const std::vect
     return Vector(std::cos(angle), std::sin(angle), 0.0);
 }
 
-Plane compute_wall_face(
-    const std::vector<Polyline>& outer,
-    int ring,
-    int side,
-    const Point& at
-) {
+Plane compute_wall_face(const std::vector<Polyline>& outer, int ring, int side, const Point& at) {
 
     const std::vector<Point> corners = to_loop(outer[ring]);
     const Vector along = compute_direction(corners[side], corners[(side + 1) % corners.size()]);
@@ -641,19 +651,16 @@ void add_station_cut(
 
     const Member member = compute_member(context, edge.first, edge.second);
     if (is_sharing_height(purlin, member, context.tolerance))
-        add_exit(
-            cuts,
-            compute_strip(at, member.direction, member.width / 2.0),
-            at,
-            inward
-        );
+        add_exit(cuts, compute_strip(at, member.direction, member.width / 2.0), at, inward);
 }
 
-std::vector<Station> compute_stations(const Context& context, size_t face, const std::vector<Polyline>& cores) {
+std::vector<Station>
+compute_stations(const Context& context, size_t face, const std::vector<Polyline>& cores) {
 
     const Mesh& plan = context.plan;
     const std::vector<size_t> loop = compute_loop(plan, face);
-    const int span = static_cast<int>(plan.face_attribute(face, "span").value_or(context.framing.span));
+    const int span =
+        static_cast<int>(plan.face_attribute(face, "span").value_or(context.framing.span));
     const std::optional<Vector> girder = compute_family_direction(plan, compute_sides(loop), span);
     if (!girder)
         return {};
@@ -679,15 +686,18 @@ std::vector<Station> compute_stations(const Context& context, size_t face, const
     for (const Polyline& core : cores)
         outer.push_back(compute_wall_ring(core, context.framing.wall));
     const std::vector<Polyline> bay = {to_polyline(compute_flat(plan, loop))};
-    const std::pair<double, double> size = wood_session::compute_size(compute_profile(3, context.framing));
+    const std::pair<double, double> size =
+        wood_session::compute_size(compute_profile(3, context.framing));
     const Member purlin{0, along, 3, 4, size.first, 0.0, -size.second};
-    const int intervals = std::max(1, static_cast<int>(std::ceil((high - low) / context.framing.spacing - 1e-9)));
+    const int intervals =
+        std::max(1, static_cast<int>(std::ceil((high - low) / context.framing.spacing - 1e-9)));
 
     std::vector<Station> stations;
     for (int k = 1; k < intervals; k++) {
-        const Point base = Point(0.0, 0.0, 0.0) + across * (low + (high - low) * k / intervals);const Line row = Line::from_points(base + along * (first - 1.0), base + along * (last + 1.0));
-        for (const Piece& piece : compute_pieces(
-            row, bay, true, context.tolerance)) {
+        const Point base = Point(0.0, 0.0, 0.0) + across * (low + (high - low) * k / intervals);
+        const Line row =
+            Line::from_points(base + along * (first - 1.0), base + along * (last + 1.0));
+        for (const Piece& piece : compute_pieces(row, bay, true, context.tolerance)) {
             std::vector<Plane> cuts;
             for (const size_t e : {0, 1})
                 if (piece.side[e] >= 0)
@@ -701,12 +711,7 @@ std::vector<Station> compute_stations(const Context& context, size_t face, const
                         purlin
                     );
 
-            for (const Piece& part : compute_pieces(
-                piece.line,
-                outer,
-                false,
-                context.tolerance
-            )) {
+            for (const Piece& part : compute_pieces(piece.line, outer, false, context.tolerance)) {
                 Station station{part.line, cuts};
                 for (const size_t e : {0, 1})
                     if (part.ring[e] >= 0)
@@ -728,4 +733,4 @@ std::vector<Station> compute_stations(const Context& context, size_t face, const
     return stations;
 }
 
-} // namespace wood_grid::build
+}

@@ -30,7 +30,8 @@ void clip_joint_volumes(InteractionFeaturePlate& joint, const Point& a, const Po
 
     for (int pair_index = 0; pair_index < 4; pair_index += 2) {
 
-        if (!joint.joint_volumes[pair_index].has_value() || !joint.joint_volumes[pair_index + 1].has_value())
+        if (!joint.joint_volumes[pair_index].has_value() ||
+            !joint.joint_volumes[pair_index + 1].has_value())
             continue;
 
         Polyline& volume0 = *joint.joint_volumes[pair_index];
@@ -40,26 +41,12 @@ void clip_joint_volumes(InteractionFeaturePlate& joint, const Point& a, const Po
         const Line edge2 = Line::from_points(volume0.get_point(2), volume1.get_point(2));
         const Line edge3 = Line::from_points(volume0.get_point(3), volume1.get_point(3));
 
-        Intersection::plane_4lines(
-            plane_a,
-            edge0,
-            edge1,
-            edge2,
-            edge3,
-            volume0
-        );
-        Intersection::plane_4lines(
-            plane_b,
-            edge0,
-            edge1,
-            edge2,
-            edge3,
-            volume1
-        );
+        Intersection::plane_4lines(plane_a, edge0, edge1, edge2, edge3, volume0);
+        Intersection::plane_4lines(plane_b, edge0, edge1, edge2, edge3, volume1);
     }
 }
 
-} // anonymous namespace
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Element pairs
@@ -77,7 +64,8 @@ uint64_t pair_key(int a, int b) {
 /// Element pair -> joint index (last joint wins); rebuilt wherever the joint list may have changed.
 std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<std::shared_ptr<Plate>>& elements,
-    const std::vector<InteractionFeaturePlate>& joints) {
+    const std::vector<InteractionFeaturePlate>& joints
+) {
 
     std::unordered_map<uint64_t, int> joints_map;
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
@@ -154,13 +142,14 @@ static InteractionFeaturePlate shadow_joint(
     return shadow;
 }
 
-/// Vidy method: shadow joints (link = true) between each side plate and the plate it is glued to, translated to that plate's far face.
+/// Vidy method.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<InteractionFeaturePlate>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
-    double angle) {
+    double angle
+) {
 
     if (three_valence_groups.size() < 2)
         return;
@@ -193,7 +182,8 @@ void add_vidy_shadow_joints(
             const Vector normal_side1 = elements[side1]->planes[0].z_axis();
             const Vector normal_glued0 = elements[glued0]->planes[0].z_axis();
 
-            if (!normals_parallel(normal_side0, normal_glued1, angle) || !normals_parallel(normal_side1, normal_glued0, angle))
+            if (!normals_parallel(normal_side0, normal_glued1, angle) ||
+                !normals_parallel(normal_side1, normal_glued0, angle))
                 continue;
         }
 
@@ -205,8 +195,10 @@ void add_vidy_shadow_joints(
         if (!joints[joint_index].joint_volumes[0].has_value())
             continue;
 
-        const std::pair<Plane, Plane> planes0 = far_near_planes(*elements[glued1], *elements[side0]);
-        const std::pair<Plane, Plane> planes1 = far_near_planes(*elements[glued0], *elements[side1]);
+        const std::pair<Plane, Plane> planes0 =
+            far_near_planes(*elements[glued1], *elements[side0]);
+        const std::pair<Plane, Plane> planes1 =
+            far_near_planes(*elements[glued0], *elements[side1]);
         const Plane& far_plane0 = planes0.first;
         const Plane& near_plane0 = planes0.second;
         const Plane& far_plane1 = planes1.first;
@@ -219,55 +211,39 @@ void add_vidy_shadow_joints(
         const Point projected1 = near_plane0.project(joint_volume.get_point(1));
         const Point projected2 = near_plane0.project(joint_volume.get_point(2));
         const Vector projected_direction = projected1 - projected2;
-        const bool projected_is_parallel = (projected_direction.is_parallel_to(line1.to_vector()) == 0);
-        const std::array<Line, 2> ordered_lines = projected_is_parallel ? std::array<Line, 2>{line1, line0} : std::array<Line, 2>{line0, line1};
+        const bool projected_is_parallel =
+            (projected_direction.is_parallel_to(line1.to_vector()) == 0);
+        const std::array<Line, 2> ordered_lines = projected_is_parallel
+                                                      ? std::array<Line, 2>{line1, line0}
+                                                      : std::array<Line, 2>{line0, line1};
 
         Point far_point0;
         Point near_point0;
         Point far_point1;
         Point near_point1;
 
-        if (!Intersection::line_plane(
-            ordered_lines[0],
-            far_plane0,
-            far_point0,
-            false
-        ))
+        if (!Intersection::line_plane(ordered_lines[0], far_plane0, far_point0, false))
             continue;
 
-        if (!Intersection::line_plane(
-            ordered_lines[0],
-            near_plane0,
-            near_point0,
-            false
-        ))
+        if (!Intersection::line_plane(ordered_lines[0], near_plane0, near_point0, false))
             continue;
 
         if (glued0 == glued1) {
             far_point1 = far_point0;
             near_point1 = near_point0;
         } else {
-            if (!Intersection::line_plane(
-                ordered_lines[1],
-                far_plane1,
-                far_point1,
-                false
-            ))
+            if (!Intersection::line_plane(ordered_lines[1], far_plane1, far_point1, false))
                 continue;
 
-            if (!Intersection::line_plane(
-                ordered_lines[1],
-                near_plane1,
-                near_point1,
-                false
-            ))
+            if (!Intersection::line_plane(ordered_lines[1], near_plane1, near_point1, false))
                 continue;
         }
 
         const Vector translation0 = far_point0 - near_point0;
         const Vector translation1 = far_point1 - near_point1;
 
-        const double translation_sum = translation0[0] + translation0[1] + translation0[2] + translation1[0] + translation1[1] + translation1[2];
+        const double translation_sum = translation0[0] + translation0[1] + translation0[2] +
+                                       translation1[0] + translation1[1] + translation1[2];
         if (translation_sum < -1e8 || translation_sum > 1e8)
             continue;
 
@@ -303,34 +279,24 @@ void add_vidy_shadow_joints(
         }
 
         const int shadow0_index = (int)joints.size();
-        joints.push_back(
-            shadow_joint(
-                joints[joint_index],
-                *elements[side0],
-                *elements[glued0],
-                joint_lines0,
-                volumes0
-            )
-        );
+        joints.push_back(shadow_joint(
+            joints[joint_index], *elements[side0], *elements[glued0], joint_lines0, volumes0
+        ));
         joints_map[pair_key(side0, glued0)] = shadow0_index;
 
         int shadow1_index = -1;
         if (glued0 != glued1) {
             shadow1_index = (int)joints.size();
-            joints.push_back(
-                shadow_joint(
-                    joints[joint_index],
-                    *elements[side1],
-                    *elements[glued1],
-                    joint_lines1,
-                    volumes1
-                )
-            );
+            joints.push_back(shadow_joint(
+                joints[joint_index], *elements[side1], *elements[glued1], joint_lines1, volumes1
+            ));
             joints_map[pair_key(side1, glued1)] = shadow1_index;
         }
 
         if (glued0 != glued1)
-            joints[joint_index].linked_joints = {joints[shadow0_index].guid(), joints[shadow1_index].guid()};
+            joints[joint_index].linked_joints = {
+                joints[shadow0_index].guid(), joints[shadow1_index].guid()
+            };
         else
             joints[joint_index].linked_joints = {joints[shadow0_index].guid()};
     }
@@ -344,7 +310,8 @@ void add_vidy_shadow_joints(
 void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     const std::vector<std::shared_ptr<Plate>>& elements,
-    std::vector<InteractionFeaturePlate>& joints) {
+    std::vector<InteractionFeaturePlate>& joints
+) {
 
     const std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, joints);
 
@@ -367,9 +334,11 @@ void align_annen_joints(
         InteractionFeaturePlate& joint1 = joints[found1->second];
 
         const Line line0 = joint0.joint_lines[0];
-        const double distance_to_start = Point::distance(line0.start(), joint1.joint_lines[0].start());
+        const double distance_to_start =
+            Point::distance(line0.start(), joint1.joint_lines[0].start());
         const double distance_to_end = Point::distance(line0.start(), joint1.joint_lines[0].end());
-        const Line line1 = (distance_to_start <= distance_to_end) ? joint1.joint_lines[0] : -joint1.joint_lines[0];
+        const Line line1 =
+            (distance_to_start <= distance_to_end) ? joint1.joint_lines[0] : -joint1.joint_lines[0];
 
         Line overlap;
         if (!line0.overlap_average(line1, overlap))
@@ -379,7 +348,8 @@ void align_annen_joints(
         const int element_index = index_of_plate(elements, joint0.element_a);
         if (element_index >= 0 && element_index < (int)elements.size()) {
             const Plate& element = *elements[element_index];
-            if (element.polylines.size() >= 2 && element.polylines[0].point_count() > 0 && element.polylines[1].point_count() > 0) {
+            if (element.polylines.size() >= 2 && element.polylines[0].point_count() > 0 &&
+                element.polylines[1].point_count() > 0) {
                 const Point p0 = element.polylines[0].get_point(0);
                 const Point projected = element.planes[1].project(p0);
                 thickness = Point::distance(p0, projected);
@@ -405,12 +375,12 @@ void align_annen_joints(
 // ═══════════════════════════════════════════════════════════════════════════
 // Stage
 // ═══════════════════════════════════════════════════════════════════════════
-
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<InteractionFeaturePlate>& all_joints,
-    double angle) {
+    double angle
+) {
 
     if (three_valence_groups.size() > 1) {
         std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, all_joints);
@@ -418,19 +388,17 @@ void link_three_valence_joints(
 
         if (instruction == 1) {
             const size_t before_vidy = all_joints.size();
-            add_vidy_shadow_joints(
-                three_valence_groups,
-                elements,
-                all_joints,
-                joints_map,
-                angle
-            );
+            add_vidy_shadow_joints(three_valence_groups, elements, all_joints, joints_map, angle);
             if (TRACE)
-                std::cout << fmt::format("vidy_addition: {} shadow joints created (total {})\n", all_joints.size() - before_vidy, all_joints.size());
+                std::cout << fmt::format(
+                    "vidy_addition: {} shadow joints created (total {})\n",
+                    all_joints.size() - before_vidy,
+                    all_joints.size()
+                );
         } else {
             align_annen_joints(three_valence_groups, elements, all_joints);
         }
     }
 }
 
-} // namespace wood_session
+}

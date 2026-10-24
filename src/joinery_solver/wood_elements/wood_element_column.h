@@ -9,14 +9,17 @@ namespace wood_session {
 
 class Block;
 
-/// Element that represents a column: a solid that knows its own axis, the section it is cut from and the planes that trim it.
+/// Element that represents a column.
 class Column : public WoodElement {
 public:
-    static constexpr std::string_view ELEMENT_TYPE = "Column"; // The element_type this column is written under.
+    static constexpr std::string_view ELEMENT_TYPE =
+        "Column"; // The element_type this column is written under.
     Line axis; // Centreline, base to head, in world space.
     Polyline section; // Closed cross-section about the axis base; empty when unknown.
-    std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
-    std::vector<Polyline> profile; // Section loops in the profile frame the section was placed from, loop 0 the outline, then holes; empty when the section was given.
+    std::vector<Plane>
+        cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    std::vector<Polyline>
+        profile; // Section loops in the profile frame the section was placed from.
     double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
 
 protected:
@@ -26,7 +29,7 @@ protected:
     /// The swept section trimmed by its cut planes as a BRep, when it has no solid features.
     BRep trimmed_brep() const override;
 
-    /// The frame at the axis base, x along the section's first side and z along the axis: where the blocks glued to the column are united.
+    /// The frame at the axis base, x along the section's first side and z along the axis.
     Plane frame() const override;
 
     /// Its frame: the section's first corner, x along its first edge, z up the axis.
@@ -36,7 +39,7 @@ public:
     /// An empty column: no solid, a zero-length axis, no section.
     Column();
 
-    /// A column from its axis and its section: the solid is the section swept along the axis; `name` is the type flag face_contacts() filters on.
+    /// A column from its axis and its section.
     Column(const Line& axis, const Polyline& section, const std::string& name = "column");
 
     /// A column from its axis and a profile placed at the axis base in the plane perpendicular to it, x along world x projected then turned by rotation degrees; holes make it hollow.
@@ -47,7 +50,7 @@ public:
         const std::string& name = "column"
     );
 
-    /// A column from its solid, its axis and its section; the solid stays as given while the section is empty, else it is rebuilt from the section. `name` is the type flag face_contacts() filters on.
+    /// A column from its solid.
     Column(
         const Mesh& solid,
         const Line& axis,
@@ -59,13 +62,9 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// A square column on its axis: the square of side from the corner frame's origin along its x and y axes, at the axis base, swept along the axis.
-    static std::shared_ptr<Column> square(
-        const Line& axis,
-        const Plane& corner,
-        double side,
-        const std::string& name = "column"
-    );
+    /// A square column on its axis.
+    static std::shared_ptr<Column>
+    square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
 
     /// The two hidden blocks that widen a rectangular column's top head_height to a head_side square, from the section's first corner along its first and last edges: one beyond its far y side, one beyond its far x side, named `<name>_head_<i>`; Floor::add_column glues them on.
     std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const;
@@ -83,17 +82,17 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-    /// One plane per face of the model solid with a Newell normal, so a concave cap (a W, a T) faces the right way for contact detection.
+    /// One plane per face of the model solid with a Newell normal, so a concave cap (a W.
     std::vector<Plane> compute_planes() const override;
 
-    /// A copy moved by xform from the parameters alone, guid and name kept: axis, section, cuts, features and insertion vectors moved, no solid until one is asked for; nullptr for a mirror.
+    /// A copy moved by xform from the parameters alone, guid and name kept.
     std::shared_ptr<Column> transformed(const Xform& xform) const;
 
     /// Moves the solid, the features and the insertion vectors, then the axis, the section and the cuts, and drops the cached solids.
     void place(const Xform& xform) override;
 
 protected:
-    /// Writes the model geometry, the section lofted along the axis and cut by every plane in cuts, onto the Element in the requested form (the given solid stays when the section is empty) with the axis and section features, keeping the joint and contact features the session put there; WoodSession::pb_dump calls it for every stale column.
+    /// Writes the model geometry.
     void compute_geometry_mesh_impl() override;
 
     /// Write the model BRep and the element features into the session slot.
@@ -103,12 +102,11 @@ protected:
     void compute_geometry_features();
 
 public:
-
     // ═══════════════════════════════════════════════════════════════════════════
     // JSON
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The axis, section and cuts as JSON: axis, section, cuts, type; the protobuf message printed; a payload in the kernel's JSON from older files is still read.
+    /// The axis, section and cuts as JSON.
     nlohmann::ordered_json element_data_jsondump() const;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -145,4 +143,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

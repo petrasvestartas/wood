@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels, after the kit-of-parts buildings of AUAR, the hollow cassettes of the BUGA Wood Pavilion 2019 and the room modules of Blumer Lehmann: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, a grid stud closer than half the spacing to a jamb or an edge stud left out, so no member is doubled. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
+Timber modules from beams and panels: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, a grid stud closer than half the spacing to a jamb or an edge stud left out, so no member is doubled. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
 
 ## Wall
 
@@ -78,7 +78,7 @@ const std::shared_ptr<InteractionContactFace> face = session.compute_face_contac
 
 ## Cassette shell
 
-A segmented shell of hollow cassettes after the BUGA Wood Pavilion 2019, one per face of a mesh of planar hexagons and pentagons (`module/cassette_shell.h`, example `templates_module_2_cassette_shell`). Instead of one thick panel each cell is two thin plates with edge beams between them.
+A segmented shell of hollow cassettes, one per face of a mesh of planar hexagons and pentagons (`module/cassette_shell.h`, example `templates_module_2_cassette_shell`). Instead of one thick panel each cell is two thin plates with edge beams between them.
 
 ![cassette shell](templates/templates_module_2_cassette_shell_all.webp)
 
@@ -224,26 +224,26 @@ Every contact between cassettes as a red mesh, a cut cassette's plates and beams
 
 ## Room module
 
-Timber room modules after the modules of Blumer Lehmann, a room of two, a block of them and the bank pavilion of their brochure (`module/room_module.h`, examples `templates_module_4_room_module`, `templates_module_5_module_block` and `templates_module_6_bank_pavilion`).
+Timber room modules, a room of two, a block of them and a bank pavilion (`module/room_module.h`, examples `templates_module_4_room_module`, `templates_module_5_module_block` and `templates_module_6_bank_pavilion`).
 
 ![room of two modules](templates/templates_module_4_room_module_all.webp)
 
-What a module is, from Blumer Lehmann's pages, reference sheets, brochure drawings and factory photos, and the handbook chapter B8 "Raummodulbau" (pp. 234-253):
+Module geometry and default dimensions:
 
-| | Blumer Lehmann | the default here |
-| --- | --- | --- |
-| structure | timber frame (Holzrahmenbau), up to 90 % prefabricated on a production line | framed floor, ceiling and walls |
-| frame | the photo of a ZM10 module craned onto Friesenberg school and the lifted open modules of the Köln school: posts at the corners, the floor's and the ceiling's main beams along the long sides, walls only on the closed sides | four corner posts, a wall thick, on the floor's long edge beams under the ceiling's, which run the whole length over every post; a framed wall between them on every closed side |
-| floor and ceiling | handbook B8, detail 36 and the joints 34, 35: floor and ceiling two separate elements (Hohlkasten), edge beams and joists between a board under and a board over them, insulation inside; the ceiling carries only itself, the floor the room's loads; the lifted modules: a deep floor band, a flat top, deep edge beams along the ceiling | an edge beam a wall wide along each long side over the whole length, joists across between them, the first and last at the module's ends, the same size, a board under and a board over the joists, flush with the edge beams on both faces; the floor 280, 190 x 280 edge beams, sixteen 80 x 240 joists between a 15 board and a 25 deck; the ceiling 170, sixteen 60 x 140 joists between a 15 lining and a 15 top board; joists at most 625 apart |
-| ceiling edge beams | handbook B8: open modules carry their ceilings on edge downstand beams (Randunterzüge) into the corner posts, often also intermediate ones; its classroom of open modules (fig. 11) shows a pair hanging below the ceiling at the joint | both long edge beams of every ceiling 190 x 470, reaching 300 below it, on the posts and the long walls, 2400 high under them |
-| end walls | the CAD model and the photos of open modules: the end walls stand between floor and ceiling, inside the corner posts | an end wall between floor and ceiling and between the corner posts, 2700 high, on the floor's deck over its end joist |
-| rooms | a ZM10 classroom of 68 m2 spans more than one module; the brochure's bank pavilion plan draws a pair of posts side by side at mid-length of the open joint, one per module | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
-| walls between rooms | the pavilion plan draws one wall between two rooms, inside one module, its neighbour open against it | one wall, in the module of the smaller room, the lower column on a tie |
-| facade | ZM10 pavilions: every module end a bay of about 3 m with a window, three storeys, a corridor through the other ends with cased doors | the end at x 0 the facade with a window, the end at x length the corridor with a door |
-| plan | 3 x 9 m outside (Chäserrugg modules; the Berlin school DFK 1.0: 28 modules, 42 x 18 x 3 m) | 9000 x 3000, side by side without a gap |
-| height | 2.7 m clear inside (Permapack office module); handbook B8: 2.50, 2.75 or 3.00 m clear, up to 4.00 | 2700 clear, 3150 outside |
-| stacking | side by side freely, stacked up to three storeys | `rooms` side by side, `storeys` stacked |
-| road | a Swiss standing permit carries 3 m wide, 4 m high, 30 m long, 44 t; handbook B8: 2.55 m wide without a permit, 3.00 m with a yearly one, lengths 6, 9, 12 or 15 m | 3000 wide, 3150 high |
+| Part | Default geometry |
+| --- | --- |
+| structure | framed floor, ceiling and walls |
+| frame | four corner posts, a wall thick, on the floor's long edge beams under the ceiling's, which run the whole length over every post; a framed wall between them on every closed side |
+| floor and ceiling | an edge beam a wall wide along each long side over the whole length, joists across between them, the first and last at the module's ends, the same size, a board under and a board over the joists, flush with the edge beams on both faces; the floor 280, 190 x 280 edge beams, sixteen 80 x 240 joists between a 15 board and a 25 deck; the ceiling 170, sixteen 60 x 140 joists between a 15 lining and a 15 top board; joists at most 625 apart |
+| ceiling edge beams | both long edge beams of every ceiling 190 x 470, reaching 300 below it, on the posts and the long walls, 2400 high under them |
+| end walls | an end wall between floor and ceiling and between the corner posts, 2700 high, on the floor's deck over its end joist |
+| rooms | `rooms`: the modules side by side forming each room, the long sides between them open, a post at mid-length on each |
+| walls between rooms | one wall, in the module of the smaller room, the lower column on a tie |
+| facade | the end at x 0 the facade with a window, the end at x length the corridor with a door |
+| plan | 9000 x 3000, side by side without a gap |
+| height | 2700 clear, 3150 outside |
+| stacking | `rooms` side by side, `storeys` stacked |
+| road | 3000 wide, 3150 high |
 
 ```cpp
 wood_module::RoomModuleGuide guide;  // two modules of 9000 x 3000 forming one room, 2700 clear
@@ -321,7 +321,7 @@ wood_module::RoomModule block(guide, "module_block");
 
 ### Bank pavilion
 
-The temporary bank pavilion of four modules from the brochure "Modulares Bauen" (Blumer Lehmann 2025, p. 17, "Grundriss mit 4 Modulen"), rebuilt from its plan. The plan has no figures; it is measured on its vector drawing at the 3.0 m module axis grid, 45.55 pt, so 65.86 mm per pt, which its doors confirm: their swings scale to 0.70, 0.89 and 1.00 m, the standard 70, 90 and 100 cm doors.
+A temporary bank pavilion of four modules, with a 3.0 m module axis grid and doors 0.70, 0.89 and 1.00 m wide.
 
 ![bank pavilion](templates/templates_module_6_bank_pavilion_all.webp)
 
@@ -337,7 +337,7 @@ The temporary bank pavilion of four modules from the brochure "Modulares Bauen" 
 | porch | the start wall of module 4 set back 2730, open to the outside, a post at its corner | `porch = 2730` |
 | not drawn | sills, heads, heights; the exterior walls drawn 336 with insulation and cladding | end windows 600 to 2500, the WC window 1500 to 2100, doors to 2100, 2700 clear; walls 210; partitions inside the modules and cladding not built |
 
-The modules without their ceilings, from above as in the brochure, turned a quarter, and from the porch:
+The modules without their ceilings, from above, turned a quarter, and from the porch:
 
 ![pavilion plan](templates/templates_module_6_bank_pavilion_plan.webp)
 
@@ -352,7 +352,6 @@ guide.layouts = { /* per module: the openings of its walls and its porch, measur
 wood_module::RoomModule pavilion(guide, "bank_pavilion");
 ```
 
-Sources: the timber construction handbook chapter B8 "Raummodulbau" (pp. 234-253: module types, grids, transport, construction types, structure, module joints and sections); [Blumer Lehmann, Modulares Bauen brochure 2025](https://www.blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/modulbau-broschuere-arbeiten-wohnen-leben-blumer-lehmann.pdf), its bank pavilion plans and school sections; [Blumer Lehmann, Holzmodulbau](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/holzmodulbau.html), with the photo of a ZM10 module placed at Friesenberg; [ZM10 Zurich](https://www.blumer-lehmann.com/referenzen/referenzholz-temporaerer-schulraum-zm10-zuerich.html); [Permapack office module](https://blumer-lehmann.com/dam/Holzbau/Downloads/Dokumente/verkaufsdoku-occasionsmodul-permapack-geisser-blumer-lehmann.pdf); [DBZ 2019, from mountain café to office](https://www.blumer-lehmann.com/en/dam/jcr:e6a4a58b-e1a0-4898-87d2-8c7f182b7488/2019-12-dbz-modulbau-modul-recycling-vom-bergcafe-zum-buero.pdf); [Ernst & Sohn 2019, timber modules for schools](https://www.blumer-lehmann.com/en/dam/jcr:8ad14105-9d05-4ec2-acd1-a55a9b9ca526/2019-09-ernst-und-sohn-special-kindertagesstaetten-mehr-spielraum-mit-holzmodulbauten-in-kinderbetreuung-und-schule.pdf); [Kanton St. Gallen, special transport permits](https://www.sg.ch/verkehr/strassenverkehr/sonderbewilligungen/ausnahmefahrzeuge-und--transporte.html).
 
 <details><summary>Example code: templates_module_4_room_module.cpp</summary>
 

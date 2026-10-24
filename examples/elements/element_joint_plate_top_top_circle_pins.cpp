@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_top_circle_pins: six pin holes on the inscribed circle of the contact of two stacked plates, its radius scaled 0.95, drilled through both, on the pairs square and turned 30 degrees, each drawn apart.
+/// top_top_circle_pins.
 int main() {
 
     WoodSession scene("element_joint_plate_top_top_circle_pins");
@@ -20,8 +20,8 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(lower, upper);
         const std::shared_ptr<JointPlate> joint = JointPlate::top_top_circle_pins(6, 0.95, 8.0);
         joint->orient(contact, {lower, upper});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
@@ -29,7 +29,6 @@ int main() {
         scene.add_interaction(joint, lower, joint->interaction(0));
         scene.add_interaction(joint, upper, joint->interaction(1));
 
-        // drawn apart 150 up, so both sides read
         const Vector apart(0.0, 0.0, 150.0);
         upper->place(Xform::translation(apart[0], apart[1], apart[2]));
     }

@@ -4,19 +4,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The vda mesh on its default dome: a mitered plate per face, two connector plates across every interior edge, a cross slot where each connector passes through a plate.
+/// The vda mesh on its default dome.
 int main() {
 
     wood_cross::VdaMesh vda(
-        wood_cross::VdaMesh::default_mesh(),
-        40.0,
-        {0.0},
-        {2},
-        {},
-        {},
-        300.0,
-        300.0,
-        40.0
+        wood_cross::VdaMesh::default_mesh(), 40.0, {0.0}, {2}, {}, {}, 300.0, 300.0, 40.0
     );
     std::cout << vda << std::endl;
 
@@ -29,11 +21,17 @@ int main() {
             bisectors += plane.is_valid() ? 1 : 0;
         }
 
-    std::cout << fmt::format("bisector planes: {} valid of {} corners", bisectors, corners) << std::endl;
+    std::cout << fmt::format("bisector planes: {} valid of {} corners", bisectors, corners)
+              << std::endl;
 
-    const std::vector<std::shared_ptr<JointPlate>> cross_laps = vda.get_elements_placed<JointPlate>("cross_lap");
-    const std::vector<std::shared_ptr<Plate>> connectors = vda.get_elements_placed<Plate>("connector");
-    std::cout << fmt::format("cross laps: {} for {} connectors", cross_laps.size(), connectors.size()) << std::endl;
+    const std::vector<std::shared_ptr<JointPlate>> cross_laps =
+        vda.get_elements_placed<JointPlate>("cross_lap");
+    const std::vector<std::shared_ptr<Plate>> connectors =
+        vda.get_elements_placed<Plate>("connector");
+    std::cout << fmt::format(
+                     "cross laps: {} for {} connectors", cross_laps.size(), connectors.size()
+                 )
+              << std::endl;
     vda.pb_dump(pb_path("live"));
     return 0;
 }

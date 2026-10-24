@@ -26,4 +26,4 @@ public:
     virtual bool coincides(const InteractionContact& other) const = 0;
 };
 
-} // namespace wood_session
+}

@@ -4,29 +4,40 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The Mendrisio pavilion: one shallow barrel 4.5 m wide, a leaning end wall reflected at the eave onto a trough rising 10 degrees and at
-/// the ridge onto the level middle, mirrored at mid-length: five curved plates.
+/// The Mendrisio pavilion.
 int main() {
 
     const Vector along(0.1719, 0.0, 0.9851);
     ReflectionFold fold(
-        {Primitives::arc(Point(6000.0, -2250.0, 0.0), Point(6400.0, 0.0, 0.0), Point(6000.0, 2250.0, 0.0))},
+        {Primitives::arc(
+            Point(6000.0, -2250.0, 0.0), Point(6400.0, 0.0, 0.0), Point(6000.0, 2250.0, 0.0)
+        )},
         along,
         Vector(0.0, -1.0, 0.0),
         12000.0,
-        {{2923.0, 89.9 * Tolerance::TO_RADIANS, true}, {3623.0, 10.0 * Tolerance::TO_RADIANS, true}},
+        {{2923.0, 89.9 * Tolerance::TO_RADIANS, true}, {3623.0, 10.0 * Tolerance::TO_RADIANS, true}
+        },
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
         77.0
     );
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("mendrisio pavilion: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "mendrisio pavilion: {} lamellas, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

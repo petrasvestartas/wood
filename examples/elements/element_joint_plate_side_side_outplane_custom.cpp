@@ -3,16 +3,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_outplane_custom: Manis's sunrise, three tenons whose walls fan out like rays, in the joint's unit box of a pair mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+/// side_side_outplane_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_outplane_custom");
 
-    // Manis's sunrise (IBOIS, add_sunrise) in the joint's unit box, mapped onto the corner the plates share: the floor's thickness along x,
-    // the wall's along y, z along the joint line; three tenons 0.15 of the joint line wide, 0.15 apart, each wall turned by its own angle,
-    // -10 to 10 degrees across the six walls, so the walls fan like rays and the joint goes together one way only; per face a zigzag across
-    // the thickness and the two-point line of the joint's ends, the wall's on y = 0.5 (face 0) and y = -0.5 (face 1), the floor's on
-    // x = 0.5 (face 0) and x = -0.5 (face 1)
     const std::array<double, 6> walls = {-0.375, -0.225, -0.075, 0.075, 0.225, 0.375};
     const auto fanned = [](double wall, double x, double y) {
         const double turn = 10.0 * Tolerance::TO_RADIANS * wall / 0.375;
@@ -32,11 +27,19 @@ int main() {
             wall_points.push_back(Point(-first, side, fanned(wall, -first, side)));
             wall_points.push_back(Point(first, side, fanned(wall, first, side)));
         }
-        floor_faces[face] = {Polyline(floor_points), Polyline({Point(side, 0.5, -0.5), Point(side, 0.5, 0.5)})};
-        wall_faces[face] = {Polyline(wall_points), Polyline({Point(-0.5, side, 0.5), Point(-0.5, side, -0.5)})};
+        floor_faces[face] = {
+            Polyline(floor_points), Polyline({Point(side, 0.5, -0.5), Point(side, 0.5, 0.5)})
+        };
+        wall_faces[face] = {
+            Polyline(wall_points), Polyline({Point(-0.5, side, 0.5), Point(-0.5, side, -0.5)})
+        };
     }
-    const std::vector<Polyline> male = {wall_faces[0][0], wall_faces[1][0], wall_faces[0][1], wall_faces[1][1]};
-    const std::vector<Polyline> female = {floor_faces[0][0], floor_faces[1][0], floor_faces[0][1], floor_faces[1][1]};
+    const std::vector<Polyline> male = {
+        wall_faces[0][0], wall_faces[1][0], wall_faces[0][1], wall_faces[1][1]
+    };
+    const std::vector<Polyline> female = {
+        floor_faces[0][0], floor_faces[1][0], floor_faces[0][1], floor_faces[1][1]
+    };
 
     // a 300 x 400 floor and a 300 high wall, both 40 thick, mitered on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
@@ -50,17 +53,18 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(floor, wall);
-        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_custom(male, female);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(floor, wall);
+        const std::shared_ptr<JointPlate> joint =
+            JointPlate::side_side_outplane_custom(male, female);
         joint->orient(contact, {floor, wall});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
         scene.add_interaction(joint, wall, joint->interaction(0));
         scene.add_interaction(joint, floor, joint->interaction(1));
 
-        // drawn apart 141 along the line between the two plates' centres, so both sides read
-        const Vector apart = (wall->polylines[0].center() - floor->polylines[0].center()).normalized() * 141.4;
+        const Vector apart =
+            (wall->polylines[0].center() - floor->polylines[0].center()).normalized() * 141.4;
         wall->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 

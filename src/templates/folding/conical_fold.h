@@ -6,7 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A folded plate with conical folding after Engel (p. 224): one fold profile along the span, its top cut by two sloping planes.
+/// A folded plate with conical folding.
 class ConicalFold : public WoodSession {
 public:
     const size_t folds; // Folds across, a ridge each between two valleys.
@@ -60,13 +60,8 @@ inline ConicalFold::ConicalFold(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      folds(folds),
-      fold_width(fold_width),
-      depth(depth),
-      end_depth(end_depth),
-      span(span),
-      thickness(thickness) {
+    : WoodSession(name), folds(folds), fold_width(fold_width), depth(depth), end_depth(end_depth),
+      span(span), thickness(thickness) {
 
     // stations: the cut profile at both ends and the sharp one at mid-span
     const std::shared_ptr<TreeNode> profiles = add_group("stations");
@@ -152,8 +147,12 @@ inline Mesh ConicalFold::compute_mesh() const {
         }));
 
         // cuts: the two triangles in the sloping planes, from the flat end of the fold to the ridge point
-        fold.face(facing_down({Point(0.0, valley + run, end_depth), Point(0.0, next - run, end_depth), peak}));
-        fold.face(facing_down({Point(span, valley + run, end_depth), Point(span, next - run, end_depth), peak}));
+        fold.face(facing_down(
+            {Point(0.0, valley + run, end_depth), Point(0.0, next - run, end_depth), peak}
+        ));
+        fold.face(facing_down(
+            {Point(span, valley + run, end_depth), Point(span, next - run, end_depth), peak}
+        ));
     }
 
     return Mesh::from_vertices_and_faces(fold.points(), fold.faces());

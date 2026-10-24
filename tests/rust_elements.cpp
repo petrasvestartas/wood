@@ -11,7 +11,8 @@ using namespace session_cpp;
 using namespace wood_session;
 
 /// The session wood/rust writes, one element per class: Plate, Beam, two Columns, Block, BeamVariable, Support.
-static const std::string GOLDEN = std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements.pb";
+static const std::string GOLDEN =
+    std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements.pb";
 
 static void check(bool condition, const std::string& message) {
     if (!condition)
@@ -27,7 +28,8 @@ template <typename Payload> static std::string canonical(const std::string& byte
 
 /// True when the two BReps hold as many faces and enclose the same volume within the relative tolerance.
 static bool same_brep(const BRep& a, const BRep& b, double tolerance) {
-    return a.face_count() == b.face_count() && std::abs(a.volume() - b.volume()) <= tolerance * std::max(1.0, std::abs(b.volume()));
+    return a.face_count() == b.face_count() &&
+           std::abs(a.volume() - b.volume()) <= tolerance * std::max(1.0, std::abs(b.volume()));
 }
 
 /// The faces on a rational surface: the cylinders of a wood element.
@@ -39,21 +41,30 @@ static size_t cylinders(const BRep& brep) {
 }
 
 /// Element i of the file comes back as T, its payload unchanged by C++ and its Rust BRep the C++ BRep.
-template <typename T, typename Payload> static void reads_back(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
+template <typename T, typename Payload>
+static void reads_back(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
     const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
     const std::shared_ptr<T> typed = session.get_element<T>(stored.guid());
     check(typed != nullptr, stored.name() + " does not load as its class");
-    check(canonical<Payload>(typed->element_data_dumps()) == canonical<Payload>(stored.element_data()), stored.name() + ": C++ rewrites the Rust payload differently");
+    check(
+        canonical<Payload>(typed->element_data_dumps()) ==
+            canonical<Payload>(stored.element_data()),
+        stored.name() + ": C++ rewrites the Rust payload differently"
+    );
     check(stored.geometry_type() == "BRep", stored.name() + ": Rust wrote no BRep");
     const BRep rust = BRep::pb_loads(stored.geometry_data());
     const BRep& cpp = typed->element_geometry_brep();
 
-    // the support's cylinders are tessellated by each side's own face order: its volume within 1e-4
     const double tolerance = std::is_same_v<T, Support> ? 1e-4 : 1e-9;
-    check(same_brep(rust, cpp, tolerance), stored.name() + ": the Rust BRep differs from the C++ one");
+    check(
+        same_brep(rust, cpp, tolerance), stored.name() + ": the Rust BRep differs from the C++ one"
+    );
 
     if constexpr (std::is_same_v<T, Support>)
-        check(cylinders(rust) == 6, stored.name() + ": four exact anchor holes, the rod and the head plate");
+        check(
+            cylinders(rust) == 6,
+            stored.name() + ": four exact anchor holes, the rod and the head plate"
+        );
 }
 
 int main() {
@@ -62,7 +73,10 @@ int main() {
     check(!bytes.empty(), "missing " + GOLDEN);
 
     wood_proto::WoodSession file;
-    check(file.ParseFromString(bytes) && file.objects().elements_size() == 7, "the Rust session holds seven elements");
+    check(
+        file.ParseFromString(bytes) && file.objects().elements_size() == 7,
+        "the Rust session holds seven elements"
+    );
     const WoodSession session = WoodSession::pb_loads(bytes);
 
     reads_back<Plate, wood_proto::Plate>(session, file, 0);

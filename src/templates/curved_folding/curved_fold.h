@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A curved folded tent roof after Knie's Zauberhut, Rapperswil: fold strips between NURBS ridges and valleys rising into a tower,
-/// one curved lamella each.
+/// A curved folded tent roof: fold strips between NURBS ridges and valleys rising into a tower, one curved lamella each.
 class CurvedFold : public WoodSession {
 public:
     const size_t sectors; // Folds around the axis, a ridge and a valley each.
@@ -13,7 +12,7 @@ public:
     const double top_radius; // mm, the tower's radius at the top.
     const double eave; // mm, the valleys' height at the eaves, on the columns.
     const double height; // mm, the tower's top.
-    const double gable; // mm, how far a ridge rises over its valleys at the eaves, the fold's depth, scaling with the radius up the tower.
+    const double gable; // mm.
     const double inset; // The valleys' radius inside the ridges', a fraction of the radius.
     const size_t rings; // Rings from the eaves to the top the meridians are interpolated through.
     const double thickness; // mm, every lamella.
@@ -39,11 +38,12 @@ public:
     CurvedFold& operator=(const CurvedFold&) = delete;
 
 private:
-    /// Per ring from the eaves up its star of ridge and valley points, on the trumpet curve, the ridges fading level at the top.
+    /// Per ring from the eaves up its star of ridge and valley points, on the trumpet curve.
     std::vector<std::vector<Point>> compute_rings() const;
 
     /// The same points on the lamellas' inner faces, where the two strips beside each, offset by the thickness, meet.
-    std::vector<std::vector<Point>> compute_inner_rings(const std::vector<std::vector<Point>>& stars) const;
+    std::vector<std::vector<Point>> compute_inner_rings(const std::vector<std::vector<Point>>& stars
+    ) const;
 
     /// Every ridge and valley a NURBS curve through the rings, outer then inner, the outer drawn in the group meridians.
     std::array<std::vector<NurbsCurve>, 2> add_meridians(
@@ -67,15 +67,8 @@ inline CurvedFold::CurvedFold(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      sectors(sectors),
-      radius(radius),
-      top_radius(top_radius),
-      eave(eave),
-      height(height),
-      gable(gable),
-      inset(inset),
-      rings(std::max<size_t>(rings, 3)),
+    : WoodSession(name), sectors(sectors), radius(radius), top_radius(top_radius), eave(eave),
+      height(height), gable(gable), inset(inset), rings(std::max<size_t>(rings, 3)),
       thickness(thickness) {
 
     // rings: every ring's star of ridge and valley points on the outer and on the inner face
@@ -105,7 +98,8 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {
         std::vector<Point> star;
 
         for (size_t j = 0; j < count; j++) {
-            const double angle = 2.0 * Tolerance::PI * static_cast<double>(j) / static_cast<double>(count);
+            const double angle =
+                2.0 * Tolerance::PI * static_cast<double>(j) / static_cast<double>(count);
             const bool ridge = j % 2 == 0;
             const double r = ridge ? ring_radius : ring_radius * (1.0 - inset);
             const double z = ring_height + (ridge ? gable * fade * (1.0 - t * t * t) : 0.0);
@@ -118,20 +112,19 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {
     return stars;
 }
 
-inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std::vector<std::vector<Point>>& stars) const {
+inline std::vector<std::vector<Point>>
+CurvedFold::compute_inner_rings(const std::vector<std::vector<Point>>& stars) const {
 
     const size_t count = 2 * sectors;
     std::vector<std::vector<Point>> inner;
 
     for (size_t k = 0; k < stars.size(); k++) {
-        // the band below the last ring, the one above every other
         const size_t band = std::min(k, stars.size() - 2);
         const std::vector<Point>& low = stars[band];
         const std::vector<Point>& high = stars[band + 1];
         std::vector<Point> ring;
 
         for (size_t j = 0; j < count; j++) {
-            // the strips before and after the point, their planes moved inwards by the thickness
             std::array<Plane, 2> offsets;
 
             for (size_t side = 0; side < 2; side++) {
@@ -142,10 +135,10 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std
                 offsets[side] = Plane::from_point_normal(low[a] + normal * thickness, normal);
             }
 
-            // their crossing cut by the point's level
             const std::optional<Line> fold = Intersection::plane_plane(offsets[0], offsets[1]);
             const Plane level = Plane::from_point_normal(stars[k][j], Vector(0.0, 0.0, 1.0));
-            const std::optional<Point> point = fold ? Intersection::line_plane(*fold, level, false) : std::nullopt;
+            const std::optional<Point> point =
+                fold ? Intersection::line_plane(*fold, level, false) : std::nullopt;
             ring.push_back(point.value_or(stars[k][j]));
         }
 
@@ -156,8 +149,7 @@ inline std::vector<std::vector<Point>> CurvedFold::compute_inner_rings(const std
 }
 
 inline std::array<std::vector<NurbsCurve>, 2> CurvedFold::add_meridians(
-    const std::vector<std::vector<Point>>& stars,
-    const std::vector<std::vector<Point>>& inner_stars
+    const std::vector<std::vector<Point>>& stars, const std::vector<std::vector<Point>>& inner_stars
 ) {
 
     const size_t count = 2 * sectors;
@@ -191,11 +183,7 @@ inline void CurvedFold::add_lamellas(const std::array<std::vector<NurbsCurve>, 2
     for (size_t j = 0; j < count; j++) {
         const size_t next = (j + 1) % count;
         const std::shared_ptr<PlateCurved> lamella = std::make_shared<PlateCurved>(
-            outer[j],
-            outer[next],
-            inner[j],
-            inner[next],
-            fmt::format("lamella_{}", j)
+            outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)
         );
         add(lamella, lamellas);
     }

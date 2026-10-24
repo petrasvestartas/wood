@@ -7,10 +7,10 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A frame or arch of triangular folded plates after Engel (pp. 225-227), half a bay one zigzag fold from the foot to the crown.
+/// A frame or arch of triangular folded plates, half a bay one zigzag fold from the foot to the crown.
 class FoldedFrame : public WoodSession {
 public:
-    const Polyline zigzag; // The fold of half a bay from the foot to the crown, its points on the rails y 0 and y bay / 2.
+    const Polyline zigzag; // The fold of half a bay from the foot to the crown.
     const double bay; // mm, every bay along y.
     const size_t bays; // Bays along y.
     const double thickness; // mm, every plate.
@@ -21,7 +21,8 @@ private:
 public:
     /// The folded frame of bays bays of zigzag as the session named name.
     explicit FoldedFrame(
-        const Polyline& zigzag = two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0),
+        const Polyline& zigzag =
+            two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0),
         double bay = 4500.0,
         size_t bays = 4,
         double thickness = 120.0,
@@ -37,7 +38,7 @@ public:
     /// The folded mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
 
-    /// The two-hinged frame with ridge-to-ridge folding (p. 225): columns eaves high, the knees bulging out bulge.
+    /// The two-hinged frame with ridge-to-ridge folding: columns eaves high, the knees bulging out bulge.
     static Polyline two_hinged_frame(
         double span = 30000.0,
         double bay = 4500.0,
@@ -48,7 +49,7 @@ public:
         double bulge = 2200.0
     );
 
-    /// The three-hinged frame with ridge folding (p. 226): a flat ceiling eaves high, the roof dipping to the hinge at mid-span.
+    /// The three-hinged frame with ridge folding: a flat ceiling eaves high, the roof dipping to the hinge at mid-span.
     static Polyline three_hinged_frame(
         double span = 30000.0,
         double bay = 4250.0,
@@ -59,7 +60,7 @@ public:
         double bulge = 1900.0
     );
 
-    /// The two-hinged A-frame with ridge-to-valley folding (p. 226): two legs to an apex, their diagonals crossing at the waist.
+    /// The two-hinged A-frame with ridge-to-valley folding: two legs to an apex, their diagonals crossing at the waist.
     static Polyline a_frame(
         double span = 21000.0,
         double bay = 3850.0,
@@ -71,11 +72,13 @@ public:
         double waist = 4000.0
     );
 
-    /// The arch with a top hinge (p. 227) at Engel's proportions, its legs rising nearly vertically height high.
-    static Polyline top_hinged_arch(double span = 17900.0, double bay = 4950.0, double height = 26100.0);
+    /// The arch with a top hinge at the proportions, its legs rising nearly vertically height high.
+    static Polyline
+    top_hinged_arch(double span = 17900.0, double bay = 4950.0, double height = 26100.0);
 
-    /// The three-hinged octagonal arch (p. 227) at Engel's proportions, height high.
-    static Polyline three_hinged_arch(double span = 21500.0, double bay = 5000.0, double height = 20500.0);
+    /// The three-hinged octagonal arch at the proportions, height high.
+    static Polyline
+    three_hinged_arch(double span = 21500.0, double bay = 5000.0, double height = 20500.0);
 
 private:
     /// The zigzag's triangles, every point with the last point on each rail.
@@ -86,17 +89,9 @@ private:
 };
 
 inline FoldedFrame::FoldedFrame(
-    const Polyline& zigzag,
-    double bay,
-    size_t bays,
-    double thickness,
-    const std::string& name
+    const Polyline& zigzag, double bay, size_t bays, double thickness, const std::string& name
 )
-    : WoodSession(name),
-      zigzag(zigzag),
-      bay(bay),
-      bays(bays),
-      thickness(thickness) {
+    : WoodSession(name), zigzag(zigzag), bay(bay), bays(bays), thickness(thickness) {
 
     // zigzag: the fold line of half a bay from the foot to the crown
     add_polyline(zigzag, add_group("zigzag"));
@@ -134,13 +129,7 @@ inline const Mesh& FoldedFrame::mesh() const {
 }
 
 inline Polyline FoldedFrame::two_hinged_frame(
-    double span,
-    double bay,
-    double eaves,
-    double ceiling,
-    double ridge,
-    double knee,
-    double bulge
+    double span, double bay, double eaves, double ceiling, double ridge, double knee, double bulge
 ) {
 
     const double centre = 0.5 * bay;
@@ -157,13 +146,7 @@ inline Polyline FoldedFrame::two_hinged_frame(
 }
 
 inline Polyline FoldedFrame::three_hinged_frame(
-    double span,
-    double bay,
-    double eaves,
-    double ridge,
-    double hinge,
-    double knee,
-    double bulge
+    double span, double bay, double eaves, double ridge, double hinge, double knee, double bulge
 ) {
 
     const double centre = 0.5 * bay;

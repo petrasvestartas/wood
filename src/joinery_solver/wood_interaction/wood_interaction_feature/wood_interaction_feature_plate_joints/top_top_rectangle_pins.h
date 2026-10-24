@@ -1,6 +1,3 @@
-/// The frame 2024's inscribe_rectangle_in_convex_polygon drew the contact in, no direction given: x along the ring's longest edge from
-/// its start, z the sum of the corner cross products, y = x cross z, the left-handed frame 2024 kept, each unit, and the plane turned
-/// 0.0001 radians about z afterwards, "without which the algorithm does not work".
 struct InscribeFrame {
     Point origin;
     Vector x;
@@ -65,12 +62,10 @@ static std::array<double, 2> quarter_turns(const std::array<double, 2>& point, i
     return turned;
 }
 
-/// The largest axis-parallel rectangle inside box (min x, min y, max x, max y) with none of the points strictly inside it, the
-/// largest empty iso-rectangle CGAL found for 2024, the first of equal areas kept. Every such rectangle has a point on one of its
-/// sides, or is the box: so, with each side in turn made the left by a quarter turn, every point is the support of a left side and
-/// the band above and below it narrows at each point further right until one closes it, each band a candidate up to the point that
-/// narrows it and up to the box's right side.
-static std::array<double, 4> largest_empty_rectangle(const std::vector<std::array<double, 2>>& points, const std::array<double, 4>& box) {
+/// The largest axis-parallel rectangle inside box (min x, min y, max x, max y) with none of the points strictly inside it.
+static std::array<double, 4> largest_empty_rectangle(
+    const std::vector<std::array<double, 2>>& points, const std::array<double, 4>& box
+) {
 
     std::array<double, 4> best = box;
     double best_area = 0.0;
@@ -80,7 +75,6 @@ static std::array<double, 4> largest_empty_rectangle(const std::vector<std::arra
 
     for (int turn = 0; turn < 4; turn++) {
 
-        // the box and the points turned, the points by x then y
         const std::array<double, 2> corner_a = quarter_turns({box[0], box[1]}, turn);
         const std::array<double, 2> corner_b = quarter_turns({box[2], box[3]}, turn);
         const double x_max = std::max(corner_a[0], corner_b[0]);
@@ -108,7 +102,12 @@ static std::array<double, 4> largest_empty_rectangle(const std::vector<std::arra
                     best_area = area;
                     const std::array<double, 2> a = quarter_turns({x_i, bottom}, (4 - turn) % 4);
                     const std::array<double, 2> b = quarter_turns({x_j, top}, (4 - turn) % 4);
-                    best = {std::min(a[0], b[0]), std::min(a[1], b[1]), std::max(a[0], b[0]), std::max(a[1], b[1])};
+                    best = {
+                        std::min(a[0], b[0]),
+                        std::min(a[1], b[1]),
+                        std::max(a[0], b[0]),
+                        std::max(a[1], b[1])
+                    };
                 }
                 if (y_j > y_i)
                     top = y_j;
@@ -120,7 +119,6 @@ static std::array<double, 4> largest_empty_rectangle(const std::vector<std::arra
                 }
             }
 
-            // the band up to the box's right side, unless a point on the support's own height closed it
             if (right < x_max)
                 continue;
             const double area = (x_max - x_i) * (top - bottom);
@@ -128,7 +126,12 @@ static std::array<double, 4> largest_empty_rectangle(const std::vector<std::arra
                 best_area = area;
                 const std::array<double, 2> a = quarter_turns({x_i, bottom}, (4 - turn) % 4);
                 const std::array<double, 2> b = quarter_turns({x_max, top}, (4 - turn) % 4);
-                best = {std::min(a[0], b[0]), std::min(a[1], b[1]), std::max(a[0], b[0]), std::max(a[1], b[1])};
+                best = {
+                    std::min(a[0], b[0]),
+                    std::min(a[1], b[1]),
+                    std::max(a[0], b[0]),
+                    std::max(a[1], b[1])
+                };
             }
         }
     }
@@ -136,23 +139,31 @@ static std::array<double, 4> largest_empty_rectangle(const std::vector<std::arra
     return best;
 }
 
-/// The rectangle 2024 inscribed in the contact: in the inscribe frame, the ring's edges sampled every fiftieth of its box's diagonal, at
-/// most 100 points an edge, the largest empty rectangle of the box among them, inset on every side by (1 - scale) of its shorter
-/// extent, its corners from the lower left round by the upper left, back in space.
+/// The rectangle 2024 inscribed in the contact.
 static Polyline inscribed_rectangle(const Polyline& ring, double scale) {
 
     const InscribeFrame frame = inscribe_frame(ring);
     const size_t count = ring.is_closed() ? ring.point_count() - 1 : ring.point_count();
 
-    // the box of the corners
-    std::array<double, 4> box = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), -std::numeric_limits<double>::max(), -std::numeric_limits<double>::max()};
+    std::array<double, 4> box = {
+        std::numeric_limits<double>::max(),
+        std::numeric_limits<double>::max(),
+        -std::numeric_limits<double>::max(),
+        -std::numeric_limits<double>::max()
+    };
     for (size_t i = 0; i < count; i++) {
         const std::array<double, 2> p = inscribe_to_2d(frame, ring[i]);
-        box = {std::min(box[0], p[0]), std::min(box[1], p[1]), std::max(box[2], p[0]), std::max(box[3], p[1])};
+        box = {
+            std::min(box[0], p[0]),
+            std::min(box[1], p[1]),
+            std::max(box[2], p[0]),
+            std::max(box[3], p[1])
+        };
     }
-    const double step = std::sqrt((box[2] - box[0]) * (box[2] - box[0]) + (box[3] - box[1]) * (box[3] - box[1])) / 50.0;
+    const double step =
+        std::sqrt((box[2] - box[0]) * (box[2] - box[0]) + (box[3] - box[1]) * (box[3] - box[1])) /
+        50.0;
 
-    // the edges sampled from their starts
     std::vector<std::array<double, 2>> samples;
     for (size_t i = 0; i + 1 < ring.point_count(); i++) {
         const int divisions = (int)std::min(100.0, Point::distance(ring[i], ring[i + 1]) / step);
@@ -160,9 +171,10 @@ static Polyline inscribed_rectangle(const Polyline& ring, double scale) {
             samples.push_back(inscribe_to_2d(frame, point));
     }
 
-    // the largest empty rectangle, inset by the scale
     const std::array<double, 4> empty = largest_empty_rectangle(samples, box);
-    const double inset = std::min((1.0 - scale) * std::abs(empty[2] - empty[0]), (1.0 - scale) * std::abs(empty[3] - empty[1]));
+    const double inset = std::min(
+        (1.0 - scale) * std::abs(empty[2] - empty[0]), (1.0 - scale) * std::abs(empty[3] - empty[1])
+    );
 
     return Polyline({
         inscribe_to_3d(frame, empty[0] + inset, empty[1] + inset),
@@ -178,27 +190,32 @@ static std::vector<Point> rectangle_edge_points(const Polyline& rectangle, doubl
 
     std::vector<Point> points;
     for (size_t i = 0; i + 1 < rectangle.point_count(); i++) {
-        const int divisions = (int)std::min(25.0, Point::distance(rectangle[i], rectangle[i + 1]) / division_length);
-        const std::vector<Point> edge = Point::interpolate(rectangle[i], rectangle[i + 1], divisions, 2);
+        const int divisions =
+            (int)std::min(25.0, Point::distance(rectangle[i], rectangle[i + 1]) / division_length);
+        const std::vector<Point> edge =
+            Point::interpolate(rectangle[i], rectangle[i + 1], divisions, 2);
         points.insert(points.end(), edge.begin(), edge.end());
     }
 
     return points;
 }
 
-/// The rectangle filled with a grid of division_length, the step count the ceiling of each pair of facing edges over it, the smaller of
-/// the two, ends included: 2024's points for a negative length.
+/// The rectangle filled with a grid of division_length.
 static std::vector<Point> rectangle_grid_points(const Polyline& rectangle, double division_length) {
 
     const double edge_00 = Point::distance(rectangle[0], rectangle[1]);
     const double edge_01 = Point::distance(rectangle[3], rectangle[2]);
     const double edge_10 = Point::distance(rectangle[1], rectangle[2]);
     const double edge_11 = Point::distance(rectangle[0], rectangle[3]);
-    const int divisions_u = (int)std::min(std::ceil(edge_00 / division_length), std::ceil(edge_01 / division_length));
-    const int divisions_v = (int)std::min(std::ceil(edge_10 / division_length), std::ceil(edge_11 / division_length));
+    const int divisions_u =
+        (int)std::min(std::ceil(edge_00 / division_length), std::ceil(edge_01 / division_length));
+    const int divisions_v =
+        (int)std::min(std::ceil(edge_10 / division_length), std::ceil(edge_11 / division_length));
 
-    const std::vector<Point> edge_0 = Point::interpolate(rectangle[0], rectangle[1], divisions_u, 1);
-    const std::vector<Point> edge_2 = Point::interpolate(rectangle[3], rectangle[2], divisions_u, 1);
+    const std::vector<Point> edge_0 =
+        Point::interpolate(rectangle[0], rectangle[1], divisions_u, 1);
+    const std::vector<Point> edge_2 =
+        Point::interpolate(rectangle[3], rectangle[2], divisions_u, 1);
     std::vector<Point> points;
     points.reserve(edge_0.size() * (divisions_v + 2));
     for (size_t i = 0; i < edge_0.size(); i++) {
@@ -209,10 +226,12 @@ static std::vector<Point> rectangle_grid_points(const Polyline& rectangle, doubl
     return points;
 }
 
-/// top_top_rectangle_pins, id 45: drills on the rectangle 2024 inscribed in the contact, scaled by shift, precision 1: a division_length above the
-/// distance tolerance divides its edges, one below minus the tolerance fills it with a grid of that step, one in between drills nothing.
-/// The rectangle itself 2024 kept commented out, so no mill. Nothing where a plate is missing.
-static void top_top_rectangle_pins(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings) {
+/// top_top_rectangle_pins, id 45.
+static void top_top_rectangle_pins(
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const Settings& settings
+) {
 
     joint.name = "top_top_rectangle_pins";
     joint.no_orient = true;

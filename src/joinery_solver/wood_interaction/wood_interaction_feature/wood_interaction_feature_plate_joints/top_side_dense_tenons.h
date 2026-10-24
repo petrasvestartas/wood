@@ -1,6 +1,3 @@
-/// top_side_dense_tenons: the parametric tenons visiting every interpolation point, 2 to 20 divisions made even, the tenon sides leaning by the
-/// shift; per female face a mortise rectangle from every four male points and the rectangle that bounds them, every one a hole
-/// (the merge drops the last, the bound, as 2024 did), per male face the zigzag and its two-point edge marker, both edge insertions.
 static void top_side_dense_tenons(InteractionFeaturePlate& joint) {
 
     joint.name = "top_side_dense_tenons";
@@ -9,41 +6,18 @@ static void top_side_dense_tenons(InteractionFeaturePlate& joint) {
     div += div % 2;
     const int size = div / 2 + 1;
 
-    std::vector<Point> arr0 = Point::interpolate(
-        Point(-0.5,-0.5,-0.5),
-        Point(-0.5,-0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr1 = Point::interpolate(
-        Point(-0.5, 0.5,-0.5),
-        Point(-0.5, 0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr2 = Point::interpolate(
-        Point( 0.5, 0.5,-0.5),
-        Point( 0.5, 0.5, 0.5),
-        div,
-        0
-    );
-    std::vector<Point> arr3 = Point::interpolate(
-        Point( 0.5,-0.5,-0.5),
-        Point( 0.5,-0.5, 0.5),
-        div,
-        0
-    );
+    std::vector<Point> arr0 =
+        Point::interpolate(Point(-0.5, -0.5, -0.5), Point(-0.5, -0.5, 0.5), div, 0);
+    std::vector<Point> arr1 =
+        Point::interpolate(Point(-0.5, 0.5, -0.5), Point(-0.5, 0.5, 0.5), div, 0);
+    std::vector<Point> arr2 =
+        Point::interpolate(Point(0.5, 0.5, -0.5), Point(0.5, 0.5, 0.5), div, 0);
+    std::vector<Point> arr3 =
+        Point::interpolate(Point(0.5, -0.5, -0.5), Point(0.5, -0.5, 0.5), div, 0);
     std::vector<Point>* arrays[4] = {&arr0, &arr1, &arr2, &arr3};
 
-    const double vz = (joint.shift == 0)
-        ? 0.0
-        : Intersection::remap(
-            joint.shift,
-            0,
-            1.0,
-            -0.5,
-            0.5
-        ) / (div + 1);
+    const double vz =
+        (joint.shift == 0) ? 0.0 : Intersection::remap(joint.shift, 0, 1.0, -0.5, 0.5) / (div + 1);
     const Vector v(0, 0, vz);
     for (int i = 0; i < 4; i++) {
         std::vector<Point>& a = *arrays[i];
@@ -97,13 +71,21 @@ static void top_side_dense_tenons(InteractionFeaturePlate& joint) {
 
         const Polyline& first = joint.female_outlines[f].front();
         const Polyline& last = joint.female_outlines[f].back();
-        joint.female_outlines[f].push_back(Polyline({
-            first.get_point(0), first.get_point(3),
-            last.get_point(3), last.get_point(0), first.get_point(0)}));
+        joint.female_outlines[f].push_back(Polyline(
+            {first.get_point(0),
+             first.get_point(3),
+             last.get_point(3),
+             last.get_point(0),
+             first.get_point(0)}
+        ));
     }
 
     const std::vector<int> female_types(joint.female_outlines[0].size(), FabricationType::hole);
     joint.female_fabrication_types = {female_types, female_types};
-    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.male_fabrication_types[1] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
 }

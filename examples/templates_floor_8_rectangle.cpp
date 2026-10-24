@@ -4,8 +4,8 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double HALF_X = 3000.0; // half span along x: the bay is 6000 long
-const double HALF_Y = 2400.0; // half span along y: the bay is 4800 wide
+const double HALF_X = 3000.0;
+const double HALF_Y = 2400.0;
 
 /// The rectangular bay with its columns, every connector and the assembly pins.
 int main() {

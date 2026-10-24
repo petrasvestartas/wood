@@ -25,13 +25,16 @@ static void add_drawn(WoodSession& scene, const std::shared_ptr<Element>& member
     if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(member)) {
         std::vector<Point> points;
         for (size_t i = 0; i < plate->polylines[0].point_count(); i++)
-            points.push_back(plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5);
+            points.push_back(
+                plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5
+            );
         draw_line(scene, Polyline(points));
     }
 }
 
 /// The butt of a pair, named by its configuration and its members, passed to both.
-static void join(WoodSession& scene, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
+static void
+join(WoodSession& scene, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b) {
 
     const std::shared_ptr<JointBeam> butt = JointBeam::butt(*a, *b);
     butt->name = fmt::format("{}_{}_{}", butt->name, a->name, b->name);
@@ -44,13 +47,16 @@ static void join(WoodSession& scene, const std::shared_ptr<Element>& a, const st
 // Assemblies
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A post on a sill, its foot top_side, and a brace from the post down to the sill at 55 degrees, top_side at each end.
+/// A post on a sill.
 static void brace_frame() {
 
     WoodSession scene("butt_brace_frame");
-    const std::shared_ptr<Beam> sill = std::make_shared<Beam>(Polyline({{-800.0, 0.0, 0.0}, {1400.0, 0.0, 0.0}}), 70.0, "sill");
-    const std::shared_ptr<Beam> post = std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}}), 70.0, "post");
-    const std::shared_ptr<Beam> brace = std::make_shared<Beam>(Polyline({{0.0, 0.0, 1500.0}, {1050.0, 0.0, 0.0}}), 60.0, "brace");
+    const std::shared_ptr<Beam> sill =
+        std::make_shared<Beam>(Polyline({{-800.0, 0.0, 0.0}, {1400.0, 0.0, 0.0}}), 70.0, "sill");
+    const std::shared_ptr<Beam> post =
+        std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}}), 70.0, "post");
+    const std::shared_ptr<Beam> brace =
+        std::make_shared<Beam>(Polyline({{0.0, 0.0, 1500.0}, {1050.0, 0.0, 0.0}}), 60.0, "brace");
     for (const std::shared_ptr<Beam>& beam : {sill, post, brace})
         add_drawn(scene, beam);
     join(scene, sill, post);
@@ -60,7 +66,7 @@ static void brace_frame() {
     scene.pb_dump(pb_path("butt_brace_frame"));
 }
 
-/// Two posts on a curved sill, its axis a quarter circle of radius 2000 in eight segments: each post top_side on the segment it stands on.
+/// Two posts on a curved sill.
 static void curved_sill() {
 
     WoodSession scene("butt_curved_sill");
@@ -73,7 +79,9 @@ static void curved_sill() {
     add_drawn(scene, sill);
     for (const int i : {2, 6}) {
         const Point foot = arc[i] + (arc[i + 1] - arc[i]) * 0.5;
-        const std::shared_ptr<Beam> post = std::make_shared<Beam>(Polyline({foot, foot + Vector(0.0, 0.0, 1800.0)}), 60.0, fmt::format("post_{}", i));
+        const std::shared_ptr<Beam> post = std::make_shared<Beam>(
+            Polyline({foot, foot + Vector(0.0, 0.0, 1800.0)}), 60.0, fmt::format("post_{}", i)
+        );
         add_drawn(scene, post);
         join(scene, sill, post);
     }
@@ -81,7 +89,7 @@ static void curved_sill() {
     scene.pb_dump(pb_path("butt_curved_sill"));
 }
 
-/// A pentagon floor, walls on three of its edges, one with a sloped top: the floor running out under each wall, the walls side_side_outplane at 108 degrees.
+/// A pentagon floor, walls on three of its edges.
 static void polygon_floor() {
 
     WoodSession scene("butt_polygon_floor");
@@ -91,15 +99,29 @@ static void polygon_floor() {
         pentagon.emplace_back(2000.0 * std::cos(angle), 2000.0 * std::sin(angle), 0.0);
     }
     const Polyline middle(pentagon);
-    const std::shared_ptr<Plate> floor = std::make_shared<Plate>(middle.translated({0.0, 0.0, -100.0}), middle.translated({0.0, 0.0, 100.0}), "floor");
-    const std::shared_ptr<Plate> first = Plate::from_line(Line::from_points(pentagon[0], pentagon[1]), {0.0, 0.0, 1.0}, 2400.0, 140.0, "wall_0");
-    const std::shared_ptr<Plate> second = Plate::from_line(Line::from_points(pentagon[1], pentagon[2]), {0.0, 0.0, 1.0}, 2400.0, 140.0, "wall_1");
+    const std::shared_ptr<Plate> floor = std::make_shared<Plate>(
+        middle.translated({0.0, 0.0, -100.0}), middle.translated({0.0, 0.0, 100.0}), "floor"
+    );
+    const std::shared_ptr<Plate> first = Plate::from_line(
+        Line::from_points(pentagon[0], pentagon[1]), {0.0, 0.0, 1.0}, 2400.0, 140.0, "wall_0"
+    );
+    const std::shared_ptr<Plate> second = Plate::from_line(
+        Line::from_points(pentagon[1], pentagon[2]), {0.0, 0.0, 1.0}, 2400.0, 140.0, "wall_1"
+    );
 
     // the sloped wall on the edge before the first: its outline rises from 1800 to 2400 along the edge, thickness across it, centred
     const Vector along = (pentagon[0] - pentagon[4]).normalized();
     const Vector across = along.cross(Vector(0.0, 0.0, 1.0)) * 70.0;
-    const Polyline sloped({pentagon[4], pentagon[0], pentagon[0] + Vector(0.0, 0.0, 2400.0), pentagon[4] + Vector(0.0, 0.0, 1800.0), pentagon[4]});
-    const std::shared_ptr<Plate> third = std::make_shared<Plate>(sloped.translated(across * -1.0), sloped.translated(across), "wall_sloped");
+    const Polyline sloped(
+        {pentagon[4],
+         pentagon[0],
+         pentagon[0] + Vector(0.0, 0.0, 2400.0),
+         pentagon[4] + Vector(0.0, 0.0, 1800.0),
+         pentagon[4]}
+    );
+    const std::shared_ptr<Plate> third = std::make_shared<Plate>(
+        sloped.translated(across * -1.0), sloped.translated(across), "wall_sloped"
+    );
     for (const std::shared_ptr<Plate>& plate : {floor, first, second, third})
         add_drawn(scene, plate);
     for (const std::shared_ptr<Plate>& wall : {first, second, third})
@@ -110,16 +132,30 @@ static void polygon_floor() {
     scene.pb_dump(pb_path("butt_polygon_floor"));
 }
 
-/// Walls on a zigzag in plan, each segment a 140 thick plate 2400 high, on a floor: the floor running out under the walls, every fold side_side_outplane.
+/// Walls on a zigzag in plan.
 static void zigzag_walls() {
 
     WoodSession scene("butt_zigzag_walls");
-    const std::vector<Point> zigzag = {{0.0, 0.0, 0.0}, {1500.0, 900.0, 0.0}, {3000.0, 0.0, 0.0}, {4500.0, 900.0, 0.0}, {6000.0, 0.0, 0.0}};
-    const std::shared_ptr<Plate> floor = Plate::from_rectangle({-300.0, -600.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 6600.0, 2100.0, 200.0, "floor");
+    const std::vector<Point> zigzag = {
+        {0.0, 0.0, 0.0},
+        {1500.0, 900.0, 0.0},
+        {3000.0, 0.0, 0.0},
+        {4500.0, 900.0, 0.0},
+        {6000.0, 0.0, 0.0}
+    };
+    const std::shared_ptr<Plate> floor = Plate::from_rectangle(
+        {-300.0, -600.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 6600.0, 2100.0, 200.0, "floor"
+    );
     add_drawn(scene, floor);
     std::vector<std::shared_ptr<Plate>> walls;
     for (size_t i = 0; i + 1 < zigzag.size(); i++) {
-        walls.push_back(Plate::from_line(Line::from_points(zigzag[i], zigzag[i + 1]), {0.0, 0.0, 1.0}, 2400.0, 140.0, fmt::format("wall_{}", i)));
+        walls.push_back(Plate::from_line(
+            Line::from_points(zigzag[i], zigzag[i + 1]),
+            {0.0, 0.0, 1.0},
+            2400.0,
+            140.0,
+            fmt::format("wall_{}", i)
+        ));
         add_drawn(scene, walls.back());
     }
     for (const std::shared_ptr<Plate>& wall : walls)
@@ -130,32 +166,47 @@ static void zigzag_walls() {
     scene.pb_dump(pb_path("butt_zigzag_walls"));
 }
 
-/// A folded roof on a zigzag in section, each segment a 160 thick plate 4000 deep, over two gables drawn up to the zigzag, its eaves overhanging them by 300: every fold
-/// side_side_outplane, the roof running on to the gables' outer faces and each gable's top edges stopping under the roof plates, valleys and ridges alike.
+/// A folded roof on a zigzag in section.
 static void folded_roof() {
 
     WoodSession scene("butt_folded_roof");
-    const std::vector<Point> zigzag = {{0.0, 0.0, 2400.0}, {1500.0, 0.0, 3200.0}, {3000.0, 0.0, 2400.0}, {4500.0, 0.0, 3200.0}, {6000.0, 0.0, 2400.0}};
+    const std::vector<Point> zigzag = {
+        {0.0, 0.0, 2400.0},
+        {1500.0, 0.0, 3200.0},
+        {3000.0, 0.0, 2400.0},
+        {4500.0, 0.0, 3200.0},
+        {6000.0, 0.0, 2400.0}
+    };
     std::vector<std::shared_ptr<Plate>> roof;
     for (size_t i = 0; i + 1 < zigzag.size(); i++) {
         const Vector along = (zigzag[i + 1] - zigzag[i]).normalized();
         const Vector across = along.cross(Vector(0.0, 1.0, 0.0));
 
-        // the eaves overhang the gables by 300 in plan along their slopes
         const double before = i == 0 ? 300.0 / along[0] : 0.0;
         const double after = i + 2 == zigzag.size() ? 300.0 / along[0] : 0.0;
-        roof.push_back(Plate::from_rectangle(zigzag[i] - along * before - across * 80.0, along, {0.0, 1.0, 0.0}, Point::distance(zigzag[i], zigzag[i + 1]) + before + after, 4000.0, 160.0, fmt::format("roof_{}", i)));
+        roof.push_back(Plate::from_rectangle(
+            zigzag[i] - along * before - across * 80.0,
+            along,
+            {0.0, 1.0, 0.0},
+            Point::distance(zigzag[i], zigzag[i + 1]) + before + after,
+            4000.0,
+            160.0,
+            fmt::format("roof_{}", i)
+        ));
         add_drawn(scene, roof.back());
     }
 
-    // the gables drawn up to the zigzag, each 140 thick and centred on its outline
     std::vector<Point> outline = {{6000.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
     outline.insert(outline.end(), zigzag.begin(), zigzag.end());
     outline.push_back(outline.front());
     std::array<std::shared_ptr<Plate>, 2> gables;
     for (size_t g = 0; g < 2; g++) {
         const Polyline drawn = Polyline(outline).translated({0.0, g == 0 ? 0.0 : 4000.0, 0.0});
-        gables[g] = std::make_shared<Plate>(drawn.translated({0.0, -70.0, 0.0}), drawn.translated({0.0, 70.0, 0.0}), fmt::format("gable_{}", g));
+        gables[g] = std::make_shared<Plate>(
+            drawn.translated({0.0, -70.0, 0.0}),
+            drawn.translated({0.0, 70.0, 0.0}),
+            fmt::format("gable_{}", g)
+        );
         add_drawn(scene, gables[g]);
     }
     for (const std::shared_ptr<Plate>& plate : roof)
@@ -170,7 +221,6 @@ static void folded_roof() {
 /// Butt pairs combined into assemblies, beams and plates drawn on lines and polygons, each its own scene.
 int main() {
 
-    // each assembly its own scene, written to data/output/pb/butt_<assembly>.pb
     brace_frame();
     curved_sill();
     polygon_floor();

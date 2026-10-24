@@ -6,8 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The four quadrants of one planar curved crease: two strips joined along it for each pairing of the rulings r, -r and their
-/// mirror images, two foldings and two unfoldings side by side.
+/// The four quadrants of one planar curved crease.
 class CreaseQuadrants : public WoodSession {
 public:
     const NurbsCurve crease; // A planar curved crease.
@@ -70,15 +69,13 @@ inline CreaseQuadrants::CreaseQuadrants(
     const std::string& name,
     size_t samples
 )
-    : WoodSession(name),
-      crease(crease),
-      opening(opening),
-      width(width),
-      thickness(thickness),
+    : WoodSession(name), crease(crease), opening(opening), width(width), thickness(thickness),
       samples(std::max<size_t>(samples, 4)) {
 
     if (width <= 0.0 || thickness <= 0.0 || opening <= 0.0 || opening >= 0.5 * Tolerance::PI)
-        throw std::invalid_argument("Crease quadrants need a width, a thickness and an opening between 0 and 90 degrees");
+        throw std::invalid_argument(
+            "Crease quadrants need a width, a thickness and an opening between 0 and 90 degrees"
+        );
 
     // frame: the crease's points, tangents, inward normals and plane
     const Frame frame = compute_frame();
@@ -88,30 +85,10 @@ inline CreaseQuadrants::CreaseQuadrants(
     const double step = chord.magnitude() + 3.0 * width;
     chord.normalize_self();
 
-    add_quadrant(
-        frame,
-        1,
-        {{{1.0, 1.0}, {-1.0, 1.0}}},
-        chord * 0.0
-    );
-    add_quadrant(
-        frame,
-        2,
-        {{{1.0, 1.0}, {1.0, -1.0}}},
-        chord * step
-    );
-    add_quadrant(
-        frame,
-        3,
-        {{{1.0, -1.0}, {-1.0, -1.0}}},
-        chord * (2.0 * step)
-    );
-    add_quadrant(
-        frame,
-        4,
-        {{{-1.0, -1.0}, {-1.0, 1.0}}},
-        chord * (3.0 * step)
-    );
+    add_quadrant(frame, 1, {{{1.0, 1.0}, {-1.0, 1.0}}}, chord * 0.0);
+    add_quadrant(frame, 2, {{{1.0, 1.0}, {1.0, -1.0}}}, chord * step);
+    add_quadrant(frame, 3, {{{1.0, -1.0}, {-1.0, -1.0}}}, chord * (2.0 * step));
+    add_quadrant(frame, 4, {{{-1.0, -1.0}, {-1.0, 1.0}}}, chord * (3.0 * step));
 
     // contacts: every two strips that share a face, found by the session's contact detection
     compute_face_contacts(0);
@@ -123,12 +100,12 @@ inline CreaseQuadrants::Frame CreaseQuadrants::compute_frame() const {
     const double domain = crease.domain_end() - crease.domain_start();
 
     for (size_t j = 0; j <= samples; j++) {
-        const double t = crease.domain_start() + domain * static_cast<double>(j) / static_cast<double>(samples);
+        const double t =
+            crease.domain_start() + domain * static_cast<double>(j) / static_cast<double>(samples);
         frame.points.push_back(crease.point_at(t));
         frame.tangents.push_back(crease.tangent_at(t).normalized());
     }
 
-    // the plane's normal from the two most different tangents, turned so the tangent turns toward normal x tangent
     frame.normal = frame.tangents.front().cross(frame.tangents.back());
 
     for (const Vector& tangent : frame.tangents)
@@ -165,7 +142,9 @@ inline void CreaseQuadrants::add_quadrant(
 
         for (size_t j = 0; j <= samples; j++) {
             const Point point = frame.points[j] + shift;
-            const Vector ruling = (frame.inward[j] * (signs[k][0] * c) + frame.normal * (signs[k][1] * s)).normalized();
+            const Vector ruling =
+                (frame.inward[j] * (signs[k][0] * c) + frame.normal * (signs[k][1] * s))
+                    .normalized();
             const Vector normal = frame.tangents[j].cross(ruling).normalized();
             const Vector mitre = folded ? frame.inward[j] : frame.normal;
 
@@ -177,26 +156,23 @@ inline void CreaseQuadrants::add_quadrant(
             }
         }
 
-        // the strip
-        const NurbsCurve outer_a = NurbsCurve::create_interpolated(edges[0], CurveNurbsKnotStyle::Uniform);
-        const NurbsCurve outer_b = NurbsCurve::create_interpolated(edges[1], CurveNurbsKnotStyle::Uniform);
-        const NurbsCurve inner_a = NurbsCurve::create_interpolated(edges[2], CurveNurbsKnotStyle::Uniform);
-        const NurbsCurve inner_b = NurbsCurve::create_interpolated(edges[3], CurveNurbsKnotStyle::Uniform);
+        const NurbsCurve outer_a =
+            NurbsCurve::create_interpolated(edges[0], CurveNurbsKnotStyle::Uniform);
+        const NurbsCurve outer_b =
+            NurbsCurve::create_interpolated(edges[1], CurveNurbsKnotStyle::Uniform);
+        const NurbsCurve inner_a =
+            NurbsCurve::create_interpolated(edges[2], CurveNurbsKnotStyle::Uniform);
+        const NurbsCurve inner_b =
+            NurbsCurve::create_interpolated(edges[3], CurveNurbsKnotStyle::Uniform);
         const std::shared_ptr<PlateCurved> strip = std::make_shared<PlateCurved>(
-            outer_a,
-            outer_b,
-            inner_a,
-            inner_b,
-            fmt::format("quadrant_{}_{}", quadrant, k)
+            outer_a, outer_b, inner_a, inner_b, fmt::format("quadrant_{}_{}", quadrant, k)
         );
         add(strip, group);
 
-        // its development, the proof it is cut flat
         const Development development(outer_a, outer_b, samples);
         _distortion = std::max(_distortion, development.distortion);
     }
 
-    // the crease
     std::vector<Point> points;
 
     for (const Point& point : frame.points)

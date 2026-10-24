@@ -40,13 +40,18 @@ public:
     explicit Joint(const std::vector<Polyline>& loops, const std::string& name = "Joint");
     explicit Joint(const Plane& cutter);
     explicit Joint(const Mesh& cutter, SolidOperation operation = SolidOperation::subtract);
+
     /// Keep the interior of a closed profile extruded along direction.
     Joint(const Polyline& profile, const Vector& direction);
-    Joint(const std::vector<Polyline>& profile, const Vector& direction,
-          SolidOperation operation = SolidOperation::intersect);
-    static std::shared_ptr<Joint> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
+    Joint(
+        const std::vector<Polyline>& profile,
+        const Vector& direction,
+        SolidOperation operation = SolidOperation::intersect
+    );
+    static std::shared_ptr<Joint>
+    drill(const Line& axis, double radius, double chord_tolerance = 0.05);
 
-    /// The joint of a support and the column standing on it, named "support": a head plate let into the column end and pinned.
+    /// The joint of a support and the column standing on it, named "support".
     static std::shared_ptr<Joint> support(const Support& support, const Column& column);
     virtual std::vector<Line> drill_axes() const;
 
@@ -71,18 +76,21 @@ public:
     AABB aabb(double inflate) const;
     nlohmann::ordered_json element_data_jsondump() const;
     std::string element_data_dumps() const override;
+
     std::string element_type_name() const override {
         return std::string(ELEMENT_TYPE);
     }
+
     std::shared_ptr<Element> clone() const override {
         return std::make_shared<Joint>(*this);
     }
+
     std::string str() const override;
 
-    /// The joint's own solids, each a bottom and a top loop to loft: a connector's parts, a key design's keys; empty for a joint that owns none.
+    /// The joint's own solids.
     virtual std::vector<std::array<Polyline, 2>> bodies() const;
 
-    /// The joint's own solid when it is no loft of loops: a key cut from the plates it fills; empty for every other joint.
+    /// The joint's own solid when it is no loft of loops.
     virtual Mesh key_mesh() const;
 
 protected:

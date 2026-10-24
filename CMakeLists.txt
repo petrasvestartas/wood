@@ -485,7 +485,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
     set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
     # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/;
-    # material.css on top of it gives the look of the compas_model MkDocs Material pages.
+    # material.css on top of it gives the MkDocs Material appearance.
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/material.css)

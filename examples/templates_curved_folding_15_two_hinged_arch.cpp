@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// two-hinged arch of folded cylindrical surfaces: deep barrels rising from hinged feet as legs leaning outward, mirror-folded twice by 50 degrees into a tall polygonal arch with a flat crown, every segment a vault, 22 m span, the crown the plane of symmetry.
+/// two-hinged arch of folded cylindrical surfaces.
 int main() {
 
     const double climb = 105.0 * Tolerance::TO_RADIANS;
@@ -16,19 +16,29 @@ int main() {
         along,
         Vector(0.0, -1.0, 0.0),
         40000.0,
-        {{11000.0, -50.0 * Tolerance::TO_RADIANS, false}, {22000.0, -50.0 * Tolerance::TO_RADIANS, false}},
+        {{11000.0, -50.0 * Tolerance::TO_RADIANS, false},
+         {22000.0, -50.0 * Tolerance::TO_RADIANS, false}},
         Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
         120.0
     );
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("two hinged arch: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "two hinged arch: {} lamellas, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

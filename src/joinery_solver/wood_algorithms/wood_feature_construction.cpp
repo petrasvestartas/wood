@@ -9,8 +9,8 @@ constexpr bool TRACE = false;
 // ═══════════════════════════════════════════════════════════════════════════
 // Joint construction
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, size_t joint_id) {
+std::array<double, 3>
+joint_volume_extension(const std::vector<double>& extension, size_t joint_id) {
 
     const size_t triples = extension.size() / 3;
     if (triples == 0)
@@ -63,7 +63,7 @@ void move_pair(InteractionFeaturePlate& joint, Polyline& a, Polyline& b) {
     b.translate(unit);
 }
 
-}  // namespace
+}
 
 void apply_unit_scale(InteractionFeaturePlate& joint) {
 
@@ -108,8 +108,8 @@ void joint_orient_to_connection_area(InteractionFeaturePlate& joint) {
 
     const Xform xf0 = Xform::from_change_of_basis(*vols[0], *vols[1]);
     const Xform xf1 = (vols[2].has_value() && vols[3].has_value())
-        ? Xform::from_change_of_basis(*vols[2], *vols[3])
-        : xf0;
+                          ? Xform::from_change_of_basis(*vols[2], *vols[3])
+                          : xf0;
     for (int face = 0; face < 2; face++) {
         for (Polyline& pl : joint.male_outlines[face])
             pl.transform(xf0);
@@ -155,9 +155,19 @@ bool compute_linked_outline(
         size_t position = start;
         size_t index = offset;
         for (size_t j = 0; j < iterations; ++j) {
-            result[i].insert(result[i].end(), current[i].begin() + position, current[i].begin() + position + step / 2);
-            result[i].insert(result[i].end(), linked[i].begin() + index, linked[i].begin() + index + stride);
-            result[i].insert(result[i].end(), current[i].begin() + position + step / 2, current[i].begin() + position + step);
+            result[i].insert(
+                result[i].end(),
+                current[i].begin() + position,
+                current[i].begin() + position + step / 2
+            );
+            result[i].insert(
+                result[i].end(), linked[i].begin() + index, linked[i].begin() + index + stride
+            );
+            result[i].insert(
+                result[i].end(),
+                current[i].begin() + position + step / 2,
+                current[i].begin() + position + step
+            );
             position += step;
             index += stride;
         }
@@ -169,9 +179,11 @@ bool compute_linked_outline(
     return true;
 }
 
-}  // namespace
+}
 
-void merge_linked_joints(InteractionFeaturePlate& joint, std::vector<InteractionFeaturePlate>& all_joints) {
+void merge_linked_joints(
+    InteractionFeaturePlate& joint, std::vector<InteractionFeaturePlate>& all_joints
+) {
 
     if (joint.linked_joints_seq.size() != joint.linked_joints.size())
         return;
@@ -188,15 +200,22 @@ void merge_linked_joints(InteractionFeaturePlate& joint, std::vector<Interaction
 
         const bool male = joint.element_a == linked.element_a;
         const bool side = i == 1 ? !male : male;
-        std::array<std::vector<Polyline>, 2>& current = male ? joint.male_outlines : joint.female_outlines;
-        std::array<std::vector<Polyline>, 2>& next = side ? linked.male_outlines : linked.female_outlines;
+        std::array<std::vector<Polyline>, 2>& current =
+            male ? joint.male_outlines : joint.female_outlines;
+        std::array<std::vector<Polyline>, 2>& next =
+            side ? linked.male_outlines : linked.female_outlines;
         if (current[0].empty() || current[1].empty() || next[0].empty() || next[1].empty())
             continue;
-        if (current[0].size() % 2 != 0 || joint.linked_joints_seq[i].size() != current[0].size() / 2)
+        if (current[0].size() % 2 != 0 ||
+            joint.linked_joints_seq[i].size() != current[0].size() / 2)
             continue;
 
-        std::array<std::vector<Point>, 2> points{current[0][0].get_points(), current[1][0].get_points()};
-        const std::array<std::vector<Point>, 2> addition{next[0][0].get_points(), next[1][0].get_points()};
+        std::array<std::vector<Point>, 2> points{
+            current[0][0].get_points(), current[1][0].get_points()
+        };
+        const std::array<std::vector<Point>, 2> addition{
+            next[0][0].get_points(), next[1][0].get_points()
+        };
         bool valid = true;
         for (const std::array<int, 4>& sequence : joint.linked_joints_seq[i]) {
             if (!compute_linked_outline(points, addition, sequence)) {
@@ -222,9 +241,10 @@ void joint_get_divisions(InteractionFeaturePlate& joint, double division_distanc
         return;
 
     joint.length = std::sqrt(length);
-    joint.divisions = division_distance > 0.0
-        ? static_cast<int>(std::clamp(std::ceil(joint.length / division_distance), 1.0, 100.0))
-        : 1;
+    joint.divisions =
+        division_distance > 0.0
+            ? static_cast<int>(std::clamp(std::ceil(joint.length / division_distance), 1.0, 100.0))
+            : 1;
 }
 
-} // namespace wood_session
+}

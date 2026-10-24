@@ -11,28 +11,37 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
+Block::Block() : WoodElement("block") {
+}
 
-Block::Block() : WoodElement("block") {}
-Block::Block(const Mesh& mesh, const std::string& name) : WoodElement(name), source_mesh(mesh) {}
+Block::Block(const Mesh& mesh, const std::string& name) : WoodElement(name), source_mesh(mesh) {
+}
 
-Block::Block(const std::vector<Polyline>& loops, const std::string& name) : WoodElement(name), loops(loops) {}
+Block::Block(const std::vector<Polyline>& loops, const std::string& name)
+    : WoodElement(name), loops(loops) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
+std::shared_ptr<Block> Block::box(
+    const Point& corner, double x_size, double y_size, double height, const std::string& name
+) {
 
-std::shared_ptr<Block> Block::box(const Point& corner, double x_size, double y_size, double height, const std::string& name) {
-
-    const Polyline bottom = Polyline::rectangle(corner, Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), x_size, y_size);
+    const Polyline bottom =
+        Polyline::rectangle(corner, Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), x_size, y_size);
     const Polyline top = bottom.translated(Vector(0.0, 0.0, height));
     return std::make_shared<Block>(std::vector<Polyline>{bottom, top}, name);
 }
 
-std::array<std::shared_ptr<Block>, 2> Block::pair_stacked(double lower_size, double upper_size, double height) {
+std::array<std::shared_ptr<Block>, 2>
+Block::pair_stacked(double lower_size, double upper_size, double height) {
 
     const double inset = 0.5 * (lower_size - upper_size);
-    const std::shared_ptr<Block> lower = box(Point(0.0, 0.0, 0.0), lower_size, lower_size, height, "lower");
-    const std::shared_ptr<Block> upper = box(Point(inset, inset, height), upper_size, upper_size, height, "upper");
+    const std::shared_ptr<Block> lower =
+        box(Point(0.0, 0.0, 0.0), lower_size, lower_size, height, "lower");
+    const std::shared_ptr<Block> upper =
+        box(Point(inset, inset, height), upper_size, upper_size, height, "upper");
     return {lower, upper};
 }
 
@@ -61,7 +70,8 @@ std::shared_ptr<Block> Block::from_element(Element e) {
     for (const auto& cut : proto.solid_features())
         block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
-        block->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()));
+        block->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString(
+        )));
     return block;
 }
 
@@ -69,8 +79,9 @@ std::shared_ptr<Block> Block::from_element(Element e) {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The loops split into the bottom list and the top list, holes paired in order; empty when the count is odd or below two.
-static std::pair<std::vector<Polyline>, std::vector<Polyline>> split_loops(const std::vector<Polyline>& loops) {
+/// The loops split into the bottom list and the top list, holes paired in order.
+static std::pair<std::vector<Polyline>, std::vector<Polyline>>
+split_loops(const std::vector<Polyline>& loops) {
 
     if (loops.size() < 2 || loops.size() % 2 != 0)
         return {};
@@ -89,7 +100,8 @@ const Mesh& Block::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const auto [bottom, top] = split_loops(loops);
-        _element_geometry_mesh = bottom.empty() ? source_mesh.value_or(Mesh()) : Mesh::loft(bottom, top, true);
+        _element_geometry_mesh =
+            bottom.empty() ? source_mesh.value_or(Mesh()) : Mesh::loft(bottom, top, true);
     }
 
     return *_element_geometry_mesh;
@@ -99,7 +111,8 @@ const BRep& Block::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const auto [bottom, top] = split_loops(loops);
-        _element_geometry_brep = bottom.empty() ? mesh_brep(element_geometry_mesh()) : brep_between_loops(bottom, top);
+        _element_geometry_brep =
+            bottom.empty() ? mesh_brep(element_geometry_mesh()) : brep_between_loops(bottom, top);
     }
 
     return *_element_geometry_brep;
@@ -198,7 +211,6 @@ AABB Block::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-
 nlohmann::ordered_json Block::element_data_jsondump() const {
 
     wood_proto::Block proto;
@@ -211,7 +223,6 @@ nlohmann::ordered_json Block::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Block::element_data_dumps() const {
 
     wood_proto::Block proto;
@@ -246,11 +257,12 @@ void Block::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string Block::str() const {
 
     std::ostringstream os;
-    os << "Block(name=" << name << ", loops=" << loops.size() << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
+    os << "Block(name=" << name << ", loops=" << loops.size()
+       << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha
+       << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
@@ -269,4 +281,4 @@ std::optional<Plane> Block::base_plane() const {
     return frame_along(bottom.get_point(0), bottom.get_point(1) - bottom.get_point(0), up);
 }
 
-}  // namespace wood_session
+}

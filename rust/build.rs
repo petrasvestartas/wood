@@ -1,9 +1,3 @@
-// Generates wood_proto Rust bindings into src/proto/ (committed), as session_rust does for session_proto.
-//
-// The schemas import the kernel's messages, so they regenerate only inside the superproject, where
-// ../../session/session_proto sits beside wood; every other build uses the committed file and needs
-// no protoc. The kernel messages map onto session_rust::proto. REGEN_PROTO=0 skips.
-
 use std::path::PathBuf;
 
 fn main() {

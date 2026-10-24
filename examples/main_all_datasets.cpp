@@ -20,7 +20,8 @@ int main() {
     failures += !type_plates_name_side_to_side_edge_outofplane_octahedron();
     failures += !type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners();
     failures += !type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_combined();
-    failures += !type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
+    failures +=
+        !type_plates_name_side_to_side_edge_inplane_outofplane_simple_corners_different_lengths();
     failures += !type_plates_name_side_to_side_edge_inplane_hilti();
     failures += !type_plates_name_top_to_top_pairs();
     failures += !type_plates_name_side_to_side_edge_outofplane_inplane_and_top_to_top_hexboxes();

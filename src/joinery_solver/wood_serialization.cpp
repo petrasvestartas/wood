@@ -33,4 +33,4 @@ void message_from_json(const nlohmann::json& data, google::protobuf::Message& me
     google::protobuf::json::JsonStringToMessage(data.dump(), &message, options).IgnoreError();
 }
 
-} // namespace wood_session
+}

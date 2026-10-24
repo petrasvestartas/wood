@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The singly folded plate of Engel's folded plate structures (pp. 219, 221): a zigzag of four ridges over a 12 m span, diaphragms
-/// under the folds at both ends and mid-span, a 400 flange folded down at both free edges.
+/// The singly folded plate.
 int main() {
 
     PrismaticFold fold;
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the folding templates: the singly folded plate after Engel, Structure Systems, Folded plate structures (pp. 219-221). A zigzag profile of four ridges, eight plates each 1500 across in plan and 1200 high, so 12 m wide, carried straight over a 12 m span, the depth a tenth of the span; one 120 mm plate per fold, mitered at the folds, acting as a slab between its folds, as a deep beam along the span and with its neighbours as a truss across it. Three transverse diaphragms under the folds, one at each end and one at mid-span, each one plate across the profile between the flanges down to their bottom, stiffen the profile against a change of its fold angles (p. 221, diaphragm below folds); a 400 flange folded down at each free edge, the folds being shallow, mitered like every other fold, stiffens it against buckling (p. 221, edge beam for shallow folding). Each step is a group: profile, folds, mesh, plates, diaphragms.
+Step 3 of the folding templates: the singly folded plate. A zigzag profile of four ridges, eight plates each 1500 across in plan and 1200 high, so 12 m wide, carried straight over a 12 m span, the depth a tenth of the span; one 120 mm plate per fold, mitered at the folds, acting as a slab between its folds, as a deep beam along the span and with its neighbours as a truss across it. Three transverse diaphragms under the folds, one at each end and one at mid-span, each one plate across the profile between the flanges down to their bottom, stiffen the profile against a change of its fold angles; a 400 flange folded down at each free edge, the folds being shallow, mitered like every other fold, stiffens it against buckling. Each step is a group: profile, folds, mesh, plates, diaphragms.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

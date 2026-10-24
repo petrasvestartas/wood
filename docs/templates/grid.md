@@ -279,7 +279,7 @@ Each gallery builds one Grid per case and grafts it under its own group.
 
 ### templates_grid_1_footprint
 
-Workflow B, nine footprints and patterns: an L with purlins and facade walls, a skewed grid, radial, triangular and hexagonal cells, drawn axes, a courtyard, Branch3D's pentagon and its U with two cores.
+Workflow B, nine footprints and patterns: an L with purlins and facade walls, a skewed grid, radial, triangular and hexagonal cells, drawn axes, a courtyard, pentagon and its U with two cores.
 
 ![templates_grid_1_footprint](templates/templates_grid_1_footprint_all.webp)
 
@@ -315,7 +315,7 @@ Workflow C, line by line: compas_grid's crea dataset as drawn, and a braced fram
 
 ### templates_grid_4_reference
 
-The reference configurations: Branch3D's square in its three methods, its residential L with a core, and the four FAST+EPP bays.
+The reference configurations: square in its three methods, its residential L with a core, and the four bays.
 
 ![templates_grid_4_reference](templates/templates_grid_4_reference_all.webp)
 

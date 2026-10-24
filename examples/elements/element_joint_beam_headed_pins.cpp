@@ -8,7 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_headed_pins");
 
-    const std::array<PinLayout, 3> layouts = {PinLayout::corners, PinLayout::vertical, PinLayout::horizontal};
+    const std::array<PinLayout, 3> layouts = {
+        PinLayout::corners, PinLayout::vertical, PinLayout::horizontal
+    };
 
     for (size_t i = 0; i < layouts.size(); i++) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("layout_{}", i));
@@ -21,18 +23,10 @@ int main() {
         scene.add(beam, group);
         scene.add(joist, group);
 
-        // the pins from their contact, added, and passed to each member in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(beam, joist);
-        const std::shared_ptr<JointBeam> pins = JointBeam::headed_pins(
-            *beam,
-            *joist,
-            *contact,
-            layouts[i],
-            3,    // count
-            30.0, // offset: two and a half diameters of wood to the contact's edges
-            0.0,  // shift
-            5.0   // radius
-        );
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(beam, joist);
+        const std::shared_ptr<JointBeam> pins =
+            JointBeam::headed_pins(*beam, *joist, *contact, layouts[i], 3, 30.0, 0.0, 5.0);
         pins->name = fmt::format("pins_{}", i);
         scene.add(pins, group);
         scene.add_interaction(pins, beam, pins->interaction(0));

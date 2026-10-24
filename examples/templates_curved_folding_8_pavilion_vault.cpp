@@ -11,12 +11,21 @@ int main() {
     std::cout << vault << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = vault.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        vault.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("pavilion vault: {} panels, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, vault.get_contacts().size(), vault.distortion(), vault.twist());
+    std::cout << fmt::format(
+        "pavilion vault: {} panels, {} closed solids, {} contacts, development distortion {:.2e}, "
+        "ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        vault.get_contacts().size(),
+        vault.distortion(),
+        vault.twist()
+    );
     vault.pb_dump(pb_path("live"));
     return 0;
 }

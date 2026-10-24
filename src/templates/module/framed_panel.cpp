@@ -6,7 +6,6 @@ namespace wood_module {
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructor
 // ═══════════════════════════════════════════════════════════════════════════
-
 FramedPanel::FramedPanel(
     WoodSession& session,
     const WallGuide& guide,
@@ -14,10 +13,7 @@ FramedPanel::FramedPanel(
     const std::string& name,
     const std::shared_ptr<TreeNode>& parent
 )
-    : guide(guide),
-      base(base),
-      name(name),
-      _session(session),
+    : guide(guide), base(base), name(name), _session(session),
       _group(name.empty() ? parent : session.group_named(name, parent)) {
 
     // rails: the bottom rail, split at every door, and the top rail along the whole panel
@@ -36,7 +32,6 @@ FramedPanel::FramedPanel(
 // ═══════════════════════════════════════════════════════════════════════════
 // Members
 // ═══════════════════════════════════════════════════════════════════════════
-
 void FramedPanel::add_rails() {
 
     const std::shared_ptr<TreeNode> rails = group("rails");
@@ -150,32 +145,30 @@ void FramedPanel::add_studs() {
     // edge studs: at both ends of the panel
     for (const double x : {half, guide.length - half}) {
         const std::shared_ptr<Beam> stud = member(
-            local(x, 0.0, foot),
-            local(x, 0.0, top),
-            w,
-            base.x_axis(),
-            fmt::format("stud_{}", count)
+            local(x, 0.0, foot), local(x, 0.0, top), w, base.x_axis(), fmt::format("stud_{}", count)
         );
         _session.add(stud, studs);
         count++;
     }
 
     // studs: on the grid of the stud spacing from the panel's start, where no edge or jamb stud stands and none stands closer than half
-    // the spacing, the bay beside it already narrower; inside an opening cripples over its header and under its sill
     for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) {
         std::vector<std::array<double, 2>> runs = {{foot, top}};
         std::shared_ptr<TreeNode> place = studs;
         std::string part = fmt::format("stud_{}", count);
-        bool crowded = x - half < 0.5 * guide.stud_spacing || guide.length - half - x < 0.5 * guide.stud_spacing;
+        bool crowded = x - half < 0.5 * guide.stud_spacing ||
+                       guide.length - half - x < 0.5 * guide.stud_spacing;
 
         for (const Opening& opening : guide.openings)
-            if (std::abs(x - (opening.x - half)) < 0.5 * guide.stud_spacing || std::abs(x - (opening.x + opening.width + half)) < 0.5 * guide.stud_spacing)
+            if (std::abs(x - (opening.x - half)) < 0.5 * guide.stud_spacing ||
+                std::abs(x - (opening.x + opening.width + half)) < 0.5 * guide.stud_spacing)
                 crowded = true;
 
         for (size_t o = 0; o < guide.openings.size(); o++) {
             const Opening& opening = guide.openings[o];
             const bool inside = x - half >= opening.x && x + half <= opening.x + opening.width;
-            const bool framed = x + half > opening.x - w && x - half < opening.x + opening.width + w;
+            const bool framed =
+                x + half > opening.x - w && x - half < opening.x + opening.width + w;
 
             if (!framed)
                 continue;
@@ -251,7 +244,9 @@ void FramedPanel::add_sheathing() {
             outlines[k] = Polyline(corners);
         }
 
-        const std::shared_ptr<Plate> sheet = std::make_shared<Plate>(outlines[0], outlines[1], named(fmt::format("sheathing_{}", side)));
+        const std::shared_ptr<Plate> sheet = std::make_shared<Plate>(
+            outlines[0], outlines[1], named(fmt::format("sheathing_{}", side))
+        );
 
         // windows: a hole through both faces of the sheet
         Features features;
@@ -263,8 +258,20 @@ void FramedPanel::add_sheathing() {
                 continue;
 
             const double height = opening.head - opening.sill;
-            features.bottom.push_back(Polyline::rectangle(local(opening.x, levels[0], opening.sill), base.x_axis(), base.y_axis(), opening.width, height));
-            features.top.push_back(Polyline::rectangle(local(opening.x, levels[1], opening.sill), base.x_axis(), base.y_axis(), opening.width, height));
+            features.bottom.push_back(Polyline::rectangle(
+                local(opening.x, levels[0], opening.sill),
+                base.x_axis(),
+                base.y_axis(),
+                opening.width,
+                height
+            ));
+            features.top.push_back(Polyline::rectangle(
+                local(opening.x, levels[1], opening.sill),
+                base.x_axis(),
+                base.y_axis(),
+                opening.width,
+                height
+            ));
         }
 
         sheet->features = features;
@@ -276,7 +283,6 @@ void FramedPanel::add_sheathing() {
 // ═══════════════════════════════════════════════════════════════════════════
 // Steps
 // ═══════════════════════════════════════════════════════════════════════════
-
 Point FramedPanel::local(double along, double across, double up) const {
     return base.origin() + base.x_axis() * along + base.z_axis() * across + base.y_axis() * up;
 }
@@ -290,11 +296,7 @@ std::shared_ptr<TreeNode> FramedPanel::group(const std::string& part) const {
 }
 
 std::shared_ptr<Beam> FramedPanel::member(
-    const Point& start,
-    const Point& end,
-    double size,
-    const Vector& up,
-    const std::string& part
+    const Point& start, const Point& end, double size, const Vector& up, const std::string& part
 ) const {
 
     const Polyline axis({start, end});

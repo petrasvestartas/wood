@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_outplane_miter_tenon: the fixed miter tenon and mortise of a floor and a wall plate mitered at a right angle, on the pairs square and folded to 60 degrees, each drawn apart.
+/// side_side_outplane_miter_tenon.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_outplane_miter_tenon");
@@ -20,8 +20,8 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(floor, wall);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(floor, wall);
         const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon();
         joint->orient(contact, {floor, wall});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
@@ -29,8 +29,8 @@ int main() {
         scene.add_interaction(joint, wall, joint->interaction(0));
         scene.add_interaction(joint, floor, joint->interaction(1));
 
-        // drawn apart 141 along the line between the two plates' centres, so both sides read
-        const Vector apart = (wall->polylines[0].center() - floor->polylines[0].center()).normalized() * 141.4;
+        const Vector apart =
+            (wall->polylines[0].center() - floor->polylines[0].center()).normalized() * 141.4;
         wall->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 

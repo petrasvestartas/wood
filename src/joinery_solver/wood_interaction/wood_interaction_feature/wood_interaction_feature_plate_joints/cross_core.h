@@ -1,7 +1,11 @@
-/// A bottom side of the half-lap, the ring on its four corners extended as 2024 extended the closed polyline: its first
-/// segment by `extension_first` and its third by `extension_second` along the plate, then its second and fourth 0.6 up and
-/// down so the cut clears the plate, both ends each and in that order.
-static Polyline bottom_side(const Point& a, const Point& b, const Point& c, const Point& d, double extension_first, double extension_second) {
+static Polyline bottom_side(
+    const Point& a,
+    const Point& b,
+    const Point& c,
+    const Point& d,
+    double extension_first,
+    double extension_second
+) {
 
     Polyline ring({a, b, c, d, a});
     ring.extend_segment_equally(0, extension_first);
@@ -12,14 +16,7 @@ static Polyline bottom_side(const Point& a, const Point& b, const Point& c, cons
     return ring;
 }
 
-/// The body cross_half_lap to cross_brussels_half_lap share, as 2024 wrote it four times: the half-lap's sixteen points on the shift, five
-/// rings on them (the centre, two top sides, two bottom sides), the bottom sides extended along the plate by
-/// `extension_first` on their first segment and `extension_second` on their third, both ends each, and 0.6 up and down
-/// so the cut clears the plate, the variant's drill lines after them; face 1 is every ring offset along its normal (a
-/// drill stays), the male the female with x and y swapped and z flipped, every outline written twice, and each top side's
-/// pair replaced by the two walls between its ring and the offset ring. The cut types in 2024's order: the centre a
-/// mill_project, the walls slice_projectsheer, the bottom sides mill_project, then each drill's type twice. 2024's
-/// cross_half_lap_drill offset its drill line too, reading past its ring and length arrays; the line keeps where it was declared.
+/// The body cross_half_lap to cross_brussels_half_lap share, as 2024 wrote it four times.
 static void cross_core(
     InteractionFeaturePlate& joint,
     double extension_first,
@@ -36,24 +33,34 @@ static void cross_core(
     const double c = 2.0 * (b - a);
     const double z = 0.5;
     const Point p[16] = {
-        Point(a, -a, 0), Point(-a, -a, 0), Point(-a, a, 0), Point(a, a, 0), // center
-        Point(a + c, -a - c, 0), Point(-a - c, -a - c, 0), Point(-a - c, a + c, 0), Point(a + c, a + c, 0), // center offset
-        Point(b, -b, z), Point(-b, -b, z), Point(-b, b, z), Point(b, b, z), // top
-        Point(b, -b, -z), Point(-b, -b, -z), Point(-b, b, -z), Point(b, b, -z), // bottom
+        Point(a, -a, 0),
+        Point(-a, -a, 0),
+        Point(-a, a, 0),
+        Point(a, a, 0),
+        Point(a + c, -a - c, 0),
+        Point(-a - c, -a - c, 0),
+        Point(-a - c, a + c, 0),
+        Point(a + c, a + c, 0),
+        Point(b, -b, z),
+        Point(-b, -b, z),
+        Point(-b, b, z),
+        Point(b, b, z),
+        Point(b, -b, -z),
+        Point(-b, -b, -z),
+        Point(-b, b, -z),
+        Point(b, b, -z),
     };
     const Vector v0 = ((p[0] - p[1]) * (1.0 / (a * 2.0))) * (0.5 - a);
 
-    // the five rings, then the drill lines
     std::vector<Polyline> rings = {
-        Polyline({p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0}), // center
-        Polyline({p[1] - v0, p[0] + v0, p[8] + v0, p[9] - v0, p[1] - v0}), // top side 0
-        Polyline({p[3] + v0, p[2] - v0, p[10] - v0, p[11] + v0, p[3] + v0}), // top side 1
-        bottom_side(p[2], p[1], p[13], p[14], extension_first, extension_second), // bottom side 0
-        bottom_side(p[0], p[3], p[15], p[12], extension_first, extension_second), // bottom side 1
+        Polyline({p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0}),
+        Polyline({p[1] - v0, p[0] + v0, p[8] + v0, p[9] - v0, p[1] - v0}),
+        Polyline({p[3] + v0, p[2] - v0, p[10] - v0, p[11] + v0, p[3] + v0}),
+        bottom_side(p[2], p[1], p[13], p[14], extension_first, extension_second),
+        bottom_side(p[0], p[3], p[15], p[12], extension_first, extension_second),
     };
     rings.insert(rings.end(), drills.begin(), drills.end());
 
-    // face 1 offset along each ring's normal, the male rotated into the other plate
     const double lengths[5] = {0.5, 0.4, 0.4, 0.4, 0.4};
     const Xform rotation = Xform::from_axes(Vector(0, 1, 0), Vector(1, 0, 0), Vector(0, 0, -1));
     const size_t n = rings.size();
@@ -72,7 +79,6 @@ static void cross_core(
         m1[i] = f1[i].transformed(rotation);
     }
 
-    // every outline twice
     joint.female_outlines[0].clear();
     joint.female_outlines[1].clear();
     joint.male_outlines[0].clear();
@@ -84,7 +90,6 @@ static void cross_core(
         joint.male_outlines[1].insert(joint.male_outlines[1].end(), {m1[i], m1[i]});
     }
 
-    // the top sides, at the doubled ids 2 and 4, become the two walls between their ring and its offset
     for (size_t id = 2; id <= 4; id += 2) {
         std::vector<Polyline>& fo0 = joint.female_outlines[0];
         std::vector<Polyline>& fo1 = joint.female_outlines[1];
@@ -105,11 +110,17 @@ static void cross_core(
         mo1[id + 1] = male_wall_1;
     }
 
-    // the cut types
     std::vector<int> types = {
-        FabricationType::mill_project, FabricationType::mill_project,
-        FabricationType::slice_projectsheer, FabricationType::slice_projectsheer, FabricationType::slice_projectsheer, FabricationType::slice_projectsheer,
-        FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project, FabricationType::mill_project,
+        FabricationType::mill_project,
+        FabricationType::mill_project,
+        FabricationType::slice_projectsheer,
+        FabricationType::slice_projectsheer,
+        FabricationType::slice_projectsheer,
+        FabricationType::slice_projectsheer,
+        FabricationType::mill_project,
+        FabricationType::mill_project,
+        FabricationType::mill_project,
+        FabricationType::mill_project,
     };
     for (const int type : drill_types)
         types.insert(types.end(), {type, type});

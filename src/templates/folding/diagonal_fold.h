@@ -6,17 +6,20 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The heights of a cross fold spanned diagonally over a square plan (Engel, p. 229).
+/// The heights of a cross fold spanned diagonally over a square plan .
 struct DiagonalHeights {
     double corner; // mm, the four corners.
     double middle; // mm, the four edges' middles.
     double diagonal; // mm, the fold point on every diagonal.
-    double along; // Where that point lies on the diagonal, as a share of its length from the corner to the centre.
+    double
+        along; // Where that point lies on the diagonal, as a share of its length from the corner to the centre.
     double centre; // mm, the centre.
 };
 
 /// The sixteen triangles of one cross-folded square centred on centre, half its side half, gathered into fold.
-inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, const DiagonalHeights& heights) {
+inline void add_diagonal_fold(
+    FoldMesh& fold, const Point& centre, double half, const DiagonalHeights& heights
+) {
 
     const std::array<Point, 4> corners = {
         Point(centre[0] - half, centre[1] - half, heights.corner),
@@ -30,8 +33,12 @@ inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, 
         const Point& corner = corners[i];
         const Point& before = corners[(i + 3) % 4];
         const Point& after = corners[(i + 1) % 4];
-        const Point middle_before(0.5 * (corner[0] + before[0]), 0.5 * (corner[1] + before[1]), heights.middle);
-        const Point middle_after(0.5 * (corner[0] + after[0]), 0.5 * (corner[1] + after[1]), heights.middle);
+        const Point middle_before(
+            0.5 * (corner[0] + before[0]), 0.5 * (corner[1] + before[1]), heights.middle
+        );
+        const Point middle_after(
+            0.5 * (corner[0] + after[0]), 0.5 * (corner[1] + after[1]), heights.middle
+        );
         const double x = corner[0] + (centre[0] - corner[0]) * heights.along;
         const double y = corner[1] + (centre[1] - corner[1]) * heights.along;
         const Point diagonal(x, y, heights.diagonal);
@@ -42,11 +49,12 @@ inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, 
     }
 }
 
-/// Cross-folded surfaces spanned diagonally over a square plan after Engel (p. 229), four sectors folded on their diagonals.
+/// Cross-folded surfaces spanned diagonally over a square plan, four sectors folded on their diagonals.
 class DiagonalFold : public WoodSession {
 public:
     const double size; // mm, the square plan's side, centred on the origin.
-    const DiagonalHeights heights; // mm, the corners, edge middles, diagonal fold points and centre.
+    const DiagonalHeights
+        heights; // mm, the corners, edge middles, diagonal fold points and centre.
     const double thickness; // mm, every plate.
 
 private:
@@ -72,15 +80,9 @@ public:
 };
 
 inline DiagonalFold::DiagonalFold(
-    double size,
-    const DiagonalHeights& heights,
-    double thickness,
-    const std::string& name
+    double size, const DiagonalHeights& heights, double thickness, const std::string& name
 )
-    : WoodSession(name),
-      size(size),
-      heights(heights),
-      thickness(thickness) {
+    : WoodSession(name), size(size), heights(heights), thickness(thickness) {
 
     // mesh: the sixteen triangles of the cross fold
     FoldMesh fold;
@@ -99,10 +101,10 @@ inline DiagonalFold::DiagonalFold(
         if (!start || !end)
             continue;
 
-        const bool on_side = std::abs(std::abs((*start)[0]) - half) < 1.0
-            && std::abs(std::abs((*end)[0]) - half) < 1.0;
-        const bool on_front = std::abs(std::abs((*start)[1]) - half) < 1.0
-            && std::abs(std::abs((*end)[1]) - half) < 1.0;
+        const bool on_side = std::abs(std::abs((*start)[0]) - half) < 1.0 &&
+                             std::abs(std::abs((*end)[0]) - half) < 1.0;
+        const bool on_front = std::abs(std::abs((*start)[1]) - half) < 1.0 &&
+                              std::abs(std::abs((*end)[1]) - half) < 1.0;
 
         if (!on_side && !on_front)
             add_polyline(Polyline({*start, *end}), folds);

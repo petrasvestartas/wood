@@ -1,6 +1,8 @@
 
 # Wood
 
+Petras Vestartas, EPFL PhD thesis.
+
 Timber joinery on the session kernel: plates and beams as elements, joints as elements that cut them, models built by templates.
 
 | Page | What it holds |

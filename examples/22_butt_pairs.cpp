@@ -16,7 +16,7 @@ static void draw_line(WoodSession& scene, const Polyline& line) {
     scene.add_polyline(drawn, scene.group_named("input"));
 }
 
-/// A member added with the line or the polygon it was drawn on: a beam's axis, a column's axis, a plate's mid-plane polygon.
+/// A member added with the line or the polygon it was drawn on.
 static void add_drawn(WoodSession& scene, const std::shared_ptr<Element>& member) {
 
     scene.add(member);
@@ -27,18 +27,26 @@ static void add_drawn(WoodSession& scene, const std::shared_ptr<Element>& member
     if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(member)) {
         std::vector<Point> points;
         for (size_t i = 0; i < plate->polylines[0].point_count(); i++)
-            points.push_back(plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5);
+            points.push_back(
+                plate->polylines[0][i] + (plate->polylines[1][i] - plate->polylines[0][i]) * 0.5
+            );
         draw_line(scene, Polyline(points));
     }
 }
 
 /// A pair, its butt or side_side butt passed to both, written to data/output/pb/butt_pair_<name>.pb.
-static void pair(const std::string& name, const std::shared_ptr<Element>& a, const std::shared_ptr<Element>& b, bool side_side = false) {
+static void pair(
+    const std::string& name,
+    const std::shared_ptr<Element>& a,
+    const std::shared_ptr<Element>& b,
+    bool side_side = false
+) {
 
     WoodSession scene("butt_pair_" + name);
     add_drawn(scene, a);
     add_drawn(scene, b);
-    const std::shared_ptr<JointBeam> butt = side_side ? JointBeam::butt_side_side(*a, *b) : JointBeam::butt(*a, *b);
+    const std::shared_ptr<JointBeam> butt =
+        side_side ? JointBeam::butt_side_side(*a, *b) : JointBeam::butt(*a, *b);
     butt->name = fmt::format("{}_{}_{}", butt->name, a->name, b->name);
     scene.add(butt);
     scene.add_interaction(butt, a, butt->interaction(0));
@@ -55,41 +63,145 @@ static std::shared_ptr<Beam> beam(const Point& start, const Point& end, const st
 /// A wall 1500 high and 120 thick standing on a plan line.
 static std::shared_ptr<Plate> wall(const Point& start, const Point& end, const std::string& name) {
 
-    return Plate::from_line(Line::from_points(start, end), Vector(0.0, 0.0, 1.0), 1500.0, 120.0, name);
+    return Plate::from_line(
+        Line::from_points(start, end), Vector(0.0, 0.0, 1.0), 1500.0, 120.0, name
+    );
 }
 
 /// The plan point at angle_degrees from x, length away.
 static Point polar(double angle_degrees, double length) {
 
-    return Point(length * std::cos(angle_degrees * Tolerance::TO_RADIANS), length * std::sin(angle_degrees * Tolerance::TO_RADIANS), 0.0);
+    return Point(
+        length * std::cos(angle_degrees * Tolerance::TO_RADIANS),
+        length * std::sin(angle_degrees * Tolerance::TO_RADIANS),
+        0.0
+    );
 }
 
-/// Butt pairs, beams, plates and both, one scene each: top_side, at an end drawn meeting, past and short, side_side out of plane and in plane, and crosses.
+/// Butt pairs, beams, plates and both.
 int main() {
 
     // beams: top_side square and at 60 degrees, top_side at an end drawn meeting, past and short, side_side_outplane at 120 and 90 degrees, side_side_inplane, a cross
-    pair("beam_top_side", beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "through"), beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "post"));
-    pair("beam_top_side_oblique", beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "through"), beam({0.0, 0.0, 0.0}, {750.0, 0.0, 1300.0}, "strut"));
-    pair("beam_top_side_end", beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"), beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "butting"));
-    pair("beam_top_side_end_past", beam({-150.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"), beam({0.0, 0.0, -150.0}, {0.0, 0.0, 1500.0}, "butting"));
-    pair("beam_top_side_end_short", beam({100.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"), beam({0.0, 0.0, 100.0}, {0.0, 0.0, 1500.0}, "butting"));
-    pair("beam_side_side_outplane", beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "left"), beam({0.0, 0.0, 0.0}, {-750.0, 0.0, 1300.0}, "right"));
-    pair("beam_side_side_outplane_square", beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "left"), beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "right"), true);
-    pair("beam_side_side_inplane", beam({-1500.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, "left"), beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "right"));
-    pair("beam_cross", beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "first"), beam({0.0, -1000.0, 0.0}, {0.0, 1000.0, 0.0}, "second"));
+    pair(
+        "beam_top_side",
+        beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "through"),
+        beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "post")
+    );
+    pair(
+        "beam_top_side_oblique",
+        beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "through"),
+        beam({0.0, 0.0, 0.0}, {750.0, 0.0, 1300.0}, "strut")
+    );
+    pair(
+        "beam_top_side_end",
+        beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"),
+        beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "butting")
+    );
+    pair(
+        "beam_top_side_end_past",
+        beam({-150.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"),
+        beam({0.0, 0.0, -150.0}, {0.0, 0.0, 1500.0}, "butting")
+    );
+    pair(
+        "beam_top_side_end_short",
+        beam({100.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "running"),
+        beam({0.0, 0.0, 100.0}, {0.0, 0.0, 1500.0}, "butting")
+    );
+    pair(
+        "beam_side_side_outplane",
+        beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "left"),
+        beam({0.0, 0.0, 0.0}, {-750.0, 0.0, 1300.0}, "right")
+    );
+    pair(
+        "beam_side_side_outplane_square",
+        beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "left"),
+        beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}, "right"),
+        true
+    );
+    pair(
+        "beam_side_side_inplane",
+        beam({-1500.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, "left"),
+        beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "right")
+    );
+    pair(
+        "beam_cross",
+        beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "first"),
+        beam({0.0, -1000.0, 0.0}, {0.0, 1000.0, 0.0}, "second")
+    );
 
     // plates: top_side, top_side at an end, side_side_outplane at 120 degrees, side_side_inplane, a wall top_side on a floor, a cross
-    pair("plate_top_side", wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "through"), wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0}, "butting"));
-    pair("plate_top_side_end", wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "running"), wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0}, "butting"));
-    pair("plate_side_side_outplane", wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "left"), wall({0.0, 0.0, 0.0}, polar(120.0, 2000.0), "right"));
-    pair("plate_side_side_inplane", wall({-2000.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, "left"), wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "right"));
-    pair("plate_top_side_floor", Plate::from_rectangle({-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "floor"), wall({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "wall"));
-    pair("plate_cross", wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "first"), wall({0.0, -1500.0, 0.0}, {0.0, 1500.0, 0.0}, "second"));
+    pair(
+        "plate_top_side",
+        wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "through"),
+        wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0}, "butting")
+    );
+    pair(
+        "plate_top_side_end",
+        wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "running"),
+        wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0}, "butting")
+    );
+    pair(
+        "plate_side_side_outplane",
+        wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "left"),
+        wall({0.0, 0.0, 0.0}, polar(120.0, 2000.0), "right")
+    );
+    pair(
+        "plate_side_side_inplane",
+        wall({-2000.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, "left"),
+        wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}, "right")
+    );
+    pair(
+        "plate_top_side_floor",
+        Plate::from_rectangle(
+            {-1500.0, -1500.0, -100.0},
+            {1.0, 0.0, 0.0},
+            {0.0, 1.0, 0.0},
+            3000.0,
+            3000.0,
+            200.0,
+            "floor"
+        ),
+        wall({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}, "wall")
+    );
+    pair(
+        "plate_cross",
+        wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "first"),
+        wall({0.0, -1500.0, 0.0}, {0.0, 1500.0, 0.0}, "second")
+    );
 
     // beams and plates, all top_side: a column under a slab, a wall on a beam, a beam into a wall at 60 degrees in plan
-    pair("column_top_side_plate", Plate::from_rectangle({-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "slab"), Column::square(Line::from_points({0.0, 0.0, -2000.0}, {0.0, 0.0, 0.0}), Plane({-100.0, -100.0, -2000.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}), 200.0, "column"));
-    pair("plate_top_side_beam", std::make_shared<Beam>(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam"), wall({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0}, "wall"));
-    pair("beam_top_side_plate", wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "wall"), beam({0.0, 0.0, 800.0}, Point(0.0, 0.0, 800.0) + Vector(polar(-60.0, 1500.0)[0], polar(-60.0, 1500.0)[1], 0.0), "beam"));
+    pair(
+        "column_top_side_plate",
+        Plate::from_rectangle(
+            {-1500.0, -1500.0, -100.0},
+            {1.0, 0.0, 0.0},
+            {0.0, 1.0, 0.0},
+            3000.0,
+            3000.0,
+            200.0,
+            "slab"
+        ),
+        Column::square(
+            Line::from_points({0.0, 0.0, -2000.0}, {0.0, 0.0, 0.0}),
+            Plane({-100.0, -100.0, -2000.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}),
+            200.0,
+            "column"
+        )
+    );
+    pair(
+        "plate_top_side_beam",
+        std::make_shared<Beam>(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam"),
+        wall({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0}, "wall")
+    );
+    pair(
+        "beam_top_side_plate",
+        wall({-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}, "wall"),
+        beam(
+            {0.0, 0.0, 800.0},
+            Point(0.0, 0.0, 800.0) + Vector(polar(-60.0, 1500.0)[0], polar(-60.0, 1500.0)[1], 0.0),
+            "beam"
+        )
+    );
     return 0;
 }
 

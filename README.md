@@ -1,5 +1,7 @@
 # wood
 
+Petras Vestartas, EPFL PhD thesis.
+
 Timber joinery over the `session_cpp` kernel: plates touch, the solver finds where, decides
 which joint fits, and cuts it into both plates.
 
@@ -106,10 +108,10 @@ Every push builds the same site in CI and publishes it at https://petrasvestarta
 | `templates_module_1_wall` | `src/templates/module/wall.h`: a framed wall module with a door and a window, beams of one section with the studs on a 625 mm grid and jamb studs at every opening, one sheathing plate on each face with the openings cut out, a face contact between every pair that touches |
 | `templates_module_2_cassette_shell` | `src/templates/module/cassette_shell.h`: a segmented shell of hollow cassettes on the VDA dome, two thin plates and mitered edge beams per cell cut on the bevel shared with each neighbour, every contact between cassettes detected |
 | `templates_module_3_cassette_house` | `CassetteShell::house_mesh`: a 6000 x 4000 gable house of six cassettes, one per face, the door a notch in the front, each two panels with its windows cut out and a framed core, joined in T joints, every contact between cassettes detected |
-| `templates_module_4_room_module`, `templates_module_5_module_block`, `templates_module_6_bank_pavilion` | `src/templates/module/room_module.h`: timber frame modules after Blumer Lehmann, 9 x 3 m with 2.7 m clear, floor and ceiling of long edge beams a wall wide over the whole length on and under the corner posts, joists across flush on both faces, the ceiling thinner with deep edge beams, the ceiling edge beam one deeper beam on the open sides, on corner posts, walls only on the closed sides, two forming one room open between them with a post at mid-length; a block of four side by side and three storeys like the ZM10 pavilions; and the bank pavilion of four modules from the Blumer Lehmann brochure, measured from its plan; every contact detected |
+| `templates_module_4_room_module`, `templates_module_5_module_block`, `templates_module_6_bank_pavilion` | `src/templates/module/room_module.h`: timber frame modules 9 x 3 m with 2.7 m clear, floor and ceiling of long edge beams a wall wide over the whole length on and under the corner posts, joists across flush on both faces, the ceiling thinner with deep edge beams, the ceiling edge beam one deeper beam on the open sides, on corner posts, walls only on the closed sides, two forming one room open between them with a post at mid-length; a block of four side by side and three storeys; and the bank pavilion of four modules; every contact detected |
 | `templates_grid_1_footprint` | `src/templates/grid/grid.h` on footprints with patterns (workflow B), side by side: orthogonal with purlins and facade, skewed, radial, triangular, hex, irregular, courtyard, pentagon, U with two cores; every joint a plane cut, written to `live.pb` |
 | `templates_grid_2_solid` | the same from massing solids sliced at the elevations (workflow A): box, prism, taper, setback, atrium, curved |
 | `templates_grid_3_lines` | the same from drawn lines and surfaces (workflow C): the crea dataset and a braced frame |
-| `templates_grid_4_reference`, `templates_grid_5_framing` | the Branch3D and FAST+EPP configurations reproduced; heads (column section, conical, stepped), node flush/through, purlin joints, the profile library, and a clash check that exits 1 on any overlap |
+| `templates_grid_4_reference`, `templates_grid_5_framing` | the reference configurations reproduced; heads (column section, conical, stepped), node flush/through, purlin joints, the profile library, and a clash check that exits 1 on any overlap |
 
 Architecture notes: `docs/wood_kernel.md`; every template with a screenshot: `docs/templates.md`.

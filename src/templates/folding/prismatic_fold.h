@@ -5,13 +5,15 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A singly folded plate after Engel (pp. 219-221): a fold profile carried straight along the span, diaphragms under the folds.
+/// A singly folded plate: a fold profile carried straight along the span, diaphragms under the folds.
 class PrismaticFold : public WoodSession {
 public:
-    const Polyline profile; // The fold profile in the yz plane at x 0, running along +y, a fold at every inner point.
+    const Polyline
+        profile; // The fold profile in the yz plane at x 0, running along +y, a fold at every inner point.
     const double span; // mm along x, the folds' length between the end supports.
     const double thickness; // mm, every plate and diaphragm.
-    const size_t diaphragms; // Transverse diaphragms under the folds, one at each end and the rest evenly between; 0 for none.
+    const size_t
+        diaphragms; // Transverse diaphragms under the folds, one at each end and the rest evenly between; 0 for none.
     const double edge_flange; // mm, the flange folded on at each free edge; 0 for none.
 
 private:
@@ -41,10 +43,10 @@ public:
     /// The folded quad mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
 
-    /// The zigzag of ridges ridges between valleys on z 0 (p. 219), every plate fold_width across in plan and depth high.
+    /// The zigzag of ridges ridges between valleys on z 0, every plate fold_width across in plan and depth high.
     static Polyline zigzag(size_t ridges, double fold_width, double depth);
 
-    /// The polygon of folds folds over width, its corners on a circular arc rising rise (p. 220).
+    /// The polygon of folds folds over width, its corners on a circular arc rising rise.
     static Polyline polygon(size_t folds, double width, double rise);
 
 private:
@@ -69,11 +71,7 @@ inline PrismaticFold::PrismaticFold(
     double edge_flange,
     const std::string& name
 )
-    : WoodSession(name),
-      profile(profile),
-      span(span),
-      thickness(thickness),
-      diaphragms(diaphragms),
+    : WoodSession(name), profile(profile), span(span), thickness(thickness), diaphragms(diaphragms),
       edge_flange(edge_flange) {
 
     const Vector x(1.0, 0.0, 0.0);
@@ -99,14 +97,8 @@ inline PrismaticFold::PrismaticFold(
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), x),
         Plane::from_point_normal(Point(span, 0.0, 0.0), x),
     };
-    const std::vector<std::shared_ptr<Plate>> fold_plates = mitered_plates(
-        _mesh,
-        thickness,
-        0.0,
-        0.0,
-        180.0,
-        ends
-    );
+    const std::vector<std::shared_ptr<Plate>> fold_plates =
+        mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0, ends);
 
     for (const std::shared_ptr<Plate>& plate : fold_plates)
         add(plate, plates);
@@ -116,9 +108,9 @@ inline PrismaticFold::PrismaticFold(
     const std::shared_ptr<TreeNode> stiffeners = add_group("diaphragms");
 
     for (size_t k = 0; k < diaphragms; k++) {
-        const double along = diaphragms == 1
-            ? 0.5 * (span - thickness)
-            : (span - thickness) * static_cast<double>(k) / static_cast<double>(diaphragms - 1);
+        const double along = diaphragms == 1 ? 0.5 * (span - thickness)
+                                             : (span - thickness) * static_cast<double>(k) /
+                                                   static_cast<double>(diaphragms - 1);
         const Polyline bottom = outline.transformed(Xform::translation(along, 0.0, 0.0));
         const Polyline top = outline.transformed(Xform::translation(along + thickness, 0.0, 0.0));
         add(std::make_shared<Plate>(bottom, top, fmt::format("diaphragm_{}", k)), stiffeners);
@@ -145,8 +137,10 @@ inline Polyline PrismaticFold::compute_folded_profile() const {
     const Vector end_slope = profile[last - 1] - profile[last];
     const bool start_steep = std::abs(start_slope[2]) > std::abs(start_slope[1]);
     const bool end_steep = std::abs(end_slope[2]) > std::abs(end_slope[1]);
-    const Vector start_flange = start_steep ? Vector(0.0, -edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange);
-    const Vector end_flange = end_steep ? Vector(0.0, edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange);
+    const Vector start_flange =
+        start_steep ? Vector(0.0, -edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange);
+    const Vector end_flange =
+        end_steep ? Vector(0.0, edge_flange, 0.0) : Vector(0.0, 0.0, -edge_flange);
     points.insert(points.begin(), profile[0] + start_flange);
     points.push_back(profile[last] + end_flange);
     return Polyline(points);
@@ -171,8 +165,11 @@ inline Polyline PrismaticFold::polygon(size_t folds, double width, double rise) 
     std::vector<Point> points;
 
     for (size_t i = 0; i <= folds + 1; i++) {
-        const double angle = -opening + 2.0 * opening * static_cast<double>(i) / static_cast<double>(folds + 1);
-        points.push_back(Point(0.0, half + radius * std::sin(angle), rise - radius + radius * std::cos(angle)));
+        const double angle =
+            -opening + 2.0 * opening * static_cast<double>(i) / static_cast<double>(folds + 1);
+        points.push_back(
+            Point(0.0, half + radius * std::sin(angle), rise - radius + radius * std::cos(angle))
+        );
     }
 
     return Polyline(points);
@@ -231,7 +228,6 @@ inline Polyline PrismaticFold::compute_diaphragm_outline(const std::vector<Point
     for (size_t i = 0; i < _folded.point_count(); i++)
         lowest = std::min(lowest, _folded[i][2]);
 
-    // the inner profile, a free edge above the lowest level dropped onto it, closed along it
     std::vector<Point> points = inner;
 
     if (points.back()[2] - lowest > 1.0)

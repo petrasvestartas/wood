@@ -1,5 +1,3 @@
-//! Plate: a bottom and a top outline, the solid lofted between them.
-
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{brep_between_loops, compute_newell, frame_along};
 use crate::proto;
@@ -17,6 +15,7 @@ pub struct Plate {
 }
 
 impl Plate {
+
     /// A plate between two outlines, both reversed when the bottom normal points toward the top, as the C++ constructor does.
     pub fn new(bottom: &Polyline, top: &Polyline, name: &str) -> Self {
         let mut bottom = bottom.clone();

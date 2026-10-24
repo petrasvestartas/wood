@@ -16,7 +16,7 @@ static std::vector<Point> arc(double r, double y) {
     return points;
 }
 
-/// A curved plate: a strip of a barrel vault, 120 thick between the outer and the inner arc, 600 wide between its two meridians.
+/// A curved plate.
 int main() {
 
     WoodSession scene("element_plate_curved");

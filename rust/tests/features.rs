@@ -1,5 +1,3 @@
-//! The features a Rust element writes equal those C++ wrote for the same element in the wood examples.
-
 mod common;
 
 use common::*;

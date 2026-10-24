@@ -7,13 +7,17 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a beam whose section changes along it: closed sections, one per station, lofted in order along a straight axis; a rib under a parabola or a beam between two slanted faces.
+/// Element that represents a beam whose section changes along it.
 class BeamVariable : public WoodElement {
 public:
-    static constexpr std::string_view ELEMENT_TYPE = "BeamVariable"; // The element_type this beam is written under.
-    Line axis; // Straight reference line from the first section to the last; contact detection tells end faces from side faces by it.
-    std::vector<Polyline> sections; // Closed rings with one point count, one per station in axis order.
-    std::vector<Plane> cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    static constexpr std::string_view ELEMENT_TYPE =
+        "BeamVariable"; // The element_type this beam is written under.
+    Line
+        axis; // Straight reference line from the first section to the last; contact detection tells end faces from side faces by it.
+    std::vector<Polyline>
+        sections; // Closed rings with one point count, one per station in axis order.
+    std::vector<Plane>
+        cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
 
 protected:
     /// The solid trimmed by its cut planes as a Mesh, before the solid cuts.
@@ -30,26 +34,44 @@ public:
     BeamVariable();
 
     /// A beam lofted through its sections along the axis; `name` is the type flag face_contacts() filters on.
-    BeamVariable(const Line& axis, const std::vector<Polyline>& sections, const std::string& name = "beam_variable");
+    BeamVariable(
+        const Line& axis,
+        const std::vector<Polyline>& sections,
+        const std::string& name = "beam_variable"
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A straight beam between two end sections, its axis from the first section's centroid to the last's; the ends may be slanted.
-    static std::shared_ptr<BeamVariable> between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
+    static std::shared_ptr<BeamVariable>
+    between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
 
-    /// A straight beam of rectangular section, `length` along the horizontal `direction` from `start`, the bottom middle of its first end: `width` across and `height` up z.
-    static std::shared_ptr<BeamVariable> box(const Point& start, const Vector& direction, double length, double width, double height, const std::string& name = "beam");
+    /// A straight beam of rectangular section, `length` along the horizontal `direction` from `start`.
+    static std::shared_ptr<BeamVariable>
+    box(const Point& start,
+        const Vector& direction,
+        double length,
+        double width,
+        double height,
+        const std::string& name = "beam");
 
     /// Two beams along x touching side by side: "left" on negative y, "right" on positive y.
-    static std::array<std::shared_ptr<BeamVariable>, 2> pair_side_by_side(double length = 1600.0, double width = 200.0, double height = 300.0);
+    static std::array<std::shared_ptr<BeamVariable>, 2>
+    pair_side_by_side(double length = 1600.0, double width = 200.0, double height = 300.0);
 
     /// Two beams along x end to end: "first" ends where "second" starts.
-    static std::array<std::shared_ptr<BeamVariable>, 2> pair_end_to_end(double length = 1000.0, double width = 200.0, double height = 300.0);
+    static std::array<std::shared_ptr<BeamVariable>, 2>
+    pair_end_to_end(double length = 1000.0, double width = 200.0, double height = 300.0);
 
     /// A "beam" along x and a "joist" as long, running along y from the middle of its side.
-    static std::array<std::shared_ptr<BeamVariable>, 2> pair_tee(double length = 600.0, double width = 120.0, double joist_width = 160.0, double height = 300.0);
+    static std::array<std::shared_ptr<BeamVariable>, 2> pair_tee(
+        double length = 600.0,
+        double width = 120.0,
+        double joist_width = 160.0,
+        double height = 300.0
+    );
 
     /// The beam an Element tagged "BeamVariable" describes, same guid; a missing payload leaves the axis and sections empty.
     static std::shared_ptr<BeamVariable> from_element(Element element);
@@ -58,27 +80,24 @@ public:
     // Outlines
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The top face's outline, as a plate's top: of four-cornered sections, the side highest in z at the first station taken at every station, along the beam and back, cut by its planes and plane features, closed; empty for other sections.
+    /// The top face's outline, as a plate's top.
     Polyline top() const;
 
-    /// The bottom face's outline, the side opposite the top's at every station, cut by its planes and plane features; empty for sections that are not four-cornered.
+    /// The bottom face's outline.
     Polyline bottom() const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The parametric shape alone, before joints or cuts as a Mesh: one face per section cap and one per side strip whose quads share a plane, else a face per quad.
+    /// The parametric shape alone, before joints or cuts as a Mesh.
     const Mesh& element_geometry_mesh() const override;
 
     /// The parametric shape alone, before joints or cuts as a BRep of planar faces.
     const BRep& element_geometry_brep() const override;
 
-
-
     /// One plane per face of the model solid with a Newell normal.
     std::vector<Plane> compute_planes() const override;
-
 
     /// A copy moved by xform from the parameters alone, guid and name kept; nullptr for a mirror.
     std::shared_ptr<BeamVariable> transformed(const Xform& xform) const;
@@ -138,4 +157,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

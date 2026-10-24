@@ -8,26 +8,21 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactFace - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 InteractionContactFace::InteractionContactFace(
     int face_a,
     int face_b,
     ContactType type,
     Polyline polygon,
     std::array<Line, 2> lines,
-    std::array<Polyline, 4> volumes)
-    : face_a(face_a),
-      face_b(face_b),
-      type(type),
-      polygon(std::move(polygon)),
-      lines(std::move(lines)),
-      volumes(std::move(volumes))
-{}
+    std::array<Polyline, 4> volumes
+)
+    : face_a(face_a), face_b(face_b), type(type), polygon(std::move(polygon)),
+      lines(std::move(lines)), volumes(std::move(volumes)) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactFace - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionContactFace::kind() const {
     return "face";
 }
@@ -42,7 +37,8 @@ void InteractionContactFace::flip() {
 
 std::shared_ptr<InteractionContact> InteractionContactFace::flipped() const {
 
-    const std::shared_ptr<InteractionContactFace> out = std::make_shared<InteractionContactFace>(*this);
+    const std::shared_ptr<InteractionContactFace> out =
+        std::make_shared<InteractionContactFace>(*this);
     out->flip();
 
     return out;
@@ -58,7 +54,6 @@ bool InteractionContactFace::coincides(const InteractionContact& other) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactFace - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactFace::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -110,7 +105,9 @@ std::shared_ptr<Interaction> InteractionContactFace::clone() const {
 
 /// The registered factory: interaction_data bytes to a face contact.
 static std::shared_ptr<Interaction> contact_face_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionContactFace>(InteractionContactFace::interaction_data_loads(data));
+    return std::make_shared<InteractionContactFace>(
+        InteractionContactFace::interaction_data_loads(data)
+    );
 }
 
 void InteractionContactFace::register_type() {
@@ -120,7 +117,6 @@ void InteractionContactFace::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactFace - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactFace::str() const {
     return fmt::format(
         "InteractionContactFace(face_a={}, face_b={}, type={}, polygon={}, lines={}, volumes={})\n",
@@ -133,4 +129,4 @@ std::string InteractionContactFace::str() const {
     );
 }
 
-} // namespace wood_session
+}

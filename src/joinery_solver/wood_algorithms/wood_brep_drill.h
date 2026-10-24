@@ -17,31 +17,28 @@ struct PlanarFace {
 
 /// One round hole: its axis, start to end, and its radius.
 struct Drill {
-    Line axis; // The hole runs along it; where an end lies inside the solid the hole stops there with a flat bottom.
+    Line
+        axis; // The hole runs along it; where an end lies inside the solid the hole stops there with a flat bottom.
     double radius = 0.0; // Hole radius.
 };
 
 /// The shortest distance between two segments.
-double segment_distance(
-    const Point& p0,
-    const Point& p1,
-    const Point& q0,
-    const Point& q1
-);
+double segment_distance(const Point& p0, const Point& p1, const Point& q0, const Point& q1);
 
-/// The drills with every two of one radius on one axis whose spans meet or overlap joined into one, so two blind holes meeting in the middle make one through bore.
+/// Joins overlapping coaxial drills of the same radius.
 std::vector<Drill> merged_drills(std::vector<Drill> drills);
 
-/// The closed solid of a mesh with planar faces as a BRep with exact round holes, coplanar faces merged and every edge shared one-to-one; empty when a drill passes within its radius of an edge or of another drill, or a face is not planar.
+/// Builds an exact drilled BRep from planar mesh faces, returning empty for unsupported intersections.
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& drills);
 
-/// The drills merged as drilled_brep merges them, split by whether it can bore each exactly: [0] every stretch clear of the face edges and of the other drills and steep enough, [1] the others, all of them when a face is not planar.
-std::array<std::vector<Drill>, 2> split_clear_drills(const Mesh& mesh, const std::vector<Drill>& drills);
+/// The drills merged as drilled_brep merges them, split by whether it can bore each exactly.
+std::array<std::vector<Drill>, 2>
+split_clear_drills(const Mesh& mesh, const std::vector<Drill>& drills);
 
-/// The stretches where the line's infinite extension runs inside a closed mesh with planar faces, as parameter pairs in mm from its start, the line's own ends not clipping them.
+/// Returns line intervals inside a closed planar mesh, measured in millimetres from the start.
 std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line);
 
-/// The planar faces of a mesh, every set of edge-adjacent coplanar mesh faces merged into one face with its outer loop and holes, each with its frame; empty when a face is not planar. Find them once for many is_inside tests.
+/// The planar faces of a mesh.
 std::vector<PlanarFace> planar_faces(const Mesh& mesh);
 
 /// Whether a point lies inside the closed solid of planar_faces, by the parity of the faces a ray from it crosses.

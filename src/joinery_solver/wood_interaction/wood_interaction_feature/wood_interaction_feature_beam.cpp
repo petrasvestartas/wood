@@ -8,7 +8,6 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureBeam - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionFeatureBeam::kind() const {
     return "beam";
 }
@@ -16,7 +15,6 @@ std::string_view InteractionFeatureBeam::kind() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureBeam - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeatureBeam::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -65,7 +63,9 @@ std::shared_ptr<Interaction> InteractionFeatureBeam::clone() const {
 
 /// The registered factory: interaction_data bytes to a beam joint.
 static std::shared_ptr<Interaction> feature_beam_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionFeatureBeam>(InteractionFeatureBeam::interaction_data_loads(data));
+    return std::make_shared<InteractionFeatureBeam>(
+        InteractionFeatureBeam::interaction_data_loads(data)
+    );
 }
 
 void InteractionFeatureBeam::register_type() {
@@ -75,9 +75,8 @@ void InteractionFeatureBeam::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureBeam - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeatureBeam::str() const {
     return fmt::format("InteractionFeatureBeam(end_type={})", end_type);
 }
 
-} // namespace wood_session
+}

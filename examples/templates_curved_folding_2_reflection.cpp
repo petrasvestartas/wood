@@ -4,11 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// the IBOIS reflection principle: a vertical strip with a circular arc section, cut by the plane R and the part beyond it mirrored in R, bending the strip by 120 degrees; two lamellas meeting on one mitred crease, the plane's section of the arc.
+/// the IBOIS reflection principle.
 int main() {
 
     ReflectionFold fold(
-        {Primitives::arc(Point(500.0, -866.0, 3000.0), Point(1000.0, 0.0, 3000.0), Point(500.0, 866.0, 3000.0))},
+        {Primitives::arc(
+            Point(500.0, -866.0, 3000.0), Point(1000.0, 0.0, 3000.0), Point(500.0, 866.0, 3000.0)
+        )},
         Vector(0.0, 0.0, -1.0),
         Vector(0.0, -1.0, 0.0),
         3500.0,
@@ -17,12 +19,21 @@ int main() {
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("reflection: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "reflection: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, "
+        "ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

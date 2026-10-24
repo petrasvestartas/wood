@@ -8,7 +8,9 @@ int main() {
 
     WoodSession scene("element_pin");
 
-    scene.add(std::make_shared<Pin>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 200.0}), 10.0, 0.05));
+    scene.add(
+        std::make_shared<Pin>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 200.0}), 10.0, 0.05)
+    );
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

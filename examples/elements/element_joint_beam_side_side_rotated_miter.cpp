@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_rotated_miter on beams: a miter trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
+/// side_side_rotated_miter on beams.
 int main() {
 
     WoodSession scene("element_joint_beam_side_side_rotated_miter");
@@ -21,9 +21,11 @@ int main() {
             scene.add(beam, group);
         }
 
-        // the joint from their axis contact, added and passed to each beam
-        const InteractionContactAxis contact(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0);
-        const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
+        const InteractionContactAxis contact(
+            Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0
+        );
+        const std::shared_ptr<JointBeam> joint =
+            JointBeam::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
         scene.add_interaction(joint, first, joint->interaction(0));

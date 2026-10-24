@@ -3,20 +3,32 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// cross_custom: Manis's half-lap with a funnel mouth, a slot chamfered open at its mouth in each of two upright plates crossing at their middles, on the pairs square and crossing at 60 degrees, each drawn apart.
+/// cross_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_cross_custom");
 
-    // Manis's half-lap with a funnel mouth (IBOIS, add_halflap) in the joint's unit box, mapped onto the cross: one plate's thickness along
-    // x, the other's along y and the cross's depth along z, its middle at z = 0; a closed outline per face clipped into each plate, the
-    // male's on the faces at y = 0.5 and y = -0.5, the female's on x = -0.5 and x = 0.5: each slot straight from its bottom at z = -0.4, then
-    // chamfered out at 45 degrees by a quarter of the thickness on each side, so the other plate slides in
     const auto male_slot = [](double y) {
-        return Polyline({{0.75, y, -1.0}, {-0.75, y, -1.0}, {-0.5, y, -0.75}, {-0.5, y, -0.4}, {0.5, y, -0.4}, {0.5, y, -0.75}, {0.75, y, -1.0}});
+        return Polyline(
+            {{0.75, y, -1.0},
+             {-0.75, y, -1.0},
+             {-0.5, y, -0.75},
+             {-0.5, y, -0.4},
+             {0.5, y, -0.4},
+             {0.5, y, -0.75},
+             {0.75, y, -1.0}}
+        );
     };
     const auto female_slot = [](double x) {
-        return Polyline({{x, -0.75, 1.0}, {x, 0.75, 1.0}, {x, 0.5, 0.75}, {x, 0.5, -0.4}, {x, -0.5, -0.4}, {x, -0.5, 0.75}, {x, -0.75, 1.0}});
+        return Polyline(
+            {{x, -0.75, 1.0},
+             {x, 0.75, 1.0},
+             {x, 0.5, 0.75},
+             {x, 0.5, -0.4},
+             {x, -0.5, -0.4},
+             {x, -0.5, 0.75},
+             {x, -0.75, 1.0}}
+        );
     };
     const std::vector<Polyline> male = {male_slot(0.5), male_slot(-0.5)};
     const std::vector<Polyline> female = {female_slot(-0.5), female_slot(0.5)};
@@ -33,8 +45,8 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactCross> contact = scene.compute_cross_contact(first, second);
+        const std::shared_ptr<InteractionContactCross> contact =
+            scene.compute_cross_contact(first, second);
         const std::shared_ptr<JointPlate> joint = JointPlate::cross_custom(male, female);
         joint->orient(contact, {first, second});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
@@ -42,7 +54,6 @@ int main() {
         scene.add_interaction(joint, first, joint->interaction(0));
         scene.add_interaction(joint, second, joint->interaction(1));
 
-        // drawn apart 250 down, the way the second plate comes out of its slot
         const Vector apart(0.0, 0.0, -250.0);
         second->place(Xform::translation(apart[0], apart[1], apart[2]));
     }

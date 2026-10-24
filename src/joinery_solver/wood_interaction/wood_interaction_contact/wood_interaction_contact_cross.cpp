@@ -8,7 +8,6 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactCross - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionContactCross::kind() const {
     return "cross";
 }
@@ -21,7 +20,8 @@ void InteractionContactCross::flip() {
 
 std::shared_ptr<InteractionContact> InteractionContactCross::flipped() const {
 
-    const std::shared_ptr<InteractionContactCross> out = std::make_shared<InteractionContactCross>(*this);
+    const std::shared_ptr<InteractionContactCross> out =
+        std::make_shared<InteractionContactCross>(*this);
     out->flip();
 
     return out;
@@ -37,7 +37,6 @@ bool InteractionContactCross::coincides(const InteractionContact& other) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactCross - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactCross::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -96,7 +95,9 @@ std::shared_ptr<Interaction> InteractionContactCross::clone() const {
 
 /// The registered factory: interaction_data bytes to a cross contact.
 static std::shared_ptr<Interaction> contact_cross_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionContactCross>(InteractionContactCross::interaction_data_loads(data));
+    return std::make_shared<InteractionContactCross>(
+        InteractionContactCross::interaction_data_loads(data)
+    );
 }
 
 void InteractionContactCross::register_type() {
@@ -106,9 +107,15 @@ void InteractionContactCross::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactCross - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactCross::str() const {
-    return fmt::format("InteractionContactCross(faces_a=({}, {}), faces_b=({}, {}), points={})", faces_a[0], faces_a[1], faces_b[0], faces_b[1], polygon.point_count());
+    return fmt::format(
+        "InteractionContactCross(faces_a=({}, {}), faces_b=({}, {}), points={})",
+        faces_a[0],
+        faces_a[1],
+        faces_b[0],
+        faces_b[1],
+        polygon.point_count()
+    );
 }
 
-} // namespace wood_session
+}

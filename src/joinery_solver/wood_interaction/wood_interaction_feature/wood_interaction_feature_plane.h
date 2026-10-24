@@ -8,11 +8,13 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A plane feature: a plane one element cuts another by, the target keeping the side the normal points to. Added with WoodSession::add_interaction(source, target, feature): the edge keeps the plane in the source's frame, the target a copy in its own frame, applied before its solid features are taken away.
+/// A plane feature: a plane one element cuts another by, the target keeping the side the normal points to.
 class InteractionFeaturePlane : public InteractionFeature {
 public:
-    static constexpr std::string_view INTERACTION_TYPE = "InteractionFeaturePlane"; // The tag the kernel writes and the registry reads.
-    std::string source; // The guid of the element that put it there, so its next feature replaces it.
+    static constexpr std::string_view INTERACTION_TYPE =
+        "InteractionFeaturePlane"; // The tag the kernel writes and the registry reads.
+    std::string
+        source; // The guid of the element that put it there, so its next feature replaces it.
     Plane plane; // The cutting plane; the target keeps the side its normal points to.
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -65,4 +67,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

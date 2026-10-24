@@ -6,8 +6,10 @@ using namespace wood_session;
 int main() {
 
     WoodSession wood_session("beams");
-    wood_session.add(std::make_shared<Beam>(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0));
-    wood_session.add(std::make_shared<Beam>(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0));
+    wood_session.add(std::make_shared<Beam>(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0)
+    );
+    wood_session.add(std::make_shared<Beam>(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0)
+    );
     wood_session.add(std::make_shared<Beam>(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
 
     wood_session.compute_axis_contacts(5.0);
@@ -17,7 +19,16 @@ int main() {
         const std::shared_ptr<Beam> a = wood_session.get_element<Beam>(joint->targets[0]);
         const std::shared_ptr<Beam> b = wood_session.get_element<Beam>(joint->targets[1]);
         const int end = joint->feature.end_type;
-        std::cout << fmt::format("{} with {}: end type {} ({}), {} volume rectangles\n", a->name, b->name, end, end == 0 ? "crossing" : end == 1 ? "side to end" : "end to end", joint->feature.volumes.size());
+        std::cout << fmt::format(
+            "{} with {}: end type {} ({}), {} volume rectangles\n",
+            a->name,
+            b->name,
+            end,
+            end == 0   ? "crossing"
+            : end == 1 ? "side to end"
+                       : "end to end",
+            joint->feature.volumes.size()
+        );
     }
 
     wood_session.pb_dump(pb_path("live"));

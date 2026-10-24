@@ -11,10 +11,15 @@ namespace wood_session {
 /// One crossing of two plates: where their side faces pass through each other, as plane_to_face computes it.
 class InteractionContactCross : public InteractionContact {
 public:
-    static constexpr std::string_view INTERACTION_TYPE = "InteractionContactCross"; // The tag the kernel writes and the registry reads.
+    static constexpr std::string_view INTERACTION_TYPE =
+        "InteractionContactCross"; // The tag the kernel writes and the registry reads.
 
-    std::array<int, 2> faces_a{-1, -1}; // The two side faces of the first element the crossing involves.
-    std::array<int, 2> faces_b{-1, -1}; // The two side faces of the second element the crossing involves.
+    std::array<int, 2> faces_a{
+        -1, -1
+    }; // The two side faces of the first element the crossing involves.
+    std::array<int, 2> faces_b{
+        -1, -1
+    }; // The two side faces of the second element the crossing involves.
     Polyline polygon; // Closed quad on the mid-plane, 5 points.
     std::array<Polyline, 2> lines; // The two perpendicular centrelines of polygon, 2 points each.
     std::array<Polyline, 2> volumes; // The two parallel quads bounding the joint volume.
@@ -62,4 +67,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

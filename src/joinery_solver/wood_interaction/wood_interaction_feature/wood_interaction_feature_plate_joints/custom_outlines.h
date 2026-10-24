@@ -1,6 +1,6 @@
-/// User-supplied joint geometry: pairs (face0, face1) from the male and female lists, every pair
-/// concatenated into one outline per face plus a two-point endpoint marker, all edge_insertion.
-static void custom_outlines(InteractionFeaturePlate& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf) {
+static void custom_outlines(
+    InteractionFeaturePlate& joint, const std::vector<Polyline>& cm, const std::vector<Polyline>& cf
+) {
 
     if (cm.size() < 2 || cf.size() < 2)
         return;
@@ -27,14 +27,22 @@ static void custom_outlines(InteractionFeaturePlate& joint, const std::vector<Po
     if (m0.empty() || m1.empty() || f0.empty() || f1.empty())
         return;
 
-    joint.male_outlines[0] = { Polyline(m0), Polyline({ m0.front(), m0.back() }) };
-    joint.male_outlines[1] = { Polyline(m1), Polyline({ m1.front(), m1.back() }) };
+    joint.male_outlines[0] = {Polyline(m0), Polyline({m0.front(), m0.back()})};
+    joint.male_outlines[1] = {Polyline(m1), Polyline({m1.front(), m1.back()})};
 
-    joint.female_outlines[0] = { Polyline(f0), Polyline({ f0.front(), f0.back() }) };
-    joint.female_outlines[1] = { Polyline(f1), Polyline({ f1.front(), f1.back() }) };
+    joint.female_outlines[0] = {Polyline(f0), Polyline({f0.front(), f0.back()})};
+    joint.female_outlines[1] = {Polyline(f1), Polyline({f1.front(), f1.back()})};
 
-    joint.male_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.male_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.female_fabrication_types[0] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
-    joint.female_fabrication_types[1] = { FabricationType::edge_insertion, FabricationType::edge_insertion };
+    joint.male_fabrication_types[0] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.male_fabrication_types[1] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.female_fabrication_types[0] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
+    joint.female_fabrication_types[1] = {
+        FabricationType::edge_insertion, FabricationType::edge_insertion
+    };
 }

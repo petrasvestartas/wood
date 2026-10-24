@@ -6,24 +6,27 @@ namespace wood_truss {
 // ═══════════════════════════════════════════════════════════════════════════
 // TrussGuide
 // ═══════════════════════════════════════════════════════════════════════════
-
-TrussGuide::TrussGuide(const std::vector<Polyline>& chords, const std::vector<Line>& webs, const std::vector<Line>& posts, double chord_radius, double web_radius)
-    : chords(chords),
-      webs(webs),
-      posts(posts),
-      chord_radius(chord_radius),
-      web_radius(web_radius) {
+TrussGuide::TrussGuide(
+    const std::vector<Polyline>& chords,
+    const std::vector<Line>& webs,
+    const std::vector<Line>& posts,
+    double chord_radius,
+    double web_radius
+)
+    : chords(chords), webs(webs), posts(posts), chord_radius(chord_radius), web_radius(web_radius) {
 }
 
 std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
 
-    // a run ends where the chord turns; nodes on a straight stretch only mark where webs meet it
     const std::vector<Point> nodes = chords.at(chord).get_points();
     std::vector<std::array<Point, 2>> runs;
     Point start = nodes.front();
     for (size_t i = 1; i < nodes.size(); i++) {
         const bool last = i + 1 == nodes.size();
-        const bool kink = !last && (nodes[i] - start).normalized().cross((nodes[i + 1] - nodes[i]).normalized()).magnitude() > 1e-6;
+        const bool kink = !last && (nodes[i] - start)
+                                           .normalized()
+                                           .cross((nodes[i + 1] - nodes[i]).normalized())
+                                           .magnitude() > 1e-6;
         if (last || kink) {
             runs.push_back({start, nodes[i]});
             start = nodes[i];
@@ -55,7 +58,8 @@ static std::vector<Point> symmetric(const std::vector<Point>& half, double span)
 }
 
 /// Nodes from their measured fractions of the span along x and of the height along z.
-static std::vector<Point> scaled(const std::vector<std::array<double, 2>>& fractions, double span, double height) {
+static std::vector<Point>
+scaled(const std::vector<std::array<double, 2>>& fractions, double span, double height) {
 
     std::vector<Point> nodes;
     for (const std::array<double, 2>& fraction : fractions)
@@ -64,16 +68,24 @@ static std::vector<Point> scaled(const std::vector<std::array<double, 2>>& fract
     return nodes;
 }
 
-TrussGuide TrussGuide::pratt(double span, double rise, int panels, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::pratt(double span, double rise, int panels, double chord_radius, double web_radius) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, rise * (1.0 - std::abs(i * panel - 0.5 * span) / (0.5 * span))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel, 0.0, rise * (1.0 - std::abs(i * panel - 0.5 * span) / (0.5 * span))
+        );
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord up to the ridge and down
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // a vertical at every inner panel point, the diagonals from the top of each falling towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -95,7 +107,6 @@ TrussGuide TrussGuide::king_post(double span, double rise, double chord_radius, 
         Polyline({Point(0.0, 0.0, 0.0), ridge, Point(span, 0.0, 0.0)}),
     };
 
-    // the king post, and a strut from its foot to the middle of each top chord
     const std::vector<Line> webs = {
         Line::from_points(foot, ridge),
         Line::from_points(foot, Point(0.25 * span, 0.0, 0.5 * rise)),
@@ -105,7 +116,8 @@ TrussGuide TrussGuide::king_post(double span, double rise, double chord_radius, 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::queen_post(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::queen_post(double span, double height, double chord_radius, double web_radius) {
 
     // the chords: the bottom chord straight, the top chord inclined to the third points and level between
     const Point left(span / 3.0, 0.0, height);
@@ -115,7 +127,6 @@ TrussGuide TrussGuide::queen_post(double span, double height, double chord_radiu
         Polyline({Point(0.0, 0.0, 0.0), left, right, Point(span, 0.0, 0.0)}),
     };
 
-    // a queen post under each kink
     const std::vector<Line> webs = {
         Line::from_points(Point(left[0], 0.0, 0.0), left),
         Line::from_points(Point(right[0], 0.0, 0.0), right),
@@ -124,16 +135,24 @@ TrussGuide TrussGuide::queen_post(double span, double height, double chord_radiu
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::howe(double span, double rise, int panels, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::howe(double span, double rise, int panels, double chord_radius, double web_radius) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, rise * (1.0 - std::abs(i * panel - 0.5 * span) / (0.5 * span))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel, 0.0, rise * (1.0 - std::abs(i * panel - 0.5 * span) / (0.5 * span))
+        );
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord up to the ridge and down
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // a vertical at every inner panel point, the diagonals from the foot of each rising towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -147,7 +166,9 @@ TrussGuide TrussGuide::howe(double span, double rise, int panels, double chord_r
 
 TrussGuide TrussGuide::fink(double span, double rise, double chord_radius, double web_radius) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
 
     // the chords: the bottom chord straight, the top chord up to the ridge and down
     const std::vector<Polyline> chords = {
@@ -155,7 +176,6 @@ TrussGuide TrussGuide::fink(double span, double rise, double chord_radius, doubl
         Polyline({top(0.0), top(0.5 * span), top(span)}),
     };
 
-    // per side, from the third point to the quarter point and to the ridge
     std::vector<Line> webs;
     for (const double side : {0.0, 1.0}) {
         const double third = side == 0.0 ? span / 3.0 : 2.0 * span / 3.0;
@@ -167,9 +187,13 @@ TrussGuide TrussGuide::fink(double span, double rise, double chord_radius, doubl
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::belgian(double span, double rise, int divisions, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::belgian(
+    double span, double rise, int divisions, double chord_radius, double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const double slope = rise / (0.5 * span);
 
     // the chords: the bottom chord straight, the top chord up to the ridge and down
@@ -178,7 +202,6 @@ TrussGuide TrussGuide::belgian(double span, double rise, int divisions, double c
         Polyline({top(0.0), top(0.5 * span), top(span)}),
     };
 
-    // per side, strut k from division point k square down to the bottom chord, tie k from its foot up to division point k + 1
     std::vector<Line> webs;
     for (int k = 1; k < divisions; k++) {
         const double node = 0.5 * span * k / divisions;
@@ -205,7 +228,6 @@ TrussGuide TrussGuide::scissors(double span, double rise, double chord_radius, d
         Polyline({Point(0.0, 0.0, 0.0), ridge, Point(span, 0.0, 0.0)}),
     };
 
-    // the king post, and per side a vertical at the quarter point and a strut from the kink up to its top
     std::vector<Line> webs = {Line::from_points(kink, ridge)};
     for (const double x : {0.25 * span, 0.75 * span}) {
         const Point upper(x, 0.0, 0.5 * rise);
@@ -216,7 +238,8 @@ TrussGuide TrussGuide::scissors(double span, double rise, double chord_radius, d
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::warren(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::warren(double span, double height, int panels, double chord_radius, double web_radius) {
 
     const double panel = span / panels;
 
@@ -226,7 +249,6 @@ TrussGuide TrussGuide::warren(double span, double height, int panels, double cho
         Polyline({Point(0.5 * panel, 0.0, height), Point(span - 0.5 * panel, 0.0, height)}),
     };
 
-    // the diagonals up from bottom node i to top node i and down to bottom node i + 1
     std::vector<Line> webs;
     for (int i = 0; i < panels; i++) {
         const Point upper((i + 0.5) * panel, 0.0, height);
@@ -237,33 +259,37 @@ TrussGuide TrussGuide::warren(double span, double height, int panels, double cho
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::warren_verticals(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::warren_verticals(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     TrussGuide guide = warren(span, height, panels, chord_radius, web_radius);
     const double panel = span / panels;
 
-    // a vertical at every top node and every inner bottom node
     for (int i = 0; i < panels; i++)
-        guide.webs.push_back(Line::from_points(Point((i + 0.5) * panel, 0.0, 0.0), Point((i + 0.5) * panel, 0.0, height)));
+        guide.webs.push_back(Line::from_points(
+            Point((i + 0.5) * panel, 0.0, 0.0), Point((i + 0.5) * panel, 0.0, height)
+        ));
     for (int i = 1; i < panels; i++)
-        guide.webs.push_back(Line::from_points(Point(i * panel, 0.0, 0.0), Point(i * panel, 0.0, height)));
+        guide.webs.push_back(
+            Line::from_points(Point(i * panel, 0.0, 0.0), Point(i * panel, 0.0, height))
+        );
 
     return guide;
 }
 
-/// A Pratt bridge's webs between a straight bottom chord and the top nodes `top`, one per panel point: a vertical at every inner panel point
-/// and the diagonals from the top of each falling towards the middle, the middle panel crossed when the panels are odd.
+/// A Pratt bridge's webs between a straight bottom chord and the top nodes `top`.
 static std::vector<Line> pratt_webs(const std::vector<Point>& top) {
 
     const int panels = static_cast<int>(top.size()) - 1;
-    const auto bottom = [&](int i) { return Point(top[i][0], 0.0, 0.0); };
+    const auto bottom = [&](int i) {
+        return Point(top[i][0], 0.0, 0.0);
+    };
 
-    // a vertical at every inner panel point
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top[i]));
 
-    // the diagonals falling towards the middle, both in a middle panel
     for (int i = 1; 2 * i < panels; i++) {
         webs.push_back(Line::from_points(top[i], bottom(i + 1)));
         webs.push_back(Line::from_points(top[panels - i], bottom(panels - i - 1)));
@@ -272,7 +298,9 @@ static std::vector<Line> pratt_webs(const std::vector<Point>& top) {
     return webs;
 }
 
-TrussGuide TrussGuide::pratt_bridge(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pratt_bridge(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     // the top nodes: the heels and the panel points at the height
     std::vector<Point> top;
@@ -285,7 +313,9 @@ TrussGuide TrussGuide::pratt_bridge(double span, double height, int panels, doub
     return TrussGuide(chords, pratt_webs(top), {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::parker(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::parker(
+    double span, double height, double hip, int panels, double chord_radius, double web_radius
+) {
 
     // the top nodes: the heels, then a parabola from the hip at the first panel point to the height at the middle
     std::vector<Point> top;
@@ -302,15 +332,26 @@ TrussGuide TrussGuide::parker(double span, double height, double hip, int panels
     return TrussGuide(chords, pratt_webs(top), {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::k_truss(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::k_truss(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto middle = [&](int i) { return Point(i * panel, 0.0, 0.5 * height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto middle = [&](int i) {
+        return Point(i * panel, 0.0, 0.5 * height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord with an inclined end post down to each heel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}),
+        Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})
+    };
 
     // a vertical at every inner panel point, whole: the Ks stop on its middle
     std::vector<Line> webs;
@@ -329,7 +370,9 @@ TrussGuide TrussGuide::k_truss(double span, double height, int panels, double ch
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cambered_verticals(double span, double height, double camber, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cambered_verticals(
+    double span, double height, double camber, int panels, double chord_radius, double web_radius
+) {
 
     // the bottom nodes: flat over the end panels, then up to the camber at the middle on the measured curve, 0.35 t + 0.65 t^2
     const double panel = span / panels;
@@ -341,26 +384,36 @@ TrussGuide TrussGuide::cambered_verticals(double span, double height, double cam
     }
 
     // the chords: the cambered bottom chord through every panel point, the top chord up to the ridge and down
-    const std::vector<Polyline> chords = {Polyline(bottom), Polyline({Point(0.0, 0.0, 0.0), Point(0.5 * span, 0.0, height), Point(span, 0.0, 0.0)})};
+    const std::vector<Polyline> chords = {
+        Polyline(bottom),
+        Polyline({Point(0.0, 0.0, 0.0), Point(0.5 * span, 0.0, height), Point(span, 0.0, 0.0)})
+    };
 
-    // a vertical at every inner panel point, up to the top chord
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
-        webs.push_back(Line::from_points(bottom[i], Point(bottom[i][0], 0.0, height * (1.0 - std::abs(bottom[i][0] - 0.5 * span) / (0.5 * span)))));
+        webs.push_back(Line::from_points(
+            bottom[i],
+            Point(
+                bottom[i][0],
+                0.0,
+                height * (1.0 - std::abs(bottom[i][0] - 0.5 * span) / (0.5 * span))
+            )
+        ));
 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::funicular_arch(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::funicular_arch(double span, double height, double chord_radius, double web_radius) {
 
     // the chords: the tie through its five panel points, the arch with a level crown at the measured fractions
     std::vector<Point> tie;
     for (int i = 0; i <= 5; i++)
         tie.emplace_back(i * span / 5.0, 0.0, 0.0);
-    const std::vector<Point> arch = symmetric(scaled({{0.0, 0.0}, {0.130833, 0.5875}, {0.365833, 1.0}}, span, height), span);
+    const std::vector<Point> arch =
+        symmetric(scaled({{0.0, 0.0}, {0.130833, 0.5875}, {0.365833, 1.0}}, span, height), span);
     const std::vector<Polyline> chords = {Polyline(tie), Polyline(arch)};
 
-    // an inclined web from each inner tie node to its arch node
     std::vector<Line> webs;
     for (int i = 1; i <= 4; i++)
         webs.push_back(Line::from_points(tie[i], arch[i]));
@@ -368,14 +421,16 @@ TrussGuide TrussGuide::funicular_arch(double span, double height, double chord_r
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::lens(double span, double height, double sag, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::lens(double span, double height, double sag, double chord_radius, double web_radius) {
 
     // the chords: the sagging polygon and the arch, meeting at the heels, at the measured fractions
-    const std::vector<Point> bottom = symmetric(scaled({{0.0, 0.0}, {0.2, -0.674603}, {0.4, -1.0}}, span, sag), span);
-    const std::vector<Point> top = symmetric(scaled({{0.0, 0.0}, {0.166667, 0.614035}, {0.383333, 1.0}}, span, height), span);
+    const std::vector<Point> bottom =
+        symmetric(scaled({{0.0, 0.0}, {0.2, -0.674603}, {0.4, -1.0}}, span, sag), span);
+    const std::vector<Point> top =
+        symmetric(scaled({{0.0, 0.0}, {0.166667, 0.614035}, {0.383333, 1.0}}, span, height), span);
     const std::vector<Polyline> chords = {Polyline(bottom), Polyline(top)};
 
-    // an inclined hanger between every two inner nodes
     std::vector<Line> webs;
     for (size_t i = 1; i + 1 < top.size(); i++)
         webs.push_back(Line::from_points(bottom[i], top[i]));
@@ -383,14 +438,21 @@ TrussGuide TrussGuide::lens(double span, double height, double sag, double chord
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::triangulated_arch(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::triangulated_arch(double span, double height, double chord_radius, double web_radius) {
 
     // the chords: the outer and the inner polygon from the same two supports, at the measured fractions
-    const std::vector<Point> outer = symmetric(scaled({{0.0, 0.0}, {0.066667, 0.5}, {0.25, 0.867893}, {0.5, 1.0}}, span, height), span);
-    const std::vector<Point> inner = symmetric(scaled({{0.0, 0.0}, {0.139167, 0.41806}, {0.291667, 0.72408}, {0.5, 0.834448}}, span, height), span);
+    const std::vector<Point> outer = symmetric(
+        scaled({{0.0, 0.0}, {0.066667, 0.5}, {0.25, 0.867893}, {0.5, 1.0}}, span, height), span
+    );
+    const std::vector<Point> inner = symmetric(
+        scaled(
+            {{0.0, 0.0}, {0.139167, 0.41806}, {0.291667, 0.72408}, {0.5, 0.834448}}, span, height
+        ),
+        span
+    );
     const std::vector<Polyline> chords = {Polyline(outer), Polyline(inner)};
 
-    // webs zigzagging from each outer node to the inner nodes beside it, the vertical at the crown
     const std::vector<Line> webs = {
         Line::from_points(outer[1], inner[1]),
         Line::from_points(inner[1], outer[2]),
@@ -408,7 +470,6 @@ TrussGuide TrussGuide::triangulated_arch(double span, double height, double chor
 
 TrussGuide TrussGuide::sloped(double span, double height, double chord_radius, double web_radius) {
 
-    // the chords on the drawn grid of seven panels and sevenths of the height, both meeting at each end
     const std::array<int, 8> top_steps = {0, 3, 4, 5, 5, 6, 7, 6};
     const std::array<int, 8> bottom_steps = {0, 1, 2, 3, 3, 4, 5, 6};
     std::vector<Point> top;
@@ -419,7 +480,6 @@ TrussGuide TrussGuide::sloped(double span, double height, double chord_radius, d
     }
     const std::vector<Polyline> chords = {Polyline(bottom), Polyline(top)};
 
-    // a vertical at every inner node; diagonals rising in the second and third panels, falling in the fifth and sixth
     std::vector<Line> webs;
     for (int i = 1; i <= 6; i++)
         webs.push_back(Line::from_points(bottom[i], top[i]));
@@ -431,13 +491,18 @@ TrussGuide TrussGuide::sloped(double span, double height, double chord_radius, d
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-/// A Pratt on end posts: the top chord through `heights` at the panel points, the bottom chord straight, a vertical at every inner panel point
-/// and the diagonals from the top of each, the posts' too, falling towards the middle.
-static TrussGuide posted_pratt(const std::vector<double>& heights, double panel, double chord_radius, double web_radius) {
+/// A Pratt on end posts.
+static TrussGuide posted_pratt(
+    const std::vector<double>& heights, double panel, double chord_radius, double web_radius
+) {
 
     const int panels = static_cast<int>(heights.size()) - 1;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, heights[i]); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, heights[i]);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord through every panel point
     std::vector<Point> polygon;
@@ -445,7 +510,6 @@ static TrussGuide posted_pratt(const std::vector<double>& heights, double panel,
         polygon.push_back(top(i));
     const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline(polygon)};
 
-    // a vertical at every inner panel point, the diagonals from the top of each, the posts' too, falling towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -454,22 +518,33 @@ static TrussGuide posted_pratt(const std::vector<double>& heights, double panel,
         webs.push_back(Line::from_points(top(panels - i), bottom(panels - i - 1)));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pratt_flat(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pratt_flat(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
-    return posted_pratt(std::vector<double>(panels + 1, height), span / panels, chord_radius, web_radius);
+    return posted_pratt(
+        std::vector<double>(panels + 1, height), span / panels, chord_radius, web_radius
+    );
 }
 
-TrussGuide TrussGuide::flat_peaked(double span, double height, double peak, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::flat_peaked(
+    double span, double height, double peak, double chord_radius, double web_radius
+) {
 
     const std::array<double, 7> heights = {height, height, height, height, peak, height, height};
-    const auto top = [&](int i) { return Point(span * i / 6.0, 0.0, heights[i]); };
-    const auto bottom = [&](int i) { return Point(span * i / 6.0, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(span * i / 6.0, 0.0, heights[i]);
+    };
+    const auto bottom = [&](int i) {
+        return Point(span * i / 6.0, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord through every panel point, up to the peak
     std::vector<Point> polygon;
@@ -477,7 +552,6 @@ TrussGuide TrussGuide::flat_peaked(double span, double height, double peak, doub
         polygon.push_back(top(i));
     const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(6)}), Polyline(polygon)};
 
-    // a vertical at every inner panel point; diagonals falling to the right in the left half, rising to the right under the peak
     std::vector<Line> webs;
     for (int i = 1; i <= 5; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -487,15 +561,17 @@ TrussGuide TrussGuide::flat_peaked(double span, double height, double peak, doub
     webs.push_back(Line::from_points(bottom(4), top(5)));
     webs.push_back(Line::from_points(top(6), bottom(5)));
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(6), top(6))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(6), top(6))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::bowstring(double span, double height, double crown, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::bowstring(
+    double span, double height, double crown, int panels, double chord_radius, double web_radius
+) {
 
-    // the top chord on a parabola from the posts' height up to the crown
     std::vector<double> heights;
     for (int i = 0; i <= panels; i++) {
         const double u = (i - 0.5 * panels) / (0.5 * panels);
@@ -505,27 +581,40 @@ TrussGuide TrussGuide::bowstring(double span, double height, double crown, int p
     return posted_pratt(heights, span / panels, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pitched_posts(double span, double height, double ridge, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pitched_posts(
+    double span, double height, double ridge, int panels, double chord_radius, double web_radius
+) {
 
-    // the top chord straight from the posts' height up to the ridge and down
     std::vector<double> heights;
     for (int i = 0; i <= panels; i++)
-        heights.push_back(height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels)));
+        heights.push_back(
+            height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))
+        );
 
     return posted_pratt(heights, span / panels, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::roof_cambered_tie(double span, double rise, double camber, double dip, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::roof_cambered_tie(
+    double span, double rise, double camber, double dip, double chord_radius, double web_radius
+) {
 
-    // the load points at the measured fractions of the span, on the straight rafters
     const std::array<double, 2> loads = {0.195, 0.3575};
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
 
     // the chords: the tie dipping at the first load point and rising to the camber at the middle, the rafters up to the ridge
-    const std::vector<Point> tie = symmetric({Point(0.0, 0.0, 0.0), Point(loads[0] * span, 0.0, -dip), Point(loads[1] * span, 0.0, 0.22 * camber), Point(0.5 * span, 0.0, camber)}, span);
-    const std::vector<Polyline> chords = {Polyline(tie), Polyline({top(0.0), top(0.5 * span), top(span)})};
+    const std::vector<Point> tie = symmetric(
+        {Point(0.0, 0.0, 0.0),
+         Point(loads[0] * span, 0.0, -dip),
+         Point(loads[1] * span, 0.0, 0.22 * camber),
+         Point(0.5 * span, 0.0, camber)},
+        span
+    );
+    const std::vector<Polyline> chords = {
+        Polyline(tie), Polyline({top(0.0), top(0.5 * span), top(span)})
+    };
 
-    // a vertical at every load point, the diagonals from each down to the next vertical's foot towards the middle
     std::vector<Line> webs;
     for (size_t i = 1; i + 1 < tie.size(); i++)
         webs.push_back(Line::from_points(tie[i], top(tie[i][0])));
@@ -537,20 +626,38 @@ TrussGuide TrussGuide::roof_cambered_tie(double span, double rise, double camber
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::quarter_fan(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::quarter_fan(double span, double height, double chord_radius, double web_radius) {
 
     // the nodes at the measured fractions: the supports, the outer polygon, the bottom chord's and the fan's crossings
-    const std::vector<Point> nodes = scaled({{0.0, 1.0}, {0.445833, 1.0}, {0.668333, 0.820144}, {0.8475, 0.528777}, {0.945, 0.278777}, {1.0, 0.0},
-        {0.0, 0.0}, {0.405, 0.0}, {0.575833, 0.0},
-        {0.376667, 0.627698}, {0.3125, 0.494604}, {0.4975, 0.370504}, {0.384167, 0.233813}, {0.568333, 0.095324}}, span, height);
+    const std::vector<Point> nodes = scaled(
+        {{0.0, 1.0},
+         {0.445833, 1.0},
+         {0.668333, 0.820144},
+         {0.8475, 0.528777},
+         {0.945, 0.278777},
+         {1.0, 0.0},
+         {0.0, 0.0},
+         {0.405, 0.0},
+         {0.575833, 0.0},
+         {0.376667, 0.627698},
+         {0.3125, 0.494604},
+         {0.4975, 0.370504},
+         {0.384167, 0.233813},
+         {0.568333, 0.095324}},
+        span,
+        height
+    );
     const Point& upper = nodes[0];
     const Point& lower = nodes[6];
     const std::array<Point, 5> fan = {nodes[9], nodes[10], nodes[11], nodes[12], nodes[13]};
 
     // the chords: the outer polygon from the upper support to the tip, the bottom chord from the lower support
-    const std::vector<Polyline> chords = {Polyline({nodes[0], nodes[1], nodes[2], nodes[3], nodes[4], nodes[5]}), Polyline({lower, nodes[7], nodes[8], nodes[5]})};
+    const std::vector<Polyline> chords = {
+        Polyline({nodes[0], nodes[1], nodes[2], nodes[3], nodes[4], nodes[5]}),
+        Polyline({lower, nodes[7], nodes[8], nodes[5]})
+    };
 
-    // the fan from the upper support, two kinked members down to the bottom chord
     std::vector<Line> webs = {
         Line::from_points(upper, fan[0]),
         Line::from_points(fan[0], fan[2]),
@@ -561,7 +668,6 @@ TrussGuide TrussGuide::quarter_fan(double span, double height, double chord_radi
         Line::from_points(fan[3], nodes[7]),
     };
 
-    // the fan from the lower support and the bottom chord's nodes, kinked members up to the outer polygon
     const std::vector<Line> rising = {
         Line::from_points(lower, fan[1]),
         Line::from_points(fan[1], fan[0]),
@@ -578,10 +684,18 @@ TrussGuide TrussGuide::quarter_fan(double span, double height, double chord_radi
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cantilever(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::cantilever(double span, double height, double chord_radius, double web_radius) {
 
     const std::vector<double> top = {0.0, 0.166667, 0.335833, 0.501667, 0.6725, 0.8375, 1.0};
-    const std::vector<std::array<double, 2>> bottom = {{0.0, 0.0}, {0.131667, 0.147541}, {0.2975, 0.114754}, {0.433333, 0.098361}, {0.625833, 0.202186}, {0.806667, 0.497268}};
+    const std::vector<std::array<double, 2>> bottom = {
+        {0.0, 0.0},
+        {0.131667, 0.147541},
+        {0.2975, 0.114754},
+        {0.433333, 0.098361},
+        {0.625833, 0.202186},
+        {0.806667, 0.497268}
+    };
 
     // the chords: the top chord straight at the height, the bottom chord from the lower support up to the tip
     std::vector<Point> upper;
@@ -601,10 +715,11 @@ TrussGuide TrussGuide::cantilever(double span, double height, double chord_radiu
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cantilever_design_1(double span, double height, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cantilever_design_1(
+    double span, double height, double chord_radius, double web_radius
+) {
 
     // the nodes in cm from the drawn side lengths and angles: A over B 5 apart, E equilateral on them, D 9.8481 from A at 20 degrees up, F its
-    // mirror, C 29.718 out at E's height
     const double pi = Tolerance::PI;
     const double x = span / 29.718;
     const double z = height / 5.0;
@@ -615,18 +730,23 @@ TrussGuide TrussGuide::cantilever_design_1(double span, double height, double ch
     const Point f(d[0], 0.0, 5.0 * z - d[2]);
     const Point c(29.718 * x, 0.0, 2.5 * z);
 
-    // the chords A-D-C and B-F-C, the webs from E, the wall member A-B a post
     const std::vector<Polyline> chords = {Polyline({a, d, c}), Polyline({b, f, c})};
-    const std::vector<Line> webs = {Line::from_points(a, e), Line::from_points(b, e), Line::from_points(e, d), Line::from_points(e, f)};
+    const std::vector<Line> webs = {
+        Line::from_points(a, e),
+        Line::from_points(b, e),
+        Line::from_points(e, d),
+        Line::from_points(e, f)
+    };
     const std::vector<Line> posts = {Line::from_points(b, a)};
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cantilever_design_2(double span, double height, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cantilever_design_2(
+    double span, double height, double chord_radius, double web_radius
+) {
 
     // the nodes in cm from the drawn dimensions: B at the wall, A 5 over it, F and G 1.7 over and under it at 9.6, D and E at A's height at 15
-    // and 25, H at G's height at 20, C at B's height at 30
     const double x = span / 30.0;
     const double z = height / 5.0;
     const Point a(0.0, 0.0, 5.0 * z);
@@ -638,7 +758,6 @@ TrussGuide TrussGuide::cantilever_design_2(double span, double height, double ch
     const Point h(20.0 * x, 0.0, -1.7 * z);
     const Point c(30.0 * x, 0.0, 0.0);
 
-    // the chords A-D-E-C and B-G-H-C, the webs between them
     const std::vector<Polyline> chords = {Polyline({a, d, e, c}), Polyline({b, g, h, c})};
     const std::vector<Line> webs = {
         Line::from_points(a, f),
@@ -653,7 +772,9 @@ TrussGuide TrussGuide::cantilever_design_2(double span, double height, double ch
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cantilever_design_3(double span, double height, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cantilever_design_3(
+    double span, double height, double chord_radius, double web_radius
+) {
 
     // the nodes in cm solved from the drawn side lengths: A at the wall foot, B 5 over it, C, D, E, F and the tip G
     const double x = span / 30.0;
@@ -666,7 +787,6 @@ TrussGuide TrussGuide::cantilever_design_3(double span, double height, double ch
     const Point f(26.0 * x, 0.0, 6.0 * z);
     const Point g(30.0 * x, 0.0, 15.0 * z);
 
-    // the chords B-E-G and A-D-F-G, the webs between them, the wall member A-B a post
     const std::vector<Polyline> chords = {Polyline({b, e, g}), Polyline({a, d, f, g})};
     const std::vector<Line> webs = {
         Line::from_points(b, c),
@@ -681,9 +801,10 @@ TrussGuide TrussGuide::cantilever_design_3(double span, double height, double ch
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fish_belly(double span, double rise, double sag, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::fish_belly(
+    double span, double rise, double sag, double chord_radius, double web_radius
+) {
 
-    // the bottom chord sagging at the measured fractions of the sag, raised again at the middle
     const std::array<double, 5> sags = {0.0, 0.6, 0.965217, 1.0, 0.765217};
     std::vector<Point> half;
     for (int i = 0; i <= 4; i++)
@@ -691,17 +812,26 @@ TrussGuide TrussGuide::fish_belly(double span, double rise, double sag, double c
     const std::vector<Point> bottom = symmetric(half, span);
 
     // the chords: the sagging bottom chord, the top chord up to the ridge and down
-    const std::vector<Polyline> chords = {Polyline(bottom), Polyline({Point(0.0, 0.0, 0.0), Point(0.5 * span, 0.0, rise), Point(span, 0.0, 0.0)})};
+    const std::vector<Polyline> chords = {
+        Polyline(bottom),
+        Polyline({Point(0.0, 0.0, 0.0), Point(0.5 * span, 0.0, rise), Point(span, 0.0, 0.0)})
+    };
 
-    // a vertical at each load point
     std::vector<Line> webs;
     for (size_t i = 1; i + 1 < bottom.size(); i++)
-        webs.push_back(Line::from_points(bottom[i], Point(bottom[i][0], 0.0, rise * (1.0 - std::abs(bottom[i][0] - 0.5 * span) / (0.5 * span)))));
+        webs.push_back(Line::from_points(
+            bottom[i],
+            Point(
+                bottom[i][0], 0.0, rise * (1.0 - std::abs(bottom[i][0] - 0.5 * span) / (0.5 * span))
+            )
+        ));
 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::sawtooth(double span, double height, double column, int teeth, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::sawtooth(
+    double span, double height, double column, int teeth, double chord_radius, double web_radius
+) {
 
     const double tooth = span / teeth;
     const double slope = height / (0.75 * tooth);
@@ -711,11 +841,18 @@ TrussGuide TrussGuide::sawtooth(double span, double height, double column, int t
     std::vector<Line> webs;
     for (int k = 0; k < teeth; k++) {
         const double start = k * tooth;
-        const auto rafter = [&](double fraction) { return Point(start + fraction * tooth, 0.0, fraction * tooth * slope); };
+        const auto rafter = [&](double fraction) {
+            return Point(start + fraction * tooth, 0.0, fraction * tooth * slope);
+        };
         const Point apex = rafter(0.75);
-        chords.push_back(Polyline({Point(start, 0.0, 0.0), rafter(0.1875), rafter(0.45), apex, Point(start + tooth, 0.0, 0.0)}));
+        chords.push_back(Polyline(
+            {Point(start, 0.0, 0.0),
+             rafter(0.1875),
+             rafter(0.45),
+             apex,
+             Point(start + tooth, 0.0, 0.0)}
+        ));
 
-        // the W of four webs between the long rafter and the tie
         const Point first(start + 0.2675 * tooth, 0.0, 0.0);
         const Point second(start + 0.6325 * tooth, 0.0, 0.0);
         webs.push_back(Line::from_points(rafter(0.1875), first));
@@ -724,24 +861,36 @@ TrussGuide TrussGuide::sawtooth(double span, double height, double column, int t
         webs.push_back(Line::from_points(second, apex));
     }
 
-    // a column under every valley and the far end
     std::vector<Line> posts;
     for (int k = 1; k <= teeth; k++)
-        posts.push_back(Line::from_points(Point(k * tooth, 0.0, -column), Point(k * tooth, 0.0, 0.0)));
+        posts.push_back(
+            Line::from_points(Point(k * tooth, 0.0, -column), Point(k * tooth, 0.0, 0.0))
+        );
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::howe_flat(double span, double height, double ridge, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::howe_flat(
+    double span, double height, double ridge, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel,
+            0.0,
+            height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))
+        );
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord pitched up to the ridge and down
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // a vertical at every inner panel point, the diagonals from the foot of each, the posts' too, rising towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -750,19 +899,33 @@ TrussGuide TrussGuide::howe_flat(double span, double height, double ridge, int p
         webs.push_back(Line::from_points(bottom(panels - i), top(panels - i - 1)));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::three_hinged_arch(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::three_hinged_arch(double span, double height, double chord_radius, double web_radius) {
 
     // the left half at the measured fractions: the outer polygon from its foot beside the hinge up to the crown, the inner one from the hinge
-    const std::vector<Point> outer = scaled({{-0.024167, 0.0}, {-0.024167, 0.428994}, {0.101667, 0.727811}, {0.238333, 0.902367}, {0.37, 0.988166}, {0.5, 1.0}}, span, height);
-    const std::vector<Point> inner = scaled({{0.0, 0.0}, {0.085833, 0.41716}, {0.2225, 0.727811}, {0.343333, 0.87574}, {0.5, 1.0}}, span, height);
+    const std::vector<Point> outer = scaled(
+        {{-0.024167, 0.0},
+         {-0.024167, 0.428994},
+         {0.101667, 0.727811},
+         {0.238333, 0.902367},
+         {0.37, 0.988166},
+         {0.5, 1.0}},
+        span,
+        height
+    );
+    const std::vector<Point> inner = scaled(
+        {{0.0, 0.0}, {0.085833, 0.41716}, {0.2225, 0.727811}, {0.343333, 0.87574}, {0.5, 1.0}},
+        span,
+        height
+    );
 
-    // the half's lines: its foot, then rungs and diagonals alternating up to the crown
     const std::vector<Line> half = {
         Line::from_points(outer[0], inner[0]),
         Line::from_points(outer[1], inner[0]),
@@ -789,20 +952,27 @@ TrussGuide TrussGuide::three_hinged_arch(double span, double height, double chor
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::burr_arch(double span, double height, double crown, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::burr_arch(
+    double span, double height, double crown, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
     const auto arch = [&](int i) {
         const double u = (i - 0.5 * panels) / (0.5 * panels);
         return Point(i * panel, 0.0, crown * (1.0 - u * u));
     };
 
     // the chords: both straight over the span
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})
+    };
 
-    // a vertical at every inner panel point, the diagonals from the foot of each, the posts' too, rising towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -811,61 +981,70 @@ TrussGuide TrussGuide::burr_arch(double span, double height, double crown, int p
         webs.push_back(Line::from_points(bottom(panels - i), top(panels - i - 1)));
     }
 
-    // the arch from heel to heel, a member per panel, its nodes on the verticals
     for (int i = 0; i < panels; i++)
         webs.push_back(Line::from_points(arch(i), arch(i + 1)));
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::town_lattice(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::town_lattice(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double pitch = span / panels;
-    const auto top = [&](int i) { return Point(i * pitch, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * pitch, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * pitch, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * pitch, 0.0, 0.0);
+    };
     const Point left(0.0, 0.0, 0.5 * height);
     const Point right(span, 0.0, 0.5 * height);
 
     // the chords: both straight over the span
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})
+    };
 
-    // the planks both ways, from each chord node to the other chord two pitches on
     std::vector<Line> webs;
     for (int i = 0; i + 2 <= panels; i++) {
         webs.push_back(Line::from_points(top(i), bottom(i + 2)));
         webs.push_back(Line::from_points(bottom(i), top(i + 2)));
     }
 
-    // those past the ends, stopping on the end posts' middles
     webs.push_back(Line::from_points(left, bottom(1)));
     webs.push_back(Line::from_points(left, top(1)));
     webs.push_back(Line::from_points(top(panels - 1), right));
     webs.push_back(Line::from_points(bottom(panels - 1), right));
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::bowstring_arch(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::bowstring_arch(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
-    // the arch through the panel points, height (1 - |u|^2.5) across the span
     const double panel = span / panels;
     std::vector<Point> arch;
     for (int i = 0; i <= panels; i++) {
         const double u = std::abs(i - 0.5 * panels) / (0.5 * panels);
         arch.emplace_back(i * panel, 0.0, height * (1.0 - std::pow(u, 2.5)));
     }
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the tie straight, the arch through every panel point
     const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline(arch)};
 
-    // a vertical at every inner panel point, both diagonals in every panel between two verticals
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), arch[i]));
@@ -887,7 +1066,6 @@ TrussGuide TrussGuide::waddell_a(double span, double rise, double chord_radius, 
         Polyline({Point(0.0, 0.0, 0.0), ridge, Point(span, 0.0, 0.0)}),
     };
 
-    // the king post, and per rafter a vertical under its middle and a strut from there to the king post's foot
     std::vector<Line> webs = {Line::from_points(foot, ridge)};
     for (const double x : {0.25 * span, 0.75 * span}) {
         const Point middle(x, 0.0, 0.5 * rise);
@@ -898,7 +1076,9 @@ TrussGuide TrussGuide::waddell_a(double span, double rise, double chord_radius, 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::wichert(double span, double height, double dip, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::wichert(
+    double span, double height, double dip, int panels, double chord_radius, double web_radius
+) {
 
     const double step = span / panels;
 
@@ -909,34 +1089,49 @@ TrussGuide TrussGuide::wichert(double span, double height, double dip, int panel
             bottom.emplace_back(0.5 * span, 0.0, -dip);
         bottom.emplace_back(i * step, 0.0, 0.0);
     }
-    const std::vector<Polyline> chords = {Polyline(bottom), Polyline({Point(0.0, 0.0, height), Point(span, 0.0, height)})};
+    const std::vector<Polyline> chords = {
+        Polyline(bottom), Polyline({Point(0.0, 0.0, height), Point(span, 0.0, height)})
+    };
 
-    // the Warren diagonals, up from every bottom node to the top node one step on and down to the next bottom node
     std::vector<Line> webs;
     for (int i = 0; i < panels; i++) {
         const bool up = i % 2 == 0;
-        webs.push_back(Line::from_points(Point(i * step, 0.0, up ? 0.0 : height), Point((i + 1) * step, 0.0, up ? height : 0.0)));
+        webs.push_back(Line::from_points(
+            Point(i * step, 0.0, up ? 0.0 : height), Point((i + 1) * step, 0.0, up ? height : 0.0)
+        ));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, 0.0), Point(0.0, 0.0, height)), Line::from_points(Point(span, 0.0, 0.0), Point(span, 0.0, height))};
+    const std::vector<Line> posts = {
+        Line::from_points(Point(0.0, 0.0, 0.0), Point(0.0, 0.0, height)),
+        Line::from_points(Point(span, 0.0, 0.0), Point(span, 0.0, height))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::truss_leg_bedstead(
+    double span, double height, double leg, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: both straight
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})
+    };
 
     // the legs: columns from below the bottom chord, which ends on them, up to the top chord's ends
-    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -leg), top(0)), Line::from_points(Point(span, 0.0, -leg), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(Point(0.0, 0.0, -leg), top(0)),
+        Line::from_points(Point(span, 0.0, -leg), top(panels))
+    };
 
-    // a vertical at every inner panel point, the diagonals from the top of each, the legs' too, falling towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -948,9 +1143,14 @@ TrussGuide TrussGuide::truss_leg_bedstead(double span, double height, double leg
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-/// The webs of a subdivided Pratt panel: the main diagonal from `upper` down to `lower`, a sub-vertical from the bottom chord up to its middle,
-/// and from its middle a sub-strut down to `strut` or a sub-tie up to `tie`, whichever is given.
-static void add_subdivided_panel(std::vector<Line>& webs, const Point& upper, const Point& lower, const std::optional<Point>& strut, const std::optional<Point>& tie) {
+/// The webs of a subdivided Pratt panel.
+static void add_subdivided_panel(
+    std::vector<Line>& webs,
+    const Point& upper,
+    const Point& lower,
+    const std::optional<Point>& strut,
+    const std::optional<Point>& tie
+) {
 
     const Point middle = upper + (lower - upper) * 0.5;
     webs.push_back(Line::from_points(upper, lower));
@@ -961,20 +1161,26 @@ static void add_subdivided_panel(std::vector<Line>& webs, const Point& upper, co
         webs.push_back(Line::from_points(middle, *tie));
 }
 
-TrussGuide TrussGuide::kellogg(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::kellogg(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](double i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](double i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord through every half panel point, the top chord with an inclined end post down to each heel
     std::vector<Point> lower;
     for (int i = 0; i <= 2 * panels; i++)
         lower.push_back(bottom(0.5 * i));
-    const std::vector<Polyline> chords = {Polyline(lower), Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline(lower), Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})
+    };
 
-    // a vertical at every inner panel point; from each top node towards the middle, a diagonal to the next panel point and one to the middle
-    // of its panel, and from the first top nodes one back to the middle of the end panel
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -990,19 +1196,18 @@ TrussGuide TrussGuide::kellogg(double span, double height, int panels, double ch
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-/// A Petit truss on the top nodes `top`, one per main panel point, the heels at both ends: a vertical at every inner panel point, each end
-/// post's middle with a sub-vertical and a diagonal down to the first vertical's foot, every inner panel's main diagonal falling towards the
-/// middle with a sub-vertical to its middle and a sub-strut from the panel's foot or a sub-tie up to the next panel point, the middle panel
-/// crossed.
-static TrussGuide petit(const std::vector<Point>& top, bool sub_struts, double chord_radius, double web_radius) {
+/// A Petit truss on the top nodes `top`.
+static TrussGuide
+petit(const std::vector<Point>& top, bool sub_struts, double chord_radius, double web_radius) {
 
     const int panels = static_cast<int>(top.size()) - 1;
-    const auto bottom = [&](int i) { return Point(top[i][0], 0.0, 0.0); };
+    const auto bottom = [&](int i) {
+        return Point(top[i][0], 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord through every panel point
     const std::vector<Polyline> chords = {Polyline({top.front(), top.back()}), Polyline(top)};
 
-    // a vertical at every inner panel point
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top[i]));
@@ -1015,14 +1220,24 @@ static TrussGuide petit(const std::vector<Point>& top, bool sub_struts, double c
         webs.push_back(Line::from_points(middle, bottom(next)));
     }
 
-    // the inner panels towards the middle, each subdivided
     for (int i = 1; 2 * i + 1 < panels; i++) {
         const int mirrored = panels - i;
-        add_subdivided_panel(webs, top[i], bottom(i + 1), sub_struts ? std::optional<Point>(bottom(i)) : std::nullopt, sub_struts ? std::nullopt : std::optional<Point>(top[i + 1]));
-        add_subdivided_panel(webs, top[mirrored], bottom(mirrored - 1), sub_struts ? std::optional<Point>(bottom(mirrored)) : std::nullopt, sub_struts ? std::nullopt : std::optional<Point>(top[mirrored - 1]));
+        add_subdivided_panel(
+            webs,
+            top[i],
+            bottom(i + 1),
+            sub_struts ? std::optional<Point>(bottom(i)) : std::nullopt,
+            sub_struts ? std::nullopt : std::optional<Point>(top[i + 1])
+        );
+        add_subdivided_panel(
+            webs,
+            top[mirrored],
+            bottom(mirrored - 1),
+            sub_struts ? std::optional<Point>(bottom(mirrored)) : std::nullopt,
+            sub_struts ? std::nullopt : std::optional<Point>(top[mirrored - 1])
+        );
     }
 
-    // the middle panel crossed, the sub-vertical up to the crossing
     const int middle = panels / 2;
     add_subdivided_panel(webs, top[middle], bottom(middle + 1), std::nullopt, std::nullopt);
     webs.push_back(Line::from_points(bottom(middle), top[middle + 1]));
@@ -1030,7 +1245,7 @@ static TrussGuide petit(const std::vector<Point>& top, bool sub_struts, double c
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-/// The top nodes of a Pennsylvania: the heels, then a parabola from the hip at the first panel point to the height at the middle panel.
+/// The top nodes of a Pennsylvania.
 static std::vector<Point> pennsylvania_top(double span, double height, double hip, int panels) {
 
     std::vector<Point> top;
@@ -1044,33 +1259,43 @@ static std::vector<Point> pennsylvania_top(double span, double height, double hi
     return top;
 }
 
-TrussGuide TrussGuide::baltimore_a(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::baltimore_a(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     return petit(pennsylvania_top(span, height, height, panels), true, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pennsylvania_a(double span, double height, double hip, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pennsylvania_a(
+    double span, double height, double hip, int panels, double chord_radius, double web_radius
+) {
 
     return petit(pennsylvania_top(span, height, hip, panels), true, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::greiner(double span, double height, double hang, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::greiner(
+    double span, double height, double hang, double chord_radius, double web_radius
+) {
 
     const double panel = span / 6.0;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
     const Point left(2.0 * panel, 0.0, hang);
     const Point right(4.0 * panel, 0.0, hang);
 
     // the chords: the bottom chord straight, the top chord with an inclined end post down to each heel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(6)}), Polyline({bottom(0), top(1), top(5), bottom(6)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(6)}), Polyline({bottom(0), top(1), top(5), bottom(6)})
+    };
 
-    // a vertical at every inner panel point
     std::vector<Line> webs;
     for (int i = 1; i < 6; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
 
-    // the inverted bowstring hung on the second verticals down to the middle, and the diagonals to its ends
     webs.push_back(Line::from_points(left, bottom(3)));
     webs.push_back(Line::from_points(bottom(3), right));
     webs.push_back(Line::from_points(top(1), left));
@@ -1081,16 +1306,24 @@ TrussGuide TrussGuide::greiner(double span, double height, double hang, double c
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::double_intersection_pratt(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::double_intersection_pratt(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord with an inclined end post down to each heel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}),
+        Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})
+    };
 
-    // a vertical at every inner panel point, a single-panel diagonal from each hip vertical's top, then the diagonals across two panels
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -1104,18 +1337,25 @@ TrussGuide TrussGuide::double_intersection_pratt(double span, double height, int
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::schwedler(double span, double height, int panels, int sloped, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::schwedler(
+    double span, double height, int panels, int sloped, double chord_radius, double web_radius
+) {
 
     // the top nodes: the heels, rising as the square root over the sloped panels to the height, level between
     std::vector<Point> top;
     for (int i = 0; i <= panels; i++) {
         const int from_end = std::min(i, panels - i);
-        top.emplace_back(i * span / panels, 0.0, height * std::sqrt(std::min(1.0, static_cast<double>(from_end) / sloped)));
+        top.emplace_back(
+            i * span / panels,
+            0.0,
+            height * std::sqrt(std::min(1.0, static_cast<double>(from_end) / sloped))
+        );
     }
-    const auto bottom = [&](int i) { return Point(top[i][0], 0.0, 0.0); };
+    const auto bottom = [&](int i) {
+        return Point(top[i][0], 0.0, 0.0);
+    };
     const std::vector<Polyline> chords = {Polyline({top.front(), top.back()}), Polyline(top)};
 
-    // a vertical at every inner panel point, the Pratt diagonals in the sloped panels
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top[i]));
@@ -1135,17 +1375,28 @@ TrussGuide TrussGuide::schwedler(double span, double height, int panels, int slo
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::double_intersection_warren(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::double_intersection_warren(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord with an inclined end post down to each heel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}),
+        Polyline({bottom(0), top(1), top(panels - 1), bottom(panels)})
+    };
 
     // the hip verticals, then both Warren systems: from every top node down to the bottom nodes one panel on each side
-    std::vector<Line> webs = {Line::from_points(bottom(1), top(1)), Line::from_points(bottom(panels - 1), top(panels - 1))};
+    std::vector<Line> webs = {
+        Line::from_points(bottom(1), top(1)), Line::from_points(bottom(panels - 1), top(panels - 1))
+    };
     for (int i = 1; i + 1 < panels; i++) {
         webs.push_back(Line::from_points(top(i), bottom(i + 1)));
         webs.push_back(Line::from_points(top(i + 1), bottom(i)));
@@ -1160,15 +1411,27 @@ TrussGuide TrussGuide::pegram(double span, double height, double chord_radius, d
     std::vector<Point> bottom;
     for (int i = 0; i <= 9; i++)
         bottom.emplace_back(i * span / 9.0, 0.0, 0.0);
-    const std::vector<Point> top = symmetric(scaled({{0.086235, 0.616601}, {0.170813, 0.72332}, {0.263682, 0.826087}, {0.356551, 0.909091}, {0.453566, 1.0}}, span, height), span);
+    const std::vector<Point> top = symmetric(
+        scaled(
+            {{0.086235, 0.616601},
+             {0.170813, 0.72332},
+             {0.263682, 0.826087},
+             {0.356551, 0.909091},
+             {0.453566, 1.0}},
+            span,
+            height
+        ),
+        span
+    );
 
     // the chords: the bottom chord straight, the top chord from heel to heel through its nodes
     std::vector<Point> polygon = {bottom.front()};
     polygon.insert(polygon.end(), top.begin(), top.end());
     polygon.push_back(bottom.back());
-    const std::vector<Polyline> chords = {Polyline({bottom.front(), bottom.back()}), Polyline(polygon)};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom.front(), bottom.back()}), Polyline(polygon)
+    };
 
-    // the webs zigzagging from each top node down to the bottom node after it and up to the next top node, towards the middle, crossed there
     std::vector<Line> webs;
     for (int i = 0; i < 4; i++) {
         webs.push_back(Line::from_points(top[i], bottom[i + 1]));
@@ -1182,11 +1445,16 @@ TrussGuide TrussGuide::pegram(double span, double height, double chord_radius, d
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::post(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::post(double span, double height, int panels, double chord_radius, double web_radius) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](double i) { return Point(std::clamp(i, 0.0, static_cast<double>(panels)) * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](double i) {
+        return Point(std::clamp(i, 0.0, static_cast<double>(panels)) * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord through the half panel points, the top chord straight
     std::vector<Point> lower = {bottom(0)};
@@ -1195,8 +1463,6 @@ TrussGuide TrussGuide::post(double span, double height, int panels, double chord
     lower.push_back(bottom(panels));
     const std::vector<Polyline> chords = {Polyline(lower), Polyline({top(0), top(panels)})};
 
-    // the inclined posts leaning to the middle, from the half panel points to the top nodes; the diagonals from each top node across two
-    // half panels towards the middle, and from the end posts' tops to the first half panel point
     std::vector<Line> webs;
     for (int i = 1; i <= panels / 2; i++) {
         webs.push_back(Line::from_points(bottom(i - 0.5), top(i)));
@@ -1209,22 +1475,30 @@ TrussGuide TrussGuide::post(double span, double height, int panels, double chord
         webs.push_back(Line::from_points(top(panels - i), bottom(panels - i - 1.5)));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::bollman(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::bollman(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: both straight over the span
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})
+    };
 
-    // a vertical at every inner panel point, and from each end post's top a diagonal to every inner bottom panel point
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -1233,20 +1507,29 @@ TrussGuide TrussGuide::bollman(double span, double height, int panels, double ch
         webs.push_back(Line::from_points(top(panels), bottom(i)));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fink_bridge(double span, double height, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::fink_bridge(
+    double span, double height, int panels, double chord_radius, double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: both straight over the span
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels)})
+    };
 
     // a vertical at every inner panel point, then the diagonals halving: from both ends of every stretch, the whole span first, to its middle
     std::vector<Line> webs;
@@ -1258,8 +1541,9 @@ TrussGuide TrussGuide::fink_bridge(double span, double height, int panels, doubl
             webs.push_back(Line::from_points(top(start + width), bottom(start + width / 2)));
         }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
@@ -1267,13 +1551,18 @@ TrussGuide TrussGuide::fink_bridge(double span, double height, int panels, doubl
 TrussGuide TrussGuide::stearns(double span, double height, double chord_radius, double web_radius) {
 
     const double panel = span / 6.0;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(i * panel, 0.0, height);
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord with an inclined end post down to each heel
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(6)}), Polyline({bottom(0), top(1), top(5), bottom(6)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(6)}), Polyline({bottom(0), top(1), top(5), bottom(6)})
+    };
 
-    // the verticals at the first, the middle and the last top node, and from each two diagonals, Fink's with the others omitted
     const std::vector<Line> webs = {
         Line::from_points(bottom(1), top(1)),
         Line::from_points(bottom(3), top(3)),
@@ -1293,7 +1582,9 @@ TrussGuide TrussGuide::stearns(double span, double height, double chord_radius, 
 static Point arc_at(double span, double rise, double x) {
 
     const double radius = (0.25 * span * span + rise * rise) / (2.0 * rise);
-    return Point(x, 0.0, std::sqrt(radius * radius - (x - 0.5 * span) * (x - 0.5 * span)) - (radius - rise));
+    return Point(
+        x, 0.0, std::sqrt(radius * radius - (x - 0.5 * span) * (x - 0.5 * span)) - (radius - rise)
+    );
 }
 
 /// The point at the fraction `t` of the angle of the circular arc through both supports, `span` apart, rising `rise` at the middle.
@@ -1302,12 +1593,15 @@ static Point arc_angle_at(double span, double rise, double t) {
     const double radius = (0.25 * span * span + rise * rise) / (2.0 * rise);
     const double half = std::asin(0.5 * span / radius);
     const double angle = -half + 2.0 * half * t;
-    return Point(0.5 * span + radius * std::sin(angle), 0.0, radius * std::cos(angle) - (radius - rise));
+    return Point(
+        0.5 * span + radius * std::sin(angle), 0.0, radius * std::cos(angle) - (radius - rise)
+    );
 }
 
-TrussGuide TrussGuide::crescent_crossed(double span, double height, double inner, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::crescent_crossed(
+    double span, double height, double inner, int panels, double chord_radius, double web_radius
+) {
 
-    // the outer arc in `panels` equal angles, the inner arc's nodes at the outer ones' angles from the second to the third from the far end
     std::vector<Point> outer;
     for (int j = 0; j <= panels; j++)
         outer.push_back(arc_angle_at(span, height, static_cast<double>(j) / panels));
@@ -1317,7 +1611,6 @@ TrussGuide TrussGuide::crescent_crossed(double span, double height, double inner
     lower.push_back(Point(span, 0.0, 0.0));
     const std::vector<Polyline> chords = {Polyline(outer), Polyline(lower)};
 
-    // two zigzags, each from outer node j down to inner node j and up to outer node j + 2, crossing in every panel
     std::vector<Line> webs;
     for (int j = 1; j <= panels - 3; j++) {
         webs.push_back(Line::from_points(outer[j], lower[j]));
@@ -1327,14 +1620,39 @@ TrussGuide TrussGuide::crescent_crossed(double span, double height, double inner
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::braced_arch_rib(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::braced_arch_rib(double span, double height, double chord_radius, double web_radius) {
 
-    // the half rib at the measured fractions of the arch's span and the crown's height: from the support up the vertical outer face, over
-    // the knee and along the 30 degree slope to the crown hinge, the inner chord curving from the support into the slope
-    const std::vector<Point> outer = scaled({{0.0, 0.0}, {-0.019613, 0.140461}, {-0.019613, 0.309032}, {-0.019613, 0.535115}, {0.090394, 0.642857},
-        {0.159528, 0.714101}, {0.228663, 0.780922}, {0.29512, 0.847465}, {0.363225, 0.91318}, {0.430711, 0.980369}, {0.5, 1.0}}, span, height);
-    const std::vector<Point> inner = scaled({{0.0, 0.0}, {0.030372, 0.140461}, {0.05853, 0.306636}, {0.086688, 0.411336}, {0.130341, 0.518986},
-        {0.188768, 0.626728}, {0.250026, 0.705069}, {0.316535, 0.771429}, {0.385669, 0.843318}, {0.454803, 0.907465}, {0.5, 1.0}}, span, height);
+    const std::vector<Point> outer = scaled(
+        {{0.0, 0.0},
+         {-0.019613, 0.140461},
+         {-0.019613, 0.309032},
+         {-0.019613, 0.535115},
+         {0.090394, 0.642857},
+         {0.159528, 0.714101},
+         {0.228663, 0.780922},
+         {0.29512, 0.847465},
+         {0.363225, 0.91318},
+         {0.430711, 0.980369},
+         {0.5, 1.0}},
+        span,
+        height
+    );
+    const std::vector<Point> inner = scaled(
+        {{0.0, 0.0},
+         {0.030372, 0.140461},
+         {0.05853, 0.306636},
+         {0.086688, 0.411336},
+         {0.130341, 0.518986},
+         {0.188768, 0.626728},
+         {0.250026, 0.705069},
+         {0.316535, 0.771429},
+         {0.385669, 0.843318},
+         {0.454803, 0.907465},
+         {0.5, 1.0}},
+        span,
+        height
+    );
     const std::vector<Polyline> chords = {Polyline(outer), Polyline(inner)};
 
     // the foot: rungs and diagonals up the vertical face to the knee
@@ -1357,18 +1675,26 @@ TrussGuide TrussGuide::braced_arch_rib(double span, double height, double chord_
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::belgian_verticals(double span, double rise, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::belgian_verticals(double span, double rise, double chord_radius, double web_radius) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the chords: the bottom chord straight, the rafters up to the ridge
-    const std::vector<Polyline> chords = {Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})
+    };
 
     // per side: a strut from the rafter at a sixth down to the third point, the vertical over it and the diagonal from it to the ridge
     std::vector<Line> webs;
     const Point third(span / 3.0, 0.0, 0.0);
-    for (const Line& web : {Line::from_points(top(span / 6.0), third), Line::from_points(third, top(span / 3.0)), Line::from_points(third, ridge)}) {
+    for (const Line& web :
+         {Line::from_points(top(span / 6.0), third),
+          Line::from_points(third, top(span / 3.0)),
+          Line::from_points(third, ridge)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1376,49 +1702,72 @@ TrussGuide TrussGuide::belgian_verticals(double span, double rise, double chord_
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::raised_tie_king_post(double span, double rise, double tie, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::raised_tie_king_post(
+    double span, double rise, double tie, double chord_radius, double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
     const Point knot(0.5 * span, 0.0, tie);
 
     // the chords: the inclined ties from the heels up to the knot under the ridge, the rafters up to the ridge
-    const std::vector<Polyline> chords = {Polyline({top(0.0), knot, top(span)}), Polyline({top(0.0), ridge, top(span)})};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), knot, top(span)}), Polyline({top(0.0), ridge, top(span)})
+    };
 
-    // the king post, and a strut from each rafter's middle down to the knot
-    const std::vector<Line> webs = {Line::from_points(knot, ridge), Line::from_points(top(0.25 * span), knot), Line::from_points(top(0.75 * span), knot)};
+    const std::vector<Line> webs = {
+        Line::from_points(knot, ridge),
+        Line::from_points(top(0.25 * span), knot),
+        Line::from_points(top(0.75 * span), knot)
+    };
 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::trapezoid_crossed(double span, double height, double ridge, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::trapezoid_crossed(
+    double span, double height, double ridge, double chord_radius, double web_radius
+) {
 
     // the chords: the bottom chord straight, the top chord up to the shoulders at 0.19 of the span and to the ridge
     const Point left(0.19 * span, 0.0, height);
     const Point right(0.81 * span, 0.0, height);
     const Point start(0.0, 0.0, 0.0);
     const Point end(span, 0.0, 0.0);
-    const std::vector<Polyline> chords = {Polyline({start, end}), Polyline({start, left, Point(0.5 * span, 0.0, ridge), right, end})};
+    const std::vector<Polyline> chords = {
+        Polyline({start, end}), Polyline({start, left, Point(0.5 * span, 0.0, ridge), right, end})
+    };
 
-    // the diagonals from each heel to the far shoulder, crossing
     const std::vector<Line> webs = {Line::from_points(start, right), Line::from_points(end, left)};
 
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fink_cambered(double span, double rise, double camber, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::fink_cambered(
+    double span, double rise, double camber, double chord_radius, double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the chords: the bottom chord cambered through its nodes at the measured fractions, the rafters up to the ridge
-    const std::vector<Point> bottom = symmetric({Point(0.0, 0.0, 0.0), Point(0.19 * span, 0.0, 0.62 * camber), Point(0.39 * span, 0.0, camber)}, span);
+    const std::vector<Point> bottom = symmetric(
+        {Point(0.0, 0.0, 0.0),
+         Point(0.19 * span, 0.0, 0.62 * camber),
+         Point(0.39 * span, 0.0, camber)},
+        span
+    );
     const std::vector<Polyline> chords = {Polyline(bottom), Polyline({top(0.0), ridge, top(span)})};
 
-    // per side the Fink's W: from the rafter at a sixth down to the first bottom node, up to the rafter at a third, down to the second and up
-    // to the ridge
     std::vector<Line> webs;
-    for (const Line& web : {Line::from_points(top(span / 6.0), bottom[1]), Line::from_points(bottom[1], top(span / 3.0)), Line::from_points(top(span / 3.0), bottom[2]), Line::from_points(bottom[2], ridge)}) {
+    for (const Line& web :
+         {Line::from_points(top(span / 6.0), bottom[1]),
+          Line::from_points(bottom[1], top(span / 3.0)),
+          Line::from_points(top(span / 3.0), bottom[2]),
+          Line::from_points(bottom[2], ridge)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1426,7 +1775,16 @@ TrussGuide TrussGuide::fink_cambered(double span, double rise, double camber, do
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::crescent_verticals(double span, double height, double inner, double lantern, double lantern_rise, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::crescent_verticals(
+    double span,
+    double height,
+    double inner,
+    double lantern,
+    double lantern_rise,
+    int panels,
+    double chord_radius,
+    double web_radius
+) {
 
     // the chords: the outer arc through a node half a panel in from each support and over every panel point, the inner arc under the panel points
     std::vector<Point> outer = {Point(0.0, 0.0, 0.0), arc_at(span, height, 0.5 * span / panels)};
@@ -1445,10 +1803,14 @@ TrussGuide TrussGuide::crescent_verticals(double span, double height, double inn
     const Point eave_left = outer[left + 1] + Vector(0.0, 0.0, lantern);
     const Point eave_right = outer[right + 1] + Vector(0.0, 0.0, lantern);
     const Point lantern_ridge(0.5 * span, 0.0, 0.5 * (eave_left[2] + eave_right[2]) + lantern_rise);
-    const std::vector<Polyline> chords = {Polyline(outer), Polyline(lower), Polyline({eave_left, lantern_ridge, eave_right})};
-    const std::vector<Line> posts = {Line::from_points(outer[left + 1], eave_left), Line::from_points(outer[right + 1], eave_right)};
+    const std::vector<Polyline> chords = {
+        Polyline(outer), Polyline(lower), Polyline({eave_left, lantern_ridge, eave_right})
+    };
+    const std::vector<Line> posts = {
+        Line::from_points(outer[left + 1], eave_left),
+        Line::from_points(outer[right + 1], eave_right)
+    };
 
-    // a vertical at every panel point, the end struts and the diagonals from each vertical's top down to the next one's foot towards the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(lower[i], outer[i + 1]));
@@ -1462,9 +1824,13 @@ TrussGuide TrussGuide::crescent_verticals(double span, double height, double inn
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::raised_tie_posts(double span, double rise, double column, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::raised_tie_posts(
+    double span, double rise, double column, double chord_radius, double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the measured fractions: the posts at 0.183 of the span, the raised tie's corners at 0.391, its level the rafters' height over the posts
@@ -1473,71 +1839,110 @@ TrussGuide TrussGuide::raised_tie_posts(double span, double rise, double column,
     const double tie = top(post)[2];
 
     // the chords: the tie from the heels to the posts, up to the corners and level between, the rafters up to the ridge
-    const std::vector<Point> lower = symmetric({Point(0.0, 0.0, 0.0), Point(post, 0.0, 0.0), Point(corner, 0.0, tie)}, span);
+    const std::vector<Point> lower =
+        symmetric({Point(0.0, 0.0, 0.0), Point(post, 0.0, 0.0), Point(corner, 0.0, tie)}, span);
     const std::vector<Polyline> chords = {Polyline(lower), Polyline({top(0.0), ridge, top(span)})};
 
     // per side: the level member from the rafter over the column to the corner, a strut from the rafter between down to the corner, the
-    // vertical over the corner and the diagonal from it to the ridge
     std::vector<Line> webs;
     const Point corner_node(corner, 0.0, tie);
-    for (const Line& web : {Line::from_points(top(post), corner_node), Line::from_points(top(0.5 * (post + corner)), corner_node),
-             Line::from_points(corner_node, top(corner)), Line::from_points(corner_node, ridge)}) {
+    for (const Line& web :
+         {Line::from_points(top(post), corner_node),
+          Line::from_points(top(0.5 * (post + corner)), corner_node),
+          Line::from_points(corner_node, top(corner)),
+          Line::from_points(corner_node, ridge)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
 
-    // the columns from the ground through the tie, which turns on them, up to the rafters
-    const std::vector<Line> posts = {Line::from_points(Point(post, 0.0, -column), top(post)), Line::from_points(Point(span - post, 0.0, -column), top(span - post))};
+    const std::vector<Line> posts = {
+        Line::from_points(Point(post, 0.0, -column), top(post)),
+        Line::from_points(Point(span - post, 0.0, -column), top(span - post))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pitched_warren_columns(double span, double height, double ridge, double column, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pitched_warren_columns(
+    double span,
+    double height,
+    double ridge,
+    double column,
+    int panels,
+    double chord_radius,
+    double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, 0.0); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel,
+            0.0,
+            height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))
+        );
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord pitched
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // the columns from below the bottom chord, which ends on them, up to the top chord's ends
-    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -column), top(0)), Line::from_points(Point(span, 0.0, -column), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(Point(0.0, 0.0, -column), top(0)),
+        Line::from_points(Point(span, 0.0, -column), top(panels))
+    };
 
-    // a vertical at every inner panel point, the diagonals alternating down and up from each column's top to the middle
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
     for (int i = 0; i < panels / 2; i++) {
         const bool down = i % 2 == 0;
-        webs.push_back(down ? Line::from_points(top(i), bottom(i + 1)) : Line::from_points(bottom(i), top(i + 1)));
-        webs.push_back(down ? Line::from_points(top(panels - i), bottom(panels - i - 1)) : Line::from_points(bottom(panels - i), top(panels - i - 1)));
+        webs.push_back(
+            down ? Line::from_points(top(i), bottom(i + 1))
+                 : Line::from_points(bottom(i), top(i + 1))
+        );
+        webs.push_back(
+            down ? Line::from_points(top(panels - i), bottom(panels - i - 1))
+                 : Line::from_points(bottom(panels - i), top(panels - i - 1))
+        );
     }
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fink_compound(double span, double rise, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::fink_compound(double span, double rise, double chord_radius, double web_radius) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the measured fractions: the bottom nodes at 0.181 and 0.371, the rafter nodes at twelfths of the span; the knot on the main strut from
-    // the second bottom node to the ridge, level with the rafter's middle
     const Point first(0.181 * span, 0.0, 0.0);
     const Point second(0.371 * span, 0.0, 0.0);
     const Point middle = top(0.25 * span);
     const Point knot = second + (ridge - second) * (middle[2] / rise);
 
     // the chords: the bottom chord straight, the rafters up to the ridge
-    const std::vector<Polyline> chords = {Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})
+    };
 
     // per side: the lower W from the rafter's first two twelfths, the strut down from its middle, the level member to the knot, the main strut
-    // and the upper struts from the rafter's fourth and fifth twelfths to the knot
     std::vector<Line> webs;
-    for (const Line& web : {Line::from_points(top(span / 12.0), first), Line::from_points(top(span / 6.0), first), Line::from_points(first, middle),
-             Line::from_points(middle, second), Line::from_points(middle, knot), Line::from_points(second, ridge),
-             Line::from_points(top(span / 3.0), knot), Line::from_points(top(5.0 * span / 12.0), knot)}) {
+    for (const Line& web :
+         {Line::from_points(top(span / 12.0), first),
+          Line::from_points(top(span / 6.0), first),
+          Line::from_points(first, middle),
+          Line::from_points(middle, second),
+          Line::from_points(middle, knot),
+          Line::from_points(second, ridge),
+          Line::from_points(top(span / 3.0), knot),
+          Line::from_points(top(5.0 * span / 12.0), knot)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1545,18 +1950,27 @@ TrussGuide TrussGuide::fink_compound(double span, double rise, double chord_radi
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fink_bent_tie(double span, double rise, double bend, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::fink_bent_tie(
+    double span, double rise, double bend, double chord_radius, double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the chords: the bottom chord straight, the rafters up to the ridge
-    const std::vector<Polyline> chords = {Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})
+    };
 
     // per side: the bent tie from the heel up to its bend at 0.326 of the span and on to the ridge, a strut from the rafter at 0.262 to the bend
     std::vector<Line> webs;
     const Point knee(0.326 * span, 0.0, bend);
-    for (const Line& web : {Line::from_points(top(0.0), knee), Line::from_points(knee, ridge), Line::from_points(top(0.262 * span), knee)}) {
+    for (const Line& web :
+         {Line::from_points(top(0.0), knee),
+          Line::from_points(knee, ridge),
+          Line::from_points(top(0.262 * span), knee)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1564,20 +1978,28 @@ TrussGuide TrussGuide::fink_bent_tie(double span, double rise, double bend, doub
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::french_steep(double span, double rise, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::french_steep(double span, double rise, double chord_radius, double web_radius) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the chords: the bottom chord straight, the rafters up to the ridge
-    const std::vector<Polyline> chords = {Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)})
+    };
 
     // per side: the central triangle's side from the ridge to the third point, a strut from the rafter at 0.165 down to the third point and
-    // two from the rafter there and over the third point to the side's middle
     std::vector<Line> webs;
     const Point third(span / 3.0, 0.0, 0.0);
     const Point middle = third + (ridge - third) * 0.5;
-    for (const Line& web : {Line::from_points(ridge, third), Line::from_points(top(0.165 * span), third), Line::from_points(top(0.165 * span), middle), Line::from_points(top(span / 3.0), middle)}) {
+    for (const Line& web :
+         {Line::from_points(ridge, third),
+          Line::from_points(top(0.165 * span), third),
+          Line::from_points(top(0.165 * span), middle),
+          Line::from_points(top(span / 3.0), middle)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1585,13 +2007,21 @@ TrussGuide TrussGuide::french_steep(double span, double rise, double chord_radiu
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::fink_lantern(double span, double rise, double lantern, double lantern_rise, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::fink_lantern(
+    double span,
+    double rise,
+    double lantern,
+    double lantern_rise,
+    double chord_radius,
+    double web_radius
+) {
 
-    const auto top = [&](double x) { return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span))); };
+    const auto top = [&](double x) {
+        return Point(x, 0.0, rise * (1.0 - std::abs(x - 0.5 * span) / (0.5 * span)));
+    };
     const Point ridge = top(0.5 * span);
 
     // the measured fractions: the bottom nodes at 0.163 and 0.327, the rafter nodes at 0.129, 0.252 and 0.374, the knot on the main strut level
-    // with the second rafter node
     const Point first(0.163 * span, 0.0, 0.0);
     const Point second(0.327 * span, 0.0, 0.0);
     const Point knot = second + (ridge - second) * (top(0.252 * span)[2] / rise);
@@ -1602,14 +2032,29 @@ TrussGuide TrussGuide::fink_lantern(double span, double rise, double lantern, do
     const Point lantern_ridge(0.5 * span, 0.0, eave_left[2] + lantern_rise);
 
     // the chords: the bottom chord straight, the rafters up to the ridge, the lantern's roof
-    const std::vector<Polyline> chords = {Polyline({top(0.0), top(span)}), Polyline({top(0.0), ridge, top(span)}), Polyline({eave_left, lantern_ridge, eave_right})};
-    const std::vector<Line> posts = {Line::from_points(top(0.374 * span), eave_left), Line::from_points(top(0.626 * span), eave_right)};
+    const std::vector<Polyline> chords = {
+        Polyline({top(0.0), top(span)}),
+        Polyline({top(0.0), ridge, top(span)}),
+        Polyline({eave_left, lantern_ridge, eave_right})
+    };
+    const std::vector<Line> posts = {
+        Line::from_points(top(0.374 * span), eave_left),
+        Line::from_points(top(0.626 * span), eave_right)
+    };
 
     // per side: the first strut, the second rafter node's diagonal and level member, the main strut, the third rafter node's strut; the king
-    // post and the lantern's struts from the ridge
-    std::vector<Line> webs = {Line::from_points(Point(0.5 * span, 0.0, 0.0), ridge), Line::from_points(ridge, lantern_ridge), Line::from_points(ridge, eave_left), Line::from_points(ridge, eave_right)};
-    for (const Line& web : {Line::from_points(top(0.129 * span), first), Line::from_points(top(0.252 * span), second), Line::from_points(top(0.252 * span), knot),
-             Line::from_points(second, ridge), Line::from_points(top(0.374 * span), knot)}) {
+    std::vector<Line> webs = {
+        Line::from_points(Point(0.5 * span, 0.0, 0.0), ridge),
+        Line::from_points(ridge, lantern_ridge),
+        Line::from_points(ridge, eave_left),
+        Line::from_points(ridge, eave_right)
+    };
+    for (const Line& web :
+         {Line::from_points(top(0.129 * span), first),
+          Line::from_points(top(0.252 * span), second),
+          Line::from_points(top(0.252 * span), knot),
+          Line::from_points(second, ridge),
+          Line::from_points(top(0.374 * span), knot)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1617,19 +2062,37 @@ TrussGuide TrussGuide::fink_lantern(double span, double rise, double lantern, do
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::arch_polygonal_tie(double span, double height, double tie, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::arch_polygonal_tie(
+    double span, double height, double tie, double chord_radius, double web_radius
+) {
 
-    // the arch through its nodes at the measured fractions of the span, the polygonal tie up to its level part, the knot on the main diagonal
-    const std::vector<Point> arch = symmetric({Point(0.0, 0.0, 0.0), arc_at(span, height, 0.086 * span), arc_at(span, height, 0.205 * span), arc_at(span, height, 0.346 * span), Point(0.5 * span, 0.0, height)}, span);
-    const std::vector<Point> lower = symmetric({Point(0.0, 0.0, 0.0), Point(0.156 * span, 0.0, 0.57 * tie), Point(0.283 * span, 0.0, tie), Point(0.5 * span, 0.0, tie)}, span);
+    const std::vector<Point> arch = symmetric(
+        {Point(0.0, 0.0, 0.0),
+         arc_at(span, height, 0.086 * span),
+         arc_at(span, height, 0.205 * span),
+         arc_at(span, height, 0.346 * span),
+         Point(0.5 * span, 0.0, height)},
+        span
+    );
+    const std::vector<Point> lower = symmetric(
+        {Point(0.0, 0.0, 0.0),
+         Point(0.156 * span, 0.0, 0.57 * tie),
+         Point(0.283 * span, 0.0, tie),
+         Point(0.5 * span, 0.0, tie)},
+        span
+    );
     const Point crown = arch[4];
     const Point knot = lower[2] + (crown - lower[2]) * 0.42;
     const std::vector<Polyline> chords = {Polyline(arch), Polyline(lower)};
 
-    // the king post; per side the main diagonal from the tie's corner to the crown, the zigzag under the arch and the struts to the knot
     std::vector<Line> webs = {Line::from_points(lower[3], crown)};
-    for (const Line& web : {Line::from_points(arch[1], lower[1]), Line::from_points(lower[1], arch[2]), Line::from_points(arch[2], lower[2]),
-             Line::from_points(lower[2], crown), Line::from_points(arch[2], knot), Line::from_points(arch[3], knot)}) {
+    for (const Line& web :
+         {Line::from_points(arch[1], lower[1]),
+          Line::from_points(lower[1], arch[2]),
+          Line::from_points(arch[2], lower[2]),
+          Line::from_points(lower[2], crown),
+          Line::from_points(arch[2], knot),
+          Line::from_points(arch[3], knot)}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1637,16 +2100,34 @@ TrussGuide TrussGuide::arch_polygonal_tie(double span, double height, double tie
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::pitched_crossed_posts(double span, double height, double ridge, double camber, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::pitched_crossed_posts(
+    double span,
+    double height,
+    double ridge,
+    double camber,
+    int panels,
+    double chord_radius,
+    double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
-    const auto bottom = [&](int i) { return Point(i * panel, 0.0, camber * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel,
+            0.0,
+            height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))
+        );
+    };
+    const auto bottom = [&](int i) {
+        return Point(i * panel, 0.0, camber * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels)));
+    };
 
     // the chords: both pitched, the bottom up to the camber
-    const std::vector<Polyline> chords = {Polyline({bottom(0), bottom(panels / 2), bottom(panels)}), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0), bottom(panels / 2), bottom(panels)}),
+        Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // a vertical at every inner panel point, both diagonals in every panel
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(bottom(i), top(i)));
@@ -1655,16 +2136,24 @@ TrussGuide TrussGuide::pitched_crossed_posts(double span, double height, double 
         webs.push_back(Line::from_points(bottom(i), top(i + 1)));
     }
 
-    // the end posts
-    const std::vector<Line> posts = {Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(bottom(0), top(0)), Line::from_points(bottom(panels), top(panels))
+    };
 
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::cambered_crossed_lantern(double span, double height, double camber, double lantern, double lantern_rise, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::cambered_crossed_lantern(
+    double span,
+    double height,
+    double camber,
+    double lantern,
+    double lantern_rise,
+    double chord_radius,
+    double web_radius
+) {
 
     // the chords at the measured eighths: the top chord straight up to the height at three eighths and level to five, the bottom chord
-    // cambered through 0.3 and 0.7 of the camber up to it at three eighths
     const std::array<double, 4> rises = {0.0, 0.3, 0.7, 1.0};
     std::vector<Point> top;
     std::vector<Point> bottom;
@@ -1675,16 +2164,25 @@ TrussGuide TrussGuide::cambered_crossed_lantern(double span, double height, doub
     top = symmetric(top, span);
     bottom = symmetric(bottom, span);
 
-    // the lantern on the top chord's corners: its posts, tie and roof
     const Point eave_left = top[3] + Vector(0.0, 0.0, lantern);
     const Point eave_right = top[4] + Vector(0.0, 0.0, lantern);
     const Point lantern_middle(0.5 * span, 0.0, eave_left[2]);
     const Point lantern_ridge(0.5 * span, 0.0, eave_left[2] + lantern_rise);
-    const std::vector<Polyline> chords = {Polyline(bottom), Polyline(top), Polyline({eave_left, lantern_middle, eave_right}), Polyline({eave_left, lantern_ridge, eave_right})};
-    const std::vector<Line> posts = {Line::from_points(top[3], eave_left), Line::from_points(top[4], eave_right)};
+    const std::vector<Polyline> chords = {
+        Polyline(bottom),
+        Polyline(top),
+        Polyline({eave_left, lantern_middle, eave_right}),
+        Polyline({eave_left, lantern_ridge, eave_right})
+    };
+    const std::vector<Line> posts = {
+        Line::from_points(top[3], eave_left), Line::from_points(top[4], eave_right)
+    };
 
-    // a vertical at every inner node, both diagonals in every panel between two verticals, the lantern's vertical and struts
-    std::vector<Line> webs = {Line::from_points(lantern_middle, lantern_ridge), Line::from_points(top[3], lantern_middle), Line::from_points(top[4], lantern_middle)};
+    std::vector<Line> webs = {
+        Line::from_points(lantern_middle, lantern_ridge),
+        Line::from_points(top[3], lantern_middle),
+        Line::from_points(top[4], lantern_middle)
+    };
     for (size_t i = 1; i + 1 < top.size(); i++)
         webs.push_back(Line::from_points(bottom[i], top[i]));
     for (size_t i = 1; i + 2 < top.size(); i++) {
@@ -1695,22 +2193,42 @@ TrussGuide TrussGuide::cambered_crossed_lantern(double span, double height, doub
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::arched_crossed_columns(double span, double height, double ridge, double crown, double column, int panels, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::arched_crossed_columns(
+    double span,
+    double height,
+    double ridge,
+    double crown,
+    double column,
+    int panels,
+    double chord_radius,
+    double web_radius
+) {
 
     const double panel = span / panels;
-    const auto top = [&](int i) { return Point(i * panel, 0.0, height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))); };
-    const auto arch = [&](int i) { return arc_at(span, crown, i * panel); };
+    const auto top = [&](int i) {
+        return Point(
+            i * panel,
+            0.0,
+            height + (ridge - height) * (1.0 - std::abs(i - 0.5 * panels) / (0.5 * panels))
+        );
+    };
+    const auto arch = [&](int i) {
+        return arc_at(span, crown, i * panel);
+    };
 
     // the chords: the arch from column to column through every panel point, the top chord pitched
     std::vector<Point> lower;
     for (int i = 0; i <= panels; i++)
         lower.push_back(arch(i));
-    const std::vector<Polyline> chords = {Polyline(lower), Polyline({top(0), top(panels / 2), top(panels)})};
+    const std::vector<Polyline> chords = {
+        Polyline(lower), Polyline({top(0), top(panels / 2), top(panels)})
+    };
 
-    // the columns from below the arch's springing, which ends on them, up to the top chord's ends
-    const std::vector<Line> posts = {Line::from_points(Point(0.0, 0.0, -column), top(0)), Line::from_points(Point(span, 0.0, -column), top(panels))};
+    const std::vector<Line> posts = {
+        Line::from_points(Point(0.0, 0.0, -column), top(0)),
+        Line::from_points(Point(span, 0.0, -column), top(panels))
+    };
 
-    // a vertical at every inner panel point, both diagonals in every panel
     std::vector<Line> webs;
     for (int i = 1; i < panels; i++)
         webs.push_back(Line::from_points(arch(i), top(i)));
@@ -1722,7 +2240,9 @@ TrussGuide TrussGuide::arched_crossed_columns(double span, double height, double
     return TrussGuide(chords, webs, posts, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::trapezoid_king_crossed(double span, double height, double ridge, double chord_radius, double web_radius) {
+TrussGuide TrussGuide::trapezoid_king_crossed(
+    double span, double height, double ridge, double chord_radius, double web_radius
+) {
 
     // the chords: the bottom chord straight, the top chord up to the shoulders at the quarter points and to the ridge
     const Point start(0.0, 0.0, 0.0);
@@ -1730,9 +2250,10 @@ TrussGuide TrussGuide::trapezoid_king_crossed(double span, double height, double
     const Point left(0.25 * span, 0.0, height);
     const Point right(0.75 * span, 0.0, height);
     const Point peak(0.5 * span, 0.0, ridge);
-    const std::vector<Polyline> chords = {Polyline({start, end}), Polyline({start, left, peak, right, end})};
+    const std::vector<Polyline> chords = {
+        Polyline({start, end}), Polyline({start, left, peak, right, end})
+    };
 
-    // the verticals under the shoulders, the king post, and both diagonals in each middle panel
     const Point left_foot(0.25 * span, 0.0, 0.0);
     const Point middle_foot(0.5 * span, 0.0, 0.0);
     const Point right_foot(0.75 * span, 0.0, 0.0);
@@ -1749,18 +2270,30 @@ TrussGuide TrussGuide::trapezoid_king_crossed(double span, double height, double
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-TrussGuide TrussGuide::topology_optimised(double span, double height, double chord_radius, double web_radius) {
+TrussGuide
+TrussGuide::topology_optimised(double span, double height, double chord_radius, double web_radius) {
 
-    const auto top = [&](double fraction) { return Point(fraction * span, 0.0, height); };
-    const auto bottom = [&](double fraction) { return Point(fraction * span, 0.0, 0.0); };
+    const auto top = [&](double fraction) {
+        return Point(fraction * span, 0.0, height);
+    };
+    const auto bottom = [&](double fraction) {
+        return Point(fraction * span, 0.0, 0.0);
+    };
 
     // the chords: the bottom chord straight, the top chord level from 0.13 to 0.87 of the span and sloping down to the supports
-    const std::vector<Polyline> chords = {Polyline({bottom(0.0), bottom(1.0)}), Polyline({bottom(0.0), top(0.13), top(0.33), top(0.5), top(0.67), top(0.87), bottom(1.0)})};
+    const std::vector<Polyline> chords = {
+        Polyline({bottom(0.0), bottom(1.0)}),
+        Polyline({bottom(0.0), top(0.13), top(0.33), top(0.5), top(0.67), top(0.87), bottom(1.0)})
+    };
 
-    // the triangle at the middle, and per side a strut from the shoulder, the zigzag towards the middle and the long diagonal crossing it
-    std::vector<Line> webs = {Line::from_points(top(0.5), bottom(0.41)), Line::from_points(top(0.5), bottom(0.59))};
-    for (const Line& web : {Line::from_points(top(0.13), bottom(0.2)), Line::from_points(bottom(0.2), top(0.33)), Line::from_points(top(0.33), bottom(0.41)),
-             Line::from_points(top(0.13), bottom(0.41))}) {
+    std::vector<Line> webs = {
+        Line::from_points(top(0.5), bottom(0.41)), Line::from_points(top(0.5), bottom(0.59))
+    };
+    for (const Line& web :
+         {Line::from_points(top(0.13), bottom(0.2)),
+          Line::from_points(bottom(0.2), top(0.33)),
+          Line::from_points(top(0.33), bottom(0.41)),
+          Line::from_points(top(0.13), bottom(0.41))}) {
         webs.push_back(web);
         webs.push_back(Line::from_points(mirror(web.start(), span), mirror(web.end(), span)));
     }
@@ -1768,4 +2301,4 @@ TrussGuide TrussGuide::topology_optimised(double span, double height, double cho
     return TrussGuide(chords, webs, {}, chord_radius, web_radius);
 }
 
-} // namespace wood_truss
+}

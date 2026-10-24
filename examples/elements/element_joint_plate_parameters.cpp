@@ -43,14 +43,13 @@ int main() {
         scene.add(base, group);
         scene.add(upright, group);
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(base, upright);
         joints[i]->orient(contact, {base, upright});
         scene.add(joints[i], group);
         scene.add_interaction(joints[i], upright, joints[i]->interaction(0));
         scene.add_interaction(joints[i], base, joints[i]->interaction(1));
 
-        // drawn apart, so both sides of the joint read
         upright->place(Xform::translation(0.0, 0.0, 200.0));
     }
 

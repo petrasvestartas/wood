@@ -131,6 +131,6 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
 * Every member carries a "drill" element feature per hole a joint makes in it (pins,
   support pins): the two circles of the hole's radius where it enters and leaves, named by the joint
   and the diameter. 476 on the square.
-* Connectors BRG blue, RGB 38 / 149 / 233 (`CONNECTOR_COLOR`).
+* Connectors blue, RGB 38 / 149 / 233 (`CONNECTOR_COLOR`).
 * `verify_contacts` returns a `ContactCheck` (count, mismatches, `ok()`, `str()`); `count_bores`
   public. Wedges and ties numbered in quarter order; the compas_tf search order is gone.

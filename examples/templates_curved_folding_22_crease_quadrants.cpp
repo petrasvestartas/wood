@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The four quadrants of one curved crease: two strips on it folded as one sheet (Q1, Q3) or unfolded as two mirror sheets, convex (Q2)
-/// or concave (Q4) for both.
+/// The four quadrants of one curved crease.
 int main() {
 
     CreaseQuadrants quadrants(
@@ -17,12 +16,20 @@ int main() {
     std::cout << quadrants << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates = quadrants.get_elements_placed<PlateCurved>("quadrant");
+    const std::vector<std::shared_ptr<PlateCurved>> plates =
+        quadrants.get_elements_placed<PlateCurved>("quadrant");
 
     for (const std::shared_ptr<PlateCurved>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("crease quadrants: {} strips, {} closed solids, {} contacts, development distortion {:.2e}\n", plates.size(), solids, quadrants.get_contacts().size(), quadrants.distortion());
+    std::cout << fmt::format(
+        "crease quadrants: {} strips, {} closed solids, {} contacts, development distortion "
+        "{:.2e}\n",
+        plates.size(),
+        solids,
+        quadrants.get_contacts().size(),
+        quadrants.distortion()
+    );
     quadrants.pb_dump(pb_path("live"));
     return 0;
 }

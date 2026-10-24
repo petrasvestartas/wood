@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Folded triangular surfaces over a triangular plan (Engel, p. 232): a vertical gable on every edge, the roof cut into four by the
-/// lines joining the gables' peaks, the middle triangle flat.
+/// Folded triangular surfaces over a triangular plan .
 int main() {
 
     TriangleFold fold(3, 12000.0, 7500.0, 7500.0, 120.0, "triangle_triangle");
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 21 of the folding templates: folded triangular surfaces over a triangular plan after Engel, Structure Systems, Folded plate structures (p. 232). An equilateral triangle on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 7500 high, the lines joining the middles cut the roof into four: the three corner triangles fold down from two peaks to the corner on the ground, the middle triangle stays flat at 7500, as the vertical lines of Engel's perspective show on the gables: seven plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
+Step 21 of the folding templates: folded triangular surfaces over a triangular plan. An equilateral triangle on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 7500 high, the lines joining the middles cut the roof into four: the three corner triangles fold down from two peaks to the corner on the ground, the middle triangle stays flat at 7500, as the vertical lines's perspective show on the gables: seven plates 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

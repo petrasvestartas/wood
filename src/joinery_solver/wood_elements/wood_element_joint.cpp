@@ -10,13 +10,18 @@ using namespace session_cpp;
 Joint::Joint() : Element("Joint") {
     is_visible = false;
 }
-Joint::Joint(const std::vector<Polyline>& loops, const std::string& name) : Element(name), loops(loops) {
+
+Joint::Joint(const std::vector<Polyline>& loops, const std::string& name)
+    : Element(name), loops(loops) {
     is_visible = false;
 }
+
 Joint::Joint(const Plane& cutter) : Element("JointCutter"), cuts{cutter} {
     is_visible = false;
 }
-Joint::Joint(const Mesh& cutter, SolidOperation op) : Element(cutter, "JointSolidCutter"), operation(op) {
+
+Joint::Joint(const Mesh& cutter, SolidOperation op)
+    : Element(cutter, "JointSolidCutter"), operation(op) {
     is_visible = false;
     if (!cutter.is_closed() || !cutter.is_valid())
         throw std::invalid_argument("A solid cutter needs a valid closed mesh");
@@ -27,17 +32,22 @@ Joint::Joint(const Polyline& profile, const Vector& direction)
 }
 
 Joint::Joint(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation op)
-    : Element("JointProfileCutter"), cutter_profile(profile), cutter_extrusion(direction), operation(op) {
+    : Element("JointProfileCutter"), cutter_profile(profile), cutter_extrusion(direction),
+      operation(op) {
     is_visible = false;
     if (profile.empty() || direction.magnitude_squared() < 1e-12)
-        throw std::invalid_argument("A profile cutter needs closed planar rings and an extrusion direction");
+        throw std::invalid_argument(
+            "A profile cutter needs closed planar rings and an extrusion direction"
+        );
     const Vector normal = direction.normalized();
     for (const Polyline& ring : profile) {
         if (!ring.is_closed() || ring.point_count() < 4)
             throw std::invalid_argument("Open cutter profile");
         for (const Point& point : ring.get_points())
             if (std::abs(normal.dot(point - profile[0][0])) > 1e-7)
-                throw std::invalid_argument("Cutter profiles must be coplanar and perpendicular to the extrusion");
+                throw std::invalid_argument(
+                    "Cutter profiles must be coplanar and perpendicular to the extrusion"
+                );
         loops.push_back(ring);
         loops.push_back(ring.translated(direction));
     }
@@ -54,6 +64,7 @@ std::shared_ptr<Joint> Joint::drill(const Line& axis, double radius, double tole
     result->drill_lines.push_back(axis);
     return result;
 }
+
 std::vector<Line> Joint::drill_axes() const {
     return drill_lines;
 }
@@ -67,7 +78,10 @@ static Polyline head_circle(const Support& support, double level) {
 
     for (int k = 0; k < corners; k++) {
         const double angle = Tolerance::TWO_PI * k / corners;
-        points.push_back(support.at(level) + support.plane.x_axis() * (radius * std::cos(angle)) + support.plane.y_axis() * (radius * std::sin(angle)));
+        points.push_back(
+            support.at(level) + support.plane.x_axis() * (radius * std::cos(angle)) +
+            support.plane.y_axis() * (radius * std::sin(angle))
+        );
     }
 
     points.push_back(points.front());
@@ -78,7 +92,10 @@ static Polyline head_circle(const Support& support, double level) {
 std::shared_ptr<Joint> Joint::support(const Support& support, const Column& column) {
 
     const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
-    const std::shared_ptr<Joint> joint = std::make_shared<Joint>(std::vector<Polyline>{head_circle(support, bottom), head_circle(support, support.height)}, "support");
+    const std::shared_ptr<Joint> joint = std::make_shared<Joint>(
+        std::vector<Polyline>{head_circle(support, bottom), head_circle(support, support.height)},
+        "support"
+    );
 
     for (const Line& pin : support.pins()) {
         const Vector back = pin.to_vector().normalized() * support.head_plate_thickness;
@@ -98,8 +115,8 @@ std::shared_ptr<Interaction> Joint::interaction(size_t) const {
     if (loops.empty() && drill_axes().empty() && !cuts.empty())
         return std::make_shared<InteractionFeaturePlateBeam>();
 
-    // its solid, or its body with its cuts for a drilling joint, its drills, profile and operation, in the joint's frame
-    const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>();
+    const std::shared_ptr<InteractionFeatureSolid> cut =
+        std::make_shared<InteractionFeatureSolid>();
     cut->mesh = drill_axes().empty() ? model_geometry_mesh() : cut_mesh(body_mesh(), cuts);
     cut->drills = drill_axes();
     cut->drill_radius = line_radius;
@@ -133,7 +150,6 @@ Mesh Joint::body_mesh() const {
         return Mesh::loft(bottom, top, true);
     }
 
-    // a key cut from the plates is the whole of the joint's own solid, the pieces its loops make included
     Mesh mesh = key_mesh();
     if (mesh.number_of_faces() > 0)
         return mesh;
@@ -141,7 +157,8 @@ Mesh Joint::body_mesh() const {
     for (const std::array<Polyline, 2>& body : bodies())
         append_mesh(mesh, Mesh::loft({body[0]}, {body[1]}, true));
 
-    if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
+    if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() &&
+        _geometry_mesh)
         return *_geometry_mesh;
 
     return mesh;
@@ -152,7 +169,6 @@ const Mesh& Joint::element_geometry_mesh() const {
     if (!mesh_) {
         mesh_ = body_mesh();
 
-        // a pin through a key is one solid with it; a joint's other pins stand on their own
         const bool keyed = key_mesh().number_of_faces() > 0;
         for (const Line& axis : drill_axes()) {
             const Mesh pin = drill_mesh(axis, line_radius, chord_tolerance);
@@ -177,15 +193,18 @@ const BRep& Joint::element_geometry_brep() const {
             brep_ = brep_between_loops(bottom, top);
         } else {
             const Mesh key = key_mesh();
-            const std::vector<std::array<Polyline, 2>> parts = key.number_of_faces() > 0 ? std::vector<std::array<Polyline, 2>>() : bodies();
+            const std::vector<std::array<Polyline, 2>> parts =
+                key.number_of_faces() > 0 ? std::vector<std::array<Polyline, 2>>() : bodies();
             brep_ = BRep();
             for (const std::array<Polyline, 2>& body : parts)
                 append_brep(*brep_, brep_between_loops({body[0]}, {body[1]}));
             if (key.number_of_faces() > 0)
                 brep_ = mesh_brep(key);
-            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_brep)
+            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() &&
+                     _geometry_brep)
                 brep_ = *_geometry_brep;
-            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() && _geometry_mesh)
+            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() &&
+                     _geometry_mesh)
                 brep_ = BRep::from_polylines(_geometry_mesh->face_outlines());
         }
         for (const Line& axis : drill_axes())
@@ -199,6 +218,7 @@ const Mesh& Joint::model_geometry_mesh() const {
         model_mesh_ = cut_mesh(element_geometry_mesh(), cuts);
     return *model_mesh_;
 }
+
 const BRep& Joint::model_geometry_brep() const {
     if (!model_brep_)
         model_brep_ = !cuts.empty() && !drill_axes().empty()
@@ -206,9 +226,11 @@ const BRep& Joint::model_geometry_brep() const {
                           : cut_brep(element_geometry_brep(), cuts);
     return *model_brep_;
 }
+
 std::vector<Plane> Joint::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }
+
 void Joint::invalidate_geometry() {
     mesh_.reset();
     brep_.reset();
@@ -217,18 +239,27 @@ void Joint::invalidate_geometry() {
     Element::invalidate_geometry();
     reset();
 }
+
 void Joint::compute_geometry_mesh_impl() {
     set_geometry(model_geometry_mesh());
 }
+
 void Joint::compute_geometry_brep_impl() {
     set_geometry(model_geometry_brep());
 }
+
 void Joint::place(const Xform& xform) {
     if (!drill_axes().empty()) {
-        const Vector x = Vector(1, 0, 0).transformed(xform), y = Vector(0, 1, 0).transformed(xform), z = Vector(0, 0, 1).transformed(xform);
+        const Vector x = Vector(1, 0, 0).transformed(xform), y = Vector(0, 1, 0).transformed(xform),
+                     z = Vector(0, 0, 1).transformed(xform);
         const double scale = x.magnitude();
-        if (scale <= 0 || std::abs(y.magnitude() - scale) > scale * 1e-9 || std::abs(z.magnitude() - scale) > scale * 1e-9 || std::abs(x.dot(y)) > scale * scale * 1e-9 || std::abs(x.dot(z)) > scale * scale * 1e-9 || std::abs(y.dot(z)) > scale * scale * 1e-9)
-            throw std::invalid_argument("Cylindrical drills require a rigid or uniform-scale transform");
+        if (scale <= 0 || std::abs(y.magnitude() - scale) > scale * 1e-9 ||
+            std::abs(z.magnitude() - scale) > scale * 1e-9 ||
+            std::abs(x.dot(y)) > scale * scale * 1e-9 ||
+            std::abs(x.dot(z)) > scale * scale * 1e-9 || std::abs(y.dot(z)) > scale * scale * 1e-9)
+            throw std::invalid_argument(
+                "Cylindrical drills require a rigid or uniform-scale transform"
+            );
         line_radius *= scale;
         chord_tolerance *= scale;
     }
@@ -241,6 +272,7 @@ void Joint::place(const Xform& xform) {
         axis = axis.transformed(xform);
     invalidate_geometry();
 }
+
 std::shared_ptr<Joint> Joint::transformed(const Xform& xform) const {
     if (is_mirror(xform))
         return nullptr;
@@ -249,11 +281,20 @@ std::shared_ptr<Joint> Joint::transformed(const Xform& xform) const {
     result->place(xform);
     return result;
 }
+
 AABB Joint::aabb(double inflate) const {
     return AABB::from_mesh(model_geometry_mesh(), inflate);
 }
+
 std::string Joint::str() const {
-    return fmt::format("{}(name={}, targets={}, is_visible={}, is_locked={})", element_type_name(), name, targets.size(), is_visible, is_locked);
+    return fmt::format(
+        "{}(name={}, targets={}, is_visible={}, is_locked={})",
+        element_type_name(),
+        name,
+        targets.size(),
+        is_visible,
+        is_locked
+    );
 }
 
 std::string Joint::element_data_dumps() const {
@@ -295,6 +336,7 @@ nlohmann::ordered_json Joint::element_data_jsondump() const {
         throw std::runtime_error("Invalid joint data");
     return json_of(proto);
 }
+
 std::shared_ptr<Joint> Joint::from_element(Element element) {
     wood_proto::Joint proto;
     if (!proto.ParseFromString(element.element_data_dumps()))
@@ -318,6 +360,7 @@ std::shared_ptr<Joint> Joint::from_element(Element element) {
     result->read_proto(proto);
     return result;
 }
+
 void Joint::read_proto(const wood_proto::Joint& proto) {
 
     for (const session_proto::Polyline& loop : proto.loops())
@@ -342,8 +385,19 @@ void Joint::read_proto(const wood_proto::Joint& proto) {
 }
 
 void Joint::register_type() {
-    for (const std::string kind : {"Joint", "JointPlate", "JointBeam", "JointAnnen", "JointVidy", "JointElement", "ConnectorPart", "Pin", "Pin"})
-        Element::register_type(kind, [](const std::string& data) { return Joint::from_element(Element::pb_loads(data)); });
+    for (const std::string kind :
+         {"Joint",
+          "JointPlate",
+          "JointBeam",
+          "JointAnnen",
+          "JointVidy",
+          "JointElement",
+          "ConnectorPart",
+          "Pin",
+          "Pin"})
+        Element::register_type(kind, [](const std::string& data) {
+            return Joint::from_element(Element::pb_loads(data));
+        });
 }
 
 int circle_segments(double radius, double tolerance) {
@@ -364,7 +418,10 @@ Mesh drill_mesh(const Line& axis, double radius, double tolerance) {
     std::vector<Point> ring;
     for (int k = 0; k < n; ++k) {
         const double angle = 2 * std::acos(-1.0) * k / n;
-        ring.push_back(axis.start() + plane.x_axis() * (radius * std::cos(angle)) + plane.y_axis() * (radius * std::sin(angle)));
+        ring.push_back(
+            axis.start() + plane.x_axis() * (radius * std::cos(angle)) +
+            plane.y_axis() * (radius * std::sin(angle))
+        );
     }
     ring.push_back(ring.front());
     Polyline bottom(ring);
@@ -375,12 +432,8 @@ BRep drill_brep(const Line& axis, double radius) {
     if (axis.length() <= 0 || radius <= 0)
         throw std::invalid_argument("Invalid drill dimensions");
     const Plane frame = Plane::from_point_normal(axis.start(), axis.to_vector());
-    const Xform to_world = Xform::frame_to_world(
-        axis.start(),
-        frame.x_axis(),
-        frame.y_axis(),
-        frame.z_axis()
-    );
+    const Xform to_world =
+        Xform::frame_to_world(axis.start(), frame.x_axis(), frame.y_axis(), frame.z_axis());
     const BRep cylinder = BRep::create_cylinder(radius, axis.length());
     return cylinder.transformed(to_world);
 }

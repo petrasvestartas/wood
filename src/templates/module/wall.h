@@ -11,12 +11,7 @@ namespace wood_module {
 // Wall
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A framed timber wall module, a session built from a guide: one FramedPanel standing in the xz plane, its rails, studs, the frame
-/// of every opening and a sheet on each face, and the contacts between them; no connector is made.
-///
-/// Fields: `guide`, the WallGuide it is built from.
-/// Members are named `bottom_rail_<i>`, `top_rail`, `stud_<i>`, `jamb_stud_<o>_<side>`, `header_<o>`, `sill_<o>` and
-/// `sheathing_<side>`, cripples as `cripple_<o>_<i>_<run>`, read back by name; every member has the same section.
+/// A framed timber wall module.
 class Wall : public WoodSession {
 public:
     const WallGuide guide; // The geometry the wall is built from; every element is in the session.

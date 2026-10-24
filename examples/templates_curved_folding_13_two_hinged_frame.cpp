@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// two-hinged frame of folded cylindrical surfaces: four shallow barrels standing as 6 m columns, reflected at the knee onto a roof of troughs rising 14 degrees to the ridge at mid-span, 40 m span, the ridge the plane of symmetry.
+/// two-hinged frame of folded cylindrical surfaces.
 int main() {
 
     const double climb = 90.0 * Tolerance::TO_RADIANS;
@@ -23,12 +23,21 @@ int main() {
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels = fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<PlateCurved>> panels =
+        fold.get_elements_placed<PlateCurved>("lamella");
 
     for (const std::shared_ptr<PlateCurved>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
-    std::cout << fmt::format("two hinged frame: {} lamellas, {} closed solids, {} contacts, development distortion {:.2e}, ruling twist {:.2e}\n", panels.size(), solids, fold.get_contacts().size(), fold.distortion(), fold.twist());
+    std::cout << fmt::format(
+        "two hinged frame: {} lamellas, {} closed solids, {} contacts, development distortion "
+        "{:.2e}, ruling twist {:.2e}\n",
+        panels.size(),
+        solids,
+        fold.get_contacts().size(),
+        fold.distortion(),
+        fold.twist()
+    );
     fold.pb_dump(pb_path("live"));
     return 0;
 }

@@ -9,8 +9,8 @@ namespace config {
 // ═══════════════════════════════════════════════════════════════════════════
 // Definitions
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::string DATA_SET_INPUT_FOLDER = (std::filesystem::path(__FILE__).parent_path().parent_path().parent_path() / "data").string();
+std::string DATA_SET_INPUT_FOLDER =
+    (std::filesystem::path(__FILE__).parent_path().parent_path().parent_path() / "data").string();
 const std::vector<std::string> DATASET_NAMES = {
     "hexbox_and_corner",
     "vidy_corner",
@@ -81,7 +81,6 @@ std::string DATA_SET_OUTPUT_FILE;
 // ═══════════════════════════════════════════════════════════════════════════
 // Loader
 // ═══════════════════════════════════════════════════════════════════════════
-
 namespace {
 
 bool parse_bool(const std::string& s) {
@@ -98,7 +97,7 @@ std::vector<double> parse_doubles(const std::vector<std::string>& xs) {
     return out;
 }
 
-/// The string value of a yaml key; TinyYaml null-derefs on a bare `key:`, so a present key without a value is an error.
+/// The string value of a yaml key.
 std::string yaml_string(TINY_YAML::Yaml& y, const std::string& key) {
 
     if (!y[key].hasData())
@@ -118,10 +117,7 @@ std::vector<std::string> yaml_string_list(TINY_YAML::Yaml& y, const std::string&
 
 /// A file key resolved relative to the yaml into out; naming a file that is not there is an error.
 void yaml_file(
-    TINY_YAML::Yaml& y,
-    const std::filesystem::path& path,
-    const std::string& key,
-    std::string& out
+    TINY_YAML::Yaml& y, const std::filesystem::path& path, const std::string& key, std::string& out
 ) {
 
     if (!y.has(key))
@@ -134,7 +130,7 @@ void yaml_file(
     out = p.string();
 }
 
-/// The joint keys of a dataset yaml onto the settings: joint parameters and their id table, volume extension, scale, the detection pass and the beam block; a malformed list is an error.
+/// The joint keys of a dataset yaml onto the settings.
 void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
 
     if (y.has("joints_parameters_and_types")) {
@@ -144,7 +140,8 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
             if (parsed.size() < 21 || parsed.size() % 3 != 0)
                 throw std::runtime_error(
                     "load_yaml: joints_parameters_and_types has " + std::to_string(parsed.size()) +
-                    " values; expected at least 21 (7 families x 3) in multiples of 3");
+                    " values; expected at least 21 (7 families x 3) in multiples of 3"
+                );
             settings.joint_parameters = std::move(parsed);
         }
     }
@@ -154,14 +151,18 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
         if (parsed.size() < 3 || parsed.size() % 3 != 0)
             throw std::runtime_error(
                 "load_yaml: joint_volume_extension has " + std::to_string(parsed.size()) +
-                " values; expected 3 (every joint) or a multiple of 3 (one triple per joint in the order found, the last for every later one)");
+                " values; expected 3 (every joint) or a multiple of 3 (one triple per joint in the "
+                "order found, the last for every later one)"
+            );
         settings.joint_volume_extension = std::move(parsed);
     }
 
     if (y.has("joint_scale")) {
         const std::vector<double> s = parse_doubles(yaml_string_list(y, "joint_scale"));
         if (s.size() != 3)
-            throw std::runtime_error("load_yaml: joint_scale needs 3 values, has " + std::to_string(s.size()));
+            throw std::runtime_error(
+                "load_yaml: joint_scale needs 3 values, has " + std::to_string(s.size())
+            );
         settings.joint_scale = {s[0], s[1], s[2]};
     }
 
@@ -174,13 +175,20 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
         else if (search == "face_to_face_then_cross")
             settings.search_type = face_to_face_then_cross;
         else
-            throw std::runtime_error("load_yaml: search_type '" + search + "' is not face_to_face, cross_joint or face_to_face_then_cross");
+            throw std::runtime_error(
+                "load_yaml: search_type '" + search +
+                "' is not face_to_face, cross_joint or face_to_face_then_cross"
+            );
     }
 
     if (y.has("beams")) {
         settings.beams = parse_doubles(yaml_string_list(y, "beams"));
         if (settings.beams.size() != 6)
-            throw std::runtime_error("load_yaml: beams needs 6 values [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male], has " + std::to_string(settings.beams.size()));
+            throw std::runtime_error(
+                "load_yaml: beams needs 6 values [radius, allowed type, min_distance, "
+                "volume_length, cross_or_side_to_end, flip_male], has " +
+                std::to_string(settings.beams.size())
+            );
     }
 }
 
@@ -188,11 +196,14 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
 void read_solver_keys(TINY_YAML::Yaml& y, Settings& settings) {
 
     if (y.has("face_to_face_side_to_side_joints_dihedral_angle"))
-        settings.dihedral_angle = std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
+        settings.dihedral_angle =
+            std::stod(yaml_string(y, "face_to_face_side_to_side_joints_dihedral_angle"));
     if (y.has("face_to_face_side_to_side_joints_all_treated_as_rotated"))
-        settings.all_treated_as_rotated = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_all_treated_as_rotated"));
+        settings.all_treated_as_rotated =
+            parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_all_treated_as_rotated"));
     if (y.has("face_to_face_side_to_side_joints_rotated_joint_as_average"))
-        settings.rotated_joint_as_average = parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_rotated_joint_as_average"));
+        settings.rotated_joint_as_average =
+            parse_bool(yaml_string(y, "face_to_face_side_to_side_joints_rotated_joint_as_average"));
     if (y.has("distance"))
         settings.distance = std::stod(yaml_string(y, "distance"));
     if (y.has("distance_squared"))
@@ -209,12 +220,14 @@ void read_solver_keys(TINY_YAML::Yaml& y, Settings& settings) {
         settings.clipper_area = std::stod(yaml_string(y, "clipper_area"));
 }
 
-} // namespace
+}
 
 std::string session_pb(size_t index) {
 
     if (index >= SESSION_NAMES.size())
-        throw std::runtime_error("session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES");
+        throw std::runtime_error(
+            "session_pb: index " + std::to_string(index) + " past the end of SESSION_NAMES"
+        );
 
     return dataset_path(SESSION_NAMES[index], ".pb").string();
 }
@@ -243,36 +256,11 @@ Settings load_yaml(const std::string& dataset_name) {
     read_joint_keys(y, settings);
     read_solver_keys(y, settings);
 
-    yaml_file(
-        y,
-        path,
-        "obj",
-        DATA_SET_OBJ
-    );
-    yaml_file(
-        y,
-        path,
-        "adjacency",
-        DATA_SET_ADJACENCY
-    );
-    yaml_file(
-        y,
-        path,
-        "three_valence",
-        DATA_SET_THREE_VALENCE
-    );
-    yaml_file(
-        y,
-        path,
-        "insertion_vectors",
-        DATA_SET_INSERTION_VECTORS
-    );
-    yaml_file(
-        y,
-        path,
-        "joints_types",
-        DATA_SET_JOINTS_TYPES
-    );
+    yaml_file(y, path, "obj", DATA_SET_OBJ);
+    yaml_file(y, path, "adjacency", DATA_SET_ADJACENCY);
+    yaml_file(y, path, "three_valence", DATA_SET_THREE_VALENCE);
+    yaml_file(y, path, "insertion_vectors", DATA_SET_INSERTION_VECTORS);
+    yaml_file(y, path, "joints_types", DATA_SET_JOINTS_TYPES);
 
     DATA_SET_INPUT_NAME = path.stem().string();
     DATA_SET_OUTPUT_FILE = "WoodF2F_" + DATA_SET_INPUT_NAME + ".pb";
@@ -300,5 +288,5 @@ bool plates_exist(const std::string& name) {
     return std::filesystem::exists(dataset_path(name, ".obj"));
 }
 
-} // namespace config
-} // namespace wood_session
+}
+}

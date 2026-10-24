@@ -14,20 +14,10 @@ int main() {
     scene.add(first);
     scene.add(second);
 
-    // the key from their contact, added, and passed to each beam in its target order
-    const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(first, second);
+    const std::shared_ptr<InteractionContactFace> contact =
+        scene.compute_face_contact(first, second);
     const std::shared_ptr<JointBeam> key = JointBeam::butterfly_key(
-        *first,
-        *second,
-        *contact,
-        0.0,   // top: flush with the beams' top
-        600.0, // length
-        150.0, // head_length
-        100.0, // head_width
-        50.0,  // neck_width
-        60.0,  // depth
-        60.0,  // end_depth
-        60.0   // pocket_depth
+        *first, *second, *contact, 0.0, 600.0, 150.0, 100.0, 50.0, 60.0, 60.0, 60.0
     );
     key->name = "butterfly_key";
     scene.add(key);

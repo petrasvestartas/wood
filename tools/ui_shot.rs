@@ -1,20 +1,3 @@
-// A session file rendered with the viewer's own egui interface over it, the layer panel open with every row expanded, without a
-// browser or a GPU: a winit window on a virtual X display (Xvfb), Mesa's lavapipe Vulkan, the page's ?cmd= lines run one per frame
-// as the web viewer runs them, then the frame (scene + panels) read back with Gpu::render_offscreen.
-// The panels (app::ui) compile natively only under cfg(test), so this example is a test; and native stubs keep them closed, so
-// it includes a symlink mirror of src/ (examples/ui_shot_src) with three patched files: app/ui/mod.rs (Ui::publish returns on
-// native: it writes the panel state onto the page canvas through web_sys, which panics off wasm), app/feedback.rs (the
-// layer-panel functions use the panel state under cfg(test) instead of the native no-ops) and state.rs (logical_size divides the
-// device pixels by the window's scale factor, as a browser's CSS pixels do, so the panels draw at that pixel density). wood/tools/shoot_ui.sh makes the
-// mirror, builds and runs this, and converts the PPM:
-//   bash wood/tools/shoot_ui.sh <out.png> <scene.pb> [width height]     (default 3200 x 2000 at scale 2)
-// by hand, after the mirror exists:
-//   Xvfb :99 -screen 0 3840x2400x24 &
-//   DISPLAY=:99 VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json REGEN_PROTO=0 UI_SHOT_IN=<in.pb> UI_SHOT_OUT=<out.ppm> \
-//     cargo test --release --example ui_shot --target x86_64-unknown-linux-gnu -- --exact shot::ui_shot --nocapture
-// Optional: UI_SHOT_SIZE=3200x2000 (device pixels), UI_SHOT_SCALE=2 (device pixels per interface pixel, the browser's devicePixelRatio),
-// UI_SHOT_VIEW=iso|iso_back|top (View Isometric, View Isometric Back or View Top in the default line), UI_SHOT_ZOOM=2 (wheel steps after Fit),
-// UI_SHOT_CMD="Layers All;Arctic On;..." (replaces the default docs line, UI_SHOT_VIEW then ignored).
 #[cfg(not(target_arch = "wasm32"))]
 include!("ui_shot_src/lib.rs"); // src/ mirrored by symlinks, app/ui/mod.rs patched: see the header
 

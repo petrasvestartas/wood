@@ -8,7 +8,6 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlateBeam - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionFeaturePlateBeam::kind() const {
     return "plate_beam";
 }
@@ -16,7 +15,6 @@ std::string_view InteractionFeaturePlateBeam::kind() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlateBeam - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlateBeam::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -28,7 +26,8 @@ std::string InteractionFeaturePlateBeam::interaction_data_dumps() const {
     return proto.SerializeAsString();
 }
 
-InteractionFeaturePlateBeam InteractionFeaturePlateBeam::interaction_data_loads(const std::string& data) {
+InteractionFeaturePlateBeam
+InteractionFeaturePlateBeam::interaction_data_loads(const std::string& data) {
 
     wood_proto::InteractionFeaturePlateBeam proto;
     if (!proto.ParseFromString(data))
@@ -45,7 +44,9 @@ std::shared_ptr<Interaction> InteractionFeaturePlateBeam::clone() const {
 
 /// The registered factory: interaction_data bytes to a plate-to-beam joint.
 static std::shared_ptr<Interaction> feature_plate_beam_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionFeaturePlateBeam>(InteractionFeaturePlateBeam::interaction_data_loads(data));
+    return std::make_shared<InteractionFeaturePlateBeam>(
+        InteractionFeaturePlateBeam::interaction_data_loads(data)
+    );
 }
 
 void InteractionFeaturePlateBeam::register_type() {
@@ -55,9 +56,8 @@ void InteractionFeaturePlateBeam::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeaturePlateBeam - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeaturePlateBeam::str() const {
     return "InteractionFeaturePlateBeam()";
 }
 
-} // namespace wood_session
+}

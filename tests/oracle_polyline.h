@@ -7,10 +7,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Loop validity - what the oracle tests ask of a merged outline and the kernel does not offer
-// (Polyline::is_planar, Polyline::is_simple and a point-set distance are kernel gaps; written once here)
 // ═══════════════════════════════════════════════════════════════════════════
-
 namespace oracle {
 
 /// The gap between the first and the last point of a loop; zero when it is closed.
@@ -45,7 +42,7 @@ inline size_t consecutive_duplicates(const Polyline& loop, double tolerance) {
     return count;
 }
 
-/// True when no two non-adjacent segments of the loop come within tolerance of each other; the first and the last segment of a closed loop count as adjacent.
+/// True when no two non-adjacent segments of the loop come within tolerance of each other.
 inline bool is_simple(const Polyline& loop, double tolerance) {
 
     const std::vector<Line> segments = loop.get_lines();
@@ -60,7 +57,9 @@ inline bool is_simple(const Polyline& loop, double tolerance) {
                 continue;
             double t0 = 0.0;
             double t1 = 0.0;
-            if (!Intersection::line_line_parameters(segments[i], segments[j], t0, t1, 0.0, true, true))
+            if (!Intersection::line_line_parameters(
+                    segments[i], segments[j], t0, t1, 0.0, true, true
+                ))
                 continue;
             if (segments[i].point_at(t0).distance(segments[j].point_at(t1)) < tolerance)
                 return false;
@@ -70,7 +69,7 @@ inline bool is_simple(const Polyline& loop, double tolerance) {
     return true;
 }
 
-/// The largest distance from a point of one loop to the nearest point of the other, either way: zero when the two hold the same points in any order.
+/// The largest distance from a point of one loop to the nearest point of the other, either way.
 inline double point_set_distance(const Polyline& a, const Polyline& b) {
 
     const std::vector<Point> pa = a.get_points();
@@ -99,7 +98,7 @@ inline size_t open_point_count(const Polyline& loop) {
     return loop.point_count() - (loop.point_count() > 1 && closing_gap(loop) < 1e-9 ? 1 : 0);
 }
 
-/// The merged outlines of a plate after joinery, top then bottom, outer first then holes; the plate's own two outlines before any joint.
+/// The merged outlines of a plate after joinery, top then bottom, outer first then holes.
 inline std::vector<Polyline> merged_loops(const Plate& plate) {
 
     std::vector<Polyline> loops;
@@ -116,4 +115,4 @@ inline std::vector<Polyline> merged_loops(const Plate& plate) {
     return loops;
 }
 
-} // namespace oracle
+}

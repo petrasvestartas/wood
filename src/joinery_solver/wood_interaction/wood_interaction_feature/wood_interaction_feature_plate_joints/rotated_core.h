@@ -1,4 +1,3 @@
-/// A profile of xyz points shifted along z.
 static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_offset) {
 
     std::vector<Point> v;
@@ -9,14 +8,17 @@ static Polyline profile_shifted_along_z(const double pts[][3], int n, double z_o
     return Polyline(v);
 }
 
-/// side_side_rotated_hooks/3 core: `divisions` copies of each profile along z, pushed twice per face as mill_project; unit_scale on, and
-/// every joint volume rebuilt as a 120*shift square. The caller has set unit_scale_distance to the male plate's thickness.
+/// side_side_rotated_hooks/3 core.
 static void rotated_core(
     InteractionFeaturePlate& joint,
-    const double m0[][3], int m0n,
-    const double m1[][3], int m1n,
-    const double f0[][3], int f0n,
-    const double f1[][3], int f1n
+    const double m0[][3],
+    int m0n,
+    const double m1[][3],
+    int m1n,
+    const double f0[][3],
+    int f0n,
+    const double f1[][3],
+    int f1n
 ) {
 
     const int divisions = std::max(1, joint.divisions);

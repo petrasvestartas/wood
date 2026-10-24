@@ -1,5 +1,3 @@
-//! Beam: a section swept along a polyline axis, mitered at every interior vertex.
-
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::{
     brep_between_loops, brep_sections, compute_size, frame_along, profile_section, square_section,
@@ -25,6 +23,7 @@ pub struct Beam {
 }
 
 impl Beam {
+
     /// A beam of one profile along its whole axis, the radii its half-width.
     pub fn from_profile(axis: &Polyline, profile: Vec<Polyline>, name: &str) -> Self {
         Self {
@@ -69,7 +68,7 @@ impl Beam {
         Some((at(&(points[0].clone() - reach.clone())), at(&(points[1].clone() + reach))))
     }
 
-    /// One closed outline per axis vertex, along the bisector at an interior vertex, the end ones moved out by extension; empty without a radius.
+    /// One closed outline per axis vertex, along the bisector at an interior vertex.
     pub fn sections(&self) -> Vec<Polyline> {
         let segments = self.axis.segment_count();
 

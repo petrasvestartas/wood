@@ -13,7 +13,13 @@ int main() {
 
     const std::shared_ptr<Plate> plate = wood_session.plates().front();
     for (const ElementFeature& feature : plate->Element::features())
-        std::cout << fmt::format("{} {} on face {}: {} outlines\n", feature.feature_type, feature.name, feature.face_index, feature.outlines.size());
+        std::cout << fmt::format(
+            "{} {} on face {}: {} outlines\n",
+            feature.feature_type,
+            feature.name,
+            feature.face_index,
+            feature.outlines.size()
+        );
 
     wood_session.pb_dump(pb_path("live"));
     wood_session.set_features_visible("contact", false);

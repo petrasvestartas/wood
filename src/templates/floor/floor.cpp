@@ -9,10 +9,7 @@ namespace wood_floor {
 // ═══════════════════════════════════════════════════════════════════════════
 // Floor
 // ═══════════════════════════════════════════════════════════════════════════
-
-Floor::Floor(const FloorGuide& guide, const std::string& name)
-    : WoodSession(name),
-      guide(guide) {
+Floor::Floor(const FloorGuide& guide, const std::string& name) : WoodSession(name), guide(guide) {
 
     // quarters: every quarter's members, lifted to bay_height and grouped by family
     add_quarters();
@@ -34,7 +31,6 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 // ═══════════════════════════════════════════════════════════════════════════
 // Members
 // ═══════════════════════════════════════════════════════════════════════════
-
 void Floor::add_quarters() {
 
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
@@ -47,8 +43,10 @@ void Floor::add_quarters() {
         const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& rows = guide.bed_rails(q);
 
         for (size_t row = 0; row < rows.size(); row++) {
-            const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}_{}", row, q), beds);
-            const std::vector<std::shared_ptr<Plate>> plates = Plate::row_between(rows[row][0], rows[row][1]);
+            const std::shared_ptr<TreeNode> node =
+                add_group(fmt::format("beds_{}_{}", row, q), beds);
+            const std::vector<std::shared_ptr<Plate>> plates =
+                Plate::row_between(rows[row][0], rows[row][1]);
 
             for (size_t i = 0; i < plates.size(); i++) {
                 plates[i]->name = fmt::format("beds_{}_{}_{}", row, i, q);
@@ -58,11 +56,14 @@ void Floor::add_quarters() {
         }
 
         // tsections: Plate, the flanges beside the ribs, tsections_<i>_<q>
-        const std::shared_ptr<TreeNode> tsections = add_group(fmt::format("tsections_{}", q), group);
+        const std::shared_ptr<TreeNode> tsections =
+            add_group(fmt::format("tsections_{}", q), group);
         const std::array<std::array<Polyline, 2>, 6>& tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
-            const std::shared_ptr<Plate> tsection = std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], fmt::format("tsections_{}_{}", i, q));
+            const std::shared_ptr<Plate> tsection = std::make_shared<Plate>(
+                tsection_loops[i][1], tsection_loops[i][0], fmt::format("tsections_{}_{}", i, q)
+            );
             tsection->place(lift);
             add(tsection, tsections);
         }
@@ -72,7 +73,8 @@ void Floor::add_quarters() {
         const std::array<std::array<Polyline, 2>, 2>& outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> outer_rib = rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
+            const std::shared_ptr<BeamVariable> outer_rib =
+                rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
             outer_rib->place(lift);
             add(outer_rib, outer);
         }
@@ -82,7 +84,8 @@ void Floor::add_quarters() {
         const std::array<std::array<Polyline, 2>, 2>& inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_rib = rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
+            const std::shared_ptr<BeamVariable> inner_rib =
+                rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
             inner_rib->place(lift);
             add(inner_rib, inner);
         }
@@ -92,7 +95,9 @@ void Floor::add_quarters() {
         const std::array<std::array<Polyline, 2>, 3>& block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
-            const std::shared_ptr<Plate> block = std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], fmt::format("wedges_{}_{}", i, q));
+            const std::shared_ptr<Plate> block = std::make_shared<Plate>(
+                block_loops[i][1], block_loops[i][0], fmt::format("wedges_{}_{}", i, q)
+            );
             block->place(lift);
             add(block, wedges);
         }
@@ -102,12 +107,8 @@ void Floor::add_quarters() {
         const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_beam = beam(
-                beam_loops[i],
-                {0, 3},
-                {1, 2},
-                fmt::format("inner_beams_{}_{}", i, q)
-            );
+            const std::shared_ptr<BeamVariable> inner_beam =
+                beam(beam_loops[i], {0, 3}, {1, 2}, fmt::format("inner_beams_{}_{}", i, q));
             inner_beam->place(lift);
             add(inner_beam, beams);
         }
@@ -124,12 +125,8 @@ void Floor::add_oculus() {
     const std::shared_ptr<TreeNode> ring_beams = add_group("ring_beams", group);
 
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<BeamVariable> ring_beam = beam(
-            loops[q],
-            {1, 0},
-            {2, 3},
-            fmt::format("oculus_{}", q)
-        );
+        const std::shared_ptr<BeamVariable> ring_beam =
+            beam(loops[q], {1, 0}, {2, 3}, fmt::format("oculus_{}", q));
         ring_beam->place(lift);
         add(ring_beam, ring_beams);
     }
@@ -138,14 +135,17 @@ void Floor::add_oculus() {
     const std::shared_ptr<TreeNode> bottom_wedges = add_group("bottom_wedges", group);
 
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
+        const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(
+            loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q)
+        );
         bottom_wedge->place(lift);
         add(bottom_wedge, bottom_wedges);
     }
 
     // central_plate: Plate, oculus_8
     const std::shared_ptr<TreeNode> central_plate = add_group("central_plate", group);
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
+    const std::shared_ptr<Plate> plate =
+        std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
     plate->place(lift);
     add(plate, central_plate);
 }
@@ -161,22 +161,20 @@ void Floor::add_column(size_t corner) {
     const std::string name = fmt::format("column_{}", corner);
     const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
 
-    const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+    const std::shared_ptr<Support> support =
+        std::make_shared<Support>(guide.support_plane(corner), "support");
     support->name = fmt::format("support_{}", corner);
     const Line axis = support->column_axis(guide.bay_height);
     const Plane frame = guide.column_frame(corner);
-    const std::shared_ptr<Column> shaft = Column::square(
-        axis,
-        frame,
-        guide.size_column_head,
-        name
-    );
+    const std::shared_ptr<Column> shaft = Column::square(axis, frame, guide.size_column_head, name);
 
     const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
     std::vector<std::shared_ptr<Plate>> cutters;
 
     for (size_t i = 0; i < loops.size(); i++) {
-        cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
+        cutters.push_back(std::make_shared<Plate>(
+            loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)
+        ));
         cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
     }
 
@@ -185,23 +183,28 @@ void Floor::add_column(size_t corner) {
     // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
     const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-    for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+    for (const std::shared_ptr<Block>& block :
+         shaft->head_blocks(head_width, guide.column_head_depth)) {
         add(block, group);
-        const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
+        const std::shared_ptr<InteractionFeatureSolid> glue =
+            std::make_shared<InteractionFeatureSolid>(
+                block->element_geometry_mesh(), SolidOperation::add
+            );
         add_interaction(block, shaft, glue);
     }
 
-    // the support under it, its joint let into the column end and drilled
     add(support, group);
     const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
     add(seat, group);
     add_interaction(seat, shaft, seat->interaction(0));
 
-    // the six cutters, hidden, take the head's inclined faces away
     for (const std::shared_ptr<Plate>& cutter : cutters) {
         cutter->is_visible = false;
         add(cutter, group);
-        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
+        const std::shared_ptr<InteractionFeatureSolid> cut =
+            std::make_shared<InteractionFeatureSolid>(
+                cutter->element_geometry_mesh(), SolidOperation::subtract
+            );
         add_interaction(cutter, shaft, cut);
     }
 }
@@ -214,7 +217,8 @@ std::shared_ptr<TreeNode> Floor::connectors_group(size_t q) {
     return group_named(fmt::format("connectors_{}", q), quarter_group(q));
 }
 
-std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
+std::shared_ptr<BeamVariable>
+Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -254,7 +258,8 @@ std::shared_ptr<BeamVariable> Floor::beam(
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
-    const Polyline first = Polyline({near[start[0]], near[start[1]], far[start[1]], far[start[0]]}).closed();
+    const Polyline first =
+        Polyline({near[start[0]], near[start[1]], far[start[1]], far[start[0]]}).closed();
     const Polyline last = Polyline({near[end[0]], near[end[1]], far[end[1]], far[end[0]]}).closed();
 
     return BeamVariable::between(first, last, name);
@@ -263,7 +268,6 @@ std::shared_ptr<BeamVariable> Floor::beam(
 // ═══════════════════════════════════════════════════════════════════════════
 // Contacts
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::array<QuarterContacts, 4> Floor::add_contacts() {
 
     std::array<QuarterContacts, 4> contacts;
@@ -272,25 +276,46 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
         const size_t next = (q + 1) % 4;
 
         // seam: this quarter's seam beam 0 beside the next quarter's seam beam 2
-        const Contact seam = add_contact(fmt::format("seam_wedge_{}", q), fmt::format("inner_beams_0_{}", q), fmt::format("inner_beams_2_{}", next));
+        const Contact seam = add_contact(
+            fmt::format("seam_wedge_{}", q),
+            fmt::format("inner_beams_0_{}", q),
+            fmt::format("inner_beams_2_{}", next)
+        );
         contacts[q].seam_wedge = seam;
 
         // oculus: the oculus beam's back face on its ring beam
-        const Contact oculus = add_contact(fmt::format("oculus_wedge_{}", q), fmt::format("inner_beams_1_{}", q), fmt::format("oculus_{}", q));
+        const Contact oculus = add_contact(
+            fmt::format("oculus_wedge_{}", q),
+            fmt::format("inner_beams_1_{}", q),
+            fmt::format("oculus_{}", q)
+        );
         contacts[q].oculus_wedge = oculus;
 
         // column head: the column against each of its two outer ribs
         for (size_t k = 0; k < 2; k++) {
-            const Contact plate = add_contact(fmt::format("column_plate_{}_{}", q, k), fmt::format("column_{}", q), fmt::format("outer_ribs_{}_{}", k, q));
+            const Contact plate = add_contact(
+                fmt::format("column_plate_{}_{}", q, k),
+                fmt::format("column_{}", q),
+                fmt::format("outer_ribs_{}_{}", k, q)
+            );
             contacts[q].column_plates[k] = plate;
         }
 
         // column blocks: outer_rib 0 | block 0 | inner_rib 0 | block 1 | inner_rib 1 | block 2 | outer_rib 1, each block on the rib either side
-        const std::array<std::string, 4> ribs = {fmt::format("outer_ribs_0_{}", q), fmt::format("inner_ribs_0_{}", q), fmt::format("inner_ribs_1_{}", q), fmt::format("outer_ribs_1_{}", q)};
+        const std::array<std::string, 4> ribs = {
+            fmt::format("outer_ribs_0_{}", q),
+            fmt::format("inner_ribs_0_{}", q),
+            fmt::format("inner_ribs_1_{}", q),
+            fmt::format("outer_ribs_1_{}", q)
+        };
 
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
-                const Contact pins = add_contact(fmt::format("block_pins_{}_{}_{}", q, b, side), ribs[b + side], fmt::format("wedges_{}_{}", b, q));
+                const Contact pins = add_contact(
+                    fmt::format("block_pins_{}_{}_{}", q, b, side),
+                    ribs[b + side],
+                    fmt::format("wedges_{}_{}", b, q)
+                );
                 contacts[q].block_pins[b][side] = pins;
             }
 
@@ -298,27 +323,43 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
         for (size_t k = 0; k < 2; k++) {
             const std::string seam_beam = fmt::format("inner_beams_{}_{}", SEAM_BEAMS[k], q);
             const std::string oculus_beam = fmt::format("inner_beams_1_{}", q);
-            contacts[q].outer_rib_seam_beam[k] = add_contact(fmt::format("pins_outer_rib_{}_{}", q, k), seam_beam, fmt::format("outer_ribs_{}_{}", k, q));
-            contacts[q].seam_beam_oculus_beam[k] = add_contact(fmt::format("pins_seam_beam_{}_{}", q, k), seam_beam, oculus_beam);
-            contacts[q].oculus_beam_inner_rib[k] = add_contact(fmt::format("pins_inner_rib_{}_{}", q, k), oculus_beam, fmt::format("inner_ribs_{}_{}", k, q));
+            contacts[q].outer_rib_seam_beam[k] = add_contact(
+                fmt::format("pins_outer_rib_{}_{}", q, k),
+                seam_beam,
+                fmt::format("outer_ribs_{}_{}", k, q)
+            );
+            contacts[q].seam_beam_oculus_beam[k] =
+                add_contact(fmt::format("pins_seam_beam_{}_{}", q, k), seam_beam, oculus_beam);
+            contacts[q].oculus_beam_inner_rib[k] = add_contact(
+                fmt::format("pins_inner_rib_{}_{}", q, k),
+                oculus_beam,
+                fmt::format("inner_ribs_{}_{}", k, q)
+            );
         }
 
         // ring corner: ring beam q against the next, at the oculus corner they share
-        const Contact ring_corner = add_contact(fmt::format("pins_ring_corner_{}", q), fmt::format("oculus_{}", q), fmt::format("oculus_{}", (q + 1) % 4));
+        const Contact ring_corner = add_contact(
+            fmt::format("pins_ring_corner_{}", q),
+            fmt::format("oculus_{}", q),
+            fmt::format("oculus_{}", (q + 1) % 4)
+        );
         contacts[q].ring_corner = ring_corner;
     }
 
     return contacts;
 }
 
-Contact Floor::add_contact(const std::string& name, const std::string& a_name, const std::string& b_name) {
+Contact
+Floor::add_contact(const std::string& name, const std::string& a_name, const std::string& b_name) {
 
     const std::shared_ptr<Element> a = get_element_by_name<Element>(a_name);
     const std::shared_ptr<Element> b = get_element_by_name<Element>(b_name);
     const std::shared_ptr<InteractionContactFace> face = compute_face_contact(a, b);
 
     if (!face)
-        throw std::runtime_error(fmt::format("no contact {} between {} and {}", name, a_name, b_name));
+        throw std::runtime_error(
+            fmt::format("no contact {} between {} and {}", name, a_name, b_name)
+        );
 
     face->name = name;
     add_interaction(a, b, face);
@@ -329,8 +370,8 @@ Contact Floor::add_contact(const std::string& name, const std::string& a_name, c
 // ═══════════════════════════════════════════════════════════════════════════
 // Connectors
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const {
+std::array<QuarterConnectors, 4>
+Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const {
 
     std::array<QuarterConnectors, 4> connectors;
     const Xform lift = Xform::translation(0.0, 0.0, guide.bay_height);
@@ -344,12 +385,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         const double beam = guide.size_inner_beams;
         const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(lift);
         quarter_connectors.seam_wedge = JointBeam::wedge(
-            *seam.a,
-            *seam.b,
-            *seam.face,
-            1.5 * beam,
-            2.0 * beam / 3.0,
-            outer_face
+            *seam.a, *seam.b, *seam.face, 1.5 * beam, 2.0 * beam / 3.0, outer_face
         );
 
         // oculus wedge: sized by the thicker of the oculus beam and its ring beam
@@ -358,11 +394,7 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         const double ring_beam = FloorGuide::thickness(guide.oculus()[q]);
         const double thicker = std::max(oculus_beam, ring_beam);
         quarter_connectors.oculus_wedge = JointBeam::wedge(
-            *oculus.a,
-            *oculus.b,
-            *oculus.face,
-            1.5 * thicker,
-            2.0 * thicker / 3.0
+            *oculus.a, *oculus.b, *oculus.face, 1.5 * thicker, 2.0 * thicker / 3.0
         );
 
         // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
@@ -370,19 +402,19 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
             const Contact& column = quarter_contacts.column_plates[k];
             quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
             quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
-                *column.a,
-                *column.b,
-                *quarter_connectors.column_plates[k],
-                *column.face
+                *column.a, *column.b, *quarter_connectors.column_plates[k], *column.face
             );
         }
 
         // cross lap: the half lap where the two column plates cross, a plate joint merged into both outlines
         const std::array<std::shared_ptr<Plate>, 2>& plates = quarter_connectors.column_plates;
-        const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[0], plates[1]);
+        const std::shared_ptr<InteractionContactCross> crossing =
+            compute_cross_contact(plates[0], plates[1]);
 
         if (!crossing)
-            throw std::runtime_error(fmt::format("quarter {}: the two column plates do not cross", q));
+            throw std::runtime_error(
+                fmt::format("quarter {}: the two column plates do not cross", q)
+            );
 
         quarter_connectors.cross_lap = JointPlate::cross_slot();
         quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
@@ -392,10 +424,13 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
                 const Contact& contact = quarter_contacts.block_pins[b][side];
-                const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
+                const std::shared_ptr<JointBeam> pins =
+                    JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
 
                 if (!pins)
-                    throw std::runtime_error("the inset leaves no room for the pins of " + contact.face->name);
+                    throw std::runtime_error(
+                        "the inset leaves no room for the pins of " + contact.face->name
+                    );
 
                 quarter_connectors.block_pins[b][side] = pins;
             }
@@ -439,8 +474,15 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
                 PIN_LENGTH
             );
 
-            if (!quarter_connectors.outer_rib_seam_beam[k] || !quarter_connectors.seam_beam_oculus_beam[k] || !quarter_connectors.oculus_beam_inner_rib[k])
-                throw std::runtime_error(fmt::format("quarter {} side {}: a butt joint leaves no room for its pins, the bay is too narrow", q, k));
+            if (!quarter_connectors.outer_rib_seam_beam[k] ||
+                !quarter_connectors.seam_beam_oculus_beam[k] ||
+                !quarter_connectors.oculus_beam_inner_rib[k])
+                throw std::runtime_error(fmt::format(
+                    "quarter {} side {}: a butt joint leaves no room for its pins, the bay is too "
+                    "narrow",
+                    q,
+                    k
+                ));
         }
 
         // ring corner pins: two in a column across the corner of ring beam q and the next
@@ -464,7 +506,10 @@ std::array<QuarterConnectors, 4> Floor::compute_connectors(const std::array<Quar
     return connectors;
 }
 
-void Floor::add_connectors(const std::array<QuarterConnectors, 4>& connectors, const std::array<QuarterContacts, 4>& contacts) {
+void Floor::add_connectors(
+    const std::array<QuarterConnectors, 4>& connectors,
+    const std::array<QuarterContacts, 4>& contacts
+) {
 
     // seam wedges: each wedge added, then into the two seam beams it joins
     for (size_t q = 0; q < 4; q++) {

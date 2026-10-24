@@ -54,8 +54,7 @@ void write(std::string& key, const Plane& plane, const Xform& local) {
 }
 
 /// Every item in frame coordinates, then a list end.
-template <class T>
-void write(std::string& key, const std::vector<T>& items, const Xform& local) {
+template <class T> void write(std::string& key, const std::vector<T>& items, const Xform& local) {
 
     for (const T& item : items)
         write(key, item, local);
@@ -64,7 +63,8 @@ void write(std::string& key, const std::vector<T>& items, const Xform& local) {
 }
 
 /// The right-handed frame at origin with z along normal and x along direction made perpendicular to it; nullopt when either is degenerate.
-std::optional<Xform> compute_frame(const Point& origin, const Vector& direction, const Vector& normal) {
+std::optional<Xform>
+compute_frame(const Point& origin, const Vector& direction, const Vector& normal) {
 
     const Vector z = normal.normalized();
     const Vector along = direction.normalized();
@@ -73,12 +73,7 @@ std::optional<Xform> compute_frame(const Point& origin, const Vector& direction,
     if (z.is_zero() || x.magnitude() < Tolerance::RELATIVE)
         return std::nullopt;
 
-    return Xform::frame_to_world(
-        origin,
-        x,
-        z.cross(x),
-        z
-    );
+    return Xform::frame_to_world(origin, x, z.cross(x), z);
 }
 
 /// Origin at the axis start, z along the axis, x from the first section edge.
@@ -88,7 +83,8 @@ std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
         return std::nullopt;
 
     const Vector width = column.section.get_point(1) - column.section.get_point(0);
-    const std::optional<Xform> frame = compute_frame(column.axis.start(), width, column.axis.to_vector());
+    const std::optional<Xform> frame =
+        compute_frame(column.axis.start(), width, column.axis.to_vector());
 
     if (!frame)
         return std::nullopt;
@@ -103,7 +99,7 @@ std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
     return std::make_pair(key, *frame);
 }
 
-/// Origin at the first axis point, x along the first segment, z from the first direction or world z; every segment keys the up it is swept with, world z where it has none.
+/// Origin at the first axis point, x along the first segment, z from the first direction or world z.
 std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
 
     if (beam.axis.point_count() < 2)
@@ -111,7 +107,8 @@ std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
 
     const Vector along = (beam.axis.get_point(1) - beam.axis.get_point(0)).normalized();
     const Vector up = beam.has_direction(0) ? beam.directions[0] : Vector::z_axis();
-    const std::optional<Xform> frame = compute_frame(beam.axis.get_point(0), along, up - along * up.dot(along));
+    const std::optional<Xform> frame =
+        compute_frame(beam.axis.get_point(0), along, up - along * up.dot(along));
 
     if (!frame)
         return std::nullopt;
@@ -125,7 +122,9 @@ std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
 
     for (int segment = 0; segment < static_cast<int>(beam.axis.segment_count()); segment++) {
         key += beam.has_direction(segment) ? 'd' : 'z';
-        write(key, beam.has_direction(segment) ? beam.directions[segment] : Vector::z_axis(), local);
+        write(
+            key, beam.has_direction(segment) ? beam.directions[segment] : Vector::z_axis(), local
+        );
     }
 
     write(key, beam.cuts, local);
@@ -142,7 +141,8 @@ std::optional<std::pair<std::string, Xform>> block_key(const Block& block) {
 
     const Polyline& bottom = block.loops[0];
     const Vector first_edge = bottom.get_point(1) - bottom.get_point(0);
-    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), first_edge, Vector::average_normal(bottom));
+    const std::optional<Xform> frame =
+        compute_frame(bottom.get_point(0), first_edge, Vector::average_normal(bottom));
 
     if (!frame)
         return std::nullopt;
@@ -163,7 +163,8 @@ std::optional<std::pair<std::string, Xform>> plate_key(const Plate& plate) {
 
     const Polyline& bottom = plate.polylines[0];
     const Vector first_edge = bottom.get_point(1) - bottom.get_point(0);
-    const std::optional<Xform> frame = compute_frame(bottom.get_point(0), first_edge, plate.planes[0].z_axis());
+    const std::optional<Xform> frame =
+        compute_frame(bottom.get_point(0), first_edge, plate.planes[0].z_axis());
 
     if (!frame)
         return std::nullopt;
@@ -197,7 +198,8 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
         return beam->transformed(xform);
 
-    if (const std::shared_ptr<BeamVariable> variable = std::dynamic_pointer_cast<BeamVariable>(element))
+    if (const std::shared_ptr<BeamVariable> variable =
+            std::dynamic_pointer_cast<BeamVariable>(element))
         return variable->transformed(xform);
 
     if (const std::shared_ptr<Support> support = std::dynamic_pointer_cast<Support>(element))
@@ -215,14 +217,16 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (is_mirror(xform))
         return nullptr;
 
-    const std::shared_ptr<Element> copy = std::get<std::shared_ptr<Element>>(clone(Geometry(element)));
+    const std::shared_ptr<Element> copy =
+        std::get<std::shared_ptr<Element>>(clone(Geometry(element)));
     copy->place(xform);
 
     return copy;
 }
 
 /// The element a lookup table holds under guid, nullptr when it holds none or other geometry.
-std::shared_ptr<Element> element_of(const std::unordered_map<std::string, Geometry>& table, const std::string& guid) {
+std::shared_ptr<Element>
+element_of(const std::unordered_map<std::string, Geometry>& table, const std::string& guid) {
 
     const std::unordered_map<std::string, Geometry>::const_iterator found = table.find(guid);
 
@@ -248,7 +252,8 @@ void index_definitions(WoodSession& session) {
 /// The guid of the definition stored under key, "" when none is.
 std::string find_definition(const WoodSession& session, const std::string& key) {
 
-    const std::unordered_map<std::string, std::string>::const_iterator found = session.definition_keys.find(key);
+    const std::unordered_map<std::string, std::string>::const_iterator found =
+        session.definition_keys.find(key);
 
     if (found == session.definition_keys.end() || !session.definition_lookup.count(found->second))
         return "";
@@ -256,12 +261,11 @@ std::string find_definition(const WoodSession& session, const std::string& key) 
     return found->second;
 }
 
-}  // namespace
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Keys
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::optional<std::pair<std::string, Xform>> element_key(const Element& element) {
 
     if (const Column* column = dynamic_cast<const Column*>(&element))
@@ -282,8 +286,8 @@ std::optional<std::pair<std::string, Xform>> element_key(const Element& element)
 // ═══════════════════════════════════════════════════════════════════════════
 // WoodSession - Instances
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::string WoodSession::add_definition(std::shared_ptr<Element> definition, const std::string& key) {
+std::string
+WoodSession::add_definition(std::shared_ptr<Element> definition, const std::string& key) {
 
     index_definitions(*this);
     const std::string stored = find_definition(*this, key);
@@ -311,17 +315,23 @@ std::shared_ptr<TreeNode> WoodSession::add_instance(
     if (!definition || is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<InstanceRef> instance = std::make_shared<InstanceRef>(definition_guid, Xform::identity());
+    std::shared_ptr<InstanceRef> instance =
+        std::make_shared<InstanceRef>(definition_guid, Xform::identity());
     instance->name = name.empty() ? definition->name : name;
 
     return Session::add_instance(instance, xform, parent);
 }
 
-/// A view of a column, beam or block takes its outlines and planes from the stored mesh, lofted once; a plate answers from its own members.
-std::shared_ptr<Element> WoodSession::world_view(const std::string& guid, const Xform& world) const {
+/// A view of a column, beam or block takes its outlines and planes from the stored mesh, lofted once.
+std::shared_ptr<Element>
+WoodSession::world_view(const std::string& guid, const Xform& world) const {
 
-    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = instance_lookup.find(guid);
-    const std::shared_ptr<Element> source = instance == instance_lookup.end() ? element_of(lookup, guid) : element_of(definition_lookup, instance->second->definition_guid);
+    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance =
+        instance_lookup.find(guid);
+    const std::shared_ptr<Element> source =
+        instance == instance_lookup.end()
+            ? element_of(lookup, guid)
+            : element_of(definition_lookup, instance->second->definition_guid);
 
     if (!source)
         return nullptr;
@@ -345,8 +355,9 @@ std::shared_ptr<Element> WoodSession::world_view(const std::string& guid, const 
     return view;
 }
 
-/// Tree order once there is an element definition, since to_instance, explode and undo put every object back at its tree position; objects outside the tree follow in list order.
-std::vector<std::shared_ptr<Element>> WoodSession::world_elements(const std::function<bool(const Element&)>& keep) const {
+/// Tree order once there is an element definition, since to_instance, explode and undo put every object back at its tree position.
+std::vector<std::shared_ptr<Element>>
+WoodSession::world_elements(const std::function<bool(const Element&)>& keep) const {
 
     const std::unordered_map<std::string, Xform> world = world_xforms();
     std::vector<std::string> guids;
@@ -370,8 +381,12 @@ std::vector<std::shared_ptr<Element>> WoodSession::world_elements(const std::fun
             continue;
 
         const std::shared_ptr<Element> stored = element_of(lookup, guid);
-        const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = instance_lookup.find(guid);
-        const std::shared_ptr<Element> source = instance == instance_lookup.end() ? stored : element_of(definition_lookup, instance->second->definition_guid);
+        const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator
+            instance = instance_lookup.find(guid);
+        const std::shared_ptr<Element> source =
+            instance == instance_lookup.end()
+                ? stored
+                : element_of(definition_lookup, instance->second->definition_guid);
 
         if (!source || (keep && !keep(*source)))
             continue;
@@ -395,7 +410,8 @@ void WoodSession::host_feature(const std::string& guid, ElementFeature feature) 
     if (!world.is_identity())
         feature.outlines = transformed_list(feature.outlines, *world.inverse());
 
-    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance = instance_lookup.find(guid);
+    const std::unordered_map<std::string, std::shared_ptr<InstanceRef>>::const_iterator instance =
+        instance_lookup.find(guid);
 
     if (instance != instance_lookup.end())
         instance->second->features.push_back(std::move(feature));
@@ -404,7 +420,9 @@ void WoodSession::host_feature(const std::string& guid, ElementFeature feature) 
 }
 
 /// An element without features is not read, so it does not loft; a mirroring frame is skipped.
-size_t WoodSession::instance_by_key(const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of) {
+size_t WoodSession::instance_by_key(
+    const std::function<std::optional<std::pair<std::string, Xform>>(const Element&)>& key_of
+) {
 
     index_definitions(*this);
     size_t made = 0;
@@ -427,7 +445,9 @@ size_t WoodSession::instance_by_key(const std::function<std::optional<std::pair<
             definition = add_definition(canonical, key->first);
         }
 
-        std::vector<ElementFeature> carried = element->features_count() > 0 ? transformed_features(session_features(*element), local) : std::vector<ElementFeature>();
+        std::vector<ElementFeature> carried =
+            element->features_count() > 0 ? transformed_features(session_features(*element), local)
+                                          : std::vector<ElementFeature>();
 
         if (!to_instance(element->guid(), definition, key->second))
             continue;
@@ -451,4 +471,4 @@ void WoodSession::promote(const std::shared_ptr<Element>& view) {
     replace(guid, transformed(view, *world_xform(guid).inverse()));
 }
 
-} // namespace wood_session
+}

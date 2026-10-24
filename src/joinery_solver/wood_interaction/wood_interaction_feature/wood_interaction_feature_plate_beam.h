@@ -11,7 +11,8 @@ namespace wood_session {
 /// A plate-to-beam joint; nothing computed yet, the class and its message are reserved.
 class InteractionFeaturePlateBeam : public InteractionFeature {
 public:
-    static constexpr std::string_view INTERACTION_TYPE = "InteractionFeaturePlateBeam"; // The tag the kernel writes and the registry reads.
+    static constexpr std::string_view INTERACTION_TYPE =
+        "InteractionFeaturePlateBeam"; // The tag the kernel writes and the registry reads.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -47,4 +48,4 @@ public:
     std::string str() const override;
 };
 
-} // namespace wood_session
+}

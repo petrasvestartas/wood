@@ -4,29 +4,27 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double LENGTH = 4000.0; // along x
+const double LENGTH = 4000.0;
 const double HEIGHT = 2000.0;
 const double THICKNESS = 200.0;
-const double BRICK = 400.0; // brick length
-const double COURSE = 200.0; // course height
-const double STAGGER = 0.5; // running bond
+const double BRICK = 400.0;
+const double COURSE = 200.0;
+const double STAGGER = 0.5;
 
 int main() {
 
     WoodSession wood_session("vault_wall");
-    for (const std::shared_ptr<Element>& element : wood_vault::wall(
-        LENGTH,
-        HEIGHT,
-        THICKNESS,
-        BRICK,
-        COURSE,
-        STAGGER
-    ))
+    for (const std::shared_ptr<Element>& element :
+         wood_vault::wall(LENGTH, HEIGHT, THICKNESS, BRICK, COURSE, STAGGER))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
 
-    std::cout << fmt::format("wall: {} bricks, {} contacts\n", wood_session.objects.elements->size(), wood_session.graph.number_of_edges());
+    std::cout << fmt::format(
+        "wall: {} bricks, {} contacts\n",
+        wood_session.objects.elements->size(),
+        wood_session.graph.number_of_edges()
+    );
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -34,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A running bond wall 4 m long and 2 m high of 400 by 200 bricks, half bricks closing every odd course, the wall compas_dem's WallTemplate leaves unwritten; compute_face_contacts(0) pairs the bricks along the bed and head joints.
+A running bond wall 4 m long and 2 m high of 400 by 200 bricks, half bricks closing every odd course; compute_face_contacts(0) pairs the bricks along the bed and head joints.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

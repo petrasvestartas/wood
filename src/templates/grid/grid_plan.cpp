@@ -8,7 +8,6 @@ namespace wood_grid::plan {
 // ═══════════════════════════════════════════════════════════════════════════
 // Loops
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::vector<Point> to_loop(const Polyline& polyline) {
 
     std::vector<Point> points = polyline.get_points();
@@ -29,7 +28,8 @@ double compute_area(const std::vector<Point>& points) {
 
     double area = 0.0;
     for (size_t i = 0; i < points.size(); i++)
-        area += points[i][0] * points[(i + 1) % points.size()][1] - points[(i + 1) % points.size()][0] * points[i][1];
+        area += points[i][0] * points[(i + 1) % points.size()][1] -
+                points[(i + 1) % points.size()][0] * points[i][1];
 
     return area / 2.0;
 }
@@ -67,7 +67,8 @@ std::vector<Point> compute_flat(const Mesh& mesh, const std::vector<size_t>& rin
 Point compute_interior(const std::vector<Point>& points) {
 
     const Vector along = compute_direction(points[0], points[1]);
-    const Vector inward = Vector(0.0, 0.0, 1.0).cross(along) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
+    const Vector inward =
+        Vector(0.0, 0.0, 1.0).cross(along) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
 
     return compute_lift(points[0] + (points[1] - points[0]) * 0.5 + inward, 0.0);
 }
@@ -88,7 +89,6 @@ bool is_convex(const std::vector<Point>& points) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Regions
 // ═══════════════════════════════════════════════════════════════════════════
-
 bool is_inside(const std::vector<Polyline>& rings, const Point& point) {
 
     int count = 0;
@@ -108,25 +108,22 @@ Polyline compute_wall_ring(const Polyline& core, double wall) {
 }
 
 Point compute_corner(
-    const Point& corner,
-    const Vector& before,
-    double a,
-    const Vector& after,
-    double b
+    const Point& corner, const Vector& before, double a, const Vector& after, double b
 ) {
 
     const double cosine = before.dot(after);
     if (1.0 - cosine * cosine < 1e-9)
         return corner + before * std::max(a, b);
 
-    return corner + before * ((a - cosine * b) / (1.0 - cosine * cosine)) + after * ((b - cosine * a) / (1.0 - cosine * cosine));
+    return corner + before * ((a - cosine * b) / (1.0 - cosine * cosine)) +
+           after * ((b - cosine * a) / (1.0 - cosine * cosine));
 }
 
 /// A crossing of a line with a ring side: the parameter along the line, the ring and the side.
 struct Crossing {
-    double t = 0.0; // Parameter along the line.
-    int ring = -1; // Ring index.
-    int side = -1; // Side index.
+    double t = 0.0;
+    int ring = -1;
+    int side = -1;
 };
 
 /// True when a comes before b along the line.
@@ -135,10 +132,7 @@ bool is_before(const Crossing& a, const Crossing& b) {
 }
 
 std::vector<Piece> compute_pieces(
-    const Line& line,
-    const std::vector<Polyline>& rings,
-    bool inside,
-    double tolerance
+    const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance
 ) {
 
     if (rings.empty())
@@ -151,15 +145,8 @@ std::vector<Piece> compute_pieces(
             double t = 0.0;
             double s = 0.0;
             const Line side = Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
-            if (Intersection::line_line_parameters(
-                line,
-                side,
-                t,
-                s,
-                tolerance,
-                true,
-                false
-            ) && line.point_at(t).distance(side.point_at(s)) <= tolerance)
+            if (Intersection::line_line_parameters(line, side, t, s, tolerance, true, false) &&
+                line.point_at(t).distance(side.point_at(s)) <= tolerance)
                 crossings.push_back({t, static_cast<int>(r), static_cast<int>(i)});
         }
     }
@@ -167,9 +154,16 @@ std::vector<Piece> compute_pieces(
 
     std::vector<Piece> pieces;
     for (size_t k = 0; k + 1 < crossings.size(); k++)
-        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance && is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) == inside){
-            const Line part = Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t));
-            pieces.push_back({part, {crossings[k].ring, crossings[k + 1].ring}, {crossings[k].side, crossings[k + 1].side}});
+        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance &&
+            is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) ==
+                inside) {
+            const Line part =
+                Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t));
+            pieces.push_back(
+                {part,
+                 {crossings[k].ring, crossings[k + 1].ring},
+                 {crossings[k].side, crossings[k + 1].side}}
+            );
         }
 
     return pieces;
@@ -178,7 +172,6 @@ std::vector<Piece> compute_pieces(
 // ═══════════════════════════════════════════════════════════════════════════
 // Arrangement
 // ═══════════════════════════════════════════════════════════════════════════
-
 double compute_ring_id(size_t ring, size_t edge) {
     return 1000000.0 + 1000.0 * ring + edge;
 }
@@ -195,12 +188,7 @@ Mesh compute_arrangement(
     double merge
 ) {
 
-    Mesh plan = Mesh::from_arrangement(
-        lines,
-        rings,
-        tolerance,
-        merge
-    );
+    Mesh plan = Mesh::from_arrangement(lines, rings, tolerance, merge);
     std::map<size_t, std::set<double>> meeting;
     for (const std::pair<size_t, size_t>& edge : plan.edges()) {
         const double source = *plan.edge_attribute(edge, "line");
@@ -212,7 +200,11 @@ Mesh compute_arrangement(
 
     for (const std::pair<const size_t, std::set<double>>& entry : meeting) {
         plan.set_vertex_attribute(entry.first, "line_a", *entry.second.begin());
-        plan.set_vertex_attribute(entry.first, "line_b", entry.second.size() > 1 ? *std::next(entry.second.begin()) : *entry.second.begin());
+        plan.set_vertex_attribute(
+            entry.first,
+            "line_b",
+            entry.second.size() > 1 ? *std::next(entry.second.begin()) : *entry.second.begin()
+        );
     }
 
     return plan;
@@ -221,16 +213,19 @@ Mesh compute_arrangement(
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
-
-std::optional<Plane> compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction) {
+std::optional<Plane>
+compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction) {
 
     if (!is_convex(polygon))
-        return Plane::from_point_normal(origin + direction * compute_reach(polygon, origin, direction), direction);
+        return Plane::from_point_normal(
+            origin + direction * compute_reach(polygon, origin, direction), direction
+        );
 
     std::optional<Plane> exit;
     double best = std::numeric_limits<double>::max();
     for (size_t i = 0; i < polygon.size(); i++) {
-        const Vector normal = compute_direction(polygon[i], polygon[(i + 1) % polygon.size()]).cross(Vector(0.0, 0.0, 1.0));
+        const Vector normal = compute_direction(polygon[i], polygon[(i + 1) % polygon.size()])
+                                  .cross(Vector(0.0, 0.0, 1.0));
         const double speed = direction.dot(normal);
         if (speed <= 1e-9)
             continue;
@@ -245,11 +240,13 @@ std::optional<Plane> compute_exit(const std::vector<Point>& polygon, const Point
     return exit;
 }
 
-double compute_reach(const std::vector<Point>& polygon, const Point& point, const Vector& direction) {
+double
+compute_reach(const std::vector<Point>& polygon, const Point& point, const Vector& direction) {
 
     double reach = 0.0;
     for (const Point& corner : polygon)
-        reach = std::max(reach, (compute_lift(corner, 0.0) - compute_lift(point, 0.0)).dot(direction));
+        reach =
+            std::max(reach, (compute_lift(corner, 0.0) - compute_lift(point, 0.0)).dot(direction));
 
     return reach;
 }
@@ -260,7 +257,12 @@ std::vector<Point> compute_strip(const Point& origin, const Vector& direction, d
     const Vector along = direction * 1e7;
     const Point centre = compute_lift(origin, 0.0);
 
-    return {centre - along + side * half, centre + along + side * half, centre + along - side * half, centre - along - side * half};
+    return {
+        centre - along + side * half,
+        centre + along + side * half,
+        centre + along - side * half,
+        centre - along - side * half
+    };
 }
 
 Plane compute_bisector(const Point& origin, const Vector& a, const Vector& b) {
@@ -270,19 +272,19 @@ Plane compute_bisector(const Point& origin, const Vector& a, const Vector& b) {
     return Plane::from_point_normal(origin, normal.magnitude() < 1e-6 ? a : normal.normalized());
 }
 
-Polyline compute_polygon(const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances) {
+Polyline compute_polygon(
+    const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances
+) {
 
     std::vector<Point> points;
     for (size_t j = 0; j < directions.size(); j++)
-        points.push_back(
-            compute_corner(
-                centre,
-                directions[j],
-                distances[j],
-                directions[(j + 1) % directions.size()],
-                distances[(j + 1) % directions.size()]
-            )
-        );
+        points.push_back(compute_corner(
+            centre,
+            directions[j],
+            distances[j],
+            directions[(j + 1) % directions.size()],
+            distances[(j + 1) % directions.size()]
+        ));
 
     return to_polyline(points);
 }
@@ -304,7 +306,8 @@ std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex) {
     for (const double angle : angles)
         if (merged.empty() || angle - merged.back() > Tolerance::TO_RADIANS)
             merged.push_back(angle);
-    if (merged.size() > 1 && merged.front() + Tolerance::TWO_PI - merged.back() <= Tolerance::TO_RADIANS)
+    if (merged.size() > 1 &&
+        merged.front() + Tolerance::TWO_PI - merged.back() <= Tolerance::TO_RADIANS)
         merged.pop_back();
     if (merged.size() == 2) {
         merged.push_back(merged[0] + Tolerance::HALF_PI);
@@ -319,4 +322,4 @@ std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex) {
     return directions;
 }
 
-} // namespace wood_grid::plan
+}

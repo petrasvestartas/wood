@@ -12,15 +12,18 @@ namespace wood_session {
 /// Two coplanar faces in contact and the region they share; the elements are the edge the interaction sits on.
 class InteractionContactFace : public InteractionContact {
 public:
-    static constexpr std::string_view INTERACTION_TYPE = "InteractionContactFace"; // The tag the kernel writes and the registry reads.
+    static constexpr std::string_view INTERACTION_TYPE =
+        "InteractionContactFace"; // The tag the kernel writes and the registry reads.
 
-    int face_a = -1; // Face index on the edge's first element; -1 for a three-valence link that has no face.
+    int face_a =
+        -1; // Face index on the edge's first element; -1 for a three-valence link that has no face.
     int face_b = -1; // Face index on the edge's second element.
     ContactType type = ContactType::unknown; // Topology class of the pair.
-    Polyline polygon; // The boolean intersection of the two face outlines, closed, in face_a's plane; the largest region when Clipper returns several.
+    Polyline
+        polygon; // The boolean intersection of the two face outlines, closed, in face_a's plane; the largest region when Clipper returns several.
     std::array<Line, 2> lines; // The two alignment lines, one per element, along the shared edge.
-    std::array<Polyline, 4> volumes; // Volume rectangles for face_a in [0,1] and face_b in [2,3]; shared volumes repeat.
-
+    std::array<Polyline, 4>
+        volumes; // Volume rectangles for face_a in [0,1] and face_b in [2,3]; shared volumes repeat.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors
@@ -31,12 +34,13 @@ public:
 
     /// A contact from its faces, class and overlap.
     InteractionContactFace(
-            int face_a,
-            int face_b,
-            ContactType type,
-            Polyline polygon,
-            std::array<Line, 2> lines = {},
-            std::array<Polyline, 4> volumes = {});
+        int face_a,
+        int face_b,
+        ContactType type,
+        Polyline polygon,
+        std::array<Line, 2> lines = {},
+        std::array<Polyline, 4> volumes = {}
+    );
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -76,9 +80,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // String
     // ═══════════════════════════════════════════════════════════════════════════
-
     std::string str() const override;
 };
 
-
-} // namespace wood_session
+}

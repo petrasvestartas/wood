@@ -30,7 +30,7 @@
      {
       "what": "Rotation xform: old rotation_in_xy_plane builds the matrix with the axes as columns (m00=x.x, m01=y.x, m02=z.x ...); current Xform::from_axes also stores the axes as columns (m[0..2]=col_x, m[4..6]=col_y, m[8..10]=col_z). With axes (0,1,0),(1,0,0),(0,0,-1) the matrix is symmetric anyway. Verified identical.",
       "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:419-423, 4657",
-      "new_ref": "/home/pv/brg/code_cpp/wood_research/session/session_cpp/src/xform.cpp:132-146; cr_c_ip_1.h:37",
+      "new_ref": "/wood_research/session/session_cpp/src/xform.cpp:132-146; cr_c_ip_1.h:37",
       "severity": "low"
      }
     ]
@@ -47,7 +47,7 @@
      {
       "what": "Rectangle extension uses the kernel's proportion mode instead of an absolute distance. Old: extend_equally(pline, seg, 0.15) = dist 0.15, proportion 0 -> unitized direction * 0.15 on both ends (351933c:cgal_polyline_util.cpp:464-486, 'proportion != 0 ? scale by vector : unitize*dist'). Current: base[3].extend_segment_equally(0, 0.15*1.0, 0.15*1.0) where the kernel signature is (segment_id, dist, proportion) (polyline.h:197) and proportion=0.15 != 0 selects the proportional branch p0 -= v*0.15, p1 += v*0.15 with v the un-normalized segment vector (polyline.cpp:1286-1301). Side segments 0 and 2 of rings 3/4 (p2->p1, p13->p14) have length 2a = 0.55 at shift 0.5, so each end moves 0.0825 instead of 0.15. Vertical segments 1 and 3 (p1->p13, p14->p2) have length z = 0.5, and extend_segment_equally(1, 0.6, 0.6) moves each end 0.3 instead of 0.6. The side-face rebuild at cr_c_ip_core.h:94-115 inherits these points, so all four slice_projectsheer side faces and the four mill_project faces differ from 2024. Fix: call extend_segment_equally(seg, dist) with proportion left 0.",
       "old_ref": "351933c:cmake/src/wood/include/wood_joint_lib.cpp:4774-4783; 351933c:cmake/src/wood/include/cgal_polyline_util.cpp:464-486",
-      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_core.h:40-47; /home/pv/brg/code_cpp/wood_research/session/session_cpp/src/polyline.h:197; /home/pv/brg/code_cpp/wood_research/session/session_cpp/src/polyline.cpp:800-815, 1286-1301",
+      "new_ref": "src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/cr_c_ip_core.h:40-47; /wood_research/session/session_cpp/src/polyline.h:197; /wood_research/session/session_cpp/src/polyline.cpp:800-815, 1286-1301",
       "severity": "high"
      },
      {

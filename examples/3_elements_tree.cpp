@@ -6,32 +6,33 @@ using namespace wood_session;
 
 const std::vector<double> XS = {4000.0, 4000.0, 4000.0};
 const std::vector<double> YS = {3000.0, 3000.0};
-const std::vector<Polyline> FOOTPRINT = {Polyline({
-    Point(0.0, 0.0, 0.0), 
-    Point(12000.0, 0.0, 0.0), 
-    Point(12000.0, 3000.0, 0.0), 
-    Point(8000.0, 3000.0, 0.0), 
-    Point(8000.0, 6000.0, 0.0), 
-    Point(0.0, 6000.0, 0.0), 
-    Point(0.0, 0.0, 0.0)})
-}; // an L: three by two bays, the far corner bay left open
-const std::vector<double> ELEVATIONS = {0.0, 3000.0, 6000.0}; // two storeys of column 2800 + head 200, each datum the top of the heads, members and deck
+const std::vector<Polyline> FOOTPRINT = {Polyline(
+    {Point(0.0, 0.0, 0.0),
+     Point(12000.0, 0.0, 0.0),
+     Point(12000.0, 3000.0, 0.0),
+     Point(8000.0, 3000.0, 0.0),
+     Point(8000.0, 6000.0, 0.0),
+     Point(0.0, 6000.0, 0.0),
+     Point(0.0, 0.0, 0.0)}
+)};
+const std::vector<double> ELEVATIONS = {0.0, 3000.0, 6000.0};
 const wood_grid::Framing FRAMING{
-    .system = 1, 
-    .span = -1, 
-    .node = 0, 
-    .deck = 200.0, 
-    .reach = 200.0, 
-    .profiles = {
-        .column = profile_rectangle(200.0, 200.0), 
-        .girder = profile_rectangle(200.0, 200.0)
-    }};
-const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
+    .system = 1,
+    .span = -1,
+    .node = 0,
+    .deck = 200.0,
+    .reach = 200.0,
+    .profiles =
+        {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}
+};
+const bool INSTANCES = false;
 
 /// The L of five bays, two storeys of post and beam, its tree a level per storey and a group per kind.
 int main() {
 
-    const wood_grid::Building building = wood_grid::Building::from_footprint(FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS));
+    const wood_grid::Building building = wood_grid::Building::from_footprint(
+        FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS)
+    );
     wood_grid::Grid grid(building, FRAMING, "elements_tree");
 
     if constexpr (INSTANCES)

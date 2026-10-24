@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A gable house of six cassettes, one per wall, gable end and roof slope, each two panels with its openings cut out and a framed core between.
+/// A gable house of six cassettes.
 int main() {
 
     wood_module::CassetteShell house(
@@ -20,7 +20,12 @@ int main() {
     std::cout << house << std::endl;
 
     const size_t contacts = house.get_branch("contacts").objects.meshes->size();
-    std::cout << fmt::format("cassette house: {} cassettes, {} contacts between them", house.mesh.number_of_faces(), contacts) << std::endl;
+    std::cout << fmt::format(
+                     "cassette house: {} cassettes, {} contacts between them",
+                     house.mesh.number_of_faces(),
+                     contacts
+                 )
+              << std::endl;
     house.pb_dump(pb_path("live"));
     return 0;
 }

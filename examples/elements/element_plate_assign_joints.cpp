@@ -3,41 +3,78 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The plates of annen_box_pair joined by points and lines, as the plugin's dots and lines set them: no sidecar, each point carries the name of its face's joint design, each line its face's insertion vector.
+/// The plates of annen_box_pair joined by points and lines, as the plugin's dots and lines set them.
 int main() {
 
-    // the plates of the dataset and its settings, without its sidecars
     WoodSession scene = WoodSession::obj_load("annen_box_pair");
     scene.settings = config::load_yaml("annen_box_pair");
     scene.name = "element_plate_assign_joints";
 
     // a point at the centre of every side face that is joined, named by its design: side_side_outplane_fingers the side-to-side joints, top_side_tenons the top-to-side ones
     const std::vector<Point> points = {
-        {-632.383, -853.908, -197.922}, {-79.806, -853.908, 185.917}, {-99.086, 475.200, 78.237}, {194.781, -408.746, -622.197},
-        {202.789, 221.365, 532.068}, {256.424, 48.863, -452.615}, {324.694, 83.236, -484.489}, {48.696, -873.908, -326.382},
-        {578.235, -185.452, -2.611}, {656.267, -151.400, -42.119}, {674.422, -526.549, -238.183}, {77.030, -39.981, 52.933},
+        {-632.383, -853.908, -197.922},
+        {-79.806, -853.908, 185.917},
+        {-99.086, 475.200, 78.237},
+        {194.781, -408.746, -622.197},
+        {202.789, 221.365, 532.068},
+        {256.424, 48.863, -452.615},
+        {324.694, 83.236, -484.489},
+        {48.696, -873.908, -326.382},
+        {578.235, -185.452, -2.611},
+        {656.267, -151.400, -42.119},
+        {674.422, -526.549, -238.183},
+        {77.030, -39.981, 52.933},
         {842.265, -82.062, -560.511},
     };
-    const std::vector<std::string> names = {"top_side_tenons", "top_side_tenons", "top_side_tenons", "top_side_tenons", "top_side_tenons", "top_side_tenons", "top_side_tenons", "side_side_outplane_fingers", "top_side_tenons", "top_side_tenons", "top_side_tenons", "side_side_outplane_fingers", ""};
+    const std::vector<std::string> names = {
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "side_side_outplane_fingers",
+        "top_side_tenons",
+        "top_side_tenons",
+        "top_side_tenons",
+        "side_side_outplane_fingers",
+        ""
+    };
     scene.assign_joint_types_by_points(points, names, 1.0);
 
-    // a line from the centre of every face a top-to-side tenon slides into, along the way it slides
     const Vector way(-5.835732, 19.397964, 13.677616);
     const Vector across(27.603175, 25.122242, -9.293505);
-    scene.assign_insertion_vectors_by_lines({
-        Line::from_points({-632.383, -853.908, -197.922}, Point(-632.383, -853.908, -197.922) + way),
-        Line::from_points({-79.806, -853.908, 185.917}, Point(-79.806, -853.908, 185.917) + way),
-        Line::from_points({194.781, -408.746, -622.197}, Point(194.781, -408.746, -622.197) + way),
-        Line::from_points({674.422, -526.549, -238.183}, Point(674.422, -526.549, -238.183) + way),
-        Line::from_points({256.424, 48.863, -452.615}, Point(256.424, 48.863, -452.615) - way),
-        Line::from_points({578.235, -185.452, -2.611}, Point(578.235, -185.452, -2.611) - way),
-        Line::from_points({-99.086, 475.200, 78.237}, Point(-99.086, 475.200, 78.237) + across),
-        Line::from_points({202.789, 221.365, 532.068}, Point(202.789, 221.365, 532.068) + across),
-        Line::from_points({324.694, 83.236, -484.489}, Point(324.694, 83.236, -484.489) + across),
-        Line::from_points({656.267, -151.400, -42.119}, Point(656.267, -151.400, -42.119) + across),
-    }, 1.0);
+    scene.assign_insertion_vectors_by_lines(
+        {
+            Line::from_points(
+                {-632.383, -853.908, -197.922}, Point(-632.383, -853.908, -197.922) + way
+            ),
+            Line::from_points(
+                {-79.806, -853.908, 185.917}, Point(-79.806, -853.908, 185.917) + way
+            ),
+            Line::from_points(
+                {194.781, -408.746, -622.197}, Point(194.781, -408.746, -622.197) + way
+            ),
+            Line::from_points(
+                {674.422, -526.549, -238.183}, Point(674.422, -526.549, -238.183) + way
+            ),
+            Line::from_points({256.424, 48.863, -452.615}, Point(256.424, 48.863, -452.615) - way),
+            Line::from_points({578.235, -185.452, -2.611}, Point(578.235, -185.452, -2.611) - way),
+            Line::from_points({-99.086, 475.200, 78.237}, Point(-99.086, 475.200, 78.237) + across),
+            Line::from_points(
+                {202.789, 221.365, 532.068}, Point(202.789, 221.365, 532.068) + across
+            ),
+            Line::from_points(
+                {324.694, 83.236, -484.489}, Point(324.694, 83.236, -484.489) + across
+            ),
+            Line::from_points(
+                {656.267, -151.400, -42.119}, Point(656.267, -151.400, -42.119) + across
+            ),
+        },
+        1.0
+    );
 
-    // the joints the types and vectors choose, cut into the plates
     const std::vector<InteractionFeaturePlate> joints = scene.compute_features();
     std::cout << scene << " " << joints.size() << " joints" << std::endl;
     scene.pb_dump(pb_path("live"));

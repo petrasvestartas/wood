@@ -7,32 +7,25 @@ int main() {
     for (double tolerance : {2.0, 0.2, 0.02}) {
         const Line axis = Line::from_points({0, double(row * 180), 0}, {0, double(row * 180), 100});
         const std::shared_ptr<Joint> drill = Joint::drill(axis, 35, tolerance);
-        drill->name = fmt::format("Mesh: tolerance {}, {} segments", tolerance, circle_segments(35, tolerance));
+        drill->name = fmt::format(
+            "Mesh: tolerance {}, {} segments", tolerance, circle_segments(35, tolerance)
+        );
         scene.add(drill);
-        const BRep exact = drill->element_geometry_brep().transformed(Xform::translation(180, 0, 0));
+        const BRep exact =
+            drill->element_geometry_brep().transformed(Xform::translation(180, 0, 0));
         scene.add(std::make_shared<Element>(exact, "Exact cylindrical BRep"));
         ++row;
     }
     const std::shared_ptr<Block> stock = std::make_shared<Block>(
-        std::vector<Polyline>{
-            rectangle(
-                0,
-                0,
-                0,
-                200,
-                160
-            ),
-            rectangle(
-                0,
-                0,
-                80,
-                200,
-                160
-            )
-        }
+        std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(0, 0, 80, 200, 160)}
     );
-    cut_case(scene, "Tilted drill through block", stock,
-             Joint::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2), 640);
+    cut_case(
+        scene,
+        "Tilted drill through block",
+        stock,
+        Joint::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2),
+        640
+    );
     finish(scene, "16_drill_solids");
 }
 

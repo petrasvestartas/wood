@@ -1,4 +1,3 @@
-//! The example inputs both directions of the parity tests build from, and mesh comparison.
 #![allow(dead_code)] // each test file uses part of it
 
 use session_rust::element::ElementGeometry;

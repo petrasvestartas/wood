@@ -41,16 +41,22 @@ inline std::vector<std::shared_ptr<Plate>> mitered_plates(
 
     // contours: both outlines of every face, miter_contours offsetting by twice the half thickness it is given
     std::vector<std::shared_ptr<Plate>> plates;
-    const std::vector<std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>> contours = Mesh::miter_contours(
-        mesh,
-        0.5 * thickness,
-        chamfer_top,
-        chamfer_bottom,
-        false,
-        chamfer_angle
-    );
+    const std::vector<std::tuple<
+        std::vector<Point>,
+        std::vector<Point>,
+        std::vector<Point>,
+        std::vector<Point>,
+        Vector>>
+        contours = Mesh::miter_contours(
+            mesh, 0.5 * thickness, chamfer_top, chamfer_bottom, false, chamfer_angle
+        );
 
-    for (const std::tuple<std::vector<Point>, std::vector<Point>, std::vector<Point>, std::vector<Point>, Vector>& contour : contours) {
+    for (const std::tuple<
+             std::vector<Point>,
+             std::vector<Point>,
+             std::vector<Point>,
+             std::vector<Point>,
+             Vector>& contour : contours) {
         std::vector<Point> top = std::get<0>(contour);
         std::vector<Point> bottom = std::get<1>(contour);
 
@@ -145,14 +151,18 @@ inline std::vector<size_t> coplanar_loop(
         const Vector out = points[following] - points[loop[i]];
         const bool straight = in.cross(out).magnitude() < 1e-6 * in.magnitude() * out.magnitude();
 
-        const std::map<std::pair<size_t, size_t>, size_t>::const_iterator across_before = owner.find({loop[i], previous});
-        const std::map<std::pair<size_t, size_t>, size_t>::const_iterator across_after = owner.find({following, loop[i]});
-        const long long group_before = across_before == owner.end()
-            ? -1
-            : static_cast<long long>(coplanar_root(group, across_before->second));
-        const long long group_after = across_after == owner.end()
-            ? -1
-            : static_cast<long long>(coplanar_root(group, across_after->second));
+        const std::map<std::pair<size_t, size_t>, size_t>::const_iterator across_before =
+            owner.find({loop[i], previous});
+        const std::map<std::pair<size_t, size_t>, size_t>::const_iterator across_after =
+            owner.find({following, loop[i]});
+        const long long group_before =
+            across_before == owner.end()
+                ? -1
+                : static_cast<long long>(coplanar_root(group, across_before->second));
+        const long long group_after =
+            across_after == owner.end()
+                ? -1
+                : static_cast<long long>(coplanar_root(group, across_after->second));
 
         if (!straight || (users.at(loop[i]).size() > 1 && group_before != group_after))
             kept.push_back(loop[i]);
@@ -164,7 +174,8 @@ inline std::vector<size_t> coplanar_loop(
 /// The mesh with every group of neighbouring coplanar faces merged into one face, its straight corners dropped.
 inline Mesh merged_coplanar(const Mesh& mesh) {
 
-    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data =
+        mesh.to_vertices_and_faces();
     const std::vector<Point>& points = data.first;
     const std::vector<std::vector<size_t>>& faces = data.second;
 
@@ -186,7 +197,8 @@ inline Mesh merged_coplanar(const Mesh& mesh) {
     for (size_t f = 0; f < faces.size(); f++)
         for (size_t i = 0; i < faces[f].size(); i++) {
             const size_t next = faces[f][(i + 1) % faces[f].size()];
-            const std::map<std::pair<size_t, size_t>, size_t>::const_iterator neighbour = owner.find({next, faces[f][i]});
+            const std::map<std::pair<size_t, size_t>, size_t>::const_iterator neighbour =
+                owner.find({next, faces[f][i]});
 
             if (neighbour == owner.end() || normals[f].dot(normals[neighbour->second]) < 1.0 - 1e-9)
                 continue;
@@ -218,14 +230,7 @@ inline Mesh merged_coplanar(const Mesh& mesh) {
         if (member.second.size() == 1)
             merged.push_back(faces[member.second[0]]);
         else
-            merged.push_back(coplanar_loop(
-                points,
-                faces,
-                member.second,
-                owner,
-                users,
-                group
-            ));
+            merged.push_back(coplanar_loop(points, faces, member.second, owner, users, group));
 
     return Mesh::from_vertices_and_faces(points, merged);
 }
@@ -234,7 +239,7 @@ inline Mesh merged_coplanar(const Mesh& mesh) {
 // Exact offset
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One plate per mesh face by the exact face offset, the plates meeting on shared planar faces with no chamfer and no gap.
+/// One plate per mesh face by the exact face offset.
 class OffsetPlates {
 private:
     /// A face at a vertex with the vertices before and after it on that face.
@@ -244,19 +249,22 @@ private:
         size_t after; // The vertex after on the face.
     };
 
-    /// A plane n . x = c of a vertex's cone: a face's own moved by the thickness, or a free edge's fixed.
+    /// A plane n . x = c of a vertex's cone.
     struct Cut {
         Vector normal; // The unit normal n.
         double c; // The plane's offset along n.
-        std::optional<size_t> face; // The face it moves; none for a free edge or the placeholder of an open fan.
+        std::optional<size_t>
+            face; // The face it moves; none for a free edge or the placeholder of an open fan.
     };
 
     /// The planes of one fan of faces around a vertex.
     struct Cone {
         size_t vertex; // The vertex.
-        std::vector<size_t> faces; // The fan's faces in order, each next across the edge out of the last.
+        std::vector<size_t>
+            faces; // The fan's faces in order, each next across the edge out of the last.
         std::vector<Cut> cuts; // Every face's moved plane, an open fan closed by one placeholder.
-        std::vector<Vector> edges; // Unit edges from the vertex, edges[i] between cut i and the next round the cycle.
+        std::vector<Vector>
+            edges; // Unit edges from the vertex, edges[i] between cut i and the next round the cycle.
         std::optional<Cut> free_in; // An open fan's free edge in.
         std::optional<Cut> free_out; // An open fan's free edge out.
     };
@@ -267,7 +275,8 @@ private:
     std::vector<std::vector<size_t>> _faces; // The merged mesh's faces.
     std::vector<Vector> _normals; // Every face's normal, the side its plate's inner face lies on.
     std::vector<std::vector<Corner>> _corners; // Per vertex the faces at it.
-    std::map<std::pair<size_t, size_t>, std::vector<Point>> _chains; // Per face and vertex its inner points.
+    std::map<std::pair<size_t, size_t>, std::vector<Point>>
+        _chains; // Per face and vertex its inner points.
     std::vector<std::shared_ptr<Plate>> _plates; // One plate per face.
 
 public:
@@ -296,7 +305,7 @@ private:
     /// One plate per face, its inner outline the chains of its corners over its outline.
     std::vector<std::shared_ptr<Plate>> compute_plates() const;
 
-    /// The plane of the free edge a b of face f: an edge plane holding it, else the plane square to the face.
+    /// The plane of the free edge a b of face f.
     Cut free_edge(size_t a, size_t b, size_t f) const;
 
     /// Whether face i's inner outline, with the rays along its edges, is simple and turns as its corner does.
@@ -309,11 +318,8 @@ private:
     static std::optional<Point> point_of(const Cone& cone, size_t i, size_t a, size_t b);
 
     /// Face i's inner points in a triangulation, one where every two consecutive planes sharing a triangle with it meet.
-    static std::optional<std::vector<Point>> chain(
-        const Cone& cone,
-        const std::vector<std::array<size_t, 3>>& triangles,
-        size_t i
-    );
+    static std::optional<std::vector<Point>>
+    chain(const Cone& cone, const std::vector<std::array<size_t, 3>>& triangles, size_t i);
 
     /// Whether two cuts are one plane.
     static bool same(const Cut& a, const Cut& b);
@@ -322,7 +328,8 @@ private:
     static std::optional<Point> meet(const Cut& a, const Cut& b, const Cut& c);
 
     /// The triangulations of the polygon of corners first to last, each as triangles of corner indices.
-    static std::vector<std::vector<std::array<size_t, 3>>> triangulations(size_t first, size_t last);
+    static std::vector<std::vector<std::array<size_t, 3>>>
+    triangulations(size_t first, size_t last);
 
     /// The coordinates of offset in the plane frame u, w.
     static std::array<double, 2> flat(const Vector& offset, const Vector& u, const Vector& w);
@@ -341,12 +348,14 @@ private:
     static double height(const Point& point, const Plane& plane, const Vector& normal);
 };
 
-inline OffsetPlates::OffsetPlates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes)
-    : _thickness(thickness),
-      _edge_planes(edge_planes) {
+inline OffsetPlates::OffsetPlates(
+    const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes
+)
+    : _thickness(thickness), _edge_planes(edge_planes) {
 
     // faces: the mesh with its neighbouring coplanar faces merged
-    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = merged_coplanar(mesh).to_vertices_and_faces();
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data =
+        merged_coplanar(mesh).to_vertices_and_faces();
     _points = data.first;
     _faces = data.second;
 
@@ -401,7 +410,8 @@ inline std::vector<std::vector<size_t>> OffsetPlates::compute_fans(size_t v) con
     while (std::find(used.begin(), used.end(), false) != used.end()) {
 
         // start: an unused face no face at the vertex lies across its edge in from, else the first unused
-        size_t start = static_cast<size_t>(std::find(used.begin(), used.end(), false) - used.begin());
+        size_t start =
+            static_cast<size_t>(std::find(used.begin(), used.end(), false) - used.begin());
 
         for (size_t i = 0; i < at.size(); i++) {
             bool across = false;
@@ -437,7 +447,8 @@ inline std::vector<std::vector<size_t>> OffsetPlates::compute_fans(size_t v) con
     return fans;
 }
 
-inline OffsetPlates::Cone OffsetPlates::compute_cone(size_t v, const std::vector<size_t>& fan) const {
+inline OffsetPlates::Cone
+OffsetPlates::compute_cone(size_t v, const std::vector<size_t>& fan) const {
 
     const std::vector<Corner>& at = _corners[v];
     const Corner& first = at[fan.front()];
@@ -496,7 +507,8 @@ inline std::vector<std::vector<Point>> OffsetPlates::compute_split(const Cone& c
             for (const Point& point : inner[i])
                 reach = std::max(reach, point.distance(vertex));
 
-        const bool better = best.empty() || count > best_valid || (count == best_valid && reach < best_reach);
+        const bool better =
+            best.empty() || count > best_valid || (count == best_valid && reach < best_reach);
 
         if (complete && better) {
             best = inner;
@@ -517,7 +529,8 @@ inline std::vector<std::vector<Point>> OffsetPlates::compute_split(const Cone& c
     return best;
 }
 
-inline std::vector<Point> OffsetPlates::compute_foot(const Cone& cone, size_t i, std::vector<Point> inner) const {
+inline std::vector<Point>
+OffsetPlates::compute_foot(const Cone& cone, size_t i, std::vector<Point> inner) const {
 
     const size_t n = cone.cuts.size();
     const Point& vertex = _points[cone.vertex];
@@ -585,7 +598,8 @@ inline std::vector<std::shared_ptr<Plate>> OffsetPlates::compute_plates() const 
 
         // outlines: every corner's chain, the corner repeated over it on the outer outline
         for (const size_t v : _faces[f]) {
-            const std::map<std::pair<size_t, size_t>, std::vector<Point>>::const_iterator found = _chains.find({f, v});
+            const std::map<std::pair<size_t, size_t>, std::vector<Point>>::const_iterator found =
+                _chains.find({f, v});
 
             if (found == _chains.end())
                 continue;
@@ -642,7 +656,9 @@ inline bool OffsetPlates::valid(const Cone& cone, const std::vector<Point>& inne
 
     outline.push_back(flat((inner.back() - vertex) + ray_out, u, w));
     outline.push_back(flat((inner.front() - vertex) + ray_in, u, w));
-    const std::vector<std::array<double, 2>> corner = {{0.0, 0.0}, flat(ray_out, u, w), flat(ray_in, u, w)};
+    const std::vector<std::array<double, 2>> corner = {
+        {0.0, 0.0}, flat(ray_out, u, w), flat(ray_in, u, w)
+    };
 
     if (area(outline) * area(corner) <= 0.0)
         return false;
@@ -675,15 +691,15 @@ inline Vector OffsetPlates::between(const Cone& cone, size_t a, size_t b) {
 
 inline std::optional<Point> OffsetPlates::point_of(const Cone& cone, size_t i, size_t a, size_t b) {
 
-    const Cut& plane_a = cone.cuts[a].face ? cone.cuts[a] : (i < b ? *cone.free_in : *cone.free_out);
-    const Cut& plane_b = cone.cuts[b].face ? cone.cuts[b] : (i < a ? *cone.free_in : *cone.free_out);
+    const Cut& plane_a =
+        cone.cuts[a].face ? cone.cuts[a] : (i < b ? *cone.free_in : *cone.free_out);
+    const Cut& plane_b =
+        cone.cuts[b].face ? cone.cuts[b] : (i < a ? *cone.free_in : *cone.free_out);
     return meet(cone.cuts[i], plane_a, plane_b);
 }
 
 inline std::optional<std::vector<Point>> OffsetPlates::chain(
-    const Cone& cone,
-    const std::vector<std::array<size_t, 3>>& triangles,
-    size_t i
+    const Cone& cone, const std::vector<std::array<size_t, 3>>& triangles, size_t i
 ) {
 
     const size_t n = cone.cuts.size();
@@ -746,7 +762,8 @@ inline std::optional<Point> OffsetPlates::meet(const Cut& a, const Cut& b, const
     return Point(point[0], point[1], point[2]);
 }
 
-inline std::vector<std::vector<std::array<size_t, 3>>> OffsetPlates::triangulations(size_t first, size_t last) {
+inline std::vector<std::vector<std::array<size_t, 3>>>
+OffsetPlates::triangulations(size_t first, size_t last) {
 
     std::vector<std::vector<std::array<size_t, 3>>> all;
 
@@ -765,7 +782,8 @@ inline std::vector<std::vector<std::array<size_t, 3>>> OffsetPlates::triangulati
     return all;
 }
 
-inline std::array<double, 2> OffsetPlates::flat(const Vector& offset, const Vector& u, const Vector& w) {
+inline std::array<double, 2>
+OffsetPlates::flat(const Vector& offset, const Vector& u, const Vector& w) {
     return std::array<double, 2>{offset.dot(u), offset.dot(w)};
 }
 
@@ -783,9 +801,7 @@ inline double OffsetPlates::area(const std::vector<std::array<double, 2>>& polyg
 }
 
 inline double OffsetPlates::side(
-    const std::array<double, 2>& a,
-    const std::array<double, 2>& b,
-    const std::array<double, 2>& c
+    const std::array<double, 2>& a, const std::array<double, 2>& b, const std::array<double, 2>& c
 ) {
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
 }
@@ -795,11 +811,8 @@ inline double OffsetPlates::height(const Point& point, const Plane& plane, const
 }
 
 /// One plate per mesh face by the exact face offset, a free edge lying in one of edge_planes cut by it.
-inline std::vector<std::shared_ptr<Plate>> offset_plates(
-    const Mesh& mesh,
-    double thickness,
-    const std::vector<Plane>& edge_planes = {}
-) {
+inline std::vector<std::shared_ptr<Plate>>
+offset_plates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes = {}) {
 
     const OffsetPlates offset(mesh, thickness, edge_planes);
     return offset.plates();
@@ -810,7 +823,8 @@ inline std::vector<std::shared_ptr<Plate>> offset_plates(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The folding examples' line on the plates: their count, the shortest edge, and whether each is thickness thick and planar.
-inline std::string plate_report(const std::vector<std::shared_ptr<Plate>>& plates, double thickness) {
+inline std::string
+plate_report(const std::vector<std::shared_ptr<Plate>>& plates, double thickness) {
 
     std::string failed;
     double shortest = std::numeric_limits<double>::infinity();
@@ -837,7 +851,18 @@ inline std::string plate_report(const std::vector<std::shared_ptr<Plate>>& plate
     }
 
     if (failed.empty())
-        return fmt::format("{} plates, every one {} mm thick with planar outlines, shortest edge {:.1f} mm", plates.size(), thickness, shortest);
+        return fmt::format(
+            "{} plates, every one {} mm thick with planar outlines, shortest edge {:.1f} mm",
+            plates.size(),
+            thickness,
+            shortest
+        );
 
-    return fmt::format("{} plates, shortest edge {:.1f} mm, not {} mm thick or planar: {}", plates.size(), shortest, thickness, failed);
+    return fmt::format(
+        "{} plates, shortest edge {:.1f} mm, not {} mm thick or planar: {}",
+        plates.size(),
+        shortest,
+        thickness,
+        failed
+    );
 }

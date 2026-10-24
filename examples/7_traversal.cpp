@@ -14,9 +14,11 @@ int main() {
     const InteractionFeaturePlate joint = wood_session.get_plate_features().front();
     const std::shared_ptr<Plate> male = wood_session.get_element<Plate>(joint.element_a);
     const std::shared_ptr<Plate> female = wood_session.get_element<Plate>(joint.element_b);
-    std::cout << "joint " << joint.name << " cuts " << male->name << " and " << female->name << "\n";
+    std::cout << "joint " << joint.name << " cuts " << male->name << " and " << female->name
+              << "\n";
 
-    const std::vector<std::shared_ptr<Interaction>> interactions = wood_session.get_interaction(female, male);
+    const std::vector<std::shared_ptr<Interaction>> interactions =
+        wood_session.get_interaction(female, male);
     std::cout << "their edge holds " << interactions.size() << " interactions\n";
 
     for (const std::shared_ptr<Interaction>& interaction : interactions)
@@ -24,7 +26,8 @@ int main() {
             std::cout << "the joint was solved from " << *interaction << "\n";
 
     const Edge& edge = wood_session.graph.edges.at(male->guid()).at(female->guid());
-    std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and " << wood_session.get_element<Element>(edge.v1)->name << "\n";
+    std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and "
+              << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
     return 0;
 }

@@ -8,11 +8,13 @@ int main() {
 
     WoodSession scene("element_joint_cutter");
 
-    const std::shared_ptr<BeamVariable> beam = BeamVariable::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
+    const std::shared_ptr<BeamVariable> beam =
+        BeamVariable::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
     scene.add(beam);
 
     // a notch: a closed box subtracted from the beam
-    const Polyline notch_loop = Polyline::rectangle({500.0, -150.0, 200.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
+    const Polyline notch_loop =
+        Polyline::rectangle({500.0, -150.0, 200.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
     const Mesh box = Mesh::loft({notch_loop}, {notch_loop.translated({0.0, 0.0, 200.0})});
     const std::shared_ptr<Joint> notch = std::make_shared<Joint>(box, SolidOperation::subtract);
     notch->name = "notch";
@@ -21,8 +23,18 @@ int main() {
     scene.add_interaction(notch, beam, notch->interaction(0));
 
     // a trim: a closed profile in the xz plane, extruded across the beam, keeps its inside
-    const Polyline arch({{-10.0, -150.0, 300.0}, {-10.0, -150.0, 0.0}, {300.0, -150.0, 0.0}, {600.0, -150.0, 120.0}, {900.0, -150.0, 0.0}, {1210.0, -150.0, 0.0}, {1210.0, -150.0, 300.0}, {-10.0, -150.0, 300.0}});
-    const std::shared_ptr<Joint> trim = std::make_shared<Joint>(std::vector<Polyline>{arch}, Vector(0.0, 300.0, 0.0));
+    const Polyline arch(
+        {{-10.0, -150.0, 300.0},
+         {-10.0, -150.0, 0.0},
+         {300.0, -150.0, 0.0},
+         {600.0, -150.0, 120.0},
+         {900.0, -150.0, 0.0},
+         {1210.0, -150.0, 0.0},
+         {1210.0, -150.0, 300.0},
+         {-10.0, -150.0, 300.0}}
+    );
+    const std::shared_ptr<Joint> trim =
+        std::make_shared<Joint>(std::vector<Polyline>{arch}, Vector(0.0, 300.0, 0.0));
     trim->name = "trim";
     trim->is_visible = false;
     scene.add(trim);

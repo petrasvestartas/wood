@@ -4,10 +4,7 @@ Two new template families, each a `WoodSession` built from a guide, following th
 (`src/templates/floor`): members, then contacts, then connectors, every joint an element added with
 `add` and `add_interaction`.
 
-References: AUAR (https://auar.io/), a kit of beams and panels put together into wall, floor and roof
-modules; BUGA Wood Pavilion 2019 (ITKE / ICD Stuttgart), 376 hollow cassettes, each two thin
-plates (top and bottom) closed by edge beams cut at the angle of the neighbouring cassette, the
-neighbours joined by finger joints, bolts and screws.
+The templates use framed beam-and-panel modules and hollow cassettes with two plates closed by edge beams.
 
 ## 1. `src/templates/module/` — the wall module (start here)
 
@@ -39,7 +36,7 @@ section and picture per constructor block.
    plane (the inclined cut), its ends mitered on the corner bisectors;
 4. **contacts**: plate to beam inside a cassette, beam to beam across every interior edge;
 5. **connectors**: plate to beam screwed (`headed_pins`), beam to beam across cells by finger joints
-   from the plate library or `centred_pins` (the BUGA bolts).
+   from the plate library or `centred_pins`.
 
 Examples: one cassette, then the shell. Same docs pattern.
 

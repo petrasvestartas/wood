@@ -1,11 +1,9 @@
-/// The outlines 2024's side_removal and jupiter_scarf both begin with: each side face widened at its convex corners by
-/// scale[0] and up and down by scale[1], the male's outlines the female's side face pushed scale[2] into the male and, with the shift
-/// on under a merge, scale[2] + 2 + shift as well, the female's the male's side face pushed scale[2] + 2 into the female: two
-/// mill_project pairs per side, four on the shifted male; no orient. 2024 swapped v0 and v1 and then built m from v0, while the
-/// first plate kept its male flag: so the male keeps element_a and reads the neighbour's face, v0 here is element_b. Nothing when a
-/// plate or a face is missing, as the 2024 try block left it. Through, each cut starts behind the face it reads, as deep as the plate
-/// behind that face, so a plate loses all of itself that lies inside its neighbour, not only the strip in front of the face.
-static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint, bool through) {
+static void side_removal_outlines(
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    bool merge_with_joint,
+    bool through
+) {
 
     joint.no_orient = true;
 
@@ -16,10 +14,10 @@ static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vec
 
     if (v0 < 0 || v1 < 0)
         return;
-    if (f0_0 < 0 || f0_0 >= (int)elements[v0]->polylines.size() || f1_0 < 0 || f1_0 >= (int)elements[v1]->polylines.size())
+    if (f0_0 < 0 || f0_0 >= (int)elements[v0]->polylines.size() || f1_0 < 0 ||
+        f1_0 >= (int)elements[v1]->polylines.size())
         return;
 
-    // offset vectors
     const Vector n0 = elements[v0]->planes[f0_0].z_axis().normalized();
     const Vector n1 = elements[v1]->planes[f1_0].z_axis().normalized();
     const double s2 = joint.scale[2];
@@ -27,7 +25,6 @@ static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vec
     const Vector f1_0_normal = n1 * (s2 + 2.0);
     const Vector f0_1_normal = n0 * (s2 + 2.0 + joint.shift);
 
-    // the side rectangles, extended only at convex corners and only when both are rectangles
     Polyline pline0 = elements[v0]->polylines[f0_0];
     Polyline pline1 = elements[v1]->polylines[f1_0];
 
@@ -36,13 +33,18 @@ static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vec
     elements[v0]->polylines[0].get_convex_corners(convex_corner0);
     elements[v1]->polylines[0].get_convex_corners(convex_corner1);
 
-    if (pline0.point_count() == 5 && pline1.point_count() == 5 && !convex_corner0.empty() && !convex_corner1.empty()) {
+    if (pline0.point_count() == 5 && pline1.point_count() == 5 && !convex_corner0.empty() &&
+        !convex_corner1.empty()) {
         const int n0_corners = (int)convex_corner0.size();
         const int n1_corners = (int)convex_corner1.size();
-        const double scale0_0 = convex_corner0[wrap_index(f0_0 - 2, n0_corners)] ? joint.scale[0] : 0.0;
-        const double scale0_1 = convex_corner0[wrap_index(f0_0 - 1, n0_corners)] ? joint.scale[0] : 0.0;
-        const double scale1_0 = convex_corner1[wrap_index(f1_0 - 2, n1_corners)] ? joint.scale[0] : 0.0;
-        const double scale1_1 = convex_corner1[wrap_index(f1_0 - 1, n1_corners)] ? joint.scale[0] : 0.0;
+        const double scale0_0 =
+            convex_corner0[wrap_index(f0_0 - 2, n0_corners)] ? joint.scale[0] : 0.0;
+        const double scale0_1 =
+            convex_corner0[wrap_index(f0_0 - 1, n0_corners)] ? joint.scale[0] : 0.0;
+        const double scale1_0 =
+            convex_corner1[wrap_index(f1_0 - 2, n1_corners)] ? joint.scale[0] : 0.0;
+        const double scale1_1 =
+            convex_corner1[wrap_index(f1_0 - 1, n1_corners)] ? joint.scale[0] : 0.0;
 
         pline0.extend_segment(0, scale0_0, scale0_1);
         pline0.extend_segment(2, scale0_1, scale0_0);
@@ -56,12 +58,14 @@ static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vec
         pline1.extend_segment(3, vertical, vertical);
     }
 
-    // through, each rectangle extended along its face by half its longer side, both ways, so the cut spans a face turned against it
     if (through && pline0.point_count() == 5 && pline1.point_count() == 5) {
         double reach = 0.0;
         for (const Polyline* pline : {&pline0, &pline1})
             for (size_t segment = 0; segment < 4; segment++)
-                reach = std::max(reach, 0.5 * Point::distance(pline->get_point(segment), pline->get_point(segment + 1)));
+                reach = std::max(
+                    reach,
+                    0.5 * Point::distance(pline->get_point(segment), pline->get_point(segment + 1))
+                );
         for (Polyline* pline : {&pline0, &pline1})
             for (size_t segment = 0; segment < 4; segment++)
                 pline->extend_segment(segment, reach, reach);
@@ -84,32 +88,39 @@ static void side_removal_outlines(InteractionFeaturePlate& joint, const std::vec
         start1 = pline1.translated(n1 * -depths[1]);
     }
 
-    // the outlines moved by the vectors
     const Polyline pline0_moved0 = pline0.translated(f0_0_normal);
     const Polyline pline0_moved1 = pline0.translated(f0_1_normal);
     const Polyline pline1_moved = pline1.translated(f1_0_normal);
 
     const bool shifted = joint.shift > 0.0 && merge_with_joint;
     if (shifted) {
-        joint.male_outlines[0] = { pline0_moved0, pline0_moved0, start0, start0 };
-        joint.male_outlines[1] = { pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0 };
+        joint.male_outlines[0] = {pline0_moved0, pline0_moved0, start0, start0};
+        joint.male_outlines[1] = {pline0_moved1, pline0_moved1, pline0_moved0, pline0_moved0};
     } else {
-        joint.male_outlines[0] = { start0, start0 };
-        joint.male_outlines[1] = { pline0_moved0, pline0_moved0 };
+        joint.male_outlines[0] = {start0, start0};
+        joint.male_outlines[1] = {pline0_moved0, pline0_moved0};
     }
-    joint.female_outlines[0] = { start1, start1 };
-    joint.female_outlines[1] = { pline1_moved, pline1_moved };
+    joint.female_outlines[0] = {start1, start1};
+    joint.female_outlines[1] = {pline1_moved, pline1_moved};
 
     const std::vector<int> male_types(shifted ? 4 : 2, FabricationType::mill_project);
     joint.male_fabrication_types[0] = male_types;
     joint.male_fabrication_types[1] = male_types;
-    joint.female_fabrication_types[0] = { FabricationType::mill_project, FabricationType::mill_project };
-    joint.female_fabrication_types[1] = { FabricationType::mill_project, FabricationType::mill_project };
+    joint.female_fabrication_types[0] = {
+        FabricationType::mill_project, FabricationType::mill_project
+    };
+    joint.female_fabrication_types[1] = {
+        FabricationType::mill_project, FabricationType::mill_project
+    };
 }
 
-/// side_removal: the side faces of both plates as mill outlines, the male's doubled when the shift is on under a merge; through, each
-/// plate cut back through its neighbour.
-static void side_removal(InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements, bool merge_with_joint = false, bool through = false) {
+/// side_removal.
+static void side_removal(
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    bool merge_with_joint = false,
+    bool through = false
+) {
 
     joint.name = "side_removal";
     side_removal_outlines(joint, elements, merge_with_joint, through);

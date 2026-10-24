@@ -13,7 +13,8 @@ namespace wood_cross {
 
 /// The cross slot where a connector passes through a face plate, with the two plates it joins in its target order.
 struct CrossLap {
-    std::shared_ptr<JointPlate> joint; // cross_lap_<face0>_<face1>_<k>_<face>_<layer>, merged into both outlines.
+    std::shared_ptr<JointPlate>
+        joint; // cross_lap_<face0>_<face1>_<k>_<face>_<layer>, merged into both outlines.
     std::shared_ptr<Plate> connector; // connector_<face0>_<face1>_<k>, the joint's target 0.
     std::shared_ptr<Plate> plate; // plate_<face>_<layer>, the joint's target 1.
 };
@@ -22,20 +23,19 @@ struct CrossLap {
 // VdaMesh
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The plates and connectors of a mesh, a session: a mitered plate per face and layer, connector plates across every interior edge,
-/// joined to the plates they pass through by a cross slot.
-///
-/// Fields: the welded mesh and the plate and connector sizes.
-/// Every plate (`plate_<face>_<layer>`), connector (`connector_<face0>_<face1>_<k>`) and cross slot
-/// (`cross_lap_<face0>_<face1>_<k>_<face>_<layer>`) is found in the session by name.
+/// The plates and connectors of a mesh.
 class VdaMesh : public WoodSession {
 public:
     const Mesh mesh; // The input mesh, welded at 0.01.
     const double face_thickness; // Plate thickness along the face normal.
-    const std::vector<double> face_positions; // Offsets of the plate layers along the face normal, sorted.
-    const std::vector<int> edge_divisions; // Connectors per interior edge: one value for all, or one per edge.
-    const std::vector<double> edge_division_length; // Connector spacing along an edge, used instead of edge_divisions when given.
-    const std::vector<Line> insertion_lines; // Lines that turn the connectors of the edge they touch.
+    const std::vector<double>
+        face_positions; // Offsets of the plate layers along the face normal, sorted.
+    const std::vector<int>
+        edge_divisions; // Connectors per interior edge: one value for all, or one per edge.
+    const std::vector<double>
+        edge_division_length; // Connector spacing along an edge, used instead of edge_divisions when given.
+    const std::vector<Line>
+        insertion_lines; // Lines that turn the connectors of the edge they touch.
     const double connector_width; // Connector size across the edge, in the plane of the faces.
     const double connector_height; // Connector size along the average face normal.
     const double connector_thickness; // Connector size along the edge.
@@ -115,17 +115,20 @@ private:
     /// Per connector frame, the bottom and top rectangle connector_thickness apart along the edge.
     std::vector<std::vector<std::array<Polyline, 2>>> compute_connector_outlines() const;
 
-    /// Per connector and plate of its two faces, the cross slot where they cross, oriented on the crossing; throws on a pair that does not cross.
+    /// Per connector and plate of its two faces.
     std::vector<CrossLap> compute_cross_laps() const;
 
     /// The closed outline where consecutive edge planes cross the base plane, nearly parallel neighbours merged.
-    static Polyline outline(const Plane& base, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bisector_planes);
+    static Polyline outline(
+        const Plane& base,
+        const std::vector<Plane>& edge_planes,
+        const std::vector<Plane>& bisector_planes
+    );
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructor
 // ═══════════════════════════════════════════════════════════════════════════
-
 inline VdaMesh::VdaMesh(
     const Mesh& mesh,
     double face_thickness,
@@ -138,15 +141,10 @@ inline VdaMesh::VdaMesh(
     double connector_thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      mesh(mesh.weld(0.01)),
-      face_thickness(face_thickness),
-      face_positions(face_positions),
-      edge_divisions(edge_divisions),
-      edge_division_length(edge_division_length),
-      insertion_lines(insertion_lines),
-      connector_width(connector_width),
-      connector_height(connector_height),
+    : WoodSession(name), mesh(mesh.weld(0.01)), face_thickness(face_thickness),
+      face_positions(face_positions), edge_divisions(edge_divisions),
+      edge_division_length(edge_division_length), insertion_lines(insertion_lines),
+      connector_width(connector_width), connector_height(connector_height),
       connector_thickness(connector_thickness) {
 
     // mesh: the welded input mesh and the faces either side of every edge
@@ -190,7 +188,8 @@ inline VdaMesh::VdaMesh(
     for (size_t f = 0; f < _face_outlines.size(); f++)
         for (size_t layer = 0; layer < _face_outlines[f].size(); layer++) {
             const std::array<Polyline, 2>& loops = _face_outlines[f][layer];
-            add(std::make_shared<Plate>(loops[0], loops[1], fmt::format("plate_{}_{}", f, layer)), plates);
+            add(std::make_shared<Plate>(loops[0], loops[1], fmt::format("plate_{}_{}", f, layer)),
+                plates);
         }
 
     // connector_frames: per interior edge a frame at every division, x across the edge into its first face
@@ -203,14 +202,16 @@ inline VdaMesh::VdaMesh(
             add_plane(frame, frame_group);
 
     // connectors: per frame a rectangular plate, connector_thickness along the edge
-    const std::vector<std::vector<std::array<Polyline, 2>>> connector_outlines = compute_connector_outlines();
+    const std::vector<std::vector<std::array<Polyline, 2>>> connector_outlines =
+        compute_connector_outlines();
     _connector_outlines = connector_outlines;
     const std::shared_ptr<TreeNode> connectors = group_named("connectors");
 
     for (size_t e = 0; e < _connector_outlines.size(); e++)
         for (size_t k = 0; k < _connector_outlines[e].size(); k++) {
             const std::array<Polyline, 2>& loops = _connector_outlines[e][k];
-            const std::string connector_name = fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
+            const std::string connector_name =
+                fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
             add(std::make_shared<Plate>(loops[0], loops[1], connector_name), connectors);
         }
 
@@ -228,25 +229,86 @@ inline VdaMesh::VdaMesh(
 // ═══════════════════════════════════════════════════════════════════════════
 // Default mesh
 // ═══════════════════════════════════════════════════════════════════════════
-
 inline Mesh VdaMesh::default_mesh() {
 
     const std::vector<std::vector<Point>> faces = {
-        {{760.01, -2621.81, -1344.23}, {678.55, -2638.25, -1344.47}, {312.96, -2711.90, -1344.47}, {268.58, -2647.07, -802.86}, {785.47, -2537.90, -765.84}},
-        {{1029.30, -1734.25, 502.84}, {484.63, -1736.48, 651.50}, {406.90, -527.14, 1226.27}, {1366.88, -621.66, 919.21}},
-        {{1796.71, 794.99, 551.90}, {941.91, 1284.49, 761.48}, {983.61, 2177.67, -275.86}, {2053.18, 1640.26, -622.17}},
-        {{785.47, -2537.90, -765.84}, {268.58, -2647.07, -802.86}, {-230.08, -2574.84, -543.21}, {-202.02, -1930.01, 521.65}, {484.63, -1736.48, 651.50}, {1029.30, -1734.25, 502.84}},
-        {{1366.88, -621.66, 919.21}, {406.90, -527.14, 1226.27}, {-87.79, -224.28, 1344.47}, {-28.04, 991.06, 1133.00}, {941.91, 1284.49, 761.48}, {1796.71, 794.99, 551.90}},
-        {{2053.18, 1640.26, -622.17}, {983.61, 2177.67, -275.86}, {75.35, 2683.99, -833.95}, {79.22, 2711.90, -1344.47}, {2064.27, 1676.82, -1344.47}},
-        {{-782.27, -2617.50, -1344.47}, {-732.62, -2561.48, -809.19}, {-230.08, -2574.84, -543.21}, {268.58, -2647.07, -802.86}, {312.96, -2711.90, -1344.47}},
-        {{484.63, -1736.48, 651.50}, {-202.02, -1930.01, 521.65}, {-834.72, -1644.25, 624.19}, {-735.12, -527.94, 1164.03}, {-87.79, -224.28, 1344.47}, {406.90, -527.14, 1226.27}},
-        {{941.91, 1284.49, 761.48}, {-28.04, 991.06, 1133.00}, {-940.95, 1369.34, 723.57}, {-907.43, 2222.88, -267.53}, {75.35, 2683.99, -833.95}, {983.61, 2177.67, -275.86}},
-        {{-1403.20, -1577.93, 406.59}, {-834.72, -1644.25, 624.19}, {-202.02, -1930.01, 521.65}, {-230.08, -2574.84, -543.21}, {-732.62, -2561.48, -809.19}, {-1247.95, -2364.14, -783.26}},
-        {{-1890.38, 889.09, 465.62}, {-940.95, 1369.34, 723.57}, {-28.04, 991.06, 1133.00}, {-87.79, -224.28, 1344.47}, {-735.12, -527.94, 1164.03}, {-1628.78, -435.63, 816.65}},
-        {{79.22, 2711.90, -1344.47}, {75.35, 2683.99, -833.95}, {-907.43, 2222.88, -267.53}, {-2058.23, 1739.09, -697.73}, {-2064.27, 1769.65, -1344.47}},
-        {{-1101.44, -2497.51, -1344.47}, {-1231.26, -2448.62, -1343.85}, {-1247.95, -2364.14, -783.26}, {-732.62, -2561.48, -809.19}, {-782.27, -2617.50, -1344.47}},
-        {{-1628.78, -435.63, 816.65}, {-735.12, -527.94, 1164.03}, {-834.72, -1644.25, 624.19}, {-1403.20, -1577.93, 406.59}},
-        {{-2058.23, 1739.09, -697.73}, {-907.43, 2222.88, -267.53}, {-940.95, 1369.34, 723.57}, {-1890.38, 889.09, 465.62}},
+        {{760.01, -2621.81, -1344.23},
+         {678.55, -2638.25, -1344.47},
+         {312.96, -2711.90, -1344.47},
+         {268.58, -2647.07, -802.86},
+         {785.47, -2537.90, -765.84}},
+        {{1029.30, -1734.25, 502.84},
+         {484.63, -1736.48, 651.50},
+         {406.90, -527.14, 1226.27},
+         {1366.88, -621.66, 919.21}},
+        {{1796.71, 794.99, 551.90},
+         {941.91, 1284.49, 761.48},
+         {983.61, 2177.67, -275.86},
+         {2053.18, 1640.26, -622.17}},
+        {{785.47, -2537.90, -765.84},
+         {268.58, -2647.07, -802.86},
+         {-230.08, -2574.84, -543.21},
+         {-202.02, -1930.01, 521.65},
+         {484.63, -1736.48, 651.50},
+         {1029.30, -1734.25, 502.84}},
+        {{1366.88, -621.66, 919.21},
+         {406.90, -527.14, 1226.27},
+         {-87.79, -224.28, 1344.47},
+         {-28.04, 991.06, 1133.00},
+         {941.91, 1284.49, 761.48},
+         {1796.71, 794.99, 551.90}},
+        {{2053.18, 1640.26, -622.17},
+         {983.61, 2177.67, -275.86},
+         {75.35, 2683.99, -833.95},
+         {79.22, 2711.90, -1344.47},
+         {2064.27, 1676.82, -1344.47}},
+        {{-782.27, -2617.50, -1344.47},
+         {-732.62, -2561.48, -809.19},
+         {-230.08, -2574.84, -543.21},
+         {268.58, -2647.07, -802.86},
+         {312.96, -2711.90, -1344.47}},
+        {{484.63, -1736.48, 651.50},
+         {-202.02, -1930.01, 521.65},
+         {-834.72, -1644.25, 624.19},
+         {-735.12, -527.94, 1164.03},
+         {-87.79, -224.28, 1344.47},
+         {406.90, -527.14, 1226.27}},
+        {{941.91, 1284.49, 761.48},
+         {-28.04, 991.06, 1133.00},
+         {-940.95, 1369.34, 723.57},
+         {-907.43, 2222.88, -267.53},
+         {75.35, 2683.99, -833.95},
+         {983.61, 2177.67, -275.86}},
+        {{-1403.20, -1577.93, 406.59},
+         {-834.72, -1644.25, 624.19},
+         {-202.02, -1930.01, 521.65},
+         {-230.08, -2574.84, -543.21},
+         {-732.62, -2561.48, -809.19},
+         {-1247.95, -2364.14, -783.26}},
+        {{-1890.38, 889.09, 465.62},
+         {-940.95, 1369.34, 723.57},
+         {-28.04, 991.06, 1133.00},
+         {-87.79, -224.28, 1344.47},
+         {-735.12, -527.94, 1164.03},
+         {-1628.78, -435.63, 816.65}},
+        {{79.22, 2711.90, -1344.47},
+         {75.35, 2683.99, -833.95},
+         {-907.43, 2222.88, -267.53},
+         {-2058.23, 1739.09, -697.73},
+         {-2064.27, 1769.65, -1344.47}},
+        {{-1101.44, -2497.51, -1344.47},
+         {-1231.26, -2448.62, -1343.85},
+         {-1247.95, -2364.14, -783.26},
+         {-732.62, -2561.48, -809.19},
+         {-782.27, -2617.50, -1344.47}},
+        {{-1628.78, -435.63, 816.65},
+         {-735.12, -527.94, 1164.03},
+         {-834.72, -1644.25, 624.19},
+         {-1403.20, -1577.93, 406.59}},
+        {{-2058.23, 1739.09, -697.73},
+         {-907.43, 2222.88, -267.53},
+         {-940.95, 1369.34, 723.57},
+         {-1890.38, 889.09, 465.62}},
     };
 
     return Mesh::from_polylines(faces, 10.0);
@@ -255,7 +317,6 @@ inline Mesh VdaMesh::default_mesh() {
 // ═══════════════════════════════════════════════════════════════════════════
 // Accessors
 // ═══════════════════════════════════════════════════════════════════════════
-
 inline const std::vector<std::vector<size_t>>& VdaMesh::edge_faces() const {
     return _edge_faces;
 }
@@ -276,14 +337,14 @@ inline const std::vector<std::vector<Plane>>& VdaMesh::connector_frames() const 
     return _connector_frames;
 }
 
-inline const std::vector<std::vector<std::array<Polyline, 2>>>& VdaMesh::connector_outlines() const {
+inline const std::vector<std::vector<std::array<Polyline, 2>>>&
+VdaMesh::connector_outlines() const {
     return _connector_outlines;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Steps
 // ═══════════════════════════════════════════════════════════════════════════
-
 inline std::vector<std::vector<size_t>> VdaMesh::compute_edge_faces() const {
 
     const std::vector<size_t> faces = mesh.faces();
@@ -344,7 +405,8 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_edge_planes() const {
             x_axis.normalize_self();
             Vector y_axis(0.0, 0.0, 0.0);
 
-            for (const size_t neighbour : _edge_faces[edge_index.at(std::minmax(edge.first, edge.second))])
+            for (const size_t neighbour :
+                 _edge_faces[edge_index.at(std::minmax(edge.first, edge.second))])
                 y_axis += _face_planes[neighbour].z_axis();
 
             y_axis.normalize_self();
@@ -423,7 +485,6 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_connector_frames() const
         lines.push_back(Line::from_points(start, end));
     }
 
-    // an insertion line turns the connectors of the first edge its start or end lies on
     std::vector<Vector> insertions(edges.size(), Vector(0.0, 0.0, 0.0));
 
     for (const Line& insertion : insertion_lines)
@@ -431,7 +492,8 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_connector_frames() const
             const Point on_start = lines[e].closest_point(insertion.start(), true).second;
             const Point on_end = lines[e].closest_point(insertion.end(), true).second;
 
-            if (on_start.distance(insertion.start()) < 0.01 || on_end.distance(insertion.end()) < 0.01) {
+            if (on_start.distance(insertion.start()) < 0.01 ||
+                on_end.distance(insertion.end()) < 0.01) {
                 insertions[e] = insertion.to_direction();
                 insertions[e].normalize_self();
                 break;
@@ -461,7 +523,8 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_connector_frames() const
             Vector across = insertions[e] - y_axis * insertions[e].dot(y_axis);
 
             if (across.normalize_self()) {
-                if ((origin + across).distance(face0.origin()) > (origin - across).distance(face0.origin()))
+                if ((origin + across).distance(face0.origin()) >
+                    (origin - across).distance(face0.origin()))
                     across = -across;
 
                 x_axis = across;
@@ -472,12 +535,16 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_connector_frames() const
         int divisions = 1;
 
         if (!edge_division_length.empty() && edge_division_length[0] >= 0.01) {
-            const double spacing = edge_division_length.size() == edges.size() ? edge_division_length[e] : edge_division_length[0];
+            const double spacing = edge_division_length.size() == edges.size()
+                                       ? edge_division_length[e]
+                                       : edge_division_length[0];
 
             if (spacing > 0.01)
-                divisions = std::max(1, std::min(10, static_cast<int>(lines[e].length() / spacing)));
+                divisions =
+                    std::max(1, std::min(10, static_cast<int>(lines[e].length() / spacing)));
         } else if (!edge_divisions.empty()) {
-            const int count = edge_divisions.size() == edges.size() ? edge_divisions[e] : edge_divisions[0];
+            const int count =
+                edge_divisions.size() == edges.size() ? edge_divisions[e] : edge_divisions[0];
             divisions = std::max(1, count);
         }
 
@@ -490,13 +557,15 @@ inline std::vector<std::vector<Plane>> VdaMesh::compute_connector_frames() const
     return frames;
 }
 
-inline std::vector<std::vector<std::array<Polyline, 2>>> VdaMesh::compute_connector_outlines() const {
+inline std::vector<std::vector<std::array<Polyline, 2>>>
+VdaMesh::compute_connector_outlines() const {
 
     std::vector<std::vector<std::array<Polyline, 2>>> outlines(_connector_frames.size());
 
     for (size_t e = 0; e < _connector_frames.size(); e++)
         for (const Plane& frame : _connector_frames[e]) {
-            const Vector to_corner = frame.x_axis() * (-0.5 * connector_width) + frame.y_axis() * (-0.5 * connector_height);
+            const Vector to_corner = frame.x_axis() * (-0.5 * connector_width) +
+                                     frame.y_axis() * (-0.5 * connector_height);
             const Vector half = frame.z_axis() * (0.5 * connector_thickness);
             const Polyline bottom = Polyline::rectangle(
                 frame.origin() - half + to_corner,
@@ -524,20 +593,32 @@ inline std::vector<CrossLap> VdaMesh::compute_cross_laps() const {
 
     for (size_t e = 0; e < _connector_outlines.size(); e++)
         for (size_t k = 0; k < _connector_outlines[e].size(); k++) {
-            const std::string connector_name = fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
+            const std::string connector_name =
+                fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
             const std::shared_ptr<Plate> connector = get_element_by_name<Plate>(connector_name);
 
             for (const size_t face : _edge_faces[e])
                 for (size_t layer = 0; layer < _face_outlines[face].size(); layer++) {
-                    const std::shared_ptr<Plate> plate = get_element_by_name<Plate>(fmt::format("plate_{}_{}", face, layer));
-                    const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(connector, plate);
+                    const std::shared_ptr<Plate> plate =
+                        get_element_by_name<Plate>(fmt::format("plate_{}_{}", face, layer));
+                    const std::shared_ptr<InteractionContactCross> crossing =
+                        compute_cross_contact(connector, plate);
 
                     if (!crossing)
-                        throw std::runtime_error(fmt::format("{} does not cross {}", connector_name, plate->name));
+                        throw std::runtime_error(
+                            fmt::format("{} does not cross {}", connector_name, plate->name)
+                        );
 
                     const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
                     joint->orient(crossing, {connector, plate});
-                    joint->name = fmt::format("cross_lap_{}_{}_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k, face, layer);
+                    joint->name = fmt::format(
+                        "cross_lap_{}_{}_{}_{}_{}",
+                        _edge_faces[e][0],
+                        _edge_faces[e][1],
+                        k,
+                        face,
+                        layer
+                    );
                     laps.push_back({joint, connector, plate});
                 }
         }
@@ -548,8 +629,11 @@ inline std::vector<CrossLap> VdaMesh::compute_cross_laps() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Outline
 // ═══════════════════════════════════════════════════════════════════════════
-
-inline Polyline VdaMesh::outline(const Plane& base, const std::vector<Plane>& edge_planes, const std::vector<Plane>& bisector_planes) {
+inline Polyline VdaMesh::outline(
+    const Plane& base,
+    const std::vector<Plane>& edge_planes,
+    const std::vector<Plane>& bisector_planes
+) {
 
     const size_t n = edge_planes.size();
     std::vector<Plane> sides = edge_planes;

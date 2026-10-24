@@ -1,4 +1,3 @@
-/// cross_sliced_half_lap: parametric cross joint - nine base rings, offset along their normals for face 1, rotated for the male.
 static void cross_sliced_half_lap(InteractionFeaturePlate& joint) {
 
     joint.name = "cross_sliced_half_lap";
@@ -12,10 +11,22 @@ static void cross_sliced_half_lap(InteractionFeaturePlate& joint) {
     const double z = 0.5;
 
     const Point p[16] = {
-        Point(a, -a, 0),          Point(-a, -a, 0),          Point(-a, a, 0),          Point(a, a, 0),
-        Point(a+c, -a-c, 0),      Point(-a-c, -a-c, 0),      Point(-a-c, a+c, 0),      Point(a+c, a+c, 0),
-        Point(b, -b, z),          Point(-b, -b, z),          Point(-b, b, z),          Point(b, b, z),
-        Point(b, -b, -z),         Point(-b, -b, -z),         Point(-b, b, -z),         Point(b, b, -z),
+        Point(a, -a, 0),
+        Point(-a, -a, 0),
+        Point(-a, a, 0),
+        Point(a, a, 0),
+        Point(a + c, -a - c, 0),
+        Point(-a - c, -a - c, 0),
+        Point(-a - c, a + c, 0),
+        Point(a + c, a + c, 0),
+        Point(b, -b, z),
+        Point(-b, -b, z),
+        Point(-b, b, z),
+        Point(b, b, z),
+        Point(b, -b, -z),
+        Point(-b, -b, -z),
+        Point(-b, b, -z),
+        Point(b, b, -z),
     };
 
     const double inv_2a = (a > 1e-12) ? 1.0 / (a * 2.0) : 0.0;
@@ -23,9 +34,9 @@ static void cross_sliced_half_lap(InteractionFeaturePlate& joint) {
     const Vector v0 = d01 * inv_2a * (0.5 - a);
 
     std::vector<Polyline> base(9);
-    base[0] = Polyline({p[0]+v0, p[1]-v0, p[2]-v0, p[3]+v0, p[0]+v0});
-    base[1] = Polyline({p[1]-v0, p[0]+v0, p[8]+v0, p[9]-v0, p[1]-v0});
-    base[2] = Polyline({p[3]+v0, p[2]-v0, p[10]-v0, p[11]+v0, p[3]+v0});
+    base[0] = Polyline({p[0] + v0, p[1] - v0, p[2] - v0, p[3] + v0, p[0] + v0});
+    base[1] = Polyline({p[1] - v0, p[0] + v0, p[8] + v0, p[9] - v0, p[1] - v0});
+    base[2] = Polyline({p[3] + v0, p[2] - v0, p[10] - v0, p[11] + v0, p[3] + v0});
     base[3] = Polyline({p[2], p[1], p[13], p[14], p[2]});
     base[4] = Polyline({p[0], p[3], p[15], p[12], p[0]});
     base[5] = Polyline({p[0], p[12], p[4], p[8], p[0]});
@@ -33,8 +44,8 @@ static void cross_sliced_half_lap(InteractionFeaturePlate& joint) {
     base[7] = Polyline({p[2], p[14], p[6], p[10], p[2]});
     base[8] = Polyline({p[15], p[3], p[11], p[7], p[15]});
 
-    const double lengths[9] = { 0.5, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.1, 0.1 };
-    const Xform xf_rot = Xform::from_axes(Vector(0,1,0), Vector(1,0,0), Vector(0,0,-1));
+    const double lengths[9] = {0.5, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.1, 0.1};
+    const Xform xf_rot = Xform::from_axes(Vector(0, 1, 0), Vector(1, 0, 0), Vector(0, 0, -1));
 
     const std::vector<Polyline> f0 = base;
     std::vector<Polyline> f1(9);

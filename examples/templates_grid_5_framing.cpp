@@ -7,80 +7,168 @@ using namespace wood_session;
 
 /// One bay of the row: its pattern and framing.
 struct Case {
-    std::string name; // Group name.
-    wood_grid::Pattern pattern; // Plan lines.
-    wood_grid::Framing framing; // Method, joints and sizes.
+    std::string name;
+    wood_grid::Pattern pattern;
+    wood_grid::Framing framing;
 };
 
 const double BAY = 6000.0;
-const double GAP = 3000.0; // clear distance between the bays
+const double GAP = 3000.0;
 const std::vector<double> ELEVATIONS = {0.0, 4500.0, 9000.0};
-const double CLEARANCE = 1.0; // faces closer than this count as touching, not overlapping
+const double CLEARANCE = 1.0;
 const wood_grid::Pattern ONE = wood_grid::Pattern::orthogonal({BAY}, {BAY});
-const wood_grid::Framing PURLINS{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.purlin = profile_rectangle(215.0, 456.0)}};
+const wood_grid::Framing PURLINS{
+    .system = 2,
+    .span = 0,
+    .spacing = 2000.0,
+    .node = 1,
+    .deck = 87.0,
+    .profiles = {.purlin = profile_rectangle(215.0, 456.0)}
+};
 const std::vector<Case> CASES = {
-    {"head_section", wood_grid::Pattern::orthogonal({BAY, BAY}, {BAY}), wood_grid::Framing{.system = 1, .span = 0, .node = 0}},
-    {"head_conical", ONE, wood_grid::Framing{.system = 0, .node = 0, .reach = 600.0, .capital = 0, .panel = 3000.0}},
-    {"head_stepped", ONE, wood_grid::Framing{.system = 0, .node = 0, .reach = 600.0, .capital = 1, .panel = 3000.0}},
+    {"head_section",
+     wood_grid::Pattern::orthogonal({BAY, BAY}, {BAY}),
+     wood_grid::Framing{.system = 1, .span = 0, .node = 0}},
+    {"head_conical",
+     ONE,
+     wood_grid::Framing{.system = 0, .node = 0, .reach = 600.0, .capital = 0, .panel = 3000.0}},
+    {"head_stepped",
+     ONE,
+     wood_grid::Framing{.system = 0, .node = 0, .reach = 600.0, .capital = 1, .panel = 3000.0}},
     {"node_flush", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1}},
     {"node_through", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 2}},
-    {"purlin_flush", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 1, .drop = 0.0, .profiles = {.column = profile_rectangle(360.0, 360.0), .girder = profile_rectangle(320.0, 800.0), .purlin = profile_rectangle(260.0, 640.0)}}},
-    {"purlin_hung", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 1, .drop = 203.2, .profiles = {.column = profile_rectangle(360.0, 360.0), .girder = profile_rectangle(320.0, 800.0), .purlin = profile_rectangle(260.0, 640.0)}}},
-    {"purlin_stacked", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 1, .drop = 640.0, .profiles = {.column = profile_rectangle(360.0, 360.0), .girder = profile_rectangle(320.0, 800.0), .purlin = profile_rectangle(260.0, 640.0)}}},
-    {"profile_rectangle", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_rectangle(265.0, 608.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"profile_round", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_round(360.0), .girder = profile_round(300.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {
-        "profile_w",
-        ONE,
-        wood_grid::Framing{
-            .system = 2,
-            .span = 0,
-            .spacing = 2000.0,
-            .node = 1,
-            .deck = 87.0,
-            .profiles = {
-                .column = profile_w(
-                    206.0,
-                    210.0,
-                    14.2,
-                    10.2
-                ),
-                .girder = profile_w(
-                    250.0,
-                    250.0,
-                    15.0,
-                    10.0
-                ),
-                .purlin = profile_rectangle(215.0, 456.0)
-            }
-        }
-    },
-    {"profile_hss", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_hss(178.0, 178.0, 12.7), .girder = profile_hss(250.0, 250.0, 10.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"profile_double", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_double(120.0, 600.0, 60.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {"profile_slab_band", ONE, wood_grid::Framing{.system = 2, .span = 0, .spacing = 2000.0, .node = 1, .deck = 87.0, .profiles = {.column = profile_rectangle(315.0, 342.0), .girder = profile_slab_band(1200.0, 300.0), .purlin = profile_rectangle(215.0, 456.0)}}},
-    {
-        "profile_t",
-        ONE,
-        wood_grid::Framing{
-            .system = 2,
-            .span = 0,
-            .spacing = 2000.0,
-            .node = 1,
-            .deck = 87.0,
-            .profiles = {
-                .column = profile_rectangle(315.0, 342.0),
-                .girder = profile_t(
-                    300.0,
-                    500.0,
-                    100.0,
-                    80.0
-                ),
-                .purlin = profile_rectangle(215.0, 456.0)
-            }
-        }
-    },
-}; // heads: pyramids the girders rest on, conical and stepped under a point supported deck; nodes flush and through; purlins flush, hung and stacked on their girders; the seven profiles
-const bool INSTANCES = false; // repeated elements as one definition each, placed by instances; off until the viewer draws instances
+    {"purlin_flush",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 3000.0,
+         .node = 1,
+         .drop = 0.0,
+         .profiles =
+             {.column = profile_rectangle(360.0, 360.0),
+              .girder = profile_rectangle(320.0, 800.0),
+              .purlin = profile_rectangle(260.0, 640.0)}
+     }},
+    {"purlin_hung",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 3000.0,
+         .node = 1,
+         .drop = 203.2,
+         .profiles =
+             {.column = profile_rectangle(360.0, 360.0),
+              .girder = profile_rectangle(320.0, 800.0),
+              .purlin = profile_rectangle(260.0, 640.0)}
+     }},
+    {"purlin_stacked",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 3000.0,
+         .node = 1,
+         .drop = 640.0,
+         .profiles =
+             {.column = profile_rectangle(360.0, 360.0),
+              .girder = profile_rectangle(320.0, 800.0),
+              .purlin = profile_rectangle(260.0, 640.0)}
+     }},
+    {"profile_rectangle",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_rectangle(315.0, 342.0),
+              .girder = profile_rectangle(265.0, 608.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_round",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_round(360.0),
+              .girder = profile_round(300.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_w",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_w(206.0, 210.0, 14.2, 10.2),
+              .girder = profile_w(250.0, 250.0, 15.0, 10.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_hss",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_hss(178.0, 178.0, 12.7),
+              .girder = profile_hss(250.0, 250.0, 10.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_double",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_rectangle(315.0, 342.0),
+              .girder = profile_double(120.0, 600.0, 60.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_slab_band",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_rectangle(315.0, 342.0),
+              .girder = profile_slab_band(1200.0, 300.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+    {"profile_t",
+     ONE,
+     wood_grid::Framing{
+         .system = 2,
+         .span = 0,
+         .spacing = 2000.0,
+         .node = 1,
+         .deck = 87.0,
+         .profiles =
+             {.column = profile_rectangle(315.0, 342.0),
+              .girder = profile_t(300.0, 500.0, 100.0, 80.0),
+              .purlin = profile_rectangle(215.0, 456.0)}
+     }},
+};
+const bool INSTANCES = false;
 
 /// The face planes of a closed mesh, normals out.
 std::vector<Plane> compute_planes(const Mesh& mesh) {
@@ -91,7 +179,9 @@ std::vector<Plane> compute_planes(const Mesh& mesh) {
         const std::vector<Point> points = mesh.face_polygon(face)->get_points();
         const Vector normal = compute_newell(points).normalized();
         const Point origin = Point::centroid(points);
-        planes.push_back(Plane::from_point_normal(origin, (origin - centre).dot(normal) < 0.0 ? -normal : normal));
+        planes.push_back(
+            Plane::from_point_normal(origin, (origin - centre).dot(normal) < 0.0 ? -normal : normal)
+        );
     }
 
     return planes;
@@ -113,7 +203,9 @@ double compute_overlap(const Mesh& convex, const Mesh& other) {
 
     Mesh part = other;
     for (const Plane& plane : compute_planes(convex)) {
-        part = part.cut_by_plane(Plane::from_point_normal(plane.origin() - plane.z_axis() * CLEARANCE, -plane.z_axis()));
+        part = part.cut_by_plane(
+            Plane::from_point_normal(plane.origin() - plane.z_axis() * CLEARANCE, -plane.z_axis())
+        );
         if (part.faces().empty())
             return 0.0;
     }
@@ -140,7 +232,8 @@ bool is_near(const Mesh& a, const Mesh& b) {
     const std::pair<Point, Point> box_a = compute_box(a);
     const std::pair<Point, Point> box_b = compute_box(b);
     for (int axis = 0; axis < 3; axis++)
-        if (box_a.second[axis] <= box_b.first[axis] + CLEARANCE || box_b.second[axis] <= box_a.first[axis] + CLEARANCE)
+        if (box_a.second[axis] <= box_b.first[axis] + CLEARANCE ||
+            box_b.second[axis] <= box_a.first[axis] + CLEARANCE)
             return false;
 
     return true;
@@ -171,7 +264,9 @@ int main() {
     double offset = 0.0;
 
     for (const Case& item : CASES) {
-        const wood_grid::Building building = wood_grid::Building::from_footprint({}, ELEVATIONS, item.pattern.transformed(Xform::translation(offset, 0.0, 0.0)));
+        const wood_grid::Building building = wood_grid::Building::from_footprint(
+            {}, ELEVATIONS, item.pattern.transformed(Xform::translation(offset, 0.0, 0.0))
+        );
         const wood_grid::Grid grid(building, item.framing, item.name);
         wood_session.graft(grid, wood_session.add_group(item.name));
         offset += item.pattern.lines.front().length() + GAP;

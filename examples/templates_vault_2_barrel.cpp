@@ -4,31 +4,28 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN = 6000.0; // between the springing lines
-const double RISE = 2000.0; // intrados crown below half the span: a segmental barrel
-const double THICKNESS = 250.0; // out from the intrados
-const double LENGTH = 6000.0; // along the barrel axis
-const int COURSES = 9; // across the arch
-const int RINGS = 6; // along the length
-const double STAGGER = 0.5; // odd courses shifted half a ring: running bond
+const double SPAN = 6000.0;
+const double RISE = 2000.0;
+const double THICKNESS = 250.0;
+const double LENGTH = 6000.0;
+const int COURSES = 9;
+const int RINGS = 6;
+const double STAGGER = 0.5;
 
 int main() {
 
     WoodSession wood_session("vault_barrel");
-    for (const std::shared_ptr<Element>& element : wood_vault::barrel(
-        SPAN,
-        RISE,
-        THICKNESS,
-        LENGTH,
-        COURSES,
-        RINGS,
-        STAGGER
-    ))
+    for (const std::shared_ptr<Element>& element :
+         wood_vault::barrel(SPAN, RISE, THICKNESS, LENGTH, COURSES, RINGS, STAGGER))
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
 
-    std::cout << fmt::format("barrel: {} voussoirs, {} contacts\n", wood_session.objects.elements->size(), wood_session.graph.number_of_edges());
+    std::cout << fmt::format(
+        "barrel: {} voussoirs, {} contacts\n",
+        wood_session.objects.elements->size(),
+        wood_session.graph.number_of_edges()
+    );
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -36,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A segmental barrel vault over 6 m, 6 m long, nine courses across and six rings along it, every odd course shifted half a ring with part voussoirs at the ends, after compas_dem's BarrelVaultTemplate; compute_face_contacts(0) pairs the courses along the bed joints and the rings along the head joints.
+A segmental barrel vault over 6 m, 6 m long, nine courses across and six rings along it, every odd course shifted half a ring with part voussoirs at the ends; compute_face_contacts(0) pairs the courses along the bed joints and the rings along the head joints.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -3,13 +3,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// side_side_inplane_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and in a shallow V of 165 degrees, each drawn apart.
+/// side_side_inplane_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_custom");
 
     // the unit box: x across the seam, y the thickness, z along the joint line; per face a feather profile, eight sharp teeth
-    // alternating across the seam, and its end line, shared by both plates, as the library writes side_side_inplane_three_fingers
     const auto profile = [](double y) {
         std::vector<Point> points = {Point(0.0, y, 0.5)};
         for (int i = 0; i <= 8; i++)
@@ -20,7 +19,9 @@ int main() {
     const auto end_line = [](double y) {
         return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
     };
-    const std::vector<Polyline> outlines = {profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)};
+    const std::vector<Polyline> outlines = {
+        profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)
+    };
 
     // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the miter: in line and in a shallow V of 165 degrees, the second pair 800 along y, each in its group
     for (const double angle : {180.0, 165.0}) {
@@ -34,17 +35,18 @@ int main() {
             scene.add(plate, group);
         }
 
-        // the joint from their contact, added, and passed to each plate in its target order
-        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-        const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_custom(outlines, outlines);
+        const std::shared_ptr<InteractionContactFace> contact =
+            scene.compute_face_contact(left, right);
+        const std::shared_ptr<JointPlate> joint =
+            JointPlate::side_side_inplane_custom(outlines, outlines);
         joint->orient(contact, {left, right});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
         scene.add_interaction(joint, left, joint->interaction(0));
         scene.add_interaction(joint, right, joint->interaction(1));
 
-        // drawn apart 100 along the line between the two plates' centres, so both sides read
-        const Vector apart = (right->polylines[0].center() - left->polylines[0].center()).normalized() * 100.0;
+        const Vector apart =
+            (right->polylines[0].center() - left->polylines[0].center()).normalized() * 100.0;
         right->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 

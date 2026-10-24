@@ -8,7 +8,6 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactAxis - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
 InteractionContactAxis::InteractionContactAxis(
     Line segment,
     double t_a,
@@ -18,12 +17,13 @@ InteractionContactAxis::InteractionContactAxis(
     int polyline_b,
     int segment_b
 )
-    : segment(std::move(segment)), t_a(t_a), t_b(t_b), polyline_a(polyline_a), segment_a(segment_a), polyline_b(polyline_b), segment_b(segment_b) {}
+    : segment(std::move(segment)), t_a(t_a), t_b(t_b), polyline_a(polyline_a), segment_a(segment_a),
+      polyline_b(polyline_b), segment_b(segment_b) {
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactAxis - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionContactAxis::kind() const {
     return "axis";
 }
@@ -38,7 +38,8 @@ void InteractionContactAxis::flip() {
 
 std::shared_ptr<InteractionContact> InteractionContactAxis::flipped() const {
 
-    const std::shared_ptr<InteractionContactAxis> out = std::make_shared<InteractionContactAxis>(*this);
+    const std::shared_ptr<InteractionContactAxis> out =
+        std::make_shared<InteractionContactAxis>(*this);
     out->flip();
 
     return out;
@@ -48,13 +49,13 @@ bool InteractionContactAxis::coincides(const InteractionContact& other) const {
 
     const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(&other);
 
-    return axis && polyline_a == axis->polyline_a && segment_a == axis->segment_a && polyline_b == axis->polyline_b && segment_b == axis->segment_b;
+    return axis && polyline_a == axis->polyline_a && segment_a == axis->segment_a &&
+           polyline_b == axis->polyline_b && segment_b == axis->segment_b;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactAxis - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactAxis::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -101,7 +102,9 @@ std::shared_ptr<Interaction> InteractionContactAxis::clone() const {
 
 /// The registered factory: interaction_data bytes to an axis contact.
 static std::shared_ptr<Interaction> contact_axis_from_protobuf(const std::string& data) {
-    return std::make_shared<InteractionContactAxis>(InteractionContactAxis::interaction_data_loads(data));
+    return std::make_shared<InteractionContactAxis>(
+        InteractionContactAxis::interaction_data_loads(data)
+    );
 }
 
 void InteractionContactAxis::register_type() {
@@ -111,9 +114,17 @@ void InteractionContactAxis::register_type() {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionContactAxis - String
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionContactAxis::str() const {
-    return fmt::format("InteractionContactAxis(a=({}, {}, {:.3f}), b=({}, {}, {:.3f}), length={:.3f})", polyline_a, segment_a, t_a, polyline_b, segment_b, t_b, segment.length());
+    return fmt::format(
+        "InteractionContactAxis(a=({}, {}, {:.3f}), b=({}, {}, {:.3f}), length={:.3f})",
+        polyline_a,
+        segment_a,
+        t_a,
+        polyline_b,
+        segment_b,
+        t_b,
+        segment.length()
+    );
 }
 
-} // namespace wood_session
+}

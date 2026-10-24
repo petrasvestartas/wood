@@ -15,14 +15,20 @@ int main() {
 
     const size_t frame = block.get_branch("contacts_frame").objects.meshes->size();
     const size_t sheathing = block.get_branch("contacts_sheathing").objects.meshes->size();
-    std::cout << fmt::format("module block: {} modules, {} frame contacts, {} sheathing contacts", block.columns() * guide.storeys, frame, sheathing) << std::endl;
+    std::cout << fmt::format(
+                     "module block: {} modules, {} frame contacts, {} sheathing contacts",
+                     block.columns() * guide.storeys,
+                     frame,
+                     sheathing
+                 )
+              << std::endl;
     block.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the timber modules: twelve room modules of step 4 like the ZM10 school pavilions Blumer Lehmann builds for Zurich, four side by side and three storeys stacked, the most they stack: per storey two rooms of two modules each, open between the two modules of a room with a pair of posts at mid-length, one wall between the rooms in the first room's module, the module ends with their windows forming the facade, the corridor ends with their doors on the other side. Every member and sheet that touches another is a face contact, in a module and between modules; no connector is made.
+Step 5 of the timber modules: twelve room modules of step 4, four side by side and three storeys stacked, the most they stack: per storey two rooms of two modules each, open between the two modules of a room with a pair of posts at mid-length, one wall between the rooms in the first room's module, the module ends with their windows forming the facade, the corridor ends with their doors on the other side. Every member and sheet that touches another is a face contact, in a module and between modules; no connector is made.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

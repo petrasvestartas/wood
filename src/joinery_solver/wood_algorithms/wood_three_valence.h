@@ -15,7 +15,7 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<InteractionFeaturePlate>& joints
 );
 
-/// Vidy method: shadow joints (link = true) between each side plate and the plate it is glued to, translated to that plate's far face.
+/// Vidy method.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
@@ -31,7 +31,7 @@ void align_annen_joints(
     std::vector<InteractionFeaturePlate>& joints
 );
 
-/// Applies the three-valence groups, the first row [instruction], 0 = annen alignment, 1 = vidy addition, then [s0, s1, e20, e31] rows; nothing when there are none. `angle` is the parallel-normal tolerance in radians.
+/// Applies the three-valence groups.
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
     std::vector<std::shared_ptr<Plate>>& elements,
@@ -39,4 +39,4 @@ void link_three_valence_joints(
     double angle
 );
 
-} // namespace wood_session
+}

@@ -1,4 +1,3 @@
-/// border: beam slice - the tween rectangle of the two volumes, widened by scale[0] / scale[1], as four slice planes.
 static void border(InteractionFeaturePlate& joint) {
 
     joint.name = "border";
@@ -69,9 +68,19 @@ static void border(InteractionFeaturePlate& joint) {
     const Polyline rect2 = rect.translated(-off_near);
     const Polyline rect3 = rect.translated(-off_far);
 
-    joint.male_outlines[0] = { rect0, rect0, rect2, rect2 };
-    joint.male_outlines[1] = { rect1, rect1, rect3, rect3 };
+    joint.male_outlines[0] = {rect0, rect0, rect2, rect2};
+    joint.male_outlines[1] = {rect1, rect1, rect3, rect3};
 
-    joint.male_fabrication_types[0] = { FabricationType::slice, FabricationType::slice, FabricationType::slice, FabricationType::slice };
-    joint.male_fabrication_types[1] = { FabricationType::slice, FabricationType::slice, FabricationType::slice, FabricationType::slice };
+    joint.male_fabrication_types[0] = {
+        FabricationType::slice,
+        FabricationType::slice,
+        FabricationType::slice,
+        FabricationType::slice
+    };
+    joint.male_fabrication_types[1] = {
+        FabricationType::slice,
+        FabricationType::slice,
+        FabricationType::slice,
+        FabricationType::slice
+    };
 }

@@ -8,16 +8,23 @@ int main() {
 
     WoodSession scene("element_plate_holes");
 
-    const std::shared_ptr<Plate> plate = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 600.0, 400.0, 40.0);
+    const std::shared_ptr<Plate> plate = Plate::from_rectangle(
+        {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 600.0, 400.0, 40.0
+    );
     scene.add(plate);
 
-    for (const Point& centre : std::vector<Point>{{100.0, 100.0, 0.0}, {500.0, 100.0, 0.0}, {500.0, 300.0, 0.0}, {100.0, 300.0, 0.0}}) {
-        const Line axis = Line::from_points(centre + Vector(0.0, 0.0, 50.0), centre + Vector(0.0, 0.0, -10.0));
+    for (const Point& centre : std::vector<Point>{
+             {100.0, 100.0, 0.0}, {500.0, 100.0, 0.0}, {500.0, 300.0, 0.0}, {100.0, 300.0, 0.0}
+         }) {
+        const Line axis =
+            Line::from_points(centre + Vector(0.0, 0.0, 50.0), centre + Vector(0.0, 0.0, -10.0));
         const std::shared_ptr<Joint> hole = Joint::drill(axis, 15.0);
         hole->name = "hole";
         hole->is_visible = false;
         scene.add(hole);
-        scene.add_interaction(hole, plate, std::make_shared<InteractionFeatureSolid>(std::vector<Line>{axis}, 15.0));
+        scene.add_interaction(
+            hole, plate, std::make_shared<InteractionFeatureSolid>(std::vector<Line>{axis}, 15.0)
+        );
     }
 
     std::cout << scene << std::endl;

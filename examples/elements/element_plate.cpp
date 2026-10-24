@@ -8,7 +8,10 @@ int main() {
 
     WoodSession scene("element_plate");
 
-    const Polyline bottom({{0.0, 0.0, 0.0}, {600.0, 0.0, 0.0}, {500.0, 400.0, 0.0}, {0.0, 300.0, 0.0}, {0.0, 0.0, 0.0}});
+    const Polyline bottom(
+        {{0.0, 0.0, 0.0}, {600.0, 0.0, 0.0}, {500.0, 400.0, 0.0}, {0.0, 300.0, 0.0}, {0.0, 0.0, 0.0}
+        }
+    );
     scene.add(std::make_shared<Plate>(bottom, bottom.translated({0.0, 0.0, 40.0}), "plate"));
 
     std::cout << scene << std::endl;

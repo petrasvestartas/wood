@@ -20,7 +20,11 @@ int main() {
     const Polyline bottom_far(far);
     WoodSession scene("element_plate_session");
 
-    for (const std::shared_ptr<Plate>& plate : Plate::row_between({bottom_near, bottom_far}, {bottom_near.translated({0.0, 0.0, 40.0}), bottom_far.translated({0.0, 0.0, 40.0})}, "bed"))
+    for (const std::shared_ptr<Plate>& plate : Plate::row_between(
+             {bottom_near, bottom_far},
+             {bottom_near.translated({0.0, 0.0, 40.0}), bottom_far.translated({0.0, 0.0, 40.0})},
+             "bed"
+         ))
         scene.add(plate);
 
     std::cout << scene << std::endl;

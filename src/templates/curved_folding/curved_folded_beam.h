@@ -5,8 +5,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A closed curved-folded beam: a box of four cylinder plates mitred on its curved creases, flat at the supports and divided
-/// by flat webs.
+/// A closed curved-folded beam.
 class CurvedFoldedBeam : public WoodSession {
 public:
     const double span; // mm, along x between the supports.
@@ -62,8 +61,12 @@ private:
     /// Every beam, beam_<b> its group: its four plates and its webs.
     void add_beams(const std::array<std::vector<Point>, 2>& corner);
 
-    /// Beam b's four plates, beam_<b>_<k>: top, right, bottom and left, the corner mirrored in y 0 and z 0 and moved along y.
-    void add_plates(const std::array<std::vector<Point>, 2>& corner, size_t b, const std::shared_ptr<TreeNode>& group);
+    /// Beam b's four plates, beam_<b>_<k>.
+    void add_plates(
+        const std::array<std::vector<Point>, 2>& corner,
+        size_t b,
+        const std::shared_ptr<TreeNode>& group
+    );
 
     /// Beam b's webs, beam_<b>_<4 + w>: flat diaphragms at even stations, their corners on the inner crease.
     void add_webs(const NurbsCurve& inner_crease, size_t b, const std::shared_ptr<TreeNode>& group);
@@ -80,18 +83,13 @@ inline CurvedFoldedBeam::CurvedFoldedBeam(
     const std::string& name,
     size_t samples
 )
-    : WoodSession(name),
-      span(span),
-      width(width),
-      rise(rise),
-      sag(sag),
-      thickness(thickness),
-      webs(webs),
-      count(std::max<size_t>(count, 1)),
-      samples(std::max<size_t>(samples, 4)) {
+    : WoodSession(name), span(span), width(width), rise(rise), sag(sag), thickness(thickness),
+      webs(webs), count(std::max<size_t>(count, 1)), samples(std::max<size_t>(samples, 4)) {
 
-    if (span <= 0.0 || width <= 0.0 || rise <= 0.0 || sag <= 0.0 || thickness <= 0.0 || sag >= 0.5 * width - 2.0 * thickness)
-        throw std::invalid_argument("A curved-folded beam needs a span, a width, a rise, a sag well inside the width and a thickness");
+    if (span <= 0.0 || width <= 0.0 || rise <= 0.0 || sag <= 0.0 || thickness <= 0.0 ||
+        sag >= 0.5 * width - 2.0 * thickness)
+        throw std::invalid_argument("A curved-folded beam needs a span, a width, a rise, a sag "
+                                    "well inside the width and a thickness");
 
     // corner: the top right crease and the inner crease under it, the mitre between them
     const std::array<std::vector<Point>, 2> corner = compute_corner();
@@ -105,7 +103,6 @@ inline CurvedFoldedBeam::CurvedFoldedBeam(
 
 inline std::array<std::vector<Point>, 2> CurvedFoldedBeam::compute_corner() const {
 
-    // the crease at the side's half width and the top's half height, the inner crease at their inner faces', at equal x
     const double half = 0.5 * span;
     std::array<std::vector<Point>, 2> corner;
 
@@ -122,7 +119,8 @@ inline std::array<std::vector<Point>, 2> CurvedFoldedBeam::compute_corner() cons
     return corner;
 }
 
-inline std::pair<double, double> CurvedFoldedBeam::profile(double base, double change, double x) const {
+inline std::pair<double, double>
+CurvedFoldedBeam::profile(double base, double change, double x) const {
 
     const double half = 0.5 * span;
     const double radius = (half * half + change * change) / (2.0 * std::abs(change));
@@ -132,7 +130,8 @@ inline std::pair<double, double> CurvedFoldedBeam::profile(double base, double c
     return std::make_pair(base + change - sign * radius + sign * root, -sign * x / root);
 }
 
-inline std::pair<double, double> CurvedFoldedBeam::inside_point(double base, double change, double u) const {
+inline std::pair<double, double>
+CurvedFoldedBeam::inside_point(double base, double change, double u) const {
 
     const std::pair<double, double> value = profile(base, change, u);
     const double length = std::sqrt(1.0 + value.second * value.second);
@@ -159,7 +158,8 @@ inline double CurvedFoldedBeam::inner_distance(double base, double change, doubl
 
 inline void CurvedFoldedBeam::add_beams(const std::array<std::vector<Point>, 2>& corner) {
 
-    const NurbsCurve inner_crease = NurbsCurve::create_interpolated(corner[1], CurveNurbsKnotStyle::Uniform);
+    const NurbsCurve inner_crease =
+        NurbsCurve::create_interpolated(corner[1], CurveNurbsKnotStyle::Uniform);
 
     for (size_t b = 0; b < count; b++) {
         const std::shared_ptr<TreeNode> group = add_group(fmt::format("beam_{}", b));
@@ -175,7 +175,9 @@ inline void CurvedFoldedBeam::add_plates(
 ) {
 
     // the four corners as signs of y and z, and the plates between two of them: top, right, bottom, left
-    const std::array<std::array<double, 2>, 4> corners = {{{1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}, {-1.0, 1.0}}};
+    const std::array<std::array<double, 2>, 4> corners = {
+        {{1.0, 1.0}, {1.0, -1.0}, {-1.0, -1.0}, {-1.0, 1.0}}
+    };
     const std::array<std::array<size_t, 2>, 4> plates = {{{3, 0}, {0, 1}, {1, 2}, {2, 3}}};
     const double shift = width * static_cast<double>(b);
 
@@ -194,34 +196,27 @@ inline void CurvedFoldedBeam::add_plates(
         }
 
         const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
-            curves[0],
-            curves[1],
-            curves[2],
-            curves[3],
-            fmt::format("beam_{}_{}", b, k)
+            curves[0], curves[1], curves[2], curves[3], fmt::format("beam_{}_{}", b, k)
         );
         add(plate, group);
 
-        // its development, the proof it is cut flat
         const Development development(curves[0], curves[1], samples);
         _distortion = std::max(_distortion, development.distortion);
     }
 }
 
 inline void CurvedFoldedBeam::add_webs(
-    const NurbsCurve& inner_crease,
-    size_t b,
-    const std::shared_ptr<TreeNode>& group
+    const NurbsCurve& inner_crease, size_t b, const std::shared_ptr<TreeNode>& group
 ) {
 
     const double shift = width * static_cast<double>(b);
 
     for (size_t w = 0; w < webs; w++) {
-        const double station = -0.5 * span + span * static_cast<double>(w + 1) / static_cast<double>(webs + 1);
+        const double station =
+            -0.5 * span + span * static_cast<double>(w + 1) / static_cast<double>(webs + 1);
         std::array<NurbsCurve, 4> curves;
 
         for (size_t e = 0; e < 4; e++) {
-            // the inner crease's point at the web face's x, by bisection, and the edge across the box through it
             const double x = station + (e < 2 ? -0.5 : 0.5) * thickness;
             const double side = e % 2 == 0 ? 1.0 : -1.0;
             double low = inner_crease.domain_start();
@@ -243,11 +238,7 @@ inline void CurvedFoldedBeam::add_webs(
         }
 
         const std::shared_ptr<PlateCurved> web = std::make_shared<PlateCurved>(
-            curves[0],
-            curves[1],
-            curves[2],
-            curves[3],
-            fmt::format("beam_{}_{}", b, 4 + w)
+            curves[0], curves[1], curves[2], curves[3], fmt::format("beam_{}_{}", b, 4 + w)
         );
         add(web, group);
     }

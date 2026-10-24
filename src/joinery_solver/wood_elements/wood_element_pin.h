@@ -22,6 +22,7 @@ public:
     std::string element_type_name() const override {
         return "Pin";
     }
+
     std::shared_ptr<Element> clone() const override {
         return std::make_shared<Pin>(*this);
     }

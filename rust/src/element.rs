@@ -1,5 +1,3 @@
-//! The part every wood class shares: its tag, its payload and its solid over the kernel Element.
-
 use prost::Message;
 use session_rust::element::ElementFeature;
 use session_rust::{BRep, Element, Mesh, Plane, Polyline};
@@ -20,6 +18,7 @@ pub fn polyline_feature(
 
 /// A wood class carried by a kernel Element: `element_type` names it, `element_data` holds its payload.
 pub trait WoodElement: Sized {
+
     /// The element_type the class is written under, as the C++ class registers it.
     const TYPE: &'static str;
 

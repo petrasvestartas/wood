@@ -4,8 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Folded triangular surfaces over a hexagonal plan (Engel, p. 232): a vertical gable on every edge, a triangle at every corner, six
-/// from the gables' peaks to the raised centre.
+/// Folded triangular surfaces over a hexagonal plan .
 int main() {
 
     TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
@@ -18,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan after Engel, Structure Systems, Folded plate structures (p. 232). A regular hexagon on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 4200 high, a triangle at every corner folds down from two peaks to the corner, and the hexagon of the middles is split into six triangles to the centre at 5300: eighteen planar triangles 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
+Step 23 of the folding templates: folded triangular surfaces over a hexagonal plan. A regular hexagon on a 12 m circumradius standing on its corners; every edge carries a vertical gable triangle up to its middle 4200 high, a triangle at every corner folds down from two peaks to the corner, and the hexagon of the middles is split into six triangles to the centre at 5300: eighteen planar triangles 120 mm thick, their edges on the ground cut flush with it. Each step is a group: mesh, folds, plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

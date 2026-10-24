@@ -1,5 +1,3 @@
-//! Column: a section lofted along a straight axis.
-
 use crate::element::{polyline_feature, WoodElement};
 use crate::geometry::brep_between_loops;
 use crate::proto;
@@ -46,6 +44,7 @@ fn placed_profile(axis: &Line, profile: &[Polyline], rotation: f64) -> Vec<Polyl
 }
 
 impl Column {
+
     /// A column of a given section along its axis.
     pub fn new(axis: &Line, section: &Polyline, name: &str) -> Self {
         Self {
@@ -173,7 +172,6 @@ impl WoodElement for Column {
         let origin = self.section.get_point(0)?;
         let x = (self.section.get_point(1)? - origin.clone()).normalized();
 
-        // the C++ frame() keeps the section's own edge as x, no projection
         Some(Plane::from_frame(origin, x.clone(), z.cross(&x), z))
     }
 }

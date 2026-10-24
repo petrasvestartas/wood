@@ -859,7 +859,7 @@ void add_columns(wood_session::WoodSession&, const Floor&, group, FloorMembers&)
 ColumnModel add_column_model(wood_session::WoodSession&, const Floor&, size_t corner, group);                                            // Support, column carved by column_cuts, support joint at corner k.
 QuarterMembers add_quarter_model(wood_session::WoodSession&, const Quarter&, group);                                                     // The six families, suffix "_k".
 std::vector<Member> add_oculus_model(wood_session::WoodSession&, const Floor&, group);
-const session_cpp::Color CONNECTOR_COLOR;                                                                                                // BRG blue, 38 / 149 / 233.
+const session_cpp::Color CONNECTOR_COLOR;                                                                                                // blue, 38 / 149 / 233.
 std::vector<std::shared_ptr<wood_session::JointBeam>> add_connectors(wood_session::WoodSession&, const Floor&, const FloorMembers&, kinds);   // One JointBeam per relationship through the existing factories, under connector_group(row) (section 8.2).
 
 /// The constructed contacts checked against the kernel's search.
@@ -1035,7 +1035,7 @@ counts with mirrored plates). The search is kept only as this check: when geomet
 the constructed contact still exists and the mismatch is reported instead of a connector silently
 vanishing.
 
-Every connector is drawn BRG blue: `add_connectors` sets `CONNECTOR_COLOR` (RGB 38 / 149 / 233) on the
+Every connector is drawn blue: `add_connectors` sets `CONNECTOR_COLOR` (RGB 38 / 149 / 233) on the
 connector's tree node and on every part and pin node nested under it (`Session::set_node_color`),
 and the pb keeps the node colours (`session_proto.TreeNode.color`). The colour is on every node
 rather than on a group, because no viewer reads a group's colour for the objects under it.
@@ -1374,6 +1374,6 @@ entry). Example numbers are those of the time.
   (`JointBeam::WEDGE_PROFILE`). The column head cutters became solid cuts of the column
   (`column_cuts(quarter)`, its "cut" features): `Family::cutter` and the 24 cutter rows removed,
   `relationships(floor)` 88 rows (52 + 36 pins), the carved volume unchanged. A "drill" feature on
-  every member per hole a joint makes in it (476 on the square). Connectors BRG blue, 38 / 149 / 233
+  every member per hole a joint makes in it (476 on the square). Connectors blue, 38 / 149 / 233
   (`CONNECTOR_COLOR`). `verify_contacts` returns a `ContactCheck`; `count_bores` public; wedges and
   ties numbered in quarter order, compas_tf's search order dropped.

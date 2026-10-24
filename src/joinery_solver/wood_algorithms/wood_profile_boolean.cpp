@@ -17,7 +17,9 @@ bool inside_xy(const Point& point, const Polyline& polygon) {
         const Point& first = points[i];
         const Point& second = points[j];
 
-        if ((first[1] > point[1]) != (second[1] > point[1]) && point[0] < (second[0] - first[0]) * (point[1] - first[1]) / (second[1] - first[1]) + first[0])
+        if ((first[1] > point[1]) != (second[1] > point[1]) &&
+            point[0] <
+                (second[0] - first[0]) * (point[1] - first[1]) / (second[1] - first[1]) + first[0])
             inside = !inside;
     }
 
@@ -41,14 +43,19 @@ Polyline from_xy(const Polyline& ring, const Plane& plane, double height) {
     std::vector<Point> points;
 
     for (const Point& point : ring.get_points())
-        points.push_back(plane.origin() + plane.x_axis() * point[0] + plane.y_axis() * point[1] + plane.z_axis() * height);
+        points.push_back(
+            plane.origin() + plane.x_axis() * point[0] + plane.y_axis() * point[1] +
+            plane.z_axis() * height
+        );
 
     return Polyline(points);
 }
 
 std::array<double, 2> compute_heights(const Mesh& mesh, const Plane& plane) {
 
-    std::array<double, 2> heights = {std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
+    std::array<double, 2> heights = {
+        std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()
+    };
 
     for (const std::pair<const size_t, VertexData>& entry : mesh.vertex) {
         const double height = (entry.second.position() - plane.origin()).dot(plane.z_axis());
@@ -60,10 +67,7 @@ std::array<double, 2> compute_heights(const Mesh& mesh, const Plane& plane) {
 }
 
 bool is_extrusion(
-    const Mesh& mesh,
-    const Xform& local,
-    const std::array<double, 2>& heights,
-    double tolerance
+    const Mesh& mesh, const Xform& local, const std::array<double, 2>& heights, double tolerance
 ) {
 
     std::vector<Point> bottom;
@@ -109,12 +113,8 @@ Polyline mesh_ring(const Mesh& mesh, const std::vector<size_t>& vertices) {
     return Polyline(points);
 }
 
-std::vector<Polyline> bottom_rings(
-    const Mesh& mesh,
-    const Xform& local,
-    double height,
-    double tolerance
-) {
+std::vector<Polyline>
+bottom_rings(const Mesh& mesh, const Xform& local, double height, double tolerance) {
 
     std::vector<Polyline> rings;
 
@@ -128,7 +128,7 @@ std::vector<Polyline> bottom_rings(
                 bottom = false;
                 break;
             }
-            }
+        }
 
         if (!bottom)
             continue;
@@ -144,7 +144,9 @@ std::vector<Polyline> bottom_rings(
     return rings;
 }
 
-Mesh loft_regions(const std::vector<Polyline>& rings, const Plane& plane, const std::array<double, 2>& heights) {
+Mesh loft_regions(
+    const std::vector<Polyline>& rings, const Plane& plane, const std::array<double, 2>& heights
+) {
 
     std::vector<int> depth(rings.size(), 0);
     std::vector<int> parent(rings.size(), -1);
@@ -195,12 +197,8 @@ std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatu
                 return std::nullopt;
 
     const Plane plane = Plane::from_point_normal(cut.profile[0][0], normal);
-    const std::optional<Xform> local = Xform::frame_to_world(
-        plane.origin(),
-        plane.x_axis(),
-        plane.y_axis(),
-        normal
-    ).inverse();
+    const std::optional<Xform> local =
+        Xform::frame_to_world(plane.origin(), plane.x_axis(), plane.y_axis(), normal).inverse();
 
     if (!local)
         return std::nullopt;
@@ -208,26 +206,18 @@ std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatu
     const std::array<double, 2> heights = compute_heights(mesh, plane);
     const double length = cut.extrusion.magnitude();
 
-    if (heights[1] - heights[0] <= cut.tolerance || heights[0] < -cut.tolerance || heights[1] > length + cut.tolerance)
+    if (heights[1] - heights[0] <= cut.tolerance || heights[0] < -cut.tolerance ||
+        heights[1] > length + cut.tolerance)
         return std::nullopt;
 
-    if (cut.operation == SolidOperation::add && (std::abs(heights[0]) > cut.tolerance || std::abs(heights[1] - length) > cut.tolerance))
+    if (cut.operation == SolidOperation::add &&
+        (std::abs(heights[0]) > cut.tolerance || std::abs(heights[1] - length) > cut.tolerance))
         return std::nullopt;
 
-    if (!is_extrusion(
-        mesh,
-        *local,
-        heights,
-        cut.tolerance
-    ))
+    if (!is_extrusion(mesh, *local, heights, cut.tolerance))
         return std::nullopt;
 
-    const std::vector<Polyline> subject = bottom_rings(
-        mesh,
-        *local,
-        heights[0],
-        cut.tolerance
-    );
+    const std::vector<Polyline> subject = bottom_rings(mesh, *local, heights[0], cut.tolerance);
 
     if (subject.empty())
         return std::nullopt;
@@ -237,7 +227,11 @@ std::optional<Mesh> compute_profile_cut(const Mesh& mesh, const InteractionFeatu
     for (const Polyline& ring : cut.profile)
         clips.push_back(to_xy(ring, *local));
 
-    return loft_regions(BooleanPolyline::compute_regions(subject, clips, static_cast<int>(cut.operation)), plane, heights);
+    return loft_regions(
+        BooleanPolyline::compute_regions(subject, clips, static_cast<int>(cut.operation)),
+        plane,
+        heights
+    );
 }
 
 }

@@ -9,17 +9,17 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureSolid - Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-
-InteractionFeatureSolid::InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation) : mesh(mesh), operation(operation) {
+InteractionFeatureSolid::InteractionFeatureSolid(const Mesh& mesh, SolidOperation operation)
+    : mesh(mesh), operation(operation) {
 }
 
-InteractionFeatureSolid::InteractionFeatureSolid(const std::vector<Line>& drills, double radius) : drills(drills), drill_radius(radius) {
+InteractionFeatureSolid::InteractionFeatureSolid(const std::vector<Line>& drills, double radius)
+    : drills(drills), drill_radius(radius) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureSolid - Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string_view InteractionFeatureSolid::kind() const {
     return "solid";
 }
@@ -45,7 +45,6 @@ InteractionFeatureSolid InteractionFeatureSolid::transformed(const Xform& xform)
 // ═══════════════════════════════════════════════════════════════════════════
 // InteractionFeatureSolid - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-
 std::string InteractionFeatureSolid::interaction_type_name() const {
     return std::string(INTERACTION_TYPE);
 }
@@ -88,7 +87,8 @@ InteractionFeatureSolid InteractionFeatureSolid::pb_loads(const std::string& dat
     if (!proto.ParseFromString(data))
         throw std::runtime_error("Invalid solid feature data");
 
-    if (proto.operation() < 0 || proto.operation() > 2 || !std::isfinite(proto.tolerance()) || proto.tolerance() <= 0)
+    if (proto.operation() < 0 || proto.operation() > 2 || !std::isfinite(proto.tolerance()) ||
+        proto.tolerance() <= 0)
         throw std::runtime_error("Invalid solid feature data");
 
     InteractionFeatureSolid feature;
@@ -148,4 +148,4 @@ std::string InteractionFeatureSolid::str() const {
     );
 }
 
-} // namespace wood_session
+}

@@ -12,11 +12,13 @@ using namespace session_cpp;
 
 /// Plan lines a building is drawn on, at z 0, each in a parallel family.
 struct Pattern {
-    std::vector<Line> lines; // Segments in plan, as long as the pattern extends; a footprint beyond them gets no members there.
+    std::vector<Line>
+        lines; // Segments in plan, as long as the pattern extends; a footprint beyond them gets no members there.
     std::vector<int> families; // One per line.
 
     /// Lines along x at the sums of ys and along y at the sums of xs, the y lines leaning skew degrees.
-    static Pattern orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew = 0.0);
+    static Pattern
+    orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew = 0.0);
 
     /// Rays from the first radius to the last and ring chords at every radius over sweep degrees.
     static Pattern radial(const std::vector<double>& radii, int sectors, double sweep = 360.0);
@@ -28,7 +30,8 @@ struct Pattern {
     static Pattern hexagonal(double side, int nx, int ny);
 
     /// Lines as drawn with a family per line, all free when families is empty.
-    static Pattern from_lines(const std::vector<Line>& lines, const std::vector<int>& families = {});
+    static Pattern
+    from_lines(const std::vector<Line>& lines, const std::vector<int>& families = {});
 
     /// A copy moved by xform: the pattern's origin and rotation under the building.
     Pattern transformed(const Xform& xform) const;
@@ -56,14 +59,17 @@ struct Framing {
     int span = 0; // Pattern family the girders run on; -1 every line carries a beam.
     double spacing = 3000.0; // Largest purlin spacing under system 2.
     int node = 0; // Column joint: 0 head, 1 flush, 2 through.
-    double drop = 0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
-    double deck = 200.0; // Deck thickness, above the datum or flush in the bay under post and beam with heads.
+    double drop =
+        0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
+    double deck =
+        200.0; // Deck thickness, above the datum or flush in the bay under post and beam with heads.
     double wall = 200.0; // Facade and core wall thickness, centred on the line.
     double head = 300.0; // Height of a head that carries the deck alone.
     double reach = 400.0; // How far a head reaches from the column centre.
     int capital = 0; // Head under the deck alone: 0 conical, 1 stepped under a drop panel.
     double panel = 0.0; // Largest deck strip width across the deck span; 0 one deck per bay.
-    double taper = 30.0; // Largest lean in degrees of a column following a moving section; beyond it the vertex is a transfer.
+    double taper =
+        30.0; // Largest lean in degrees of a column following a moving section; beyond it the vertex is a transfer.
     bool facade = false; // A wall under every perimeter member.
     Profiles profiles = {}; // Sections per role.
 };
@@ -76,7 +82,8 @@ struct Framing {
 struct Level {
     double z = 0.0; // Datum: the framing top, the deck underside.
     std::vector<Polyline> cores; // Core rings on the wall centre line, counter-clockwise at z 0.
-    Mesh plan; // Arrangement of the pattern and the section rings: faces are bays, edges member lines, vertices column points.
+    Mesh
+        plan; // Arrangement of the pattern and the section rings: faces are bays, edges member lines, vertices column points.
 };
 
 /// A building as its levels: the same pipeline from a massing, a footprint or drawn lines; a Grid frames it.
@@ -85,7 +92,7 @@ struct Building {
     std::vector<Line> braces; // Tilted lines from from_lines, built as beams cut by what they meet.
     double tolerance = 1.0; // Weld distance and coplanarity tolerance the plans were built with.
 
-    /// A. A closed massing sliced at elevations, the pattern filling the sections, cores on every level.
+    /// A.
     static Building from_solid(
         const Mesh& massing,
         const std::vector<double>& elevations,
@@ -95,7 +102,7 @@ struct Building {
         double merge = 1000.0
     );
 
-    /// B. Footprint rings filled with the pattern at every elevation, empty for every bounded cell of the pattern.
+    /// B.
     static Building from_footprint(
         const std::vector<Polyline>& footprint,
         const std::vector<double>& elevations,
@@ -105,7 +112,7 @@ struct Building {
         double merge = 1000.0
     );
 
-    /// C. Members and surfaces as drawn: horizontal lines and floors make the plans, vertical lines the columns, tilted lines braces.
+    /// C.
     static Building from_lines(
         const std::vector<Line>& lines,
         const std::vector<Polyline>& surfaces,
@@ -124,9 +131,6 @@ struct Stack;
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The timber building, a session built level by level from a Building guide and a Framing.
-///
-/// Fields: `framing` and `guide`, its plans with the roles filled.
-/// Every element is found in the session by name, `<kind>_<i>_<level>` under `level_<level>` > `<kind>s_<level>`.
 class Grid : public wood_session::WoodSession {
 public:
     const Framing framing; // How every level is framed and jointed.
@@ -134,9 +138,7 @@ public:
 
     /// The building of the guide framed by framing, as the session named name.
     explicit Grid(
-        const Building& guide,
-        const Framing& framing = {},
-        const std::string& name = "grid"
+        const Building& guide, const Framing& framing = {}, const std::string& name = "grid"
     );
 
     /// Not copied, as a session is not.
@@ -161,11 +163,7 @@ private:
     );
 
     /// Adds the core walls in a pinwheel and the facade walls under the perimeter members.
-    void add_walls(
-        const Building& working,
-        size_t storey,
-        const build::Context& upper
-    );
+    void add_walls(const Building& working, size_t storey, const build::Context& upper);
 
     /// Adds the head on every column under node 0 and returns the heads by plan vertex.
     std::map<size_t, std::shared_ptr<Element>> add_heads(
@@ -193,11 +191,7 @@ private:
     );
 
     /// Adds the drawn braces standing in the storey.
-    void add_braces(
-        size_t storey,
-        const build::Context& ground,
-        const build::Context& upper
-    );
+    void add_braces(size_t storey, const build::Context& ground, const build::Context& upper);
 
     /// Adds each element under its family group of the level, named by its kind, count and level.
     void add_numbered(const std::vector<std::shared_ptr<Element>>& elements, size_t place);
@@ -212,4 +206,4 @@ private:
     static Building compute_guide(const Building& guide, const Framing& framing);
 };
 
-} // namespace wood_grid
+}

@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A framed wall module with a door and a window: rails, studs, the frame of each opening, sheathing on both faces and the contacts between them.
+/// A framed wall module with a door and a window.
 int main() {
 
     wood_module::Wall wall;
@@ -12,7 +12,8 @@ int main() {
 
     const size_t frame = wall.get_branch("contacts_frame").objects.meshes->size();
     const size_t sheathing = wall.get_branch("contacts_sheathing").objects.meshes->size();
-    std::cout << fmt::format("wall: {} frame contacts, {} sheathing contacts", frame, sheathing) << std::endl;
+    std::cout << fmt::format("wall: {} frame contacts, {} sheathing contacts", frame, sheathing)
+              << std::endl;
     wall.pb_dump(pb_path("live"));
     return 0;
 }

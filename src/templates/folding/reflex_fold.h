@@ -62,13 +62,8 @@ inline ReflexFold::ReflexFold(
     double chamfer_angle,
     const std::string& name
 )
-    : WoodSession(name),
-      cross_section(cross_section),
-      profile(profile),
-      thickness(thickness),
-      chamfer_bottom(chamfer_bottom),
-      chamfer_top(chamfer_top),
-      chamfer_angle(chamfer_angle) {
+    : WoodSession(name), cross_section(cross_section), profile(profile), thickness(thickness),
+      chamfer_bottom(chamfer_bottom), chamfer_top(chamfer_top), chamfer_angle(chamfer_angle) {
 
     // curves: the cross section and the profile
     const std::shared_ptr<TreeNode> curves = add_group("curves");
@@ -88,13 +83,8 @@ inline ReflexFold::ReflexFold(
 
     // plates: one plate per quad, mitered at the folds, its corners chamfered
     const std::shared_ptr<TreeNode> plates = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> folds = mitered_plates(
-        _mesh,
-        thickness,
-        chamfer_bottom,
-        chamfer_top,
-        chamfer_angle
-    );
+    const std::vector<std::shared_ptr<Plate>> folds =
+        mitered_plates(_mesh, thickness, chamfer_bottom, chamfer_top, chamfer_angle);
 
     for (const std::shared_ptr<Plate>& plate : folds)
         add(plate, plates);
@@ -176,7 +166,8 @@ inline Mesh ReflexFold::compute_mesh(const std::vector<Plane>& fold_planes) cons
         for (size_t j = 0; j < row; j++) {
             const Point previous = points[start - row + j];
             const Line along = Line::from_points(previous, previous + step);
-            const std::optional<Point> moved = Intersection::line_plane(along, fold_planes[i], false);
+            const std::optional<Point> moved =
+                Intersection::line_plane(along, fold_planes[i], false);
             points.push_back(moved.value_or(previous));
         }
 

@@ -6,10 +6,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A folded plate whose profile changes along the span after Engel (pp. 222-224), every warped strip folded on one diagonal.
+/// A folded plate whose profile changes along the span, every warped strip folded on one diagonal.
 class CounterFold : public WoodSession {
 public:
-    const std::vector<Polyline> stations; // The fold profiles along +x, each in a yz plane along +y, all with one point count.
+    const std::vector<Polyline>
+        stations; // The fold profiles along +x, each in a yz plane along +y, all with one point count.
     const Folding folding; // The diagonal every warped strip folds along.
     const double thickness; // mm, every plate.
 
@@ -36,37 +37,20 @@ public:
 
     /// A zigzag of ridges ridges at x, its valleys on elevation, counter starting it on a ridge.
     static Polyline zigzag(
-        double x,
-        size_t ridges,
-        double fold_width,
-        double depth,
-        double elevation,
-        bool counter
+        double x, size_t ridges, double fold_width, double depth, double elevation, bool counter
     );
 
-    /// Counter-running folding (p. 222): the zigzag at the start, its counter profile at the end.
-    static std::vector<Polyline> counter_running(
-        size_t ridges,
-        double fold_width,
-        double depth,
-        double span
-    );
+    /// Counter-running folding: the zigzag at the start, its counter profile at the end.
+    static std::vector<Polyline>
+    counter_running(size_t ridges, double fold_width, double depth, double span);
 
-    /// The counter profile in the centre (p. 222): the zigzag at both ends, its counter profile at mid-span.
-    static std::vector<Polyline> counter_centre(
-        size_t ridges,
-        double fold_width,
-        double depth,
-        double span
-    );
+    /// The counter profile in the centre: the zigzag at both ends, its counter profile at mid-span.
+    static std::vector<Polyline>
+    counter_centre(size_t ridges, double fold_width, double depth, double span);
 
-    /// The centre fold elevated over the edge folds (pp. 223, 224), its ridges middle_depth over the edges' ridges.
+    /// The centre fold elevated over the edge folds, its ridges middle_depth over the edges' ridges.
     static std::vector<Polyline> elevated_centre(
-        size_t ridges,
-        double fold_width,
-        double depth,
-        double span,
-        double middle_depth
+        size_t ridges, double fold_width, double depth, double span, double middle_depth
     );
 };
 
@@ -76,10 +60,7 @@ inline CounterFold::CounterFold(
     double thickness,
     const std::string& name
 )
-    : WoodSession(name),
-      stations(stations),
-      folding(folding),
-      thickness(thickness) {
+    : WoodSession(name), stations(stations), folding(folding), thickness(thickness) {
 
     // stations: the fold profile at every station along the span
     const std::shared_ptr<TreeNode> profiles = add_group("stations");
@@ -130,115 +111,44 @@ inline const Mesh& CounterFold::mesh() const {
 }
 
 inline Polyline CounterFold::zigzag(
-    double x,
-    size_t ridges,
-    double fold_width,
-    double depth,
-    double elevation,
-    bool counter
+    double x, size_t ridges, double fold_width, double depth, double elevation, bool counter
 ) {
 
     std::vector<Point> points;
 
     for (size_t i = 0; i <= 2 * ridges; i++) {
         const bool ridge = (i % 2 == 1) != counter;
-        points.push_back(Point(x, fold_width * static_cast<double>(i), elevation + (ridge ? depth : 0.0)));
+        points.push_back(
+            Point(x, fold_width * static_cast<double>(i), elevation + (ridge ? depth : 0.0))
+        );
     }
 
     return Polyline(points);
 }
 
-inline std::vector<Polyline> CounterFold::counter_running(
-    size_t ridges,
-    double fold_width,
-    double depth,
-    double span
-) {
+inline std::vector<Polyline>
+CounterFold::counter_running(size_t ridges, double fold_width, double depth, double span) {
     return {
-        zigzag(
-            0.0,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            false
-        ),
-        zigzag(
-            span,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            true
-        ),
+        zigzag(0.0, ridges, fold_width, depth, 0.0, false),
+        zigzag(span, ridges, fold_width, depth, 0.0, true),
     };
 }
 
-inline std::vector<Polyline> CounterFold::counter_centre(
-    size_t ridges,
-    double fold_width,
-    double depth,
-    double span
-) {
+inline std::vector<Polyline>
+CounterFold::counter_centre(size_t ridges, double fold_width, double depth, double span) {
     return {
-        zigzag(
-            0.0,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            false
-        ),
-        zigzag(
-            0.5 * span,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            true
-        ),
-        zigzag(
-            span,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            false
-        ),
+        zigzag(0.0, ridges, fold_width, depth, 0.0, false),
+        zigzag(0.5 * span, ridges, fold_width, depth, 0.0, true),
+        zigzag(span, ridges, fold_width, depth, 0.0, false),
     };
 }
 
 inline std::vector<Polyline> CounterFold::elevated_centre(
-    size_t ridges,
-    double fold_width,
-    double depth,
-    double span,
-    double middle_depth
+    size_t ridges, double fold_width, double depth, double span, double middle_depth
 ) {
     return {
-        zigzag(
-            0.0,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            true
-        ),
-        zigzag(
-            0.5 * span,
-            ridges,
-            fold_width,
-            middle_depth,
-            depth,
-            false
-        ),
-        zigzag(
-            span,
-            ridges,
-            fold_width,
-            depth,
-            0.0,
-            true
-        ),
+        zigzag(0.0, ridges, fold_width, depth, 0.0, true),
+        zigzag(0.5 * span, ridges, fold_width, middle_depth, depth, false),
+        zigzag(span, ridges, fold_width, depth, 0.0, true),
     };
 }
