@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Every picture of the shells, folding, chevron, cross, reciprocal and module template pages, rendered by the session_viewer through
+# Every picture of the shells, folding, curved_folding, chevron, cross, reciprocal and module template pages, rendered by the session_viewer through
 # render_template_docs.py from the built examples: the recipe, so the pages can be regenerated whole after any change.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, chevron, cross, reciprocal or module
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, curved_folding, chevron, cross, reciprocal or module
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows).
 set -euo pipefail
@@ -53,7 +53,43 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
-    "${RENDER[@]}" templates_folding_37_curved_fold lamellas
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
+    "${RENDER[@]}" templates_curved_folding_1_curved_fold lamellas
+    "${RENDER[@]}" --view front --name elevation templates_curved_folding_1_curved_fold lamellas
+    "${RENDER[@]}" templates_curved_folding_2_reflection_fold lamellas all
+    "${RENDER[@]}" templates_curved_folding_3_curved_folded_plate lamellas all
+    "${RENDER[@]}" --view front --name section templates_curved_folding_3_curved_folded_plate lamellas
+    "${RENDER[@]}" templates_curved_folding_4_groin_vault lamellas all
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_4_groin_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_5_groin_vault_sloping lamellas
+    "${RENDER[@]}" templates_curved_folding_6_groin_vault_rising lamellas
+    "${RENDER[@]}" templates_curved_folding_7_diagonal_vault lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_7_diagonal_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_8_cloister_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_9_triangle_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_10_pentagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_11_octagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_12_hexagon_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_13_cross_vault lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_13_cross_vault lamellas
+    "${RENDER[@]}" templates_curved_folding_14_two_hinged_frame lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_14_two_hinged_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_14_two_hinged_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_15_three_hinged_frame lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_15_three_hinged_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_15_three_hinged_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_16_two_hinged_arch lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_16_two_hinged_arch lamellas
+    "${RENDER[@]}" templates_curved_folding_17_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_17_arch_with_top_hinge lamellas
+    "${RENDER[@]}" templates_curved_folding_18_a_frame lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_18_a_frame lamellas
+    "${RENDER[@]}" templates_curved_folding_19_cantilever lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_19_cantilever lamellas
+    "${RENDER[@]}" templates_curved_folding_20_vault_field lamellas
+    "${RENDER[@]}" --view front --name elevation templates_curved_folding_20_vault_field lamellas
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

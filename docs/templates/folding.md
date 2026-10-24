@@ -18,7 +18,6 @@ Corners: where three or more plates meet at a node, the bisector planes of the f
 | 229-230 | cross-folded surfaces over a square plan, subdivided, rising or sloping, and their composition | [Cross folds](#cross_fold) |
 | 229 | cross-folded surfaces with fans from the corners, ridges rising toward the centre | [Fans from the corners](#fan_fold) |
 | 232 | folded triangular surfaces over square, triangular, pentagonal and hexagonal plans | [Folded triangular surfaces](#triangle_fold) |
-| - | curved folding after Knie's Zauberhut (Blumer Lehmann, 2020) | [Curved folding](#curved_fold) |
 | - | a free-form zigzag carried along an arch | [Reflex fold](#reflex_fold) |
 | - | a free-form fold of rhombi on a surface | [Diamond mesh](#diamond_mesh) |
 
@@ -595,26 +594,6 @@ TriangleFold fold(6, 12000.0, 0.0, 4000.0, 7000.0, 120.0, "triangle_hexagon");
 <details><summary>Example code: templates_folding_23_triangle_hexagon.cpp</summary>
 
 \include{lineno} templates_folding_23_triangle_hexagon.cpp
-
-</details>
-
-## Curved folding {#curved_fold}
-
-`CurvedFold(sectors, radius, top_radius, eave, height, gable, inset, rings, thickness)` (`folding/curved_fold.h`) follows the folded tent roof of Knie's Zauberhut in Rapperswil (Blumer Lehmann with Carlos Martinez Architekten, 2020; [project page](https://www.blumer-lehmann.com/bauprojekte-realisieren/bauen/free-form/knies-zauberhut.html)): a freestanding folded shell rising into a round tower, its valleys running down to columns at `eave`, its ridges ending in a gable `gable` over the eaves between them. Every ridge and valley is a NURBS meridian interpolated through `rings` rings, each the same star of `sectors` ridge and valley points, the valleys `inset` in, scaled by a trumpet curve's radius from `radius` at the eaves to `top_radius` at the tower, flat at the eaves and vertical at the tower, and lifted to its height, the top cut level at `height`. Every fold strip between two neighbouring meridians is one lamella, a [`PlateCurved`](@ref elements_plate_curved) named `lamella_<j>`: a closed solid of six exact NURBS patches, its outer face the ruled surface between the two meridians, its inner face `thickness` in, where the neighbouring strips offset by the thickness meet, its side faces along the folds shared with the neighbours as miters, and a cap at the eaves and at the top. Defaults: 12 sectors, 16 m and 3.5 m radii, 4000 eaves, a 26 m tower, a 4000 gable, a 0.1 inset, 14 rings, 120 mm.
-
-### Knie's Zauberhut {#folding_curved_fold}
-
-The curved folded tent roof with the defaults: twelve curved folds on a 32 m roof rising into a tower 26 m high with a 7 m round top, a gable over the eaves between every two columns; 24 lamellas, no facets.
-
-![curved fold](templates/templates_folding_37_curved_fold_lamellas.webp)
-
-```cpp
-CurvedFold fold;
-```
-
-<details><summary>Example code: templates_folding_37_curved_fold.cpp</summary>
-
-\include{lineno} templates_folding_37_curved_fold.cpp
 
 </details>
 

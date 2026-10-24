@@ -2,7 +2,7 @@
 
 [TOC]
 
-Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `chevron/`, `cross/`, `module/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
+Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `curved_folding/`, `chevron/`, `cross/`, `module/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
 
 | Template | Header | Example | Elements |
 | --- | --- | --- | --- |
@@ -18,7 +18,9 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 | [Cross fold](@ref templates_folding) | `folding/cross_fold.h` | `templates_folding_{16_cross_fold,...,19_fold_composition}` | Engel pp. 229-230: the waterbomb fold over a square, subdivided from the corners, rising or sloping, composed in a grid |
 | [Triangle fold](@ref templates_folding) | `folding/triangle_fold.h` | `templates_folding_{20_triangle_square,...,23_triangle_hexagon}` | Engel p. 232: folded triangular surfaces over square, triangular, pentagonal and hexagonal plans |
 | [Fan fold](@ref templates_folding) | `folding/fan_fold.h` | `templates_folding_24_fan_fold` | Engel p. 229: fold lines fanning from the corners to the cross, ridges rising toward the centre |
-| [Curved fold](@ref templates_folding) | `folding/curved_fold.h` | `templates_folding_37_curved_fold` | the curved folded tent roof of Knie's Zauberhut: twelve folds on a 32 m roof rising into a 26 m tower, every fold strip one lamella, a PlateCurved solid of exact NURBS patches |
+| [Curved fold](@ref templates_curved_folding) | `curved_folding/curved_fold.h` | `templates_curved_folding_1_curved_fold` | the curved folded tent roof of Knie's Zauberhut: twelve folds on a 32 m roof rising into a 26 m tower, every fold strip one lamella, a PlateCurved solid of exact NURBS patches |
+| [Reflection fold](@ref templates_curved_folding) | `curved_folding/reflection_fold.h` | `templates_curved_folding_{2_reflection_fold,3_curved_folded_plate,14_two_hinged_frame,...,19_cantilever}` | Mitani's planar curved folding by reflection: a cylinder sheet folded at mirror planes, every part between two creases a PlateCurved cut from a flat panel; Buri's curved folded plate (IBOIS) and Engel's folded cylindrical frames and arches (pp. 242-244) |
+| [Cylinder vault](@ref templates_curved_folding) | `curved_folding/cylinder_vault.h` | `templates_curved_folding_{4_groin_vault,...,13_cross_vault,20_vault_field}` | Engel pp. 238-241: interpenetrating cylinders over a regular polygon, groin, diagonal and cloister vaults with generatrices in one plane, sloping or rising, and their composition over a square grid with a larger central vault, every strip between two generatrices a PlateCurved |
 | [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | one plate per face plus connector plates across every interior edge |
 | [Wall module](@ref templates_module) | `module/wall.h` | `templates_module_1_wall` | `Wall`: rails, studs, jamb studs, headers, sills and cripples as beams of one section, the studs on a 625 mm grid and jamb studs at every opening, one sheathing plate on each face with the openings cut out, a face contact between every member and panel that touch |
 | [Cassette shell](@ref templates_module) | `module/cassette_shell.h` | `templates_module_2_cassette_shell` | `CassetteShell`: per mesh face a hollow cassette, two thin plates and mitered edge beams cut on the bevel the cell shares with its neighbour, the contacts between cassettes detected |
@@ -32,6 +34,7 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 
 - @subpage templates_shells
 - @subpage templates_folding
+- @subpage templates_curved_folding
 - @subpage templates_chevron
 - @subpage templates_cross
 - @subpage templates_module
