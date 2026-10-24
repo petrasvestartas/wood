@@ -6,14 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A structure system of folded triangular surfaces after Engel, Structure Systems, Folded plate structures (p. 232): a regular
-/// polygon plan standing on its corners, every edge closed by a vertical gable triangle from the edge on the ground up to its raised
-/// middle, the roof cut by the lines joining the edges' middles into a triangle at every corner, folding down from two middles to the
-/// corner, and the polygon of the middles either one flat face, the triangular plan's middle triangle, or split into triangles to a
-/// centre raised above them. Every face is a triangle or a flat polygon of points at one height, so every plate is planar, whatever
-/// its thickness.
-///
-/// Fields: the plan, the heights and the thickness; the mesh, the folds and the plates are in the session.
+/// Folded triangular surfaces over a regular polygon plan after Engel (p. 232), a gable on every edge.
 class TriangleFold : public WoodSession {
 public:
     const size_t sides; // Sides of the regular polygon plan.
@@ -22,6 +15,10 @@ public:
     const double centre; // mm, the centre's height; at the middles' height the polygon of the middles stays one flat face.
     const double thickness; // mm, every plate.
 
+private:
+    Mesh _mesh; // The folded mesh, the plates' outer faces.
+
+public:
     /// The triangular fold over the polygon plan as the session named name.
     explicit TriangleFold(
         size_t sides = 4,
@@ -40,9 +37,6 @@ public:
 
     /// The folded mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
-
-private:
-    Mesh _mesh;
 };
 
 inline TriangleFold::TriangleFold(
@@ -67,11 +61,12 @@ inline TriangleFold::TriangleFold(
     for (size_t i = 0; i < sides; i++) {
         const Point& start = corners[i];
         const Point& end = corners[(i + 1) % sides];
-        middles.push_back(Point(0.5 * (start[0] + end[0]), 0.5 * (start[1] + end[1]), middle));
+        const double x = 0.5 * (start[0] + end[0]);
+        const double y = 0.5 * (start[1] + end[1]);
+        middles.push_back(Point(x, y, middle));
     }
 
-    // mesh: a vertical gable on every edge, a triangle at every corner between its two middles, the middles' polygon one flat face
-    // or a triangle per side to the centre
+    // mesh: a gable per edge, a triangle per corner, the middles' polygon one flat face or a triangle per side to the centre
     FoldMesh fold;
 
     for (size_t i = 0; i < sides; i++) {
@@ -79,14 +74,13 @@ inline TriangleFold::TriangleFold(
         fold.face({corners[i], middles[i], middles[(i + sides - 1) % sides]});
     }
 
-    if (std::abs(centre - middle) < 1.0) {
-        fold.face(middles);
-    } else {
-        const Point top(0.0, 0.0, centre);
+    const Point top(0.0, 0.0, centre);
 
+    if (std::abs(centre - middle) < 1.0)
+        fold.face(middles);
+    else
         for (size_t i = 0; i < sides; i++)
             fold.face({middles[i], middles[(i + 1) % sides], top});
-    }
 
     _mesh = fold.mesh();
     add_mesh(_mesh, add_group("mesh"));
@@ -102,8 +96,7 @@ inline TriangleFold::TriangleFold(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
-    // split so they meet on whole planar faces; the edges on the ground cut flush with it
+    // plates: one plate per face by the exact offset, the edges on the ground cut flush with it
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))

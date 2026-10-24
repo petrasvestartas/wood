@@ -6,8 +6,6 @@ using namespace session_cpp;
 using namespace wood_session;
 
 /// A folded plate shell: a profile carried along a cross section, folded at every cross-section point, one plate per fold.
-///
-/// Fields: the two input polylines and the plate sizes; the curves, the mesh and the plates are in the session.
 class ReflexFold : public WoodSession {
 public:
     const Polyline cross_section; // The polyline the profile is carried along.
@@ -17,6 +15,10 @@ public:
     const double chamfer_top; // mm cut back at the top outline's corners.
     const double chamfer_angle; // Degrees, corners sharper than this are chamfered.
 
+private:
+    Mesh _mesh; // The folded mesh, the plates' outer faces.
+
+public:
     /// The fold of profile along cross_section as the session named name.
     explicit ReflexFold(
         const Polyline& cross_section = default_cross_section(),
@@ -44,8 +46,6 @@ public:
     static Polyline default_profile();
 
 private:
-    Mesh _mesh;
-
     /// The bisector plane at every cross-section point, the end planes normal to z.
     std::vector<Plane> compute_fold_planes() const;
 

@@ -6,8 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The heights of a cross-folded surface spanned diagonally over a square plan after Engel, Structure Systems, Folded plate structures
-/// (p. 229): the square's corners, its edges' middles, the point on every diagonal where the diagonal ridge is folded, and the centre.
+/// The heights of a cross fold spanned diagonally over a square plan (Engel, p. 229).
 struct DiagonalHeights {
     double corner; // mm, the four corners.
     double middle; // mm, the four edges' middles.
@@ -16,11 +15,7 @@ struct DiagonalHeights {
     double centre; // mm, the centre.
 };
 
-/// The sixteen triangles of one cross-folded square gathered into fold: the plan centred on centre with half its side half, its corners,
-/// edge middles, diagonal fold points and centre at heights. Per corner the two triangles between it, its diagonal's fold point and the
-/// two edge middles beside it, and the two between the fold point, those middles and the centre: the diagonal ridges from the corners to
-/// the centre folded at their fold points, the lines from middle to middle folded there too, so the four sectors of the cross, between
-/// the lines from the edge middles to the centre, interpenetrate on the diagonals.
+/// The sixteen triangles of one cross-folded square centred on centre, half its side half, gathered into fold.
 inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, const DiagonalHeights& heights) {
 
     const std::array<Point, 4> corners = {
@@ -37,7 +32,9 @@ inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, 
         const Point& after = corners[(i + 1) % 4];
         const Point middle_before(0.5 * (corner[0] + before[0]), 0.5 * (corner[1] + before[1]), heights.middle);
         const Point middle_after(0.5 * (corner[0] + after[0]), 0.5 * (corner[1] + after[1]), heights.middle);
-        const Point diagonal(corner[0] + (centre[0] - corner[0]) * heights.along, corner[1] + (centre[1] - corner[1]) * heights.along, heights.diagonal);
+        const double x = corner[0] + (centre[0] - corner[0]) * heights.along;
+        const double y = corner[1] + (centre[1] - corner[1]) * heights.along;
+        const Point diagonal(x, y, heights.diagonal);
         fold.face({corner, middle_before, diagonal});
         fold.face({corner, diagonal, middle_after});
         fold.face({middle_before, top, diagonal});
@@ -45,20 +42,17 @@ inline void add_diagonal_fold(FoldMesh& fold, const Point& centre, double half, 
     }
 }
 
-/// Cross-folded surfaces spanned diagonally over a square plan after Engel, Structure Systems, Folded plate structures (p. 229): the
-/// square divided by the cross from its edges' middles into four sectors, each a surface folded diagonally, the ridge from the corner
-/// to the centre folded at one point, so a sector is four planar triangles around that point and the sectors interpenetrate on the
-/// diagonals. The heights set Engel's three cases: the fold points the highest, the corners and the centre level between them and the
-/// edge middles on the ground, the ridges folded upwardly; the corners on the ground, the ridges rising through their fold points to the
-/// centre; the corners the highest, the ridges sloping through their fold points to the centre, the edge middles on the ground.
-///
-/// Fields: the plan, the heights and the thickness; the folds, the mesh and the plates are in the session.
+/// Cross-folded surfaces spanned diagonally over a square plan after Engel (p. 229), four sectors folded on their diagonals.
 class DiagonalFold : public WoodSession {
 public:
     const double size; // mm, the square plan's side, centred on the origin.
     const DiagonalHeights heights; // mm, the corners, edge middles, diagonal fold points and centre.
     const double thickness; // mm, every plate.
 
+private:
+    Mesh _mesh; // The folded mesh, the plates' outer faces.
+
+public:
     /// The cross fold over the square as the session named name.
     explicit DiagonalFold(
         double size = 18000.0,
@@ -75,12 +69,14 @@ public:
 
     /// The folded triangle mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
-
-private:
-    Mesh _mesh;
 };
 
-inline DiagonalFold::DiagonalFold(double size, const DiagonalHeights& heights, double thickness, const std::string& name)
+inline DiagonalFold::DiagonalFold(
+    double size,
+    const DiagonalHeights& heights,
+    double thickness,
+    const std::string& name
+)
     : WoodSession(name),
       size(size),
       heights(heights),
@@ -103,15 +99,16 @@ inline DiagonalFold::DiagonalFold(double size, const DiagonalHeights& heights, d
         if (!start || !end)
             continue;
 
-        const bool on_side = std::abs(std::abs((*start)[0]) - half) < 1.0 && std::abs(std::abs((*end)[0]) - half) < 1.0;
-        const bool on_front = std::abs(std::abs((*start)[1]) - half) < 1.0 && std::abs(std::abs((*end)[1]) - half) < 1.0;
+        const bool on_side = std::abs(std::abs((*start)[0]) - half) < 1.0
+            && std::abs(std::abs((*end)[0]) - half) < 1.0;
+        const bool on_front = std::abs(std::abs((*start)[1]) - half) < 1.0
+            && std::abs(std::abs((*end)[1]) - half) < 1.0;
 
         if (!on_side && !on_front)
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
-    // split so they meet on whole planar faces; the edges on the plan's sides cut flush
+    // plates: one plate per face by the exact offset, the edges on the plan's sides cut flush
     const std::shared_ptr<TreeNode> plates = add_group("plates");
     const std::vector<Plane> sides = {
         Plane::from_point_normal(Point(-half, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),

@@ -6,8 +6,6 @@ using namespace session_cpp;
 using namespace wood_session;
 
 /// A diamond shell: a NURBS surface split into rhombi of two triangles each, one plate per triangle.
-///
-/// Fields: the surface, its divisions and the plate sizes; the surface, the mesh and the plates are in the session.
 class DiamondMesh : public WoodSession {
 public:
     const NurbsSurface surface; // The surface the pattern is laid on.
@@ -17,6 +15,10 @@ public:
     const double chamfer; // mm cut back at the corners of both outlines.
     const double chamfer_angle; // Degrees, corners sharper than this are chamfered.
 
+private:
+    Mesh _mesh; // The welded triangle mesh, one face per plate.
+
+public:
     /// The diamond pattern on surface as the session named name.
     explicit DiamondMesh(
         const NurbsSurface& surface = default_surface(),
@@ -41,8 +43,6 @@ public:
     static NurbsSurface default_surface();
 
 private:
-    Mesh _mesh;
-
     /// Per cell four triangles around its centre to the next cell's centre, six on the first row, welded.
     Mesh compute_mesh() const;
 };

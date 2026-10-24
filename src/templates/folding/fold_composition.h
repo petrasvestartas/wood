@@ -6,15 +6,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A composition of surfaces folded crosswise over square plans after Engel, Structure Systems, Folded plate structures (p. 230): a
-/// field of square cells, each folded crosswise on its diagonals into four triangles to a peak over its centre, the field's nodes
-/// alternating high and low like a chessboard, so every cell edge slopes from a high node to a low one and the field stands on its low
-/// nodes; in the middle of the field a block of two by two cells carries one cross fold spanned diagonally, its ridges folded upwardly
-/// (p. 229), twice the cells' size and more than twice their height, its corners the block's corner nodes raised to it and its edge
-/// middles the block's low nodes, so the cells around the block rise to it. Every face is a triangle, so every plate is planar, whatever
-/// its thickness.
-///
-/// Fields: the field, the heights and the thickness; the folds, the mesh and the plates are in the session.
+/// A field of crosswise folded square cells after Engel (p. 230), a diagonal cross fold over the two by two block in its middle.
 class FoldComposition : public WoodSession {
 public:
     const size_t columns; // Cells along x, even, the block in the middle.
@@ -23,9 +15,13 @@ public:
     const double low; // mm, the low nodes' height, the field standing on them.
     const double high; // mm, the high nodes' height.
     const double peak; // mm, every cell's peak over its centre.
-    const DiagonalHeights star; // mm, the block's cross fold: its corners, the block's low middles, its diagonal fold points and its centre.
+    const DiagonalHeights star; // mm, the heights of the cross fold over the block in the middle.
     const double thickness; // mm, every plate.
 
+private:
+    Mesh _mesh; // The folded mesh, the plates' outer faces.
+
+public:
     /// The composition as the session named name.
     explicit FoldComposition(
         size_t columns = 6,
@@ -49,9 +45,7 @@ public:
     const Mesh& mesh() const;
 
 private:
-    Mesh _mesh;
-
-    /// The node at column i and row j of the field's grid: low or high by the chessboard, the block's corners raised to the star's.
+    /// The node at column i and row j of the field's grid, low or high by the chessboard, the block's corners raised.
     Point compute_node(size_t i, size_t j) const;
 };
 
@@ -86,7 +80,12 @@ inline FoldComposition::FoldComposition(
             if (i >= block_i && i < block_i + 2 && j >= block_j && j < block_j + 2)
                 continue;
 
-            const std::array<Point, 4> corners = {compute_node(i, j), compute_node(i + 1, j), compute_node(i + 1, j + 1), compute_node(i, j + 1)};
+            const std::array<Point, 4> corners = {
+                compute_node(i, j),
+                compute_node(i + 1, j),
+                compute_node(i + 1, j + 1),
+                compute_node(i, j + 1),
+            };
             const Point top(0.5 * (corners[0][0] + corners[2][0]), 0.5 * (corners[0][1] + corners[2][1]), peak);
 
             for (size_t k = 0; k < 4; k++)
@@ -111,15 +110,16 @@ inline FoldComposition::FoldComposition(
         if (!start || !end)
             continue;
 
-        const bool on_side = std::abs(std::abs((*start)[0]) - half_x) < 1.0 && std::abs(std::abs((*end)[0]) - half_x) < 1.0;
-        const bool on_front = std::abs(std::abs((*start)[1]) - half_y) < 1.0 && std::abs(std::abs((*end)[1]) - half_y) < 1.0;
+        const bool on_side = std::abs(std::abs((*start)[0]) - half_x) < 1.0
+            && std::abs(std::abs((*end)[0]) - half_x) < 1.0;
+        const bool on_front = std::abs(std::abs((*start)[1]) - half_y) < 1.0
+            && std::abs(std::abs((*end)[1]) - half_y) < 1.0;
 
         if (!on_side && !on_front)
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
-    // split so they meet on whole planar faces; the edges on the field's sides cut flush
+    // plates: one plate per face by the exact offset, the edges on the field's sides cut flush
     const std::shared_ptr<TreeNode> plates = add_group("plates");
     const std::vector<Plane> sides = {
         Plane::from_point_normal(Point(-half_x, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
@@ -138,10 +138,12 @@ inline const Mesh& FoldComposition::mesh() const {
 
 inline Point FoldComposition::compute_node(size_t i, size_t j) const {
 
-    // the block's corners are at odd i + j, so the chessboard's high nodes are the odd ones
+    // height: the block's corners raised to the star's, else high at odd i + j and low at even
     const size_t block_i = columns / 2 - 1;
     const size_t block_j = rows / 2 - 1;
     const bool block_corner = (i == block_i || i == block_i + 2) && (j == block_j || j == block_j + 2);
     const double z = block_corner ? star.corner : ((i + j) % 2 == 1 ? high : low);
-    return Point(cell * (static_cast<double>(i) - 0.5 * static_cast<double>(columns)), cell * (static_cast<double>(j) - 0.5 * static_cast<double>(rows)), z);
+    const double x = cell * (static_cast<double>(i) - 0.5 * static_cast<double>(columns));
+    const double y = cell * (static_cast<double>(j) - 0.5 * static_cast<double>(rows));
+    return Point(x, y, z);
 }

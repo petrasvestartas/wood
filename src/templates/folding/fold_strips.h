@@ -1,5 +1,6 @@
 #pragma once
 #include "wood_session.h"
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -8,13 +9,10 @@ using namespace wood_session;
 enum class Folding {
     ridge_to_ridge, // Through its two high corners, a ridge running diagonally from the ridge of one station to the next's.
     ridge_to_valley, // Through its two low corners, a valley running diagonally between them.
-    alternate, // Fold by fold, each fold the two strips about an even fold line: the first fold ridge to valley, the next ridge to ridge.
+    alternate, // Fold by fold, the first ridge to valley, the next ridge to ridge.
 };
 
-/// The folded mesh through stations, all with one point count: per strip between two stations and two fold lines one quad when its
-/// fourth corner lies on the plane of the other three, else two triangles on the folding's diagonal, the corners' heights out of the
-/// fold telling high from low; faces ordered station, next point, next station, so a station sequence along +x with profiles along
-/// +y faces -z.
+/// The folded mesh through stations: per strip one planar quad, else two triangles on the folding's diagonal, facing -z.
 inline Mesh fold_strips(const std::vector<Polyline>& stations, const std::vector<std::vector<double>>& heights, Folding folding) {
 
     const size_t row = stations[0].point_count();
@@ -22,12 +20,14 @@ inline Mesh fold_strips(const std::vector<Polyline>& stations, const std::vector
     std::vector<double> height;
     std::vector<std::vector<size_t>> faces;
 
+    // points: every station's points with their heights
     for (size_t s = 0; s < stations.size(); s++)
         for (size_t i = 0; i < row; i++) {
             points.push_back(stations[s][i]);
             height.push_back(heights[s][i]);
         }
 
+    // faces: every strip between two stations and two fold lines
     for (size_t s = 0; s + 1 < stations.size(); s++)
         for (size_t i = 0; i + 1 < row; i++) {
             const size_t a = s * row + i;
@@ -43,10 +43,10 @@ inline Mesh fold_strips(const std::vector<Polyline>& stations, const std::vector
                 continue;
             }
 
-            // warped strip: the diagonal through its high corners for a ridge, through its low ones for a valley; alternate folding
-            // turns fold by fold, strip i lying in the fold about the even line (i + 1) / 2 * 2
+            // warped strip: two triangles on the diagonal through its high corners for a ridge, its low ones for a valley
             const bool high_ac = height[a] + height[c] > height[b] + height[d];
-            const bool ridge = folding == Folding::ridge_to_ridge || (folding == Folding::alternate && ((i + 1) / 2) % 2 == 1);
+            const bool alternate_ridge = folding == Folding::alternate && ((i + 1) / 2) % 2 == 1;
+            const bool ridge = folding == Folding::ridge_to_ridge || alternate_ridge;
 
             if (high_ac == ridge) {
                 faces.push_back({a, b, c});
@@ -60,34 +60,53 @@ inline Mesh fold_strips(const std::vector<Polyline>& stations, const std::vector
     return Mesh::from_vertices_and_faces(points, faces);
 }
 
-/// The mesh with every two faces that share an edge and lie in one plane joined into one face, again and again until none are left,
-/// a corner on a straight edge dropped and a point no face uses left out: a crease the folding does not bend, as the straight
-/// fold lines of Engel's elevated folds (p. 223), is no fold, so its two sides are one plate.
+/// Faces f and g joined across f's edge i into one face, its straight corners dropped.
+inline std::vector<size_t> joined_across_edge(
+    const std::vector<Point>& points,
+    const std::vector<size_t>& f,
+    const std::vector<size_t>& g,
+    size_t i
+) {
+
+    // joined: f from v round to u, then g's corners strictly between u and v
+    const size_t nf = f.size();
+    const size_t ng = g.size();
+    const size_t at_v = (i + 1) % nf;
+    const size_t at_u = static_cast<size_t>(std::find(g.begin(), g.end(), f[i]) - g.begin());
+    std::vector<size_t> joined;
+
+    for (size_t k = 0; k < nf; k++)
+        joined.push_back(f[(at_v + k) % nf]);
+
+    for (size_t k = 1; k + 1 < ng; k++)
+        joined.push_back(g[(at_u + k) % ng]);
+
+    // corners: the straight ones dropped
+    const size_t m = joined.size();
+    std::vector<size_t> corners;
+
+    for (size_t k = 0; k < m; k++) {
+        const Vector in = points[joined[k]] - points[joined[(k + m - 1) % m]];
+        const Vector out = points[joined[(k + 1) % m]] - points[joined[k]];
+
+        if (in.cross(out).magnitude() > 1e-6 * in.magnitude() * out.magnitude())
+            corners.push_back(joined[k]);
+    }
+
+    return corners;
+}
+
+/// The mesh with every two coplanar faces sharing an edge joined, again and again, and the points no face uses left out.
 inline Mesh merge_coplanar(const Mesh& mesh) {
 
-    std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = mesh.to_vertices_and_faces();
     const std::vector<Point>& points = data.first;
     std::vector<std::vector<size_t>> faces = data.second;
-
-    // the plane of a face: its unit normal by Newell's method, so a polygon of any corner count counts
-    const std::function<Vector(const std::vector<size_t>&)> normal_of = [&points](const std::vector<size_t>& face) {
-        Vector normal(0.0, 0.0, 0.0);
-
-        for (size_t i = 0; i < face.size(); i++) {
-            const Point& p = points[face[i]];
-            const Point& q = points[face[(i + 1) % face.size()]];
-            normal = normal + Vector((p[1] - q[1]) * (p[2] + q[2]), (p[2] - q[2]) * (p[0] + q[0]), (p[0] - q[0]) * (p[1] + q[1]));
-        }
-
-        return normal.normalized();
-    };
-
     bool merged = true;
 
+    // merge: one pair of coplanar neighbours joined at a time until none is left
     while (merged) {
         merged = false;
-
-        // every directed edge to its face: the face across an edge u v holds v u
         std::map<std::pair<size_t, size_t>, size_t> across;
 
         for (size_t f = 0; f < faces.size(); f++)
@@ -104,9 +123,9 @@ inline Mesh merge_coplanar(const Mesh& mesh) {
                     continue;
 
                 const size_t g = other->second;
-                const Vector normal = normal_of(faces[f]);
+                const Vector normal = newell_normal(points, faces[f]);
 
-                if (normal.dot(normal_of(faces[g])) < 1.0 - 1e-9)
+                if (normal.dot(newell_normal(points, faces[g])) < 1.0 - 1e-9)
                     continue;
 
                 bool coplanar = true;
@@ -117,38 +136,13 @@ inline Mesh merge_coplanar(const Mesh& mesh) {
                 if (!coplanar)
                     continue;
 
-                // joined: f from v round to u, then g's corners strictly between u and v
-                std::vector<size_t> joined;
-                const size_t nf = faces[f].size();
-                const size_t ng = faces[g].size();
-                const size_t at_v = (i + 1) % nf;
-                const size_t at_u = static_cast<size_t>(std::find(faces[g].begin(), faces[g].end(), u) - faces[g].begin());
-
-                for (size_t k = 0; k < nf; k++)
-                    joined.push_back(faces[f][(at_v + k) % nf]);
-
-                for (size_t k = 1; k + 1 < ng; k++)
-                    joined.push_back(faces[g][(at_u + k) % ng]);
-
-                // straight corners dropped
-                std::vector<size_t> corners;
-
-                for (size_t k = 0; k < joined.size(); k++) {
-                    const Point& before = points[joined[(k + joined.size() - 1) % joined.size()]];
-                    const Point& here = points[joined[k]];
-                    const Point& after = points[joined[(k + 1) % joined.size()]];
-
-                    if ((here - before).cross(after - here).magnitude() > 1e-6 * (here - before).magnitude() * (after - here).magnitude())
-                        corners.push_back(joined[k]);
-                }
-
-                faces[f] = corners;
+                faces[f] = joined_across_edge(points, faces[f], faces[g], i);
                 faces.erase(faces.begin() + static_cast<std::ptrdiff_t>(g));
                 merged = true;
             }
     }
 
-    // the points some face still uses, renumbered
+    // used: the points some face still uses, renumbered
     std::map<size_t, size_t> renumbered;
     std::vector<Point> used;
 

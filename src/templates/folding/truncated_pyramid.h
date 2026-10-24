@@ -6,30 +6,26 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Where a variation folds a side of the truncated pyramid: a point on a line of the side's plan, at a share of that line's length
-/// from the base and at a share of the pyramid's height.
+/// Where a variation folds a side of the truncated pyramid, as shares of a plan line and of the height.
 struct FoldPoint {
     double along; // Share of the line's plan length from the base edge.
     double rise; // Share of the height.
 };
 
-/// The pyramidal folded plate and the doubly folded truncated pyramid with Engel's variations for folding it, Structure Systems, Folded
-/// plate structures (pp. 231, 233): a square plan on the ground, four sides rising to an apex or to a flat square top, every side one
-/// trapezoid. The variations fold every side around a point: the edge fold moves the middle of the base edge in from the edge and up,
-/// so the side fans out from it into triangles, the trapezoid's and, when it is raised, a steep one down to the base edge; the corner fold
-/// bends the corner line from the base corner to the top corner at a raised point, the two neighbouring sides' fans reaching it. Every
-/// face is a triangle or the flat top, so every plate is planar, whatever its thickness.
-///
-/// Fields: the plan, the heights, the fold points and the thickness; the folds, the mesh and the plates are in the session.
+/// The pyramid and truncated pyramid of Engel (pp. 231, 233) on a square plan, its sides folded at edge and corner points.
 class TruncatedPyramid : public WoodSession {
 public:
     const double half; // mm, half the base square's side, centred on the origin.
     const double top; // mm, half the top square's side, 0 for an apex.
     const double height; // mm, the top's height.
-    const std::optional<FoldPoint> edge_fold; // The middle of every base edge moved in along the side's middle line and raised, or none.
+    const std::optional<FoldPoint> edge_fold; // Every base edge's middle moved in and raised, or none.
     const std::optional<FoldPoint> corner_fold; // Every corner line bent at this point, or none.
     const double thickness; // mm, every plate.
 
+private:
+    Mesh _mesh; // The folded mesh, the plates' outer faces.
+
+public:
     /// The pyramid as the session named name.
     explicit TruncatedPyramid(
         double half = 9000.0,
@@ -49,9 +45,6 @@ public:
 
     /// The folded mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
-
-private:
-    Mesh _mesh;
 };
 
 inline TruncatedPyramid::TruncatedPyramid(
@@ -81,14 +74,20 @@ inline TruncatedPyramid::TruncatedPyramid(
         const Point& start = base[i];
         const Point& end = base[(i + 1) % 4];
         const double along = corner_fold ? corner_fold->along : 0.0;
-        bends.push_back(Point(start[0] + (tops[i][0] - start[0]) * along, start[1] + (tops[i][1] - start[1]) * along, corner_fold ? corner_fold->rise * height : 0.0));
+        const double bend_x = start[0] + (tops[i][0] - start[0]) * along;
+        const double bend_y = start[1] + (tops[i][1] - start[1]) * along;
+        const double bend_z = corner_fold ? corner_fold->rise * height : 0.0;
+        bends.push_back(Point(bend_x, bend_y, bend_z));
+
         const Vector inward = Vector(start[1] - end[1], end[0] - start[0], 0.0).normalized();
         const double in = edge_fold ? edge_fold->along * (half - top) : 0.0;
-        middles.push_back(Point(0.5 * (start[0] + end[0]) + inward[0] * in, 0.5 * (start[1] + end[1]) + inward[1] * in, edge_fold ? edge_fold->rise * height : 0.0));
+        const double middle_x = 0.5 * (start[0] + end[0]) + inward[0] * in;
+        const double middle_y = 0.5 * (start[1] + end[1]) + inward[1] * in;
+        const double middle_z = edge_fold ? edge_fold->rise * height : 0.0;
+        middles.push_back(Point(middle_x, middle_y, middle_z));
     }
 
-    // mesh: per side the chain from base corner to base corner over the corner fold points and the top edge, one face as it is, or a
-    // fan of triangles from the edge fold point, with a steep triangle down to the base edge when that point is raised; the flat top
+    // mesh: per side its chain over the corner folds and the top edge, one face or a fan from the edge fold point; the flat top
     FoldMesh fold;
 
     for (size_t i = 0; i < 4; i++) {
@@ -137,8 +136,7 @@ inline TruncatedPyramid::TruncatedPyramid(
             add_polyline(Polyline({*start, *end}), folds);
     }
 
-    // plates: one plate per face by the exact offset, its inner face trimmed by its neighbours', every node of more than three plates
-    // split so they meet on whole planar faces; the edges on the ground cut flush with it
+    // plates: one plate per face by the exact offset, the edges on the ground cut flush with it
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
