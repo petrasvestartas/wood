@@ -374,7 +374,9 @@ inline std::vector<std::shared_ptr<Plate>> offset_plates(const Mesh& mesh, doubl
                     if (!point)
                         return std::nullopt;
 
-                    inner.push_back(*point);
+                    // where four planes meet in one point, two consecutive points are one: no edge between them
+                    if (inner.empty() || inner.back().distance(*point) > 1e-3)
+                        inner.push_back(*point);
                 }
 
                 return inner;
