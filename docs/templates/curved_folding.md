@@ -69,7 +69,7 @@ A cylindrical sheet folded at planar creases (`curved_folding/reflection_fold.h`
 | `true` | Mitani and Igarashi's reflection: the part of the sheet beyond the plane is mirrored in it, the plane bisecting the angle between the old rulings and the new | the plane's oblique section, the long oval of a sharp kink | flips: the sheet is turned over, a vault folds into a trough, as Engel's end elevations show at the knees | the whole sheet stays one development (Mitani's closure theorem) |
 | `false` | Engel's mirror fold: the next segment is the mirror image of the one before in the plane bisecting the fold's angle | the bisecting plane's section | kept: a vault folds onto a vault, the capsules of Engel's two-hinged arch | every segment is cut flat on its own; the two sides of the crease develop as mirror images, not as one sheet |
 
-An optional `symmetry` plane is the other planar crease, a frame's ridge or an arch's crown: the sheet ends on the plane and the folded half is mirrored in it, the two halves meeting along the plane's section, straight in plan (Engel's straight ridge lines). `posts` are round columns under the sheet's first segment, each two half shells from the ground up to the sheet. The constructor is the recipe:
+An optional `symmetry` plane is the other planar crease, a frame's ridge or an arch's crown: the sheet ends on the plane and the folded half is mirrored in it, the two halves meeting along the plane's section, straight in plan (Engel's straight ridge lines). A column is the sheet too: a reflection whose plane crosses the first segment higher in the middle of a barrel than at its cusps (a reflection's crease runs `rise / tan(angle / 2)` further along the rulings at the bulge than at the cusps) leaves a leg under every barrel rising as an arch to the crease. The constructor is the recipe:
 
 ```cpp
     // segments: the sheet's straight runs between the folds, each with its rulings, its two planes and its underside
@@ -82,7 +82,7 @@ An optional `symmetry` plane is the other planar crease, a frame's ridge or an a
     // offsets: every segment's first crease moved the thickness to the sheet's underside, the plates' inner faces
     const std::vector<std::vector<NurbsCurve>> offsets = compute_offsets(segments, creases);
 
-    // creases drawn, lamellas, flat, posts, and the mirrored half when there is a symmetry plane
+    // creases drawn, lamellas, flat, and the mirrored half when there is a symmetry plane
 ```
 
 | step | what it checks or makes |
@@ -153,14 +153,14 @@ ReflectionFold fold(
 
 ### Folded cylindrical surfaces {#folded_cylinders}
 
-Engel's linear structure systems composed of folded cylindrical surfaces (*Structure Systems* pp. 242-244): a row of four barrels, each 6 m wide, folded at the kinks of a frame's or an arch's section, read from his sections, plans and end elevations with the people at 1.8 m. Every system is the same `ReflectionFold` with the profile `arcs(...)` across y and the folds along x, the first segment's climb setting the ruling direction. His end elevations say which kind every fold is: where the barrels flip from vaults (the columns, rounded arches at the feet) to troughs (the roof, hanging scallops at the top) the fold is a reflection; where the barrels stay rounded all the way, the two-hinged arch's capsules and the arch with top hinge's trough roof, the folds are mirror folds. A ridge or crown with a straight line in his plan is the `symmetry` plane, the ovals of his plans the sections of the barrels by the fold planes.
+Engel's linear structure systems composed of folded cylindrical surfaces (*Structure Systems* pp. 242-244): a row of four barrels, each 6 m wide, folded at the kinks of a frame's or an arch's section, read from his sections, plans and end elevations with the people at 1.8 m. Every system is the same `ReflectionFold` with the profile `arcs(...)` across y and the folds along x, the first segment's climb setting the ruling direction. His end elevations say which kind every fold is: where the barrels flip from vaults (the columns, rounded arches at the feet) to troughs (the roof, hanging scallops at the top) the fold is a reflection; where the barrels stay rounded all the way, the two-hinged arch's capsules and the arch with top hinge's trough roof over its arched legs, the folds are mirror folds. A ridge or crown with a straight line in his plan is the `symmetry` plane, the ovals of his plans the sections of the barrels by the fold planes.
 
 | page | system | climb | folds: station, turn, kind | symmetry at x | barrels | example |
 | --- | --- | --- | --- | --- | --- | --- |
 | 242 | two-hinged frame | 90, column 6 m | 6000, -76, reflection | 20000 | 600 high, inward | `templates_curved_folding_13_two_hinged_frame` |
 | 242 | three-hinged frame | 90, column 6 m | 6000, -62; 14400, -23; 23400, -50, reflections | 17795, the hinge in the notch's bottom | 400 high, outward | `templates_curved_folding_14_three_hinged_frame` |
 | 243 | two-hinged arch | 105, leg leaning out | 11000, -50; 22000, -50, mirror folds | 11000 | 2400 high | `templates_curved_folding_15_two_hinged_arch` |
-| 243 | arch with top hinge | 60 from the eaves 12 m up, on posts | 7000, -30; 14000, -30, mirror folds | 14500 | 900 deep troughs | `templates_curved_folding_16_arch_with_top_hinge` |
+| 243 | arch with top hinge | 90, legs | 300, -15; 18300, -40, reflections; 25300, -35, mirror fold | 13000 | 1600 deep | `templates_curved_folding_16_arch_with_top_hinge` |
 | 244 | two-hinged A-frame | 110, foot leaning out | 5600, -60, reflection | 12500 | 1400 high | `templates_curved_folding_17_a_frame` |
 | 244 | cantilevered beam on central supports | -3, roof 6.1 m up | 14000, -72; 19500, 150; 25000, -72, reflections | none | 600 deep troughs | `templates_curved_folding_18_cantilever` |
 
@@ -233,7 +233,7 @@ Deep barrels of 2400 rise from hinged feet as legs leaning 15 degrees outward, m
 
 #### Arch with top hinge {#arch_with_top_hinge}
 
-A roof of four trough barrels mirror-folded twice by 30 degrees from a steep slope over a shoulder to a level crown with the hinge in its middle, standing 12 m above the ground on slender round posts of 500 mm radius under the troughs, the stems of the wine glasses of Engel's end elevation; span 29 m, crown 21.6 m. The posts are `post_<k>_<half>` in the group `posts`.
+The columns are the sheet itself: four barrels of 1600 depth stand on the ground as a vertical leg and are reflected 15 degrees at the eaves onto a roof rising 75 degrees. The reflection plane runs through a station 300 mm up the ruling at the barrels' cusps, and on the bulging legs it crosses the middle of every barrel 12 m higher than its cusps, so every crease is a tall arch and every leg a column rising under its trough to the crease, the roof's cusps coming down to the ground between the legs (the hatched notches of Engel's plan) and the roof hanging as troughs between the cusps (the wine glasses of his end elevation). The steep roof, turned over by the reflection into a vault, is reflected again 40 degrees onto a shoulder at 35 degrees, a trough, and mirror-folded 35 degrees onto the level crown, which keeps the trough: the cups of his end elevation; the hinge in the crown is the plane of symmetry. Span 26 m, crown 19.8 m.
 
 ![arch with top hinge](templates/templates_curved_folding_16_arch_with_top_hinge_lamellas.webp)
 

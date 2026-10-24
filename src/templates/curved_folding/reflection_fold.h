@@ -25,11 +25,12 @@ using namespace wood_session;
 /// neighbour, the crease plane at a mirror fold and at the symmetry plane, the surface through the crease perpendicular to the plane at
 /// a reflection, where the two plates lie on either side with their exact thickness; its caps the rulings at the profile curves' ends.
 /// Every lamella develops flat without distortion, being a cylinder strip; its development is checked and drawn in the flat pattern
-/// beside the model, every lamella where it lies on the unrolled sheet. Posts, round columns under the sheet's first segment, stand on
-/// the ground as two half shells topped by the curves where their vertical generatrices meet the sheet.
+/// beside the model, every lamella where it lies on the unrolled sheet. A column is the sheet itself: a reflection whose plane
+/// crosses the first segment higher in the middle of a barrel than at its cusps leaves a leg under every barrel that rises as an arch
+/// to the crease, Engel's columns under the troughs of the arch with a top hinge.
 ///
-/// Fields: the profile, the rulings' direction and length, the folds' axis, the folds, the symmetry plane, the posts, the thickness
-/// and the sampling; the creases, the lamellas, the posts and the flat pattern are in the session.
+/// Fields: the profile, the rulings' direction and length, the folds' axis, the folds, the symmetry plane, the thickness and the
+/// sampling; the creases, the lamellas and the flat pattern are in the session.
 class ReflectionFold : public WoodSession {
 public:
     /// One fold of the sheet: where the rulings turn, by how much, and how.
@@ -39,19 +40,12 @@ public:
         bool reflected = true; // Mitani's reflection, the sheet turned over, when true; Engel's mirror fold, the bulge kept, when false.
     };
 
-    /// A round column under the sheet's first segment: a cylinder of the radius from its foot on the ground up to the sheet, two half shells.
-    struct Post {
-        Point foot; // The axis's foot.
-        double radius; // mm, the column.
-    };
-
     const std::vector<NurbsCurve> profile; // The sheet's section: planar curves one after another sharing their ends, running one way, each a row of lamellas.
     const Vector direction; // The rulings' unit direction before the first fold, the profile swept along it.
     const Vector axis; // The folds' unit axis, in every fold plane; the profile's plane is spanned by it and the sheet's width.
     const double length; // mm, the sheet along the rulings from its start to its end, when no symmetry plane ends it.
     const std::vector<Fold> folds; // The folds, in order along the rulings.
     const std::optional<Plane> symmetry; // The folded sheet's plane of symmetry, where the sheet ends and its mirror image begins; none for a sheet with two free ends.
-    const std::vector<Post> posts; // The columns under the sheet's first segment, mirrored with it.
     const double thickness; // mm, every lamella, on the sheet's physical underside: at the start the side away from the profile's tangent crossed with the direction.
     const size_t samples; // Rulings per profile curve the offsets and mitres are interpolated through.
 
@@ -63,7 +57,6 @@ public:
         double length,
         const std::vector<Fold>& folds,
         const std::optional<Plane>& symmetry = std::nullopt,
-        const std::vector<Post>& posts = {},
         double thickness = 120.0,
         const std::string& name = "reflection_fold",
         size_t samples = 24
@@ -133,11 +126,8 @@ private:
     /// The flat cutting pattern beside the model, every lamella's development where it lies on the unrolled sheet, in the group flat.
     void add_flat(const std::vector<Development>& developments, const std::vector<Segment>& segments, const std::vector<std::vector<NurbsCurve>>& creases, double beside);
 
-    /// Every post as two half shells, post_<k>_<half>, in the group posts.
-    void add_posts();
-
-    /// The mirror image of every lamella, crease and post in the symmetry plane, the plane's own section of the sheet as the last
-    /// crease, and the mirrored half's cutting pattern beyond the first's.
+    /// The mirror image of every lamella and crease in the symmetry plane, the plane's own section of the sheet as the last crease,
+    /// and the mirrored half's cutting pattern beyond the first's.
     void add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases);
 
     /// The reflection in the plane.
@@ -157,7 +147,6 @@ inline ReflectionFold::ReflectionFold(
     double length,
     const std::vector<Fold>& folds,
     const std::optional<Plane>& symmetry,
-    const std::vector<Post>& posts,
     double thickness,
     const std::string& name,
     size_t samples
@@ -169,7 +158,6 @@ inline ReflectionFold::ReflectionFold(
       length(length),
       folds(folds),
       symmetry(symmetry),
-      posts(posts),
       thickness(thickness),
       samples(std::max<size_t>(samples, 4)) {
 
@@ -192,9 +180,6 @@ inline ReflectionFold::ReflectionFold(
 
     // flat: the cutting pattern beside the model, every lamella unfolded by its rulings
     add_flat(developments, segments, creases, 0.1 * length);
-
-    // posts: the round columns under the sheet's first segment
-    add_posts();
 
     // symmetry: the folded half mirrored in its plane of symmetry, meeting itself along the plane's section of the sheet
     if (symmetry)
@@ -450,66 +435,6 @@ inline void ReflectionFold::add_flat(const std::vector<Development>& development
         }
 }
 
-inline void ReflectionFold::add_posts() {
-
-    if (posts.empty())
-        return;
-
-    const std::shared_ptr<TreeNode> group = add_group("posts");
-    const Vector vertical(0.0, 0.0, 1.0);
-    const Plane ground = Plane::from_point_normal(Point(0.0, 0.0, 0.0), vertical);
-
-    // where the vertical line through a point on the ground meets the sheet's first segment: the plane through the line along the rulings cuts the profile at the ruling the line crosses
-    const auto roof = [&](const Point& foot) {
-        const Plane sweep = Plane::from_point_normal(foot, vertical.cross(direction));
-        const Point top = foot + vertical * (10.0 * length);
-        const Line line(foot[0], foot[1], foot[2], top[0], top[1], top[2]);
-        std::optional<Point> lowest;
-
-        for (const NurbsCurve& curve : profile)
-            for (const double parameter : Intersection::curve_plane(curve, sweep, 1e-7)) {
-                const Point on = curve.point_at(parameter);
-                const Point far = on + direction * length;
-                const Line ruling(on[0], on[1], on[2], far[0], far[1], far[2]);
-                Point met;
-
-                if (Intersection::line_line(line, ruling, met, 1e-3) && met[2] > foot[2] && (!lowest || met[2] < (*lowest)[2]))
-                    lowest = met;
-            }
-
-        if (!lowest)
-            throw std::invalid_argument(fmt::format("No sheet above the post at {}", foot.str()));
-
-        return *lowest;
-    };
-
-    for (size_t k = 0; k < posts.size(); k++)
-        for (size_t half = 0; half < 2; half++) {
-            // the half circle's generatrices from the ground up to the sheet, outer and inner, at the same angles
-            std::array<std::vector<Point>, 4> curves;
-
-            for (size_t j = 0; j <= samples; j++) {
-                const double angle = Tolerance::PI * (static_cast<double>(half) + static_cast<double>(j) / static_cast<double>(samples)) + 0.5 * Tolerance::PI;
-
-                for (size_t shell = 0; shell < 2; shell++) {
-                    const double radius = posts[k].radius - thickness * static_cast<double>(shell);
-                    const Point foot = ground.project(posts[k].foot) + Vector(radius * std::cos(angle), radius * std::sin(angle), 0.0);
-                    curves[2 * shell].push_back(foot);
-                    curves[2 * shell + 1].push_back(roof(foot));
-                }
-            }
-
-            add(std::make_shared<PlateCurved>(
-                    NurbsCurve::create_interpolated(curves[0], CurveNurbsKnotStyle::Uniform),
-                    NurbsCurve::create_interpolated(curves[1], CurveNurbsKnotStyle::Uniform),
-                    NurbsCurve::create_interpolated(curves[2], CurveNurbsKnotStyle::Uniform),
-                    NurbsCurve::create_interpolated(curves[3], CurveNurbsKnotStyle::Uniform),
-                    fmt::format("post_{}_{}", k, half)
-                ),
-                group);
-        }
-}
-
 inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurve>>& creases) {
 
     const Xform mirror = reflection(*symmetry);
@@ -523,15 +448,6 @@ inline void ReflectionFold::add_mirrored(const std::vector<std::vector<NurbsCurv
         const size_t segment = std::stoul(plate->name.substr(8, plate->name.find('_', 8) - 8));
         const std::string row = plate->name.substr(plate->name.find('_', 8) + 1);
         add(std::make_shared<PlateCurved>(plate->outer_a.transformed(mirror), plate->outer_b.transformed(mirror), plate->inner_a.transformed(mirror), plate->inner_b.transformed(mirror), fmt::format("lamella_{}_{}", 2 * folded - 1 - segment, row)), lamellas);
-    }
-
-    // the posts: the mirror image of every half shell, post_<posts + k>_<half>
-    const std::vector<std::shared_ptr<PlateCurved>> shells = get_elements_placed<PlateCurved>("post");
-
-    for (const std::shared_ptr<PlateCurved>& shell : shells) {
-        const size_t post = std::stoul(shell->name.substr(5, shell->name.find('_', 5) - 5));
-        const std::string half = shell->name.substr(shell->name.find('_', 5) + 1);
-        add(std::make_shared<PlateCurved>(shell->outer_a.transformed(mirror), shell->outer_b.transformed(mirror), shell->inner_a.transformed(mirror), shell->inner_b.transformed(mirror), fmt::format("post_{}_{}", posts.size() + post, half)), group_named("posts"));
     }
 
     // the creases: the symmetry plane's own section of the sheet, then every crease mirrored

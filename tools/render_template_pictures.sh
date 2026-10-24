@@ -86,10 +86,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" templates_curved_folding_15_two_hinged_arch lamellas
     "${RENDER[@]}" --view front --name section templates_curved_folding_15_two_hinged_arch lamellas
     "${RENDER[@]}" --view right --name end templates_curved_folding_15_two_hinged_arch lamellas
-    "${RENDER[@]}" --name lamellas templates_curved_folding_16_arch_with_top_hinge lamellas+posts
-    "${RENDER[@]}" --view front --name section templates_curved_folding_16_arch_with_top_hinge lamellas+posts
-    "${RENDER[@]}" --view right --name end templates_curved_folding_16_arch_with_top_hinge lamellas+posts
-    "${RENDER[@]}" --view top --name plan templates_curved_folding_16_arch_with_top_hinge lamellas+posts
+    "${RENDER[@]}" templates_curved_folding_16_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --view front --name section templates_curved_folding_16_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --view right --name end templates_curved_folding_16_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --view top --name plan templates_curved_folding_16_arch_with_top_hinge lamellas
     "${RENDER[@]}" templates_curved_folding_17_a_frame lamellas
     "${RENDER[@]}" --view front --name section templates_curved_folding_17_a_frame lamellas
     "${RENDER[@]}" --view right --name end templates_curved_folding_17_a_frame lamellas
