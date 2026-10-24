@@ -5,6 +5,7 @@
 #include "wood_element_beam_variable.h"
 #include "wood_feature_detection.h"
 #include "wood_element_geometry.h"
+#include "wood_element_plate_curved.h"
 #include "../src/clipper2/clipper.h"
 using namespace session_cpp;
 using namespace wood_session;
@@ -19,6 +20,73 @@ constexpr int CONTACT_DECIMALS = 2; // Clipper decimals of a face overlap: the 2
 namespace wood_session {
 
 namespace {
+
+/// A curved plate's six faces in the order of its patches, outer, inner, the side faces at the a and b meridians, the start and the end
+/// caps, each as the two boundaries it is ruled between, sampled at equal parameters; a cap's boundaries are its two rulings.
+std::array<std::array<std::vector<Point>, 2>, 6> curved_faces(const PlateCurved& plate, size_t samples) {
+
+    const std::function<std::vector<Point>(const NurbsCurve&)> sample = [samples](const NurbsCurve& curve) {
+        std::vector<Point> points;
+        for (size_t k = 0; k <= samples; k++)
+            points.push_back(curve.point_at(curve.domain_start() + (curve.domain_end() - curve.domain_start()) * static_cast<double>(k) / static_cast<double>(samples)));
+        return points;
+    };
+    const std::vector<Point> outer_a = sample(plate.outer_a);
+    const std::vector<Point> outer_b = sample(plate.outer_b);
+    const std::vector<Point> inner_a = sample(plate.inner_a);
+    const std::vector<Point> inner_b = sample(plate.inner_b);
+
+    return {{
+        {outer_a, outer_b},
+        {inner_a, inner_b},
+        {outer_a, inner_a},
+        {outer_b, inner_b},
+        {std::vector<Point>{outer_a.front(), outer_b.front()}, std::vector<Point>{inner_a.front(), inner_b.front()}},
+        {std::vector<Point>{outer_a.back(), outer_b.back()}, std::vector<Point>{inner_a.back(), inner_b.back()}},
+    }};
+}
+
+/// Whether every point of one boundary lies within tolerance of the other, taken as a polyline.
+bool boundary_on(const std::vector<Point>& points, const std::vector<Point>& other, double tolerance) {
+
+    const Polyline line(other);
+    size_t edge = 0;
+    Point nearest;
+
+    for (const Point& point : points)
+        if (line.closest_distance_and_point(point, edge, nearest) > tolerance)
+            return false;
+
+    return true;
+}
+
+/// The faces two curved plates share: a face of one whose two boundaries lie on the two boundaries of a face of the other, in either
+/// order, is a contact, its polygon the first boundary and the second walked back; outer and inner faces are tops, the rest sides.
+std::vector<InteractionContactFace> curved_contacts(const PlateCurved& a, const PlateCurved& b, double tolerance) {
+
+    const std::array<std::array<std::vector<Point>, 2>, 6> faces_a = curved_faces(a, 32);
+    const std::array<std::array<std::vector<Point>, 2>, 6> faces_b = curved_faces(b, 256);
+    std::vector<InteractionContactFace> contacts;
+
+    for (size_t i = 0; i < 6; i++)
+        for (size_t j = 0; j < 6; j++) {
+            const bool same = boundary_on(faces_a[i][0], faces_b[j][0], tolerance) && boundary_on(faces_a[i][1], faces_b[j][1], tolerance);
+            const bool crossed = boundary_on(faces_a[i][0], faces_b[j][1], tolerance) && boundary_on(faces_a[i][1], faces_b[j][0], tolerance);
+
+            if (!same && !crossed)
+                continue;
+
+            std::vector<Point> polygon = faces_a[i][0];
+            polygon.insert(polygon.end(), faces_a[i][1].rbegin(), faces_a[i][1].rend());
+            polygon.push_back(polygon.front());
+            const bool top_a = i < 2;
+            const bool top_b = j < 2;
+            const ContactType type = top_a && top_b ? ContactType::top_top : top_a || top_b ? ContactType::side_top : ContactType::side_side;
+            contacts.emplace_back(static_cast<int>(i), static_cast<int>(j), type, Polyline(polygon));
+        }
+
+    return contacts;
+}
 
 void add_outline(const Polyline& pl, std::vector<Point>& corners) {
     const size_t n = pl.is_closed() ? pl.point_count() - 1 : pl.point_count();
@@ -277,6 +345,13 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& eb,
     const Settings& settings,
     DetectionTrace* trace, bool with_volumes) {
+
+    // curved plates touch where they share a curved face
+    const auto* curved_a = dynamic_cast<const PlateCurved*>(&ea);
+    const auto* curved_b = dynamic_cast<const PlateCurved*>(&eb);
+
+    if (curved_a && curved_b)
+        return curved_contacts(*curved_a, *curved_b, 10.0 * settings.distance);
 
     const double cos_angle = std::cos(settings.angle);
 

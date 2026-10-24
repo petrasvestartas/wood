@@ -48,7 +48,6 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_30_alternate_fold plates
     "${RENDER[@]}" templates_folding_31_deep_centre plates
     "${RENDER[@]}" templates_folding_32_deep_centre_valley plates
-    "${RENDER[@]}" templates_folding_33_frame_ridge_to_valley plates
     "${RENDER[@]}" templates_folding_34_a_frame plates
     "${RENDER[@]}" templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates

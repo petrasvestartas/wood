@@ -262,22 +262,6 @@ FoldedFrame frame;
 
 </details>
 
-### Two-hinged frame, ridge to valley {#folding_frame_ridge_to_valley}
-
-The same portal with ridge-to-valley folding (p. 225): every column two plates on a point foot, the roof a fan of four plates from the knee to the valleys at mid-span; 48 plates.
-
-![frame ridge to valley](templates/templates_folding_33_frame_ridge_to_valley_plates.webp)
-
-```cpp
-FoldedFrame frame(FoldedFrame::two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0, Folding::ridge_to_valley), 4500.0, 4, 120.0, "frame_ridge_to_valley");
-```
-
-<details><summary>Example code: templates_folding_33_frame_ridge_to_valley.cpp</summary>
-
-\include{lineno} templates_folding_33_frame_ridge_to_valley.cpp
-
-</details>
-
 ### Three-hinged frame {#folding_three_hinged_frame}
 
 The three-hinged frame with ridge folding (p. 226): four 4.25 m bays on point feet, the roof peaking over the quarter points of the span and dipping to the hinge at mid-span over a flat ceiling, the diagonals from the eaves crossing at the quarter-point ridge; 64 plates.

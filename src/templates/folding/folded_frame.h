@@ -25,7 +25,7 @@ public:
 
     /// The folded frame of bays bays of zigzag as the session named name.
     explicit FoldedFrame(
-        const Polyline& zigzag = two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0, Folding::ridge_to_ridge),
+        const Polyline& zigzag = two_hinged_frame(30000.0, 4500.0, 5800.0, 6600.0, 8750.0, 2900.0, 2200.0),
         double bay = 4500.0,
         size_t bays = 4,
         double thickness = 120.0,
@@ -41,10 +41,9 @@ public:
     /// The folded mesh, the plates' outer faces, one face per plate.
     const Mesh& mesh() const;
 
-    /// The two-hinged frame (p. 225): columns eaves high, a ceiling rising to ceiling at mid-span under a ridge ridge high, the knee of
-    /// every column bulging out bulge at knee height. Ridge to ridge, the feet are lines along the bay edges, a vertical plate stands at
-    /// every bay edge from the foot to the eaves, and the roof folds from the eaves corners to the ridge top; ridge to valley, the feet
-    /// are points at the bay centres and the roof folds from the knee to the valleys at mid-span.
+    /// The two-hinged frame with ridge-to-ridge folding (p. 225): columns eaves high, a ceiling rising to ceiling at mid-span under a
+    /// ridge ridge high, the knee of every column bulging out bulge at knee height; the feet are lines along the bay edges, a vertical
+    /// plate stands at every bay edge from the foot to the eaves, and the roof folds from the eaves corners to the ridge top.
     static Polyline two_hinged_frame(
         double span = 30000.0,
         double bay = 4500.0,
@@ -52,8 +51,7 @@ public:
         double ceiling = 6600.0,
         double ridge = 8750.0,
         double knee = 2900.0,
-        double bulge = 2200.0,
-        Folding folding = Folding::ridge_to_ridge
+        double bulge = 2200.0
     );
 
     /// The three-hinged frame with ridge folding (p. 226): the feet points at the bay centres, the knee bulging out bulge at knee height,
@@ -135,13 +133,14 @@ inline FoldedFrame::FoldedFrame(
 
     // plates: one plate per face, mitered at the folds; only at a node of three or more plates whose inner corners spread apart
     // the corners are cut back, by just that spread, so they do not pass through each other; the free edges cut flush by the side planes
-    // y 0 and y width
+    // y 0 and y width, the feet by the floor
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
     const double width = bay * static_cast<double>(bays);
     const std::vector<Plane> sides = {
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)),
         Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0)),
+        Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0)),
     };
 
     for (const std::shared_ptr<Plate>& plate : node_cut_plates(_mesh, thickness, sides))
@@ -152,13 +151,10 @@ inline const Mesh& FoldedFrame::mesh() const {
     return _mesh;
 }
 
-inline Polyline FoldedFrame::two_hinged_frame(double span, double bay, double eaves, double ceiling, double ridge, double knee, double bulge, Folding folding) {
+inline Polyline FoldedFrame::two_hinged_frame(double span, double bay, double eaves, double ceiling, double ridge, double knee, double bulge) {
 
     const double centre = 0.5 * bay;
     const double middle = 0.5 * span;
-
-    if (folding == Folding::ridge_to_valley)
-        return Polyline({Point(0.0, centre, 0.0), Point(0.0, 0.0, eaves), Point(-bulge, centre, knee), Point(middle, 0.0, ceiling), Point(middle, centre, ridge)});
 
     return Polyline({Point(0.0, centre, 0.0), Point(0.0, 0.0, 0.0), Point(-bulge, centre, knee), Point(0.0, 0.0, eaves), Point(middle, centre, ridge), Point(middle, 0.0, ceiling)});
 }

@@ -323,7 +323,6 @@ ADD_EXE(templates_folding_29_elevated_ridge_to_valley examples/templates_folding
 ADD_EXE(templates_folding_30_alternate_fold        examples/templates_folding_30_alternate_fold.cpp)
 ADD_EXE(templates_folding_31_deep_centre           examples/templates_folding_31_deep_centre.cpp)
 ADD_EXE(templates_folding_32_deep_centre_valley    examples/templates_folding_32_deep_centre_valley.cpp)
-ADD_EXE(templates_folding_33_frame_ridge_to_valley examples/templates_folding_33_frame_ridge_to_valley.cpp)
 ADD_EXE(templates_folding_34_a_frame               examples/templates_folding_34_a_frame.cpp)
 ADD_EXE(templates_folding_35_pointed_arch          examples/templates_folding_35_pointed_arch.cpp)
 ADD_EXE(templates_folding_36_folded_truncated_pyramid examples/templates_folding_36_folded_truncated_pyramid.cpp)
