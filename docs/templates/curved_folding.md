@@ -9,6 +9,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | [`CurvedFold`](#curved_fold_zauberhut) | `curved_folding/curved_fold.h` | Knie's Zauberhut, Blumer Lehmann 2020: a tent roof of curved folds, the meridians interpolated | `templates_curved_folding_1_curved_fold` |
 | [`ReflectionFold`](#reflection_fold) | `curved_folding/reflection_fold.h` | Mitani and Igarashi, *Interactive Design of Planar Curved Folding by Reflection*, Pacific Graphics 2011; Huffman 1976; Buri, Stotz and Weinand, *Curved Folded Plate Timber Structures*, IABSE-IASS 2011; Engel, *Structure Systems* pp. 242-244, reflections and mirror folds | `templates_curved_folding_{2_reflection_fold,3_curved_folded_plate,13_two_hinged_frame,...,18_cantilever}` |
 | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | Engel pp. 238-241, structure systems through interpenetration of cylindrical surfaces and their composition over a square grid | `templates_curved_folding_{4_groin_vault,...,12_cross_vault,19_vault_field}` |
+| [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | Scheder-Bieschin, Van Mele and Block, *Curved-Crease Flat-Foldable Bending-Active Plate Structures*, DMSB 2023; Tachi, *Composite Rigid-Foldable Curved Origami Structure*, Transformables 2013; Shimoda, Tachi and Sato 2020, the axis shift | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding}` |
 | [`Development`](#development) | `curved_folding/development.h` | the unfolding of a ruled strip, the check that every lamella is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, and the development distortion and ruling twist of the worst one; on every model below both are at the rounding floor (1e-14 and 1e-8), the lamellas being exact cylinders.
@@ -429,6 +430,55 @@ Engel p. 241, composition of cylindrical surfaces crossing diagonally over a squ
 
 </details>
 
+## Curved-crease unfolding {#curved_crease_unfolding}
+
+A mechanism, not a fixed shape: flat plates cut as bands between two curved edges are stacked and hinged to their neighbours along those edges, one plate's edge on the top of the stack and the next's at the bottom. Pulled apart like an accordion the stack can only open if every plate bends about its rulings, because a curved hinge cannot stay flat while the plates on either side of it turn: the curvature of the plan becomes the curvature of the profile. Each crease stays in a plane parallel to the stack and keeps its length, each plate is the mirror image of the one before it in the plane of their shared crease, and the stack opens into a corrugated vault with one degree of freedom (Scheder-Bieschin, Van Mele and Block, DMSB 2023, their curved-crease unfolding; Tachi's closed folding, 2013). A straight edge would only hinge.
+
+| quantity | at opening a (0 flat-folded) |
+| --- | --- |
+| crease curvature in space | the plate edge's curvature as cut over cos a (Fuchs and Tabachnikov, cos a = k2D / k3D): the arch rises and narrows as it opens |
+| rulings | perpendicular to the crease, at a to the crease plane (the paper's ultra-special case: a planar crease with a constant reflection angle); a circular crease gives exact cones |
+| corrugation depth | width cos a, the second crease the first offset in its plane |
+| crease plane spacing | width sin a + thickness cos a: the axis shift, a plate's two hinges on its two faces, so the plates fold completely closed into a stack of count x thickness |
+
+`CurvedCreaseUnfolding(target, design, width, count, openings, thickness)` takes the profile wanted at the design opening; the plates are cut with every curvature of it times cos(design), and the stack is drawn at every opening in `openings` side by side, 0 the flat-folded stack. Every plate is a `PlateCurved` between four offsets of the bent crease; its outer face is checked developable (`distortion()`) and its mid-surface at every opening is developed onto the plate as cut (`isometry()`, mm): the opening bends the plates and never stretches them. The plate as cut is drawn flat on the floor in the group `flat`. Real plates bend, so they are thin (plywood or LVL, 40 mm on a 9 m span here, the paper's 8 mm on 2.5 m) and hinged with textile or steel hinges along the curved edges.
+
+### Arch {#curved_crease_arch}
+
+Sixteen plates 600 mm wide and 40 mm thick cut to a semicircle 9 m wide and 4.5 m high at an opening of 50 degrees, drawn flat-folded (an arc 11.9 m wide and 3.3 m high, the stack 640 mm thick), at 25 and at 50 degrees; every plate an exact cone, development distortion 3e-15, isometry 0.007 mm (example `templates_curved_folding_20_curved_crease_unfolding`).
+
+![curved-crease unfolding](templates/templates_curved_folding_20_curved_crease_unfolding_all.webp)
+
+![curved-crease unfolding, elevation](templates/templates_curved_folding_20_curved_crease_unfolding_elevation.webp)
+
+```cpp
+CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::arc(9000.0, 4500.0), 50.0 * Tolerance::TO_RADIANS, 600.0, 16, {0.0, 25.0 * Tolerance::TO_RADIANS, 50.0 * Tolerance::TO_RADIANS}, 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_20_curved_crease_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_20_curved_crease_unfolding.cpp
+
+</details>
+
+### Catenary {#curved_crease_catenary}
+
+The paper's Fig. 9c: twenty plates 500 mm wide cut to a catenary 10 m wide and 6 m high at 45 degrees, drawn flat-folded (13.1 m wide, 4.7 m high) and open; the creases interpolated through the bent curve, the plates developable strips between them (example `templates_curved_folding_21_catenary_unfolding`).
+
+![catenary unfolding](templates/templates_curved_folding_21_catenary_unfolding_all.webp)
+
+```cpp
+CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, 500.0, 20, {0.0, 45.0 * Tolerance::TO_RADIANS}, 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_21_catenary_unfolding.cpp</summary>
+
+\include{lineno} templates_curved_folding_21_catenary_unfolding.cpp
+
+</details>
+
 ## Not built {#curved_folding_not_built}
+
+The paper's inclined crease planes (Figs. 10-12: synclastic and anticlastic vaults, the corrugated dome and funnel from planes fanned around an axis) are not built: the planes no longer stay parallel while the stack opens, the rulings must readjust by bending, and the axis shift no longer closes the stack.
 
 Engel's segments with tilted generatrices over a corner (the diagonal vault's generatrices sloping or rising) break the mirror symmetry of the midline planes, so their creases are not planar and they are not made. Huffman's cone reflected in planes across its axis (Albers' concentric circles), a corrugated round roof of conical lamellas, is the one developable base besides the cylinder the reflection would take exactly, and is left for a cone variant of the fold.

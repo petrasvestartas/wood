@@ -98,6 +98,9 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" --view right --name end templates_curved_folding_18_cantilever lamellas
     "${RENDER[@]}" templates_curved_folding_19_vault_field lamellas
     "${RENDER[@]}" --view front --name elevation templates_curved_folding_19_vault_field lamellas
+    "${RENDER[@]}" templates_curved_folding_20_curved_crease_unfolding all
+    "${RENDER[@]}" --view front --name elevation templates_curved_folding_20_curved_crease_unfolding plates
+    "${RENDER[@]}" templates_curved_folding_21_catenary_unfolding all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
