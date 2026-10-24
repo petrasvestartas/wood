@@ -4,14 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding with every second crease plane tilted about the span at the floor: the support spacing constant, the apex
-/// alternately close and far apart.
+/// Curved-crease unfolding with the outer crease planes turned about the span at the floor: the supports kept, the apex moved.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
         Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
         50.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 3.0 * Tolerance::TO_RADIANS),
+        CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, 8.0 * Tolerance::TO_RADIANS),
         40.0
     );
     std::cout << unfolding << std::endl;
@@ -29,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 26 of the curved folding templates: plane inclination around the actuation axis. The semicircle 9 m wide and 4.5 m high; seventeen crease planes 500 mm apart, every second one tilted 3 degrees about a line along the span on the floor: the supports keep their spacing and the apex alternates close and far apart, the ridges and valleys articulated at the crown. Groups: plates (plate_<k>), creases.
+Step 26 of the curved folding templates: plane inclination about the span at the floor. Three planes 1500 mm apart, the outer two turned 8 degrees about a line along the span on the floor, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the supports keep their spacing and the apex moves, the fold articulated at the crown. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

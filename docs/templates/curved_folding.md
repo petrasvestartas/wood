@@ -369,16 +369,16 @@ The template draws the open state: the given crease lies on one of the `planes`;
 | `leaning(origin, along, axis, count, spacing, lean)` | standing on the floor `spacing` apart, the i-th from the middle turned by i `lean` about the span: drawn in at the apex (synclastic) or spread (anticlastic) | 10b, 10c |
 | `fan(origin, axis, first, count, angle)` | through one axis, `angle` apart: around a vertical axis a dome or a funnel | 12b, 12c |
 
-Two mirrors compose to a turn about the line where their planes meet. For planes that lean about the span that line runs high above or deep below the floor, so a synclastic or anticlastic vault built only by reflection lifts its supports toward its ends (`drift()`: 276 mm at the ends of 23 and 24). Planes turned in pairs that cancel keep the supports within 30 to 50 mm, and vertical planes keep them on the floor exactly. Every example has one contact per crease, count minus one for a row of count plates.
+Two mirrors compose to a turn about the line where their planes meet, so planes that lean about the span lift the supports toward the ends (`drift()`); vertical planes keep them on the floor. Each example shows the principle on two plates and one crease, one contact.
 
 ### Arch {#curved_crease_arch}
 
-Sixteen plates 40 mm thick cut to a semicircle 9 m wide and 4.5 m high, open at 50 degrees on seventeen parallel planes 460 mm apart (600 mm of plate times the sine of the opening), every plate an exact cone; 15 contacts (example `templates_curved_folding_20_curved_crease_unfolding`).
+Two 40 mm plates on three parallel planes 1500 mm apart, the crease a semicircle 9 m wide and 4.5 m high, opened 50 degrees; every plate an exact cone (example `templates_curved_folding_20_curved_crease_unfolding`).
 
 ![arch](templates/templates_curved_folding_20_curved_crease_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 16, 460.0, 0.0), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 2, 1500.0, 0.0), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_20_curved_crease_unfolding.cpp</summary>
@@ -389,12 +389,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Catenary {#curved_crease_catenary}
 
-Twenty plates 500 mm wide open 45 degrees on twenty-one parallel planes 354 mm apart into a corrugated catenary vault 10 m wide and 6 m high, the given crease the catenary (`CurvedCreaseUnfolding::catenary`); 19 contacts (example `templates_curved_folding_21_catenary_unfolding`).
+Three parallel planes 1500 mm apart, the crease a catenary 10 m wide and 6 m high (`CurvedCreaseUnfolding::catenary`), opened 45 degrees (example `templates_curved_folding_21_catenary_unfolding`).
 
 ![catenary](templates/templates_curved_folding_21_catenary_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 20, 354.0, 0.0), 40.0);
+CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 2, 1500.0, 0.0), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_21_catenary_unfolding.cpp</summary>
@@ -405,12 +405,12 @@ CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0)
 
 ### Synclastic vault {#synclastic_unfolding}
 
-The semicircle 9 m wide and 4.5 m high, seventeen planes 500 mm apart on the floor, each leaning 1 degree more toward the middle: the apex drawn in, the end arches leaning inward (example `templates_curved_folding_23_synclastic_unfolding`).
+Three planes 1500 mm apart on the floor, the outer two leaning 5 degrees toward the middle: the apex drawn in (example `templates_curved_folding_23_synclastic_unfolding`).
 
 ![synclastic vault](templates/templates_curved_folding_23_synclastic_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 1.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, 5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_23_synclastic_unfolding.cpp</summary>
@@ -421,12 +421,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Anticlastic vault {#anticlastic_unfolding}
 
-The same planes leaning 1 degree more away from the middle: the apex spread, the end arches leaning out, a saddle (example `templates_curved_folding_24_anticlastic_unfolding`).
+The outer planes leaning 5 degrees away from the middle: the apex spread, a saddle (example `templates_curved_folding_24_anticlastic_unfolding`).
 
 ![anticlastic vault](templates/templates_curved_folding_24_anticlastic_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, -1.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, -5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_24_anticlastic_unfolding.cpp</summary>
@@ -437,12 +437,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Inclined about the span at the apex {#apex_level_unfolding}
 
-Every second plane turned 3 degrees, alternately each way, about a line along the span at the apex: the apex spacing constant, the supports alternately close and far, the ridges and valleys articulated at the feet (example `templates_curved_folding_25_apex_level_unfolding`).
+The outer planes turned 8 degrees about a line along the span at the apex: the apex spacing kept, the fold articulated at the feet (example `templates_curved_folding_25_apex_level_unfolding`).
 
 ![inclined about the span at the apex](templates/templates_curved_folding_25_apex_level_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 3.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_25_apex_level_unfolding.cpp</summary>
@@ -453,12 +453,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Inclined about the span at the floor {#support_level_unfolding}
 
-The same turned about a line on the floor: the supports keep their spacing and the apex alternates (example `templates_curved_folding_26_support_level_unfolding`).
+The same turned about a line on the floor: the supports kept, the fold articulated at the crown (example `templates_curved_folding_26_support_level_unfolding`).
 
 ![inclined about the span at the floor](templates/templates_curved_folding_26_support_level_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 3.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_26_support_level_unfolding.cpp</summary>
@@ -469,12 +469,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Inclined about the span at half height {#alternating_unfolding}
 
-Every second plane turned 4 degrees about a line at half height: plates wide at the apex and narrow at the supports and the other way round, articulated alternately at both (example `templates_curved_folding_27_alternating_unfolding`).
+The outer planes turned 8 degrees about a line at half height: each plate wide at one end and narrow at the other (example `templates_curved_folding_27_alternating_unfolding`).
 
 ![inclined about the span at half height](templates/templates_curved_folding_27_alternating_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, 4.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_27_alternating_unfolding.cpp</summary>
@@ -485,12 +485,12 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 
 ### Inclined about a vertical axis {#sideways_unfolding}
 
-Every second plane turned 4 degrees about a vertical axis through the crown: the plane distance shrinks toward one foot and grows toward the other, the vault articulated to its sides (example `templates_curved_folding_28_sideways_unfolding`).
+The outer planes turned 8 degrees about a vertical axis through the crown: the plane distance shrinks toward one foot and grows toward the other (example `templates_curved_folding_28_sideways_unfolding`).
 
 ![inclined about a vertical axis](templates/templates_curved_folding_28_sideways_unfolding_plates.webp)
 
 ```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 16, 500.0, 4.0 * Tolerance::TO_RADIANS), 40.0);
+CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 2, 1500.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 <details><summary>Example code: templates_curved_folding_28_sideways_unfolding.cpp</summary>

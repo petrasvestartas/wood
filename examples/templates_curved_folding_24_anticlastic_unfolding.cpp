@@ -4,14 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding spread: the crease planes fanned around a horizontal axis 20 m below the floor, wider at the apex than at the
-/// supports, an anticlastic corrugated vault.
+/// Curved-crease unfolding spread: the outer crease planes leaning away from the middle, an anticlastic vault.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
         Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
         50.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 16, 500.0, -1.0 * Tolerance::TO_RADIANS),
+        CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 2, 1500.0, -5.0 * Tolerance::TO_RADIANS),
         40.0
     );
     std::cout << unfolding << std::endl;
@@ -29,7 +28,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 24 of the curved folding templates: an anticlastic corrugated vault by plane inclination. The semicircle of step 23 with its seventeen crease planes fanned 1.5 degrees apart around a horizontal axis 20 m below the floor: the planes stand wider apart at the apex than at the supports and the end arches lean out, a saddle. Every plate the mirror image of its neighbour in their crease plane, a developable 40 mm thick, mitred on the crease planes. Groups: plates (plate_<k>), creases.
+Step 24 of the curved folding templates: an anticlastic vault by plane inclination. Three planes 1500 mm apart on the floor, the outer two leaning 5 degrees away from the middle, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the apex is spread, a saddle. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
