@@ -19,6 +19,7 @@ public:
     const std::vector<Cylinder> carvers; // The cylinders b, c, d and so on that carve it, in sequence.
     const double length; // mm, the stock from its point along its axis.
     const double thickness; // mm, every plate, behind the carved surface.
+    const double min_angle; // radians, the least angle two carved patches may meet at.
     const size_t samples; // Generators every plate is interpolated through.
 
 private:
@@ -28,6 +29,7 @@ private:
         double high; // mm, where it ends.
         int low_by; // What ends it at the start: 0 the stock, 1 and 2 its end planes, 3 + j carver j.
         int high_by; // What ends it at the end, the same way.
+        int splitter; // The carver that cuts it in the middle, leaving two pieces; -1 for none.
     };
 
     double _distortion = 0.0; // The largest relative length error of any plate's development.
@@ -39,6 +41,7 @@ public:
         const std::vector<Cylinder>& carvers,
         double length = 12000.0,
         double thickness = 60.0,
+        double min_angle = 10.0 * Tolerance::TO_RADIANS,
         const std::string& name = "cylinder_carving",
         size_t samples = 128
     );
@@ -76,6 +79,12 @@ private:
 
     /// What ends each of the four boundaries at angle: the surface's start and end, the plate's start and end.
     std::array<int, 4> enders(size_t k, double angle) const;
+
+    /// Throws when a carver leaves no patch, cuts another's patch in two or meets one at less than min_angle.
+    void validate() const;
+
+    /// The unit normal of cylinder c at point, away from its axis.
+    static Vector radial(const Cylinder& cylinder, const Point& point);
 };
 
 inline CylinderCarving::CylinderCarving(
@@ -83,6 +92,7 @@ inline CylinderCarving::CylinderCarving(
     const std::vector<Cylinder>& carvers,
     double length,
     double thickness,
+    double min_angle,
     const std::string& name,
     size_t samples
 )
@@ -91,10 +101,14 @@ inline CylinderCarving::CylinderCarving(
       carvers(carvers),
       length(length),
       thickness(thickness),
+      min_angle(min_angle),
       samples(std::max<size_t>(samples, 8)) {
 
     if (carvers.empty() || length <= 0.0 || thickness <= 0.0)
         throw std::invalid_argument("A cylinder carving needs a carver, a length and a thickness");
+
+    // validation: every carver leaves one patch, none cut in two, every two meeting at a clear angle
+    validate();
 
     // plates: every carver's surface left inside the stock and outside the other carvers, its plate behind it in the stock
     add_plates();
@@ -151,7 +165,7 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::part(size_t k, doub
     if (!in_stock)
         return std::nullopt;
 
-    Part kept = {in_stock->first, in_stock->second, 0, 0};
+    Part kept = {in_stock->first, in_stock->second, 0, 0, -1};
 
     // between the stock's two end planes
     const Vector axis = stock.direction.normalized();
@@ -169,10 +183,10 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::part(size_t k, doub
         const int near_by = first < second ? 1 : 2;
 
         if (near > kept.low)
-            kept = {near, kept.high, near_by, kept.high_by};
+            kept = {near, kept.high, near_by, kept.high_by, -1};
 
         if (far < kept.high)
-            kept = {kept.low, far, kept.low_by, 3 - near_by};
+            kept = {kept.low, far, kept.low_by, 3 - near_by, -1};
     }
 
     // outside every other carver grown by offset: every cut leaves the longer piece
@@ -185,16 +199,68 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::part(size_t k, doub
         if (!cut || cut->second <= kept.low || cut->first >= kept.high)
             continue;
 
-        if (cut->first - kept.low >= kept.high - cut->second)
-            kept = {kept.low, cut->first, kept.low_by, 3 + static_cast<int>(j)};
+        // a cut in the middle leaves two pieces a millimetre long or more: the longer kept, the carver named
+        const double before = cut->first - kept.low;
+        const double after = kept.high - cut->second;
+        const int splitter = before > 1.0 && after > 1.0 ? static_cast<int>(j) : kept.splitter;
+
+        if (before >= after)
+            kept = {kept.low, cut->first, kept.low_by, 3 + static_cast<int>(j), splitter};
         else
-            kept = {cut->second, kept.high, 3 + static_cast<int>(j), kept.high_by};
+            kept = {cut->second, kept.high, 3 + static_cast<int>(j), kept.high_by, splitter};
     }
 
     if (kept.low >= kept.high)
         return std::nullopt;
 
     return kept;
+}
+
+inline Vector CylinderCarving::radial(const Cylinder& cylinder, const Point& point) {
+
+    const Vector axis = cylinder.direction.normalized();
+    const Vector offset = point - cylinder.point;
+
+    return (offset - axis * offset.dot(axis)).normalized();
+}
+
+inline void CylinderCarving::validate() const {
+
+    for (size_t k = 0; k < carvers.size(); k++) {
+        const std::optional<std::pair<double, double>> run = compute_run(k);
+
+        if (!run)
+            throw std::invalid_argument(fmt::format("Carver {} does not cut the stock deep enough to leave a plate", k));
+
+        // along the run: no generator cut in two, every crease with another carver at a clear angle
+        const size_t count = 4 * samples;
+
+        for (size_t i = 0; i <= count; i++) {
+            const double angle = run->first + (run->second - run->first) * static_cast<double>(i) / static_cast<double>(count);
+            const std::optional<Part> kept = part(k, angle, 0.0);
+
+            if (!kept)
+                continue;
+
+            if (kept->splitter >= 0)
+                throw std::invalid_argument(fmt::format("Carver {} cuts carver {}'s patch in two", kept->splitter, k));
+
+            const std::pair<Point, Vector> line = generator(k, angle, 0.0);
+
+            for (const std::pair<double, int>& end : {std::make_pair(kept->low, kept->low_by), std::make_pair(kept->high, kept->high_by)}) {
+                if (end.second < 3)
+                    continue;
+
+                const Point point = line.first + line.second * end.first;
+                const Cylinder& other = carvers[static_cast<size_t>(end.second - 3)];
+                const double cosine = std::clamp(radial(carvers[k], point).dot(radial(other, point)), -1.0, 1.0);
+                const double meet = std::acos(cosine);
+
+                if (meet < min_angle)
+                    throw std::invalid_argument(fmt::format("Carvers {} and {} meet at {:.1f} degrees, under the least {:.1f}", k, end.second - 3, meet * Tolerance::TO_DEGREES, min_angle * Tolerance::TO_DEGREES));
+            }
+        }
+    }
 }
 
 inline std::optional<std::pair<double, double>> CylinderCarving::compute_run(size_t k) const {
