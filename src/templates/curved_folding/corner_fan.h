@@ -15,6 +15,7 @@ public:
     const double drop; // mm, how much lower every second fold ends.
     const double foot; // The share of the way up where the strips start, cut short of the corner.
     const double thickness; // mm, every strip.
+    const Point corner; // The square's bottom corner the folds start from.
     const size_t samples; // Points every inner crease is interpolated through.
 
 private:
@@ -30,6 +31,7 @@ public:
         double drop = 800.0,
         double foot = 0.15,
         double thickness = 40.0,
+        const Point& corner = Point(0.0, 0.0, 0.0),
         const std::string& name = "corner_fan",
         size_t samples = 64
     );
@@ -82,6 +84,7 @@ inline CornerFan::CornerFan(
     double drop,
     double foot,
     double thickness,
+    const Point& corner,
     const std::string& name,
     size_t samples
 )
@@ -93,6 +96,7 @@ inline CornerFan::CornerFan(
       drop(drop),
       foot(foot),
       thickness(thickness),
+      corner(corner),
       samples(std::max<size_t>(samples, 8)) {
 
     if (size <= 0.0 || height <= 0.0 || strips < 2 || strips % 2 != 0 || foot <= 0.0 || foot >= 1.0 || thickness <= 0.0)
@@ -259,13 +263,15 @@ inline std::vector<NurbsCurve> CornerFan::compute_inners(const std::vector<Point
 inline void CornerFan::add_strips(const std::vector<NurbsCurve>& creases, const std::vector<NurbsCurve>& inners) {
 
     const std::shared_ptr<TreeNode> group = add_group("strips");
+    const Xform move = Xform::translation(corner[0], corner[1], corner[2]);
 
     for (size_t k = 0; k < strips; k++) {
+        // the fan built at the origin, moved to its corner
         const std::shared_ptr<PlateCurved> strip = std::make_shared<PlateCurved>(
-            creases[k],
-            creases[k + 1],
-            inners[k],
-            inners[k + 1],
+            creases[k].transformed(move),
+            creases[k + 1].transformed(move),
+            inners[k].transformed(move),
+            inners[k + 1].transformed(move),
             fmt::format("strip_{}", k)
         );
         add(strip, group);
