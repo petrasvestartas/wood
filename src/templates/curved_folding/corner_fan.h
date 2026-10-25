@@ -5,14 +5,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A fan of developable strips folded from one bottom corner on parabolic creases, each the mirror image of the one before.
+/// A fan of developable strips folded from one bottom corner of a square on parabolic creases to its two far sides.
 class CornerFan : public WoodSession {
 public:
-    const double radius; // mm, how far every strip's middle reaches from the corner in plan.
-    const double height; // mm, the middle of every strip's top above the corner.
-    const size_t strips; // Strips dividing the quarter between the two box faces at the corner.
-    const double lift; // mm, the parabola's middle control point above its chord, below when negative.
-    const double drop; // mm, how much lower every second fold ends than the folds beside it.
+    const double size; // mm, the square's side, the corner at the origin.
+    const double height; // mm, where the high folds end above the corner.
+    const size_t strips; // Strips dividing the two far sides, half on each, even.
+    const double lift; // mm, every parabola's middle control point above its chord, below when negative.
+    const double drop; // mm, how much lower every second fold ends.
     const double foot; // The share of the way up where the strips start, cut short of the corner.
     const double thickness; // mm, every strip.
     const size_t samples; // Points every inner crease is interpolated through.
@@ -23,7 +23,7 @@ private:
 public:
     /// The fan as the session named name.
     CornerFan(
-        double radius = 6000.0,
+        double size = 6000.0,
         double height = 4000.0,
         size_t strips = 6,
         double lift = 1200.0,
@@ -46,33 +46,36 @@ public:
     }
 
 private:
-    /// The profile's three control points: the corner, the lifted middle and the top, in the plane halving the first strip.
-    std::array<Point, 3> compute_profile() const;
+    /// Every fold's top on the square's two far sides, equally spaced, high and low in turn.
+    std::vector<Point> compute_tops() const;
 
-    /// The first strip's four creases: outer and inner on the box face y = 0, then on the first fold plane.
-    std::array<NurbsCurve, 4> compute_first(const std::array<Point, 3>& profile) const;
+    /// Every fold's parabola from three points, the corner, its lifted middle and its top, cut at foot.
+    std::vector<NurbsCurve> compute_creases(const std::vector<Point>& tops) const;
 
-    /// Every strip, strip_<k> in the group strips: the first, mirrored in every fold plane in turn.
-    void add_strips(const std::array<NurbsCurve, 4>& first);
+    /// Every fold's inner crease, from its foot to its top end, where the two strips' inner faces meet on their bisector.
+    std::vector<NurbsCurve> compute_inners(const std::vector<Point>& tops) const;
 
-    /// The rulings' unit direction: square to the first strip's middle in plan, tilted by the drop.
-    Vector ruling() const;
+    /// The inner point of fold k at s: a thickness under both strips on their bisector, square under the one at a free fold.
+    Point inner_point(const std::vector<Point>& tops, size_t k, double s) const;
 
-    /// The angle every strip spans in plan.
-    double wedge() const;
+    /// The s near start where fold k's inner point lies on the plane, by bisection.
+    double inner_on(const std::vector<Point>& tops, size_t k, const Plane& plane, double start) const;
 
-    /// The point where the ruling through point meets the vertical plane through the corner at angle.
-    Point on_plane(const Point& point, double angle) const;
+    /// Every strip, strip_<k> in the group strips, between two folds' creases and inner creases.
+    void add_strips(const std::vector<NurbsCurve>& creases, const std::vector<NurbsCurve>& inners);
 
-    /// The point of the profile's parabola at s, from the corner at 0 to the top at 1.
-    static Point bezier(const std::array<Point, 3>& profile, double s);
+    /// The fold's parabola at s, from the corner at 0 to its top at 1.
+    Point crease_point(const Point& top, double s) const;
 
-    /// The curve's points mirrored in the vertical plane through the corner at mirror_angle, when mirror, then turned by turn.
-    static NurbsCurve placed(const NurbsCurve& curve, bool mirror, double mirror_angle, double turn);
+    /// The fold's parabola tangent at s.
+    Vector crease_tangent(const Point& top, double s) const;
+
+    /// The unit normal under the strip from top to next at the fold through top, at s.
+    static Vector strip_normal(const Vector& tangent, const Point& top, const Point& next);
 };
 
 inline CornerFan::CornerFan(
-    double radius,
+    double size,
     double height,
     size_t strips,
     double lift,
@@ -83,166 +86,192 @@ inline CornerFan::CornerFan(
     size_t samples
 )
     : WoodSession(name),
-      radius(radius),
+      size(size),
       height(height),
-      strips(std::max<size_t>(strips, 1)),
+      strips(strips),
       lift(lift),
       drop(drop),
       foot(foot),
       thickness(thickness),
       samples(std::max<size_t>(samples, 8)) {
 
-    if (radius <= 0.0 || height <= 0.0 || foot <= 0.0 || foot >= 1.0 || thickness <= 0.0)
-        throw std::invalid_argument("A corner fan needs a radius, a height, a foot between 0 and 1 and a thickness");
+    if (size <= 0.0 || height <= 0.0 || strips < 2 || strips % 2 != 0 || foot <= 0.0 || foot >= 1.0 || thickness <= 0.0)
+        throw std::invalid_argument("A corner fan needs a square, a height, an even number of strips, a foot between 0 and 1 and a thickness");
 
-    // profile: the parabola from three points, the corner, the middle lifted above the chord and the top
-    const std::array<Point, 3> profile = compute_profile();
+    // tops: every fold's end on the square's two far sides, high and low in turn
+    const std::vector<Point> tops = compute_tops();
 
-    // first strip: the parabolic cylinder through the profile, between the box face y = 0 and the first fold plane
-    const std::array<NurbsCurve, 4> first = compute_first(profile);
+    // creases: every fold a parabola from the corner, all lifted alike, so two neighbours differ by s times their tops' difference
+    // and every strip is a cylinder of rulings parallel to its straight top edge
+    const std::vector<NurbsCurve> creases = compute_creases(tops);
 
-    // strips: the first mirrored in every fold plane in turn, so every fold is a parabola in its plane
-    add_strips(first);
+    // inners: at every fold the curve both strips' inner faces end on, the bisector of the two
+    const std::vector<NurbsCurve> inners = compute_inners(tops);
 
-    // contacts: every two strips that share their fold plane, found by the session's contact detection
+    // strips: every cylinder between two folds, its inner face between their inner creases
+    add_strips(creases, inners);
+
+    // contacts: every two strips that share a fold, found by the session's contact detection
     compute_face_contacts(0);
 }
 
-inline double CornerFan::wedge() const {
+inline std::vector<Point> CornerFan::compute_tops() const {
 
-    return 0.5 * Tolerance::PI / static_cast<double>(strips);
+    // from the side y = 0 up the far side x = size to the far corner, then along the far side y = size to the side x = 0
+    std::vector<Point> tops;
+    const size_t half = strips / 2;
+
+    for (size_t k = 0; k <= strips; k++) {
+        const double z = k % 2 == 0 ? height : height - drop;
+
+        if (k <= half)
+            tops.push_back(Point(size, size * static_cast<double>(k) / static_cast<double>(half), z));
+        else
+            tops.push_back(Point(size * static_cast<double>(strips - k) / static_cast<double>(half), size, z));
+    }
+
+    return tops;
 }
 
-inline Vector CornerFan::ruling() const {
+inline Point CornerFan::crease_point(const Point& top, double s) const {
 
-    // square to the strip's middle in plan, rising so the two folds' tops differ by the drop across the strip
-    const double middle = 0.5 * wedge();
-    const Vector across(-std::sin(middle), std::cos(middle), 0.0);
-    const double half = radius * std::tan(middle);
-    const Vector direction = across + Vector(0.0, 0.0, 0.5 * drop / half);
-
-    return direction.normalized();
-}
-
-inline std::array<Point, 3> CornerFan::compute_profile() const {
-
-    const double middle = 0.5 * wedge();
-    const Point corner(0.0, 0.0, 0.0);
-    const Point top(radius * std::cos(middle), radius * std::sin(middle), height);
-    const Point control = Point::mid_point(corner, top) + Vector(0.0, 0.0, lift);
-
-    return {corner, control, top};
-}
-
-inline Point CornerFan::bezier(const std::array<Point, 3>& profile, double s) {
-
-    const Vector a(profile[0][0], profile[0][1], profile[0][2]);
-    const Vector b(profile[1][0], profile[1][1], profile[1][2]);
-    const Vector c(profile[2][0], profile[2][1], profile[2][2]);
-    const Vector point = a * ((1.0 - s) * (1.0 - s)) + b * (2.0 * s * (1.0 - s)) + c * (s * s);
+    // the quadratic from the corner, the chord's middle lifted by lift and the top
+    const Vector to_top(top[0], top[1], top[2]);
+    const Vector control = to_top * 0.5 + Vector(0.0, 0.0, lift);
+    const Vector point = control * (2.0 * s * (1.0 - s)) + to_top * (s * s);
 
     return Point(point[0], point[1], point[2]);
 }
 
-inline Point CornerFan::on_plane(const Point& point, double angle) const {
+inline Vector CornerFan::crease_tangent(const Point& top, double s) const {
 
-    // the vertical plane through the corner at angle, met along the ruling
-    const Vector normal(-std::sin(angle), std::cos(angle), 0.0);
-    const Vector direction = ruling();
-    const Vector position(point[0], point[1], point[2]);
-    const double along = -normal.dot(position) / normal.dot(direction);
+    const Vector to_top(top[0], top[1], top[2]);
+    const Vector control = to_top * 0.5 + Vector(0.0, 0.0, lift);
 
-    return point + direction * along;
+    return control * (2.0 * (1.0 - 2.0 * s)) + to_top * (2.0 * s);
 }
 
-inline std::array<NurbsCurve, 4> CornerFan::compute_first(const std::array<Point, 3>& profile) const {
+inline Vector CornerFan::strip_normal(const Vector& tangent, const Point& top, const Point& next) {
 
-    // the outer creases: the profile cut at foot by de Casteljau, its three control points carried along the rulings onto
-    // the two planes, a parallel projection that keeps it a parabola
-    const Point start = bezier(profile, foot);
-    const Vector b(profile[1][0], profile[1][1], profile[1][2]);
-    const Vector c(profile[2][0], profile[2][1], profile[2][2]);
-    const Vector between = b * (1.0 - foot) + c * foot;
-    const std::array<Point, 3> cut = {start, Point(between[0], between[1], between[2]), profile[2]};
-    std::array<NurbsCurve, 4> creases;
+    // square to the strip's rulings, parallel to its top edge, and to the fold's tangent, turned under the sheet
+    Vector normal = (next - top).cross(tangent).normalized();
 
-    for (size_t plane = 0; plane < 2; plane++) {
-        const double angle = plane == 0 ? 0.0 : wedge();
-        std::vector<Point> controls;
+    if (normal[2] > 0.0)
+        normal = -normal;
 
-        for (const Point& point : cut)
-            controls.push_back(on_plane(point, angle));
+    return normal;
+}
 
-        creases[plane] = NurbsCurve::create(false, 2, controls);
+inline std::vector<NurbsCurve> CornerFan::compute_creases(const std::vector<Point>& tops) const {
+
+    // the parabola cut at foot by de Casteljau, still a parabola of three control points
+    std::vector<NurbsCurve> creases;
+
+    for (const Point& top : tops) {
+        const Vector to_top(top[0], top[1], top[2]);
+        const Vector control = to_top * 0.5 + Vector(0.0, 0.0, lift);
+        const Vector between = control * (1.0 - foot) + to_top * foot;
+        const std::vector<Point> controls = {crease_point(top, foot), Point(between[0], between[1], between[2]), top};
+        creases.push_back(NurbsCurve::create(false, 2, controls));
     }
-
-    // the inner creases: the profile moved the thickness along the cylinder's normal, below the sheet, carried the same way
-    const Vector direction = ruling();
-    std::array<std::vector<Point>, 2> inner;
-
-    for (size_t i = 0; i <= samples; i++) {
-        const double s = foot + (1.0 - foot) * static_cast<double>(i) / static_cast<double>(samples);
-        const Point point = bezier(profile, s);
-        const Vector tangent = (profile[1] - profile[0]) * (2.0 * (1.0 - s)) + (profile[2] - profile[1]) * (2.0 * s);
-        Vector normal = direction.cross(tangent).normalized();
-
-        if (normal[2] > 0.0)
-            normal = -normal;
-
-        const Point offset = point + normal * thickness;
-        inner[0].push_back(on_plane(offset, 0.0));
-        inner[1].push_back(on_plane(offset, wedge()));
-    }
-
-    creases[2] = NurbsCurve::create_interpolated(inner[0], CurveNurbsKnotStyle::Uniform);
-    creases[3] = NurbsCurve::create_interpolated(inner[1], CurveNurbsKnotStyle::Uniform);
 
     return creases;
 }
 
-inline NurbsCurve CornerFan::placed(const NurbsCurve& curve, bool mirror, double mirror_angle, double turn) {
+inline Point CornerFan::inner_point(const std::vector<Point>& tops, size_t k, double s) const {
 
-    const Vector normal(-std::sin(mirror_angle), std::cos(mirror_angle), 0.0);
-    const double c = std::cos(turn);
-    const double s = std::sin(turn);
-    NurbsCurve result = curve;
+    const Point point = crease_point(tops[k], s);
+    const Vector tangent = crease_tangent(tops[k], s);
 
-    for (int i = 0; i < curve.cv_count(); i++) {
-        Point point = curve.get_cv(i);
+    // a free fold: square under the one strip
+    if (k == 0)
+        return point + strip_normal(tangent, tops[0], tops[1]) * thickness;
 
-        if (mirror)
-            point = point - normal * (2.0 * normal.dot(Vector(point[0], point[1], point[2])));
+    if (k == strips)
+        return point + strip_normal(tangent, tops[k - 1], tops[k]) * thickness;
 
-        result.set_cv(i, Point(c * point[0] - s * point[1], s * point[0] + c * point[1], point[2]));
-    }
+    // an inner fold: a thickness under both strips, on their bisector square to the fold
+    const Vector before = strip_normal(tangent, tops[k - 1], tops[k]);
+    const Vector after = strip_normal(tangent, tops[k], tops[k + 1]);
 
-    return result;
+    return point + (before + after) * (thickness / (1.0 + before.dot(after)));
 }
 
-inline void CornerFan::add_strips(const std::array<NurbsCurve, 4>& first) {
+inline double CornerFan::inner_on(const std::vector<Point>& tops, size_t k, const Plane& plane, double start) const {
+
+    // the plane's side of the inner point changes within a tenth of the fold either side of start
+    const Vector normal = plane.z_axis();
+    double low = start - 0.1;
+    double high = start + 0.1;
+    const double sign = normal.dot(inner_point(tops, k, low) - plane.origin()) < 0.0 ? -1.0 : 1.0;
+
+    for (int i = 0; i < 80; i++) {
+        const double middle = 0.5 * (low + high);
+
+        if (sign * normal.dot(inner_point(tops, k, middle) - plane.origin()) > 0.0)
+            low = middle;
+        else
+            high = middle;
+    }
+
+    return 0.5 * (low + high);
+}
+
+inline std::vector<NurbsCurve> CornerFan::compute_inners(const std::vector<Point>& tops) const {
+
+    // top ends: every inner crease cut by the square's far side its fold ends on, so every strip ends on a vertical plane
+    std::vector<double> ends;
+
+    for (size_t k = 0; k <= strips; k++) {
+        const Plane side = k <= strips / 2 ? Plane::from_point_normal(tops[k], Vector(1.0, 0.0, 0.0)) : Plane::from_point_normal(tops[k], Vector(0.0, 1.0, 0.0));
+        ends.push_back(inner_on(tops, k, side, 1.0));
+    }
+
+    // feet: every strip's foot a plane through its outer foot ruling and the inner foot of the fold before, so the next fold's
+    // inner foot is found on it, strip by strip from the first free fold
+    std::vector<double> feet = {foot};
+
+    for (size_t k = 0; k < strips; k++) {
+        const Point first = crease_point(tops[k], foot);
+        const Point second = crease_point(tops[k + 1], foot);
+        const Point inner = inner_point(tops, k, feet[k]);
+        const Vector normal = (second - first).cross(inner - first).normalized();
+        feet.push_back(inner_on(tops, k + 1, Plane::from_point_normal(first, normal), foot));
+    }
+
+    // the inner creases between their feet and their ends
+    std::vector<NurbsCurve> inners;
+
+    for (size_t k = 0; k <= strips; k++) {
+        std::vector<Point> points;
+
+        for (size_t i = 0; i <= samples; i++) {
+            const double s = feet[k] + (ends[k] - feet[k]) * static_cast<double>(i) / static_cast<double>(samples);
+            points.push_back(inner_point(tops, k, s));
+        }
+
+        inners.push_back(NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform));
+    }
+
+    return inners;
+}
+
+inline void CornerFan::add_strips(const std::vector<NurbsCurve>& creases, const std::vector<NurbsCurve>& inners) {
 
     const std::shared_ptr<TreeNode> group = add_group("strips");
 
     for (size_t k = 0; k < strips; k++) {
-        // an even strip the first turned by k wedges, an odd one the first mirrored in its fold plane and turned by k - 1
-        const bool mirror = k % 2 == 1;
-        const double turn = wedge() * static_cast<double>(k - k % 2);
-        std::array<NurbsCurve, 4> curves;
-
-        for (size_t c = 0; c < 4; c++)
-            curves[c] = placed(first[c], mirror, wedge(), turn);
-
         const std::shared_ptr<PlateCurved> strip = std::make_shared<PlateCurved>(
-            curves[0],
-            curves[1],
-            curves[2],
-            curves[3],
+            creases[k],
+            creases[k + 1],
+            inners[k],
+            inners[k + 1],
             fmt::format("strip_{}", k)
         );
         add(strip, group);
 
         // its development, the proof it is cut flat
-        const Development development(curves[0], curves[1], samples);
+        const Development development(creases[k], creases[k + 1], samples);
         _distortion = std::max(_distortion, development.distortion);
     }
 }
