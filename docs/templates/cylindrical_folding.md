@@ -2,7 +2,7 @@
 
 [TOC]
 
-Folded structures of cylinders: every plate a [`PlateCurved`](@ref elements_plate_curved), straight parallel rulings over one profile, bent from a flat panel about one axis and never twisted, as glulam and curved cross-laminated timber are made. Every template is a `WoodSession` whose constructor is its recipe, one group per step, and every picture below one group of the example's scene.
+Folded structures of cylinders: every plate a [`PlateCurved`](@ref elements_plate_curved), straight parallel rulings over one profile, bent from a flat panel about one axis and never twisted, as glulam and curved cross-laminated timber are made; every plate is checked flat by the [development](@ref development) of the developable page. Every template is a `WoodSession` whose constructor is its recipe, one group per step, and every picture below one group of the example's scene.
 
 | template | header | source | examples |
 | --- | --- | --- | --- |
@@ -11,7 +11,6 @@ Folded structures of cylinders: every plate a [`PlateCurved`](@ref elements_plat
 | [`CurvedFoldedBeam`](#curved_folded_beam) | `cylindrical_folding/curved_folded_beam.h` | a closed box of four cylinder plates, flat at the supports and deep at mid-span, webs across the span | `templates_cylindrical_folding_13_curved_folded_beam` |
 | [`CornerFan`](#corner_fan) | `cylindrical_folding/corner_fan.h` | cylinder strips folded from one corner of a square on parabolic creases to its two far sides | `templates_cylindrical_folding_{14_corner_fan,15_corner_fan_subdivisions}` |
 | [`CylinderCarving`](#cylinder_carving) | `cylindrical_folding/cylinder_carving.h` | a cylinder carved by cylinders in sequence, one concave plate per carved patch | `templates_cylindrical_folding_{16_cylinder_carving,17_cylinder_carving_rings}` |
-| [`Development`](#development) | `development.h` | the unfolding of a ruled strip, the check that every plate is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, how many contacts the session's contact detection finds between them, and the development distortion and ruling twist of the worst one; on every model below the distortion is at the rounding floor (1e-14), the lamellas being exact cylinders. The contacts are the seams: every two lamellas that share a face are found, so the count below each example is the proof that its mitres meet, creases times lamellas per crease plus the joints between neighbouring barrels of a row.
 
@@ -21,18 +20,6 @@ A curved crease between two smooth developable patches is planar when the two pa
 
 For timber the cylinder is the surface to use. Its generatrices are straight and parallel, so a lamella between two of them is bent about one axis only, from a flat panel whose outline is the lamella's development; the circle is an exact rational NURBS arc, its sections by planes are exact ellipse arcs (the arc projected along the generatrices onto the plane, an affine map that keeps the arc's weights), and the ruled surface between two such sections, joining the points of equal parameter, is the exact cylinder, since both are projections of the same arc along the same direction. A `PlateCurved` built on them is therefore an exact solid: its outer and inner faces the two coaxial cylinders, its side faces the planar sections (shared with the neighbour across the crease, which is their mirror image), its caps the generatrices (shared with the next lamella along the segment).
 
-## Development {#development}
-
-`Development(a, b, samples)` unfolds the ruled strip between two curves into the plane, ruling by ruling: every quad between two rulings is split along one diagonal into two triangles laid flat with their edge lengths kept. On a developable strip, a cylinder or a cone, the quads are planar, so the other diagonal keeps its length too: its largest relative change is the `distortion`, the error of cutting the lamella from a flat panel, 0 for an exact cylinder. The `twist` measures the same on the smooth strip: the sine of the angle by which a ruling leaves the plane of the two curves' tangents. The `outline` is the flat cutting outline, drawn in every model's group `flat` beside it, every lamella where it lies on the unfolded sheet or the unrolled segment.
-
-```cpp
-const Development development(lamella->outer_a, lamella->outer_b, 32);
-development.distortion; // 0 on a cylinder, the relative length error of a twisted strip
-development.outline; // the flat outline in the xy plane, the first ruling on the y axis
-```
-
-
-Templates whose every plate is a cylinder: straight parallel rulings over one profile, bent from a flat panel about one axis.
 
 ## Reflection fold {#reflection_fold}
 

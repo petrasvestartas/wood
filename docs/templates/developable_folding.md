@@ -2,18 +2,26 @@
 
 [TOC]
 
-Folded structures of developable plates other than cylinders: cones and the strips of rulings leaving a curved crease, every plate a [`PlateCurved`](@ref elements_plate_curved) bent from a flat panel; every plate is checked flat by the [development](@ref development) of the cylindrical page.
+Folded structures of developable plates other than cylinders: cones and the strips of rulings leaving a curved crease, every plate a [`PlateCurved`](@ref elements_plate_curved) bent from a flat panel; every plate is checked flat by its [development](#development).
 
 | template | header | source | examples |
 | --- | --- | --- | --- |
 | [`CurvedFold`](#curved_fold_roof) | `developable_folding/curved_fold.h` | a tent roof of curved folds with interpolated meridians | `templates_developable_folding_1_curved_fold` |
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `developable_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault, a dome or a funnel | `templates_developable_folding_{2,3,5..12}_*` |
 | [`CreaseQuadrants`](#crease_quadrants) | `developable_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_developable_folding_4_crease_quadrants` |
+| [`Development`](#development) | `development.h` | the unfolding of a ruled strip, the check that every plate, cylinder or other developable, is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, how many contacts the session's contact detection finds between them, and the development distortion and ruling twist of the worst one; on every model below the distortion is at the rounding floor (1e-14), the lamellas being exact cylinders. The contacts are the seams: every two lamellas that share a face are found, so the count below each example is the proof that its mitres meet, creases times lamellas per crease plus the joints between neighbouring barrels of a row.
 
+## Development {#development}
 
-Templates whose plates are other developables, cones and the strips of rulings leaving a curved crease.
+`Development(a, b, samples)` unfolds the ruled strip between two curves into the plane, ruling by ruling: every quad between two rulings is split along one diagonal into two triangles laid flat with their edge lengths kept. On a developable strip, a cylinder or a cone, the quads are planar, so the other diagonal keeps its length too: its largest relative change is the `distortion`, the error of cutting the lamella from a flat panel, 0 for an exact cylinder. The `twist` measures the same on the smooth strip: the sine of the angle by which a ruling leaves the plane of the two curves' tangents. The `outline` is the flat cutting outline, drawn in every model's group `flat` beside it, every lamella where it lies on the unfolded sheet or the unrolled segment.
+
+```cpp
+const Development development(lamella->outer_a, lamella->outer_b, 32);
+development.distortion; // 0 on a cylinder, the relative length error of a twisted strip
+development.outline; // the flat outline in the xy plane, the first ruling on the y axis
+```
 
 ## Curved fold {#curved_fold_roof}
 
