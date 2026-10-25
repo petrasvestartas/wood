@@ -9,8 +9,8 @@ int main() {
 
     WoodSession rings("cylinder_carving_rings");
     const std::array<size_t, 3> counts = {4, 6, 8};
-    const std::array<double, 3> radii = {2600.0, 2000.0, 1600.0};
-    const std::array<double, 3> depths = {1400.0, 1100.0, 1100.0};
+    const std::array<double, 3> radii = {2000.0, 1600.0, 1200.0};
+    const std::array<double, 3> depths = {1600.0, 1000.0, 800.0};
 
     for (size_t r = 0; r < counts.size(); r++) {
         // the stock along x, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 17 of the cylindrical folding templates: closed rings of carved patches. The stock, 2 m radius and 12 m long along x, is carved all round by 4 cylinders of 2.6 m radius cutting 1400 mm deep, by 6 of 2 m cutting 1100 mm and by 8 of 1.6 m cutting 1100 mm, every carver's axis turned off the stock's one way and the other in turn; the three rings stand side by side. Every patch meets both neighbours, so the plates close round the stock into a fluted tube, one contact per crease; the carving is validated closed, every point of the stock's surface carved, so the plates leave no gap. Groups: ring_<carvers>.
+Step 17 of the cylindrical folding templates: closed rings of carved patches. The stock, 2 m radius and 12 m long along x, is carved all round by 4 cylinders of 2 m radius cutting 1600 mm deep, by 6 of 1.6 m cutting 1000 mm and by 8 of 1.2 m cutting 800 mm, every carver's axis turned off the stock's one way and the other in turn; the three rings stand side by side. Every patch meets both neighbours, so the plates close round the stock into a fluted tube, one contact per crease; the carving is validated closed, every point of the stock's surface carved, so the plates leave no gap. Groups: ring_<carvers>.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -399,7 +399,7 @@ A stock of 2 m radius, 12 m long, carved by three cylinders of 1.5, 1.8 and 1.3 
 
 ### Closed rings {#cylinder_carving_rings}
 
-The stock carved all round by 4 cylinders of 2.6 m radius cutting 1400 mm deep, by 6 of 2 m cutting 1100 mm and by 8 of 1.6 m cutting 1100 mm, validated closed, every axis turned off the stock's one way and the other in turn: every patch meets both neighbours, the plates close round the stock into a fluted tube, one contact per crease (example `templates_cylindrical_folding_17_cylinder_carving_rings`).
+The stock carved all round by 4 cylinders of 2 m radius cutting 1600 mm deep, by 6 of 1.6 m cutting 1000 mm and by 8 of 1.2 m cutting 800 mm, validated closed, every axis turned off the stock's one way and the other in turn: every patch meets both neighbours, the plates close round the stock into a fluted tube, one contact per crease (example `templates_cylindrical_folding_17_cylinder_carving_rings`).
 
 ![cylinder carving rings](templates/templates_cylindrical_folding_17_cylinder_carving_rings_all.webp)
 
