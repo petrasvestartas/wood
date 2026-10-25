@@ -36,8 +36,12 @@ private:
     struct Patch {
         double first; // radians, its first generator.
         double last; // radians, its last generator.
+        double behind_first; // radians, the first generator of the plate behind it, a thickness deep.
+        double behind_last; // radians, the last.
         std::vector<std::pair<double, Part>> track; // Per fine step its angle and its piece on the surface.
     };
+
+    static constexpr double least = 0.02; // mm, the shortest piece of a generator a plate keeps, so it reaches its corners.
 
     double _distortion = 0.0; // The largest relative length error of any plate's development.
 
@@ -79,33 +83,29 @@ private:
     /// The parameters along the line between which it lies inside the cylinder grown by offset; none when it misses it.
     static std::optional<std::pair<double, double>> inside(const Cylinder& cylinder, double offset, const Point& point, const Vector& direction);
 
-    /// The piece of the generator at angle grown by offset that overlaps the reference most, a millimetre long; none when none does.
+    /// The piece of the generator at angle grown by offset that overlaps the reference most, the least long; none when none does.
     std::optional<Part> pick(size_t k, double angle, double offset, const Part& reference) const;
 
-    /// Whether the generator at angle keeps the reference's piece a millimetre long on the carved surface.
-    bool keeps(size_t k, double angle, const Part& reference) const;
+    /// The last angle from angle towards side (+1 or -1) whose generator grown by offset keeps a piece overlapping the reference:
+    /// stepped to the first that does not, or back to the first that does, then bisected.
+    double reach(size_t k, double angle, double side, double offset, const Part& reference) const;
 
-    /// The piece behind the outer one a thickness deep; where the plate behind runs out first, near an end plane, the last
-    /// millimetre of the outer piece at that end, the plate thinning to a wedge so the carved surface has no gap.
-    Part behind(size_t k, double angle, const Part& outer) const;
-
-    /// Carver k's patches: its pieces followed from generator to generator by their overlap, the ends of every one exact.
+    /// Carver k's patches: its pieces followed from generator to generator by their overlap, the ends of every one exact on the
+    /// carved surface and behind it, where a crease behind reaches an end plane at another angle than the crease on the surface.
     std::vector<Patch> compute_patches(size_t k) const;
 
     /// The patch's piece nearest the angle, the reference for every pick inside it.
     static const Part& reference(const Patch& patch, double angle);
 
-    /// The angles inside the patch where an end of its piece on the surface or behind it changes what ends it.
-    std::vector<double> compute_breaks(size_t k, const Patch& patch) const;
+    /// What ends the patch's piece at angle grown by offset at its start and at its end; -1 where it keeps none.
+    std::array<int, 2> enders(size_t k, const Patch& patch, double angle, double offset) const;
 
-    /// What ends each of the four boundaries of the patch at angle: the surface's start and end, the plate's start and end.
-    std::array<int, 4> enders(size_t k, const Patch& patch, double angle) const;
+    /// The angles from first to last where an end of the patch's piece grown by offset changes what ends it.
+    std::vector<double> compute_breaks(size_t k, const Patch& patch, double offset, double first, double last) const;
 
-    /// Throws when two carved patches meet at less than min_angle.
+    /// Throws when two carved patches meet at less than min_angle, or, closed, when a patch ends on the stock's surface: the point
+    /// it ends at lies in no other carver, so the stock's surface beside it is left uncarved, a gap between the patches.
     void validate(size_t k, const Patch& patch) const;
-
-    /// Throws when a point of the stock's surface between its end planes lies outside every carver, a gap between the patches.
-    void validate_closed() const;
 
     /// The unit normal of cylinder c at point, away from its axis.
     static Vector radial(const Cylinder& cylinder, const Point& point);
@@ -132,10 +132,6 @@ inline CylinderCarving::CylinderCarving(
 
     if (carvers.empty() || length <= 0.0 || thickness <= 0.0)
         throw std::invalid_argument("A cylinder carving needs a carver, a length and a thickness");
-
-    // closed: every point of the stock's surface carved, so the patches leave no gap
-    if (closed)
-        validate_closed();
 
     // plates: every carver's surface left inside the stock and outside the other carvers, every patch of it a plate behind it
     add_plates();
@@ -264,10 +260,11 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::pick(size_t k, doub
     std::optional<Part> best;
     double best_overlap = 0.0;
 
+    // the reference grown by offset, as a tilted end plane meets the generator behind up to that much further along it
     for (const Part& piece : parts(k, angle, offset)) {
-        const double overlap = std::min(piece.high, reference.high) - std::max(piece.low, reference.low);
+        const double overlap = std::min(piece.high, reference.high + offset) - std::max(piece.low, reference.low - offset);
 
-        if (piece.high - piece.low > 1.0 && overlap > best_overlap) {
+        if (piece.high - piece.low > least && overlap > best_overlap) {
             best = piece;
             best_overlap = overlap;
         }
@@ -276,23 +273,39 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::pick(size_t k, doub
     return best;
 }
 
-inline bool CylinderCarving::keeps(size_t k, double angle, const Part& reference) const {
+inline double CylinderCarving::reach(size_t k, double angle, double side, double offset, const Part& reference) const {
 
-    return pick(k, angle, 0.0, reference).has_value();
-}
+    // a fine step at a time to the change, one angle that keeps a piece and one that does not
+    const double step = 2.0 * Tolerance::PI / 1440.0;
+    double keep = angle;
+    double lose = angle + side * step;
 
-inline CylinderCarving::Part CylinderCarving::behind(size_t k, double angle, const Part& outer) const {
+    if (pick(k, angle, offset, reference)) {
+        for (int i = 0; i < 1440 && pick(k, lose, offset, reference); i++) {
+            keep = lose;
+            lose = lose + side * step;
+        }
+    } else {
+        lose = angle;
+        keep = angle - side * step;
 
-    const std::optional<Part> inner = pick(k, angle, thickness, outer);
+        for (int i = 0; i < 1440 && !pick(k, keep, offset, reference); i++) {
+            lose = keep;
+            keep = keep - side * step;
+        }
+    }
 
-    if (inner)
-        return *inner;
+    // the change by bisection
+    for (int i = 0; i < 50; i++) {
+        const double middle = 0.5 * (keep + lose);
 
-    // the end of the outer piece on an end plane, a millimetre of it
-    if (outer.high_by == 1 || outer.high_by == 2)
-        return {outer.high - 1.0, outer.high, outer.low_by, outer.high_by};
+        if (pick(k, middle, offset, reference))
+            keep = middle;
+        else
+            lose = middle;
+    }
 
-    return {outer.low, outer.low + 1.0, outer.low_by, outer.high_by};
+    return keep;
 }
 
 inline const CylinderCarving::Part& CylinderCarving::reference(const Patch& patch, double angle) {
@@ -318,7 +331,7 @@ inline std::vector<CylinderCarving::Patch> CylinderCarving::compute_patches(size
         const double angle = step * static_cast<double>(i);
 
         for (const Part& piece : parts(k, angle, 0.0))
-            if (piece.high - piece.low > 1.0)
+            if (piece.high - piece.low > least)
                 pieces[i].push_back(piece);
 
         if (pieces[i].empty() && start == count)
@@ -355,7 +368,7 @@ inline std::vector<CylinderCarving::Patch> CylinderCarving::compute_patches(size
             }
 
             if (next[p] < 0) {
-                patches.push_back({angle, angle, {}});
+                patches.push_back({angle, angle, angle, angle, {}});
                 next[p] = static_cast<int>(patches.size() - 1);
             }
 
@@ -366,69 +379,53 @@ inline std::vector<CylinderCarving::Patch> CylinderCarving::compute_patches(size
         open = next;
     }
 
-    // every patch of three steps or more, both ends by bisection to its last generator, so neighbours meet without a gap
+    // every patch of three steps or more, both ends exact on the surface and behind it, so neighbours meet without a gap
     std::vector<Patch> kept;
 
     for (Patch& patch : patches) {
         if (patch.track.size() < 3)
             continue;
 
-        for (size_t e = 0; e < 2; e++) {
-            double inside = e == 0 ? patch.first : patch.last;
-            double outside = e == 0 ? inside - step : inside + step;
-            const Part& end = e == 0 ? patch.track.front().second : patch.track.back().second;
-
-            for (int i = 0; i < 50; i++) {
-                const double middle = 0.5 * (inside + outside);
-
-                if (keeps(k, middle, end))
-                    inside = middle;
-                else
-                    outside = middle;
-            }
-
-            if (e == 0)
-                patch.first = inside;
-            else
-                patch.last = inside;
-        }
-
+        const Part& front = patch.track.front().second;
+        const Part& back = patch.track.back().second;
+        patch.first = reach(k, patch.first, -1.0, 0.0, front);
+        patch.last = reach(k, patch.last, 1.0, 0.0, back);
+        patch.behind_first = reach(k, patch.first, -1.0, thickness, front);
+        patch.behind_last = reach(k, patch.last, 1.0, thickness, back);
         kept.push_back(patch);
     }
 
     return kept;
 }
 
-inline std::array<int, 4> CylinderCarving::enders(size_t k, const Patch& patch, double angle) const {
+inline std::array<int, 2> CylinderCarving::enders(size_t k, const Patch& patch, double angle, double offset) const {
 
-    const std::optional<Part> outer = pick(k, angle, 0.0, reference(patch, angle));
+    const std::optional<Part> piece = pick(k, angle, offset, reference(patch, angle));
 
-    if (!outer)
-        return {-1, -1, -1, -1};
+    if (!piece)
+        return {-1, -1};
 
-    const Part inner = behind(k, angle, *outer);
-
-    return {outer->low_by, outer->high_by, inner.low_by, inner.high_by};
+    return {piece->low_by, piece->high_by};
 }
 
-inline std::vector<double> CylinderCarving::compute_breaks(size_t k, const Patch& patch) const {
+inline std::vector<double> CylinderCarving::compute_breaks(size_t k, const Patch& patch, double offset, double first, double last) const {
 
-    // fine steps over the patch; where what ends a boundary changes, the angle of the change by bisection
+    // fine steps from first to last; where what ends a boundary changes, the angle of the change by bisection
     const size_t count = 4 * samples;
-    std::vector<double> breaks = {patch.first};
+    std::vector<double> breaks = {first};
 
     for (size_t i = 0; i < count; i++) {
-        double low = patch.first + (patch.last - patch.first) * static_cast<double>(i) / static_cast<double>(count);
-        double high = patch.first + (patch.last - patch.first) * static_cast<double>(i + 1) / static_cast<double>(count);
-        const std::array<int, 4> at_low = enders(k, patch, low);
+        double low = first + (last - first) * static_cast<double>(i) / static_cast<double>(count);
+        double high = first + (last - first) * static_cast<double>(i + 1) / static_cast<double>(count);
+        const std::array<int, 2> at_low = enders(k, patch, low, offset);
 
-        if (at_low == enders(k, patch, high))
+        if (at_low == enders(k, patch, high, offset))
             continue;
 
         for (int step = 0; step < 50; step++) {
             const double middle = 0.5 * (low + high);
 
-            if (enders(k, patch, middle) == at_low)
+            if (enders(k, patch, middle, offset) == at_low)
                 low = middle;
             else
                 high = middle;
@@ -438,8 +435,8 @@ inline std::vector<double> CylinderCarving::compute_breaks(size_t k, const Patch
             breaks.push_back(0.5 * (low + high));
     }
 
-    if (patch.last - breaks.back() > 1e-6)
-        breaks.push_back(patch.last);
+    if (last - breaks.back() > 1e-6)
+        breaks.push_back(last);
     else
         breaks.back() = patch.last;
 
@@ -448,9 +445,14 @@ inline std::vector<double> CylinderCarving::compute_breaks(size_t k, const Patch
 
 inline void CylinderCarving::validate(size_t k, const Patch& patch) const {
 
-    // every crease of the patch with another carver at a clear angle
+    // every crease of the patch with another carver at a clear angle; closed, no end on the stock's surface
     for (const std::pair<double, Part>& step : patch.track) {
         const std::pair<Point, Vector> line = generator(k, step.first, 0.0);
+
+        if (closed && (step.second.low_by == 0 || step.second.high_by == 0)) {
+            const Point point = line.first + line.second * (step.second.low_by == 0 ? step.second.low : step.second.high);
+            throw std::invalid_argument(fmt::format("Carver {} ends on the stock's surface at ({:.0f}, {:.0f}, {:.0f}), leaving it uncarved beside it, a gap between the patches", k, point[0], point[1], point[2]));
+        }
 
         for (const std::pair<double, int>& end : {std::make_pair(step.second.low, step.second.low_by), std::make_pair(step.second.high, step.second.high_by)}) {
             if (end.second < 3)
@@ -467,34 +469,6 @@ inline void CylinderCarving::validate(size_t k, const Patch& patch) const {
     }
 }
 
-inline void CylinderCarving::validate_closed() const {
-
-    // the stock's surface on a grid round it and along it, every point inside a carver
-    const Vector axis = stock.direction.normalized();
-    const Vector helper = std::abs(axis[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0);
-    const Vector u = axis.cross(helper).normalized();
-    const Vector v = axis.cross(u).normalized();
-    const size_t around = 720;
-    const size_t along = 240;
-
-    for (size_t i = 0; i < around; i++)
-        for (size_t j = 0; j <= along; j++) {
-            const double angle = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(around);
-            const double x = length * static_cast<double>(j) / static_cast<double>(along);
-            const Point point = stock.point + axis * x + u * (stock.radius * std::cos(angle)) + v * (stock.radius * std::sin(angle));
-            bool carved = false;
-
-            for (size_t k = 0; k < carvers.size() && !carved; k++) {
-                const Vector c = carvers[k].direction.normalized();
-                const Vector offset = point - carvers[k].point;
-                carved = (offset - c * offset.dot(c)).magnitude() < carvers[k].radius;
-            }
-
-            if (!carved)
-                throw std::invalid_argument(fmt::format("The carvers leave the stock's surface uncarved at {:.0f} degrees round it, {:.0f} mm along it, a gap between the patches", angle * Tolerance::TO_DEGREES, x));
-        }
-}
-
 inline void CylinderCarving::add_plates() {
 
     const std::shared_ptr<TreeNode> group = add_group("plates");
@@ -506,8 +480,13 @@ inline void CylinderCarving::add_plates() {
             const Patch& patch = patches[p];
             validate(k, patch);
 
-            // the patch cut where any boundary changes what ends it, every piece smooth, the four boundaries cut at the same angles
-            const std::vector<double> breaks = compute_breaks(k, patch);
+            // the patch cut where a boundary changes what ends it, on the surface and behind it alike, every piece smooth
+            const std::vector<double> breaks = compute_breaks(k, patch, 0.0, patch.first, patch.last);
+            const std::vector<double> behind = compute_breaks(k, patch, thickness, patch.behind_first, patch.behind_last);
+
+            if (breaks.size() != behind.size())
+                throw std::invalid_argument(fmt::format("Carver {}'s plate {} ends in {} pieces on the surface and {} behind it", k, p, breaks.size() - 1, behind.size() - 1));
+
             std::array<std::vector<NurbsCurve>, 4> pieces;
 
             for (size_t b = 0; b + 1 < breaks.size(); b++) {
@@ -515,21 +494,24 @@ inline void CylinderCarving::add_plates() {
                 const size_t steps = std::max<size_t>(3, static_cast<size_t>(std::ceil(share * static_cast<double>(samples))));
                 std::array<std::vector<Point>, 4> points;
 
-                // every generator of the piece clipped on the carved surface and, a thickness behind it, on the carvers grown alike
+                // every generator of the piece on the carved surface and its match a thickness behind it, the two pieces spanned
+                // alike so their corners meet on the same edge of a side face
                 for (size_t i = 0; i <= steps; i++) {
-                    const double angle = breaks[b] + (breaks[b + 1] - breaks[b]) * static_cast<double>(i) / static_cast<double>(steps);
+                    const double t = static_cast<double>(i) / static_cast<double>(steps);
+                    const double angle = breaks[b] + (breaks[b + 1] - breaks[b]) * t;
+                    const double behind_angle = behind[b] + (behind[b + 1] - behind[b]) * t;
                     const std::pair<Point, Vector> outer = generator(k, angle, 0.0);
-                    const std::pair<Point, Vector> inner = generator(k, angle, thickness);
+                    const std::pair<Point, Vector> inner = generator(k, behind_angle, thickness);
                     const std::optional<Part> outer_part = pick(k, angle, 0.0, reference(patch, angle));
+                    const std::optional<Part> inner_part = pick(k, behind_angle, thickness, reference(patch, behind_angle));
 
-                    if (!outer_part)
-                        throw std::invalid_argument(fmt::format("Carver {} leaves no carved surface at its generator at {:.3f} radians", k, angle));
+                    if (!outer_part || !inner_part)
+                        throw std::invalid_argument(fmt::format("Carver {} leaves no plate at its generator at {:.3f} radians", k, outer_part ? behind_angle : angle));
 
-                    const Part inner_part = behind(k, angle, *outer_part);
                     points[0].push_back(outer.first + outer.second * outer_part->low);
                     points[1].push_back(outer.first + outer.second * outer_part->high);
-                    points[2].push_back(inner.first + inner.second * inner_part.low);
-                    points[3].push_back(inner.first + inner.second * inner_part.high);
+                    points[2].push_back(inner.first + inner.second * inner_part->low);
+                    points[3].push_back(inner.first + inner.second * inner_part->high);
                 }
 
                 for (size_t c = 0; c < 4; c++)

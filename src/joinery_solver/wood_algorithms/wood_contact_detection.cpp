@@ -75,6 +75,22 @@ boundary_on(const std::vector<Point>& points, const std::vector<Point>& other, d
     return on;
 }
 
+/// Whether both boundaries of a face are shorter than tolerance: the face narrowed to a line, which touches nothing.
+bool narrowed(const std::array<std::vector<Point>, 2>& face, double tolerance) {
+
+    for (const std::vector<Point>& boundary : face) {
+        double length = 0.0;
+
+        for (size_t k = 0; k + 1 < boundary.size(); k++)
+            length += boundary[k].distance(boundary[k + 1]);
+
+        if (length > tolerance)
+            return false;
+    }
+
+    return true;
+}
+
 /// A face as the strip of triangles between its two sampled boundaries.
 Mesh face_strip(const std::array<std::vector<Point>, 2>& face) {
 
@@ -132,6 +148,10 @@ curved_contacts(const PlateCurved& a, const PlateCurved& b, double tolerance) {
 
     for (size_t i = 0; i < 6; i++)
         for (size_t j = 0; j < 6; j++) {
+            // an end narrowed to a line, as a plate's where it closes on a crease, is no contact
+            if (narrowed(faces_a[i], tolerance) || narrowed(faces_b[j], tolerance))
+                continue;
+
             const size_t found = contacts.size();
 
             for (size_t order = 0; order < 2; order++) {
