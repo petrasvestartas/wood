@@ -2,13 +2,14 @@
 
 [TOC]
 
-Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `curved_folding/`, `chevron/`, `cross/`, `module/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
+Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `cylindrical_folding/`, `developable_folding/`, `chevron/`, `cross/`, `module/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
 
 | Template | Header | Example | Elements |
 | --- | --- | --- | --- |
 | [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | `TranslationShell`: one mitered, chamfered plate per swept quad |
 | [Folding flat](@ref templates_folding) | `folding/*.h` | `templates_folding_*` | planar plates folded along straight creases: reflex, diamond, prismatic, counter-running, conical, single, diagonal and triangle folds, folded frames and truncated pyramids, every plate offset exactly with flush mitres |
-| [Folding curved](@ref templates_curved_folding) | `curved_folding/*.h` | `templates_curved_folding_*` | curved plates bent from flat panels and folded on curved creases, in two sections: cylindrical folding (reflection folds, cylinder vaults, the curved-folded beam, the corner fan, cylinder carvings), every plate a cylinder, and developable folding (curved folds, curved-crease unfoldings, crease quadrants), cones and other developables |
+| [Folding cylindrical](@ref templates_cylindrical_folding) | `cylindrical_folding/*.h` | `templates_cylindrical_folding_*` | curved plates that are cylinders, bent from flat panels and folded on curved creases: reflection folds, cylinder vaults, the curved-folded beam, the corner fan, cylinder carvings |
+| [Folding developable](@ref templates_developable_folding) | `developable_folding/*.h` | `templates_developable_folding_*` | curved plates that are cones and other developables: curved folds, curved-crease unfoldings, crease quadrants |
 | [Chevron](@ref templates_chevron) | `chevron/chevron.h` | `templates_chevron_1_chevron` | four plates per face of an Annen surface |
 | [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | one plate per face plus connector plates across every interior edge |
 | [Wall module](@ref templates_module) | `module/wall.h` | `templates_module_1_wall` | `Wall`: rails, studs, jamb studs, headers, sills and cripples as beams of one section, the studs on a 625 mm grid and jamb studs at every opening, one sheathing plate on each face with the openings cut out, a face contact between every member and panel that touch |
@@ -23,7 +24,8 @@ Generators under `src/templates/`, one folder per family (`shells/`, `folding/`,
 
 - @subpage templates_shells
 - @subpage templates_folding
-- @subpage templates_curved_folding
+- @subpage templates_cylindrical_folding
+- @subpage templates_developable_folding
 - @subpage templates_chevron
 - @subpage templates_cross
 - @subpage templates_module

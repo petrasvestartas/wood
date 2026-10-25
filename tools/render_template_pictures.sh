@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Every picture of the shells, folding, curved_folding, chevron, cross, reciprocal and module template pages, rendered by the session_viewer through
+# Every picture of the shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal and module template pages, rendered by the session_viewer through
 # render_template_docs.py from the built examples: the recipe, so the pages can be regenerated whole after any change.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, curved_folding, chevron, cross, reciprocal or module
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal or module
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows).
 set -euo pipefail
@@ -55,37 +55,40 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_39_truncated_pyramid_corner_edge_folds plates
 fi
 
-if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_1_curved_fold lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_2_reflection lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_3_curved_folded_plate lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_4_mendrisio_pavilion lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_5_groin_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_8_pavilion_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_9_pentagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_10_octagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_11_hexagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_13_two_hinged_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_15_two_hinged_arch lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_16_arch_with_top_hinge lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_17_a_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_20_curved_crease_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_21_catenary_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_22_crease_quadrants all
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_23_synclastic_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_24_anticlastic_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_25_apex_level_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_26_support_level_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_27_alternating_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_28_sideways_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_29_corrugated_dome plates
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_30_corrugated_funnel plates
-    "${RENDER[@]}" --hide-contacts --opacity 0.95 templates_curved_folding_31_curved_folded_beam all
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_32_corner_fan strips
-    "${RENDER[@]}" --hide-contacts --view top --name plan templates_curved_folding_32_corner_fan strips
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_33_corner_fan_subdivisions all
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_34_cylinder_carving all
-    "${RENDER[@]}" --hide-contacts templates_curved_folding_35_cylinder_carving_rings all
+if [ "$FAMILY" = all ] || [ "$FAMILY" = cylindrical_folding ]; then
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_1_reflection lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_2_curved_folded_plate lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_3_mendrisio_pavilion lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_4_two_hinged_frame lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_5_two_hinged_arch lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_6_arch_with_top_hinge lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_7_a_frame lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_8_groin_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_9_pavilion_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_10_pentagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_11_hexagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_12_octagon_vault lamellas
+    "${RENDER[@]}" --hide-contacts --opacity 0.95 templates_cylindrical_folding_13_curved_folded_beam all
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_14_corner_fan strips
+    "${RENDER[@]}" --hide-contacts --view top --name plan templates_cylindrical_folding_14_corner_fan strips
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_15_corner_fan_subdivisions all
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_16_cylinder_carving all
+    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_17_cylinder_carving_rings all
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_1_curved_fold lamellas
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_2_curved_crease_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_3_catenary_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_4_crease_quadrants all
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_5_synclastic_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_6_anticlastic_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_7_apex_level_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_8_support_level_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_9_alternating_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_10_sideways_unfolding plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_11_corrugated_dome plates
+    "${RENDER[@]}" --hide-contacts templates_developable_folding_12_corrugated_funnel plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
