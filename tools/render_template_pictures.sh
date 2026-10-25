@@ -85,6 +85,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = curved_folding ]; then
     "${RENDER[@]}" --hide-contacts --view top --name plan templates_curved_folding_32_corner_fan strips
     "${RENDER[@]}" --hide-contacts templates_curved_folding_33_corner_fan_subdivisions all
     "${RENDER[@]}" --hide-contacts templates_curved_folding_34_cylinder_carving all
+    "${RENDER[@]}" --hide-contacts templates_curved_folding_35_cylinder_carving_rings all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

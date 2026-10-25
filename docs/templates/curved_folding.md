@@ -10,7 +10,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | cylindrical | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | equal cylinders over a regular polygon meeting on planar creases | `templates_curved_folding_{5_groin_vault,8_pavilion_vault,9_pentagon_vault,10_octagon_vault,11_hexagon_vault}` |
 | cylindrical | [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, flat at the supports and deep at mid-span, the top and bottom bulging out, the sides sagging in, webs across the span | `templates_curved_folding_31_curved_folded_beam` |
 | cylindrical | [`CornerFan`](#corner_fan) | `curved_folding/corner_fan.h` | cylinder strips folded from one corner of a square on parabolic creases to its two far sides | `templates_curved_folding_{32_corner_fan,33_corner_fan_subdivisions}` |
-| cylindrical | [`CylinderCarving`](#cylinder_carving) | `curved_folding/cylinder_carving.h` | a cylinder carved by tilted cylinders in sequence, one concave plate per carved patch | `templates_curved_folding_34_cylinder_carving` |
+| cylindrical | [`CylinderCarving`](#cylinder_carving) | `curved_folding/cylinder_carving.h` | a cylinder carved by tilted cylinders in sequence, one concave plate per carved patch | `templates_curved_folding_{34_cylinder_carving,35_cylinder_carving_rings}` |
 | developable | [`CurvedFold`](#curved_fold_roof) | `curved_folding/curved_fold.h` | a tent roof of curved folds with interpolated meridians | `templates_curved_folding_1_curved_fold` |
 | developable | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | developable | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
@@ -398,6 +398,18 @@ A stock of 2 m radius, 12 m long, carved by three cylinders of 1.5, 1.8 and 1.3 
 <details><summary>Example code: templates_curved_folding_34_cylinder_carving.cpp</summary>
 
 \include{lineno} templates_curved_folding_34_cylinder_carving.cpp
+
+</details>
+
+#### Closed rings {#cylinder_carving_rings}
+
+The stock carved all round by 4 cylinders of 2 m radius cutting 1100 mm deep, by 6 of 1.6 m cutting 800 mm and by 8 of 1.2 m cutting 500 mm, every axis turned off the stock's one way and the other in turn: every patch meets both neighbours, the plates close round the stock into a fluted tube, one contact per crease (example `templates_curved_folding_35_cylinder_carving_rings`).
+
+![cylinder carving rings](templates/templates_curved_folding_35_cylinder_carving_rings_all.webp)
+
+<details><summary>Example code: templates_curved_folding_35_cylinder_carving_rings.cpp</summary>
+
+\include{lineno} templates_curved_folding_35_cylinder_carving_rings.cpp
 
 </details>
 

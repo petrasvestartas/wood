@@ -71,8 +71,11 @@ private:
     /// The parameters along the line between which it lies inside the cylinder grown by offset; none when it misses it.
     static std::optional<std::pair<double, double>> inside(const Cylinder& cylinder, double offset, const Point& point, const Vector& direction);
 
-    /// The angles of carver k's longest run of generators that keep a millimetre on the surface and behind it.
+    /// The angles of carver k's longest run of generators that keep a millimetre on the surface and behind it, its ends exact.
     std::optional<std::pair<double, double>> compute_run(size_t k) const;
+
+    /// Whether carver k's generator at angle keeps a millimetre on the surface and behind it.
+    bool keeps(size_t k, double angle) const;
 
     /// The angles between first and last where an end of the surface's or the plate's part changes what ends it.
     std::vector<double> compute_breaks(size_t k, double first, double last) const;
@@ -271,9 +274,7 @@ inline std::optional<std::pair<double, double>> CylinderCarving::compute_run(siz
 
     for (size_t i = 0; i < count; i++) {
         const double angle = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(count);
-        const std::optional<Part> outer = part(k, angle, 0.0);
-        const std::optional<Part> inner = part(k, angle, thickness);
-        carves.push_back(outer && inner && outer->high - outer->low > 1.0 && inner->high - inner->low > 1.0);
+        carves.push_back(keeps(k, angle));
     }
 
     // the longest run of carving generators, round the circle
@@ -298,9 +299,35 @@ inline std::optional<std::pair<double, double>> CylinderCarving::compute_run(siz
     if (best_length < 3)
         return std::nullopt;
 
+    // both ends of the run by bisection to the last generator that keeps a millimetre, so neighbours meet without a gap
     const double step = 2.0 * Tolerance::PI / static_cast<double>(count);
+    std::array<double, 2> ends = {step * static_cast<double>(best_start), step * static_cast<double>(best_start + best_length - 1)};
 
-    return std::make_pair(step * static_cast<double>(best_start), step * static_cast<double>(best_start + best_length - 1));
+    for (size_t e = 0; e < 2 && best_length < count; e++) {
+        double inside = ends[e];
+        double outside = e == 0 ? inside - step : inside + step;
+
+        for (int i = 0; i < 50; i++) {
+            const double middle = 0.5 * (inside + outside);
+
+            if (keeps(k, middle))
+                inside = middle;
+            else
+                outside = middle;
+        }
+
+        ends[e] = inside;
+    }
+
+    return std::make_pair(ends[0], ends[1]);
+}
+
+inline bool CylinderCarving::keeps(size_t k, double angle) const {
+
+    const std::optional<Part> outer = part(k, angle, 0.0);
+    const std::optional<Part> inner = part(k, angle, thickness);
+
+    return outer && inner && outer->high - outer->low > 1.0 && inner->high - inner->low > 1.0;
 }
 
 inline std::array<int, 4> CylinderCarving::enders(size_t k, double angle) const {
