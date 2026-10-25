@@ -10,7 +10,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | cylindrical | [`CylinderVault`](#cylinder_vault) | `curved_folding/cylinder_vault.h` | equal cylinders over a regular polygon meeting on planar creases | `templates_curved_folding_{5_groin_vault,8_pavilion_vault,9_pentagon_vault,10_octagon_vault,11_hexagon_vault}` |
 | cylindrical | [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, flat at the supports and deep at mid-span, the top and bottom bulging out, the sides sagging in, webs across the span | `templates_curved_folding_31_curved_folded_beam` |
 | cylindrical | [`CornerFan`](#corner_fan) | `curved_folding/corner_fan.h` | cylinder strips folded from one corner of a square on parabolic creases to its two far sides | `templates_curved_folding_{32_corner_fan,33_corner_fan_subdivisions}` |
-| cylindrical | [`CylinderIntersection`](#cylinder_intersection) | `curved_folding/cylinder_intersection.h` | parallel cylinders intersected in sequence, one plate per surviving arc | `templates_curved_folding_34_cylinder_intersection` |
+| cylindrical | [`CylinderCarving`](#cylinder_carving) | `curved_folding/cylinder_carving.h` | a cylinder carved by tilted cylinders in sequence, one concave plate per carved patch | `templates_curved_folding_34_cylinder_carving` |
 | developable | [`CurvedFold`](#curved_fold_roof) | `curved_folding/curved_fold.h` | a tent roof of curved folds with interpolated meridians | `templates_curved_folding_1_curved_fold` |
 | developable | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | developable | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
@@ -387,17 +387,17 @@ The same fan divided into 2, 4, 8 and 12 strips, each placed by its `corner` and
 
 </details>
 
-### Cylinder intersection {#cylinder_intersection}
+### Cylinder carving {#cylinder_carving}
 
-`CylinderIntersection(cylinders, length, thickness, origin)` (`curved_folding/cylinder_intersection.h`): parallel cylinders along x, each a circle in the section, intersected in sequence, ((a and b) and c) and so on. Every arc of a circle that lies inside all the others is one curved plate, offset a `thickness` inside; two neighbours meet on the plane through their outer and inner creases, straight lines along the axis, so every mitre is planar.
+`CylinderCarving(stock, carvers, length, thickness)` (`curved_folding/cylinder_carving.h`): a cylinder `stock` carved by any number of cylinders in sequence, ((a - b) - c) - d, every one of its own axis and radius. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one plate a `thickness` behind it in the stock. Every generator of a carver is clipped exactly, so every plate is a cylinder; two patches meet on the curve where their cylinders cross, both plates ending on the crossing of their grown cylinders, a patch's free edge is cut square at the stock's surface and its ends on the stock's end planes. Every boundary is cut where what ends it changes, so its corners stay sharp. A carver that passes through the middle of another's patch, splitting it in two, is not handled.
 
-Four cylinders of 3 m radius, 12 m long, their axes 1.5 m either side and 1.8 m above and below: a and b a lens of two plates, with c three, with d four, one contact per crease (example `templates_curved_folding_34_cylinder_intersection`).
+A stock of 2 m radius, 12 m long, carved by three cylinders of 1.5, 1.8 and 1.3 m radius, their axes turned a few degrees and shifted over its top: a - b, (a - b) - c and ((a - b) - c) - d side by side (example `templates_curved_folding_34_cylinder_carving`).
 
-![cylinder intersection](templates/templates_curved_folding_34_cylinder_intersection_all.webp)
+![cylinder carving](templates/templates_curved_folding_34_cylinder_carving_all.webp)
 
-<details><summary>Example code: templates_curved_folding_34_cylinder_intersection.cpp</summary>
+<details><summary>Example code: templates_curved_folding_34_cylinder_carving.cpp</summary>
 
-\include{lineno} templates_curved_folding_34_cylinder_intersection.cpp
+\include{lineno} templates_curved_folding_34_cylinder_carving.cpp
 
 </details>
 
