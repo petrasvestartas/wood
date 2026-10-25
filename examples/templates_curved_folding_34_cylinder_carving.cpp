@@ -31,6 +31,7 @@ int main() {
             12000.0,
             60.0,
             10.0 * Tolerance::TO_RADIANS,
+            false,
             fmt::format("carving_{}", count)
         );
         const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();

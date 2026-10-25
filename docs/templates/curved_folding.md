@@ -389,7 +389,7 @@ The same fan divided into 2, 4, 8 and 12 strips, each placed by its `corner` and
 
 ### Cylinder carving {#cylinder_carving}
 
-`CylinderCarving(stock, carvers, length, thickness, min_angle)` (`curved_folding/cylinder_carving.h`): a cylinder `stock` carved by any number of cylinders in sequence, ((a - b) - c) - d, every one of its own axis and radius. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one plate a `thickness` behind it in the stock. Every generator of a carver is clipped exactly, so every plate is a cylinder; two patches meet on the curve where their cylinders cross, both plates ending on the crossing of their grown cylinders, a patch's free edge is cut square at the stock's surface and its ends on the stock's end planes. Every boundary is cut where what ends it changes, so its corners stay sharp. The inputs are validated first: every carver must leave a patch, none may cut another's patch in two, and two patches must meet at `min_angle` or more, else the carving throws naming the carvers.
+`CylinderCarving(stock, carvers, length, thickness, min_angle, closed)` (`curved_folding/cylinder_carving.h`): a cylinder `stock` carved by any number of cylinders in sequence, ((a - b) - c) - d, every one of its own axis and radius. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one plate a `thickness` behind it in the stock. Every generator of a carver is clipped exactly, so every plate is a cylinder; two patches meet on the curve where their cylinders cross, both plates ending on the crossing of their grown cylinders, a patch's free edge is cut square at the stock's surface and its ends on the stock's end planes. Every boundary is cut where what ends it changes, so its corners stay sharp. A carver crossing another's patch cuts it in two, each piece its own plate. The inputs are validated: two patches must meet at `min_angle` or more, and with `closed` every point of the stock's surface must be carved, so the patches leave no gap; else the carving throws naming the carvers or the gap.
 
 A stock of 2 m radius, 12 m long, carved by three cylinders of 1.5, 1.8 and 1.3 m radius, their axes 40 degrees apart over its top, cutting 700 mm deep and turned a few degrees: a - b, (a - b) - c and ((a - b) - c) - d side by side (example `templates_curved_folding_34_cylinder_carving`).
 
@@ -403,7 +403,7 @@ A stock of 2 m radius, 12 m long, carved by three cylinders of 1.5, 1.8 and 1.3 
 
 #### Closed rings {#cylinder_carving_rings}
 
-The stock carved all round by 4 cylinders of 2 m radius cutting 1100 mm deep, by 6 of 1.6 m cutting 800 mm and by 8 of 1.2 m cutting 500 mm, every axis turned off the stock's one way and the other in turn: every patch meets both neighbours, the plates close round the stock into a fluted tube, one contact per crease (example `templates_curved_folding_35_cylinder_carving_rings`).
+The stock carved all round by 4 cylinders of 2.6 m radius cutting 1400 mm deep, by 6 of 2 m cutting 1100 mm and by 8 of 1.6 m cutting 1100 mm, validated closed, every axis turned off the stock's one way and the other in turn: every patch meets both neighbours, the plates close round the stock into a fluted tube, one contact per crease (example `templates_curved_folding_35_cylinder_carving_rings`).
 
 ![cylinder carving rings](templates/templates_curved_folding_35_cylinder_carving_rings_all.webp)
 
