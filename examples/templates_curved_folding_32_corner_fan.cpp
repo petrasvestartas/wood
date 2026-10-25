@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A corner fan: six developable conical strips folded from one bottom corner of a 6 x 6 x 4 m box up to its far top edges.
+/// A corner fan: six developable strips folded from one bottom corner on parabolic creases, the folds ending high and low in turn.
 int main() {
 
     CornerFan fan;
@@ -23,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 32 of the curved folding templates: a corner fan. Every fold is a straight line from one bottom corner of a box 6 m wide, 6 m deep and 4 m high to a point on its two far top edges. Between two folds each strip is a cone with its apex at the corner, its top edge a parabola rising 400 mm, every strip bulging the same way so two meet at an angle on every fold; a cone is developable, so every strip is cut from a flat panel and bent. The strips are 40 mm thick, cut a sixth of the way up from the corner, and two neighbours meet on the plane bisecting them at their fold. Groups: strips.
+Step 32 of the curved folding templates: a corner fan. Six strips fill the quarter between the two box faces at one bottom corner. Every fold is a parabola from three points, the corner, a control point lifted 1200 mm above the chord's middle and the top 6 m out and 4 m up, lying in a vertical plane through the corner; between two folds the strip is a parabolic cylinder of straight rulings, developable, and the next strip is its mirror image in the fold's plane. The rulings are tilted so the folds end 800 mm lower in every second plane, the straight top edges zigzagging. 40 mm plates meeting on the fold planes, cut at 15 percent of the way up. Groups: strips.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
