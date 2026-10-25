@@ -12,6 +12,7 @@ Folded structures whose creases are curves: every lamella is a curved plate, a [
 | [`CurvedCreaseUnfolding`](#curved_crease_unfolding) | `curved_folding/curved_crease_unfolding.h` | flat plates with curved edges hinged into a corrugated vault | `templates_curved_folding_{20_curved_crease_unfolding,21_catenary_unfolding,23_synclastic_unfolding,..,30_corrugated_funnel}` |
 | [`CreaseQuadrants`](#crease_quadrants) | `curved_folding/crease_quadrants.h` | the four ways two strips join on one planar curved crease | `templates_curved_folding_22_crease_quadrants` |
 | [`CurvedFoldedBeam`](#curved_folded_beam) | `curved_folding/curved_folded_beam.h` | a closed box of four curved plates, flat at the supports and deep at mid-span, the top and bottom bulging out, the sides sagging in, webs across the span | `templates_curved_folding_31_curved_folded_beam` |
+| [`CornerFan`](#corner_fan) | `curved_folding/corner_fan.h` | developable conical strips folded from one bottom corner of a box to its two far top edges | `templates_curved_folding_32_corner_fan` |
 | [`Development`](#development) | `curved_folding/development.h` | the unfolding of a ruled strip, the check that every lamella is cut flat | every example prints it |
 
 Every example prints the number of lamellas or panels, how many are closed solids, how many contacts the session's contact detection finds between them, and the development distortion and ruling twist of the worst one; on every model below the distortion is at the rounding floor (1e-14), the lamellas being exact cylinders. The contacts are the seams: every two lamellas that share a face are found, so the count below each example is the proof that its mitres meet, creases times lamellas per crease plus the joints between neighbouring barrels of a row.
@@ -577,6 +578,24 @@ CurvedFoldedBeam beams;
 <details><summary>Example code: templates_curved_folding_31_curved_folded_beam.cpp</summary>
 
 \include{lineno} templates_curved_folding_31_curved_folded_beam.cpp
+
+</details>
+
+## Corner fan {#corner_fan}
+
+`CornerFan(width, depth, height, strips, rise, foot, thickness)` (`curved_folding/corner_fan.h`): every fold is a straight line from the bottom corner of a `width` by `depth` by `height` box to a point dividing its two far top edges into `strips` equal parts. Each strip is a cone with its apex at the corner over a parabola rising `rise` between its two folds, so it is developable and cut from a flat panel; every strip bulges the same way, so two meet at an angle on every fold, on the plane bisecting them. The strips are cut at `foot` of the way up from the corner.
+
+Six strips over a 6 by 6 by 4 m box, parabolas rising 400 mm, 40 mm plates: 6 strips, 5 contacts, one per fold (example `templates_curved_folding_32_corner_fan`).
+
+![corner fan](templates/templates_curved_folding_32_corner_fan_strips.webp)
+
+```cpp
+CornerFan fan(6000.0, 6000.0, 4000.0, 6, 400.0, 0.15, 40.0);
+```
+
+<details><summary>Example code: templates_curved_folding_32_corner_fan.cpp</summary>
+
+\include{lineno} templates_curved_folding_32_corner_fan.cpp
 
 </details>
 
