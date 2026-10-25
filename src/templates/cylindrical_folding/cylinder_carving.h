@@ -82,8 +82,12 @@ private:
     /// The piece of the generator at angle grown by offset that overlaps the reference most, a millimetre long; none when none does.
     std::optional<Part> pick(size_t k, double angle, double offset, const Part& reference) const;
 
-    /// Whether the generator at angle keeps the reference's piece a millimetre long on the surface and behind it.
+    /// Whether the generator at angle keeps the reference's piece a millimetre long on the carved surface.
     bool keeps(size_t k, double angle, const Part& reference) const;
+
+    /// The piece behind the outer one a thickness deep; where the plate behind runs out first, near an end plane, the last
+    /// millimetre of the outer piece at that end, the plate thinning to a wedge so the carved surface has no gap.
+    Part behind(size_t k, double angle, const Part& outer) const;
 
     /// Carver k's patches: its pieces followed from generator to generator by their overlap, the ends of every one exact.
     std::vector<Patch> compute_patches(size_t k) const;
@@ -274,9 +278,21 @@ inline std::optional<CylinderCarving::Part> CylinderCarving::pick(size_t k, doub
 
 inline bool CylinderCarving::keeps(size_t k, double angle, const Part& reference) const {
 
-    const std::optional<Part> outer = pick(k, angle, 0.0, reference);
+    return pick(k, angle, 0.0, reference).has_value();
+}
 
-    return outer && pick(k, angle, thickness, *outer);
+inline CylinderCarving::Part CylinderCarving::behind(size_t k, double angle, const Part& outer) const {
+
+    const std::optional<Part> inner = pick(k, angle, thickness, outer);
+
+    if (inner)
+        return *inner;
+
+    // the end of the outer piece on an end plane, a millimetre of it
+    if (outer.high_by == 1 || outer.high_by == 2)
+        return {outer.high - 1.0, outer.high, outer.low_by, outer.high_by};
+
+    return {outer.low, outer.low + 1.0, outer.low_by, outer.high_by};
 }
 
 inline const CylinderCarving::Part& CylinderCarving::reference(const Patch& patch, double angle) {
@@ -302,7 +318,7 @@ inline std::vector<CylinderCarving::Patch> CylinderCarving::compute_patches(size
         const double angle = step * static_cast<double>(i);
 
         for (const Part& piece : parts(k, angle, 0.0))
-            if (piece.high - piece.low > 1.0 && pick(k, angle, thickness, piece))
+            if (piece.high - piece.low > 1.0)
                 pieces[i].push_back(piece);
 
         if (pieces[i].empty() && start == count)
@@ -390,12 +406,9 @@ inline std::array<int, 4> CylinderCarving::enders(size_t k, const Patch& patch, 
     if (!outer)
         return {-1, -1, -1, -1};
 
-    const std::optional<Part> inner = pick(k, angle, thickness, *outer);
+    const Part inner = behind(k, angle, *outer);
 
-    if (!inner)
-        return {-1, -1, -1, -1};
-
-    return {outer->low_by, outer->high_by, inner->low_by, inner->high_by};
+    return {outer->low_by, outer->high_by, inner.low_by, inner.high_by};
 }
 
 inline std::vector<double> CylinderCarving::compute_breaks(size_t k, const Patch& patch) const {
@@ -508,15 +521,15 @@ inline void CylinderCarving::add_plates() {
                     const std::pair<Point, Vector> outer = generator(k, angle, 0.0);
                     const std::pair<Point, Vector> inner = generator(k, angle, thickness);
                     const std::optional<Part> outer_part = pick(k, angle, 0.0, reference(patch, angle));
-                    const std::optional<Part> inner_part = outer_part ? pick(k, angle, thickness, *outer_part) : std::nullopt;
 
-                    if (!outer_part || !inner_part)
-                        throw std::invalid_argument(fmt::format("Carver {} leaves no plate behind its generator at {:.3f} radians", k, angle));
+                    if (!outer_part)
+                        throw std::invalid_argument(fmt::format("Carver {} leaves no carved surface at its generator at {:.3f} radians", k, angle));
 
+                    const Part inner_part = behind(k, angle, *outer_part);
                     points[0].push_back(outer.first + outer.second * outer_part->low);
                     points[1].push_back(outer.first + outer.second * outer_part->high);
-                    points[2].push_back(inner.first + inner.second * inner_part->low);
-                    points[3].push_back(inner.first + inner.second * inner_part->high);
+                    points[2].push_back(inner.first + inner.second * inner_part.low);
+                    points[3].push_back(inner.first + inner.second * inner_part.high);
                 }
 
                 for (size_t c = 0; c < 4; c++)
