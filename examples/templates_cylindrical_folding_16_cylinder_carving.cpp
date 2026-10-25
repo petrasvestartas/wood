@@ -12,17 +12,17 @@ int main() {
     const std::array<double, 3> tilts = {0.06, -0.05, 0.04};
 
     for (size_t count = 1; count <= 3; count++) {
-        // every stage moved along y; the stock a along x, every carver 40 degrees apart over its top, cutting 700 mm deep, turned off its axis
-        const Vector shift(0.0, 9000.0 * static_cast<double>(count - 1), 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(1.0, 0.0, 0.0), 2000.0};
+        // every stage moved along x; the stock a standing on z, every carver 40 degrees apart round one side, cutting 700 mm deep, turned off its axis
+        const Vector shift(9000.0 * static_cast<double>(count - 1), 0.0, 0.0);
+        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
         std::vector<CylinderCarving::Cylinder> carvers;
 
         for (size_t i = 0; i < count; i++) {
             const double around = (130.0 - 40.0 * static_cast<double>(i)) * Tolerance::TO_RADIANS;
-            const Vector out(0.0, std::cos(around), std::sin(around));
-            const Vector across(0.0, -std::sin(around), std::cos(around));
-            const Point axis = Point(6000.0, 0.0, 0.0) + shift + out * (stock.radius + radii[i] - 700.0);
-            carvers.push_back({axis, Vector(1.0, 0.0, 0.0) + across * tilts[i], radii[i]});
+            const Vector out(std::cos(around), std::sin(around), 0.0);
+            const Vector across(-std::sin(around), std::cos(around), 0.0);
+            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[i] - 700.0);
+            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilts[i], radii[i]});
         }
 
         CylinderCarving carving(
@@ -45,7 +45,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 16 of the cylindrical folding templates: a cylinder carved by cylinders in sequence. The stock a, 2 m radius and 12 m long along x, is carved by b of 1.5 m radius, then by c of 1.8 m, then by d of 1.3 m, their axes 40 degrees apart over its top, every one cutting 700 mm deep and turned a few degrees off a's axis; the three stages a - b, (a - b) - c and ((a - b) - c) - d stand side by side. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one 60 mm plate behind it. The carving is validated first: every carver must leave a patch, none may cut another's patch in two, and two patches must meet at 10 degrees or more. Groups: stage_<carvers>.
+Step 16 of the cylindrical folding templates: a cylinder carved by cylinders in sequence. The stock a, 2 m radius and 12 m high, standing on its axis, is carved by b of 1.5 m radius, then by c of 1.8 m, then by d of 1.3 m, their axes 40 degrees apart round one side, every one cutting 700 mm deep and turned a few degrees off a's axis; the three stages a - b, (a - b) - c and ((a - b) - c) - d stand side by side. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one 60 mm plate behind it. The carving is validated first: every carver must leave a patch, none may cut another's patch in two, and two patches must meet at 10 degrees or more. Groups: stage_<carvers>.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -13,18 +13,18 @@ int main() {
     const std::array<double, 3> depths = {1600.0, 1000.0, 800.0};
 
     for (size_t r = 0; r < counts.size(); r++) {
-        // the stock along x, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
-        const Vector shift(0.0, 9000.0 * static_cast<double>(r), 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(1.0, 0.0, 0.0), 2000.0};
+        // the stock standing on z, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
+        const Vector shift(9000.0 * static_cast<double>(r), 0.0, 0.0);
+        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
         std::vector<CylinderCarving::Cylinder> carvers;
 
         for (size_t i = 0; i < counts[r]; i++) {
             const double around = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(counts[r]);
-            const Vector out(0.0, std::cos(around), std::sin(around));
-            const Vector across(0.0, -std::sin(around), std::cos(around));
+            const Vector out(std::cos(around), std::sin(around), 0.0);
+            const Vector across(-std::sin(around), std::cos(around), 0.0);
             const double tilt = i % 2 == 0 ? 0.05 : -0.05;
-            const Point axis = Point(6000.0, 0.0, 0.0) + shift + out * (stock.radius + radii[r] - depths[r]);
-            carvers.push_back({axis, Vector(1.0, 0.0, 0.0) + across * tilt, radii[r]});
+            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[r] - depths[r]);
+            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilt, radii[r]});
         }
 
         CylinderCarving carving(
@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 17 of the cylindrical folding templates: closed rings of carved patches. The stock, 2 m radius and 12 m long along x, is carved all round by 4 cylinders of 2 m radius cutting 1600 mm deep, by 6 of 1.6 m cutting 1000 mm and by 8 of 1.2 m cutting 800 mm, every carver's axis turned off the stock's one way and the other in turn; the three rings stand side by side. Every patch meets both neighbours, so the plates close round the stock into a fluted tube, one contact per crease; the carving is validated closed, every point of the stock's surface carved, so the plates leave no gap. Groups: ring_<carvers>.
+Step 17 of the cylindrical folding templates: closed rings of carved patches. The stock, 2 m radius and 12 m high, standing on its axis, is carved all round by 4 cylinders of 2 m radius cutting 1600 mm deep, by 6 of 1.6 m cutting 1000 mm and by 8 of 1.2 m cutting 800 mm, every carver's axis turned off the stock's one way and the other in turn; the three rings stand side by side. Every patch meets both neighbours, so the plates close round the stock into a fluted tube, one contact per crease; the carving is validated closed, every point of the stock's surface carved, so the plates leave no gap. Groups: ring_<carvers>.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
