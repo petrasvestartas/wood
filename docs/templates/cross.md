@@ -148,9 +148,11 @@ const Polyline bottom = Polyline::rectangle(
 );
 ```
 
-### 8. Cross-Lap Slots
+### 8. Cross-Lap Slots & Complete Crossed Assembly
 
-For every connector and each layer plate of its two adjacent faces, `compute_cross_contact(connector, plate)` locates the 3D intersection segment and `JointPlate::cross_slot()` cuts complementary half-depth slots into both outlines:
+For every connector and each layer plate of its two adjacent faces, `compute_cross_contact(connector, plate)` locates the 3D intersection segment and `JointPlate::cross_slot()` cuts complementary half-depth slots into both outlines, assembling the 15 face panels and 58 connector plates into a single interlocked shell:
+
+![](templates/templates_cross_1_vda_mesh_all.webp)
 
 ![](templates/templates_cross_1_vda_mesh_cross_laps.webp)
 

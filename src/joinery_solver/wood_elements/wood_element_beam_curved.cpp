@@ -698,63 +698,130 @@ BRep BeamCurved::trimmed_brep() const {
     if (cuts.empty())
         return element_geometry_brep();
 
-    const std::vector<Polyline> rings = sections();
-    if (rings.size() < 2)
+    if (!centreline.is_valid() || width <= 0.0 || height <= 0.0)
         return mesh_brep(trimmed_mesh());
 
-    // 6 longitudinal fibres: 0=bot_L, 1=bot_R, 2=top_R, 3=top_L, 4=bot_M, 5=top_M
-    std::array<std::vector<Point>, 6> fibre_pts;
-    for (const Polyline& ring : rings) {
-        if (ring.point_count() < 4)
-            return mesh_brep(trimmed_mesh());
-        for (size_t k = 0; k < 4; k++)
-            fibre_pts[k].push_back(ring.get_point(k));
-        fibre_pts[4].push_back(ring.get_point(0) + (ring.get_point(1) - ring.get_point(0)) * 0.5);
-        fibre_pts[5].push_back(ring.get_point(3) + (ring.get_point(2) - ring.get_point(3)) * 0.5);
-    }
+    const double t0 = centreline.domain_start();
+    const double t1 = centreline.domain_end();
+    const double span = t1 - t0;
+    if (span <= Tolerance::ZERO_TOLERANCE)
+        return mesh_brep(trimmed_mesh());
 
-    const size_t n = fibre_pts[0].size() - 1;
+    const auto extended_plane_at = [&](double u_norm) -> Plane {
+        const double u_clamped = std::clamp(u_norm, 0.0, 1.0);
+        const double t = t0 + u_clamped * span;
+        const Plane base = get_plane(t);
+        if (u_norm >= 0.0 && u_norm <= 1.0)
+            return base;
+
+        const double dt = (u_norm < 0.0 ? u_norm : (u_norm - 1.0)) * span;
+        const std::vector<Vector> derivs = centreline.evaluate(t, 2);
+        if (derivs.size() >= 3 && derivs[1].magnitude() > Tolerance::ZERO_TOLERANCE) {
+            const Vector& d1 = derivs[1];
+            const Vector& d2 = derivs[2];
+            const Point origin = base.origin() + d1 * dt + d2 * (0.5 * dt * dt);
+            const Vector tangent = d1 + d2 * dt;
+            return frame_from_tangent_and_up(origin, tangent, base.y_axis());
+        }
+        return Plane::from_frame(
+            base.origin() + base.z_axis() * dt, base.x_axis(), base.y_axis(), base.z_axis()
+        );
+    };
+
+    const double hx = 0.5 * width;
+    const double hy = 0.5 * height;
+    // 6 longitudinal fibres: 0=bot_L, 1=bot_R, 2=top_R, 3=top_L, 4=bot_M, 5=top_M
+    const std::array<double, 6> fx = {-hx, hx, hx, -hx, 0.0, 0.0};
+    const std::array<double, 6> fy = {-hy, -hy, hy, hy, -hy, hy};
+
+    const auto fibre_point = [&](size_t f, double u_norm) -> Point {
+        const Plane fr = extended_plane_at(u_norm);
+        return fr.origin() + fr.x_axis() * fx[f] + fr.y_axis() * fy[f];
+    };
+
+    const int n_scan = std::max(32, samples);
+    const double u_lo_bound = -0.35;
+    const double u_hi_bound = 1.35;
+
     std::array<double, 6> s0_arr{};
     std::array<double, 6> s1_arr{};
     std::array<int, 6> front_cutter = {-1, -1, -1, -1, -1, -1};
     std::array<int, 6> back_cutter  = {-1, -1, -1, -1, -1, -1};
 
     for (size_t f = 0; f < 6; f++) {
-        const std::vector<Point>& pts = fibre_pts[f];
+        // Default untrimmed parameter range [0, 1]
         double s0 = 0.0;
-        double s1 = static_cast<double>(n);
+        double s1 = 1.0;
+        bool has_front = false;
+        bool has_back = false;
+
         for (size_t p_idx = 0; p_idx < cuts.size(); p_idx++) {
             const Plane& plane = cuts[p_idx];
-            const double d_front = (pts.front() - plane.origin()).dot(plane.z_axis());
-            const double d_back  = (pts.back() - plane.origin()).dot(plane.z_axis());
-            if (d_front < -Tolerance::APPROXIMATION && d_back < -Tolerance::APPROXIMATION)
+            const auto sd = [&](double u) -> double {
+                return (fibre_point(f, u) - plane.origin()).dot(plane.z_axis());
+            };
+
+            const double d_lo  = sd(u_lo_bound);
+            const double d_mid = sd(0.5);
+            const double d_hi  = sd(u_hi_bound);
+
+            if (d_lo < -Tolerance::APPROXIMATION && d_mid < -Tolerance::APPROXIMATION &&
+                d_hi < -Tolerance::APPROXIMATION)
                 return mesh_brep(trimmed_mesh());
-            if (d_front < -Tolerance::APPROXIMATION) {
-                for (size_t i = 0; i < n; i++) {
-                    const double da = (pts[i] - plane.origin()).dot(plane.z_axis());
-                    const double db = (pts[i + 1] - plane.origin()).dot(plane.z_axis());
-                    if (db >= -Tolerance::APPROXIMATION && std::abs(da - db) > Tolerance::ZERO_TOLERANCE) {
-                        const double cand = static_cast<double>(i) + da / (da - db);
-                        if (cand > s0) {
-                            s0 = cand;
-                            front_cutter[f] = static_cast<int>(p_idx);
-                        }
+
+            // Front cut plane: negative at u_lo_bound, positive at u_mid
+            if (d_lo < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION) {
+                double a = u_lo_bound;
+                double b = 0.5;
+                for (int k = 1; k <= n_scan; k++) {
+                    const double u_k =
+                        u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k) / n_scan;
+                    if (sd(u_k) >= 0.0) {
+                        b = u_k;
+                        a = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k - 1) / n_scan;
                         break;
                     }
                 }
+                for (int it = 0; it < 44; it++) {
+                    const double m = 0.5 * (a + b);
+                    if (sd(m) < 0.0)
+                        a = m;
+                    else
+                        b = m;
+                }
+                const double cand = 0.5 * (a + b);
+                if (!has_front || cand > s0) {
+                    s0 = cand;
+                    front_cutter[f] = static_cast<int>(p_idx);
+                    has_front = true;
+                }
             }
-            if (d_back < -Tolerance::APPROXIMATION) {
-                for (size_t i = n; i > 0; i--) {
-                    const double da = (pts[i - 1] - plane.origin()).dot(plane.z_axis());
-                    const double db = (pts[i] - plane.origin()).dot(plane.z_axis());
-                    if (da >= -Tolerance::APPROXIMATION && std::abs(da - db) > Tolerance::ZERO_TOLERANCE) {
-                        const double cand = static_cast<double>(i - 1) + da / (da - db);
-                        if (cand < s1) {
-                            s1 = cand;
-                            back_cutter[f] = static_cast<int>(p_idx);
-                        }
+
+            // Back cut plane: negative at u_hi_bound, positive at u_mid
+            if (d_hi < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION) {
+                double a = 0.5;
+                double b = u_hi_bound;
+                for (int k = n_scan - 1; k >= 0; k--) {
+                    const double u_k =
+                        0.1 + (u_hi_bound - 0.1) * static_cast<double>(k) / n_scan;
+                    if (sd(u_k) >= 0.0) {
+                        a = u_k;
+                        b = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k + 1) / n_scan;
                         break;
                     }
+                }
+                for (int it = 0; it < 44; it++) {
+                    const double m = 0.5 * (a + b);
+                    if (sd(m) >= 0.0)
+                        a = m;
+                    else
+                        b = m;
+                }
+                const double cand = 0.5 * (a + b);
+                if (!has_back || cand < s1) {
+                    s1 = cand;
+                    back_cutter[f] = static_cast<int>(p_idx);
+                    has_back = true;
                 }
             }
         }
@@ -765,15 +832,12 @@ BRep BeamCurved::trimmed_brep() const {
     }
 
     const auto sample_fibre = [&](size_t f, double sa, double sb) -> NurbsCurve {
-        const std::vector<Point>& pts = fibre_pts[f];
         const int count = std::max(8, samples);
         std::vector<Point> sub_pts;
         sub_pts.reserve(count + 1);
         for (int j = 0; j <= count; j++) {
-            const double s = sa + (sb - sa) * static_cast<double>(j) / static_cast<double>(count);
-            const size_t seg = std::min(static_cast<size_t>(std::floor(s)), n - 1);
-            const double frac = s - static_cast<double>(seg);
-            sub_pts.push_back(pts[seg] + (pts[seg + 1] - pts[seg]) * frac);
+            const double u = sa + (sb - sa) * static_cast<double>(j) / static_cast<double>(count);
+            sub_pts.push_back(fibre_point(f, u));
         }
         return unit_domain(NurbsCurve::create_interpolated(
             sub_pts, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
@@ -800,8 +864,8 @@ BRep BeamCurved::trimmed_brep() const {
     // Multi-plane wedge miter at one or both ends: build a closed NURBS BRep with
     // untrimmed ruled left/right NURBS faces, planar miter cap faces, and trimmed NURBS
     // top/bottom surfaces (zero internal subdivision lines).
-    double s_min = static_cast<double>(n);
-    double s_max = 0.0;
+    double s_min = s0_arr[0];
+    double s_max = s1_arr[0];
     for (size_t f = 0; f < 6; f++) {
         s_min = std::min(s_min, s0_arr[f]);
         s_max = std::max(s_max, s1_arr[f]);

@@ -1169,7 +1169,8 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
             connection.name != "side_side_rotated_keys" &&
             connection.name != "side_side_inplane_splayed_scarf" &&
             connection.name != "side_side_inplane_cross_splayed_scarf" &&
-            connection.name != "top_top_custom" && connection.name != "jupiter_scarf")
+            connection.name != "top_top_custom" && connection.name != "jupiter_scarf" &&
+            connection.name != "border" && connection.name != "border_custom")
             continue;
 
         if (connection.name == "jupiter_scarf") {
@@ -1186,7 +1187,8 @@ void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements
             pieces.push_back(Mesh::loft({body[0]}, {body[1]}, true));
 
         if (connection.name == "side_side_rotated_hooks" ||
-            connection.name == "side_side_rotated_keys" || connection.name == "top_top_custom") {
+            connection.name == "side_side_rotated_keys" || connection.name == "top_top_custom" ||
+            connection.name == "border" || connection.name == "border_custom") {
             for (int side = 0; side < 2; side++)
                 for (const Mesh& piece : side_solids(connection, side))
                     key = key.number_of_faces() == 0

@@ -4,7 +4,13 @@
 
 <em>Step 10 of @ref templates_floor_model · previous: @ref templates_floor_09_connectors · next: @ref templates_floor_11_examples</em>
 
-`JointBeam::headed_pins` places two `Pin` dowels (`Ø4 × 200 mm`, `PinLayout::vertical`) across each of the `24` quarter butt joints (`outer_rib_seam_beam`, `seam_beam_oculus_beam`, `oculus_beam_inner_rib`) and `4` oculus `ring_corner` contacts (`28` connectors, `56` pins total).
+Where one member butts into another, `Floor::compute_connectors` lays two pins across their contact with `JointBeam::headed_pins`.
+`add_connectors` adds them, and their holes are pre-drilled into both members.
+Per side of a quarter there are three butt joints: the outer rib on its seam beam, the seam beam on the oculus beam and the oculus beam on the inner rib.
+At each of the four ring corners, ring beam q butts on the next.
+Every pin is a `Pin`, a 200 mm cylinder from its head.
+The pins run level along the axis of the member that ends on the contact, from the far face of the other; `headed_pins` chooses which member that is.
+Both members read the same drill lines.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the floor with its pins.
 

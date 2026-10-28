@@ -8,7 +8,7 @@ const double SPAN_X = 10000.0;
 const double SPAN_Y = 10000.0;
 const double RISE = 1000.0;
 const double RIB_WIDTH = 120.0;
-const double RIB_HEIGHT = 180.0;
+const double RIB_HEIGHT = 360.0;
 const int SUBDIVISIONS = 16;
 
 struct GothicBayConfig {
@@ -26,7 +26,7 @@ int main() {
         {"tierceron_exeter",      wood_vault::GothicPattern::tierceron,       wood_vault::ArchMethod::spherical_sail},
         {"star_stellar_burgos",   wood_vault::GothicPattern::star_stellar,    wood_vault::ArchMethod::cloister_cylinders},
         {"lierne_star_ely",       wood_vault::GothicPattern::lierne_star,     wood_vault::ArchMethod::spherical_sail},
-        {"net_reticulated_parler",wood_vault::GothicPattern::net_reticulated, wood_vault::ArchMethod::groin_cylinders},
+        {"net_reticulated_parler",wood_vault::GothicPattern::net_reticulated, wood_vault::ArchMethod::spherical_sail},
         {"fan_conoid_gloucester", wood_vault::GothicPattern::fan_conoid,      wood_vault::ArchMethod::spherical_sail}
     };
 
@@ -60,6 +60,8 @@ int main() {
                 for (Polyline& pl : block->loops)
                     pl.transform(shift);
                 block->invalidate_geometry();
+            } else {
+                elem->place(shift);
             }
             wood_session.add(elem, group);
         }

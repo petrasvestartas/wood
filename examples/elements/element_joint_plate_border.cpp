@@ -17,13 +17,18 @@ int main() {
     );
     scene.add(plate);
 
-    const std::shared_ptr<InteractionContactFace> contact =
-        WoodSession::compute_border_contact(*plate, 2);
-    const std::shared_ptr<JointPlate> joint = JointPlate::border();
-    joint->orient(contact, {plate});
-    joint->is_visible = true;
-    scene.add(joint);
-    scene.add_interaction(joint, plate, joint->interaction(0));
+    for (const int face : {2, 3, 4, 5}) {
+        const std::shared_ptr<InteractionContactFace> contact =
+            WoodSession::compute_border_contact(*plate, face);
+        const std::shared_ptr<JointPlate> joint = JointPlate::border();
+        joint->orient(contact, {plate});
+        joint->is_visible = true;
+        scene.add(joint);
+        scene.set_node_color(
+            scene.tree.get_node_by_name(joint->guid()), JointBeam::CONNECTOR_COLOR, true
+        );
+        scene.add_interaction(joint, plate, joint->interaction(0));
+    }
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

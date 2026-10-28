@@ -10,7 +10,7 @@
 
 ## 1. Gothic Ribbed Vaults (`GothicRibbedVault` / `gothic_ribbed_vault`)
 
-`wood_vault::GothicRibbedVault` and `wood_vault::gothic_ribbed_vault` generate shallow, symmetric Gothic ribbed vaults (`1:10` rise-to-span ratio by default: `10000 × 10000 mm` bay, `1000 mm` crown rise) from smooth NURBS `BRep` curved glulam beams (`wood_session::BeamCurved`, `120 × 180 mm`, `6` lamellae) and `4` polygonal corner support blocks (`wood_session::Block`).
+`wood_vault::GothicRibbedVault` and `wood_vault::gothic_ribbed_vault` generate shallow, symmetric Gothic ribbed vaults (`1:10` rise-to-span ratio by default: `10000 × 10000 mm` bay, `1000 mm` crown rise) from continuous NURBS `BRep` curved glulam beams (`wood_session::BeamCurved`, `120 × 360 mm`, `6` lamellae), `4` polygonal corner support blocks (`wood_session::Block`), and trimmed NURBS `BRep` infill shell panels (`vault_panel`) meeting directly along the beam centerlines.
 
 The rib topologies, tracing-floor proportions, and analytical web surfaces are grounded in terrestrial laser scanning (LiDAR) and geometric studies of medieval Gothic cathedrals:
 - **Tracing the Past** (*Digitising and Modelling English Medieval Vaults*, Alexandrina Buchanan, Nicholas Webb, JR Peterson, and James Hillson, 2021 — [tracingthepast.org.uk](https://www.tracingthepast.org.uk/2021/04/09/digitising_modelling/))
@@ -36,7 +36,7 @@ The rib topologies, tracing-floor proportions, and analytical web surfaces are g
 | :--- | :--- | :--- |
 | `span_x`, `span_y` | `double` (`10000.0`, `10000.0`) | Symmetric rectangular bay span (`x`, `y`) in `mm`. |
 | `rise` | `double` (`1000.0`) | Shallow `1:10` crown height (`mm`) at `(0, 0, rise)`. |
-| `rib_width`, `rib_height` | `double` (`120.0`, `180.0`) | Cross-section width and depth (`mm`) of `BeamCurved` glulam ribs (`6` lamellae). |
+| `rib_width`, `rib_height` | `double` (`120.0`, `360.0`) | Cross-section width and depth (`mm`) of `BeamCurved` glulam ribs (`6` lamellae). |
 | `pattern` | `GothicPattern` | `quadripartite`, `tierceron`, `star_stellar`, `lierne_star`, `net_reticulated`, or `fan_conoid`. |
 | `surface_method` | `ArchMethod` | `spherical_sail`, `groin_cylinders`, or `cloister_cylinders`. |
 | `subdivisions` | `int` (`16`) | Interpolation stations per `BeamCurved` rib. |
@@ -57,7 +57,7 @@ The rib topologies, tracing-floor proportions, and analytical web surfaces are g
 | | | |
 | :---: | :---: | :---: |
 | ![](examples/templates_vault_9_gothic_ribbed_vault_quadripartite.webp)<br>`GothicPattern::quadripartite` (`groin_cylinders`) | ![](examples/templates_vault_9_gothic_ribbed_vault_tierceron.webp)<br>`GothicPattern::tierceron` (`spherical_sail`) | ![](examples/templates_vault_9_gothic_ribbed_vault_star.webp)<br>`GothicPattern::star_stellar` (`cloister_cylinders`) |
-| ![](examples/templates_vault_9_gothic_ribbed_vault_lierne.webp)<br>`GothicPattern::lierne_star` (`spherical_sail`) | ![](examples/templates_vault_9_gothic_ribbed_vault_net.webp)<br>`GothicPattern::net_reticulated` (`groin_cylinders`) | ![](examples/templates_vault_9_gothic_ribbed_vault_fan.webp)<br>`GothicPattern::fan_conoid` (`spherical_sail`) |
+| ![](examples/templates_vault_9_gothic_ribbed_vault_lierne.webp)<br>`GothicPattern::lierne_star` (`spherical_sail`) | ![](examples/templates_vault_9_gothic_ribbed_vault_net.webp)<br>`GothicPattern::net_reticulated` (`spherical_sail`) | ![](examples/templates_vault_9_gothic_ribbed_vault_fan.webp)<br>`GothicPattern::fan_conoid` (`spherical_sail`) |
 
 ```cpp
 #include "wood_session.h"
@@ -67,7 +67,7 @@ using namespace wood_session;
 using namespace wood_vault;
 
 GothicRibbedVault vault(
-    10000.0, 10000.0, 1000.0, 120.0, 180.0,
+    10000.0, 10000.0, 1000.0, 120.0, 360.0,
     GothicPattern::lierne_star,
     ArchMethod::spherical_sail
 );

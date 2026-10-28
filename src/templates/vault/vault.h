@@ -98,7 +98,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     double span_y = 10000.0,
     double rise = 1000.0,
     double rib_width = 120.0,
-    double rib_height = 180.0,
+    double rib_height = 360.0,
     GothicPattern pattern = GothicPattern::lierne_star,
     ArchMethod surface_method = ArchMethod::spherical_sail,
     int subdivisions = 16
@@ -111,7 +111,7 @@ public:
     double span_y = 10000.0;
     double rise = 1000.0;
     double rib_width = 120.0;
-    double rib_height = 180.0;
+    double rib_height = 360.0;
     GothicPattern pattern = GothicPattern::lierne_star;
     ArchMethod arch_method = ArchMethod::spherical_sail;
     int subdivisions = 16;
@@ -121,7 +121,7 @@ public:
         double span_y = 10000.0,
         double rise = 1000.0,
         double rib_width = 120.0,
-        double rib_height = 180.0,
+        double rib_height = 360.0,
         GothicPattern pattern = GothicPattern::lierne_star,
         ArchMethod arch_method = ArchMethod::spherical_sail,
         int subdivisions = 16,
