@@ -76,26 +76,6 @@ endif()
 
 set(ENABLE_UNITY_BUILD OFF CACHE BOOL "Disable session_cpp unity build" FORCE)
 add_subdirectory(${SESSION_CPP_DIR} session_cpp EXCLUDE_FROM_ALL)
-if(EXISTS "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/impl.cpp")
-    file(READ "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/impl.cpp" _manifold_impl)
-    string(REPLACE
-        "if (std::abs(dot(v - base, normal)) < tolerance_) {"
-        "if (std::abs(dot(v - base, normal)) < tolerance_ && dot(faceNormal_[h / 3], normal) > 0) {"
-        _manifold_impl_patched "${_manifold_impl}")
-    if(NOT "${_manifold_impl}" STREQUAL "${_manifold_impl_patched}")
-        file(WRITE "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/impl.cpp" "${_manifold_impl_patched}")
-    endif()
-endif()
-if(EXISTS "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/edge_op.cpp")
-    file(READ "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/edge_op.cpp" _manifold_edge_op)
-    string(REPLACE
-        "if (ref.meshID != oldRef.meshID || ref.faceID != oldRef.faceID ||\n            la::dot(faceNormal_[pair / 3], faceNormal_[tri]) < -0.5) {"
-        "if (la::dot(faceNormal_[pair / 3], faceNormal_[tri]) > -1.0 + 1e-6 &&\n            (ref.meshID != oldRef.meshID || ref.faceID != oldRef.faceID ||\n             la::dot(faceNormal_[pair / 3], faceNormal_[tri]) < -0.5)) {"
-        _manifold_edge_op_patched "${_manifold_edge_op}")
-    if(NOT "${_manifold_edge_op}" STREQUAL "${_manifold_edge_op_patched}")
-        file(WRITE "${CMAKE_BINARY_DIR}/_deps/manifold-src/src/edge_op.cpp" "${_manifold_edge_op_patched}")
-    endif()
-endif()
 
 set(WOOD_SOURCES
     src/joinery_solver/wood_config.cpp
@@ -229,6 +209,26 @@ set(MANIFOLD_EXPORT OFF)
 set(MANIFOLD_DOWNLOADS OFF)
 set(BUILD_SHARED_LIBS OFF)
 FetchContent_MakeAvailable(manifold)
+if(EXISTS "${manifold_SOURCE_DIR}/src/impl.cpp")
+    file(READ "${manifold_SOURCE_DIR}/src/impl.cpp" _manifold_impl)
+    string(REPLACE
+        "if (std::abs(dot(v - base, normal)) < tolerance_) {"
+        "if (std::abs(dot(v - base, normal)) < tolerance_ && dot(faceNormal_[h / 3], normal) > 0) {"
+        _manifold_impl_patched "${_manifold_impl}")
+    if(NOT "${_manifold_impl}" STREQUAL "${_manifold_impl_patched}")
+        file(WRITE "${manifold_SOURCE_DIR}/src/impl.cpp" "${_manifold_impl_patched}")
+    endif()
+endif()
+if(EXISTS "${manifold_SOURCE_DIR}/src/edge_op.cpp")
+    file(READ "${manifold_SOURCE_DIR}/src/edge_op.cpp" _manifold_edge_op)
+    string(REPLACE
+        "if (ref.meshID != oldRef.meshID || ref.faceID != oldRef.faceID ||\n            la::dot(faceNormal_[pair / 3], faceNormal_[tri]) < -0.5) {"
+        "if (la::dot(faceNormal_[pair / 3], faceNormal_[tri]) > -1.0 + 1e-6 &&\n            (ref.meshID != oldRef.meshID || ref.faceID != oldRef.faceID ||\n             la::dot(faceNormal_[pair / 3], faceNormal_[tri]) < -0.5)) {"
+        _manifold_edge_op_patched "${_manifold_edge_op}")
+    if(NOT "${_manifold_edge_op}" STREQUAL "${_manifold_edge_op_patched}")
+        file(WRITE "${manifold_SOURCE_DIR}/src/edge_op.cpp" "${_manifold_edge_op_patched}")
+    endif()
+endif()
 target_link_libraries(wood_core PUBLIC manifold::manifold)
 
 find_program(WOOD_PROTOC protoc HINTS ${SESSION_CPP_DIR}/.protoc/36.2/bin NO_DEFAULT_PATH)
