@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 265" width="100%">
+  
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .panel { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1.2; rx: 6; }
+      .panel-hi { fill: #f0f9ff; stroke: #0284c7; stroke-width: 1.4; rx: 6; }
+      .panel-warm { fill: #fffbeb; stroke: #d97706; stroke-width: 1.3; rx: 6; }
+      .title { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 13px; font-weight: 700; fill: #0f172a; letter-spacing: 0.02em; }
+      .subtitle { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 11px; font-weight: 600; fill: #334155; }
+      .label { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 10.5px; font-weight: 500; fill: #475569; }
+      .small { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 9.5px; fill: #64748b; }
+      .mono { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 10px; fill: #0f172a; }
+      .mono-sm { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9px; fill: #334155; }
+      .mono-blue { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; font-weight: 600; fill: #0369a1; }
+      .mono-red { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; font-weight: 600; fill: #be123c; }
+      .mono-amber { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; font-weight: 600; fill: #b45309; }
+      .mono-green { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9.5px; font-weight: 600; fill: #15803d; }
+      .badge { fill: #0f172a; rx: 3; }
+      .badge-blue { fill: #0284c7; rx: 3; }
+      .badge-amber { fill: #d97706; rx: 3; }
+      .badge-text { font-family: 'JetBrains Mono', 'Consolas', monospace; font-size: 9px; font-weight: 700; fill: #ffffff; }
+      .timber-a { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1.5; stroke-linejoin: round; }
+      .timber-b { fill: #fef3c7; stroke: #d97706; stroke-width: 1.5; stroke-linejoin: round; }
+      .timber-c { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.5; stroke-linejoin: round; }
+      .timber-d { fill: #f1f5f9; stroke: #475569; stroke-width: 1.4; stroke-linejoin: round; }
+      .cut-zone { fill: #ffe4e6; stroke: #e11d48; stroke-width: 1.4; stroke-dasharray: 3,2; }
+      .contact-zone { fill: #fecdd3; fill-opacity: 0.7; stroke: #e11d48; stroke-width: 1.6; }
+      .axis-line { stroke: #64748b; stroke-width: 1.2; stroke-dasharray: 4,3; fill: none; }
+      .guide-line { stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 2,2; fill: none; }
+      .flow-arrow { stroke: #334155; stroke-width: 1.5; fill: none; marker-end: url(#arrow); }
+      .flow-blue { stroke: #0284c7; stroke-width: 1.5; fill: none; marker-end: url(#arrow-blue); }
+      .flow-red { stroke: #e11d48; stroke-width: 1.5; fill: none; marker-end: url(#arrow-red); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7"/>
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#e11d48"/>
+    </marker>
+  </defs>
+
+  <rect width="980" height="265" class="bg"/>
+  <text x="16" y="22" class="title">MULTISTOREY TIMBER GRID — PRIMARY INPUTS &amp; LEVEL-BY-LEVEL FRAMING PIPELINE (wood_grid::Grid)</text>
+
+  <!-- Panel 1: 3 Primary Input Workflows -->
+  <rect x="14" y="34" width="230" height="216" class="panel-warm"/>
+  <rect x="24" y="42" width="136" height="16" class="badge-amber"/>
+  <text x="92" y="53" text-anchor="middle" class="badge-text">1. PRIMARY INPUTS</text>
+  <text x="166" y="53" class="mono-sm">Building</text>
+  <!-- 3 workflow icons: A Solid, B Footprint, C Lines -->
+  <polygon points="32,110 56,96 80,110 80,138 56,152 32,138" class="timber-b"/>
+  <line x1="28" y1="122" x2="84" y2="122" stroke="#e11d48" stroke-width="1.8" stroke-dasharray="3,2"/>
+  <text x="56" y="88" text-anchor="middle" class="mono-amber">A: Solid</text>
+  <polygon points="102,98 152,98 152,122 126,122 126,148 102,148" class="timber-a"/>
+  <line x1="126" y1="98" x2="126" y2="122" class="guide-line"/>
+  <line x1="102" y1="122" x2="126" y2="122" class="guide-line"/>
+  <text x="127" y="88" text-anchor="middle" class="mono-blue">B: Footprint</text>
+  <line x1="172" y1="146" x2="222" y2="98" stroke="#16a34a" stroke-width="2.2"/>
+  <line x1="172" y1="98" x2="222" y2="146" stroke="#16a34a" stroke-width="2.2"/>
+  <rect x="172" y="98" width="50" height="48" fill="none" stroke="#475569" stroke-width="1.5"/>
+  <text x="197" y="88" text-anchor="middle" class="mono-green">C: Lines</text>
+  <text x="26" y="170" class="mono-sm">Building::from_solid / footprint / lines</text>
+  <text x="26" y="184" class="mono-sm">+ Pattern (orthogonal, radial,</text>
+  <text x="26" y="198" class="mono-sm">  triangular, hexagonal, from_lines)</text>
+  <text x="26" y="212" class="mono-sm">+ Framing (system 0..2, node 0..2,</text>
+  <text x="26" y="226" class="mono-sm">  drop, capital, profiles)</text>
+  <text x="26" y="240" class="small">Group: grid → level_0 .. level_N</text>
+
+  <line x1="244" y1="142" x2="258" y2="142" class="flow-arrow"/>
+
+  <!-- Panel 2: Plan Mesh & Attributes -->
+  <rect x="260" y="34" width="225" height="216" class="panel"/>
+  <rect x="270" y="42" width="136" height="16" class="badge"/>
+  <text x="338" y="53" text-anchor="middle" class="badge-text">2. PLAN GRAPH</text>
+  <text x="414" y="53" class="mono-sm">plan_z</text>
+  <!-- Plan bay with vertices, edges, face attributes -->
+  <rect x="292" y="78" width="156" height="68" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+  <line x1="370" y1="78" x2="370" y2="146" stroke="#d97706" stroke-width="2.4"/>
+  <circle cx="292" cy="78" r="4" fill="#e11d48"/><circle cx="370" cy="78" r="4" fill="#e11d48"/>
+  <circle cx="448" cy="78" r="4" fill="#e11d48"/><circle cx="292" cy="146" r="4" fill="#e11d48"/>
+  <circle cx="370" cy="146" r="4" fill="#e11d48"/><circle cx="448" cy="146" r="4" fill="#e11d48"/>
+  <text x="331" y="116" text-anchor="middle" class="mono-blue">face: system</text>
+  <text x="409" y="116" text-anchor="middle" class="mono-amber">edge: role</text>
+  <text x="272" y="170" class="mono-sm">Per level datum z (level.plan Mesh):</text>
+  <text x="272" y="184" class="mono-sm">• Vertex attr "column": 0, 1, 2</text>
+  <text x="272" y="198" class="mono-sm">• Edge attr "role": 1 girder, 2 beam,</text>
+  <text x="272" y="212" class="mono-sm">  3 purlin, 4 brace; "wall": 1, 2</text>
+  <text x="272" y="226" class="mono-sm">• Face attr: "system", "span", "floor"</text>
+  <text x="272" y="240" class="small">Step 1: add_plans() → plan_0..N</text>
+
+  <line x1="485" y1="142" x2="499" y2="142" class="flow-arrow"/>
+
+  <!-- Panel 3: Storey Synthesis -->
+  <rect x="501" y="34" width="225" height="216" class="panel"/>
+  <rect x="511" y="42" width="144" height="16" class="badge"/>
+  <text x="583" y="53" text-anchor="middle" class="badge-text">3. STOREY ELEMENTS</text>
+  <text x="661" y="53" class="mono-sm">add_storey</text>
+  <!-- Column, pyramidal head, girder, purlins, deck -->
+  <rect x="520" y="74" width="186" height="10" class="timber-c"/>
+  <rect x="536" y="84" width="154" height="14" class="timber-a"/>
+  <polygon points="536,98 564,98 556,112 544,112" class="timber-b"/>
+  <polygon points="662,98 690,98 682,112 670,112" class="timber-b"/>
+  <rect x="544" y="112" width="12" height="38" class="timber-d"/>
+  <rect x="670" y="112" width="12" height="38" class="timber-d"/>
+  <line x1="556" y1="146" x2="670" y2="98" stroke="#e11d48" stroke-width="2.2"/>
+  <text x="613" y="71" text-anchor="middle" class="mono-green">deck (head pyramid subtracted)</text>
+  <text x="513" y="170" class="mono-sm">add_storey(storey) builds:</text>
+  <text x="513" y="184" class="mono-sm">1. columns_s &amp; walls_s / core_walls_s</text>
+  <text x="513" y="198" class="mono-sm">2. heads_s &amp; drop_panels_s (node 0)</text>
+  <text x="513" y="212" class="mono-sm">3. girders_s, beams_s &amp; purlins_s</text>
+  <text x="513" y="226" class="mono-sm">4. decks_s &amp; braces_s</text>
+  <text x="513" y="240" class="small">Supports any wood_profile.h section</text>
+
+  <line x1="726" y1="142" x2="740" y2="142" class="flow-arrow"/>
+
+  <!-- Panel 4: Node Rules & Global Contacts -->
+  <rect x="742" y="34" width="224" height="216" class="panel-hi"/>
+  <rect x="752" y="42" width="144" height="16" class="badge-blue"/>
+  <text x="824" y="53" text-anchor="middle" class="badge-text">4. NODE JOINTS</text>
+  <text x="902" y="53" class="mono-sm">contacts</text>
+  <!-- Node ranking: girder runs through, beam butts on side, corner miters -->
+  <rect x="768" y="96" width="110" height="18" class="timber-a"/>
+  <rect x="814" y="72" width="18" height="24" class="timber-b"/>
+  <rect x="814" y="114" width="18" height="28" class="timber-b"/>
+  <line x1="812" y1="96" x2="834" y2="96" stroke="#e11d48" stroke-width="2.5"/>
+  <line x1="812" y1="114" x2="834" y2="114" stroke="#e11d48" stroke-width="2.5"/>
+  <polygon points="894,76 942,76 942,92 910,92" class="timber-a"/>
+  <polygon points="894,76 910,92 910,136 894,136" class="timber-b"/>
+  <line x1="894" y1="76" x2="910" y2="92" stroke="#e11d48" stroke-width="2"/>
+  <text x="823" y="68" text-anchor="middle" class="mono-blue">Ranked T-butt</text>
+  <text x="918" y="68" text-anchor="middle" class="mono-red">2-bar Miter</text>
+  <text x="754" y="170" class="mono-sm">Node &amp; Contact Resolution:</text>
+  <text x="754" y="184" class="mono-sm">• Highest-rank member runs through;</text>
+  <text x="754" y="198" class="mono-sm">  others butt into its side/column</text>
+  <text x="754" y="212" class="mono-sm">• Pure 2-member corners mitered</text>
+  <text x="754" y="226" class="mono-sm">• compute_face_contacts(0) pairs</text>
+  <text x="754" y="240" class="small">  all touching elements across levels</text>
+</svg>

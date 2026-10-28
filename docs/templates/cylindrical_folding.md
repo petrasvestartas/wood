@@ -4,6 +4,8 @@
 
 Folded structures of exact cylindrical [`PlateCurved`](@ref elements_plate_curved) lamellas (parallel straight generatrices, zero Gaussian curvature, exact rational NURBS ellipse creases, `Development::distortion < 1e-14`).
 
+![Cylindrical and Developable Folding Primary Inputs and 6-Patch PlateCurved Pipeline](diagrams/template_cylindrical_developable_pipeline.svg)
+
 ![Folding Geometry](diagrams/wood_folding_geometry.svg)
 
 | Template | Header | Geometric Construction | Examples |
@@ -63,11 +65,9 @@ ReflectionFold fold(
 );
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_1_reflection.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_1_reflection.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_1_reflection.cpp
-
-</details>
 
 ### 2. Curved Folded Plate Arch {#curved_folded_plate}
 
@@ -87,11 +87,9 @@ ReflectionFold fold(
 );
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_2_curved_folded_plate.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_2_curved_folded_plate.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_2_curved_folded_plate.cpp
-
-</details>
 
 ### 3. Mendrisio Pavilion {#mendrisio_pavilion}
 
@@ -110,11 +108,9 @@ ReflectionFold fold(
 );
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_3_mendrisio_pavilion.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_3_mendrisio_pavilion.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_3_mendrisio_pavilion.cpp
-
-</details>
 
 ### 4–7. Linear Folded Cylindrical Hall Systems {#folded_cylinders}
 
@@ -135,11 +131,9 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{6000.0, -76.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(20000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_4_two_hinged_frame.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_4_two_hinged_frame.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_4_two_hinged_frame.cpp
-
-</details>
 
 #### 5. Two-Hinged Arch {#two_hinged_arch}
 
@@ -149,11 +143,9 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 2400.0), along, Vector(0.0, -1.0, 0.0), 40000.0, {{11000.0, -50.0 * Tolerance::TO_RADIANS, false}, {22000.0, -50.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_5_two_hinged_arch.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_5_two_hinged_arch.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_5_two_hinged_arch.cpp
-
-</details>
 
 #### 6. Arch with Top Hinge {#arch_with_top_hinge}
 
@@ -163,11 +155,9 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 1600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{300.0, -15.0 * Tolerance::TO_RADIANS, true}, {18300.0, -40.0 * Tolerance::TO_RADIANS, true}, {25300.0, -35.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(13000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_6_arch_with_top_hinge.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_6_arch_with_top_hinge.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_6_arch_with_top_hinge.cpp
-
-</details>
 
 #### 7. Two-Hinged A-Frame {#a_frame}
 
@@ -177,11 +167,9 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 1400.0), along, Vector(0.0, -1.0, 0.0), 40000.0, {{5600.0, -60.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(12500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_7_a_frame.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_7_a_frame.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_7_a_frame.cpp
-
-</details>
 
 ---
 
@@ -202,11 +190,9 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_8_groin_vault.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_8_groin_vault.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_8_groin_vault.cpp
-
-</details>
 
 ### 9. Pavilion Cloister Vault on Walls (`sides = 4`) {#pavilion_vault}
 
@@ -216,11 +202,9 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_9_pavilion_vault.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_9_pavilion_vault.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_9_pavilion_vault.cpp
-
-</details>
 
 ### 10. Pentagon Vault (`sides = 5`) {#pentagon_vault}
 
@@ -230,11 +214,9 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_10_pentagon_vault.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_10_pentagon_vault.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_10_pentagon_vault.cpp
-
-</details>
 
 ### 11. Hexagon Vault (`sides = 6`) {#hexagon_vault}
 
@@ -244,11 +226,9 @@ CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_11_hexagon_vault.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_11_hexagon_vault.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_11_hexagon_vault.cpp
-
-</details>
 
 ### 12. Octagon Vault (`sides = 8`) {#octagon_vault}
 
@@ -258,11 +238,9 @@ CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_12_octagon_vault.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_12_octagon_vault.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_12_octagon_vault.cpp
-
-</details>
 
 ---
 
@@ -276,11 +254,9 @@ CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
 CurvedFoldedBeam beams;
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_13_curved_folded_beam.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_13_curved_folded_beam.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_13_curved_folded_beam.cpp
-
-</details>
 
 ---
 
@@ -298,21 +274,17 @@ CurvedFoldedBeam beams;
 CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_14_corner_fan.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_14_corner_fan.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_14_corner_fan.cpp
-
-</details>
 
 ### 15. Corner Fan Subdivisions (`2`, `4`, `8`, `12` Strips) {#corner_fan_subdivisions}
 
 ![corner fan subdivisions](templates/templates_cylindrical_folding_15_corner_fan_subdivisions_all.webp)
 
-<details><summary>Example code: templates_cylindrical_folding_15_corner_fan_subdivisions.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_15_corner_fan_subdivisions.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_15_corner_fan_subdivisions.cpp
-
-</details>
 
 ---
 
@@ -326,11 +298,9 @@ CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 
 Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a `R = 2000 mm`, `12 m` column.
 
-<details><summary>Example code: templates_cylindrical_folding_16_cylinder_carving.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_16_cylinder_carving.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_16_cylinder_carving.cpp
-
-</details>
 
 ### 17. Closed Fluted Rings (`4`, `6`, `8` Carvers) {#cylinder_carving_rings}
 
@@ -338,8 +308,6 @@ Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a 
 
 Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` alternating-tilt cylinders.
 
-<details><summary>Example code: templates_cylindrical_folding_17_cylinder_carving_rings.cpp</summary>
+**Full C++ Example (`templates_cylindrical_folding_17_cylinder_carving_rings.cpp`):**
 
 \include{lineno} templates_cylindrical_folding_17_cylinder_carving_rings.cpp
-
-</details>

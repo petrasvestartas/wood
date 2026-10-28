@@ -2,65 +2,100 @@
 
 [TOC]
 
-`wood_truss::Truss` is a timber truss, a `WoodSession` built from a `TrussGuide`: chords drawn as polylines through their nodes, webs and end posts as lines. The template makes a beam per chord run, web and post and reads every butt from how the lines meet at the nodes.
+Parametric and custom timber trusses (`src/templates/truss/*.h`, examples `templates_truss_1_pratt` and `templates_truss_2_library`). `wood_truss::Truss` subclasses `WoodSession` and converts a wireframe `TrussGuide` (`chords` polylines + `webs` lines + `posts` lines) into mitered, butted, and half-lapped `Beam` elements by ranking members via iterative outer-boundary graph peeling.
 
-```cpp
-wood_truss::Truss truss(wood_truss::TrussGuide::pratt());
-```
+![Timber Truss Primary Inputs, Boundary-Peeling Rank and Node Butts](diagrams/template_truss_pipeline.svg)
 
-The members are ranked as a graph is pruned: the members on the outer boundary of the lines first, columns and dangling legs included, then
-the boundary of what is left, and so on. Boundary corners are made first; an inner member is then let into the outer ones, losing only the
-wood they have once cut, so nothing is lost at a corner and nothing is cut twice.
+## Primary Inputs (`TrussGuide`)
 
-| Where the lines meet | Butt |
+| Input / Parameter | Type | Default | Geometric Role |
+| --- | --- | --- | --- |
+| `chords` | `std::vector<Polyline>` | Preset-specific | Continuous top/bottom chord polylines passing through panel nodes |
+| `webs` | `std::vector<Line>` | Preset-specific | Interior vertical and diagonal web segments |
+| `posts` | `std::vector<Line>` | `{}` | Supporting column/post segments at truss ends |
+| `chord_radius` | `double` | `80.0` | Half-section (`mm`) of chord and post beams (`80.0` $\to 160 \times 160\text{ mm}$) |
+| `web_radius` | `double` | `60.0` | Half-section (`mm`) of web beams (`60.0` $\to 120 \times 120\text{ mm}$) |
+
+## Geometry Generation & Boundary-Peeling Joint Rules
+
+Members are ranked by iteratively pruning the outer boundary of the line graph: outer boundary chords and posts receive `rank = 0` and have their corner miters/heels cut first; inner web layers (`rank >= 1`) are then let into the already-trimmed outer members so no corner is cut twice.
+
+| Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
-| a chord turns, a kink | the two runs `side_side` on the miter |
-| chords end at one node, a heel | `JointBeam::butt` reads the case |
-| a chord's end on another chord's run | `top_side` on it |
-| a web's or post's end on a run, or where several runs end | let into each run there |
-| a web's or post's end at a run's lone end | the outer member runs on over it, `top_side` at the end; an inner member is let in |
-| a web's end on another web's middle, a K | let into it |
-| a chord's end on a web's or post's middle, a tie on a column | let into it |
-| members crossing, chords, webs or posts | laps, `JointBeam::butt_cross`, each keeping a layer of the depth where several cross at one point |
-| members ending at one node | an inner one let into every outer one; those of one rank `side_side` with each neighbour, never across a member passing through |
+| **Chord kink (interior polyline vertex)** | Adjacent chord runs mitered `side_side` on the angle bisector |
+| **Chord heel (two chords ending at one node)** | Resolved by `JointBeam::butt` |
+| **Chord end on another chord's run** | Stopped `top_side` against the continuous chord |
+| **Web / post end on a chord run** | Let into the chord (`top_side`) |
+| **Web / post end at a chord's lone end** | Outer member runs over the inner member (`top_side`); inner member let in |
+| **Web end on another web's middle (K-joint)** | Let into the continuous web |
+| **Chord end on a post's middle (tie on column)** | Let into the post |
+| **Crossing chords, webs, or posts (X-joint)** | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across $N$ crossing bars |
+| **Multiple webs ending at one node** | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
 
-## Constructor
-
-The constructor is the recipe:
+## Constructor Pipeline
 
 ```cpp
 Truss::Truss(const TrussGuide& guide, const std::string& name)
     : WoodSession(name),
       guide(guide) {
 
-    // input: the guide's lines as drawn
+    // 1. input: the guide's chord polylines and web/post lines as drawn
     add_input();
 
-    // members: a beam per chord run and per web
+    // 2. members: a Beam per chord segment, web, and post
     add_chords();
     add_webs();
 
-    // chords: the runs mitered at kinks, butted at heels
+    // 3. chords: runs mitered at kinks, butted at heels, lapped at crossings
     add_chord_butts();
 
-    // webs and posts: on the chords, lapped where they cross, mitered with their neighbours at every node
+    // 4. webs and posts: let into chords, lapped at crossings, mitered with same-rank neighbours
     add_web_butts();
 }
 ```
 
-## Guide
+---
+
+## Full C++ Examples
+
+### 1. Custom Wireframe `TrussGuide` (Explicit Chords, Webs & Posts)
 
 ```cpp
-TrussGuide(const std::vector<Polyline>& chords, const std::vector<Line>& webs, const std::vector<Line>& posts = {}, double chord_radius = 80.0, double web_radius = 60.0);
+#include "wood_session.h"
+#include "src/templates/truss/truss.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+int main() {
+    // 1. Primary inputs: top & bottom chord Polylines + web Lines
+    const std::vector<Polyline> chords = {
+        Polyline({{0.0, 0.0, 0.0}, {4000.0, 0.0, 0.0}, {8000.0, 0.0, 0.0}}),
+        Polyline({{0.0, 0.0, 0.0}, {4000.0, 0.0, 2200.0}, {8000.0, 0.0, 0.0}}),
+    };
+    const std::vector<Line> webs = {
+        Line::from_points({2000.0, 0.0, 1100.0}, {2000.0, 0.0, 0.0}),
+        Line::from_points({4000.0, 0.0, 2200.0}, {4000.0, 0.0, 0.0}),
+        Line::from_points({6000.0, 0.0, 1100.0}, {6000.0, 0.0, 0.0}),
+        Line::from_points({2000.0, 0.0, 1100.0}, {4000.0, 0.0, 0.0}),
+        Line::from_points({6000.0, 0.0, 1100.0}, {4000.0, 0.0, 0.0}),
+    };
+
+    // 2. Build TrussGuide (160x160 chords, 120x120 webs) and generate Truss
+    const wood_truss::TrussGuide guide(chords, webs, {}, 80.0, 60.0);
+    wood_truss::Truss truss(guide, "custom_pratt_truss");
+    truss.pb_dump(pb_path("live"));
+    return 0;
+}
 ```
 
-## Pratt
+### 2. Pratt Roof Truss (`examples/templates_truss_1_pratt.cpp`)
 
 ![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
 
 \include{lineno} templates_truss_1_pratt.cpp
 
-## Library
+## Library (`80` Parametric `TrussGuide` Presets)
 
 Every guide of the library built by the template, `templates_truss_2_library`, each its own scene `truss_<name>.pb`. Each takes its span, heights and number of panels, and the half sections `chord_radius` and `web_radius`.
 
