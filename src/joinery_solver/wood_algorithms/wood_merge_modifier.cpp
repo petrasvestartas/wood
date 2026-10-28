@@ -23,6 +23,14 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distanc
     bottom_points = plate.polylines[0].get_points();
     top_points = plate.polylines[1].get_points();
     joint_planes = plate.planes;
+    if (plate.polylines.size() >= 2 && joint_planes.size() >= 2 && !bottom_points.empty()) {
+        const double d0 =
+            Point::distance(bottom_points[0], joint_planes[0].project(bottom_points[0]));
+        const double d1 =
+            Point::distance(bottom_points[0], joint_planes[1].project(bottom_points[0]));
+        if (d0 > d1)
+            std::swap(joint_planes[0], joint_planes[1]);
+    }
     bottom_original_front = bottom_points.empty() ? Point(0, 0, 0) : bottom_points.front();
     top_original_front = top_points.empty() ? Point(0, 0, 0) : top_points.front();
     this->distance_squared = distance_squared;
@@ -138,8 +146,8 @@ std::array<std::vector<Polyline>, 2>* MergeModifier::joint_outlines(
     const Point marker_bottom = outlines[0][1].get_point(0);
     const Point marker_top = outlines[1][1].get_point(0);
     const double distance_bottom =
-        Point::distance(marker_bottom, plate.planes[0].project(marker_bottom));
-    const double distance_top = Point::distance(marker_top, plate.planes[0].project(marker_top));
+        Point::distance(marker_bottom, joint_planes[0].project(marker_bottom));
+    const double distance_top = Point::distance(marker_top, joint_planes[0].project(marker_top));
     const bool is_reversed = (distance_bottom * distance_bottom) > (distance_top * distance_top);
 
     if (log) {
@@ -271,7 +279,7 @@ void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>,
     if (!Intersection::closed_and_open_paths_2d(
             on_clip_grid(plate.polylines[0], frame_bottom),
             on_clip_grid(outlines[0][0], frame_bottom),
-            plate.planes[0],
+            joint_planes[0],
             clipped_bottom,
             parameters_bottom
         ))
@@ -285,7 +293,7 @@ void MergeModifier::insert_rectangle_cut(const std::array<std::vector<Polyline>,
     if (!Intersection::closed_and_open_paths_2d(
             on_clip_grid(plate.polylines[1], frame_top),
             on_clip_grid(outlines[1][0], frame_top),
-            plate.planes[1],
+            joint_planes[1],
             clipped_top,
             parameters_top
         ))
@@ -677,9 +685,9 @@ void MergeModifier::cut_holes_top_bottom(
             const Point bottom_back = outlines[0].back().get_point(0);
             const Point top_back = outlines[1].back().get_point(0);
             const double distance_bottom =
-                Point::distance(bottom_back, plate.planes[0].project(bottom_back));
+                Point::distance(bottom_back, joint_planes[0].project(bottom_back));
             const double distance_top =
-                Point::distance(top_back, plate.planes[0].project(top_back));
+                Point::distance(top_back, joint_planes[0].project(top_back));
             if ((distance_bottom * distance_bottom) > (distance_top * distance_top)) {
                 std::swap(outlines[0], outlines[1]);
                 std::swap(cut_types[0], cut_types[1]);
@@ -695,7 +703,7 @@ void MergeModifier::cut_holes_top_bottom(
 
                 Polyline bottom = outlines[0][outline_index];
                 Polyline top = outlines[1][outline_index];
-                if (!bottom.is_clockwise(plate.planes[0])) {
+                if (!bottom.is_clockwise(joint_planes[0])) {
                     bottom.reverse();
                     top.reverse();
                 }
@@ -739,9 +747,9 @@ void MergeModifier::cut_holes_side(
             const Point bottom_back = outlines[0].back().get_point(0);
             const Point top_back = outlines[1].back().get_point(0);
             const double distance_bottom =
-                Point::distance(bottom_back, plate.planes[0].project(bottom_back));
+                Point::distance(bottom_back, joint_planes[0].project(bottom_back));
             const double distance_top =
-                Point::distance(top_back, plate.planes[0].project(top_back));
+                Point::distance(top_back, joint_planes[0].project(top_back));
             if ((distance_bottom * distance_bottom) > (distance_top * distance_top)) {
                 std::swap(outlines[0], outlines[1]);
                 std::swap(cut_types[0], cut_types[1]);
@@ -754,7 +762,7 @@ void MergeModifier::cut_holes_side(
 
                 Polyline bottom = outlines[0][cut_index];
                 Polyline top = outlines[1][cut_index];
-                if (!bottom.is_clockwise(plate.planes[0])) {
+                if (!bottom.is_clockwise(joint_planes[0])) {
                     bottom.reverse();
                     top.reverse();
                 }

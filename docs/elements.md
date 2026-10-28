@@ -4,6 +4,8 @@
 
 Timber members, auxiliary cutters, and parametric joints under `src/joinery_solver/wood_elements/`. Every element stores its uncut stock (`element_geometry_*`) and applies incoming `WoodSession::add_interaction(source, target, interaction)` edges to compute its cut solid (`model_geometry_*`).
 
+## Shape Elements
+
 ![](diagrams/wood_elements_taxonomy.webp)
 
 | Element | Header | Examples |
@@ -17,6 +19,16 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 | [Support](@ref elements_support) | `wood_element_support.h` | `element_support` |
 | [CutPlane](@ref elements_cut_plane) | `wood_element_cut_plane.h` | `element_beam_variable_cut` |
 | [Profiles](@ref elements_profile) | `wood_profile.h` | `element_profile` |
+| [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
+
+## Joint Elements
+
+Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamVariable`, `Column`, `Block`) and optionally own connector keys, wedges, side plates, or [`Pin`](@ref elements_pin) dowels.
+
+![](diagrams/wood_joint_elements_taxonomy.webp)
+
+| Joint Element | Header | Examples |
+| --- | --- | --- |
 | [Joint](@ref elements_joint) | `wood_element_joint.h` | `element_joint_drill`, `element_joint_cutter` |
 | [JointPlate](@ref elements_joint_plate) | `wood_element_joint_plate.h` | `element_joint_plate_parameters` |
 | [JointPlate top_side](@ref elements_joint_plate_top_side) | `wood_element_joint_plate.h` | `element_joint_plate_top_side_three_tenons` .. `_snap_fit`, `_custom` |
@@ -33,7 +45,6 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 | [JointBeam butt](@ref elements_joint_beam_butt) | `wood_element_joint_beam.h` | `element_joint_beam_butt`, `_butt_plates` |
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
-| [Pin](@ref elements_pin) | `wood_element_pin.h` | `element_pin` |
 
 - @subpage elements_plate
 - @subpage elements_plate_curved

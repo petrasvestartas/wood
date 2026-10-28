@@ -57,14 +57,16 @@ Polyline square_section(const Point& at, const Vector& direction, const Vector& 
 /// The solid between matching bottom and top loops as a boundary representation.
 Vector compute_newell(const std::vector<Point>& points) {
 
+    if (points.empty())
+        return Vector(0.0, 0.0, 0.0);
     const size_t count =
-        points.size() > 1 && points.front().distance(points.back()) < Tolerance::APPROXIMATION
+        points.size() > 1 && points.front().distance(points.back()) < Tolerance::ZERO_TOLERANCE
             ? points.size() - 1
             : points.size();
+    const Point& origin = points.front();
     Vector normal(0.0, 0.0, 0.0);
     for (size_t i = 0; i < count; i++)
-        normal += (points[i] - Point(0.0, 0.0, 0.0))
-                      .cross(points[(i + 1) % count] - Point(0.0, 0.0, 0.0));
+        normal += (points[i] - origin).cross(points[(i + 1) % count] - origin);
 
     return normal.normalized();
 }

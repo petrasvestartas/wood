@@ -44,6 +44,9 @@ triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& tri
 /// The triangles of one face as vertex keys wound like the face.
 static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_t face) {
 
+    if (mesh.get_triangulation().count(face))
+        return mesh.get_triangulation().at(face);
+
     const std::vector<size_t> ring = mesh.face_vertices(face).value();
 
     if (ring.size() == 3)
@@ -57,11 +60,8 @@ static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_
     const Vector normal = compute_newell(points);
     std::vector<std::array<size_t, 3>> triangles;
 
-    if (mesh.get_triangulation().count(face))
-        triangles = mesh.get_triangulation().at(face);
-    else
-        for (const std::array<int, 3>& t : cdt_triangulate(to_plane(points, normal), {}))
-            triangles.push_back({ring[t[0]], ring[t[1]], ring[t[2]]});
+    for (const std::array<int, 3>& t : cdt_triangulate(to_plane(points, normal), {}))
+        triangles.push_back({ring[t[0]], ring[t[1]], ring[t[2]]});
 
     if (triangles_normal(mesh, triangles).dot(normal) < 0.0)
         for (std::array<size_t, 3>& triangle : triangles)
@@ -131,7 +131,12 @@ static void orient_shells(manifold::MeshGL64& gl) {
             }
         }
 
-        volumes[root] += corners[0].dot(corners[1].cross(corners[2]));
+        const Vector ref(
+            gl.vertProperties[3 * root],
+            gl.vertProperties[3 * root + 1],
+            gl.vertProperties[3 * root + 2]
+        );
+        volumes[root] += (corners[0] - ref).dot((corners[1] - ref).cross(corners[2] - ref));
     }
 
     std::set<uint64_t> inverted;
@@ -297,6 +302,13 @@ compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles)
 /// Twice the area a loop of Manifold vertices encloses, by Newell: the length of the loop's normal.
 static double loop_area(const manifold::MeshGL64& gl, const std::vector<uint64_t>& loop) {
 
+    if (loop.empty())
+        return 0.0;
+    const Point origin(
+        gl.vertProperties[3 * loop[0]],
+        gl.vertProperties[3 * loop[0] + 1],
+        gl.vertProperties[3 * loop[0] + 2]
+    );
     Vector normal(0.0, 0.0, 0.0);
 
     for (size_t i = 0; i < loop.size(); i++) {
@@ -308,11 +320,7 @@ static double loop_area(const manifold::MeshGL64& gl, const std::vector<uint64_t
         const Point q(
             gl.vertProperties[3 * b], gl.vertProperties[3 * b + 1], gl.vertProperties[3 * b + 2]
         );
-        normal += Vector(
-            (p[1] - q[1]) * (p[2] + q[2]),
-            (p[2] - q[2]) * (p[0] + q[0]),
-            (p[0] - q[0]) * (p[1] + q[1])
-        );
+        normal += (p - origin).cross(q - origin);
     }
 
     return normal.magnitude();
@@ -350,7 +358,8 @@ static void add_region(
     const std::vector<uint64_t> loop = compute_loop(gl, triangles);
     const double area = triangles_area(gl, triangles);
 
-    if (loop.size() >= 3 && std::abs(loop_area(gl, loop) - area) <= 1e-6 * area) {
+    if (loop.size() >= 3 && loop.size() == triangles.size() + 2 &&
+        std::abs(loop_area(gl, loop) - area) <= 1e-6 * area) {
         std::vector<size_t> face;
 
         for (const uint64_t vertex : loop)
@@ -358,20 +367,22 @@ static void add_region(
 
         const std::optional<size_t> key = mesh.add_face(face);
 
-        if (key && triangles.size() > 1) {
-            std::vector<std::array<size_t, 3>> triangulation;
+        if (key) {
+            if (triangles.size() > 1) {
+                std::vector<std::array<size_t, 3>> triangulation;
 
-            for (const size_t t : triangles)
-                triangulation.push_back(
-                    {keys[gl.triVerts[3 * t]],
-                     keys[gl.triVerts[3 * t + 1]],
-                     keys[gl.triVerts[3 * t + 2]]}
-                );
+                for (const size_t t : triangles)
+                    triangulation.push_back(
+                        {keys[gl.triVerts[3 * t]],
+                         keys[gl.triVerts[3 * t + 1]],
+                         keys[gl.triVerts[3 * t + 2]]}
+                    );
 
-            mesh.set_face_triangulation(*key, triangulation);
+                mesh.set_face_triangulation(*key, triangulation);
+            }
+
+            return;
         }
-
-        return;
     }
 
     for (const size_t t : triangles)

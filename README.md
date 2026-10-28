@@ -32,6 +32,8 @@ cmake --build build --target element_joint_plate_side_side_outplane_fingers --pa
 
 ![](docs/images/diagrams/wood_elements_taxonomy.webp)
 
+![](docs/images/diagrams/wood_joint_elements_taxonomy.webp)
+
 ## Types
 
 | Class | Stock Input | Primary Cutters |
