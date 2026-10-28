@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 280" width="100%" style="max-width:1120px;display:block;margin:14px auto;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+    <marker id="arr-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#1e293b"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#2196ea"/>
+    </marker>
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#e8478b"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <style>
+      .halo { paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linecap: round; stroke-linejoin: round; }
+      .halo-panel { paint-order: stroke; stroke: #f8fafc; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+      .title { font-size: 11px; font-weight: 700; fill: #0f172a; letter-spacing: 0.04em; }
+      .sub { font-size: 9.5px; font-weight: 500; fill: #475569; }
+      .code { font-size: 9.5px; font-weight: 600; fill: #0f172a; }
+      .dim { font-size: 9px; font-weight: 600; fill: #334155; }
+      .badge { font-size: 9px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1120" height="280" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1120" height="30" fill="#111111"/>
+  <text x="14" y="19" fill="#f8fafc" font-size="11" font-weight="700" letter-spacing="0.06em">[FOLDING · PLANAR, CYLINDRICAL &amp; DEVELOPABLE GEOMETRY]</text>
+  <rect x="545.1999999999999" y="5" width="560.8000000000001" height="20" rx="3" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+  <text x="825.5999999999999" y="18" text-anchor="middle" fill="#e2e8f0" font-size="9.5" font-weight="600">Bisector Miters · Reflection vs Mirror Cylinders · Curved-Crease Unfolding</text>
+  
+  <!-- Panel 1: Planar Folding Bisector & Node Offset -->
+  <rect x="14" y="42" width="352" height="224" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="14" y="42" width="352" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="24" y="58" class="title">1 · PLANAR FOLDING (BISECTOR &amp; VERTEX OFFSET)</text>
+
+  <g transform="translate(28, 76)">
+    <!-- Two folded plates meeting at bisector plane -->
+    <polygon points="16,96 86,52 76,34 6,78" fill="#dbeafe" stroke="#2196ea" stroke-width="1.4"/>
+    <polygon points="86,52 156,96 166,78 76,34" fill="#fce7f3" stroke="#e8478b" stroke-width="1.4"/>
+    <!-- Bisector plane vertical line -->
+    <line x1="81" y1="14" x2="81" y2="112" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,2"/>
+    <!-- Normals na, nb -->
+    <line x1="46" y1="56" x2="32" y2="32" stroke="#2196ea" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+    <text x="16" y="28" class="dim" fill="#1d4ed8">n_a</text>
+    <line x1="116" y1="56" x2="130" y2="32" stroke="#e8478b" stroke-width="1.5" marker-end="url(#arr-pink)"/>
+    <text x="134" y="28" class="dim" fill="#be185d">n_b</text>
+    <text x="86" y="108" class="code" fill="#dc2626">bisector</text>
+
+    <text x="176" y="24" class="code">Miter Bisector:</text>
+    <text x="176" y="40" class="sub">n_m = unit(n_a × n_b × e)</text>
+    <text x="176" y="62" class="code">offset_plates(±t/2):</text>
+    <text x="176" y="78" class="sub">3 planes at vertex v</text>
+    <text x="176" y="92" class="sub">intersect at exact point</text>
+    <text x="176" y="106" class="sub">Plane::plane_plane_plane</text>
+  </g>
+  <rect x="26" y="206" width="328" height="48" rx="3" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="36" y="222" class="code">Joints on interior mesh edges:</text>
+  <text x="36" y="238" class="sub">side_side_outplane_fingers · linked_tenons_wall (Vidy)</text>
+
+  <!-- Panel 2: Cylindrical Reflection vs Mirror Fold -->
+  <rect x="378" y="42" width="364" height="224" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="378" y="42" width="364" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="388" y="58" class="title">2 · CYLINDRICAL FOLDING (REFLECTION vs MIRROR)</text>
+
+  <g transform="translate(392, 76)">
+    <!-- Reflection diagram -->
+    <rect x="0" y="0" width="164" height="118" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="8" y="15" class="code" fill="#1d4ed8">Reflected (true)</text>
+    <line x1="18" y1="88" x2="78" y2="44" stroke="#2196ea" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+    <line x1="78" y1="44" x2="144" y2="78" stroke="#e8478b" stroke-width="2.2" marker-end="url(#arr-pink)"/>
+    <line x1="78" y1="44" x2="118" y2="16" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <line x1="56" y1="18" x2="100" y2="76" stroke="#dc2626" stroke-width="1.8"/>
+    <text x="10" y="106" class="sub">Vault ↔ Trough (1 flat sheet)</text>
+
+    <!-- Mirror fold diagram -->
+    <rect x="174" y="0" width="164" height="118" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="182" y="15" class="code" fill="#be185d">Mirror Fold (false)</text>
+    <line x1="192" y1="88" x2="252" y2="44" stroke="#2196ea" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+    <line x1="252" y1="44" x2="318" y2="88" stroke="#059669" stroke-width="2.2" marker-end="url(#arr-green)"/>
+    <line x1="252" y1="14" x2="252" y2="88" stroke="#dc2626" stroke-width="1.8"/>
+    <text x="184" y="106" class="sub">Vault ↔ Vault (mirror pair)</text>
+  </g>
+  <rect x="392" y="206" width="338" height="48" rx="3" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="402" y="222" class="code">Exact Rational NURBS Cylinder Sections:</text>
+  <text x="402" y="238" class="sub">Affine projection along rulings preserves arc weights (distortion = 0)</text>
+
+  <!-- Panel 3: Developable Crease Unfolding & Development -->
+  <rect x="754" y="42" width="352" height="224" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="754" y="42" width="352" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="764" y="58" class="title">3 · DEVELOPABLE UNFOLDING &amp; FLAT CHECK</text>
+
+  <g transform="translate(768, 76)">
+    <!-- Curved crease with rulings leaving square -->
+    <path d="M 14,92 Q 68,18 122,92" fill="none" stroke="#dc2626" stroke-width="2.2"/>
+    <line x1="34" y1="68" x2="18" y2="34" stroke="#2196ea" stroke-width="1.4" marker-end="url(#arr-blue)"/>
+    <line x1="68" y1="54" x2="68" y2="18" stroke="#2196ea" stroke-width="1.4" marker-end="url(#arr-blue)"/>
+    <line x1="102" y1="68" x2="118" y2="34" stroke="#2196ea" stroke-width="1.4" marker-end="url(#arr-blue)"/>
+    <text x="68" y="108" text-anchor="middle" class="code" fill="#dc2626">cos α = κ_2D / κ_3D</text>
+
+    <!-- Unfolded quad diagonal check -->
+    <rect x="148" y="4" width="176" height="114" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="156" y="20" class="code" fill="#065f46">Development(a, b, 32)</text>
+    <polygon points="164,34 224,30 232,78 160,82" fill="#dcfce7" stroke="#059669" stroke-width="1.3"/>
+    <line x1="164" y1="34" x2="232" y2="78" stroke="#059669" stroke-width="1.2"/>
+    <line x1="160" y1="82" x2="224" y2="30" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3,2"/>
+    <text x="242" y="48" class="sub">diag d₂</text>
+    <text x="242" y="64" class="sub">error =</text>
+    <text x="242" y="78" class="code" fill="#dc2626">distortion</text>
+    <text x="156" y="104" class="dim">0 (~1e-14) on exact cylinders/cones</text>
+  </g>
+  <rect x="768" y="206" width="324" height="48" rx="3" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="778" y="222" class="code">Crease Quadrants (Q1..Q4) &amp; Plane Families:</text>
+  <text x="778" y="238" class="sub">zigzag (vault) · leaning (synclastic/anticlastic) · fan (dome)</text>
+  
+</svg>

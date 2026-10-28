@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 265" width="100%" style="max-width:1120px;display:block;margin:14px auto;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+    <marker id="arr-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#1e293b"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#2196ea"/>
+    </marker>
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#e8478b"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <style>
+      .halo { paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linecap: round; stroke-linejoin: round; }
+      .halo-panel { paint-order: stroke; stroke: #f8fafc; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+      .title { font-size: 11px; font-weight: 700; fill: #0f172a; letter-spacing: 0.04em; }
+      .sub { font-size: 9.5px; font-weight: 500; fill: #475569; }
+      .code { font-size: 9.5px; font-weight: 600; fill: #0f172a; }
+      .dim { font-size: 9px; font-weight: 600; fill: #334155; }
+      .badge { font-size: 9px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1120" height="265" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1120" height="30" fill="#111111"/>
+  <text x="14" y="19" fill="#f8fafc" font-size="11" font-weight="700" letter-spacing="0.06em">[TEMPLATES · PARAMETRIC WOODSESSION RECIPE]</text>
+  <rect x="566.8" y="5" width="539.2" height="20" rx="3" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+  <text x="836.4" y="18" text-anchor="middle" fill="#e2e8f0" font-size="9.5" font-weight="600">class Template : public WoodSession -&gt; Step Groups -&gt; Contacts &amp; Joints</text>
+  
+  <!-- Top Flow: Input -> Constructor Recipe -> Session Tree & Graph -> pb_dump -->
+  <g transform="translate(14, 42)">
+    <rect width="1092" height="78" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <!-- Box 1 -->
+    <rect x="12" y="12" width="210" height="54" rx="3" fill="#f8fafc" stroke="#94a3b8"/>
+    <text x="22" y="30" class="title">1 · PARAMETRIC INPUT</text>
+    <text x="22" y="46" class="sub">NurbsSurface · Mesh · Polylines</text>
+    <text x="22" y="58" class="sub">Footprint · Bay Corners · Guide</text>
+
+    <line x1="226" y1="39" x2="248" y2="39" stroke="#1e293b" stroke-width="1.6" marker-end="url(#arr-dark)"/>
+
+    <!-- Box 2 -->
+    <rect x="252" y="12" width="318" height="54" rx="3" fill="#eff6ff" stroke="#2196ea" stroke-width="1.4"/>
+    <text x="262" y="30" class="title" fill="#1d4ed8">2 · CONSTRUCTOR RECIPE (STEP GROUPS)</text>
+    <text x="262" y="46" class="code">mesh → planes → bisectors → plates/beams</text>
+    <text x="262" y="58" class="sub">Every intermediate step stored in its own Session group</text>
+
+    <line x1="574" y1="39" x2="596" y2="39" stroke="#1e293b" stroke-width="1.6" marker-end="url(#arr-dark)"/>
+
+    <!-- Box 3 -->
+    <rect x="600" y="12" width="256" height="54" rx="3" fill="#fdf2f8" stroke="#e8478b" stroke-width="1.4"/>
+    <text x="610" y="30" class="title" fill="#be185d">3 · CONTACTS &amp; JOINERY</text>
+    <text x="610" y="46" class="code">contacts → joints / connectors</text>
+    <text x="610" y="58" class="sub">orient(contact) + add_interaction(j, e, f)</text>
+
+    <line x1="860" y1="39" x2="882" y2="39" stroke="#1e293b" stroke-width="1.6" marker-end="url(#arr-dark)"/>
+
+    <!-- Box 4 -->
+    <rect x="886" y="12" width="194" height="54" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.4"/>
+    <text x="896" y="30" class="title" fill="#065f46">4 · SCENE SERIALIZATION</text>
+    <text x="896" y="46" class="code">pb_dump("live.pb")</text>
+    <text x="896" y="58" class="sub">Meshes, BReps &amp; tree layers</text>
+  </g>
+
+  <!-- Bottom Grid: 11 Template Families grouped into 4 Domains -->
+  <g transform="translate(14, 130)">
+    <!-- Domain 1: Folded & Curved Plate Shells -->
+    <rect x="0" y="0" width="264" height="122" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="0" y="0" width="264" height="22" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="10" y="15" class="title" fill="#1d4ed8">FOLDED &amp; CURVED SHELLS</text>
+    <text x="10" y="38" class="code">• Folding</text><text x="105" y="38" class="sub">Planar folded plates &amp; nodes</text>
+    <text x="10" y="56" class="code">• Cylindrical</text><text x="105" y="56" class="sub">ReflectionFold, CylinderVault</text>
+    <text x="10" y="74" class="code">• Developable</text><text x="105" y="74" class="sub">CurvedCreaseUnfolding, Cones</text>
+    <text x="10" y="92" class="code">• Shells</text><text x="105" y="92" class="sub"> Brussels, Toshima, Kobra, Vidy</text>
+    <text x="10" y="112" class="dim" fill="#1d4ed8">Plate &amp; PlateCurved + miter/finger joints</text>
+
+    <!-- Domain 2: Surface Hex & Diagrid Cassette Shells -->
+    <rect x="276" y="0" width="264" height="122" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="276" y="0" width="264" height="22" rx="4" fill="#fdf2f8" stroke="#fbcfe8"/>
+    <text x="286" y="15" class="title" fill="#be185d">CASSETTE &amp; DIAGRID SHELLS</text>
+    <text x="286" y="38" class="code">• Chevron</text><text x="372" y="38" class="sub">Herringbone plates on NURBS</text>
+    <text x="286" y="56" class="code">• Cross</text><text x="372" y="56" class="sub">Diagrid ribs + cross_slot laps</text>
+    <text x="286" y="74" class="code">• Reciprocal</text><text x="372" y="74" class="sub">Nexorade fan + top_side tenons</text>
+    <text x="286" y="92" class="code">• Module</text><text x="372" y="92" class="sub">Hex/quad boxes + Hilti / screws</text>
+    <text x="286" y="112" class="dim" fill="#be185d">Surface UV division + tangent planarity</text>
+
+    <!-- Domain 3: Framed Grids & Trusses -->
+    <rect x="552" y="0" width="264" height="122" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="552" y="0" width="264" height="22" rx="4" fill="#fef3c7" stroke="#fde68a"/>
+    <text x="562" y="15" class="title" fill="#b45309">BEAM GRIDS &amp; TRUSSES</text>
+    <text x="562" y="38" class="code">• Grid</text><text x="630" y="38" class="sub">2-layer skewed beam grids +</text>
+    <text x="630" y="52" class="sub">glued shear blocks + screws</text>
+    <text x="562" y="72" class="code">• Truss</text><text x="630" y="72" class="sub">8-type Warren roof truss:</text>
+    <text x="630" y="86" class="sub">paired chords + single webs</text>
+    <text x="562" y="112" class="dim" fill="#b45309">Beam + CutPlane miters + Joint::drill</text>
+
+    <!-- Domain 4: Vaulted Floor Slab System -->
+    <rect x="828" y="0" width="264" height="122" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <rect x="828" y="0" width="264" height="22" rx="4" fill="#f0fdf4" stroke="#bbf7d0"/>
+    <text x="838" y="15" class="title" fill="#065f46">VAULTED FLOOR SYSTEM</text>
+    <text x="838" y="38" class="code">• FloorGuide</text><text x="928" y="38" class="sub">Steps 1–6: bay, fan, loops,</text>
+    <text x="928" y="52" class="sub">parabolic ribs, beds, cutters</text>
+    <text x="838" y="72" class="code">• Floor</text><text x="928" y="72" class="sub">Steps 7–11: columns, 68 face</text>
+    <text x="928" y="86" class="sub">contacts, wedges, plates, pins</text>
+    <text x="838" y="112" class="dim" fill="#065f46">Complete multi-element BRep assembly</text>
+  </g>
+  
+</svg>

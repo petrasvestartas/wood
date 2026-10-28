@@ -4,15 +4,7 @@
 
 <em>Step 7 of @ref templates_floor_model · previous: @ref templates_floor_guide · next: @ref templates_floor_08_contacts</em>
 
-`Floor(guide, name)` builds the whole floor in its constructor.
-This page covers its first three steps, `add_quarters`, `add_oculus` and `add_columns`; page 8 covers `add_contacts`.
-`add_quarters` makes the six member families of every quarter: `beds`, `tsections`, `outer_ribs`, `inner_ribs`, `wedges` and `inner_beams`.
-`add_oculus` makes the ring around the hole.
-`add_columns` makes a column on its support at every corner.
-The guide draws every loop at the datum, z 0.
-`bay_height` (3500) is the storey, the floor top above the slab and the column top.
-Every member is lifted from the datum to `bay_height`.
-The pictures show quarter 0 of the default 6000 x 6000 bay.
+`Floor(guide, name)` lifts the datum loops of `FloorGuide` to `bay_height` (`3500 mm`) across three member-building steps: `add_quarters` (`beds`, `tsections`, `outer_ribs`, `inner_ribs`, `wedges`, `inner_beams`), `add_oculus` (ring beams, bottom wedges, central plate), and `add_columns` (carved-head columns on `Support`s).
 
 Example: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) reads one column back from the floor with `get_branch("column_0")`; [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor.
 

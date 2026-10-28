@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 285" width="100%" style="max-width:1120px;display:block;margin:14px auto;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+    <marker id="arr-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#1e293b"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#2196ea"/>
+    </marker>
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#e8478b"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <style>
+      .halo { paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linecap: round; stroke-linejoin: round; }
+      .halo-panel { paint-order: stroke; stroke: #f8fafc; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+      .title { font-size: 11px; font-weight: 700; fill: #0f172a; letter-spacing: 0.04em; }
+      .sub { font-size: 9.5px; font-weight: 500; fill: #475569; }
+      .code { font-size: 9.5px; font-weight: 600; fill: #0f172a; }
+      .dim { font-size: 9px; font-weight: 600; fill: #334155; }
+      .badge { font-size: 9px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1120" height="285" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1120" height="30" fill="#111111"/>
+  <text x="14" y="19" fill="#f8fafc" font-size="11" font-weight="700" letter-spacing="0.06em">[FLOOR · VAULTED TIMBER SLAB ARCHITECTURE]</text>
+  <rect x="494.79999999999995" y="5" width="611.2" height="20" rx="3" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+  <text x="800.4" y="18" text-anchor="middle" fill="#e2e8f0" font-size="9.5" font-weight="600">FloorGuide (Steps 1–6: Loops &amp; Planes) -&gt; Floor (Steps 7–11: 68 Contacts &amp; BReps)</text>
+  
+  <!-- Panel 1: FloorGuide (Steps 1-6) -->
+  <rect x="14" y="42" width="536" height="229" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="14" y="42" width="536" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="24" y="58" class="title">1 · FLOORGUIDE (STEPS 1–6: DATUM PLANES, RIB LOOPS &amp; RAILS)</text>
+
+  <!-- Quarter Plan Diagram -->
+  <g transform="translate(28, 76)">
+    <!-- Full bay square -->
+    <rect x="0" y="0" width="176" height="176" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
+    <!-- Quarter 0 highlighted -->
+    <polygon points="0,176 88,176 88,110 66,88 0,88" fill="#eff6ff" stroke="#2196ea" stroke-width="1.6"/>
+    <!-- Oculus square -->
+    <rect x="66" y="66" width="44" height="44" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+    <!-- Radial fan lines from corner 0 (0,176) -->
+    <line x1="0" y1="176" x2="66" y2="110" stroke="#e8478b" stroke-width="1.4"/>
+    <line x1="0" y1="176" x2="77" y2="110" stroke="#2196ea" stroke-width="1.1" stroke-dasharray="2,2"/>
+    <line x1="0" y1="176" x2="66" y2="99" stroke="#2196ea" stroke-width="1.1" stroke-dasharray="2,2"/>
+    <!-- Bed rows -->
+    <line x1="22" y1="88" x2="88" y2="154" stroke="#059669" stroke-width="1.4"/>
+    <line x1="44" y1="88" x2="88" y2="132" stroke="#059669" stroke-width="1.4"/>
+    <!-- Corner 0 dot -->
+    <circle cx="0" cy="176" r="4" fill="#be185d"/>
+    <text x="8" y="170" class="code" fill="#be185d">corner 0</text>
+    <text x="74" y="92" class="dim" fill="#b45309">oculus</text>
+  </g>
+
+  <!-- Step list for FloorGuide -->
+  <g transform="translate(220, 76)">
+    <text x="0" y="14" class="code" fill="#1d4ed8">Step 1 · Inputs &amp; Bay Split</text>
+    <text x="12" y="28" class="sub">corners[4] (6000×6000), oculus_size (1000), 4 quarters</text>
+    <text x="0" y="46" class="code" fill="#1d4ed8">Step 2 · Radial Fan Planes</text>
+    <text x="12" y="60" class="sub">outer_ribs[2], inner_ribs[2], tsections[6], wedges[3]</text>
+    <text x="0" y="78" class="code" fill="#1d4ed8">Step 3 · Datum Face Loops (z = 0)</text>
+    <text x="12" y="92" class="sub">Clipped between column head, seams &amp; oculus ring</text>
+    <text x="0" y="110" class="code" fill="#1d4ed8">Step 4 · Parabolic Soffit Ribs</text>
+    <text x="12" y="124" class="sub">3-point parabolic arch undersides + oculus bottom wedges</text>
+    <text x="0" y="142" class="code" fill="#1d4ed8">Step 5–6 · Bed Rails &amp; Column Cutters</text>
+    <text x="12" y="156" class="sub">3 arched bed_rails rows + 6 column_cutters loop pairs</text>
+  </g>
+
+  <!-- Panel 2: Floor (Steps 7-11) -->
+  <rect x="562" y="42" width="544" height="229" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+  <rect x="562" y="42" width="544" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="572" y="58" class="title">2 · FLOOR SESSION (STEPS 7–11: MEMBERS, 68 CONTACTS &amp; CONNECTORS)</text>
+
+  <g transform="translate(576, 76)">
+    <rect x="0" y="0" width="248" height="178" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="10" y="18" class="code" fill="#065f46">Step 7 · Timber Members (+bay_height)</text>
+    <text x="10" y="34" class="sub">• beds: Plate::row_between(bottom, top)</text>
+    <text x="10" y="48" class="sub">• tsections &amp; wedges: Plate(loops[1], loops[0])</text>
+    <text x="10" y="62" class="sub">• outer/inner_ribs: BeamVariable(axis, sections)</text>
+    <text x="10" y="76" class="sub">• inner_beams &amp; ring: BeamVariable::between</text>
+    <text x="10" y="90" class="sub">• column_k: Column::square + 2 head_blocks (+)</text>
+    <text x="10" y="104" class="sub">  - 6 column_cutters (-) + Support &amp; Joint::support</text>
+
+    <text x="10" y="126" class="code" fill="#be185d">Step 11 · Exact BRep Serialization</text>
+    <text x="10" y="142" class="sub">• compute_breps() converts all cut members,</text>
+    <text x="10" y="156" class="sub">  wedges, plates &amp; Ø4/Ø20/Ø50 bores to BReps</text>
+    <text x="10" y="170" class="sub">• floor.get_branch("column_0") extracts sub-tree</text>
+
+    <!-- Right table: 68 Contacts & Connectors -->
+    <rect x="260" y="0" width="256" height="178" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="270" y="18" class="code" fill="#1d4ed8">Steps 8–10 · 68 Contacts &amp; Connectors</text>
+    <line x1="260" y1="26" x2="516" y2="26" stroke="#cbd5e1"/>
+    <text x="270" y="42" class="code">4 seam_wedge</text><text x="388" y="42" class="sub">JointBeam::wedge + pins</text>
+    <text x="270" y="60" class="code">4 oculus_wedge</text><text x="388" y="60" class="sub">JointBeam::wedge + pins</text>
+    <text x="270" y="78" class="code">8 column_plate</text><text x="388" y="78" class="sub">let_in_plate + rect_plate</text>
+    <text x="270" y="96" class="code">+ 4 cross_lap</text><text x="388" y="96" class="sub">JointPlate::cross_slot()</text>
+    <text x="270" y="114" class="code">24 block_pins</text><text x="388" y="114" class="sub">centred_pins (4 × Ø8)</text>
+    <text x="270" y="132" class="code">24 butt joints</text><text x="388" y="132" class="sub">headed_pins (vertical, 2)</text>
+    <text x="270" y="150" class="code">4 ring_corner</text><text x="388" y="150" class="sub">headed_pins (vertical, 2)</text>
+    <line x1="260" y1="158" x2="516" y2="158" stroke="#cbd5e1"/>
+    <text x="270" y="172" class="dim" fill="#0f172a">Total: 17 contacts/quarter × 4 = 68 contacts</text>
+  </g>
+  
+</svg>

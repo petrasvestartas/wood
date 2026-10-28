@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 310" width="100%" style="max-width:1120px;display:block;margin:14px auto;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+    </pattern>
+    <marker id="arr-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#1e293b"/>
+    </marker>
+    <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#2196ea"/>
+    </marker>
+    <marker id="arr-pink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#e8478b"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <style>
+      .halo { paint-order: stroke; stroke: #ffffff; stroke-width: 3.5px; stroke-linecap: round; stroke-linejoin: round; }
+      .halo-panel { paint-order: stroke; stroke: #f8fafc; stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round; }
+      .title { font-size: 11px; font-weight: 700; fill: #0f172a; letter-spacing: 0.04em; }
+      .sub { font-size: 9.5px; font-weight: 500; fill: #475569; }
+      .code { font-size: 9.5px; font-weight: 600; fill: #0f172a; }
+      .dim { font-size: 9px; font-weight: 600; fill: #334155; }
+      .badge { font-size: 9px; font-weight: 700; fill: #ffffff; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1120" height="310" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1120" height="30" fill="#111111"/>
+  <text x="14" y="19" fill="#f8fafc" font-size="11" font-weight="700" letter-spacing="0.06em">[WOOD · KERNEL ARCHITECTURE]</text>
+  <rect x="638.8" y="5" width="467.2" height="20" rx="3" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+  <text x="872.4" y="18" text-anchor="middle" fill="#e2e8f0" font-size="9.5" font-weight="600">Element (Stock) + Interaction (Edge) -&gt; Cut Mesh &amp; Exact BRep</text>
+  
+  <!-- Panel 1: WoodSession Graph -->
+  <rect x="14" y="42" width="352" height="254" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="14" y="42" width="352" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="24" y="58" class="title">1 · WOODSESSION DUAL GRAPH (TREE + INTERACTIONS)</text>
+
+  <!-- Tree hierarchy box -->
+  <rect x="26" y="76" width="146" height="92" rx="3" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3,2"/>
+  <text x="34" y="90" class="code" fill="#334155">Session::tree</text>
+  <line x1="40" y1="98" x2="40" y2="154" stroke="#64748b" stroke-width="1.2"/>
+  <line x1="40" y1="108" x2="54" y2="108" stroke="#64748b" stroke-width="1.2"/>
+  <text x="58" y="111" class="sub">group ("plates")</text>
+  <line x1="40" y1="128" x2="54" y2="128" stroke="#64748b" stroke-width="1.2"/>
+  <text x="58" y="131" class="code" fill="#2196ea">Element a, b</text>
+  <line x1="40" y1="148" x2="54" y2="148" stroke="#64748b" stroke-width="1.2"/>
+  <text x="58" y="151" class="code" fill="#e8478b">Joint j (+children)</text>
+
+  <!-- Graph interaction nodes -->
+  <rect x="188" y="78" width="72" height="28" rx="4" fill="#eff6ff" stroke="#2196ea" stroke-width="1.5"/>
+  <text x="224" y="96" text-anchor="middle" class="code" fill="#1d4ed8">Plate a</text>
+
+  <rect x="282" y="78" width="72" height="28" rx="4" fill="#eff6ff" stroke="#2196ea" stroke-width="1.5"/>
+  <text x="318" y="96" text-anchor="middle" class="code" fill="#1d4ed8">Plate b</text>
+
+  <!-- Contact edge between a and b -->
+  <line x1="260" y1="92" x2="280" y2="92" stroke="#d97706" stroke-width="1.8" marker-end="url(#arr-amber)"/>
+  <text x="271" y="84" text-anchor="middle" class="dim" fill="#b45309">contact</text>
+
+  <!-- Joint node -->
+  <rect x="218" y="134" width="106" height="30" rx="4" fill="#fdf2f8" stroke="#e8478b" stroke-width="1.5"/>
+  <text x="271" y="153" text-anchor="middle" class="code" fill="#be185d">JointPlate j</text>
+
+  <!-- Directed feature edges -->
+  <path d="M 248 134 L 228 108" fill="none" stroke="#e8478b" stroke-width="1.6" marker-end="url(#arr-pink)"/>
+  <path d="M 294 134 L 314 108" fill="none" stroke="#e8478b" stroke-width="1.6" marker-end="url(#arr-pink)"/>
+  <text x="210" y="125" class="dim" fill="#be185d">interaction(0)</text>
+  <text x="326" y="125" class="dim" fill="#be185d">interaction(1)</text>
+
+  <!-- Bottom summary formula box -->
+  <rect x="26" y="180" width="328" height="104" rx="3" fill="#0f172a"/>
+  <text x="36" y="198" fill="#94a3b8" font-size="9">// 4-step joinery graph wiring:</text>
+  <text x="36" y="214" fill="#f8fafc" font-size="9.2">auto c = session.compute_face_contact(a, b)[0];</text>
+  <text x="36" y="230" fill="#f8fafc" font-size="9.2">auto j = JointPlate::side_side_outplane_fingers(8, 0.5);</text>
+  <text x="36" y="246" fill="#38bdf8" font-size="9.2">j-&gt;orient(c, {a, b});</text>
+  <text x="36" y="262" fill="#f472b6" font-size="9.2">session.add(j, grp);</text>
+  <text x="36" y="276" fill="#f472b6" font-size="9.2">session.add_interaction(j, a, j-&gt;interaction(0));</text>
+
+  <!-- Panel 2: Contact -> Orient -> Cut Geometry -->
+  <rect x="378" y="42" width="364" height="254" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="378" y="42" width="364" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="388" y="58" class="title">2 · GEOMETRIC PIPELINE (CONTACT → ORIENT → CUT)</text>
+
+  <!-- Stage A: Contact -->
+  <g transform="translate(392, 82)">
+    <rect x="0" y="0" width="102" height="94" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="51" y="14" text-anchor="middle" class="code">A. Contact</text>
+    <!-- Two plates meeting at miter -->
+    <polygon points="14,76 50,76 50,32 14,32" fill="#dbeafe" stroke="#2196ea" stroke-width="1.2"/>
+    <polygon points="50,76 88,58 88,20 50,32" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/>
+    <!-- Shared contact polygon highlighted -->
+    <polygon points="47,30 53,34 53,78 47,74" fill="#fef3c7" stroke="#d97706" stroke-width="1.6"/>
+    <text x="51" y="88" text-anchor="middle" class="sub" fill="#b45309">ContactFace</text>
+  </g>
+
+  <line x1="498" y1="129" x2="514" y2="129" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
+
+  <!-- Stage B: Unit Box Oriented -->
+  <g transform="translate(518, 82)">
+    <rect x="0" y="0" width="102" height="94" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="51" y="14" text-anchor="middle" class="code">B. Orient [-½,½]³</text>
+    <!-- Unit box wireframe -->
+    <polygon points="22,68 54,78 82,62 50,52" fill="none" stroke="#94a3b8" stroke-dasharray="2,2"/>
+    <polygon points="22,34 54,44 82,28 50,18" fill="none" stroke="#94a3b8" stroke-dasharray="2,2"/>
+    <!-- Male pink & female blue finger loops -->
+    <polyline points="28,64 28,48 44,48 44,64 60,64 60,48 74,48" fill="none" stroke="#e8478b" stroke-width="2"/>
+    <polyline points="28,44 28,60 44,60 44,44 60,44 60,60 74,60" fill="none" stroke="#2196ea" stroke-width="1.6"/>
+    <text x="51" y="88" text-anchor="middle" class="sub" fill="#be185d">male / female</text>
+  </g>
+
+  <line x1="624" y1="129" x2="640" y2="129" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
+
+  <!-- Stage C: Cut Solid -->
+  <g transform="translate(644, 82)">
+    <rect x="0" y="0" width="86" height="94" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="43" y="14" text-anchor="middle" class="code">C. Cut Solid</text>
+    <!-- Interlocking finger plates separated slightly -->
+    <polygon points="10,74 38,74 38,62 48,62 48,50 38,50 38,38 48,38 48,28 10,28" fill="#dbeafe" stroke="#2196ea" stroke-width="1.3"/>
+    <polygon points="54,70 78,58 78,22 54,32 54,42 44,42 44,54 54,54 54,64" fill="#fce7f3" stroke="#e8478b" stroke-width="1.3"/>
+    <text x="43" y="88" text-anchor="middle" class="sub" fill="#0f172a">cut_mesh/brep</text>
+  </g>
+
+  <!-- Contact detectors table inside Panel 2 -->
+  <rect x="392" y="186" width="338" height="98" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="402" y="202" class="code">Contact Search Queries (WoodSession):</text>
+  <text x="402" y="220" class="code" fill="#2196ea">compute_face_contact(a, b)</text>
+  <text x="572" y="220" class="sub">shared coplanar overlap polygon</text>
+  <text x="402" y="238" class="code" fill="#e8478b">compute_cross_contact(a, b)</text>
+  <text x="572" y="238" class="sub">4-plane crossing prism + mid-line</text>
+  <text x="402" y="256" class="code" fill="#d97706">compute_axis_contact(a, b)</text>
+  <text x="572" y="256" class="sub">closest axis segment + feature box</text>
+  <text x="402" y="274" class="code" fill="#059669">compute_face_contacts(min_a)</text>
+  <text x="572" y="274" class="sub">BVH all-pairs face contact graph</text>
+
+  <!-- Panel 3: Lazy Dual Representation (Mesh vs BRep) -->
+  <rect x="754" y="42" width="352" height="254" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="754" y="42" width="352" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="764" y="58" class="title">3 · LAZY DUAL GEOMETRY (STOCK vs MODEL)</text>
+
+  <!-- Stock box -->
+  <rect x="768" y="78" width="152" height="84" rx="4" fill="#f8fafc" stroke="#64748b" stroke-width="1.2"/>
+  <text x="844" y="95" text-anchor="middle" class="code">Uncut Stock (Cached)</text>
+  <text x="778" y="114" class="code" fill="#334155">element_geometry_mesh()</text>
+  <text x="778" y="130" class="code" fill="#334155">element_geometry_brep()</text>
+  <text x="778" y="148" class="sub">Dirty only on place(Xform)</text>
+
+  <!-- Arrow from Stock to Cut Model -->
+  <line x1="920" y1="120" x2="940" y2="120" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
+
+  <!-- Model box -->
+  <rect x="942" y="78" width="152" height="84" rx="4" fill="#eff6ff" stroke="#2196ea" stroke-width="1.5"/>
+  <text x="1018" y="95" text-anchor="middle" class="code" fill="#1d4ed8">Cut Solid (Cached)</text>
+  <text x="950" y="114" class="code" fill="#1e40af">model_geometry_mesh()</text>
+  <text x="950" y="130" class="code" fill="#1e40af">model_geometry_brep()</text>
+  <text x="950" y="148" class="sub">Applies incoming features</text>
+
+  <!-- Comparison: Faceted Mesh vs Exact BRep Cylinder -->
+  <rect x="768" y="174" width="152" height="110" rx="3" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="844" y="190" text-anchor="middle" class="code">Mesh (Manifold 3.5.4)</text>
+  <!-- 16-gon bore illustration -->
+  <polygon points="844,202 858,206 868,216 872,230 868,244 858,254 844,258 830,254 820,244 816,230 820,216 830,206" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+  <circle cx="844" cy="230" r="2" fill="#dc2626"/>
+  <text x="844" y="274" text-anchor="middle" class="sub">16-gon prism drill / fast CSG</text>
+
+  <rect x="942" y="174" width="152" height="110" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.3"/>
+  <text x="1018" y="190" text-anchor="middle" class="code" fill="#065f46">BRep (Exact NURBS)</text>
+  <!-- Exact circle bore illustration -->
+  <circle cx="1018" cy="230" r="28" fill="#dcfce7" stroke="#059669" stroke-width="1.8"/>
+  <circle cx="1018" cy="230" r="2" fill="#059669"/>
+  <line x1="1018" y1="230" x2="1040" y2="213" stroke="#059669" stroke-width="1.2"/>
+  <text x="1032" y="228" class="dim" fill="#065f46">R</text>
+  <text x="1018" y="274" text-anchor="middle" class="sub" fill="#065f46">compute_breps() → pb_dump</text>
+  
+</svg>

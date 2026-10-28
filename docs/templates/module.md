@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber modules from beams and panels: a module is a name in the tree, a group of `Beam` and `Plate` elements and the contacts between them, nothing more. Every member of a frame has one section, the studs stand on a grid of the stud spacing, and every opening is framed by its own jamb studs, a grid stud closer than half the spacing to a jamb or an edge stud left out, so no member is doubled. Each template is a `WoodSession` whose constructor is its recipe, one group per step; every picture below is groups of the example's scene, rendered by `tools/render_template_pictures.sh`.
+Framed timber panels, hollow cassette shells, and multi-storey room modules (`src/templates/module/*.h`) built from `Beam` and `Plate` elements with automatic `add_module_contacts` face-contact detection.
 
 ## Wall
 
@@ -26,7 +26,7 @@ wood_module::Wall wall(guide);
 
 ### Frame
 
-The rails, the bottom one stopping at the door; per opening a full-height jamb stud either side, the header between them and under a window a sill; then the studs on the grid. A stud stands at every multiple of the stud spacing from the wall's start, so the studs line up with the sheet edges whatever the openings are; an opening brings its own jamb studs, and a grid stud closer than half the spacing to a jamb or an edge stud is left out, the bay beside it already narrower than the spacing, so no member is ever doubled. A grid stud inside an opening is a cripple over its header and under its sill. Every member is a `Beam` of `profile_rectangle(stud_depth, stud_width)`; the red faces are the contacts found between them.
+Bottom/top rails (interrupted at doors), full-height jamb studs + headers/sills around openings, and grid studs every `stud_spacing` (dropping any grid stud within `0.5 * stud_spacing` of a jamb/edge stud and splitting interior studs into cripples).
 
 ![frame](templates/templates_module_1_wall_frame.webp)
 
@@ -58,7 +58,7 @@ Seen through, at opacity 0.95, the frame between the two panels:
 
 ### Contacts
 
-`add_module_contacts` (`module/module_contact.h`) searches the face contact between every two frame members and between every sheet and frame member whose boxes touch. The member whose axis runs square to the contact ends on it and is the target, the one it stands on the source; two members side by side, a jamb and a grid stud next to it, are named `<target>_beside_<source>`. Each contact is named `<target>_on_<source>`, stored with `add_interaction` and its polygon drawn as a red mesh in `contacts_frame` or `contacts_sheathing`: 26 in the frame, 32 between the two panels and the 16 frame members. No connector is made.
+`add_module_contacts` (`module/module_contact.h`) detects all frame-to-frame (`26`) and sheet-to-frame (`32`) face contacts (`<target>_on_<source>` or `<target>_beside_<source>`).
 
 ![contacts](templates/templates_module_1_wall_contacts.webp)
 
@@ -174,9 +174,7 @@ wood_module::CassetteShell house(
 );
 ```
 
-Each cassette is one panel on either side with its windows cut out, and between them the edge beams on its boundary, the jamb studs, header and sill of every window, and the studs, rafters on the roof. The studs stand on the 625 mm grid from each face's first corner, the same logic as the wall: a grid stud that falls on an edge beam running up the face or on a jamb is that member, one beside it stays, and one inside a window is split over its header and under its sill. Their ends are cut on the inner faces of the beams over and under them, so a stud over the door or under a gable slope is a cripple. Every member is 60 wide.
-
-The cassettes meet in T joints, not miters, so the fewest cuts are inclined: `house_ranks` puts the roof slopes over everything, the front slope over the back one at the ridge, and the long walls past the gable ends. The cassette of lower rank runs through and ends flush with the other's outer face; the other is cut on the through cassette's inner face. Wall and gable meet square, and so do gable and roof, whose plane holds the gable's normal; at the eaves the roof ends in a plumb cut flush with the wall's outer face, the wall top is cut to the roof's underside, and at the ridge the front slope ends flush with the top of the back slope: the only cuts at an angle. Inside a cassette the edge beams butt the same way, the more level one running through. Only the hex shell keeps its miters.
+Each face cassette combines two window-punched sheathing `Plate`s with `60 mm` perimeter beams, window jambs/headers/sills, and `625 mm` grid studs/rafters. `house_ranks()` resolves inter-cassette seams as T-joints (roof slopes over walls/gables; long walls past gable ends).
 
 ```cpp
 // T: this cassette is cut on the near side of the neighbour where it stops, or ends flush with its far side where it runs through

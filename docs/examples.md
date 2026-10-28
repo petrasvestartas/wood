@@ -2,7 +2,9 @@
 
 [TOC]
 
-Eighteen short programs under `examples/`, one behaviour each, in the order to read them. Every one is a CMake target: `buildslot ~/.local/bin/cmake --build build --target <name> --parallel 4` followed by `tools/run_guarded.sh -t 10 -m 4 -- build/<name>` from the `wood` directory. The cutting examples have [generation and publishing instructions](@ref cutting_gallery); the earlier examples end with run instructions; the ones that write `live.pb` show in the viewer at https://petrasvestartas.github.io/session/.
+Self-contained example targets under `examples/*.cpp`. Build and run any target with `cmake --build build --target <name> && ./build/<name>`.
+
+![Wood Kernel Architecture](diagrams/wood_architecture.svg)
 
 | Example | Behaviour |
 |---|---|
@@ -30,9 +32,7 @@ Eighteen short programs under `examples/`, one behaviour each, in the order to r
 | `22_butt_pairs` | Butt pairs of beams, columns and plates: top_side, side_side out of plane and in plane, cross |
 | `23_butt_assemblies` | Butt pairs combined: a braced frame, a curved sill, a pentagon floor, zigzag walls and a folded roof |
 
-Elements go under the tree node `add(element, parent)` names, under the root without one; there is no separate tree call. The generators under `src/templates/` have their own page, [Templates](@ref templates), with a screenshot and the code of every `templates_*` example.
-
-The regression programs stay beside them: `main_all_datasets` runs every dataset in `data/` and writes the outline dumps a refactor is diffed against, `main_dataset_runner` one dataset, `main_session_round_trip` and `main_element_mapping_check` check the file and the element registry with an exit code.
+See also [Templates](@ref templates) for `templates_*` targets and [Cutting gallery](@ref cutting_gallery) for `15_*`..`18_*`.
 
 ## 1_session_contacts
 
@@ -47,14 +47,8 @@ scene.add_interaction(joint, plate0, joint->interaction(0));
 scene.add_interaction(joint, plate1, joint->interaction(1));
 ```
 
-`ContactType` describes the touching faces: `side_side`, `side_top`, `top_top`,
-`end_side`, `end_end`, `end_top`, or `unknown`. A contact stores no library joint
-code or male/female flag. Its faces, lines and volumes follow element order.
-The selected joint determines its library family. Side-to-top joints automatically
-place the side member first internally, using the face indices. Other contacts
-preserve the supplied element order. To reverse a contact, call `contact->flip()`
-and supply the elements in reversed order when orienting or adding the interaction.
-`flipped()` returns a reversed copy.
+- `ContactType`: `side_side`, `side_top`, `top_top`, `end_side`, `end_end`, `end_top`, or `unknown`.
+- `top_side` joints automatically place the side member first (`target 0`); other families preserve supplied element order (`contact->flip()` reverses it).
 
 | Library family | Named factories | Parameters vary by design |
 | --- | --- | --- |
@@ -126,7 +120,9 @@ Exact signatures are declared together in `wood_element_joint_plate.h`.
 
 ## Cutting gallery
 
-See @subpage cutting_gallery for the API, geometry limits and Cloudflare command.
+See @subpage cutting_gallery for cutter specifications.
+
+![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.svg)
 
 ### 15_profile_cuts
 

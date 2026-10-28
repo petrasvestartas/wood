@@ -2,31 +2,31 @@
 
 [TOC]
 
-A butt of two members drawn on lines and mid-planes, beams, columns or plates: each end that reaches the other is run on and cut on one plane, so the two meet face to face. How the ends meet decides the configuration:
+Order-independent plane butt joints (`JointBeam::butt`) between beams, columns, or plates.
 
-| Configuration | Ends | Cut |
-|---|---|---|
-| `top_side` | one end on the other's face, or both at a square corner | the end on the face; at a corner the first runs on to the second's outer face |
-| `side_side_outplane` | both, at an oblique corner | both on the miter |
-| `side_side_inplane` | both, in line or in plane | both on the plane halfway |
-| `cross` | none | two beams a half lap, each losing the other's wood on its half of the depth; plates nothing |
+![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.svg)
 
-The drawn members decide, so the order butts are added in does not matter. A plate's butted edges are run on and cut together, so its corners close and a valley keeps its wood.
+| Configuration | Endpoint Condition | Plane Cut Applied |
+| --- | --- | --- |
+| `top_side` | One end meets the other's face, or both meet at a `90°` corner | Butting end cut on the through-member's face; at a square corner, member `0` runs to the outer face of member `1` |
+| `side_side_outplane` | Both ends meet at an oblique corner | Both members cut on their angle-bisector miter plane |
+| `side_side_inplane` | Both ends meet in line or coplanar | Both members cut on the perpendicular midpoint plane |
+| `cross` | Interior crossing (neither end at contact) | Beams cut to half-depth lap; plates uncut |
 
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);              // the configuration read from the ends
-static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);    // every corner on the miter
-static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0); // the second's end on the first
-static std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");   // a wall centred on its footprint line
+static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);              // automatic classification
+static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);    // force miter at every corner
+static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0); // force second end onto first
+static std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
 ```
 
 ## Beams
 
 ![Beams](elements/element_joint_beam_butt.png)
 
-A post on the middle of a sill and one on its end: each post stops on the sill's top, the sill runs on to the end post's outer face.
+Mid-span post and corner post on a sill: posts stop on the sill's top face; the sill runs flush to the corner post's outer face.
 
 \include{lineno} elements/element_joint_beam_butt.cpp
 
@@ -34,6 +34,6 @@ A post on the middle of a sill and one on its end: each post stops on the sill's
 
 ![Plates](elements/element_joint_beam_butt_plates.png)
 
-Two walls on a floor meeting at a corner: the floor runs on under the walls, which stop on its top; the long wall runs on to the short wall's outer face.
+Two walls on a floor slab meeting at a corner: floor runs under both walls; long wall runs to the outer face of the short wall.
 
 \include{lineno} elements/element_joint_beam_butt_plates.cpp

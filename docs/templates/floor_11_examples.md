@@ -4,12 +4,7 @@
 
 <em>Step 11 of @ref templates_floor_model · previous: @ref templates_floor_10_pins</em>
 
-A finished floor is written with exact solids.
-`pb_dump` (through `pb_dumps`) runs `compute_breps` first, so every cut member and every round part is a BRep.
-The examples under `examples/` show the guide, its contacts, one column and the whole floor.
-[templates_floor_1_floorguide.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_1_floorguide.cpp) shows quarter 0 of the guide alone.
-[templates_floor_3_contacts.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_3_contacts.cpp) shows the 68 contacts of page 8.
-`tests/floor_elements.cpp` checks what each step must hold, from the contact counts to the pin directions.
+`WoodSession::pb_dump` invokes `compute_breps()` so every cut member, wedge, let-in plate, and cylindrical pin bore is serialized as an exact `BRep` solid.
 
 ## 351. compute_breps
 

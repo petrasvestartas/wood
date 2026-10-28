@@ -769,3 +769,12 @@ blockquote {
         padding-right: 16px;
     }
 }
+
+
+/* ETHZ Architectural Blueprint SVG figures */
+div.contents img[src$=".svg"] {
+    width: 100%;
+    max-width: 1120px;
+    display: block;
+    margin: 14px auto;
+}

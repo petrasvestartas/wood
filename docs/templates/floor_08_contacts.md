@@ -4,13 +4,7 @@
 
 <em>Step 8 of @ref templates_floor_model · previous: @ref templates_floor_07_elements · next: @ref templates_floor_09_connectors</em>
 
-`Floor::add_contacts` is called by the constructor after `add_columns`.
-It finds where the members the design joins touch.
-For each pair it asks the session's contact search for the face they share.
-It stores that face as a contact interaction on the session's edge between the two, named by its kind and place.
-It returns the contacts per quarter as `QuarterContacts`, a fixed array per kind.
-Page 9 makes a connector from each wedge, column plate and block pin contact.
-The butt-joint and ring corner contacts get their pins on page 10.
+`Floor::add_contacts()` queries `compute_face_contact(a, b)` for every design-connected member pair, registers each shared polygon as a named `InteractionContactFace` edge, and returns `std::array<QuarterContacts, 4>` (`68` contacts in total, `17` per quarter).
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds the whole floor, its contacts among it.
 

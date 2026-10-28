@@ -2,6 +2,8 @@
 
 [TOC]
 
+![Vaulted Timber Floor System](diagrams/wood_floor_system.svg)
+
 Floor builds the timber members, their contacts and their connectors from a @ref templates_floor_guide "FloorGuide".
 The pins are connectors too.
 

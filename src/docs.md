@@ -1,23 +1,25 @@
-
 # Wood
 
-Petras Vestartas, EPFL PhD thesis.
+Timber joinery solver and parametric structure templates on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
 
-Timber joinery on the session kernel: plates and beams as elements, joints as elements that cut them, models built by templates.
+![Wood Kernel Architecture](diagrams/wood_architecture.svg)
 
-| Page | What it holds |
+| Section | Scope |
 | --- | --- |
-| [Elements](@ref elements) | every element and joint, with its constructors, a picture and an example |
-| [Templates](@ref templates) | generators that turn a surface, a mesh or a plan into elements and joints |
-| [Examples](@ref examples) | short programs, one behaviour each |
+| [Elements](@ref elements) | Timber solids (`Plate`, `PlateCurved`, `Beam`, `BeamVariable`, `Column`, `Block`, `Pin`, `Support`), cutters (`CutPlane`, `Profile`), and parametric joints (`Joint`, `JointPlate`, `JointBeam`) |
+| [Templates](@ref templates) | 11 parametric timber systems (`Shells`, `Folding`, `Folding cylindrical`, `Folding developable`, `Chevron`, `Cross`, `Reciprocal`, `Module`, `Grid`, `Truss`, `Floor`) |
+| [Examples](@ref examples) | Self-contained `examples/*.cpp` targets and the [Cutting gallery](@ref cutting_gallery) |
+| [Architecture](@ref architecture) | Dual scene graph (`WoodSession`), contact detection (`Face`, `Cross`, `Axis`), lazy `Mesh`/`BRep` evaluation, and analytical NURBS bore cutting |
 
-A model is built with two calls: `add(element, group)` puts an element in the scene, and `add_interaction(source, target, interaction)` puts what one element does to another on their edge.
+## Core Pattern
 
 ```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
-const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons();
-joint->orient(contact, {base, upright});
-scene.add(joint);
-scene.add_interaction(joint, upright, joint->interaction(0));
-scene.add_interaction(joint, base, joint->interaction(1));
+WoodSession session("model");
+const std::shared_ptr<InteractionContactFace> contact = session.compute_face_contact(a, b)[0];
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(8, 0.5);
+joint->orient(contact, {a, b});
+session.add(joint, joints_group);
+session.add_interaction(joint, a, joint->interaction(0));
+session.add_interaction(joint, b, joint->interaction(1));
+session.pb_dump(pb_path("live"));
 ```

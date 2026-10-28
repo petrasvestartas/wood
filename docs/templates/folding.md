@@ -2,11 +2,15 @@
 
 [TOC]
 
-Folded plate structures, and three free-form folds. Each template is a `WoodSession` whose constructor is its recipe, one group per step. Every subsection below is one example: what it shows, its plates, its construction line, and the whole example folded under it.
+Planar folded-plate timber structures (`src/templates/folding/*.h`). Each template subclasses `WoodSession` and offsets a planar-faced mid-surface mesh into mitered `Plate` solids (`offset_plates` / `mitered_plates`).
 
-Planarity with thickness: a template builds the folded mid-surface as a mesh of planar faces, the plates' outer faces, and turns every face into one plate of the thickness (`template_chamfer.h`). A plate's inner face is its outer face moved along its normal by the thickness, and its side at a fold is the plane that halves the fold's angle, shared with the neighbour, so two neighbours meet over the whole fold and a plate with thickness is planar exactly when its face is planar, whatever the thickness. The geometry of each system is therefore the rule that keeps its faces planar: a profile carried straight (quads), a profile that changes along the span (triangles), rings around a polygon plan (trapezoids), straight fold lines through one point (triangles).
+![Folding Geometry](diagrams/wood_folding_geometry.svg)
 
-Corners: where three plates meet at a node their inner faces meet in one point. Where more meet, the inner faces cannot, so the node splits into several points, each where three inner faces meet, joined by short new edges between plates that share no fold (`offset_plates`, the exact face offset). Of all the ways to split the node, the triangulations of its cycle of plates, the one is taken where every plate's inner outline stays simple and turns as its corner does, with its points nearest the node. A plate's sides are then the planar quads between its edges and their offsets, shared with the neighbour across the fold, and the triangles between the node and every new edge, shared with the plate across that edge: the plates meet on whole planar faces, with no chamfer and no gap. A free edge is cut by the edge plane it lies in, or square to its plate; a foot touching the floor at one point is cut flush by the floor. Before that, neighbouring coplanar faces are merged into one plate (`merged_coplanar`). The singly folded plate, the reflex fold and the diamond mesh use `mitered_plates`; the curved fold builds curved solids instead.
+| Geometric Invariant | Construction (`template_chamfer.h`) |
+| --- | --- |
+| **Planarity with thickness** | Outer face $P_f$ offset by `thickness` along normal $n_f$; fold side cut on the angle-bisector plane shared with the neighbour |
+| **Multi-plate node offset (`offset_plates`)** | Valence-$k > 3$ vertices split into valence-3 inner intersections by optimal cycle triangulation so all plates meet on exact planar faces without gaps or chamfers |
+| **Coplanar merge (`merged_coplanar`)** | Adjacent triangles sharing a coplanar crease are merged into a single polygon plate before offsetting |
 
 | Geometry | Section |
 | --- | --- |
@@ -24,7 +28,7 @@ Corners: where three plates meet at a node their inner faces meet in one point. 
 
 ## Singly folded plate {#prismatic_fold}
 
-`PrismaticFold(profile, span, thickness, diaphragms, edge_flange)` (`folding/prismatic_fold.h`) carries a fold profile across y straight along x over the span, one quad per profile segment, planar because a straight segment carried straight stays in one plane, and one mitered plate per quad. The profile is `zigzag(ridges, fold_width, depth)`, the folded plate of p. 219, or `polygon(folds, width, rise)`, its corners on a circular arc, the systems of p. 220. `diaphragms` transverse plates under the folds, at both ends and evenly between, fill the profile under the plates' inner faces against a change of the fold angles, and `edge_flange` folds a flange onto each free edge, down beside a shallow fold and outwards beside a steep one, against buckling of the outer plates. Each plate acts as a slab between its folds, as a deep beam along the span and with its neighbours as a truss across it, the threefold action. Defaults: `zigzag(4, 1500.0, 1200.0)`, 12 m span, 120 mm, three diaphragms, a 400 flange.
+`PrismaticFold(profile, span, thickness, diaphragms, edge_flange)` (`folding/prismatic_fold.h`): sweeps `zigzag(ridges, fold_width, depth)` or `polygon(folds, width, rise)` along $x$ over `span` with transverse `diaphragms` and free-edge buckling flanges (`edge_flange`).
 
 ### Zigzag with diaphragms and edge flanges {#folding_prismatic_fold}
 
@@ -92,7 +96,7 @@ PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0,
 
 ## Counter-running folding {#counter_fold}
 
-`CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`) places fold profiles at stations along the span and joins them station to station by straight fold lines. Where the profile changes along the span, a strip between two fold lines has four corners that are not in one plane, so it folds along one of its diagonals into two planar triangles: `Folding::ridge_to_ridge` through its two high corners (the First-zu-First), `Folding::ridge_to_valley` through its two low corners (First-zu-Kehle), `Folding::alternate` the one and the other fold by fold (Wechselfaltung). A strip still planar stays one quad, and two triangles in one plane are joined into one plate (`merge_coplanar`, `fold_strips.h`), so a fold line the folding leaves straight is no fold. The stations come from `counter_running(ridges, fold_width, depth, span)`, the zigzag at the start and its counter profile at the end, `counter_centre(...)`, the counter profile at mid-span, and `elevated_centre(ridges, fold_width, depth, span, middle_depth)`, the counter profile at mid-span lifted by the depth so the even fold lines run straight through, `middle_depth` deep. Every system was read off the construction's plan and both elevations. Defaults: `counter_running(4, 1500.0, 1500.0, 13500.0)`, ridge to ridge, 120 mm.
+`CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`): triangulates non-planar strips between station profiles via `Folding::ridge_to_ridge`, `Folding::ridge_to_valley`, or `Folding::alternate`, merging coplanar triangles (`merge_coplanar`). Stations: `counter_running`, `counter_centre`, `elevated_centre`.
 
 ### Counter-running, ridge to ridge {#folding_counter_fold}
 
@@ -224,7 +228,7 @@ CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1000.0, 15000.0, 1800.0
 
 ## Conical folding {#conical_fold}
 
-`ConicalFold(folds, fold_width, depth, end_depth, span, thickness)` (`folding/conical_fold.h`, Abgeschrägte Faltung) runs `folds` folds the whole span with level valleys and ridges `depth` high, and cuts their top off by two planes sloping up from `end_depth` above the valleys at either end to the ridges at mid-span. Below the cut every flank keeps its plane, a pentagon from the valley line up to its cut edge, which rises from the end to the ridge point at mid-span and falls again; above it the cut is a thin triangle per fold and half span in the sloping plane. So the end profiles are trapezoids, the middle a sharp zigzag, and in plan every fold is an elongated X. Defaults: four folds 1500 across, 1500 deep, 600 at the ends, a 14.4 m span, 120 mm.
+`ConicalFold(folds, fold_width, depth, end_depth, span, thickness)` (`folding/conical_fold.h`): truncates a continuous zigzag of height `depth` by two planes sloping from `end_depth` at the supports to full `depth` at mid-span.
 
 ### Conical fold {#folding_conical_fold}
 
@@ -244,7 +248,7 @@ ConicalFold fold;
 
 ## Folded frames and arches {#folded_frame}
 
-`FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`) builds a frame or an arch of triangular plates bay by bay along y; its fold depth follows the moments, small at a hinge, deep at a knee. Half a bay is one fold line from the foot to the crown at mid-span, zigzagging between the bay's edge, y 0, where the valleys lie, the frame's inner line, and the bay's centre, y bay / 2, where the ridges lie, bulging out at the knees. Every point of the zigzag makes a planar triangle with the last point on each rail, so the plates are exactly the triangles's plans; the other half of the span mirrors the zigzag, the other half of the bay mirrors the rails, and the bays repeat. The fold lines, read off the construction's front elevation, side elevation and plan: `two_hinged_frame(span, bay, eaves, ceiling, ridge, knee, bulge, folding)`, `three_hinged_frame(...)` and `a_frame(...)`, `top_hinged_arch(span, bay, height)` and `three_hinged_arch(span, bay, height)`. Defaults: `two_hinged_frame()`, four 4.5 m bays, 120 mm.
+`FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `three_hinged_frame`, `a_frame`, `top_hinged_arch`, `three_hinged_arch`).
 
 ### Two-hinged frame, ridge to ridge {#folding_two_hinged_frame}
 
@@ -604,7 +608,7 @@ TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
 
 ## Reflex fold {#reflex_fold}
 
-`ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`) carries the zigzag `profile` along the arch `cross_section` and folds it at every arch point onto the plane that halves the arch's angle there, the two ends on a plane normal to z. Every profile point slides along the arch segment until it meets the next fold plane, two rows make a strip of quads, and every quad becomes a plate mitered at its folds, its corners sharper than `chamfer_angle` chamfered by `chamfer_bottom` and `chamfer_top` (`mitered_plates`). Defaults: `default_cross_section()`, a 2 m arch of five points, `default_profile()`, a 1.6 m zigzag, 10 mm plates, 20 mm chamfers, 180 degrees.
+`ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`): carries a zigzag `profile` along an arch `cross_section`, folding at each arch vertex bisector plane (`mitered_plates`).
 
 ### Default arch and zigzag {#folding_reflex_fold}
 

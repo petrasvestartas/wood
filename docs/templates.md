@@ -2,25 +2,27 @@
 
 [TOC]
 
-Generators under `src/templates/`, one folder per family (`shells/`, `folding/`, `cylindrical_folding/`, `developable_folding/`, `chevron/`, `cross/`, `module/`, `reciprocal/`, `grid/`, `floor/`, `truss/`), that turn a surface, a mesh or a building outline into wood elements. Every template has examples under `examples/`, each a CMake target of the same name that builds it with its defaults and writes `data/output/pb/live.pb` for the viewer. Each family has its own page with a picture of every example and its code folded under it; the floor's page explains its whole construction step by step in pictures.
+Parametric timber structure generators under `src/templates/`. Every template subclasses `WoodSession`, stores each geometric construction stage in a named tree group, and exports `live.pb` via its `examples/templates_*.cpp` targets.
 
-| Template | Header | Example | Elements |
+![Parametric Templates Pipeline](diagrams/wood_templates_pipeline.svg)
+
+| Template | Header | Example Target | Elements & Joinery |
 | --- | --- | --- | --- |
-| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | `TranslationShell`: one mitered, chamfered plate per swept quad |
-| [Folding flat](@ref templates_folding) | `folding/*.h` | `templates_folding_*` | planar plates folded along straight creases: reflex, diamond, prismatic, counter-running, conical, single, diagonal and triangle folds, folded frames and truncated pyramids, every plate offset exactly with flush mitres |
-| [Folding cylindrical](@ref templates_cylindrical_folding) | `cylindrical_folding/*.h` | `templates_cylindrical_folding_*` | curved plates that are cylinders, bent from flat panels and folded on curved creases: reflection folds, cylinder vaults, the curved-folded beam, the corner fan, cylinder carvings |
-| [Folding developable](@ref templates_developable_folding) | `developable_folding/*.h` | `templates_developable_folding_*` | curved plates that are cones and other developables: curved folds, curved-crease unfoldings, crease quadrants |
-| [Chevron](@ref templates_chevron) | `chevron/chevron.h` | `templates_chevron_1_chevron` | four plates per face of an Annen surface |
-| [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | one plate per face plus connector plates across every interior edge |
-| [Wall module](@ref templates_module) | `module/wall.h` | `templates_module_1_wall` | `Wall`: rails, studs, jamb studs, headers, sills and cripples as beams of one section, the studs on a 625 mm grid and jamb studs at every opening, one sheathing plate on each face with the openings cut out, a face contact between every member and panel that touch |
-| [Cassette shell](@ref templates_module) | `module/cassette_shell.h` | `templates_module_2_cassette_shell` | `CassetteShell`: per mesh face a hollow cassette, two thin plates and mitered edge beams cut on the bevel the cell shares with its neighbour, the contacts between cassettes detected |
-| [Cassette house](@ref templates_module) | `module/cassette_shell.h` | `templates_module_3_cassette_house` | `CassetteShell::house_mesh`: a gable house of six cassettes, one per wall, gable end and roof slope, joined in T joints, the door a notch, each two panels with its windows cut out and a frame of edge beams, studs, jambs, headers and sills between them, the contacts between cassettes detected |
-| [Room module](@ref templates_module) | `module/room_module.h` | `templates_module_{4_room_module,5_module_block,6_bank_pavilion}` | `RoomModule`: timber frame modules 9 x 3 m with 2.7 m clear, floor and ceiling of long edge beams a wall wide over the whole length on and under the corner posts, joists across flush on both faces, the ceiling thinner with deep edge beams, the ceiling edge beam one deeper beam on the open sides, on corner posts, walls only on the closed sides, the modules of a room open to each other with a post at mid-length, one wall between rooms, side by side and stacked up to three storeys; a bank pavilion of four modules; every contact detected |
-| [Reciprocal move](@ref templates_reciprocal) | `reciprocal/reciprocal_move.h` | `templates_reciprocal_2_move` | a beam on every other edge of each face, moved past its neighbours, inside a straight frame |
-| [Reciprocal rotation](@ref templates_reciprocal) | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_1_rotation` | a beam on every interior edge, turned about its midpoint, inside a straight frame |
-| [Grid](@ref templates_grid) | `grid/grid.h` | `3_elements_tree`, `templates_grid_{1.5}_*` | a `Grid` session per building: columns, heads, girders, beams, purlins, braces, decks and walls level by level |
-| [Floor](@ref templates_floor) | `floor/floor.h` | `templates_floor_{1.8}_*` | the vaulted timber floor bay of compas_tf: outer and inner ribs, seam and oculus beams, wedge blocks, t-sections, beds, the oculus ring, columns on supports and their connectors |
-| [Truss](@ref templates_truss) | `truss/truss.h` | `templates_truss_{1,2}_*` | a `Truss` session from a `TrussGuide` of chord polylines, web and post lines: a beam per chord run, web and post, every butt read from the nodes; 21 roof, bridge and graphic-statics trusses in the library |
+| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `templates_shells_1_translation_shell` | `TranslationShell`: mitered, chamfered `Plate` per swept quad |
+| [Folding flat](@ref templates_folding) | `folding/*.h` | `templates_folding_*` | Planar folded plates (`PrismaticFold`, `CounterFold`, `ConicalFold`, `FoldedFrame`, `SingleFold`, `DiagonalFold`, `FoldComposition`, `TruncatedPyramid`, `TriangleFold`, `ReflexFold`, `DiamondMesh`) with exact `offset_plates` miters |
+| [Folding cylindrical](@ref templates_cylindrical_folding) | `cylindrical_folding/*.h` | `templates_cylindrical_folding_*` | Cylindrical `PlateCurved` shells (`ReflectionFold`, `CylinderVault`, `CurvedFoldedBeam`, `CornerFan`, `CylinderCarving`) |
+| [Folding developable](@ref templates_developable_folding) | `developable_folding/*.h` | `templates_developable_folding_*` | Developable `PlateCurved` cones & curved-crease mechanisms (`CurvedFold`, `CurvedCreaseUnfolding`, `CreaseQuadrants`, `Development`) |
+| [Chevron](@ref templates_chevron) | `chevron/chevron.h` | `templates_chevron_1_chevron` | `Chevron`: 4-plate chevron boxes on an Annen `NurbsSurface` |
+| [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | `templates_cross_1_vda_mesh` | `VdaMesh`: mitered face plates + crossing edge connector plates (`JointPlate::cross_slot`) |
+| [Wall module](@ref templates_module) | `module/wall.h` | `templates_module_1_wall` | `Wall`: `625 mm` stud grid, jamb studs, headers/sills, notched/punched sheathing panels, and face contacts |
+| [Cassette shell](@ref templates_module) | `module/cassette_shell.h` | `templates_module_2_cassette_shell` | `CassetteShell`: hollow top/bottom plates + beveled edge beams per polygon face |
+| [Cassette house](@ref templates_module) | `module/cassette_shell.h` | `templates_module_3_cassette_house` | `CassetteShell::house_mesh`: 6-cassette gable house joined by ranked T-butts |
+| [Room module](@ref templates_module) | `module/room_module.h` | `templates_module_{4..6}_*` | `RoomModule`: `9 × 3 m` framed timber modules (floor, downstand ceiling, corner/mid posts, walls) stacked into multi-storey blocks |
+| [Reciprocal rotation](@ref templates_reciprocal) | `reciprocal/reciprocal_rotation.h` | `templates_reciprocal_1_rotation` | `ReciprocalRotation`: interior edges rotated into vertex pinwheels inside a mitered boundary frame |
+| [Reciprocal move](@ref templates_reciprocal) | `reciprocal/reciprocal_move.h` | `templates_reciprocal_2_move` | `ReciprocalMove`: alternating face edges shifted sideways to bear on neighbour sides |
+| [Grid](@ref templates_grid) | `grid/grid.h` | `3_elements_tree`, `templates_grid_{1..5}_*` | `Grid`: multi-storey columns, pyramidal/stepped heads, girders, purlins, braces, decks, and core/facade walls |
+| [Floor](@ref templates_floor) | `floor/floor.h` | `templates_floor_{1..8}_*` | `FloorGuide` + `Floor`: vaulted timber slab with parabolic ribs, arched beds, carved columns, wedges, let-in plates, and pins |
+| [Truss](@ref templates_truss) | `truss/truss.h` | `templates_truss_{1,2}_*` | `TrussGuide` + `Truss`: boundary-ranked chord/web/post beams with automatic node butts across 41 library trusses |
 
 - @subpage templates_shells
 - @subpage templates_folding

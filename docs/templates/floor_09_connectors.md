@@ -4,14 +4,7 @@
 
 <em>Step 9 of @ref templates_floor_model · previous: @ref templates_floor_08_contacts · next: @ref templates_floor_10_pins</em>
 
-`Floor::compute_connectors` and `Floor::add_connectors` are private steps called by the constructor.
-`compute_connectors` makes one joint element per contact.
-Every seam and oculus contact gets a wedge.
-Every column contact gets a column plate let into the column and its rib, with a `cross` half lap between the two plates of a column.
-Every block-to-rib contact gets centred pins.
-Every butt joint gets headed pins, pre-drilled into both members; page 10 shows them.
-`add_connectors` adds each with `add` and puts it on its members with `add_interaction`.
-`add_interaction` nests its parts and pins under it and cuts its pockets and holes.
+`Floor::compute_connectors` constructs all connectors on uncut stock (`seam_wedge`, `oculus_wedge`, `let_in_plate` + `rectangle_plate`, `cross_slot`, `centred_pins`, and `headed_pins`), and `Floor::add_connectors` wires each `interaction(i)` to cut pockets and pin bores into its target members.
 
 Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) builds every connector.
 

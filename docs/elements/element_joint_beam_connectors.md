@@ -2,6 +2,8 @@
 
 [TOC]
 
+![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.svg)
+
 Connectors on the face contact of two members: a wedge, let-in plate or butterfly key, its pockets and its pins.
 
 ## Wedge
