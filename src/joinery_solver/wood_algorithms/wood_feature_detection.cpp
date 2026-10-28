@@ -664,7 +664,7 @@ bool side_side(F2F& s, FaceCandidate& c) {
     if (!dihedral_angle(s, c, lj, dihedral))
         return false;
 
-    if (dihedral <= s.settings.dihedral_angle)
+    if (dihedral <= s.settings.dihedral_angle + 1e-6)
         return side_side_out_of_plane(s, c, lj, pl_end0, pl_end1);
     return side_side_in_plane(s, c, pl_end0, pl_end1);
 }

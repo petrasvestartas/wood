@@ -414,7 +414,8 @@ bool face_overlap_area(
     const Plane& plane0,
     bool include_triangles,
     double clipper_area,
-    Polyline& out_area
+    Polyline& out_area,
+    int decimals
 ) {
 
     if (outline0.point_count() < 3 || outline1.point_count() < 3)
@@ -429,7 +430,7 @@ bool face_overlap_area(
     const Clipper2Lib::PathsD subject{clipper_path(outline0, origin, xax, yax, false)};
     const Clipper2Lib::PathsD clip{clipper_path(outline1, origin, xax, yax, false)};
     const Clipper2Lib::PathsD solution =
-        Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero, CONTACT_DECIMALS);
+        Clipper2Lib::Intersect(subject, clip, Clipper2Lib::FillRule::NonZero, decimals);
 
     if (solution.empty())
         return false;
@@ -521,13 +522,15 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
 
             Polyline polygon;
             const bool triangles = triangle_contact(ea, i, eb, j);
+            const int decimals = is_plate(ea) && is_plate(eb) ? CONTACT_DECIMALS : 6;
             if (!face_overlap_area(
                     outlines_a[i],
                     outlines_b[j],
                     planes_a[i],
                     triangles,
                     settings.clipper_area,
-                    polygon
+                    polygon,
+                    decimals
                 )) {
                 if (TRACE && trace)
                     trace->fail_reason = fmt::format("bool_empty f({},{})", i, j);

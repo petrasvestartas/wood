@@ -2,16 +2,16 @@
 
 [TOC]
 
-Parametric timber structure generators under `src/templates/`. Every template subclasses `WoodSession`, transforms explicit primary geometric inputs into timber elements and joints across named scene-tree groups, and exports `live.pb` via its `examples/templates_*.cpp` targets.
+Parametric timber structure generators under `src/templates/`. Every template subclasses `WoodSession`, transforms primary geometric inputs into timber elements and joints across named scene-tree groups, and exports `live.pb` via its `examples/templates_*.cpp` targets.
 
-![Parametric Templates Pipeline](diagrams/wood_templates_pipeline.webp)
+![](diagrams/wood_templates_pipeline.webp)
 
 | Template | Header | Primary Inputs | Elements & Joinery Generated |
 | --- | --- | --- | --- |
-| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `Polyline cross_section` ($XZ$), `Polyline profile` ($YZ$), `thickness`, `chamfer` | `TranslationShell`: translated sections $\to$ planar quad mesh $\to$ mitered, chamfered `Plate` solids |
+| [Translation shell](@ref templates_shells) | `shells/translation_shell.h` | `Polyline cross_section` (`xz`), `Polyline profile` (`yz`), `thickness`, `chamfer` | `TranslationShell`: translated sections → planar quad mesh → mitered, chamfered `Plate` solids |
 | [Folding flat](@ref templates_folding) | `folding/*.h` | Fold `profile` / `stations` / plan `Polygon` / `NurbsSurface`, `thickness` | 11 planar folded-plate templates (`PrismaticFold` .. `DiamondMesh`) with exact `offset_plates` multi-plate node miters |
 | [Folding cylindrical](@ref templates_cylindrical_folding) | `cylindrical_folding/*.h` | `NurbsCurve` arcs, ruling vector `along`, `Fold{station, turn}` / `Carver` cylinders, `thickness` | Cylindrical `PlateCurved` shells (`ReflectionFold`, `CylinderVault`, `CurvedFoldedBeam`, `CornerFan`, `CylinderCarving`) + flat `Development` |
-| [Folding developable](@ref templates_developable_folding) | `developable_folding/*.h` | `NurbsCurve` crease arc/catenary, opening angle $\alpha$, crease `planes` (`zigzag`, `leaning`, `fan`) | Developable `PlateCurved` cones & curved-crease mechanisms (`CurvedFold`, `CurvedCreaseUnfolding`, `CreaseQuadrants`, `Development`) |
+| [Folding developable](@ref templates_developable_folding) | `developable_folding/*.h` | `NurbsCurve` crease arc/catenary, opening angle, crease `planes` (`zigzag`, `leaning`, `fan`) | Developable `PlateCurved` cones and curved-crease mechanisms (`CurvedFold`, `CurvedCreaseUnfolding`, `CreaseQuadrants`, `Development`) |
 | [Chevron](@ref templates_chevron) | `chevron/chevron.h` | Annen `NurbsSurface`, `u_divisions`, `v_division_dist`, `shift`, `scale`, `box_height`, `plate_thickness` | `Chevron`: herringbone quad strips, turned/offset edge planes, corner bisectors, and 4-plate boxes with mortise/tenon insertion vectors |
 | [VDA mesh](@ref templates_cross) | `cross/vda_mesh.h` | Polygon `Mesh`, `face_thickness`, `face_positions`, `edge_divisions`, `connector` dimensions | `VdaMesh`: mitered face `Plate`s + crossing interior-edge connector `Plate`s joined by `JointPlate::cross_slot()` |
 | [Wall module](@ref templates_module) | `module/wall.h` | `WallGuide(length, height, stud_width, stud_depth, stud_spacing, openings)` | `Wall` / `FramedPanel`: rails, jambs, headers/sills, `625 mm` grid studs, cripples, notched/punched sheathing, and `add_module_contacts` |

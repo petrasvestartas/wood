@@ -2,9 +2,9 @@
 
 [TOC]
 
-Timber members, auxiliary cutters, and parametric joints under `src/joinery_solver/wood_elements/`. Every element caches uncut stock (`element_geometry_*`) and applies incoming `WoodSession::add_interaction(source, target, interaction)` edges to produce its cut model (`model_geometry_*`).
+Timber members, auxiliary cutters, and parametric joints under `src/joinery_solver/wood_elements/`. Every element stores its uncut stock (`element_geometry_*`) and applies incoming `WoodSession::add_interaction(source, target, interaction)` edges to compute its cut solid (`model_geometry_*`).
 
-![Elements Taxonomy](diagrams/wood_elements_taxonomy.webp)
+![](diagrams/wood_elements_taxonomy.webp)
 
 | Element | Header | Examples |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 
 ## Joint Wiring Pattern
 
-![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.webp)
+![](diagrams/wood_joint_unit_box.webp)
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
@@ -75,7 +75,7 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 
 | Joint Class | Input Contact | Target Modification |
 | --- | --- | --- |
-| [Joint](@ref elements_joint) | Axis, mesh, or 2D profile | Drills analytical cylinder bores, or subtracts/unions/intersects a solid |
-| [JointPlate](@ref elements_joint_plate) | `InteractionContactFace` or `InteractionContactCross` | Maps unit-box `[-0.5, 0.5]^3` outlines/drills onto both plates |
-| [JointBeam](@ref elements_joint_beam) (`from_contact` / `butt`) | `InteractionContactAxis` or member endpoints | Cuts lap/scarf feature volumes or plane butts |
+| [Joint](@ref elements_joint) | Axis, mesh, or 2D profile | Drills analytical cylinder bores, or subtracts, unions, or intersects a solid |
+| [JointPlate](@ref elements_joint_plate) | `InteractionContactFace` or `InteractionContactCross` | Maps unit-box `[-0.5, 0.5]^3` outlines and drills onto both plates |
+| [JointBeam](@ref elements_joint_beam) (contact or butt) | `InteractionContactAxis` or member endpoints | Cuts lap and scarf feature volumes or plane butts |
 | [JointBeam](@ref elements_joint_beam) (connector) | `InteractionContactFace` | Cuts pockets and pin bores; nests child `Block`s and [`Pin`](@ref elements_pin)s |

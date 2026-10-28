@@ -2,36 +2,61 @@
 
 [TOC]
 
-![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.webp)
+Dowel and screw pin connectors placed across the `InteractionContactFace` of two members according to a `PinLayout`, boring into both targets and nesting [`Pin`](@ref elements_pin) child elements.
 
-Pins on the face contact of two members, laid out by `PinLayout`, each a `Pin` bored into both.
+![](diagrams/wood_beam_joints_connectors.webp)
 
 ## Centred pins
 
-![Centred pins](elements/element_joint_beam_centred_pins.png)
+Four dowel pins placed at the inset corners of the contact face between two stacked blocks, embedded half into each block.
 
-Four pins at the inset corners of the contact of two stacked blocks, half in each.
+![](elements/element_joint_beam_centred_pins.png)
 
-| Parameter | Default | What it changes in 3D |
+```cpp
+const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
+const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*lower, *upper, *contact);
+scene.add(pins);
+scene.add_interaction(pins, lower, pins->interaction(0));
+scene.add_interaction(pins, upper, pins->interaction(1));
+```
+
+| Parameter | Default | Role |
 | --- | --- | --- |
-| `radius`, `length` | 4, 30 | each pin |
-| `offset` | 50 | how far the pins stand in from the contact's corners |
-| `overshoot`, `pin_sides` | 10, 16 | how far the holes run past the pins, their facets |
+| `radius`, `length` | `4`, `30` | Radius and total length of each dowel pin |
+| `offset` | `50` | Inset distance from the contact polygon corners |
+| `overshoot`, `pin_sides` | `10`, `16` | Extra bore depth past each pin end and cylindrical facet count |
+
+<details><summary>Example code: elements/element_joint_beam_centred_pins.cpp</summary>
 
 \include{lineno} elements/element_joint_beam_centred_pins.cpp
 
+</details>
+
 ## Headed pins
 
-![Headed pins](elements/element_joint_beam_headed_pins.png)
+Long screws driven from a header beam's outer face through into an abutting joist across all three `PinLayout` modes: four `corners`, a `vertical` column, and a `horizontal` row.
 
-Pins from a beam's far face into the joist ending on it, in each `PinLayout`: corners, a vertical column, a horizontal row.
+![](elements/element_joint_beam_headed_pins.png)
 
-| Parameter | Default | What it changes in 3D |
+```cpp
+const std::shared_ptr<JointBeam> pins = JointBeam::headed_pins(
+    *beam, *joist, *contact, PinLayout::horizontal, 3
+);
+scene.add(pins);
+scene.add_interaction(pins, beam, pins->interaction(0));
+scene.add_interaction(pins, joist, pins->interaction(1));
+```
+
+| Parameter | Default | Role |
 | --- | --- | --- |
-| `layout` | | `corners`, `vertical` or `horizontal` |
-| `count` | 2 | pins in a column or row |
-| `offset` | 20 | how far the pins stand in from the contact's edges |
-| `shift` | 0 | moves the pins along the contact, so two connectors' heads stay apart |
-| `radius`, `length`, `sides` | 2, 200, 16 | each pin |
+| `layout` | — | `PinLayout::corners`, `PinLayout::vertical`, or `PinLayout::horizontal` |
+| `count` | `2` | Number of pins in a `vertical` column or `horizontal` row |
+| `offset` | `20` | Edge inset distance from the contact boundary |
+| `shift` | `0` | Offset along the contact to stagger opposing connectors |
+| `radius`, `length`, `sides` | `2`, `200`, `16` | Pin radius, total length, and polygon facet count |
+
+<details><summary>Example code: elements/element_joint_beam_headed_pins.cpp</summary>
 
 \include{lineno} elements/element_joint_beam_headed_pins.cpp
+
+</details>

@@ -1,62 +1,121 @@
-# Floor {#templates_floor}
+# Vaulted Timber Floor System (wood_floor::Floor) {#templates_floor}
 
-[TOC]
+- \subpage templates_floor_guide
+- \subpage templates_floor_model
 
-Vaulted timber floor slab supported on four carved-head columns (`src/templates/floor/floor_guide.h`, `src/templates/floor/floor.h`). `wood_floor::FloorGuide` and `wood_floor::Floor` transform four counter-clockwise bay corner `Point`s into four radial rib-and-bed quarters interlocked around a central oculus ring (`68` face contacts, wedges, let-in column plates, centred dowels, and `56` headed assembly pins).
+![](../images/diagrams/wood_floor_system.webp)
 
-![Vaulted Timber Floor System](diagrams/wood_floor_system.webp)
+`wood_floor::FloorGuide` and `wood_floor::Floor` generate a four-quarter vaulted timber floor bay supported on four columns around a central pinwheel oculus. `FloorGuide` computes the construction planes, parabolic rib soffits, ruled central panels, bed plates, column blocks, seam/oculus beams, and column-head cutters from four plan corners; `Floor` turns those loops into `Plate`, `Beam`, `Joint`, `JointBeam`, and `Pin` elements inside `WoodSession`.
 
-- @subpage templates_floor_guide — `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`): Steps 1–6 (bay split, radial fan planes, datum loops, parabolic soffits, bed rails, column cutters)
-- @subpage templates_floor_model — `wood_floor::Floor` (`src/templates/floor/floor.h`): Steps 7–11 (timber members, carved columns & supports, `68` face contacts, connectors, pins, exact `BRep` export)
-
-![The finished floor: templates_floor_7_contacts_cantilevers in the viewer](floor/floor_viewer.webp)
-
----
-
-## Primary Inputs (`wood_floor::FloorGuide`)
-
-| Primary Input / Field | Default | Geometric Role |
-| --- | --- | --- |
-| `corners` | `std::array<Point, 4>` | Four bay corners in counter-clockwise order (e.g. `(-3000, -3000, 0)` to `(-3000, 3000, 0)` for a `6000 × 6000 mm` square bay, or `±3000 × ±2400 mm` for a rectangular bay) |
-| `floor_elevation`, `floor_thickness` | `3500.0`, `140.0` | Top datum $z$ of the slab (`mm`) and structural thickness at the oculus/outer ring |
-| `column_width`, `head_widen`, `head_height` | `220.0`, `120.0`, `730.0` | `220 × 220 mm` column shaft widened by `120 mm` on the two bay faces over the top `730 mm` (`head_blocks`) |
-| `oculus_side`, `ring_width` | `1414.21`, `200.0` | Central diamond oculus side length (`half-diagonal = 1000 mm`) and ring beam width |
-| `outer_rib_width`, `inner_rib_width`, `seam_beam_width` | `200.0`, `120.0`, `120.0` | Plan widths (`mm`) of the radial outer ribs, inner ribs, and quarter-seam beams |
-| `tsection_thickness`, `bed_thickness`, `bed_layers` | `27.0`, `27.0`, `3` | Lamella thickness (`27 mm`) of the lower T-section flanges and the `3` stepped parabolic bed layers |
+| Stage | Class / Method | Role |
+| :--- | :--- | :--- |
+| **1. FloorGuide** | `wood_floor::FloorGuide(corners, ...)` | Computes oculus points, construction planes, rib-start offsets, boundary parabolas, ruled central panel traces, bed rails/plates, wedges, beams, oculus ring, and column cutters. |
+| **2. Quarters & Oculus** | `Floor::add_quarter_elements`, `add_oculus_elements` | Populates `WoodSession` with `outer_ribs`, `inner_ribs`, `wedges`, `tsections`, `beds`, `inner_beams`, and the 9 `oculus` pinwheel plates. |
+| **3. Columns** | `Floor::add_column_elements` | Builds the 4 corner column shafts (`column_<q>`), ground `Support` pads (`support_<q>`), and 6 carving cutters (`column_cutter_<q>_<i>`) per column head. |
+| **4. Face Contacts** | `Floor::add_contacts` | Intersects adjacent member pairs across all 4 quarters, seams, and the oculus to create planar `Joint` contact faces (`cantilever_*`, `pins_*`). |
+| **5. Connectors & Pins** | `Floor::compute_connectors`, `add_connectors` | Generates `JointBeam::cantilever` wedges (`55°` / `65°`), let-in steel plates (`8 mm`), and `JointBeam::headed_pins` dowels (`Ø4 × 200 mm`), subtracting their housings and bores from the timber members. |
+| **6. Exact BRep Output** | `session.pb_dump(...)` → `compute_breps()` | Boolean-subtracts all cuts, mortises, and cylindrical pin holes into exact `BRep` solids. |
 
 ---
 
-## Full C++ Examples
+## Primary Inputs (wood_floor::FloorGuide)
 
-| Example File | Scene & Construction Stage Demonstrated |
-| --- | --- |
-| `templates_floor_1_floorguide.cpp` | `FloorGuide`: quarter `0` plan, member quads, fan planes, and parabolic soffit curves (Steps 1–6) |
-| `templates_floor_2_column_model.cpp` | Single corner column (`column_0`) on its Sherpa `Support`, glued `head_blocks`, and 6-cutter carved head |
-| `templates_floor_3_contacts.cpp` | `68` `InteractionContactFace` regions (`17` per quarter) visualized in X-ray mode |
-| `templates_floor_7_contacts_cantilevers.cpp` | Complete `6000 × 6000 mm` square bay with columns, wedges, column plates, pins, and exact NURBS `BRep` bores |
-| `templates_floor_8_rectangle.cpp` | Complete `6000 × 4800 mm` rectangular bay (`HALF_X = 3000`, `HALF_Y = 2400`) |
-| `templates_floor_9_orientation.cpp` | Extracting `column_0` into a fabrication session and reorienting it flat onto the $XY$ ground plane via `Xform::plane_to_plane` |
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| `corners` | `std::array<Point, 4>` | Four convex bay corners counter-clockwise at `z = 0` (e.g. `6000 × 6000 mm` square or `6000 × 4800 mm` rectangle). |
+| `size_oculus` | `1000.0 mm` | Distance from the bay center to each of the 4 oculus points along the seam lines. |
+| `size_column_head`, `size_column_head_chamfer` | `220.0 mm`, `120.0 mm` | Column shaft width and corner chamfer offset defining the 5-sided column head fan polygon. |
+| `size_outer_ribs`, `size_inner_ribs`, `size_inner_beams` | `100.0 mm`, `60.0 mm`, `60.0 mm` | Thicknesses of the perimeter outer ribs, diagonal inner ribs, and seam/oculus beams. |
+| `size_wedge`, `size_tsections` | `240.0 mm`, `27.0 mm` | Starting thickness of the side column blocks and thickness of the rib flange t-sections and bed layers. |
+| `height`, `rise` | `650.0 mm`, `453.0 mm` | Rib depth at the column head fan plane (`650 mm`) and parabolic rise toward the seam (`static_h = height - rise = 197 mm`). |
+| `wedge_plane_angle`, `oculus_plane_angle` | `-10.0°`, `5.0°` | Tilt angles of the middle column-head fan plane and the oculus bearing plane. |
+| `column_head_depth`, `bay_height` | `730.0 mm`, `3500.0 mm` | Carved column head depth and total storey elevation above the ground support. |
 
-### 1. Quarter 0 Geometric Guide (`examples/templates_floor_1_floorguide.cpp`)
+---
+
+## Quick Start
+
+Constructing a `FloorGuide` from four plan corners in the `XY` plane (`z = 0`) and building the complete floor assembly in `WoodSession`:
+
+```cpp
+#include "wood.h"
+#include "templates/floor/floor.h"
+
+using namespace session_cpp;
+using namespace wood_floor;
+
+// 1. Compute all vaulted floor geometry for a 6000 x 6000 mm bay
+FloorGuide guide({
+    Point(-3000.0, -3000.0, 0.0),
+    Point( 3000.0, -3000.0, 0.0),
+    Point( 3000.0,  3000.0, 0.0),
+    Point(-3000.0,  3000.0, 0.0),
+});
+
+// 2. Populate WoodSession with members, columns, contacts, cantilevers, and pins
+WoodSession session;
+Floor floor(guide, session);
+
+// 3. Export exact BReps and scene graph to protobuf
+session.pb_dump("floor_complete.pb");
+```
+
+![](floor/901_floor_finished.webp)
+
+---
+
+## Complete Examples
+
+### 1. Parametric FloorGuide Wireframe & Outlines (examples/templates_floor_1_floorguide.cpp)
+
+<details>
+<summary>Example code: templates_floor_1_floorguide.cpp</summary>
 
 \include{lineno} templates_floor_1_floorguide.cpp
 
-### 2. Single Carved Column & Support (`examples/templates_floor_2_column_model.cpp`)
+</details>
+
+### 2. Single Column Head Carving & Capitel Connectors (examples/templates_floor_2_column_model.cpp)
+
+<details>
+<summary>Example code: templates_floor_2_column_model.cpp</summary>
 
 \include{lineno} templates_floor_2_column_model.cpp
 
-### 3. The 68 Face Contacts (`examples/templates_floor_3_contacts.cpp`)
+</details>
+
+### 3. Member Contacts Across the Four Quarters (examples/templates_floor_3_contacts.cpp)
+
+<details>
+<summary>Example code: templates_floor_3_contacts.cpp</summary>
 
 \include{lineno} templates_floor_3_contacts.cpp
 
-### 4. Complete Square Bay with Connectors & Pins (`examples/templates_floor_7_contacts_cantilevers.cpp`)
+</details>
+
+### 4. Cantilever Wedge & Let-In Plate Connectors (examples/templates_floor_7_contacts_cantilevers.cpp)
+
+<details>
+<summary>Example code: templates_floor_7_contacts_cantilevers.cpp</summary>
 
 \include{lineno} templates_floor_7_contacts_cantilevers.cpp
 
-### 5. Rectangular Bay (`examples/templates_floor_8_rectangle.cpp`)
+</details>
+
+### 5. Rectangular Bay Adaptation (examples/templates_floor_8_rectangle.cpp)
+
+<details>
+<summary>Example code: templates_floor_8_rectangle.cpp</summary>
 
 \include{lineno} templates_floor_8_rectangle.cpp
 
-### 6. Fabrication Ground Reorientation (`examples/templates_floor_9_orientation.cpp`)
+</details>
+
+### 6. Fabrication Branch & Ground Orientation (examples/templates_floor_9_orientation.cpp)
+
+<details>
+<summary>Example code: templates_floor_9_orientation.cpp</summary>
 
 \include{lineno} templates_floor_9_orientation.cpp
+
+</details>

@@ -150,7 +150,6 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
                                              : solid_boolean(cut, pocket, SolidOperation::add);
         if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
             joint.member_cuts[i] = cut;
-
         joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
     }
 }
@@ -414,7 +413,7 @@ connector_name(const InteractionContactFace& contact, const std::string& fallbac
 
 /// How the two members of a face contact come apart.
 static std::vector<Vector>
-pulled_apart(const Element& a, const Element& b, const InteractionContactFace& contact) {
+pulled_apart(const Element& /*a*/, const Element& b, const InteractionContactFace& contact) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
     Vector normal = compute_newell(points).normalized();

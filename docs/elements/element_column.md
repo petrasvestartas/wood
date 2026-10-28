@@ -2,38 +2,56 @@
 
 [TOC]
 
-A column: a section swept along its axis, shaped by others through `add_interaction(source, column, InteractionFeatureSolid(mesh, operation))`.
+A column swept from a closed cross-section along a straight axis and modified by incoming `InteractionFeatureSolid` operations (glued head blocks, support seats, and rib pockets).
 
 ## Constructors
 
 ```cpp
-Column(const Line& axis, const Polyline& section, const std::string& name = "column")
-static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column")
-std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const
+Column(const Line& axis, const Polyline& section, const std::string& name = "column");
+static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
+std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const;
 ```
 
 ## Parameters
 
-| Parameter | Default | What it changes in 3D |
+| Parameter | Default | Role |
 | --- | --- | --- |
-| `axis` | | base to head, the column's length and lean |
-| `section` | | the closed section swept along the axis |
-| `corner`, `side` (`square`) | | a square section of side `side` with a corner on the plane's origin, along its axes |
-| `rotation` (profile constructor) | 0 | degrees the profile turns about the axis |
-| `head_side`, `head_height` (`head_blocks`) | | the glued head: blocks that widen the top to `head_side` over `head_height` |
+| `axis` | — | Base-to-head centreline defining length and inclination |
+| `section` | — | Closed cross-section swept along `axis` |
+| `corner`, `side` (`square`) | — | Corner plane and side length for a square column |
+| `rotation` (profile constructor) | `0` | Rotation angle in degrees around `axis` |
+| `head_side`, `head_height` (`head_blocks`) | — | Glued head blocks widening the top of the column to `head_side` over `head_height` |
 
 ## A rectangle along an axis
 
-![A rectangle along an axis](elements/element_column.png)
+A 200 × 300 mm rectangular section swept along a 3500 mm vertical axis.
 
-A 200 x 300 rectangle swept along a 3500 axis; the axis and the section are its features.
+![](elements/element_column.png)
+
+```cpp
+const Polyline section = Polyline::rectangle({-100.0, -150.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
+scene.add(std::make_shared<Column>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 3500.0}), section, "column"));
+```
+
+<details><summary>Example code: elements/element_column.cpp</summary>
 
 \include{lineno} elements/element_column.cpp
 
-## The floor's column as a session
+</details>
 
-![The floor's column as a session](elements/element_column_session.png)
+## Floor column assembly
 
-`Floor::add_column(corner)`: the 220 shaft, two glued head blocks (`SolidOperation::add`), the support, and six hidden cutters (`SolidOperation::subtract`).
+A floor corner column assembly combining the 220 mm shaft, two glued head blocks (`SolidOperation::add`), a steel `Support`, and six pocket/bore cutters (`SolidOperation::subtract`).
+
+![](elements/element_column_session.png)
+
+```cpp
+const wood_floor::Floor floor(guide);
+scene.graft(floor.get_branch("column_0"), nullptr);
+```
+
+<details><summary>Example code: elements/element_column_session.cpp</summary>
 
 \include{lineno} elements/element_column_session.cpp
+
+</details>

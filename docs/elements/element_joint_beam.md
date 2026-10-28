@@ -2,9 +2,9 @@
 
 [TOC]
 
-Parametric beam and member joinery: axis-contact feature volumes (`from_contact`), automatic plane butts (`butt`), and face-contact connectors (`wedge`, `rectangle_plate`, `butterfly_key`, `centred_pins`, `headed_pins`).
+Parametric beam and member joinery covering axis-contact feature volumes (`from_contact`), automatic plane butts (`butt`), and face-contact connectors (`wedge`, `rectangle_plate`, `butterfly_key`, `centred_pins`, `headed_pins`).
 
-![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.webp)
+![](diagrams/wood_beam_joints_connectors.webp)
 
 ## Constructors
 
@@ -39,21 +39,21 @@ scene.add_interaction(wedge, left, wedge->interaction(0));
 scene.add_interaction(wedge, right, wedge->interaction(1));
 ```
 
-## `from_contact` Parameters
+## Contact Joint Parameters
 
 | Parameter | Default | Role |
 | --- | --- | --- |
 | `volume_length` | — | Feature box length along each beam axis from the contact point |
-| `cross_or_side_to_end` | — | Axis threshold separating interior crossings from side-to-end / end-to-end contacts |
+| `cross_or_side_to_end` | — | Axis threshold separating interior crossings from side-to-end and end-to-end contacts |
 | `flip_male` | `0` | Rotates which feature volume corners are assigned male |
 
 ## Families
 
-| Page | Contact Input | Presets & Factories |
+| Page | Contact Input | Presets and Factories |
 | --- | --- | --- |
 | [cross](@ref elements_joint_beam_cross) | Two beams crossing | `cross_slot` .. `cross_brussels_half_lap` |
 | [top_side](@ref elements_joint_beam_top_side) | Beam ending on another | `top_side_milled_wedge` |
-| [end to end](@ref elements_joint_beam_end_to_end) | Two collinear/angled beams meeting at ends | `side_side_inplane_splayed_scarf`, `_cross_splayed_scarf`, `_side_side_rotated_miter`, `_jupiter_scarf` |
+| [end to end](@ref elements_joint_beam_end_to_end) | Two collinear or angled beams meeting at ends | `side_side_inplane_splayed_scarf`, `_cross_splayed_scarf`, `_side_side_rotated_miter`, `_jupiter_scarf` |
 | [butt](@ref elements_joint_beam_butt) | Any two members (beams, columns, plates) | `butt`, `butt_side_side`, `butt_top_side` |
 | [connectors](@ref elements_joint_beam_connectors) | `InteractionContactFace` | `wedge`, `let_in_plate`, `rectangle_plate`, `butterfly_key` |
 | [pins](@ref elements_joint_beam_pins) | `InteractionContactFace` | `centred_pins`, `headed_pins` |

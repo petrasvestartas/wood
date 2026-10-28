@@ -26,7 +26,7 @@ const wood_floor::FloorGuide& square_guide() {
 }
 
 const double EXACT_SUPPORT = 500671.261678;
-const double CARVED_OUTER_RIB = 98407909.203913;
+const double CARVED_OUTER_RIB = 98404480.360360;
 const double HEAD_CUT = 34771221.351479;
 const double PLATE_POCKETS = 4590643.957133;
 
@@ -892,14 +892,13 @@ void check_seam_beams() {
             );
 
             for (const Line& pin : pins)
-                for (const Line& pin : pins)
-                    check(
-                        std::abs(pin.to_direction()[2]) <= 1e-9 &&
-                            std::abs(
-                                std::abs(far.signed_distance(pin.start())) - guide.size_inner_beams
-                            ) <= 1e-6,
-                        label + " pins horizontal from the beam's seam face"
-                    );
+                check(
+                    std::abs(pin.to_direction()[2]) <= 1e-9 &&
+                        std::abs(
+                            std::abs(far.signed_distance(pin.start())) - guide.size_inner_beams
+                        ) <= 1e-6,
+                    label + " pins horizontal from the beam's seam face"
+                );
         }
 
     std::cout << fmt::format(
@@ -1320,13 +1319,17 @@ void check_inner_rib_bores(
     const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& sets
 ) {
 
+    std::vector<std::shared_ptr<JointBeam>> all = sets;
+    for (const std::shared_ptr<JointBeam>& pin : connectors_of(scene, "pins_inner_rib"))
+        all.push_back(pin);
+
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const std::shared_ptr<BeamVariable> rib =
                 named<BeamVariable>(scene, fmt::format("inner_ribs_{}_{}", k, q));
             size_t crossing = 0;
 
-            for (const std::shared_ptr<JointBeam>& set : sets)
+            for (const std::shared_ptr<JointBeam>& set : all)
                 if (std::find(set->targets.begin(), set->targets.end(), rib->guid()) !=
                     set->targets.end())
                     crossing += set->drill_lines.size();
@@ -1496,8 +1499,8 @@ void check_rectangle_plates() {
     for (const std::shared_ptr<Column>& column : scene.columns())
         check(
             column->model_geometry_brep().is_solid() &&
-                count_bores(column->model_geometry_brep()) == 11,
-            "the column exact with its eight pin and three pin bores"
+                count_bores(column->model_geometry_brep()) == 3,
+            "the column exact with its three clear support pin bores"
         );
 
     // a column carries only the pins that pass through it: two per plate, never the plate's rib pins

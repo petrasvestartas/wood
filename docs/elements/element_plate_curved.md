@@ -2,7 +2,7 @@
 
 [TOC]
 
-Closed 6-patch NURBS solid strip (`PlateCurved`) bounded by four `NurbsCurve` meridians (`outer_a`, `outer_b`, `inner_a`, `inner_b`). Two adjacent curved plates sharing a meridian pair share an exact ruled miter face.
+A closed 6-patch NURBS solid strip bounded by four `NurbsCurve` meridians (`outer_a`, `outer_b`, `inner_a`, `inner_b`). Adjacent curved plates that share a meridian pair meet along an exact ruled miter face.
 
 ## Constructors
 
@@ -13,7 +13,7 @@ PlateCurved(
     const NurbsCurve& inner_a,
     const NurbsCurve& inner_b,
     const std::string& name = "plate_curved"
-)
+);
 ```
 
 ## Parameters
@@ -25,8 +25,22 @@ PlateCurved(
 
 ## Barrel Vault Strip
 
-![A strip of a barrel vault](elements/element_plate_curved.png)
+A 120 mm thick barrel-vault strip bounded by two outer quarter-arcs (`R = 2000 mm`, `600 mm` apart) and two inner quarter-arcs (`R = 1880 mm`).
 
-Two outer quarter-arcs (`R = 2000 mm`, `600 mm` apart) over two inner quarter-arcs (`R = 1880 mm`): `120 mm` curved plate capped at springing and crown.
+![](elements/element_plate_curved.png)
+
+```cpp
+const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
+    NurbsCurve::create_interpolated(arc(2000.0, 0.0)),
+    NurbsCurve::create_interpolated(arc(2000.0, 600.0)),
+    NurbsCurve::create_interpolated(arc(1880.0, 0.0)),
+    NurbsCurve::create_interpolated(arc(1880.0, 600.0))
+);
+scene.add(plate);
+```
+
+<details><summary>Example code: elements/element_plate_curved.cpp</summary>
 
 \include{lineno} elements/element_plate_curved.cpp
+
+</details>

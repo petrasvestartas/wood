@@ -283,7 +283,7 @@ public:
     /// The plates of mesh thickness thick, a free edge lying in one of edge_planes cut by it.
     OffsetPlates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes);
 
-    /// One plate per face, named plate_<i>.
+    /// One plate per face, named `plate_<i>`.
     const std::vector<std::shared_ptr<Plate>>& plates() const;
 
 private:

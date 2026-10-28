@@ -1,8 +1,10 @@
-# Cutting examples for the viewer {#cutting_gallery}
+# Cutting Gallery {#cutting_gallery}
 
 [TOC]
 
-![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.webp)
+The cutting gallery targets (`15_profile_cuts` through `18_cutting_gallery`) test 2D profile slots, blind pockets, tolerance-controlled cylindrical drills, exact NURBS bore BReps, and 3D polyhedral boolean operations. Each case displays **stock → cutter → cut result** from left to right.
+
+![](diagrams/wood_boolean_cutting.webp)
 
 | Target | Cases |
 | --- | --- |
@@ -12,32 +14,24 @@
 | `18_cutting_gallery` | Combined side-by-side gallery of `15_profile_cuts`, `16_drill_solids`, and `17_solid_features` |
 | `19_plate_joint_library` | Six `top_side` joint presets across division and shift parameters |
 
-Each row displays **stock $\to$ cutter $\to$ cut result** from left to right.
-
-## Build & Run
+## Build and Run
 
 ```bash
-~/.local/bin/cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts 16_drill_solids 17_solid_features 18_cutting_gallery --parallel 4
-tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
-tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
-tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_features
-tools/run_guarded.sh -t 10 -m 4 -- build/18_cutting_gallery
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target 15_profile_cuts 16_drill_solids 17_solid_features 18_cutting_gallery --parallel 4
+./build/15_profile_cuts
+./build/16_drill_solids
+./build/17_solid_features
+./build/18_cutting_gallery
 ```
 
-Publish to the live [session viewer](https://petrasvestartas.github.io/session/):
-
-```bash
-../bash/publish-scene.sh "$PWD/data/output/pb/18_cutting_gallery.pb" --no-notify
-```
-
-## Cutter API & Kernel Invariants
+## Cutter API and Invariants
 
 ```cpp
 auto profile = std::make_shared<Joint>(
-    std::vector<Polyline>{outer, hole}, extrusion, SolidOperation::intersection);
+    std::vector<Polyline>{outer, hole}, extrusion, SolidOperation::intersect);
 auto drill = Joint::drill(axis, radius, chord_tolerance);
-auto solid = std::make_shared<Joint>(closed_mesh, SolidOperation::difference);
+auto solid = std::make_shared<Joint>(closed_mesh, SolidOperation::subtract);
 auto stock = std::make_shared<Block>(stock_mesh);
 scene.add(profile);
 scene.add_interaction(profile, plate, profile->interaction(0));
@@ -45,8 +39,8 @@ scene.add_interaction(profile, plate, profile->interaction(0));
 
 | Cutter / Stage | Geometric Invariant |
 | --- | --- |
-| `Joint(profiles, extrusion, op)` | Simple closed coplanar rings $\perp$ `extrusion` (`profiles[0]` outer boundary, `profiles[1..]` holes); finite extrusion vector controls through-cuts vs blind pockets |
-| Planar & 3D Booleans | Compatible through-cuts use 2D polygon booleans + loft; general closed polyhedra use [Manifold v3.5.4](https://github.com/elalish/manifold) (double precision) with coplanar triangle re-merging |
-| Batch Difference Rule | Consecutive `difference` cuts run in a single batch and retain the largest connected solid (dropping separated offcuts); `intersection` and `union` retain all pieces |
-| `Joint::drill(axis, r, tol)` | Mesh segment count $n \in [8, 65536]$ adapts to chord tolerance (default `0.05`); BRep stores exact rational NURBS cylinder with circular/elliptical trim loops |
-| Exact BRep Bore Fallback | Planar faces crossed by an isolated drill receive exact analytical circle/ellipse trim loops + cylindrical face; drills intersecting edges or other drills fall back to the faceted mesh BRep |
+| `Joint(profiles, extrusion, op)` | Simple closed coplanar rings perpendicular to `extrusion` (`profiles[0]` outer boundary, `profiles[1..]` holes); finite extrusion vector controls through-cuts vs blind pockets |
+| Planar and 3D Booleans | Compatible through-cuts use 2D polygon booleans + loft; general closed polyhedra use [Manifold v3.5.4](https://github.com/elalish/manifold) (double precision) with coplanar triangle re-merging |
+| Batch Difference Rule | Consecutive `subtract` cuts run in a single batch and retain the largest connected solid (dropping separated offcuts); `intersect` and `add` retain all pieces |
+| `Joint::drill(axis, r, tol)` | Mesh segment count (8 to 65536) adapts to chord tolerance (default `0.05`); BRep stores an exact rational NURBS cylinder with circular or elliptical trim loops |
+| Exact BRep Bore Fallback | Planar faces crossed by an isolated drill receive exact analytical circle or ellipse trim loops and a cylindrical face; drills intersecting edges or other drills fall back to the faceted mesh BRep |

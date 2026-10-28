@@ -47,7 +47,8 @@ bool face_overlap_area(
     const Plane& plane0,
     bool include_triangles,
     double clipper_area,
-    Polyline& out_area
+    Polyline& out_area,
+    int decimals = 2
 );
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -2,32 +2,43 @@
 
 [TOC]
 
-The section profiles a Beam or a Column sweeps: loops in the section frame, loop 0 the outline, further loops holes.
+Standard 2D cross-section loop generators swept by `Beam` and `Column`. Loop `0` is the outer perimeter and subsequent loops are interior holes.
 
 ## Constructors
 
 ```cpp
-std::vector<Polyline> profile_rectangle(double width, double depth)
-std::vector<Polyline> profile_round(double diameter, int segments = 16)
-std::vector<Polyline> profile_w(double width, double depth, double flange, double web)
-std::vector<Polyline> profile_hss(double width, double depth, double thickness)
-std::vector<Polyline> profile_double(double width, double depth, double gap)
-std::vector<Polyline> profile_slab_band(double width, double depth)
-std::vector<Polyline> profile_t(double width, double depth, double web, double flange)
+std::vector<Polyline> profile_rectangle(double width, double depth);
+std::vector<Polyline> profile_round(double diameter, int segments = 16);
+std::vector<Polyline> profile_w(double width, double depth, double flange, double web);
+std::vector<Polyline> profile_hss(double width, double depth, double thickness);
+std::vector<Polyline> profile_double(double width, double depth, double gap);
+std::vector<Polyline> profile_slab_band(double width, double depth);
+std::vector<Polyline> profile_t(double width, double depth, double web, double flange);
 ```
+
+## Parameters
+
+| Parameter | Role |
+| --- | --- |
+| `width`, `depth` | Overall section width and depth |
+| `diameter`, `segments` | Round section diameter and polygon facet count |
+| `flange`, `web` | Flange and web thicknesses for W and T sections |
+| `thickness` | Wall thickness of hollow structural sections (`profile_hss`) |
+| `gap` | Clear separation between the two webs of a double section (`profile_double`) |
 
 ## Every profile
 
-![Every profile](elements/element_profile.png)
+All seven standard section profiles swept along 800 mm beam segments: rectangle, round, W, hollow (`hss`), double, slab band, and T.
 
-Each profile swept along an 800 beam: rectangle, round, W, hollow, double, slab band and T.
+![](elements/element_profile.png)
 
-| Parameter | What it changes in 3D |
-| --- | --- |
-| `width`, `depth` | the section across and up |
-| `diameter`, `segments` | the round section and its number of flats |
-| `flange`, `web` | the thickness of the W's or T's flanges and web |
-| `thickness` | the wall of the hollow section |
-| `gap` | the space between the two members of a double section |
+```cpp
+const std::vector<Polyline> loops = profile_w(200.0, 300.0, 20.0, 12.0);
+scene.add(std::make_shared<Beam>(axis, loops, std::vector<Vector>{}, "w"));
+```
+
+<details><summary>Example code: elements/element_profile.cpp</summary>
 
 \include{lineno} elements/element_profile.cpp
+
+</details>

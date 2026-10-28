@@ -2,220 +2,251 @@
 
 [TOC]
 
-The side-to-side out-of-plane family: fingers and notches, or tenons and mortises, where two plates meet at an angle.
+Side-to-side out-of-plane plate joints cutting mitered fingers or tenon-and-mortise pairs along folded plate corners (`Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`).
 
 ## Constructors
 
 ```cpp
-// a zero division count is geometric: one division every 450 mm of the joint line, the family's division length;
-// the shift is the family's 0.64
-static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();                                        // three fixed fingers
-static std::shared_ptr<JointPlate> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);  // a zigzag of fingers, at least two divisions and even
-static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);  // the zigzag with a non-uniform shift, the central pairs moved twice the outer, at least four divisions
-static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();                                        // one fixed tenon on the wall through a mortise in the floor
+static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();
+static std::shared_ptr<JointPlate> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);
+static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
+static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();
 static std::shared_ptr<JointPlate> side_side_outplane_tenons(
     int divisions = 0,
-    double taper = 0.0,                                                                 // the tenon sides' lean
-    bool chamfer = true,                                                                // chamfered tenon ends
-    bool modify_outline = true,                                                         // the floor's edge modified around the tenons
-    const std::array<double, 2>& x = {-0.5, 0.5},                                      // the tenon box in the joint's unit frame
+    double taper = 0.0,
+    bool chamfer = true,
+    bool modify_outline = true,
+    const std::array<double, 2>& x = {-0.5, 0.5},
     const std::array<double, 2>& y = {-0.5, 0.5},
     const std::array<double, 2>& z = {-0.5, 0.5}
-);                                                                                      // chamfered tenons on the wall, a through mortise per tenon in the floor
-static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);  // side_side_outplane_tenons on this joint and its one or two linked joints, the tenons lengthened to -0.75
-static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);                       // side_side_outplane_linked_tenons with the second link's divisions disabled, the Vidy wall
-static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);                      // side_side_outplane_three_fingers with divisions / 2 fingers and flat miter caps, by name only
-static std::shared_ptr<JointPlate> side_side_outplane_notch();                                 // one rectangular notch, the worked example of a new design, by name only
-static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);  // your own outlines, pairs (face 0, face 1) in the unit box
+);
+static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
+static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);
+static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
+static std::shared_ptr<JointPlate> side_side_outplane_notch();
+static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-// placed on the plates' face contact, then passed to each plate in its target order
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements)
-std::shared_ptr<Interaction> interaction(size_t target) const
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
+std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
-
-Every example shows two pairs, `Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`: a floor and a wall on a mitered corner, square and folded to 60 degrees. The wall is target 0, the male.
 
 ## side_side_outplane_three_fingers: three fingers
 
-![side_side_outplane_three_fingers](elements/element_joint_plate_side_side_outplane_three_fingers.png)
+Three fixed mitered fingers merged into the floor and wall edges at 90 and 60 degrees.
 
-![side_side_outplane_three_fingers, the unit box: male pink, female blue](joint_library/op_side_side_outplane_three_fingers_unit.png)
+![](elements/element_joint_plate_side_side_outplane_three_fingers.png)
+
+![](joint_library/op_side_side_outplane_three_fingers_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_three_fingers(); // a fixed design, no parameters
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_three_fingers();
 ```
 
-The fixed three-finger joint merged into both mitered edges: the floor's three fingers reach under the wall, the wall notched for them over its thickness.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_three_fingers.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_three_fingers.cpp
 
+</details>
+
 ## side_side_outplane_fingers: parametric fingers
 
-![side_side_outplane_fingers](elements/element_joint_plate_side_side_outplane_fingers.png)
+Eight divisions producing four mitered fingers on the floor interlocking with four notches in the wall.
 
-![side_side_outplane_fingers, the unit box: male pink, female blue](joint_library/op_side_side_outplane_fingers_8_0.5_unit.png)
+![](elements/element_joint_plate_side_side_outplane_fingers.png)
+
+![](joint_library/op_side_side_outplane_fingers_8_0.5_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(
-    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
-    0.5  // shift: the fingers' lean through the thickness, only above 0.5
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(8, 0.5);
 ```
 
-Eight divisions at shift 0.64: four fingers on the floor in four notches of the wall.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_fingers.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_fingers.cpp
 
-## side_side_outplane_graded_fingers: fingers with a non-uniform shift
+</details>
 
-![side_side_outplane_graded_fingers](elements/element_joint_plate_side_side_outplane_graded_fingers.png)
+## side_side_outplane_graded_fingers: graded splay fingers
 
-![side_side_outplane_graded_fingers, the unit box: male pink, female blue](joint_library/op_side_side_outplane_graded_fingers_8_0.5_unit.png)
+Eight divisions with a non-uniform shift that splays the central finger pairs twice as far as the outer pairs.
+
+![](elements/element_joint_plate_side_side_outplane_graded_fingers.png)
+
+![](joint_library/op_side_side_outplane_graded_fingers_8_0.5_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_graded_fingers(
-    8,   // divisions: how many teeth along the joint line; 0 takes them from its length
-    0.5  // shift: the fingers' lean through the thickness, only above 0.5
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_graded_fingers(8, 0.5);
 ```
 
-Eight divisions at shift 0.64: the zigzag of `side_side_outplane_fingers` with splayed fingers.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_graded_fingers.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_graded_fingers.cpp
 
+</details>
+
 ## side_side_outplane_miter_tenon: miter tenon and mortise
 
-![side_side_outplane_miter_tenon](elements/element_joint_plate_side_side_outplane_miter_tenon.png)
+A single central tenon on the mitered wall edge passing through a matching mortise in the floor lip.
 
-![side_side_outplane_miter_tenon, the unit box: male pink, female blue](joint_library/op_side_side_outplane_miter_tenon_unit.png)
+![](elements/element_joint_plate_side_side_outplane_miter_tenon.png)
+
+![](joint_library/op_side_side_outplane_miter_tenon_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon(); // a fixed design, no parameters
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon();
 ```
 
-One tenon, 0.3 of the seam wide, in the middle of the wall's edge, through a mortise in a lip of the floor.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_miter_tenon.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_miter_tenon.cpp
 
+</details>
+
 ## side_side_outplane_tenons: chamfered tenons and through mortises
 
-![side_side_outplane_tenons](elements/element_joint_plate_side_side_outplane_tenons.png)
+Parametric tenons along the mitered wall edge paired with through-mortises in the floor plate.
 
-![side_side_outplane_tenons, the unit box: male pink, female blue](joint_library/op_side_side_outplane_tenons_8_0_0_1_unit.png)
+![](elements/element_joint_plate_side_side_outplane_tenons.png)
+
+![](joint_library/op_side_side_outplane_tenons_8_0_0_1_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_tenons(
-    8,     // divisions: how many teeth along the joint line; 0 takes them from its length
-    0,     // taper: the tenons' side lean
-    false  // chamfer: bevelled tenon ends inside the floor
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_tenons(8, 0.0, false);
 ```
 
-On its defaults: one chamfered tenon on the wall and a through mortise in the floor; the merge into mitered outlines is not right yet.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_tenons.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_tenons.cpp
 
+</details>
+
 ## side_side_outplane_linked_tenons: linked tenons
 
-![side_side_outplane_linked_tenons](elements/element_joint_plate_side_side_outplane_linked_tenons.png)
+Extended chamfered tenons designed to interlock with adjacent linked joints at multi-plate folded nodes.
 
-![side_side_outplane_linked_tenons, the unit box: male pink, female blue](joint_library/op_side_side_outplane_linked_tenons_8_0_unit.png)
+![](elements/element_joint_plate_side_side_outplane_linked_tenons.png)
+
+![](joint_library/op_side_side_outplane_linked_tenons_8_0_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons(
-    8,     // divisions: how many teeth along the joint line; 0 takes them from its length
-    false  // disable_divisions: the second linked joint (Vidy) without divisions
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons(8, false);
 ```
 
-`side_side_outplane_tenons` with longer chamfered tenons on the wall and a through mortise per tenon in the floor.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_linked_tenons.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons.cpp
 
-## side_side_outplane_linked_tenons_wall: the Vidy wall
+</details>
 
-![side_side_outplane_linked_tenons_wall](elements/element_joint_plate_side_side_outplane_linked_tenons_wall.png)
+## side_side_outplane_linked_tenons_wall: Vidy wall tenons
 
-![side_side_outplane_linked_tenons_wall, the unit box: male pink, female blue](joint_library/op_side_side_outplane_linked_tenons_wall_8_unit.png)
+Linked tenon variant for the Vidy theatre wall seams where the secondary linked joint divisions are disabled.
+
+![](elements/element_joint_plate_side_side_outplane_linked_tenons_wall.png)
+
+![](joint_library/op_side_side_outplane_linked_tenons_wall_8_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons_wall(
-    8  // divisions: how many teeth along the joint line; 0 takes them from its length
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
 ```
 
-`side_side_outplane_linked_tenons` with its second linked joint's divisions disabled; with no linked joint, the same tenons and mortises.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp
 
-## A Vidy node: four plates
+</details>
 
-![a Vidy node, with the viewer's layers](elements/element_joint_plate_vidy_node.png)
+## Vidy node: four folded plates
 
-Where side_side_outplane_linked_tenons and side_side_outplane_linked_tenons_wall are used: a Vidy corner node of two wall plates and two roof plates.
+A four-plate folded Vidy corner node combining `side_side_outplane_linked_tenons` on the roof seams and `side_side_outplane_linked_tenons_wall` on the wall seams.
+
+![](elements/element_joint_plate_vidy_node.png)
+
+```cpp
+const std::shared_ptr<JointPlate> roof_joint = JointPlate::side_side_outplane_linked_tenons(8, false);
+const std::shared_ptr<JointPlate> wall_joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
+```
+
+<details><summary>Example code: elements/element_joint_plate_vidy_node.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_vidy_node.cpp
 
+</details>
+
 ## side_side_outplane_capped_fingers: fingers with flat miter caps
 
-![side_side_outplane_capped_fingers](elements/element_joint_plate_side_side_outplane_capped_fingers.png)
+Four divisions producing two interior fingers flanked by flat miter caps at both ends of the seam.
 
-![side_side_outplane_capped_fingers, the unit box: male pink, female blue](joint_library/op_side_side_outplane_capped_fingers_4_unit.png)
+![](elements/element_joint_plate_side_side_outplane_capped_fingers.png)
+
+![](joint_library/op_side_side_outplane_capped_fingers_4_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_fingers(
-    4  // divisions: how many teeth along the joint line; 0 takes them from its length
-);
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_fingers(4);
 ```
 
-Four divisions, two fingers, the miter capped flat at both ends; the merge into mitered outlines is not right yet.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_capped_fingers.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_capped_fingers.cpp
 
-## side_side_outplane_notch: one notch
+</details>
 
-![side_side_outplane_notch](elements/element_joint_plate_side_side_outplane_notch.png)
+## side_side_outplane_notch: single central notch
 
-![side_side_outplane_notch, the unit box: male pink, female blue](joint_library/op_side_side_outplane_notch_unit.png)
+A single rectangular tongue-and-notch over the middle half of the mitered seam.
+
+![](elements/element_joint_plate_side_side_outplane_notch.png)
+
+![](joint_library/op_side_side_outplane_notch_unit.png)
 
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_notch(); // a fixed design, no parameters
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_notch();
 ```
 
-One rectangular notch over the middle half of the joint line: the floor's tongue under the wall.
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_notch.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_notch.cpp
 
-## side_side_outplane_custom: your own outlines
+</details>
 
-![side_side_outplane_custom](elements/element_joint_plate_side_side_outplane_custom.png)
+## side_side_outplane_custom: custom outlines
 
-![side_side_outplane_custom, the unit box: male pink, female blue](joint_library/op_side_side_outplane_custom_unit.png)
+Custom wide-narrow-wide fingers on the floor plate and matching sockets in the wall plate defined in the `[-0.5, 0.5]^3` unit box.
 
-A custom tile: three fingers on the floor, wide, narrow, wide, and the sockets they fill in the wall.
+![](elements/element_joint_plate_side_side_outplane_custom.png)
+
+![](joint_library/op_side_side_outplane_custom_unit.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_custom(male, female);
+```
+
+<details><summary>Example code: elements/element_joint_plate_side_side_outplane_custom.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_custom.cpp
 
+</details>
+
 ## Parameters
 
-**Divisions and shift.** Divisions set the number of fingers; a shift above 0.5 skews them into a dovetail.
+**Divisions and shift.** `divisions` sets the finger count; `shift` above `0.5` skews the finger sides into a dovetail.
 
-![side_side_outplane_fingers sweep](joint_library/sweep_side_side_outplane_fingers.png)
+![](joint_library/sweep_side_side_outplane_fingers.png)
 
-**At other angles.** The same fingers at 90, 120 and 150 degrees: they keep their count and lean with the miter.
+**At other angles.** The same fingers at 90, 120, and 150 degrees leaning with the miter plane.
 
-![side_side_outplane_fingers at 90, 120 and 150 degrees](joint_library/sweep_side_side_outplane_fingers_angles.png)
+![](joint_library/sweep_side_side_outplane_fingers_angles.png)
 
-**Where it is used.** Two plates from the Chevron template (`src/templates/chevron`), the shift in rows and divisions in columns.
+**Chevron pair sweep.** `side_side_outplane_fingers` on a pair of folded plates from the Chevron template across `shift` rows and `divisions` columns.
 
-![side_side_outplane_fingers on a Chevron pair](joint_library/sweep_side_side_outplane_fingers_chevron.png)
+![](joint_library/sweep_side_side_outplane_fingers_chevron.png)
 
-side_side_outplane_graded_fingers moves the central pairs twice as far as the outer ones; at shift 1 its outline crosses itself and no solid is built.
+**Graded finger sweep.** `side_side_outplane_graded_fingers` across increasing `shift` and `divisions`.
 
-![side_side_outplane_graded_fingers sweep](joint_library/sweep_side_side_outplane_graded_fingers.png)
+![](joint_library/sweep_side_side_outplane_graded_fingers.png)
 
-**side_side_outplane_tenons's own parameters.** The taper narrows the tenons; the chamfer bevels their ends inside the floor.
+**Tenon parameters.** `taper` narrows the tenon sides and `chamfer` bevels the tenon tips inside the floor plate.
 
-![side_side_outplane_tenons sweep](joint_library/sweep_side_side_outplane_tenons.png)
+![](joint_library/sweep_side_side_outplane_tenons.png)
 
-![side_side_outplane_linked_tenons, side_side_outplane_linked_tenons_wall and side_side_outplane_capped_fingers sweep](joint_library/sweep_side_side_outplane_linked_tenons_wall_capped.png)
+![](joint_library/sweep_side_side_outplane_linked_tenons_wall_capped.png)

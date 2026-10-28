@@ -4,7 +4,7 @@
 
 Parametric plate-to-plate and single-edge joinery defined in the unit box `[-0.5, 0.5]^3` and oriented onto `InteractionContactFace` or `InteractionContactCross`.
 
-![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.webp)
+![](diagrams/wood_joint_unit_box.webp)
 
 ## Constructors
 
@@ -21,13 +21,15 @@ static std::shared_ptr<JointPlate> border();
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), jupiter_scarf();
 static std::shared_ptr<JointPlate> <family>_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-// Orientation & target interaction access
+// Orientation and target interaction access
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
 void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-## Usage (`target 0` = male pink, `target 1` = female blue)
+## Usage
+
+Target `0` receives the male outline (pink in unit-box views) and target `1` receives the female outline (blue in unit-box views):
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
@@ -50,24 +52,44 @@ scene.add_interaction(joint, base, joint->interaction(1));
 | [top_top](@ref elements_joint_plate_top_top) | Top-to-top | Stacked faces (drilled pin patterns) |
 | [border](@ref elements_joint_plate_border) | Border | Single-plate side face (`compute_border_contact`) |
 
-## border {#elements_joint_plate_border}
+## Border {#elements_joint_plate_border}
 
-![border on a side face](elements/element_joint_plate_border.png)
+A single-plate edge profile (`JointPlate::border()`) oriented onto side face `2` via `WoodSession::compute_border_contact(plate, 2)`.
 
-`JointPlate::border()` oriented on `WoodSession::compute_border_contact(plate, 2)`.
+![](elements/element_joint_plate_border.png)
+
+```cpp
+const std::shared_ptr<InteractionContactFace> contact = scene.compute_border_contact(plate, 2);
+const std::shared_ptr<JointPlate> joint = JointPlate::border();
+joint->orient(contact, {plate});
+scene.add_interaction(joint, plate, joint->interaction(0));
+```
+
+<details><summary>Example code: elements/element_joint_plate_border.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_border.cpp
 
+</details>
+
 ## Parameters
 
-![parameters of top_side_tenons](elements/element_joint_plate_parameters.png)
+A parameter sweep of `top_side_tenons` varying `divisions = {8, 16, 24}` in the back row and `shift = {0.0, 0.25, 1.0}` in the front row.
 
-`top_side_tenons` sweep: back row `divisions = {8, 16, 24}`, front row `shift = {0.0, 0.25, 1.0}`.
+![](elements/element_joint_plate_parameters.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(divisions, shift);
+joint->orient(contact, {base, upright});
+```
 
 | Parameter | Default | Role |
 | --- | --- | --- |
-| `divisions` | `0` | Teeth/keys along seam; `0` computes `1` per `300 mm` (in-plane, rotated) or `450 mm` (out-of-plane, top-side) |
-| `shift` | `0.5` | Normalized lean of finger/tenon sides (`[0, 1]`), or centre width of cross half-laps |
-| `male`, `female` (`*_custom`) | — | Custom polyline pairs in unit box `[-0.5, 0.5]^3` |
+| `divisions` | `0` | Number of teeth or keys along the seam; `0` computes `1` per `300 mm` (in-plane, rotated) or `450 mm` (out-of-plane, top-side) |
+| `shift` | `0.5` | Normalized lean of finger or tenon sides (`[0, 1]`), or centre width of cross half-laps |
+| `male`, `female` (`*_custom`) | — | Custom polyline pairs in the unit box `[-0.5, 0.5]^3` |
+
+<details><summary>Example code: elements/element_joint_plate_parameters.cpp</summary>
 
 \include{lineno} elements/element_joint_plate_parameters.cpp
+
+</details>

@@ -141,15 +141,15 @@ draw();
 
 The oculus: `size_oculus` and `size_inner_beams`.
 
-![The oculus parameters](floor/941_parameters_oculus.webp)
+![](floor/941_parameters_oculus.webp)
 
 The column head in plan: the head, its chamfer, the wedges, the ribs and the t-sections.
 
-![The column head parameters](floor/942_parameters_head.webp)
+![](floor/942_parameters_head.webp)
 
 Outer rib 0 and column 0 in elevation: `bay_height`, `height`, `rise`, `column_head_depth`, and the two leaning planes seen edge-on, `wedge_plane_angle` and `oculus_plane_angle`.
 
-![The elevation parameters](floor/943_parameters_elevation.webp)
+![](floor/943_parameters_elevation.webp)
 
 Every parameter is a constructor argument with its default, kept as a read-only field of `FloorGuide`. Sizes are in mm, angles in degrees.
 
@@ -297,7 +297,7 @@ const Point middle = compute_centre();
 centre = middle;
 ```
 
-![The centre](floor/950_centre.webp)
+![](floor/950_centre.webp)
 
 <details>
 <summary>compute_centre()</summary>
@@ -325,7 +325,7 @@ const std::array<Point, 4> hole = compute_oculus_points();
 oculus_points = hole;
 ```
 
-![The oculus points](floor/951_oculus_points.webp)
+![](floor/951_oculus_points.webp)
 
 <details>
 <summary>compute_oculus_points()</summary>
@@ -361,7 +361,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The construction planes of quarter 0](floor/952_construction_planes_loop.webp)
+![](floor/952_construction_planes_loop.webp)
 
 <details>
 <summary>0. The quarter and its column head</summary>
@@ -444,7 +444,7 @@ cp.outer_ribs = {
 };
 ```
 
-![Outer ribs](floor/954_construction_planes_outer_ribs.webp)
+![](floor/954_construction_planes_outer_ribs.webp)
 
 `outer_ribs[k][0]` lies on the bay edge, its floor line thick; `outer_ribs[k][1]` is moved `size_outer_ribs` inwards, its floor line thin.
 
@@ -467,7 +467,7 @@ cp.inner_beams = {
 };
 ```
 
-![Inner beams](floor/955_construction_planes_inner_beams.webp)
+![](floor/955_construction_planes_inner_beams.webp)
 
 `inner_beams[0]` and `[2]` lie on the seams and `inner_beams[1]` on the oculus edge, each pair `size_inner_beams` apart on the floor.
 
@@ -491,7 +491,7 @@ cp.inner_ribs = {
 };
 ```
 
-![Inner ribs](floor/956_construction_planes_inner_ribs.webp)
+![](floor/956_construction_planes_inner_ribs.webp)
 
 `inner_ribs[0]` runs from `head[2]` to `p0`, `inner_ribs[1]` from `head[3]` to `p1`, each with its second face `size_inner_ribs` away.
 
@@ -521,7 +521,7 @@ const std::array<double, 2> starts = compute_rib_starts(cp);
 cp.wedges = {pair(wedge0, starts[0]), pair(chamfer, middle_wedge_factor * (0.5 * (starts[0] + starts[1]))), pair(wedge2, starts[1])};
 ```
 
-![Wedges](floor/957_construction_planes_wedges.webp)
+![](floor/957_construction_planes_wedges.webp)
 
 A close-up of the column head: `wedges[0]`, `[1]` and `[2]` on the head polygon's three edges, each with its second face a block thickness away.
 
@@ -544,7 +544,7 @@ cp.tsections = {
 };
 ```
 
-![T-sections](floor/958_construction_planes_tsections.webp)
+![](floor/958_construction_planes_tsections.webp)
 
 `tsections[0]` and `[5]` lie on the outer ribs' second faces; `[1]` to `[4]` lie on the two faces of each inner rib.
 
@@ -565,7 +565,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![Where each outer rib's curve starts](floor/960_section_rib_starts.webp)
+![](floor/960_section_rib_starts.webp)
 
 This picture is drawn on a 6000 x 4800 bay, where the two starts differ. Every other picture on this page uses the 6000 x 6000 bay, where they are equal.
 
@@ -712,7 +712,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The construction quads](floor/962_section_construction_quads.webp)
+![](floor/962_section_construction_quads.webp)
 
 <details>
 <summary>compute_construction_quads(q)</summary>
@@ -763,7 +763,7 @@ ConstructionQuads FloorGuide::compute_construction_quads(size_t q) const {
 
 Outer rib 0: its two faces, the fan plane it starts on and the seam plane it ends on; their crossings on the floor are its corners.
 
-![Outer rib 0's quad from its four planes](floor/979_quad_from_planes.webp)
+![](floor/979_quad_from_planes.webp)
 
 </details>
 
@@ -782,7 +782,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The boundary parabolas](floor/963_section_boundary_parabolas.webp)
+![](floor/963_section_boundary_parabolas.webp)
 
 <details>
 <summary>compute_boundary_parabolas(q)</summary>
@@ -851,7 +851,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The central panel](floor/964_section_central_panel.webp)
+![](floor/964_section_central_panel.webp)
 
 <details>
 <summary>compute_central_panel(q)</summary>
@@ -1070,7 +1070,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The bed top planes](floor/965_section_bed_top_planes.webp)
+![](floor/965_section_bed_top_planes.webp)
 
 <details>
 <summary>compute_bed_top_planes(q)</summary>
@@ -1138,7 +1138,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The outer ribs](floor/970_member_outer_ribs.webp)
+![](floor/970_member_outer_ribs.webp)
 
 <details>
 <summary>compute_outer_ribs(q)</summary>
@@ -1259,7 +1259,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The inner ribs](floor/971_member_inner_ribs.webp)
+![](floor/971_member_inner_ribs.webp)
 
 <details>
 <summary>compute_inner_ribs(q)</summary>
@@ -1309,7 +1309,7 @@ const double cutter_level = compute_rib_bottom();
 _rib_bottom = cutter_level;
 ```
 
-![The column cutter level](floor/966_section_rib_bottom.webp)
+![](floor/966_section_rib_bottom.webp)
 
 <details>
 <summary>compute_rib_bottom()</summary>
@@ -1344,7 +1344,7 @@ const double beam_level = compute_soffit();
 soffit = beam_level;
 ```
 
-![The soffit](floor/967_section_soffit.webp)
+![](floor/967_section_soffit.webp)
 
 <details>
 <summary>compute_soffit()</summary>
@@ -1385,7 +1385,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The t-sections](floor/972_member_tsections.webp)
+![](floor/972_member_tsections.webp)
 
 <details>
 <summary>compute_tsections(q)</summary>
@@ -1509,7 +1509,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The bed rails](floor/978_member_bed_rails.webp)
+![](floor/978_member_bed_rails.webp)
 
 <details>
 <summary>compute_bed_rails(q)</summary>
@@ -1594,7 +1594,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The beds](floor/973_member_beds.webp)
+![](floor/973_member_beds.webp)
 
 <details>
 <summary>compute_beds(q)</summary>
@@ -1644,7 +1644,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The column blocks](floor/974_member_wedges.webp)
+![](floor/974_member_wedges.webp)
 
 <details>
 <summary>compute_wedges(q)</summary>
@@ -1711,7 +1711,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The inner beams](floor/975_member_inner_beams.webp)
+![](floor/975_member_inner_beams.webp)
 
 <details>
 <summary>compute_inner_beams(q)</summary>
@@ -1749,7 +1749,7 @@ const std::array<std::array<Polyline, 2>, 9> ring = compute_oculus();
 _oculus = ring;
 ```
 
-![The oculus](floor/976_member_oculus.webp)
+![](floor/976_member_oculus.webp)
 
 <details>
 <summary>compute_oculus()</summary>
@@ -1811,7 +1811,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-![The column cutters](floor/977_member_column_cutters.webp)
+![](floor/977_member_column_cutters.webp)
 
 <details>
 <summary>compute_column_cutters(q)</summary>
