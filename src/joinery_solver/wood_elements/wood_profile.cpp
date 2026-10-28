@@ -73,12 +73,6 @@ std::vector<Polyline> profile_hss(double width, double depth, double thickness) 
     };
 }
 
-std::vector<Polyline> profile_double(double width, double depth, double gap) {
-    return {
-        box(-(width + gap) / 2.0, 0.0, width, depth), box((width + gap) / 2.0, 0.0, width, depth)
-    };
-}
-
 std::vector<Polyline> profile_slab_band(double width, double depth) {
     return {box(0.0, 0.0, width, depth)};
 }

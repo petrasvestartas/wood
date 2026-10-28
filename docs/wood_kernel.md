@@ -57,6 +57,7 @@ Every `Element` caches two lazy geometric states in both `Mesh` and `BRep` repre
 | `Plate` | `bottom`, `top` planar `Polyline` loops | Face `0` bottom, face `1` top, side faces `j + 2` along edges |
 | `PlateCurved` | `outer_a`, `outer_b`, `inner_a`, `inner_b` (`NurbsCurve`) | Exact 6-patch ruled NURBS solid (`BRep::from_nurbssurfaces`) |
 | `Beam` | `axis` (`Line`), `profile` (`Polyline`), `z` (`Vector`) | Extruded prism in `Plane::from_line_direction(axis, z)` |
+| `BeamCurved` | `centreline` (`NurbsCurve`), `width`, `height`, `directions`, `num_width`, `num_height` | Single/double-curved glulam with RMF twist, lamella stack, and 6-patch NURBS `BRep` |
 | `BeamVariable` | `axis` (`Line`), `profiles` (`vector<Polyline>`), `stations` | Multi-section lofted prism or parabolic soffit rib |
 | `Column` | `axis`, `frame`, `width` | Square shaft + `head_blocks` (`SolidOperation::add`) |
 | `Support` | `plane`, `base_width`, `head_diameter`, `pin_length` | Two steel plates + 3 anchor pins |

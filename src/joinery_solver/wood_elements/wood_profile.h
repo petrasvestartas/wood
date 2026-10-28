@@ -22,9 +22,6 @@ std::vector<Polyline> profile_w(double width, double depth, double flange, doubl
 /// A hollow rectangle of wall thickness.
 std::vector<Polyline> profile_hss(double width, double depth, double thickness);
 
-/// Two outlines of width side by side, gap apart; the builder makes two members with the same cuts.
-std::vector<Polyline> profile_double(double width, double depth, double gap);
-
 /// A wide flat rectangle.
 std::vector<Polyline> profile_slab_band(double width, double depth);
 

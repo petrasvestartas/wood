@@ -10,6 +10,8 @@ Planar folded-plate timber structures (`src/templates/folding/*.h`). Each templa
 
 | Template Class | Primary Inputs | Mid-Surface Mesh Generation | Section |
 | --- | --- | --- | --- |
+| `ReflexFold` | `cross_section`, `profile`, `thickness`, `chamfer_bottom`, `chamfer_top`, `chamfer_angle` | Sweeps a zigzag profile along an arch cross-section (two profile curves), folding at each vertex bisector plane | [Reflex fold](#reflex_fold) |
+| `DiamondMesh` | `NurbsSurface`, `u_divisions`, `v_divisions`, `thickness`, `chamfer`, `chamfer_angle` | Tessellates a free-form NURBS surface into triangulated diamond rhombi | [Diamond mesh](#diamond_mesh) |
 | `PrismaticFold` | `profile` (`zigzag` / `polygon`), `span`, `thickness`, `diaphragms`, `edge_flange` | Sweeps 2D `profile` along `x` over `span`, adds transverse diaphragm plates and free-edge flanges | [Singly folded plate](#prismatic_fold) |
 | `CounterFold` | `stations` (`vector<Polyline>`), `Folding` (`ridge_to_ridge` / `ridge_to_valley` / `alternate`), `thickness` | Triangulates strips between counter-running or elevated station profiles and merges coplanar triangles (`merged_coplanar`) | [Counter-running folding](#counter_fold) |
 | `ConicalFold` | `stations` (`conical` radial profiles clipped by sloping planes), `Folding`, `thickness` | Connects radial fold lines from eaves to crown across sloping cut planes | [Conical folding](#conical_fold) |
@@ -19,14 +21,59 @@ Planar folded-plate timber structures (`src/templates/folding/*.h`). Each templa
 | `FoldComposition` | `cell_span`, `eaves`, `crown`, `star_drop`, `thickness` | Composes cross-folded square vaults around a central elevated 8-pointed star | [Composition](#fold_composition) |
 | `TruncatedPyramid` | `half_base`, `half_top`, `height`, `edge_fold`, `corner_fold`, `thickness` | Generates a closed pyramid, doubly-folded truncated pyramid, or corner/edge-folded variations | [Pyramids](#truncated_pyramid) |
 | `TriangleFold` | `sides` (`3, 4, 5, 6`), `radius`, `eave_height`, `centre_height`, `thickness` | Triangulates regular polygon plans with vertical perimeter gables and folded corner facets | [Folded triangular surfaces](#triangle_fold) |
-| `ReflexFold` | `cross_section`, `profile`, `thickness`, `chamfer_bottom`, `chamfer_top`, `chamfer_angle` | Sweeps a zigzag profile along an arch cross-section, folding at each vertex bisector plane | [Reflex fold](#reflex_fold) |
-| `DiamondMesh` | `NurbsSurface`, `u_divisions`, `v_divisions`, `thickness`, `chamfer`, `chamfer_angle` | Tessellates a free-form NURBS surface into triangulated diamond rhombi | [Diamond mesh](#diamond_mesh) |
 
 | Geometric Invariant | Construction (`template_chamfer.h`) |
 | --- | --- |
 | **Planarity with thickness** | Outer face offset by `thickness` along face normal; fold side cut on the angle-bisector plane shared with the neighbour |
 | **Multi-plate node offset (`offset_plates`)** | High-valence vertices (`k > 3`) split into `k - 2` valence-3 inner intersections by optimal cycle triangulation so all plates meet on exact planar faces without gaps |
 | **Coplanar merge (`merged_coplanar`)** | Adjacent triangles sharing a coplanar crease are merged into a single polygon plate before offsetting |
+
+## Reflex fold {#reflex_fold}
+
+`ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`): sweeps a zigzag `profile` along an arch `cross_section` (two profile curves), folding at each arch vertex bisector plane (`mitered_plates`).
+
+### Default arch and zigzag {#folding_reflex_fold}
+
+Default reflex fold arch from two profile curves (`cross_section` and `profile`) with `10 mm` mitered plates and `20 mm` corner chamfers.
+
+![](templates/templates_folding_1_reflex_fold_plates.webp)
+
+```cpp
+ReflexFold fold;
+```
+
+<details><summary>Example code: templates_folding_1_reflex_fold.cpp</summary>
+
+\include{lineno} templates_folding_1_reflex_fold.cpp
+
+</details>
+
+## Diamond mesh {#diamond_mesh}
+
+`DiamondMesh(surface, u_divisions, v_divisions, thickness, chamfer, chamfer_angle)` (`folding/diamond_mesh.h`): divides a NURBS surface into `u_divisions × v_divisions` cells and connects each cell's corners to adjacent cell centres to form triangulated diamond rhombi (`mitered_plates`).
+
+### Rhombi on the default arch {#folding_diamond_mesh}
+
+An `8 × 4` diamond mesh on the default bicubic arch (`3000 × 5000 × 1500 mm`), with `40 mm` thick mitered plates and `10 mm` corner chamfers.
+
+![](templates/templates_folding_2_diamond_mesh_plates.webp)
+
+```cpp
+DiamondMesh diamond(
+    DiamondMesh::default_surface(),
+    8,
+    4,
+    40.0,
+    10.0,
+    180.0
+);
+```
+
+<details><summary>Example code: templates_folding_2_diamond_mesh.cpp</summary>
+
+\include{lineno} templates_folding_2_diamond_mesh.cpp
+
+</details>
 
 ## Singly folded plate {#prismatic_fold}
 
@@ -606,49 +653,3 @@ TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
 
 </details>
 
-## Reflex fold {#reflex_fold}
-
-`ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`): sweeps a zigzag `profile` along an arch `cross_section`, folding at each arch vertex bisector plane (`mitered_plates`).
-
-### Default arch and zigzag {#folding_reflex_fold}
-
-Default reflex fold arch with `10 mm` mitered plates and `20 mm` corner chamfers.
-
-![](templates/templates_folding_1_reflex_fold_plates.webp)
-
-```cpp
-ReflexFold fold;
-```
-
-<details><summary>Example code: templates_folding_1_reflex_fold.cpp</summary>
-
-\include{lineno} templates_folding_1_reflex_fold.cpp
-
-</details>
-
-## Diamond mesh {#diamond_mesh}
-
-`DiamondMesh(surface, u_divisions, v_divisions, thickness, chamfer, chamfer_angle)` (`folding/diamond_mesh.h`): divides a NURBS surface into `u_divisions × v_divisions` cells and connects each cell's corners to adjacent cell centres to form triangulated diamond rhombi (`mitered_plates`).
-
-### Rhombi on the default arch {#folding_diamond_mesh}
-
-An `8 × 4` diamond mesh on the default bicubic arch (`3000 × 5000 × 1500 mm`), with `40 mm` thick mitered plates and `10 mm` corner chamfers.
-
-![](templates/templates_folding_2_diamond_mesh_plates.webp)
-
-```cpp
-DiamondMesh diamond(
-    DiamondMesh::default_surface(),
-    8,
-    4,
-    40.0,
-    10.0,
-    180.0
-);
-```
-
-<details><summary>Example code: templates_folding_2_diamond_mesh.cpp</summary>
-
-\include{lineno} templates_folding_2_diamond_mesh.cpp
-
-</details>

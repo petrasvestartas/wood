@@ -3,6 +3,7 @@
 #include "wood_element_beam.h"
 #include "wood_element_column.h"
 #include "wood_element_beam_variable.h"
+#include "wood_element_beam_curved.h"
 #include "wood_feature_detection.h"
 #include "wood_element_geometry.h"
 #include "wood_element_plate_curved.h"
@@ -280,9 +281,11 @@ ContactType contact_type(
 ) {
 
     const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a) ||
-                          dynamic_cast<const BeamVariable*>(&a);
+                          dynamic_cast<const BeamVariable*>(&a) ||
+                          dynamic_cast<const BeamCurved*>(&a);
     const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b) ||
-                          dynamic_cast<const BeamVariable*>(&b);
+                          dynamic_cast<const BeamVariable*>(&b) ||
+                          dynamic_cast<const BeamCurved*>(&b);
     auto is_end = [](const Element& element, const Plane& plane) {
         Vector axis;
         if (const auto* beam = dynamic_cast<const Beam*>(&element)) {
@@ -291,6 +294,10 @@ ContactType contact_type(
             axis = beam->axis[beam->axis.point_count() - 1] - beam->axis[0];
         } else if (const auto* variable = dynamic_cast<const BeamVariable*>(&element)) {
             axis = variable->axis.to_vector();
+        } else if (const auto* curved = dynamic_cast<const BeamCurved*>(&element)) {
+            if (!curved->centreline.is_valid())
+                return false;
+            axis = curved->centreline.point_at_end() - curved->centreline.point_at_start();
         } else
             axis = static_cast<const Column&>(element).axis.to_vector();
         return std::abs(plane.z_axis().dot(axis.normalized())) > 1e-6;

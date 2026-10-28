@@ -192,7 +192,7 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
 const Mesh& Beam::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
-        if (profile.size() > 1 && axis.segment_count() == 1) {
+        if (!profile.empty() && axis.segment_count() == 1) {
             const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends =
                 profile_ends(*this);
             _element_geometry_mesh = Mesh::loft(ends.first, ends.second, true);
@@ -206,7 +206,7 @@ const Mesh& Beam::element_geometry_mesh() const {
 const BRep& Beam::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
-        if (profile.size() > 1 && axis.segment_count() == 1) {
+        if (!profile.empty() && axis.segment_count() == 1) {
             const std::pair<std::vector<Polyline>, std::vector<Polyline>> ends =
                 profile_ends(*this);
             _element_geometry_brep = brep_between_loops(ends.first, ends.second);

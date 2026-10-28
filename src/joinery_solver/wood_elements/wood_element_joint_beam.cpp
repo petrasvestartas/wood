@@ -1580,6 +1580,9 @@ static std::optional<Vector> level_axis(const Element& element) {
 
     if (const BeamVariable* beam = dynamic_cast<const BeamVariable*>(&element))
         axis = beam->axis.to_vector();
+    else if (const BeamCurved* curved = dynamic_cast<const BeamCurved*>(&element);
+             curved && curved->centreline.is_valid())
+        axis = curved->centreline.point_at_end() - curved->centreline.point_at_start();
     else if (const Beam* straight = dynamic_cast<const Beam*>(&element);
              straight && straight->axis.point_count() > 1)
         axis = straight->axis.get_point(straight->axis.point_count() - 1) -

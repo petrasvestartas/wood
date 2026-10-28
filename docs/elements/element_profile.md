@@ -11,7 +11,6 @@ std::vector<Polyline> profile_rectangle(double width, double depth);
 std::vector<Polyline> profile_round(double diameter, int segments = 16);
 std::vector<Polyline> profile_w(double width, double depth, double flange, double web);
 std::vector<Polyline> profile_hss(double width, double depth, double thickness);
-std::vector<Polyline> profile_double(double width, double depth, double gap);
 std::vector<Polyline> profile_slab_band(double width, double depth);
 std::vector<Polyline> profile_t(double width, double depth, double web, double flange);
 ```
@@ -24,11 +23,10 @@ std::vector<Polyline> profile_t(double width, double depth, double web, double f
 | `diameter`, `segments` | Round section diameter and polygon facet count |
 | `flange`, `web` | Flange and web thicknesses for W and T sections |
 | `thickness` | Wall thickness of hollow structural sections (`profile_hss`) |
-| `gap` | Clear separation between the two webs of a double section (`profile_double`) |
 
 ## Every profile
 
-All seven standard section profiles swept along 800 mm beam segments: rectangle, round, W, hollow (`hss`), double, slab band, and T.
+All six standard section profiles swept along 800 mm beam segments: rectangle, round, W, hollow (`hss`), slab band, and T.
 
 ![](elements/element_profile.png)
 

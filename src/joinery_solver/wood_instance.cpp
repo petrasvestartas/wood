@@ -202,6 +202,10 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
             std::dynamic_pointer_cast<BeamVariable>(element))
         return variable->transformed(xform);
 
+    if (const std::shared_ptr<BeamCurved> curved =
+            std::dynamic_pointer_cast<BeamCurved>(element))
+        return curved->transformed(xform);
+
     if (const std::shared_ptr<Support> support = std::dynamic_pointer_cast<Support>(element))
         return support->transformed(xform);
 

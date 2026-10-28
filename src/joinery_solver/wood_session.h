@@ -12,6 +12,7 @@
 #include "wood_element_column.h"
 #include "wood_element_cut_plane.h"
 #include "wood_element_beam_variable.h"
+#include "wood_element_beam_curved.h"
 #include "wood_element_support.h"
 #include "wood_element_plate.h"
 #include "wood_element_plate_curved.h"
@@ -364,6 +365,11 @@ public:
     /// Every BeamVariable, in objects.elements order.
     std::vector<std::shared_ptr<BeamVariable>> beam_variables() const {
         return get_elements<BeamVariable>();
+    }
+
+    /// Every BeamCurved, in objects.elements order.
+    std::vector<std::shared_ptr<BeamCurved>> beam_curveds() const {
+        return get_elements<BeamCurved>();
     }
 
     /// Every Support, in objects.elements order.

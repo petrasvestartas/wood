@@ -128,19 +128,6 @@ const std::vector<Case> CASES = {
               .girder = profile_hss(250.0, 250.0, 10.0),
               .purlin = profile_rectangle(215.0, 456.0)}
      }},
-    {"profile_double",
-     ONE,
-     wood_grid::Framing{
-         .system = 2,
-         .span = 0,
-         .spacing = 2000.0,
-         .node = 1,
-         .deck = 87.0,
-         .profiles =
-             {.column = profile_rectangle(315.0, 342.0),
-              .girder = profile_double(120.0, 600.0, 60.0),
-              .purlin = profile_rectangle(215.0, 456.0)}
-     }},
     {"profile_slab_band",
      ONE,
      wood_grid::Framing{

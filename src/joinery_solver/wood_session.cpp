@@ -20,6 +20,7 @@ bool register_factories() {
     Plate::register_type();
     Column::register_type();
     BeamVariable::register_type();
+    BeamCurved::register_type();
     Support::register_type();
     Block::register_type();
     Beam::register_type();
@@ -1663,6 +1664,8 @@ static void add_plane_cut(const Joint& joint, Element& target) {
         column->cuts.insert(column->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (BeamVariable* beam = dynamic_cast<BeamVariable*>(&target))
         beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    else if (BeamCurved* beam = dynamic_cast<BeamCurved*>(&target))
+        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (Block* block = dynamic_cast<Block*>(&target))
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else
@@ -1708,7 +1711,8 @@ void WoodSession::compute_breps() {
         const bool connector_child = std::dynamic_pointer_cast<Pin>(element) ||
                                      std::dynamic_pointer_cast<ConnectorPart>(element);
         const bool round = std::dynamic_pointer_cast<Support>(element) ||
-                           std::dynamic_pointer_cast<PlateCurved>(element);
+                           std::dynamic_pointer_cast<PlateCurved>(element) ||
+                           std::dynamic_pointer_cast<BeamCurved>(element);
 
         if (connector_child || round ||
             (!std::dynamic_pointer_cast<Joint>(element) &&

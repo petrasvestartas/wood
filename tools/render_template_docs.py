@@ -128,7 +128,7 @@ def main(arguments: list) -> None:
     is scaled down, so the edges come out thin and smooth; no silhouette outline is drawn.
     """
     view = option(arguments, "--view", "iso")
-    opacity = option(arguments, "--opacity", "1")
+    opacity = option(arguments, "--opacity", "0.90")
     size = option(arguments, "--size", "2400x1600")
     crop = option(arguments, "--crop", "")
     rename = option(arguments, "--name", "")

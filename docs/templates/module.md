@@ -53,8 +53,6 @@ for (const std::pair<double, size_t>& entry : doors) {
 
 3. **Contacts (`contacts_frame`, `contacts_sheathing`)**: `add_module_contacts` (`module/module_contact.h`) detects all `26` frame-to-frame and `32` sheet-to-frame `InteractionContactFace` regions (`<target>_on_<source>` or `<target>_beside_<source>`):
 
-![](templates/templates_module_1_wall_contacts.webp)
-
 ```cpp
 const bool beside = std::max(end_i, end_j) < 0.9;
 const std::shared_ptr<Beam> source = !beside && end_i > end_j ? beam_j : beam_i;
@@ -118,8 +116,6 @@ const Polyline top_loop = Polyline::from_planes(sides, top);
 
 ![](templates/templates_module_2_cassette_shell_two_cassettes.webp)
 
-![](templates/templates_module_2_cassette_shell_contacts.webp)
-
 ```cpp
 for (const std::shared_ptr<Plate>& a : parts[f])
     for (const std::shared_ptr<Plate>& b : parts[static_cast<size_t>(g)]) {
@@ -166,8 +162,6 @@ for (double u = stud_spacing; u < length; u += stud_spacing) { ... }
 ![](templates/templates_module_3_cassette_house_section.webp)
 
 ![](templates/templates_module_3_cassette_house_eave.webp) ![](templates/templates_module_3_cassette_house_ridge.webp)
-
-![](templates/templates_module_3_cassette_house_contacts.webp)
 
 <details>
 <summary>Example code: examples/templates_module_3_cassette_house.cpp</summary>
@@ -223,9 +217,7 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 ![](templates/templates_module_4_room_module_inside.webp)
 
-3. **Contacts (`contacts_frame`, `contacts_sheathing`)**: `add_module_contacts` registers all `333` frame-to-frame and `378` sheet-to-frame face contacts across both modules:
-
-![](templates/templates_module_4_room_module_contacts.webp)
+3. **Contacts (`contacts_frame`, `contacts_sheathing`)**: `add_module_contacts` registers all `333` frame-to-frame and `378` sheet-to-frame face contacts across both modules.
 
 <details>
 <summary>Example code: examples/templates_module_4_room_module.cpp</summary>

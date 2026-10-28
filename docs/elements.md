@@ -13,6 +13,7 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 | [Plate](@ref elements_plate) | `wood_element_plate.h` | `element_plate`, `element_plate_holes`, `element_plate_session`, `element_plate_assign_joints` |
 | [PlateCurved](@ref elements_plate_curved) | `wood_element_plate_curved.h` | `element_plate_curved` |
 | [Beam](@ref elements_beam) | `wood_element_beam.h` | `element_beam` |
+| [BeamCurved](@ref elements_beam_curved) | `wood_element_beam_curved.h` | `element_beam_curved` |
 | [BeamVariable](@ref elements_beam_variable) | `wood_element_beam_variable.h` | `element_beam_variable`, `element_beam_variable_cut` |
 | [Column](@ref elements_column) | `wood_element_column.h` | `element_column`, `element_column_session` |
 | [Block](@ref elements_block) | `wood_element_block.h` | `element_block` |
@@ -49,6 +50,7 @@ Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamV
 - @subpage elements_plate
 - @subpage elements_plate_curved
 - @subpage elements_beam
+- @subpage elements_beam_curved
 - @subpage elements_beam_variable
 - @subpage elements_column
 - @subpage elements_block

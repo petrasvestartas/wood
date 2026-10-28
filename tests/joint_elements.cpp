@@ -1,6 +1,8 @@
 #include "wood_session.h"
 #include "wood_contact_detection.h"
 #include "wood_element_geometry.h"
+#include "wood_profile.h"
+#include "primitives.h"
 #include <chrono>
 #include <set>
 
@@ -179,6 +181,104 @@ static void check_scene_calls() {
     std::cout
         << "scene calls: user connectors kept, their holes removed with them, moved targets "
            "drilled in their frame, adjacency renumbered by guid, stored and never borrowed\n";
+}
+
+static void check_beam_curved_and_profiles() {
+    // 1. Concave and hollow profile beams (W, T, HSS) have triangulated caps and closed solids
+    const Polyline axis({{0.0, 0.0, 0.0}, {0.0, 800.0, 0.0}});
+    for (const auto& loops : {
+             profile_w(200.0, 300.0, 20.0, 12.0),
+             profile_t(300.0, 300.0, 20.0, 40.0),
+             profile_hss(200.0, 300.0, 12.0),
+         }) {
+        const auto pbeam = std::make_shared<Beam>(axis, loops, std::vector<Vector>{}, "prof");
+        check(
+            pbeam->element_geometry_mesh().is_closed() &&
+                !pbeam->element_geometry_mesh().get_triangulation().empty(),
+            "profile beam mesh is closed with CDT cap triangulation"
+        );
+        check(
+            pbeam->element_geometry_brep().is_valid() && pbeam->element_geometry_brep().is_solid(),
+            "profile beam brep is a valid solid"
+        );
+    }
+
+    // 2. Single-curved glulam arch
+    const NurbsCurve arch = Primitives::arc({0.0, 0.0, 0.0}, {1000.0, 0.0, 400.0}, {2000.0, 0.0, 0.0});
+    const auto single_beam = BeamCurved::single_curved(arch, 120.0, 240.0, 6, 24, "single_glulam");
+    check(single_beam->is_single_curved() && !single_beam->is_double_curved(), "single-curved detection");
+    check(
+        std::abs(single_beam->lamella_width() - 120.0) < 1e-9 &&
+            std::abs(single_beam->lamella_height() - 40.0) < 1e-9,
+        "single-curved lamella dimensions"
+    );
+    double kw = 0.0, kh = 0.0;
+    const double kmax = single_beam->max_curvature(kw, kh);
+    check(kmax > 0.0 && kw < 1e-6 && kh > 1e-4, "single-curved curvature is purely in height axis");
+    check(
+        single_beam->element_geometry_mesh().is_closed() &&
+            single_beam->element_geometry_brep().is_valid() &&
+            single_beam->element_geometry_brep().is_solid() &&
+            single_beam->element_geometry_brep().face_count() == 6,
+        "single-curved mesh and 6-patch NURBS BRep solid"
+    );
+    check(
+        single_beam->lamella_curves().size() == 6 &&
+            single_beam->lamella_meshes().size() == 6 &&
+            single_beam->lamella_breps().size() == 6,
+        "single-curved lamella stack"
+    );
+
+    // 3. Double-curved spatial glulam beam with RMF twist interpolation and plane cuts
+    const NurbsCurve spatial = NurbsCurve::create_interpolated({
+        {0.0, 0.0, 0.0},
+        {800.0, 300.0, 400.0},
+        {1600.0, -200.0, 500.0},
+        {2400.0, 100.0, 0.0},
+    });
+    const std::vector<Vector> guides = {
+        Vector(0.0, -0.3, 1.0).normalized(),
+        Vector(0.0, 0.4, 1.0).normalized(),
+        Vector(0.0, -0.2, 1.0).normalized(),
+    };
+    const auto double_beam =
+        BeamCurved::double_curved(spatial, 140.0, 240.0, guides, {}, 2, 6, 24, "double_glulam");
+    check(double_beam->is_double_curved() && !double_beam->is_single_curved(), "double-curved detection");
+    double_beam->max_curvature(kw, kh);
+    check(kw > 1e-5 && kh > 1e-5, "double-curved curvature in both axes");
+    check(
+        double_beam->lamella_curves().size() == 12 &&
+            double_beam->lamella_meshes().size() == 12 &&
+            double_beam->lamella_breps().size() == 12,
+        "double-curved 2x6 lamella stack"
+    );
+
+    const double uncut_vol = compute_volume(double_beam->model_geometry_mesh());
+    double_beam->cuts = {Plane::from_point_normal({200.0, 0.0, 0.0}, {1.0, 0.0, 0.0})};
+    double_beam->invalidate_geometry();
+    check(
+        compute_volume(double_beam->model_geometry_mesh()) < uncut_vol &&
+            double_beam->model_geometry_mesh().is_closed() &&
+            double_beam->model_geometry_brep().is_valid(),
+        "double-curved beam trimmed by cut plane"
+    );
+
+    WoodSession curved_scene("curved_scene");
+    curved_scene.add(single_beam);
+    curved_scene.add(double_beam);
+    const WoodSession round_trip = WoodSession::pb_loads(curved_scene.pb_dumps());
+    check(round_trip.beam_curveds().size() == 2, "BeamCurved protobuf round trip");
+    const auto reloaded_double = round_trip.get_element<BeamCurved>(double_beam->guid());
+    check(
+        reloaded_double && reloaded_double->num_width == 2 && reloaded_double->num_height == 6 &&
+            reloaded_double->cuts.size() == 1 &&
+            std::abs(
+                compute_volume(reloaded_double->model_geometry_mesh()) -
+                compute_volume(double_beam->model_geometry_mesh())
+            ) < 1e-3,
+        "BeamCurved state and volume preserved across pb_dumps/pb_loads"
+    );
+    std::cout << "beam curved and profile checks passed\n";
 }
 
 int main() {
@@ -368,5 +468,6 @@ int main() {
                   << " ms including repeat solve and serialization\n";
     }
     check_scene_calls();
+    check_beam_curved_and_profiles();
     std::cout << "joint API checks passed\n";
 }

@@ -634,17 +634,15 @@ to_rib(const Sail& sail, const Point& start, const Point& end, double rib, int s
 
     std::vector<Point> axis;
     std::vector<Vector> ups;
-    for (int k = 0; k <= subdivisions; k++)
+    for (int k = 0; k <= subdivisions; k++) {
         axis.push_back(compute_on_sail(
             sail, start + (end - start) * (static_cast<double>(k) / subdivisions), -rib / 2.0
         ));
-    for (int k = 0; k < subdivisions; k++)
-        ups.push_back(
-            (Point::centroid({axis[k], axis[k + 1]}) - Point(0.0, 0.0, sail.centre)).normalized()
-        );
+        ups.push_back((axis.back() - Point(0.0, 0.0, sail.centre)).normalized());
+    }
 
-    return std::make_shared<wood_session::Beam>(
-        Polyline(axis), wood_session::profile_rectangle(rib, rib), ups, "rib"
+    return std::make_shared<wood_session::BeamCurved>(
+        NurbsCurve::create_interpolated(axis), rib, rib, ups, 1, 6, subdivisions, "rib"
     );
 }
 
@@ -695,6 +693,626 @@ star_vault(double span, double rise, double thickness, double star, double rib, 
     }
 
     return elements;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Gothic ribbed vaults (LiDAR cathedral patterns — Tracing the Past / Willis / Wendland / Jobbik)
+// ═══════════════════════════════════════════════════════════════════════════
+
+namespace {
+
+/// Evaluates the top vault surface point S(x, y) and unit upward normal N(x, y) at plan point (x, y).
+/// web_dir selects which cylinder web is active on groin/cloister surfaces when (x, y) lies on a diagonal crease.
+std::pair<Point, Vector> eval_vault_surface(
+    double x,
+    double y,
+    double hx,
+    double hy,
+    double rise,
+    ArchMethod method,
+    const Point& ref_mid
+) {
+    const double h_safe_rise = std::max(1.0, rise);
+    const auto cyl_arch = [](double coord, double half_span, double arch_rise, double& z_out, double& dz_dc) {
+        if (arch_rise <= 1e-6) {
+            z_out = 0.0;
+            dz_dc = 0.0;
+            return;
+        }
+        const double r = (half_span * half_span + arch_rise * arch_rise) / (2.0 * arch_rise);
+        const double z_c = arch_rise - r;
+        const double c = std::clamp(coord, -half_span, half_span);
+        const double dz = std::sqrt(std::max(1e-6, r * r - c * c));
+        z_out = z_c + dz;
+        dz_dc = -c / dz;
+    };
+
+    if (method == ArchMethod::groin_cylinders) {
+        const double ux = std::abs(ref_mid[0]) / std::max(1.0, hx);
+        const double uy = std::abs(ref_mid[1]) / std::max(1.0, hy);
+        if (ux <= uy + 1e-6) {
+            double z = 0.0, dz_dx = 0.0;
+            cyl_arch(x, hx, h_safe_rise, z, dz_dx);
+            Vector n(-dz_dx, 0.0, 1.0);
+            n.normalize_self();
+            return {Point(x, y, z), n};
+        } else {
+            double z = 0.0, dz_dy = 0.0;
+            cyl_arch(y, hy, h_safe_rise, z, dz_dy);
+            Vector n(0.0, -dz_dy, 1.0);
+            n.normalize_self();
+            return {Point(x, y, z), n};
+        }
+    }
+
+    if (method == ArchMethod::cloister_cylinders) {
+        // Domical cylinder groin surface: boundary arches rise to 0.65 * rise, crown rises to rise
+        const double ux = std::abs(ref_mid[0]) / std::max(1.0, hx);
+        const double uy = std::abs(ref_mid[1]) / std::max(1.0, hy);
+        const double h_wall  = 0.65 * h_safe_rise;
+        const double h_ridge = 0.35 * h_safe_rise;
+        if (ux <= uy + 1e-6) {
+            double zx = 0.0, dz_dx = 0.0;
+            double zy = 0.0, dz_dy = 0.0;
+            cyl_arch(x, hx, h_wall, zx, dz_dx);
+            cyl_arch(y, hy, h_ridge, zy, dz_dy);
+            Vector n(-dz_dx, -dz_dy, 1.0);
+            n.normalize_self();
+            return {Point(x, y, zx + zy), n};
+        } else {
+            double zy = 0.0, dz_dy = 0.0;
+            double zx = 0.0, dz_dx = 0.0;
+            cyl_arch(y, hy, h_wall, zy, dz_dy);
+            cyl_arch(x, hx, h_ridge, zx, dz_dx);
+            Vector n(-dz_dx, -dz_dy, 1.0);
+            n.normalize_self();
+            return {Point(x, y, zx + zy), n};
+        }
+    }
+
+    // Default: spherical_sail through the 4 corners (+-hx, +-hy, 0) rising to crown (0, 0, rise)
+    const double r_diag_sq = hx * hx + hy * hy;
+    const double r_sail = (r_diag_sq + h_safe_rise * h_safe_rise) / (2.0 * h_safe_rise);
+    const double z_c = h_safe_rise - r_sail;
+    const double r_xy_sq = std::min(r_sail * r_sail, x * x + y * y);
+    const double dz = std::sqrt(std::max(0.0, r_sail * r_sail - r_xy_sq));
+    const double z = z_c + dz;
+    Vector n(x / r_sail, y / r_sail, dz / r_sail);
+    n.normalize_self();
+    return {Point(x, y, z), n};
+}
+
+struct RibEdgeSpec {
+    int u = 0;
+    int v = 0;
+    double width_scale = 1.0;
+    std::string role = "rib";
+};
+
+double wrap_two_pi(double angle) {
+    double a = std::fmod(angle, Tolerance::TWO_PI);
+    if (a < 0.0)
+        a += Tolerance::TWO_PI;
+    return a;
+}
+
+} // namespace
+
+std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
+    double span_x,
+    double span_y,
+    double rise,
+    double rib_width,
+    double rib_height,
+    GothicPattern pattern,
+    ArchMethod surface_method,
+    int subdivisions
+) {
+    const double hx = 0.5 * span_x;
+    const double hy = 0.5 * span_y;
+    const int n_sub = std::max(8, subdivisions);
+
+    // -------------------------------------------------------------------------
+    // 1. Build the 2D planar straight-line graph (V, E) on [-hx, hx] x [-hy, hy]
+    //    Vertices 0..3 are ALWAYS the 4 corner springers (SW, SE, NE, NW)
+    //    Vertices 4..7 are the 4 wall midpoints (S, E, N, W)
+    //    Vertex 8 is the central crown boss (0, 0)
+    // -------------------------------------------------------------------------
+    std::vector<Point> nodes = {
+        Point(-hx, -hy, 0.0), // 0: SW corner
+        Point( hx, -hy, 0.0), // 1: SE corner
+        Point( hx,  hy, 0.0), // 2: NE corner
+        Point(-hx,  hy, 0.0), // 3: NW corner
+        Point(0.0, -hy, 0.0), // 4: S wall midpoint
+        Point( hx, 0.0, 0.0), // 5: E wall midpoint
+        Point(0.0,  hy, 0.0), // 6: N wall midpoint
+        Point(-hx, 0.0, 0.0), // 7: W wall midpoint
+        Point(0.0, 0.0, 0.0)  // 8: Central crown boss
+    };
+    const auto add_node = [&](double x, double y) -> int {
+        for (size_t i = 0; i < nodes.size(); ++i)
+            if (std::hypot(nodes[i][0] - x, nodes[i][1] - y) < 1e-3)
+                return static_cast<int>(i);
+        nodes.emplace_back(x, y, 0.0);
+        return static_cast<int>(nodes.size() - 1);
+    };
+
+    std::vector<RibEdgeSpec> edges;
+    const auto add_edge = [&](int u, int v, double w_scale, const std::string& role) {
+        if (u == v)
+            return;
+        for (const RibEdgeSpec& e : edges)
+            if ((e.u == u && e.v == v) || (e.u == v && e.v == u))
+                return;
+        edges.push_back({u, v, w_scale, role});
+    };
+
+    // Symmetric perimeter wall arches (all 4 boundaries identical)
+    if (pattern != GothicPattern::fan_conoid) {
+        for (int i = 0; i < 4; ++i) {
+            const int c_curr = i;
+            const int c_next = (i + 1) % 4;
+            const int m_wall = 4 + i;
+            add_edge(c_curr, m_wall, 1.0, "wall_arch");
+            add_edge(m_wall, c_next, 1.0, "wall_arch");
+        }
+    }
+
+    if (pattern == GothicPattern::quadripartite) {
+        for (int i = 0; i < 4; ++i) {
+            add_edge(i, 8, 1.0, "diagonal_rib");
+            add_edge(4 + i, 8, 1.0, "ridge_rib");
+        }
+    } else if (pattern == GothicPattern::tierceron) {
+        // Starcut ridge bosses at +-0.5 along both orthogonal ridges (4-fold symmetric)
+        const std::array<int, 4> r_nodes = {
+            add_node(0.0, -0.5 * hy),
+            add_node(0.5 * hx, 0.0),
+            add_node(0.0, 0.5 * hy),
+            add_node(-0.5 * hx, 0.0)
+        };
+        for (int i = 0; i < 4; ++i) {
+            const int c_next = (i + 1) % 4;
+            add_edge(i, 8, 1.0, "diagonal_rib");
+            add_edge(4 + i, r_nodes[i], 1.0, "ridge_rib");
+            add_edge(r_nodes[i], 8, 1.0, "ridge_rib");
+            add_edge(i, r_nodes[i], 1.0, "tierceron_rib");
+            add_edge(c_next, r_nodes[i], 1.0, "tierceron_rib");
+        }
+    } else if (pattern == GothicPattern::star_stellar) {
+        // 8-pointed Sterngewoelbe / Boveda Estrellada star vault
+        const double s = 0.44;
+        const double d = 0.54;
+        const std::array<int, 4> s_nodes = {
+            add_node(0.0, -s * hy),
+            add_node(s * hx, 0.0),
+            add_node(0.0, s * hy),
+            add_node(-s * hx, 0.0)
+        };
+        const std::array<int, 4> d_nodes = {
+            add_node(-d * hx, -d * hy),
+            add_node( d * hx, -d * hy),
+            add_node( d * hx,  d * hy),
+            add_node(-d * hx,  d * hy)
+        };
+        for (int i = 0; i < 4; ++i) {
+            const int next = (i + 1) % 4;
+            const int prev = (i + 3) % 4;
+            add_edge(i, d_nodes[i], 1.0, "diagonal_rib");
+            add_edge(d_nodes[i], 8, 1.0, "diagonal_rib");
+            add_edge(4 + i, s_nodes[i], 1.0, "ridge_rib");
+            add_edge(s_nodes[i], 8, 1.0, "lierne_rib");
+            add_edge(i, s_nodes[i], 1.0, "tierceron_rib");
+            add_edge(next, s_nodes[i], 1.0, "tierceron_rib");
+            add_edge(d_nodes[i], s_nodes[i], 1.0, "lierne_rib");
+            add_edge(d_nodes[i], s_nodes[prev], 1.0, "lierne_rib");
+        }
+    } else if (pattern == GothicPattern::lierne_star) {
+        // Ely Choir / Wells Lady Chapel double-star lierne vault with petal lozenges
+        const double r_out = 0.66;
+        const double r_in  = 0.34;
+        const double d_mid = 0.50;
+        const std::array<int, 4> ro = {
+            add_node(0.0, -r_out * hy),
+            add_node(r_out * hx, 0.0),
+            add_node(0.0, r_out * hy),
+            add_node(-r_out * hx, 0.0)
+        };
+        const std::array<int, 4> ri = {
+            add_node(0.0, -r_in * hy),
+            add_node(r_in * hx, 0.0),
+            add_node(0.0, r_in * hy),
+            add_node(-r_in * hx, 0.0)
+        };
+        const std::array<int, 4> dn = {
+            add_node(-d_mid * hx, -d_mid * hy),
+            add_node( d_mid * hx, -d_mid * hy),
+            add_node( d_mid * hx,  d_mid * hy),
+            add_node(-d_mid * hx,  d_mid * hy)
+        };
+        for (int i = 0; i < 4; ++i) {
+            const int next = (i + 1) % 4;
+            const int prev = (i + 3) % 4;
+            add_edge(i, dn[i], 1.0, "diagonal_rib");
+            add_edge(dn[i], 8, 1.0, "diagonal_rib");
+            add_edge(4 + i, ro[i], 1.0, "ridge_rib");
+            add_edge(ro[i], ri[i], 1.0, "ridge_rib");
+            add_edge(ri[i], 8, 1.0, "ridge_rib");
+            add_edge(i, ro[i], 1.0, "tierceron_rib");
+            add_edge(next, ro[i], 1.0, "tierceron_rib");
+            add_edge(dn[i], ri[i], 1.0, "lierne_rib");
+            add_edge(dn[i], ri[prev], 1.0, "lierne_rib");
+            add_edge(dn[i], ro[i], 1.0, "lierne_rib");
+            add_edge(dn[i], ro[prev], 1.0, "lierne_rib");
+        }
+    } else if (pattern == GothicPattern::net_reticulated) {
+        // Late-Gothic Netzgewoelbe diamond-lattice net vault (Jobbik 2024 / Parler)
+        const std::array<int, 4> q_nodes = {
+            add_node(0.0, -0.58 * hy),
+            add_node(0.58 * hx, 0.0),
+            add_node(0.0, 0.58 * hy),
+            add_node(-0.58 * hx, 0.0)
+        };
+        const std::array<int, 4> d_outer = {
+            add_node(-0.44 * hx, -0.44 * hy),
+            add_node( 0.44 * hx, -0.44 * hy),
+            add_node( 0.44 * hx,  0.44 * hy),
+            add_node(-0.44 * hx,  0.44 * hy)
+        };
+        const std::array<int, 4> r_inner = {
+            add_node(0.0, -0.26 * hy),
+            add_node(0.26 * hx, 0.0),
+            add_node(0.0, 0.26 * hy),
+            add_node(-0.26 * hx, 0.0)
+        };
+        for (int i = 0; i < 4; ++i) {
+            const int next = (i + 1) % 4;
+            const int prev = (i + 3) % 4;
+            // Corner springers to outer diamond & ridge nodes
+            add_edge(i, d_outer[i], 1.0, "diagonal_rib");
+            add_edge(i, q_nodes[i], 1.0, "tierceron_rib");
+            add_edge(next, q_nodes[i], 1.0, "tierceron_rib");
+            // Wall midpoints to outer ridge nodes
+            add_edge(4 + i, q_nodes[i], 1.0, "ridge_rib");
+            // Outer rhomboidal net ring
+            add_edge(d_outer[i], q_nodes[i], 1.0, "net_rib");
+            add_edge(d_outer[i], q_nodes[prev], 1.0, "net_rib");
+            // Inner rhomboidal net ring
+            add_edge(d_outer[i], r_inner[i], 1.0, "net_rib");
+            add_edge(d_outer[i], r_inner[prev], 1.0, "net_rib");
+            // Central Parler diamond lozenge (Raute)
+            add_edge(r_inner[i], r_inner[next], 1.0, "net_rib");
+        }
+    } else if (pattern == GothicPattern::fan_conoid) {
+        // Perpendicular 2-tier fan / conoid vault (Gloucester Cloisters / King's College)
+        const double h_min = std::min(hx, hy);
+        const double r1 = 0.42 * h_min;
+        const double r2 = 0.76 * h_min;
+        const std::array<double, 4> base_angles = {
+            0.0, 0.5 * Tolerance::PI, Tolerance::PI, 1.5 * Tolerance::PI
+        };
+        std::array<std::array<int, 5>, 4> ring1{};
+        std::array<std::array<int, 5>, 4> ring2{};
+        for (int c = 0; c < 4; ++c) {
+            for (int k = 0; k < 5; ++k) {
+                const double ang = base_angles[c] + k * (0.125 * Tolerance::PI);
+                ring1[c][k] = add_node(
+                    nodes[c][0] + r1 * std::cos(ang),
+                    nodes[c][1] + r1 * std::sin(ang)
+                );
+                ring2[c][k] = add_node(
+                    nodes[c][0] + r2 * std::cos(ang),
+                    nodes[c][1] + r2 * std::sin(ang)
+                );
+            }
+        }
+        const std::array<int, 4> spandrel = {
+            add_node(0.0, -0.34 * hy),
+            add_node(0.34 * hx, 0.0),
+            add_node(0.0, 0.34 * hy),
+            add_node(-0.34 * hx, 0.0)
+        };
+        for (int c = 0; c < 4; ++c) {
+            const int next = (c + 1) % 4;
+            const int prev = (c + 3) % 4;
+            // 5 radiating conoid ribs across 2 concentric tiers
+            for (int k = 0; k < 5; ++k) {
+                const std::string role = (k == 0 || k == 4) ? "wall_arch" : "fan_rib";
+                add_edge(c, ring1[c][k], 1.0, role);
+                add_edge(ring1[c][k], ring2[c][k], 1.0, role);
+            }
+            // Inner and outer conoid collar arc segments
+            for (int k = 0; k < 4; ++k) {
+                add_edge(ring1[c][k], ring1[c][k + 1], 1.0, "collar_rib");
+                add_edge(ring2[c][k], ring2[c][k + 1], 1.0, "collar_rib");
+            }
+            // Boundary wall segments between outer conoid collars and wall midpoints
+            add_edge(ring2[c][0], 4 + c, 1.0, "wall_arch");
+            add_edge(4 + c, ring2[next][4], 1.0, "wall_arch");
+            // Central spandrel & ridge ribs
+            add_edge(4 + c, spandrel[c], 1.0, "ridge_rib");
+            add_edge(spandrel[c], 8, 1.0, "ridge_rib");
+            add_edge(ring2[c][2], 8, 1.0, "diagonal_rib");
+            add_edge(ring2[c][1], spandrel[c], 1.0, "lierne_rib");
+            add_edge(ring2[c][3], spandrel[prev], 1.0, "lierne_rib");
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Build adjacency & sort outgoing edges CCW by plan angle at every node
+    // -------------------------------------------------------------------------
+    struct AdjItem {
+        size_t edge_idx = 0;
+        int other = 0;
+        double angle = 0.0;
+        Vector dir_xy;
+    };
+    std::vector<std::vector<AdjItem>> adj(nodes.size());
+    for (size_t e_idx = 0; e_idx < edges.size(); ++e_idx) {
+        const int u = edges[e_idx].u;
+        const int v = edges[e_idx].v;
+        const double dx = nodes[v][0] - nodes[u][0];
+        const double dy = nodes[v][1] - nodes[u][1];
+        const double len = std::hypot(dx, dy);
+        if (len < 1e-6)
+            continue;
+        const Vector dir_uv(dx / len, dy / len, 0.0);
+        const Vector dir_vu(-dx / len, -dy / len, 0.0);
+        adj[u].push_back({e_idx, v, wrap_two_pi(std::atan2(dy, dx)), dir_uv});
+        adj[v].push_back({e_idx, u, wrap_two_pi(std::atan2(-dy, -dx)), dir_vu});
+    }
+    for (std::vector<AdjItem>& list : adj)
+        std::sort(list.begin(), list.end(), [](const AdjItem& a, const AdjItem& b) {
+            return a.angle < b.angle;
+        });
+
+    // -------------------------------------------------------------------------
+    // 3. Corner Support Blocks (Tas-de-charge / Springer Plinths) at nodes 0..3
+    // -------------------------------------------------------------------------
+    std::vector<std::shared_ptr<Element>> result;
+    std::array<double, 4> corner_radii = {0.0, 0.0, 0.0, 0.0};
+
+    // Determine common corner stop radius so all 4 corners are symmetric
+    double min_corner_dphi = Tolerance::PI;
+    for (int c = 0; c < 4; ++c) {
+        const std::vector<AdjItem>& list = adj[c];
+        for (size_t j = 0; j + 1 < list.size(); ++j) {
+            const double dphi = wrap_two_pi(list[j + 1].angle - list[j].angle);
+            if (dphi > 1e-4 && dphi < Tolerance::PI)
+                min_corner_dphi = std::min(min_corner_dphi, dphi);
+        }
+    }
+    const double r_sep = (0.5 * rib_width) / std::tan(0.5 * std::max(0.15, min_corner_dphi));
+    const double r_corner_common = std::max(r_sep + 25.0, 2.5 * rib_width);
+    for (int c = 0; c < 4; ++c)
+        corner_radii[c] = r_corner_common;
+
+    // Outward wall normals for the two walls meeting at each corner c in {0..3}
+    const std::array<Vector, 4> wall_out_first = {
+        Vector(0.0, -1.0, 0.0), // C0: South wall first (phi=0), West wall last (phi=90)
+        Vector(1.0,  0.0, 0.0), // C1: East wall first (phi=90), South wall last (phi=180)
+        Vector(0.0,  1.0, 0.0), // C2: North wall first (phi=180), East wall last (phi=270)
+        Vector(-1.0, 0.0, 0.0)  // C3: West wall first (phi=270), North wall last (phi=0)
+    };
+    const std::array<Vector, 4> wall_out_last = {
+        Vector(-1.0, 0.0, 0.0),
+        Vector(0.0, -1.0, 0.0),
+        Vector(1.0,  0.0, 0.0),
+        Vector(0.0,  1.0, 0.0)
+    };
+
+    for (int c = 0; c < 4; ++c) {
+        std::vector<AdjItem> list = adj[c];
+        if (c == 3 && list.size() >= 2) {
+            // At NW corner C3 (-hx, +hy), angles are 270..360 (and 0 along North wall); unwrap 0 -> 2*pi
+            for (AdjItem& item : list)
+                if (item.angle < 0.5 * Tolerance::PI)
+                    item.angle += Tolerance::TWO_PI;
+            std::sort(list.begin(), list.end(), [](const AdjItem& a, const AdjItem& b) {
+                return a.angle < b.angle;
+            });
+        }
+        if (list.size() < 2)
+            continue;
+
+        const double r_stop = corner_radii[c];
+        const double hw = 0.5 * rib_width;
+        const Point& cp = nodes[c];
+
+        std::vector<Point> poly_2d;
+        // Outer corner point offset by hw along both outer walls
+        poly_2d.push_back(cp + wall_out_first[c] * hw + wall_out_last[c] * hw);
+        // Outer stop point on first wall rib
+        poly_2d.push_back(cp + list.front().dir_xy * r_stop + wall_out_first[c] * hw);
+        // Interior bisector intersections between consecutive stop planes
+        for (size_t j = 0; j + 1 < list.size(); ++j) {
+            const double dphi = list[j + 1].angle - list[j].angle;
+            const double bis_ang = 0.5 * (list[j].angle + list[j + 1].angle);
+            const double dist = r_stop / std::max(0.25, std::cos(0.5 * dphi));
+            poly_2d.emplace_back(
+                cp[0] + dist * std::cos(bis_ang),
+                cp[1] + dist * std::sin(bis_ang),
+                0.0
+            );
+        }
+        // Outer stop point on last wall rib
+        poly_2d.push_back(cp + list.back().dir_xy * r_stop + wall_out_last[c] * hw);
+
+        std::vector<Point> bot_loop;
+        std::vector<Point> top_loop;
+        const double z_base = -rib_height;
+        for (const Point& p2 : poly_2d) {
+            const auto [p_surf, n_surf] =
+                eval_vault_surface(p2[0], p2[1], hx, hy, rise, surface_method, cp);
+            top_loop.push_back(p_surf);
+            bot_loop.emplace_back(p2[0], p2[1], z_base);
+        }
+        result.push_back(to_voussoir(bot_loop, top_loop, "support_block"));
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Helper to compute end-cut planes for edge e_idx at endpoint node_id
+    // -------------------------------------------------------------------------
+    const auto endpoint_cuts = [&](size_t e_idx, int node_id, double& trim_offset) -> std::vector<Plane> {
+        const Point& vp = nodes[node_id];
+        const std::vector<AdjItem>& list = adj[node_id];
+        int pos = -1;
+        for (size_t j = 0; j < list.size(); ++j)
+            if (list[j].edge_idx == e_idx) {
+                pos = static_cast<int>(j);
+                break;
+            }
+        if (pos < 0)
+            return {};
+
+        const AdjItem& curr = list[pos];
+        // At a corner springer (0..3), stop cleanly at the Corner Support Block facet plane!
+        if (node_id >= 0 && node_id < 4) {
+            const double r_stop = corner_radii[node_id];
+            trim_offset = r_stop - 25.0;
+            const Point stop_pt = vp + curr.dir_xy * r_stop;
+            return {Plane::from_point_normal(stop_pt, curr.dir_xy)};
+        }
+
+        // At an interior or wall-midpoint node (node_id >= 4):
+        // Extend uncut axis 25 mm past the node and cut with the two exact angle-bisector planes!
+        trim_offset = -25.0;
+        const size_t m = list.size();
+        if (m == 1)
+            return {Plane::from_point_normal(vp, curr.dir_xy)};
+
+        const AdjItem& cw  = list[(pos + m - 1) % m];
+        const AdjItem& ccw = list[(pos + 1) % m];
+
+        double dphi_cw  = wrap_two_pi(curr.angle - cw.angle);
+        double dphi_ccw = wrap_two_pi(ccw.angle - curr.angle);
+        if (dphi_cw < 1e-4)
+            dphi_cw = Tolerance::PI;
+        if (dphi_ccw < 1e-4)
+            dphi_ccw = Tolerance::PI;
+        dphi_cw  = std::min(Tolerance::PI, dphi_cw);
+        dphi_ccw = std::min(Tolerance::PI, dphi_ccw);
+
+        const double bis_cw  = curr.angle - 0.5 * dphi_cw;
+        const double bis_ccw = curr.angle + 0.5 * dphi_ccw;
+
+        Vector n_cw(-std::sin(bis_cw), std::cos(bis_cw), 0.0);
+        Vector n_ccw(std::sin(bis_ccw), -std::cos(bis_ccw), 0.0);
+        n_cw.normalize_self();
+        n_ccw.normalize_self();
+
+        std::vector<Plane> planes;
+        planes.push_back(Plane::from_point_normal(vp, n_cw));
+        if ((n_cw - n_ccw).magnitude() > 1e-3)
+            planes.push_back(Plane::from_point_normal(vp, n_ccw));
+        return planes;
+    };
+
+    // -------------------------------------------------------------------------
+    // 5. Generate every BeamCurved rib with its top face on the vault surface
+    //    and its ends trimmed by the support-block / bisector miter planes
+    // -------------------------------------------------------------------------
+    for (size_t e_idx = 0; e_idx < edges.size(); ++e_idx) {
+        const RibEdgeSpec& spec = edges[e_idx];
+        const Point& p_u = nodes[spec.u];
+        const Point& p_v = nodes[spec.v];
+        const double dx = p_v[0] - p_u[0];
+        const double dy = p_v[1] - p_u[1];
+        const double len_2d = std::hypot(dx, dy);
+        if (len_2d < 1e-3)
+            continue;
+        const Vector dir_2d(dx / len_2d, dy / len_2d, 0.0);
+        const Point mid_2d = p_u + dir_2d * (0.5 * len_2d);
+
+        double offset_u = 0.0;
+        double offset_v = 0.0;
+        std::vector<Plane> cuts_u = endpoint_cuts(e_idx, spec.u, offset_u);
+        std::vector<Plane> cuts_v = endpoint_cuts(e_idx, spec.v, offset_v);
+
+        const double s_start = offset_u;
+        const double s_end   = len_2d - offset_v;
+        if (s_end <= s_start + 10.0)
+            continue;
+
+        // First evaluate top-surface points and surface normals along [s_start, s_end]
+        std::vector<Point> surf_pts(n_sub + 1);
+        std::vector<Vector> surf_norms(n_sub + 1);
+        for (int k = 0; k <= n_sub; ++k) {
+            const double s = s_start + (s_end - s_start) * (static_cast<double>(k) / n_sub);
+            const Point plan_pt = p_u + dir_2d * s;
+            const auto [sp, sn] = eval_vault_surface(
+                plan_pt[0], plan_pt[1], hx, hy, rise, surface_method, mid_2d
+            );
+            surf_pts[k] = sp;
+            surf_norms[k] = sn;
+        }
+
+        // Offset each station inward along the cross-section up-vector by -rib_height / 2
+        // so the top face (+rib_height / 2) lies flush on surf_pts[k]!
+        std::vector<Point> axis(n_sub + 1);
+        std::vector<Vector> ups(n_sub + 1);
+        for (int k = 0; k <= n_sub; ++k) {
+            const Vector tang =
+                (k == 0) ? (surf_pts[1] - surf_pts[0]).normalized()
+                : (k == n_sub) ? (surf_pts[n_sub] - surf_pts[n_sub - 1]).normalized()
+                               : (surf_pts[k + 1] - surf_pts[k - 1]).normalized();
+            Vector up = surf_norms[k] - tang * surf_norms[k].dot(tang);
+            if (up.magnitude() < 1e-6)
+                up = Vector::z_axis();
+            up.normalize_self();
+            ups[k] = up;
+            axis[k] = surf_pts[k] - up * (0.5 * rib_height);
+        }
+
+        auto beam = std::make_shared<wood_session::BeamCurved>(
+            NurbsCurve::create_interpolated(axis),
+            rib_width * spec.width_scale,
+            rib_height,
+            ups,
+            1,
+            6,
+            n_sub,
+            spec.role
+        );
+        beam->cuts = std::move(cuts_u);
+        beam->cuts.insert(beam->cuts.end(), cuts_v.begin(), cuts_v.end());
+        result.push_back(beam);
+    }
+
+    return result;
+}
+
+GothicRibbedVault::GothicRibbedVault(
+    double span_x,
+    double span_y,
+    double rise,
+    double rib_width,
+    double rib_height,
+    GothicPattern pattern,
+    ArchMethod arch_method,
+    int subdivisions,
+    const std::string& name
+)
+    : WoodSession(name),
+      span_x(span_x),
+      span_y(span_y),
+      rise(rise),
+      rib_width(rib_width),
+      rib_height(rib_height),
+      pattern(pattern),
+      arch_method(arch_method),
+      subdivisions(subdivisions) {
+
+    const std::shared_ptr<TreeNode> supports_group = add_group("supports");
+    const std::shared_ptr<TreeNode> ribs_group = add_group("ribs");
+    for (const std::shared_ptr<Element>& elem : gothic_ribbed_vault(
+             span_x, span_y, rise, rib_width, rib_height, pattern, arch_method, subdivisions
+         )) {
+        if (elem->name == "support_block")
+            add(elem, supports_group);
+        else
+            add(elem, ribs_group);
+    }
 }
 
 }

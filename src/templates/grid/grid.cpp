@@ -457,26 +457,20 @@ std::vector<std::shared_ptr<Element>> to_member(
     if (compute_kept(compute_lift(start, z), compute_lift(end, z), cuts) < least)
         return beams;
 
-    std::vector<std::vector<Polyline>> parts = {profile};
-    if (profile.size() > 1 && compute_area(to_loop(profile[1])) > 0.0)
-        parts = {{profile[0]}, {profile[1]}};
-
     const Vector side = Vector(0.0, 0.0, 1.0).cross((end - start).normalized());
-    for (const std::vector<Polyline>& part : parts) {
-        const double centre = Point::centroid(to_loop(part[0]))[0];
-        std::vector<Polyline> centred;
-        for (const Polyline& ring : part)
-            centred.push_back(ring.translated(Vector(-centre, 0.0, 0.0)));
+    const double centre = Point::centroid(to_loop(profile[0]))[0];
+    std::vector<Polyline> centred;
+    for (const Polyline& ring : profile)
+        centred.push_back(ring.translated(Vector(-centre, 0.0, 0.0)));
 
-        const Polyline axis(
-            {compute_lift(start, z) + side * centre, compute_lift(end, z) + side * centre}
-        );
-        std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(
-            axis, centred, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
-        );
-        beam->cuts = cuts;
-        beams.push_back(beam);
-    }
+    const Polyline axis(
+        {compute_lift(start, z) + side * centre, compute_lift(end, z) + side * centre}
+    );
+    std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(
+        axis, centred, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
+    );
+    beam->cuts = cuts;
+    beams.push_back(beam);
 
     return beams;
 }

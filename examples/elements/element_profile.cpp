@@ -14,7 +14,6 @@ int main() {
         {"round", profile_round(240.0)},
         {"w", profile_w(200.0, 300.0, 20.0, 12.0)},
         {"hss", profile_hss(200.0, 300.0, 12.0)},
-        {"double", profile_double(80.0, 300.0, 40.0)},
         {"slab_band", profile_slab_band(500.0, 100.0)},
         {"t", profile_t(300.0, 300.0, 20.0, 40.0)},
     };
@@ -34,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The section profiles of wood_profile.h, each a Beam 800 long on its own axis: profile_rectangle(200, 300), profile_round(240), profile_w(200, 300, 20, 12), profile_hss(200, 300, 12), profile_double(80, 300, 40), profile_slab_band(500, 100) and profile_t(300, 300, 20, 40); loop 0 is the outline, further loops are holes.
+The section profiles of wood_profile.h, each a Beam 800 long on its own axis: profile_rectangle(200, 300), profile_round(240), profile_w(200, 300, 20, 12), profile_hss(200, 300, 12), profile_slab_band(500, 100) and profile_t(300, 300, 20, 40); loop 0 is the outline, further loops are holes.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
