@@ -2,7 +2,7 @@
 
 Timber joinery solver and parametric structure templates on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
 
-![Wood Kernel Architecture](diagrams/wood_architecture.svg)
+![Wood Kernel Architecture](diagrams/wood_architecture.webp)
 
 | Section | Scope |
 | --- | --- |

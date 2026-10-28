@@ -2,7 +2,7 @@
 
 [TOC]
 
-![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.svg)
+![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.webp)
 
 | Target | Cases |
 | --- | --- |

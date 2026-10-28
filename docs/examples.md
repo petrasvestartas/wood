@@ -4,7 +4,7 @@
 
 Self-contained example targets under `examples/*.cpp`. Build and run any target with `cmake --build build --target <name> && ./build/<name>`.
 
-![Wood Kernel Architecture](diagrams/wood_architecture.svg)
+![Wood Kernel Architecture](diagrams/wood_architecture.webp)
 
 | Example | Behaviour |
 |---|---|
@@ -122,7 +122,7 @@ Exact signatures are declared together in `wood_element_joint_plate.h`.
 
 See @subpage cutting_gallery for cutter specifications.
 
-![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.svg)
+![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.webp)
 
 ### 15_profile_cuts
 

@@ -2,7 +2,7 @@
 
 [TOC]
 
-![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.svg)
+![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.webp)
 
 Pins on the face contact of two members, laid out by `PinLayout`, each a `Pin` bored into both.
 

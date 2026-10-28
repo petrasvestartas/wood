@@ -4,9 +4,7 @@
 
 Planar folded-plate timber structures (`src/templates/folding/*.h`). Each template subclasses `WoodSession`, constructs a planar-faced mid-surface mesh from its primary geometric inputs, and offsets it into watertight mitered `Plate` solids via `offset_plates` / `mitered_plates`.
 
-![Planar Folded Plates Primary Inputs, Strip Triangulation and Multi-Plate Node Offset](diagrams/template_planar_folding_pipeline.svg)
-
-![Folding Geometry](diagrams/wood_folding_geometry.svg)
+![Planar Folded Plates Primary Inputs, Strip Triangulation and Multi-Plate Node Offset](diagrams/template_planar_folding_pipeline.webp)
 
 ## Primary Inputs & Geometric Pipeline by Template
 

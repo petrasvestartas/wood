@@ -4,7 +4,7 @@ Timber joinery solver and parametric structure templates on [`session_cpp`](http
 
 **Documentation:** [https://petrasvestartas.github.io/wood/](https://petrasvestartas.github.io/wood/)
 
-![Wood Kernel Architecture](docs/images/diagrams/wood_architecture.svg)
+![Wood Kernel Architecture](docs/images/diagrams/wood_architecture.webp)
 
 ## Quick Start
 
@@ -30,7 +30,7 @@ cmake --build build --target element_joint_plate_side_side_outplane_fingers --pa
 | Interactions | `src/joinery_solver/wood_interactions/*.h` | Contacts (`Face`, `Cross`, `Axis`) and cutting features (`Plane`, `Profile`, `Solid`, `Joint`) |
 | Templates | `src/templates/*` | `Shells`, `Folding`, `CylindricalFolding`, `DevelopableFolding`, `Chevron`, `Cross`, `Reciprocal`, `Module`, `Grid`, `Truss`, `Floor` |
 
-![Elements Taxonomy](docs/images/diagrams/wood_elements_taxonomy.svg)
+![Elements Taxonomy](docs/images/diagrams/wood_elements_taxonomy.webp)
 
 ## Types
 

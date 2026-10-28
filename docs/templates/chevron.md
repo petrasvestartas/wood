@@ -4,7 +4,7 @@
 
 Free-form chevron box-plate shells on Annen NURBS surfaces (`src/templates/chevron/chevron.h`, example `templates_chevron_1_chevron`). `Chevron` subdivides a primary input `NurbsSurface` into herringbone quad strips and constructs a 4-plate hollow box per quad face across seven scene-tree groups (`surface` $\to$ `mesh` $\to$ `strips` $\to$ `edge_planes` $\to$ `bisectors` $\to$ `plates` $\to$ `insertion`).
 
-![Chevron Shell Primary Inputs and 6-Step Pipeline](diagrams/template_chevron_pipeline.svg)
+![Chevron Shell Primary Inputs and 6-Step Pipeline](diagrams/template_chevron_pipeline.webp)
 
 ## Primary Inputs & Parameters
 

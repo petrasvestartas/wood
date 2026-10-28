@@ -4,7 +4,7 @@
 
 Segmented plate shells joined across interior edges by cross-slotted connector plates (`src/templates/cross/vda_mesh.h`, example `templates_cross_1_vda_mesh`). `wood_cross::VdaMesh` takes any polygon `Mesh` and constructs mitered face plates, edge-spanning connector plates, and boolean `JointPlate::cross_slot()` half-laps across eight scene-tree groups (`mesh` $\to$ `face_planes` $\to$ `edge_planes` $\to$ `bisector_planes` $\to$ `plates` $\to$ `connector_frames` $\to$ `connectors` $\to$ `cross_laps`).
 
-![VdaMesh Primary Inputs and 8-Step Cross-Connector Pipeline](diagrams/template_cross_pipeline.svg)
+![VdaMesh Primary Inputs and 8-Step Cross-Connector Pipeline](diagrams/template_cross_pipeline.webp)
 
 ## Primary Inputs & Parameters
 

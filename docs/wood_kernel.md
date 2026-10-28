@@ -4,7 +4,7 @@
 
 `wood` is a C++20 timber joinery solver and parametric structure library built on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
 
-![Wood Kernel Architecture](diagrams/wood_architecture.svg)
+![Wood Kernel Architecture](diagrams/wood_architecture.webp)
 
 ## 1. Dual Scene Graph (`WoodSession`)
 
@@ -39,7 +39,7 @@ Every `Element` caches two lazy geometric states in both `Mesh` and `BRep` repre
 | **Uncut Stock** | `element_geometry_mesh()`, `element_geometry_brep()` | Built once via `compute_element_geometry()`; transformed in-place by `place(Xform)` |
 | **Cut Solid** | `model_geometry_mesh()`, `model_geometry_brep()` | Recomputed on demand when `is_dirty` is set by `WoodSession::add_interaction` |
 
-![Elements Taxonomy](diagrams/wood_elements_taxonomy.svg)
+![Elements Taxonomy](diagrams/wood_elements_taxonomy.webp)
 
 | Element | Defining Geometry | Stock `BRep` / `Mesh` |
 | --- | --- | --- |
@@ -65,7 +65,7 @@ All contact queries operate on **uncut stock** (`element_geometry_*`) so joint g
 
 ## 4. Boolean & Analytical BRep Cutting Pipeline
 
-![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.svg)
+![Boolean & Exact BRep Cutting Pipeline](diagrams/wood_boolean_cutting.webp)
 
 Incoming `InteractionFeature` edges are dispatched in `Element::cut()` (mesh) and `Element::cut_brep()` (exact BRep):
 

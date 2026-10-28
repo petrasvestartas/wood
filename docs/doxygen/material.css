@@ -771,10 +771,12 @@ blockquote {
 }
 
 
-/* ETHZ Architectural Blueprint SVG figures */
-div.contents img[src$=".svg"] {
-    width: 100%;
-    max-width: 1120px;
+/* Responsive documentation figures */
+div.contents .image img,
+div.contents img[src$=".svg"],
+div.contents img[src$=".webp"] {
+    max-width: 100%;
+    height: auto;
     display: block;
     margin: 14px auto;
 }

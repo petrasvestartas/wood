@@ -4,7 +4,7 @@
 
 Multi-storey timber building generator (`src/templates/grid/*.h`). `wood_grid::Grid` subclasses `WoodSession` and frames a building level by level from two primary inputs: a `Building` guide (constructed from a massing solid, footprint rings, or explicit lines) and a `Framing` specification.
 
-![Multistorey Timber Grid Pipeline](diagrams/template_grid_pipeline.svg)
+![Multistorey Timber Grid Pipeline](diagrams/template_grid_pipeline.webp)
 
 ![The L of five bays over two storeys](templates/3_elements_tree_all.webp)
 

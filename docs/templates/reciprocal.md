@@ -4,7 +4,7 @@
 
 Reciprocal timber beam frames on free-form polygon meshes (`src/templates/reciprocal/*.h`, examples `templates_reciprocal_1_rotation` and `templates_reciprocal_2_move`). Both `ReciprocalRotation` and `ReciprocalMove` subclass `WoodSession` and execute a 4-stage geometric pipeline (`mesh` $\to$ `axes` $\to$ `frame` $\to$ `beams`) where every interior member bears against the side face of its neighbour and naked boundary edges are enclosed by a mitered or priority-butted perimeter frame.
 
-![Reciprocal Frames Primary Inputs and 4-Step Pipeline](diagrams/template_reciprocal_pipeline.svg)
+![Reciprocal Frames Primary Inputs and 4-Step Pipeline](diagrams/template_reciprocal_pipeline.webp)
 
 ## Primary Inputs & Parameters
 

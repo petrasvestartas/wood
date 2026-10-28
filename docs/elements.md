@@ -4,7 +4,7 @@
 
 Timber members, auxiliary cutters, and parametric joints under `src/joinery_solver/wood_elements/`. Every element caches uncut stock (`element_geometry_*`) and applies incoming `WoodSession::add_interaction(source, target, interaction)` edges to produce its cut model (`model_geometry_*`).
 
-![Elements Taxonomy](diagrams/wood_elements_taxonomy.svg)
+![Elements Taxonomy](diagrams/wood_elements_taxonomy.webp)
 
 | Element | Header | Examples |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 
 ## Joint Wiring Pattern
 
-![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.svg)
+![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.webp)
 
 ```cpp
 const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);

@@ -4,7 +4,7 @@
 
 Parametric beam and member joinery: axis-contact feature volumes (`from_contact`), automatic plane butts (`butt`), and face-contact connectors (`wedge`, `rectangle_plate`, `butterfly_key`, `centred_pins`, `headed_pins`).
 
-![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.svg)
+![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.webp)
 
 ## Constructors
 

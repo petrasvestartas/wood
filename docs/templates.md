@@ -4,7 +4,7 @@
 
 Parametric timber structure generators under `src/templates/`. Every template subclasses `WoodSession`, transforms explicit primary geometric inputs into timber elements and joints across named scene-tree groups, and exports `live.pb` via its `examples/templates_*.cpp` targets.
 
-![Parametric Templates Pipeline](diagrams/wood_templates_pipeline.svg)
+![Parametric Templates Pipeline](diagrams/wood_templates_pipeline.webp)
 
 | Template | Header | Primary Inputs | Elements & Joinery Generated |
 | --- | --- | --- | --- |

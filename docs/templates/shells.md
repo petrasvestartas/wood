@@ -4,7 +4,7 @@
 
 Translational plate shells (`src/templates/shells/translation_shell.h`). `TranslationShell` subclasses `WoodSession` and transforms two primary input polylines (`cross_section` and `profile`) into mitered, corner-chamfered `Plate` solids across four scene-tree groups (`curves` $\to$ `sections` $\to$ `mesh` $\to$ `plates`).
 
-![TranslationShell Primary Inputs and Geometry Generation Pipeline](diagrams/template_shells_pipeline.svg)
+![TranslationShell Primary Inputs and Geometry Generation Pipeline](diagrams/template_shells_pipeline.webp)
 
 ## Primary Inputs & Parameters
 

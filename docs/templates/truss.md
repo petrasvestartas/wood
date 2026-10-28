@@ -4,7 +4,7 @@
 
 Parametric and custom timber trusses (`src/templates/truss/*.h`, examples `templates_truss_1_pratt` and `templates_truss_2_library`). `wood_truss::Truss` subclasses `WoodSession` and converts a wireframe `TrussGuide` (`chords` polylines + `webs` lines + `posts` lines) into mitered, butted, and half-lapped `Beam` elements by ranking members via iterative outer-boundary graph peeling.
 
-![Timber Truss Primary Inputs, Boundary-Peeling Rank and Node Butts](diagrams/template_truss_pipeline.svg)
+![Timber Truss Primary Inputs, Boundary-Peeling Rank and Node Butts](diagrams/template_truss_pipeline.webp)
 
 ## Primary Inputs (`TrussGuide`)
 

@@ -4,7 +4,7 @@
 
 Order-independent plane butt joints (`JointBeam::butt`) between beams, columns, or plates.
 
-![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.svg)
+![JointBeam Axis Contacts, Butt Planes & Connectors](diagrams/wood_beam_joints_connectors.webp)
 
 | Configuration | Endpoint Condition | Plane Cut Applied |
 | --- | --- | --- |

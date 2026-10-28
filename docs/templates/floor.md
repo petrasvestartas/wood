@@ -4,7 +4,7 @@
 
 Vaulted timber floor slab supported on four carved-head columns (`src/templates/floor/floor_guide.h`, `src/templates/floor/floor.h`). `wood_floor::FloorGuide` and `wood_floor::Floor` transform four counter-clockwise bay corner `Point`s into four radial rib-and-bed quarters interlocked around a central oculus ring (`68` face contacts, wedges, let-in column plates, centred dowels, and `56` headed assembly pins).
 
-![Vaulted Timber Floor System](diagrams/wood_floor_system.svg)
+![Vaulted Timber Floor System](diagrams/wood_floor_system.webp)
 
 - @subpage templates_floor_guide — `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`): Steps 1–6 (bay split, radial fan planes, datum loops, parabolic soffits, bed rails, column cutters)
 - @subpage templates_floor_model — `wood_floor::Floor` (`src/templates/floor/floor.h`): Steps 7–11 (timber members, carved columns & supports, `68` face contacts, connectors, pins, exact `BRep` export)

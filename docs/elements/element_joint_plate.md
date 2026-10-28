@@ -4,7 +4,7 @@
 
 Parametric plate-to-plate and single-edge joinery defined in the unit box `[-0.5, 0.5]^3` and oriented onto `InteractionContactFace` or `InteractionContactCross`.
 
-![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.svg)
+![JointPlate Unit Box & 7 Contact Families](diagrams/wood_joint_unit_box.webp)
 
 ## Constructors
 

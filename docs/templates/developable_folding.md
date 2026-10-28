@@ -4,9 +4,7 @@
 
 Developable `PlateCurved` structures beyond cylinders: free-form ruled tent shells, curved-crease accordion unfoldings (cones, synclastic/anticlastic vaults, domes, funnels), and quad-diagonal flat development verification.
 
-![Cylindrical and Developable Folding Primary Inputs and 6-Patch PlateCurved Pipeline](diagrams/template_cylindrical_developable_pipeline.svg)
-
-![Folding Geometry](diagrams/wood_folding_geometry.svg)
+![Developable Curved-Crease Folding and Four Crease Quadrants](diagrams/wood_folding_geometry.webp)
 
 | Template | Header | Geometric Construction | Examples |
 | --- | --- | --- | --- |

@@ -4,9 +4,7 @@
 
 Folded structures of exact cylindrical [`PlateCurved`](@ref elements_plate_curved) lamellas (parallel straight generatrices, zero Gaussian curvature, exact rational NURBS ellipse creases, `Development::distortion < 1e-14`).
 
-![Cylindrical and Developable Folding Primary Inputs and 6-Patch PlateCurved Pipeline](diagrams/template_cylindrical_developable_pipeline.svg)
-
-![Folding Geometry](diagrams/wood_folding_geometry.svg)
+![Cylindrical and Developable Folding Primary Inputs and 6-Patch PlateCurved Pipeline](diagrams/template_cylindrical_developable_pipeline.webp)
 
 | Template | Header | Geometric Construction | Examples |
 | --- | --- | --- | --- |

@@ -4,7 +4,7 @@
 
 Framed timber panels (`Wall` / `FramedPanel`), hollow cassette shells (`CassetteShell`), and multi-storey room modules (`RoomModule`) (`src/templates/module/*.h`) built from `Beam` and `Plate` elements with automatic `add_module_contacts` face-contact detection.
 
-![Timber Modules Primary Inputs and Geometry Generation](diagrams/template_module_pipeline.svg)
+![Timber Modules Primary Inputs and Geometry Generation](diagrams/template_module_pipeline.webp)
 
 ---
 
