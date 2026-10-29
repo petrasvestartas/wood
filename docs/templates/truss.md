@@ -53,16 +53,27 @@ Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::
 | `chord_radius` | `double` | `80.0` | Half-section (`mm`) of chord and post beams (`80.0` → `160 × 160 mm`) |
 | `web_radius` | `double` | `60.0` | Half-section (`mm`) of web beams (`60.0` → `120 × 120 mm`) |
 
-## Geometry Generation & Boundary-Peeling Joint Rules
+## Geometry Generation & Joint Rules
 
-Members are ranked by iteratively pruning the outer boundary of the line graph: outer boundary chords and posts receive `rank = 0` and have their corner miters/heels cut first; inner web layers (`rank >= 1`) are then let into the already-trimmed outer members so no corner is cut twice.
+Every node is solved by a hierarchy: one member runs through or runs on, the others meet it in a T. The hierarchy is given by
+the guide's `chord_levels`, `web_levels` and `post_levels` (1 primary, 2 secondary, 3 tertiary), or, when they are empty,
+read from the drawing by iteratively pruning the outer boundary of the line graph: outer boundary chords and posts receive
+`rank = 0`, inner web layers `rank >= 1`. A member stops on every member of a higher level at its node: it loses the shadow
+of that member's cut solid swept along its own axis, so it butts on the actual surface (a kink, a corner) and keeps nothing
+behind it. Where chord ends meet at one node the most important one runs on (`TrussGuide::runs_on_at`: named in `runs_on`,
+else the higher level, else the more level; a lone end also runs on over webs and posts all lower than it) and the others are
+seated on its side. It reaches past the node to its end cut (`TrussGuide::end_cut`): through the outer corners of the members
+it carries on both its sides, so the outer contour runs on clean; flush with the outer face of the members on one side met at
+40 degrees or more; else square, past the node by at least its half section. The node and the axes always lie in wood. Only
+two ends of one slope, as at a ridge, and gentle bends of under 35 degrees are mitered; two chords bending at one node are
+half-lapped; a chord ending at another's bend butts on its surface.
 
 | Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
 | Chord kink (interior polyline vertex) | Adjacent chord runs mitered `side_side` on the angle bisector |
-| Chord heel (two chords ending at one node) | Resolved by `JointBeam::butt` |
+| Chord heel (two chords ending at one node) | A T: the one running on (`runs_on_at`) reaches past the node to its `end_cut`, the other seated on its side (`top_side`); one slope (ridge) or a gentle bend: mitered, `JointBeam::butt_side_side` |
 | Chord end on another chord's run | Stopped `top_side` against the continuous chord |
-| Web / post end on a chord run | Let into the chord (`top_side`) |
+| Web / post end on a chord run | Let into the chord: loses the chord's shadow along its axis |
 | Web / post end at a chord's lone end | Outer member runs over the inner member (`top_side`); inner member let in |
 | Web end on another web's middle (K-joint) | Let into the continuous web |
 | Chord end on a post's middle (tie on column) | Let into the post |
@@ -698,7 +709,8 @@ TrussGuide::topology_optimised(double span = 12000.0, double height = 1800.0, do
 ## Graphs: Bow 1873 {#truss_graph}
 
 A truss is one topology: nodes, chords through them, webs and posts between them. `TrussGraph` stores exactly that, in
-spans, with its span and a section per member, and `TrussGraph::guide` draws it for the one `Truss` template, so a
+spans, with its span, a section per member, each member's level in the hierarchy (1 primary, 2 secondary, 3 tertiary) and
+the chord ends that run on where chords end together, and `TrussGraph::guide` draws it for the one `Truss` template, so a
 catalogue of designs is data, not a factory per design. The roof trusses and framed bridges of Bow's *Economics of Construction in relation to Framed
 Structures* (1873) are kept this way in `data/templates/truss_bow_1873.json` and built by `templates_truss_3_bow`.
 

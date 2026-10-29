@@ -36,7 +36,7 @@ TrussGuide TrussGraph::guide() const {
 
     const double chord_radius = *std::max_element(chord_radii.begin(), chord_radii.end());
     const double web_radius = web_radii.empty() ? chord_radius : *std::max_element(web_radii.begin(), web_radii.end());
-    return TrussGuide(chord_lines, web_lines, post_lines, chord_radius, web_radius, chord_radii, web_radii, post_radii);
+    return TrussGuide(chord_lines, web_lines, post_lines, chord_radius, web_radius, chord_radii, web_radii, post_radii, runs_on, chord_levels, web_levels, post_levels);
 }
 
 std::vector<TrussGraph> TrussGraph::library(const std::filesystem::path& json_path) {
@@ -60,6 +60,13 @@ std::vector<TrussGraph> TrussGraph::library(const std::filesystem::path& json_pa
         graph.chord_radii = entry["chord_radii"].get<std::vector<double>>();
         graph.web_radii = entry["web_radii"].get<std::vector<double>>();
         graph.post_radii = entry["post_radii"].get<std::vector<double>>();
+        if (entry.contains("runs_on"))
+            graph.runs_on = entry["runs_on"].get<std::vector<std::array<size_t, 2>>>();
+        if (entry.contains("chord_levels")) {
+            graph.chord_levels = entry["chord_levels"].get<std::vector<int>>();
+            graph.web_levels = entry["web_levels"].get<std::vector<int>>();
+            graph.post_levels = entry["post_levels"].get<std::vector<int>>();
+        }
         graphs.push_back(graph);
     }
 

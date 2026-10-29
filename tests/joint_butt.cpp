@@ -686,6 +686,12 @@ static void trusses() {
         std::vector<Mesh> cut;
         for (const std::shared_ptr<Beam>& member : members)
             cut.push_back(member->model_geometry_mesh());
+
+        // the end a run running on is cut along is meant to go: the wood beyond that cut is no member's
+        for (const std::shared_ptr<JointBeam>& joint : truss.get_elements<JointBeam>())
+            if (joint->name.rfind("end_", 0) == 0)
+                cut.push_back(joint->butt_solids[1].mesh);
+
         for (const std::shared_ptr<Beam>& member : members) {
             const Mesh drawn = member->element_geometry_mesh();
             const Mesh lost = solid_difference(drawn, cut);

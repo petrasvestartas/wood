@@ -5,7 +5,7 @@
 set -euo pipefail
 WOOD="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$WOOD"
-CMD="Element Interactions Off;Element Attributes Off;Layers All;Arctic On;Opacity 0.4;View Front;View Orthographic;Fit"
+CMD="Element Interactions Off;Element Attributes Off;Layers All;Arctic On;View Front;View Orthographic;Fit"
 mkdir -p docs/images/templates
 cmake --build build --target templates_truss_3_bow --parallel 6 > /dev/null
 rm -f data/output/pb/truss_bow_*.pb

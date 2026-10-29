@@ -99,6 +99,67 @@ static bool inside(const Point& point, const std::array<Point, 2>& run) {
            !at(point, run[0]) && !at(point, run[1]);
 }
 
+/// What a member casts away from the member it stops: its solid swept along away, as far again as away is long, through the truss plane
+/// and a depth past both faces; the member stopping on it loses the shadow, butting on its near face and keeping nothing behind it.
+static Mesh shadow(const Mesh& member, const Vector& away, const Plane& plane) {
+
+    std::vector<std::array<double, 2>> points;
+    double depth = 0.0;
+    if (member.number_of_faces() == 0)
+        return Mesh();
+    for (const Point& vertex : member.to_vertices_and_faces().first) {
+        const Vector from = vertex - plane.origin();
+        const std::array<double, 2> flat = {from.dot(plane.x_axis()), from.dot(plane.y_axis())};
+        points.push_back(flat);
+        points.push_back({flat[0] + away.dot(plane.x_axis()), flat[1] + away.dot(plane.y_axis())});
+        depth = std::max(depth, std::abs(from.dot(plane.z_axis())));
+    }
+
+    // the convex hull of the member and its swept copy, a monotone chain, points closer than a tenth of a millimetre one
+    for (std::array<double, 2>& point : points)
+        point = {std::round(point[0] * 10.0) / 10.0, std::round(point[1] * 10.0) / 10.0};
+    std::sort(points.begin(), points.end());
+    points.erase(std::unique(points.begin(), points.end()), points.end());
+    const auto turn = [](const std::array<double, 2>& o, const std::array<double, 2>& a, const std::array<double, 2>& b) {
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    };
+    std::vector<std::array<double, 2>> hull(2 * points.size());
+    size_t k = 0;
+    for (size_t i = 0; i < points.size(); i++) {
+        while (k >= 2 && turn(hull[k - 2], hull[k - 1], points[i]) <= 1.0)
+            k--;
+        hull[k++] = points[i];
+    }
+    for (size_t i = points.size() - 1, low = k + 1; i-- > 0;) {
+        while (k >= low && turn(hull[k - 2], hull[k - 1], points[i]) <= 1.0)
+            k--;
+        hull[k++] = points[i];
+    }
+    if (k < 4)
+        return Mesh();
+    hull.resize(k - 1);
+
+    std::vector<Point> loop;
+    for (const std::array<double, 2>& point : hull)
+        loop.push_back(plane.origin() + plane.x_axis() * point[0] + plane.y_axis() * point[1] -
+                       plane.z_axis() * (2.0 * depth + 10.0));
+    const Polyline bottom = Polyline(loop).closed();
+    return Mesh::loft({bottom}, {bottom.translated(plane.z_axis() * (4.0 * depth + 20.0))}, true);
+}
+
+/// The half-space beyond a cut through `point` facing `out`, in the plane with normal `normal`: a prism of `size` around the
+/// point through the truss and a depth past both faces.
+static Mesh beyond(const Point& point, const Vector& out, const Vector& normal, double size) {
+
+    const Vector across = normal.cross(out);
+    const Polyline square = Polyline({point + across * size - normal * size,
+                                      point - across * size - normal * size,
+                                      point - across * size + out * size - normal * size,
+                                      point + across * size + out * size - normal * size})
+                                .closed();
+    return Mesh::loft({square}, {square.translated(normal * (2.0 * size))}, true);
+}
+
 void Truss::add_chord_butts() {
 
     struct Run {
@@ -124,17 +185,52 @@ void Truss::add_chord_butts() {
                 runs[i + 1].beam
             );
 
-    // heels: runs of two chords meeting at their ends, the case read from them; a run's end on another chord's run, top_side on it
+    // heels: where chord ends meet, the one running on reaches past the node (TrussGuide::runs) and the others end on its
+    // run, top_side, below; ends meeting with none running on, as at an apex of one slope or a gentle bend, a miter; an end at
+    // another chord's bend, on that chord's surface; two chords bending at one node, a half lap
     for (size_t i = 0; i < runs.size(); i++)
         for (size_t j = i + 1; j < runs.size(); j++) {
             if (runs[i].chord == runs[j].chord)
                 continue;
-            bool heel = false;
+            std::optional<Point> heel;
             for (const Point& a : runs[i].ends)
                 for (const Point& b : runs[j].ends)
-                    heel = heel || at(a, b);
-            if (heel)
-                add_butt(JointBeam::butt(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
+                    if (at(a, b))
+                        heel = a;
+            if (heel) {
+                const std::array<std::vector<Point>, 2> polylines = {
+                    guide.chords[runs[i].chord].get_points(), guide.chords[runs[j].chord].get_points()
+                };
+                std::array<bool, 2> bent = {false, false};
+                for (size_t k = 0; k < 2; k++)
+                    for (size_t v = 1; v + 1 < polylines[k].size(); v++)
+                        bent[k] = bent[k] || at(polylines[k][v], *heel);
+                if (bent[0] != bent[1]) {
+
+                    // one chord bends here, the other ends on it: the ending run loses the bending run's shadow
+                    const Run& through = bent[0] ? runs[i] : runs[j];
+                    const Run& ending = bent[0] ? runs[j] : runs[i];
+                    const Point far = at(ending.ends[0], *heel) ? ending.ends[1] : ending.ends[0];
+                    const Vector away = *heel - far;
+                    const Vector normal = (through.ends[1] - through.ends[0]).cross(away).normalized();
+                    const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*through.beam, *ending.beam);
+                    if (joint) {
+                        joint->butt_extensions[1] = InteractionFeatureSolid();
+                        joint->butt_solids[1] = InteractionFeatureSolid(
+                            shadow(
+                                through.beam->model_geometry_mesh(),
+                                away,
+                                Plane::from_point_normal(*heel, normal)
+                            ),
+                            SolidOperation::subtract
+                        );
+                    }
+                    add_butt(joint, through.beam, ending.beam);
+                } else if (bent[0])
+                    add_butt(JointBeam::butt_cross(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
+                else
+                    add_butt(JointBeam::butt_side_side(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
+            }
             for (const Point& end : runs[j].ends)
                 if (inside(end, runs[i].ends))
                     add_butt(
@@ -149,6 +245,52 @@ void Truss::add_chord_butts() {
                         runs[j].beam,
                         runs[i].beam
                     );
+        }
+
+    // ends running on: cut along their end cut (TrussGuide::end_cut), unless square, by a joint with a member they carry
+    for (size_t c = 0; c < guide.chords.size(); c++)
+        for (size_t side = 0; side < 2; side++) {
+            const std::optional<std::array<Point, 2>> cut = guide.end_cut(c, side);
+            if (!cut)
+                continue;
+            const std::vector<Point> points = guide.chords[c].get_points();
+            const Point node = side == 0 ? points.front() : points.back();
+            const Vector on = (node - (side == 0 ? points[1] : points[points.size() - 2])).normalized();
+            if (std::abs(((*cut)[1] - (*cut)[0]).dot(on)) < 1e-6)
+                continue;
+            std::shared_ptr<Beam> runner;
+            std::shared_ptr<Beam> carried;
+            for (const Run& run : runs)
+                if (run.chord == c && (!runner || side == 1))
+                    runner = run.beam;
+            for (const Run& run : runs)
+                if (run.chord != c && (at(run.ends[0], node) || at(run.ends[1], node)))
+                    carried = run.beam;
+            for (size_t w = 0; !carried && w < guide.webs.size(); w++)
+                if (at(guide.webs[w].start(), node) || at(guide.webs[w].end(), node))
+                    carried = get_element_by_name<Beam>(fmt::format("web_{}", w));
+            for (size_t p = 0; !carried && p < guide.posts.size(); p++)
+                if (at(guide.posts[p].start(), node) || at(guide.posts[p].end(), node))
+                    carried = get_element_by_name<Beam>(fmt::format("post_{}", p));
+            if (!runner || !carried)
+                continue;
+            const Vector along = ((*cut)[1] - (*cut)[0]).normalized();
+            const Vector normal = on.cross(along).normalized();
+            Vector out = along.cross(normal);
+            out = out.dot(on) < 0.0 ? out * -1.0 : out;
+            const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*carried, *runner);
+            if (joint) {
+                joint->name = "end";
+                joint->butt_extensions = {InteractionFeatureSolid(), InteractionFeatureSolid()};
+                joint->butt_solids = {
+                    InteractionFeatureSolid(),
+                    InteractionFeatureSolid(
+                        beyond((*cut)[0], out, normal, 4.0 * Point::distance((*cut)[0], (*cut)[1]) + 1000.0),
+                        SolidOperation::subtract
+                    )
+                };
+            }
+            add_butt(joint, carried, runner);
         }
 }
 
@@ -177,6 +319,10 @@ void Truss::add_web_butts() {
     for (const Polyline& chord : guide.chords)
         for (const Point& point : chord.get_points())
             points.push_back(point);
+    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
+        points.push_back(member.first.start());
+        points.push_back(member.first.end());
+    }
     std::array<Point, 2> far = {points[0], points[0]};
     for (const Point& a : points)
         for (const Point& b : points)
@@ -326,6 +472,17 @@ void Truss::add_web_butts() {
         if (boundary.empty())
             break;
     }
+    // the hierarchy given: each line's level in place of the layer it was read from
+    if (!guide.chord_levels.empty()) {
+        size_t l = 0;
+        for (size_t c = 0; c < guide.chords.size(); c++)
+            for (size_t s = 0; s < guide.runs(c).size(); s++)
+                rank[l++] = guide.chord_levels[c];
+        for (const int level : guide.web_levels)
+            rank[l++] = level;
+        for (const int level : guide.post_levels)
+            rank[l++] = level;
+    }
     std::map<const Beam*, int> ranks;
     for (size_t l = 0; l < lines.size(); l++)
         ranks[lines[l].second.get()] = rank[l];
@@ -341,9 +498,25 @@ void Truss::add_web_butts() {
         for (const Point& end : {member.first.start(), member.first.end()}) {
             std::vector<std::shared_ptr<Beam>> stops;
             std::vector<Vector> along;
+            const Vector from = at(end, member.first.start()) ? member.first.end() - member.first.start()
+                                                              : member.first.start() - member.first.end();
             for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
                 const bool at_start = at(end, run.first[0]);
                 const bool at_end = at_start || at(end, run.first[1]);
+
+                // a lone run end beyond a run passing the node, on its other side, does not meet the member
+                bool beyond = false;
+                for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& passing : runs)
+                    if (at_end && ending(end) == 1 && inside(end, passing.first)) {
+                        const std::array<double, 2> through =
+                            flat((passing.first[1] - passing.first[0]).normalized());
+                        const Vector leaving = at_start ? run.first[1] - run.first[0] : run.first[0] - run.first[1];
+                        beyond = beyond || cross(through, flat(leaving.normalized())) *
+                                                   cross(through, flat(from.normalized())) <
+                                               0.0;
+                    }
+                if (beyond)
+                    continue;
                 if (inside(end, run.first) || (at_end && ending(end) > 1)) {
                     stops.push_back(run.second);
                     along.push_back(
@@ -353,6 +526,13 @@ void Truss::add_web_butts() {
                     );
                 } else if (at_end && ranks[member.second.get()] > ranks[run.second.get()]) {
                     let_in(run.second, member.second);
+                } else if (at_end && !guide.chord_levels.empty() &&
+                           ranks[member.second.get()] < ranks[run.second.get()]) {
+                    add_butt(
+                        JointBeam::butt_top_side_end(*member.second, *run.second),
+                        member.second,
+                        run.second
+                    );
                 } else if (at_end) {
                     add_butt(
                         JointBeam::butt_top_side_end(*run.second, *member.second),
@@ -391,7 +571,8 @@ void Truss::add_web_butts() {
     for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
         for (const Point& end : run.first)
             for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
-                if (inside(end, {member.first.start(), member.first.end()}))
+                if (inside(end, {member.first.start(), member.first.end()}) &&
+                    ranks[member.second.get()] <= ranks[run.second.get()])
                     let_in(member.second, run.second);
 
     std::vector<std::pair<Point, std::vector<size_t>>> crossings;
@@ -521,11 +702,8 @@ void Truss::add_web_butts() {
         }
     }
 
-    // the lets, inner rank by inner rank: the inner, ending inside the outer and never run on, loses the outer as already cut, so the boundary
-    const Xform thicker =
-        Xform::frame_to_world(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis()) *
-        Xform::scale_xyz(1.0, 1.0, 1.02) *
-        Xform::world_to_frame(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis());
+    // the lets, inner rank by inner rank: the inner, ending inside the outer and never run on, loses the outer's shadow as already
+    // cut (its solid swept along the inner's axis), butting on its near face and keeping nothing behind it
     std::stable_sort(lets.begin(), lets.end(), [&ranks](const auto& a, const auto& b) {
         return ranks[a.second.get()] < ranks[b.second.get()];
     });
@@ -543,9 +721,14 @@ void Truss::add_web_butts() {
         lets.erase(lets.begin() + next);
         const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*let.first, *let.second);
         if (joint) {
+            const std::vector<Point> ends = let.second->axis.get_points();
+            const Line outer_axis = Line::from_points(let.first->axis.get_points().front(), let.first->axis.get_points().back());
+            const bool last = Point::distance(ends.back(), outer_axis.closest_point(ends.back()).second) <
+                              Point::distance(ends.front(), outer_axis.closest_point(ends.front()).second);
+            const Vector away = last ? ends.back() - ends.front() : ends.front() - ends.back();
             joint->butt_extensions[1] = InteractionFeatureSolid();
             joint->butt_solids[1] = InteractionFeatureSolid(
-                let.first->model_geometry_mesh().transformed(thicker), SolidOperation::subtract
+                shadow(let.first->model_geometry_mesh(), away, plane), SolidOperation::subtract
             );
         }
         add_butt(joint, let.first, let.second);

@@ -14,10 +14,15 @@ TrussGuide::TrussGuide(
     double web_radius,
     const std::vector<double>& chord_radii,
     const std::vector<double>& web_radii,
-    const std::vector<double>& post_radii
+    const std::vector<double>& post_radii,
+    const std::vector<std::array<size_t, 2>>& runs_on,
+    const std::vector<int>& chord_levels,
+    const std::vector<int>& web_levels,
+    const std::vector<int>& post_levels
 )
     : chords(chords), webs(webs), posts(posts), chord_radius(chord_radius), web_radius(web_radius),
-      chord_radii(chord_radii), web_radii(web_radii), post_radii(post_radii) {
+      chord_radii(chord_radii), web_radii(web_radii), post_radii(post_radii), runs_on(runs_on),
+      chord_levels(chord_levels), web_levels(web_levels), post_levels(post_levels) {
 }
 
 std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
@@ -37,7 +42,188 @@ std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
         }
     }
 
+    // ends running on: past their node as far as their end cut reaches
+    for (size_t side = 0; side < 2; side++) {
+        const std::optional<std::array<Point, 2>> cut = end_cut(chord, side);
+        if (!cut)
+            continue;
+        std::array<Point, 2>& run = side == 0 ? runs.front() : runs.back();
+        const Point node = run[side == 0 ? 0 : 1];
+        const Vector on = (node - run[side == 0 ? 1 : 0]).normalized();
+        run[side == 0 ? 0 : 1] = node + on * std::max(((*cut)[0] - node).dot(on), ((*cut)[1] - node).dot(on));
+    }
+
     return runs;
+}
+
+bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
+
+    const std::vector<Point> own = chords.at(chord).get_points();
+    const Point node = side == 0 ? own.front() : own.back();
+
+    // a member passing the node is in charge there
+    const auto through = [&node](const Point& a, const Point& b) {
+        const Line line = Line::from_points(a, b);
+        return Point::distance(node, line.closest_point(node).second) < 1.0 && Point::distance(node, a) >= 1.0 &&
+               Point::distance(node, b) >= 1.0;
+    };
+    for (size_t c = 0; c < chords.size(); c++) {
+        const std::vector<Point> points = chords[c].get_points();
+        for (size_t k = 0; c != chord && k + 1 < points.size(); k++)
+            if (through(points[k], points[k + 1]) ||
+                (k > 0 && Point::distance(points[k], node) < 1.0))
+                return false;
+    }
+    for (const std::vector<Line>* members : {&webs, &posts})
+        for (const Line& member : *members)
+            if (through(member.start(), member.end()))
+                return false;
+
+    // the chord ends meeting there: given or not, their level, how steeply each leaves
+    struct End {
+        size_t chord;
+        size_t side;
+        bool given;
+        int level;
+        double steep;
+    };
+    std::vector<End> ends;
+    for (size_t c = 0; c < chords.size(); c++) {
+        const std::vector<Point> points = chords[c].get_points();
+        for (size_t s = 0; s < 2; s++) {
+            const Point end = s == 0 ? points.front() : points.back();
+            const Point next = s == 0 ? points[1] : points[points.size() - 2];
+            if (Point::distance(end, node) >= 1.0)
+                continue;
+            ends.push_back(
+                {c,
+                 s,
+                 std::find(runs_on.begin(), runs_on.end(), std::array<size_t, 2>{c, s}) != runs_on.end(),
+                 chord_levels.empty() ? 0 : chord_levels[c],
+                 std::abs((next - end).normalized()[2])}
+            );
+        }
+    }
+
+    // a lone end: on over the webs and posts there when all are lower in the hierarchy
+    if (ends.size() < 2) {
+        if (chord_levels.empty())
+            return false;
+        bool lower = false;
+        for (size_t w = 0; w < webs.size(); w++)
+            if (Point::distance(webs[w].start(), node) < 1.0 || Point::distance(webs[w].end(), node) < 1.0) {
+                if (web_levels[w] <= chord_levels[chord])
+                    return false;
+                lower = true;
+            }
+        for (size_t p = 0; p < posts.size(); p++)
+            if (Point::distance(posts[p].start(), node) < 1.0 || Point::distance(posts[p].end(), node) < 1.0) {
+                if (post_levels[p] <= chord_levels[chord])
+                    return false;
+                lower = true;
+            }
+        return lower;
+    }
+
+    // chord ends together: the given one, else the highest, then the most level, by a clear margin
+    bool any = false;
+    for (const End& end : ends)
+        any = any || end.given;
+    const End* best = nullptr;
+    for (const End& end : ends)
+        if ((end.given || !any) &&
+            (!best || end.level < best->level || (end.level == best->level && end.steep < best->steep)))
+            best = &end;
+    for (const End& end : ends)
+        if (!any && &end != best && end.level == best->level && end.steep - best->steep <= 0.02)
+            return false;
+
+    // none given at a gentle bend of under 35 degrees between two ends: a miter
+    if (!any && ends.size() == 2) {
+        std::array<Vector, 2> leaving;
+        for (size_t k = 0; k < 2; k++) {
+            const std::vector<Point> points = chords[ends[k].chord].get_points();
+            leaving[k] = ((ends[k].side == 0 ? points[1] : points[points.size() - 2]) - node).normalized();
+        }
+        if (leaving[0].dot(leaving[1]) < -std::cos(35.0 * Tolerance::TO_RADIANS))
+            return false;
+    }
+    return best->chord == chord && best->side == side;
+}
+
+std::optional<std::array<Point, 2>> TrussGuide::end_cut(size_t chord, size_t side) const {
+
+    if (!runs_on_at(chord, side))
+        return std::nullopt;
+    const std::vector<Point> points = chords.at(chord).get_points();
+    const Point node = side == 0 ? points.front() : points.back();
+    const Vector on = (node - (side == 0 ? points[1] : points[points.size() - 2])).normalized();
+    const double radius = chord_radii.empty() ? chord_radius : chord_radii[chord];
+
+    // every other member ending there: the way it leaves, its half section
+    std::vector<std::pair<Vector, double>> meeting;
+    for (size_t c = 0; c < chords.size(); c++) {
+        const std::vector<Point> others = chords[c].get_points();
+        for (size_t k = 0; c != chord && k + 1 < others.size(); k++)
+            for (const std::array<Point, 2>& ends : {std::array<Point, 2>{others[k], others[k + 1]},
+                                                     std::array<Point, 2>{others[k + 1], others[k]}})
+                if (Point::distance(ends[0], node) < 1.0)
+                    meeting.emplace_back((ends[1] - ends[0]).normalized(), chord_radii.empty() ? chord_radius : chord_radii[c]);
+    }
+    for (size_t w = 0; w < webs.size(); w++)
+        for (const std::array<Point, 2>& ends :
+             {std::array<Point, 2>{webs[w].start(), webs[w].end()}, std::array<Point, 2>{webs[w].end(), webs[w].start()}})
+            if (Point::distance(ends[0], node) < 1.0)
+                meeting.emplace_back((ends[1] - ends[0]).normalized(), web_radii.empty() ? web_radius : web_radii[w]);
+    for (size_t p = 0; p < posts.size(); p++)
+        for (const std::array<Point, 2>& ends : {std::array<Point, 2>{posts[p].start(), posts[p].end()},
+                                                 std::array<Point, 2>{posts[p].end(), posts[p].start()}})
+            if (Point::distance(ends[0], node) < 1.0)
+                meeting.emplace_back((ends[1] - ends[0]).normalized(), post_radii.empty() ? chord_radius : post_radii[p]);
+
+    // on each side of the run the outermost member: its outer face meets the run's face on that side (r cos a + r_o) / sin a
+    // past the node and the run's other face (r_o - r cos a) / sin a past it, a the angle between the way on and the member
+    std::optional<Vector> up;
+    struct Side {
+        bool any = false;
+        double near = 0.0;
+        double far = 0.0;
+        double cosine = 0.0;
+    };
+    std::array<Side, 2> sides;
+    for (const std::pair<Vector, double>& member : meeting) {
+        const double cosine = on.dot(member.first);
+        const double sine = on.cross(member.first).magnitude();
+        if (sine < 0.05)
+            continue;
+        if (!up)
+            up = on.cross(member.first).normalized().cross(on);
+        const size_t s = member.first.dot(*up) > 0.0 ? 0 : 1;
+        const double near = (radius * cosine + member.second) / sine;
+        if (!sides[s].any || near > sides[s].near)
+            sides[s] = {true, near, (member.second - radius * cosine) / sine, cosine};
+    }
+    if (!up)
+        return std::nullopt;
+    const auto at = [&](double along, double across) { return node + on * along + *up * across; };
+
+    // members on both sides: one cut through their outer corners, the contour running on clean, the node in wood
+    if (sides[0].any && sides[1].any && sides[0].near + sides[1].near > radius)
+        return std::array<Point, 2>{at(sides[0].near, radius), at(sides[1].near, -radius)};
+
+    // one side, met at 40 degrees or steeper: flush with the outer face of the outermost
+    for (size_t s = 0; s < 2; s++)
+        if (sides[s].any && !sides[1 - s].any && sides[s].cosine > -std::cos(40.0 * Tolerance::TO_RADIANS)) {
+            const double sign = s == 0 ? 1.0 : -1.0;
+            return std::array<Point, 2>{at(sides[s].near, sign * radius), at(sides[s].far, -sign * radius)};
+        }
+
+    // else square, past the node by the farthest landing and at least the run's half section
+    double reach = radius;
+    for (const Side& side_of : sides)
+        if (side_of.any)
+            reach = std::max(reach, side_of.near);
+    return std::array<Point, 2>{at(reach, radius), at(reach, -radius)};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

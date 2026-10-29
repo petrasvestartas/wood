@@ -23,6 +23,11 @@ public:
     std::vector<double> chord_radii; // mm, half the square section of each chord; empty: chord_radius for all.
     std::vector<double> web_radii; // mm, of each web; empty: web_radius for all.
     std::vector<double> post_radii; // mm, of each post; empty: chord_radius for all.
+    std::vector<std::array<size_t, 2>>
+        runs_on; // Chord ends (chord, 0 start or 1 end) running on where chords end together: flush with the others' far side, they butt on it.
+    std::vector<int> chord_levels; // Each chord's place in the hierarchy, 1 primary, 2 secondary, 3 tertiary; empty: read from the drawing.
+    std::vector<int> web_levels; // Each web's; a member stops on every member of a higher level at its node.
+    std::vector<int> post_levels; // Each post's.
 
     /// A guide from its chords, webs and end posts and their half sections, one for all or one per member.
     TrussGuide(
@@ -33,11 +38,25 @@ public:
         double web_radius = 60.0,
         const std::vector<double>& chord_radii = {},
         const std::vector<double>& web_radii = {},
-        const std::vector<double>& post_radii = {}
+        const std::vector<double>& post_radii = {},
+        const std::vector<std::array<size_t, 2>>& runs_on = {},
+        const std::vector<int>& chord_levels = {},
+        const std::vector<int>& web_levels = {},
+        const std::vector<int>& post_levels = {}
     );
 
-    /// Each straight run of chord `chord`, from kink to kink: a member each.
+    /// Each straight run of chord `chord`, from kink to kink: a member each; an end running on reaches as far as its end cut.
     std::vector<std::array<Point, 2>> runs(size_t chord) const;
+
+    /// Whether chord `chord`'s end `side` (0 start, 1 end) runs on past its node: where chord ends meet and none passes, the
+    /// one given in runs_on, else the highest in the hierarchy, else the most level, none of one level and slope (an apex)
+    /// or at a gentle bend of under 35 degrees; a lone end, when every web and post there is lower in the hierarchy.
+    bool runs_on_at(size_t chord, size_t side) const;
+
+    /// The cut of an end running on, through the two points where it crosses the run's faces: through the outer corners of
+    /// the members it carries on both its sides, so the contour runs on clean; flush with the outer face of the members on one
+    /// side met at 40 degrees or more; else square past the node; the node always in wood. None for an end not running on.
+    std::optional<std::array<Point, 2>> end_cut(size_t chord, size_t side) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Library

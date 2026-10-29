@@ -26,6 +26,10 @@ public:
     std::vector<double> chord_radii; // mm, half the square section of each chord.
     std::vector<double> web_radii; // mm, of each web.
     std::vector<double> post_radii; // mm, of each post.
+    std::vector<std::array<size_t, 2>> runs_on; // Chord ends (chord, 0 start or 1 end) running on where chords end together.
+    std::vector<int> chord_levels; // 1 primary, 2 secondary, 3 tertiary, per chord.
+    std::vector<int> web_levels; // Per web.
+    std::vector<int> post_levels; // Per post.
 
     /// The guide of this graph at its span, each member with its own section.
     TrussGuide guide() const;
