@@ -895,7 +895,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         return path_tier(edges[e_idx].path_idx);
     };
 
-    const auto endpoint_cuts = [&](size_t p_idx, int node_id, const Vector& dir_out, double& trim_offset) -> std::vector<Plane> {
+    const auto endpoint_cuts = [&](size_t p_idx, int node_id, const Vector& dir_out, double len_ref, double& trim_offset) -> std::vector<Plane> {
         const Point& vp = nodes[node_id];
         const std::vector<AdjItem>& list = adj[node_id];
         const double hw = 0.5 * rib_width * rib_paths[p_idx].width_scale;
@@ -952,8 +952,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             }
         }
 
-        const int curr_tier = path_tier(p_idx);
-
         if (pos == through_a || pos == through_b) {
             const AdjItem& other = (pos == through_a) ? list[through_b] : list[through_a];
             Vector n_join = curr.dir_xy - other.dir_xy;
@@ -965,63 +963,71 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             return {Plane::from_point_normal(vp, n_join)};
         }
 
-        if (through_a >= 0 && through_b >= 0) {
-            Vector t_through = list[through_b].dir_xy - list[through_a].dir_xy;
-            t_through.normalize_self();
-            Vector n_side(-t_through[1], t_through[0], 0.0);
-            if (n_side.dot(curr.dir_xy) < 0.0)
-                n_side = n_side * -1.0;
+        // Exact cyclic wedge miter / through-rib T-butt against immediate CW (prev) and CCW (next) neighbors
+        const size_t prev_idx = (static_cast<size_t>(pos) + m - 1) % m;
+        const size_t next_idx = (static_cast<size_t>(pos) + 1) % m;
+        const AdjItem& prev_item = list[prev_idx];
+        const AdjItem& next_item = list[next_idx];
+        const double theta_prev = wrap_two_pi(curr.angle - prev_item.angle);
+        const double theta_next = wrap_two_pi(next_item.angle - curr.angle);
 
-            const double cos_inc = n_side.dot(curr.dir_xy);
-            const double sin_inc = std::abs(t_through.dot(curr.dir_xy));
-
-            bool higher_or_equal_on_same_side = false;
-            for (size_t j = 0; j < m; ++j) {
-                if (static_cast<int>(j) == pos ||
-                    static_cast<int>(j) == through_a ||
-                    static_cast<int>(j) == through_b)
-                    continue;
-                if (n_side.dot(list[j].dir_xy) > 0.10 &&
-                    edge_tier(list[j].edge_idx) <= curr_tier) {
-                    higher_or_equal_on_same_side = true;
-                    break;
-                }
-            }
-
-            if (!higher_or_equal_on_same_side && cos_inc >= 0.35) {
-                const double s_min = std::max(0.0, (hw - hw * sin_inc) / cos_inc);
-                trim_offset = std::max(0.0, s_min - 25.0);
-                return {Plane::from_point_normal(vp + n_side * hw, n_side)};
-            }
-        }
-
-        double r_stop = 0.0;
-        bool has_strictly_higher = false;
-        for (size_t j = 0; j < m; ++j) {
-            if (static_cast<int>(j) == pos)
-                continue;
-            if (edge_tier(list[j].edge_idx) < curr_tier) {
-                has_strictly_higher = true;
-                const double d = std::clamp(curr.dir_xy.dot(list[j].dir_xy), -1.0, 1.0);
-                const double dphi = std::acos(d);
-                if (dphi > 0.08 && dphi < Tolerance::PI - 0.08) {
-                    const double r_clear = hw / std::sin(0.5 * dphi);
-                    r_stop = std::max(r_stop, r_clear);
-                } else {
-                    r_stop = std::max(r_stop, hw);
+        std::vector<Plane> planes;
+        if (theta_prev > 0.02 && theta_prev < Tolerance::PI - 0.02) {
+            const bool prev_is_through =
+                (static_cast<int>(prev_idx) == through_a || static_cast<int>(prev_idx) == through_b);
+            if (prev_is_through) {
+                const Vector n_prev(-prev_item.dir_xy[1], prev_item.dir_xy[0], 0.0);
+                const double hw_prev = 0.5 * rib_width * edges[prev_item.edge_idx].width_scale;
+                planes.push_back(Plane::from_point_normal(vp + n_prev * hw_prev, n_prev));
+            } else {
+                Vector b_prev = curr.dir_xy + prev_item.dir_xy;
+                if (b_prev.magnitude() > 1e-6) {
+                    b_prev.normalize_self();
+                    const Vector n_bis(-b_prev[1], b_prev[0], 0.0);
+                    planes.push_back(Plane::from_point_normal(vp, n_bis));
                 }
             }
         }
-        if (!has_strictly_higher) {
-            for (size_t j = 0; j < m; ++j) {
-                if (static_cast<int>(j) != pos && edge_tier(list[j].edge_idx) == curr_tier) {
-                    r_stop = 0.65 * hw;
-                    break;
+
+        if (theta_next > 0.02 && theta_next < Tolerance::PI - 0.02) {
+            const bool next_is_through =
+                (static_cast<int>(next_idx) == through_a || static_cast<int>(next_idx) == through_b);
+            if (next_is_through) {
+                const Vector n_next(next_item.dir_xy[1], -next_item.dir_xy[0], 0.0);
+                const double hw_next = 0.5 * rib_width * edges[next_item.edge_idx].width_scale;
+                const Plane cand = Plane::from_point_normal(vp + n_next * hw_next, n_next);
+                if (planes.empty() || planes.back().z_axis().dot(cand.z_axis()) < 0.9999)
+                    planes.push_back(cand);
+            } else {
+                Vector b_next = curr.dir_xy + next_item.dir_xy;
+                if (b_next.magnitude() > 1e-6) {
+                    b_next.normalize_self();
+                    const Vector n_bis(b_next[1], -b_next[0], 0.0);
+                    const Plane cand = Plane::from_point_normal(vp, n_bis);
+                    if (planes.empty() || planes.back().z_axis().dot(cand.z_axis()) < 0.9999)
+                        planes.push_back(cand);
                 }
             }
         }
-        trim_offset = std::max(-25.0, r_stop - 25.0);
-        return {Plane::from_point_normal(vp + curr.dir_xy * r_stop, curr.dir_xy)};
+
+        if (planes.empty()) {
+            trim_offset = -25.0;
+            return {Plane::from_point_normal(vp, curr.dir_xy)};
+        }
+
+        const Vector u_perp(-curr.dir_xy[1], curr.dir_xy[0], 0.0);
+        double s_left = -1e9;
+        double s_right = -1e9;
+        for (const Plane& pl : planes) {
+            const double denom = std::max(0.05, curr.dir_xy.dot(pl.z_axis()));
+            const double base_num = (pl.origin() - vp).dot(pl.z_axis());
+            const double off = hw * u_perp.dot(pl.z_axis());
+            s_left = std::max(s_left, (base_num - off) / denom);
+            s_right = std::max(s_right, (base_num + off) / denom);
+        }
+        const double min_s = std::min(s_left, s_right);
+        trim_offset = std::max(-0.40 * len_ref, min_s - 20.0);
+        return planes;
     };
 
     // Generate planar single-curved BeamCurved ribs strictly in their vertical planes
@@ -1040,20 +1046,28 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
 
         double offset_u = 0.0;
         double offset_v = 0.0;
-        std::vector<Plane> cuts_u = endpoint_cuts(p_idx, u, dir_2d, offset_u);
-        std::vector<Plane> cuts_v = endpoint_cuts(p_idx, v, dir_2d * -1.0, offset_v);
+        std::vector<Plane> cuts_u = endpoint_cuts(p_idx, u, dir_2d, len_2d, offset_u);
+        std::vector<Plane> cuts_v = endpoint_cuts(p_idx, v, dir_2d * -1.0, len_2d, offset_v);
 
         const double s_start = offset_u;
         const double s_end   = len_2d - offset_v;
         if (s_end <= s_start + 10.0)
             continue;
 
+        const double mid_x = 0.5 * (p_u[0] + p_v[0]);
+        const double mid_y = 0.5 * (p_u[1] + p_v[1]);
+        const NurbsSurface& rib_surf =
+            (std::abs(mid_x) / std::max(1.0, hx) <= std::abs(mid_y) / std::max(1.0, hy))
+                ? surf_ns
+                : surf_ew;
+
         const int n_rib_sub = std::max(edge_sub, static_cast<int>(path.nodes.size()) * 8);
         std::vector<Point> surf_pts(n_rib_sub + 1);
         for (int k = 0; k <= n_rib_sub; ++k) {
             const double s = s_start + (s_end - s_start) * (static_cast<double>(k) / n_rib_sub);
             const Point plan_pt = p_u + dir_2d * s;
-            surf_pts[k] = eval_nurbs_cyl(plan_pt[0], plan_pt[1]);
+            const Point uv = compute_vault_uv(rib_surf, hx, hy, Point(plan_pt[0], plan_pt[1], 0.0));
+            surf_pts[k] = rib_surf.point_at(uv[0], uv[1]);
         }
 
         // Keep up strictly in the vertical plane of the rib so every rib has zero sideways twist
@@ -1231,11 +1245,13 @@ star_vault(double span, double rise, double thickness, double star, double rib, 
         }
     };
 
-    // 4 perimeter wall arches, 4 diagonal ribs, 4 full ridge liernes, 8 tiercerons = 20 ribs
+    // 4 perimeter wall arches, 3 diagonal ribs (1 continuous SW-NE + 2 half-diagonals), 4 full ridge liernes, 8 tiercerons = 19 ribs
+    add_rib({0, 8, 2}, 0);
+    add_rib({1, 8}, 1);
+    add_rib({3, 8}, 1);
     for (int i = 0; i < 4; ++i) {
         const int next = (i + 1) % 4;
         add_rib({i, 9 + i, next}, 0);
-        add_rib({i, 8}, (i % 2 == 0) ? 0 : 1);
         add_rib({9 + i, 4 + i, 8}, 2);
         add_rib({i, 4 + i}, 3);
         add_rib({next, 4 + i}, 3);
