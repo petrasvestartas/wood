@@ -502,6 +502,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_IMAGE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/diagrams
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/examples
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
     )
     set(DOXYGEN_EXTRACT_ALL YES)

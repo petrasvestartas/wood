@@ -33,6 +33,14 @@ int main() {
     wood_session.compute_features(face_to_face);
     std::cout << wood_session.get_plate_features().size() << " joints from the assigned types\n";
 
+    auto insertion_arrow = std::make_shared<Polyline>(
+        std::vector<Point>{Point(1000, 250, 0), Point(1000, 250, 300)}
+    );
+    insertion_arrow->linecolor = Color(0.85f, 0.15f, 0.15f);
+    insertion_arrow->width = 4.0;
+    wood_session.add_polyline(insertion_arrow);
+    wood_session.pb_dump(pb_path("live"));
+
     return 0;
 }
 

@@ -12,7 +12,7 @@ int main() {
     wood_session.compute_features();
 
     const std::string bytes = wood_session.pb_dumps();
-    const WoodSession back = WoodSession::pb_loads(bytes);
+    WoodSession back = WoodSession::pb_loads(bytes);
     std::cout << back.interactions.size() << " interactions and " << back.get_features().size()
               << " features read back, consistent " << back.consistent() << "\n";
 
@@ -30,6 +30,8 @@ int main() {
               << wood_session.get_contacts().front()->pb_dumps().size() << " bytes\n";
     std::cout << "the settings as JSON: distance " << wood_session.settings.jsondump()["distance"]
               << "\n";
+
+    back.pb_dump(pb_path("live"));
 
     return 0;
 }

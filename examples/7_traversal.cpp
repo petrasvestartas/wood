@@ -29,6 +29,11 @@ int main() {
     std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and "
               << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
+    for (const std::shared_ptr<Plate>& p : wood_session.plates())
+        if (p != male && p != female)
+            p->is_visible = false;
+    wood_session.pb_dump(pb_path("live"));
+
     return 0;
 }
 

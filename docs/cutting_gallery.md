@@ -6,27 +6,27 @@ Cutting gallery targets test 2D profile slots, blind pockets, tolerance-controll
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="examples.html#ex_15_profile_cuts">
-    <img src="element_profile.webp" alt="Profile Cuts">
+    <img src="ex_15_profile_cuts.webp" alt="Profile Cuts">
     <span class="wood-card-title">Profile Cuts</span>
   </a>
   <a class="wood-card" href="examples.html#ex_16_drill_solids">
-    <img src="element_pin.png" alt="Drill Solids">
+    <img src="ex_16_drill_solids.webp" alt="Drill Solids">
     <span class="wood-card-title">Drill Solids</span>
   </a>
   <a class="wood-card" href="examples.html#ex_17_solid_features">
-    <img src="element_block.png" alt="Solid Features">
+    <img src="ex_17_solid_features.webp" alt="Solid Features">
     <span class="wood-card-title">Solid Features</span>
   </a>
   <a class="wood-card" href="examples.html#ex_19_plate_joint_library">
-    <img src="element_joint_plate_top_side.png" alt="Plate Joint Library">
+    <img src="ex_19_plate_joint_library.webp" alt="Plate Joint Library">
     <span class="wood-card-title">Plate Joint Library</span>
   </a>
 </div>
 <div style="display:none">
-![](elements/element_profile.webp)
-![](elements/element_pin.png)
-![](elements/element_block.png)
-![](elements/element_joint_plate_top_side.png)
+![](ex_15_profile_cuts.webp)
+![](ex_16_drill_solids.webp)
+![](ex_17_solid_features.webp)
+![](ex_19_plate_joint_library.webp)
 </div>
 
 ## Build and Run

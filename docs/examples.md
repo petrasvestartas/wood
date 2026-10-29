@@ -2,36 +2,160 @@
 
 [TOC]
 
-Self-contained example targets in `examples/*.cpp`. Build and run any target with `cmake --build build --target <name> && ./build/<name>`.
+Twenty-three self-contained C++ targets in `examples/*.cpp` covering contact detection, parametric plate and beam joinery, boolean cutting, and butt-jointed assemblies. Build and run any target with `cmake --build build --target <name> && ./build/<name>`.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#ex_1_session_contacts">
-    <img src="wood_joint_unit_box.webp" alt="Session and Joinery">
-    <span class="wood-card-title">Session and Joinery</span>
+    <img src="ex_1_session_contacts.webp" alt="1 Session Contacts">
+    <span class="wood-card-title">1 Session Contacts</span>
   </a>
-  <a class="wood-card" href="#ex_cutting_gallery">
-    <img src="wood_boolean_cutting.webp" alt="Cutting Gallery">
-    <span class="wood-card-title">Cutting Gallery</span>
+  <a class="wood-card" href="#ex_2_session_hard_coded_contacts">
+    <img src="ex_2_session_hard_coded_contacts.webp" alt="2 Hard-Coded Contacts">
+    <span class="wood-card-title">2 Hard-Coded Contacts</span>
+  </a>
+  <a class="wood-card" href="#ex_3_elements_tree">
+    <img src="ex_3_elements_tree.webp" alt="3 Elements Tree">
+    <span class="wood-card-title">3 Elements Tree</span>
+  </a>
+  <a class="wood-card" href="#ex_4_datasets">
+    <img src="ex_4_datasets.webp" alt="4 Datasets">
+    <span class="wood-card-title">4 Datasets</span>
+  </a>
+  <a class="wood-card" href="#ex_5_contacts">
+    <img src="ex_5_contacts.webp" alt="5 Contacts">
+    <span class="wood-card-title">5 Contacts</span>
+  </a>
+  <a class="wood-card" href="#ex_6_features">
+    <img src="ex_6_features.webp" alt="6 Features">
+    <span class="wood-card-title">6 Features</span>
+  </a>
+  <a class="wood-card" href="#ex_7_traversal">
+    <img src="ex_7_traversal.webp" alt="7 Graph Traversal">
+    <span class="wood-card-title">7 Graph Traversal</span>
+  </a>
+  <a class="wood-card" href="#ex_8_settings">
+    <img src="ex_8_settings.webp" alt="8 Solver Settings">
+    <span class="wood-card-title">8 Solver Settings</span>
+  </a>
+  <a class="wood-card" href="#ex_9_custom_joint">
+    <img src="ex_9_custom_joint.webp" alt="9 Custom Joint">
+    <span class="wood-card-title">9 Custom Joint</span>
+  </a>
+  <a class="wood-card" href="#ex_10_assignment">
+    <img src="ex_10_assignment.webp" alt="10 Joint Assignment">
+    <span class="wood-card-title">10 Joint Assignment</span>
+  </a>
+  <a class="wood-card" href="#ex_11_beams">
+    <img src="ex_11_beams.webp" alt="11 Beam Contacts">
+    <span class="wood-card-title">11 Beam Contacts</span>
+  </a>
+  <a class="wood-card" href="#ex_12_serialization">
+    <img src="ex_12_serialization.webp" alt="12 Serialization">
+    <span class="wood-card-title">12 Serialization</span>
+  </a>
+  <a class="wood-card" href="#ex_13_viewer">
+    <img src="ex_13_viewer.webp" alt="13 Viewer Output">
+    <span class="wood-card-title">13 Viewer Output</span>
+  </a>
+  <a class="wood-card" href="#ex_14_cross_joints">
+    <img src="ex_14_cross_joints.webp" alt="14 Cross Joints">
+    <span class="wood-card-title">14 Cross Joints</span>
+  </a>
+  <a class="wood-card" href="#ex_15_profile_cuts">
+    <img src="ex_15_profile_cuts.webp" alt="15 Profile Cuts">
+    <span class="wood-card-title">15 Profile Cuts</span>
+  </a>
+  <a class="wood-card" href="#ex_16_drill_solids">
+    <img src="ex_16_drill_solids.webp" alt="16 Drill Solids">
+    <span class="wood-card-title">16 Drill Solids</span>
+  </a>
+  <a class="wood-card" href="#ex_17_solid_features">
+    <img src="ex_17_solid_features.webp" alt="17 Solid Features">
+    <span class="wood-card-title">17 Solid Features</span>
+  </a>
+  <a class="wood-card" href="#ex_18_cutting_gallery">
+    <img src="ex_18_cutting_gallery.webp" alt="18 Cutting Gallery">
+    <span class="wood-card-title">18 Cutting Gallery</span>
+  </a>
+  <a class="wood-card" href="#ex_19_plate_joint_library">
+    <img src="ex_19_plate_joint_library.webp" alt="19 Plate Joint Library">
+    <span class="wood-card-title">19 Plate Joint Library</span>
   </a>
   <a class="wood-card" href="#ex_20_butt_frame">
-    <img src="20_butt_frame.png" alt="Butt Frame and House">
-    <span class="wood-card-title">Butt Frame and House</span>
+    <img src="ex_20_butt_frame.webp" alt="20 Butt Frame">
+    <span class="wood-card-title">20 Butt Frame</span>
+  </a>
+  <a class="wood-card" href="#ex_21_butt_house">
+    <img src="ex_21_butt_house.webp" alt="21 Butt House">
+    <span class="wood-card-title">21 Butt House</span>
   </a>
   <a class="wood-card" href="#ex_22_butt_pairs">
-    <img src="butt_brace_frame.png" alt="Butt Pairs and Assemblies">
-    <span class="wood-card-title">Butt Pairs and Assemblies</span>
+    <img src="ex_22_butt_pairs.webp" alt="22 Butt Pairs">
+    <span class="wood-card-title">22 Butt Pairs</span>
+  </a>
+  <a class="wood-card" href="#ex_23_butt_assemblies">
+    <img src="ex_23_butt_assemblies.webp" alt="23 Butt Assemblies">
+    <span class="wood-card-title">23 Butt Assemblies</span>
   </a>
 </div>
 <div style="display:none">
-![](diagrams/wood_joint_unit_box.webp)
-![](diagrams/wood_boolean_cutting.webp)
+![](ex_1_session_contacts.webp)
+![](ex_2_session_hard_coded_contacts.webp)
+![](ex_3_elements_tree.webp)
+![](ex_4_datasets.webp)
+![](ex_5_contacts.webp)
+![](ex_6_features.webp)
+![](ex_7_traversal.webp)
+![](ex_8_settings.webp)
+![](ex_9_custom_joint.webp)
+![](ex_10_assignment.webp)
+![](ex_11_beams.webp)
+![](ex_12_serialization.webp)
+![](ex_13_viewer.webp)
+![](ex_14_cross_joints.webp)
+![](ex_15_profile_cuts.webp)
+![](ex_16_drill_solids.webp)
+![](ex_17_solid_features.webp)
+![](ex_18_cutting_gallery.webp)
+![](ex_19_plate_joint_library.webp)
+![](ex_20_butt_frame.webp)
+![](ex_21_butt_house.webp)
+![](ex_22_butt_pairs.webp)
+![](ex_23_butt_assemblies.webp)
+![](butt_pair_beam_top_side.webp)
+![](butt_pair_beam_top_side_oblique.webp)
+![](butt_pair_beam_top_side_end.webp)
+![](butt_pair_beam_top_side_end_past.webp)
+![](butt_pair_beam_top_side_end_short.webp)
+![](butt_pair_beam_side_side_outplane.webp)
+![](butt_pair_beam_side_side_outplane_square.webp)
+![](butt_pair_beam_side_side_inplane.webp)
+![](butt_pair_beam_cross.webp)
+![](butt_pair_plate_top_side.webp)
+![](butt_pair_plate_top_side_end.webp)
+![](butt_pair_plate_side_side_outplane.webp)
+![](butt_pair_plate_side_side_inplane.webp)
+![](butt_pair_plate_top_side_floor.webp)
+![](butt_pair_plate_cross.webp)
+![](butt_pair_column_top_side_plate.webp)
+![](butt_pair_plate_top_side_beam.webp)
+![](butt_pair_beam_top_side_plate.webp)
+![](butt_brace_frame.webp)
+![](butt_curved_sill.webp)
+![](butt_polygon_floor.webp)
+![](butt_zigzag_walls.webp)
+![](butt_folded_roof.webp)
 
 - @subpage cutting_gallery
 </div>
 
-## Session Contacts {#ex_1_session_contacts}
+---
 
-Computes face contacts between timber elements in a `WoodSession`, orients a parametric `JointPlate` to the contact zone, and attaches cutting interactions to both plates.
+## 1 Session Contacts {#ex_1_session_contacts}
+
+Computes face contacts between plates, a beam, and a column in WoodSession, orients a parametric tenon joint to the contact zone, and attaches cutting interactions to both plates.
+
+![](ex_1_session_contacts.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -104,9 +228,13 @@ int main() {
 }
 ```
 
-## Hard-Coded Contacts
+---
 
-Constructs explicit `InteractionContactFace` records directly in code without running automatic contact detection.
+## 2 Hard-Coded Contacts {#ex_2_session_hard_coded_contacts}
+
+Constructs explicit face contact records directly from face indices, alignment lines, and contact polygons without running automatic contact search.
+
+![](ex_2_session_hard_coded_contacts.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -197,9 +325,13 @@ int main() {
 }
 ```
 
-## Elements Tree
+---
 
-Organizes repeated structural bays into separate scene-tree branches so contact detection stays scoped within each branch and shared definitions are instanced with `instance_by_key`.
+## 3 Elements Tree {#ex_3_elements_tree}
+
+Builds a two-storey L-plan post-and-beam timber grid organized by level and member group in the session scene tree.
+
+![](ex_3_elements_tree.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -249,9 +381,13 @@ int main() {
 }
 ```
 
-## Datasets
+---
 
-Loads timber plate and mesh datasets from YAML, OBJ, and `.pb` scene files into `WoodSession`.
+## 4 Datasets {#ex_4_datasets}
+
+Loads timber plate and mesh assemblies from YAML, OBJ, and protobuf session files into WoodSession.
+
+![](ex_4_datasets.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -279,9 +415,13 @@ int main() {
 }
 ```
 
-## Contacts
+---
 
-Detects face, axis, and cross contacts across a hexagonal shell dataset and inspects the resulting contact edges in the session graph.
+## 5 Contacts {#ex_5_contacts}
+
+Detects face, axis, and cross contacts across an in-plane hexagonal shell dataset and inspects every contact edge in the session graph.
+
+![](ex_5_contacts.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -355,9 +495,13 @@ int main() {
 }
 ```
 
-## Features
+---
 
-Runs the full plate joinery pipeline on a hexagonal shell, orienting finger joints across all shared edges and evaluating both uncut stock and boolean-cut plate meshes.
+## 6 Features {#ex_6_features}
+
+Runs the plate joinery solver on a hexagonal shell, orienting finger joints across shared edges and evaluating boolean-cut plate meshes.
+
+![](ex_6_features.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -401,9 +545,13 @@ int main() {
 }
 ```
 
-## Graph Traversal
+---
 
-Traverses `Session::graph` from a joint element to its connected plates, reading the feature interactions and underlying face contacts along each directed edge.
+## 7 Graph Traversal {#ex_7_traversal}
+
+Traverses the session graph from a solved plate joint to its two connected plates, edge interactions, and underlying face contact.
+
+![](ex_7_traversal.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -437,13 +585,22 @@ int main() {
     std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and "
               << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
+    for (const std::shared_ptr<Plate>& p : wood_session.plates())
+        if (p != male && p != female)
+            p->is_visible = false;
+    wood_session.pb_dump(pb_path("live"));
+
     return 0;
 }
 ```
 
-## Solver Settings
+---
 
-Configures solver tolerances, division counts, and joint parameters via `WoodSession::settings` and round-trips them through serialization.
+## 8 Solver Settings {#ex_8_settings}
+
+Configures division counts, tolerances, and joint extensions through WoodSession settings on a curved plate box and round-trips them through protobuf bytes.
+
+![](ex_8_settings.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -482,9 +639,13 @@ int main() {
 }
 ```
 
-## Custom Joint
+---
 
-Defines a custom joint profile as explicit male and female polyline outlines passed through the solver settings.
+## 9 Custom Joint {#ex_9_custom_joint}
+
+Defines custom butterfly dovetail outlines in unit-box space and applies them along the seam between two coplanar plates.
+
+![](ex_9_custom_joint.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -492,18 +653,20 @@ Defines a custom joint profile as explicit male and female polyline outlines pas
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SEAM_DEPTH = 2.0;
-const double TOOTH_HALF = 1.6;
-const double NECK_RATIO = 0.2917;
+const double SEAM_DEPTH = 1.5;
+const double TOOTH_HALF = 0.06;
+const double NECK_RATIO = 0.45;
 
-/// One butterfly tooth face in unit-cube space: y at the plate face, x signed across the seam, z along it.
-static Polyline tooth(const double y, const double depth) {
-    return Polyline(
-        {Point(0.0, y, TOOTH_HALF * NECK_RATIO),
-         Point(depth, y, TOOTH_HALF),
-         Point(depth, y, -TOOTH_HALF),
-         Point(0.0, y, -TOOTH_HALF * NECK_RATIO)}
-    );
+/// Three butterfly half-mortise teeth in unit-cube space: y at the plate face, x signed across the seam, z in [-0.5, 0.5] along it.
+static Polyline teeth(const double y, const double depth) {
+    std::vector<Point> pts;
+    for (const double cz : {0.28, 0.0, -0.28}) {
+        pts.emplace_back(0.0, y, cz + TOOTH_HALF * NECK_RATIO);
+        pts.emplace_back(depth, y, cz + TOOTH_HALF);
+        pts.emplace_back(depth, y, cz - TOOTH_HALF);
+        pts.emplace_back(0.0, y, cz - TOOTH_HALF * NECK_RATIO);
+    }
+    return Polyline(pts);
 }
 
 int main() {
@@ -518,8 +681,8 @@ int main() {
 
     wood_session.settings.joint_parameters[0 * 3 + 2] = 9;
     wood_session.settings.custom_joints["side_side_inplane"] = {
-        std::vector<Polyline>{tooth(-0.5, -SEAM_DEPTH), tooth(0.5, -SEAM_DEPTH)},
-        std::vector<Polyline>{tooth(-0.5, SEAM_DEPTH), tooth(0.5, SEAM_DEPTH)},
+        std::vector<Polyline>{teeth(-0.5, -SEAM_DEPTH), teeth(0.5, -SEAM_DEPTH)},
+        std::vector<Polyline>{teeth(-0.5, SEAM_DEPTH), teeth(0.5, SEAM_DEPTH)},
     };
 
     wood_session.compute_features(face_to_face);
@@ -533,9 +696,13 @@ int main() {
 }
 ```
 
-## Spatial Joint Assignment
+---
 
-Assigns joint types and insertion directions to plate faces from geometric marker points and direction lines placed on the elements.
+## 10 Joint Assignment {#ex_10_assignment}
+
+Assigns per-face joint types and insertion vectors directly from 3D marker points and direction lines placed on plate boundaries.
+
+![](ex_10_assignment.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -573,13 +740,25 @@ int main() {
     wood_session.compute_features(face_to_face);
     std::cout << wood_session.get_plate_features().size() << " joints from the assigned types\n";
 
+    auto insertion_arrow = std::make_shared<Polyline>(
+        std::vector<Point>{Point(1000, 250, 0), Point(1000, 250, 300)}
+    );
+    insertion_arrow->linecolor = Color(0.85f, 0.15f, 0.15f);
+    insertion_arrow->width = 4.0;
+    wood_session.add_polyline(insertion_arrow);
+    wood_session.pb_dump(pb_path("live"));
+
     return 0;
 }
 ```
 
-## Beam Contacts
+---
 
-Computes axis contacts between crossing and meeting timber beams and generates the oriented contact volume boxes for each beam pair.
+## 11 Beam Contacts {#ex_11_beams}
+
+Detects axis intersections between three orthogonal timber beams and solves their oriented crossing and end-to-side joint volumes.
+
+![](ex_11_beams.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -621,9 +800,13 @@ int main() {
 }
 ```
 
-## Serialization
+---
 
-Serializes elements, interactions, and complete `WoodSession` scenes to both JSON and protobuf bytes and reconstructs them identically.
+## 12 Serialization {#ex_12_serialization}
+
+Round-trips a solved WoodSession through protobuf bytes and JSON records while preserving full compatibility with the base Session kernel.
+
+![](ex_12_serialization.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -640,7 +823,7 @@ int main() {
     wood_session.compute_features();
 
     const std::string bytes = wood_session.pb_dumps();
-    const WoodSession back = WoodSession::pb_loads(bytes);
+    WoodSession back = WoodSession::pb_loads(bytes);
     std::cout << back.interactions.size() << " interactions and " << back.get_features().size()
               << " features read back, consistent " << back.consistent() << "\n";
 
@@ -659,13 +842,19 @@ int main() {
     std::cout << "the settings as JSON: distance " << wood_session.settings.jsondump()["distance"]
               << "\n";
 
+    back.pb_dump(pb_path("live"));
+
     return 0;
 }
 ```
 
-## Viewer Output
+---
 
-Arranges scene layers, color tables, and `.pb` outputs for interactive inspection in `session_viewer`.
+## 13 Viewer Output {#ex_13_viewer}
+
+Exports solved corner plate joinery with toggleable contact and feature layers for inspection in session_viewer.
+
+![](ex_13_viewer.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -699,9 +888,13 @@ int main() {
 }
 ```
 
-## Cross Joints
+---
 
-Solves cross-lap joints between intersecting plates using face and cross contact search modes.
+## 14 Cross Joints {#ex_14_cross_joints}
+
+Solves half-lap cross joints between intersecting plates using cross-only and face-then-cross contact search modes.
+
+![](ex_14_cross_joints.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -739,13 +932,13 @@ int main() {
 }
 ```
 
-## Cutting Gallery {#ex_cutting_gallery}
+---
 
-See [Cutting Gallery](@ref cutting_gallery) for cutter specifications.
+## 15 Profile Cuts {#ex_15_profile_cuts}
 
-### Profile Cuts {#ex_15_profile_cuts}
+Cuts rectangular timber plates with extruded 2D polyline profiles including concave L-outlines, interior holes, through-slots, and blind pockets. See [Cutting Gallery](@ref cutting_gallery).
 
-Cuts plates with extruded 2D polyline profiles including concave L-outlines, interior holes, through-slots, and blind pockets.
+![](ex_15_profile_cuts.webp)
 
 ```cpp
 #include "cutting_gallery.h"
@@ -789,11 +982,22 @@ int main() {
     cut_case(scene, "Concave pocket / solid split", stock(), pocket, 780);
     finish(scene, "15_profile_cuts");
 }
+
+/*
+directory: cd /home/petras/code/code_cpp/wood_research/wood
+run: buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/15_profile_cuts.pb" --no-notify
+view: https://petrasvestartas.github.io/session/
+*/
 ```
 
-### Drill Solids {#ex_16_drill_solids}
+---
 
-Compares chord-tolerance-controlled cylindrical drill meshes against exact rational NURBS bore BReps and cuts a tilted bore through a solid block.
+## 16 Drill Solids {#ex_16_drill_solids}
+
+Compares chord-tolerance-controlled cylindrical drill meshes against exact rational NURBS bore BReps and cuts a tilted bore through a timber block.
+
+![](ex_16_drill_solids.webp)
 
 ```cpp
 #include "cutting_gallery.h"
@@ -826,11 +1030,22 @@ int main() {
     );
     finish(scene, "16_drill_solids");
 }
+
+/*
+directory: cd /home/petras/code/code_cpp/wood_research/wood
+run: buildslot ~/.local/bin/cmake --build build --target 16_drill_solids --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/16_drill_solids.pb" --no-notify
+view: https://petrasvestartas.github.io/session/
+*/
 ```
 
-### Solid Features {#ex_17_solid_features}
+---
 
-Applies 3D boolean difference, intersection, union, and custom tetrahedral mesh cutters to timber stock blocks.
+## 17 Solid Features {#ex_17_solid_features}
+
+Applies 3D polyhedral boolean difference, intersection, union, and tetrahedral mesh cutters to sloped and lofted timber blocks.
+
+![](ex_17_solid_features.webp)
 
 ```cpp
 #include "cutting_gallery.h"
@@ -871,11 +1086,22 @@ int main() {
     );
     finish(scene, "17_solid_features");
 }
+
+/*
+directory: cd /home/petras/code/code_cpp/wood_research/wood
+run: buildslot ~/.local/bin/cmake --build build --target 17_solid_features --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_features
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/17_solid_features.pb" --no-notify
+view: https://petrasvestartas.github.io/session/
+*/
 ```
 
-### Combined Cutting Gallery {#ex_18_cutting_gallery}
+---
 
-Combines the profile, drill, and solid cutting scenes side-by-side into a single gallery scene for `session_viewer`.
+## 18 Cutting Gallery {#ex_18_cutting_gallery}
+
+Combines the profile, cylindrical drill, and 3D solid boolean cutting scenes side by side into one color-coded gallery scene.
+
+![](ex_18_cutting_gallery.webp)
 
 ```cpp
 #include "cutting_gallery.h"
@@ -925,11 +1151,22 @@ int main() {
     }
     finish(gallery, "18_cutting_gallery");
 }
+
+/*
+directory: cd /home/petras/code/code_cpp/wood_research/wood
+run: buildslot ~/.local/bin/cmake --build build --target 18_cutting_gallery --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/18_cutting_gallery
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/18_cutting_gallery.pb" --no-notify
+view: https://petrasvestartas.github.io/session/
+*/
 ```
 
-### Plate Joint Library {#ex_19_plate_joint_library}
+---
 
-Instantiates six `top_side` plate joint presets side-by-side across different division counts and shift parameters.
+## 19 Plate Joint Library {#ex_19_plate_joint_library}
+
+Instantiates six parametric top-to-side tenon and snap-fit plate joint presets side by side across varying division counts and shifts.
+
+![](ex_19_plate_joint_library.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -972,17 +1209,23 @@ int main() {
 
     return 0;
 }
+
+/*
+description: named plate joint constructors, with different parameters on the same contact.
+directory: cd /home/petras/code/code_cpp/wood_research/wood
+run: buildslot ~/.local/bin/cmake --build build --target 19_plate_joint_library --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/19_plate_joint_library
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/19_plate_joint_library.pb" --no-notify
+view: https://petrasvestartas.github.io/session/
+*/
 ```
 
-## Butt Joints {#ex_butt_joints}
+---
 
-Members drawn as lines and mid-planes overlap where they meet. `JointBeam::butt(a, b)` detects how their ends meet and cuts each member along a shared contact plane so they meet face to face (@ref elements_joint_beam_butt). Trusses are generated by the [Truss](@ref templates_truss) template.
+## 20 Butt Frame {#ex_20_butt_frame}
 
-### Braced Butt Frame {#ex_20_butt_frame}
+Builds a braced timber-frame wall from node-to-node centerlines with sill, head, posts, and diagonal braces trimmed flat against each other.
 
-Builds a braced timber-frame wall from centerlines with sill, head, posts, and diagonal braces trimmed flat against each other.
-
-![](examples/20_butt_frame.png)
+![](ex_20_butt_frame.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -1068,11 +1311,13 @@ int main() {
 }
 ```
 
-### Plate Butt House {#ex_21_butt_house}
+---
 
-Constructs a small plate-framed house from floor, wall, and roof mid-planes joined by automatic butt cuts.
+## 21 Butt House {#ex_21_butt_house}
 
-![](examples/21_butt_house.png)
+Constructs a plate-framed house from floor, wall, and roof mid-planes joined by planar butt cuts.
+
+![](ex_21_butt_house.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -1153,99 +1398,86 @@ int main() {
 }
 ```
 
-### Pairwise Butt Configurations {#ex_22_butt_pairs}
+---
 
-Tests every pairwise beam, column, and plate butt configuration (`top_side`, `side_side` out-of-plane and in-plane, and `cross`) and writes `butt_pair_<case>.pb` for each pair.
+## 22 Butt Pairs {#ex_22_butt_pairs}
 
-#### Beam Top Side
-A post landing square on a continuous beam.
+Tests all eighteen pairwise beam, column, and plate butt configurations across top-to-side, mitered out-of-plane, spliced in-plane, and cross-lap cases.
 
-![](examples/butt_pair_beam_top_side.png)
-
-#### Beam Top Side Oblique
-A strut meeting a continuous beam at 60 degrees.
-
-![](examples/butt_pair_beam_top_side_oblique.png)
-
-#### Beam Top Side End
-Two beams meeting at their ends, where the first runs through and the second stops against its side face.
-
-![](examples/butt_pair_beam_top_side_end.png)
-
-#### Beam Top Side End Past
-Two corner beams whose centerlines extend past the corner intersection before trimming.
-
-![](examples/butt_pair_beam_top_side_end_past.png)
-
-#### Beam Top Side End Short
-Two corner beams whose centerlines stop short of the corner intersection and extend to meet cleanly.
-
-![](examples/butt_pair_beam_top_side_end_short.png)
-
-#### Beam Side Side Outplane
-Two beams meeting at 120 degrees, cut on the bisector miter plane.
-
-![](examples/butt_pair_beam_side_side_outplane.png)
-
-#### Beam Side Side Outplane Square
-Two beams meeting at 90 degrees, mitered on the 45-degree bisector by `butt_side_side`.
-
-![](examples/butt_pair_beam_side_side_outplane_square.png)
-
-#### Beam Side Side Inplane
-Two collinear beams spliced end to end.
-
-![](examples/butt_pair_beam_side_side_inplane.png)
-
-#### Beam Cross
-Two crossing beams joined with a half-lap cut.
-
-![](examples/butt_pair_beam_cross.png)
-
-#### Plate Top Side
-An interior wall partitioning another wall along its mid-span.
-
-![](examples/butt_pair_plate_top_side.png)
-
-#### Plate Top Side End
-Two walls meeting at an L-corner, where the first wall runs through.
-
-![](examples/butt_pair_plate_top_side_end.png)
-
-#### Plate Side Side Outplane
-Two walls meeting at 120 degrees, trimmed on the bisector miter plane.
-
-![](examples/butt_pair_plate_side_side_outplane.png)
-
-#### Plate Side Side Inplane
-Two coplanar walls joined edge to edge in line.
-
-![](examples/butt_pair_plate_side_side_inplane.png)
-
-#### Plate Top Side Floor
-A vertical wall standing on a horizontal floor slab.
-
-![](examples/butt_pair_plate_top_side_floor.png)
-
-#### Plate Cross
-Two crossing walls left uncut at their intersection.
-
-![](examples/butt_pair_plate_cross.png)
-
-#### Column Top Side Plate
-A square column supporting a horizontal floor slab.
-
-![](examples/butt_pair_column_top_side_plate.png)
-
-#### Plate Top Side Beam
-A wall panel bearing on top of a timber beam.
-
-![](examples/butt_pair_plate_top_side_beam.png)
-
-#### Beam Top Side Plate
-A beam framing into a wall panel at 60 degrees in plan.
-
-![](examples/butt_pair_beam_top_side_plate.png)
+<div class="wood-card-grid cols-4">
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side.webp" alt="Beam Top Side">
+    <span class="wood-card-title">Beam Top Side</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side_oblique.webp" alt="Beam Top Side Oblique">
+    <span class="wood-card-title">Beam Top Side Oblique</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side_end.webp" alt="Beam Top Side End">
+    <span class="wood-card-title">Beam Top Side End</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side_end_past.webp" alt="Beam Top Side End Past">
+    <span class="wood-card-title">Beam Top Side End Past</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side_end_short.webp" alt="Beam Top Side End Short">
+    <span class="wood-card-title">Beam Top Side End Short</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_side_side_outplane.webp" alt="Beam Side Side Outplane">
+    <span class="wood-card-title">Beam Side Side Outplane</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_side_side_outplane_square.webp" alt="Beam Side Side Square">
+    <span class="wood-card-title">Beam Side Side Square</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_side_side_inplane.webp" alt="Beam Side Side Inplane">
+    <span class="wood-card-title">Beam Side Side Inplane</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_cross.webp" alt="Beam Cross">
+    <span class="wood-card-title">Beam Cross</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_top_side.webp" alt="Plate Top Side">
+    <span class="wood-card-title">Plate Top Side</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_top_side_end.webp" alt="Plate Top Side End">
+    <span class="wood-card-title">Plate Top Side End</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_side_side_outplane.webp" alt="Plate Side Side Outplane">
+    <span class="wood-card-title">Plate Side Side Outplane</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_side_side_inplane.webp" alt="Plate Side Side Inplane">
+    <span class="wood-card-title">Plate Side Side Inplane</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_top_side_floor.webp" alt="Plate Top Side Floor">
+    <span class="wood-card-title">Plate Top Side Floor</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_cross.webp" alt="Plate Cross">
+    <span class="wood-card-title">Plate Cross</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_column_top_side_plate.webp" alt="Column Top Side Plate">
+    <span class="wood-card-title">Column Top Side Plate</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_plate_top_side_beam.webp" alt="Plate Top Side Beam">
+    <span class="wood-card-title">Plate Top Side Beam</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_pair_beam_top_side_plate.webp" alt="Beam Top Side Plate">
+    <span class="wood-card-title">Beam Top Side Plate</span>
+  </div>
+</div>
 
 ```cpp
 #include "wood_session.h"
@@ -1456,34 +1688,34 @@ int main() {
 }
 ```
 
-### Multi-Member Butt Assemblies {#ex_23_butt_assemblies}
+---
 
-Combines pairwise butt joints into complete multi-member assemblies (`butt_<assembly>.pb`).
+## 23 Butt Assemblies {#ex_23_butt_assemblies}
 
-#### Brace Frame
-A post on a sill with a diagonal knee brace trimmed between them.
+Combines pairwise butt cuts into five complete multi-member assemblies: knee-braced frame, segmented arc sill, pentagonal floor with sloped wall, zigzag walls, and folded-plate roof.
 
-![](examples/butt_brace_frame.png)
-
-#### Curved Sill
-Two vertical posts landing on a segmented arc sill of eight beams.
-
-![](examples/butt_curved_sill.png)
-
-#### Polygon Floor
-Five perimeter walls (one with a sloped top edge) standing on a pentagonal floor plate.
-
-![](examples/butt_polygon_floor.png)
-
-#### Zigzag Walls
-Folded zigzag walls in plan standing on a flat floor plate.
-
-![](examples/butt_zigzag_walls.png)
-
-#### Folded Roof
-A zigzag folded-plate roof spanning over two gable end walls with overhanging eaves.
-
-![](examples/butt_folded_roof.png)
+<div class="wood-card-grid cols-4">
+  <div class="wood-card">
+    <img src="butt_brace_frame.webp" alt="Brace Frame">
+    <span class="wood-card-title">Brace Frame</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_curved_sill.webp" alt="Curved Sill">
+    <span class="wood-card-title">Curved Sill</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_polygon_floor.webp" alt="Polygon Floor">
+    <span class="wood-card-title">Polygon Floor</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_zigzag_walls.webp" alt="Zigzag Walls">
+    <span class="wood-card-title">Zigzag Walls</span>
+  </div>
+  <div class="wood-card">
+    <img src="butt_folded_roof.webp" alt="Folded Roof">
+    <span class="wood-card-title">Folded Roof</span>
+  </div>
+</div>
 
 ```cpp
 #include "wood_session.h"

@@ -3,18 +3,20 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SEAM_DEPTH = 2.0;
-const double TOOTH_HALF = 1.6;
-const double NECK_RATIO = 0.2917;
+const double SEAM_DEPTH = 1.5;
+const double TOOTH_HALF = 0.06;
+const double NECK_RATIO = 0.45;
 
-/// One butterfly tooth face in unit-cube space: y at the plate face, x signed across the seam, z along it.
-static Polyline tooth(const double y, const double depth) {
-    return Polyline(
-        {Point(0.0, y, TOOTH_HALF * NECK_RATIO),
-         Point(depth, y, TOOTH_HALF),
-         Point(depth, y, -TOOTH_HALF),
-         Point(0.0, y, -TOOTH_HALF * NECK_RATIO)}
-    );
+/// Three butterfly half-mortise teeth in unit-cube space: y at the plate face, x signed across the seam, z in [-0.5, 0.5] along it.
+static Polyline teeth(const double y, const double depth) {
+    std::vector<Point> pts;
+    for (const double cz : {0.28, 0.0, -0.28}) {
+        pts.emplace_back(0.0, y, cz + TOOTH_HALF * NECK_RATIO);
+        pts.emplace_back(depth, y, cz + TOOTH_HALF);
+        pts.emplace_back(depth, y, cz - TOOTH_HALF);
+        pts.emplace_back(0.0, y, cz - TOOTH_HALF * NECK_RATIO);
+    }
+    return Polyline(pts);
 }
 
 int main() {
@@ -29,8 +31,8 @@ int main() {
 
     wood_session.settings.joint_parameters[0 * 3 + 2] = 9;
     wood_session.settings.custom_joints["side_side_inplane"] = {
-        std::vector<Polyline>{tooth(-0.5, -SEAM_DEPTH), tooth(0.5, -SEAM_DEPTH)},
-        std::vector<Polyline>{tooth(-0.5, SEAM_DEPTH), tooth(0.5, SEAM_DEPTH)},
+        std::vector<Polyline>{teeth(-0.5, -SEAM_DEPTH), teeth(0.5, -SEAM_DEPTH)},
+        std::vector<Polyline>{teeth(-0.5, SEAM_DEPTH), teeth(0.5, SEAM_DEPTH)},
     };
 
     wood_session.compute_features(face_to_face);
