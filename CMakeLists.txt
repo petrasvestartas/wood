@@ -111,6 +111,7 @@ set(WOOD_SOURCES
     src/templates/floor/floor_guide.cpp
     src/templates/floor/floor.cpp
     src/templates/truss/truss_guide.cpp
+    src/templates/truss/truss_graph.cpp
     src/templates/truss/truss.cpp
     src/templates/module/framed_panel.cpp
     src/templates/module/module_contact.cpp
@@ -382,6 +383,7 @@ ADD_EXE(templates_grid_4_reference         examples/templates_grid_4_reference.c
 ADD_EXE(templates_grid_5_framing           examples/templates_grid_5_framing.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)
+ADD_EXE(templates_truss_3_bow                 examples/templates_truss_3_bow.cpp)
 ADD_EXE(element_plate                    examples/elements/element_plate.cpp)
 ADD_EXE(element_plate_holes              examples/elements/element_plate_holes.cpp)
 ADD_EXE(element_plate_session            examples/elements/element_plate_session.cpp)

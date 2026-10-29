@@ -44,7 +44,7 @@ void Truss::add_chords() {
         for (size_t s = 0; s < runs.size(); s++)
             add(std::make_shared<Beam>(
                     Polyline({runs[s][0], runs[s][1]}),
-                    guide.chord_radius,
+                    guide.chord_radii.empty() ? guide.chord_radius : guide.chord_radii[c],
                     fmt::format("chord_{}_{}", c, s)
                 ),
                 group_named("chords"));
@@ -56,14 +56,14 @@ void Truss::add_webs() {
     for (size_t w = 0; w < guide.webs.size(); w++)
         add(std::make_shared<Beam>(
                 Polyline({guide.webs[w].start(), guide.webs[w].end()}),
-                guide.web_radius,
+                guide.web_radii.empty() ? guide.web_radius : guide.web_radii[w],
                 fmt::format("web_{}", w)
             ),
             group_named("webs"));
     for (size_t p = 0; p < guide.posts.size(); p++)
         add(std::make_shared<Beam>(
                 Polyline({guide.posts[p].start(), guide.posts[p].end()}),
-                guide.chord_radius,
+                guide.post_radii.empty() ? guide.chord_radius : guide.post_radii[p],
                 fmt::format("post_{}", p)
             ),
             group_named("webs"));

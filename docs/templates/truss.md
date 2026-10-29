@@ -37,6 +37,10 @@ Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::
     <img src="truss_topology_optimised.png" alt="Topology Optimised">
     <span class="wood-card-title">Topology Optimised</span>
   </a>
+  <a class="wood-card" href="templates_truss_bow.html">
+    <img src="truss_bow_64.webp" alt="Bow 1873">
+    <span class="wood-card-title">Bow 1873 Catalogue</span>
+  </a>
 </div>
 
 ## Primary Inputs
@@ -690,6 +694,20 @@ TrussGuide::topology_optimised(double span = 12000.0, double height = 1800.0, do
 ```
 
 ![truss_topology_optimised](templates/truss_topology_optimised.png)
+
+## Graphs: Bow 1873 {#truss_graph}
+
+A truss is one topology: nodes, chords through them, webs and posts between them. `TrussGraph` stores exactly that, in
+spans, with its span and a section per member, and `TrussGraph::guide` draws it for the one `Truss` template, so a
+catalogue of designs is data, not a factory per design. The roof trusses and framed bridges of Bow's *Economics of Construction in relation to Framed
+Structures* (1873) are kept this way in `data/templates/truss_bow_1873.json` and built by `templates_truss_3_bow`.
+
+```cpp
+TrussGuide TrussGraph::guide() const;
+static std::vector<TrussGraph> TrussGraph::library(const std::filesystem::path& json_path);
+```
+
+- @subpage templates_truss_bow
 
 ## Library Runner
 

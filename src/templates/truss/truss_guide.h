@@ -20,14 +20,20 @@ public:
     std::vector<Line> posts; // Each post.
     double chord_radius = 80.0; // mm, half the chords' and the posts' square section.
     double web_radius = 60.0; // mm, half the webs' square section.
+    std::vector<double> chord_radii; // mm, half the square section of each chord; empty: chord_radius for all.
+    std::vector<double> web_radii; // mm, of each web; empty: web_radius for all.
+    std::vector<double> post_radii; // mm, of each post; empty: chord_radius for all.
 
-    /// A guide from its chords, webs and end posts and their half sections.
+    /// A guide from its chords, webs and end posts and their half sections, one for all or one per member.
     TrussGuide(
         const std::vector<Polyline>& chords,
         const std::vector<Line>& webs,
         const std::vector<Line>& posts = {},
         double chord_radius = 80.0,
-        double web_radius = 60.0
+        double web_radius = 60.0,
+        const std::vector<double>& chord_radii = {},
+        const std::vector<double>& web_radii = {},
+        const std::vector<double>& post_radii = {}
     );
 
     /// Each straight run of chord `chord`, from kink to kink: a member each.

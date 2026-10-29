@@ -11,9 +11,13 @@ TrussGuide::TrussGuide(
     const std::vector<Line>& webs,
     const std::vector<Line>& posts,
     double chord_radius,
-    double web_radius
+    double web_radius,
+    const std::vector<double>& chord_radii,
+    const std::vector<double>& web_radii,
+    const std::vector<double>& post_radii
 )
-    : chords(chords), webs(webs), posts(posts), chord_radius(chord_radius), web_radius(web_radius) {
+    : chords(chords), webs(webs), posts(posts), chord_radius(chord_radius), web_radius(web_radius),
+      chord_radii(chord_radii), web_radii(web_radii), post_radii(post_radii) {
 }
 
 std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
