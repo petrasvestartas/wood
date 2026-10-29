@@ -13,11 +13,12 @@ int main() {
         );
         drill->compute_geometry_mesh();
         Mesh drill_mesh = drill->geometry_mesh();
-        drill_mesh.set_objectcolor(Color(0.9, 0.35, 0.2));
+        drill_mesh.set_objectcolor(CUTTER_COLOR);
         drill->set_geometry(drill_mesh);
         scene.add(drill);
-        const BRep exact =
+        BRep exact =
             drill->element_geometry_brep().transformed(Xform::translation(180, 0, 0));
+        exact.surfacecolor = RESULT_COLOR;
         scene.add(std::make_shared<Element>(exact, "Exact cylindrical BRep"));
         ++row;
     }

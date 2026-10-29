@@ -30,12 +30,12 @@ int main() {
               << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
     Mesh male_mesh = male->model_geometry_mesh();
-    male_mesh.set_objectcolor(Color(0.24f, 0.58f, 0.78f));
+    male_mesh.set_objectcolor(Color(0.807f, 0.063f, 0.258f));
     male->is_visible = false;
     wood_session.add(std::make_shared<Element>(male_mesh, male->name + "_male"));
 
     Mesh female_mesh = female->model_geometry_mesh();
-    female_mesh.set_objectcolor(Color(0.90f, 0.38f, 0.22f));
+    female_mesh.set_objectcolor(Color(0.24f, 0.54f, 0.86f));
     female->is_visible = false;
     wood_session.add(std::make_shared<Element>(female_mesh, female->name + "_female"));
 

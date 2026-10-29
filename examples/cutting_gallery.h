@@ -5,6 +5,10 @@ namespace cutting_gallery {
 using namespace session_cpp;
 using namespace wood_session;
 
+inline const Color STOCK_COLOR(0.65f, 0.65f, 0.65f);
+inline const Color CUTTER_COLOR(0.807f, 0.063f, 0.258f);
+inline const Color RESULT_COLOR(0.24f, 0.54f, 0.86f);
+
 inline Polyline rectangle(double x, double y, double z, double w, double h) {
     return Polyline::rectangle({x, y, z}, {1, 0, 0}, {0, 1, 0}, w, h);
 }
@@ -37,7 +41,7 @@ inline void cut_case(
     const std::shared_ptr<TreeNode> group = scene.add_group(name);
     const Xform move = Xform::translation(600, row, 0);
     preview(
-        scene, stock->element_geometry_mesh(), "Stock", {0, row, 0}, Color(0.72, 0.55, 0.34), group
+        scene, stock->element_geometry_mesh(), "Stock", {0, row, 0}, STOCK_COLOR, group
     );
     stock->place(move);
     cutter->place(move);
@@ -53,7 +57,7 @@ inline void cut_case(
         stock->model_geometry_mesh(),
         "Result",
         {0, 0, 0},
-        Color(0.24, 0.58, 0.7),
+        RESULT_COLOR,
         group
     );
     cutter->place(Xform::translation(-300, 0, 0));
@@ -61,7 +65,7 @@ inline void cut_case(
     cutter->name = "Cutter (display copy of applied definition)";
     cutter->compute_geometry_mesh();
     Mesh cutter_mesh = cutter->geometry_mesh();
-    cutter_mesh.set_objectcolor(Color(0.9, 0.35, 0.2));
+    cutter_mesh.set_objectcolor(CUTTER_COLOR);
     cutter->set_geometry(cutter_mesh);
 }
 }
