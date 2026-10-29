@@ -953,34 +953,10 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         );
     }
 
-    // Structural rib hierarchy & single-plane T-section / miter cuts
-    const auto path_tier = [&](size_t p_idx) -> int {
-        const RibPathSpec& p = rib_paths[p_idx];
-        if (p.tier_override >= 0)
-            return p.tier_override;
-        if (p.role == "wall_arch")
-            return 0;
-        if (p.role == "diagonal_rib") {
-            const Point& u_pt = nodes[p.nodes.front()];
-            const Point& v_pt = nodes[p.nodes.back()];
-            const Point mid = u_pt + (v_pt - u_pt) * 0.5;
-            return (mid[0] * mid[1] >= 0.0 && p.nodes.size() >= 3 && p.nodes.front() == 0 && p.nodes.back() == 2)
-                       ? 0
-                       : 1;
-        }
-        if (p.role == "fan_rib")
-            return 1;
-        if (p.role == "ridge_rib")
-            return 2;
-        if (p.role == "tierceron_rib" || p.role == "net_rib")
-            return 3;
-        return 4;
-    };
-
-    const auto edge_tier = [&](size_t e_idx) -> int {
-        if (edges[e_idx].tier_override >= 0)
-            return edges[e_idx].tier_override;
-        return path_tier(edges[e_idx].path_idx);
+    // Continuous through-rib detection & exact miter / T-butt cuts at every node
+    const auto is_through_edge = [&](size_t e_idx, int node_id) -> bool {
+        const std::vector<int>& ch = rib_paths[edges[e_idx].path_idx].nodes;
+        return ch.size() >= 3 && node_id != ch.front() && node_id != ch.back();
     };
 
     const auto slope_pullback = [&](const Point& p_ref, const Vector& dir_out) -> double {
@@ -1032,43 +1008,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             return {Plane::from_point_normal(vp, curr.dir_xy)};
         }
 
-        int through_a = -1;
-        int through_b = -1;
-        int best_max_tier = 999;
-        int best_sum_tier = 999;
-        double best_dot = 1.0;
-        for (size_t a = 0; a < m; ++a) {
-            for (size_t b = a + 1; b < m; ++b) {
-                const double d = list[a].dir_xy.dot(list[b].dir_xy);
-                if (d < -0.985) {
-                    const int ta = edge_tier(list[a].edge_idx);
-                    const int tb = edge_tier(list[b].edge_idx);
-                    const int max_t = std::max(ta, tb);
-                    const int sum_t = ta + tb;
-                    if (max_t < best_max_tier ||
-                        (max_t == best_max_tier && sum_t < best_sum_tier) ||
-                        (max_t == best_max_tier && sum_t == best_sum_tier && d < best_dot)) {
-                        best_max_tier = max_t;
-                        best_sum_tier = sum_t;
-                        best_dot = d;
-                        through_a = static_cast<int>(a);
-                        through_b = static_cast<int>(b);
-                    }
-                }
-            }
-        }
-
-        if (pos == through_a || pos == through_b) {
-            const AdjItem& other = (pos == through_a) ? list[through_b] : list[through_a];
-            Vector n_join = curr.dir_xy - other.dir_xy;
-            if (n_join.magnitude() < 1e-6)
-                n_join = curr.dir_xy;
-            else
-                n_join.normalize_self();
-            trim_offset = -slope_pullback(vp, dir_out) - 25.0;
-            return {Plane::from_point_normal(vp, n_join)};
-        }
-
         // Exact cyclic wedge miter / through-rib T-butt against immediate CW (prev) and CCW (next) neighbors
         const size_t prev_idx = (static_cast<size_t>(pos) + m - 1) % m;
         const size_t next_idx = (static_cast<size_t>(pos) + 1) % m;
@@ -1079,9 +1018,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
 
         std::vector<Plane> planes;
         if (theta_prev > 0.02 && theta_prev < Tolerance::PI - 0.02) {
-            const bool prev_is_through =
-                (static_cast<int>(prev_idx) == through_a || static_cast<int>(prev_idx) == through_b);
-            if (prev_is_through) {
+            if (is_through_edge(prev_item.edge_idx, node_id)) {
                 const Vector n_prev(-prev_item.dir_xy[1], prev_item.dir_xy[0], 0.0);
                 const double hw_prev = 0.5 * rib_width * edges[prev_item.edge_idx].width_scale;
                 planes.push_back(Plane::from_point_normal(vp + n_prev * hw_prev, n_prev));
@@ -1096,9 +1033,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         }
 
         if (theta_next > 0.02 && theta_next < Tolerance::PI - 0.02) {
-            const bool next_is_through =
-                (static_cast<int>(next_idx) == through_a || static_cast<int>(next_idx) == through_b);
-            if (next_is_through) {
+            if (is_through_edge(next_item.edge_idx, node_id)) {
                 const Vector n_next(next_item.dir_xy[1], -next_item.dir_xy[0], 0.0);
                 const double hw_next = 0.5 * rib_width * edges[next_item.edge_idx].width_scale;
                 const Plane cand = Plane::from_point_normal(vp + n_next * hw_next, n_next);
@@ -1122,22 +1057,40 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         }
 
         const Vector u_perp(-curr.dir_xy[1], curr.dir_xy[0], 0.0);
-        double s_left = -1e9;
-        double s_right = -1e9;
+        std::vector<double> a_vals;
+        std::vector<double> b_vals;
+        a_vals.reserve(planes.size());
+        b_vals.reserve(planes.size());
         for (const Plane& pl : planes) {
             const double denom = std::max(0.05, curr.dir_xy.dot(pl.z_axis()));
-            const double base_num = (pl.origin() - vp).dot(pl.z_axis());
-            const double off = hw * u_perp.dot(pl.z_axis());
-            s_left = std::max(s_left, (base_num - off) / denom);
-            s_right = std::max(s_right, (base_num + off) / denom);
+            a_vals.push_back((pl.origin() - vp).dot(pl.z_axis()) / denom);
+            b_vals.push_back(u_perp.dot(pl.z_axis()) / denom);
         }
-        const double min_s = std::min(s_left, s_right);
+        std::vector<double> t_cands = {-hw, hw};
+        for (size_t i = 0; i < planes.size(); ++i) {
+            for (size_t j = i + 1; j < planes.size(); ++j) {
+                const double db = b_vals[i] - b_vals[j];
+                if (std::abs(db) > 1e-9) {
+                    const double t_star = (a_vals[j] - a_vals[i]) / db;
+                    if (t_star >= -hw && t_star <= hw)
+                        t_cands.push_back(t_star);
+                }
+            }
+        }
+        double min_s = 1e9;
+        for (const double tc : t_cands) {
+            double env = -1e9;
+            for (size_t i = 0; i < planes.size(); ++i)
+                env = std::max(env, a_vals[i] + b_vals[i] * tc);
+            min_s = std::min(min_s, env);
+        }
         const Point cut_ref = vp + dir_out * std::max(0.0, min_s);
         trim_offset = std::max(-0.45 * len_ref, min_s - slope_pullback(cut_ref, dir_out) - 20.0);
         return planes;
     };
 
     // Generate planar single-curved BeamCurved ribs strictly in their vertical planes
+    std::vector<std::shared_ptr<wood_session::BeamCurved>> path_beams(rib_paths.size());
     for (size_t p_idx = 0; p_idx < rib_paths.size(); ++p_idx) {
         const RibPathSpec& path = rib_paths[p_idx];
         const int u = path.nodes.front();
@@ -1208,7 +1161,69 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         );
         beam->cuts = std::move(cuts_u);
         beam->cuts.insert(beam->cuts.end(), cuts_v.begin(), cuts_v.end());
+        path_beams[p_idx] = beam;
         result.push_back(beam);
+    }
+
+    // Interlocking half-depth cross-lap joints wherever continuous ribs cross at an interior node
+    for (size_t nid = 4; nid < nodes.size(); ++nid) {
+        std::vector<size_t> through_paths;
+        for (size_t p_idx = 0; p_idx < rib_paths.size(); ++p_idx) {
+            if (!path_beams[p_idx])
+                continue;
+            const std::vector<int>& ch = rib_paths[p_idx].nodes;
+            for (size_t k = 1; k + 1 < ch.size(); ++k) {
+                if (ch[k] == static_cast<int>(nid)) {
+                    through_paths.push_back(p_idx);
+                    break;
+                }
+            }
+        }
+        if (through_paths.size() < 2)
+            continue;
+
+        const Point& vp = nodes[nid];
+        for (size_t ia = 0; ia < through_paths.size(); ++ia) {
+            for (size_t ib = ia + 1; ib < through_paths.size(); ++ib) {
+                const size_t pa = through_paths[ia];
+                const size_t pb = through_paths[ib];
+                const RibPathSpec& spec_a = rib_paths[pa];
+                const RibPathSpec& spec_b = rib_paths[pb];
+                Vector dir_a = nodes[spec_a.nodes.back()] - nodes[spec_a.nodes.front()];
+                Vector dir_b = nodes[spec_b.nodes.back()] - nodes[spec_b.nodes.front()];
+                dir_a[2] = 0.0;
+                dir_b[2] = 0.0;
+                if (dir_a.magnitude() < 1e-6 || dir_b.magnitude() < 1e-6)
+                    continue;
+                dir_a.normalize_self();
+                dir_b.normalize_self();
+                if (std::abs(dir_a.dot(dir_b)) > 0.995)
+                    continue;
+
+                const double hw_a = 0.5 * rib_width * spec_a.width_scale;
+                const double hw_b = 0.5 * rib_width * spec_b.width_scale;
+
+                Vector n_b(-dir_b[1], dir_b[0], 0.0);
+                if (dir_a.dot(n_b) < 0.0)
+                    n_b = n_b * -1.0;
+                path_beams[pa]->cross_laps.push_back({
+                    Plane::from_point_normal(vp - n_b * hw_b, n_b * -1.0),
+                    Plane::from_point_normal(vp + n_b * hw_b, n_b),
+                    false
+                });
+                path_beams[pa]->invalidate_geometry();
+
+                Vector n_a(-dir_a[1], dir_a[0], 0.0);
+                if (dir_b.dot(n_a) < 0.0)
+                    n_a = n_a * -1.0;
+                path_beams[pb]->cross_laps.push_back({
+                    Plane::from_point_normal(vp - n_a * hw_a, n_a * -1.0),
+                    Plane::from_point_normal(vp + n_a * hw_a, n_a),
+                    true
+                });
+                path_beams[pb]->invalidate_geometry();
+            }
+        }
     }
 
     // Generate K-gon trimmed NURBS BRep infill panels in each minimal interior cell
@@ -1335,10 +1350,9 @@ star_vault(double span, double rise, double thickness, double star, double rib, 
         }
     };
 
-    // 4 perimeter wall arches, 3 diagonal ribs (1 continuous SW-NE + 2 half-diagonals), 4 full ridge liernes, 8 tiercerons = 19 ribs
+    // 4 perimeter wall arches, 2 interlocking continuous diagonal arches, 4 full ridge liernes, 8 tiercerons = 18 ribs
     add_rib({0, 8, 2}, 0);
-    add_rib({1, 8}, 1);
-    add_rib({3, 8}, 1);
+    add_rib({1, 8, 3}, 1);
     for (int i = 0; i < 4; ++i) {
         const int next = (i + 1) % 4;
         add_rib({i, 9 + i, next}, 0);
@@ -1432,8 +1446,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     if (pattern == GothicPattern::quadripartite) {
         // Bern Cathedral / Wells classic quadripartite cross vault
         add_rib_path({0, 8, 2}, 1.0, "diagonal_rib");
-        add_rib_path({1, 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, 8}, 1.0, "diagonal_rib");
+        add_rib_path({1, 8, 3}, 1.0, "diagonal_rib");
         for (int i = 0; i < 4; ++i)
             add_rib_path({4 + i, 8}, 1.0, "ridge_rib");
     } else if (pattern == GothicPattern::tierceron) {
@@ -1445,8 +1458,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_node(-0.5 * hx, 0.0)
         };
         add_rib_path({0, 8, 2}, 1.0, "diagonal_rib");
-        add_rib_path({1, 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, 8}, 1.0, "diagonal_rib");
+        add_rib_path({1, 8, 3}, 1.0, "diagonal_rib");
         for (int i = 0; i < 4; ++i) {
             const int c_next = (i + 1) % 4;
             add_rib_path({4 + i, r_nodes[i], 8}, 1.0, "ridge_rib");
@@ -1470,8 +1482,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_node(-d * hx,  d * hy)
         };
         add_rib_path({0, d_nodes[0], 8, d_nodes[2], 2}, 1.0, "diagonal_rib");
-        add_rib_path({1, d_nodes[1], 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, d_nodes[3], 8}, 1.0, "diagonal_rib");
+        add_rib_path({1, d_nodes[1], 8, d_nodes[3], 3}, 1.0, "diagonal_rib");
         for (int i = 0; i < 4; ++i) {
             const int next = (i + 1) % 4;
             const int prev = (i + 3) % 4;
@@ -1505,8 +1516,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_node(-d_mid * hx,  d_mid * hy)
         };
         add_rib_path({0, dn[0], 8, dn[2], 2}, 1.0, "diagonal_rib");
-        add_rib_path({1, dn[1], 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, dn[3], 8}, 1.0, "diagonal_rib");
+        add_rib_path({1, dn[1], 8, dn[3], 3}, 1.0, "diagonal_rib");
         for (int i = 0; i < 4; ++i) {
             const int next = (i + 1) % 4;
             const int prev = (i + 3) % 4;
@@ -1519,7 +1529,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_rib_path({dn[i], ro[prev]}, 1.0, "lierne_rib");
         }
     } else if (pattern == GothicPattern::net_reticulated) {
-        // Bern Cathedral Choir / Parler reticulated diamond-lattice net vault (all cells within single cylinder quadrants)
+        // Bern Cathedral Choir / Parler reticulated diamond-lattice net vault (collinear crossing net chords: 2*0.525*0.21/(0.525+0.21) == 0.30)
         const std::array<int, 4> q_nodes = {
             add_node(0.0, -0.62 * hy),
             add_node(0.62 * hx, 0.0),
@@ -1533,22 +1543,23 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_node(-0.30 * hx, 0.0)
         };
         const std::array<int, 4> d_outer = {
-            add_node(-0.52 * hx, -0.52 * hy),
-            add_node( 0.52 * hx, -0.52 * hy),
-            add_node( 0.52 * hx,  0.52 * hy),
-            add_node(-0.52 * hx,  0.52 * hy)
+            add_node(-0.525 * hx, -0.525 * hy),
+            add_node( 0.525 * hx, -0.525 * hy),
+            add_node( 0.525 * hx,  0.525 * hy),
+            add_node(-0.525 * hx,  0.525 * hy)
         };
         const std::array<int, 4> d_inner = {
-            add_node(-0.24 * hx, -0.24 * hy),
-            add_node( 0.24 * hx, -0.24 * hy),
-            add_node( 0.24 * hx,  0.24 * hy),
-            add_node(-0.24 * hx,  0.24 * hy)
+            add_node(-0.21 * hx, -0.21 * hy),
+            add_node( 0.21 * hx, -0.21 * hy),
+            add_node( 0.21 * hx,  0.21 * hy),
+            add_node(-0.21 * hx,  0.21 * hy)
         };
         add_rib_path(
             {0, d_outer[0], d_inner[0], 8, d_inner[2], d_outer[2], 2}, 1.0, "diagonal_rib"
         );
-        add_rib_path({1, d_outer[1], d_inner[1], 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, d_outer[3], d_inner[3], 8}, 1.0, "diagonal_rib");
+        add_rib_path(
+            {1, d_outer[1], d_inner[1], 8, d_inner[3], d_outer[3], 3}, 1.0, "diagonal_rib"
+        );
         for (int i = 0; i < 4; ++i) {
             const int next = (i + 1) % 4;
             const int prev = (i + 3) % 4;
@@ -1557,10 +1568,8 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             add_rib_path({next, q_nodes[i]}, 1.0, "tierceron_rib");
             add_rib_path({d_outer[i], q_nodes[i]}, 1.0, "net_rib");
             add_rib_path({d_outer[i], q_nodes[prev]}, 1.0, "net_rib");
-            add_rib_path({d_outer[i], r_inner[i]}, 1.0, "net_rib");
-            add_rib_path({d_outer[i], r_inner[prev]}, 1.0, "net_rib");
-            add_rib_path({d_inner[i], r_inner[i]}, 1.0, "net_rib");
-            add_rib_path({d_inner[i], r_inner[prev]}, 1.0, "net_rib");
+            add_rib_path({d_outer[i], r_inner[i], d_inner[next]}, 1.0, "net_rib");
+            add_rib_path({d_outer[next], r_inner[i], d_inner[i]}, 1.0, "net_rib");
         }
     } else if (pattern == GothicPattern::fan_conoid) {
         // Polygonal fan vault on intersecting circular barrel cylinders (straight radiating fan ribs + straight polygonal collar ribs)
@@ -1608,10 +1617,9 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             const int next = (i + 1) % 4;
             add_rib_path({i, w_col[i][0], 4 + i, w_col[i][1], next}, 1.0, "wall_arch");
         }
-        // Unbroken primary SW-NE diagonal and secondary SE-NW half-diagonals
+        // Two interlocking unbroken diagonal arches
         add_rib_path({0, d_col[0], 8, d_col[2], 2}, 1.0, "diagonal_rib");
-        add_rib_path({1, d_col[1], 8}, 1.0, "diagonal_rib");
-        add_rib_path({3, d_col[3], 8}, 1.0, "diagonal_rib");
+        add_rib_path({1, d_col[1], 8, d_col[3], 3}, 1.0, "diagonal_rib");
 
         // Unbroken ridge ribs, radiating fan ribs from corners to ridge, and straight horizontal collar ribs
         for (int i = 0; i < 4; ++i) {

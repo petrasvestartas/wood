@@ -23,8 +23,17 @@ public:
     int num_height = 4; // Number of lamella layers across height.
     int samples = 32; // Number of cross-section subdivisions along the curve.
     double extension = 0.0; // Straight tangent extension past each end of centreline.
+    struct CrossLap {
+        Plane plane_a; // First cheek plane (normal pointing away from the notch toward curve start).
+        Plane plane_b; // Second cheek plane (normal pointing away from the notch toward curve end).
+        bool upper_notch =
+            false; // True removes upper half [0, +height/2]; false removes lower half [-height/2, 0].
+    };
+
     std::vector<Plane>
         cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
+    std::vector<CrossLap>
+        cross_laps; // Half-depth cross-lap notches along the beam; call invalidate_geometry() after assigning.
 
 protected:
     /// The solid trimmed by its cut planes as a Mesh, before the solid cuts.

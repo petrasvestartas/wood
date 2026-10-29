@@ -337,6 +337,17 @@ std::shared_ptr<BeamCurved> BeamCurved::from_element(Element e) {
             for (const nlohmann::json& cut : payload["cuts"])
                 beam->cuts.push_back(Plane::jsonload(cut));
 
+        if (payload.contains("cross_laps"))
+            for (const nlohmann::json& lap_j : payload["cross_laps"]) {
+                CrossLap lap;
+                if (lap_j.contains("plane_a"))
+                    lap.plane_a = Plane::jsonload(lap_j["plane_a"]);
+                if (lap_j.contains("plane_b"))
+                    lap.plane_b = Plane::jsonload(lap_j["plane_b"]);
+                lap.upper_notch = lap_j.value("upper_notch", false);
+                beam->cross_laps.push_back(lap);
+            }
+
         if (payload.contains("solid_features"))
             for (const nlohmann::json& raw : payload["solid_features"]) {
                 const std::vector<uint8_t> vec = raw.get<std::vector<uint8_t>>();
@@ -691,11 +702,36 @@ const BRep& BeamCurved::element_geometry_brep() const {
 }
 
 Mesh BeamCurved::trimmed_mesh() const {
-    return cut_mesh(stock_mesh(), cuts);
+    Mesh m = cut_mesh(stock_mesh(), cuts);
+    if (cross_laps.empty() || !centreline.is_valid() || width <= 0.0 || height <= 0.0)
+        return m;
+
+    const std::vector<Plane> station_frames = frames();
+    if (station_frames.size() < 2)
+        return m;
+
+    for (const CrossLap& lap : cross_laps) {
+        const double x0 = -1.5 * width;
+        const double x1 = 1.5 * width;
+        const double y0 = lap.upper_notch ? 0.0 : -1.5 * height;
+        const double y1 = lap.upper_notch ? 1.5 * height : 0.0;
+        std::vector<Polyline> cutter_rings;
+        cutter_rings.reserve(station_frames.size());
+        for (const Plane& fr : station_frames)
+            cutter_rings.push_back(section_in_plane(fr, x0, y0, x1, y1));
+        const std::vector<Plane> clip_planes = {
+            Plane::from_point_normal(lap.plane_a.origin(), lap.plane_a.z_axis() * -1.0),
+            Plane::from_point_normal(lap.plane_b.origin(), lap.plane_b.z_axis() * -1.0),
+        };
+        const Mesh cutter = cut_mesh(sweep_sections(cutter_rings), clip_planes);
+        if (cutter.number_of_faces() > 0)
+            m = solid_boolean(m, cutter, SolidOperation::subtract);
+    }
+    return m;
 }
 
 BRep BeamCurved::trimmed_brep() const {
-    if (cuts.empty())
+    if (cuts.empty() && cross_laps.empty())
         return element_geometry_brep();
 
     if (!centreline.is_valid() || width <= 0.0 || height <= 0.0)
@@ -730,114 +766,149 @@ BRep BeamCurved::trimmed_brep() const {
 
     const double hx = 0.5 * width;
     const double hy = 0.5 * height;
-    // 6 longitudinal fibres: 0=bot_L, 1=bot_R, 2=top_R, 3=top_L, 4=bot_M, 5=top_M
-    const std::array<double, 6> fx = {-hx, hx, hx, -hx, 0.0, 0.0};
-    const std::array<double, 6> fy = {-hy, -hy, hy, hy, -hy, hy};
+    const std::array<double, 4> fx = {-hx, hx, hx, -hx};
+    const std::array<double, 4> fy = {-hy, -hy, hy, hy};
 
-    const auto fibre_point = [&](size_t f, double u_norm) -> Point {
+    const auto eval_pt = [&](double x_off, double y_off, double u_norm) -> Point {
         const Plane fr = extended_plane_at(u_norm);
-        return fr.origin() + fr.x_axis() * fx[f] + fr.y_axis() * fy[f];
+        return fr.origin() + fr.x_axis() * x_off + fr.y_axis() * y_off;
     };
 
     const int n_scan = std::max(32, samples);
     const double u_lo_bound = -0.35;
     const double u_hi_bound = 1.35;
 
-    std::array<double, 6> s0_arr{};
-    std::array<double, 6> s1_arr{};
-    std::array<int, 6> front_cutter = {-1, -1, -1, -1, -1, -1};
-    std::array<int, 6> back_cutter  = {-1, -1, -1, -1, -1, -1};
-
-    for (size_t f = 0; f < 6; f++) {
-        // Default untrimmed parameter range [0, 1]
-        double s0 = 0.0;
-        double s1 = 1.0;
-        bool has_front = false;
-        bool has_back = false;
-
-        for (size_t p_idx = 0; p_idx < cuts.size(); p_idx++) {
-            const Plane& plane = cuts[p_idx];
-            const auto sd = [&](double u) -> double {
-                return (fibre_point(f, u) - plane.origin()).dot(plane.z_axis());
-            };
-
-            const double d_lo  = sd(u_lo_bound);
-            const double d_mid = sd(0.5);
-            const double d_hi  = sd(u_hi_bound);
-
-            if (d_lo < -Tolerance::APPROXIMATION && d_mid < -Tolerance::APPROXIMATION &&
-                d_hi < -Tolerance::APPROXIMATION)
-                return mesh_brep(trimmed_mesh());
-
-            // Front cut plane: negative at u_lo_bound, positive at u_mid
-            if (d_lo < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION) {
-                double a = u_lo_bound;
-                double b = 0.5;
-                for (int k = 1; k <= n_scan; k++) {
-                    const double u_k =
-                        u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k) / n_scan;
-                    if (sd(u_k) >= 0.0) {
-                        b = u_k;
-                        a = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k - 1) / n_scan;
-                        break;
-                    }
-                }
-                for (int it = 0; it < 44; it++) {
-                    const double m = 0.5 * (a + b);
-                    if (sd(m) < 0.0)
-                        a = m;
-                    else
-                        b = m;
-                }
-                const double cand = 0.5 * (a + b);
-                if (!has_front || cand > s0) {
-                    s0 = cand;
-                    front_cutter[f] = static_cast<int>(p_idx);
-                    has_front = true;
-                }
+    const auto bisect_front = [&](const Plane& plane, double x_off, double y_off, double& out_u) -> bool {
+        const auto sd = [&](double u) -> double {
+            return (eval_pt(x_off, y_off, u) - plane.origin()).dot(plane.z_axis());
+        };
+        const double d_lo = sd(u_lo_bound);
+        const double d_mid = sd(0.5);
+        if (!(d_lo < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION))
+            return false;
+        double a = u_lo_bound;
+        double b = 0.5;
+        for (int k = 1; k <= n_scan; k++) {
+            const double u_k = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k) / n_scan;
+            if (sd(u_k) >= 0.0) {
+                b = u_k;
+                a = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k - 1) / n_scan;
+                break;
             }
+        }
+        for (int it = 0; it < 44; it++) {
+            const double mid = 0.5 * (a + b);
+            if (sd(mid) < 0.0)
+                a = mid;
+            else
+                b = mid;
+        }
+        out_u = 0.5 * (a + b);
+        return true;
+    };
 
-            // Back cut plane: negative at u_hi_bound, positive at u_mid
-            if (d_hi < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION) {
-                double a = 0.5;
-                double b = u_hi_bound;
-                for (int k = n_scan - 1; k >= 0; k--) {
-                    const double u_k =
-                        0.1 + (u_hi_bound - 0.1) * static_cast<double>(k) / n_scan;
-                    if (sd(u_k) >= 0.0) {
-                        a = u_k;
-                        b = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k + 1) / n_scan;
-                        break;
-                    }
-                }
-                for (int it = 0; it < 44; it++) {
-                    const double m = 0.5 * (a + b);
-                    if (sd(m) >= 0.0)
-                        a = m;
-                    else
-                        b = m;
-                }
-                const double cand = 0.5 * (a + b);
-                if (!has_back || cand < s1) {
-                    s1 = cand;
-                    back_cutter[f] = static_cast<int>(p_idx);
-                    has_back = true;
+    const auto bisect_back = [&](const Plane& plane, double x_off, double y_off, double& out_u) -> bool {
+        const auto sd = [&](double u) -> double {
+            return (eval_pt(x_off, y_off, u) - plane.origin()).dot(plane.z_axis());
+        };
+        const double d_mid = sd(0.5);
+        const double d_hi = sd(u_hi_bound);
+        if (!(d_hi < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION))
+            return false;
+        double a = 0.5;
+        double b = u_hi_bound;
+        for (int k = n_scan - 1; k >= 0; k--) {
+            const double u_k = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k) / n_scan;
+            if (sd(u_k) >= 0.0) {
+                a = u_k;
+                b = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k + 1) / n_scan;
+                break;
+            }
+        }
+        for (int it = 0; it < 44; it++) {
+            const double mid = 0.5 * (a + b);
+            if (sd(mid) >= 0.0)
+                a = mid;
+            else
+                b = mid;
+        }
+        out_u = 0.5 * (a + b);
+        return true;
+    };
+
+    const auto front_envelope = [&](double v_frac, double y_off, int& win_idx) -> double {
+        const double x_off = (-0.5 + v_frac) * width;
+        double best_u = 0.0;
+        bool has = false;
+        win_idx = -1;
+        for (size_t p_idx = 0; p_idx < cuts.size(); p_idx++) {
+            double cand = 0.0;
+            if (bisect_front(cuts[p_idx], x_off, y_off, cand)) {
+                if (!has || cand > best_u) {
+                    best_u = cand;
+                    win_idx = static_cast<int>(p_idx);
+                    has = true;
                 }
             }
         }
-        if (s0 >= s1)
-            return mesh_brep(trimmed_mesh());
-        s0_arr[f] = s0;
-        s1_arr[f] = s1;
+        return best_u;
+    };
+
+    const auto back_envelope = [&](double v_frac, double y_off, int& win_idx) -> double {
+        const double x_off = (-0.5 + v_frac) * width;
+        double best_u = 1.0;
+        bool has = false;
+        win_idx = -1;
+        for (size_t p_idx = 0; p_idx < cuts.size(); p_idx++) {
+            double cand = 1.0;
+            if (bisect_back(cuts[p_idx], x_off, y_off, cand)) {
+                if (!has || cand < best_u) {
+                    best_u = cand;
+                    win_idx = static_cast<int>(p_idx);
+                    has = true;
+                }
+            }
+        }
+        return best_u;
+    };
+
+    for (size_t f = 0; f < 4; f++) {
+        for (const Plane& plane : cuts) {
+            const double d_lo = (eval_pt(fx[f], fy[f], u_lo_bound) - plane.origin()).dot(plane.z_axis());
+            const double d_mid = (eval_pt(fx[f], fy[f], 0.5) - plane.origin()).dot(plane.z_axis());
+            const double d_hi = (eval_pt(fx[f], fy[f], u_hi_bound) - plane.origin()).dot(plane.z_axis());
+            if (d_lo < -Tolerance::APPROXIMATION && d_mid < -Tolerance::APPROXIMATION &&
+                d_hi < -Tolerance::APPROXIMATION)
+                return mesh_brep(trimmed_mesh());
+        }
     }
 
-    const auto sample_fibre = [&](size_t f, double sa, double sb) -> NurbsCurve {
+    std::array<double, 4> s0_arr{};
+    std::array<double, 4> s1_arr{};
+    std::array<int, 4> front_cutter = {-1, -1, -1, -1};
+    std::array<int, 4> back_cutter  = {-1, -1, -1, -1};
+
+    s0_arr[0] = front_envelope(0.0, -hy, front_cutter[0]);
+    s0_arr[1] = front_envelope(1.0, -hy, front_cutter[1]);
+    s0_arr[2] = front_envelope(1.0,  hy, front_cutter[2]);
+    s0_arr[3] = front_envelope(0.0,  hy, front_cutter[3]);
+
+    s1_arr[0] = back_envelope(0.0, -hy, back_cutter[0]);
+    s1_arr[1] = back_envelope(1.0, -hy, back_cutter[1]);
+    s1_arr[2] = back_envelope(1.0,  hy, back_cutter[2]);
+    s1_arr[3] = back_envelope(0.0,  hy, back_cutter[3]);
+
+    for (size_t f = 0; f < 4; f++)
+        if (s0_arr[f] >= s1_arr[f])
+            return mesh_brep(trimmed_mesh());
+
+    const auto sample_fibre_xy = [&](double x_off, double y_off, double sa, double sb) -> NurbsCurve {
         const int count = std::max(8, samples);
         std::vector<Point> sub_pts;
         sub_pts.reserve(count + 1);
         for (int j = 0; j <= count; j++) {
             const double u = sa + (sb - sa) * static_cast<double>(j) / static_cast<double>(count);
-            sub_pts.push_back(fibre_point(f, u));
+            sub_pts.push_back(eval_pt(x_off, y_off, u));
         }
         return unit_domain(NurbsCurve::create_interpolated(
             sub_pts, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
@@ -851,178 +922,466 @@ BRep BeamCurved::trimmed_brep() const {
         (back_cutter[0] == back_cutter[1] && back_cutter[2] == back_cutter[3] &&
          back_cutter[0] == back_cutter[2]);
 
-    if (single_front && single_back) {
+    if (cross_laps.empty() && single_front && single_back) {
         std::array<NurbsCurve, 4> trimmed_corners;
         for (size_t k = 0; k < 4; k++)
-            trimmed_corners[k] = sample_fibre(k, s0_arr[k], s1_arr[k]);
+            trimmed_corners[k] = sample_fibre_xy(fx[k], fy[k], s0_arr[k], s1_arr[k]);
         if (trimmed_corners[0].is_valid() && trimmed_corners[1].is_valid() &&
             trimmed_corners[2].is_valid() && trimmed_corners[3].is_valid())
             return solid_from_four_edges(trimmed_corners, name);
         return mesh_brep(trimmed_mesh());
     }
 
-    // Multi-plane wedge miter at one or both ends: build a closed NURBS BRep with
-    // untrimmed ruled left/right NURBS faces, planar miter cap faces, and trimmed NURBS
-    // top/bottom surfaces (zero internal subdivision lines).
-    double s_min = s0_arr[0];
-    double s_max = s1_arr[0];
-    for (size_t f = 0; f < 6; f++) {
-        s_min = std::min(s_min, s0_arr[f]);
-        s_max = std::max(s_max, s1_arr[f]);
+    // Solve exact lateral v_frac in (0, 1) where left and right miter planes meet (not hardcoded 0.5)
+    const auto solve_miter_v = [&](bool is_front, double y_off, int c_left, int c_right, double& out_v, double& out_u) {
+        if (c_left == c_right) {
+            out_v = 0.5;
+            int dummy = -1;
+            out_u = is_front ? front_envelope(0.5, y_off, dummy) : back_envelope(0.5, y_off, dummy);
+            return;
+        }
+        double lo = 0.0;
+        double hi = 1.0;
+        for (int it = 0; it < 40; it++) {
+            const double mid = 0.5 * (lo + hi);
+            int win = -1;
+            if (is_front)
+                front_envelope(mid, y_off, win);
+            else
+                back_envelope(mid, y_off, win);
+            if (win == c_left)
+                lo = mid;
+            else
+                hi = mid;
+        }
+        out_v = std::clamp(0.5 * (lo + hi), 0.005, 0.995);
+        int dummy = -1;
+        out_u = is_front ? front_envelope(out_v, y_off, dummy) : back_envelope(out_v, y_off, dummy);
+    };
+
+    double vf_bot = 0.5, uf_bot = 0.0;
+    double vf_top = 0.5, uf_top = 0.0;
+    if (!single_front) {
+        solve_miter_v(true, -hy, front_cutter[0], front_cutter[1], vf_bot, uf_bot);
+        solve_miter_v(true,  hy, front_cutter[3], front_cutter[2], vf_top, uf_top);
     }
+
+    double vb_bot = 0.5, ub_bot = 1.0;
+    double vb_top = 0.5, ub_top = 1.0;
+    if (!single_back) {
+        solve_miter_v(false, -hy, back_cutter[0], back_cutter[1], vb_bot, ub_bot);
+        solve_miter_v(false,  hy, back_cutter[3], back_cutter[2], vb_top, ub_top);
+    }
+
+    double s_min = std::min({s0_arr[0], s0_arr[1], s0_arr[2], s0_arr[3]});
+    double s_max = std::max({s1_arr[0], s1_arr[1], s1_arr[2], s1_arr[3]});
+    if (!single_front)
+        s_min = std::min({s_min, uf_bot, uf_top});
+    if (!single_back)
+        s_max = std::max({s_max, ub_bot, ub_top});
     if (s_max <= s_min + 1e-6)
         return mesh_brep(trimmed_mesh());
 
-    const NurbsCurve full_inner_a = sample_fibre(0, s_min, s_max); // bot_L (v=0)
-    const NurbsCurve full_inner_b = sample_fibre(1, s_min, s_max); // bot_R (v=1)
-    const NurbsCurve full_outer_b = sample_fibre(2, s_min, s_max); // top_R (v=1)
-    const NurbsCurve full_outer_a = sample_fibre(3, s_min, s_max); // top_L (v=0)
+    // Resolve any interior half-lap cross notches
+    struct ResolvedLap {
+        bool upper = false;
+        double ua_botL = 0.0, ua_midL = 0.0, ua_topL = 0.0;
+        double ua_botR = 0.0, ua_midR = 0.0, ua_topR = 0.0;
+        double ub_botL = 0.0, ub_midL = 0.0, ub_topL = 0.0;
+        double ub_botR = 0.0, ub_midR = 0.0, ub_topR = 0.0;
+    };
+    std::vector<ResolvedLap> laps;
 
-    const NurbsSurface above = Primitives::create_ruled(full_outer_a, full_outer_b);
-    NurbsSurface below = Primitives::create_ruled(full_inner_a, full_inner_b);
-    below.transpose();
+    for (const CrossLap& lap : cross_laps) {
+        const auto bisect_lap = [&](const Plane& pl, double x_off, double y_off, double& out_u) -> bool {
+            const auto sd = [&](double u) -> double {
+                return (eval_pt(x_off, y_off, u) - pl.origin()).dot(pl.z_axis());
+            };
+            const double f0 = sd(s_min);
+            const double f1 = sd(s_max);
+            if ((f0 >= 0.0 && f1 >= 0.0) || (f0 <= 0.0 && f1 <= 0.0))
+                return false;
+            double a = s_min;
+            double b = s_max;
+            for (int it = 0; it < 48; it++) {
+                const double m = 0.5 * (a + b);
+                if ((sd(m) >= 0.0) == (f0 >= 0.0))
+                    a = m;
+                else
+                    b = m;
+            }
+            out_u = 0.5 * (a + b);
+            return true;
+        };
+
+        ResolvedLap rl;
+        rl.upper = lap.upper_notch;
+        if (!bisect_lap(lap.plane_a, -hx, -hy, rl.ua_botL) ||
+            !bisect_lap(lap.plane_a, -hx, 0.0, rl.ua_midL) ||
+            !bisect_lap(lap.plane_a, -hx,  hy, rl.ua_topL) ||
+            !bisect_lap(lap.plane_a,  hx, -hy, rl.ua_botR) ||
+            !bisect_lap(lap.plane_a,  hx, 0.0, rl.ua_midR) ||
+            !bisect_lap(lap.plane_a,  hx,  hy, rl.ua_topR) ||
+            !bisect_lap(lap.plane_b, -hx, -hy, rl.ub_botL) ||
+            !bisect_lap(lap.plane_b, -hx, 0.0, rl.ub_midL) ||
+            !bisect_lap(lap.plane_b, -hx,  hy, rl.ub_topL) ||
+            !bisect_lap(lap.plane_b,  hx, -hy, rl.ub_botR) ||
+            !bisect_lap(lap.plane_b,  hx, 0.0, rl.ub_midR) ||
+            !bisect_lap(lap.plane_b,  hx,  hy, rl.ub_topR))
+            return mesh_brep(trimmed_mesh());
+        if (rl.ua_botL >= rl.ub_botL || rl.ua_midL >= rl.ub_midL || rl.ua_topL >= rl.ub_topL ||
+            rl.ua_botR >= rl.ub_botR || rl.ua_midR >= rl.ub_midR || rl.ua_topR >= rl.ub_topR)
+            return mesh_brep(trimmed_mesh());
+        laps.push_back(rl);
+    }
+
+    std::sort(laps.begin(), laps.end(), [](const ResolvedLap& a, const ResolvedLap& b) {
+        return a.ua_midL < b.ua_midL;
+    });
 
     const auto norm_u = [&](double s) -> double {
         return std::clamp((s - s_min) / (s_max - s_min), 0.0, 1.0);
     };
 
-    struct PerimStation {
-        double u_top = 0.0;
-        double u_bot = 0.0;
-        double v = 0.0;
-        bool curved_to_next = false;
-    };
+    const NurbsCurve rail_bot_L = sample_fibre_xy(-hx, -hy, s_min, s_max);
+    const NurbsCurve rail_bot_R = sample_fibre_xy( hx, -hy, s_min, s_max);
+    const NurbsCurve rail_mid_L = sample_fibre_xy(-hx, 0.0, s_min, s_max);
+    const NurbsCurve rail_mid_R = sample_fibre_xy( hx, 0.0, s_min, s_max);
+    const NurbsCurve rail_top_L = sample_fibre_xy(-hx,  hy, s_min, s_max);
+    const NurbsCurve rail_top_R = sample_fibre_xy( hx,  hy, s_min, s_max);
 
-    std::vector<PerimStation> loop;
-    // 0: Front-Left (v=0), followed by curved left side edge to Back-Left
-    loop.push_back({norm_u(s0_arr[3]), norm_u(s0_arr[0]), 0.0, true});
-    // 1: Back-Left (v=0)
-    loop.push_back({norm_u(s1_arr[3]), norm_u(s1_arr[0]), 0.0, false});
-    // Optional Back-Mid apex (v=0.5) when back has two miter planes
-    if (!single_back)
-        loop.push_back({norm_u(s1_arr[5]), norm_u(s1_arr[4]), 0.5, false});
-    // Back-Right (v=1), followed by curved right side edge to Front-Right
-    loop.push_back({norm_u(s1_arr[2]), norm_u(s1_arr[1]), 1.0, true});
-    // Front-Right (v=1)
-    loop.push_back({norm_u(s0_arr[2]), norm_u(s0_arr[1]), 1.0, false});
-    // Optional Front-Mid apex (v=0.5) when front has two miter planes
-    if (!single_front)
-        loop.push_back({norm_u(s0_arr[5]), norm_u(s0_arr[4]), 0.5, false});
+    const NurbsSurface surf_above = Primitives::create_ruled(rail_top_L, rail_top_R);
+    NurbsSurface surf_below = Primitives::create_ruled(rail_bot_L, rail_bot_R);
+    surf_below.transpose();
+    const NurbsSurface surf_left = Primitives::create_ruled(rail_bot_L, rail_top_L);
+    NurbsSurface surf_right = Primitives::create_ruled(rail_bot_R, rail_top_R);
+    surf_right.transpose();
 
-    const size_t m = loop.size();
     BRep brep;
     brep.name = name;
-    const int s_below = brep.add_surface(below);
-    const int s_above = brep.add_surface(above);
+    const int sid_above = brep.add_surface(surf_above);
+    const int sid_below = brep.add_surface(surf_below);
+    const int sid_left  = brep.add_surface(surf_left);
+    const int sid_right = brep.add_surface(surf_right);
 
-    std::vector<int> v_inner(m);
-    std::vector<int> v_outer(m);
-    for (size_t k = 0; k < m; k++) {
-        v_inner[k] = brep.add_vertex(below.point_at(loop[k].v, loop[k].u_bot));
-        v_outer[k] = brep.add_vertex(above.point_at(loop[k].u_top, loop[k].v));
-    }
+    std::map<std::pair<int, int>, int> edge_map;
+    const auto get_edge = [&](int va, int vb, const std::function<NurbsCurve()>& make_crv) -> int {
+        const std::pair<int, int> key = {std::min(va, vb), std::max(va, vb)};
+        const auto it = edge_map.find(key);
+        if (it != edge_map.end())
+            return it->second;
+        NurbsCurve crv = make_crv();
+        if (va != key.first)
+            crv.reverse();
+        const int eid = brep.add_edge(brep.add_curve_3d(unit_domain(crv)), key.first, key.second);
+        edge_map[key] = eid;
+        return eid;
+    };
 
-    std::vector<int> e_inner(m);
-    std::vector<int> e_outer(m);
-    std::vector<int> e_rise(m);
-    std::vector<NurbsCurve> curves_bot(m);
-    std::vector<NurbsCurve> curves_top(m);
-    const int n_eval = std::max(8, samples);
-
-    for (size_t k = 0; k < m; k++) {
-        const size_t next = (k + 1) % m;
-        if (loop[k].curved_to_next) {
-            std::vector<Point> pts_bot;
-            std::vector<Point> pts_top;
-            pts_bot.reserve(n_eval + 1);
-            pts_top.reserve(n_eval + 1);
-            for (int j = 0; j <= n_eval; j++) {
-                const double t = static_cast<double>(j) / static_cast<double>(n_eval);
-                const double u_b = loop[k].u_bot + (loop[next].u_bot - loop[k].u_bot) * t;
-                const double u_t = loop[k].u_top + (loop[next].u_top - loop[k].u_top) * t;
-                pts_bot.push_back(below.point_at(loop[k].v, u_b));
-                pts_top.push_back(above.point_at(u_t, loop[k].v));
-            }
-            curves_bot[k] = unit_domain(NurbsCurve::create_interpolated(
-                pts_bot, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
-            ));
-            curves_top[k] = unit_domain(NurbsCurve::create_interpolated(
-                pts_top, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
-            ));
-        } else {
-            curves_bot[k] =
-                segment_curve(brep.m_vertices[v_inner[k]].point, brep.m_vertices[v_inner[next]].point);
-            curves_top[k] =
-                segment_curve(brep.m_vertices[v_outer[k]].point, brep.m_vertices[v_outer[next]].point);
-        }
-
-        e_inner[k] = brep.add_edge(brep.add_curve_3d(curves_bot[k]), v_inner[k], v_inner[next]);
-        e_outer[k] = brep.add_edge(brep.add_curve_3d(curves_top[k]), v_outer[k], v_outer[next]);
-        e_rise[k] = brep.add_edge(
-            brep.add_curve_3d(
-                segment_curve(brep.m_vertices[v_inner[k]].point, brep.m_vertices[v_outer[k]].point)
-            ),
-            v_inner[k],
-            v_outer[k]
-        );
-    }
+    struct LoopEntry {
+        int vid = -1;
+        Point uv;
+        std::function<NurbsCurve()> crv_to_next;
+    };
 
     std::vector<BRepRef> faces;
-    std::vector<BRepRef> wire_below;
-    std::vector<BRepRef> wire_above;
-
-    for (size_t k = 0; k < m; k++) {
-        const size_t next = (k + 1) % m;
-        brep.add_pcurve(
-            e_inner[k],
-            s_below,
-            brep.add_curve_2d(segment_curve(
-                Point(loop[k].v, loop[k].u_bot, 0.0), Point(loop[next].v, loop[next].u_bot, 0.0)
-            ))
-        );
-        brep.add_pcurve(
-            e_outer[k],
-            s_above,
-            brep.add_curve_2d(segment_curve(
-                Point(loop[k].u_top, loop[k].v, 0.0), Point(loop[next].u_top, loop[next].v, 0.0)
-            ))
-        );
-        wire_above.push_back({e_outer[k], BRepOrientation::Forward});
-        wire_below.insert(wire_below.begin(), {e_inner[k], BRepOrientation::Reversed});
-
-        const NurbsSurface side = Primitives::create_ruled(curves_bot[k], curves_top[k]);
-        const int s_side = brep.add_surface(side);
-        brep.add_pcurve(
-            e_inner[k], s_side, brep.add_curve_2d(segment_curve(Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)))
-        );
-        brep.add_pcurve(
-            e_outer[k], s_side, brep.add_curve_2d(segment_curve(Point(0.0, 1.0, 0.0), Point(1.0, 1.0, 0.0)))
-        );
-        brep.add_pcurve(
-            e_rise[k], s_side, brep.add_curve_2d(segment_curve(Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)))
-        );
-        brep.add_pcurve(
-            e_rise[next], s_side, brep.add_curve_2d(segment_curve(Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)))
-        );
-        const int side_wire = brep.add_wire({
-            {e_inner[k], BRepOrientation::Forward},
-            {e_rise[next], BRepOrientation::Forward},
-            {e_outer[k], BRepOrientation::Reversed},
-            {e_rise[k], BRepOrientation::Reversed},
-        });
+    const auto add_loop_face = [&](int sid, const std::vector<LoopEntry>& entries) {
+        std::vector<BRepRef> wire;
+        const size_t n = entries.size();
+        wire.reserve(n);
+        for (size_t i = 0; i < n; i++) {
+            const size_t next = (i + 1) % n;
+            const int va = entries[i].vid;
+            const int vb = entries[next].vid;
+            const auto default_seg = [&]() {
+                return segment_curve(brep.m_vertices[va].point, brep.m_vertices[vb].point);
+            };
+            const int eid = get_edge(va, vb, entries[i].crv_to_next ? entries[i].crv_to_next : default_seg);
+            const bool fwd = (brep.m_edges[eid].start_vertex == va);
+            const int cid2 = brep.add_curve_2d(
+                fwd ? segment_curve(entries[i].uv, entries[next].uv)
+                    : segment_curve(entries[next].uv, entries[i].uv)
+            );
+            brep.add_pcurve(eid, sid, cid2);
+            wire.push_back({eid, fwd ? BRepOrientation::Forward : BRepOrientation::Reversed});
+        }
         faces.push_back(
-            {brep.add_face(s_side, {{side_wire, BRepOrientation::Forward}}), BRepOrientation::Forward}
+            {brep.add_face(sid, {{brep.add_wire(wire), BRepOrientation::Forward}}), BRepOrientation::Forward}
         );
+    };
+
+    const auto add_planar_quad = [&](int v0, int v1, int v2, int v3) {
+        const Point& p0 = brep.m_vertices[v0].point;
+        const Point& p1 = brep.m_vertices[v1].point;
+        const Point& p2 = brep.m_vertices[v2].point;
+        const Point& p3 = brep.m_vertices[v3].point;
+        const NurbsSurface qsurf = Primitives::create_ruled(segment_curve(p0, p1), segment_curve(p3, p2));
+        const int qsid = brep.add_surface(qsurf);
+        add_loop_face(
+            qsid,
+            {
+                {v0, Point(0.0, 0.0, 0.0), nullptr},
+                {v1, Point(1.0, 0.0, 0.0), nullptr},
+                {v2, Point(1.0, 1.0, 0.0), nullptr},
+                {v3, Point(0.0, 1.0, 0.0), nullptr},
+            }
+        );
+    };
+
+    // Add start & end vertices
+    const int v_s0_botL = brep.add_vertex(surf_below.point_at(0.0, norm_u(s0_arr[0])));
+    const int v_s0_botR = brep.add_vertex(surf_below.point_at(1.0, norm_u(s0_arr[1])));
+    const int v_s0_topR = brep.add_vertex(surf_above.point_at(norm_u(s0_arr[2]), 1.0));
+    const int v_s0_topL = brep.add_vertex(surf_above.point_at(norm_u(s0_arr[3]), 0.0));
+
+    const int v_s1_botL = brep.add_vertex(surf_below.point_at(0.0, norm_u(s1_arr[0])));
+    const int v_s1_botR = brep.add_vertex(surf_below.point_at(1.0, norm_u(s1_arr[1])));
+    const int v_s1_topR = brep.add_vertex(surf_above.point_at(norm_u(s1_arr[2]), 1.0));
+    const int v_s1_topL = brep.add_vertex(surf_above.point_at(norm_u(s1_arr[3]), 0.0));
+
+    int v_sf_bot = -1, v_sf_top = -1;
+    if (!single_front) {
+        v_sf_bot = brep.add_vertex(surf_below.point_at(vf_bot, norm_u(uf_bot)));
+        v_sf_top = brep.add_vertex(surf_above.point_at(norm_u(uf_top), vf_top));
+    }
+    int v_sb_bot = -1, v_sb_top = -1;
+    if (!single_back) {
+        v_sb_bot = brep.add_vertex(surf_below.point_at(vb_bot, norm_u(ub_bot)));
+        v_sb_top = brep.add_vertex(surf_above.point_at(norm_u(ub_top), vb_top));
     }
 
-    faces.push_back(
-        {brep.add_face(s_below, {{brep.add_wire(wire_below), BRepOrientation::Forward}}),
-         BRepOrientation::Forward}
-    );
-    faces.push_back(
-        {brep.add_face(s_above, {{brep.add_wire(wire_above), BRepOrientation::Forward}}),
-         BRepOrientation::Forward}
-    );
+    struct LapVerts {
+        int va_extL = -1, va_extR = -1, va_midL = -1, va_midR = -1;
+        int vb_extL = -1, vb_extR = -1, vb_midL = -1, vb_midR = -1;
+    };
+    std::vector<LapVerts> lv(laps.size());
+    for (size_t i = 0; i < laps.size(); i++) {
+        const ResolvedLap& rl = laps[i];
+        lv[i].va_midL = brep.add_vertex(surf_left.point_at(norm_u(rl.ua_midL), 0.5));
+        lv[i].va_midR = brep.add_vertex(surf_right.point_at(0.5, norm_u(rl.ua_midR)));
+        lv[i].vb_midL = brep.add_vertex(surf_left.point_at(norm_u(rl.ub_midL), 0.5));
+        lv[i].vb_midR = brep.add_vertex(surf_right.point_at(0.5, norm_u(rl.ub_midR)));
+        if (rl.upper) {
+            lv[i].va_extL = brep.add_vertex(surf_above.point_at(norm_u(rl.ua_topL), 0.0));
+            lv[i].va_extR = brep.add_vertex(surf_above.point_at(norm_u(rl.ua_topR), 1.0));
+            lv[i].vb_extL = brep.add_vertex(surf_above.point_at(norm_u(rl.ub_topL), 0.0));
+            lv[i].vb_extR = brep.add_vertex(surf_above.point_at(norm_u(rl.ub_topR), 1.0));
+        } else {
+            lv[i].va_extL = brep.add_vertex(surf_below.point_at(0.0, norm_u(rl.ua_botL)));
+            lv[i].va_extR = brep.add_vertex(surf_below.point_at(1.0, norm_u(rl.ua_botR)));
+            lv[i].vb_extL = brep.add_vertex(surf_below.point_at(0.0, norm_u(rl.ub_botL)));
+            lv[i].vb_extR = brep.add_vertex(surf_below.point_at(1.0, norm_u(rl.ub_botR)));
+        }
+    }
+
+    // 1. Top spans on surf_above (CCW in (u, v))
+    {
+        std::vector<size_t> top_laps;
+        for (size_t i = 0; i < laps.size(); i++)
+            if (laps[i].upper)
+                top_laps.push_back(i);
+
+        const size_t n_spans = top_laps.size() + 1;
+        for (size_t sp = 0; sp < n_spans; sp++) {
+            const bool is_first = (sp == 0);
+            const bool is_last  = (sp + 1 == n_spans);
+            const int vL0 = is_first ? v_s0_topL : lv[top_laps[sp - 1]].vb_extL;
+            const int vR0 = is_first ? v_s0_topR : lv[top_laps[sp - 1]].vb_extR;
+            const double sL0 = is_first ? s0_arr[3] : laps[top_laps[sp - 1]].ub_topL;
+            const double sR0 = is_first ? s0_arr[2] : laps[top_laps[sp - 1]].ub_topR;
+
+            const int vL1 = is_last ? v_s1_topL : lv[top_laps[sp]].va_extL;
+            const int vR1 = is_last ? v_s1_topR : lv[top_laps[sp]].va_extR;
+            const double sL1 = is_last ? s1_arr[3] : laps[top_laps[sp]].ua_topL;
+            const double sR1 = is_last ? s1_arr[2] : laps[top_laps[sp]].ua_topR;
+
+            std::vector<LoopEntry> loop;
+            loop.push_back({vL0, Point(norm_u(sL0), 0.0, 0.0), [&, sL0, sL1]() { return sample_fibre_xy(-hx, hy, sL0, sL1); }});
+            loop.push_back({vL1, Point(norm_u(sL1), 0.0, 0.0), nullptr});
+            if (is_last && !single_back)
+                loop.push_back({v_sb_top, Point(norm_u(ub_top), vb_top, 0.0), nullptr});
+            loop.push_back({vR1, Point(norm_u(sR1), 1.0, 0.0), [&, sR1, sR0]() { return sample_fibre_xy(hx, hy, sR1, sR0); }});
+            loop.push_back({vR0, Point(norm_u(sR0), 1.0, 0.0), nullptr});
+            if (is_first && !single_front)
+                loop.push_back({v_sf_top, Point(norm_u(uf_top), vf_top, 0.0), nullptr});
+            add_loop_face(sid_above, loop);
+        }
+    }
+
+    // 2. Bottom spans on surf_below (CCW in (v, u))
+    {
+        std::vector<size_t> bot_laps;
+        for (size_t i = 0; i < laps.size(); i++)
+            if (!laps[i].upper)
+                bot_laps.push_back(i);
+
+        const size_t n_spans = bot_laps.size() + 1;
+        for (size_t sp = 0; sp < n_spans; sp++) {
+            const bool is_first = (sp == 0);
+            const bool is_last  = (sp + 1 == n_spans);
+            const int vL0 = is_first ? v_s0_botL : lv[bot_laps[sp - 1]].vb_extL;
+            const int vR0 = is_first ? v_s0_botR : lv[bot_laps[sp - 1]].vb_extR;
+            const double sL0 = is_first ? s0_arr[0] : laps[bot_laps[sp - 1]].ub_botL;
+            const double sR0 = is_first ? s0_arr[1] : laps[bot_laps[sp - 1]].ub_botR;
+
+            const int vL1 = is_last ? v_s1_botL : lv[bot_laps[sp]].va_extL;
+            const int vR1 = is_last ? v_s1_botR : lv[bot_laps[sp]].va_extR;
+            const double sL1 = is_last ? s1_arr[0] : laps[bot_laps[sp]].ua_botL;
+            const double sR1 = is_last ? s1_arr[1] : laps[bot_laps[sp]].ua_botR;
+
+            std::vector<LoopEntry> loop;
+            loop.push_back({vL0, Point(0.0, norm_u(sL0), 0.0), nullptr});
+            if (is_first && !single_front)
+                loop.push_back({v_sf_bot, Point(vf_bot, norm_u(uf_bot), 0.0), nullptr});
+            loop.push_back({vR0, Point(1.0, norm_u(sR0), 0.0), [&, sR0, sR1]() { return sample_fibre_xy(hx, -hy, sR0, sR1); }});
+            loop.push_back({vR1, Point(1.0, norm_u(sR1), 0.0), nullptr});
+            if (is_last && !single_back)
+                loop.push_back({v_sb_bot, Point(vb_bot, norm_u(ub_bot), 0.0), nullptr});
+            loop.push_back({vL1, Point(0.0, norm_u(sL1), 0.0), [&, sL1, sL0]() { return sample_fibre_xy(-hx, -hy, sL1, sL0); }});
+            add_loop_face(sid_below, loop);
+        }
+    }
+
+    // 3. Notch seats & planar cheeks
+    for (size_t i = 0; i < laps.size(); i++) {
+        const ResolvedLap& rl = laps[i];
+        const LapVerts& c = lv[i];
+        if (rl.upper) {
+            const NurbsSurface surf_mid = Primitives::create_ruled(rail_mid_L, rail_mid_R);
+            const int sid_mid = brep.add_surface(surf_mid);
+            add_loop_face(
+                sid_mid,
+                {
+                    {c.va_midL, Point(norm_u(rl.ua_midL), 0.0, 0.0), [&, rl]() { return sample_fibre_xy(-hx, 0.0, rl.ua_midL, rl.ub_midL); }},
+                    {c.vb_midL, Point(norm_u(rl.ub_midL), 0.0, 0.0), nullptr},
+                    {c.vb_midR, Point(norm_u(rl.ub_midR), 1.0, 0.0), [&, rl]() { return sample_fibre_xy(hx, 0.0, rl.ub_midR, rl.ua_midR); }},
+                    {c.va_midR, Point(norm_u(rl.ua_midR), 1.0, 0.0), nullptr},
+                }
+            );
+            add_planar_quad(c.va_midL, c.va_midR, c.va_extR, c.va_extL);
+            add_planar_quad(c.vb_midL, c.vb_extL, c.vb_extR, c.vb_midR);
+        } else {
+            NurbsSurface surf_mid = Primitives::create_ruled(rail_mid_L, rail_mid_R);
+            surf_mid.transpose();
+            const int sid_mid = brep.add_surface(surf_mid);
+            add_loop_face(
+                sid_mid,
+                {
+                    {c.va_midL, Point(0.0, norm_u(rl.ua_midL), 0.0), nullptr},
+                    {c.va_midR, Point(1.0, norm_u(rl.ua_midR), 0.0), [&, rl]() { return sample_fibre_xy(hx, 0.0, rl.ua_midR, rl.ub_midR); }},
+                    {c.vb_midR, Point(1.0, norm_u(rl.ub_midR), 0.0), nullptr},
+                    {c.vb_midL, Point(0.0, norm_u(rl.ub_midL), 0.0), [&, rl]() { return sample_fibre_xy(-hx, 0.0, rl.ub_midL, rl.ua_midL); }},
+                }
+            );
+            add_planar_quad(c.va_extL, c.va_extR, c.va_midR, c.va_midL);
+            add_planar_quad(c.vb_extL, c.vb_midL, c.vb_midR, c.vb_extR);
+        }
+    }
+
+    // 4. Start and end caps
+    if (single_front) {
+        add_planar_quad(v_s0_botL, v_s0_topL, v_s0_topR, v_s0_botR);
+    } else {
+        add_planar_quad(v_s0_botL, v_s0_topL, v_sf_top, v_sf_bot);
+        add_planar_quad(v_sf_bot, v_sf_top, v_s0_topR, v_s0_botR);
+    }
+
+    if (single_back) {
+        add_planar_quad(v_s1_botL, v_s1_botR, v_s1_topR, v_s1_topL);
+    } else {
+        add_planar_quad(v_s1_botL, v_sb_bot, v_sb_top, v_s1_topL);
+        add_planar_quad(v_sb_bot, v_s1_botR, v_s1_topR, v_sb_top);
+    }
+
+    // 5. Left side face on surf_left (CCW in (u, w))
+    {
+        std::vector<LoopEntry> lloop;
+        int cur_v = v_s0_botL;
+        double cur_s = s0_arr[0];
+        for (size_t i = 0; i < laps.size(); i++) {
+            if (!laps[i].upper) {
+                const double sa = laps[i].ua_botL;
+                lloop.push_back({cur_v, Point(norm_u(cur_s), 0.0, 0.0), [&, cur_s, sa]() { return sample_fibre_xy(-hx, -hy, cur_s, sa); }});
+                lloop.push_back({lv[i].va_extL, Point(norm_u(sa), 0.0, 0.0), nullptr});
+                const double sm0 = laps[i].ua_midL;
+                const double sm1 = laps[i].ub_midL;
+                lloop.push_back({lv[i].va_midL, Point(norm_u(sm0), 0.5, 0.0), [&, sm0, sm1]() { return sample_fibre_xy(-hx, 0.0, sm0, sm1); }});
+                lloop.push_back({lv[i].vb_midL, Point(norm_u(sm1), 0.5, 0.0), nullptr});
+                cur_v = lv[i].vb_extL;
+                cur_s = laps[i].ub_botL;
+            }
+        }
+        const double s_end_bot = s1_arr[0];
+        lloop.push_back({cur_v, Point(norm_u(cur_s), 0.0, 0.0), [&, cur_s, s_end_bot]() { return sample_fibre_xy(-hx, -hy, cur_s, s_end_bot); }});
+        lloop.push_back({v_s1_botL, Point(norm_u(s_end_bot), 0.0, 0.0), nullptr});
+
+        cur_v = v_s1_topL;
+        cur_s = s1_arr[3];
+        for (size_t idx = laps.size(); idx > 0; idx--) {
+            const size_t i = idx - 1;
+            if (laps[i].upper) {
+                const double sb = laps[i].ub_topL;
+                lloop.push_back({cur_v, Point(norm_u(cur_s), 1.0, 0.0), [&, cur_s, sb]() { return sample_fibre_xy(-hx, hy, cur_s, sb); }});
+                lloop.push_back({lv[i].vb_extL, Point(norm_u(sb), 1.0, 0.0), nullptr});
+                const double sm1 = laps[i].ub_midL;
+                const double sm0 = laps[i].ua_midL;
+                lloop.push_back({lv[i].vb_midL, Point(norm_u(sm1), 0.5, 0.0), [&, sm1, sm0]() { return sample_fibre_xy(-hx, 0.0, sm1, sm0); }});
+                lloop.push_back({lv[i].va_midL, Point(norm_u(sm0), 0.5, 0.0), nullptr});
+                cur_v = lv[i].va_extL;
+                cur_s = laps[i].ua_topL;
+            }
+        }
+        const double s_start_top = s0_arr[3];
+        lloop.push_back({cur_v, Point(norm_u(cur_s), 1.0, 0.0), [&, cur_s, s_start_top]() { return sample_fibre_xy(-hx, hy, cur_s, s_start_top); }});
+        lloop.push_back({v_s0_topL, Point(norm_u(s_start_top), 1.0, 0.0), nullptr});
+        add_loop_face(sid_left, lloop);
+    }
+
+    // 6. Right side face on surf_right (CCW in (w, u))
+    {
+        std::vector<LoopEntry> rloop;
+        rloop.push_back({v_s0_botR, Point(0.0, norm_u(s0_arr[1]), 0.0), nullptr});
+
+        int cur_v = v_s0_topR;
+        double cur_s = s0_arr[2];
+        for (size_t i = 0; i < laps.size(); i++) {
+            if (laps[i].upper) {
+                const double sa = laps[i].ua_topR;
+                rloop.push_back({cur_v, Point(1.0, norm_u(cur_s), 0.0), [&, cur_s, sa]() { return sample_fibre_xy(hx, hy, cur_s, sa); }});
+                rloop.push_back({lv[i].va_extR, Point(1.0, norm_u(sa), 0.0), nullptr});
+                const double sm0 = laps[i].ua_midR;
+                const double sm1 = laps[i].ub_midR;
+                rloop.push_back({lv[i].va_midR, Point(0.5, norm_u(sm0), 0.0), [&, sm0, sm1]() { return sample_fibre_xy(hx, 0.0, sm0, sm1); }});
+                rloop.push_back({lv[i].vb_midR, Point(0.5, norm_u(sm1), 0.0), nullptr});
+                cur_v = lv[i].vb_extR;
+                cur_s = laps[i].ub_topR;
+            }
+        }
+        const double s_end_top = s1_arr[2];
+        rloop.push_back({cur_v, Point(1.0, norm_u(cur_s), 0.0), [&, cur_s, s_end_top]() { return sample_fibre_xy(hx, hy, cur_s, s_end_top); }});
+        rloop.push_back({v_s1_topR, Point(1.0, norm_u(s_end_top), 0.0), nullptr});
+
+        cur_v = v_s1_botR;
+        cur_s = s1_arr[1];
+        for (size_t idx = laps.size(); idx > 0; idx--) {
+            const size_t i = idx - 1;
+            if (!laps[i].upper) {
+                const double sb = laps[i].ub_botR;
+                rloop.push_back({cur_v, Point(0.0, norm_u(cur_s), 0.0), [&, cur_s, sb]() { return sample_fibre_xy(hx, -hy, cur_s, sb); }});
+                rloop.push_back({lv[i].vb_extR, Point(0.0, norm_u(sb), 0.0), nullptr});
+                const double sm1 = laps[i].ub_midR;
+                const double sm0 = laps[i].ua_midR;
+                rloop.push_back({lv[i].vb_midR, Point(0.5, norm_u(sm1), 0.0), [&, sm1, sm0]() { return sample_fibre_xy(hx, 0.0, sm1, sm0); }});
+                rloop.push_back({lv[i].va_midR, Point(0.5, norm_u(sm0), 0.0), nullptr});
+                cur_v = lv[i].va_extR;
+                cur_s = laps[i].ua_botR;
+            }
+        }
+        const double s_start_bot = s0_arr[1];
+        rloop.push_back({cur_v, Point(0.0, norm_u(cur_s), 0.0), [&, cur_s, s_start_bot]() { return sample_fibre_xy(hx, -hy, cur_s, s_start_bot); }});
+        add_loop_face(sid_right, rloop);
+    }
+
     brep.add_solid({{brep.add_shell(faces), BRepOrientation::Forward}});
     brep.update_tolerances();
     return brep;
@@ -1056,6 +1415,8 @@ std::shared_ptr<BeamCurved> BeamCurved::transformed(const Xform& xform) const {
     beam->direction_parameters = direction_parameters;
     beam->extension = extension;
     beam->cuts = transformed_list(cuts, xform);
+    for (const CrossLap& lap : cross_laps)
+        beam->cross_laps.push_back({lap.plane_a.transformed(xform), lap.plane_b.transformed(xform), lap.upper_notch});
     for (const InteractionFeatureSolid& cut : solid_features)
         beam->solid_features.push_back(cut.transformed(xform));
     for (const InteractionFeaturePlane& feature : plane_features)
@@ -1070,6 +1431,10 @@ void BeamCurved::place(const Xform& xform) {
     centreline.transform(xform);
     directions = transformed_list(directions, xform);
     cuts = transformed_list(cuts, xform);
+    for (CrossLap& lap : cross_laps) {
+        lap.plane_a = lap.plane_a.transformed(xform);
+        lap.plane_b = lap.plane_b.transformed(xform);
+    }
     for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
     for (InteractionFeaturePlane& feature : plane_features)
@@ -1160,6 +1525,16 @@ nlohmann::ordered_json BeamCurved::element_data_jsondump() const {
     for (const Plane& cut : cuts)
         cut_list.push_back(cut.jsondump());
     data["cuts"] = std::move(cut_list);
+
+    nlohmann::ordered_json lap_list = nlohmann::ordered_json::array();
+    for (const CrossLap& lap : cross_laps) {
+        nlohmann::ordered_json lj;
+        lj["plane_a"] = lap.plane_a.jsondump();
+        lj["plane_b"] = lap.plane_b.jsondump();
+        lj["upper_notch"] = lap.upper_notch;
+        lap_list.push_back(std::move(lj));
+    }
+    data["cross_laps"] = std::move(lap_list);
 
     nlohmann::ordered_json solids = nlohmann::ordered_json::array();
     for (const InteractionFeatureSolid& cut : solid_features) {

@@ -32,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A star (stellar) vault over an 8 m square bay (1 m rise) on intersecting circular barrel cylinders: twenty single-curved planar ribs in vertical planes - four diagonals, eight tiercerons from the corners to the star points, four continuous ridge ribs from the wall crowns through the star bosses to the central boss, and four wall arches - four corner support blocks, and the sixteen cylindrical webs between them, each 150 thick: a BRep solid whose intrados is a circular barrel cylinder trimmed along straight plan lines at the beam centers, whose extrados is shifted vertically by thickness and whose sides are vertical ruled surfaces neighbouring webs share.
+A star (stellar) vault over an 8 m square bay (1 m rise) on intersecting circular barrel cylinders: eighteen single-curved planar ribs in vertical planes - two interlocking continuous diagonals, eight tiercerons from the corners to the star points, four continuous ridge ribs from the wall crowns through the star bosses to the central boss, and four wall arches - four corner support blocks, and the sixteen cylindrical webs between them, each 150 thick: a BRep solid whose intrados is a circular barrel cylinder trimmed along straight plan lines at the beam centers, whose extrados is shifted vertically by thickness and whose sides are vertical ruled surfaces neighbouring webs share.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

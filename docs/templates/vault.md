@@ -119,7 +119,7 @@ int main() {
 
 ## Stellar Vault {#vault_star_stellar}
 
-Four central diamond lozenges framed by diagonal ribs, corner tiercerons, and tertiary lierne chords across 27 planar curved ribs and 20 cylindrical web panels.
+Four central diamond lozenges framed by interlocking diagonal ribs, corner tiercerons, and tertiary lierne chords across 26 planar curved ribs and 20 cylindrical web panels.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_9_gothic_ribbed_vault_star.webp" alt="Stellar Vault 3D view">
@@ -145,7 +145,7 @@ int main() {
 
 ## Lierne Star Vault {#vault_lierne_star}
 
-Inner and outer star rings linked through intermediate diagonal bosses by 35 planar curved ribs, dividing the intersecting barrel cylinders into 32 cylindrical web panels.
+Inner and outer star rings linked through intermediate diagonal bosses by 34 planar curved ribs, dividing the intersecting barrel cylinders into 32 cylindrical web panels.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_9_gothic_ribbed_vault_lierne.webp" alt="Lierne Star Vault 3D view">
@@ -171,7 +171,7 @@ int main() {
 
 ## Net Vault {#vault_net}
 
-Reticulated diamond-lattice vault inspired by the Bern Cathedral choir, combining 43 planar curved ribs and 32 cylindrical web panels over a 10 x 10 m bay.
+Reticulated diamond-lattice vault inspired by the Bern Cathedral choir, combining 34 planar curved ribs with interlocking cross-lap chords and 32 cylindrical web panels over a 10 x 10 m bay.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_9_gothic_ribbed_vault_net.webp" alt="Net Vault 3D view">
@@ -197,7 +197,7 @@ int main() {
 
 ## Fan Vault {#vault_fan}
 
-Straight-in-plan radiating fan ribs and polygonal collar ribs springing from the 4 corner support blocks across 51 planar curved ribs and 48 cylindrical web panels.
+Straight-in-plan radiating fan ribs and polygonal collar ribs springing from the 4 corner support blocks across 50 planar curved ribs and 48 cylindrical web panels.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_9_gothic_ribbed_vault_fan.webp" alt="Fan Vault 3D view">
@@ -223,7 +223,7 @@ int main() {
 
 ## Star Vault {#vault_star}
 
-Stellar rib-and-shell vault over an 8 x 8 m bay with 19 planar curved ribs, 4 corner support blocks, and 16 cylindrical BRep web shells with face-to-face contact detection.
+Stellar rib-and-shell vault over an 8 x 8 m bay with 18 planar curved ribs, 4 corner support blocks, and 16 cylindrical BRep web shells with face-to-face contact detection.
 
 <div class="wood-pair-grid">
   <img src="templates_vault_8_star_vault_all.webp" alt="Star Vault 3D view">
