@@ -99,7 +99,7 @@ static void pair(
         );
 }
 
-/// The pair cases of examples/22_butt_pairs.cpp, each at its measured faces.
+/// Pairwise beam and plate butt cases, each checked at its measured faces.
 static void pairs() {
 
     const auto beam = [](const Point& start, const Point& end) {
@@ -276,7 +276,7 @@ static void beams() {
 // Plates
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A floor, four walls on the 6000 x 4000 footprint and a roof, drawn on their mid-planes, as examples/21_butt_house.cpp.
+/// A floor, four walls on the 6000 x 4000 footprint and a roof, drawn on their mid-planes.
 static void plates() {
 
     WoodSession scene("butt_plates");
@@ -404,7 +404,7 @@ static void plates() {
 // Folded roof
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A folded roof of four 160 plates on a zigzag in section over two gables drawn up to it, as examples/23_butt_assemblies.cpp.
+/// A folded roof of four 160 plates on a zigzag in section over two gables drawn up to it.
 static void folded_roof() {
 
     WoodSession scene("butt_folded_roof");
@@ -508,7 +508,7 @@ static void folded_roof() {
 // Frame
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The timber-frame wall of examples/20_butt_frame.cpp.
+/// Timber-frame wall with posts, sill, plate, lintel, and diagonal brace.
 static void frame() {
 
     WoodSession scene("butt_frame");

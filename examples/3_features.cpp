@@ -49,7 +49,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 6_features --parallel 4 && ./build/6_features && ../bash/publish-scene.sh --target 6_features
+cmake --build build --target 3_features --parallel 4 && ./build/3_features && ../bash/publish-scene.sh --target 3_features
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -56,7 +56,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 9_custom_joint --parallel 4 && ./build/9_custom_joint && ../bash/publish-scene.sh --target 9_custom_joint
+cmake --build build --target 6_custom_joint --parallel 4 && ./build/6_custom_joint && ../bash/publish-scene.sh --target 6_custom_joint
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -55,7 +55,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 10_assignment --parallel 4 && ./build/10_assignment && ../bash/publish-scene.sh --target 10_assignment
+cmake --build build --target 7_assignment --parallel 4 && ./build/7_assignment && ../bash/publish-scene.sh --target 7_assignment
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

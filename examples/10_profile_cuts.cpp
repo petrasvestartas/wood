@@ -7,7 +7,7 @@ static std::shared_ptr<Plate> stock() {
 }
 
 int main() {
-    WoodSession scene("15_profile_cuts");
+    WoodSession scene("10_profile_cuts");
     const Polyline concave(
         {{20, 20, -5},
          {180, 20, -5},
@@ -37,12 +37,12 @@ int main() {
         std::vector<Polyline>{pocket_outline}, Vector(0, 0, 30), SolidOperation::subtract
     );
     cut_case(scene, "Concave pocket / solid split", stock(), pocket, 780);
-    finish(scene, "15_profile_cuts");
+    finish(scene, "10_profile_cuts");
 }
 
 /*
 directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/15_profile_cuts.pb" --no-notify
+run: buildslot ~/.local/bin/cmake --build build --target 10_profile_cuts --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/10_profile_cuts
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/10_profile_cuts.pb" --no-notify
 view: https://petrasvestartas.github.io/session/
 */

@@ -44,7 +44,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 8_settings --parallel 4 && ./build/8_settings && ../bash/publish-scene.sh --target 8_settings
+cmake --build build --target 5_settings --parallel 4 && ./build/5_settings && ../bash/publish-scene.sh --target 5_settings
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

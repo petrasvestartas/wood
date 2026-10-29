@@ -259,28 +259,17 @@ function(ADD_EXE NAME SRC)
 endfunction()
 
 ADD_EXE(1_session_contacts               examples/1_session_contacts.cpp)
-ADD_EXE(2_session_hard_coded_contacts    examples/2_session_hard_coded_contacts.cpp)
-ADD_EXE(3_elements_tree                  examples/3_elements_tree.cpp)
-ADD_EXE(4_datasets                       examples/4_datasets.cpp)
-ADD_EXE(5_contacts                       examples/5_contacts.cpp)
-ADD_EXE(6_features                       examples/6_features.cpp)
-ADD_EXE(7_traversal                      examples/7_traversal.cpp)
-ADD_EXE(8_settings                       examples/8_settings.cpp)
-ADD_EXE(9_custom_joint                   examples/9_custom_joint.cpp)
-ADD_EXE(10_assignment                     examples/10_assignment.cpp)
-ADD_EXE(11_beams                          examples/11_beams.cpp)
-ADD_EXE(12_serialization                 examples/12_serialization.cpp)
-ADD_EXE(13_viewer                        examples/13_viewer.cpp)
-ADD_EXE(14_cross_joints                  examples/14_cross_joints.cpp)
-ADD_EXE(15_profile_cuts                  examples/15_profile_cuts.cpp)
-ADD_EXE(16_drill_solids                  examples/16_drill_solids.cpp)
-ADD_EXE(17_solid_features                examples/17_solid_features.cpp)
-ADD_EXE(18_cutting_gallery               examples/18_cutting_gallery.cpp)
-ADD_EXE(19_plate_joint_library           examples/19_plate_joint_library.cpp)
-ADD_EXE(20_butt_frame                     examples/20_butt_frame.cpp)
-ADD_EXE(21_butt_house                     examples/21_butt_house.cpp)
-ADD_EXE(22_butt_pairs                     examples/22_butt_pairs.cpp)
-ADD_EXE(23_butt_assemblies                examples/23_butt_assemblies.cpp)
+ADD_EXE(2_contacts                       examples/2_contacts.cpp)
+ADD_EXE(3_features                       examples/3_features.cpp)
+ADD_EXE(4_traversal                      examples/4_traversal.cpp)
+ADD_EXE(5_settings                       examples/5_settings.cpp)
+ADD_EXE(6_custom_joint                   examples/6_custom_joint.cpp)
+ADD_EXE(7_assignment                     examples/7_assignment.cpp)
+ADD_EXE(8_beams                          examples/8_beams.cpp)
+ADD_EXE(9_cross_joints                   examples/9_cross_joints.cpp)
+ADD_EXE(10_profile_cuts                  examples/10_profile_cuts.cpp)
+ADD_EXE(11_drill_solids                  examples/11_drill_solids.cpp)
+ADD_EXE(12_solid_features                examples/12_solid_features.cpp)
 ADD_EXE(main_all_datasets                examples/main_all_datasets.cpp src/joinery_solver/wood_datasets.cpp)
 ADD_EXE(main_dataset_runner              examples/main_dataset_runner.cpp src/joinery_solver/wood_datasets.cpp)
 # main_cross_polylines is gone: it was built on session_cpp's ElementFeature /
@@ -548,7 +537,6 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/cutting_gallery.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/wood_kernel.md
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
         ${CMAKE_CURRENT_SOURCE_DIR}/src/templates

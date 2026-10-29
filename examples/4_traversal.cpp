@@ -55,7 +55,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 7_traversal --parallel 4 && ./build/7_traversal && ../bash/publish-scene.sh --target 7_traversal
+cmake --build build --target 4_traversal --parallel 4 && ./build/4_traversal && ../bash/publish-scene.sh --target 4_traversal
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

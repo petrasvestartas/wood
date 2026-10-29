@@ -2,7 +2,7 @@
 using namespace cutting_gallery;
 
 int main() {
-    WoodSession scene("17_solid_features");
+    WoodSession scene("12_solid_features");
     int row = 0;
     for (const std::pair<SolidOperation, std::string>& design :
          std::vector<std::pair<SolidOperation, std::string>>{
@@ -34,12 +34,12 @@ int main() {
         std::make_shared<Joint>(tetrahedron),
         row * 280
     );
-    finish(scene, "17_solid_features");
+    finish(scene, "12_solid_features");
 }
 
 /*
 directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 17_solid_features --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_features
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/17_solid_features.pb" --no-notify
+run: buildslot ~/.local/bin/cmake --build build --target 12_solid_features --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/12_solid_features
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/12_solid_features.pb" --no-notify
 view: https://petrasvestartas.github.io/session/
 */

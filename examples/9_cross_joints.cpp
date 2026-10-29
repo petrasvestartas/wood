@@ -43,7 +43,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 14_cross_joints --parallel 4 && ./build/14_cross_joints && ../bash/publish-scene.sh --target 14_cross_joints
+cmake --build build --target 9_cross_joints --parallel 4 && ./build/9_cross_joints && ../bash/publish-scene.sh --target 9_cross_joints
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

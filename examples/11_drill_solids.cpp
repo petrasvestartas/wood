@@ -2,7 +2,7 @@
 using namespace cutting_gallery;
 
 int main() {
-    WoodSession scene("16_drill_solids");
+    WoodSession scene("11_drill_solids");
     int row = 0;
     for (double tolerance : {2.0, 0.2, 0.02}) {
         const Line axis = Line::from_points({0, double(row * 180), 0}, {0, double(row * 180), 100});
@@ -31,12 +31,12 @@ int main() {
         Joint::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2),
         640
     );
-    finish(scene, "16_drill_solids");
+    finish(scene, "11_drill_solids");
 }
 
 /*
 directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 16_drill_solids --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/16_drill_solids.pb" --no-notify
+run: buildslot ~/.local/bin/cmake --build build --target 11_drill_solids --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/11_drill_solids
+cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/11_drill_solids.pb" --no-notify
 view: https://petrasvestartas.github.io/session/
 */
