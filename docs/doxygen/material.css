@@ -804,6 +804,7 @@ div.contents img[src$=".webp"] {
 .wood-card-grid.cols-3 {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
+.wood-card,
 a.wood-card {
     display: flex;
     flex-direction: column;
@@ -813,16 +814,23 @@ a.wood-card {
     padding: 10px 12px;
     font-family: var(--font-family);
     font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
     text-decoration: none !important;
-    color: var(--md-primary) !important;
+    color: var(--md-fg);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+a.wood-card {
+    color: var(--md-primary) !important;
 }
 a.wood-card:hover {
     box-shadow: var(--md-shadow);
     border-color: var(--md-primary);
     text-decoration: none !important;
 }
+div.contents .wood-card img,
 div.contents a.wood-card img,
+.wood-card img,
 a.wood-card img {
     width: 100%;
     height: 180px;
@@ -832,14 +840,16 @@ a.wood-card img {
     margin: 0 0 8px 0 !important;
     display: block;
 }
+.wood-card .wood-card-title,
 a.wood-card .wood-card-title {
     font-family: var(--font-family);
     font-weight: 400;
     font-size: 14px;
     line-height: 1.4;
-    color: var(--md-primary);
+    color: inherit;
     margin: 0;
 }
+.wood-card .wood-card-sub,
 a.wood-card .wood-card-sub {
     display: none;
 }

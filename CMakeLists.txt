@@ -522,7 +522,18 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/material.css)
-    set(DOXYGEN_HTML_EXTRA_FILES ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js)
+    file(GLOB_RECURSE WOOD_DOC_EXTRA_IMAGES
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.webp
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.svg
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.webp
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.svg
+    )
+    set(DOXYGEN_HTML_EXTRA_FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js
+        ${WOOD_DOC_EXTRA_IMAGES}
+    )
     set(DOXYGEN_HTML_COLORSTYLE LIGHT)
     set(DOXYGEN_HTML_DYNAMIC_SECTIONS NO)
     set(DOXYGEN_SHOW_FILES YES)

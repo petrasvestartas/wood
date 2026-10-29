@@ -397,20 +397,3 @@ int main() {
     return 0;
 }
 ```
-
-<div style="display:none">
-![](examples/templates_vault_9_gothic_ribbed_vault_quadripartite.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_quadripartite_bottom.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_tierceron.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_tierceron_bottom.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_star.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_star_bottom.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_lierne.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_lierne_bottom.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_net.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_net_bottom.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_fan.webp)
-![](examples/templates_vault_9_gothic_ribbed_vault_fan_bottom.webp)
-![](templates/templates_vault_8_star_vault_all.webp)
-![](templates/templates_vault_8_star_vault_bottom.webp)
-</div>

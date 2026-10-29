@@ -7,9 +7,14 @@ int main() {
     for (double tolerance : {2.0, 0.2, 0.02}) {
         const Line axis = Line::from_points({0, double(row * 180), 0}, {0, double(row * 180), 100});
         const std::shared_ptr<Joint> drill = Joint::drill(axis, 35, tolerance);
+        drill->is_visible = true;
         drill->name = fmt::format(
             "Mesh: tolerance {}, {} segments", tolerance, circle_segments(35, tolerance)
         );
+        drill->compute_geometry_mesh();
+        Mesh drill_mesh = drill->geometry_mesh();
+        drill_mesh.set_objectcolor(Color(0.9, 0.35, 0.2));
+        drill->set_geometry(drill_mesh);
         scene.add(drill);
         const BRep exact =
             drill->element_geometry_brep().transformed(Xform::translation(180, 0, 0));

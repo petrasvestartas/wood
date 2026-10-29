@@ -98,56 +98,6 @@ Twenty-three self-contained C++ targets in `examples/*.cpp` covering contact det
     <span class="wood-card-title">23 Butt Assemblies</span>
   </a>
 </div>
-<div style="display:none">
-![](ex_1_session_contacts.webp)
-![](ex_2_session_hard_coded_contacts.webp)
-![](ex_3_elements_tree.webp)
-![](ex_4_datasets.webp)
-![](ex_5_contacts.webp)
-![](ex_6_features.webp)
-![](ex_7_traversal.webp)
-![](ex_8_settings.webp)
-![](ex_9_custom_joint.webp)
-![](ex_10_assignment.webp)
-![](ex_11_beams.webp)
-![](ex_12_serialization.webp)
-![](ex_13_viewer.webp)
-![](ex_14_cross_joints.webp)
-![](ex_15_profile_cuts.webp)
-![](ex_16_drill_solids.webp)
-![](ex_17_solid_features.webp)
-![](ex_18_cutting_gallery.webp)
-![](ex_19_plate_joint_library.webp)
-![](ex_20_butt_frame.webp)
-![](ex_21_butt_house.webp)
-![](ex_22_butt_pairs.webp)
-![](ex_23_butt_assemblies.webp)
-![](butt_pair_beam_top_side.webp)
-![](butt_pair_beam_top_side_oblique.webp)
-![](butt_pair_beam_top_side_end.webp)
-![](butt_pair_beam_top_side_end_past.webp)
-![](butt_pair_beam_top_side_end_short.webp)
-![](butt_pair_beam_side_side_outplane.webp)
-![](butt_pair_beam_side_side_outplane_square.webp)
-![](butt_pair_beam_side_side_inplane.webp)
-![](butt_pair_beam_cross.webp)
-![](butt_pair_plate_top_side.webp)
-![](butt_pair_plate_top_side_end.webp)
-![](butt_pair_plate_side_side_outplane.webp)
-![](butt_pair_plate_side_side_inplane.webp)
-![](butt_pair_plate_top_side_floor.webp)
-![](butt_pair_plate_cross.webp)
-![](butt_pair_column_top_side_plate.webp)
-![](butt_pair_plate_top_side_beam.webp)
-![](butt_pair_beam_top_side_plate.webp)
-![](butt_brace_frame.webp)
-![](butt_curved_sill.webp)
-![](butt_polygon_floor.webp)
-![](butt_zigzag_walls.webp)
-![](butt_folded_roof.webp)
-
-- @subpage cutting_gallery
-</div>
 
 ---
 
@@ -263,6 +213,7 @@ int main() {
         Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)
     });
     const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
+    joint->is_visible = false;
 
     wood_session.add(plate0);
     wood_session.add(plate1);
@@ -585,9 +536,16 @@ int main() {
     std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and "
               << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
-    for (const std::shared_ptr<Plate>& p : wood_session.plates())
-        if (p != male && p != female)
-            p->is_visible = false;
+    Mesh male_mesh = male->model_geometry_mesh();
+    male_mesh.set_objectcolor(Color(0.24f, 0.58f, 0.78f));
+    male->is_visible = false;
+    wood_session.add(std::make_shared<Element>(male_mesh, male->name + "_male"));
+
+    Mesh female_mesh = female->model_geometry_mesh();
+    female_mesh.set_objectcolor(Color(0.90f, 0.38f, 0.22f));
+    female->is_visible = false;
+    wood_session.add(std::make_shared<Element>(female_mesh, female->name + "_female"));
+
     wood_session.pb_dump(pb_path("live"));
 
     return 0;
@@ -982,13 +940,6 @@ int main() {
     cut_case(scene, "Concave pocket / solid split", stock(), pocket, 780);
     finish(scene, "15_profile_cuts");
 }
-
-/*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 15_profile_cuts --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/15_profile_cuts
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/15_profile_cuts.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
-*/
 ```
 
 ---
@@ -1009,9 +960,14 @@ int main() {
     for (double tolerance : {2.0, 0.2, 0.02}) {
         const Line axis = Line::from_points({0, double(row * 180), 0}, {0, double(row * 180), 100});
         const std::shared_ptr<Joint> drill = Joint::drill(axis, 35, tolerance);
+        drill->is_visible = true;
         drill->name = fmt::format(
             "Mesh: tolerance {}, {} segments", tolerance, circle_segments(35, tolerance)
         );
+        drill->compute_geometry_mesh();
+        Mesh drill_mesh = drill->geometry_mesh();
+        drill_mesh.set_objectcolor(Color(0.9, 0.35, 0.2));
+        drill->set_geometry(drill_mesh);
         scene.add(drill);
         const BRep exact =
             drill->element_geometry_brep().transformed(Xform::translation(180, 0, 0));
@@ -1030,13 +986,6 @@ int main() {
     );
     finish(scene, "16_drill_solids");
 }
-
-/*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 16_drill_solids --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/16_drill_solids
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/16_drill_solids.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
-*/
 ```
 
 ---
@@ -1086,13 +1035,6 @@ int main() {
     );
     finish(scene, "17_solid_features");
 }
-
-/*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 17_solid_features --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/17_solid_features
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/17_solid_features.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
-*/
 ```
 
 ---
@@ -1151,13 +1093,6 @@ int main() {
     }
     finish(gallery, "18_cutting_gallery");
 }
-
-/*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 18_cutting_gallery --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/18_cutting_gallery
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/18_cutting_gallery.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
-*/
 ```
 
 ---
@@ -1187,11 +1122,12 @@ int main() {
     };
 
     for (size_t i = 0; i < joints.size(); ++i) {
-        const double offset = i * 600.0;
+        const double ox = (i % 3) * 550.0;
+        const double oy = (i / 3) * 480.0;
         const std::shared_ptr<Plate> bottom =
-            Plate::from_rectangle({offset, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
+            Plate::from_rectangle({ox, oy, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
         const std::shared_ptr<Plate> upright =
-            Plate::from_rectangle({offset + 150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 250, 40);
+            Plate::from_rectangle({ox + 150, oy, 40}, {0, 1, 0}, {0, 0, 1}, 300, 250, 40);
         const std::shared_ptr<TreeNode> group =
             scene.add_group(joints[i]->parameters.library + " / " + std::to_string(i));
         scene.add(bottom, group);
@@ -1199,6 +1135,7 @@ int main() {
         const std::shared_ptr<InteractionContactFace> contact =
             scene.compute_face_contact(bottom, upright);
         joints[i]->orient(contact, {bottom, upright});
+        joints[i]->is_visible = false;
         scene.add(joints[i], group);
         scene.add_interaction(joints[i], upright, joints[i]->interaction(0));
         scene.add_interaction(joints[i], bottom, joints[i]->interaction(1));
@@ -1209,14 +1146,6 @@ int main() {
 
     return 0;
 }
-
-/*
-description: named plate joint constructors, with different parameters on the same contact.
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 19_plate_joint_library --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/19_plate_joint_library
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/19_plate_joint_library.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
-*/
 ```
 
 ---
@@ -1949,3 +1878,8 @@ int main() {
     return 0;
 }
 ```
+
+<div style="display:none">
+
+- @subpage cutting_gallery
+</div>

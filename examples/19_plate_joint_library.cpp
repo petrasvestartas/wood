@@ -16,11 +16,12 @@ int main() {
     };
 
     for (size_t i = 0; i < joints.size(); ++i) {
-        const double offset = i * 600.0;
+        const double ox = (i % 3) * 550.0;
+        const double oy = (i / 3) * 480.0;
         const std::shared_ptr<Plate> bottom =
-            Plate::from_rectangle({offset, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
+            Plate::from_rectangle({ox, oy, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
         const std::shared_ptr<Plate> upright =
-            Plate::from_rectangle({offset + 150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 250, 40);
+            Plate::from_rectangle({ox + 150, oy, 40}, {0, 1, 0}, {0, 0, 1}, 300, 250, 40);
         const std::shared_ptr<TreeNode> group =
             scene.add_group(joints[i]->parameters.library + " / " + std::to_string(i));
         scene.add(bottom, group);
@@ -28,6 +29,7 @@ int main() {
         const std::shared_ptr<InteractionContactFace> contact =
             scene.compute_face_contact(bottom, upright);
         joints[i]->orient(contact, {bottom, upright});
+        joints[i]->is_visible = false;
         scene.add(joints[i], group);
         scene.add_interaction(joints[i], upright, joints[i]->interaction(0));
         scene.add_interaction(joints[i], bottom, joints[i]->interaction(1));

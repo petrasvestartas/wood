@@ -29,9 +29,16 @@ int main() {
     std::cout << "the edge joins " << wood_session.get_element<Element>(edge.v0)->name << " and "
               << wood_session.get_element<Element>(edge.v1)->name << "\n";
 
-    for (const std::shared_ptr<Plate>& p : wood_session.plates())
-        if (p != male && p != female)
-            p->is_visible = false;
+    Mesh male_mesh = male->model_geometry_mesh();
+    male_mesh.set_objectcolor(Color(0.24f, 0.58f, 0.78f));
+    male->is_visible = false;
+    wood_session.add(std::make_shared<Element>(male_mesh, male->name + "_male"));
+
+    Mesh female_mesh = female->model_geometry_mesh();
+    female_mesh.set_objectcolor(Color(0.90f, 0.38f, 0.22f));
+    female->is_visible = false;
+    wood_session.add(std::make_shared<Element>(female_mesh, female->name + "_female"));
+
     wood_session.pb_dump(pb_path("live"));
 
     return 0;

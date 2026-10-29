@@ -45,17 +45,23 @@ inline void cut_case(
     scene.add(cutter, group);
     cutter->targets = {stock->guid()};
     scene.add_interaction(cutter, stock, cutter->interaction(0));
-    stock->name = "Result";
+    stock->name = "StockCut";
+    stock->is_visible = false;
     stock->compute_geometry_mesh();
-    const Mesh& result = stock->model_geometry_mesh();
+    preview(
+        scene,
+        stock->model_geometry_mesh(),
+        "Result",
+        {0, 0, 0},
+        Color(0.24, 0.58, 0.7),
+        group
+    );
     cutter->place(Xform::translation(-300, 0, 0));
+    cutter->is_visible = true;
     cutter->name = "Cutter (display copy of applied definition)";
     cutter->compute_geometry_mesh();
-    Mesh cutter_mesh = cutter->model_geometry_mesh();
+    Mesh cutter_mesh = cutter->geometry_mesh();
     cutter_mesh.set_objectcolor(Color(0.9, 0.35, 0.2));
     cutter->set_geometry(cutter_mesh);
-    Mesh result_mesh = result;
-    result_mesh.set_objectcolor(Color(0.24, 0.58, 0.7));
-    stock->set_geometry(result_mesh);
 }
 }

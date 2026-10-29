@@ -24,6 +24,7 @@ int main() {
         Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)
     });
     const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
+    joint->is_visible = false;
 
     wood_session.add(plate0);
     wood_session.add(plate1);

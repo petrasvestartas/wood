@@ -15,14 +15,6 @@ Vaulted timber floor bay supported on four carved columns with a central interlo
   </a>
 </div>
 
-<div style="display:none">
-![](floor/962_section_construction_quads.webp)
-![](floor/floor_viewer.webp)
-
-- @subpage templates_floor_guide
-- @subpage templates_floor_model
-</div>
-
 ## Examples
 
 ```cpp
@@ -42,3 +34,9 @@ int main() {
     return 0;
 }
 ```
+
+<div style="display:none">
+
+- @subpage templates_floor_guide
+- @subpage templates_floor_model
+</div>

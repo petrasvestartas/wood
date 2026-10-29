@@ -22,12 +22,6 @@ Cutting gallery targets test 2D profile slots, blind pockets, tolerance-controll
     <span class="wood-card-title">Plate Joint Library</span>
   </a>
 </div>
-<div style="display:none">
-![](ex_15_profile_cuts.webp)
-![](ex_16_drill_solids.webp)
-![](ex_17_solid_features.webp)
-![](ex_19_plate_joint_library.webp)
-</div>
 
 ## Build and Run
 
