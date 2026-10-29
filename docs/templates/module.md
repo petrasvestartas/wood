@@ -2,42 +2,34 @@
 
 [TOC]
 
-Framed timber panels (`Wall` / `FramedPanel`), hollow cassette shells (`CassetteShell`), and multi-storey room modules (`RoomModule`) (`src/templates/module/*.h`) built from `Beam` and `Plate` elements with automatic `add_module_contacts` face-contact detection.
+Framed timber walls, hollow cassette shells, and multi-storey room modules in `src/templates/module/*.h` with automatic face-contact detection.
 
 <div class="wood-card-grid cols-3">
   <a class="wood-card" href="#module_wall">
     <img src="templates_module_1_wall_all.webp" alt="Framed Wall">
-    <span class="wood-card-title">1. Framed Wall (`Wall`)</span>
-    <span class="wood-card-sub">Studs, jambs, headers, sills &amp; notched sheathing (`templates_module_1_wall`)</span>
+    <span class="wood-card-title">Framed Wall</span>
   </a>
   <a class="wood-card" href="#module_cassette_shell">
     <img src="templates_module_2_cassette_shell_all.webp" alt="Cassette Shell">
-    <span class="wood-card-title">2. Cassette Shell (`CassetteShell`)</span>
-    <span class="wood-card-sub">Hollow polygonal cassettes with bevel miters (`templates_module_2_cassette_shell`)</span>
+    <span class="wood-card-title">Cassette Shell</span>
   </a>
   <a class="wood-card" href="#module_cassette_house">
     <img src="templates_module_3_cassette_house_all.webp" alt="Cassette House">
-    <span class="wood-card-title">3. Cassette House (`house_mesh`)</span>
-    <span class="wood-card-sub">6-cassette gable house with ranked T-joints (`templates_module_3_cassette_house`)</span>
+    <span class="wood-card-title">Cassette House</span>
   </a>
   <a class="wood-card" href="#module_room">
     <img src="templates_module_4_room_module_all.webp" alt="Room Module">
-    <span class="wood-card-title">4. Room Module (`RoomModule`)</span>
-    <span class="wood-card-sub">9 × 3 m volumetric timber room modules (`templates_module_4_room_module`)</span>
+    <span class="wood-card-title">Room Module</span>
   </a>
   <a class="wood-card" href="#module_block">
-    <img src="templates_module_5_module_block_all.webp" alt="Multi-Storey Module Block">
-    <span class="wood-card-title">5. Multi-Storey Module Block</span>
-    <span class="wood-card-sub">12 stacked room modules over 3 storeys (`templates_module_5_module_block`)</span>
+    <img src="templates_module_5_module_block_all.webp" alt="Module Block">
+    <span class="wood-card-title">Module Block</span>
   </a>
   <a class="wood-card" href="#module_bank">
     <img src="templates_module_6_bank_pavilion_all.webp" alt="Bank Pavilion">
-    <span class="wood-card-title">6. Bank Pavilion</span>
-    <span class="wood-card-sub">4-module pavilion with open office &amp; inset porch (`templates_module_6_bank_pavilion`)</span>
+    <span class="wood-card-title">Bank Pavilion</span>
   </a>
 </div>
-
-![](diagrams/template_module_pipeline.webp)
 
 ---
 
@@ -60,7 +52,7 @@ A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/
 
 ### Wall Generation Steps
 
-1. **Frame (`frame`)**: Bottom and top rails (bottom rail interrupted across door openings), full-height jamb studs on either side of every opening with headers and window sills between them, and grid studs every `stud_spacing` (omitting any grid stud within `0.5 * stud_spacing` of a jamb or end stud and splitting studs inside openings into top and bottom cripples):
+1. Frame (`frame`): Bottom and top rails (bottom rail interrupted across door openings), full-height jamb studs on either side of every opening with headers and window sills between them, and grid studs every `stud_spacing` (omitting any grid stud within `0.5 * stud_spacing` of a jamb or end stud and splitting studs inside openings into top and bottom cripples):
 
 ![](templates/templates_module_1_wall_frame.webp)
 
@@ -68,7 +60,7 @@ A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/
 for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) { ... }
 ```
 
-2. **Sheathing (`sheathing`)**: One `15 mm` `Plate` on each face of the wall, with doors cut as bottom boundary notches and windows cut as interior polygon holes (`Plate(bottom, top, inner_bottoms, inner_tops)`):
+2. Sheathing (`sheathing`): One `15 mm` `Plate` on each face of the wall, with doors cut as bottom boundary notches and windows cut as interior polygon holes (`Plate(bottom, top, inner_bottoms, inner_tops)`):
 
 ![](templates/templates_module_1_wall_sheathing.webp)
 
@@ -84,7 +76,7 @@ for (const std::pair<double, size_t>& entry : doors) {
 
 ![](templates/templates_module_1_wall_inside.webp)
 
-3. **Contacts (`contacts_frame`, `contacts_sheathing`)**: `add_module_contacts` (`module/module_contact.h`) detects all `26` frame-to-frame and `32` sheet-to-frame `InteractionContactFace` regions (`<target>_on_<source>` or `<target>_beside_<source>`):
+3. Contacts (`contacts_frame`, `contacts_sheathing`): `add_module_contacts` (`module/module_contact.h`) detects all `26` frame-to-frame and `32` sheet-to-frame `InteractionContactFace` regions (`<target>_on_<source>` or `<target>_beside_<source>`):
 
 ```cpp
 const bool beside = std::max(end_i, end_j) < 0.9;
@@ -93,12 +85,27 @@ const std::shared_ptr<Beam> target = !beside && end_i > end_j ? beam_i : beam_j;
 const std::shared_ptr<InteractionContactFace> face = session.compute_face_contact(source, target);
 ```
 
-<details>
-<summary>Example code: examples/templates_module_1_wall.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/wall.h"
 
-\include{lineno} templates_module_1_wall.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// A framed wall module with a door and a window.
+int main() {
+
+    wood_module::Wall wall;
+    std::cout << wall << std::endl;
+
+    const size_t frame = wall.get_branch("contacts_frame").objects.meshes->size();
+    const size_t sheathing = wall.get_branch("contacts_sheathing").objects.meshes->size();
+    std::cout << fmt::format("wall: {} frame contacts, {} sheathing contacts", frame, sheathing)
+              << std::endl;
+    wall.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -122,7 +129,7 @@ Segmented shell of hollow timber cassettes — one per planar face of a polygon 
 
 ### Cassette Shell Generation Steps
 
-1. **Edge and Miter Planes**: When `ranks` is empty, each shared edge receives a plane leaning on the average normal of its two adjacent cells (`face.z_axis() + other.z_axis()`), and each corner receives the dihedral bisector of its two meeting edge planes:
+1. Edge and Miter Planes: When `ranks` is empty, each shared edge receives a plane leaning on the average normal of its two adjacent cells (`face.z_axis() + other.z_axis()`), and each corner receives the dihedral bisector of its two meeting edge planes:
 
 ```cpp
 if (ranks.empty()) {
@@ -133,7 +140,7 @@ if (ranks.empty()) {
 }
 ```
 
-2. **Hollow Cassette Lofting**: Each cell consists of top and bottom face `Plate` panels clipped by the edge planes plus perimeter beams lofted between `bottom` and `top` (`outer` edge plane to `inner = outer.translate_by_normal(-beam_width)`):
+2. Hollow Cassette Lofting: Each cell consists of top and bottom face `Plate` panels clipped by the edge planes plus perimeter beams lofted between `bottom` and `top` (`outer` edge plane to `inner = outer.translate_by_normal(-beam_width)`):
 
 ![](templates/templates_module_2_cassette_shell_cassette_4.webp)
 
@@ -145,7 +152,7 @@ const Polyline bottom_loop = Polyline::from_planes(sides, bottom);
 const Polyline top_loop = Polyline::from_planes(sides, top);
 ```
 
-3. **Intra- and Inter-Cassette Contacts**: `compute_face_contact` verifies every internal part-to-part contact and all `104` inter-cassette contacts across the `29` interior edges (throwing if any shared edge lacks contact):
+3. Intra- and Inter-Cassette Contacts: `compute_face_contact` verifies every internal part-to-part contact and all `104` inter-cassette contacts across the `29` interior edges (throwing if any shared edge lacks contact):
 
 ![](templates/templates_module_2_cassette_shell_two_cassettes.webp)
 
@@ -158,12 +165,30 @@ for (const std::shared_ptr<Plate>& a : parts[f])
     }
 ```
 
-<details>
-<summary>Example code: examples/templates_module_2_cassette_shell.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/cassette_shell.h"
 
-\include{lineno} templates_module_2_cassette_shell.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// A segmented shell of hollow cassettes on the VDA dome.
+int main() {
+
+    wood_module::CassetteShell shell;
+    std::cout << shell << std::endl;
+
+    const size_t contacts = shell.get_branch("contacts").objects.meshes->size();
+    std::cout << fmt::format(
+                     "cassette shell: {} cassettes, {} contacts between them",
+                     shell.mesh.number_of_faces(),
+                     contacts
+                 )
+              << std::endl;
+    shell.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -173,7 +198,7 @@ A `6000 × 4000 mm` gable house (`2700 mm` eaves, `4500 mm` ridge, `6` cassettes
 
 ![](templates/templates_module_3_cassette_house_all.webp)
 
-With `house_ranks()`, adjacent cassettes meet in **ranked T-joints** rather than bevels: roof cassettes run over walls and gables, and long walls run past gable ends:
+With `house_ranks()`, adjacent cassettes meet in ranked T-joints rather than bevels: roof cassettes run over walls and gables, and long walls run past gable ends:
 
 ```cpp
 const double side = (face.origin() - other.origin()).dot(other.z_axis()) > 0.0 ? 1.0 : -1.0;
@@ -196,12 +221,39 @@ for (double u = stud_spacing; u < length; u += stud_spacing) { ... }
 
 ![](templates/templates_module_3_cassette_house_eave.webp) ![](templates/templates_module_3_cassette_house_ridge.webp)
 
-<details>
-<summary>Example code: examples/templates_module_3_cassette_house.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/cassette_shell.h"
 
-\include{lineno} templates_module_3_cassette_house.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// A gable house of six cassettes.
+int main() {
+
+    wood_module::CassetteShell house(
+        wood_module::CassetteShell::house_mesh(),
+        160.0,
+        20.0,
+        60.0,
+        wood_module::CassetteShell::house_windows(),
+        625.0,
+        wood_module::CassetteShell::house_ranks(),
+        "cassette_house"
+    );
+    std::cout << house << std::endl;
+
+    const size_t contacts = house.get_branch("contacts").objects.meshes->size();
+    std::cout << fmt::format(
+                     "cassette house: {} cassettes, {} contacts between them",
+                     house.mesh.number_of_faces(),
+                     contacts
+                 )
+              << std::endl;
+    house.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -227,7 +279,7 @@ Volumetric timber room modules (`module/room_module.h`, examples `templates_modu
 
 ### Room Module Generation Steps
 
-1. **Open-Sided Module Logic**: Long sides between modules belonging to the same room are left open (supported by corner posts and `side_posts` at mid-span); between adjacent rooms, a single partition wall is placed inside the smaller room's module:
+1. Open-Sided Module Logic: Long sides between modules belonging to the same room are left open (supported by corner posts and `side_posts` at mid-span); between adjacent rooms, a single partition wall is placed inside the smaller room's module:
 
 ![](templates/templates_module_4_room_module_single.webp)
 
@@ -238,7 +290,7 @@ const bool front_wall = column == 0 || (!front_inside && room[1] < previous[1]);
 const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= next[1]);
 ```
 
-2. **Floor, Ceiling, and Wall Assemblies**: Vertical load paths align in a `190 mm` strip along each long side (ceiling `190 × 470` edge beam → `190 × 190` corner and mid posts and `2400 mm` long walls → floor `190 × 280` edge beam):
+2. Floor, Ceiling, and Wall Assemblies: Vertical load paths align in a `190 mm` strip along each long side (ceiling `190 × 470` edge beam → `190 × 190` corner and mid posts and `2400 mm` long walls → floor `190 × 280` edge beam):
 
 ![](templates/templates_module_4_room_module_floor.webp)
 
@@ -250,14 +302,38 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 ![](templates/templates_module_4_room_module_inside.webp)
 
-3. **Contacts (`contacts_frame`, `contacts_sheathing`)**: `add_module_contacts` registers all `333` frame-to-frame and `378` sheet-to-frame face contacts across both modules.
+3. Contacts (`contacts_frame`, `contacts_sheathing`): `add_module_contacts` registers all `333` frame-to-frame and `378` sheet-to-frame face contacts across both modules.
 
-<details>
-<summary>Example code: examples/templates_module_4_room_module.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/room_module.h"
 
-\include{lineno} templates_module_4_room_module.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// One room of two timber room modules open between them: framed floors and ceilings on corner posts, walls on the closed sides.
+int main() {
+
+    wood_module::RoomModule module;
+    std::cout << module << std::endl;
+
+    const size_t frame = module.get_branch("contacts_frame").objects.meshes->size();
+    const size_t sheathing = module.get_branch("contacts_sheathing").objects.meshes->size();
+    std::cout << fmt::format(
+                     "room module: {} modules of {} x {} x {} mm, {} frame contacts, {} sheathing "
+                     "contacts",
+                     module.columns(),
+                     module.guide.length,
+                     module.guide.width,
+                     module.module_height(),
+                     frame,
+                     sheathing
+                 )
+              << std::endl;
+    module.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -267,12 +343,35 @@ Twelve modules (`rooms = {2, 2}`, `storeys = 3`) arranged as two 2-module rooms 
 
 ![](templates/templates_module_5_module_block_all.webp)
 
-<details>
-<summary>Example code: examples/templates_module_5_module_block.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/room_module.h"
 
-\include{lineno} templates_module_5_module_block.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// A block of timber room modules like the ZM10 school pavilions: two rooms of two modules per storey, three storeys stacked.
+int main() {
+
+    wood_module::RoomModuleGuide guide;
+    guide.rooms = {2, 2};
+    guide.storeys = 3;
+    wood_module::RoomModule block(guide, "module_block");
+    std::cout << block << std::endl;
+
+    const size_t frame = block.get_branch("contacts_frame").objects.meshes->size();
+    const size_t sheathing = block.get_branch("contacts_sheathing").objects.meshes->size();
+    std::cout << fmt::format(
+                     "module block: {} modules, {} frame contacts, {} sheathing contacts",
+                     block.columns() * guide.storeys,
+                     frame,
+                     sheathing
+                 )
+              << std::endl;
+    block.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -286,9 +385,51 @@ Four modules on a `3000 × 10270 mm` grid (`rooms = {1, 2, 1}`: closed meeting r
 
 ![](templates/templates_module_6_bank_pavilion_open.webp)
 
-<details>
-<summary>Example code: examples/templates_module_6_bank_pavilion.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/module/room_module.h"
 
-\include{lineno} templates_module_6_bank_pavilion.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// The bank pavilion of four modules.
+int main() {
+
+    wood_module::RoomModuleGuide guide;
+    guide.length = 10270.0;
+    guide.stud_depth = 180.0;
+    guide.rooms = {1, 2, 1};
+    guide.layouts = {
+        {{{{},
+           {{4825.0, 1590.0, 0.0, 2100.0}},
+           {{330.0, 1620.0, 600.0, 2500.0}},
+           {{330.0, 1620.0, 600.0, 2500.0}}}},
+         0.0},
+        {{{{}, {}, {{330.0, 1620.0, 600.0, 2500.0}}, {{330.0, 1620.0, 600.0, 2500.0}}}}, 0.0},
+        {{{{}, {}, {{330.0, 1620.0, 600.0, 2500.0}}, {{330.0, 1620.0, 600.0, 2500.0}}}}, 0.0},
+        {{{{{395.0, 1550.0, 0.0, 2100.0}, {5295.0, 890.0, 0.0, 2100.0}, {7557.0, 890.0, 0.0, 2100.0}
+           },
+           {{1268.0, 720.0, 1500.0, 2100.0}},
+           {{120.0, 910.0, 600.0, 2500.0}, {1295.0, 910.0, 600.0, 2500.0}},
+           {{323.0, 1020.0, 600.0, 2500.0}}}},
+         2730.0},
+    };
+    wood_module::RoomModule pavilion(guide, "bank_pavilion");
+    std::cout << pavilion << std::endl;
+
+    const size_t frame = pavilion.get_branch("contacts_frame").objects.meshes->size();
+    const size_t sheathing = pavilion.get_branch("contacts_sheathing").objects.meshes->size();
+    std::cout
+        << fmt::format(
+               "bank pavilion: {} modules of {} x {} mm, {} frame contacts, {} sheathing contacts",
+               pavilion.columns(),
+               guide.length,
+               guide.width,
+               frame,
+               sheathing
+           )
+        << std::endl;
+    pavilion.pb_dump(pb_path("live"));
+    return 0;
+}
+```

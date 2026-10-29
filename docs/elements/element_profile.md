@@ -34,9 +34,3 @@ All six standard section profiles swept along 800 mm beam segments: rectangle, r
 const std::vector<Polyline> loops = profile_w(200.0, 300.0, 20.0, 12.0);
 scene.add(std::make_shared<Beam>(axis, loops, std::vector<Vector>{}, "w"));
 ```
-
-<details><summary>Example code: elements/element_profile.cpp</summary>
-
-\include{lineno} elements/element_profile.cpp
-
-</details>

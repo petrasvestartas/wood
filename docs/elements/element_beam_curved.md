@@ -1,4 +1,4 @@
-# BeamCurved {#elements_beam_curved}
+# Curved Beam {#elements_beam_curved}
 
 [TOC]
 
@@ -43,9 +43,3 @@ const std::shared_ptr<BeamCurved> double_arch = BeamCurved::double_curved(
 scene.add(single_arch);
 scene.add(double_arch);
 ```
-
-<details><summary>Example code: elements/element_beam_curved.cpp</summary>
-
-\include{lineno} elements/element_beam_curved.cpp
-
-</details>

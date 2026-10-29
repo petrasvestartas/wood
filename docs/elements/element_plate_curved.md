@@ -1,4 +1,4 @@
-# PlateCurved {#elements_plate_curved}
+# Curved Plate {#elements_plate_curved}
 
 [TOC]
 
@@ -38,9 +38,3 @@ const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
 );
 scene.add(plate);
 ```
-
-<details><summary>Example code: elements/element_plate_curved.cpp</summary>
-
-\include{lineno} elements/element_plate_curved.cpp
-
-</details>

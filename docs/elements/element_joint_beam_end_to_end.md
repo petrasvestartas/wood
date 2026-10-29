@@ -1,4 +1,4 @@
-# JointBeam end to end {#elements_joint_beam_end_to_end}
+# Beam End-to-End {#elements_joint_beam_end_to_end}
 
 [TOC]
 
@@ -13,8 +13,7 @@ static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& t
 
 Collinear beams (`angle_degrees = 0.0`) use the in-plane scarf preset in `settings.joint_parameters[2]`; angled beams trim their extensions on the angle-bisector miter plane.
 
-## side_side_inplane_splayed_scarf: splayed scarf
-
+## Splayed Scarf
 A collinear splayed scarf splice with end shoulders, key groove, and two vertical pin bores.
 
 ![](elements/element_joint_beam_side_side_inplane_splayed_scarf.png)
@@ -27,14 +26,7 @@ settings.joint_parameters[2] = JointType::side_side_inplane_splayed_scarf;
 const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_side_side_inplane_splayed_scarf.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_side_side_inplane_splayed_scarf.cpp
-
-</details>
-
-## side_side_inplane_cross_splayed_scarf: cross-splayed scarf
-
+## Cross-Splayed Scarf
 A collinear scarf whose upper and lower halves splay in opposite directions to lock the splice against lateral shear both ways.
 
 ![](elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.png)
@@ -47,14 +39,7 @@ settings.joint_parameters[2] = JointType::side_side_inplane_cross_splayed_scarf;
 const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.cpp
-
-</details>
-
-## side_side_rotated_miter: angled end miter
-
+## Angled End Miter
 Two beam pairs meeting at `90°` and `60°` whose extensions are trimmed cleanly along the bisecting miter plane.
 
 ![](elements/element_joint_beam_side_side_rotated_miter.png)
@@ -64,14 +49,7 @@ const auto [a, b] = Beam::pair_end_to_end(90.0);
 const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_side_side_rotated_miter.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_side_side_rotated_miter.cpp
-
-</details>
-
-## jupiter_scarf: trait de Jupiter scarf
-
+## Trait De Jupiter Scarf
 A classical trait de Jupiter tension scarf with hooked tables, twin slopes, central key slot, and locking wedge key.
 
 ![](elements/element_joint_beam_jupiter_scarf.png)
@@ -83,9 +61,3 @@ Settings settings;
 settings.joint_parameters[2] = JointType::jupiter_scarf;
 const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
 ```
-
-<details><summary>Example code: elements/element_joint_beam_jupiter_scarf.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_jupiter_scarf.cpp
-
-</details>

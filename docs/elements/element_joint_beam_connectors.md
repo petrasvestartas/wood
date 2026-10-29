@@ -1,4 +1,4 @@
-# JointBeam connectors {#elements_joint_beam_connectors}
+# Beam Connectors {#elements_joint_beam_connectors}
 
 [TOC]
 
@@ -30,12 +30,6 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 | `profile` | `WEDGE_PROFILE` | Wedge cross-section (`63.5 mm` wide at top, apex `197 mm` below top edge) |
 | `pin_offset` | `80`, `-100` | Longitudinal and vertical offset of the first pin from the top edge |
 
-<details><summary>Example code: elements/element_joint_beam_wedge.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_wedge.cpp
-
-</details>
-
 ## Let-in plate
 
 A flush steel shear plate (`let_in_plate`) slotted into the top of a column and an abutting rib, fastened by two cross-pins in the column and two in the rib (`rectangle_plate`).
@@ -58,12 +52,6 @@ scene.add(joint);
 | `margin_x`, `margin_z` | `6.05`, `3` | Longitudinal and vertical pocket clearance around the steel plate |
 | `overshoot`, `pin_sides` | `25`, `16` | Extra bore depth past the pins and cylindrical facet count |
 
-<details><summary>Example code: elements/element_joint_beam_rectangle_plate.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_rectangle_plate.cpp
-
-</details>
-
 ## Butterfly key
 
 A double-dovetail butterfly key inlaid across the end-to-end seam of two collinear beams along with its mated pockets in both members.
@@ -85,9 +73,3 @@ scene.add_interaction(key, right, key->interaction(1));
 | `head_length`, `head_width`, `neck_width` | `200`, `40`, `20` | Flared head length, head width, and central neck width |
 | `depth`, `end_depth` | `58.5`, `70.4` | Key thickness at the central seam and at the outer ends |
 | `pocket_depth` | `80` | Pocket depth milled into the two beams |
-
-<details><summary>Example code: elements/element_joint_beam_butterfly_key.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_butterfly_key.cpp
-
-</details>

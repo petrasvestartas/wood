@@ -1,68 +1,48 @@
-# Folding cylindrical {#templates_cylindrical_folding}
+# Folding Cylindrical {#templates_cylindrical_folding}
 
 [TOC]
 
-Folded structures of exact cylindrical [`PlateCurved`](@ref elements_plate_curved) lamellas with parallel straight rulings, zero Gaussian curvature, exact rational NURBS ellipse creases, and zero flat-unfolding distortion (`Development::distortion < 1e-14`).
-
-Click any cylindrical folding card below to jump directly to its section and C++ examples:
+Folded structures of exact cylindrical [Curved Plate](@ref elements_plate_curved) lamellas with parallel straight rulings, zero Gaussian curvature, rational NURBS ellipse creases, and zero flat-unfolding distortion.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reflection_principle">
     <img src="templates_cylindrical_folding_1_reflection_lamellas.webp" alt="Reflection Principle">
-    <span class="wood-card-title">1. Reflection Principle</span>
-    <span class="wood-card-sub">Circular arc strip reflected on an oblique plane (`ReflectionFold`)</span>
+    <span class="wood-card-title">Reflection Principle</span>
   </a>
   <a class="wood-card" href="#curved_folded_plate">
-    <img src="templates_cylindrical_folding_2_curved_folded_plate_lamellas.webp" alt="Curved Folded Plate Arch">
-    <span class="wood-card-title">2. Curved Folded Plate Arch</span>
-    <span class="wood-card-sub">Half-sine waves swept along a 5-segment polygonal arch</span>
+    <img src="templates_cylindrical_folding_2_curved_folded_plate_lamellas.webp" alt="Curved Folded Arch">
+    <span class="wood-card-title">Curved Folded Arch</span>
   </a>
   <a class="wood-card" href="#mendrisio_pavilion">
     <img src="templates_cylindrical_folding_3_mendrisio_pavilion_lamellas.webp" alt="Mendrisio Pavilion">
-    <span class="wood-card-title">3. Mendrisio Pavilion</span>
-    <span class="wood-card-sub">IBOIS curved CLT barrel reflected at eave &amp; ridge</span>
+    <span class="wood-card-title">Mendrisio Pavilion</span>
   </a>
   <a class="wood-card" href="#folded_cylinders">
-    <img src="templates_cylindrical_folding_5_two_hinged_arch_lamellas.webp" alt="Linear Folded Cylindrical Halls">
-    <span class="wood-card-title">4–7. Cylindrical Hall Systems</span>
-    <span class="wood-card-sub">Two-hinged frame, two-hinged arch, top-hinged arch &amp; A-frame</span>
+    <img src="templates_cylindrical_folding_5_two_hinged_arch_lamellas.webp" alt="Cylindrical Halls">
+    <span class="wood-card-title">Cylindrical Halls</span>
   </a>
   <a class="wood-card" href="#cylinder_vault">
-    <img src="templates_cylindrical_folding_8_groin_vault_lamellas.webp" alt="CylinderVault">
-    <span class="wood-card-title">8–12. CylinderVault</span>
-    <span class="wood-card-sub">Groin, cloister, pentagon, hexagon &amp; octagon cylinder vaults</span>
+    <img src="templates_cylindrical_folding_8_groin_vault_lamellas.webp" alt="Cylinder Vault">
+    <span class="wood-card-title">Cylinder Vault</span>
   </a>
   <a class="wood-card" href="#curved_folded_beam">
-    <img src="templates_cylindrical_folding_13_curved_folded_beam_all.webp" alt="CurvedFoldedBeam">
-    <span class="wood-card-title">13. CurvedFoldedBeam</span>
-    <span class="wood-card-sub">4-cylinder box girder with transverse planar diaphragms</span>
+    <img src="templates_cylindrical_folding_13_curved_folded_beam_all.webp" alt="Curved Folded Beam">
+    <span class="wood-card-title">Curved Folded Beam</span>
   </a>
   <a class="wood-card" href="#corner_fan">
-    <img src="templates_cylindrical_folding_14_corner_fan_strips.webp" alt="CornerFan">
-    <span class="wood-card-title">14–15. CornerFan</span>
-    <span class="wood-card-sub">Cylindrical bands radiating from one corner on parabolic creases</span>
+    <img src="templates_cylindrical_folding_14_corner_fan_strips.webp" alt="Corner Fan">
+    <span class="wood-card-title">Corner Fan</span>
   </a>
   <a class="wood-card" href="#cylinder_carving">
-    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_all.webp" alt="CylinderCarving">
-    <span class="wood-card-title">16–17. CylinderCarving</span>
-    <span class="wood-card-sub">Sequential boolean cylinder carving &amp; fluted columns</span>
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_all.webp" alt="Cylinder Carving">
+    <span class="wood-card-title">Cylinder Carving</span>
   </a>
 </div>
 
-![](diagrams/template_cylindrical_developable_pipeline.webp)
-
-| Template | Header | Geometric Construction | Examples |
-| --- | --- | --- | --- |
-| [ReflectionFold](#reflection_fold) | `cylindrical_folding/reflection_fold.h` | Cylindrical profile swept along rulings and reflected or mirrored across planar creases | `templates_cylindrical_folding_{1..7}_*` |
-| [CylinderVault](#cylinder_vault) | `cylindrical_folding/cylinder_vault.h` | Equal cylinders over a regular polygon meeting on vertical diagonal planes (`Groin` / `Cloister`) | `templates_cylindrical_folding_{8..12}_*` |
-| [CurvedFoldedBeam](#curved_folded_beam) | `cylindrical_folding/curved_folded_beam.h` | Closed 4-cylinder box girder deepening toward mid-span with transverse planar webs | `templates_cylindrical_folding_13_curved_folded_beam` |
-| [CornerFan](#corner_fan) | `cylindrical_folding/corner_fan.h` | Cylindrical strips radiating from one corner of a square on parabolic creases | `templates_cylindrical_folding_{14,15}_*` |
-| [CylinderCarving](#cylinder_carving) | `cylindrical_folding/cylinder_carving.h` | Sequential boolean cylinder carving `((a - b) - c) - d`, one concave `PlateCurved` per patch | `templates_cylindrical_folding_{16,17}_*` |
-
 ## Cylindrical Crease Invariants {#why_cylinders}
 
-- **Planar Crease Theorem:** Two smooth developable patches meet along a planar curve when one is the reflection or mirror image of the other across the crease plane (rulings make equal angles with the plane).
-- **Exact Rational NURBS Solids:** Projecting a circular NURBS arc along parallel rulings onto an oblique fold plane is an affine map that preserves rational weights, producing exact ellipse arcs and an exact 6-patch `PlateCurved` solid (`distortion = 0`).
+- Planar Crease Theorem: Two smooth developable patches meet along a planar curve when one is the reflection or mirror image of the other across the crease plane (rulings make equal angles with the plane).
+- Exact Rational NURBS Solids: Projecting a circular NURBS arc along parallel rulings onto an oblique fold plane is an affine map that preserves rational weights, producing exact ellipse arcs and an exact 6-patch `PlateCurved` solid (`distortion = 0`).
 
 ---
 
@@ -108,12 +88,6 @@ ReflectionFold fold(
 );
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_1_reflection.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_1_reflection.cpp
-
-</details>
-
 ### 2. Curved Folded Plate Arch {#curved_folded_plate}
 
 Six half-sine waves (`9 m` wide, `400 mm` amplitude) swept along a 5-segment polygonal arch with four `-30°` reverse folds (`13.5 m` span, `4.9 m` rise, `30` lamellas, `49` contacts).
@@ -132,12 +106,6 @@ ReflectionFold fold(
 );
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_2_curved_folded_plate.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_2_curved_folded_plate.cpp
-
-</details>
-
 ### 3. Mendrisio Pavilion {#mendrisio_pavilion}
 
 IBOIS Mendrisio pavilion (`13 × 4.5 × 3.4 m`, `77 mm` curved CLT): shallow barrel reflected at the eave (`89.9°`) and ridge (`10°`) across the symmetry plane (`5` plates, `4` contacts).
@@ -154,12 +122,6 @@ ReflectionFold fold(
     77.0
 );
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_3_mendrisio_pavilion.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_3_mendrisio_pavilion.cpp
-
-</details>
 
 ### 4–7. Linear Folded Cylindrical Hall Systems {#folded_cylinders}
 
@@ -180,12 +142,6 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{6000.0, -76.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(20000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_4_two_hinged_frame.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_4_two_hinged_frame.cpp
-
-</details>
-
 #### 5. Two-Hinged Arch {#two_hinged_arch}
 
 ![](templates/templates_cylindrical_folding_5_two_hinged_arch_lamellas.webp)
@@ -193,12 +149,6 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ```cpp
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 2400.0), along, Vector(0.0, -1.0, 0.0), 40000.0, {{11000.0, -50.0 * Tolerance::TO_RADIANS, false}, {22000.0, -50.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_5_two_hinged_arch.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_5_two_hinged_arch.cpp
-
-</details>
 
 #### 6. Arch with Top Hinge {#arch_with_top_hinge}
 
@@ -208,12 +158,6 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 1600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{300.0, -15.0 * Tolerance::TO_RADIANS, true}, {18300.0, -40.0 * Tolerance::TO_RADIANS, true}, {25300.0, -35.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(13000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_6_arch_with_top_hinge.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_6_arch_with_top_hinge.cpp
-
-</details>
-
 #### 7. Two-Hinged A-Frame {#a_frame}
 
 ![](templates/templates_cylindrical_folding_7_a_frame_lamellas.webp)
@@ -221,12 +165,6 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ```cpp
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 1400.0), along, Vector(0.0, -1.0, 0.0), 40000.0, {{5600.0, -60.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(12500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_7_a_frame.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_7_a_frame.cpp
-
-</details>
 
 ---
 
@@ -247,12 +185,6 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_8_groin_vault.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_8_groin_vault.cpp
-
-</details>
-
 ### 9. Pavilion Cloister Vault on Walls (4 Sides) {#pavilion_vault}
 
 ![](templates/templates_cylindrical_folding_9_pavilion_vault_lamellas.webp)
@@ -260,12 +192,6 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 ```cpp
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_9_pavilion_vault.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_9_pavilion_vault.cpp
-
-</details>
 
 ### 10. Pentagon Vault (5 Sides) {#pentagon_vault}
 
@@ -275,12 +201,6 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_10_pentagon_vault.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_10_pentagon_vault.cpp
-
-</details>
-
 ### 11. Hexagon Vault (6 Sides) {#hexagon_vault}
 
 ![](templates/templates_cylindrical_folding_11_hexagon_vault_lamellas.webp)
@@ -289,12 +209,6 @@ CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_11_hexagon_vault.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_11_hexagon_vault.cpp
-
-</details>
-
 ### 12. Octagon Vault (8 Sides) {#octagon_vault}
 
 ![](templates/templates_cylindrical_folding_12_octagon_vault_lamellas.webp)
@@ -302,12 +216,6 @@ CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```cpp
 CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_12_octagon_vault.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_12_octagon_vault.cpp
-
-</details>
 
 ---
 
@@ -320,12 +228,6 @@ CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
 ```cpp
 CurvedFoldedBeam beams;
 ```
-
-<details><summary>Example code: templates_cylindrical_folding_13_curved_folded_beam.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_13_curved_folded_beam.cpp
-
-</details>
 
 ---
 
@@ -343,21 +245,44 @@ CurvedFoldedBeam beams;
 CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 ```
 
-<details><summary>Example code: templates_cylindrical_folding_14_corner_fan.cpp</summary>
-
-\include{lineno} templates_cylindrical_folding_14_corner_fan.cpp
-
-</details>
-
 ### 15. Corner Fan Subdivisions (2, 4, 8, 12 Strips) {#corner_fan_subdivisions}
 
 ![](templates/templates_cylindrical_folding_15_corner_fan_subdivisions_all.webp)
 
-<details><summary>Example code: templates_cylindrical_folding_15_corner_fan_subdivisions.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/cylindrical_folding/corner_fan.h"
 
-\include{lineno} templates_cylindrical_folding_15_corner_fan_subdivisions.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// The corner fan divided into 2, 4, 8 and 12 strips, side by side, the same square, heights and lift.
+int main() {
+
+    WoodSession fans("corner_fan_subdivisions");
+    const std::array<size_t, 4> counts = {2, 4, 8, 12};
+
+    for (size_t i = 0; i < counts.size(); i++) {
+        const Point corner(9000.0 * static_cast<double>(i), 0.0, 0.0);
+        CornerFan fan(
+            6000.0,
+            4000.0,
+            counts[i],
+            1200.0,
+            800.0,
+            0.15,
+            40.0,
+            corner,
+            fmt::format("corner_fan_{}", counts[i])
+        );
+        std::cout << fmt::format("corner fan of {} strips: {} contacts, development distortion {:.2e}\n", counts[i], fan.get_contacts().size(), fan.distortion());
+        fans.graft(fan, fans.add_group(fmt::format("fan_{}", counts[i])));
+    }
+
+    fans.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ---
 
@@ -371,11 +296,52 @@ CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 
 Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a `R = 2000 mm`, `12 m` column.
 
-<details><summary>Example code: templates_cylindrical_folding_16_cylinder_carving.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/cylindrical_folding/cylinder_carving.h"
 
-\include{lineno} templates_cylindrical_folding_16_cylinder_carving.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// A cylinder carved by tilted cylinders in sequence: a - b, then - c, then - d, side by side, only the carved patches.
+int main() {
+
+    WoodSession stages("cylinder_carving");
+    const std::array<double, 3> radii = {1500.0, 1800.0, 1300.0};
+    const std::array<double, 3> tilts = {0.06, -0.05, 0.04};
+
+    for (size_t count = 1; count <= 3; count++) {
+        // every stage moved along x; the stock a standing on z, every carver 40 degrees apart round one side, cutting 700 mm deep, turned off its axis
+        const Vector shift(9000.0 * static_cast<double>(count - 1), 0.0, 0.0);
+        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
+        std::vector<CylinderCarving::Cylinder> carvers;
+
+        for (size_t i = 0; i < count; i++) {
+            const double around = (130.0 - 40.0 * static_cast<double>(i)) * Tolerance::TO_RADIANS;
+            const Vector out(std::cos(around), std::sin(around), 0.0);
+            const Vector across(-std::sin(around), std::cos(around), 0.0);
+            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[i] - 700.0);
+            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilts[i], radii[i]});
+        }
+
+        CylinderCarving carving(
+            stock,
+            carvers,
+            12000.0,
+            60.0,
+            10.0 * Tolerance::TO_RADIANS,
+            false,
+            fmt::format("carving_{}", count)
+        );
+        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
+        std::cout << fmt::format("{} carvers: {} plates, {} contacts, development distortion {:.2e}\n", count, plates, carving.get_contacts().size(), carving.distortion());
+        stages.graft(carving, stages.add_group(fmt::format("stage_{}", count)));
+    }
+
+    stages.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ### 17. Closed Fluted Rings (4, 6, 8 Carvers) {#cylinder_carving_rings}
 
@@ -383,8 +349,51 @@ Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a 
 
 Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` alternating-tilt cylinders.
 
-<details><summary>Example code: templates_cylindrical_folding_17_cylinder_carving_rings.cpp</summary>
+```cpp
+#include "wood_session.h"
+#include "src/templates/cylindrical_folding/cylinder_carving.h"
 
-\include{lineno} templates_cylindrical_folding_17_cylinder_carving_rings.cpp
+using namespace session_cpp;
+using namespace wood_session;
 
-</details>
+/// Closed rings of carved patches: a cylinder carved all round by 4, 6 and 8 cylinders, their axes tilted in turn, side by side.
+int main() {
+
+    WoodSession rings("cylinder_carving_rings");
+    const std::array<size_t, 3> counts = {4, 6, 8};
+    const std::array<double, 3> radii = {2000.0, 1600.0, 1200.0};
+    const std::array<double, 3> depths = {1600.0, 1000.0, 800.0};
+
+    for (size_t r = 0; r < counts.size(); r++) {
+        // the stock standing on z, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
+        const Vector shift(9000.0 * static_cast<double>(r), 0.0, 0.0);
+        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
+        std::vector<CylinderCarving::Cylinder> carvers;
+
+        for (size_t i = 0; i < counts[r]; i++) {
+            const double around = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(counts[r]);
+            const Vector out(std::cos(around), std::sin(around), 0.0);
+            const Vector across(-std::sin(around), std::cos(around), 0.0);
+            const double tilt = i % 2 == 0 ? 0.05 : -0.05;
+            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[r] - depths[r]);
+            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilt, radii[r]});
+        }
+
+        CylinderCarving carving(
+            stock,
+            carvers,
+            12000.0,
+            60.0,
+            10.0 * Tolerance::TO_RADIANS,
+            true,
+            fmt::format("ring_{}", counts[r])
+        );
+        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
+        std::cout << fmt::format("ring of {}: {} plates, {} contacts, development distortion {:.2e}\n", counts[r], plates, carving.get_contacts().size(), carving.distortion());
+        rings.graft(carving, rings.add_group(fmt::format("ring_{}", counts[r])));
+    }
+
+    rings.pb_dump(pb_path("live"));
+    return 0;
+}
+```

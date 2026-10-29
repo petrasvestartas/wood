@@ -1,4 +1,4 @@
-# Floor 7: Members and columns {#templates_floor_07_elements}
+# Members and Columns {#templates_floor_07_elements}
 
 [TOC]
 

@@ -1,4 +1,4 @@
-# JointPlate border {#elements_joint_plate_border}
+# Plate Border {#elements_joint_plate_border}
 
 [TOC]
 
@@ -24,9 +24,3 @@ joint->orient(contact, {plate});
 scene.add(joint);
 scene.add_interaction(joint, plate, joint->interaction(0));
 ```
-
-<details><summary>Example code: elements/element_joint_plate_border.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_border.cpp
-
-</details>

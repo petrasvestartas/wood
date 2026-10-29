@@ -43,12 +43,6 @@ const Polyline top = bottom.translated({0.0, 0.0, 40.0});
 scene.add(std::make_shared<Plate>(bottom.closed(), top.closed()));
 ```
 
-<details><summary>Example code: elements/element_plate.cpp</summary>
-
-\include{lineno} elements/element_plate.cpp
-
-</details>
-
 ## With holes
 
 A rectangular plate with four vertical through-holes drilled via `Joint::drill` interactions.
@@ -60,12 +54,6 @@ const std::shared_ptr<Plate> plate = Plate::from_rectangle({0.0, 0.0, 0.0}, {1.0
 const std::shared_ptr<Joint> hole = Joint::drill(axis, 15.0);
 scene.add_interaction(hole, plate, std::make_shared<InteractionFeatureSolid>(std::vector<Line>{axis}, 15.0));
 ```
-
-<details><summary>Example code: elements/element_plate_holes.cpp</summary>
-
-\include{lineno} elements/element_plate_holes.cpp
-
-</details>
 
 ## Lofted between two rails
 
@@ -83,12 +71,6 @@ for (const std::shared_ptr<Plate>& plate : Plate::row_between(
 }
 ```
 
-<details><summary>Example code: elements/element_plate_session.cpp</summary>
-
-\include{lineno} elements/element_plate_session.cpp
-
-</details>
-
 ## Joint types by points and lines
 
 Eight box plates whose contact joint types and insertion directions are assigned spatially by `assign_joint_types_by_points` and `assign_insertion_vectors_by_lines`.
@@ -100,9 +82,3 @@ scene.compute_face_contacts();
 scene.assign_joint_types_by_points(points, types);
 scene.assign_insertion_vectors_by_lines(lines);
 ```
-
-<details><summary>Example code: elements/element_plate_assign_joints.cpp</summary>
-
-\include{lineno} elements/element_plate_assign_joints.cpp
-
-</details>

@@ -44,12 +44,6 @@ scene.add_interaction(drill, block, drill->interaction(0));
 | `radius` | — | Bore radius |
 | `chord_tolerance` | `0.05` | Maximum facet chord deviation (exact analytical cylinder on BRep targets) |
 
-<details><summary>Example code: elements/element_joint_drill.cpp</summary>
-
-\include{lineno} elements/element_joint_drill.cpp
-
-</details>
-
 ## Solid and extruded profile cutters
 
 A box mesh subtracted from a beam's top face (`SolidOperation::subtract`) and an extruded 2D profile that trims the beam's underside to a V (`SolidOperation::intersect`).
@@ -68,12 +62,6 @@ scene.add_interaction(trim, beam, trim->interaction(0));
 | `cutter` | — | Closed mesh subtracted (`subtract`), united (`add`), or intersected (`intersect`) |
 | `operation` | `subtract` (`intersect` for profile) | Boolean operation applied to the target element |
 | `profile`, `direction` | — | Closed 2D loop and extrusion direction vector |
-
-<details><summary>Example code: elements/element_joint_cutter.cpp</summary>
-
-\include{lineno} elements/element_joint_cutter.cpp
-
-</details>
 
 ## Support seat
 

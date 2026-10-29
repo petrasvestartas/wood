@@ -1,4 +1,4 @@
-# JointPlate cross {#elements_joint_plate_cross}
+# Plate Cross {#elements_joint_plate_cross}
 
 [TOC]
 
@@ -21,8 +21,7 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 
 Every example shows two crossing pairs (`Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`) with the second plate shifted downward out of its slot.
 
-## cross_slot: plain half-depth slot
-
+## Plain Half-Depth Slot
 The family default cutting a half-depth rectangular slot from the top of the first plate and the bottom of the second plate.
 
 ![](elements/element_joint_plate_cross_slot.png)
@@ -33,14 +32,7 @@ The family default cutting a half-depth rectangular slot from the top of the fir
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_cross_slot.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_cross_slot.cpp
-
-</details>
-
-## cross_custom: custom outlines
-
+## Custom Outlines
 User-defined crossing slot outlines in the `[-0.5, 0.5]^3` unit box (`male` on the `y` faces, `female` on the `x` faces).
 
 ![](elements/element_joint_plate_cross_custom.png)
@@ -50,9 +42,3 @@ User-defined crossing slot outlines in the `[-0.5, 0.5]^3` unit box (`male` on t
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_custom(male, female);
 ```
-
-<details><summary>Example code: elements/element_joint_plate_cross_custom.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_cross_custom.cpp
-
-</details>

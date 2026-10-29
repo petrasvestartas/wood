@@ -1,4 +1,4 @@
-# JointPlate side_side_rotated {#elements_joint_plate_side_side_rotated}
+# Plate Rotated {#elements_joint_plate_side_side_rotated}
 
 [TOC]
 
@@ -17,8 +17,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-## side_side_rotated_miter: four-way miter slices
-
+## Four-Way Miter Slices
 Splits the shared contact volume through its thickness and slices the twisted seam corners off both plates.
 
 ![](elements/element_joint_plate_side_side_rotated_miter.png)
@@ -29,14 +28,7 @@ Splits the shared contact volume through its thickness and slices the twisted se
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_miter();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_rotated_miter.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_rotated_miter.cpp
-
-</details>
-
-## side_side_rotated_hooks: hook pockets and key
-
+## Hook Pockets and Key
 Cuts one hook pocket per division into each plate's side face and generates the interlocking hook keys between them.
 
 ![](elements/element_joint_plate_side_side_rotated_hooks.png)
@@ -47,14 +39,7 @@ Cuts one hook pocket per division into each plate's side face and generates the 
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_hooks(4, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_rotated_hooks.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_rotated_hooks.cpp
-
-</details>
-
-## side_side_rotated_keys: diamond pockets and key
-
+## Diamond Pockets and Key
 Cuts one diamond pocket per division into each plate's side face and generates the diamond keys that bridge the seam.
 
 ![](elements/element_joint_plate_side_side_rotated_keys.png)
@@ -65,14 +50,7 @@ Cuts one diamond pocket per division into each plate's side face and generates t
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_keys(4, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_rotated_keys.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_rotated_keys.cpp
-
-</details>
-
-## side_side_rotated_custom: custom outlines
-
+## Custom Outlines
 A custom half-lap step along the seam where the male plate's tongue fits into the female plate's rebate.
 
 ![](elements/element_joint_plate_side_side_rotated_custom.png)
@@ -83,14 +61,7 @@ A custom half-lap step along the seam where the male plate's tongue fits into th
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_custom(male, female);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_rotated_custom.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_rotated_custom.cpp
-
-</details>
-
-## side_removal: planar side-face trim
-
+## Planar Side-Face Trim
 Mills each plate's side face along its neighbour's plane so the twisted pair meets flush across the entire seam.
 
 ![](elements/element_joint_plate_side_side_rotated_side_removal.png)
@@ -101,14 +72,8 @@ Mills each plate's side face along its neighbour's plane so the twisted pair mee
 const std::shared_ptr<JointPlate> joint = JointPlate::side_removal(false, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_rotated_side_removal.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_rotated_side_removal.cpp
-
-</details>
-
 ## Parameters
 
-**Divisions.** Places one hook or diamond key per division along the seam.
+Divisions. Places one hook or diamond key per division along the seam.
 
 ![](joint_library/sweep_side_side_rotated.png)

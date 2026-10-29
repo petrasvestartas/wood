@@ -1,4 +1,4 @@
-# Floor 11: BReps and the examples {#templates_floor_11_examples}
+# BReps and Examples {#templates_floor_11_examples}
 
 [TOC]
 

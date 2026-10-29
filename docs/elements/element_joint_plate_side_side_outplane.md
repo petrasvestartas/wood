@@ -1,4 +1,4 @@
-# JointPlate side_side_outplane {#elements_joint_plate_side_side_outplane}
+# Plate Out-of-Plane {#elements_joint_plate_side_side_outplane}
 
 [TOC]
 
@@ -30,8 +30,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-## side_side_outplane_three_fingers: three fingers
-
+## Three Fingers
 Three fixed mitered fingers merged into the floor and wall edges at 90 and 60 degrees.
 
 ![](elements/element_joint_plate_side_side_outplane_three_fingers.png)
@@ -42,14 +41,7 @@ Three fixed mitered fingers merged into the floor and wall edges at 90 and 60 de
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_three_fingers();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_three_fingers.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_three_fingers.cpp
-
-</details>
-
-## side_side_outplane_fingers: parametric fingers
-
+## Parametric Fingers
 Eight divisions producing four mitered fingers on the floor interlocking with four notches in the wall.
 
 ![](elements/element_joint_plate_side_side_outplane_fingers.png)
@@ -60,14 +52,7 @@ Eight divisions producing four mitered fingers on the floor interlocking with fo
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(8, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_fingers.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_fingers.cpp
-
-</details>
-
-## side_side_outplane_graded_fingers: graded splay fingers
-
+## Graded Splay Fingers
 Eight divisions with a non-uniform shift that splays the central finger pairs twice as far as the outer pairs.
 
 ![](elements/element_joint_plate_side_side_outplane_graded_fingers.png)
@@ -78,14 +63,7 @@ Eight divisions with a non-uniform shift that splays the central finger pairs tw
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_graded_fingers(8, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_graded_fingers.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_graded_fingers.cpp
-
-</details>
-
-## side_side_outplane_miter_tenon: miter tenon and mortise
-
+## Miter Tenon and Mortise
 A single central tenon on the mitered wall edge passing through a matching mortise in the floor lip.
 
 ![](elements/element_joint_plate_side_side_outplane_miter_tenon.png)
@@ -96,14 +74,7 @@ A single central tenon on the mitered wall edge passing through a matching morti
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_miter_tenon.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_miter_tenon.cpp
-
-</details>
-
-## side_side_outplane_tenons: chamfered tenons and through mortises
-
+## Chamfered Tenons and Through Mortises
 Parametric tenons along the mitered wall edge paired with through-mortises in the floor plate.
 
 ![](elements/element_joint_plate_side_side_outplane_tenons.png)
@@ -114,14 +85,7 @@ Parametric tenons along the mitered wall edge paired with through-mortises in th
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_tenons(8, 0.0, false);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_tenons.cpp
-
-</details>
-
-## side_side_outplane_linked_tenons: linked tenons
-
+## Linked Tenons
 Extended chamfered tenons designed to interlock with adjacent linked joints at multi-plate folded nodes.
 
 ![](elements/element_joint_plate_side_side_outplane_linked_tenons.png)
@@ -132,14 +96,7 @@ Extended chamfered tenons designed to interlock with adjacent linked joints at m
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons(8, false);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_linked_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons.cpp
-
-</details>
-
-## side_side_outplane_linked_tenons_wall: Vidy wall tenons
-
+## Vidy Wall Tenons
 Linked tenon variant for the Vidy theatre wall seams where the secondary linked joint divisions are disabled.
 
 ![](elements/element_joint_plate_side_side_outplane_linked_tenons_wall.png)
@@ -149,12 +106,6 @@ Linked tenon variant for the Vidy theatre wall seams where the secondary linked 
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
 ```
-
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp
-
-</details>
 
 ## Vidy node: four folded plates
 
@@ -167,14 +118,7 @@ const std::shared_ptr<JointPlate> roof_joint = JointPlate::side_side_outplane_li
 const std::shared_ptr<JointPlate> wall_joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_vidy_node.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_vidy_node.cpp
-
-</details>
-
-## side_side_outplane_capped_fingers: fingers with flat miter caps
-
+## Fingers with Flat Miter Caps
 Four divisions producing two interior fingers flanked by flat miter caps at both ends of the seam.
 
 ![](elements/element_joint_plate_side_side_outplane_capped_fingers.png)
@@ -185,14 +129,7 @@ Four divisions producing two interior fingers flanked by flat miter caps at both
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_fingers(4);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_capped_fingers.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_capped_fingers.cpp
-
-</details>
-
-## side_side_outplane_notch: single central notch
-
+## Single Central Notch
 A single rectangular tongue-and-notch over the middle half of the mitered seam.
 
 ![](elements/element_joint_plate_side_side_outplane_notch.png)
@@ -203,14 +140,7 @@ A single rectangular tongue-and-notch over the middle half of the mitered seam.
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_notch();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_notch.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_notch.cpp
-
-</details>
-
-## side_side_outplane_custom: custom outlines
-
+## Custom Outlines
 Custom wide-narrow-wide fingers on the floor plate and matching sockets in the wall plate defined in the `[-0.5, 0.5]^3` unit box.
 
 ![](elements/element_joint_plate_side_side_outplane_custom.png)
@@ -221,31 +151,25 @@ Custom wide-narrow-wide fingers on the floor plate and matching sockets in the w
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_custom(male, female);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_outplane_custom.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_outplane_custom.cpp
-
-</details>
-
 ## Parameters
 
-**Divisions and shift.** `divisions` sets the finger count; `shift` above `0.5` skews the finger sides into a dovetail.
+Divisions and shift. `divisions` sets the finger count; `shift` above `0.5` skews the finger sides into a dovetail.
 
 ![](joint_library/sweep_side_side_outplane_fingers.png)
 
-**At other angles.** The same fingers at 90, 120, and 150 degrees leaning with the miter plane.
+At other angles. The same fingers at 90, 120, and 150 degrees leaning with the miter plane.
 
 ![](joint_library/sweep_side_side_outplane_fingers_angles.png)
 
-**Chevron pair sweep.** `side_side_outplane_fingers` on a pair of folded plates from the Chevron template across `shift` rows and `divisions` columns.
+Chevron pair sweep. `side_side_outplane_fingers` on a pair of folded plates from the Chevron template across `shift` rows and `divisions` columns.
 
 ![](joint_library/sweep_side_side_outplane_fingers_chevron.png)
 
-**Graded finger sweep.** `side_side_outplane_graded_fingers` across increasing `shift` and `divisions`.
+Graded finger sweep. `side_side_outplane_graded_fingers` across increasing `shift` and `divisions`.
 
 ![](joint_library/sweep_side_side_outplane_graded_fingers.png)
 
-**Tenon parameters.** `taper` narrows the tenon sides and `chamfer` bevels the tenon tips inside the floor plate.
+Tenon parameters. `taper` narrows the tenon sides and `chamfer` bevels the tenon tips inside the floor plate.
 
 ![](joint_library/sweep_side_side_outplane_tenons.png)
 

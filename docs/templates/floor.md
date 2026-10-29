@@ -2,34 +2,43 @@
 
 [TOC]
 
-The vaulted timber floor is supported by four columns. The column heads are integrated into the columns and connect the four quarter components. The central oculus interlocks all four components.
+Vaulted timber floor bay supported on four carved columns with a central interlocking oculus ring (`src/templates/floor/`).
 
 <div class="wood-card-grid cols-3">
   <a class="wood-card" href="templates_floor_guide.html">
-    <img src="962_section_construction_quads.webp" alt="FloorGuide">
-    <span class="wood-card-title">1. FloorGuide (`wood_floor::FloorGuide`)</span>
-    <span class="wood-card-sub">Construction planes, section parabolas &amp; member quads (`src/templates/floor/floor_guide.h`)</span>
+    <img src="962_section_construction_quads.webp" alt="Floor Guide">
+    <span class="wood-card-title">Floor Guide</span>
   </a>
   <a class="wood-card" href="templates_floor_model.html">
     <img src="floor_viewer.webp" alt="Floor Model">
-    <span class="wood-card-title">2. Floor (`wood_floor::Floor`)</span>
-    <span class="wood-card-sub">Quarter assemblies, carved columns, contacts, wedges, plates &amp; pins (`src/templates/floor/floor.h`)</span>
+    <span class="wood-card-title">Floor Model</span>
   </a>
 </div>
 
-Two classes build the floor:
-- @subpage templates_floor_guide - API `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`)
-- @subpage templates_floor_model - API `wood_floor::Floor` (`src/templates/floor/floor.h`)
+<div style="display:none">
+![](floor/962_section_construction_quads.webp)
+![](floor/floor_viewer.webp)
 
-![The finished floor: templates_floor_7_contacts_cantilevers in the viewer](floor/floor_viewer.webp)
-
+- @subpage templates_floor_guide
+- @subpage templates_floor_model
+</div>
 
 ## Examples
 
-| Example | What it builds |
-|---|---|
-| [templates_floor_1_floorguide](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_1_floorguide.cpp) | the guide: quarter 0's plan and every member's quads, faces and parabolas under its name, chapters 1 to 5 |
-| [templates_floor_2_column_model](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) | one column on its support, carved by its six head cutters |
-| [templates_floor_3_contacts](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_3_contacts.cpp) | the 68 contacts the floor stores, red on the faces, seen with View Xray: per quarter 1 `seam_wedge`, 1 `oculus_wedge`, 2 `column_plate`, 6 `block_pins`, 6 butt-joint pin contacts and 1 `pins_ring_corner` |
-| [templates_floor_7_contacts_cantilevers](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp) | the whole square bay with columns, every connector and pin, BReps with exact bores |
-| [templates_floor_8_rectangle](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_8_rectangle.cpp) | the floor on a 6000 x 4800 bay with every connector and pin, BReps |
+```cpp
+#include "wood_session.h"
+#include "src/templates/floor/floor.h"
+
+int main() {
+    const wood_floor::FloorGuide guide({
+        session_cpp::Point(-3000.0, -3000.0, 0.0),
+        session_cpp::Point( 3000.0, -3000.0, 0.0),
+        session_cpp::Point( 3000.0,  3000.0, 0.0),
+        session_cpp::Point(-3000.0,  3000.0, 0.0),
+    });
+    wood_floor::Floor floor(guide);
+    floor.compute_breps();
+    floor.pb_dump(wood_session::pb_path("live"));
+    return 0;
+}
+```

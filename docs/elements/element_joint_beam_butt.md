@@ -1,4 +1,4 @@
-# JointBeam butt {#elements_joint_beam_butt}
+# Beam Butt {#elements_joint_beam_butt}
 
 [TOC]
 
@@ -34,12 +34,6 @@ scene.add_interaction(joint, sill, joint->interaction(0));
 scene.add_interaction(joint, post, joint->interaction(1));
 ```
 
-<details><summary>Example code: elements/element_joint_beam_butt.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_butt.cpp
-
-</details>
-
 ## Plates
 
 Two wall plates meeting at a corner on top of a floor slab: the floor slab runs beneath both walls while the long wall runs flush to the outer face of the short wall.
@@ -51,9 +45,3 @@ const std::shared_ptr<JointBeam> corner = JointBeam::butt(*long_wall, *short_wal
 scene.add_interaction(corner, long_wall, corner->interaction(0));
 scene.add_interaction(corner, short_wall, corner->interaction(1));
 ```
-
-<details><summary>Example code: elements/element_joint_beam_butt_plates.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_butt_plates.cpp
-
-</details>

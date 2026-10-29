@@ -33,12 +33,6 @@ const Polyline section = Polyline::rectangle({-100.0, -150.0, 0.0}, {1.0, 0.0, 0
 scene.add(std::make_shared<Column>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 3500.0}), section, "column"));
 ```
 
-<details><summary>Example code: elements/element_column.cpp</summary>
-
-\include{lineno} elements/element_column.cpp
-
-</details>
-
 ## Floor column assembly
 
 A floor corner column assembly combining the 220 mm shaft, two glued head blocks (`SolidOperation::add`), a steel `Support`, and six pocket/bore cutters (`SolidOperation::subtract`).
@@ -49,9 +43,3 @@ A floor corner column assembly combining the 220 mm shaft, two glued head blocks
 const wood_floor::Floor floor(guide);
 scene.graft(floor.get_branch("column_0"), nullptr);
 ```
-
-<details><summary>Example code: elements/element_column_session.cpp</summary>
-
-\include{lineno} elements/element_column_session.cpp
-
-</details>

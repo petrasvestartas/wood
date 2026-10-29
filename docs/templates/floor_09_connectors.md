@@ -1,4 +1,4 @@
-# Floor 9: Connectors {#templates_floor_09_connectors}
+# Connectors {#templates_floor_09_connectors}
 
 [TOC]
 

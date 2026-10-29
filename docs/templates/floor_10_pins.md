@@ -1,4 +1,4 @@
-# Floor 10: Pins {#templates_floor_10_pins}
+# Pins {#templates_floor_10_pins}
 
 [TOC]
 

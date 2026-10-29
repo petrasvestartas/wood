@@ -1,4 +1,4 @@
-# Part 2. Floor: the model {#templates_floor_model}
+# Floor Model {#templates_floor_model}
 
 [TOC]
 
@@ -46,11 +46,11 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
 
 ## Words
 
-- **bay**: the four-corner floor the guide covers, a column at each corner.
-- **quarter** `q`: the part of the bay around corner `q`, 0 to 3; every quarter has the same members.
-- **seam**: the line where two quarters meet; seam beams `inner_beams_0_<q>` and `inner_beams_2_<q>` lie on it.
-- **oculus**: the hole at the centre, ringed by the four ring beams `oculus_<q>`; the **oculus edge** is the quarter's side on it, where the oculus beam `inner_beams_1_<q>` lies.
-- **column block**: one of the three `wedges_<i>_<q>` Plates of the column head fan; not a wedge connector.
+- bay: the four-corner floor the guide covers, a column at each corner.
+- quarter `q`: the part of the bay around corner `q`, 0 to 3; every quarter has the same members.
+- seam: the line where two quarters meet; seam beams `inner_beams_0_<q>` and `inner_beams_2_<q>` lie on it.
+- oculus: the hole at the centre, ringed by the four ring beams `oculus_<q>`; the oculus edge is the quarter's side on it, where the oculus beam `inner_beams_1_<q>` lies.
+- column block: one of the three `wedges_<i>_<q>` Plates of the column head fan; not a wedge connector.
 
 ## Parameters
 
@@ -75,8 +75,7 @@ static constexpr std::array<size_t, 2> SEAM_BEAMS = {0, 2}; // The inner beams o
 
 One section per constructor block, in order.
 
-<details open>
-<summary><b>Quarters</b></summary>
+### Quarters
 
 The guide's face loops of every quarter become elements at `bay_height`.
 Ribs and inner beams are variable beams; the rest are plates.
@@ -88,8 +87,7 @@ add_quarters();
 
 ![The quarters](floor/980_floor_quarters.webp)
 
-<details>
-<summary>add_quarters()</summary>
+#### add_quarters
 
 ```cpp
 void Floor::add_quarters() {
@@ -172,10 +170,7 @@ void Floor::add_quarters() {
 }
 ```
 
-</details>
-
-<details>
-<summary>rib: a variable beam, one section per soffit point</summary>
+#### rib: a variable beam, one section per soffit point
 
 ```cpp
 std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
@@ -215,10 +210,7 @@ The end sections take the loops' own top corners, so they lie in the end planes.
 
 ![The rib's sections](floor/922_rib_stations.webp)
 
-</details>
-
-<details>
-<summary>beam: a variable beam between its end sections</summary>
+#### beam: a variable beam between its end sections
 
 ```cpp
 std::shared_ptr<BeamVariable> Floor::beam(
@@ -242,12 +234,7 @@ The section over corners `start` and the section over corners `end`, both loops.
 
 ![The beam's end sections](floor/923_beam_sections.webp)
 
-</details>
-
-</details>
-
-<details>
-<summary><b>Oculus</b></summary>
+### Oculus
 
 The four ring beams `oculus_0` to `oculus_3`, the four bottom wedges and the central plate.
 The oculus beam is not here: it is `inner_beams_1_<q>`, in its quarter.
@@ -259,8 +246,7 @@ add_oculus();
 
 ![The oculus from below](floor/981_floor_oculus.webp)
 
-<details>
-<summary>add_oculus()</summary>
+#### add_oculus
 
 ```cpp
 void Floor::add_oculus() {
@@ -300,12 +286,7 @@ void Floor::add_oculus() {
 }
 ```
 
-</details>
-
-</details>
-
-<details>
-<summary><b>Columns</b></summary>
+### Columns
 
 A column stands at every corner of the bay.
 `add_columns` calls `add_column(corner)` for each.
@@ -318,8 +299,7 @@ add_columns();
 
 ![The four columns](floor/229_add_columns.webp)
 
-<details>
-<summary>add_columns()</summary>
+#### add_columns
 
 ```cpp
 void Floor::add_columns() {
@@ -329,12 +309,9 @@ void Floor::add_columns() {
 }
 ```
 
-</details>
+#### add_column, block by block
 
-<details>
-<summary>add_column(corner), block by block</summary>
-
-**The group.** `add_column(corner)` makes the group `column_<corner>` under `quarter_<corner>`.
+The group. `add_column(corner)` makes the group `column_<corner>` under `quarter_<corner>`.
 Everything below goes in it.
 
 ```cpp
@@ -344,7 +321,7 @@ const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner))
 
 ![The group](floor/220_add_column.webp)
 
-**The support.** The support stands on the guide's support plane under the column.
+The support. The support stands on the guide's support plane under the column.
 
 ```cpp
 const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
@@ -353,7 +330,7 @@ support->name = fmt::format("support_{}", corner);
 
 ![The support](floor/221_support.webp)
 
-**The axis.** The column's axis runs from the support's head plate up to the floor top, `bay_height`.
+The axis. The column's axis runs from the support's head plate up to the floor top, `bay_height`.
 
 ```cpp
 const Line axis = support->column_axis(guide.bay_height);
@@ -361,7 +338,7 @@ const Line axis = support->column_axis(guide.bay_height);
 
 ![The axis](floor/222_column_axis.webp)
 
-**The shaft.** The shaft is a 220 square, `size_column_head`, swept up the axis in the corner's frame.
+The shaft. The shaft is a 220 square, `size_column_head`, swept up the axis in the corner's frame.
 
 ```cpp
 const Plane frame = guide.column_frame(corner);
@@ -375,7 +352,7 @@ const std::shared_ptr<Column> shaft = Column::square(
 
 ![The shaft](floor/223_column_square.webp)
 
-**The cutter plates.** The guide's six cutter loop pairs become plates lifted to `bay_height`.
+The cutter plates. The guide's six cutter loop pairs become plates lifted to `bay_height`.
 
 ```cpp
 const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
@@ -384,7 +361,7 @@ std::vector<std::shared_ptr<Plate>> cutters;
 
 ![The cutter plates](floor/227_cutters.webp)
 
-**The head glued on.** The shaft is added.
+The head glued on. The shaft is added.
 Two head blocks widen the head to 340 over its top 730.
 Each is glued on with a `SolidOperation::add` interaction.
 
@@ -403,7 +380,7 @@ for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.
 
 ![The head glued on](floor/225_glued.webp)
 
-**The seat.** The support is added.
+The seat. The support is added.
 Its seat lets the head plate into the column end and drills its three pins.
 
 ```cpp
@@ -416,7 +393,7 @@ add_interaction(seat, shaft, seat->interaction(0));
 
 ![The seat](floor/226_support_joint.webp)
 
-**The head carved.** Each cutter is added hidden.
+The head carved. Each cutter is added hidden.
 It takes the inclined faces away with a `SolidOperation::subtract` interaction.
 
 ```cpp
@@ -431,12 +408,7 @@ for (const std::shared_ptr<Plate>& cutter : cutters) {
 
 ![The head carved](floor/228_carved.webp)
 
-</details>
-
-</details>
-
-<details>
-<summary><b>Contacts</b></summary>
+### Contacts
 
 Two members the design joins share a face.
 `add_contacts` stores that face as a named contact interaction between the two members.
@@ -448,8 +420,7 @@ const std::array<QuarterContacts, 4> contacts = add_contacts();
 
 ![The contacts of quarter 0](floor/983_floor_contacts.webp)
 
-<details>
-<summary>add_contacts()</summary>
+#### add_contacts
 
 ```cpp
 std::array<QuarterContacts, 4> Floor::add_contacts() {
@@ -503,10 +474,7 @@ std::array<QuarterContacts, 4> Floor::add_contacts() {
 The butt joints are the loop over `k`: `pins_outer_rib_<q>_<k>`, `pins_seam_beam_<q>_<k>` and `pins_inner_rib_<q>_<k>`.
 The ring corner `pins_ring_corner_<q>` follows it, ring beam `q` against ring beam `q + 1`.
 
-</details>
-
-<details>
-<summary>add_contact(name, a_name, b_name)</summary>
+#### add_contact
 
 ```cpp
 Contact Floor::add_contact(const std::string& name, const std::string& a_name, const std::string& b_name) {
@@ -530,12 +498,7 @@ It is stored as an interaction between the two members, named `seam_wedge_0`.
 
 ![A contact](floor/925_add_contact.webp)
 
-</details>
-
-</details>
-
-<details>
-<summary><b>Connectors</b></summary>
+### Connectors
 
 A connector is a joint element built on one contact between two members, `a` and `b`.
 Most are a `JointBeam`.
@@ -565,8 +528,7 @@ Each part and pin of a connector nests under it as `<connector>_part` and `<conn
 
 ![The connectors of quarter 0](floor/913_connectors_quarter.webp)
 
-<details>
-<summary>Seam wedge: a wedge sunk into two beams side by side</summary>
+#### Seam wedge: a wedge sunk into two beams side by side
 
 ```cpp
 // seam wedge: sized by the inner beams, running on to the bay's outer face
@@ -623,10 +585,7 @@ for (size_t q = 0; q < 4; q++) {
 
 ![The beams after the wedge](floor/903_connector_wedge_cuts.webp)
 
-</details>
-
-<details>
-<summary>Oculus wedge: the same between the oculus beam and its ring beam</summary>
+#### Oculus wedge: the same between the oculus beam and its ring beam
 
 ```cpp
 // oculus wedge: sized by the thicker of the oculus beam and its ring beam
@@ -663,10 +622,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-</details>
-
-<details>
-<summary>Column plates: a plate from the column into each outer rib, crossing in the head</summary>
+#### Column plates: a plate from the column into each outer rib, crossing in the head
 
 ```cpp
 // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
@@ -738,10 +694,7 @@ for (size_t q = 0; q < 4; q++) {
 }
 ```
 
-</details>
-
-<details>
-<summary>Block pins: pins only, no part</summary>
+#### Block pins: pins only, no part
 
 ```cpp
 // block pins: pins between each column block and the rib either side
@@ -778,10 +731,7 @@ for (size_t q = 0; q < 4; q++)
         }
 ```
 
-</details>
-
-<details>
-<summary>Headed pins: the butt joints and the ring corners</summary>
+#### Headed pins: the butt joints and the ring corners
 
 Where one member butts into another, two headed pins hold it.
 They are pre-drilled and cut nothing.
@@ -873,9 +823,7 @@ The member that ends on the contact is the one whose level axis is the more squa
 The pins run level along that axis, from the far face of the other member.
 The contact's `a`/`b` order does not decide it; only when neither member ends on the contact do the pins run from `a` into `b`, square to the contact.
 
-
-<details>
-<summary>JointBeam::headed_pins(a, b, contact, layout, ...)</summary>
+#### JointBeam::headed_pins
 
 ```cpp
 /// Where a pin line leaves the far face of the member it passes through: the start of the line's stretch inside it that ends at the contact.
@@ -1032,10 +980,7 @@ Both members are targets and read the same drill lines.
 
 `PinLayout` on one contact: `corners` at the inset's extreme corners, `vertical` a column up it, `horizontal` a row along it.
 
-</details>
-
-<details>
-<summary>Added: four explicit blocks in add_connectors</summary>
+#### Added: four explicit blocks in add_connectors
 
 Each pin connector is added, then pre-drilled into the two members of its contact.
 The four families are `connector_pins_outer_rib_<q>_<k>`, `connector_pins_seam_beam_<q>_<k>`, `connector_pins_inner_rib_<q>_<k>` and `connector_pins_ring_corner_<q>`.
@@ -1081,12 +1026,6 @@ for (size_t q = 0; q < 4; q++) {
     add_interaction(pins, joint.b, pins->interaction(1));
 }
 ```
-
-</details>
-
-</details>
-
-</details>
 
 ## Tables
 

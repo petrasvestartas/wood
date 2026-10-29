@@ -1,4 +1,4 @@
-# JointPlate side_side_inplane {#elements_joint_plate_side_side_inplane}
+# Plate In-Plane {#elements_joint_plate_side_side_inplane}
 
 [TOC]
 
@@ -39,8 +39,7 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 
 Every standard example shows two pairs (`Plate::pair_in_plane(180.0)` coplanar and `Plate::pair_in_plane(165.0)` shallow V) separated to reveal the seam geometry.
 
-## side_side_inplane_three_fingers: three fingers
-
+## Three Fingers
 Three fixed 20 mm deep rectangular fingers merged into both plate edges.
 
 ![](elements/element_joint_plate_side_side_inplane_three_fingers.png)
@@ -51,14 +50,7 @@ Three fixed 20 mm deep rectangular fingers merged into both plate edges.
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_three_fingers();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_three_fingers.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_three_fingers.cpp
-
-</details>
-
-## side_side_inplane_dovetails: parametric fingers
-
+## Parametric Fingers
 Eight divisions at `shift = 0.5` producing four interlocking fingers per plate along the seam.
 
 ![](elements/element_joint_plate_side_side_inplane_dovetails.png)
@@ -69,14 +61,7 @@ Eight divisions at `shift = 0.5` producing four interlocking fingers per plate a
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_dovetails(8, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_dovetails.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_dovetails.cpp
-
-</details>
-
-## side_side_inplane_butterfly_keys: butterfly keys
-
+## Butterfly Keys
 Four butterfly pockets cut across the seam along with the four butterfly key blocks that lock both plates together.
 
 ![](elements/element_joint_plate_side_side_inplane_butterfly_keys.png)
@@ -87,14 +72,7 @@ Four butterfly pockets cut across the seam along with the four butterfly key blo
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_butterfly_keys(4);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_butterfly_keys.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_butterfly_keys.cpp
-
-</details>
-
-## side_side_inplane_tooth_keys: reversed-tooth keys
-
+## Reversed-Tooth Keys
 Four reversed eight-point tooth pockets cut across the seam along with their matching key blocks.
 
 ![](elements/element_joint_plate_side_side_inplane_tooth_keys.png)
@@ -105,14 +83,7 @@ Four reversed eight-point tooth pockets cut across the seam along with their mat
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_tooth_keys(4);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_tooth_keys.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_tooth_keys.cpp
-
-</details>
-
-## side_side_inplane_custom: custom outlines
-
+## Custom Outlines
 A custom feather joint of eight alternating V-teeth defined in the `[-0.5, 0.5]^3` unit box and merged into both plate edges.
 
 ![](elements/element_joint_plate_side_side_inplane_custom.png)
@@ -123,14 +94,7 @@ A custom feather joint of eight alternating V-teeth defined in the `[-0.5, 0.5]^
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_custom(male, female);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_custom.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_custom.cpp
-
-</details>
-
-## side_side_inplane_hilti: Hilti connector
-
+## Hilti Connector
 A bow-tie pocket milled into two 200 mm CLT slabs folded at 30 degrees, housing plywood key halves, recessed steel washers, and a central tension bolt.
 
 ![](hilti_reference_photo.jpg)
@@ -144,12 +108,6 @@ scene.add_interaction(hilti, left, hilti->interaction(0));
 scene.add_interaction(hilti, right, hilti->interaction(1));
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_hilti.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_hilti.cpp
-
-</details>
-
 ## side_side_inplane_hilti at six fold angles
 
 Six slab pairs folded from 0 to 50 degrees in 10-degree steps, showing how the pocket depth tracks the fold angle while the connector key remains invariant.
@@ -162,22 +120,16 @@ for (int i = 0; i < 6; i++) {
 }
 ```
 
-<details><summary>Example code: elements/element_joint_plate_side_side_inplane_hilti_angles.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_side_side_inplane_hilti_angles.cpp
-
-</details>
-
 ## Parameters
 
-**Divisions and shift.** `divisions` sets the number of fingers; `shift` controls the dovetail lean (`0.5` rectangular, `0.0` and `1.0` opposite dovetail tapers).
+Divisions and shift. `divisions` sets the number of fingers; `shift` controls the dovetail lean (`0.5` rectangular, `0.0` and `1.0` opposite dovetail tapers).
 
 ![](joint_library/sweep_side_side_inplane_dovetails.png)
 
-**On other seams.** The same dovetails mapped onto orthogonal, 75-degree slanted, and short seams.
+On other seams. The same dovetails mapped onto orthogonal, 75-degree slanted, and short seams.
 
 ![](joint_library/sweep_side_side_inplane_dovetails_seams.png)
 
-**Key pocket sweeps.** `side_side_inplane_butterfly_keys` and `side_side_inplane_tooth_keys` across increasing division counts.
+Key pocket sweeps. `side_side_inplane_butterfly_keys` and `side_side_inplane_tooth_keys` across increasing division counts.
 
 ![](joint_library/sweep_side_side_inplane_keys.png)

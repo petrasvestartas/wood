@@ -1,62 +1,43 @@
-# Folding developable {#templates_developable_folding}
+# Folding Developable {#templates_developable_folding}
 
 [TOC]
 
-Developable `PlateCurved` structures beyond cylinders: free-form ruled tent shells, curved-crease accordion unfoldings (cones, synclastic and anticlastic vaults, domes, funnels), and quad-diagonal flat development verification.
-
-Click any developable folding card below to jump directly to its section and C++ examples:
+Developable [Curved Plate](@ref elements_plate_curved) structures including ruled tent shells, curved-crease accordion unfoldings, and quad-diagonal flat development checks.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#curved_fold_roof">
-    <img src="templates_developable_folding_1_curved_fold_lamellas.webp" alt="CurvedFold Tent Roof">
-    <span class="wood-card-title">1. CurvedFold Tent Roof</span>
-    <span class="wood-card-sub">12-sector trumpet tent shell ruled between NURBS meridians</span>
+    <img src="templates_developable_folding_1_curved_fold_lamellas.webp" alt="Tent Roof">
+    <span class="wood-card-title">Tent Roof</span>
   </a>
   <a class="wood-card" href="#curved_crease_arch">
-    <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Semicircular Arch Unfolding">
-    <span class="wood-card-title">2. Semicircular Arch Unfolding</span>
-    <span class="wood-card-sub">Curved-crease bands mirrored across parallel planes</span>
+    <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Semicircular Arch">
+    <span class="wood-card-title">Semicircular Arch</span>
   </a>
   <a class="wood-card" href="#curved_crease_catenary">
-    <img src="templates_developable_folding_3_catenary_unfolding_plates.webp" alt="Catenary Arch Unfolding">
-    <span class="wood-card-title">3. Catenary Arch Unfolding</span>
-    <span class="wood-card-sub">Catenary crease unfolded across parallel planes</span>
+    <img src="templates_developable_folding_3_catenary_unfolding_plates.webp" alt="Catenary Arch">
+    <span class="wood-card-title">Catenary Arch</span>
   </a>
   <a class="wood-card" href="#synclastic_unfolding">
-    <img src="templates_developable_folding_5_synclastic_unfolding_plates.webp" alt="Synclastic Vault Unfolding">
-    <span class="wood-card-title">5. Synclastic Vault Unfolding</span>
-    <span class="wood-card-sub">Leaning `+5°` crease planes (`CurvedCreaseUnfolding::leaning`)</span>
+    <img src="templates_developable_folding_5_synclastic_unfolding_plates.webp" alt="Synclastic Vault">
+    <span class="wood-card-title">Synclastic Vault</span>
   </a>
   <a class="wood-card" href="#anticlastic_unfolding">
-    <img src="templates_developable_folding_6_anticlastic_unfolding_plates.webp" alt="Anticlastic Saddle Unfolding">
-    <span class="wood-card-title">6. Anticlastic Saddle Unfolding</span>
-    <span class="wood-card-sub">Leaning `-5°` crease planes &amp; zigzag inclinations (`7–10`)</span>
+    <img src="templates_developable_folding_6_anticlastic_unfolding_plates.webp" alt="Anticlastic Saddle">
+    <span class="wood-card-title">Anticlastic Saddle</span>
   </a>
   <a class="wood-card" href="#corrugated_dome">
-    <img src="templates_developable_folding_11_corrugated_dome_plates.webp" alt="Corrugated Rotational Dome">
-    <span class="wood-card-title">11. Corrugated Rotational Dome</span>
-    <span class="wood-card-sub">24-sector radial fan planes (`CurvedCreaseUnfolding::fan`)</span>
+    <img src="templates_developable_folding_11_corrugated_dome_plates.webp" alt="Corrugated Dome">
+    <span class="wood-card-title">Corrugated Dome</span>
   </a>
   <a class="wood-card" href="#corrugated_funnel">
-    <img src="templates_developable_folding_12_corrugated_funnel_plates.webp" alt="Corrugated Funnel Column">
-    <span class="wood-card-title">12. Corrugated Funnel Column</span>
-    <span class="wood-card-sub">32-sector radial funnel column</span>
+    <img src="templates_developable_folding_12_corrugated_funnel_plates.webp" alt="Corrugated Funnel">
+    <span class="wood-card-title">Corrugated Funnel</span>
   </a>
   <a class="wood-card" href="#crease_quadrants">
-    <img src="templates_developable_folding_4_crease_quadrants_all.webp" alt="CreaseQuadrants">
-    <span class="wood-card-title">4. CreaseQuadrants (`Q1..Q4`)</span>
-    <span class="wood-card-sub">Four ruling combinations at one planar curved crease</span>
+    <img src="templates_developable_folding_4_crease_quadrants_all.webp" alt="Crease Quadrants">
+    <span class="wood-card-title">Crease Quadrants</span>
   </a>
 </div>
-
-![](diagrams/wood_folding_geometry.webp)
-
-| Template | Header | Geometric Construction | Examples |
-| --- | --- | --- | --- |
-| [Development](#development) | `development.h` | Ruled-strip 2D unfolding + quad diagonal `distortion` & `twist` check | Printed by all examples |
-| [CurvedFold](#curved_fold_roof) | `developable_folding/curved_fold.h` | 12-sector trumpet tent roof (`32 m` span, `26 m` tower) ruled between interpolated NURBS meridians | `templates_developable_folding_1_curved_fold` |
-| [CurvedCreaseUnfolding](#curved_crease_unfolding) | `developable_folding/curved_crease_unfolding.h` | Flat curved-edge bands hinged across `zigzag`, `leaning`, or `fan` crease planes | `templates_developable_folding_{2,3,5..12}_*` |
-| [CreaseQuadrants](#crease_quadrants) | `developable_folding/crease_quadrants.h` | Four ruling combinations (`Q1..Q4`) joining two developable strips at one planar curved crease | `templates_developable_folding_4_crease_quadrants` |
 
 ## 1. Flat Unfolding Check {#development}
 
@@ -90,15 +71,9 @@ CurvedFold fold(
 
 ![](templates/templates_developable_folding_1_curved_fold_lamellas.webp)
 
-<details><summary>Example code: templates_developable_folding_1_curved_fold.cpp</summary>
-
-\include{lineno} templates_developable_folding_1_curved_fold.cpp
-
-</details>
-
 ---
 
-## 3. CurvedCreaseUnfolding (2, 3, 5–12) {#curved_crease_unfolding}
+## 3. Curved Crease Unfolding {#curved_crease_unfolding}
 
 Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(opening)` generates developable strips whose rulings leave perpendicular to the crease at angle `opening` and mirror successively across a sequence of crease `planes`:
 
@@ -116,12 +91,6 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
 ```
 
-<details><summary>Example code: templates_developable_folding_2_curved_crease_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_2_curved_crease_unfolding.cpp
-
-</details>
-
 ### 3. Catenary Arch on Parallel Planes {#curved_crease_catenary}
 
 ![](templates/templates_developable_folding_3_catenary_unfolding_plates.webp)
@@ -129,12 +98,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 ```cpp
 CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_3_catenary_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_3_catenary_unfolding.cpp
-
-</details>
 
 ### 5. Synclastic Vault (Leaning +5 Degrees) {#synclastic_unfolding}
 
@@ -144,12 +107,6 @@ CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0)
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-<details><summary>Example code: templates_developable_folding_5_synclastic_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_5_synclastic_unfolding.cpp
-
-</details>
-
 ### 6. Anticlastic Saddle Vault (Leaning -5 Degrees) {#anticlastic_unfolding}
 
 ![](templates/templates_developable_folding_6_anticlastic_unfolding_plates.webp)
@@ -157,12 +114,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 ```cpp
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, -5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_6_anticlastic_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_6_anticlastic_unfolding.cpp
-
-</details>
 
 ### 7. Zigzag Inclined About Apex {#apex_level_unfolding}
 
@@ -172,12 +123,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-<details><summary>Example code: templates_developable_folding_7_apex_level_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_7_apex_level_unfolding.cpp
-
-</details>
-
 ### 8. Zigzag Inclined About Support Floor {#support_level_unfolding}
 
 ![](templates/templates_developable_folding_8_support_level_unfolding_plates.webp)
@@ -185,12 +130,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 ```cpp
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_8_support_level_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_8_support_level_unfolding.cpp
-
-</details>
 
 ### 9. Zigzag Inclined About Mid-Height {#alternating_unfolding}
 
@@ -200,12 +139,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-<details><summary>Example code: templates_developable_folding_9_alternating_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_9_alternating_unfolding.cpp
-
-</details>
-
 ### 10. Zigzag Inclined About Vertical Axis {#sideways_unfolding}
 
 ![](templates/templates_developable_folding_10_sideways_unfolding_plates.webp)
@@ -213,12 +146,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 ```cpp
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_10_sideways_unfolding.cpp</summary>
-
-\include{lineno} templates_developable_folding_10_sideways_unfolding.cpp
-
-</details>
 
 ### 11. Corrugated Rotational Dome (24 Sectors) {#corrugated_dome}
 
@@ -228,12 +155,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(6000.0, 0.0, 0.0), Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)), Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))), 60.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 24, 15.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-<details><summary>Example code: templates_developable_folding_11_corrugated_dome.cpp</summary>
-
-\include{lineno} templates_developable_folding_11_corrugated_dome.cpp
-
-</details>
-
 ### 12. Corrugated Funnel Column (32 Sectors) {#corrugated_funnel}
 
 ![](templates/templates_developable_folding_12_corrugated_funnel_plates.webp)
@@ -241,12 +162,6 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(6000.0, 0.0, 0.0), Point(6
 ```cpp
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(800.0, 0.0, 0.0), Point(5800.0 - 5000.0 * std::cos(0.25 * Tolerance::PI), 0.0, 5000.0 * std::sin(0.25 * Tolerance::PI)), Point(5800.0, 0.0, 5000.0)), 75.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 32, 11.25 * Tolerance::TO_RADIANS), 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_12_corrugated_funnel.cpp</summary>
-
-\include{lineno} templates_developable_folding_12_corrugated_funnel.cpp
-
-</details>
 
 ---
 
@@ -266,9 +181,3 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(800.0, 0.0, 0.0), Point(58
 ```cpp
 CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
 ```
-
-<details><summary>Example code: templates_developable_folding_4_crease_quadrants.cpp</summary>
-
-\include{lineno} templates_developable_folding_4_crease_quadrants.cpp
-
-</details>

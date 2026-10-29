@@ -1,4 +1,4 @@
-# BeamVariable {#elements_beam_variable}
+# Variable Beam {#elements_beam_variable}
 
 [TOC]
 
@@ -38,12 +38,6 @@ const std::shared_ptr<BeamVariable> rib = std::make_shared<BeamVariable>(
 scene.add(rib);
 ```
 
-<details><summary>Example code: elements/element_beam_variable.cpp</summary>
-
-\include{lineno} elements/element_beam_variable.cpp
-
-</details>
-
 ## Cut by plane elements
 
 The same variable-depth rib trimmed at both ends by two inclined `CutPlane` elements via `add_interaction`.
@@ -56,9 +50,3 @@ const std::shared_ptr<CutPlane> start = std::make_shared<CutPlane>(
 );
 scene.add_interaction(start, rib, start->feature());
 ```
-
-<details><summary>Example code: elements/element_beam_variable_cut.cpp</summary>
-
-\include{lineno} elements/element_beam_variable_cut.cpp
-
-</details>

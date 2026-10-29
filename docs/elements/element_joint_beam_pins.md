@@ -1,4 +1,4 @@
-# JointBeam pins {#elements_joint_beam_pins}
+# Beam Pins {#elements_joint_beam_pins}
 
 [TOC]
 
@@ -26,12 +26,6 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 | `offset` | `50` | Inset distance from the contact polygon corners |
 | `overshoot`, `pin_sides` | `10`, `16` | Extra bore depth past each pin end and cylindrical facet count |
 
-<details><summary>Example code: elements/element_joint_beam_centred_pins.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_centred_pins.cpp
-
-</details>
-
 ## Headed pins
 
 Long screws driven from a header beam's outer face through into an abutting joist across all three `PinLayout` modes: four `corners`, a `vertical` column, and a `horizontal` row.
@@ -54,9 +48,3 @@ scene.add_interaction(pins, joist, pins->interaction(1));
 | `offset` | `20` | Edge inset distance from the contact boundary |
 | `shift` | `0` | Offset along the contact to stagger opposing connectors |
 | `radius`, `length`, `sides` | `2`, `200`, `16` | Pin radius, total length, and polygon facet count |
-
-<details><summary>Example code: elements/element_joint_beam_headed_pins.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_headed_pins.cpp
-
-</details>

@@ -1,4 +1,4 @@
-# CutPlane {#elements_cut_plane}
+# Cut Plane {#elements_cut_plane}
 
 [TOC]
 
@@ -31,9 +31,3 @@ const std::shared_ptr<CutPlane> start = std::make_shared<CutPlane>(
 scene.add(start);
 scene.add_interaction(start, rib, start->feature());
 ```
-
-<details><summary>Example code: elements/element_beam_variable_cut.cpp</summary>
-
-\include{lineno} elements/element_beam_variable_cut.cpp
-
-</details>

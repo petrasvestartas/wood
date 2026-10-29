@@ -2,52 +2,42 @@
 
 [TOC]
 
-Parametric and custom timber trusses (`src/templates/truss/*.h`, examples `templates_truss_1_pratt` and `templates_truss_2_library`). `wood_truss::Truss` subclasses `WoodSession` and converts a wireframe `TrussGuide` (`chords` polylines + `webs` lines + `posts` lines) into mitered, butted, and half-lapped `Beam` elements by ranking members via iterative outer-boundary graph peeling.
+Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::Truss` converts chord polylines and web/post lines into mitered, butted, and half-lapped `Beam` elements using iterative outer-boundary graph peeling.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#truss_ex_pratt">
-    <img src="templates_truss_1_pratt.png" alt="Pratt Roof Truss Example">
-    <span class="wood-card-title">Pratt Roof Truss</span>
-    <span class="wood-card-sub">Full C++ example (`templates_truss_1_pratt.cpp`)</span>
+    <img src="templates_truss_1_pratt.png" alt="Pratt Truss">
+    <span class="wood-card-title">Pratt Truss</span>
   </a>
   <a class="wood-card" href="#truss_king_post">
-    <img src="truss_king_post.png" alt="King Post">
-    <span class="wood-card-title">King Post &amp; Queen Post</span>
-    <span class="wood-card-sub">Classic pitched roof trusses (`king_post`, `queen_post`)</span>
+    <img src="truss_king_post.png" alt="King and Queen Post">
+    <span class="wood-card-title">King and Queen Post</span>
   </a>
   <a class="wood-card" href="#truss_howe">
-    <img src="truss_howe.png" alt="Howe &amp; Fink">
-    <span class="wood-card-title">Howe, Fink &amp; Belgian</span>
-    <span class="wood-card-sub">Pitched roof &amp; bridge trusses (`howe`, `fink`, `belgian`)</span>
+    <img src="truss_howe.png" alt="Howe and Fink">
+    <span class="wood-card-title">Howe and Fink</span>
   </a>
   <a class="wood-card" href="#truss_scissors">
-    <img src="truss_scissors.png" alt="Scissors">
-    <span class="wood-card-title">Scissors &amp; Raised Tie</span>
-    <span class="wood-card-sub">Vaulted ceiling trusses (`scissors`, `raised_tie_king_post`)</span>
+    <img src="truss_scissors.png" alt="Scissors Truss">
+    <span class="wood-card-title">Scissors Truss</span>
   </a>
   <a class="wood-card" href="#truss_warren">
-    <img src="truss_warren.png" alt="Warren &amp; K-Truss">
-    <span class="wood-card-title">Warren, Parker &amp; K-Truss</span>
-    <span class="wood-card-sub">Long-span bridge trusses (`warren`, `parker`, `k_truss`)</span>
+    <img src="truss_warren.png" alt="Warren and K-Truss">
+    <span class="wood-card-title">Warren and K-Truss</span>
   </a>
   <a class="wood-card" href="#truss_bowstring">
-    <img src="truss_bowstring.png" alt="Bowstring &amp; Lens">
-    <span class="wood-card-title">Bowstring, Lens &amp; Arch</span>
-    <span class="wood-card-sub">Curved chord &amp; arch trusses (`bowstring`, `lens`, `burr_arch`)</span>
+    <img src="truss_bowstring.png" alt="Bowstring and Arch">
+    <span class="wood-card-title">Bowstring and Arch</span>
   </a>
   <a class="wood-card" href="#truss_town_lattice">
     <img src="truss_town_lattice.png" alt="Town Lattice">
-    <span class="wood-card-title">Town Lattice &amp; Double</span>
-    <span class="wood-card-sub">Multi-crossing lattice trusses (`town_lattice`, `double_intersection_*`)</span>
+    <span class="wood-card-title">Town Lattice</span>
   </a>
   <a class="wood-card" href="#truss_topology_optimised">
     <img src="truss_topology_optimised.png" alt="Topology Optimised">
-    <span class="wood-card-title">Cantilever, Sawtooth &amp; Optimised</span>
-    <span class="wood-card-sub">Special geometries (`cantilever`, `sawtooth`, `topology_optimised`)</span>
+    <span class="wood-card-title">Topology Optimised</span>
   </a>
 </div>
-
-![Timber Truss Primary Inputs, Boundary-Peeling Rank and Node Butts](diagrams/template_truss_pipeline.webp)
 
 ## Primary Inputs
 
@@ -65,15 +55,15 @@ Members are ranked by iteratively pruning the outer boundary of the line graph: 
 
 | Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
-| **Chord kink (interior polyline vertex)** | Adjacent chord runs mitered `side_side` on the angle bisector |
-| **Chord heel (two chords ending at one node)** | Resolved by `JointBeam::butt` |
-| **Chord end on another chord's run** | Stopped `top_side` against the continuous chord |
-| **Web / post end on a chord run** | Let into the chord (`top_side`) |
-| **Web / post end at a chord's lone end** | Outer member runs over the inner member (`top_side`); inner member let in |
-| **Web end on another web's middle (K-joint)** | Let into the continuous web |
-| **Chord end on a post's middle (tie on column)** | Let into the post |
-| **Crossing chords, webs, or posts (X-joint)** | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across $N$ crossing bars |
-| **Multiple webs ending at one node** | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
+| Chord kink (interior polyline vertex) | Adjacent chord runs mitered `side_side` on the angle bisector |
+| Chord heel (two chords ending at one node) | Resolved by `JointBeam::butt` |
+| Chord end on another chord's run | Stopped `top_side` against the continuous chord |
+| Web / post end on a chord run | Let into the chord (`top_side`) |
+| Web / post end at a chord's lone end | Outer member runs over the inner member (`top_side`); inner member let in |
+| Web end on another web's middle (K-joint) | Let into the continuous web |
+| Chord end on a post's middle (tie on column) | Let into the post |
+| Crossing chords, webs, or posts (X-joint) | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across $N$ crossing bars |
+| Multiple webs ending at one node | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
 
 ## Constructor Pipeline
 
@@ -136,7 +126,22 @@ int main() {
 
 ![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
 
-\include{lineno} templates_truss_1_pratt.cpp
+```cpp
+#include "wood_session.h"
+#include "src/templates/truss/truss.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+/// A Pratt roof truss from its guide: chords and webs drawn as lines, the members and their butts made by the template.
+int main() {
+
+    wood_truss::Truss truss(wood_truss::TrussGuide::pratt());
+    std::cout << truss << std::endl;
+    truss.pb_dump(pb_path("live"));
+    return 0;
+}
+```
 
 ## Truss Library {#truss_library}
 
@@ -686,4 +691,92 @@ TrussGuide::topology_optimised(double span = 12000.0, double height = 1800.0, do
 
 ![truss_topology_optimised](templates/truss_topology_optimised.png)
 
-\include{lineno} templates_truss_2_library.cpp
+## Library Runner
+
+```cpp
+#include "wood_session.h"
+#include "src/templates/truss/truss.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+/// Every truss of the TrussGuide library built by the Truss template, each its own scene truss_<name>.
+int main() {
+
+    const std::vector<std::pair<std::string, wood_truss::TrussGuide>> guides = {
+        {"pratt", wood_truss::TrussGuide::pratt()},
+        {"king_post", wood_truss::TrussGuide::king_post()},
+        {"queen_post", wood_truss::TrussGuide::queen_post()},
+        {"howe", wood_truss::TrussGuide::howe()},
+        {"fink", wood_truss::TrussGuide::fink()},
+        {"belgian", wood_truss::TrussGuide::belgian()},
+        {"scissors", wood_truss::TrussGuide::scissors()},
+        {"warren", wood_truss::TrussGuide::warren()},
+        {"warren_verticals", wood_truss::TrussGuide::warren_verticals()},
+        {"pratt_bridge", wood_truss::TrussGuide::pratt_bridge()},
+        {"parker", wood_truss::TrussGuide::parker()},
+        {"k_truss", wood_truss::TrussGuide::k_truss()},
+        {"cambered_verticals", wood_truss::TrussGuide::cambered_verticals()},
+        {"funicular_arch", wood_truss::TrussGuide::funicular_arch()},
+        {"lens", wood_truss::TrussGuide::lens()},
+        {"triangulated_arch", wood_truss::TrussGuide::triangulated_arch()},
+        {"sloped", wood_truss::TrussGuide::sloped()},
+        {"pratt_flat", wood_truss::TrussGuide::pratt_flat()},
+        {"flat_peaked", wood_truss::TrussGuide::flat_peaked()},
+        {"bowstring", wood_truss::TrussGuide::bowstring()},
+        {"pitched_posts", wood_truss::TrussGuide::pitched_posts()},
+        {"roof_cambered_tie", wood_truss::TrussGuide::roof_cambered_tie()},
+        {"quarter_fan", wood_truss::TrussGuide::quarter_fan()},
+        {"cantilever", wood_truss::TrussGuide::cantilever()},
+        {"cantilever_design_1", wood_truss::TrussGuide::cantilever_design_1()},
+        {"cantilever_design_2", wood_truss::TrussGuide::cantilever_design_2()},
+        {"cantilever_design_3", wood_truss::TrussGuide::cantilever_design_3()},
+        {"fish_belly", wood_truss::TrussGuide::fish_belly()},
+        {"sawtooth", wood_truss::TrussGuide::sawtooth()},
+        {"howe_flat", wood_truss::TrussGuide::howe_flat()},
+        {"three_hinged_arch", wood_truss::TrussGuide::three_hinged_arch()},
+        {"burr_arch", wood_truss::TrussGuide::burr_arch()},
+        {"town_lattice", wood_truss::TrussGuide::town_lattice()},
+        {"bowstring_arch", wood_truss::TrussGuide::bowstring_arch()},
+        {"waddell_a", wood_truss::TrussGuide::waddell_a()},
+        {"wichert", wood_truss::TrussGuide::wichert()},
+        {"truss_leg_bedstead", wood_truss::TrussGuide::truss_leg_bedstead()},
+        {"kellogg", wood_truss::TrussGuide::kellogg()},
+        {"baltimore_a", wood_truss::TrussGuide::baltimore_a()},
+        {"pennsylvania_a", wood_truss::TrussGuide::pennsylvania_a()},
+        {"greiner", wood_truss::TrussGuide::greiner()},
+        {"double_intersection_pratt", wood_truss::TrussGuide::double_intersection_pratt()},
+        {"schwedler", wood_truss::TrussGuide::schwedler()},
+        {"double_intersection_warren", wood_truss::TrussGuide::double_intersection_warren()},
+        {"pegram", wood_truss::TrussGuide::pegram()},
+        {"post", wood_truss::TrussGuide::post()},
+        {"bollman", wood_truss::TrussGuide::bollman()},
+        {"fink_bridge", wood_truss::TrussGuide::fink_bridge()},
+        {"stearns", wood_truss::TrussGuide::stearns()},
+        {"crescent_crossed", wood_truss::TrussGuide::crescent_crossed()},
+        {"braced_arch_rib", wood_truss::TrussGuide::braced_arch_rib()},
+        {"belgian_verticals", wood_truss::TrussGuide::belgian_verticals()},
+        {"raised_tie_king_post", wood_truss::TrussGuide::raised_tie_king_post()},
+        {"trapezoid_crossed", wood_truss::TrussGuide::trapezoid_crossed()},
+        {"fink_cambered", wood_truss::TrussGuide::fink_cambered()},
+        {"crescent_verticals", wood_truss::TrussGuide::crescent_verticals()},
+        {"raised_tie_posts", wood_truss::TrussGuide::raised_tie_posts()},
+        {"pitched_warren_columns", wood_truss::TrussGuide::pitched_warren_columns()},
+        {"fink_compound", wood_truss::TrussGuide::fink_compound()},
+        {"fink_bent_tie", wood_truss::TrussGuide::fink_bent_tie()},
+        {"french_steep", wood_truss::TrussGuide::french_steep()},
+        {"fink_lantern", wood_truss::TrussGuide::fink_lantern()},
+        {"arch_polygonal_tie", wood_truss::TrussGuide::arch_polygonal_tie()},
+        {"pitched_crossed_posts", wood_truss::TrussGuide::pitched_crossed_posts()},
+        {"cambered_crossed_lantern", wood_truss::TrussGuide::cambered_crossed_lantern()},
+        {"arched_crossed_columns", wood_truss::TrussGuide::arched_crossed_columns()},
+        {"trapezoid_king_crossed", wood_truss::TrussGuide::trapezoid_king_crossed()},
+        {"topology_optimised", wood_truss::TrussGuide::topology_optimised()},
+    };
+    for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
+        wood_truss::Truss truss(guide.second, "truss_" + guide.first);
+        truss.pb_dump(pb_path("truss_" + guide.first));
+    }
+    return 0;
+}
+```

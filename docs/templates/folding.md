@@ -1,92 +1,55 @@
-# Folding flat {#templates_folding}
+# Folding Flat {#templates_folding}
 
 [TOC]
 
-Planar folded-plate timber structures (`src/templates/folding/*.h`). Each template subclasses `WoodSession`, constructs a planar-faced mid-surface mesh from its primary geometric inputs, and offsets it into watertight mitered `Plate` solids via `offset_plates` / `mitered_plates`.
-
-Click any folding template card below to jump directly to its section and C++ examples:
+Planar folded-plate timber structures in `src/templates/folding/*.h`. Each template builds a planar-faced mid-surface mesh and offsets it into mitered `Plate` solids.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reflex_fold">
-    <img src="templates_folding_1_reflex_fold_plates.webp" alt="ReflexFold">
-    <span class="wood-card-title">ReflexFold</span>
-    <span class="wood-card-sub">Zigzag profile swept along an arch (`templates_folding_1_reflex_fold`)</span>
+    <img src="templates_folding_1_reflex_fold_plates.webp" alt="Reflex Fold">
+    <span class="wood-card-title">Reflex Fold</span>
   </a>
   <a class="wood-card" href="#diamond_mesh">
-    <img src="templates_folding_2_diamond_mesh_plates.webp" alt="DiamondMesh">
-    <span class="wood-card-title">DiamondMesh</span>
-    <span class="wood-card-sub">Triangulated diamond rhombi on a NURBS arch (`templates_folding_2_diamond_mesh`)</span>
+    <img src="templates_folding_2_diamond_mesh_plates.webp" alt="Diamond Mesh">
+    <span class="wood-card-title">Diamond Mesh</span>
   </a>
   <a class="wood-card" href="#prismatic_fold">
-    <img src="templates_folding_3_prismatic_fold_all.webp" alt="PrismaticFold">
-    <span class="wood-card-title">PrismaticFold</span>
-    <span class="wood-card-sub">Singly folded plates, barrels &amp; diaphragms (`templates_folding_3,4,25,26`)</span>
+    <img src="templates_folding_3_prismatic_fold_all.webp" alt="Prismatic Fold">
+    <span class="wood-card-title">Prismatic Fold</span>
   </a>
   <a class="wood-card" href="#counter_fold">
-    <img src="templates_folding_5_counter_fold_plates.webp" alt="CounterFold">
-    <span class="wood-card-title">CounterFold</span>
-    <span class="wood-card-sub">Counter-running &amp; elevated-centre folds (`templates_folding_5,6,27..32`)</span>
+    <img src="templates_folding_5_counter_fold_plates.webp" alt="Counter Fold">
+    <span class="wood-card-title">Counter Fold</span>
   </a>
   <a class="wood-card" href="#conical_fold">
-    <img src="templates_folding_7_conical_fold_plates.webp" alt="ConicalFold">
-    <span class="wood-card-title">ConicalFold</span>
-    <span class="wood-card-sub">Radial fold lines clipped by sloping planes (`templates_folding_7_conical_fold`)</span>
+    <img src="templates_folding_7_conical_fold_plates.webp" alt="Conical Fold">
+    <span class="wood-card-title">Conical Fold</span>
   </a>
   <a class="wood-card" href="#folded_frame">
-    <img src="templates_folding_8_two_hinged_frame_plates.webp" alt="FoldedFrame">
-    <span class="wood-card-title">FoldedFrame</span>
-    <span class="wood-card-sub">Two/three-hinged portal frames, A-frames &amp; arches (`templates_folding_8..10,34,35`)</span>
+    <img src="templates_folding_8_two_hinged_frame_plates.webp" alt="Folded Frame">
+    <span class="wood-card-title">Folded Frame</span>
   </a>
   <a class="wood-card" href="#single_fold">
-    <img src="templates_folding_12_square_fold_plates.webp" alt="SingleFold">
-    <span class="wood-card-title">SingleFold</span>
-    <span class="wood-card-sub">Radial singly-folded polygon roofs (`templates_folding_11..13`)</span>
+    <img src="templates_folding_12_square_fold_plates.webp" alt="Single Fold">
+    <span class="wood-card-title">Single Fold</span>
   </a>
   <a class="wood-card" href="#diagonal_fold">
-    <img src="templates_folding_16_cross_fold_plates.webp" alt="DiagonalFold">
-    <span class="wood-card-title">DiagonalFold</span>
-    <span class="wood-card-sub">Cross-folded square vaults spanned diagonally (`templates_folding_16..18`)</span>
+    <img src="templates_folding_16_cross_fold_plates.webp" alt="Diagonal Fold">
+    <span class="wood-card-title">Diagonal Fold</span>
   </a>
   <a class="wood-card" href="#fold_composition">
-    <img src="templates_folding_19_fold_composition_plates.webp" alt="FoldComposition">
-    <span class="wood-card-title">FoldComposition</span>
-    <span class="wood-card-sub">Cross-folded square grid with elevated central star (`templates_folding_19`)</span>
+    <img src="templates_folding_19_fold_composition_plates.webp" alt="Fold Composition">
+    <span class="wood-card-title">Fold Composition</span>
   </a>
   <a class="wood-card" href="#truncated_pyramid">
-    <img src="templates_folding_39_truncated_pyramid_corner_edge_folds_plates.webp" alt="TruncatedPyramid">
-    <span class="wood-card-title">TruncatedPyramid</span>
-    <span class="wood-card-sub">Pyramids with edge &amp; corner folds (`templates_folding_14,15,36,38,39`)</span>
+    <img src="templates_folding_39_truncated_pyramid_corner_edge_folds_plates.webp" alt="Truncated Pyramid">
+    <span class="wood-card-title">Truncated Pyramid</span>
   </a>
   <a class="wood-card" href="#triangle_fold">
-    <img src="templates_folding_20_triangle_square_plates.webp" alt="TriangleFold">
-    <span class="wood-card-title">TriangleFold</span>
-    <span class="wood-card-sub">Triangulated polygon plans with perimeter gables (`templates_folding_20..23`)</span>
+    <img src="templates_folding_20_triangle_square_plates.webp" alt="Triangle Fold">
+    <span class="wood-card-title">Triangle Fold</span>
   </a>
 </div>
-
-![](diagrams/template_planar_folding_pipeline.webp)
-
-## Primary Inputs & Geometric Pipeline by Template
-
-| Template Class | Primary Inputs | Mid-Surface Mesh Generation | Section |
-| --- | --- | --- | --- |
-| `ReflexFold` | `cross_section`, `profile`, `thickness`, `chamfer_bottom`, `chamfer_top`, `chamfer_angle` | Sweeps a zigzag profile along an arch cross-section (two profile curves), folding at each vertex bisector plane | [Reflex fold](#reflex_fold) |
-| `DiamondMesh` | `NurbsSurface`, `u_divisions`, `v_divisions`, `thickness`, `chamfer`, `chamfer_angle` | Tessellates a free-form NURBS surface into triangulated diamond rhombi | [Diamond mesh](#diamond_mesh) |
-| `PrismaticFold` | `profile` (`zigzag` / `polygon`), `span`, `thickness`, `diaphragms`, `edge_flange` | Sweeps 2D `profile` along `x` over `span`, adds transverse diaphragm plates and free-edge flanges | [Singly folded plate](#prismatic_fold) |
-| `CounterFold` | `stations` (`vector<Polyline>`), `Folding` (`ridge_to_ridge` / `ridge_to_valley` / `alternate`), `thickness` | Triangulates strips between counter-running or elevated station profiles and merges coplanar triangles (`merged_coplanar`) | [Counter-running folding](#counter_fold) |
-| `ConicalFold` | `stations` (`conical` radial profiles clipped by sloping planes), `Folding`, `thickness` | Connects radial fold lines from eaves to crown across sloping cut planes | [Conical folding](#conical_fold) |
-| `FoldedFrame` | `stations` (`two_hinged_frame`, `three_hinged_frame`, `a_frame`, `top_hinged_arch`, `three_hinged_arch`), `thickness` | Places zigzag fold profiles along frame knee and crown bisector planes and lofts planar strips | [Folded frames and arches](#folded_frame) |
-| `SingleFold` | `sides` (`3, 4, 6`), `radius`, `overhang`, `eaves`, `centre`, `thickness` | Extrudes radial singly-folded sectors from a regular polygon perimeter to a central peak | [Singly folded surfaces](#single_fold) |
-| `DiagonalFold` | `span`, `DiagonalHeights`, `thickness` | Spans diagonal fold strips across a square plan symmetrically across both diagonals | [Cross-folded surfaces](#diagonal_fold) |
-| `FoldComposition` | `cell_span`, `eaves`, `crown`, `star_drop`, `thickness` | Composes cross-folded square vaults around a central elevated 8-pointed star | [Composition](#fold_composition) |
-| `TruncatedPyramid` | `half_base`, `half_top`, `height`, `edge_fold`, `corner_fold`, `thickness` | Generates a closed pyramid, doubly-folded truncated pyramid, or corner/edge-folded variations | [Pyramids](#truncated_pyramid) |
-| `TriangleFold` | `sides` (`3, 4, 5, 6`), `radius`, `eave_height`, `centre_height`, `thickness` | Triangulates regular polygon plans with vertical perimeter gables and folded corner facets | [Folded triangular surfaces](#triangle_fold) |
-
-| Geometric Invariant | Construction (`template_chamfer.h`) |
-| --- | --- |
-| **Planarity with thickness** | Outer face offset by `thickness` along face normal; fold side cut on the angle-bisector plane shared with the neighbour |
-| **Multi-plate node offset (`offset_plates`)** | High-valence vertices (`k > 3`) split into `k - 2` valence-3 inner intersections by optimal cycle triangulation so all plates meet on exact planar faces without gaps |
-| **Coplanar merge (`merged_coplanar`)** | Adjacent triangles sharing a coplanar crease are merged into a single polygon plate before offsetting |
 
 ## Reflex fold {#reflex_fold}
 
@@ -101,12 +64,6 @@ Default reflex fold arch from two profile curves (`cross_section` and `profile`)
 ```cpp
 ReflexFold fold;
 ```
-
-<details><summary>Example code: templates_folding_1_reflex_fold.cpp</summary>
-
-\include{lineno} templates_folding_1_reflex_fold.cpp
-
-</details>
 
 ## Diamond mesh {#diamond_mesh}
 
@@ -129,12 +86,6 @@ DiamondMesh diamond(
 );
 ```
 
-<details><summary>Example code: templates_folding_2_diamond_mesh.cpp</summary>
-
-\include{lineno} templates_folding_2_diamond_mesh.cpp
-
-</details>
-
 ## Singly folded plate {#prismatic_fold}
 
 `PrismaticFold(profile, span, thickness, diaphragms, edge_flange)` (`folding/prismatic_fold.h`): sweeps `zigzag(ridges, fold_width, depth)` or `polygon(folds, width, rise)` along `x` over `span` with transverse `diaphragms` and free-edge buckling flanges (`edge_flange`).
@@ -149,12 +100,6 @@ Four ridges and eight plates (`1500 mm` wide, `1200 mm` deep) over a `12 m` span
 PrismaticFold fold;
 ```
 
-<details><summary>Example code: templates_folding_3_prismatic_fold.cpp</summary>
-
-\include{lineno} templates_folding_3_prismatic_fold.cpp
-
-</details>
-
 ### One fold {#folding_one_fold}
 
 Two plates over a `12 m` span rising `3000 mm` to a single central ridge, stiffened by a diaphragm at each end.
@@ -164,12 +109,6 @@ Two plates over a `12 m` span rising `3000 mm` to a single central ridge, stiffe
 ```cpp
 PrismaticFold fold(PrismaticFold::polygon(1, 12000.0, 3000.0), 12000.0, 120.0, 2, 0.0, "one_fold");
 ```
-
-<details><summary>Example code: templates_folding_25_one_fold.cpp</summary>
-
-\include{lineno} templates_folding_25_one_fold.cpp
-
-</details>
 
 ### Three folds {#folding_three_folds}
 
@@ -181,12 +120,6 @@ Four plates over a `12 m` arch rising `3500 mm`, with a diaphragm at each end.
 PrismaticFold fold(PrismaticFold::polygon(3, 12000.0, 3500.0), 12000.0, 120.0, 2, 0.0, "three_folds");
 ```
 
-<details><summary>Example code: templates_folding_26_three_folds.cpp</summary>
-
-\include{lineno} templates_folding_26_three_folds.cpp
-
-</details>
-
 ### Many folds: the folded barrel {#folding_folded_barrel}
 
 Seven folds inscribed on a circular arc `12 m` wide and `4 m` high, approaching a cylindrical barrel vault with a diaphragm at each end.
@@ -196,12 +129,6 @@ Seven folds inscribed on a circular arc `12 m` wide and `4 m` high, approaching 
 ```cpp
 PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel");
 ```
-
-<details><summary>Example code: templates_folding_4_folded_barrel.cpp</summary>
-
-\include{lineno} templates_folding_4_folded_barrel.cpp
-
-</details>
 
 ## Counter-running folding {#counter_fold}
 
@@ -217,12 +144,6 @@ A four-ridge zigzag at the start of a `13.5 m` span paired with its inverted cou
 CounterFold fold;
 ```
 
-<details><summary>Example code: templates_folding_5_counter_fold.cpp</summary>
-
-\include{lineno} templates_folding_5_counter_fold.cpp
-
-</details>
-
 ### Counter-running, ridge to valley {#folding_ridge_to_valley}
 
 The same counter-running stations triangulated through their low corners, running valleys diagonally from end to end with a pyramid-shaped end elevation (`16` plates).
@@ -232,12 +153,6 @@ The same counter-running stations triangulated through their low corners, runnin
 ```cpp
 CounterFold fold(CounterFold::counter_running(4, 1500.0, 1500.0, 13500.0), Folding::ridge_to_valley, 120.0, "ridge_to_valley");
 ```
-
-<details><summary>Example code: templates_folding_28_ridge_to_valley.cpp</summary>
-
-\include{lineno} templates_folding_28_ridge_to_valley.cpp
-
-</details>
 
 ### Counter profile in the centre {#folding_counter_centre}
 
@@ -249,12 +164,6 @@ Matching zigzag profiles at both ends with a counter-profile at mid-span, folded
 CounterFold fold(CounterFold::counter_centre(4, 1500.0, 1500.0, 13500.0), Folding::ridge_to_valley, 120.0, "counter_centre");
 ```
 
-<details><summary>Example code: templates_folding_27_counter_centre.cpp</summary>
-
-\include{lineno} templates_folding_27_counter_centre.cpp
-
-</details>
-
 ### Elevated centre, ridge to ridge {#folding_elevated_fold}
 
 Counter-profile at mid-span lifted by the fold depth (`1500 mm`) over a `15 m` span so even fold lines run level while odd fold lines rise to double depth; coplanar triangles merge across the straight lines (`24` plates).
@@ -264,12 +173,6 @@ Counter-profile at mid-span lifted by the fold depth (`1500 mm`) over a `15 m` s
 ```cpp
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_ridge, 120.0, "elevated_fold");
 ```
-
-<details><summary>Example code: templates_folding_6_elevated_fold.cpp</summary>
-
-\include{lineno} templates_folding_6_elevated_fold.cpp
-
-</details>
 
 ### Elevated centre, ridge to valley {#folding_elevated_ridge_to_valley}
 
@@ -281,12 +184,6 @@ The same elevated-centre stations folded ridge-to-valley so diagonals run from t
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_valley, 120.0, "elevated_ridge_to_valley");
 ```
 
-<details><summary>Example code: templates_folding_29_elevated_ridge_to_valley.cpp</summary>
-
-\include{lineno} templates_folding_29_elevated_ridge_to_valley.cpp
-
-</details>
-
 ### Elevated centre, alternate folding {#folding_alternate_fold}
 
 The same elevated-centre stations with `Folding::alternate` (alternating ridge-to-valley and ridge-to-ridge fold by fold), merging half of the centre creases into planar diamond quads (`20` plates).
@@ -296,12 +193,6 @@ The same elevated-centre stations with `Folding::alternate` (alternating ridge-t
 ```cpp
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::alternate, 120.0, "alternate_fold");
 ```
-
-<details><summary>Example code: templates_folding_30_alternate_fold.cpp</summary>
-
-\include{lineno} templates_folding_30_alternate_fold.cpp
-
-</details>
 
 ### Deeper centre, ridge to ridge {#folding_deep_centre}
 
@@ -313,12 +204,6 @@ End profiles `1000 mm` deep paired with an elevated `1800 mm` centre profile so 
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1000.0, 15000.0, 1800.0), Folding::ridge_to_ridge, 120.0, "deep_centre");
 ```
 
-<details><summary>Example code: templates_folding_31_deep_centre.cpp</summary>
-
-\include{lineno} templates_folding_31_deep_centre.cpp
-
-</details>
-
 ### Deeper centre, ridge to valley {#folding_deep_centre_valley}
 
 The same deeper-centre stations folded ridge-to-valley (`32` plates).
@@ -328,12 +213,6 @@ The same deeper-centre stations folded ridge-to-valley (`32` plates).
 ```cpp
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1000.0, 15000.0, 1800.0), Folding::ridge_to_valley, 120.0, "deep_centre_valley");
 ```
-
-<details><summary>Example code: templates_folding_32_deep_centre_valley.cpp</summary>
-
-\include{lineno} templates_folding_32_deep_centre_valley.cpp
-
-</details>
 
 ## Conical folding {#conical_fold}
 
@@ -349,12 +228,6 @@ Four folds over a `14.4 m` span with ridges rising from `600 mm` at the supports
 ConicalFold fold;
 ```
 
-<details><summary>Example code: templates_folding_7_conical_fold.cpp</summary>
-
-\include{lineno} templates_folding_7_conical_fold.cpp
-
-</details>
-
 ## Folded frames and arches {#folded_frame}
 
 `FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `three_hinged_frame`, `a_frame`, `top_hinged_arch`, `three_hinged_arch`).
@@ -369,12 +242,6 @@ A `30 m` portal of four `4.5 m` bays on line feet with deepened knees and ridge-
 FoldedFrame frame;
 ```
 
-<details><summary>Example code: templates_folding_8_two_hinged_frame.cpp</summary>
-
-\include{lineno} templates_folding_8_two_hinged_frame.cpp
-
-</details>
-
 ### Three-hinged frame {#folding_three_hinged_frame}
 
 Four `4.25 m` bays on point feet, peaking over the quarter-span points and dipping to the crown hinge at mid-span (`64` plates).
@@ -384,12 +251,6 @@ Four `4.25 m` bays on point feet, peaking over the quarter-span points and dippi
 ```cpp
 FoldedFrame frame(FoldedFrame::three_hinged_frame(), 4250.0, 4, 120.0, "three_hinged_frame");
 ```
-
-<details><summary>Example code: templates_folding_9_three_hinged_frame.cpp</summary>
-
-\include{lineno} templates_folding_9_three_hinged_frame.cpp
-
-</details>
 
 ### A-frame {#folding_a_frame}
 
@@ -401,12 +262,6 @@ Two-hinged A-frame with ridge-to-valley folding: legs `21 m` apart meeting at an
 FoldedFrame frame(FoldedFrame::a_frame(), 3850.0, 4, 120.0, "a_frame");
 ```
 
-<details><summary>Example code: templates_folding_34_a_frame.cpp</summary>
-
-\include{lineno} templates_folding_34_a_frame.cpp
-
-</details>
-
 ### Arch with a top hinge {#folding_pointed_arch}
 
 Four `4.95 m` bays over a `17.9 m` span and `26.1 m` height, with steep lower legs and a central crown hinge (`96` plates).
@@ -417,12 +272,6 @@ Four `4.95 m` bays over a `17.9 m` span and `26.1 m` height, with steep lower le
 FoldedFrame frame(FoldedFrame::top_hinged_arch(), 4950.0, 4, 120.0, "pointed_arch");
 ```
 
-<details><summary>Example code: templates_folding_35_pointed_arch.cpp</summary>
-
-\include{lineno} templates_folding_35_pointed_arch.cpp
-
-</details>
-
 ### Three-hinged arch {#folding_three_hinged_arch}
 
 Octagonal three-hinged arch (`21.5 m` span, `20.5 m` rise) on point feet across five `5 m` bays (`140` plates).
@@ -432,12 +281,6 @@ Octagonal three-hinged arch (`21.5 m` span, `20.5 m` rise) on point feet across 
 ```cpp
 FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
 ```
-
-<details><summary>Example code: templates_folding_10_three_hinged_arch.cpp</summary>
-
-\include{lineno} templates_folding_10_three_hinged_arch.cpp
-
-</details>
 
 ## Singly folded surfaces over a polygon plan {#single_fold}
 
@@ -453,12 +296,6 @@ Three sectors with horizontal ridges at `7 m` and eave triangles leaning `2.9 m`
 SingleFold fold(3, 12000.0, 2900.0, 7000.0, 7000.0, 120.0, "triangle_fold");
 ```
 
-<details><summary>Example code: templates_folding_11_triangle_fold.cpp</summary>
-
-\include{lineno} templates_folding_11_triangle_fold.cpp
-
-</details>
-
 ### Square plan, ridges rising toward the centre {#folding_square_fold}
 
 Vertical perimeter gables rising to `5.4 m` with radial ridges climbing to `6.9 m` at the central apex (`12` plates).
@@ -469,12 +306,6 @@ Vertical perimeter gables rising to `5.4 m` with radial ridges climbing to `6.9 
 SingleFold fold;
 ```
 
-<details><summary>Example code: templates_folding_12_square_fold.cpp</summary>
-
-\include{lineno} templates_folding_12_square_fold.cpp
-
-</details>
-
 ### Hexagonal plan, ridges sloping to the centre {#folding_hexagon_fold}
 
 Eave triangles leaning `2.1 m` inward to `8.3 m` peaks with ridges sloping down to `5.2 m` at the centre (`18` plates).
@@ -484,12 +315,6 @@ Eave triangles leaning `2.1 m` inward to `8.3 m` peaks with ridges sloping down 
 ```cpp
 SingleFold fold(6, 12000.0, -2100.0, 8300.0, 5200.0, 120.0, "hexagon_fold");
 ```
-
-<details><summary>Example code: templates_folding_13_hexagon_fold.cpp</summary>
-
-\include{lineno} templates_folding_13_hexagon_fold.cpp
-
-</details>
 
 ## Cross-folded surfaces spanned diagonally {#diagonal_fold}
 
@@ -505,12 +330,6 @@ Diagonal ridges folded upward to `6.2 m` at their midpoints, with corners and ce
 DiagonalFold fold;
 ```
 
-<details><summary>Example code: templates_folding_16_cross_fold.cpp</summary>
-
-\include{lineno} templates_folding_16_cross_fold.cpp
-
-</details>
-
 ### Ridges rising toward the centre {#folding_cross_fold_rising}
 
 Corners at `3.1 m`, intermediate fold point two-thirds along the diagonal at `4.9 m`, and central apex at `9 m` (`16` plates).
@@ -521,12 +340,6 @@ Corners at `3.1 m`, intermediate fold point two-thirds along the diagonal at `4.
 DiagonalFold fold(18000.0, {3100.0, 0.0, 4900.0, 0.67, 9000.0}, 120.0, "cross_fold_rising");
 ```
 
-<details><summary>Example code: templates_folding_17_cross_fold_rising.cpp</summary>
-
-\include{lineno} templates_folding_17_cross_fold_rising.cpp
-
-</details>
-
 ### Ridges sloping toward the centre {#folding_cross_fold_sloping}
 
 Corners raised to `7 m`, intermediate fold point at `4.3 m`, and centre dipping to `3.5 m` (`16` plates).
@@ -536,12 +349,6 @@ Corners raised to `7 m`, intermediate fold point at `4.3 m`, and centre dipping 
 ```cpp
 DiagonalFold fold(18000.0, {7000.0, 0.0, 4300.0, 0.43, 3500.0}, 120.0, "cross_fold_sloping");
 ```
-
-<details><summary>Example code: templates_folding_18_cross_fold_sloping.cpp</summary>
-
-\include{lineno} templates_folding_18_cross_fold_sloping.cpp
-
-</details>
 
 ## Composition of cross-folded squares {#fold_composition}
 
@@ -554,12 +361,6 @@ DiagonalFold fold(18000.0, {7000.0, 0.0, 4300.0, 0.43, 3500.0}, 120.0, "cross_fo
 ```cpp
 FoldComposition fold;
 ```
-
-<details><summary>Example code: templates_folding_19_fold_composition.cpp</summary>
-
-\include{lineno} templates_folding_19_fold_composition.cpp
-
-</details>
 
 ## Pyramids and truncated pyramids {#truncated_pyramid}
 
@@ -575,12 +376,6 @@ Four triangular plates over an `18 m` square base rising to a `6 m` apex (`4` pl
 TruncatedPyramid fold(9000.0, 0.0, 6000.0, std::nullopt, std::nullopt, 120.0, "pyramid");
 ```
 
-<details><summary>Example code: templates_folding_14_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_14_pyramid.cpp
-
-</details>
-
 ### Truncated pyramid, the basic form {#folding_truncated_pyramid}
 
 Four trapezoidal side plates and a flat `6 m` top cap at `6.8 m` height over an `18 m` square base (`5` plates).
@@ -590,12 +385,6 @@ Four trapezoidal side plates and a flat `6 m` top cap at `6.8 m` height over an 
 ```cpp
 TruncatedPyramid fold;
 ```
-
-<details><summary>Example code: templates_folding_15_truncated_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_15_truncated_pyramid.cpp
-
-</details>
 
 ### Variation 1: folded edges {#folding_folded_truncated_pyramid}
 
@@ -607,12 +396,6 @@ Each base edge midpoint pulled inward by `21%` and raised to `54%` of the height
 TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.21, 0.54}, std::nullopt, 120.0, "folded_truncated_pyramid");
 ```
 
-<details><summary>Example code: templates_folding_36_folded_truncated_pyramid.cpp</summary>
-
-\include{lineno} templates_folding_36_folded_truncated_pyramid.cpp
-
-</details>
-
 ### Variation 2: folded corners {#folding_truncated_pyramid_corner_folds}
 
 Corner ridges bent at `22%` of their span and raised to half height, with side facets fanning from the base edge midpoints (`21` plates).
@@ -623,12 +406,6 @@ Corner ridges bent at `22%` of their span and raised to half height, with side f
 TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.07, 0.0}, FoldPoint{0.22, 0.5}, 120.0, "truncated_pyramid_corner_folds");
 ```
 
-<details><summary>Example code: templates_folding_38_truncated_pyramid_corner_folds.cpp</summary>
-
-\include{lineno} templates_folding_38_truncated_pyramid_corner_folds.cpp
-
-</details>
-
 ### Variation 3: folded corners and edges {#folding_truncated_pyramid_corner_edge_folds}
 
 Both corner bends and raised edge midpoints aligned at half height to form a horizontal fold ring (`25` plates).
@@ -638,12 +415,6 @@ Both corner bends and raised edge midpoints aligned at half height to form a hor
 ```cpp
 TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.28, 0.5}, FoldPoint{0.22, 0.5}, 120.0, "truncated_pyramid_corner_edge_folds");
 ```
-
-<details><summary>Example code: templates_folding_39_truncated_pyramid_corner_edge_folds.cpp</summary>
-
-\include{lineno} templates_folding_39_truncated_pyramid_corner_edge_folds.cpp
-
-</details>
 
 ## Folded triangular surfaces {#triangle_fold}
 
@@ -659,12 +430,6 @@ Perimeter gables rising to `5.0 m` and central apex at `6.5 m` (`12` plates).
 TriangleFold fold;
 ```
 
-<details><summary>Example code: templates_folding_20_triangle_square.cpp</summary>
-
-\include{lineno} templates_folding_20_triangle_square.cpp
-
-</details>
-
 ### Triangular plan {#folding_triangle_triangle}
 
 Perimeter gables at `7.5 m` with a flat central triangle (`7` plates).
@@ -674,12 +439,6 @@ Perimeter gables at `7.5 m` with a flat central triangle (`7` plates).
 ```cpp
 TriangleFold fold(3, 12000.0, 7500.0, 7500.0, 120.0, "triangle_triangle");
 ```
-
-<details><summary>Example code: templates_folding_21_triangle_triangle.cpp</summary>
-
-\include{lineno} templates_folding_21_triangle_triangle.cpp
-
-</details>
 
 ### Pentagonal plan {#folding_triangle_pentagon}
 
@@ -691,12 +450,6 @@ Perimeter gables at `4.8 m` and central apex at `6.0 m` (`15` plates).
 TriangleFold fold(5, 12000.0, 4800.0, 6000.0, 120.0, "triangle_pentagon");
 ```
 
-<details><summary>Example code: templates_folding_22_triangle_pentagon.cpp</summary>
-
-\include{lineno} templates_folding_22_triangle_pentagon.cpp
-
-</details>
-
 ### Hexagonal plan {#folding_triangle_hexagon}
 
 Perimeter gables at `4.2 m` and central apex at `5.3 m` (`18` plates).
@@ -706,10 +459,3 @@ Perimeter gables at `4.2 m` and central apex at `5.3 m` (`18` plates).
 ```cpp
 TriangleFold fold(6, 12000.0, 4200.0, 5300.0, 120.0, "triangle_hexagon");
 ```
-
-<details><summary>Example code: templates_folding_23_triangle_hexagon.cpp</summary>
-
-\include{lineno} templates_folding_23_triangle_hexagon.cpp
-
-</details>
-

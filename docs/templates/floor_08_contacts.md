@@ -1,4 +1,4 @@
-# Floor 8: Contacts {#templates_floor_08_contacts}
+# Contacts {#templates_floor_08_contacts}
 
 [TOC]
 

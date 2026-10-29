@@ -1,4 +1,4 @@
-# JointPlate top_side {#elements_joint_plate_top_side}
+# Plate Top-to-Side {#elements_joint_plate_top_side}
 
 [TOC]
 
@@ -21,8 +21,7 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 
 Every example below shows two pairs (`Plate::pair_top_side(90.0)` and `Plate::pair_top_side(60.0)`) with the upright plate lifted above its mortises.
 
-## top_side_three_tenons: three fixed tenons
-
+## Three Fixed Tenons
 Three fixed tenons on the upright's bottom edge with three matching through-mortises in the base plate.
 
 ![](elements/element_joint_plate_top_side_three_tenons.png)
@@ -33,14 +32,7 @@ Three fixed tenons on the upright's bottom edge with three matching through-mort
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_three_tenons();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_three_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_three_tenons.cpp
-
-</details>
-
-## top_side_annen_tenons: Annen tenons
-
+## Annen Tenons
 Two wide fixed tenons from the Annen box-girder system on the upright's bottom edge and two through-mortises in the base plate.
 
 ![](elements/element_joint_plate_top_side_annen_tenons.png)
@@ -51,14 +43,7 @@ Two wide fixed tenons from the Annen box-girder system on the upright's bottom e
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_annen_tenons();
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_annen_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_annen_tenons.cpp
-
-</details>
-
-## top_side_dense_tenons: every point visited
-
+## Every Point Visited
 Parametric tenons visiting every interpolation division along the seam with a matching mortise per tenon.
 
 ![](elements/element_joint_plate_top_side_dense_tenons.png)
@@ -69,14 +54,7 @@ Parametric tenons visiting every interpolation division along the seam with a ma
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_dense_tenons(8, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_dense_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_dense_tenons.cpp
-
-</details>
-
-## top_side_tenons: family default tenons
-
+## Family Default Tenons
 The family default placing one tenon every four divisions along the seam (`2` tenons at `divisions = 8`) with a matching mortise per tenon.
 
 ![](elements/element_joint_plate_top_side_tenons.png)
@@ -87,14 +65,7 @@ The family default placing one tenon every four divisions along the seam (`2` te
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_tenons.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_tenons.cpp
-
-</details>
-
-## top_side_snap_fit: snap-fit tenons
-
+## Snap-Fit Tenons
 Flexible cantilevered snap-fit tenons repeated once per division with matching through-mortises in the base plate.
 
 ![](elements/element_joint_plate_top_side_snap_fit.png)
@@ -105,14 +76,7 @@ Flexible cantilevered snap-fit tenons repeated once per division with matching t
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_snap_fit(0);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_snap_fit.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_snap_fit.cpp
-
-</details>
-
-## top_side_custom: custom outlines
-
+## Custom Outlines
 A user-defined tapered through-tenon and matching tapered mortise defined in the `[-0.5, 0.5]^3` unit box.
 
 ![](elements/element_joint_plate_top_side_custom.png)
@@ -123,24 +87,18 @@ A user-defined tapered through-tenon and matching tapered mortise defined in the
 const std::shared_ptr<JointPlate> joint = JointPlate::top_side_custom(male, female);
 ```
 
-<details><summary>Example code: elements/element_joint_plate_top_side_custom.cpp</summary>
-
-\include{lineno} elements/element_joint_plate_top_side_custom.cpp
-
-</details>
-
 ## Parameters
 
-**Divisions and shift.** `divisions` sets the number of tenons along the seam; `shift` adjusts their width and side lean.
+Divisions and shift. `divisions` sets the number of tenons along the seam; `shift` adjusts their width and side lean.
 
 ![](joint_library/sweep_top_side_dense_tenons.png)
 
 ![](joint_library/sweep_top_side_tenons.png)
 
-**At other angles.** The same tenons on orthogonal, skewed, and leaning uprights at `8`, `16`, and `24` divisions.
+At other angles. The same tenons on orthogonal, skewed, and leaning uprights at `8`, `16`, and `24` divisions.
 
 ![](joint_library/sweep_top_side_tenons_angles.png)
 
-**Snap-fit detail.** Each `top_side_snap_fit` tenon ends in a hook that locks underneath the base plate.
+Snap-fit detail. Each `top_side_snap_fit` tenon ends in a hook that locks underneath the base plate.
 
 ![](joint_library/ts_top_side_snap_fit.png)

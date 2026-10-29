@@ -1,4 +1,4 @@
-# JointBeam cross {#elements_joint_beam_cross}
+# Beam Cross {#elements_joint_beam_cross}
 
 [TOC]
 
@@ -13,8 +13,7 @@ static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& t
 
 Every example shows two crossing pairs (`90°` and `60°`) with the lower beam shifted downward out of its lap notch.
 
-## cross_slot: plain half-lap slot
-
+## Plain Half-Lap Slot
 A straight half-depth rectangular lap slot cut into both crossing beams.
 
 ![](elements/element_joint_beam_cross_slot.png)
@@ -25,14 +24,7 @@ A straight half-depth rectangular lap slot cut into both crossing beams.
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
 ```
 
-<details><summary>Example code: elements/element_joint_beam_cross_slot.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_slot.cpp
-
-</details>
-
-## cross_sliced_half_lap: sliced half-lap
-
+## Sliced Half-Lap
 A nine-ring half-lap per beam where the centre and top sides are milled while the bottom sides and corner wedges are sliced.
 
 ![](elements/element_joint_beam_cross_sliced_half_lap.png)
@@ -43,14 +35,7 @@ A nine-ring half-lap per beam where the centre and top sides are milled while th
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_sliced_half_lap(0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_cross_sliced_half_lap.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_sliced_half_lap.cpp
-
-</details>
-
-## cross_half_lap: milled half-lap
-
+## Milled Half-Lap
 A five-ring milled half-lap per beam with sheer upper walls and extended lower bearing shelves.
 
 ![](elements/element_joint_beam_cross_half_lap.png)
@@ -61,14 +46,7 @@ A five-ring milled half-lap per beam with sheer upper walls and extended lower b
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap(0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_cross_half_lap.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_half_lap.cpp
-
-</details>
-
-## cross_half_lap_diagonal_drills: milled half-lap with diagonal drills
-
+## Milled Half-Lap with Diagonal Drills
 The milled half-lap of `cross_half_lap` reinforced by two diagonal pin bores through both beams.
 
 ![](elements/element_joint_beam_cross_half_lap_diagonal_drills.png)
@@ -79,14 +57,7 @@ The milled half-lap of `cross_half_lap` reinforced by two diagonal pin bores thr
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap_diagonal_drills(0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_cross_half_lap_diagonal_drills.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_half_lap_diagonal_drills.cpp
-
-</details>
-
-## cross_half_lap_drill: milled half-lap with vertical drill
-
+## Milled Half-Lap with Vertical Drill
 The milled half-lap of `cross_half_lap` with a single vertical pin bore down the crossing axis.
 
 ![](elements/element_joint_beam_cross_half_lap_drill.png)
@@ -97,14 +68,7 @@ The milled half-lap of `cross_half_lap` with a single vertical pin bore down the
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap_drill(0.5);
 ```
 
-<details><summary>Example code: elements/element_joint_beam_cross_half_lap_drill.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_half_lap_drill.cpp
-
-</details>
-
-## cross_brussels_half_lap: Brussels half-lap
-
+## Brussels Half-Lap
 An asymmetric milled half-lap with a vertical 50 mm counterbore and a horizontal 10 mm cross-pin bore.
 
 ![](elements/element_joint_beam_cross_brussels_half_lap.png)
@@ -114,9 +78,3 @@ An asymmetric milled half-lap with a vertical 50 mm counterbore and a horizontal
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::cross_brussels_half_lap(0.5);
 ```
-
-<details><summary>Example code: elements/element_joint_beam_cross_brussels_half_lap.cpp</summary>
-
-\include{lineno} elements/element_joint_beam_cross_brussels_half_lap.cpp
-
-</details>
