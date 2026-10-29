@@ -4,6 +4,51 @@
 
 Developable `PlateCurved` structures beyond cylinders: free-form ruled tent shells, curved-crease accordion unfoldings (cones, synclastic and anticlastic vaults, domes, funnels), and quad-diagonal flat development verification.
 
+Click any developable folding card below to jump directly to its section and C++ examples:
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#curved_fold_roof">
+    <img src="templates_developable_folding_1_curved_fold_lamellas.webp" alt="CurvedFold Tent Roof">
+    <span class="wood-card-title">1. CurvedFold Tent Roof</span>
+    <span class="wood-card-sub">12-sector trumpet tent shell ruled between NURBS meridians</span>
+  </a>
+  <a class="wood-card" href="#curved_crease_arch">
+    <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Semicircular Arch Unfolding">
+    <span class="wood-card-title">2. Semicircular Arch Unfolding</span>
+    <span class="wood-card-sub">Curved-crease bands mirrored across parallel planes</span>
+  </a>
+  <a class="wood-card" href="#curved_crease_catenary">
+    <img src="templates_developable_folding_3_catenary_unfolding_plates.webp" alt="Catenary Arch Unfolding">
+    <span class="wood-card-title">3. Catenary Arch Unfolding</span>
+    <span class="wood-card-sub">Catenary crease unfolded across parallel planes</span>
+  </a>
+  <a class="wood-card" href="#synclastic_unfolding">
+    <img src="templates_developable_folding_5_synclastic_unfolding_plates.webp" alt="Synclastic Vault Unfolding">
+    <span class="wood-card-title">5. Synclastic Vault Unfolding</span>
+    <span class="wood-card-sub">Leaning `+5°` crease planes (`CurvedCreaseUnfolding::leaning`)</span>
+  </a>
+  <a class="wood-card" href="#anticlastic_unfolding">
+    <img src="templates_developable_folding_6_anticlastic_unfolding_plates.webp" alt="Anticlastic Saddle Unfolding">
+    <span class="wood-card-title">6. Anticlastic Saddle Unfolding</span>
+    <span class="wood-card-sub">Leaning `-5°` crease planes &amp; zigzag inclinations (`7–10`)</span>
+  </a>
+  <a class="wood-card" href="#corrugated_dome">
+    <img src="templates_developable_folding_11_corrugated_dome_plates.webp" alt="Corrugated Rotational Dome">
+    <span class="wood-card-title">11. Corrugated Rotational Dome</span>
+    <span class="wood-card-sub">24-sector radial fan planes (`CurvedCreaseUnfolding::fan`)</span>
+  </a>
+  <a class="wood-card" href="#corrugated_funnel">
+    <img src="templates_developable_folding_12_corrugated_funnel_plates.webp" alt="Corrugated Funnel Column">
+    <span class="wood-card-title">12. Corrugated Funnel Column</span>
+    <span class="wood-card-sub">32-sector radial funnel column</span>
+  </a>
+  <a class="wood-card" href="#crease_quadrants">
+    <img src="templates_developable_folding_4_crease_quadrants_all.webp" alt="CreaseQuadrants">
+    <span class="wood-card-title">4. CreaseQuadrants (`Q1..Q4`)</span>
+    <span class="wood-card-sub">Four ruling combinations at one planar curved crease</span>
+  </a>
+</div>
+
 ![](diagrams/wood_folding_geometry.webp)
 
 | Template | Header | Geometric Construction | Examples |

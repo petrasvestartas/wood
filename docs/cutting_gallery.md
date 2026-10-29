@@ -6,6 +6,35 @@ The cutting gallery targets (`15_profile_cuts` through `18_cutting_gallery`) tes
 
 ![](diagrams/wood_boolean_cutting.webp)
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="examples.html#ex_15_profile_cuts">
+    <img src="element_profile.webp" alt="15_profile_cuts">
+    <span class="wood-card-title">15_profile_cuts</span>
+    <span class="wood-card-sub">Concave L profile, hole, through-slot &amp; blind pocket</span>
+  </a>
+  <a class="wood-card" href="examples.html#ex_16_drill_solids">
+    <img src="element_pin.png" alt="16_drill_solids">
+    <span class="wood-card-title">16_drill_solids</span>
+    <span class="wood-card-sub">Chord-tolerance bores, exact NURBS BReps &amp; tilted bore</span>
+  </a>
+  <a class="wood-card" href="examples.html#ex_17_solid_features">
+    <img src="element_block.png" alt="17_solid_features">
+    <span class="wood-card-title">17_solid_features</span>
+    <span class="wood-card-sub">Boolean difference, intersection, union &amp; mesh cutter</span>
+  </a>
+  <a class="wood-card" href="examples.html#ex_19_plate_joint_library">
+    <img src="element_joint_plate_top_side.png" alt="19_plate_joint_library">
+    <span class="wood-card-title">19_plate_joint_library</span>
+    <span class="wood-card-sub">Six top_side plate joint presets across division &amp; shift</span>
+  </a>
+</div>
+<div style="display:none">
+![](elements/element_profile.webp)
+![](elements/element_pin.png)
+![](elements/element_block.png)
+![](elements/element_joint_plate_top_side.png)
+</div>
+
 | Target | Cases |
 | --- | --- |
 | `15_profile_cuts` | Concave L profile, profile with hole, through-slot splitting two pieces, concave blind pocket |

@@ -4,6 +4,51 @@
 
 Folded structures of exact cylindrical [`PlateCurved`](@ref elements_plate_curved) lamellas with parallel straight rulings, zero Gaussian curvature, exact rational NURBS ellipse creases, and zero flat-unfolding distortion (`Development::distortion < 1e-14`).
 
+Click any cylindrical folding card below to jump directly to its section and C++ examples:
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#reflection_principle">
+    <img src="templates_cylindrical_folding_1_reflection_lamellas.webp" alt="Reflection Principle">
+    <span class="wood-card-title">1. Reflection Principle</span>
+    <span class="wood-card-sub">Circular arc strip reflected on an oblique plane (`ReflectionFold`)</span>
+  </a>
+  <a class="wood-card" href="#curved_folded_plate">
+    <img src="templates_cylindrical_folding_2_curved_folded_plate_lamellas.webp" alt="Curved Folded Plate Arch">
+    <span class="wood-card-title">2. Curved Folded Plate Arch</span>
+    <span class="wood-card-sub">Half-sine waves swept along a 5-segment polygonal arch</span>
+  </a>
+  <a class="wood-card" href="#mendrisio_pavilion">
+    <img src="templates_cylindrical_folding_3_mendrisio_pavilion_lamellas.webp" alt="Mendrisio Pavilion">
+    <span class="wood-card-title">3. Mendrisio Pavilion</span>
+    <span class="wood-card-sub">IBOIS curved CLT barrel reflected at eave &amp; ridge</span>
+  </a>
+  <a class="wood-card" href="#folded_cylinders">
+    <img src="templates_cylindrical_folding_5_two_hinged_arch_lamellas.webp" alt="Linear Folded Cylindrical Halls">
+    <span class="wood-card-title">4–7. Cylindrical Hall Systems</span>
+    <span class="wood-card-sub">Two-hinged frame, two-hinged arch, top-hinged arch &amp; A-frame</span>
+  </a>
+  <a class="wood-card" href="#cylinder_vault">
+    <img src="templates_cylindrical_folding_8_groin_vault_lamellas.webp" alt="CylinderVault">
+    <span class="wood-card-title">8–12. CylinderVault</span>
+    <span class="wood-card-sub">Groin, cloister, pentagon, hexagon &amp; octagon cylinder vaults</span>
+  </a>
+  <a class="wood-card" href="#curved_folded_beam">
+    <img src="templates_cylindrical_folding_13_curved_folded_beam_all.webp" alt="CurvedFoldedBeam">
+    <span class="wood-card-title">13. CurvedFoldedBeam</span>
+    <span class="wood-card-sub">4-cylinder box girder with transverse planar diaphragms</span>
+  </a>
+  <a class="wood-card" href="#corner_fan">
+    <img src="templates_cylindrical_folding_14_corner_fan_strips.webp" alt="CornerFan">
+    <span class="wood-card-title">14–15. CornerFan</span>
+    <span class="wood-card-sub">Cylindrical bands radiating from one corner on parabolic creases</span>
+  </a>
+  <a class="wood-card" href="#cylinder_carving">
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_all.webp" alt="CylinderCarving">
+    <span class="wood-card-title">16–17. CylinderCarving</span>
+    <span class="wood-card-sub">Sequential boolean cylinder carving &amp; fluted columns</span>
+  </a>
+</div>
+
 ![](diagrams/template_cylindrical_developable_pipeline.webp)
 
 | Template | Header | Geometric Construction | Examples |

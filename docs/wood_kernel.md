@@ -6,6 +6,32 @@
 
 ![](diagrams/wood_architecture.webp)
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#arch_scene_graph">
+    <img src="wood_architecture.webp" alt="Scene Graph">
+    <span class="wood-card-title">1. Scene Graph</span>
+    <span class="wood-card-sub">WoodSession tree hierarchy &amp; directed interaction graph</span>
+  </a>
+  <a class="wood-card" href="#arch_stock_vs_cut">
+    <img src="wood_elements_taxonomy.webp" alt="Stock vs Cut Geometry">
+    <span class="wood-card-title">2. Stock vs Cut</span>
+    <span class="wood-card-sub">Lazy Mesh &amp; NURBS BRep caching across all 11 shape elements</span>
+  </a>
+  <a class="wood-card" href="#arch_contact_detection">
+    <img src="wood_joint_unit_box.webp" alt="Contact Detection">
+    <span class="wood-card-title">3. Contact Detection</span>
+    <span class="wood-card-sub">Face, cross, axis &amp; border contact queries on uncut stock</span>
+  </a>
+  <a class="wood-card" href="#arch_boolean_cutting">
+    <img src="wood_boolean_cutting.webp" alt="Boolean and BRep Cutting">
+    <span class="wood-card-title">4. Boolean &amp; BRep Cutting</span>
+    <span class="wood-card-sub">Plane, profile, solid &amp; joint feature evaluation</span>
+  </a>
+</div>
+<div style="display:none">
+![](diagrams/wood_joint_unit_box.webp)
+</div>
+
 ```cpp
 WoodSession session("model");
 const std::shared_ptr<InteractionContactFace> contact = session.compute_face_contact(a, b);
@@ -17,7 +43,7 @@ session.add_interaction(joint, b, joint->interaction(1));
 session.pb_dump(pb_path("live"));
 ```
 
-## 1. Scene Graph
+## 1. Scene Graph {#arch_scene_graph}
 
 `WoodSession` wraps a `session_cpp::Session` containing two synchronized structures:
 
@@ -41,7 +67,7 @@ public:
 };
 ```
 
-## 2. Stock vs Cut Geometry
+## 2. Stock vs Cut Geometry {#arch_stock_vs_cut}
 
 Every `Element` caches two lazy geometric states in both `Mesh` and `BRep` representations:
 
@@ -64,7 +90,7 @@ Every `Element` caches two lazy geometric states in both `Mesh` and `BRep` repre
 | `Block` / `Pin` | `Mesh` / `(head, direction, radius, length)` | Auxiliary connector parts nested under `JointBeam` or `Column` |
 | `CutPlane` / `Profile` | `Plane` / `(Plane, vector<Polyline>)` | Half-space clip plane / 2D cutting loops |
 
-## 3. Contact Detection
+## 3. Contact Detection {#arch_contact_detection}
 
 All contact queries operate on **uncut stock** (`element_geometry_*`) so joint geometry is independent of cutting order:
 
@@ -75,7 +101,7 @@ All contact queries operate on **uncut stock** (`element_geometry_*`) so joint g
 | `compute_cross_contact(a, b)` | `shared_ptr<InteractionContactCross>` | 4-plane intersection volume (`cross_line`, `volumes[0..1]`, `plane_0`, `plane_1`) where two plates cross |
 | `compute_axis_contact(a, b)` | `shared_ptr<InteractionContactAxis>` | Closest segment between element axes + oriented feature boxes |
 
-## 4. Boolean and BRep Cutting
+## 4. Boolean and BRep Cutting {#arch_boolean_cutting}
 
 ![](diagrams/wood_boolean_cutting.webp)
 

@@ -4,6 +4,19 @@
 
 The vaulted timber floor is supported by four columns. The column heads are integrated into the columns and connect the four quarter components. The central oculus interlocks all four components.
 
+<div class="wood-card-grid cols-3">
+  <a class="wood-card" href="templates_floor_guide.html">
+    <img src="962_section_construction_quads.webp" alt="FloorGuide">
+    <span class="wood-card-title">1. FloorGuide (`wood_floor::FloorGuide`)</span>
+    <span class="wood-card-sub">Construction planes, section parabolas &amp; member quads (`src/templates/floor/floor_guide.h`)</span>
+  </a>
+  <a class="wood-card" href="templates_floor_model.html">
+    <img src="floor_viewer.webp" alt="Floor Model">
+    <span class="wood-card-title">2. Floor (`wood_floor::Floor`)</span>
+    <span class="wood-card-sub">Quarter assemblies, carved columns, contacts, wedges, plates &amp; pins (`src/templates/floor/floor.h`)</span>
+  </a>
+</div>
+
 Two classes build the floor:
 - @subpage templates_floor_guide - API `wood_floor::FloorGuide` (`src/templates/floor/floor_guide.h`)
 - @subpage templates_floor_model - API `wood_floor::Floor` (`src/templates/floor/floor.h`)

@@ -42,6 +42,44 @@ scene.add_interaction(joint, base, joint->interaction(1));
 
 ## Families
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_joint_plate_side_side_inplane.html">
+    <img src="element_joint_plate_side_side_inplane.png" alt="JointPlate side_side_inplane">
+    <span class="wood-card-title">side_side_inplane</span>
+    <span class="wood-card-sub">Coplanar edge-to-edge dovetails, butterfly/tooth keys &amp; Hilti</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_side_side_outplane.html">
+    <img src="element_joint_plate_side_side_outplane.png" alt="JointPlate side_side_outplane">
+    <span class="wood-card-title">side_side_outplane</span>
+    <span class="wood-card-sub">Folded corner miters, fingers, tenons &amp; Vidy linked tenons</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_top_side.html">
+    <img src="element_joint_plate_top_side.png" alt="JointPlate top_side">
+    <span class="wood-card-title">top_side</span>
+    <span class="wood-card-sub">T-joint edge-to-face tenons, snap-fit &amp; milled wedge</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_side_side_rotated.html">
+    <img src="element_joint_plate_side_side_rotated.png" alt="JointPlate side_side_rotated">
+    <span class="wood-card-title">side_side_rotated</span>
+    <span class="wood-card-sub">Twisted seam miter slices, hook/diamond keys &amp; side removal</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_cross.html">
+    <img src="element_joint_plate_cross.png" alt="JointPlate cross">
+    <span class="wood-card-title">cross</span>
+    <span class="wood-card-sub">Intersecting plate cross slots &amp; half-laps</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_top_top.html">
+    <img src="element_joint_plate_top_top.png" alt="JointPlate top_top">
+    <span class="wood-card-title">top_top</span>
+    <span class="wood-card-sub">Stacked face-to-face drilled pin patterns</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_border.html">
+    <img src="element_joint_plate_border.png" alt="JointPlate border">
+    <span class="wood-card-title">border</span>
+    <span class="wood-card-sub">Single-plate boundary edge profile joinery</span>
+  </a>
+</div>
+
 | Family | Contact | Geometry |
 | --- | --- | --- |
 | [side_side_inplane](@ref elements_joint_plate_side_side_inplane) | Side-to-side, in-plane | Coplanar plates edge-to-edge (dovetails, butterfly/tooth keys, Hilti) |
@@ -52,7 +90,7 @@ scene.add_interaction(joint, base, joint->interaction(1));
 | [top_top](@ref elements_joint_plate_top_top) | Top-to-top | Stacked faces (drilled pin patterns) |
 | [border](@ref elements_joint_plate_border) | Border | Single-plate side face (`compute_border_contact`) |
 
-## Border {#elements_joint_plate_border}
+## Border {#joint_plate_border_section}
 
 A single-plate edge profile (`JointPlate::border()`) oriented onto side face `2` via `WoodSession::compute_border_contact(plate, 2)`.
 

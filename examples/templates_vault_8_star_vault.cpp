@@ -5,7 +5,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 const double SPAN = 8000.0;
-const double RISE = 2500.0;
+const double RISE = 1000.0;
 const double THICKNESS = 150.0;
 const double STAR = 0.5;
 const double RIB = 200.0;
@@ -32,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A star (stellar) vault over an 8 m square bay on the sail surface through its corners: twenty ribs - four diagonals, eight tiercerons from the corners to the star points, four liernes to the crown and four wall arches - and the twelve webs between them, each 150 thick: a BRep solid whose intrados is one cubic NURBS sail surface trimmed by its three ribs, whose extrados is that surface moved out from the sphere centre and whose sides are ruled surfaces neighbouring webs share.
+A star (stellar) vault over an 8 m square bay (1 m rise) on intersecting circular barrel cylinders: twenty single-curved planar ribs in vertical planes - four diagonals, eight tiercerons from the corners to the star points, four continuous ridge ribs from the wall crowns through the star bosses to the central boss, and four wall arches - four corner support blocks, and the sixteen cylindrical webs between them, each 150 thick: a BRep solid whose intrados is a circular barrel cylinder trimmed along straight plan lines at the beam centers, whose extrados is shifted vertically by thickness and whose sides are vertical ruled surfaces neighbouring webs share.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

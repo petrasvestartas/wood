@@ -23,11 +23,11 @@ int main() {
 
     const std::vector<GothicBayConfig> bays = {
         {"quadripartite_wells",   wood_vault::GothicPattern::quadripartite,   wood_vault::ArchMethod::groin_cylinders},
-        {"tierceron_exeter",      wood_vault::GothicPattern::tierceron,       wood_vault::ArchMethod::spherical_sail},
-        {"star_stellar_burgos",   wood_vault::GothicPattern::star_stellar,    wood_vault::ArchMethod::cloister_cylinders},
-        {"lierne_star_ely",       wood_vault::GothicPattern::lierne_star,     wood_vault::ArchMethod::spherical_sail},
-        {"net_reticulated_parler",wood_vault::GothicPattern::net_reticulated, wood_vault::ArchMethod::spherical_sail},
-        {"fan_conoid_gloucester", wood_vault::GothicPattern::fan_conoid,      wood_vault::ArchMethod::spherical_sail}
+        {"tierceron_exeter",      wood_vault::GothicPattern::tierceron,       wood_vault::ArchMethod::groin_cylinders},
+        {"star_stellar_burgos",   wood_vault::GothicPattern::star_stellar,    wood_vault::ArchMethod::groin_cylinders},
+        {"lierne_star_ely",       wood_vault::GothicPattern::lierne_star,     wood_vault::ArchMethod::groin_cylinders},
+        {"net_reticulated_parler",wood_vault::GothicPattern::net_reticulated, wood_vault::ArchMethod::groin_cylinders},
+        {"fan_conoid_gloucester", wood_vault::GothicPattern::fan_conoid,      wood_vault::ArchMethod::groin_cylinders}
     };
 
     const double pitch_x = SPAN_X + 1800.0;
@@ -94,13 +94,13 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six symmetric shallow (1:10 rise-to-span, 10 m x 10 m span, 1 m rise) Gothic cathedral ribbed vault bays built from curved glulam beams (BeamCurved, 120 x 180 mm, 6 lamellae) with exact angle-bisector node miter cuts (rib->cuts), 4 polygonal corner support blocks (Block) where ribs terminate without intersecting, and analytical top vault surfaces (groin_cylinders, cloister_cylinders, spherical_sail) flush with the upper rib extrados for curved or segmented timber infill panels (Tracing the Past LiDAR survey, Buchanan, Webb & Peterson 2021; Wendland et al. 2024; Jobbik 2024):
-1. quadripartite_wells    — Early Gothic quadripartite vault on intersected groin cylinders (Notre-Dame / Wells / Salisbury, 12 ribs + 4 blocks)
-2. tierceron_exeter       — English Decorated tierceron palm-tree vault on a spherical sail (Lincoln / Exeter, 28 ribs + 4 blocks)
-3. star_stellar_burgos    — 8-pointed stellar vault (Sterngewolbe / Boveda Estrellada) on cloister cylinders (36 ribs + 4 blocks)
-4. lierne_star_ely        — Double-star tierceron + lierne vault on a spherical sail (Ely Choir / Wells Lady Chapel, 52 ribs + 4 blocks)
-5. net_reticulated_parler — Late-Gothic reticulated diamond-lattice net vault (Netzgewolbe) on groin cylinders (Parler / Jobbik 2024, 44 ribs + 4 blocks)
-6. fan_conoid_gloucester  — English Perpendicular radiating fan vault with 3 concentric rib tiers (Gloucester / King's College, 68 ribs + 4 blocks)
+Six symmetric shallow (1:10 rise-to-span, 10 m x 10 m span, 1 m rise) Gothic cathedral ribbed vault bays built from single-curved planar glulam beams (BeamCurved, 120 x 360 mm, 6 lamellae) in vertical planes over straight 2D plan lines with exact angle-bisector node miter cuts (rib->cuts), 4 polygonal corner support blocks (Block) where ribs and web panels terminate cleanly, and simple cylindrical barrel web panels (BRep, K = 0 groin_cylinders) whose bottom and top edges lie directly above the supporting beam centerlines (Bern Cathedral / Berner Muenster; compas_tno; Tracing the Past LiDAR survey, Buchanan, Webb & Peterson 2021; Wendland et al. 2024; Jobbik 2024):
+1. quadripartite_wells    — Classic quadripartite cross vault on intersecting barrel cylinders (Bern Cathedral / Wells / Salisbury, 4 blocks + 11 ribs + 8 cylindrical web panels = 23 elements)
+2. tierceron_exeter       — 4-pointed starcut tierceron vault on intersecting barrel cylinders (Bern Cathedral / Lincoln / Exeter, 4 blocks + 19 ribs + 16 cylindrical web panels = 39 elements)
+3. star_stellar_burgos    — 4-lozenge Greek-cross stellar vault (Sterngewoelbe / Boveda Estrellada) on intersecting barrel cylinders (Bern Cathedral, 4 blocks + 27 ribs + 20 cylindrical web panels = 51 elements)
+4. lierne_star_ely        — Double-star tierceron-lierne vault on intersecting barrel cylinders (Bern Cathedral / Ely Choir / Wells Lady Chapel, 4 blocks + 35 ribs + 32 cylindrical web panels = 71 elements)
+5. net_reticulated_parler — Reticulated diamond-lattice net vault (Netzgewoelbe) on intersecting barrel cylinders (Bern Cathedral Choir / Parler, 4 blocks + 43 ribs + 32 cylindrical web panels = 79 elements)
+6. fan_conoid_gloucester  — Radiating fan vault with straight horizontal collar ribs along cylinder rulings (compas_tno / Gloucester, 4 blocks + 51 ribs + 48 cylindrical web panels = 103 elements)
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

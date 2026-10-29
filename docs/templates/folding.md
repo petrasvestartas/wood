@@ -4,6 +4,66 @@
 
 Planar folded-plate timber structures (`src/templates/folding/*.h`). Each template subclasses `WoodSession`, constructs a planar-faced mid-surface mesh from its primary geometric inputs, and offsets it into watertight mitered `Plate` solids via `offset_plates` / `mitered_plates`.
 
+Click any folding template card below to jump directly to its section and C++ examples:
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#reflex_fold">
+    <img src="templates_folding_1_reflex_fold_plates.webp" alt="ReflexFold">
+    <span class="wood-card-title">ReflexFold</span>
+    <span class="wood-card-sub">Zigzag profile swept along an arch (`templates_folding_1_reflex_fold`)</span>
+  </a>
+  <a class="wood-card" href="#diamond_mesh">
+    <img src="templates_folding_2_diamond_mesh_plates.webp" alt="DiamondMesh">
+    <span class="wood-card-title">DiamondMesh</span>
+    <span class="wood-card-sub">Triangulated diamond rhombi on a NURBS arch (`templates_folding_2_diamond_mesh`)</span>
+  </a>
+  <a class="wood-card" href="#prismatic_fold">
+    <img src="templates_folding_3_prismatic_fold_all.webp" alt="PrismaticFold">
+    <span class="wood-card-title">PrismaticFold</span>
+    <span class="wood-card-sub">Singly folded plates, barrels &amp; diaphragms (`templates_folding_3,4,25,26`)</span>
+  </a>
+  <a class="wood-card" href="#counter_fold">
+    <img src="templates_folding_5_counter_fold_plates.webp" alt="CounterFold">
+    <span class="wood-card-title">CounterFold</span>
+    <span class="wood-card-sub">Counter-running &amp; elevated-centre folds (`templates_folding_5,6,27..32`)</span>
+  </a>
+  <a class="wood-card" href="#conical_fold">
+    <img src="templates_folding_7_conical_fold_plates.webp" alt="ConicalFold">
+    <span class="wood-card-title">ConicalFold</span>
+    <span class="wood-card-sub">Radial fold lines clipped by sloping planes (`templates_folding_7_conical_fold`)</span>
+  </a>
+  <a class="wood-card" href="#folded_frame">
+    <img src="templates_folding_8_two_hinged_frame_plates.webp" alt="FoldedFrame">
+    <span class="wood-card-title">FoldedFrame</span>
+    <span class="wood-card-sub">Two/three-hinged portal frames, A-frames &amp; arches (`templates_folding_8..10,34,35`)</span>
+  </a>
+  <a class="wood-card" href="#single_fold">
+    <img src="templates_folding_12_square_fold_plates.webp" alt="SingleFold">
+    <span class="wood-card-title">SingleFold</span>
+    <span class="wood-card-sub">Radial singly-folded polygon roofs (`templates_folding_11..13`)</span>
+  </a>
+  <a class="wood-card" href="#diagonal_fold">
+    <img src="templates_folding_16_cross_fold_plates.webp" alt="DiagonalFold">
+    <span class="wood-card-title">DiagonalFold</span>
+    <span class="wood-card-sub">Cross-folded square vaults spanned diagonally (`templates_folding_16..18`)</span>
+  </a>
+  <a class="wood-card" href="#fold_composition">
+    <img src="templates_folding_19_fold_composition_plates.webp" alt="FoldComposition">
+    <span class="wood-card-title">FoldComposition</span>
+    <span class="wood-card-sub">Cross-folded square grid with elevated central star (`templates_folding_19`)</span>
+  </a>
+  <a class="wood-card" href="#truncated_pyramid">
+    <img src="templates_folding_39_truncated_pyramid_corner_edge_folds_plates.webp" alt="TruncatedPyramid">
+    <span class="wood-card-title">TruncatedPyramid</span>
+    <span class="wood-card-sub">Pyramids with edge &amp; corner folds (`templates_folding_14,15,36,38,39`)</span>
+  </a>
+  <a class="wood-card" href="#triangle_fold">
+    <img src="templates_folding_20_triangle_square_plates.webp" alt="TriangleFold">
+    <span class="wood-card-title">TriangleFold</span>
+    <span class="wood-card-sub">Triangulated polygon plans with perimeter gables (`templates_folding_20..23`)</span>
+  </a>
+</div>
+
 ![](diagrams/template_planar_folding_pipeline.webp)
 
 ## Primary Inputs & Geometric Pipeline by Template

@@ -64,35 +64,35 @@ cross_vault(double span, double rise, double thickness, int courses, int rings);
 std::vector<std::shared_ptr<Element>>
 cloister_vault(double span, double rise, double thickness, int courses, int rings);
 
-/// A star (stellar) vault over a square bay of span on the sail surface through its corners, crown at rise.
+/// A star (stellar) vault over a square bay of span on intersecting circular barrel cylinders, crown at rise.
 std::vector<std::shared_ptr<Element>>
 star_vault(double span, double rise, double thickness, double star, double rib, int subdivisions);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Gothic ribbed vaults (LiDAR cathedral patterns — Tracing the Past / Willis)
+// Gothic ribbed vaults (LiDAR cathedral patterns — Tracing the Past / Willis / Bern Cathedral)
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Historical Gothic cathedral rib patterns studied via LiDAR in Tracing the Past (Buchanan, Webb, Peterson, Hillson).
+/// Historical Gothic cathedral rib patterns studied via LiDAR in Tracing the Past and Bern Cathedral (Berner Muenster).
 enum class GothicPattern {
-    quadripartite,   // Early English quadripartite bay (Wells / Salisbury / Amiens Nave)
-    tierceron,       // English Decorated Starcut tierceron vault (Lincoln / Exeter Nave)
-    star_stellar,    // Stellar 8-pointed star vault (Sterngewoelbe / Boveda Estrellada — Gdansk / Burgos)
-    lierne_star,     // English Decorated double-star lierne vault (Ely Choir / Wells Lady Chapel)
-    net_reticulated, // Late Gothic diamond-lattice net vault (Netzgewoelbe — Prague / Vienna / Canterbury)
-    fan_conoid,      // English Perpendicular fan / conoid vault (Gloucester Cloisters / King's College)
+    quadripartite,   // Classic quadripartite cross vault (Bern Cathedral / Wells / Salisbury / Amiens Nave)
+    tierceron,       // Starcut tierceron star vault (Bern Cathedral / Lincoln / Exeter Nave)
+    star_stellar,    // 4-lozenge stellar star vault (Bern Cathedral / Sterngewoelbe / Boveda Estrellada)
+    lierne_star,     // Double-star lierne vault (Bern Cathedral / Ely Choir / Wells Lady Chapel)
+    net_reticulated, // Late Gothic reticulated diamond-lattice net vault (Bern Cathedral Choir / Parler / Netzgewoelbe)
+    fan_conoid,      // Perpendicular radiating fan / conoid vault (Gloucester Cloisters / King's College)
     crazy_vault = star_stellar // Alias kept for compatibility
 };
 
 /// Analytical top vault surface that the extrados (top face) of every BeamCurved rib follows flush.
 enum class ArchMethod {
-    spherical_sail,     // Spherical sail surface through the 4 corners with crown at rise
     groin_cylinders,    // Two orthogonal circular barrel cylinders intersecting along the bay diagonals
-    cloister_cylinders, // Four cylindrical webs rising inward from the four perimeter walls
-    fixed_radius = spherical_sail,
+    spherical_sail,     // Alias mapped to cylindrical groin barrels (no doubly-curved patches)
+    cloister_cylinders, // Alias mapped to cylindrical groin barrels (no doubly-curved patches)
+    fixed_radius = groin_cylinders,
     chord_impost = groin_cylinders
 };
 
-/// A Gothic ribbed vault bay of mitered BeamCurved glulam ribs and 4 corner support blocks, with rib top faces flush on the vault surface.
+/// A Gothic ribbed vault bay of mitered BeamCurved glulam ribs, 4 corner support blocks, and cylindrical web panels.
 std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     double span_x = 10000.0,
     double span_y = 10000.0,
@@ -100,11 +100,11 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     double rib_width = 120.0,
     double rib_height = 360.0,
     GothicPattern pattern = GothicPattern::lierne_star,
-    ArchMethod surface_method = ArchMethod::spherical_sail,
+    ArchMethod surface_method = ArchMethod::groin_cylinders,
     int subdivisions = 16
 );
 
-/// A WoodSession template wrapping a Gothic ribbed vault bay of mitered BeamCurved ribs and corner support blocks.
+/// A WoodSession template wrapping a Gothic ribbed vault bay of mitered BeamCurved ribs, corner support blocks, and cylindrical web panels.
 class GothicRibbedVault : public wood_session::WoodSession {
 public:
     double span_x = 10000.0;
@@ -113,7 +113,7 @@ public:
     double rib_width = 120.0;
     double rib_height = 360.0;
     GothicPattern pattern = GothicPattern::lierne_star;
-    ArchMethod arch_method = ArchMethod::spherical_sail;
+    ArchMethod arch_method = ArchMethod::groin_cylinders;
     int subdivisions = 16;
 
     GothicRibbedVault(
@@ -123,7 +123,7 @@ public:
         double rib_width = 120.0,
         double rib_height = 360.0,
         GothicPattern pattern = GothicPattern::lierne_star,
-        ArchMethod arch_method = ArchMethod::spherical_sail,
+        ArchMethod arch_method = ArchMethod::groin_cylinders,
         int subdivisions = 16,
         const std::string& name = "gothic_ribbed_vault"
     );

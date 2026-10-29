@@ -49,6 +49,39 @@ scene.add_interaction(wedge, right, wedge->interaction(1));
 
 ## Families
 
+<div class="wood-card-grid cols-3">
+  <a class="wood-card" href="elements_joint_beam_cross.html">
+    <img src="element_joint_beam_cross.png" alt="JointBeam cross">
+    <span class="wood-card-title">cross</span>
+    <span class="wood-card-sub">Crossing beam half-laps &amp; slots</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_top_side.html">
+    <img src="element_joint_beam_top_side.png" alt="JointBeam top_side">
+    <span class="wood-card-title">top_side</span>
+    <span class="wood-card-sub">Beam ending on another member (`top_side_milled_wedge`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_end_to_end.html">
+    <img src="element_joint_beam_end_to_end.png" alt="JointBeam end to end">
+    <span class="wood-card-title">end to end</span>
+    <span class="wood-card-sub">Splayed scarfs, miter scarfs &amp; Jupiter scarfs</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_butt.html">
+    <img src="element_joint_beam_butt.png" alt="JointBeam butt">
+    <span class="wood-card-title">butt</span>
+    <span class="wood-card-sub">Automatic or forced plane butts (`butt`, `butt_side_side`, `butt_top_side`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_connectors.html">
+    <img src="element_joint_beam_connectors.png" alt="JointBeam connectors">
+    <span class="wood-card-title">connectors</span>
+    <span class="wood-card-sub">Face-contact wedges, let-in plates, rectangle plates &amp; butterfly keys</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_pins.html">
+    <img src="element_joint_beam_pins.png" alt="JointBeam pins">
+    <span class="wood-card-title">pins</span>
+    <span class="wood-card-sub">Centred pins &amp; headed pins across `InteractionContactFace`</span>
+  </a>
+</div>
+
 | Page | Contact Input | Presets and Factories |
 | --- | --- | --- |
 | [cross](@ref elements_joint_beam_cross) | Two beams crossing | `cross_slot` .. `cross_brussels_half_lap` |

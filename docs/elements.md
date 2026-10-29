@@ -6,7 +6,65 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 
 ## Shape Elements
 
-![](diagrams/wood_elements_taxonomy.webp)
+Click any shape element card below to jump directly to its constructor reference, parameters, and C++ example code:
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_plate.html">
+    <img src="element_plate.png" alt="Plate">
+    <span class="wood-card-title">Plate</span>
+    <span class="wood-card-sub">Planar timber panel (`wood_element_plate.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_plate_curved.html">
+    <img src="element_plate_curved.png" alt="PlateCurved">
+    <span class="wood-card-title">PlateCurved</span>
+    <span class="wood-card-sub">6-patch NURBS curved timber panel (`wood_element_plate_curved.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_beam.html">
+    <img src="element_beam.png" alt="Beam">
+    <span class="wood-card-title">Beam</span>
+    <span class="wood-card-sub">Prismatic timber beam member (`wood_element_beam.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_beam_curved.html">
+    <img src="element_beam_curved.png" alt="BeamCurved">
+    <span class="wood-card-title">BeamCurved</span>
+    <span class="wood-card-sub">Curved glulam NURBS BRep beam with lamellae (`wood_element_beam_curved.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_beam_variable.html">
+    <img src="element_beam_variable.png" alt="BeamVariable">
+    <span class="wood-card-title">BeamVariable</span>
+    <span class="wood-card-sub">Tapered / variable cross-section beam (`wood_element_beam_variable.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_column.html">
+    <img src="element_column.png" alt="Column">
+    <span class="wood-card-title">Column</span>
+    <span class="wood-card-sub">Vertical post member with head &amp; base cuts (`wood_element_column.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_block.html">
+    <img src="element_block.png" alt="Block">
+    <span class="wood-card-title">Block</span>
+    <span class="wood-card-sub">Polyhedral timber block, head, or voussoir (`wood_element_block.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_support.html">
+    <img src="element_support.png" alt="Support">
+    <span class="wood-card-title">Support</span>
+    <span class="wood-card-sub">Boundary support plinth &amp; abutment solid (`wood_element_support.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_cut_plane.html">
+    <img src="element_cut_plane.png" alt="CutPlane">
+    <span class="wood-card-title">CutPlane</span>
+    <span class="wood-card-sub">Planar half-space trim cutter (`wood_element_cut_plane.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_profile.html">
+    <img src="element_profile.webp" alt="Profiles">
+    <span class="wood-card-title">Profiles</span>
+    <span class="wood-card-sub">Parametric 2D cross-section polylines (`wood_profile.h`)</span>
+  </a>
+  <a class="wood-card" href="elements_pin.html">
+    <img src="element_pin.png" alt="Pin">
+    <span class="wood-card-title">Pin</span>
+    <span class="wood-card-sub">Cylindrical dowel &amp; headed fastener pin (`wood_element_pin.h`)</span>
+  </a>
+</div>
 
 | Element | Header | Examples |
 | --- | --- | --- |
@@ -24,9 +82,90 @@ Timber members, auxiliary cutters, and parametric joints under `src/joinery_solv
 
 ## Joint Elements
 
-Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamVariable`, `Column`, `Block`) and optionally own connector keys, wedges, side plates, or [`Pin`](@ref elements_pin) dowels.
+Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamVariable`, `Column`, `Block`) and optionally own connector keys, wedges, side plates, or [`Pin`](@ref elements_pin) dowels. Click any joint element family card below to jump directly to its presets and C++ examples:
 
-![](diagrams/wood_joint_elements_taxonomy.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_joint.html">
+    <img src="element_joint.png" alt="Joint">
+    <span class="wood-card-title">Joint</span>
+    <span class="wood-card-sub">Analytical drill bores &amp; boolean solid cutters (`element_joint_drill`, `_cutter`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate.html">
+    <img src="element_joint_plate.png" alt="JointPlate">
+    <span class="wood-card-title">JointPlate</span>
+    <span class="wood-card-sub">Unit-box `[-0.5, 0.5]^3` plate joinery &amp; parameters (`element_joint_plate_parameters`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_top_side.html">
+    <img src="element_joint_plate_top_side.png" alt="JointPlate top_side">
+    <span class="wood-card-title">JointPlate top_side</span>
+    <span class="wood-card-sub">T-joint edge-to-face tenons, Annen tenons, snap-fit &amp; milled wedge</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_side_side_inplane.html">
+    <img src="element_joint_plate_side_side_inplane.png" alt="JointPlate side_side_inplane">
+    <span class="wood-card-title">JointPlate side_side_inplane</span>
+    <span class="wood-card-sub">Coplanar plate seams: fingers, dovetails, butterfly/tooth keys &amp; Hilti</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_side_side_outplane.html">
+    <img src="element_joint_plate_side_side_outplane.png" alt="JointPlate side_side_outplane">
+    <span class="wood-card-title">JointPlate side_side_outplane</span>
+    <span class="wood-card-sub">Folded corner miters: fingers, tenons &amp; Vidy linked tenons</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_side_side_rotated.html">
+    <img src="element_joint_plate_side_side_rotated.png" alt="JointPlate side_side_rotated">
+    <span class="wood-card-title">JointPlate side_side_rotated</span>
+    <span class="wood-card-sub">Twisted seams: miter slices, hooks, diamond keys &amp; side removal</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_cross.html">
+    <img src="element_joint_plate_cross.png" alt="JointPlate cross">
+    <span class="wood-card-title">JointPlate cross</span>
+    <span class="wood-card-sub">Intersecting plate cross slots &amp; half-laps (`InteractionContactCross`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_top_top.html">
+    <img src="element_joint_plate_top_top.png" alt="JointPlate top_top">
+    <span class="wood-card-title">JointPlate top_top</span>
+    <span class="wood-card-sub">Stacked face-to-face drilled pin arrays (`centre_pin` .. `rectangle_pins`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_plate_border.html">
+    <img src="element_joint_plate_border.png" alt="JointPlate border">
+    <span class="wood-card-title">JointPlate border</span>
+    <span class="wood-card-sub">Single-plate boundary edge profile (`compute_border_contact`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam.html">
+    <img src="element_joint_beam.png" alt="JointBeam">
+    <span class="wood-card-title">JointBeam</span>
+    <span class="wood-card-sub">Axis-contact feature volumes, plane butts &amp; face-contact connectors</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_cross.html">
+    <img src="element_joint_beam_cross.png" alt="JointBeam cross">
+    <span class="wood-card-title">JointBeam cross</span>
+    <span class="wood-card-sub">Crossing beam half-laps, sliced half-laps &amp; Brussels half-laps</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_top_side.html">
+    <img src="element_joint_beam_top_side.png" alt="JointBeam top_side">
+    <span class="wood-card-title">JointBeam top_side</span>
+    <span class="wood-card-sub">Beam ending on another member (`top_side_milled_wedge`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_end_to_end.html">
+    <img src="element_joint_beam_end_to_end.png" alt="JointBeam end to end">
+    <span class="wood-card-title">JointBeam end to end</span>
+    <span class="wood-card-sub">Collinear &amp; angled beam scarfs (`splayed_scarf`, `rotated_miter`, `jupiter_scarf`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_butt.html">
+    <img src="element_joint_beam_butt.png" alt="JointBeam butt">
+    <span class="wood-card-title">JointBeam butt</span>
+    <span class="wood-card-sub">Automatic or forced plane butts (`butt`, `butt_side_side`, `butt_top_side`)</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_connectors.html">
+    <img src="element_joint_beam_connectors.png" alt="JointBeam connectors">
+    <span class="wood-card-title">JointBeam connectors</span>
+    <span class="wood-card-sub">Wedges, let-in plates, rectangle plates &amp; butterfly keys</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_pins.html">
+    <img src="element_joint_beam_pins.png" alt="JointBeam pins">
+    <span class="wood-card-title">JointBeam pins</span>
+    <span class="wood-card-sub">Centred pins &amp; headed pins across `InteractionContactFace`</span>
+  </a>
+</div>
 
 | Joint Element | Header | Examples |
 | --- | --- | --- |
@@ -47,6 +186,36 @@ Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamV
 | [JointBeam connectors](@ref elements_joint_beam_connectors) | `wood_element_joint_beam.h` | `element_joint_beam_wedge`, `_rectangle_plate`, `_butterfly_key` |
 | [JointBeam pins](@ref elements_joint_beam_pins) | `wood_element_joint_beam.h` | `element_joint_beam_centred_pins`, `_headed_pins` |
 
+<div style="display:none">
+![](elements/element_plate.png)
+![](elements/element_plate_curved.png)
+![](elements/element_beam.png)
+![](elements/element_beam_curved.png)
+![](elements/element_beam_variable.png)
+![](elements/element_column.png)
+![](elements/element_block.png)
+![](elements/element_support.png)
+![](elements/element_cut_plane.png)
+![](elements/element_profile.webp)
+![](elements/element_pin.png)
+![](elements/element_joint.png)
+![](elements/element_joint_plate.png)
+![](elements/element_joint_plate_top_side.png)
+![](elements/element_joint_plate_side_side_inplane.png)
+![](elements/element_joint_plate_side_side_outplane.png)
+![](elements/element_joint_plate_side_side_rotated.png)
+![](elements/element_joint_plate_cross.png)
+![](elements/element_joint_plate_top_top.png)
+![](elements/element_joint_plate_border.png)
+![](elements/element_joint_beam.png)
+![](elements/element_joint_beam_cross.png)
+![](elements/element_joint_beam_top_side.png)
+![](elements/element_joint_beam_end_to_end.png)
+![](elements/element_joint_beam_butt.png)
+![](elements/element_joint_beam_connectors.png)
+![](elements/element_joint_beam_pins.png)
+</div>
+
 - @subpage elements_plate
 - @subpage elements_plate_curved
 - @subpage elements_beam
@@ -65,6 +234,7 @@ Joint elements cut and connect pairs of member elements (`Plate`, `Beam`, `BeamV
 - @subpage elements_joint_plate_side_side_rotated
 - @subpage elements_joint_plate_cross
 - @subpage elements_joint_plate_top_top
+- @subpage elements_joint_plate_border
 - @subpage elements_joint_beam
 - @subpage elements_joint_beam_cross
 - @subpage elements_joint_beam_top_side

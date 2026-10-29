@@ -4,6 +4,19 @@
 
 Reciprocal timber beam frames on free-form polygon meshes (`src/templates/reciprocal/*.h`, examples `templates_reciprocal_1_rotation` and `templates_reciprocal_2_move`). Both `ReciprocalRotation` and `ReciprocalMove` subclass `WoodSession` and execute a 4-stage geometric pipeline (`mesh` → `axes` → `frame` → `beams`) where every interior member bears against the side face of its neighbour and naked boundary edges are enclosed by a mitered or priority-butted perimeter frame.
 
+<div class="wood-card-grid cols-3">
+  <a class="wood-card" href="#reciprocal_rotation">
+    <img src="templates_reciprocal_1_rotation_beams.webp" alt="Pinwheel Rotation">
+    <span class="wood-card-title">1. Pinwheel Rotation (`ReciprocalRotation`)</span>
+    <span class="wood-card-sub">Interior edges rotated by `angle` &amp; scaled by `scale` (`templates_reciprocal_1_rotation`)</span>
+  </a>
+  <a class="wood-card" href="#reciprocal_move">
+    <img src="templates_reciprocal_2_move_beams.webp" alt="Half-Edge Translation">
+    <span class="wood-card-title">2. Half-Edge Translation (`ReciprocalMove`)</span>
+    <span class="wood-card-sub">2-colored half-edges shifted along corner bisectors (`templates_reciprocal_2_move`)</span>
+  </a>
+</div>
+
 ![](diagrams/template_reciprocal_pipeline.webp)
 
 ## Parameters
@@ -22,7 +35,7 @@ Reciprocal timber beam frames on free-form polygon meshes (`src/templates/recipr
 
 ---
 
-## 1. Pinwheel Rotation
+## 1. Pinwheel Rotation {#reciprocal_rotation}
 
 Every interior mesh edge is scaled about its midpoint and rotated by `angle` around its average face normal so the beams meeting at each vertex form a self-supporting pinwheel (`ReciprocalRotation`):
 
@@ -95,7 +108,7 @@ const wood_reciprocal::ReciprocalBeam beam = wood_reciprocal::cut_beam(
 
 ---
 
-## 2. Half-Edge Translation
+## 2. Half-Edge Translation {#reciprocal_move}
 
 Instead of rotating edges, `ReciprocalMove` 2-colors the half-edges of the mesh via breadth-first traversal and shifts every color-`0` interior half-edge sideways along the bisector of its two face-neighbour edges by `shift`:
 

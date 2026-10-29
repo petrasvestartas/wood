@@ -4,6 +4,29 @@
 
 Free-form chevron box-plate shells on Annen NURBS surfaces (`src/templates/chevron/chevron.h`, example `templates_chevron_1_chevron`). `Chevron` subdivides an input `NurbsSurface` into herringbone quad strips and constructs a 4-plate hollow box per quad face across seven scene-tree groups (`surface` → `mesh` → `strips` → `edge_planes` → `bisectors` → `plates` → `insertion`).
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#chevron_mesh">
+    <img src="templates_chevron_1_chevron_mesh.webp" alt="Herringbone Quad Mesh">
+    <span class="wood-card-title">1–2. Surface &amp; Herringbone Mesh</span>
+    <span class="wood-card-sub">Annen NURBS surface subdivided into chevron quad strips</span>
+  </a>
+  <a class="wood-card" href="#chevron_edge_planes">
+    <img src="templates_chevron_1_chevron_edge_planes.webp" alt="Turned &amp; Offset Edge Planes">
+    <span class="wood-card-title">3–5. Strips, Edge Planes &amp; Bisectors</span>
+    <span class="wood-card-sub">Alternating strip flips, turned edge planes &amp; corner bisectors</span>
+  </a>
+  <a class="wood-card" href="#chevron_plates">
+    <img src="templates_chevron_1_chevron_plates.webp" alt="Four-Plate Hollow Boxes">
+    <span class="wood-card-title">6. Four-Plate Hollow Boxes</span>
+    <span class="wood-card-sub">Top, bottom &amp; two active chevron side `Plate` solids per cell</span>
+  </a>
+  <a class="wood-card" href="#chevron_insertion">
+    <img src="templates_chevron_1_chevron_insertion.webp" alt="Insertion Vectors &amp; Joinery">
+    <span class="wood-card-title">7. Insertion Vectors &amp; Joinery</span>
+    <span class="wood-card-sub">Assembly insertion vectors &amp; mortise/tenon face codes</span>
+  </a>
+</div>
+
 ![](diagrams/template_chevron_pipeline.webp)
 
 ## Parameters
@@ -37,7 +60,7 @@ const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.str
 add_nurbssurface(surface, add_group("surface"));
 ```
 
-### 2. Herringbone Quad Mesh
+### 2. Herringbone Quad Mesh {#chevron_mesh}
 
 The surface is transposed and divided into `u_divisions` strips. Within each strip, `chevron_row(u, v_side, v_middle)` advances from the start of the arch toward mid-span, multiplying each step by `1 + scale` with apex offset `shift`, and mirrors the step sequence to the opposite support:
 
@@ -66,7 +89,7 @@ const bool flip = strip_index % 2 == 0;
 const std::array<int, 2> edges = flip ? std::array<int, 2>{3, 0} : std::array<int, 2>{0, 1};
 ```
 
-### 4. Turned and Offset Edge Planes
+### 4. Turned and Offset Edge Planes {#chevron_edge_planes}
 
 Every face edge starts with a plane through its midpoint oriented along the average normal of its adjacent faces. `compute_turned_edge_planes` rotates even interior chevron edges by `±edge_rotation`, shifts odd interior chevron edges along their normal by `plate_thickness * edge_offset` (copying the flipped plane to the neighbour face so they share one seam), and snaps naked boundary edges via `snapped_to_axis`:
 
@@ -91,7 +114,7 @@ At each face corner `j`, `dihedral_plane(edge_planes[f][(j+1)%4], edge_planes[f]
 bisectors[face][j] = dihedral_plane(_edge_planes[face][(j + 1) % 4], _edge_planes[face][j]);
 ```
 
-### 6. Four-Plate Hollow Boxes
+### 6. Four-Plate Hollow Boxes {#chevron_plates}
 
 For each face in strip order, `polygon_from_planes` intersects 3-plane corners (`Intersection::plane_plane_plane`) to produce four `Plate` solids (`plate_<4*c + role>`):
 - **Top and bottom plates (`role = 0, 1`)**: `face_plane` offset to `±(0.5 * box_height - top_plate_inlet) ∓ 0.5 * plate_thickness`, clipped by the four edge planes (with the two chevron side planes pushed out by `+plate_thickness`).
@@ -107,7 +130,7 @@ outlines.push_back(polygon_from_planes(edges[edge], box));
 outlines.push_back(polygon_from_planes(edges[edge].translate_by_normal(t), box));
 ```
 
-### 7. Insertion Vectors and Joinery
+### 7. Insertion Vectors and Joinery {#chevron_insertion}
 
 `compute_joinery()` assigns assembly `insertion_vectors` along the corner bisector seams, face joint codes (`20` mortise on top and bottom plates, `10` tenon on side plates), `three_valence` groups, and `adjacency` pairs:
 

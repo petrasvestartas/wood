@@ -4,6 +4,29 @@
 
 Translational plate shells (`src/templates/shells/translation_shell.h`). `TranslationShell` subclasses `WoodSession` and transforms two input polylines (`cross_section` and `profile`) into mitered, corner-chamfered `Plate` solids across four scene-tree groups (`curves` → `sections` → `mesh` → `plates`).
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#shells_curves">
+    <img src="templates_shells_1_translation_shell_curves.webp" alt="Input Curves">
+    <span class="wood-card-title">1. Input Curves</span>
+    <span class="wood-card-sub">Generator `cross_section` (XZ) &amp; directrix `profile` (YZ)</span>
+  </a>
+  <a class="wood-card" href="#shells_sections">
+    <img src="templates_shells_1_translation_shell_sections.webp" alt="Translated Sections">
+    <span class="wood-card-title">2. Translated Sections</span>
+    <span class="wood-card-sub">`cross_section` translated along `profile` vertices</span>
+  </a>
+  <a class="wood-card" href="#shells_mesh">
+    <img src="templates_shells_1_translation_shell_mesh.webp" alt="Quad Mesh">
+    <span class="wood-card-title">3. Planar Quad Mesh</span>
+    <span class="wood-card-sub">Guaranteed-planar translational quad faces</span>
+  </a>
+  <a class="wood-card" href="#shells_plates">
+    <img src="templates_shells_1_translation_shell_plates.webp" alt="Mitered Plates">
+    <span class="wood-card-title">4. Mitered &amp; Chamfered Plates</span>
+    <span class="wood-card-sub">`mitered_plates` (`plate_0 .. plate_109`)</span>
+  </a>
+</div>
+
 ![](diagrams/template_shells_pipeline.webp)
 
 ## Primary Inputs & Parameters
@@ -20,7 +43,7 @@ Translational plate shells (`src/templates/shells/translation_shell.h`). `Transl
 
 ## Geometry Generation Pipeline
 
-### 1. Input Curves
+### 1. Input Curves {#shells_curves}
 
 The generator `cross_section` (`xz`-plane arch) and directrix `profile` (`yz`-plane arch) are stored in the `curves` group:
 
@@ -32,7 +55,7 @@ add_polyline(cross_section, curves);
 add_polyline(profile, curves);
 ```
 
-### 2. Translated Sections
+### 2. Translated Sections {#shells_sections}
 
 `compute_sections()` translates `cross_section` by the displacement vector `profile[i] - profile[0]` at each profile vertex:
 
@@ -45,7 +68,7 @@ for (size_t i = 0; i < profile.point_count(); i++) {
 }
 ```
 
-### 3. Quad Mesh
+### 3. Quad Mesh {#shells_mesh}
 
 Because every section is a pure translation, each quad between two adjacent sections spans two parallel displacement vectors and is **guaranteed planar**:
 
@@ -62,7 +85,7 @@ for (size_t i = 1; i < sections.size(); i++)
 return Mesh::from_vertices_and_faces(points, faces);
 ```
 
-### 4. Mitered Plates
+### 4. Mitered Plates {#shells_plates}
 
 `mitered_plates` (`src/templates/template_chamfer.h`) calls `Mesh::miter_contours` to offset each quad by `±thickness / 2` and trim its edges on the dihedral bisector planes shared with adjacent quads, then applies `chamfer_contours` to relieve sharp corners before instantiating `plate_0 .. plate_109`:
 
