@@ -350,7 +350,7 @@ doxygen-awesome-dark-mode-toggle:hover {
 /* the top-level entries read as Material's section titles */
 #nav-tree-contents > ul > li > ul > li > .item .label a {
     color: var(--md-fg-light) !important;
-    font-weight: 700;
+    font-weight: 400;
 }
 
 #nav-tree-contents > ul > li > ul > li > .item.selected .label a {
@@ -431,8 +431,8 @@ div.toc {
 }
 
 div.toc h3 {
-    color: var(--md-fg);
-    font-weight: 700;
+    color: var(--md-fg-light);
+    font-weight: 400;
     font-size: 14px;
 }
 
@@ -509,9 +509,14 @@ div.contents h2 {
 }
 
 div.contents h3, div.contents h4 {
-    margin: 1.25em 0 1em;
-    font-size: 16px;
-    font-weight: 700;
+    margin: 1.25em 0 .75em;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+div.contents b,
+div.contents strong {
+    font-weight: 400;
 }
 
 h2.groupheader {
@@ -527,20 +532,22 @@ hr {
     border-top: 1px solid var(--md-fg-lightest);
 }
 
-/* inline code and code blocks */
+/* inline code uses website font; code blocks use monospace */
 
-code, .tt, span.tt {
-    white-space: pre-wrap;
+code, tt, .tt, span.tt {
+    font-family: var(--font-family);
+    font-weight: 400;
+    white-space: normal;
     overflow-wrap: anywhere;
-    padding: 0 .3em;
+    padding: 0;
     border: none;
-    border-radius: 2px;
-    background: var(--md-code-bg);
-    color: var(--md-code-fg);
-    font-size: .85em;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
 }
 
-div.fragment, pre.fragment, div.contents pre {
+div.fragment, pre.fragment, div.contents pre, pre code {
+    font-family: var(--font-family-monospace);
     padding: 12px 18px;
     border: none;
     border-radius: 2px;
@@ -548,6 +555,7 @@ div.fragment, pre.fragment, div.contents pre {
     color: var(--md-code-fg);
     font-size: 13.6px;
     line-height: 1.5;
+}
 }
 
 div.line {
@@ -612,8 +620,8 @@ table.doxtable td, table.doxtable th {
 
 table.markdownTable th, table.doxtable th, table.fieldtable th {
     background: transparent;
-    color: var(--md-fg);
-    font-weight: 700;
+    color: var(--md-fg-light);
+    font-weight: 400;
 }
 
 table.markdownTable td, table.markdownTable th,
@@ -773,18 +781,20 @@ blockquote {
 
 /* Responsive documentation figures */
 div.contents .image img,
+div.contents img[src$=".png"],
 div.contents img[src$=".svg"],
 div.contents img[src$=".webp"] {
     max-width: 100%;
     height: auto;
     display: block;
     margin: 14px auto;
+    background: #ffffff;
 }
 
 /* Clickable image cards for Templates, Elements, and Gallery grids */
 .wood-card-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 16px;
     margin: 20px 0 28px;
 }
@@ -797,16 +807,17 @@ div.contents img[src$=".webp"] {
 a.wood-card {
     display: flex;
     flex-direction: column;
-    background: var(--md-code-bg);
-    border: 1px solid var(--md-fg-lightest);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 4px;
-    padding: 12px;
+    padding: 10px 12px;
+    font-family: var(--font-family);
+    font-weight: 400;
     text-decoration: none !important;
-    color: var(--md-fg) !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    color: var(--md-primary) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 a.wood-card:hover {
-    transform: translateY(-2px);
     box-shadow: var(--md-shadow);
     border-color: var(--md-primary);
     text-decoration: none !important;
@@ -818,19 +829,42 @@ a.wood-card img {
     object-fit: contain;
     background: #ffffff;
     border-radius: 2px;
-    margin: 0 0 10px 0 !important;
+    margin: 0 0 8px 0 !important;
     display: block;
 }
 a.wood-card .wood-card-title {
-    font-weight: 700;
-    font-size: 14.5px;
+    font-family: var(--font-family);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
     color: var(--md-primary);
-    margin-bottom: 4px;
+    margin: 0;
 }
 a.wood-card .wood-card-sub {
-    font-size: 12.5px;
-    line-height: 1.45;
-    color: var(--md-fg-light);
+    display: none;
+}
+
+/* Side-by-side image pairs (e.g. vault isometric + bottom-up rib view) */
+.wood-pair-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+    background: #ffffff;
+}
+div.contents .wood-pair-grid img,
+.wood-pair-grid img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    background: #ffffff;
+    margin: 0 !important;
+    display: block;
+}
+@media screen and (max-width: 767px) {
+    .wood-pair-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 

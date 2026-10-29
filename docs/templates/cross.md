@@ -59,7 +59,7 @@ vda_mesh
 
 ## Geometry Generation Pipeline
 
-### 1. Welded Input Mesh & Reference Planes (`mesh`, `face_planes`, `edge_planes`, `bisector_planes`) {#cross_planes}
+### 1. Welded Input Mesh & Reference Planes {#cross_planes}
 
 The input polygon mesh is welded at `0.01 mm` tolerance and `compute_edge_faces()` indexes the 1 or 2 faces adjacent to every mesh edge. Three sets of reference planes are then constructed directly on the mesh:
 
@@ -77,7 +77,7 @@ _edge_planes = compute_edge_planes();
 _bisector_planes = compute_bisector_planes();
 ```
 
-### 2. Mitered Face Plates (`plates`) {#cross_plates}
+### 2. Mitered Face Plates {#cross_plates}
 
 For each face and layer offset in `face_positions`, `compute_face_outlines()` offsets `_face_planes[f]` by `±0.5 * face_thickness` and clips it against `_edge_planes[f]` and `_bisector_planes[f]` to form the mitered polygonal `Plate` (`plate_<f>_<layer>`):
 
@@ -91,7 +91,7 @@ const Polyline top_loop = outline(top, _edge_planes[f], _bisector_planes[f]);
 outlines[f].push_back({bottom_loop, top_loop});
 ```
 
-### 3. Edge Connector Frames & Connector Plates (`connector_frames`, `connectors`) {#cross_connectors}
+### 3. Edge Connector Frames & Connector Plates {#cross_connectors}
 
 Every interior edge (`_edge_faces[e].size() == 2`) is divided into evenly spaced stations `k / (1 + divisions)` with frame axes `z` along the edge, `y` along the average normal of the two faces, and `x = z × y` (or aligned to a matching `insertion_line`). Each connector frame is then extruded by `±0.5 * connector_thickness` along `z` as a `connector_width × connector_height` rectangular `Plate` (`connector_<f0>_<f1>_<k>`):
 
@@ -112,7 +112,7 @@ const Polyline bottom = Polyline::rectangle(
 );
 ```
 
-### 4. Cross-Lap Slots & Complete Crossed Assembly (`cross_laps`) {#cross_laps}
+### 4. Cross-Lap Slots & Complete Crossed Assembly {#cross_laps}
 
 For every connector and each layer plate of its two adjacent faces, `compute_cross_contact(connector, plate)` locates the 3D intersection segment and `JointPlate::cross_slot()` cuts complementary half-depth slots into both outlines, assembling the 15 face panels and 58 connector plates into a single interlocked shell:
 

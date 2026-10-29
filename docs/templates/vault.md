@@ -1,4 +1,4 @@
-# Gothic Ribbed Vault & Stereotomic Vaults (wood_vault) {#templates_vault}
+# Vault {#templates_vault}
 
 [TOC]
 
@@ -88,7 +88,7 @@ Click any vault card below to jump directly to its full-size image, geometric ru
 
 ---
 
-## 1. Gothic Ribbed Timber Vaults (`GothicRibbedVault` / `gothic_ribbed_vault`) {#vault_gothic}
+## 1. Gothic Ribbed Timber Vaults {#vault_gothic}
 
 `wood_vault::GothicRibbedVault` and `wood_vault::gothic_ribbed_vault` generate shallow, symmetric Gothic ribbed vaults (`1:10` rise-to-span ratio by default: `10000 × 10000 mm` bay, `1000 mm` crown rise) from single-curved glulam ribs (`wood_session::BeamCurved`, `120 × 360 mm`, `6` lamellae), `4` polygonal corner support blocks (`wood_session::Block`, `support_block`), and simple cylindrical NURBS `BRep` web panels (`vault_panel`).
 
@@ -153,7 +153,7 @@ GothicRibbedVault(
 
 ---
 
-### 1.1 Quadripartite Cross Vault (`GothicPattern::quadripartite`) {#vault_quadripartite}
+### 1.1 Quadripartite Cross Vault {#vault_quadripartite}
 
 **Historical prototype**: Bern Cathedral (*Berner Münster*) side aisles / Wells & Salisbury Cathedral naves (`23` elements: `4` corner `support_block`s + `11` `BeamCurved` ribs + `8` cylindrical `vault_panel`s).
 
@@ -171,7 +171,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-### 1.2 Tierceron Star Vault (`GothicPattern::tierceron`) {#vault_tierceron}
+### 1.2 Tierceron Star Vault {#vault_tierceron}
 
 **Historical prototype**: Bern Cathedral 4-pointed star / tierceron vault & Lincoln / Exeter Cathedral naves (`39` elements: `4` corner `support_block`s + `19` `BeamCurved` ribs + `16` cylindrical `vault_panel`s).
 
@@ -189,7 +189,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-### 1.3 Four-Lozenge Stellar Vault (`GothicPattern::star_stellar`) {#vault_star_stellar}
+### 1.3 Four-Lozenge Stellar Vault {#vault_star_stellar}
 
 **Historical prototype**: Bern Cathedral 4-lozenge Greek-cross stellar vault (*Sterngewölbe*) / Burgos *Bóveda Estrellada* (`51` elements: `4` corner `support_block`s + `27` `BeamCurved` ribs + `20` cylindrical `vault_panel`s).
 
@@ -207,7 +207,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-### 1.4 Double-Lozenge Lierne Star Vault (`GothicPattern::lierne_star`) {#vault_lierne_star}
+### 1.4 Double-Lozenge Lierne Star Vault {#vault_lierne_star}
 
 **Historical prototype**: Bern Cathedral / Ely Cathedral Choir & Wells Lady Chapel double-star tierceron-lierne vault (`71` elements: `4` corner `support_block`s + `35` `BeamCurved` ribs + `32` cylindrical `vault_panel`s).
 
@@ -225,7 +225,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-### 1.5 Reticulated Diamond-Lattice Net Vault (`GothicPattern::net_reticulated`) {#vault_net}
+### 1.5 Reticulated Net Vault {#vault_net}
 
 **Historical prototype**: Bern Cathedral (*Berner Münster*) Choir reticulated net vault (*Netzgewölbe*, Matthäus Ensinger & Erhard Küng) / Parler school (`79` elements: `4` corner `support_block`s + `43` `BeamCurved` ribs + `32` cylindrical `vault_panel`s).
 
@@ -243,7 +243,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-### 1.6 Radiating Fan / Conoid Vault (`GothicPattern::fan_conoid`) {#vault_fan}
+### 1.6 Radiating Fan Vault {#vault_fan}
 
 **Historical prototype**: `compas_tno` fan form diagram on intersecting circular barrel cylinders / Gloucester Cathedral Cloisters (`103` elements: `4` corner `support_block`s + `51` `BeamCurved` ribs + `48` cylindrical `vault_panel`s).
 
@@ -267,7 +267,7 @@ wood_vault::GothicRibbedVault vault(
 
 ---
 
-## 2. Stellar Cylindrical Rib & Shell Vault (`star_vault`, `templates_vault_8_star_vault`) {#vault_star}
+## 2. Stellar Cylindrical Vault {#vault_star}
 
 `wood_vault::star_vault(span, rise, thickness, star, rib, subdivisions)` builds a stellar rib-and-shell vault over an `8000 × 8000 mm` square bay (`1000 mm` crown rise) on two orthogonal intersecting circular barrel cylinders (`40` elements, `25` contacts):
 - **20 single-curved planar ribs (`BeamCurved`)** in vertical planes over straight 2D plan segments (4 diagonal ribs, 8 corner-to-star tierceron ribs, 4 full-span ridge ribs from wall crowns through the star bosses to the central boss, and 4 perimeter wall arches), plus **4 corner support blocks (`support_block`)**.
@@ -288,7 +288,7 @@ star_vault(double span, double rise, double thickness, double star, double rib, 
 
 ---
 
-## 3. Voussoir Arch (`arch`, `templates_vault_1_arch`) {#vault_arch}
+## 3. Voussoir Arch {#vault_arch}
 
 `wood_vault::arch(span, rise, thickness, depth, voussoirs)` divides a circular arc of clear `span` (`6000 mm`) and `rise` (`3000 mm`) into `25` wedge-shaped `wood_session::Block` voussoirs (`500 mm` radial thickness, `500 mm` depth along `y`). `compute_face_contacts(0)` detects all `24` radial bed-joint contacts between consecutive voussoirs.
 
@@ -307,7 +307,7 @@ arch(double span, double rise, double thickness, double depth, int voussoirs);
 
 ---
 
-## 4. Barrel Vault (`barrel`, `templates_vault_2_barrel`) {#vault_barrel}
+## 4. Barrel Vault {#vault_barrel}
 
 `wood_vault::barrel(span, rise, thickness, length, courses, rings, stagger, closed)` extrudes a segmental circular arch (`6000 mm` span, `2000 mm` rise, `250 mm` thickness) over `length = 6000 mm` in `9` arch courses by `6` longitudinal rings (`58` voussoirs, `145` contacts). With `stagger = 0.5` and `closed = false`, odd courses shift by half a ring and terminate with half-ring closer voussoirs at both ends.
 
@@ -334,7 +334,7 @@ std::vector<std::shared_ptr<Element>> barrel(
 
 ---
 
-## 5. Closed Staggered Barrel Vault (`barrel`, `templates_vault_3_barrel_staggered`) {#vault_barrel_staggered}
+## 5. Closed Staggered Barrel Vault {#vault_barrel_staggered}
 
 Calling `wood_vault::barrel` with `stagger = 0.2, closed = true` shifts odd courses by one-fifth of a ring and adds an aligned closing ring at both ends (`76` voussoirs, `199` bed- and head-joint contacts).
 
@@ -348,7 +348,7 @@ Calling `wood_vault::barrel` with `stagger = 0.2, closed = true` shifts odd cour
 
 ---
 
-## 6. Spherical Voussoir Dome (`dome`, `templates_vault_4_dome`) {#vault_dome}
+## 6. Spherical Voussoir Dome {#vault_dome}
 
 `wood_vault::dome(radius, bottom, top, meridians, hoops, oculus, springing)` builds a hemispherical dome (`4000 mm` intrados radius, `20` hoops of `40` voussoirs = `800` blocks, `2320` contacts) tapering from `400 mm` thickness at `springing = 90°` to `250 mm` at `oculus = 6°`. Odd hoops shift by half a meridian step, and each voussoir is lofted as a 6-corner hexagonal block that bends at the mid-meridian joints of the hoops above and below so all faces meet without gaps.
 
@@ -374,7 +374,7 @@ std::vector<std::shared_ptr<Element>> dome(
 
 ---
 
-## 7. Running-Bond Masonry Wall (`wall`, `templates_vault_5_wall`) {#vault_wall}
+## 7. Running-Bond Masonry Wall {#vault_wall}
 
 `wood_vault::wall(length, height, thickness, brick, course, stagger)` lays a running-bond ashlar wall (`4000 × 2000 × 200 mm`) of `400 × 200 mm` courses with `stagger = 0.5` and half-brick closers at the ends of odd courses (`105` bricks, `285` bed- and head-joint contacts).
 
@@ -399,7 +399,7 @@ std::vector<std::shared_ptr<Element>> wall(
 
 ---
 
-## 8. Stereotomic Cross (Groin) Vault (`cross_vault`, `templates_vault_6_cross_vault`) {#vault_cross}
+## 8. Stereotomic Cross Vault {#vault_cross}
 
 `wood_vault::cross_vault(span, rise, thickness, courses, rings)` intersects two semicircular barrel vaults over a `6000 × 6000 mm` square bay (`3000 mm` rise, `480 mm` thickness, `10` courses per half-arch across `12` rings). Each course places a monolithic L-shaped `groin` stone bent across the diagonal intersection of both cylindrical webs (`144` regular voussoirs + `40` groin stones = `184` blocks).
 
@@ -418,7 +418,7 @@ cross_vault(double span, double rise, double thickness, int courses, int rings);
 
 ---
 
-## 9. Stereotomic Cloister (Pavilion) Vault (`cloister_vault`, `templates_vault_7_cloister_vault`) {#vault_cloister}
+## 9. Stereotomic Cloister Vault {#vault_cloister}
 
 `wood_vault::cloister_vault(span, rise, thickness, courses, rings)` raises four cylindrical barrel webs inward from the four walls of a `6000 × 6000 mm` square bay (`3000 mm` rise, `300 mm` thickness, `8` courses by `12` rings) and trims each voussoir along the two vertical diagonal planes `x = ±y` (`block->cuts`) where the four cylindrical gores meet (`304` voussoirs, `584` contacts).
 

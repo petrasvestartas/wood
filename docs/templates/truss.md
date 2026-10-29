@@ -49,7 +49,7 @@ Parametric and custom timber trusses (`src/templates/truss/*.h`, examples `templ
 
 ![Timber Truss Primary Inputs, Boundary-Peeling Rank and Node Butts](diagrams/template_truss_pipeline.webp)
 
-## Primary Inputs (`TrussGuide`)
+## Primary Inputs
 
 | Input / Parameter | Type | Default | Geometric Role |
 | --- | --- | --- | --- |
@@ -101,7 +101,7 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
 
 ## Full C++ Examples
 
-### 1. Custom Wireframe `TrussGuide` (Explicit Chords, Webs & Posts) {#truss_ex_custom}
+### 1. Custom Wireframe Truss {#truss_ex_custom}
 
 ```cpp
 #include "wood_session.h"
@@ -132,13 +132,13 @@ int main() {
 }
 ```
 
-### 2. Pratt Roof Truss (`examples/templates_truss_1_pratt.cpp`) {#truss_ex_pratt}
+### 2. Pratt Roof Truss {#truss_ex_pratt}
 
 ![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
 
 \include{lineno} templates_truss_1_pratt.cpp
 
-## Library (`80` Parametric `TrussGuide` Presets) {#truss_library}
+## Truss Library {#truss_library}
 
 Every guide of the library built by the template, `templates_truss_2_library`, each its own scene `truss_<name>.pb`. Each takes its span, heights and number of panels, and the half sections `chord_radius` and `web_radius`.
 

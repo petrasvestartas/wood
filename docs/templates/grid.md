@@ -50,7 +50,7 @@ wood_grid::Grid grid(building, FRAMING, "elements_tree");
 
 ---
 
-## Primary Inputs (`Pattern`, `Building`, `Framing`)
+## Primary Inputs
 
 | Primary Input | Factories / Fields | Geometric Role |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ wood_grid::Grid grid(building, FRAMING, "elements_tree");
 | **`Building`** | **A:** `from_solid(massing, elevations, pattern)`<br>**B:** `from_footprint(rings, elevations, pattern)`<br>**C:** `from_lines(lines, surfaces)` | Produces `levels`, where each level has datum `z`, `cores`, and a planar `plan` `Mesh` (faces = bays, edges = member axes, vertices = column nodes) |
 | **`Framing`** | `system` (`0` point-supported, `1` post-and-beam, `2` purlin-on-girder) · `span` · `node` (`0` head, `1` flush, `2` column-through) · `drop` · `deck` · `wall` · `head` · `reach` · `capital` · `profiles` | Controls structural hierarchy, node priority/head geometry, and cross-section `Polyline` profiles (`wood_profile.h`) per member role |
 
-### Plan Mesh Attributes (Customizable per Bay, Edge, or Node)
+### Plan Mesh Attributes
 
 | Mesh Entity | Attribute | Values & Meaning |
 | --- | --- | --- |
@@ -100,7 +100,7 @@ Grid::Grid(const Building& guide, const Framing& framing, const std::string& nam
 }
 ```
 
-### 1. Level Plans (`add_plans`)
+### 1. Level Plans
 
 Every level's `plan` mesh edges and column vertices are lifted to datum `level.z` and placed in `plan_<level>`:
 
@@ -114,7 +114,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 }
 ```
 
-### 2. Columns (`columns_<s>`)
+### 2. Columns
 
 A `Column` stands on every stacked column vertex from the lower slab top (`foot`) to the upper column head underside or level datum (`top`):
 
@@ -130,7 +130,7 @@ for (const build::Stack& stack : stacks) {
 add_numbered(columns, storey + 1);
 ```
 
-### 3. Facade & Core Walls (`walls_<s>`, `core_walls_<s>`)
+### 3. Facade & Core Walls
 
 Edges carrying `wall == 1.0` generate perimeter `wall` plates under the edge beams; edges carrying `wall == 2.0` generate pinwheel `core_wall` plates around core openings:
 
@@ -145,7 +145,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 }
 ```
 
-### 4. Column Heads & Drop Panels (`heads_<s>`, `drop_panels_<s>`)
+### 4. Column Heads & Drop Panels
 
 When `framing.node == 0`, each column top receives a chamfered pyramidal, conical, or stepped `head` block supporting the incoming girders/beams or point-supported slab:
 
@@ -161,7 +161,7 @@ for (const build::Stack& stack : stacks) {
 }
 ```
 
-### 5. Girders, Beams & Bay Purlins (`girders_<s>`, `beams_<s>`, `purlins_<s>`)
+### 5. Girders, Beams & Bay Purlins
 
 Plan edges with `role > 0` become `girder` or `beam` members with end cuts determined by node priority. In `system == 2` bays, `compute_stations` populates secondary `purlin` members across the bay at `framing.spacing`:
 
@@ -188,7 +188,7 @@ for (const build::Station& station : build::compute_stations(upper, face, level.
 }
 ```
 
-### 6. Bay Decks (`decks_<s>`)
+### 6. Bay Decks
 
 Every floored bay receives a `deck` plate; flush decks boolean-subtract corner column head pyramids via `InteractionFeatureSolid`:
 
@@ -206,7 +206,7 @@ for (const size_t vertex : build::compute_loop(level.plan, outline.first)) {
 }
 ```
 
-### 7. Storey Braces & Global Contacts (`braces_<s>`, `compute_face_contacts(0)`)
+### 7. Storey Braces & Contacts
 
 Diagonal braces are clipped against column faces, lower decks, and upper beams, and `compute_face_contacts(0)` registers all face-to-face contacts across the building:
 
@@ -235,11 +235,11 @@ braces.insert(braces.end(), brace.begin(), brace.end());
 
 ## Full C++ Examples
 
-### 1. Five-Bay Two-Storey L-Building (`examples/3_elements_tree.cpp`) {#grid_ex_tree}
+### 1. Five-Bay Two-Storey L-Building {#grid_ex_tree}
 
 \include{lineno} 3_elements_tree.cpp
 
-### 2. Workflow B — Footprints & Grid Patterns (`examples/templates_grid_1_footprint.cpp`) {#grid_ex_footprint}
+### 2. Footprints & Grid Patterns {#grid_ex_footprint}
 
 Nine footprints and grid patterns (L with purlins/walls, skewed grid, radial, triangular, hexagonal, drawn axes, courtyard, pentagon, U with two cores):
 
@@ -247,7 +247,7 @@ Nine footprints and grid patterns (L with purlins/walls, skewed grid, radial, tr
 
 \include{lineno} templates_grid_1_footprint.cpp
 
-### 3. Workflow A — Sliced Massing Solids (`examples/templates_grid_2_solid.cpp`) {#grid_ex_solid}
+### 3. Sliced Massing Solids {#grid_ex_solid}
 
 Six 3D massing solids sliced at storey elevations (box, pentagonal prism, tapered loft, podium + tower, atrium, cylinder):
 
@@ -255,7 +255,7 @@ Six 3D massing solids sliced at storey elevations (box, pentagonal prism, tapere
 
 \include{lineno} templates_grid_2_solid.cpp
 
-### 4. Workflow C — Explicit Lines & Braced Frames (`examples/templates_grid_3_lines.cpp`) {#grid_ex_lines}
+### 4. Explicit Lines & Braced Frames {#grid_ex_lines}
 
 Direct line-and-surface input (`compas_grid` dataset and braced timber frame):
 
@@ -263,13 +263,13 @@ Direct line-and-surface input (`compas_grid` dataset and braced timber frame):
 
 \include{lineno} templates_grid_3_lines.cpp
 
-### 5. Reference Building Configurations (`examples/templates_grid_4_reference.cpp`) {#grid_ex_reference}
+### 5. Reference Building Configurations {#grid_ex_reference}
 
 ![templates_grid_4_reference](templates/templates_grid_4_reference_all.webp)
 
 \include{lineno} templates_grid_4_reference.cpp
 
-### 6. Framing Systems, Nodes & Profiles (`examples/templates_grid_5_framing.cpp`) {#grid_ex_framing}
+### 6. Framing Systems, Nodes & Profiles {#grid_ex_framing}
 
 Fifteen comparative bays testing all `system`, `node`, `drop`, `capital`, and `wood_profile.h` combinations with zero-overlap verification:
 
