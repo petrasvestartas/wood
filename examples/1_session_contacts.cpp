@@ -81,5 +81,5 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target 1_session_contacts --parallel 4 && ./build/1_session_contacts && ../bash/publish-scene.sh --target 1_session_contacts
 
 |||||||| VIEW ||||||||
-https://petrasvestartas.github.io/session/
+https://petrasvestartas.github.io/session/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
 */
