@@ -56,10 +56,6 @@ int main() {
                 for (Plane& cut : rib->cuts)
                     cut.transform(shift);
                 rib->invalidate_geometry();
-            } else if (auto block = std::dynamic_pointer_cast<Block>(elem)) {
-                for (Polyline& pl : block->loops)
-                    pl.transform(shift);
-                block->invalidate_geometry();
             } else {
                 elem->place(shift);
             }

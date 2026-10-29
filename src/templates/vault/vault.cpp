@@ -757,11 +757,38 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         hx, hy, rise, surface_method, Point(0.5 * hx, 0.0, 0.0), surf_cv_count
     );
 
+    const auto eval_surf_smooth = [&](const NurbsSurface& s, double x, double y) -> Point {
+        const double cx = std::clamp(x, -hx, hx);
+        const double cy = std::clamp(y, -hy, hy);
+        const Point uv0 = compute_vault_uv(s, hx, hy, Point(cx, cy, 0.0));
+        const Point p0 = s.point_at(uv0[0], uv0[1]);
+        const double dx_out = x - cx;
+        const double dy_out = y - cy;
+        if (std::abs(dx_out) <= 1e-9 && std::abs(dy_out) <= 1e-9)
+            return p0;
+        const double eps = 1.0;
+        double dz_dx = 0.0;
+        double dz_dy = 0.0;
+        if (std::abs(dx_out) > 1e-9) {
+            const double step_x = (cx >= 0.0) ? -eps : eps;
+            const Point uvx = compute_vault_uv(s, hx, hy, Point(cx + step_x, cy, 0.0));
+            dz_dx = (s.point_at(uvx[0], uvx[1])[2] - p0[2]) / step_x;
+        }
+        if (std::abs(dy_out) > 1e-9) {
+            const double step_y = (cy >= 0.0) ? -eps : eps;
+            const Point uvy = compute_vault_uv(s, hx, hy, Point(cx, cy + step_y, 0.0));
+            dz_dy = (s.point_at(uvy[0], uvy[1])[2] - p0[2]) / step_y;
+        }
+        return Point(x, y, p0[2] + dz_dx * dx_out + dz_dy * dy_out);
+    };
+
     const auto eval_nurbs_cyl = [&](double x, double y) -> Point {
-        const double ux = std::abs(x) / std::max(1.0, hx);
-        const double uy = std::abs(y) / std::max(1.0, hy);
+        const double cx = std::clamp(x, -hx, hx);
+        const double cy = std::clamp(y, -hy, hy);
+        const double ux = std::abs(cx) / std::max(1.0, hx);
+        const double uy = std::abs(cy) / std::max(1.0, hy);
         const NurbsSurface& s = (ux <= uy) ? surf_ns : surf_ew;
-        const Point uv = compute_vault_uv(s, hx, hy, Point(x, y, 0.0));
+        const Point uv = compute_vault_uv(s, hx, hy, Point(cx, cy, 0.0));
         return s.point_at(uv[0], uv[1]);
     };
 
@@ -791,44 +818,9 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             return a.angle < b.angle;
         });
 
-    // Corner Support Blocks at nodes 0..3
+    // Minimal Corner Column Heads (support_block) at nodes 0..3 so incoming ribs never collide
     std::vector<std::shared_ptr<Element>> result;
-    std::array<double, 4> corner_radii = {0.0, 0.0, 0.0, 0.0};
-
-    double min_corner_dphi = Tolerance::PI;
-    for (int c = 0; c < 4; ++c) {
-        std::vector<AdjItem> list = adj[c];
-        if (c == 3 && list.size() >= 2) {
-            for (AdjItem& item : list)
-                if (item.angle < 0.5 * Tolerance::PI)
-                    item.angle += Tolerance::TWO_PI;
-            std::sort(list.begin(), list.end(), [](const AdjItem& a, const AdjItem& b) {
-                return a.angle < b.angle;
-            });
-        }
-        for (size_t j = 0; j + 1 < list.size(); ++j) {
-            const double dphi = list[j + 1].angle - list[j].angle;
-            if (dphi > 1e-4 && dphi < Tolerance::PI)
-                min_corner_dphi = std::min(min_corner_dphi, dphi);
-        }
-    }
-    const double r_sep = (0.5 * rib_width) / std::tan(0.5 * std::max(0.15, min_corner_dphi));
-    const double r_corner_common = std::max(1.5 * r_sep + 40.0, 5.5 * rib_width);
-    for (int c = 0; c < 4; ++c)
-        corner_radii[c] = r_corner_common;
-
-    const std::array<Vector, 4> wall_out_first = {
-        Vector(0.0, -1.0, 0.0),
-        Vector(1.0,  0.0, 0.0),
-        Vector(0.0,  1.0, 0.0),
-        Vector(-1.0, 0.0, 0.0)
-    };
-    const std::array<Vector, 4> wall_out_last = {
-        Vector(-1.0, 0.0, 0.0),
-        Vector(0.0, -1.0, 0.0),
-        Vector(1.0,  0.0, 0.0),
-        Vector(0.0,  1.0, 0.0)
-    };
+    std::array<std::vector<std::pair<Vector, double>>, 4> corner_stops;
 
     for (int c = 0; c < 4; ++c) {
         std::vector<AdjItem> list = adj[c];
@@ -840,29 +832,125 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
                 return a.angle < b.angle;
             });
         }
-        if (list.size() < 2)
+        const size_t m = list.size();
+        if (m < 2)
             continue;
 
-        const double r_stop = corner_radii[c];
-        const double hw = 0.5 * rib_width;
+        std::vector<double> hs(m, 0.5 * rib_width);
+        std::vector<Vector> us(m);
+        for (size_t j = 0; j < m; ++j) {
+            hs[j] = 0.5 * rib_width * edges[list[j].edge_idx].width_scale;
+            us[j] = Vector(-list[j].dir_xy[1], list[j].dir_xy[0], 0.0);
+        }
+
+        // Componentwise minimal stop distances r[j] so no two ribs collide and every rib's
+        // full width [-hs[j], +hs[j]] bears flush on its perpendicular column-head facet.
+        std::vector<double> r(m, 0.0);
+        r.front() = std::max(r.front(), hs.back());
+        r.back() = std::max(r.back(), hs.front());
+        for (size_t j = 0; j + 1 < m; ++j) {
+            const double dphi = list[j + 1].angle - list[j].angle;
+            if (dphi > 1e-4 && dphi < Tolerance::PI - 1e-4) {
+                const double cd = std::cos(dphi);
+                const double sd = std::sin(dphi);
+                r[j] = std::max(r[j], (hs[j + 1] + hs[j] * cd) / sd);
+                r[j + 1] = std::max(r[j + 1], (hs[j] + hs[j + 1] * cd) / sd);
+            }
+        }
+        for (int iter = 0; iter < 800; ++iter) {
+            bool changed = false;
+            for (size_t j = 0; j + 1 < m; ++j) {
+                const double dphi = list[j + 1].angle - list[j].angle;
+                if (dphi <= 1e-4 || dphi >= Tolerance::PI - 1e-4)
+                    continue;
+                const double cd = std::cos(dphi);
+                const double sd = std::sin(dphi);
+                const double req_next = r[j] * cd + hs[j] * sd;
+                const double req_curr = r[j + 1] * cd + hs[j + 1] * sd;
+                if (req_next > r[j + 1] + 1e-12) {
+                    r[j + 1] = req_next;
+                    changed = true;
+                }
+                if (req_curr > r[j] + 1e-12) {
+                    r[j] = req_curr;
+                    changed = true;
+                }
+            }
+            if (!changed)
+                break;
+        }
+
+        for (size_t j = 0; j < m; ++j)
+            corner_stops[c].emplace_back(list[j].dir_xy, r[j]);
+
         const Point& cp = nodes[c];
+        std::vector<Point> raw_poly;
+        raw_poly.push_back(cp - list.front().dir_xy * hs.back() - us.front() * hs.front());
+        raw_poly.push_back(cp + list.front().dir_xy * r.front() - us.front() * hs.front());
+        for (size_t j = 0; j + 1 < m; ++j) {
+            const double dphi = std::max(1e-4, list[j + 1].angle - list[j].angle);
+            const double tj = (r[j + 1] - r[j] * std::cos(dphi)) / std::sin(dphi);
+            raw_poly.push_back(cp + list[j].dir_xy * r[j] + us[j] * tj);
+        }
+        raw_poly.push_back(cp + list.back().dir_xy * r.back() + us.back() * hs.back());
 
+        // Split any inner facet edge crossing the groin line |x|/hx == |y|/hy so top fan
+        // triangles from raw_poly[0] stay inside one barrel cylinder quadrant beneath vault_panel.
+        const auto groin_val = [&](const Point& p) -> double {
+            return std::abs(p[0]) / std::max(1.0, hx) - std::abs(p[1]) / std::max(1.0, hy);
+        };
         std::vector<Point> poly_2d;
-        poly_2d.push_back(cp + wall_out_first[c] * hw + wall_out_last[c] * hw);
-        poly_2d.push_back(cp + list.front().dir_xy * r_stop + wall_out_first[c] * hw);
-        for (size_t j = 0; j < list.size(); ++j)
-            poly_2d.push_back(cp + list[j].dir_xy * r_stop);
-        poly_2d.push_back(cp + list.back().dir_xy * r_stop + wall_out_last[c] * hw);
+        for (size_t i = 0; i < raw_poly.size(); ++i) {
+            const Point& a = raw_poly[i];
+            const Point& b = raw_poly[(i + 1) % raw_poly.size()];
+            if (poly_2d.empty() || poly_2d.back().distance(a) > 1e-4)
+                poly_2d.push_back(a);
+            if (i >= 1 && i + 1 < raw_poly.size()) {
+                const double ga = groin_val(a);
+                const double gb = groin_val(b);
+                if ((ga < -1e-6 && gb > 1e-6) || (ga > 1e-6 && gb < -1e-6)) {
+                    const double t = ga / (ga - gb);
+                    const Point mid = a + (b - a) * t;
+                    if (mid.distance(a) > 1e-3 && mid.distance(b) > 1e-3)
+                        poly_2d.push_back(mid);
+                }
+            }
+        }
 
+        double min_rib_bot_z = -rib_height;
+        for (size_t j = 0; j < m; ++j) {
+            const Point p_stop = cp + list[j].dir_xy * r[j];
+            const Point p_top = eval_nurbs_cyl(p_stop[0], p_stop[1]);
+            const Point p_in = eval_nurbs_cyl(
+                cp[0] + list[j].dir_xy[0] * (r[j] + 2.0),
+                cp[1] + list[j].dir_xy[1] * (r[j] + 2.0)
+            );
+            const double dz_ds = std::max(0.0, 0.5 * (p_in[2] - p_top[2]));
+            const double z_bot = p_top[2] - rib_height * std::hypot(1.0, dz_ds);
+            min_rib_bot_z = std::min(min_rib_bot_z, z_bot - 10.0);
+        }
+        const double z_base = min_rib_bot_z;
         std::vector<Point> bot_loop;
         std::vector<Point> top_loop;
-        const double z_base = -rib_height;
+        bot_loop.reserve(poly_2d.size());
+        top_loop.reserve(poly_2d.size());
         for (const Point& p2 : poly_2d) {
             const Point p_surf = eval_nurbs_cyl(p2[0], p2[1]);
-            top_loop.emplace_back(p_surf[0], p_surf[1], p_surf[2] + panel_thickness);
+            top_loop.emplace_back(p2[0], p2[1], p_surf[2]);
             bot_loop.emplace_back(p2[0], p2[1], z_base);
         }
-        result.push_back(to_voussoir(bot_loop, top_loop, "support_block"));
+
+        std::vector<std::vector<Point>> head_faces;
+        head_faces.emplace_back(bot_loop.rbegin(), bot_loop.rend());
+        for (size_t i = 1; i + 1 < top_loop.size(); ++i)
+            head_faces.push_back({top_loop[0], top_loop[i], top_loop[i + 1]});
+        for (size_t i = 0; i < poly_2d.size(); ++i) {
+            const size_t next = (i + 1) % poly_2d.size();
+            head_faces.push_back({bot_loop[i], bot_loop[next], top_loop[next], top_loop[i]});
+        }
+        result.push_back(
+            std::make_shared<wood_session::Block>(Mesh::from_polylines(head_faces, 1e-6), "support_block")
+        );
     }
 
     // Structural rib hierarchy & single-plane T-section / miter cuts
@@ -895,15 +983,33 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         return path_tier(edges[e_idx].path_idx);
     };
 
+    const auto slope_pullback = [&](const Point& p_ref, const Vector& dir_out) -> double {
+        const Point p0 = eval_nurbs_cyl(p_ref[0], p_ref[1]);
+        const Point p1 = eval_nurbs_cyl(p_ref[0] + dir_out[0] * 2.0, p_ref[1] + dir_out[1] * 2.0);
+        const double dz_ds = 0.5 * (p1[2] - p0[2]);
+        if (dz_ds <= 0.0)
+            return 0.0;
+        const double sin_a = dz_ds / std::hypot(1.0, dz_ds);
+        return rib_height * sin_a;
+    };
+
     const auto endpoint_cuts = [&](size_t p_idx, int node_id, const Vector& dir_out, double len_ref, double& trim_offset) -> std::vector<Plane> {
         const Point& vp = nodes[node_id];
         const std::vector<AdjItem>& list = adj[node_id];
         const double hw = 0.5 * rib_width * rib_paths[p_idx].width_scale;
 
         if (node_id >= 0 && node_id < 4) {
-            const double r_stop = corner_radii[node_id];
-            trim_offset = r_stop - 25.0;
+            double r_stop = hw;
+            double best = 0.95;
+            for (const auto& [d_cand, r_cand] : corner_stops[node_id]) {
+                const double align = d_cand.dot(dir_out);
+                if (align > best) {
+                    best = align;
+                    r_stop = r_cand;
+                }
+            }
             const Point stop_pt = vp + dir_out * r_stop;
+            trim_offset = r_stop - slope_pullback(stop_pt, dir_out) - 25.0;
             return {Plane::from_point_normal(stop_pt, dir_out)};
         }
 
@@ -959,7 +1065,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
                 n_join = curr.dir_xy;
             else
                 n_join.normalize_self();
-            trim_offset = -25.0;
+            trim_offset = -slope_pullback(vp, dir_out) - 25.0;
             return {Plane::from_point_normal(vp, n_join)};
         }
 
@@ -1026,7 +1132,8 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             s_right = std::max(s_right, (base_num + off) / denom);
         }
         const double min_s = std::min(s_left, s_right);
-        trim_offset = std::max(-0.40 * len_ref, min_s - 20.0);
+        const Point cut_ref = vp + dir_out * std::max(0.0, min_s);
+        trim_offset = std::max(-0.45 * len_ref, min_s - slope_pullback(cut_ref, dir_out) - 20.0);
         return planes;
     };
 
@@ -1066,8 +1173,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         for (int k = 0; k <= n_rib_sub; ++k) {
             const double s = s_start + (s_end - s_start) * (static_cast<double>(k) / n_rib_sub);
             const Point plan_pt = p_u + dir_2d * s;
-            const Point uv = compute_vault_uv(rib_surf, hx, hy, Point(plan_pt[0], plan_pt[1], 0.0));
-            surf_pts[k] = rib_surf.point_at(uv[0], uv[1]);
+            surf_pts[k] = eval_surf_smooth(rib_surf, plan_pt[0], plan_pt[1]);
         }
 
         // Keep up strictly in the vertical plane of the rib so every rib has zero sideways twist
@@ -1164,27 +1270,11 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
                 sum_x / static_cast<double>(k_cnt), sum_y / static_cast<double>(k_cnt), 0.0
             );
 
-            // At interior nodes (v >= 4), use nodes[v] directly (beam centerline intersection).
-            // At bay corners (c in 0..3), replace nodes[c] with the 2 corner block stop points
-            // [p_prev, p_next] so the panel has a clean straight bevel edge flush against the block.
+            // All panel vertices follow the straight 2D beam centerlines right into nodes[v]
             std::vector<Point> panel_poly;
-            for (size_t i = 0; i < k_cnt; ++i) {
-                const int v_curr = cycle_nodes[i];
-                if (v_curr >= 0 && v_curr < 4) {
-                    const int v_prev = cycle_nodes[(i + k_cnt - 1) % k_cnt];
-                    const int v_next = cycle_nodes[(i + 1) % k_cnt];
-                    const Point& cp = nodes[v_curr];
-                    const double r_stop = corner_radii[v_curr];
-                    Vector d_prev = nodes[v_prev] - cp;
-                    Vector d_next = nodes[v_next] - cp;
-                    d_prev.normalize_self();
-                    d_next.normalize_self();
-                    panel_poly.push_back(cp + d_prev * r_stop);
-                    panel_poly.push_back(cp + d_next * r_stop);
-                } else {
-                    panel_poly.push_back(nodes[v_curr]);
-                }
-            }
+            panel_poly.reserve(k_cnt);
+            for (size_t i = 0; i < k_cnt; ++i)
+                panel_poly.push_back(nodes[cycle_nodes[i]]);
 
             std::vector<Point> clean_poly;
             for (size_t i = 0; i < panel_poly.size(); ++i) {
