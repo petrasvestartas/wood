@@ -4,8 +4,8 @@
 
 | Tool | Minimum | Notes |
 | --- | --- | --- |
-| C++ Compiler | C++20 | GCC 11+, Clang 14+, or MSVC 19.30+ (Visual Studio 2022) |
-| CMake | 3.24+ | `FetchContent` pulls `session_cpp` (`session_core`) and `minitest` |
+| C++ Compiler | C++23 | GCC 13+, Clang 17+, or MSVC 19.38+ (Visual Studio 2022) |
+| CMake | 3.22+ | `FetchContent` pulls `session_cpp` (`session_core`) and `manifold` (`v3.5.4`) |
 | Git | 2.30+ | Used by CMake `FetchContent` |
 | Doxygen | 1.9+ *(optional)* | Required only for `cmake --build build --target docs` |
 
@@ -16,7 +16,6 @@
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target run_tests --parallel
-./build/run_tests
 ```
 
 ### Windows (MSVC)
@@ -24,7 +23,6 @@ cmake --build build --target run_tests --parallel
 ```powershell
 cmake -S . -B build
 cmake --build build --config Release --target run_tests --parallel
-.\build\Release\run_tests.exe
 ```
 
 ## Build Documentation
@@ -35,8 +33,7 @@ cmake --build build --target docs
 # Output: build/docs/html/index.html
 ```
 
-## Scene Output (`session_data/`)
+## Scene Output (`data/output/pb/`)
 
 Executables write `.pb` scenes via `pb_path("<name>")`:
-- Default path: `<repo>/session_data/<name>.pb`
-- Override directory: `export WOOD_PB_DIR=/path/to/dir`
+- Default path: `<repo>/data/output/pb/<name>.pb`

@@ -348,7 +348,7 @@ BRep brep_sections(const std::vector<Polyline>& sections) {
 
         const Polyline& lower = sections[i];
         const Polyline& upper = sections[i + 1];
-        if (lower.point_count() != upper.point_count())
+        if (lower.point_count() != upper.point_count() || lower.point_count() < 2)
             return BRep();
 
         const size_t segment_count = lower.point_count() - 1;
@@ -851,7 +851,14 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
         }
 
     if (!drills.empty()) {
-        const Mesh milled = apply_solid_features(mesh, cuts, false);
+        const bool has_solid_cuts = std::any_of(
+            cuts.begin(),
+            cuts.end(),
+            [](const InteractionFeatureSolid& cut) { return cut.mesh.number_of_faces() > 0; }
+        );
+        const Mesh milled_storage =
+            has_solid_cuts ? apply_solid_features(mesh, cuts, false) : Mesh();
+        const Mesh& milled = has_solid_cuts ? milled_storage : mesh;
 
         if (std::optional<BRep> exact = drilled_brep(milled, drills))
             return *exact;

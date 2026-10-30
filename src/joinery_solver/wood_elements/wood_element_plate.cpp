@@ -289,13 +289,16 @@ std::vector<std::shared_ptr<Plate>> Plate::row_between(
 ) {
 
     std::vector<std::shared_ptr<Plate>> plates;
-    const size_t segments = std::min(
-                                {bottom[0].point_count(),
-                                 bottom[1].point_count(),
-                                 top[0].point_count(),
-                                 top[1].point_count()}
-                            ) -
-                            1;
+    const size_t min_pts = std::min(
+        {bottom[0].point_count(),
+         bottom[1].point_count(),
+         top[0].point_count(),
+         top[1].point_count()}
+    );
+    if (min_pts < 2)
+        return plates;
+
+    const size_t segments = min_pts - 1;
 
     for (size_t i = 0; i < segments; i++) {
         const Polyline below = Polyline({bottom[0].get_point(i),
@@ -416,7 +419,50 @@ const BRep& Plate::element_geometry_brep() const {
 }
 
 Mesh Plate::trimmed_mesh() const {
-    return features.top.empty() ? stock_mesh() : Mesh::loft(features.bottom, features.top);
+
+    if (features.top.empty())
+        return stock_mesh();
+
+    Mesh lofted = Mesh::loft(features.bottom, features.top);
+    if (solid_features.empty() || manifold_solid(lofted))
+        return lofted;
+
+    if (!features.bottom.empty()) {
+        Mesh outer = Mesh::loft({features.bottom[0]}, {features.top[0]});
+        if (!manifold_solid(outer))
+            outer = stock_mesh();
+
+        if (manifold_solid(outer)) {
+            const Vector normal =
+                planes.empty() ? Vector(0.0, 0.0, 1.0) : planes[0].z_axis().normalized();
+            const size_t hole_count = std::min(features.bottom.size(), features.top.size());
+            std::vector<Mesh> holes;
+
+            for (size_t i = 1; i < hole_count; i++) {
+                const Polyline& b = features.bottom[i];
+                const Polyline& t = features.top[i];
+                if (b.point_count() < 3 || t.point_count() < 3)
+                    continue;
+
+                const Vector span = t.get_point(0) - b.get_point(0);
+                const Vector dir = span.dot(normal) >= 0.0 ? normal : normal * -1.0;
+                const Mesh prism =
+                    Mesh::loft({b.translated(dir * -1.0)}, {t.translated(dir * 1.0)});
+                if (manifold_solid(prism))
+                    holes.push_back(prism);
+            }
+
+            if (!holes.empty()) {
+                const Mesh cut = solid_difference(outer, holes);
+                if (manifold_solid(cut))
+                    return cut;
+            }
+
+            return outer;
+        }
+    }
+
+    return stock_mesh();
 }
 
 BRep Plate::trimmed_brep() const {

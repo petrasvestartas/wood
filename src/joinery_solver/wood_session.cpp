@@ -1376,8 +1376,9 @@ std::vector<Line> WoodSession::pre_drill_lines(const std::string& guid) const {
 
     std::vector<Line> lines;
 
-    for (const std::shared_ptr<JointBeam>& connector : get_elements<JointBeam>()) {
-        if (!connector->pre_drill ||
+    for (const std::shared_ptr<Element>& element : *objects.elements) {
+        const JointBeam* connector = dynamic_cast<const JointBeam*>(element.get());
+        if (!connector || !connector->pre_drill ||
             std::find(connector->targets.begin(), connector->targets.end(), guid) ==
                 connector->targets.end())
             continue;
@@ -1406,6 +1407,7 @@ target_drills(const WoodSession& scene, const JointBeam& joint, const Element& t
 
     const Xform to_target = *local * scene.world_xform(joint.guid());
     const std::vector<PlanarFace> solid = planar_faces(stock_of(target));
+    const std::vector<PlanarFace> model_faces = planar_faces(target.model_geometry_mesh());
     std::vector<Line> drills;
 
     for (const Line& pin : joint.drill_lines) {
@@ -1413,8 +1415,7 @@ target_drills(const WoodSession& scene, const JointBeam& joint, const Element& t
         const Line placed = pin.transformed(to_target);
         const Vector e = placed.to_vector().normalized();
 
-        const std::vector<std::array<double, 2>> inside =
-            inside_stretches(target.model_geometry_mesh(), placed);
+        const std::vector<std::array<double, 2>> inside = inside_stretches(model_faces, placed);
         const double low = -joint.drill_overshoot;
         const double high = placed.length() + joint.drill_overshoot;
         const bool touches = std::any_of(
@@ -1500,11 +1501,14 @@ static void host_drills(
 
     drop_host_features(scene, target.guid(), "", old);
     const Xform world = scene.world_xform(joint.guid());
-    const Mesh solid = stock_of(target).transformed(scene.world_xform(target.guid()));
+    const std::vector<PlanarFace> solid_faces =
+        planar_faces(stock_of(target).transformed(scene.world_xform(target.guid())));
     const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
 
     if (!local)
         throw std::invalid_argument("Drill target has a singular placement");
+
+    const Polyline base_circle = Polyline::from_sides(DRILL_SIDES, radius, true);
 
     for (size_t i = 0; i < lines.size(); i++) {
         const Line line = lines[i].transformed(world);
@@ -1512,7 +1516,7 @@ static void host_drills(
         const Plane frame = Plane::from_point_normal(line.start(), d);
         size_t stretch = 0;
 
-        for (const std::array<double, 2>& inside : inside_stretches(solid, line)) {
+        for (const std::array<double, 2>& inside : inside_stretches(solid_faces, line)) {
             const double a = std::max(inside[0], 0.0);
             const double b = std::min(inside[1], line.length());
 
@@ -1522,10 +1526,9 @@ static void host_drills(
             std::vector<Polyline> circles;
 
             for (double t : {a, b}) {
-                const Polyline circle = Polyline::from_sides(DRILL_SIDES, radius, true);
                 const Xform placement =
                     Xform::frame_to_world(line.start() + d * t, frame.x_axis(), frame.y_axis(), d);
-                circles.push_back(circle.transformed(*local * placement));
+                circles.push_back(base_circle.transformed(*local * placement));
             }
 
             ElementFeature feature(
@@ -1713,8 +1716,9 @@ void WoodSession::compute_breps() {
         const bool round = std::dynamic_pointer_cast<Support>(element) ||
                            std::dynamic_pointer_cast<PlateCurved>(element) ||
                            std::dynamic_pointer_cast<BeamCurved>(element);
+        const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 
-        if (connector_child || round ||
+        if (connector_child || round || (wood && !wood->solid_features.empty()) ||
             (!std::dynamic_pointer_cast<Joint>(element) &&
              element->model_geometry_mesh().number_of_vertices() !=
                  element->element_geometry_mesh().number_of_vertices()))

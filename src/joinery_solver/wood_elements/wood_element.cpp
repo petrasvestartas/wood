@@ -38,12 +38,15 @@ features_of(const std::vector<InteractionFeatureSolid>& features, bool adds) {
 Mesh WoodElement::stock_mesh() const {
 
     std::vector<InteractionFeatureSolid> adds = features_of(solid_features, true);
+    if (adds.empty())
+        return element_geometry_mesh();
+
     const Plane plane = base_plane().value_or(frame());
     const Xform to_world =
         Xform::frame_to_world(plane.origin(), plane.x_axis(), plane.y_axis(), plane.z_axis());
     const std::optional<Xform> to_local = to_world.inverse();
 
-    if (adds.empty() || !to_local)
+    if (!to_local)
         return element_geometry_mesh();
 
     for (InteractionFeatureSolid& feature : adds)

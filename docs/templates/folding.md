@@ -418,7 +418,7 @@ TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.28, 0.5}, FoldPoint{0.
 
 ## Folded triangular surfaces {#triangle_fold}
 
-`TriangleFold(sides, radius, eave_height, centre_height, thickness)` (`folding/triangle_fold.h`): a regular polygon plan with vertical perimeter gables rising to `eave_height`, corner triangles folding down to the ground supports, and an inner ring of roof triangles meeting at `centre_height` (or a single flat roof plate when `centre_height == eave_height`).
+`TriangleFold(sides, radius, middle, centre, thickness)` (`folding/triangle_fold.h`): a regular polygon plan with vertical perimeter gables rising to `middle`, corner triangles folding down to the ground supports, and an inner ring of roof triangles meeting at `centre` (or a single flat roof plate when `centre == middle`).
 
 ### Square plan {#folding_triangle_square}
 

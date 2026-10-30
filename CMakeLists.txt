@@ -298,6 +298,37 @@ ADD_EXE(joint_tiles                      tools/joint_library_figures/joint_tiles
 target_compile_definitions(joint_tiles PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # The scoreboard: every dataset against the 2025 solver's merged outlines in tests/golden/reference_2025 (tools/reference_2025.py).
 ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
+
+enable_testing()
+set(WOOD_TEST_TARGETS
+    joint_elements
+    interaction_ownership
+    floor_elements
+    brep_drill
+    joint_hilti
+    joint_pins
+    joint_beams
+    joint_border
+    joint_butt
+    plate_assignment
+    rust_elements
+    joint_library
+    reference_datasets
+    main_session_round_trip
+)
+foreach(_test_target IN LISTS WOOD_TEST_TARGETS)
+    add_test(
+        NAME ${_test_target}
+        COMMAND $<TARGET_FILE:${_test_target}>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+endforeach()
+add_custom_target(run_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+    DEPENDS ${WOOD_TEST_TARGETS}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Running wood test suite"
+)
 target_compile_definitions(reference_datasets PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 ADD_EXE(templates_shells_1_translation_shell      examples/templates_shells_1_translation_shell.cpp)
 ADD_EXE(templates_folding_1_reflex_fold            examples/templates_folding_1_reflex_fold.cpp)
@@ -512,7 +543,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/material.css)
-    file(GLOB_RECURSE WOOD_DOC_EXTRA_IMAGES
+    file(GLOB_RECURSE WOOD_DOC_EXTRA_IMAGES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.webp
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.png
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.svg

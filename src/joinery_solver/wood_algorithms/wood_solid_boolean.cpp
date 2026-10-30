@@ -13,16 +13,28 @@ using namespace session_cpp;
 
 /// The points in the plane of their normal, x along the first side and y the normal cross x, so the face winds counter-clockwise.
 static std::vector<std::pair<double, double>>
-to_plane(const std::vector<Point>& points, const Vector& normal) {
+to_plane(const std::vector<Point>& points, const Point& origin, const Vector& x, const Vector& y) {
 
-    const Vector x = (points[1] - points[0]).normalized();
-    const Vector y = normal.normalized().cross(x);
     std::vector<std::pair<double, double>> plane;
+    plane.reserve(points.size());
 
     for (const Point& point : points)
-        plane.push_back({(point - points[0]).dot(x), (point - points[0]).dot(y)});
+        plane.push_back({(point - origin).dot(x), (point - origin).dot(y)});
 
     return plane;
+}
+
+/// Twice the signed 2D area of a polygon ring.
+static double signed_area_2d(const std::vector<std::pair<double, double>>& ring) {
+
+    double area = 0.0;
+    for (size_t i = 0; i < ring.size(); i++) {
+        const auto& a = ring[i];
+        const auto& b = ring[(i + 1) % ring.size()];
+        area += a.first * b.second - b.first * a.second;
+    }
+
+    return area;
 }
 
 /// The area-weighted normal of a set of triangles.
@@ -44,24 +56,61 @@ triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& tri
 /// The triangles of one face as vertex keys wound like the face.
 static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_t face) {
 
-    if (mesh.get_triangulation().count(face))
-        return mesh.get_triangulation().at(face);
+    const auto& cached = mesh.get_triangulation();
+    if (const auto it = cached.find(face); it != cached.end())
+        return it->second;
 
     const std::vector<size_t> ring = mesh.face_vertices(face).value();
+    const auto holes_it = mesh.get_face_holes().find(face);
+    const bool has_holes = holes_it != mesh.get_face_holes().end() && !holes_it->second.empty();
 
-    if (ring.size() == 3)
+    if (ring.size() < 3)
+        return {};
+
+    if (ring.size() == 3 && !has_holes)
         return {{ring[0], ring[1], ring[2]}};
 
     std::vector<Point> points;
+    points.reserve(ring.size());
 
     for (const size_t key : ring)
         points.push_back(mesh.vertex_point(key).value());
 
     const Vector normal = compute_newell(points);
+    const Vector x = (points[1] - points[0]).normalized();
+    const Vector y = normal.normalized().cross(x);
+    std::vector<std::pair<double, double>> border_2d = to_plane(points, points[0], x, y);
+    std::vector<size_t> flat_keys = ring;
+
+    if (signed_area_2d(border_2d) < 0.0) {
+        std::reverse(flat_keys.begin(), flat_keys.end());
+        std::reverse(border_2d.begin(), border_2d.end());
+    }
+
+    std::vector<std::vector<std::pair<double, double>>> holes_2d;
+    if (has_holes) {
+        holes_2d.reserve(holes_it->second.size());
+        for (std::vector<size_t> hole_keys : holes_it->second) {
+            if (hole_keys.size() < 3)
+                continue;
+            std::vector<Point> hole_pts;
+            hole_pts.reserve(hole_keys.size());
+            for (const size_t key : hole_keys)
+                hole_pts.push_back(mesh.vertex_point(key).value());
+            std::vector<std::pair<double, double>> hole_2d = to_plane(hole_pts, points[0], x, y);
+            if (signed_area_2d(hole_2d) > 0.0) {
+                std::reverse(hole_keys.begin(), hole_keys.end());
+                std::reverse(hole_2d.begin(), hole_2d.end());
+            }
+            flat_keys.insert(flat_keys.end(), hole_keys.begin(), hole_keys.end());
+            holes_2d.push_back(std::move(hole_2d));
+        }
+    }
+
     std::vector<std::array<size_t, 3>> triangles;
 
-    for (const std::array<int, 3>& t : cdt_triangulate(to_plane(points, normal), {}))
-        triangles.push_back({ring[t[0]], ring[t[1]], ring[t[2]]});
+    for (const std::array<int, 3>& t : cdt_triangulate(border_2d, holes_2d))
+        triangles.push_back({flat_keys[t[0]], flat_keys[t[1]], flat_keys[t[2]]});
 
     if (triangles_normal(mesh, triangles).dot(normal) < 0.0)
         for (std::array<size_t, 3>& triangle : triangles)
@@ -165,11 +214,13 @@ static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
 
     manifold::MeshGL64 gl;
     std::unordered_map<size_t, uint64_t> index;
+    const size_t n_verts = mesh.number_of_vertices();
+    gl.vertProperties.reserve(n_verts * 3);
+    index.reserve(n_verts);
 
-    for (const size_t key : mesh.vertices()) {
-        const Point point = mesh.vertex_point(key).value();
+    for (const auto& [key, vdata] : mesh.vertex) {
         index[key] = gl.vertProperties.size() / 3;
-        gl.vertProperties.insert(gl.vertProperties.end(), {point[0], point[1], point[2]});
+        gl.vertProperties.insert(gl.vertProperties.end(), {vdata.x, vdata.y, vdata.z});
     }
 
     for (const size_t face : mesh.faces())
@@ -281,6 +332,9 @@ compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles)
         if (!directed.count({edge.second, edge.first}) &&
             !next.emplace(edge.first, edge.second).second)
             return {};
+
+    if (next.empty())
+        return {};
 
     std::vector<uint64_t> loop = {next.begin()->first};
 
@@ -485,6 +539,36 @@ static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
 // Booleans
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The axis-aligned box of a mesh's vertices.
+static Bounds mesh_bounds(const Mesh& mesh) {
+
+    Bounds box;
+    for (const auto& [key, v] : mesh.vertex) {
+        (void)key;
+        box.low[0] = std::min(box.low[0], v.x);
+        box.low[1] = std::min(box.low[1], v.y);
+        box.low[2] = std::min(box.low[2], v.z);
+        box.high[0] = std::max(box.high[0], v.x);
+        box.high[1] = std::max(box.high[1], v.y);
+        box.high[2] = std::max(box.high[2], v.z);
+    }
+
+    return box;
+}
+
+/// True when two boxes overlap within pad on every axis.
+static bool overlaps(const Bounds& a, const Bounds& b, double pad = 1e-6) {
+
+    if (a.low[0] > a.high[0] || b.low[0] > b.high[0])
+        return false;
+
+    for (size_t i = 0; i < 3; i++)
+        if (a.high[i] + pad < b.low[i] || b.high[i] + pad < a.low[i])
+            return false;
+
+    return true;
+}
+
 /// The closed bodies of a cutter as separate Manifolds, so bodies that overlap.
 static std::vector<manifold::Manifold> cutter_bodies(const Mesh& cutter, uint64_t first_id) {
     return to_manifold(cutter, first_id).Decompose();
@@ -501,6 +585,10 @@ Mesh solid_boolean(
         return operation == SolidOperation::add ? cutter : Mesh();
 
     if (!cutter.number_of_faces())
+        return operation == SolidOperation::intersect ? Mesh() : source;
+
+    if (operation != SolidOperation::add &&
+        !overlaps(mesh_bounds(source), mesh_bounds(cutter), std::max(tolerance, 1e-6)))
         return operation == SolidOperation::intersect ? Mesh() : source;
 
     const manifold::Manifold a = to_manifold(source, 0);
@@ -549,16 +637,24 @@ Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {
     if (!source.number_of_faces() || cutters.empty())
         return source;
 
+    const Bounds src_box = mesh_bounds(source);
+    std::vector<const Mesh*> active;
+    active.reserve(cutters.size());
+
+    for (const Mesh& cutter : cutters)
+        if (cutter.number_of_faces() && overlaps(src_box, mesh_bounds(cutter)))
+            active.push_back(&cutter);
+
+    if (active.empty())
+        return source;
+
     std::vector<manifold::Manifold> solids = {to_manifold(source, 0)};
     uint64_t first_id = face_id_span(source);
 
-    for (const Mesh& cutter : cutters) {
-        if (!cutter.number_of_faces())
-            continue;
-
-        const std::vector<manifold::Manifold> bodies = cutter_bodies(cutter, first_id);
+    for (const Mesh* cutter : active) {
+        const std::vector<manifold::Manifold> bodies = cutter_bodies(*cutter, first_id);
         solids.insert(solids.end(), bodies.begin(), bodies.end());
-        first_id += face_id_span(cutter);
+        first_id += face_id_span(*cutter);
     }
 
     return from_manifold(

@@ -276,6 +276,9 @@ static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
         for (const size_t vertex : plane.ring)
             points.push_back(mesh.vertex_point(vertex).value());
 
+        if (points.empty())
+            return {};
+
         plane.normal = compute_newell(points).normalized();
         plane.offset = plane.normal.dot(points[0] - Point(0.0, 0.0, 0.0));
 
@@ -1235,9 +1238,9 @@ split_clear_drills(const Mesh& mesh, const std::vector<Drill>& given) {
     return split;
 }
 
-std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line) {
+std::vector<std::array<double, 2>>
+inside_stretches(const std::vector<PlanarFace>& faces, const Line& line) {
 
-    const std::vector<PlanarFace> faces = planar_faces(mesh);
     const Vector d = line.to_vector().normalized();
     const std::vector<std::pair<double, int>> crossings = face_crossings(faces, line.start(), d);
     std::vector<std::array<double, 2>> stretches;
@@ -1247,6 +1250,10 @@ std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line
             stretches.push_back({crossings[i].first, crossings[i + 1].first});
 
     return stretches;
+}
+
+std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line) {
+    return inside_stretches(planar_faces(mesh), line);
 }
 
 bool is_inside(const std::vector<PlanarFace>& faces, const Point& point) {

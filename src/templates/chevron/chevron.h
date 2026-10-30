@@ -274,8 +274,13 @@ inline Chevron::Chevron(
     // joinery: insertion vectors, joint types, three-valence groups and adjacency for the solver, an insertion line per face
     const std::shared_ptr<TreeNode> insertion = add_group("insertion");
 
-    for (const Line& line : compute_joinery())
+    for (Line line : compute_joinery()) {
+        line.width = 2.5;
+        line.linecolor = Color(206, 16, 66, 255);
+        line.arrowhead = Arrowhead::END;
         add_line(line, insertion);
+    }
+    set_node_color(insertion, Color(206, 16, 66, 255), true);
 }
 
 inline const Mesh& Chevron::mesh() const {

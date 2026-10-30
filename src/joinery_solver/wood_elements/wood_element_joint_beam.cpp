@@ -745,6 +745,8 @@ static ButtMember swept_member(
     ButtMember member;
     member.solid = solid;
     member.drawn = axis;
+    if (sections.empty() || axis.size() < 2)
+        return member;
 
     for (size_t j = 0; j + 1 < sections.size(); j++) {
         const std::vector<Point> near = loop_points(sections[j]);

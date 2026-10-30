@@ -92,7 +92,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
-    "${RENDER[@]}" templates_chevron_1_chevron surface mesh strips edge_planes bisectors plates insertion
+    "${RENDER[@]}" templates_chevron_1_chevron surface mesh strips plates
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_1_chevron mesh+edge_planes
+    VIEWER_PLANE_SIZE=650 "${RENDER[@]}" --opacity 0.55 --name bisectors templates_chevron_1_chevron mesh+bisectors
+    "${RENDER[@]}" --opacity 0.35 --name insertion templates_chevron_1_chevron plates+insertion
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then

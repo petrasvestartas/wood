@@ -127,7 +127,7 @@ inline const Mesh& PrismaticFold::mesh() const {
 
 inline Polyline PrismaticFold::compute_folded_profile() const {
 
-    if (edge_flange <= 0.0)
+    if (edge_flange <= 0.0 || profile.point_count() < 2)
         return profile;
 
     // a flange per free edge: down beside a shallow end plate, outwards along y beside a steep one

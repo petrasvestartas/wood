@@ -2,7 +2,7 @@
 
 [TOC]
 
-Wood is a C++20 timber joinery solver and parametric structure library built on [session_cpp](https://github.com/petrasvestartas/session_cpp). Elements store their uncut stock geometry alongside directed cutting interactions in WoodSession, evaluating boolean-cut meshes and exact NURBS BReps on demand.
+Wood is a C++23 timber joinery solver and parametric structure library built on [session_cpp](https://github.com/petrasvestartas/session_cpp). Elements store their uncut stock geometry alongside directed cutting interactions in WoodSession, evaluating boolean-cut meshes and exact NURBS BReps on demand.
 
 ```cpp
 WoodSession session("model");
@@ -27,13 +27,12 @@ WoodSession wraps a session containing a visual tree hierarchy and a directed in
 | Session::graph | Directed Element and Interaction graph | Contact edges and boolean cutting dependencies |
 
 ```cpp
-class WoodSession {
+class WoodSession : public Session {
 public:
-    Session session;
     Settings settings;
 
     void add(const std::shared_ptr<Element>& element, const std::shared_ptr<TreeNode>& parent = nullptr);
-    void add_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<Interaction>& interaction);
+    std::shared_ptr<Interaction> add_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<Interaction>& interaction);
     WoodSession get_branch(const std::string& group_name) const;
     void graft(const WoodSession& other, const std::shared_ptr<TreeNode>& parent = nullptr);
     void compute_breps();
@@ -45,19 +44,19 @@ public:
 
 ![](diagrams/wood_elements_taxonomy.webp)
 
-Every Element caches two lazy geometric states in both Mesh and BRep form: uncut stock (`element_geometry_mesh()`, `element_geometry_brep()`) built once and transformed by `place(Xform)`, and cut solids (`model_geometry_mesh()`, `model_geometry_brep()`) recomputed when interactions mark the element dirty.
+Every WoodElement caches two lazy geometric states in both Mesh and BRep form: uncut stock (`element_geometry_mesh()`, `element_geometry_brep()`) built once and placed via scene transforms, and cut solids (`model_geometry_mesh()`, `model_geometry_brep()`) recomputed when interactions invalidate the element.
 
 | Element | Defining Geometry | Stock Representation |
 | --- | --- | --- |
 | Plate | Planar bottom and top Polyline loops | Bottom face 0, top face 1, side faces j + 2 |
 | PlateCurved | Four boundary NurbsCurve rails | Exact 6-patch ruled NURBS solid |
-| Beam | Axis Line, section Polyline, up Vector | Extruded prism along axis |
+| Beam | Polyline axis, section radii, up vectors, side count | Rectangular or polygonal/round swept timber prism |
 | BeamCurved | Centreline NurbsCurve, width, height, lamellae | Curved glulam with RMF frames and 6-patch NURBS BRep |
 | BeamVariable | Axis Line, station Polylines | Multi-section lofted prism or parabolic rib |
 | Column | Axis, frame, width | Square shaft with head blocks |
 | Support | Plane, base_width, head_diameter, pin_length | Two steel base plates and three anchor pins |
-| Block / Pin | Mesh / cylinder axis and radius | Connector solids and dowels nested under joints |
-| CutPlane / Profile | Plane / planar cutting polylines | Half-space clip plane and 2D cutting loops |
+| Block / Pin / ConnectorPart | Mesh / cylinder axis and radius / connector plate | Connector solids and dowels nested under joints |
+| CutPlane | Plane | Half-space clip plane |
 
 ## Contact Detection {#arch_contact_detection}
 
@@ -76,16 +75,16 @@ All contact queries operate on uncut stock so joint geometry does not depend on 
 
 ![](diagrams/wood_boolean_cutting.webp)
 
-Incoming feature edges are evaluated in `Element::cut()` for meshes and `Element::cut_brep()` for exact NURBS BReps.
+Hosted features are evaluated lazily in `WoodElement::model_geometry_mesh()` for closed Manifold meshes and `WoodElement::model_geometry_brep()` for exact NURBS BReps.
 
 | Feature | Plate Action | Beam / Column / Block Action | Exact BRep |
 | --- | --- | --- | --- |
-| InteractionFeaturePlane | Shifts outline edges or clips body | Clips mesh by half-space plane | BRep::trimmed_by_plane |
-| InteractionFeatureProfile | 2D outline diff or pocket subtract | Extruded cutter prism boolean subtract | BRep::cut_profile |
-| InteractionFeatureSolid | MeshBoolean subtract or add | MeshBoolean subtract or add | Merged planar BRep faces |
-| InteractionFeatureJoint | Outline merge, pockets, and drill_lines | Solid cutter meshes and drill_lines | Analytical cylindrical bores via BRep::cut_cylinder |
+| InteractionFeaturePlane | Clips body by half-space plane | Clips mesh by half-space plane | `BRep::cut_by_plane` |
+| InteractionFeatureSolid | Manifold boolean subtract or add + `drills` | Manifold boolean subtract or add + `drills` | Merged planar faces + analytical NURBS bores (`drilled_brep`) |
+| InteractionFeaturePlate | 2D outline merge, mortise holes, solid cutters, and `drill_lines` | Oriented unit-box joinery transferred to beam faces | Planar `brep_between_loops` or `solid_features_brep` |
+| InteractionFeatureBeam | — | Axis-contact solid cutter meshes, butt planes, and `drill_lines` | Exact planar faces and cylindrical NURBS bores |
 
 ## Serialization
 
-- Mesh mode: `session.pb_dump(pb_path("live"))` writes cut meshes, polyline overlays, and the scene tree hierarchy.
-- Exact BRep mode: `session.compute_breps()` populates `session.lookup.brep` so cylindrical bores and curved members serialize as exact NURBS surfaces.
+- Mesh mode: `session.pb_dump(pb_path("live"))` writes cut meshes, BReps for round/drilled members, polyline overlays, and the scene tree hierarchy.
+- Exact BRep mode: `session.compute_breps()` evaluates `compute_geometry_brep()` on every cut member, connector part, pin, curved member, and support so cylindrical bores and curved surfaces serialize as exact NURBS BReps.

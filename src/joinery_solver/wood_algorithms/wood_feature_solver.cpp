@@ -16,15 +16,21 @@ std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per
 ) {
 
     const size_t element_count = elements.size();
+    std::unordered_map<std::string, int> by_guid;
+    by_guid.reserve(element_count);
     std::vector<std::vector<std::vector<std::pair<int, bool>>>> membership(element_count);
-    for (size_t element_index = 0; element_index < element_count; element_index++)
+    for (size_t element_index = 0; element_index < element_count; element_index++) {
+        by_guid.emplace(elements[element_index]->guid(), static_cast<int>(element_index));
         membership[element_index].resize(elements[element_index]->planes.size() + 1);
+    }
 
     for (size_t joint_index = 0; joint_index < all_joints.size(); joint_index++) {
 
         const InteractionFeaturePlate& joint = all_joints[joint_index];
-        const int element0 = index_of_plate(elements, joint.element_a);
-        const int element1 = index_of_plate(elements, joint.element_b);
+        const auto it0 = by_guid.find(joint.element_a);
+        const auto it1 = by_guid.find(joint.element_b);
+        const int element0 = it0 != by_guid.end() ? it0->second : -1;
+        const int element1 = it1 != by_guid.end() ? it1->second : -1;
 
         if (joint.link) {
             if (element0 >= 0 && element0 < (int)element_count)

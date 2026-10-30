@@ -14,6 +14,9 @@ static void top_top_ring_pins(
         return;
 
     const Polyline ring = offset_contact(joint, joint.shift);
+    if (ring.point_count() < 2)
+        return;
+
     std::vector<Point> points;
     for (size_t i = 0; i + 1 < ring.point_count(); i++) {
         const int divisions =

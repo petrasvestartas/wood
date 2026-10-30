@@ -117,6 +117,8 @@ CurvedFold::compute_inner_rings(const std::vector<std::vector<Point>>& stars) co
 
     const size_t count = 2 * sectors;
     std::vector<std::vector<Point>> inner;
+    if (stars.size() < 2)
+        return inner;
 
     for (size_t k = 0; k < stars.size(); k++) {
         const size_t band = std::min(k, stars.size() - 2);

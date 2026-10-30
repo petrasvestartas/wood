@@ -67,10 +67,18 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<InteractionFeaturePlate>& joints
 ) {
 
+    std::unordered_map<std::string, int> by_guid;
+    by_guid.reserve(elements.size());
+    for (size_t i = 0; i < elements.size(); i++)
+        by_guid.emplace(elements[i]->guid(), static_cast<int>(i));
+
     std::unordered_map<uint64_t, int> joints_map;
+    joints_map.reserve(joints.size());
     for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
-        const int element0 = index_of_plate(elements, joints[joint_index].element_a);
-        const int element1 = index_of_plate(elements, joints[joint_index].element_b);
+        const auto it0 = by_guid.find(joints[joint_index].element_a);
+        const auto it1 = by_guid.find(joints[joint_index].element_b);
+        const int element0 = it0 != by_guid.end() ? it0->second : -1;
+        const int element1 = it1 != by_guid.end() ? it1->second : -1;
 
         joints_map[pair_key(element0, element1)] = (int)joint_index;
     }

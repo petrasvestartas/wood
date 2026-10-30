@@ -38,6 +38,10 @@ split_clear_drills(const Mesh& mesh, const std::vector<Drill>& drills);
 /// Returns line intervals inside a closed planar mesh, measured in millimetres from the start.
 std::vector<std::array<double, 2>> inside_stretches(const Mesh& mesh, const Line& line);
 
+/// Returns line intervals inside the closed solid of planar_faces, measured in millimetres from the start.
+std::vector<std::array<double, 2>>
+inside_stretches(const std::vector<PlanarFace>& faces, const Line& line);
+
 /// The planar faces of a mesh.
 std::vector<PlanarFace> planar_faces(const Mesh& mesh);
 
