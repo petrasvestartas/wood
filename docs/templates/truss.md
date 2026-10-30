@@ -68,22 +68,22 @@ the drawing; `library` reads a file of trusses stored as graphs (see [Graphs: Bo
 
 Every node is solved by six rules:
 
-1. **Hierarchy.** Each member has a level: 1 primary (chords, posts), 2 secondary (webs), 3 tertiary (sub-struts); where
+1. Hierarchy: Each member has a level: 1 primary (chords, posts), 2 secondary (webs), 3 tertiary (sub-struts); where
    `level` is 0 it is read from the drawing, the outer boundary first, by pruning the line graph layer by layer. At its node
    a member stops on every higher member there, in a T: it loses that member's cut solid swept along its own axis (its
    shadow), so it butts on the real surface, a kink or a corner, and keeps nothing behind it.
-2. **One end runs on.** Where chord ends meet, one runs on past the node and the others are seated on its side
+2. One end runs on: Where chord ends meet, one runs on past the node and the others are seated on its side
    (`TrussGuide::runs_on_at`): the one marked `runs_on`, else the higher level, else the more level, so the tie runs past
    the rafter foot and a chord past an end post. A lone chord end runs on over webs that are all lower than it.
-3. **Clean ends, node in wood.** An end that runs on reaches to its end cut (`TrussGuide::end_cut`): through the outer
+3. Clean ends, node in wood: An end that runs on reaches to its end cut (`TrussGuide::end_cut`): through the outer
    corners of the members it carries on both its sides, so the contour runs on clean; flush with the outer face of a member
    met at 40 degrees or more; else square, past the node by at least its half section. The node and the axes always lie in
    wood.
-4. **Miters only within one piece.** A chord's kinks, two ends of one slope (a ridge) and bends of under 35 degrees are
+4. Miters only within one piece: A chord's kinks, two ends of one slope (a ridge) and bends of under 35 degrees are
    mitered; every other meeting is a T, easier to cut than a sharp miter.
-5. **Laps where members cross.** Members of one level crossing share the depth in half laps; two chords bending at one node
+5. Laps where members cross: Members of one level crossing share the depth in half laps; two chords bending at one node
    are half-lapped; a chord ending at another's bend butts on its surface.
-6. **The lower never cuts the higher.** A lower member passing a higher member's end leaves it whole.
+6. The lower never cuts the higher: A lower member passing a higher member's end leaves it whole.
 
 | Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
@@ -94,7 +94,7 @@ Every node is solved by six rules:
 | Web / post end at a chord's lone end | Outer member runs over the inner member (`top_side`); inner member let in |
 | Web end on another web's middle (K-joint) | Let into the continuous web |
 | Chord end on a post's middle (tie on column) | Let into the post |
-| Crossing chords, webs, or posts (X-joint) | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across $N$ crossing bars |
+| Crossing chords, webs, or posts (X-joint) | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across `N` crossing bars |
 | Multiple webs ending at one node | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
 
 ## Constructor Pipeline
@@ -123,7 +123,7 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
 
 ## Full C++ Examples
 
-### 1. Custom Wireframe Truss {#truss_ex_custom}
+### Custom Wireframe Truss {#truss_ex_custom}
 
 ```cpp
 #include "wood_session.h"
@@ -154,7 +154,7 @@ int main() {
 }
 ```
 
-### 2. Pratt Roof Truss {#truss_ex_pratt}
+### Pratt Roof Truss {#truss_ex_pratt}
 
 ![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
 

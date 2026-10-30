@@ -9,6 +9,10 @@ Parametric plate-to-plate and boundary-edge joinery defined in the unit box `[-0
 ## Families
 
 <div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_joint_plate_top_side.html">
+    <img src="element_joint_plate_top_side.png" alt="Plate Top-to-Side">
+    <span class="wood-card-title">Top-to-Side</span>
+  </a>
   <a class="wood-card" href="elements_joint_plate_side_side_inplane.html">
     <img src="element_joint_plate_side_side_inplane.png" alt="Plate In-Plane">
     <span class="wood-card-title">In-Plane</span>
@@ -16,10 +20,6 @@ Parametric plate-to-plate and boundary-edge joinery defined in the unit box `[-0
   <a class="wood-card" href="elements_joint_plate_side_side_outplane.html">
     <img src="element_joint_plate_side_side_outplane.png" alt="Plate Out-of-Plane">
     <span class="wood-card-title">Out-of-Plane</span>
-  </a>
-  <a class="wood-card" href="elements_joint_plate_top_side.html">
-    <img src="element_joint_plate_top_side.png" alt="Plate Top-to-Side">
-    <span class="wood-card-title">Top-to-Side</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_rotated.html">
     <img src="element_joint_plate_side_side_rotated.png" alt="Plate Rotated">
@@ -37,15 +37,6 @@ Parametric plate-to-plate and boundary-edge joinery defined in the unit box `[-0
     <img src="element_joint_plate_border.png" alt="Plate Border">
     <span class="wood-card-title">Border</span>
   </a>
-</div>
-<div style="display:none">
-![](elements/element_joint_plate_side_side_inplane.png)
-![](elements/element_joint_plate_side_side_outplane.png)
-![](elements/element_joint_plate_top_side.png)
-![](elements/element_joint_plate_side_side_rotated.png)
-![](elements/element_joint_plate_cross.png)
-![](elements/element_joint_plate_top_top.png)
-![](elements/element_joint_plate_border.png)
 </div>
 
 ## Constructors

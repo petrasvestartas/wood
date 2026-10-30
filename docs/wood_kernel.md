@@ -84,7 +84,7 @@ Hosted features are evaluated lazily in `WoodElement::model_geometry_mesh()` for
 | InteractionFeaturePlate | 2D outline merge, mortise holes, solid cutters, and `drill_lines` | Oriented unit-box joinery transferred to beam faces | Planar `brep_between_loops` or `solid_features_brep` |
 | InteractionFeatureBeam | — | Axis-contact solid cutter meshes, butt planes, and `drill_lines` | Exact planar faces and cylindrical NURBS bores |
 
-## Serialization
+## Serialization {#arch_serialization}
 
 - Mesh mode: `session.pb_dump(pb_path("live"))` writes cut meshes, BReps for round/drilled members, polyline overlays, and the scene tree hierarchy.
 - Exact BRep mode: `session.compute_breps()` evaluates `compute_geometry_brep()` on every cut member, connector part, pin, curved member, and support so cylindrical bores and curved surfaces serialize as exact NURBS BReps.

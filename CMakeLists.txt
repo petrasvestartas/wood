@@ -564,12 +564,12 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HAVE_DOT NO)
     doxygen_add_docs(docs
         ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/wood_kernel.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/wood_kernel.md
         ${CMAKE_CURRENT_SOURCE_DIR}/src/joinery_solver
         ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
         COMMENT "Doxygen: build/docs/html"

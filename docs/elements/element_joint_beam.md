@@ -8,7 +8,7 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
 
 ## Families
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_beam_cross.html">
     <img src="element_joint_beam_cross.png" alt="Beam Cross">
     <span class="wood-card-title">Cross</span>
@@ -23,7 +23,7 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
   </a>
   <a class="wood-card" href="elements_joint_beam_butt.html">
     <img src="element_joint_beam_butt.png" alt="Beam Butt">
-    <span class="wood-card-title">Plane Butt</span>
+    <span class="wood-card-title">Butt</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_connectors.html">
     <img src="element_joint_beam_connectors.png" alt="Beam Connectors">
@@ -33,14 +33,6 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
     <img src="element_joint_beam_pins.png" alt="Beam Pins">
     <span class="wood-card-title">Pins</span>
   </a>
-</div>
-<div style="display:none">
-![](elements/element_joint_beam_cross.png)
-![](elements/element_joint_beam_top_side.png)
-![](elements/element_joint_beam_end_to_end.png)
-![](elements/element_joint_beam_butt.png)
-![](elements/element_joint_beam_connectors.png)
-![](elements/element_joint_beam_pins.png)
 </div>
 
 ## Constructors

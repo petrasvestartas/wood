@@ -4,7 +4,7 @@
 
 Framed timber walls, hollow cassette shells, and multi-storey room modules in `src/templates/module/*.h` with automatic face-contact detection.
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="#module_wall">
     <img src="templates_module_1_wall_all.webp" alt="Framed Wall">
     <span class="wood-card-title">Framed Wall</span>
@@ -33,7 +33,7 @@ Framed timber walls, hollow cassette shells, and multi-storey room modules in `s
 
 ---
 
-## 1. Framed Wall {#module_wall}
+## Framed Wall {#module_wall}
 
 A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/wall.h`, `module/framed_panel.h`, example `templates_module_1_wall`).
 
@@ -109,7 +109,7 @@ int main() {
 
 ---
 
-## 2. Cassette Shell {#module_cassette_shell}
+## Cassette Shell {#module_cassette_shell}
 
 Segmented shell of hollow timber cassettes — one per planar face of a polygon `Mesh` (`module/cassette_shell.h`, example `templates_module_2_cassette_shell`).
 
@@ -192,7 +192,7 @@ int main() {
 
 ---
 
-## 3. Cassette House {#module_cassette_house}
+## Cassette House {#module_cassette_house}
 
 A `6000 × 4000 mm` gable house (`2700 mm` eaves, `4500 mm` ridge, `6` cassettes, `43` inter-cassette contacts, example `templates_module_3_cassette_house`) combining `CassetteShell::house_mesh()`, `house_windows()`, `stud_spacing = 625.0`, and `house_ranks()`.
 
@@ -257,7 +257,7 @@ int main() {
 
 ---
 
-## 4. Room Module {#module_room}
+## Room Module {#module_room}
 
 Volumetric timber room modules (`module/room_module.h`, examples `templates_module_4_room_module`, `templates_module_5_module_block`, and `templates_module_6_bank_pavilion`).
 
@@ -337,7 +337,7 @@ int main() {
 
 ---
 
-### Multi-Storey Module Block {#module_block}
+## Module Block {#module_block}
 
 Twelve modules (`rooms = {2, 2}`, `storeys = 3`) arranged as two 2-module rooms per floor over three storeys (`examples/templates_module_5_module_block.cpp`):
 
@@ -375,7 +375,7 @@ int main() {
 
 ---
 
-### Bank Pavilion {#module_bank}
+## Bank Pavilion {#module_bank}
 
 Four modules on a `3000 × 10270 mm` grid (`rooms = {1, 2, 1}`: closed meeting room, 2-module `6000 mm` clear open office, and entrance module with a `2730 mm` inset porch, `examples/templates_module_6_bank_pavilion.cpp`):
 

@@ -46,7 +46,7 @@ Folded structures of exact cylindrical [Curved Plate](@ref elements_plate_curved
 
 ---
 
-## ReflectionFold {#reflection_fold}
+## Reflection Fold {#reflection_fold}
 
 | `Fold::reflected` | Ruling Update | Curvature / Bulge | Unfolded Development |
 | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, pro
 | `lamellas` | `PlateCurved(outer_a, outer_b, inner_a, inner_b)` per segment and profile arc |
 | `flat` / `contacts` | Unrolled 2D `Development` cutting patterns + `compute_face_contacts(0)` verification |
 
-### 1. Reflection Principle {#reflection_principle}
+### Reflection Principle {#reflection_principle}
 
 Circular arc strip (`120°`, `R = 1000 mm`, `t = 120 mm`) cut by an oblique plane `1500 mm` down and reflected by `120°` (`2` lamellas, `1` contact).
 
@@ -88,7 +88,7 @@ ReflectionFold fold(
 );
 ```
 
-### 2. Curved Folded Plate Arch {#curved_folded_plate}
+### Curved Folded Plate Arch {#curved_folded_plate}
 
 Six half-sine waves (`9 m` wide, `400 mm` amplitude) swept along a 5-segment polygonal arch with four `-30°` reverse folds (`13.5 m` span, `4.9 m` rise, `30` lamellas, `49` contacts).
 
@@ -106,7 +106,7 @@ ReflectionFold fold(
 );
 ```
 
-### 3. Mendrisio Pavilion {#mendrisio_pavilion}
+### Mendrisio Pavilion {#mendrisio_pavilion}
 
 IBOIS Mendrisio pavilion (`13 × 4.5 × 3.4 m`, `77 mm` curved CLT): shallow barrel reflected at the eave (`89.9°`) and ridge (`10°`) across the symmetry plane (`5` plates, `4` contacts).
 
@@ -123,7 +123,7 @@ ReflectionFold fold(
 );
 ```
 
-### 4–7. Linear Folded Cylindrical Hall Systems {#folded_cylinders}
+### Linear Folded Cylindrical Hall Systems {#folded_cylinders}
 
 Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and arches:
 
@@ -134,7 +134,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 | Arch with top hinge | `90°` | `(300, -15°, true)`, `(18300, -40°, true)`, `(25300, -35°, false)` | `13000` | `1600 mm` | `28` / `45` | `templates_cylindrical_folding_6_arch_with_top_hinge` |
 | Two-hinged A-frame | `110°` | `(5600, -60°, true)` | `12500` | `1400 mm` | `16` / `24` | `templates_cylindrical_folding_7_a_frame` |
 
-#### 4. Two-Hinged Frame {#two_hinged_frame}
+#### Two-Hinged Frame {#two_hinged_frame}
 
 ![](templates/templates_cylindrical_folding_4_two_hinged_frame_lamellas.webp)
 
@@ -142,7 +142,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{6000.0, -76.0 * Tolerance::TO_RADIANS, true}}, Plane::from_point_normal(Point(20000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-#### 5. Two-Hinged Arch {#two_hinged_arch}
+#### Two-Hinged Arch {#two_hinged_arch}
 
 ![](templates/templates_cylindrical_folding_5_two_hinged_arch_lamellas.webp)
 
@@ -150,7 +150,7 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 2400.0), along, Vector(0.0, -1.0, 0.0), 40000.0, {{11000.0, -50.0 * Tolerance::TO_RADIANS, false}, {22000.0, -50.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-#### 6. Arch with Top Hinge {#arch_with_top_hinge}
+#### Arch with Top Hinge {#arch_with_top_hinge}
 
 ![](templates/templates_cylindrical_folding_6_arch_with_top_hinge_lamellas.webp)
 
@@ -158,7 +158,7 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 1600.0), along, Vector(0.0, -1.0, 0.0), 30000.0, {{300.0, -15.0 * Tolerance::TO_RADIANS, true}, {18300.0, -40.0 * Tolerance::TO_RADIANS, true}, {25300.0, -35.0 * Tolerance::TO_RADIANS, false}}, Plane::from_point_normal(Point(13000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)), 120.0);
 ```
 
-#### 7. Two-Hinged A-Frame {#a_frame}
+#### Two-Hinged A-Frame {#a_frame}
 
 ![](templates/templates_cylindrical_folding_7_a_frame_lamellas.webp)
 
@@ -168,7 +168,7 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 
 ---
 
-## CylinderVault (8–12) {#cylinder_vault}
+## Cylinder Vault {#cylinder_vault}
 
 `CylinderVault(sides, edge, radius, kind, wall, thickness)`: `sides` equal cylinder sectors over a regular polygon meeting on vertical corner-to-centre planes.
 
@@ -177,7 +177,7 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 | `Groin` | Radial (side → centre) | Arch over polygon side, springing at corners | Half-ellipses from corners to crown |
 | `Cloister` | Tangential (parallel to polygon side, on `wall`) | Arc from wall top to central peak | Quarter-ellipses from corners to peak |
 
-### 8. Groin Vault (4 Sides) {#groin_vault}
+### Groin Vault (4 Sides) {#groin_vault}
 
 ![](templates/templates_cylindrical_folding_8_groin_vault_lamellas.webp)
 
@@ -185,7 +185,7 @@ ReflectionFold fold(ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 60
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 ```
 
-### 9. Pavilion Cloister Vault on Walls (4 Sides) {#pavilion_vault}
+### Pavilion Cloister Vault on Walls (4 Sides) {#pavilion_vault}
 
 ![](templates/templates_cylindrical_folding_9_pavilion_vault_lamellas.webp)
 
@@ -193,7 +193,7 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 ```
 
-### 10. Pentagon Vault (5 Sides) {#pentagon_vault}
+### Pentagon Vault (5 Sides) {#pentagon_vault}
 
 ![](templates/templates_cylindrical_folding_10_pentagon_vault_lamellas.webp)
 
@@ -201,7 +201,7 @@ CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
 CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-### 11. Hexagon Vault (6 Sides) {#hexagon_vault}
+### Hexagon Vault (6 Sides) {#hexagon_vault}
 
 ![](templates/templates_cylindrical_folding_11_hexagon_vault_lamellas.webp)
 
@@ -209,7 +209,7 @@ CylinderVault vault(5, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 CylinderVault vault(6, 8000.0, 4000.0, CylinderVault::Kind::Groin);
 ```
 
-### 12. Octagon Vault (8 Sides) {#octagon_vault}
+### Octagon Vault (8 Sides) {#octagon_vault}
 
 ![](templates/templates_cylindrical_folding_12_octagon_vault_lamellas.webp)
 
@@ -219,7 +219,7 @@ CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
 
 ---
 
-## 13. CurvedFoldedBeam {#curved_folded_beam}
+## Curved Folded Beam {#curved_folded_beam}
 
 `CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)`: closed box girder of `4` cylindrical `PlateCurved` flanges and webs (`top` and `bottom` arched outward by `rise`, `sides` dished inward by `sag`) stiffened by `webs` planar cross-diaphragms (`54` plates, `144` contacts across `6` beams).
 
@@ -231,11 +231,11 @@ CurvedFoldedBeam beams;
 
 ---
 
-## 14–15. CornerFan {#corner_fan}
+## Corner Fan {#corner_fan}
 
 `CornerFan(size, height, strips, lift, drop, foot, thickness, corner)`: `strips` cylindrical `PlateCurved` bands radiating from one corner of a `size × size` square to its two far sides along 3-point parabolic creases (`lift` mid-chord rise, alternating `drop` height modulation).
 
-### 14. Six-Strip Corner Fan
+### Six-Strip Corner Fan
 
 ![](templates/templates_cylindrical_folding_14_corner_fan_strips.webp)
 
@@ -245,7 +245,7 @@ CurvedFoldedBeam beams;
 CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 ```
 
-### 15. Corner Fan Subdivisions (2, 4, 8, 12 Strips) {#corner_fan_subdivisions}
+### Corner Fan Subdivisions (2, 4, 8, 12 Strips) {#corner_fan_subdivisions}
 
 ![](templates/templates_cylindrical_folding_15_corner_fan_subdivisions_all.webp)
 
@@ -286,11 +286,11 @@ int main() {
 
 ---
 
-## 16–17. CylinderCarving {#cylinder_carving}
+## Cylinder Carving {#cylinder_carving}
 
 `CylinderCarving(stock, carvers, length, thickness, min_angle, closed)`: sequential boolean subtraction `((a - b) - c) - d` of cylindrical `carvers` from a `stock` cylinder, converting each concave carved patch into a `PlateCurved` shell of `thickness`.
 
-### 16. Sequential Three-Carver Column
+### Sequential Three-Carver Column
 
 ![](templates/templates_cylindrical_folding_16_cylinder_carving_all.webp)
 
@@ -343,7 +343,7 @@ int main() {
 }
 ```
 
-### 17. Closed Fluted Rings (4, 6, 8 Carvers) {#cylinder_carving_rings}
+### Closed Fluted Rings (4, 6, 8 Carvers) {#cylinder_carving_rings}
 
 ![](templates/templates_cylindrical_folding_17_cylinder_carving_rings_all.webp)
 

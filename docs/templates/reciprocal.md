@@ -4,7 +4,7 @@
 
 Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. Every interior beam bears against the side face of its neighbour while naked boundary edges are enclosed by a mitered or priority-butted perimeter frame.
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reciprocal_rotation">
     <img src="templates_reciprocal_1_rotation_beams.webp" alt="Pinwheel Rotation">
     <span class="wood-card-title">Pinwheel Rotation</span>
@@ -19,12 +19,12 @@ Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. 
 
 | Parameter | Rotation | Translation | Description |
 | --- | --- | --- | --- |
-| mesh | const Mesh& | const Mesh& | Input polygon mesh |
-| angle / scale | 0.35 rad, 1.4 | — | Midpoint rotation around average face normal and axial scale |
-| shift | — | 50.0 | Sideways translation along corner bisectors in mm |
-| width, height | 100.0, 400.0 | 100.0, 400.0 | Beam cross-section width and depth in mm |
-| cut_offset_factor | 1.0 | 1.0 | End-cut offset from crossing neighbour axis (`1.0` = flush side face) |
-| corner_joint | Miter / Butt | Miter / Butt | Perimeter frame corner joint rule |
+| `mesh` | `const Mesh&` | `const Mesh&` | Input polygon mesh |
+| `angle`, `scale` | `0.35 rad`, `1.4` | — | Midpoint rotation around average face normal and axial scale |
+| `shift` | — | `50.0` | Sideways translation along corner bisectors in mm |
+| `width`, `height` | `100.0`, `400.0` | `100.0`, `400.0` | Beam cross-section width and depth in mm |
+| `cut_offset_factor` | `1.0` | `1.0` | End-cut offset from crossing neighbour axis (`1.0` = flush side face) |
+| `corner_joint` | `Miter` / `Butt` | `Miter` / `Butt` | Perimeter frame corner joint rule |
 
 ---
 

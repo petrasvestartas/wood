@@ -27,7 +27,11 @@ jobs:
     - name: Install tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential cmake doxygen
+        sudo apt-get install -y build-essential cmake curl
+        curl -fsSL "https://github.com/doxygen/doxygen/releases/download/Release_1_15_0/doxygen-1.15.0.linux.bin.tar.gz" -o /tmp/doxygen.tar.gz
+        tar -xzf /tmp/doxygen.tar.gz -C /tmp
+        sudo install -m 755 "$(find /tmp/doxygen-1.15.0 -type f -name doxygen | head -n 1)" /usr/local/bin/doxygen
+        doxygen --version
 
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

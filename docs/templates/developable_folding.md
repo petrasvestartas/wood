@@ -39,7 +39,7 @@ Developable [Curved Plate](@ref elements_plate_curved) structures including rule
   </a>
 </div>
 
-## 1. Flat Unfolding Check {#development}
+## Flat Unfolding Check {#development}
 
 `Development(a, b, samples)` unfolds the ruled strip between curves `a` and `b` into the `xy`-plane triangle-by-triangle and measures the relative length change of each quad's second diagonal (`distortion = 0` on exact cylinders and cones).
 
@@ -51,7 +51,7 @@ development.outline;    // 2D cutting pattern in the xy-plane (placed in group "
 
 ---
 
-## 2. CurvedFold Tent Roof {#curved_fold_roof}
+## Curved Fold Tent Roof {#curved_fold_roof}
 
 Twelve-sector freestanding folded shell (`32 m` eaves diameter, `26 m` tower height, `24` `PlateCurved` lamellas, `24` contacts) ruled between star-ring interpolated NURBS meridians.
 
@@ -73,7 +73,7 @@ CurvedFold fold(
 
 ---
 
-## 3. Curved Crease Unfolding {#curved_crease_unfolding}
+## Curved Crease Unfolding {#curved_crease_unfolding}
 
 Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(opening)` generates developable strips whose rulings leave perpendicular to the crease at angle `opening` and mirror successively across a sequence of crease `planes`:
 
@@ -83,7 +83,7 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 | `leaning(origin, along, axis, count, spacing, lean)` | Progressive `i * lean` rotation about span axis | Synclastic (`lean > 0`) or anticlastic saddle (`lean < 0`) |
 | `fan(origin, axis, first, count, angle)` | Radial planes rotated by `angle` around `axis` | Corrugated rotational dome or funnel column |
 
-### 2. Semicircular Arch on Parallel Planes {#curved_crease_arch}
+### Semicircular Arch on Parallel Planes {#curved_crease_arch}
 
 ![](templates/templates_developable_folding_2_curved_crease_unfolding_plates.webp)
 
@@ -91,7 +91,7 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
 ```
 
-### 3. Catenary Arch on Parallel Planes {#curved_crease_catenary}
+### Catenary Arch on Parallel Planes {#curved_crease_catenary}
 
 ![](templates/templates_developable_folding_3_catenary_unfolding_plates.webp)
 
@@ -99,7 +99,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
 ```
 
-### 5. Synclastic Vault (Leaning +5 Degrees) {#synclastic_unfolding}
+### Synclastic Vault (Leaning +5 Degrees) {#synclastic_unfolding}
 
 ![](templates/templates_developable_folding_5_synclastic_unfolding_plates.webp)
 
@@ -107,7 +107,7 @@ CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0)
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 6. Anticlastic Saddle Vault (Leaning -5 Degrees) {#anticlastic_unfolding}
+### Anticlastic Saddle Vault (Leaning -5 Degrees) {#anticlastic_unfolding}
 
 ![](templates/templates_developable_folding_6_anticlastic_unfolding_plates.webp)
 
@@ -115,7 +115,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, -5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 7. Zigzag Inclined About Apex {#apex_level_unfolding}
+### Zigzag Inclined About Apex {#apex_level_unfolding}
 
 ![](templates/templates_developable_folding_7_apex_level_unfolding_plates.webp)
 
@@ -123,7 +123,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 8. Zigzag Inclined About Support Floor {#support_level_unfolding}
+### Zigzag Inclined About Support Floor {#support_level_unfolding}
 
 ![](templates/templates_developable_folding_8_support_level_unfolding_plates.webp)
 
@@ -131,7 +131,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 9. Zigzag Inclined About Mid-Height {#alternating_unfolding}
+### Zigzag Inclined About Mid-Height {#alternating_unfolding}
 
 ![](templates/templates_developable_folding_9_alternating_unfolding_plates.webp)
 
@@ -139,7 +139,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 10. Zigzag Inclined About Vertical Axis {#sideways_unfolding}
+### Zigzag Inclined About Vertical Axis {#sideways_unfolding}
 
 ![](templates/templates_developable_folding_10_sideways_unfolding_plates.webp)
 
@@ -147,7 +147,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 11. Corrugated Rotational Dome (24 Sectors) {#corrugated_dome}
+### Corrugated Rotational Dome (24 Sectors) {#corrugated_dome}
 
 ![](templates/templates_developable_folding_11_corrugated_dome_plates.webp)
 
@@ -155,7 +155,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(6000.0, 0.0, 0.0), Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)), Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))), 60.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::fan(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0), 24, 15.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### 12. Corrugated Funnel Column (32 Sectors) {#corrugated_funnel}
+### Corrugated Funnel Column (32 Sectors) {#corrugated_funnel}
 
 ![](templates/templates_developable_folding_12_corrugated_funnel_plates.webp)
 
@@ -165,7 +165,7 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(800.0, 0.0, 0.0), Point(58
 
 ---
 
-## 4. Four Quadrants of a Curved Crease {#crease_quadrants}
+## Four Quadrants of a Curved Crease {#crease_quadrants}
 
 | Quadrant | Strip Rulings | Mechanism Type | Curvature Behavior |
 | --- | --- | --- | --- |

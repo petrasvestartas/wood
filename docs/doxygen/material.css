@@ -556,7 +556,6 @@ div.fragment, pre.fragment, div.contents pre, pre code {
     font-size: 13.6px;
     line-height: 1.5;
 }
-}
 
 div.line {
     min-height: 20px;
@@ -817,7 +816,7 @@ a.wood-card {
     font-size: 14px;
     line-height: 1.4;
     text-decoration: none !important;
-    color: var(--md-fg);
+    color: rgba(0, 0, 0, 0.87);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 a.wood-card {

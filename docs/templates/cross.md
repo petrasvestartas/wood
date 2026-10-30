@@ -4,19 +4,38 @@
 
 Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlate::cross_slot()` half-laps.
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#cross_planes">
+    <img src="templates_cross_1_vda_mesh_edge_planes.webp" alt="Reference Planes">
+    <span class="wood-card-title">Reference Planes</span>
+  </a>
+  <a class="wood-card" href="#cross_plates">
+    <img src="templates_cross_1_vda_mesh_plates.webp" alt="Mitered Face Plates">
+    <span class="wood-card-title">Mitered Face Plates</span>
+  </a>
+  <a class="wood-card" href="#cross_connectors">
+    <img src="templates_cross_1_vda_mesh_connectors.webp" alt="Edge Connectors">
+    <span class="wood-card-title">Edge Connectors</span>
+  </a>
+  <a class="wood-card" href="#cross_laps">
+    <img src="templates_cross_1_vda_mesh_all.webp" alt="Cross-Lap Assembly">
+    <span class="wood-card-title">Cross-Lap Assembly</span>
+  </a>
+</div>
+
 ## Parameters
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| mesh | Mesh | default_mesh() | Input polygon mesh welded at 0.01 mm |
-| face_thickness | double | 20.0 | Face plate layer thickness in mm |
-| face_positions | std::vector<double> | {0.0} | Signed normal offsets of plate layers per face |
-| edge_divisions | std::vector<int> | {2} | Number of connectors per interior edge |
-| edge_division_length | std::vector<double> | {} | Target connector spacing along interior edges in mm |
-| insertion_lines | std::vector<Line> | {} | Optional guide lines orienting connector axes |
-| connector_width | double | 200.0 | Connector length across the seam in mm |
-| connector_height | double | 200.0 | Connector height along the average face normal in mm |
-| connector_thickness | double | 20.0 | Connector plate thickness along the mesh edge in mm |
+| `mesh` | `Mesh` | `default_mesh()` | Input polygon mesh welded at `0.01 mm` |
+| `face_thickness` | `double` | `20.0` | Face plate layer thickness in mm |
+| `face_positions` | `std::vector<double>` | `{0.0}` | Signed normal offsets of plate layers per face |
+| `edge_divisions` | `std::vector<int>` | `{2}` | Number of connectors per interior edge |
+| `edge_division_length` | `std::vector<double>` | `{}` | Target connector spacing along interior edges in mm |
+| `insertion_lines` | `std::vector<Line>` | `{}` | Optional guide lines orienting connector axes |
+| `connector_width` | `double` | `200.0` | Connector length across the seam in mm |
+| `connector_height` | `double` | `200.0` | Connector height along the average face normal in mm |
+| `connector_thickness` | `double` | `20.0` | Connector plate thickness along the mesh edge in mm |
 
 ## Mesh and Reference Planes {#cross_planes}
 

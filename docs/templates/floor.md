@@ -4,7 +4,7 @@
 
 Vaulted timber floor bay supported on four carved columns with a central interlocking oculus ring (`src/templates/floor/`).
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_floor_guide.html">
     <img src="962_section_construction_quads.webp" alt="Floor Guide">
     <span class="wood-card-title">Floor Guide</span>

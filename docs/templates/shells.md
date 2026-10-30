@@ -4,15 +4,34 @@
 
 Translational plate shells in `src/templates/shells/translation_shell.h`. `TranslationShell` sweeps a generator cross-section along a directrix profile without rotation, producing planar quad faces and mitered, corner-chamfered `Plate` solids.
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#shells_curves">
+    <img src="templates_shells_1_translation_shell_curves.webp" alt="Input Curves">
+    <span class="wood-card-title">Input Curves</span>
+  </a>
+  <a class="wood-card" href="#shells_sections">
+    <img src="templates_shells_1_translation_shell_sections.webp" alt="Translated Sections">
+    <span class="wood-card-title">Translated Sections</span>
+  </a>
+  <a class="wood-card" href="#shells_mesh">
+    <img src="templates_shells_1_translation_shell_mesh.webp" alt="Planar Quad Mesh">
+    <span class="wood-card-title">Planar Quad Mesh</span>
+  </a>
+  <a class="wood-card" href="#shells_plates">
+    <img src="templates_shells_1_translation_shell_plates.webp" alt="Mitered Plates">
+    <span class="wood-card-title">Mitered Plates</span>
+  </a>
+</div>
+
 ## Parameters
 
 | Parameter | Type | Default | Role |
 | --- | --- | --- | --- |
-| cross_section | Polyline | default_cross_section() | Generator arch curve in the XZ plane |
-| profile | Polyline | default_profile() | Directrix trajectory in the YZ plane |
-| thickness | double | 10.0 | Plate thickness in mm |
-| chamfer | double | 1.0 | Corner relief setback in mm |
-| chamfer_angle | double | 180.0 | Interior corner angle threshold in degrees |
+| `cross_section` | `Polyline` | `default_cross_section()` | Generator arch curve in the XZ plane |
+| `profile` | `Polyline` | `default_profile()` | Directrix trajectory in the YZ plane |
+| `thickness` | `double` | `10.0` | Plate thickness in mm |
+| `chamfer` | `double` | `1.0` | Corner relief setback in mm |
+| `chamfer_angle` | `double` | `180.0` | Interior corner angle threshold in degrees |
 
 ## Input Curves {#shells_curves}
 

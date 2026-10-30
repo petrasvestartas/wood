@@ -51,7 +51,7 @@ Planar folded-plate timber structures in `src/templates/folding/*.h`. Each templ
   </a>
 </div>
 
-## Reflex fold {#reflex_fold}
+## Reflex Fold {#reflex_fold}
 
 `ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`): sweeps a zigzag `profile` along an arch `cross_section` (two profile curves), folding at each arch vertex bisector plane (`mitered_plates`).
 
@@ -65,7 +65,7 @@ Default reflex fold arch from two profile curves (`cross_section` and `profile`)
 ReflexFold fold;
 ```
 
-## Diamond mesh {#diamond_mesh}
+## Diamond Mesh {#diamond_mesh}
 
 `DiamondMesh(surface, u_divisions, v_divisions, thickness, chamfer, chamfer_angle)` (`folding/diamond_mesh.h`): divides a NURBS surface into `u_divisions × v_divisions` cells and connects each cell's corners to adjacent cell centres to form triangulated diamond rhombi (`mitered_plates`).
 
@@ -86,7 +86,7 @@ DiamondMesh diamond(
 );
 ```
 
-## Singly folded plate {#prismatic_fold}
+## Prismatic Fold {#prismatic_fold}
 
 `PrismaticFold(profile, span, thickness, diaphragms, edge_flange)` (`folding/prismatic_fold.h`): sweeps `zigzag(ridges, fold_width, depth)` or `polygon(folds, width, rise)` along `x` over `span` with transverse `diaphragms` and free-edge buckling flanges (`edge_flange`).
 
@@ -130,7 +130,7 @@ Seven folds inscribed on a circular arc `12 m` wide and `4 m` high, approaching 
 PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel");
 ```
 
-## Counter-running folding {#counter_fold}
+## Counter Fold {#counter_fold}
 
 `CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`): triangulates non-planar strips between station profiles via `Folding::ridge_to_ridge`, `Folding::ridge_to_valley`, or `Folding::alternate`, merging coplanar triangles (`merged_coplanar`). Station generators: `counter_running`, `counter_centre`, `elevated_centre`.
 
@@ -214,7 +214,7 @@ The same deeper-centre stations folded ridge-to-valley (`32` plates).
 CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1000.0, 15000.0, 1800.0), Folding::ridge_to_valley, 120.0, "deep_centre_valley");
 ```
 
-## Conical folding {#conical_fold}
+## Conical Fold {#conical_fold}
 
 `ConicalFold(folds, fold_width, depth, end_depth, span, thickness)` (`folding/conical_fold.h`): clips a continuous zigzag of height `depth` by two planes sloping from `end_depth` at the supports to full `depth` at mid-span.
 
@@ -228,7 +228,7 @@ Four folds over a `14.4 m` span with ridges rising from `600 mm` at the supports
 ConicalFold fold;
 ```
 
-## Folded frames and arches {#folded_frame}
+## Folded Frame {#folded_frame}
 
 `FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `three_hinged_frame`, `a_frame`, `top_hinged_arch`, `three_hinged_arch`).
 
@@ -282,7 +282,7 @@ Octagonal three-hinged arch (`21.5 m` span, `20.5 m` rise) on point feet across 
 FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
 ```
 
-## Singly folded surfaces over a polygon plan {#single_fold}
+## Single Fold {#single_fold}
 
 `SingleFold(sides, radius, overhang, eaves, centre, thickness)` (`folding/single_fold.h`): over a regular polygon plan supported at its corners, each sector is folded along the radial ridge from the mid-edge gable peak (`eaves`) to the central apex (`centre`), with the perimeter gable leaning outward (`overhang > 0`), standing vertical (`overhang = 0`), or leaning inward (`overhang < 0`).
 
@@ -316,7 +316,7 @@ Eave triangles leaning `2.1 m` inward to `8.3 m` peaks with ridges sloping down 
 SingleFold fold(6, 12000.0, -2100.0, 8300.0, 5200.0, 120.0, "hexagon_fold");
 ```
 
-## Cross-folded surfaces spanned diagonally {#diagonal_fold}
+## Diagonal Fold {#diagonal_fold}
 
 `DiagonalFold(span, heights, thickness)` (`folding/diagonal_fold.h`): a square plan supported at the four edge midpoints and quartered by chevron folds along both diagonals. `DiagonalHeights` sets the corner height, edge-middle height, intermediate diagonal fold height and position, and central apex height.
 
@@ -350,7 +350,7 @@ Corners raised to `7 m`, intermediate fold point at `4.3 m`, and centre dipping 
 DiagonalFold fold(18000.0, {7000.0, 0.0, 4300.0, 0.43, 3500.0}, 120.0, "cross_fold_sloping");
 ```
 
-## Composition of cross-folded squares {#fold_composition}
+## Fold Composition {#fold_composition}
 
 `FoldComposition` (`folding/fold_composition.h`): a `6 × 4` grid of `12 m` square cells folded on their diagonals over alternating ground and `4.6 m` nodes, with the central `2 × 2` bay carrying an elevated `15 m` 8-pointed star vault (`96` plates).
 
@@ -362,7 +362,7 @@ DiagonalFold fold(18000.0, {7000.0, 0.0, 4300.0, 0.43, 3500.0}, 120.0, "cross_fo
 FoldComposition fold;
 ```
 
-## Pyramids and truncated pyramids {#truncated_pyramid}
+## Truncated Pyramid {#truncated_pyramid}
 
 `TruncatedPyramid(half_base, half_top, height, edge_fold, corner_fold, thickness)` (`folding/truncated_pyramid.h`): a pyramid or truncated pyramid over a square plan, optionally creased along its side faces (`edge_fold`) and corner ridges (`corner_fold`) via `FoldPoint{along, rise}`.
 
@@ -416,7 +416,7 @@ Both corner bends and raised edge midpoints aligned at half height to form a hor
 TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.28, 0.5}, FoldPoint{0.22, 0.5}, 120.0, "truncated_pyramid_corner_edge_folds");
 ```
 
-## Folded triangular surfaces {#triangle_fold}
+## Triangle Fold {#triangle_fold}
 
 `TriangleFold(sides, radius, middle, centre, thickness)` (`folding/triangle_fold.h`): a regular polygon plan with vertical perimeter gables rising to `middle`, corner triangles folding down to the ground supports, and an inner ring of roof triangles meeting at `centre` (or a single flat roof plate when `centre == middle`).
 

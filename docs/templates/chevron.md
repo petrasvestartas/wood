@@ -4,22 +4,45 @@
 
 Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/chevron.h`. `Chevron` subdivides an input `NurbsSurface` into herringbone quad strips and builds a four-plate hollow box per cell.
 
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#chevron_surface">
+    <img src="templates_chevron_1_chevron_surface.webp" alt="Input Surface">
+    <span class="wood-card-title">Input Surface</span>
+  </a>
+  <a class="wood-card" href="#chevron_mesh">
+    <img src="templates_chevron_1_chevron_mesh.webp" alt="Herringbone Mesh">
+    <span class="wood-card-title">Herringbone Mesh</span>
+  </a>
+  <a class="wood-card" href="#chevron_edge_planes">
+    <img src="templates_chevron_1_chevron_edge_planes.webp" alt="Strips and Bisectors">
+    <span class="wood-card-title">Strips and Bisectors</span>
+  </a>
+  <a class="wood-card" href="#chevron_plates">
+    <img src="templates_chevron_1_chevron_plates.webp" alt="Hollow Boxes">
+    <span class="wood-card-title">Hollow Boxes</span>
+  </a>
+  <a class="wood-card" href="#chevron_insertion">
+    <img src="templates_chevron_1_chevron_insertion.webp" alt="Insertion Vectors">
+    <span class="wood-card-title">Insertion Vectors</span>
+  </a>
+</div>
+
 ## Parameters
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| surface | NurbsSurface | default_surface() | Free-form NURBS reference surface |
-| u_divisions | int | 4 | Number of longitudinal chevron strips |
-| v_division_dist | double | 900.0 | Initial row step at strip supports in mm |
-| shift | double | 0.5 | Chevron apex advance as a fraction of row height |
-| scale | double | 0.05799 | Geometric step growth factor toward mid-span |
-| box_height | double | 760.0 | Structural box depth along face normal in mm |
-| top_plate_inlet | double | 80.0 | Inset of top and bottom plates from outer box planes in mm |
-| plate_thickness | double | 40.0 | Thickness of top, bottom, and side plates in mm |
-| edge_rotation | double | 1.0 | Rotation of even interior chevron edge planes in degrees |
-| edge_offset | double | 0.5 | Normal shift of odd interior chevron edge planes |
+| `surface` | `NurbsSurface` | `default_surface()` | Free-form NURBS reference surface |
+| `u_divisions` | `int` | `4` | Number of longitudinal chevron strips |
+| `v_division_dist` | `double` | `900.0` | Initial row step at strip supports in mm |
+| `shift` | `double` | `0.5` | Chevron apex advance as a fraction of row height |
+| `scale` | `double` | `0.05799` | Geometric step growth factor toward mid-span |
+| `box_height` | `double` | `760.0` | Structural box depth along face normal in mm |
+| `top_plate_inlet` | `double` | `80.0` | Inset of top and bottom plates from outer box planes in mm |
+| `plate_thickness` | `double` | `40.0` | Thickness of top, bottom, and side plates in mm |
+| `edge_rotation` | `double` | `1.0` | Rotation of even interior chevron edge planes in degrees |
+| `edge_offset` | `double` | `0.5` | Normal shift of odd interior chevron edge planes |
 
-## Input Surface
+## Input Surface {#chevron_surface}
 
 `wood_chevron::annen_surfaces` loads the NURBS vault surfaces and adds the reference surface to the `surface` group.
 

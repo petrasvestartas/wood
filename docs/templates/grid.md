@@ -4,7 +4,7 @@
 
 Multi-storey timber building generator in `src/templates/grid/*.h`. `wood_grid::Grid` frames a building level by level from a `Building` guide and a `Framing` specification.
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="#grid_ex_tree">
     <img src="3_elements_tree_all.webp" alt="Five-Bay Building">
     <span class="wood-card-title">Five-Bay Building</span>
@@ -90,7 +90,7 @@ Grid::Grid(const Building& guide, const Framing& framing, const std::string& nam
 }
 ```
 
-### 1. Level Plans
+### Level Plans
 
 Every level's `plan` mesh edges and column vertices are lifted to datum `level.z` and placed in `plan_<level>`:
 
@@ -104,7 +104,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 }
 ```
 
-### 2. Columns
+### Columns
 
 A `Column` stands on every stacked column vertex from the lower slab top (`foot`) to the upper column head underside or level datum (`top`):
 
@@ -120,7 +120,7 @@ for (const build::Stack& stack : stacks) {
 add_numbered(columns, storey + 1);
 ```
 
-### 3. Facade & Core Walls
+### Facade & Core Walls
 
 Edges carrying `wall == 1.0` generate perimeter `wall` plates under the edge beams; edges carrying `wall == 2.0` generate pinwheel `core_wall` plates around core openings:
 
@@ -135,7 +135,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 }
 ```
 
-### 4. Column Heads & Drop Panels
+### Column Heads & Drop Panels
 
 When `framing.node == 0`, each column top receives a chamfered pyramidal, conical, or stepped `head` block supporting the incoming girders/beams or point-supported slab:
 
@@ -151,7 +151,7 @@ for (const build::Stack& stack : stacks) {
 }
 ```
 
-### 5. Girders, Beams & Bay Purlins
+### Girders, Beams & Bay Purlins
 
 Plan edges with `role > 0` become `girder` or `beam` members with end cuts determined by node priority. In `system == 2` bays, `compute_stations` populates secondary `purlin` members across the bay at `framing.spacing`:
 
@@ -178,7 +178,7 @@ for (const build::Station& station : build::compute_stations(upper, face, level.
 }
 ```
 
-### 6. Bay Decks
+### Bay Decks
 
 Every floored bay receives a `deck` plate; flush decks boolean-subtract corner column head pyramids via `InteractionFeatureSolid`:
 
@@ -196,7 +196,7 @@ for (const size_t vertex : build::compute_loop(level.plan, outline.first)) {
 }
 ```
 
-### 7. Storey Braces & Contacts
+### Storey Braces & Contacts
 
 Diagonal braces are clipped against column faces, lower decks, and upper beams, and `compute_face_contacts(0)` registers all face-to-face contacts across the building:
 
@@ -225,7 +225,7 @@ braces.insert(braces.end(), brace.begin(), brace.end());
 
 ## Full C++ Examples
 
-### 1. Five-Bay Building {#grid_ex_tree}
+### Five-Bay Building {#grid_ex_tree}
 
 ![](templates/3_elements_tree_all.webp)
 
@@ -277,7 +277,7 @@ int main() {
 }
 ```
 
-### 2. Footprints & Grid Patterns {#grid_ex_footprint}
+### Footprints & Grid Patterns {#grid_ex_footprint}
 
 Nine footprints and grid patterns (L with purlins/walls, skewed grid, radial, triangular, hexagonal, drawn axes, courtyard, pentagon, U with two cores):
 
@@ -498,7 +498,7 @@ int main() {
 }
 ```
 
-### 3. Sliced Massing Solids {#grid_ex_solid}
+### Sliced Massing Solids {#grid_ex_solid}
 
 Six 3D massing solids sliced at storey elevations (box, pentagonal prism, tapered loft, podium + tower, atrium, cylinder):
 
@@ -644,7 +644,7 @@ int main() {
 }
 ```
 
-### 4. Explicit Lines & Braced Frames {#grid_ex_lines}
+### Explicit Lines & Braced Frames {#grid_ex_lines}
 
 Direct line-and-surface input (`compas_grid` dataset and braced timber frame):
 
@@ -744,7 +744,7 @@ int main() {
 }
 ```
 
-### 5. Reference Building Configurations {#grid_ex_reference}
+### Reference Building Configurations {#grid_ex_reference}
 
 ![templates_grid_4_reference](templates/templates_grid_4_reference_all.webp)
 
@@ -965,7 +965,7 @@ int main() {
 }
 ```
 
-### 6. Framing Systems, Nodes & Profiles {#grid_ex_framing}
+### Framing Systems, Nodes & Profiles {#grid_ex_framing}
 
 Fifteen comparative bays testing all `system`, `node`, `drop`, `capital`, and `wood_profile.h` combinations with zero-overlap verification:
 

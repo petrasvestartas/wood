@@ -20,9 +20,3 @@ Wood is a timber joinery solver and parametric structure library built on [sessi
     <span class="wood-card-title">Examples</span>
   </a>
 </div>
-<div style="display:none">
-![](diagrams/wood_architecture.webp)
-![](diagrams/wood_elements_taxonomy.webp)
-![](diagrams/wood_templates_pipeline.webp)
-![](diagrams/wood_boolean_cutting.webp)
-</div>

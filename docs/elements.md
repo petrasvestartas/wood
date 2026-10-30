@@ -137,34 +137,6 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 ```
 
 <div style="display:none">
-![](elements/element_plate.png)
-![](elements/element_plate_curved.png)
-![](elements/element_beam.png)
-![](elements/element_beam_curved.png)
-![](elements/element_beam_variable.png)
-![](elements/element_column.png)
-![](elements/element_block.png)
-![](elements/element_support.png)
-![](elements/element_cut_plane.png)
-![](elements/element_profile.webp)
-![](elements/element_pin.png)
-![](elements/element_joint.png)
-![](elements/element_joint_plate.png)
-![](elements/element_joint_plate_top_side.png)
-![](elements/element_joint_plate_side_side_inplane.png)
-![](elements/element_joint_plate_side_side_outplane.png)
-![](elements/element_joint_plate_side_side_rotated.png)
-![](elements/element_joint_plate_cross.png)
-![](elements/element_joint_plate_top_top.png)
-![](elements/element_joint_plate_border.png)
-![](elements/element_joint_beam.png)
-![](elements/element_joint_beam_cross.png)
-![](elements/element_joint_beam_top_side.png)
-![](elements/element_joint_beam_end_to_end.png)
-![](elements/element_joint_beam_butt.png)
-![](elements/element_joint_beam_connectors.png)
-![](elements/element_joint_beam_pins.png)
-
 - @subpage elements_plate
 - @subpage elements_plate_curved
 - @subpage elements_beam
@@ -175,6 +147,7 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 - @subpage elements_support
 - @subpage elements_cut_plane
 - @subpage elements_profile
+- @subpage elements_pin
 - @subpage elements_joint
 - @subpage elements_joint_plate
 - @subpage elements_joint_plate_top_side
@@ -191,5 +164,4 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 - @subpage elements_joint_beam_butt
 - @subpage elements_joint_beam_connectors
 - @subpage elements_joint_beam_pins
-- @subpage elements_pin
 </div>

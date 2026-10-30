@@ -1,7 +1,5 @@
 # Templates {#templates}
 
-[TOC]
-
 Parametric structural generators in `src/templates/` convert surfaces, meshes, and building outlines into joined timber elements. Each template family builds a complete `WoodSession` scene and writes `.pb` files for viewing and fabrication.
 
 <div class="wood-card-grid cols-4">
@@ -56,19 +54,6 @@ Parametric structural generators in `src/templates/` convert surfaces, meshes, a
 </div>
 
 <div style="display:none">
-![](templates/templates_shells_1_translation_shell_plates.webp)
-![](templates/templates_folding_1_reflex_fold_plates.webp)
-![](templates/templates_cylindrical_folding_1_reflection_lamellas.webp)
-![](templates/templates_developable_folding_1_curved_fold_lamellas.webp)
-![](templates/templates_chevron_1_chevron_plates.webp)
-![](templates/templates_cross_1_vda_mesh_all.webp)
-![](templates/templates_module_3_cassette_house_all.webp)
-![](templates/templates_reciprocal_1_rotation_beams.webp)
-![](templates/3_elements_tree_all.webp)
-![](floor/floor_viewer.webp)
-![](templates/templates_truss_1_pratt.png)
-![](examples/templates_vault_9_gothic_ribbed_vault_tierceron.webp)
-
 - @subpage templates_shells
 - @subpage templates_folding
 - @subpage templates_cylindrical_folding

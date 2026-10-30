@@ -1,8 +1,8 @@
 # Wood
 
-Timber joinery solver and parametric structure templates built on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
+Timber joinery solver and parametric structure library built on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
 
-**Documentation:** [https://petrasvestartas.github.io/wood/](https://petrasvestartas.github.io/wood/)
+Documentation: [Overview](https://petrasvestartas.github.io/wood/) · [Architecture](https://petrasvestartas.github.io/wood/architecture.html) · [Elements](https://petrasvestartas.github.io/wood/elements.html) · [Templates](https://petrasvestartas.github.io/wood/templates.html) · [Examples](https://petrasvestartas.github.io/wood/examples.html) · [Setup](SETUP.md)
 
 ![](docs/images/diagrams/wood_architecture.webp)
 
@@ -27,11 +27,15 @@ cmake --build build --target element_joint_plate_side_side_outplane_fingers --pa
 | Session | `src/joinery_solver/wood_session.h` | `WoodSession`: element storage, tree groups, contact queries, interaction graph, `.pb` export |
 | Elements | `src/joinery_solver/wood_elements/*.h` | `Plate`, `PlateCurved`, `Beam`, `BeamCurved`, `BeamVariable`, `Column`, `Block`, `Pin`, `Support`, `CutPlane`, `ConnectorPart`, `Joint`, `JointPlate`, `JointBeam` |
 | Interactions | `src/joinery_solver/wood_interaction/**/*.h` | Contacts (`InteractionContactFace`, `InteractionContactCross`, `InteractionContactAxis`) and cutting features (`InteractionFeaturePlate`, `InteractionFeatureBeam`, `InteractionFeaturePlateBeam`, `InteractionFeaturePlane`, `InteractionFeatureSolid`) |
-| Templates | `src/templates/*` | `Shells`, `Folding`, `CylindricalFolding`, `DevelopableFolding`, `Vault`, `Chevron`, `Cross`, `Reciprocal`, `Module`, `Grid`, `Truss`, `Floor` |
+| Templates | `src/templates/*` | `Shells`, `Folding`, `CylindricalFolding`, `DevelopableFolding`, `Chevron`, `Cross`, `Module`, `Reciprocal`, `Grid`, `Floor`, `Truss`, `Vault` |
 
 ![](docs/images/diagrams/wood_elements_taxonomy.webp)
 
 ![](docs/images/diagrams/wood_joint_elements_taxonomy.webp)
+
+![](docs/images/diagrams/wood_templates_pipeline.webp)
+
+![](docs/images/diagrams/wood_boolean_cutting.webp)
 
 ## Types
 
@@ -64,10 +68,10 @@ cmake --build build --target element_joint_plate_side_side_outplane_fingers --pa
 ## Targets
 
 | Group | CMake Targets |
-| --- | --- | --- |
+| --- | --- |
 | Tests & Docs | `run_tests`, `docs` (`cmake --build build --target docs`) |
 | Workflow Examples | `1_session_contacts`, `2_contacts`, `3_features`, `4_traversal`, `5_settings`, `6_custom_joint`, `7_assignment`, `8_beams`, `9_cross_joints`, `10_profile_cuts`, `11_drill_solids`, `12_solid_features` |
-| Elements | `element_plate`, `element_plate_curved`, `element_beam`, `element_beam_curved`, `element_beam_variable`, `element_block`, `element_column`, `element_cut_plane`, `element_profile`, `element_support`, `element_pin`, `element_joint` |
-| Plate Joints | `element_joint_plate_side_side_outplane_*` (10), `element_joint_plate_side_side_inplane_*` (7), `element_joint_plate_side_side_rotated_*` (5), `element_joint_plate_top_side_*` (4), `element_joint_plate_cross_*` (2), `element_joint_plate_top_top_*` (7), `element_joint_plate_border_fingers`, `element_joint_plate_vidy_node` |
-| Beam Joints | `element_joint_beam_cross_*` (5), `element_joint_beam_end_to_end_*` (2), `element_joint_beam_corner_*` (6), `element_joint_beam_top_side_*` (4), `element_joint_beam_butt_*` (5), `element_joint_beam_wedge`, `element_joint_beam_rectangle_plate`, `element_joint_beam_butterfly_key`, `element_joint_beam_centred_pins`, `element_joint_beam_headed_pins` |
-| Templates | `templates_shells_{1..4}_*`, `templates_folding_{1..39}_*`, `templates_cylindrical_folding_{1..17}_*`, `templates_developable_folding_{1..12}_*`, `templates_vault_{1..9}_*`, `templates_chevron_{1..2}_*`, `templates_cross_{1..2}_*`, `templates_reciprocal_{1..2}_*`, `templates_module_{1..9}_*`, `templates_grid_{1..5}_*`, `templates_truss_{1..3}_*`, `templates_floor_{1..8}_*` |
+| Elements | `element_plate`, `element_plate_holes`, `element_plate_session`, `element_plate_assign_joints`, `element_plate_curved`, `element_beam`, `element_beam_curved`, `element_beam_variable`, `element_beam_variable_cut`, `element_column`, `element_column_session`, `element_block`, `element_support`, `element_profile`, `element_pin`, `element_joint_drill`, `element_joint_cutter` |
+| Plate Joints | `element_joint_plate_top_side_*` (6), `element_joint_plate_vidy_node`, `element_joint_plate_side_side_inplane_*` (7), `element_joint_plate_side_side_outplane_*` (10), `element_joint_plate_side_side_rotated_*` (5), `element_joint_plate_cross_*` (2), `element_joint_plate_top_top_*` (7), `element_joint_plate_border`, `element_joint_plate_parameters` |
+| Beam Joints | `element_joint_beam_cross_*` (6), `element_joint_beam_top_side_milled_wedge`, `element_joint_beam_side_side_inplane_splayed_scarf`, `element_joint_beam_side_side_inplane_cross_splayed_scarf`, `element_joint_beam_jupiter_scarf`, `element_joint_beam_side_side_rotated_miter`, `element_joint_beam_butt`, `element_joint_beam_butt_plates`, `element_joint_beam_wedge`, `element_joint_beam_rectangle_plate`, `element_joint_beam_butterfly_key`, `element_joint_beam_centred_pins`, `element_joint_beam_headed_pins` |
+| Templates | `templates_shells_1_translation_shell`, `templates_folding_{1..39}_*` (36), `templates_cylindrical_folding_{1..17}_*`, `templates_developable_folding_{1..12}_*`, `templates_chevron_1_chevron`, `templates_cross_1_vda_mesh`, `templates_module_{1..6}_*`, `templates_reciprocal_{1..2}_*`, `templates_grid_{1..5}_*`, `templates_floor_{1,2,3,7,8,9}_*`, `templates_truss_{1..3}_*`, `templates_vault_{1..9}_*` |
