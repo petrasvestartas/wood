@@ -4,10 +4,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A Pratt roof truss from its guide: chords and webs drawn as lines, the members and their butts made by the template.
+/// A Pratt roof truss from its guide, the design's overload by its parameters: the members and their butts made by the
+/// template.
 int main() {
 
-    wood_truss::Truss truss(wood_truss::TrussGuide::pratt());
+    const wood_truss::TrussGuide guide(wood_truss::Pratt{.span = 12000.0, .rise = 3000.0, .panels = 6});
+    wood_truss::Truss truss(guide);
     std::cout << truss << std::endl;
     truss.pb_dump(pb_path("live"));
     return 0;
@@ -15,7 +17,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A Pratt roof truss from a TrussGuide: the bottom chord over 12000, the top chord up to 3000 at the middle, six panels, a vertical at every inner panel point and the diagonals falling towards the middle, all drawn as lines (red). The Truss template makes a beam per chord run and per web, mitres the top chord at the ridge, butts the heels, stops every web top_side on the chords and mitres the webs that share a node.
+A Pratt roof truss from TrussGuide(Pratt{...}), the design's overload by its parameters: the bottom chord over 12000, the top chord up to 3000 at the middle, six panels, a vertical at every inner panel point and the diagonals falling towards the middle, all drawn as lines (red). The Truss template makes a beam per chord run and per web, mitres the top chord at the ridge, butts the heels, stops every web top_side on the chords and mitres the webs that share a node.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

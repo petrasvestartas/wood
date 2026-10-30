@@ -1,9 +1,11 @@
-"""Write the gallery of Bow's trusses into docs/templates/truss.md (between its bow-gallery markers), from
-data/templates/truss_bow_1873.json and the pictures of tools/shoot_truss_bow.sh: one card per truss, grouped by kind and
-by Bow's class.
-    python3 -I wood/tools/truss_bow_docs.py
+"""Write the galleries of docs/templates/truss.md, one card per truss showing the TrussGuide overload that makes it: the
+library's designs with their defaults (between the library-gallery markers), from the design structs of
+src/templates/truss/truss_guide.h and the pictures of tools/shoot_butt.sh; Bow's trusses (between the bow-gallery
+markers), from data/templates/truss_bow_1873.json and the pictures of tools/shoot_truss_bow.sh, grouped by kind and by
+Bow's class.
+    python3 -I wood/tools/truss_docs.py
 """
-import json, pathlib
+import json, pathlib, re
 
 WOOD = pathlib.Path(__file__).resolve().parent.parent
 CLASSES = {
@@ -23,14 +25,13 @@ lines = [
     "Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is "
     "stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span "
     "and z up; chords as node sequences, webs and posts as node pairs) and built by the one `Truss` template: "
-    "`TrussGuide::library` draws each graph at its span with a section per member, and `Truss` makes the members and "
+    "`TrussGuide(Bow{number})` draws its graph at its span with a section per member, and `Truss` makes the members and "
     "their butts and laps.",
     "",
     "```cpp",
-    "for (const auto& [name, guide] : wood_truss::TrussGuide::library(",
-    "         config::session_data_dir() / \"templates\" / \"truss_bow_1873.json\")) {",
-    "    wood_truss::Truss truss(guide, \"truss_\" + name);",
-    "    truss.pb_dump(pb_path(\"truss_\" + name));",
+    "for (const wood_truss::Bow& design : wood_truss::Bow::all()) {",
+    "    wood_truss::Truss truss(wood_truss::TrussGuide(design), \"truss_\" + design.name());",
+    "    truss.pb_dump(pb_path(\"truss_\" + design.name()));",
     "}",
     "```",
     "",
@@ -81,11 +82,35 @@ for kind in ("roof", "bridge"):
         for t in group:
             lines += [f'  <div class="wood-card">',
                       f'    <img src="truss_{t["name"]}.webp" alt="Bow No. {t["number"]}" loading="lazy">',
-                      f'    <span class="wood-card-title">No. {t["number"]} · {t["span"] / 1000:.1f} m · p. {t["page"]}</span>',
+                      f'    <span class="wood-card-title">Bow{{"{t["number"]}"}} · {t["span"] / 1000:.1f} m · p. {t["page"]}</span>',
                       "  </div>"]
         lines += ["</div>", ""]
+
+# the library: every design struct of the header, its parameters but the two half sections with their defaults
+header = (WOOD / "src/templates/truss/truss_guide.h").read_text()
+designs = header[header.index("// Designs"):header.index("struct Bow {")]
+structs = re.findall(r"/// (.*)\nstruct (\w+) \{\n((?:    .*\n)+?)\};", designs)
+library = [
+    f"The {len(structs)} designs of the library, each a struct of its parameters and its own `TrussGuide` overload, pictured "
+    "with their defaults as `templates_truss_2_library` builds them, each its own scene `truss_<name>.pb`. Every design "
+    "also takes `.chord_radius = 80` and `.web_radius = 60`, the half sections of the chords and posts and of the webs.",
+    "",
+    '<div class="wood-card-grid cols-4">',
+]
+for doc, struct, fields in structs:
+    name = re.sub(r"(?<!^)(?=[A-Z0-9])", "_", struct).lower()
+    values = [re.match(r"\s*\w+ (\w+) = (.*);", f).groups() for f in fields.splitlines()]
+    call = ", ".join(f".{n} = {v[:-2] if v.endswith('.0') else v}" for n, v in values if not n.endswith("_radius"))
+    library += ['  <div class="wood-card">',
+                f'    <img src="truss_{name}.png" alt="{struct}" loading="lazy">',
+                f'    <span class="wood-card-title">{struct}{{{call}}}</span>',
+                "  </div>"]
+library += ["</div>", ""]
+
 page = WOOD / "docs/templates/truss.md"
 text = page.read_text()
-start, end = "<!-- bow-gallery -->", "<!-- /bow-gallery -->"
-page.write_text(text[:text.index(start) + len(start)] + "\n\n" + "\n".join(lines) + "\n" + text[text.index(end):])
-print(len(data), "cards")
+for (start, end), block in ((("<!-- library-gallery -->", "<!-- /library-gallery -->"), library),
+                            (("<!-- bow-gallery -->", "<!-- /bow-gallery -->"), lines)):
+    text = text[:text.index(start) + len(start)] + "\n\n" + "\n".join(block) + "\n" + text[text.index(end):]
+page.write_text(text)
+print(len(structs), "designs,", len(data), "Bow trusses")
