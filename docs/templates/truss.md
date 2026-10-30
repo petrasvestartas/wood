@@ -2,7 +2,7 @@
 
 [TOC]
 
-Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::Truss` converts chord polylines and web/post lines into `Beam` elements joined by a member hierarchy: T joints with run-on ends, butts on the members' real surfaces, miters at gentle bends and ridges, half laps where members cross. The 340 roof trusses and framed bridges of Bow's 1873 catalogue are at the end of this page.
+Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::Truss` converts chord polylines and web/post lines into `Beam` elements joined by a member hierarchy: T joints with run-on ends, butts on the members' real surfaces, miters at gentle bends and ridges, half laps where members cross. The 326 roof trusses and framed bridges of Bow's 1873 catalogue are at the end of this page.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#truss_ex_pratt">
@@ -39,34 +39,51 @@ Parametric and custom timber trusses in `src/templates/truss/*.h`. `wood_truss::
   </a>
   <a class="wood-card" href="#truss_graph">
     <img src="truss_bow_64.webp" alt="Bow 1873">
-    <span class="wood-card-title">Bow 1873: 340 Trusses</span>
+    <span class="wood-card-title">Bow 1873: 326 Trusses</span>
   </a>
 </div>
 
 ## Primary Inputs
 
-| Input / Parameter | Type | Default | Geometric Role |
+A truss is two lists of members, the chords and the webs (a post is a web), each a `TrussMember`:
+
+| `TrussMember` | Type | Default | Role |
 | --- | --- | --- | --- |
-| `chords` | `std::vector<Polyline>` | Preset-specific | Continuous top/bottom chord polylines passing through panel nodes |
-| `webs` | `std::vector<Line>` | Preset-specific | Interior vertical and diagonal web segments |
-| `posts` | `std::vector<Line>` | `{}` | Supporting column/post segments at truss ends |
-| `chord_radius` | `double` | `80.0` | Half-section (`mm`) of chord and post beams (`80.0` → `160 × 160 mm`) |
-| `web_radius` | `double` | `60.0` | Half-section (`mm`) of web beams (`60.0` → `120 × 120 mm`) |
+| `axis` | `Polyline` | | Through its nodes, end to end: a chord turns at its kinks, a web is straight between two nodes |
+| `radius` | `double` | `80.0` | Half its square section, mm (`80.0` → `160 × 160 mm`) |
+| `level` | `int` | `0` | 1 primary, 2 secondary, 3 tertiary; `0`: read from the drawing |
+| `runs_on` | `std::array<bool, 2>` | `{false, false}` | A chord's start and end running on where chord ends meet, in place of the automatic choice |
+
+```cpp
+TrussGuide(const std::vector<TrussMember>& chords, const std::vector<TrussMember>& webs);
+TrussGuide(const std::vector<Polyline>& chords, const std::vector<Line>& webs, const std::vector<Line>& posts = {},
+           double chord_radius = 80.0, double web_radius = 60.0);
+static std::vector<std::pair<std::string, TrussGuide>> TrussGuide::library(const std::filesystem::path& json_path);
+```
+
+The second makes the members from lines, one section for the chords and posts and one for the webs, the hierarchy read from
+the drawing; `library` reads a file of trusses stored as graphs (see [Graphs: Bow 1873](#truss_graph)).
 
 ## Geometry Generation & Joint Rules
 
-Every node is solved by a hierarchy: one member runs through or runs on, the others meet it in a T. The hierarchy is given by
-the guide's `chord_levels`, `web_levels` and `post_levels` (1 primary, 2 secondary, 3 tertiary), or, when they are empty,
-read from the drawing by iteratively pruning the outer boundary of the line graph: outer boundary chords and posts receive
-`rank = 0`, inner web layers `rank >= 1`. A member stops on every member of a higher level at its node: it loses the shadow
-of that member's cut solid swept along its own axis, so it butts on the actual surface (a kink, a corner) and keeps nothing
-behind it. Where chord ends meet at one node the most important one runs on (`TrussGuide::runs_on_at`: named in `runs_on`,
-else the higher level, else the more level; a lone end also runs on over webs and posts all lower than it) and the others are
-seated on its side. It reaches past the node to its end cut (`TrussGuide::end_cut`): through the outer corners of the members
-it carries on both its sides, so the outer contour runs on clean; flush with the outer face of the members on one side met at
-40 degrees or more; else square, past the node by at least its half section. The node and the axes always lie in wood. Only
-two ends of one slope, as at a ridge, and gentle bends of under 35 degrees are mitered; two chords bending at one node are
-half-lapped; a chord ending at another's bend butts on its surface.
+Every node is solved by six rules:
+
+1. **Hierarchy.** Each member has a level: 1 primary (chords, posts), 2 secondary (webs), 3 tertiary (sub-struts); where
+   `level` is 0 it is read from the drawing, the outer boundary first, by pruning the line graph layer by layer. At its node
+   a member stops on every higher member there, in a T: it loses that member's cut solid swept along its own axis (its
+   shadow), so it butts on the real surface, a kink or a corner, and keeps nothing behind it.
+2. **One end runs on.** Where chord ends meet, one runs on past the node and the others are seated on its side
+   (`TrussGuide::runs_on_at`): the one marked `runs_on`, else the higher level, else the more level, so the tie runs past
+   the rafter foot and a chord past an end post. A lone chord end runs on over webs that are all lower than it.
+3. **Clean ends, node in wood.** An end that runs on reaches to its end cut (`TrussGuide::end_cut`): through the outer
+   corners of the members it carries on both its sides, so the contour runs on clean; flush with the outer face of a member
+   met at 40 degrees or more; else square, past the node by at least its half section. The node and the axes always lie in
+   wood.
+4. **Miters only within one piece.** A chord's kinks, two ends of one slope (a ridge) and bends of under 35 degrees are
+   mitered; every other meeting is a T, easier to cut than a sharp miter.
+5. **Laps where members cross.** Members of one level crossing share the depth in half laps; two chords bending at one node
+   are half-lapped; a chord ending at another's bend butts on its surface.
+6. **The lower never cuts the higher.** A lower member passing a higher member's end leaves it whole.
 
 | Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
@@ -87,17 +104,17 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
     : WoodSession(name),
       guide(guide) {
 
-    // 1. input: the guide's chord polylines and web/post lines as drawn
+    // 1. input: the guide's chords and webs as drawn
     add_input();
 
-    // 2. members: a Beam per chord segment, web, and post
+    // 2. members: a Beam per chord run and per web
     add_chords();
     add_webs();
 
     // 3. chords: runs mitered at kinks, butted at heels, lapped at crossings
     add_chord_butts();
 
-    // 4. webs and posts: let into chords, lapped at crossings, mitered with same-rank neighbours
+    // 4. webs: let into chords, lapped at crossings, mitered with same-rank neighbours
     add_web_butts();
 }
 ```
@@ -708,27 +725,22 @@ TrussGuide::topology_optimised(double span = 12000.0, double height = 1800.0, do
 
 ## Graphs: Bow 1873 {#truss_graph}
 
-A truss is one topology: nodes, chords through them, webs and posts between them. `TrussGraph` stores exactly that, in
-spans, with its span, a section per member, each member's level in the hierarchy (1 primary, 2 secondary, 3 tertiary) and
-the chord ends that run on where chords end together, and `TrussGraph::guide` draws it for the one `Truss` template, so a
-catalogue of designs is data, not a factory per design. The roof trusses and framed bridges of Bow's *Economics of Construction in relation to Framed
-Structures* (1873) are kept this way in `data/templates/truss_bow_1873.json` and built by `templates_truss_3_bow`.
-
-```cpp
-TrussGuide TrussGraph::guide() const;
-static std::vector<TrussGraph> TrussGraph::library(const std::filesystem::path& json_path);
-```
+A truss is one topology: nodes, chords through them, webs and posts between them. A library file stores exactly that, in
+spans, with each truss's span, a section per member, each member's level in the hierarchy (1 primary, 2 secondary, 3
+tertiary) and the chord ends that run on where chords end together; `TrussGuide::library` draws each at its span for the
+one `Truss` template, so a catalogue of designs is data, not a factory per design. The roof trusses and framed bridges of
+Bow's *Economics of Construction in relation to Framed Structures* (1873) are kept this way in
+`data/templates/truss_bow_1873.json` and built by `templates_truss_3_bow`.
 
 <!-- bow-gallery -->
 
-The 340 roof trusses and framed bridges of R. H. Bow, *Economics of Construction in relation to Framed Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span and z up; chords as node sequences, webs and posts as node pairs) and built by the one `Truss` template: `TrussGraph::guide` draws the graph at its span with a section per member, and `Truss` makes the members and their butts and laps.
+The 326 roof trusses and framed bridges of R. H. Bow, *Economics of Construction in relation to Framed Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span and z up; chords as node sequences, webs and posts as node pairs) and built by the one `Truss` template: `TrussGuide::library` draws each graph at its span with a section per member, and `Truss` makes the members and their butts and laps.
 
 ```cpp
-const std::vector<wood_truss::TrussGraph> graphs = wood_truss::TrussGraph::library(
-    config::session_data_dir() / "templates" / "truss_bow_1873.json");
-for (const wood_truss::TrussGraph& graph : graphs) {
-    wood_truss::Truss truss(graph.guide(), "truss_" + graph.name);
-    truss.pb_dump(pb_path("truss_" + graph.name));
+for (const auto& [name, guide] : wood_truss::TrussGuide::library(
+         config::session_data_dir() / "templates" / "truss_bow_1873.json")) {
+    wood_truss::Truss truss(guide, "truss_" + name);
+    truss.pb_dump(pb_path("truss_" + name));
 }
 ```
 
@@ -740,33 +752,13 @@ Every node is solved as carpentry by a hierarchy stored with the graph: each mem
 
 ### Scale and sections {#truss_bow_sizing}
 
-Bow gives the span of only a few designs (Nos. 130, 137, 192, 195, 293, 332); his diagrams of forces are drawn to no absolute scale. Every other design is drawn at its number of sub-spans times 8 ft (2.44 m), the sub-span of his stated examples (No. 130: 86 1/4 ft over 12 sub-spans; No. 137: 97 1/2 ft over 12; No. 332: 204 ft over 24); the arched roofs whose sub-spans he calls irregular (Nos. 193, 194, 196, 197) are taken at 100 ft. Each member's section is then sized, per truss, for timber trusses 3 m apart: roofs 1.5 kN/m2 on the roof outline (the upper chords), bridges 5 kN/m2 on the deck, both x 1.4. The forces are those of truss action, as Bow's diagrams of forces give them: the pin-jointed frame, a curved or bent chord drawn through nodes where nothing else meets it being one bar between the joints where others do; such a bar also carries the bending of the loads between its joints and of its axial force on the sagitta of its curve. A member that the carpentry lands on another's face just beside a joint, to keep it from running alongside, meets that joint in the force model, the member landed on bending under the landing force on its eccentricity. Only designs that are mechanisms when pin-jointed (Bow's deficient Class II, most of Class IV) are analysed as frames with stiff joints, carrying by bending. Sections are square GL24h, N/A + M/W within the design strength, struts with a buckling factor, at least 100 mm for chords and 60 mm for webs, one section per member. The span, the load and the largest forces are stored with each graph; the cards show the span.
+Bow gives the span of only a few designs (Nos. 130, 137, 192, 195, 293, 332); his diagrams of forces are drawn to no absolute scale. Every other design is drawn at its number of sub-spans times 8 ft (2.44 m), the sub-span of his stated examples (No. 130: 86 1/4 ft over 12 sub-spans; No. 137: 97 1/2 ft over 12; No. 332: 204 ft over 24); the arched roofs whose sub-spans he calls irregular (Nos. 193, 194, 197) are taken at 100 ft. Each member's section is then sized, per truss, for timber trusses 3 m apart: roofs 1.5 kN/m2 on the roof outline (the upper chords), bridges 5 kN/m2 on the deck, both x 1.4. The forces are those of truss action, as Bow's diagrams of forces give them: the pin-jointed frame, a curved or bent chord drawn through nodes where nothing else meets it being one bar between the joints where others do; such a bar also carries the bending of the loads between its joints and of its axial force on the sagitta of its curve. A member that the carpentry lands on another's face just beside a joint, to keep it from running alongside, meets that joint in the force model, the member landed on bending under the landing force on its eccentricity. Only designs that are mechanisms when pin-jointed (Bow's deficient Class II, most of Class IV) are analysed as frames with stiff joints, carrying by bending. Sections are square GL24h, N/A + M/W within the design strength, struts with a buckling factor, at least 100 mm for chords and 60 mm for webs, one section per member. The span, the load and the largest forces are stored with each graph; the cards show the span.
 
 ### Roof trusses, Class I {#truss_bow_roof_i}
 
 Class I: theoretically perfect frames: with every joint hinged they still cannot distort, and no part can be lengthened or shortened so as to induce stress.
 
 <div class="wood-card-grid cols-4">
-  <div class="wood-card">
-    <img src="truss_bow_1.webp" alt="Bow No. 1" loading="lazy">
-    <span class="wood-card-title">No. 1 · 2.4 m · p. 17</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_2.webp" alt="Bow No. 2" loading="lazy">
-    <span class="wood-card-title">No. 2 · 2.4 m · p. 17</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_3.webp" alt="Bow No. 3" loading="lazy">
-    <span class="wood-card-title">No. 3 · 4.9 m · p. 17</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_4.webp" alt="Bow No. 4" loading="lazy">
-    <span class="wood-card-title">No. 4 · 4.9 m · p. 17</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_5.webp" alt="Bow No. 5" loading="lazy">
-    <span class="wood-card-title">No. 5 · 4.9 m · p. 17</span>
-  </div>
   <div class="wood-card">
     <img src="truss_bow_6.webp" alt="Bow No. 6" loading="lazy">
     <span class="wood-card-title">No. 6 · 4.9 m · p. 17</span>
@@ -1303,10 +1295,6 @@ Class II: a deficiency of parts: with hinged joints they hold their shape only u
 
 <div class="wood-card-grid cols-4">
   <div class="wood-card">
-    <img src="truss_bow_138.webp" alt="Bow No. 138" loading="lazy">
-    <span class="wood-card-title">No. 138 · 7.3 m · p. 26</span>
-  </div>
-  <div class="wood-card">
     <img src="truss_bow_139.webp" alt="Bow No. 139" loading="lazy">
     <span class="wood-card-title">No. 139 · 7.3 m · p. 26</span>
   </div>
@@ -1542,10 +1530,6 @@ Class III: a redundancy of parts: no part can be made longer or shorter without 
     <span class="wood-card-title">No. 195 · 64.3 m · p. 30</span>
   </div>
   <div class="wood-card">
-    <img src="truss_bow_196.webp" alt="Bow No. 196" loading="lazy">
-    <span class="wood-card-title">No. 196 · 30.5 m · p. 30</span>
-  </div>
-  <div class="wood-card">
     <img src="truss_bow_197.webp" alt="Bow No. 197" loading="lazy">
     <span class="wood-card-title">No. 197 · 30.5 m · p. 30</span>
   </div>
@@ -1580,20 +1564,12 @@ Class I: theoretically perfect frames: with every joint hinged they still cannot
 
 <div class="wood-card-grid cols-4">
   <div class="wood-card">
-    <img src="truss_bow_201i.webp" alt="Bow No. 201i" loading="lazy">
-    <span class="wood-card-title">No. 201i · 4.9 m · p. 31</span>
-  </div>
-  <div class="wood-card">
     <img src="truss_bow_201iii.webp" alt="Bow No. 201iii" loading="lazy">
     <span class="wood-card-title">No. 201iii · 4.9 m · p. 31</span>
   </div>
   <div class="wood-card">
     <img src="truss_bow_202a.webp" alt="Bow No. 202A" loading="lazy">
     <span class="wood-card-title">No. 202A · 4.9 m · p. 31</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_202b.webp" alt="Bow No. 202B" loading="lazy">
-    <span class="wood-card-title">No. 202B · 4.9 m · p. 31</span>
   </div>
   <div class="wood-card">
     <img src="truss_bow_202c.webp" alt="Bow No. 202C" loading="lazy">
@@ -1772,10 +1748,6 @@ Class I: theoretically perfect frames: with every joint hinged they still cannot
     <span class="wood-card-title">No. 245 · 17.1 m · p. 34</span>
   </div>
   <div class="wood-card">
-    <img src="truss_bow_246.webp" alt="Bow No. 246" loading="lazy">
-    <span class="wood-card-title">No. 246 · 17.1 m · p. 34</span>
-  </div>
-  <div class="wood-card">
     <img src="truss_bow_247.webp" alt="Bow No. 247" loading="lazy">
     <span class="wood-card-title">No. 247 · 17.1 m · p. 34</span>
   </div>
@@ -1802,10 +1774,6 @@ Class I: theoretically perfect frames: with every joint hinged they still cannot
   <div class="wood-card">
     <img src="truss_bow_253.webp" alt="Bow No. 253" loading="lazy">
     <span class="wood-card-title">No. 253 · 19.5 m · p. 34</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_254.webp" alt="Bow No. 254" loading="lazy">
-    <span class="wood-card-title">No. 254 · 19.5 m · p. 34</span>
   </div>
   <div class="wood-card">
     <img src="truss_bow_255.webp" alt="Bow No. 255" loading="lazy">
@@ -1876,10 +1844,6 @@ Class I: theoretically perfect frames: with every joint hinged they still cannot
     <span class="wood-card-title">No. 271 · 24.4 m · p. 35</span>
   </div>
   <div class="wood-card">
-    <img src="truss_bow_272.webp" alt="Bow No. 272" loading="lazy">
-    <span class="wood-card-title">No. 272 · 24.4 m · p. 35</span>
-  </div>
-  <div class="wood-card">
     <img src="truss_bow_273.webp" alt="Bow No. 273" loading="lazy">
     <span class="wood-card-title">No. 273 · 24.4 m · p. 35</span>
   </div>
@@ -1905,10 +1869,6 @@ Class II: a deficiency of parts: with hinged joints they hold their shape only u
   <div class="wood-card">
     <img src="truss_bow_277.webp" alt="Bow No. 277" loading="lazy">
     <span class="wood-card-title">No. 277 · 4.9 m · p. 36</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_278.webp" alt="Bow No. 278" loading="lazy">
-    <span class="wood-card-title">No. 278 · 7.3 m · p. 36</span>
   </div>
   <div class="wood-card">
     <img src="truss_bow_279.webp" alt="Bow No. 279" loading="lazy">
@@ -2108,10 +2068,6 @@ Class III: a redundancy of parts: no part can be made longer or shorter without 
   <div class="wood-card">
     <img src="truss_bow_327.webp" alt="Bow No. 327" loading="lazy">
     <span class="wood-card-title">No. 327 · 21.9 m · p. 39</span>
-  </div>
-  <div class="wood-card">
-    <img src="truss_bow_328.webp" alt="Bow No. 328" loading="lazy">
-    <span class="wood-card-title">No. 328 · 24.4 m · p. 39</span>
   </div>
   <div class="wood-card">
     <img src="truss_bow_329.webp" alt="Bow No. 329" loading="lazy">

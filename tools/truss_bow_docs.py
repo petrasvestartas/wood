@@ -23,15 +23,14 @@ lines = [
     "Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is "
     "stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span "
     "and z up; chords as node sequences, webs and posts as node pairs) and built by the one `Truss` template: "
-    "`TrussGraph::guide` draws the graph at its span with a section per member, and `Truss` makes the members and "
+    "`TrussGuide::library` draws each graph at its span with a section per member, and `Truss` makes the members and "
     "their butts and laps.",
     "",
     "```cpp",
-    "const std::vector<wood_truss::TrussGraph> graphs = wood_truss::TrussGraph::library(",
-    "    config::session_data_dir() / \"templates\" / \"truss_bow_1873.json\");",
-    "for (const wood_truss::TrussGraph& graph : graphs) {",
-    "    wood_truss::Truss truss(graph.guide(), \"truss_\" + graph.name);",
-    "    truss.pb_dump(pb_path(\"truss_\" + graph.name));",
+    "for (const auto& [name, guide] : wood_truss::TrussGuide::library(",
+    "         config::session_data_dir() / \"templates\" / \"truss_bow_1873.json\")) {",
+    "    wood_truss::Truss truss(guide, \"truss_\" + name);",
+    "    truss.pb_dump(pb_path(\"truss_\" + name));",
     "}",
     "```",
     "",
@@ -58,7 +57,7 @@ lines = [
     "Bow gives the span of only a few designs (Nos. 130, 137, 192, 195, 293, 332); his diagrams of forces are drawn to "
     "no absolute scale. Every other design is drawn at its number of sub-spans times 8 ft (2.44 m), the sub-span of his "
     "stated examples (No. 130: 86 1/4 ft over 12 sub-spans; No. 137: 97 1/2 ft over 12; No. 332: 204 ft over 24); the "
-    "arched roofs whose sub-spans he calls irregular (Nos. 193, 194, 196, 197) are taken at 100 ft. "
+    "arched roofs whose sub-spans he calls irregular (Nos. 193, 194, 197) are taken at 100 ft. "
     "Each member's section is then sized, per truss, for timber trusses 3 m apart: roofs 1.5 kN/m2 on the roof outline "
     "(the upper chords), bridges 5 kN/m2 on the deck, both x 1.4. The forces are those of truss action, as Bow's diagrams "
     "of forces give them: the pin-jointed frame, a curved or bent chord drawn through nodes where nothing else meets it "

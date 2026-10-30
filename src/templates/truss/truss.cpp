@@ -19,22 +19,19 @@ Truss::Truss(const TrussGuide& guide, const std::string& name) : WoodSession(nam
     // chords: the runs mitered at kinks, butted at heels
     add_chord_butts();
 
-    // webs and posts: on the chords, lapped where they cross, mitered with their neighbours at every node
+    // webs: on the chords, lapped where they cross, mitered with their neighbours at every node
     add_web_butts();
 }
 
 void Truss::add_input() {
 
-    std::vector<Polyline> lines = guide.chords;
-    for (const std::vector<Line>* members : {&guide.webs, &guide.posts})
-        for (const Line& member : *members)
-            lines.push_back(Polyline({member.start(), member.end()}));
-    for (const Polyline& line : lines) {
-        std::shared_ptr<Polyline> drawn = std::make_shared<Polyline>(line);
-        drawn->linecolor = Color(0.85f, 0.1f, 0.1f);
-        drawn->width = 4.0;
-        add_polyline(drawn, group_named("input"));
-    }
+    for (const std::vector<TrussMember>* members : {&guide.chords, &guide.webs})
+        for (const TrussMember& member : *members) {
+            std::shared_ptr<Polyline> drawn = std::make_shared<Polyline>(member.axis);
+            drawn->linecolor = Color(0.85f, 0.1f, 0.1f);
+            drawn->width = 4.0;
+            add_polyline(drawn, group_named("input"));
+        }
 }
 
 void Truss::add_chords() {
@@ -44,7 +41,7 @@ void Truss::add_chords() {
         for (size_t s = 0; s < runs.size(); s++)
             add(std::make_shared<Beam>(
                     Polyline({runs[s][0], runs[s][1]}),
-                    guide.chord_radii.empty() ? guide.chord_radius : guide.chord_radii[c],
+                    guide.chords[c].radius,
                     fmt::format("chord_{}_{}", c, s)
                 ),
                 group_named("chords"));
@@ -54,19 +51,7 @@ void Truss::add_chords() {
 void Truss::add_webs() {
 
     for (size_t w = 0; w < guide.webs.size(); w++)
-        add(std::make_shared<Beam>(
-                Polyline({guide.webs[w].start(), guide.webs[w].end()}),
-                guide.web_radii.empty() ? guide.web_radius : guide.web_radii[w],
-                fmt::format("web_{}", w)
-            ),
-            group_named("webs"));
-    for (size_t p = 0; p < guide.posts.size(); p++)
-        add(std::make_shared<Beam>(
-                Polyline({guide.posts[p].start(), guide.posts[p].end()}),
-                guide.post_radii.empty() ? guide.chord_radius : guide.post_radii[p],
-                fmt::format("post_{}", p)
-            ),
-            group_named("webs"));
+        add(std::make_shared<Beam>(guide.webs[w].axis, guide.webs[w].radius, fmt::format("web_{}", w)), group_named("webs"));
 }
 
 void Truss::add_butt(
@@ -199,7 +184,7 @@ void Truss::add_chord_butts() {
                         heel = a;
             if (heel) {
                 const std::array<std::vector<Point>, 2> polylines = {
-                    guide.chords[runs[i].chord].get_points(), guide.chords[runs[j].chord].get_points()
+                    guide.chords[runs[i].chord].axis.get_points(), guide.chords[runs[j].chord].axis.get_points()
                 };
                 std::array<bool, 2> bent = {false, false};
                 for (size_t k = 0; k < 2; k++)
@@ -253,7 +238,7 @@ void Truss::add_chord_butts() {
             const std::optional<std::array<Point, 2>> cut = guide.end_cut(c, side);
             if (!cut)
                 continue;
-            const std::vector<Point> points = guide.chords[c].get_points();
+            const std::vector<Point> points = guide.chords[c].axis.get_points();
             const Point node = side == 0 ? points.front() : points.back();
             const Vector on = (node - (side == 0 ? points[1] : points[points.size() - 2])).normalized();
             if (std::abs(((*cut)[1] - (*cut)[0]).dot(on)) < 1e-6)
@@ -269,9 +254,6 @@ void Truss::add_chord_butts() {
             for (size_t w = 0; !carried && w < guide.webs.size(); w++)
                 if (at(guide.webs[w].start(), node) || at(guide.webs[w].end(), node))
                     carried = get_element_by_name<Beam>(fmt::format("web_{}", w));
-            for (size_t p = 0; !carried && p < guide.posts.size(); p++)
-                if (at(guide.posts[p].start(), node) || at(guide.posts[p].end(), node))
-                    carried = get_element_by_name<Beam>(fmt::format("post_{}", p));
             if (!runner || !carried)
                 continue;
             const Vector along = ((*cut)[1] - (*cut)[0]).normalized();
@@ -311,13 +293,13 @@ void Truss::add_web_butts() {
 
     std::vector<std::pair<Line, std::shared_ptr<Beam>>> members;
     for (size_t w = 0; w < guide.webs.size(); w++)
-        members.emplace_back(guide.webs[w], get_element_by_name<Beam>(fmt::format("web_{}", w)));
-    for (size_t p = 0; p < guide.posts.size(); p++)
-        members.emplace_back(guide.posts[p], get_element_by_name<Beam>(fmt::format("post_{}", p)));
+        members.emplace_back(
+            Line::from_points(guide.webs[w].start(), guide.webs[w].end()), get_element_by_name<Beam>(fmt::format("web_{}", w))
+        );
 
     std::vector<Point> points;
-    for (const Polyline& chord : guide.chords)
-        for (const Point& point : chord.get_points())
+    for (const TrussMember& chord : guide.chords)
+        for (const Point& point : chord.axis.get_points())
             points.push_back(point);
     for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
         points.push_back(member.first.start());
@@ -472,20 +454,19 @@ void Truss::add_web_butts() {
         if (boundary.empty())
             break;
     }
-    // the hierarchy given: each line's level in place of the layer it was read from
-    if (!guide.chord_levels.empty()) {
-        size_t l = 0;
-        for (size_t c = 0; c < guide.chords.size(); c++)
-            for (size_t s = 0; s < guide.runs(c).size(); s++)
-                rank[l++] = guide.chord_levels[c];
-        for (const int level : guide.web_levels)
-            rank[l++] = level;
-        for (const int level : guide.post_levels)
-            rank[l++] = level;
-    }
+    // the hierarchy given: each member's level in place of the layer it was read from
+    std::vector<int> levels;
+    for (size_t c = 0; c < guide.chords.size(); c++)
+        levels.insert(levels.end(), guide.runs(c).size(), guide.chords[c].level);
+    for (const TrussMember& web : guide.webs)
+        levels.push_back(web.level);
     std::map<const Beam*, int> ranks;
-    for (size_t l = 0; l < lines.size(); l++)
-        ranks[lines[l].second.get()] = rank[l];
+    std::set<const Beam*> leveled;
+    for (size_t l = 0; l < lines.size(); l++) {
+        ranks[lines[l].second.get()] = levels[l] > 0 ? levels[l] : rank[l];
+        if (levels[l] > 0)
+            leveled.insert(lines[l].second.get());
+    }
 
     std::vector<std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>>> lets;
     const auto let_in =
@@ -526,7 +507,7 @@ void Truss::add_web_butts() {
                     );
                 } else if (at_end && ranks[member.second.get()] > ranks[run.second.get()]) {
                     let_in(run.second, member.second);
-                } else if (at_end && !guide.chord_levels.empty() &&
+                } else if (at_end && leveled.count(member.second.get()) && leveled.count(run.second.get()) &&
                            ranks[member.second.get()] < ranks[run.second.get()]) {
                     add_butt(
                         JointBeam::butt_top_side_end(*member.second, *run.second),
@@ -602,7 +583,9 @@ void Truss::add_web_butts() {
     for (const std::pair<Point, std::vector<size_t>>& crossing : crossings) {
         std::vector<size_t> crossed = crossing.second;
         std::sort(crossed.begin(), crossed.end());
-        double depth = 2.0 * guide.chord_radius;
+        double depth = 0.0;
+        for (const TrussMember& chord : guide.chords)
+            depth = std::max(depth, 2.0 * chord.radius);
         for (const size_t k : crossed)
             depth = std::min(depth, 2.0 * lines[k].second->radius(0));
         for (size_t i = 0; i < crossed.size(); i++)

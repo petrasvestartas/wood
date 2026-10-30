@@ -1,6 +1,5 @@
 #include "wood_session.h"
 #include "src/templates/truss/truss.h"
-#include "src/templates/truss/truss_graph.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -10,11 +9,11 @@ using namespace wood_session;
 int main() {
 
     const std::filesystem::path path = config::session_data_dir() / "templates" / "truss_bow_1873.json";
-    const std::vector<wood_truss::TrussGraph> graphs = wood_truss::TrussGraph::library(path);
-    for (const wood_truss::TrussGraph& graph : graphs) {
-        wood_truss::Truss truss(graph.guide(), "truss_" + graph.name);
-        truss.pb_dump(pb_path("truss_" + graph.name));
+    const std::vector<std::pair<std::string, wood_truss::TrussGuide>> guides = wood_truss::TrussGuide::library(path);
+    for (const auto& [name, guide] : guides) {
+        wood_truss::Truss truss(guide, "truss_" + name);
+        truss.pb_dump(pb_path("truss_" + name));
     }
-    std::cout << graphs.size() << " Bow trusses" << std::endl;
+    std::cout << guides.size() << " Bow trusses" << std::endl;
     return 0;
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include "wood_session.h"
 
+#include <filesystem>
+
 using namespace session_cpp;
 using namespace wood_session;
 
@@ -10,47 +12,49 @@ namespace wood_truss {
 // TrussGuide
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The truss guide.
+/// One member of a truss: its axis through its nodes, its half section and its place in the hierarchy.
+struct TrussMember {
+    Polyline axis; // Through its nodes, end to end: a chord turns at its kinks, a web or post is straight between two.
+    double radius = 80.0; // mm, half its square section.
+    int level = 0; // 1 primary, 2 secondary, 3 tertiary: it stops on every higher member at its node; 0 read from the drawing.
+    std::array<bool, 2> runs_on = {false, false}; // A chord's start and end running on where chord ends meet.
+
+    /// The first node of the axis.
+    Point start() const;
+
+    /// The last node of the axis.
+    Point end() const;
+};
+
+/// The truss guide: the chords and the webs, each a member with its axis, section and level.
 class TrussGuide {
 public:
-    std::vector<Polyline>
-        chords; // Each chord through its nodes, end to end; a node where it turns is a kink.
-    std::vector<Line>
-        webs; // Each web between two nodes, on a chord, at a kink or at a chord's end.
-    std::vector<Line> posts; // Each post.
-    double chord_radius = 80.0; // mm, half the chords' and the posts' square section.
-    double web_radius = 60.0; // mm, half the webs' square section.
-    std::vector<double> chord_radii; // mm, half the square section of each chord; empty: chord_radius for all.
-    std::vector<double> web_radii; // mm, of each web; empty: web_radius for all.
-    std::vector<double> post_radii; // mm, of each post; empty: chord_radius for all.
-    std::vector<std::array<size_t, 2>>
-        runs_on; // Chord ends (chord, 0 start or 1 end) running on where chords end together: flush with the others' far side, they butt on it.
-    std::vector<int> chord_levels; // Each chord's place in the hierarchy, 1 primary, 2 secondary, 3 tertiary; empty: read from the drawing.
-    std::vector<int> web_levels; // Each web's; a member stops on every member of a higher level at its node.
-    std::vector<int> post_levels; // Each post's.
+    std::vector<TrussMember> chords; // A member per straight run, mitered at kinks, the ends meeting others at heels.
+    std::vector<TrussMember> webs; // Webs and posts: their ends stop on the chords and on each other.
 
-    /// A guide from its chords, webs and end posts and their half sections, one for all or one per member.
+    /// A guide from its members.
+    TrussGuide(const std::vector<TrussMember>& chords, const std::vector<TrussMember>& webs);
+
+    /// A guide from lines, one half section for the chords and one for the webs, the hierarchy read from the drawing; the
+    /// posts are webs of the chords' section.
     TrussGuide(
         const std::vector<Polyline>& chords,
         const std::vector<Line>& webs,
         const std::vector<Line>& posts = {},
         double chord_radius = 80.0,
-        double web_radius = 60.0,
-        const std::vector<double>& chord_radii = {},
-        const std::vector<double>& web_radii = {},
-        const std::vector<double>& post_radii = {},
-        const std::vector<std::array<size_t, 2>>& runs_on = {},
-        const std::vector<int>& chord_levels = {},
-        const std::vector<int>& web_levels = {},
-        const std::vector<int>& post_levels = {}
+        double web_radius = 60.0
     );
+
+    /// Every truss of a library file such as data/templates/truss_bow_1873.json, by name, its nodes (x along the span from
+    /// the left support and z up, in spans) drawn at its span; an empty list when the file is missing.
+    static std::vector<std::pair<std::string, TrussGuide>> library(const std::filesystem::path& json_path);
 
     /// Each straight run of chord `chord`, from kink to kink: a member each; an end running on reaches as far as its end cut.
     std::vector<std::array<Point, 2>> runs(size_t chord) const;
 
     /// Whether chord `chord`'s end `side` (0 start, 1 end) runs on past its node: where chord ends meet and none passes, the
-    /// one given in runs_on, else the highest in the hierarchy, else the most level, none of one level and slope (an apex)
-    /// or at a gentle bend of under 35 degrees; a lone end, when every web and post there is lower in the hierarchy.
+    /// one marked runs_on, else the highest in the hierarchy, else the most level, none of one level and slope (an apex) or
+    /// at a gentle bend of under 35 degrees; a lone end, when every web there is lower in the hierarchy.
     bool runs_on_at(size_t chord, size_t side) const;
 
     /// The cut of an end running on, through the two points where it crosses the run's faces: through the outer corners of

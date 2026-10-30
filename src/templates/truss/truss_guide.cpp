@@ -1,33 +1,90 @@
 #include "pch.h"
 #include "src/templates/truss/truss_guide.h"
+#include "json.h"
+
+#include <fstream>
 
 namespace wood_truss {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TrussGuide
 // ═══════════════════════════════════════════════════════════════════════════
+Point TrussMember::start() const {
+    return axis.get_points().front();
+}
+
+Point TrussMember::end() const {
+    return axis.get_points().back();
+}
+
+TrussGuide::TrussGuide(const std::vector<TrussMember>& chords, const std::vector<TrussMember>& webs)
+    : chords(chords), webs(webs) {
+}
+
 TrussGuide::TrussGuide(
     const std::vector<Polyline>& chords,
     const std::vector<Line>& webs,
     const std::vector<Line>& posts,
     double chord_radius,
-    double web_radius,
-    const std::vector<double>& chord_radii,
-    const std::vector<double>& web_radii,
-    const std::vector<double>& post_radii,
-    const std::vector<std::array<size_t, 2>>& runs_on,
-    const std::vector<int>& chord_levels,
-    const std::vector<int>& web_levels,
-    const std::vector<int>& post_levels
-)
-    : chords(chords), webs(webs), posts(posts), chord_radius(chord_radius), web_radius(web_radius),
-      chord_radii(chord_radii), web_radii(web_radii), post_radii(post_radii), runs_on(runs_on),
-      chord_levels(chord_levels), web_levels(web_levels), post_levels(post_levels) {
+    double web_radius
+) {
+    for (const Polyline& chord : chords)
+        this->chords.push_back({chord, chord_radius});
+    for (const Line& web : webs)
+        this->webs.push_back({Polyline({web.start(), web.end()}), web_radius});
+    for (const Line& post : posts)
+        this->webs.push_back({Polyline({post.start(), post.end()}), chord_radius});
+}
+
+std::vector<std::pair<std::string, TrussGuide>> TrussGuide::library(const std::filesystem::path& json_path) {
+
+    std::ifstream file(json_path);
+    if (!file)
+        return {};
+    nlohmann::json data;
+    file >> data;
+
+    std::vector<std::pair<std::string, TrussGuide>> guides;
+    for (const nlohmann::json& entry : data["trusses"]) {
+
+        // the nodes in mm, in the xz plane
+        const double span = entry["span"];
+        std::vector<Point> points;
+        for (const std::array<double, 2>& node : entry["nodes"].get<std::vector<std::array<double, 2>>>())
+            points.push_back(Point(node[0] * span, 0.0, node[1] * span));
+        const auto level = [&entry](const char* key, size_t i) {
+            return entry.contains(key) ? entry[key][i].get<int>() : 0;
+        };
+
+        // the chords through their nodes, the webs and then the posts between theirs
+        std::vector<TrussMember> chords;
+        const std::vector<std::vector<size_t>> chord_nodes = entry["chords"];
+        for (size_t c = 0; c < chord_nodes.size(); c++) {
+            std::vector<Point> axis;
+            for (const size_t node : chord_nodes[c])
+                axis.push_back(points[node]);
+            chords.push_back({Polyline(axis), entry["chord_radii"][c].get<double>(), level("chord_levels", c)});
+        }
+        for (const std::array<size_t, 2>& end : entry.value("runs_on", std::vector<std::array<size_t, 2>>{}))
+            chords[end[0]].runs_on[end[1]] = true;
+        std::vector<TrussMember> webs;
+        for (const char* kind : {"web", "post"}) {
+            const std::vector<std::array<size_t, 2>> ends = entry[std::string(kind) + "s"];
+            for (size_t w = 0; w < ends.size(); w++)
+                webs.push_back(
+                    {Polyline({points[ends[w][0]], points[ends[w][1]]}),
+                     entry[std::string(kind) + "_radii"][w].get<double>(),
+                     level((std::string(kind) + "_levels").c_str(), w)}
+                );
+        }
+        guides.emplace_back(entry["name"].get<std::string>(), TrussGuide(chords, webs));
+    }
+    return guides;
 }
 
 std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
 
-    const std::vector<Point> nodes = chords.at(chord).get_points();
+    const std::vector<Point> nodes = chords.at(chord).axis.get_points();
     std::vector<std::array<Point, 2>> runs;
     Point start = nodes.front();
     for (size_t i = 1; i < nodes.size(); i++) {
@@ -58,7 +115,7 @@ std::vector<std::array<Point, 2>> TrussGuide::runs(size_t chord) const {
 
 bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
 
-    const std::vector<Point> own = chords.at(chord).get_points();
+    const std::vector<Point> own = chords.at(chord).axis.get_points();
     const Point node = side == 0 ? own.front() : own.back();
 
     // a member passing the node is in charge there
@@ -68,16 +125,15 @@ bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
                Point::distance(node, b) >= 1.0;
     };
     for (size_t c = 0; c < chords.size(); c++) {
-        const std::vector<Point> points = chords[c].get_points();
+        const std::vector<Point> points = chords[c].axis.get_points();
         for (size_t k = 0; c != chord && k + 1 < points.size(); k++)
             if (through(points[k], points[k + 1]) ||
                 (k > 0 && Point::distance(points[k], node) < 1.0))
                 return false;
     }
-    for (const std::vector<Line>* members : {&webs, &posts})
-        for (const Line& member : *members)
-            if (through(member.start(), member.end()))
-                return false;
+    for (const TrussMember& web : webs)
+        if (through(web.start(), web.end()))
+            return false;
 
     // the chord ends meeting there: given or not, their level, how steeply each leaves
     struct End {
@@ -89,36 +145,24 @@ bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
     };
     std::vector<End> ends;
     for (size_t c = 0; c < chords.size(); c++) {
-        const std::vector<Point> points = chords[c].get_points();
+        const std::vector<Point> points = chords[c].axis.get_points();
         for (size_t s = 0; s < 2; s++) {
             const Point end = s == 0 ? points.front() : points.back();
             const Point next = s == 0 ? points[1] : points[points.size() - 2];
             if (Point::distance(end, node) >= 1.0)
                 continue;
-            ends.push_back(
-                {c,
-                 s,
-                 std::find(runs_on.begin(), runs_on.end(), std::array<size_t, 2>{c, s}) != runs_on.end(),
-                 chord_levels.empty() ? 0 : chord_levels[c],
-                 std::abs((next - end).normalized()[2])}
-            );
+            ends.push_back({c, s, chords[c].runs_on[s], chords[c].level, std::abs((next - end).normalized()[2])});
         }
     }
 
-    // a lone end: on over the webs and posts there when all are lower in the hierarchy
+    // a lone end: on over the webs there when all are lower in the hierarchy
     if (ends.size() < 2) {
-        if (chord_levels.empty())
+        if (chords[chord].level == 0)
             return false;
         bool lower = false;
-        for (size_t w = 0; w < webs.size(); w++)
-            if (Point::distance(webs[w].start(), node) < 1.0 || Point::distance(webs[w].end(), node) < 1.0) {
-                if (web_levels[w] <= chord_levels[chord])
-                    return false;
-                lower = true;
-            }
-        for (size_t p = 0; p < posts.size(); p++)
-            if (Point::distance(posts[p].start(), node) < 1.0 || Point::distance(posts[p].end(), node) < 1.0) {
-                if (post_levels[p] <= chord_levels[chord])
+        for (const TrussMember& web : webs)
+            if (Point::distance(web.start(), node) < 1.0 || Point::distance(web.end(), node) < 1.0) {
+                if (web.level <= chords[chord].level)
                     return false;
                 lower = true;
             }
@@ -142,7 +186,7 @@ bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
     if (!any && ends.size() == 2) {
         std::array<Vector, 2> leaving;
         for (size_t k = 0; k < 2; k++) {
-            const std::vector<Point> points = chords[ends[k].chord].get_points();
+            const std::vector<Point> points = chords[ends[k].chord].axis.get_points();
             leaving[k] = ((ends[k].side == 0 ? points[1] : points[points.size() - 2]) - node).normalized();
         }
         if (leaving[0].dot(leaving[1]) < -std::cos(35.0 * Tolerance::TO_RADIANS))
@@ -155,31 +199,25 @@ std::optional<std::array<Point, 2>> TrussGuide::end_cut(size_t chord, size_t sid
 
     if (!runs_on_at(chord, side))
         return std::nullopt;
-    const std::vector<Point> points = chords.at(chord).get_points();
+    const std::vector<Point> points = chords.at(chord).axis.get_points();
     const Point node = side == 0 ? points.front() : points.back();
     const Vector on = (node - (side == 0 ? points[1] : points[points.size() - 2])).normalized();
-    const double radius = chord_radii.empty() ? chord_radius : chord_radii[chord];
+    const double radius = chords[chord].radius;
 
     // every other member ending there: the way it leaves, its half section
     std::vector<std::pair<Vector, double>> meeting;
     for (size_t c = 0; c < chords.size(); c++) {
-        const std::vector<Point> others = chords[c].get_points();
+        const std::vector<Point> others = chords[c].axis.get_points();
         for (size_t k = 0; c != chord && k + 1 < others.size(); k++)
             for (const std::array<Point, 2>& ends : {std::array<Point, 2>{others[k], others[k + 1]},
                                                      std::array<Point, 2>{others[k + 1], others[k]}})
                 if (Point::distance(ends[0], node) < 1.0)
-                    meeting.emplace_back((ends[1] - ends[0]).normalized(), chord_radii.empty() ? chord_radius : chord_radii[c]);
+                    meeting.emplace_back((ends[1] - ends[0]).normalized(), chords[c].radius);
     }
-    for (size_t w = 0; w < webs.size(); w++)
-        for (const std::array<Point, 2>& ends :
-             {std::array<Point, 2>{webs[w].start(), webs[w].end()}, std::array<Point, 2>{webs[w].end(), webs[w].start()}})
+    for (const TrussMember& web : webs)
+        for (const std::array<Point, 2>& ends : {std::array<Point, 2>{web.start(), web.end()}, std::array<Point, 2>{web.end(), web.start()}})
             if (Point::distance(ends[0], node) < 1.0)
-                meeting.emplace_back((ends[1] - ends[0]).normalized(), web_radii.empty() ? web_radius : web_radii[w]);
-    for (size_t p = 0; p < posts.size(); p++)
-        for (const std::array<Point, 2>& ends : {std::array<Point, 2>{posts[p].start(), posts[p].end()},
-                                                 std::array<Point, 2>{posts[p].end(), posts[p].start()}})
-            if (Point::distance(ends[0], node) < 1.0)
-                meeting.emplace_back((ends[1] - ends[0]).normalized(), post_radii.empty() ? chord_radius : post_radii[p]);
+                meeting.emplace_back((ends[1] - ends[0]).normalized(), web.radius);
 
     // on each side of the run the outermost member: its outer face meets the run's face on that side (r cos a + r_o) / sin a
     // past the node and the run's other face (r_o - r cos a) / sin a past it, a the angle between the way on and the member
@@ -457,13 +495,9 @@ TrussGuide TrussGuide::warren_verticals(
     const double panel = span / panels;
 
     for (int i = 0; i < panels; i++)
-        guide.webs.push_back(Line::from_points(
-            Point((i + 0.5) * panel, 0.0, 0.0), Point((i + 0.5) * panel, 0.0, height)
-        ));
+        guide.webs.push_back({Polyline({Point((i + 0.5) * panel, 0.0, 0.0), Point((i + 0.5) * panel, 0.0, height)}), web_radius});
     for (int i = 1; i < panels; i++)
-        guide.webs.push_back(
-            Line::from_points(Point(i * panel, 0.0, 0.0), Point(i * panel, 0.0, height))
-        );
+        guide.webs.push_back({Polyline({Point(i * panel, 0.0, 0.0), Point(i * panel, 0.0, height)}), web_radius});
 
     return guide;
 }

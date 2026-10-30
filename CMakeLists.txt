@@ -111,7 +111,6 @@ set(WOOD_SOURCES
     src/templates/floor/floor_guide.cpp
     src/templates/floor/floor.cpp
     src/templates/truss/truss_guide.cpp
-    src/templates/truss/truss_graph.cpp
     src/templates/truss/truss.cpp
     src/templates/module/framed_panel.cpp
     src/templates/module/module_contact.cpp
