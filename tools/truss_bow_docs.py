@@ -1,5 +1,6 @@
-"""Write docs/templates/truss_bow.md, the gallery of Bow's trusses, from data/templates/truss_bow_1873.json and the pictures
-of tools/shoot_truss_bow.sh: one card per truss, grouped by kind and by Bow's class.
+"""Write the gallery of Bow's trusses into docs/templates/truss.md (between its bow-gallery markers), from
+data/templates/truss_bow_1873.json and the pictures of tools/shoot_truss_bow.sh: one card per truss, grouped by kind and
+by Bow's class.
     python3 -I wood/tools/truss_bow_docs.py
 """
 import json, pathlib
@@ -18,10 +19,6 @@ KINDS = {"roof": "Roof trusses", "bridge": "Framed bridges"}
 
 data = json.loads((WOOD / "data/templates/truss_bow_1873.json").read_text())["trusses"]
 lines = [
-    "# Bow 1873 {#templates_truss_bow}",
-    "",
-    "[TOC]",
-    "",
     f"The {len(data)} roof trusses and framed bridges of R. H. Bow, *Economics of Construction in relation to Framed "
     "Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is "
     "stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span "
@@ -45,7 +42,7 @@ lines = [
     "The numbers are Bow's; the page is that of his table. The book is transcribed in the BRG library "
     "(`framed-structures-bow`), where every table row links to its scan.",
     "",
-    "## Joints {#truss_bow_joints}",
+    "### Joints {#truss_bow_joints}",
     "",
     "Every node is solved as carpentry by a hierarchy stored with the graph: each member is primary, secondary or "
     "tertiary (`chord_levels`, `web_levels`, `post_levels`), and at a node a member stops on every member of a higher "
@@ -56,7 +53,7 @@ lines = [
     "of the truss runs on clean; the node where the axes meet always lies in wood. Miters are kept only for the gentle bends "
     "of one continuous member and for symmetric ridges.",
     "",
-    "## Scale and sections {#truss_bow_sizing}",
+    "### Scale and sections {#truss_bow_sizing}",
     "",
     "Bow gives the span of only a few designs (Nos. 130, 137, 192, 195, 293, 332); his diagrams of forces are drawn to "
     "no absolute scale. Every other design is drawn at its number of sub-spans times 8 ft (2.44 m), the sub-span of his "
@@ -80,7 +77,7 @@ for kind in ("roof", "bridge"):
         group = [t for t in data if t["kind"] == kind and t["class"] == cls]
         if not group:
             continue
-        lines += [f"## {KINDS[kind]}, Class {cls} {{#truss_bow_{kind}_{cls.lower()}}}", "", CLASSES[cls], "",
+        lines += [f"### {KINDS[kind]}, Class {cls} {{#truss_bow_{kind}_{cls.lower()}}}", "", CLASSES[cls], "",
                   '<div class="wood-card-grid cols-4">']
         for t in group:
             lines += [f'  <div class="wood-card">',
@@ -88,5 +85,8 @@ for kind in ("roof", "bridge"):
                       f'    <span class="wood-card-title">No. {t["number"]} · {t["span"] / 1000:.1f} m · p. {t["page"]}</span>',
                       "  </div>"]
         lines += ["</div>", ""]
-(WOOD / "docs/templates/truss_bow.md").write_text("\n".join(lines))
+page = WOOD / "docs/templates/truss.md"
+text = page.read_text()
+start, end = "<!-- bow-gallery -->", "<!-- /bow-gallery -->"
+page.write_text(text[:text.index(start) + len(start)] + "\n\n" + "\n".join(lines) + "\n" + text[text.index(end):])
 print(len(data), "cards")

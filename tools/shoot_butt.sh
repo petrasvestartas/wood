@@ -29,12 +29,12 @@ EOF
 cmake --build build --target element_joint_beam_butt element_joint_beam_butt_plates templates_truss_1_pratt templates_truss_2_library --parallel 6 > /dev/null
 for name in element_joint_beam_butt element_joint_beam_butt_plates; do
     ./build/"$name" > /dev/null
-    UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh "docs/images/elements/$name.png" data/output/pb/live.pb > /dev/null 2>&1
+    UI_SHOT_ZOOM=0 UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh "docs/images/elements/$name.png" data/output/pb/live.pb > /dev/null 2>&1
     frame "docs/images/elements/$name.png"
     echo "$name"
 done
 ./build/templates_truss_1_pratt > /dev/null
-UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh docs/images/templates/templates_truss_1_pratt.png data/output/pb/live.pb > /dev/null 2>&1
+UI_SHOT_ZOOM=0 UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh docs/images/templates/templates_truss_1_pratt.png data/output/pb/live.pb > /dev/null 2>&1
 frame docs/images/templates/templates_truss_1_pratt.png
 echo templates_truss_1_pratt
 rm -f data/output/pb/truss_*.pb
@@ -42,7 +42,7 @@ rm -f data/output/pb/truss_*.pb
 for pb in data/output/pb/truss_*.pb; do
     case "$pb" in *truss_bow_*) continue ;; esac
     name=$(basename "$pb" .pb)
-    UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh "docs/images/templates/$name.png" "$pb" > /dev/null 2>&1
+    UI_SHOT_ZOOM=0 UI_SHOT_CMD="$CMD" bash tools/shoot_ui.sh "docs/images/templates/$name.png" "$pb" > /dev/null 2>&1
     frame "docs/images/templates/$name.png"
     echo "$name"
 done
