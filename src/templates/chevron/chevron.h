@@ -262,12 +262,16 @@ inline Chevron::Chevron(
             if (bisector)
                 add_plane(*bisector, bisectors);
 
-    // plates: per face a top and a bottom plate inset in the box and a side plate on each chevron edge, plate_<4 face + role>
+    // plates: per face a box of a top and a bottom plate inset in it and a side plate on each chevron edge, plate_<4 face + role> in box_<face>
     const std::shared_ptr<TreeNode> plates_group = add_group("plates");
     const std::vector<std::shared_ptr<Plate>> plates = compute_plates();
 
-    for (const std::shared_ptr<Plate>& plate : plates)
-        add(plate, plates_group);
+    for (size_t face = 0; face < plates.size() / 4; face++) {
+        const std::shared_ptr<TreeNode> box = add_group(fmt::format("box_{}", face), plates_group);
+
+        for (size_t role = 0; role < 4; role++)
+            add(plates[face * 4 + role], box);
+    }
 
     // joinery: insertion vectors, joint types, three-valence groups and adjacency for the solver, an insertion line per face
     const std::shared_ptr<TreeNode> insertion = add_group("insertion");

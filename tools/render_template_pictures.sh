@@ -56,49 +56,51 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cylindrical_folding ]; then
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_1_reflection lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_2_curved_folded_plate lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_3_mendrisio_pavilion lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_4_two_hinged_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_5_two_hinged_arch lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_6_arch_with_top_hinge lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_7_a_frame lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_8_groin_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_9_pavilion_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_10_pentagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_11_hexagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_12_octagon_vault lamellas
-    "${RENDER[@]}" --hide-contacts --opacity 0.95 templates_cylindrical_folding_13_curved_folded_beam all
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_14_corner_fan strips
-    "${RENDER[@]}" --hide-contacts --view top --name plan templates_cylindrical_folding_14_corner_fan strips
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_15_corner_fan_subdivisions all
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_16_cylinder_carving all
-    "${RENDER[@]}" --hide-contacts templates_cylindrical_folding_17_cylinder_carving_rings all
+    "${RENDER[@]}" templates_cylindrical_folding_1_reflection lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_2_curved_folded_plate lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_3_mendrisio_pavilion lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_4_two_hinged_frame lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_5_two_hinged_arch lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_6_arch_with_top_hinge lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_7_a_frame lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_8_groin_vault lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_9_pavilion_vault lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_10_pentagon_vault lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_11_hexagon_vault lamellas
+    "${RENDER[@]}" templates_cylindrical_folding_12_octagon_vault lamellas
+    "${RENDER[@]}" --opacity 0.95 templates_cylindrical_folding_13_curved_folded_beam all
+    "${RENDER[@]}" templates_cylindrical_folding_14_corner_fan strips
+    "${RENDER[@]}" --view top --name plan templates_cylindrical_folding_14_corner_fan strips
+    "${RENDER[@]}" templates_cylindrical_folding_15_corner_fan_subdivisions all
+    "${RENDER[@]}" templates_cylindrical_folding_16_cylinder_carving all
+    "${RENDER[@]}" templates_cylindrical_folding_17_cylinder_carving_rings all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_1_curved_fold lamellas
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_2_curved_crease_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_3_catenary_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_4_crease_quadrants all
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_5_synclastic_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_6_anticlastic_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_7_apex_level_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_8_support_level_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_9_alternating_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_10_sideways_unfolding plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_11_corrugated_dome plates
-    "${RENDER[@]}" --hide-contacts templates_developable_folding_12_corrugated_funnel plates
+    "${RENDER[@]}" templates_developable_folding_1_curved_fold lamellas
+    "${RENDER[@]}" templates_developable_folding_2_curved_crease_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_3_catenary_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_4_crease_quadrants all
+    "${RENDER[@]}" templates_developable_folding_5_synclastic_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_6_anticlastic_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_7_apex_level_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_8_support_level_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_9_alternating_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_10_sideways_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_11_corrugated_dome plates
+    "${RENDER[@]}" templates_developable_folding_12_corrugated_funnel plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
-    "${RENDER[@]}" templates_chevron_1_chevron surface mesh strips plates
+    "${RENDER[@]}" templates_chevron_1_chevron surface mesh strips
+    "${RENDER[@]}" --opacity 1.0 templates_chevron_1_chevron plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_1_chevron mesh+edge_planes
     VIEWER_PLANE_SIZE=650 "${RENDER[@]}" --opacity 0.55 --name bisectors templates_chevron_1_chevron mesh+bisectors
-    "${RENDER[@]}" --opacity 0.35 --name insertion templates_chevron_1_chevron plates+insertion
-    "${RENDER[@]}" templates_chevron_2_shifted mesh plates
+    "${RENDER[@]}" --name joints templates_chevron_1_chevron box_34+box_57+box_80+box_81
+    "${RENDER[@]}" templates_chevron_2_shifted mesh
+    "${RENDER[@]}" --opacity 1.0 templates_chevron_2_shifted plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_2_shifted mesh+edge_planes
-    "${RENDER[@]}" --opacity 0.35 --name insertion templates_chevron_2_shifted plates+insertion
+    "${RENDER[@]}" --name joints templates_chevron_2_shifted box_67+box_68+box_93+box_94
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then

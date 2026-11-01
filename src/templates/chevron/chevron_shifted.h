@@ -199,12 +199,20 @@ inline ChevronShifted::ChevronShifted(
     _face_planes = compute_face_planes();
     _sides = compute_sides();
 
-    // plates: per cell a top and a bottom plate stepped in where its own walls stand, then its walls, plate_<i>
+    // plates: per cell a box of a top and a bottom plate stepped in where its own walls stand, then its walls, plate_<i> in box_<cell>
     const wood_chevron::ShiftedPlates plates = compute_plates();
     const std::shared_ptr<TreeNode> plates_group = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : plates.plates)
-        add(plate, plates_group);
+    for (size_t cell = 0; cell < plates.boxes.size(); cell++) {
+        const std::shared_ptr<TreeNode> box = add_group(fmt::format("box_{}", cell), plates_group);
+
+        for (const int plate : plates.boxes[cell])
+            add(plates.plates[plate], box);
+
+        for (const std::array<int, 2>& wall : plates.walls)
+            if (wall[1] == static_cast<int>(cell))
+                add(plates.plates[wall[0]], box);
+    }
 
     // joinery: insertion vectors, joint types, adjacency and three-valence groups for the solver, an insertion line per cell
     const std::shared_ptr<TreeNode> insertion = add_group("insertion");

@@ -34,11 +34,14 @@ names = sys.argv[2].split("+")
 branch = scene if names[0] == "all" else scene.get_branch(names[0])
 for name in names[1:]:
     branch.graft(scene.get_branch(name), None)
-if sys.argv[4] == "hide":
+if sys.argv[4] == "elements":
+    for element in branch.objects.elements:
+        element.set_features([])
     for edge in list(branch.interactions):
-        branch.interactions[edge] = [i for i in branch.interactions[edge] if i.interaction_type_name() != "InteractionContactFace"]
+        branch.interactions[edge] = []
 branch.pb_dump(sys.argv[3])
-"""  # the scene, or groups of its tree joined by + with everything under them, written to their own file, its face contacts dropped when hidden
+"""  # the scene, or groups of its tree joined by + with everything under them, written to their own file; the elements alone, their cut solids without
+# their attributes, unless asked for: no features (the joint lines and volumes) and no interactions (the face contacts the viewer fills red)
 
 
 def run_example(name: str, out: pathlib.Path) -> None:
@@ -90,6 +93,15 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> tuple:
         )
         image = Image.open(ppm).convert("RGB")
 
+    # the viewer's background brought to white, every colour scaled by the same factor, as the pages are white
+    clear = image.getpixel((2, 2))
+    image = Image.merge(
+        "RGB",
+        [
+            band.point(lambda value, channel=channel: min(255, round(value * 255 / max(channel, 1))))
+            for band, channel in zip(image.split(), clear)
+        ],
+    )
     background = Image.new("RGB", image.size, image.getpixel((2, 2)))
     mask = (
         ImageChops.difference(image, background)
@@ -123,7 +135,8 @@ def main(arguments: list) -> None:
     """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last.
 
     `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--crop 0.4,0.3,0.6,0.5` to keep that
-    share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--hide-contacts` to leave out the face contacts the viewer fills red.
+    share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
+    elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default.
     Every picture renders at twice its size, up to LARGEST wide, at two pixels per CSS pixel as the viewer on a high-density screen, and
     is scaled down, so the edges come out thin and smooth; no silhouette outline is drawn.
     """
@@ -132,8 +145,8 @@ def main(arguments: list) -> None:
     size = option(arguments, "--size", "2400x1600")
     crop = option(arguments, "--crop", "")
     rename = option(arguments, "--name", "")
-    contacts = "hide" if "--hide-contacts" in arguments else "show"
-    arguments = [argument for argument in arguments if argument != "--hide-contacts"]
+    shown = "attributes" if "--attributes" in arguments else "elements"
+    arguments = [argument for argument in arguments if argument != "--attributes"]
     name, groups = arguments[0], arguments[1:] or ["all"]
     IMAGES.mkdir(parents=True, exist_ok=True)
 
@@ -144,7 +157,7 @@ def main(arguments: list) -> None:
         for index, group in enumerate(groups):
             branch = pathlib.Path(tmp) / f"branch_{index}.pb"
             subprocess.run(
-                [str(PYTHON), "-c", BRANCH, str(scene), group, str(branch), contacts],
+                [str(PYTHON), "-c", BRANCH, str(scene), group, str(branch), shown],
                 check=True,
                 capture_output=True,
             )

@@ -22,8 +22,8 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
     <span class="wood-card-title">Hollow Boxes</span>
   </a>
   <a class="wood-card" href="#chevron_insertion">
-    <img src="templates_chevron_1_chevron_insertion.webp" alt="Insertion Vectors">
-    <span class="wood-card-title">Insertion Vectors</span>
+    <img src="templates_chevron_1_chevron_joints.webp" alt="Joinery">
+    <span class="wood-card-title">Joinery</span>
   </a>
 </div>
 
@@ -86,7 +86,7 @@ bisectors[face][j] = dihedral_plane(_edge_planes[face][(j + 1) % 4], _edge_plane
 
 ## Four-Plate Hollow Boxes {#chevron_plates}
 
-Three-plane intersections clip top, bottom, and two active chevron side `Plate` solids for every cell.
+Three-plane intersections clip top, bottom, and two active chevron side `Plate` solids for every cell, the four of a face kept in its group `box_<face>`.
 
 ![](templates/templates_chevron_1_chevron_plates.webp)
 
@@ -100,9 +100,9 @@ outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)
 
 ## Insertion Vectors and Joinery {#chevron_insertion}
 
-`compute_joinery()` assigns assembly insertion vectors along the corner bisectors together with mortise and tenon face codes, the three-valence groups and the plate adjacency. The constructor hands these tables to the wood solver, `compute_features()`, which cuts the Annen tenons and mortises and the side joints at every mitre. On the first Annen surface the 736 plates and their joints are the 2024 Annen dataset `annen_grid_full_arch`.
+`compute_joinery()` assigns assembly insertion vectors along the corner bisectors together with mortise and tenon face codes, the three-valence groups and the plate adjacency. The constructor hands these tables to the wood solver, `compute_features()`, which cuts the Annen tenons and mortises and the side joints at every mitre. On the first Annen surface the 736 plates and their joints are the 2024 Annen dataset `annen_grid_full_arch`. The picture shows the four boxes at the crown, `box_34`, `box_57`, `box_80` and `box_81`, with the joints cut into their plates.
 
-![](templates/templates_chevron_1_chevron_insertion.webp)
+![](templates/templates_chevron_1_chevron_joints.webp)
 
 ```cpp
 #include "wood_session.h"
@@ -133,7 +133,7 @@ int main() {
     <span class="wood-card-title">Cell Boxes</span>
   </a>
   <a class="wood-card" href="#chevron_shifted_joinery">
-    <img src="templates_chevron_2_shifted_insertion.webp" alt="Joinery">
+    <img src="templates_chevron_2_shifted_joints.webp" alt="Joinery">
     <span class="wood-card-title">Joinery</span>
   </a>
 </div>
@@ -187,7 +187,7 @@ if (_cells.faces.edge_faces.at(first).size() != 1) {
 
 ### Plates {#chevron_shifted_plates}
 
-The face plane of a cell is the surface frame at the point nearest the length-weighted centre of its outline, Rhino's `Polyline.CenterPoint`, z into the surface. The top and bottom plates are the face plane moved by `plate_offset` ± half a plate, cut by the side loop stepped in by a wall on the sides where the cell's own walls stand: the bottom edge and the left side of a hexagon, the bottom and left of a last quad, nothing on a first quad. The walls stand on the sides `0, 1, 2, 4, 5` of an even hexagon, on side `3` of an odd one, on all four sides of a last quad and on side `2` of a first quad, each between the outer box faces and the two neighbouring side planes, a plate thick inward on the cell's own sides and outward on the sides it gives to the neighbouring column. Where a wall's slanted end crosses the middle of a merged side, two walls overlap by a thickness, as they do in the ground truth.
+The face plane of a cell is the surface frame at the point nearest the length-weighted centre of its outline, Rhino's `Polyline.CenterPoint`, z into the surface. The top and bottom plates are the face plane moved by `plate_offset` ± half a plate, cut by the side loop stepped in by a wall on the sides where the cell's own walls stand: the bottom edge and the left side of a hexagon, the bottom and left of a last quad, nothing on a first quad. The walls stand on the sides `0, 1, 2, 4, 5` of an even hexagon, on side `3` of an odd one, on all four sides of a last quad and on side `2` of a first quad, each between the outer box faces and the two neighbouring side planes, a plate thick inward on the cell's own sides and outward on the sides it gives to the neighbouring column. Where a wall's slanted end crosses the middle of a merged side, two walls overlap by a thickness, as they do in the ground truth. A cell's plates and walls are kept in its group `box_<cell>`.
 
 ![](templates/templates_chevron_2_shifted_plates.webp)
 
@@ -201,9 +201,9 @@ loop.push_back(
 
 ### Joinery {#chevron_shifted_joinery}
 
-Every wall is joined to the top and bottom plates of both cells on its edge: adjacency rows `(wall, plate)`, wall first so the solver meets the wall's face before a plate's kink side meets the wall's end, and the three-valence rows `{top0, wall, top1, wall}` and `{bottom0, wall, bottom1, wall}` that align the tenons of the two plates sharing a wall. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and goes to the edges whose walls the cell slides into; a plate's side face carries the direction of its edge and the joint type 20, the Annen tenon. From these tables the solver makes 1150 Annen joints and 138 plate joints and cuts them into all 1076 plates.
+Every wall is joined to the top and bottom plates of both cells on its edge: adjacency rows `(wall, plate)`, wall first so the solver meets the wall's face before a plate's kink side meets the wall's end, and the three-valence rows `{top0, wall, top1, wall}` and `{bottom0, wall, bottom1, wall}` that align the tenons of the two plates sharing a wall. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and goes to the edges whose walls the cell slides into; a plate's side face carries the direction of its edge and the joint type 20, the Annen tenon. From these tables the solver makes 1150 Annen joints and 138 plate joints and cuts them into all 1076 plates; the picture shows the four boxes at the crown, `box_67`, `box_68`, `box_93` and `box_94`.
 
-![](templates/templates_chevron_2_shifted_insertion.webp)
+![](templates/templates_chevron_2_shifted_joints.webp)
 
 ```cpp
 for (const int cell : cells) {
