@@ -96,6 +96,9 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_1_chevron mesh+edge_planes
     VIEWER_PLANE_SIZE=650 "${RENDER[@]}" --opacity 0.55 --name bisectors templates_chevron_1_chevron mesh+bisectors
     "${RENDER[@]}" --opacity 0.35 --name insertion templates_chevron_1_chevron plates+insertion
+    "${RENDER[@]}" templates_chevron_2_shifted mesh plates
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_2_shifted mesh+edge_planes
+    "${RENDER[@]}" --opacity 0.35 --name insertion templates_chevron_2_shifted plates+insertion
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then

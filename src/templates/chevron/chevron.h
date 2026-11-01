@@ -63,9 +63,9 @@ inline std::vector<NurbsSurface> annen_surfaces(const std::string& json_path) {
     return surfaces;
 }
 
-/// The quad faces of the chevron mesh.
+/// The faces of a chevron mesh.
 struct ChevronFaces {
-    std::vector<std::vector<size_t>> vertices; // Per face its four vertex keys, reversed.
+    std::vector<std::vector<size_t>> vertices; // Per face its vertex keys.
     std::map<std::pair<size_t, size_t>, std::vector<int>>
         edge_faces; // Per sorted vertex pair the faces on it.
 };
@@ -195,9 +195,6 @@ private:
     /// The plane with its normal snapped to the world axis given by axis, 1 the dominant one.
     static Plane snapped_to_axis(const Plane& plane, int axis);
 
-    /// The closed polygon where base meets sides one after the other.
-    static Polyline polygon_from_planes(const Plane& base, const std::vector<Plane>& sides);
-
     /// The unit direction of the line where the face plane meets the bisector, zero without one.
     static Vector bisector_direction(const Plane& face_plane, const std::optional<Plane>& bisector);
 };
@@ -266,10 +263,11 @@ inline Chevron::Chevron(
                 add_plane(*bisector, bisectors);
 
     // plates: per face a top and a bottom plate inset in the box and a side plate on each chevron edge, plate_<4 face + role>
-    const std::shared_ptr<TreeNode> plates = add_group("plates");
+    const std::shared_ptr<TreeNode> plates_group = add_group("plates");
+    const std::vector<std::shared_ptr<Plate>> plates = compute_plates();
 
-    for (const std::shared_ptr<Plate>& plate : compute_plates())
-        add(plate, plates);
+    for (const std::shared_ptr<Plate>& plate : plates)
+        add(plate, plates_group);
 
     // joinery: insertion vectors, joint types, three-valence groups and adjacency for the solver, an insertion line per face
     const std::shared_ptr<TreeNode> insertion = add_group("insertion");
@@ -281,6 +279,29 @@ inline Chevron::Chevron(
         add_line(line, insertion);
     }
     set_node_color(insertion, Color(206, 16, 66, 255), true);
+
+    // joints: the wood solver reads the tables and cuts the tenons, mortises and side joints into the plates
+    WoodSession::adjacency = _adjacency;
+    WoodSession::three_valence = {{0}};
+
+    for (const std::array<int, 4>& group : _three_valence)
+        WoodSession::three_valence.push_back(std::vector<int>(group.begin(), group.end()));
+
+    for (size_t i = 0; i < plates.size(); i++) {
+        const std::array<double, 18>& numbers = _insertion_vectors[i];
+        std::vector<Vector>& vectors = plates[i]->insertion_vectors();
+        vectors.clear();
+
+        for (size_t face = 0; face < 6; face++)
+            vectors.push_back(
+                Vector(numbers[face * 3], numbers[face * 3 + 1], numbers[face * 3 + 2])
+            );
+
+        plates[i]->feature_types =
+            std::vector<int>(_joints_per_face[i].begin(), _joints_per_face[i].end());
+    }
+
+    compute_features();
 }
 
 inline const Mesh& Chevron::mesh() const {
@@ -683,20 +704,6 @@ inline Plane Chevron::snapped_to_axis(const Plane& plane, int axis) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Plates
 // ═══════════════════════════════════════════════════════════════════════════
-inline Polyline Chevron::polygon_from_planes(const Plane& base, const std::vector<Plane>& sides) {
-
-    std::vector<Point> points;
-
-    for (size_t i = 0; i < sides.size(); i++) {
-        Point corner = base.origin();
-        Intersection::plane_plane_plane(base, sides[i], sides[(i + 1) % sides.size()], corner);
-        points.push_back(corner);
-    }
-
-    points.push_back(points.front());
-    return Polyline(points);
-}
-
 inline std::array<int, 2> Chevron::sorted_chevron_edges(int face) const {
 
     std::array<int, 2> edges = _strips.chevron_edges[face];
@@ -736,7 +743,7 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
         };
 
         for (const double level : levels)
-            outlines.push_back(polygon_from_planes(face_plane.translate_by_normal(level), sides));
+            outlines.push_back(Polyline::from_planes(sides, face_plane.translate_by_normal(level)));
 
         // sides: each chevron edge plane cut by the box faces, its neighbour edge and the corner bisector
         const std::array<int, 2> sorted = sorted_chevron_edges(face);
@@ -751,8 +758,8 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
                 k == 0 ? edges[previous] : bisectors[previous].value_or(edges[previous]);
             const Plane after = k == 0 ? bisectors[edge].value_or(edges[next]) : edges[next];
             const std::vector<Plane> box = {top, before, bottom, after};
-            outlines.push_back(polygon_from_planes(edges[edge], box));
-            outlines.push_back(polygon_from_planes(edges[edge].translate_by_normal(t), box));
+            outlines.push_back(Polyline::from_planes(box, edges[edge]));
+            outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)));
         }
     }
 
@@ -816,8 +823,8 @@ inline std::vector<Line> Chevron::compute_joinery() {
 
         _joints_per_face[pair + 0] = {0, 0, 20, 20, 20, 20};
         _joints_per_face[pair + 1] = {0, 0, 20, 20, 20, 20};
-        _joints_per_face[pair + 2] = {0, 0, 10, 10, 10, 10};
-        _joints_per_face[pair + 3] = {0, 0, 10, 10, 10, 10};
+        _joints_per_face[pair + 2] = {0, 0, 0, 0, 10, 0};
+        _joints_per_face[pair + 3] = {0, 0, 10, 0, 0, 0};
 
         for (const int role_a : {0, 1})
             for (const int role_b : {2, 3})

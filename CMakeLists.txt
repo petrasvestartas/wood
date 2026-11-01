@@ -333,6 +333,7 @@ target_compile_definitions(reference_datasets PRIVATE WOOD_SOURCE_DIR="${CMAKE_C
 ADD_EXE(templates_shells_1_translation_shell      examples/templates_shells_1_translation_shell.cpp)
 ADD_EXE(templates_folding_1_reflex_fold            examples/templates_folding_1_reflex_fold.cpp)
 ADD_EXE(templates_chevron_1_chevron                examples/templates_chevron_1_chevron.cpp)
+ADD_EXE(templates_chevron_2_shifted                examples/templates_chevron_2_shifted.cpp)
 ADD_EXE(templates_reciprocal_1_rotation    examples/templates_reciprocal_1_rotation.cpp)
 ADD_EXE(templates_reciprocal_2_move        examples/templates_reciprocal_2_move.cpp)
 ADD_EXE(templates_folding_2_diamond_mesh           examples/templates_folding_2_diamond_mesh.cpp)

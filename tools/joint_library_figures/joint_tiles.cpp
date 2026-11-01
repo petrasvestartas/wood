@@ -313,7 +313,7 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
     const Chevron chevron(surfaces.at(0));
     const std::vector<std::shared_ptr<Plate>> plates = chevron.get_elements_numbered<Plate>("plate");
 
-    // the first two plates that meet side to side at a fold, copied
+    // the first two plates that meet side to side at a fold, rebuilt from their outlines without the joints the template cut into them
     WoodSession scene("tpl_chevron_" + design);
     std::shared_ptr<Plate> first;
     std::shared_ptr<Plate> second;
@@ -321,8 +321,8 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
     for (size_t i = 0; i < plates.size() && !contact; i++)
         for (size_t j = i + 1; j < plates.size() && !contact; j++) {
             WoodSession probe("probe");
-            const std::shared_ptr<Plate> a = std::make_shared<Plate>(*plates[i]);
-            const std::shared_ptr<Plate> b = std::make_shared<Plate>(*plates[j]);
+            const std::shared_ptr<Plate> a = std::make_shared<Plate>(plates[i]->polylines[0], plates[i]->polylines[1], plates[i]->name);
+            const std::shared_ptr<Plate> b = std::make_shared<Plate>(plates[j]->polylines[0], plates[j]->polylines[1], plates[j]->name);
             probe.add(a);
             probe.add(b);
             const std::shared_ptr<InteractionContactFace> touch = probe.compute_face_contact(a, b);
