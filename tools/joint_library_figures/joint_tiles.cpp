@@ -58,7 +58,7 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         {"side_side_outplane_tenons", [&] { side_side_outplane_tenons(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
         {"side_side_outplane_linked_tenons", [&] { side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions); }}, {"side_side_outplane_linked_tenons_wall", [&] { side_side_outplane_linked_tenons_wall(unit, no_joints); }},
         {"side_side_outplane_capped_fingers", [&] { side_side_outplane_capped_fingers(unit); }}, {"side_side_outplane_notch", [&] { side_side_outplane_notch(unit); }},
-        {"top_side_three_tenons", [&] { top_side_three_tenons(unit); }}, {"top_side_annen_tenons", [&] { top_side_annen_tenons(unit); }}, {"top_side_dense_tenons", [&] { top_side_dense_tenons(unit); }},
+        {"top_side_three_tenons", [&] { top_side_three_tenons(unit); }}, {"top_side_dense_tenons", [&] { top_side_dense_tenons(unit); }},
         {"top_side_tenons", [&] { top_side_tenons(unit); }}, {"top_side_milled_wedge", [&] { top_side_milled_wedge(unit); }}, {"top_side_snap_fit", [&] { top_side_snap_fit(unit); }},
         {"cross_slot", [&] { cross_slot(unit); }}, {"cross_sliced_half_lap", [&] { cross_sliced_half_lap(unit); }}, {"cross_half_lap", [&] { cross_half_lap(unit); }},
         {"cross_half_lap_diagonal_drills", [&] { cross_half_lap_diagonal_drills(unit); }}, {"cross_half_lap_drill", [&] { cross_half_lap_drill(unit); }}, {"cross_brussels_half_lap", [&] { cross_brussels_half_lap(unit); }},

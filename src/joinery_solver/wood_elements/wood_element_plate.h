@@ -30,6 +30,8 @@ public:
     Features features; // Merged cut outlines after compute_features; empty before.
     std::vector<int>
         feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide.
+    std::vector<int>
+        feature_divisions; // Division count per face for the joint on it, indexed like polylines; empty or 0 lets the design count from its division length.
 
 protected:
     /// The plate before the solid cuts as a Mesh.

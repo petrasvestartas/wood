@@ -34,6 +34,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_capped_fingers.h"
+#include "wood_interaction_feature_plate_joints/side_side_outplane_annen_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_custom.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_notch.h"
 

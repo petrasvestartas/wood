@@ -101,6 +101,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
     "${RENDER[@]}" --opacity 1.0 templates_chevron_2_shifted plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_2_shifted mesh+edge_planes
     VIEWER_TARGET=23612,135650,11587 VIEWER_DISTANCE_SCALE=0.10 "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_2_shifted plates
+    "${RENDER[@]}" --opacity 1.0 templates_chevron_3_max2_arch plates
+    "${RENDER[@]}" --name joints templates_chevron_3_max2_arch box_37+box_62+box_87+box_112
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then

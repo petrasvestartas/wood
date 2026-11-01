@@ -25,6 +25,10 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
     <img src="templates_chevron_1_chevron_joints.webp" alt="Joinery">
     <span class="wood-card-title">Joinery</span>
   </a>
+  <a class="wood-card" href="#chevron_max2">
+    <img src="templates_chevron_3_max2_arch_joints.webp" alt="MAX2 Arch">
+    <span class="wood-card-title">MAX2 Arch</span>
+  </a>
 </div>
 
 ## Parameters
@@ -40,7 +44,13 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
 | `top_plate_inlet` | `double` | `80.0` | Inset of top and bottom plates from outer box planes in mm |
 | `plate_thickness` | `double` | `40.0` | Thickness of top, bottom, and side plates in mm |
 | `edge_rotation` | `double` | `1.0` | Rotation of even interior chevron edge planes in degrees |
-| `edge_offset` | `double` | `0.5` | Normal shift of odd interior chevron edge planes |
+| `edge_offset` | `double` | `0.5` | Share of the plate thickness the odd interior chevron edge planes move along their normal |
+| `tab_length` | `double` | `80.0` | Edge length per tenon division, Christopher's `L_tab`: `round(0.8 edge / tab_length)` segments, raised to one more than a multiple of four, a tenon on every fourth |
+| `finger_angle` | `double` | `15.0` | Turn of the corner finger cuts from the box faces in degrees, each way in turn |
+| `finger_divisions` | `int` | `7` | Parts every wall corner is cut in |
+| `stop_threshold` | `double` | `2000.0` | The rows stop and mirror when less than this remains to the middle, in surface units (`Schwellwert`) |
+| `ortho_edges` | `std::array<int, 4>` | `{1, 1, 1, 1}` | Per edge index the world axis a boundary edge plane snaps to, `1` the dominant one, `0` none |
+| `boundary_planes` | `std::array<double, 3>` | `{NAN, NAN, NAN}` | The y of the front and of the back boundary plane and the z of the ground; `NAN` keeps a boundary plane through its edge |
 
 ## Input Surface {#chevron_surface}
 
@@ -86,13 +96,17 @@ bisectors[face][j] = dihedral_plane(_edge_planes[face][(j + 1) % 4], _edge_plane
 
 ## Four-Plate Hollow Boxes {#chevron_plates}
 
-Three-plane intersections clip top, bottom, and two active chevron side `Plate` solids for every cell, the four of a face kept in its group `box_<face>`.
+Three-plane intersections clip top, bottom, and two active chevron side `Plate` solids for every cell, the four of a face kept in its group `box_<face>`. The box sides are the face's edge planes with the chevron ones moved out by a plate, where the walls stand; the top and bottom outlines run the way Christopher's contours run from their first corner, so the solver's side `2 + j` lies on mesh edge `(4 - j) % 4`.
 
 ![](templates/templates_chevron_1_chevron_plates.webp)
 
 ```cpp
+const std::vector<Plane> sides = box_sides(face);
+
 for (const double level : levels)
-    outlines.push_back(Polyline::from_planes(sides, face_plane.translate_by_normal(level)));
+    outlines.push_back(
+        Polyline::from_planes(sides, face_plane.translate_by_normal(level)).reversed()
+    );
 
 outlines.push_back(Polyline::from_planes(box, edges[edge]));
 outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)));
@@ -100,19 +114,37 @@ outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)
 
 ## Insertion Vectors and Joinery {#chevron_insertion}
 
-`compute_joinery()` assigns assembly insertion vectors along the corner bisectors together with mortise and tenon face codes, the three-valence groups and the plate adjacency. The constructor hands these tables to the wood solver, `compute_features()`, which cuts the Annen tenons and mortises and stitches every corner with fingers, in seven parts as Christopher's `dovetail2` divides it: `settings.joint_parameters[3] = box_height / 7.0`. On the first Annen surface the 736 plates and their tenons are the 2024 Annen dataset `annen_grid_full_arch`, which divided each corner in one part. The picture shows the four boxes at the crown, `box_34`, `box_57`, `box_80` and `box_81`, with the joints cut into their plates.
+`compute_joinery()` fills the tables the wood solver reads, as Christopher Robeller's 2017 plugin (`AnnenComponent.cs`) made them. The insertion vector of a box is the diagonal at the corner opposite the one its two walls share, `-(unit(B - A) + unit(D - A))` in the box plane, the same on all four sides of its top and bottom plates; the walls' mitre faces take the box's up. The plates' sides carry joint type 22, `top_side_annen_tenons`, with `round(0.8 mesh edge / tab_length)` divisions each; the mitre face of the wall on the second chevron edge carries type 17, `side_side_outplane_annen_fingers`, with `finger_divisions`. The adjacency joins every plate to its box's two walls and to the two walls of the neighbours across the chevron edges, and the three-valence rows pair the two plates that meet through one wall. `compute_features()` then cuts the joints in world space, on the plates' own edges: a through-tenon is the middle 80% of a plate edge, moved up to 200 mm towards the edge middle it shares with the plate across the wall, in `4m + 1` equal segments with a tenon on every fourth from the third, each tenon the edge pushed along the insertion vector through the wall to its outer face, so the plate across the wall, which runs the shared edge the other way, lands its tenons in the segments between; the wall takes a slot per tenon. The corner of two walls is cut from the box's bottom face to its top in seven parts by planes parallel to the box faces turned `finger_angle` each way in turn about the second wall's long edge, Christopher's `dovetail2`, the first part a finger of that wall, every finger reaching the other wall's outer face. On the first Annen surface the 736 plates are those of the 2024 Annen dataset `annen_grid_full_arch` within 0.03 mm; their joints are the plugin's, not the dataset's generic ones. The picture shows the four boxes at the crown, `box_34`, `box_57`, `box_80` and `box_81`, with the joints cut into their plates.
 
 ![](templates/templates_chevron_1_chevron_joints.webp)
 
 ```cpp
-#include "wood_session.h"
-#include "src/templates/chevron/chevron.h"
+const std::array<int, 2> sorted = sorted_chevron_edges(face);
+const Polyline corners = Polyline::from_planes(box_sides(face), _face_planes[face]);
+const int a = (sorted[0] + 2) % 4;
+const Vector diagonal = ((corners[(a + 1) % 4] - corners[a]).normalized() +
+                         (corners[(a + 3) % 4] - corners[a]).normalized()) *
+                        -1.0;
 
-int main() {
-    Chevron shell;
-    shell.pb_dump(wood_session::pb_path("live"));
-    return 0;
-}
+_joints_per_face[pair + 0] = {0, 0, 22, 22, 22, 22};
+_joints_per_face[pair + 1] = {0, 0, 22, 22, 22, 22};
+_joints_per_face[pair + 2] = {0, 0, 0, 0, 10, 0};
+_joints_per_face[pair + 3] = {0, 0, 17, 0, 0, 0};
+```
+
+## MAX2 Arch {#chevron_max2}
+
+`examples/templates_chevron_3_max2_arch.cpp` builds the second Annen surface with the slider values of the Grasshopper definition that drove the plugin for the 2017 MAX2 prototype of arches 21 and 22 (`2017_08_08_MAX2_22.gh`): rows from 900 growing by 0.04993 and stopping 2000 before the middle, 760 mm boxes with 40 mm plates 80 mm in from the box faces, the chevron edge planes turned 1.1 degrees and moved 18 mm, 80 mm tabs, corner fingers turned 15 degrees in seven parts, and the boundary planes of the prototype: the sides closed at y 132000 and 126000, the ground at z 3520. Its ground truth is the prototype's Rhino file, layer `solids_22`, the 800 jointed solids of arch 22 as the plugin cut them. Every one of the 800 plates built here has the vertex count of its solid; the two-way vertex distance per plate has a median of 0.77 mm, 739 plates lie within 2 mm and all but the plates of box 150 and four plates of its neighbours 101 and 151 within 2.71 mm, the rest a sub-millimetre offset of the mesh itself, which the raw plate corners share. Box 150 is the quirk of the definition: its ground edge is missing from its ground list, so the file's plates there stand up to 51 mm off the ground plane, and the four plates that meet them through its walls follow by up to 17 mm.
+
+![](templates/templates_chevron_3_max2_arch_plates.webp)
+
+![](templates/templates_chevron_3_max2_arch_joints.webp)
+
+```cpp
+Chevron chevron(
+    surfaces[1], 4, 900.0, 0.5, 0.04993, 760.0, 80.0, 40.0, 1.1, 0.45, 80.0, 15.0, 7, 2000.0,
+    {1, 1, 1, 1}, {132000.0, 126000.0, 3520.0}
+);
 ```
 
 ## Shifted Pattern {#chevron_shifted}

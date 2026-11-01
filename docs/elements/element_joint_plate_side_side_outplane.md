@@ -23,6 +23,7 @@ static std::shared_ptr<JointPlate> side_side_outplane_tenons(
 static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
 static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);
 static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
+static std::shared_ptr<JointPlate> side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
 static std::shared_ptr<JointPlate> side_side_outplane_notch();
 static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
@@ -127,6 +128,15 @@ Four divisions producing two interior fingers flanked by flat miter caps at both
 
 ```cpp
 const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_fingers(4);
+```
+
+## Annen Corner Fingers
+The corner fingers of Christopher Robeller's 2017 Annen plugin, built in world space where the two plates meet: their corner from one end of the seam to the other in seven parts, cut at every part by a plane across the seam turned 15 degrees each way in turn about the first plate's long edge, the first part a finger of the first plate, every finger reaching the other plate's outer face.
+
+![](elements/element_joint_plate_side_side_outplane_annen_fingers.png)
+
+```cpp
+const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_annen_fingers();
 ```
 
 ## Single Central Notch

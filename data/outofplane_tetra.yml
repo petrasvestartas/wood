@@ -10,7 +10,7 @@ joints_parameters_and_types:
   - 3        # row 0 side_side_inplane [2]: joint_type_id  (default 3)
   - 450      # row 1 side_side_outplane [0]: division_length (mm)
   - 0.5      # row 1 side_side_outplane [1]: shift (0..1)
-  - 17       # row 1 side_side_outplane [2]: joint_type_id  (default 15)
+  - 10       # row 1 side_side_outplane [2]: joint_type_id  (side_side_outplane_fingers, the family default 2024 fell to from its unassigned 17)
   - 450      # row 2 top_side  [0]: division_length (mm)
   - 0.5      # row 2 top_side  [1]: shift (0..1)
   - 20       # row 2 top_side  [2]: joint_type_id  (default 20)

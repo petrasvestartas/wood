@@ -93,6 +93,10 @@ public:
 
     static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
 
+    /// Christopher Robeller's Annen corner fingers, id 17: the corner in divisions parts cut by planes parallel to the box faces, turned angle degrees each way in turn about the first wall's long edge.
+    static std::shared_ptr<JointPlate>
+    side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
+
     static std::shared_ptr<JointPlate> side_side_outplane_notch();
 
     static std::shared_ptr<JointPlate> side_side_outplane_custom(
@@ -102,11 +106,12 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // top_side
     // ═══════════════════════════════════════════════════════════════════════════
-    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_tenons,
+    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_annen_tenons,
 
     static std::shared_ptr<JointPlate> top_side_three_tenons();
 
-    static std::shared_ptr<JointPlate> top_side_annen_tenons();
+    /// Christopher Robeller's Annen through-tenons, id 22: round(0.8 edge / tab_length) segments on the plate's own edge, a tenon on every fourth.
+    static std::shared_ptr<JointPlate> top_side_annen_tenons(double tab_length = 80.0);
 
     static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
 
@@ -330,10 +335,16 @@ private:
     ) const;
     bool compute_side_side_outplane(
         InteractionFeaturePlate& connection,
+        const std::vector<std::shared_ptr<Plate>>& elements,
         std::vector<InteractionFeaturePlate>& connections,
         const Settings& settings
     ) const;
-    bool compute_top_side(InteractionFeaturePlate& connection, const Settings& settings) const;
+    bool compute_top_side(
+        InteractionFeaturePlate& connection,
+        const std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<InteractionFeaturePlate>& connections,
+        const Settings& settings
+    ) const;
     bool compute_side_side_rotated(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<Plate>>& elements,

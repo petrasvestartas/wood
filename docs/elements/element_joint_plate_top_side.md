@@ -8,7 +8,7 @@ Top-to-side plate joints where tenons on the bottom edge of an upright plate (`t
 
 ```cpp
 static std::shared_ptr<JointPlate> top_side_three_tenons();
-static std::shared_ptr<JointPlate> top_side_annen_tenons();
+static std::shared_ptr<JointPlate> top_side_annen_tenons(double tab_length = 80.0);
 static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
 static std::shared_ptr<JointPlate> top_side_tenons(int divisions = 0, double shift = 0.5);
 static std::shared_ptr<JointPlate> top_side_milled_wedge();
@@ -33,14 +33,12 @@ const std::shared_ptr<JointPlate> joint = JointPlate::top_side_three_tenons();
 ```
 
 ## Annen Tenons
-Two wide fixed tenons from the Annen box-girder system on the upright's bottom edge and two through-mortises in the base plate.
+The through-tenons of Christopher Robeller's 2017 Annen plugin, built on the upright's own edge: its middle 80%, moved up to 200 mm towards the edge middle it shares with a plate across the base, in `4m + 1` equal segments with a tenon on every fourth from the third, each tenon pushed along the insertion vector through the base to its far face, and a slot per tenon in the base; `m` comes from the plate's `feature_divisions` when given, else from `round(0.8 edge / tab_length)`, Christopher's 80 mm tabs by default, 30 mm here for two tenons on the 250 mm edge.
 
 ![](elements/element_joint_plate_top_side_annen_tenons.png)
 
-![](joint_library/ts_top_side_annen_tenons_unit.png)
-
 ```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_side_annen_tenons();
+const std::shared_ptr<JointPlate> joint = JointPlate::top_side_annen_tenons(30.0);
 ```
 
 ## Every Point Visited

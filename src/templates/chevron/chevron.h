@@ -94,7 +94,16 @@ public:
     const double edge_rotation; // Degrees the even chevron edges turn about their plane's y axis.
     const double
         edge_offset; // Share of the plate thickness the odd chevron edges move along their normal.
+    const double
+        tab_length; // mm of edge per tenon division, Christopher's L_tab: round(0.8 edge / tab_length) raised to 4m + 1 segments gives m tenons.
+    const double
+        finger_angle; // Degrees the corner finger cuts turn from the box faces, each way in turn.
+    const int finger_divisions; // Parts every corner is cut in.
+    const double
+        stop_threshold; // The rows stop and mirror when less than this remains to the middle, in the surface's parameter units.
     const std::array<int, 4> ortho_edges; // Per edge index the axis a boundary edge plane snaps to.
+    const std::array<double, 3>
+        boundary_planes; // The y of the front and of the back boundary plane and the z of the ground; NaN keeps a boundary edge plane through its edge.
 
     /// The chevron shell on surface as the session named name.
     explicit Chevron(
@@ -108,7 +117,12 @@ public:
         double plate_thickness = 40.0,
         double edge_rotation = 1.0,
         double edge_offset = 0.5,
+        double tab_length = 80.0,
+        double finger_angle = 15.0,
+        int finger_divisions = 7,
+        double stop_threshold = 2000.0,
         const std::array<int, 4>& ortho_edges = {1, 1, 1, 1},
+        const std::array<double, 3>& boundary_planes = {NAN, NAN, NAN},
         const std::string& name = "chevron"
     );
 
@@ -121,11 +135,14 @@ public:
     /// The chevron quad mesh.
     const Mesh& mesh() const;
 
-    /// Per plate pair six insertion vectors as 18 numbers, the four sides along the corner bisectors.
+    /// Per plate six insertion vectors as 18 numbers: the top and bottom plates' four sides along the box diagonal, Christopher's insertion vector, the walls' mitre faces along the box's up.
     const std::vector<std::array<double, 18>>& insertion_vectors() const;
 
-    /// Per plate pair six joint types, one per face: 0 none, 10 tenon, 20 mortise.
+    /// Per plate six joint types, one per face: 22 the Annen tenons on the plates' sides, 17 the Annen fingers on the axis wall's mitre face, 10 on the other wall's, 0 none.
     const std::vector<std::array<int, 6>>& joints_per_face() const;
+
+    /// Per plate six division counts, one per face: Christopher's round(0.8 mesh edge / tab_length) on the plates' sides, finger_divisions on the walls' mitre faces, 0 none.
+    const std::vector<std::array<int, 6>>& divisions_per_face() const;
 
     /// Rows {s0, s1, e20, e31}: plate pairs s0 and e20 both join s1, so its joint is trimmed for both.
     const std::vector<std::array<int, 4>>& three_valence() const;
@@ -145,10 +162,11 @@ private:
     std::vector<std::array<std::optional<Plane>, 4>> _bisectors;
     std::vector<std::array<double, 18>> _insertion_vectors;
     std::vector<std::array<int, 6>> _joints_per_face;
+    std::vector<std::array<int, 6>> _divisions_per_face;
     std::vector<std::array<int, 4>> _three_valence;
     std::vector<std::pair<int, int>> _adjacency;
 
-    /// Strips across u, rows from both v ends growing by scale towards the middle, each row a chevron.
+    /// Strips across u, rows from both v ends growing by scale until less than stop_threshold remains to the middle, mirrored there, each row a chevron.
     Mesh compute_mesh() const;
 
     /// Every face's reversed vertices and the faces on every edge.
@@ -192,11 +210,12 @@ private:
     /// The plane through the line where p0 and p1 meet, halfway between them; none when they are parallel or share an origin.
     static std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1);
 
-    /// The plane with its normal snapped to the world axis given by axis, 1 the dominant one.
-    static Plane snapped_to_axis(const Plane& plane, int axis);
+    /// The plane with its normal snapped to the world axis given by axis, 1 the dominant one, and moved to the boundary plane on that axis when one is given.
+    static Plane
+    snapped_to_axis(const Plane& plane, int axis, const std::array<double, 3>& boundary);
 
-    /// The unit direction of the line where the face plane meets the bisector, zero without one.
-    static Vector bisector_direction(const Plane& face_plane, const std::optional<Plane>& bisector);
+    /// A face's edge planes as the box's sides, the chevron ones moved out by a plate, where the walls stand.
+    std::vector<Plane> box_sides(int face) const;
 };
 
 inline Chevron::Chevron(
@@ -210,7 +229,12 @@ inline Chevron::Chevron(
     double plate_thickness,
     double edge_rotation,
     double edge_offset,
+    double tab_length,
+    double finger_angle,
+    int finger_divisions,
+    double stop_threshold,
     const std::array<int, 4>& ortho_edges,
+    const std::array<double, 3>& boundary_planes,
     const std::string& name
 )
     : WoodSession(name), surface(surface), u_divisions(std::max(u_divisions, 1)),
@@ -219,7 +243,10 @@ inline Chevron::Chevron(
       top_plate_inlet(std::clamp(top_plate_inlet, 1.0, std::max(box_height, 1.0) * 0.333)),
       plate_thickness(std::clamp(plate_thickness, 1.0, std::max(box_height, 1.0) * 0.333)),
       edge_rotation(std::clamp(edge_rotation, -30.0, 30.0)),
-      edge_offset(std::clamp(edge_offset, -2.0, 2.0)), ortho_edges(ortho_edges) {
+      edge_offset(std::clamp(edge_offset, -2.0, 2.0)), tab_length(std::max(tab_length, 1.0)),
+      finger_angle(finger_angle), finger_divisions(std::max(finger_divisions, 1)),
+      stop_threshold(std::max(stop_threshold, 0.0)), ortho_edges(ortho_edges),
+      boundary_planes(boundary_planes) {
 
     // surface: the NURBS surface the chevrons are laid on
     add_nurbssurface(surface, add_group("surface"));
@@ -284,8 +311,8 @@ inline Chevron::Chevron(
     }
     set_node_color(insertion, Color(206, 16, 66, 255), true);
 
-    // joints: the wood solver reads the tables and cuts the tenons, mortises and side joints into the plates, each corner in seven fingers as Christopher's dovetail2 stitches it
-    settings.joint_parameters[3] = box_height / 7.0;
+    // joints: the wood solver reads the tables and cuts Christopher's through-tenons, their slots and the corner fingers into the plates
+    settings.joint_parameters[6] = tab_length;
     WoodSession::adjacency = _adjacency;
     WoodSession::three_valence = {{0}};
 
@@ -304,6 +331,8 @@ inline Chevron::Chevron(
 
         plates[i]->feature_types =
             std::vector<int>(_joints_per_face[i].begin(), _joints_per_face[i].end());
+        plates[i]->feature_divisions =
+            std::vector<int>(_divisions_per_face[i].begin(), _divisions_per_face[i].end());
     }
 
     compute_features();
@@ -319,6 +348,10 @@ inline const std::vector<std::array<double, 18>>& Chevron::insertion_vectors() c
 
 inline const std::vector<std::array<int, 6>>& Chevron::joints_per_face() const {
     return _joints_per_face;
+}
+
+inline const std::vector<std::array<int, 6>>& Chevron::divisions_per_face() const {
+    return _divisions_per_face;
 }
 
 inline const std::vector<std::array<int, 4>>& Chevron::three_valence() const {
@@ -394,7 +427,7 @@ inline Mesh Chevron::compute_mesh() const {
             rest -= step;
             step += step * scale;
 
-            if (v + step <= middle)
+            if (rest >= stop_threshold)
                 continue;
 
             // the second half: the same rows mirrored from the middle, the chevron turned, the last row straight
@@ -602,7 +635,8 @@ Chevron::compute_turned_edge_planes(std::vector<std::array<Plane, 4>> planes) co
 
             if (faces.size() != 2) {
                 if (ortho_edges[j] != 0)
-                    planes[face][j] = snapped_to_axis(planes[face][j], ortho_edges[j]);
+                    planes[face][j] =
+                        snapped_to_axis(planes[face][j], ortho_edges[j], boundary_planes);
 
                 continue;
             }
@@ -686,7 +720,8 @@ inline std::optional<Plane> Chevron::dihedral_plane(const Plane& p0, const Plane
     return Plane::from_frame(seam->start(), x, y, x.cross(y).normalized());
 }
 
-inline Plane Chevron::snapped_to_axis(const Plane& plane, int axis) {
+inline Plane
+Chevron::snapped_to_axis(const Plane& plane, int axis, const std::array<double, 3>& boundary) {
 
     const Vector normal = plane.z_axis();
     int index = 0;
@@ -703,7 +738,23 @@ inline Plane Chevron::snapped_to_axis(const Plane& plane, int axis) {
     z[index] = normal[index] >= 0.0 ? 1.0 : -1.0;
     const Vector reference = index != 0 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
     const Vector x = reference.cross(z).normalized();
-    return Plane::from_frame(plane.origin(), x, z.cross(x), z);
+
+    // the given boundary on that axis: for y the front or the back, whichever is nearer
+    std::array<double, 3> origin = {plane.origin()[0], plane.origin()[1], plane.origin()[2]};
+    std::vector<double> given;
+
+    for (const double value : index == 1 ? std::vector<double>{boundary[0], boundary[1]}
+                                         : std::vector<double>{boundary[2]})
+        if (index != 0 && !std::isnan(value))
+            given.push_back(value);
+
+    for (const double value : given)
+        if (std::abs(value - plane.origin()[index]) <=
+                std::abs(origin[index] - plane.origin()[index]) ||
+            origin[index] == plane.origin()[index])
+            origin[index] = value;
+
+    return Plane::from_frame(Point(origin[0], origin[1], origin[2]), x, z.cross(x), z);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -732,13 +783,8 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
         const Plane& face_plane = _face_planes[face];
         const std::array<Plane, 4>& edges = _edge_planes[face];
         const std::array<std::optional<Plane>, 4>& bisectors = _bisectors[face];
-        const std::array<int, 2>& chevron = _strips.chevron_edges[face];
-
-        // top and bottom: the face plane moved into the box, cut by the edge planes, the chevron ones a plate further out
-        std::vector<Plane> sides(edges.begin(), edges.end());
-
-        for (const int j : chevron)
-            sides[j] = sides[j].translate_by_normal(t);
+        // top and bottom: the face plane moved into the box, cut by the box sides, the outline run the way Christopher's contours run from its first corner, so side 2 + j lies on mesh edge (4 - j) % 4
+        const std::vector<Plane> sides = box_sides(face);
 
         const std::array<double, 4> levels = {
             half - top_plate_inlet - t * 0.5,
@@ -748,7 +794,9 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
         };
 
         for (const double level : levels)
-            outlines.push_back(Polyline::from_planes(sides, face_plane.translate_by_normal(level)));
+            outlines.push_back(
+                Polyline::from_planes(sides, face_plane.translate_by_normal(level)).reversed()
+            );
 
         // sides: each chevron edge plane cut by the box faces, its neighbour edge and the corner bisector
         const std::array<int, 2> sorted = sorted_chevron_edges(face);
@@ -781,14 +829,14 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Joinery
 // ═══════════════════════════════════════════════════════════════════════════
-inline Vector
-Chevron::bisector_direction(const Plane& face_plane, const std::optional<Plane>& bisector) {
+inline std::vector<Plane> Chevron::box_sides(int face) const {
 
-    if (!bisector)
-        return Vector(0.0, 0.0, 0.0);
+    std::vector<Plane> sides(_edge_planes[face].begin(), _edge_planes[face].end());
 
-    const std::optional<Line> seam = Intersection::plane_plane(*bisector, face_plane);
-    return seam ? seam->to_vector().normalized() : Vector(0.0, 0.0, 0.0);
+    for (const int j : _strips.chevron_edges[face])
+        sides[j] = sides[j].translate_by_normal(plate_thickness);
+
+    return sides;
 }
 
 inline std::vector<Line> Chevron::compute_joinery() {
@@ -798,6 +846,7 @@ inline std::vector<Line> Chevron::compute_joinery() {
     std::vector<Line> lines;
     _insertion_vectors.assign(count * 4, {});
     _joints_per_face.assign(count * 4, {0, 0, 0, 0, 0, 0});
+    _divisions_per_face.assign(count * 4, {0, 0, 0, 0, 0, 0});
 
     for (size_t c = 0; c < count; c++)
         place[_strips.order[c]] = static_cast<int>(c);
@@ -805,31 +854,50 @@ inline std::vector<Line> Chevron::compute_joinery() {
     for (size_t c = 0; c < count; c++) {
         const int face = _strips.order[c];
         const int pair = static_cast<int>(c) * 4;
+        // the insertion vector, Christopher's: the box slides along the bisector at the corner opposite the one its walls share, in the box plane, the same line on every side
         const std::array<int, 2> sorted = sorted_chevron_edges(face);
-        const Vector first = bisector_direction(_face_planes[face], _bisectors[face][sorted[0]]);
-        const Vector second =
-            bisector_direction(_face_planes[face], _bisectors[face][(sorted[1] + 1) % 4]);
+        const Polyline corners = Polyline::from_planes(box_sides(face), _face_planes[face]);
+        const int a = (sorted[0] + 2) % 4;
+        const Vector diagonal = ((corners[(a + 1) % 4] - corners[a]).normalized() +
+                                 (corners[(a + 3) % 4] - corners[a]).normalized()) *
+                                -1.0;
 
         std::array<double, 18> vectors = {};
 
         for (int side = 2; side < 6; side++)
             for (int k = 0; k < 3; k++)
-                vectors[side * 3 + k] = second[k];
-
-        for (const int offset : {2, 3}) {
-            const int side = 2 + (sorted[1] + offset) % 4;
-
-            for (int k = 0; k < 3; k++)
-                vectors[side * 3 + k] = first[k];
-        }
+                vectors[side * 3 + k] = diagonal[k];
 
         _insertion_vectors[pair + 0] = vectors;
         _insertion_vectors[pair + 1] = vectors;
 
-        _joints_per_face[pair + 0] = {0, 0, 20, 20, 20, 20};
-        _joints_per_face[pair + 1] = {0, 0, 20, 20, 20, 20};
+        _joints_per_face[pair + 0] = {0, 0, 22, 22, 22, 22};
+        _joints_per_face[pair + 1] = {0, 0, 22, 22, 22, 22};
         _joints_per_face[pair + 2] = {0, 0, 0, 0, 10, 0};
-        _joints_per_face[pair + 3] = {0, 0, 10, 0, 0, 0};
+        _joints_per_face[pair + 3] = {0, 0, 17, 0, 0, 0};
+
+        // divisions: Christopher's round(0.8 mesh edge / tab length) on every plate side, side 2 + j on mesh edge (4 - j) % 4; the corner parts on the walls' mitre faces
+        const std::vector<size_t>& keys = _faces.vertices[face];
+
+        for (int side = 2; side < 6; side++) {
+            const int edge = (6 - side) % 4;
+            const double length = Point::distance(
+                _mesh.vertex_point(keys[edge]).value(),
+                _mesh.vertex_point(keys[(edge + 1) % 4]).value()
+            );
+            const int divisions = static_cast<int>(std::nearbyint(0.8 * length / tab_length));
+            _divisions_per_face[pair + 0][side] = divisions;
+            _divisions_per_face[pair + 1][side] = divisions;
+        }
+
+        _divisions_per_face[pair + 2][4] = finger_divisions;
+        _divisions_per_face[pair + 3][2] = finger_divisions;
+
+        // the walls' mitre faces take the box's up, Christopher's, towards the plate the solver calls the bottom, so his corner cuts count from his bottom face
+        for (int k = 0; k < 3; k++) {
+            _insertion_vectors[pair + 2][4 * 3 + k] = -_face_planes[face].z_axis()[k];
+            _insertion_vectors[pair + 3][2 * 3 + k] = -_face_planes[face].z_axis()[k];
+        }
 
         for (const int role_a : {0, 1})
             for (const int role_b : {2, 3})
@@ -856,7 +924,7 @@ inline std::vector<Line> Chevron::compute_joinery() {
         const std::shared_ptr<Plate> top =
             get_element_by_name<Plate>(fmt::format("plate_{}", pair));
         const Point centre = top->polylines[1].center();
-        lines.push_back(Line::from_points(centre, centre + second * 300.0));
+        lines.push_back(Line::from_points(centre, centre + diagonal * 300.0));
     }
 
     return lines;

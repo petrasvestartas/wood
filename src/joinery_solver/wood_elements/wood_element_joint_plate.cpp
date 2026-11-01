@@ -35,10 +35,12 @@ const std::unordered_map<std::string, int> LIBRARY_IDS = {
     {"side_side_outplane_tenons", 14},
     {"side_side_outplane_linked_tenons", 15},
     {"side_side_outplane_linked_tenons_wall", 16},
+    {"side_side_outplane_annen_fingers", 17},
     {"side_side_outplane/side_removal", 18},
     {"side_side_outplane_custom", 19},
     {"top_side_tenons", 20},
     {"top_side_dense_tenons", 21},
+    {"top_side_annen_tenons", 22},
     {"top_side_milled_wedge", 24},
     {"top_side_snap_fit", 25},
     {"top_side/side_removal", 28},
@@ -213,6 +215,9 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
     case 16:
         side_side_outplane_linked_tenons_wall(joint, context.all_joints);
         return true;
+    case 17:
+        side_side_outplane_annen_fingers(joint, context.elements, 17, 15.0);
+        return true;
     case 18:
         side_removal(joint, context.elements);
         return true;
@@ -234,7 +239,7 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
         top_side_dense_tenons(joint);
         return true;
     case 22:
-        top_side_tenons(joint);
+        top_side_annen_tenons(joint, context.elements, context.all_joints);
         return true;
     case 23:
     case 24:
@@ -725,11 +730,13 @@ int JointPlate::library_id(const std::string& name) {
 
     if (name == "top_side_three_tenons" || name == "top_side_annen_tenons" ||
         name == "side_side_outplane_capped_fingers" || name == "side_side_outplane_notch")
-        throw std::invalid_argument(fmt::format(
-            "{} has no id in 2024's tables: it is reached by name only, through its JointPlate "
-            "constructor",
-            name
-        ));
+        throw std::invalid_argument(
+            fmt::format(
+                "{} has no id in 2024's tables: it is reached by name only, through its JointPlate "
+                "constructor",
+                name
+            )
+        );
     throw std::invalid_argument(fmt::format("no joint design is named {}", name));
 }
 
@@ -1539,10 +1546,10 @@ void JointPlate::compute_library(
         if (compute_side_side_inplane(connection, elements, settings))
             return;
     } else if (parameters.library.starts_with("side_side_outplane_")) {
-        if (compute_side_side_outplane(connection, connections, settings))
+        if (compute_side_side_outplane(connection, elements, connections, settings))
             return;
     } else if (parameters.library.starts_with("top_side_")) {
-        if (compute_top_side(connection, settings))
+        if (compute_top_side(connection, elements, connections, settings))
             return;
     } else if (parameters.library.starts_with("top_top_")) {
         if (compute_top_top(connection, elements, settings))
@@ -1556,8 +1563,9 @@ void JointPlate::compute_library(
     } else if (parameters.library.starts_with("border")) {
         if (compute_b(connection, settings))
             return;
-    } else if (parameters.library.starts_with("side_removal") ||
-               parameters.library == "jupiter_scarf") {
+    } else if (
+        parameters.library.starts_with("side_removal") || parameters.library == "jupiter_scarf"
+    ) {
         if (elements.size() < 2)
             throw std::invalid_argument(
                 "Side removal requires the participating plates in orient(contact, elements)"
@@ -1792,6 +1800,17 @@ std::shared_ptr<JointPlate> JointPlate::side_side_outplane_capped_fingers(int di
     return joint;
 }
 
+std::shared_ptr<JointPlate>
+JointPlate::side_side_outplane_annen_fingers(int divisions, double angle) {
+
+    const std::shared_ptr<JointPlate> joint =
+        side_side_outplane("side_side_outplane_annen_fingers");
+    joint->parameters.divisions = divisions;
+    joint->parameters.taper = angle;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::side_side_outplane_notch() {
 
     return side_side_outplane("side_side_outplane_notch");
@@ -1812,6 +1831,7 @@ std::shared_ptr<JointPlate> JointPlate::side_side_outplane_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_side_side_outplane(
     InteractionFeaturePlate& connection,
+    const std::vector<std::shared_ptr<Plate>>& elements,
     std::vector<InteractionFeaturePlate>& connections,
     const Settings& settings
 ) const {
@@ -1836,6 +1856,10 @@ bool JointPlate::compute_side_side_outplane(
             parameters.y[1],
             parameters.z[0],
             parameters.z[1]
+        );
+    else if (parameters.library == "side_side_outplane_annen_fingers")
+        ::side_side_outplane_annen_fingers(
+            connection, elements, 17, parameters.taper > 0.0 ? parameters.taper : 15.0
         );
     else if (parameters.library == "side_side_outplane_linked_tenons")
         ::side_side_outplane_linked_tenons(connection, connections, parameters.disable_divisions);
@@ -1862,9 +1886,12 @@ std::shared_ptr<JointPlate> JointPlate::top_side_three_tenons() {
     return from_library("top_side_three_tenons", 20);
 }
 
-std::shared_ptr<JointPlate> JointPlate::top_side_annen_tenons() {
+std::shared_ptr<JointPlate> JointPlate::top_side_annen_tenons(double tab_length) {
 
-    return from_library("top_side_annen_tenons", 20);
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_annen_tenons", 20);
+    joint->division_distance = tab_length;
+
+    return joint;
 }
 
 std::shared_ptr<JointPlate> JointPlate::top_side_dense_tenons(int divisions, double shift) {
@@ -1911,13 +1938,17 @@ std::shared_ptr<JointPlate> JointPlate::top_side_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-bool JointPlate::compute_top_side(InteractionFeaturePlate& connection, const Settings& settings)
-    const {
+bool JointPlate::compute_top_side(
+    InteractionFeaturePlate& connection,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<InteractionFeaturePlate>& connections,
+    const Settings& settings
+) const {
 
     if (parameters.library == "top_side_three_tenons")
         ::top_side_three_tenons(connection);
     else if (parameters.library == "top_side_annen_tenons")
-        ::top_side_annen_tenons(connection);
+        ::top_side_annen_tenons(connection, elements, connections);
     else if (parameters.library == "top_side_dense_tenons")
         ::top_side_dense_tenons(connection);
     else if (parameters.library == "top_side_tenons")
@@ -2119,8 +2150,9 @@ JointPlate::cross_custom(const std::vector<Polyline>& male, const std::vector<Po
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-bool JointPlate::compute_cross(InteractionFeaturePlate& connection, const Settings& settings)
-    const {
+bool JointPlate::compute_cross(
+    InteractionFeaturePlate& connection, const Settings& settings
+) const {
 
     if (parameters.library == "cross_slot")
         ::cross_slot(connection);

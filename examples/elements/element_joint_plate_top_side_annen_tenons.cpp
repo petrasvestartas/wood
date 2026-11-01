@@ -22,7 +22,7 @@ int main() {
 
         const std::shared_ptr<InteractionContactFace> contact =
             scene.compute_face_contact(base, upright);
-        const std::shared_ptr<JointPlate> joint = JointPlate::top_side_annen_tenons();
+        const std::shared_ptr<JointPlate> joint = JointPlate::top_side_annen_tenons(30.0);
         joint->orient(contact, {base, upright});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);
@@ -41,7 +41,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_annen_tenons: the two Annen tenons of an upright plate standing on a base plate, through two mortises in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
+top_side_annen_tenons: the through-tenons of Christopher Robeller's 2017 Annen plugin on an upright plate standing on a base plate, the middle 80% of its edge in 4m + 1 segments with a tenon on every fourth, two tenons on the 250 mm edge with 30 mm tabs, through slots in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
