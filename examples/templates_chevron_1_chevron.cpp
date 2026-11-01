@@ -22,7 +22,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The chevron template on the first of the 23 Annen surfaces in annen_surfaces.json: four strips of chevron rows growing towards the middle, a plane on every face edge with the chevron edges turned and offset, the corner bisectors, then per face a top and a bottom plate inset in the 760 mm box and a side plate on each chevron edge, with the insertion vectors, joint types, three-valence groups and adjacency the wood solver reads to cut the Annen tenons, mortises and side joints into the plates, the same 736 plates and joints as the 2024 Annen dataset; each step in its own group (surface, mesh, strips, edge_planes, bisectors, plates with a box_<face> group per face, insertion, joints).
+The chevron template on the first of the 23 Annen surfaces in annen_surfaces.json: four strips of chevron rows growing towards the middle, a plane on every face edge with the chevron edges turned and offset, the corner bisectors, then per face a top and a bottom plate inset in the 760 mm box and a side plate on each chevron edge, with the insertion vectors, joint types, three-valence groups and adjacency the wood solver reads to cut the Annen tenons and mortises into the plates and stitch every corner in seven fingers as Christopher's dovetail2 divides it, the 736 plates and tenons of the 2024 Annen dataset; each step in its own group (surface, mesh, strips, edge_planes, bisectors, plates with a box_<face> group per face, insertion, joints).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -100,7 +100,7 @@ outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)
 
 ## Insertion Vectors and Joinery {#chevron_insertion}
 
-`compute_joinery()` assigns assembly insertion vectors along the corner bisectors together with mortise and tenon face codes, the three-valence groups and the plate adjacency. The constructor hands these tables to the wood solver, `compute_features()`, which cuts the Annen tenons and mortises and the side joints at every mitre. On the first Annen surface the 736 plates and their joints are the 2024 Annen dataset `annen_grid_full_arch`. The picture shows the four boxes at the crown, `box_34`, `box_57`, `box_80` and `box_81`, with the joints cut into their plates.
+`compute_joinery()` assigns assembly insertion vectors along the corner bisectors together with mortise and tenon face codes, the three-valence groups and the plate adjacency. The constructor hands these tables to the wood solver, `compute_features()`, which cuts the Annen tenons and mortises and stitches every corner with fingers, in seven parts as Christopher's `dovetail2` divides it: `settings.joint_parameters[3] = box_height / 7.0`. On the first Annen surface the 736 plates and their tenons are the 2024 Annen dataset `annen_grid_full_arch`, which divided each corner in one part. The picture shows the four boxes at the crown, `box_34`, `box_57`, `box_80` and `box_81`, with the joints cut into their plates.
 
 ![](templates/templates_chevron_1_chevron_joints.webp)
 
@@ -201,7 +201,7 @@ loop.push_back(
 
 ### Joinery {#chevron_shifted_joinery}
 
-Every wall is joined to the top and bottom plates of both cells on its edge: adjacency rows `(wall, plate)`, wall first so the solver meets the wall's face before a plate's kink side meets the wall's end, and the three-valence rows `{top0, wall, top1, wall}` and `{bottom0, wall, bottom1, wall}` that align the tenons of the two plates sharing a wall. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and goes to the edges whose walls the cell slides into; a plate's side face carries the direction of its edge and the joint type 20, the Annen tenon. From these tables the solver makes 1150 Annen joints and 138 plate joints and cuts them into all 1076 plates; the picture shows the four boxes at the crown, `box_67`, `box_68`, `box_93` and `box_94`.
+Every wall is joined to the top and bottom plates of both cells on its edge: adjacency rows `(wall, plate)`, wall first so the solver meets the wall's face before a plate's kink side meets the wall's end, and the three-valence rows `{top0, wall, top1, wall}` and `{bottom0, wall, bottom1, wall}` that align the tenons of the two plates sharing a wall. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and goes to the edges whose walls the cell slides into; a plate's side face carries the direction of its edge and the joint type 20, the Annen tenon. From these tables the solver makes 1150 Annen joints and 138 plate joints and cuts them into all 1076 plates; the picture looks into the crown of the shell, every plate and wall in place.
 
 ![](templates/templates_chevron_2_shifted_joints.webp)
 

@@ -100,7 +100,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
     "${RENDER[@]}" templates_chevron_2_shifted mesh
     "${RENDER[@]}" --opacity 1.0 templates_chevron_2_shifted plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_2_shifted mesh+edge_planes
-    "${RENDER[@]}" --name joints templates_chevron_2_shifted box_67+box_68+box_93+box_94
+    VIEWER_TARGET=23612,135650,11587 VIEWER_DISTANCE_SCALE=0.10 "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_2_shifted plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then

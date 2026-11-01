@@ -284,7 +284,8 @@ inline Chevron::Chevron(
     }
     set_node_color(insertion, Color(206, 16, 66, 255), true);
 
-    // joints: the wood solver reads the tables and cuts the tenons, mortises and side joints into the plates
+    // joints: the wood solver reads the tables and cuts the tenons, mortises and side joints into the plates, each corner in seven fingers as Christopher's dovetail2 stitches it
+    settings.joint_parameters[3] = box_height / 7.0;
     WoodSession::adjacency = _adjacency;
     WoodSession::three_valence = {{0}};
 
