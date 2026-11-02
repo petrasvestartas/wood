@@ -10,7 +10,7 @@ A model is a session of elements and interactions. The elements are the timber m
     <span class="wood-card-title">Architecture</span>
   </a>
   <a class="wood-card" href="elements.html">
-    <img src="wood_elements_taxonomy.webp" alt="Elements">
+    <img src="wood_elements_sheet_1_elements.webp" alt="Elements">
     <span class="wood-card-title">Elements</span>
   </a>
   <a class="wood-card" href="templates.html">

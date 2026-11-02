@@ -42,7 +42,7 @@ public:
 
 ## Stock and Cut Geometry {#arch_stock_vs_cut}
 
-![](diagrams/wood_elements_taxonomy.webp)
+![](diagrams/wood_elements_sheet_1_elements.webp)
 
 Every WoodElement caches two lazy geometric states in both Mesh and BRep form: uncut stock (`element_geometry_mesh()`, `element_geometry_brep()`) built once and placed via scene transforms, and cut solids (`model_geometry_mesh()`, `model_geometry_brep()`) recomputed when interactions invalidate the element.
 

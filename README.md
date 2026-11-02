@@ -29,9 +29,13 @@ cmake --build build --target element_joint_plate_side_side_outplane_fingers --pa
 | Interactions | `src/joinery_solver/wood_interaction/**/*.h` | Contacts (`InteractionContactFace`, `InteractionContactCross`, `InteractionContactAxis`) and cutting features (`InteractionFeaturePlate`, `InteractionFeatureBeam`, `InteractionFeaturePlateBeam`, `InteractionFeaturePlane`, `InteractionFeatureSolid`) |
 | Templates | `src/templates/*` | `Shells`, `Folding`, `CylindricalFolding`, `DevelopableFolding`, `Chevron`, `Cross`, `Module`, `Reciprocal`, `Grid`, `Floor`, `Truss`, `Vault` |
 
-![](docs/images/diagrams/wood_elements_taxonomy.webp)
+![](docs/images/diagrams/wood_elements_sheet_1_elements.webp)
 
-![](docs/images/diagrams/wood_joint_elements_taxonomy.webp)
+![](docs/images/diagrams/wood_elements_sheet_2_plate_joints.webp)
+
+![](docs/images/diagrams/wood_elements_sheet_3_beam_joints.webp)
+
+![](docs/images/diagrams/wood_elements_sheet_4_connectors.webp)
 
 ![](docs/images/diagrams/wood_templates_pipeline.webp)
 
