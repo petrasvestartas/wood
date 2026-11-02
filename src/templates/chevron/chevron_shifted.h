@@ -161,7 +161,7 @@ private:
     /// The sorted vertex pair of a cell's edge.
     EdgeKey edge_key(int cell, int edge) const;
 
-    /// Per side of a cell's outline whether the top and bottom plates step in by a wall (-1) or stay (0).
+    /// Per side of a cell's outline whether the top and bottom plates step in by a wall (-1) or stay (0); a first quad steps in on its left side too, under the even neighbour's wall, which the definition left unstepped.
     static std::vector<int> step_flags(int mask);
 
     /// The walls of a cell as (side, outward) pairs in the order they are made.
@@ -725,7 +725,7 @@ inline std::vector<int> ChevronShifted::step_flags(int mask) {
         return {-1, 0, 0, 0, 0, -1, 0, -1};
 
     if (mask == -1)
-        return {0, 0, 0, 0};
+        return {0, 0, 0, -1};
 
     return {-1, 0, 0, -1};
 }
