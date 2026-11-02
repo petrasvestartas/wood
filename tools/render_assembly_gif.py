@@ -1,4 +1,4 @@
-"""The assembly of a chevron template's 2 x 2 block as a GIF, docs/images/templates/<example>.gif (<example>_assembly.gif when the name does not end in _assembly): the example writes its scene and
+"""The assembly of a chevron template's 4 x 4 block as a GIF, docs/images/templates/<example>.gif (<example>_assembly.gif when the name does not end in _assembly): the example writes its scene and
 data/output/pb/assembly.json (the reach, the order, every box's plates, vector and bounds, the block); every box of the block then slides in
 along its vector into the ones placed before it, in the order, over `--slides` frames each, every frame a scene the viewer renders with the
 camera fitted once to the block in place and every box at its start, so the frames hold still, all cropped alike to what they draw.

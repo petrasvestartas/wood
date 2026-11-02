@@ -96,13 +96,13 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
     "${RENDER[@]}" --opacity 1.0 templates_chevron_1_chevron plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_1_chevron mesh+edge_planes
     VIEWER_PLANE_SIZE=650 "${RENDER[@]}" --opacity 0.55 --name bisectors templates_chevron_1_chevron mesh+bisectors
-    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_1_chevron box_80+box_81+box_103+box_104
+    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_1_chevron box_56+box_57+box_58+box_59+box_79+box_80+box_81+box_82+box_102+box_103+box_104+box_105+box_125+box_126+box_127+box_128
     "${RENDER[@]}" templates_chevron_2_shifted mesh
     "${RENDER[@]}" --opacity 1.0 templates_chevron_2_shifted plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_2_shifted mesh+edge_planes
-    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_2_shifted box_94+box_95+box_120+box_121
+    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_2_shifted box_65+box_66+box_67+box_68+box_96+box_95+box_94+box_93+box_119+box_120+box_121+box_122+box_150+box_149+box_148+box_147
     "${RENDER[@]}" --opacity 1.0 templates_chevron_3_max2_arch plates
-    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_3_max2_arch box_87+box_88+box_112+box_113
+    "${RENDER[@]}" --opacity 1.0 --name joints templates_chevron_3_max2_arch box_61+box_62+box_63+box_64+box_86+box_87+box_88+box_89+box_111+box_112+box_113+box_114+box_136+box_137+box_138+box_139
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
