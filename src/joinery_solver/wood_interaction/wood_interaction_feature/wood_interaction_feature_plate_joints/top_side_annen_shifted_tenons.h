@@ -16,7 +16,7 @@ static Plane annen_shifted_bound(
 
     const Plane& there = plate.planes[beside];
 
-    // the junction of a merged long side: the face of another wall through the corner across the side, else the wall's own end plane when it ends within a thickness of the corner, else square across the side
+    // the junction of a merged long side: the face of another wall through the corner across the side, its outline within two thicknesses of the corner, else the wall's own end plane when it ends within a thickness of the corner, else square across the side
     if (std::abs(plate.planes[side].z_axis().dot(there.z_axis())) > 0.999) {
         const Vector normal = plate.planes[0].z_axis();
         const Vector across = plate.planes[side].z_axis();
@@ -32,7 +32,11 @@ static Plane annen_shifted_bound(
                     std::abs(candidate.z_axis().dot(across)) > 0.9)
                     continue;
                 const double distance = Point::distance(corner, candidate.project(corner));
-                if (distance < nearest) {
+                size_t edge = 0;
+                Point closest;
+                if (distance < nearest &&
+                    other.polylines[face].closest_distance_and_point(corner, edge, closest) <
+                        2.0 * other.thickness) {
                     nearest = distance;
                     end = candidate;
                 }

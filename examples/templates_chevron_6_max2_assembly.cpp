@@ -50,7 +50,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Arch 22 of the 2017 MAX2 prototype, the chevron template on the second Annen surface with the prototype's sliders, assembled box by box: every box slides in along its one insertion vector into the boxes already placed, in the order its through-tenons allow, and is swept along its vector against the plates already placed, a point inside every face cast along the way; the report counts the penetrations found, none. The 2 x 2 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py.
+Arch 22 of the 2017 MAX2 prototype, the chevron template on the second Annen surface with the prototype's sliders, assembled box by box: every box slides in along its one insertion vector into the boxes already placed, in the order its through-tenons allow, and is swept along its vector against the plates already placed, points just inside its faces and along its edges stepped along the way; the report lists the plate pairs that meet with how deep. The 2 x 2 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

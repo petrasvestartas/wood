@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The chevron template on the first Annen surface assembled box by box: every box slides in along its one insertion vector, the box diagonal at the corner opposite its two walls, into the boxes already placed; the order comes from the through-tenons, a box after the boxes whose walls its tenons enter; every box is swept along its vector against the plates already placed, a point inside every face cast along the way, and the report counts the penetrations found, none. The 2 x 2 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py, which draws the block's assembly frame by frame.
+The chevron template on the first Annen surface assembled box by box: every box slides in along its one insertion vector, the box diagonal at the corner opposite its two walls, into the boxes already placed; the order comes from the through-tenons, a box after the boxes whose walls its tenons enter; every box is swept along its vector against the plates already placed, points just inside its faces and along its edges stepped along the way, and the report lists the plate pairs that meet with how deep. The 2 x 2 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py, which draws the block's assembly frame by frame.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

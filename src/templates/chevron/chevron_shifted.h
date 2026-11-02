@@ -12,6 +12,13 @@ struct ShiftedSide {
     int edge;
 };
 
+/// A wall of a cell: the first and last side of its outline it stands on, and whether it stands outward of them.
+struct ShiftedWallRun {
+    int first;
+    int last;
+    bool outward;
+};
+
 /// The cells of the shifted pattern: hexagons over three rows in staggered columns, a half-cell quad at one end of every column.
 struct ShiftedCells {
     ChevronFaces faces; // Per cell its vertex keys into the point grid and the cells on every edge.
@@ -29,8 +36,8 @@ struct ShiftedPlates {
     std::vector<std::array<int, 2>> walls; // Per wall its plate and its cell.
     std::vector<std::vector<std::pair<size_t, size_t>>>
         wall_edges; // Per wall the mesh edges it stands on, both halves of a merged long side.
-    std::vector<std::array<int, 2>>
-        corners; // Per box corner the two walls mitred there: the one ending on the mitre, then the one starting on it.
+    std::vector<std::array<int, 3>>
+        corners; // Per box corner the two walls mitred there, the one ending on the mitre then the one starting on it, and their cell.
 };
 
 }
@@ -171,6 +178,9 @@ private:
 
     /// The plane turned about its y axis.
     static Plane turned_about_y(const Plane& plane, double angle);
+
+    /// The mitre between two walls' outer faces a and b: through their seam, its normal halfway between theirs turned away from centre; none when they are parallel.
+    static std::optional<Plane> mitre(const Plane& a, const Plane& b, const Point& centre);
 
     /// The plane moved by distance along its normal to the side nearer centre (inward) or farther from it.
     static Plane stepped(const Plane& plane, double distance, const Point& centre, bool inward);
@@ -685,6 +695,31 @@ ChevronShifted::stepped(const Plane& plane, double distance, const Point& centre
     return to_in < to_out ? out : in;
 }
 
+inline std::optional<Plane>
+ChevronShifted::mitre(const Plane& a, const Plane& b, const Point& centre) {
+
+    const std::optional<Line> seam = Intersection::plane_plane(a, b);
+
+    if (!seam)
+        return std::nullopt;
+
+    Vector away_a = a.z_axis();
+    Vector away_b = b.z_axis();
+
+    if (away_a.dot(centre - a.origin()) > 0.0)
+        away_a = -away_a;
+
+    if (away_b.dot(centre - b.origin()) > 0.0)
+        away_b = -away_b;
+
+    Vector normal = away_a - away_b;
+
+    if (!normal.normalize_self())
+        return std::nullopt;
+
+    return Plane::from_point_normal(seam->start(), normal);
+}
+
 inline std::vector<int>
 ChevronShifted::compact(Polyline& first, Polyline& second, const std::vector<int>& edges) {
 
@@ -769,26 +804,26 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
         plates.boxes.push_back(box);
 
         // wall runs: the cell's wall sides in order, the next side taken into the run when only cross planes lie between and it stands on the same plane the same way, so the halves of a merged long side make one wall
-        std::vector<std::array<int, 3>> runs;
+        std::vector<wood_chevron::ShiftedWallRun> runs;
 
         for (const std::pair<int, bool>& wall : wall_sides(mask)) {
-            bool merged = !runs.empty() && runs.back()[1] < wall.first &&
-                          (runs.back()[2] == 1) == wall.second;
+            bool merged = !runs.empty() && runs.back().last < wall.first &&
+                          runs.back().outward == wall.second;
 
-            for (int k = merged ? runs.back()[1] + 1 : wall.first; k < wall.first; k++)
+            for (int k = merged ? runs.back().last + 1 : wall.first; k < wall.first; k++)
                 merged = merged && sides[k].edge < 0;
 
             if (merged) {
-                const Plane& a = sides[runs.back()[0]].plane;
+                const Plane& a = sides[runs.back().first].plane;
                 const Plane& b = sides[wall.first].plane;
                 merged = Point::distance(a.origin(), b.origin()) < 1e-6 &&
                          a.z_axis().dot(b.z_axis()) > 1.0 - 1e-9;
             }
 
             if (merged)
-                runs.back()[1] = wall.first;
+                runs.back().last = wall.first;
             else
-                runs.push_back({wall.first, wall.first, wall.second ? 1 : 0});
+                runs.push_back({wall.first, wall.first, wall.second});
         }
 
         // walls: each run between the outer box faces, a wall thick inward or outward from its plane, ended on the mitre between the outer faces where it meets another wall of the box, a wall short of a side where a neighbour's wall stands inside the cell, else on the side's plane
@@ -798,19 +833,19 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
         const int base = static_cast<int>(plates.plates.size());
         std::vector<Plane> outers;
 
-        for (const std::array<int, 3>& run : runs)
+        for (const wood_chevron::ShiftedWallRun& run : runs)
             outers.push_back(
-                run[2] == 1 ? stepped(sides[run[0]].plane, plate_thickness, top.origin(), false)
-                            : sides[run[0]].plane
+                run.outward ? stepped(sides[run.first].plane, plate_thickness, top.origin(), false)
+                            : sides[run.first].plane
             );
 
-        // the bounds: per run the plane after it and the one before it; a corner's mitre is made once, between the two walls' outer faces, so both walls end on the same plane
+        // the bounds: per run the plane after it and the one before it; a corner's mitre is made once, between the two walls' outer faces, so both walls end on the same plane; two walls too nearly parallel for a mitre end on each other's side planes and get no corner
         std::vector<std::array<Plane, 2>> bounds(runs.size());
 
         for (size_t r = 0; r < runs.size(); r++)
             for (int end = 0; end < 2; end++) {
                 const int side =
-                    end == 0 ? (runs[r][1] + 1) % count : (runs[r][0] + count - 1) % count;
+                    end == 0 ? (runs[r].last + 1) % count : (runs[r].first + count - 1) % count;
                 bounds[r][end] = sides[side].plane;
 
                 if (sides[side].edge >= 0 &&
@@ -823,22 +858,27 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
 
         for (size_t r = 0; r < runs.size(); r++)
             for (size_t q = 0; q < runs.size(); q++) {
-                if (runs[q][0] != (runs[r][1] + 1) % count)
+                if (runs[q].first != (runs[r].last + 1) % count)
                     continue;
 
-                const Plane mitre =
-                    Chevron::dihedral_plane(outers[r], outers[q]).value_or(sides[runs[q][0]].plane);
-                bounds[r][0] = mitre;
-                bounds[q][1] = mitre;
-                plates.corners.push_back({base + static_cast<int>(r), base + static_cast<int>(q)});
+                const std::optional<Plane> corner = mitre(outers[r], outers[q], top.origin());
+
+                if (!corner)
+                    continue;
+
+                bounds[r][0] = *corner;
+                bounds[q][1] = *corner;
+                plates.corners.push_back(
+                    {base + static_cast<int>(r), base + static_cast<int>(q), static_cast<int>(cell)}
+                );
             }
 
         for (size_t r = 0; r < runs.size(); r++) {
-            const Plane& plane = sides[runs[r][0]].plane;
-            const Plane moved = stepped(plane, plate_thickness, top.origin(), runs[r][2] != 1);
+            const Plane& plane = sides[runs[r].first].plane;
+            const Plane moved = stepped(plane, plate_thickness, top.origin(), !runs[r].outward);
             std::vector<EdgeKey> keys;
 
-            for (int k = runs[r][0]; k <= runs[r][1]; k++)
+            for (int k = runs[r].first; k <= runs[r].last; k++)
                 if (sides[k].edge >= 0)
                     keys.push_back(edge_key(static_cast<int>(cell), sides[k].edge));
 
@@ -1014,13 +1054,8 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
     }
 
     // corners: the Annen fingers on the two mitre faces of every box corner, the wall ending on the mitre the axis wall with 17 on its end face, the wall starting there 10 on its start face, both inserted along the box's up, cut in finger_divisions parts
-    std::map<int, int> cell_of_wall;
-
-    for (const std::array<int, 2>& wall : plates.walls)
-        cell_of_wall[wall[0]] = wall[1];
-
-    for (const std::array<int, 2>& corner : plates.corners) {
-        const Vector up = -_face_planes[cell_of_wall.at(corner[0])].z_axis();
+    for (const std::array<int, 3>& corner : plates.corners) {
+        const Vector up = -_face_planes[corner[2]].z_axis();
         _joints_per_face[corner[0]][2] = 17;
         _joints_per_face[corner[1]][4] = 10;
         _divisions_per_face[corner[0]][2] = finger_divisions;

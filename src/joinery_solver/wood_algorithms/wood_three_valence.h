@@ -15,6 +15,22 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
     const std::vector<InteractionFeaturePlate>& joints
 );
 
+/// Element pair -> the indices of all its joints in detection order, as a pair listed twice in the adjacency has two.
+std::unordered_map<uint64_t, std::vector<int>> joints_of_element_pairs(
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<InteractionFeaturePlate>& joints
+);
+
+/// The two joints a three-valence row {a, b} means when either pair has several: the two whose joint lines overlap the most, the first of each when none do; false when either pair has none.
+bool row_joints(
+    const std::unordered_map<uint64_t, std::vector<int>>& pairs,
+    uint64_t a,
+    uint64_t b,
+    const std::vector<InteractionFeaturePlate>& joints,
+    int& joint_a,
+    int& joint_b
+);
+
 /// Vidy method.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,

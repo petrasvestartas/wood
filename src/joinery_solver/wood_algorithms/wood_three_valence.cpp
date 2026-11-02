@@ -86,6 +86,69 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
     return joints_map;
 }
 
+std::unordered_map<uint64_t, std::vector<int>> joints_of_element_pairs(
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<InteractionFeaturePlate>& joints
+) {
+
+    std::unordered_map<std::string, int> by_guid;
+    by_guid.reserve(elements.size());
+    for (size_t i = 0; i < elements.size(); i++)
+        by_guid.emplace(elements[i]->guid(), static_cast<int>(i));
+
+    std::unordered_map<uint64_t, std::vector<int>> joints_map;
+    joints_map.reserve(joints.size());
+    for (size_t joint_index = 0; joint_index < joints.size(); joint_index++) {
+        const auto it0 = by_guid.find(joints[joint_index].element_a);
+        const auto it1 = by_guid.find(joints[joint_index].element_b);
+        const int element0 = it0 != by_guid.end() ? it0->second : -1;
+        const int element1 = it1 != by_guid.end() ? it1->second : -1;
+
+        joints_map[pair_key(element0, element1)].push_back((int)joint_index);
+    }
+
+    return joints_map;
+}
+
+bool row_joints(
+    const std::unordered_map<uint64_t, std::vector<int>>& pairs,
+    uint64_t a,
+    uint64_t b,
+    const std::vector<InteractionFeaturePlate>& joints,
+    int& joint_a,
+    int& joint_b
+) {
+
+    const auto found_a = pairs.find(a);
+    const auto found_b = pairs.find(b);
+    if (found_a == pairs.end() || found_b == pairs.end())
+        return false;
+
+    joint_a = found_a->second.front();
+    joint_b = found_b->second.front();
+    if (found_a->second.size() == 1 && found_b->second.size() == 1)
+        return true;
+
+    double longest = 0.0;
+    for (const int candidate_a : found_a->second)
+        for (const int candidate_b : found_b->second) {
+            const Line& line_a = joints[candidate_a].joint_lines[0];
+            const Line& line_b = joints[candidate_b].joint_lines[0];
+            const Line turned = Point::distance(line_a.start(), line_b.start()) <=
+                                        Point::distance(line_a.start(), line_b.end())
+                                    ? line_b
+                                    : -line_b;
+            Line overlap;
+            if (!line_a.overlap_average(turned, overlap) || overlap.length() <= longest)
+                continue;
+            longest = overlap.length();
+            joint_a = candidate_a;
+            joint_b = candidate_b;
+        }
+
+    return true;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Vidy shadow joints
 // ═══════════════════════════════════════════════════════════════════════════
@@ -321,7 +384,8 @@ void align_annen_joints(
     std::vector<InteractionFeaturePlate>& joints
 ) {
 
-    const std::unordered_map<uint64_t, int> joints_map = joints_by_element_pair(elements, joints);
+    const std::unordered_map<uint64_t, std::vector<int>> joints_map =
+        joints_of_element_pairs(elements, joints);
 
     for (size_t group_index = 1; group_index < three_valence_groups.size(); group_index++) {
         const std::vector<int>& group = three_valence_groups[group_index];
@@ -332,14 +396,15 @@ void align_annen_joints(
         const int glued0 = group[2];
         const int glued1 = group[3];
 
-        const auto found0 = joints_map.find(pair_key(side0, side1));
-        const auto found1 = joints_map.find(pair_key(glued0, glued1));
-
-        if (found0 == joints_map.end() || found1 == joints_map.end())
+        int index0 = -1;
+        int index1 = -1;
+        if (!row_joints(
+                joints_map, pair_key(side0, side1), pair_key(glued0, glued1), joints, index0, index1
+            ))
             continue;
 
-        InteractionFeaturePlate& joint0 = joints[found0->second];
-        InteractionFeaturePlate& joint1 = joints[found1->second];
+        InteractionFeaturePlate& joint0 = joints[index0];
+        InteractionFeaturePlate& joint1 = joints[index1];
 
         const Line line0 = joint0.joint_lines[0];
         const double distance_to_start =

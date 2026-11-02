@@ -134,6 +134,10 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(
                                 &contact
                             ))
                     continue;
+                for (const Point& point : earlier->second)
+                    used = used || Point::distance(point, joint.contact.polygon.center()) < 1e-6;
+                if (used)
+                    continue;
                 ok = true;
                 break;
             }
@@ -297,15 +301,17 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     const bool annen =
         three_valence.size() > 1 && (three_valence[0].empty() || three_valence[0][0] == 0);
     if (annen) {
-        const auto pairs = joints_by_element_pair(elements, joints);
+        const auto pairs = joints_of_element_pairs(elements, joints);
         for (size_t i = 1; i < three_valence.size(); ++i) {
             const auto& group = three_valence[i];
             if (group.size() < 4)
                 continue;
-            const auto a = pairs.find(pair_key(group[0], group[1]));
-            const auto b = pairs.find(pair_key(group[2], group[3]));
-            if (a != pairs.end() && b != pairs.end())
-                unite(a->second, b->second);
+            int a = -1;
+            int b = -1;
+            if (row_joints(
+                    pairs, pair_key(group[0], group[1]), pair_key(group[2], group[3]), joints, a, b
+                ))
+                unite(a, b);
         }
     }
     merge_deferred = true;

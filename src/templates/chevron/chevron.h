@@ -153,9 +153,6 @@ public:
     /// A flat bicubic surface, 3000 by 5000, centred on the origin.
     static NurbsSurface default_surface();
 
-    /// The plane through the line where p0 and p1 meet, halfway between them; none when they are parallel or share an origin.
-    static std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1);
-
 private:
     Mesh _mesh;
     wood_chevron::ChevronFaces _faces;
@@ -209,6 +206,9 @@ private:
 
     /// The face's two chevron edges in the order its side plates are made.
     std::array<int, 2> sorted_chevron_edges(int face) const;
+
+    /// The plane through the line where p0 and p1 meet, halfway between them; none when they are parallel or share an origin.
+    static std::optional<Plane> dihedral_plane(const Plane& p0, const Plane& p1);
 
     /// The plane with its normal snapped to the world axis given by axis, 1 the dominant one, and moved to the boundary plane on that axis when one is given.
     static Plane

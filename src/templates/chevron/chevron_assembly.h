@@ -28,6 +28,99 @@ struct AssemblyCollision {
         depth; // mm the deepest sample point of either plate stood inside the other anywhere along the way.
 };
 
+/// What the through-tenons dictate: per box the boxes that must be placed before it, and the joints no box's vector enters.
+struct AssemblyConstraints {
+    std::vector<std::vector<int>> before;
+    std::vector<std::pair<int, int>> unenterable;
+};
+
+/// A plate as the prism its merged outlines bound: its first face as the frame, the outer loop and the holes on both faces in it, the
+/// same count per loop so the side faces rule between them, and points clearance inside it on a grid over both faces and along every edge.
+struct AssemblySolid {
+    Plane base;
+    Vector up;
+    double thickness = 0.0;
+    std::vector<std::vector<std::array<double, 2>>> bottom;
+    std::vector<std::vector<std::array<double, 2>>> top;
+    std::vector<Point> samples;
+    Point low;
+    Point high;
+    bool ready = false;
+
+    /// The loop at the height s between the faces.
+    std::vector<std::array<double, 2>> loop(size_t k, double s) const {
+        std::vector<std::array<double, 2>> points(bottom[k].size());
+        for (size_t i = 0; i < points.size(); i++)
+            for (int c = 0; c < 2; c++)
+                points[i][c] = bottom[k][i][c] + (top[k][i][c] - bottom[k][i][c]) * s;
+        return points;
+    }
+
+    /// Whether (u, v) lies inside the loop, by the crossings of a ray along u.
+    static bool inside(const std::vector<std::array<double, 2>>& points, double u, double v) {
+        bool in = false;
+        for (size_t i = 0, j = points.size() - 1; i < points.size(); j = i++) {
+            const std::array<double, 2>& a = points[i];
+            const std::array<double, 2>& b = points[j];
+            if ((a[1] > v) != (b[1] > v) && u < a[0] + (b[0] - a[0]) * (v - a[1]) / (b[1] - a[1]))
+                in = !in;
+        }
+        return in;
+    }
+
+    /// How far p lies inside the prism: the least of its distances to the faces, the outer loop and the holes at its height; 0 outside.
+    double depth(const Point& p) const {
+        if (!contains(p))
+            return 0.0;
+        const Vector d = p - base.origin();
+        const double h = d.dot(up);
+        const double s = h / thickness;
+        const double u = d.dot(base.x_axis());
+        const double v = d.dot(base.y_axis());
+        double least = std::min(h, thickness - h);
+        for (size_t k = 0; k < bottom.size(); k++) {
+            const std::vector<std::array<double, 2>> points = loop(k, s);
+            for (size_t i = 0, j = points.size() - 1; i < points.size(); j = i++) {
+                const double ex = points[i][0] - points[j][0];
+                const double ey = points[i][1] - points[j][1];
+                const double length2 = ex * ex + ey * ey;
+                const double t =
+                    length2 < 1e-18
+                        ? 0.0
+                        : std::clamp(
+                              ((u - points[j][0]) * ex + (v - points[j][1]) * ey) / length2,
+                              0.0,
+                              1.0
+                          );
+                const double dx = u - (points[j][0] + ex * t);
+                const double dy = v - (points[j][1] + ey * t);
+                least = std::min(least, std::sqrt(dx * dx + dy * dy));
+            }
+        }
+        return least;
+    }
+
+    /// Whether p lies in the prism: between the faces, inside the outer loop and outside every hole at its height.
+    bool contains(const Point& p) const {
+        if (p[0] < low[0] || p[0] > high[0] || p[1] < low[1] || p[1] > high[1] || p[2] < low[2] ||
+            p[2] > high[2])
+            return false;
+        const Vector d = p - base.origin();
+        const double h = d.dot(up);
+        if (h < 0.0 || h > thickness)
+            return false;
+        const double s = h / thickness;
+        const double u = d.dot(base.x_axis());
+        const double v = d.dot(base.y_axis());
+        if (!inside(loop(0, s), u, v))
+            return false;
+        for (size_t k = 1; k < bottom.size(); k++)
+            if (inside(loop(k, s), u, v))
+                return false;
+        return true;
+    }
+};
+
 /// The assembly of a shell box by box: every box slides in along its one insertion vector into the boxes already placed, in an order where
 /// every through-tenon meets its wall along the vector of the box that moves last, and each box is swept along its vector against every
 /// plate already placed, points just inside its plates stepped along the way through the prisms the placed plates' merged outlines bound. Built on a template whose plates stand in groups
@@ -80,7 +173,10 @@ private:
     std::vector<Vector> compute_directions(const WoodSession& session) const;
 
     /// Every box's predecessors from the top-side joints between two boxes: the female's box before the male's when the tenon runs along the male's vector, the other way round when it runs along the female's; a tenon along neither, or a joint of another kind between boxes, is unenterable.
-    std::vector<std::vector<int>> compute_before(const WoodSession& session);
+    AssemblyConstraints compute_before(const WoodSession& session) const;
+
+    /// Every plate as the prism its merged outlines bound, with its sample points.
+    std::vector<AssemblySolid> compute_solids() const;
 
     /// The boxes in an order where every predecessor comes first; the boxes a cycle keeps out are left out.
     std::vector<int> compute_order() const;
@@ -122,10 +218,11 @@ inline Assembly::Assembly(const WoodSession& session, double reach, double clear
         _boxes[box].direction = directions[box];
 
     // constraints: from the top-side joints between two boxes
-    const std::vector<std::vector<int>> before = compute_before(session);
+    const AssemblyConstraints constraints = compute_before(session);
+    _unenterable = constraints.unenterable;
 
     for (size_t box = 0; box < _boxes.size(); box++)
-        _boxes[box].before = before[box];
+        _boxes[box].before = constraints.before[box];
 
     // order: every box after the boxes its joints put before it
     _order = compute_order();
@@ -250,14 +347,15 @@ inline std::vector<Vector> Assembly::compute_directions(const WoodSession& sessi
 // ═══════════════════════════════════════════════════════════════════════════
 // Order
 // ═══════════════════════════════════════════════════════════════════════════
-inline std::vector<std::vector<int>> Assembly::compute_before(const WoodSession& session) {
+inline AssemblyConstraints Assembly::compute_before(const WoodSession& session) const {
 
     std::unordered_map<std::string, int> index;
 
     for (size_t i = 0; i < _plates.size(); i++)
         index[_plates[i]->guid()] = static_cast<int>(i);
 
-    std::vector<std::vector<int>> before(_boxes.size());
+    AssemblyConstraints constraints;
+    constraints.before.resize(_boxes.size());
 
     for (const InteractionFeaturePlate& joint : session.get_plate_features()) {
         const std::unordered_map<std::string, int>::const_iterator a = index.find(joint.element_a);
@@ -278,7 +376,7 @@ inline std::vector<std::vector<int>> Assembly::compute_before(const WoodSession&
         Vector tenon = _plates[male]->insertion_vector(joint.contact.face_a);
 
         if (joint.joint_type != 20 || !tenon.normalize_self()) {
-            _unenterable.emplace_back(male, female);
+            constraints.unenterable.emplace_back(male, female);
             continue;
         }
 
@@ -287,19 +385,19 @@ inline std::vector<std::vector<int>> Assembly::compute_before(const WoodSession&
         const double along_b = std::abs(tenon.dot(_boxes[box_b].direction));
 
         if (std::max(along_a, along_b) <= 0.999)
-            _unenterable.emplace_back(male, female);
+            constraints.unenterable.emplace_back(male, female);
         else if (along_a >= along_b)
-            before[box_a].push_back(box_b);
+            constraints.before[box_a].push_back(box_b);
         else
-            before[box_b].push_back(box_a);
+            constraints.before[box_b].push_back(box_a);
     }
 
-    for (std::vector<int>& list : before) {
+    for (std::vector<int>& list : constraints.before) {
         std::sort(list.begin(), list.end());
         list.erase(std::unique(list.begin(), list.end()), list.end());
     }
 
-    return before;
+    return constraints;
 }
 
 inline std::vector<int> Assembly::compute_order() const {
@@ -337,104 +435,16 @@ inline std::vector<int> Assembly::compute_order() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Collisions
 // ═══════════════════════════════════════════════════════════════════════════
-inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
+inline std::vector<AssemblySolid> Assembly::compute_solids() const {
 
-    // every plate as the prism its merged outlines bound: its first face as the frame, the outer loop and the holes on both faces in it, the
-    // same count per loop so the side faces rule between them, and points clearance inside it on a grid over both faces and along every edge
-    struct Solid {
-        Plane base;
-        Vector up;
-        double thickness = 0.0;
-        std::vector<std::vector<std::array<double, 2>>> bottom;
-        std::vector<std::vector<std::array<double, 2>>> top;
-        std::vector<Point> samples;
-        Point low;
-        Point high;
-        bool ready = false;
-
-        /// The loop at the height s between the faces.
-        std::vector<std::array<double, 2>> loop(size_t k, double s) const {
-            std::vector<std::array<double, 2>> points(bottom[k].size());
-            for (size_t i = 0; i < points.size(); i++)
-                for (int c = 0; c < 2; c++)
-                    points[i][c] = bottom[k][i][c] + (top[k][i][c] - bottom[k][i][c]) * s;
-            return points;
-        }
-
-        /// Whether (u, v) lies inside the loop, by the crossings of a ray along u.
-        static bool inside(const std::vector<std::array<double, 2>>& points, double u, double v) {
-            bool in = false;
-            for (size_t i = 0, j = points.size() - 1; i < points.size(); j = i++) {
-                const std::array<double, 2>& a = points[i];
-                const std::array<double, 2>& b = points[j];
-                if ((a[1] > v) != (b[1] > v) &&
-                    u < a[0] + (b[0] - a[0]) * (v - a[1]) / (b[1] - a[1]))
-                    in = !in;
-            }
-            return in;
-        }
-
-        /// How far p lies inside the prism: the least of its distances to the faces, the outer loop and the holes at its height; 0 outside.
-        double depth(const Point& p) const {
-            if (!contains(p))
-                return 0.0;
-            const Vector d = p - base.origin();
-            const double h = d.dot(up);
-            const double s = h / thickness;
-            const double u = d.dot(base.x_axis());
-            const double v = d.dot(base.y_axis());
-            double least = std::min(h, thickness - h);
-            for (size_t k = 0; k < bottom.size(); k++) {
-                const std::vector<std::array<double, 2>> points = loop(k, s);
-                for (size_t i = 0, j = points.size() - 1; i < points.size(); j = i++) {
-                    const double ex = points[i][0] - points[j][0];
-                    const double ey = points[i][1] - points[j][1];
-                    const double length2 = ex * ex + ey * ey;
-                    const double t =
-                        length2 < 1e-18
-                            ? 0.0
-                            : std::clamp(
-                                  ((u - points[j][0]) * ex + (v - points[j][1]) * ey) / length2,
-                                  0.0,
-                                  1.0
-                              );
-                    const double dx = u - (points[j][0] + ex * t);
-                    const double dy = v - (points[j][1] + ey * t);
-                    least = std::min(least, std::sqrt(dx * dx + dy * dy));
-                }
-            }
-            return least;
-        }
-
-        /// Whether p lies in the prism: between the faces, inside the outer loop and outside every hole at its height.
-        bool contains(const Point& p) const {
-            if (p[0] < low[0] || p[0] > high[0] || p[1] < low[1] || p[1] > high[1] ||
-                p[2] < low[2] || p[2] > high[2])
-                return false;
-            const Vector d = p - base.origin();
-            const double h = d.dot(up);
-            if (h < 0.0 || h > thickness)
-                return false;
-            const double s = h / thickness;
-            const double u = d.dot(base.x_axis());
-            const double v = d.dot(base.y_axis());
-            if (!inside(loop(0, s), u, v))
-                return false;
-            for (size_t k = 1; k < bottom.size(); k++)
-                if (inside(loop(k, s), u, v))
-                    return false;
-            return true;
-        }
-    };
-
-    std::vector<Solid> solids(_plates.size());
+    std::vector<AssemblySolid> solids(_plates.size());
 
     for (size_t i = 0; i < _plates.size(); i++) {
         const Plate& plate = *_plates[i];
         if (plate.planes.size() < 2 || plate.polylines.size() < 2)
             continue;
 
-        Solid& solid = solids[i];
+        AssemblySolid& solid = solids[i];
         solid.base = plate.planes[0];
         solid.up = plate.planes[0].z_axis() * -1.0;
         solid.thickness =
@@ -543,11 +553,19 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
         solid.ready = true;
     }
 
+    return solids;
+}
+
+inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
+
+    const std::vector<AssemblySolid> solids = compute_solids();
+
     // every box in order: each of its plates from reach behind its place along the vector, step by step, against every placed plate on the
     // way; the first contact of a pair is kept with the distance still to go, and the points inside each other with the box in place
     std::vector<AssemblyCollision> collisions;
     std::vector<bool> placed(_plates.size(), false);
     const double step = 10.0;
+    const int steps = static_cast<int>(std::ceil(reach / step));
 
     for (const int box : _order) {
         const Vector& v = _boxes[box].direction;
@@ -555,7 +573,7 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
             continue;
 
         for (const int moving : _boxes[box].plates) {
-            const Solid& m = solids[moving];
+            const AssemblySolid& m = solids[moving];
             if (!m.ready)
                 continue;
 
@@ -567,7 +585,7 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
             }
 
             for (size_t other = 0; other < _plates.size(); other++) {
-                const Solid& q = solids[other];
+                const AssemblySolid& q = solids[other];
                 if (!placed[other] || !q.ready || q.low[0] > high[0] || q.high[0] < low[0] ||
                     q.low[1] > high[1] || q.high[1] < low[1] || q.low[2] > high[2] ||
                     q.high[2] < low[2])
@@ -579,7 +597,8 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
                 // the moving plate's points along the way through the placed plate, and the placed plate's points through the moving one
                 double deepest = 0.0;
                 for (const Point& sample : m.samples)
-                    for (double d = reach; d >= 0.0; d -= step) {
+                    for (int i = steps; i >= 0; i--) {
+                        const double d = std::min(reach, i * step);
                         const double depth = q.depth(sample - v * d);
                         if (depth <= 0.0)
                             continue;
@@ -592,7 +611,8 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
                             inside++;
                     }
                 for (const Point& sample : q.samples)
-                    for (double d = reach; d >= 0.0; d -= step) {
+                    for (int i = steps; i >= 0; i--) {
+                        const double d = std::min(reach, i * step);
                         const double depth = m.depth(sample + v * d);
                         if (depth <= 0.0)
                             continue;
