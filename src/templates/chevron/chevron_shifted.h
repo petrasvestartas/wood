@@ -146,7 +146,7 @@ private:
     /// A plane at the surface point nearest every cell's centre, x along the rows, z into the surface.
     std::vector<Plane> compute_face_planes() const;
 
-    /// Per cell its edge planes in order, with the neighbour's cross plane inserted after edges 1 and 4 of a hexagon.
+    /// Per cell its edge planes in order, with the neighbour's cross plane inserted after edges 1 and 4 of a hexagon; an odd hexagon's steps, where it moves from one even neighbour's long wall to the next, are cut along the insertion vector of whatever passes them on its way in, the lower even cell's wall after edge 1, the odd cell itself after edge 4, where the steps would otherwise stand in the way.
     std::vector<std::vector<wood_chevron::ShiftedSide>> compute_sides() const;
 
     /// Per cell a top and a bottom plate, stepped in by a wall where its own walls stand, then its walls between the outer box faces: the halves of a merged long side one wall, every wall mitred against the next wall of its box and stopped short of a side where a neighbour's wall stands inside the cell.
@@ -169,6 +169,10 @@ private:
 
     /// The two cell edges whose outline segments give the insertion direction.
     static std::array<int, 2> insertion_edges(int mask);
+
+    /// The insertion direction of a cell with the side loop sides and the face plane face: the bisector of its two insertion edges' outline segments.
+    static Vector
+    direction_of(const std::vector<wood_chevron::ShiftedSide>& sides, const Plane& face, int mask);
 
     /// The cell edges whose walls the cell slides into: its direction goes to them.
     static std::vector<int> owned_edges(int mask);
@@ -647,6 +651,68 @@ inline std::vector<std::vector<wood_chevron::ShiftedSide>> ChevronShifted::compu
         sides.push_back(loop);
     }
 
+    // the odd hexagons' step after edge 1, where it steps into the slab of the lower even neighbour's long wall: the plane through the step's corner on that wall, along the neighbour's insertion vector, so the wall slides along the cut on its way in; a step the other way is in nobody's way
+    for (size_t cell = 0; cell < _cells.masks.size(); cell++) {
+        if (_cells.masks[cell] != -2)
+            continue;
+
+        const EdgeKey key = edge_key(static_cast<int>(cell), 1);
+        const std::vector<int>& on_edge = _cells.faces.edge_faces.at(key);
+
+        if (on_edge.size() != 2)
+            continue;
+
+        const int neighbour = on_edge[0] != static_cast<int>(cell) ? on_edge[0] : on_edge[1];
+        const Plane& lower = sides[cell][1].plane;
+        const Plane& upper = sides[cell][3].plane;
+        const Plane& across = sides[cell][2].plane;
+        Point on_lower;
+        Point on_upper;
+        const std::optional<Line> step = Intersection::plane_plane(across, lower);
+
+        if (!step ||
+            !Intersection::plane_plane_plane(across, lower, _face_planes[cell], on_lower) ||
+            !Intersection::plane_plane_plane(across, upper, _face_planes[cell], on_upper))
+            continue;
+
+        const double into = (on_upper - on_lower).dot(lower.z_axis());
+        const double slab = (_face_planes[neighbour].origin() - on_lower).dot(lower.z_axis());
+
+        if (into * slab <= 0.0)
+            continue;
+
+        const Vector along =
+            direction_of(sides[neighbour], _face_planes[neighbour], _cells.masks[neighbour]);
+        sides[cell][2].plane = Plane(step->start(), along, step->to_vector());
+    }
+
+    // the odd hexagons' step after edge 4, between the two even neighbours' outward walls standing inside the cell, where the upper wall stands further out than the lower one: the plane through the step's corner on the lower wall's inner face, along this cell's own insertion vector, so the plate's upper part slides along the lower wall's end on its way in
+    for (size_t cell = 0; cell < _cells.masks.size(); cell++) {
+        if (_cells.masks[cell] != -2)
+            continue;
+
+        const Plane& face = _face_planes[cell];
+        const Plane lower = stepped(sides[cell][7].plane, plate_thickness, face.origin(), true);
+        const Plane upper = stepped(sides[cell][5].plane, plate_thickness, face.origin(), true);
+        const Plane& across = sides[cell][6].plane;
+        Point on_lower;
+        Point on_upper;
+        const std::optional<Line> step = Intersection::plane_plane(across, lower);
+
+        if (!step || !Intersection::plane_plane_plane(across, lower, face, on_lower) ||
+            !Intersection::plane_plane_plane(across, upper, face, on_upper))
+            continue;
+
+        const double out = (on_upper - on_lower).dot(lower.z_axis());
+        const double inside = (face.origin() - on_lower).dot(lower.z_axis());
+
+        if (out * inside >= 0.0)
+            continue;
+
+        const Vector along = direction_of(sides[cell], face, _cells.masks[cell]);
+        sides[cell][6].plane = Plane(step->start(), along, step->to_vector());
+    }
+
     return sides;
 }
 
@@ -918,6 +984,30 @@ inline std::array<int, 2> ChevronShifted::insertion_edges(int mask) {
     return {2, 3};
 }
 
+inline Vector ChevronShifted::direction_of(
+    const std::vector<wood_chevron::ShiftedSide>& sides, const Plane& face, int mask
+) {
+
+    std::vector<Plane> loop;
+
+    for (const wood_chevron::ShiftedSide& side : sides)
+        loop.push_back(side.plane);
+
+    const std::vector<Point> corners = Polyline::from_planes(loop, face).get_points();
+    std::array<Vector, 2> segments;
+
+    for (size_t which = 0; which < 2; which++) {
+        size_t k = 0;
+
+        while (sides[k].edge != insertion_edges(mask)[which])
+            k++;
+
+        segments[which] = (corners[k] - corners[(k + loop.size() - 1) % loop.size()]).normalized();
+    }
+
+    return segments[0] - segments[1];
+}
+
 inline std::vector<int> ChevronShifted::owned_edges(int mask) {
 
     if (mask == 2 || mask == 20)
@@ -955,14 +1045,6 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
     for (size_t cell = 0; cell < _cells.masks.size(); cell++) {
         const int mask = _cells.masks[cell];
         const std::vector<wood_chevron::ShiftedSide>& sides = _sides[cell];
-        std::vector<Plane> loop;
-
-        for (const wood_chevron::ShiftedSide& side : sides)
-            loop.push_back(side.plane);
-
-        const std::vector<Point> corners =
-            Polyline::from_planes(loop, _face_planes[cell]).get_points();
-        std::array<Vector, 2> segments;
         Vector axis(0.0, 0.0, 0.0);
 
         for (size_t which = 0; which < 2; which++) {
@@ -971,12 +1053,10 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
             while (sides[k].edge != insertion_edges(mask)[which])
                 k++;
 
-            segments[which] =
-                (corners[k] - corners[(k + loop.size() - 1) % loop.size()]).normalized();
             axis = axis + sides[k].plane.y_axis() * 0.5;
         }
 
-        const Vector direction = segments[0] - segments[1];
+        const Vector direction = direction_of(sides, _face_planes[cell], mask);
 
         for (const int edge : owned_edges(mask)) {
             directions[edge_key(static_cast<int>(cell), edge)] = direction;

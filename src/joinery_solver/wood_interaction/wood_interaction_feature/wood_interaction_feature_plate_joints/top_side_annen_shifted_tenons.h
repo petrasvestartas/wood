@@ -1,8 +1,50 @@
+/// The face of a wall standing across a plate's side near the corner: a face plane of another plate within reach of the corner, neither
+/// along the plate's normal nor along the side, with its outline within four thicknesses of the corner, the step of a shifted plate at a
+/// junction being up to about a hundred mm; none when there is no such wall.
+static std::optional<Plane> annen_shifted_wall_across(
+    const Plate& plate,
+    int plate_index,
+    int side,
+    const Plate& wall,
+    const std::vector<std::shared_ptr<Plate>>& elements,
+    const Point& corner,
+    double reach
+) {
+
+    const Vector normal = plate.planes[0].z_axis();
+    const Vector across = plate.planes[side].z_axis();
+    std::optional<Plane> end;
+    double nearest = reach;
+    for (size_t k = 0; k < elements.size(); k++) {
+        const Plate& other = *elements[k];
+        if ((int)k == plate_index || &other == &wall || other.planes.size() < 2)
+            continue;
+        for (int face = 0; face < 2; face++) {
+            const Plane& candidate = other.planes[face];
+            if (std::abs(candidate.z_axis().dot(normal)) > 0.5 ||
+                std::abs(candidate.z_axis().dot(across)) > 0.9)
+                continue;
+            const double distance = Point::distance(corner, candidate.project(corner));
+            size_t edge = 0;
+            Point closest;
+            if (distance < nearest &&
+                other.polylines[face].closest_distance_and_point(corner, edge, closest) <
+                    4.0 * other.thickness) {
+                nearest = distance;
+                end = candidate;
+            }
+        }
+    }
+    return end;
+}
+
 /// The plane bounding a plate's side at one end in the 2020 definition's outer loop, where every wall side stood a plate thickness further
 /// out than in the plate's own outline: the far face of the wall joined on the side beside this one; at the junction of a merged long
 /// side, where the side beside continues the same plane, the face through the corner of a wall standing across the junction, the
 /// neighbour cell's cross wall, else the wall's own end when it ends there, else the plane square across the side through the corner;
-/// the side's plane moved out by a thickness when its face is marked for these tenons and no wall is joined there; else that plane itself.
+/// the side's plane moved out by a thickness when its face is marked for these tenons and no wall is joined there; on a plain side with
+/// no wall of its own, the face of the wall standing across it; else that plane itself. beside_plane gets the plane the definition's
+/// outline met at that end when it is not the plate's own side beside, the face across a cut step, else nothing.
 static Plane annen_shifted_bound(
     const Plate& plate,
     int plate_index,
@@ -11,40 +53,21 @@ static Plane annen_shifted_bound(
     const Plate& wall,
     const std::vector<std::shared_ptr<Plate>>& elements,
     const std::vector<InteractionFeaturePlate>& joints,
-    const Point& corner
+    const Point& corner,
+    std::optional<Plane>& beside_plane
 ) {
 
     const Plane& there = plate.planes[beside];
+    beside_plane = std::nullopt;
 
-    // the junction of a merged long side: the face of another wall through the corner across the side, its outline within two thicknesses of the corner, else the wall's own end plane when it ends within a thickness of the corner, else square across the side
+    // the junction of a merged long side: the face of another wall through the corner across the side, else the wall's own end plane when it ends within a thickness of the corner, else square across the side
     if (std::abs(plate.planes[side].z_axis().dot(there.z_axis())) > 0.999) {
         const Vector normal = plate.planes[0].z_axis();
-        const Vector across = plate.planes[side].z_axis();
-        std::optional<Plane> end;
-        double nearest = 1.0;
-        for (size_t k = 0; k < elements.size(); k++) {
-            const Plate& other = *elements[k];
-            if ((int)k == plate_index || &other == &wall || other.planes.size() < 2)
-                continue;
-            for (int face = 0; face < 2; face++) {
-                const Plane& candidate = other.planes[face];
-                if (std::abs(candidate.z_axis().dot(normal)) > 0.5 ||
-                    std::abs(candidate.z_axis().dot(across)) > 0.9)
-                    continue;
-                const double distance = Point::distance(corner, candidate.project(corner));
-                size_t edge = 0;
-                Point closest;
-                if (distance < nearest &&
-                    other.polylines[face].closest_distance_and_point(corner, edge, closest) <
-                        2.0 * other.thickness) {
-                    nearest = distance;
-                    end = candidate;
-                }
-            }
-        }
+        std::optional<Plane> end =
+            annen_shifted_wall_across(plate, plate_index, side, wall, elements, corner, 1.0);
         if (end)
             return *end;
-        nearest = plate.thickness;
+        double nearest = plate.thickness;
         for (size_t k = 2; k < wall.planes.size(); k++) {
             if (std::abs(wall.planes[k].z_axis().dot(normal)) > 0.9)
                 continue;
@@ -81,12 +104,18 @@ static Plane annen_shifted_bound(
     const int given = plate.given_face(beside);
     if (given >= 0 && given < (int)plate.feature_types.size() && plate.feature_types[given] == 23)
         return there.translate_by_normal(plate.thickness);
-    return there;
+
+    // a plain side with no wall of its own, the cut step of a shifted plate: the face of the wall standing across it within four thicknesses, the cut's far end standing off that plane, as the definition's outer loop met that plane there
+    beside_plane = annen_shifted_wall_across(
+        plate, plate_index, side, wall, elements, corner, 4.0 * plate.thickness
+    );
+    return beside_plane ? *beside_plane : there;
 }
 
-/// A plate's own line on a wall as the 2020 definition drew it: from the middle of its inner corner on the first face and its outer corner
-/// on the second face at each end of the edge, the outer corner where the second face, the wall's far face and the bound of the side
-/// beside meet, in the order the plate was given; false on a joint that is no plate side on a wall face or on a degenerate edge.
+/// A plate's own line on a wall as the 2020 definition drew it: from the middle of its inner corner on the first face, where its edge meets
+/// the plane across when the side is cut short of it, and its outer corner on the second face at each end of the edge, the outer corner
+/// where the second face, the wall's far face and the bound of the side beside meet, in the order the plate was given; false on a joint
+/// that is no plate side on a wall face or on a degenerate edge.
 static bool annen_shifted_line(
     const InteractionFeaturePlate& joint,
     const std::vector<std::shared_ptr<Plate>>& elements,
@@ -119,11 +148,22 @@ static bool annen_shifted_line(
         std::swap(beside[0], beside[1]);
     }
 
+    // a side cut short of the plane the definition's outline met, a shifted plate's step cut for the wall passing it, starts its line where its edge would have met that plane
     std::array<Point, 2> middles;
     for (int end = 0; end < 2; end++) {
-        const Point inner = plate.polylines[0].get_point(ends[end]);
-        const Plane bound =
-            annen_shifted_bound(plate, male, side, beside[end], wall, elements, joints, inner);
+        Point inner = plate.polylines[0].get_point(ends[end]);
+        std::optional<Plane> beside_plane;
+        const Plane bound = annen_shifted_bound(
+            plate, male, side, beside[end], wall, elements, joints, inner, beside_plane
+        );
+        if (beside_plane) {
+            const Line edge = Line::from_points(
+                plate.polylines[0].get_point(ends[1 - end]), plate.polylines[0].get_point(ends[end])
+            );
+            Point met;
+            if (Intersection::line_plane(edge, *beside_plane, met, false))
+                inner = met;
+        }
         Point outer;
         if (!Intersection::plane_plane_plane(
                 plate.planes[1], wall.planes[1 - wall_face], bound, outer
