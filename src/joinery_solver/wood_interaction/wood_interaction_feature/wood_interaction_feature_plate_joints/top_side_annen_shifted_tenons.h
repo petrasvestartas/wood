@@ -19,7 +19,7 @@ static Plane annen_shifted_bound(
     if (std::abs(plate.planes[side].z_axis().dot(there.z_axis())) > 0.999) {
         const Vector normal = plate.planes[0].z_axis();
         std::optional<Plane> end;
-        double nearest = 1.0;
+        double nearest = std::numeric_limits<double>::infinity();
         for (size_t k = 2; k < wall.planes.size(); k++) {
             if (std::abs(wall.planes[k].z_axis().dot(normal)) > 0.9)
                 continue;

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # The element pages' pictures: each example under examples/elements built, run and published to the
-# live viewer, then opened in a Chrome window on the GPU with the layers expanded, the element
-# features, the Arctic look and the orthographic isometric view, and screenshotted. On Windows the scene is served from this
-# machine instead of published.
+# live viewer, then opened in a Chrome window on the GPU with the layers expanded, the elements
+# alone (their interaction features off, so a joint's cut outlines are not drawn on them), the Arctic look and the orthographic
+# isometric view, and screenshotted. On Windows the scene is served from this machine instead of published.
 #   bash wood/tools/screenshot_element_docs.sh element_plate element_column ...
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -22,6 +22,6 @@ for name in "$@"; do
             sleep 2 ;;
     esac
     node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
-        "Layers All" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
+        "Layers All" "Element Interactions Off" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
     echo "$name"
 done
