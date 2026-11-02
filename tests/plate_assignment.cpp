@@ -24,6 +24,60 @@ static void check_dataset(const std::string& name) {
     WoodSession sidecars = WoodSession::yaml_load(name);
     const std::vector<InteractionFeaturePlate> expected = sidecars.compute_features();
 
+    // solved again: every plate keeps its insertion vectors and every joint its male and female outlines, a reversed plate's included
+    std::vector<std::vector<Vector>> first_vectors;
+    size_t reversed = 0;
+    for (const std::shared_ptr<Plate>& plate : sidecars.plates()) {
+        first_vectors.push_back(plate->insertion_vectors());
+        if (plate->reversed && !plate->insertion_vectors().empty())
+            reversed++;
+    }
+    const std::vector<InteractionFeaturePlate> again = sidecars.compute_features();
+    check(
+        again.size() == expected.size(),
+        fmt::format(
+            "{}: {} joints solved again, {} the first time", name, again.size(), expected.size()
+        )
+    );
+    const std::vector<std::shared_ptr<Plate>> solved = sidecars.plates();
+    for (size_t i = 0; i < solved.size(); i++)
+        check(
+            solved[i]->insertion_vectors() == first_vectors[i],
+            fmt::format("{}: plate {} has other insertion vectors solved again", name, i)
+        );
+    for (size_t i = 0; i < again.size(); i++)
+        for (size_t face = 0; face < 4; face++) {
+            const std::vector<Polyline>& outlines =
+                face < 2 ? again[i].male_outlines[face] : again[i].female_outlines[face - 2];
+            const std::vector<Polyline>& reference =
+                face < 2 ? expected[i].male_outlines[face] : expected[i].female_outlines[face - 2];
+            check(
+                again[i].name == expected[i].name && outlines.size() == reference.size(),
+                fmt::format(
+                    "{}: joint {} is {} solved again, {} the first time",
+                    name,
+                    i,
+                    again[i].name,
+                    expected[i].name
+                )
+            );
+            for (size_t k = 0; k < outlines.size(); k++)
+                check(
+                    oracle::point_set_distance(outlines[k], reference[k]) <= MATCH,
+                    fmt::format(
+                        "{}: joint {} outline {} of side {} moves solved again", name, i, k, face
+                    )
+                );
+        }
+    std::cout
+        << fmt::format(
+               "plate_assignment: {} solved twice gives the same {} joints, {} reversed plates with insertion vectors",
+               name,
+               again.size(),
+               reversed
+           )
+        << std::endl;
+
     config::reset_defaults();
     WoodSession scene = WoodSession::yaml_load(name);
     std::vector<Point> points;

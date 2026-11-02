@@ -1,7 +1,8 @@
 /// The plane bounding a plate's side at one end in the 2020 definition's outer loop, where every wall side stood a plate thickness further
-/// out than in the plate's own outline: the far face of the wall joined on the side beside this one; the wall's own end plane through the
-/// corner when the side beside continues the same plane, the junction of a merged long side; the side's plane moved out by a thickness
-/// when its face is marked for these tenons and no wall is joined there; else that plane itself.
+/// out than in the plate's own outline: the far face of the wall joined on the side beside this one; at the junction of a merged long
+/// side, where the side beside continues the same plane, the face through the corner of a wall standing across the junction, the
+/// neighbour cell's cross wall, else the wall's own end when it ends there, else the plane square across the side through the corner;
+/// the side's plane moved out by a thickness when its face is marked for these tenons and no wall is joined there; else that plane itself.
 static Plane annen_shifted_bound(
     const Plate& plate,
     int plate_index,
@@ -15,11 +16,31 @@ static Plane annen_shifted_bound(
 
     const Plane& there = plate.planes[beside];
 
-    // the junction of a merged long side: the wall's end plane nearest the corner, its top and bottom left aside
+    // the junction of a merged long side: the face of another wall through the corner across the side, else the wall's own end plane when it ends within a thickness of the corner, else square across the side
     if (std::abs(plate.planes[side].z_axis().dot(there.z_axis())) > 0.999) {
         const Vector normal = plate.planes[0].z_axis();
+        const Vector across = plate.planes[side].z_axis();
         std::optional<Plane> end;
-        double nearest = std::numeric_limits<double>::infinity();
+        double nearest = 1.0;
+        for (size_t k = 0; k < elements.size(); k++) {
+            const Plate& other = *elements[k];
+            if ((int)k == plate_index || &other == &wall || other.planes.size() < 2)
+                continue;
+            for (int face = 0; face < 2; face++) {
+                const Plane& candidate = other.planes[face];
+                if (std::abs(candidate.z_axis().dot(normal)) > 0.5 ||
+                    std::abs(candidate.z_axis().dot(across)) > 0.9)
+                    continue;
+                const double distance = Point::distance(corner, candidate.project(corner));
+                if (distance < nearest) {
+                    nearest = distance;
+                    end = candidate;
+                }
+            }
+        }
+        if (end)
+            return *end;
+        nearest = plate.thickness;
         for (size_t k = 2; k < wall.planes.size(); k++) {
             if (std::abs(wall.planes[k].z_axis().dot(normal)) > 0.9)
                 continue;
@@ -29,7 +50,11 @@ static Plane annen_shifted_bound(
                 end = wall.planes[k];
             }
         }
-        return end ? *end : there;
+        if (end)
+            return *end;
+        return Plane::from_point_normal(
+            corner, plate.polylines[0].get_point(side - 1) - plate.polylines[0].get_point(side - 2)
+        );
     }
 
     // the wall joined on the side beside: its far face
@@ -157,7 +182,7 @@ static void top_side_annen_shifted_tenons(
 
     // the cut planes' normal: across the insertion vector and the plate's feature axis on this face, the plate's normal when none is given
     const int given = plate.given_face(side);
-    Vector along = side < (int)plate.insertion_vectors().size() ? plate.insertion_vectors()[side]
+    Vector along = side < (int)plate.insertion_vectors().size() ? plate.insertion_vector(side)
                                                                 : Vector(0.0, 0.0, 0.0);
     if (along.magnitude() < 1e-9)
         along = normal.cross(edges[0][1] - edges[0][0]);

@@ -1,0 +1,58 @@
+#include "wood_session.h"
+#include "src/templates/chevron/chevron_shifted.h"
+#include "src/templates/chevron/chevron_assembly.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+/// The shifted chevron shell on the first Annen surface assembled cell by cell: the order its tenons allow, every cell swept along its insertion vector, and the 2 x 2 block at the crown.
+int main() {
+
+    const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
+    const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
+    ChevronShifted shifted(surfaces[0]);
+    const wood_chevron::Assembly assembly(shifted);
+
+    // the 2 x 2 block at the crown: the two middle columns, two cells about the middle of each, the odd columns stored from their far end
+    const std::vector<int>& columns = shifted.cells().columns;
+    const int column_count = shifted.point_count - 1;
+    std::vector<std::vector<int>> per_column(column_count);
+
+    for (size_t cell = 0; cell < columns.size(); cell++)
+        per_column[columns[cell]].push_back(static_cast<int>(cell));
+
+    std::vector<int> block;
+
+    for (int column = column_count / 2 - 1; column < column_count / 2 + 1; column++) {
+        const std::vector<int>& cells = per_column[column];
+        const int middle = static_cast<int>(cells.size()) / 2;
+
+        for (int row = middle - 1; row < middle + 1; row++)
+            block.push_back(column % 2 == 0 ? cells[row] : cells[cells.size() - 1 - row]);
+    }
+
+    std::cout << assembly.report() << std::endl;
+    std::cout << fmt::format("block: {}\n", wood_chevron::Assembly::groups(block));
+    assembly.write_json(
+        (std::filesystem::path(pb_path("live")).parent_path() / "assembly.json").string(), block
+    );
+    shifted.pb_dump(pb_path("live"));
+    return 0;
+}
+
+/*
+|||||||| DESCRIPTION ||||||||
+The shifted chevron template on the first Annen surface assembled cell by cell: every cell's box slides in along its one insertion vector, the bisector of two of its own sides, into the boxes already placed; the order comes from the through-tenons, a box after the boxes whose walls its tenons enter along its vector and after the boxes whose tenons its own walls take along it, the odd columns after their even neighbours; every box is swept along its vector against the plates already placed, a point inside every face cast along the way, and the report counts the penetrations found, none. The 2 x 2 block at the crown, two cells of the two middle columns, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py, which draws the block's assembly frame by frame.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target templates_chevron_5_shifted_assembly --parallel 6 && ./build/templates_chevron_5_shifted_assembly && ../bash/publish-scene.sh --target templates_chevron_5_shifted_assembly
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
+*/

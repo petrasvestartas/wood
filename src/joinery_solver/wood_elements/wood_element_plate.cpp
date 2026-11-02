@@ -420,49 +420,60 @@ const BRep& Plate::element_geometry_brep() const {
 
 Mesh Plate::trimmed_mesh() const {
 
-    if (features.top.empty())
+    if (features.top.empty() || features.bottom.size() != features.top.size() || planes.empty())
         return stock_mesh();
 
-    Mesh lofted = Mesh::loft(features.bottom, features.top);
-    if (solid_features.empty() || manifold_solid(lofted))
-        return lofted;
+    // out of the bottom: the bottom plane's normal, turned away from the top loop when the solver swapped the planes
+    Vector out = planes[0].z_axis();
+    if ((features.top[0].center() - features.bottom[0].center()).dot(out) > 0.0)
+        out = out * -1.0;
 
-    if (!features.bottom.empty()) {
-        Mesh outer = Mesh::loft({features.bottom[0]}, {features.top[0]});
-        if (!manifold_solid(outer))
-            outer = stock_mesh();
+    // the caps: the bottom and top loops triangulated, the first the outline and the rest its holes, every triangle facing out
+    std::vector<std::vector<Point>> polygons;
+    for (int face = 0; face < 2; face++) {
+        std::vector<std::vector<Point>> loops;
+        for (const Polyline& loop : face == 0 ? features.bottom : features.top)
+            loops.push_back(loop.get_points());
 
-        if (manifold_solid(outer)) {
-            const Vector normal =
-                planes.empty() ? Vector(0.0, 0.0, 1.0) : planes[0].z_axis().normalized();
-            const size_t hole_count = std::min(features.bottom.size(), features.top.size());
-            std::vector<Mesh> holes;
-
-            for (size_t i = 1; i < hole_count; i++) {
-                const Polyline& b = features.bottom[i];
-                const Polyline& t = features.top[i];
-                if (b.point_count() < 3 || t.point_count() < 3)
-                    continue;
-
-                const Vector span = t.get_point(0) - b.get_point(0);
-                const Vector dir = span.dot(normal) >= 0.0 ? normal : normal * -1.0;
-                const Mesh prism =
-                    Mesh::loft({b.translated(dir * -1.0)}, {t.translated(dir * 1.0)});
-                if (manifold_solid(prism))
-                    holes.push_back(prism);
+        const Mesh cap = Mesh::from_polygon_with_holes(loops);
+        const Vector normal = face == 0 ? out : out * -1.0;
+        for (const auto& [key, triangles] : cap.get_triangulation())
+            for (const std::array<size_t, 3>& triangle : triangles) {
+                std::vector<Point> corners = {
+                    *cap.vertex_point(triangle[0]),
+                    *cap.vertex_point(triangle[1]),
+                    *cap.vertex_point(triangle[2])
+                };
+                if ((corners[1] - corners[0]).cross(corners[2] - corners[0]).dot(normal) < 0.0)
+                    std::swap(corners[1], corners[2]);
+                polygons.push_back(corners);
             }
-
-            if (!holes.empty()) {
-                const Mesh cut = solid_difference(outer, holes);
-                if (manifold_solid(cut))
-                    return cut;
-            }
-
-            return outer;
-        }
     }
 
-    return stock_mesh();
+    // the walls: a quad from every edge of a bottom loop to the same edge of its top loop, run against the cap along that edge
+    for (size_t k = 0; k < features.bottom.size(); k++) {
+        const Polyline& bottom = features.bottom[k];
+        const Polyline& top = features.top[k];
+        if (bottom.point_count() != top.point_count())
+            return stock_mesh();
+
+        const bool with_cap = (k == 0) == (compute_newell(bottom.get_points()).dot(out) > 0.0);
+        for (size_t i = 0; i + 1 < bottom.point_count(); i++)
+            if (with_cap)
+                polygons.push_back({bottom[i + 1], bottom[i], top[i], top[i + 1]});
+            else
+                polygons.push_back({bottom[i], bottom[i + 1], top[i + 1], top[i]});
+    }
+
+    // one solid: the caps and walls welded at their shared corners
+    const Mesh solid = Mesh::from_polylines(polygons);
+    if (manifold_solid(solid))
+        return solid;
+
+    // a cap's triangulation lost a corner: the loft as before when it closes, else the stock plate
+    const Mesh lofted = Mesh::loft(features.bottom, features.top);
+
+    return manifold_solid(lofted) ? lofted : stock_mesh();
 }
 
 BRep Plate::trimmed_brep() const {
@@ -617,6 +628,16 @@ int Plate::given_face(int face) const {
 
     const int side_count = static_cast<int>(planes.size()) - 2;
     return 2 + (side_count - 1 - (face - 2));
+}
+
+Vector Plate::insertion_vector(int face) const {
+
+    const std::vector<Vector>& vectors = insertion_vectors();
+    const int count = static_cast<int>(vectors.size());
+    if (face < 0 || face >= count)
+        return Vector(0.0, 0.0, 0.0);
+
+    return vectors[reversed && face >= 2 ? count + 1 - face : face];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

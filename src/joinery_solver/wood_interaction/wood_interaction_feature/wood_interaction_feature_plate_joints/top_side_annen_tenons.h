@@ -29,7 +29,7 @@ static void top_side_annen_tenons(
 
     // the tenon direction: the plate's insertion vector on this face, else the edge's perpendicular in the plate's plane, from the wall's inner face to its outer
     const Vector normal = plate.planes[0].z_axis();
-    Vector along = side < (int)plate.insertion_vectors().size() ? plate.insertion_vectors()[side]
+    Vector along = side < (int)plate.insertion_vectors().size() ? plate.insertion_vector(side)
                                                                 : Vector(0.0, 0.0, 0.0);
     if (along.magnitude() < 1e-9)
         along = normal.cross(

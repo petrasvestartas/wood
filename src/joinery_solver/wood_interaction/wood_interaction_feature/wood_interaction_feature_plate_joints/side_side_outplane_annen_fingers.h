@@ -36,8 +36,8 @@ static void side_side_outplane_annen_fingers(
             std::abs(walls[k]->feature_types[given]) == design)
             axis = k;
         if (faces[k] < (int)walls[k]->insertion_vectors().size() &&
-            walls[k]->insertion_vectors()[faces[k]].magnitude() > 1e-9)
-            up = walls[k]->insertion_vectors()[faces[k]];
+            walls[k]->insertion_vector(faces[k]).magnitude() > 1e-9)
+            up = walls[k]->insertion_vector(faces[k]);
     }
     if (up.magnitude() < 1e-9)
         up = joint.joint_lines[0].to_vector();

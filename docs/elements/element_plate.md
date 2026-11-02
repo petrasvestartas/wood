@@ -2,7 +2,7 @@
 
 [TOC]
 
-A flat timber plate bounded by a bottom and a top polygon with one side face per edge; joints modify it through `InteractionFeaturePlate` or `InteractionFeatureSolid`.
+A flat timber plate bounded by a bottom and a top polygon with one side face per edge; joints modify it through `InteractionFeaturePlate` or `InteractionFeatureSolid`. Once its joints are merged, its trimmed mesh is the merged loops triangulated as a polygon with holes on the bottom and the top, joined by a quad wall on every loop edge: one closed mesh, usable as a solid.
 
 ## Constructors
 

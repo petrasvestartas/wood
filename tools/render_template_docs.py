@@ -15,6 +15,8 @@ RENDERER = (
     else WOOD.parent
     / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 )
+if not RENDERER.exists():
+    RENDERER = WOOD.parent / "session/session_viewer/target/course-runtime" / RENDERER.name
 PYTHON = WOOD.parent / (
     "session/session_py/.venv/Scripts/python.exe"
     if WINDOWS

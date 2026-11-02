@@ -36,7 +36,8 @@ public:
         feature_axes; // Per face the direction the joint's cuts follow through the plate's thickness, indexed like polylines; empty or zero lets the design use the plate's normal.
 
 protected:
-    /// The plate before the solid cuts as a Mesh.
+    /// The plate before the solid cuts as one closed Mesh, usable as a solid: its merged loops triangulated as a polygon with holes
+    /// on the bottom and the top, a quad wall on every loop edge; the loft or the stock plate when that does not close.
     Mesh trimmed_mesh() const override;
 
     /// The plate before the solid cuts as a BRep.
@@ -150,6 +151,10 @@ public:
 
     /// The index a face has in the tables given with the plate (feature_types, insertion_vectors.
     int given_face(int face) const;
+
+    /// The insertion vector of a face in the outline's order, zero when none is given: a reversed plate reads its sides' given
+    /// vectors backwards, its bottom and top keep theirs.
+    Vector insertion_vector(int face) const;
 
     /// A copy moved by xform from the members alone, never the constructor.
     std::shared_ptr<Plate> transformed(const Xform& xform) const;

@@ -186,7 +186,8 @@ bool prepare_candidate(
     }
 
     if (i < s.el0.insertion_vectors().size() && j < s.el1.insertion_vectors().size()) {
-        c.dir = (i > j) ? s.el0.insertion_vectors()[i] : s.el1.insertion_vectors()[j];
+        c.dir = (i > j) ? s.el0.insertion_vector(static_cast<int>(i))
+                        : s.el1.insertion_vector(static_cast<int>(j));
         c.dir_set = (std::abs(c.dir[0]) + std::abs(c.dir[1]) + std::abs(c.dir[2])) > 0.01;
     }
 
@@ -750,8 +751,9 @@ bool top_top(F2F& s, FaceCandidate& c) {
         return false;
     }
 
-    Vector dir = c.dir_set ? (i < s.el0.insertion_vectors().size() ? s.el0.insertion_vectors()[i]
-                                                                   : s.el0.planes[i].z_axis())
+    Vector dir = c.dir_set ? (i < s.el0.insertion_vectors().size()
+                                  ? s.el0.insertion_vector(static_cast<int>(i))
+                                  : s.el0.planes[i].z_axis())
                            : s.el0.planes[i].z_axis();
     if (!dir.normalize_self()) {
         dir = s.el0.planes[i].z_axis();

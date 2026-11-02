@@ -77,6 +77,8 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(
 
     const int element_count = static_cast<int>(elements.size());
 
+    // a pair listed again takes its next contact: the first in face order whose polygon no joint of the pair has yet, so two sides of a plate on one face of another each get their joint
+    std::map<std::pair<int, int>, std::vector<Point>> taken;
     std::vector<InteractionFeaturePlate> joints;
     joints.reserve(pairs.size());
     for (size_t k = 0; k < pairs.size(); ++k) {
@@ -97,16 +99,45 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(
 
         InteractionFeaturePlate joint;
         bool swap_planes_b = false;
-        const bool ok = face_to_face_wood(
-            *elements[index_a],
-            *elements[index_b],
-            {index_a, index_b},
-            joints.size(),
-            settings,
-            search_type,
-            joint,
-            swap_planes_b
-        );
+        bool ok = false;
+        const std::pair<int, int> key = {std::min(index_a, index_b), std::max(index_a, index_b)};
+        const auto earlier = taken.find(key);
+        if (earlier == taken.end()) {
+            ok = face_to_face_wood(
+                *elements[index_a],
+                *elements[index_b],
+                {index_a, index_b},
+                joints.size(),
+                settings,
+                search_type,
+                joint,
+                swap_planes_b
+            );
+        } else {
+            for (const InteractionContactFace& contact : face_contacts_for_pair(
+                     *elements[index_a], *elements[index_b], settings, nullptr, false
+                 )) {
+                const Point centre = contact.polygon.center();
+                bool used = false;
+                for (const Point& point : earlier->second)
+                    used = used || Point::distance(point, centre) < 1e-6;
+                if (used || !face_to_face_wood(
+                                *elements[index_a],
+                                *elements[index_b],
+                                {index_a, index_b},
+                                joints.size(),
+                                settings,
+                                search_type,
+                                joint,
+                                swap_planes_b,
+                                nullptr,
+                                &contact
+                            ))
+                    continue;
+                ok = true;
+                break;
+            }
+        }
 
         if (swap_planes_b)
             elements[index_b]->swap_planes();
@@ -114,6 +145,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(
         if (!ok)
             continue;
 
+        taken[key].push_back(joint.contact.polygon.center());
         joint.guid() = ::guid();
         joints.push_back(std::move(joint));
     }
@@ -187,7 +219,7 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
     }
 }
 
-/// A reversed plate lists its side slots backwards, so its insertion vectors are read in the same order.
+/// The plates' insertion vectors stay in their given order: every design reads them through Plate::insertion_vector, so solving twice gives the same joints.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
     return compute_features(settings.search_type);
 }
@@ -205,14 +237,8 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     clear_features();
 
     std::vector<std::vector<int>> feature_types(elements.size());
-    for (size_t i = 0; i < elements.size(); ++i) {
-
-        std::vector<Vector>& vectors = elements[i]->insertion_vectors();
-        if (elements[i]->reversed && vectors.size() > 2)
-            std::reverse(vectors.begin() + 2, vectors.end());
-
+    for (size_t i = 0; i < elements.size(); ++i)
         feature_types[i] = elements[i]->feature_types;
-    }
 
     std::vector<InteractionFeaturePlate> joints =
         detect_features(elements, adjacent_pairs(elements), search_type);
