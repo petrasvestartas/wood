@@ -267,7 +267,6 @@ for (size_t k = 0; k < edges.size(); k++) {
 `src/templates/chevron/chevron_assembly.h` takes a built shell apart box by box: `wood_chevron::Assembly` reads the boxes from the `box_<i>` groups, every box's one insertion vector from the insertion lines, and from the through-tenon joints between two boxes the order, a box after the box whose wall its tenons enter along its own vector and after the box whose tenons its wall takes along it, the nearer of the two vectors when the tenon runs along both within the surface's turn; then it slides every box in order along its vector from `reach` behind its place into the boxes already placed, every plate the exact prism its merged outlines and slot loops bound, with points just inside its faces and along every edge, and reports every plate pair that meets on the way with the depth the deepest point stood inside the other plate and the points inside it with the box in place. Plate meshes are not used for this: a loft keeps the slots as separate shells and a BRep tessellation fans the concave caps. `examples/templates_chevron_4_chevron_assembly.cpp`, `_5_shifted_assembly.cpp` and `_6_max2_assembly.cpp` run it on the three shells and write the plan of a 4 x 4 block at the crown for `tools/render_assembly_gif.py`, which draws the block's boxes sliding in one after another.
 
 ![Chevron assembly](images/templates/templates_chevron_4_chevron_assembly.gif)
-![MAX2 assembly](images/templates/templates_chevron_6_max2_assembly.gif)
 ![Shifted assembly](images/templates/templates_chevron_5_shifted_assembly.gif)
 
 Christopher's chevron tenons are prisms along their own box's vector, and the chevron and MAX2 shells assemble as rigid boxes: on the first Annen surface 184 boxes in order, 22 plate pairs meeting along the way, 18 of them deeper than 1 mm and the deepest 6.67 mm, all but one at the end of the way with points inside each other in place, the overlaps the turned and moved edge planes give neighbouring plates; the MAX2 arch 200 boxes, 27 pairs, the deepest 7.67 mm, 23 of them in place and four binding by up to 2.1 mm over the last 20 mm. The shifted cells do not. A plate's tenons into the wall of a neighbouring cell are cut along that cell's insertion vector, which lies in the neighbour's plane; the surface turns between the two cells, so in the plate's own plane the tenon axis is off by that turn, about 3 degrees at the feet, and a box slid in along one vector binds by a couple of millimetres across the wall. `Annen2.3dm` has exactly the same tenons, so the template reproduces them rather than correcting them. An even cell's outward long wall takes its own plates' tenons along the odd neighbour's vector, which is right for the order: that wall is in place before the odd plates slide their tenons into it. What blocked the boxes was the steps of the odd plates where the long walls of two cells of a column meet end to end: a step of up to 100 mm into the slab the lower wall sweeps through on its last 50 mm of travel, 20 mm deep, the full half thickness, at every such junction. With the steps cut along the movers' vectors and the first quads' plates stepped in under their neighbours' walls, which the definition left overlapping them by a thickness, the sweep finds 849 plate pairs meeting, 668 deeper than 1 mm, 39 deeper than 5 mm and none deeper than 8.3 mm: the tenons' lean, and the left steps of two columns the rule leaves uncut. The picture shows the order the tenons dictate. The odd cells cannot be made 4-plate modules by giving each the right wall of the even cell beside it: that wall serves the odd cells above and below it, so whichever carries it sweeps it through the other's plates along the column or through the even cell's plates across it, as the sweep showed when it was tried; the shelves stay 3 plates held by their neighbours' walls.
@@ -282,3 +281,41 @@ int main() {
     return 0;
 }
 ```
+
+## Examples {#chevron_examples}
+
+### 1 Chevron {#chevron_example_1}
+
+The chevron template on the first of the 23 Annen surfaces in annen_surfaces.json: four strips of chevron rows growing towards the middle, a plane on every face edge with the chevron edges turned and offset, the corner bisectors, then per face a top and a bottom plate inset in the 760 mm box and a side plate on each chevron edge, with the insertion vectors, joint types, three-valence groups and adjacency the wood solver reads to cut the Annen tenons and mortises into the plates and stitch every corner in seven fingers as Christopher's dovetail2 divides it, the 736 plates and tenons of the 2024 Annen dataset; each step in its own group (surface, mesh, strips, edge_planes, bisectors, plates with a box_\<face\> group per face, insertion, joints).
+
+\include{lineno} templates_chevron_1_chevron.cpp
+
+### 2 Shifted {#chevron_example_2}
+
+The shifted chevron template on the first of the 23 Annen surfaces in annen_surfaces.json, the 2018 Annen pattern: 54 iso curves across the arch at equal arc length, 9 points on each, the interior points shifted by 0.4 of a row towards the next row in even columns and the previous one in odd columns, so the cells are hexagons over three rows in staggered columns, 27 per column, with a half-cell quad at one end of every column; a plane through every edge, the even columns' long sides merged and turned by 0.05 rad, the neighbours' cross planes inserted; then per cell a top and a bottom plate 300 mm from the surface, stepped in by the 40 mm wall where the cell's own walls stand, and its walls running 80 mm past the plates, the two halves of a merged long side one wall, every wall mitred against the next wall of its box and stopped short of a neighbour's wall standing inside the cell, the odd plates' steps between two long walls cut along the insertion vector of whatever passes them, with the insertion vectors, feature axes, joint types, divisions, adjacency and three-valence groups the wood solver reads to cut the definition's own through-tenons (top_side_annen_shifted_tenons) and their slots and Christopher's Annen fingers (side_side_outplane_annen_fingers) into the 224 box corners: the 431 jointed plates of the 2020 Annen2.3dm ground truth within 0.011 mm but for the 16 on the naked long side of column 0, within 1.1 mm, and every tenon they carry within 1 mm, and the one top plate it lacks; each step in its own group (surface, mesh, edge_planes, plates with a box_\<cell\> group per cell, insertion, joints).
+
+\include{lineno} templates_chevron_2_shifted.cpp
+
+### 3 MAX2 Arch {#chevron_example_3}
+
+The chevron template on the second of the 23 Annen surfaces with the slider values of the Grasshopper definition that drove Christopher Robeller's plugin for the 2017 MAX2 prototype of arches 21 and 22 (2017_08_08_MAX2_22.gh): rows from 900 growing by 0.04993, stopping 2000 before the middle, boxes 760 deep with 40 mm plates 80 in from the box faces, the chevron edge planes turned 1.1 degrees and moved 18 mm, the sides closed at y 132000 and 126000 and the ground at z 3520, tenons on 80 mm tabs and corner fingers turned 15 degrees; the 200 boxes of arch 22 with the plates and joints of the prototype's Rhino file, each step in its own group (surface, mesh, strips, edge_planes, bisectors, plates with a box_\<face\> group per face, insertion, joints).
+
+\include{lineno} templates_chevron_3_max2_arch.cpp
+
+### 4 Chevron Assembly {#chevron_example_4}
+
+The chevron template on the first Annen surface assembled box by box: every box slides in along its one insertion vector, the box diagonal at the corner opposite its two walls, into the boxes already placed; the order comes from the through-tenons, a box after the boxes whose walls its tenons enter; every box is swept along its vector against the plates already placed, points just inside its faces and along its edges stepped along the way, and the report lists the plate pairs that meet with how deep. The 4 x 4 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py, which draws the block's assembly frame by frame.
+
+\include{lineno} templates_chevron_4_chevron_assembly.cpp
+
+### 5 Shifted Assembly {#chevron_example_5}
+
+The shifted chevron template on the first Annen surface assembled cell by cell: every cell's box slides in along its one insertion vector, the bisector of two of its own sides, into the boxes already placed; the order comes from the through-tenons, a box after the boxes whose walls its tenons enter along its vector and after the boxes whose tenons its own walls take along it, the odd columns after their even neighbours; every box is swept along its vector against the plates already placed, points just inside its faces and along its edges stepped along the way, and the report lists the plate pairs that meet with how deep. The 4 x 4 block at the crown, four cells of the four middle columns, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py, which draws the block's assembly frame by frame.
+
+\include{lineno} templates_chevron_5_shifted_assembly.cpp
+
+### 6 MAX2 Assembly {#chevron_example_6}
+
+Arch 22 of the 2017 MAX2 prototype, the chevron template on the second Annen surface with the prototype's sliders, assembled box by box: every box slides in along its one insertion vector into the boxes already placed, in the order its through-tenons allow, and is swept along its vector against the plates already placed, points just inside its faces and along its edges stepped along the way; the report lists the plate pairs that meet with how deep. The 4 x 4 block at the crown, two rows of the two middle strips, is written with the order and the vectors to data/output/pb/assembly.json for tools/render_assembly_gif.py.
+
+\include{lineno} templates_chevron_6_max2_assembly.cpp

@@ -1,6 +1,6 @@
 # Wood
 
-Timber joinery solver and parametric structure library built on [`session_cpp`](https://github.com/petrasvestartas/session_cpp).
+The joinery solver of the doctoral thesis [Design-to-Fabrication Workflow for Raw-Sawn-Timber using Joinery Solver](https://infoscience.epfl.ch/record/288650) (Petras Vestartas, EPFL thesis 8928, IBOIS, 2021), carried on as a C++ library on the [`session_cpp`](https://github.com/petrasvestartas/session_cpp) kernel: the members are given, the solver finds where they touch and cuts the joints from the contacts, so the joinery follows from the geometry. Elements are plates, curved plates, beams, columns, blocks, supports, profiles and pins; interactions are contacts, cuts and joints, from through-tenons and finger joints to cross laps, scarfs and pin sets, cut into meshes and exact NURBS BReps; templates build whole structures, the Annen chevron shells, folded plates, floors, grids, trusses and vaults.
 
 Documentation: [Overview](https://petrasvestartas.github.io/wood/) · [Architecture](https://petrasvestartas.github.io/wood/architecture.html) · [Elements](https://petrasvestartas.github.io/wood/elements.html) · [Templates](https://petrasvestartas.github.io/wood/templates.html) · [Examples](https://petrasvestartas.github.io/wood/examples.html) · [Setup](SETUP.md)
 
