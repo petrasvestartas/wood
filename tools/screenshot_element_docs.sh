@@ -23,5 +23,7 @@ for name in "$@"; do
     esac
     node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
         "Layers All" "Element Interactions Off" "Arctic On" "$view" "View Orthographic" "Fit" > /dev/null
+    # the white faces light grey, so the elements read against the white page
+    python wood/tools/tint_element_pictures.py "wood/docs/images/elements/$name.png" > /dev/null
     echo "$name"
 done
