@@ -74,7 +74,7 @@ public:
         double plate_thickness = 40.0,
         double wall_extend = 80.0,
         bool average_planes = true,
-        int divisions = 2,
+        int divisions = 1,
         double long_edge = 700.0,
         double short_edge = 200.0,
         int finger_divisions = 7,
