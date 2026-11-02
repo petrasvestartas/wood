@@ -803,6 +803,23 @@ div.contents img[src$=".webp"] {
 .wood-card-grid.cols-3 {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
+/* The landing page: two columns, the pictures twice the size of the other grids' */
+.wood-card-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+div.contents .wood-card-grid.cols-2 img,
+.wood-card-grid.cols-2 img {
+    height: 360px;
+}
+.wood-card-grid.cols-2 .wood-card-title {
+    font-size: 18px;
+}
+@media screen and (max-width: 767px) {
+    .wood-card-grid.cols-2 {
+        grid-template-columns: 1fr;
+    }
+}
 .wood-card,
 a.wood-card {
     display: flex;

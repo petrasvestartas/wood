@@ -2,7 +2,7 @@
 
 Wood is a timber joinery solver and parametric structure library built on [session_cpp](https://github.com/petrasvestartas/session_cpp). Elements represent plates, curved plates, beams, columns, and connectors, while joints detect contacts and cut mortises, tenons, finger joints, cross laps, and pin bores into meshes and exact NURBS BReps.
 
-<div class="wood-card-grid cols-4">
+<div class="wood-card-grid cols-2">
   <a class="wood-card" href="architecture.html">
     <img src="wood_architecture.webp" alt="Architecture">
     <span class="wood-card-title">Architecture</span>
