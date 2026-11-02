@@ -47,6 +47,10 @@ public:
     const double wall_extend; // mm the walls run past the outer faces of the top and bottom plates.
     const bool
         average_planes; // Merge the two planes of every even cell's long sides into one turned plane.
+    const int
+        divisions; // Tenon steps per edge: 2·divisions + 1 on a short edge, 4·divisions + 1 on a long one, a tenon at every odd step.
+    const double long_edge; // mm; an edge longer than this takes twice the steps.
+    const double short_edge; // mm; an edge shorter than this takes no tenons.
 
     /// The shifted chevron shell on surface as the session named name.
     explicit ChevronShifted(
@@ -59,6 +63,9 @@ public:
         double plate_thickness = 40.0,
         double wall_extend = 80.0,
         bool average_planes = true,
+        int divisions = 2,
+        double long_edge = 700.0,
+        double short_edge = 200.0,
         const std::string& name = "chevron_shifted"
     );
 
@@ -74,10 +81,13 @@ public:
     /// The cells: vertex keys, kinds and columns.
     const wood_chevron::ShiftedCells& cells() const;
 
-    /// Per plate one insertion vector per face: the cell's direction on the top and bottom plates' tenon sides, zero elsewhere.
+    /// Per plate one insertion vector per face: the direction of its edge on the top and bottom plates' tenon sides, zero elsewhere.
     const std::vector<std::vector<Vector>>& insertion_vectors() const;
 
-    /// Per plate one joint type per face: 20, a tenon, on the top and bottom plates' sides that reach a wall, 0 elsewhere.
+    /// Per plate one axis per face: the mean surface normal at the insertion corner of the cell that owns its edge on the top and bottom plates' tenon sides, the definition's cut plane axis, zero elsewhere.
+    const std::vector<std::vector<Vector>>& feature_axes() const;
+
+    /// Per plate one joint type per face: 23, the definition's tenon, on the top and bottom plates' sides its outer loop moved out by a wall, 0 elsewhere.
     const std::vector<std::vector<int>>& joints_per_face() const;
 
     /// Rows {t0, w, t1, w}: the top (or bottom) plates t0 and t1 of the two cells on a wall w both join it, so their tenons are aligned.
@@ -97,6 +107,7 @@ private:
     std::vector<Plane> _face_planes;
     std::vector<std::vector<wood_chevron::ShiftedSide>> _sides;
     std::vector<std::vector<Vector>> _insertion_vectors;
+    std::vector<std::vector<Vector>> _feature_axes;
     std::vector<std::vector<int>> _joints_per_face;
     std::vector<std::array<int, 4>> _three_valence;
     std::vector<std::pair<int, int>> _adjacency;
@@ -125,7 +136,7 @@ private:
     /// Per cell a top and a bottom plate, stepped in by a wall where its own walls stand, then its walls between the outer box faces.
     wood_chevron::ShiftedPlates compute_plates() const;
 
-    /// The insertion vectors, joint types, adjacency and three-valence groups of the plates, and an insertion line per cell.
+    /// The insertion vectors, feature axes, joint types, adjacency and three-valence groups of the plates, and an insertion line per cell.
     std::vector<Line> compute_joinery(const wood_chevron::ShiftedPlates& plates);
 
     /// The grid point of a vertex key.
@@ -145,6 +156,9 @@ private:
 
     /// The cell edges whose walls the cell slides into: its direction goes to them.
     static std::vector<int> owned_edges(int mask);
+
+    /// Whether the definition's outer loop moved the plane of a cell edge out by a wall: every edge of a hexagon and of a last quad, the long side and the top of a first quad.
+    static bool tenon_side(int mask, int edge);
 
     /// The plane turned about its y axis.
     static Plane turned_about_y(const Plane& plane, double angle);
@@ -167,12 +181,16 @@ inline ChevronShifted::ChevronShifted(
     double plate_thickness,
     double wall_extend,
     bool average_planes,
+    int divisions,
+    double long_edge,
+    double short_edge,
     const std::string& name
 )
     : WoodSession(name), surface(surface), iso_count(std::max(iso_count, 4)),
       point_count(std::max(point_count, 2)), shift(shift), edge_rotation(edge_rotation),
       plate_offset(plate_offset), plate_thickness(std::max(plate_thickness, 1.0)),
-      wall_extend(wall_extend), average_planes(average_planes) {
+      wall_extend(wall_extend), average_planes(average_planes), divisions(std::max(divisions, 1)),
+      long_edge(long_edge), short_edge(short_edge) {
 
     // surface: the NURBS surface the cells are laid on, turned so its u runs across the shell as the 2018 definition read it
     add_nurbssurface(surface, add_group("surface"));
@@ -225,8 +243,10 @@ inline ChevronShifted::ChevronShifted(
     }
     set_node_color(insertion, Color(206, 16, 66, 255), true);
 
-    // joints: the wood solver reads the tables and cuts the tenons and mortises into the plates; a contact is at least a wall thickness square, so the slivers where a wall's slanted end crosses the middle of a merged side are none
+    // joints: the wood solver reads the tables and cuts the definition's tenons and their slots into the plates; a contact is at least a wall thickness square, so the slivers where a wall's slanted end crosses the middle of a merged side are none; an edge over long_edge takes twice the steps, one under short_edge no tenons
     settings.clipper_area = plate_thickness * plate_thickness;
+    settings.joint_parameters[6] = long_edge;
+    settings.limit_min_joint_length = short_edge;
     WoodSession::adjacency = _adjacency;
     WoodSession::three_valence = {{0}};
 
@@ -235,7 +255,10 @@ inline ChevronShifted::ChevronShifted(
 
     for (size_t i = 0; i < plates.plates.size(); i++) {
         plates.plates[i]->insertion_vectors() = _insertion_vectors[i];
+        plates.plates[i]->feature_axes = _feature_axes[i];
         plates.plates[i]->feature_types = _joints_per_face[i];
+        plates.plates[i]->feature_divisions =
+            std::vector<int>(_joints_per_face[i].size(), divisions);
     }
 
     compute_features();
@@ -251,6 +274,10 @@ inline const wood_chevron::ShiftedCells& ChevronShifted::cells() const {
 
 inline const std::vector<std::vector<Vector>>& ChevronShifted::insertion_vectors() const {
     return _insertion_vectors;
+}
+
+inline const std::vector<std::vector<Vector>>& ChevronShifted::feature_axes() const {
+    return _feature_axes;
 }
 
 inline const std::vector<std::vector<int>>& ChevronShifted::joints_per_face() const {
@@ -778,15 +805,25 @@ inline std::vector<int> ChevronShifted::owned_edges(int mask) {
     return {2, 3};
 }
 
+inline bool ChevronShifted::tenon_side(int mask, int edge) {
+
+    if (mask == -1)
+        return edge == 1 || edge == 2;
+
+    return edge >= 0;
+}
+
 inline std::vector<Line>
 ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
 
     _insertion_vectors.assign(plates.plates.size(), {});
+    _feature_axes.assign(plates.plates.size(), {});
     _joints_per_face.assign(plates.plates.size(), {});
     std::map<EdgeKey, Vector> directions;
+    std::map<EdgeKey, Vector> axes;
     std::vector<Line> lines;
 
-    // per cell its direction, the bisector of two of its own sides on its outline, on the edges whose walls it slides into
+    // per cell its direction, the bisector of two of its own sides on its outline, and its axis, the mean of those sides' surface normals, which the definition's cut planes follow, both on the edges whose walls it slides into
     for (size_t cell = 0; cell < _cells.masks.size(); cell++) {
         const int mask = _cells.masks[cell];
         const std::vector<wood_chevron::ShiftedSide>& sides = _sides[cell];
@@ -798,6 +835,7 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
         const std::vector<Point> corners =
             Polyline::from_planes(loop, _face_planes[cell]).get_points();
         std::array<Vector, 2> segments;
+        Vector axis(0.0, 0.0, 0.0);
 
         for (size_t which = 0; which < 2; which++) {
             size_t k = 0;
@@ -807,28 +845,33 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
 
             segments[which] =
                 (corners[k] - corners[(k + loop.size() - 1) % loop.size()]).normalized();
+            axis = axis + sides[k].plane.y_axis() * 0.5;
         }
 
         const Vector direction = segments[0] - segments[1];
 
-        for (const int edge : owned_edges(mask))
+        for (const int edge : owned_edges(mask)) {
             directions[edge_key(static_cast<int>(cell), edge)] = direction;
+            axes[edge_key(static_cast<int>(cell), edge)] = axis;
+        }
 
         const Point centre = _face_planes[cell].translate_by_normal(plate_offset).origin();
         lines.push_back(Line::from_points(centre, centre + direction * 300.0));
     }
 
-    // top and bottom plates: a tenon on every side whose edge has a direction, along it
+    // top and bottom plates: the tenon type on every side the definition's outer loop moved out by a wall, with the direction and axis of its edge where the edge has them; the first quad's side under its neighbour's wall, which the definition left degenerate, gets neither
     for (size_t cell = 0; cell < _cells.masks.size(); cell++)
         for (const int plate : plates.boxes[cell]) {
             const std::vector<int>& edges = plates.edges[plate];
             std::vector<Vector> vectors(2 + edges.size(), Vector(0.0, 0.0, 0.0));
+            std::vector<Vector> plate_axes(2 + edges.size(), Vector(0.0, 0.0, 0.0));
             std::vector<int> types(2 + edges.size(), 0);
 
             for (size_t k = 0; k < edges.size(); k++) {
-                if (edges[k] < 0)
+                if (!tenon_side(_cells.masks[cell], edges[k]))
                     continue;
 
+                types[2 + k] = 23;
                 const std::map<EdgeKey, Vector>::const_iterator found =
                     directions.find(edge_key(static_cast<int>(cell), edges[k]));
 
@@ -836,27 +879,34 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
                     continue;
 
                 vectors[2 + k] = found->second;
-                types[2 + k] = 20;
+                plate_axes[2 + k] = axes.at(found->first);
             }
 
             _insertion_vectors[plate] = vectors;
+            _feature_axes[plate] = plate_axes;
             _joints_per_face[plate] = types;
         }
 
-    // walls: no joint type of their own, every wall first in its pairs with the top and bottom plates of the cells on its edge, its own cell first, so the solver meets the wall's face before a plate's kink side meets the wall's end
+    // walls: no joint type of their own, every wall first in its pairs with the top and bottom plates whose side on its edge has a direction, its own cell first, so the solver meets the wall's face before a plate's kink side meets the wall's end
     for (size_t w = 0; w < plates.walls.size(); w++) {
         const int wall = plates.walls[w][0];
         _insertion_vectors[wall] = std::vector<Vector>(6, Vector(0.0, 0.0, 0.0));
+        _feature_axes[wall] = std::vector<Vector>(6, Vector(0.0, 0.0, 0.0));
         _joints_per_face[wall] = std::vector<int>(6, 0);
         std::vector<int> cells = _cells.faces.edge_faces.at(plates.wall_edges[w]);
         std::rotate(
             cells.begin(), std::find(cells.begin(), cells.end(), plates.walls[w][1]), cells.end()
         );
 
-        for (const int cell : cells) {
-            _adjacency.emplace_back(wall, plates.boxes[cell][0]);
-            _adjacency.emplace_back(wall, plates.boxes[cell][1]);
-        }
+        for (const int cell : cells)
+            for (const int plate : plates.boxes[cell]) {
+                const std::vector<int>& edges = plates.edges[plate];
+
+                for (size_t k = 0; k < edges.size(); k++)
+                    if (edges[k] >= 0 && edge_key(cell, edges[k]) == plates.wall_edges[w] &&
+                        _insertion_vectors[plate][2 + k].magnitude() > 0.0)
+                        _adjacency.emplace_back(wall, plate);
+            }
 
         if (cells.size() == 2) {
             _three_valence.push_back(

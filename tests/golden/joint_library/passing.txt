@@ -25,6 +25,7 @@ op/side_side_outplane_custom
 op/side_removal/1/0.5
 ts/top_side_three_tenons
 ts/top_side_annen_tenons
+ts/top_side_annen_shifted_tenons
 ts/top_side_dense_tenons
 ts/top_side_dense_tenons/8/0.5
 ts/top_side_dense_tenons/16/0.25
@@ -85,16 +86,19 @@ r@150/side_side_rotated_hooks
 r@150/side_side_rotated_keys
 ts@skew60/top_side_three_tenons
 ts@skew60/top_side_annen_tenons
+ts@skew60/top_side_annen_shifted_tenons
 ts@skew60/top_side_dense_tenons
 ts@skew60/top_side_tenons
 ts@skew60/top_side_milled_wedge
 ts@skew75/top_side_three_tenons
 ts@skew75/top_side_annen_tenons
+ts@skew75/top_side_annen_shifted_tenons
 ts@skew75/top_side_dense_tenons
 ts@skew75/top_side_tenons
 ts@skew75/top_side_milled_wedge
 ts@lean80/top_side_three_tenons
 ts@lean80/top_side_annen_tenons
+ts@lean80/top_side_annen_shifted_tenons
 ts@lean80/top_side_dense_tenons
 ts@lean80/top_side_tenons
 ts@lean80/top_side_milled_wedge

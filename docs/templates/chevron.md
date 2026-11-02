@@ -149,7 +149,7 @@ Chevron chevron(
 
 ## Shifted Pattern {#chevron_shifted}
 
-`ChevronShifted` in `src/templates/chevron/chevron_shifted.h` is the second version of the template: the 2018 Annen pattern of the Grasshopper definition `ShiftedPattern-OptimizationUpdate/Annen200917.gh`, hexagonal cells in staggered columns instead of chevron strips. `Chevron` stays the default; the caller picks the class. Both build their plates from planes with the kernel's `Polyline::from_planes`, as `Plate` elements, and hand the same tables to the wood solver. Its ground truth is the definition's own output `Annen2.3dm`: every one of its 1075 plates is within 0.011 mm of a plate built here.
+`ChevronShifted` in `src/templates/chevron/chevron_shifted.h` is the second version of the template: the 2018 Annen pattern of the Grasshopper definition `ShiftedPattern-OptimizationUpdate/Annen200917.gh`, hexagonal cells in staggered columns instead of chevron strips. `Chevron` stays the default; the caller picks the class. Both build their plates from planes with the kernel's `Polyline::from_planes`, as `Plate` elements, and hand the same tables to the wood solver. Its ground truth is the definition's own output `Annen2.3dm`: every one of its 1075 plates is within 0.011 mm of a plate built here, and every tenon it carries within 1 mm of one the solver cuts.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#chevron_shifted_cells">
@@ -185,6 +185,9 @@ The defaults are the slider values of the Grasshopper definition, read in millim
 | `plate_thickness` | `double` | `40.0` | Thickness of every plate in mm (`plateWidth`) |
 | `wall_extend` | `double` | `80.0` | Length the walls run past the outer faces of the top and bottom plates in mm (`extend`) |
 | `average_planes` | `bool` | `true` | Merge both halves of every even cell's long sides into one turned plane (`averagePlanes`) |
+| `divisions` | `int` | `2` | Tenon steps per edge: `2·divisions + 1` on a short edge, `4·divisions + 1` on a long one, a tenon at every odd step (`divisions`) |
+| `long_edge` | `double` | `700.0` | Length in mm above which an edge takes twice the steps (`tolerance`) |
+| `short_edge` | `double` | `200.0` | Length in mm below which an edge takes no tenons (`toleranceSmall`) |
 
 ### Point Grid and Cells {#chevron_shifted_cells}
 
@@ -233,20 +236,30 @@ loop.push_back(
 
 ### Joinery {#chevron_shifted_joinery}
 
-Every wall is joined to the top and bottom plates of both cells on its edge: adjacency rows `(wall, plate)`, wall first so the solver meets the wall's face before a plate's kink side meets the wall's end, and the three-valence rows `{top0, wall, top1, wall}` and `{bottom0, wall, bottom1, wall}` that align the tenons of the two plates sharing a wall. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and goes to the edges whose walls the cell slides into; a plate's side face carries the direction of its edge and the joint type 20, the Annen tenon. From these tables the solver makes 1150 Annen joints and 138 plate joints and cuts them into all 1076 plates; the picture looks into the crown of the shell, every plate and wall in place.
+The joints are the definition's own, its C# script's `GetZigZag`, as the solver design `top_side_annen_shifted_tenons` (id 23) cuts them. The insertion direction of a cell is the bisector of two of its own sides on its outline, `unit(e5) - unit(e0)` for an even hexagon, and its axis is the mean of those two sides' plane normals to the surface, the `dirY` of the definition's insertion planes; both go to the edges whose walls the cell slides into, so a plate's side face carries the direction and axis of the cell that owns its edge, in `insertion_vectors` and `feature_axes`. Every side the definition's outer plane loop moved out by a wall carries the type 23: all six edges of a hexagon, all four of a last quad, the long side and the top of a first quad, whose other sides the definition left in place (the left side under its neighbour's wall gets a degenerate zigzag there, so no joint). A wall is joined, wall first, to each top and bottom plate whose side on its edge has a direction; the three-valence rows `{top0, wall, top1, wall}` stay as the two plates sharing a wall. The design then draws the plate's mid-wall line from the middle of its inner corner on one face and its outer corner on the other at each end, averages it with the line of the plate across the wall and keeps the middle 90%: `4·divisions + 1` steps on a line over `long_edge`, `2·divisions + 1` under it, a tenon half a step wide around every odd step, so the plate across the wall, running the line the other way, takes the even steps; the flanks are the planes through the direction and the axis, from the wall's inner face to its outer, each tenon with its slot through the wall, and an edge under `short_edge` gets none. From these tables the solver cuts the tenons and slots into all 1076 plates; the picture looks into the crown of the shell, every plate and wall in place.
 
 ![](templates/templates_chevron_2_shifted_joints.webp)
 
 ```cpp
-for (const int cell : cells) {
-    _adjacency.emplace_back(wall, plates.boxes[cell][0]);
-    _adjacency.emplace_back(wall, plates.boxes[cell][1]);
+for (size_t k = 0; k < edges.size(); k++) {
+    if (!tenon_side(_cells.masks[cell], edges[k]))
+        continue;
+
+    types[2 + k] = 23;
+    const std::map<EdgeKey, Vector>::const_iterator found =
+        directions.find(edge_key(static_cast<int>(cell), edges[k]));
+
+    if (found == directions.end())
+        continue;
+
+    vectors[2 + k] = found->second;
+    plate_axes[2 + k] = axes.at(found->first);
 }
 ```
 
 ### Ground Truth {#chevron_shifted_ground_truth}
 
-`examples/templates_chevron_2_shifted.cpp` builds the pattern on the first Annen surface, the surface internalised in the definition. The top and bottom plates of `Annen2.3dm` carry the definition's own finger joints; here the wood solver cuts the joints, so the plates are compared under them. Against its 431 top and bottom plates and 644 walls, scaled from metres: every corner of every plate within 0.011 mm of a ground-truth vertex, every face plane within 0.007 mm, every side plane within 0.007 mm, and every ground-truth wall vertex within 0.011 mm of our outlines; the ground truth lacks the top plate of the last quad of column 0, which this template builds.
+`examples/templates_chevron_2_shifted.cpp` builds the pattern on the first Annen surface, the surface internalised in the definition, and is compared with `Annen2.3dm` as the definition baked it: 431 top and bottom plates carrying its tenons and 644 walls it never cut, as meshes in metres. Every vertex of every ground-truth plate lies within 0.011 mm of our outlines after the joints, and every one of its 12819 tenons has its four corners within 1 mm of a tenon of ours, on all 431 plates; every ground-truth wall vertex lies within 0.011 mm of our wall outlines, and the ground truth lacks the top plate of the last quad of column 0, which this template builds. Ours has 220 tenons more, on 56 plates: 200 of them next to the seam of a ground-truth outline, on its first or last side, where the definition's polyline insertion dropped the tenons it had computed, and 20 on the one ground-truth mesh whose cap is torn (object 844); the definition's walls are plain, so the slots the solver cuts for every tenon have no counterpart there, and the eleven walls no tenon reaches, the feet's 140 mm half-walls and the last quads' end walls, stay uncut here as well.
 
 ```cpp
 #include "wood_session.h"

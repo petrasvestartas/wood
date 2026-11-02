@@ -32,6 +32,8 @@ public:
         feature_types; // Joint type per face from the joints_types sidecar, indexed like polylines; empty lets the solver decide.
     std::vector<int>
         feature_divisions; // Division count per face for the joint on it, indexed like polylines; empty or 0 lets the design count from its division length.
+    std::vector<Vector>
+        feature_axes; // Per face the direction the joint's cuts follow through the plate's thickness, indexed like polylines; empty or zero lets the design use the plate's normal.
 
 protected:
     /// The plate before the solid cuts as a Mesh.

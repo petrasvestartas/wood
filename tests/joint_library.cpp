@@ -61,6 +61,7 @@ static const std::vector<std::string> VARIANTS = {
     "op/side_removal/1/0.5",
     "ts/top_side_three_tenons",
     "ts/top_side_annen_tenons",
+    "ts/top_side_annen_shifted_tenons",
     "ts/top_side_dense_tenons",
     "ts/top_side_dense_tenons/8/0.5",
     "ts/top_side_dense_tenons/16/0.25",
@@ -495,8 +496,11 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         };
         const auto mortise = [](double y, double half) {
             return Polyline(
-                {{-0.5, y, half}, {0.5, y, half}, {0.5, y, -half}, {-0.5, y, -half}, {-0.5, y, half}
-                }
+                {{-0.5, y, half},
+                 {0.5, y, half},
+                 {0.5, y, -half},
+                 {-0.5, y, -half},
+                 {-0.5, y, half}}
             );
         };
         return {
@@ -528,8 +532,11 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
              {-0.5, 0.5, 1.0}}
         );
         const Polyline female1(
-            {{0.5, 0.5, 1.0}, {0.5, -0.5, 1.0}, {0.5, -0.5, -0.4}, {0.5, 0.5, -0.4}, {0.5, 0.5, 1.0}
-            }
+            {{0.5, 0.5, 1.0},
+             {0.5, -0.5, 1.0},
+             {0.5, -0.5, -0.4},
+             {0.5, 0.5, -0.4},
+             {0.5, 0.5, 1.0}}
         );
         return {std::vector<Polyline>{male0, male1}, std::vector<Polyline>{female0, female1}};
     }
@@ -557,7 +564,8 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
     };
     const auto strip = [](double x0, double y) {
-        return Polyline({{x0, y, 0.6}, {-0.5, y, 0.6}, {-0.5, y, -0.6}, {x0, y, -0.6}, {x0, y, 0.6}}
+        return Polyline(
+            {{x0, y, 0.6}, {-0.5, y, 0.6}, {-0.5, y, -0.6}, {x0, y, -0.6}, {x0, y, 0.6}}
         );
     };
     return {
@@ -634,6 +642,10 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
         return JointPlate::top_side_three_tenons();
     if (library == "top_side_annen_tenons")
         return JointPlate::top_side_annen_tenons();
+    if (library == "top_side_annen_shifted_tenons")
+        return JointPlate::top_side_annen_shifted_tenons(
+            integer(parts, 2, 2), number(parts, 3, 700.0)
+        );
     if (library == "top_side_dense_tenons")
         return JointPlate::top_side_dense_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "top_side_tenons")
@@ -1476,12 +1488,14 @@ static std::vector<double> snapshot(const Built& built, std::vector<std::string>
             const std::array<std::vector<Polyline>, 2>& outlines =
                 side == 0 ? connection.male_outlines : connection.female_outlines;
             for (int face = 0; face < 2; face++) {
-                labels.push_back(fmt::format(
-                    "{} face {} outlines {}",
-                    side == 0 ? "male" : "female",
-                    face,
-                    outlines[face].size()
-                ));
+                labels.push_back(
+                    fmt::format(
+                        "{} face {} outlines {}",
+                        side == 0 ? "male" : "female",
+                        face,
+                        outlines[face].size()
+                    )
+                );
                 numbers.push_back(static_cast<double>(outlines[face].size()));
                 for (const Polyline& outline : outlines[face]) {
                     numbers.push_back(static_cast<double>(outline.point_count()));

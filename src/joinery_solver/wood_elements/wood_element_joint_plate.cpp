@@ -41,6 +41,7 @@ const std::unordered_map<std::string, int> LIBRARY_IDS = {
     {"top_side_tenons", 20},
     {"top_side_dense_tenons", 21},
     {"top_side_annen_tenons", 22},
+    {"top_side_annen_shifted_tenons", 23},
     {"top_side_milled_wedge", 24},
     {"top_side_snap_fit", 25},
     {"top_side/side_removal", 28},
@@ -242,6 +243,10 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
         top_side_annen_tenons(joint, context.elements, context.all_joints);
         return true;
     case 23:
+        top_side_annen_shifted_tenons(
+            joint, context.elements, context.all_joints, 0, context.settings.limit_min_joint_length
+        );
+        return true;
     case 24:
         top_side_milled_wedge(joint);
         return true;
@@ -1894,6 +1899,16 @@ std::shared_ptr<JointPlate> JointPlate::top_side_annen_tenons(double tab_length)
     return joint;
 }
 
+std::shared_ptr<JointPlate>
+JointPlate::top_side_annen_shifted_tenons(int divisions, double long_edge) {
+
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_annen_shifted_tenons", 20);
+    joint->parameters.divisions = divisions;
+    joint->division_distance = long_edge;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::top_side_dense_tenons(int divisions, double shift) {
 
     const std::shared_ptr<JointPlate> joint = from_library("top_side_dense_tenons", 20);
@@ -1949,6 +1964,10 @@ bool JointPlate::compute_top_side(
         ::top_side_three_tenons(connection);
     else if (parameters.library == "top_side_annen_tenons")
         ::top_side_annen_tenons(connection, elements, connections);
+    else if (parameters.library == "top_side_annen_shifted_tenons")
+        ::top_side_annen_shifted_tenons(
+            connection, elements, connections, parameters.divisions, settings.limit_min_joint_length
+        );
     else if (parameters.library == "top_side_dense_tenons")
         ::top_side_dense_tenons(connection);
     else if (parameters.library == "top_side_tenons")

@@ -106,12 +106,16 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // top_side
     // ═══════════════════════════════════════════════════════════════════════════
-    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_annen_tenons,
+    // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_annen_tenons, 23 top_side_annen_shifted_tenons (2026, on 2024's unused id),
 
     static std::shared_ptr<JointPlate> top_side_three_tenons();
 
     /// Christopher Robeller's Annen through-tenons, id 22: round(0.8 edge / tab_length) segments on the plate's own edge, a tenon on every fourth.
     static std::shared_ptr<JointPlate> top_side_annen_tenons(double tab_length = 80.0);
+
+    /// The through-tenons of the 2020 Annen shifted-pattern definition, id 23: the middle 90% of the wall line shared with the plate across the wall in 4·divisions + 1 steps when longer than long_edge and 2·divisions + 1 when shorter, a tenon at every odd step; none on an edge shorter than the settings' limit_min_joint_length.
+    static std::shared_ptr<JointPlate>
+    top_side_annen_shifted_tenons(int divisions = 2, double long_edge = 700.0);
 
     static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
 
