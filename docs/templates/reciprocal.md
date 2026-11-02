@@ -94,3 +94,17 @@ int main() {
     return 0;
 }
 ```
+
+## Examples {#reciprocal_examples}
+
+### 1 Rotation {#reciprocal_example_1}
+
+The reciprocal rotation template on the sinusoidal dome: every interior edge of the quad mesh becomes a 100 x 400 beam, lengthened 1.4 times about its midpoint and turned 0.35 rad about its normal, its ends cut at the side faces of the beams it meets; straight frame beams on the naked edges, butted at the corners. Groups mesh, axes, frame and beams, one per constructor step.
+
+\include{lineno} templates_reciprocal_1_rotation.cpp
+
+### 2 Move {#reciprocal_example_2}
+
+The reciprocal move template on the sinusoidal dome's hexagonal mesh: every other edge of each face becomes a 100 x 400 beam moved 100 sideways so it bears on its neighbours, each end cut flush at the beam it lands on; upright frame beams on the naked edges, butted at the corners. Groups mesh, axes, frame and beams, one per constructor step.
+
+\include{lineno} templates_reciprocal_2_move.cpp

@@ -101,3 +101,11 @@ int main() {
     return 0;
 }
 ```
+
+## Examples {#cross_examples}
+
+### 1 VDA Mesh {#cross_example_1}
+
+The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in miters, two connector frames and plates across every interior edge, and a cross slot (JointPlate::cross_slot) where every connector passes through each of its two face plates, merged into both outlines; each step in its group.
+
+\include{lineno} templates_cross_1_vda_mesh.cpp

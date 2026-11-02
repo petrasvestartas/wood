@@ -397,3 +397,65 @@ int main() {
     return 0;
 }
 ```
+
+## Examples {#vault_examples}
+
+### 1 Arch {#vault_example_1}
+
+A semicircular arch of 25 voussoirs over 6 m, 500 thick and 500 deep; compute_face_contacts(0) finds a contact between every two neighbours, 24 in all.
+
+\include{lineno} templates_vault_1_arch.cpp
+
+### 2 Barrel {#vault_example_2}
+
+A segmental barrel vault over 6 m, 6 m long, nine courses across and six rings along it, every odd course shifted half a ring with part voussoirs at the ends; compute_face_contacts(0) pairs the courses along the bed joints and the rings along the head joints.
+
+\include{lineno} templates_vault_2_barrel.cpp
+
+### 3 Barrel Staggered {#vault_example_3}
+
+The barrel of templates_vault_2_barrel with its odd courses shifted a fifth of a ring and a closing ring of aligned voussoirs at both ends.
+
+\include{lineno} templates_vault_3_barrel_staggered.cpp
+
+### 4 Dome {#vault_example_4}
+
+A hemispherical dome of 4 m intrados radius with an oculus, 20 hoops of 40 voussoirs, every odd hoop shifted half a voussoir and every voussoir a hexagon bending at the joints above and below so the hoops close without gaps, 400 thick at the springing tapering to 250 at the oculus; compute_face_contacts(0) pairs the voussoirs along their meridian joints and with the two voussoirs above and below.
+
+\include{lineno} templates_vault_4_dome.cpp
+
+### 5 Wall {#vault_example_5}
+
+A running bond wall 4 m long and 2 m high of 400 by 200 bricks, half bricks closing every odd course; compute_face_contacts(0) pairs the bricks along the bed and head joints.
+
+\include{lineno} templates_vault_5_wall.cpp
+
+### 6 Cross Vault {#vault_example_6}
+
+A cross (groin) vault over a 6 m square bay: two semicircular barrels crossing, every web ten courses per half arch laid in running bond over twelve rings, the course at the crown shifted half a ring, and in every course one groin stone bent along the diagonal through both webs out to the first joint past the groin, the lowest a springer: 144 voussoirs and 40 groin stones, 184 blocks like the reference.
+
+\include{lineno} templates_vault_6_cross_vault.cpp
+
+### 7 Cloister Vault {#vault_example_7}
+
+A cloister (pavilion) vault over a 6 m square bay: four webs rising from the four walls, each eight courses up to the crown by twelve rings along its wall, cut on the bay diagonals where the webs meet.
+
+\include{lineno} templates_vault_7_cloister_vault.cpp
+
+### 8 Star Vault {#vault_example_8}
+
+A star (stellar) vault over an 8 m square bay (1 m rise) on intersecting circular barrel cylinders: eighteen single-curved planar ribs in vertical planes - two interlocking continuous diagonals, eight tiercerons from the corners to the star points, four continuous ridge ribs from the wall crowns through the star bosses to the central boss, and four wall arches - four corner support blocks, and the sixteen cylindrical webs between them, each 150 thick: a BRep solid whose intrados is a circular barrel cylinder trimmed along straight plan lines at the beam centers, whose extrados is shifted vertically by thickness and whose sides are vertical ruled surfaces neighbouring webs share.
+
+\include{lineno} templates_vault_8_star_vault.cpp
+
+### 9 Gothic Ribbed Vault {#vault_example_9}
+
+Six symmetric shallow (1:10 rise-to-span, 10 m x 10 m span, 1 m rise) Gothic cathedral ribbed vault bays built from single-curved planar glulam beams (BeamCurved, 120 x 360 mm, 6 lamellae) in vertical planes over straight 2D plan lines with exact angle-bisector node miter cuts (rib-\>cuts), 4 polygonal corner support blocks (Block) where ribs and web panels terminate cleanly, and simple cylindrical barrel web panels (BRep, K = 0 groin_cylinders) whose bottom and top edges lie directly above the supporting beam centerlines (Bern Cathedral / Berner Muenster; compas_tno; Tracing the Past LiDAR survey, Buchanan, Webb & Peterson 2021; Wendland et al. 2024; Jobbik 2024):
+1. quadripartite_wells    — Classic quadripartite cross vault on intersecting barrel cylinders (Bern Cathedral / Wells / Salisbury, 4 blocks + 10 ribs + 8 cylindrical web panels = 22 elements)
+2. tierceron_exeter       — 4-pointed starcut tierceron vault on intersecting barrel cylinders (Bern Cathedral / Lincoln / Exeter, 4 blocks + 18 ribs + 16 cylindrical web panels = 38 elements)
+3. star_stellar_burgos    — 4-lozenge Greek-cross stellar vault (Sterngewoelbe / Boveda Estrellada) on intersecting barrel cylinders (Bern Cathedral, 4 blocks + 26 ribs + 20 cylindrical web panels = 50 elements)
+4. lierne_star_ely        — Double-star tierceron-lierne vault on intersecting barrel cylinders (Bern Cathedral / Ely Choir / Wells Lady Chapel, 4 blocks + 34 ribs + 32 cylindrical web panels = 70 elements)
+5. net_reticulated_parler — Reticulated diamond-lattice net vault (Netzgewoelbe) on intersecting barrel cylinders (Bern Cathedral Choir / Parler, 4 blocks + 34 ribs + 32 cylindrical web panels = 70 elements)
+6. fan_conoid_gloucester  — Radiating fan vault with straight horizontal collar ribs along cylinder rulings (compas_tno / Gloucester, 4 blocks + 50 ribs + 48 cylindrical web panels = 102 elements)
+
+\include{lineno} templates_vault_9_gothic_ribbed_vault.cpp

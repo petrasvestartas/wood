@@ -249,40 +249,7 @@ CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 
 ![](templates/templates_cylindrical_folding_15_corner_fan_subdivisions_all.webp)
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/cylindrical_folding/corner_fan.h"
-
-using namespace session_cpp;
-using namespace wood_session;
-
-/// The corner fan divided into 2, 4, 8 and 12 strips, side by side, the same square, heights and lift.
-int main() {
-
-    WoodSession fans("corner_fan_subdivisions");
-    const std::array<size_t, 4> counts = {2, 4, 8, 12};
-
-    for (size_t i = 0; i < counts.size(); i++) {
-        const Point corner(9000.0 * static_cast<double>(i), 0.0, 0.0);
-        CornerFan fan(
-            6000.0,
-            4000.0,
-            counts[i],
-            1200.0,
-            800.0,
-            0.15,
-            40.0,
-            corner,
-            fmt::format("corner_fan_{}", counts[i])
-        );
-        std::cout << fmt::format("corner fan of {} strips: {} contacts, development distortion {:.2e}\n", counts[i], fan.get_contacts().size(), fan.distortion());
-        fans.graft(fan, fans.add_group(fmt::format("fan_{}", counts[i])));
-    }
-
-    fans.pb_dump(pb_path("live"));
-    return 0;
-}
-```
+Full source: @ref cylindrical_folding_example_15
 
 ---
 
@@ -296,52 +263,7 @@ int main() {
 
 Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a `R = 2000 mm`, `12 m` column.
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/cylindrical_folding/cylinder_carving.h"
-
-using namespace session_cpp;
-using namespace wood_session;
-
-/// A cylinder carved by tilted cylinders in sequence: a - b, then - c, then - d, side by side, only the carved patches.
-int main() {
-
-    WoodSession stages("cylinder_carving");
-    const std::array<double, 3> radii = {1500.0, 1800.0, 1300.0};
-    const std::array<double, 3> tilts = {0.06, -0.05, 0.04};
-
-    for (size_t count = 1; count <= 3; count++) {
-        // every stage moved along x; the stock a standing on z, every carver 40 degrees apart round one side, cutting 700 mm deep, turned off its axis
-        const Vector shift(9000.0 * static_cast<double>(count - 1), 0.0, 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
-        std::vector<CylinderCarving::Cylinder> carvers;
-
-        for (size_t i = 0; i < count; i++) {
-            const double around = (130.0 - 40.0 * static_cast<double>(i)) * Tolerance::TO_RADIANS;
-            const Vector out(std::cos(around), std::sin(around), 0.0);
-            const Vector across(-std::sin(around), std::cos(around), 0.0);
-            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[i] - 700.0);
-            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilts[i], radii[i]});
-        }
-
-        CylinderCarving carving(
-            stock,
-            carvers,
-            12000.0,
-            60.0,
-            10.0 * Tolerance::TO_RADIANS,
-            false,
-            fmt::format("carving_{}", count)
-        );
-        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
-        std::cout << fmt::format("{} carvers: {} plates, {} contacts, development distortion {:.2e}\n", count, plates, carving.get_contacts().size(), carving.distortion());
-        stages.graft(carving, stages.add_group(fmt::format("stage_{}", count)));
-    }
-
-    stages.pb_dump(pb_path("live"));
-    return 0;
-}
-```
+Full source: @ref cylindrical_folding_example_16
 
 ### Closed Fluted Rings (4, 6, 8 Carvers) {#cylinder_carving_rings}
 
@@ -349,51 +271,108 @@ int main() {
 
 Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` alternating-tilt cylinders.
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/cylindrical_folding/cylinder_carving.h"
+Full source: @ref cylindrical_folding_example_17
 
-using namespace session_cpp;
-using namespace wood_session;
+## Examples {#cylindrical_folding_examples}
 
-/// Closed rings of carved patches: a cylinder carved all round by 4, 6 and 8 cylinders, their axes tilted in turn, side by side.
-int main() {
+### 1 Reflection {#cylindrical_folding_example_1}
 
-    WoodSession rings("cylinder_carving_rings");
-    const std::array<size_t, 3> counts = {4, 6, 8};
-    const std::array<double, 3> radii = {2000.0, 1600.0, 1200.0};
-    const std::array<double, 3> depths = {1600.0, 1000.0, 800.0};
+Step 1 of the cylindrical folding templates: the reflection principle. A vertical strip with a circular arc section e(t), 120 degrees of a circle of 1 m radius, runs down from s0 and is cut at s1 by the plane R inclined at (pi - phi) / 2 to its axis; the part beyond R is mirrored in R, so the strip bends by phi = 120 degrees toward s2r, and the crease a(t) is R's section of the arc, a planar curve. Two lamellas 120 mm thick meet on the crease along one mitre, the exact curve where their two offset cylinders cross. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
 
-    for (size_t r = 0; r < counts.size(); r++) {
-        // the stock standing on z, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
-        const Vector shift(9000.0 * static_cast<double>(r), 0.0, 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
-        std::vector<CylinderCarving::Cylinder> carvers;
+\include{lineno} templates_cylindrical_folding_1_reflection.cpp
 
-        for (size_t i = 0; i < counts[r]; i++) {
-            const double around = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(counts[r]);
-            const Vector out(std::cos(around), std::sin(around), 0.0);
-            const Vector across(-std::sin(around), std::cos(around), 0.0);
-            const double tilt = i % 2 == 0 ? 0.05 : -0.05;
-            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[r] - depths[r]);
-            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilt, radii[r]});
-        }
+### 2 Curved Folded Plate {#cylindrical_folding_example_2}
 
-        CylinderCarving carving(
-            stock,
-            carvers,
-            12000.0,
-            60.0,
-            10.0 * Tolerance::TO_RADIANS,
-            true,
-            fmt::format("ring_{}", counts[r])
-        );
-        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
-        std::cout << fmt::format("ring of {}: {} plates, {} contacts, development distortion {:.2e}\n", counts[r], plates, carving.get_contacts().size(), carving.distortion());
-        rings.graft(carving, rings.add_group(fmt::format("ring_{}", counts[r])));
-    }
+Step 2 of the cylindrical folding templates: a curved folded plate. A wave corrugation, three sine waves of 3 m wavelength and 400 mm amplitude across a 9 m wide sheet, is swept along a polygonal arch of five segments of 3.62 m turning 30 degrees at each of four reverse folds, from 60 degrees up at one foot to 60 degrees down at the other, spanning 13.5 m and rising 4.9 m. Every reverse fold is a reflection of the sheet in the plane bisecting the kink, so every crease is that plane's section of the corrugation, a planar wave, and the sheet still unrolls flat. Every half wave of every segment is one lamella, a PlateCurved: the exact cylinder between its two creases, 120 mm thick, mitred where it meets the next lamella across a crease, its caps the straight rulings at the waves' cusps and the sheet's edges. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
 
-    rings.pb_dump(pb_path("live"));
-    return 0;
-}
-```
+\include{lineno} templates_cylindrical_folding_2_curved_folded_plate.cpp
+
+### 3 Mendrisio Pavilion {#cylindrical_folding_example_3}
+
+Step 3 of the cylindrical folding templates: the Mendrisio pavilion of IBOIS, 13 m long at the top, 4.5 m wide and 3.4 m high, 77 mm curved cross-laminated timber. One shallow barrel, an arc 4.5 m wide and 400 mm high, stands as the end wall leaning out, is reflected at the eave onto the roof rising 10 degrees, a trough, and 700 mm further at the ridge crease onto the level middle, a vault whose rulings cross the plane of symmetry at mid-length square, so it is one plate from ridge to ridge. Five curved plates, wall, trough, middle, trough, wall, each an exact cylinder, mitred on the four creases. Groups: creases, lamellas, flat.
+
+\include{lineno} templates_cylindrical_folding_3_mendrisio_pavilion.cpp
+
+### 4 Two Hinged Frame {#cylindrical_folding_example_4}
+
+Step 4 of the cylindrical folding templates: the linear structure systems of folded cylindrical surfaces, the two-hinged frame, a low wide hall. A sheet of four barrels side by side, each 6 m wide and 600 high, stands as a column 6 m high bulging inward and is folded 76 degrees at the knee onto a roof rising 14 degrees by the reflection, which turns the sheet over: the roof barrels hang as troughs between the cusps while the columns are vaults, the end elevation shows, and the knee crease is the reflection plane's oblique section of the barrels, the beaks over the eaves of the perspective. The ridge at mid-span, 20 m from the columns and 11 m high, is the plane of symmetry: the folded half is mirrored in the vertical plane through the ridge and meets itself along the plane's section of the barrels, the straight ridge of the plan. Span 40 m, eaves 6 m, ridge 11 m. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
+
+\include{lineno} templates_cylindrical_folding_4_two_hinged_frame.cpp
+
+### 5 Two Hinged Arch {#cylindrical_folding_example_5}
+
+Step 5 of the cylindrical folding templates: the two-hinged arch, high and narrow. The sheet of four deep barrels, each 6 m wide and 2400 high, the capsules of the end elevation, rises from the hinge at its foot as a leg leaning 15 degrees outward, is folded 50 degrees onto a segment at 55 degrees and 50 degrees again onto the crown segment at 5 degrees; the crown at mid-span is the plane of symmetry, the folded half mirrored in it, meeting itself along the plane's section of the barrels. Both folds are the mirror folds: the next segment is the mirror image of the one before in the plane bisecting the fold, so every segment is a vault, as the end elevation shows the barrels rounded all the way up; the creases are the bisecting planes' sections, the ovals of the plan at the quarter points, the crown line is straight. Span 22 m, crown 20 m. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
+
+\include{lineno} templates_cylindrical_folding_5_two_hinged_arch.cpp
+
+### 6 Arch With Top Hinge {#cylindrical_folding_example_6}
+
+Step 6 of the cylindrical folding templates: the arch with a hinge in its crown. The sheet of four barrels, each 6 m wide and 1600 deep, stands on the ground as a vertical leg and is reflected 15 degrees at the eaves onto a roof rising 75 degrees; the reflection plane, through a station 300 mm up the ruling at the barrels' cusps, crosses the bulging legs 12 m higher in the middle of every barrel than at its cusps, so the crease is a tall arch and every leg a column rising under its trough to the crease, the roof's cusps coming down to the ground between the legs as the hatched notches of the plan. The steep roof, a vault since the reflection turned the sheet over, is reflected again 40 degrees onto a shoulder at 35 degrees, a trough, and mirror-folded 35 degrees onto the level crown, keeping the trough, the cups of the end elevation; the crown's rulings cross the plane of symmetry at mid-span square, so every crown plate is one piece across it. Span 26 m, crown 21.7 m. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
+
+\include{lineno} templates_cylindrical_folding_6_arch_with_top_hinge.cpp
+
+### 7 A Frame {#cylindrical_folding_example_7}
+
+Step 7 of the cylindrical folding templates: the two-hinged A-frame. The sheet of four barrels, each 6 m wide and 1400 high, rises from the hinge at its foot leaning 20 degrees outward, is reflected 60 degrees at the knee into a leg at 50 degrees, and the apex at mid-span is the plane of symmetry: the leg and its mirror image meet there along the plane's section of the barrels, the straight ridge of the plan, the knee creases its pointed ovals near the feet; the feet are vaults and the legs troughs hanging between the cusps that run up to the apex, as in the end elevation. Span 25 m, apex 22.4 m. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_\<segment\>_\<row\>), flat.
+
+\include{lineno} templates_cylindrical_folding_7_a_frame.cpp
+
+### 8 Groin Vault {#cylindrical_folding_example_8}
+
+Step 8 of the cylindrical folding templates: the groin vault. Two half barrels of 12 m span and 6 m radius cross over a 12 m square; every quarter is a level cylinder from its side to the centre, and neighbours meet on half ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
+
+\include{lineno} templates_cylindrical_folding_8_groin_vault.cpp
+
+### 9 Pavilion Vault {#cylindrical_folding_example_9}
+
+Step 9 of the cylindrical folding templates: the pavilion vault. Four walls 4 m high on a 12 m square, on each a cylinder segment of 6 m radius along the wall rising to the peak over the centre; the segments meet on quarter ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. The walls are flat 120 mm panels mitred at the corners. Groups: plan, lamellas, walls, flat.
+
+\include{lineno} templates_cylindrical_folding_9_pavilion_vault.cpp
+
+### 10 Pentagon Vault {#cylindrical_folding_example_10}
+
+Step 10 of the cylindrical folding templates: the pentagon groin vault. Five half barrels of 8 m span and 4 m radius over a regular pentagon, every one a level cylinder from its side to the centre, so the crown is at the height of the arches' top; neighbours meet on half ellipses in the vertical planes through the corners and the centre. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
+
+\include{lineno} templates_cylindrical_folding_10_pentagon_vault.cpp
+
+### 11 Hexagon Vault {#cylindrical_folding_example_11}
+
+Step 11 of the cylindrical folding templates: the hexagon groin vault. Six half barrels of 8 m span and 4 m radius over a regular hexagon, every one a level cylinder from its side to the centre, so the crown is at the height of the arches' top; neighbours meet on half ellipses in the vertical planes through the corners and the centre. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
+
+\include{lineno} templates_cylindrical_folding_11_hexagon_vault.cpp
+
+### 12 Octagon Vault {#cylindrical_folding_example_12}
+
+Step 12 of the cylindrical folding templates: the octagon groin vault. Eight half barrels of 6 m span and 3 m radius over a regular octagon, every one a level cylinder from its side to the centre, so the crown is at the height of the arches' top; neighbours meet on half ellipses in the vertical planes through the corners and the centre. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
+
+\include{lineno} templates_cylindrical_folding_12_octagon_vault.cpp
+
+### 13 Curved Folded Beam {#cylindrical_folding_example_13}
+
+Step 13 of the cylindrical folding templates: a closed curved-folded beam. A box spans 12 m along x, 800 mm wide and 400 mm high at the supports; its four plates are cylinders bent along the span with their rulings straight across: the top and bottom bulge 250 mm outward toward mid-span, the sides sag 80 mm inward, so the flat section at the supports becomes 640 mm wide and 900 mm deep at mid-span. Every corner is a curved crease, the two plates mitred on the ruled face between the crease and the inner crease. Five flat webs across the span divide the box, each filling its inner section, its four edges on the plates' inner faces. Six beams of 27 mm plates side by side; the contacts are the four mitres and the four edges of every web. Groups: beam_\<b\>.
+
+\include{lineno} templates_cylindrical_folding_13_curved_folded_beam.cpp
+
+### 14 Corner Fan {#cylindrical_folding_example_14}
+
+Step 14 of the cylindrical folding templates: a corner fan inscribed in a 6 m square. Every fold is a parabola from three control points laid out in plan, the corner, the middle and the end on one of the square's two far sides, the end raised to 4 m, every second one 800 mm lower, and the middle lifted 1200 mm above the chord. All folds lifted alike, two neighbours differ by their ends' difference times the parameter, so every strip is a cylinder of straight rulings parallel to its top edge on the square, developable. 40 mm plates meeting at every fold on the bisector of their inner faces, cut at 15 percent of the way up. Groups: strips.
+
+\include{lineno} templates_cylindrical_folding_14_corner_fan.cpp
+
+### 15 Corner Fan Subdivisions {#cylindrical_folding_example_15}
+
+Step 15 of the cylindrical folding templates: the corner fan of step 32 divided into 2, 4, 8 and 12 strips, half on each of the square's two far sides, the same 6 m square, folds 4 m high, every second 800 mm lower, lifted 1200 mm, 40 mm plates; every fan has one contact per fold between two strips. Groups: fan_\<strips\>.
+
+\include{lineno} templates_cylindrical_folding_15_corner_fan_subdivisions.cpp
+
+### 16 Cylinder Carving {#cylindrical_folding_example_16}
+
+Step 16 of the cylindrical folding templates: a cylinder carved by cylinders in sequence. The stock a, 2 m radius and 12 m high, standing on its axis, is carved by b of 1.5 m radius, then by c of 1.8 m, then by d of 1.3 m, their axes 40 degrees apart round one side, every one cutting 700 mm deep and turned a few degrees off a's axis; the three stages a - b, (a - b) - c and ((a - b) - c) - d stand side by side. Only the carved patches are made: every carver's surface inside the stock and outside the other carvers, curving inward, one 60 mm plate behind it. The carving is validated first: every carver must leave a patch, none may cut another's patch in two, and two patches must meet at 10 degrees or more. Groups: stage_\<carvers\>.
+
+\include{lineno} templates_cylindrical_folding_16_cylinder_carving.cpp
+
+### 17 Cylinder Carving Rings {#cylindrical_folding_example_17}
+
+Step 17 of the cylindrical folding templates: closed rings of carved patches. The stock, 2 m radius and 12 m high, standing on its axis, is carved all round by 4 cylinders of 2 m radius cutting 1600 mm deep, by 6 of 1.6 m cutting 1000 mm and by 8 of 1.2 m cutting 800 mm, every carver's axis turned off the stock's one way and the other in turn; the three rings stand side by side. Every patch meets both neighbours, so the plates close round the stock into a fluted tube, one contact per crease; the carving is validated closed, every point of the stock's surface carved, so the plates leave no gap. Groups: ring_\<carvers\>.
+
+\include{lineno} templates_cylindrical_folding_17_cylinder_carving_rings.cpp

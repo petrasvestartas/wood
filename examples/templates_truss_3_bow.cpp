@@ -16,3 +16,20 @@ int main() {
     std::cout << designs.size() << " Bow trusses" << std::endl;
     return 0;
 }
+
+/*
+|||||||| DESCRIPTION ||||||||
+Every roof truss and bridge frame of Bow's tables (1873), stored as graphs in wood_truss::Bow and built by the one Truss template from a TrussGuide on each graph, every design written as its own scene truss_bow_<number> with its members and joints.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target templates_truss_3_bow --parallel 6 && ./build/templates_truss_3_bow && ../bash/publish-scene.sh --target templates_truss_3_bow
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
+*/
