@@ -135,7 +135,8 @@ WoodSession WoodSession::pb_loads(const std::string& data) {
         scene.adjacency.push_back({pair.first(), pair.second()});
 
     for (const wood_proto::PlateGroup& group : proto.three_valence())
-        scene.three_valence.push_back(std::vector<int>(group.values().begin(), group.values().end())
+        scene.three_valence.push_back(
+            std::vector<int>(group.values().begin(), group.values().end())
         );
 
     return scene;
@@ -222,12 +223,15 @@ ElementFeature contact_feature(const InteractionContact& contact) {
         outline = touch->polygon;
         face = touch->face_a;
         name = std::string(contact_type_name(touch->type));
-    } else if (const InteractionContactCross* cross =
-                   dynamic_cast<const InteractionContactCross*>(&contact)) {
+    } else if (
+        const InteractionContactCross* cross =
+            dynamic_cast<const InteractionContactCross*>(&contact)
+    ) {
         outline = cross->polygon;
         name = "cross";
-    } else if (const InteractionContactAxis* axis =
-                   dynamic_cast<const InteractionContactAxis*>(&contact)) {
+    } else if (
+        const InteractionContactAxis* axis = dynamic_cast<const InteractionContactAxis*>(&contact)
+    ) {
         outline = Polyline({axis->segment.start(), axis->segment.end()});
     }
 
@@ -922,13 +926,15 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         if (designated.empty())
             designated = target->guid();
         else if (designated != target->guid())
-            throw std::invalid_argument(fmt::format(
-                "interaction({}) of {} is what it does to its {} plate, not to {}",
-                side,
-                joint->name,
-                side == 0 ? "male" : "female",
-                target->name
-            ));
+            throw std::invalid_argument(
+                fmt::format(
+                    "interaction({}) of {} is what it does to its {} plate, not to {}",
+                    side,
+                    joint->name,
+                    side == 0 ? "male" : "female",
+                    target->name
+                )
+            );
 
         if (std::find(joint->targets.begin(), joint->targets.end(), target->guid()) ==
             joint->targets.end())
@@ -1099,8 +1105,7 @@ void WoodSession::remove_interaction(
 
     if (WoodElement* member = dynamic_cast<WoodElement*>(target.get()))
         if (std::erase_if(
-                member->plane_features,
-                [&source](const InteractionFeaturePlane& feature) {
+                member->plane_features, [&source](const InteractionFeaturePlane& feature) {
                     return feature.source == source->guid();
                 }
             ))
@@ -1263,7 +1268,15 @@ std::string WoodSession::repr() const {
 // ═══════════════════════════════════════════════════════════════════════════
 std::shared_ptr<TreeNode>
 WoodSession::add(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> parent) {
-    return add_element(std::move(element), std::move(parent));
+
+    const bool member = !std::dynamic_pointer_cast<Joint>(element);
+    const std::shared_ptr<TreeNode> node = add_element(std::move(element), std::move(parent));
+
+    // a member's node light grey; a joint keeps the viewer's default, a connector paints its own when its parts are nested
+    if (member)
+        set_node_color(node, WoodElement::MEMBER_COLOR, false);
+
+    return node;
 }
 
 std::vector<std::string> WoodSession::element_guids() const {
@@ -1419,9 +1432,7 @@ target_drills(const WoodSession& scene, const JointBeam& joint, const Element& t
         const double low = -joint.drill_overshoot;
         const double high = placed.length() + joint.drill_overshoot;
         const bool touches = std::any_of(
-            inside.begin(),
-            inside.end(),
-            [low, high](const std::array<double, 2>& stretch) {
+            inside.begin(), inside.end(), [low, high](const std::array<double, 2>& stretch) {
                 return stretch[1] > low + 1e-9 && stretch[0] < high - 1e-9;
             }
         );

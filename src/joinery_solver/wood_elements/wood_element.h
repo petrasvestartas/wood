@@ -10,6 +10,9 @@ namespace wood_session {
 /// Element that represents a timber member.
 class WoodElement : public Element {
 public:
+    static inline const Color MEMBER_COLOR = Color(
+        0.72f, 0.72f, 0.72f, 1.0f, "timber_grey"
+    ); // Every member's node when added: light grey, so the faces read against a white page under the viewer's Arctic light.
     std::vector<InteractionFeatureSolid>
         solid_features; // The solid features other elements put on it.
     std::vector<InteractionFeaturePlane> plane_features; // The planes other elements cut it by.
