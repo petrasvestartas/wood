@@ -2,8 +2,6 @@
 
 [TOC]
 
-Twelve standalone C++ workflow targets covering contact detection, plate and beam joinery solvers, graph queries, spatial assignment, and boolean cutting. For single-element constructors and joint libraries see [Elements](@ref elements); for parametric building structures see [Templates](@ref templates).
-
 ```bash
 cmake --build build --target 1_session_contacts && ./build/1_session_contacts
 ```

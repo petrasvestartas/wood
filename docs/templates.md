@@ -1,7 +1,5 @@
 # Templates {#templates}
 
-Parametric structural generators in `src/templates/` convert surfaces, meshes, and building outlines into joined timber elements. Each template family builds a complete `WoodSession` scene and writes `.pb` files for viewing and fabrication.
-
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_shells.html">
     <img src="templates_shells_1_translation_shell_plates.webp" alt="Shells">

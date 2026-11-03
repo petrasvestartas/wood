@@ -2,11 +2,7 @@
 
 [TOC]
 
-Timber members, auxiliary cutters, and parametric joints in `src/joinery_solver/wood_elements/`. Each element stores uncut stock geometry and evaluates incoming interactions in `WoodSession` to produce cut meshes and exact NURBS BReps.
-
 ## Elements
-
-Timber members and the auxiliary elements that shape them: plates, beams, columns, blocks, supports, cut planes, profiles and pins.
 
 ![](diagrams/wood_elements_sheet_1_elements.webp)
 
@@ -24,8 +20,6 @@ Timber members and the auxiliary elements that shape them: plates, beams, column
 
 ## Plate Joints
 
-Plate joints cut pairs of plates meeting top to side, side to side in plane, out of plane or rotated, crossing, stacked top to top, or along a border.
-
 ![](diagrams/wood_elements_sheet_2_plate_joints.webp)
 
 - [Plate Joints](elements_joint_plate.html)
@@ -39,8 +33,6 @@ Plate joints cut pairs of plates meeting top to side, side to side in plane, out
 
 ## Beam Joints
 
-Beam joints cut pairs of beams into each other: cross laps, scarfs, miters, top-to-side tenons and butt joints.
-
 ![](diagrams/wood_elements_sheet_3_beam_joints.webp)
 
 - [Beam Joints](elements_joint_beam.html)
@@ -50,8 +42,6 @@ Beam joints cut pairs of beams into each other: cross laps, scarfs, miters, top-
 - [Beam Butt](elements_joint_beam_butt.html)
 
 ## Connectors and Pins
-
-Joints that add parts between members, such as wedges, butterfly keys, side plates and pins, and the plain joint with its cutters and drills.
 
 ![](diagrams/wood_elements_sheet_4_connectors.webp)
 
