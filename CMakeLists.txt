@@ -507,7 +507,9 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_CURRENT_SOURCE_DIR}/src/docs.md)
     set(DOXYGEN_FILE_PATTERNS *.h *.md)
     set(DOXYGEN_FILTER_PATTERNS "*.md=${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/mermaid_filter.sh")
-    set(DOXYGEN_EXAMPLE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/examples)
+    # `\include` shows the examples without their trailing description and build block
+    set(WOOD_DOC_EXAMPLES_OUT ${CMAKE_BINARY_DIR}/doc_examples)
+    set(DOXYGEN_EXAMPLE_PATH ${WOOD_DOC_EXAMPLES_OUT})
     set(DOXYGEN_IMAGE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/diagrams
@@ -563,5 +565,13 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/templates
         COMMENT "Doxygen: build/docs/html"
     )
+    add_custom_target(wood_doc_examples
+        COMMAND ${CMAKE_COMMAND} -DWOOD_EXAMPLES_DIR=${CMAKE_CURRENT_SOURCE_DIR}/examples
+                -DWOOD_DOC_EXAMPLES_OUT=${WOOD_DOC_EXAMPLES_OUT}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/strip_example_footers.cmake
+        COMMENT "Docs: examples without their build footers"
+        VERBATIM
+    )
+    add_dependencies(docs wood_doc_examples)
 endif()
 
