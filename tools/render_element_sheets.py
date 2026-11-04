@@ -35,7 +35,6 @@ SHEET_1 = [
     "element_beam",
     "element_beam_curved",
     "element_beam_variable",
-    "element_beam_variable_cut",
     "element_column",
     "element_column_session",
     "element_block",
@@ -67,6 +66,7 @@ SHEET_4 = [
     "element_joint_beam_pins",
     "element_joint_beam_keyed_box",
     "element_pin",
+    "element_beam_variable_cut",
 ]
 
 # all example names
@@ -126,8 +126,8 @@ GROUPS = {
     ],
     "4_connectors": [
         ("Pins", r"(_pins|element_pin)$", ""),
-        ("Connectors", r"_beam_", ""),
-        ("Cutters and Drills", r"", "joint "),
+        ("Connectors", r"_joint_beam_", ""),
+        ("Cuts and Drills", r"", "joint "),
     ],
 }
 

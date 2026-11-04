@@ -19,10 +19,6 @@
     <img src="element_beam_variable.png" alt="Beam variable">
     <span class="wood-card-title">variable</span>
   </a>
-  <a class="wood-card" href="elements_cut_plane.html">
-    <img src="element_beam_variable_cut.png" alt="Beam variable cut">
-    <span class="wood-card-title">variable cut</span>
-  </a>
 </div>
 
 ### Columns
@@ -421,9 +417,13 @@
   </a>
 </div>
 
-### Cutters and Drills
+### Cuts and Drills
 
 <div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_cut_plane.html">
+    <img src="element_beam_variable_cut.png" alt="Beam variable cut">
+    <span class="wood-card-title">cut plane</span>
+  </a>
   <a class="wood-card" href="elements_joint.html">
     <img src="element_joint_cutter.png" alt="Joint cutter">
     <span class="wood-card-title">cutter</span>
