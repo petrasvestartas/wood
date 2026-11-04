@@ -40,9 +40,33 @@ pub struct InteractionFeaturePlane {
     #[prost(message, optional, tag = "2")]
     pub plane: ::core::option::Option<::session_rust::proto::Plane>,
 }
-/// The state of a Beam beyond the kernel Element: its axis, section and cuts.
+/// The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Beam {
+pub struct Column {
+    #[prost(message, repeated, tag = "6")]
+    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
+    /// The planes other elements cut it by
+    #[prost(message, repeated, tag = "10")]
+    pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
+    /// Centreline, base to head
+    #[prost(message, optional, tag = "1")]
+    pub axis: ::core::option::Option<::session_rust::proto::Line>,
+    /// Closed cross-section about the axis base
+    #[prost(message, optional, tag = "2")]
+    pub section: ::core::option::Option<::session_rust::proto::Polyline>,
+    /// Planes the solid is cut by, each keeping the side its normal points to
+    #[prost(message, repeated, tag = "3")]
+    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    /// Section loops in the profile frame the section was placed from; empty when the section was given
+    #[prost(message, repeated, tag = "4")]
+    pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// Degrees the profile x axis turns from world x about the axis
+    #[prost(double, tag = "5")]
+    pub rotation: f64,
+}
+/// The state of an EdgeStraightElement beyond the kernel Element: its axis, section and cuts.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EdgeStraightElement {
     #[prost(message, repeated, tag = "7")]
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
     /// The planes other elements cut it by
@@ -70,9 +94,9 @@ pub struct Beam {
     #[prost(double, tag = "9")]
     pub extension: f64,
 }
-/// The state of a BeamVariable beyond the kernel Element: its straight axis, the sections lofted along it and its cuts.
+/// The state of an EdgeVariableElement beyond the kernel Element: its straight axis, the sections lofted along it and its cuts.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct BeamVariable {
+pub struct EdgeVariableElement {
     /// Straight reference line from the first section to the last
     #[prost(message, optional, tag = "1")]
     pub axis: ::core::option::Option<::session_rust::proto::Line>,
@@ -88,30 +112,6 @@ pub struct BeamVariable {
     /// The planes other elements cut it by
     #[prost(message, repeated, tag = "5")]
     pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
-}
-/// The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Column {
-    #[prost(message, repeated, tag = "6")]
-    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
-    /// The planes other elements cut it by
-    #[prost(message, repeated, tag = "10")]
-    pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
-    /// Centreline, base to head
-    #[prost(message, optional, tag = "1")]
-    pub axis: ::core::option::Option<::session_rust::proto::Line>,
-    /// Closed cross-section about the axis base
-    #[prost(message, optional, tag = "2")]
-    pub section: ::core::option::Option<::session_rust::proto::Polyline>,
-    /// Planes the solid is cut by, each keeping the side its normal points to
-    #[prost(message, repeated, tag = "3")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
-    /// Section loops in the profile frame the section was placed from; empty when the section was given
-    #[prost(message, repeated, tag = "4")]
-    pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
-    /// Degrees the profile x axis turns from world x about the axis
-    #[prost(double, tag = "5")]
-    pub rotation: f64,
 }
 /// The state of a FacePlanarElement beyond the kernel Element: its two outlines.
 #[derive(Clone, PartialEq, ::prost::Message)]

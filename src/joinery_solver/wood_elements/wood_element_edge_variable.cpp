@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "wood_serialization.h"
-#include "wood_element_beam_variable.h"
+#include "wood_element_edge_variable.h"
 #include "wood_element_geometry.h"
-#include "element_beam_variable.pb.h"
+#include "element_edge_variable.pb.h"
 
 namespace wood_session {
 
@@ -11,29 +11,29 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-BeamVariable::BeamVariable() : WoodElement("beam_variable") {
+EdgeVariableElement::EdgeVariableElement() : EdgeElement("beam_variable") {
 }
 
-BeamVariable::BeamVariable(
+EdgeVariableElement::EdgeVariableElement(
     const Line& axis, const std::vector<Polyline>& sections, const std::string& name
 )
-    : WoodElement(name), axis(axis), sections(sections) {
+    : EdgeElement(name), axis(axis), sections(sections) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::shared_ptr<BeamVariable>
-BeamVariable::between(const Polyline& first, const Polyline& last, const std::string& name) {
+std::shared_ptr<EdgeVariableElement>
+EdgeVariableElement::between(const Polyline& first, const Polyline& last, const std::string& name) {
 
     const Line axis = Line::from_points(
         Point::centroid(first.open_points()), Point::centroid(last.open_points())
     );
 
-    return std::make_shared<BeamVariable>(axis, std::vector<Polyline>{first, last}, name);
+    return std::make_shared<EdgeVariableElement>(axis, std::vector<Polyline>{first, last}, name);
 }
 
-std::shared_ptr<BeamVariable> BeamVariable::box(
+std::shared_ptr<EdgeVariableElement> EdgeVariableElement::box(
     const Point& start,
     const Vector& direction,
     double length,
@@ -51,46 +51,46 @@ std::shared_ptr<BeamVariable> BeamVariable::box(
     return between(first, last, name);
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2>
-BeamVariable::pair_side_by_side(double length, double width, double height) {
+std::array<std::shared_ptr<EdgeVariableElement>, 2>
+EdgeVariableElement::pair_side_by_side(double length, double width, double height) {
 
     const Vector x(1.0, 0.0, 0.0);
-    const std::shared_ptr<BeamVariable> left =
+    const std::shared_ptr<EdgeVariableElement> left =
         box(Point(0.0, -0.5 * width, 0.0), x, length, width, height, "left");
-    const std::shared_ptr<BeamVariable> right =
+    const std::shared_ptr<EdgeVariableElement> right =
         box(Point(0.0, 0.5 * width, 0.0), x, length, width, height, "right");
     return {left, right};
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2>
-BeamVariable::pair_end_to_end(double length, double width, double height) {
+std::array<std::shared_ptr<EdgeVariableElement>, 2>
+EdgeVariableElement::pair_end_to_end(double length, double width, double height) {
 
     const Vector x(1.0, 0.0, 0.0);
-    const std::shared_ptr<BeamVariable> first =
+    const std::shared_ptr<EdgeVariableElement> first =
         box(Point(0.0, 0.0, 0.0), x, length, width, height, "first");
-    const std::shared_ptr<BeamVariable> second =
+    const std::shared_ptr<EdgeVariableElement> second =
         box(Point(length, 0.0, 0.0), x, length, width, height, "second");
     return {first, second};
 }
 
-std::array<std::shared_ptr<BeamVariable>, 2>
-BeamVariable::pair_tee(double length, double width, double joist_width, double height) {
+std::array<std::shared_ptr<EdgeVariableElement>, 2>
+EdgeVariableElement::pair_tee(double length, double width, double joist_width, double height) {
 
-    const std::shared_ptr<BeamVariable> beam =
+    const std::shared_ptr<EdgeVariableElement> beam =
         box(Point(0.0, 0.5 * width, 0.0), Vector(1.0, 0.0, 0.0), length, width, height, "beam");
-    const std::shared_ptr<BeamVariable> joist = box(
+    const std::shared_ptr<EdgeVariableElement> joist = box(
         Point(0.5 * length, width, 0.0), Vector(0.0, 1.0, 0.0), length, joist_width, height, "joist"
     );
     return {beam, joist};
 }
 
-std::shared_ptr<BeamVariable> BeamVariable::from_element(Element e) {
+std::shared_ptr<EdgeVariableElement> EdgeVariableElement::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
-    std::shared_ptr<BeamVariable> beam = std::make_shared<BeamVariable>();
+    std::shared_ptr<EdgeVariableElement> beam = std::make_shared<EdgeVariableElement>();
     static_cast<Element&>(*beam) = std::move(e);
 
-    wood_proto::BeamVariable proto;
+    wood_proto::EdgeVariableElement proto;
 
     if (!proto.ParseFromString(bytes))
         return beam;
@@ -172,7 +172,7 @@ static size_t top_side(const std::vector<Polyline>& sections) {
 }
 
 /// The planes the beam is cut by: its own and its plane features'.
-static std::vector<Plane> cutting_planes(const BeamVariable& beam) {
+static std::vector<Plane> cutting_planes(const EdgeVariableElement& beam) {
 
     std::vector<Plane> planes = beam.cuts;
     const std::vector<Plane> features = beam.feature_planes();
@@ -182,18 +182,18 @@ static std::vector<Plane> cutting_planes(const BeamVariable& beam) {
     return planes;
 }
 
-Polyline BeamVariable::top() const {
+Polyline EdgeVariableElement::top() const {
     return side_outline(sections, top_side(sections), cutting_planes(*this));
 }
 
-Polyline BeamVariable::bottom() const {
+Polyline EdgeVariableElement::bottom() const {
     return side_outline(sections, (top_side(sections) + 2) % 4, cutting_planes(*this));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-const Mesh& BeamVariable::element_geometry_mesh() const {
+const Mesh& EdgeVariableElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh)
         _element_geometry_mesh = loft_stations(sections);
@@ -201,7 +201,7 @@ const Mesh& BeamVariable::element_geometry_mesh() const {
     return *_element_geometry_mesh;
 }
 
-const BRep& BeamVariable::element_geometry_brep() const {
+const BRep& EdgeVariableElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep)
         _element_geometry_brep = mesh_brep(element_geometry_mesh());
@@ -209,24 +209,12 @@ const BRep& BeamVariable::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-Mesh BeamVariable::trimmed_mesh() const {
-    return cut_mesh(stock_mesh(), cuts);
-}
-
-BRep BeamVariable::trimmed_brep() const {
-    return cut_brep(element_geometry_brep(), cuts);
-}
-
-std::vector<Plane> BeamVariable::compute_planes() const {
-    return face_planes(model_geometry_mesh());
-}
-
-std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) const {
+std::shared_ptr<EdgeVariableElement> EdgeVariableElement::transformed(const Xform& xform) const {
 
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<BeamVariable> beam = std::make_shared<BeamVariable>(
+    std::shared_ptr<EdgeVariableElement> beam = std::make_shared<EdgeVariableElement>(
         axis.transformed(xform), transformed_list(sections, xform), name
     );
     beam->guid() = guid();
@@ -244,7 +232,7 @@ std::shared_ptr<BeamVariable> BeamVariable::transformed(const Xform& xform) cons
     return beam;
 }
 
-void BeamVariable::place(const Xform& xform) {
+void EdgeVariableElement::place(const Xform& xform) {
 
     Element::place(xform);
     axis.transform(xform);
@@ -263,7 +251,7 @@ void BeamVariable::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
-void BeamVariable::compute_geometry_mesh_impl() {
+void EdgeVariableElement::compute_geometry_mesh_impl() {
 
     if (sections.size() >= 2)
         set_geometry(model_geometry_mesh());
@@ -271,7 +259,7 @@ void BeamVariable::compute_geometry_mesh_impl() {
     compute_geometry_features();
 }
 
-void BeamVariable::compute_geometry_brep_impl() {
+void EdgeVariableElement::compute_geometry_brep_impl() {
 
     if (sections.size() >= 2)
         set_geometry(model_geometry_brep());
@@ -279,7 +267,7 @@ void BeamVariable::compute_geometry_brep_impl() {
     compute_geometry_features();
 }
 
-void BeamVariable::compute_geometry_features() {
+void EdgeVariableElement::compute_geometry_features() {
 
     std::vector<Point> stations;
 
@@ -321,7 +309,7 @@ void BeamVariable::compute_geometry_features() {
     set_features(std::move(next));
 }
 
-AABB BeamVariable::aabb(double inflate) const {
+AABB EdgeVariableElement::aabb(double inflate) const {
 
     const Mesh& solid = geometry_mesh();
 
@@ -341,12 +329,12 @@ AABB BeamVariable::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-nlohmann::ordered_json BeamVariable::element_data_jsondump() const {
+nlohmann::ordered_json EdgeVariableElement::element_data_jsondump() const {
 
-    wood_proto::BeamVariable proto;
+    wood_proto::EdgeVariableElement proto;
 
     if (!proto.ParseFromString(element_data_dumps()))
-        throw std::runtime_error("Failed to parse BeamVariable protobuf data");
+        throw std::runtime_error("Failed to parse EdgeVariableElement protobuf data");
 
     return json_of(proto);
 }
@@ -354,9 +342,9 @@ nlohmann::ordered_json BeamVariable::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-std::string BeamVariable::element_data_dumps() const {
+std::string EdgeVariableElement::element_data_dumps() const {
 
-    wood_proto::BeamVariable proto;
+    wood_proto::EdgeVariableElement proto;
 
     if (!proto.mutable_axis()->ParseFromString(axis.pb_dumps()))
         throw std::runtime_error("Invalid beam axis");
@@ -380,29 +368,30 @@ std::string BeamVariable::element_data_dumps() const {
     return proto.SerializeAsString();
 }
 
-/// The element factory of a serialized variable beam: the protobuf bytes decoded as an Element and promoted to a BeamVariable.
+/// The element factory of a serialized variable beam: the protobuf bytes decoded as an Element and promoted to a EdgeVariableElement.
 static std::shared_ptr<Element> beam_variable_from_protobuf(const std::string& data) {
-    return BeamVariable::from_element(Element::pb_loads(data));
+    return EdgeVariableElement::from_element(Element::pb_loads(data));
 }
 
-void BeamVariable::register_type() {
+void EdgeVariableElement::register_type() {
     Element::register_type(std::string(ELEMENT_TYPE), beam_variable_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), beam_variable_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-std::string BeamVariable::str() const {
+std::string EdgeVariableElement::str() const {
 
     std::ostringstream os;
-    os << "BeamVariable(name=" << name << ", sections=" << sections.size()
+    os << "EdgeVariableElement(name=" << name << ", sections=" << sections.size()
        << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha
        << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
 
-std::optional<Plane> BeamVariable::base_plane() const {
+std::optional<Plane> EdgeVariableElement::base_plane() const {
 
     if (sections.empty() || sections[0].point_count() < 2)
         return std::nullopt;

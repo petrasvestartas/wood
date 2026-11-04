@@ -1,17 +1,19 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element.h"
+#include "wood_element_edge.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
 /// Element that represents a single-curved or double-curved glulam beam (after Tom Svilans' GluLamb).
-class BeamCurved : public WoodElement {
+class EdgeCurvedElement : public EdgeElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE =
-        "BeamCurved"; // The element_type this curved beam is written under.
+        "EdgeCurvedElement"; // The element_type this curved beam is written under.
+    static constexpr std::string_view LEGACY_ELEMENT_TYPE =
+        "BeamCurved"; // The element_type wood wrote before, still accepted on read.
     NurbsCurve centreline; // Curved spine in world space.
     double width = 0.0; // Total cross-section width along local frame X.
     double height = 0.0; // Total cross-section height along local frame Y.
@@ -30,8 +32,6 @@ public:
             false; // True removes upper half [0, +height/2]; false removes lower half [-height/2, 0].
     };
 
-    std::vector<Plane>
-        cuts; // Planes the solid is cut by, each keeping the side its normal points to; call invalidate_geometry() after assigning.
     std::vector<CrossLap>
         cross_laps; // Half-depth cross-lap notches along the beam; call invalidate_geometry() after assigning.
 
@@ -51,10 +51,10 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// An empty curved beam.
-    BeamCurved();
+    EdgeCurvedElement();
 
     /// A curved beam of rectangular section (width x height) swept along centreline; planar curves use in-plane bending orientation, 3D curves use RMF.
-    BeamCurved(
+    EdgeCurvedElement(
         const NurbsCurve& centreline,
         double width,
         double height,
@@ -62,7 +62,7 @@ public:
     );
 
     /// A curved glulam beam with a single reference up vector and lamella stack subdivisions (num_width x num_height).
-    BeamCurved(
+    EdgeCurvedElement(
         const NurbsCurve& centreline,
         double width,
         double height,
@@ -74,7 +74,7 @@ public:
     );
 
     /// A curved glulam beam with one or more guide directions interpolated along the curve via RMF twist.
-    BeamCurved(
+    EdgeCurvedElement(
         const NurbsCurve& centreline,
         double width,
         double height,
@@ -90,7 +90,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// Single-curved glulam beam along a planar curve with num_height lamella layers bent in the plane of curvature.
-    static std::shared_ptr<BeamCurved> single_curved(
+    static std::shared_ptr<EdgeCurvedElement> single_curved(
         const NurbsCurve& centreline,
         double width,
         double height,
@@ -100,7 +100,7 @@ public:
     );
 
     /// Double-curved glulam beam along a 3D space curve with optional guide vectors and parameters interpolated over RMF.
-    static std::shared_ptr<BeamCurved> double_curved(
+    static std::shared_ptr<EdgeCurvedElement> double_curved(
         const NurbsCurve& centreline,
         double width,
         double height,
@@ -113,7 +113,7 @@ public:
     );
 
     /// Double-curved glulam beam oriented by the surface normals of a reference NurbsSurface along centreline.
-    static std::shared_ptr<BeamCurved> from_surface(
+    static std::shared_ptr<EdgeCurvedElement> from_surface(
         const NurbsCurve& centreline,
         const NurbsSurface& surface,
         double width,
@@ -124,8 +124,8 @@ public:
         const std::string& name = "beam_curved"
     );
 
-    /// The curved beam an Element tagged "BeamCurved" describes, same guid.
-    static std::shared_ptr<BeamCurved> from_element(Element element);
+    /// The curved beam an Element tagged "EdgeCurvedElement" describes, same guid.
+    static std::shared_ptr<EdgeCurvedElement> from_element(Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Glulam queries & lamellae
@@ -200,11 +200,11 @@ public:
     /// The uncut solid as a closed 6-patch NURBS BRep bounded by edge_curves().
     const BRep& element_geometry_brep() const override;
 
-    /// One plane per face of the model solid with a Newell normal.
-    std::vector<Plane> compute_planes() const override;
+    /// The line between the ends of the centreline.
+    Line chord() const override;
 
     /// A copy moved by xform from the parameters alone, guid and name kept; nullptr for a mirror.
-    std::shared_ptr<BeamCurved> transformed(const Xform& xform) const;
+    std::shared_ptr<EdgeCurvedElement> transformed(const Xform& xform) const;
 
     /// Moves the curve, directions, cuts and features by xform, dropping cached solids.
     void place(const Xform& xform) override;
@@ -238,17 +238,17 @@ public:
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<BeamCurved>(*this);
+        return std::make_shared<EdgeCurvedElement>(*this);
     }
 
-    /// Registers the "BeamCurved" factory with the kernel.
+    /// Registers the "EdgeCurvedElement" factory with the kernel.
     static void register_type();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "BeamCurved(name, width, height, lamellae, samples)".
+    /// "EdgeCurvedElement(name, width, height, lamellae, samples)".
     std::string str() const override;
 };
 

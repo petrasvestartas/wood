@@ -739,7 +739,7 @@ std::shared_ptr<Element> to_vault_panel(
 
 /// Shared builder that takes a 2D planar rib graph (nodes, edges, rib_paths) and constructs:
 /// 1. 4 corner support blocks (support_block)
-/// 2. Single-plane mitered planar BeamCurved ribs in vertical planes whose top centerlines lie on the cylindrical vault surface
+/// 2. Single-plane mitered planar EdgeCurvedElement ribs in vertical planes whose top centerlines lie on the cylindrical vault surface
 /// 3. K-sided cylindrical BRep infill panels (panel_name) whose top and bottom edges follow the beam centerlines in plan
 std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
     double hx,
@@ -1097,8 +1097,8 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
         return planes;
     };
 
-    // Generate planar single-curved BeamCurved ribs strictly in their vertical planes
-    std::vector<std::shared_ptr<wood_session::BeamCurved>> path_beams(rib_paths.size());
+    // Generate planar single-curved EdgeCurvedElement ribs strictly in their vertical planes
+    std::vector<std::shared_ptr<wood_session::EdgeCurvedElement>> path_beams(rib_paths.size());
     for (size_t p_idx = 0; p_idx < rib_paths.size(); ++p_idx) {
         const RibPathSpec& path = rib_paths[p_idx];
         const int u = path.nodes.front();
@@ -1155,7 +1155,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             axis[k] = surf_pts[k] - up * (0.5 * rib_height);
         }
 
-        auto beam = std::make_shared<wood_session::BeamCurved>(
+        auto beam = std::make_shared<wood_session::EdgeCurvedElement>(
             NurbsCurve::create_interpolated(
                 axis, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
             ),

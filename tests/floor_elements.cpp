@@ -92,7 +92,7 @@ std::vector<std::shared_ptr<JointBeam>> all_connectors(const WoodSession& scene)
 
 /// The beam is closed, has the face count, and encloses the volume of the plate lofted from the same outline.
 void check_beam(
-    const BeamVariable& beam,
+    const EdgeVariableElement& beam,
     const std::array<Polyline, 2>& outline,
     size_t faces,
     const std::string& name
@@ -121,25 +121,25 @@ void check_beams() {
     const std::span<const std::array<Polyline, 2>> inner = square_guide().inner_ribs(0);
     const std::span<const std::array<Polyline, 2>> beam_loops = square_guide().inner_beams(0);
     const std::span<const std::array<Polyline, 2>> oculus = square_guide().oculus();
-    std::vector<std::shared_ptr<BeamVariable>> beams;
+    std::vector<std::shared_ptr<EdgeVariableElement>> beams;
 
     for (size_t i = 0; i < 2; i++) {
         check_beam(
-            *named<BeamVariable>(floor, fmt::format("outer_ribs_{}_0", i)),
+            *named<EdgeVariableElement>(floor, fmt::format("outer_ribs_{}_0", i)),
             outer[i],
             11,
             "outer rib " + std::to_string(i)
         );
         check_beam(
-            *named<BeamVariable>(floor, fmt::format("inner_ribs_{}_0", i)),
+            *named<EdgeVariableElement>(floor, fmt::format("inner_ribs_{}_0", i)),
             inner[i],
             11,
             "inner rib " + std::to_string(i)
         );
         beams.insert(
             beams.end(),
-            {named<BeamVariable>(floor, fmt::format("outer_ribs_{}_0", i)),
-             named<BeamVariable>(floor, fmt::format("inner_ribs_{}_0", i))}
+            {named<EdgeVariableElement>(floor, fmt::format("outer_ribs_{}_0", i)),
+             named<EdgeVariableElement>(floor, fmt::format("inner_ribs_{}_0", i))}
         );
     }
 
@@ -148,24 +148,24 @@ void check_beams() {
     };
 
     for (size_t i = 0; i < 3; i++) {
-        check_beam(*named<BeamVariable>(floor, beam_names[i]), beam_loops[i], 6, beam_names[i]);
-        beams.push_back(named<BeamVariable>(floor, beam_names[i]));
+        check_beam(*named<EdgeVariableElement>(floor, beam_names[i]), beam_loops[i], 6, beam_names[i]);
+        beams.push_back(named<EdgeVariableElement>(floor, beam_names[i]));
     }
 
     for (size_t i = 0; i < 4; i++) {
         check_beam(
-            *named<BeamVariable>(floor, fmt::format("oculus_{}", i)),
+            *named<EdgeVariableElement>(floor, fmt::format("oculus_{}", i)),
             oculus[i],
             6,
             "ring beam " + std::to_string(i)
         );
-        beams.push_back(named<BeamVariable>(floor, fmt::format("oculus_{}", i)));
+        beams.push_back(named<EdgeVariableElement>(floor, fmt::format("oculus_{}", i)));
     }
 
     const WoodSession back = WoodSession::pb_loads(floor.pb_dumps());
 
-    for (const std::shared_ptr<BeamVariable>& beam : beams) {
-        const std::shared_ptr<BeamVariable> loaded = back.get_element<BeamVariable>(beam->guid());
+    for (const std::shared_ptr<EdgeVariableElement>& beam : beams) {
+        const std::shared_ptr<EdgeVariableElement> loaded = back.get_element<EdgeVariableElement>(beam->guid());
         check(loaded && loaded->sections.size() == beam->sections.size(), "round trip sections");
         check(
             loaded->axis.start() == beam->axis.start() && loaded->axis.end() == beam->axis.end(),
@@ -179,7 +179,7 @@ void check_beams() {
     }
 
     const Xform move = Xform::translation(100.0, -50.0, 3500.0);
-    const std::shared_ptr<BeamVariable> moved = beams.front()->transformed(move);
+    const std::shared_ptr<EdgeVariableElement> moved = beams.front()->transformed(move);
     const double volume = compute_volume(beams.front()->element_geometry_mesh());
     check(
         std::abs(compute_volume(moved->element_geometry_mesh()) - volume) <= 1e-9 * volume,
@@ -445,13 +445,13 @@ void check_flush(
 }
 
 /// The outer ribs of every quarter, in quarter order.
-std::vector<std::shared_ptr<BeamVariable>> outer_ribs(const wood_floor::Floor& floor) {
+std::vector<std::shared_ptr<EdgeVariableElement>> outer_ribs(const wood_floor::Floor& floor) {
 
-    std::vector<std::shared_ptr<BeamVariable>> ribs;
+    std::vector<std::shared_ptr<EdgeVariableElement>> ribs;
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++)
-            ribs.push_back(named<BeamVariable>(floor, fmt::format("outer_ribs_{}_{}", k, q)));
+            ribs.push_back(named<EdgeVariableElement>(floor, fmt::format("outer_ribs_{}_{}", k, q)));
 
     return ribs;
 }
@@ -727,7 +727,7 @@ void check_wedges() {
 
     std::map<std::string, double> volumes;
 
-    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables())
+    for (const std::shared_ptr<EdgeVariableElement>& beam : scene.get_elements<EdgeVariableElement>())
         volumes[beam->guid()] = compute_volume(beam->model_geometry_mesh());
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
@@ -749,14 +749,14 @@ void check_wedges() {
 
     check(loaded == wedges.size(), "wedge round trip count");
 
-    for (const std::shared_ptr<BeamVariable>& beam : back.beam_variables())
+    for (const std::shared_ptr<EdgeVariableElement>& beam : back.get_elements<EdgeVariableElement>())
         check(
             std::abs(compute_volume(beam->model_geometry_mesh()) - volumes.at(beam->guid())) <=
                 1e-9 * volumes.at(beam->guid()),
             "carved beam round trip " + beam->name
         );
 
-    for (const std::shared_ptr<BeamVariable>& beam : scene.beam_variables()) {
+    for (const std::shared_ptr<EdgeVariableElement>& beam : scene.get_elements<EdgeVariableElement>()) {
         if (beam->solid_features.empty())
             continue;
 
@@ -1325,8 +1325,8 @@ void check_inner_rib_bores(
 
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<BeamVariable> rib =
-                named<BeamVariable>(scene, fmt::format("inner_ribs_{}_{}", k, q));
+            const std::shared_ptr<EdgeVariableElement> rib =
+                named<EdgeVariableElement>(scene, fmt::format("inner_ribs_{}_{}", k, q));
             size_t crossing = 0;
 
             for (const std::shared_ptr<JointBeam>& set : all)
@@ -1475,12 +1475,12 @@ void check_cross_laps(
 void check_rectangle_plates() {
 
     wood_floor::Floor scene(square_guide(), "rectangle_plates");
-    const std::vector<std::shared_ptr<BeamVariable>> ribs = outer_ribs(scene);
+    const std::vector<std::shared_ptr<EdgeVariableElement>> ribs = outer_ribs(scene);
     const std::vector<std::shared_ptr<JointBeam>> plates = connectors_of(scene, "column_plate");
     const std::vector<std::shared_ptr<JointPlate>> laps =
         scene.get_elements_placed<JointPlate>("connector_cross_lap");
 
-    for (const std::shared_ptr<BeamVariable>& rib : ribs)
+    for (const std::shared_ptr<EdgeVariableElement>& rib : ribs)
         check(
             std::abs(compute_volume(rib->model_geometry_mesh()) - CARVED_OUTER_RIB) <=
                 1e-9 * CARVED_OUTER_RIB,
@@ -2115,8 +2115,8 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
             bool on_axis = false;
 
             for (const std::shared_ptr<Element>& member : pair)
-                if (const std::shared_ptr<BeamVariable> beam =
-                        std::dynamic_pointer_cast<BeamVariable>(member)) {
+                if (const std::shared_ptr<EdgeVariableElement> beam =
+                        std::dynamic_pointer_cast<EdgeVariableElement>(member)) {
                     const Vector axis = beam->axis.to_vector();
                     const Vector level = Vector(axis[0], axis[1], 0.0).normalized();
                     on_axis = on_axis || std::abs(std::abs(along.dot(level)) - 1.0) <= 1e-9;

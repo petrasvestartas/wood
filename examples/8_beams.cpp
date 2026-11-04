@@ -6,18 +6,18 @@ using namespace wood_session;
 int main() {
 
     WoodSession wood_session("beams");
-    wood_session.add(std::make_shared<Beam>(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0)
+    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0)
     );
-    wood_session.add(std::make_shared<Beam>(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0)
+    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0)
     );
-    wood_session.add(std::make_shared<Beam>(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
+    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
 
     wood_session.compute_axis_contacts(5.0);
     wood_session.compute_beam_features(400.0, 0.9, 1);
 
     for (const std::shared_ptr<JointBeam>& joint : wood_session.get_elements<JointBeam>()) {
-        const std::shared_ptr<Beam> a = wood_session.get_element<Beam>(joint->targets[0]);
-        const std::shared_ptr<Beam> b = wood_session.get_element<Beam>(joint->targets[1]);
+        const std::shared_ptr<EdgeStraightElement> a = wood_session.get_element<EdgeStraightElement>(joint->targets[0]);
+        const std::shared_ptr<EdgeStraightElement> b = wood_session.get_element<EdgeStraightElement>(joint->targets[1]);
         const int end = joint->feature.end_type;
         std::cout << fmt::format(
             "{} with {}: end type {} ({}), {} volume rectangles\n",

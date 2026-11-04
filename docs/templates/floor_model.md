@@ -122,22 +122,22 @@ void Floor::add_quarters() {
             add(tsection, tsections);
         }
 
-        // outer_ribs: BeamVariable, the two ribs along the bay edges, outer_ribs_<i>_<q>
+        // outer_ribs: EdgeVariableElement, the two ribs along the bay edges, outer_ribs_<i>_<q>
         const std::shared_ptr<TreeNode> outer = add_group(fmt::format("outer_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> outer_rib = rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
+            const std::shared_ptr<EdgeVariableElement> outer_rib = rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
             outer_rib->place(lift);
             add(outer_rib, outer);
         }
 
-        // inner_ribs: BeamVariable, the two ribs from the column head to the inner beam corners, inner_ribs_<i>_<q>
+        // inner_ribs: EdgeVariableElement, the two ribs from the column head to the inner beam corners, inner_ribs_<i>_<q>
         const std::shared_ptr<TreeNode> inner = add_group(fmt::format("inner_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_rib = rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
+            const std::shared_ptr<EdgeVariableElement> inner_rib = rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
             inner_rib->place(lift);
             add(inner_rib, inner);
         }
@@ -152,12 +152,12 @@ void Floor::add_quarters() {
             add(block, wedges);
         }
 
-        // inner_beams: BeamVariable, seam beam 0, the beam along the oculus edge and seam beam 1, inner_beams_<i>_<q>
+        // inner_beams: EdgeVariableElement, seam beam 0, the beam along the oculus edge and seam beam 1, inner_beams_<i>_<q>
         const std::shared_ptr<TreeNode> beams = add_group(fmt::format("inner_beams_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_beam = beam(
+            const std::shared_ptr<EdgeVariableElement> inner_beam = beam(
                 beam_loops[i],
                 {0, 3},
                 {1, 2},
@@ -173,7 +173,7 @@ void Floor::add_quarters() {
 #### rib: a variable beam, one section per soffit point
 
 ```cpp
-std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
+std::shared_ptr<EdgeVariableElement> Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
     const std::vector<Point> far = loops[1].get_points();
@@ -201,7 +201,7 @@ std::shared_ptr<BeamVariable> Floor::rib(const std::array<Polyline, 2>& loops, c
     const Point end = Point::mid_point(near[0], far[0]);
     const Line axis = Line::from_points(start, end);
 
-    return std::make_shared<BeamVariable>(axis, sections, name);
+    return std::make_shared<EdgeVariableElement>(axis, sections, name);
 }
 ```
 
@@ -213,7 +213,7 @@ The end sections take the loops' own top corners, so they lie in the end planes.
 #### beam: a variable beam between its end sections
 
 ```cpp
-std::shared_ptr<BeamVariable> Floor::beam(
+std::shared_ptr<EdgeVariableElement> Floor::beam(
     const std::array<Polyline, 2>& loops,
     const std::array<size_t, 2>& start,
     const std::array<size_t, 2>& end,
@@ -225,12 +225,12 @@ std::shared_ptr<BeamVariable> Floor::beam(
     const Polyline first = Polyline({near[start[0]], near[start[1]], far[start[1]], far[start[0]]}).closed();
     const Polyline last = Polyline({near[end[0]], near[end[1]], far[end[1]], far[end[0]]}).closed();
 
-    return BeamVariable::between(first, last, name);
+    return EdgeVariableElement::between(first, last, name);
 }
 ```
 
 The section over corners `start` and the section over corners `end`, both loops.
-`BeamVariable::between` runs the axis between their centroids.
+`EdgeVariableElement::between` runs the axis between their centroids.
 
 ![The beam's end sections](floor/923_beam_sections.webp)
 
@@ -255,11 +255,11 @@ void Floor::add_oculus() {
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
     const std::shared_ptr<TreeNode> group = group_named("oculus");
 
-    // ring_beams: BeamVariable, the four ring beams, oculus_<q>
+    // ring_beams: EdgeVariableElement, the four ring beams, oculus_<q>
     const std::shared_ptr<TreeNode> ring_beams = add_group("ring_beams", group);
 
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<BeamVariable> ring_beam = beam(
+        const std::shared_ptr<EdgeVariableElement> ring_beam = beam(
             loops[q],
             {1, 0},
             {2, 3},
@@ -854,9 +854,9 @@ static std::optional<Vector> level_axis(const Element& element) {
 
     Vector axis;
 
-    if (const BeamVariable* beam = dynamic_cast<const BeamVariable*>(&element))
+    if (const EdgeVariableElement* beam = dynamic_cast<const EdgeVariableElement*>(&element))
         axis = beam->axis.to_vector();
-    else if (const Beam* straight = dynamic_cast<const Beam*>(&element); straight && straight->axis.point_count() > 1)
+    else if (const EdgeStraightElement* straight = dynamic_cast<const EdgeStraightElement*>(&element); straight && straight->axis.point_count() > 1)
         axis = straight->axis.get_point(straight->axis.point_count() - 1) - straight->axis.get_point(0);
 
     axis = Vector(axis[0], axis[1], 0.0);
@@ -1039,10 +1039,10 @@ floor
 │   ├── beds_0
 │   │   └── beds_<row>_0           FacePlanarElement beds_<row>_<i>_0, three rows
 │   ├── tsections_0                FacePlanarElement tsections_<i>_0, six
-│   ├── outer_ribs_0               BeamVariable outer_ribs_<i>_0, two
-│   ├── inner_ribs_0               BeamVariable inner_ribs_<i>_0, two
+│   ├── outer_ribs_0               EdgeVariableElement outer_ribs_<i>_0, two
+│   ├── inner_ribs_0               EdgeVariableElement inner_ribs_<i>_0, two
 │   ├── wedges_0                   FacePlanarElement wedges_<i>_0, the three column blocks
-│   ├── inner_beams_0              BeamVariable inner_beams_<i>_0: seam 0, the oculus edge, seam 1
+│   ├── inner_beams_0              EdgeVariableElement inner_beams_<i>_0: seam 0, the oculus edge, seam 1
 │   ├── column_0                   Column column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
 │   │                              NodeSupportElement support_0, Joint support (the seat),
 │   │                              FacePlanarElement column_cutters_<i>_0, six (hidden)
@@ -1053,7 +1053,7 @@ floor
 │                                  connector_pins_inner_rib_0_<k>,
 │                                  JointPlate connector_cross_lap_0
 └── oculus
-    ├── ring_beams                 BeamVariable oculus_<q>, four
+    ├── ring_beams                 EdgeVariableElement oculus_<q>, four
     ├── bottom_wedges              FacePlanarElement oculus_<4 + q>, under ring beam q, four
     ├── central_plate              FacePlanarElement oculus_8
     └── connectors                 JointBeam connector_oculus_wedge_<q>, four,

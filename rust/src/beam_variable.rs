@@ -40,9 +40,9 @@ impl BeamVariable {
 
 impl WoodElement for BeamVariable {
     const TYPE: &'static str = "BeamVariable";
-    type Payload = proto::BeamVariable;
+    type Payload = proto::EdgeVariableElement;
 
-    fn from_payload(name: &str, payload: proto::BeamVariable) -> Option<Self> {
+    fn from_payload(name: &str, payload: proto::EdgeVariableElement) -> Option<Self> {
         Some(Self {
             name: name.to_string(),
             axis: Line::from_proto(payload.axis?),
@@ -57,8 +57,8 @@ impl WoodElement for BeamVariable {
         })
     }
 
-    fn payload(&self) -> proto::BeamVariable {
-        proto::BeamVariable {
+    fn payload(&self) -> proto::EdgeVariableElement {
+        proto::EdgeVariableElement {
             axis: Some(self.axis.to_proto()),
             sections: self.sections.iter().map(Polyline::to_proto).collect(),
             cuts: self.cuts.iter().map(Plane::to_proto).collect(),

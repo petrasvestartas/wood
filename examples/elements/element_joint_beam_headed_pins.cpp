@@ -15,9 +15,9 @@ int main() {
     for (size_t i = 0; i < layouts.size(); i++) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("layout_{}", i));
 
-        const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_tee();
-        const std::shared_ptr<BeamVariable> beam = beams[0];
-        const std::shared_ptr<BeamVariable> joist = beams[1];
+        const std::array<std::shared_ptr<EdgeVariableElement>, 2> beams = EdgeVariableElement::pair_tee();
+        const std::shared_ptr<EdgeVariableElement> beam = beams[0];
+        const std::shared_ptr<EdgeVariableElement> joist = beams[1];
         beam->place(Xform::translation(800.0 * i, 0.0, 0.0));
         joist->place(Xform::translation(800.0 * i, 0.0, 0.0));
         scene.add(beam, group);

@@ -10,10 +10,10 @@ int main() {
     scene.settings.joint_parameters[11] = JointPlate::cross_half_lap_id(CrossDrills::two_diagonal);
 
     // two 150 x 150 beams 1200 long, crossing at 60 degrees
-    const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_crossing(60.0);
-    const std::shared_ptr<Beam> first = pair[0];
-    const std::shared_ptr<Beam> second = pair[1];
-    for (const std::shared_ptr<Beam>& beam : pair) {
+    const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_crossing(60.0);
+    const std::shared_ptr<EdgeStraightElement> first = pair[0];
+    const std::shared_ptr<EdgeStraightElement> second = pair[1];
+    for (const std::shared_ptr<EdgeStraightElement>& beam : pair) {
         scene.add(beam);
     }
 

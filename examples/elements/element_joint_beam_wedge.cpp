@@ -8,9 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_wedge");
 
-    const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_side_by_side();
-    const std::shared_ptr<BeamVariable> left = beams[0];
-    const std::shared_ptr<BeamVariable> right = beams[1];
+    const std::array<std::shared_ptr<EdgeVariableElement>, 2> beams = EdgeVariableElement::pair_side_by_side();
+    const std::shared_ptr<EdgeVariableElement> left = beams[0];
+    const std::shared_ptr<EdgeVariableElement> right = beams[1];
     scene.add(left);
     scene.add(right);
 

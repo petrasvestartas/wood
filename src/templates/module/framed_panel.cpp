@@ -59,7 +59,7 @@ void FramedPanel::add_rails() {
     }
 
     for (size_t i = 0; i < runs.size(); i++) {
-        const std::shared_ptr<Beam> rail = member(
+        const std::shared_ptr<EdgeStraightElement> rail = member(
             local(runs[i][0], 0.0, half),
             local(runs[i][1], 0.0, half),
             guide.stud_width,
@@ -70,7 +70,7 @@ void FramedPanel::add_rails() {
     }
 
     const double top = guide.height - half;
-    const std::shared_ptr<Beam> rail = member(
+    const std::shared_ptr<EdgeStraightElement> rail = member(
         local(0.0, 0.0, top),
         local(guide.length, 0.0, top),
         guide.stud_width,
@@ -97,7 +97,7 @@ void FramedPanel::add_openings() {
         const std::array<double, 2> jambs = {left - half, right + half};
 
         for (size_t side = 0; side < 2; side++) {
-            const std::shared_ptr<Beam> jamb = member(
+            const std::shared_ptr<EdgeStraightElement> jamb = member(
                 local(jambs[side], 0.0, foot),
                 local(jambs[side], 0.0, top),
                 w,
@@ -109,7 +109,7 @@ void FramedPanel::add_openings() {
 
         // header: between the jamb studs, its underside the opening's head
         const double header_z = opening.head + half;
-        const std::shared_ptr<Beam> header = member(
+        const std::shared_ptr<EdgeStraightElement> header = member(
             local(left, 0.0, header_z),
             local(right, 0.0, header_z),
             w,
@@ -121,7 +121,7 @@ void FramedPanel::add_openings() {
         // sill: across a window between the jamb studs, its top the opening's sill
         if (opening.sill > 0.0) {
             const double sill_z = opening.sill - half;
-            const std::shared_ptr<Beam> sill = member(
+            const std::shared_ptr<EdgeStraightElement> sill = member(
                 local(left, 0.0, sill_z),
                 local(right, 0.0, sill_z),
                 w,
@@ -144,7 +144,7 @@ void FramedPanel::add_studs() {
 
     // edge studs: at both ends of the panel
     for (const double x : {half, guide.length - half}) {
-        const std::shared_ptr<Beam> stud = member(
+        const std::shared_ptr<EdgeStraightElement> stud = member(
             local(x, 0.0, foot), local(x, 0.0, top), w, base.x_axis(), fmt::format("stud_{}", count)
         );
         _session.add(stud, studs);
@@ -192,7 +192,7 @@ void FramedPanel::add_studs() {
             runs.clear();
 
         for (size_t r = 0; r < runs.size(); r++) {
-            const std::shared_ptr<Beam> stud = member(
+            const std::shared_ptr<EdgeStraightElement> stud = member(
                 local(x, 0.0, runs[r][0]),
                 local(x, 0.0, runs[r][1]),
                 w,
@@ -295,13 +295,13 @@ std::shared_ptr<TreeNode> FramedPanel::group(const std::string& part) const {
     return _session.group_named(named(part), _group);
 }
 
-std::shared_ptr<Beam> FramedPanel::member(
+std::shared_ptr<EdgeStraightElement> FramedPanel::member(
     const Point& start, const Point& end, double size, const Vector& up, const std::string& part
 ) const {
 
     const Polyline axis({start, end});
     const std::vector<Polyline> profile = profile_rectangle(guide.stud_depth, size);
-    return std::make_shared<Beam>(axis, profile, std::vector<Vector>{up}, named(part));
+    return std::make_shared<EdgeStraightElement>(axis, profile, std::vector<Vector>{up}, named(part));
 }
 
 }

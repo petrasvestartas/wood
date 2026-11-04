@@ -100,7 +100,7 @@ std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
 }
 
 /// Origin at the first axis point, x along the first segment, z from the first direction or world z.
-std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
+std::optional<std::pair<std::string, Xform>> beam_key(const EdgeStraightElement& beam) {
 
     if (beam.axis.point_count() < 2)
         return std::nullopt;
@@ -195,15 +195,15 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (const std::shared_ptr<Column> column = std::dynamic_pointer_cast<Column>(element))
         return column->transformed(xform);
 
-    if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
+    if (const std::shared_ptr<EdgeStraightElement> beam = std::dynamic_pointer_cast<EdgeStraightElement>(element))
         return beam->transformed(xform);
 
-    if (const std::shared_ptr<BeamVariable> variable =
-            std::dynamic_pointer_cast<BeamVariable>(element))
+    if (const std::shared_ptr<EdgeVariableElement> variable =
+            std::dynamic_pointer_cast<EdgeVariableElement>(element))
         return variable->transformed(xform);
 
-    if (const std::shared_ptr<BeamCurved> curved =
-            std::dynamic_pointer_cast<BeamCurved>(element))
+    if (const std::shared_ptr<EdgeCurvedElement> curved =
+            std::dynamic_pointer_cast<EdgeCurvedElement>(element))
         return curved->transformed(xform);
 
     if (const std::shared_ptr<NodeSupportElement> support = std::dynamic_pointer_cast<NodeSupportElement>(element))
@@ -275,7 +275,7 @@ std::optional<std::pair<std::string, Xform>> element_key(const Element& element)
     if (const Column* column = dynamic_cast<const Column*>(&element))
         return column_key(*column);
 
-    if (const Beam* beam = dynamic_cast<const Beam*>(&element))
+    if (const EdgeStraightElement* beam = dynamic_cast<const EdgeStraightElement*>(&element))
         return beam_key(*beam);
 
     if (const NodeBlockElement* block = dynamic_cast<const NodeBlockElement*>(&element))

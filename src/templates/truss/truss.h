@@ -39,8 +39,8 @@ private:
     /// The butt added, named by its case and its members, and passed to both; nothing when they do not touch.
     void add_butt(
         const std::shared_ptr<JointBeam>& butt,
-        const std::shared_ptr<Beam>& a,
-        const std::shared_ptr<Beam>& b
+        const std::shared_ptr<EdgeStraightElement>& a,
+        const std::shared_ptr<EdgeStraightElement>& b
     );
 };
 

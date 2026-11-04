@@ -112,9 +112,9 @@ impl Beam {
 
 impl WoodElement for Beam {
     const TYPE: &'static str = "Beam";
-    type Payload = proto::Beam;
+    type Payload = proto::EdgeStraightElement;
 
-    fn from_payload(name: &str, payload: proto::Beam) -> Option<Self> {
+    fn from_payload(name: &str, payload: proto::EdgeStraightElement) -> Option<Self> {
         Some(Self {
             name: name.to_string(),
             axis: Polyline::from_proto(payload.axis?),
@@ -137,8 +137,8 @@ impl WoodElement for Beam {
         })
     }
 
-    fn payload(&self) -> proto::Beam {
-        proto::Beam {
+    fn payload(&self) -> proto::EdgeStraightElement {
+        proto::EdgeStraightElement {
             solid_features: self.solid_features.clone(),
             plane_features: self.plane_features.clone(),
             axis: Some(self.axis.to_proto()),

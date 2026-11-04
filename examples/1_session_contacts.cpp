@@ -12,8 +12,8 @@ int main() {
         FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
     const std::shared_ptr<FacePlanarElement> plate1 =
         FacePlanarElement::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
-    const std::shared_ptr<Beam> beam =
-        std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
+    const std::shared_ptr<EdgeStraightElement> beam =
+        std::make_shared<EdgeStraightElement>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
     const std::shared_ptr<Column> column = Column::square(
         Line::from_points({950, 50, 0}, {950, 50, 950}),
         Plane({900, 0, 0}, {1, 0, 0}, {0, 1, 0}),

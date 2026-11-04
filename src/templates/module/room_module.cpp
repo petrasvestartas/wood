@@ -90,7 +90,7 @@ void RoomModule::add_box(
         const Point start = corner + y * (side == 0 ? 0.5 * edge : guide.width - 0.5 * edge) +
                             z * (0.5 * (depth - hang));
         const Polyline axis({start, start + x * guide.length});
-        add(std::make_shared<Beam>(
+        add(std::make_shared<EdgeStraightElement>(
                 axis,
                 profile_rectangle(edge, depth + hang),
                 std::vector<Vector>{z},
@@ -109,7 +109,7 @@ void RoomModule::add_box(
             0.5 * joist_width + span * static_cast<double>(i) / static_cast<double>(bays);
         const Point start = corner + x * along + y * edge + z * (joists_base + 0.5 * joist_depth);
         const Polyline axis({start, start + y * inner_width});
-        add(std::make_shared<Beam>(
+        add(std::make_shared<EdgeStraightElement>(
                 axis,
                 profile_rectangle(joist_width, joist_depth),
                 std::vector<Vector>{z},
@@ -189,7 +189,7 @@ void RoomModule::add_module(size_t storey, size_t column) {
         const double height = guide.clear_height - guide.downstand_depth;
         const Point foot = origin + x * places[k][0] + y * places[k][1] + z * floor_top;
         const Polyline axis({foot, foot + z * height});
-        add(std::make_shared<Beam>(
+        add(std::make_shared<EdgeStraightElement>(
                 axis,
                 profile_rectangle(wall, wall),
                 std::vector<Vector>{x},

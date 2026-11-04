@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "wood_contact_detection.h"
-#include "wood_element_beam.h"
+#include "wood_element_edge_straight.h"
 #include "wood_element_column.h"
-#include "wood_element_beam_variable.h"
-#include "wood_element_beam_curved.h"
+#include "wood_element_edge_variable.h"
+#include "wood_element_edge_curved.h"
 #include "wood_feature_detection.h"
 #include "wood_element_geometry.h"
 #include "wood_element_face_curved.h"
@@ -280,27 +280,14 @@ ContactType contact_type(
     const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb
 ) {
 
-    const bool linear_a = dynamic_cast<const Beam*>(&a) || dynamic_cast<const Column*>(&a) ||
-                          dynamic_cast<const BeamVariable*>(&a) ||
-                          dynamic_cast<const BeamCurved*>(&a);
-    const bool linear_b = dynamic_cast<const Beam*>(&b) || dynamic_cast<const Column*>(&b) ||
-                          dynamic_cast<const BeamVariable*>(&b) ||
-                          dynamic_cast<const BeamCurved*>(&b);
+    const bool linear_a = dynamic_cast<const EdgeElement*>(&a) || dynamic_cast<const Column*>(&a);
+    const bool linear_b = dynamic_cast<const EdgeElement*>(&b) || dynamic_cast<const Column*>(&b);
     auto is_end = [](const Element& element, const Plane& plane) {
-        Vector axis;
-        if (const auto* beam = dynamic_cast<const Beam*>(&element)) {
-            if (beam->axis.point_count() < 2)
-                return false;
-            axis = beam->axis[beam->axis.point_count() - 1] - beam->axis[0];
-        } else if (const auto* variable = dynamic_cast<const BeamVariable*>(&element)) {
-            axis = variable->axis.to_vector();
-        } else if (const auto* curved = dynamic_cast<const BeamCurved*>(&element)) {
-            if (!curved->centreline.is_valid())
-                return false;
-            axis = curved->centreline.point_at_end() - curved->centreline.point_at_start();
-        } else
-            axis = static_cast<const Column&>(element).axis.to_vector();
-        return std::abs(plane.z_axis().dot(axis.normalized())) > 1e-6;
+        const EdgeElement* edge = dynamic_cast<const EdgeElement*>(&element);
+        const Line axis = edge ? edge->chord() : static_cast<const Column&>(element).axis;
+        if (axis.length() <= 0.0)
+            return false;
+        return std::abs(plane.z_axis().dot(axis.to_vector().normalized())) > 1e-6;
     };
     if (linear_a && linear_b) {
         const bool end_a = is_end(a, pa), end_b = is_end(b, pb);
@@ -982,11 +969,11 @@ closest_pairs(const std::vector<std::vector<Line>>& lines, const double min_dist
 }
 
 std::vector<std::tuple<int, int, InteractionContactAxis>>
-axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance) {
+axis_contacts(const std::vector<std::shared_ptr<EdgeStraightElement>>& beams, double min_distance) {
 
     std::vector<std::vector<Line>> lines;
     lines.reserve(beams.size());
-    for (const std::shared_ptr<Beam>& beam : beams)
+    for (const std::shared_ptr<EdgeStraightElement>& beam : beams)
         lines.push_back(beam->axis.get_lines());
 
     std::vector<std::tuple<int, int, InteractionContactAxis>> contacts;

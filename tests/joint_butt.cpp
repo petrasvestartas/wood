@@ -103,7 +103,7 @@ static void pair(
 static void pairs() {
 
     const auto beam = [](const Point& start, const Point& end) {
-        return std::make_shared<Beam>(Polyline({start, end}), 75.0, "beam");
+        return std::make_shared<EdgeStraightElement>(Polyline({start, end}), 75.0, "beam");
     };
     const auto wall = [](const Point& start, const Point& end) {
         return FacePlanarElement::from_line(
@@ -118,8 +118,8 @@ static void pairs() {
     };
 
     // beams: top_side, top_side at 18 degrees, top_side at an end drawn past and short, side_side_outplane, side_side_inplane and a cross
-    std::shared_ptr<Beam> a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
-    std::shared_ptr<Beam> b = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0});
+    std::shared_ptr<EdgeStraightElement> a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
+    std::shared_ptr<EdgeStraightElement> b = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0});
     pair("beam_top_side", a, b, ButtConfiguration::top_side, [&] {
         near(extreme(*b, 2, false), 75.0, "beam_top_side: the post's foot");
         near(extreme(*a, 0, true), 1000.0, "beam_top_side: the through beam's end");
@@ -214,8 +214,8 @@ static void pairs() {
     pair("column_top_side_plate", p, column, ButtConfiguration::top_side, [&] {
         near(extreme(*column, 2, true), -100.0, "column_top_side_plate: the column's head");
     });
-    const std::shared_ptr<Beam> sill =
-        std::make_shared<Beam>(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam");
+    const std::shared_ptr<EdgeStraightElement> sill =
+        std::make_shared<EdgeStraightElement>(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam");
     q = wall({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0});
     pair("plate_top_side_beam", sill, q, ButtConfiguration::top_side, [&] {
         near(extreme(*q, 2, false), 100.0, "plate_top_side_beam: the wall's foot");
@@ -230,12 +230,12 @@ static void pairs() {
 static void beams() {
 
     WoodSession scene("butt_beams");
-    const std::shared_ptr<Beam> sill =
-        std::make_shared<Beam>(Polyline({{-600.0, 0.0, 0.0}, {600.0, 0.0, 0.0}}), 75.0, "sill");
-    const std::shared_ptr<Beam> middle =
-        std::make_shared<Beam>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 800.0}}), 75.0, "middle");
-    const std::shared_ptr<Beam> end =
-        std::make_shared<Beam>(Polyline({{600.0, 0.0, 0.0}, {600.0, 0.0, 800.0}}), 75.0, "end");
+    const std::shared_ptr<EdgeStraightElement> sill =
+        std::make_shared<EdgeStraightElement>(Polyline({{-600.0, 0.0, 0.0}, {600.0, 0.0, 0.0}}), 75.0, "sill");
+    const std::shared_ptr<EdgeStraightElement> middle =
+        std::make_shared<EdgeStraightElement>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 800.0}}), 75.0, "middle");
+    const std::shared_ptr<EdgeStraightElement> end =
+        std::make_shared<EdgeStraightElement>(Polyline({{600.0, 0.0, 0.0}, {600.0, 0.0, 800.0}}), 75.0, "end");
     scene.add(sill);
     scene.add(middle);
     scene.add(end);
@@ -513,26 +513,26 @@ static void frame() {
 
     WoodSession scene("butt_frame");
     const auto beam = [](const Point& start, const Point& end, const std::string& name) {
-        return std::make_shared<Beam>(Polyline({start, end}), 70.0, name);
+        return std::make_shared<EdgeStraightElement>(Polyline({start, end}), 70.0, name);
     };
-    const std::shared_ptr<Beam> sill = beam({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}, "sill");
-    const std::shared_ptr<Beam> head = beam({0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}, "head");
-    const std::shared_ptr<Beam> left_post = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}, "left_post");
-    const std::shared_ptr<Beam> middle_post =
+    const std::shared_ptr<EdgeStraightElement> sill = beam({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}, "sill");
+    const std::shared_ptr<EdgeStraightElement> head = beam({0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}, "head");
+    const std::shared_ptr<EdgeStraightElement> left_post = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}, "left_post");
+    const std::shared_ptr<EdgeStraightElement> middle_post =
         beam({1500.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "middle_post");
-    const std::shared_ptr<Beam> right_post =
+    const std::shared_ptr<EdgeStraightElement> right_post =
         beam({3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}, "right_post");
-    const std::shared_ptr<Beam> left_brace =
+    const std::shared_ptr<EdgeStraightElement> left_brace =
         beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "left_brace");
-    const std::shared_ptr<Beam> right_brace =
+    const std::shared_ptr<EdgeStraightElement> right_brace =
         beam({3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "right_brace");
-    const std::array<std::shared_ptr<Beam>, 7> all = {
+    const std::array<std::shared_ptr<EdgeStraightElement>, 7> all = {
         sill, head, left_post, middle_post, right_post, left_brace, right_brace
     };
-    for (const std::shared_ptr<Beam>& member : all)
+    for (const std::shared_ptr<EdgeStraightElement>& member : all)
         scene.add(member);
-    for (const std::array<std::shared_ptr<Beam>, 2>& pair :
-         std::vector<std::array<std::shared_ptr<Beam>, 2>>{
+    for (const std::array<std::shared_ptr<EdgeStraightElement>, 2>& pair :
+         std::vector<std::array<std::shared_ptr<EdgeStraightElement>, 2>>{
              {sill, left_post},
              {sill, middle_post},
              {sill, right_post},
@@ -541,8 +541,8 @@ static void frame() {
              {head, right_post}
          })
         join(scene, pair[0], pair[1]);
-    for (const std::array<std::shared_ptr<Beam>, 2>& pair :
-         std::vector<std::array<std::shared_ptr<Beam>, 2>>{
+    for (const std::array<std::shared_ptr<EdgeStraightElement>, 2>& pair :
+         std::vector<std::array<std::shared_ptr<EdgeStraightElement>, 2>>{
              {sill, left_brace},
              {left_post, left_brace},
              {head, left_brace},
@@ -667,9 +667,9 @@ static void trusses() {
     };
     for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
         const wood_truss::Truss truss(guide.second, guide.first);
-        std::vector<std::shared_ptr<Beam>> members;
+        std::vector<std::shared_ptr<EdgeStraightElement>> members;
         for (const std::shared_ptr<Element>& element : *truss.objects.elements)
-            if (const std::shared_ptr<Beam> beam = std::dynamic_pointer_cast<Beam>(element))
+            if (const std::shared_ptr<EdgeStraightElement> beam = std::dynamic_pointer_cast<EdgeStraightElement>(element))
                 members.push_back(beam);
         for (size_t i = 0; i < members.size(); i++)
             for (size_t j = i + 1; j < members.size(); j++)
@@ -684,7 +684,7 @@ static void trusses() {
                     )
                 );
         std::vector<Mesh> cut;
-        for (const std::shared_ptr<Beam>& member : members)
+        for (const std::shared_ptr<EdgeStraightElement>& member : members)
             cut.push_back(member->model_geometry_mesh());
 
         // the end a run running on is cut along is meant to go: the wood beyond that cut is no member's
@@ -692,7 +692,7 @@ static void trusses() {
             if (joint->name.rfind("end_", 0) == 0)
                 cut.push_back(joint->butt_solids[1].mesh);
 
-        for (const std::shared_ptr<Beam>& member : members) {
+        for (const std::shared_ptr<EdgeStraightElement>& member : members) {
             const Mesh drawn = member->element_geometry_mesh();
             const Mesh lost = solid_difference(drawn, cut);
             const double fraction =
@@ -709,7 +709,7 @@ static void trusses() {
         }
         if (guide.first == "pratt")
             check(
-                std::abs(extreme(*truss.get_element_by_name<Beam>("web_0"), 2, false) - 80.0) <
+                std::abs(extreme(*truss.get_element_by_name<EdgeStraightElement>("web_0"), 2, false) - 80.0) <
                     FLUSH,
                 "trusses: pratt: the first vertical does not stand on the bottom chord's top"
             );

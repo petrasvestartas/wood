@@ -38,7 +38,7 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
+static std::shared_ptr<JointBeam> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
 
 static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
 static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);

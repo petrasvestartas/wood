@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wood_element_joint.h"
-#include "wood_element_beam.h"
+#include "wood_element_edge_straight.h"
 #include "wood_element_column.h"
 #include "wood_element_face_planar.h"
 #include "wood_interaction_feature_beam.h"
@@ -87,8 +87,8 @@ public:
 
     /// A beam-to-beam joint on the axis contact of two beams; throws when none fits.
     JointBeam(
-        const Beam& source,
-        const Beam& target,
+        const EdgeStraightElement& source,
+        const EdgeStraightElement& target,
         const InteractionContactAxis& contact,
         double volume_length,
         double cross_or_side_to_end,
@@ -101,8 +101,8 @@ public:
 
     /// A beam-to-beam joint on the axis contact of two beams, null when no volume fits.
     static std::shared_ptr<JointBeam> from_contact(
-        const Beam& source,
-        const Beam& target,
+        const EdgeStraightElement& source,
+        const EdgeStraightElement& target,
         const InteractionContactAxis& contact,
         double volume_length,
         double cross_or_side_to_end,
@@ -199,11 +199,11 @@ public:
     /// At a plain cross both pairs are in line: the shorter is the main pair, then the one most along world x, unless main_beam names a beam of the pair to use.
     static std::shared_ptr<JointBeam> column_head(
         const Column& column,
-        const Beam& a,
-        const Beam& b,
-        const Beam& c,
-        const Beam& d,
-        const Beam* main_beam = nullptr,
+        const EdgeStraightElement& a,
+        const EdgeStraightElement& b,
+        const EdgeStraightElement& c,
+        const EdgeStraightElement& d,
+        const EdgeStraightElement* main_beam = nullptr,
         double tenon = 0.7,
         double shoulder = 0.8,
         double seam_slope = 0.1,

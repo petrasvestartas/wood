@@ -20,7 +20,7 @@ int main() {
         );
     }
 
-    scene.add(std::make_shared<BeamVariable>(
+    scene.add(std::make_shared<EdgeVariableElement>(
         Line::from_points({0.0, 0.0, 0.0}, {length, 0.0, 0.0}), sections, "rib"
     ));
 

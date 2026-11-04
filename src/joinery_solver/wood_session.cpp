@@ -19,11 +19,11 @@ bool register_factories() {
 
     FacePlanarElement::register_type();
     Column::register_type();
-    BeamVariable::register_type();
-    BeamCurved::register_type();
+    EdgeVariableElement::register_type();
+    EdgeCurvedElement::register_type();
     NodeSupportElement::register_type();
     NodeBlockElement::register_type();
-    Beam::register_type();
+    EdgeStraightElement::register_type();
     Joint::register_type();
     InteractionContactFace::register_type();
     InteractionContactAxis::register_type();
@@ -512,7 +512,7 @@ void WoodSession::compute_axis_contacts(double min_distance) {
 
     erase_contacts("axis");
 
-    const std::vector<std::shared_ptr<Beam>> beams = world_elements<Beam>();
+    const std::vector<std::shared_ptr<EdgeStraightElement>> beams = world_elements<EdgeStraightElement>();
     for (const auto& [ia, ib, contact] : axis_contacts(beams, min_distance))
         add_interaction(beams[ia], beams[ib], std::make_shared<InteractionContactAxis>(contact));
 }
@@ -533,9 +533,9 @@ void WoodSession::compute_beam_features(
         remove_object(joint->guid());
     }
 
-    std::unordered_map<std::string, std::shared_ptr<Beam>> beams;
+    std::unordered_map<std::string, std::shared_ptr<EdgeStraightElement>> beams;
 
-    for (const std::shared_ptr<Beam>& beam : world_elements<Beam>())
+    for (const std::shared_ptr<EdgeStraightElement>& beam : world_elements<EdgeStraightElement>())
         beams[beam->guid()] = beam;
 
     for (const std::tuple<std::string, std::string>& pair : graph.get_edges()) {
@@ -547,8 +547,8 @@ void WoodSession::compute_beam_features(
         if (found == interactions.end() || !beams.count(edge.v0) || !beams.count(edge.v1))
             continue;
 
-        const std::shared_ptr<Beam> beam_a = beams.at(edge.v0);
-        const std::shared_ptr<Beam> beam_b = beams.at(edge.v1);
+        const std::shared_ptr<EdgeStraightElement> beam_a = beams.at(edge.v0);
+        const std::shared_ptr<EdgeStraightElement> beam_b = beams.at(edge.v1);
         std::unordered_set<std::string> erased;
         std::vector<std::shared_ptr<Interaction>> kept;
 
@@ -1665,14 +1665,10 @@ static void host_plate_joint_side(
 
 static void add_plane_cut(const Joint& joint, Element& target) {
 
-    if (Beam* beam = dynamic_cast<Beam*>(&target))
-        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
+    if (EdgeElement* edge = dynamic_cast<EdgeElement*>(&target))
+        edge->cuts.insert(edge->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (Column* column = dynamic_cast<Column*>(&target))
         column->cuts.insert(column->cuts.end(), joint.cuts.begin(), joint.cuts.end());
-    else if (BeamVariable* beam = dynamic_cast<BeamVariable*>(&target))
-        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
-    else if (BeamCurved* beam = dynamic_cast<BeamCurved*>(&target))
-        beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (NodeBlockElement* block = dynamic_cast<NodeBlockElement*>(&target))
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else
@@ -1719,7 +1715,7 @@ void WoodSession::compute_breps() {
                                      std::dynamic_pointer_cast<ConnectorPart>(element);
         const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
                            std::dynamic_pointer_cast<FaceCurvedElement>(element) ||
-                           std::dynamic_pointer_cast<BeamCurved>(element);
+                           std::dynamic_pointer_cast<EdgeCurvedElement>(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 
         if (connector_child || round || (wood && !wood->solid_features.empty()) ||

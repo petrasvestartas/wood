@@ -22,7 +22,7 @@ int main() {
     )};
     const auto beam = [&](double angle, double length, const std::string& name) {
         const double turn = angle * Tolerance::PI / 180.0;
-        return std::make_shared<Beam>(
+        return std::make_shared<EdgeStraightElement>(
             Polyline(
                 {Point(std::cos(turn) * length, std::sin(turn) * length, -0.5 * height),
                  Point(0.0, 0.0, -0.5 * height)}
@@ -32,10 +32,10 @@ int main() {
             name
         );
     };
-    const std::shared_ptr<Beam> first = beam(180.0, 385.0, "first");
-    const std::shared_ptr<Beam> second = beam(0.0, 385.0, "second");
-    const std::shared_ptr<Beam> third = beam(75.0, 465.0, "third");
-    const std::shared_ptr<Beam> fourth = beam(280.0, 465.0, "fourth");
+    const std::shared_ptr<EdgeStraightElement> first = beam(180.0, 385.0, "first");
+    const std::shared_ptr<EdgeStraightElement> second = beam(0.0, 385.0, "second");
+    const std::shared_ptr<EdgeStraightElement> third = beam(75.0, 465.0, "third");
+    const std::shared_ptr<EdgeStraightElement> fourth = beam(280.0, 465.0, "fourth");
     scene.add(first);
     scene.add(second);
     scene.add(third);

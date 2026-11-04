@@ -603,15 +603,15 @@ the end plane crosses the far face's soffit (the first facet or its backward ext
 station shift across a 60 mm web is tens of mm against facets of about 420 mm). Every face stays
 planar: the end quad lies in the end plane, the top at z 0, each facet strip in its own plane (its
 far-face edge is that strip's own line). It is the same two-corners-per-station loft as today with
-no `BeamVariable::cuts`, so `uncut()` (`floor_models.cpp:69-82`, which clears `cuts` and
+no `EdgeVariableElement::cuts`, so `uncut()` (`floor_models.cpp:69-82`, which clears `cuts` and
 `solid_cuts` wholesale) keeps every end face for the verification and the pin search, the BRep
 path is unchanged and on the square the sections are bit-identical to today's (the far corners
 coincide with the translated ones). Bed and flange outlines are projected onto their face planes
 first and cut there (compas_tf already does this for flanges, `:943-946`; beds cut first,
 `:773-779`): identical whenever the sweep lies in the cut planes, i.e. everywhere on the square. (The
-alternative, end planes in `BeamVariable::cuts`, would need `uncut()` to tell them from the
+alternative, end planes in `EdgeVariableElement::cuts`, would need `uncut()` to tell them from the
 connector cuts and would route every pocketed rib through `cut_mesh` + `solid_cuts_brep`,
-`wood_element_beam_variable.cpp:79`, with a new topology; not chosen.)
+`wood_element_edge_variable.cpp:79`, with a new topology; not chosen.)
 
 R5 Panels as cylinders. Panel 0 is parabola 0 swept along +Y between the outer rib's inner face
 and inner rib 0's outer face, panel 2 the same along +X, panel 1 the central cylinder of rule A

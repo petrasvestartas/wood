@@ -280,9 +280,9 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
     // turned clockwise in plan, so the lifted beam runs across the isometric view and its cut faces the camera
     const Vector along(std::cos(turn), -std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> a = std::make_shared<Beam>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
+    const std::shared_ptr<EdgeStraightElement> a = std::make_shared<EdgeStraightElement>(Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam");
     const double b_half_width = parts.size() > 3 ? std::stod(parts.at(3)) : 75.0;
-    const std::shared_ptr<Beam> b = std::make_shared<Beam>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), b_half_width, "beam");
+    const std::shared_ptr<EdgeStraightElement> b = std::make_shared<EdgeStraightElement>(Polyline({cross ? origin - along * 600.0 : origin, origin + along * 600.0}), b_half_width, "beam");
     a->name = "beam_a";
     b->name = "beam_b";
     scene.add(a);

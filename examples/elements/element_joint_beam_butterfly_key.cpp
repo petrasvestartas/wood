@@ -8,9 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_butterfly_key");
 
-    const std::array<std::shared_ptr<BeamVariable>, 2> beams = BeamVariable::pair_end_to_end();
-    const std::shared_ptr<BeamVariable> first = beams[0];
-    const std::shared_ptr<BeamVariable> second = beams[1];
+    const std::array<std::shared_ptr<EdgeVariableElement>, 2> beams = EdgeVariableElement::pair_end_to_end();
+    const std::shared_ptr<EdgeVariableElement> first = beams[0];
+    const std::shared_ptr<EdgeVariableElement> second = beams[1];
     scene.add(first);
     scene.add(second);
 

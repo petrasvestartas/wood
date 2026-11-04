@@ -468,7 +468,7 @@ std::vector<std::shared_ptr<Element>> to_member(
     const Polyline axis(
         {compute_lift(start, z) + side * centre, compute_lift(end, z) + side * centre}
     );
-    std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(
+    std::shared_ptr<wood_session::EdgeStraightElement> beam = std::make_shared<wood_session::EdgeStraightElement>(
         axis, centred, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
     );
     beam->cuts = cuts;
@@ -714,7 +714,7 @@ std::vector<std::shared_ptr<Element>> to_brace(
     const Vector along = (head - foot).normalized();
     const Vector up = along.cross(direction.cross(Vector(0.0, 0.0, 1.0))).normalized();
     const Polyline axis({foot - along * upper.framing.reach, head + along * upper.framing.reach});
-    std::shared_ptr<wood_session::Beam> beam = std::make_shared<wood_session::Beam>(
+    std::shared_ptr<wood_session::EdgeStraightElement> beam = std::make_shared<wood_session::EdgeStraightElement>(
         axis, compute_profile(4, upper.framing), std::vector<Vector>{up}, "brace"
     );
     beam->cuts = cuts;

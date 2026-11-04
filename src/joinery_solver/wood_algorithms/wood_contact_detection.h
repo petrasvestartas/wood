@@ -3,7 +3,7 @@
 #include "pch.h"
 
 #include "wood_settings.h"
-#include "wood_element_beam.h"
+#include "wood_element_edge_straight.h"
 #include "wood_element_face_planar.h"
 #include "wood_interaction_contact_face.h"
 #include "wood_interaction_contact_axis.h"
@@ -97,6 +97,6 @@ bool plane_to_face(
 
 /// The closest segment pair of every two beam axes within `min_distance`.
 std::vector<std::tuple<int, int, InteractionContactAxis>>
-axis_contacts(const std::vector<std::shared_ptr<Beam>>& beams, double min_distance);
+axis_contacts(const std::vector<std::shared_ptr<EdgeStraightElement>>& beams, double min_distance);
 
 }

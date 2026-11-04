@@ -114,11 +114,11 @@ private:
     std::shared_ptr<TreeNode> connectors_group(size_t q);
 
     /// A rib as a variable beam, one section per soffit point.
-    static std::shared_ptr<BeamVariable>
+    static std::shared_ptr<EdgeVariableElement>
     rib(const std::array<Polyline, 2>& loops, const std::string& name);
 
     /// A four-corner member as a variable beam between the end sections over corners start and end.
-    static std::shared_ptr<BeamVariable> beam(
+    static std::shared_ptr<EdgeVariableElement> beam(
         const std::array<Polyline, 2>& loops,
         const std::array<size_t, 2>& start,
         const std::array<size_t, 2>& end,

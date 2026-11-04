@@ -88,10 +88,11 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_face_planar.cpp
     src/joinery_solver/wood_elements/wood_element_face_curved.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
-    src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
-    src/joinery_solver/wood_elements/wood_element_beam_curved.cpp
+    src/joinery_solver/wood_elements/wood_element_edge_variable.cpp
+    src/joinery_solver/wood_elements/wood_element_edge_curved.cpp
     src/joinery_solver/wood_elements/wood_element_node_support.cpp
-    src/joinery_solver/wood_elements/wood_element_beam.cpp
+    src/joinery_solver/wood_elements/wood_element_edge.cpp
+    src/joinery_solver/wood_elements/wood_element_edge_straight.cpp
     src/joinery_solver/wood_elements/wood_element_node_block.cpp
     src/joinery_solver/wood_elements/wood_element_joint.cpp
     src/joinery_solver/wood_elements/wood_element_joint_plate.cpp

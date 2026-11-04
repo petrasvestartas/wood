@@ -14,7 +14,7 @@ std::array<size_t, 2> add_module_contacts(WoodSession& session) {
     std::array<size_t, 2> found = {0, 0};
 
     for (const std::shared_ptr<Element>& element : *session.objects.elements)
-        if (std::dynamic_pointer_cast<Beam>(element) || std::dynamic_pointer_cast<FacePlanarElement>(element)) {
+        if (std::dynamic_pointer_cast<EdgeStraightElement>(element) || std::dynamic_pointer_cast<FacePlanarElement>(element)) {
             parts.push_back(element);
             boxes.push_back(element->aabb());
         }
@@ -33,8 +33,8 @@ std::array<size_t, 2> add_module_contacts(WoodSession& session) {
             if (apart)
                 continue;
 
-            const std::shared_ptr<Beam> beam_i = std::dynamic_pointer_cast<Beam>(parts[i]);
-            const std::shared_ptr<Beam> beam_j = std::dynamic_pointer_cast<Beam>(parts[j]);
+            const std::shared_ptr<EdgeStraightElement> beam_i = std::dynamic_pointer_cast<EdgeStraightElement>(parts[i]);
+            const std::shared_ptr<EdgeStraightElement> beam_j = std::dynamic_pointer_cast<EdgeStraightElement>(parts[j]);
 
             // frame: the member that ends on the contact is its target, the one it stands on the source; side by side the first is the source
             if (beam_i && beam_j) {
@@ -55,8 +55,8 @@ std::array<size_t, 2> add_module_contacts(WoodSession& session) {
 
                 // side by side, as a jamb and a stud next to it: neither ends on the other
                 const bool beside = std::max(end_i, end_j) < 0.9;
-                const std::shared_ptr<Beam> source = !beside && end_i > end_j ? beam_j : beam_i;
-                const std::shared_ptr<Beam> target = !beside && end_i > end_j ? beam_i : beam_j;
+                const std::shared_ptr<EdgeStraightElement> source = !beside && end_i > end_j ? beam_j : beam_i;
+                const std::shared_ptr<EdgeStraightElement> target = !beside && end_i > end_j ? beam_i : beam_j;
                 const std::shared_ptr<InteractionContactFace> face =
                     session.compute_face_contact(source, target);
                 face->name = beside ? fmt::format("{}_beside_{}", target->name, source->name)

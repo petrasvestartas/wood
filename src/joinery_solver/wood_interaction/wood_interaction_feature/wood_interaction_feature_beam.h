@@ -8,7 +8,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// A beam-to-beam joint: the four volume rectangles cut where two axes meet, as Beam::joint_volumes builds them.
+/// A beam-to-beam joint: the four volume rectangles cut where two axes meet, as EdgeStraightElement::joint_volumes builds them.
 class InteractionFeatureBeam : public InteractionFeature {
 public:
     static constexpr std::string_view INTERACTION_TYPE =

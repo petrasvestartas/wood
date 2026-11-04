@@ -53,7 +53,7 @@ private:
     std::shared_ptr<TreeNode> group(const std::string& part) const;
 
     /// A frame member from start to end, stud_depth across the panel and size along up.
-    std::shared_ptr<Beam> member(
+    std::shared_ptr<EdgeStraightElement> member(
         const Point& start, const Point& end, double size, const Vector& up, const std::string& part
     ) const;
 };

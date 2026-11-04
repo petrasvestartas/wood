@@ -80,8 +80,8 @@ for (const std::pair<double, size_t>& entry : doors) {
 
 ```cpp
 const bool beside = std::max(end_i, end_j) < 0.9;
-const std::shared_ptr<Beam> source = !beside && end_i > end_j ? beam_j : beam_i;
-const std::shared_ptr<Beam> target = !beside && end_i > end_j ? beam_i : beam_j;
+const std::shared_ptr<EdgeStraightElement> source = !beside && end_i > end_j ? beam_j : beam_i;
+const std::shared_ptr<EdgeStraightElement> target = !beside && end_i > end_j ? beam_i : beam_j;
 const std::shared_ptr<InteractionContactFace> face = session.compute_face_contact(source, target);
 ```
 

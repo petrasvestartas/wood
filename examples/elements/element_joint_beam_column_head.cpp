@@ -22,14 +22,14 @@ int main() {
         {-0.5 * width, -0.5 * height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, height
     )};
     const auto beam = [&](const Point& from, const Point& to, const std::string& name) {
-        return std::make_shared<Beam>(
+        return std::make_shared<EdgeStraightElement>(
             Polyline({from, to}), section, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
         );
     };
-    const std::shared_ptr<Beam> first = beam({-385.0, 0.0, level}, {0.0, 0.0, level}, "first");
-    const std::shared_ptr<Beam> second = beam({385.0, 0.0, level}, {0.0, 0.0, level}, "second");
-    const std::shared_ptr<Beam> third = beam({0.0, -465.0, level}, {0.0, 0.0, level}, "third");
-    const std::shared_ptr<Beam> fourth = beam({0.0, 465.0, level}, {0.0, 0.0, level}, "fourth");
+    const std::shared_ptr<EdgeStraightElement> first = beam({-385.0, 0.0, level}, {0.0, 0.0, level}, "first");
+    const std::shared_ptr<EdgeStraightElement> second = beam({385.0, 0.0, level}, {0.0, 0.0, level}, "second");
+    const std::shared_ptr<EdgeStraightElement> third = beam({0.0, -465.0, level}, {0.0, 0.0, level}, "third");
+    const std::shared_ptr<EdgeStraightElement> fourth = beam({0.0, 465.0, level}, {0.0, 0.0, level}, "fourth");
     scene.add(first);
     scene.add(second);
     scene.add(third);

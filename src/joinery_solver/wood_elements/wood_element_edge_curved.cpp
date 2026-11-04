@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "wood_element_beam_curved.h"
+#include "wood_element_edge_curved.h"
 #include "wood_element_geometry.h"
 #include "primitives.h"
 #include <map>
@@ -228,18 +228,18 @@ Polyline section_in_plane(const Plane& frame, double x0, double y0, double x1, d
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-BeamCurved::BeamCurved() : WoodElement("beam_curved") {
+EdgeCurvedElement::EdgeCurvedElement() : EdgeElement("beam_curved") {
 }
 
-BeamCurved::BeamCurved(
+EdgeCurvedElement::EdgeCurvedElement(
     const NurbsCurve& centreline, double width, double height, const std::string& name
 )
-    : WoodElement(name), centreline(centreline), width(width), height(height) {
+    : EdgeElement(name), centreline(centreline), width(width), height(height) {
     if (!centreline.is_valid())
-        throw std::invalid_argument("A BeamCurved requires a valid NurbsCurve centreline");
+        throw std::invalid_argument("An EdgeCurvedElement requires a valid NurbsCurve centreline");
 }
 
-BeamCurved::BeamCurved(
+EdgeCurvedElement::EdgeCurvedElement(
     const NurbsCurve& centreline,
     double width,
     double height,
@@ -249,14 +249,14 @@ BeamCurved::BeamCurved(
     int samples,
     const std::string& name
 )
-    : WoodElement(name), centreline(centreline), width(width), height(height), directions({up}),
+    : EdgeElement(name), centreline(centreline), width(width), height(height), directions({up}),
       num_width(std::max(1, num_width)), num_height(std::max(1, num_height)),
       samples(std::max(2, samples)) {
     if (!centreline.is_valid())
-        throw std::invalid_argument("A BeamCurved requires a valid NurbsCurve centreline");
+        throw std::invalid_argument("An EdgeCurvedElement requires a valid NurbsCurve centreline");
 }
 
-BeamCurved::BeamCurved(
+EdgeCurvedElement::EdgeCurvedElement(
     const NurbsCurve& centreline,
     double width,
     double height,
@@ -266,18 +266,18 @@ BeamCurved::BeamCurved(
     int samples,
     const std::string& name
 )
-    : WoodElement(name), centreline(centreline), width(width), height(height),
+    : EdgeElement(name), centreline(centreline), width(width), height(height),
       directions(directions), num_width(std::max(1, num_width)),
       num_height(std::max(1, num_height)), samples(std::max(2, samples)) {
     if (!centreline.is_valid())
-        throw std::invalid_argument("A BeamCurved requires a valid NurbsCurve centreline");
+        throw std::invalid_argument("An EdgeCurvedElement requires a valid NurbsCurve centreline");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::shared_ptr<BeamCurved> BeamCurved::single_curved(
+std::shared_ptr<EdgeCurvedElement> EdgeCurvedElement::single_curved(
     const NurbsCurve& centreline,
     double width,
     double height,
@@ -285,12 +285,12 @@ std::shared_ptr<BeamCurved> BeamCurved::single_curved(
     int samples,
     const std::string& name
 ) {
-    return std::make_shared<BeamCurved>(
+    return std::make_shared<EdgeCurvedElement>(
         centreline, width, height, std::vector<Vector>{}, 1, std::max(1, num_height), samples, name
     );
 }
 
-std::shared_ptr<BeamCurved> BeamCurved::double_curved(
+std::shared_ptr<EdgeCurvedElement> EdgeCurvedElement::double_curved(
     const NurbsCurve& centreline,
     double width,
     double height,
@@ -301,7 +301,7 @@ std::shared_ptr<BeamCurved> BeamCurved::double_curved(
     int samples,
     const std::string& name
 ) {
-    std::shared_ptr<BeamCurved> beam = std::make_shared<BeamCurved>(
+    std::shared_ptr<EdgeCurvedElement> beam = std::make_shared<EdgeCurvedElement>(
         centreline,
         width,
         height,
@@ -315,7 +315,7 @@ std::shared_ptr<BeamCurved> BeamCurved::double_curved(
     return beam;
 }
 
-std::shared_ptr<BeamCurved> BeamCurved::from_surface(
+std::shared_ptr<EdgeCurvedElement> EdgeCurvedElement::from_surface(
     const NurbsCurve& centreline,
     const NurbsSurface& surface,
     double width,
@@ -342,9 +342,9 @@ std::shared_ptr<BeamCurved> BeamCurved::from_surface(
     );
 }
 
-std::shared_ptr<BeamCurved> BeamCurved::from_element(Element e) {
+std::shared_ptr<EdgeCurvedElement> EdgeCurvedElement::from_element(Element e) {
     const std::string bytes = e.element_data_dumps();
-    std::shared_ptr<BeamCurved> beam = std::make_shared<BeamCurved>();
+    std::shared_ptr<EdgeCurvedElement> beam = std::make_shared<EdgeCurvedElement>();
     static_cast<Element&>(*beam) = std::move(e);
 
     if (bytes.empty())
@@ -406,15 +406,15 @@ std::shared_ptr<BeamCurved> BeamCurved::from_element(Element e) {
 // Glulam queries & lamellae
 // ═══════════════════════════════════════════════════════════════════════════
 
-double BeamCurved::lamella_width() const {
+double EdgeCurvedElement::lamella_width() const {
     return width / static_cast<double>(std::max(1, num_width));
 }
 
-double BeamCurved::lamella_height() const {
+double EdgeCurvedElement::lamella_height() const {
     return height / static_cast<double>(std::max(1, num_height));
 }
 
-BeamCurved::Twist BeamCurved::compute_twist() const {
+EdgeCurvedElement::Twist EdgeCurvedElement::compute_twist() const {
     Twist twist;
     const size_t m_count = directions.size();
     if (m_count < 2 || !centreline.is_valid())
@@ -468,11 +468,11 @@ BeamCurved::Twist BeamCurved::compute_twist() const {
     return twist;
 }
 
-Plane BeamCurved::get_plane(double t) const {
+Plane EdgeCurvedElement::get_plane(double t) const {
     return get_plane(t, compute_twist());
 }
 
-Plane BeamCurved::get_plane(double t, const Twist& twist) const {
+Plane EdgeCurvedElement::get_plane(double t, const Twist& twist) const {
     if (!centreline.is_valid())
         return Plane::xy_plane();
 
@@ -535,7 +535,7 @@ Plane BeamCurved::get_plane(double t, const Twist& twist) const {
     return frame_from_tangent_and_up(origin, tangent, rmf.y_axis());
 }
 
-std::vector<Plane> BeamCurved::frames() const {
+std::vector<Plane> EdgeCurvedElement::frames() const {
     std::vector<Plane> result;
     if (!centreline.is_valid())
         return result;
@@ -569,7 +569,7 @@ std::vector<Plane> BeamCurved::frames() const {
     return result;
 }
 
-bool BeamCurved::is_single_curved(double tolerance) const {
+bool EdgeCurvedElement::is_single_curved(double tolerance) const {
     if (!centreline.is_valid() || !centreline.is_planar(nullptr, tolerance))
         return false;
     const std::vector<Plane> station_frames = frames();
@@ -583,15 +583,15 @@ bool BeamCurved::is_single_curved(double tolerance) const {
     return true;
 }
 
-bool BeamCurved::is_double_curved(double tolerance) const {
+bool EdgeCurvedElement::is_double_curved(double tolerance) const {
     return !is_single_curved(tolerance);
 }
 
-std::vector<Polyline> BeamCurved::sections() const {
+std::vector<Polyline> EdgeCurvedElement::sections() const {
     return sections(frames());
 }
 
-std::vector<Polyline> BeamCurved::sections(const std::vector<Plane>& station_frames) const {
+std::vector<Polyline> EdgeCurvedElement::sections(const std::vector<Plane>& station_frames) const {
     std::vector<Polyline> rings;
     if (!centreline.is_valid() || width <= 0.0 || height <= 0.0)
         return rings;
@@ -605,7 +605,7 @@ std::vector<Polyline> BeamCurved::sections(const std::vector<Plane>& station_fra
     return rings;
 }
 
-std::array<NurbsCurve, 4> BeamCurved::edge_curves() const {
+std::array<NurbsCurve, 4> EdgeCurvedElement::edge_curves() const {
     const std::vector<Polyline> rings = sections();
     std::array<std::vector<Point>, 4> corner_pts;
     for (const Polyline& ring : rings) {
@@ -625,7 +625,7 @@ std::array<NurbsCurve, 4> BeamCurved::edge_curves() const {
     return edges;
 }
 
-NurbsCurve BeamCurved::offset_curve(double x, double y) const {
+NurbsCurve EdgeCurvedElement::offset_curve(double x, double y) const {
     const std::vector<Plane> station_frames = frames();
     std::vector<Point> pts;
     pts.reserve(station_frames.size());
@@ -638,7 +638,7 @@ NurbsCurve BeamCurved::offset_curve(double x, double y) const {
                            : NurbsCurve();
 }
 
-NurbsCurve BeamCurved::lamella_curve(int ix, int iy) const {
+NurbsCurve EdgeCurvedElement::lamella_curve(int ix, int iy) const {
     const int nw = std::max(1, num_width);
     const int nh = std::max(1, num_height);
     const double lw = width / static_cast<double>(nw);
@@ -648,7 +648,7 @@ NurbsCurve BeamCurved::lamella_curve(int ix, int iy) const {
     return offset_curve(x, y);
 }
 
-std::vector<NurbsCurve> BeamCurved::lamella_curves() const {
+std::vector<NurbsCurve> EdgeCurvedElement::lamella_curves() const {
     std::vector<NurbsCurve> curves;
     const int nw = std::max(1, num_width);
     const int nh = std::max(1, num_height);
@@ -659,7 +659,7 @@ std::vector<NurbsCurve> BeamCurved::lamella_curves() const {
     return curves;
 }
 
-std::vector<Mesh> BeamCurved::lamella_meshes() const {
+std::vector<Mesh> EdgeCurvedElement::lamella_meshes() const {
     std::vector<Mesh> meshes;
     const std::vector<Plane> station_frames = frames();
     if (station_frames.size() < 2 || width <= 0.0 || height <= 0.0)
@@ -688,7 +688,7 @@ std::vector<Mesh> BeamCurved::lamella_meshes() const {
     return meshes;
 }
 
-std::vector<BRep> BeamCurved::lamella_breps() const {
+std::vector<BRep> EdgeCurvedElement::lamella_breps() const {
     std::vector<BRep> breps;
     const std::vector<Plane> station_frames = frames();
     if (station_frames.size() < 2 || width <= 0.0 || height <= 0.0)
@@ -728,7 +728,7 @@ std::vector<BRep> BeamCurved::lamella_breps() const {
     return breps;
 }
 
-double BeamCurved::max_curvature(double& max_kw, double& max_kh) const {
+double EdgeCurvedElement::max_curvature(double& max_kw, double& max_kh) const {
     max_kw = 0.0;
     max_kh = 0.0;
     double max_k = 0.0;
@@ -763,13 +763,13 @@ double BeamCurved::max_curvature(double& max_kw, double& max_kh) const {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 
-const Mesh& BeamCurved::element_geometry_mesh() const {
+const Mesh& EdgeCurvedElement::element_geometry_mesh() const {
     if (!_element_geometry_mesh)
         _element_geometry_mesh = sweep_sections(sections());
     return *_element_geometry_mesh;
 }
 
-const BRep& BeamCurved::element_geometry_brep() const {
+const BRep& EdgeCurvedElement::element_geometry_brep() const {
     if (!_element_geometry_brep) {
         const std::array<NurbsCurve, 4> corners = edge_curves();
         if (corners[0].is_valid() && corners[1].is_valid() && corners[2].is_valid() &&
@@ -781,7 +781,7 @@ const BRep& BeamCurved::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-Mesh BeamCurved::trimmed_mesh() const {
+Mesh EdgeCurvedElement::trimmed_mesh() const {
     Mesh m = cut_mesh(stock_mesh(), cuts);
     if (cross_laps.empty() || !centreline.is_valid() || width <= 0.0 || height <= 0.0)
         return m;
@@ -810,7 +810,7 @@ Mesh BeamCurved::trimmed_mesh() const {
     return m;
 }
 
-BRep BeamCurved::trimmed_brep() const {
+BRep EdgeCurvedElement::trimmed_brep() const {
     if (cuts.empty() && cross_laps.empty())
         return element_geometry_brep();
 
@@ -1465,21 +1465,25 @@ BRep BeamCurved::trimmed_brep() const {
     return brep;
 }
 
-std::vector<Plane> BeamCurved::compute_planes() const {
-    return face_planes(model_geometry_mesh());
+Line EdgeCurvedElement::chord() const {
+
+    if (!centreline.is_valid())
+        return Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
+
+    return Line::from_points(centreline.point_at_start(), centreline.point_at_end());
 }
 
-std::optional<Plane> BeamCurved::base_plane() const {
+std::optional<Plane> EdgeCurvedElement::base_plane() const {
     if (!centreline.is_valid())
         return std::nullopt;
     return get_plane(centreline.domain_start());
 }
 
-std::shared_ptr<BeamCurved> BeamCurved::transformed(const Xform& xform) const {
+std::shared_ptr<EdgeCurvedElement> EdgeCurvedElement::transformed(const Xform& xform) const {
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<BeamCurved> beam = std::make_shared<BeamCurved>(
+    std::shared_ptr<EdgeCurvedElement> beam = std::make_shared<EdgeCurvedElement>(
         centreline.transformed(xform),
         width,
         height,
@@ -1504,7 +1508,7 @@ std::shared_ptr<BeamCurved> BeamCurved::transformed(const Xform& xform) const {
     return beam;
 }
 
-void BeamCurved::place(const Xform& xform) {
+void EdgeCurvedElement::place(const Xform& xform) {
     // nothing stored yet has nothing to carry: the solid comes from the moved curve when it is asked for
     if (_geometry_mesh || _geometry_brep || !_features.empty() || !_insertion_vectors.empty())
         Element::place(xform);
@@ -1528,19 +1532,19 @@ void BeamCurved::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
-void BeamCurved::compute_geometry_mesh_impl() {
+void EdgeCurvedElement::compute_geometry_mesh_impl() {
     if (centreline.is_valid() && width > 0.0 && height > 0.0)
         set_geometry(model_geometry_mesh());
     compute_geometry_features();
 }
 
-void BeamCurved::compute_geometry_brep_impl() {
+void EdgeCurvedElement::compute_geometry_brep_impl() {
     if (centreline.is_valid() && width > 0.0 && height > 0.0)
         set_geometry(model_geometry_brep());
     compute_geometry_features();
 }
 
-void BeamCurved::compute_geometry_features() {
+void EdgeCurvedElement::compute_geometry_features() {
     const std::vector<Plane> station_frames = frames();
     std::vector<Point> axis_pts;
     axis_pts.reserve(station_frames.size());
@@ -1568,7 +1572,7 @@ void BeamCurved::compute_geometry_features() {
     set_features(std::move(next));
 }
 
-AABB BeamCurved::aabb(double inflate) const {
+AABB EdgeCurvedElement::aabb(double inflate) const {
     const Mesh& solid = geometry_mesh();
     if (solid.number_of_vertices() > 0)
         return AABB::from_mesh(solid, inflate);
@@ -1585,7 +1589,7 @@ AABB BeamCurved::aabb(double inflate) const {
 // JSON & Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
 
-nlohmann::ordered_json BeamCurved::element_data_jsondump() const {
+nlohmann::ordered_json EdgeCurvedElement::element_data_jsondump() const {
     nlohmann::ordered_json data;
     data["centreline"] = centreline.jsondump();
     data["width"] = width;
@@ -1633,25 +1637,26 @@ nlohmann::ordered_json BeamCurved::element_data_jsondump() const {
     return data;
 }
 
-std::string BeamCurved::element_data_dumps() const {
+std::string EdgeCurvedElement::element_data_dumps() const {
     return element_data_jsondump().dump();
 }
 
 static std::shared_ptr<Element> beam_curved_from_protobuf(const std::string& data) {
-    return BeamCurved::from_element(Element::pb_loads(data));
+    return EdgeCurvedElement::from_element(Element::pb_loads(data));
 }
 
-void BeamCurved::register_type() {
+void EdgeCurvedElement::register_type() {
     Element::register_type(std::string(ELEMENT_TYPE), beam_curved_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), beam_curved_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
 
-std::string BeamCurved::str() const {
+std::string EdgeCurvedElement::str() const {
     std::ostringstream os;
-    os << "BeamCurved(name=" << name << ", width=" << width << ", height=" << height
+    os << "EdgeCurvedElement(name=" << name << ", width=" << width << ", height=" << height
        << ", lamellae=" << num_width << "x" << num_height << ", samples=" << samples
        << ", is_visible=" << std::boolalpha << is_visible << ", is_locked=" << is_locked << ")";
     return os.str();

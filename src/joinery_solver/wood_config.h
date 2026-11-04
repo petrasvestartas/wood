@@ -132,7 +132,7 @@ struct Dataset {
         static constexpr std::string_view cross_brg_slab_0 = Dataset::cross_brg_slab_0;
     };
 
-    /// Beam axes, not plate outlines (type_beams_name_*): compute_line_contacts / Beam::joint_volumes, never obj_load.
+    /// Beam axes, not plate outlines (type_beams_name_*): compute_line_contacts / EdgeStraightElement::joint_volumes, never obj_load.
     struct Curves {
         static constexpr std::string_view phanomema_node = Dataset::phanomema_node;
     };

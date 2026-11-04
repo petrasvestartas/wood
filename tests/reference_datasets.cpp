@@ -388,9 +388,9 @@ static Score run_beams(const std::string& name, const nlohmann::json& record) {
     const std::vector<double>& beams = settings.beams;
     WoodSession scene(name);
     scene.settings = settings;
-    std::vector<std::shared_ptr<Beam>> members;
+    std::vector<std::shared_ptr<EdgeStraightElement>> members;
     for (const Polyline& axis : io::load_obj(name)) {
-        members.push_back(std::make_shared<Beam>(
+        members.push_back(std::make_shared<EdgeStraightElement>(
             axis,
             std::vector<double>(axis.segment_count(), beams[0]),
             std::vector<Vector>{},

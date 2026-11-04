@@ -2,7 +2,7 @@
 
 [TOC]
 
-Timber trusses in `src/templates/truss/*.h`. Every truss is a `TrussGuide`, made by one constructor and its overloads: from its members, or from a design by its parameters, `TrussGuide(Pratt{})` or `TrussGuide(Bow{"64"})`. `wood_truss::Truss` makes each member a `Beam` and joins them by a member hierarchy: T joints with run-on ends, butts on the members' real surfaces, miters at gentle bends and ridges, half laps where members cross. The 68 designs of the library and the 326 roof trusses and framed bridges of Bow's 1873 catalogue are at the end of this page.
+Timber trusses in `src/templates/truss/*.h`. Every truss is a `TrussGuide`, made by one constructor and its overloads: from its members, or from a design by its parameters, `TrussGuide(Pratt{})` or `TrussGuide(Bow{"64"})`. `wood_truss::Truss` makes each member a `EdgeStraightElement` and joins them by a member hierarchy: T joints with run-on ends, butts on the members' real surfaces, miters at gentle bends and ridges, half laps where members cross. The 68 designs of the library and the 326 roof trusses and framed bridges of Bow's 1873 catalogue are at the end of this page.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#truss_ex_pratt">
@@ -112,7 +112,7 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
     // 1. input: the guide's chords and webs as drawn
     add_input();
 
-    // 2. members: a Beam per chord run and per web
+    // 2. members: a EdgeStraightElement per chord run and per web
     add_chords();
     add_webs();
 

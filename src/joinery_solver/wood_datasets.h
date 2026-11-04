@@ -135,5 +135,5 @@ bool type_plates_name_cross_ibois_pavilion();
 /// data/cross_brussels_sports_tower.yml through run_dataset; false on failure.
 bool type_plates_name_cross_brussels_sports_tower();
 
-/// data/phanomema_node.yml through Beam::joint_volumes; false on failure.
+/// data/phanomema_node.yml through EdgeStraightElement::joint_volumes; false on failure.
 bool type_beams_name_phanomema_node();

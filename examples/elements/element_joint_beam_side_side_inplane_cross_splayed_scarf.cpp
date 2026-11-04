@@ -10,9 +10,9 @@ int main() {
     scene.settings.joint_parameters[2] =
         JointPlate::library_id("side_side_inplane_cross_splayed_scarf");
 
-    const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_end_to_end(0.0);
-    const std::shared_ptr<Beam> first = pair[0];
-    const std::shared_ptr<Beam> second = pair[1];
+    const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_end_to_end(0.0);
+    const std::shared_ptr<EdgeStraightElement> first = pair[0];
+    const std::shared_ptr<EdgeStraightElement> second = pair[1];
     scene.add(first);
     scene.add(second);
 

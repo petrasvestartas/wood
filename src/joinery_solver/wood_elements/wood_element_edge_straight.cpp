@@ -1,54 +1,54 @@
 #include "pch.h"
 #include "wood_serialization.h"
-#include "wood_element_beam.h"
+#include "wood_element_edge_straight.h"
 #include "wood_element_geometry.h"
 #include "wood_profile.h"
-#include "element_beam.pb.h"
+#include "element_edge_straight.pb.h"
 using namespace session_cpp;
 
 namespace wood_session {
 
-Beam::Beam() : WoodElement("beam") {
+EdgeStraightElement::EdgeStraightElement() : EdgeElement("beam") {
 }
 
-Beam::Beam(const Polyline& axis, double radius, const std::string& name)
-    : WoodElement(name), axis(axis), radii(axis.segment_count(), radius) {
+EdgeStraightElement::EdgeStraightElement(const Polyline& axis, double radius, const std::string& name)
+    : EdgeElement(name), axis(axis), radii(axis.segment_count(), radius) {
 }
 
-Beam::Beam(
+EdgeStraightElement::EdgeStraightElement(
     const Polyline& axis,
     const std::vector<double>& radii,
     const std::vector<Vector>& directions,
     int allowed_type,
     const std::string& name
 )
-    : WoodElement(name), axis(axis), radii(radii), directions(directions),
+    : EdgeElement(name), axis(axis), radii(radii), directions(directions),
       allowed_type(allowed_type) {
 }
 
-Beam::Beam(
+EdgeStraightElement::EdgeStraightElement(
     const Polyline& axis,
     const std::vector<Polyline>& profile,
     const std::vector<Vector>& directions,
     const std::string& name
 )
-    : WoodElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0),
+    : EdgeElement(name), axis(axis), radii(axis.segment_count(), compute_size(profile).first / 2.0),
       directions(directions), profile(profile) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::array<std::shared_ptr<Beam>, 2>
-Beam::pair_crossing(double angle_degrees, double radius, double length) {
+std::array<std::shared_ptr<EdgeStraightElement>, 2>
+EdgeStraightElement::pair_crossing(double angle_degrees, double radius, double length) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first = std::make_shared<Beam>(
+    const std::shared_ptr<EdgeStraightElement> first = std::make_shared<EdgeStraightElement>(
         Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first"
     );
-    const std::shared_ptr<Beam> second = std::make_shared<Beam>(
+    const std::shared_ptr<EdgeStraightElement> second = std::make_shared<EdgeStraightElement>(
         Polyline({origin - along * (length * 0.5), origin + along * (length * 0.5)}),
         radius,
         "second"
@@ -56,40 +56,40 @@ Beam::pair_crossing(double angle_degrees, double radius, double length) {
     return {first, second};
 }
 
-std::array<std::shared_ptr<Beam>, 2>
-Beam::pair_tee(double angle_degrees, double radius, double length) {
+std::array<std::shared_ptr<EdgeStraightElement>, 2>
+EdgeStraightElement::pair_tee(double angle_degrees, double radius, double length) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first = std::make_shared<Beam>(
+    const std::shared_ptr<EdgeStraightElement> first = std::make_shared<EdgeStraightElement>(
         Polyline({Point(-length * 0.5, 0.0, 0.0), Point(length * 0.5, 0.0, 0.0)}), radius, "first"
     );
-    const std::shared_ptr<Beam> second =
-        std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    const std::shared_ptr<EdgeStraightElement> second =
+        std::make_shared<EdgeStraightElement>(Polyline({origin, origin + along * length}), radius, "second");
     second->extension = radius;
     return {first, second};
 }
 
-std::array<std::shared_ptr<Beam>, 2>
-Beam::pair_end_to_end(double angle_degrees, double radius, double length, double extension) {
+std::array<std::shared_ptr<EdgeStraightElement>, 2>
+EdgeStraightElement::pair_end_to_end(double angle_degrees, double radius, double length, double extension) {
 
     const double turn = angle_degrees * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<Beam> first =
-        std::make_shared<Beam>(Polyline({Point(-length, 0.0, 0.0), origin}), radius, "first");
-    const std::shared_ptr<Beam> second =
-        std::make_shared<Beam>(Polyline({origin, origin + along * length}), radius, "second");
+    const std::shared_ptr<EdgeStraightElement> first =
+        std::make_shared<EdgeStraightElement>(Polyline({Point(-length, 0.0, 0.0), origin}), radius, "first");
+    const std::shared_ptr<EdgeStraightElement> second =
+        std::make_shared<EdgeStraightElement>(Polyline({origin, origin + along * length}), radius, "second");
     first->extension = extension;
     second->extension = extension;
     return {first, second};
 }
 
-std::shared_ptr<Beam> Beam::from_element(Element e) {
+std::shared_ptr<EdgeStraightElement> EdgeStraightElement::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
-    std::shared_ptr<Beam> beam = std::make_shared<Beam>();
+    std::shared_ptr<EdgeStraightElement> beam = std::make_shared<EdgeStraightElement>();
     static_cast<Element&>(*beam) = std::move(e);
 
     if (!bytes.empty() && bytes.front() == '{') {
@@ -108,7 +108,7 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
         return beam;
     }
 
-    wood_proto::Beam proto;
+    wood_proto::EdgeStraightElement proto;
     if (!proto.ParseFromString(bytes))
         return beam;
 
@@ -135,15 +135,23 @@ std::shared_ptr<Beam> Beam::from_element(Element e) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-double Beam::radius(int segment) const {
+Line EdgeStraightElement::chord() const {
+
+    if (axis.point_count() < 2)
+        return Line::from_points(Point(0, 0, 0), Point(0, 0, 0));
+
+    return Line::from_points(axis.get_point(0), axis.get_point(axis.point_count() - 1));
+}
+
+double EdgeStraightElement::radius(int segment) const {
     return segment >= 0 && segment < (int)radii.size() ? radii[segment] : 0.0;
 }
 
-bool Beam::has_direction(int segment) const {
+bool EdgeStraightElement::has_direction(int segment) const {
     return segment >= 0 && segment < (int)directions.size();
 }
 
-std::vector<Polyline> Beam::sections() const {
+std::vector<Polyline> EdgeStraightElement::sections() const {
 
     std::vector<Polyline> sections;
     const int segments = static_cast<int>(axis.segment_count());
@@ -174,7 +182,7 @@ std::vector<Polyline> Beam::sections() const {
 }
 
 /// Every profile loop placed at both ends of a one-segment axis: what a hollow beam lofts between.
-static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(const Beam& beam) {
+static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(const EdgeStraightElement& beam) {
 
     const Vector along = beam.axis.get_point(1) - beam.axis.get_point(0);
     const Vector up = beam.has_direction(0) ? beam.directions[0] : Vector::z_axis();
@@ -189,7 +197,7 @@ static std::pair<std::vector<Polyline>, std::vector<Polyline>> profile_ends(cons
     return ends;
 }
 
-const Mesh& Beam::element_geometry_mesh() const {
+const Mesh& EdgeStraightElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         if (!profile.empty() && axis.segment_count() == 1) {
@@ -203,7 +211,7 @@ const Mesh& Beam::element_geometry_mesh() const {
     return *_element_geometry_mesh;
 }
 
-const BRep& Beam::element_geometry_brep() const {
+const BRep& EdgeStraightElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         if (!profile.empty() && axis.segment_count() == 1) {
@@ -215,18 +223,6 @@ const BRep& Beam::element_geometry_brep() const {
     }
 
     return *_element_geometry_brep;
-}
-
-Mesh Beam::trimmed_mesh() const {
-    return cut_mesh(stock_mesh(), cuts);
-}
-
-BRep Beam::trimmed_brep() const {
-    return cut_brep(element_geometry_brep(), cuts);
-}
-
-std::vector<Plane> Beam::compute_planes() const {
-    return face_planes(model_geometry_mesh());
 }
 
 /// The up directions moved by xform.
@@ -242,12 +238,12 @@ transformed_directions(const std::vector<Vector>& directions, size_t segments, c
     return moved;
 }
 
-std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
+std::shared_ptr<EdgeStraightElement> EdgeStraightElement::transformed(const Xform& xform) const {
 
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<Beam> beam = std::make_shared<Beam>(
+    std::shared_ptr<EdgeStraightElement> beam = std::make_shared<EdgeStraightElement>(
         axis.transformed(xform),
         radii,
         transformed_directions(directions, axis.segment_count(), xform),
@@ -268,7 +264,7 @@ std::shared_ptr<Beam> Beam::transformed(const Xform& xform) const {
     return beam;
 }
 
-void Beam::place(const Xform& xform) {
+void EdgeStraightElement::place(const Xform& xform) {
 
     Element::place(xform);
     directions = transformed_directions(directions, axis.segment_count(), xform);
@@ -285,7 +281,7 @@ void Beam::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
-void Beam::compute_geometry_mesh_impl() {
+void EdgeStraightElement::compute_geometry_mesh_impl() {
 
     const std::vector<Polyline> rings = sections();
     if (!rings.empty()) {
@@ -294,7 +290,7 @@ void Beam::compute_geometry_mesh_impl() {
     compute_geometry_features();
 }
 
-void Beam::compute_geometry_brep_impl() {
+void EdgeStraightElement::compute_geometry_brep_impl() {
 
     const std::vector<Polyline> rings = sections();
     if (!rings.empty()) {
@@ -303,7 +299,7 @@ void Beam::compute_geometry_brep_impl() {
     compute_geometry_features();
 }
 
-void Beam::compute_geometry_features() {
+void EdgeStraightElement::compute_geometry_features() {
 
     const std::pair<Polyline, std::vector<Polyline>> trimmed = trim_to_cuts(axis, sections(), cuts);
 
@@ -320,7 +316,7 @@ void Beam::compute_geometry_features() {
     set_features(std::move(next));
 }
 
-AABB Beam::aabb(double inflate) const {
+AABB EdgeStraightElement::aabb(double inflate) const {
 
     const std::pair<double, double> size = compute_size(profile);
     double reach = std::max(size.first, size.second) / 2.0;
@@ -333,11 +329,11 @@ AABB Beam::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-nlohmann::ordered_json Beam::element_data_jsondump() const {
+nlohmann::ordered_json EdgeStraightElement::element_data_jsondump() const {
 
-    wood_proto::Beam proto;
+    wood_proto::EdgeStraightElement proto;
     if (!proto.ParseFromString(element_data_dumps()))
-        throw std::runtime_error("Failed to parse Beam protobuf data");
+        throw std::runtime_error("Failed to parse EdgeStraightElement protobuf data");
 
     return json_of(proto);
 }
@@ -345,9 +341,9 @@ nlohmann::ordered_json Beam::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Beam::element_data_dumps() const {
+std::string EdgeStraightElement::element_data_dumps() const {
 
-    wood_proto::Beam proto;
+    wood_proto::EdgeStraightElement proto;
     if (!proto.mutable_axis()->ParseFromString(axis.pb_dumps()))
         throw std::runtime_error("Failed to parse Line protobuf data");
     proto.mutable_radii()->Add(radii.begin(), radii.end());
@@ -372,29 +368,30 @@ std::string Beam::element_data_dumps() const {
     return proto.SerializeAsString();
 }
 
-/// The element factory of a serialized beam: the protobuf bytes decoded as an Element and promoted to a Beam.
+/// The element factory of a serialized beam: the protobuf bytes decoded as an Element and promoted to a EdgeStraightElement.
 static std::shared_ptr<Element> beam_from_protobuf(const std::string& data) {
-    return Beam::from_element(Element::pb_loads(data));
+    return EdgeStraightElement::from_element(Element::pb_loads(data));
 }
 
-void Beam::register_type() {
+void EdgeStraightElement::register_type() {
     Element::register_type(std::string(ELEMENT_TYPE), beam_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), beam_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Beam::str() const {
+std::string EdgeStraightElement::str() const {
 
     std::ostringstream os;
-    os << "Beam(name=" << name << ", segments=" << axis.segment_count()
+    os << "EdgeStraightElement(name=" << name << ", segments=" << axis.segment_count()
        << ", radii=" << radii.size() << ", is_visible=" << std::boolalpha << is_visible
        << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
 
-std::optional<Plane> Beam::base_plane() const {
+std::optional<Plane> EdgeStraightElement::base_plane() const {
 
     const std::vector<Polyline> rings = sections();
 

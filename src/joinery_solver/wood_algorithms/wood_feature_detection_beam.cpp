@@ -96,8 +96,8 @@ bool trim_side_to_end(
 }
 
 bool beam_to_beam(
-    const Beam& beam0,
-    const Beam& beam1,
+    const EdgeStraightElement& beam0,
+    const EdgeStraightElement& beam1,
     const InteractionContactAxis& contact,
     double volume_length,
     double cross_or_side_to_end,

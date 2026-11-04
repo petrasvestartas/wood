@@ -83,7 +83,7 @@ enum class GothicPattern {
     crazy_vault = star_stellar // Alias kept for compatibility
 };
 
-/// Analytical top vault surface that the extrados (top face) of every BeamCurved rib follows flush.
+/// Analytical top vault surface that the extrados (top face) of every EdgeCurvedElement rib follows flush.
 enum class ArchMethod {
     groin_cylinders,    // Two orthogonal circular barrel cylinders intersecting along the bay diagonals
     spherical_sail,     // Alias mapped to cylindrical groin barrels (no doubly-curved patches)
@@ -92,7 +92,7 @@ enum class ArchMethod {
     chord_impost = groin_cylinders
 };
 
-/// A Gothic ribbed vault bay of mitered BeamCurved glulam ribs, 4 corner support blocks, and cylindrical web panels.
+/// A Gothic ribbed vault bay of mitered EdgeCurvedElement glulam ribs, 4 corner support blocks, and cylindrical web panels.
 std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     double span_x = 10000.0,
     double span_y = 10000.0,
@@ -104,7 +104,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     int subdivisions = 16
 );
 
-/// A WoodSession template wrapping a Gothic ribbed vault bay of mitered BeamCurved ribs, corner support blocks, and cylindrical web panels.
+/// A WoodSession template wrapping a Gothic ribbed vault bay of mitered EdgeCurvedElement ribs, corner support blocks, and cylindrical web panels.
 class GothicRibbedVault : public wood_session::WoodSession {
 public:
     double span_x = 10000.0;

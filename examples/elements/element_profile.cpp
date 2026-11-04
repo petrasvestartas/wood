@@ -21,7 +21,7 @@ int main() {
     for (size_t i = 0; i < profiles.size(); i++) {
         const double x = 700.0 * i;
         const Polyline axis({{x, 0.0, 0.0}, {x, 800.0, 0.0}});
-        scene.add(std::make_shared<Beam>(
+        scene.add(std::make_shared<EdgeStraightElement>(
             axis, profiles[i].second, std::vector<Vector>{}, profiles[i].first
         ));
     }
@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The section profiles of wood_profile.h, each a Beam 800 long on its own axis: profile_rectangle(200, 300), profile_round(240), profile_w(200, 300, 20, 12), profile_hss(200, 300, 12), profile_slab_band(500, 100) and profile_t(300, 300, 20, 40); loop 0 is the outline, further loops are holes.
+The section profiles of wood_profile.h, each a EdgeStraightElement 800 long on its own axis: profile_rectangle(200, 300), profile_round(240), profile_w(200, 300, 20, 12), profile_hss(200, 300, 12), profile_slab_band(500, 100) and profile_t(300, 300, 20, 40); loop 0 is the outline, further loops are holes.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

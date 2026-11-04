@@ -13,16 +13,16 @@ int main() {
         const std::shared_ptr<TreeNode> group =
             scene.add_group(x == 0.0 ? "top_side" : "top_side_end");
         const double node = x == 0.0 ? 0.0 : 600.0;
-        const std::shared_ptr<Beam> sill = std::make_shared<Beam>(
+        const std::shared_ptr<EdgeStraightElement> sill = std::make_shared<EdgeStraightElement>(
             Polyline({{x - 600.0, 0.0, 0.0}, {x + 600.0, 0.0, 0.0}}), 75.0, "sill"
         );
-        const std::shared_ptr<Beam> post = std::make_shared<Beam>(
+        const std::shared_ptr<EdgeStraightElement> post = std::make_shared<EdgeStraightElement>(
             Polyline({{x + node, 0.0, 0.0}, {x + node, 0.0, 800.0}}), 75.0, "post"
         );
         scene.add(sill, group);
         scene.add(post, group);
 
-        for (const std::shared_ptr<Beam>& beam : {sill, post}) {
+        for (const std::shared_ptr<EdgeStraightElement>& beam : {sill, post}) {
             std::shared_ptr<Polyline> axis = std::make_shared<Polyline>(beam->axis);
             axis->linecolor = Color(0.85f, 0.1f, 0.1f);
             axis->width = 4.0;

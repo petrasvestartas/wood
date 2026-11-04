@@ -68,23 +68,23 @@ void Floor::add_quarters() {
             add(tsection, tsections);
         }
 
-        // outer_ribs: BeamVariable, the two ribs along the bay edges, outer_ribs_<i>_<q>
+        // outer_ribs: EdgeVariableElement, the two ribs along the bay edges, outer_ribs_<i>_<q>
         const std::shared_ptr<TreeNode> outer = add_group(fmt::format("outer_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& outer_loops = guide.outer_ribs(q);
 
         for (size_t i = 0; i < outer_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> outer_rib =
+            const std::shared_ptr<EdgeVariableElement> outer_rib =
                 rib(outer_loops[i], fmt::format("outer_ribs_{}_{}", i, q));
             outer_rib->place(lift);
             add(outer_rib, outer);
         }
 
-        // inner_ribs: BeamVariable, the two ribs from the column head to the inner beam corners, inner_ribs_<i>_<q>
+        // inner_ribs: EdgeVariableElement, the two ribs from the column head to the inner beam corners, inner_ribs_<i>_<q>
         const std::shared_ptr<TreeNode> inner = add_group(fmt::format("inner_ribs_{}", q), group);
         const std::array<std::array<Polyline, 2>, 2>& inner_loops = guide.inner_ribs(q);
 
         for (size_t i = 0; i < inner_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_rib =
+            const std::shared_ptr<EdgeVariableElement> inner_rib =
                 rib(inner_loops[i], fmt::format("inner_ribs_{}_{}", i, q));
             inner_rib->place(lift);
             add(inner_rib, inner);
@@ -102,12 +102,12 @@ void Floor::add_quarters() {
             add(block, wedges);
         }
 
-        // inner_beams: BeamVariable, seam beam 0, the beam along the oculus edge and seam beam 1, inner_beams_<i>_<q>
+        // inner_beams: EdgeVariableElement, seam beam 0, the beam along the oculus edge and seam beam 1, inner_beams_<i>_<q>
         const std::shared_ptr<TreeNode> beams = add_group(fmt::format("inner_beams_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& beam_loops = guide.inner_beams(q);
 
         for (size_t i = 0; i < beam_loops.size(); i++) {
-            const std::shared_ptr<BeamVariable> inner_beam =
+            const std::shared_ptr<EdgeVariableElement> inner_beam =
                 beam(beam_loops[i], {0, 3}, {1, 2}, fmt::format("inner_beams_{}_{}", i, q));
             inner_beam->place(lift);
             add(inner_beam, beams);
@@ -121,11 +121,11 @@ void Floor::add_oculus() {
     const std::array<std::array<Polyline, 2>, 9>& loops = guide.oculus();
     const std::shared_ptr<TreeNode> group = group_named("oculus");
 
-    // ring_beams: BeamVariable, the four ring beams, oculus_<q>
+    // ring_beams: EdgeVariableElement, the four ring beams, oculus_<q>
     const std::shared_ptr<TreeNode> ring_beams = add_group("ring_beams", group);
 
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<BeamVariable> ring_beam =
+        const std::shared_ptr<EdgeVariableElement> ring_beam =
             beam(loops[q], {1, 0}, {2, 3}, fmt::format("oculus_{}", q));
         ring_beam->place(lift);
         add(ring_beam, ring_beams);
@@ -217,7 +217,7 @@ std::shared_ptr<TreeNode> Floor::connectors_group(size_t q) {
     return group_named(fmt::format("connectors_{}", q), quarter_group(q));
 }
 
-std::shared_ptr<BeamVariable>
+std::shared_ptr<EdgeVariableElement>
 Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
 
     const std::vector<Point> near = loops[0].get_points();
@@ -246,10 +246,10 @@ Floor::rib(const std::array<Polyline, 2>& loops, const std::string& name) {
     const Point end = Point::mid_point(near[0], far[0]);
     const Line axis = Line::from_points(start, end);
 
-    return std::make_shared<BeamVariable>(axis, sections, name);
+    return std::make_shared<EdgeVariableElement>(axis, sections, name);
 }
 
-std::shared_ptr<BeamVariable> Floor::beam(
+std::shared_ptr<EdgeVariableElement> Floor::beam(
     const std::array<Polyline, 2>& loops,
     const std::array<size_t, 2>& start,
     const std::array<size_t, 2>& end,
@@ -262,7 +262,7 @@ std::shared_ptr<BeamVariable> Floor::beam(
         Polyline({near[start[0]], near[start[1]], far[start[1]], far[start[0]]}).closed();
     const Polyline last = Polyline({near[end[0]], near[end[1]], far[end[1]], far[end[0]]}).closed();
 
-    return BeamVariable::between(first, last, name);
+    return EdgeVariableElement::between(first, last, name);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

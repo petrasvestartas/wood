@@ -191,7 +191,7 @@ static void check_beam_curved_and_profiles() {
              profile_t(300.0, 300.0, 20.0, 40.0),
              profile_hss(200.0, 300.0, 12.0),
          }) {
-        const auto pbeam = std::make_shared<Beam>(axis, loops, std::vector<Vector>{}, "prof");
+        const auto pbeam = std::make_shared<EdgeStraightElement>(axis, loops, std::vector<Vector>{}, "prof");
         check(
             pbeam->element_geometry_mesh().is_closed() &&
                 !pbeam->element_geometry_mesh().get_triangulation().empty(),
@@ -205,7 +205,7 @@ static void check_beam_curved_and_profiles() {
 
     // 2. Single-curved glulam arch
     const NurbsCurve arch = Primitives::arc({0.0, 0.0, 0.0}, {1000.0, 0.0, 400.0}, {2000.0, 0.0, 0.0});
-    const auto single_beam = BeamCurved::single_curved(arch, 120.0, 240.0, 6, 24, "single_glulam");
+    const auto single_beam = EdgeCurvedElement::single_curved(arch, 120.0, 240.0, 6, 24, "single_glulam");
     check(single_beam->is_single_curved() && !single_beam->is_double_curved(), "single-curved detection");
     check(
         std::abs(single_beam->lamella_width() - 120.0) < 1e-9 &&
@@ -242,7 +242,7 @@ static void check_beam_curved_and_profiles() {
         Vector(0.0, -0.2, 1.0).normalized(),
     };
     const auto double_beam =
-        BeamCurved::double_curved(spatial, 140.0, 240.0, guides, {}, 2, 6, 24, "double_glulam");
+        EdgeCurvedElement::double_curved(spatial, 140.0, 240.0, guides, {}, 2, 6, 24, "double_glulam");
     check(double_beam->is_double_curved() && !double_beam->is_single_curved(), "double-curved detection");
     double_beam->max_curvature(kw, kh);
     check(kw > 1e-5 && kh > 1e-5, "double-curved curvature in both axes");
@@ -267,8 +267,8 @@ static void check_beam_curved_and_profiles() {
     curved_scene.add(single_beam);
     curved_scene.add(double_beam);
     const WoodSession round_trip = WoodSession::pb_loads(curved_scene.pb_dumps());
-    check(round_trip.beam_curveds().size() == 2, "BeamCurved protobuf round trip");
-    const auto reloaded_double = round_trip.get_element<BeamCurved>(double_beam->guid());
+    check(round_trip.get_elements<EdgeCurvedElement>().size() == 2, "EdgeCurvedElement protobuf round trip");
+    const auto reloaded_double = round_trip.get_element<EdgeCurvedElement>(double_beam->guid());
     check(
         reloaded_double && reloaded_double->num_width == 2 && reloaded_double->num_height == 6 &&
             reloaded_double->cuts.size() == 1 &&
@@ -276,7 +276,7 @@ static void check_beam_curved_and_profiles() {
                 compute_volume(reloaded_double->model_geometry_mesh()) -
                 compute_volume(double_beam->model_geometry_mesh())
             ) < 1e-3,
-        "BeamCurved state and volume preserved across pb_dumps/pb_loads"
+        "EdgeCurvedElement state and volume preserved across pb_dumps/pb_loads"
     );
     std::cout << "beam curved and profile checks passed\n";
 }
@@ -433,7 +433,7 @@ int main() {
         "joint geometry round trip"
     );
 
-    const auto beam = std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
+    const auto beam = std::make_shared<EdgeStraightElement>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
     const auto column = std::make_shared<Column>(
         Line::from_points({950, 50, 0}, {950, 50, 950}),
         Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100)
@@ -480,8 +480,8 @@ int main() {
     check(profile->element_geometry_brep().is_valid(), "profile cutter solid");
 
     WoodSession beams("beam joint");
-    auto ba = std::make_shared<Beam>(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
-    auto bb = std::make_shared<Beam>(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
+    auto ba = std::make_shared<EdgeStraightElement>(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
+    auto bb = std::make_shared<EdgeStraightElement>(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
     beams.add(ba);
     beams.add(bb);
     beams.compute_axis_contacts(1);

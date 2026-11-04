@@ -33,8 +33,8 @@ JointBeam::JointBeam(
 }
 
 JointBeam::JointBeam(
-    const Beam& source,
-    const Beam& target,
+    const EdgeStraightElement& source,
+    const EdgeStraightElement& target,
     const InteractionContactAxis& contact,
     double volume_length,
     double cross_or_side_to_end,
@@ -155,8 +155,8 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
 }
 
 std::shared_ptr<JointBeam> JointBeam::from_contact(
-    const Beam& source,
-    const Beam& target,
+    const EdgeStraightElement& source,
+    const EdgeStraightElement& target,
     const InteractionContactAxis& contact,
     double volume_length,
     double cross_or_side_to_end,
@@ -782,7 +782,7 @@ static ButtMember swept_member(
 /// A member from a beam, a column or a plate as drawn.
 static ButtMember butt_member(const Element& element) {
 
-    if (const Beam* beam = dynamic_cast<const Beam*>(&element))
+    if (const EdgeStraightElement* beam = dynamic_cast<const EdgeStraightElement*>(&element))
         return swept_member(
             beam->sections(), beam->axis.get_points(), beam->element_geometry_mesh()
         );
@@ -1447,7 +1447,7 @@ std::shared_ptr<JointBeam> JointBeam::butterfly_key(
 
 /// One beam of a column head as its own solid gives it. Levels run up the column from its head, distances along the beam out from the column's axis.
 struct HeadBeam {
-    const Beam* beam = nullptr; // The beam.
+    const EdgeStraightElement* beam = nullptr; // The beam.
     size_t target = 0; // Its place among the joint's targets.
     Vector out; // Level unit from the column's axis towards the beam's far end.
     double width = 0.0; // Across the beam.
@@ -1511,7 +1511,7 @@ static std::array<Polyline, 2> head_prism(
 
 /// A beam read from its own solid in the frame of the column's head; throws naming the beam when it can not join it.
 static HeadBeam read_head_beam(
-    const Beam& beam, size_t target, const Point& head, const Vector& z, double radius
+    const EdgeStraightElement& beam, size_t target, const Point& head, const Vector& z, double radius
 ) {
 
     const auto fail = [&beam](const std::string& reason) {
@@ -1580,7 +1580,7 @@ static HeadBeam read_head_beam(
 /// The two beams most nearly in line, among the pairs holding main_beam when one is named. Two pairs equally in line, a plain cross, are told apart by the geometry alone so the order they
 /// were given in decides nothing: the shorter pair, as in the photographed node, then the pair running most along world x, y, z.
 static std::array<size_t, 2>
-head_main_pair(const std::array<HeadBeam, 4>& beams, const Beam* main_beam) {
+head_main_pair(const std::array<HeadBeam, 4>& beams, const EdgeStraightElement* main_beam) {
 
     // a line's direction, the same whichever way it is read
     const auto direction = [](const Vector& out) {
@@ -1636,11 +1636,11 @@ head_main_pair(const std::array<HeadBeam, 4>& beams, const Beam* main_beam) {
 
 std::shared_ptr<JointBeam> JointBeam::column_head(
     const Column& column,
-    const Beam& a,
-    const Beam& b,
-    const Beam& c,
-    const Beam& d,
-    const Beam* main_beam,
+    const EdgeStraightElement& a,
+    const EdgeStraightElement& b,
+    const EdgeStraightElement& c,
+    const EdgeStraightElement& d,
+    const EdgeStraightElement* main_beam,
     double tenon,
     double shoulder,
     double seam_slope,
@@ -1673,7 +1673,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
         column.axis.to_vector().normalized() * (at_end ? 1.0 : -1.0);
 
     // the beams, read from their own solids
-    const std::array<const Beam*, 4> members = {&a, &b, &c, &d};
+    const std::array<const EdgeStraightElement*, 4> members = {&a, &b, &c, &d};
     std::array<HeadBeam, 4> beams;
     for (size_t i = 0; i < 4; i++)
         beams[i] = read_head_beam(*members[i], i + 1, head, z, radius);
@@ -2268,18 +2268,12 @@ pin_head(const Element& through, const Point& station, const Vector& direction, 
 /// A beam's axis made level and unit, empty for an element without an axis or a vertical one.
 static std::optional<Vector> level_axis(const Element& element) {
 
-    Vector axis;
+    const EdgeElement* edge = dynamic_cast<const EdgeElement*>(&element);
 
-    if (const BeamVariable* beam = dynamic_cast<const BeamVariable*>(&element))
-        axis = beam->axis.to_vector();
-    else if (const BeamCurved* curved = dynamic_cast<const BeamCurved*>(&element);
-             curved && curved->centreline.is_valid())
-        axis = curved->centreline.point_at_end() - curved->centreline.point_at_start();
-    else if (const Beam* straight = dynamic_cast<const Beam*>(&element);
-             straight && straight->axis.point_count() > 1)
-        axis = straight->axis.get_point(straight->axis.point_count() - 1) -
-               straight->axis.get_point(0);
+    if (!edge)
+        return std::nullopt;
 
+    Vector axis = edge->chord().to_vector();
     axis = Vector(axis[0], axis[1], 0.0);
 
     if (axis.magnitude() < 1e-9)

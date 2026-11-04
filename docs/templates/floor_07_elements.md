@@ -145,7 +145,7 @@ Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/mai
 
 <span style="color:#E8478B">■ variable</span> `axis`   <span style="color:#A3A3A3">■ context</span> the rib it makes
 
-The axis runs from the middle of the two loops' corners `[1]` to the middle of their corners `[0]`, and `BeamVariable(axis, sections)` is the rib.
+The axis runs from the middle of the two loops' corners `[1]` to the middle of their corners `[0]`, and `EdgeVariableElement(axis, sections)` is the rib.
 
 Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
@@ -185,9 +185,9 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 <span style="color:#E8478B">■ first</span> from loop corners 0 and 3   <span style="color:#F2CC0C">■ last</span> from loop corners 1 and 2   <span style="color:#A3A3A3">■ context</span> the beam
 
-`beam(loops, {0, 3}, {1, 2})` takes the end sections from corners 0 and 3 and from corners 1 and 2 of both loops, and `BeamVariable::between(first, last)` lofts the beam between them.
+`beam(loops, {0, 3}, {1, 2})` takes the end sections from corners 0 and 3 and from corners 1 and 2 of both loops, and `EdgeVariableElement::between(first, last)` lofts the beam between them.
 
-Code: `Floor::beam`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `BeamVariable::between`, [wood_element_beam_variable.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_beam_variable.cpp).
+Code: `Floor::beam`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `EdgeVariableElement::between`, [wood_element_edge_variable.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_edge_variable.cpp).
 
 ## 215. inner_beams
 

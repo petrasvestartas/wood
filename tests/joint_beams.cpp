@@ -35,9 +35,9 @@ static void check_phanomema_node() {
     const std::vector<double>& beams = settings.beams;
     WoodSession scene("phanomema_node");
     scene.settings = settings;
-    std::vector<std::shared_ptr<Beam>> members;
+    std::vector<std::shared_ptr<EdgeStraightElement>> members;
     for (const Polyline& axis : io::load_obj("phanomema_node")) {
-        members.push_back(std::make_shared<Beam>(
+        members.push_back(std::make_shared<EdgeStraightElement>(
             axis,
             std::vector<double>(axis.segment_count(), beams[0]),
             std::vector<Vector>{},
@@ -64,8 +64,8 @@ static void check_phanomema_node() {
             )
         );
 
-        const std::shared_ptr<Beam> a = scene.get_element<Beam>(joint->targets[0]);
-        const std::shared_ptr<Beam> b = scene.get_element<Beam>(joint->targets[1]);
+        const std::shared_ptr<EdgeStraightElement> a = scene.get_element<EdgeStraightElement>(joint->targets[0]);
+        const std::shared_ptr<EdgeStraightElement> b = scene.get_element<EdgeStraightElement>(joint->targets[1]);
         const double before = boolean_volume(
             a->element_geometry_mesh(), b->element_geometry_mesh(), SolidOperation::intersect
         );
@@ -135,7 +135,7 @@ static void check_phanomema_node() {
         );
     }
 
-    for (const std::shared_ptr<Beam>& member : members) {
+    for (const std::shared_ptr<EdgeStraightElement>& member : members) {
         const Mesh& model = member->model_geometry_mesh();
         const double lost = compute_volume(member->element_geometry_mesh()) - compute_volume(model);
         check(model.is_closed(), member->name + " is no closed solid after its joints");
@@ -164,10 +164,10 @@ static void check_crossings() {
             scene.settings.joint_parameters[11] = id;
             const double turn = angle * std::numbers::pi / 180.0;
             const Vector along(std::cos(turn), std::sin(turn), 0.0);
-            const std::shared_ptr<Beam> a = std::make_shared<Beam>(
+            const std::shared_ptr<EdgeStraightElement> a = std::make_shared<EdgeStraightElement>(
                 Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam"
             );
-            const std::shared_ptr<Beam> b = std::make_shared<Beam>(
+            const std::shared_ptr<EdgeStraightElement> b = std::make_shared<EdgeStraightElement>(
                 Polyline(
                     {Point(0.0, 0.0, 0.0) - along * 600.0, Point(0.0, 0.0, 0.0) + along * 600.0}
                 ),
@@ -229,7 +229,7 @@ static void check_crossings() {
             );
 
             double lost = 0.0;
-            for (const std::shared_ptr<Beam>& member : {a, b}) {
+            for (const std::shared_ptr<EdgeStraightElement>& member : {a, b}) {
                 const Mesh& model = member->model_geometry_mesh();
                 check(
                     model.is_closed(),
@@ -252,7 +252,7 @@ static void check_crossings() {
             );
 
             size_t cylinders = 0;
-            for (const std::shared_ptr<Beam>& member : {a, b})
+            for (const std::shared_ptr<EdgeStraightElement>& member : {a, b})
                 for (const BRepFace& face : member->model_geometry_brep().m_faces)
                     cylinders +=
                         member->model_geometry_brep().m_surfaces[face.surface_index].is_rational();
@@ -286,10 +286,10 @@ static void check_tees() {
             scene.settings.joint_parameters[8] = id;
             const double turn = angle * std::numbers::pi / 180.0;
             const Vector along(std::cos(turn), std::sin(turn), 0.0);
-            const std::shared_ptr<Beam> a = std::make_shared<Beam>(
+            const std::shared_ptr<EdgeStraightElement> a = std::make_shared<EdgeStraightElement>(
                 Polyline({Point(-600.0, 0.0, 0.0), Point(600.0, 0.0, 0.0)}), 75.0, "beam"
             );
-            const std::shared_ptr<Beam> b = std::make_shared<Beam>(
+            const std::shared_ptr<EdgeStraightElement> b = std::make_shared<EdgeStraightElement>(
                 Polyline({Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0) + along * 600.0}), 75.0, "beam"
             );
             a->name = "beam_a";
@@ -315,7 +315,7 @@ static void check_tees() {
                 a->model_geometry_mesh(), b->model_geometry_mesh(), SolidOperation::intersect
             );
             double lost = 0.0;
-            for (const std::shared_ptr<Beam>& member : {a, b}) {
+            for (const std::shared_ptr<EdgeStraightElement>& member : {a, b}) {
                 check(
                     member->model_geometry_mesh().is_closed(),
                     fmt::format(
@@ -374,10 +374,10 @@ static void check_bridles() {
         scene.settings.joint_parameters[8] = JointPlate::library_id("top_side_bridle");
         const double turn = angle * std::numbers::pi / 180.0;
         const Vector along(std::cos(turn), std::sin(turn), 0.0);
-        const std::shared_ptr<Beam> a = std::make_shared<Beam>(
+        const std::shared_ptr<EdgeStraightElement> a = std::make_shared<EdgeStraightElement>(
             Polyline({Point(-400.0, 0.0, 0.0), Point(400.0, 0.0, 0.0)}), 0.5 * width, "beam_a"
         );
-        const std::shared_ptr<Beam> b = std::make_shared<Beam>(
+        const std::shared_ptr<EdgeStraightElement> b = std::make_shared<EdgeStraightElement>(
             Polyline({Point(0.0, 0.0, 0.0), Point(0.0, 0.0, 0.0) + along * 300.0}),
             0.5 * width,
             "beam_b"
@@ -531,7 +531,7 @@ static std::array<std::shared_ptr<Element>, 5> head_members(const HeadNode& node
         const Vector way(std::cos(angle), std::sin(angle), 0.0);
         const Point far_end = Point(0.0, 0.0, level) + way * arms[k];
         const Point near_end = Point(0.0, 0.0, level) + way * node.near_end;
-        members[i + 1] = std::make_shared<Beam>(
+        members[i + 1] = std::make_shared<EdgeStraightElement>(
             node.reversed ? Polyline({near_end, far_end}) : Polyline({far_end, near_end}),
             section,
             std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
@@ -551,11 +551,11 @@ static std::shared_ptr<JointBeam> head_joined(
         scene.add(member);
     const std::shared_ptr<JointBeam> joint = JointBeam::column_head(
         *std::dynamic_pointer_cast<Column>(members[0]),
-        *std::dynamic_pointer_cast<Beam>(members[1]),
-        *std::dynamic_pointer_cast<Beam>(members[2]),
-        *std::dynamic_pointer_cast<Beam>(members[3]),
-        *std::dynamic_pointer_cast<Beam>(members[4]),
-        node.main_beam < 0 ? nullptr : std::dynamic_pointer_cast<Beam>(members[node.main_beam]).get(),
+        *std::dynamic_pointer_cast<EdgeStraightElement>(members[1]),
+        *std::dynamic_pointer_cast<EdgeStraightElement>(members[2]),
+        *std::dynamic_pointer_cast<EdgeStraightElement>(members[3]),
+        *std::dynamic_pointer_cast<EdgeStraightElement>(members[4]),
+        node.main_beam < 0 ? nullptr : std::dynamic_pointer_cast<EdgeStraightElement>(members[node.main_beam]).get(),
         0.7, 0.8, 0.1, 0.145, 0.286, 0.146, 0.176, 0.08,
         node.min_post
     );
@@ -1037,7 +1037,7 @@ static void check_column_head_refusals() {
     const auto at = [&](double angle, double start, double end, double level, const std::string& name) {
         const double turn = angle * std::numbers::pi / 180.0;
         const Vector way(std::cos(turn), std::sin(turn), 0.0);
-        return std::make_shared<Beam>(
+        return std::make_shared<EdgeStraightElement>(
             Polyline({Point(0.0, 0.0, level) + way * end, Point(0.0, 0.0, level) + way * start}),
             section,
             std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
@@ -1046,7 +1046,7 @@ static void check_column_head_refusals() {
     };
     const std::shared_ptr<Column> column =
         Column::round(Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}), 100.0, 0.02, "column");
-    const auto refused = [&](const std::array<std::shared_ptr<Beam>, 4>& beams, const std::string& expected) {
+    const auto refused = [&](const std::array<std::shared_ptr<EdgeStraightElement>, 4>& beams, const std::string& expected) {
         std::string message;
         try {
             JointBeam::column_head(*column, *beams[0], *beams[1], *beams[2], *beams[3]);
@@ -1065,14 +1065,14 @@ static void check_column_head_refusals() {
     refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), at(270.0, 0.0, 400.0, level + 30.0, "d")}, "has its top");
     refused({fine(0.0, "a"), fine(180.0, "b"), fine(10.0, "c"), fine(190.0, "d")}, "beam c at 10.0 degrees");
 
-    const std::shared_ptr<Beam> tilted = std::make_shared<Beam>(
+    const std::shared_ptr<EdgeStraightElement> tilted = std::make_shared<EdgeStraightElement>(
         Polyline({Point(0.0, -400.0, level + 60.0), Point(0.0, 0.0, level)}),
         section,
         std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
         "tilted"
     );
     refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), tilted}, "beam tilted is tilted");
-    const std::shared_ptr<Beam> aside = std::make_shared<Beam>(
+    const std::shared_ptr<EdgeStraightElement> aside = std::make_shared<EdgeStraightElement>(
         Polyline({Point(30.0, -400.0, level), Point(30.0, 0.0, level)}),
         section,
         std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
@@ -1081,7 +1081,7 @@ static void check_column_head_refusals() {
     refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), aside}, "beam aside misses the column's axis");
 
     // a named main beam with nothing in line with it
-    const std::array<std::shared_ptr<Beam>, 4> turned = {fine(0.0, "a"), fine(180.0, "b"), fine(75.0, "c"), fine(280.0, "d")};
+    const std::array<std::shared_ptr<EdgeStraightElement>, 4> turned = {fine(0.0, "a"), fine(180.0, "b"), fine(75.0, "c"), fine(280.0, "d")};
     std::string message;
     try {
         JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], turned[2].get());
@@ -1091,7 +1091,7 @@ static void check_column_head_refusals() {
     check(message.find("no two beams are in line") != std::string::npos, "named c, got: " + message);
     std::cout << fmt::format("joint_beams: column head refused: {}", message) << std::endl;
     message.clear();
-    const std::shared_ptr<Beam> stranger = fine(30.0, "stranger");
+    const std::shared_ptr<EdgeStraightElement> stranger = fine(30.0, "stranger");
     try {
         JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], stranger.get());
     } catch (const std::invalid_argument& error) {
@@ -1354,7 +1354,7 @@ static void check_end_to_end() {
     for (const std::pair<double, std::string>& end_case : cases) {
         WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
         scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);
-        const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_end_to_end(end_case.first);
+        const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_end_to_end(end_case.first);
         scene.add(pair[0]);
         scene.add(pair[1]);
         const InteractionContactAxis contact(
@@ -1381,7 +1381,7 @@ static void check_end_to_end() {
             SolidOperation::intersect
         );
         double kept = 0.0;
-        for (const std::shared_ptr<Beam>& member : pair) {
+        for (const std::shared_ptr<EdgeStraightElement>& member : pair) {
             check(
                 member->model_geometry_mesh().is_closed(),
                 fmt::format(

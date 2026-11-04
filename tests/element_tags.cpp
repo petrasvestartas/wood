@@ -27,6 +27,9 @@ static const std::set<std::string> OLD_TAGS = {
     "Support",
     "Plate",
     "WoodElement",
+    "Beam",
+    "BeamCurved",
+    "BeamVariable",
 };
 
 static void check(bool condition, const std::string& message) {
@@ -77,6 +80,17 @@ int main() {
         load("rust/tests/data/element_plate.pb").get_elements<FaceElement>().size() == 1,
         "the old plate loads as a FaceElement"
     );
+    check(
+        load("rust/tests/data/element_beam.pb").get_elements<EdgeStraightElement>().size() == 1,
+        "the old beam loads as an EdgeStraightElement"
+    );
+    check(
+        load("rust/tests/data/element_beam_variable.pb").get_elements<EdgeElement>().size() == 1,
+        "the old variable beam loads as an EdgeElement"
+    );
+    writes_its_name(std::make_shared<EdgeStraightElement>(
+        Polyline({Point(0.0, 0.0, 0.0), Point(100.0, 0.0, 0.0)}), 10.0
+    ));
     writes_its_name(FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 100.0, 100.0, 10.0
     ));

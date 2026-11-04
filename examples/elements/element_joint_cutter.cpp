@@ -8,8 +8,8 @@ int main() {
 
     WoodSession scene("element_joint_cutter");
 
-    const std::shared_ptr<BeamVariable> beam =
-        BeamVariable::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
+    const std::shared_ptr<EdgeVariableElement> beam =
+        EdgeVariableElement::box({0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1200.0, 200.0, 300.0);
     scene.add(beam);
 
     // a notch: a closed box subtracted from the beam

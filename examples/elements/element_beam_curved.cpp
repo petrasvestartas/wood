@@ -16,7 +16,7 @@ int main() {
         const double z = 700.0 * 4.0 * u * (1.0 - u);
         arch_pts.emplace_back(x, 0.0, z);
     }
-    const std::shared_ptr<BeamCurved> single_arch = BeamCurved::single_curved(
+    const std::shared_ptr<EdgeCurvedElement> single_arch = EdgeCurvedElement::single_curved(
         NurbsCurve::create_interpolated(arch_pts), 140.0, 240.0, 6, 32, "single_curved_glulam"
     );
     single_arch->extension = 120.0;
@@ -40,7 +40,7 @@ int main() {
         Vector(0.0, 0.45, 1.0).normalized(),
         Vector(0.0, -0.35, 1.0).normalized(),
     };
-    const std::shared_ptr<BeamCurved> double_arch = BeamCurved::double_curved(
+    const std::shared_ptr<EdgeCurvedElement> double_arch = EdgeCurvedElement::double_curved(
         NurbsCurve::create_interpolated(spatial_pts),
         140.0,
         240.0,
@@ -76,7 +76,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Single-curved and double-curved glulam beams (BeamCurved, after Tom Svilans' GluLamb): a planar parabolic arch of 140 x 240 mm section (6 lamella layers of 40 mm) trimmed by vertical plumb end cuts, paired with a 3D spatial S-curved glulam beam (2 x 6 lamella stack) whose cross-section orientation interpolates guide vectors over a Rotation Minimizing Frame (RMF) and exports an exact 6-patch NURBS BRep.
+Single-curved and double-curved glulam beams (EdgeCurvedElement, after Tom Svilans' GluLamb): a planar parabolic arch of 140 x 240 mm section (6 lamella layers of 40 mm) trimmed by vertical plumb end cuts, paired with a 3D spatial S-curved glulam beam (2 x 6 lamella stack) whose cross-section orientation interpolates guide vectors over a Rotation Minimizing Frame (RMF) and exports an exact 6-patch NURBS BRep.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

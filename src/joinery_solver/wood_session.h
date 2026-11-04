@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "wood_element_beam.h"
+#include "wood_element_edge_straight.h"
 #include "wood_element_joint.h"
 #include "wood_element_joint_plate.h"
 #include "wood_element_joint_beam.h"
@@ -11,8 +11,8 @@
 #include "wood_element_node_block.h"
 #include "wood_element_column.h"
 #include "wood_element_cut_plane.h"
-#include "wood_element_beam_variable.h"
-#include "wood_element_beam_curved.h"
+#include "wood_element_edge_variable.h"
+#include "wood_element_edge_curved.h"
 #include "wood_element_node_support.h"
 #include "wood_element_face_planar.h"
 #include "wood_element_face_curved.h"
@@ -355,21 +355,6 @@ public:
     /// Every Column, in objects.elements order.
     std::vector<std::shared_ptr<Column>> columns() const {
         return get_elements<Column>();
-    }
-
-    /// Every BeamVariable, in objects.elements order.
-    std::vector<std::shared_ptr<BeamVariable>> beam_variables() const {
-        return get_elements<BeamVariable>();
-    }
-
-    /// Every BeamCurved, in objects.elements order.
-    std::vector<std::shared_ptr<BeamCurved>> beam_curveds() const {
-        return get_elements<BeamCurved>();
-    }
-
-    /// Every Beam, in objects.elements order.
-    std::vector<std::shared_ptr<Beam>> beams() const {
-        return get_elements<Beam>();
     }
 
     /// The guids of world_elements(), in order: the index space detection works in.

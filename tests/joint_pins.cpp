@@ -49,12 +49,12 @@ static double length_inside(const Element& member, const Line& pin) {
 static void check_headed_pins() {
 
     WoodSession scene("headed_pins");
-    const std::shared_ptr<BeamVariable> beam = BeamVariable::between(
+    const std::shared_ptr<EdgeVariableElement> beam = EdgeVariableElement::between(
         Polyline::rectangle({0.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
         Polyline::rectangle({600.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 300.0),
         "beam"
     );
-    const std::shared_ptr<BeamVariable> joist = BeamVariable::between(
+    const std::shared_ptr<EdgeVariableElement> joist = EdgeVariableElement::between(
         Polyline::rectangle({250.0, 120.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
         Polyline::rectangle({250.0, 720.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 100.0, 300.0),
         "joist"
@@ -69,7 +69,7 @@ static void check_headed_pins() {
     scene.add_interaction(pins, beam, pins->interaction(0));
     scene.add_interaction(pins, joist, pins->interaction(1));
 
-    for (const std::shared_ptr<BeamVariable>& member : {beam, joist}) {
+    for (const std::shared_ptr<EdgeVariableElement>& member : {beam, joist}) {
         double length = 0.0;
         size_t inside = 0;
         for (const Line& pin : pins->drill_lines) {
@@ -134,7 +134,7 @@ static void check_rectangle_plate() {
         Polyline::rectangle({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 220.0, 220.0),
         "column"
     );
-    const std::shared_ptr<BeamVariable> rib = BeamVariable::between(
+    const std::shared_ptr<EdgeVariableElement> rib = EdgeVariableElement::between(
         Polyline::rectangle({110.0, -60.0, 700.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 400.0),
         Polyline::rectangle({1400.0, -60.0, 700.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 120.0, 400.0),
         "rib"

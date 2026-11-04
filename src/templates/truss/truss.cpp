@@ -39,7 +39,7 @@ void Truss::add_chords() {
     for (size_t c = 0; c < guide.chords.size(); c++) {
         const std::vector<std::array<Point, 2>> runs = guide.runs(c);
         for (size_t s = 0; s < runs.size(); s++)
-            add(std::make_shared<Beam>(
+            add(std::make_shared<EdgeStraightElement>(
                     Polyline({runs[s][0], runs[s][1]}),
                     guide.chords[c].radius,
                     fmt::format("chord_{}_{}", c, s)
@@ -51,13 +51,13 @@ void Truss::add_chords() {
 void Truss::add_webs() {
 
     for (size_t w = 0; w < guide.webs.size(); w++)
-        add(std::make_shared<Beam>(guide.webs[w].axis, guide.webs[w].radius, fmt::format("web_{}", w)), group_named("webs"));
+        add(std::make_shared<EdgeStraightElement>(guide.webs[w].axis, guide.webs[w].radius, fmt::format("web_{}", w)), group_named("webs"));
 }
 
 void Truss::add_butt(
     const std::shared_ptr<JointBeam>& butt,
-    const std::shared_ptr<Beam>& a,
-    const std::shared_ptr<Beam>& b
+    const std::shared_ptr<EdgeStraightElement>& a,
+    const std::shared_ptr<EdgeStraightElement>& b
 ) {
 
     if (!butt)
@@ -150,14 +150,14 @@ void Truss::add_chord_butts() {
     struct Run {
         size_t chord;
         std::array<Point, 2> ends;
-        std::shared_ptr<Beam> beam;
+        std::shared_ptr<EdgeStraightElement> beam;
     };
 
     std::vector<Run> runs;
     for (size_t c = 0; c < guide.chords.size(); c++) {
         const std::vector<std::array<Point, 2>> ends = guide.runs(c);
         for (size_t s = 0; s < ends.size(); s++)
-            runs.push_back({c, ends[s], get_element_by_name<Beam>(fmt::format("chord_{}_{}", c, s))}
+            runs.push_back({c, ends[s], get_element_by_name<EdgeStraightElement>(fmt::format("chord_{}_{}", c, s))}
             );
     }
 
@@ -243,8 +243,8 @@ void Truss::add_chord_butts() {
             const Vector on = (node - (side == 0 ? points[1] : points[points.size() - 2])).normalized();
             if (std::abs(((*cut)[1] - (*cut)[0]).dot(on)) < 1e-6)
                 continue;
-            std::shared_ptr<Beam> runner;
-            std::shared_ptr<Beam> carried;
+            std::shared_ptr<EdgeStraightElement> runner;
+            std::shared_ptr<EdgeStraightElement> carried;
             for (const Run& run : runs)
                 if (run.chord == c && (!runner || side == 1))
                     runner = run.beam;
@@ -253,7 +253,7 @@ void Truss::add_chord_butts() {
                     carried = run.beam;
             for (size_t w = 0; !carried && w < guide.webs.size(); w++)
                 if (at(guide.webs[w].start(), node) || at(guide.webs[w].end(), node))
-                    carried = get_element_by_name<Beam>(fmt::format("web_{}", w));
+                    carried = get_element_by_name<EdgeStraightElement>(fmt::format("web_{}", w));
             if (!runner || !carried)
                 continue;
             const Vector along = ((*cut)[1] - (*cut)[0]).normalized();
@@ -278,30 +278,30 @@ void Truss::add_chord_butts() {
 
 void Truss::add_web_butts() {
 
-    std::vector<std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>> runs;
+    std::vector<std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>> runs;
     for (size_t c = 0; c < guide.chords.size(); c++) {
         const std::vector<std::array<Point, 2>> ends = guide.runs(c);
         for (size_t s = 0; s < ends.size(); s++)
-            runs.emplace_back(ends[s], get_element_by_name<Beam>(fmt::format("chord_{}_{}", c, s)));
+            runs.emplace_back(ends[s], get_element_by_name<EdgeStraightElement>(fmt::format("chord_{}_{}", c, s)));
     }
     const auto ending = [&runs](const Point& node) {
         size_t count = 0;
-        for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+        for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& run : runs)
             count += at(node, run.first[0]) || at(node, run.first[1]);
         return count;
     };
 
-    std::vector<std::pair<Line, std::shared_ptr<Beam>>> members;
+    std::vector<std::pair<Line, std::shared_ptr<EdgeStraightElement>>> members;
     for (size_t w = 0; w < guide.webs.size(); w++)
         members.emplace_back(
-            Line::from_points(guide.webs[w].start(), guide.webs[w].end()), get_element_by_name<Beam>(fmt::format("web_{}", w))
+            Line::from_points(guide.webs[w].start(), guide.webs[w].end()), get_element_by_name<EdgeStraightElement>(fmt::format("web_{}", w))
         );
 
     std::vector<Point> points;
     for (const TrussMember& chord : guide.chords)
         for (const Point& point : chord.axis.get_points())
             points.push_back(point);
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
+    for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members) {
         points.push_back(member.first.start());
         points.push_back(member.first.end());
     }
@@ -324,8 +324,8 @@ void Truss::add_web_butts() {
         return a[0] * b[1] - a[1] * b[0];
     };
 
-    std::vector<std::pair<Line, std::shared_ptr<Beam>>> lines;
-    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+    std::vector<std::pair<Line, std::shared_ptr<EdgeStraightElement>>> lines;
+    for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& run : runs)
         lines.emplace_back(Line::from_points(run.first[0], run.first[1]), run.second);
     lines.insert(lines.end(), members.begin(), members.end());
 
@@ -338,7 +338,7 @@ void Truss::add_web_butts() {
         vertices.push_back(point);
         return vertices.size() - 1;
     };
-    for (const std::pair<Line, std::shared_ptr<Beam>>& line : lines) {
+    for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& line : lines) {
         vertex_of(line.first.start());
         vertex_of(line.first.end());
     }
@@ -460,34 +460,34 @@ void Truss::add_web_butts() {
         levels.insert(levels.end(), guide.runs(c).size(), guide.chords[c].level);
     for (const TrussMember& web : guide.webs)
         levels.push_back(web.level);
-    std::map<const Beam*, int> ranks;
-    std::set<const Beam*> leveled;
+    std::map<const EdgeStraightElement*, int> ranks;
+    std::set<const EdgeStraightElement*> leveled;
     for (size_t l = 0; l < lines.size(); l++) {
         ranks[lines[l].second.get()] = levels[l] > 0 ? levels[l] : rank[l];
         if (levels[l] > 0)
             leveled.insert(lines[l].second.get());
     }
 
-    std::vector<std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>>> lets;
+    std::vector<std::pair<std::shared_ptr<EdgeStraightElement>, std::shared_ptr<EdgeStraightElement>>> lets;
     const auto let_in =
-        [&lets](const std::shared_ptr<Beam>& outer, const std::shared_ptr<Beam>& inner) {
+        [&lets](const std::shared_ptr<EdgeStraightElement>& outer, const std::shared_ptr<EdgeStraightElement>& inner) {
             lets.emplace_back(outer, inner);
         };
 
     // each end on the runs: let into a run it lies on or into each run ending there; at a run's lone end the chord runs on over it unless the
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+    for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members)
         for (const Point& end : {member.first.start(), member.first.end()}) {
-            std::vector<std::shared_ptr<Beam>> stops;
+            std::vector<std::shared_ptr<EdgeStraightElement>> stops;
             std::vector<Vector> along;
             const Vector from = at(end, member.first.start()) ? member.first.end() - member.first.start()
                                                               : member.first.start() - member.first.end();
-            for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs) {
+            for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& run : runs) {
                 const bool at_start = at(end, run.first[0]);
                 const bool at_end = at_start || at(end, run.first[1]);
 
                 // a lone run end beyond a run passing the node, on its other side, does not meet the member
                 bool beyond = false;
-                for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& passing : runs)
+                for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& passing : runs)
                     if (at_end && ending(end) == 1 && inside(end, passing.first)) {
                         const std::array<double, 2> through =
                             flat((passing.first[1] - passing.first[0]).normalized());
@@ -539,19 +539,19 @@ void Truss::add_web_butts() {
                             k -= j < k ? 1 : 0;
                         }
                 }
-            for (const std::shared_ptr<Beam>& stop : stops)
+            for (const std::shared_ptr<EdgeStraightElement>& stop : stops)
                 let_in(stop, member.second);
         }
 
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+    for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members)
         for (const Point& end : {member.first.start(), member.first.end()})
-            for (const std::pair<Line, std::shared_ptr<Beam>>& other : members)
+            for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& other : members)
                 if (inside(end, {other.first.start(), other.first.end()}))
                     let_in(other.second, member.second);
 
-    for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+    for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& run : runs)
         for (const Point& end : run.first)
-            for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+            for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members)
                 if (inside(end, {member.first.start(), member.first.end()}) &&
                     ranks[member.second.get()] <= ranks[run.second.get()])
                     let_in(member.second, run.second);
@@ -606,7 +606,7 @@ void Truss::add_web_butts() {
     }
 
     std::vector<Point> nodes;
-    for (const std::pair<Line, std::shared_ptr<Beam>>& member : members)
+    for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members)
         for (const Point& end : {member.first.start(), member.first.end()}) {
             bool known = false;
             for (const Point& node : nodes)
@@ -617,8 +617,8 @@ void Truss::add_web_butts() {
 
     // at each node, the members ending there sorted by the angle they leave at: each inner one stopping on every outer one, those of one rank
     for (const Point& node : nodes) {
-        std::vector<std::pair<double, std::shared_ptr<Beam>>> around;
-        for (const std::pair<Line, std::shared_ptr<Beam>>& member : members) {
+        std::vector<std::pair<double, std::shared_ptr<EdgeStraightElement>>> around;
+        for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& member : members) {
             const bool from_start = at(member.first.start(), node);
             if (!from_start && !at(member.first.end(), node))
                 continue;
@@ -632,12 +632,12 @@ void Truss::add_web_butts() {
             return a.first < b.first;
         });
         bool on_chord = false;
-        for (const std::pair<std::array<Point, 2>, std::shared_ptr<Beam>>& run : runs)
+        for (const std::pair<std::array<Point, 2>, std::shared_ptr<EdgeStraightElement>>& run : runs)
             on_chord = on_chord || at(node, run.first[0]) || at(node, run.first[1]) ||
                        inside(node, run.first);
 
         std::vector<std::array<double, 2>> passing;
-        for (const std::pair<Line, std::shared_ptr<Beam>>& line : lines)
+        for (const std::pair<Line, std::shared_ptr<EdgeStraightElement>>& line : lines)
             if (inside(node, {line.first.start(), line.first.end()}))
                 passing.push_back(flat(line.first.to_vector().normalized()));
         const auto apart = [&passing, &cross](double a, double b) {
@@ -649,17 +649,17 @@ void Truss::add_web_butts() {
             return false;
         };
 
-        for (const std::pair<double, std::shared_ptr<Beam>>& outer : around)
-            for (const std::pair<double, std::shared_ptr<Beam>>& inner : around)
+        for (const std::pair<double, std::shared_ptr<EdgeStraightElement>>& outer : around)
+            for (const std::pair<double, std::shared_ptr<EdgeStraightElement>>& inner : around)
                 if (ranks[outer.second.get()] < ranks[inner.second.get()])
                     let_in(outer.second, inner.second);
 
         std::set<int> layers;
-        for (const std::pair<double, std::shared_ptr<Beam>>& member : around)
+        for (const std::pair<double, std::shared_ptr<EdgeStraightElement>>& member : around)
             layers.insert(ranks[member.second.get()]);
         for (const int layer : layers) {
-            std::vector<std::pair<double, std::shared_ptr<Beam>>> same;
-            for (const std::pair<double, std::shared_ptr<Beam>>& member : around)
+            std::vector<std::pair<double, std::shared_ptr<EdgeStraightElement>>> same;
+            for (const std::pair<double, std::shared_ptr<EdgeStraightElement>>& member : around)
                 if (ranks[member.second.get()] == layer)
                     same.push_back(member);
             if (same.size() < 2)
@@ -677,8 +677,8 @@ void Truss::add_web_butts() {
             for (size_t k = 0; k < same.size(); k++) {
                 if (k == widest && (on_chord || same.size() <= 2))
                     continue;
-                const std::pair<double, std::shared_ptr<Beam>>& a = same[k];
-                const std::pair<double, std::shared_ptr<Beam>>& b = same[(k + 1) % same.size()];
+                const std::pair<double, std::shared_ptr<EdgeStraightElement>>& a = same[k];
+                const std::pair<double, std::shared_ptr<EdgeStraightElement>>& b = same[(k + 1) % same.size()];
                 if (!apart(a.first, b.first))
                     add_butt(JointBeam::butt_side_side(*a.second, *b.second), a.second, b.second);
             }
@@ -695,12 +695,12 @@ void Truss::add_web_butts() {
         size_t next = 0;
         for (size_t k = lets.size(); k-- > 0;) {
             bool waiting = false;
-            for (const std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>>& other : lets)
+            for (const std::pair<std::shared_ptr<EdgeStraightElement>, std::shared_ptr<EdgeStraightElement>>& other : lets)
                 waiting = waiting || other.second == lets[k].first;
             if (!waiting)
                 next = k;
         }
-        const std::pair<std::shared_ptr<Beam>, std::shared_ptr<Beam>> let = lets[next];
+        const std::pair<std::shared_ptr<EdgeStraightElement>, std::shared_ptr<EdgeStraightElement>> let = lets[next];
         lets.erase(lets.begin() + next);
         const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*let.first, *let.second);
         if (joint) {

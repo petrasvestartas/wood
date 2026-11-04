@@ -8,8 +8,8 @@ import "plane.proto";
 import "polyline.proto";
 import "vector.proto";
 
-// The state of a Beam beyond the kernel Element: its axis, section and cuts.
-message Beam {
+// The state of an EdgeStraightElement beyond the kernel Element: its axis, section and cuts.
+message EdgeStraightElement {
   repeated InteractionFeatureSolid solid_features = 7;
   repeated InteractionFeaturePlane plane_features = 8;  // The planes other elements cut it by
   session_proto.Polyline axis = 1;              // Centreline, one segment per span
