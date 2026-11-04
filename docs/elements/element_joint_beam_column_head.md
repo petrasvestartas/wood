@@ -23,4 +23,6 @@ A node of a 200 round column and four 100 x 185 beams, rebuilt from photographs 
 
 ![](elements/element_joint_beam_column_head.png)
 
+The round column's BRep draws true arcs but is not a sewn solid: its faces are built from the closed mesh, because `BRep::boolean_difference` fails on a cylinder. Volumes and fit are measured on the mesh.
+
 \include{lineno} elements/element_joint_beam_column_head.cpp
