@@ -8,10 +8,10 @@ Five members in one node: a round column keeps four posts around a slot, two mai
 
 ```cpp
 static std::shared_ptr<Column> Column::round(const Line& axis, double radius, double chord_tolerance = 0.02, const std::string& name = "column");
-static std::shared_ptr<JointBeam> JointBeam::column_head(const Column& column, const Beam& a, const Beam& b, const Beam& c, const Beam& d, double tenon = 0.7, double shoulder = 0.8, double seam_slope = 0.1, double dovetail_offset = 0.145, double dovetail_root = 0.286, double dovetail_depth = 0.146, double dovetail_flare = 0.176, double min_wood = 0.08, double min_post = 0.05);
+static std::shared_ptr<JointBeam> JointBeam::column_head(const Column& column, const Beam& a, const Beam& b, const Beam& c, const Beam& d, const Beam* main_beam = nullptr, double tenon = 0.7, double shoulder = 0.8, double seam_slope = 0.1, double dovetail_offset = 0.145, double dovetail_root = 0.286, double dovetail_depth = 0.146, double dovetail_flare = 0.176, double min_wood = 0.08, double min_post = 0.05);
 ```
 
-Give it one round column and four beams, in any order. It reads everything else from the members: which end of each beam is the near one, each beam's section and level, the main pair (the two beams in line) and the side each secondary beam is on. At a plain cross both pairs are in line: the shorter pair is taken as the main one, then the pair running most along world x. Beam axes can simply end on the column's axis. A beam too long is cut back and one too short gains stock, as long as it reaches the column. It throws, naming the beam and the reason, when no valid joint exists.
+Give it one round column and four beams, in any order. It reads everything else from the members: which end of each beam is the near one, each beam's section and level, the main pair (the two beams in line) and the side each secondary beam is on. At a plain cross both pairs are in line: the shorter pair is taken as the main one, then the pair running most along world x, unless `main_beam` names a beam of the pair to use. Beam axes can simply end on the column's axis. A beam too long is cut back and one too short gains stock, as long as it reaches the column. It throws, naming the beam and the reason, when no valid joint exists.
 
 Sizes are shares of a beam's own width, except the shoulder, which is a share of the column's radius. The beams' tops must be flush, and the slot is as deep as the beams are tall.
 
@@ -34,7 +34,7 @@ The round column's BRep draws true arcs but is not a sewn solid: its faces are b
 ## Turned Secondary Beams
 The same call with the secondary beams turned, one at `75°` to the main pair and the other at `80°` the other side. Each beam's tenon, dovetail and shoulder are computed from its own axis, so the four posts come out unequal.
 
-The main pair must stay in line, because both tongues share one straight slot. The secondary beams may turn, each on its own. For 100 x 185 beams on a 200 column turned together the measured range is `67°` to `113°`, set by `min_post`: past that a post drops below 500 mm². Beams must be square to the column and aimed at its axis; a tilted beam is refused.
+The main pair must stay in line, because both tongues share one straight slot. The secondary beams may turn, each on its own. For 100 x 185 beams on a 200 column turned together the range is `67°` to `113°`, set by `min_post`: past that a post drops below 500 mm². Lowering `min_post` opens it only to `65°` and `115°`, the last angles with one solid post: further on a post splits, and by `47°` it is gone. The range is measured for these proportions only. Beams must be square to the column and aimed at its axis; a tilted beam is refused.
 
 ![](elements/element_joint_beam_column_head_rotated.png)
 

@@ -242,3 +242,41 @@ Not proved: blocked moves here are single beams moved 2 mm, along the main and e
 Looked at the rotated example in the viewer, plan and isometric, because the keyed box taught me not to trust green: tenons, tails and shoulders follow each beam, and the posts are unequal. It reads right.
 
 The column's BRep is still the pieced one from step 8, so the rotated picture is INTERIM: it carries the same line and the same non-solid BRep, and must be taken again once `brep-boolean` lands. `round_cut_brep` should then be deleted.
+
+## Step 14: the group test, the real angle limit, and choosing the main pair
+
+**Every group of pieces.** The single-beam test of step 13 is replaced for four nodes, at 90, 67, 113 degrees and asymmetric 75 and 280: all 30 groups of the five pieces, 10 directions, 2 mm, 300 moves. 270 are blocked, least 1581 mm3 at the extreme angles, 1641 at 90 degrees. The 30 free ones are exactly a group of beams lifting off the column, or the same move seen from the column's side. Not run at every angle of the sweep: it costs about 1800 booleans a node.
+
+**The real limit.** The sweep with `min_post` at zero, 100 x 185 on a 200 column, turned together, 1 degree steps.
+
+I got this wrong twice before getting it right, and both are recorded:
+
+- First I took the widest angles that built and nearly reported 48 to 126 degrees. The printed list skipped 51 to 53 and I noticed. That was not a range.
+- Then I blamed the piece count, added a one-post-per-sector check to the factory, and it changed nothing. My explanation was wrong and the check protected nothing, so I took it back out.
+- Then I walked out from 90 degrees and got 54 to 126, and the test failed: 62 to 64 and 116 to 119 had been refused too, and I had read past that gap in the same list. So the range is what holds without a break, walking out from 90, and the test now does exactly that.
+
+The measured result, areas in mm2 of the post in the narrow sector, and of any piece broken from it:
+
+| turn | narrow post | broken piece | what it means |
+|---|---|---|---|
+| 90 | 1912 | | |
+| 75 | 975 | | |
+| 67 | about 530 | | the default's limit |
+| 65 | 429 | | **last angle of one solid post** |
+| 62 to 64 | 326 to 360 | 5 to 20 | a hair splits off at the rim, 185 tall |
+| 54 to 61 | 106 to 310 | | one piece again, the rim having gone. Builds, but small |
+| 51 to 53 | 27 to 64 | 0.4 to 10 | |
+| 48 to 50 | 1 to 15 | | a speck |
+| 47 and below | none | | the post is gone: 2 posts left, not 4 |
+
+So: **one sound post for every angle from 65 to 115 degrees.** Past that a post first splits, and by 47 degrees it no longer exists. The other two posts grow as these shrink, to about 5000 mm2.
+
+The default `min_post` of 0.05 W2, 500 mm2, stops at 67 to 113, two degrees inside the real limit. I am leaving it there. On its own a 500 mm2 post is about 22 x 22, under a beam 185 tall; whether that carries anything is a structural question this test does not answer.
+
+Below 65 degrees with a low `min_post`, 54 to 61 still build and test sound. That is the caller's explicit choice, not a silent failure, and the pieces are all measured sound as fit. They are not recommended.
+
+Past the post, the limits differ by side. At 129 to 148 degrees the dovetail leaves too little tongue; from 149 it runs past the tongue's end; at 30 degrees and below it leaves its tenon. All refuse, naming the beam and angle.
+
+Not measured: how this range moves with other sizes. It is for these proportions only.
+
+**Choosing the main pair.** `column_head` takes an optional `main_beam` right after the four beams, default none, which keeps the rule from step 12. Naming a beam takes its pair. Tested at a plain cross: by default the pair along x, naming the third beam moves the main pair to it, and the node stays seated, lowered clear and blocked. A named beam with nothing in line is refused, and so is one that is not of the four.

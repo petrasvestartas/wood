@@ -1577,9 +1577,10 @@ static HeadBeam read_head_beam(
     return read;
 }
 
-/// The two beams most nearly in line. Two pairs equally in line, a plain cross, are told apart by the geometry alone so the order they were given in decides nothing: the shorter pair, as
-/// in the photographed node, then the pair running most along world x, y, z.
-static std::array<size_t, 2> head_main_pair(const std::array<HeadBeam, 4>& beams) {
+/// The two beams most nearly in line, among the pairs holding main_beam when one is named. Two pairs equally in line, a plain cross, are told apart by the geometry alone so the order they
+/// were given in decides nothing: the shorter pair, as in the photographed node, then the pair running most along world x, y, z.
+static std::array<size_t, 2>
+head_main_pair(const std::array<HeadBeam, 4>& beams, const Beam* main_beam) {
 
     // a line's direction, the same whichever way it is read
     const auto direction = [](const Vector& out) {
@@ -1595,6 +1596,8 @@ static std::array<size_t, 2> head_main_pair(const std::array<HeadBeam, 4>& beams
     Vector best_way;
     for (size_t i = 0; i < 4; i++)
         for (size_t j = i + 1; j < 4; j++) {
+            if (main_beam && beams[i].beam != main_beam && beams[j].beam != main_beam)
+                continue;
             const double line = 1.0 + beams[i].out.dot(beams[j].out);
             const double length = beams[i].far + beams[j].far;
             const Vector way = direction(beams[i].out);
@@ -1637,6 +1640,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     const Beam& b,
     const Beam& c,
     const Beam& d,
+    const Beam* main_beam,
     double tenon,
     double shoulder,
     double seam_slope,
@@ -1650,6 +1654,10 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
 
     if (column.radius <= 0.0)
         throw std::invalid_argument("column_head: the column is not round");
+    if (main_beam && main_beam != &a && main_beam != &b && main_beam != &c && main_beam != &d)
+        throw std::invalid_argument(
+            fmt::format("column_head: main beam {} is not one of the four", main_beam->name)
+        );
 
     const double radius = column.radius;
 
@@ -1685,7 +1693,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     }
 
     // the main pair, the two most nearly in line, and the frame on them: x along the line at the column's axis, level with the tops
-    const std::array<size_t, 2> mains = head_main_pair(beams);
+    const std::array<size_t, 2> mains = head_main_pair(beams, main_beam);
     const HeadBeam& main_0 = beams[mains[0]];
     const HeadBeam& main_1 = beams[mains[1]];
     if (std::abs(main_0.width - main_1.width) > 1.0 ||

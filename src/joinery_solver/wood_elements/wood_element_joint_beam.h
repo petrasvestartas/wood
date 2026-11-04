@@ -196,12 +196,14 @@ public:
     /// the other two, one each side at any angle, end on those tongues in one dovetail each, all walls along the column, so each beam drops in along it. Everything is read from the members:
     /// each beam's near end, side and direction, its section, the seat's level. A beam's tenon, tail and shoulder follow its own direction, so the posts come out unequal; a beam too long is
     /// cut back and one too short gains stock. Sizes are shares of a beam's own width, the shoulder of the column's radius. Throws naming the beam and the reason when no valid joint exists.
+    /// At a plain cross both pairs are in line: the shorter is the main pair, then the one most along world x, unless main_beam names a beam of the pair to use.
     static std::shared_ptr<JointBeam> column_head(
         const Column& column,
         const Beam& a,
         const Beam& b,
         const Beam& c,
         const Beam& d,
+        const Beam* main_beam = nullptr,
         double tenon = 0.7,
         double shoulder = 0.8,
         double seam_slope = 0.1,

@@ -497,6 +497,8 @@ struct HeadNode {
     double secondary_width = 0.0;
     double near_end = 0.0; // Where every beam's axis stops, along it from the column's axis: past it when negative.
     bool reversed = false; // Axes drawn from the column out, the column's from its head down.
+    double min_post = 0.05; // The smallest post allowed, in square beam widths.
+    int main_beam = -1; // Which member is named as of the main pair, 1 to 4; none by default.
 };
 
 /// The node's column and beams, the beams in the order given by `order`.
@@ -541,7 +543,9 @@ static std::array<std::shared_ptr<Element>, 5> head_members(const HeadNode& node
 }
 
 /// The node joined in a scene of its own.
-static std::shared_ptr<JointBeam> head_joined(WoodSession& scene, const std::array<std::shared_ptr<Element>, 5>& members) {
+static std::shared_ptr<JointBeam> head_joined(
+    WoodSession& scene, const std::array<std::shared_ptr<Element>, 5>& members, const HeadNode& node = HeadNode()
+) {
 
     for (const std::shared_ptr<Element>& member : members)
         scene.add(member);
@@ -550,7 +554,10 @@ static std::shared_ptr<JointBeam> head_joined(WoodSession& scene, const std::arr
         *std::dynamic_pointer_cast<Beam>(members[1]),
         *std::dynamic_pointer_cast<Beam>(members[2]),
         *std::dynamic_pointer_cast<Beam>(members[3]),
-        *std::dynamic_pointer_cast<Beam>(members[4])
+        *std::dynamic_pointer_cast<Beam>(members[4]),
+        node.main_beam < 0 ? nullptr : std::dynamic_pointer_cast<Beam>(members[node.main_beam]).get(),
+        0.7, 0.8, 0.1, 0.145, 0.286, 0.146, 0.176, 0.08,
+        node.min_post
     );
     scene.add(joint);
     for (size_t i = 0; i < 5; i++)
@@ -628,6 +635,67 @@ static HeadMeasure measure_head(const HeadNode& node, const std::array<std::shar
         }
 
     return measure;
+}
+
+/// Any group of the five pieces moved 2 mm any way, the rest still: the least overlap of a blocked move, and how many moves were free. Only the beams lifting off the column, or
+/// the column dropping away from them, may be free: the 15 groups of beams up and the 15 groups holding the column down.
+static std::pair<double, size_t> head_group_moves(const HeadNode& node, const std::array<std::shared_ptr<Element>, 5>& members) {
+
+    const std::array<Mesh, 5> solids = {
+        members[0]->model_geometry_mesh(),
+        members[1]->model_geometry_mesh(),
+        members[2]->model_geometry_mesh(),
+        members[3]->model_geometry_mesh(),
+        members[4]->model_geometry_mesh()
+    };
+    std::vector<Vector> ways = {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, -1.0)};
+    for (const double angle : {node.turn, node.turn + 90.0, node.turn + node.secondary_0, node.turn + node.secondary_1}) {
+        const double turn = angle * std::numbers::pi / 180.0;
+        const Vector way(std::cos(turn), std::sin(turn), 0.0);
+        ways.push_back(way);
+        ways.push_back(way * -1.0);
+    }
+
+    double least = std::numeric_limits<double>::max();
+    size_t free_moves = 0;
+    for (unsigned group = 1; group < 31; group++)
+        for (size_t w = 0; w < ways.size(); w++) {
+            double blocked = 0.0;
+            for (size_t i = 0; i < 5; i++)
+                for (size_t j = 0; j < 5; j++)
+                    if ((group >> i & 1u) && !(group >> j & 1u))
+                        blocked += boolean_volume(
+                            solids[i].transformed(Xform::translation(ways[w][0] * 2.0, ways[w][1] * 2.0, ways[w][2] * 2.0)),
+                            solids[j],
+                            SolidOperation::intersect
+                        );
+            const bool holds_column = group & 1u;
+            const bool may_leave = (!holds_column && w == 0) || (holds_column && w == 1);
+            if (may_leave) {
+                check(blocked < 1.0, fmt::format("group {} can not leave: {:.3f} mm3", group, blocked));
+                free_moves++;
+                continue;
+            }
+            check(blocked > 1.0, fmt::format("group {} moves freely along way {}: {:.3f} mm3", group, w, blocked));
+            least = std::min(least, blocked);
+        }
+
+    return {least, free_moves};
+}
+
+/// The smallest post of a joined node, in mm2.
+static double smallest_post(const HeadNode& node, const Mesh& column) {
+
+    const Polyline square = Polyline::rectangle(
+        {-2.0 * node.radius, -2.0 * node.radius, -node.height + 1.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 4.0 * node.radius, 4.0 * node.radius
+    );
+    const Mesh slab =
+        Mesh::loft({square}, {square.transformed(Xform::translation(0.0, 0.0, node.height + 10.0))}, true);
+    double least = std::numeric_limits<double>::max();
+    for (const Mesh& post : solid_pieces(solid_boolean(column, slab, SolidOperation::intersect)))
+        least = std::min(least, compute_volume(post) / (node.height - 1.0));
+
+    return least;
 }
 
 /// The node from one column and four beams at its measured size and at others, the seat, roles and cuts all read from the members: seated clear, the head filled, every beam lowered
@@ -824,6 +892,91 @@ static void check_column_head_angles() {
     std::cout << fmt::format("joint_beams: column head: {} of 6 asymmetric nodes join, and a narrower secondary beam", asymmetric) << std::endl;
 }
 
+/// Any group of pieces is held at the square node and across the valid angles, and the caller can choose the main pair at a plain cross.
+static void check_column_head_groups() {
+
+    for (const HeadNode& node : std::vector<HeadNode>{
+             {100.0, 185.0, 100.0, 0.0, 90.0, 270.0},
+             {100.0, 185.0, 100.0, 0.0, 67.0, 247.0},
+             {100.0, 185.0, 100.0, 0.0, 113.0, 293.0},
+             {100.0, 185.0, 100.0, 0.0, 75.0, 280.0}
+         }) {
+        const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+        WoodSession scene("column_head");
+        head_joined(scene, members, node);
+        const std::pair<double, size_t> moves = head_group_moves(node, members);
+        check(moves.second == 30, fmt::format("{} free moves, not 30", moves.second));
+        std::cout << fmt::format(
+                         "joint_beams: column head at {:g} and {:g}: every group of pieces, 300 moves, 270 blocked, least {:.0f} mm3, 30 free, all a group of beams lifting off",
+                         node.secondary_0, node.secondary_1, moves.first
+                     )
+                  << std::endl;
+    }
+
+    // at a plain cross with equal beams the default takes the pair along world x; naming a beam takes its pair
+    HeadNode cross = {100.0, 185.0, 100.0, 0.0, 90.0, 270.0};
+    cross.main_beam = -1;
+    const auto main_is_second_pair = [](const HeadNode& node) {
+        std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+        WoodSession scene("column_head");
+        head_joined(scene, members, node);
+        const HeadMeasure measure = measure_head(node, members);
+        check(measure.seated < 1.0, fmt::format("named, seated {:.3f}", measure.seated));
+        check(measure.lowered < 1.0, fmt::format("named, lowered {:.3f}", measure.lowered));
+        check(measure.least > 100.0, fmt::format("named, a move is free, {:.1f}", measure.least));
+
+        // a main beam's tongue runs past the column's axis, a secondary's stops short of it
+        double reach = std::numeric_limits<double>::max();
+        for (const Point& point : members[3]->model_geometry_mesh().to_vertices_and_faces().first)
+            reach = std::min(reach, point[1]);
+        return reach < 0.0;
+    };
+    check(!main_is_second_pair(cross), "by default the shorter pair is the main one");
+    cross.main_beam = 3;
+    check(main_is_second_pair(cross), "naming the third beam makes its pair the main one");
+    std::cout << "joint_beams: column head: at a plain cross the shorter pair by default, a named beam's pair when asked" << std::endl;
+}
+
+/// The real limit of the turn: with no floor on a post's size, how far from square the secondary beams turn, going out from 90 degrees until the joint first fails. At the narrow side a post
+/// necks and splits; further on one piece of it is gone and a speck is left, which counts as a post again, so the range is what holds without a break, not the widest angle that builds.
+static void check_column_head_limit() {
+
+    std::map<int, double> posts;
+    std::map<int, std::string> refusals;
+    for (int angle = 5; angle <= 175; angle++) {
+        HeadNode node = {100.0, 185.0, 100.0, 0.0, double(angle), 180.0 + angle};
+        node.min_post = 0.0;
+        try {
+            const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+            WoodSession scene("column_head");
+            head_joined(scene, members, node);
+            const HeadMeasure measure = measure_head(node, members);
+            check(measure.seated < 1.0, fmt::format("at {} seated {:.3f} mm3", angle, measure.seated));
+            check(measure.lowered < 1.0, fmt::format("at {} lowering overlaps {:.3f}", angle, measure.lowered));
+            check(measure.least > 10.0, fmt::format("at {} a move is free, {:.1f}", angle, measure.least));
+            posts[angle] = smallest_post(node, members[0]->model_geometry_mesh());
+        } catch (const std::invalid_argument& error) {
+            refusals[angle] = error.what();
+        }
+    }
+
+    int low = 90;
+    int high = 90;
+    while (posts.count(low - 1))
+        low--;
+    while (posts.count(high + 1))
+        high++;
+    check(low == 65 && high == 115, fmt::format("the sound range moved to {} and {}", low, high));
+    std::cout << fmt::format(
+                     "joint_beams: column head: with no floor on a post, sound without a break from {} to {} degrees, the post falling from {:.0f} to {:.0f} mm2; at {}: {}; at {}: {}",
+                     low, high, posts[90], posts[low], low - 1, refusals[low - 1], high + 1, refusals[high + 1]
+                 )
+              << std::endl;
+    for (const std::pair<const int, double>& post : posts)
+        if (post.first < low || post.first > high)
+            std::cout << fmt::format("joint_beams: column head turn {}: a speck of {:.0f} mm2 left of the post", post.first, post.second) << std::endl;
+}
+
 /// What no joint exists for is refused, naming the beam and the reason.
 static void check_column_head_refusals() {
 
@@ -875,6 +1028,26 @@ static void check_column_head_refusals() {
         "aside"
     );
     refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), aside}, "beam aside misses the column's axis");
+
+    // a named main beam with nothing in line with it
+    const std::array<std::shared_ptr<Beam>, 4> turned = {fine(0.0, "a"), fine(180.0, "b"), fine(75.0, "c"), fine(280.0, "d")};
+    std::string message;
+    try {
+        JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], turned[2].get());
+    } catch (const std::invalid_argument& error) {
+        message = error.what();
+    }
+    check(message.find("no two beams are in line") != std::string::npos, "named c, got: " + message);
+    std::cout << fmt::format("joint_beams: column head refused: {}", message) << std::endl;
+    message.clear();
+    const std::shared_ptr<Beam> stranger = fine(30.0, "stranger");
+    try {
+        JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], stranger.get());
+    } catch (const std::invalid_argument& error) {
+        message = error.what();
+    }
+    check(message.find("not one of the four") != std::string::npos, "stranger, got: " + message);
+    std::cout << fmt::format("joint_beams: column head refused: {}", message) << std::endl;
 }
 
 /// The keyed box JointBeam::keyed_box at its default sizes, on other plates and other sizes, and on plates lying flat and turned: each piece goes in in the sequence the mechanism needs, and once the keys are in
@@ -1214,6 +1387,8 @@ int main() {
     check_column_head_orders();
     check_column_head_ends();
     check_column_head_angles();
+    check_column_head_groups();
+    check_column_head_limit();
     check_column_head_refusals();
     check_keyed_boxes();
     check_end_to_end();
