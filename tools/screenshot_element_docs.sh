@@ -17,8 +17,6 @@ shoot() {
     local view="View Isometric"
     # a column's head and cuts face the inside of the floor, away from the usual corner
     case "$name" in element_column*) view="View Isometric Back" ;; esac
-    # the near plate would hide the first key
-    case "$name" in element_joint_beam_keyed_box) view="View Isometric Back" ;; esac
     # the elements selected and fitted, so the hidden attribute rows do not widen the frame, then the selection cleared
     # the command bar and the empty canvas cut off, nothing else; a shot of a scene that had not loaded is taken again
     local try

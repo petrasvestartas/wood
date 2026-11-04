@@ -33,7 +33,7 @@ The order is forced by the geometry:
 Once both keys are in, the only way anything moves is a key straight back out, wide end first.
 
 ## Keyed Box
-A pair of 40 plates with a box and keys at the default sizes, drawn before its last two steps: the first plate slid off along the box and the second key lifted out.
+A pair of 40 plates with a box and keys at the default sizes, drawn before its last step: the plates together on the box and the second key lifted out, since it only goes in once the plates are seated.
 
 ![](elements/element_joint_beam_keyed_box.png)
 
