@@ -3,12 +3,12 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A beam: a rectangular profile swept along a polyline axis.
+/// A beam: a rectangular profile swept along a straight axis.
 int main() {
 
     WoodSession scene("element_beam");
 
-    const Polyline axis({{0.0, 0.0, 0.0}, {600.0, 0.0, 0.0}, {1000.0, 300.0, 0.0}});
+    const Polyline axis({{0.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}});
     const Polyline profile =
         Polyline::rectangle({-60.0, -100.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 120.0, 200.0);
     scene.add(
@@ -22,7 +22,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A beam: a 120 x 200 rectangular profile swept along a two-segment polyline axis.
+A beam: a 120 x 200 rectangular profile swept along a straight axis.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
