@@ -24,10 +24,4 @@ Two inclined 900 mm `CutPlane` elements trimming both ends of a parabolic variab
 
 ![](elements/element_beam_variable_cut.png)
 
-```cpp
-const std::shared_ptr<CutPlane> start = std::make_shared<CutPlane>(
-    Plane::from_point_normal({250.0, 0.0, -300.0}, {1.0, 0.0, 0.5}), 900.0, "start"
-);
-scene.add(start);
-scene.add_interaction(start, rib, start->feature());
-```
+\include{lineno} elements/element_beam_variable_cut.cpp

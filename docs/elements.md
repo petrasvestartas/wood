@@ -143,13 +143,11 @@
 
 ![](diagrams/wood_joint_unit_box.webp)
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
-const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*lower, *upper, *contact);
-scene.add(pins);
-scene.add_interaction(pins, lower, pins->interaction(0));
-scene.add_interaction(pins, upper, pins->interaction(1));
-```
+A joint is an element: it is added, then handed to each member it cuts.
+
+![](examples/two_plates.png)
+
+\include{lineno} two_plates.cpp
 
 <div style="display:none">
 - @subpage elements_block

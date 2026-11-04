@@ -33,13 +33,4 @@ A planar parabolic glulam arch (`140 × 240 mm`, `6` lamella layers of `40 mm` h
 
 ![](elements/element_beam_curved.png)
 
-```cpp
-const std::shared_ptr<BeamCurved> single_arch = BeamCurved::single_curved(
-    NurbsCurve::create_interpolated(arch_pts), 140.0, 240.0, 6, 32, "single_curved_glulam"
-);
-const std::shared_ptr<BeamCurved> double_arch = BeamCurved::double_curved(
-    NurbsCurve::create_interpolated(spatial_pts), 140.0, 240.0, guides, {}, 2, 6, 32, "double_curved_glulam"
-);
-scene.add(single_arch);
-scene.add(double_arch);
-```
+\include{lineno} elements/element_beam_curved.cpp

@@ -4,16 +4,7 @@
 
 Wood is a C++23 timber joinery solver and parametric structure library built on [session_cpp](https://github.com/petrasvestartas/session_cpp). Elements store their uncut stock geometry alongside directed cutting interactions in WoodSession, evaluating boolean-cut meshes and exact NURBS BReps on demand.
 
-```cpp
-WoodSession session("model");
-const std::shared_ptr<InteractionContactFace> contact = session.compute_face_contact(a, b);
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(8, 0.5);
-joint->orient(contact, {a, b});
-session.add(joint, joints_group);
-session.add_interaction(joint, a, joint->interaction(0));
-session.add_interaction(joint, b, joint->interaction(1));
-session.pb_dump(pb_path("live"));
-```
+\include{lineno} two_plates.cpp
 
 ## Scene Graph {#arch_scene_graph}
 

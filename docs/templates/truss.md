@@ -130,34 +130,11 @@ Truss::Truss(const TrussGuide& guide, const std::string& name)
 
 ### Custom Wireframe Truss {#truss_ex_custom}
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/truss/truss.h"
+Two chords and five webs given as polylines with their half sections.
 
-using namespace session_cpp;
-using namespace wood_session;
+![](examples/templates_truss_4_custom_wireframe.png)
 
-int main() {
-    // 1. members: the chords through their nodes and the webs between theirs, each with its half section
-    const std::vector<wood_truss::TrussMember> chords = {
-        {Polyline({{0.0, 0.0, 0.0}, {4000.0, 0.0, 0.0}, {8000.0, 0.0, 0.0}}), 80.0},
-        {Polyline({{0.0, 0.0, 0.0}, {4000.0, 0.0, 2200.0}, {8000.0, 0.0, 0.0}}), 80.0},
-    };
-    const std::vector<wood_truss::TrussMember> webs = {
-        {Polyline({{2000.0, 0.0, 1100.0}, {2000.0, 0.0, 0.0}}), 60.0},
-        {Polyline({{4000.0, 0.0, 2200.0}, {4000.0, 0.0, 0.0}}), 60.0},
-        {Polyline({{6000.0, 0.0, 1100.0}, {6000.0, 0.0, 0.0}}), 60.0},
-        {Polyline({{2000.0, 0.0, 1100.0}, {4000.0, 0.0, 0.0}}), 60.0},
-        {Polyline({{6000.0, 0.0, 1100.0}, {4000.0, 0.0, 0.0}}), 60.0},
-    };
-
-    // 2. the guide (160 x 160 mm chords, 120 x 120 mm webs) and the truss
-    const wood_truss::TrussGuide guide(chords, webs);
-    wood_truss::Truss truss(guide, "custom_pratt_truss");
-    truss.pb_dump(pb_path("live"));
-    return 0;
-}
-```
+\include{lineno} templates_truss_4_custom_wireframe.cpp
 
 ### Pratt Roof Truss {#truss_ex_pratt}
 

@@ -34,6 +34,4 @@ A steel column support placed on the world `xy` plane with its exact BRep geomet
 
 ![](elements/element_support.png)
 
-```cpp
-scene.add(std::make_shared<Support>(Plane::xy_plane(), "support"));
-```
+\include{lineno} elements/element_support.cpp

@@ -31,12 +31,7 @@ Seven 120 mm wide rectangular sections along a 3000 mm axis whose depth tapers p
 
 ![](elements/element_beam_variable.png)
 
-```cpp
-const std::shared_ptr<BeamVariable> rib = std::make_shared<BeamVariable>(
-    Line::from_points({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}), sections, "rib"
-);
-scene.add(rib);
-```
+\include{lineno} elements/element_beam_variable.cpp
 
 ## Cut by plane elements
 
@@ -44,9 +39,4 @@ The same variable-depth rib trimmed at both ends by two inclined `CutPlane` elem
 
 ![](elements/element_beam_variable_cut.png)
 
-```cpp
-const std::shared_ptr<CutPlane> start = std::make_shared<CutPlane>(
-    Plane::from_point_normal({250.0, 0.0, -300.0}, {1.0, 0.0, 0.5}), 900.0, "start"
-);
-scene.add_interaction(start, rib, start->feature());
-```
+\include{lineno} elements/element_beam_variable_cut.cpp

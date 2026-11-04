@@ -32,8 +32,4 @@ A 120 × 200 mm rectangular profile swept along a straight axis.
 
 ![](elements/element_beam.png)
 
-```cpp
-const Polyline axis({{0.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}});
-const Polyline profile = Polyline::rectangle({-60.0, -100.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 120.0, 200.0);
-scene.add(std::make_shared<Beam>(axis, std::vector<Polyline>{profile}, std::vector<Vector>{}, "beam"));
-```
+\include{lineno} elements/element_beam.cpp

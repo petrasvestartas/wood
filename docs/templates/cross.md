@@ -88,20 +88,6 @@ for (int k = 1; k <= divisions; k++) {
 
 ![](templates/templates_cross_1_vda_mesh_all.webp)
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/cross/vda_mesh.h"
-
-int main() {
-    wood_cross::VdaMesh shell(
-        wood_cross::VdaMesh::default_mesh(),
-        40.0, {0.0}, {2}, {}, {}, 300.0, 300.0, 40.0
-    );
-    shell.pb_dump(wood_session::pb_path("live"));
-    return 0;
-}
-```
-
 ## Examples {#cross_examples}
 
 ### 1 VDA Mesh {#cross_example_1}

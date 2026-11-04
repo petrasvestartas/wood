@@ -57,18 +57,13 @@ void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-## Usage
+## Tenons
 
-Target `0` receives the male outline and target `1` receives the female outline.
+Target `0` receives the male outline and target `1` the female outline.
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
-const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(16, 0.5);
-joint->orient(contact, {base, upright});
-scene.add(joint);
-scene.add_interaction(joint, upright, joint->interaction(0));
-scene.add_interaction(joint, base, joint->interaction(1));
-```
+![](elements/element_joint_plate_top_side_tenons.png)
+
+\include{lineno} elements/element_joint_plate_top_side_tenons.cpp
 
 ## Parameters
 
@@ -76,10 +71,7 @@ Parameter sweep of `top_side_tenons` varying `divisions = {8, 16, 24}` in the ba
 
 ![](elements/element_joint_plate_parameters.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(divisions, shift);
-joint->orient(contact, {base, upright});
-```
+\include{lineno} elements/element_joint_plate_parameters.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |

@@ -26,9 +26,7 @@ Drills a single hole at the centroid of the contact polygon through both stacked
 
 ![](joint_library/tt_top_top_centre_pin_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_centre_pin(8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_centre_pin.cpp
 
 ## Pole of Inaccessibility Pin
 Drills a single hole at the polylabel (centre of the largest inscribed circle) of the contact polygon.
@@ -37,9 +35,7 @@ Drills a single hole at the polylabel (centre of the largest inscribed circle) o
 
 ![](joint_library/tt_top_top_polylabel_pin_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_polylabel_pin(8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_polylabel_pin.cpp
 
 ## Inscribed Circle Pins
 Drills `divisions` equally spaced holes around the contact's largest inscribed circle scaled by `shift`.
@@ -48,9 +44,7 @@ Drills `divisions` equally spaced holes around the contact's largest inscribed c
 
 ![](joint_library/tt_top_top_circle_pins_6_0.95_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_circle_pins(6, 0.95, 8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_circle_pins.cpp
 
 ## Offset Perimeter Ring Pins
 Offsets the contact perimeter inward by `shift` and drills a hole every `division_length` along the inset ring.
@@ -59,9 +53,7 @@ Offsets the contact perimeter inward by `shift` and drills a hole every `divisio
 
 ![](joint_library/tt_top_top_ring_pins_60_12_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_ring_pins(60.0, 20.0, 8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_ring_pins.cpp
 
 ## Interior Lattice Pins
 Fills the inward-offset contact polygon with a 2D lattice of holes spaced by `division_length`.
@@ -70,9 +62,7 @@ Fills the inward-offset contact polygon with a 2D lattice of holes spaced by `di
 
 ![](joint_library/tt_top_top_grid_pins_60_12_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_grid_pins(60.0, 20.0, 8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_grid_pins.cpp
 
 ## Inscribed Rectangle Pins
 Finds the largest axis-aligned rectangle inside the contact and places holes every `division_length` along its edges (or fills a grid when `division_length` is negative).
@@ -81,9 +71,7 @@ Finds the largest axis-aligned rectangle inside the contact and places holes eve
 
 ![](joint_library/tt_top_top_rectangle_pins_60_0.95_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_rectangle_pins(60.0, 0.95, 8.0);
-```
+\include{lineno} elements/element_joint_plate_top_top_rectangle_pins.cpp
 
 ## Custom Face Outlines
 Mills a custom hidden bow-tie pocket into the mating faces of both stacked plates to house an internal butterfly key.
@@ -92,9 +80,7 @@ Mills a custom hidden bow-tie pocket into the mating faces of both stacked plate
 
 ![](joint_library/tt_top_top_custom_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::top_top_custom(male, female);
-```
+\include{lineno} elements/element_joint_plate_top_top_custom.cpp
 
 ## Parameters
 

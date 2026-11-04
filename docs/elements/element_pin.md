@@ -25,6 +25,4 @@ A 10 mm radius cylindrical pin along a 200 mm vertical axis.
 
 ![](elements/element_pin.png)
 
-```cpp
-scene.add(std::make_shared<Pin>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 200.0}), 10.0, 0.05));
-```
+\include{lineno} elements/element_pin.cpp

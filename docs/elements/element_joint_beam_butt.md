@@ -28,11 +28,7 @@ A mid-span post and a corner post resting on a sill beam: both posts stop on the
 
 ![](elements/element_joint_beam_butt.png)
 
-```cpp
-const std::shared_ptr<JointBeam> joint = JointBeam::butt(*sill, *post);
-scene.add_interaction(joint, sill, joint->interaction(0));
-scene.add_interaction(joint, post, joint->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_butt.cpp
 
 ## Plates
 
@@ -40,8 +36,4 @@ Two wall plates meeting at a corner on top of a floor slab: the floor slab runs 
 
 ![](elements/element_joint_beam_butt_plates.png)
 
-```cpp
-const std::shared_ptr<JointBeam> corner = JointBeam::butt(*long_wall, *short_wall);
-scene.add_interaction(corner, long_wall, corner->interaction(0));
-scene.add_interaction(corner, short_wall, corner->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_butt_plates.cpp

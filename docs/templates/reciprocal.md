@@ -50,17 +50,6 @@ axes.push_back(Axis{{edge.first, edge.second}, Line::from_points(mid - dir * hal
 
 ![](templates/templates_reciprocal_1_rotation_beams.webp)
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/reciprocal/reciprocal_rotation.h"
-
-int main() {
-    ReciprocalRotation frame(ReciprocalRotation::default_mesh(), 0.35, 1.4, 100.0, 400.0);
-    frame.pb_dump(wood_session::pb_path("live"));
-    return 0;
-}
-```
-
 ---
 
 ## Half-Edge Translation {#reciprocal_move}
@@ -83,17 +72,6 @@ axes[i][j].line += bisector * shift;
 ![](templates/templates_reciprocal_2_move_frame.webp)
 
 ![](templates/templates_reciprocal_2_move_beams.webp)
-
-```cpp
-#include "wood_session.h"
-#include "src/templates/reciprocal/reciprocal_move.h"
-
-int main() {
-    ReciprocalMove frame(ReciprocalMove::default_mesh(), 100.0, 100.0, 400.0);
-    frame.pb_dump(wood_session::pb_path("live"));
-    return 0;
-}
-```
 
 ## Examples {#reciprocal_examples}
 

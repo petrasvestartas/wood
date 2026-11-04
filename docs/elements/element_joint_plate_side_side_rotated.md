@@ -24,9 +24,7 @@ Splits the shared contact volume through its thickness and slices the twisted se
 
 ![](joint_library/r_side_side_rotated_miter_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_miter();
-```
+\include{lineno} elements/element_joint_plate_side_side_rotated_miter.cpp
 
 ## Hook Pockets and Key
 Cuts one hook pocket per division into each plate's side face and generates the interlocking hook keys between them.
@@ -35,9 +33,7 @@ Cuts one hook pocket per division into each plate's side face and generates the 
 
 ![](joint_library/r@120_side_side_rotated_hooks_4_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_hooks(4, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_rotated_hooks.cpp
 
 ## Diamond Pockets and Key
 Cuts one diamond pocket per division into each plate's side face and generates the diamond keys that bridge the seam.
@@ -46,9 +42,7 @@ Cuts one diamond pocket per division into each plate's side face and generates t
 
 ![](joint_library/r@120_side_side_rotated_keys_4_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_keys(4, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_rotated_keys.cpp
 
 ## Custom Outlines
 A custom half-lap step along the seam where the male plate's tongue fits into the female plate's rebate.
@@ -57,9 +51,7 @@ A custom half-lap step along the seam where the male plate's tongue fits into th
 
 ![](joint_library/r_side_side_rotated_custom_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_rotated_custom(male, female);
-```
+\include{lineno} elements/element_joint_plate_side_side_rotated_custom.cpp
 
 ## Planar Side-Face Trim
 Mills each plate's side face along its neighbour's plane so the twisted pair meets flush across the entire seam.
@@ -68,9 +60,7 @@ Mills each plate's side face along its neighbour's plane so the twisted pair mee
 
 ![](joint_library/r_side_removal_0_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_removal(false, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_rotated_side_removal.cpp
 
 ## Parameters
 

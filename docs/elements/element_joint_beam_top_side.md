@@ -18,8 +18,4 @@ A through-tenon and mortise with a milled wedge slot on a T-beam pair at `60°`.
 
 ![](joint_library/ts_top_side_milled_wedge_unit.png)
 
-```cpp
-Settings settings;
-settings.joint_parameters[8] = JointType::top_side_milled_wedge;
-const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
-```
+\include{lineno} elements/element_joint_beam_top_side_milled_wedge.cpp

@@ -38,9 +38,7 @@ Three fixed mitered fingers merged into the floor and wall edges at 90 and 60 de
 
 ![](joint_library/op_side_side_outplane_three_fingers_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_three_fingers();
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_three_fingers.cpp
 
 ## Parametric Fingers
 Eight divisions producing four mitered fingers on the floor interlocking with four notches in the wall.
@@ -49,9 +47,7 @@ Eight divisions producing four mitered fingers on the floor interlocking with fo
 
 ![](joint_library/op_side_side_outplane_fingers_8_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_fingers(8, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_fingers.cpp
 
 ## Graded Splay Fingers
 Eight divisions with a non-uniform shift that splays the central finger pairs twice as far as the outer pairs.
@@ -60,9 +56,7 @@ Eight divisions with a non-uniform shift that splays the central finger pairs tw
 
 ![](joint_library/op_side_side_outplane_graded_fingers_8_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_graded_fingers(8, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_graded_fingers.cpp
 
 ## Miter Tenon and Mortise
 A single central tenon on the mitered wall edge passing through a matching mortise in the floor lip.
@@ -71,9 +65,7 @@ A single central tenon on the mitered wall edge passing through a matching morti
 
 ![](joint_library/op_side_side_outplane_miter_tenon_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_miter_tenon();
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_miter_tenon.cpp
 
 ## Chamfered Tenons and Through Mortises
 Parametric tenons along the mitered wall edge paired with through-mortises in the floor plate.
@@ -82,9 +74,7 @@ Parametric tenons along the mitered wall edge paired with through-mortises in th
 
 ![](joint_library/op_side_side_outplane_tenons_8_0_0_1_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_tenons(8, 0.0, false);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_tenons.cpp
 
 ## Linked Tenons
 Extended chamfered tenons designed to interlock with adjacent linked joints at multi-plate folded nodes.
@@ -93,9 +83,7 @@ Extended chamfered tenons designed to interlock with adjacent linked joints at m
 
 ![](joint_library/op_side_side_outplane_linked_tenons_8_0_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons(8, false);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons.cpp
 
 ## Vidy Wall Tenons
 Linked tenon variant for the Vidy theatre wall seams where the secondary linked joint divisions are disabled.
@@ -104,9 +92,7 @@ Linked tenon variant for the Vidy theatre wall seams where the secondary linked 
 
 ![](joint_library/op_side_side_outplane_linked_tenons_wall_8_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp
 
 ## Vidy node: four folded plates
 
@@ -114,10 +100,7 @@ A four-plate folded Vidy corner node combining `side_side_outplane_linked_tenons
 
 ![](elements/element_joint_plate_vidy_node.png)
 
-```cpp
-const std::shared_ptr<JointPlate> roof_joint = JointPlate::side_side_outplane_linked_tenons(8, false);
-const std::shared_ptr<JointPlate> wall_joint = JointPlate::side_side_outplane_linked_tenons_wall(8);
-```
+\include{lineno} elements/element_joint_plate_vidy_node.cpp
 
 ## Fingers with Flat Miter Caps
 Four divisions producing two interior fingers flanked by flat miter caps at both ends of the seam.
@@ -126,18 +109,14 @@ Four divisions producing two interior fingers flanked by flat miter caps at both
 
 ![](joint_library/op_side_side_outplane_capped_fingers_4_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_capped_fingers(4);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_capped_fingers.cpp
 
 ## Annen Corner Fingers
 The corner fingers of Christopher Robeller's 2017 Annen plugin, built in world space where the two plates meet: their corner from one end of the seam to the other in seven parts, cut at every part by a plane across the seam turned 15 degrees each way in turn about the first plate's long edge, the first part a finger of the first plate, every finger reaching the other plate's outer face.
 
 ![](elements/element_joint_plate_side_side_outplane_annen_fingers.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_annen_fingers();
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_annen_fingers.cpp
 
 ## Single Central Notch
 A single rectangular tongue-and-notch over the middle half of the mitered seam.
@@ -146,9 +125,7 @@ A single rectangular tongue-and-notch over the middle half of the mitered seam.
 
 ![](joint_library/op_side_side_outplane_notch_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_notch();
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_notch.cpp
 
 ## Custom Outlines
 Custom wide-narrow-wide fingers on the floor plate and matching sockets in the wall plate defined in the `[-0.5, 0.5]^3` unit box.
@@ -157,9 +134,7 @@ Custom wide-narrow-wide fingers on the floor plate and matching sockets in the w
 
 ![](joint_library/op_side_side_outplane_custom_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_outplane_custom(male, female);
-```
+\include{lineno} elements/element_joint_plate_side_side_outplane_custom.cpp
 
 ## Parameters
 

@@ -29,12 +29,4 @@ A 120 mm thick barrel-vault strip bounded by two outer quarter-arcs (`R = 2000 m
 
 ![](elements/element_plate_curved.png)
 
-```cpp
-const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
-    NurbsCurve::create_interpolated(arc(2000.0, 0.0)),
-    NurbsCurve::create_interpolated(arc(2000.0, 600.0)),
-    NurbsCurve::create_interpolated(arc(1880.0, 0.0)),
-    NurbsCurve::create_interpolated(arc(1880.0, 600.0))
-);
-scene.add(plate);
-```
+\include{lineno} elements/element_plate_curved.cpp

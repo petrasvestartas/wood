@@ -12,13 +12,7 @@ Four dowel pins placed at the inset corners of the contact face between two stac
 
 ![](elements/element_joint_beam_centred_pins.png)
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
-const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*lower, *upper, *contact);
-scene.add(pins);
-scene.add_interaction(pins, lower, pins->interaction(0));
-scene.add_interaction(pins, upper, pins->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_centred_pins.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |
@@ -32,14 +26,7 @@ Long screws driven from a header beam's outer face through into an abutting jois
 
 ![](elements/element_joint_beam_headed_pins.png)
 
-```cpp
-const std::shared_ptr<JointBeam> pins = JointBeam::headed_pins(
-    *beam, *joist, *contact, PinLayout::horizontal, 3
-);
-scene.add(pins);
-scene.add_interaction(pins, beam, pins->interaction(0));
-scene.add_interaction(pins, joist, pins->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_headed_pins.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |

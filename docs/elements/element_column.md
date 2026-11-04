@@ -28,10 +28,7 @@ A 200 × 300 mm rectangular section swept along a 3500 mm vertical axis.
 
 ![](elements/element_column.png)
 
-```cpp
-const Polyline section = Polyline::rectangle({-100.0, -150.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
-scene.add(std::make_shared<Column>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 3500.0}), section, "column"));
-```
+\include{lineno} elements/element_column.cpp
 
 ## Floor column assembly
 
@@ -39,7 +36,4 @@ A floor corner column assembly combining the 220 mm shaft, two glued head blocks
 
 ![](elements/element_column_session.png)
 
-```cpp
-const wood_floor::Floor floor(guide);
-scene.graft(floor.get_branch("column_0"), nullptr);
-```
+\include{lineno} elements/element_column_session.cpp

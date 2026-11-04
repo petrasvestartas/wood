@@ -46,9 +46,7 @@ Three fixed 20 mm deep rectangular fingers merged into both plate edges.
 
 ![](joint_library/ip_side_side_inplane_three_fingers_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_three_fingers();
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_three_fingers.cpp
 
 ## Parametric Fingers
 Eight divisions at `shift = 0.5` producing four interlocking fingers per plate along the seam.
@@ -57,9 +55,7 @@ Eight divisions at `shift = 0.5` producing four interlocking fingers per plate a
 
 ![](joint_library/ip_side_side_inplane_dovetails_8_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_dovetails(8, 0.5);
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_dovetails.cpp
 
 ## Butterfly Keys
 Four butterfly pockets cut across the seam along with the four butterfly key blocks that lock both plates together.
@@ -68,9 +64,7 @@ Four butterfly pockets cut across the seam along with the four butterfly key blo
 
 ![](joint_library/ip_side_side_inplane_butterfly_keys_4_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_butterfly_keys(4);
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_butterfly_keys.cpp
 
 ## Reversed-Tooth Keys
 Four reversed eight-point tooth pockets cut across the seam along with their matching key blocks.
@@ -79,9 +73,7 @@ Four reversed eight-point tooth pockets cut across the seam along with their mat
 
 ![](joint_library/ip_side_side_inplane_tooth_keys_4_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_tooth_keys(4);
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_tooth_keys.cpp
 
 ## Custom Outlines
 A custom feather joint of eight alternating V-teeth defined in the `[-0.5, 0.5]^3` unit box and merged into both plate edges.
@@ -90,9 +82,7 @@ A custom feather joint of eight alternating V-teeth defined in the `[-0.5, 0.5]^
 
 ![](joint_library/ip_side_side_inplane_custom_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::side_side_inplane_custom(male, female);
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_custom.cpp
 
 ## Hilti Connector
 A bow-tie pocket milled into two 200 mm CLT slabs folded at 30 degrees, housing plywood key halves, recessed steel washers, and a central tension bolt.
@@ -101,12 +91,7 @@ A bow-tie pocket milled into two 200 mm CLT slabs folded at 30 degrees, housing 
 
 ![](elements/element_joint_plate_side_side_inplane_hilti.png)
 
-```cpp
-const std::shared_ptr<JointPlate> hilti = JointPlate::side_side_inplane_hilti(*left, *right, *contact);
-scene.add(hilti);
-scene.add_interaction(hilti, left, hilti->interaction(0));
-scene.add_interaction(hilti, right, hilti->interaction(1));
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_hilti.cpp
 
 ## side_side_inplane_hilti at six fold angles
 
@@ -114,11 +99,7 @@ Six slab pairs folded from 0 to 50 degrees in 10-degree steps, showing how the p
 
 ![](elements/element_joint_plate_side_side_inplane_hilti_angles.png)
 
-```cpp
-for (int i = 0; i < 6; i++) {
-    const std::shared_ptr<JointPlate> hilti = JointPlate::side_side_inplane_hilti(*a, *b, *contact);
-}
-```
+\include{lineno} elements/element_joint_plate_side_side_inplane_hilti_angles.cpp
 
 ## Parameters
 

@@ -17,26 +17,13 @@ static std::shared_ptr<Joint> support(const Support& support, const Column& colu
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-## Usage
-
-Add the joint to the scene and wire `interaction(0)` to the target element via `add_interaction`:
-
-```cpp
-scene.add(drill);
-scene.add_interaction(drill, block, drill->interaction(0));
-```
-
 ## Cylindrical drill
 
 A 25 mm radius vertical bore drilled cleanly through a timber block.
 
 ![](elements/element_joint_drill.png)
 
-```cpp
-const std::shared_ptr<Joint> drill = Joint::drill(Line::from_points({150.0, 150.0, -20.0}, {150.0, 150.0, 220.0}), 25.0);
-scene.add(drill);
-scene.add_interaction(drill, block, drill->interaction(0));
-```
+\include{lineno} elements/element_joint_drill.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |
@@ -50,12 +37,7 @@ A box mesh subtracted from a beam's top face (`SolidOperation::subtract`) and an
 
 ![](elements/element_joint_cutter.png)
 
-```cpp
-const std::shared_ptr<Joint> notch = std::make_shared<Joint>(box_mesh, SolidOperation::subtract);
-const std::shared_ptr<Joint> trim = std::make_shared<Joint>(profile_loop, Vector(0.0, 400.0, 0.0));
-scene.add_interaction(notch, beam, notch->interaction(0));
-scene.add_interaction(trim, beam, trim->interaction(0));
-```
+\include{lineno} elements/element_joint_cutter.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |

@@ -26,9 +26,7 @@ The family default cutting a half-depth rectangular slot from the top of the fir
 
 ![](joint_library/cr_cross_slot_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
-```
+\include{lineno} elements/element_joint_plate_cross_slot.cpp
 
 ## Custom Outlines
 User-defined crossing slot outlines in the `[-0.5, 0.5]^3` unit box (`male` on the `y` faces, `female` on the `x` faces).
@@ -37,6 +35,4 @@ User-defined crossing slot outlines in the `[-0.5, 0.5]^3` unit box (`male` on t
 
 ![](joint_library/cr_cross_custom_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_custom(male, female);
-```
+\include{lineno} elements/element_joint_plate_cross_custom.cpp

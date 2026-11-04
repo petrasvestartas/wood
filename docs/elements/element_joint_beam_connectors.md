@@ -12,13 +12,7 @@ A tapered hardwood wedge let into the top seam of two side-by-side beams and pin
 
 ![](elements/element_joint_beam_wedge.png)
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-const std::shared_ptr<JointBeam> wedge = JointBeam::wedge(*left, *right, *contact, 300.0, 133.0);
-scene.add(wedge);
-scene.add_interaction(wedge, left, wedge->interaction(0));
-scene.add_interaction(wedge, right, wedge->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_wedge.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |
@@ -36,12 +30,7 @@ A flush steel shear plate (`let_in_plate`) slotted into the top of a column and 
 
 ![](elements/element_joint_beam_rectangle_plate.png)
 
-```cpp
-const std::shared_ptr<Plate> plate = JointBeam::let_in_plate(*rib, *contact);
-const std::shared_ptr<JointBeam> joint = JointBeam::rectangle_plate(*column, *rib, *plate, *contact);
-scene.add(plate);
-scene.add(joint);
-```
+\include{lineno} elements/element_joint_beam_rectangle_plate.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |
@@ -58,13 +47,7 @@ A double-dovetail butterfly key inlaid across the end-to-end seam of two colline
 
 ![](elements/element_joint_beam_butterfly_key.png)
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-const std::shared_ptr<JointBeam> key = JointBeam::butterfly_key(*left, *right, *contact);
-scene.add(key);
-scene.add_interaction(key, left, key->interaction(0));
-scene.add_interaction(key, right, key->interaction(1));
-```
+\include{lineno} elements/element_joint_beam_butterfly_key.cpp
 
 | Parameter | Default | Role |
 | --- | --- | --- |

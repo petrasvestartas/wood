@@ -90,36 +90,13 @@ for (const std::shared_ptr<Plate>& plate : plates)
     add(plate, plates_group);
 ```
 
-## Example
+## Your own curves
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/shells/translation_shell.h"
+The same shell from a cross section and a profile you give: the section swept along the profile.
 
-using namespace session_cpp;
-using namespace wood_session;
+![](examples/templates_shells_2_custom_curves.png)
 
-int main() {
-    const Polyline cross_section({
-        {1200.0, 0.0,   0.0},
-        { 900.0, 0.0, 260.0},
-        { 600.0, 0.0, 360.0},
-        { 300.0, 0.0, 260.0},
-        {   0.0, 0.0,   0.0},
-    });
-    const Polyline profile({
-        {0.0,     0.0,   0.0},
-        {0.0,  -500.0, 240.0},
-        {0.0, -1000.0, 340.0},
-        {0.0, -1500.0, 240.0},
-        {0.0, -2000.0,   0.0},
-    });
-
-    TranslationShell shell(cross_section, profile, 12.0, 1.5, 180.0, "custom_translation_shell");
-    shell.pb_dump(pb_path("live"));
-    return 0;
-}
-```
+\include{lineno} templates_shells_2_custom_curves.cpp
 
 ## Examples {#shells_examples}
 

@@ -17,10 +17,6 @@ static std::shared_ptr<JointPlate> border_custom(const std::vector<Polyline>& ma
 
 `WoodSession::compute_border_contact(plate, side_index)` extracts an `InteractionContactFace` frame directly on the requested boundary edge of `plate`, allowing single-plate edge profiles, slots, or notches to be oriented and applied through `joint->interaction(0)`:
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_border_contact(plate, 2);
-const std::shared_ptr<JointPlate> joint = JointPlate::border();
-joint->orient(contact, {plate});
-scene.add(joint);
-scene.add_interaction(joint, plate, joint->interaction(0));
-```
+![](elements/element_joint_plate_border.png)
+
+\include{lineno} elements/element_joint_plate_border.cpp

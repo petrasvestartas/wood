@@ -55,15 +55,13 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 std::vector<std::shared_ptr<Joint>> children() const;
 ```
 
-## Usage
+## Wedge
 
-```cpp
-const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-const std::shared_ptr<JointBeam> wedge = JointBeam::wedge(*left, *right, *contact, 300.0, 133.0);
-scene.add(wedge);
-scene.add_interaction(wedge, left, wedge->interaction(0));
-scene.add_interaction(wedge, right, wedge->interaction(1));
-```
+A wedge between two beams that meet face to face: the joint is added, then given to each beam.
+
+![](elements/element_joint_beam_wedge.png)
+
+\include{lineno} elements/element_joint_beam_wedge.cpp
 
 ## Contact Parameters
 

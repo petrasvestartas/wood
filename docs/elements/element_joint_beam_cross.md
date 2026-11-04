@@ -20,9 +20,7 @@ A straight half-depth rectangular lap slot cut into both crossing beams.
 
 ![](joint_library/cr_cross_slot_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
-```
+\include{lineno} elements/element_joint_beam_cross_slot.cpp
 
 ## Sliced Half-Lap
 A nine-ring half-lap per beam where the centre and top sides are milled while the bottom sides and corner wedges are sliced.
@@ -31,23 +29,18 @@ A nine-ring half-lap per beam where the centre and top sides are milled while th
 
 ![](joint_library/cr_cross_sliced_half_lap_0.5_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_sliced_half_lap(0.5);
-```
+\include{lineno} elements/element_joint_beam_cross_sliced_half_lap.cpp
 
 ## Milled Half-Lap
 A five-ring milled half-lap per beam with sheer upper walls and extended lower bearing shelves. It is one joint, `cross_half_lap`, with an option `CrossDrills` saying which drills it carries: none (the default), two diagonal pin bores through both beams, or one pin bore down the crossing axis. The option is stored in the joint id, so `cross_half_lap_id(drills)` gives 32, 33 or 34, the numbers saved datasets use.
-
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap(0.5, CrossDrills::none);
-settings.joint_parameters[11] = JointPlate::cross_half_lap_id(CrossDrills::none);
-```
 
 ### No drills
 
 ![](elements/element_joint_beam_cross_half_lap.png)
 
 ![](joint_library/cr_cross_half_lap_unit.png)
+
+\include{lineno} elements/element_joint_beam_cross_half_lap.cpp
 
 ### Two diagonal drills
 `CrossDrills::two_diagonal`: two diagonal pin bores through both beams.
@@ -56,9 +49,8 @@ settings.joint_parameters[11] = JointPlate::cross_half_lap_id(CrossDrills::none)
 
 ![](joint_library/cr_cross_half_lap_diagonal_drills_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap(0.5, CrossDrills::two_diagonal);
-```
+\include{lineno} elements/element_joint_beam_cross_half_lap_diagonal_drills.cpp
+
 
 ### One drill
 `CrossDrills::one`: a single vertical pin bore down the crossing axis.
@@ -67,9 +59,8 @@ const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap(0.5, CrossD
 
 ![](joint_library/cr_cross_half_lap_drill_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_half_lap(0.5, CrossDrills::one);
-```
+\include{lineno} elements/element_joint_beam_cross_half_lap_drill.cpp
+
 
 ## Brussels Half-Lap
 An asymmetric milled half-lap with a vertical 50 mm counterbore and a horizontal 10 mm cross-pin bore.
@@ -78,6 +69,4 @@ An asymmetric milled half-lap with a vertical 50 mm counterbore and a horizontal
 
 ![](joint_library/cr_cross_brussels_half_lap_unit.png)
 
-```cpp
-const std::shared_ptr<JointPlate> joint = JointPlate::cross_brussels_half_lap(0.5);
-```
+\include{lineno} elements/element_joint_beam_cross_brussels_half_lap.cpp

@@ -20,11 +20,7 @@ A collinear splayed scarf splice with end shoulders, key groove, and two vertica
 
 ![](joint_library/ip_side_side_inplane_splayed_scarf_unit.png)
 
-```cpp
-Settings settings;
-settings.joint_parameters[2] = JointType::side_side_inplane_splayed_scarf;
-const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
-```
+\include{lineno} elements/element_joint_beam_side_side_inplane_splayed_scarf.cpp
 
 ## Cross-Splayed Scarf
 A collinear scarf whose upper and lower halves splay in opposite directions to lock the splice against lateral shear both ways.
@@ -33,21 +29,14 @@ A collinear scarf whose upper and lower halves splay in opposite directions to l
 
 ![](joint_library/ip_side_side_inplane_cross_splayed_scarf_unit.png)
 
-```cpp
-Settings settings;
-settings.joint_parameters[2] = JointType::side_side_inplane_cross_splayed_scarf;
-const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
-```
+\include{lineno} elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.cpp
 
 ## Angled End Miter
 A beam pair meeting at `60°` whose extensions are trimmed cleanly along the bisecting miter plane.
 
 ![](elements/element_joint_beam_side_side_rotated_miter.png)
 
-```cpp
-const auto [a, b] = Beam::pair_end_to_end(90.0);
-const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5);
-```
+\include{lineno} elements/element_joint_beam_side_side_rotated_miter.cpp
 
 ## Trait De Jupiter Scarf
 A classical trait de Jupiter tension scarf with hooked tables, twin slopes, central key slot, and locking wedge key.
@@ -56,8 +45,4 @@ A classical trait de Jupiter tension scarf with hooked tables, twin slopes, cent
 
 ![](joint_library/ip_jupiter_scarf_unit.png)
 
-```cpp
-Settings settings;
-settings.joint_parameters[2] = JointType::jupiter_scarf;
-const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contact, 300.0, 0.5, 0, settings);
-```
+\include{lineno} elements/element_joint_beam_jupiter_scarf.cpp
