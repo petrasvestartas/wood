@@ -6,7 +6,7 @@ Multi-storey timber building generator in `src/templates/grid/*.h`. `wood_grid::
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#grid_ex_tree">
-    <img src="3_elements_tree_all.webp" alt="Five-Bay Building">
+    <img src="templates_grid_6_five_bay_all.webp" alt="Five-Bay Building">
     <span class="wood-card-title">Five-Bay Building</span>
   </a>
   <a class="wood-card" href="#grid_ex_footprint">
@@ -35,7 +35,7 @@ Multi-storey timber building generator in `src/templates/grid/*.h`. `wood_grid::
 const wood_grid::Building building = wood_grid::Building::from_footprint(
     FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS)
 );
-wood_grid::Grid grid(building, FRAMING, "elements_tree");
+wood_grid::Grid grid(building, FRAMING, "five_bay");
 ```
 
 ---
@@ -94,7 +94,7 @@ Grid::Grid(const Building& guide, const Framing& framing, const std::string& nam
 
 Every level's `plan` mesh edges and column vertices are lifted to datum `level.z` and placed in `plan_<level>`:
 
-![The plans](templates/3_elements_tree_plan_2.webp)
+![The plans](templates/templates_grid_6_five_bay_plan_2.webp)
 
 ```cpp
 for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
@@ -108,7 +108,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 
 A `Column` stands on every stacked column vertex from the lower slab top (`foot`) to the upper column head underside or level datum (`top`):
 
-![The columns](templates/3_elements_tree_columns_1.webp)
+![The columns](templates/templates_grid_6_five_bay_columns_1.webp)
 
 ```cpp
 for (const build::Stack& stack : stacks) {
@@ -139,7 +139,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 
 When `framing.node == 0`, each column top receives a chamfered pyramidal, conical, or stepped `head` block supporting the incoming girders/beams or point-supported slab:
 
-![The heads](templates/3_elements_tree_heads_1.webp)
+![The heads](templates/templates_grid_6_five_bay_heads_1.webp)
 
 ```cpp
 for (const build::Stack& stack : stacks) {
@@ -155,7 +155,7 @@ for (const build::Stack& stack : stacks) {
 
 Plan edges with `role > 0` become `girder` or `beam` members with end cuts determined by node priority. In `system == 2` bays, `compute_stations` populates secondary `purlin` members across the bay at `framing.spacing`:
 
-![The beams](templates/3_elements_tree_beams_1.webp)
+![The beams](templates/templates_grid_6_five_bay_beams_1.webp)
 
 ```cpp
 for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
@@ -182,7 +182,7 @@ for (const build::Station& station : build::compute_stations(upper, face, level.
 
 Every floored bay receives a `deck` plate; flush decks boolean-subtract corner column head pyramids via `InteractionFeatureSolid`:
 
-![The decks](templates/3_elements_tree_decks_1.webp)
+![The decks](templates/templates_grid_6_five_bay_decks_1.webp)
 
 ```cpp
 for (const size_t vertex : build::compute_loop(level.plan, outline.first)) {
@@ -227,55 +227,11 @@ braces.insert(braces.end(), brace.begin(), brace.end());
 
 ### Five-Bay Building {#grid_ex_tree}
 
-![](templates/3_elements_tree_all.webp)
+An L of five bays, two storeys of post and beam:
 
-```cpp
-#include "wood_session.h"
-#include "src/templates/grid/grid.h"
+![templates_grid_6_five_bay](templates/templates_grid_6_five_bay_all.webp)
 
-using namespace session_cpp;
-using namespace wood_session;
-
-const std::vector<double> XS = {4000.0, 4000.0, 4000.0};
-const std::vector<double> YS = {3000.0, 3000.0};
-const std::vector<Polyline> FOOTPRINT = {Polyline(
-    {Point(0.0, 0.0, 0.0),
-     Point(12000.0, 0.0, 0.0),
-     Point(12000.0, 3000.0, 0.0),
-     Point(8000.0, 3000.0, 0.0),
-     Point(8000.0, 6000.0, 0.0),
-     Point(0.0, 6000.0, 0.0),
-     Point(0.0, 0.0, 0.0)}
-)};
-const std::vector<double> ELEVATIONS = {0.0, 3000.0, 6000.0};
-const wood_grid::Framing FRAMING{
-    .system = 1,
-    .span = -1,
-    .node = 0,
-    .deck = 200.0,
-    .reach = 200.0,
-    .profiles =
-        {.column = profile_rectangle(200.0, 200.0), .girder = profile_rectangle(200.0, 200.0)}
-};
-const bool INSTANCES = false;
-
-/// The L of five bays, two storeys of post and beam, its tree a level per storey and a group per kind.
-int main() {
-
-    const wood_grid::Building building = wood_grid::Building::from_footprint(
-        FOOTPRINT, ELEVATIONS, wood_grid::Pattern::orthogonal(XS, YS)
-    );
-    wood_grid::Grid grid(building, FRAMING, "elements_tree");
-
-    if constexpr (INSTANCES)
-        grid.instance_by_key();
-
-    std::cout << grid;
-    grid.pb_dump(pb_path("live"));
-
-    return 0;
-}
-```
+Full source: @ref grid_example_6
 
 ### Footprints & Grid Patterns {#grid_ex_footprint}
 
@@ -346,3 +302,9 @@ The reference configurations side by side, one group each: 60 ft square in its t
 The joints and sections of the grid template, fifteen bays side by side over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then the seven profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, double as two members with the same cuts, slab band and T. Every bay is a Grid, its contacts found inside it, grafted under its own group. The example then cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 \include{lineno} templates_grid_5_framing.cpp
+
+### 6 Five Bay {#grid_example_6}
+
+An L of five bays - three by two with the far corner bay left open - post and beam with 200 square columns and beams, stacked two storeys high, a beam on every grid line between the column heads (span -1), so the heads meet every case - two beams at the outer corners, three on the edges, four inside and at the re-entrant corner, every head chamfered between each two neighbouring beams - and every deck sits between four beams with its corners cut by the heads; the Grid's tree has a branch per level and a twig per kind under it, plan_\<l\>, columns_\<l\>, heads_\<l\>, beams_\<l\> and decks_\<l\>; each column stands on the head below it, so the Grid's contacts pair every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: four definitions, column, head, beam and deck.
+
+\include{lineno} templates_grid_6_five_bay.cpp

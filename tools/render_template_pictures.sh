@@ -5,7 +5,7 @@
 #   bash tools/render_template_pictures.sh            every family
 #   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid or vault
 #
-# PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows).
+# PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows). SHOT_PORT_BASE moves the Chrome ports off 9333.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -15,7 +15,7 @@ SLOT=0
 
 # one line of the recipe in the background, each slot's Chrome on its own port, SHOTS at a time
 render_job() {
-    SHOT_PORT=$((9333 + SLOT % SHOTS)) "${PYTHON:-python3}" tools/render_template_docs.py "$@" || echo "FAILED $*" &
+    SHOT_PORT=$((${SHOT_PORT_BASE:-9333} + SLOT % SHOTS)) "${PYTHON:-python3}" tools/render_template_docs.py "$@" || echo "FAILED $*" &
     SLOT=$((SLOT + 1))
     if [ $((SLOT % SHOTS)) -eq 0 ]; then wait; fi
 }
@@ -116,7 +116,12 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
-    "${RENDER[@]}" templates_cross_1_vda_mesh all mesh face_planes edge_planes bisector_planes plates connector_frames connectors
+    "${RENDER[@]}" templates_cross_1_vda_mesh all mesh plates connectors
+    # a scene of planes alone stays on a white page: each with the mesh it stands on
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name face_planes templates_cross_1_vda_mesh mesh+face_planes
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_cross_1_vda_mesh mesh+edge_planes
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name bisector_planes templates_cross_1_vda_mesh mesh+bisector_planes
+    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name connector_frames templates_cross_1_vda_mesh mesh+connector_frames
     "${RENDER[@]}" --wheel 6,0.5,0.3 --name cross_laps templates_cross_1_vda_mesh plates
 fi
 
@@ -161,14 +166,19 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
+    "${RENDER[@]}" templates_grid_1_footprint walls_1 purlins_1
+    "${RENDER[@]}" templates_grid_3_lines braced
     "${RENDER[@]}" templates_grid_5_framing head_section head_stepped node_through purlin_hung profile_w
+    "${RENDER[@]}" templates_grid_6_five_bay all plan_2 columns_1 heads_1 beams_1 decks_1
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
     "${RENDER[@]}" --view bottom --name bottom templates_vault_8_star_vault all
+    # the example takes two minutes: one run, every picture shot from its scene
+    VAULT_SCENE="$(mktemp -d)/vault.pb"
     for bay in quadripartite_wells:quadripartite tierceron_exeter:tierceron star_stellar_burgos:star lierne_star_ely:lierne net_reticulated_parler:net fan_conoid_gloucester:fan; do
-        "${RENDER[@]}" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
-        "${RENDER[@]}" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
+        "${RENDER[@]}" --scene "$VAULT_SCENE" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
+        "${RENDER[@]}" --scene "$VAULT_SCENE" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
     done
 fi
 wait

@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from PIL import Image
 
@@ -51,18 +52,27 @@ branch.pb_dump(sys.argv[3])
 
 
 def run_example(name: str, out: pathlib.Path) -> None:
-    """Runs the example and copies the live.pb it writes, locked so two runs never share the file."""
+    """Runs the example and copies the live.pb it writes, locked so two runs never share the file; a scene already at out is kept."""
     live = WOOD / "data" / "output" / "pb" / "live.pb"
 
     with open(LOCK, "w") as lock:
         if WINDOWS:
             import msvcrt
 
-            msvcrt.locking(lock.fileno(), msvcrt.LK_LOCK, 1)
+            # LK_LOCK gives up after ten seconds, shorter than a slow example
+            while True:
+                try:
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    time.sleep(1)
         else:
             import fcntl
 
             fcntl.flock(lock, fcntl.LOCK_EX)
+
+        if out.exists():
+            return
 
         subprocess.run([str(BUILD / name)], check=True, capture_output=True, cwd=WOOD)
         shutil.copy(live, out)
@@ -122,7 +132,8 @@ def main(arguments: list) -> None:
 
     `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--wheel 12,0.35,0.45` to turn the
     viewer's wheel that many ticks over that share of the canvas for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
-    elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default.
+    elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default;
+    `--scene file.pb` to keep the example's scene in that file and shoot from it when it is there, so a slow example runs once for all its pictures.
     Every picture is a screenshot of the viewer, cropped, never scaled or recoloured, and saved lossless; a close-up is the viewer's own zoom.
     """
     view = option(arguments, "--view", "iso")
@@ -130,13 +141,14 @@ def main(arguments: list) -> None:
     size = option(arguments, "--size", "2400x1600")
     wheel = option(arguments, "--wheel", "")
     rename = option(arguments, "--name", "")
+    kept = option(arguments, "--scene", "")
     shown = "attributes" if "--attributes" in arguments else "elements"
     arguments = [argument for argument in arguments if argument != "--attributes"]
     name, groups = arguments[0], arguments[1:] or ["all"]
     IMAGES.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory() as tmp:
-        scene = pathlib.Path(tmp) / "scene.pb"
+        scene = pathlib.Path(kept) if kept else pathlib.Path(tmp) / "scene.pb"
         run_example(name, scene)
 
         for index, group in enumerate(groups):
