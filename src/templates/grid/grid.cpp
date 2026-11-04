@@ -398,6 +398,8 @@ to_head(const Context& context, const Level& level, size_t vertex, double z_bott
             compute_pyramid(context, vertex, z_bottom, z_top, level.z), "head"
         );
         head->cuts = compute_head_cuts(level, vertex, extent, context.framing);
+        for (const Plane& plane : compute_edge_cuts(context, vertex))
+            add_plane(head->cuts, plane);
         head->invalidate_geometry();
         return {head};
     }

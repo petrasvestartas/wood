@@ -62,6 +62,29 @@ int compute_family(const Mesh& plan, std::pair<size_t, size_t> edge, const Patte
     return -1;
 }
 
+/// True when a pattern line runs beside the boundary within merge without lying on it: the facade is
+/// already there, and the bay between the two would be a sliver with two beams a few degrees apart.
+bool is_beside(
+    const Line& line, const std::vector<Polyline>& rings, double tolerance, double merge
+) {
+
+    double furthest = 0.0;
+    for (const double t : {0.0, 0.5, 1.0}) {
+        const Point point = line.point_at(t);
+        double nearest = std::numeric_limits<double>::max();
+        for (const Polyline& ring : rings) {
+            const std::vector<Point> corners = to_loop(ring);
+            for (size_t e = 0; e < corners.size(); e++) {
+                const Line side = Line::from_points(corners[e], corners[(e + 1) % corners.size()]);
+                nearest = std::min(nearest, side.closest_point(point).second.distance(point));
+            }
+        }
+        furthest = std::max(furthest, nearest);
+    }
+
+    return furthest > tolerance && furthest <= merge;
+}
+
 /// The plan of one level.
 Mesh compute_plan(
     const Pattern& pattern,
@@ -76,6 +99,8 @@ Mesh compute_plan(
     std::vector<double> ids;
     for (size_t i = 0; i < pattern.lines.size(); i++)
         for (const Piece& piece : compute_pieces(pattern.lines[i], rings, true, tolerance)) {
+            if (is_beside(piece.line, rings, tolerance, merge))
+                continue;
             lines.push_back(piece.line);
             ids.push_back(static_cast<double>(i));
         }
