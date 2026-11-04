@@ -2,14 +2,22 @@
 
 [TOC]
 
-```bash
-cmake --build build --target 1_session_contacts && ./build/1_session_contacts
-```
+## Build and run
+
+Needs Git, CMake 3.22 or newer and a C++23 compiler (Visual Studio 2022, GCC 13 or Clang 17). The first configure downloads the kernel and its libraries, so it takes a few minutes.
+
+1. Clone: `git clone https://github.com/petrasvestartas/wood.git` and `cd wood`
+2. Configure: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`
+3. Build one example: `cmake --build build --config Release --target two_plates --parallel 6`
+4. Run it: `./build/two_plates` on Linux, `build\Release\two_plates.exe` on Windows
+5. View: the run writes `data/output/pb/live.pb`; `bash ../bash/publish-scene.sh --target two_plates` publishes it to the [viewer](https://petrasvestartas.github.io/session/)
+
+Every other example builds and runs the same way with its own target name.
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="#ex_1_session_contacts">
-    <img src="ex_1_session_contacts.webp" alt="Session Contacts">
-    <span class="wood-card-title">Session Contacts</span>
+  <a class="wood-card" href="#ex_two_plates">
+    <img src="two_plates.png" alt="Two Plates">
+    <span class="wood-card-title">Two Plates</span>
   </a>
   <a class="wood-card" href="#ex_2_contacts">
     <img src="ex_2_contacts.webp" alt="Contacts">
@@ -59,11 +67,11 @@ cmake --build build --target 1_session_contacts && ./build/1_session_contacts
 
 ---
 
-## Session Contacts {#ex_1_session_contacts}
+## Two Plates {#ex_two_plates}
 
-Computes face contacts between plates, a beam, and a column in WoodSession, orients a parametric tenon joint to the contact zone, and attaches cutting interactions to both plates.
+Two plates and one joint: the contact between them and a tenon joint cut into both.
 
-![](ex_1_session_contacts.webp)
+![](two_plates.png)
 
 ```cpp
 #include "wood_session.h"
@@ -71,72 +79,38 @@ Computes face contacts between plates, a beam, and a column in WoodSession, orie
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Two plates, one joint: an upright plate stands on a base plate and is tenoned into it.
 int main() {
 
-    // WoodSession:
-    WoodSession wood_session("elements");
+    WoodSession scene("two_plates");
 
-    const std::shared_ptr<Plate> plate0 =
-        Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const std::shared_ptr<Plate> plate1 =
-        Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
-    const std::shared_ptr<Beam> beam =
-        std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
-    const std::shared_ptr<Column> column = Column::square(
-        Line::from_points({950, 50, 0}, {950, 50, 950}),
-        Plane({900, 0, 0}, {1, 0, 0}, {0, 1, 0}),
-        100
-    );
-    const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{
-        Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400),
-        Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)
-    });
-    const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
-    joint->is_visible = false;
-    plate0->is_locked = true;
+    // an upright plate on the middle of a base plate
+    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_top_side(90.0);
+    const std::shared_ptr<Plate> base = pair[0];
+    const std::shared_ptr<Plate> upright = pair[1];
+    scene.add(base);
+    scene.add(upright);
 
-    wood_session.add(plate0);
-    wood_session.add(plate1);
-    wood_session.add(beam);
-    wood_session.add(column);
-    wood_session.add(block);
-    wood_session.add(joint);
+    // where they touch, and the tenon joint placed on that contact
+    const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
+    scene.add_interaction(base, upright, contact);
+    const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons();
+    joint->orient(contact, {base, upright});
 
-    std::cout << wood_session << "\n";
+    // the joint cuts tenons into the upright and mortises into the base
+    scene.add(joint);
+    scene.add_interaction(joint, upright, joint->interaction(0));
+    scene.add_interaction(joint, base, joint->interaction(1));
 
-    std::shared_ptr<InteractionContactFace> contact =
-        wood_session.compute_face_contact(column, beam);
-    wood_session.add_interaction(column, beam, contact);
-    // std::cout << *contact;
+    // the upright lifted off its base, so the tenons and mortises show
+    const Vector apart = (upright->polylines[0].center() - base->polylines[0].center()).normalized() * 120.0;
+    upright->place(Xform::translation(apart[0], apart[1], apart[2]));
 
-    // Compute contact with volume and orient the joint to it, then add the joint features to the plates:
-    std::shared_ptr<InteractionContactFace> contact_with_volume =
-        wood_session.compute_face_contact(plate0, plate1);
-    joint->orient(contact_with_volume);
-    wood_session.add_interaction(plate1, plate0, contact_with_volume);
-    wood_session.add_interaction(joint, plate1, joint->interaction_feature(0));
-    wood_session.add_interaction(joint, plate0, joint->interaction_feature(1));
-    // std::cout << *contact_with_volume << "\n";
-
-    // Element and model geometry:
-    for (const std::shared_ptr<Element>& element : wood_session.elements()) {
-        std::cout << *element << "\n";
-        std::cout << element->model_geometry_mesh() << "\n";
-        std::cout << element->model_geometry_brep() << "\n";
-        std::cout << plate0->element_geometry_mesh() << "\n";
-        std::cout << plate0->element_geometry_brep() << "\n";
-    }
-
-    // Serialize:
-    std::string path = pb_path("live");
-    wood_session.pb_dump(path);
-    std::cout << path << "\n";
-
+    scene.pb_dump(pb_path("live"));
     return 0;
 }
 ```
 
----
 
 ## Contacts {#ex_2_contacts}
 
