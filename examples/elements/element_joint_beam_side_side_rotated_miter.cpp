@@ -9,31 +9,25 @@ int main() {
     WoodSession scene("element_joint_beam_side_side_rotated_miter");
     scene.settings.joint_parameters[17] = JointPlate::library_id("side_side_rotated_miter");
 
-    // two 150 x 150 beams 1200 long: meeting square and at 60 degrees, the second pair 2000 along x, each in its group
-    for (const double angle : {90.0, 60.0}) {
-        const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
-        const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_end_to_end(angle);
-        const std::shared_ptr<Beam> first = pair[0];
-        const std::shared_ptr<Beam> second = pair[1];
-        for (const std::shared_ptr<Beam>& beam : pair) {
-            beam->place(Xform::translation(angle == 90.0 ? 0.0 : 2000.0, 0.0, 0.0));
-            beam->name = fmt::format("{}_{:g}", beam->name, angle);
-            scene.add(beam, group);
-        }
-
-        const InteractionContactAxis contact(
-            Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0
-        );
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
-        joint->name = fmt::format("{}_{:g}", joint->name, angle);
-        scene.add(joint, group);
-        scene.add_interaction(joint, first, joint->interaction(0));
-        scene.add_interaction(joint, second, joint->interaction(1));
-
-        // drawn apart: the second beam moved off the first
-        second->place(Xform::translation(0.0, 300.0, 0.0));
+    // two 150 x 150 beams 1200 long, meeting at 60 degrees
+    const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_end_to_end(60.0);
+    const std::shared_ptr<Beam> first = pair[0];
+    const std::shared_ptr<Beam> second = pair[1];
+    for (const std::shared_ptr<Beam>& beam : pair) {
+        scene.add(beam);
     }
+
+    const InteractionContactAxis contact(
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0
+    );
+    const std::shared_ptr<JointBeam> joint =
+        JointBeam::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
+    scene.add(joint);
+    scene.add_interaction(joint, first, joint->interaction(0));
+    scene.add_interaction(joint, second, joint->interaction(1));
+
+    // drawn apart: the second beam moved off the first
+    second->place(Xform::translation(0.0, 300.0, 0.0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -42,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_miter on beams: a miter trimming two extended beams meeting at a right-angled corner, on the pairs meeting square and at 60 degrees, each drawn apart.
+side_side_rotated_miter on beams: a miter trimming two extended beams at their corner, on a pair meeting at 60 degrees, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

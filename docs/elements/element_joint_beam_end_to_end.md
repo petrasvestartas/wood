@@ -40,7 +40,7 @@ const std::shared_ptr<JointBeam> joint = JointBeam::from_contact(*a, *b, *contac
 ```
 
 ## Angled End Miter
-Two beam pairs meeting at `90°` and `60°` whose extensions are trimmed cleanly along the bisecting miter plane.
+A beam pair meeting at `60°` whose extensions are trimmed cleanly along the bisecting miter plane.
 
 ![](elements/element_joint_beam_side_side_rotated_miter.png)
 

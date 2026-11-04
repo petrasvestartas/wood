@@ -22,6 +22,7 @@ int main() {
 
         const std::shared_ptr<InteractionContactFace> contact =
             scene.compute_face_contact(base, upright);
+        scene.add_interaction(base, upright, contact);
         const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons();
         joint->orient(contact, {base, upright});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);

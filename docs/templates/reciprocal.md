@@ -6,11 +6,11 @@ Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. 
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reciprocal_rotation">
-    <img src="templates_reciprocal_1_rotation_beams.webp" alt="Pinwheel Rotation">
+    <img src="templates_reciprocal_1_rotation_assembly.webp" alt="Pinwheel Rotation">
     <span class="wood-card-title">Pinwheel Rotation</span>
   </a>
   <a class="wood-card" href="#reciprocal_move">
-    <img src="templates_reciprocal_2_move_beams.webp" alt="Half-Edge Translation">
+    <img src="templates_reciprocal_2_move_assembly.webp" alt="Half-Edge Translation">
     <span class="wood-card-title">Half-Edge Translation</span>
   </a>
 </div>

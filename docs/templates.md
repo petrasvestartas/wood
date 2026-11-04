@@ -30,11 +30,11 @@
     <span class="wood-card-title">Module</span>
   </a>
   <a class="wood-card" href="templates_reciprocal.html">
-    <img src="templates_reciprocal_1_rotation_beams.webp" alt="Reciprocal">
+    <img src="templates_reciprocal_1_rotation_assembly.webp" alt="Reciprocal">
     <span class="wood-card-title">Reciprocal</span>
   </a>
   <a class="wood-card" href="templates_grid.html">
-    <img src="3_elements_tree_all.webp" alt="Grid">
+    <img src="templates_grid_5_framing_head_section.webp" alt="Grid">
     <span class="wood-card-title">Grid</span>
   </a>
   <a class="wood-card" href="templates_floor.html">

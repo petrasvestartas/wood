@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Every picture of the shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal and module template pages, rendered by the session_viewer through
+# Every picture of the shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid and vault template pages, rendered by the session_viewer through
 # render_template_docs.py from the built examples: the recipe, so the pages can be regenerated whole after any change.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal or module
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid or vault
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows).
 set -euo pipefail
@@ -122,7 +122,9 @@ fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = reciprocal ]; then
     "${RENDER[@]}" templates_reciprocal_1_rotation mesh axes beams frame
+    "${RENDER[@]}" --name assembly templates_reciprocal_1_rotation beams+frame
     "${RENDER[@]}" templates_reciprocal_2_move mesh axes beams frame
+    "${RENDER[@]}" --name assembly templates_reciprocal_2_move beams+frame
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
@@ -156,5 +158,17 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     PAVILION+=+module_0_3_floor+module_0_3_posts+module_0_3_wall_front+module_0_3_wall_back+module_0_3_wall_start+module_0_3_wall_end
     "${RENDER[@]}" --view top --name plan templates_module_6_bank_pavilion "$PAVILION"
     "${RENDER[@]}" --name open templates_module_6_bank_pavilion "$PAVILION+module_0_1_ceiling_beams+module_0_2_ceiling_beams"
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
+    "${RENDER[@]}" templates_grid_5_framing head_section head_stepped node_through purlin_hung profile_w
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
+    "${RENDER[@]}" --view bottom --name bottom templates_vault_8_star_vault all
+    for bay in quadripartite_wells:quadripartite tierceron_exeter:tierceron star_stellar_burgos:star lierne_star_ely:lierne net_reticulated_parler:net fan_conoid_gloucester:fan; do
+        "${RENDER[@]}" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
+        "${RENDER[@]}" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
+    done
 fi
 wait

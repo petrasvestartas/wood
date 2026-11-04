@@ -68,7 +68,7 @@ def run_example(name: str, out: pathlib.Path) -> None:
         shutil.copy(live, out)
 
 
-def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = "") -> Image.Image:
+def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = "", attributes: bool = False, xray: bool = False, aspect: float = 0.0) -> Image.Image:
     """The scene as a screenshot of the viewer: the Arctic look with its soft shadows, no grid, the scene fitted, 1600 wide per
     scale step and at least 4800, cropped to what it draws by tools/crop_viewer_shot.py, which only crops."""
     width = int(size.split("x")[0])
@@ -79,7 +79,8 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = ""
         SHOT_QUERY=f"opacity={opacity}&nomarkers=1&thickness=0.7",
     )
     camera = {"top": "View Top", "front": "View Front", "right": "View Right", "bottom": "View Bottom"}.get(view, "View Isometric")
-    commands = ["Layers Off", "Element Interactions Off", "Element Attributes Off", "Arctic On", "Outline Off", camera, "View Orthographic"]
+    shown = [] if attributes else ["Element Interactions Off", "Element Attributes Off"]
+    commands = ["Layers Off", *shown, "Arctic On", "Outline Off", camera, "View Orthographic", *(["View Xray"] if xray else [])]
     if wheel:
         env["SHOT_WHEEL"] = wheel
     if int(os.environ.get("VIEWER_PLANE_SIZE", "0")):
@@ -98,7 +99,7 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = ""
                 capture_output=True,
             )
             try:
-                crop_viewer_shot.crop(shot, bool(wheel))
+                crop_viewer_shot.crop(shot, bool(wheel), aspect)
                 return Image.open(shot).convert("RGB")
             except SystemExit:
                 if attempt == 2:
@@ -146,7 +147,7 @@ def main(arguments: list) -> None:
                 capture_output=True,
             )
             picture = IMAGES / f"{name}_{rename or group.split('+')[-1]}.webp"
-            image = render(branch, view, opacity, size, wheel)
+            image = render(branch, view, opacity, size, wheel, shown == "attributes")
 
             image.save(picture, lossless=True)
             print(picture.relative_to(WOOD))

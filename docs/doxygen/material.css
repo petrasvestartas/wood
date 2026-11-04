@@ -811,6 +811,7 @@ div.contents img[src$=".webp"] {
 div.contents .wood-card-grid.cols-2 img,
 .wood-card-grid.cols-2 img {
     height: 360px;
+    background: #ffffff; /* the landing page's buttons show tiled sheets on white */
 }
 .wood-card-grid.cols-2 .wood-card-title {
     font-size: 18px;
@@ -883,7 +884,7 @@ div.contents .wood-pair-grid img,
     width: 100%;
     height: auto;
     object-fit: contain;
-    background: #ffffff;
+    background: #f0f0f0; /* the viewer's Arctic backdrop, so a screenshot has no visible edge */
     margin: 0 !important;
     display: block;
 }

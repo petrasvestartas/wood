@@ -17,12 +17,11 @@ WIDTH = 4400
 COLUMNS = 5
 GAP = 36
 TILE_W = (WIDTH - (COLUMNS + 1) * GAP) // COLUMNS
-TILE_H = 680
 CAPTION_H = 110
-PAD = 30
+PICTURE_H = round(TILE_W / 1.5)  # the pictures are 3:2, so each fills its tile with the viewer's own backdrop
+TILE_H = PICTURE_H + CAPTION_H
 FRAME = (205, 205, 212)
 TEXT = (30, 30, 30)
-BACKDROP = (240, 240, 240)  # the viewer's Arctic backdrop, so a picture has no visible edge in its tile
 
 SHEET_1 = [
     "element_plate",
@@ -124,26 +123,12 @@ for sheet_name, sheet in sheets:
     for i, name in enumerate(sheet):
         picture = Image.open(os.path.join(ELEMENTS, name + ".png")).convert("RGB")
 
-        # scale to fit the tile above the caption
-        fit_w = TILE_W - 2 * PAD
-        fit_h = TILE_H - CAPTION_H - PAD
-        scale = min(fit_w / picture.width, fit_h / picture.height)
-        picture = picture.resize(
-            (round(picture.width * scale), round(picture.height * scale)), Image.LANCZOS
-        )
-
-        # tile: frame, picture centred, caption under it
+        # the picture fills the tile above the caption
+        picture = picture.resize((TILE_W, PICTURE_H), Image.LANCZOS)
         x = GAP + (i % COLUMNS) * (TILE_W + GAP)
         y = GAP + (i // COLUMNS) * (TILE_H + GAP)
-        draw.rectangle((x, y, x + TILE_W - 1, y + TILE_H - CAPTION_H), fill=BACKDROP)
+        canvas.paste(picture, (x, y))
         draw.rectangle((x, y, x + TILE_W - 1, y + TILE_H - 1), outline=FRAME, width=3)
-        canvas.paste(
-            picture,
-            (
-                x + (TILE_W - picture.width) // 2,
-                y + PAD + (fit_h - picture.height) // 2,
-            ),
-        )
         caption = name
         for prefix in ["element_joint_plate_", "element_joint_beam_", "element_"]:
             if caption.startswith(prefix):

@@ -3,37 +3,31 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_side_milled_wedge on beams: the milled wedge, on the pairs square and at 60 degrees, each drawn apart.
+/// top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_beam_top_side_milled_wedge");
     scene.settings.joint_parameters[8] = JointPlate::library_id("top_side_milled_wedge");
 
-    // two 150 x 150 beams 1200 long: square and at 60 degrees, the second pair 2000 along x, each in its group
-    for (const double angle : {90.0, 60.0}) {
-        const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
-        const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_tee(angle);
-        const std::shared_ptr<Beam> first = pair[0];
-        const std::shared_ptr<Beam> second = pair[1];
-        for (const std::shared_ptr<Beam>& beam : pair) {
-            beam->place(Xform::translation(angle == 90.0 ? 0.0 : 2000.0, 0.0, 0.0));
-            beam->name = fmt::format("{}_{:g}", beam->name, angle);
-            scene.add(beam, group);
-        }
-
-        const InteractionContactAxis contact(
-            Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.0, 0, 0, 0, 0
-        );
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
-        joint->name = fmt::format("{}_{:g}", joint->name, angle);
-        scene.add(joint, group);
-        scene.add_interaction(joint, first, joint->interaction(0));
-        scene.add_interaction(joint, second, joint->interaction(1));
-
-        // drawn apart: the second beam moved off the first
-        second->place(Xform::translation(0.0, 0.0, 300.0));
+    // two 150 x 150 beams 1200 long, meeting at 60 degrees
+    const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_tee(60.0);
+    const std::shared_ptr<Beam> first = pair[0];
+    const std::shared_ptr<Beam> second = pair[1];
+    for (const std::shared_ptr<Beam>& beam : pair) {
+        scene.add(beam);
     }
+
+    const InteractionContactAxis contact(
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.0, 0, 0, 0, 0
+    );
+    const std::shared_ptr<JointBeam> joint =
+        JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
+    scene.add(joint);
+    scene.add_interaction(joint, first, joint->interaction(0));
+    scene.add_interaction(joint, second, joint->interaction(1));
+
+    // drawn apart: the second beam moved off the first
+    second->place(Xform::translation(0.0, 0.0, 300.0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -42,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_milled_wedge on beams: the milled wedge, on the pairs square and at 60 degrees, each drawn apart.
+top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

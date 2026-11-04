@@ -12,7 +12,7 @@ static std::shared_ptr<JointBeam> from_contact(const Beam& source, const Beam& t
 ```
 
 ## Milled Wedge Tenon
-A through-tenon and mortise with a milled wedge slot on orthogonal (`90°`) and angled (`60°`) T-beam pairs.
+A through-tenon and mortise with a milled wedge slot on a T-beam pair at `60°`.
 
 ![](elements/element_joint_beam_top_side_milled_wedge.png)
 
