@@ -494,7 +494,6 @@ ADD_EXE(templates_vault_4_dome           examples/templates_vault_4_dome.cpp)
 ADD_EXE(templates_vault_5_wall           examples/templates_vault_5_wall.cpp)
 ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.cpp)
 ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
-ADD_EXE(templates_vault_8_star_vault     examples/templates_vault_8_star_vault.cpp)
 ADD_EXE(templates_vault_9_gothic_ribbed_vault examples/templates_vault_9_gothic_ribbed_vault.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'

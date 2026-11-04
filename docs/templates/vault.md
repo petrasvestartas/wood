@@ -29,10 +29,6 @@ Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates
     <img src="templates_vault_9_gothic_ribbed_vault_fan.webp" alt="Fan Vault">
     <span class="wood-card-title">Fan Vault</span>
   </a>
-  <a class="wood-card" href="#vault_star">
-    <img src="templates_vault_8_star_vault_all.webp" alt="Star Vault">
-    <span class="wood-card-title">Star Vault</span>
-  </a>
   <a class="wood-card" href="#vault_arch">
     <img src="templates_vault_1_arch_all.webp" alt="Voussoir Arch">
     <span class="wood-card-title">Voussoir Arch</span>
@@ -124,19 +120,6 @@ Straight-in-plan radiating fan ribs and polygonal collar ribs springing from the
   <img src="templates_vault_9_gothic_ribbed_vault_fan.webp" alt="Fan Vault 3D view">
   <img src="templates_vault_9_gothic_ribbed_vault_fan_bottom.webp" alt="Fan Vault bottom beam pattern">
 </div>
-
----
-
-## Star Vault {#vault_star}
-
-Stellar rib-and-shell vault over an 8 x 8 m bay with 18 planar curved ribs, 4 corner support blocks, and 16 cylindrical BRep web shells with face-to-face contact detection.
-
-<div class="wood-pair-grid">
-  <img src="templates_vault_8_star_vault_all.webp" alt="Star Vault 3D view">
-  <img src="templates_vault_8_star_vault_bottom.webp" alt="Star Vault bottom beam pattern">
-</div>
-
-\include{lineno} templates_vault_8_star_vault.cpp
 
 ---
 

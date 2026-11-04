@@ -151,8 +151,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
-    "${RENDER[@]}" --view bottom --name bottom templates_vault_8_star_vault all
-    # the example takes two minutes: one run, every picture shot from its scene
+    # one run of the example, every picture shot from its scene
     VAULT_SCENE="$(mktemp -d)/vault.pb"
     for bay in quadripartite_wells:quadripartite tierceron_exeter:tierceron star_stellar_burgos:star lierne_star_ely:lierne net_reticulated_parler:net fan_conoid_gloucester:fan; do
         "${RENDER[@]}" --scene "$VAULT_SCENE" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
