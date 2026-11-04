@@ -5,7 +5,10 @@ import subprocess
 import sys
 import tempfile
 
-from PIL import Image, ImageChops
+from PIL import Image
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import crop_viewer_shot  # noqa: E402
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 WINDOWS = os.name == "nt"
@@ -64,62 +67,41 @@ def run_example(name: str, out: pathlib.Path) -> None:
         shutil.copy(live, out)
 
 
-LARGEST = 8000  # px, the widest frame the viewer renders; supersampling stays under it
-
-
-def render(pb: pathlib.Path, view: str, opacity: str, size: str) -> tuple:
-    """The scene at the given opacity with soft contact shading and its edges, no silhouette outline, rendered at up to twice size as a
-    high-density screen draws it, so the edges keep the viewer's pen width when scaled down smooth, cropped to what it draws; with the
-    factor it was rendered larger by."""
-    width, height = (int(side) for side in size.split("x"))
-    factor = max(1, min(2, LARGEST // width))
+def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = "") -> Image.Image:
+    """The scene as a screenshot of the viewer: the Arctic look with its soft shadows, no grid, the scene fitted, 1600 wide per
+    scale step and at least 4800, cropped to what it draws by tools/crop_viewer_shot.py, which only crops."""
+    width = int(size.split("x")[0])
     env = dict(
         os.environ,
-        VIEWER_SHEETS="0",
-        VIEWER_OPACITY=opacity,
-        VIEWER_W=str(width * factor),
-        VIEWER_H=str(height * factor),
-        VIEWER_DPR=str(factor),
-        VIEWER_THICKNESS="1",
-        VIEWER_VIEW=view,
-        VIEWER_PLANE_SIZE=os.environ.get("VIEWER_PLANE_SIZE", "0"),
-        VIEWER_NO_GRID="1",
-        VIEWER_AO="1",
+        SHOT_PB=str(pb),
+        SHOT_SCALE=str(max(3, min(5, width // 1600))),
+        SHOT_QUERY=f"opacity={opacity}&nomarkers=1&thickness=0.7",
     )
-    env.setdefault("VIEWER_ADAPTER", "nvidia")
+    camera = {"top": "View Top", "front": "View Front", "right": "View Right", "bottom": "View Bottom"}.get(view, "View Isometric")
+    commands = ["Layers Off", "Element Interactions Off", "Element Attributes Off", "Arctic On", "Outline Off", camera, "View Orthographic"]
+    if wheel:
+        env["SHOT_WHEEL"] = wheel
+    if int(os.environ.get("VIEWER_PLANE_SIZE", "0")):
+        commands.append(f"View Plane Size {os.environ['VIEWER_PLANE_SIZE']}")
+    # one selected object keeps its name bubble: a scene of one object is fitted whole, nothing selected
+    commands += ["Fit"] if os.environ.get("SHOT_ONE_OBJECT") else ["Select All", "Fit", "Escape"]
 
+    # a shot of a scene that had not loaded is taken again
     with tempfile.TemporaryDirectory() as tmp:
-        ppm = pathlib.Path(tmp) / "frame.ppm"
-        subprocess.run(
-            [str(RENDERER), str(ppm), str(pb)], env=env, check=True, capture_output=True
-        )
-        image = Image.open(ppm).convert("RGB")
-
-    # the viewer's background brought to white, every colour scaled by the same factor, as the pages are white
-    clear = image.getpixel((2, 2))
-    image = Image.merge(
-        "RGB",
-        [
-            band.point(lambda value, channel=channel: min(255, round(value * 255 / max(channel, 1))))
-            for band, channel in zip(image.split(), clear)
-        ],
-    )
-    background = Image.new("RGB", image.size, image.getpixel((2, 2)))
-    mask = (
-        ImageChops.difference(image, background)
-        .convert("L")
-        .point(lambda v: 255 if v > 12 else 0)
-    )
-    box = mask.getbbox()
-    margin = 40 * factor
-    box = (
-        max(0, box[0] - margin),
-        max(0, box[1] - margin),
-        min(image.width, box[2] + margin),
-        min(image.height, box[3] + margin),
-    )
-
-    return image.crop(box), factor
+        shot = pathlib.Path(tmp) / "shot.png"
+        for attempt in range(3):
+            subprocess.run(
+                ["node", "--experimental-websocket", str(WOOD / "tools" / "screenshot_viewer.mjs"), str(shot), *commands],
+                env=env,
+                check=True,
+                capture_output=True,
+            )
+            try:
+                crop_viewer_shot.crop(shot, bool(wheel))
+                return Image.open(shot).convert("RGB")
+            except SystemExit:
+                if attempt == 2:
+                    raise
 
 
 def option(arguments: list, flag: str, default: str) -> str:
@@ -136,16 +118,15 @@ def option(arguments: list, flag: str, default: str) -> str:
 def main(arguments: list) -> None:
     """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last.
 
-    `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--crop 0.4,0.3,0.6,0.5` to keep that
-    share of the picture (left, top, right, bottom) for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
+    `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--wheel 12,0.35,0.45` to turn the
+    viewer's wheel that many ticks over that share of the canvas for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
     elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default.
-    Every picture renders at twice its size, up to LARGEST wide, at two pixels per CSS pixel as the viewer on a high-density screen, and
-    is scaled down, so the edges come out thin and smooth; no silhouette outline is drawn.
+    Every picture is a screenshot of the viewer, cropped, never scaled or recoloured, and saved lossless; a close-up is the viewer's own zoom.
     """
     view = option(arguments, "--view", "iso")
-    opacity = option(arguments, "--opacity", "0.90")
+    opacity = option(arguments, "--opacity", "1.0")
     size = option(arguments, "--size", "2400x1600")
-    crop = option(arguments, "--crop", "")
+    wheel = option(arguments, "--wheel", "")
     rename = option(arguments, "--name", "")
     shown = "attributes" if "--attributes" in arguments else "elements"
     arguments = [argument for argument in arguments if argument != "--attributes"]
@@ -164,23 +145,9 @@ def main(arguments: list) -> None:
                 capture_output=True,
             )
             picture = IMAGES / f"{name}_{rename or group.split('+')[-1]}.webp"
-            image, factor = render(branch, view, opacity, size)
+            image = render(branch, view, opacity, size, wheel)
 
-            if crop:
-                left, top, right, bottom = (float(share) for share in crop.split(","))
-                image = image.crop(
-                    (
-                        int(image.width * left),
-                        int(image.height * top),
-                        int(image.width * right),
-                        int(image.height * bottom),
-                    )
-                )
-
-            if factor > 1:
-                image = image.resize((image.width // factor, image.height // factor), Image.LANCZOS)
-
-            image.save(picture, quality=90)
+            image.save(picture, lossless=True)
             print(picture.relative_to(WOOD))
 
 

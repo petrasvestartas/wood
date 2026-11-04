@@ -10,7 +10,16 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 FAMILY="${1:-all}"
-RENDER=("${PYTHON:-python3}" tools/render_template_docs.py)
+SHOTS="${SHOTS:-3}"
+SLOT=0
+
+# one line of the recipe in the background, each slot's Chrome on its own port, SHOTS at a time
+render_job() {
+    SHOT_PORT=$((9333 + SLOT % SHOTS)) "${PYTHON:-python3}" tools/render_template_docs.py "$@" || echo "FAILED $*" &
+    SLOT=$((SLOT + 1))
+    if [ $((SLOT % SHOTS)) -eq 0 ]; then wait; fi
+}
+RENDER=(render_job)
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = shells ]; then
     "${RENDER[@]}" templates_shells_1_translation_shell curves sections mesh plates
@@ -92,7 +101,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
-    "${RENDER[@]}" templates_chevron_1_chevron surface mesh strips
+    SHOT_ONE_OBJECT=1 "${RENDER[@]}" templates_chevron_1_chevron surface
+    "${RENDER[@]}" templates_chevron_1_chevron mesh strips
     "${RENDER[@]}" --opacity 1.0 templates_chevron_1_chevron plates
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_chevron_1_chevron mesh+edge_planes
     VIEWER_PLANE_SIZE=650 "${RENDER[@]}" --opacity 0.55 --name bisectors templates_chevron_1_chevron mesh+bisectors
@@ -107,7 +117,7 @@ fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
     "${RENDER[@]}" templates_cross_1_vda_mesh all mesh face_planes edge_planes bisector_planes plates connector_frames connectors
-    "${RENDER[@]}" --size 8000x5333 --crop 0.25,0.05,0.75,0.55 --name cross_laps templates_cross_1_vda_mesh plates
+    "${RENDER[@]}" --wheel 6,0.5,0.3 --name cross_laps templates_cross_1_vda_mesh plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = reciprocal ]; then
@@ -128,8 +138,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
     "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
     "${RENDER[@]}" --view right --name section templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --size 8000x5333 --crop 0.0,0.36,0.14,0.52 --name eave templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --size 8000x5333 --crop 0.42,0.0,0.58,0.14 --name ridge templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --wheel 12,0.355,0.445 --name eave templates_module_3_cassette_house all
+    "${RENDER[@]}" --view right --wheel 12,0.5,0.225 --name ridge templates_module_3_cassette_house all
     "${RENDER[@]}" templates_module_4_room_module all
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_4_room_module all
     "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_beams
@@ -147,3 +157,4 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --view top --name plan templates_module_6_bank_pavilion "$PAVILION"
     "${RENDER[@]}" --name open templates_module_6_bank_pavilion "$PAVILION+module_0_1_ceiling_beams+module_0_2_ceiling_beams"
 fi
+wait

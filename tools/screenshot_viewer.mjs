@@ -1,5 +1,5 @@
 // node --experimental-websocket screenshot_viewer.mjs <out.png> [command ...]: opens the hosted viewer in a Chrome window on the GPU with the commands as ?cmd=, waits for the scene, screenshots.
-// SHOT_ZOOM (default 1.6) zooms the page as the browser's zoom does, so the layer panel and its text come out large in the 1600 x 1000 picture; SHOT_SCALE=2 writes it at 3200 x 2000.
+// SHOT_ZOOM (default 1) zooms the page as the browser's zoom does, and the pens with it; SHOT_SCALE=2 writes the 1600 x 1000 picture at 3200 x 2000.
 // SHOT_QUERY adds viewer settings to the URL: SHOT_QUERY=thickness=0.5 draws the mesh edges thin under the Arctic outlines.
 // SHOT_PB=<file.pb> shows that scene instead of the published one: served from this machine on 127.0.0.1 as a one-item scene the
 // hosted viewer reads through ?data= and ?scene=, so nothing is uploaded (the way on Windows, where the R2 publish is not set up).
@@ -11,7 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const [out, ...commands] = process.argv.slice(2);
-const port = 9333;
+const port = Number(process.env.SHOT_PORT ?? 9333); // SHOT_PORT lets several shots run at once, each Chrome on its own port
 // a profile of its own per run, some 60 MB Chrome writes, removed once Chrome has left it
 const profile = mkdtempSync(join(tmpdir(), "shot-"));
 // the browser and its GPU flags per platform: Linux the radeon Vulkan env of the user's launcher, Windows and macOS their own backends
@@ -23,6 +23,9 @@ const gpu_env = linux ? { VK_DRIVER_FILES: "/usr/share/vulkan/icd.d/radeon_icd.j
 const chrome = spawn(browser, [
   `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
   "--window-size=1600,1000", "--enable-unsafe-webgpu", ...gpu_flags,
+  // several shots at once: a window under another is not drawn by Chrome unless told so, and each gets its own place
+  "--disable-backgrounding-occluded-windows", "--disable-renderer-backgrounding", "--disable-background-timer-throttling",
+  `--window-position=${(port - 9333) * 60},${(port - 9333) * 60}`,
   // a public page reading from 127.0.0.1 otherwise waits on Chrome's local network permission prompt
   ...(process.env.SHOT_PB ? ["--disable-features=LocalNetworkAccessChecks,BlockInsecurePrivateNetworkRequests,PrivateNetworkAccessSendPreflights"] : []),
   "--ignore-gpu-blocklist", "--no-first-run", "--new-window", "about:blank",
@@ -34,7 +37,8 @@ let local_query = "";
 
 if (process.env.SHOT_PB) {
   const pb = readFileSync(process.env.SHOT_PB);
-  const scene = JSON.stringify({ name: "screenshot", items: [{ file: "pb/shot.pb", name: "scene", at: [0, 0, 0], size: pb.length }] });
+  // grid false: the manifest's own switch, it wins over ?nogrid
+  const scene = JSON.stringify({ name: "screenshot", grid: false, items: [{ file: "pb/shot.pb", name: "", at: [0, 0, 0], size: pb.length }] });
   server = createServer((request, response) => {
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Private-Network", "true");
@@ -71,15 +75,43 @@ const send = (method, params = {}) => new Promise((r) => { const n = ++id; pendi
 await send("Runtime.enable");
 await send("Page.enable");
 // browser zoom: a smaller CSS viewport at a higher pixel ratio, the picture the same size
-const zoom = Number(process.env.SHOT_ZOOM ?? 1.6);
+const zoom = Number(process.env.SHOT_ZOOM ?? 1);
 // SHOT_SCALE (default 1) multiplies the pixel ratio alone: the same view, the picture that many times wider and higher
 const scale = Number(process.env.SHOT_SCALE ?? 1);
 await send("Emulation.setDeviceMetricsOverride", { width: Math.round(1600 / zoom), height: Math.round(1000 / zoom), deviceScaleFactor: zoom * scale, mobile: false });
-const query = [local_query, commands.length ? "cmd=" + encodeURIComponent(commands.join(";")) : "", process.env.SHOT_QUERY ?? ""].filter(Boolean).join("&");
+const query = [local_query, commands.length ? "cmd=" + encodeURIComponent(["View Names", ...commands].join(";")) : "", process.env.SHOT_QUERY ?? ""].filter(Boolean).join("&");
 await send("Page.navigate", { url: "https://petrasvestartas.github.io/session/" + (query ? "?" + query : "") });
-await sleep(15000);
-
-await sleep(2000);
+// the scene is in when the viewer logs it, up to two minutes under load; the commands then typed into the command line once more, since
+// under load the scene can arrive after the ones in the URL ran and a Fit on nothing leaves the camera off the scene; then a moment for the shading
+for (let i = 0; i < 600 && !logs.some((line) => /^scene '/.test(line)); i++) await sleep(200);
+// a big scene keeps loading after its manifest: two seconds per MB, up to two minutes
+const load_ms = process.env.SHOT_PB ? Math.min(120000, 1500 + 2000 * (readFileSync(process.env.SHOT_PB).length / 1e6)) : 1500;
+await sleep(load_ms);
+for (const command of commands) {
+  await send("Input.insertText", { text: command });
+  await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+  await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+  await sleep(300);
+}
+await sleep(5000);
+// nothing left selected; the name bubble is off by the View Names in the URL, which runs once
+await send("Input.insertText", { text: "Escape" });
+await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
+await sleep(300);
+// SHOT_WHEEL=ticks,x,y turns the mouse wheel over that share of the canvas: a close-up is the viewer's own zoom, not a crop
+if (process.env.SHOT_WHEEL) {
+  const [ticks, x, y] = process.env.SHOT_WHEEL.split(",").map(Number);
+  const at = { x: Math.round((x * 1600) / zoom), y: Math.round((y * 1000) / zoom) };
+  await send("Input.dispatchMouseEvent", { type: "mouseMoved", ...at }); // the viewer zooms about the last cursor
+  await sleep(200);
+  for (let i = 0; i < ticks; i++) {
+    await send("Input.dispatchMouseEvent", { type: "mouseWheel", ...at, deltaX: 0, deltaY: -100 });
+    await sleep(80);
+  }
+  await sleep(3000);
+}
+await sleep(1500);
 const shot = await send("Page.captureScreenshot", { format: "png" });
 writeFileSync(out, Buffer.from(shot.result.data, "base64"));
 console.log(logs.slice(0, 8).join("\n"));

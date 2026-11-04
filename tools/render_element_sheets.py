@@ -1,6 +1,6 @@
 """Compose the four element contact sheets shown on docs/elements.md.
 
-Reads every docs/images/elements/*.png, crops each picture to its drawn content and lays the pictures out
+Reads every docs/images/elements/*.png, the whole picture, and lays the pictures out
 five per row with a caption, one sheet per group: elements, plate joints, beam joints, connectors and pins.
 Writes docs/images/diagrams/wood_elements_sheet_<n>_<name>.webp (4400 px wide, quality 90).
 
@@ -22,7 +22,7 @@ CAPTION_H = 110
 PAD = 30
 FRAME = (205, 205, 212)
 TEXT = (30, 30, 30)
-CROP_MARGIN = 40
+BACKDROP = (240, 240, 240)  # the viewer's Arctic backdrop, so a picture has no visible edge in its tile
 
 SHEET_1 = [
     "element_plate",
@@ -94,6 +94,12 @@ sheets = [
     ("4_connectors", SHEET_4),
 ]
 
+# only the pictures of the examples: a family page's overview picture is a copy of one of them
+sheets = [
+    (sheet_name, [name for name in sheet if os.path.exists("examples/elements/" + name + ".cpp")])
+    for sheet_name, sheet in sheets
+]
+
 # caption font: the first sans font found
 font = None
 for font_name in [
@@ -116,22 +122,7 @@ for sheet_name, sheet in sheets:
     canvas = Image.new("RGB", (WIDTH, height), (255, 255, 255))
     draw = ImageDraw.Draw(canvas)
     for i, name in enumerate(sheet):
-        # crop to the drawn content: non-white pixels, or the dark outlines inside the viewport of a viewer screenshot
         picture = Image.open(os.path.join(ELEMENTS, name + ".png")).convert("RGB")
-        w, h = picture.size
-        grey = picture.convert("L")
-        if picture.getpixel((0, 0)) == (255, 255, 255):
-            box = grey.point(lambda p: 255 if p < 243 else 0).getbbox()
-        else:
-            viewport = grey.crop((0, 0, int(w * 0.66), int(h * 0.95)))
-            box = viewport.point(lambda p: 255 if p < 60 else 0).getbbox()
-        box = (
-            max(box[0] - CROP_MARGIN, 0),
-            max(box[1] - CROP_MARGIN, 0),
-            min(box[2] + CROP_MARGIN, w),
-            min(box[3] + CROP_MARGIN, h),
-        )
-        picture = picture.crop(box)
 
         # scale to fit the tile above the caption
         fit_w = TILE_W - 2 * PAD
@@ -144,6 +135,7 @@ for sheet_name, sheet in sheets:
         # tile: frame, picture centred, caption under it
         x = GAP + (i % COLUMNS) * (TILE_W + GAP)
         y = GAP + (i // COLUMNS) * (TILE_H + GAP)
+        draw.rectangle((x, y, x + TILE_W - 1, y + TILE_H - CAPTION_H), fill=BACKDROP)
         draw.rectangle((x, y, x + TILE_W - 1, y + TILE_H - 1), outline=FRAME, width=3)
         canvas.paste(
             picture,
@@ -169,7 +161,8 @@ for sheet_name, sheet in sheets:
     path = os.path.join(DIAGRAMS, "wood_elements_sheet_" + sheet_name + ".webp")
     canvas.save(path, "WEBP", quality=90)
 
-# every example picture is on exactly one sheet
+# every example's picture is on exactly one sheet
+names = [name for name in names if os.path.exists("examples/elements/" + name + ".cpp")]
 placed = []
 for sheet_name, sheet in sheets:
     placed.extend(sheet)
