@@ -28,6 +28,7 @@ const Polyline PODIUM = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 40000.0,
 const Polyline TOWER = Polyline::rectangle(Point(10000.0, 5000.0, 8000.0), X, Y, 20000.0, 20000.0);
 const Polyline OUTER = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 36000.0, 36000.0);
 const Polyline ATRIUM = Polyline::rectangle(Point(12000.0, 12000.0, 0.0), X, Y, 12000.0, 12000.0);
+const Polyline ROUND = Polyline::from_sides(16, 15000.0, true);
 const bool INSTANCES = false;
 
 /// A closed shell through the faces of several open lofts and their caps.
@@ -91,7 +92,7 @@ const std::vector<Case> CASES = {
      {0.0, 4000.0, 8000.0, 12000.0, 16000.0, 20000.0},
      wood_grid::Framing{.system = 2, .span = 0, .spacing = 3000.0, .node = 2}},
     {"curved",
-     BRep::create_cylinder(15000.0, 15200.0).mesh(),
+     Mesh::loft({ROUND}, {ROUND.transformed(Xform::translation(0.0, 0.0, 15200.0))}),
      wood_grid::Pattern::radial({5000.0, 10000.0, 15000.0}, 16),
      {0.0, 3800.0, 7600.0, 11400.0, 15200.0},
      wood_grid::Framing{.system = 2, .span = 0, .spacing = 2500.0, .node = 0}},

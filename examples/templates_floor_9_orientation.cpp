@@ -19,11 +19,17 @@ int main() {
     WoodSession fabrication_session = floor.get_branch(column_name);
     const std::shared_ptr<Column> column =
         fabrication_session.get_element_by_name<Column>(column_name);
+    const std::shared_ptr<Support> support =
+        fabrication_session.get_element_by_name<Support>("support_0");
 
     const Plane from = Plane(column->section.get_point(0), Vector::x_axis(), Vector::y_axis());
     const Plane on_ground = Plane(Point(0.0, 0.0, 0.0), Vector::y_axis(), Vector::z_axis());
 
-    fabrication_session.set_xform(column->guid(), Xform::plane_to_plane(from, on_ground));
+    const Xform flat = Xform::plane_to_plane(from, on_ground);
+
+    // the column carries its blocks, cuts and seat under its own node; the support stands beside it in the branch
+    fabrication_session.set_xform(column->guid(), flat);
+    fabrication_session.set_xform(support->guid(), flat);
 
     fabrication_session.pb_dump(pb_path("live"));
 
