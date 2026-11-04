@@ -84,7 +84,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_io.cpp
     src/joinery_solver/wood_view.cpp
     src/joinery_solver/wood_elements/wood_element.cpp
-    src/joinery_solver/wood_elements/wood_element_cut_plane.cpp
+    src/joinery_solver/wood_elements/wood_element_joint_cut_plane.cpp
     src/joinery_solver/wood_elements/wood_element_face_planar.cpp
     src/joinery_solver/wood_elements/wood_element_face_curved.cpp
     src/joinery_solver/wood_elements/wood_element_column.cpp
@@ -97,8 +97,8 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_joint.cpp
     src/joinery_solver/wood_elements/wood_element_joint_plate.cpp
     src/joinery_solver/wood_elements/wood_element_joint_beam.cpp
-    src/joinery_solver/wood_elements/wood_element_pin.cpp
-    src/joinery_solver/wood_elements/wood_element_connector_part.cpp
+    src/joinery_solver/wood_elements/wood_element_joint_pin.cpp
+    src/joinery_solver/wood_elements/wood_element_joint_connector_part.cpp
     src/joinery_solver/wood_elements/wood_element_geometry.cpp
     src/joinery_solver/wood_algorithms/wood_solid_boolean.cpp
     src/joinery_solver/wood_algorithms/wood_brep_drill.cpp

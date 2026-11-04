@@ -47,7 +47,7 @@ static void check_border() {
         contact != nullptr && contact->type == ContactType::border,
         "a border contact on side face 2"
     );
-    const std::shared_ptr<JointPlate> joint = JointPlate::border();
+    const std::shared_ptr<JointPlateElement> joint = JointPlateElement::border();
     joint->orient(contact, {plate}, scene.settings);
     scene.add(joint);
     scene.add_interaction(joint, plate, joint->interaction(0));

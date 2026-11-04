@@ -349,16 +349,16 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> the head plate disc of the joint   <span style="color:#E8478B">■ variable</span> `drill_lines`, the three column pins   <span style="color:#A3A3A3">■ context</span> the support
 
-The support is added, and its seat, `Joint::support`, lets the head plate up into the column end and drills its three pins into the shaft.
+The support is added, and its seat, `JointElement::support`, lets the head plate up into the column end and drills its three pins into the shaft.
 
 ```cpp
 add(support, group);
-const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+const std::shared_ptr<JointElement> seat = JointElement::support(*support, *shaft);
 add(seat, group);
 add_interaction(seat, shaft, seat->interaction(0));
 ```
 
-Code: `Joint::support`, [wood_element_joint.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint.cpp).
+Code: `JointElement::support`, [wood_element_joint.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint.cpp).
 
 ## 227. The cutters
 

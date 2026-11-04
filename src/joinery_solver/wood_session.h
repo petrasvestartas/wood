@@ -6,11 +6,11 @@
 #include "wood_element_joint.h"
 #include "wood_element_joint_plate.h"
 #include "wood_element_joint_beam.h"
-#include "wood_element_pin.h"
-#include "wood_element_connector_part.h"
+#include "wood_element_joint_pin.h"
+#include "wood_element_joint_connector_part.h"
 #include "wood_element_node_block.h"
 #include "wood_element_column.h"
-#include "wood_element_cut_plane.h"
+#include "wood_element_joint_cut_plane.h"
 #include "wood_element_edge_variable.h"
 #include "wood_element_edge_curved.h"
 #include "wood_element_node_support.h"
@@ -422,7 +422,7 @@ private:
 
     /// add_interaction for a joint, not a plate joint, on one target, which joins the joint's targets when new.
     std::shared_ptr<Interaction> add_joint_interaction(
-        const std::shared_ptr<Joint>& joint,
+        const std::shared_ptr<JointElement>& joint,
         const std::shared_ptr<Element>& target,
         std::shared_ptr<Interaction> interaction
     );

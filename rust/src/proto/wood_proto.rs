@@ -129,7 +129,7 @@ pub struct FacePlanarElement {
     pub reversed: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Joint {
+pub struct JointElement {
     #[prost(message, repeated, tag = "1")]
     pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
     #[prost(message, repeated, tag = "2")]

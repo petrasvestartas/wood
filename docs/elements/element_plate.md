@@ -31,7 +31,7 @@ A four-sided plate lofted between a bottom polygon and the same polygon lifted 4
 
 ## With holes
 
-A rectangular plate with four vertical through-holes, each a `Joint::drill` added as an interaction.
+A rectangular plate with four vertical through-holes, each a `JointElement::drill` added as an interaction.
 
 ![](elements/element_plate_holes.png)
 

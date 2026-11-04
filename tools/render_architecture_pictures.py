@@ -309,7 +309,7 @@ def sheets(tmp: pathlib.Path) -> None:
             Image.open(IMAGES / "elements" / f"element_joint_beam_{name}.png").convert(
                 "RGB"
             ),
-            f"JointBeam {name}",
+            f"JointBeamElement {name}",
         )
         for name in BEAM_SHEET
     ]

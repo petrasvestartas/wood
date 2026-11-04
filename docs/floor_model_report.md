@@ -29,7 +29,7 @@ them (the step-0 cylinder `j` is now `n-1-j`, the same set).
 
 ## Pins (branch `floor-pins`)
 
-Pre-drilled assembly pins, 200 x d4, design section 8.1: `JointBeam::headed_pins` (pre-drill lines on one
+Pre-drilled assembly pins, 200 x d4, design section 8.1: `JointBeamElement::headed_pins` (pre-drill lines on one
 connector naming every member they pass, no cut), `WoodSession::pre_drill_lines`, five pin relations
 appended to `relationships()`.
 
@@ -114,7 +114,7 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
   `oculus` from the centre along its seam, a square diamond on a rectangle. A trapezoid or general
   quadrilateral has no per-seam oculus distances any more.
 * `FloorPlan::seam_through_ribs` (default false, true since later on 2026-10-05): the two seam beams of every seam run through the
-  outer rib band to the bay's outer face, the wedge between them flush with it (`JointBeam::wedge`
+  outer rib band to the bay's outer face, the wedge between them flush with it (`JointBeamElement::wedge`
   takes an optional end plane); each outer rib ends on its beam's far face
   (`Quarter::rib_seam_ends()`). `pin_rib_beam` then runs horizontally along the rib, 20 mm below its
   top and 20 mm above its bottom at its end, 15 mm either side of its axis, from the beam's seam face
@@ -123,7 +123,7 @@ The parity mode (`Floor::compas_parity`, `CentralLayers`, `CutterLevel`, `RibLev
 * `Floor::soffit`, the deepest end of a rib that ends on a beam, is the soffit of every inner and
   ring beam (about -198.783 on the square); the oculus bottom wedges and plate sit on it.
 * Every wedge cut horizontally flush with the floor top, the tilted oculus wedges too;
-  `JointBeam::WEDGE_PROFILE` the shared profile.
+  `JointBeamElement::WEDGE_PROFILE` the shared profile.
 * The column head cutters are solid cuts of the column (`column_cuts(quarter)`), drawn as its "cut"
   element features, no longer joint elements. `Family::cutter` and the 24 cutter relationships
   removed: `relationships(floor)` has 88 rows, 52 plus 36 pin rows. The carved column volume is

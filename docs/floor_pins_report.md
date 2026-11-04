@@ -7,7 +7,7 @@ Branch `floor-pins`, 2026-10-02, on `eff7463` (dev `578fd8f` + the marks). The r
 
 | commit | what |
 |---|---|
-| `9598b78` | `JointBeam::headed_pins` with `pre_drill` (proto field 23, `generated/element_joint.pb.*` regenerated with protoc 36.2, only that message changed), `WoodSession::pre_drill_lines`, the five pin relations in `relationships()`, `check_pins`, examples 8 and 9, `check_pins` in `tests/floor_elements.cpp`, the docs |
+| `9598b78` | `JointBeamElement::headed_pins` with `pre_drill` (proto field 23, `generated/element_joint.pb.*` regenerated with protoc 36.2, only that message changed), `WoodSession::pre_drill_lines`, the five pin relations in `relationships()`, `check_pins`, examples 8 and 9, `check_pins` in `tests/floor_elements.cpp`, the docs |
 | this one | this report |
 
 ## Data model

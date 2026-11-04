@@ -32,7 +32,7 @@ enum class ButtConfiguration {
 };
 
 /// Element that represents a joint between beams: a beam-to-beam joint with feature volumes, or a connector with parts, cutters and pins.
-class JointBeam : public Joint {
+class JointBeamElement : public JointElement {
 public:
     static inline const Color CONNECTOR_COLOR = Color(
         33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"
@@ -75,18 +75,18 @@ public:
     bool is_butt =
         false; // A butt: each target takes its butt_extensions and butt_solids entries, nothing else.
 
-    JointBeam();
+    JointBeamElement();
 
     /// A beam-to-beam joint from its feature.
-    explicit JointBeam(const InteractionFeatureBeam& feature);
+    explicit JointBeamElement(const InteractionFeatureBeam& feature);
 
     /// A beam-to-beam joint whose feature the builder fills.
-    JointBeam(
+    JointBeamElement(
         InteractionFeatureBeam feature, const std::function<void(InteractionFeatureBeam&)>& builder
     );
 
     /// A beam-to-beam joint on the axis contact of two beams; throws when none fits.
-    JointBeam(
+    JointBeamElement(
         const EdgeStraightElement& source,
         const EdgeStraightElement& target,
         const InteractionContactAxis& contact,
@@ -100,7 +100,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A beam-to-beam joint on the axis contact of two beams, null when no volume fits.
-    static std::shared_ptr<JointBeam> from_contact(
+    static std::shared_ptr<JointBeamElement> from_contact(
         const EdgeStraightElement& source,
         const EdgeStraightElement& target,
         const InteractionContactAxis& contact,
@@ -111,7 +111,7 @@ public:
     );
 
     /// The wedge connector on the face contact of two members: a profile prism with horizontal pins and a pocket in each member.
-    static std::shared_ptr<JointBeam> wedge(
+    static std::shared_ptr<JointBeamElement> wedge(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,
@@ -137,7 +137,7 @@ public:
     );
 
     /// The joint that lets a plate into a column and a rib.
-    static std::shared_ptr<JointBeam> rectangle_plate(
+    static std::shared_ptr<JointBeamElement> rectangle_plate(
         const Element& column,
         const Element& rib,
         const FacePlanarElement& plate,
@@ -150,7 +150,7 @@ public:
     );
 
     /// A butt of two members drawn as lines and polygons, beams, columns or plates.
-    static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
+    static std::shared_ptr<JointBeamElement> butt(const Element& a, const Element& b, double reach = 0.0);
 
     /// What a plate's edge `end` gains and loses to stop on its plane in `planes`.
     static std::array<Mesh, 2> plate_end(
@@ -158,26 +158,26 @@ public:
     );
 
     /// A butt whose corner, square or oblique, is side_side_outplane.
-    static std::shared_ptr<JointBeam>
+    static std::shared_ptr<JointBeamElement>
     butt_side_side(const Element& a, const Element& b, double reach = 0.0);
 
     /// A butt top_side whose second member's side.
-    static std::shared_ptr<JointBeam>
+    static std::shared_ptr<JointBeamElement>
     butt_top_side(const Element& top, const Element& side, double reach = 0.0);
 
     /// A butt top_side at a corner of any angle, square or oblique.
-    static std::shared_ptr<JointBeam>
+    static std::shared_ptr<JointBeamElement>
     butt_top_side_end(const Element& top, const Element& side, double reach = 0.0);
 
     /// A butt cross whatever the ends.
-    static std::shared_ptr<JointBeam> butt_cross(const Element& a, const Element& b);
+    static std::shared_ptr<JointBeamElement> butt_cross(const Element& a, const Element& b);
 
     /// A butt cross on a given lap plane.
-    static std::shared_ptr<JointBeam>
+    static std::shared_ptr<JointBeamElement>
     butt_cross(const Element& a, const Element& b, const Plane& lap);
 
     /// A butterfly key across the end-to-end contact of two members: two heads and a neck let into a pocket in each.
-    static std::shared_ptr<JointBeam> butterfly_key(
+    static std::shared_ptr<JointBeamElement> butterfly_key(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,
@@ -197,7 +197,7 @@ public:
     /// each beam's near end, side and direction, its section, the seat's level. A beam's tenon, tail and shoulder follow its own direction, so the posts come out unequal; a beam too long is
     /// cut back and one too short gains stock. Sizes are shares of a beam's own width, the shoulder of the column's radius. Throws naming the beam and the reason when no valid joint exists.
     /// At a plain cross both pairs are in line: the shorter is the main pair, then the one most along world x, unless main_beam names a beam of the pair to use.
-    static std::shared_ptr<JointBeam> column_head(
+    static std::shared_ptr<JointBeamElement> column_head(
         const Column& column,
         const EdgeStraightElement& a,
         const EdgeStraightElement& b,
@@ -218,7 +218,7 @@ public:
     /// Two plates held face to face by a box through a mortise in both, locked by two wedge keys in one long mortise across the box: the first key stops the box on the second plate, the
     /// second, driven in once the plates meet, pinches them together; its parts are the box and the first and second keys, its last two insertions the way the keys come out. Sizes are
     /// shares of the first plate's thickness; key_width is a key's width where it enters the box, key_taper its loss per unit of depth; null when the sizes leave nothing, the keys do not taper or the box leaves the plates.
-    static std::shared_ptr<JointBeam> keyed_box(
+    static std::shared_ptr<JointBeamElement> keyed_box(
         const FacePlanarElement& a,
         const FacePlanarElement& b,
         const InteractionContactFace& contact,
@@ -232,7 +232,7 @@ public:
     );
 
     /// Pins centred across the face contact at its inset corners, bored into both members; null when the inset leaves nothing.
-    static std::shared_ptr<JointBeam> centred_pins(
+    static std::shared_ptr<JointBeamElement> centred_pins(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,
@@ -244,7 +244,7 @@ public:
     );
 
     /// Headed pins laid out on the face contact of a and b, pre-drilled into both.
-    static std::shared_ptr<JointBeam> headed_pins(
+    static std::shared_ptr<JointBeamElement> headed_pins(
         const Element& a,
         const Element& b,
         const InteractionContactFace& contact,
@@ -279,8 +279,8 @@ public:
     /// One part as a BRep with its cuts applied and its pin bores exact.
     BRep part_brep(size_t index) const;
 
-    /// The connector's parts and pins as ConnectorPart and Pin elements to nest under it.
-    std::vector<std::shared_ptr<Joint>> children() const;
+    /// The connector's parts and pins as JointConnectorPartElement and JointPinElement elements to nest under it.
+    std::vector<std::shared_ptr<JointElement>> children() const;
 
     /// A beam-to-beam joint's feature volumes; a connector draws nothing itself, its children carry its parts and pins.
     const Mesh& element_geometry_mesh() const override;
@@ -289,11 +289,11 @@ public:
     const BRep& element_geometry_brep() const override;
 
     std::string element_type_name() const override {
-        return "JointBeam";
+        return "JointBeamElement";
     }
 
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<JointBeam>(*this);
+        return std::make_shared<JointBeamElement>(*this);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -308,8 +308,8 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 protected:
     std::vector<std::array<Polyline, 2>> bodies() const override;
-    void write_proto(wood_proto::Joint& proto) const override;
-    void read_proto(const wood_proto::Joint& proto) override;
+    void write_proto(wood_proto::JointElement& proto) const override;
+    void read_proto(const wood_proto::JointElement& proto) override;
 };
 
 }

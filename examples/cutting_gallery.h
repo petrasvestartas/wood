@@ -35,7 +35,7 @@ inline void cut_case(
     WoodSession& scene,
     const std::string& name,
     const std::shared_ptr<Element>& stock,
-    const std::shared_ptr<Joint>& cutter,
+    const std::shared_ptr<JointElement>& cutter,
     double row
 ) {
     const std::shared_ptr<TreeNode> group = scene.add_group(name);

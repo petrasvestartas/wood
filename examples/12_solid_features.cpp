@@ -13,7 +13,7 @@ int main() {
         const std::shared_ptr<NodeBlockElement> stock = std::make_shared<NodeBlockElement>(
             std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(30, 15, 100, 140, 130)}
         );
-        const std::shared_ptr<Joint> cutter = std::make_shared<Joint>(std::vector<Polyline>{
+        const std::shared_ptr<JointElement> cutter = std::make_shared<JointElement>(std::vector<Polyline>{
             rectangle(90, -20, 20, 130, 190), rectangle(60, -5, 130, 130, 190)
         });
         cutter->operation = design.first;
@@ -31,7 +31,7 @@ int main() {
         scene,
         "Custom mesh cutter / tetrahedron",
         block,
-        std::make_shared<Joint>(tetrahedron),
+        std::make_shared<JointElement>(tetrahedron),
         row * 280
     );
     finish(scene, "12_solid_features");

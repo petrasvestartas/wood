@@ -8,13 +8,13 @@ using namespace session_cpp;
 namespace wood_session {
 
 /// Element that represents a cutting plane.
-class CutPlane : public WoodElement {
+class JointCutPlaneElement : public WoodElement {
 public:
     /// Its cutting plane.
     std::optional<Plane> base_plane() const override;
 
     static constexpr std::string_view ELEMENT_TYPE =
-        "CutPlane"; // The element_type this plane is written under.
+        "JointCutPlaneElement"; // The element_type this plane is written under.
     Plane plane; // The cutting plane; what it cuts keeps the side its normal points to.
     double size = 1000.0; // The side of the square it is drawn as.
 
@@ -23,7 +23,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A cutting plane drawn as a square of size.
-    explicit CutPlane(
+    explicit JointCutPlaneElement(
         const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane"
     );
 
@@ -53,7 +53,7 @@ public:
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<CutPlane>(*this);
+        return std::make_shared<JointCutPlaneElement>(*this);
     }
 
 protected:

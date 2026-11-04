@@ -2,13 +2,13 @@
 
 [TOC]
 
-End-to-end splice and miter joints at the shared axis endpoint of two beams (`EdgeStraightElement::pair_end_to_end`), cutting into each beam's `extension` stock via `JointBeam::from_contact`.
+End-to-end splice and miter joints at the shared axis endpoint of two beams (`EdgeStraightElement::pair_end_to_end`), cutting into each beam's `extension` stock via `JointBeamElement::from_contact`.
 
 ## Constructors
 
 ```cpp
 static std::array<std::shared_ptr<EdgeStraightElement>, 2> EdgeStraightElement::pair_end_to_end(double angle_degrees = 0.0, double radius = 75.0, double length = 1200.0, double extension = 150.0);
-static std::shared_ptr<JointBeam> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
+static std::shared_ptr<JointBeamElement> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
 ```
 
 Collinear beams (`angle_degrees = 0.0`) use the in-plane scarf preset in `settings.joint_parameters[2]`; angled beams trim their extensions on the angle-bisector miter plane.

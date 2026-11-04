@@ -2,18 +2,18 @@
 
 [TOC]
 
-Base cutter and modifier element that drills, subtracts, unions, or intersects geometry on target elements; also the base class of `JointPlate`, `JointBeam`, and `Pin`.
+Base cutter and modifier element that drills, subtracts, unions, or intersects geometry on target elements; also the base class of `JointPlateElement`, `JointBeamElement`, and `JointPinElement`.
 
 ## Constructors
 
 ```cpp
-explicit Joint(const std::vector<Polyline>& loops, const std::string& name = "Joint");
-explicit Joint(const Plane& cutter);
-explicit Joint(const Mesh& cutter, SolidOperation operation = SolidOperation::subtract);
-Joint(const Polyline& profile, const Vector& direction);
-Joint(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation operation = SolidOperation::intersect);
-static std::shared_ptr<Joint> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
-static std::shared_ptr<Joint> support(const NodeSupportElement& support, const Column& column);
+explicit JointElement(const std::vector<Polyline>& loops, const std::string& name = "JointElement");
+explicit JointElement(const Plane& cutter);
+explicit JointElement(const Mesh& cutter, SolidOperation operation = SolidOperation::subtract);
+JointElement(const Polyline& profile, const Vector& direction);
+JointElement(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation operation = SolidOperation::intersect);
+static std::shared_ptr<JointElement> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
+static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const Column& column);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
@@ -35,4 +35,4 @@ A box mesh subtracted from a beam's top face (`SolidOperation::subtract`) and an
 
 ## Support seat
 
-`Joint::support(support, column)` recesses a [Support](@ref elements_support)'s circular head plate and inclined pin bores into a column base (see [Column](@ref elements_column)).
+`JointElement::support(support, column)` recesses a [Support](@ref elements_support)'s circular head plate and inclined pin bores into a column base (see [Column](@ref elements_column)).

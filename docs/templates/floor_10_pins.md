@@ -4,11 +4,11 @@
 
 <em>Step 10 of @ref templates_floor_model · previous: @ref templates_floor_09_connectors · next: @ref templates_floor_11_examples</em>
 
-Where one member butts into another, `Floor::compute_connectors` lays two pins across their contact with `JointBeam::headed_pins`.
+Where one member butts into another, `Floor::compute_connectors` lays two pins across their contact with `JointBeamElement::headed_pins`.
 `add_connectors` adds them, and their holes are pre-drilled into both members.
 Per side of a quarter there are three butt joints: the outer rib on its seam beam, the seam beam on the oculus beam and the oculus beam on the inner rib.
 At each of the four ring corners, ring beam q butts on the next.
-Every pin is a `Pin`, a 200 mm cylinder from its head.
+Every pin is a `JointPinElement`, a 200 mm cylinder from its head.
 The pins run level along the axis of the member that ends on the contact, from the far face of the other; `headed_pins` chooses which member that is.
 Both members read the same drill lines.
 
@@ -35,7 +35,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 `add_contacts` stores `pins_outer_rib_0_0` with the seam beam first, the member the pins pass through, then the outer rib.
 `headed_pins` turns the contact's normal to point into the member that ends on it, here the rib.
 
-Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
+Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 303. The axes
 
@@ -47,7 +47,7 @@ x runs level along the contact, z cross the normal.
 y runs up it.
 So vertical means up however narrow the face.
 
-Code: `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
+Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 304. The stations
 
@@ -59,7 +59,7 @@ Code: `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com
 One station stands at the inset contact's top and one at its bottom.
 For `pins_outer_rib` and `pins_seam_beam` both are moved by `PIN_SHIFT` = 15 along x.
 
-Code: `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
+Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
 ## 305. The head
 
@@ -71,7 +71,7 @@ Code: `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com
 It puts the head where the line leaves the other member's stock.
 The pin runs 200 from there into the member that ends.
 
-Code: `pin_head`, `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
+Code: `pin_head`, `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 306. Two quarters at a seam
 
@@ -84,7 +84,7 @@ The two quarters' contacts at a seam face opposite ways, so the same `PIN_SHIFT`
 The inner rib and ring corner pins have no shift.
 
 ```cpp
-quarter_connectors.outer_rib_seam_beam[k] = JointBeam::headed_pins(
+quarter_connectors.outer_rib_seam_beam[k] = JointBeamElement::headed_pins(
     *outer.a,
     *outer.b,
     *outer.face,
@@ -108,18 +108,18 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 `PinLayout` on the same contact: `corners` at the inset contact's extreme corners, `vertical` a column up it, `horizontal` a row along it.
 The floor uses `vertical`.
 
-Code: `PinLayout`, [wood_element_joint_beam.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.h); `JointBeam::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
+Code: `PinLayout`, [wood_element_joint_beam.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.h); `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
 ## 308. The Pin children
 
 ![](floor/308_pin_children.webp)
 
-<span style="color:#2196EA">■ built</span> the `Pin` children   <span style="color:#A3A3A3">■ context</span> the two members
+<span style="color:#2196EA">■ built</span> the `JointPinElement` children   <span style="color:#A3A3A3">■ context</span> the two members
 
-A pin connector nests one `Pin` per line, named `connector_pins_outer_rib_0_0_pin_i`.
+A pin connector nests one `JointPinElement` per line, named `connector_pins_outer_rib_0_0_pin_i`.
 Its holes are pre-drilled into both members, a Ø4 hole (radius 2) each.
 
-Code: `JointBeam::children`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `Pin`, [wood_element_pin.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_pin.h).
+Code: `JointBeamElement::children`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp); `JointPinElement`, [wood_element_joint_pin.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_pin.h).
 
 ## 309. Every pin
 

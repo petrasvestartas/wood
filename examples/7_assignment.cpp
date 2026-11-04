@@ -37,8 +37,8 @@ int main() {
     const Line finger_dir = Line::from_points(angled_seam, angled_seam + Vector(-125, 145, 0));
     const Line tenon_dir = Line::from_points(tenon_edge, tenon_edge + Vector(0, -145, 160));
 
-    const int finger_id = JointPlate::library_id("side_side_inplane_dovetails");
-    const int tenon_id = JointPlate::library_id("top_side_tenons");
+    const int finger_id = JointPlateElement::library_id("side_side_inplane_dovetails");
+    const int tenon_id = JointPlateElement::library_id("top_side_tenons");
     wood_session.assign_joint_types_by_points(
         {straight_seam, angled_seam, tenon_edge}, {finger_id, finger_id, tenon_id}, 30.0
     );

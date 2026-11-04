@@ -7,11 +7,11 @@ Side-to-side out-of-plane plate joints cutting mitered fingers or tenon-and-mort
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();
-static std::shared_ptr<JointPlate> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);
-static std::shared_ptr<JointPlate> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
-static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();
-static std::shared_ptr<JointPlate> side_side_outplane_tenons(
+static std::shared_ptr<JointPlateElement> side_side_outplane_three_fingers();
+static std::shared_ptr<JointPlateElement> side_side_outplane_fingers(int divisions = 0, double shift = 0.64);
+static std::shared_ptr<JointPlateElement> side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
+static std::shared_ptr<JointPlateElement> side_side_outplane_miter_tenon();
+static std::shared_ptr<JointPlateElement> side_side_outplane_tenons(
     int divisions = 0,
     double taper = 0.0,
     bool chamfer = true,
@@ -20,12 +20,12 @@ static std::shared_ptr<JointPlate> side_side_outplane_tenons(
     const std::array<double, 2>& y = {-0.5, 0.5},
     const std::array<double, 2>& z = {-0.5, 0.5}
 );
-static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
-static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);
-static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
-static std::shared_ptr<JointPlate> side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
-static std::shared_ptr<JointPlate> side_side_outplane_notch();
-static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static std::shared_ptr<JointPlateElement> side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
+static std::shared_ptr<JointPlateElement> side_side_outplane_linked_tenons_wall(int divisions = 0);
+static std::shared_ptr<JointPlateElement> side_side_outplane_capped_fingers(int divisions = 4);
+static std::shared_ptr<JointPlateElement> side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
+static std::shared_ptr<JointPlateElement> side_side_outplane_notch();
+static std::shared_ptr<JointPlateElement> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;

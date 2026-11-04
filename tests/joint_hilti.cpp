@@ -74,8 +74,8 @@ static std::array<double, 2> check_angle(double angle) {
 
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
     check(contact != nullptr, fmt::format("{:g} degrees: the slabs have no face contact", angle));
-    const std::shared_ptr<JointPlate> hilti =
-        JointPlate::side_side_inplane_hilti(*left, *right, *contact);
+    const std::shared_ptr<JointPlateElement> hilti =
+        JointPlateElement::side_side_inplane_hilti(*left, *right, *contact);
     check(hilti != nullptr, fmt::format("{:g} degrees: no connector on the seam", angle));
     scene.add(hilti);
     scene.add_interaction(hilti, left, hilti->interaction(0));
@@ -136,7 +136,7 @@ static std::array<double, 2> check_angle(double angle) {
         );
 
         const Mesh pocket =
-            JointPlate::side_solids(hilti->connections[0], static_cast<int>(side)).at(0);
+            JointPlateElement::side_solids(hilti->connections[0], static_cast<int>(side)).at(0);
         const Mesh gap = solid_difference(stock, {model, pocket});
         const double unfilled = gap.number_of_faces() == 0 ? 0.0 : compute_volume(gap);
         check(

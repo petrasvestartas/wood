@@ -258,7 +258,7 @@ static void check_names() {
 
     bool refused = false;
     try {
-        JointPlate::library_id("top_side_9");
+        JointPlateElement::library_id("top_side_9");
     } catch (const std::invalid_argument&) {
         refused = true;
     }

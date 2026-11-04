@@ -17,23 +17,23 @@ int main() {
          {20, 140, -5},
          {20, 20, -5}}
     );
-    const std::shared_ptr<Joint> l_profile = std::make_shared<Joint>(concave, Vector(0, 0, 45));
+    const std::shared_ptr<JointElement> l_profile = std::make_shared<JointElement>(concave, Vector(0, 0, 45));
     cut_case(scene, "Concave L profile / intersection", stock(), l_profile, 0);
 
     const Polyline outer = rectangle(15, 15, -5, 170, 130);
     const Polyline hole = rectangle(65, 55, -5, 70, 50);
-    const std::shared_ptr<Joint> holed =
-        std::make_shared<Joint>(std::vector<Polyline>{outer, hole}, Vector(0, 0, 45));
+    const std::shared_ptr<JointElement> holed =
+        std::make_shared<JointElement>(std::vector<Polyline>{outer, hole}, Vector(0, 0, 45));
     cut_case(scene, "Profile with a hole / intersection", stock(), holed, 260);
 
     const Polyline slot_outline = rectangle(85, -10, -5, 30, 180);
-    const std::shared_ptr<Joint> slot = std::make_shared<Joint>(
+    const std::shared_ptr<JointElement> slot = std::make_shared<JointElement>(
         std::vector<Polyline>{slot_outline}, Vector(0, 0, 45), SolidOperation::subtract
     );
     cut_case(scene, "Through slot / two separate pieces", stock(), slot, 520);
 
     const Polyline pocket_outline = concave.translated({0, 0, 25});
-    const std::shared_ptr<Joint> pocket = std::make_shared<Joint>(
+    const std::shared_ptr<JointElement> pocket = std::make_shared<JointElement>(
         std::vector<Polyline>{pocket_outline}, Vector(0, 0, 30), SolidOperation::subtract
     );
     cut_case(scene, "Concave pocket / solid split", stock(), pocket, 780);

@@ -24,8 +24,8 @@ int main() {
     std::cout << fmt::format("bisector planes: {} valid of {} corners", bisectors, corners)
               << std::endl;
 
-    const std::vector<std::shared_ptr<JointPlate>> cross_laps =
-        vda.get_elements_placed<JointPlate>("cross_lap");
+    const std::vector<std::shared_ptr<JointPlateElement>> cross_laps =
+        vda.get_elements_placed<JointPlateElement>("cross_lap");
     const std::vector<std::shared_ptr<FacePlanarElement>> connectors =
         vda.get_elements_placed<FacePlanarElement>("connector");
     std::cout << fmt::format(
@@ -38,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in miters, two connector frames and plates across every interior edge, and a cross slot (JointPlate::cross_slot) where every connector passes through each of its two face plates, merged into both outlines; each step in its group.
+The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in miters, two connector frames and plates across every interior edge, and a cross slot (JointPlateElement::cross_slot) where every connector passes through each of its two face plates, merged into both outlines; each step in its group.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -7,11 +7,11 @@ Cross-lap joints where two plates pass through each other along a crossing line 
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> cross_slot();
-static std::shared_ptr<JointPlate> cross_sliced_half_lap(double shift = 0.5);
-static std::shared_ptr<JointPlate> cross_half_lap(double shift = 0.5, CrossDrills drills = CrossDrills::none);
-static std::shared_ptr<JointPlate> cross_brussels_half_lap(double shift = 0.5);
-static std::shared_ptr<JointPlate> cross_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static std::shared_ptr<JointPlateElement> cross_slot();
+static std::shared_ptr<JointPlateElement> cross_sliced_half_lap(double shift = 0.5);
+static std::shared_ptr<JointPlateElement> cross_half_lap(double shift = 0.5, CrossDrills drills = CrossDrills::none);
+static std::shared_ptr<JointPlateElement> cross_brussels_half_lap(double shift = 0.5);
+static std::shared_ptr<JointPlateElement> cross_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
 void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const Settings& settings = Settings());
 std::shared_ptr<Interaction> interaction(size_t target) const;

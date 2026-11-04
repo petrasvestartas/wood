@@ -162,7 +162,7 @@ void WoodSession::build_feature_geometry(
     std::vector<InteractionFeaturePlate>& joints,
     const std::vector<std::vector<int>>& feature_types
 ) {
-    JointPlate::build_geometry(joints, elements, feature_types, settings);
+    JointPlateElement::build_geometry(joints, elements, feature_types, settings);
 }
 
 void WoodSession::merge_features(
@@ -319,13 +319,13 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
     for (size_t i = 0; i < joints.size(); ++i)
         groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
     for (const auto& [id, indices] : groups) {
-        std::shared_ptr<JointPlate> element;
+        std::shared_ptr<JointPlateElement> element;
         if (indices.size() > 1 && annen)
-            element = std::make_shared<JointAnnen>();
+            element = std::make_shared<JointAnnenElement>();
         else if (indices.size() > 1)
-            element = std::make_shared<JointVidy>();
+            element = std::make_shared<JointVidyElement>();
         else
-            element = std::make_shared<JointPlate>();
+            element = std::make_shared<JointPlateElement>();
         for (int index : indices) {
             auto& joint = joints[index];
             joint.sync_features();

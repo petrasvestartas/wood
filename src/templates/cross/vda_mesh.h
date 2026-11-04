@@ -13,7 +13,7 @@ namespace wood_cross {
 
 /// The cross slot where a connector passes through a face plate, with the two plates it joins in its target order.
 struct CrossLap {
-    std::shared_ptr<JointPlate>
+    std::shared_ptr<JointPlateElement>
         joint; // cross_lap_<face0>_<face1>_<k>_<face>_<layer>, merged into both outlines.
     std::shared_ptr<FacePlanarElement> connector; // connector_<face0>_<face1>_<k>, the joint's target 0.
     std::shared_ptr<FacePlanarElement> plate; // plate_<face>_<layer>, the joint's target 1.
@@ -609,7 +609,7 @@ inline std::vector<CrossLap> VdaMesh::compute_cross_laps() const {
                             fmt::format("{} does not cross {}", connector_name, plate->name)
                         );
 
-                    const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
+                    const std::shared_ptr<JointPlateElement> joint = JointPlateElement::cross_slot();
                     joint->orient(crossing, {connector, plate});
                     joint->name = fmt::format(
                         "cross_lap_{}_{}_{}_{}_{}",

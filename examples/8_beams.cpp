@@ -15,7 +15,7 @@ int main() {
     wood_session.compute_axis_contacts(5.0);
     wood_session.compute_beam_features(400.0, 0.9, 1);
 
-    for (const std::shared_ptr<JointBeam>& joint : wood_session.get_elements<JointBeam>()) {
+    for (const std::shared_ptr<JointBeamElement>& joint : wood_session.get_elements<JointBeamElement>()) {
         const std::shared_ptr<EdgeStraightElement> a = wood_session.get_element<EdgeStraightElement>(joint->targets[0]);
         const std::shared_ptr<EdgeStraightElement> b = wood_session.get_element<EdgeStraightElement>(joint->targets[1]);
         const int end = joint->feature.end_type;

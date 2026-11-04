@@ -58,7 +58,7 @@ static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSessio
 }
 
 /// Two 100 x 100 x 40 plates stacked at the origin and the four pins across their contact.
-static std::shared_ptr<JointBeam>
+static std::shared_ptr<JointBeamElement>
 stacked_pins(WoodSession& scene, std::shared_ptr<FacePlanarElement>& lower, std::shared_ptr<FacePlanarElement>& upper) {
     lower = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
     upper = FacePlanarElement::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
@@ -66,7 +66,7 @@ stacked_pins(WoodSession& scene, std::shared_ptr<FacePlanarElement>& lower, std:
     scene.add(upper);
     const auto contact = scene.compute_face_contact(lower, upper);
     check(contact != nullptr, "stacked plates touch");
-    return JointBeam::centred_pins(*lower, *upper, *contact, 4.0, 30.0, 20.0, 10.0);
+    return JointBeamElement::centred_pins(*lower, *upper, *contact, 4.0, 30.0, 20.0, 10.0);
 }
 
 /// The scene calls a user's connectors keep through.
@@ -74,7 +74,7 @@ static void check_scene_calls() {
 
     WoodSession kept("kept connector");
     std::shared_ptr<FacePlanarElement> lower, upper;
-    const std::shared_ptr<JointBeam> pins = stacked_pins(kept, lower, upper);
+    const std::shared_ptr<JointBeamElement> pins = stacked_pins(kept, lower, upper);
     kept.add(pins);
     kept.add_interaction(pins, lower, pins->interaction(0));
     kept.add_interaction(pins, upper, pins->interaction(1));
@@ -85,7 +85,7 @@ static void check_scene_calls() {
     for (const InteractionFeatureSolid& cut : lower->solid_features)
         user_cuts += cut.source == pins->guid();
     check(
-        kept.get_element<JointBeam>(pins->guid()) && holes > 0 &&
+        kept.get_element<JointBeamElement>(pins->guid()) && holes > 0 &&
             drills_of(*lower, pins->guid()) == holes && user_cuts == 1,
         "compute_features keeps the user's pins, their " + std::to_string(holes) +
             " holes and their cut"
@@ -101,10 +101,10 @@ static void check_scene_calls() {
     );
 
     WoodSession moved("moved targets");
-    const std::shared_ptr<JointBeam> local = stacked_pins(moved, lower, upper);
+    const std::shared_ptr<JointBeamElement> local = stacked_pins(moved, lower, upper);
     const Xform shift = Xform::translation(500, 0, 0);
-    const std::shared_ptr<JointBeam> placed =
-        std::dynamic_pointer_cast<JointBeam>(local->transformed(shift));
+    const std::shared_ptr<JointBeamElement> placed =
+        std::dynamic_pointer_cast<JointBeamElement>(local->transformed(shift));
     moved.set_xform(lower->guid(), shift);
     moved.set_xform(upper->guid(), shift);
     moved.add(placed);
@@ -398,7 +398,7 @@ int main() {
         !scene.compute_face_contact(a, a) && !scene.compute_face_contact(nullptr, b),
         "missing/self contact"
     );
-    const auto joint = JointPlate::side_to_top();
+    const auto joint = JointPlateElement::side_to_top();
     contact->flip();
     joint->orient(contact);
     scene.add(joint);
@@ -422,7 +422,7 @@ int main() {
         "joint brep solids"
     );
     const auto restored = WoodSession::pb_loads(scene.pb_dumps());
-    const auto restored_joint = restored.get_element<JointPlate>(joint->guid());
+    const auto restored_joint = restored.get_element<JointPlateElement>(joint->guid());
     check(
         restored_joint && restored_joint->connections.size() == 1 && restored.consistent(),
         "joint element round trip"
@@ -456,7 +456,7 @@ int main() {
     );
     contact_round_trip(*linear);
 
-    const auto cutter = std::make_shared<Joint>(Plane::from_point_normal({700, 0, 0}, {-1, 0, 0}));
+    const auto cutter = std::make_shared<JointElement>(Plane::from_point_normal({700, 0, 0}, {-1, 0, 0}));
     cutter->targets = {beam->guid()};
     const double uncut = compute_volume(beam->model_geometry_mesh());
     scene.add(cutter);
@@ -464,12 +464,12 @@ int main() {
     check(compute_volume(beam->model_geometry_mesh()) < uncut, "plane cutter modifies beam");
     const auto cut_scene = WoodSession::pb_loads(scene.pb_dumps());
     check(
-        cut_scene.get_element<Joint>(cutter->guid())->cuts.size() == 1, "plane cutter round trip"
+        cut_scene.get_element<JointElement>(cutter->guid())->cuts.size() == 1, "plane cutter round trip"
     );
 
     const Polyline profile_outline =
         Polyline::rectangle({500, 25, 875}, {0, 1, 0}, {0, 0, 1}, 50, 50);
-    const auto profile = std::make_shared<Joint>(profile_outline, Vector(200, 0, 0));
+    const auto profile = std::make_shared<JointElement>(profile_outline, Vector(200, 0, 0));
     profile->targets = {beam->guid()};
     const double before_profile = compute_volume(beam->model_geometry_mesh());
     scene.add(profile);
@@ -493,7 +493,7 @@ int main() {
     auto beam_copy = WoodSession::pb_loads(beams.pb_dumps());
     int beam_joints = 0;
     for (const auto& e : *beam_copy.objects.elements)
-        if (auto j = std::dynamic_pointer_cast<JointBeam>(e)) {
+        if (auto j = std::dynamic_pointer_cast<JointBeamElement>(e)) {
             ++beam_joints;
             check(
                 j->targets.size() == 2 && j->element_geometry_mesh().number_of_faces() > 0,
@@ -510,7 +510,7 @@ int main() {
     drilling.add(upper);
     auto drill_contact = drilling.compute_face_contact(lower, upper);
     check(drill_contact && drill_contact->type == ContactType::top_top, "top-top contact");
-    auto drill = std::make_shared<JointPlate>(lower, upper, *drill_contact, 40, 6);
+    auto drill = std::make_shared<JointPlateElement>(lower, upper, *drill_contact, 40, 6);
     drill->line_radius = 2.0;
     drilling.add(drill);
     drilling.add_interaction(drill, lower, drill->interaction(0));
@@ -522,7 +522,7 @@ int main() {
     );
     auto moved = drill->transformed(Xform::translation(100, 0, 0));
     check(
-        moved && moved->element_type_name() == "JointPlate", "joint transformation preserves type"
+        moved && moved->element_type_name() == "JointPlateElement", "joint transformation preserves type"
     );
 
     for (const std::string dataset :
@@ -551,7 +551,7 @@ int main() {
         );
         int multi = 0;
         for (const auto& e : *model.objects.elements)
-            if (auto j = std::dynamic_pointer_cast<JointPlate>(e); j && j->targets.size() > 2)
+            if (auto j = std::dynamic_pointer_cast<JointPlateElement>(e); j && j->targets.size() > 2)
                 ++multi;
         if (dataset == "annen_box_pair" || dataset == "vidy_corner")
             check(multi > 0, "multi-element joints " + dataset);

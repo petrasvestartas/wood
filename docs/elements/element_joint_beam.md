@@ -38,21 +38,21 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
+static std::shared_ptr<JointBeamElement> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
 
-static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
-static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
-static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt(const Element& a, const Element& b, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
 
-static std::shared_ptr<JointBeam> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...);
+static std::shared_ptr<JointBeamElement> wedge(const Element& a, const Element& b, const InteractionContactFace& contact, double length_margin, double pocket_depth, ...);
 static std::shared_ptr<FacePlanarElement> let_in_plate(const Element& rib, const InteractionContactFace& contact, double width = 30.0, double back = 220.0, double front = 265.0, double height = 250.0);
-static std::shared_ptr<JointBeam> rectangle_plate(const Element& column, const Element& rib, const FacePlanarElement& plate, const InteractionContactFace& contact, double pin_radius = 25.0, ...);
-static std::shared_ptr<JointBeam> butterfly_key(const Element& a, const Element& b, const InteractionContactFace& contact, ...);
-static std::shared_ptr<JointBeam> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...);
-static std::shared_ptr<JointBeam> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16);
+static std::shared_ptr<JointBeamElement> rectangle_plate(const Element& column, const Element& rib, const FacePlanarElement& plate, const InteractionContactFace& contact, double pin_radius = 25.0, ...);
+static std::shared_ptr<JointBeamElement> butterfly_key(const Element& a, const Element& b, const InteractionContactFace& contact, ...);
+static std::shared_ptr<JointBeamElement> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...);
+static std::shared_ptr<JointBeamElement> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16);
 
 std::shared_ptr<Interaction> interaction(size_t target) const;
-std::vector<std::shared_ptr<Joint>> children() const;
+std::vector<std::shared_ptr<JointElement>> children() const;
 ```
 
 ## Wedge

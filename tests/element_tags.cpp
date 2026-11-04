@@ -30,6 +30,13 @@ static const std::set<std::string> OLD_TAGS = {
     "Beam",
     "BeamCurved",
     "BeamVariable",
+    "Joint",
+    "JointBeam",
+    "JointPlate",
+    "JointAnnen",
+    "JointVidy",
+    "Pin",
+    "ConnectorPart",
 };
 
 static void check(bool condition, const std::string& message) {
@@ -88,6 +95,10 @@ int main() {
         load("rust/tests/data/element_beam_variable.pb").get_elements<EdgeElement>().size() == 1,
         "the old variable beam loads as an EdgeElement"
     );
+    const JointPinElement pin(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 100.0}), 5.0, 0.05);
+    const std::shared_ptr<Element> pin_back = Element::pb_loads_polymorphic(pin.pb_dumps());
+    check(pin_back->element_type_name() == "JointPinElement", "the pin writes its name");
+    check(std::dynamic_pointer_cast<JointPinElement>(pin_back) != nullptr, "the pin loads as itself");
     writes_its_name(std::make_shared<EdgeStraightElement>(
         Polyline({Point(0.0, 0.0, 0.0), Point(100.0, 0.0, 0.0)}), 10.0
     ));

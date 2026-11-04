@@ -29,8 +29,8 @@ int main() {
 
     const std::shared_ptr<InteractionContactFace> contact =
         scene.compute_face_contact(slabs[0], slabs[1]);
-    const std::shared_ptr<JointPlate> hilti =
-        JointPlate::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
+    const std::shared_ptr<JointPlateElement> hilti =
+        JointPlateElement::side_side_inplane_hilti(*slabs[0], *slabs[1], *contact);
     scene.add(hilti);
     scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
     scene.add_interaction(hilti, slabs[1], hilti->interaction(1));

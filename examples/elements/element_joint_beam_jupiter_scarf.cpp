@@ -7,7 +7,7 @@ using namespace wood_session;
 int main() {
 
     WoodSession scene("element_joint_beam_jupiter_scarf");
-    scene.settings.joint_parameters[2] = JointPlate::library_id("jupiter_scarf");
+    scene.settings.joint_parameters[2] = JointPlateElement::library_id("jupiter_scarf");
 
     const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_end_to_end(0.0);
     const std::shared_ptr<EdgeStraightElement> first = pair[0];
@@ -18,8 +18,8 @@ int main() {
     const InteractionContactAxis contact(
         Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0
     );
-    const std::shared_ptr<JointBeam> joint =
-        JointBeam::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
+    const std::shared_ptr<JointBeamElement> joint =
+        JointBeamElement::from_contact(*first, *second, contact, 600.0, 0.91, 0, scene.settings);
     scene.add(joint);
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));

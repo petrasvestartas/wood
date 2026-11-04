@@ -25,10 +25,10 @@ int main() {
     );
     scene.add(rib);
 
-    const std::shared_ptr<CutPlane> start = std::make_shared<CutPlane>(
+    const std::shared_ptr<JointCutPlaneElement> start = std::make_shared<JointCutPlaneElement>(
         Plane::from_point_normal({300.0, 0.0, -400.0}, {1.0, 0.0, -0.4}), 900.0, "start"
     );
-    const std::shared_ptr<CutPlane> end = std::make_shared<CutPlane>(
+    const std::shared_ptr<JointCutPlaneElement> end = std::make_shared<JointCutPlaneElement>(
         Plane::from_point_normal({2700.0, 0.0, -200.0}, {-1.0, 0.0, -0.3}), 900.0, "end"
     );
     scene.add(start);
@@ -43,7 +43,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The variable beam of element_beam_variable cut at both ends: two CutPlane elements, inclined planes drawn as 900 squares, each cutting the rib through its plane feature, add_interaction(plane, rib, plane->feature()), the rib keeping the side the normal points to.
+The variable beam of element_beam_variable cut at both ends: two JointCutPlaneElement elements, inclined planes drawn as 900 squares, each cutting the rib through its plane feature, add_interaction(plane, rib, plane->feature()), the rib keeping the side the normal points to.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

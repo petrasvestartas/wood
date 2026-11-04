@@ -120,7 +120,7 @@ void WoodSession::assign_joint_types_by_points(
             }
         }
 
-        const int id = JointPlate::library_id(names[i]);
+        const int id = JointPlateElement::library_id(names[i]);
         types.push_back(outline < side ? -id : id);
     }
 

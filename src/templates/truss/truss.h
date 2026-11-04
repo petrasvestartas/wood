@@ -30,7 +30,7 @@ private:
     /// A beam per web, web_<w>, in webs.
     void add_webs();
 
-    /// Runs side_side at every kink; at heels the case read by JointBeam::butt; a chord's end on another's run top_side.
+    /// Runs side_side at every kink; at heels the case read by JointBeamElement::butt; a chord's end on another's run top_side.
     void add_chord_butts();
 
     /// Each web's ends on the runs and on other webs, chord ends on webs.
@@ -38,7 +38,7 @@ private:
 
     /// The butt added, named by its case and its members, and passed to both; nothing when they do not touch.
     void add_butt(
-        const std::shared_ptr<JointBeam>& butt,
+        const std::shared_ptr<JointBeamElement>& butt,
         const std::shared_ptr<EdgeStraightElement>& a,
         const std::shared_ptr<EdgeStraightElement>& b
     );

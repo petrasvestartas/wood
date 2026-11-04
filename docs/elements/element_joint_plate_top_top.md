@@ -7,13 +7,13 @@ Top-to-top plate joints connecting two face-stacked plates (`FacePlanarElement::
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> top_top_centre_pin(double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_polylabel_pin(double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_grid_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
-static std::shared_ptr<JointPlate> top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static std::shared_ptr<JointPlateElement> top_top_centre_pin(double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_polylabel_pin(double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_grid_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
+static std::shared_ptr<JointPlateElement> top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;

@@ -15,8 +15,8 @@ int main() {
     scene.add(right);
 
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(left, right);
-    const std::shared_ptr<JointBeam> wedge =
-        JointBeam::wedge(*left, *right, *contact, 300.0, 133.0);
+    const std::shared_ptr<JointBeamElement> wedge =
+        JointBeamElement::wedge(*left, *right, *contact, 300.0, 133.0);
     wedge->name = "wedge";
     scene.add(wedge);
     scene.add_interaction(wedge, left, wedge->interaction(0));

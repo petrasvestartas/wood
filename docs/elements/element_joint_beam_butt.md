@@ -2,7 +2,7 @@
 
 [TOC]
 
-Order-independent planar butt, miter, and half-lap joints (`JointBeam::butt`) between beams, columns, or plates.
+Order-independent planar butt, miter, and half-lap joints (`JointBeamElement::butt`) between beams, columns, or plates.
 
 ![](diagrams/wood_beam_joints_connectors.webp)
 
@@ -16,9 +16,9 @@ Order-independent planar butt, miter, and half-lap joints (`JointBeam::butt`) be
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
-static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
-static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt(const Element& a, const Element& b, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
+static std::shared_ptr<JointBeamElement> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
 static std::shared_ptr<FacePlanarElement> FacePlanarElement::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
 ```
 

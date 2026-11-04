@@ -7,14 +7,14 @@ Top-to-side plate joints where tenons on the bottom edge of an upright plate (`t
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> top_side_three_tenons();
-static std::shared_ptr<JointPlate> top_side_annen_tenons(double tab_length = 80.0);
-static std::shared_ptr<JointPlate> top_side_annen_shifted_tenons(int divisions = 2, double long_edge = 700.0);
-static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
-static std::shared_ptr<JointPlate> top_side_tenons(int divisions = 0, double shift = 0.5);
-static std::shared_ptr<JointPlate> top_side_milled_wedge();
-static std::shared_ptr<JointPlate> top_side_snap_fit(int divisions = 0);
-static std::shared_ptr<JointPlate> top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static std::shared_ptr<JointPlateElement> top_side_three_tenons();
+static std::shared_ptr<JointPlateElement> top_side_annen_tenons(double tab_length = 80.0);
+static std::shared_ptr<JointPlateElement> top_side_annen_shifted_tenons(int divisions = 2, double long_edge = 700.0);
+static std::shared_ptr<JointPlateElement> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
+static std::shared_ptr<JointPlateElement> top_side_tenons(int divisions = 0, double shift = 0.5);
+static std::shared_ptr<JointPlateElement> top_side_milled_wedge();
+static std::shared_ptr<JointPlateElement> top_side_snap_fit(int divisions = 0);
+static std::shared_ptr<JointPlateElement> top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const Settings& settings = Settings());
 std::shared_ptr<Interaction> interaction(size_t target) const;

@@ -8,13 +8,13 @@ int main() {
 
     WoodSession scene("element_joint_plate_parameters");
 
-    const std::vector<std::shared_ptr<JointPlate>> joints = {
-        JointPlate::top_side_tenons(8, 0.5),
-        JointPlate::top_side_tenons(16, 0.5),
-        JointPlate::top_side_tenons(24, 0.5),
-        JointPlate::top_side_tenons(16, 0.0),
-        JointPlate::top_side_tenons(16, 0.25),
-        JointPlate::top_side_tenons(16, 1.0),
+    const std::vector<std::shared_ptr<JointPlateElement>> joints = {
+        JointPlateElement::top_side_tenons(8, 0.5),
+        JointPlateElement::top_side_tenons(16, 0.5),
+        JointPlateElement::top_side_tenons(24, 0.5),
+        JointPlateElement::top_side_tenons(16, 0.0),
+        JointPlateElement::top_side_tenons(16, 0.25),
+        JointPlateElement::top_side_tenons(16, 1.0),
     };
 
     for (size_t i = 0; i < joints.size(); i++) {

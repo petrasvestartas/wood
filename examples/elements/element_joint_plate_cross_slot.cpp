@@ -22,7 +22,7 @@ int main() {
 
         const std::shared_ptr<InteractionContactCross> contact =
             scene.compute_cross_contact(first, second);
-        const std::shared_ptr<JointPlate> joint = JointPlate::cross_slot();
+        const std::shared_ptr<JointPlateElement> joint = JointPlateElement::cross_slot();
         joint->orient(contact, {first, second});
         joint->name = fmt::format("{}_{:g}", joint->name, angle);
         scene.add(joint, group);

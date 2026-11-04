@@ -38,7 +38,7 @@ int main() {
         {{floor, long_wall}, {floor, short_wall}, {long_wall, short_wall}}
     };
     for (const std::array<std::shared_ptr<FacePlanarElement>, 2>& pair : pairs) {
-        const std::shared_ptr<JointBeam> butt = JointBeam::butt(*pair[0], *pair[1]);
+        const std::shared_ptr<JointBeamElement> butt = JointBeamElement::butt(*pair[0], *pair[1]);
         butt->name = fmt::format("butt_{}_{}", pair[0]->name, pair[1]->name);
         scene.add(butt);
         scene.add_interaction(butt, pair[0], butt->interaction(0));

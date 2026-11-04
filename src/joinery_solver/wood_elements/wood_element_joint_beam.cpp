@@ -4,23 +4,23 @@
 #include "wood_element_geometry.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
-#include "wood_element_pin.h"
-#include "wood_element_connector_part.h"
+#include "wood_element_joint_pin.h"
+#include "wood_element_joint_connector_part.h"
 #include "../src/clipper2/clipper.h"
 
 namespace wood_session {
 
 using namespace session_cpp;
 
-JointBeam::JointBeam() {
-    name = "JointBeam";
+JointBeamElement::JointBeamElement() {
+    name = "JointBeamElement";
 }
 
-JointBeam::JointBeam(const InteractionFeatureBeam& feature) : feature(feature) {
-    name = "JointBeam";
+JointBeamElement::JointBeamElement(const InteractionFeatureBeam& feature) : feature(feature) {
+    name = "JointBeamElement";
 }
 
-JointBeam::JointBeam(
+JointBeamElement::JointBeamElement(
     InteractionFeatureBeam input, const std::function<void(InteractionFeatureBeam&)>& builder
 )
     : feature(std::move(input)) {
@@ -28,11 +28,11 @@ JointBeam::JointBeam(
     if (!builder)
         throw std::invalid_argument("A custom beam joint needs a builder");
 
-    name = "JointBeam";
+    name = "JointBeamElement";
     builder(feature);
 }
 
-JointBeam::JointBeam(
+JointBeamElement::JointBeamElement(
     const EdgeStraightElement& source,
     const EdgeStraightElement& target,
     const InteractionContactAxis& contact,
@@ -41,7 +41,7 @@ JointBeam::JointBeam(
     int flip_male
 ) {
 
-    name = "JointBeam";
+    name = "JointBeamElement";
 
     if (!beam_to_beam(
             source, target, contact, volume_length, cross_or_side_to_end, flip_male, feature
@@ -56,7 +56,7 @@ JointBeam::JointBeam(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The plate joint 2024 built on a beam pair.
-static void compute_joinery(JointBeam& joint, const Settings& settings, bool end_to_end) {
+static void compute_joinery(JointBeamElement& joint, const Settings& settings, bool end_to_end) {
 
     WoodSession boxes("beam_joint_boxes");
     boxes.settings = settings;
@@ -111,7 +111,7 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
     // end to end: what both sides mill, and each beam's cut its own pieces and the other box past them, side by side for the boolean to unite
     if (end_to_end) {
         std::array<std::vector<Mesh>, 2> pieces = {
-            JointPlate::side_solids(joint.joinery, 0), JointPlate::side_solids(joint.joinery, 1)
+            JointPlateElement::side_solids(joint.joinery, 0), JointPlateElement::side_solids(joint.joinery, 1)
         };
         std::vector<Mesh> both = pieces[0];
         both.insert(both.end(), pieces[1].begin(), pieces[1].end());
@@ -119,7 +119,7 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
             std::vector<Mesh> cut = pieces[joint.joinery_sides[i]];
             cut.push_back(solid_difference(box[1 - i]->element_geometry_mesh(), both));
             joint.member_cuts[i] = shells_side_by_side(cut);
-            joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
+            joint.member_drills[i] = JointPlateElement::side_drills(joint.joinery, joint.joinery_sides[i]);
         }
         return;
     }
@@ -135,7 +135,7 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
             for (size_t k = 1; k < merged.top.size(); k++)
                 pockets[i].push_back(Mesh::loft({merged.bottom[k]}, {merged.top[k]}, true));
         }
-        for (const Mesh& piece : JointPlate::side_solids(joint.joinery, joint.joinery_sides[i]))
+        for (const Mesh& piece : JointPlateElement::side_solids(joint.joinery, joint.joinery_sides[i]))
             pockets[i].push_back(piece);
     }
 
@@ -150,11 +150,11 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
                                              : solid_boolean(cut, pocket, SolidOperation::add);
         if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
             joint.member_cuts[i] = cut;
-        joint.member_drills[i] = JointPlate::side_drills(joint.joinery, joint.joinery_sides[i]);
+        joint.member_drills[i] = JointPlateElement::side_drills(joint.joinery, joint.joinery_sides[i]);
     }
 }
 
-std::shared_ptr<JointBeam> JointBeam::from_contact(
+std::shared_ptr<JointBeamElement> JointBeamElement::from_contact(
     const EdgeStraightElement& source,
     const EdgeStraightElement& target,
     const InteractionContactAxis& contact,
@@ -164,7 +164,7 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
     const Settings& settings
 ) {
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     if (!beam_to_beam(
             source, target, contact, volume_length, cross_or_side_to_end, flip_male, joint->feature
         ))
@@ -255,8 +255,8 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
 
         if (fails) {
             Settings single = settings;
-            single.joint_parameters[8] = JointPlate::library_id("top_side_milled_wedge");
-            *joint = JointBeam();
+            single.joint_parameters[8] = JointPlateElement::library_id("top_side_milled_wedge");
+            *joint = JointBeamElement();
             beam_to_beam(
                 source,
                 target,
@@ -424,7 +424,7 @@ pulled_apart(const Element& /*a*/, const Element& b, const InteractionContactFac
 }
 
 /// The wedge.
-std::shared_ptr<JointBeam> JointBeam::wedge(
+std::shared_ptr<JointBeamElement> JointBeamElement::wedge(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -466,7 +466,7 @@ std::shared_ptr<JointBeam> JointBeam::wedge(
     const double length =
         std::max(end ? stations[1] - stations[0] : edge.length() - 2.0 * length_margin, 1e-6);
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "wedge");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
@@ -596,7 +596,7 @@ plate_frame(const Element& rib, const InteractionContactFace& contact) {
 }
 
 /// The plate.
-std::shared_ptr<FacePlanarElement> JointBeam::let_in_plate(
+std::shared_ptr<FacePlanarElement> JointBeamElement::let_in_plate(
     const Element& rib,
     const InteractionContactFace& contact,
     double width,
@@ -616,7 +616,7 @@ std::shared_ptr<FacePlanarElement> JointBeam::let_in_plate(
 }
 
 /// The plate let into the column and the rib.
-std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
+std::shared_ptr<JointBeamElement> JointBeamElement::rectangle_plate(
     const Element& column,
     const Element& rib,
     const FacePlanarElement& plate,
@@ -639,7 +639,7 @@ std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
                 high[i] = std::max(high[i], (point - origin).dot(axes[i]));
             }
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "rectangle_plate");
     joint->is_visible = true;
     joint->targets = {column.guid(), rib.guid(), plate.guid()};
@@ -1029,7 +1029,7 @@ enum class ButtMode {
 };
 
 /// The butt of two members in a mode.
-static std::shared_ptr<JointBeam> butt_joint(
+static std::shared_ptr<JointBeamElement> butt_joint(
     const Element& a,
     const Element& b,
     double reach,
@@ -1037,7 +1037,7 @@ static std::shared_ptr<JointBeam> butt_joint(
     const std::optional<Plane>& lap = std::nullopt
 ) {
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->is_butt = true;
     joint->targets = {a.guid(), b.guid()};
 
@@ -1170,7 +1170,7 @@ static std::shared_ptr<JointBeam> butt_joint(
         joint->butt_solids[i] = cut[1];
         if (const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(elements[i])) {
             const std::array<Mesh, 2> edge =
-                JointBeam::plate_end(*plate, *ends[i], {{*ends[i], *joint->butt_planes[i]}}, size);
+                JointBeamElement::plate_end(*plate, *ends[i], {{*ends[i], *joint->butt_planes[i]}}, size);
             joint->butt_extensions[i] = InteractionFeatureSolid(edge[0], SolidOperation::add);
             joint->butt_solids[i] = InteractionFeatureSolid(edge[1], SolidOperation::subtract);
         }
@@ -1179,7 +1179,7 @@ static std::shared_ptr<JointBeam> butt_joint(
     return joint;
 }
 
-std::array<Mesh, 2> JointBeam::plate_end(
+std::array<Mesh, 2> JointBeamElement::plate_end(
     const FacePlanarElement& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
 ) {
 
@@ -1335,41 +1335,41 @@ std::array<Mesh, 2> JointBeam::plate_end(
     return result;
 }
 
-std::shared_ptr<JointBeam> JointBeam::butt(const Element& a, const Element& b, double reach) {
+std::shared_ptr<JointBeamElement> JointBeamElement::butt(const Element& a, const Element& b, double reach) {
 
     return butt_joint(a, b, reach, ButtMode::automatic);
 }
 
-std::shared_ptr<JointBeam>
-JointBeam::butt_side_side(const Element& a, const Element& b, double reach) {
+std::shared_ptr<JointBeamElement>
+JointBeamElement::butt_side_side(const Element& a, const Element& b, double reach) {
 
     return butt_joint(a, b, reach, ButtMode::side_side);
 }
 
-std::shared_ptr<JointBeam>
-JointBeam::butt_top_side_end(const Element& top, const Element& side, double reach) {
+std::shared_ptr<JointBeamElement>
+JointBeamElement::butt_top_side_end(const Element& top, const Element& side, double reach) {
 
     return butt_joint(top, side, reach, ButtMode::top_side_end);
 }
 
-std::shared_ptr<JointBeam>
-JointBeam::butt_top_side(const Element& top, const Element& side, double reach) {
+std::shared_ptr<JointBeamElement>
+JointBeamElement::butt_top_side(const Element& top, const Element& side, double reach) {
 
     return butt_joint(top, side, reach, ButtMode::top_side);
 }
 
-std::shared_ptr<JointBeam> JointBeam::butt_cross(const Element& a, const Element& b) {
+std::shared_ptr<JointBeamElement> JointBeamElement::butt_cross(const Element& a, const Element& b) {
 
     return butt_joint(a, b, 0.0, ButtMode::cross);
 }
 
-std::shared_ptr<JointBeam>
-JointBeam::butt_cross(const Element& a, const Element& b, const Plane& lap) {
+std::shared_ptr<JointBeamElement>
+JointBeamElement::butt_cross(const Element& a, const Element& b, const Plane& lap) {
 
     return butt_joint(a, b, 0.0, ButtMode::cross, lap);
 }
 
-std::shared_ptr<JointBeam> JointBeam::butterfly_key(
+std::shared_ptr<JointBeamElement> JointBeamElement::butterfly_key(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -1397,7 +1397,7 @@ std::shared_ptr<JointBeam> JointBeam::butterfly_key(
     const double half = 0.5 * length;
     const double neck = half - head_length;
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "butterfly_key");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
@@ -1634,7 +1634,7 @@ head_main_pair(const std::array<HeadBeam, 4>& beams, const EdgeStraightElement* 
     return best;
 }
 
-std::shared_ptr<JointBeam> JointBeam::column_head(
+std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     const Column& column,
     const EdgeStraightElement& a,
     const EdgeStraightElement& b,
@@ -1734,7 +1734,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     const double main_high = top + overshoot;
     const double cut_high = std::max(0.0, -top) + overshoot;
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = "column_head";
     joint->is_visible = true;
     joint->targets = {column.guid(), a.guid(), b.guid(), c.guid(), d.guid()};
@@ -2000,7 +2000,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     return joint;
 }
 
-std::shared_ptr<JointBeam> JointBeam::keyed_box(
+std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
     const FacePlanarElement& a,
     const FacePlanarElement& b,
     const InteractionContactFace& contact,
@@ -2070,7 +2070,7 @@ std::shared_ptr<JointBeam> JointBeam::keyed_box(
     const double box_start = near_face - key_width * unit - head * unit;
     const double box_end = far_face + key_width * unit + head * unit;
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "keyed_box");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
@@ -2200,7 +2200,7 @@ extreme_corners(const std::vector<std::array<double, 2>>& ring) {
 }
 
 /// The pins.
-std::shared_ptr<JointBeam> JointBeam::centred_pins(
+std::shared_ptr<JointBeamElement> JointBeamElement::centred_pins(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -2225,7 +2225,7 @@ std::shared_ptr<JointBeam> JointBeam::centred_pins(
     if (ring.size() < 3)
         return nullptr;
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->targets = {a.guid(), b.guid()};
@@ -2282,7 +2282,7 @@ static std::optional<Vector> level_axis(const Element& element) {
     return axis.normalized();
 }
 
-std::shared_ptr<JointBeam> JointBeam::headed_pins(
+std::shared_ptr<JointBeamElement> JointBeamElement::headed_pins(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -2351,7 +2351,7 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
             stations.push_back({x_min + (x_max - x_min) * t, shift});
     }
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->pre_drill = true;
@@ -2373,11 +2373,11 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-bool JointBeam::is_connector() const {
+bool JointBeamElement::is_connector() const {
     return !parts.empty() || !cutters.empty() || pre_drill;
 }
 
-Vector JointBeam::insertion(size_t target) const {
+Vector JointBeamElement::insertion(size_t target) const {
 
     if (is_connector())
         return target < insertions.size() ? insertions[target] : Vector(0.0, 0.0, 0.0);
@@ -2410,7 +2410,7 @@ Vector JointBeam::insertion(size_t target) const {
     return direction.normalized();
 }
 
-std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
+std::shared_ptr<Interaction> JointBeamElement::interaction(size_t target) const {
 
     // a butt: the block this target gains or loses
     if (is_butt)
@@ -2452,11 +2452,11 @@ std::shared_ptr<Interaction> JointBeam::interaction(size_t target) const {
     return volumes;
 }
 
-Mesh JointBeam::part_mesh(size_t index) const {
+Mesh JointBeamElement::part_mesh(size_t index) const {
     return Mesh::loft({parts.at(index)[0]}, {parts.at(index)[1]}, true);
 }
 
-std::vector<InteractionFeatureSolid> JointBeam::part_features(size_t index) const {
+std::vector<InteractionFeatureSolid> JointBeamElement::part_features(size_t index) const {
 
     const Mesh part = part_mesh(index);
     std::vector<InteractionFeatureSolid> cuts;
@@ -2483,7 +2483,7 @@ std::vector<InteractionFeatureSolid> JointBeam::part_features(size_t index) cons
     return cuts;
 }
 
-BRep JointBeam::part_brep(size_t index) const {
+BRep JointBeamElement::part_brep(size_t index) const {
 
     const std::vector<InteractionFeatureSolid> cuts = part_features(index);
 
@@ -2491,27 +2491,27 @@ BRep JointBeam::part_brep(size_t index) const {
                         : solid_features_brep(part_mesh(index), cuts);
 }
 
-std::vector<std::shared_ptr<Joint>> JointBeam::children() const {
+std::vector<std::shared_ptr<JointElement>> JointBeamElement::children() const {
 
-    std::vector<std::shared_ptr<Joint>> result;
+    std::vector<std::shared_ptr<JointElement>> result;
 
     for (size_t i = 0; i < parts.size(); i++)
-        result.push_back(std::make_shared<ConnectorPart>(
+        result.push_back(std::make_shared<JointConnectorPartElement>(
             *this, i, parts.size() == 1 ? name + "_part" : fmt::format("{}_part_{}", name, i)
         ));
 
     for (size_t i = 0; i < drill_lines.size(); i++) {
-        result.push_back(std::make_shared<Pin>(drill_lines[i], line_radius, chord_tolerance));
+        result.push_back(std::make_shared<JointPinElement>(drill_lines[i], line_radius, chord_tolerance));
         result.back()->name = fmt::format("{}_pin_{}", name, i);
     }
 
     return result;
 }
 
-const Mesh& JointBeam::element_geometry_mesh() const {
+const Mesh& JointBeamElement::element_geometry_mesh() const {
 
     if (!is_connector())
-        return Joint::element_geometry_mesh();
+        return JointElement::element_geometry_mesh();
 
     if (!mesh_)
         mesh_ = Mesh();
@@ -2519,10 +2519,10 @@ const Mesh& JointBeam::element_geometry_mesh() const {
     return *mesh_;
 }
 
-const BRep& JointBeam::element_geometry_brep() const {
+const BRep& JointBeamElement::element_geometry_brep() const {
 
     if (!is_connector())
-        return Joint::element_geometry_brep();
+        return JointElement::element_geometry_brep();
 
     if (!brep_)
         brep_ = BRep();
@@ -2530,7 +2530,7 @@ const BRep& JointBeam::element_geometry_brep() const {
     return *brep_;
 }
 
-std::vector<std::array<Polyline, 2>> JointBeam::bodies() const {
+std::vector<std::array<Polyline, 2>> JointBeamElement::bodies() const {
 
     if (!parts.empty())
         return parts;
@@ -2547,9 +2547,9 @@ std::vector<std::array<Polyline, 2>> JointBeam::bodies() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Transformation
 // ═══════════════════════════════════════════════════════════════════════════
-void JointBeam::place(const Xform& xform) {
+void JointBeamElement::place(const Xform& xform) {
 
-    Joint::place(xform);
+    JointElement::place(xform);
 
     for (Polyline& volume : feature.volumes)
         volume = volume.transformed(xform);
@@ -2576,9 +2576,9 @@ void JointBeam::place(const Xform& xform) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-void JointBeam::write_proto(wood_proto::Joint& proto) const {
+void JointBeamElement::write_proto(wood_proto::JointElement& proto) const {
 
-    Joint::write_proto(proto);
+    JointElement::write_proto(proto);
 
     if (!proto.mutable_beam_feature()->ParseFromString(feature.pb_dumps()))
         throw std::runtime_error("Invalid beam feature");
@@ -2609,9 +2609,9 @@ void JointBeam::write_proto(wood_proto::Joint& proto) const {
     }
 }
 
-void JointBeam::read_proto(const wood_proto::Joint& proto) {
+void JointBeamElement::read_proto(const wood_proto::JointElement& proto) {
 
-    Joint::read_proto(proto);
+    JointElement::read_proto(proto);
 
     for (int i = 0; i + 1 < proto.parts_size(); i += 2) {
         const Polyline bottom_loop = Polyline::pb_loads(proto.parts(i).SerializeAsString());

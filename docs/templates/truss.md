@@ -93,13 +93,13 @@ Every node is solved by six rules:
 | Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
 | --- | --- |
 | Chord kink (interior polyline vertex) | Adjacent chord runs mitered `side_side` on the angle bisector |
-| Chord heel (two chords ending at one node) | A T: the one running on (`runs_on_at`) reaches past the node to its `end_cut`, the other seated on its side (`top_side`); one slope (ridge) or a gentle bend: mitered, `JointBeam::butt_side_side` |
+| Chord heel (two chords ending at one node) | A T: the one running on (`runs_on_at`) reaches past the node to its `end_cut`, the other seated on its side (`top_side`); one slope (ridge) or a gentle bend: mitered, `JointBeamElement::butt_side_side` |
 | Chord end on another chord's run | Stopped `top_side` against the continuous chord |
 | Web / post end on a chord run | Let into the chord: loses the chord's shadow along its axis |
 | Web / post end at a chord's lone end | Outer member runs over the inner member (`top_side`); inner member let in |
 | Web end on another web's middle (K-joint) | Let into the continuous web |
 | Chord end on a post's middle (tie on column) | Let into the post |
-| Crossing chords, webs, or posts (X-joint) | `JointBeam::butt_cross` half/multi-laps dividing member depth equally across `N` crossing bars |
+| Crossing chords, webs, or posts (X-joint) | `JointBeamElement::butt_cross` half/multi-laps dividing member depth equally across `N` crossing bars |
 | Multiple webs ending at one node | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
 
 ## Constructor Pipeline

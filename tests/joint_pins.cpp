@@ -62,8 +62,8 @@ static void check_headed_pins() {
     scene.add(beam);
     scene.add(joist);
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(beam, joist);
-    const std::shared_ptr<JointBeam> pins =
-        JointBeam::headed_pins(*beam, *joist, *contact, PinLayout::vertical, 3, 20.0, 0.0, 5.0);
+    const std::shared_ptr<JointBeamElement> pins =
+        JointBeamElement::headed_pins(*beam, *joist, *contact, PinLayout::vertical, 3, 20.0, 0.0, 5.0);
     check(pins != nullptr, "headed pins on the beam and the joist");
     scene.add(pins);
     scene.add_interaction(pins, beam, pins->interaction(0));
@@ -142,9 +142,9 @@ static void check_rectangle_plate() {
     scene.add(column);
     scene.add(rib);
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(column, rib);
-    const std::shared_ptr<FacePlanarElement> plate = JointBeam::let_in_plate(*rib, *contact);
-    const std::shared_ptr<JointBeam> pins =
-        JointBeam::rectangle_plate(*column, *rib, *plate, *contact);
+    const std::shared_ptr<FacePlanarElement> plate = JointBeamElement::let_in_plate(*rib, *contact);
+    const std::shared_ptr<JointBeamElement> pins =
+        JointBeamElement::rectangle_plate(*column, *rib, *plate, *contact);
     check(pins->drill_lines.size() == 4, fmt::format("{} pins, not 4", pins->drill_lines.size()));
 
     const std::array<double, 2> widths = {220.0, 120.0};

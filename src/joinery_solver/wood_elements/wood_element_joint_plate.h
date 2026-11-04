@@ -31,7 +31,7 @@ struct JointPlateParameters {
 };
 
 /// Element that represents a joint between plates: a parametric joint from the joint library placed on plate connections.
-class JointPlate : public Joint {
+class JointPlateElement : public JointElement {
 public:
     JointPlateParameters parameters;
     std::vector<InteractionFeaturePlate> connections;
@@ -44,20 +44,20 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Side-to-side in plane, contact 12, ids 1-9 as 2024 numbered them: 1 side_side_inplane_dovetails (the family default), 2 side_side_inplane_three_fingers,
 
-    static std::shared_ptr<JointPlate> side_side_inplane_three_fingers();
+    static std::shared_ptr<JointPlateElement> side_side_inplane_three_fingers();
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_inplane_dovetails(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> side_side_inplane_butterfly_keys(int divisions = 0);
+    static std::shared_ptr<JointPlateElement> side_side_inplane_butterfly_keys(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> side_side_inplane_splayed_scarf();
+    static std::shared_ptr<JointPlateElement> side_side_inplane_splayed_scarf();
 
-    static std::shared_ptr<JointPlate> side_side_inplane_cross_splayed_scarf();
+    static std::shared_ptr<JointPlateElement> side_side_inplane_cross_splayed_scarf();
 
-    static std::shared_ptr<JointPlate> side_side_inplane_tooth_keys(int divisions = 0);
+    static std::shared_ptr<JointPlateElement> side_side_inplane_tooth_keys(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> side_side_inplane_custom(
+    static std::shared_ptr<JointPlateElement> side_side_inplane_custom(
         const std::vector<Polyline>& male, const std::vector<Polyline>& female
     );
 
@@ -66,17 +66,17 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Side-to-side out of plane, contact 11, ids 10-19 as 2024 numbered them: 10 side_side_outplane_fingers, 11 side_side_outplane_graded_fingers, 12 side_side_outplane_three_fingers,
 
-    static std::shared_ptr<JointPlate> side_side_outplane_three_fingers();
+    static std::shared_ptr<JointPlateElement> side_side_outplane_three_fingers();
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_outplane_fingers(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_outplane_graded_fingers(int divisions = 0, double shift = 0.64);
 
-    static std::shared_ptr<JointPlate> side_side_outplane_miter_tenon();
+    static std::shared_ptr<JointPlateElement> side_side_outplane_miter_tenon();
 
-    static std::shared_ptr<JointPlate> side_side_outplane_tenons(
+    static std::shared_ptr<JointPlateElement> side_side_outplane_tenons(
         int divisions = 0,
         double taper = 0.0,
         bool chamfer = true,
@@ -86,20 +86,20 @@ public:
         const std::array<double, 2>& z = {-0.5, 0.5}
     );
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_outplane_linked_tenons(int divisions = 0, bool disable_divisions = false);
 
-    static std::shared_ptr<JointPlate> side_side_outplane_linked_tenons_wall(int divisions = 0);
+    static std::shared_ptr<JointPlateElement> side_side_outplane_linked_tenons_wall(int divisions = 0);
 
-    static std::shared_ptr<JointPlate> side_side_outplane_capped_fingers(int divisions = 4);
+    static std::shared_ptr<JointPlateElement> side_side_outplane_capped_fingers(int divisions = 4);
 
     /// Christopher Robeller's Annen corner fingers, id 17: the corner in divisions parts cut by planes parallel to the box faces, turned angle degrees each way in turn about the first wall's long edge.
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
 
-    static std::shared_ptr<JointPlate> side_side_outplane_notch();
+    static std::shared_ptr<JointPlateElement> side_side_outplane_notch();
 
-    static std::shared_ptr<JointPlate> side_side_outplane_custom(
+    static std::shared_ptr<JointPlateElement> side_side_outplane_custom(
         const std::vector<Polyline>& male, const std::vector<Polyline>& female
     );
 
@@ -108,28 +108,28 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Top to side, contact 20, ids 20-29 as 2024 numbered them: 20 top_side_tenons (the family default id), 21 top_side_dense_tenons, 22 top_side_annen_tenons, 23 top_side_annen_shifted_tenons (2026, on 2024's unused id),
 
-    static std::shared_ptr<JointPlate> top_side_three_tenons();
+    static std::shared_ptr<JointPlateElement> top_side_three_tenons();
 
     /// Christopher Robeller's Annen through-tenons, id 22: round(0.8 edge / tab_length) segments on the plate's own edge, a tenon on every fourth.
-    static std::shared_ptr<JointPlate> top_side_annen_tenons(double tab_length = 80.0);
+    static std::shared_ptr<JointPlateElement> top_side_annen_tenons(double tab_length = 80.0);
 
     /// The through-tenons of the 2020 Annen shifted-pattern definition, id 23: the middle 90% of the wall line shared with the plate across the wall in 4·divisions + 1 steps when longer than long_edge and 2·divisions + 1 when shorter, a tenon at every odd step; none on an edge shorter than the settings' limit_min_joint_length.
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_side_annen_shifted_tenons(int divisions = 2, double long_edge = 700.0);
 
-    static std::shared_ptr<JointPlate> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlateElement> top_side_dense_tenons(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> top_side_tenons(int divisions = 0, double shift = 0.5);
+    static std::shared_ptr<JointPlateElement> top_side_tenons(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> top_side_milled_wedge();
+    static std::shared_ptr<JointPlateElement> top_side_milled_wedge();
 
-    static std::shared_ptr<JointPlate> top_side_snap_fit(int divisions = 0);
+    static std::shared_ptr<JointPlateElement> top_side_snap_fit(int divisions = 0);
 
     /// A skew T-bridle, id 26: a fork on the side member around a tongue in the top member, `tongue` of the height, with a shoulder `shoulder` of the width long at the acute corner.
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_side_bridle(double shoulder = 0.3, double tongue = 1.0 / 3.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -137,20 +137,20 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Side-to-side rotated, contact 13, ids 50-59 as 2024 numbered them: 54 side_side_rotated_keys, 55 side_side_rotated_hooks, 56 side_side_rotated_miter,
 
-    static std::shared_ptr<JointPlate> side_side_rotated_miter();
+    static std::shared_ptr<JointPlateElement> side_side_rotated_miter();
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_rotated_hooks(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_side_rotated_keys(int divisions = 0, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> side_side_rotated_custom(
+    static std::shared_ptr<JointPlateElement> side_side_rotated_custom(
         const std::vector<Polyline>& male, const std::vector<Polyline>& female
     );
 
     /// Creates the keyed Hilti connector across the straight seam between two slabs.
-    static std::shared_ptr<JointPlate> side_side_inplane_hilti(
+    static std::shared_ptr<JointPlateElement> side_side_inplane_hilti(
         const FacePlanarElement& a,
         const FacePlanarElement& b,
         const InteractionContactFace& contact,
@@ -173,24 +173,24 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Cross in-plane, contact 30, ids 30-39 as 2024 numbered them: 30 cross_slot (the family default id), 31 cross_sliced_half_lap,
 
-    static std::shared_ptr<JointPlate> cross_slot();
-    static std::shared_ptr<JointPlate> cross_sliced_half_lap(double shift = 0.5);
+    static std::shared_ptr<JointPlateElement> cross_slot();
+    static std::shared_ptr<JointPlateElement> cross_sliced_half_lap(double shift = 0.5);
 
     /// The half lap with the drills it carries (none, two diagonal or one down the crossing); the joint id is cross_half_lap_id(drills).
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     cross_half_lap(double shift = 0.5, CrossDrills drills = CrossDrills::none);
 
-    static std::shared_ptr<JointPlate> cross_brussels_half_lap(double shift = 0.5);
+    static std::shared_ptr<JointPlateElement> cross_brussels_half_lap(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     cross_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // b
     // ═══════════════════════════════════════════════════════════════════════════
-    static std::shared_ptr<JointPlate> border();
+    static std::shared_ptr<JointPlateElement> border();
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     border_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -199,41 +199,41 @@ public:
     // Top to top, contact 40, ids 40-49 as 2024 numbered them: 40 top_top_centre_pin (the family default id), 41 top_top_polylabel_pin, 42 top_top_circle_pins,
     // drills: a two-point line per hole from the contact, one plate thickness deep, twice on each face of each side, every copy of
 
-    static std::shared_ptr<JointPlate> top_top_centre_pin(double radius = 1.0);
+    static std::shared_ptr<JointPlateElement> top_top_centre_pin(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate> top_top_polylabel_pin(double radius = 1.0);
+    static std::shared_ptr<JointPlateElement> top_top_polylabel_pin(double radius = 1.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_top_circle_pins(int divisions = 6, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_top_ring_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_top_grid_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_top_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // side_removal
     // ═══════════════════════════════════════════════════════════════════════════
 
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_removal(bool merge_with_joint = false, double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> jupiter_scarf();
+    static std::shared_ptr<JointPlateElement> jupiter_scarf();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors
     // ═══════════════════════════════════════════════════════════════════════════
-    JointPlate();
-    explicit JointPlate(const InteractionFeaturePlate& connection);
-    JointPlate(int variant, double division_distance, double shift = 0.5);
-    JointPlate(
+    JointPlateElement();
+    explicit JointPlateElement(const InteractionFeaturePlate& connection);
+    JointPlateElement(int variant, double division_distance, double shift = 0.5);
+    JointPlateElement(
         const std::shared_ptr<FacePlanarElement>& source,
         const std::shared_ptr<FacePlanarElement>& target,
         const InteractionContactFace& contact,
@@ -242,7 +242,7 @@ public:
         double shift = 0.5,
         const Settings& settings = Settings()
     );
-    static std::shared_ptr<JointPlate>
+    static std::shared_ptr<JointPlateElement>
     side_to_top(int variant = 20, double division_distance = 450.0, double shift = 0.5);
 
     /// The joint id 2024's tables give a design by its name.
@@ -313,18 +313,18 @@ public:
     Mesh key_mesh() const override;
 
     std::string element_type_name() const override {
-        return "JointPlate";
+        return "JointPlateElement";
     }
 
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<JointPlate>(*this);
+        return std::make_shared<JointPlateElement>(*this);
     }
 
 private:
-    static std::shared_ptr<JointPlate> from_library(const std::string& library, int contact_type);
-    static std::shared_ptr<JointPlate> side_side_inplane(const std::string& library);
-    static std::shared_ptr<JointPlate> side_side_outplane(const std::string& library);
-    static std::shared_ptr<JointPlate> side_side_rotated(const std::string& library);
+    static std::shared_ptr<JointPlateElement> from_library(const std::string& library, int contact_type);
+    static std::shared_ptr<JointPlateElement> side_side_inplane(const std::string& library);
+    static std::shared_ptr<JointPlateElement> side_side_outplane(const std::string& library);
+    static std::shared_ptr<JointPlateElement> side_side_rotated(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
         const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
@@ -373,15 +373,15 @@ protected:
     Mesh
         key; // The loose key of a key design, what compute_key() cut from the plates; empty for every other design.
     std::vector<std::array<Polyline, 2>> bodies() const override;
-    void write_proto(wood_proto::Joint& proto) const override;
-    void read_proto(const wood_proto::Joint& proto) override;
+    void write_proto(wood_proto::JointElement& proto) const override;
+    void read_proto(const wood_proto::JointElement& proto) override;
 };
 
 /// Element that represents the joints of an Annen dataset: plate joints built from its plates, connections and groups.
-class JointAnnen : public JointPlate {
+class JointAnnenElement : public JointPlateElement {
 public:
-    JointAnnen() = default;
-    JointAnnen(
+    JointAnnenElement() = default;
+    JointAnnenElement(
         std::vector<std::shared_ptr<FacePlanarElement>> elements,
         std::vector<InteractionFeaturePlate> connections,
         const std::vector<std::vector<int>>& groups,
@@ -389,19 +389,19 @@ public:
     );
 
     std::string element_type_name() const override {
-        return "JointAnnen";
+        return "JointAnnenElement";
     }
 
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<JointAnnen>(*this);
+        return std::make_shared<JointAnnenElement>(*this);
     }
 };
 
 /// Element that represents the joints of a Vidy dataset: plate joints built from its plates, connections and groups.
-class JointVidy : public JointPlate {
+class JointVidyElement : public JointPlateElement {
 public:
-    JointVidy() = default;
-    JointVidy(
+    JointVidyElement() = default;
+    JointVidyElement(
         std::vector<std::shared_ptr<FacePlanarElement>> elements,
         std::vector<InteractionFeaturePlate> connections,
         const std::vector<std::vector<int>>& groups,
@@ -409,11 +409,11 @@ public:
     );
 
     std::string element_type_name() const override {
-        return "JointVidy";
+        return "JointVidyElement";
     }
 
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<JointVidy>(*this);
+        return std::make_shared<JointVidyElement>(*this);
     }
 };
 

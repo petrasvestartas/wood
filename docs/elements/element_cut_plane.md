@@ -7,13 +7,13 @@ An infinite cutting plane displayed as a square quad; `add_interaction(cut_plane
 ## Constructors
 
 ```cpp
-explicit CutPlane(const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane");
+explicit JointCutPlaneElement(const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane");
 std::shared_ptr<InteractionFeaturePlane> feature() const;
 ```
 
 ## Cutting a variable beam
 
-Two inclined 900 mm `CutPlane` elements trimming both ends of a parabolic variable-depth beam.
+Two inclined 900 mm `JointCutPlaneElement` elements trimming both ends of a parabolic variable-depth beam.
 
 ![](elements/element_beam_variable_cut.png)
 

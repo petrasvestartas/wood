@@ -9,7 +9,7 @@ int main() {
     WoodSession scene("element_pin");
 
     scene.add(
-        std::make_shared<Pin>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 200.0}), 10.0, 0.05)
+        std::make_shared<JointPinElement>(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 200.0}), 10.0, 0.05)
     );
 
     std::cout << scene << std::endl;
@@ -19,7 +19,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A pin 10 in radius along a 200 long axis, meshed so no facet strays more than 0.05 from the circle; a connector made by JointBeam::centred_pins or headed_pins nests its pins under it like this one.
+A pin 10 in radius along a 200 long axis, meshed so no facet strays more than 0.05 from the circle; a connector made by JointBeamElement::centred_pins or headed_pins nests its pins under it like this one.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

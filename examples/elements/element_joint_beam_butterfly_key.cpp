@@ -16,7 +16,7 @@ int main() {
 
     const std::shared_ptr<InteractionContactFace> contact =
         scene.compute_face_contact(first, second);
-    const std::shared_ptr<JointBeam> key = JointBeam::butterfly_key(
+    const std::shared_ptr<JointBeamElement> key = JointBeamElement::butterfly_key(
         *first, *second, *contact, 0.0, 600.0, 150.0, 100.0, 50.0, 60.0, 60.0, 60.0
     );
     key->name = "butterfly_key";

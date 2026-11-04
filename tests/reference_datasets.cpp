@@ -213,7 +213,7 @@ static std::vector<std::vector<Line>>
 wood_drills(const WoodSession& scene, const std::vector<std::shared_ptr<FacePlanarElement>>& plates) {
 
     std::vector<std::vector<Line>> lines(plates.size());
-    for (const std::shared_ptr<JointPlate>& joint : scene.get_elements<JointPlate>()) {
+    for (const std::shared_ptr<JointPlateElement>& joint : scene.get_elements<JointPlateElement>()) {
         for (const InteractionFeaturePlate& connection : joint->connections) {
             for (int side = 0; side < 2; side++) {
                 const int plate =
@@ -402,9 +402,9 @@ static Score run_beams(const std::string& name, const nlohmann::json& record) {
     scene.compute_beam_features(beams[3], beams[4], static_cast<int>(beams[5]));
     score.plates = members.size();
 
-    std::map<std::pair<int, int>, std::shared_ptr<JointBeam>> joints;
+    std::map<std::pair<int, int>, std::shared_ptr<JointBeamElement>> joints;
     for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element);
+        const std::shared_ptr<JointBeamElement> joint = std::dynamic_pointer_cast<JointBeamElement>(element);
         if (!joint || joint->is_connector() || joint->targets.size() < 2)
             continue;
         std::array<int, 2> index = {-1, -1};
@@ -431,7 +431,7 @@ static Score run_beams(const std::string& name, const nlohmann::json& record) {
         );
 
     for (size_t p = 0; p < reference_pairs.size() && score.deviation.empty(); p++) {
-        const std::shared_ptr<JointBeam>& joint = joints.at(reference_pairs[p]);
+        const std::shared_ptr<JointBeamElement>& joint = joints.at(reference_pairs[p]);
         const std::vector<Polyline> volumes =
             unique_shapes({joint->feature.volumes.begin(), joint->feature.volumes.end()});
         const std::string deviation = compare_loops(
@@ -449,9 +449,9 @@ static Score run_beams(const std::string& name, const nlohmann::json& record) {
     const nlohmann::json& reference_beams = record.at("beams");
     for (size_t b = 0; b < members.size(); b++) {
         std::vector<Polyline> outlines;
-        for (const std::pair<const std::pair<int, int>, std::shared_ptr<JointBeam>>& entry :
+        for (const std::pair<const std::pair<int, int>, std::shared_ptr<JointBeamElement>>& entry :
              joints) {
-            const JointBeam& joint = *entry.second;
+            const JointBeamElement& joint = *entry.second;
             for (size_t t = 0; t < 2; t++) {
                 if (joint.targets[t] != members[b]->guid() || joint.joinery_sides[t] < 0)
                     continue;

@@ -59,32 +59,32 @@ template <class T> std::shared_ptr<T> named(const WoodSession& scene, const std:
 }
 
 /// The connectors of one kind, `connector_<kind>_<place>`.
-std::vector<std::shared_ptr<JointBeam>>
+std::vector<std::shared_ptr<JointBeamElement>>
 connectors_of(const WoodSession& scene, const std::string& kind) {
 
-    return scene.get_elements_placed<JointBeam>("connector_" + kind);
+    return scene.get_elements_placed<JointBeamElement>("connector_" + kind);
 }
 
 /// Every pin connector of the floor: the outer rib, seam beam and inner rib butt joints and the ring corners.
-std::vector<std::shared_ptr<JointBeam>> pins_of(const WoodSession& scene) {
+std::vector<std::shared_ptr<JointBeamElement>> pins_of(const WoodSession& scene) {
 
-    std::vector<std::shared_ptr<JointBeam>> pins;
+    std::vector<std::shared_ptr<JointBeamElement>> pins;
 
     for (const std::string kind :
          {"pins_outer_rib", "pins_seam_beam", "pins_inner_rib", "pins_ring_corner"})
-        for (const std::shared_ptr<JointBeam>& connector : connectors_of(scene, kind))
+        for (const std::shared_ptr<JointBeamElement>& connector : connectors_of(scene, kind))
             pins.push_back(connector);
 
     return pins;
 }
 
 /// Every connector of the floor but the pins: each kind's, then the cross laps.
-std::vector<std::shared_ptr<JointBeam>> all_connectors(const WoodSession& scene) {
+std::vector<std::shared_ptr<JointBeamElement>> all_connectors(const WoodSession& scene) {
 
-    std::vector<std::shared_ptr<JointBeam>> connectors;
+    std::vector<std::shared_ptr<JointBeamElement>> connectors;
 
     for (const std::string kind : {"seam_wedge", "oculus_wedge", "column_plate", "block_pins"})
-        for (const std::shared_ptr<JointBeam>& connector : connectors_of(scene, kind))
+        for (const std::shared_ptr<JointBeamElement>& connector : connectors_of(scene, kind))
             connectors.push_back(connector);
 
     return connectors;
@@ -256,7 +256,7 @@ void check_support() {
     );
 
     const double stock = compute_volume(column->model_geometry_mesh());
-    const std::shared_ptr<Joint> joint = Joint::support(*support, *column);
+    const std::shared_ptr<JointElement> joint = JointElement::support(*support, *column);
     scene.add(joint);
     scene.add_interaction(joint, column, joint->interaction(0));
 
@@ -313,7 +313,7 @@ void check_support() {
 
     check(
         adds == 2 && subtracts == 6 && shaft->solid_features.size() == 11 &&
-            carved.get_elements<Joint>().size() == 1,
+            carved.get_elements<JointElement>().size() == 1,
         fmt::format(
             "two head blocks add and six cutter plates subtract through interactions, the support "
             "and the two plate pockets three more: {} adds, {} subtracts, {} hosted",
@@ -360,21 +360,21 @@ size_t matches(const std::vector<Line>& lines, const Line& line) {
 }
 
 /// The children of a connector in the scene tree: its part and pin elements, in order.
-std::vector<std::shared_ptr<Joint>>
-children_of(const WoodSession& scene, const JointBeam& connector) {
+std::vector<std::shared_ptr<JointElement>>
+children_of(const WoodSession& scene, const JointBeamElement& connector) {
 
-    std::vector<std::shared_ptr<Joint>> children;
+    std::vector<std::shared_ptr<JointElement>> children;
 
     for (TreeNode* child : scene.tree.get_node_by_name(connector.guid())->children())
-        children.push_back(scene.get_element<Joint>(child->name));
+        children.push_back(scene.get_element<JointElement>(child->name));
 
     return children;
 }
 
 /// The connector is nested.
-void check_nested(const WoodSession& scene, const JointBeam& connector, size_t parts, size_t pins) {
+void check_nested(const WoodSession& scene, const JointBeamElement& connector, size_t parts, size_t pins) {
 
-    const std::vector<std::shared_ptr<Joint>> children = children_of(scene, connector);
+    const std::vector<std::shared_ptr<JointElement>> children = children_of(scene, connector);
     check(
         connector.is_connector() && connector.model_geometry_brep().m_faces.empty() &&
             connector.model_geometry_mesh().number_of_faces() == 0,
@@ -392,21 +392,21 @@ void check_nested(const WoodSession& scene, const JointBeam& connector, size_t p
     );
 
     for (size_t i = 0; i < children.size(); i++) {
-        const std::shared_ptr<Joint>& child = children[i];
+        const std::shared_ptr<JointElement>& child = children[i];
         check(child && child->is_visible, connector.name + " child visible");
 
         if (i < parts) {
             const std::string name = parts == 1 ? connector.name + "_part"
                                                 : fmt::format("{}_part_{}", connector.name, i);
             check(
-                std::dynamic_pointer_cast<ConnectorPart>(child) && child->name == name,
+                std::dynamic_pointer_cast<JointConnectorPartElement>(child) && child->name == name,
                 connector.name + " part child " + child->name
             );
         } else {
             const double cylinder = Tolerance::PI * connector.line_radius * connector.line_radius *
                                     connector.drill_lines[i - parts].length();
             check(
-                std::dynamic_pointer_cast<Pin>(child) &&
+                std::dynamic_pointer_cast<JointPinElement>(child) &&
                     child->name == fmt::format("{}_pin_{}", connector.name, i - parts) &&
                     std::abs(child->model_geometry_brep().volume() - cylinder) < 1e-2 * cylinder,
                 connector.name + " pin child " + child->name
@@ -417,7 +417,7 @@ void check_nested(const WoodSession& scene, const JointBeam& connector, size_t p
 
 /// No pin of the connector protrudes.
 void check_flush(
-    const JointBeam& joint, const WoodSession& scene, const std::string& name, bool through
+    const JointBeamElement& joint, const WoodSession& scene, const std::string& name, bool through
 ) {
 
     const std::shared_ptr<Element> first = scene.get_element<Element>(joint.targets[0]);
@@ -560,13 +560,13 @@ void check_connector_calls() {
     const wood_floor::Floor floor(square_guide());
     check(
         connectors_of(floor, "column_plate").size() == 8 &&
-            floor.get_elements_placed<JointPlate>("connector_cross_lap").size() == 4,
+            floor.get_elements_placed<JointPlateElement>("connector_cross_lap").size() == 4,
         "the columns' eight plate joints and four cross laps"
     );
 
-    const std::vector<std::shared_ptr<JointBeam>> connectors = all_connectors(floor);
+    const std::vector<std::shared_ptr<JointBeamElement>> connectors = all_connectors(floor);
     std::set<std::string> names;
-    for (const std::shared_ptr<JointBeam>& connector : connectors)
+    for (const std::shared_ptr<JointBeamElement>& connector : connectors)
         names.insert(connector->name);
 
     check(
@@ -575,9 +575,9 @@ void check_connector_calls() {
     );
 
     const wood_floor::Floor narrow_floor(rectangle_guide(3000.0, 1700.0), "narrow");
-    const std::vector<std::shared_ptr<JointBeam>> narrow_pins = pins_of(narrow_floor);
+    const std::vector<std::shared_ptr<JointBeamElement>> narrow_pins = pins_of(narrow_floor);
     size_t lines = 0;
-    for (const std::shared_ptr<JointBeam>& pins : narrow_pins)
+    for (const std::shared_ptr<JointBeamElement>& pins : narrow_pins)
         lines += pins->drill_lines.size();
 
     check(
@@ -605,7 +605,7 @@ void check_connector_calls() {
             const Xform lift = Xform::translation(0.0, 0.0, skewed.bay_height);
             const Plane far = planes.inner_beams[k == 0 ? 0 : 2][1].transformed(lift);
 
-            const std::shared_ptr<JointBeam> set = skewed_floor.get_element_by_name<JointBeam>(
+            const std::shared_ptr<JointBeamElement> set = skewed_floor.get_element_by_name<JointBeamElement>(
                 fmt::format("connector_pins_outer_rib_{}_{}", q, k)
             );
 
@@ -691,13 +691,13 @@ void check_contacts() {
 void check_wedges() {
 
     wood_floor::Floor scene(square_guide(), "wedges");
-    std::vector<std::shared_ptr<JointBeam>> wedges = connectors_of(scene, "seam_wedge");
-    const std::vector<std::shared_ptr<JointBeam>> oculus_wedges =
+    std::vector<std::shared_ptr<JointBeamElement>> wedges = connectors_of(scene, "seam_wedge");
+    const std::vector<std::shared_ptr<JointBeamElement>> oculus_wedges =
         connectors_of(scene, "oculus_wedge");
     wedges.insert(wedges.end(), oculus_wedges.begin(), oculus_wedges.end());
     check(wedges.size() == 8, "eight wedges, not " + std::to_string(wedges.size()));
 
-    for (const std::shared_ptr<JointBeam>& wedge : wedges) {
+    for (const std::shared_ptr<JointBeamElement>& wedge : wedges) {
         check_flush(*wedge, scene, wedge->name, true);
         check(
             count_bores(wedge->part_brep(0)) == wedge->drill_lines.size(),
@@ -733,8 +733,8 @@ void check_wedges() {
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
 
-    for (const std::shared_ptr<JointBeam>& joint : back.get_elements<JointBeam>()) {
-        if (std::dynamic_pointer_cast<ConnectorPart>(joint) ||
+    for (const std::shared_ptr<JointBeamElement>& joint : back.get_elements<JointBeamElement>()) {
+        if (std::dynamic_pointer_cast<JointConnectorPartElement>(joint) ||
             !(joint->name.starts_with("connector_seam_wedge") ||
               joint->name.starts_with("connector_oculus_wedge")))
             continue;
@@ -848,7 +848,7 @@ void check_seam_beams() {
     }
 
     wood_floor::Floor scene(guide, "seam_beams");
-    const std::vector<std::shared_ptr<JointBeam>> wedges = connectors_of(scene, "seam_wedge");
+    const std::vector<std::shared_ptr<JointBeamElement>> wedges = connectors_of(scene, "seam_wedge");
 
     for (size_t i = 0; i < wedges.size(); i++) {
         const wood_floor::ConstructionPlanes& planes = guide.construction_planes(i);
@@ -878,7 +878,7 @@ void check_seam_beams() {
                 guide.bay_height + std::min(lowest_on(rib[0], end), lowest_on(rib[1], end));
             const std::vector<Line> pins =
                 scene
-                    .get_element_by_name<JointBeam>(
+                    .get_element_by_name<JointBeamElement>(
                         fmt::format("connector_pins_outer_rib_{}_{}", q, k)
                     )
                     ->drill_lines;
@@ -918,9 +918,9 @@ void check_drill_features() {
     std::map<std::string, double> radius;
     std::map<std::string, std::string> names;
 
-    for (const std::shared_ptr<Joint>& joint : scene.get_elements<Joint>()) {
-        if (std::dynamic_pointer_cast<ConnectorPart>(joint) ||
-            std::dynamic_pointer_cast<Pin>(joint))
+    for (const std::shared_ptr<JointElement>& joint : scene.get_elements<JointElement>()) {
+        if (std::dynamic_pointer_cast<JointConnectorPartElement>(joint) ||
+            std::dynamic_pointer_cast<JointPinElement>(joint))
             continue;
 
         radius[joint->guid()] = joint->line_radius;
@@ -939,7 +939,7 @@ void check_drill_features() {
                  scene.get_interaction(joint, target))
                 if (const std::shared_ptr<InteractionFeatureSolid> cut =
                         std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
-                    cut && std::dynamic_pointer_cast<JointBeam>(joint))
+                    cut && std::dynamic_pointer_cast<JointBeamElement>(joint))
                     lines = cut->drills;
 
             for (const Line& line : lines)
@@ -953,7 +953,7 @@ void check_drill_features() {
     std::map<std::string, std::set<std::string>> sizes;
 
     for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        if (std::dynamic_pointer_cast<Joint>(element))
+        if (std::dynamic_pointer_cast<JointElement>(element))
             continue;
 
         size_t drills = 0;
@@ -1023,7 +1023,7 @@ void check_drill_features() {
 /// The drill features, joints and interactions of a session: the number of each.
 std::array<size_t, 3> scene_counts(const WoodSession& scene) {
 
-    std::array<size_t, 3> counts = {0, scene.get_elements<Joint>().size(), 0};
+    std::array<size_t, 3> counts = {0, scene.get_elements<JointElement>().size(), 0};
 
     for (const std::shared_ptr<Element>& element : *scene.objects.elements)
         for (const ElementFeature& feature : element->features())
@@ -1112,7 +1112,7 @@ std::array<size_t, 3> subtree_counts(const Session& session, const TreeNode& nod
             continue;
 
         counts[0]++;
-        counts[2] += std::dynamic_pointer_cast<const JointBeam>(element) != nullptr;
+        counts[2] += std::dynamic_pointer_cast<const JointBeamElement>(element) != nullptr;
 
         for (const ElementFeature& feature : element->features())
             counts[1] += feature.feature_type == "drill";
@@ -1181,9 +1181,9 @@ void check_extract_quarter() {
         )
     );
     check(
-        part.get_elements<JointBeam>().size() == found[2] && found[2] > 0 &&
+        part.get_elements<JointBeamElement>().size() == found[2] && found[2] > 0 &&
             part.settings.distance == floor.settings.distance,
-        "the branch a WoodSession: its connectors as JointBeam, the floor's settings"
+        "the branch a WoodSession: its connectors as JointBeamElement, the floor's settings"
     );
     size_t lines = 0;
 
@@ -1257,7 +1257,7 @@ void check_centred_pins() {
         scene.compute_face_contact(lower, upper);
     check(contact != nullptr, "the plates touch face to face");
 
-    const std::shared_ptr<JointBeam> joint = JointBeam::centred_pins(*lower, *upper, *contact);
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::centred_pins(*lower, *upper, *contact);
     check(
         joint && joint->drill_lines.size() == 4 && joint->is_visible,
         "four pins at the corners of the contact"
@@ -1301,7 +1301,7 @@ void check_centred_pins() {
     }
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
-    const std::shared_ptr<JointBeam> loaded = back.get_elements<JointBeam>().front();
+    const std::shared_ptr<JointBeamElement> loaded = back.get_elements<JointBeamElement>().front();
     check(
         loaded->drill_lines.size() == 4 && loaded->cutters.size() == 2 &&
             loaded->drill_overshoot == joint->drill_overshoot,
@@ -1316,11 +1316,11 @@ void check_centred_pins() {
 
 /// Every inner rib is exact, bored once per pin of the sets that join it.
 void check_inner_rib_bores(
-    const WoodSession& scene, const std::vector<std::shared_ptr<JointBeam>>& sets
+    const WoodSession& scene, const std::vector<std::shared_ptr<JointBeamElement>>& sets
 ) {
 
-    std::vector<std::shared_ptr<JointBeam>> all = sets;
-    for (const std::shared_ptr<JointBeam>& pin : connectors_of(scene, "pins_inner_rib"))
+    std::vector<std::shared_ptr<JointBeamElement>> all = sets;
+    for (const std::shared_ptr<JointBeamElement>& pin : connectors_of(scene, "pins_inner_rib"))
         all.push_back(pin);
 
     for (size_t q = 0; q < 4; q++)
@@ -1329,7 +1329,7 @@ void check_inner_rib_bores(
                 named<EdgeVariableElement>(scene, fmt::format("inner_ribs_{}_{}", k, q));
             size_t crossing = 0;
 
-            for (const std::shared_ptr<JointBeam>& set : all)
+            for (const std::shared_ptr<JointBeamElement>& set : all)
                 if (std::find(set->targets.begin(), set->targets.end(), rib->guid()) !=
                     set->targets.end())
                     crossing += set->drill_lines.size();
@@ -1385,10 +1385,10 @@ void check_drilled_members(const WoodSession& scene) {
 void check_quarter_pins() {
 
     wood_floor::Floor scene(square_guide(), "quarter_pins");
-    const std::vector<std::shared_ptr<JointBeam>> sets = connectors_of(scene, "block_pins");
+    const std::vector<std::shared_ptr<JointBeamElement>> sets = connectors_of(scene, "block_pins");
     size_t pins = 0;
 
-    for (const std::shared_ptr<JointBeam>& set : sets) {
+    for (const std::shared_ptr<JointBeamElement>& set : sets) {
         check_nested(scene, *set, 0, set->drill_lines.size());
         const std::shared_ptr<Element> rib = scene.get_element<Element>(set->targets[0]);
         const std::shared_ptr<Element> block = scene.get_element<Element>(set->targets[1]);
@@ -1428,8 +1428,8 @@ void check_quarter_pins() {
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
 
-    for (const std::shared_ptr<JointBeam>& set : back.get_elements<JointBeam>())
-        if (!std::dynamic_pointer_cast<ConnectorPart>(set) &&
+    for (const std::shared_ptr<JointBeamElement>& set : back.get_elements<JointBeamElement>())
+        if (!std::dynamic_pointer_cast<JointConnectorPartElement>(set) &&
             set->name.starts_with("connector_block_pins"))
             loaded += set->drill_lines.size();
 
@@ -1446,10 +1446,10 @@ void check_quarter_pins() {
 
 /// The two plates of every column half-lapped by a cross cross lap merged into their outlines.
 void check_cross_laps(
-    const WoodSession& scene, const std::vector<std::shared_ptr<JointPlate>>& laps
+    const WoodSession& scene, const std::vector<std::shared_ptr<JointPlateElement>>& laps
 ) {
 
-    for (const std::shared_ptr<JointPlate>& lap : laps) {
+    for (const std::shared_ptr<JointPlateElement>& lap : laps) {
         const std::shared_ptr<FacePlanarElement> a = scene.get_element<FacePlanarElement>(lap->targets[0]);
         const std::shared_ptr<FacePlanarElement> b = scene.get_element<FacePlanarElement>(lap->targets[1]);
         const Mesh& lapped_a = a->model_geometry_mesh();
@@ -1476,9 +1476,9 @@ void check_rectangle_plates() {
 
     wood_floor::Floor scene(square_guide(), "rectangle_plates");
     const std::vector<std::shared_ptr<EdgeVariableElement>> ribs = outer_ribs(scene);
-    const std::vector<std::shared_ptr<JointBeam>> plates = connectors_of(scene, "column_plate");
-    const std::vector<std::shared_ptr<JointPlate>> laps =
-        scene.get_elements_placed<JointPlate>("connector_cross_lap");
+    const std::vector<std::shared_ptr<JointBeamElement>> plates = connectors_of(scene, "column_plate");
+    const std::vector<std::shared_ptr<JointPlateElement>> laps =
+        scene.get_elements_placed<JointPlateElement>("connector_cross_lap");
 
     for (const std::shared_ptr<EdgeVariableElement>& rib : ribs)
         check(
@@ -1532,11 +1532,11 @@ void check_rectangle_plates() {
             );
         }
 
-    const size_t parts = scene.get_elements<ConnectorPart>().size();
-    const size_t pins = scene.get_elements<Pin>().size();
+    const size_t parts = scene.get_elements<JointConnectorPartElement>().size();
+    const size_t pins = scene.get_elements<JointPinElement>().size();
     check(
-        pins >= 32 && back.get_elements<ConnectorPart>().size() == parts &&
-            back.get_elements<Pin>().size() == pins,
+        pins >= 32 && back.get_elements<JointConnectorPartElement>().size() == parts &&
+            back.get_elements<JointPinElement>().size() == pins,
         "the plate parts and the pins, among every connector's, round trip as children"
     );
 
@@ -1968,7 +1968,7 @@ void check_rectangle() {
 /// Whether the node carries the connector colour.
 bool in_connector_color(const TreeNode& node) {
 
-    const Color& color = JointBeam::CONNECTOR_COLOR;
+    const Color& color = JointBeamElement::CONNECTOR_COLOR;
 
     return node.color && node.color->r == color.r && node.color->g == color.g &&
            node.color->b == color.b && node.color->a == color.a;
@@ -1977,13 +1977,13 @@ bool in_connector_color(const TreeNode& node) {
 /// Every connector's node and every part and pin node nested under it carry the connector colour; returns the nodes checked.
 size_t check_connector_colors(
     const WoodSession& scene,
-    const std::vector<std::shared_ptr<JointBeam>>& connectors,
+    const std::vector<std::shared_ptr<JointBeamElement>>& connectors,
     const std::string& label
 ) {
 
     size_t nodes = 0;
 
-    for (const std::shared_ptr<JointBeam>& connector : connectors) {
+    for (const std::shared_ptr<JointBeamElement>& connector : connectors) {
         const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector->guid());
         check(
             node && in_connector_color(*node),
@@ -2006,13 +2006,13 @@ size_t check_connector_colors(
 /// Every connector sits in connectors_q under quarter_q.
 std::map<std::string, size_t> check_connector_tree(
     const WoodSession& scene,
-    const std::vector<std::shared_ptr<JointBeam>>& connectors,
+    const std::vector<std::shared_ptr<JointBeamElement>>& connectors,
     const std::string& label
 ) {
 
     std::map<std::string, size_t> counts;
 
-    for (const std::shared_ptr<JointBeam>& connector : connectors) {
+    for (const std::shared_ptr<JointBeamElement>& connector : connectors) {
         const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector->guid());
         const std::shared_ptr<TreeNode> group = node ? node->parent() : nullptr;
         const std::shared_ptr<TreeNode> parent = group ? group->parent() : nullptr;
@@ -2039,9 +2039,9 @@ std::map<std::string, size_t> check_connector_tree(
 void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& label) {
 
     wood_floor::Floor scene(guide, "pins");
-    std::vector<std::shared_ptr<JointBeam>> connectors = all_connectors(scene);
+    std::vector<std::shared_ptr<JointBeamElement>> connectors = all_connectors(scene);
 
-    std::vector<std::shared_ptr<JointBeam>> pins;
+    std::vector<std::shared_ptr<JointBeamElement>> pins;
     std::vector<std::pair<std::string, std::array<std::shared_ptr<Element>, 2>>> joined;
 
     for (size_t q = 0; q < 4; q++)
@@ -2051,18 +2051,18 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
             const std::shared_ptr<Element> oculus_beam =
                 named<Element>(scene, fmt::format("inner_beams_1_{}", q));
             pins.push_back(
-                named<JointBeam>(scene, fmt::format("connector_pins_outer_rib_{}_{}", q, k))
+                named<JointBeamElement>(scene, fmt::format("connector_pins_outer_rib_{}_{}", q, k))
             );
             joined.push_back(
                 {"outer_rib_seam_beam",
                  {seam_beam, named<Element>(scene, fmt::format("outer_ribs_{}_{}", k, q))}}
             );
             pins.push_back(
-                named<JointBeam>(scene, fmt::format("connector_pins_seam_beam_{}_{}", q, k))
+                named<JointBeamElement>(scene, fmt::format("connector_pins_seam_beam_{}_{}", q, k))
             );
             joined.push_back({"seam_beam_oculus_beam", {seam_beam, oculus_beam}});
             pins.push_back(
-                named<JointBeam>(scene, fmt::format("connector_pins_inner_rib_{}_{}", q, k))
+                named<JointBeamElement>(scene, fmt::format("connector_pins_inner_rib_{}_{}", q, k))
             );
             joined.push_back(
                 {"oculus_beam_inner_rib",
@@ -2071,7 +2071,7 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
         }
 
     for (size_t q = 0; q < 4; q++) {
-        pins.push_back(named<JointBeam>(scene, fmt::format("connector_pins_ring_corner_{}", q)));
+        pins.push_back(named<JointBeamElement>(scene, fmt::format("connector_pins_ring_corner_{}", q)));
         joined.push_back(
             {"ring_corner",
              {named<Element>(scene, fmt::format("oculus_{}", q)),
@@ -2088,7 +2088,7 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
     std::map<std::string, size_t> counts;
 
     for (size_t i = 0; i < pins.size(); i++) {
-        const JointBeam& connector = *pins[i];
+        const JointBeamElement& connector = *pins[i];
         const auto& [kind, pair] = joined[i];
         counts[kind] += connector.drill_lines.size();
         check(
@@ -2164,8 +2164,8 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     size_t loaded = 0;
 
-    for (const std::shared_ptr<JointBeam>& connector : pins) {
-        const std::shared_ptr<JointBeam> read = back.get_element<JointBeam>(connector->guid());
+    for (const std::shared_ptr<JointBeamElement>& connector : pins) {
+        const std::shared_ptr<JointBeamElement> read = back.get_element<JointBeamElement>(connector->guid());
         check(
             read && read->pre_drill && read->targets == connector->targets &&
                 read->drill_lines.size() == connector->drill_lines.size(),

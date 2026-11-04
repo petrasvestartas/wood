@@ -35,8 +35,8 @@ int main() {
     scene.add(third);
     scene.add(fourth);
 
-    const std::shared_ptr<JointBeam> joint =
-        JointBeam::column_head(*column, *first, *second, *third, *fourth);
+    const std::shared_ptr<JointBeamElement> joint =
+        JointBeamElement::column_head(*column, *first, *second, *third, *fourth);
     scene.add(joint);
     scene.add_interaction(joint, column, joint->interaction(0));
     scene.add_interaction(joint, first, joint->interaction(1));

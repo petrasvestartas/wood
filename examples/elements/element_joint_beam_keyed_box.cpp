@@ -23,14 +23,14 @@ int main() {
 
     const std::shared_ptr<InteractionContactFace> contact =
         scene.compute_face_contact(first, second);
-    const std::shared_ptr<JointBeam> joint = JointBeam::keyed_box(*first, *second, *contact);
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::keyed_box(*first, *second, *contact);
     joint->name = "keyed_box";
     scene.add(joint);
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    const std::shared_ptr<JointBeam> key_second =
-        scene.get_element_by_name<JointBeam>("keyed_box_part_2");
+    const std::shared_ptr<JointBeamElement> key_second =
+        scene.get_element_by_name<JointBeamElement>("keyed_box_part_2");
 
     // the plates together on the box, the second key lifted out: it only goes in once the plates are seated
     key_second->place(Xform::translation(0.0, 0.0, 220.0));

@@ -7,7 +7,7 @@ A cylindrical dowel, bolt, or screw element along a straight centreline, created
 ## Constructors
 
 ```cpp
-Pin(const Line& axis, double radius, double chord_tolerance = 0.05);
+JointPinElement(const Line& axis, double radius, double chord_tolerance = 0.05);
 const Line& axis() const;
 ```
 

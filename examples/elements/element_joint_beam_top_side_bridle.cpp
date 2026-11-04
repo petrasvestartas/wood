@@ -8,7 +8,7 @@ int main() {
 
     WoodSession scene("element_joint_beam_top_side_bridle");
     scene.settings.joint_parameters[7] = 0.3;
-    scene.settings.joint_parameters[8] = JointPlate::library_id("top_side_bridle");
+    scene.settings.joint_parameters[8] = JointPlateElement::library_id("top_side_bridle");
 
     // two 100 x 100 beams meeting at 57 degrees, the first running past on both sides, the second ending in it
     const double radius = 50.0;
@@ -28,21 +28,21 @@ int main() {
     const InteractionContactAxis contact(
         Line::from_points(origin, origin), 220.0 / 590.0, 0.0, 0, 0, 0, 0
     );
-    const std::shared_ptr<JointBeam> joint =
-        JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
+    const std::shared_ptr<JointBeamElement> joint =
+        JointBeamElement::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
     scene.add(joint);
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
     // the first beam's ends sawn parallel to the second beam
     const Vector normal(along[1], -along[0], 0.0);
-    const std::shared_ptr<CutPlane> long_end = std::make_shared<CutPlane>(
+    const std::shared_ptr<JointCutPlaneElement> long_end = std::make_shared<JointCutPlaneElement>(
         Plane::from_point_normal(Point(345.0, radius, 0.0), -normal), 300.0, "long_end"
     );
-    const std::shared_ptr<CutPlane> short_end = std::make_shared<CutPlane>(
+    const std::shared_ptr<JointCutPlaneElement> short_end = std::make_shared<JointCutPlaneElement>(
         Plane::from_point_normal(Point(-124.0, radius, 0.0), normal), 300.0, "short_end"
     );
-    for (const std::shared_ptr<CutPlane>& end : {long_end, short_end}) {
+    for (const std::shared_ptr<JointCutPlaneElement>& end : {long_end, short_end}) {
         end->is_visible = false;
         scene.add(end);
         scene.add_interaction(end, first, end->feature());

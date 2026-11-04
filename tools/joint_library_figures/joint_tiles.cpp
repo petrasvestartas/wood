@@ -105,7 +105,7 @@ static std::string unit_snippet(const Built& built, const InteractionFeaturePlat
 
     const auto names = editable.find(built.library);
     if (names == editable.end())
-        return fmt::format("const std::shared_ptr<JointPlate> joint = JointPlate::{}(); // a fixed design, no parameters", built.library);
+        return fmt::format("const std::shared_ptr<JointPlateElement> joint = JointPlateElement::{}(); // a fixed design, no parameters", built.library);
 
     const JointPlateParameters& p = built.joint->parameters;
     std::vector<std::pair<std::string, std::string>> arguments;
@@ -135,7 +135,7 @@ static std::string unit_snippet(const Built& built, const InteractionFeaturePlat
     size_t widest = 0;
     for (const std::pair<std::string, std::string>& argument : arguments)
         widest = std::max(widest, argument.first.size() + 1);
-    std::string snippet = fmt::format("const std::shared_ptr<JointPlate> joint = JointPlate::{}(", built.library);
+    std::string snippet = fmt::format("const std::shared_ptr<JointPlateElement> joint = JointPlateElement::{}(", built.library);
     for (size_t i = 0; i < arguments.size(); i++) {
         const std::string value = arguments[i].first + (i + 1 < arguments.size() ? "," : "");
         snippet += fmt::format("\n    {:<{}} // {}", value, widest, arguments[i].second);
@@ -275,7 +275,7 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
     const bool cross = design.starts_with("cross_");
 
     WoodSession scene("beam_" + design);
-    scene.settings.joint_parameters[cross ? 11 : 8] = JointPlate::library_id(design);
+    scene.settings.joint_parameters[cross ? 11 : 8] = JointPlateElement::library_id(design);
     const double turn = angle * std::numbers::pi / 180.0;
     // turned clockwise in plan, so the lifted beam runs across the isometric view and its cut faces the camera
     const Vector along(std::cos(turn), -std::sin(turn), 0.0);
@@ -292,7 +292,7 @@ static void write_beam_scene(const std::string& id, const std::string& dir) {
 
     // the design's drills as 16 mm dowels, the joint passed to each beam again with that radius
     for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-        if (const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element)) {
+        if (const std::shared_ptr<JointBeamElement> joint = std::dynamic_pointer_cast<JointBeamElement>(element)) {
             joint->line_radius = 8.0;
             scene.add_interaction(joint, a, joint->interaction(0));
             scene.add_interaction(joint, b, joint->interaction(1));
@@ -340,7 +340,7 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
         throw std::runtime_error("no two chevron plates touch");
 
     // the design on them, as the oracle builds a variant
-    const std::shared_ptr<JointPlate> joint = make_variant({"op", design, parts.at(3), parts.at(4)});
+    const std::shared_ptr<JointPlateElement> joint = make_variant({"op", design, parts.at(3), parts.at(4)});
     joint->orient(contact, {first, second}, scene.settings);
     scene.add(joint);
     for (size_t i = 0; i < joint->interaction_count(); i++)

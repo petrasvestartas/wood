@@ -18,7 +18,7 @@ int main() {
     // where they touch, and the tenon joint placed on that contact
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
     scene.add_interaction(base, upright, contact);
-    const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons();
+    const std::shared_ptr<JointPlateElement> joint = JointPlateElement::top_side_tenons();
     joint->orient(contact, {base, upright});
 
     // the joint cuts tenons into the upright and mortises into the base

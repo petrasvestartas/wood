@@ -27,7 +27,7 @@ Seven 120 mm wide rectangular sections along a 3000 mm axis whose depth tapers p
 
 ## Cut by plane elements
 
-The same variable-depth rib trimmed at both ends by two inclined `CutPlane` elements via `add_interaction`.
+The same variable-depth rib trimmed at both ends by two inclined `JointCutPlaneElement` elements via `add_interaction`.
 
 ![](elements/element_beam_variable_cut.png)
 

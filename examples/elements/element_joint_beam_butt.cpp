@@ -29,7 +29,7 @@ int main() {
             scene.add_polyline(axis, group);
         }
 
-        const std::shared_ptr<JointBeam> butt = JointBeam::butt(*sill, *post);
+        const std::shared_ptr<JointBeamElement> butt = JointBeamElement::butt(*sill, *post);
         scene.add(butt, group);
         scene.add_interaction(butt, sill, butt->interaction(0));
         scene.add_interaction(butt, post, butt->interaction(1));

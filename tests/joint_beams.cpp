@@ -51,7 +51,7 @@ static void check_phanomema_node() {
 
     size_t joints = 0;
     for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element);
+        const std::shared_ptr<JointBeamElement> joint = std::dynamic_pointer_cast<JointBeamElement>(element);
         if (!joint || joint->is_connector())
             continue;
         joints++;
@@ -123,10 +123,10 @@ static void check_phanomema_node() {
 
     const WoodSession restored = WoodSession::pb_loads(scene.pb_dumps());
     for (const std::shared_ptr<Element>& element : *scene.objects.elements) {
-        const std::shared_ptr<JointBeam> joint = std::dynamic_pointer_cast<JointBeam>(element);
+        const std::shared_ptr<JointBeamElement> joint = std::dynamic_pointer_cast<JointBeamElement>(element);
         if (!joint || joint->is_connector())
             continue;
-        const std::shared_ptr<JointBeam> twin = restored.get_element<JointBeam>(joint->guid());
+        const std::shared_ptr<JointBeamElement> twin = restored.get_element<JointBeamElement>(joint->guid());
         check(
             twin && (twin->feature.normal - joint->feature.normal).magnitude() <= 1e-9 &&
                 (twin->feature.axes[1] - joint->feature.axes[1]).magnitude() <= 1e-9 &&
@@ -181,10 +181,10 @@ static void check_crossings() {
             scene.compute_axis_contacts(20.0);
             scene.compute_beam_features(500.0, 0.91, 1);
 
-            std::shared_ptr<JointBeam> joint;
+            std::shared_ptr<JointBeamElement> joint;
             for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-                if (std::shared_ptr<JointBeam> found =
-                        std::dynamic_pointer_cast<JointBeam>(element))
+                if (std::shared_ptr<JointBeamElement> found =
+                        std::dynamic_pointer_cast<JointBeamElement>(element))
                     joint = found;
             check(
                 joint != nullptr,
@@ -299,10 +299,10 @@ static void check_tees() {
             scene.compute_axis_contacts(20.0);
             scene.compute_beam_features(500.0, 0.91, 1);
 
-            std::shared_ptr<JointBeam> joint;
+            std::shared_ptr<JointBeamElement> joint;
             for (const std::shared_ptr<Element>& element : *scene.objects.elements)
-                if (std::shared_ptr<JointBeam> found =
-                        std::dynamic_pointer_cast<JointBeam>(element))
+                if (std::shared_ptr<JointBeamElement> found =
+                        std::dynamic_pointer_cast<JointBeamElement>(element))
                     joint = found;
             check(
                 joint != nullptr,
@@ -371,7 +371,7 @@ static void check_bridles() {
     for (const double angle : {57.0, 45.0, 75.0, 90.0, 123.0}) {
         WoodSession scene(fmt::format("bridle_{:g}", angle));
         scene.settings.joint_parameters[7] = 0.3;
-        scene.settings.joint_parameters[8] = JointPlate::library_id("top_side_bridle");
+        scene.settings.joint_parameters[8] = JointPlateElement::library_id("top_side_bridle");
         const double turn = angle * std::numbers::pi / 180.0;
         const Vector along(std::cos(turn), std::sin(turn), 0.0);
         const std::shared_ptr<EdgeStraightElement> a = std::make_shared<EdgeStraightElement>(
@@ -388,8 +388,8 @@ static void check_bridles() {
         const InteractionContactAxis contact(
             Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.0, 0, 0, 0, 0
         );
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::from_contact(*a, *b, contact, 500.0, 0.91, 1, scene.settings);
+        const std::shared_ptr<JointBeamElement> joint =
+            JointBeamElement::from_contact(*a, *b, contact, 500.0, 0.91, 1, scene.settings);
         check(joint != nullptr, fmt::format("the bridle at {:g} degrees is joined", angle));
         check(
             joint->joinery.name == "top_side_bridle",
@@ -543,13 +543,13 @@ static std::array<std::shared_ptr<Element>, 5> head_members(const HeadNode& node
 }
 
 /// The node joined in a scene of its own.
-static std::shared_ptr<JointBeam> head_joined(
+static std::shared_ptr<JointBeamElement> head_joined(
     WoodSession& scene, const std::array<std::shared_ptr<Element>, 5>& members, const HeadNode& node = HeadNode()
 ) {
 
     for (const std::shared_ptr<Element>& member : members)
         scene.add(member);
-    const std::shared_ptr<JointBeam> joint = JointBeam::column_head(
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::column_head(
         *std::dynamic_pointer_cast<Column>(members[0]),
         *std::dynamic_pointer_cast<EdgeStraightElement>(members[1]),
         *std::dynamic_pointer_cast<EdgeStraightElement>(members[2]),
@@ -711,7 +711,7 @@ static void check_column_head() {
          }) {
         const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
         WoodSession scene("column_head");
-        const std::shared_ptr<JointBeam> joint = head_joined(scene, members);
+        const std::shared_ptr<JointBeamElement> joint = head_joined(scene, members);
         const HeadMeasure measure = measure_head(node, members);
         check(measure.seated < 1.0, fmt::format("seated the members overlap {:.3f} mm3", measure.seated));
         check(
@@ -1049,7 +1049,7 @@ static void check_column_head_refusals() {
     const auto refused = [&](const std::array<std::shared_ptr<EdgeStraightElement>, 4>& beams, const std::string& expected) {
         std::string message;
         try {
-            JointBeam::column_head(*column, *beams[0], *beams[1], *beams[2], *beams[3]);
+            JointBeamElement::column_head(*column, *beams[0], *beams[1], *beams[2], *beams[3]);
         } catch (const std::invalid_argument& error) {
             message = error.what();
         }
@@ -1084,7 +1084,7 @@ static void check_column_head_refusals() {
     const std::array<std::shared_ptr<EdgeStraightElement>, 4> turned = {fine(0.0, "a"), fine(180.0, "b"), fine(75.0, "c"), fine(280.0, "d")};
     std::string message;
     try {
-        JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], turned[2].get());
+        JointBeamElement::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], turned[2].get());
     } catch (const std::invalid_argument& error) {
         message = error.what();
     }
@@ -1093,7 +1093,7 @@ static void check_column_head_refusals() {
     message.clear();
     const std::shared_ptr<EdgeStraightElement> stranger = fine(30.0, "stranger");
     try {
-        JointBeam::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], stranger.get());
+        JointBeamElement::column_head(*column, *turned[0], *turned[1], *turned[2], *turned[3], stranger.get());
     } catch (const std::invalid_argument& error) {
         message = error.what();
     }
@@ -1101,7 +1101,7 @@ static void check_column_head_refusals() {
     std::cout << fmt::format("joint_beams: column head refused: {}", message) << std::endl;
 }
 
-/// The keyed box JointBeam::keyed_box at its default sizes, on other plates and other sizes, and on plates lying flat and turned: each piece goes in in the sequence the mechanism needs, and once the keys are in
+/// The keyed box JointBeamElement::keyed_box at its default sizes, on other plates and other sizes, and on plates lying flat and turned: each piece goes in in the sequence the mechanism needs, and once the keys are in
 /// every piece is stopped every way but a key straight back out. The solids are read from the joint: plates, box, first key, second key. A wedge raised h leaves h times the taper of play.
 static void check_keyed_boxes() {
 
@@ -1144,12 +1144,12 @@ static void check_keyed_boxes() {
             fmt::format("their contact is {}", to_string(contact->type))
         );
         check(
-            JointBeam::keyed_box(*a, *b, *contact, 2.4, 1.6, 0.6, 1.5, 0.0) == nullptr &&
-                JointBeam::keyed_box(*a, *b, *contact, 2.4, 1.6, 1.7) == nullptr &&
-                JointBeam::keyed_box(*a, *b, *contact, 20.0) == nullptr,
+            JointBeamElement::keyed_box(*a, *b, *contact, 2.4, 1.6, 0.6, 1.5, 0.0) == nullptr &&
+                JointBeamElement::keyed_box(*a, *b, *contact, 2.4, 1.6, 1.7) == nullptr &&
+                JointBeamElement::keyed_box(*a, *b, *contact, 20.0) == nullptr,
             "straight keys, a mortise wider than the box and a box past the plates are refused"
         );
-        const std::shared_ptr<JointBeam> joint = JointBeam::keyed_box(
+        const std::shared_ptr<JointBeamElement> joint = JointBeamElement::keyed_box(
             *a,
             *b,
             *contact,
@@ -1164,7 +1164,7 @@ static void check_keyed_boxes() {
         scene.add_interaction(joint, a, joint->interaction(0));
         scene.add_interaction(joint, b, joint->interaction(1));
 
-        const std::vector<std::shared_ptr<Joint>> parts = joint->children();
+        const std::vector<std::shared_ptr<JointElement>> parts = joint->children();
         check(parts.size() == 3, fmt::format("the connector has {} parts", parts.size()));
         const Mesh plate_a = a->model_geometry_mesh();
         const Mesh plate_b = b->model_geometry_mesh();
@@ -1353,15 +1353,15 @@ static void check_end_to_end() {
     };
     for (const std::pair<double, std::string>& end_case : cases) {
         WoodSession scene(fmt::format("end_to_end_{:g}_{}", end_case.first, end_case.second));
-        scene.settings.joint_parameters[2] = JointPlate::library_id(end_case.second);
+        scene.settings.joint_parameters[2] = JointPlateElement::library_id(end_case.second);
         const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_end_to_end(end_case.first);
         scene.add(pair[0]);
         scene.add(pair[1]);
         const InteractionContactAxis contact(
             Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 1.0, 0.0, 0, 0, 0, 0
         );
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::from_contact(*pair[0], *pair[1], contact, 600.0, 0.91, 0, scene.settings);
+        const std::shared_ptr<JointBeamElement> joint =
+            JointBeamElement::from_contact(*pair[0], *pair[1], contact, 600.0, 0.91, 0, scene.settings);
         check(
             joint != nullptr && joint->joinery.name == end_case.second,
             fmt::format("the beams at {:g} degrees take {}", end_case.first, end_case.second)

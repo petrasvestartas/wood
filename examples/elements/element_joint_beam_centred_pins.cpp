@@ -16,8 +16,8 @@ int main() {
 
     const std::shared_ptr<InteractionContactFace> contact =
         scene.compute_face_contact(lower, upper);
-    const std::shared_ptr<JointBeam> pins =
-        JointBeam::centred_pins(*lower, *upper, *contact, 8.0, 160.0, 50.0);
+    const std::shared_ptr<JointBeamElement> pins =
+        JointBeamElement::centred_pins(*lower, *upper, *contact, 8.0, 160.0, 50.0);
     pins->name = "pins";
     scene.add(pins);
     scene.add_interaction(pins, lower, pins->interaction(0));

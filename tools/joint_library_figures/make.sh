@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every joint-unit picture of the JointPlate family pages, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
+# Every joint-unit picture of the JointPlateElement family pages, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
 # design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box at half scale, its axes, sides and parameters
 # labelled, and <id>.png, the oracle's pair drawn
 # apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.

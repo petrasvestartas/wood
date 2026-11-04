@@ -7,15 +7,15 @@ Side-to-side in-plane plate joints cutting finger outlines, key pockets, or Hilt
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> side_side_inplane_three_fingers();
-static std::shared_ptr<JointPlate> side_side_inplane_dovetails(int divisions = 0, double shift = 0.5);
-static std::shared_ptr<JointPlate> side_side_inplane_butterfly_keys(int divisions = 0);
-static std::shared_ptr<JointPlate> side_side_inplane_splayed_scarf();
-static std::shared_ptr<JointPlate> side_side_inplane_cross_splayed_scarf();
-static std::shared_ptr<JointPlate> side_side_inplane_tooth_keys(int divisions = 0);
-static std::shared_ptr<JointPlate> side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static std::shared_ptr<JointPlateElement> side_side_inplane_three_fingers();
+static std::shared_ptr<JointPlateElement> side_side_inplane_dovetails(int divisions = 0, double shift = 0.5);
+static std::shared_ptr<JointPlateElement> side_side_inplane_butterfly_keys(int divisions = 0);
+static std::shared_ptr<JointPlateElement> side_side_inplane_splayed_scarf();
+static std::shared_ptr<JointPlateElement> side_side_inplane_cross_splayed_scarf();
+static std::shared_ptr<JointPlateElement> side_side_inplane_tooth_keys(int divisions = 0);
+static std::shared_ptr<JointPlateElement> side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-static std::shared_ptr<JointPlate> side_side_inplane_hilti(
+static std::shared_ptr<JointPlateElement> side_side_inplane_hilti(
     const FacePlanarElement& a,
     const FacePlanarElement& b,
     const InteractionContactFace& contact,

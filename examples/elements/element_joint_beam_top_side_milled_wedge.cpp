@@ -7,7 +7,7 @@ using namespace wood_session;
 int main() {
 
     WoodSession scene("element_joint_beam_top_side_milled_wedge");
-    scene.settings.joint_parameters[8] = JointPlate::library_id("top_side_milled_wedge");
+    scene.settings.joint_parameters[8] = JointPlateElement::library_id("top_side_milled_wedge");
 
     // two 150 x 150 beams 1200 long, meeting at 60 degrees
     const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = EdgeStraightElement::pair_tee(60.0);
@@ -20,8 +20,8 @@ int main() {
     const InteractionContactAxis contact(
         Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.0, 0, 0, 0, 0
     );
-    const std::shared_ptr<JointBeam> joint =
-        JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
+    const std::shared_ptr<JointBeamElement> joint =
+        JointBeamElement::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
     scene.add(joint);
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));

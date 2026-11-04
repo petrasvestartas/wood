@@ -16,7 +16,7 @@ int main() {
     const Polyline notch_loop =
         Polyline::rectangle({500.0, -150.0, 200.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
     const Mesh box = Mesh::loft({notch_loop}, {notch_loop.translated({0.0, 0.0, 200.0})});
-    const std::shared_ptr<Joint> notch = std::make_shared<Joint>(box, SolidOperation::subtract);
+    const std::shared_ptr<JointElement> notch = std::make_shared<JointElement>(box, SolidOperation::subtract);
     notch->name = "notch";
     notch->is_visible = false;
     scene.add(notch);
@@ -33,8 +33,8 @@ int main() {
          {1210.0, -150.0, 300.0},
          {-10.0, -150.0, 300.0}}
     );
-    const std::shared_ptr<Joint> trim =
-        std::make_shared<Joint>(std::vector<Polyline>{arch}, Vector(0.0, 300.0, 0.0));
+    const std::shared_ptr<JointElement> trim =
+        std::make_shared<JointElement>(std::vector<Polyline>{arch}, Vector(0.0, 300.0, 0.0));
     trim->name = "trim";
     trim->is_visible = false;
     scene.add(trim);

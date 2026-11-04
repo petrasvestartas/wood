@@ -18,7 +18,7 @@ int main() {
          }) {
         const Line axis =
             Line::from_points(centre + Vector(0.0, 0.0, 50.0), centre + Vector(0.0, 0.0, -10.0));
-        const std::shared_ptr<Joint> hole = Joint::drill(axis, 15.0);
+        const std::shared_ptr<JointElement> hole = JointElement::drill(axis, 15.0);
         hole->name = "hole";
         hole->is_visible = false;
         scene.add(hole);
@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A plate with four holes: a 600 x 400 plate 40 thick from two polylines, and four hidden hole elements, Joint::drill along a vertical axis, each taking a 30 hole away through add_interaction(hole, plate, InteractionFeatureSolid(drills, radius)), a solid feature of drills alone; written as BReps so the holes are exact cylinders.
+A plate with four holes: a 600 x 400 plate 40 thick from two polylines, and four hidden hole elements, JointElement::drill along a vertical axis, each taking a 30 hole away through add_interaction(hole, plate, InteractionFeatureSolid(drills, radius)), a solid feature of drills alone; written as BReps so the holes are exact cylinders.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

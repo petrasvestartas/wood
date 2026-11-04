@@ -23,7 +23,7 @@ int main() {
         Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400),
         Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)
     });
-    const std::shared_ptr<JointPlate> joint = JointPlate::top_side_tenons(8, 0.5);
+    const std::shared_ptr<JointPlateElement> joint = JointPlateElement::top_side_tenons(8, 0.5);
     joint->is_visible = false;
     plate0->is_locked = true;
 
@@ -69,7 +69,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-plates, a beam, a column, a block and a JointPlate; hard-coded and computed face contacts, including plate alignment lines and volumes; directed joint-to-plate feature edges merge the cut outlines, with mesh and BRep geometry generated on demand and the scene serialized to protobuf.
+plates, a beam, a column, a block and a JointPlateElement; hard-coded and computed face contacts, including plate alignment lines and volumes; directed joint-to-plate feature edges merge the cut outlines, with mesh and BRep geometry generated on demand and the scene serialized to protobuf.
 
 |||||||| DIRECTORY ||||||||
 cd wood

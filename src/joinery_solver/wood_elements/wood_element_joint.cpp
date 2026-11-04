@@ -7,31 +7,31 @@ namespace wood_session {
 
 using namespace session_cpp;
 
-Joint::Joint() : Element("Joint") {
+JointElement::JointElement() : Element("JointElement") {
     is_visible = false;
 }
 
-Joint::Joint(const std::vector<Polyline>& loops, const std::string& name)
+JointElement::JointElement(const std::vector<Polyline>& loops, const std::string& name)
     : Element(name), loops(loops) {
     is_visible = false;
 }
 
-Joint::Joint(const Plane& cutter) : Element("JointCutter"), cuts{cutter} {
+JointElement::JointElement(const Plane& cutter) : Element("JointCutter"), cuts{cutter} {
     is_visible = false;
 }
 
-Joint::Joint(const Mesh& cutter, SolidOperation op)
+JointElement::JointElement(const Mesh& cutter, SolidOperation op)
     : Element(cutter, "JointSolidCutter"), operation(op) {
     is_visible = false;
     if (!cutter.is_closed() || !cutter.is_valid())
         throw std::invalid_argument("A solid cutter needs a valid closed mesh");
 }
 
-Joint::Joint(const Polyline& profile, const Vector& direction)
-    : Joint(std::vector<Polyline>{profile}, direction) {
+JointElement::JointElement(const Polyline& profile, const Vector& direction)
+    : JointElement(std::vector<Polyline>{profile}, direction) {
 }
 
-Joint::Joint(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation op)
+JointElement::JointElement(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation op)
     : Element("JointProfileCutter"), cutter_profile(profile), cutter_extrusion(direction),
       operation(op) {
     is_visible = false;
@@ -53,11 +53,11 @@ Joint::Joint(const std::vector<Polyline>& profile, const Vector& direction, Soli
     }
 }
 
-std::shared_ptr<Joint> Joint::drill(const Line& axis, double radius, double tolerance) {
+std::shared_ptr<JointElement> JointElement::drill(const Line& axis, double radius, double tolerance) {
     circle_segments(radius, tolerance);
     if (axis.length() <= 0)
         throw std::invalid_argument("Drill axis must have positive length");
-    const std::shared_ptr<Joint> result = std::make_shared<Joint>();
+    const std::shared_ptr<JointElement> result = std::make_shared<JointElement>();
     result->name = "JointDrill";
     result->line_radius = radius;
     result->chord_tolerance = tolerance;
@@ -65,7 +65,7 @@ std::shared_ptr<Joint> Joint::drill(const Line& axis, double radius, double tole
     return result;
 }
 
-std::vector<Line> Joint::drill_axes() const {
+std::vector<Line> JointElement::drill_axes() const {
     return drill_lines;
 }
 
@@ -89,10 +89,10 @@ static Polyline head_circle(const NodeSupportElement& support, double level) {
     return Polyline(points);
 }
 
-std::shared_ptr<Joint> Joint::support(const NodeSupportElement& support, const Column& column) {
+std::shared_ptr<JointElement> JointElement::support(const NodeSupportElement& support, const Column& column) {
 
     const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
-    const std::shared_ptr<Joint> joint = std::make_shared<Joint>(
+    const std::shared_ptr<JointElement> joint = std::make_shared<JointElement>(
         std::vector<Polyline>{head_circle(support, bottom), head_circle(support, support.height)},
         "support"
     );
@@ -109,7 +109,7 @@ std::shared_ptr<Joint> Joint::support(const NodeSupportElement& support, const C
     return joint;
 }
 
-std::shared_ptr<Interaction> Joint::interaction(size_t) const {
+std::shared_ptr<Interaction> JointElement::interaction(size_t) const {
 
     // only cutting planes: the target takes the planes themselves, the edge keeps an empty record
     if (loops.empty() && drill_axes().empty() && !cuts.empty())
@@ -128,15 +128,15 @@ std::shared_ptr<Interaction> Joint::interaction(size_t) const {
     return cut;
 }
 
-std::vector<std::array<Polyline, 2>> Joint::bodies() const {
+std::vector<std::array<Polyline, 2>> JointElement::bodies() const {
     return {};
 }
 
-Mesh Joint::key_mesh() const {
+Mesh JointElement::key_mesh() const {
     return Mesh();
 }
 
-Mesh Joint::body_mesh() const {
+Mesh JointElement::body_mesh() const {
 
     if (loops.size() >= 2 && loops.size() % 2 == 0) {
         std::vector<Polyline> bottom{loops[0]};
@@ -157,14 +157,14 @@ Mesh Joint::body_mesh() const {
     for (const std::array<Polyline, 2>& body : bodies())
         append_mesh(mesh, Mesh::loft({body[0]}, {body[1]}, true));
 
-    if (mesh.number_of_faces() == 0 && element_type_name() == "Joint" && drill_axes().empty() &&
+    if (mesh.number_of_faces() == 0 && element_type_name() == "JointElement" && drill_axes().empty() &&
         _geometry_mesh)
         return *_geometry_mesh;
 
     return mesh;
 }
 
-const Mesh& Joint::element_geometry_mesh() const {
+const Mesh& JointElement::element_geometry_mesh() const {
 
     if (!mesh_) {
         mesh_ = body_mesh();
@@ -182,7 +182,7 @@ const Mesh& Joint::element_geometry_mesh() const {
     return *mesh_;
 }
 
-const BRep& Joint::element_geometry_brep() const {
+const BRep& JointElement::element_geometry_brep() const {
     if (!brep_) {
         if (loops.size() >= 2 && loops.size() % 2 == 0) {
             std::vector<Polyline> bottom{loops[0]}, top{loops[1]};
@@ -200,10 +200,10 @@ const BRep& Joint::element_geometry_brep() const {
                 append_brep(*brep_, brep_between_loops({body[0]}, {body[1]}));
             if (key.number_of_faces() > 0)
                 brep_ = mesh_brep(key);
-            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() &&
+            else if (parts.empty() && element_type_name() == "JointElement" && drill_axes().empty() &&
                      _geometry_brep)
                 brep_ = *_geometry_brep;
-            else if (parts.empty() && element_type_name() == "Joint" && drill_axes().empty() &&
+            else if (parts.empty() && element_type_name() == "JointElement" && drill_axes().empty() &&
                      _geometry_mesh)
                 brep_ = BRep::from_polylines(_geometry_mesh->face_outlines());
         }
@@ -213,13 +213,13 @@ const BRep& Joint::element_geometry_brep() const {
     return *brep_;
 }
 
-const Mesh& Joint::model_geometry_mesh() const {
+const Mesh& JointElement::model_geometry_mesh() const {
     if (!model_mesh_)
         model_mesh_ = cut_mesh(element_geometry_mesh(), cuts);
     return *model_mesh_;
 }
 
-const BRep& Joint::model_geometry_brep() const {
+const BRep& JointElement::model_geometry_brep() const {
     if (!model_brep_)
         model_brep_ = !cuts.empty() && !drill_axes().empty()
                           ? mesh_brep(model_geometry_mesh())
@@ -227,11 +227,11 @@ const BRep& Joint::model_geometry_brep() const {
     return *model_brep_;
 }
 
-std::vector<Plane> Joint::compute_planes() const {
+std::vector<Plane> JointElement::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }
 
-void Joint::invalidate_geometry() {
+void JointElement::invalidate_geometry() {
     mesh_.reset();
     brep_.reset();
     model_mesh_.reset();
@@ -240,15 +240,15 @@ void Joint::invalidate_geometry() {
     reset();
 }
 
-void Joint::compute_geometry_mesh_impl() {
+void JointElement::compute_geometry_mesh_impl() {
     set_geometry(model_geometry_mesh());
 }
 
-void Joint::compute_geometry_brep_impl() {
+void JointElement::compute_geometry_brep_impl() {
     set_geometry(model_geometry_brep());
 }
 
-void Joint::place(const Xform& xform) {
+void JointElement::place(const Xform& xform) {
     if (!drill_axes().empty()) {
         const Vector x = Vector(1, 0, 0).transformed(xform), y = Vector(0, 1, 0).transformed(xform),
                      z = Vector(0, 0, 1).transformed(xform);
@@ -273,20 +273,20 @@ void Joint::place(const Xform& xform) {
     invalidate_geometry();
 }
 
-std::shared_ptr<Joint> Joint::transformed(const Xform& xform) const {
+std::shared_ptr<JointElement> JointElement::transformed(const Xform& xform) const {
     if (is_mirror(xform))
         return nullptr;
-    const std::shared_ptr<Joint> result = std::dynamic_pointer_cast<Joint>(clone());
+    const std::shared_ptr<JointElement> result = std::dynamic_pointer_cast<JointElement>(clone());
     result->guid() = guid();
     result->place(xform);
     return result;
 }
 
-AABB Joint::aabb(double inflate) const {
+AABB JointElement::aabb(double inflate) const {
     return AABB::from_mesh(model_geometry_mesh(), inflate);
 }
 
-std::string Joint::str() const {
+std::string JointElement::str() const {
     return fmt::format(
         "{}(name={}, targets={}, is_visible={}, is_locked={})",
         element_type_name(),
@@ -297,15 +297,15 @@ std::string Joint::str() const {
     );
 }
 
-std::string Joint::element_data_dumps() const {
+std::string JointElement::element_data_dumps() const {
 
-    wood_proto::Joint proto;
+    wood_proto::JointElement proto;
     write_proto(proto);
 
     return proto.SerializeAsString();
 }
 
-void Joint::write_proto(wood_proto::Joint& proto) const {
+void JointElement::write_proto(wood_proto::JointElement& proto) const {
 
     proto.set_kind(element_type_name());
     proto.set_line_radius(line_radius);
@@ -330,38 +330,39 @@ void Joint::write_proto(wood_proto::Joint& proto) const {
         proto.add_targets(target);
 }
 
-nlohmann::ordered_json Joint::element_data_jsondump() const {
-    wood_proto::Joint proto;
+nlohmann::ordered_json JointElement::element_data_jsondump() const {
+    wood_proto::JointElement proto;
     if (!proto.ParseFromString(element_data_dumps()))
         throw std::runtime_error("Invalid joint data");
     return json_of(proto);
 }
 
-std::shared_ptr<Joint> Joint::from_element(Element element) {
-    wood_proto::Joint proto;
+std::shared_ptr<JointElement> JointElement::from_element(Element element) {
+    wood_proto::JointElement proto;
     if (!proto.ParseFromString(element.element_data_dumps()))
-        throw std::runtime_error("Invalid Joint protobuf data");
-    std::shared_ptr<Joint> result;
-    if (proto.kind() == "JointAnnen")
-        result = std::make_shared<JointAnnen>();
-    else if (proto.kind() == "JointVidy")
-        result = std::make_shared<JointVidy>();
-    else if (proto.kind() == "JointPlate")
-        result = std::make_shared<JointPlate>();
-    else if (proto.kind() == "JointBeam")
-        result = std::make_shared<JointBeam>();
-    else if (proto.kind() == "ConnectorPart")
-        result = std::make_shared<ConnectorPart>();
-    else if (proto.kind() == "Pin" || proto.kind() == "Pin")
-        result = std::make_shared<Pin>();
+        throw std::runtime_error("Invalid JointElement protobuf data");
+    std::shared_ptr<JointElement> result;
+    const std::string& kind = proto.kind();
+    if (kind == "JointAnnenElement" || kind == "JointAnnen")
+        result = std::make_shared<JointAnnenElement>();
+    else if (kind == "JointVidyElement" || kind == "JointVidy")
+        result = std::make_shared<JointVidyElement>();
+    else if (kind == "JointPlateElement" || kind == "JointPlate")
+        result = std::make_shared<JointPlateElement>();
+    else if (kind == "JointBeamElement" || kind == "JointBeam")
+        result = std::make_shared<JointBeamElement>();
+    else if (kind == "JointConnectorPartElement" || kind == "ConnectorPart")
+        result = std::make_shared<JointConnectorPartElement>();
+    else if (kind == "JointPinElement" || kind == "Pin")
+        result = std::make_shared<JointPinElement>();
     else
-        result = std::make_shared<Joint>();
+        result = std::make_shared<JointElement>();
     static_cast<Element&>(*result) = std::move(element);
     result->read_proto(proto);
     return result;
 }
 
-void Joint::read_proto(const wood_proto::Joint& proto) {
+void JointElement::read_proto(const wood_proto::JointElement& proto) {
 
     for (const session_proto::Polyline& loop : proto.loops())
         loops.push_back(Polyline::pb_loads(loop.SerializeAsString()));
@@ -384,19 +385,24 @@ void Joint::read_proto(const wood_proto::Joint& proto) {
         drill_lines.push_back(Line::pb_loads(axis.SerializeAsString()));
 }
 
-void Joint::register_type() {
+void JointElement::register_type() {
     for (const std::string kind :
-         {"Joint",
+         {"JointElement",
+          "JointPlateElement",
+          "JointBeamElement",
+          "JointAnnenElement",
+          "JointVidyElement",
+          "JointConnectorPartElement",
+          "JointPinElement",
+          "Joint",
           "JointPlate",
           "JointBeam",
           "JointAnnen",
           "JointVidy",
-          "JointElement",
           "ConnectorPart",
-          "Pin",
           "Pin"})
         Element::register_type(kind, [](const std::string& data) {
-            return Joint::from_element(Element::pb_loads(data));
+            return JointElement::from_element(Element::pb_loads(data));
         });
 }
 

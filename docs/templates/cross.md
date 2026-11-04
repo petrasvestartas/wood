@@ -2,7 +2,7 @@
 
 [TOC]
 
-Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlate::cross_slot()` half-laps.
+Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlateElement::cross_slot()` half-laps.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#cross_planes">
@@ -82,7 +82,7 @@ for (int k = 1; k <= divisions; k++) {
 
 ## Cross-Lap Slots and Assembly {#cross_laps}
 
-`compute_cross_contact` locates each intersection between a connector and its adjacent face plates, and `JointPlate::cross_slot()` cuts complementary half-depth slots into both outlines.
+`compute_cross_contact` locates each intersection between a connector and its adjacent face plates, and `JointPlateElement::cross_slot()` cuts complementary half-depth slots into both outlines.
 
 ![](templates/templates_cross_1_vda_mesh_cross_laps.webp)
 

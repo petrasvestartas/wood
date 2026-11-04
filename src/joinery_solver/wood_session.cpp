@@ -24,7 +24,7 @@ bool register_factories() {
     NodeSupportElement::register_type();
     NodeBlockElement::register_type();
     EdgeStraightElement::register_type();
-    Joint::register_type();
+    JointElement::register_type();
     InteractionContactFace::register_type();
     InteractionContactAxis::register_type();
     InteractionContactCross::register_type();
@@ -61,7 +61,7 @@ std::vector<InteractionFeatureSolid>* get_solid_features(Element& element) {
     if (WoodElement* member = dynamic_cast<WoodElement*>(&element))
         return &member->solid_features;
 
-    if (JointBeam* connector = dynamic_cast<JointBeam*>(&element))
+    if (JointBeamElement* connector = dynamic_cast<JointBeamElement*>(&element))
         return &connector->solid_features;
 
     return nullptr;
@@ -315,9 +315,9 @@ void WoodSession::clear_features() {
     std::unordered_set<std::string> kept_joints;
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        const std::shared_ptr<Joint> joint = std::dynamic_pointer_cast<Joint>(element);
-        if (std::dynamic_pointer_cast<JointPlate>(element) ||
-            (std::dynamic_pointer_cast<JointBeam>(element) && joint->generated))
+        const std::shared_ptr<JointElement> joint = std::dynamic_pointer_cast<JointElement>(element);
+        if (std::dynamic_pointer_cast<JointPlateElement>(element) ||
+            (std::dynamic_pointer_cast<JointBeamElement>(element) && joint->generated))
             generated.push_back(element->guid());
         else if (joint)
             kept_joints.insert(element->guid());
@@ -412,7 +412,7 @@ void WoodSession::compute_face_contacts(int level) {
 
     std::map<const TreeNode*, std::vector<std::shared_ptr<Element>>> branches;
     for (const std::shared_ptr<Element>& element : world_elements()) {
-        if (std::dynamic_pointer_cast<Joint>(element))
+        if (std::dynamic_pointer_cast<JointElement>(element))
             continue;
 
         const std::unordered_map<std::string, std::shared_ptr<TreeNode>>::const_iterator found =
@@ -522,9 +522,9 @@ void WoodSession::compute_beam_features(
     double volume_length, double cross_or_side_to_end, int flip_male
 ) {
 
-    std::vector<std::shared_ptr<JointBeam>> previous;
+    std::vector<std::shared_ptr<JointBeamElement>> previous;
     for (const auto& element : *objects.elements)
-        if (auto joint = std::dynamic_pointer_cast<JointBeam>(element); joint && joint->generated)
+        if (auto joint = std::dynamic_pointer_cast<JointBeamElement>(element); joint && joint->generated)
             previous.push_back(joint);
     for (const auto& joint : previous) {
         for (const auto& id : joint->targets)
@@ -568,7 +568,7 @@ void WoodSession::compute_beam_features(
                 dynamic_cast<const InteractionContactAxis*>(interaction.get());
             if (!axis)
                 continue;
-            auto joint = JointBeam::from_contact(
+            auto joint = JointBeamElement::from_contact(
                 *beam_a, *beam_b, *axis, volume_length, cross_or_side_to_end, flip_male, settings
             );
             if (!joint)
@@ -631,7 +631,7 @@ void WoodSession::compute_line_contacts(double tolerance) {
     const double tol_squared = tol * tol;
     std::vector<std::shared_ptr<Element>> elements = world_elements();
     std::erase_if(elements, [](const auto& element) {
-        return std::dynamic_pointer_cast<Joint>(element) != nullptr;
+        return std::dynamic_pointer_cast<JointElement>(element) != nullptr;
     });
 
     std::vector<std::vector<std::vector<Line>>> lines(elements.size());
@@ -694,7 +694,7 @@ bool WoodSession::consistent() const {
                 const std::string& target =
                     feature->target_side == 1 ? feature->element_a : feature->element_b;
                 const std::string source = edge.v0 == target ? edge.v1 : edge.v0;
-                if ((edge.v0 != target && edge.v1 != target) || !get_element<Joint>(source))
+                if ((edge.v0 != target && edge.v1 != target) || !get_element<JointElement>(source))
                     return false;
             } else if (!((feature->element_a == edge.v0 && feature->element_b == edge.v1) ||
                          (feature->element_a == edge.v1 && feature->element_b == edge.v0)))
@@ -737,7 +737,7 @@ std::vector<InteractionFeaturePlate> WoodSession::get_plate_features() const {
     std::vector<InteractionFeaturePlate> out;
     std::unordered_set<std::string> seen;
     for (const auto& element : *objects.elements)
-        if (const auto joint = std::dynamic_pointer_cast<JointPlate>(element))
+        if (const auto joint = std::dynamic_pointer_cast<JointPlateElement>(element))
             for (const auto& connection : joint->connections)
                 if (seen.insert(connection.guid()).second)
                     out.push_back(connection);
@@ -842,7 +842,7 @@ static void host_solid_feature(
 );
 static void host_plate_joint_side(
     WoodSession& scene,
-    const std::shared_ptr<JointPlate>& joint,
+    const std::shared_ptr<JointPlateElement>& joint,
     const InteractionFeaturePlate& connection,
     int side,
     const std::shared_ptr<FacePlanarElement>& plate,
@@ -885,20 +885,20 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         throw std::invalid_argument("An interaction needs two elements and a payload");
 
     // a joint on one of its targets: what that kind of joint does there
-    const std::shared_ptr<Joint> joint_source = std::dynamic_pointer_cast<Joint>(source);
+    const std::shared_ptr<JointElement> joint_source = std::dynamic_pointer_cast<JointElement>(source);
     const bool joint_payload = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) ||
                                std::dynamic_pointer_cast<InteractionFeatureBeam>(interaction) ||
                                std::dynamic_pointer_cast<InteractionFeaturePlateBeam>(interaction);
 
-    if (joint_source && !std::dynamic_pointer_cast<JointPlate>(joint_source) && joint_payload)
+    if (joint_source && !std::dynamic_pointer_cast<JointPlateElement>(joint_source) && joint_payload)
         return add_joint_interaction(joint_source, target, interaction);
 
     const bool feature = std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction) ||
                          std::dynamic_pointer_cast<InteractionFeaturePlane>(interaction);
-    const std::shared_ptr<Joint> tie = std::dynamic_pointer_cast<Joint>(source);
+    const std::shared_ptr<JointElement> tie = std::dynamic_pointer_cast<JointElement>(source);
     if (feature && (!tie || tie->targets.size() < 2))
         nest_feature_source(*this, *source, *target);
-    if (auto joint = std::dynamic_pointer_cast<JointPlate>(source)) {
+    if (auto joint = std::dynamic_pointer_cast<JointPlateElement>(source)) {
         auto feature = std::dynamic_pointer_cast<InteractionFeaturePlate>(interaction);
         if (!feature || feature->target_side < 1 || feature->target_side > 2)
             throw std::invalid_argument("A plate joint interaction must select its target side");
@@ -1262,7 +1262,7 @@ std::string WoodSession::repr() const {
 std::shared_ptr<TreeNode>
 WoodSession::add(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> parent) {
 
-    const bool member = !std::dynamic_pointer_cast<Joint>(element);
+    const bool member = !std::dynamic_pointer_cast<JointElement>(element);
     const std::shared_ptr<TreeNode> node = add_element(std::move(element), std::move(parent));
 
     // a member's node light grey; a joint keeps the viewer's default, a connector paints its own when its parts are nested
@@ -1362,8 +1362,8 @@ WoodSession WoodSession::get_branch(const std::string& name) const {
     part.settings = settings;
     append_plate_lists(part, plate_guids(*this), adjacency, three_valence);
 
-    for (const std::shared_ptr<JointBeam>& connector : get_elements<JointBeam>())
-        if (connector->pre_drill && !part.get_element<JointBeam>(connector->guid()))
+    for (const std::shared_ptr<JointBeamElement>& connector : get_elements<JointBeamElement>())
+        if (connector->pre_drill && !part.get_element<JointBeamElement>(connector->guid()))
             if (std::any_of(
                     connector->targets.begin(),
                     connector->targets.end(),
@@ -1383,7 +1383,7 @@ std::vector<Line> WoodSession::pre_drill_lines(const std::string& guid) const {
     std::vector<Line> lines;
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        const JointBeam* connector = dynamic_cast<const JointBeam*>(element.get());
+        const JointBeamElement* connector = dynamic_cast<const JointBeamElement*>(element.get());
         if (!connector || !connector->pre_drill ||
             std::find(connector->targets.begin(), connector->targets.end(), guid) ==
                 connector->targets.end())
@@ -1404,7 +1404,7 @@ namespace wood_session {
 
 /// A connector's holes in one target, in the connector's frame.
 static std::vector<Line>
-target_drills(const WoodSession& scene, const JointBeam& joint, const Element& target) {
+target_drills(const WoodSession& scene, const JointBeamElement& joint, const Element& target) {
 
     const std::optional<Xform> local = scene.world_xform(target.guid()).inverse();
 
@@ -1449,7 +1449,7 @@ target_drills(const WoodSession& scene, const JointBeam& joint, const Element& t
 }
 
 /// Gives a cut connector's part children the connector's cuts again.
-static void sync_parts(WoodSession& scene, const JointBeam& connector) {
+static void sync_parts(WoodSession& scene, const JointBeamElement& connector) {
 
     const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector.guid());
     size_t index = 0;
@@ -1458,8 +1458,8 @@ static void sync_parts(WoodSession& scene, const JointBeam& connector) {
         return;
 
     for (TreeNode* child : node->children())
-        if (const std::shared_ptr<ConnectorPart> part =
-                scene.get_element<ConnectorPart>(child->name)) {
+        if (const std::shared_ptr<JointConnectorPartElement> part =
+                scene.get_element<JointConnectorPartElement>(child->name)) {
             part->solid_features = connector.part_features(index++);
             part->invalidate_geometry();
         }
@@ -1470,28 +1470,28 @@ static void refresh_target(WoodSession& scene, const std::shared_ptr<Element>& t
 
     target->invalidate_geometry();
 
-    if (const std::shared_ptr<JointBeam> connector = std::dynamic_pointer_cast<JointBeam>(target))
+    if (const std::shared_ptr<JointBeamElement> connector = std::dynamic_pointer_cast<JointBeamElement>(target))
         sync_parts(scene, *connector);
 }
 
 /// Nests a connector's parts and pins under its node as child elements, once.
-static void nest_children(WoodSession& scene, const JointBeam& connector) {
+static void nest_children(WoodSession& scene, const JointBeamElement& connector) {
 
     const std::shared_ptr<TreeNode> node = scene.tree.get_node_by_name(connector.guid());
 
     if (!node || !node->children().empty())
         return;
 
-    for (const std::shared_ptr<Joint>& child : connector.children())
+    for (const std::shared_ptr<JointElement>& child : connector.children())
         scene.add(child, node);
 
-    scene.set_node_color(node, JointBeam::CONNECTOR_COLOR, true);
+    scene.set_node_color(node, JointBeamElement::CONNECTOR_COLOR, true);
 }
 
 /// The holes a joint's lines make in a target as drill features in the target's frame.
 static void host_drills(
     WoodSession& scene,
-    const Joint& joint,
+    const JointElement& joint,
     const Element& target,
     const std::vector<Line>& lines,
     double radius
@@ -1598,11 +1598,11 @@ static InteractionFeatureSolid plate_joint_cutter(
     InteractionFeatureSolid cut;
     cut.drill_radius = radius;
     cut.drill_tolerance = chord_tolerance;
-    cut.drills = JointPlate::side_drills(connection, side);
+    cut.drills = JointPlateElement::side_drills(connection, side);
 
     // a piece that only touches the stock, as the side slab a builder pushes into the neighbour does, is no cut: its coincident faces would
     std::vector<Mesh> pieces;
-    for (const Mesh& piece : JointPlate::side_solids(connection, side)) {
+    for (const Mesh& piece : JointPlateElement::side_solids(connection, side)) {
         const Mesh taken = solid_boolean(stock, piece, SolidOperation::intersect);
         if (connection.name.ends_with("_custom") ||
             (taken.number_of_faces() > 0 && compute_volume(taken) > 1e-9 * compute_volume(piece)))
@@ -1617,7 +1617,7 @@ static InteractionFeatureSolid plate_joint_cutter(
 /// Hosts one side of a plate joint on its plate.
 static void host_plate_joint_side(
     WoodSession& scene,
-    const std::shared_ptr<JointPlate>& joint,
+    const std::shared_ptr<JointPlateElement>& joint,
     const InteractionFeaturePlate& connection,
     int side,
     const std::shared_ptr<FacePlanarElement>& plate,
@@ -1663,7 +1663,7 @@ static void host_plate_joint_side(
     host_drills(scene, *joint, *plate, drills, joint->line_radius);
 }
 
-static void add_plane_cut(const Joint& joint, Element& target) {
+static void add_plane_cut(const JointElement& joint, Element& target) {
 
     if (EdgeElement* edge = dynamic_cast<EdgeElement*>(&target))
         edge->cuts.insert(edge->cuts.end(), joint.cuts.begin(), joint.cuts.end());
@@ -1711,15 +1711,15 @@ bool WoodSession::placed(const std::string& name, const std::string& prefix) {
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
-        const bool connector_child = std::dynamic_pointer_cast<Pin>(element) ||
-                                     std::dynamic_pointer_cast<ConnectorPart>(element);
+        const bool connector_child = std::dynamic_pointer_cast<JointPinElement>(element) ||
+                                     std::dynamic_pointer_cast<JointConnectorPartElement>(element);
         const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
                            std::dynamic_pointer_cast<FaceCurvedElement>(element) ||
                            std::dynamic_pointer_cast<EdgeCurvedElement>(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 
         if (connector_child || round || (wood && !wood->solid_features.empty()) ||
-            (!std::dynamic_pointer_cast<Joint>(element) &&
+            (!std::dynamic_pointer_cast<JointElement>(element) &&
              element->model_geometry_mesh().number_of_vertices() !=
                  element->element_geometry_mesh().number_of_vertices()))
             element->compute_geometry_brep();
@@ -1744,7 +1744,7 @@ std::shared_ptr<Interaction> WoodSession::add_solid_interaction(
 }
 
 std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
-    const std::shared_ptr<Joint>& joint,
+    const std::shared_ptr<JointElement>& joint,
     const std::shared_ptr<Element>& target,
     std::shared_ptr<Interaction> interaction
 ) {
@@ -1753,7 +1753,7 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
         joint->targets.end())
         joint->targets.push_back(target->guid());
 
-    const std::shared_ptr<JointBeam> beam_joint = std::dynamic_pointer_cast<JointBeam>(joint);
+    const std::shared_ptr<JointBeamElement> beam_joint = std::dynamic_pointer_cast<JointBeamElement>(joint);
     const std::shared_ptr<InteractionFeatureSolid> cut =
         std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
 
@@ -1816,11 +1816,11 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
             add_solid_interaction(joint, target, cut);
 
         if (const std::shared_ptr<FacePlanarElement> plate = std::dynamic_pointer_cast<FacePlanarElement>(target)) {
-            std::vector<std::pair<std::shared_ptr<JointBeam>, size_t>> butts;
+            std::vector<std::pair<std::shared_ptr<JointBeamElement>, size_t>> butts;
             std::map<size_t, Plane> planes;
             for (const std::string& guid : graph.neighbors(target->guid())) {
-                const std::shared_ptr<JointBeam> butt =
-                    std::dynamic_pointer_cast<JointBeam>(get_object<Element>(guid));
+                const std::shared_ptr<JointBeamElement> butt =
+                    std::dynamic_pointer_cast<JointBeamElement>(get_object<Element>(guid));
                 if (!butt || !butt->is_butt)
                     continue;
                 const size_t side =
@@ -1831,8 +1831,8 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
                 butts.emplace_back(butt, side);
                 planes[(size_t)butt->butt_ends[side]] = *butt->butt_planes[side];
             }
-            for (const std::pair<std::shared_ptr<JointBeam>, size_t>& butt : butts) {
-                const std::array<Mesh, 2> edge = JointBeam::plate_end(
+            for (const std::pair<std::shared_ptr<JointBeamElement>, size_t>& butt : butts) {
+                const std::array<Mesh, 2> edge = JointBeamElement::plate_end(
                     *plate, (size_t)butt.first->butt_ends[butt.second], planes, plate->thickness
                 );
                 if (edge[0].number_of_faces() > 0)

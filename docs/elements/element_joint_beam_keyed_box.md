@@ -7,7 +7,7 @@ Two plates held face to face by a box through a mortise in both, locked by two w
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointBeam> JointBeam::keyed_box(const FacePlanarElement& a, const FacePlanarElement& b, const InteractionContactFace& contact, double box_width = 2.4, double box_depth = 1.6, double mortise = 0.6, double key_width = 1.5, double key_taper = 0.125, double key_proud = 0.5, double head = 1.2);
+static std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(const FacePlanarElement& a, const FacePlanarElement& b, const InteractionContactFace& contact, double box_width = 2.4, double box_depth = 1.6, double mortise = 0.6, double key_width = 1.5, double key_taper = 0.125, double key_proud = 0.5, double head = 1.2);
 ```
 
 Sizes are shares of the first plate's thickness, so the joint follows the plates; the second plate may be thicker or thinner. The box stands at the centre of the contact. It returns null when the sizes leave nothing, the keys do not taper, or the box would leave the plates.

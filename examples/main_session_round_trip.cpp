@@ -88,7 +88,7 @@ int main() {
     check(a.graph.number_of_vertices() == b.graph.number_of_vertices(), "graph vertex count");
     size_t joint_elements = 0;
     for (const auto& element : *a.objects.elements)
-        if (std::dynamic_pointer_cast<Joint>(element))
+        if (std::dynamic_pointer_cast<JointElement>(element))
             ++joint_elements;
     check(
         static_cast<size_t>(vertices_after) ==

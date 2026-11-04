@@ -55,7 +55,7 @@ void Truss::add_webs() {
 }
 
 void Truss::add_butt(
-    const std::shared_ptr<JointBeam>& butt,
+    const std::shared_ptr<JointBeamElement>& butt,
     const std::shared_ptr<EdgeStraightElement>& a,
     const std::shared_ptr<EdgeStraightElement>& b
 ) {
@@ -165,7 +165,7 @@ void Truss::add_chord_butts() {
     for (size_t i = 0; i + 1 < runs.size(); i++)
         if (runs[i].chord == runs[i + 1].chord)
             add_butt(
-                JointBeam::butt_side_side(*runs[i].beam, *runs[i + 1].beam),
+                JointBeamElement::butt_side_side(*runs[i].beam, *runs[i + 1].beam),
                 runs[i].beam,
                 runs[i + 1].beam
             );
@@ -198,7 +198,7 @@ void Truss::add_chord_butts() {
                     const Point far = at(ending.ends[0], *heel) ? ending.ends[1] : ending.ends[0];
                     const Vector away = *heel - far;
                     const Vector normal = (through.ends[1] - through.ends[0]).cross(away).normalized();
-                    const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*through.beam, *ending.beam);
+                    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::butt_top_side(*through.beam, *ending.beam);
                     if (joint) {
                         joint->butt_extensions[1] = InteractionFeatureSolid();
                         joint->butt_solids[1] = InteractionFeatureSolid(
@@ -212,21 +212,21 @@ void Truss::add_chord_butts() {
                     }
                     add_butt(joint, through.beam, ending.beam);
                 } else if (bent[0])
-                    add_butt(JointBeam::butt_cross(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
+                    add_butt(JointBeamElement::butt_cross(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
                 else
-                    add_butt(JointBeam::butt_side_side(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
+                    add_butt(JointBeamElement::butt_side_side(*runs[i].beam, *runs[j].beam), runs[i].beam, runs[j].beam);
             }
             for (const Point& end : runs[j].ends)
                 if (inside(end, runs[i].ends))
                     add_butt(
-                        JointBeam::butt_top_side(*runs[i].beam, *runs[j].beam),
+                        JointBeamElement::butt_top_side(*runs[i].beam, *runs[j].beam),
                         runs[i].beam,
                         runs[j].beam
                     );
             for (const Point& end : runs[i].ends)
                 if (inside(end, runs[j].ends))
                     add_butt(
-                        JointBeam::butt_top_side(*runs[j].beam, *runs[i].beam),
+                        JointBeamElement::butt_top_side(*runs[j].beam, *runs[i].beam),
                         runs[j].beam,
                         runs[i].beam
                     );
@@ -260,7 +260,7 @@ void Truss::add_chord_butts() {
             const Vector normal = on.cross(along).normalized();
             Vector out = along.cross(normal);
             out = out.dot(on) < 0.0 ? out * -1.0 : out;
-            const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*carried, *runner);
+            const std::shared_ptr<JointBeamElement> joint = JointBeamElement::butt_top_side(*carried, *runner);
             if (joint) {
                 joint->name = "end";
                 joint->butt_extensions = {InteractionFeatureSolid(), InteractionFeatureSolid()};
@@ -510,13 +510,13 @@ void Truss::add_web_butts() {
                 } else if (at_end && leveled.count(member.second.get()) && leveled.count(run.second.get()) &&
                            ranks[member.second.get()] < ranks[run.second.get()]) {
                     add_butt(
-                        JointBeam::butt_top_side_end(*member.second, *run.second),
+                        JointBeamElement::butt_top_side_end(*member.second, *run.second),
                         member.second,
                         run.second
                     );
                 } else if (at_end) {
                     add_butt(
-                        JointBeam::butt_top_side_end(*run.second, *member.second),
+                        JointBeamElement::butt_top_side_end(*run.second, *member.second),
                         run.second,
                         member.second
                     );
@@ -596,7 +596,7 @@ void Truss::add_web_butts() {
                     crossing.first + plane.z_axis() * layer, plane.z_axis()
                 );
                 add_butt(
-                    JointBeam::butt_cross(
+                    JointBeamElement::butt_cross(
                         *lines[crossed[i]].second, *lines[crossed[j]].second, lap
                     ),
                     lines[crossed[i]].second,
@@ -680,7 +680,7 @@ void Truss::add_web_butts() {
                 const std::pair<double, std::shared_ptr<EdgeStraightElement>>& a = same[k];
                 const std::pair<double, std::shared_ptr<EdgeStraightElement>>& b = same[(k + 1) % same.size()];
                 if (!apart(a.first, b.first))
-                    add_butt(JointBeam::butt_side_side(*a.second, *b.second), a.second, b.second);
+                    add_butt(JointBeamElement::butt_side_side(*a.second, *b.second), a.second, b.second);
             }
         }
     }
@@ -702,7 +702,7 @@ void Truss::add_web_butts() {
         }
         const std::pair<std::shared_ptr<EdgeStraightElement>, std::shared_ptr<EdgeStraightElement>> let = lets[next];
         lets.erase(lets.begin() + next);
-        const std::shared_ptr<JointBeam> joint = JointBeam::butt_top_side(*let.first, *let.second);
+        const std::shared_ptr<JointBeamElement> joint = JointBeamElement::butt_top_side(*let.first, *let.second);
         if (joint) {
             const std::vector<Point> ends = let.second->axis.get_points();
             const Line outer_axis = Line::from_points(let.first->axis.get_points().front(), let.first->axis.get_points().back());

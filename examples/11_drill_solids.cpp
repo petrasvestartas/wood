@@ -6,7 +6,7 @@ int main() {
     int row = 0;
     for (double tolerance : {2.0, 0.2, 0.02}) {
         const Line axis = Line::from_points({0, double(row * 180), 0}, {0, double(row * 180), 100});
-        const std::shared_ptr<Joint> drill = Joint::drill(axis, 35, tolerance);
+        const std::shared_ptr<JointElement> drill = JointElement::drill(axis, 35, tolerance);
         drill->is_visible = true;
         drill->name = fmt::format(
             "Mesh: tolerance {}, {} segments", tolerance, circle_segments(35, tolerance)
@@ -29,7 +29,7 @@ int main() {
         scene,
         "Tilted drill through block",
         stock,
-        Joint::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2),
+        JointElement::drill(Line::from_points({60, 80, -30}, {145, 80, 130}), 28, 0.2),
         640
     );
     finish(scene, "11_drill_solids");

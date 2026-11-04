@@ -2,13 +2,13 @@
 
 [TOC]
 
-Cross-lap joints on two crossing beams (`EdgeStraightElement::pair_crossing(60.0)`) cut as 3D feature volumes by `JointBeam::from_contact` using `settings.joint_parameters[11]`.
+Cross-lap joints on two crossing beams (`EdgeStraightElement::pair_crossing(60.0)`) cut as 3D feature volumes by `JointBeamElement::from_contact` using `settings.joint_parameters[11]`.
 
 ## Constructors
 
 ```cpp
 static std::array<std::shared_ptr<EdgeStraightElement>, 2> EdgeStraightElement::pair_crossing(double angle_degrees = 90.0, double radius = 75.0, double length = 1200.0);
-static std::shared_ptr<JointBeam> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
+static std::shared_ptr<JointBeamElement> from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
 ```
 
 Every example shows one pair crossing at `60°` with the lower beam shifted downward out of its lap notch.

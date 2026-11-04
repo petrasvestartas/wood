@@ -1,16 +1,16 @@
 #include "pch.h"
-#include "wood_element_connector_part.h"
+#include "wood_element_joint_connector_part.h"
 
 namespace wood_session {
 
 using namespace session_cpp;
 
-ConnectorPart::ConnectorPart() {
+JointConnectorPartElement::JointConnectorPartElement() {
     name = "part";
     is_visible = true;
 }
 
-ConnectorPart::ConnectorPart(const JointBeam& connector, size_t index, const std::string& name) {
+JointConnectorPartElement::JointConnectorPartElement(const JointBeamElement& connector, size_t index, const std::string& name) {
 
     this->name = name;
     is_visible = true;
@@ -20,7 +20,7 @@ ConnectorPart::ConnectorPart(const JointBeam& connector, size_t index, const std
     chord_tolerance = connector.chord_tolerance;
 }
 
-const Mesh& ConnectorPart::element_geometry_mesh() const {
+const Mesh& JointConnectorPartElement::element_geometry_mesh() const {
 
     if (!mesh_)
         mesh_ = apply_solid_features(part_mesh(0), solid_features);
@@ -28,7 +28,7 @@ const Mesh& ConnectorPart::element_geometry_mesh() const {
     return *mesh_;
 }
 
-const BRep& ConnectorPart::element_geometry_brep() const {
+const BRep& JointConnectorPartElement::element_geometry_brep() const {
 
     if (!brep_)
         brep_ = part_brep(0);

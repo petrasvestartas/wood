@@ -194,7 +194,7 @@ void Floor::add_column(size_t corner) {
     }
 
     add(support, group);
-    const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+    const std::shared_ptr<JointElement> seat = JointElement::support(*support, *shaft);
     add(seat, group);
     add_interaction(seat, shaft, seat->interaction(0));
 
@@ -384,7 +384,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
         const Contact& seam = quarter_contacts.seam_wedge;
         const double beam = guide.size_inner_beams;
         const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(lift);
-        quarter_connectors.seam_wedge = JointBeam::wedge(
+        quarter_connectors.seam_wedge = JointBeamElement::wedge(
             *seam.a, *seam.b, *seam.face, 1.5 * beam, 2.0 * beam / 3.0, outer_face
         );
 
@@ -393,15 +393,15 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
         const double oculus_beam = FloorGuide::thickness(guide.inner_beams(q)[1]);
         const double ring_beam = FloorGuide::thickness(guide.oculus()[q]);
         const double thicker = std::max(oculus_beam, ring_beam);
-        quarter_connectors.oculus_wedge = JointBeam::wedge(
+        quarter_connectors.oculus_wedge = JointBeamElement::wedge(
             *oculus.a, *oculus.b, *oculus.face, 1.5 * thicker, 2.0 * thicker / 3.0
         );
 
         // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
         for (size_t k = 0; k < 2; k++) {
             const Contact& column = quarter_contacts.column_plates[k];
-            quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
-            quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
+            quarter_connectors.column_plates[k] = JointBeamElement::let_in_plate(*column.b, *column.face);
+            quarter_connectors.column_plate_pins[k] = JointBeamElement::rectangle_plate(
                 *column.a, *column.b, *quarter_connectors.column_plates[k], *column.face
             );
         }
@@ -416,7 +416,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
                 fmt::format("quarter {}: the two column plates do not cross", q)
             );
 
-        quarter_connectors.cross_lap = JointPlate::cross_slot();
+        quarter_connectors.cross_lap = JointPlateElement::cross_slot();
         quarter_connectors.cross_lap->orient(crossing, {plates[0], plates[1]});
         quarter_connectors.cross_lap->name = fmt::format("connector_cross_lap_{}", q);
 
@@ -424,8 +424,8 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
                 const Contact& contact = quarter_contacts.block_pins[b][side];
-                const std::shared_ptr<JointBeam> pins =
-                    JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
+                const std::shared_ptr<JointBeamElement> pins =
+                    JointBeamElement::centred_pins(*contact.a, *contact.b, *contact.face);
 
                 if (!pins)
                     throw std::runtime_error(
@@ -440,7 +440,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
             const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
             const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
             const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
-            quarter_connectors.outer_rib_seam_beam[k] = JointBeam::headed_pins(
+            quarter_connectors.outer_rib_seam_beam[k] = JointBeamElement::headed_pins(
                 *outer.a,
                 *outer.b,
                 *outer.face,
@@ -451,7 +451,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
                 PIN_RADIUS,
                 PIN_LENGTH
             );
-            quarter_connectors.seam_beam_oculus_beam[k] = JointBeam::headed_pins(
+            quarter_connectors.seam_beam_oculus_beam[k] = JointBeamElement::headed_pins(
                 *seam.a,
                 *seam.b,
                 *seam.face,
@@ -462,7 +462,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
                 PIN_RADIUS,
                 PIN_LENGTH
             );
-            quarter_connectors.oculus_beam_inner_rib[k] = JointBeam::headed_pins(
+            quarter_connectors.oculus_beam_inner_rib[k] = JointBeamElement::headed_pins(
                 *inner.a,
                 *inner.b,
                 *inner.face,
@@ -487,7 +487,7 @@ Floor::compute_connectors(const std::array<QuarterContacts, 4>& contacts) const 
 
         // ring corner pins: two in a column across the corner of ring beam q and the next
         const Contact& ring = quarter_contacts.ring_corner;
-        quarter_connectors.ring_corner = JointBeam::headed_pins(
+        quarter_connectors.ring_corner = JointBeamElement::headed_pins(
             *ring.a,
             *ring.b,
             *ring.face,
@@ -513,7 +513,7 @@ void Floor::add_connectors(
 
     // seam wedges: each wedge added, then into the two seam beams it joins
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointBeam>& wedge = connectors[q].seam_wedge;
+        const std::shared_ptr<JointBeamElement>& wedge = connectors[q].seam_wedge;
         const Contact& seam = contacts[q].seam_wedge;
         add(wedge, connectors_group(q));
         add_interaction(wedge, seam.a, wedge->interaction(0));
@@ -522,7 +522,7 @@ void Floor::add_connectors(
 
     // oculus wedges: into the oculus beam and its ring beam
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointBeam>& wedge = connectors[q].oculus_wedge;
+        const std::shared_ptr<JointBeamElement>& wedge = connectors[q].oculus_wedge;
         const Contact& oculus = contacts[q].oculus_wedge;
         add(wedge, group_named("connectors", group_named("oculus")));
         add_interaction(wedge, oculus.a, wedge->interaction(0));
@@ -533,7 +533,7 @@ void Floor::add_connectors(
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const std::shared_ptr<FacePlanarElement>& plate = connectors[q].column_plates[k];
-            const std::shared_ptr<JointBeam>& pins = connectors[q].column_plate_pins[k];
+            const std::shared_ptr<JointBeamElement>& pins = connectors[q].column_plate_pins[k];
             const Contact& column = contacts[q].column_plates[k];
             add(plate, connectors_group(q));
             add(pins, connectors_group(q));
@@ -546,7 +546,7 @@ void Floor::add_connectors(
     for (size_t q = 0; q < 4; q++)
         for (size_t b = 0; b < 3; b++)
             for (size_t side = 0; side < 2; side++) {
-                const std::shared_ptr<JointBeam>& pins = connectors[q].block_pins[b][side];
+                const std::shared_ptr<JointBeamElement>& pins = connectors[q].block_pins[b][side];
                 const Contact& block = contacts[q].block_pins[b][side];
                 add(pins, connectors_group(q));
                 add_interaction(pins, block.a, pins->interaction(0));
@@ -556,7 +556,7 @@ void Floor::add_connectors(
     // pins: seam beam into the outer rib ending on it
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<JointBeam>& pins = connectors[q].outer_rib_seam_beam[k];
+            const std::shared_ptr<JointBeamElement>& pins = connectors[q].outer_rib_seam_beam[k];
             const Contact& joint = contacts[q].outer_rib_seam_beam[k];
             add(pins, connectors_group(q));
             add_interaction(pins, joint.a, pins->interaction(0));
@@ -566,7 +566,7 @@ void Floor::add_connectors(
     // pins: seam beam into the oculus beam
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<JointBeam>& pins = connectors[q].seam_beam_oculus_beam[k];
+            const std::shared_ptr<JointBeamElement>& pins = connectors[q].seam_beam_oculus_beam[k];
             const Contact& joint = contacts[q].seam_beam_oculus_beam[k];
             add(pins, connectors_group(q));
             add_interaction(pins, joint.a, pins->interaction(0));
@@ -576,7 +576,7 @@ void Floor::add_connectors(
     // pins: oculus beam into the inner rib
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
-            const std::shared_ptr<JointBeam>& pins = connectors[q].oculus_beam_inner_rib[k];
+            const std::shared_ptr<JointBeamElement>& pins = connectors[q].oculus_beam_inner_rib[k];
             const Contact& joint = contacts[q].oculus_beam_inner_rib[k];
             add(pins, connectors_group(q));
             add_interaction(pins, joint.a, pins->interaction(0));
@@ -585,7 +585,7 @@ void Floor::add_connectors(
 
     // pins: ring beam q into the next at their corner
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointBeam>& pins = connectors[q].ring_corner;
+        const std::shared_ptr<JointBeamElement>& pins = connectors[q].ring_corner;
         const Contact& joint = contacts[q].ring_corner;
         add(pins, group_named("connectors", group_named("oculus")));
         add_interaction(pins, joint.a, pins->interaction(0));
@@ -594,7 +594,7 @@ void Floor::add_connectors(
 
     // cross laps, last: the half lap merged into the outlines of the two column plates
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<JointPlate>& lap = connectors[q].cross_lap;
+        const std::shared_ptr<JointPlateElement>& lap = connectors[q].cross_lap;
         const std::array<std::shared_ptr<FacePlanarElement>, 2>& plates = connectors[q].column_plates;
         add(lap, connectors_group(q));
         add_interaction(lap, plates[0], lap->interaction(0));

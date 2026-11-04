@@ -2,13 +2,13 @@
 
 [TOC]
 
-A skew T-bridle: the second beam ends in a fork of two cheeks around a tongue left in the first, both beams flush, the fork sliding in square to the first beam from its near face, selected via `settings.joint_parameters[8]` and cut by `JointBeam::from_contact`.
+A skew T-bridle: the second beam ends in a fork of two cheeks around a tongue left in the first, both beams flush, the fork sliding in square to the first beam from its near face, selected via `settings.joint_parameters[8]` and cut by `JointBeamElement::from_contact`.
 
 ## Constructors
 
 ```cpp
-static std::shared_ptr<JointPlate> JointPlate::top_side_bridle(double shoulder = 0.3, double tongue = 1.0 / 3.0);
-static std::shared_ptr<JointBeam> JointBeam::from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
+static std::shared_ptr<JointPlateElement> JointPlateElement::top_side_bridle(double shoulder = 0.3, double tongue = 1.0 / 3.0);
+static std::shared_ptr<JointBeamElement> JointBeamElement::from_contact(const EdgeStraightElement& source, const EdgeStraightElement& target, const InteractionContactAxis& contact, double volume_length, double cross_or_side_to_end, int flip_male = 0, const Settings& settings = Settings());
 ```
 
 - `tongue`: the thickness left in the first beam, as a share of the height. The two cheeks share the rest.

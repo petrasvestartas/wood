@@ -34,22 +34,22 @@ struct QuarterContacts {
 
 /// The connectors of one quarter.
 struct QuarterConnectors {
-    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
-    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
+    std::shared_ptr<JointBeamElement> seam_wedge; // connector_seam_wedge_<q>.
+    std::shared_ptr<JointBeamElement> oculus_wedge; // connector_oculus_wedge_<q>.
     std::array<std::shared_ptr<FacePlanarElement>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
-    std::array<std::shared_ptr<JointBeam>, 2>
+    std::array<std::shared_ptr<JointBeamElement>, 2>
         column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
-    std::shared_ptr<JointPlate>
+    std::shared_ptr<JointPlateElement>
         cross_lap; // connector_cross_lap_<q>, the cross half lap where the two column plates cross.
-    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3>
+    std::array<std::array<std::shared_ptr<JointBeamElement>, 2>, 3>
         block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
-    std::array<std::shared_ptr<JointBeam>, 2>
+    std::array<std::shared_ptr<JointBeamElement>, 2>
         outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
-    std::array<std::shared_ptr<JointBeam>, 2>
+    std::array<std::shared_ptr<JointBeamElement>, 2>
         seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
-    std::array<std::shared_ptr<JointBeam>, 2>
+    std::array<std::shared_ptr<JointBeamElement>, 2>
         oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
-    std::shared_ptr<JointBeam>
+    std::shared_ptr<JointBeamElement>
         ring_corner; // connector_pins_ring_corner_<q>, ring beam q and ring beam q + 1 at their corner.
 };
 

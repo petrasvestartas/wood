@@ -53,7 +53,7 @@ static void join(
     const std::shared_ptr<Element>& butting
 ) {
 
-    const std::shared_ptr<JointBeam> butt = JointBeam::butt(*running, *butting);
+    const std::shared_ptr<JointBeamElement> butt = JointBeamElement::butt(*running, *butting);
     butt->name = fmt::format("butt_{}_{}", running->name, butting->name);
     scene.add(butt);
     scene.add_interaction(butt, running, butt->interaction(0));
@@ -77,8 +77,8 @@ static void pair(
     WoodSession scene(name);
     scene.add(a);
     scene.add(b);
-    const std::shared_ptr<JointBeam> butt =
-        side_side ? JointBeam::butt_side_side(*a, *b) : JointBeam::butt(*a, *b);
+    const std::shared_ptr<JointBeamElement> butt =
+        side_side ? JointBeamElement::butt_side_side(*a, *b) : JointBeamElement::butt(*a, *b);
     check(
         butt && butt->configuration == expected,
         fmt::format(
@@ -552,7 +552,7 @@ static void frame() {
              {head, right_brace},
              {middle_post, right_brace}
          }) {
-        const std::shared_ptr<JointBeam> top_side = JointBeam::butt_top_side(*pair[0], *pair[1]);
+        const std::shared_ptr<JointBeamElement> top_side = JointBeamElement::butt_top_side(*pair[0], *pair[1]);
         check(
             top_side && top_side->configuration == ButtConfiguration::top_side,
             fmt::format("frame: {} on {} is no top_side", pair[1]->name, pair[0]->name)
@@ -688,7 +688,7 @@ static void trusses() {
             cut.push_back(member->model_geometry_mesh());
 
         // the end a run running on is cut along is meant to go: the wood beyond that cut is no member's
-        for (const std::shared_ptr<JointBeam>& joint : truss.get_elements<JointBeam>())
+        for (const std::shared_ptr<JointBeamElement>& joint : truss.get_elements<JointBeamElement>())
             if (joint->name.rfind("end_", 0) == 0)
                 cut.push_back(joint->butt_solids[1].mesh);
 

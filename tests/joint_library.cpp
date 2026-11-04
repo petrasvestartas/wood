@@ -9,7 +9,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// The joint library oracle: every JointPlate design on a pair that stays joined, measured, never looked at
+// The joint library oracle: every JointPlateElement design on a pair that stays joined, measured, never looked at
 // ═══════════════════════════════════════════════════════════════════════════
 static const double CLOSE = 1e-6;
 static const double PLANAR = 1e-6;
@@ -128,7 +128,7 @@ struct Fixture {
 struct Built {
     std::shared_ptr<WoodSession> scene;
     Fixture fixture;
-    std::shared_ptr<JointPlate> joint;
+    std::shared_ptr<JointPlateElement> joint;
     std::string family;
     std::string library;
 };
@@ -587,129 +587,129 @@ static double number(const std::vector<std::string>& parts, size_t index, double
 }
 
 /// The library joint of an id split at '/': the family, the library name, then its parameters in declaration order.
-static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& parts) {
+static std::shared_ptr<JointPlateElement> make_variant(const std::vector<std::string>& parts) {
 
     const std::string& family = parts[0];
     const std::string& library = parts[1];
     const std::array<std::vector<Polyline>, 2> custom = custom_outlines(family);
 
     if (library == "side_side_inplane_three_fingers")
-        return JointPlate::side_side_inplane_three_fingers();
+        return JointPlateElement::side_side_inplane_three_fingers();
     if (library == "side_side_inplane_dovetails")
-        return JointPlate::side_side_inplane_dovetails(integer(parts, 2, 0), number(parts, 3, 0.5));
+        return JointPlateElement::side_side_inplane_dovetails(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "side_side_inplane_butterfly_keys")
-        return JointPlate::side_side_inplane_butterfly_keys(integer(parts, 2, 0));
+        return JointPlateElement::side_side_inplane_butterfly_keys(integer(parts, 2, 0));
     if (library == "side_side_inplane_splayed_scarf")
-        return JointPlate::side_side_inplane_splayed_scarf();
+        return JointPlateElement::side_side_inplane_splayed_scarf();
     if (library == "side_side_inplane_cross_splayed_scarf")
-        return JointPlate::side_side_inplane_cross_splayed_scarf();
+        return JointPlateElement::side_side_inplane_cross_splayed_scarf();
     if (library == "side_side_inplane_tooth_keys")
-        return JointPlate::side_side_inplane_tooth_keys(integer(parts, 2, 0));
+        return JointPlateElement::side_side_inplane_tooth_keys(integer(parts, 2, 0));
     if (library == "side_side_inplane_custom")
-        return JointPlate::side_side_inplane_custom(custom[0], custom[1]);
+        return JointPlateElement::side_side_inplane_custom(custom[0], custom[1]);
 
     if (library == "side_side_outplane_three_fingers")
-        return JointPlate::side_side_outplane_three_fingers();
+        return JointPlateElement::side_side_outplane_three_fingers();
     if (library == "side_side_outplane_fingers")
-        return JointPlate::side_side_outplane_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
+        return JointPlateElement::side_side_outplane_fingers(integer(parts, 2, 0), number(parts, 3, 0.64));
     if (library == "side_side_outplane_graded_fingers")
-        return JointPlate::side_side_outplane_graded_fingers(
+        return JointPlateElement::side_side_outplane_graded_fingers(
             integer(parts, 2, 0), number(parts, 3, 0.64)
         );
     if (library == "side_side_outplane_miter_tenon")
-        return JointPlate::side_side_outplane_miter_tenon();
+        return JointPlateElement::side_side_outplane_miter_tenon();
     if (library == "side_side_outplane_tenons")
-        return JointPlate::side_side_outplane_tenons(
+        return JointPlateElement::side_side_outplane_tenons(
             integer(parts, 2, 0),
             number(parts, 3, 0.0),
             integer(parts, 4, 1) != 0,
             integer(parts, 5, 1) != 0
         );
     if (library == "side_side_outplane_linked_tenons")
-        return JointPlate::side_side_outplane_linked_tenons(
+        return JointPlateElement::side_side_outplane_linked_tenons(
             integer(parts, 2, 0), integer(parts, 3, 0) != 0
         );
     if (library == "side_side_outplane_linked_tenons_wall")
-        return JointPlate::side_side_outplane_linked_tenons_wall(integer(parts, 2, 0));
+        return JointPlateElement::side_side_outplane_linked_tenons_wall(integer(parts, 2, 0));
     if (library == "side_side_outplane_capped_fingers")
-        return JointPlate::side_side_outplane_capped_fingers(integer(parts, 2, 4));
+        return JointPlateElement::side_side_outplane_capped_fingers(integer(parts, 2, 4));
     if (library == "side_side_outplane_notch")
-        return JointPlate::side_side_outplane_notch();
+        return JointPlateElement::side_side_outplane_notch();
     if (library == "side_side_outplane_custom")
-        return JointPlate::side_side_outplane_custom(custom[0], custom[1]);
+        return JointPlateElement::side_side_outplane_custom(custom[0], custom[1]);
 
     if (library == "top_side_three_tenons")
-        return JointPlate::top_side_three_tenons();
+        return JointPlateElement::top_side_three_tenons();
     if (library == "top_side_annen_tenons")
-        return JointPlate::top_side_annen_tenons();
+        return JointPlateElement::top_side_annen_tenons();
     if (library == "top_side_annen_shifted_tenons")
-        return JointPlate::top_side_annen_shifted_tenons(
+        return JointPlateElement::top_side_annen_shifted_tenons(
             integer(parts, 2, 2), number(parts, 3, 700.0)
         );
     if (library == "top_side_dense_tenons")
-        return JointPlate::top_side_dense_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
+        return JointPlateElement::top_side_dense_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "top_side_tenons")
-        return JointPlate::top_side_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
+        return JointPlateElement::top_side_tenons(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "top_side_milled_wedge")
-        return JointPlate::top_side_milled_wedge();
+        return JointPlateElement::top_side_milled_wedge();
     if (library == "top_side_snap_fit")
-        return JointPlate::top_side_snap_fit(integer(parts, 2, 0));
+        return JointPlateElement::top_side_snap_fit(integer(parts, 2, 0));
     if (library == "top_side_bridle")
-        return JointPlate::top_side_bridle(number(parts, 2, 0.3), number(parts, 3, 1.0 / 3.0));
+        return JointPlateElement::top_side_bridle(number(parts, 2, 0.3), number(parts, 3, 1.0 / 3.0));
     if (library == "top_side_custom")
-        return JointPlate::top_side_custom(custom[0], custom[1]);
+        return JointPlateElement::top_side_custom(custom[0], custom[1]);
 
     if (library == "side_side_rotated_miter")
-        return JointPlate::side_side_rotated_miter();
+        return JointPlateElement::side_side_rotated_miter();
     if (library == "side_side_rotated_hooks")
-        return JointPlate::side_side_rotated_hooks(integer(parts, 2, 0), number(parts, 3, 0.5));
+        return JointPlateElement::side_side_rotated_hooks(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "side_side_rotated_keys")
-        return JointPlate::side_side_rotated_keys(integer(parts, 2, 0), number(parts, 3, 0.5));
+        return JointPlateElement::side_side_rotated_keys(integer(parts, 2, 0), number(parts, 3, 0.5));
     if (library == "side_side_rotated_custom")
-        return JointPlate::side_side_rotated_custom(custom[0], custom[1]);
+        return JointPlateElement::side_side_rotated_custom(custom[0], custom[1]);
 
     if (library == "cross_slot")
-        return JointPlate::cross_slot();
+        return JointPlateElement::cross_slot();
     if (library == "cross_sliced_half_lap")
-        return JointPlate::cross_sliced_half_lap(number(parts, 2, 0.5));
+        return JointPlateElement::cross_sliced_half_lap(number(parts, 2, 0.5));
     if (library == "cross_half_lap")
-        return JointPlate::cross_half_lap(number(parts, 2, 0.5));
+        return JointPlateElement::cross_half_lap(number(parts, 2, 0.5));
     if (library == "cross_half_lap_diagonal_drills")
-        return JointPlate::cross_half_lap(number(parts, 2, 0.5), CrossDrills::two_diagonal);
+        return JointPlateElement::cross_half_lap(number(parts, 2, 0.5), CrossDrills::two_diagonal);
     if (library == "cross_half_lap_drill")
-        return JointPlate::cross_half_lap(number(parts, 2, 0.5), CrossDrills::one);
+        return JointPlateElement::cross_half_lap(number(parts, 2, 0.5), CrossDrills::one);
     if (library == "cross_brussels_half_lap")
-        return JointPlate::cross_brussels_half_lap(number(parts, 2, 0.5));
+        return JointPlateElement::cross_brussels_half_lap(number(parts, 2, 0.5));
     if (library == "cross_custom")
-        return JointPlate::cross_custom(custom[0], custom[1]);
+        return JointPlateElement::cross_custom(custom[0], custom[1]);
 
     if (library == "top_top_centre_pin")
-        return JointPlate::top_top_centre_pin(number(parts, 2, 1.0));
+        return JointPlateElement::top_top_centre_pin(number(parts, 2, 1.0));
     if (library == "top_top_polylabel_pin")
-        return JointPlate::top_top_polylabel_pin(number(parts, 2, 1.0));
+        return JointPlateElement::top_top_polylabel_pin(number(parts, 2, 1.0));
     if (library == "top_top_circle_pins")
-        return JointPlate::top_top_circle_pins(
+        return JointPlateElement::top_top_circle_pins(
             integer(parts, 2, 6), number(parts, 3, 0.95), number(parts, 4, 1.0)
         );
     if (library == "top_top_ring_pins")
-        return JointPlate::top_top_ring_pins(
+        return JointPlateElement::top_top_ring_pins(
             number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0)
         );
     if (library == "top_top_grid_pins")
-        return JointPlate::top_top_grid_pins(
+        return JointPlateElement::top_top_grid_pins(
             number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0)
         );
     if (library == "top_top_rectangle_pins")
-        return JointPlate::top_top_rectangle_pins(
+        return JointPlateElement::top_top_rectangle_pins(
             number(parts, 2, 6.0), number(parts, 3, 0.95), number(parts, 4, 1.0)
         );
     if (library == "top_top_custom")
-        return JointPlate::top_top_custom(custom[0], custom[1]);
+        return JointPlateElement::top_top_custom(custom[0], custom[1]);
 
     if (library == "side_removal")
-        return JointPlate::side_removal(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
+        return JointPlateElement::side_removal(integer(parts, 2, 0) != 0, number(parts, 3, 0.5));
     if (library == "jupiter_scarf")
-        return JointPlate::jupiter_scarf();
+        return JointPlateElement::jupiter_scarf();
 
     throw std::invalid_argument("no factory for " + library);
 }
@@ -1401,7 +1401,7 @@ static void check_round_trip(const Built& built, Row& row) {
                     )
                 );
     }
-    const std::shared_ptr<JointPlate> joint = restored.get_element<JointPlate>(built.joint->guid());
+    const std::shared_ptr<JointPlateElement> joint = restored.get_element<JointPlateElement>(built.joint->guid());
     if (!joint || joint->connections.size() != built.joint->connections.size() ||
         !restored.consistent())
         fail(row, "C10", "the joint does not come back whole");
@@ -1589,7 +1589,7 @@ static void measure_keys(const Built& built, Row& row) {
     if (std::find(RIGID_KEYS.begin(), RIGID_KEYS.end(), built.library) == RIGID_KEYS.end())
         return;
 
-    const Joint& joint = *built.joint;
+    const JointElement& joint = *built.joint;
     for (const std::array<Polyline, 2>& body : joint.bodies()) {
         std::vector<double> shape = {compute_volume(Mesh::loft({body[0]}, {body[1]}, true))};
         std::vector<double> edges;

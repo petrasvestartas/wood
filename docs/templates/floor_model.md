@@ -386,7 +386,7 @@ Its seat lets the head plate into the column end and drills its three pins.
 ```cpp
 // the support under it, its joint let into the column end and drilled
 add(support, group);
-const std::shared_ptr<Joint> seat = Joint::support(*support, *shaft);
+const std::shared_ptr<JointElement> seat = JointElement::support(*support, *shaft);
 add(seat, group);
 add_interaction(seat, shaft, seat->interaction(0));
 ```
@@ -501,18 +501,18 @@ It is stored as an interaction between the two members, named `seam_wedge_0`.
 ### Connectors
 
 A connector is a joint element built on one contact between two members, `a` and `b`.
-Most are a `JointBeam`.
-The column plate is a `FacePlanarElement`, let in by a `JointBeam::rectangle_plate` with three targets: the column, the rib and the plate.
-The cross lap is a `JointPlate`.
+Most are a `JointBeamElement`.
+The column plate is a `FacePlanarElement`, let in by a `JointBeamElement::rectangle_plate` with three targets: the column, the rib and the plate.
+The cross lap is a `JointPlateElement`.
 
-A `JointBeam` holds its own solids and, per member, the pockets it cuts:
+A `JointBeamElement` holds its own solids and, per member, the pockets it cuts:
 
 ```cpp
 std::vector<std::array<Polyline, 2>> parts; // A connector's own solids, each lofted between a bottom and a top loop; empty for a beam-to-beam joint.
 std::vector<std::vector<std::array<Polyline, 2>>> cutters; // A connector's cutters per target in targets order, lofted like parts; the drill lines cut every target too.
 ```
 
-Its pins are its `drill_lines`, from `Joint`.
+Its pins are its `drill_lines`, from `JointElement`.
 Headed pins are pre-drilled: they cut nothing, and the members read their lines.
 
 ```cpp
@@ -535,7 +535,7 @@ Each part and pin of a connector nests under it as `<connector>_part` and `<conn
 const Contact& seam = quarter_contacts.seam_wedge;
 const double beam = guide.size_inner_beams;
 const Plane outer_face = guide.construction_planes(q).outer_ribs[0][0].transformed(lift);
-quarter_connectors.seam_wedge = JointBeam::wedge(
+quarter_connectors.seam_wedge = JointBeamElement::wedge(
     *seam.a,
     *seam.b,
     *seam.face,
@@ -575,7 +575,7 @@ Added, it cuts its pocket, half into each beam, and drills a hole per pin.
 ```cpp
 // seam wedges: each wedge added, then into the two seam beams it joins
 for (size_t q = 0; q < 4; q++) {
-    const std::shared_ptr<JointBeam>& wedge = connectors[q].seam_wedge;
+    const std::shared_ptr<JointBeamElement>& wedge = connectors[q].seam_wedge;
     const Contact& seam = contacts[q].seam_wedge;
     add(wedge, connectors_group(q));
     add_interaction(wedge, seam.a, wedge->interaction(0));
@@ -593,7 +593,7 @@ const Contact& oculus = quarter_contacts.oculus_wedge;
 const double oculus_beam = FloorGuide::thickness(guide.inner_beams(q)[1]);
 const double ring_beam = FloorGuide::thickness(guide.oculus()[q]);
 const double thicker = std::max(oculus_beam, ring_beam);
-quarter_connectors.oculus_wedge = JointBeam::wedge(
+quarter_connectors.oculus_wedge = JointBeamElement::wedge(
     *oculus.a,
     *oculus.b,
     *oculus.face,
@@ -614,7 +614,7 @@ It goes in the oculus group's `connectors`, not the quarter's.
 ```cpp
 // oculus wedges: into the oculus beam and its ring beam
 for (size_t q = 0; q < 4; q++) {
-    const std::shared_ptr<JointBeam>& wedge = connectors[q].oculus_wedge;
+    const std::shared_ptr<JointBeamElement>& wedge = connectors[q].oculus_wedge;
     const Contact& oculus = contacts[q].oculus_wedge;
     add(wedge, group_named("connectors", group_named("oculus")));
     add_interaction(wedge, oculus.a, wedge->interaction(0));
@@ -628,8 +628,8 @@ for (size_t q = 0; q < 4; q++) {
 // column plates: a plate on each outer rib, let into the column and the rib by a pocket, two pins in each
 for (size_t k = 0; k < 2; k++) {
     const Contact& column = quarter_contacts.column_plates[k];
-    quarter_connectors.column_plates[k] = JointBeam::let_in_plate(*column.b, *column.face);
-    quarter_connectors.column_plate_pins[k] = JointBeam::rectangle_plate(
+    quarter_connectors.column_plates[k] = JointBeamElement::let_in_plate(*column.b, *column.face);
+    quarter_connectors.column_plate_pins[k] = JointBeamElement::rectangle_plate(
         *column.a,
         *column.b,
         *quarter_connectors.column_plates[k],
@@ -646,8 +646,8 @@ The contact between the column head and the outer rib.
 
 ![The contact](floor/906_connector_plate_contact.webp)
 
-`JointBeam::let_in_plate` makes the plate, a `FacePlanarElement` named after its contact.
-`JointBeam::rectangle_plate` lets it into the column and the rib: a pocket in both, two pins in the column and two in the rib.
+`JointBeamElement::let_in_plate` makes the plate, a `FacePlanarElement` named after its contact.
+`JointBeamElement::rectangle_plate` lets it into the column and the rib: a pocket in both, two pins in the column and two in the rib.
 Each pin is `size_outer_ribs` long and bored through its member and the plate.
 
 ![The plate and its pins](floor/907_connector_plate.webp)
@@ -661,7 +661,7 @@ Added, the joint targets the column, the rib and the plate.
 for (size_t q = 0; q < 4; q++)
     for (size_t k = 0; k < 2; k++) {
         const std::shared_ptr<FacePlanarElement>& plate = connectors[q].column_plates[k];
-        const std::shared_ptr<JointBeam>& pins = connectors[q].column_plate_pins[k];
+        const std::shared_ptr<JointBeamElement>& pins = connectors[q].column_plate_pins[k];
         const Contact& column = contacts[q].column_plates[k];
         add(plate, connectors_group(q));
         add(pins, connectors_group(q));
@@ -680,13 +680,13 @@ The corner's two plates cross inside the head.
 ![The two plates](floor/909_connector_plates_cross.webp)
 
 `compute_cross_contact` finds where they cross.
-`JointPlate::cross_slot` is the half lap there, `cross_lap`.
+`JointPlateElement::cross_slot` is the half lap there, `cross_lap`.
 It is added last and merged into both plates' outlines.
 
 ```cpp
 // cross laps, last: the half lap merged into the outlines of the two column plates
 for (size_t q = 0; q < 4; q++) {
-    const std::shared_ptr<JointPlate>& lap = connectors[q].cross_lap;
+    const std::shared_ptr<JointPlateElement>& lap = connectors[q].cross_lap;
     const std::array<std::shared_ptr<FacePlanarElement>, 2>& plates = connectors[q].column_plates;
     add(lap, connectors_group(q));
     add_interaction(lap, plates[0], lap->interaction(0));
@@ -701,7 +701,7 @@ for (size_t q = 0; q < 4; q++) {
 for (size_t b = 0; b < 3; b++)
     for (size_t side = 0; side < 2; side++) {
         const Contact& contact = quarter_contacts.block_pins[b][side];
-        const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
+        const std::shared_ptr<JointBeamElement> pins = JointBeamElement::centred_pins(*contact.a, *contact.b, *contact.face);
 
         if (!pins)
             throw std::runtime_error("the inset leaves no room for the pins of " + contact.face->name);
@@ -714,7 +714,7 @@ A column block against the rib beside it.
 
 ![The contact](floor/911_connector_pins_contact.webp)
 
-`JointBeam::centred_pins` puts a pin at each corner of the contact inset by 50, half into each member.
+`JointBeamElement::centred_pins` puts a pin at each corner of the contact inset by 50, half into each member.
 
 ![The pins](floor/912_connector_pins.webp)
 
@@ -723,7 +723,7 @@ A column block against the rib beside it.
 for (size_t q = 0; q < 4; q++)
     for (size_t b = 0; b < 3; b++)
         for (size_t side = 0; side < 2; side++) {
-            const std::shared_ptr<JointBeam>& pins = connectors[q].block_pins[b][side];
+            const std::shared_ptr<JointBeamElement>& pins = connectors[q].block_pins[b][side];
             const Contact& block = contacts[q].block_pins[b][side];
             add(pins, connectors_group(q));
             add_interaction(pins, block.a, pins->interaction(0));
@@ -736,7 +736,7 @@ for (size_t q = 0; q < 4; q++)
 Where one member butts into another, two headed pins hold it.
 They are pre-drilled and cut nothing.
 Each quarter has three butt joints per side, and each pair of ring beams meets at a ring corner.
-Every one is a contact from `add_contacts` (see Contacts), a `JointBeam::headed_pins` connector built in `compute_connectors` and added in `add_connectors`.
+Every one is a contact from `add_contacts` (see Contacts), a `JointBeamElement::headed_pins` connector built in `compute_connectors` and added in `add_connectors`.
 
 ![The pins of quarter 0](floor/301_pins.webp)
 
@@ -749,7 +749,7 @@ for (size_t k = 0; k < 2; k++) {
     const Contact& outer = quarter_contacts.outer_rib_seam_beam[k];
     const Contact& seam = quarter_contacts.seam_beam_oculus_beam[k];
     const Contact& inner = quarter_contacts.oculus_beam_inner_rib[k];
-    quarter_connectors.outer_rib_seam_beam[k] = JointBeam::headed_pins(
+    quarter_connectors.outer_rib_seam_beam[k] = JointBeamElement::headed_pins(
         *outer.a,
         *outer.b,
         *outer.face,
@@ -760,7 +760,7 @@ for (size_t k = 0; k < 2; k++) {
         PIN_RADIUS,
         PIN_LENGTH
     );
-    quarter_connectors.seam_beam_oculus_beam[k] = JointBeam::headed_pins(
+    quarter_connectors.seam_beam_oculus_beam[k] = JointBeamElement::headed_pins(
         *seam.a,
         *seam.b,
         *seam.face,
@@ -771,7 +771,7 @@ for (size_t k = 0; k < 2; k++) {
         PIN_RADIUS,
         PIN_LENGTH
     );
-    quarter_connectors.oculus_beam_inner_rib[k] = JointBeam::headed_pins(
+    quarter_connectors.oculus_beam_inner_rib[k] = JointBeamElement::headed_pins(
         *inner.a,
         *inner.b,
         *inner.face,
@@ -791,7 +791,7 @@ for (size_t k = 0; k < 2; k++) {
 ```cpp
 // ring corner pins: two in a column across the corner of ring beam q and the next
 const Contact& ring = quarter_contacts.ring_corner;
-quarter_connectors.ring_corner = JointBeam::headed_pins(
+quarter_connectors.ring_corner = JointBeamElement::headed_pins(
     *ring.a,
     *ring.b,
     *ring.face,
@@ -818,7 +818,7 @@ The inner rib and ring corner pins have no shift.
 
 At a seam the two quarters' heads stand 30 apart.
 
-`JointBeam::headed_pins` picks the direction from the geometry.
+`JointBeamElement::headed_pins` picks the direction from the geometry.
 The member that ends on the contact is the one whose level axis is the more square to it.
 The pins run level along that axis, from the far face of the other member.
 The contact's `a`/`b` order does not decide it; only when neither member ends on the contact do the pins run from `a` into `b`, square to the contact.
@@ -867,7 +867,7 @@ static std::optional<Vector> level_axis(const Element& element) {
     return axis.normalized();
 }
 
-std::shared_ptr<JointBeam> JointBeam::headed_pins(
+std::shared_ptr<JointBeamElement> JointBeamElement::headed_pins(
     const Element& a,
     const Element& b,
     const InteractionContactFace& contact,
@@ -944,7 +944,7 @@ std::shared_ptr<JointBeam> JointBeam::headed_pins(
             stations.push_back({x_min + (x_max - x_min) * t, shift});
     }
 
-    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     joint->name = connector_name(contact, "pins");
     joint->is_visible = true;
     joint->pre_drill = true;
@@ -990,7 +990,7 @@ The ring corners go in the oculus group's `connectors`.
 // pins: seam beam into the outer rib ending on it
 for (size_t q = 0; q < 4; q++)
     for (size_t k = 0; k < 2; k++) {
-        const std::shared_ptr<JointBeam>& pins = connectors[q].outer_rib_seam_beam[k];
+        const std::shared_ptr<JointBeamElement>& pins = connectors[q].outer_rib_seam_beam[k];
         const Contact& joint = contacts[q].outer_rib_seam_beam[k];
         add(pins, connectors_group(q));
         add_interaction(pins, joint.a, pins->interaction(0));
@@ -1000,7 +1000,7 @@ for (size_t q = 0; q < 4; q++)
 // pins: seam beam into the oculus beam
 for (size_t q = 0; q < 4; q++)
     for (size_t k = 0; k < 2; k++) {
-        const std::shared_ptr<JointBeam>& pins = connectors[q].seam_beam_oculus_beam[k];
+        const std::shared_ptr<JointBeamElement>& pins = connectors[q].seam_beam_oculus_beam[k];
         const Contact& joint = contacts[q].seam_beam_oculus_beam[k];
         add(pins, connectors_group(q));
         add_interaction(pins, joint.a, pins->interaction(0));
@@ -1010,7 +1010,7 @@ for (size_t q = 0; q < 4; q++)
 // pins: oculus beam into the inner rib
 for (size_t q = 0; q < 4; q++)
     for (size_t k = 0; k < 2; k++) {
-        const std::shared_ptr<JointBeam>& pins = connectors[q].oculus_beam_inner_rib[k];
+        const std::shared_ptr<JointBeamElement>& pins = connectors[q].oculus_beam_inner_rib[k];
         const Contact& joint = contacts[q].oculus_beam_inner_rib[k];
         add(pins, connectors_group(q));
         add_interaction(pins, joint.a, pins->interaction(0));
@@ -1019,7 +1019,7 @@ for (size_t q = 0; q < 4; q++)
 
 // pins: ring beam q into the next at their corner
 for (size_t q = 0; q < 4; q++) {
-    const std::shared_ptr<JointBeam>& pins = connectors[q].ring_corner;
+    const std::shared_ptr<JointBeamElement>& pins = connectors[q].ring_corner;
     const Contact& joint = contacts[q].ring_corner;
     add(pins, group_named("connectors", group_named("oculus")));
     add_interaction(pins, joint.a, pins->interaction(0));
@@ -1044,20 +1044,20 @@ floor
 │   ├── wedges_0                   FacePlanarElement wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              EdgeVariableElement inner_beams_<i>_0: seam 0, the oculus edge, seam 1
 │   ├── column_0                   Column column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
-│   │                              NodeSupportElement support_0, Joint support (the seat),
+│   │                              NodeSupportElement support_0, JointElement support (the seat),
 │   │                              FacePlanarElement column_cutters_<i>_0, six (hidden)
-│   └── connectors_0               JointBeam connector_seam_wedge_0,
-│                                  FacePlanarElement column_plate_0_<k>, JointBeam connector_column_plate_0_<k>,
-│                                  JointBeam connector_block_pins_0_<b>_<side>,
-│                                  JointBeam connector_pins_outer_rib_0_<k>, connector_pins_seam_beam_0_<k>,
+│   └── connectors_0               JointBeamElement connector_seam_wedge_0,
+│                                  FacePlanarElement column_plate_0_<k>, JointBeamElement connector_column_plate_0_<k>,
+│                                  JointBeamElement connector_block_pins_0_<b>_<side>,
+│                                  JointBeamElement connector_pins_outer_rib_0_<k>, connector_pins_seam_beam_0_<k>,
 │                                  connector_pins_inner_rib_0_<k>,
-│                                  JointPlate connector_cross_lap_0
+│                                  JointPlateElement connector_cross_lap_0
 └── oculus
     ├── ring_beams                 EdgeVariableElement oculus_<q>, four
     ├── bottom_wedges              FacePlanarElement oculus_<4 + q>, under ring beam q, four
     ├── central_plate              FacePlanarElement oculus_8
-    └── connectors                 JointBeam connector_oculus_wedge_<q>, four,
-                                   JointBeam connector_pins_ring_corner_<q>, four
+    └── connectors                 JointBeamElement connector_oculus_wedge_<q>, four,
+                                   JointBeamElement connector_pins_ring_corner_<q>, four
 ```
 
 A connector's own parts and pins nest under it as `<connector>_part` and `<connector>_pin_<i>`.
@@ -1132,16 +1132,16 @@ struct QuarterContacts {
 /// - `block_pins[3][2]`: pins per block and side.
 /// - `outer_rib_seam_beam[2]`, `seam_beam_oculus_beam[2]`, `oculus_beam_inner_rib[2]`, `ring_corner`: two pins per butt joint.
 struct QuarterConnectors {
-    std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
-    std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
+    std::shared_ptr<JointBeamElement> seam_wedge; // connector_seam_wedge_<q>.
+    std::shared_ptr<JointBeamElement> oculus_wedge; // connector_oculus_wedge_<q>.
     std::array<std::shared_ptr<FacePlanarElement>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
-    std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
-    std::shared_ptr<JointPlate> cross_lap; // connector_cross_lap_<q>, the cross half lap where the two column plates cross.
-    std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
-    std::array<std::shared_ptr<JointBeam>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
-    std::array<std::shared_ptr<JointBeam>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
-    std::array<std::shared_ptr<JointBeam>, 2> oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
-    std::shared_ptr<JointBeam> ring_corner; // connector_pins_ring_corner_<q>, ring beam q and ring beam q + 1 at their corner.
+    std::array<std::shared_ptr<JointBeamElement>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
+    std::shared_ptr<JointPlateElement> cross_lap; // connector_cross_lap_<q>, the cross half lap where the two column plates cross.
+    std::array<std::array<std::shared_ptr<JointBeamElement>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.
+    std::array<std::shared_ptr<JointBeamElement>, 2> outer_rib_seam_beam; // connector_pins_outer_rib_<q>_<k>, seam beam k into the outer rib ending on it.
+    std::array<std::shared_ptr<JointBeamElement>, 2> seam_beam_oculus_beam; // connector_pins_seam_beam_<q>_<k>, seam beam k into the oculus beam.
+    std::array<std::shared_ptr<JointBeamElement>, 2> oculus_beam_inner_rib; // connector_pins_inner_rib_<q>_<k>, the oculus beam into inner rib k.
+    std::shared_ptr<JointBeamElement> ring_corner; // connector_pins_ring_corner_<q>, ring beam q and ring beam q + 1 at their corner.
 };
 ```
 
