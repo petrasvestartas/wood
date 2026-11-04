@@ -1573,6 +1573,137 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     return joint;
 }
 
+std::shared_ptr<JointBeam> JointBeam::keyed_box(
+    const Plate& a,
+    const Plate& b,
+    const InteractionContactFace& contact,
+    double box_width,
+    double box_depth,
+    double mortise,
+    double key_width,
+    double key_taper,
+    double key_proud,
+    double head
+) {
+
+    // the frame: at the contact's centre, x through the plates towards the second, y the way the keys come out: straight up where the plates stand, along the contact's longest edge where they lie flat
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    const Point origin = Point::centroid(points);
+    Vector x = compute_newell(points).normalized();
+    if ((b.element_geometry_mesh().centroid() - origin).dot(x) < 0.0)
+        x = x * -1.0;
+    Vector y = Vector::z_axis() - x * x[2];
+    y = y.magnitude() > Tolerance::APPROXIMATION ? y.normalized()
+                                                 : x.cross(top_edge(points).to_vector()).normalized();
+    const Vector z = x.cross(y);
+
+    // the sizes in millimetres; a key's outer flank at height h is its width less the taper below the box's face
+    const double unit = a.thickness;
+    const double half_width = 0.5 * box_width * unit;
+    const double half_depth = 0.5 * box_depth * unit;
+    const double half_mortise = 0.5 * mortise * unit;
+    const double proud = key_proud * unit;
+    const double reach = proud + 0.1 * unit;
+    const auto flank = [&](double height) {
+        return key_width * unit + key_taper * (height - half_width);
+    };
+    if (half_mortise >= half_depth || flank(-half_width - proud) <= 0.0 || key_taper <= 0.0)
+        return nullptr;
+
+    // the box's corners must pass through both plates, or its mortise breaks their edges
+    for (const double high : {-half_width, half_width})
+        for (const double wide : {-half_depth, half_depth}) {
+            const Point corner = origin + y * high + z * wide;
+            const Line line = Line::from_points(
+                corner - x * (2.0 * a.thickness), corner + x * (2.0 * b.thickness)
+            );
+            if (inside_stretches(a.element_geometry_mesh(), line).empty() ||
+                inside_stretches(b.element_geometry_mesh(), line).empty())
+                return nullptr;
+        }
+
+    // a plan in x and y as the pair of loops either side of the box's middle
+    using Plan = std::vector<std::array<double, 2>>;
+    const auto slab = [&](const Plan& plan, double half) {
+        std::array<Polyline, 2> loops;
+        for (size_t side = 0; side < 2; side++) {
+            std::vector<Point> ring;
+            for (const std::array<double, 2>& point : plan)
+                ring.push_back(
+                    origin + x * point[0] + y * point[1] + z * (side == 0 ? -half : half)
+                );
+            ring.push_back(ring.front());
+            loops[side] = Polyline(ring);
+        }
+        return loops;
+    };
+
+    const double near_face = -a.thickness;
+    const double far_face = b.thickness;
+    const double box_start = near_face - key_width * unit - head * unit;
+    const double box_end = far_face + key_width * unit + head * unit;
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = connector_name(contact, "keyed_box");
+    joint->is_visible = true;
+    joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
+    joint->insertions.push_back(y);
+    joint->insertions.push_back(y);
+
+    // the box, and the two keys, each with its straight flank on a plate's outer face
+    joint->parts.push_back(slab(
+        {{box_start, -half_width},
+         {box_end, -half_width},
+         {box_end, half_width},
+         {box_start, half_width}},
+        half_depth
+    ));
+    const double key_top = half_width + proud;
+    const double key_bottom = -half_width - proud;
+    joint->parts.push_back(slab(
+        {{far_face, key_bottom},
+         {far_face + flank(key_bottom), key_bottom},
+         {far_face + flank(key_top), key_top},
+         {far_face, key_top}},
+        half_mortise
+    ));
+    joint->parts.push_back(slab(
+        {{near_face - flank(key_bottom), key_bottom},
+         {near_face, key_bottom},
+         {near_face, key_top},
+         {near_face - flank(key_top), key_top}},
+        half_mortise
+    ));
+
+    // the box's one long mortise, its ends leaning with the keys' outer flanks
+    const double low = -half_width - reach;
+    const double high = half_width + reach;
+    const std::array<Polyline, 2> long_mortise = slab(
+        {{near_face - flank(low), low},
+         {far_face + flank(low), low},
+         {far_face + flank(high), high},
+         {near_face - flank(high), high}},
+        half_mortise
+    );
+    joint->solid_features.push_back(InteractionFeatureSolid(
+        Mesh::loft({long_mortise[0]}, {long_mortise[1]}, true), SolidOperation::subtract
+    ));
+
+    // the same mortise through each plate, as big as the box's section
+    const double through = 0.1 * unit;
+    const std::array<Polyline, 2> hole = slab(
+        {{near_face - through, -half_width},
+         {far_face + through, -half_width},
+         {far_face + through, half_width},
+         {near_face - through, half_width}},
+        half_depth
+    );
+    joint->cutters = {{hole}, {hole}};
+
+    return joint;
+}
+
 /// Returns the largest inset polygon in frame coordinates, without a closing point.
 static std::vector<std::array<double, 2>> inset_polygon(
     const std::vector<Point>& points,
@@ -1907,7 +2038,15 @@ Mesh JointBeam::part_mesh(size_t index) const {
 std::vector<InteractionFeatureSolid> JointBeam::part_features(size_t index) const {
 
     const Mesh part = part_mesh(index);
-    std::vector<InteractionFeatureSolid> cuts = solid_features;
+    std::vector<InteractionFeatureSolid> cuts;
+
+    // a cut that would leave nothing of this part is another part's: a key sits inside its box's mortise
+    for (const InteractionFeatureSolid& cut : solid_features) {
+        const Mesh left = solid_difference(part, {cut.mesh});
+        if (left.number_of_faces() > 0 && compute_volume(left) > 1e-6 * compute_volume(part))
+            cuts.push_back(cut);
+    }
+
     InteractionFeatureSolid bores;
 
     for (const Line& pin : drill_lines)

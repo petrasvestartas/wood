@@ -674,6 +674,247 @@ static void check_column_head() {
     }
 }
 
+/// The keyed box JointBeam::keyed_box at its default sizes, on other plates and other sizes, and on plates lying flat and turned: each piece goes in in the sequence the mechanism needs, and once the keys are in
+/// every piece is stopped every way but a key straight back out. The solids are read from the joint: plates, box, first key, second key. A wedge raised h leaves h times the taper of play.
+static void check_keyed_boxes() {
+
+    struct Keyed {
+        double first;
+        double second;
+        double box_width;
+        double box_depth;
+        double mortise;
+        double key_width;
+        double key_taper;
+        bool standing;
+    };
+    for (const Keyed& node : std::vector<Keyed>{
+             {40.0, 40.0, 2.4, 1.6, 0.6, 1.5, 0.125, true},
+             {24.0, 24.0, 2.4, 1.6, 0.6, 1.5, 0.125, true},
+             {30.0, 50.0, 2.4, 1.6, 0.6, 1.5, 0.125, true},
+             {40.0, 40.0, 3.0, 2.0, 0.9, 2.0, 0.2, true},
+             {40.0, 40.0, 2.4, 1.6, 0.6, 1.5, 0.125, false}
+         }) {
+        WoodSession scene("keyed_box");
+        const double size = 300.0;
+        const double tall = 400.0;
+        const Vector across = node.standing ? Vector(0.0, 1.0, 0.0) : Vector(1.0, 0.0, 0.0);
+        const Vector up = node.standing ? Vector(0.0, 0.0, 1.0) : Vector(0.0, 1.0, 0.0);
+        const Vector through = across.cross(up);
+        const Point centre(0.0, 0.0, 0.0);
+        const Point corner = centre - across * (0.5 * size) - up * (0.5 * tall);
+        const std::shared_ptr<Plate> a = Plate::from_rectangle(
+            corner - through * node.first, across, up, size, tall, node.first, "a"
+        );
+        const std::shared_ptr<Plate> b =
+            Plate::from_rectangle(corner, across, up, size, tall, node.second, "b");
+        scene.add(a);
+        scene.add(b);
+        const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(a, b);
+        check(contact != nullptr, "two plates face to face touch");
+        check(
+            contact->type == ContactType::top_top,
+            fmt::format("their contact is {}", to_string(contact->type))
+        );
+        check(
+            JointBeam::keyed_box(*a, *b, *contact, 2.4, 1.6, 0.6, 1.5, 0.0) == nullptr &&
+                JointBeam::keyed_box(*a, *b, *contact, 2.4, 1.6, 1.7) == nullptr &&
+                JointBeam::keyed_box(*a, *b, *contact, 20.0) == nullptr,
+            "straight keys, a mortise wider than the box and a box past the plates are refused"
+        );
+        const std::shared_ptr<JointBeam> joint = JointBeam::keyed_box(
+            *a,
+            *b,
+            *contact,
+            node.box_width,
+            node.box_depth,
+            node.mortise,
+            node.key_width,
+            node.key_taper
+        );
+        check(joint != nullptr, "the keyed box is built");
+        scene.add(joint);
+        scene.add_interaction(joint, a, joint->interaction(0));
+        scene.add_interaction(joint, b, joint->interaction(1));
+
+        const std::vector<std::shared_ptr<Joint>> parts = joint->children();
+        check(parts.size() == 3, fmt::format("the connector has {} parts", parts.size()));
+        const Mesh plate_a = a->model_geometry_mesh();
+        const Mesh plate_b = b->model_geometry_mesh();
+        const Mesh box = parts[0]->element_geometry_mesh();
+        const Mesh key_first = parts[1]->element_geometry_mesh();
+        const Mesh key_second = parts[2]->element_geometry_mesh();
+        const std::array<Mesh, 5> solids = {plate_a, plate_b, box, key_first, key_second};
+        const std::array<std::string, 5> names = {
+            "first plate", "second plate", "box", "first key", "second key"
+        };
+        for (size_t i = 0; i < 5; i++) {
+            check(solids[i].is_closed(), fmt::format("the {} is a closed solid", names[i]));
+            check(compute_volume(solids[i]) > 0.0, fmt::format("the {} is empty", names[i]));
+        }
+
+        const Vector along = joint->insertion(1);
+        const Vector out = joint->insertion(2);
+        const Vector side = along.cross(out);
+        if (node.standing)
+            check(out[2] > 1.0 - 1e-9, "on standing plates the keys come out straight up");
+        const auto shift = [](const Vector& way, double distance) {
+            return Xform::translation(way[0] * distance, way[1] * distance, way[2] * distance);
+        };
+        const auto overlap = [](const Mesh& moved, const Mesh& other) {
+            return boolean_volume(moved, other, SolidOperation::intersect);
+        };
+        const auto moved = [&](const Mesh& solid, const Vector& way, double distance) {
+            return solid.transformed(shift(way, distance));
+        };
+
+        // seated: no two pieces overlap
+        double seated = 0.0;
+        for (size_t i = 0; i < 5; i++)
+            for (size_t j = i + 1; j < 5; j++)
+                seated += overlap(solids[i], solids[j]);
+        check(seated < 1.0, fmt::format("seated the pieces overlap {:.3f} mm3", seated));
+
+        // the sizes by hand
+        const double unit = node.first;
+        const double width = node.box_width * unit;
+        const double depth = node.box_depth * unit;
+        const double slot = node.mortise * unit;
+        const double key = node.key_width * unit;
+        const double taper = node.key_taper;
+        const double head = 1.2 * unit;
+        const double proud = 0.5 * unit;
+        const double plates = node.first + node.second;
+        const double length = plates + 2.0 * (key + head);
+        const double mean_mortise = plates + 2.0 * (key - 0.5 * taper * width);
+        const double box_by_hand = (length * depth - mean_mortise * slot) * width;
+        const double key_by_hand = (key - 0.5 * taper * width) * slot * (width + 2.0 * proud);
+        const double plate_by_hand = (size * tall - width * depth) * node.first;
+        check(
+            std::abs(compute_volume(box) - box_by_hand) < 1e-3 * box_by_hand,
+            fmt::format("the box is {:.0f}, by hand {:.0f}", compute_volume(box), box_by_hand)
+        );
+        check(
+            std::abs(compute_volume(key_first) - key_by_hand) < 1e-3 * key_by_hand,
+            fmt::format("a key is {:.0f}, by hand {:.0f}", compute_volume(key_first), key_by_hand)
+        );
+        check(
+            std::abs(compute_volume(plate_a) - plate_by_hand) < 1e-3 * plate_by_hand,
+            fmt::format("the plate is {:.0f}, by hand {:.0f}", compute_volume(plate_a), plate_by_hand)
+        );
+
+        // stage 1: the first key drops into the box, and no further than home
+        const double key_length = width + 2.0 * proud;
+        double stage = 0.0;
+        for (double lift = 2.0 * key_length; lift > 0.0; lift -= 5.0)
+            stage = std::max(stage, overlap(moved(key_first, out, lift), box));
+        check(stage < 1.0, fmt::format("lowering the first key overlaps {:.3f} mm3", stage));
+        const double key_home = overlap(moved(key_first, out, -2.0), box);
+        check(key_home > 10.0, fmt::format("past home the key overlaps {:.1f}", key_home));
+
+        // stage 2: box and first key slide in, plain end first, with the plates apart, and the key stops on the second plate
+        const double gap = 2.0 * unit;
+        const Mesh parted = moved(plate_a, along, -gap);
+        for (double travel = length + 2.0 * key_length; travel > 0.0; travel -= 5.0) {
+            stage = std::max(stage, overlap(moved(box, along, travel), parted));
+            stage = std::max(stage, overlap(moved(box, along, travel), plate_b));
+            stage = std::max(stage, overlap(moved(key_first, along, travel), parted));
+            stage = std::max(stage, overlap(moved(key_first, along, travel), plate_b));
+        }
+        check(stage < 1.0, fmt::format("sliding the box in overlaps {:.3f} mm3", stage));
+        const double box_home = overlap(moved(key_first, along, -2.0), plate_b);
+        check(box_home > 10.0, fmt::format("the key stops on the plate with {:.1f}", box_home));
+
+        // stage 3: the first plate closes on the second, the box still
+        for (double travel = gap; travel > 0.0; travel -= 5.0) {
+            stage = std::max(stage, overlap(moved(plate_a, along, -travel), box));
+            stage = std::max(stage, overlap(moved(plate_a, along, -travel), plate_b));
+        }
+        check(stage < 1.0, fmt::format("closing the plates overlaps {:.3f} mm3", stage));
+
+        // stage 4: the second key drops in once the plates have met, and not before
+        for (double lift = 2.0 * key_length; lift > 0.0; lift -= 5.0)
+            for (const Mesh& other : {box, plate_a, plate_b, key_first})
+                stage = std::max(stage, overlap(moved(key_second, out, lift), other));
+        check(stage < 1.0, fmt::format("lowering the second key overlaps {:.3f} mm3", stage));
+        const double too_soon = overlap(key_second, parted);
+        check(too_soon > 10.0, fmt::format("before the plates met it overlaps {:.1f}", too_soon));
+
+        // and the box with both keys in can not enter at all: on its way the second key meets the second plate
+        double both_keys = 0.0;
+        for (double travel = length + 2.0 * key_length; travel > 0.0; travel -= 5.0)
+            both_keys = std::max(both_keys, overlap(moved(key_second, along, travel), plate_b));
+        check(both_keys > 10.0, fmt::format("the second key first overlaps {:.1f}", both_keys));
+
+        // locked: any group of pieces moved 2 mm any way, the rest still. The only freedom is a key, or both, straight out
+        const std::array<Vector, 6> ways = {along, along * -1.0, out, out * -1.0, side, side * -1.0};
+        double least = std::numeric_limits<double>::max();
+        size_t free_ways = 0;
+        for (unsigned group = 1; group < 31; group++)
+            for (size_t w = 0; w < 6; w++) {
+                double blocked = 0.0;
+                for (size_t i = 0; i < 5; i++)
+                    for (size_t j = 0; j < 5; j++)
+                        if ((group >> i & 1u) && !(group >> j & 1u))
+                            blocked += overlap(moved(solids[i], ways[w], 2.0), solids[j]);
+                const bool only_keys = (group & 7u) == 0u;
+                const bool only_rest = (group & 7u) == 7u;
+                const bool key_out = (only_keys && w == 2) || (only_rest && w == 3);
+                if (key_out) {
+                    check(blocked < 1.0, fmt::format("group {} out overlaps {:.3f}", group, blocked));
+                    free_ways++;
+                    continue;
+                }
+                check(blocked > 1.0, fmt::format("group {} moves along way {}: {:.3f}", group, w, blocked));
+                least = std::min(least, blocked);
+            }
+        check(free_ways == 6, fmt::format("{} free moves, not 6", free_ways));
+
+        // the second key is what locks it: without it the first plate leaves and the box backs out
+        const double plate_leaves = overlap(moved(plate_a, along, -3.0 * unit), box) +
+                                    overlap(moved(plate_a, along, -3.0 * unit), key_first);
+        const double box_backs = overlap(moved(box, along, 3.0 * unit), plate_a) +
+                                 overlap(moved(box, along, 3.0 * unit), plate_b);
+        check(plate_leaves < 1.0, fmt::format("the plate still held {:.3f}", plate_leaves));
+        check(box_backs < 1.0, fmt::format("the box still held {:.3f}", box_backs));
+
+        // the wedge: raised h, plate and key share h times the taper of play, and no more
+        const double raised = 8.0;
+        const double play = raised * taper;
+        const Mesh key_up = moved(key_second, out, raised);
+        const double within = overlap(moved(key_up, along, -0.9 * play), box);
+        const double beyond = overlap(moved(key_up, along, -1.5 * play), box);
+        check(within < 1e-3, fmt::format("within its play the key overlaps {:.4f}", within));
+        check(beyond > 1e-3, fmt::format("past its play the key overlaps {:.4f}", beyond));
+
+        std::cout << fmt::format(
+                         "joint_beams: keyed box plates {:g} and {:g}, {}: seated overlap {:.3f} mm3, "
+                         "sequence clear {:.3f}, past home {:.0f}, the key stops on the plate {:.0f}, "
+                         "key before the plates meet {:.0f}, second key first {:.0f}, least blocked move {:.0f} of 180, "
+                         "{} free, box {:.0f} of {:.0f} by hand, a key {:.0f} of {:.0f}, raised {:g} "
+                         "leaves {:.2f} of play",
+                         node.first,
+                         node.second,
+                         node.standing ? "standing" : "flat",
+                         seated,
+                         stage,
+                         key_home,
+                         box_home,
+                         too_soon,
+                         both_keys,
+                         least,
+                         free_ways,
+                         compute_volume(box),
+                         box_by_hand,
+                         compute_volume(key_first),
+                         key_by_hand,
+                         raised,
+                         play
+                     )
+                  << std::endl;
+    }
+}
+
 /// Two extended beams of half-width 75 meeting end to end.
 static void check_end_to_end() {
 
@@ -767,6 +1008,7 @@ int main() {
     check_tees();
     check_bridles();
     check_column_head();
+    check_keyed_boxes();
     check_end_to_end();
     return 0;
 }

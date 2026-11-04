@@ -34,6 +34,11 @@ Keep `wood/docs/plans/joint_from_photos_<n>_log.md`, written as you go. Each ste
 - `compute_joinery` cuts the male everywhere inside the female's box except its pockets, so the pockets decide the fork.
 - Round parts in old timber may be repairs, not joinery: if saw cuts run through a circle, it was there before the joint.
 - Phone photos converge harder than the viewer's camera: compare shapes, not outlines pixel for pixel.
+- Green tests can pass on a wrong joint: a mechanism that works in any orientation passed 180 checks with its keys going in sideways. Look at the viewer before believing a first pass, and test non-square members, where a choice of direction shows.
+- `top_edge` picks the longest edge in the upper half of a contact, which on a tall plate is a vertical one: never read a direction from it on standing members.
+- Moving one piece at a time does not prove a lock: pieces can leave together. Test every group of pieces in every direction.
+- A connector's `solid_features` reach all its parts: a key inside its box's mortise is skipped because that cut would leave nothing of it.
+- Reference images of others' work: take the mechanism, use your own proportions, solve no camera (a residual against your own sizes means nothing), and keep comparison sheets in `docs/plans/` with their source stated.
 - An assumed phone focal length can be well off (2890 px assumed, 4600 to 5000 px solved): treat step 3's angles as readings and let step 7 correct them.
 
 ## Pictures

@@ -62,7 +62,7 @@ public:
     bool pre_drill =
         false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
     std::vector<Vector>
-        insertions; // A connector's direction each target slides off it, in targets order; a beam-to-beam joint reads its feature instead.
+        insertions; // A connector's direction each target slides off it, in targets order, then the way any keys of it come out; a beam-to-beam joint reads its feature instead.
     std::array<InteractionFeatureSolid, 2> butt_extensions; // A butt's.
     std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's.
     std::array<std::optional<Plane>, 2>
@@ -206,6 +206,22 @@ public:
         double dovetail_root = 0.286,
         double dovetail_depth = 0.146,
         double dovetail_flare = 0.176
+    );
+
+    /// Two plates held face to face by a box through a mortise in both, locked by two wedge keys in one long mortise across the box: the first key stops the box on the second plate, the
+    /// second, driven in once the plates meet, pinches them together; its parts are the box and the first and second keys, its last two insertions the way the keys come out. Sizes are
+    /// shares of the first plate's thickness; key_width is a key's width where it enters the box, key_taper its loss per unit of depth; null when the sizes leave nothing, the keys do not taper or the box leaves the plates.
+    static std::shared_ptr<JointBeam> keyed_box(
+        const Plate& a,
+        const Plate& b,
+        const InteractionContactFace& contact,
+        double box_width = 2.4,
+        double box_depth = 1.6,
+        double mortise = 0.6,
+        double key_width = 1.5,
+        double key_taper = 0.125,
+        double key_proud = 0.5,
+        double head = 1.2
     );
 
     /// Pins centred across the face contact at its inset corners, bored into both members; null when the inset leaves nothing.

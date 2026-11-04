@@ -62,6 +62,7 @@ SHEET_4 = [
     "element_joint_beam_wedge",
     "element_joint_beam_connectors",
     "element_joint_beam_pins",
+    "element_joint_beam_keyed_box",
 ]
 
 # all example names
