@@ -17,14 +17,6 @@ Polyline top() const;
 Polyline bottom() const;
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `axis` | — | Straight reference line used to classify end faces and side faces |
-| `sections` | — | Ordered closed station loops with equal vertex count lofted from start to end |
-| `first`, `last` (`between`) | — | Two end sections for a two-station tapered beam |
-
 ## Parabolic rib
 
 Seven 120 mm wide rectangular sections along a 3000 mm axis whose depth tapers parabolically from 730 mm to 300 mm.

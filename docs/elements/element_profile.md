@@ -15,15 +15,6 @@ std::vector<Polyline> profile_slab_band(double width, double depth);
 std::vector<Polyline> profile_t(double width, double depth, double web, double flange);
 ```
 
-## Parameters
-
-| Parameter | Role |
-| --- | --- |
-| `width`, `depth` | Overall section width and depth |
-| `diameter`, `segments` | Round section diameter and polygon facet count |
-| `flange`, `web` | Flange and web thicknesses for W and T sections |
-| `thickness` | Wall thickness of hollow structural sections (`profile_hss`) |
-
 ## Every profile
 
 All six standard section profiles swept along 800 mm beam segments: rectangle, round, W, hollow (`hss`), slab band, and T.

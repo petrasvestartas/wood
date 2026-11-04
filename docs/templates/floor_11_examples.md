@@ -29,18 +29,9 @@ Code: `WoodSession::compute_breps`, `WoodSession::pb_dumps`, [wood_session.cpp](
 
 <span style="color:#2196EA">■ built</span> `column_0` and `support_0`
 
-[templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp) builds `Floor(guide)`.
-It grafts `floor.get_branch("column_0")` into a new `WoodSession("column_0")`.
-That is one column on its support with its glued and carved head, read back from the floor.
+One column on its support with its glued and carved head, read back from the floor.
 
-```cpp
-const wood_floor::Floor floor(guide);
-WoodSession column("column_0");
-column.graft(floor.get_branch("column_0"), nullptr);
-column.pb_dump(pb_path("live"));
-```
-
-Code: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_2_column_model.cpp).
+\include{lineno} templates_floor_2_column_model.cpp
 
 ## 353. Example: the square floor
 
@@ -48,9 +39,9 @@ Code: [templates_floor_2_column_model.cpp](https://github.com/petrasvestartas/wo
 
 <span style="color:#2196EA">■ built</span> the connector parts   <span style="color:#A3A3A3">■ context</span> the members, cut
 
-[templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp): `Floor(guide)` on the 6000 x 6000 bay, its pins among the connectors, written as BReps.
+`Floor(guide)` on the 6000 x 6000 bay, its pins among the connectors, written as BReps.
 
-Code: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_7_contacts_cantilevers.cpp).
+\include{lineno} templates_floor_7_contacts_cantilevers.cpp
 
 ## 354. Example: a rectangular bay
 
@@ -58,6 +49,6 @@ Code: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasvest
 
 <span style="color:#2196EA">■ built</span> the connector parts   <span style="color:#A3A3A3">■ context</span> the members, cut
 
-[templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_8_rectangle.cpp): the same on a 6000 x 4800 bay, where each quarter has its own shape.
+The same on a 6000 x 4800 bay, where each quarter has its own shape.
 
-Code: [templates_floor_8_rectangle.cpp](https://github.com/petrasvestartas/wood/blob/main/examples/templates_floor_8_rectangle.cpp).
+\include{lineno} templates_floor_8_rectangle.cpp

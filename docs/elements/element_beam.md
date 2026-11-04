@@ -16,16 +16,6 @@ static std::array<std::shared_ptr<Beam>, 2> pair_tee(double angle_degrees = 90.0
 static std::array<std::shared_ptr<Beam>, 2> pair_end_to_end(double angle_degrees = 0.0, double radius = 75.0, double length = 1200.0, double extension = 150.0);
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `axis` | — | Straight centreline, from its start to its end |
-| `radius` | — | Half-width of the square cross-section when no `profile` is given |
-| `profile` | square of `radius` | Section loops swept along the axis ([Profiles](@ref elements_profile)) |
-| `directions` | contact normal | Section up-vector per segment, orienting the profile around the axis |
-| `extension` | `0` | Extra stock length past each axis endpoint for end-to-end scarf or miter cuts |
-
 ## A profile along an axis
 
 A 120 × 200 mm rectangular profile swept along a straight axis.

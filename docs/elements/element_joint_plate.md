@@ -73,8 +73,3 @@ Parameter sweep of `top_side_tenons` varying `divisions = {8, 16, 24}` in the ba
 
 \include{lineno} elements/element_joint_plate_parameters.cpp
 
-| Parameter | Default | Role |
-| --- | --- | --- |
-| divisions | 0 | Number of teeth or keys along the seam (`0` selects automatic spacing) |
-| shift | 0.5 | Normalized lean of finger or tenon sides in `[0, 1]`, or half-lap centre width |
-| male, female | — | Custom polyline pairs in the unit box `[-0.5, 0.5]^3` |

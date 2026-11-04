@@ -13,13 +13,6 @@ static std::shared_ptr<Block> box(const Point& corner, double x_size, double y_s
 static std::array<std::shared_ptr<Block>, 2> pair_stacked(double lower_size = 400.0, double upper_size = 300.0, double height = 200.0);
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `loops` | — | Bottom outer loop, top outer loop, followed by pairs of bottom/top hole loops |
-| `mesh` | — | Arbitrary closed mesh used directly as the block solid |
-
 ## Lofted between two loops
 
 A tapered frustum block lofted between a 200 × 200 mm bottom square and a 300 × 300 mm top square 250 mm above it.

@@ -11,13 +11,6 @@ explicit CutPlane(const Plane& plane, double size = 1000.0, const std::string& n
 std::shared_ptr<InteractionFeaturePlane> feature() const;
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `plane` | — | Cutting plane origin and normal; the target keeps the side pointed to by the normal |
-| `size` | `1000` | Side length of the visual display square in mm |
-
 ## Cutting a variable beam
 
 Two inclined 900 mm `CutPlane` elements trimming both ends of a parabolic variable-depth beam.

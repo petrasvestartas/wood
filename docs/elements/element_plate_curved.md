@@ -16,13 +16,6 @@ PlateCurved(
 );
 ```
 
-## Parameters
-
-| Parameter | Role |
-| --- | --- |
-| `outer_a`, `outer_b` | Outer meridian curves spanning the outer ruled `NurbsSurface` face |
-| `inner_a`, `inner_b` | Inner meridian curves offset by plate thickness, spanning the inner ruled `NurbsSurface` face |
-
 ## Barrel Vault Strip
 
 A 120 mm thick barrel-vault strip bounded by two outer quarter-arcs (`R = 2000 mm`, `600 mm` apart) and two inner quarter-arcs (`R = 1880 mm`).

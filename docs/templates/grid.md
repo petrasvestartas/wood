@@ -231,7 +231,7 @@ An L of five bays, two storeys of post and beam:
 
 ![templates_grid_6_five_bay](templates/templates_grid_6_five_bay_all.webp)
 
-Full source: @ref grid_example_6
+\include{lineno} templates_grid_6_five_bay.cpp
 
 ### Footprints & Grid Patterns {#grid_ex_footprint}
 
@@ -276,7 +276,7 @@ Nine footprints and grid patterns (L with purlins/walls, skewed grid, radial, tr
   </a>
 </div>
 
-Full source: @ref grid_example_1
+\include{lineno} templates_grid_1_footprint.cpp
 
 ### Sliced Massing Solids {#grid_ex_solid}
 
@@ -309,7 +309,7 @@ Six 3D massing solids sliced at storey elevations (box, pentagonal prism, tapere
   </a>
 </div>
 
-Full source: @ref grid_example_2
+\include{lineno} templates_grid_2_solid.cpp
 
 ### Explicit Lines & Braced Frames {#grid_ex_lines}
 
@@ -326,7 +326,7 @@ Direct line-and-surface input (`compas_grid` dataset and braced timber frame):
   </a>
 </div>
 
-Full source: @ref grid_example_3
+\include{lineno} templates_grid_3_lines.cpp
 
 ### Reference Building Configurations {#grid_ex_reference}
 
@@ -365,7 +365,7 @@ Full source: @ref grid_example_3
   </a>
 </div>
 
-Full source: @ref grid_example_4
+\include{lineno} templates_grid_4_reference.cpp
 
 ### Framing Systems, Nodes & Profiles {#grid_ex_framing}
 
@@ -430,42 +430,4 @@ Fourteen comparative bays testing all `system`, `node`, `drop`, `capital`, and `
   </a>
 </div>
 
-Full source: @ref grid_example_5
-
-## Examples {#grid_examples}
-
-### 1 Footprint {#grid_example_1}
-
-Workflow B, a footprint and a pattern, nine buildings side by side over three storeys, one group each: an L with uneven bays, purlins on girders and facade walls; a grid whose y lines lean 30 degrees with flush columns; a radial plan with girders on the rays; triangular cells and hexagonal cells with every line a beam resting on the sloped sides of the pyramid heads at the nodes; five hand-drawn axes clipped to a five-sided footprint; a courtyard ring with columns through the levels; pentagon with girders hung 8 in and purlins at 10 ft; its institutional U with two cores as pinwheel walls. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
-
-\include{lineno} templates_grid_1_footprint.cpp
-
-### 2 Solid {#grid_example_2}
-
-Workflow A, a massing sliced at its levels, six buildings side by side, one group each: a box whose every section is the same rectangle; a pentagonal prism whose diagonal side cuts every girder, purlin and deck obliquely; a tapered loft whose perimeter columns lean to follow the moving section; a podium with a tower, the tower ring added to the roof plan so every tower column stands on a podium column or girder; a block with an atrium through every level, the pattern crossing in the hole getting no column; a cylinder whose facet corners fall on the sixteen rays. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
-
-\include{lineno} templates_grid_2_solid.cpp
-
-### 3 Lines {#grid_example_3}
-
-Workflow C, line by line, two buildings side by side, one group each: the crea dataset compas_grid ships, read from data/crea/\<INPUT\>_input.pb, every column, beam, floor, facade and core quad as drawn, the vertical lines as column points, the horizontal lines and floor edges as the plan of their level, the vertical quads as the facade and core walls compas_grid drops, every line a beam resting on a sloped side of a pyramid head at its own height; and a braced frame of two by two bays over two storeys drawn as lines and floor quads, every beam cut by the column faces and every brace by the column faces, the deck top at its foot and the beam bottom at its head. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
-
-\include{lineno} templates_grid_3_lines.cpp
-
-### 4 Reference {#grid_example_4}
-
-The reference configurations side by side, one group each: 60 ft square in its three structural methods, plate on columns with stepped heads under CLT strips, post and beam with girders on the x lines, purlin on girder with the girders running y hung 8 in and purlin rows at 10 ft, the columns through the levels with the decks notched round them; residential L over 30 ft bays with its core as pinwheel walls, every girder and purlin reaching it cut at the wall face; the four timber bay variants with the datum at the framing top, columns flush with the datum, girders cut by the column faces, purlins cut by the girder sides and CLT strips over the outer column faces. Every building is a Grid, its contacts found inside it, grafted under its own group. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
-
-\include{lineno} templates_grid_4_reference.cpp
-
-### 5 Framing {#grid_example_5}
-
-The joints and sections of the grid template, fourteen bays over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then six profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, slab band and T. Every bay is a Grid, its contacts found inside it, grafted under its own group. The example then cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
-
 \include{lineno} templates_grid_5_framing.cpp
-
-### 6 Five Bay {#grid_example_6}
-
-An L of five bays - three by two with the far corner bay left open - post and beam with 200 square columns and beams, stacked two storeys high, a beam on every grid line between the column heads (span -1), so the heads meet every case - two beams at the outer corners, three on the edges, four inside and at the re-entrant corner, every head chamfered between each two neighbouring beams - and every deck sits between four beams with its corners cut by the heads; the Grid's tree has a branch per level and a twig per kind under it, plan_\<l\>, columns_\<l\>, heads_\<l\>, beams_\<l\> and decks_\<l\>; each column stands on the head below it, so the Grid's contacts pair every element with every other across the storeys. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances: four definitions, column, head, beam and deck.
-
-\include{lineno} templates_grid_6_five_bay.cpp

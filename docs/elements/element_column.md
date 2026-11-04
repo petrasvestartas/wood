@@ -12,16 +12,6 @@ static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, dou
 std::vector<std::shared_ptr<Block>> head_blocks(double head_side, double head_height) const;
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `axis` | — | Base-to-head centreline defining length and inclination |
-| `section` | — | Closed cross-section swept along `axis` |
-| `corner`, `side` (`square`) | — | Corner plane and side length for a square column |
-| `rotation` (profile constructor) | `0` | Rotation angle in degrees around `axis` |
-| `head_side`, `head_height` (`head_blocks`) | — | Glued head blocks widening the top of the column to `head_side` over `head_height` |
-
 ## A rectangle along an axis
 
 A 200 × 300 mm rectangular section swept along a 3500 mm vertical axis.

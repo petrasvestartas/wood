@@ -63,10 +63,3 @@ A wedge between two beams that meet face to face: the joint is added, then given
 
 \include{lineno} elements/element_joint_beam_wedge.cpp
 
-## Contact Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| volume_length | — | Feature box length along each beam axis from the contact point |
-| cross_or_side_to_end | — | Axis threshold separating interior crossings from end contacts |
-| flip_male | 0 | Rotates which feature volume corners are assigned male |

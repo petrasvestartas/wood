@@ -140,7 +140,7 @@ Two chords and five webs given as polylines with their half sections.
 
 ![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
 
-Full source: @ref truss_example_1
+\include{lineno} templates_truss_1_pratt.cpp
 
 ## Truss Library {#truss_library}
 
@@ -1819,21 +1819,9 @@ Class IV: the defects of both Classes II and III: redundant in one region, defic
 
 ## Library Runner
 
-Full source: @ref truss_example_2
+\include{lineno} templates_truss_2_library.cpp
 
 ## Examples {#truss_examples}
-
-### 1 Pratt {#truss_example_1}
-
-A Pratt roof truss from TrussGuide(Pratt{...}), the design's overload by its parameters: the bottom chord over 12000, the top chord up to 3000 at the middle, six panels, a vertical at every inner panel point and the diagonals falling towards the middle, all drawn as lines (red). The Truss template makes a beam per chord run and per web, mitres the top chord at the ridge, butts the heels, stops every web top_side on the chords and mitres the webs that share a node.
-
-\include{lineno} templates_truss_1_pratt.cpp
-
-### 2 Library {#truss_example_2}
-
-The TrussGuide library, its 68 designs built by the Truss template with their default parameters, each its own scene data/output/pb/truss_\<name\>.pb and each a TrussGuide overload taking the design's parameters (TrussGuide(Pratt{}), TrussGuide(Warren{.panels = 10}), ...): the king post, queen post, Pratt, Howe, Fink, Belgian and scissors roof trusses; the Warren, Warren with verticals, Pratt, Parker and K bridge trusses; graphic-statics form diagrams (cambered verticals, funicular arch, lens, triangulated arch, sloped, flat Pratt, flat peaked, bowstring, pitched on end posts, a roof truss with a cambered tie, a quarter fan, a cantilever and three cantilever designs from their dimensions, a fish belly, a crescent with crossed webs and a braced arch rib); HAER trusses (sawtooth, parallel-chord Howe, three-hinged arch, Burr arch, Town lattice, bowstring arch, Waddell A, Wichert, truss leg bedstead, Kellogg, Baltimore and Pennsylvania with sub-struts, Greiner, double intersection Pratt, Schwedler, double intersection Warren, Pegram, Post, Bollman, Fink bridge, Stearns); sixteen roof trusses from a catalogue, lanterns among them; and a topology-optimised beam. Each design draws its chords through their nodes and its webs and end posts between theirs (red), parameterized by span, heights, divisions and the two half sections. The template makes a beam per chord run, web and post and every joint from how the lines meet: runs mitered at kinks, heels by JointBeam::butt, web and post ends top_side on the runs and on other webs, a chord running on over a lone end, the webs at a node mitered with their neighbours, and a cross half lap where two webs cross.
-
-\include{lineno} templates_truss_2_library.cpp
 
 ### 3 Bow {#truss_example_3}
 

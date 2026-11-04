@@ -16,17 +16,6 @@ static std::shared_ptr<BeamCurved> double_curved(const NurbsCurve& centreline, d
 static std::shared_ptr<BeamCurved> from_surface(const NurbsCurve& centreline, const NurbsSurface& surface, double width, double height, int num_width = 2, int num_height = 6, int samples = 32, const std::string& name = "beam_curved");
 ```
 
-## Parameters
-
-| Parameter | Default | Role |
-| --- | --- | --- |
-| `centreline` | — | Curved `NurbsCurve` spine in world space (planar for single-curved, 3D space curve for double-curved) |
-| `width`, `height` | — | Total glulam cross-section width (`num_width * lamella_width()`) and height (`num_height * lamella_height()`) |
-| `directions` | `{}` | Cross-section orientation drivers: empty (in-plane normal for planar curve, RMF for 3D curve), 1 vector (constant reference direction), or `>= 2` guide vectors interpolated via unwrapped twist angles relative to the RMF |
-| `num_width`, `num_height` | `1`, `4` | Lamella stack subdivisions across width and height (`lamella_curves()`, `lamella_meshes()`, `lamella_breps()`) |
-| `samples` | `32` | Number of cross-section stations along `centreline` |
-| `extension`, `cuts` | `0.0`, `{}` | Tangent extension past each end and end/miter cut planes |
-
 ## Single-Curved and Double-Curved Glulam
 
 A planar parabolic glulam arch (`140 × 240 mm`, `6` lamella layers of `40 mm` height) trimmed by plumb end cuts alongside a 3D S-curved spatial glulam beam (`2 × 6` lamella stack) with RMF twist interpolation.
