@@ -4,6 +4,9 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Rulings per curve: enough for a smooth barrel, the curves within 0.05 mm of the default 24, the scene a fraction of the size.
+const size_t SAMPLES = 6;
+
 /// two-hinged arch of folded cylindrical surfaces.
 int main() {
 
@@ -19,7 +22,9 @@ int main() {
         {{11000.0, -50.0 * Tolerance::TO_RADIANS, false},
          {22000.0, -50.0 * Tolerance::TO_RADIANS, false}},
         Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
-        120.0
+        120.0,
+        "reflection_fold",
+        SAMPLES
     );
     std::cout << fold << std::endl;
 

@@ -13,17 +13,9 @@ Developable [Curved Plate](@ref elements_plate_curved) structures including rule
     <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Semicircular Arch">
     <span class="wood-card-title">Semicircular Arch</span>
   </a>
-  <a class="wood-card" href="#curved_crease_catenary">
-    <img src="templates_developable_folding_3_catenary_unfolding_plates.webp" alt="Catenary Arch">
-    <span class="wood-card-title">Catenary Arch</span>
-  </a>
   <a class="wood-card" href="#synclastic_unfolding">
     <img src="templates_developable_folding_5_synclastic_unfolding_plates.webp" alt="Synclastic Vault">
     <span class="wood-card-title">Synclastic Vault</span>
-  </a>
-  <a class="wood-card" href="#anticlastic_unfolding">
-    <img src="templates_developable_folding_6_anticlastic_unfolding_plates.webp" alt="Anticlastic Saddle">
-    <span class="wood-card-title">Anticlastic Saddle</span>
   </a>
   <a class="wood-card" href="#corrugated_dome">
     <img src="templates_developable_folding_11_corrugated_dome_plates.webp" alt="Corrugated Dome">
@@ -91,14 +83,6 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
 ```
 
-### Catenary Arch on Parallel Planes {#curved_crease_catenary}
-
-![](templates/templates_developable_folding_3_catenary_unfolding_plates.webp)
-
-```cpp
-CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0), 45.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 0.0), 40.0);
-```
-
 ### Synclastic Vault (Leaning +5 Degrees) {#synclastic_unfolding}
 
 ![](templates/templates_developable_folding_5_synclastic_unfolding_plates.webp)
@@ -107,44 +91,12 @@ CurvedCreaseUnfolding unfolding(CurvedCreaseUnfolding::catenary(10000.0, 6000.0)
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 5.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
-### Anticlastic Saddle Vault (Leaning -5 Degrees) {#anticlastic_unfolding}
-
-![](templates/templates_developable_folding_6_anticlastic_unfolding_plates.webp)
-
-```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::leaning(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, -5.0 * Tolerance::TO_RADIANS), 40.0);
-```
-
-### Zigzag Inclined About Apex {#apex_level_unfolding}
-
-![](templates/templates_developable_folding_7_apex_level_unfolding_plates.webp)
-
-```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
-```
-
-### Zigzag Inclined About Support Floor {#support_level_unfolding}
-
-![](templates/templates_developable_folding_8_support_level_unfolding_plates.webp)
-
-```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
-```
-
 ### Zigzag Inclined About Mid-Height {#alternating_unfolding}
 
 ![](templates/templates_developable_folding_9_alternating_unfolding_plates.webp)
 
 ```cpp
 CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 2250.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
-```
-
-### Zigzag Inclined About Vertical Axis {#sideways_unfolding}
-
-![](templates/templates_developable_folding_10_sideways_unfolding_plates.webp)
-
-```cpp
-CurvedCreaseUnfolding unfolding(Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)), 50.0 * Tolerance::TO_RADIANS, CurvedCreaseUnfolding::zigzag(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(0.0, 0.0, 1.0), 4, 1000.0, 8.0 * Tolerance::TO_RADIANS), 40.0);
 ```
 
 ### Corrugated Rotational Dome (24 Sectors) {#corrugated_dome}
@@ -213,12 +165,6 @@ Step 2 of the developable folding templates: curved-crease unfolding. Four 40 mm
 
 \include{lineno} templates_developable_folding_2_curved_crease_unfolding.cpp
 
-### 3 Catenary Unfolding {#developable_folding_example_3}
-
-Step 3 of the developable folding templates: curved-crease unfolding to a catenary. Five parallel planes 1000 mm apart, the crease a catenary 10 m wide and 6 m high, the plates opened 45 degrees. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
-
-\include{lineno} templates_developable_folding_3_catenary_unfolding.cpp
-
 ### 4 Crease Quadrants {#developable_folding_example_4}
 
 Step 4 of the developable folding templates: the four quadrants of a planar curved crease. An arc 4 m wide and 1.5 m high is the crease; a developable through it has its rulings r on one side of the arc's plane and -r on the other, and their mirror images Mr and -Mr. Two strips 1200 mm wide and 40 mm thick, each a PlateCurved cone, take one ruling each: Q1 (r, -Mr) and Q3 (Mr, -r) are one sheet folded along the crease, the crease convex for one strip and concave for the other; Q2 (r, Mr) are two mirror sheets unfolded, the crease convex for both, synclastic; Q4 (-r, -Mr) the same with the crease concave for both, anticlastic. The rulings stand 40 degrees off the crease plane, square to the crease; an unfolding is mitred on the crease plane, a folding on the plane through the crease square to it. Groups: quadrant_\<q\> (quadrant_\<q\>_\<k\>), creases.
@@ -231,35 +177,11 @@ Step 5 of the developable folding templates: a synclastic vault by plane inclina
 
 \include{lineno} templates_developable_folding_5_synclastic_unfolding.cpp
 
-### 6 Anticlastic Unfolding {#developable_folding_example_6}
-
-Step 6 of the developable folding templates: an anticlastic vault by plane inclination. Five planes 1000 mm apart on the floor, each leaning 5 degrees more away from the middle, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the apex is spread, a saddle. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
-
-\include{lineno} templates_developable_folding_6_anticlastic_unfolding.cpp
-
-### 7 Apex Level Unfolding {#developable_folding_example_7}
-
-Step 7 of the developable folding templates: plane inclination about the span at the apex. Five planes 1000 mm apart, every second one turned 8 degrees, alternately each way, about a line along the span at the apex, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the apex spacing is kept and the supports move, the fold articulated at the feet. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
-
-\include{lineno} templates_developable_folding_7_apex_level_unfolding.cpp
-
-### 8 Support Level Unfolding {#developable_folding_example_8}
-
-Step 8 of the developable folding templates: plane inclination about the span at the floor. Five planes 1000 mm apart, every second one turned 8 degrees, alternately each way, about a line along the span on the floor, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the supports keep their spacing and the apex moves, the fold articulated at the crown. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
-
-\include{lineno} templates_developable_folding_8_support_level_unfolding.cpp
-
 ### 9 Alternating Unfolding {#developable_folding_example_9}
 
 Step 9 of the developable folding templates: plane inclination about the span at half height. Five planes 1000 mm apart, every second one turned 8 degrees, alternately each way, about a line along the span at half height, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: each plate wide at one end and narrow at the other. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 \include{lineno} templates_developable_folding_9_alternating_unfolding.cpp
-
-### 10 Sideways Unfolding {#developable_folding_example_10}
-
-Step 10 of the developable folding templates: plane inclination about a vertical axis. Five planes 1000 mm apart, every second one turned 8 degrees, alternately each way, about a vertical axis through the crown, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the plane distance shrinks toward one foot and grows toward the other. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
-
-\include{lineno} templates_developable_folding_10_sideways_unfolding.cpp
 
 ### 11 Corrugated Dome {#developable_folding_example_11}
 

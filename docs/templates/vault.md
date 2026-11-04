@@ -41,10 +41,6 @@ Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates
     <img src="templates_vault_2_barrel_all.webp" alt="Barrel Vault">
     <span class="wood-card-title">Barrel Vault</span>
   </a>
-  <a class="wood-card" href="#vault_barrel_staggered">
-    <img src="templates_vault_3_barrel_staggered_all.webp" alt="Staggered Barrel Vault">
-    <span class="wood-card-title">Staggered Barrel Vault</span>
-  </a>
   <a class="wood-card" href="#vault_dome">
     <img src="templates_vault_4_dome_all.webp" alt="Voussoir Dome">
     <span class="wood-card-title">Voussoir Dome</span>
@@ -290,28 +286,6 @@ int main() {
 
 ---
 
-## Staggered Barrel Vault {#vault_barrel_staggered}
-
-Running-bond barrel vault with 0.2 ring stagger and aligned end closing rings at both portals.
-
-![](templates/templates_vault_3_barrel_staggered_all.webp)
-
-```cpp
-#include "wood_session.h"
-#include "src/templates/vault/vault.h"
-
-int main() {
-    wood_session::WoodSession session("vault_barrel_staggered");
-    for (const auto& element : wood_vault::barrel(6000.0, 2000.0, 250.0, 6000.0, 9, 6, 0.2, true))
-        session.add(element);
-    session.compute_face_contacts(0);
-    session.pb_dump(wood_session::pb_path("live"));
-    return 0;
-}
-```
-
----
-
 ## Voussoir Dome {#vault_dome}
 
 Hemispherical dome of 20 staggered hoops by 40 hexagonal voussoirs tapering from 400 mm at springing to 250 mm around a 6-degree oculus.
@@ -411,12 +385,6 @@ A semicircular arch of 25 voussoirs over 6 m, 500 thick and 500 deep; compute_fa
 A segmental barrel vault over 6 m, 6 m long, nine courses across and six rings along it, every odd course shifted half a ring with part voussoirs at the ends; compute_face_contacts(0) pairs the courses along the bed joints and the rings along the head joints.
 
 \include{lineno} templates_vault_2_barrel.cpp
-
-### 3 Barrel Staggered {#vault_example_3}
-
-The barrel of templates_vault_2_barrel with its odd courses shifted a fifth of a ring and a closing ring of aligned voussoirs at both ends.
-
-\include{lineno} templates_vault_3_barrel_staggered.cpp
 
 ### 4 Dome {#vault_example_4}
 

@@ -34,53 +34,29 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = folding ]; then
     "${RENDER[@]}" templates_folding_6_elevated_fold plates
     "${RENDER[@]}" templates_folding_7_conical_fold plates
     "${RENDER[@]}" templates_folding_8_two_hinged_frame plates
-    "${RENDER[@]}" templates_folding_9_three_hinged_frame plates
     "${RENDER[@]}" templates_folding_10_three_hinged_arch plates
-    "${RENDER[@]}" templates_folding_11_triangle_fold plates
     "${RENDER[@]}" templates_folding_12_square_fold plates
-    "${RENDER[@]}" templates_folding_13_hexagon_fold plates
     "${RENDER[@]}" templates_folding_14_pyramid plates
     "${RENDER[@]}" templates_folding_15_truncated_pyramid plates
     "${RENDER[@]}" templates_folding_16_cross_fold plates
-    "${RENDER[@]}" templates_folding_17_cross_fold_rising plates
-    "${RENDER[@]}" templates_folding_18_cross_fold_sloping plates
     "${RENDER[@]}" templates_folding_19_fold_composition plates
     "${RENDER[@]}" templates_folding_20_triangle_square plates
-    "${RENDER[@]}" templates_folding_21_triangle_triangle plates
-    "${RENDER[@]}" templates_folding_22_triangle_pentagon plates
-    "${RENDER[@]}" templates_folding_23_triangle_hexagon plates
-    "${RENDER[@]}" templates_folding_25_one_fold plates
-    "${RENDER[@]}" templates_folding_26_three_folds plates
-    "${RENDER[@]}" templates_folding_27_counter_centre plates
-    "${RENDER[@]}" templates_folding_28_ridge_to_valley plates
-    "${RENDER[@]}" templates_folding_29_elevated_ridge_to_valley plates
-    "${RENDER[@]}" templates_folding_30_alternate_fold plates
-    "${RENDER[@]}" templates_folding_31_deep_centre plates
-    "${RENDER[@]}" templates_folding_32_deep_centre_valley plates
     "${RENDER[@]}" templates_folding_34_a_frame plates
-    "${RENDER[@]}" templates_folding_35_pointed_arch plates
     "${RENDER[@]}" templates_folding_36_folded_truncated_pyramid plates
-    "${RENDER[@]}" templates_folding_38_truncated_pyramid_corner_folds plates
-    "${RENDER[@]}" templates_folding_39_truncated_pyramid_corner_edge_folds plates
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cylindrical_folding ]; then
     "${RENDER[@]}" templates_cylindrical_folding_1_reflection lamellas
     "${RENDER[@]}" templates_cylindrical_folding_2_curved_folded_plate lamellas
     "${RENDER[@]}" templates_cylindrical_folding_3_mendrisio_pavilion lamellas
-    "${RENDER[@]}" templates_cylindrical_folding_4_two_hinged_frame lamellas
     "${RENDER[@]}" templates_cylindrical_folding_5_two_hinged_arch lamellas
-    "${RENDER[@]}" templates_cylindrical_folding_6_arch_with_top_hinge lamellas
     "${RENDER[@]}" templates_cylindrical_folding_7_a_frame lamellas
     "${RENDER[@]}" templates_cylindrical_folding_8_groin_vault lamellas
     "${RENDER[@]}" templates_cylindrical_folding_9_pavilion_vault lamellas
-    "${RENDER[@]}" templates_cylindrical_folding_10_pentagon_vault lamellas
-    "${RENDER[@]}" templates_cylindrical_folding_11_hexagon_vault lamellas
     "${RENDER[@]}" templates_cylindrical_folding_12_octagon_vault lamellas
     "${RENDER[@]}" --opacity 0.95 templates_cylindrical_folding_13_curved_folded_beam all
     "${RENDER[@]}" templates_cylindrical_folding_14_corner_fan strips
     "${RENDER[@]}" --view top --name plan templates_cylindrical_folding_14_corner_fan strips
-    "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_15_corner_fan_subdivisions fan_2 fan_4 fan_8 fan_12
     "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_16_cylinder_carving stage_1 stage_2 stage_3
     "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_17_cylinder_carving_rings ring_4 ring_6 ring_8
 fi
@@ -88,14 +64,9 @@ fi
 if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
     "${RENDER[@]}" templates_developable_folding_1_curved_fold lamellas
     "${RENDER[@]}" templates_developable_folding_2_curved_crease_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_3_catenary_unfolding plates
     "${RENDER[@]}" --aspect 1.5 templates_developable_folding_4_crease_quadrants quadrant_1 quadrant_2 quadrant_3 quadrant_4
     "${RENDER[@]}" templates_developable_folding_5_synclastic_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_6_anticlastic_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_7_apex_level_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_8_support_level_unfolding plates
     "${RENDER[@]}" templates_developable_folding_9_alternating_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_10_sideways_unfolding plates
     "${RENDER[@]}" templates_developable_folding_11_corrugated_dome plates
     "${RENDER[@]}" templates_developable_folding_12_corrugated_funnel plates
 fi

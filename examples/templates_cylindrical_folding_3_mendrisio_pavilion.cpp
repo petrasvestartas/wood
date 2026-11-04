@@ -4,6 +4,9 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Rulings per curve: enough for a smooth barrel, the curves within 0.05 mm of the default 24, the scene a fraction of the size.
+const size_t SAMPLES = 6;
+
 /// The Mendrisio pavilion.
 int main() {
 
@@ -18,7 +21,9 @@ int main() {
         {{2923.0, 89.9 * Tolerance::TO_RADIANS, true}, {3623.0, 10.0 * Tolerance::TO_RADIANS, true}
         },
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
-        77.0
+        77.0,
+        "reflection_fold",
+        SAMPLES
     );
     std::cout << fold << std::endl;
 

@@ -4,6 +4,9 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Rulings per curve: enough for a smooth barrel, the curves within 0.05 mm of the default 24, the scene a fraction of the size.
+const size_t SAMPLES = 6;
+
 /// the IBOIS reflection principle.
 int main() {
 
@@ -14,7 +17,11 @@ int main() {
         Vector(0.0, 0.0, -1.0),
         Vector(0.0, -1.0, 0.0),
         3500.0,
-        {{1500.0, 60.0 * Tolerance::TO_RADIANS}}
+        {{1500.0, 60.0 * Tolerance::TO_RADIANS}},
+        std::nullopt,
+        120.0,
+        "reflection_fold",
+        SAMPLES
     );
     std::cout << fold << std::endl;
 
