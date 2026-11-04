@@ -977,6 +977,57 @@ static void check_column_head_limit() {
             std::cout << fmt::format("joint_beams: column head turn {}: a speck of {:.0f} mm2 left of the post", post.first, post.second) << std::endl;
 }
 
+/// The column cut by the kernel's boolean on the exact cylinder, no mesh behind it, at the measured node, across the valid turn and on asymmetric nodes: a closed solid, a closed mesh and the volume
+/// of the cut mesh. Every case runs; those that fail are named together at the end.
+static void check_column_head_brep() {
+
+    std::vector<HeadNode> nodes = {
+        {100.0, 185.0, 100.0, 0.0, 90.0, 270.0},
+        {100.0, 185.0, 100.0, 30.0, 90.0, 270.0},
+        {80.0, 200.0, 120.0, 0.0, 90.0, 270.0},
+        {120.0, 150.0, 100.0, 45.0, 90.0, 270.0},
+        {100.0, 185.0, 300.0, 0.0, 90.0, 270.0},
+        {100.0, 185.0, 100.0, 0.0, 75.0, 280.0},
+        {100.0, 185.0, 100.0, 0.0, 70.0, 290.0},
+        {100.0, 185.0, 100.0, 0.0, 110.0, 250.0}
+    };
+    for (double angle = 67.0; angle <= 113.0; angle += 2.0)
+        nodes.push_back({100.0, 185.0, 100.0, 0.0, angle, 180.0 + angle});
+
+    size_t sound = 0;
+    double worst = 0.0;
+    std::string failures;
+    for (const HeadNode& node : nodes) {
+        const std::string name = fmt::format("{:g} x {:g} radius {:g} turned {:g} at {:g} and {:g}", node.width, node.height, node.radius, node.turn, node.secondary_0, node.secondary_1);
+        try {
+            const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+            WoodSession scene("column_head");
+            head_joined(scene, members, node);
+            const BRep& brep = members[0]->model_geometry_brep();
+            const double mesh_volume = compute_volume(members[0]->model_geometry_mesh());
+            const double exact = brep.volume_exact();
+            const Mesh shown = brep.mesh();
+            const double off = std::abs(exact - mesh_volume) / mesh_volume;
+            worst = std::max(worst, off);
+            if (!brep.is_solid() || !shown.is_closed() || off > 1e-3)
+                failures += fmt::format(
+                    "\n  {}: solid {}, mesh closed {}, exact volume {:.0f} against {:.0f}",
+                    name, brep.is_solid(), shown.is_closed(), exact, mesh_volume
+                );
+            else
+                sound++;
+        } catch (const std::exception& error) {
+            failures += fmt::format("\n  {}: {}", name, error.what());
+        }
+    }
+    std::cout << fmt::format(
+                     "joint_beams: column head: {} of {} columns cut by the exact boolean, closed solids with closed meshes, volume within {:.4f} percent of the cut mesh{}",
+                     sound, nodes.size(), 100.0 * worst, failures
+                 )
+              << std::endl;
+    check(sound == nodes.size(), "a column did not come through the exact boolean");
+}
+
 /// What no joint exists for is refused, naming the beam and the reason.
 static void check_column_head_refusals() {
 
@@ -1389,6 +1440,7 @@ int main() {
     check_column_head_angles();
     check_column_head_groups();
     check_column_head_limit();
+    check_column_head_brep();
     check_column_head_refusals();
     check_keyed_boxes();
     check_end_to_end();

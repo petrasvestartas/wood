@@ -91,7 +91,7 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
-    /// The cut column as a BRep; a round one drawn from true arcs and cylinder patches, faces side by side, not one sewn solid: measure the model mesh, never this.
+    /// The cut column as a BRep; a round one is the exact cylinder less its cuts, by the kernel's boolean.
     const BRep& model_geometry_brep() const override;
 
     /// One plane per face of the model solid with a Newell normal, so a concave cap (a W.

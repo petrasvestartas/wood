@@ -280,3 +280,52 @@ Past the post, the limits differ by side. At 129 to 148 degrees the dovetail lea
 Not measured: how this range moves with other sizes. It is for these proportions only.
 
 **Choosing the main pair.** `column_head` takes an optional `main_beam` right after the four beams, default none, which keeps the rule from step 12. Naming a beam takes its pair. Tested at a plain cross: by default the pair along x, naming the third beam moves the main pair to it, and the node stays seated, lowered clear and blocked. A named beam with nothing in line is refused, and so is one that is not of the four.
+
+## Step 15: the column through the kernel's real boolean, not finished
+
+The job: cut the column by `BRep::boolean_difference`, delete `round_cut_brep`, no mesh fallback. Not done: the boolean fails on too many cases, so the tree is back at the pushed state and the work is saved as a patch.
+
+What was tried, against 32 cases: the square node, sizes and turns, asymmetric nodes, and every second degree from 67 to 113. A case passes when it is a closed solid, its mesh is closed and `volume_exact` matches the cut mesh.
+
+| tool given to the boolean | passes | failures |
+|---|---|---|
+| all prisms fused in Manifold, 120 to 146 faces, edges down to 0.07 mm | 24 of 32 | scattered: 120 x 150 turned 45, and 73, 81, 83, 89, 93, 103, 107 |
+| one clean prism from a 2D union, 32 faces, shortest edge 15 mm | 16 of 32 | now including the square node |
+| the same, seam turned to the middle of the slot | 14 of 32 | |
+| the same, tool built from its outline, no mesh at all | 14 of 32 | the same list, and the square node passes |
+
+Where a case passed, the volume was within 0.028 percent of the mesh and solid and mesh both closed. Failing cases are not near any limit: 91 and 93 degrees are nothing special.
+
+The kernel's errors:
+
+- "Curve intersection exceeded its subdivision or floating-point resolution limit in source edge pair 28,156; operand 0,1; hull diameters 100.89, 100.89"
+- "Curve/surface subdivision work limit exceeded"
+- "open or inconsistently oriented edge 12"
+- "nonregular material boundary is not a shell contact grouping"
+- "Native BRep Booleans require closed oriented solid operands", and "Native BRep volume requires a closed oriented solid", the first with the same message whichever way the tool was built.
+
+I first assumed the dirty tool was my fault and the kernel would pass a clean one. It did worse. That guess cost two rounds. Not established: why turning the seam brings the "operands" error. Which operand it means was not traced, since the session code is not mine to change.
+
+What a passing case shows, the square node in the viewer from two directions: every post's round face is clean, with only the real edges of the cut. **So the boolean does remove the line the user marked.** The line left is the cylinder's own seam on the plain body, from base to the slot's floor. No boolean removes that, and from wood it can only be moved. Turned to the middle of a slot it faces one side, under a beam. Removing it needs the viewer to not draw a seam edge, or a body in the kernel without one.
+
+The same run showed a mistake about the post limit, or seemed to: with one clean prism the limit test read 51 to 128 degrees, not the 65 to 115 now on the page. Both can not be right, so I computed the posts again from scratch in plain 2D with shapely, sharing no code with wood. It gives 429.1 mm2 at 65, a 19.8 mm2 hair and a 359.8 post at 64, and no post at 47: the same as step 14 to the decimal. **65 to 115 stands.** The one-prism route is the one that miscounts, another reason it is not kept. One addition: 61 degrees also has a hair, 1.3 mm2, too small for the test to have counted. It is outside the range anyway.
+
+Restored to the pushed state: `wood_element_column.cpp`, `wood_element_column.h`, `wood_element_joint_beam.cpp`, `tests/joint_beams.cpp`. So `round_cut_brep` is still there, the marked line is still there, and the pictures and sheets were not taken again.
+
+## Step 16: the column through the kernel's real boolean, done
+
+The kernel now passes all 32 cases. The saved patch went back on, and `round_cut_brep` and `cylinder_patch` are deleted.
+
+**What the column does now:** the exact cylinder, its seam turned to the middle of the widest run of the slot, less each prism of the cut by `BRep::boolean_difference`. Nothing falls back to a mesh; a failure throws. The tool is built from the prism's outline, both loops in one point order, as the kernel needs.
+
+**The slot:** `column_head` joins the column's plans in 2D into one outline per floor, drops points closer than 1e-5, and gives the column that one prism.
+
+**The post count stays as it was.** The trap from step 15: the joined outline, put where the post check reads, made hairs vanish from the count and moved the limit to 51 to 128 degrees. The check now keeps its own separate prisms, the column takes the outline. The limit test still reads 65 to 115 degrees, and shapely agrees.
+
+Measured: `check_column_head_brep`, in `joint_beams` for good. 32 of 32: the square node, sizes and turns, asymmetric nodes, every second degree from 67 to 113. Each a closed solid, its mesh closed, `volume_exact` within 0.028 percent of the cut mesh. The 8.95e6 mm3 that read 9.50e6 in step 8 is settled.
+
+Looked at, not only measured: both nodes close up from six directions, twelve views, and the three comparison cameras. Every post's round face is one face. The line the user marked is gone. The one line left is the cylinder's own seam on the plain body, base to slot floor, which stays by the user's decision. Small dashes show along the column's silhouette in a few views. Measured on the shot, the edge holds within 1 pixel for its whole height, so they are the viewer's line drawing at pixel level, not the surface.
+
+Retaken: `element_joint_beam_column_head.png`, `element_joint_beam_column_head_rotated.png`, and all three comparison sheets and overlays. The rotated picture is no longer interim. The page's note about the sewn solid is gone.
+
+Tested through this kernel: only the slot prism, as `brep-boolean` said; the old fused tool is not used. A column off vertical: the comparison shots rotate the whole node and all three cut cleanly, but that is three poses, not a test.

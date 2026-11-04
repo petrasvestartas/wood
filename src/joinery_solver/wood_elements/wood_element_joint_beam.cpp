@@ -1743,9 +1743,18 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
     joint->gains.assign(5, Mesh());
 
     // the column's slot along the main line, as wide as the tongues, and a housing for each main beam
-    const auto column_cut = [&](const HeadPlan& plan, const Vector& x, const Vector& y, double low) {
-        if (plan.size() >= 3)
-            joint->cutters[0].push_back(head_prism(plan, origin, x, y, z, low - top, cut_high));
+    std::map<long long, Clipper2Lib::PathsD> slot_plans;
+    std::vector<std::array<Polyline, 2>> slot_prisms;
+    const auto column_cut = [&](const HeadPlan& plan, double turn, double low) {
+        if (plan.size() < 3)
+            return;
+        Clipper2Lib::PathD path;
+        for (const std::array<double, 2>& point : plan)
+            path.push_back({turn * point[0], turn * point[1]});
+        slot_plans[std::llround(low * 1e3)].push_back(path);
+        slot_prisms.push_back(
+            head_prism(plan, origin, x_axis * turn, y_axis * turn, z, low - top, cut_high)
+        );
     };
     const double slot_end = radius + overshoot;
     column_cut(
@@ -1756,8 +1765,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
              {1.0, 0.0, slot_end},
              {-1.0, 0.0, slot_end}}
         ),
-        x_axis,
-        y_axis,
+        1.0,
         main_0.low
     );
     for (const double way : {1.0, -1.0})
@@ -1769,8 +1777,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
                  {way, 0.0, slot_end},
                  {-way, 0.0, -tongue_end}}
             ),
-            x_axis,
-            y_axis,
+            1.0,
             main_0.low
         );
 
@@ -1889,8 +1896,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
                  {0.0, -1.0, overshoot - half_tongue},
                  {u[0], u[1], slot_end}}
             ),
-            x,
-            y,
+            turn,
             secondary.low
         );
         column_cut(
@@ -1901,8 +1907,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
                  {-u[0], -u[1], -beam_shoulder},
                  {u[0], u[1], slot_end}}
             ),
-            x,
-            y,
+            turn,
             secondary.low
         );
 
@@ -1939,7 +1944,22 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
             );
     }
 
-    // the posts: what the slot leaves of the column's head, one each between two neighbouring beams
+    // the slot, its plans joined into one outline per floor: the column takes one clean prism, not walls in pieces
+    for (const std::pair<const long long, Clipper2Lib::PathsD>& floor : slot_plans)
+        for (const Clipper2Lib::PathD& path :
+             Clipper2Lib::Union(floor.second, Clipper2Lib::FillRule::NonZero, 6)) {
+            HeadPlan outline;
+            for (const Clipper2Lib::PointD& point : path)
+                if (outline.empty() || std::hypot(point.x - outline.back()[0], point.y - outline.back()[1]) >= 1e-5)
+                    outline.push_back({point.x, point.y});
+            if (std::hypot(outline.back()[0] - outline[0][0], outline.back()[1] - outline[0][1]) < 1e-5)
+                outline.pop_back();
+            joint->cutters[0].push_back(
+                head_prism(outline, origin, x_axis, y_axis, z, floor.first * 1e-3 - top, cut_high)
+            );
+        }
+
+    // the posts: what the slot leaves of the column's head, one each between two neighbouring beams, cut prism by prism: the joined outline can leave a split post touching itself
     double highest_floor = -column.axis.length();
     for (const HeadBeam& beam : beams)
         highest_floor = std::max(highest_floor, beam.low);
@@ -1951,7 +1971,7 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
         Mesh::loft({slab[0]}, {slab[1]}, true),
         SolidOperation::intersect
     );
-    for (const std::array<Polyline, 2>& prism : joint->cutters[0])
+    for (const std::array<Polyline, 2>& prism : slot_prisms)
         head_solid = solid_boolean(
             head_solid, Mesh::loft({prism[0]}, {prism[1]}, true), SolidOperation::subtract
         );
