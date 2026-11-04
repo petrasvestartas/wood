@@ -803,22 +803,51 @@ div.contents img[src$=".webp"] {
 .wood-card-grid.cols-3 {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
-/* The landing page: two columns, the pictures twice the size of the other grids' */
-.wood-card-grid.cols-2 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+/* The landing page: four chapters in one column, each one picture at its natural height */
+.wood-landing {
+    display: flex;
+    flex-direction: column;
+    gap: 72px;
+    margin: 40px 0 24px;
 }
-div.contents .wood-card-grid.cols-2 img,
-.wood-card-grid.cols-2 img {
-    height: 360px;
-    background: #ffffff; /* the landing page's buttons show tiled sheets on white */
+.wood-landing a.wood-chapter {
+    display: block;
+    text-decoration: none !important;
+    color: var(--md-fg) !important;
 }
-.wood-card-grid.cols-2 .wood-card-title {
-    font-size: 18px;
+.wood-landing .wood-chapter-title {
+    display: block;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+}
+.wood-landing .wood-chapter-line {
+    display: block;
+    font-size: clamp(16px, 1.6vw, 19px);
+    color: var(--md-fg-light);
+    margin: 0 0 20px;
+}
+div.contents .wood-landing img,
+.wood-landing img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 !important;
+    border-radius: 14px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.wood-landing a.wood-chapter:hover img {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12);
 }
 @media screen and (max-width: 767px) {
-    .wood-card-grid.cols-2 {
-        grid-template-columns: 1fr;
+    .wood-landing {
+        gap: 48px;
+    }
+    .wood-landing img {
+        border-radius: 10px;
     }
 }
 .wood-card,
