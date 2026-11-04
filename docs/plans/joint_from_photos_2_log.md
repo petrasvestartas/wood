@@ -191,3 +191,54 @@ No for the rest:
 - The exact column took three goes: one vertical-line defect, an incomplete fix, then the sliver fix. And it is still not a sewn solid.
 - `column_head` held only near the photographed proportion until the reach was fixed.
 - First build failed on two missing includes, in shared wood_core sources.
+
+## Step 11: the user's marked line on the post, stopped for the kernel fix
+
+The user marked a line down a post's round face in compare_a_above and asked for a clean boolean. Looked at: that sheet at 3x, beside compare_b_side.
+
+- Two different lines, not one. On the plain body, the cylinder's own seam: `create_cylinder` has one seam edge, and `drill_brep` places it wherever the frame's x axis falls. On the post, a line along the middle of the round face, from the slot's floor to the head. That one is mine: the post is built from cylinder patches, and there is a boundary between two of them. The body in that same view shows no line, so it is not the seam carrying on.
+- Not traced: why the post's strips split into two runs there. Suspected, not proved: the angle wrap or the height grouping in `round_cut_brep`. Stopped, because that code is due to be replaced.
+- Sewn solid: not close. Step 8 stands. `round_cut_brep` lays faces side by side with no shared edges, volume 9.50e6 against 8.95e6, mesh open. Sewing it was not started.
+
+Plan changed by the main session: `brep-boolean` is fixing `BRep::boolean_difference` in session_cpp, and the column will be rebuilt through the real boolean then. Nothing changed in the code for this step. So the lines are still there, and the page's note stands.
+
+## Step 12: column_head from one column and four beams, at any angle
+
+The job: the only inputs are the column and four beams, in any order, and every cut comes from each beam's own axis. Before this the factory took its frame from `first` alone, and a rotated beam silently got a wrong joint.
+
+What it now reads from the members: the head end of the column, each beam's near end and direction, its width, height and level from its actual solid, the main pair, each secondary's side. `first` to `fourth` are gone; the arguments are `a` to `d`.
+
+What each cut follows: half planes in the beam's own direction, in a frame on the tongue it meets. Each secondary's tenon, tail and shoulder stay square to its own axis; the tail's tip is square to the beam and its root lies on the tongue's edge. So the four posts come out unequal, with nothing set per angle. A secondary's shoulder is the larger of the default and what clears the main beam.
+
+Changed default: the shoulder is now a share of the column's radius, not of the beam's width. At the photographed size that is the same 80.
+
+**Can the mains turn too? No.** Two tongues share one straight slot and bear on each other along the seam. If the mains are not in line, the tongues' sides are not parallel and no slot fits both. That is why the in-line limit is tight, 0.1 degrees. The secondary pair is what turns.
+
+A decision the geometry could not make: at an exact cross both pairs are equally in line. My first tie-break took the other pair as mains, a valid joint, and my test noticed only because a tongue's volume was wrong. The rule now: the shorter pair, as in the photographed node, then the pair most along world x. A user wanting the other pair has no switch yet.
+
+Defects found along the way, in this first attempt:
+
+- The second secondary's column cuts were placed in the wrong frame. The new post check refused it.
+- A secondary's slot stopped exactly where the main slot began, leaving a skin of column between them, near zero volume, so no volume check could see it. It joined posts together. The post count found it. The slots now overlap.
+- A batch cut of overlapping prisms leaves posts touching at a sliver, with the same volume. Posts are counted from one prism at a time.
+
+Stock: a beam too short gains its own section through a new `gains` field, hosted as an add feature by `add_interaction`, the way a butt adds stock; too long is cut back. `gains` is not written to the protobuf; the target keeps what it was given. A beam stopping outside the column's surface is refused, not extended.
+
+## Step 13: measured, at this stable point
+
+`joint_beams`, all on the Manifold mesh:
+
+- Five sizes and turns: seated 0.000 mm3, head filled, lowering clear 0.000, first tongue matches the hand volume, the scarf held and only the column stopping the seam slide.
+- All 24 orders of the same four beams agree within 0.000 mm3.
+- Beams stopping 90 short of the axis, running 60 past it, or drawn the other way, and the column drawn head down: agree within 0.000 mm3.
+- Sweep, both secondaries turned together, 1 degree steps: valid from 67 to 113 degrees, 47 angles, at 100 x 185 on a 200 column. At each: seated, filled, lowered, least blocked above 10 mm3.
+- The limit is the post, not the dovetail. At 66 degrees a post is 480 mm2 against `min_post` 0.05 W2 = 500. At 90 degrees a post is 1912 mm2. **That limit is my choice, not a law.** A smaller `min_post` widens the range; how far was not measured.
+- Each side on its own: 4 of 6 asymmetric pairs join. The other two refuse, naming the beam, at 60 degrees. A narrower secondary, 70 wide, joins.
+- Refused, each naming the beam and reason: no pair in line, both secondaries on one side, a beam stopping short, tops not flush, a dovetail outside its tenon, a tilted beam, a beam missing the axis.
+- `joint_library` 124 of 135, unchanged. `joint_pins` passes.
+
+Not proved: blocked moves here are single beams moved 2 mm, along the main and each beam's own axes, not the group test the keyed box got. A column off vertical is not tested. Tilted beams are refused, as agreed. Beams must aim at the column's axis within 1 mm. All of it is on the mesh.
+
+Looked at the rotated example in the viewer, plan and isometric, because the keyed box taught me not to trust green: tenons, tails and shoulders follow each beam, and the posts are unequal. It reads right.
+
+The column's BRep is still the pieced one from step 8, so the rotated picture is INTERIM: it carries the same line and the same non-solid BRep, and must be taken again once `brep-boolean` lands. `round_cut_brep` should then be deleted.

@@ -17,6 +17,9 @@ Mesh solid_boolean(
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it.
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
 
+/// The separate solids of a mesh.
+std::vector<Mesh> solid_pieces(const Mesh& mesh);
+
 /// True when Manifold takes the mesh as a solid.
 bool manifold_solid(const Mesh& mesh);
 

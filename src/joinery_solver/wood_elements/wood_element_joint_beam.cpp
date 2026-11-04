@@ -2,7 +2,6 @@
 #include "element_joint.pb.h"
 #include "wood_session.h"
 #include "wood_element_geometry.h"
-#include "wood_profile.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
 #include "wood_element_pin.h"
@@ -1442,133 +1441,533 @@ std::shared_ptr<JointBeam> JointBeam::butterfly_key(
     return joint;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Column head
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// One beam of a column head as its own solid gives it. Levels run up the column from its head, distances along the beam out from the column's axis.
+struct HeadBeam {
+    const Beam* beam = nullptr; // The beam.
+    size_t target = 0; // Its place among the joint's targets.
+    Vector out; // Level unit from the column's axis towards the beam's far end.
+    double width = 0.0; // Across the beam.
+    double low = 0.0; // Level of its underside.
+    double high = 0.0; // Level of its top.
+    double start = 0.0; // Distance of the end of its stock nearest the column.
+    double far = 0.0; // Distance of its other end.
+};
+
+/// A half plane in a plan: keeps a x + b y <= c.
+using HalfPlane = std::array<double, 3>;
+using HeadPlan = std::vector<std::array<double, 2>>;
+
+/// A square of half side `size` cut by half planes, in order around.
+static HeadPlan head_region(double size, const std::vector<HalfPlane>& halves) {
+
+    HeadPlan plan = {{-size, -size}, {size, -size}, {size, size}, {-size, size}};
+
+    for (const HalfPlane& half : halves) {
+        HeadPlan kept;
+        for (size_t i = 0; i < plan.size(); i++) {
+            const std::array<double, 2>& a = plan[i];
+            const std::array<double, 2>& b = plan[(i + 1) % plan.size()];
+            const double from = half[2] - half[0] * a[0] - half[1] * a[1];
+            const double to = half[2] - half[0] * b[0] - half[1] * b[1];
+            if (from >= 0.0)
+                kept.push_back(a);
+            if ((from > 0.0 && to < 0.0) || (from < 0.0 && to > 0.0)) {
+                const double t = from / (from - to);
+                kept.push_back({a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])});
+            }
+        }
+        plan = kept;
+    }
+
+    return plan;
+}
+
+/// A plan's prism between two levels, as a connector's pair of loops.
+static std::array<Polyline, 2> head_prism(
+    const HeadPlan& plan,
+    const Point& origin,
+    const Vector& x,
+    const Vector& y,
+    const Vector& z,
+    double low,
+    double high
+) {
+
+    std::array<Polyline, 2> loops;
+    for (size_t side = 0; side < 2; side++) {
+        std::vector<Point> ring;
+        for (const std::array<double, 2>& point : plan)
+            ring.push_back(origin + x * point[0] + y * point[1] + z * (side == 0 ? low : high));
+        ring.push_back(ring.front());
+        loops[side] = Polyline(ring);
+    }
+
+    return loops;
+}
+
+/// A beam read from its own solid in the frame of the column's head; throws naming the beam when it can not join it.
+static HeadBeam read_head_beam(
+    const Beam& beam, size_t target, const Point& head, const Vector& z, double radius
+) {
+
+    const auto fail = [&beam](const std::string& reason) {
+        throw std::invalid_argument(fmt::format("column_head: beam {} {}", beam.name, reason));
+    };
+    if (beam.axis.segment_count() != 1)
+        fail("is not straight");
+
+    const std::array<Point, 2> ends = {beam.axis.get_point(0), beam.axis.get_point(1)};
+    const auto level_offset = [&](const Point& point) {
+        const Vector offset = point - head;
+        return offset - z * offset.dot(z);
+    };
+    const std::array<Vector, 2> offsets = {level_offset(ends[0]), level_offset(ends[1])};
+    const size_t near_end = offsets[0].magnitude() <= offsets[1].magnitude() ? 0 : 1;
+    const Vector near_offset = offsets[near_end];
+    const Vector far_offset = offsets[1 - near_end];
+
+    // square to the column, and aimed at its axis
+    const Vector along = (ends[1 - near_end] - ends[near_end]).normalized();
+    const double tilt = std::asin(std::min(1.0, std::abs(along.dot(z)))) * Tolerance::TO_DEGREES;
+    if (tilt > 0.1)
+        fail(fmt::format("is tilted {:.2f} degrees off square to the column", tilt));
+
+    const Vector out = (far_offset - near_offset).normalized();
+    const double miss = std::abs(near_offset.cross(out).dot(z));
+    if (miss > 1.0)
+        fail(fmt::format("misses the column's axis by {:.1f}", miss));
+    if (near_offset.magnitude() > radius + 1e-6)
+        fail(
+            near_offset.dot(far_offset) < 0.0
+                ? "runs past the column on both sides"
+                : fmt::format("stops {:.1f} short of the column", near_offset.magnitude() - radius)
+        );
+
+    // its section, from its solid
+    HeadBeam read;
+    read.beam = &beam;
+    read.target = target;
+    read.out = out;
+    const Vector side = z.cross(out);
+    const Mesh& solid = beam.element_geometry_mesh();
+    double left = std::numeric_limits<double>::max();
+    double right = std::numeric_limits<double>::lowest();
+    read.low = std::numeric_limits<double>::max();
+    read.high = std::numeric_limits<double>::lowest();
+    read.start = std::numeric_limits<double>::max();
+    read.far = std::numeric_limits<double>::lowest();
+    for (const Point& point : solid.to_vertices_and_faces().first) {
+        const Vector offset = point - head;
+        read.low = std::min(read.low, offset.dot(z));
+        read.high = std::max(read.high, offset.dot(z));
+        left = std::min(left, offset.dot(side));
+        right = std::max(right, offset.dot(side));
+        read.start = std::min(read.start, offset.dot(out));
+        read.far = std::max(read.far, offset.dot(out));
+    }
+    read.width = right - left;
+    const double box = read.width * (read.high - read.low) * (read.far - read.start);
+    if (std::abs(compute_volume(solid) - box) > 0.01 * box)
+        fail("is not a rectangular section square to the column");
+
+    return read;
+}
+
+/// The two beams most nearly in line. Two pairs equally in line, a plain cross, are told apart by the geometry alone so the order they were given in decides nothing: the shorter pair, as
+/// in the photographed node, then the pair running most along world x, y, z.
+static std::array<size_t, 2> head_main_pair(const std::array<HeadBeam, 4>& beams) {
+
+    // a line's direction, the same whichever way it is read
+    const auto direction = [](const Vector& out) {
+        for (size_t i = 0; i < 3; i++)
+            if (std::abs(out[i]) > 1e-6)
+                return out[i] < 0.0 ? out * -1.0 : out;
+        return out;
+    };
+
+    std::array<size_t, 2> best = {0, 1};
+    double best_line = std::numeric_limits<double>::max();
+    double best_length = 0.0;
+    Vector best_way;
+    for (size_t i = 0; i < 4; i++)
+        for (size_t j = i + 1; j < 4; j++) {
+            const double line = 1.0 + beams[i].out.dot(beams[j].out);
+            const double length = beams[i].far + beams[j].far;
+            const Vector way = direction(beams[i].out);
+            bool better = line < best_line - 1e-9;
+            if (std::abs(line - best_line) <= 1e-9) {
+                if (std::abs(length - best_length) > 1.0)
+                    better = length < best_length;
+                else
+                    for (size_t axis = 0; axis < 3; axis++)
+                        if (std::abs(way[axis] - best_way[axis]) > 1e-6) {
+                            better = way[axis] > best_way[axis];
+                            break;
+                        }
+            }
+            if (better) {
+                best = {i, j};
+                best_line = line;
+                best_length = length;
+                best_way = way;
+            }
+        }
+
+    const double off_line =
+        std::acos(std::min(1.0, beams[best[0]].out.dot(beams[best[1]].out) * -1.0)) *
+        Tolerance::TO_DEGREES;
+    if (off_line > 0.1)
+        throw std::invalid_argument(fmt::format(
+            "column_head: no two beams are in line, the nearest are {} and {} at {:.2f} degrees",
+            beams[best[0]].beam->name,
+            beams[best[1]].beam->name,
+            off_line
+        ));
+
+    return best;
+}
+
 std::shared_ptr<JointBeam> JointBeam::column_head(
     const Column& column,
-    const Beam& first,
-    const Beam& second,
-    const Beam& third,
-    const Beam& fourth,
+    const Beam& a,
+    const Beam& b,
+    const Beam& c,
+    const Beam& d,
     double tenon,
     double shoulder,
     double seam_slope,
     double dovetail_offset,
     double dovetail_root,
     double dovetail_depth,
-    double dovetail_flare
+    double dovetail_flare,
+    double min_wood,
+    double min_post
 ) {
 
-    // the frame: at the column's head, z up its axis, x from the first beam's far end towards the axis; the plan in shares of the beam width
-    const std::pair<double, double> size = compute_size(first.profile);
-    const double width = size.first;
-    const double height = size.second;
-    if (!(width > 0.0) || !(height > 0.0))
-        return nullptr;
+    if (column.radius <= 0.0)
+        throw std::invalid_argument("column_head: the column is not round");
 
-    const Point origin = column.axis.end();
-    const Vector z = column.axis.to_vector().normalized();
-    const Point far_end = first.axis.get_point(0);
-    const Vector back = origin - far_end;
-    const Vector x = (back - z * back.dot(z)).normalized();
-    const Vector y = z.cross(x);
+    const double radius = column.radius;
 
-    const double half = 0.5 * tenon;
-    const double beam = 0.5;
-    const double overshoot = 0.1;
-    const double past = 8.0;
-    const double top = overshoot;
-    const double floor = -height / width;
-    const auto seam = [seam_slope](double along) { return -seam_slope * along; };
+    // the head: the end of the column nearest the beams, z pointing out of the column
+    const Point middle = Point::mid_point(
+        Point::mid_point(a.axis.get_point(0), a.axis.get_point(1)),
+        Point::mid_point(b.axis.get_point(0), b.axis.get_point(1))
+    );
+    const bool at_end =
+        middle.distance(column.axis.end()) <= middle.distance(column.axis.start());
+    const Point head = at_end ? column.axis.end() : column.axis.start();
+    const Vector z =
+        column.axis.to_vector().normalized() * (at_end ? 1.0 : -1.0);
 
-    // a plan as a pair of loops from the floor to past the head; turned half way about the axis for the beam opposite
-    using Plan = std::vector<std::array<double, 2>>;
-    const auto prism = [&](const Plan& plan, double low, double high, double turn) {
-        std::array<Polyline, 2> loops;
-        for (size_t level = 0; level < 2; level++) {
-            std::vector<Point> points;
-            for (const std::array<double, 2>& point : plan)
-                points.push_back(
-                    origin + x * (turn * point[0] * width) + y * (turn * point[1] * width) +
-                    z * ((level == 0 ? low : high) * width)
-                );
-            points.push_back(points.front());
-            loops[level] = Polyline(points);
+    // the beams, read from their own solids
+    const std::array<const Beam*, 4> members = {&a, &b, &c, &d};
+    std::array<HeadBeam, 4> beams;
+    for (size_t i = 0; i < 4; i++)
+        beams[i] = read_head_beam(*members[i], i + 1, head, z, radius);
+
+    // their tops flush, on the column
+    const double top = beams[0].high;
+    const auto fail = [](const HeadBeam& beam, const std::string& reason) {
+        throw std::invalid_argument(fmt::format("column_head: beam {} {}", beam.beam->name, reason));
+    };
+    for (const HeadBeam& beam : beams) {
+        if (std::abs(beam.high - top) > 1.0)
+            fail(beam, fmt::format("has its top {:.1f} off the others'", beam.high - top));
+        if (beam.low >= 0.0)
+            fail(beam, "sits above the column's head");
+        if (beam.low < -column.axis.length())
+            fail(beam, "runs below the column's far end");
+    }
+
+    // the main pair, the two most nearly in line, and the frame on them: x along the line at the column's axis, level with the tops
+    const std::array<size_t, 2> mains = head_main_pair(beams);
+    const HeadBeam& main_0 = beams[mains[0]];
+    const HeadBeam& main_1 = beams[mains[1]];
+    if (std::abs(main_0.width - main_1.width) > 1.0 ||
+        std::abs(main_0.low - main_1.low) > 1.0)
+        fail(main_1, fmt::format("has another section than its pair {}", main_0.beam->name));
+
+    Vector x_axis = main_1.out;
+    for (size_t i = 0; i < 3; i++)
+        if (std::abs(x_axis[i]) > 1e-6) {
+            if (x_axis[i] < 0.0)
+                x_axis = x_axis * -1.0;
+            break;
         }
-        return loops;
-    };
+    const Vector y_axis = z.cross(x_axis);
+    const Point origin = head + z * top;
 
-    // the column: the cross slot, the shoulders' housings at its four ends
-    double reach = 0.0;
-    for (const Point& point : column.section.get_points())
-        reach = std::max(reach, (point - column.axis.start()).magnitude() / width + overshoot);
-    const Plan slot = {
-        {half, half},     {shoulder, half},   {shoulder, beam},   {reach, beam},
-        {reach, -beam},   {shoulder, -beam},  {shoulder, -half},  {half, -half},
-        {half, -shoulder},{beam, -shoulder},  {beam, -reach},     {-beam, -reach},
-        {-beam, -shoulder},{-half, -shoulder},{-half, -half},     {-shoulder, -half},
-        {-shoulder, -beam},{-reach, -beam},   {-reach, beam},     {-shoulder, beam},
-        {-shoulder, half},{-half, half},      {-half, shoulder},  {-beam, shoulder},
-        {-beam, reach},   {beam, reach},      {beam, shoulder},   {half, shoulder}
-    };
+    // the secondary pair, one each side of the main line
+    std::array<const HeadBeam*, 2> secondaries = {nullptr, nullptr};
+    for (size_t i = 0; i < 4; i++) {
+        if (i == mains[0] || i == mains[1])
+            continue;
+        const size_t place = beams[i].out.dot(y_axis) > 0.0 ? 0 : 1;
+        if (secondaries[place])
+            fail(beams[i], fmt::format("is on the same side of the main beams as {}", secondaries[place]->beam->name));
+        secondaries[place] = &beams[i];
+    }
 
-    // a main beam, drawn on -x with its tongue on the +y side of the seam: all but the tongue past the shoulder, and the dovetail's pocket in the tongue's edge
-    const double far_side = shoulder + overshoot;
-    const Plan above = {
-        {-shoulder, half}, {far_side, half}, {far_side, past}, {-shoulder, past}
-    };
-    const Plan below = {
-        {-shoulder, seam(-shoulder)},
-        {-shoulder, -past},
-        {far_side, -past},
-        {far_side, seam(far_side)}
-    };
-    const double root = 0.5 * dovetail_root;
-    const double tip = root + dovetail_flare * dovetail_depth;
-    const double out = root - dovetail_flare * overshoot;
-    const Plan pocket = {
-        {-dovetail_offset - tip, half - dovetail_depth},
-        {-dovetail_offset + tip, half - dovetail_depth},
-        {-dovetail_offset + out, half + overshoot},
-        {-dovetail_offset - out, half + overshoot}
-    };
-
-    // a secondary beam, drawn on +y: all past the shoulder but the tenon, and all of the tenon's end but the tail
-    const double inner = half - dovetail_depth - overshoot;
-    const Plan left = {{-past, shoulder}, {-half, shoulder}, {-half, inner}, {-past, inner}};
-    const Plan right = {{past, shoulder}, {past, inner}, {half, inner}, {half, shoulder}};
-    const Plan left_of_tail = {
-        {-half - overshoot, half},
-        {-dovetail_offset - root, half},
-        {-dovetail_offset - tip, half - dovetail_depth},
-        {-dovetail_offset - tip - dovetail_flare * overshoot, inner},
-        {-half - overshoot, inner}
-    };
-    const Plan right_of_tail = {
-        {half + overshoot, half},
-        {half + overshoot, inner},
-        {-dovetail_offset + tip + dovetail_flare * overshoot, inner},
-        {-dovetail_offset + tip, half - dovetail_depth},
-        {-dovetail_offset + root, half}
-    };
+    // the sizes of the main pair; a beam's far side is well past anything
+    const double main_width = main_0.width;
+    const double half_tongue = 0.5 * tenon * main_width;
+    const double tongue_end = shoulder * radius;
+    const double overshoot = 0.1 * main_width;
+    double size = radius;
+    for (const HeadBeam& beam : beams)
+        size = std::max(size, beam.far);
+    size *= 4.0;
+    const double main_low = main_0.low - overshoot;
+    const double main_high = top + overshoot;
+    const double cut_high = std::max(0.0, -top) + overshoot;
 
     const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
     joint->name = "column_head";
     joint->is_visible = true;
-    joint->targets = {column.guid(), first.guid(), second.guid(), third.guid(), fourth.guid()};
+    joint->targets = {column.guid(), a.guid(), b.guid(), c.guid(), d.guid()};
     joint->insertions.assign(5, z);
-    joint->cutters.push_back({prism(slot, floor, top, 1.0)});
-    for (const double turn : {1.0, -1.0})
-        joint->cutters.push_back(
-            {prism(above, floor - top, top, turn),
-             prism(below, floor - top, top, turn),
-             prism(pocket, floor - top, top, turn)}
+    joint->cutters.assign(5, {});
+    joint->gains.assign(5, Mesh());
+
+    // the column's slot along the main line, as wide as the tongues, and a housing for each main beam
+    const auto column_cut = [&](const HeadPlan& plan, const Vector& x, const Vector& y, double low) {
+        if (plan.size() >= 3)
+            joint->cutters[0].push_back(head_prism(plan, origin, x, y, z, low - top, cut_high));
+    };
+    const double slot_end = radius + overshoot;
+    column_cut(
+        head_region(
+            size,
+            {{0.0, 1.0, half_tongue},
+             {0.0, -1.0, half_tongue},
+             {1.0, 0.0, slot_end},
+             {-1.0, 0.0, slot_end}}
+        ),
+        x_axis,
+        y_axis,
+        main_0.low
+    );
+    for (const double way : {1.0, -1.0})
+        column_cut(
+            head_region(
+                size,
+                {{0.0, 1.0, 0.5 * main_width},
+                 {0.0, -1.0, 0.5 * main_width},
+                 {way, 0.0, slot_end},
+                 {-way, 0.0, -tongue_end}}
+            ),
+            x_axis,
+            y_axis,
+            main_0.low
         );
-    for (const double turn : {-1.0, 1.0})
-        joint->cutters.push_back(
-            {prism(left, floor - top, top, turn),
-             prism(right, floor - top, top, turn),
-             prism(left_of_tail, floor - top, top, turn),
-             prism(right_of_tail, floor - top, top, turn)}
+
+    // each tongue with the secondary beam on its side, drawn with the tongue on +y of its own frame, turned half way round for the other
+    for (size_t place = 0; place < 2; place++) {
+        const double turn = place == 0 ? 1.0 : -1.0;
+        const Vector x = x_axis * turn;
+        const Vector y = y_axis * turn;
+        const HeadBeam& secondary = *secondaries[place];
+        const HeadBeam& main_here = main_1.out.dot(x) < 0.0 ? main_1 : main_0;
+        const double width = secondary.width;
+        const double half = 0.5 * tenon * width;
+        const std::array<double, 2> u = {secondary.out.dot(x), secondary.out.dot(y)};
+        const std::array<double, 2> w = {-u[1], u[0]};
+        const double angle = std::atan2(u[1], u[0]) * Tolerance::TO_DEGREES;
+
+        // the shoulder, standing clear of the main beam
+        const double beam_shoulder = std::max(
+            shoulder * radius, (0.5 * main_width + std::abs(w[1]) * 0.5 * width) / u[1]
         );
+
+        // the tail: its centre line parallel to the beam, flaring into the tongue, its tip square to the beam
+        const double offset = dovetail_offset * width;
+        const double flare = dovetail_flare;
+        const double along_edge = (half_tongue - offset * w[1]) / u[1];
+        const double tail_tip = along_edge - dovetail_depth * width;
+        const double tip_half = 0.5 * dovetail_root * width + flare * dovetail_depth * width;
+        const double flank_0 = offset + tip_half + flare * tail_tip;
+        const double flank_1 = -offset + tip_half + flare * tail_tip;
+        const std::array<double, 2> flank_way_0 = {w[0] + flare * u[0], w[1] + flare * u[1]};
+        const std::array<double, 2> flank_way_1 = {flare * u[0] - w[0], flare * u[1] - w[1]};
+
+        // the tail's corners in the tongue: at its tip, and where its flanks leave the tongue's edge
+        const auto corner = [&](double along, double across) {
+            return std::array<double, 2>{
+                across * w[0] + along * u[0], across * w[1] + along * u[1]
+            };
+        };
+        const double root_along_0 = (half_tongue - flank_0 * w[1]) / (u[1] - flare * w[1]);
+        const double root_along_1 = (half_tongue + flank_1 * w[1]) / (u[1] + flare * w[1]);
+        const double root_across_0 = flank_0 - flare * root_along_0;
+        const double root_across_1 = flare * root_along_1 - flank_1;
+        const std::array<std::array<double, 2>, 4> tail = {
+            corner(tail_tip, offset + tip_half),
+            corner(tail_tip, offset - tip_half),
+            corner(root_along_0, root_across_0),
+            corner(root_along_1, root_across_1)
+        };
+
+        const auto refuse = [&](const std::string& reason) {
+            throw std::invalid_argument(fmt::format(
+                "column_head: beam {} at {:.1f} degrees to the main beams {}",
+                secondary.beam->name,
+                angle,
+                reason
+            ));
+        };
+        if (root_across_0 > half || root_across_1 < -half)
+            refuse("has its dovetail outside its tenon");
+        for (const std::array<double, 2>& point : tail) {
+            if (std::abs(point[0]) > tongue_end)
+                refuse("has its dovetail past the end of the tongue");
+            if ((point[1] + seam_slope * point[0]) / std::sqrt(1.0 + seam_slope * seam_slope) <
+                min_wood * main_width)
+                refuse("leaves too little of the tongue behind its dovetail");
+        }
+
+        // the main beam here: past the tongue's tip, beside it, beyond the seam, and the tail's pocket
+        std::vector<std::array<Polyline, 2>>& main_cuts = joint->cutters[main_here.target];
+        const auto main_cut = [&](const std::vector<HalfPlane>& halves) {
+            const HeadPlan plan = head_region(size, halves);
+            if (plan.size() >= 3)
+                main_cuts.push_back(head_prism(plan, origin, x, y, z, main_low - top, main_high - top));
+        };
+        main_cut({{-1.0, 0.0, -tongue_end}});
+        main_cut({{0.0, -1.0, -half_tongue}, {-1.0, 0.0, tongue_end}});
+        main_cut({{seam_slope, 1.0, 0.0}, {-1.0, 0.0, tongue_end}});
+        main_cut(
+            {{flank_way_0[0], flank_way_0[1], flank_0},
+             {flank_way_1[0], flank_way_1[1], flank_1},
+             {-u[0], -u[1], -tail_tip},
+             {0.0, 1.0, half_tongue + overshoot}}
+        );
+
+        // the secondary beam: beside its tenon, off the tongue but for its tail, and out of the main beam's shoulders
+        std::vector<std::array<Polyline, 2>>& secondary_cuts = joint->cutters[secondary.target];
+        const auto secondary_cut = [&](const std::vector<HalfPlane>& halves) {
+            const HeadPlan plan = head_region(size, halves);
+            if (plan.size() >= 3)
+                secondary_cuts.push_back(head_prism(
+                    plan, origin, x, y, z, secondary.low - overshoot - top, overshoot
+                ));
+        };
+        secondary_cut({{-w[0], -w[1], -half}, {u[0], u[1], beam_shoulder}});
+        secondary_cut({{w[0], w[1], -half}, {u[0], u[1], beam_shoulder}});
+        secondary_cut({{-flank_way_0[0], -flank_way_0[1], -flank_0}, {0.0, 1.0, half_tongue}});
+        secondary_cut({{-flank_way_1[0], -flank_way_1[1], -flank_1}, {0.0, 1.0, half_tongue}});
+        secondary_cut({{u[0], u[1], tail_tip}, {0.0, 1.0, half_tongue}});
+        secondary_cut(
+            {{-1.0, 0.0, -tongue_end},
+             {0.0, 1.0, 0.5 * main_width},
+             {0.0, -1.0, 0.5 * main_width}}
+        );
+        secondary_cut(
+            {{1.0, 0.0, -tongue_end},
+             {0.0, 1.0, 0.5 * main_width},
+             {0.0, -1.0, 0.5 * main_width}}
+        );
+
+        // the column's slot for this tenon, overlapping the main slot so no skin of wood is left between them, and its housing
+        column_cut(
+            head_region(
+                size,
+                {{w[0], w[1], half},
+                 {-w[0], -w[1], half},
+                 {0.0, -1.0, overshoot - half_tongue},
+                 {u[0], u[1], slot_end}}
+            ),
+            x,
+            y,
+            secondary.low
+        );
+        column_cut(
+            head_region(
+                size,
+                {{w[0], w[1], 0.5 * width},
+                 {-w[0], -w[1], 0.5 * width},
+                 {-u[0], -u[1], -beam_shoulder},
+                 {u[0], u[1], slot_end}}
+            ),
+            x,
+            y,
+            secondary.low
+        );
+
+        // what a beam too short gains: its own section as far as the joint needs
+        const auto gain = [&](const HeadBeam& beam, const HeadPlan& plan) {
+            const std::array<Polyline, 2> loops =
+                head_prism(plan, origin, x, y, z, beam.low - top, beam.high - top);
+            joint->gains[beam.target] = Mesh::loft({loops[0]}, {loops[1]}, true);
+        };
+        if (main_here.start > -tongue_end - overshoot)
+            gain(
+                main_here,
+                head_region(
+                    size,
+                    {{1.0, 0.0, tongue_end + overshoot},
+                     {-1.0, 0.0, main_here.start + overshoot},
+                     {0.0, 1.0, 0.5 * main_width},
+                     {0.0, -1.0, 0.5 * main_width}}
+                )
+            );
+        double reach_in = tail_tip;
+        for (const double across : {half, -half})
+            reach_in = std::min(reach_in, (half_tongue - across * w[1]) / u[1]);
+        if (secondary.start > reach_in - overshoot)
+            gain(
+                secondary,
+                head_region(
+                    size,
+                    {{-u[0], -u[1], -(reach_in - overshoot)},
+                     {u[0], u[1], secondary.start + overshoot},
+                     {w[0], w[1], 0.5 * width},
+                     {-w[0], -w[1], 0.5 * width}}
+                )
+            );
+    }
+
+    // the posts: what the slot leaves of the column's head, one each between two neighbouring beams
+    double highest_floor = -column.axis.length();
+    for (const HeadBeam& beam : beams)
+        highest_floor = std::max(highest_floor, beam.low);
+    const double head_low = highest_floor - top + 1.0;
+    const HeadPlan square = head_region(size, {});
+    const std::array<Polyline, 2> slab = head_prism(square, origin, x_axis, y_axis, z, head_low, cut_high);
+    Mesh head_solid = solid_boolean(
+        column.element_geometry_mesh(),
+        Mesh::loft({slab[0]}, {slab[1]}, true),
+        SolidOperation::intersect
+    );
+    for (const std::array<Polyline, 2>& prism : joint->cutters[0])
+        head_solid = solid_boolean(
+            head_solid, Mesh::loft({prism[0]}, {prism[1]}, true), SolidOperation::subtract
+        );
+    const std::vector<Mesh> posts = solid_pieces(head_solid);
+    const double post_height = -top - head_low;
+    for (const Mesh& post : posts) {
+        const double area = compute_volume(post) / post_height;
+        if (area < min_post * main_width * main_width) {
+            const Vector place = post.centroid() - origin;
+            const HeadBeam* nearest = secondaries[place.dot(y_axis) > 0.0 ? 0 : 1];
+            const double angle =
+                std::acos(std::min(1.0, std::abs(nearest->out.dot(x_axis)))) * Tolerance::TO_DEGREES;
+            throw std::invalid_argument(fmt::format(
+                "column_head: beam {}, {:.1f} degrees off the main line, leaves a post of only {:.0f} mm2",
+                nearest->beam->name,
+                angle,
+                area
+            ));
+        }
+    }
+    if (posts.size() != 4)
+        throw std::invalid_argument(fmt::format(
+            "column_head: the beams leave {} posts around the column, not 4", posts.size()
+        ));
 
     return joint;
 }
@@ -2144,6 +2543,9 @@ void JointBeam::place(const Xform& xform) {
     for (std::vector<std::array<Polyline, 2>>& target : cutters)
         for (std::array<Polyline, 2>& cutter : target)
             cutter = {cutter[0].transformed(xform), cutter[1].transformed(xform)};
+
+    for (Mesh& gain : gains)
+        gain = gain.transformed(xform);
 
     for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);

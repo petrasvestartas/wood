@@ -607,6 +607,16 @@ Mesh solid_boolean(
     return from_manifold(a + b, true);
 }
 
+std::vector<Mesh> solid_pieces(const Mesh& mesh) {
+
+    std::vector<Mesh> pieces;
+
+    for (const manifold::Manifold& piece : to_manifold(mesh, 0).Decompose())
+        pieces.push_back(from_manifold(piece));
+
+    return pieces;
+}
+
 Mesh shells_side_by_side(const std::vector<Mesh>& pieces) {
 
     std::vector<Point> points;

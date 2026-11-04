@@ -486,192 +486,395 @@ static void check_bridles() {
     }
 }
 
-/// The five-member node JointBeam::column_head as rebuilt from photographs, at its measured size and at other proportions and a turn in plan: closed solids and no overlap seated, the head of the
-/// column filled with no void, the first tongue as computed by hand, every beam free to be lowered past every member, so any order of the four goes in, every other move blocked, and the
-/// column's walls what stops the scarf sliding along its seam.
+/// A round column and four beams at any angles in plan, their axes simply ending on the column's: `turn` the main line, the secondary beams' directions out from the column.
+struct HeadNode {
+    double width = 100.0;
+    double height = 185.0;
+    double radius = 100.0;
+    double turn = 0.0;
+    double secondary_0 = 90.0;
+    double secondary_1 = 270.0;
+    double secondary_width = 0.0;
+    double near_end = 0.0; // Where every beam's axis stops, along it from the column's axis: past it when negative.
+    bool reversed = false; // Axes drawn from the column out, the column's from its head down.
+};
+
+/// The node's column and beams, the beams in the order given by `order`.
+static std::array<std::shared_ptr<Element>, 5> head_members(const HeadNode& node, const std::array<size_t, 4>& order) {
+
+    const double level = -0.5 * node.height;
+    const Point foot(0.0, 0.0, -4.25 * node.width);
+    const Point top(0.0, 0.0, 0.0);
+    const std::shared_ptr<Column> column = Column::round(
+        node.reversed ? Line::from_points(top, foot) : Line::from_points(foot, top), node.radius, 0.02, "column"
+    );
+    const std::array<double, 4> angles = {
+        node.turn + 180.0, node.turn, node.secondary_0 + node.turn, node.secondary_1 + node.turn
+    };
+    const std::array<double, 4> arms = {
+        std::max(3.85 * node.width, 1.5 * node.radius),
+        std::max(3.85 * node.width, 1.5 * node.radius),
+        std::max(4.65 * node.width, 1.5 * node.radius),
+        std::max(4.65 * node.width, 1.5 * node.radius)
+    };
+    const std::array<std::string, 4> names = {"first", "second", "third", "fourth"};
+    std::array<std::shared_ptr<Element>, 5> members = {column, nullptr, nullptr, nullptr, nullptr};
+    for (size_t i = 0; i < 4; i++) {
+        const size_t k = order[i];
+        const double width = k >= 2 && node.secondary_width > 0.0 ? node.secondary_width : node.width;
+        const std::vector<Polyline> section = {Polyline::rectangle(
+            {-0.5 * width, -0.5 * node.height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, node.height
+        )};
+        const double angle = angles[k] * std::numbers::pi / 180.0;
+        const Vector way(std::cos(angle), std::sin(angle), 0.0);
+        const Point far_end = Point(0.0, 0.0, level) + way * arms[k];
+        const Point near_end = Point(0.0, 0.0, level) + way * node.near_end;
+        members[i + 1] = std::make_shared<Beam>(
+            node.reversed ? Polyline({near_end, far_end}) : Polyline({far_end, near_end}),
+            section,
+            std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+            names[k]
+        );
+    }
+
+    return members;
+}
+
+/// The node joined in a scene of its own.
+static std::shared_ptr<JointBeam> head_joined(WoodSession& scene, const std::array<std::shared_ptr<Element>, 5>& members) {
+
+    for (const std::shared_ptr<Element>& member : members)
+        scene.add(member);
+    const std::shared_ptr<JointBeam> joint = JointBeam::column_head(
+        *std::dynamic_pointer_cast<Column>(members[0]),
+        *std::dynamic_pointer_cast<Beam>(members[1]),
+        *std::dynamic_pointer_cast<Beam>(members[2]),
+        *std::dynamic_pointer_cast<Beam>(members[3]),
+        *std::dynamic_pointer_cast<Beam>(members[4])
+    );
+    scene.add(joint);
+    for (size_t i = 0; i < 5; i++)
+        scene.add_interaction(joint, members[i], joint->interaction(i));
+
+    return joint;
+}
+
+/// What a joined node measures: pieces closed, seated clear, lowered clear, every other move blocked.
+struct HeadMeasure {
+    double seated = 0.0;
+    double filled = 0.0;
+    double head = 0.0;
+    double lowered = 0.0;
+    double least = std::numeric_limits<double>::max();
+};
+
+static HeadMeasure measure_head(const HeadNode& node, const std::array<std::shared_ptr<Element>, 5>& members) {
+
+    const std::array<Mesh, 5> solids = {
+        members[0]->model_geometry_mesh(),
+        members[1]->model_geometry_mesh(),
+        members[2]->model_geometry_mesh(),
+        members[3]->model_geometry_mesh(),
+        members[4]->model_geometry_mesh()
+    };
+    for (size_t i = 0; i < 5; i++)
+        check(solids[i].is_closed(), fmt::format("the {} is a closed solid", members[i]->name));
+
+    HeadMeasure measure;
+    for (size_t i = 0; i < 5; i++)
+        for (size_t j = i + 1; j < 5; j++)
+            measure.seated += boolean_volume(solids[i], solids[j], SolidOperation::intersect);
+
+    // the head, as tall as the beams, filled with no void
+    const Mesh head = Column::round(
+                          Line::from_points({0.0, 0.0, -node.height}, {0.0, 0.0, 0.0}), node.radius, 0.02
+    )
+                          ->element_geometry_mesh();
+    measure.head = compute_volume(head);
+    for (const Mesh& solid : solids)
+        measure.filled += boolean_volume(solid, head, SolidOperation::intersect);
+
+    // from above every pair stays clear all the way, so any order of the four beams goes in
+    for (size_t i = 1; i < 5; i++)
+        for (size_t j = 0; j < 5; j++)
+            if (i != j)
+                for (double lift = 20.0; lift <= node.height + 60.0; lift += 20.0)
+                    measure.lowered = std::max(
+                        measure.lowered,
+                        boolean_volume(
+                            solids[i].transformed(Xform::translation(0.0, 0.0, lift)),
+                            solids[j],
+                            SolidOperation::intersect
+                        )
+                    );
+
+    // seated, every beam stopped by the others 2 mm any way but up: along and across the main line and its own, and down
+    std::vector<Vector> ways = {Vector(0.0, 0.0, -1.0)};
+    for (const double angle : {node.turn, node.turn + 90.0, node.turn + node.secondary_0, node.turn + node.secondary_1}) {
+        const double turn = angle * std::numbers::pi / 180.0;
+        const Vector way(std::cos(turn), std::sin(turn), 0.0);
+        ways.push_back(way);
+        ways.push_back(way * -1.0);
+    }
+    for (size_t i = 1; i < 5; i++)
+        for (const Vector& way : ways) {
+            const Mesh moved =
+                solids[i].transformed(Xform::translation(way[0] * 2.0, way[1] * 2.0, way[2] * 2.0));
+            double blocked = 0.0;
+            for (size_t j = 0; j < 5; j++)
+                if (i != j)
+                    blocked += boolean_volume(moved, solids[j], SolidOperation::intersect);
+            measure.least = std::min(measure.least, blocked);
+        }
+
+    return measure;
+}
+
+/// The node from one column and four beams at its measured size and at others, the seat, roles and cuts all read from the members: seated clear, the head filled, every beam lowered
+/// clear and stopped every other way, the first tongue as computed by hand, and the scarf stopped sliding along its seam only by the column's walls.
 static void check_column_head() {
 
-    struct Proportions {
-        double width;
-        double height;
-        double radius;
-        double turn;
-    };
-    for (const Proportions& node : std::vector<Proportions>{
+    for (const HeadNode& node : std::vector<HeadNode>{
              {100.0, 185.0, 100.0, 0.0},
              {100.0, 185.0, 100.0, 30.0},
              {80.0, 200.0, 120.0, 0.0},
              {120.0, 150.0, 100.0, 45.0},
              {100.0, 185.0, 300.0, 0.0}
          }) {
-        const double width = node.width;
-        const double height = node.height;
-        const Xform spin = Xform::rotation_z(node.turn, true);
-        const double level = -0.5 * height;
-        const double reach = 0.8 * width;
-        const double tail = (0.35 - 0.146) * width;
-        const std::vector<Polyline> section = {Polyline::rectangle(
-            {-0.5 * width, -0.5 * height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, height
-        )};
-        const auto beam = [&](double x0, double y0, double x1, double y1, const std::string& name) {
-            return std::make_shared<Beam>(
-                Polyline({Point(x0, y0, level).transformed(spin), Point(x1, y1, level).transformed(spin)}),
-                section,
-                std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
-                name
-            );
-        };
-
+        const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
         WoodSession scene("column_head");
-        const std::shared_ptr<Column> column = Column::round(
-            Line::from_points({0.0, 0.0, -4.25 * width}, {0.0, 0.0, 0.0}), node.radius, 0.02, "column"
-        );
-        const double main_arm = std::max(3.85 * width, 1.5 * node.radius);
-        const double secondary_arm = std::max(4.65 * width, 1.5 * node.radius);
-        const std::shared_ptr<Beam> first = beam(-main_arm, 0.0, reach, 0.0, "first");
-        const std::shared_ptr<Beam> second = beam(main_arm, 0.0, -reach, 0.0, "second");
-        const std::shared_ptr<Beam> third = beam(0.0, -secondary_arm, 0.0, -tail, "third");
-        const std::shared_ptr<Beam> fourth = beam(0.0, secondary_arm, 0.0, tail, "fourth");
-        scene.add(column);
-        scene.add(first);
-        scene.add(second);
-        scene.add(third);
-        scene.add(fourth);
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::column_head(*column, *first, *second, *third, *fourth);
-        scene.add(joint);
-        scene.add_interaction(joint, column, joint->interaction(0));
-        scene.add_interaction(joint, first, joint->interaction(1));
-        scene.add_interaction(joint, second, joint->interaction(2));
-        scene.add_interaction(joint, third, joint->interaction(3));
-        scene.add_interaction(joint, fourth, joint->interaction(4));
-
-        const std::array<std::string, 5> names = {"column", "first", "second", "third", "fourth"};
-        const std::array<Mesh, 5> solids = {
-            column->model_geometry_mesh(),
-            first->model_geometry_mesh(),
-            second->model_geometry_mesh(),
-            third->model_geometry_mesh(),
-            fourth->model_geometry_mesh()
-        };
-        for (size_t i = 0; i < 5; i++)
-            check(solids[i].is_closed(), fmt::format("the {} is a closed solid", names[i]));
-
-        // seated: no two members overlap
-        double seated = 0.0;
-        for (size_t i = 0; i < 5; i++)
-            for (size_t j = i + 1; j < 5; j++)
-                seated += boolean_volume(solids[i], solids[j], SolidOperation::intersect);
-        check(seated < 1.0, fmt::format("seated the members overlap {:.3f} mm3", seated));
-
-        // the head of the column, as tall as the beams, is filled with no void
-        const Mesh head = Column::round(
-                              Line::from_points({0.0, 0.0, -height}, {0.0, 0.0, 0.0}), node.radius, 0.02
-        )
-                              ->element_geometry_mesh();
-        double filled = 0.0;
-        for (const Mesh& solid : solids)
-            filled += boolean_volume(solid, head, SolidOperation::intersect);
+        const std::shared_ptr<JointBeam> joint = head_joined(scene, members);
+        const HeadMeasure measure = measure_head(node, members);
+        check(measure.seated < 1.0, fmt::format("seated the members overlap {:.3f} mm3", measure.seated));
         check(
-            std::abs(filled - compute_volume(head)) < 1e-3 * compute_volume(head),
-            fmt::format("the head holds {:.0f} of {:.0f} mm3", filled, compute_volume(head))
+            std::abs(measure.filled - measure.head) < 1e-3 * measure.head,
+            fmt::format("the head holds {:.0f} of {:.0f} mm3", measure.filled, measure.head)
         );
+        check(measure.lowered < 1.0, fmt::format("lowering a beam overlaps {:.3f} mm3", measure.lowered));
+        check(measure.least > 100.0, fmt::format("a blocked move overlaps only {:.1f} mm3", measure.least));
 
         // by hand: the first beam inside the shoulders is its tongue less the dovetail's pocket
+        const Xform spin = Xform::rotation_z(node.turn, true);
+        const double reach = 0.8 * node.radius;
         const Polyline zone = Polyline::rectangle(
-            {-reach, -0.6 * width, -height}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 2.0 * reach, 1.2 * width
+            {-reach, -0.6 * node.width, -node.height}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 2.0 * reach, 1.2 * node.width
         );
         const Mesh tongue_zone =
-            Mesh::loft({zone}, {zone.transformed(Xform::translation(0.0, 0.0, height))}, true)
-                .transformed(spin);
-        const double root = 0.143 * width;
-        const double depth = 0.146 * width;
+            Mesh::loft({zone}, {zone.transformed(Xform::translation(0.0, 0.0, node.height))}, true).transformed(spin);
+        const double root = 0.143 * node.width;
+        const double depth = 0.146 * node.width;
         const double tip = root + 0.176 * depth;
-        const double tongue = (2.0 * reach * 0.35 * width - (root + tip) * depth) * height;
-        const double kept = boolean_volume(solids[1], tongue_zone, SolidOperation::intersect);
+        const double tongue = (2.0 * reach * 0.35 * node.width - (root + tip) * depth) * node.height;
+        const double kept = boolean_volume(members[1]->model_geometry_mesh(), tongue_zone, SolidOperation::intersect);
         check(
             std::abs(kept - tongue) < 1e-3 * tongue,
             fmt::format("the first tongue is {:.0f}, by hand {:.0f}", kept, tongue)
         );
 
-        // assembly: from above every pair stays clear all the way, so any order of the four beams goes in
-        double dropped = 0.0;
-        for (size_t i = 1; i < 5; i++)
-            for (size_t j = 0; j < 5; j++)
-                if (i != j)
-                    for (double lift = 10.0; lift <= height + 100.0; lift += 10.0)
-                        dropped = std::max(
-                            dropped,
-                            boolean_volume(
-                                solids[i].transformed(Xform::translation(0.0, 0.0, lift)),
-                                solids[j],
-                                SolidOperation::intersect
-                            )
-                        );
-        check(dropped < 1.0, fmt::format("lowering a beam overlaps {:.3f} mm3", dropped));
-
-        // seated, every beam blocked by the others 2 mm any way but up
-        const auto move = [&](double x, double y, double z) {
-            const Vector turned = Vector(x, y, z).transformed(spin);
-            return Xform::translation(turned[0], turned[1], turned[2]);
-        };
-        const std::array<Xform, 5> moves = {
-            move(2.0, 0.0, 0.0),
-            move(-2.0, 0.0, 0.0),
-            move(0.0, 2.0, 0.0),
-            move(0.0, -2.0, 0.0),
-            move(0.0, 0.0, -2.0)
-        };
-        double least = std::numeric_limits<double>::max();
-        for (size_t i = 1; i < 5; i++)
-            for (const Xform& step : moves) {
-                const Mesh moved = solids[i].transformed(step);
-                double blocked = 0.0;
-                for (size_t j = 0; j < 5; j++)
-                    if (i != j)
-                        blocked += boolean_volume(moved, solids[j], SolidOperation::intersect);
-                least = std::min(least, blocked);
-            }
-        check(least > 100.0, fmt::format("a blocked move overlaps only {:.1f} mm3", least));
-
         // the scarf: pulling apart along the beam meets the seam, sliding along the seam does not; only the column's walls stop that
-        const double pulled = boolean_volume(
-            solids[1].transformed(move(-2.0, 0.0, 0.0)), solids[2], SolidOperation::intersect
-        );
-        const double along_seam = boolean_volume(
-            solids[1].transformed(move(-2.0, 0.2, 0.0)), solids[2], SolidOperation::intersect
-        );
-        const double walled = boolean_volume(
-            solids[1].transformed(move(-2.0, 0.2, 0.0)), solids[0], SolidOperation::intersect
-        );
+        const auto move = [&](double x, double y) {
+            const Vector turned = Vector(x, y, 0.0).transformed(spin);
+            return Xform::translation(turned[0], turned[1], 0.0);
+        };
+        const Mesh first = members[1]->model_geometry_mesh();
+        const Mesh second = members[2]->model_geometry_mesh();
+        const Mesh post = members[0]->model_geometry_mesh();
+        const double pulled = boolean_volume(first.transformed(move(-2.0, 0.0)), second, SolidOperation::intersect);
+        const double along_seam = boolean_volume(first.transformed(move(-2.0, 0.2)), second, SolidOperation::intersect);
+        const double walled = boolean_volume(first.transformed(move(-2.0, 0.2)), post, SolidOperation::intersect);
         check(pulled > 100.0, fmt::format("pulling the scarf apart overlaps {:.1f} mm3", pulled));
         check(along_seam < 1.0, fmt::format("along the seam it overlaps {:.3f} mm3", along_seam));
         check(walled > 100.0, fmt::format("the column stops the seam slide with {:.1f} mm3", walled));
 
         std::cout << fmt::format(
-                         "joint_beams: column head {:g} x {:g}, radius {:g}, turned {:g}: seated "
-                         "overlap {:.3f} mm3, head holds {:.0f} of {:.0f}, first tongue {:.0f} of "
-                         "{:.0f} by hand, lowered clear {:.3f}, least blocked move {:.0f}, scarf "
-                         "pulled {:.0f}, along the seam {:.3f}, stopped by the column {:.0f}, exact "
-                         "faces {}",
-                         width,
-                         height,
-                         node.radius,
-                         node.turn,
-                         seated,
-                         filled,
-                         compute_volume(head),
-                         kept,
-                         tongue,
-                         dropped,
-                         least,
-                         pulled,
-                         along_seam,
-                         walled,
-                         column->model_geometry_brep().face_count()
+                         "joint_beams: column head {:g} x {:g}, radius {:g}, turned {:g}: seated overlap {:.3f} mm3, head holds {:.0f} "
+                         "of {:.0f}, first tongue {:.0f} of {:.0f} by hand, lowered clear {:.3f}, least blocked move {:.0f}, "
+                         "scarf pulled {:.0f}, along the seam {:.3f}, stopped by the column {:.0f}",
+                         node.width, node.height, node.radius, node.turn, measure.seated, measure.filled, measure.head, kept,
+                         tongue, measure.lowered, measure.least, pulled, along_seam, walled
                      )
                   << std::endl;
     }
+}
+
+/// The joint is the same in every order of the four beams: all 24 cut each beam to the same solid.
+static void check_column_head_orders() {
+
+    const HeadNode node = {100.0, 185.0, 100.0, 0.0, 70.0, 250.0};
+    std::array<size_t, 4> order = {0, 1, 2, 3};
+    std::map<std::string, Mesh> first_solids;
+    size_t orders = 0;
+    double worst = 0.0;
+    do {
+        const std::array<std::shared_ptr<Element>, 5> members = head_members(node, order);
+        WoodSession scene("column_head");
+        head_joined(scene, members);
+        for (const std::shared_ptr<Element>& member : members) {
+            const Mesh solid = member->model_geometry_mesh();
+            const auto known = first_solids.find(member->name);
+            if (known == first_solids.end()) {
+                first_solids[member->name] = solid;
+                continue;
+            }
+            worst = std::max(worst, compute_volume(solid) - boolean_volume(solid, known->second, SolidOperation::intersect));
+        }
+        orders++;
+    } while (std::next_permutation(order.begin(), order.end()));
+
+    check(orders == 24, fmt::format("{} orders of the four beams", orders));
+    check(worst < 1.0, fmt::format("an order changes a beam by {:.3f} mm3", worst));
+    std::cout << fmt::format("joint_beams: column head: all {} orders of the beams agree within {:.3f} mm3", orders, worst) << std::endl;
+}
+
+/// Beams too short, too long or drawn the other way, and a column drawn from its head down, all give the same solids: the joint finds each near end and trims or extends to suit.
+static void check_column_head_ends() {
+
+    const HeadNode base = {100.0, 185.0, 100.0, 0.0, 75.0, 280.0};
+    const std::array<std::shared_ptr<Element>, 5> reference = head_members(base, {0, 1, 2, 3});
+    WoodSession reference_scene("column_head");
+    head_joined(reference_scene, reference);
+
+    double worst = 0.0;
+    for (const std::array<double, 2>& variant : std::vector<std::array<double, 2>>{
+             {90.0, 0.0}, {-60.0, 0.0}, {0.0, 1.0}, {-60.0, 1.0}
+         }) {
+        HeadNode node = base;
+        node.near_end = variant[0];
+        node.reversed = variant[1] > 0.5;
+        const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+        WoodSession scene("column_head");
+        head_joined(scene, members);
+        for (size_t i = 0; i < 5; i++) {
+            const Mesh solid = members[i]->model_geometry_mesh();
+            const Mesh same = reference[i]->model_geometry_mesh();
+            check(solid.is_closed(), fmt::format("the {} is a closed solid", members[i]->name));
+            worst = std::max(
+                {worst,
+                 compute_volume(solid) - boolean_volume(solid, same, SolidOperation::intersect),
+                 compute_volume(same) - boolean_volume(solid, same, SolidOperation::intersect)}
+            );
+        }
+    }
+    check(worst < 1.0, fmt::format("a beam's end changes the joint by {:.3f} mm3", worst));
+    std::cout << fmt::format(
+                     "joint_beams: column head: beams stopping 90 short of the axis, running 60 past it, or drawn the other way, and the column drawn head down, agree within {:.3f} mm3",
+                     worst
+                 )
+              << std::endl;
+}
+
+/// The secondary beams swept through their angles in plan, together and each on its own: at every angle the joint builds it is sound, and past the limits it is refused naming the beam.
+static void check_column_head_angles() {
+
+    const auto joins = [](const HeadNode& node, std::string& refused) {
+        try {
+            const std::array<std::shared_ptr<Element>, 5> members = head_members(node, {0, 1, 2, 3});
+            WoodSession scene("column_head");
+            head_joined(scene, members);
+            const HeadMeasure measure = measure_head(node, members);
+            check(measure.seated < 1.0, fmt::format("at {:g} and {:g} seated {:.3f} mm3", node.secondary_0, node.secondary_1, measure.seated));
+            check(
+                std::abs(measure.filled - measure.head) < 2e-3 * measure.head,
+                fmt::format("at {:g} and {:g} the head holds {:.0f} of {:.0f}", node.secondary_0, node.secondary_1, measure.filled, measure.head)
+            );
+            check(measure.lowered < 1.0, fmt::format("at {:g} and {:g} lowering overlaps {:.3f}", node.secondary_0, node.secondary_1, measure.lowered));
+            check(measure.least > 10.0, fmt::format("at {:g} and {:g} a move is free, {:.1f}", node.secondary_0, node.secondary_1, measure.least));
+            return true;
+        } catch (const std::invalid_argument& error) {
+            refused = error.what();
+            return false;
+        }
+    };
+
+    // both turned the same way, the node keeping its half-turn symmetry
+    double low = 180.0;
+    double high = 0.0;
+    size_t valid = 0;
+    std::string below;
+    std::string above;
+    for (double angle = 5.0; angle <= 175.0; angle += 1.0) {
+        std::string refused;
+        if (joins({100.0, 185.0, 100.0, 0.0, angle, 180.0 + angle}, refused)) {
+            low = std::min(low, angle);
+            high = std::max(high, angle);
+            valid++;
+        } else {
+            (angle < 90.0 ? below : above) = refused;
+        }
+    }
+    check(valid > 0, "no angle joins");
+    std::cout << fmt::format("joint_beams: column head: secondary beams valid from {:g} to {:g} degrees in 1 degree steps, {} angles; below: {}; above: {}", low, high, valid, below, above) << std::endl;
+
+    // each on its own, the two sides independent
+    size_t asymmetric = 0;
+    for (const std::array<double, 2>& pair : std::vector<std::array<double, 2>>{
+             {90.0, 240.0}, {70.0, 290.0}, {60.0, 300.0}, {110.0, 250.0}, {75.0, 255.0}, {100.0, 280.0}
+         }) {
+        std::string refused;
+        if (joins({100.0, 185.0, 100.0, 0.0, pair[0], pair[1]}, refused))
+            asymmetric++;
+        else
+            std::cout << fmt::format("joint_beams: column head at {:g} and {:g} refused: {}", pair[0], pair[1], refused) << std::endl;
+    }
+    check(asymmetric > 0, "no asymmetric node joins");
+
+    // a narrower secondary beam
+    std::string refused;
+    check(joins({100.0, 185.0, 100.0, 0.0, 80.0, 260.0, 70.0}, refused), "a narrower secondary beam joins: " + refused);
+    std::cout << fmt::format("joint_beams: column head: {} of 6 asymmetric nodes join, and a narrower secondary beam", asymmetric) << std::endl;
+}
+
+/// What no joint exists for is refused, naming the beam and the reason.
+static void check_column_head_refusals() {
+
+    const std::vector<Polyline> section = {
+        Polyline::rectangle({-50.0, -92.5, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 100.0, 185.0)
+    };
+    const auto at = [&](double angle, double start, double end, double level, const std::string& name) {
+        const double turn = angle * std::numbers::pi / 180.0;
+        const Vector way(std::cos(turn), std::sin(turn), 0.0);
+        return std::make_shared<Beam>(
+            Polyline({Point(0.0, 0.0, level) + way * end, Point(0.0, 0.0, level) + way * start}),
+            section,
+            std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+            name
+        );
+    };
+    const std::shared_ptr<Column> column =
+        Column::round(Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}), 100.0, 0.02, "column");
+    const auto refused = [&](const std::array<std::shared_ptr<Beam>, 4>& beams, const std::string& expected) {
+        std::string message;
+        try {
+            JointBeam::column_head(*column, *beams[0], *beams[1], *beams[2], *beams[3]);
+        } catch (const std::invalid_argument& error) {
+            message = error.what();
+        }
+        check(message.find(expected) != std::string::npos, fmt::format("expected '{}', got '{}'", expected, message));
+        std::cout << fmt::format("joint_beams: column head refused: {}", message) << std::endl;
+    };
+    const double level = -92.5;
+    const auto fine = [&](double angle, const std::string& name) { return at(angle, 0.0, 400.0, level, name); };
+
+    refused({fine(0.0, "a"), fine(170.0, "b"), fine(80.0, "c"), fine(250.0, "d")}, "no two beams are in line");
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(60.0, "c"), fine(120.0, "d")}, "on the same side");
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), at(270.0, 250.0, 500.0, level, "d")}, "beam d stops");
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), at(270.0, 0.0, 400.0, level + 30.0, "d")}, "has its top");
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(10.0, "c"), fine(190.0, "d")}, "beam c at 10.0 degrees");
+
+    const std::shared_ptr<Beam> tilted = std::make_shared<Beam>(
+        Polyline({Point(0.0, -400.0, level + 60.0), Point(0.0, 0.0, level)}),
+        section,
+        std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+        "tilted"
+    );
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), tilted}, "beam tilted is tilted");
+    const std::shared_ptr<Beam> aside = std::make_shared<Beam>(
+        Polyline({Point(30.0, -400.0, level), Point(30.0, 0.0, level)}),
+        section,
+        std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+        "aside"
+    );
+    refused({fine(0.0, "a"), fine(180.0, "b"), fine(90.0, "c"), aside}, "beam aside misses the column's axis");
 }
 
 /// The keyed box JointBeam::keyed_box at its default sizes, on other plates and other sizes, and on plates lying flat and turned: each piece goes in in the sequence the mechanism needs, and once the keys are in
@@ -1008,6 +1211,10 @@ int main() {
     check_tees();
     check_bridles();
     check_column_head();
+    check_column_head_orders();
+    check_column_head_ends();
+    check_column_head_angles();
+    check_column_head_refusals();
     check_keyed_boxes();
     check_end_to_end();
     return 0;

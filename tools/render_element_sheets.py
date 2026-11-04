@@ -49,6 +49,7 @@ BEAM_CUT_FAMILIES = [
     "butt",
     "end_to_end",
     "column_head",
+    "column_head_rotated",
 ]
 SHEET_4 = [
     "element_joint",

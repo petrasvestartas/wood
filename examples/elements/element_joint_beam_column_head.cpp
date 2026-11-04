@@ -16,7 +16,7 @@ int main() {
     );
     scene.add(column);
 
-    // four 100 x 185 beams, tops flush with the head: main beams along x reaching 385 from it, secondary along y reaching 465, each stock ending where its cut ends
+    // four 100 x 185 beams, tops flush with the head: main beams along x reaching 385 from it, secondary along y reaching 465, each axis simply ending at the column's: the joint finds the rest
     const double level = -0.5 * height;
     const std::vector<Polyline> section = {Polyline::rectangle(
         {-0.5 * width, -0.5 * height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, height
@@ -26,14 +26,10 @@ int main() {
             Polyline({from, to}), section, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
         );
     };
-    const double main_arm = 385.0;
-    const double secondary_arm = 465.0;
-    const double reach = 0.8 * width;
-    const double tail = (0.35 - 0.146) * width;
-    const std::shared_ptr<Beam> first = beam({-main_arm, 0.0, level}, {reach, 0.0, level}, "first");
-    const std::shared_ptr<Beam> second = beam({main_arm, 0.0, level}, {-reach, 0.0, level}, "second");
-    const std::shared_ptr<Beam> third = beam({0.0, -secondary_arm, level}, {0.0, -tail, level}, "third");
-    const std::shared_ptr<Beam> fourth = beam({0.0, secondary_arm, level}, {0.0, tail, level}, "fourth");
+    const std::shared_ptr<Beam> first = beam({-385.0, 0.0, level}, {0.0, 0.0, level}, "first");
+    const std::shared_ptr<Beam> second = beam({385.0, 0.0, level}, {0.0, 0.0, level}, "second");
+    const std::shared_ptr<Beam> third = beam({0.0, -465.0, level}, {0.0, 0.0, level}, "third");
+    const std::shared_ptr<Beam> fourth = beam({0.0, 465.0, level}, {0.0, 0.0, level}, "fourth");
     scene.add(first);
     scene.add(second);
     scene.add(third);

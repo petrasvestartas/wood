@@ -63,6 +63,8 @@ public:
         false; // A connector of pins: its drill lines are the pre-drilled holes of both targets, stored once here and never cut.
     std::vector<Vector>
         insertions; // A connector's direction each target slides off it, in targets order, then the way any keys of it come out; a beam-to-beam joint reads its feature instead.
+    std::vector<Mesh>
+        gains; // What a connector adds to each target, in targets order, before it cuts; empty for most. Hosted on the target by add_interaction, not written with the joint.
     std::array<InteractionFeatureSolid, 2> butt_extensions; // A butt's.
     std::array<InteractionFeatureSolid, 2> butt_solids; // A butt's.
     std::array<std::optional<Plane>, 2>
@@ -190,22 +192,25 @@ public:
         double overshoot = 10.0
     );
 
-    /// Four beams into a round column's head: the column keeps four posts around a cross slot as deep as the beams are tall, the first and second beams meet in it in a scarf of two
-    /// tongues side by side, each wider at its tip, and the third and fourth end on those tongues in one dovetail each, all walls along the column, so each beam drops in from above.
-    /// The first runs along -x and the third along -y of the frame the column's axis and the first beam give. Sizes are shares of the beam width; null for a beam with no profile.
+    /// One round column and four beams, given in any order, into one node: the two beams in line meet in a scarf of two tongues in a slot across the column's head, each wider at its tip, and
+    /// the other two, one each side at any angle, end on those tongues in one dovetail each, all walls along the column, so each beam drops in along it. Everything is read from the members:
+    /// each beam's near end, side and direction, its section, the seat's level. A beam's tenon, tail and shoulder follow its own direction, so the posts come out unequal; a beam too long is
+    /// cut back and one too short gains stock. Sizes are shares of a beam's own width, the shoulder of the column's radius. Throws naming the beam and the reason when no valid joint exists.
     static std::shared_ptr<JointBeam> column_head(
         const Column& column,
-        const Beam& first,
-        const Beam& second,
-        const Beam& third,
-        const Beam& fourth,
+        const Beam& a,
+        const Beam& b,
+        const Beam& c,
+        const Beam& d,
         double tenon = 0.7,
         double shoulder = 0.8,
         double seam_slope = 0.1,
         double dovetail_offset = 0.145,
         double dovetail_root = 0.286,
         double dovetail_depth = 0.146,
-        double dovetail_flare = 0.176
+        double dovetail_flare = 0.176,
+        double min_wood = 0.08,
+        double min_post = 0.05
     );
 
     /// Two plates held face to face by a box through a mortise in both, locked by two wedge keys in one long mortise across the box: the first key stops the box on the second plate, the

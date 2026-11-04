@@ -1791,6 +1791,18 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
         add_solid_interaction(joint, target, cut);
         host_drills(*this, *joint, *target, cut->drills, joint->line_radius);
 
+        const size_t index =
+            std::find(joint->targets.begin(), joint->targets.end(), target->guid()) -
+            joint->targets.begin();
+        if (index < beam_joint->gains.size() &&
+            beam_joint->gains[index].number_of_faces() > 0)
+            host_solid_feature(
+                *this,
+                *joint,
+                InteractionFeatureSolid(beam_joint->gains[index], SolidOperation::add),
+                target
+            );
+
         return cut;
     }
 
