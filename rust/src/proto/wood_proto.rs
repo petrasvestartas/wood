@@ -182,6 +182,9 @@ pub struct JointElement {
     /// A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
     #[prost(bool, tag = "23")]
     pub pre_drill: bool,
+    /// A cutting plane: the side of the square it is drawn as
+    #[prost(double, tag = "25")]
+    pub cut_size: f64,
     /// A connector's direction each target slides off it, in targets order
     #[prost(message, repeated, tag = "24")]
     pub insertions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,

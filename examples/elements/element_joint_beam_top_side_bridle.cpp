@@ -45,7 +45,7 @@ int main() {
     for (const std::shared_ptr<JointCutPlaneElement>& end : {long_end, short_end}) {
         end->is_visible = false;
         scene.add(end);
-        scene.add_interaction(end, first, end->feature());
+        scene.add_interaction(end, first, end->interaction(0));
     }
 
     // drawn apart: the second beam slid back off the tongue, square to the first, the only way it comes out

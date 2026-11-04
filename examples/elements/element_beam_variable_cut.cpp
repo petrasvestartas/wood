@@ -33,8 +33,8 @@ int main() {
     );
     scene.add(start);
     scene.add(end);
-    scene.add_interaction(start, rib, start->feature());
-    scene.add_interaction(end, rib, end->feature());
+    scene.add_interaction(start, rib, start->interaction(0));
+    scene.add_interaction(end, rib, end->interaction(0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

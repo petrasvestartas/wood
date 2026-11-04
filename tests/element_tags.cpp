@@ -144,6 +144,28 @@ int main() {
     }
     check(refused, "a section off square to the axis is refused");
 
+    // a cutting plane is a joint: it saves as one and cuts a member through its interaction
+    const std::shared_ptr<JointCutPlaneElement> plane = std::make_shared<JointCutPlaneElement>(
+        Plane::from_point_normal({50.0, 0.0, 0.0}, {-1.0, 0.0, 0.0}), 300.0, "plane"
+    );
+    const std::shared_ptr<JointCutPlaneElement> plane_back =
+        std::dynamic_pointer_cast<JointCutPlaneElement>(Element::pb_loads_polymorphic(plane->pb_dumps()));
+    check(
+        plane_back && plane_back->size == 300.0 && plane_back->plane().origin().distance({50.0, 0.0, 0.0}) < 1e-9,
+        "the plane and its size survive a save"
+    );
+    WoodSession cut("cut");
+    const std::shared_ptr<EdgeStraightElement> stock =
+        EdgeStraightElement::square(Polyline({Point(0.0, 0.0, 0.0), Point(100.0, 0.0, 0.0)}), 10.0);
+    cut.add(stock);
+    cut.add(plane);
+    cut.add_interaction(plane, stock, plane->interaction(0));
+    check(
+        std::abs(stock->model_geometry_mesh().volume() - 50.0 * 20.0 * 20.0) < 1e-6,
+        "the plane cuts the member"
+    );
+    check(cut.get_elements<JointElement>().size() == 1, "the plane is a joint");
+
     writes_its_name(FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 100.0, 100.0, 10.0
     ));

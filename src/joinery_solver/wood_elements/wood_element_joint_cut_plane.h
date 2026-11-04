@@ -1,38 +1,30 @@
 #pragma once
 
-#include "pch.h"
-#include "wood_element.h"
+#include "wood_element_joint.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a cutting plane.
-class JointCutPlaneElement : public WoodElement {
+/// Element that represents a cutting plane: a joint with one target side, drawn as a square.
+class JointCutPlaneElement : public JointElement {
 public:
-    /// Its cutting plane.
-    std::optional<Plane> base_plane() const override;
-
-    static constexpr std::string_view ELEMENT_TYPE =
-        "JointCutPlaneElement"; // The element_type this plane is written under.
-    Plane plane; // The cutting plane; what it cuts keeps the side its normal points to.
     double size = 1000.0; // The side of the square it is drawn as.
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Constructors
-    // ═══════════════════════════════════════════════════════════════════════════
+    JointCutPlaneElement();
 
     /// A cutting plane drawn as a square of size.
     explicit JointCutPlaneElement(
         const Plane& plane, double size = 1000.0, const std::string& name = "cut_plane"
     );
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // Geometry
-    // ═══════════════════════════════════════════════════════════════════════════
+    /// The cutting plane; what it cuts keeps the side its normal points to.
+    const Plane& plane() const {
+        return cuts.front();
+    }
 
-    /// The plane feature it cuts another element by.
-    std::shared_ptr<InteractionFeaturePlane> feature() const;
+    /// The plane feature it cuts a target by.
+    std::shared_ptr<Interaction> interaction(size_t target) const override;
 
     /// The square on the plane, one face.
     const Mesh& element_geometry_mesh() const override;
@@ -46,19 +38,17 @@ public:
     /// The square: a plane is not cut.
     const BRep& model_geometry_brep() const override;
 
-    /// ELEMENT_TYPE.
     std::string element_type_name() const override {
-        return std::string(ELEMENT_TYPE);
+        return "JointCutPlaneElement";
     }
 
-    /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
         return std::make_shared<JointCutPlaneElement>(*this);
     }
 
 protected:
-    void compute_geometry_mesh_impl() override;
-    void compute_geometry_brep_impl() override;
+    void write_proto(wood_proto::JointElement& proto) const override;
+    void read_proto(const wood_proto::JointElement& proto) override;
 };
 
 }

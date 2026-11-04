@@ -878,6 +878,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointElement final : public ::googl
     kOperationFieldNumber = 16,
     kChordToleranceFieldNumber = 12,
     kDrillOvershootFieldNumber = 20,
+    kCutSizeFieldNumber = 25,
     kGeneratedFieldNumber = 10,
     kPreDrillFieldNumber = 23,
   };
@@ -1218,6 +1219,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointElement final : public ::googl
   void _internal_set_drill_overshoot(double value);
 
   public:
+  // double cut_size = 25;
+  void clear_cut_size() ;
+  [[nodiscard]] double cut_size() const;
+  void set_cut_size(double value);
+
+  private:
+  double _internal_cut_size() const;
+  void _internal_set_cut_size(double value);
+
+  public:
   // bool generated = 10;
   void clear_generated() ;
   [[nodiscard]] bool generated() const;
@@ -1242,8 +1253,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointElement final : public ::googl
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<5, 23,
-                          12, 59,
+      ::google::protobuf::internal::TcParseTable<5, 24,
+                          12, 67,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -1292,6 +1303,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED JointElement final : public ::googl
     ::int32_t operation_;
     double chord_tolerance_;
     double drill_overshoot_;
+    double cut_size_;
     bool generated_;
     bool pre_drill_;
     PROTOBUF_TSAN_DECLARE_MEMBER
@@ -1731,7 +1743,7 @@ inline void JointElement::_internal_set_line_radius(double value) {
 inline void JointElement::clear_generated() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.generated_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00400000U);
 }
 inline bool JointElement::generated() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointElement.generated)
@@ -1739,7 +1751,7 @@ inline bool JointElement::generated() const {
 }
 inline void JointElement::set_generated(bool value) {
   _internal_set_generated(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
   // @@protoc_insertion_point(field_set:wood_proto.JointElement.generated)
 }
 inline bool JointElement::_internal_generated() const {
@@ -2341,7 +2353,7 @@ JointElement::_internal_mutable_solid_features() {
 inline void JointElement::clear_pre_drill() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.pre_drill_ = false;
-  ClearHasBit(_impl_._has_bits_[0], 0x00400000U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00800000U);
 }
 inline bool JointElement::pre_drill() const {
   // @@protoc_insertion_point(field_get:wood_proto.JointElement.pre_drill)
@@ -2349,7 +2361,7 @@ inline bool JointElement::pre_drill() const {
 }
 inline void JointElement::set_pre_drill(bool value) {
   _internal_set_pre_drill(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00400000U);
+  SetHasBit(_impl_._has_bits_[0], 0x00800000U);
   // @@protoc_insertion_point(field_set:wood_proto.JointElement.pre_drill)
 }
 inline bool JointElement::_internal_pre_drill() const {
@@ -2359,6 +2371,30 @@ inline bool JointElement::_internal_pre_drill() const {
 inline void JointElement::_internal_set_pre_drill(bool value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.pre_drill_ = value;
+}
+
+// double cut_size = 25;
+inline void JointElement::clear_cut_size() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.cut_size_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00200000U);
+}
+inline double JointElement::cut_size() const {
+  // @@protoc_insertion_point(field_get:wood_proto.JointElement.cut_size)
+  return _internal_cut_size();
+}
+inline void JointElement::set_cut_size(double value) {
+  _internal_set_cut_size(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00200000U);
+  // @@protoc_insertion_point(field_set:wood_proto.JointElement.cut_size)
+}
+inline double JointElement::_internal_cut_size() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.cut_size_;
+}
+inline void JointElement::_internal_set_cut_size(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.cut_size_ = value;
 }
 
 // repeated .session_proto.Vector insertions = 24;

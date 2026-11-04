@@ -1261,10 +1261,11 @@ std::string WoodSession::repr() const {
 std::shared_ptr<TreeNode>
 WoodSession::add(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> parent) {
 
-    const bool member = !std::dynamic_pointer_cast<JointElement>(element);
+    const bool member = !std::dynamic_pointer_cast<JointElement>(element) ||
+                        std::dynamic_pointer_cast<JointCutPlaneElement>(element);
     const std::shared_ptr<TreeNode> node = add_element(std::move(element), std::move(parent));
 
-    // a member's node light grey; a joint keeps the viewer's default, a connector paints its own when its parts are nested
+    // a member's node light grey, and a cutting plane's; a joint keeps the viewer's default, a connector paints its own when its parts are nested
     if (member)
         set_node_color(node, WoodElement::MEMBER_COLOR, false);
 

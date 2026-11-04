@@ -355,6 +355,8 @@ std::shared_ptr<JointElement> JointElement::from_element(Element element) {
         result = std::make_shared<JointConnectorPartElement>();
     else if (kind == "JointPinElement" || kind == "Pin")
         result = std::make_shared<JointPinElement>();
+    else if (kind == "JointCutPlaneElement")
+        result = std::make_shared<JointCutPlaneElement>();
     else
         result = std::make_shared<JointElement>();
     static_cast<Element&>(*result) = std::move(element);
@@ -394,6 +396,7 @@ void JointElement::register_type() {
           "JointVidyElement",
           "JointConnectorPartElement",
           "JointPinElement",
+          "JointCutPlaneElement",
           "Joint",
           "JointPlate",
           "JointBeam",
