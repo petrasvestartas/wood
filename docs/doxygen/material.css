@@ -851,7 +851,7 @@ a.wood-card img {
     width: 100%;
     height: 180px;
     object-fit: contain;
-    background: #ffffff;
+    background: #f0f0f0; /* the viewer's Arctic backdrop, so a screenshot has no visible edge */
     border-radius: 2px;
     margin: 0 0 8px 0 !important;
     display: block;
