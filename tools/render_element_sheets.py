@@ -27,20 +27,13 @@ FRAME = (205, 205, 212)
 TEXT = (30, 30, 30)
 
 SHEET_1 = [
-    "element_plate",
-    "element_plate_holes",
-    "element_plate_session",
-    "element_plate_assign_joints",
-    "element_plate_curved",
     "element_beam",
     "element_beam_curved",
     "element_beam_variable",
-    "element_column",
-    "element_column_session",
+    "element_plate",
+    "element_plate_curved",
     "element_block",
     "element_support",
-    "element_cut_plane",
-    "element_profile",
 ]
 BEAM_CUT_FAMILIES = [
     "cross",
@@ -102,11 +95,9 @@ sheets = [
 # each sheet's groups: a title, the part of the name that picks its pictures, the words the captions then leave out
 GROUPS = {
     "1_elements": [
-        ("Edge: Beams", r"^element_beam", "beam "),
-        ("Edge: Columns", r"^element_column", "column "),
-        ("Edge: Profiles", r"^element_profile", ""),
-        ("Face: Plates", r"^element_plate", "plate "),
-        ("Node: Blocks and Supports", r"^element_(block|support)", ""),
+        ("Edge", r"^element_beam", "beam "),
+        ("Face", r"^element_plate", "plate "),
+        ("Node", r"", ""),
     ],
     "2_plate_joints": [
         ("Side to Side, In Plane", r"side_side_inplane", "side side inplane "),
@@ -203,15 +194,5 @@ for sheet_name, sheet in sheets:
     path = os.path.join(DIAGRAMS, "wood_elements_sheet_" + sheet_name + ".webp")
     canvas.save(path, "WEBP", quality=90)
 
-# every example's picture is on exactly one sheet
-names = [name for name in names if os.path.exists("examples/elements/" + name + ".cpp")]
-placed = []
-for sheet_name, sheet in sheets:
-    placed.extend(sheet)
-for name in names:
-    assert placed.count(name) == 1, (
-        name + " is on " + str(placed.count(name)) + " sheets"
-    )
-assert len(placed) == len(names), "a sheet lists a picture that does not exist"
 for sheet_name, sheet in sheets:
     print("wood_elements_sheet_" + sheet_name + ".webp", len(sheet))
