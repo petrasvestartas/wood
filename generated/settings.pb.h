@@ -489,6 +489,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Settings final : public ::google::p
     kLimitMinJointLengthFieldNumber = 12,
     kClipperScaleFieldNumber = 13,
     kClipperAreaFieldNumber = 14,
+    kJointDepthScaleFieldNumber = 17,
   };
   // repeated double joint_parameters = 2;
   [[nodiscard]] int joint_parameters_size() const;
@@ -696,11 +697,21 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Settings final : public ::google::p
   void _internal_set_clipper_area(double value);
 
   public:
+  // double joint_depth_scale = 17;
+  void clear_joint_depth_scale() ;
+  [[nodiscard]] double joint_depth_scale() const;
+  void set_joint_depth_scale(double value);
+
+  private:
+  double _internal_joint_depth_scale() const;
+  void _internal_set_joint_depth_scale(double value);
+
+  public:
   // @@protoc_insertion_point(class_scope:wood_proto.Settings)
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<4, 16,
+      ::google::protobuf::internal::TcParseTable<5, 17,
                           1, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -745,6 +756,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED Settings final : public ::google::p
     double limit_min_joint_length_;
     ::int64_t clipper_scale_;
     double clipper_area_;
+    double joint_depth_scale_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1456,6 +1468,30 @@ inline ::google::protobuf::RepeatedPtrField<::wood_proto::CustomJoint>* PROTOBUF
 Settings::_internal_mutable_custom_joints() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.custom_joints_;
+}
+
+// double joint_depth_scale = 17;
+inline void Settings::clear_joint_depth_scale() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.joint_depth_scale_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00010000U);
+}
+inline double Settings::joint_depth_scale() const {
+  // @@protoc_insertion_point(field_get:wood_proto.Settings.joint_depth_scale)
+  return _internal_joint_depth_scale();
+}
+inline void Settings::set_joint_depth_scale(double value) {
+  _internal_set_joint_depth_scale(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00010000U);
+  // @@protoc_insertion_point(field_set:wood_proto.Settings.joint_depth_scale)
+}
+inline double Settings::_internal_joint_depth_scale() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.joint_depth_scale_;
+}
+inline void Settings::_internal_set_joint_depth_scale(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.joint_depth_scale_ = value;
 }
 
 #ifdef __GNUC__

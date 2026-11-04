@@ -8,6 +8,11 @@ const std::string DATASET{config::Dataset::inplane_hexshell};
 int main() {
 
     WoodSession wood_session = WoodSession::yaml_load(DATASET);
+
+    // fingers half as deep as the dataset's, as wide and as many, and no shrinking of the volume, which would part the plates at the shell's folds
+    wood_session.settings.joint_volume_extension = {0.0, 0.0, -10.0};
+    wood_session.settings.joint_depth_scale = 0.4;
+
     wood_session.compute_face_contacts();
     wood_session.compute_features();
 

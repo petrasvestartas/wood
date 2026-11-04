@@ -24,6 +24,8 @@ struct Settings {
     std::array<double, 3> joint_scale = {
         1.0, 1.0, 1.0
     }; // Multiplicative [sx, sy, sz] scale of joint geometry before insertion; 1 = no change.
+    double joint_depth_scale =
+        1.0; // How deep an in-plane joint's fingers run across the seam, as a share of the joint volume, which is the plate's thickness; 1 = the full volume.
     double dihedral_angle = 150.0; // Degrees; rotated-joint threshold.
     bool all_treated_as_rotated = false; // Force the rotated geometry path.
     bool rotated_joint_as_average = false; // Averaged plane for rotated joints.

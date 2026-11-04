@@ -88,7 +88,7 @@ Detects face, axis, and cross contacts across an in-plane hexagonal shell datase
 
 ## Plate Joinery {#ex_3_features}
 
-Runs the plate joinery solver on a hexagonal shell, orienting finger joints across shared edges and evaluating boolean-cut plate meshes.
+Runs the plate joinery solver on a hexagonal shell, orienting finger joints across shared edges and evaluating boolean-cut plate meshes. The fingers are sized by two settings: `joint_parameters[0]` is the length along the seam that one division takes, and `joint_depth_scale` is their depth across it as a share of the joint volume, whose width is the plate thickness.
 
 ![](ex_3_features.webp)
 

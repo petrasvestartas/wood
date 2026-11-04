@@ -15,6 +15,10 @@ namespace wood_session {
 /// Moves the volume rectangles of a unit-scale joint to unit_scale_distance apart along the joint line.
 void apply_unit_scale(InteractionFeaturePlate& joint);
 
+/// Scales an in-plane joint's unit-box outlines across the seam, before they are mapped: both plates share the scaled outlines, so they still fit on a folded seam, where a
+/// negative joint_volume_extension width, which shrinks each plate's volume in that plate's own plane, does not.
+void scale_joint_depth(InteractionFeaturePlate& joint, double scale);
+
 /// Maps the unit-box outlines onto the joint volumes by change of basis, after apply_unit_scale.
 void joint_orient_to_connection_area(InteractionFeaturePlate& joint);
 

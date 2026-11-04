@@ -281,7 +281,103 @@ static void check_beam_curved_and_profiles() {
     std::cout << "beam curved and profile checks passed\n";
 }
 
+/// The fingers of an in-plane joint sized without touching the plates, on the folded hexagonal shell: the depth setting leaves the default alone, the plates still fit at every fold, and
+/// the depth and the count come out as asked. A negative volume width is measured too: it is why the depth has a setting of its own.
+static void check_joint_depth_scale() {
+
+    struct Fingers {
+        size_t closed = 0;
+        size_t plates = 0;
+        double overlap = 0.0;
+        double wood = 0.0;
+        double depth = 0.0;
+        double divisions = 0.0;
+    };
+    const auto measured = [](double division, const std::vector<double>& extension, double scale) {
+        WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
+        scene.settings.joint_parameters[0] = division;
+        scene.settings.joint_volume_extension = extension;
+        scene.settings.joint_depth_scale = scale;
+        scene.compute_features();
+
+        Fingers fingers;
+        std::vector<Mesh> solids;
+        for (const std::shared_ptr<Plate>& plate : scene.plates()) {
+            solids.push_back(plate->model_geometry_mesh());
+            fingers.closed += solids.back().is_closed();
+            fingers.wood += compute_volume(solids.back());
+        }
+        fingers.plates = solids.size();
+        for (size_t i = 0; i < solids.size(); i++)
+            for (size_t j = i + 1; j < solids.size(); j++) {
+                const Mesh both = solid_boolean(solids[i], solids[j], SolidOperation::intersect);
+                if (both.number_of_faces() > 0)
+                    fingers.overlap += compute_volume(both);
+            }
+
+        // the depth from the outline itself, across the seam, the mean over the joints
+        const std::vector<InteractionFeaturePlate> joints = scene.get_plate_features();
+        for (const InteractionFeaturePlate& joint : joints) {
+            const Polyline& outline = joint.male_outlines[0][0];
+            const Polyline& ends = joint.male_outlines[0][1];
+            const Vector along = (ends[1] - ends[0]).normalized();
+            const Vector across = along.cross(
+                ((*joint.joint_volumes[0])[3] - (*joint.joint_volumes[0])[0]).normalized()
+            );
+            double low = std::numeric_limits<double>::max();
+            double high = std::numeric_limits<double>::lowest();
+            for (const Point& point : outline.get_points()) {
+                low = std::min(low, (point - ends[0]).dot(across.normalized()));
+                high = std::max(high, (point - ends[0]).dot(across.normalized()));
+            }
+            fingers.depth += (high - low) / joints.size();
+            fingers.divisions += double(joint.divisions) / joints.size();
+        }
+
+        return fingers;
+    };
+
+    const Fingers dataset = measured(40.0, {-5.0, 0.0, -10.0}, 1.0);
+    const Fingers full = measured(40.0, {0.0, 0.0, -10.0}, 1.0);
+    const Fingers small = measured(40.0, {0.0, 0.0, -10.0}, 0.4);
+    const Fingers shrunk = measured(40.0, {-14.9, 0.0, -10.0}, 1.0);
+
+    check(full.overlap < 1.0, fmt::format("the full volume overlaps {:.3f} mm3", full.overlap));
+    check(small.closed == small.plates, fmt::format("{} of {} plates closed", small.closed, small.plates));
+    check(small.overlap < 1.0, fmt::format("the small fingers overlap {:.3f} mm3", small.overlap));
+    check(
+        std::abs(small.depth - 0.4 * full.depth) < 1e-3 * full.depth,
+        fmt::format("depth {:.3f}, not 0.4 of {:.3f}", small.depth, full.depth)
+    );
+    check(
+        std::abs(small.wood - full.wood) < 1e-4 * full.wood,
+        fmt::format("the wood changed from {:.0f} to {:.0f}", full.wood, small.wood)
+    );
+    check(
+        small.divisions == full.divisions,
+        fmt::format("{:.1f} divisions, not {:.1f}", small.divisions, full.divisions)
+    );
+    check(shrunk.overlap > 1000.0, fmt::format("a shrunk volume overlaps only {:.1f}", shrunk.overlap));
+
+    // the setting survives a file, and a file from before it reads as the full volume
+    Settings saved;
+    saved.joint_depth_scale = 0.4;
+    check(Settings::pb_loads(saved.pb_dumps()).joint_depth_scale == 0.4, "the depth scale is lost in a file");
+    check(Settings::pb_loads("").joint_depth_scale == 1.0, "a file without the depth scale does not read as 1");
+
+    std::cout << fmt::format(
+                     "joint_elements: in-plane fingers on the folded shell: dataset depth {:.1f}, {:.1f} divisions, overlap {:.0f} mm3; full volume depth {:.1f}, overlap {:.3f}; small depth {:.1f}, "
+                     "{:.1f} divisions, overlap {:.3f}, {} of {} closed, wood {:.0f} of {:.0f}; depth by a shrunk volume overlaps {:.0f}",
+                     dataset.depth, dataset.divisions, dataset.overlap, full.depth, full.overlap, small.depth, small.divisions, small.overlap,
+                     small.closed, small.plates, small.wood, full.wood, shrunk.overlap
+                 )
+              << std::endl;
+}
+
 int main() {
+
+    check_joint_depth_scale();
+
     WoodSession scene("joint API checks");
     const auto a = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
     const auto b = Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);

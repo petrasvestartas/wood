@@ -97,6 +97,20 @@ void apply_unit_scale(InteractionFeaturePlate& joint) {
         move_pair(joint, *vols[2], *vols[3]);
 }
 
+void scale_joint_depth(InteractionFeaturePlate& joint, double scale) {
+
+    if (joint.joint_type != 12 || scale == 1.0)
+        return;
+
+    const Xform depth = Xform::scale_xyz(scale, 1.0, 1.0);
+    for (int face = 0; face < 2; face++) {
+        for (Polyline& pl : joint.male_outlines[face])
+            pl.transform(depth);
+        for (Polyline& pl : joint.female_outlines[face])
+            pl.transform(depth);
+    }
+}
+
 /// Rescale the volumes along the joint line, then map the unit-cube outlines onto them by change of basis.
 void joint_orient_to_connection_area(InteractionFeaturePlate& joint) {
 

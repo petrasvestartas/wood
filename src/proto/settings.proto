@@ -29,4 +29,5 @@ message Settings {
   double clipper_area = 14;                   // Overlaps at or below this area are not a contact
   repeated double beams = 15;                 // [radius, allowed type, min_distance, volume_length, cross_or_side_to_end, flip_male]
   repeated CustomJoint custom_joints = 16;    // User joint outlines, in family order
+  double joint_depth_scale = 17;              // In-plane joint depth across the seam as a share of the volume; 0 in older files reads as 1
 }

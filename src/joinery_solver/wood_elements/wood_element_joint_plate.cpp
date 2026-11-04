@@ -655,6 +655,7 @@ void build_feature_geometry(
     reuse_or_create_geometry(joint, family, context, unique_joints_cache);
 
     if (!joint.no_orient) {
+        scale_joint_depth(joint, context.settings.joint_depth_scale);
         joint_orient_to_connection_area(joint);
     }
 
@@ -1602,8 +1603,10 @@ void JointPlate::construct(
             compute_library(connection, elements, joints, configuration);
 
     for (InteractionFeaturePlate& connection : joints)
-        if (!connection.no_orient)
+        if (!connection.no_orient) {
+            scale_joint_depth(connection, configuration.joint_depth_scale);
             joint_orient_to_connection_area(connection);
+        }
 
     if (parameters.library == "side_side_outplane_linked_tenons" ||
         parameters.library == "side_side_outplane_linked_tenons_wall")

@@ -228,11 +228,11 @@ constexpr Settings::ParseTableT_ Settings::InternalGenerateParseTable_(const ::_
     {
       PROTOBUF_FIELD_OFFSET(Settings, _impl_._has_bits_),
       0, // no _extensions_
-      16, 120,  // max_field_number, fast_idx_mask
+      17, 248,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294901760,  // skipmap
+      4294836224,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      16,  // num_field_entries
+      17,  // num_field_entries
       1,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
@@ -242,10 +242,7 @@ constexpr Settings::ParseTableT_ Settings::InternalGenerateParseTable_(const ::_
       ::_pbi::TcParser::GetTable<::wood_proto::Settings>(),  // to_prefetch
       #endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     }, {{
-      // repeated .wood_proto.CustomJoint custom_joints = 16;
-      {::_pbi::TcParser::FastMtR2,
-       {386, 4, 0,
-        PROTOBUF_FIELD_OFFSET(Settings, _impl_.custom_joints_)}},
+      {::_pbi::TcParser::MiniParse, {}},
       // int32 search_type = 1;
       {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(Settings, _impl_.search_type_), 5>(),
        {8, 5, 0,
@@ -306,6 +303,28 @@ constexpr Settings::ParseTableT_ Settings::InternalGenerateParseTable_(const ::_
       {::_pbi::TcParser::FastF64P1,
        {122, 3, 0,
         PROTOBUF_FIELD_OFFSET(Settings, _impl_.beams_)}},
+      // repeated .wood_proto.CustomJoint custom_joints = 16;
+      {::_pbi::TcParser::FastMtR2,
+       {386, 4, 0,
+        PROTOBUF_FIELD_OFFSET(Settings, _impl_.custom_joints_)}},
+      // double joint_depth_scale = 17;
+      {::_pbi::TcParser::FastF64S2,
+       {393, 16, 0,
+        PROTOBUF_FIELD_OFFSET(Settings, _impl_.joint_depth_scale_)}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
+      {::_pbi::TcParser::MiniParse, {}},
     }}, {{
       65535, 65535
     }}, {{
@@ -341,6 +360,8 @@ constexpr Settings::ParseTableT_ Settings::InternalGenerateParseTable_(const ::_
       {PROTOBUF_FIELD_OFFSET(Settings, _impl_.beams_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcRepeated | ::_fl::kPackedDouble)},
       // repeated .wood_proto.CustomJoint custom_joints = 16;
       {PROTOBUF_FIELD_OFFSET(Settings, _impl_.custom_joints_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // double joint_depth_scale = 17;
+      {PROTOBUF_FIELD_OFFSET(Settings, _impl_.joint_depth_scale_), _Internal::kHasBitsOffset + 16, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -393,7 +414,8 @@ inline constexpr Settings::Impl_::Impl_(
         duplicate_points_tolerance_{0},
         limit_min_joint_length_{0},
         clipper_scale_{::int64_t{0}},
-        clipper_area_{0} {}
+        clipper_area_{0},
+        joint_depth_scale_{0} {}
 
 template <typename>
 constexpr Settings::Settings(::_pbi::ConstantInitialized,
@@ -506,7 +528,7 @@ const ::uint32_t
         1,
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_._has_bits_),
-        19, // hasbit index offset
+        20, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.search_type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.joint_parameters_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.joint_volume_extension_),
@@ -523,6 +545,7 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.clipper_area_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.beams_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.custom_joints_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::Settings, _impl_.joint_depth_scale_),
         5,
         0,
         1,
@@ -539,6 +562,7 @@ const ::uint32_t
         15,
         3,
         4,
+        16,
 };
 
 static const ::_pbi::MigrationSchema
@@ -556,7 +580,7 @@ const char descriptor_table_protodef_settings_2eproto[] ABSL_ATTRIBUTE_SECTION_V
     "\n\016settings.proto\022\nwood_proto\032\016polyline.p"
     "roto\"m\n\013CustomJoint\022\016\n\006family\030\001 \001(\t\022%\n\004m"
     "ale\030\002 \003(\0132\027.session_proto.Polyline\022\'\n\006fe"
-    "male\030\003 \003(\0132\027.session_proto.Polyline\"\263\003\n\010"
+    "male\030\003 \003(\0132\027.session_proto.Polyline\"\316\003\n\010"
     "Settings\022\023\n\013search_type\030\001 \001(\005\022\030\n\020joint_p"
     "arameters\030\002 \003(\001\022\036\n\026joint_volume_extensio"
     "n\030\003 \003(\001\022\023\n\013joint_scale\030\004 \003(\001\022\026\n\016dihedral"
@@ -567,8 +591,8 @@ const char descriptor_table_protodef_settings_2eproto[] ABSL_ATTRIBUTE_SECTION_V
     "lerance\030\013 \001(\001\022\036\n\026limit_min_joint_length\030"
     "\014 \001(\001\022\025\n\rclipper_scale\030\r \001(\003\022\024\n\014clipper_"
     "area\030\016 \001(\001\022\r\n\005beams\030\017 \003(\001\022.\n\rcustom_join"
-    "ts\030\020 \003(\0132\027.wood_proto.CustomJointb\006proto"
-    "3"
+    "ts\030\020 \003(\0132\027.wood_proto.CustomJoint\022\031\n\021joi"
+    "nt_depth_scale\030\021 \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_settings_2eproto_deps[1] = {
@@ -578,7 +602,7 @@ static ::absl::once_flag descriptor_table_settings_2eproto_once;
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_settings_2eproto = {
     false,
     false,
-    601,
+    628,
     descriptor_table_protodef_settings_2eproto,
     "settings.proto",
     &descriptor_table_settings_2eproto_once,
@@ -967,9 +991,9 @@ Settings::Settings(
                offsetof(Impl_, search_type_),
            reinterpret_cast<const char*>(&from._impl_) +
                offsetof(Impl_, search_type_),
-           offsetof(Impl_, clipper_area_) -
+           offsetof(Impl_, joint_depth_scale_) -
                offsetof(Impl_, search_type_) +
-               sizeof(Impl_::clipper_area_));
+               sizeof(Impl_::joint_depth_scale_));
 
   // @@protoc_insertion_point(copy_constructor:wood_proto.Settings)
 }
@@ -1007,9 +1031,9 @@ inline void Settings::SharedCtor(::_pb::Arena* PROTOBUF_NULLABLE arena) {
   ::memset(reinterpret_cast<char*>(&_impl_) +
                offsetof(Impl_, search_type_),
            0,
-           offsetof(Impl_, clipper_area_) -
+           offsetof(Impl_, joint_depth_scale_) -
                offsetof(Impl_, search_type_) +
-               sizeof(Impl_::clipper_area_));
+               sizeof(Impl_::joint_depth_scale_));
 }
 Settings::~Settings() {
   // @@protoc_insertion_point(destructor:wood_proto.Settings)
@@ -1089,6 +1113,7 @@ PROTOBUF_NOINLINE void Settings::Clear() {
                  reinterpret_cast<char*>(&this_._impl_.dihedral_angle_)) +
                  sizeof(_impl_.clipper_area_));
   }
+  this_._impl_.joint_depth_scale_ = 0;
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -1251,6 +1276,15 @@ PROTOBUF_NOINLINE void Settings::Clear() {
     }
   }
 
+  // double joint_depth_scale = 17;
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_joint_depth_scale()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteDoubleToArray(
+          17, this_._internal_joint_depth_scale(), target);
+    }
+  }
+
   if (ABSL_PREDICT_FALSE(this_._internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -1393,6 +1427,14 @@ PROTOBUF_NOINLINE void Settings::Clear() {
       }
     }
   }
+   {
+    // double joint_depth_scale = 17;
+    if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_joint_depth_scale()) != 0) {
+        total_size += 10;
+      }
+    }
+  }
   return this_.MaybeComputeUnknownFieldsSize(total_size,
                                              &this_._impl_._cached_size_);
 }
@@ -1487,6 +1529,11 @@ void Settings::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
+  if (CheckHasBit(cached_has_bits, 0x00010000U)) {
+    if (::absl::bit_cast<::uint64_t>(from._internal_joint_depth_scale()) != 0) {
+      _this->_impl_.joint_depth_scale_ = from._impl_.joint_depth_scale_;
+    }
+  }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
   _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(
       from._internal_metadata_);
@@ -1510,8 +1557,8 @@ void Settings::InternalSwap(Settings* PROTOBUF_RESTRICT PROTOBUF_NONNULL other) 
   _impl_.beams_.InternalSwap(&other->_impl_.beams_);
   _impl_.custom_joints_.InternalSwap(&other->_impl_.custom_joints_);
   ::google::protobuf::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Settings, _impl_.clipper_area_)
-      + sizeof(Settings::_impl_.clipper_area_)
+      PROTOBUF_FIELD_OFFSET(Settings, _impl_.joint_depth_scale_)
+      + sizeof(Settings::_impl_.joint_depth_scale_)
       - PROTOBUF_FIELD_OFFSET(Settings, _impl_.search_type_)>(
           reinterpret_cast<char*>(&_impl_.search_type_),
           reinterpret_cast<char*>(&other->_impl_.search_type_));

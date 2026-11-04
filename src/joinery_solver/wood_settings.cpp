@@ -52,6 +52,7 @@ std::string Settings::pb_dumps() const {
         joint_volume_extension.begin(), joint_volume_extension.end()
     );
     proto.mutable_joint_scale()->Add(joint_scale.begin(), joint_scale.end());
+    proto.set_joint_depth_scale(joint_depth_scale);
     proto.set_dihedral_angle(dihedral_angle);
     proto.set_all_treated_as_rotated(all_treated_as_rotated);
     proto.set_rotated_joint_as_average(rotated_joint_as_average);
@@ -93,6 +94,8 @@ Settings Settings::pb_loads(const std::string& data) {
         );
     for (int k = 0; k < 3 && k < proto.joint_scale_size(); ++k)
         s.joint_scale[k] = proto.joint_scale(k);
+    if (proto.joint_depth_scale() > 0.0)
+        s.joint_depth_scale = proto.joint_depth_scale();
     s.dihedral_angle = proto.dihedral_angle();
     s.all_treated_as_rotated = proto.all_treated_as_rotated();
     s.rotated_joint_as_average = proto.rotated_joint_as_average();

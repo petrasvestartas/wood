@@ -1,10 +1,11 @@
 """The pictures of the docs' architecture and examples pages, every one a viewer screenshot cropped only (tools/render_template_docs.py):
 a contact, a joint or an inside shown through the x-ray view or through transparent elements, an uncut or a cut member solid.
 
-    python tools/render_architecture_pictures.py [examples] [pipeline] [wiring] [cutting] [sheets]
+    python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]
 
 examples   docs/images/examples/ex_<n>_<name>.webp, the twelve numbered examples
 pipeline   diagrams/wood_architecture.webp, one model through plates, contacts, joints and cut plates
+landing    landing/landing_architecture.webp, the same model cut, at the landing page's 16:9
 wiring     diagrams/wood_joint_unit_box.webp, three joints by three rows: the joint, the joint on its contact, the members it cut
 cutting    diagrams/wood_boolean_cutting.webp, stock, cutter and result of four cuts
 sheets     diagrams/wood_templates_pipeline.webp, one shot per family, and wood_beam_joints_connectors.webp, tiled from the element pictures
@@ -219,6 +220,14 @@ def pipeline(tmp: pathlib.Path) -> None:
     )
 
 
+def landing(tmp: pathlib.Path) -> None:
+    """The cut shell at the landing page's 16:9."""
+    picture = IMAGES / "landing" / "landing_architecture.webp"
+    features = scene_of("3_features", tmp)
+    shot(features, "all", "", tmp / "landing.pb", aspect=16 / 9).save(picture, lossless=True)
+    print(picture.relative_to(WOOD), flush=True)
+
+
 def wiring(tmp: pathlib.Path) -> None:
     """Three joints, a column each, down the same three steps: the joint, the joint on its contact, the members it cut."""
     units = tmp / "units"
@@ -308,7 +317,7 @@ def sheets(tmp: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    wanted = sys.argv[1:] or ["examples", "pipeline", "wiring", "cutting", "sheets"]
+    wanted = sys.argv[1:] or ["examples", "pipeline", "landing", "wiring", "cutting", "sheets"]
     with tempfile.TemporaryDirectory() as folder:
         tmp = pathlib.Path(folder)
         for step in wanted:

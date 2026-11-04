@@ -166,6 +166,9 @@ void read_joint_keys(TINY_YAML::Yaml& y, Settings& settings) {
         settings.joint_scale = {s[0], s[1], s[2]};
     }
 
+    if (y.has("joint_depth_scale"))
+        settings.joint_depth_scale = std::stod(yaml_string(y, "joint_depth_scale"));
+
     if (y.has("search_type")) {
         const std::string search = yaml_string(y, "search_type");
         if (search == "face_to_face")
