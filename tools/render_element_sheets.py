@@ -2,7 +2,7 @@
 
 Reads every docs/images/elements/*.png, the whole picture, and lays the pictures out
 five per row with a caption, one sheet per kind: elements, plate joints, beam joints, connectors and pins,
-each sheet in titled groups: plates, beams, columns; side to side, top to side; and so on.
+each sheet in titled groups: edges, faces and nodes; side to side, top to side; and so on.
 Writes docs/images/diagrams/wood_elements_sheet_<n>_<name>.webp (4400 px wide, quality 90).
 
 Run from wood/:  python tools/render_element_sheets.py
@@ -42,7 +42,6 @@ SHEET_1 = [
     "element_support",
     "element_cut_plane",
     "element_profile",
-    "element_pin",
 ]
 BEAM_CUT_FAMILIES = [
     "cross",
@@ -67,6 +66,7 @@ SHEET_4 = [
     "element_joint_beam_connectors",
     "element_joint_beam_pins",
     "element_joint_beam_keyed_box",
+    "element_pin",
 ]
 
 # all example names
@@ -102,10 +102,11 @@ sheets = [
 # each sheet's groups: a title, the part of the name that picks its pictures, the words the captions then leave out
 GROUPS = {
     "1_elements": [
-        ("Plates", r"^element_plate", "plate "),
-        ("Beams", r"^element_beam", "beam "),
-        ("Columns", r"^element_column", "column "),
-        ("Blocks, Supports, Profiles and Pins", r"^element_(block|support|profile|pin)", ""),
+        ("Edge: Beams", r"^element_beam", "beam "),
+        ("Edge: Columns", r"^element_column", "column "),
+        ("Edge: Profiles", r"^element_profile", ""),
+        ("Face: Plates", r"^element_plate", "plate "),
+        ("Node: Blocks and Supports", r"^element_(block|support)", ""),
     ],
     "2_plate_joints": [
         ("Side to Side, In Plane", r"side_side_inplane", "side side inplane "),
@@ -124,7 +125,7 @@ GROUPS = {
         ("Nodes", r"beam_column_head", ""),
     ],
     "4_connectors": [
-        ("Pins", r"_pins$", ""),
+        ("Pins", r"(_pins|element_pin)$", ""),
         ("Connectors", r"_beam_", ""),
         ("Cutters and Drills", r"", "joint "),
     ],

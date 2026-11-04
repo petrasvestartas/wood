@@ -2,32 +2,7 @@
 
 [TOC]
 
-## Members
-
-### Plates
-
-<div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_plate.html">
-    <img src="element_plate.png" alt="Plate">
-    <span class="wood-card-title">plate</span>
-  </a>
-  <a class="wood-card" href="elements_plate.html">
-    <img src="element_plate_holes.png" alt="Plate holes">
-    <span class="wood-card-title">holes</span>
-  </a>
-  <a class="wood-card" href="elements_plate.html">
-    <img src="element_plate_session.png" alt="Plate session">
-    <span class="wood-card-title">session</span>
-  </a>
-  <a class="wood-card" href="elements_plate.html">
-    <img src="element_plate_assign_joints.png" alt="Plate assign joints">
-    <span class="wood-card-title">assign joints</span>
-  </a>
-  <a class="wood-card" href="elements_plate_curved.html">
-    <img src="element_plate_curved.png" alt="Plate curved">
-    <span class="wood-card-title">curved</span>
-  </a>
-</div>
+## Edge Elements
 
 ### Beams
 
@@ -63,6 +38,44 @@
   </a>
 </div>
 
+### Profiles
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_profile.html">
+    <img src="element_profile.png" alt="Profile">
+    <span class="wood-card-title">profile</span>
+  </a>
+</div>
+
+## Face Elements
+
+### Plates
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_plate.html">
+    <img src="element_plate.png" alt="Plate">
+    <span class="wood-card-title">plate</span>
+  </a>
+  <a class="wood-card" href="elements_plate.html">
+    <img src="element_plate_holes.png" alt="Plate holes">
+    <span class="wood-card-title">holes</span>
+  </a>
+  <a class="wood-card" href="elements_plate.html">
+    <img src="element_plate_session.png" alt="Plate session">
+    <span class="wood-card-title">session</span>
+  </a>
+  <a class="wood-card" href="elements_plate.html">
+    <img src="element_plate_assign_joints.png" alt="Plate assign joints">
+    <span class="wood-card-title">assign joints</span>
+  </a>
+  <a class="wood-card" href="elements_plate_curved.html">
+    <img src="element_plate_curved.png" alt="Plate curved">
+    <span class="wood-card-title">curved</span>
+  </a>
+</div>
+
+## Node Elements
+
 ### Blocks and Supports
 
 <div class="wood-card-grid cols-4">
@@ -73,19 +86,6 @@
   <a class="wood-card" href="elements_support.html">
     <img src="element_support.png" alt="Support">
     <span class="wood-card-title">support</span>
-  </a>
-</div>
-
-### Profiles and Pins
-
-<div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_profile.html">
-    <img src="element_profile.png" alt="Profile">
-    <span class="wood-card-title">profile</span>
-  </a>
-  <a class="wood-card" href="elements_pin.html">
-    <img src="element_pin.png" alt="Pin">
-    <span class="wood-card-title">pin</span>
   </a>
 </div>
 
@@ -382,6 +382,10 @@
 ### Pins
 
 <div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_pin.html">
+    <img src="element_pin.png" alt="Pin">
+    <span class="wood-card-title">pin</span>
+  </a>
   <a class="wood-card" href="elements_joint_beam_pins.html">
     <img src="element_joint_beam_centred_pins.png" alt="Centred pins">
     <span class="wood-card-title">centred pins</span>
