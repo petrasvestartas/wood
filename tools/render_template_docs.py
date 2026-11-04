@@ -44,6 +44,7 @@ if sys.argv[4] == "elements":
         element.set_features([])
     for edge in list(branch.interactions):
         branch.interactions[edge] = []
+branch.name = ""  # no document title over the scene
 branch.pb_dump(sys.argv[3])
 """  # the scene, or groups of its tree joined by + with everything under them, written to their own file; the elements alone, their cut solids without
 # their attributes, unless asked for: no features (the joint lines and volumes) and no interactions (the face contacts the viewer fills red)
