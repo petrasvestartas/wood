@@ -279,6 +279,14 @@
     <img src="element_joint_beam_side_side_rotated_miter.png" alt="Side side rotated miter">
     <span class="wood-card-title">side side rotated miter</span>
   </a>
+  <a class="wood-card" href="elements_joint_beam_column_head.html">
+    <img src="element_joint_beam_column_head.png" alt="Column head">
+    <span class="wood-card-title">column head</span>
+  </a>
+  <a class="wood-card" href="elements_joint_beam_top_side_bridle.html">
+    <img src="element_joint_beam_top_side_bridle.png" alt="Top side bridle">
+    <span class="wood-card-title">top side bridle</span>
+  </a>
   <a class="wood-card" href="elements_joint_beam_top_side.html">
     <img src="element_joint_beam_top_side_milled_wedge.png" alt="Top side milled wedge">
     <span class="wood-card-title">top side milled wedge</span>
@@ -366,6 +374,8 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 - @subpage elements_joint_beam
 - @subpage elements_joint_beam_cross
 - @subpage elements_joint_beam_top_side
+- @subpage elements_joint_beam_top_side_bridle
+- @subpage elements_joint_beam_column_head
 - @subpage elements_joint_beam_end_to_end
 - @subpage elements_joint_beam_butt
 - @subpage elements_joint_beam_connectors

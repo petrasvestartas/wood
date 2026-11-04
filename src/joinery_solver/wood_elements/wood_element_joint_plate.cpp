@@ -44,13 +44,12 @@ const std::unordered_map<std::string, int> LIBRARY_IDS = {
     {"top_side_annen_shifted_tenons", 23},
     {"top_side_milled_wedge", 24},
     {"top_side_snap_fit", 25},
+    {"top_side_bridle", 26},
     {"top_side/side_removal", 28},
     {"top_side_custom", 29},
     {"cross_slot", 30},
     {"cross_sliced_half_lap", 31},
     {"cross_half_lap", 32},
-    {"cross_half_lap_diagonal_drills", 33},
-    {"cross_half_lap_drill", 34},
     {"cross_brussels_half_lap", 35},
     {"cross/side_removal", 38},
     {"cross_custom", 39},
@@ -253,6 +252,9 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
     case 25:
         top_side_snap_fit(joint);
         return true;
+    case 26:
+        top_side_bridle(joint, context.elements, 1.0 / 3.0);
+        return true;
     case 28:
         side_removal(joint, context.elements);
         return true;
@@ -274,13 +276,9 @@ static bool build_cross(const int id, InteractionFeaturePlate& joint, BuildConte
         cross_sliced_half_lap(joint);
         return true;
     case 32:
-        cross_half_lap(joint);
-        return true;
     case 33:
-        cross_half_lap_diagonal_drills(joint);
-        return true;
     case 34:
-        cross_half_lap_drill(joint);
+        cross_half_lap(joint, static_cast<CrossDrills>(id - 32));
         return true;
     case 35:
         cross_brussels_half_lap(joint);
@@ -604,7 +602,8 @@ void reuse_or_create_geometry(
 ) {
 
     const std::string cache_key = joint_cache_key(family.id, joint);
-    const bool use_cache = joint.linked_joints.empty();
+    // the bridle's tile depends on the lean of each joint's own plate
+    const bool use_cache = joint.linked_joints.empty() && family.id != 26;
 
     const auto cache_entry =
         use_cache ? unique_joints_cache.find(cache_key) : unique_joints_cache.end();
@@ -1940,6 +1939,15 @@ std::shared_ptr<JointPlate> JointPlate::top_side_snap_fit(int divisions) {
     return joint;
 }
 
+std::shared_ptr<JointPlate> JointPlate::top_side_bridle(double shoulder, double tongue) {
+
+    const std::shared_ptr<JointPlate> joint = from_library("top_side_bridle", 20);
+    joint->parameters.z = {-0.5 * tongue, 0.5 * tongue};
+    joint->shift = shoulder;
+
+    return joint;
+}
+
 std::shared_ptr<JointPlate> JointPlate::top_side_custom(
     const std::vector<Polyline>& male, const std::vector<Polyline>& female
 ) {
@@ -1976,6 +1984,8 @@ bool JointPlate::compute_top_side(
         ::top_side_milled_wedge(connection);
     else if (parameters.library == "top_side_snap_fit")
         ::top_side_snap_fit(connection);
+    else if (parameters.library == "top_side_bridle")
+        ::top_side_bridle(connection, elements, parameters.z[1] - parameters.z[0]);
     else if (parameters.library == "top_side_custom")
         ::top_side_custom(connection, settings);
     else
@@ -2125,26 +2135,16 @@ std::shared_ptr<JointPlate> JointPlate::cross_sliced_half_lap(double shift) {
     return joint;
 }
 
-std::shared_ptr<JointPlate> JointPlate::cross_half_lap(double shift) {
+int JointPlate::cross_half_lap_id(CrossDrills drills) {
+
+    return 32 + static_cast<int>(drills);
+}
+
+std::shared_ptr<JointPlate> JointPlate::cross_half_lap(double shift, CrossDrills drills) {
 
     const std::shared_ptr<JointPlate> joint = from_library("cross_half_lap", 30);
     joint->shift = shift;
-
-    return joint;
-}
-
-std::shared_ptr<JointPlate> JointPlate::cross_half_lap_diagonal_drills(double shift) {
-
-    const std::shared_ptr<JointPlate> joint = from_library("cross_half_lap_diagonal_drills", 30);
-    joint->shift = shift;
-
-    return joint;
-}
-
-std::shared_ptr<JointPlate> JointPlate::cross_half_lap_drill(double shift) {
-
-    const std::shared_ptr<JointPlate> joint = from_library("cross_half_lap_drill", 30);
-    joint->shift = shift;
+    joint->variant = cross_half_lap_id(drills); // the drills are stored as the id, which a saved joint keeps
 
     return joint;
 }
@@ -2178,11 +2178,7 @@ bool JointPlate::compute_cross(
     else if (parameters.library == "cross_sliced_half_lap")
         ::cross_sliced_half_lap(connection);
     else if (parameters.library == "cross_half_lap")
-        ::cross_half_lap(connection);
-    else if (parameters.library == "cross_half_lap_diagonal_drills")
-        ::cross_half_lap_diagonal_drills(connection);
-    else if (parameters.library == "cross_half_lap_drill")
-        ::cross_half_lap_drill(connection);
+        ::cross_half_lap(connection, static_cast<CrossDrills>(variant - 32));
     else if (parameters.library == "cross_brussels_half_lap")
         ::cross_brussels_half_lap(connection);
     else if (parameters.library == "cross_custom")

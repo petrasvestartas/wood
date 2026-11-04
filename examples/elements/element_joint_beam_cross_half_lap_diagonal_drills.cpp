@@ -3,37 +3,31 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// cross_half_lap_diagonal_drills on beams: two diagonal drills, on the pairs square and crossing at 60 degrees, each drawn apart.
+/// cross_half_lap_diagonal_drills on beams: two diagonal drills, on a pair crossing at 60 degrees, drawn apart.
 int main() {
 
     WoodSession scene("element_joint_beam_cross_half_lap_diagonal_drills");
-    scene.settings.joint_parameters[11] = JointPlate::library_id("cross_half_lap_diagonal_drills");
+    scene.settings.joint_parameters[11] = JointPlate::cross_half_lap_id(CrossDrills::two_diagonal);
 
-    // two 150 x 150 beams 1200 long: square and crossing at 60 degrees, the second pair 2000 along x, each in its group
-    for (const double angle : {90.0, 60.0}) {
-        const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
-        const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_crossing(angle);
-        const std::shared_ptr<Beam> first = pair[0];
-        const std::shared_ptr<Beam> second = pair[1];
-        for (const std::shared_ptr<Beam>& beam : pair) {
-            beam->place(Xform::translation(angle == 90.0 ? 0.0 : 2000.0, 0.0, 0.0));
-            beam->name = fmt::format("{}_{:g}", beam->name, angle);
-            scene.add(beam, group);
-        }
-
-        const InteractionContactAxis contact(
-            Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.5, 0, 0, 0, 0
-        );
-        const std::shared_ptr<JointBeam> joint =
-            JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
-        joint->name = fmt::format("{}_{:g}", joint->name, angle);
-        scene.add(joint, group);
-        scene.add_interaction(joint, first, joint->interaction(0));
-        scene.add_interaction(joint, second, joint->interaction(1));
-
-        // drawn apart: the second beam moved down off the first, the way it comes out of its notch
-        second->place(Xform::translation(0.0, 0.0, -300.0));
+    // two 150 x 150 beams 1200 long, crossing at 60 degrees
+    const std::array<std::shared_ptr<Beam>, 2> pair = Beam::pair_crossing(60.0);
+    const std::shared_ptr<Beam> first = pair[0];
+    const std::shared_ptr<Beam> second = pair[1];
+    for (const std::shared_ptr<Beam>& beam : pair) {
+        scene.add(beam);
     }
+
+    const InteractionContactAxis contact(
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}), 0.5, 0.5, 0, 0, 0, 0
+    );
+    const std::shared_ptr<JointBeam> joint =
+        JointBeam::from_contact(*first, *second, contact, 500.0, 0.91, 1, scene.settings);
+    scene.add(joint);
+    scene.add_interaction(joint, first, joint->interaction(0));
+    scene.add_interaction(joint, second, joint->interaction(1));
+
+    // drawn apart: the second beam moved down off the first, the way it comes out of its notch
+    second->place(Xform::translation(0.0, 0.0, -300.0));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -42,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cross_half_lap_diagonal_drills on beams: two diagonal drills, on the pairs square and crossing at 60 degrees, each drawn apart.
+cross_half_lap_diagonal_drills on beams: two diagonal drills, on a pair crossing at 60 degrees, drawn apart.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

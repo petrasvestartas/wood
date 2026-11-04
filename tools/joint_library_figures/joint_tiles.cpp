@@ -60,8 +60,9 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         {"side_side_outplane_capped_fingers", [&] { side_side_outplane_capped_fingers(unit); }}, {"side_side_outplane_notch", [&] { side_side_outplane_notch(unit); }},
         {"top_side_three_tenons", [&] { top_side_three_tenons(unit); }}, {"top_side_dense_tenons", [&] { top_side_dense_tenons(unit); }},
         {"top_side_tenons", [&] { top_side_tenons(unit); }}, {"top_side_milled_wedge", [&] { top_side_milled_wedge(unit); }}, {"top_side_snap_fit", [&] { top_side_snap_fit(unit); }},
+        {"top_side_bridle", [&] { top_side_bridle(unit, plates, 1.0 / 3.0); }},
         {"cross_slot", [&] { cross_slot(unit); }}, {"cross_sliced_half_lap", [&] { cross_sliced_half_lap(unit); }}, {"cross_half_lap", [&] { cross_half_lap(unit); }},
-        {"cross_half_lap_diagonal_drills", [&] { cross_half_lap_diagonal_drills(unit); }}, {"cross_half_lap_drill", [&] { cross_half_lap_drill(unit); }}, {"cross_brussels_half_lap", [&] { cross_brussels_half_lap(unit); }},
+        {"cross_half_lap_diagonal_drills", [&] { cross_half_lap(unit, CrossDrills::two_diagonal); }}, {"cross_half_lap_drill", [&] { cross_half_lap(unit, CrossDrills::one); }}, {"cross_brussels_half_lap", [&] { cross_brussels_half_lap(unit); }},
         {"side_side_rotated_hooks", [&] { side_side_rotated_hooks(unit, plates); }}, {"side_side_rotated_keys", [&] { side_side_rotated_keys(unit, plates); }},
         {"jupiter_scarf", [&] { jupiter_scarf(unit); }},
     };

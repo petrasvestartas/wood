@@ -10,6 +10,13 @@ using namespace session_cpp;
 
 namespace wood_session {
 
+/// The drills a cross_half_lap carries. 32 plus the value is the joint id 2024 numbered the design with.
+enum class CrossDrills {
+    none = 0,         // id 32
+    two_diagonal = 1, // id 33: two diagonal bores through both beams
+    one = 2,          // id 34: one bore down the crossing axis
+};
+
 /// A plate-to-plate joint.
 class InteractionFeaturePlate : public InteractionFeature {
 public:

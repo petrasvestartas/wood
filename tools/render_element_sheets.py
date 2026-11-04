@@ -48,6 +48,7 @@ BEAM_CUT_FAMILIES = [
     "jupiter_scarf",
     "butt",
     "end_to_end",
+    "column_head",
 ]
 SHEET_4 = [
     "element_joint",

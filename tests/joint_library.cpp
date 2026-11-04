@@ -654,6 +654,8 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
         return JointPlate::top_side_milled_wedge();
     if (library == "top_side_snap_fit")
         return JointPlate::top_side_snap_fit(integer(parts, 2, 0));
+    if (library == "top_side_bridle")
+        return JointPlate::top_side_bridle(number(parts, 2, 0.3), number(parts, 3, 1.0 / 3.0));
     if (library == "top_side_custom")
         return JointPlate::top_side_custom(custom[0], custom[1]);
 
@@ -673,9 +675,9 @@ static std::shared_ptr<JointPlate> make_variant(const std::vector<std::string>& 
     if (library == "cross_half_lap")
         return JointPlate::cross_half_lap(number(parts, 2, 0.5));
     if (library == "cross_half_lap_diagonal_drills")
-        return JointPlate::cross_half_lap_diagonal_drills(number(parts, 2, 0.5));
+        return JointPlate::cross_half_lap(number(parts, 2, 0.5), CrossDrills::two_diagonal);
     if (library == "cross_half_lap_drill")
-        return JointPlate::cross_half_lap_drill(number(parts, 2, 0.5));
+        return JointPlate::cross_half_lap(number(parts, 2, 0.5), CrossDrills::one);
     if (library == "cross_brussels_half_lap")
         return JointPlate::cross_brussels_half_lap(number(parts, 2, 0.5));
     if (library == "cross_custom")

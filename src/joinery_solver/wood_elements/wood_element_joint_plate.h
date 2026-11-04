@@ -125,6 +125,10 @@ public:
 
     static std::shared_ptr<JointPlate> top_side_snap_fit(int divisions = 0);
 
+    /// A skew T-bridle, id 26: a fork on the side member around a tongue in the top member, `tongue` of the height, with a shoulder `shoulder` of the width long at the acute corner.
+    static std::shared_ptr<JointPlate>
+    top_side_bridle(double shoulder = 0.3, double tongue = 1.0 / 3.0);
+
     static std::shared_ptr<JointPlate>
     top_side_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
@@ -172,11 +176,9 @@ public:
     static std::shared_ptr<JointPlate> cross_slot();
     static std::shared_ptr<JointPlate> cross_sliced_half_lap(double shift = 0.5);
 
-    static std::shared_ptr<JointPlate> cross_half_lap(double shift = 0.5);
-
-    static std::shared_ptr<JointPlate> cross_half_lap_diagonal_drills(double shift = 0.5);
-
-    static std::shared_ptr<JointPlate> cross_half_lap_drill(double shift = 0.5);
+    /// The half lap with the drills it carries (none, two diagonal or one down the crossing); the joint id is cross_half_lap_id(drills).
+    static std::shared_ptr<JointPlate>
+    cross_half_lap(double shift = 0.5, CrossDrills drills = CrossDrills::none);
 
     static std::shared_ptr<JointPlate> cross_brussels_half_lap(double shift = 0.5);
 
@@ -245,6 +247,8 @@ public:
 
     /// The joint id 2024's tables give a design by its name.
     static int library_id(const std::string& name);
+    /// The id of cross_half_lap with its drills: 32 none, 33 two diagonal, 34 one.
+    static int cross_half_lap_id(CrossDrills drills);
     void orient(
         const std::shared_ptr<InteractionContactFace>& contact,
         const Settings& settings = Settings()

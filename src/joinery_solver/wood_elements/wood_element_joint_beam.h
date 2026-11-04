@@ -2,6 +2,7 @@
 
 #include "wood_element_joint.h"
 #include "wood_element_beam.h"
+#include "wood_element_column.h"
 #include "wood_element_plate.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
@@ -187,6 +188,24 @@ public:
         double end_depth = 58.5 + 302.0 / 25.4,
         double pocket_depth = 80.0,
         double overshoot = 10.0
+    );
+
+    /// Four beams into a round column's head: the column keeps four posts around a cross slot as deep as the beams are tall, the first and second beams meet in it in a scarf of two
+    /// tongues side by side, each wider at its tip, and the third and fourth end on those tongues in one dovetail each, all walls along the column, so each beam drops in from above.
+    /// The first runs along -x and the third along -y of the frame the column's axis and the first beam give. Sizes are shares of the beam width; null for a beam with no profile.
+    static std::shared_ptr<JointBeam> column_head(
+        const Column& column,
+        const Beam& first,
+        const Beam& second,
+        const Beam& third,
+        const Beam& fourth,
+        double tenon = 0.7,
+        double shoulder = 0.8,
+        double seam_slope = 0.1,
+        double dovetail_offset = 0.145,
+        double dovetail_root = 0.286,
+        double dovetail_depth = 0.146,
+        double dovetail_flare = 0.176
     );
 
     /// Pins centred across the face contact at its inset corners, bored into both members; null when the inset leaves nothing.

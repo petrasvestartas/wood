@@ -2,6 +2,7 @@
 #include "element_joint.pb.h"
 #include "wood_session.h"
 #include "wood_element_geometry.h"
+#include "wood_profile.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_brep_drill.h"
 #include "wood_element_pin.h"
@@ -1437,6 +1438,137 @@ std::shared_ptr<JointBeam> JointBeam::butterfly_key(
         const Point member_centroid = member->model_geometry_mesh().centroid();
         joint->cutters.push_back((member_centroid - origin).dot(y) < 0.0 ? negative : positive);
     }
+
+    return joint;
+}
+
+std::shared_ptr<JointBeam> JointBeam::column_head(
+    const Column& column,
+    const Beam& first,
+    const Beam& second,
+    const Beam& third,
+    const Beam& fourth,
+    double tenon,
+    double shoulder,
+    double seam_slope,
+    double dovetail_offset,
+    double dovetail_root,
+    double dovetail_depth,
+    double dovetail_flare
+) {
+
+    // the frame: at the column's head, z up its axis, x from the first beam's far end towards the axis; the plan in shares of the beam width
+    const std::pair<double, double> size = compute_size(first.profile);
+    const double width = size.first;
+    const double height = size.second;
+    if (!(width > 0.0) || !(height > 0.0))
+        return nullptr;
+
+    const Point origin = column.axis.end();
+    const Vector z = column.axis.to_vector().normalized();
+    const Point far_end = first.axis.get_point(0);
+    const Vector back = origin - far_end;
+    const Vector x = (back - z * back.dot(z)).normalized();
+    const Vector y = z.cross(x);
+
+    const double half = 0.5 * tenon;
+    const double beam = 0.5;
+    const double overshoot = 0.1;
+    const double past = 8.0;
+    const double top = overshoot;
+    const double floor = -height / width;
+    const auto seam = [seam_slope](double along) { return -seam_slope * along; };
+
+    // a plan as a pair of loops from the floor to past the head; turned half way about the axis for the beam opposite
+    using Plan = std::vector<std::array<double, 2>>;
+    const auto prism = [&](const Plan& plan, double low, double high, double turn) {
+        std::array<Polyline, 2> loops;
+        for (size_t level = 0; level < 2; level++) {
+            std::vector<Point> points;
+            for (const std::array<double, 2>& point : plan)
+                points.push_back(
+                    origin + x * (turn * point[0] * width) + y * (turn * point[1] * width) +
+                    z * ((level == 0 ? low : high) * width)
+                );
+            points.push_back(points.front());
+            loops[level] = Polyline(points);
+        }
+        return loops;
+    };
+
+    // the column: the cross slot, the shoulders' housings at its four ends
+    double reach = 0.0;
+    for (const Point& point : column.section.get_points())
+        reach = std::max(reach, (point - column.axis.start()).magnitude() / width + overshoot);
+    const Plan slot = {
+        {half, half},     {shoulder, half},   {shoulder, beam},   {reach, beam},
+        {reach, -beam},   {shoulder, -beam},  {shoulder, -half},  {half, -half},
+        {half, -shoulder},{beam, -shoulder},  {beam, -reach},     {-beam, -reach},
+        {-beam, -shoulder},{-half, -shoulder},{-half, -half},     {-shoulder, -half},
+        {-shoulder, -beam},{-reach, -beam},   {-reach, beam},     {-shoulder, beam},
+        {-shoulder, half},{-half, half},      {-half, shoulder},  {-beam, shoulder},
+        {-beam, reach},   {beam, reach},      {beam, shoulder},   {half, shoulder}
+    };
+
+    // a main beam, drawn on -x with its tongue on the +y side of the seam: all but the tongue past the shoulder, and the dovetail's pocket in the tongue's edge
+    const double far_side = shoulder + overshoot;
+    const Plan above = {
+        {-shoulder, half}, {far_side, half}, {far_side, past}, {-shoulder, past}
+    };
+    const Plan below = {
+        {-shoulder, seam(-shoulder)},
+        {-shoulder, -past},
+        {far_side, -past},
+        {far_side, seam(far_side)}
+    };
+    const double root = 0.5 * dovetail_root;
+    const double tip = root + dovetail_flare * dovetail_depth;
+    const double out = root - dovetail_flare * overshoot;
+    const Plan pocket = {
+        {-dovetail_offset - tip, half - dovetail_depth},
+        {-dovetail_offset + tip, half - dovetail_depth},
+        {-dovetail_offset + out, half + overshoot},
+        {-dovetail_offset - out, half + overshoot}
+    };
+
+    // a secondary beam, drawn on +y: all past the shoulder but the tenon, and all of the tenon's end but the tail
+    const double inner = half - dovetail_depth - overshoot;
+    const Plan left = {{-past, shoulder}, {-half, shoulder}, {-half, inner}, {-past, inner}};
+    const Plan right = {{past, shoulder}, {past, inner}, {half, inner}, {half, shoulder}};
+    const Plan left_of_tail = {
+        {-half - overshoot, half},
+        {-dovetail_offset - root, half},
+        {-dovetail_offset - tip, half - dovetail_depth},
+        {-dovetail_offset - tip - dovetail_flare * overshoot, inner},
+        {-half - overshoot, inner}
+    };
+    const Plan right_of_tail = {
+        {half + overshoot, half},
+        {half + overshoot, inner},
+        {-dovetail_offset + tip + dovetail_flare * overshoot, inner},
+        {-dovetail_offset + tip, half - dovetail_depth},
+        {-dovetail_offset + root, half}
+    };
+
+    const std::shared_ptr<JointBeam> joint = std::make_shared<JointBeam>();
+    joint->name = "column_head";
+    joint->is_visible = true;
+    joint->targets = {column.guid(), first.guid(), second.guid(), third.guid(), fourth.guid()};
+    joint->insertions.assign(5, z);
+    joint->cutters.push_back({prism(slot, floor, top, 1.0)});
+    for (const double turn : {1.0, -1.0})
+        joint->cutters.push_back(
+            {prism(above, floor - top, top, turn),
+             prism(below, floor - top, top, turn),
+             prism(pocket, floor - top, top, turn)}
+        );
+    for (const double turn : {-1.0, 1.0})
+        joint->cutters.push_back(
+            {prism(left, floor - top, top, turn),
+             prism(right, floor - top, top, turn),
+             prism(left_of_tail, floor - top, top, turn),
+             prism(right_of_tail, floor - top, top, turn)}
+        );
 
     return joint;
 }

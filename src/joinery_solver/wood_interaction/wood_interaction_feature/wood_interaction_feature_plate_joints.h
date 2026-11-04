@@ -48,6 +48,7 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/top_side_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_milled_wedge.h"
 #include "wood_interaction_feature_plate_joints/top_side_snap_fit.h"
+#include "wood_interaction_feature_plate_joints/top_side_bridle.h"
 #include "wood_interaction_feature_plate_joints/top_side_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -69,8 +70,6 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/cross_sliced_half_lap.h"
 #include "wood_interaction_feature_plate_joints/cross_core.h"
 #include "wood_interaction_feature_plate_joints/cross_half_lap.h"
-#include "wood_interaction_feature_plate_joints/cross_half_lap_diagonal_drills.h"
-#include "wood_interaction_feature_plate_joints/cross_half_lap_drill.h"
 #include "wood_interaction_feature_plate_joints/cross_brussels_half_lap.h"
 #include "wood_interaction_feature_plate_joints/cross_custom.h"
 

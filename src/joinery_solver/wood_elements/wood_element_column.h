@@ -21,6 +21,7 @@ public:
     std::vector<Polyline>
         profile; // Section loops in the profile frame the section was placed from.
     double rotation = 0.0; // Degrees the profile x axis turns from world x about the axis.
+    double radius = 0.0; // A round column's radius, its section this circle in short chords; zero for any other section.
 
 protected:
     /// The stock trimmed by its cut planes as a Mesh, before the subtract features.
@@ -62,6 +63,14 @@ public:
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// A round column: a circle swept along the axis, its mesh in chords of at most `chord_tolerance`, its BRep exact.
+    static std::shared_ptr<Column> round(
+        const Line& axis,
+        double radius,
+        double chord_tolerance = 0.02,
+        const std::string& name = "column"
+    );
+
     /// A square column on its axis.
     static std::shared_ptr<Column>
     square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
@@ -81,6 +90,9 @@ public:
 
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
+
+    /// The cut column as a BRep; a round one drawn from true arcs and cylinder patches, faces side by side, not one sewn solid: measure the model mesh, never this.
+    const BRep& model_geometry_brep() const override;
 
     /// One plane per face of the model solid with a Newell normal, so a concave cap (a W.
     std::vector<Plane> compute_planes() const override;

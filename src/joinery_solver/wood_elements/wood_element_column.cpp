@@ -4,6 +4,8 @@
 #include "wood_element_block.h"
 #include "wood_element_geometry.h"
 #include "wood_profile.h"
+#include "wood_brep_drill.h"
+#include "primitives.h"
 #include "element_column.pb.h"
 
 namespace wood_session {
@@ -18,6 +20,27 @@ Column::Column() : WoodElement("column"), axis(Line::from_points(Point(0, 0, 0),
 
 Column::Column(const Line& axis, const Polyline& section, const std::string& name)
     : WoodElement(name), axis(axis), section(section) {
+}
+
+std::shared_ptr<Column>
+Column::round(const Line& axis, double radius, double chord_tolerance, const std::string& name) {
+
+    const Plane frame = Plane::from_point_normal(axis.start(), axis.to_vector());
+    const int chords = circle_segments(radius, chord_tolerance);
+    std::vector<Point> ring;
+    for (int i = 0; i < chords; i++) {
+        const double turn = Tolerance::TWO_PI * i / chords;
+        ring.push_back(
+            axis.start() + frame.x_axis() * (radius * std::cos(turn)) +
+            frame.y_axis() * (radius * std::sin(turn))
+        );
+    }
+    ring.push_back(ring.front());
+
+    const std::shared_ptr<Column> column = std::make_shared<Column>(axis, Polyline(ring), name);
+    column->radius = radius;
+
+    return column;
 }
 
 Column::Column(
@@ -235,11 +258,213 @@ const BRep& Column::element_geometry_brep() const {
 
         if (section.point_count() < 3 || axis.length() <= 0.0)
             _element_geometry_brep = BRep();
+        else if (radius > 0.0)
+            _element_geometry_brep = drill_brep(axis, radius);
         else
             _element_geometry_brep = brep_between_loops(bottom, top_loops(*this, bottom));
     }
 
     return *_element_geometry_brep;
+}
+
+/// One cylinder patch of a round column, a single rational quadratic span across `sweep` under a half turn.
+static BRep cylinder_patch(const Plane& frame, double radius, double start, double sweep, const std::array<double, 2>& heights) {
+
+    const auto at = [&](double angle, double distance, double height) {
+        return frame.origin() + frame.x_axis() * (distance * std::cos(angle)) +
+               frame.y_axis() * (distance * std::sin(angle)) + frame.z_axis() * height;
+    };
+    const double middle = start + 0.5 * sweep;
+    const double corner = radius / std::cos(0.5 * sweep);
+    const std::vector<double> distances = {radius, corner, radius};
+    const std::vector<double> angles = {start, middle, start + sweep};
+
+    std::vector<std::vector<Point>> rows;
+    for (const double height : heights) {
+        std::vector<Point> row;
+        for (size_t i = 0; i < 3; i++)
+            row.push_back(at(angles[i], distances[i], height));
+        rows.push_back(row);
+    }
+    const std::vector<double> weights = {1.0, std::cos(0.5 * sweep), 1.0};
+
+    BRep patch;
+    const int surface = patch.add_surface(NurbsSurface::create_from_parameters(
+        rows, {weights, weights}, {0.0, 1.0}, {0.0, 1.0}, {3, 3}, {2, 2}, 2, 1
+    ));
+    const std::array<int, 4> corners = {
+        patch.add_vertex(rows[0][0]),
+        patch.add_vertex(rows[0][2]),
+        patch.add_vertex(rows[1][2]),
+        patch.add_vertex(rows[1][0])
+    };
+    const std::array<NurbsCurve, 4> curves = {
+        Primitives::arc(rows[0][0], at(middle, radius, heights[0]), rows[0][2]),
+        NurbsCurve::create(false, 1, {rows[0][2], rows[1][2]}),
+        Primitives::arc(rows[1][2], at(middle, radius, heights[1]), rows[1][0]),
+        NurbsCurve::create(false, 1, {rows[1][0], rows[0][0]})
+    };
+    const std::array<std::array<double, 4>, 4> sides = {
+        {{0.0, 0.0, 1.0, 0.0}, {1.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 0.0}}
+    };
+    std::vector<BRepRef> wire;
+    for (size_t i = 0; i < 4; i++) {
+        const int edge =
+            patch.add_edge(patch.add_curve_3d(curves[i]), corners[i], corners[(i + 1) % 4]);
+        const std::array<double, 4>& side = sides[i];
+        patch.add_pcurve(
+            edge,
+            surface,
+            patch.add_curve_2d(NurbsCurve::create(
+                false, 1, {Point(side[0], side[1], 0.0), Point(side[2], side[3], 0.0)}
+            ))
+        );
+        wire.push_back({edge, BRepOrientation::Forward});
+    }
+    patch.add_face(surface, {{patch.add_wire(wire), BRepOrientation::Forward}});
+
+    return patch;
+}
+
+/// A round column cut only by walls along its axis and floors square to it, exact: a whole cylinder up to the lowest floor, then the faces above it, each run of chords on
+/// the circle in a ring made one arc and each run of chord strips one cylinder patch. Built from the mesh's own faces, so any such cut comes out, no boolean on the cylinder.
+static BRep round_cut_brep(const Mesh& mesh, const Line& axis, double radius, size_t chords) {
+
+    const Vector along = axis.to_vector().normalized();
+    const Plane frame = Plane::from_point_normal(axis.start(), along);
+    const double chord = 2.0 * radius * std::sin(Tolerance::PI / chords);
+    const double near_circle = 2.0 * radius * (1.0 - std::cos(Tolerance::PI / chords));
+    const auto height = [&](const Point& point) { return (point - axis.start()).dot(along); };
+    const auto angle = [&](const Point& point) {
+        const Vector offset = point - axis.start();
+        return std::atan2(offset.dot(frame.y_axis()), offset.dot(frame.x_axis()));
+    };
+    const auto on_circle = [&](const Point& point) {
+        const Vector offset = point - axis.start();
+        const Vector across = offset - along * offset.dot(along);
+        return std::abs(across.magnitude() - radius) <= near_circle;
+    };
+    const auto at_angle = [&](double turn, double level) {
+        return frame.origin() + frame.x_axis() * (radius * std::cos(turn)) +
+               frame.y_axis() * (radius * std::sin(turn)) + frame.z_axis() * level;
+    };
+
+    const std::vector<PlanarFace> faces = planar_faces(mesh);
+
+    // the lowest floor: below it the column is whole
+    double floor = axis.length();
+    for (const PlanarFace& face : faces)
+        if (std::abs(face.normal.dot(along)) > 1.0 - Tolerance::ZERO_TOLERANCE &&
+            height(face.points[0]) > 1e-6)
+            floor = std::min(floor, height(face.points[0]));
+
+    BRep exact = drill_brep(Line::from_points(axis.start(), axis.start() + along * floor), radius);
+
+    // the strips of the circle per height range, and every other face above the floor
+    std::map<std::array<long long, 2>, std::vector<std::array<double, 2>>> strips;
+    for (const PlanarFace& face : faces) {
+        double low = std::numeric_limits<double>::max();
+        double high = std::numeric_limits<double>::lowest();
+        for (const Point& point : face.points) {
+            low = std::min(low, height(point));
+            high = std::max(high, height(point));
+        }
+        if (high <= floor + 1e-6)
+            continue;
+
+        // a floor or a head: its ring, runs of chords as one arc
+        if (std::abs(face.normal.dot(along)) > 1.0 - Tolerance::ZERO_TOLERANCE) {
+            const size_t count = face.points.size();
+            const auto is_chord = [&](size_t i) {
+                const Point& a = face.points[i % count];
+                const Point& b = face.points[(i + 1) % count];
+                return on_circle(a) && on_circle(b) && a.distance(b) <= 1.5 * chord;
+            };
+            size_t first = 0;
+            while (first < count && is_chord(first + count - 1))
+                first++;
+            std::vector<NurbsCurve> ring;
+            for (size_t k = 0; k < count;) {
+                const size_t i = first + k;
+                size_t run = 0;
+                while (k + run < count && is_chord(i + run))
+                    run++;
+                const Point& start = face.points[i % count];
+                const Point& end = face.points[(i + std::max<size_t>(run, 1)) % count];
+                if (run == 0) {
+                    ring.push_back(NurbsCurve::create(false, 1, {start, end}));
+                    k++;
+                    continue;
+                }
+                const double from = angle(start);
+                double to = angle(end);
+                while (to - from > Tolerance::PI)
+                    to -= Tolerance::TWO_PI;
+                while (from - to > Tolerance::PI)
+                    to += Tolerance::TWO_PI;
+                ring.push_back(Primitives::arc(start, at_angle(0.5 * (from + to), height(start)), end));
+                k += run;
+            }
+            append_brep(exact, BRep::from_nurbscurves(NurbsCurve::join(ring)));
+            continue;
+        }
+
+        // a chord strip of the circle, or a plain wall
+        const bool strip = std::all_of(face.points.begin(), face.points.end(), on_circle);
+        double span = 0.0;
+        for (const Point& point : face.points)
+            span = std::max(span, std::abs(angle(point) - angle(face.points[0])));
+        if (strip && (std::min(span, Tolerance::TWO_PI - span)) * radius <= 1.5 * chord) {
+            double from = std::numeric_limits<double>::max();
+            double to = std::numeric_limits<double>::lowest();
+            const double reference = angle(face.points[0]);
+            for (const Point& point : face.points) {
+                if (height(point) <= floor + 1e-6)
+                    continue;
+                double turn = angle(point);
+                if (turn - reference > Tolerance::PI)
+                    turn -= Tolerance::TWO_PI;
+                if (reference - turn > Tolerance::PI)
+                    turn += Tolerance::TWO_PI;
+                from = std::min(from, turn);
+                to = std::max(to, turn);
+            }
+            strips[{std::llround(std::max(low, floor) * 1e3), std::llround(high * 1e3)}].push_back(
+                {from, to}
+            );
+            continue;
+        }
+        append_brep(exact, BRep::from_polylines({Polyline(face.points).closed()}));
+    }
+
+    // contiguous strips, one patch each
+    for (std::pair<const std::array<long long, 2>, std::vector<std::array<double, 2>>>& range : strips) {
+        std::vector<std::array<double, 2>>& spans = range.second;
+        std::sort(spans.begin(), spans.end());
+        std::vector<std::array<double, 2>> runs;
+        for (const std::array<double, 2>& span : spans)
+            if (!runs.empty() && span[0] - runs.back()[1] < 1e-3)
+                runs.back()[1] = std::max(runs.back()[1], span[1]);
+            else
+                runs.push_back(span);
+        const std::array<double, 2> levels = {range.first[0] * 1e-3, range.first[1] * 1e-3};
+        for (const std::array<double, 2>& run : runs)
+            append_brep(exact, cylinder_patch(frame, radius, run[0], run[1] - run[0], levels));
+    }
+
+    return exact;
+}
+
+const BRep& Column::model_geometry_brep() const {
+
+    if (radius <= 0.0 || solid_features.empty())
+        return WoodElement::model_geometry_brep();
+
+    if (!_model_brep_cache)
+        _model_brep_cache =
+            round_cut_brep(model_geometry_mesh(), axis, radius, section.point_count() - 1);
+
+    return *_model_brep_cache;
 }
 
 Mesh Column::trimmed_mesh() const {
@@ -290,6 +515,7 @@ std::shared_ptr<Column> Column::transformed(const Xform& xform) const {
         column->plane_features.push_back(feature.transformed(xform));
 
     column->profile = profile;
+    column->radius = radius;
     column->rotation =
         profile.empty()
             ? rotation
