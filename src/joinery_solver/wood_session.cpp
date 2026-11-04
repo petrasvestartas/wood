@@ -466,19 +466,12 @@ WoodSession::compute_border_contact(const Plate& plate, int face) {
         face >= static_cast<int>(plate.planes.size()))
         return nullptr;
 
+    // the side's mid-line: along the edge, halfway through the thickness, from one corner pair to the other
     const Polyline& bottom = plate.polylines[0];
     const Polyline& top = plate.polylines[1];
-    const std::array<Point, 4> ends = {
-        bottom[face - 2], top[face - 2], bottom[face - 1], top[face - 1]
-    };
-    Point average_start;
-    Point average_end;
-    Polyline::line_line_average(ends[0], ends[1], ends[2], ends[3], average_start, average_end);
-    Point start;
-    Point end;
-    if (!Polyline::line_from_projected_points(
-            average_start, average_end, {ends[0], ends[1], ends[2], ends[3]}, start, end
-        ))
+    const Point start = Point::mid_point(bottom[face - 2], top[face - 2]);
+    const Point end = Point::mid_point(bottom[face - 1], top[face - 1]);
+    if (start.distance(end) < 1e-9)
         return nullptr;
 
     const double half = 0.5 * plate.thickness;

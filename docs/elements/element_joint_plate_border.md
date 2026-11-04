@@ -2,7 +2,7 @@
 
 [TOC]
 
-Single-plate edge profile joinery (`JointPlate::border()`, `JointPlate::border_custom(...)`) oriented onto a plate side face via `WoodSession::compute_border_contact(plate, side_index)`.
+The boundary family, a joint on one plate alone: `JointPlate::border()` cuts a slab off a side face along the whole side and through the whole thickness, 15 mm deep, and `JointPlate::border_custom(...)` cuts what its outlines say; both oriented onto the side by `WoodSession::compute_border_contact(plate, side_index)`, the contact of a plate that has no neighbour on that side. The joint's scale extends the cut: x beyond the side's ends, y beyond the faces, z deeper, a millimetre each by default.
 
 ![](elements/element_joint_plate_border.png)
 

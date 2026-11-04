@@ -1,3 +1,7 @@
+/// The border of a plate: a slab cut off its side face along the whole side, through the whole thickness, 15 mm deep (scale z adds
+/// to it), the side extended by scale x at both ends and the thickness by scale y beyond each face, a millimetre each by default. Written as two pairs
+/// of slice rectangles parallel to the face, a quarter millimetre and the depth off it, one pair into the plate and one out of it, so the
+/// slab is cut whichever way the face looks.
 static void border(InteractionFeaturePlate& joint) {
 
     joint.name = "border";
@@ -6,70 +10,53 @@ static void border(InteractionFeaturePlate& joint) {
     if (!joint.joint_volumes[0] || !joint.joint_volumes[1])
         return;
 
-    const Polyline& vol0 = *joint.joint_volumes[0];
-    const Polyline& vol1 = *joint.joint_volumes[1];
-    if (vol0.point_count() < 5 || vol1.point_count() < 5)
+    // the two volume rectangles lie on the plate's faces along the side, straddling it: between them the side's mid-line and its frame
+    const Polyline& lower = *joint.joint_volumes[0];
+    const Polyline& upper = *joint.joint_volumes[1];
+    if (lower.point_count() < 5 || upper.point_count() < 5)
         return;
 
-    std::vector<Point> r(5);
-    for (int i = 0; i < 5; ++i)
-        r[i] = Point::lerp(vol0.get_point(i), vol1.get_point(i), 0.5);
-
-    for (const int i : {1, 3}) {
-        const Vector e = r[i + 1] - r[i];
-        const double len = std::sqrt(e.magnitude_squared());
-        if (len > 1e-12) {
-            const double inv = 1.0 / len;
-            r[i] = r[i] - e * inv * joint.scale[0];
-            r[i + 1] = r[i + 1] + e * inv * joint.scale[0];
-            if (i == 3)
-                r[0] = r[4];
-        }
-    }
-
-    const Vector v = (r[1] - r[0]) * 0.5;
-    r[0] = r[0] + v;
-    r[1] = r[1] - v;
-    r[2] = r[2] - v;
-    r[3] = r[3] + v;
-    r[4] = r[4] + v;
-    const double vlen = std::sqrt(v.magnitude_squared());
-    if (vlen > 1e-12) {
-        const double sc = (joint.scale[1] + 5.0) / vlen;
-        r[0] = r[0] + v * sc;
-        r[3] = r[3] + v * sc;
-        r[4] = r[4] + v * sc;
-    }
-
-    double nx = 0;
-    double ny = 0;
-    double nz = 0;
-    for (int i = 0; i < 4; ++i) {
-        const int j = (i + 1) % 4;
-        nx += (r[i][1] - r[j][1]) * (r[i][2] + r[j][2]);
-        ny += (r[i][2] - r[j][2]) * (r[i][0] + r[j][0]);
-        nz += (r[i][0] - r[j][0]) * (r[i][1] + r[j][1]);
-    }
-
-    Vector n(nx, ny, nz);
-    const double nlen = std::sqrt(n.magnitude_squared());
-    if (nlen < 1e-12)
+    const Point start = Point::lerp(
+        Point::lerp(lower.get_point(0), lower.get_point(1), 0.5),
+        Point::lerp(upper.get_point(0), upper.get_point(1), 0.5),
+        0.5
+    );
+    const Point end = Point::lerp(
+        Point::lerp(lower.get_point(2), lower.get_point(3), 0.5),
+        Point::lerp(upper.get_point(2), upper.get_point(3), 0.5),
+        0.5
+    );
+    const Vector half_thickness = (upper.get_point(0) - lower.get_point(0)) * 0.5;
+    const Vector side = lower.get_point(1) - lower.get_point(0);
+    const double half = std::sqrt(half_thickness.magnitude_squared());
+    const double side_length = std::sqrt(side.magnitude_squared());
+    const double length = std::sqrt((end - start).magnitude_squared());
+    if (half < 1e-12 || side_length < 1e-12 || length < 1e-12)
         return;
 
-    n = n / nlen;
-    const Vector off_near = n * 0.25;
-    const Vector off_far = n * (joint.scale[2] + 15.0);
+    const Vector along = (end - start) * (joint.scale[0] / length);
+    const Vector across = half_thickness * ((half + joint.scale[1]) / half);
+    const Vector normal = side * (1.0 / side_length);
 
-    std::rotate(r.begin(), r.begin() + 2, r.end() - 1);
-    r[4] = r[0];
-    const Polyline rect(r);
-    const Polyline rect0 = rect.translated(off_near);
-    const Polyline rect1 = rect.translated(off_far);
-    const Polyline rect2 = rect.translated(-off_near);
-    const Polyline rect3 = rect.translated(-off_far);
+    // the slice rectangle over the whole side, moved off the face by a distance along its normal
+    const auto rectangle = [&](double offset) {
+        const Vector off = normal * offset;
+        return Polyline(
+            {start - along - across + off,
+             start - along + across + off,
+             end + along + across + off,
+             end + along - across + off,
+             start - along - across + off}
+        );
+    };
+    const double depth = 15.0 + joint.scale[2];
+    const Polyline near_in = rectangle(0.25);
+    const Polyline far_in = rectangle(depth);
+    const Polyline near_out = rectangle(-0.25);
+    const Polyline far_out = rectangle(-depth);
 
-    joint.male_outlines[0] = {rect0, rect0, rect2, rect2};
-    joint.male_outlines[1] = {rect1, rect1, rect3, rect3};
+    joint.male_outlines[0] = {near_in, near_in, near_out, near_out};
+    joint.male_outlines[1] = {far_in, far_in, far_out, far_out};
 
     joint.male_fabrication_types[0] = {
         FabricationType::slice,

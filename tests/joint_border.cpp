@@ -17,11 +17,11 @@ static void check(bool ok, const std::string& message) {
         throw std::runtime_error(message);
 }
 
-/// The rectangle at y across x from 0 to -6 and z from -1 to 41.
-static Polyline reference_rectangle(double y) {
+/// The slice rectangle at x over the whole side face 2 of the 300 x 200 x 40 plate, the side on x = 0: y from -1 to 201, z from -1 to 41.
+static Polyline reference_rectangle(double x) {
 
     return Polyline(
-        {{0.0, y, -1.0}, {-6.0, y, -1.0}, {-6.0, y, 41.0}, {0.0, y, 41.0}, {0.0, y, -1.0}}
+        {{x, -1.0, 41.0}, {x, -1.0, -1.0}, {x, 201.0, -1.0}, {x, 201.0, 41.0}, {x, -1.0, 41.0}}
     );
 }
 
@@ -30,8 +30,11 @@ static void check_border() {
 
     WoodSession scene("border");
     const Polyline bottom(
-        {{0.0, 0.0, 0.0}, {300.0, 0.0, 0.0}, {300.0, 200.0, 0.0}, {0.0, 200.0, 0.0}, {0.0, 0.0, 0.0}
-        }
+        {{0.0, 0.0, 0.0},
+         {300.0, 0.0, 0.0},
+         {300.0, 200.0, 0.0},
+         {0.0, 200.0, 0.0},
+         {0.0, 0.0, 0.0}}
     );
     const std::shared_ptr<Plate> plate = std::make_shared<Plate>(
         bottom, bottom.transformed(Xform::translation(0.0, 0.0, 40.0)), "plate"
@@ -56,21 +59,21 @@ static void check_border() {
         "a family 60 joint on the plate alone"
     );
 
-    // the slices as 2024 wrote them: rect0 and rect1 the first pair, rect2 and rect3 the second
+    // the slices: the pair out of the plate, a quarter millimetre and 16 off the face, then the pair into it
     const std::array<Polyline, 4> written = {
         connection.male_outlines[0].at(0),
         connection.male_outlines[1].at(0),
         connection.male_outlines[0].at(2),
         connection.male_outlines[1].at(2)
     };
-    const std::array<double, 4> levels = {100.25, 116.0, 99.75, 84.0};
+    const std::array<double, 4> levels = {-0.25, -16.0, 0.25, 16.0};
     for (size_t k = 0; k < 4; k++) {
         const double distance =
             oracle::point_set_distance(written[k], reference_rectangle(levels[k]));
         check(
             distance <= MATCH,
             fmt::format(
-                "slice {} lies {:.6g} mm from the reference rectangle at y = {:g}",
+                "slice {} lies {:.6g} mm from the reference rectangle at x = {:g}",
                 k,
                 distance,
                 levels[k]
@@ -78,16 +81,21 @@ static void check_border() {
         );
     }
 
+    // the slab between the inner pair, 15.75 x 200 x 40, is cut off the plate; the outer pair lies in the air
     const double stock = compute_volume(plate->element_geometry_mesh());
     const double model = compute_volume(plate->model_geometry_mesh());
+    const double slab = 15.75 * 200.0 * 40.0;
     check(
-        std::abs(model - stock) <= 1e-9 * stock,
-        fmt::format("the plate keeps its stock, {:.3f} of {:.3f} mm3", model, stock)
+        std::abs((stock - model) - slab) <= 0.02 * slab,
+        fmt::format(
+            "the plate loses its border slab, {:.0f} of {:.0f} mm3 cut", stock - model, slab
+        )
     );
 
-    std::cout << "joint_border: border on a border contact writes the reference's four slices, 6 "
-                 "out of the side face, and leaves the plate whole"
-              << std::endl;
+    std::cout
+        << "joint_border: border on a border contact writes four slices over the whole side face "
+           "and cuts the 16 mm slab off the plate"
+        << std::endl;
 }
 
 /// The dataset boundary_side.
@@ -112,14 +120,14 @@ static void check_dataset() {
         joint.male_outlines[0].at(2),
         joint.male_outlines[1].at(2)
     };
-    const std::array<double, 4> levels = {100.25, 116.0, 99.75, 84.0};
+    const std::array<double, 4> levels = {-0.25, -16.0, 0.25, 16.0};
     for (size_t k = 0; k < 4; k++) {
         const double distance =
             oracle::point_set_distance(written[k], reference_rectangle(levels[k]));
         check(
             distance <= MATCH,
             fmt::format(
-                "the dataset's slice {} lies {:.6g} mm from the reference rectangle at y = {:g}",
+                "the dataset's slice {} lies {:.6g} mm from the reference rectangle at x = {:g}",
                 k,
                 distance,
                 levels[k]
@@ -134,7 +142,13 @@ static void check_dataset() {
 
 int main() {
 
-    check_border();
-    check_dataset();
+    try {
+        check_border();
+        check_dataset();
+    } catch (const std::exception& error) {
+        std::cerr << "joint_border: " << error.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
