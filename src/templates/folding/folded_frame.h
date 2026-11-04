@@ -49,17 +49,6 @@ public:
         double bulge = 2200.0
     );
 
-    /// The three-hinged frame with ridge folding: a flat ceiling eaves high, the roof dipping to the hinge at mid-span.
-    static Polyline three_hinged_frame(
-        double span = 30000.0,
-        double bay = 4250.0,
-        double eaves = 6250.0,
-        double ridge = 8250.0,
-        double hinge = 6800.0,
-        double knee = 3100.0,
-        double bulge = 1900.0
-    );
-
     /// The two-hinged A-frame with ridge-to-valley folding: two legs to an apex, their diagonals crossing at the waist.
     static Polyline a_frame(
         double span = 21000.0,
@@ -71,10 +60,6 @@ public:
         double waist_in = 6100.0,
         double waist = 4000.0
     );
-
-    /// The arch with a top hinge at the proportions, its legs rising nearly vertically height high.
-    static Polyline
-    top_hinged_arch(double span = 17900.0, double bay = 4950.0, double height = 26100.0);
 
     /// The three-hinged octagonal arch at the proportions, height high.
     static Polyline
@@ -145,22 +130,6 @@ inline Polyline FoldedFrame::two_hinged_frame(
     });
 }
 
-inline Polyline FoldedFrame::three_hinged_frame(
-    double span, double bay, double eaves, double ridge, double hinge, double knee, double bulge
-) {
-
-    const double centre = 0.5 * bay;
-
-    return Polyline({
-        Point(0.0, centre, 0.0),
-        Point(0.0, 0.0, eaves),
-        Point(-bulge, centre, knee),
-        Point(0.25 * span, centre, ridge),
-        Point(0.5 * span, 0.0, eaves),
-        Point(0.5 * span, centre, hinge),
-    });
-}
-
 inline Polyline FoldedFrame::a_frame(
     double span,
     double bay,
@@ -180,22 +149,6 @@ inline Polyline FoldedFrame::a_frame(
         Point(waist_in, centre, waist),
         Point(0.5 * span, 0.0, apex),
         Point(0.5 * span, centre, ridge),
-    });
-}
-
-inline Polyline FoldedFrame::top_hinged_arch(double span, double bay, double height) {
-
-    const double centre = 0.5 * bay;
-
-    return Polyline({
-        Point(0.0, centre, 0.0),
-        Point(-0.02 * height, 0.0, 0.32 * height),
-        Point(-0.042 * height, centre, 0.57 * height),
-        Point(0.19 * span, 0.0, 0.885 * height),
-        Point(0.36 * span, centre, height),
-        Point(0.36 * span, 0.0, 0.92 * height),
-        Point(0.5 * span, centre, 0.93 * height),
-        Point(0.5 * span, 0.0, 0.915 * height),
     });
 }
 

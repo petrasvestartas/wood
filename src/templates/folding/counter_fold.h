@@ -44,10 +44,6 @@ public:
     static std::vector<Polyline>
     counter_running(size_t ridges, double fold_width, double depth, double span);
 
-    /// The counter profile in the centre: the zigzag at both ends, its counter profile at mid-span.
-    static std::vector<Polyline>
-    counter_centre(size_t ridges, double fold_width, double depth, double span);
-
     /// The centre fold elevated over the edge folds, its ridges middle_depth over the edges' ridges.
     static std::vector<Polyline> elevated_centre(
         size_t ridges, double fold_width, double depth, double span, double middle_depth
@@ -131,15 +127,6 @@ CounterFold::counter_running(size_t ridges, double fold_width, double depth, dou
     return {
         zigzag(0.0, ridges, fold_width, depth, 0.0, false),
         zigzag(span, ridges, fold_width, depth, 0.0, true),
-    };
-}
-
-inline std::vector<Polyline>
-CounterFold::counter_centre(size_t ridges, double fold_width, double depth, double span) {
-    return {
-        zigzag(0.0, ridges, fold_width, depth, 0.0, false),
-        zigzag(0.5 * span, ridges, fold_width, depth, 0.0, true),
-        zigzag(span, ridges, fold_width, depth, 0.0, false),
     };
 }
 

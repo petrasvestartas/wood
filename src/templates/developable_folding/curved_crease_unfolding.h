@@ -47,9 +47,6 @@ public:
         return _drift;
     }
 
-    /// The catenary span wide and rise high over the x axis in the xz plane, centred on the origin, interpolated through points.
-    static NurbsCurve catenary(double span, double rise, size_t points = 32);
-
     /// count + 1 planes through the axis from origin, each turned by angle (radians) from the one before, the middle containing first.
     static std::vector<Plane>
     fan(const Point& origin, const Vector& axis, const Vector& first, size_t count, double angle);
@@ -136,31 +133,6 @@ inline CurvedCreaseUnfolding::CurvedCreaseUnfolding(
 
     // contacts: every two plates that share a face, found by the session's contact detection
     compute_face_contacts(0);
-}
-
-inline NurbsCurve CurvedCreaseUnfolding::catenary(double span, double rise, size_t points) {
-
-    double low = 1e-3 * span;
-    double high = 1e3 * span;
-
-    for (int i = 0; i < 200; i++) {
-        const double a = 0.5 * (low + high);
-
-        if (a * (std::cosh(0.5 * span / a) - 1.0) > rise)
-            low = a;
-        else
-            high = a;
-    }
-
-    const double a = 0.5 * (low + high);
-    std::vector<Point> curve;
-
-    for (size_t k = 0; k <= points; k++) {
-        const double u = -0.5 * span + span * static_cast<double>(k) / static_cast<double>(points);
-        curve.push_back(Point(u, 0.0, rise - a * (std::cosh(u / a) - 1.0)));
-    }
-
-    return NurbsCurve::create_interpolated(curve);
 }
 
 inline size_t CurvedCreaseUnfolding::compute_start() const {

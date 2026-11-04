@@ -112,7 +112,7 @@ PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0,
 
 ## Counter Fold {#counter_fold}
 
-`CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`): triangulates non-planar strips between station profiles via `Folding::ridge_to_ridge`, `Folding::ridge_to_valley`, or `Folding::alternate`, merging coplanar triangles (`merged_coplanar`). Station generators: `counter_running`, `counter_centre`, `elevated_centre`.
+`CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`): triangulates non-planar strips between station profiles via `Folding::ridge_to_ridge`, `Folding::ridge_to_valley`, or `Folding::alternate`, merging coplanar triangles (`merged_coplanar`). Station generators: `counter_running`, `elevated_centre`.
 
 ### Counter-running, ridge to ridge {#folding_counter_fold}
 
@@ -150,7 +150,7 @@ ConicalFold fold;
 
 ## Folded Frame {#folded_frame}
 
-`FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `three_hinged_frame`, `a_frame`, `top_hinged_arch`, `three_hinged_arch`).
+`FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `a_frame`, `three_hinged_arch`).
 
 ### Two-hinged frame, ridge to ridge {#folding_two_hinged_frame}
 

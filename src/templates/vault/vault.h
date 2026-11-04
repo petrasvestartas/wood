@@ -64,10 +64,6 @@ cross_vault(double span, double rise, double thickness, int courses, int rings);
 std::vector<std::shared_ptr<Element>>
 cloister_vault(double span, double rise, double thickness, int courses, int rings);
 
-/// A star (stellar) vault over a square bay of span on intersecting circular barrel cylinders, crown at rise.
-std::vector<std::shared_ptr<Element>>
-star_vault(double span, double rise, double thickness, double star, double rib, int subdivisions);
-
 // ═══════════════════════════════════════════════════════════════════════════
 // Gothic ribbed vaults (LiDAR cathedral patterns — Tracing the Past / Willis / Bern Cathedral)
 // ═══════════════════════════════════════════════════════════════════════════

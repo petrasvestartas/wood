@@ -514,7 +514,6 @@ struct RibEdgeSpec {
     int v = 0;
     double width_scale = 1.0;
     std::string role = "rib";
-    int tier_override = -1;
     size_t path_idx = 0;
 };
 
@@ -522,7 +521,6 @@ struct RibPathSpec {
     std::vector<int> nodes;
     double width_scale = 1.0;
     std::string role = "rib";
-    int tier_override = -1;
 };
 
 double wrap_two_pi(double angle) {
@@ -1324,67 +1322,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
 
 } // namespace
 
-std::vector<std::shared_ptr<Element>>
-star_vault(double span, double rise, double thickness, double star, double rib, int subdivisions) {
-    const double half = 0.5 * span;
-    const int n_sub = std::max(8, subdivisions);
-    const double s_clamped = std::clamp(star, 0.25, 0.85);
-
-    std::vector<Point> nodes = {
-        Point(-half, -half, 0.0),           // 0: SW corner
-        Point( half, -half, 0.0),           // 1: SE corner
-        Point( half,  half, 0.0),           // 2: NE corner
-        Point(-half,  half, 0.0),           // 3: NW corner
-        Point(0.0, -s_clamped * half, 0.0), // 4: S star boss
-        Point( s_clamped * half, 0.0, 0.0), // 5: E star boss
-        Point(0.0,  s_clamped * half, 0.0), // 6: N star boss
-        Point(-s_clamped * half, 0.0, 0.0), // 7: W star boss
-        Point(0.0, 0.0, 0.0),               // 8: Central crown boss
-        Point(0.0, -half, 0.0),             // 9: S wall crown
-        Point( half, 0.0, 0.0),             // 10: E wall crown
-        Point(0.0,  half, 0.0),             // 11: N wall crown
-        Point(-half, 0.0, 0.0)              // 12: W wall crown
-    };
-
-    std::vector<RibEdgeSpec> edges;
-    std::vector<RibPathSpec> rib_paths;
-    const auto add_rib = [&](const std::vector<int>& chain, int tier) {
-        const size_t p_idx = rib_paths.size();
-        rib_paths.push_back({chain, 1.0, "rib", tier});
-        for (size_t k = 0; k + 1 < chain.size(); ++k) {
-            const int u = chain[k];
-            const int v = chain[k + 1];
-            edges.push_back({u, v, 1.0, "rib", tier, p_idx});
-        }
-    };
-
-    // 4 perimeter wall arches, 2 interlocking continuous diagonal arches, 4 full ridge liernes, 8 tiercerons = 18 ribs
-    add_rib({0, 8, 2}, 0);
-    add_rib({1, 8, 3}, 1);
-    for (int i = 0; i < 4; ++i) {
-        const int next = (i + 1) % 4;
-        add_rib({i, 9 + i, next}, 0);
-        add_rib({9 + i, 4 + i, 8}, 2);
-        add_rib({i, 4 + i}, 3);
-        add_rib({next, 4 + i}, 3);
-    }
-
-    return build_cylindrical_ribbed_vault_from_graph(
-        half,
-        half,
-        rise,
-        rib,
-        rib,
-        thickness,
-        n_sub,
-        ArchMethod::groin_cylinders,
-        nodes,
-        edges,
-        rib_paths,
-        "web"
-    );
-}
-
 std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     double span_x,
     double span_y,
@@ -1425,7 +1362,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
         if (chain.size() < 2)
             return;
         const size_t p_idx = rib_paths.size();
-        rib_paths.push_back({chain, w_scale, role, -1});
+        rib_paths.push_back({chain, w_scale, role});
         for (size_t k = 0; k + 1 < chain.size(); ++k) {
             const int u = chain[k];
             const int v = chain[k + 1];
@@ -1438,7 +1375,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
                     break;
                 }
             if (!exists)
-                edges.push_back({u, v, w_scale, role, -1, p_idx});
+                edges.push_back({u, v, w_scale, role, p_idx});
         }
     };
 
