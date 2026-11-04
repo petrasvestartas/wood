@@ -22,6 +22,41 @@ NurbsCurve segment_curve(const Point& from, const Point& to) {
     return NurbsCurve::create(false, 1, {from, to});
 }
 
+/// How far a curve's control points may lie from its plane, in mm, and its guides' x axes from each other as unit vectors, and still count as planar.
+constexpr double PLANAR_CURVE = 1e-3;
+constexpr double PLANAR_GUIDES = 1e-6;
+
+/// How close to a cut plane, in mm, a fibre's crossing is taken as found.
+constexpr double CROSSING_TOLERANCE = 1e-8;
+
+/// Intervals a fibre is scanned over from its end, enough to keep the first of two crossings on a strongly curved beam.
+constexpr int CROSSING_SCAN = 8;
+
+/// The root of a function changing sign on [a, b] by false position with the Illinois correction: a beam is nearly straight
+/// over the bracket, so a few evaluations reach what bisection needs forty for. Without a sign change, b.
+template <typename Function>
+double compute_crossing(const Function& function, double a, double value_a, double b, double value_b) {
+    if (value_a * value_b > 0.0)
+        return b;
+
+    for (int i = 0; i < 64 && std::abs(b - a) > 1e-13; i++) {
+        const double c = (a * value_b - b * value_a) / (value_b - value_a);
+        const double value = function(c);
+        if (std::abs(value) < CROSSING_TOLERANCE)
+            return c;
+        if (value * value_b < 0.0) {
+            a = b;
+            value_a = value_b;
+        } else {
+            value_a *= 0.5;
+        }
+        b = c;
+        value_b = value;
+    }
+
+    return 0.5 * (a + b);
+}
+
 /// Nearest vertex index in solid to point.
 int corner_vertex(const BRep& solid, const Point& point) {
     int nearest = 0;
@@ -395,6 +430,24 @@ BeamCurved::Twist BeamCurved::compute_twist() const {
                 t0 + (t1 - t0) * static_cast<double>(i) / static_cast<double>(m_count - 1);
     }
 
+    // the section's x at every guide: all the same on a curve lying in that plane, so nothing turns
+    std::optional<Vector> x_axis;
+    bool planar = true;
+    for (size_t i = 0; i < m_count && planar; i++) {
+        const Vector tangent = centreline.tangent_at(std::clamp(twist.parameters[i], t0, t1));
+        const Vector x = directions[i].cross(tangent);
+        planar = x.magnitude() > Tolerance::ZERO_TOLERANCE;
+        if (planar && !x_axis)
+            x_axis = x.normalized();
+        planar = planar && (x.normalized() - *x_axis).magnitude() < PLANAR_GUIDES;
+    }
+    for (int i = 0; i < centreline.cv_count() && planar; i++)
+        planar = std::abs((centreline.get_cv(i) - centreline.get_cv(0)).dot(*x_axis)) < PLANAR_CURVE;
+    if (planar) {
+        twist.x_axis = x_axis;
+        return twist;
+    }
+
     twist.angles.assign(m_count, 0.0);
     for (size_t i = 0; i < m_count; i++) {
         const double pi = std::clamp(twist.parameters[i], t0, t1);
@@ -435,6 +488,10 @@ Plane BeamCurved::get_plane(double t, const Twist& twist) const {
         return frame_from_tangent_and_up(origin, tangent, directions[0]);
 
     // 2. Multiple guide vectors interpolated as twist over RMF (GluLamb VectorListOrientation)
+    if (twist.x_axis) {
+        const Vector z = tangent.normalized();
+        return Plane::from_frame(origin, *twist.x_axis, z.cross(*twist.x_axis).normalized(), z);
+    }
     if (directions.size() >= 2) {
         const std::vector<double>& params = twist.parameters;
         const std::vector<double>& angles = twist.angles;
@@ -531,13 +588,16 @@ bool BeamCurved::is_double_curved(double tolerance) const {
 }
 
 std::vector<Polyline> BeamCurved::sections() const {
+    return sections(frames());
+}
+
+std::vector<Polyline> BeamCurved::sections(const std::vector<Plane>& station_frames) const {
     std::vector<Polyline> rings;
     if (!centreline.is_valid() || width <= 0.0 || height <= 0.0)
         return rings;
 
     const double hx = 0.5 * width;
     const double hy = 0.5 * height;
-    const std::vector<Plane> station_frames = frames();
     rings.reserve(station_frames.size());
     for (const Plane& frame : station_frames)
         rings.push_back(section_in_plane(frame, -hx, -hy, hx, hy));
@@ -795,7 +855,6 @@ BRep BeamCurved::trimmed_brep() const {
         return fr.origin() + fr.x_axis() * x_off + fr.y_axis() * y_off;
     };
 
-    const int n_scan = std::max(32, samples);
     const double u_lo_bound = -0.35;
     const double u_hi_bound = 1.35;
 
@@ -808,23 +867,21 @@ BRep BeamCurved::trimmed_brep() const {
         if (!(d_lo < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION))
             return false;
         double a = u_lo_bound;
+        double value_a = d_lo;
         double b = 0.5;
-        for (int k = 1; k <= n_scan; k++) {
-            const double u_k = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k) / n_scan;
-            if (sd(u_k) >= 0.0) {
+        double value_b = d_mid;
+        for (int k = 1; k <= CROSSING_SCAN; k++) {
+            const double u_k = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k) / CROSSING_SCAN;
+            const double value = sd(u_k);
+            if (value >= 0.0) {
                 b = u_k;
-                a = u_lo_bound + (0.9 - u_lo_bound) * static_cast<double>(k - 1) / n_scan;
+                value_b = value;
                 break;
             }
+            a = u_k;
+            value_a = value;
         }
-        for (int it = 0; it < 44; it++) {
-            const double mid = 0.5 * (a + b);
-            if (sd(mid) < 0.0)
-                a = mid;
-            else
-                b = mid;
-        }
-        out_u = 0.5 * (a + b);
+        out_u = compute_crossing(sd, a, value_a, b, value_b);
         return true;
     };
 
@@ -837,23 +894,21 @@ BRep BeamCurved::trimmed_brep() const {
         if (!(d_hi < -Tolerance::APPROXIMATION && d_mid >= -Tolerance::APPROXIMATION))
             return false;
         double a = 0.5;
+        double value_a = d_mid;
         double b = u_hi_bound;
-        for (int k = n_scan - 1; k >= 0; k--) {
-            const double u_k = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k) / n_scan;
-            if (sd(u_k) >= 0.0) {
+        double value_b = d_hi;
+        for (int k = CROSSING_SCAN - 1; k >= 0; k--) {
+            const double u_k = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k) / CROSSING_SCAN;
+            const double value = sd(u_k);
+            if (value >= 0.0) {
                 a = u_k;
-                b = 0.1 + (u_hi_bound - 0.1) * static_cast<double>(k + 1) / n_scan;
+                value_a = value;
                 break;
             }
+            b = u_k;
+            value_b = value;
         }
-        for (int it = 0; it < 44; it++) {
-            const double mid = 0.5 * (a + b);
-            if (sd(mid) >= 0.0)
-                a = mid;
-            else
-                b = mid;
-        }
-        out_u = 0.5 * (a + b);
+        out_u = compute_crossing(sd, a, value_a, b, value_b);
         return true;
     };
 
@@ -961,6 +1016,17 @@ BRep BeamCurved::trimmed_brep() const {
             out_u = is_front ? front_envelope(0.5, y_off, dummy) : back_envelope(0.5, y_off, dummy);
             return;
         }
+        // two planes meet in a line: running along the section's height it stays at one offset across the beam, which is the mitre
+        Line meet;
+        if (twist.x_axis && Intersection::plane_plane(cuts[c_left], cuts[c_right], meet) &&
+            std::abs(meet.to_vector().normalized().dot(*twist.x_axis)) < PLANAR_GUIDES) {
+            const double offset = (meet.start() - eval_pt(0.0, y_off, 0.5)).dot(*twist.x_axis);
+            out_v = std::clamp(0.5 + offset / width, 0.005, 0.995);
+            int dummy = -1;
+            out_u = is_front ? front_envelope(out_v, y_off, dummy) : back_envelope(out_v, y_off, dummy);
+            return;
+        }
+
         double lo = 0.0;
         double hi = 1.0;
         for (int it = 0; it < 40; it++) {
@@ -1022,16 +1088,7 @@ BRep BeamCurved::trimmed_brep() const {
             const double f1 = sd(s_max);
             if ((f0 >= 0.0 && f1 >= 0.0) || (f0 <= 0.0 && f1 <= 0.0))
                 return false;
-            double a = s_min;
-            double b = s_max;
-            for (int it = 0; it < 48; it++) {
-                const double m = 0.5 * (a + b);
-                if ((sd(m) >= 0.0) == (f0 >= 0.0))
-                    a = m;
-                else
-                    b = m;
-            }
-            out_u = 0.5 * (a + b);
+            out_u = compute_crossing(sd, s_min, f0, s_max, f1);
             return true;
         };
 
@@ -1448,7 +1505,11 @@ std::shared_ptr<BeamCurved> BeamCurved::transformed(const Xform& xform) const {
 }
 
 void BeamCurved::place(const Xform& xform) {
-    Element::place(xform);
+    // nothing stored yet has nothing to carry: the solid comes from the moved curve when it is asked for
+    if (_geometry_mesh || _geometry_brep || !_features.empty() || !_insertion_vectors.empty())
+        Element::place(xform);
+    else
+        reset();
     centreline.transform(xform);
     directions = transformed_list(directions, xform);
     cuts = transformed_list(cuts, xform);
@@ -1468,15 +1529,13 @@ void BeamCurved::place(const Xform& xform) {
 }
 
 void BeamCurved::compute_geometry_mesh_impl() {
-    const std::vector<Polyline> rings = sections();
-    if (!rings.empty())
+    if (centreline.is_valid() && width > 0.0 && height > 0.0)
         set_geometry(model_geometry_mesh());
     compute_geometry_features();
 }
 
 void BeamCurved::compute_geometry_brep_impl() {
-    const std::vector<Polyline> rings = sections();
-    if (!rings.empty())
+    if (centreline.is_valid() && width > 0.0 && height > 0.0)
         set_geometry(model_geometry_brep());
     compute_geometry_features();
 }
@@ -1493,7 +1552,7 @@ void BeamCurved::compute_geometry_features() {
     all_cuts.insert(all_cuts.end(), f_planes.begin(), f_planes.end());
 
     const std::pair<Polyline, std::vector<Polyline>> trimmed =
-        trim_to_cuts(Polyline(axis_pts), sections(), all_cuts);
+        trim_to_cuts(Polyline(axis_pts), sections(station_frames), all_cuts);
 
     std::vector<ElementFeature> next;
     if (trimmed.first.point_count() > 1)

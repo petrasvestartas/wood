@@ -143,10 +143,12 @@ public:
     /// Thickness of one lamella layer (height / num_height).
     double lamella_height() const;
 
-    /// The guide directions as unwrapped twist angles over the rotation-minimising frame, at their curve parameters.
+    /// The guide directions as unwrapped twist angles over the rotation-minimising frame, at their curve parameters. Guides in the plane
+    /// of a planar curve never turn the section: x_axis is then the section's x, the same at every station, and no frame is marched.
     struct Twist {
         std::vector<double> parameters;
         std::vector<double> angles;
+        std::optional<Vector> x_axis;
     };
 
     /// The twist of the guide directions, empty below two guides. Each guide marches along the curve, so a run of planes computes it once.
@@ -163,6 +165,9 @@ public:
 
     /// Closed rectangular cross-section Polylines at the (samples + 1) stations along the curve.
     std::vector<Polyline> sections() const;
+
+    /// Closed rectangular cross-section Polylines at already computed stations.
+    std::vector<Polyline> sections(const std::vector<Plane>& station_frames) const;
 
     /// The four interpolated cubic NURBS corner curves running the length of the beam.
     std::array<NurbsCurve, 4> edge_curves() const;

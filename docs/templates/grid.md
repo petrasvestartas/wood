@@ -10,23 +10,23 @@ Multi-storey timber building generator in `src/templates/grid/*.h`. `wood_grid::
     <span class="wood-card-title">Five-Bay Building</span>
   </a>
   <a class="wood-card" href="#grid_ex_footprint">
-    <img src="templates_grid_1_footprint_all.webp" alt="Footprints and Patterns">
+    <img src="templates_grid_1_footprint_orthogonal.webp" alt="Footprints and Patterns">
     <span class="wood-card-title">Footprints and Patterns</span>
   </a>
   <a class="wood-card" href="#grid_ex_solid">
-    <img src="templates_grid_2_solid_all.webp" alt="Massing Solids">
+    <img src="templates_grid_2_solid_setback.webp" alt="Massing Solids">
     <span class="wood-card-title">Massing Solids</span>
   </a>
   <a class="wood-card" href="#grid_ex_lines">
-    <img src="templates_grid_3_lines_all.webp" alt="Lines and Braced Frames">
+    <img src="templates_grid_3_lines_braced.webp" alt="Lines and Braced Frames">
     <span class="wood-card-title">Lines and Braced Frames</span>
   </a>
   <a class="wood-card" href="#grid_ex_reference">
-    <img src="templates_grid_4_reference_all.webp" alt="Reference Buildings">
+    <img src="templates_grid_4_reference_timber_bay_v1.webp" alt="Reference Buildings">
     <span class="wood-card-title">Reference Buildings</span>
   </a>
   <a class="wood-card" href="#grid_ex_framing">
-    <img src="templates_grid_5_framing_all.webp" alt="Framing Systems">
+    <img src="templates_grid_5_framing_head_section.webp" alt="Framing Systems">
     <span class="wood-card-title">Framing Systems</span>
   </a>
 </div>
@@ -237,7 +237,44 @@ Full source: @ref grid_example_6
 
 Nine footprints and grid patterns (L with purlins/walls, skewed grid, radial, triangular, hexagonal, drawn axes, courtyard, pentagon, U with two cores):
 
-![templates_grid_1_footprint](templates/templates_grid_1_footprint_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_grid_1_footprint_orthogonal.webp">
+    <img src="templates_grid_1_footprint_orthogonal.webp" alt="Orthogonal">
+    <span class="wood-card-title">Orthogonal</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_skewed.webp">
+    <img src="templates_grid_1_footprint_skewed.webp" alt="Skewed">
+    <span class="wood-card-title">Skewed</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_radial.webp">
+    <img src="templates_grid_1_footprint_radial.webp" alt="Radial">
+    <span class="wood-card-title">Radial</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_triangular.webp">
+    <img src="templates_grid_1_footprint_triangular.webp" alt="Triangular">
+    <span class="wood-card-title">Triangular</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_hexagonal.webp">
+    <img src="templates_grid_1_footprint_hexagonal.webp" alt="Hexagonal">
+    <span class="wood-card-title">Hexagonal</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_irregular.webp">
+    <img src="templates_grid_1_footprint_irregular.webp" alt="Irregular">
+    <span class="wood-card-title">Irregular</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_courtyard.webp">
+    <img src="templates_grid_1_footprint_courtyard.webp" alt="Courtyard">
+    <span class="wood-card-title">Courtyard</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_pentagon.webp">
+    <img src="templates_grid_1_footprint_pentagon.webp" alt="Pentagon">
+    <span class="wood-card-title">Pentagon</span>
+  </a>
+  <a class="wood-card" href="templates_grid_1_footprint_cores.webp">
+    <img src="templates_grid_1_footprint_cores.webp" alt="Cores">
+    <span class="wood-card-title">Cores</span>
+  </a>
+</div>
 
 Full source: @ref grid_example_1
 
@@ -245,7 +282,32 @@ Full source: @ref grid_example_1
 
 Six 3D massing solids sliced at storey elevations (box, pentagonal prism, tapered loft, podium + tower, atrium, cylinder):
 
-![templates_grid_2_solid](templates/templates_grid_2_solid_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_grid_2_solid_box.webp">
+    <img src="templates_grid_2_solid_box.webp" alt="Box">
+    <span class="wood-card-title">Box</span>
+  </a>
+  <a class="wood-card" href="templates_grid_2_solid_prism.webp">
+    <img src="templates_grid_2_solid_prism.webp" alt="Prism">
+    <span class="wood-card-title">Prism</span>
+  </a>
+  <a class="wood-card" href="templates_grid_2_solid_taper.webp">
+    <img src="templates_grid_2_solid_taper.webp" alt="Taper">
+    <span class="wood-card-title">Taper</span>
+  </a>
+  <a class="wood-card" href="templates_grid_2_solid_setback.webp">
+    <img src="templates_grid_2_solid_setback.webp" alt="Setback">
+    <span class="wood-card-title">Setback</span>
+  </a>
+  <a class="wood-card" href="templates_grid_2_solid_atrium.webp">
+    <img src="templates_grid_2_solid_atrium.webp" alt="Atrium">
+    <span class="wood-card-title">Atrium</span>
+  </a>
+  <a class="wood-card" href="templates_grid_2_solid_curved.webp">
+    <img src="templates_grid_2_solid_curved.webp" alt="Curved">
+    <span class="wood-card-title">Curved</span>
+  </a>
+</div>
 
 Full source: @ref grid_example_2
 
@@ -253,21 +315,120 @@ Full source: @ref grid_example_2
 
 Direct line-and-surface input (`compas_grid` dataset and braced timber frame):
 
-![templates_grid_3_lines](templates/templates_grid_3_lines_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_grid_3_lines_crea_4x4.webp">
+    <img src="templates_grid_3_lines_crea_4x4.webp" alt="Crea 4 x 4">
+    <span class="wood-card-title">Crea 4 x 4</span>
+  </a>
+  <a class="wood-card" href="templates_grid_3_lines_braced.webp">
+    <img src="templates_grid_3_lines_braced.webp" alt="Braced">
+    <span class="wood-card-title">Braced</span>
+  </a>
+</div>
 
 Full source: @ref grid_example_3
 
 ### Reference Building Configurations {#grid_ex_reference}
 
-![templates_grid_4_reference](templates/templates_grid_4_reference_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_grid_4_reference_branch_plate.webp">
+    <img src="templates_grid_4_reference_branch_plate.webp" alt="Branch Plate">
+    <span class="wood-card-title">Branch Plate</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_branch_post_and_beam.webp">
+    <img src="templates_grid_4_reference_branch_post_and_beam.webp" alt="Branch Post and Beam">
+    <span class="wood-card-title">Branch Post and Beam</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_branch_purlin_on_girder.webp">
+    <img src="templates_grid_4_reference_branch_purlin_on_girder.webp" alt="Branch Purlin on Girder">
+    <span class="wood-card-title">Branch Purlin on Girder</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_branch_residential.webp">
+    <img src="templates_grid_4_reference_branch_residential.webp" alt="Branch Residential">
+    <span class="wood-card-title">Branch Residential</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_timber_bay_v1.webp">
+    <img src="templates_grid_4_reference_timber_bay_v1.webp" alt="Timber Bay 1">
+    <span class="wood-card-title">Timber Bay 1</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_timber_bay_v2.webp">
+    <img src="templates_grid_4_reference_timber_bay_v2.webp" alt="Timber Bay 2">
+    <span class="wood-card-title">Timber Bay 2</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_timber_bay_v3.webp">
+    <img src="templates_grid_4_reference_timber_bay_v3.webp" alt="Timber Bay 3">
+    <span class="wood-card-title">Timber Bay 3</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_reference_timber_bay_v4.webp">
+    <img src="templates_grid_4_reference_timber_bay_v4.webp" alt="Timber Bay 4">
+    <span class="wood-card-title">Timber Bay 4</span>
+  </a>
+</div>
 
 Full source: @ref grid_example_4
 
 ### Framing Systems, Nodes & Profiles {#grid_ex_framing}
 
-Fifteen comparative bays testing all `system`, `node`, `drop`, `capital`, and `wood_profile.h` combinations with zero-overlap verification:
+Fourteen comparative bays testing all `system`, `node`, `drop`, `capital`, and `wood_profile.h` combinations with zero-overlap verification:
 
-![templates_grid_5_framing](templates/templates_grid_5_framing_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_grid_5_framing_head_section.webp">
+    <img src="templates_grid_5_framing_head_section.webp" alt="Head Section">
+    <span class="wood-card-title">Head Section</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_head_conical.webp">
+    <img src="templates_grid_5_framing_head_conical.webp" alt="Head Conical">
+    <span class="wood-card-title">Head Conical</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_head_stepped.webp">
+    <img src="templates_grid_5_framing_head_stepped.webp" alt="Head Stepped">
+    <span class="wood-card-title">Head Stepped</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_node_flush.webp">
+    <img src="templates_grid_5_framing_node_flush.webp" alt="Node Flush">
+    <span class="wood-card-title">Node Flush</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_node_through.webp">
+    <img src="templates_grid_5_framing_node_through.webp" alt="Node Through">
+    <span class="wood-card-title">Node Through</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_purlin_flush.webp">
+    <img src="templates_grid_5_framing_purlin_flush.webp" alt="Purlin Flush">
+    <span class="wood-card-title">Purlin Flush</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_purlin_hung.webp">
+    <img src="templates_grid_5_framing_purlin_hung.webp" alt="Purlin Hung">
+    <span class="wood-card-title">Purlin Hung</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_purlin_stacked.webp">
+    <img src="templates_grid_5_framing_purlin_stacked.webp" alt="Purlin Stacked">
+    <span class="wood-card-title">Purlin Stacked</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_rectangle.webp">
+    <img src="templates_grid_5_framing_profile_rectangle.webp" alt="Profile Rectangle">
+    <span class="wood-card-title">Profile Rectangle</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_round.webp">
+    <img src="templates_grid_5_framing_profile_round.webp" alt="Profile Round">
+    <span class="wood-card-title">Profile Round</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_w.webp">
+    <img src="templates_grid_5_framing_profile_w.webp" alt="Profile W">
+    <span class="wood-card-title">Profile W</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_hss.webp">
+    <img src="templates_grid_5_framing_profile_hss.webp" alt="Profile HSS">
+    <span class="wood-card-title">Profile HSS</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_slab_band.webp">
+    <img src="templates_grid_5_framing_profile_slab_band.webp" alt="Profile Slab Band">
+    <span class="wood-card-title">Profile Slab Band</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_framing_profile_t.webp">
+    <img src="templates_grid_5_framing_profile_t.webp" alt="Profile T">
+    <span class="wood-card-title">Profile T</span>
+  </a>
+</div>
 
 Full source: @ref grid_example_5
 
@@ -299,7 +460,7 @@ The reference configurations side by side, one group each: 60 ft square in its t
 
 ### 5 Framing {#grid_example_5}
 
-The joints and sections of the grid template, fifteen bays side by side over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then the seven profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, double as two members with the same cuts, slab band and T. Every bay is a Grid, its contacts found inside it, grafted under its own group. The example then cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
+The joints and sections of the grid template, fourteen bays over two storeys, one group each: pyramid heads as tall as the girders, each girder resting on a sloped side, then conical and stepped (a capital under a drop panel) under a point supported deck in strips; columns flush with the datum and running through the levels with the decks notched round them; purlins flush with their girders, hung with the girder top 8 in lower, and stacked over a girder a whole purlin depth lower; then six profiles of the library as girders with a matching column: rectangle, round, W, HSS with its hole, slab band and T. Every bay is a Grid, its contacts found inside it, grafted under its own group. The example then cuts every pair of overlapping elements by the convex one's faces, prints the largest overlap volume and fails when it is more than the tolerance: every element touches its neighbours face to face and none overlap. INSTANCES, off until the viewer draws instances, keeps one definition per repeated element, placed by instances.
 
 \include{lineno} templates_grid_5_framing.cpp
 

@@ -543,14 +543,19 @@ NurbsSurface compute_vault_web_surface(
     const Point& ref_mid,
     int count
 ) {
+    const bool is_ns = (std::abs(ref_mid[0]) / std::max(1.0, hx) <=
+                        std::abs(ref_mid[1]) / std::max(1.0, hy) + 1e-6);
+
+    // a cylinder is its profile swept along a straight generator: cubic across, one straight span along
     const double m_span = static_cast<double>(count - 3);
-    NurbsSurface surface(3, false, 4, 4, count, count);
+    NurbsSurface surface(3, false, is_ns ? 4 : 2, is_ns ? 2 : 4, is_ns ? count : 2, is_ns ? 2 : count);
     const auto knot_val = [&](int k) -> double {
         return std::clamp(static_cast<double>(k - 2), 0.0, m_span);
     };
-    for (int dir = 0; dir < 2; ++dir)
-        for (int k = 0; k < count + 2; ++k)
-            surface.set_nurbsknot(dir, k, knot_val(k));
+    for (int k = 0; k < count + 2; ++k)
+        surface.set_nurbsknot(is_ns ? 0 : 1, k, knot_val(k));
+    for (int k = 0; k < 2; ++k)
+        surface.set_nurbsknot(is_ns ? 1 : 0, k, k == 0 ? 0.0 : m_span);
 
     // Exact Greville abscissae xi[i] = (knot(i) + knot(i+1) + knot(i+2)) / 3.0
     std::vector<double> xi(count);
@@ -562,8 +567,6 @@ NurbsSurface compute_vault_web_surface(
         y_cv[i] = -hy + 2.0 * hy * (xi[i] / m_span);
     }
 
-    const bool is_ns = (std::abs(ref_mid[0]) / std::max(1.0, hx) <=
-                        std::abs(ref_mid[1]) / std::max(1.0, hy) + 1e-6);
     std::vector<double> z_target(count);
     for (int i = 0; i < count; ++i) {
         const Point p_eval = is_ns ? Point(x_cv[i], 0.0, 0.0) : Point(0.0, y_cv[i], 0.0);
@@ -572,16 +575,17 @@ NurbsSurface compute_vault_web_surface(
         ).first[2];
     }
 
+    // the cylinder's profile collocated on the curve alone: the surface repeats it along its generators
+    NurbsCurve profile(3, false, 4, count);
+    for (int k = 0; k < count + 2; ++k)
+        profile.set_nurbsknot(k, knot_val(k));
+
     std::vector<double> z_cv = z_target;
     for (int iter = 0; iter < 32; ++iter) {
         for (int i = 0; i < count; ++i)
-            for (int j = 0; j < count; ++j)
-                surface.set_cv(i, j, Point(x_cv[i], y_cv[j], is_ns ? z_cv[i] : z_cv[j]));
-        for (int i = 1; i + 1 < count; ++i) {
-            const double z_eval = is_ns ? surface.point_at(xi[i], 0.0)[2]
-                                        : surface.point_at(0.0, xi[i])[2];
-            z_cv[i] += z_target[i] - z_eval;
-        }
+            profile.set_cv(i, Point(xi[i], 0.0, z_cv[i]));
+        for (int i = 1; i + 1 < count; ++i)
+            z_cv[i] += z_target[i] - profile.point_at(xi[i])[2];
         for (int i = 0; i < count / 2; ++i) {
             const double avg = 0.5 * (z_cv[i] + z_cv[count - 1 - i]);
             z_cv[i] = avg;
@@ -590,8 +594,12 @@ NurbsSurface compute_vault_web_surface(
     }
 
     for (int i = 0; i < count; ++i)
-        for (int j = 0; j < count; ++j)
-            surface.set_cv(i, j, Point(x_cv[i], y_cv[j], is_ns ? z_cv[i] : z_cv[j]));
+        for (int end = 0; end < 2; ++end) {
+            if (is_ns)
+                surface.set_cv(i, end, Point(x_cv[i], end == 0 ? -hy : hy, z_cv[i]));
+            else
+                surface.set_cv(end, i, Point(end == 0 ? -hx : hx, y_cv[i], z_cv[i]));
+        }
 
     return surface;
 }

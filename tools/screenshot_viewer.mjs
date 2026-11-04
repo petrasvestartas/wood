@@ -99,6 +99,21 @@ await send("Input.insertText", { text: "Escape" });
 await send("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
 await send("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 });
 await sleep(300);
+// SHOT_ORBIT=pixels drags the right mouse button that far across the canvas, the viewer's own orbit at 0.005 radians a pixel, for a model the isometric view looks along
+if (process.env.SHOT_ORBIT) {
+  const pixels = Number(process.env.SHOT_ORBIT);
+  const y = Math.round(500 / zoom);
+  const start = Math.round(800 / zoom);
+  await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: start, y });
+  await sleep(200);
+  await send("Input.dispatchMouseEvent", { type: "mousePressed", x: start, y, button: "right", buttons: 2, clickCount: 1 });
+  for (let step = 1; step <= 10; step++) {
+    await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: start + Math.round((pixels * step) / 10 / zoom), y, button: "right", buttons: 2 });
+    await sleep(60);
+  }
+  await send("Input.dispatchMouseEvent", { type: "mouseReleased", x: start + Math.round(pixels / zoom), y, button: "right", buttons: 0, clickCount: 1 });
+  await sleep(2000);
+}
 // SHOT_WHEEL=ticks,x,y turns the mouse wheel over that share of the canvas: a close-up is the viewer's own zoom, not a crop
 if (process.env.SHOT_WHEEL) {
   const [ticks, x, y] = process.env.SHOT_WHEEL.split(",").map(Number);

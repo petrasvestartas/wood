@@ -133,7 +133,8 @@ def main(arguments: list) -> None:
     `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--wheel 12,0.35,0.45` to turn the
     viewer's wheel that many ticks over that share of the canvas for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
     elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default;
-    `--scene file.pb` to keep the example's scene in that file and shoot from it when it is there, so a slow example runs once for all its pictures.
+    `--scene file.pb` to keep the example's scene in that file and shoot from it when it is there, so a slow example runs once for all its pictures;
+    `--aspect 1.5` to crop to that width / height, so the pictures of a card grid fill equal tiles.
     Every picture is a screenshot of the viewer, cropped, never scaled or recoloured, and saved lossless; a close-up is the viewer's own zoom.
     """
     view = option(arguments, "--view", "iso")
@@ -142,6 +143,7 @@ def main(arguments: list) -> None:
     wheel = option(arguments, "--wheel", "")
     rename = option(arguments, "--name", "")
     kept = option(arguments, "--scene", "")
+    aspect = float(option(arguments, "--aspect", "0"))
     shown = "attributes" if "--attributes" in arguments else "elements"
     arguments = [argument for argument in arguments if argument != "--attributes"]
     name, groups = arguments[0], arguments[1:] or ["all"]
@@ -159,7 +161,7 @@ def main(arguments: list) -> None:
                 capture_output=True,
             )
             picture = IMAGES / f"{name}_{rename or group.split('+')[-1]}.webp"
-            image = render(branch, view, opacity, size, wheel, shown == "attributes")
+            image = render(branch, view, opacity, size, wheel, shown == "attributes", False, aspect)
 
             image.save(picture, lossless=True)
             print(picture.relative_to(WOOD))
