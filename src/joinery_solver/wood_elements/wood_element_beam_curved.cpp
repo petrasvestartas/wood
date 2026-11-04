@@ -379,7 +379,47 @@ double BeamCurved::lamella_height() const {
     return height / static_cast<double>(std::max(1, num_height));
 }
 
+BeamCurved::Twist BeamCurved::compute_twist() const {
+    Twist twist;
+    const size_t m_count = directions.size();
+    if (m_count < 2 || !centreline.is_valid())
+        return twist;
+
+    const double t0 = centreline.domain_start();
+    const double t1 = centreline.domain_end();
+    twist.parameters = direction_parameters;
+    if (twist.parameters.size() != m_count) {
+        twist.parameters.resize(m_count);
+        for (size_t i = 0; i < m_count; i++)
+            twist.parameters[i] =
+                t0 + (t1 - t0) * static_cast<double>(i) / static_cast<double>(m_count - 1);
+    }
+
+    twist.angles.assign(m_count, 0.0);
+    for (size_t i = 0; i < m_count; i++) {
+        const double pi = std::clamp(twist.parameters[i], t0, t1);
+        const Plane rmf_i = centreline.perpendicular_plane_at(pi, false);
+        const double dx = directions[i].dot(rmf_i.x_axis());
+        const double dy = directions[i].dot(rmf_i.y_axis());
+        twist.angles[i] = std::atan2(dy, dx);
+    }
+
+    // Unwrap angle jumps across pi
+    for (size_t i = 1; i < m_count; i++) {
+        while (twist.angles[i] - twist.angles[i - 1] > Tolerance::PI)
+            twist.angles[i] -= Tolerance::TWO_PI;
+        while (twist.angles[i] - twist.angles[i - 1] < -Tolerance::PI)
+            twist.angles[i] += Tolerance::TWO_PI;
+    }
+
+    return twist;
+}
+
 Plane BeamCurved::get_plane(double t) const {
+    return get_plane(t, compute_twist());
+}
+
+Plane BeamCurved::get_plane(double t, const Twist& twist) const {
     if (!centreline.is_valid())
         return Plane::xy_plane();
 
@@ -396,31 +436,9 @@ Plane BeamCurved::get_plane(double t) const {
 
     // 2. Multiple guide vectors interpolated as twist over RMF (GluLamb VectorListOrientation)
     if (directions.size() >= 2) {
-        const size_t m_count = directions.size();
-        std::vector<double> params = direction_parameters;
-        if (params.size() != m_count) {
-            params.resize(m_count);
-            for (size_t i = 0; i < m_count; i++)
-                params[i] =
-                    t0 + (t1 - t0) * static_cast<double>(i) / static_cast<double>(m_count - 1);
-        }
-
-        std::vector<double> angles(m_count, 0.0);
-        for (size_t i = 0; i < m_count; i++) {
-            const double pi = std::clamp(params[i], t0, t1);
-            const Plane rmf_i = centreline.perpendicular_plane_at(pi, false);
-            const double dx = directions[i].dot(rmf_i.x_axis());
-            const double dy = directions[i].dot(rmf_i.y_axis());
-            angles[i] = std::atan2(dy, dx);
-        }
-
-        // Unwrap angle jumps across pi
-        for (size_t i = 1; i < m_count; i++) {
-            while (angles[i] - angles[i - 1] > Tolerance::PI)
-                angles[i] -= Tolerance::TWO_PI;
-            while (angles[i] - angles[i - 1] < -Tolerance::PI)
-                angles[i] += Tolerance::TWO_PI;
-        }
+        const std::vector<double>& params = twist.parameters;
+        const std::vector<double>& angles = twist.angles;
+        const size_t m_count = angles.size();
 
         double theta = angles.front();
         if (t <= params.front()) {
@@ -470,9 +488,10 @@ std::vector<Plane> BeamCurved::frames() const {
     std::vector<double> params;
     centreline.divide_by_count(n, pts, &params, true);
 
+    const Twist twist = compute_twist();
     result.reserve(params.size());
     for (size_t i = 0; i < params.size(); i++) {
-        Plane frame = get_plane(params[i]);
+        Plane frame = get_plane(params[i], twist);
         if (i == 0 && std::abs(extension) > Tolerance::ZERO_TOLERANCE)
             frame = Plane::from_frame(
                 frame.origin() - frame.z_axis() * extension,
@@ -660,6 +679,7 @@ double BeamCurved::max_curvature(double& max_kw, double& max_kh) const {
     std::vector<double> params;
     centreline.divide_by_count(std::max(16, samples), pts, &params, true);
 
+    const Twist twist = compute_twist();
     for (const double t : params) {
         const std::vector<Vector> derivs = centreline.evaluate(t, 2);
         if (derivs.size() < 3)
@@ -670,7 +690,7 @@ double BeamCurved::max_curvature(double& max_kw, double& max_kh) const {
         if (d1_sq < Tolerance::ZERO_TOLERANCE)
             continue;
         const Vector kappa_vec = (d2 * d1_sq - d1 * d2.dot(d1)) / (d1_sq * d1_sq);
-        const Plane frame = get_plane(t);
+        const Plane frame = get_plane(t, twist);
         max_kw = std::max(max_kw, std::abs(kappa_vec.dot(frame.x_axis())));
         max_kh = std::max(max_kh, std::abs(kappa_vec.dot(frame.y_axis())));
         max_k = std::max(max_k, kappa_vec.magnitude());
@@ -743,10 +763,11 @@ BRep BeamCurved::trimmed_brep() const {
     if (span <= Tolerance::ZERO_TOLERANCE)
         return mesh_brep(trimmed_mesh());
 
+    const Twist twist = compute_twist();
     const auto extended_plane_at = [&](double u_norm) -> Plane {
         const double u_clamped = std::clamp(u_norm, 0.0, 1.0);
         const double t = t0 + u_clamped * span;
-        const Plane base = get_plane(t);
+        const Plane base = get_plane(t, twist);
         if (u_norm >= 0.0 && u_norm <= 1.0)
             return base;
 

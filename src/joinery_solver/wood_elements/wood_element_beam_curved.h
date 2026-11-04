@@ -143,8 +143,20 @@ public:
     /// Thickness of one lamella layer (height / num_height).
     double lamella_height() const;
 
+    /// The guide directions as unwrapped twist angles over the rotation-minimising frame, at their curve parameters.
+    struct Twist {
+        std::vector<double> parameters;
+        std::vector<double> angles;
+    };
+
+    /// The twist of the guide directions, empty below two guides. Each guide marches along the curve, so a run of planes computes it once.
+    Twist compute_twist() const;
+
     /// Cross-section Plane at curve parameter t (origin on centreline, x along width, y along height, z along tangent).
     Plane get_plane(double t) const;
+
+    /// Cross-section Plane at curve parameter t on the twist of this beam's guides.
+    Plane get_plane(double t, const Twist& twist) const;
 
     /// Cross-section Planes at the (samples + 1) stations along the curve, including end extensions.
     std::vector<Plane> frames() const;

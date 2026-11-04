@@ -99,7 +99,7 @@ FAMILIES = [
     ("Grid", "templates_grid_5_framing", "head_section"),
     ("Floor", "templates_floor_3_contacts", "all"),
     ("Truss", "templates_truss_1_pratt", "all"),
-    ("Vault", "templates_vault_8_star_vault", "all"),
+    ("Vault", "templates_vault_9_gothic_ribbed_vault", "tierceron_exeter"),
 ]
 BEAM_SHEET = ["cross", "top_side", "end_to_end", "butt", "wedge", "centred_pins"]
 
