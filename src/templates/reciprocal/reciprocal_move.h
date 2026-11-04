@@ -142,7 +142,7 @@ inline ReciprocalMove::ReciprocalMove(
     const std::shared_ptr<TreeNode> frame = group_named("frame");
 
     for (size_t k = 0; k < _frame_beams.size(); k++)
-        add(std::make_shared<Plate>(
+        add(std::make_shared<FacePlanarElement>(
                 _frame_beams[k].bottom, _frame_beams[k].top, fmt::format("frame_{}", k)
             ),
             frame);
@@ -152,7 +152,7 @@ inline ReciprocalMove::ReciprocalMove(
     const std::shared_ptr<TreeNode> beams = group_named("beams");
 
     for (size_t i = 0; i < _beams.size(); i++)
-        add(std::make_shared<Plate>(_beams[i].bottom, _beams[i].top, fmt::format("beam_{}", i)),
+        add(std::make_shared<FacePlanarElement>(_beams[i].bottom, _beams[i].top, fmt::format("beam_{}", i)),
             beams);
 }
 

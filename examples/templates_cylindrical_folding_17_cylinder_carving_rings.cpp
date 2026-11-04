@@ -36,7 +36,7 @@ int main() {
             true,
             fmt::format("ring_{}", counts[r])
         );
-        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
+        const size_t plates = carving.get_elements_placed<FaceCurvedElement>("plate").size();
         std::cout << fmt::format("ring of {}: {} plates, {} contacts, development distortion {:.2e}\n", counts[r], plates, carving.get_contacts().size(), carving.distortion());
         rings.graft(carving, rings.add_group(fmt::format("ring_{}", counts[r])));
     }

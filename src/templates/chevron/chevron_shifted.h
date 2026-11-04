@@ -29,7 +29,7 @@ struct ShiftedCells {
 
 /// The plates of the shifted pattern, per cell its top and bottom plate and then its walls.
 struct ShiftedPlates {
-    std::vector<std::shared_ptr<Plate>> plates; // In the order they are added, plate_<i>.
+    std::vector<std::shared_ptr<FacePlanarElement>> plates; // In the order they are added, plate_<i>.
     std::vector<std::vector<int>>
         edges; // Per plate the cell edge under every side of its first outline, -1 for none.
     std::vector<std::array<int, 2>> boxes; // Per cell its top and bottom plate.
@@ -860,7 +860,7 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
             const std::vector<int> side_edges = compact(first, second, edges);
             box[sign > 0.0 ? 0 : 1] = static_cast<int>(plates.plates.size());
             plates.plates.push_back(
-                std::make_shared<Plate>(
+                std::make_shared<FacePlanarElement>(
                     first, second, fmt::format("plate_{}", plates.plates.size())
                 )
             );
@@ -954,7 +954,7 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
             );
             plates.wall_edges.push_back(keys);
             plates.plates.push_back(
-                std::make_shared<Plate>(
+                std::make_shared<FacePlanarElement>(
                     Polyline::from_planes(loop, plane),
                     Polyline::from_planes(loop, moved),
                     fmt::format("plate_{}", plates.plates.size())

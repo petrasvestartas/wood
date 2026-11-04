@@ -9,9 +9,9 @@ int main() {
     WoodSession scene("two_plates");
 
     // an upright plate on the middle of a base plate
-    const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_top_side(90.0);
-    const std::shared_ptr<Plate> base = pair[0];
-    const std::shared_ptr<Plate> upright = pair[1];
+    const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_top_side(90.0);
+    const std::shared_ptr<FacePlanarElement> base = pair[0];
+    const std::shared_ptr<FacePlanarElement> upright = pair[1];
     scene.add(base);
     scene.add(upright);
 

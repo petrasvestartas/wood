@@ -47,7 +47,7 @@ A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/
 | `stud_width` | `60.0` | In-plane width (`mm`) of all rails, studs, jamb studs, headers, and sills |
 | `stud_depth` | `160.0` | Frame depth (`mm`) across the wall (`y`-axis insulation cavity) |
 | `stud_spacing` | `625.0` | Grid spacing (`mm`) of studs from `x = 0` (half of a `1250 mm` board) |
-| `sheet_thickness` | `15.0` | Thickness (`mm`) of the two face sheathing `Plate` panels |
+| `sheet_thickness` | `15.0` | Thickness (`mm`) of the two face sheathing `FacePlanarElement` panels |
 | `openings` | Door at `600`, window at `2525` | `std::vector<Opening>` (`{x, width, sill, head}`; `sill == 0.0` defines a door) |
 
 ### Wall Generation Steps
@@ -60,7 +60,7 @@ A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/
 for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) { ... }
 ```
 
-2. Sheathing (`sheathing`): One `15 mm` `Plate` on each face of the wall, with doors cut as bottom boundary notches and windows cut as interior polygon holes (`Plate(bottom, top, inner_bottoms, inner_tops)`):
+2. Sheathing (`sheathing`): One `15 mm` `FacePlanarElement` on each face of the wall, with doors cut as bottom boundary notches and windows cut as interior polygon holes (`FacePlanarElement(bottom, top, inner_bottoms, inner_tops)`):
 
 ![](templates/templates_module_1_wall_sheathing.webp)
 
@@ -101,7 +101,7 @@ Segmented shell of hollow timber cassettes — one per planar face of a polygon 
 | --- | --- | --- |
 | `mesh` | `default_mesh()` (`15`-face VDA dome) | Input polygon mesh (faces may include re-entrant door notches) |
 | `depth` | `200.0` | Total cassette thickness (`mm`) along the face normal, including face plates |
-| `plate_thickness` | `20.0` | Top and bottom face `Plate` thickness (`mm`) |
+| `plate_thickness` | `20.0` | Top and bottom face `FacePlanarElement` thickness (`mm`) |
 | `beam_width` | `60.0` | In-plane width (`mm`) of perimeter edge beams, jambs, headers, sills, and grid studs |
 | `openings` | `{}` | Per-face `Opening{x, width, sill, head}` list in the local face frame |
 | `stud_spacing` | `0.0` (none) | Internal stud spacing (`mm`) along each face's first edge |
@@ -120,7 +120,7 @@ if (ranks.empty()) {
 }
 ```
 
-2. Hollow Cassette Lofting: Each cell consists of top and bottom face `Plate` panels clipped by the edge planes plus perimeter beams lofted between `bottom` and `top` (`outer` edge plane to `inner = outer.translate_by_normal(-beam_width)`):
+2. Hollow Cassette Lofting: Each cell consists of top and bottom face `FacePlanarElement` panels clipped by the edge planes plus perimeter beams lofted between `bottom` and `top` (`outer` edge plane to `inner = outer.translate_by_normal(-beam_width)`):
 
 ![](templates/templates_module_2_cassette_shell_cassette_4.webp)
 
@@ -137,8 +137,8 @@ const Polyline top_loop = Polyline::from_planes(sides, top);
 ![](templates/templates_module_2_cassette_shell_two_cassettes.webp)
 
 ```cpp
-for (const std::shared_ptr<Plate>& a : parts[f])
-    for (const std::shared_ptr<Plate>& b : parts[static_cast<size_t>(g)]) {
+for (const std::shared_ptr<FacePlanarElement>& a : parts[f])
+    for (const std::shared_ptr<FacePlanarElement>& b : parts[static_cast<size_t>(g)]) {
         const std::shared_ptr<InteractionContactFace> face = add_contact(a, b);
         if (face)
             contacts.between.push_back({a, b, face});

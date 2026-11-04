@@ -314,7 +314,7 @@ void CassetteShell::add_plates() {
                 Polyline::from_planes(sides, face.translate_by_normal(levels[side][0]));
             const Polyline upper =
                 Polyline::from_planes(sides, face.translate_by_normal(levels[side][1]));
-            const std::shared_ptr<Plate> plate = std::make_shared<Plate>(lower, upper, names[side]);
+            const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(lower, upper, names[side]);
 
             // openings: a hole through both faces of the plate from the sill to the head
             if (f < openings.size() && !openings[f].empty()) {
@@ -386,7 +386,7 @@ void CassetteShell::add_edge_beams() {
             const std::vector<Plane> sides = {outer, end_plane, inner, start_plane};
             const Polyline bottom_loop = Polyline::from_planes(sides, bottom);
             const Polyline top_loop = Polyline::from_planes(sides, top);
-            add(std::make_shared<Plate>(
+            add(std::make_shared<FacePlanarElement>(
                     bottom_loop, top_loop, fmt::format("edge_beam_{}_{}", f, j)
                 ),
                 group);
@@ -410,7 +410,7 @@ void CassetteShell::add_opening_frames() {
                 face_rectangle(f, -level, opening.x, opening.head, opening.width, w);
             const Polyline header_top =
                 face_rectangle(f, level, opening.x, opening.head, opening.width, w);
-            add(std::make_shared<Plate>(
+            add(std::make_shared<FacePlanarElement>(
                     header_bottom, header_top, fmt::format("header_{}_{}", f, o)
                 ),
                 group);
@@ -420,7 +420,7 @@ void CassetteShell::add_opening_frames() {
                 face_rectangle(f, -level, opening.x, opening.sill - w, opening.width, w);
             const Polyline sill_top =
                 face_rectangle(f, level, opening.x, opening.sill - w, opening.width, w);
-            add(std::make_shared<Plate>(sill_bottom, sill_top, fmt::format("sill_{}_{}", f, o)),
+            add(std::make_shared<FacePlanarElement>(sill_bottom, sill_top, fmt::format("sill_{}_{}", f, o)),
                 group);
         }
     }
@@ -604,7 +604,7 @@ void CassetteShell::add_studs() {
                     Polyline::from_planes(sides, _face_planes[f].translate_by_normal(level));
                 const std::string name =
                     runs.size() == 1 ? names[s] : fmt::format("{}_{}", names[s], r);
-                add(std::make_shared<Plate>(bottom, top, name), group);
+                add(std::make_shared<FacePlanarElement>(bottom, top, name), group);
             }
         }
     }
@@ -631,7 +631,7 @@ CassetteContacts CassetteShell::add_contacts() {
     const std::array<std::string, 7> kinds = {
         "top_plate", "bottom_plate", "edge_beam", "stud", "jamb_stud", "header", "sill"
     };
-    std::vector<std::vector<std::shared_ptr<Plate>>> parts(_face_planes.size());
+    std::vector<std::vector<std::shared_ptr<FacePlanarElement>>> parts(_face_planes.size());
 
     for (size_t f = 0; f < _face_planes.size(); f++) {
         const std::string place = std::to_string(f);
@@ -643,8 +643,8 @@ CassetteContacts CassetteShell::add_contacts() {
                 const bool whole = named && (element->name.size() == prefix.size() ||
                                              element->name[prefix.size()] == '_');
 
-                if (whole && std::dynamic_pointer_cast<Plate>(element))
-                    parts[f].push_back(std::dynamic_pointer_cast<Plate>(element));
+                if (whole && std::dynamic_pointer_cast<FacePlanarElement>(element))
+                    parts[f].push_back(std::dynamic_pointer_cast<FacePlanarElement>(element));
             }
     }
 
@@ -667,8 +667,8 @@ CassetteContacts CassetteShell::add_contacts() {
 
             const size_t found = contacts.between.size();
 
-            for (const std::shared_ptr<Plate>& a : parts[f])
-                for (const std::shared_ptr<Plate>& b : parts[static_cast<size_t>(g)]) {
+            for (const std::shared_ptr<FacePlanarElement>& a : parts[f])
+                for (const std::shared_ptr<FacePlanarElement>& b : parts[static_cast<size_t>(g)]) {
                     const std::shared_ptr<InteractionContactFace> face = add_contact(a, b);
 
                     if (face)

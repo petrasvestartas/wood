@@ -9,20 +9,20 @@ int main() {
     WoodSession scene("element_joint_beam_butt_plates");
 
     // a 1000 x 800 floor and two 600 high walls, all 40 thick, each centred on its line: the floor on z = 0, the walls on y = 0 and x = 0
-    const std::shared_ptr<Plate> floor = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> floor = FacePlanarElement::from_rectangle(
         {0.0, 0.0, -20.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 1000.0, 800.0, 40.0, "floor"
     );
-    const std::shared_ptr<Plate> long_wall = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> long_wall = FacePlanarElement::from_rectangle(
         {0.0, 20.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 1000.0, 600.0, 40.0, "long_wall"
     );
-    const std::shared_ptr<Plate> short_wall = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> short_wall = FacePlanarElement::from_rectangle(
         {-20.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 800.0, 600.0, 40.0, "short_wall"
     );
     scene.add(floor);
     scene.add(long_wall);
     scene.add(short_wall);
 
-    for (const std::shared_ptr<Plate>& plate : {floor, long_wall, short_wall}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {floor, long_wall, short_wall}) {
         std::vector<Point> points;
         for (size_t i = 0; i < plate->polylines[0].point_count(); i++)
             points.push_back(
@@ -34,10 +34,10 @@ int main() {
         scene.add_polyline(outline);
     }
 
-    const std::array<std::array<std::shared_ptr<Plate>, 2>, 3> pairs = {
+    const std::array<std::array<std::shared_ptr<FacePlanarElement>, 2>, 3> pairs = {
         {{floor, long_wall}, {floor, short_wall}, {long_wall, short_wall}}
     };
-    for (const std::array<std::shared_ptr<Plate>, 2>& pair : pairs) {
+    for (const std::array<std::shared_ptr<FacePlanarElement>, 2>& pair : pairs) {
         const std::shared_ptr<JointBeam> butt = JointBeam::butt(*pair[0], *pair[1]);
         butt->name = fmt::format("butt_{}_{}", pair[0]->name, pair[1]->name);
         scene.add(butt);

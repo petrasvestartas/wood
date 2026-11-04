@@ -47,7 +47,7 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
     // show the divisions
     if (built.library == "side_side_inplane_butterfly_keys" || built.library == "side_side_inplane_tooth_keys" || built.library == "side_side_rotated_hooks" || built.library == "side_side_rotated_keys" || built.library == "top_side_snap_fit")
         unit.divisions = 1;
-    const std::vector<std::shared_ptr<Plate>> plates = {built.fixture.a, built.fixture.b};
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = {built.fixture.a, built.fixture.b};
     std::vector<InteractionFeaturePlate> no_joints;
 
     const std::map<std::string, std::function<void()>> designs = {
@@ -312,18 +312,18 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
     const std::string& design = parts.at(2);
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces((config::session_data_dir() / "annen_surfaces.json").string());
     const Chevron chevron(surfaces.at(0));
-    const std::vector<std::shared_ptr<Plate>> plates = chevron.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = chevron.get_elements_numbered<FacePlanarElement>("plate");
 
     // the first two plates that meet side to side at a fold, rebuilt from their outlines without the joints the template cut into them
     WoodSession scene("tpl_chevron_" + design);
-    std::shared_ptr<Plate> first;
-    std::shared_ptr<Plate> second;
+    std::shared_ptr<FacePlanarElement> first;
+    std::shared_ptr<FacePlanarElement> second;
     std::shared_ptr<InteractionContactFace> contact;
     for (size_t i = 0; i < plates.size() && !contact; i++)
         for (size_t j = i + 1; j < plates.size() && !contact; j++) {
             WoodSession probe("probe");
-            const std::shared_ptr<Plate> a = std::make_shared<Plate>(plates[i]->polylines[0], plates[i]->polylines[1], plates[i]->name);
-            const std::shared_ptr<Plate> b = std::make_shared<Plate>(plates[j]->polylines[0], plates[j]->polylines[1], plates[j]->name);
+            const std::shared_ptr<FacePlanarElement> a = std::make_shared<FacePlanarElement>(plates[i]->polylines[0], plates[i]->polylines[1], plates[i]->name);
+            const std::shared_ptr<FacePlanarElement> b = std::make_shared<FacePlanarElement>(plates[j]->polylines[0], plates[j]->polylines[1], plates[j]->name);
             probe.add(a);
             probe.add(b);
             const std::shared_ptr<InteractionContactFace> touch = probe.compute_face_contact(a, b);
@@ -344,7 +344,7 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
     joint->orient(contact, {first, second}, scene.settings);
     scene.add(joint);
     for (size_t i = 0; i < joint->interaction_count(); i++)
-        scene.add_interaction(joint, scene.get_element<Plate>(joint->interaction_target(i)), joint->interaction(i));
+        scene.add_interaction(joint, scene.get_element<FacePlanarElement>(joint->interaction_target(i)), joint->interaction(i));
     Vector apart = compute_newell(contact->polygon.get_points()).normalized();
     if ((second->element_geometry_mesh().centroid() - first->element_geometry_mesh().centroid()).dot(apart) < 0.0)
         apart = apart * -1.0;

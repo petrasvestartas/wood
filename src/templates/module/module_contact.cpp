@@ -14,7 +14,7 @@ std::array<size_t, 2> add_module_contacts(WoodSession& session) {
     std::array<size_t, 2> found = {0, 0};
 
     for (const std::shared_ptr<Element>& element : *session.objects.elements)
-        if (std::dynamic_pointer_cast<Beam>(element) || std::dynamic_pointer_cast<Plate>(element)) {
+        if (std::dynamic_pointer_cast<Beam>(element) || std::dynamic_pointer_cast<FacePlanarElement>(element)) {
             parts.push_back(element);
             boxes.push_back(element->aabb());
         }

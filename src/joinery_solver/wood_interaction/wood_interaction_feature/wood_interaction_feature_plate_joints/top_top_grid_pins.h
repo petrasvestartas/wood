@@ -63,7 +63,7 @@ static std::vector<Point> bounding_lattice(const Polyline& ring, double division
 
 /// top_top_grid_pins, id 44.
 static void top_top_grid_pins(
-    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements
+    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
 
     joint.name = "top_top_grid_pins";

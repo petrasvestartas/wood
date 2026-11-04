@@ -13,7 +13,7 @@ int main() {
         120.0,
         "elevated_fold"
     );
-    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("elevated fold: {} plates\n", plates.size());
     fold.pb_dump(pb_path("live"));

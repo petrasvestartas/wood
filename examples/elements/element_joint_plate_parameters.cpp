@@ -22,7 +22,7 @@ int main() {
         const double y = -700.0 * (i / 3);
         const std::shared_ptr<TreeNode> group = scene.add_group(joints[i]->parameters.library);
 
-        const std::shared_ptr<Plate> base = Plate::from_rectangle(
+        const std::shared_ptr<FacePlanarElement> base = FacePlanarElement::from_rectangle(
             {x, y, 0.0},
             {1.0, 0.0, 0.0},
             {0.0, 1.0, 0.0},
@@ -31,7 +31,7 @@ int main() {
             40.0,
             fmt::format("base_{}", i)
         );
-        const std::shared_ptr<Plate> upright = Plate::from_rectangle(
+        const std::shared_ptr<FacePlanarElement> upright = FacePlanarElement::from_rectangle(
             {x + 180.0, y + 75.0, 40.0},
             {0.0, 1.0, 0.0},
             {0.0, 0.0, 1.0},

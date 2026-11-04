@@ -14,8 +14,8 @@
 #include "wood_element_beam_variable.h"
 #include "wood_element_beam_curved.h"
 #include "wood_element_node_support.h"
-#include "wood_element_plate.h"
-#include "wood_element_plate_curved.h"
+#include "wood_element_face_planar.h"
+#include "wood_element_face_curved.h"
 #include "wood_config.h"
 #include "wood_feature_construction.h"
 #include "wood_instance.h"
@@ -37,7 +37,7 @@ const std::vector<InteractionFeatureSolid>* solid_features_of(const Element& ele
 
 /// WoodSession::compute_features over loose plates, solved in place with `settings`; returns every detected joint.
 std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
-    std::vector<std::shared_ptr<wood_session::Plate>>& elements,
+    std::vector<std::shared_ptr<wood_session::FacePlanarElement>>& elements,
     const wood_session::Settings& settings = wood_session::Settings(),
     SearchType search_type = face_to_face
 );
@@ -83,7 +83,7 @@ public:
     /// A scene from wood_proto.WoodSession bytes, which any Session reader also opens.
     static WoodSession pb_loads(const std::string& data);
 
-    /// A dataset name (`data/<name>.obj`) or an .obj path: one Plate per consecutive outline pair.
+    /// A dataset name (`data/<name>.obj`) or an .obj path: one FacePlanarElement per consecutive outline pair.
     static WoodSession obj_load(const std::filesystem::path& path, double duplicate_pts_tol = 0.0);
 
     /// A dataset name (`data/<name>.yml`) or a .yml path, with its settings, plates and sidecars.
@@ -124,7 +124,7 @@ public:
 
     /// The border contact of a plate's side face, as 2024's border_to_face made it for a self-adjacency.
     static std::shared_ptr<InteractionContactFace>
-    compute_border_contact(const Plate& plate, int face);
+    compute_border_contact(const FacePlanarElement& plate, int face);
 
     /// Joint types by points, as the plugin's dots set them.
     void assign_joint_types_by_points(
@@ -144,7 +144,7 @@ public:
 
     /// The crossing of two plates that pass through each other, nullptr when they do not cross within angle_tol degrees.
     std::shared_ptr<InteractionContactCross> compute_cross_contact(
-        const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol = 30.0
+        const std::shared_ptr<FacePlanarElement>& a, const std::shared_ptr<FacePlanarElement>& b, double angle_tol = 30.0
     ) const;
 
     /// Crossings between elements' boundary polylines within `tolerance` mm (< 0 reads settings.distance), an InteractionContactAxis per crossing.
@@ -172,36 +172,36 @@ public:
     /// An InteractionFeatureBeam for every axis contact between two beams, replacing earlier beam features.
     void compute_beam_features(double volume_length, double cross_or_side_to_end, int flip_male);
 
-    /// The joinery pipeline over `world_elements<Plate>()`, in place, returning the joints in detection order.
+    /// The joinery pipeline over `world_elements<FacePlanarElement>()`, in place, returning the joints in detection order.
     std::vector<InteractionFeaturePlate> compute_features();
 
     /// compute_features with the detection pass given instead of read from the settings.
     std::vector<InteractionFeaturePlate> compute_features(SearchType search_type);
 
     /// The four sidecars of the dataset config::load_yaml read last onto the scene, called by yaml_load only.
-    void load_sidecars(const std::vector<std::shared_ptr<Plate>>& elements);
+    void load_sidecars(const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 
     /// Candidate pairs by position in elements: `adjacency` when the scene has one, else the OBB and BVH search within config::DISTANCE.
     std::vector<std::pair<int, int>>
-    adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const;
+    adjacent_pairs(const std::vector<std::shared_ptr<FacePlanarElement>>& elements) const;
 
     /// face_to_face_wood on every pair of elements, joints in pair order; a plate whose faces detection swapped is swapped in place.
     std::vector<InteractionFeaturePlate> detect_features(
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const std::vector<std::pair<int, int>>& pairs,
         SearchType search_type
     );
 
     /// Unit joinery geometry and its orientation for every joint, in order.
     void build_feature_geometry(
-        std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         std::vector<InteractionFeaturePlate>& joints,
         const std::vector<std::vector<int>>& feature_types
     );
 
     /// Merges every joint's cut outlines into its two plates' features.
     void merge_features(
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         std::vector<InteractionFeaturePlate>& joints
     );
 
@@ -351,11 +351,6 @@ public:
 
     /// Writes every cut member, connector part, pin and support as its BRep instead of its mesh, the bores and round parts exact.
     void compute_breps();
-
-    /// Every Plate, in objects.elements order.
-    std::vector<std::shared_ptr<Plate>> plates() const {
-        return get_elements<Plate>();
-    }
 
     /// Every Column, in objects.elements order.
     std::vector<std::shared_ptr<Column>> columns() const {

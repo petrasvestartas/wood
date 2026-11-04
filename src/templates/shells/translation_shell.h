@@ -70,11 +70,11 @@ inline TranslationShell::TranslationShell(
     add_mesh(mesh, add_group("mesh"));
 
     // plates: one mitered plate per quad, thickness deep, its sharp corners chamfered
-    const std::vector<std::shared_ptr<Plate>> plates =
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates =
         mitered_plates(mesh, thickness, chamfer, chamfer, chamfer_angle);
     const std::shared_ptr<TreeNode> plates_group = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : plates)
+    for (const std::shared_ptr<FacePlanarElement>& plate : plates)
         add(plate, plates_group);
 }
 

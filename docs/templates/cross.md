@@ -67,7 +67,7 @@ outlines[f].push_back({bottom_loop, top_loop});
 
 ## Edge Connector Plates {#cross_connectors}
 
-Interior edges are divided into evenly spaced connector frames aligned with the average normal of the two adjacent faces and extruded into rectangular `Plate` connectors.
+Interior edges are divided into evenly spaced connector frames aligned with the average normal of the two adjacent faces and extruded into rectangular `FacePlanarElement` connectors.
 
 ![](templates/templates_cross_1_vda_mesh_connector_frames.webp)
 

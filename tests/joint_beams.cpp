@@ -1130,11 +1130,11 @@ static void check_keyed_boxes() {
         const Vector through = across.cross(up);
         const Point centre(0.0, 0.0, 0.0);
         const Point corner = centre - across * (0.5 * size) - up * (0.5 * tall);
-        const std::shared_ptr<Plate> a = Plate::from_rectangle(
+        const std::shared_ptr<FacePlanarElement> a = FacePlanarElement::from_rectangle(
             corner - through * node.first, across, up, size, tall, node.first, "a"
         );
-        const std::shared_ptr<Plate> b =
-            Plate::from_rectangle(corner, across, up, size, tall, node.second, "b");
+        const std::shared_ptr<FacePlanarElement> b =
+            FacePlanarElement::from_rectangle(corner, across, up, size, tall, node.second, "b");
         scene.add(a);
         scene.add(b);
         const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(a, b);

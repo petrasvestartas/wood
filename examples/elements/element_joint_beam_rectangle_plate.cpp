@@ -19,7 +19,7 @@ int main() {
     scene.add(rib);
 
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(column, rib);
-    const std::shared_ptr<Plate> plate =
+    const std::shared_ptr<FacePlanarElement> plate =
         JointBeam::let_in_plate(*rib, *contact, 30.0, 150.0, 200.0, 250.0);
     const std::shared_ptr<JointBeam> pins =
         JointBeam::rectangle_plate(*column, *rib, *plate, *contact, 25.0, 3.0, 3.0);

@@ -2,7 +2,7 @@
 
 [TOC]
 
-Planar folded-plate timber structures in `src/templates/folding/*.h`. Each template builds a planar-faced mid-surface mesh and offsets it into mitered `Plate` solids.
+Planar folded-plate timber structures in `src/templates/folding/*.h`. Each template builds a planar-faced mid-surface mesh and offsets it into mitered `FacePlanarElement` solids.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reflex_fold">

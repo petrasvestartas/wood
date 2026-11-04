@@ -25,10 +25,10 @@ int main() {
     // two 400 x 300 plates 40 thick stacked, the upper one shifted: square and turned 30 degrees, the second pair 800 along y, each in its group
     for (const double angle : {0.0, 30.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
-        const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_stacked(angle);
-        const std::shared_ptr<Plate> lower = pair[0];
-        const std::shared_ptr<Plate> upper = pair[1];
-        for (const std::shared_ptr<Plate>& plate : pair) {
+        const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_stacked(angle);
+        const std::shared_ptr<FacePlanarElement> lower = pair[0];
+        const std::shared_ptr<FacePlanarElement> upper = pair[1];
+        for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
             plate->place(Xform::translation(0.0, angle == 0.0 ? 0.0 : 800.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);

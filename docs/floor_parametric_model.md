@@ -555,7 +555,7 @@ parabolas and shadows -> central panel (rule A) -> bed planes, each stored in `g
 HEAD rebuilds `construction_planes()` by value in every member function (`floor_members.cpp:44,
 57, 75, 88, 132, 198, 229, 289`; `floor.cpp:164, 202, 226, 238`); the model stores it. Members are
 built in world coordinates from world planes; no rotation or mirror transform is ever applied,
-which is also why the kernel's refusal of mirrors (`wood_element_plate.cpp:225`, `is_mirror` at
+which is also why the kernel's refusal of mirrors (`wood_element_face_planar.cpp:225`, `is_mirror` at
 `wood_element_geometry.cpp:507-514`) never triggers.
 
 ### 6.2 Construction rules

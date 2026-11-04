@@ -43,7 +43,7 @@ Parametric plate-to-plate and boundary-edge joinery defined in the unit box `[-0
 
 ```cpp
 static std::shared_ptr<JointPlate> side_side_inplane_three_fingers() .. side_side_inplane_tooth_keys(int divisions = 0), side_side_inplane_dovetails(int divisions = 0, double shift = 0.5);
-static std::shared_ptr<JointPlate> side_side_inplane_hilti(const Plate& a, const Plate& b, const InteractionContactFace& contact, ...);
+static std::shared_ptr<JointPlate> side_side_inplane_hilti(const FacePlanarElement& a, const FacePlanarElement& b, const InteractionContactFace& contact, ...);
 static std::shared_ptr<JointPlate> side_side_outplane_three_fingers() .. side_side_outplane_linked_tenons_wall(int divisions = 0), side_side_outplane_capped_fingers(int divisions = 4), side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0), side_side_outplane_notch();
 static std::shared_ptr<JointPlate> top_side_three_tenons(), top_side_annen_tenons(double tab_length = 80.0), top_side_annen_shifted_tenons(int divisions = 2, double long_edge = 700.0), top_side_milled_wedge(), top_side_snap_fit(int divisions = 0), top_side_dense_tenons(int divisions = 0, double shift = 0.5), top_side_tenons(int divisions = 0, double shift = 0.5);
 static std::shared_ptr<JointPlate> side_side_rotated_miter(), side_side_rotated_hooks(int divisions = 0, double shift = 0.5), side_side_rotated_keys(int divisions = 0, double shift = 0.5);
@@ -52,8 +52,8 @@ static std::shared_ptr<JointPlate> top_top_centre_pin(double radius = 1.0), top_
 static std::shared_ptr<JointPlate> border();
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5), jupiter_scarf();
 
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
-void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
+void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 

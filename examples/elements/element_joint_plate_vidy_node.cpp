@@ -9,11 +9,11 @@ int main() {
     const WoodSession corner = WoodSession::yaml_load(config::Dataset::vidy_corner);
     WoodSession scene("element_joint_plate_vidy_node");
     scene.settings = corner.settings;
-    const std::vector<std::shared_ptr<Plate>> plates = corner.plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = corner.get_elements<FacePlanarElement>();
     const std::array<std::string, 4> names = {"wall_0", "wall_1", "roof_0", "roof_1"};
     const std::array<int, 4> node = {6, 7, 9, 8};
     for (size_t i = 0; i < 4; i++) {
-        const std::shared_ptr<Plate> plate = std::make_shared<Plate>(*plates[node[i]]);
+        const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(*plates[node[i]]);
         plate->name = names[i];
         scene.add(plate);
     }

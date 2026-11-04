@@ -3,7 +3,7 @@
 #include "wood_element_joint.h"
 #include "wood_element_beam.h"
 #include "wood_element_column.h"
-#include "wood_element_plate.h"
+#include "wood_element_face_planar.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
 #include "wood_interaction_feature_plate.h"
@@ -127,7 +127,7 @@ public:
     );
 
     /// A plate on the face contact of a column and a rib.
-    static std::shared_ptr<Plate> let_in_plate(
+    static std::shared_ptr<FacePlanarElement> let_in_plate(
         const Element& rib,
         const InteractionContactFace& contact,
         double width = 30.0,
@@ -140,7 +140,7 @@ public:
     static std::shared_ptr<JointBeam> rectangle_plate(
         const Element& column,
         const Element& rib,
-        const Plate& plate,
+        const FacePlanarElement& plate,
         const InteractionContactFace& contact,
         double pin_radius = 25.0,
         double margin_x = 6.05,
@@ -154,7 +154,7 @@ public:
 
     /// What a plate's edge `end` gains and loses to stop on its plane in `planes`.
     static std::array<Mesh, 2> plate_end(
-        const Plate& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
+        const FacePlanarElement& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
     );
 
     /// A butt whose corner, square or oblique, is side_side_outplane.
@@ -219,8 +219,8 @@ public:
     /// second, driven in once the plates meet, pinches them together; its parts are the box and the first and second keys, its last two insertions the way the keys come out. Sizes are
     /// shares of the first plate's thickness; key_width is a key's width where it enters the box, key_taper its loss per unit of depth; null when the sizes leave nothing, the keys do not taper or the box leaves the plates.
     static std::shared_ptr<JointBeam> keyed_box(
-        const Plate& a,
-        const Plate& b,
+        const FacePlanarElement& a,
+        const FacePlanarElement& b,
         const InteractionContactFace& contact,
         double box_width = 2.4,
         double box_depth = 1.6,

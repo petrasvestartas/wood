@@ -8,7 +8,7 @@ using namespace wood_session;
 int main() {
 
     FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
-    const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = frame.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << frame << std::endl;
     std::cout << fmt::format("three hinged arch: {} plates\n", plates.size());
     frame.pb_dump(pb_path("live"));

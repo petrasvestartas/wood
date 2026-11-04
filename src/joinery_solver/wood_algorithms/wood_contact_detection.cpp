@@ -6,7 +6,7 @@
 #include "wood_element_beam_curved.h"
 #include "wood_feature_detection.h"
 #include "wood_element_geometry.h"
-#include "wood_element_plate_curved.h"
+#include "wood_element_face_curved.h"
 #include "../src/clipper2/clipper.h"
 #include "closest.h"
 using namespace session_cpp;
@@ -24,7 +24,7 @@ namespace {
 
 /// A curved plate's six faces in the order of its patches, outer, inner.
 std::array<std::array<std::vector<Point>, 2>, 6>
-curved_faces(const PlateCurved& plate, size_t samples) {
+curved_faces(const FaceCurvedElement& plate, size_t samples) {
 
     const std::function<std::vector<Point>(const NurbsCurve&)> sample =
         [samples](const NurbsCurve& curve) {
@@ -141,7 +141,7 @@ bool face_within(
 
 /// The faces two curved plates share.
 std::vector<InteractionContactFace>
-curved_contacts(const PlateCurved& a, const PlateCurved& b, double tolerance) {
+curved_contacts(const FaceCurvedElement& a, const FaceCurvedElement& b, double tolerance) {
 
     const std::array<std::array<std::vector<Point>, 2>, 6> faces_a = curved_faces(a, 64);
     const std::array<std::array<std::vector<Point>, 2>, 6> faces_b = curved_faces(b, 256);
@@ -241,13 +241,13 @@ void add_outline(const Polyline& pl, std::vector<Point>& corners) {
 
 /// Whether the element follows the plate face convention: [0] bottom, [1] top, [2..] sides.
 bool is_plate(const Element& e) {
-    return dynamic_cast<const Plate*>(&e) != nullptr;
+    return dynamic_cast<const FacePlanarElement*>(&e) != nullptr;
 }
 
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
 
-    const auto* plate = dynamic_cast<const Plate*>(&e);
+    const auto* plate = dynamic_cast<const FacePlanarElement*>(&e);
     const std::vector<Polyline> fallback = plate ? std::vector<Polyline>{} : e.polylines();
     const auto& loops = plate ? plate->polylines : fallback;
     if (is_plate(e) && loops.size() > 1) {
@@ -356,7 +356,7 @@ std::vector<std::pair<int, int>> adjacency_search(
 
         corners.clear();
         bounding_points(*elements[i], corners);
-        const auto* plate = dynamic_cast<const Plate*>(elements[i].get());
+        const auto* plate = dynamic_cast<const FacePlanarElement*>(elements[i].get());
         const std::vector<Plane> planes = plate ? plate->planes : elements[i]->planes();
         if (!planes.empty())
             obbs[i] = OBB::from_points(corners, planes[0], inflate);
@@ -466,7 +466,7 @@ bool face_overlap_area(
 
 /// A plate's contact faces.
 void add_cut_faces(
-    const Plate& plate, std::vector<Plane>& planes, std::vector<Polyline>& outlines
+    const FacePlanarElement& plate, std::vector<Plane>& planes, std::vector<Polyline>& outlines
 ) {
 
     if (plate.solid_features.empty())
@@ -498,16 +498,16 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea, Element& eb, const Settings& settings, DetectionTrace* trace, bool with_volumes
 ) {
 
-    const auto* curved_a = dynamic_cast<const PlateCurved*>(&ea);
-    const auto* curved_b = dynamic_cast<const PlateCurved*>(&eb);
+    const auto* curved_a = dynamic_cast<const FaceCurvedElement*>(&ea);
+    const auto* curved_b = dynamic_cast<const FaceCurvedElement*>(&eb);
 
     if (curved_a && curved_b)
         return curved_contacts(*curved_a, *curved_b, 10.0 * settings.distance);
 
     const double cos_angle = std::cos(settings.angle);
 
-    const auto* plate_a = dynamic_cast<const Plate*>(&ea);
-    const auto* plate_b = dynamic_cast<const Plate*>(&eb);
+    const auto* plate_a = dynamic_cast<const FacePlanarElement*>(&ea);
+    const auto* plate_b = dynamic_cast<const FacePlanarElement*>(&eb);
     std::vector<Plane> planes_a = plate_a ? plate_a->planes : ea.planes();
     std::vector<Plane> planes_b = plate_b ? plate_b->planes : eb.planes();
     std::vector<Polyline> outlines_a = plate_a ? plate_a->polylines : ea.polylines();
@@ -561,8 +561,8 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
             InteractionFeaturePlate joint;
             bool flip = false;
             if (!face_to_face_wood(
-                    static_cast<Plate&>(ea),
-                    static_cast<Plate&>(eb),
+                    static_cast<FacePlanarElement&>(ea),
+                    static_cast<FacePlanarElement&>(eb),
                     {0, 1},
                     0,
                     settings,

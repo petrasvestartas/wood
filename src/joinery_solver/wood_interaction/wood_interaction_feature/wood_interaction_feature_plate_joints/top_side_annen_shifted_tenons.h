@@ -2,11 +2,11 @@
 /// along the plate's normal nor along the side, with its outline within four thicknesses of the corner, the step of a shifted plate at a
 /// junction being up to about a hundred mm; none when there is no such wall.
 static std::optional<Plane> annen_shifted_wall_across(
-    const Plate& plate,
+    const FacePlanarElement& plate,
     int plate_index,
     int side,
-    const Plate& wall,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const FacePlanarElement& wall,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Point& corner,
     double reach
 ) {
@@ -16,7 +16,7 @@ static std::optional<Plane> annen_shifted_wall_across(
     std::optional<Plane> end;
     double nearest = reach;
     for (size_t k = 0; k < elements.size(); k++) {
-        const Plate& other = *elements[k];
+        const FacePlanarElement& other = *elements[k];
         if ((int)k == plate_index || &other == &wall || other.planes.size() < 2)
             continue;
         for (int face = 0; face < 2; face++) {
@@ -46,12 +46,12 @@ static std::optional<Plane> annen_shifted_wall_across(
 /// no wall of its own, the face of the wall standing across it; else that plane itself. beside_plane gets the plane the definition's
 /// outline met at that end when it is not the plate's own side beside, the face across a cut step, else nothing.
 static Plane annen_shifted_bound(
-    const Plate& plate,
+    const FacePlanarElement& plate,
     int plate_index,
     int side,
     int beside,
-    const Plate& wall,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const FacePlanarElement& wall,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints,
     const Point& corner,
     std::optional<Plane>& beside_plane
@@ -118,7 +118,7 @@ static Plane annen_shifted_bound(
 /// that is no plate side on a wall face or on a degenerate edge.
 static bool annen_shifted_line(
     const InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints,
     Line& line
 ) {
@@ -130,8 +130,8 @@ static bool annen_shifted_line(
     if (male < 0 || female < 0 || side < 2 || wall_face < 0 || wall_face > 1)
         return false;
 
-    const Plate& plate = *elements[male];
-    const Plate& wall = *elements[female];
+    const FacePlanarElement& plate = *elements[male];
+    const FacePlanarElement& wall = *elements[female];
     if (side >= (int)plate.planes.size() || wall.planes.size() < 2 ||
         plate.polylines[0].point_count() <= side - 1 ||
         plate.polylines[1].point_count() <= side - 1)
@@ -185,7 +185,7 @@ static bool annen_shifted_line(
 /// given, else from the plate's feature_divisions on this face, else 2; an edge shorter than minimum_edge gets no tenons, as the definition skipped it.
 static void top_side_annen_shifted_tenons(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints,
     int divisions,
     double minimum_edge
@@ -207,8 +207,8 @@ static void top_side_annen_shifted_tenons(
     const int male = index_of_plate(elements, joint.element_a);
     const int side = joint.contact.face_a;
     const int wall_face = joint.contact.face_b;
-    const Plate& plate = *elements[male];
-    const Plate& wall = *elements[index_of_plate(elements, joint.element_b)];
+    const FacePlanarElement& plate = *elements[male];
+    const FacePlanarElement& wall = *elements[index_of_plate(elements, joint.element_b)];
     const Plane& outer = wall.planes[1 - wall_face];
     const Vector normal = plate.planes[0].z_axis();
 

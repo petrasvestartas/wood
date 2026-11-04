@@ -16,8 +16,8 @@ static std::shared_ptr<JointPlate> side_side_inplane_tooth_keys(int divisions = 
 static std::shared_ptr<JointPlate> side_side_inplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
 static std::shared_ptr<JointPlate> side_side_inplane_hilti(
-    const Plate& a,
-    const Plate& b,
+    const FacePlanarElement& a,
+    const FacePlanarElement& b,
     const InteractionContactFace& contact,
     double half_length = 120.0,
     double neck_length = 27.7,
@@ -33,11 +33,11 @@ static std::shared_ptr<JointPlate> side_side_inplane_hilti(
     int sides = 32
 );
 
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-Every standard example shows two pairs (`Plate::pair_in_plane(180.0)` coplanar and `Plate::pair_in_plane(165.0)` shallow V) separated to reveal the seam geometry.
+Every standard example shows two pairs (`FacePlanarElement::pair_in_plane(180.0)` coplanar and `FacePlanarElement::pair_in_plane(165.0)` shallow V) separated to reveal the seam geometry.
 
 ## Three Fingers
 Three fixed 20 mm deep rectangular fingers merged into both plate edges.

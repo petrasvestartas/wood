@@ -62,9 +62,9 @@ static void compute_joinery(JointBeam& joint, const Settings& settings, bool end
     boxes.settings = settings;
     boxes.settings.search_type =
         joint.feature.end_type == 2 ? SearchType::cross_joint : SearchType::face_to_face;
-    const std::array<std::shared_ptr<Plate>, 2> box = {
-        std::make_shared<Plate>(joint.feature.volumes[0], joint.feature.volumes[1], "box_0"),
-        std::make_shared<Plate>(joint.feature.volumes[2], joint.feature.volumes[3], "box_1"),
+    const std::array<std::shared_ptr<FacePlanarElement>, 2> box = {
+        std::make_shared<FacePlanarElement>(joint.feature.volumes[0], joint.feature.volumes[1], "box_0"),
+        std::make_shared<FacePlanarElement>(joint.feature.volumes[2], joint.feature.volumes[3], "box_1"),
     };
     boxes.add(box[0]);
     boxes.add(box[1]);
@@ -235,8 +235,8 @@ std::shared_ptr<JointBeam> JointBeam::from_contact(
             fails = fails || compute_volume(kept[i]) < expected - 1e-2 * compute_volume(*stocks[i]);
         }
         const Mesh zone = solid_boolean(
-            Plate(joint->feature.volumes[0], joint->feature.volumes[1]).element_geometry_mesh(),
-            Plate(joint->feature.volumes[2], joint->feature.volumes[3]).element_geometry_mesh(),
+            FacePlanarElement(joint->feature.volumes[0], joint->feature.volumes[1]).element_geometry_mesh(),
+            FacePlanarElement(joint->feature.volumes[2], joint->feature.volumes[3]).element_geometry_mesh(),
             SolidOperation::add
         );
         const Mesh before = solid_boolean(
@@ -596,7 +596,7 @@ plate_frame(const Element& rib, const InteractionContactFace& contact) {
 }
 
 /// The plate.
-std::shared_ptr<Plate> JointBeam::let_in_plate(
+std::shared_ptr<FacePlanarElement> JointBeam::let_in_plate(
     const Element& rib,
     const InteractionContactFace& contact,
     double width,
@@ -608,7 +608,7 @@ std::shared_ptr<Plate> JointBeam::let_in_plate(
     const auto [origin, axes] = plate_frame(rib, contact);
     const std::array<Polyline, 2> loops =
         frame_box(origin, axes, -back, front, width, -height, 0.0);
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(
+    const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(
         loops[0], loops[1], contact.name.empty() ? "let_in_plate" : contact.name
     );
 
@@ -619,7 +619,7 @@ std::shared_ptr<Plate> JointBeam::let_in_plate(
 std::shared_ptr<JointBeam> JointBeam::rectangle_plate(
     const Element& column,
     const Element& rib,
-    const Plate& plate,
+    const FacePlanarElement& plate,
     const InteractionContactFace& contact,
     double pin_radius,
     double margin_x,
@@ -794,7 +794,7 @@ static ButtMember butt_member(const Element& element) {
             column->element_geometry_mesh()
         );
 
-    const Plate* plate = dynamic_cast<const Plate*>(&element);
+    const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(&element);
     if (!plate)
         throw std::invalid_argument("A butt joins beams, columns and plates");
 
@@ -1168,7 +1168,7 @@ static std::shared_ptr<JointBeam> butt_joint(
         joint->butt_ends[i] = (int)*ends[i];
         joint->butt_extensions[i] = cut[0];
         joint->butt_solids[i] = cut[1];
-        if (const Plate* plate = dynamic_cast<const Plate*>(elements[i])) {
+        if (const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(elements[i])) {
             const std::array<Mesh, 2> edge =
                 JointBeam::plate_end(*plate, *ends[i], {{*ends[i], *joint->butt_planes[i]}}, size);
             joint->butt_extensions[i] = InteractionFeatureSolid(edge[0], SolidOperation::add);
@@ -1180,7 +1180,7 @@ static std::shared_ptr<JointBeam> butt_joint(
 }
 
 std::array<Mesh, 2> JointBeam::plate_end(
-    const Plate& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
+    const FacePlanarElement& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
 ) {
 
     const ButtMember member = butt_member(plate);
@@ -2001,8 +2001,8 @@ std::shared_ptr<JointBeam> JointBeam::column_head(
 }
 
 std::shared_ptr<JointBeam> JointBeam::keyed_box(
-    const Plate& a,
-    const Plate& b,
+    const FacePlanarElement& a,
+    const FacePlanarElement& b,
     const InteractionContactFace& contact,
     double box_width,
     double box_depth,

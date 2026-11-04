@@ -1,9 +1,9 @@
 #include "cutting_gallery.h"
 using namespace cutting_gallery;
 
-static std::shared_ptr<Plate> stock() {
+static std::shared_ptr<FacePlanarElement> stock() {
 
-    return Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 160, 35);
+    return FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 160, 35);
 }
 
 int main() {

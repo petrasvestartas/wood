@@ -27,7 +27,7 @@ static void check_dataset(const std::string& name) {
     // solved again: every plate keeps its insertion vectors and every joint its male and female outlines, a reversed plate's included
     std::vector<std::vector<Vector>> first_vectors;
     size_t reversed = 0;
-    for (const std::shared_ptr<Plate>& plate : sidecars.plates()) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : sidecars.get_elements<FacePlanarElement>()) {
         first_vectors.push_back(plate->insertion_vectors());
         if (plate->reversed && !plate->insertion_vectors().empty())
             reversed++;
@@ -39,7 +39,7 @@ static void check_dataset(const std::string& name) {
             "{}: {} joints solved again, {} the first time", name, again.size(), expected.size()
         )
     );
-    const std::vector<std::shared_ptr<Plate>> solved = sidecars.plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> solved = sidecars.get_elements<FacePlanarElement>();
     for (size_t i = 0; i < solved.size(); i++)
         check(
             solved[i]->insertion_vectors() == first_vectors[i],
@@ -83,7 +83,7 @@ static void check_dataset(const std::string& name) {
     std::vector<Point> points;
     std::vector<int> types;
     std::vector<Line> lines;
-    for (const std::shared_ptr<Plate>& plate : scene.plates()) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : scene.get_elements<FacePlanarElement>()) {
         const std::vector<int> given_types = plate->feature_types;
         const std::vector<Vector> given_vectors = plate->insertion_vectors();
         plate->feature_types.clear();
@@ -153,8 +153,8 @@ static void check_dataset(const std::string& name) {
             )
         );
 
-    const std::vector<std::shared_ptr<Plate>> plates = scene.plates();
-    const std::vector<std::shared_ptr<Plate>> twins = sidecars.plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = scene.get_elements<FacePlanarElement>();
+    const std::vector<std::shared_ptr<FacePlanarElement>> twins = sidecars.get_elements<FacePlanarElement>();
     for (size_t i = 0; i < plates.size(); i++) {
         const std::vector<Polyline>& outlines = plates[i]->features.top;
         const std::vector<Polyline>& reference = twins[i]->features.top;
@@ -231,7 +231,7 @@ static void check_names() {
         else
             scene.assign_joint_types_by_points(points, names, SNAP);
         runs[run] = scene.compute_features();
-        for (const std::shared_ptr<Plate>& plate : scene.plates())
+        for (const std::shared_ptr<FacePlanarElement>& plate : scene.get_elements<FacePlanarElement>())
             outlines[run].push_back(plate->features.top);
     }
 

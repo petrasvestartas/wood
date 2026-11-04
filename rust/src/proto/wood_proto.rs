@@ -113,6 +113,21 @@ pub struct Column {
     #[prost(double, tag = "5")]
     pub rotation: f64,
 }
+/// The state of a FacePlanarElement beyond the kernel Element: its two outlines.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FacePlanarElement {
+    #[prost(message, repeated, tag = "4")]
+    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
+    /// Bottom outline
+    #[prost(message, optional, tag = "1")]
+    pub bottom: ::core::option::Option<::session_rust::proto::Polyline>,
+    /// Top outline
+    #[prost(message, optional, tag = "2")]
+    pub top: ::core::option::Option<::session_rust::proto::Polyline>,
+    /// True when the constructor reversed both outlines
+    #[prost(bool, tag = "3")]
+    pub reversed: bool,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Joint {
     #[prost(message, repeated, tag = "1")]
@@ -274,21 +289,6 @@ pub struct NodeSupportElement {
     pub anchor_embedment: f64,
     #[prost(double, tag = "22")]
     pub chord_tolerance: f64,
-}
-/// The state of a Plate beyond the kernel Element: its two outlines.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Plate {
-    #[prost(message, repeated, tag = "4")]
-    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
-    /// Bottom outline
-    #[prost(message, optional, tag = "1")]
-    pub bottom: ::core::option::Option<::session_rust::proto::Polyline>,
-    /// Top outline
-    #[prost(message, optional, tag = "2")]
-    pub top: ::core::option::Option<::session_rust::proto::Polyline>,
-    /// True when the constructor reversed both outlines
-    #[prost(bool, tag = "3")]
-    pub reversed: bool,
 }
 /// The state of an InteractionContactAxis beyond the kernel Interaction: where two polylines come closest.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -526,6 +526,9 @@ pub struct Settings {
     /// User joint outlines, in family order
     #[prost(message, repeated, tag = "16")]
     pub custom_joints: ::prost::alloc::vec::Vec<CustomJoint>,
+    /// In-plane joint depth across the seam as a share of the volume; 0 in older files reads as 1
+    #[prost(double, tag = "17")]
+    pub joint_depth_scale: f64,
 }
 /// A wood scene on the wire: fields 1..9 are session_proto.Session field for field, so any
 /// Session reader opens the file, the interactions included, and drops the settings as an unknown field.
@@ -568,7 +571,7 @@ pub struct WoodSession {
     #[prost(message, repeated, tag = "103")]
     pub three_valence: ::prost::alloc::vec::Vec<PlateGroup>,
 }
-/// Two plate positions in world_elements<Plate>() order.
+/// Two plate positions in world_elements<FacePlanarElement>() order.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PlatePair {
     #[prost(int32, tag = "1")]

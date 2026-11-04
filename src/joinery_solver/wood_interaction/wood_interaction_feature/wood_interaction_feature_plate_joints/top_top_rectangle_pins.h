@@ -229,7 +229,7 @@ static std::vector<Point> rectangle_grid_points(const Polyline& rectangle, doubl
 /// top_top_rectangle_pins, id 45.
 static void top_top_rectangle_pins(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
 

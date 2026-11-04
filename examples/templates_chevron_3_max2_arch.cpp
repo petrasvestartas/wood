@@ -27,8 +27,8 @@ int main() {
         {1, 1, 1, 1},
         {132000.0, 126000.0, 3520.0}
     );
-    const std::vector<std::shared_ptr<Plate>> plates =
-        chevron.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates =
+        chevron.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << chevron << std::endl;
     std::cout << fmt::format(
         "chevron max2 arch 22: {} faces, {} plates\n",

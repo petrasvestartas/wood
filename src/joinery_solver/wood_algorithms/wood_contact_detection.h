@@ -4,7 +4,7 @@
 
 #include "wood_settings.h"
 #include "wood_element_beam.h"
-#include "wood_element_plate.h"
+#include "wood_element_face_planar.h"
 #include "wood_interaction_contact_face.h"
 #include "wood_interaction_contact_axis.h"
 #include "wood_interaction_contact_cross.h"

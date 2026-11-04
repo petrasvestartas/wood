@@ -165,7 +165,7 @@ std::string pb_path(const std::string& name) {
 
 void write_parity_dumps(const WoodSession& scene, const std::filesystem::path& pb) {
 
-    const std::vector<std::shared_ptr<Plate>> plates = scene.plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = scene.get_elements<FacePlanarElement>();
     std::ofstream meta(pb.string() + "_meta.txt");
     std::ofstream coords(pb.string() + "_coords.txt");
 

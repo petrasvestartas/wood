@@ -1,6 +1,6 @@
 static void top_top_ring_pins(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings,
     double radius
 ) {

@@ -561,8 +561,8 @@ std::vector<std::shared_ptr<Element>> to_deck(
     for (const std::vector<Polyline>& loops : compute_panels(outline, span, panel)) {
         const Polyline bottom = compute_lifted(loops[0], z);
         const Polyline top = compute_lifted(loops[0], z + thickness);
-        std::shared_ptr<wood_session::Plate> deck =
-            std::make_shared<wood_session::Plate>(bottom, top, "deck");
+        std::shared_ptr<wood_session::FacePlanarElement> deck =
+            std::make_shared<wood_session::FacePlanarElement>(bottom, top, "deck");
         for (const Polyline& ring : loops) {
             deck->features.bottom.push_back(compute_lifted(ring, z));
             deck->features.top.push_back(compute_lifted(ring, z + thickness));
@@ -667,7 +667,7 @@ std::shared_ptr<Element> to_wall(
     const Polyline back_face = middle.translated(normal * (-context.framing.wall / 2.0));
     const Polyline front_face = middle.translated(normal * (context.framing.wall / 2.0));
 
-    return std::make_shared<wood_session::Plate>(back_face, front_face, name);
+    return std::make_shared<wood_session::FacePlanarElement>(back_face, front_face, name);
 }
 
 /// Deck thickness over the datum at a level vertex.
@@ -907,7 +907,7 @@ void Grid::add_walls(const Building& working, size_t storey, const build::Contex
             const Polyline outline = to_polyline(quad);
             const Polyline base = compute_lifted(outline, bottom);
             const Polyline cap = compute_lifted(outline, level.z + framing.deck);
-            walls.push_back(std::make_shared<wood_session::Plate>(base, cap, "core_wall"));
+            walls.push_back(std::make_shared<wood_session::FacePlanarElement>(base, cap, "core_wall"));
         }
     }
 

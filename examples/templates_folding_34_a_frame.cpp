@@ -8,7 +8,7 @@ using namespace wood_session;
 int main() {
 
     FoldedFrame frame(FoldedFrame::a_frame(), 3850.0, 4, 120.0, "a_frame");
-    const std::vector<std::shared_ptr<Plate>> plates = frame.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = frame.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << frame << std::endl;
     std::cout << fmt::format("a frame: {} plates\n", plates.size());
     frame.pb_dump(pb_path("live"));

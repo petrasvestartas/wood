@@ -697,7 +697,7 @@ inline std::vector<Development> ReflectionFold::add_lamellas(
         for (size_t i = 0; i < profile.size(); i++) {
             const NurbsCurve& outer_a = creases[j][i];
             const NurbsCurve& outer_b = creases[j + 1][i];
-            const std::shared_ptr<PlateCurved> lamella = std::make_shared<PlateCurved>(
+            const std::shared_ptr<FaceCurvedElement> lamella = std::make_shared<FaceCurvedElement>(
                 outer_a, outer_b, inners[j][i], inners[j + 1][i], fmt::format("lamella_{}_{}", j, i)
             );
             add(lamella, lamellas);
@@ -775,10 +775,10 @@ inline void ReflectionFold::add_mirrored_lamellas(size_t beyond, bool crown, siz
 
     const Xform mirror = reflection(*symmetry);
     const std::shared_ptr<TreeNode> lamellas = group_named("lamellas");
-    const std::vector<std::shared_ptr<PlateCurved>> plates =
-        get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
+        get_elements_placed<FaceCurvedElement>("lamella");
 
-    for (const std::shared_ptr<PlateCurved>& plate : plates) {
+    for (const std::shared_ptr<FaceCurvedElement>& plate : plates) {
         const size_t underscore = plate->name.find('_', 8);
         const size_t segment = std::stoul(plate->name.substr(8, underscore - 8));
         const std::string row = plate->name.substr(underscore + 1);
@@ -786,7 +786,7 @@ inline void ReflectionFold::add_mirrored_lamellas(size_t beyond, bool crown, siz
         if (crown && segment == crossing)
             continue;
 
-        const std::shared_ptr<PlateCurved> image = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> image = std::make_shared<FaceCurvedElement>(
             plate->outer_a.transformed(mirror),
             plate->outer_b.transformed(mirror),
             plate->inner_a.transformed(mirror),

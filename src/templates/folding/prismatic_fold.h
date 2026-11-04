@@ -97,10 +97,10 @@ inline PrismaticFold::PrismaticFold(
         Plane::from_point_normal(Point(0.0, 0.0, 0.0), x),
         Plane::from_point_normal(Point(span, 0.0, 0.0), x),
     };
-    const std::vector<std::shared_ptr<Plate>> fold_plates =
+    const std::vector<std::shared_ptr<FacePlanarElement>> fold_plates =
         mitered_plates(_mesh, thickness, 0.0, 0.0, 180.0, ends);
 
-    for (const std::shared_ptr<Plate>& plate : fold_plates)
+    for (const std::shared_ptr<FacePlanarElement>& plate : fold_plates)
         add(plate, plates);
 
     // diaphragms: under the folds at both ends and evenly between, one plate each filling the profile under the plates
@@ -113,7 +113,7 @@ inline PrismaticFold::PrismaticFold(
                                                    static_cast<double>(diaphragms - 1);
         const Polyline bottom = outline.transformed(Xform::translation(along, 0.0, 0.0));
         const Polyline top = outline.transformed(Xform::translation(along + thickness, 0.0, 0.0));
-        add(std::make_shared<Plate>(bottom, top, fmt::format("diaphragm_{}", k)), stiffeners);
+        add(std::make_shared<FacePlanarElement>(bottom, top, fmt::format("diaphragm_{}", k)), stiffeners);
     }
 }
 

@@ -24,10 +24,10 @@ int main() {
 
     for (const double angle : {0.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
-        const std::array<std::shared_ptr<Plate>, 2> pair = Plate::pair_rotated(angle);
-        const std::shared_ptr<Plate> left = pair[0];
-        const std::shared_ptr<Plate> right = pair[1];
-        for (const std::shared_ptr<Plate>& plate : pair) {
+        const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_rotated(angle);
+        const std::shared_ptr<FacePlanarElement> left = pair[0];
+        const std::shared_ptr<FacePlanarElement> right = pair[1];
+        for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
             plate->place(Xform::translation(0.0, angle == 0.0 ? 0.0 : 800.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);

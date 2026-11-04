@@ -2,7 +2,7 @@
 
 [TOC]
 
-Translational plate shells in `src/templates/shells/translation_shell.h`. `TranslationShell` sweeps a generator cross-section along a directrix profile without rotation, producing planar quad faces and mitered, corner-chamfered `Plate` solids.
+Translational plate shells in `src/templates/shells/translation_shell.h`. `TranslationShell` sweeps a generator cross-section along a directrix profile without rotation, producing planar quad faces and mitered, corner-chamfered `FacePlanarElement` solids.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#shells_curves">
@@ -82,11 +82,11 @@ return Mesh::from_vertices_and_faces(points, faces);
 ![](templates/templates_shells_1_translation_shell_plates.webp)
 
 ```cpp
-const std::vector<std::shared_ptr<Plate>> plates = mitered_plates(
+const std::vector<std::shared_ptr<FacePlanarElement>> plates = mitered_plates(
     mesh, thickness, chamfer, chamfer, chamfer_angle
 );
 
-for (const std::shared_ptr<Plate>& plate : plates)
+for (const std::shared_ptr<FacePlanarElement>& plate : plates)
     add(plate, plates_group);
 ```
 

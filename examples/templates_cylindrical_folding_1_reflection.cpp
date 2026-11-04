@@ -26,10 +26,10 @@ int main() {
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels =
-        fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> panels =
+        fold.get_elements_placed<FaceCurvedElement>("lamella");
 
-    for (const std::shared_ptr<PlateCurved>& panel : panels)
+    for (const std::shared_ptr<FaceCurvedElement>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(
@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the cylindrical folding templates: the reflection principle. A vertical strip with a circular arc section e(t), 120 degrees of a circle of 1 m radius, runs down from s0 and is cut at s1 by the plane R inclined at (pi - phi) / 2 to its axis; the part beyond R is mirrored in R, so the strip bends by phi = 120 degrees toward s2r, and the crease a(t) is R's section of the arc, a planar curve. Two lamellas 120 mm thick meet on the crease along one mitre, the exact curve where their two offset cylinders cross. Every part of the sheet between two creases and two curves of the profile is a lamella, a PlateCurved: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
+Step 1 of the cylindrical folding templates: the reflection principle. A vertical strip with a circular arc section e(t), 120 degrees of a circle of 1 m radius, runs down from s0 and is cut at s1 by the plane R inclined at (pi - phi) / 2 to its axis; the part beyond R is mirrored in R, so the strip bends by phi = 120 degrees toward s2r, and the crease a(t) is R's section of the arc, a planar curve. Two lamellas 120 mm thick meet on the crease along one mitre, the exact curve where their two offset cylinders cross. Every part of the sheet between two creases and two curves of the profile is a lamella, a FaceCurvedElement: the exact cylinder between its two creases, the thickness on the one physical underside the material keeps through every fold, its side faces the mitre it shares with the next plate across the crease, the crease plane's section at a mirror fold and the exact crossing of the two offset cylinders at a reflection, its caps the rulings at the profile curves' ends, mitred between neighbouring curves; every lamella unfolds flat, its development drawn where it lies on the unrolled sheet in the group flat; the session's contact detection finds every shared face. Groups: creases, lamellas (lamella_<segment>_<row>), flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

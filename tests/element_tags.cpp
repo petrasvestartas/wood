@@ -21,7 +21,13 @@ static const std::vector<std::string> SCENES = {
     "rust/tests/data/element_support.pb",
     "rust/tests/data/rust_elements.pb",
 };
-static const std::set<std::string> OLD_TAGS = {"Solid", "BlockElement", "Support"};
+static const std::set<std::string> OLD_TAGS = {
+    "Solid",
+    "BlockElement",
+    "Support",
+    "Plate",
+    "WoodElement",
+};
 
 static void check(bool condition, const std::string& message) {
     if (!condition)
@@ -67,6 +73,13 @@ int main() {
         load("rust/tests/data/element_block.pb").get_elements<NodeElement>().size() == 1,
         "a block is a NodeElement"
     );
+    check(
+        load("rust/tests/data/element_plate.pb").get_elements<FaceElement>().size() == 1,
+        "the old plate loads as a FaceElement"
+    );
+    writes_its_name(FacePlanarElement::from_rectangle(
+        {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 100.0, 100.0, 10.0
+    ));
     writes_its_name(NodeBlockElement::box({0.0, 0.0, 0.0}, 100.0, 100.0, 100.0));
     writes_its_name(std::make_shared<NodeSupportElement>(Plane::xy_plane(), "support"));
 

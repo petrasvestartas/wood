@@ -136,7 +136,7 @@ static std::string compare_loops(
 
 /// Empty when the plate's merged outlines are the reference's; else the first deviation.
 static std::string
-compare_plate(const Plate& plate, const std::vector<Polyline>& reference, double& worst) {
+compare_plate(const FacePlanarElement& plate, const std::vector<Polyline>& reference, double& worst) {
 
     std::vector<Polyline> loops = oracle::merged_loops(plate);
     for (Polyline& loop : loops)
@@ -210,7 +210,7 @@ static std::vector<std::vector<Line>> reference_drills(const nlohmann::json& rec
 
 /// The port's drill lines per plate.
 static std::vector<std::vector<Line>>
-wood_drills(const WoodSession& scene, const std::vector<std::shared_ptr<Plate>>& plates) {
+wood_drills(const WoodSession& scene, const std::vector<std::shared_ptr<FacePlanarElement>>& plates) {
 
     std::vector<std::vector<Line>> lines(plates.size());
     for (const std::shared_ptr<JointPlate>& joint : scene.get_elements<JointPlate>()) {
@@ -296,7 +296,7 @@ static Score run(const std::string& name) {
         config::reset_defaults();
         WoodSession scene = WoodSession::yaml_load(name);
         scene.compute_features();
-        const std::vector<std::shared_ptr<Plate>> plates = scene.plates();
+        const std::vector<std::shared_ptr<FacePlanarElement>> plates = scene.get_elements<FacePlanarElement>();
         score.plates = plates.size();
 
         if (plates.size() != reference.size()) {

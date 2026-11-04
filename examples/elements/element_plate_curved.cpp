@@ -21,7 +21,7 @@ int main() {
 
     WoodSession scene("element_plate_curved");
 
-    const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
+    const std::shared_ptr<FaceCurvedElement> plate = std::make_shared<FaceCurvedElement>(
         NurbsCurve::create_interpolated(arc(2000.0, 0.0)),
         NurbsCurve::create_interpolated(arc(2000.0, 600.0)),
         NurbsCurve::create_interpolated(arc(1880.0, 0.0)),

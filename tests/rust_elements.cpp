@@ -4,13 +4,13 @@
 #include "element_beam_variable.pb.h"
 #include "element_node_block.pb.h"
 #include "element_column.pb.h"
-#include "element_plate.pb.h"
+#include "element_face_planar.pb.h"
 #include "element_node_support.pb.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The session wood/rust writes, one element per class: Plate, Beam, two Columns, NodeBlockElement, BeamVariable, NodeSupportElement.
+/// The session wood/rust writes, one element per class: FacePlanarElement, Beam, two Columns, NodeBlockElement, BeamVariable, NodeSupportElement.
 static const std::string GOLDEN =
     std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements.pb";
 
@@ -79,7 +79,7 @@ int main() {
     );
     const WoodSession session = WoodSession::pb_loads(bytes);
 
-    reads_back<Plate, wood_proto::Plate>(session, file, 0);
+    reads_back<FacePlanarElement, wood_proto::FacePlanarElement>(session, file, 0);
     reads_back<Beam, wood_proto::Beam>(session, file, 1);
     reads_back<Column, wood_proto::Column>(session, file, 2);
     reads_back<Column, wood_proto::Column>(session, file, 3);

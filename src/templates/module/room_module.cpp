@@ -122,13 +122,13 @@ void RoomModule::add_box(
     const Polyline bottom_lower = Polyline::rectangle(field, x, y, guide.length, inner_width);
     const Polyline bottom_upper =
         Polyline::rectangle(field + z * board, x, y, guide.length, inner_width);
-    add(std::make_shared<Plate>(bottom_lower, bottom_upper, name + (floor ? "_board" : "_lining")),
+    add(std::make_shared<FacePlanarElement>(bottom_lower, bottom_upper, name + (floor ? "_board" : "_lining")),
         boards);
     const Polyline top_lower =
         Polyline::rectangle(field + z * (depth - top), x, y, guide.length, inner_width);
     const Polyline top_upper =
         Polyline::rectangle(field + z * depth, x, y, guide.length, inner_width);
-    add(std::make_shared<Plate>(top_lower, top_upper, name + (floor ? "_deck" : "_board")), boards);
+    add(std::make_shared<FacePlanarElement>(top_lower, top_upper, name + (floor ? "_deck" : "_board")), boards);
 }
 
 void RoomModule::add_module(size_t storey, size_t column) {

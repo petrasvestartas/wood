@@ -50,7 +50,7 @@ static size_t drills_of(const Element& element, const std::string& connector) {
 
 /// The plate guids of a scene's adjacency pairs, each pair sorted.
 static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSession& scene) {
-    const std::vector<std::shared_ptr<Plate>> plates = scene.world_elements<Plate>();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = scene.world_elements<FacePlanarElement>();
     std::set<std::pair<std::string, std::string>> pairs;
     for (const std::pair<int, int>& pair : scene.adjacency)
         pairs.insert(std::minmax(plates[pair.first]->guid(), plates[pair.second]->guid()));
@@ -59,9 +59,9 @@ static std::set<std::pair<std::string, std::string>> pair_guids(const WoodSessio
 
 /// Two 100 x 100 x 40 plates stacked at the origin and the four pins across their contact.
 static std::shared_ptr<JointBeam>
-stacked_pins(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<Plate>& upper) {
-    lower = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
-    upper = Plate::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
+stacked_pins(WoodSession& scene, std::shared_ptr<FacePlanarElement>& lower, std::shared_ptr<FacePlanarElement>& upper) {
+    lower = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
+    upper = FacePlanarElement::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
     scene.add(lower);
     scene.add(upper);
     const auto contact = scene.compute_face_contact(lower, upper);
@@ -73,7 +73,7 @@ stacked_pins(WoodSession& scene, std::shared_ptr<Plate>& lower, std::shared_ptr<
 static void check_scene_calls() {
 
     WoodSession kept("kept connector");
-    std::shared_ptr<Plate> lower, upper;
+    std::shared_ptr<FacePlanarElement> lower, upper;
     const std::shared_ptr<JointBeam> pins = stacked_pins(kept, lower, upper);
     kept.add(pins);
     kept.add_interaction(pins, lower, pins->interaction(0));
@@ -128,12 +128,12 @@ static void check_scene_calls() {
 
     WoodSession first("first"), second("second"), bare("bare");
     for (int i = 0; i < 2; ++i)
-        first.add(Plate::from_rectangle({0, 100.0 * i, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+        first.add(FacePlanarElement::from_rectangle({0, 100.0 * i, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
     const std::shared_ptr<TreeNode> group_a = second.add_group("a");
     const std::shared_ptr<TreeNode> group_b = second.add_group("b");
-    const auto p2 = Plate::from_rectangle({0, 300, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p3 = Plate::from_rectangle({0, 400, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p4 = Plate::from_rectangle({0, 600, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p2 = FacePlanarElement::from_rectangle({0, 300, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p3 = FacePlanarElement::from_rectangle({0, 400, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const auto p4 = FacePlanarElement::from_rectangle({0, 600, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
     second.add(p2, group_b);
     second.add(p3, group_b);
     second.add(p4, group_a);
@@ -150,10 +150,10 @@ static void check_scene_calls() {
     );
     check(
         merged.three_valence.size() == 2 &&
-            merged.world_elements<Plate>()[merged.three_valence[1][0]]->guid() == p2->guid(),
+            merged.world_elements<FacePlanarElement>()[merged.three_valence[1][0]]->guid() == p2->guid(),
         "merge renumbers the three-valence groups by plate guid"
     );
-    bare.add(Plate::from_rectangle({0, 900, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
+    bare.add(FacePlanarElement::from_rectangle({0, 900, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
     WoodSession searched = first;
     searched.merge(bare);
     check(
@@ -302,7 +302,7 @@ static void check_joint_depth_scale() {
 
         Fingers fingers;
         std::vector<Mesh> solids;
-        for (const std::shared_ptr<Plate>& plate : scene.plates()) {
+        for (const std::shared_ptr<FacePlanarElement>& plate : scene.get_elements<FacePlanarElement>()) {
             solids.push_back(plate->model_geometry_mesh());
             fingers.closed += solids.back().is_closed();
             fingers.wood += compute_volume(solids.back());
@@ -379,8 +379,8 @@ int main() {
     check_joint_depth_scale();
 
     WoodSession scene("joint API checks");
-    const auto a = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const auto b = Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
+    const auto a = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
+    const auto b = FacePlanarElement::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
     scene.add(a);
     scene.add(b);
     const auto contact = scene.compute_face_contact(a, b);
@@ -448,7 +448,7 @@ int main() {
     );
     check(linear->volumes[0].point_count() == 0, "linear contact has no plate volume");
     check(!scene.compute_face_contact(a, beam), "disjoint contact");
-    auto support = Plate::from_rectangle({500, 0, 810}, {1, 0, 0}, {0, 1, 0}, 400, 100, 40);
+    auto support = FacePlanarElement::from_rectangle({500, 0, 810}, {1, 0, 0}, {0, 1, 0}, 400, 100, 40);
     auto mixed = scene.compute_face_contact(support, beam);
     check(
         mixed && mixed->type == ContactType::side_top && mixed->volumes[0].point_count() == 0,
@@ -504,8 +504,8 @@ int main() {
     check(beam_joints == 1, "beam joint type round trip");
 
     WoodSession drilling("drill joint");
-    auto lower = Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    auto upper = Plate::from_rectangle({0, 0, 10}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    auto lower = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    auto upper = FacePlanarElement::from_rectangle({0, 0, 10}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
     drilling.add(lower);
     drilling.add(upper);
     auto drill_contact = drilling.compute_face_contact(lower, upper);
@@ -529,7 +529,7 @@ int main() {
          {"cross_corners", "annen_box_pair", "vidy_corner", "inplane_hexshell"}) {
         config::reset_defaults();
         auto model = WoodSession::yaml_load(dataset);
-        check(!model.plates().empty(), "missing dataset " + dataset);
+        check(!model.get_elements<FacePlanarElement>().empty(), "missing dataset " + dataset);
         auto start = std::chrono::steady_clock::now();
         if (dataset == "cross_corners")
             model.compute_cross_contacts();

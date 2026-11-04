@@ -244,7 +244,7 @@ void FramedPanel::add_sheathing() {
             outlines[k] = Polyline(corners);
         }
 
-        const std::shared_ptr<Plate> sheet = std::make_shared<Plate>(
+        const std::shared_ptr<FacePlanarElement> sheet = std::make_shared<FacePlanarElement>(
             outlines[0], outlines[1], named(fmt::format("sheathing_{}", side))
         );
 

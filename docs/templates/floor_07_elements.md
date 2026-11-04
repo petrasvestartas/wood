@@ -93,9 +93,9 @@ Code: `Floor::add_quarters`, `Floor::add_oculus`, `Floor::add_column`, [floor.cp
 
 <span style="color:#2196EA">■ built</span> the plates of bed row 0   <span style="color:#737373">■ input</span> `bottom`, the two bottom rails   <span style="color:#E8478B">■ variable</span> `top`, the two top rails   <span style="color:#A3A3A3">■ context</span> the rest of quarter 0
 
-`add_quarters` starts with the beds: `guide.bed_rails(q)` gives each row's two bottom and two top rails, and `Plate::row_between(bottom, top)` lofts one plate per rail segment, its bottom quad and its top quad.
+`add_quarters` starts with the beds: `guide.bed_rails(q)` gives each row's two bottom and two top rails, and `FacePlanarElement::row_between(bottom, top)` lofts one plate per rail segment, its bottom quad and its top quad.
 
-Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `Plate::row_between`, [wood_element_plate.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_plate.cpp); `FloorGuide::bed_rails`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
+Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp); `FacePlanarElement::row_between`, [wood_element_face_planar.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_face_planar.cpp); `FloorGuide::bed_rails`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 206. The three bed rows
 
@@ -113,7 +113,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 <span style="color:#2196EA">■ built</span> the six t-section plates   <span style="color:#A3A3A3">■ context</span> quarter 0 without its beds
 
-Each `tsections` loop pair becomes `Plate(loops[1], loops[0])`, a flange strip beside a rib face named `tsections_i_q`; the beds rest on them.
+Each `tsections` loop pair becomes `FacePlanarElement(loops[1], loops[0])`, a flange strip beside a rib face named `tsections_i_q`; the beds rest on them.
 
 Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
@@ -175,7 +175,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 <span style="color:#2196EA">■ built</span> the three column blocks   <span style="color:#A3A3A3">■ context</span> the rest of quarter 0
 
-The three `wedges` loop pairs, the blocks on the column head, become `Plate(loops[1], loops[0])` named `wedges_i_q`.
+The three `wedges` loop pairs, the blocks on the column head, become `FacePlanarElement(loops[1], loops[0])` named `wedges_i_q`.
 
 Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 
@@ -370,10 +370,10 @@ The six loop pairs of `guide.column_cutters(corner)` become plates `column_cutte
 
 ```cpp
 const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
-std::vector<std::shared_ptr<Plate>> cutters;
+std::vector<std::shared_ptr<FacePlanarElement>> cutters;
 
 for (size_t i = 0; i < loops.size(); i++) {
-    cutters.push_back(std::make_shared<Plate>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
+    cutters.push_back(std::make_shared<FacePlanarElement>(loops[i][1], loops[i][0], fmt::format("column_cutters_{}_{}", i, corner)));
     cutters.back()->place(Xform::translation(0.0, 0.0, guide.bay_height));
 }
 ```
@@ -389,7 +389,7 @@ Code: `FloorGuide::column_cutters`, [floor_guide.cpp](https://github.com/petrasv
 Each cutter is added hidden and taken away with a `SolidOperation::subtract` interaction, leaving the inclined faces the ribs and the column blocks bear on.
 
 ```cpp
-for (const std::shared_ptr<Plate>& cutter : cutters) {
+for (const std::shared_ptr<FacePlanarElement>& cutter : cutters) {
     cutter->is_visible = false;
     add(cutter, group);
     const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);

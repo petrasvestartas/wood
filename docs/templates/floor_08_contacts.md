@@ -76,7 +76,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 <span style="color:#2196EA">■ built</span> `column_plate_0_0`, `column_plate_0_1`   <span style="color:#E8478B">■ variable</span> the outer ribs, by their loops   <span style="color:#A3A3A3">■ context</span> the column
 
 Once the columns are in the floor, column q and each outer rib k touch on the carved head: `column_plate_q_k`.
-The contact `column_plate_q_k` and the `Plate` of page 9 share this name.
+The contact `column_plate_q_k` and the `FacePlanarElement` of page 9 share this name.
 
 Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor.cpp).
 

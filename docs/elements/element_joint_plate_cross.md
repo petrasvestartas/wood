@@ -13,11 +13,11 @@ static std::shared_ptr<JointPlate> cross_half_lap(double shift = 0.5, CrossDrill
 static std::shared_ptr<JointPlate> cross_brussels_half_lap(double shift = 0.5);
 static std::shared_ptr<JointPlate> cross_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings = Settings());
+void orient(const std::shared_ptr<InteractionContactCross>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const Settings& settings = Settings());
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-Every example shows two crossing pairs (`Plate::pair_crossing(90.0)` and `Plate::pair_crossing(60.0)`) with the second plate shifted downward out of its slot.
+Every example shows two crossing pairs (`FacePlanarElement::pair_crossing(90.0)` and `FacePlanarElement::pair_crossing(60.0)`) with the second plate shifted downward out of its slot.
 
 ## Plain Half-Depth Slot
 The family default cutting a half-depth rectangular slot from the top of the first plate and the bottom of the second plate.

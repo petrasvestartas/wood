@@ -267,7 +267,7 @@ inline void CornerFan::add_strips(const std::vector<NurbsCurve>& creases, const 
 
     for (size_t k = 0; k < strips; k++) {
         // the fan built at the origin, moved to its corner
-        const std::shared_ptr<PlateCurved> strip = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> strip = std::make_shared<FaceCurvedElement>(
             creases[k].transformed(move),
             creases[k + 1].transformed(move),
             inners[k].transformed(move),

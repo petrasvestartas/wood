@@ -41,7 +41,7 @@ private:
     static constexpr double CLIP_GRID =
         1.0 /
         CLIP_SCALE; // mm, the grid that clip left every slot on, 1/128, where the 2025 reference holds them.
-    const Plate& plate; // The plate being merged.
+    const FacePlanarElement& plate; // The plate being merged.
     int plate_index = -1; // Position of the plate in the element list, for the log.
     std::ofstream log_file; // The diagnostic log file, open only when tracing.
     std::ofstream* log = nullptr; // The open log, or null when tracing is off.
@@ -72,7 +72,7 @@ private:
     std::array<Point, 2> last_top_segment{{Point(0, 0, 0), Point(0, 0, 0)}};
 
     /// Copies the plate outlines and planes and opens the log; `distance_squared` is the offset tolerance.
-    MergeModifier(const Plate& plate, int plate_index, double distance_squared);
+    MergeModifier(const FacePlanarElement& plate, int plate_index, double distance_squared);
 
 public:
     // ═══════════════════════════════════════════════════════════════════════════
@@ -81,7 +81,7 @@ public:
 
     /// [hole0_bottom, hole0_top, ..., merged_bottom, merged_top] for the plate.
     static std::vector<Polyline> apply(
-        const Plate& plate,
+        const FacePlanarElement& plate,
         const std::vector<std::vector<std::pair<int, bool>>>& membership,
         std::vector<InteractionFeaturePlate>& joints,
         int plate_index,

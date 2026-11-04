@@ -9,7 +9,7 @@ int main() {
     WoodSession scene("element_joint_plate_side_side_inplane_hilti");
 
     const double half_angle = 15.0 * Tolerance::PI / 180.0;
-    std::array<std::shared_ptr<Plate>, 2> slabs;
+    std::array<std::shared_ptr<FacePlanarElement>, 2> slabs;
     for (int side = 0; side < 2; side++) {
         const double sign = side == 0 ? -1.0 : 1.0;
         const Vector down_slope(sign * std::cos(half_angle), 0.0, -std::sin(half_angle));
@@ -19,7 +19,7 @@ int main() {
         const Point seam_foot = ridge - up * 200.0 + down_slope * (200.0 * std::tan(half_angle));
         const Point far_foot = ridge - up * 200.0 + down_slope * 600.0;
         const Point far_top = ridge + down_slope * 600.0;
-        slabs[side] = std::make_shared<Plate>(
+        slabs[side] = std::make_shared<FacePlanarElement>(
             Polyline({seam_foot, far_foot, far_foot + along, seam_foot + along, seam_foot}),
             Polyline({ridge, far_top, far_top + along, ridge + along, ridge}),
             side == 0 ? "left" : "right"

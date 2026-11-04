@@ -69,10 +69,10 @@ inline DiamondMesh::DiamondMesh(
 
     // plates: one plate per triangle, mitered at the folds, its corners chamfered
     const std::shared_ptr<TreeNode> plates = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> triangles =
+    const std::vector<std::shared_ptr<FacePlanarElement>> triangles =
         mitered_plates(_mesh, thickness, chamfer, chamfer, chamfer_angle);
 
-    for (const std::shared_ptr<Plate>& plate : triangles)
+    for (const std::shared_ptr<FacePlanarElement>& plate : triangles)
         add(plate, plates);
 }
 

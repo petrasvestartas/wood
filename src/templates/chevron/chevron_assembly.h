@@ -135,7 +135,7 @@ public:
     explicit Assembly(const WoodSession& session, double reach = 400.0, double clearance = 0.2);
 
     /// The plates by index, the session's.
-    const std::vector<std::shared_ptr<Plate>>& plates() const;
+    const std::vector<std::shared_ptr<FacePlanarElement>>& plates() const;
 
     /// By box index, the group box_<i>.
     const std::vector<AssemblyBox>& boxes() const;
@@ -159,7 +159,7 @@ public:
     void write_json(const std::string& path, const std::vector<int>& block) const;
 
 private:
-    std::vector<std::shared_ptr<Plate>> _plates;
+    std::vector<std::shared_ptr<FacePlanarElement>> _plates;
     std::vector<int> _box_of;
     std::vector<AssemblyBox> _boxes;
     std::vector<std::pair<int, int>> _unenterable;
@@ -189,7 +189,7 @@ inline Assembly::Assembly(const WoodSession& session, double reach, double clear
     : reach(reach), clearance(clearance) {
 
     // plates: the session's, each with its box from the groups box_<i>
-    _plates = session.world_elements<Plate>();
+    _plates = session.world_elements<FacePlanarElement>();
     const std::vector<std::vector<int>> box_plates = compute_box_plates(session);
     _boxes.resize(box_plates.size());
     _box_of.assign(_plates.size(), -1);
@@ -231,7 +231,7 @@ inline Assembly::Assembly(const WoodSession& session, double reach, double clear
     _collisions = compute_collisions();
 }
 
-inline const std::vector<std::shared_ptr<Plate>>& Assembly::plates() const {
+inline const std::vector<std::shared_ptr<FacePlanarElement>>& Assembly::plates() const {
     return _plates;
 }
 
@@ -440,7 +440,7 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
     std::vector<AssemblySolid> solids(_plates.size());
 
     for (size_t i = 0; i < _plates.size(); i++) {
-        const Plate& plate = *_plates[i];
+        const FacePlanarElement& plate = *_plates[i];
         if (plate.planes.size() < 2 || plate.polylines.size() < 2)
             continue;
 

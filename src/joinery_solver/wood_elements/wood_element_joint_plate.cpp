@@ -115,7 +115,7 @@ const std::unordered_map<std::string, int> LIBRARY_IDS = {
 /// What a builder may read while it fills a InteractionFeaturePlate.
 struct BuildContext {
     const Settings& settings;
-    std::vector<std::shared_ptr<Plate>>& elements;
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements;
     std::vector<InteractionFeaturePlate>& all_joints;
 };
 
@@ -467,7 +467,7 @@ struct FamilyParameters {
 int joint_id_for(
     const InteractionFeaturePlate& joint,
     const std::vector<std::vector<int>>& per_element_joints_types,
-    const std::vector<std::shared_ptr<Plate>>& elements
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
 
     int id_representing_joint_name = -1;
@@ -641,7 +641,7 @@ void build_feature_geometry(
     std::map<std::string, CachedJointGeometry>& unique_joints_cache
 ) {
 
-    std::vector<std::shared_ptr<Plate>>& elements = context.elements;
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements = context.elements;
     std::vector<InteractionFeaturePlate>& all_joints = context.all_joints;
     joint.scale = context.settings.joint_scale;
 
@@ -673,7 +673,7 @@ void build_feature_geometry(
 /// Unit joinery geometry and orientation for every detected joint, in detection order (the cache is order-dependent).
 void build_features_geometry(
     std::vector<InteractionFeaturePlate>& all_joints,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<std::vector<int>>& per_element_joints_types,
     const Settings& settings
 ) {
@@ -712,8 +712,8 @@ JointPlate::JointPlate(int variant, double division_distance, double shift)
 }
 
 JointPlate::JointPlate(
-    const std::shared_ptr<Plate>& source,
-    const std::shared_ptr<Plate>& target,
+    const std::shared_ptr<FacePlanarElement>& source,
+    const std::shared_ptr<FacePlanarElement>& target,
     const InteractionContactFace& contact,
     int variant,
     double division_distance,
@@ -770,7 +770,7 @@ void JointPlate::construct(
 /// The side-side family the detector gives a pair, for a joint of no family of its own.
 static int side_side_family(
     const InteractionContactFace& contact,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
 
@@ -802,7 +802,7 @@ static int side_side_family(
 static int plate_contact_family(
     const JointPlate& joint,
     const InteractionContactFace& contact,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
 
@@ -840,12 +840,12 @@ void JointPlate::orient(
     const std::shared_ptr<InteractionContactFace>& contact, const Settings& settings
 ) {
 
-    orient(contact, std::vector<std::shared_ptr<Plate>>(), settings);
+    orient(contact, std::vector<std::shared_ptr<FacePlanarElement>>(), settings);
 }
 
 void JointPlate::orient(
     const std::shared_ptr<InteractionContactFace>& contact,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
     if (!contact)
@@ -884,12 +884,12 @@ void JointPlate::orient(
     const std::shared_ptr<InteractionContactCross>& contact, const Settings& settings
 ) {
 
-    orient(contact, std::vector<std::shared_ptr<Plate>>(), settings);
+    orient(contact, std::vector<std::shared_ptr<FacePlanarElement>>(), settings);
 }
 
 void JointPlate::orient(
     const std::shared_ptr<InteractionContactCross>& contact,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
     if (!contact)
@@ -1173,7 +1173,7 @@ std::vector<Line> JointPlate::side_drills(const InteractionFeaturePlate& connect
     return drills;
 }
 
-void JointPlate::compute_key(const std::vector<std::shared_ptr<Plate>>& elements) {
+void JointPlate::compute_key(const std::vector<std::shared_ptr<FacePlanarElement>>& elements) {
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
@@ -1312,8 +1312,8 @@ hilti_disc(const Xform& frame, double start, double end, double z, double radius
 }
 
 std::shared_ptr<JointPlate> JointPlate::side_side_inplane_hilti(
-    const Plate& a,
-    const Plate& b,
+    const FacePlanarElement& a,
+    const FacePlanarElement& b,
     const InteractionContactFace& contact,
     double half_length,
     double neck_length,
@@ -1465,7 +1465,7 @@ void JointPlate::place(const Xform& xform) {
 
 void JointPlate::build_geometry(
     std::vector<InteractionFeaturePlate>& connections,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<std::vector<int>>& types,
     const Settings& settings
 ) {
@@ -1475,7 +1475,7 @@ void JointPlate::build_geometry(
 void JointPlate::construct(
     InteractionFeaturePlate connection,
     const Settings& settings,
-    std::vector<std::shared_ptr<Plate>> elements
+    std::vector<std::shared_ptr<FacePlanarElement>> elements
 ) {
 
     if (!parameters.library.empty()) {
@@ -1517,7 +1517,7 @@ std::shared_ptr<JointPlate> JointPlate::from_library(const std::string& library,
 // ═══════════════════════════════════════════════════════════════════════════
 void JointPlate::compute_parameters(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) const {
 
@@ -1542,7 +1542,7 @@ void JointPlate::compute_parameters(
 
 void JointPlate::compute_library(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& connections,
     const Settings& settings
 ) const {
@@ -1585,7 +1585,7 @@ void JointPlate::compute_library(
 
 void JointPlate::construct(
     std::vector<InteractionFeaturePlate> joints,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) {
 
@@ -1688,7 +1688,7 @@ std::shared_ptr<JointPlate> JointPlate::side_side_inplane_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_side_side_inplane(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) const {
 
@@ -1838,7 +1838,7 @@ std::shared_ptr<JointPlate> JointPlate::side_side_outplane_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_side_side_outplane(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& connections,
     const Settings& settings
 ) const {
@@ -1966,7 +1966,7 @@ std::shared_ptr<JointPlate> JointPlate::top_side_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_top_side(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& connections,
     const Settings& settings
 ) const {
@@ -2079,7 +2079,7 @@ JointPlate::top_top_custom(const std::vector<Polyline>& male, const std::vector<
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_top_top(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) const {
 
@@ -2244,7 +2244,7 @@ std::shared_ptr<JointPlate> JointPlate::side_side_rotated_custom(
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_side_side_rotated(
     InteractionFeaturePlate& connection,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const Settings& settings
 ) const {
 
@@ -2283,7 +2283,7 @@ std::shared_ptr<JointPlate> JointPlate::jupiter_scarf() {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlate::compute_side_removal(
-    InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements
+    InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) const {
 
     if (parameters.library == "side_removal")
@@ -2400,7 +2400,7 @@ JointPlateParameters JointPlateParameters::pb_loads(const std::string& data) {
 }
 
 JointAnnen::JointAnnen(
-    std::vector<std::shared_ptr<Plate>> elements,
+    std::vector<std::shared_ptr<FacePlanarElement>> elements,
     std::vector<InteractionFeaturePlate> joints,
     const std::vector<std::vector<int>>& groups,
     const Settings& settings
@@ -2412,7 +2412,7 @@ JointAnnen::JointAnnen(
 }
 
 JointVidy::JointVidy(
-    std::vector<std::shared_ptr<Plate>> elements,
+    std::vector<std::shared_ptr<FacePlanarElement>> elements,
     std::vector<InteractionFeaturePlate> joints,
     const std::vector<std::vector<int>>& groups,
     const Settings& settings

@@ -83,10 +83,10 @@ inline ReflexFold::ReflexFold(
 
     // plates: one plate per quad, mitered at the folds, its corners chamfered
     const std::shared_ptr<TreeNode> plates = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> folds =
+    const std::vector<std::shared_ptr<FacePlanarElement>> folds =
         mitered_plates(_mesh, thickness, chamfer_bottom, chamfer_top, chamfer_angle);
 
-    for (const std::shared_ptr<Plate>& plate : folds)
+    for (const std::shared_ptr<FacePlanarElement>& plate : folds)
         add(plate, plates);
 }
 

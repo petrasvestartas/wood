@@ -9,14 +9,14 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A slot per face: bottom, top, then one per side of the top outline.
-static size_t slot_count(const Plate& plate) {
+static size_t slot_count(const FacePlanarElement& plate) {
 
     const size_t n = plate.polylines.size() > 1 ? plate.polylines[1].point_count() : 0;
     return 2 + (n > 0 ? n - 1 : 0);
 }
 
 /// The face of a plate a point snaps to, -1 when none lies within snap_radius, as the plate's given tables index it.
-static int snapped_face(const Plate& plate, const Point& point, double snap_radius, bool faces) {
+static int snapped_face(const FacePlanarElement& plate, const Point& point, double snap_radius, bool faces) {
 
     if (plate.polylines.size() < 2)
         return -1;
@@ -64,7 +64,7 @@ void WoodSession::assign_joint_types_by_points(
     if (points.empty())
         return;
 
-    for (const std::shared_ptr<Plate>& plate : plates()) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : get_elements<FacePlanarElement>()) {
 
         std::vector<bool> reached(slot_count(*plate), false);
         if (plate->feature_types.size() != reached.size())
@@ -97,7 +97,7 @@ void WoodSession::assign_joint_types_by_points(
 
         double outline = std::numeric_limits<double>::max();
         double side = std::numeric_limits<double>::max();
-        for (const std::shared_ptr<Plate>& plate : plates()) {
+        for (const std::shared_ptr<FacePlanarElement>& plate : get_elements<FacePlanarElement>()) {
             if (plate->polylines.size() < 2)
                 continue;
             size_t edge = 0;
@@ -134,7 +134,7 @@ void WoodSession::assign_insertion_vectors_by_lines(
     if (lines.empty())
         return;
 
-    for (const std::shared_ptr<Plate>& plate : plates()) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : get_elements<FacePlanarElement>()) {
 
         std::vector<Vector>& vectors = plate->insertion_vectors();
         if (vectors.size() != slot_count(*plate))

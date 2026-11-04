@@ -106,7 +106,7 @@ static void pairs() {
         return std::make_shared<Beam>(Polyline({start, end}), 75.0, "beam");
     };
     const auto wall = [](const Point& start, const Point& end) {
-        return Plate::from_line(
+        return FacePlanarElement::from_line(
             Line::from_points(start, end), Vector(0.0, 0.0, 1.0), 1500.0, 120.0, "wall"
         );
     };
@@ -176,8 +176,8 @@ static void pairs() {
     });
 
     // plates: top_side at an end, side_side_outplane at 120 degrees, side_side_inplane, top_side on a floor
-    std::shared_ptr<Plate> p = wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0});
-    std::shared_ptr<Plate> q = wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0});
+    std::shared_ptr<FacePlanarElement> p = wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0});
+    std::shared_ptr<FacePlanarElement> q = wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0});
     pair("plate_top_side_end", p, q, ButtConfiguration::top_side, [&] {
         near(extreme(*p, 0, false), -60.0, "plate_top_side_end: the running wall's end");
         near(extreme(*q, 1, false), 60.0, "plate_top_side_end: the butting wall's end");
@@ -193,7 +193,7 @@ static void pairs() {
         near(extreme(*p, 0, true), 0.0, "plate_side_side_inplane: the left end");
         near(extreme(*q, 0, false), 0.0, "plate_side_side_inplane: the right end");
     });
-    p = Plate::from_rectangle(
+    p = FacePlanarElement::from_rectangle(
         {-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "floor"
     );
     q = wall({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
@@ -202,7 +202,7 @@ static void pairs() {
     });
 
     // beams and plates: a column under a slab, a wall on a beam
-    p = Plate::from_rectangle(
+    p = FacePlanarElement::from_rectangle(
         {-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "slab"
     );
     const std::shared_ptr<Column> column = Column::square(
@@ -286,15 +286,15 @@ static void plates() {
         Point(6000.0, 4000.0, 0.0),
         Point(0.0, 4000.0, 0.0)
     };
-    const std::shared_ptr<Plate> floor = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> floor = FacePlanarElement::from_rectangle(
         {0.0, 0.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 6000.0, 4000.0, 200.0, "floor"
     );
-    const std::shared_ptr<Plate> roof = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> roof = FacePlanarElement::from_rectangle(
         {0.0, 0.0, 2700.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 6000.0, 4000.0, 200.0, "roof"
     );
-    std::array<std::shared_ptr<Plate>, 4> walls;
+    std::array<std::shared_ptr<FacePlanarElement>, 4> walls;
     for (size_t i = 0; i < 4; i++)
-        walls[i] = Plate::from_line(
+        walls[i] = FacePlanarElement::from_line(
             Line::from_points(footprint[i], footprint[(i + 1) % 4]),
             {0.0, 0.0, 1.0},
             2800.0,
@@ -303,17 +303,17 @@ static void plates() {
         );
     scene.add(floor);
     scene.add(roof);
-    for (const std::shared_ptr<Plate>& wall : walls)
+    for (const std::shared_ptr<FacePlanarElement>& wall : walls)
         scene.add(wall);
     for (const std::array<size_t, 2>& corner :
          std::array<std::array<size_t, 2>, 4>{{{0, 1}, {0, 3}, {2, 1}, {2, 3}}})
         join(scene, walls[corner[0]], walls[corner[1]]);
-    for (const std::shared_ptr<Plate>& wall : walls)
+    for (const std::shared_ptr<FacePlanarElement>& wall : walls)
         join(scene, floor, wall);
-    for (const std::shared_ptr<Plate>& wall : walls)
+    for (const std::shared_ptr<FacePlanarElement>& wall : walls)
         join(scene, roof, wall);
 
-    for (const std::shared_ptr<Plate>& slab : {floor, roof}) {
+    for (const std::shared_ptr<FacePlanarElement>& slab : {floor, roof}) {
         check(
             std::abs(extreme(*slab, 0, false) + 60.0) < FLUSH &&
                 std::abs(extreme(*slab, 0, true) - 6060.0) < FLUSH,
@@ -335,7 +335,7 @@ static void plates() {
             )
         );
     }
-    for (const std::shared_ptr<Plate>& wall : walls)
+    for (const std::shared_ptr<FacePlanarElement>& wall : walls)
         check(
             std::abs(extreme(*wall, 2, false) - 100.0) < FLUSH &&
                 std::abs(extreme(*wall, 2, true) - 2700.0) < FLUSH,
@@ -348,7 +348,7 @@ static void plates() {
         );
 
     // whole: the slabs' corners filled where two run-on edges meet, 6120 x 4120 x 200, the long walls 6120 x 2600 x 120
-    for (const std::shared_ptr<Plate>& slab : {floor, roof})
+    for (const std::shared_ptr<FacePlanarElement>& slab : {floor, roof})
         check(
             std::abs(
                 compute_volume(slab->model_geometry_mesh()) / (6120.0 * 4120.0 * 200.0) - 1.0
@@ -384,7 +384,7 @@ static void plates() {
         )
     );
 
-    const std::array<std::shared_ptr<Plate>, 6> all = {
+    const std::array<std::shared_ptr<FacePlanarElement>, 6> all = {
         floor, roof, walls[0], walls[1], walls[2], walls[3]
     };
     for (size_t i = 0; i < all.size(); i++)
@@ -415,14 +415,14 @@ static void folded_roof() {
         {4500.0, 0.0, 3200.0},
         {6000.0, 0.0, 2400.0}
     };
-    std::vector<std::shared_ptr<Plate>> roof;
+    std::vector<std::shared_ptr<FacePlanarElement>> roof;
     for (size_t i = 0; i + 1 < zigzag.size(); i++) {
         const Vector along = (zigzag[i + 1] - zigzag[i]).normalized();
         const Vector across = along.cross(Vector(0.0, 1.0, 0.0));
 
         const double before = i == 0 ? 300.0 / along[0] : 0.0;
         const double after = i + 2 == zigzag.size() ? 300.0 / along[0] : 0.0;
-        roof.push_back(Plate::from_rectangle(
+        roof.push_back(FacePlanarElement::from_rectangle(
             zigzag[i] - along * before - across * 80.0,
             along,
             {0.0, 1.0, 0.0},
@@ -436,18 +436,18 @@ static void folded_roof() {
     std::vector<Point> outline = {{6000.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
     outline.insert(outline.end(), zigzag.begin(), zigzag.end());
     outline.push_back(outline.front());
-    std::array<std::shared_ptr<Plate>, 2> gables;
+    std::array<std::shared_ptr<FacePlanarElement>, 2> gables;
     for (size_t g = 0; g < 2; g++) {
         const Polyline drawn = Polyline(outline).translated({0.0, g == 0 ? 0.0 : 4000.0, 0.0});
-        gables[g] = std::make_shared<Plate>(
+        gables[g] = std::make_shared<FacePlanarElement>(
             drawn.translated({0.0, -70.0, 0.0}),
             drawn.translated({0.0, 70.0, 0.0}),
             fmt::format("gable_{}", g)
         );
         scene.add(gables[g]);
     }
-    for (const std::shared_ptr<Plate>& plate : roof)
-        for (const std::shared_ptr<Plate>& gable : gables)
+    for (const std::shared_ptr<FacePlanarElement>& plate : roof)
+        for (const std::shared_ptr<FacePlanarElement>& gable : gables)
             join(scene, plate, gable);
     for (size_t i = 0; i + 1 < roof.size(); i++)
         join(scene, roof[i], roof[i + 1]);
@@ -478,7 +478,7 @@ static void folded_roof() {
         area += section[k][0] * section[(k + 1) % section.size()][1] -
                 section[(k + 1) % section.size()][0] * section[k][1];
     const double expected = 0.5 * std::abs(area) * 140.0;
-    for (const std::shared_ptr<Plate>& gable : gables)
+    for (const std::shared_ptr<FacePlanarElement>& gable : gables)
         check(
             std::abs(compute_volume(gable->model_geometry_mesh()) / expected - 1.0) < 1e-9,
             fmt::format(
@@ -489,7 +489,7 @@ static void folded_roof() {
             )
         );
 
-    std::vector<std::shared_ptr<Plate>> all = roof;
+    std::vector<std::shared_ptr<FacePlanarElement>> all = roof;
     all.insert(all.end(), gables.begin(), gables.end());
     for (size_t i = 0; i < all.size(); i++)
         for (size_t j = i + 1; j < all.size(); j++)

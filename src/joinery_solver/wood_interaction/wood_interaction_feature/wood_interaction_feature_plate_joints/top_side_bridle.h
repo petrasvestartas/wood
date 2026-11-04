@@ -7,7 +7,7 @@
 /// solid behind the slot. The lean is read from the male plate, so the walls stay square at any angle.
 static void top_side_bridle(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const double tongue
 ) {
 
@@ -22,7 +22,7 @@ static void top_side_bridle(
         const Polyline& second = *joint.joint_volumes[1];
         const Vector across = first[3] - first[0];
         const Vector along = second[0] - first[0];
-        const Plate& plate = *elements[male];
+        const FacePlanarElement& plate = *elements[male];
         const Vector middle =
             Point::mid_point(plate.polylines[0].center(), plate.polylines[1].center()) -
             Point::mid_point(first[0], second[1]);

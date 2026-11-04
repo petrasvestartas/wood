@@ -27,7 +27,7 @@ message WoodSession {
   repeated PlateGroup three_valence = 103;         // The three-valence instruction row, then one row of plate positions per group
 }
 
-// Two plate positions in world_elements<Plate>() order.
+// Two plate positions in world_elements<FacePlanarElement>() order.
 message PlatePair {
   int32 first = 1;
   int32 second = 2;

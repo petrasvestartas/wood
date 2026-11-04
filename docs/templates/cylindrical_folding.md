@@ -42,7 +42,7 @@ Folded structures of exact cylindrical [Curved Plate](@ref elements_plate_curved
 ## Cylindrical Crease Invariants {#why_cylinders}
 
 - Planar Crease Theorem: Two smooth developable patches meet along a planar curve when one is the reflection or mirror image of the other across the crease plane (rulings make equal angles with the plane).
-- Exact Rational NURBS Solids: Projecting a circular NURBS arc along parallel rulings onto an oblique fold plane is an affine map that preserves rational weights, producing exact ellipse arcs and an exact 6-patch `PlateCurved` solid (`distortion = 0`).
+- Exact Rational NURBS Solids: Projecting a circular NURBS arc along parallel rulings onto an oblique fold plane is an affine map that preserves rational weights, producing exact ellipse arcs and an exact 6-patch `FaceCurvedElement` solid (`distortion = 0`).
 
 ---
 
@@ -69,7 +69,7 @@ const std::vector<std::vector<NurbsCurve>> inners = compute_inners(segments, pro
 | `segments` | Fold planes from station + turn angle; optional `symmetry` plane at ridge/crown |
 | `creases` | Affine projection of `profile` curves along segment rulings onto each fold plane |
 | `inners` | Normal offsets (`±thickness`) projected along rulings to form shared inner miter curves |
-| `lamellas` | `PlateCurved(outer_a, outer_b, inner_a, inner_b)` per segment and profile arc |
+| `lamellas` | `FaceCurvedElement(outer_a, outer_b, inner_a, inner_b)` per segment and profile arc |
 | `flat` / `contacts` | Unrolled 2D `Development` cutting patterns + `compute_face_contacts(0)` verification |
 
 ### Reflection Principle {#reflection_principle}
@@ -150,7 +150,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Curved Folded Beam {#curved_folded_beam}
 
-`CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)`: closed box girder of `4` cylindrical `PlateCurved` flanges and webs (`top` and `bottom` arched outward by `rise`, `sides` dished inward by `sag`) stiffened by `webs` planar cross-diaphragms (`54` plates, `144` contacts across `6` beams).
+`CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)`: closed box girder of `4` cylindrical `FaceCurvedElement` flanges and webs (`top` and `bottom` arched outward by `rise`, `sides` dished inward by `sag`) stiffened by `webs` planar cross-diaphragms (`54` plates, `144` contacts across `6` beams).
 
 ![](templates/templates_cylindrical_folding_13_curved_folded_beam_all.webp)
 
@@ -160,7 +160,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Corner Fan {#corner_fan}
 
-`CornerFan(size, height, strips, lift, drop, foot, thickness, corner)`: `strips` cylindrical `PlateCurved` bands radiating from one corner of a `size × size` square to its two far sides along 3-point parabolic creases (`lift` mid-chord rise, alternating `drop` height modulation).
+`CornerFan(size, height, strips, lift, drop, foot, thickness, corner)`: `strips` cylindrical `FaceCurvedElement` bands radiating from one corner of a `size × size` square to its two far sides along 3-point parabolic creases (`lift` mid-chord rise, alternating `drop` height modulation).
 
 ### Six-Strip Corner Fan
 
@@ -174,7 +174,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Cylinder Carving {#cylinder_carving}
 
-`CylinderCarving(stock, carvers, length, thickness, min_angle, closed)`: sequential boolean subtraction `((a - b) - c) - d` of cylindrical `carvers` from a `stock` cylinder, converting each concave carved patch into a `PlateCurved` shell of `thickness`.
+`CylinderCarving(stock, carvers, length, thickness, min_angle, closed)`: sequential boolean subtraction `((a - b) - c) - d` of cylindrical `carvers` from a `stock` cylinder, converting each concave carved patch into a `FaceCurvedElement` shell of `thickness`.
 
 ### Sequential Three-Carver Column
 

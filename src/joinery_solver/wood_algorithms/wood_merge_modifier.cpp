@@ -11,7 +11,7 @@ namespace wood_session {
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distance_squared)
+MergeModifier::MergeModifier(const FacePlanarElement& plate, int plate_index, double distance_squared)
     : plate(plate), plate_index(plate_index) {
 
     if (TRACE) {
@@ -40,7 +40,7 @@ MergeModifier::MergeModifier(const Plate& plate, int plate_index, double distanc
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 std::vector<Polyline> MergeModifier::apply(
-    const Plate& plate,
+    const FacePlanarElement& plate,
     const std::vector<std::vector<std::pair<int, bool>>>& membership,
     std::vector<InteractionFeaturePlate>& joints,
     int plate_index,

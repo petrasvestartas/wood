@@ -9,21 +9,21 @@ int main() {
 
     // In-plane plates: seam at x = 300 keeps default 90-degree fingers; seam at x = 600 is angled by line
     wood_session.add(
-        Plate::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
+        FacePlanarElement::from_rectangle(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
     );
     wood_session.add(
-        Plate::from_rectangle(Point(300, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
+        FacePlanarElement::from_rectangle(Point(300, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
     );
     wood_session.add(
-        Plate::from_rectangle(Point(600, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
+        FacePlanarElement::from_rectangle(Point(600, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 300, 420, 40)
     );
 
     // Top-to-side T-joint: horizontal base (50 mm) and vertical wall with angled tenons and mortises
     wood_session.add(
-        Plate::from_rectangle(Point(1040, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 420, 420, 50)
+        FacePlanarElement::from_rectangle(Point(1040, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), 420, 420, 50)
     );
     wood_session.add(
-        Plate::from_rectangle(Point(1230, 0, 50), Vector(0, 1, 0), Vector(0, 0, 1), 420, 280, 40)
+        FacePlanarElement::from_rectangle(Point(1230, 0, 50), Vector(0, 1, 0), Vector(0, 0, 1), 420, 280, 40)
     );
 
     wood_session.settings.joint_parameters[0 * 3 + 0] = 60;

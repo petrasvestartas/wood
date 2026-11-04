@@ -19,7 +19,7 @@ Order-independent planar butt, miter, and half-lap joints (`JointBeam::butt`) be
 static std::shared_ptr<JointBeam> butt(const Element& a, const Element& b, double reach = 0.0);
 static std::shared_ptr<JointBeam> butt_side_side(const Element& a, const Element& b, double reach = 0.0);
 static std::shared_ptr<JointBeam> butt_top_side(const Element& top, const Element& side, double reach = 0.0);
-static std::shared_ptr<Plate> Plate::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
+static std::shared_ptr<FacePlanarElement> FacePlanarElement::from_line(const Line& base, const Vector& up, double height, double thickness, const std::string& name = "plate");
 ```
 
 ## Beams

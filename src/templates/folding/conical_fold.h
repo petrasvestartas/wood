@@ -92,7 +92,7 @@ inline ConicalFold::ConicalFold(
         Plane::from_point_normal(Point(0.0, width, 0.0), Vector(0.0, 1.0, 0.0)),
     };
 
-    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, sides))
+    for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

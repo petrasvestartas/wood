@@ -34,7 +34,7 @@ int main() {
             false,
             fmt::format("carving_{}", count)
         );
-        const size_t plates = carving.get_elements_placed<PlateCurved>("plate").size();
+        const size_t plates = carving.get_elements_placed<FaceCurvedElement>("plate").size();
         std::cout << fmt::format("{} carvers: {} plates, {} contacts, development distortion {:.2e}\n", count, plates, carving.get_contacts().size(), carving.distortion());
         stages.graft(carving, stages.add_group(fmt::format("stage_{}", count)));
     }

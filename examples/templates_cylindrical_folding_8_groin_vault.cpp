@@ -11,10 +11,10 @@ int main() {
     std::cout << vault << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels =
-        vault.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> panels =
+        vault.get_elements_placed<FaceCurvedElement>("lamella");
 
-    for (const std::shared_ptr<PlateCurved>& panel : panels)
+    for (const std::shared_ptr<FaceCurvedElement>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(
@@ -32,7 +32,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the cylindrical folding templates: the groin vault. Two half barrels of 12 m span and 6 m radius cross over a 12 m square; every quarter is a level cylinder from its side to the centre, and neighbours meet on half ellipses in the diagonal planes. Every segment is one 120 mm PlateCurved: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
+Step 8 of the cylindrical folding templates: the groin vault. Two half barrels of 12 m span and 6 m radius cross over a 12 m square; every quarter is a level cylinder from its side to the centre, and neighbours meet on half ellipses in the diagonal planes. Every segment is one 120 mm FaceCurvedElement: its outer face the exact cylinder, its inner face the cylinder 120 mm smaller, its side faces shared with its neighbours across the creases; every panel unfolds flat. Groups: plan, lamellas, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

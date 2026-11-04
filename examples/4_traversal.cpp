@@ -17,8 +17,8 @@ int main() {
     wood_session.compute_features();
 
     const InteractionFeaturePlate joint = wood_session.get_plate_features().front();
-    const std::shared_ptr<Plate> male = wood_session.get_element<Plate>(joint.element_a);
-    const std::shared_ptr<Plate> female = wood_session.get_element<Plate>(joint.element_b);
+    const std::shared_ptr<FacePlanarElement> male = wood_session.get_element<FacePlanarElement>(joint.element_a);
+    const std::shared_ptr<FacePlanarElement> female = wood_session.get_element<FacePlanarElement>(joint.element_b);
     std::cout << "joint " << joint.name << " cuts " << male->name << " and " << female->name
               << "\n";
 

@@ -8,7 +8,7 @@ using namespace wood_session;
 int main() {
 
     TranslationShell shell;
-    const std::vector<std::shared_ptr<Plate>> plates = shell.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = shell.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fmt::format("translation shell: {} plates\n", plates.size());
     shell.pb_dump(pb_path("live"));
     return 0;

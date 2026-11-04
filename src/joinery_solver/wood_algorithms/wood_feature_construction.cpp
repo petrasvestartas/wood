@@ -20,7 +20,7 @@ joint_volume_extension(const std::vector<double>& extension, size_t joint_id) {
     return {extension[at], extension[at + 1], extension[at + 2]};
 }
 
-int index_of_plate(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid) {
+int index_of_plate(const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const std::string& guid) {
 
     for (size_t i = 0; i < elements.size(); ++i)
         if (elements[i]->guid() == guid)

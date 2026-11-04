@@ -23,10 +23,10 @@ int main() {
     std::cout << unfolding << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates =
-        unfolding.get_elements_placed<PlateCurved>("plate");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
+        unfolding.get_elements_placed<FaceCurvedElement>("plate");
 
-    for (const std::shared_ptr<PlateCurved>& plate : plates)
+    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(
@@ -44,7 +44,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the developable folding templates: a synclastic vault by plane inclination. Five planes 1000 mm apart on the floor, each leaning 5 degrees more toward the middle, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the apex is drawn in. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
+Step 5 of the developable folding templates: a synclastic vault by plane inclination. Five planes 1000 mm apart on the floor, each leaning 5 degrees more toward the middle, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: the apex is drawn in. Each plate is a FaceCurvedElement mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

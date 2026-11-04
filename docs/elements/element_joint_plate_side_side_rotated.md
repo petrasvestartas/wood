@@ -2,7 +2,7 @@
 
 [TOC]
 
-Side-to-side rotated plate joints connecting two plates whose side faces meet along a twisted seam (`Plate::pair_rotated(0.0)` and `Plate::pair_rotated(20.0)`).
+Side-to-side rotated plate joints connecting two plates whose side faces meet along a twisted seam (`FacePlanarElement::pair_rotated(0.0)` and `FacePlanarElement::pair_rotated(20.0)`).
 
 ## Constructors
 
@@ -13,7 +13,7 @@ static std::shared_ptr<JointPlate> side_side_rotated_keys(int divisions = 0, dou
 static std::shared_ptr<JointPlate> side_side_rotated_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 static std::shared_ptr<JointPlate> side_removal(bool merge_with_joint = false, double shift = 0.5);
 
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements, const Settings& settings = Settings());
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const Settings& settings = Settings());
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 

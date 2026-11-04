@@ -8,7 +8,7 @@ using namespace wood_session;
 int main() {
 
     TruncatedPyramid fold;
-    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("truncated pyramid: {}\n", plate_report(plates, fold.thickness));
     fold.pb_dump(pb_path("live"));

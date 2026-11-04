@@ -26,8 +26,8 @@ int main() {
 
     const std::vector<std::shared_ptr<JointPlate>> cross_laps =
         vda.get_elements_placed<JointPlate>("cross_lap");
-    const std::vector<std::shared_ptr<Plate>> connectors =
-        vda.get_elements_placed<Plate>("connector");
+    const std::vector<std::shared_ptr<FacePlanarElement>> connectors =
+        vda.get_elements_placed<FacePlanarElement>("connector");
     std::cout << fmt::format(
                      "cross laps: {} for {} connectors", cross_laps.size(), connectors.size()
                  )

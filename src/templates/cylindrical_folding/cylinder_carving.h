@@ -530,7 +530,7 @@ inline void CylinderCarving::add_plates() {
                 curves[c] = joined[0];
             }
 
-            const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
+            const std::shared_ptr<FaceCurvedElement> plate = std::make_shared<FaceCurvedElement>(
                 curves[0],
                 curves[1],
                 curves[2],

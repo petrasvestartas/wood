@@ -8,7 +8,7 @@ int main() {
 
     WoodSession scene("element_plate_holes");
 
-    const std::shared_ptr<Plate> plate = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> plate = FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 600.0, 400.0, 40.0
     );
     scene.add(plate);

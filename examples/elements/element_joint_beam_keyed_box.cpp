@@ -13,11 +13,11 @@ int main() {
     const Vector across(0.0, 1.0, 0.0);
     const Vector up(0.0, 0.0, 1.0);
     const Point corner(0.0, -160.0, -200.0);
-    const std::shared_ptr<Plate> first = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> first = FacePlanarElement::from_rectangle(
         corner - Vector(thickness, 0.0, 0.0), across, up, 320.0, 400.0, thickness, "first"
     );
-    const std::shared_ptr<Plate> second =
-        Plate::from_rectangle(corner, across, up, 320.0, 400.0, thickness, "second");
+    const std::shared_ptr<FacePlanarElement> second =
+        FacePlanarElement::from_rectangle(corner, across, up, 320.0, 400.0, thickness, "second");
     scene.add(first);
     scene.add(second);
 

@@ -100,7 +100,7 @@ void check_beam(
 
     const Mesh& mesh = beam.element_geometry_mesh();
     const double volume = compute_volume(mesh);
-    const Plate plate(outline[1], outline[0], name);
+    const FacePlanarElement plate(outline[1], outline[0], name);
     const double reference = compute_volume(plate.element_geometry_mesh());
 
     check(mesh.is_closed(), name + " closed");
@@ -304,7 +304,7 @@ void check_support() {
                     std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
                 adds += feature->operation == SolidOperation::add;
 
-    for (const std::shared_ptr<Plate>& cutter : carved.plates())
+    for (const std::shared_ptr<FacePlanarElement>& cutter : carved.get_elements<FacePlanarElement>())
         for (const std::shared_ptr<Interaction>& interaction :
              carved.get_interaction(cutter, shaft))
             if (const std::shared_ptr<InteractionFeatureSolid> feature =
@@ -1232,7 +1232,7 @@ void check_extract_quarter() {
 void check_centred_pins() {
 
     WoodSession scene("pins");
-    const std::shared_ptr<Plate> lower = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> lower = FacePlanarElement::from_rectangle(
         Point(0.0, 0.0, 0.0),
         Vector(1.0, 0.0, 0.0),
         Vector(0.0, 1.0, 0.0),
@@ -1241,7 +1241,7 @@ void check_centred_pins() {
         60.0,
         "lower"
     );
-    const std::shared_ptr<Plate> upper = Plate::from_rectangle(
+    const std::shared_ptr<FacePlanarElement> upper = FacePlanarElement::from_rectangle(
         Point(0.0, 0.0, 60.0),
         Vector(1.0, 0.0, 0.0),
         Vector(0.0, 1.0, 0.0),
@@ -1287,7 +1287,7 @@ void check_centred_pins() {
     check_nested(scene, *joint, 0, 4);
     const double bore = faceted_area(joint->line_radius, joint->chord_tolerance) * 15.0 * 4.0;
 
-    for (const std::shared_ptr<Plate>& plate : {lower, upper}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {lower, upper}) {
         const double volume = compute_volume(plate->model_geometry_mesh());
         check(
             std::abs(600.0 * 200.0 * 60.0 - bore - volume) <= 1e-6 * volume,
@@ -1450,8 +1450,8 @@ void check_cross_laps(
 ) {
 
     for (const std::shared_ptr<JointPlate>& lap : laps) {
-        const std::shared_ptr<Plate> a = scene.get_element<Plate>(lap->targets[0]);
-        const std::shared_ptr<Plate> b = scene.get_element<Plate>(lap->targets[1]);
+        const std::shared_ptr<FacePlanarElement> a = scene.get_element<FacePlanarElement>(lap->targets[0]);
+        const std::shared_ptr<FacePlanarElement> b = scene.get_element<FacePlanarElement>(lap->targets[1]);
         const Mesh& lapped_a = a->model_geometry_mesh();
         const Mesh& lapped_b = b->model_geometry_mesh();
         check(lapped_a.is_closed() && lapped_b.is_closed(), lap->name + " both plates closed");
@@ -1524,8 +1524,8 @@ void check_rectangle_plates() {
     for (size_t q = 0; q < 4; q++)
         for (size_t k = 0; k < 2; k++) {
             const std::string name = fmt::format("column_plate_{}_{}", q, k);
-            const double before = compute_volume(named<Plate>(scene, name)->model_geometry_mesh());
-            const double after = compute_volume(named<Plate>(back, name)->model_geometry_mesh());
+            const double before = compute_volume(named<FacePlanarElement>(scene, name)->model_geometry_mesh());
+            const double after = compute_volume(named<FacePlanarElement>(back, name)->model_geometry_mesh());
             check(
                 std::abs(before - after) < 1e-6 * before,
                 name + " lapped and bored the same after a round trip"

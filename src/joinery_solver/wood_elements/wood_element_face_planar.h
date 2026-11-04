@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element.h"
+#include "wood_element_face.h"
 
 using namespace session_cpp;
 
@@ -15,12 +15,13 @@ struct Features {
 };
 
 /// Element that represents a timber plate.
-class Plate : public WoodElement {
+class FacePlanarElement : public FaceElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE =
-        "Plate"; // The element_type this plate is written under.
-    static constexpr std::string_view LEGACY_ELEMENT_TYPE =
-        "WoodElement"; // The element_type wood wrote before, still accepted on read.
+        "FacePlanarElement"; // The element_type this plate is written under.
+    static constexpr std::array<std::string_view, 2> LEGACY_ELEMENT_TYPES = {
+        "Plate", "WoodElement"
+    }; // The element_types wood wrote before, still accepted on read.
     std::vector<Polyline>
         polylines; // Face outlines: [0] bottom, [1] top, [2..] one closed quad per side.
     std::vector<Plane> planes; // One plane per outline, normals pointing out of the plate.
@@ -48,17 +49,17 @@ public:
     std::optional<Plane> base_plane() const override;
 
     /// An empty plate: no outlines, no planes, nothing to loft.
-    Plate();
+    FacePlanarElement();
 
     /// A plate from its bottom and top outline; `name` is the type flag face_contacts() filters on.
-    Plate(const Polyline& bottom, const Polyline& top, const std::string& name = "plate");
+    FacePlanarElement(const Polyline& bottom, const Polyline& top, const std::string& name = "plate");
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// A rectangular plate: the kernel's rectangle at `origin` along `x_axis` and `y_axis` as the bottom outline, moved by `thickness` for the top.
-    static std::shared_ptr<Plate> from_rectangle(
+    static std::shared_ptr<FacePlanarElement> from_rectangle(
         const Point& origin,
         const Vector& x_axis,
         const Vector& y_axis,
@@ -69,7 +70,7 @@ public:
     );
 
     /// A plate standing on a line and centred on it.
-    static std::shared_ptr<Plate> from_line(
+    static std::shared_ptr<FacePlanarElement> from_line(
         const Line& base,
         const Vector& up,
         double height,
@@ -78,14 +79,14 @@ public:
     );
 
     /// A row of plates lofted between two rails.
-    static std::vector<std::shared_ptr<Plate>> row_between(
+    static std::vector<std::shared_ptr<FacePlanarElement>> row_between(
         const std::array<Polyline, 2>& bottom,
         const std::array<Polyline, 2>& top,
         const std::string& name = "plates"
     );
 
     /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`.
-    static std::array<std::shared_ptr<Plate>, 2> pair_in_plane(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_in_plane(
         double angle_degrees = 180.0,
         double length = 300.0,
         double width = 400.0,
@@ -93,7 +94,7 @@ public:
     );
 
     /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`.
-    static std::array<std::shared_ptr<Plate>, 2> pair_folded(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_folded(
         double angle_degrees = 90.0,
         double length = 300.0,
         double width = 400.0,
@@ -102,7 +103,7 @@ public:
     );
 
     /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`.
-    static std::array<std::shared_ptr<Plate>, 2> pair_top_side(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_top_side(
         double angle_degrees = 90.0,
         double base_size = 400.0,
         double upright_size = 250.0,
@@ -110,7 +111,7 @@ public:
     );
 
     /// Creates two upright plates crossing at their centres at the specified angle.
-    static std::array<std::shared_ptr<Plate>, 2> pair_crossing(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_crossing(
         double angle_degrees = 90.0,
         double length = 400.0,
         double height = 200.0,
@@ -118,7 +119,7 @@ public:
     );
 
     /// Two plates `length` x `width` x `thickness` stacked face on face, "lower" and "upper".
-    static std::array<std::shared_ptr<Plate>, 2> pair_stacked(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_stacked(
         double twist_degrees = 0.0,
         double length = 400.0,
         double width = 300.0,
@@ -126,7 +127,7 @@ public:
     );
 
     /// Two plates end to end, "left" and "right".
-    static std::array<std::shared_ptr<Plate>, 2> pair_rotated(
+    static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_rotated(
         double twist_degrees = 10.0,
         double length = 300.0,
         double width = 400.0,
@@ -134,7 +135,7 @@ public:
     );
 
     /// The plate an Element written by pb_dumps() describes, same guid; an element without the outline payload comes back empty.
-    static std::shared_ptr<Plate> from_element(Element element);
+    static std::shared_ptr<FacePlanarElement> from_element(Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -157,7 +158,7 @@ public:
     Vector insertion_vector(int face) const;
 
     /// A copy moved by xform from the members alone, never the constructor.
-    std::shared_ptr<Plate> transformed(const Xform& xform) const;
+    std::shared_ptr<FacePlanarElement> transformed(const Xform& xform) const;
 
     /// Moves the solid, the element features and the insertion vectors, then the outlines, planes and merged features, and drops all cached lofts.
     void place(const Xform& xform) override;
@@ -202,7 +203,7 @@ public:
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The outline payload as wood_proto.Plate bytes: what the kernel carries in element_data.
+    /// The outline payload as wood_proto.FacePlanarElement bytes: what the kernel carries in element_data.
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
@@ -218,20 +219,20 @@ public:
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<Plate>(*this);
+        return std::make_shared<FacePlanarElement>(*this);
     }
 
-    /// Registers the "Plate" factory (and the legacy "WoodElement" tag) with the kernel, so Session::pb_load rebuilds plates.
+    /// Registers the "FacePlanarElement" factory (and the legacy "Plate" and "WoodElement" tags) with the kernel, so Session::pb_load rebuilds plates.
     static void register_type();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "Plate(name, polylines, thickness)".
+    /// "FacePlanarElement(name, polylines, thickness)".
     std::string str() const override;
 
-    /// "Plate(name, polylines, planes, reversed, thickness, features)".
+    /// "FacePlanarElement(name, polylines, planes, reversed, thickness, features)".
     std::string repr() const override;
 
     // ═══════════════════════════════════════════════════════════════════════════

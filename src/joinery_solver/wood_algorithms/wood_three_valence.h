@@ -11,13 +11,13 @@ uint64_t pair_key(int a, int b);
 
 /// Element pair -> joint index (last joint wins); rebuilt wherever the joint list may have changed.
 std::unordered_map<uint64_t, int> joints_by_element_pair(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints
 );
 
 /// Element pair -> the indices of all its joints in detection order, as a pair listed twice in the adjacency has two.
 std::unordered_map<uint64_t, std::vector<int>> joints_of_element_pairs(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints
 );
 
@@ -34,7 +34,7 @@ bool row_joints(
 /// Vidy method.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
     double angle
@@ -43,14 +43,14 @@ void add_vidy_shadow_joints(
 /// Annen method: shorten the two overlapping joint lines at a 3-plate corner by the plate thickness and clip the volumes to match.
 void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints
 );
 
 /// Applies the three-valence groups.
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& all_joints,
     double angle
 );

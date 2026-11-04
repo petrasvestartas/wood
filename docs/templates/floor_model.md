@@ -97,13 +97,13 @@ void Floor::add_quarters() {
     for (size_t q = 0; q < 4; q++) {
         const std::shared_ptr<TreeNode> group = quarter_group(q);
 
-        // beds: Plate, three rows of plates between the bed rails, beds_<row>_<i>_<q> under beds_<row>_<q>
+        // beds: FacePlanarElement, three rows of plates between the bed rails, beds_<row>_<i>_<q> under beds_<row>_<q>
         const std::shared_ptr<TreeNode> beds = add_group(fmt::format("beds_{}", q), group);
         const std::array<std::array<std::array<Polyline, 2>, 2>, 3>& rows = guide.bed_rails(q);
 
         for (size_t row = 0; row < rows.size(); row++) {
             const std::shared_ptr<TreeNode> node = add_group(fmt::format("beds_{}_{}", row, q), beds);
-            const std::vector<std::shared_ptr<Plate>> plates = Plate::row_between(rows[row][0], rows[row][1]);
+            const std::vector<std::shared_ptr<FacePlanarElement>> plates = FacePlanarElement::row_between(rows[row][0], rows[row][1]);
 
             for (size_t i = 0; i < plates.size(); i++) {
                 plates[i]->name = fmt::format("beds_{}_{}_{}", row, i, q);
@@ -112,12 +112,12 @@ void Floor::add_quarters() {
             }
         }
 
-        // tsections: Plate, the flanges beside the ribs, tsections_<i>_<q>
+        // tsections: FacePlanarElement, the flanges beside the ribs, tsections_<i>_<q>
         const std::shared_ptr<TreeNode> tsections = add_group(fmt::format("tsections_{}", q), group);
         const std::array<std::array<Polyline, 2>, 6>& tsection_loops = guide.tsections(q);
 
         for (size_t i = 0; i < tsection_loops.size(); i++) {
-            const std::shared_ptr<Plate> tsection = std::make_shared<Plate>(tsection_loops[i][1], tsection_loops[i][0], fmt::format("tsections_{}_{}", i, q));
+            const std::shared_ptr<FacePlanarElement> tsection = std::make_shared<FacePlanarElement>(tsection_loops[i][1], tsection_loops[i][0], fmt::format("tsections_{}_{}", i, q));
             tsection->place(lift);
             add(tsection, tsections);
         }
@@ -142,12 +142,12 @@ void Floor::add_quarters() {
             add(inner_rib, inner);
         }
 
-        // wedges: Plate, the three column blocks of the column head fan, wedges_<i>_<q>
+        // wedges: FacePlanarElement, the three column blocks of the column head fan, wedges_<i>_<q>
         const std::shared_ptr<TreeNode> wedges = add_group(fmt::format("wedges_{}", q), group);
         const std::array<std::array<Polyline, 2>, 3>& block_loops = guide.wedges(q);
 
         for (size_t i = 0; i < block_loops.size(); i++) {
-            const std::shared_ptr<Plate> block = std::make_shared<Plate>(block_loops[i][1], block_loops[i][0], fmt::format("wedges_{}_{}", i, q));
+            const std::shared_ptr<FacePlanarElement> block = std::make_shared<FacePlanarElement>(block_loops[i][1], block_loops[i][0], fmt::format("wedges_{}_{}", i, q));
             block->place(lift);
             add(block, wedges);
         }
@@ -269,18 +269,18 @@ void Floor::add_oculus() {
         add(ring_beam, ring_beams);
     }
 
-    // bottom_wedges: Plate, the plate under ring beam q, oculus_<4 + q>
+    // bottom_wedges: FacePlanarElement, the plate under ring beam q, oculus_<4 + q>
     const std::shared_ptr<TreeNode> bottom_wedges = add_group("bottom_wedges", group);
 
     for (size_t q = 0; q < 4; q++) {
-        const std::shared_ptr<Plate> bottom_wedge = std::make_shared<Plate>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
+        const std::shared_ptr<FacePlanarElement> bottom_wedge = std::make_shared<FacePlanarElement>(loops[4 + q][1], loops[4 + q][0], fmt::format("oculus_{}", 4 + q));
         bottom_wedge->place(lift);
         add(bottom_wedge, bottom_wedges);
     }
 
-    // central_plate: Plate, oculus_8
+    // central_plate: FacePlanarElement, oculus_8
     const std::shared_ptr<TreeNode> central_plate = add_group("central_plate", group);
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(loops[8][1], loops[8][0], "oculus_8");
+    const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(loops[8][1], loops[8][0], "oculus_8");
     plate->place(lift);
     add(plate, central_plate);
 }
@@ -356,7 +356,7 @@ The cutter plates. The guide's six cutter loop pairs become plates lifted to `ba
 
 ```cpp
 const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
-std::vector<std::shared_ptr<Plate>> cutters;
+std::vector<std::shared_ptr<FacePlanarElement>> cutters;
 ```
 
 ![The cutter plates](floor/227_cutters.webp)
@@ -398,7 +398,7 @@ It takes the inclined faces away with a `SolidOperation::subtract` interaction.
 
 ```cpp
 // the six cutters, hidden, take the head's inclined faces away
-for (const std::shared_ptr<Plate>& cutter : cutters) {
+for (const std::shared_ptr<FacePlanarElement>& cutter : cutters) {
     cutter->is_visible = false;
     add(cutter, group);
     const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(cutter->element_geometry_mesh(), SolidOperation::subtract);
@@ -502,7 +502,7 @@ It is stored as an interaction between the two members, named `seam_wedge_0`.
 
 A connector is a joint element built on one contact between two members, `a` and `b`.
 Most are a `JointBeam`.
-The column plate is a `Plate`, let in by a `JointBeam::rectangle_plate` with three targets: the column, the rib and the plate.
+The column plate is a `FacePlanarElement`, let in by a `JointBeam::rectangle_plate` with three targets: the column, the rib and the plate.
 The cross lap is a `JointPlate`.
 
 A `JointBeam` holds its own solids and, per member, the pockets it cuts:
@@ -638,7 +638,7 @@ for (size_t k = 0; k < 2; k++) {
 }
 
 // cross lap: the half lap where the two column plates cross, a plate joint merged into both outlines
-const std::array<std::shared_ptr<Plate>, 2>& plates = quarter_connectors.column_plates;
+const std::array<std::shared_ptr<FacePlanarElement>, 2>& plates = quarter_connectors.column_plates;
 const std::shared_ptr<InteractionContactCross> crossing = compute_cross_contact(plates[0], plates[1]);
 ```
 
@@ -646,7 +646,7 @@ The contact between the column head and the outer rib.
 
 ![The contact](floor/906_connector_plate_contact.webp)
 
-`JointBeam::let_in_plate` makes the plate, a `Plate` named after its contact.
+`JointBeam::let_in_plate` makes the plate, a `FacePlanarElement` named after its contact.
 `JointBeam::rectangle_plate` lets it into the column and the rib: a pocket in both, two pins in the column and two in the rib.
 Each pin is `size_outer_ribs` long and bored through its member and the plate.
 
@@ -660,7 +660,7 @@ Added, the joint targets the column, the rib and the plate.
 // column plates: each plate added, then let into the column and the outer rib, the pins bored through it too
 for (size_t q = 0; q < 4; q++)
     for (size_t k = 0; k < 2; k++) {
-        const std::shared_ptr<Plate>& plate = connectors[q].column_plates[k];
+        const std::shared_ptr<FacePlanarElement>& plate = connectors[q].column_plates[k];
         const std::shared_ptr<JointBeam>& pins = connectors[q].column_plate_pins[k];
         const Contact& column = contacts[q].column_plates[k];
         add(plate, connectors_group(q));
@@ -687,7 +687,7 @@ It is added last and merged into both plates' outlines.
 // cross laps, last: the half lap merged into the outlines of the two column plates
 for (size_t q = 0; q < 4; q++) {
     const std::shared_ptr<JointPlate>& lap = connectors[q].cross_lap;
-    const std::array<std::shared_ptr<Plate>, 2>& plates = connectors[q].column_plates;
+    const std::array<std::shared_ptr<FacePlanarElement>, 2>& plates = connectors[q].column_plates;
     add(lap, connectors_group(q));
     add_interaction(lap, plates[0], lap->interaction(0));
     add_interaction(lap, plates[1], lap->interaction(1));
@@ -1037,25 +1037,25 @@ group                              elements
 floor
 ├── quarter_0                      quarter_1 .. quarter_3 alike
 │   ├── beds_0
-│   │   └── beds_<row>_0           Plate beds_<row>_<i>_0, three rows
-│   ├── tsections_0                Plate tsections_<i>_0, six
+│   │   └── beds_<row>_0           FacePlanarElement beds_<row>_<i>_0, three rows
+│   ├── tsections_0                FacePlanarElement tsections_<i>_0, six
 │   ├── outer_ribs_0               BeamVariable outer_ribs_<i>_0, two
 │   ├── inner_ribs_0               BeamVariable inner_ribs_<i>_0, two
-│   ├── wedges_0                   Plate wedges_<i>_0, the three column blocks
+│   ├── wedges_0                   FacePlanarElement wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              BeamVariable inner_beams_<i>_0: seam 0, the oculus edge, seam 1
 │   ├── column_0                   Column column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
 │   │                              NodeSupportElement support_0, Joint support (the seat),
-│   │                              Plate column_cutters_<i>_0, six (hidden)
+│   │                              FacePlanarElement column_cutters_<i>_0, six (hidden)
 │   └── connectors_0               JointBeam connector_seam_wedge_0,
-│                                  Plate column_plate_0_<k>, JointBeam connector_column_plate_0_<k>,
+│                                  FacePlanarElement column_plate_0_<k>, JointBeam connector_column_plate_0_<k>,
 │                                  JointBeam connector_block_pins_0_<b>_<side>,
 │                                  JointBeam connector_pins_outer_rib_0_<k>, connector_pins_seam_beam_0_<k>,
 │                                  connector_pins_inner_rib_0_<k>,
 │                                  JointPlate connector_cross_lap_0
 └── oculus
     ├── ring_beams                 BeamVariable oculus_<q>, four
-    ├── bottom_wedges              Plate oculus_<4 + q>, under ring beam q, four
-    ├── central_plate              Plate oculus_8
+    ├── bottom_wedges              FacePlanarElement oculus_<4 + q>, under ring beam q, four
+    ├── central_plate              FacePlanarElement oculus_8
     └── connectors                 JointBeam connector_oculus_wedge_<q>, four,
                                    JointBeam connector_pins_ring_corner_<q>, four
 ```
@@ -1134,7 +1134,7 @@ struct QuarterContacts {
 struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
-    std::array<std::shared_ptr<Plate>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
+    std::array<std::shared_ptr<FacePlanarElement>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
     std::array<std::shared_ptr<JointBeam>, 2> column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
     std::shared_ptr<JointPlate> cross_lap; // connector_cross_lap_<q>, the cross half lap where the two column plates cross.
     std::array<std::array<std::shared_ptr<JointBeam>, 2>, 3> block_pins; // connector_block_pins_<q>_<b>_<side>, per block and side.

@@ -45,7 +45,7 @@ development.outline;    // 2D cutting pattern in the xy-plane (placed in group "
 
 ## Curved Fold Tent Roof {#curved_fold_roof}
 
-Twelve-sector freestanding folded shell (`32 m` eaves diameter, `26 m` tower height, `24` `PlateCurved` lamellas, `24` contacts) ruled between star-ring interpolated NURBS meridians.
+Twelve-sector freestanding folded shell (`32 m` eaves diameter, `26 m` tower height, `24` `FaceCurvedElement` lamellas, `24` contacts) ruled between star-ring interpolated NURBS meridians.
 
 \include{lineno} templates_developable_folding_1_curved_fold.cpp
 

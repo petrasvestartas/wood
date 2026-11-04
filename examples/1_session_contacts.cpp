@@ -8,10 +8,10 @@ int main() {
     // WoodSession:
     WoodSession wood_session("elements");
 
-    const std::shared_ptr<Plate> plate0 =
-        Plate::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const std::shared_ptr<Plate> plate1 =
-        Plate::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
+    const std::shared_ptr<FacePlanarElement> plate0 =
+        FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
+    const std::shared_ptr<FacePlanarElement> plate1 =
+        FacePlanarElement::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
     const std::shared_ptr<Beam> beam =
         std::make_shared<Beam>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
     const std::shared_ptr<Column> column = Column::square(

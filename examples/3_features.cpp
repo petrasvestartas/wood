@@ -29,7 +29,7 @@ int main() {
             joint.divisions
         );
 
-    const std::shared_ptr<Plate> plate = wood_session.plates().front();
+    const std::shared_ptr<FacePlanarElement> plate = wood_session.get_elements<FacePlanarElement>().front();
     std::cout << fmt::format(
         "{}: {} faces alone, {} faces with joints, {} joint features\n",
         plate->name,

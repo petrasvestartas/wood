@@ -142,7 +142,7 @@ static void check_rectangle_plate() {
     scene.add(column);
     scene.add(rib);
     const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(column, rib);
-    const std::shared_ptr<Plate> plate = JointBeam::let_in_plate(*rib, *contact);
+    const std::shared_ptr<FacePlanarElement> plate = JointBeam::let_in_plate(*rib, *contact);
     const std::shared_ptr<JointBeam> pins =
         JointBeam::rectangle_plate(*column, *rib, *plate, *contact);
     check(pins->drill_lines.size() == 4, fmt::format("{} pins, not 4", pins->drill_lines.size()));

@@ -30,10 +30,10 @@ int main() {
     std::cout << unfolding << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates =
-        unfolding.get_elements_placed<PlateCurved>("plate");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
+        unfolding.get_elements_placed<FaceCurvedElement>("plate");
 
-    for (const std::shared_ptr<PlateCurved>& plate : plates)
+    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(

@@ -10,8 +10,8 @@ int main() {
     const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
     ChevronShifted shifted(surfaces[0]);
-    const std::vector<std::shared_ptr<Plate>> plates =
-        shifted.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates =
+        shifted.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << shifted << std::endl;
     std::cout << fmt::format(
         "chevron shifted: {} cells, {} plates\n", shifted.cells().masks.size(), plates.size()

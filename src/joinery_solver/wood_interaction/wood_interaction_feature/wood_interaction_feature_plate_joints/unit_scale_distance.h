@@ -1,5 +1,5 @@
 static double unit_scale_distance(
-    const InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements
+    const InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
 
     const int v0 = index_of_plate(elements, joint.element_a);

@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-#include "wood_element_plate.h"
+#include "wood_element_face_planar.h"
 #include "wood_interaction_feature_plate.h"
 #include "wood_interaction_feature_fabrication_type.h"
 
@@ -34,7 +34,7 @@ void joint_get_divisions(InteractionFeaturePlate& joint, double division_distanc
 std::array<double, 3> joint_volume_extension(const std::vector<double>& extension, size_t joint_id);
 
 /// Position of the plate with this guid, or -1.
-int index_of_plate(const std::vector<std::shared_ptr<Plate>>& elements, const std::string& guid);
+int index_of_plate(const std::vector<std::shared_ptr<FacePlanarElement>>& elements, const std::string& guid);
 
 /// Position of the joint with this guid in a solver run's joint list, or -1.
 int index_of_joint(const std::vector<InteractionFeaturePlate>& joints, const std::string& guid);

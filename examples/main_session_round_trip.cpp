@@ -67,8 +67,8 @@ int main() {
         a.objects.elements->size() == b.objects.elements->size(),
         fmt::format("element count ({})", a.objects.elements->size())
     );
-    const std::vector<std::shared_ptr<Plate>> plates_a = a.plates();
-    const std::vector<std::shared_ptr<Plate>> plates_b = b.plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates_a = a.get_elements<FacePlanarElement>();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates_b = b.get_elements<FacePlanarElement>();
     check(plates_a.size() == plates_b.size(), fmt::format("plate count ({})", plates_a.size()));
     check(a.columns().size() == b.columns().size(), "column count");
     check(a.get_elements<NodeBlockElement>().size() == b.get_elements<NodeBlockElement>().size(), "block count");
@@ -76,10 +76,10 @@ int main() {
     bool typed = true;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)
         typed = typed && a.get_element<Element>(element->guid()) == element &&
-                (element->element_type_name() != Plate::ELEMENT_TYPE ||
-                 std::dynamic_pointer_cast<Plate>(element));
+                (element->element_type_name() != FacePlanarElement::ELEMENT_TYPE ||
+                 std::dynamic_pointer_cast<FacePlanarElement>(element));
 
-    check(typed, "every element is held once, and every \"Plate\" is a Plate object");
+    check(typed, "every element is held once, and every \"FacePlanarElement\" is a FacePlanarElement object");
     check(a.element_guids() == b.element_guids(), "every element guid, in order");
 
     check(tree_nodes(a) == tree_nodes(b), fmt::format("tree node count ({})", tree_nodes(a)));
@@ -166,7 +166,7 @@ int main() {
 
     for (const std::shared_ptr<Element>& element : *b.objects.elements) {
 
-        if (!std::dynamic_pointer_cast<Plate>(element))
+        if (!std::dynamic_pointer_cast<FacePlanarElement>(element))
             continue;
 
         for (const ElementFeature& feature : element->features())
@@ -183,7 +183,7 @@ int main() {
     );
     check(
         contacts > 0 && linked == contacts,
-        "every Plate's contact feature keeps its interaction's guid through the pb"
+        "every FacePlanarElement's contact feature keeps its interaction's guid through the pb"
     );
 
     const WoodSession copy = a;
@@ -300,33 +300,33 @@ int main() {
     if (plates_a.empty())
         return failures;
 
-    const std::shared_ptr<Plate> plate = plates_a[0];
-    const std::shared_ptr<Plate> proto =
-        std::dynamic_pointer_cast<Plate>(Element::pb_loads_polymorphic(plate->pb_dumps()));
+    const std::shared_ptr<FacePlanarElement> plate = plates_a[0];
+    const std::shared_ptr<FacePlanarElement> proto =
+        std::dynamic_pointer_cast<FacePlanarElement>(Element::pb_loads_polymorphic(plate->pb_dumps()));
     check(
         proto && proto->polylines.size() == plate->polylines.size() &&
             proto->polylines[0].point_count() == plate->polylines[0].point_count() &&
             plate->element_data_dumps().front() != '{',
-        "a Plate's element_data is protobuf and rebuilds the outlines"
+        "a FacePlanarElement's element_data is protobuf and rebuilds the outlines"
     );
 
     nlohmann::ordered_json legacy = plate->jsondump();
     legacy["element_data"] = to_hex(plate->element_data_jsondump().dump());
-    const std::shared_ptr<Plate> json = Plate::from_element(Element::jsonload(legacy));
+    const std::shared_ptr<FacePlanarElement> json = FacePlanarElement::from_element(Element::jsonload(legacy));
     check(
         json && json->polylines.size() == plate->polylines.size() &&
             json->polylines[1].point_count() == plate->polylines[1].point_count(),
-        "a Plate written with the JSON payload still loads"
+        "a FacePlanarElement written with the JSON payload still loads"
     );
 
     const size_t before = a.objects.elements->size();
-    const std::shared_ptr<Plate> probe =
-        std::make_shared<Plate>(plate->polylines[0], plate->polylines[1], "probe");
+    const std::shared_ptr<FacePlanarElement> probe =
+        std::make_shared<FacePlanarElement>(plate->polylines[0], plate->polylines[1], "probe");
     const std::string probe_guid = probe->guid();
 
     a.add(probe);
     check(
-        a.objects.elements->size() == before + 1 && a.get_element<Plate>(probe_guid) == probe &&
+        a.objects.elements->size() == before + 1 && a.get_element<FacePlanarElement>(probe_guid) == probe &&
             a.get_object<Element>(probe_guid) == probe,
         "add() puts the same object in the lookup and the session"
     );

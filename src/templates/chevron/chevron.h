@@ -189,7 +189,7 @@ private:
     std::vector<std::array<std::optional<Plane>, 4>> compute_bisectors() const;
 
     /// Four plates per face in strip order: top and bottom inset in the box, a side on each chevron edge.
-    std::vector<std::shared_ptr<Plate>> compute_plates() const;
+    std::vector<std::shared_ptr<FacePlanarElement>> compute_plates() const;
 
     /// The insertion vectors, joint types, three-valence groups and adjacency of the plate pairs, and an insertion line per face.
     std::vector<Line> compute_joinery();
@@ -291,7 +291,7 @@ inline Chevron::Chevron(
 
     // plates: per face a box of a top and a bottom plate inset in it and a side plate on each chevron edge, plate_<4 face + role> in box_<face>
     const std::shared_ptr<TreeNode> plates_group = add_group("plates");
-    const std::vector<std::shared_ptr<Plate>> plates = compute_plates();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = compute_plates();
 
     for (size_t face = 0; face < plates.size() / 4; face++) {
         const std::shared_ptr<TreeNode> box = add_group(fmt::format("box_{}", face), plates_group);
@@ -773,7 +773,7 @@ inline std::array<int, 2> Chevron::sorted_chevron_edges(int face) const {
     return edges;
 }
 
-inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
+inline std::vector<std::shared_ptr<FacePlanarElement>> Chevron::compute_plates() const {
 
     const double half = box_height * 0.5;
     const double t = plate_thickness;
@@ -816,11 +816,11 @@ inline std::vector<std::shared_ptr<Plate>> Chevron::compute_plates() const {
         }
     }
 
-    std::vector<std::shared_ptr<Plate>> plates;
+    std::vector<std::shared_ptr<FacePlanarElement>> plates;
 
     for (size_t i = 0; i + 1 < outlines.size(); i += 2) {
         const std::string name = fmt::format("plate_{}", i / 2);
-        plates.push_back(std::make_shared<Plate>(outlines[i], outlines[i + 1], name));
+        plates.push_back(std::make_shared<FacePlanarElement>(outlines[i], outlines[i + 1], name));
     }
 
     return plates;
@@ -921,8 +921,8 @@ inline std::vector<Line> Chevron::compute_joinery() {
             _three_valence.push_back({pair + 1, pair + 2 + k, across + 1, pair + 2 + k});
         }
 
-        const std::shared_ptr<Plate> top =
-            get_element_by_name<Plate>(fmt::format("plate_{}", pair));
+        const std::shared_ptr<FacePlanarElement> top =
+            get_element_by_name<FacePlanarElement>(fmt::format("plate_{}", pair));
         const Point centre = top->polylines[1].center();
         lines.push_back(Line::from_points(centre, centre + diagonal * 300.0));
     }

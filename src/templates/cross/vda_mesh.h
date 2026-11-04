@@ -15,8 +15,8 @@ namespace wood_cross {
 struct CrossLap {
     std::shared_ptr<JointPlate>
         joint; // cross_lap_<face0>_<face1>_<k>_<face>_<layer>, merged into both outlines.
-    std::shared_ptr<Plate> connector; // connector_<face0>_<face1>_<k>, the joint's target 0.
-    std::shared_ptr<Plate> plate; // plate_<face>_<layer>, the joint's target 1.
+    std::shared_ptr<FacePlanarElement> connector; // connector_<face0>_<face1>_<k>, the joint's target 0.
+    std::shared_ptr<FacePlanarElement> plate; // plate_<face>_<layer>, the joint's target 1.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -188,7 +188,7 @@ inline VdaMesh::VdaMesh(
     for (size_t f = 0; f < _face_outlines.size(); f++)
         for (size_t layer = 0; layer < _face_outlines[f].size(); layer++) {
             const std::array<Polyline, 2>& loops = _face_outlines[f][layer];
-            add(std::make_shared<Plate>(loops[0], loops[1], fmt::format("plate_{}_{}", f, layer)),
+            add(std::make_shared<FacePlanarElement>(loops[0], loops[1], fmt::format("plate_{}_{}", f, layer)),
                 plates);
         }
 
@@ -212,7 +212,7 @@ inline VdaMesh::VdaMesh(
             const std::array<Polyline, 2>& loops = _connector_outlines[e][k];
             const std::string connector_name =
                 fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
-            add(std::make_shared<Plate>(loops[0], loops[1], connector_name), connectors);
+            add(std::make_shared<FacePlanarElement>(loops[0], loops[1], connector_name), connectors);
         }
 
     // cross_laps: a cross slot where every connector passes through a plate of its two faces, merged into both outlines
@@ -595,12 +595,12 @@ inline std::vector<CrossLap> VdaMesh::compute_cross_laps() const {
         for (size_t k = 0; k < _connector_outlines[e].size(); k++) {
             const std::string connector_name =
                 fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k);
-            const std::shared_ptr<Plate> connector = get_element_by_name<Plate>(connector_name);
+            const std::shared_ptr<FacePlanarElement> connector = get_element_by_name<FacePlanarElement>(connector_name);
 
             for (const size_t face : _edge_faces[e])
                 for (size_t layer = 0; layer < _face_outlines[face].size(); layer++) {
-                    const std::shared_ptr<Plate> plate =
-                        get_element_by_name<Plate>(fmt::format("plate_{}_{}", face, layer));
+                    const std::shared_ptr<FacePlanarElement> plate =
+                        get_element_by_name<FacePlanarElement>(fmt::format("plate_{}_{}", face, layer));
                     const std::shared_ptr<InteractionContactCross> crossing =
                         compute_cross_contact(connector, plate);
 

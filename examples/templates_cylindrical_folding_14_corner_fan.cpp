@@ -11,9 +11,9 @@ int main() {
     std::cout << fan << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> strips = fan.get_elements_placed<PlateCurved>("strip");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> strips = fan.get_elements_placed<FaceCurvedElement>("strip");
 
-    for (const std::shared_ptr<PlateCurved>& strip : strips)
+    for (const std::shared_ptr<FaceCurvedElement>& strip : strips)
         solids += strip->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format("corner fan: {} strips, {} closed solids, {} contacts, development distortion {:.2e}\n", strips.size(), solids, fan.get_contacts().size(), fan.distortion());

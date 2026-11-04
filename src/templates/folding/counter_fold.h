@@ -102,7 +102,7 @@ inline CounterFold::CounterFold(
         Plane::from_point_normal(stations.back()[0], Vector(1.0, 0.0, 0.0)),
     };
 
-    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, sides))
+    for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 }
 

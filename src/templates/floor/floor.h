@@ -36,7 +36,7 @@ struct QuarterContacts {
 struct QuarterConnectors {
     std::shared_ptr<JointBeam> seam_wedge; // connector_seam_wedge_<q>.
     std::shared_ptr<JointBeam> oculus_wedge; // connector_oculus_wedge_<q>.
-    std::array<std::shared_ptr<Plate>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
+    std::array<std::shared_ptr<FacePlanarElement>, 2> column_plates; // column_plate_<q>_<k>, one per outer rib.
     std::array<std::shared_ptr<JointBeam>, 2>
         column_plate_pins; // connector_column_plate_<q>_<k>, its pocket in the column and the rib, two pins in each.
     std::shared_ptr<JointPlate>

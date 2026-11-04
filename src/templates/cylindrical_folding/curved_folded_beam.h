@@ -195,7 +195,7 @@ inline void CurvedFoldedBeam::add_plates(
             curves[e] = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Uniform);
         }
 
-        const std::shared_ptr<PlateCurved> plate = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> plate = std::make_shared<FaceCurvedElement>(
             curves[0], curves[1], curves[2], curves[3], fmt::format("beam_{}_{}", b, k)
         );
         add(plate, group);
@@ -237,7 +237,7 @@ inline void CurvedFoldedBeam::add_webs(
             curves[e] = NurbsCurve::create(false, 1, {left, right});
         }
 
-        const std::shared_ptr<PlateCurved> web = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> web = std::make_shared<FaceCurvedElement>(
             curves[0], curves[1], curves[2], curves[3], fmt::format("beam_{}_{}", b, 4 + w)
         );
         add(web, group);

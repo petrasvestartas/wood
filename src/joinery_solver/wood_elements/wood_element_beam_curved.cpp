@@ -126,7 +126,7 @@ Vector patch_normal(const NurbsSurface& patch) {
 BRep solid_from_four_edges(
     const std::array<NurbsCurve, 4>& corners, const std::string& solid_name
 ) {
-    // Map to PlateCurved meridian ordering: outer_a (top-left c3), outer_b (top-right c2), inner_a (bottom-left c0), inner_b (bottom-right c1)
+    // Map to FaceCurvedElement meridian ordering: outer_a (top-left c3), outer_b (top-right c2), inner_a (bottom-left c0), inner_b (bottom-right c1)
     const NurbsCurve& outer_a = corners[3];
     const NurbsCurve& outer_b = corners[2];
     const NurbsCurve& inner_a = corners[0];

@@ -1,5 +1,5 @@
 static void top_top_circle_pins(
-    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements
+    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
 
     joint.name = "top_top_circle_pins";

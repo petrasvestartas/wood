@@ -2,7 +2,7 @@
 
 [TOC]
 
-Top-to-top plate joints connecting two face-stacked plates (`Plate::pair_stacked(0.0)` and `Plate::pair_stacked(30.0)`) with drilled pin patterns or inlaid surface pockets across their shared `InteractionContactFace`.
+Top-to-top plate joints connecting two face-stacked plates (`FacePlanarElement::pair_stacked(0.0)` and `FacePlanarElement::pair_stacked(30.0)`) with drilled pin patterns or inlaid surface pockets across their shared `InteractionContactFace`.
 
 ## Constructors
 
@@ -15,7 +15,7 @@ static std::shared_ptr<JointPlate> top_top_grid_pins(double division_length = 6.
 static std::shared_ptr<JointPlate> top_top_rectangle_pins(double division_length = 6.0, double shift = 0.95, double radius = 1.0);
 static std::shared_ptr<JointPlate> top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 

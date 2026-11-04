@@ -164,7 +164,7 @@ inline void CreaseQuadrants::add_quadrant(
             NurbsCurve::create_interpolated(edges[2], CurveNurbsKnotStyle::Uniform);
         const NurbsCurve inner_b =
             NurbsCurve::create_interpolated(edges[3], CurveNurbsKnotStyle::Uniform);
-        const std::shared_ptr<PlateCurved> strip = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> strip = std::make_shared<FaceCurvedElement>(
             outer_a, outer_b, inner_a, inner_b, fmt::format("quadrant_{}_{}", quadrant, k)
         );
         add(strip, group);

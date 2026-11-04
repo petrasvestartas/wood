@@ -2,7 +2,7 @@
 
 [TOC]
 
-Side-to-side out-of-plane plate joints cutting mitered fingers or tenon-and-mortise pairs along folded plate corners (`Plate::pair_folded(90.0)` and `Plate::pair_folded(60.0)`).
+Side-to-side out-of-plane plate joints cutting mitered fingers or tenon-and-mortise pairs along folded plate corners (`FacePlanarElement::pair_folded(90.0)` and `FacePlanarElement::pair_folded(60.0)`).
 
 ## Constructors
 
@@ -27,7 +27,7 @@ static std::shared_ptr<JointPlate> side_side_outplane_annen_fingers(int division
 static std::shared_ptr<JointPlate> side_side_outplane_notch();
 static std::shared_ptr<JointPlate> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
 
-void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<Plate>>& elements);
+void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 

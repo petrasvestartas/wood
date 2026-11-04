@@ -1,7 +1,7 @@
 #pragma once
 
 #include "wood_element_joint.h"
-#include "wood_element_plate.h"
+#include "wood_element_face_planar.h"
 #include "wood_interaction_feature_plate.h"
 #include "wood_settings.h"
 
@@ -151,8 +151,8 @@ public:
 
     /// Creates the keyed Hilti connector across the straight seam between two slabs.
     static std::shared_ptr<JointPlate> side_side_inplane_hilti(
-        const Plate& a,
-        const Plate& b,
+        const FacePlanarElement& a,
+        const FacePlanarElement& b,
         const InteractionContactFace& contact,
         double half_length = 120.0,
         double neck_length = 27.7,
@@ -234,8 +234,8 @@ public:
     explicit JointPlate(const InteractionFeaturePlate& connection);
     JointPlate(int variant, double division_distance, double shift = 0.5);
     JointPlate(
-        const std::shared_ptr<Plate>& source,
-        const std::shared_ptr<Plate>& target,
+        const std::shared_ptr<FacePlanarElement>& source,
+        const std::shared_ptr<FacePlanarElement>& target,
         const InteractionContactFace& contact,
         int variant,
         double division_distance,
@@ -255,7 +255,7 @@ public:
     );
     void orient(
         const std::shared_ptr<InteractionContactFace>& contact,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings = Settings()
     );
     void orient(
@@ -264,18 +264,18 @@ public:
     );
     void orient(
         const std::shared_ptr<InteractionContactCross>& contact,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings = Settings()
     );
     void construct(
         std::vector<InteractionFeaturePlate> connections,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings = Settings()
     );
     void construct(
         InteractionFeaturePlate connection,
         const Settings& settings,
-        std::vector<std::shared_ptr<Plate>> elements = {}
+        std::vector<std::shared_ptr<FacePlanarElement>> elements = {}
     );
     void construct(
         InteractionFeaturePlate connection,
@@ -294,7 +294,7 @@ public:
     const std::string& interaction_target(size_t target) const;
     static void build_geometry(
         std::vector<InteractionFeaturePlate>& connections,
-        std::vector<std::shared_ptr<Plate>>& elements,
+        std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const std::vector<std::vector<int>>& types,
         const Settings& settings
     );
@@ -308,7 +308,7 @@ public:
     static std::vector<Line> side_drills(const InteractionFeaturePlate& connection, int side);
 
     /// Returns the loose key joining both pocket prisms through the fold.
-    void compute_key(const std::vector<std::shared_ptr<Plate>>& elements);
+    void compute_key(const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 
     Mesh key_mesh() const override;
 
@@ -327,46 +327,46 @@ private:
     static std::shared_ptr<JointPlate> side_side_rotated(const std::string& library);
     void compute_library(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         std::vector<InteractionFeaturePlate>& connections,
         const Settings& settings
     ) const;
     void compute_parameters(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings
     ) const;
     bool compute_side_side_inplane(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings
     ) const;
     bool compute_side_side_outplane(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         std::vector<InteractionFeaturePlate>& connections,
         const Settings& settings
     ) const;
     bool compute_top_side(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         std::vector<InteractionFeaturePlate>& connections,
         const Settings& settings
     ) const;
     bool compute_side_side_rotated(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings
     ) const;
     bool compute_cross(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_b(InteractionFeaturePlate& connection, const Settings& settings) const;
     bool compute_top_top(
         InteractionFeaturePlate& connection,
-        const std::vector<std::shared_ptr<Plate>>& elements,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
         const Settings& settings
     ) const;
     bool compute_side_removal(
-        InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<Plate>>& elements
+        InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
     ) const;
 
 protected:
@@ -382,7 +382,7 @@ class JointAnnen : public JointPlate {
 public:
     JointAnnen() = default;
     JointAnnen(
-        std::vector<std::shared_ptr<Plate>> elements,
+        std::vector<std::shared_ptr<FacePlanarElement>> elements,
         std::vector<InteractionFeaturePlate> connections,
         const std::vector<std::vector<int>>& groups,
         const Settings& settings = Settings()
@@ -402,7 +402,7 @@ class JointVidy : public JointPlate {
 public:
     JointVidy() = default;
     JointVidy(
-        std::vector<std::shared_ptr<Plate>> elements,
+        std::vector<std::shared_ptr<FacePlanarElement>> elements,
         std::vector<InteractionFeaturePlate> connections,
         const std::vector<std::vector<int>>& groups,
         const Settings& settings = Settings()

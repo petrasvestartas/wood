@@ -184,7 +184,7 @@ inline void CurvedFold::add_lamellas(const std::array<std::vector<NurbsCurve>, 2
 
     for (size_t j = 0; j < count; j++) {
         const size_t next = (j + 1) % count;
-        const std::shared_ptr<PlateCurved> lamella = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> lamella = std::make_shared<FaceCurvedElement>(
             outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)
         );
         add(lamella, lamellas);

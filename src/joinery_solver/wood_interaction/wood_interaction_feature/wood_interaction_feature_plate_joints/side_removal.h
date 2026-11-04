@@ -1,6 +1,6 @@
 static void side_removal_outlines(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     bool merge_with_joint,
     bool through
 ) {
@@ -77,7 +77,7 @@ static void side_removal_outlines(
     if (through) {
         std::array<double, 2> depths = {0.0, 0.0};
         for (size_t side = 0; side < 2; side++) {
-            const Plate& plate = *elements[side == 0 ? v0 : v1];
+            const FacePlanarElement& plate = *elements[side == 0 ? v0 : v1];
             const Point origin = (side == 0 ? pline0 : pline1).get_point(0);
             const Vector normal = side == 0 ? n0 : n1;
             for (const Polyline& outline : {plate.polylines[0], plate.polylines[1]})
@@ -117,7 +117,7 @@ static void side_removal_outlines(
 /// side_removal.
 static void side_removal(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     bool merge_with_joint = false,
     bool through = false
 ) {

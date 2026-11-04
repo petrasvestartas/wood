@@ -116,12 +116,12 @@ static const std::vector<std::string> SKIPPED = {
 
 /// The pair a variant is joined on: the plates in contact order, their contact, and the target of each interaction side.
 struct Fixture {
-    std::shared_ptr<Plate> a;
-    std::shared_ptr<Plate> b;
+    std::shared_ptr<FacePlanarElement> a;
+    std::shared_ptr<FacePlanarElement> b;
     std::shared_ptr<InteractionContactFace> face;
     std::shared_ptr<InteractionContactCross> cross;
-    std::shared_ptr<Plate> target0;
-    std::shared_ptr<Plate> target1;
+    std::shared_ptr<FacePlanarElement> target0;
+    std::shared_ptr<FacePlanarElement> target1;
 };
 
 /// A variant built on its fixture in a scene of its own.
@@ -219,19 +219,19 @@ pair_in_plane(WoodSession& scene, const Xform& xform, const std::string& shape =
 
     Fixture f;
     if (shape.empty()) {
-        f.a = Plate::from_rectangle(
+        f.a = FacePlanarElement::from_rectangle(
             {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "left"
         );
-        f.b = Plate::from_rectangle(
+        f.b = FacePlanarElement::from_rectangle(
             {300.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 400.0, 40.0, "right"
         );
     } else {
         const Polyline left = Polyline(outlines[0]).closed();
         const Polyline right = Polyline(outlines[1]).closed();
-        f.a = std::make_shared<Plate>(
+        f.a = std::make_shared<FacePlanarElement>(
             left, left.transformed(Xform::translation(0.0, 0.0, 40.0)), "left"
         );
-        f.b = std::make_shared<Plate>(
+        f.b = std::make_shared<FacePlanarElement>(
             right, right.transformed(Xform::translation(0.0, 0.0, 40.0)), "right"
         );
     }
@@ -270,8 +270,8 @@ static Fixture pair_out_of_plane(WoodSession& scene, const Xform& xform, double 
     );
 
     Fixture f;
-    f.a = std::make_shared<Plate>(floor_bottom, floor_top, "floor");
-    f.b = std::make_shared<Plate>(wall_bottom, wall_top, "wall");
+    f.a = std::make_shared<FacePlanarElement>(floor_bottom, floor_top, "floor");
+    f.b = std::make_shared<FacePlanarElement>(wall_bottom, wall_top, "wall");
     f.a->place(xform);
     f.b->place(xform);
     scene.add(f.a);
@@ -298,15 +298,15 @@ pair_top_side(WoodSession& scene, const Xform& xform, double plan = 90.0, double
     );
 
     Fixture f;
-    f.a = Plate::from_rectangle(
+    f.a = FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 400.0, 40.0, "base"
     );
     if (plan == 90.0 && lean == 90.0)
-        f.b = Plate::from_rectangle(
+        f.b = FacePlanarElement::from_rectangle(
             {180.0, 75.0, 40.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, 250.0, 250.0, 40.0, "upright"
         );
     else
-        f.b = std::make_shared<Plate>(
+        f.b = std::make_shared<FacePlanarElement>(
             face,
             face.transformed(Xform::translation(normal[0] * 40.0, normal[1] * 40.0, 0.0)),
             "upright"
@@ -326,10 +326,10 @@ pair_top_side(WoodSession& scene, const Xform& xform, double plan = 90.0, double
 static Fixture pair_top_top(WoodSession& scene, const Xform& xform) {
 
     Fixture f;
-    f.a = Plate::from_rectangle(
+    f.a = FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 300.0, 40.0, "lower"
     );
-    f.b = Plate::from_rectangle(
+    f.b = FacePlanarElement::from_rectangle(
         {150.0, 0.0, 40.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 400.0, 300.0, 40.0, "upper"
     );
     f.a->place(xform);
@@ -352,10 +352,10 @@ static Fixture pair_cross(WoodSession& scene, const Xform& xform, double angle =
     const Point origin = Point(200.0, 0.0, 0.0) - along * 200.0 - normal * 20.0;
 
     Fixture f;
-    f.a = Plate::from_rectangle(
+    f.a = FacePlanarElement::from_rectangle(
         {0.0, 20.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "first"
     );
-    f.b = Plate::from_rectangle(origin, along, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "second");
+    f.b = FacePlanarElement::from_rectangle(origin, along, {0.0, 0.0, 1.0}, 400.0, 200.0, 40.0, "second");
     f.a->place(xform);
     f.b->place(xform);
     scene.add(f.a);
@@ -762,7 +762,7 @@ static double boolean_volume(const Mesh& a, const Mesh& b, SolidOperation operat
 }
 
 /// True when the point lies between the plate's outer planes and inside the box of its outlines.
-static bool inside_plate(const Plate& plate, const Point& point) {
+static bool inside_plate(const FacePlanarElement& plate, const Point& point) {
 
     const bool between = plate.planes[0].signed_distance(point) <= CLOSE &&
                          plate.planes[1].signed_distance(point) <= CLOSE;
@@ -795,7 +795,7 @@ static double off_face(const Plane& plane, const Polyline& loop) {
 }
 
 /// The outer face of the plate the loop lies on within PLANAR: 0 the plane of polylines[0], 1 of polylines[1], -1 neither.
-static int face_of(const Plate& plate, const Polyline& loop) {
+static int face_of(const FacePlanarElement& plate, const Polyline& loop) {
 
     for (int face = 0; face < 2; face++)
         if (off_face(plate.planes[face], loop) <= PLANAR)
@@ -807,7 +807,7 @@ static int face_of(const Plate& plate, const Polyline& loop) {
 /// C1.
 static void check_outlines(const Built& built, Row& row) {
 
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
         const Features& features = plate->features;
         const std::string who = plate->name;
 
@@ -906,7 +906,7 @@ static void check_outlines(const Built& built, Row& row) {
 /// C2.
 static void check_solids(const Built& built, Row& row) {
 
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
         const std::string who = plate->name;
         const Mesh& mesh = plate->model_geometry_mesh();
         if (mesh.number_of_faces() == 0) {
@@ -1005,8 +1005,8 @@ static double clip_grid_allowance(const Built& built) {
 /// C3.
 static void check_overlap(const Built& built, Row& row) {
 
-    const Plate& a = *built.fixture.a;
-    const Plate& b = *built.fixture.b;
+    const FacePlanarElement& a = *built.fixture.a;
+    const FacePlanarElement& b = *built.fixture.b;
     row.volume_a = compute_volume(a.model_geometry_mesh());
     row.volume_b = compute_volume(b.model_geometry_mesh());
     row.overlap =
@@ -1029,8 +1029,8 @@ static void check_overlap(const Built& built, Row& row) {
 /// C4: nothing is made outside the pair's stock, nothing lost but by design, and the two models add up to their union.
 static void check_conservation(const Built& built, Row& row) {
 
-    const Plate& a = *built.fixture.a;
-    const Plate& b = *built.fixture.b;
+    const FacePlanarElement& a = *built.fixture.a;
+    const FacePlanarElement& b = *built.fixture.b;
     const Mesh stock =
         solid_boolean(a.element_geometry_mesh(), b.element_geometry_mesh(), SolidOperation::add);
     const Mesh after =
@@ -1060,8 +1060,8 @@ static void check_fit(const Built& built, Row& row) {
     if (built.family == "tt")
         return;
 
-    const Plate& a = *built.fixture.a;
-    const Plate& b = *built.fixture.b;
+    const FacePlanarElement& a = *built.fixture.a;
+    const FacePlanarElement& b = *built.fixture.b;
     const double taken_a = boolean_volume(
         a.element_geometry_mesh(), a.model_geometry_mesh(), SolidOperation::subtract
     );
@@ -1243,7 +1243,7 @@ static void check_drills(const Built& built, Row& row) {
         }
     }
 
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
         size_t inside = 0;
         double length = 0.0;
         for (const Line& axis : axes) {
@@ -1294,7 +1294,7 @@ static void check_written(const Built& built, Row& row) {
         return;
     }
 
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
         const session_proto::Element* written = nullptr;
         for (const session_proto::Element& element : proto.objects().elements())
             if (element.guid() == plate->guid())
@@ -1357,8 +1357,8 @@ static void check_written(const Built& built, Row& row) {
 static void check_round_trip(const Built& built, Row& row) {
 
     const WoodSession restored = WoodSession::pb_loads(built.scene->pb_dumps());
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
-        const std::shared_ptr<Plate> twin = restored.get_element<Plate>(plate->guid());
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
+        const std::shared_ptr<FacePlanarElement> twin = restored.get_element<FacePlanarElement>(plate->guid());
         if (!twin) {
             fail(row, "C10", plate->name + " is missing after the round trip");
             continue;
@@ -1413,8 +1413,8 @@ static void check_rigid_motion(const Built& built, Row& row) {
     const Xform motion = Xform::translation(1234.0, -567.0, 89.0) * Xform::rotation_z(37.0, true);
     const Built moved = build_variant(row.id, motion);
 
-    const std::array<std::shared_ptr<Plate>, 2> plates = {built.fixture.a, built.fixture.b};
-    const std::array<std::shared_ptr<Plate>, 2> moved_plates = {moved.fixture.a, moved.fixture.b};
+    const std::array<std::shared_ptr<FacePlanarElement>, 2> plates = {built.fixture.a, built.fixture.b};
+    const std::array<std::shared_ptr<FacePlanarElement>, 2> moved_plates = {moved.fixture.a, moved.fixture.b};
     for (size_t k = 0; k < 2; k++) {
         const Mesh& mesh = plates[k]->model_geometry_mesh();
         const double volume = compute_volume(mesh);
@@ -1475,7 +1475,7 @@ static void check_rigid_motion(const Built& built, Row& row) {
 static std::vector<double> snapshot(const Built& built, std::vector<std::string>& labels) {
 
     std::vector<double> numbers;
-    for (const std::shared_ptr<Plate>& plate : {built.fixture.a, built.fixture.b}) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : {built.fixture.a, built.fixture.b}) {
         const std::vector<Polyline> loops = oracle::merged_loops(*plate);
         labels.push_back(fmt::format("plate {} loops {}", plate->name, loops.size()));
         numbers.push_back(static_cast<double>(loops.size()));

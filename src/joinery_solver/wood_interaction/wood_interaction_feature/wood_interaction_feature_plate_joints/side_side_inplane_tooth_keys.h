@@ -1,5 +1,5 @@
 static void side_side_inplane_tooth_keys(
-    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<Plate>>& elements
+    InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
 
     joint.name = "side_side_inplane_tooth_keys";

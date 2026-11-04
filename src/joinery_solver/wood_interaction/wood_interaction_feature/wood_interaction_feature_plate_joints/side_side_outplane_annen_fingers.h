@@ -6,7 +6,7 @@
 /// joint's divisions.
 static void side_side_outplane_annen_fingers(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     int design,
     double angle
 ) {
@@ -23,7 +23,7 @@ static void side_side_outplane_annen_fingers(
             faces[k] >= (int)elements[indices[k]]->polylines.size() ||
             elements[indices[k]]->polylines[0].point_count() != 5)
             return;
-    const std::array<const Plate*, 2> walls = {
+    const std::array<const FacePlanarElement*, 2> walls = {
         elements[indices[0]].get(), elements[indices[1]].get()
     };
 
@@ -54,7 +54,7 @@ static void side_side_outplane_annen_fingers(
 
     std::array<Corner, 2> corners;
     for (int k = 0; k < 2; k++) {
-        const Plate& wall = *walls[k];
+        const FacePlanarElement& wall = *walls[k];
         const Point other = walls[1 - k]->polylines[0].center();
         const bool first_inner = wall.planes[0].z_axis().dot(other - wall.planes[0].origin()) > 0.0;
         corners[k].inner = wall.planes[first_inner ? 0 : 1];
@@ -126,7 +126,7 @@ static void side_side_outplane_annen_fingers(
 
     // each wall's two faces: between the corner lines where the face meets the other wall's two faces, a zigzag from the bottom, the axis wall's fingers first
     for (int k = 0; k < 2; k++) {
-        const Plate& wall = *walls[k];
+        const FacePlanarElement& wall = *walls[k];
         const Corner& other = corners[1 - k];
         for (int face = 0; face < 2; face++) {
             Line with_outer;

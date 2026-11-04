@@ -156,7 +156,7 @@ std::optional<std::pair<std::string, Xform>> block_key(const NodeBlockElement& b
 }
 
 /// Origin at the first bottom point, x along the first bottom edge, z the bottom plane's normal.
-std::optional<std::pair<std::string, Xform>> plate_key(const Plate& plate) {
+std::optional<std::pair<std::string, Xform>> plate_key(const FacePlanarElement& plate) {
 
     if (plate.polylines.size() < 2 || plate.planes.empty() || plate.polylines[0].point_count() < 2)
         return std::nullopt;
@@ -212,7 +212,7 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
     if (const std::shared_ptr<NodeBlockElement> block = std::dynamic_pointer_cast<NodeBlockElement>(element))
         return block->transformed(xform);
 
-    if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(element))
+    if (const std::shared_ptr<FacePlanarElement> plate = std::dynamic_pointer_cast<FacePlanarElement>(element))
         return plate->transformed(xform);
 
     if (const auto joint = std::dynamic_pointer_cast<Joint>(element))
@@ -281,7 +281,7 @@ std::optional<std::pair<std::string, Xform>> element_key(const Element& element)
     if (const NodeBlockElement* block = dynamic_cast<const NodeBlockElement*>(&element))
         return block_key(*block);
 
-    if (const Plate* plate = dynamic_cast<const Plate*>(&element))
+    if (const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(&element))
         return plate_key(*plate);
 
     return std::nullopt;
@@ -345,7 +345,7 @@ WoodSession::world_view(const std::string& guid, const Xform& world) const {
     if (!view)
         return nullptr;
 
-    if (!std::dynamic_pointer_cast<Plate>(view)) {
+    if (!std::dynamic_pointer_cast<FacePlanarElement>(view)) {
         view->set_polylines(transformed_list(source->polylines(), world));
         view->set_planes(transformed_list(source->planes(), world));
     }

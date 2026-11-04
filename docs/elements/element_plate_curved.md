@@ -7,7 +7,7 @@ A closed 6-patch NURBS solid strip bounded by four `NurbsCurve` meridians (`oute
 ## Constructors
 
 ```cpp
-PlateCurved(
+FaceCurvedElement(
     const NurbsCurve& outer_a,
     const NurbsCurve& outer_b,
     const NurbsCurve& inner_a,

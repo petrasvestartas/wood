@@ -61,15 +61,15 @@ wood_grid::Grid grid(building, FRAMING, "five_bay");
 grid
 ├── level_0
 │   ├── plan_0                     plan lines and column points at ground datum
-│   └── decks_0                    Plate deck_<i>_0 (ground slabs)
+│   └── decks_0                    FacePlanarElement deck_<i>_0 (ground slabs)
 └── level_1                        level_2 .. level_N (each capping the storey below)
     ├── plan_1
     ├── columns_1                  Column column_<i>_1
-    ├── walls_1, core_walls_1      Plate wall_<i>_1, core_wall_<i>_1
+    ├── walls_1, core_walls_1      FacePlanarElement wall_<i>_1, core_wall_<i>_1
     ├── heads_1, drop_panels_1     NodeBlockElement head_<i>_1, drop_panel_<i>_1
     ├── girders_1, beams_1         Beam girder_<i>_1, beam_<i>_1
     ├── purlins_1                  Beam purlin_<i>_1
-    ├── decks_1                    Plate deck_<i>_1
+    ├── decks_1                    FacePlanarElement deck_<i>_1
     └── braces_1                   Beam brace_<i>_1
 ```
 

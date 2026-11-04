@@ -49,9 +49,9 @@ impl Plate {
 impl WoodElement for Plate {
     const TYPE: &'static str = "Plate";
     const LEGACY_TYPE: &'static str = "WoodElement";
-    type Payload = proto::Plate;
+    type Payload = proto::FacePlanarElement;
 
-    fn from_payload(name: &str, payload: proto::Plate) -> Option<Self> {
+    fn from_payload(name: &str, payload: proto::FacePlanarElement) -> Option<Self> {
         Some(Self {
             name: name.to_string(),
             bottom: Polyline::from_proto(payload.bottom?),
@@ -61,8 +61,8 @@ impl WoodElement for Plate {
         })
     }
 
-    fn payload(&self) -> proto::Plate {
-        proto::Plate {
+    fn payload(&self) -> proto::FacePlanarElement {
+        proto::FacePlanarElement {
             solid_features: self.solid_features.clone(),
             bottom: Some(self.bottom.to_proto()),
             top: Some(self.top.to_proto()),

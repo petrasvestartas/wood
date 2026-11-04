@@ -5,8 +5,8 @@ import "interaction_feature_solid.proto";
 
 import "polyline.proto";
 
-// The state of a Plate beyond the kernel Element: its two outlines.
-message Plate {
+// The state of a FacePlanarElement beyond the kernel Element: its two outlines.
+message FacePlanarElement {
   repeated InteractionFeatureSolid solid_features = 4;
   session_proto.Polyline bottom = 1;  // Bottom outline
   session_proto.Polyline top = 2;     // Top outline

@@ -28,10 +28,10 @@ int main() {
     std::cout << fold << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> panels =
-        fold.get_elements_placed<PlateCurved>("lamella");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> panels =
+        fold.get_elements_placed<FaceCurvedElement>("lamella");
 
-    for (const std::shared_ptr<PlateCurved>& panel : panels)
+    for (const std::shared_ptr<FaceCurvedElement>& panel : panels)
         solids += panel->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(

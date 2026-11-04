@@ -63,7 +63,7 @@ uint64_t pair_key(int a, int b) {
 
 /// Element pair -> joint index (last joint wins); rebuilt wherever the joint list may have changed.
 std::unordered_map<uint64_t, int> joints_by_element_pair(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints
 ) {
 
@@ -87,7 +87,7 @@ std::unordered_map<uint64_t, int> joints_by_element_pair(
 }
 
 std::unordered_map<uint64_t, std::vector<int>> joints_of_element_pairs(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints
 ) {
 
@@ -175,7 +175,7 @@ static std::array<Polyline, 4> copy_joint_volumes(const InteractionFeaturePlate&
 }
 
 /// The face of the glued plate nearest the side plate's first face, and the side plate's face farthest from it.
-static std::pair<Plane, Plane> far_near_planes(const Plate& glued, const Plate& side) {
+static std::pair<Plane, Plane> far_near_planes(const FacePlanarElement& glued, const FacePlanarElement& side) {
 
     const double glued0 = glued.planes[0].squared_distance(side.planes[0].origin());
     const double glued1 = glued.planes[1].squared_distance(side.planes[0].origin());
@@ -191,8 +191,8 @@ static std::pair<Plane, Plane> far_near_planes(const Plate& glued, const Plate& 
 /// A linked shadow of source between side and glued, its lines and first two volumes translated onto the glued plate.
 static InteractionFeaturePlate shadow_joint(
     const InteractionFeaturePlate& source,
-    const Plate& side,
-    const Plate& glued,
+    const FacePlanarElement& side,
+    const FacePlanarElement& glued,
     const std::array<Line, 2>& lines,
     const std::array<Polyline, 4>& volumes
 ) {
@@ -216,7 +216,7 @@ static InteractionFeaturePlate shadow_joint(
 /// Vidy method.
 void add_vidy_shadow_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints,
     std::unordered_map<uint64_t, int>& joints_map,
     double angle
@@ -380,7 +380,7 @@ void add_vidy_shadow_joints(
 /// Annen method: shorten the two overlapping joint lines at a 3-plate corner by the plate thickness and clip the volumes to match.
 void align_annen_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints
 ) {
 
@@ -420,7 +420,7 @@ void align_annen_joints(
         double thickness = 0;
         const int element_index = index_of_plate(elements, joint0.element_a);
         if (element_index >= 0 && element_index < (int)elements.size()) {
-            const Plate& element = *elements[element_index];
+            const FacePlanarElement& element = *elements[element_index];
             if (element.polylines.size() >= 2 && element.polylines[0].point_count() > 0 &&
                 element.polylines[1].point_count() > 0) {
                 const Point p0 = element.polylines[0].get_point(0);
@@ -450,7 +450,7 @@ void align_annen_joints(
 // ═══════════════════════════════════════════════════════════════════════════
 void link_three_valence_joints(
     const std::vector<std::vector<int>>& three_valence_groups,
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& all_joints,
     double angle
 ) {

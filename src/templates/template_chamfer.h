@@ -30,7 +30,7 @@ inline Vector newell_normal(const std::vector<Point>& points, const std::vector<
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// One plate per mesh face mitered at every fold, its sharp corners cut back, free edges in edge_planes cut flush.
-inline std::vector<std::shared_ptr<Plate>> mitered_plates(
+inline std::vector<std::shared_ptr<FacePlanarElement>> mitered_plates(
     const Mesh& mesh,
     double thickness,
     double chamfer_bottom,
@@ -40,7 +40,7 @@ inline std::vector<std::shared_ptr<Plate>> mitered_plates(
 ) {
 
     // contours: both outlines of every face, miter_contours offsetting by twice the half thickness it is given
-    std::vector<std::shared_ptr<Plate>> plates;
+    std::vector<std::shared_ptr<FacePlanarElement>> plates;
     const std::vector<std::tuple<
         std::vector<Point>,
         std::vector<Point>,
@@ -92,7 +92,7 @@ inline std::vector<std::shared_ptr<Plate>> mitered_plates(
         top.push_back(top[0]);
         bottom.push_back(bottom[0]);
         const std::string name = fmt::format("plate_{}", plates.size());
-        plates.push_back(std::make_shared<Plate>(Polyline(bottom), Polyline(top), name));
+        plates.push_back(std::make_shared<FacePlanarElement>(Polyline(bottom), Polyline(top), name));
     }
 
     return plates;
@@ -277,14 +277,14 @@ private:
     std::vector<std::vector<Corner>> _corners; // Per vertex the faces at it.
     std::map<std::pair<size_t, size_t>, std::vector<Point>>
         _chains; // Per face and vertex its inner points.
-    std::vector<std::shared_ptr<Plate>> _plates; // One plate per face.
+    std::vector<std::shared_ptr<FacePlanarElement>> _plates; // One plate per face.
 
 public:
     /// The plates of mesh thickness thick, a free edge lying in one of edge_planes cut by it.
     OffsetPlates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes);
 
     /// One plate per face, named `plate_<i>`.
-    const std::vector<std::shared_ptr<Plate>>& plates() const;
+    const std::vector<std::shared_ptr<FacePlanarElement>>& plates() const;
 
 private:
     /// Per vertex the faces at it with the vertex before and after it on each.
@@ -303,7 +303,7 @@ private:
     std::vector<Point> compute_foot(const Cone& cone, size_t i, std::vector<Point> inner) const;
 
     /// One plate per face, its inner outline the chains of its corners over its outline.
-    std::vector<std::shared_ptr<Plate>> compute_plates() const;
+    std::vector<std::shared_ptr<FacePlanarElement>> compute_plates() const;
 
     /// The plane of the free edge a b of face f.
     Cut free_edge(size_t a, size_t b, size_t f) const;
@@ -380,7 +380,7 @@ inline OffsetPlates::OffsetPlates(
     _plates = compute_plates();
 }
 
-inline const std::vector<std::shared_ptr<Plate>>& OffsetPlates::plates() const {
+inline const std::vector<std::shared_ptr<FacePlanarElement>>& OffsetPlates::plates() const {
     return _plates;
 }
 
@@ -588,9 +588,9 @@ OffsetPlates::compute_foot(const Cone& cone, size_t i, std::vector<Point> inner)
     return inner;
 }
 
-inline std::vector<std::shared_ptr<Plate>> OffsetPlates::compute_plates() const {
+inline std::vector<std::shared_ptr<FacePlanarElement>> OffsetPlates::compute_plates() const {
 
-    std::vector<std::shared_ptr<Plate>> plates;
+    std::vector<std::shared_ptr<FacePlanarElement>> plates;
 
     for (size_t f = 0; f < _faces.size(); f++) {
         std::vector<Point> inner;
@@ -616,7 +616,7 @@ inline std::vector<std::shared_ptr<Plate>> OffsetPlates::compute_plates() const 
         inner.push_back(inner.front());
         outer.push_back(outer.front());
         const std::string name = fmt::format("plate_{}", plates.size());
-        plates.push_back(std::make_shared<Plate>(Polyline(inner), Polyline(outer), name));
+        plates.push_back(std::make_shared<FacePlanarElement>(Polyline(inner), Polyline(outer), name));
     }
 
     return plates;
@@ -811,7 +811,7 @@ inline double OffsetPlates::height(const Point& point, const Plane& plane, const
 }
 
 /// One plate per mesh face by the exact face offset, a free edge lying in one of edge_planes cut by it.
-inline std::vector<std::shared_ptr<Plate>>
+inline std::vector<std::shared_ptr<FacePlanarElement>>
 offset_plates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge_planes = {}) {
 
     const OffsetPlates offset(mesh, thickness, edge_planes);
@@ -824,12 +824,12 @@ offset_plates(const Mesh& mesh, double thickness, const std::vector<Plane>& edge
 
 /// The folding examples' line on the plates: their count, the shortest edge, and whether each is thickness thick and planar.
 inline std::string
-plate_report(const std::vector<std::shared_ptr<Plate>>& plates, double thickness) {
+plate_report(const std::vector<std::shared_ptr<FacePlanarElement>>& plates, double thickness) {
 
     std::string failed;
     double shortest = std::numeric_limits<double>::infinity();
 
-    for (const std::shared_ptr<Plate>& plate : plates) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : plates) {
         bool valid = std::abs(plate->thickness - thickness) < 0.1;
 
         for (size_t k = 0; k < 2 && k < plate->polylines.size() && k < plate->planes.size(); k++) {

@@ -117,7 +117,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 <span style="color:#2196EA">■ built</span> `column_plate_0_0`   <span style="color:#737373">■ input</span> the outer rib's loops
 
-`JointBeam::let_in_plate(rib, contact)` makes the plate, a `Plate` named after its contact: 220 back into the column, 265 forward into the rib, 30 wide and 250 down from the top.
+`JointBeam::let_in_plate(rib, contact)` makes the plate, a `FacePlanarElement` named after its contact: 220 back into the column, 265 forward into the rib, 30 wide and 250 down from the top.
 
 Code: `JointBeam::let_in_plate`, `frame_box`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
@@ -179,7 +179,7 @@ Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wo
 <span style="color:#2196EA">■ built</span> every connector part and pin   <span style="color:#A3A3A3">■ context</span> the members, cut
 
 The default floor gets 4 seam wedges and 4 oculus wedges.
-It gets 8 column `Plate`s with their 8 plate joints, and 4 cross laps (`JointPlate`).
+It gets 8 column `FacePlanarElement`s with their 8 plate joints, and 4 cross laps (`JointPlate`).
 It gets 24 block pin sets.
 The 28 headed pin connectors are on page 10.
 

@@ -406,7 +406,7 @@ inline std::vector<Development> CylinderVault::add_panels(const std::vector<Segm
         const NurbsCurve outer_b = compute_meridian(segment, outer_spans, segment.radius, 1);
         const NurbsCurve inner_a = compute_meridian(segment, inner_spans, inner, 0);
         const NurbsCurve inner_b = compute_meridian(segment, inner_spans, inner, 1);
-        const std::shared_ptr<PlateCurved> panel = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> panel = std::make_shared<FaceCurvedElement>(
             outer_a, outer_b, inner_a, inner_b, fmt::format("lamella_{}", i)
         );
         add(panel, group);
@@ -438,7 +438,7 @@ inline void CylinderVault::add_walls(const std::vector<Segment>& segments) {
             NurbsCurve::create(false, 1, {segment.from + top, segment.to + top});
         const NurbsCurve inner_a = NurbsCurve::create(false, 1, {from, to});
         const NurbsCurve inner_b = NurbsCurve::create(false, 1, {from + top, to + top});
-        const std::shared_ptr<PlateCurved> panel = std::make_shared<PlateCurved>(
+        const std::shared_ptr<FaceCurvedElement> panel = std::make_shared<FaceCurvedElement>(
             outer_a, outer_b, inner_a, inner_b, fmt::format("wall_{}", i)
         );
         add(panel, group);
@@ -453,8 +453,8 @@ inline void CylinderVault::add_flat(const std::vector<Development>& developments
     double tallest = 0.0;
 
     for (const std::shared_ptr<Element>& element : *objects.elements)
-        if (const std::shared_ptr<PlateCurved> panel =
-                std::dynamic_pointer_cast<PlateCurved>(element))
+        if (const std::shared_ptr<FaceCurvedElement> panel =
+                std::dynamic_pointer_cast<FaceCurvedElement>(element))
             for (const NurbsCurve* curve : {&panel->outer_a, &panel->outer_b})
                 for (size_t k = 0; k <= 16; k++) {
                     const double domain = curve->domain_end() - curve->domain_start();

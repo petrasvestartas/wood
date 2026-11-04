@@ -15,8 +15,8 @@ namespace {
 
 /// Per-pair state shared by every classification stage of face_to_face_wood.
 struct F2F {
-    Plate& el0;
-    Plate& el1;
+    FacePlanarElement& el0;
+    FacePlanarElement& el1;
     const std::pair<int, int> el_ids_in;
     const size_t joint_id;
     std::pair<int, int> el_ids;
@@ -67,7 +67,7 @@ struct FaceCandidate {
 };
 
 /// Mid-thickness average plane of an element; the xy plane when it has no two outlines.
-Plane average_plane(const Plate& el) {
+Plane average_plane(const FacePlanarElement& el) {
 
     Plane avg_plane = Plane::xy_plane();
     if (el.polylines.size() >= 2 && !el.planes.empty()) {
@@ -83,7 +83,7 @@ Plane average_plane(const Plate& el) {
 /// Alignment line and side quad of side face `face` of `el` (side 0 = A, 1 = B); false rejects the pair.
 bool alignment_line(
     F2F& s,
-    const Plate& el,
+    const FacePlanarElement& el,
     const Plane& avg_plane,
     int side,
     size_t face,
@@ -879,8 +879,8 @@ bool cross_fallback(F2F& s) {
 // face_to_face_wood
 // ═══════════════════════════════════════════════════════════════════════════
 bool face_to_face_wood(
-    Plate& el0,
-    Plate& el1,
+    FacePlanarElement& el0,
+    FacePlanarElement& el1,
     std::pair<int, int> el_ids_in,
     size_t joint_id,
     const Settings& settings,

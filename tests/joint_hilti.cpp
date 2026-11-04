@@ -24,7 +24,7 @@ static void check(bool ok, const std::string& message) {
 }
 
 /// A slab folded half the angle down from the ridge along y, on side -1 (x < 0) or +1.
-static std::shared_ptr<Plate> folded_slab(double angle, double side, const std::string& name) {
+static std::shared_ptr<FacePlanarElement> folded_slab(double angle, double side, const std::string& name) {
 
     const double half = 0.5 * angle * std::numbers::pi / 180.0;
     const Vector down_slope(side * std::cos(half), 0.0, -std::sin(half));
@@ -39,7 +39,7 @@ static std::shared_ptr<Plate> folded_slab(double angle, double side, const std::
     const Polyline bottom({seam_foot, far_foot, far_foot + along, seam_foot + along, seam_foot});
     const Polyline top({ridge, far_top, far_top + along, ridge + along, ridge});
 
-    return std::make_shared<Plate>(bottom, top, name);
+    return std::make_shared<FacePlanarElement>(bottom, top, name);
 }
 
 /// The volume of a boolean of two solids, zero for an empty result.
@@ -67,8 +67,8 @@ static size_t cylinders(const BRep& brep) {
 static std::array<double, 2> check_angle(double angle) {
 
     WoodSession scene(fmt::format("hilti_{:g}", angle));
-    const std::shared_ptr<Plate> left = folded_slab(angle, -1.0, "left");
-    const std::shared_ptr<Plate> right = folded_slab(angle, 1.0, "right");
+    const std::shared_ptr<FacePlanarElement> left = folded_slab(angle, -1.0, "left");
+    const std::shared_ptr<FacePlanarElement> right = folded_slab(angle, 1.0, "right");
     scene.add(left);
     scene.add(right);
 
@@ -94,11 +94,11 @@ static std::array<double, 2> check_angle(double angle) {
     const Mesh shrunk = key.transformed(Xform::scale_uniform(key.centroid(), 1.0 - 1e-3));
 
     // per slab: the key clear of its cut model, and the slab losing only its pocket
-    const std::array<std::shared_ptr<Plate>, 2> slabs = {left, right};
+    const std::array<std::shared_ptr<FacePlanarElement>, 2> slabs = {left, right};
     std::array<Plane, 2> tops;
     std::vector<Mesh> stocks;
     for (size_t side = 0; side < 2; side++) {
-        const std::shared_ptr<Plate>& slab = slabs[side];
+        const std::shared_ptr<FacePlanarElement>& slab = slabs[side];
         const Mesh& stock = slab->element_geometry_mesh();
         const Mesh& model = slab->model_geometry_mesh();
         stocks.push_back(stock);

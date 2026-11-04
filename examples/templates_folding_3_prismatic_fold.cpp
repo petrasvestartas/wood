@@ -8,7 +8,7 @@ using namespace wood_session;
 int main() {
 
     PrismaticFold fold;
-    const std::vector<std::shared_ptr<Plate>> plates = fold.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("prismatic fold: {} plates over {} mm\n", plates.size(), fold.span);
     fold.pb_dump(pb_path("live"));

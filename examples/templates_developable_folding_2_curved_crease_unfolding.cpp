@@ -18,10 +18,10 @@ int main() {
     std::cout << unfolding << std::endl;
 
     size_t solids = 0;
-    const std::vector<std::shared_ptr<PlateCurved>> plates =
-        unfolding.get_elements_placed<PlateCurved>("plate");
+    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
+        unfolding.get_elements_placed<FaceCurvedElement>("plate");
 
-    for (const std::shared_ptr<PlateCurved>& plate : plates)
+    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
         solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
 
     std::cout << fmt::format(
@@ -39,7 +39,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the developable folding templates: curved-crease unfolding. Four 40 mm plates, flat bands with circular edges, hinged on their curved edge and opened: the curved hinge forces each plate to bend about its rulings, so the stack rises into an arch. Five parallel planes 1000 mm apart, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees; every plate an exact cone. Each plate is a PlateCurved mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
+Step 2 of the developable folding templates: curved-crease unfolding. Four 40 mm plates, flat bands with circular edges, hinged on their curved edge and opened: the curved hinge forces each plate to bend about its rulings, so the stack rises into an arch. Five parallel planes 1000 mm apart, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees; every plate an exact cone. Each plate is a FaceCurvedElement mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

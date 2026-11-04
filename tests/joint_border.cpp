@@ -36,7 +36,7 @@ static void check_border() {
          {0.0, 200.0, 0.0},
          {0.0, 0.0, 0.0}}
     );
-    const std::shared_ptr<Plate> plate = std::make_shared<Plate>(
+    const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(
         bottom, bottom.transformed(Xform::translation(0.0, 0.0, 40.0)), "plate"
     );
     scene.add(plate);

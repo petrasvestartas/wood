@@ -1,17 +1,17 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element.h"
+#include "wood_element_face.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
 /// Element that represents a curved plate.
-class PlateCurved : public WoodElement {
+class FaceCurvedElement : public FaceElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE =
-        "PlateCurved"; // The element_type this plate is written under.
+        "FaceCurvedElement"; // The element_type this plate is written under.
     NurbsCurve outer_a; // The first meridian on the outer face.
     NurbsCurve outer_b; // The second meridian on the outer face, running the same way.
     NurbsCurve inner_a; // The first meridian on the inner face, under outer_a.
@@ -22,7 +22,7 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// The curved plate between the outer meridians outer_a and outer_b and the inner meridians inner_a and inner_b, all four running the same way.
-    PlateCurved(
+    FaceCurvedElement(
         const NurbsCurve& outer_a,
         const NurbsCurve& outer_b,
         const NurbsCurve& inner_a,
@@ -50,7 +50,7 @@ public:
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<PlateCurved>(*this);
+        return std::make_shared<FaceCurvedElement>(*this);
     }
 
 protected:

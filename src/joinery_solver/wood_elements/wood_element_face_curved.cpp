@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "wood_element_plate_curved.h"
+#include "wood_element_face_curved.h"
 #include "primitives.h"
 #include <map>
 
@@ -95,14 +95,14 @@ static Vector patch_normal(const NurbsSurface& patch) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-PlateCurved::PlateCurved(
+FaceCurvedElement::FaceCurvedElement(
     const NurbsCurve& outer_a,
     const NurbsCurve& outer_b,
     const NurbsCurve& inner_a,
     const NurbsCurve& inner_b,
     const std::string& name
 )
-    : WoodElement(name), outer_a(outer_a), outer_b(outer_b), inner_a(inner_a), inner_b(inner_b) {
+    : FaceElement(name), outer_a(outer_a), outer_b(outer_b), inner_a(inner_a), inner_b(inner_b) {
 
     if (!outer_a.is_valid() || !outer_b.is_valid() || !inner_a.is_valid() || !inner_b.is_valid())
         throw std::invalid_argument("A curved plate needs four valid meridians");
@@ -111,7 +111,7 @@ PlateCurved::PlateCurved(
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-std::array<NurbsSurface, 6> PlateCurved::compute_patches() const {
+std::array<NurbsSurface, 6> FaceCurvedElement::compute_patches() const {
 
     const NurbsCurve outer_start =
         segment(outer_a.point_at(outer_a.domain_start()), outer_b.point_at(outer_b.domain_start()));
@@ -133,7 +133,7 @@ std::array<NurbsSurface, 6> PlateCurved::compute_patches() const {
     };
 }
 
-BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) const {
+BRep FaceCurvedElement::compute_solid(const std::array<NurbsSurface, 6>& patches) const {
 
     BRep solid;
     solid.name = name;
@@ -183,7 +183,7 @@ BRep PlateCurved::compute_solid(const std::array<NurbsSurface, 6>& patches) cons
     return solid;
 }
 
-const Mesh& PlateCurved::element_geometry_mesh() const {
+const Mesh& FaceCurvedElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         Mesh mesh;
@@ -211,7 +211,7 @@ const Mesh& PlateCurved::element_geometry_mesh() const {
     return *_element_geometry_mesh;
 }
 
-const BRep& PlateCurved::element_geometry_brep() const {
+const BRep& FaceCurvedElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep)
         _element_geometry_brep = compute_solid(compute_patches());
@@ -219,7 +219,7 @@ const BRep& PlateCurved::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-void PlateCurved::place(const Xform& xform) {
+void FaceCurvedElement::place(const Xform& xform) {
 
     Element::place(xform);
     outer_a.transform(xform);
@@ -239,12 +239,12 @@ void PlateCurved::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
-void PlateCurved::compute_geometry_mesh_impl() {
+void FaceCurvedElement::compute_geometry_mesh_impl() {
     set_geometry(model_geometry_mesh());
     set_features(session_features(*this));
 }
 
-void PlateCurved::compute_geometry_brep_impl() {
+void FaceCurvedElement::compute_geometry_brep_impl() {
     set_geometry(model_geometry_brep());
     set_features(session_features(*this));
 }

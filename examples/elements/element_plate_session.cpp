@@ -20,7 +20,7 @@ int main() {
     const Polyline bottom_far(far);
     WoodSession scene("element_plate_session");
 
-    for (const std::shared_ptr<Plate>& plate : Plate::row_between(
+    for (const std::shared_ptr<FacePlanarElement>& plate : FacePlanarElement::row_between(
              {bottom_near, bottom_far},
              {bottom_near.translated({0.0, 0.0, 40.0}), bottom_far.translated({0.0, 0.0, 40.0})},
              "bed"
@@ -34,7 +34,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A row of plates as a session, as a bed row of the floor: two bottom rails 600 apart following a parabola, 400 deep at the start and level at 3000, and the same two rails 40 higher as the top; Plate::row_between lofts one plate per rail segment, six plates, each its bottom quad and its top quad, and the session holds them.
+A row of plates as a session, as a bed row of the floor: two bottom rails 600 apart following a parabola, 400 deep at the start and level at 3000, and the same two rails 40 higher as the top; FacePlanarElement::row_between lofts one plate per rail segment, six plates, each its bottom quad and its top quad, and the session holds them.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

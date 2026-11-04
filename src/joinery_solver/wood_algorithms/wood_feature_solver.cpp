@@ -11,7 +11,7 @@ using namespace wood_session;
 
 /// membership[element][face] = [(joint index, is_male)]; shadow joints go to the extra last slot.
 std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per_face(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& all_joints
 ) {
 
@@ -59,7 +59,7 @@ namespace wood_session {
 // WoodSession - Joints
 // ═══════════════════════════════════════════════════════════════════════════
 std::vector<std::pair<int, int>>
-WoodSession::adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements) const {
+WoodSession::adjacent_pairs(const std::vector<std::shared_ptr<FacePlanarElement>>& elements) const {
 
     if (!adjacency.empty())
         return adjacency;
@@ -70,7 +70,7 @@ WoodSession::adjacent_pairs(const std::vector<std::shared_ptr<Plate>>& elements)
 }
 
 std::vector<InteractionFeaturePlate> WoodSession::detect_features(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<std::pair<int, int>>& pairs,
     SearchType search_type
 ) {
@@ -158,7 +158,7 @@ std::vector<InteractionFeaturePlate> WoodSession::detect_features(
 }
 
 void WoodSession::build_feature_geometry(
-    std::vector<std::shared_ptr<Plate>>& elements,
+    std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints,
     const std::vector<std::vector<int>>& feature_types
 ) {
@@ -166,7 +166,7 @@ void WoodSession::build_feature_geometry(
 }
 
 void WoodSession::merge_features(
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     std::vector<InteractionFeaturePlate>& joints
 ) {
 
@@ -202,7 +202,7 @@ void WoodSession::merge_features(
     }
 }
 
-void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& elements) {
+void WoodSession::load_sidecars(const std::vector<std::shared_ptr<FacePlanarElement>>& elements) {
 
     if (adjacency.empty())
         adjacency = io::load_adjacency(config::DATA_SET_ADJACENCY);
@@ -223,7 +223,7 @@ void WoodSession::load_sidecars(const std::vector<std::shared_ptr<Plate>>& eleme
     }
 }
 
-/// The plates' insertion vectors stay in their given order: every design reads them through Plate::insertion_vector, so solving twice gives the same joints.
+/// The plates' insertion vectors stay in their given order: every design reads them through FacePlanarElement::insertion_vector, so solving twice gives the same joints.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
     return compute_features(settings.search_type);
 }
@@ -231,8 +231,8 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features() {
 /// Instances take part as world views.
 std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType search_type) {
 
-    std::vector<std::shared_ptr<Plate>> elements;
-    for (const std::shared_ptr<Plate>& plate : world_elements<Plate>())
+    std::vector<std::shared_ptr<FacePlanarElement>> elements;
+    for (const std::shared_ptr<FacePlanarElement>& plate : world_elements<FacePlanarElement>())
         if (plate->polylines.size() >= 2)
             elements.push_back(plate);
     if (elements.empty())
@@ -275,7 +275,7 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         jointed.insert(joint.element_b);
     }
 
-    for (const std::shared_ptr<Plate>& plate : elements)
+    for (const std::shared_ptr<FacePlanarElement>& plate : elements)
         if (jointed.count(plate->guid()) || !instance_lookup.count(plate->guid()))
             promote(plate);
 
@@ -348,7 +348,7 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
         add(element, group_named(element->element_type_name(), group_named("joints")));
         for (size_t i = 0; i < element->interaction_count(); i++)
             add_interaction(
-                element, get_element<Plate>(element->interaction_target(i)), element->interaction(i)
+                element, get_element<FacePlanarElement>(element->interaction_target(i)), element->interaction(i)
             );
     }
     merge_deferred = false;
@@ -360,14 +360,14 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
 }
 
 std::vector<wood_session::InteractionFeaturePlate> get_connection_zones(
-    std::vector<std::shared_ptr<wood_session::Plate>>& elements,
+    std::vector<std::shared_ptr<wood_session::FacePlanarElement>>& elements,
     const wood_session::Settings& settings,
     SearchType search_type
 ) {
 
     wood_session::WoodSession scene(wood_session::config::DATA_SET_INPUT_NAME);
     scene.settings = settings;
-    for (const std::shared_ptr<wood_session::Plate>& plate : elements)
+    for (const std::shared_ptr<wood_session::FacePlanarElement>& plate : elements)
         scene.add(plate);
 
     return scene.compute_features(search_type);

@@ -10,7 +10,7 @@ int main() {
     PrismaticFold barrel(
         PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel"
     );
-    const std::vector<std::shared_ptr<Plate>> plates = barrel.get_elements_numbered<Plate>("plate");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = barrel.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << barrel << std::endl;
     std::cout << fmt::format("folded barrel: {} plates over {} mm\n", plates.size(), barrel.span);
     barrel.pb_dump(pb_path("live"));

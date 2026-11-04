@@ -99,7 +99,7 @@ inline size_t open_point_count(const Polyline& loop) {
 }
 
 /// The merged outlines of a plate after joinery, top then bottom, outer first then holes.
-inline std::vector<Polyline> merged_loops(const Plate& plate) {
+inline std::vector<Polyline> merged_loops(const FacePlanarElement& plate) {
 
     std::vector<Polyline> loops;
 

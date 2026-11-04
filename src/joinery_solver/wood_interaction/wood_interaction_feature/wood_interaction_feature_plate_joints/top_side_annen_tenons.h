@@ -5,7 +5,7 @@
 /// plate's feature_divisions on this face when given, Christopher's round(0.8 mesh edge / tab length), else from the edge itself.
 static void top_side_annen_tenons(
     InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     const std::vector<InteractionFeaturePlate>& joints
 ) {
 
@@ -19,8 +19,8 @@ static void top_side_annen_tenons(
     if (male < 0 || female < 0 || side < 2 || wall_face < 0 || wall_face > 1)
         return;
 
-    const Plate& plate = *elements[male];
-    const Plate& wall = *elements[female];
+    const FacePlanarElement& plate = *elements[male];
+    const FacePlanarElement& wall = *elements[female];
     if (side >= (int)plate.polylines.size() || wall.planes.size() < 2)
         return;
 

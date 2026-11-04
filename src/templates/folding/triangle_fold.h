@@ -97,7 +97,7 @@ inline TriangleFold::TriangleFold(
     // plates: one plate per face by the exact offset, the edges on the ground cut flush with it
     const std::shared_ptr<TreeNode> plates = add_group("plates");
 
-    for (const std::shared_ptr<Plate>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
+    for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
         add(plate, plates);
 }
 

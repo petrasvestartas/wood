@@ -23,7 +23,7 @@ int main() {
         {Point(0, 0, 0.2), Point(1, 0, 0.2), Point(1, 1, 0.2), Point(0, 1, 0.2), Point(0, 0, 0.2)}
     );
 
-    const std::shared_ptr<Plate> we = std::make_shared<Plate>(bottom, top, "square");
+    const std::shared_ptr<FacePlanarElement> we = std::make_shared<FacePlanarElement>(bottom, top, "square");
     we->insertion_vectors() = {Vector(0, 0, 1), Vector(1, 0, 0)};
     we->feature_types = {-1, 30, 11};
     we->features.bottom = {Polyline(
@@ -60,7 +60,7 @@ int main() {
 
     check(e.guid() == guid, "guid preserved: " + e.guid());
     check(e.name == "square", "name preserved");
-    check(e.element_type_name() == Plate::ELEMENT_TYPE, "element_type = " + e.element_type_name());
+    check(e.element_type_name() == FacePlanarElement::ELEMENT_TYPE, "element_type = " + e.element_type_name());
 
     check(
         e.dimensions().has_value() && std::abs((*e.dimensions())[2] - we->thickness) < 1e-9 &&
@@ -93,8 +93,8 @@ int main() {
         );
     }
 
-    const std::shared_ptr<Plate> back = std::dynamic_pointer_cast<Plate>(element);
-    check(back != nullptr, "Session::pb_load rebuilt the element as a Plate through the registry");
+    const std::shared_ptr<FacePlanarElement> back = std::dynamic_pointer_cast<FacePlanarElement>(element);
+    check(back != nullptr, "Session::pb_load rebuilt the element as a FacePlanarElement through the registry");
 
     if (!back)
         return failures;
@@ -130,20 +130,20 @@ int main() {
 
     check(worst < 1e-12, "every outline vertex identical (worst " + std::to_string(worst) + ")");
 
-    const std::shared_ptr<Plate> pb =
-        std::dynamic_pointer_cast<Plate>(Element::pb_loads_polymorphic(we->pb_dumps()));
-    const std::shared_ptr<Plate> js =
-        std::dynamic_pointer_cast<Plate>(Element::file_json_loads_polymorphic(we->file_json_dumps())
+    const std::shared_ptr<FacePlanarElement> pb =
+        std::dynamic_pointer_cast<FacePlanarElement>(Element::pb_loads_polymorphic(we->pb_dumps()));
+    const std::shared_ptr<FacePlanarElement> js =
+        std::dynamic_pointer_cast<FacePlanarElement>(Element::file_json_loads_polymorphic(we->file_json_dumps())
         );
     check(
         pb && pb->guid() == guid && pb->polylines.size() == we->polylines.size() &&
             pb->feature_types == we->feature_types,
-        "Plate pb_dumps / pb_loads_polymorphic"
+        "FacePlanarElement pb_dumps / pb_loads_polymorphic"
     );
     check(
         js && js->guid() == guid && js->polylines.size() == we->polylines.size() &&
             js->feature_types == we->feature_types,
-        "Plate file_json_dumps / file_json_loads_polymorphic"
+        "FacePlanarElement file_json_dumps / file_json_loads_polymorphic"
     );
 
     NodeBlockElement block(std::vector<Polyline>{bottom, top}, "two_loops");
@@ -170,7 +170,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-one plate -> WoodSession -> pb round trip -> Element fields and the Plate the registry rebuilds checked; prints only what differs, exit code = failures.
+one plate -> WoodSession -> pb round trip -> Element fields and the FacePlanarElement the registry rebuilds checked; prints only what differs, exit code = failures.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

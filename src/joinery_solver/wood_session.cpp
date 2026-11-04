@@ -17,7 +17,7 @@ namespace {
 /// Registers the element and interaction factories with the kernel; always returns true so source static can hold the result.
 bool register_factories() {
 
-    Plate::register_type();
+    FacePlanarElement::register_type();
     Column::register_type();
     BeamVariable::register_type();
     BeamCurved::register_type();
@@ -182,7 +182,7 @@ WoodSession WoodSession::obj_load(const std::filesystem::path& path, double dupl
 
     WoodSession scene(path.stem().string());
     for (size_t i = 0; i < polylines.size(); i += 2)
-        scene.add(std::make_shared<Plate>(polylines[i], polylines[i + 1]));
+        scene.add(std::make_shared<FacePlanarElement>(polylines[i], polylines[i + 1]));
 
     return scene;
 }
@@ -194,7 +194,7 @@ WoodSession WoodSession::yaml_load(const std::filesystem::path& path) {
     WoodSession scene = obj_load(config::DATA_SET_OBJ, settings.duplicate_points_tolerance);
     scene.settings = settings;
     scene.name = config::DATA_SET_INPUT_NAME;
-    scene.load_sidecars(scene.world_elements<Plate>());
+    scene.load_sidecars(scene.world_elements<FacePlanarElement>());
 
     return scene;
 }
@@ -336,7 +336,7 @@ void WoodSession::clear_features() {
     for (const std::string& id : generated)
         remove_object(id);
 
-    for (const std::shared_ptr<Plate>& plate : plates()) {
+    for (const std::shared_ptr<FacePlanarElement>& plate : get_elements<FacePlanarElement>()) {
         plate->features.top.clear();
         plate->features.bottom.clear();
         plate->invalidate_geometry();
@@ -459,7 +459,7 @@ std::shared_ptr<InteractionContactFace> WoodSession::compute_face_contact(
 }
 
 std::shared_ptr<InteractionContactFace>
-WoodSession::compute_border_contact(const Plate& plate, int face) {
+WoodSession::compute_border_contact(const FacePlanarElement& plate, int face) {
 
     if (face < 2 || plate.polylines.size() < 2 ||
         face >= static_cast<int>(plate.polylines.size()) ||
@@ -587,7 +587,7 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
 
     erase_contacts("cross");
 
-    const std::vector<std::shared_ptr<Plate>> plates = world_elements<Plate>();
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = world_elements<FacePlanarElement>();
     const auto pairs = adjacency_search(
         std::vector<std::shared_ptr<Element>>(plates.begin(), plates.end()), settings.distance
     );
@@ -598,7 +598,7 @@ void WoodSession::compute_cross_contacts(double angle_tol) {
 }
 
 std::shared_ptr<InteractionContactCross> WoodSession::compute_cross_contact(
-    const std::shared_ptr<Plate>& a, const std::shared_ptr<Plate>& b, double angle_tol
+    const std::shared_ptr<FacePlanarElement>& a, const std::shared_ptr<FacePlanarElement>& b, double angle_tol
 ) const {
 
     if (a->polylines.size() < 2 || a->planes.size() < 2 || b->polylines.size() < 2 ||
@@ -845,7 +845,7 @@ static void host_plate_joint_side(
     const std::shared_ptr<JointPlate>& joint,
     const InteractionFeaturePlate& connection,
     int side,
-    const std::shared_ptr<Plate>& plate,
+    const std::shared_ptr<FacePlanarElement>& plate,
     const std::shared_ptr<InteractionFeaturePlate>& feature
 );
 
@@ -903,7 +903,7 @@ std::shared_ptr<Interaction> WoodSession::add_interaction(
         if (!feature || feature->target_side < 1 || feature->target_side > 2)
             throw std::invalid_argument("A plate joint interaction must select its target side");
         const int side = feature->target_side - 1;
-        auto plate = std::dynamic_pointer_cast<Plate>(target);
+        auto plate = std::dynamic_pointer_cast<FacePlanarElement>(target);
         if (!plate)
             throw std::invalid_argument("A plate joint requires a plate target");
         std::vector<InteractionFeaturePlate>::iterator found = joint->connections.end();
@@ -1249,7 +1249,7 @@ std::string WoodSession::str() const {
 std::string WoodSession::repr() const {
     std::ostringstream os;
     os << "WoodSession(name=" << name << ", elements=" << objects.elements->size()
-       << ", plates=" << plates().size() << ", columns=" << columns().size()
+       << ", plates=" << get_elements<FacePlanarElement>().size() << ", columns=" << columns().size()
        << ", blocks=" << get_elements<NodeBlockElement>().size() << ", definitions=" << definition_lookup.size()
        << ", instances=" << objects.instances->size() << ", interactions=" << interactions.size()
        << ")";
@@ -1285,11 +1285,11 @@ void WoodSession::merge(const WoodSession& other) {
     graft(other, nullptr);
 }
 
-/// The guids of the scene's plates in world_elements<Plate>() order, the order adjacency and three_valence count in.
+/// The guids of the scene's plates in world_elements<FacePlanarElement>() order, the order adjacency and three_valence count in.
 static std::vector<std::string> plate_guids(const WoodSession& scene) {
 
     std::vector<std::string> guids;
-    for (const std::shared_ptr<Plate>& plate : scene.world_elements<Plate>())
+    for (const std::shared_ptr<FacePlanarElement>& plate : scene.world_elements<FacePlanarElement>())
         guids.push_back(plate->guid());
 
     return guids;
@@ -1620,7 +1620,7 @@ static void host_plate_joint_side(
     const std::shared_ptr<JointPlate>& joint,
     const InteractionFeaturePlate& connection,
     int side,
-    const std::shared_ptr<Plate>& plate,
+    const std::shared_ptr<FacePlanarElement>& plate,
     const std::shared_ptr<InteractionFeaturePlate>& feature
 ) {
 
@@ -1718,7 +1718,7 @@ void WoodSession::compute_breps() {
         const bool connector_child = std::dynamic_pointer_cast<Pin>(element) ||
                                      std::dynamic_pointer_cast<ConnectorPart>(element);
         const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
-                           std::dynamic_pointer_cast<PlateCurved>(element) ||
+                           std::dynamic_pointer_cast<FaceCurvedElement>(element) ||
                            std::dynamic_pointer_cast<BeamCurved>(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 
@@ -1819,7 +1819,7 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
         if (cut->mesh.number_of_faces() > 0)
             add_solid_interaction(joint, target, cut);
 
-        if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(target)) {
+        if (const std::shared_ptr<FacePlanarElement> plate = std::dynamic_pointer_cast<FacePlanarElement>(target)) {
             std::vector<std::pair<std::shared_ptr<JointBeam>, size_t>> butts;
             std::map<size_t, Plane> planes;
             for (const std::string& guid : graph.neighbors(target->guid())) {

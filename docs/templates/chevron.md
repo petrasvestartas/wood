@@ -96,7 +96,7 @@ bisectors[face][j] = dihedral_plane(_edge_planes[face][(j + 1) % 4], _edge_plane
 
 ## Four-Plate Hollow Boxes {#chevron_plates}
 
-Three-plane intersections clip top, bottom, and two active chevron side `Plate` solids for every cell, the four of a face kept in its group `box_<face>`. The box sides are the face's edge planes with the chevron ones moved out by a plate, where the walls stand; the top and bottom outlines run the way Christopher's contours run from their first corner, so the solver's side `2 + j` lies on mesh edge `(4 - j) % 4`.
+Three-plane intersections clip top, bottom, and two active chevron side `FacePlanarElement` solids for every cell, the four of a face kept in its group `box_<face>`. The box sides are the face's edge planes with the chevron ones moved out by a plate, where the walls stand; the top and bottom outlines run the way Christopher's contours run from their first corner, so the solver's side `2 + j` lies on mesh edge `(4 - j) % 4`.
 
 ![](templates/templates_chevron_1_chevron_plates.webp)
 
@@ -149,7 +149,7 @@ Chevron chevron(
 
 ## Shifted Pattern {#chevron_shifted}
 
-`ChevronShifted` in `src/templates/chevron/chevron_shifted.h` is the second version of the template: the 2018 Annen pattern of the Grasshopper definition `ShiftedPattern-OptimizationUpdate/Annen200917.gh`, hexagonal cells in staggered columns instead of chevron strips. `Chevron` stays the default; the caller picks the class. Both build their plates from planes with the kernel's `Polyline::from_planes`, as `Plate` elements, and hand the same tables to the wood solver. Its ground truth is the definition's own output `Annen2.3dm`: every one of its 1075 plates is within 0.011 mm of a plate built here, and every tenon it carries within 1 mm of one the solver cuts.
+`ChevronShifted` in `src/templates/chevron/chevron_shifted.h` is the second version of the template: the 2018 Annen pattern of the Grasshopper definition `ShiftedPattern-OptimizationUpdate/Annen200917.gh`, hexagonal cells in staggered columns instead of chevron strips. `Chevron` stays the default; the caller picks the class. Both build their plates from planes with the kernel's `Polyline::from_planes`, as `FacePlanarElement` elements, and hand the same tables to the wood solver. Its ground truth is the definition's own output `Annen2.3dm`: every one of its 1075 plates is within 0.011 mm of a plate built here, and every tenon it carries within 1 mm of one the solver cuts.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#chevron_shifted_cells">

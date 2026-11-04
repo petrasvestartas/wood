@@ -1,6 +1,6 @@
 static bool drill_directions(
     const InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<Plate>>& elements,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
     Vector& dir0,
     Vector& dir1
 ) {
