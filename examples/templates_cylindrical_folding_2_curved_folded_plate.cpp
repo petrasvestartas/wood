@@ -4,6 +4,9 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Rulings per wave: 30 lamellas at the default 24 take the viewer over 25 minutes; at 6 under a minute, the curves within 0.03 mm.
+const size_t SAMPLES = 6;
+
 /// A curved folded plate.
 int main() {
 
@@ -20,7 +23,11 @@ int main() {
         {{3620.0, -30.0 * Tolerance::TO_RADIANS},
          {7240.0, -30.0 * Tolerance::TO_RADIANS},
          {10860.0, -30.0 * Tolerance::TO_RADIANS},
-         {14480.0, -30.0 * Tolerance::TO_RADIANS}}
+         {14480.0, -30.0 * Tolerance::TO_RADIANS}},
+        std::nullopt,
+        120.0,
+        "reflection_fold",
+        SAMPLES
     );
     std::cout << fold << std::endl;
 
