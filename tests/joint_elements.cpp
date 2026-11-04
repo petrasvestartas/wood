@@ -339,15 +339,15 @@ static void check_joint_depth_scale() {
 
     const Fingers dataset = measured(40.0, {-5.0, 0.0, -10.0}, 1.0);
     const Fingers full = measured(40.0, {0.0, 0.0, -10.0}, 1.0);
-    const Fingers small = measured(40.0, {0.0, 0.0, -10.0}, 0.4);
+    const Fingers small = measured(40.0, {0.0, 0.0, -10.0}, 0.2);
     const Fingers shrunk = measured(40.0, {-14.9, 0.0, -10.0}, 1.0);
 
     check(full.overlap < 1.0, fmt::format("the full volume overlaps {:.3f} mm3", full.overlap));
     check(small.closed == small.plates, fmt::format("{} of {} plates closed", small.closed, small.plates));
     check(small.overlap < 1.0, fmt::format("the small fingers overlap {:.3f} mm3", small.overlap));
     check(
-        std::abs(small.depth - 0.4 * full.depth) < 1e-3 * full.depth,
-        fmt::format("depth {:.3f}, not 0.4 of {:.3f}", small.depth, full.depth)
+        std::abs(small.depth - 0.2 * full.depth) < 1e-3 * full.depth,
+        fmt::format("depth {:.3f}, not 0.2 of {:.3f}", small.depth, full.depth)
     );
     check(
         std::abs(small.wood - full.wood) < 1e-4 * full.wood,

@@ -124,3 +124,18 @@ With the original count, I shot the cut shell from the original view and from +6
 So the reason for `SHELL_ORBIT` is gone and it is removed from the tool, with the `orbit` argument. The pictures keep their old angle. `ex_2_contacts.webp` is back to byte-identical with git. The `landing` step stays, since the landing picture had no recipe.
 
 Retaken and read at full size: `ex_3_features`, `ex_4_traversal`, `wood_architecture`, `landing_architecture`. Low square teeth of the old width on every near seam, no dark line. The far rim in the transparent shots is less dense than in the first version of this job: the rectangles stay separate, and no spot on the sheet goes solid.
+
+## Step 10: smaller again
+
+The user: "make even smaller". `joint_depth_scale` 0.2 in the three examples, half of the last depth, with the width and count kept. `tests/joint_elements.cpp` now measures 0.2 too.
+
+Measured: depth 9.8, 5.1 divisions, overlap 0.000 mm3, 23 of 23 closed, wood 95,356,956 of 95,356,956.
+
+Retaken from rebuilt examples: `ex_3_features`, `ex_4_traversal`, `wood_architecture`, `landing_architecture`. `ex_2_contacts` is unchanged.
+
+The landing picture has no fixed size on the page: it fills the column. I read it at full size and on scaled copies 900 and 500 pixels wide, kept out of the docs.
+
+- 900: every seam reads as a zigzag, including the ridge.
+- 500: near seams still read as teeth. The far rim starts to read as a dashed line, not a thick one.
+
+So 0.2 stays, and 0.25 was not needed. In the sheet's panel 3 the far seams on the ridge are now thin hatching with no solid spot.
