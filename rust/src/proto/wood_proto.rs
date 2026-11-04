@@ -89,23 +89,6 @@ pub struct BeamVariable {
     #[prost(message, repeated, tag = "5")]
     pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
 }
-/// The state of a Block beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Block {
-    #[prost(message, optional, tag = "4")]
-    pub source_mesh: ::core::option::Option<::session_rust::proto::Mesh>,
-    #[prost(message, repeated, tag = "3")]
-    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
-    /// The planes other elements cut it by
-    #[prost(message, repeated, tag = "5")]
-    pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
-    /// Bottom loop, top loop, then their holes paired in order
-    #[prost(message, repeated, tag = "1")]
-    pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
-    /// Planes the solid is cut by, each keeping the side its normal points to
-    #[prost(message, repeated, tag = "2")]
-    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
-}
 /// The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Column {
@@ -222,24 +205,26 @@ pub struct JointPlateParameters {
     #[prost(message, repeated, tag = "14")]
     pub female: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
 }
-/// The state of a Plate beyond the kernel Element: its two outlines.
+/// The state of a NodeBlockElement beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Plate {
-    #[prost(message, repeated, tag = "4")]
+pub struct NodeBlockElement {
+    #[prost(message, optional, tag = "4")]
+    pub source_mesh: ::core::option::Option<::session_rust::proto::Mesh>,
+    #[prost(message, repeated, tag = "3")]
     pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
-    /// Bottom outline
-    #[prost(message, optional, tag = "1")]
-    pub bottom: ::core::option::Option<::session_rust::proto::Polyline>,
-    /// Top outline
-    #[prost(message, optional, tag = "2")]
-    pub top: ::core::option::Option<::session_rust::proto::Polyline>,
-    /// True when the constructor reversed both outlines
-    #[prost(bool, tag = "3")]
-    pub reversed: bool,
+    /// The planes other elements cut it by
+    #[prost(message, repeated, tag = "5")]
+    pub plane_features: ::prost::alloc::vec::Vec<InteractionFeaturePlane>,
+    /// Bottom loop, top loop, then their holes paired in order
+    #[prost(message, repeated, tag = "1")]
+    pub loops: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// Planes the solid is cut by, each keeping the side its normal points to
+    #[prost(message, repeated, tag = "2")]
+    pub cuts: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
 }
-/// The state of a Support beyond the kernel Element: its placement and every dimension of the column base.
+/// The state of a NodeSupportElement beyond the kernel Element: its placement and every dimension of the column base.
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Support {
+pub struct NodeSupportElement {
     /// Base plate underside centre, z up the column, x along a base plate side
     #[prost(message, optional, tag = "1")]
     pub plane: ::core::option::Option<::session_rust::proto::Plane>,
@@ -289,6 +274,21 @@ pub struct Support {
     pub anchor_embedment: f64,
     #[prost(double, tag = "22")]
     pub chord_tolerance: f64,
+}
+/// The state of a Plate beyond the kernel Element: its two outlines.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Plate {
+    #[prost(message, repeated, tag = "4")]
+    pub solid_features: ::prost::alloc::vec::Vec<InteractionFeatureSolid>,
+    /// Bottom outline
+    #[prost(message, optional, tag = "1")]
+    pub bottom: ::core::option::Option<::session_rust::proto::Polyline>,
+    /// Top outline
+    #[prost(message, optional, tag = "2")]
+    pub top: ::core::option::Option<::session_rust::proto::Polyline>,
+    /// True when the constructor reversed both outlines
+    #[prost(bool, tag = "3")]
+    pub reversed: bool,
 }
 /// The state of an InteractionContactAxis beyond the kernel Interaction: where two polylines come closest.
 #[derive(Clone, PartialEq, ::prost::Message)]

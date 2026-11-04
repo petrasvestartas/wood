@@ -118,7 +118,7 @@ is not a `FloorGuide` parameter field. The side wedge seat of 20 mm (`chamfer - 
 `L = half span - column_head - wedge` hold at right corners only (1.2, R8).
 
 Support and connector dimensions stay where they are: the Sherpa support
-(`src/joinery_solver/wood_elements/wood_element_support.h:13,16,60-61`; `support.py:128-133`) and
+(`src/joinery_solver/wood_elements/wood_element_node_support.h:13,16,60-61`; `support.py:128-133`) and
 the `JointBeam` factory defaults (`wood_element_joint_beam.h:39-100`, from
 `connectors.py:351-358, 801-807, 1076-1118`). The assembly pins (radius 4, length 30, inset 50)
 and the cross-lap share 0.5 are wood-only (`floor.h:194,197`).
@@ -856,7 +856,7 @@ std::vector<Relationship> relationships(const Floor& floor, Relation kind);     
 
 FloorMembers add_floor(wood_session::WoodSession& session, const Floor& floor, const std::shared_ptr<session_cpp::TreeNode>& group);     // The four quarters and the oculus, lifted by bay_height, built in place.
 void add_columns(wood_session::WoodSession&, const Floor&, group, FloorMembers&);                                                       // The four column models, filled into the members.
-ColumnModel add_column_model(wood_session::WoodSession&, const Floor&, size_t corner, group);                                            // Support, column carved by column_cuts, support joint at corner k.
+ColumnModel add_column_model(wood_session::WoodSession&, const Floor&, size_t corner, group);                                            // NodeSupportElement, column carved by column_cuts, support joint at corner k.
 QuarterMembers add_quarter_model(wood_session::WoodSession&, const Quarter&, group);                                                     // The six families, suffix "_k".
 std::vector<Member> add_oculus_model(wood_session::WoodSession&, const Floor&, group);
 const session_cpp::Color CONNECTOR_COLOR;                                                                                                // blue, 38 / 149 / 233.

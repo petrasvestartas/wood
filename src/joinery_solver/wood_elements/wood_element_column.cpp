@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "wood_serialization.h"
 #include "wood_element_column.h"
-#include "wood_element_block.h"
+#include "wood_element_node_block.h"
 #include "wood_element_geometry.h"
 #include "wood_profile.h"
 #include "wood_brep_drill.h"
@@ -128,7 +128,7 @@ Column::square(const Line& axis, const Plane& corner, double side, const std::st
     );
 }
 
-std::vector<std::shared_ptr<Block>>
+std::vector<std::shared_ptr<NodeBlockElement>>
 Column::head_blocks(double head_side, double head_height) const {
 
     const Point origin = section.get_point(0);
@@ -142,7 +142,7 @@ Column::head_blocks(double head_side, double head_height) const {
         {0.0, side_y, head_side, head_side},
         {side_x, 0.0, head_side, side_y},
     }};
-    std::vector<std::shared_ptr<Block>> blocks;
+    std::vector<std::shared_ptr<NodeBlockElement>> blocks;
 
     for (size_t i = 0; i < spans.size(); i++) {
         const auto [a0, b0, a1, b1] = spans[i];
@@ -155,7 +155,7 @@ Column::head_blocks(double head_side, double head_height) const {
                                   .closed();
         const Polyline bottom_loop = base.translated(under);
         const Polyline top_loop = base.translated(axis.to_vector());
-        const std::shared_ptr<Block> block = std::make_shared<Block>(
+        const std::shared_ptr<NodeBlockElement> block = std::make_shared<NodeBlockElement>(
             std::vector<Polyline>{bottom_loop, top_loop}, fmt::format("{}_head_{}", name, i)
         );
         block->is_visible = false;

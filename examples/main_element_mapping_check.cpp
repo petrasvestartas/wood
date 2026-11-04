@@ -146,21 +146,21 @@ int main() {
         "Plate file_json_dumps / file_json_loads_polymorphic"
     );
 
-    Block block(std::vector<Polyline>{bottom, top}, "two_loops");
+    NodeBlockElement block(std::vector<Polyline>{bottom, top}, "two_loops");
     const std::string block_guid = block.guid();
-    const std::shared_ptr<Block> block_pb =
-        std::dynamic_pointer_cast<Block>(Element::pb_loads_polymorphic(block.pb_dumps()));
-    const std::shared_ptr<Block> block_js = std::dynamic_pointer_cast<Block>(
+    const std::shared_ptr<NodeBlockElement> block_pb =
+        std::dynamic_pointer_cast<NodeBlockElement>(Element::pb_loads_polymorphic(block.pb_dumps()));
+    const std::shared_ptr<NodeBlockElement> block_js = std::dynamic_pointer_cast<NodeBlockElement>(
         Element::file_json_loads_polymorphic(block.file_json_dumps())
     );
     check(
         block_pb && block_pb->polylines().size() == 2 && block_pb->planes().size() == 2 &&
             block_pb->guid() == block_guid && block_pb->name == "two_loops",
-        "Block pb: loops, planes, identity, name"
+        "NodeBlockElement pb: loops, planes, identity, name"
     );
     check(
         block_js && block_js->polylines().size() == 2 && block_js->guid() == block_guid,
-        "Block json"
+        "NodeBlockElement json"
     );
 
     std::filesystem::remove(path);

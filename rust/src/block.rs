@@ -44,9 +44,9 @@ impl Block {
 impl WoodElement for Block {
     const TYPE: &'static str = "Solid";
     const LEGACY_TYPE: &'static str = "BlockElement";
-    type Payload = proto::Block;
+    type Payload = proto::NodeBlockElement;
 
-    fn from_payload(name: &str, payload: proto::Block) -> Option<Self> {
+    fn from_payload(name: &str, payload: proto::NodeBlockElement) -> Option<Self> {
         Some(Self {
             name: name.to_string(),
             loops: payload
@@ -61,8 +61,8 @@ impl WoodElement for Block {
         })
     }
 
-    fn payload(&self) -> proto::Block {
-        proto::Block {
+    fn payload(&self) -> proto::NodeBlockElement {
+        proto::NodeBlockElement {
             source_mesh: self.source_mesh.as_ref().map(Mesh::to_proto),
             solid_features: self.solid_features.clone(),
             plane_features: self.plane_features.clone(),

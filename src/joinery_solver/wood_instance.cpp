@@ -134,7 +134,7 @@ std::optional<std::pair<std::string, Xform>> beam_key(const Beam& beam) {
 }
 
 /// Origin at the first point of the bottom loop, x along its first edge, z its normal.
-std::optional<std::pair<std::string, Xform>> block_key(const Block& block) {
+std::optional<std::pair<std::string, Xform>> block_key(const NodeBlockElement& block) {
 
     if (block.loops.empty() || block.loops[0].point_count() < 3)
         return std::nullopt;
@@ -206,10 +206,10 @@ std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, co
             std::dynamic_pointer_cast<BeamCurved>(element))
         return curved->transformed(xform);
 
-    if (const std::shared_ptr<Support> support = std::dynamic_pointer_cast<Support>(element))
+    if (const std::shared_ptr<NodeSupportElement> support = std::dynamic_pointer_cast<NodeSupportElement>(element))
         return support->transformed(xform);
 
-    if (const std::shared_ptr<Block> block = std::dynamic_pointer_cast<Block>(element))
+    if (const std::shared_ptr<NodeBlockElement> block = std::dynamic_pointer_cast<NodeBlockElement>(element))
         return block->transformed(xform);
 
     if (const std::shared_ptr<Plate> plate = std::dynamic_pointer_cast<Plate>(element))
@@ -278,7 +278,7 @@ std::optional<std::pair<std::string, Xform>> element_key(const Element& element)
     if (const Beam* beam = dynamic_cast<const Beam*>(&element))
         return beam_key(*beam);
 
-    if (const Block* block = dynamic_cast<const Block*>(&element))
+    if (const NodeBlockElement* block = dynamic_cast<const NodeBlockElement*>(&element))
         return block_key(*block);
 
     if (const Plate* plate = dynamic_cast<const Plate*>(&element))

@@ -19,7 +19,7 @@ int main() {
         Plane({900, 0, 0}, {1, 0, 0}, {0, 1, 0}),
         100
     );
-    const std::shared_ptr<Block> block = std::make_shared<Block>(std::vector<Polyline>{
+    const std::shared_ptr<NodeBlockElement> block = std::make_shared<NodeBlockElement>(std::vector<Polyline>{
         Polyline::rectangle({1200, 0, 0}, {1, 0, 0}, {0, 1, 0}, 200, 400),
         Polyline::rectangle({1170, 0, 250}, {1, 0, 0}, {0, 1, 0}, 260, 400)
     });

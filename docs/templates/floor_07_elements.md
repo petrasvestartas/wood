@@ -262,10 +262,10 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 <span style="color:#2196EA">■ built</span> `support_0`   <span style="color:#E8478B">■ variable</span> `support_plane(0)`
 
-A `Support` stands on `guide.support_plane(corner)`, its base plate on the slab under the column, named `support_<corner>`.
+A `NodeSupportElement` stands on `guide.support_plane(corner)`, its base plate on the slab under the column, named `support_<corner>`.
 
 ```cpp
-const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+const std::shared_ptr<NodeSupportElement> support = std::make_shared<NodeSupportElement>(guide.support_plane(corner), "support");
 support->name = fmt::format("support_{}", corner);
 ```
 
@@ -283,7 +283,7 @@ The axis runs from the support's head plate, less its recess, straight up to the
 const Line axis = support->column_axis(guide.bay_height);
 ```
 
-Code: `Support::column_axis`, [wood_element_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_support.cpp).
+Code: `NodeSupportElement::column_axis`, [wood_element_node_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_node_support.cpp).
 
 ## 223. Column::square
 
@@ -334,7 +334,7 @@ add(shaft, group);
 // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
 const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+for (const std::shared_ptr<NodeBlockElement>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
     add(block, group);
     const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
     add_interaction(block, shaft, glue);

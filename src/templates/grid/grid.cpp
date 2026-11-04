@@ -373,8 +373,8 @@ std::shared_ptr<Element> to_block(
 
     const Polyline lower = compute_lifted(to_polyline(bottom), z_bottom);
     const Polyline upper = compute_lifted(to_polyline(top), z_top);
-    std::shared_ptr<wood_session::Block> block =
-        std::make_shared<wood_session::Block>(std::vector<Polyline>{lower, upper}, name);
+    std::shared_ptr<wood_session::NodeBlockElement> block =
+        std::make_shared<wood_session::NodeBlockElement>(std::vector<Polyline>{lower, upper}, name);
     block->cuts = cuts;
     block->invalidate_geometry();
 
@@ -394,7 +394,7 @@ to_head(const Context& context, const Level& level, size_t vertex, double z_bott
                 member.direction * context.framing.reach
             );
 
-        std::shared_ptr<wood_session::Block> head = std::make_shared<wood_session::Block>(
+        std::shared_ptr<wood_session::NodeBlockElement> head = std::make_shared<wood_session::NodeBlockElement>(
             compute_pyramid(context, vertex, z_bottom, z_top, level.z), "head"
         );
         head->cuts = compute_head_cuts(level, vertex, extent, context.framing);

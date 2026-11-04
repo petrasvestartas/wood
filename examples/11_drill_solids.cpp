@@ -22,7 +22,7 @@ int main() {
         scene.add(std::make_shared<Element>(exact, "Exact cylindrical BRep"));
         ++row;
     }
-    const std::shared_ptr<Block> stock = std::make_shared<Block>(
+    const std::shared_ptr<NodeBlockElement> stock = std::make_shared<NodeBlockElement>(
         std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(0, 0, 80, 200, 160)}
     );
     cut_case(

@@ -7,10 +7,10 @@ A solid block lofted between a bottom loop and a top loop (with optional paired 
 ## Constructors
 
 ```cpp
-explicit Block(const std::vector<Polyline>& loops, const std::string& name = "block");
-explicit Block(const Mesh& mesh, const std::string& name = "block");
-static std::shared_ptr<Block> box(const Point& corner, double x_size, double y_size, double height, const std::string& name = "block");
-static std::array<std::shared_ptr<Block>, 2> pair_stacked(double lower_size = 400.0, double upper_size = 300.0, double height = 200.0);
+explicit NodeBlockElement(const std::vector<Polyline>& loops, const std::string& name = "block");
+explicit NodeBlockElement(const Mesh& mesh, const std::string& name = "block");
+static std::shared_ptr<NodeBlockElement> box(const Point& corner, double x_size, double y_size, double height, const std::string& name = "block");
+static std::array<std::shared_ptr<NodeBlockElement>, 2> pair_stacked(double lower_size = 400.0, double upper_size = 300.0, double height = 200.0);
 ```
 
 ## Lofted between two loops

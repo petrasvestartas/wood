@@ -8,8 +8,8 @@ import "plane.proto";
 import "mesh.proto";
 import "polyline.proto";
 
-// The state of a Block beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
-message Block {
+// The state of a NodeBlockElement beyond the kernel Element: the closed loops its solid is lofted between and its cuts.
+message NodeBlockElement {
   session_proto.Mesh source_mesh = 4;
   repeated InteractionFeatureSolid solid_features = 3;
   repeated InteractionFeaturePlane plane_features = 5;  // The planes other elements cut it by

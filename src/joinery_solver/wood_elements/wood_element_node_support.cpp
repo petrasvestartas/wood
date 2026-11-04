@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "wood_serialization.h"
-#include "wood_element_support.h"
+#include "wood_element_node_support.h"
 #include "wood_element_geometry.h"
 #include "wood_brep_drill.h"
-#include "element_support.pb.h"
+#include "element_node_support.pb.h"
 
 namespace wood_session {
 
@@ -12,22 +12,22 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-Support::Support() : WoodElement("support") {
+NodeSupportElement::NodeSupportElement() : NodeElement("support") {
 }
 
-Support::Support(const Plane& plane, const std::string& name) : WoodElement(name), plane(plane) {
+NodeSupportElement::NodeSupportElement(const Plane& plane, const std::string& name) : NodeElement(name), plane(plane) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::shared_ptr<Support> Support::from_element(Element e) {
+std::shared_ptr<NodeSupportElement> NodeSupportElement::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
-    std::shared_ptr<Support> support = std::make_shared<Support>();
+    std::shared_ptr<NodeSupportElement> support = std::make_shared<NodeSupportElement>();
     static_cast<Element&>(*support) = std::move(e);
 
-    wood_proto::Support proto;
+    wood_proto::NodeSupportElement proto;
 
     if (!proto.ParseFromString(bytes) || !proto.has_plane())
         return support;
@@ -63,14 +63,14 @@ std::shared_ptr<Support> Support::from_element(Element e) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// The point at x, y, z in the support's frame.
-static Point local(const Support& support, double x, double y, double z) {
+static Point local(const NodeSupportElement& support, double x, double y, double z) {
     return support.plane.origin() + support.plane.x_axis() * x + support.plane.y_axis() * y +
            support.plane.z_axis() * z;
 }
 
 /// The closed ring of corners at radius about the axis at level z, the first at angle start, counter-clockwise about z.
 static Polyline ring(
-    const Support& support, double cx, double cy, double radius, int corners, double start, double z
+    const NodeSupportElement& support, double cx, double cy, double radius, int corners, double start, double z
 ) {
 
     std::vector<Point> points;
@@ -89,7 +89,7 @@ static Polyline ring(
 
 /// The hexagon of a nut given across the flats, from level bottom to level top.
 static std::array<Polyline, 2>
-hexagon(const Support& support, double across_flats, double bottom, double top) {
+hexagon(const NodeSupportElement& support, double across_flats, double bottom, double top) {
 
     const double radius = across_flats / (2.0 * std::cos(Tolerance::PI / 6.0));
 
@@ -100,7 +100,7 @@ hexagon(const Support& support, double across_flats, double bottom, double top) 
 }
 
 /// The base plate square and its four drillings at levels bottom and top, outer loop first.
-static std::array<std::vector<Polyline>, 2> base_plate(const Support& support) {
+static std::array<std::vector<Polyline>, 2> base_plate(const NodeSupportElement& support) {
 
     const double half = support.base_plate_size * 0.5;
     const double radius = support.base_plate_hole_diameter * 0.5;
@@ -130,7 +130,7 @@ static std::array<std::vector<Polyline>, 2> base_plate(const Support& support) {
 
 /// The base plate as a BRep with its anchor holes exact cylinders.
 static BRep
-base_plate_brep(const Support& support, const std::array<std::vector<Polyline>, 2>& plate) {
+base_plate_brep(const NodeSupportElement& support, const std::array<std::vector<Polyline>, 2>& plate) {
 
     std::vector<Drill> holes;
 
@@ -152,26 +152,26 @@ base_plate_brep(const Support& support, const std::array<std::vector<Polyline>, 
 }
 
 /// The level the coupling nut starts at: under the head plate by the nut's own height.
-static double coupling_level(const Support& support) {
+static double coupling_level(const NodeSupportElement& support) {
     return support.height - support.head_plate_thickness - support.coupling_nut_height;
 }
 
-Point Support::at(double level) const {
+Point NodeSupportElement::at(double level) const {
     return local(*this, 0.0, 0.0, level);
 }
 
-Point Support::column_foot() const {
+Point NodeSupportElement::column_foot() const {
     return at(height - head_plate_recess);
 }
 
-Line Support::column_axis(double top_z) const {
+Line NodeSupportElement::column_axis(double top_z) const {
 
     const Point foot = column_foot();
 
     return Line::from_points(foot, Point(foot[0], foot[1], top_z));
 }
 
-std::vector<Line> Support::pins() const {
+std::vector<Line> NodeSupportElement::pins() const {
 
     const double radius = pin_circle_diameter * 0.5;
     const double tilt = pin_angle * 0.5 * Tolerance::TO_RADIANS;
@@ -188,7 +188,7 @@ std::vector<Line> Support::pins() const {
     return lines;
 }
 
-std::vector<Line> Support::anchors() const {
+std::vector<Line> NodeSupportElement::anchors() const {
 
     const double half = base_plate_hole_spacing * 0.5;
     const std::array<std::array<double, 2>, 4> corners = {
@@ -205,7 +205,7 @@ std::vector<Line> Support::anchors() const {
     return lines;
 }
 
-const Mesh& Support::element_geometry_mesh() const {
+const Mesh& NodeSupportElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
@@ -243,7 +243,7 @@ const Mesh& Support::element_geometry_mesh() const {
     return *_element_geometry_mesh;
 }
 
-const BRep& Support::element_geometry_brep() const {
+const BRep& NodeSupportElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const std::array<std::vector<Polyline>, 2> plate = base_plate(*this);
@@ -279,24 +279,24 @@ const BRep& Support::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-const Mesh& Support::model_geometry_mesh() const {
+const Mesh& NodeSupportElement::model_geometry_mesh() const {
     return element_geometry_mesh();
 }
 
-const BRep& Support::model_geometry_brep() const {
+const BRep& NodeSupportElement::model_geometry_brep() const {
     return element_geometry_brep();
 }
 
-std::vector<Plane> Support::compute_planes() const {
+std::vector<Plane> NodeSupportElement::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }
 
-std::shared_ptr<Support> Support::transformed(const Xform& xform) const {
+std::shared_ptr<NodeSupportElement> NodeSupportElement::transformed(const Xform& xform) const {
 
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<Support> support = std::make_shared<Support>(*this);
+    std::shared_ptr<NodeSupportElement> support = std::make_shared<NodeSupportElement>(*this);
     support->guid() = guid();
     support->plane = plane.transformed(xform);
     support->_element_geometry_mesh.reset();
@@ -307,7 +307,7 @@ std::shared_ptr<Support> Support::transformed(const Xform& xform) const {
     return support;
 }
 
-void Support::place(const Xform& xform) {
+void NodeSupportElement::place(const Xform& xform) {
 
     Element::place(xform);
     plane = plane.transformed(xform);
@@ -315,12 +315,12 @@ void Support::place(const Xform& xform) {
     _element_geometry_brep.reset();
 }
 
-void Support::compute_geometry_mesh_impl() {
+void NodeSupportElement::compute_geometry_mesh_impl() {
     set_geometry(model_geometry_mesh());
     set_features(session_features(*this));
 }
 
-void Support::compute_geometry_brep_impl() {
+void NodeSupportElement::compute_geometry_brep_impl() {
     set_geometry(model_geometry_brep());
     set_features(session_features(*this));
 }
@@ -328,12 +328,12 @@ void Support::compute_geometry_brep_impl() {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-nlohmann::ordered_json Support::element_data_jsondump() const {
+nlohmann::ordered_json NodeSupportElement::element_data_jsondump() const {
 
-    wood_proto::Support proto;
+    wood_proto::NodeSupportElement proto;
 
     if (!proto.ParseFromString(element_data_dumps()))
-        throw std::runtime_error("Failed to parse Support protobuf data");
+        throw std::runtime_error("Failed to parse NodeSupportElement protobuf data");
 
     return json_of(proto);
 }
@@ -341,9 +341,9 @@ nlohmann::ordered_json Support::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Support::element_data_dumps() const {
+std::string NodeSupportElement::element_data_dumps() const {
 
-    wood_proto::Support proto;
+    wood_proto::NodeSupportElement proto;
 
     if (!proto.mutable_plane()->ParseFromString(plane.pb_dumps()))
         throw std::runtime_error("Invalid support plane");
@@ -373,29 +373,30 @@ std::string Support::element_data_dumps() const {
     return proto.SerializeAsString();
 }
 
-/// The element factory of a serialized support: the protobuf bytes decoded as an Element and promoted to a Support.
+/// The element factory of a serialized support: the protobuf bytes decoded as an Element and promoted to a NodeSupportElement.
 static std::shared_ptr<Element> support_from_protobuf(const std::string& data) {
-    return Support::from_element(Element::pb_loads(data));
+    return NodeSupportElement::from_element(Element::pb_loads(data));
 }
 
-void Support::register_type() {
+void NodeSupportElement::register_type() {
     Element::register_type(std::string(ELEMENT_TYPE), support_from_protobuf);
+    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), support_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Support::str() const {
+std::string NodeSupportElement::str() const {
 
     std::ostringstream os;
-    os << "Support(name=" << name << ", height=" << height
+    os << "NodeSupportElement(name=" << name << ", height=" << height
        << ", head_plate_diameter=" << head_plate_diameter << ", is_visible=" << std::boolalpha
        << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
 
-std::optional<Plane> Support::base_plane() const {
+std::optional<Plane> NodeSupportElement::base_plane() const {
     return plane;
 }
 

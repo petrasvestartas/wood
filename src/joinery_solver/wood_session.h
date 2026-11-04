@@ -8,12 +8,12 @@
 #include "wood_element_joint_beam.h"
 #include "wood_element_pin.h"
 #include "wood_element_connector_part.h"
-#include "wood_element_block.h"
+#include "wood_element_node_block.h"
 #include "wood_element_column.h"
 #include "wood_element_cut_plane.h"
 #include "wood_element_beam_variable.h"
 #include "wood_element_beam_curved.h"
-#include "wood_element_support.h"
+#include "wood_element_node_support.h"
 #include "wood_element_plate.h"
 #include "wood_element_plate_curved.h"
 #include "wood_config.h"
@@ -370,16 +370,6 @@ public:
     /// Every BeamCurved, in objects.elements order.
     std::vector<std::shared_ptr<BeamCurved>> beam_curveds() const {
         return get_elements<BeamCurved>();
-    }
-
-    /// Every Support, in objects.elements order.
-    std::vector<std::shared_ptr<Support>> supports() const {
-        return get_elements<Support>();
-    }
-
-    /// Every Block, in objects.elements order.
-    std::vector<std::shared_ptr<Block>> blocks() const {
-        return get_elements<Block>();
     }
 
     /// Every Beam, in objects.elements order.

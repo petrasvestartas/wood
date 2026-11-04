@@ -1,17 +1,19 @@
 #pragma once
 
 #include "pch.h"
-#include "wood_element.h"
+#include "wood_element_node.h"
 
 using namespace session_cpp;
 
 namespace wood_session {
 
 /// Element that represents a column base, parametric after the Sherpa Power Base L 140 C.
-class Support : public WoodElement {
+class NodeSupportElement : public NodeElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE =
-        "Support"; // The element_type this support is written under.
+        "NodeSupportElement"; // The element_type this support is written under.
+    static constexpr std::string_view LEGACY_ELEMENT_TYPE =
+        "Support"; // The element_type wood wrote before, still accepted on read.
     Plane plane = Plane::xy_plane(
     ); // Base plate underside centre, z up the column, x along a base plate side.
     double height = 150.0; // Base plate underside to head plate top, 150 to 200 by the adjustment.
@@ -39,17 +41,17 @@ public:
     double chord_tolerance = 0.05; // Largest deviation of a round part's facets.
 
     /// A support at the world origin standing up z, with the manufacturer's dimensions.
-    Support();
+    NodeSupportElement();
 
     /// A support on plane.
-    explicit Support(const Plane& plane, const std::string& name = "support");
+    explicit NodeSupportElement(const Plane& plane, const std::string& name = "support");
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The support an Element tagged "Support" describes, same guid; a missing payload leaves the defaults.
-    static std::shared_ptr<Support> from_element(Element element);
+    /// The support an Element tagged "NodeSupportElement" describes, same guid; a missing payload leaves the defaults.
+    static std::shared_ptr<NodeSupportElement> from_element(Element element);
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
@@ -86,7 +88,7 @@ public:
     std::vector<Plane> compute_planes() const override;
 
     /// A copy moved by xform, guid and name kept; nullptr for a mirror.
-    std::shared_ptr<Support> transformed(const Xform& xform) const;
+    std::shared_ptr<NodeSupportElement> transformed(const Xform& xform) const;
 
     /// Moves the solid, the features and the insertion vectors, then the plane, and drops the cached solids.
     void place(const Xform& xform) override;
@@ -113,7 +115,7 @@ public:
     // Protobuf
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// The plane and dimensions as wood_proto.Support bytes: what the kernel carries in element_data.
+    /// The plane and dimensions as wood_proto.NodeSupportElement bytes: what the kernel carries in element_data.
     std::string element_data_dumps() const override;
 
     /// ELEMENT_TYPE, the tag the kernel writes and the registry reads.
@@ -123,17 +125,17 @@ public:
 
     /// A copy with a fresh guid, the polymorphic copy a Session makes.
     std::shared_ptr<Element> clone() const override {
-        return std::make_shared<Support>(*this);
+        return std::make_shared<NodeSupportElement>(*this);
     }
 
-    /// Registers the "Support" factory with the kernel, so Session::pb_load rebuilds supports.
+    /// Registers the "NodeSupportElement" factory (and the legacy "Support" tag) with the kernel, so Session::pb_load rebuilds supports.
     static void register_type();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // String
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// "Support(name, height, head_plate_diameter)".
+    /// "NodeSupportElement(name, height, head_plate_diameter)".
     std::string str() const override;
 };
 

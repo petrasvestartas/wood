@@ -70,7 +70,7 @@ std::vector<Line> Joint::drill_axes() const {
 }
 
 /// The closed circle of the head plate at a level of the support.
-static Polyline head_circle(const Support& support, double level) {
+static Polyline head_circle(const NodeSupportElement& support, double level) {
 
     const double radius = support.head_plate_diameter * 0.5;
     const int corners = circle_segments(radius, support.chord_tolerance);
@@ -89,7 +89,7 @@ static Polyline head_circle(const Support& support, double level) {
     return Polyline(points);
 }
 
-std::shared_ptr<Joint> Joint::support(const Support& support, const Column& column) {
+std::shared_ptr<Joint> Joint::support(const NodeSupportElement& support, const Column& column) {
 
     const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
     const std::shared_ptr<Joint> joint = std::make_shared<Joint>(

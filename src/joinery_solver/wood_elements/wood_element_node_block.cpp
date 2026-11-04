@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "wood_serialization.h"
-#include "wood_element_block.h"
+#include "wood_element_node_block.h"
 #include "wood_element_geometry.h"
-#include "element_block.pb.h"
+#include "element_node_block.pb.h"
 
 namespace wood_session {
 
@@ -11,47 +11,47 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-Block::Block() : WoodElement("block") {
+NodeBlockElement::NodeBlockElement() : NodeElement("block") {
 }
 
-Block::Block(const Mesh& mesh, const std::string& name) : WoodElement(name), source_mesh(mesh) {
+NodeBlockElement::NodeBlockElement(const Mesh& mesh, const std::string& name) : NodeElement(name), source_mesh(mesh) {
 }
 
-Block::Block(const std::vector<Polyline>& loops, const std::string& name)
-    : WoodElement(name), loops(loops) {
+NodeBlockElement::NodeBlockElement(const std::vector<Polyline>& loops, const std::string& name)
+    : NodeElement(name), loops(loops) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::shared_ptr<Block> Block::box(
+std::shared_ptr<NodeBlockElement> NodeBlockElement::box(
     const Point& corner, double x_size, double y_size, double height, const std::string& name
 ) {
 
     const Polyline bottom =
         Polyline::rectangle(corner, Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), x_size, y_size);
     const Polyline top = bottom.translated(Vector(0.0, 0.0, height));
-    return std::make_shared<Block>(std::vector<Polyline>{bottom, top}, name);
+    return std::make_shared<NodeBlockElement>(std::vector<Polyline>{bottom, top}, name);
 }
 
-std::array<std::shared_ptr<Block>, 2>
-Block::pair_stacked(double lower_size, double upper_size, double height) {
+std::array<std::shared_ptr<NodeBlockElement>, 2>
+NodeBlockElement::pair_stacked(double lower_size, double upper_size, double height) {
 
     const double inset = 0.5 * (lower_size - upper_size);
-    const std::shared_ptr<Block> lower =
+    const std::shared_ptr<NodeBlockElement> lower =
         box(Point(0.0, 0.0, 0.0), lower_size, lower_size, height, "lower");
-    const std::shared_ptr<Block> upper =
+    const std::shared_ptr<NodeBlockElement> upper =
         box(Point(inset, inset, height), upper_size, upper_size, height, "upper");
     return {lower, upper};
 }
 
-std::shared_ptr<Block> Block::from_element(Element e) {
+std::shared_ptr<NodeBlockElement> NodeBlockElement::from_element(Element e) {
 
     const std::string bytes = e.element_data_dumps();
-    std::shared_ptr<Block> block = std::make_shared<Block>();
+    std::shared_ptr<NodeBlockElement> block = std::make_shared<NodeBlockElement>();
     static_cast<Element&>(*block) = std::move(e);
 
-    wood_proto::Block proto;
+    wood_proto::NodeBlockElement proto;
     if (!proto.ParseFromString(bytes)) {
         if (block->_geometry_mesh)
             block->source_mesh = *block->_geometry_mesh;
@@ -96,7 +96,7 @@ split_loops(const std::vector<Polyline>& loops) {
     return {bottom, top};
 }
 
-const Mesh& Block::element_geometry_mesh() const {
+const Mesh& NodeBlockElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
         const auto [bottom, top] = split_loops(loops);
@@ -107,7 +107,7 @@ const Mesh& Block::element_geometry_mesh() const {
     return *_element_geometry_mesh;
 }
 
-const BRep& Block::element_geometry_brep() const {
+const BRep& NodeBlockElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
         const auto [bottom, top] = split_loops(loops);
@@ -118,24 +118,24 @@ const BRep& Block::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
-Mesh Block::trimmed_mesh() const {
+Mesh NodeBlockElement::trimmed_mesh() const {
     return cut_mesh(stock_mesh(), cuts);
 }
 
-BRep Block::trimmed_brep() const {
+BRep NodeBlockElement::trimmed_brep() const {
     return cut_brep(element_geometry_brep(), cuts);
 }
 
-std::vector<Plane> Block::compute_planes() const {
+std::vector<Plane> NodeBlockElement::compute_planes() const {
     return face_planes(model_geometry_mesh());
 }
 
-std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
+std::shared_ptr<NodeBlockElement> NodeBlockElement::transformed(const Xform& xform) const {
 
     if (is_mirror(xform))
         return nullptr;
 
-    std::shared_ptr<Block> block = std::make_shared<Block>(transformed_list(loops, xform), name);
+    std::shared_ptr<NodeBlockElement> block = std::make_shared<NodeBlockElement>(transformed_list(loops, xform), name);
     block->guid() = guid();
     if (source_mesh)
         block->source_mesh = source_mesh->transformed(xform);
@@ -150,7 +150,7 @@ std::shared_ptr<Block> Block::transformed(const Xform& xform) const {
     return block;
 }
 
-void Block::place(const Xform& xform) {
+void NodeBlockElement::place(const Xform& xform) {
 
     Element::place(xform);
     loops = transformed_list(loops, xform);
@@ -168,7 +168,7 @@ void Block::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
-void Block::compute_geometry_mesh_impl() {
+void NodeBlockElement::compute_geometry_mesh_impl() {
 
     if (source_mesh || (loops.size() >= 2 && loops.size() % 2 == 0)) {
         set_geometry(model_geometry_mesh());
@@ -176,7 +176,7 @@ void Block::compute_geometry_mesh_impl() {
     compute_geometry_features();
 }
 
-void Block::compute_geometry_brep_impl() {
+void NodeBlockElement::compute_geometry_brep_impl() {
 
     if (source_mesh || (loops.size() >= 2 && loops.size() % 2 == 0)) {
         set_geometry(model_geometry_brep());
@@ -184,7 +184,7 @@ void Block::compute_geometry_brep_impl() {
     compute_geometry_features();
 }
 
-void Block::compute_geometry_features() {
+void NodeBlockElement::compute_geometry_features() {
 
     std::vector<ElementFeature> next;
     for (ElementFeature& feature : session_features(*this))
@@ -193,7 +193,7 @@ void Block::compute_geometry_features() {
     set_features(std::move(next));
 }
 
-AABB Block::aabb(double inflate) const {
+AABB NodeBlockElement::aabb(double inflate) const {
 
     const Mesh& solid = geometry_mesh();
     if (solid.number_of_vertices() > 0)
@@ -211,11 +211,11 @@ AABB Block::aabb(double inflate) const {
 // ═══════════════════════════════════════════════════════════════════════════
 // JSON
 // ═══════════════════════════════════════════════════════════════════════════
-nlohmann::ordered_json Block::element_data_jsondump() const {
+nlohmann::ordered_json NodeBlockElement::element_data_jsondump() const {
 
-    wood_proto::Block proto;
+    wood_proto::NodeBlockElement proto;
     if (!proto.ParseFromString(element_data_dumps()))
-        throw std::runtime_error("Failed to parse Block protobuf data");
+        throw std::runtime_error("Failed to parse NodeBlockElement protobuf data");
 
     return json_of(proto);
 }
@@ -223,9 +223,9 @@ nlohmann::ordered_json Block::element_data_jsondump() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Block::element_data_dumps() const {
+std::string NodeBlockElement::element_data_dumps() const {
 
-    wood_proto::Block proto;
+    wood_proto::NodeBlockElement proto;
     if (source_mesh && !proto.mutable_source_mesh()->ParseFromString(source_mesh->pb_dumps()))
         throw std::runtime_error("Invalid block source mesh");
     for (const Polyline& loop : loops)
@@ -244,30 +244,31 @@ std::string Block::element_data_dumps() const {
     return proto.SerializeAsString();
 }
 
-/// The element factory of a serialized block: the protobuf bytes decoded as an Element and promoted to a Block.
+/// The element factory of a serialized block: the protobuf bytes decoded as an Element and promoted to a NodeBlockElement.
 static std::shared_ptr<Element> block_from_protobuf(const std::string& data) {
-    return Block::from_element(Element::pb_loads(data));
+    return NodeBlockElement::from_element(Element::pb_loads(data));
 }
 
-void Block::register_type() {
+void NodeBlockElement::register_type() {
     Element::register_type(std::string(ELEMENT_TYPE), block_from_protobuf);
-    Element::register_type(std::string(LEGACY_ELEMENT_TYPE), block_from_protobuf);
+    for (const std::string_view legacy : LEGACY_ELEMENT_TYPES)
+        Element::register_type(std::string(legacy), block_from_protobuf);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // String
 // ═══════════════════════════════════════════════════════════════════════════
-std::string Block::str() const {
+std::string NodeBlockElement::str() const {
 
     std::ostringstream os;
-    os << "Block(name=" << name << ", loops=" << loops.size()
+    os << "NodeBlockElement(name=" << name << ", loops=" << loops.size()
        << ", faces=" << geometry_mesh().number_of_faces() << ", is_visible=" << std::boolalpha
        << is_visible << ", is_locked=" << is_locked << ")";
 
     return os.str();
 }
 
-std::optional<Plane> Block::base_plane() const {
+std::optional<Plane> NodeBlockElement::base_plane() const {
 
     if (loops.size() < 2 || loops[0].point_count() < 3)
         return std::nullopt;

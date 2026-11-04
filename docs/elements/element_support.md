@@ -7,9 +7,9 @@ A steel column base assembly comprising a square base plate, anchor bolts, threa
 ## Constructors
 
 ```cpp
-explicit Support(const Plane& plane, const std::string& name = "support");
+explicit NodeSupportElement(const Plane& plane, const std::string& name = "support");
 Point column_foot() const;
-static std::shared_ptr<Joint> Joint::support(const Support& support, const Column& column);
+static std::shared_ptr<Joint> Joint::support(const NodeSupportElement& support, const Column& column);
 ```
 
 ## On a plane

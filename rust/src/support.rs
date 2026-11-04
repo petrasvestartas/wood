@@ -180,9 +180,9 @@ impl Support {
 
 impl WoodElement for Support {
     const TYPE: &'static str = "Support";
-    type Payload = proto::Support;
+    type Payload = proto::NodeSupportElement;
 
-    fn from_payload(name: &str, p: proto::Support) -> Option<Self> {
+    fn from_payload(name: &str, p: proto::NodeSupportElement) -> Option<Self> {
         Some(Self {
             name: name.to_string(),
             plane: Plane::from_proto(p.plane?),
@@ -210,8 +210,8 @@ impl WoodElement for Support {
         })
     }
 
-    fn payload(&self) -> proto::Support {
-        proto::Support {
+    fn payload(&self) -> proto::NodeSupportElement {
+        proto::NodeSupportElement {
             plane: Some(self.plane.to_proto()),
             height: self.height,
             head_plate_diameter: self.head_plate_diameter,

@@ -2,15 +2,15 @@
 #include "wood_session.pb.h"
 #include "element_beam.pb.h"
 #include "element_beam_variable.pb.h"
-#include "element_block.pb.h"
+#include "element_node_block.pb.h"
 #include "element_column.pb.h"
 #include "element_plate.pb.h"
-#include "element_support.pb.h"
+#include "element_node_support.pb.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-/// The session wood/rust writes, one element per class: Plate, Beam, two Columns, Block, BeamVariable, Support.
+/// The session wood/rust writes, one element per class: Plate, Beam, two Columns, NodeBlockElement, BeamVariable, NodeSupportElement.
 static const std::string GOLDEN =
     std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements.pb";
 
@@ -55,12 +55,12 @@ static void reads_back(const WoodSession& session, const wood_proto::WoodSession
     const BRep rust = BRep::pb_loads(stored.geometry_data());
     const BRep& cpp = typed->element_geometry_brep();
 
-    const double tolerance = std::is_same_v<T, Support> ? 1e-4 : 1e-9;
+    const double tolerance = std::is_same_v<T, NodeSupportElement> ? 1e-4 : 1e-9;
     check(
         same_brep(rust, cpp, tolerance), stored.name() + ": the Rust BRep differs from the C++ one"
     );
 
-    if constexpr (std::is_same_v<T, Support>)
+    if constexpr (std::is_same_v<T, NodeSupportElement>)
         check(
             cylinders(rust) == 6,
             stored.name() + ": four exact anchor holes, the rod and the head plate"
@@ -83,9 +83,9 @@ int main() {
     reads_back<Beam, wood_proto::Beam>(session, file, 1);
     reads_back<Column, wood_proto::Column>(session, file, 2);
     reads_back<Column, wood_proto::Column>(session, file, 3);
-    reads_back<Block, wood_proto::Block>(session, file, 4);
+    reads_back<NodeBlockElement, wood_proto::NodeBlockElement>(session, file, 4);
     reads_back<BeamVariable, wood_proto::BeamVariable>(session, file, 5);
-    reads_back<Support, wood_proto::Support>(session, file, 6);
+    reads_back<NodeSupportElement, wood_proto::NodeSupportElement>(session, file, 6);
     check(session.consistent(), "the Rust session loads consistent");
 
     std::cout << "rust_elements: 7 elements typed, payloads and BReps equal\n";

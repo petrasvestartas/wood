@@ -161,8 +161,8 @@ void Floor::add_column(size_t corner) {
     const std::string name = fmt::format("column_{}", corner);
     const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner));
 
-    const std::shared_ptr<Support> support =
-        std::make_shared<Support>(guide.support_plane(corner), "support");
+    const std::shared_ptr<NodeSupportElement> support =
+        std::make_shared<NodeSupportElement>(guide.support_plane(corner), "support");
     support->name = fmt::format("support_{}", corner);
     const Line axis = support->column_axis(guide.bay_height);
     const Plane frame = guide.column_frame(corner);
@@ -183,7 +183,7 @@ void Floor::add_column(size_t corner) {
     // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
     const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-    for (const std::shared_ptr<Block>& block :
+    for (const std::shared_ptr<NodeBlockElement>& block :
          shaft->head_blocks(head_width, guide.column_head_depth)) {
         add(block, group);
         const std::shared_ptr<InteractionFeatureSolid> glue =

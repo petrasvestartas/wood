@@ -8,7 +8,7 @@ int main() {
 
     WoodSession scene("element_joint_drill");
 
-    const std::shared_ptr<Block> block = Block::box({0.0, 0.0, 0.0}, 300.0, 300.0, 200.0);
+    const std::shared_ptr<NodeBlockElement> block = NodeBlockElement::box({0.0, 0.0, 0.0}, 300.0, 300.0, 200.0);
     scene.add(block);
 
     const std::shared_ptr<Joint> drill =

@@ -66,7 +66,7 @@ grid
     ├── plan_1
     ├── columns_1                  Column column_<i>_1
     ├── walls_1, core_walls_1      Plate wall_<i>_1, core_wall_<i>_1
-    ├── heads_1, drop_panels_1     Block head_<i>_1, drop_panel_<i>_1
+    ├── heads_1, drop_panels_1     NodeBlockElement head_<i>_1, drop_panel_<i>_1
     ├── girders_1, beams_1         Beam girder_<i>_1, beam_<i>_1
     ├── purlins_1                  Beam purlin_<i>_1
     ├── decks_1                    Plate deck_<i>_1

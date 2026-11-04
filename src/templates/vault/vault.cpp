@@ -26,7 +26,7 @@ Arc compute_arc(double span, double rise) {
 }
 
 /// A voussoir lofted from its intrados corners to its extrados corners, both turned so the intrados faces away from the extrados.
-std::shared_ptr<wood_session::Block>
+std::shared_ptr<wood_session::NodeBlockElement>
 to_voussoir(std::vector<Point> intrados, std::vector<Point> extrados, const std::string& name) {
 
     const Point centre = Point::centroid(intrados);
@@ -39,13 +39,13 @@ to_voussoir(std::vector<Point> intrados, std::vector<Point> extrados, const std:
         std::reverse(extrados.begin(), extrados.end());
     }
 
-    return std::make_shared<wood_session::Block>(
+    return std::make_shared<wood_session::NodeBlockElement>(
         std::vector<Polyline>{Polyline(intrados).closed(), Polyline(extrados).closed()}, name
     );
 }
 
 /// A stone lofted from an intrados loop to an extrados loop of paired corners.
-std::shared_ptr<wood_session::Block>
+std::shared_ptr<wood_session::NodeBlockElement>
 to_stone(std::vector<Point> intrados, std::vector<Point> extrados, const std::string& name) {
 
     const Point centre = Point::centroid(intrados);
@@ -76,7 +76,7 @@ to_stone(std::vector<Point> intrados, std::vector<Point> extrados, const std::st
             kept.push_back(corners);
     }
 
-    return std::make_shared<wood_session::Block>(Mesh::from_polylines(kept, 1e-6), name);
+    return std::make_shared<wood_session::NodeBlockElement>(Mesh::from_polylines(kept, 1e-6), name);
 }
 
 /// The pieces of a length cut into rings, shifted by offset.
@@ -322,7 +322,7 @@ std::vector<std::shared_ptr<Element>> to_web(
                 place(outer, b, far),
                 place(outer, a, far)
             };
-            std::shared_ptr<wood_session::Block> block =
+            std::shared_ptr<wood_session::NodeBlockElement> block =
                 to_voussoir(intrados, extrados, "voussoir");
             const double whole = std::abs(block->element_geometry_mesh().volume());
             block->cuts = diagonals;
@@ -957,7 +957,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             head_faces.push_back({bot_loop[i], bot_loop[next], top_loop[next], top_loop[i]});
         }
         result.push_back(
-            std::make_shared<wood_session::Block>(Mesh::from_polylines(head_faces, 1e-6), "support_block")
+            std::make_shared<wood_session::NodeBlockElement>(Mesh::from_polylines(head_faces, 1e-6), "support_block")
         );
     }
 

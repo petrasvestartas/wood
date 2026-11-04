@@ -19,8 +19,8 @@ int main() {
     WoodSession fabrication_session = floor.get_branch(column_name);
     const std::shared_ptr<Column> column =
         fabrication_session.get_element_by_name<Column>(column_name);
-    const std::shared_ptr<Support> support =
-        fabrication_session.get_element_by_name<Support>("support_0");
+    const std::shared_ptr<NodeSupportElement> support =
+        fabrication_session.get_element_by_name<NodeSupportElement>("support_0");
 
     const Plane from = Plane(column->section.get_point(0), Vector::x_axis(), Vector::y_axis());
     const Plane on_ground = Plane(Point(0.0, 0.0, 0.0), Vector::y_axis(), Vector::z_axis());

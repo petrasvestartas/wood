@@ -235,8 +235,8 @@ void check_support() {
 
     WoodSession scene("support");
     const wood_floor::FloorGuide& guide = square_guide();
-    const std::shared_ptr<Support> support =
-        std::make_shared<Support>(guide.support_plane(0), "support");
+    const std::shared_ptr<NodeSupportElement> support =
+        std::make_shared<NodeSupportElement>(guide.support_plane(0), "support");
     const Point foot = support->column_foot();
     const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
     const std::shared_ptr<Column> column =
@@ -298,7 +298,7 @@ void check_support() {
     size_t adds = 0;
     size_t subtracts = 0;
 
-    for (const std::shared_ptr<Block>& block : carved.get_elements<Block>())
+    for (const std::shared_ptr<NodeBlockElement>& block : carved.get_elements<NodeBlockElement>())
         for (const std::shared_ptr<Interaction>& interaction : carved.get_interaction(block, shaft))
             if (const std::shared_ptr<InteractionFeatureSolid> feature =
                     std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction))
@@ -325,7 +325,7 @@ void check_support() {
     check(shaft->model_geometry_mesh().is_closed(), "carved column closed");
 
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
-    const std::shared_ptr<Support> loaded = back.supports().front();
+    const std::shared_ptr<NodeSupportElement> loaded = back.get_elements<NodeSupportElement>().front();
     check(
         loaded->plane.origin() == support->plane.origin() && loaded->height == support->height &&
             loaded->head_plate_diameter == support->head_plate_diameter,

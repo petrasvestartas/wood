@@ -324,7 +324,7 @@ const std::shared_ptr<TreeNode> group = group_named(name, quarter_group(corner))
 The support. The support stands on the guide's support plane under the column.
 
 ```cpp
-const std::shared_ptr<Support> support = std::make_shared<Support>(guide.support_plane(corner), "support");
+const std::shared_ptr<NodeSupportElement> support = std::make_shared<NodeSupportElement>(guide.support_plane(corner), "support");
 support->name = fmt::format("support_{}", corner);
 ```
 
@@ -371,7 +371,7 @@ add(shaft, group);
 // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
 const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-for (const std::shared_ptr<Block>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+for (const std::shared_ptr<NodeBlockElement>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
     add(block, group);
     const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
     add_interaction(block, shaft, glue);
@@ -1043,8 +1043,8 @@ floor
 │   ├── inner_ribs_0               BeamVariable inner_ribs_<i>_0, two
 │   ├── wedges_0                   Plate wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              BeamVariable inner_beams_<i>_0: seam 0, the oculus edge, seam 1
-│   ├── column_0                   Column column_0, Block column_0_head_0 and column_0_head_1 (hidden),
-│   │                              Support support_0, Joint support (the seat),
+│   ├── column_0                   Column column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
+│   │                              NodeSupportElement support_0, Joint support (the seat),
 │   │                              Plate column_cutters_<i>_0, six (hidden)
 │   └── connectors_0               JointBeam connector_seam_wedge_0,
 │                                  Plate column_plate_0_<k>, JointBeam connector_column_plate_0_<k>,

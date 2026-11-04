@@ -10,7 +10,7 @@ int main() {
              {SolidOperation::intersect, "Intersection"},
              {SolidOperation::add, "Union"}
          }) {
-        const std::shared_ptr<Block> stock = std::make_shared<Block>(
+        const std::shared_ptr<NodeBlockElement> stock = std::make_shared<NodeBlockElement>(
             std::vector<Polyline>{rectangle(0, 0, 0, 200, 160), rectangle(30, 15, 100, 140, 130)}
         );
         const std::shared_ptr<Joint> cutter = std::make_shared<Joint>(std::vector<Polyline>{
@@ -25,8 +25,8 @@ int main() {
     );
     const Polyline block_bottom = rectangle(0, 0, 0, 200, 160);
     const Polyline block_top = rectangle(0, 0, 80, 200, 160);
-    const std::shared_ptr<Block> block =
-        std::make_shared<Block>(Mesh::loft({block_bottom}, {block_top}));
+    const std::shared_ptr<NodeBlockElement> block =
+        std::make_shared<NodeBlockElement>(Mesh::loft({block_bottom}, {block_top}));
     cut_case(
         scene,
         "Custom mesh cutter / tetrahedron",

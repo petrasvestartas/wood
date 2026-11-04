@@ -71,7 +71,7 @@ int main() {
     const std::vector<std::shared_ptr<Plate>> plates_b = b.plates();
     check(plates_a.size() == plates_b.size(), fmt::format("plate count ({})", plates_a.size()));
     check(a.columns().size() == b.columns().size(), "column count");
-    check(a.blocks().size() == b.blocks().size(), "block count");
+    check(a.get_elements<NodeBlockElement>().size() == b.get_elements<NodeBlockElement>().size(), "block count");
 
     bool typed = true;
     for (const std::shared_ptr<Element>& element : *a.objects.elements)

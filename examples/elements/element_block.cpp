@@ -12,7 +12,7 @@ int main() {
         Polyline::rectangle({50.0, 50.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 200.0);
     const Polyline top =
         Polyline::rectangle({0.0, 0.0, 250.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 300.0, 300.0);
-    scene.add(std::make_shared<Block>(std::vector<Polyline>{bottom, top}, "block"));
+    scene.add(std::make_shared<NodeBlockElement>(std::vector<Polyline>{bottom, top}, "block"));
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));

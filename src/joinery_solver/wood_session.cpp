@@ -21,8 +21,8 @@ bool register_factories() {
     Column::register_type();
     BeamVariable::register_type();
     BeamCurved::register_type();
-    Support::register_type();
-    Block::register_type();
+    NodeSupportElement::register_type();
+    NodeBlockElement::register_type();
     Beam::register_type();
     Joint::register_type();
     InteractionContactFace::register_type();
@@ -55,7 +55,7 @@ static Mesh stock_of(const Element& element) {
 /// The solid features an element hosts: a timber element's or a connector's, none for a support or another element.
 std::vector<InteractionFeatureSolid>* get_solid_features(Element& element) {
 
-    if (dynamic_cast<Support*>(&element))
+    if (dynamic_cast<NodeSupportElement*>(&element))
         return nullptr;
 
     if (WoodElement* member = dynamic_cast<WoodElement*>(&element))
@@ -1250,7 +1250,7 @@ std::string WoodSession::repr() const {
     std::ostringstream os;
     os << "WoodSession(name=" << name << ", elements=" << objects.elements->size()
        << ", plates=" << plates().size() << ", columns=" << columns().size()
-       << ", blocks=" << blocks().size() << ", definitions=" << definition_lookup.size()
+       << ", blocks=" << get_elements<NodeBlockElement>().size() << ", definitions=" << definition_lookup.size()
        << ", instances=" << objects.instances->size() << ", interactions=" << interactions.size()
        << ")";
     return os.str();
@@ -1673,7 +1673,7 @@ static void add_plane_cut(const Joint& joint, Element& target) {
         beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (BeamCurved* beam = dynamic_cast<BeamCurved*>(&target))
         beam->cuts.insert(beam->cuts.end(), joint.cuts.begin(), joint.cuts.end());
-    else if (Block* block = dynamic_cast<Block*>(&target))
+    else if (NodeBlockElement* block = dynamic_cast<NodeBlockElement*>(&target))
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else
         throw std::invalid_argument("Plane cutters require a beam, column or block");
@@ -1717,7 +1717,7 @@ void WoodSession::compute_breps() {
     for (const std::shared_ptr<Element>& element : *objects.elements) {
         const bool connector_child = std::dynamic_pointer_cast<Pin>(element) ||
                                      std::dynamic_pointer_cast<ConnectorPart>(element);
-        const bool round = std::dynamic_pointer_cast<Support>(element) ||
+        const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
                            std::dynamic_pointer_cast<PlateCurved>(element) ||
                            std::dynamic_pointer_cast<BeamCurved>(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());

@@ -8,9 +8,9 @@ int main() {
 
     WoodSession scene("element_joint_beam_centred_pins");
 
-    const std::array<std::shared_ptr<Block>, 2> blocks = Block::pair_stacked();
-    const std::shared_ptr<Block> lower = blocks[0];
-    const std::shared_ptr<Block> upper = blocks[1];
+    const std::array<std::shared_ptr<NodeBlockElement>, 2> blocks = NodeBlockElement::pair_stacked();
+    const std::shared_ptr<NodeBlockElement> lower = blocks[0];
+    const std::shared_ptr<NodeBlockElement> upper = blocks[1];
     scene.add(lower);
     scene.add(upper);
 

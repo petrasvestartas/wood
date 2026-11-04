@@ -36,7 +36,7 @@ class JointBeam : public Joint {
 public:
     static inline const Color CONNECTOR_COLOR = Color(
         33.0f / 255.0f, 150.0f / 255.0f, 234.0f / 255.0f, 1.0f, "brg_blue"
-    ); // A connector's node and every part and pin node under it: the Block Research Group's primary blue.
+    ); // A connector's node and every part and pin node under it: the NodeBlockElement Research Group's primary blue.
     static constexpr std::array<std::array<double, 2>, 3> WEDGE_PROFILE = {
         {{0.0, -197.0}, {-31.75593, 11.530606}, {31.75593, 11.530606}}
     }; // The wedge's cross-section across and below the contact's top edge: the apex, then the two top corners.

@@ -90,9 +90,9 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_column.cpp
     src/joinery_solver/wood_elements/wood_element_beam_variable.cpp
     src/joinery_solver/wood_elements/wood_element_beam_curved.cpp
-    src/joinery_solver/wood_elements/wood_element_support.cpp
+    src/joinery_solver/wood_elements/wood_element_node_support.cpp
     src/joinery_solver/wood_elements/wood_element_beam.cpp
-    src/joinery_solver/wood_elements/wood_element_block.cpp
+    src/joinery_solver/wood_elements/wood_element_node_block.cpp
     src/joinery_solver/wood_elements/wood_element_joint.cpp
     src/joinery_solver/wood_elements/wood_element_joint_plate.cpp
     src/joinery_solver/wood_elements/wood_element_joint_beam.cpp
@@ -304,6 +304,8 @@ ADD_EXE(joint_tiles                      tools/joint_library_figures/joint_tiles
 target_compile_definitions(joint_tiles PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 # The scoreboard: every dataset against the 2025 solver's merged outlines in tests/golden/reference_2025 (tools/reference_2025.py).
 ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
+ADD_EXE(element_tags                     tests/element_tags.cpp)
+target_compile_definitions(element_tags PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
 enable_testing()
 set(WOOD_TEST_TARGETS
@@ -318,6 +320,7 @@ set(WOOD_TEST_TARGETS
     joint_butt
     plate_assignment
     rust_elements
+    element_tags
     joint_library
     reference_datasets
     main_session_round_trip
