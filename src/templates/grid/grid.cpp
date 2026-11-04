@@ -545,7 +545,13 @@ to_column(const Stack& stack, const std::vector<Point>& polygon, double z_foot, 
     const Line axis =
         Line::from_points(compute_lift(stack.foot, z_foot), compute_lift(stack.head, z_top));
 
-    return std::make_shared<wood_session::Column>(axis, to_polyline(section), "column");
+    const Polyline bottom = to_polyline(section);
+    if (wood_session::is_square_to(bottom, axis.to_vector()))
+        return wood_session::EdgeStraightElement::from_section(axis, bottom, "column");
+
+    return wood_session::EdgeVariableElement::between(
+        bottom, bottom.translated(axis.to_vector()), "column"
+    );
 }
 
 /// The deck plates of a face at z.

@@ -18,8 +18,8 @@ static const ElementFeature* feature(const Element& element, const std::string& 
 
 int main() {
     WoodSession scene("interaction ownership");
-    const auto beam = std::make_shared<EdgeStraightElement>(Polyline({{0, 0, 0}, {100, 0, 0}}), 10.0);
-    const auto column = std::make_shared<EdgeStraightElement>(Polyline({{50, 0, -50}, {50, 0, 50}}), 10.0);
+    const auto beam = EdgeStraightElement::square(Polyline({{0, 0, 0}, {100, 0, 0}}), 10.0);
+    const auto column = EdgeStraightElement::square(Polyline({{50, 0, -50}, {50, 0, 50}}), 10.0);
     scene.add(beam);
     scene.add(column);
 

@@ -6,11 +6,11 @@ using namespace wood_session;
 int main() {
 
     WoodSession wood_session("beams");
-    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0)
+    wood_session.add(EdgeStraightElement::square(Polyline({Point(-1000, 0, 0), Point(1000, 0, 0)}), 60.0)
     );
-    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0)
+    wood_session.add(EdgeStraightElement::square(Polyline({Point(0, -1000, 0), Point(0, 1000, 0)}), 60.0)
     );
-    wood_session.add(std::make_shared<EdgeStraightElement>(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
+    wood_session.add(EdgeStraightElement::square(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
 
     wood_session.compute_axis_contacts(5.0);
     wood_session.compute_beam_features(400.0, 0.9, 1);

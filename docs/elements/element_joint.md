@@ -13,7 +13,7 @@ explicit JointElement(const Mesh& cutter, SolidOperation operation = SolidOperat
 JointElement(const Polyline& profile, const Vector& direction);
 JointElement(const std::vector<Polyline>& profile, const Vector& direction, SolidOperation operation = SolidOperation::intersect);
 static std::shared_ptr<JointElement> drill(const Line& axis, double radius, double chord_tolerance = 0.05);
-static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const Column& column);
+static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const EdgeStraightElement& column);
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 

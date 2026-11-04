@@ -89,7 +89,7 @@ static Polyline head_circle(const NodeSupportElement& support, double level) {
     return Polyline(points);
 }
 
-std::shared_ptr<JointElement> JointElement::support(const NodeSupportElement& support, const Column& column) {
+std::shared_ptr<JointElement> JointElement::support(const NodeSupportElement& support, const EdgeStraightElement& column) {
 
     const double bottom = support.height - support.head_plate_thickness - support.head_plate_recess;
     const std::shared_ptr<JointElement> joint = std::make_shared<JointElement>(

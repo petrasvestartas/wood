@@ -17,12 +17,12 @@ int main() {
 
     const std::string column_name = "column_0";
     WoodSession fabrication_session = floor.get_branch(column_name);
-    const std::shared_ptr<Column> column =
-        fabrication_session.get_element_by_name<Column>(column_name);
+    const std::shared_ptr<EdgeStraightElement> column =
+        fabrication_session.get_element_by_name<EdgeStraightElement>(column_name);
     const std::shared_ptr<NodeSupportElement> support =
         fabrication_session.get_element_by_name<NodeSupportElement>("support_0");
 
-    const Plane from = Plane(column->section.get_point(0), Vector::x_axis(), Vector::y_axis());
+    const Plane from = Plane(column->sections()[0].get_point(0), Vector::x_axis(), Vector::y_axis());
     const Plane on_ground = Plane(Point(0.0, 0.0, 0.0), Vector::y_axis(), Vector::z_axis());
 
     const Xform flat = Xform::plane_to_plane(from, on_ground);

@@ -7,8 +7,8 @@ A column swept from a closed cross-section along a straight axis and modified by
 ## Constructors
 
 ```cpp
-Column(const Line& axis, const Polyline& section, const std::string& name = "column");
-static std::shared_ptr<Column> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
+EdgeStraightElement(const Line& axis, const Polyline& section, const std::string& name = "column");
+static std::shared_ptr<EdgeStraightElement> square(const Line& axis, const Plane& corner, double side, const std::string& name = "column");
 std::vector<std::shared_ptr<NodeBlockElement>> head_blocks(double head_side, double head_height) const;
 ```
 

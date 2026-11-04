@@ -826,7 +826,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             return a.angle < b.angle;
         });
 
-    // Minimal Corner Column Heads (support_block) at nodes 0..3 so incoming ribs never collide
+    // Minimal Corner EdgeStraightElement Heads (support_block) at nodes 0..3 so incoming ribs never collide
     std::vector<std::shared_ptr<Element>> result;
     std::array<std::vector<std::pair<Vector, double>>, 4> corner_stops;
 

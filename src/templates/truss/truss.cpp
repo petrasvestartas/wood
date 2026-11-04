@@ -39,7 +39,7 @@ void Truss::add_chords() {
     for (size_t c = 0; c < guide.chords.size(); c++) {
         const std::vector<std::array<Point, 2>> runs = guide.runs(c);
         for (size_t s = 0; s < runs.size(); s++)
-            add(std::make_shared<EdgeStraightElement>(
+            add(EdgeStraightElement::square(
                     Polyline({runs[s][0], runs[s][1]}),
                     guide.chords[c].radius,
                     fmt::format("chord_{}_{}", c, s)
@@ -51,7 +51,7 @@ void Truss::add_chords() {
 void Truss::add_webs() {
 
     for (size_t w = 0; w < guide.webs.size(); w++)
-        add(std::make_shared<EdgeStraightElement>(guide.webs[w].axis, guide.webs[w].radius, fmt::format("web_{}", w)), group_named("webs"));
+        add(EdgeStraightElement::square(guide.webs[w].axis, guide.webs[w].radius, fmt::format("web_{}", w)), group_named("webs"));
 }
 
 void Truss::add_butt(

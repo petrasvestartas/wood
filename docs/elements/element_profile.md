@@ -2,7 +2,7 @@
 
 [TOC]
 
-Standard 2D cross-section loop generators swept by `EdgeStraightElement` and `Column`. Loop `0` is the outer perimeter and subsequent loops are interior holes.
+Standard 2D cross-section loop generators swept by `EdgeStraightElement` and `EdgeStraightElement`. Loop `0` is the outer perimeter and subsequent loops are interior holes.
 
 ## Constructors
 

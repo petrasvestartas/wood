@@ -8,7 +8,7 @@ int main() {
 
     WoodSession scene("element_joint_beam_rectangle_plate");
 
-    const std::shared_ptr<Column> column = Column::square(
+    const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::corner_square(
         Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}),
         Plane({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}),
         220.0

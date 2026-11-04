@@ -64,7 +64,7 @@ grid
 │   └── decks_0                    FacePlanarElement deck_<i>_0 (ground slabs)
 └── level_1                        level_2 .. level_N (each capping the storey below)
     ├── plan_1
-    ├── columns_1                  Column column_<i>_1
+    ├── columns_1                  EdgeStraightElement column_<i>_1
     ├── walls_1, core_walls_1      FacePlanarElement wall_<i>_1, core_wall_<i>_1
     ├── heads_1, drop_panels_1     NodeBlockElement head_<i>_1, drop_panel_<i>_1
     ├── girders_1, beams_1         EdgeStraightElement girder_<i>_1, beam_<i>_1
@@ -106,7 +106,7 @@ for (const std::pair<size_t, size_t>& edge : level.plan.edges()) {
 
 ### Columns
 
-A `Column` stands on every stacked column vertex from the lower slab top (`foot`) to the upper column head underside or level datum (`top`):
+A `EdgeStraightElement` stands on every stacked column vertex from the lower slab top (`foot`) to the upper column head underside or level datum (`top`):
 
 ![The columns](templates/templates_grid_6_five_bay_columns_1.webp)
 

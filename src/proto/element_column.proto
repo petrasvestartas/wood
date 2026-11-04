@@ -8,7 +8,7 @@ import "line.proto";
 import "plane.proto";
 import "polyline.proto";
 
-// The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
+// Read only: scenes saved before Column merged into EdgeStraightElement. The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
 message Column {
   repeated InteractionFeatureSolid solid_features = 6;
   repeated InteractionFeaturePlane plane_features = 10;  // The planes other elements cut it by

@@ -9,7 +9,6 @@
 #include "wood_element_joint_pin.h"
 #include "wood_element_joint_connector_part.h"
 #include "wood_element_node_block.h"
-#include "wood_element_column.h"
 #include "wood_element_joint_cut_plane.h"
 #include "wood_element_edge_variable.h"
 #include "wood_element_edge_curved.h"
@@ -351,11 +350,6 @@ public:
 
     /// Writes every cut member, connector part, pin and support as its BRep instead of its mesh, the bores and round parts exact.
     void compute_breps();
-
-    /// Every Column, in objects.elements order.
-    std::vector<std::shared_ptr<Column>> columns() const {
-        return get_elements<Column>();
-    }
 
     /// The guids of world_elements(), in order: the index space detection works in.
     std::vector<std::string> element_guids() const;

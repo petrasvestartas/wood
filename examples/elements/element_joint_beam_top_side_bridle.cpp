@@ -15,11 +15,11 @@ int main() {
     const double turn = 57.0 * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), std::sin(turn), 0.0);
     const Point origin(0.0, 0.0, 0.0);
-    const std::shared_ptr<EdgeStraightElement> first = std::make_shared<EdgeStraightElement>(
+    const std::shared_ptr<EdgeStraightElement> first = EdgeStraightElement::square(
         Polyline({Point(-220.0, 0.0, 0.0), Point(370.0, 0.0, 0.0)}), radius, "first"
     );
     const std::shared_ptr<EdgeStraightElement> second =
-        std::make_shared<EdgeStraightElement>(Polyline({origin, origin + along * 136.0}), radius, "second");
+        EdgeStraightElement::square(Polyline({origin, origin + along * 136.0}), radius, "second");
     // extended at both ends: past the axis to the first beam's far face, and on to 236 long from it
     second->extension = 2.0 * radius;
     scene.add(first);

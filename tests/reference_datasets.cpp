@@ -390,12 +390,8 @@ static Score run_beams(const std::string& name, const nlohmann::json& record) {
     scene.settings = settings;
     std::vector<std::shared_ptr<EdgeStraightElement>> members;
     for (const Polyline& axis : io::load_obj(name)) {
-        members.push_back(std::make_shared<EdgeStraightElement>(
-            axis,
-            std::vector<double>(axis.segment_count(), beams[0]),
-            std::vector<Vector>{},
-            static_cast<int>(beams[1])
-        ));
+        members.push_back(EdgeStraightElement::square(axis, beams[0]));
+        members.back()->allowed_type = static_cast<int>(beams[1]);
         scene.add(members.back());
     }
     scene.compute_axis_contacts(beams[2]);

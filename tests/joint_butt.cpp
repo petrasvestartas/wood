@@ -103,7 +103,7 @@ static void pair(
 static void pairs() {
 
     const auto beam = [](const Point& start, const Point& end) {
-        return std::make_shared<EdgeStraightElement>(Polyline({start, end}), 75.0, "beam");
+        return EdgeStraightElement::square(Polyline({start, end}), 75.0, "beam");
     };
     const auto wall = [](const Point& start, const Point& end) {
         return FacePlanarElement::from_line(
@@ -205,7 +205,7 @@ static void pairs() {
     p = FacePlanarElement::from_rectangle(
         {-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "slab"
     );
-    const std::shared_ptr<Column> column = Column::square(
+    const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::corner_square(
         Line::from_points({0.0, 0.0, -2000.0}, {0.0, 0.0, 0.0}),
         Plane({-100.0, -100.0, -2000.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}),
         200.0,
@@ -215,7 +215,7 @@ static void pairs() {
         near(extreme(*column, 2, true), -100.0, "column_top_side_plate: the column's head");
     });
     const std::shared_ptr<EdgeStraightElement> sill =
-        std::make_shared<EdgeStraightElement>(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam");
+        EdgeStraightElement::square(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam");
     q = wall({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0});
     pair("plate_top_side_beam", sill, q, ButtConfiguration::top_side, [&] {
         near(extreme(*q, 2, false), 100.0, "plate_top_side_beam: the wall's foot");
@@ -231,11 +231,11 @@ static void beams() {
 
     WoodSession scene("butt_beams");
     const std::shared_ptr<EdgeStraightElement> sill =
-        std::make_shared<EdgeStraightElement>(Polyline({{-600.0, 0.0, 0.0}, {600.0, 0.0, 0.0}}), 75.0, "sill");
+        EdgeStraightElement::square(Polyline({{-600.0, 0.0, 0.0}, {600.0, 0.0, 0.0}}), 75.0, "sill");
     const std::shared_ptr<EdgeStraightElement> middle =
-        std::make_shared<EdgeStraightElement>(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 800.0}}), 75.0, "middle");
+        EdgeStraightElement::square(Polyline({{0.0, 0.0, 0.0}, {0.0, 0.0, 800.0}}), 75.0, "middle");
     const std::shared_ptr<EdgeStraightElement> end =
-        std::make_shared<EdgeStraightElement>(Polyline({{600.0, 0.0, 0.0}, {600.0, 0.0, 800.0}}), 75.0, "end");
+        EdgeStraightElement::square(Polyline({{600.0, 0.0, 0.0}, {600.0, 0.0, 800.0}}), 75.0, "end");
     scene.add(sill);
     scene.add(middle);
     scene.add(end);
@@ -513,7 +513,7 @@ static void frame() {
 
     WoodSession scene("butt_frame");
     const auto beam = [](const Point& start, const Point& end, const std::string& name) {
-        return std::make_shared<EdgeStraightElement>(Polyline({start, end}), 70.0, name);
+        return EdgeStraightElement::square(Polyline({start, end}), 70.0, name);
     };
     const std::shared_ptr<EdgeStraightElement> sill = beam({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}, "sill");
     const std::shared_ptr<EdgeStraightElement> head = beam({0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}, "head");

@@ -2,7 +2,6 @@
 
 #include "wood_element_joint.h"
 #include "wood_element_edge_straight.h"
-#include "wood_element_column.h"
 #include "wood_element_face_planar.h"
 #include "wood_interaction_feature_beam.h"
 #include "wood_interaction_contact_axis.h"
@@ -198,7 +197,7 @@ public:
     /// cut back and one too short gains stock. Sizes are shares of a beam's own width, the shoulder of the column's radius. Throws naming the beam and the reason when no valid joint exists.
     /// At a plain cross both pairs are in line: the shorter is the main pair, then the one most along world x, unless main_beam names a beam of the pair to use.
     static std::shared_ptr<JointBeamElement> column_head(
-        const Column& column,
+        const EdgeStraightElement& column,
         const EdgeStraightElement& a,
         const EdgeStraightElement& b,
         const EdgeStraightElement& c,

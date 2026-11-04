@@ -10,7 +10,7 @@ int main() {
 
     const Polyline section =
         Polyline::rectangle({-100.0, -150.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 200.0, 300.0);
-    scene.add(std::make_shared<Column>(
+    scene.add(EdgeStraightElement::from_section(
         Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 3500.0}), section, "column"
     ));
 

@@ -18,7 +18,6 @@ namespace {
 bool register_factories() {
 
     FacePlanarElement::register_type();
-    Column::register_type();
     EdgeVariableElement::register_type();
     EdgeCurvedElement::register_type();
     NodeSupportElement::register_type();
@@ -1249,7 +1248,7 @@ std::string WoodSession::str() const {
 std::string WoodSession::repr() const {
     std::ostringstream os;
     os << "WoodSession(name=" << name << ", elements=" << objects.elements->size()
-       << ", plates=" << get_elements<FacePlanarElement>().size() << ", columns=" << columns().size()
+       << ", plates=" << get_elements<FacePlanarElement>().size() << ", edges=" << get_elements<EdgeElement>().size()
        << ", blocks=" << get_elements<NodeBlockElement>().size() << ", definitions=" << definition_lookup.size()
        << ", instances=" << objects.instances->size() << ", interactions=" << interactions.size()
        << ")";
@@ -1667,12 +1666,10 @@ static void add_plane_cut(const JointElement& joint, Element& target) {
 
     if (EdgeElement* edge = dynamic_cast<EdgeElement*>(&target))
         edge->cuts.insert(edge->cuts.end(), joint.cuts.begin(), joint.cuts.end());
-    else if (Column* column = dynamic_cast<Column*>(&target))
-        column->cuts.insert(column->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else if (NodeBlockElement* block = dynamic_cast<NodeBlockElement*>(&target))
         block->cuts.insert(block->cuts.end(), joint.cuts.begin(), joint.cuts.end());
     else
-        throw std::invalid_argument("Plane cutters require a beam, column or block");
+        throw std::invalid_argument("Plane cutters require an edge or a block");
 }
 
 size_t WoodSession::next_number(const std::string& prefix) const {
@@ -1708,6 +1705,15 @@ bool WoodSession::placed(const std::string& name, const std::string& prefix) {
            });
 }
 
+/// True for a round straight edge.
+static bool round_edge(const std::shared_ptr<Element>& element) {
+
+    const std::shared_ptr<EdgeStraightElement> edge =
+        std::dynamic_pointer_cast<EdgeStraightElement>(element);
+
+    return edge && edge->round_radius > 0.0;
+}
+
 void WoodSession::compute_breps() {
 
     for (const std::shared_ptr<Element>& element : *objects.elements) {
@@ -1715,7 +1721,8 @@ void WoodSession::compute_breps() {
                                      std::dynamic_pointer_cast<JointConnectorPartElement>(element);
         const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
                            std::dynamic_pointer_cast<FaceCurvedElement>(element) ||
-                           std::dynamic_pointer_cast<EdgeCurvedElement>(element);
+                           std::dynamic_pointer_cast<EdgeCurvedElement>(element) ||
+                           round_edge(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 
         if (connector_child || round || (wood && !wood->solid_features.empty()) ||

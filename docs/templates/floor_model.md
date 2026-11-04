@@ -342,7 +342,7 @@ The shaft. The shaft is a 220 square, `size_column_head`, swept up the axis in t
 
 ```cpp
 const Plane frame = guide.column_frame(corner);
-const std::shared_ptr<Column> shaft = Column::square(
+const std::shared_ptr<EdgeStraightElement> shaft = EdgeStraightElement::square(
     axis,
     frame,
     guide.size_column_head,
@@ -371,7 +371,7 @@ add(shaft, group);
 // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
 const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-for (const std::shared_ptr<NodeBlockElement>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+for (const std::shared_ptr<NodeBlockElement>& block : compute_head_blocks(*shaft, head_width, guide.column_head_depth)) {
     add(block, group);
     const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
     add_interaction(block, shaft, glue);
@@ -1043,7 +1043,7 @@ floor
 │   ├── inner_ribs_0               EdgeVariableElement inner_ribs_<i>_0, two
 │   ├── wedges_0                   FacePlanarElement wedges_<i>_0, the three column blocks
 │   ├── inner_beams_0              EdgeVariableElement inner_beams_<i>_0: seam 0, the oculus edge, seam 1
-│   ├── column_0                   Column column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
+│   ├── column_0                   EdgeStraightElement column_0, NodeBlockElement column_0_head_0 and column_0_head_1 (hidden),
 │   │                              NodeSupportElement support_0, JointElement support (the seat),
 │   │                              FacePlanarElement column_cutters_<i>_0, six (hidden)
 │   └── connectors_0               JointBeamElement connector_seam_wedge_0,
@@ -1117,7 +1117,7 @@ struct QuarterContacts {
     Contact seam_wedge; // Seam beam 0 beside the next quarter's seam beam 2: a wedge.
     Contact oculus_wedge; // The oculus beam's back face on its ring beam: a wedge.
     std::array<Contact, 2> column_plates; // The column against outer rib k: a rectangle plate.
-    std::array<std::array<Contact, 2>, 3> block_pins; // Column block b against the rib either side: pins.
+    std::array<std::array<Contact, 2>, 3> block_pins; // EdgeStraightElement block b against the rib either side: pins.
     std::array<Contact, 2> outer_rib_seam_beam; // Seam beam k against the outer rib ending on it: pins.
     std::array<Contact, 2> seam_beam_oculus_beam; // Seam beam k against the oculus beam: pins.
     std::array<Contact, 2> oculus_beam_inner_rib; // The oculus beam against inner rib k: pins.

@@ -47,11 +47,11 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
     {
       PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_._has_bits_),
       0, // no _extensions_
-      9, 120,  // max_field_number, fast_idx_mask
+      10, 120,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294966784,  // skipmap
+      4294966272,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      9,  // num_field_entries
+      10,  // num_field_entries
       6,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
@@ -75,8 +75,8 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
        {26, 1, 1,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.directions_)}},
       // int32 allowed_type = 4;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EdgeStraightElement, _impl_.allowed_type_), 8>(),
-       {32, 8, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(EdgeStraightElement, _impl_.allowed_type_), 9>(),
+       {32, 9, 0,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.allowed_type_)}},
       // repeated .session_proto.Plane cuts = 5;
       {::_pbi::TcParser::FastMtR1,
@@ -98,7 +98,10 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       {::_pbi::TcParser::FastF64S1,
        {73, 7, 0,
         PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.extension_)}},
-      {::_pbi::TcParser::MiniParse, {}},
+      // double round_radius = 10;
+      {::_pbi::TcParser::FastF64S1,
+       {81, 8, 0,
+        PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.round_radius_)}},
       {::_pbi::TcParser::MiniParse, {}},
       {::_pbi::TcParser::MiniParse, {}},
       {::_pbi::TcParser::MiniParse, {}},
@@ -114,7 +117,7 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       // repeated .session_proto.Vector directions = 3;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.directions_), _Internal::kHasBitsOffset + 1, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // int32 allowed_type = 4;
-      {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.allowed_type_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.allowed_type_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // repeated .session_proto.Plane cuts = 5;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.cuts_), _Internal::kHasBitsOffset + 2, 2, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .session_proto.Polyline profile = 6;
@@ -125,6 +128,8 @@ constexpr EdgeStraightElement::ParseTableT_ EdgeStraightElement::InternalGenerat
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.plane_features_), _Internal::kHasBitsOffset + 5, 5, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double extension = 9;
       {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.extension_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // double round_radius = 10;
+      {PROTOBUF_FIELD_OFFSET(EdgeStraightElement, _impl_.round_radius_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -199,6 +204,7 @@ inline constexpr EdgeStraightElement::Impl_::Impl_(
         ,
         axis_{nullptr},
         extension_{0},
+        round_radius_{0},
         allowed_type_{0} {}
 
 template <typename>
@@ -303,7 +309,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_._has_bits_),
-        12, // hasbit index offset
+        13, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.solid_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.plane_features_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.axis_),
@@ -312,15 +318,17 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.allowed_type_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.cuts_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.profile_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.round_radius_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::EdgeStraightElement, _impl_.extension_),
         4,
         5,
         6,
         0,
         1,
-        8,
+        9,
         2,
         3,
+        8,
         7,
 };
 
@@ -337,7 +345,7 @@ const char descriptor_table_protodef_element_5fedge_5fstraight_2eproto[] ABSL_AT
     "\n\033element_edge_straight.proto\022\nwood_prot"
     "o\032\037interaction_feature_solid.proto\032\037inte"
     "raction_feature_plane.proto\032\013plane.proto"
-    "\032\016polyline.proto\032\014vector.proto\"\347\002\n\023EdgeS"
+    "\032\016polyline.proto\032\014vector.proto\"\375\002\n\023EdgeS"
     "traightElement\022;\n\016solid_features\030\007 \003(\0132#"
     ".wood_proto.InteractionFeatureSolid\022;\n\016p"
     "lane_features\030\010 \003(\0132#.wood_proto.Interac"
@@ -346,7 +354,8 @@ const char descriptor_table_protodef_element_5fedge_5fstraight_2eproto[] ABSL_AT
     "ions\030\003 \003(\0132\025.session_proto.Vector\022\024\n\014all"
     "owed_type\030\004 \001(\005\022\"\n\004cuts\030\005 \003(\0132\024.session_"
     "proto.Plane\022(\n\007profile\030\006 \003(\0132\027.session_p"
-    "roto.Polyline\022\021\n\textension\030\t \001(\001b\006proto3"
+    "roto.Polyline\022\024\n\014round_radius\030\n \001(\001\022\021\n\te"
+    "xtension\030\t \001(\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_element_5fedge_5fstraight_2eproto_deps[5] = {
@@ -360,7 +369,7 @@ static ::absl::once_flag descriptor_table_element_5fedge_5fstraight_2eproto_once
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_element_5fedge_5fstraight_2eproto = {
     false,
     false,
-    520,
+    542,
     descriptor_table_protodef_element_5fedge_5fstraight_2eproto,
     "element_edge_straight.proto",
     &descriptor_table_element_5fedge_5fstraight_2eproto_once,
@@ -607,7 +616,13 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
     }
   }
   this_._impl_.extension_ = 0;
-  this_._impl_.allowed_type_ = 0;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    ::memset(&this_._impl_.round_radius_, 0,
+             static_cast<::size_t>(
+                 reinterpret_cast<char*>(&this_._impl_.allowed_type_) -
+                 reinterpret_cast<char*>(&this_._impl_.round_radius_)) +
+                 sizeof(_impl_.allowed_type_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -658,7 +673,7 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
   }
 
   // int32 allowed_type = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
     if (this_._internal_allowed_type() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<4>(
@@ -720,6 +735,15 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
           9, this_._internal_extension(), target);
+    }
+  }
+
+  // double round_radius = 10;
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_round_radius()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteDoubleToArray(
+          10, this_._internal_round_radius(), target);
     }
   }
 
@@ -804,9 +828,15 @@ PROTOBUF_NOINLINE void EdgeStraightElement::Clear() {
       }
     }
   }
-   {
-    // int32 allowed_type = 4;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    // double round_radius = 10;
     if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_round_radius()) != 0) {
+        total_size += 9;
+      }
+    }
+    // int32 allowed_type = 4;
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
       if (this_._internal_allowed_type() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_allowed_type());
@@ -874,9 +904,16 @@ void EdgeStraightElement::MergeImpl(::google::protobuf::MessageLite& to_msg,
       }
     }
   }
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    if (from._internal_allowed_type() != 0) {
-      _this->_impl_.allowed_type_ = from._impl_.allowed_type_;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000300U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+      if (::absl::bit_cast<::uint64_t>(from._internal_round_radius()) != 0) {
+        _this->_impl_.round_radius_ = from._impl_.round_radius_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (from._internal_allowed_type() != 0) {
+        _this->_impl_.allowed_type_ = from._impl_.allowed_type_;
+      }
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;

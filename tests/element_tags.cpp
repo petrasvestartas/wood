@@ -1,5 +1,7 @@
 #include "wood_session.h"
 #include <set>
+#include "element_column.pb.h"
+#include "element.pb.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -37,6 +39,7 @@ static const std::set<std::string> OLD_TAGS = {
     "JointVidy",
     "Pin",
     "ConnectorPart",
+    "Column",
 };
 
 static void check(bool condition, const std::string& message) {
@@ -99,9 +102,48 @@ int main() {
     const std::shared_ptr<Element> pin_back = Element::pb_loads_polymorphic(pin.pb_dumps());
     check(pin_back->element_type_name() == "JointPinElement", "the pin writes its name");
     check(std::dynamic_pointer_cast<JointPinElement>(pin_back) != nullptr, "the pin loads as itself");
-    writes_its_name(std::make_shared<EdgeStraightElement>(
+    writes_its_name(EdgeStraightElement::square(
         Polyline({Point(0.0, 0.0, 0.0), Point(100.0, 0.0, 0.0)}), 10.0
     ));
+    check(
+        load("rust/tests/data/element_column.pb").get_elements<EdgeStraightElement>().size() == 1,
+        "the old column loads as an EdgeStraightElement"
+    );
+
+    // a column whose level section leans off its axis loads as the same loft
+    wood_proto::Column leaning;
+    const Polyline foot({{0.0, 0.0, 0.0}, {200.0, 0.0, 0.0}, {200.0, 200.0, 0.0}, {0.0, 200.0, 0.0}, {0.0, 0.0, 0.0}});
+    const Line slanted = Line::from_points({100.0, 100.0, 0.0}, {400.0, 100.0, 3000.0});
+    check(leaning.mutable_axis()->ParseFromString(slanted.pb_dumps()), "the axis writes");
+    check(leaning.mutable_section()->ParseFromString(foot.pb_dumps()), "the section writes");
+    session_proto::Element saved;
+    check(saved.ParseFromString(Element("leaning").pb_dumps()), "the element writes");
+    saved.set_element_type("Column");
+    saved.set_element_data(leaning.SerializeAsString());
+    const std::shared_ptr<EdgeVariableElement> loft = std::dynamic_pointer_cast<EdgeVariableElement>(
+        Element::pb_loads_polymorphic(saved.SerializeAsString())
+    );
+    check(loft != nullptr, "the leaning column loads as an EdgeVariableElement");
+    check(
+        std::abs(loft->element_geometry_mesh().volume() - 200.0 * 200.0 * 3000.0) <= 1e-3,
+        "the leaning column keeps its volume"
+    );
+
+    // a round edge keeps its radius through a save, and a section off square is refused
+    const std::shared_ptr<EdgeStraightElement> round = std::dynamic_pointer_cast<EdgeStraightElement>(
+        Element::pb_loads_polymorphic(
+            EdgeStraightElement::round(Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 900.0}), 100.0)->pb_dumps()
+        )
+    );
+    check(round && round->round_radius == 100.0, "the round radius survives a save");
+    bool refused = false;
+    try {
+        EdgeStraightElement::from_section(slanted, foot);
+    } catch (const std::invalid_argument&) {
+        refused = true;
+    }
+    check(refused, "a section off square to the axis is refused");
+
     writes_its_name(FacePlanarElement::from_rectangle(
         {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 100.0, 100.0, 10.0
     ));

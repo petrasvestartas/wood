@@ -146,6 +146,7 @@ impl WoodElement for Beam {
             directions: self.directions.iter().map(Vector::to_proto).collect(),
             allowed_type: self.allowed_type,
             extension: self.extension,
+            round_radius: 0.0,
             cuts: self.cuts.iter().map(Plane::to_proto).collect(),
             profile: self.profile.iter().map(Polyline::to_proto).collect(),
         }

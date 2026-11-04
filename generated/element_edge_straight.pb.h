@@ -227,6 +227,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeStraightElement final : public 
     kPlaneFeaturesFieldNumber = 8,
     kAxisFieldNumber = 1,
     kExtensionFieldNumber = 9,
+    kRoundRadiusFieldNumber = 10,
     kAllowedTypeFieldNumber = 4,
   };
   // repeated double radii = 2;
@@ -373,6 +374,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeStraightElement final : public 
   void _internal_set_extension(double value);
 
   public:
+  // double round_radius = 10;
+  void clear_round_radius() ;
+  [[nodiscard]] double round_radius() const;
+  void set_round_radius(double value);
+
+  private:
+  double _internal_round_radius() const;
+  void _internal_set_round_radius(double value);
+
+  public:
   // int32 allowed_type = 4;
   void clear_allowed_type() ;
   [[nodiscard]] ::int32_t allowed_type() const;
@@ -387,7 +398,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeStraightElement final : public 
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<4, 9,
+      ::google::protobuf::internal::TcParseTable<4, 10,
                           6, 0,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
@@ -424,6 +435,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED EdgeStraightElement final : public 
     ::google::protobuf::RepeatedPtrField< ::wood_proto::InteractionFeaturePlane > plane_features_;
     ::session_proto::Polyline* PROTOBUF_NULLABLE axis_;
     double extension_;
+    double round_radius_;
     ::int32_t allowed_type_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -745,7 +757,7 @@ EdgeStraightElement::_internal_mutable_directions() {
 inline void EdgeStraightElement::clear_allowed_type() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.allowed_type_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
 }
 inline ::int32_t EdgeStraightElement::allowed_type() const {
   // @@protoc_insertion_point(field_get:wood_proto.EdgeStraightElement.allowed_type)
@@ -753,7 +765,7 @@ inline ::int32_t EdgeStraightElement::allowed_type() const {
 }
 inline void EdgeStraightElement::set_allowed_type(::int32_t value) {
   _internal_set_allowed_type(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
   // @@protoc_insertion_point(field_set:wood_proto.EdgeStraightElement.allowed_type)
 }
 inline ::int32_t EdgeStraightElement::_internal_allowed_type() const {
@@ -863,6 +875,30 @@ inline ::google::protobuf::RepeatedPtrField<::session_proto::Polyline>* PROTOBUF
 EdgeStraightElement::_internal_mutable_profile() {
   ::google::protobuf::internal::TSanRead(&_impl_);
   return &_impl_.profile_;
+}
+
+// double round_radius = 10;
+inline void EdgeStraightElement::clear_round_radius() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.round_radius_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+}
+inline double EdgeStraightElement::round_radius() const {
+  // @@protoc_insertion_point(field_get:wood_proto.EdgeStraightElement.round_radius)
+  return _internal_round_radius();
+}
+inline void EdgeStraightElement::set_round_radius(double value) {
+  _internal_set_round_radius(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  // @@protoc_insertion_point(field_set:wood_proto.EdgeStraightElement.round_radius)
+}
+inline double EdgeStraightElement::_internal_round_radius() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.round_radius_;
+}
+inline void EdgeStraightElement::_internal_set_round_radius(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.round_radius_ = value;
 }
 
 // double extension = 9;

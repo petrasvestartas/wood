@@ -156,6 +156,48 @@ void Floor::add_columns() {
         add_column(q);
 }
 
+/// The two hidden blocks that widen a rectangular column's top head_height to a head_side square, from the section's first corner along its first and last edges: one beyond its far y side, one beyond its far x side, named `<name>_head_<i>`.
+static std::vector<std::shared_ptr<NodeBlockElement>> compute_head_blocks(
+    const EdgeStraightElement& column, double head_side, double head_height
+) {
+
+    const Polyline section = column.sections()[0];
+    const Line axis = column.chord();
+
+    const Point origin = section.get_point(0);
+    const Vector x = section.get_point(1) - origin;
+    const Vector y = section.get_point(3) - origin;
+    const double side_x = x.magnitude();
+    const double side_y = y.magnitude();
+    const Vector under = axis.to_vector() * ((axis.length() - head_height) / axis.length());
+
+    const std::array<std::array<double, 4>, 2> spans = {{
+        {0.0, side_y, head_side, head_side},
+        {side_x, 0.0, head_side, side_y},
+    }};
+    std::vector<std::shared_ptr<NodeBlockElement>> blocks;
+
+    for (size_t i = 0; i < spans.size(); i++) {
+        const auto [a0, b0, a1, b1] = spans[i];
+        const Polyline base = Polyline({
+                                           origin + x.normalized() * a0 + y.normalized() * b0,
+                                           origin + x.normalized() * a1 + y.normalized() * b0,
+                                           origin + x.normalized() * a1 + y.normalized() * b1,
+                                           origin + x.normalized() * a0 + y.normalized() * b1,
+                                       })
+                                  .closed();
+        const Polyline bottom_loop = base.translated(under);
+        const Polyline top_loop = base.translated(axis.to_vector());
+        const std::shared_ptr<NodeBlockElement> block = std::make_shared<NodeBlockElement>(
+            std::vector<Polyline>{bottom_loop, top_loop}, fmt::format("{}_head_{}", column.name, i)
+        );
+        block->is_visible = false;
+        blocks.push_back(block);
+    }
+
+    return blocks;
+}
+
 void Floor::add_column(size_t corner) {
 
     const std::string name = fmt::format("column_{}", corner);
@@ -166,7 +208,7 @@ void Floor::add_column(size_t corner) {
     support->name = fmt::format("support_{}", corner);
     const Line axis = support->column_axis(guide.bay_height);
     const Plane frame = guide.column_frame(corner);
-    const std::shared_ptr<Column> shaft = Column::square(axis, frame, guide.size_column_head, name);
+    const std::shared_ptr<EdgeStraightElement> shaft = EdgeStraightElement::corner_square(axis, frame, guide.size_column_head, name);
 
     const std::array<std::array<Polyline, 2>, 6>& loops = guide.column_cutters(corner);
     std::vector<std::shared_ptr<FacePlanarElement>> cutters;
@@ -184,7 +226,7 @@ void Floor::add_column(size_t corner) {
     const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
     for (const std::shared_ptr<NodeBlockElement>& block :
-         shaft->head_blocks(head_width, guide.column_head_depth)) {
+         compute_head_blocks(*shaft, head_width, guide.column_head_depth)) {
         add(block, group);
         const std::shared_ptr<InteractionFeatureSolid> glue =
             std::make_shared<InteractionFeatureSolid>(

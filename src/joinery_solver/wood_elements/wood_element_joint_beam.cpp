@@ -787,13 +787,6 @@ static ButtMember butt_member(const Element& element) {
             beam->sections(), beam->axis.get_points(), beam->element_geometry_mesh()
         );
 
-    if (const Column* column = dynamic_cast<const Column*>(&element))
-        return swept_member(
-            {column->section, column->section.translated(column->axis.to_vector())},
-            {column->axis.start(), column->axis.end()},
-            column->element_geometry_mesh()
-        );
-
     const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(&element);
     if (!plate)
         throw std::invalid_argument("A butt joins beams, columns and plates");
@@ -1635,7 +1628,7 @@ head_main_pair(const std::array<HeadBeam, 4>& beams, const EdgeStraightElement* 
 }
 
 std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
-    const Column& column,
+    const EdgeStraightElement& column,
     const EdgeStraightElement& a,
     const EdgeStraightElement& b,
     const EdgeStraightElement& c,
@@ -1652,14 +1645,15 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     double min_post
 ) {
 
-    if (column.radius <= 0.0)
+    if (column.round_radius <= 0.0)
         throw std::invalid_argument("column_head: the column is not round");
     if (main_beam && main_beam != &a && main_beam != &b && main_beam != &c && main_beam != &d)
         throw std::invalid_argument(
             fmt::format("column_head: main beam {} is not one of the four", main_beam->name)
         );
 
-    const double radius = column.radius;
+    const double radius = column.round_radius;
+    const Line column_axis = column.chord();
 
     // the head: the end of the column nearest the beams, z pointing out of the column
     const Point middle = Point::mid_point(
@@ -1667,10 +1661,10 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         Point::mid_point(b.axis.get_point(0), b.axis.get_point(1))
     );
     const bool at_end =
-        middle.distance(column.axis.end()) <= middle.distance(column.axis.start());
-    const Point head = at_end ? column.axis.end() : column.axis.start();
+        middle.distance(column_axis.end()) <= middle.distance(column_axis.start());
+    const Point head = at_end ? column_axis.end() : column_axis.start();
     const Vector z =
-        column.axis.to_vector().normalized() * (at_end ? 1.0 : -1.0);
+        column_axis.to_vector().normalized() * (at_end ? 1.0 : -1.0);
 
     // the beams, read from their own solids
     const std::array<const EdgeStraightElement*, 4> members = {&a, &b, &c, &d};
@@ -1688,7 +1682,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
             fail(beam, fmt::format("has its top {:.1f} off the others'", beam.high - top));
         if (beam.low >= 0.0)
             fail(beam, "sits above the column's head");
-        if (beam.low < -column.axis.length())
+        if (beam.low < -column_axis.length())
             fail(beam, "runs below the column's far end");
     }
 
@@ -1960,7 +1954,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         }
 
     // the posts: what the slot leaves of the column's head, one each between two neighbouring beams, cut prism by prism: the joined outline can leave a split post touching itself
-    double highest_floor = -column.axis.length();
+    double highest_floor = -column_axis.length();
     for (const HeadBeam& beam : beams)
         highest_floor = std::max(highest_floor, beam.low);
     const double head_low = highest_floor - top + 1.0;

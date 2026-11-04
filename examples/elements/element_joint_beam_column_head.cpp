@@ -11,7 +11,7 @@ int main() {
     // a round column 200 across and 425 long, its head at the origin
     const double width = 100.0;
     const double height = 185.0;
-    const std::shared_ptr<Column> column = Column::round(
+    const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::round(
         Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}), width, 0.02, "column"
     );
     scene.add(column);

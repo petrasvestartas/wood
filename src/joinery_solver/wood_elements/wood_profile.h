@@ -38,6 +38,12 @@ double compute_support(const std::vector<Polyline>& profile, const Vector& direc
 std::vector<Polyline>
 compute_scaled(const std::vector<Polyline>& profile, double width, double depth);
 
+/// The up of a member along axis: the axis across world x, or across world y when they run together, turned by rotation degrees, so a profile's x follows world x.
+Vector compute_up(const Line& axis, double rotation);
+
+/// True when the loop lies in a plane square to the direction.
+bool is_square_to(const Polyline& loop, const Vector& direction);
+
 /// A loop placed at a point of an axis.
 Polyline
 profile_section(const Point& at, const Vector& direction, const Vector& up, const Polyline& loop);

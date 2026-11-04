@@ -76,29 +76,6 @@ compute_frame(const Point& origin, const Vector& direction, const Vector& normal
     return Xform::frame_to_world(origin, x, z.cross(x), z);
 }
 
-/// Origin at the axis start, z along the axis, x from the first section edge.
-std::optional<std::pair<std::string, Xform>> column_key(const Column& column) {
-
-    if (column.section.point_count() < 2)
-        return std::nullopt;
-
-    const Vector width = column.section.get_point(1) - column.section.get_point(0);
-    const std::optional<Xform> frame =
-        compute_frame(column.axis.start(), width, column.axis.to_vector());
-
-    if (!frame)
-        return std::nullopt;
-
-    const Xform local = *frame->inverse();
-    std::string key = "Column:";
-    write(key, column.section, local);
-    write(key, column.axis.end(), local);
-    write(key, column.cuts, local);
-    write(key, column.profile, Xform::identity());
-
-    return std::make_pair(key, *frame);
-}
-
 /// Origin at the first axis point, x along the first segment, z from the first direction or world z.
 std::optional<std::pair<std::string, Xform>> beam_key(const EdgeStraightElement& beam) {
 
@@ -114,7 +91,7 @@ std::optional<std::pair<std::string, Xform>> beam_key(const EdgeStraightElement&
         return std::nullopt;
 
     const Xform local = *frame->inverse();
-    std::string key = "Beam:" + std::to_string(beam.allowed_type) + ":";
+    std::string key = "Edge:" + std::to_string(beam.allowed_type) + ":";
     write(key, beam.axis, local);
 
     for (const double radius : beam.radii)
@@ -129,6 +106,7 @@ std::optional<std::pair<std::string, Xform>> beam_key(const EdgeStraightElement&
 
     write(key, beam.cuts, local);
     write(key, beam.profile, Xform::identity());
+    write(key, beam.round_radius);
 
     return std::make_pair(key, *frame);
 }
@@ -191,9 +169,6 @@ std::optional<std::pair<std::string, Xform>> plate_key(const FacePlanarElement& 
 
 /// T::transformed for a wood type, else a clone placed by xform, guids kept; nullptr for a mirror.
 std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, const Xform& xform) {
-
-    if (const std::shared_ptr<Column> column = std::dynamic_pointer_cast<Column>(element))
-        return column->transformed(xform);
 
     if (const std::shared_ptr<EdgeStraightElement> beam = std::dynamic_pointer_cast<EdgeStraightElement>(element))
         return beam->transformed(xform);
@@ -271,9 +246,6 @@ std::string find_definition(const WoodSession& session, const std::string& key) 
 // Keys
 // ═══════════════════════════════════════════════════════════════════════════
 std::optional<std::pair<std::string, Xform>> element_key(const Element& element) {
-
-    if (const Column* column = dynamic_cast<const Column*>(&element))
-        return column_key(*column);
 
     if (const EdgeStraightElement* beam = dynamic_cast<const EdgeStraightElement*>(&element))
         return beam_key(*beam);

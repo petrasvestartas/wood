@@ -295,7 +295,7 @@ The shaft is the 220 square `size_column_head` swept up the axis, its sides alon
 
 ```cpp
 const Plane frame = guide.column_frame(corner);
-const std::shared_ptr<Column> shaft = Column::square(
+const std::shared_ptr<EdgeStraightElement> shaft = EdgeStraightElement::square(
     axis,
     frame,
     guide.size_column_head,
@@ -303,7 +303,7 @@ const std::shared_ptr<Column> shaft = Column::square(
 );
 ```
 
-Code: `Column::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
+Code: `EdgeStraightElement::square`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp); `FloorGuide::column_frame`, [floor_guide.cpp](https://github.com/petrasvestartas/wood/blob/main/src/templates/floor/floor_guide.cpp).
 
 ## 224. head_blocks
 
@@ -311,13 +311,13 @@ Code: `Column::square`, [wood_element_column.cpp](https://github.com/petrasvesta
 
 <span style="color:#F2CC0C">■ result</span> `column_0_head_0`, `column_0_head_1`   <span style="color:#A3A3A3">■ context</span> the shaft
 
-`Column::head_blocks` makes two hidden blocks over the top `column_head_depth` (730), one beyond each bay side of the shaft, widening the head to a 340 square, `size_column_head + size_column_head_chamfer`.
+`compute_head_blocks` makes two hidden blocks over the top `column_head_depth` (730), one beyond each bay side of the shaft, widening the head to a 340 square, `size_column_head + size_column_head_chamfer`.
 
 ```cpp
 const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 ```
 
-Code: `Column::head_blocks`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp).
+Code: `compute_head_blocks`, [wood_element_column.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_column.cpp).
 
 ## 225. The head glued on
 
@@ -334,7 +334,7 @@ add(shaft, group);
 // the head: blocks glued on as wide as the chamfer reaches, as deep as the carved head
 const double head_width = guide.size_column_head + guide.size_column_head_chamfer;
 
-for (const std::shared_ptr<NodeBlockElement>& block : shaft->head_blocks(head_width, guide.column_head_depth)) {
+for (const std::shared_ptr<NodeBlockElement>& block : compute_head_blocks(*shaft, head_width, guide.column_head_depth)) {
     add(block, group);
     const std::shared_ptr<InteractionFeatureSolid> glue = std::make_shared<InteractionFeatureSolid>(block->element_geometry_mesh(), SolidOperation::add);
     add_interaction(block, shaft, glue);

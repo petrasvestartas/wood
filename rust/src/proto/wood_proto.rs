@@ -40,7 +40,7 @@ pub struct InteractionFeaturePlane {
     #[prost(message, optional, tag = "2")]
     pub plane: ::core::option::Option<::session_rust::proto::Plane>,
 }
-/// The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
+/// Read only: scenes saved before Column merged into EdgeStraightElement. The state of a Column beyond the kernel Element: its axis, section, cuts and solid features.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Column {
     #[prost(message, repeated, tag = "6")]
@@ -90,6 +90,9 @@ pub struct EdgeStraightElement {
     /// Section loops in the profile frame, loop 0 the outline, then holes; empty takes the square of the radius
     #[prost(message, repeated, tag = "6")]
     pub profile: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// A round edge's radius, its BRep the exact cylinder; zero for any other section
+    #[prost(double, tag = "10")]
+    pub round_radius: f64,
     /// Length the solid runs past each axis end, the stock an end joint cuts back
     #[prost(double, tag = "9")]
     pub extension: f64,

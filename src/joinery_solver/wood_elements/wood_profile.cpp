@@ -146,6 +146,27 @@ compute_scaled(const std::vector<Polyline>& profile, double width, double depth)
     return scaled;
 }
 
+Vector compute_up(const Line& axis, double rotation) {
+
+    const Vector along = axis.to_vector().normalized();
+    Vector x = Vector::x_axis() - along * along.dot(Vector::x_axis());
+    if (x.magnitude() < Tolerance::RELATIVE)
+        x = Vector::y_axis() - along * along.dot(Vector::y_axis());
+
+    return along.cross(x.normalized().transformed(Xform::rotation(along, rotation, true)));
+}
+
+bool is_square_to(const Polyline& loop, const Vector& direction) {
+
+    const Vector along = direction.normalized();
+    const std::vector<Point> points = loop.get_points();
+    for (const Point& point : points)
+        if (std::abs((point - points[0]).dot(along)) > 1e-6)
+            return false;
+
+    return true;
+}
+
 Polyline
 profile_section(const Point& at, const Vector& direction, const Vector& up, const Polyline& ring) {
 

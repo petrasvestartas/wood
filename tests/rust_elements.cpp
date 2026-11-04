@@ -67,6 +67,17 @@ static void reads_back(const WoodSession& session, const wood_proto::WoodSession
         );
 }
 
+/// A Column the viewer wrote loads as an edge with the same solid.
+static void reads_column(const WoodSession& session, const wood_proto::WoodSession& file, size_t i) {
+    const session_proto::Element& stored = file.objects().elements(static_cast<int>(i));
+    const std::shared_ptr<EdgeStraightElement> typed = session.get_element<EdgeStraightElement>(stored.guid());
+    check(typed != nullptr, stored.name() + " does not load as an edge");
+    check(
+        same_brep(BRep::pb_loads(stored.geometry_data()), typed->element_geometry_brep(), 1e-9),
+        stored.name() + ": the Rust BRep differs from the C++ one"
+    );
+}
+
 int main() {
     std::ifstream in(GOLDEN, std::ios::binary);
     const std::string bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
@@ -81,8 +92,8 @@ int main() {
 
     reads_back<FacePlanarElement, wood_proto::FacePlanarElement>(session, file, 0);
     reads_back<EdgeStraightElement, wood_proto::EdgeStraightElement>(session, file, 1);
-    reads_back<Column, wood_proto::Column>(session, file, 2);
-    reads_back<Column, wood_proto::Column>(session, file, 3);
+    reads_column(session, file, 2);
+    reads_column(session, file, 3);
     reads_back<NodeBlockElement, wood_proto::NodeBlockElement>(session, file, 4);
     reads_back<EdgeVariableElement, wood_proto::EdgeVariableElement>(session, file, 5);
     reads_back<NodeSupportElement, wood_proto::NodeSupportElement>(session, file, 6);

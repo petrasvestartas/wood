@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "wood_contact_detection.h"
 #include "wood_element_edge_straight.h"
-#include "wood_element_column.h"
 #include "wood_element_edge_variable.h"
 #include "wood_element_edge_curved.h"
 #include "wood_feature_detection.h"
@@ -280,11 +279,10 @@ ContactType contact_type(
     const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb
 ) {
 
-    const bool linear_a = dynamic_cast<const EdgeElement*>(&a) || dynamic_cast<const Column*>(&a);
-    const bool linear_b = dynamic_cast<const EdgeElement*>(&b) || dynamic_cast<const Column*>(&b);
+    const bool linear_a = dynamic_cast<const EdgeElement*>(&a) != nullptr;
+    const bool linear_b = dynamic_cast<const EdgeElement*>(&b) != nullptr;
     auto is_end = [](const Element& element, const Plane& plane) {
-        const EdgeElement* edge = dynamic_cast<const EdgeElement*>(&element);
-        const Line axis = edge ? edge->chord() : static_cast<const Column&>(element).axis;
+        const Line axis = static_cast<const EdgeElement&>(element).chord();
         if (axis.length() <= 0.0)
             return false;
         return std::abs(plane.z_axis().dot(axis.to_vector().normalized())) > 1e-6;

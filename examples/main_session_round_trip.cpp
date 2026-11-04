@@ -70,7 +70,7 @@ int main() {
     const std::vector<std::shared_ptr<FacePlanarElement>> plates_a = a.get_elements<FacePlanarElement>();
     const std::vector<std::shared_ptr<FacePlanarElement>> plates_b = b.get_elements<FacePlanarElement>();
     check(plates_a.size() == plates_b.size(), fmt::format("plate count ({})", plates_a.size()));
-    check(a.columns().size() == b.columns().size(), "column count");
+    check(a.get_elements<EdgeElement>().size() == b.get_elements<EdgeElement>().size(), "edge count");
     check(a.get_elements<NodeBlockElement>().size() == b.get_elements<NodeBlockElement>().size(), "block count");
 
     bool typed = true;
@@ -330,7 +330,7 @@ int main() {
             a.get_object<Element>(probe_guid) == probe,
         "add() puts the same object in the lookup and the session"
     );
-    check(a.get_element<Column>(probe_guid) == nullptr, "get_element rejects the wrong type");
+    check(a.get_element<EdgeStraightElement>(probe_guid) == nullptr, "get_element rejects the wrong type");
     check(
         a.remove_object(probe_guid) && a.objects.elements->size() == before &&
             a.get_object<Element>(probe_guid) == nullptr,

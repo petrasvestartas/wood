@@ -239,8 +239,8 @@ void check_support() {
         std::make_shared<NodeSupportElement>(guide.support_plane(0), "support");
     const Point foot = support->column_foot();
     const Line axis = Line::from_points(foot, Point(foot[0], foot[1], guide.bay_height));
-    const std::shared_ptr<Column> column =
-        Column::square(axis, guide.column_frame(0), guide.size_column_head);
+    const std::shared_ptr<EdgeStraightElement> column =
+        EdgeStraightElement::corner_square(axis, guide.column_frame(0), guide.size_column_head);
     scene.add(support);
     scene.add(column);
 
@@ -251,7 +251,7 @@ void check_support() {
         "support volume " + std::to_string(compute_volume(base))
     );
     check(
-        std::abs(column->axis.start()[2] - (support->height - support->head_plate_recess)) <= 1e-9,
+        std::abs(column->axis.get_point(0)[2] - (support->height - support->head_plate_recess)) <= 1e-9,
         "column foot on the support"
     );
 
@@ -274,10 +274,10 @@ void check_support() {
     const wood_floor::Floor floor(guide);
     WoodSession carved("column_0");
     carved.graft(floor.get_branch("column_0"), nullptr);
-    const std::shared_ptr<Column> shaft = carved.columns().front();
+    const std::shared_ptr<EdgeStraightElement> shaft = carved.get_element_by_name<EdgeStraightElement>("column_0");
     const double side = guide.size_column_head;
     const double head_side = side + guide.size_column_head_chamfer;
-    const double glued = side * side * (shaft->axis.length() - guide.column_head_depth) +
+    const double glued = side * side * (shaft->chord().length() - guide.column_head_depth) +
                          head_side * head_side * guide.column_head_depth;
     const Mesh stock_with_head = shaft->stock_mesh();
     check(
@@ -1496,7 +1496,7 @@ void check_rectangle_plates() {
     );
     check_cross_laps(scene, laps);
 
-    for (const std::shared_ptr<Column>& column : scene.columns())
+    for (const std::shared_ptr<EdgeStraightElement>& column : scene.get_elements_numbered<EdgeStraightElement>("column"))
         check(
             column->model_geometry_brep().is_solid() &&
                 count_bores(column->model_geometry_brep()) == 3,
@@ -1504,7 +1504,7 @@ void check_rectangle_plates() {
         );
 
     // a column carries only the pins that pass through it: two per plate, never the plate's rib pins
-    for (const std::shared_ptr<Column>& column : scene.columns()) {
+    for (const std::shared_ptr<EdgeStraightElement>& column : scene.get_elements_numbered<EdgeStraightElement>("column")) {
         size_t plate_drills = 0;
 
         for (const InteractionFeatureSolid& feature : column->solid_features)

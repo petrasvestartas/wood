@@ -129,7 +129,7 @@ static void check_headed_pins() {
 static void check_rectangle_plate() {
 
     WoodSession scene("rectangle_plate");
-    const std::shared_ptr<Column> column = std::make_shared<Column>(
+    const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::from_section(
         Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1200.0}),
         Polyline::rectangle({-110.0, -110.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 220.0, 220.0),
         "column"

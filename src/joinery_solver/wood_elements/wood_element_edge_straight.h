@@ -7,7 +7,7 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// Element that represents a timber beam.
+/// Element that represents a straight timber member along an axis: a beam, or a column, as its name says.
 class EdgeStraightElement : public EdgeElement {
 public:
     static constexpr std::string_view ELEMENT_TYPE =
@@ -24,24 +24,14 @@ public:
     double extension =
         0.0; // Length the solid runs past each axis end: the stock an end joint at the axis end cuts back.
     std::vector<Polyline> profile; // Section loops in the profile frame.
+    double round_radius =
+        0.0; // A round edge's radius: its section this circle in short chords, its BRep the exact cylinder; zero for any other section.
 
     /// The axis start: z along the first span, x along the first section's first edge.
     std::optional<Plane> base_plane() const override;
 
     /// An empty beam: no axis, no radius.
     EdgeStraightElement();
-
-    /// A beam of one radius along its whole axis; `name` is the type flag face_contacts() filters on.
-    EdgeStraightElement(const Polyline& axis, double radius, const std::string& name = "beam");
-
-    /// A beam with a radius and, optionally, an up direction per segment.
-    EdgeStraightElement(
-        const Polyline& axis,
-        const std::vector<double>& radii,
-        const std::vector<Vector>& directions,
-        int allowed_type = -1,
-        const std::string& name = "beam"
-    );
 
     /// A beam of one profile along its whole axis, the radii its half-width; a direction per segment when given.
     EdgeStraightElement(
@@ -54,6 +44,27 @@ public:
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors
     // ═══════════════════════════════════════════════════════════════════════════
+
+    /// A square section of half-width radius along the whole axis; `name` is the element's name.
+    static std::shared_ptr<EdgeStraightElement>
+    square(const Polyline& axis, double radius, const std::string& name = "beam");
+
+    /// A square of side from the corner of a plane, its x and y the square's sides, moved along the plane's normal to the axis base.
+    static std::shared_ptr<EdgeStraightElement> corner_square(
+        const Line& axis, const Plane& corner, double side, const std::string& name = "column"
+    );
+
+    /// A world loop at the axis base as its section, x along the loop's first edge; the loop must be square to the axis.
+    static std::shared_ptr<EdgeStraightElement>
+    from_section(const Line& axis, const Polyline& section, const std::string& name = "column");
+
+    /// A circle swept along the axis: its mesh in chords of at most `chord_tolerance`, its BRep exact.
+    static std::shared_ptr<EdgeStraightElement> round(
+        const Line& axis,
+        double radius,
+        double chord_tolerance = 0.02,
+        const std::string& name = "column"
+    );
 
     /// Two beams crossing at their middles, "first" along x and "second" turned `angle_degrees` from it in plan.
     static std::array<std::shared_ptr<EdgeStraightElement>, 2>
@@ -96,6 +107,9 @@ public:
     /// The parametric shape alone, before joints or cuts as a BRep; computed on first access and cached independently until invalidate_geometry() or place().
     const BRep& element_geometry_brep() const override;
 
+    /// The cut solid as a BRep; a round one is the exact cylinder less its cuts, by the kernel's boolean.
+    const BRep& model_geometry_brep() const override;
+
     /// A copy moved by xform from the parameters alone, guid and name kept.
     std::shared_ptr<EdgeStraightElement> transformed(const Xform& xform) const;
 
@@ -116,7 +130,7 @@ public:
     /// The kernel's cached box of the solid.
     using Element::aabb;
 
-    /// The box of the axis widened by the largest radius or half the profile's larger side, inflated on each side.
+    /// The box of the solid when there is one, else of the axis widened by the largest radius or the farthest section point, inflated on each side.
     AABB aabb(double inflate) const;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -143,7 +157,7 @@ public:
         return std::make_shared<EdgeStraightElement>(*this);
     }
 
-    /// Registers the "EdgeStraightElement" factory with the kernel, so Session::pb_load rebuilds beams.
+    /// Registers the "EdgeStraightElement" factory (and the legacy "Beam" and "Column" tags) with the kernel, so Session::pb_load rebuilds beams.
     static void register_type();
 
     // ═══════════════════════════════════════════════════════════════════════════

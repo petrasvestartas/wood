@@ -12,7 +12,7 @@ class JointElement;
 namespace wood_session {
 
 class NodeSupportElement;
-class Column;
+class EdgeStraightElement;
 
 /// Element that represents a joint: what it cuts and drills in its targets; the base of JointBeamElement, JointPlateElement and JointPinElement.
 class JointElement : public Element {
@@ -52,7 +52,7 @@ public:
     drill(const Line& axis, double radius, double chord_tolerance = 0.05);
 
     /// The joint of a support and the column standing on it, named "support".
-    static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const Column& column);
+    static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const EdgeStraightElement& column);
     virtual std::vector<Line> drill_axes() const;
 
     /// The interaction this joint puts on its target i, for WoodSession::add_interaction.

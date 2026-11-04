@@ -433,8 +433,8 @@ int main() {
         "joint geometry round trip"
     );
 
-    const auto beam = std::make_shared<EdgeStraightElement>(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
-    const auto column = std::make_shared<Column>(
+    const auto beam = EdgeStraightElement::square(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
+    const auto column = EdgeStraightElement::from_section(
         Line::from_points({950, 50, 0}, {950, 50, 950}),
         Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100)
     );
@@ -480,8 +480,8 @@ int main() {
     check(profile->element_geometry_brep().is_valid(), "profile cutter solid");
 
     WoodSession beams("beam joint");
-    auto ba = std::make_shared<EdgeStraightElement>(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
-    auto bb = std::make_shared<EdgeStraightElement>(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
+    auto ba = EdgeStraightElement::square(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
+    auto bb = EdgeStraightElement::square(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
     beams.add(ba);
     beams.add(bb);
     beams.compute_axis_contacts(1);
