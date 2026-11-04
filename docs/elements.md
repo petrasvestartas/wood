@@ -2,6 +2,19 @@
 
 [TOC]
 
+## Node
+
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="elements_block.html">
+    <img src="element_block.png" alt="block">
+    <span class="wood-card-title">block</span>
+  </a>
+  <a class="wood-card" href="elements_support.html">
+    <img src="element_support.png" alt="support">
+    <span class="wood-card-title">support</span>
+  </a>
+</div>
+
 ## Edge
 
 <div class="wood-card-grid cols-4">
@@ -29,19 +42,6 @@
   <a class="wood-card" href="elements_plate_curved.html">
     <img src="element_plate_curved.png" alt="curved">
     <span class="wood-card-title">curved</span>
-  </a>
-</div>
-
-## Node
-
-<div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_block.html">
-    <img src="element_block.png" alt="block">
-    <span class="wood-card-title">block</span>
-  </a>
-  <a class="wood-card" href="elements_support.html">
-    <img src="element_support.png" alt="support">
-    <span class="wood-card-title">support</span>
   </a>
 </div>
 
@@ -152,16 +152,16 @@ scene.add_interaction(pins, upper, pins->interaction(1));
 ```
 
 <div style="display:none">
-- @subpage elements_plate
-- @subpage elements_plate_curved
+- @subpage elements_block
+- @subpage elements_support
 - @subpage elements_beam
 - @subpage elements_beam_curved
 - @subpage elements_beam_variable
 - @subpage elements_column
-- @subpage elements_block
-- @subpage elements_support
-- @subpage elements_cut_plane
 - @subpage elements_profile
+- @subpage elements_plate
+- @subpage elements_plate_curved
+- @subpage elements_cut_plane
 - @subpage elements_pin
 - @subpage elements_joint
 - @subpage elements_joint_plate

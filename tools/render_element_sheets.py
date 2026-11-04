@@ -2,7 +2,7 @@
 
 Reads every docs/images/elements/*.png, the whole picture, and lays the pictures out
 five per row with a caption, one sheet per kind: elements, plate joints, beam joints, connectors and pins,
-each sheet in titled groups: edges, faces and nodes; side to side, top to side; and so on.
+each sheet in titled groups: nodes, edges and faces; side to side, top to side; and so on.
 Writes docs/images/diagrams/wood_elements_sheet_<n>_<name>.webp (4400 px wide, quality 90).
 
 Run from wood/:  python tools/render_element_sheets.py
@@ -27,13 +27,13 @@ FRAME = (205, 205, 212)
 TEXT = (30, 30, 30)
 
 SHEET_1 = [
+    "element_block",
+    "element_support",
     "element_beam",
     "element_beam_curved",
     "element_beam_variable",
     "element_plate",
     "element_plate_curved",
-    "element_block",
-    "element_support",
 ]
 BEAM_CUT_FAMILIES = [
     "cross",
@@ -95,9 +95,9 @@ sheets = [
 # each sheet's groups: a title, the part of the name that picks its pictures, the words the captions then leave out
 GROUPS = {
     "1_elements": [
+        ("Node", r"^element_(block|support)", ""),
         ("Edge", r"^element_beam", "beam "),
         ("Face", r"^element_plate", "plate "),
-        ("Node", r"", ""),
     ],
     "2_plate_joints": [
         ("Side to Side, In Plane", r"side_side_inplane", "side side inplane "),
