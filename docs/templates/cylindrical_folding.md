@@ -34,7 +34,7 @@ Folded structures of exact cylindrical [Curved Plate](@ref elements_plate_curved
     <span class="wood-card-title">Corner Fan</span>
   </a>
   <a class="wood-card" href="#cylinder_carving">
-    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_all.webp" alt="Cylinder Carving">
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_ring_8.webp" alt="Cylinder Carving">
     <span class="wood-card-title">Cylinder Carving</span>
   </a>
 </div>
@@ -247,7 +247,24 @@ CornerFan fan(6000.0, 4000.0, 6, 1200.0, 800.0, 0.15, 40.0);
 
 ### Corner Fan Subdivisions (2, 4, 8, 12 Strips) {#corner_fan_subdivisions}
 
-![](templates/templates_cylindrical_folding_15_corner_fan_subdivisions_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_2.webp">
+    <img src="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_2.webp" alt="2 Strips">
+    <span class="wood-card-title">2 Strips</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_4.webp">
+    <img src="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_4.webp" alt="4 Strips">
+    <span class="wood-card-title">4 Strips</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_8.webp">
+    <img src="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_8.webp" alt="8 Strips">
+    <span class="wood-card-title">8 Strips</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_12.webp">
+    <img src="templates_cylindrical_folding_15_corner_fan_subdivisions_fan_12.webp" alt="12 Strips">
+    <span class="wood-card-title">12 Strips</span>
+  </a>
+</div>
 
 Full source: @ref cylindrical_folding_example_15
 
@@ -259,7 +276,20 @@ Full source: @ref cylindrical_folding_example_15
 
 ### Sequential Three-Carver Column
 
-![](templates/templates_cylindrical_folding_16_cylinder_carving_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_cylindrical_folding_16_cylinder_carving_stage_1.webp">
+    <img src="templates_cylindrical_folding_16_cylinder_carving_stage_1.webp" alt="a - b">
+    <span class="wood-card-title">a - b</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_16_cylinder_carving_stage_2.webp">
+    <img src="templates_cylindrical_folding_16_cylinder_carving_stage_2.webp" alt="(a - b) - c">
+    <span class="wood-card-title">(a - b) - c</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_16_cylinder_carving_stage_3.webp">
+    <img src="templates_cylindrical_folding_16_cylinder_carving_stage_3.webp" alt="((a - b) - c) - d">
+    <span class="wood-card-title">((a - b) - c) - d</span>
+  </a>
+</div>
 
 Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a `R = 2000 mm`, `12 m` column.
 
@@ -267,7 +297,20 @@ Full source: @ref cylindrical_folding_example_16
 
 ### Closed Fluted Rings (4, 6, 8 Carvers) {#cylinder_carving_rings}
 
-![](templates/templates_cylindrical_folding_17_cylinder_carving_rings_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_cylindrical_folding_17_cylinder_carving_rings_ring_4.webp">
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_ring_4.webp" alt="4 Carvers">
+    <span class="wood-card-title">4 Carvers</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_17_cylinder_carving_rings_ring_6.webp">
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_ring_6.webp" alt="6 Carvers">
+    <span class="wood-card-title">6 Carvers</span>
+  </a>
+  <a class="wood-card" href="templates_cylindrical_folding_17_cylinder_carving_rings_ring_8.webp">
+    <img src="templates_cylindrical_folding_17_cylinder_carving_rings_ring_8.webp" alt="8 Carvers">
+    <span class="wood-card-title">8 Carvers</span>
+  </a>
+</div>
 
 Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` alternating-tilt cylinders.
 

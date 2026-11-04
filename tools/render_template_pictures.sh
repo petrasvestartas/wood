@@ -80,16 +80,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = cylindrical_folding ]; then
     "${RENDER[@]}" --opacity 0.95 templates_cylindrical_folding_13_curved_folded_beam all
     "${RENDER[@]}" templates_cylindrical_folding_14_corner_fan strips
     "${RENDER[@]}" --view top --name plan templates_cylindrical_folding_14_corner_fan strips
-    "${RENDER[@]}" templates_cylindrical_folding_15_corner_fan_subdivisions all
-    "${RENDER[@]}" templates_cylindrical_folding_16_cylinder_carving all
-    "${RENDER[@]}" templates_cylindrical_folding_17_cylinder_carving_rings all
+    "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_15_corner_fan_subdivisions fan_2 fan_4 fan_8 fan_12
+    "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_16_cylinder_carving stage_1 stage_2 stage_3
+    "${RENDER[@]}" --aspect 1.5 templates_cylindrical_folding_17_cylinder_carving_rings ring_4 ring_6 ring_8
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
     "${RENDER[@]}" templates_developable_folding_1_curved_fold lamellas
     "${RENDER[@]}" templates_developable_folding_2_curved_crease_unfolding plates
     "${RENDER[@]}" templates_developable_folding_3_catenary_unfolding plates
-    "${RENDER[@]}" templates_developable_folding_4_crease_quadrants all
+    "${RENDER[@]}" --aspect 1.5 templates_developable_folding_4_crease_quadrants quadrant_1 quadrant_2 quadrant_3 quadrant_4
     "${RENDER[@]}" templates_developable_folding_5_synclastic_unfolding plates
     "${RENDER[@]}" templates_developable_folding_6_anticlastic_unfolding plates
     "${RENDER[@]}" templates_developable_folding_7_apex_level_unfolding plates

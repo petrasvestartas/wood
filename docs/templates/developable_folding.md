@@ -34,7 +34,7 @@ Developable [Curved Plate](@ref elements_plate_curved) structures including rule
     <span class="wood-card-title">Corrugated Funnel</span>
   </a>
   <a class="wood-card" href="#crease_quadrants">
-    <img src="templates_developable_folding_4_crease_quadrants_all.webp" alt="Crease Quadrants">
+    <img src="templates_developable_folding_4_crease_quadrants_quadrant_1.webp" alt="Crease Quadrants">
     <span class="wood-card-title">Crease Quadrants</span>
   </a>
 </div>
@@ -174,9 +174,26 @@ CurvedCreaseUnfolding unfolding(Primitives::arc(Point(800.0, 0.0, 0.0), Point(58
 | `Q3` | `(+Mr, -r)` | Single-sheet folding (both strips behind crease plane) | Convex + concave; sector angles sum to `360°` |
 | `Q4` | `(-r, -Mr)` | Two-sheet mirror unfolding | Both concave (anticlastic); sector angles `> 360°` |
 
-### Q1–Q4 Side-by-Side {#crease_quadrants_example}
+### Q1–Q4 {#crease_quadrants_example}
 
-![](templates/templates_developable_folding_4_crease_quadrants_all.webp)
+<div class="wood-card-grid cols-4">
+  <a class="wood-card" href="templates_developable_folding_4_crease_quadrants_quadrant_1.webp">
+    <img src="templates_developable_folding_4_crease_quadrants_quadrant_1.webp" alt="Q1">
+    <span class="wood-card-title">Q1</span>
+  </a>
+  <a class="wood-card" href="templates_developable_folding_4_crease_quadrants_quadrant_2.webp">
+    <img src="templates_developable_folding_4_crease_quadrants_quadrant_2.webp" alt="Q2">
+    <span class="wood-card-title">Q2</span>
+  </a>
+  <a class="wood-card" href="templates_developable_folding_4_crease_quadrants_quadrant_3.webp">
+    <img src="templates_developable_folding_4_crease_quadrants_quadrant_3.webp" alt="Q3">
+    <span class="wood-card-title">Q3</span>
+  </a>
+  <a class="wood-card" href="templates_developable_folding_4_crease_quadrants_quadrant_4.webp">
+    <img src="templates_developable_folding_4_crease_quadrants_quadrant_4.webp" alt="Q4">
+    <span class="wood-card-title">Q4</span>
+  </a>
+</div>
 
 ```cpp
 CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
