@@ -23,6 +23,9 @@ Nothing was built or run. It builds on `wood_improvement_plan.md` and does not r
   a Coal backend and a dual-tree traversal. None of these exist in `src/` at that commit. Every function
   in `src/compas_model/algorithms/collision.py` raises `NotImplementedError`.
 - So the comparison below is against two things: the shipped code and the documented design.
+- Correction (2026-11-05, `compas_model_branches.md`): contact detection is shipped on `main`
+  (`Model.compute_contacts`, a Python BVH, then shapely face overlap); only collision is stubs. No other
+  branch or fork of compas_model has working collision code.
 
 ## 1. Leanness and readability
 
