@@ -350,18 +350,9 @@ std::vector<std::pair<int, int>> adjacency_search(
         aabbs[i] = obbs[i].aabb();
     }
 
-    double ws = 0;
-    for (const AABB& a : aabbs) {
-        ws = std::max(ws, std::abs(a.cx + a.hx));
-        ws = std::max(ws, std::abs(a.cy + a.hy));
-        ws = std::max(ws, std::abs(a.cz + a.hz));
-        ws = std::max(ws, std::abs(a.cx - a.hx));
-        ws = std::max(ws, std::abs(a.cy - a.hy));
-        ws = std::max(ws, std::abs(a.cz - a.hz));
-    }
-
+    // the world size only fills a field: the Morton codes are scaled to the box centres
     SpatialBVH bvh;
-    bvh.build_from_aabbs(aabbs.data(), n_el, ws * 2);
+    bvh.build_from_aabbs(aabbs.data(), n_el, 0.0);
 
     for (size_t i = 0; i < n_el; i++) {
 
@@ -427,8 +418,18 @@ bool face_overlap_area(
     if (solution.empty())
         return false;
 
-    const Clipper2Lib::PathD& first = solution[0];
-    const size_t nc = first.size();
+    // every region's area, a hole wound the other way subtracting; the largest region is the polygon
+    double area = 0.0;
+    size_t largest = 0;
+    for (size_t k = 0; k < solution.size(); k++) {
+        area += Clipper2Lib::Area(solution[k]);
+        if (std::abs(Clipper2Lib::Area(solution[k])) >
+            std::abs(Clipper2Lib::Area(solution[largest])))
+            largest = k;
+    }
+
+    const Clipper2Lib::PathD& kept = solution[largest];
+    const size_t nc = kept.size();
 
     if (nc < 3)
         return false;
@@ -436,12 +437,12 @@ bool face_overlap_area(
     if (nc == 3 && !include_triangles)
         return false;
 
-    if (std::abs(Clipper2Lib::Area(first)) <= clipper_area)
+    if (std::abs(area) <= clipper_area)
         return false;
 
     std::vector<Point> pts;
     pts.reserve(nc + 1);
-    for (const Clipper2Lib::PointD& q : first)
+    for (const Clipper2Lib::PointD& q : kept)
         pts.push_back(origin + xax * q.x + yax * q.y);
     pts.push_back(pts.front());
 
@@ -924,41 +925,54 @@ struct Closest {
 std::map<uint64_t, Closest>
 closest_pairs(const std::vector<std::vector<Line>>& lines, const double min_distance) {
 
-    std::map<uint64_t, Closest> contacts;
-    for (size_t a = 0; a < lines.size(); a++) {
+    // every segment of non-zero length as (axis, segment), its box grown by min_distance
+    std::vector<std::pair<int, int>> segments;
+    std::vector<AABB> boxes;
+    for (size_t a = 0; a < lines.size(); a++)
         for (size_t sa = 0; sa < lines[a].size(); sa++) {
+            const Line& line = lines[a][sa];
+            if (!(line.squared_length() > 0.0))
+                continue;
+            segments.emplace_back((int)a, (int)sa);
+            boxes.push_back(AABB::from_points({line.start(), line.end()}, std::abs(min_distance)));
+        }
 
-            const Line& la = lines[a][sa];
-            if (!(la.squared_length() > 0.0))
+    SpatialBVH bvh;
+    bvh.build_from_aabbs(boxes.data(), boxes.size(), 0.0);
+
+    // candidates by box overlap, in the brute-force order so a tie keeps the same pair
+    std::map<uint64_t, Closest> contacts;
+    for (size_t i = 0; i < segments.size(); i++) {
+        const auto [a, sa] = segments[i];
+        const Line& la = lines[a][sa];
+
+        std::vector<int> candidates = bvh.query_aabb(boxes[i]);
+        std::sort(candidates.begin(), candidates.end());
+
+        for (int k : candidates) {
+            const auto [b, sb] = segments[k];
+            if (b <= a)
                 continue;
 
-            for (size_t b = a + 1; b < lines.size(); b++) {
-                for (size_t sb = 0; sb < lines[b].size(); sb++) {
+            const Line& lb = lines[b][sb];
+            double t0;
+            double t1;
+            if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
+                continue;
+            if (!std::isfinite(t0) || !std::isfinite(t1))
+                continue;
 
-                    const Line& lb = lines[b][sb];
-                    if (!(lb.squared_length() > 0.0))
-                        continue;
+            const Point q0 = la.point_at(t0);
+            const Point q1 = lb.point_at(t1);
+            const double d2 = (q0 - q1).magnitude_squared();
+            if (!std::isfinite(d2) || d2 > min_distance * min_distance)
+                continue;
 
-                    double t0;
-                    double t1;
-                    if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
-                        continue;
-                    if (!std::isfinite(t0) || !std::isfinite(t1))
-                        continue;
-
-                    const Point q0 = la.point_at(t0);
-                    const Point q1 = lb.point_at(t1);
-                    const double d2 = (q0 - q1).magnitude_squared();
-                    if (!std::isfinite(d2) || d2 > min_distance * min_distance)
-                        continue;
-
-                    const uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
-                    const Closest c{d2, (int)a, (int)sa, (int)b, (int)sb, t0, t1};
-                    const auto it = contacts.find(id);
-                    if (it == contacts.end() || d2 < it->second.dist_sq)
-                        contacts[id] = c;
-                }
-            }
+            const uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
+            const Closest c{d2, a, sa, b, sb, t0, t1};
+            const auto it = contacts.find(id);
+            if (it == contacts.end() || d2 < it->second.dist_sq)
+                contacts[id] = c;
         }
     }
 

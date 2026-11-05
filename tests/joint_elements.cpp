@@ -374,9 +374,73 @@ static void check_joint_depth_scale() {
               << std::endl;
 }
 
+/// A U across a bar overlaps it in two regions, a square with a hole in one less the hole: both by every region.
+static void check_overlap_regions() {
+
+    const Plane xy(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0));
+    const Polyline u(
+        {{0, 0, 0}, {300, 0, 0}, {300, 300, 0}, {200, 300, 0}, {200, 100, 0},
+         {100, 100, 0}, {100, 300, 0}, {0, 300, 0}, {0, 0, 0}}
+    );
+    const Polyline bar({{-50, 150, 0}, {350, 150, 0}, {350, 250, 0}, {-50, 250, 0}, {-50, 150, 0}});
+    Polyline polygon;
+    check(
+        face_overlap_area(u, bar, xy, false, 15000.0, polygon),
+        "a U across a bar overlaps 20000 in two regions, over 15000"
+    );
+    check(
+        std::abs(polygon.area() - 10000.0) < 1e-6,
+        fmt::format("the contact polygon is one leg of 10000, not {:.0f}", polygon.area())
+    );
+    check(
+        !face_overlap_area(u, bar, xy, false, 25000.0, polygon),
+        "a U across a bar overlaps 20000, under 25000"
+    );
+
+    // the hole is the inner square, wound the other way through a slit
+    const Polyline holed(
+        {{0, 0, 0}, {300, 0, 0}, {300, 300, 0}, {0, 300, 0}, {0, 150, 0}, {100, 150, 0},
+         {100, 200, 0}, {200, 200, 0}, {200, 100, 0}, {100, 100, 0}, {100, 150, 0}, {0, 150, 0},
+         {0, 0, 0}}
+    );
+    const Polyline square({{0, 0, 0}, {300, 0, 0}, {300, 300, 0}, {0, 300, 0}, {0, 0, 0}});
+    check(
+        face_overlap_area(holed, square, xy, false, 75000.0, polygon),
+        "a square with a hole overlaps 80000, over 75000"
+    );
+    check(
+        !face_overlap_area(holed, square, xy, false, 85000.0, polygon),
+        "a square with a hole overlaps 80000, the hole not counted"
+    );
+}
+
+/// Every two beams of a 4 x 4 x 4 lattice crossing at a node, 3 * 4^3, found through the segment boxes.
+static void check_axis_lattice() {
+
+    std::vector<std::shared_ptr<EdgeStraightElement>> beams;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++) {
+            std::vector<Point> along_x;
+            std::vector<Point> along_y;
+            std::vector<Point> along_z;
+            for (int k = 0; k < 4; k++) {
+                along_x.push_back(Point(k * 1000.0, i * 1000.0, j * 1000.0));
+                along_y.push_back(Point(i * 1000.0, k * 1000.0, j * 1000.0));
+                along_z.push_back(Point(i * 1000.0, j * 1000.0, k * 1000.0));
+            }
+            beams.push_back(EdgeStraightElement::square(Polyline(along_x), 50.0));
+            beams.push_back(EdgeStraightElement::square(Polyline(along_y), 50.0));
+            beams.push_back(EdgeStraightElement::square(Polyline(along_z), 50.0));
+        }
+    const size_t found = axis_contacts(beams, 5.0).size();
+    check(found == 192, fmt::format("a 4 x 4 x 4 lattice has 192 axis contacts, not {}", found));
+}
+
 int main() {
 
     check_joint_depth_scale();
+    check_overlap_regions();
+    check_axis_lattice();
 
     WoodSession scene("joint API checks");
     const auto a = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);

@@ -40,7 +40,8 @@ bool faces_coplanar(
     const Plane& face0, const Plane& face1, double cos_angle, double coplanar_tolerance
 );
 
-/// The first overlap of two coplanar outlines as a closed polygon in `plane0`, clipped as the 2024 solver clipped it.
+/// The overlap of two coplanar outlines, clipped as the 2024 solver clipped it: true when the area of every region
+/// together, holes subtracted, passes `clipper_area`; the largest region out as a closed polygon in `plane0`.
 bool face_overlap_area(
     const Polyline& outline0,
     const Polyline& outline1,
