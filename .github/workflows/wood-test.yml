@@ -19,57 +19,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: recursive
 
     - name: Install build tools
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential cmake libboost-all-dev
 
-    # This used to configure into cmake/build and then run `./wood`, a target
-    # only the legacy cmake/CMakeLists.txt ever produced. `cmake -B cmake/build`
-    # with no -S configures the ROOT project, which builds main_hello,
-    # main_all_datasets and friends - there is no single `wood` binary any more
-    # - so the run step died with "./wood: No such file or directory", exit 127,
-    # regardless of whether the build itself had worked.
-    #
-    # The Vue test-viewer steps that followed are gone with it: they published
-    # cmake/wood_test to gh-pages from testData.js, which only that legacy
-    # `wood` binary wrote. Reviving them means reviving the pre-migration CGAL
-    # tree under cmake/; if the site is still wanted, that is its own job and
-    # should build the legacy project explicitly with `cmake -S cmake`.
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-    # Build everything rather than one target. The failures here come in
-    # layers, and building a single target just hides the next one behind it.
+    # Everything is built, not one target: a failure in one layer hides the next one behind it.
     - name: Build
       run: cmake --build build --config Release --parallel 4
 
-    # This sweep has never actually run on Linux - CI died at the build, or at
-    # the old `./wood` step, long before reaching it - and it segfaults here
-    # within 0.1 s while working fine on Windows. stdbuf keeps the output when
-    # the process dies, since a segfault never flushes a buffered stdout, and
-    # gdb turns "exit 139" into a stack to read.
-    # gdb already placed the crash: face_to_face_wood <- get_connection_zones
-    # <- type_plates_name_joint_linking_vidychapel_corner, the second dataset.
-    # A Release build has no line numbers, so this rebuilds that one target with
-    # -g and ASan/UBSan to get the exact file:line and the kind of fault.
-    # Bounded on purpose, see CLAUDE.md: the sweep is ~2.5 s and ~0.3 GB, so
-    # ten minutes detects a wedged process rather than budgeting for a slow one.
-    # timeout exits 124 on expiry. stdbuf because a crash never flushes a
-    # buffered stdout, and losing the output is what made the first failure here
-    # look like it produced nothing at all.
+    # Every dataset through the solver. The wall-clock limit is ten minutes (the sweep takes seconds): anything
+    # longer is a wedged process, not a slow one. stdbuf keeps the output if the process dies, since a crash
+    # never flushes a buffered stdout.
     - name: Run all datasets
       run: |
         stdbuf -oL -eL timeout 600 build/main_all_datasets
 
-    # The geometry oracle: every plate joint design on a joined pair, checked for closed
-    # outlines, closed solids, no interpenetration, material conservation, male-female fit,
-    # drills, a protobuf round trip, a rigid motion and the committed goldens under
-    # tests/golden/joint_library. The table names every failing variant; exit 1 only when a
-    # variant of tests/golden/joint_library/passing.txt fails, a regression.
     # Every example on the element and joint pages runs, one after another; a page never shows code that does not.
     - name: Element examples
       run: |
@@ -79,6 +48,11 @@ jobs:
           timeout 300 "$example" > /dev/null
         done
 
+    # The geometry oracle: every plate joint design on a joined pair, checked for closed
+    # outlines, closed solids, no interpenetration, material conservation, male-female fit,
+    # drills, a protobuf round trip, a rigid motion and the committed goldens under
+    # tests/golden/joint_library. The table names every failing variant; exit 1 only when a
+    # variant of tests/golden/joint_library/passing.txt fails, a regression.
     - name: Joint library oracle
       run: |
         stdbuf -oL -eL timeout 600 build/joint_library
@@ -124,3 +98,33 @@ jobs:
     - name: Plate assignment
       run: |
         stdbuf -oL -eL timeout 600 build/plate_assignment
+
+  # The committed generated sources must be what the pinned protoc makes of src/proto: a hand edit or a
+  # forgotten regeneration fails here. Regenerate with `bash tools/regen_proto.sh` (C++) and `cargo build`
+  # in rust/ (Rust), then commit the result.
+  proto-fresh:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    # the shared messages the wood protos import live in the session repository
+    - name: Fetch session_proto
+      run: |
+        git clone --depth 1 --filter=blob:none --sparse https://github.com/petrasvestartas/session.git ../session
+        git -C ../session sparse-checkout set session_proto
+
+    - uses: arduino/setup-protoc@v3
+      with:
+        version: '36.2' # the kernel's pin: session_cpp PROTOC_VERSION
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Regenerate the C++ sources
+      run: WOOD_PROTOC="$(command -v protoc)" bash tools/regen_proto.sh
+
+    - name: Regenerate the Rust sources
+      run: PROTOC="$(command -v protoc)" cargo build --manifest-path rust/Cargo.toml
+
+    - name: Fail on a difference
+      run: |
+        git status --short generated rust/src/proto
+        git diff --exit-code -- generated rust/src/proto

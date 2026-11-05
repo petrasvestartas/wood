@@ -41,7 +41,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_cylindrical_folding_12_octagon_vault --parallel 6 && ./build/templates_cylindrical_folding_12_octagon_vault && ./bash/publish-scene.sh --target templates_cylindrical_folding_12_octagon_vault
+cmake --build build --target templates_cylindrical_folding_12_octagon_vault --parallel 6 && ./build/templates_cylindrical_folding_12_octagon_vault && ../bash/publish-scene.sh --target templates_cylindrical_folding_12_octagon_vault
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

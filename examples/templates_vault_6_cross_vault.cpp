@@ -40,7 +40,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_6_cross_vault --parallel 4 && ./build/templates_vault_6_cross_vault && ../bash/publish-scene.sh --target templates_vault_6_cross_vault
+cmake --build build --target templates_vault_6_cross_vault --parallel 6 && ./build/templates_vault_6_cross_vault && ../bash/publish-scene.sh --target templates_vault_6_cross_vault
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_6_cross_vault.cpp

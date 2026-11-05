@@ -351,7 +351,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target main_session_round_trip --parallel 4 && ./build/main_session_round_trip && ../bash/publish-scene.sh --target main_session_round_trip
+cmake --build build --target main_session_round_trip --parallel 6 && ./build/main_session_round_trip && ../bash/publish-scene.sh --target main_session_round_trip
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

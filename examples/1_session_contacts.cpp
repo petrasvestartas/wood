@@ -72,13 +72,13 @@ int main() {
 plates, a beam, a column, a block and a JointPlateElement; hard-coded and computed face contacts, including plate alignment lines and volumes; directed joint-to-plate feature edges merge the cut outlines, with mesh and BRep geometry generated on demand and the scene serialized to protobuf.
 
 |||||||| DIRECTORY ||||||||
-cd wood
+cd wood_research/wood
 
 |||||||| CMAKE CONFIGURE ||||||||
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 1_session_contacts --parallel 4 && ./build/1_session_contacts && ../bash/publish-scene.sh --target 1_session_contacts
+cmake --build build --target 1_session_contacts --parallel 6 && ./build/1_session_contacts && ../bash/publish-scene.sh --target 1_session_contacts
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit

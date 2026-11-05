@@ -1,7 +1,7 @@
 """Write the galleries of docs/templates/truss.md, one card per truss showing the TrussGuide overload that makes it: the
 library's designs with their defaults (between the library-gallery markers), from the design structs of
-src/templates/truss/truss_guide.h and the pictures of tools/shoot_butt.sh; Bow's trusses (between the bow-gallery
-markers), from data/templates/truss_bow_1873.json and the pictures of tools/shoot_truss_bow.sh, grouped by kind and by
+src/templates/truss/truss_guide.h and the pictures of `render_template_pictures.sh truss`; Bow's trusses (between the bow-gallery
+markers), from data/templates/truss_bow_1873.json and the pictures of `render_template_pictures.sh bow`, grouped by kind and by
 Bow's class.
     python3 -I wood/tools/truss_docs.py
 """

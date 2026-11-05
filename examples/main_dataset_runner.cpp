@@ -15,7 +15,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target main_dataset_runner --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/main_dataset_runner && ../bash/publish-scene.sh --target main_dataset_runner
+cmake --build build --target main_dataset_runner --parallel 6 && ./build/main_dataset_runner && ../bash/publish-scene.sh --target main_dataset_runner
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

@@ -58,7 +58,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_cylindrical_folding_3_mendrisio_pavilion --parallel 6 && ./build/templates_cylindrical_folding_3_mendrisio_pavilion && ./bash/publish-scene.sh --target templates_cylindrical_folding_3_mendrisio_pavilion
+cmake --build build --target templates_cylindrical_folding_3_mendrisio_pavilion --parallel 6 && ./build/templates_cylindrical_folding_3_mendrisio_pavilion && ../bash/publish-scene.sh --target templates_cylindrical_folding_3_mendrisio_pavilion
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

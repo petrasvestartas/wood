@@ -59,7 +59,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_cylindrical_folding_5_two_hinged_arch --parallel 6 && ./build/templates_cylindrical_folding_5_two_hinged_arch && ./bash/publish-scene.sh --target templates_cylindrical_folding_5_two_hinged_arch
+cmake --build build --target templates_cylindrical_folding_5_two_hinged_arch --parallel 6 && ./build/templates_cylindrical_folding_5_two_hinged_arch && ../bash/publish-scene.sh --target templates_cylindrical_folding_5_two_hinged_arch
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

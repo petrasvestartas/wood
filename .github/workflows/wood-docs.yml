@@ -21,8 +21,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: recursive
 
     - name: Install tools
       run: |
@@ -36,7 +34,8 @@ jobs:
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
-    # Every case on an element or joint page shows a whole example and its picture, never a fragment.
+    # Every case on an element or joint page shows a whole example and its picture, never a fragment; every picture a page
+    # shows exists, every picture under docs/images is shown, and each is made by a recipe (tools/README.md).
     - name: Check element pages
       run: python3 tools/check_element_pages.py
 

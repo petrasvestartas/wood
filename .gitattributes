@@ -1,3 +1,25 @@
-* text=auto
-*.sh text eol=lf
-*.py text eol=lf
+# Text is stored with LF and checked out with LF on every system, so a build on Windows leaves `git status` clean.
+* text=auto eol=lf
+
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary: never converted, never diffed as text.
+*.png binary
+*.webp binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pb binary
+*.3dm binary
+*.bin binary
+*.zip binary
+*.gz binary
+*.ttf binary
+*.woff2 binary
+
+# Generated from src/proto by tools/regen_proto.sh and rust/build.rs; CI regenerates and fails on a difference.
+generated/** linguist-generated=true
+rust/src/proto/** linguist-generated=true

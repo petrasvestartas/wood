@@ -18,13 +18,7 @@ endif()
 #      checkout shared by wood and wood_nano, so `git pull` there updates both.
 #   4. a fresh FetchContent clone of GitHub main (CI, or a lone checkout)
 #
-# This used to be a bare `set(SESSION_CPP_DIR "C:/pc/3_code/.../session_cpp")`
-# pointing at one developer's machine, so configuring anywhere else failed with
-# `add_subdirectory given source ... which is not an existing directory`, and
-# then `Unknown CMake command "LINK_PROTOBUF"` because that macro comes from
-# session_cpp and was never defined. That path stays as a last local candidate
-# so the machine it named keeps working. wood_nano resolves the kernel the same
-# way, in the same order.
+# wood_nano resolves the kernel the same way, in the same order.
 include(FetchContent)
 
 set(SESSION_CPP_LOCAL "" CACHE PATH
@@ -35,8 +29,7 @@ foreach(_candidate IN ITEMS
         "${SESSION_CPP_LOCAL}"
         "$ENV{SESSION_CPP_LOCAL}"
         "${CMAKE_CURRENT_SOURCE_DIR}/../session_cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../session/session_cpp"
-        "C:/pc/3_code/code_rust/session/session_cpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/../session/session_cpp")
     if(NOT "${_candidate}" STREQUAL "" AND EXISTS "${_candidate}/CMakeLists.txt")
         get_filename_component(SESSION_CPP_DIR "${_candidate}" REALPATH)
         break()
@@ -138,27 +131,18 @@ set(WOOD_SOURCES
 )
 
 # The wood protobuf messages (src/proto/*.proto), generated into generated/ by tools/regen_proto.sh
-# and committed, as session_cpp does with its own; the wood_regen_proto target below runs the same
-# command when the kernel's pinned protoc is present.
+# and committed, as session_cpp does with its own; CI regenerates them with the pinned protoc and fails on a
+# difference. The wood_regen_proto target below runs the same command when that protoc is present.
 file(GLOB WOOD_PROTO_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/generated/*.pb.cc)
 if(NOT MSVC)
     set_source_files_properties(${WOOD_PROTO_SOURCES} PROPERTIES COMPILE_OPTIONS "-w")
 endif()
 
-# wood_core: the joinery solver, compiled ONCE and shared by every target.
-#
-# This used to be a bare ${WOOD_SOURCES} file list splatted into each
-# add_executable, so the 11 sources were rebuilt for each of the 11 wood
-# targets - 121 compilations of the same translation units, measured at ~5.8 s
-# and ~5.8 MB of objects per target. That cost is also the only reason there
-# were two exe macros: ADD_SESSION_EXE existed purely to avoid paying it on the
-# 10 targets that never call wood. session_cpp already does the right thing
-# (add_library(session_core OBJECT ...) at its CMakeLists:234); this mirrors it,
-# so one macro now serves everything.
-# Clipper2 does the 2D polygon boolean in face_overlap_area (wood_face_to_face.cpp).
-# It ships inside session_cpp but session_core does not compile it, so the three
-# translation units it needs are built here. Any consumer that compiles
-# wood_face_to_face.cpp itself (wood_nano's _joinery_solver) has to add them too.
+# wood_core: the joinery solver, compiled once and shared by every target (ADD_EXE below), as
+# session_cpp does with session_core.
+# Clipper2 does the 2D polygon booleans (wood_contact_detection.cpp, wood_merge_modifier.cpp). It ships
+# inside session_cpp but session_core does not compile it, so the three translation units it needs
+# are built here. Any other consumer that compiles those files has to add them too.
 set(WOOD_CLIPPER2_SOURCES
     ${SESSION_CPP_DIR}/src/clipper2/clipper.engine.cpp
     ${SESSION_CPP_DIR}/src/clipper2/clipper.offset.cpp

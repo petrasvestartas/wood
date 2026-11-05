@@ -5,9 +5,9 @@ The reference solver is wood_nano 0.3.5 + compas_wood 2.4.0, the truth the port 
 by tests/reference_datasets.cpp. Both solvers read the same inputs: wood's data/<name>.obj outlines,
 the yml tunables and the sidecars (insertion vectors, joint types, three valence, adjacency).
 
-    /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py            # every plate dataset
-    /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py inplane_hilti annen_box
-    /home/pv/.cache/wood_ref_2025/bin/python tools/reference_2025.py --volumes outofplane_box   # detection dump to stdout
+    <venv with wood_nano 0.3.5 and compas_wood 2.4.0>/bin/python tools/reference_2025.py            # every plate dataset
+    <venv with wood_nano 0.3.5 and compas_wood 2.4.0>/bin/python tools/reference_2025.py inplane_hilti annen_box
+    <venv with wood_nano 0.3.5 and compas_wood 2.4.0>/bin/python tools/reference_2025.py --volumes outofplane_box   # detection dump to stdout
 
 Per dataset the json holds, per plate in obj order, the merged outlines of output type 4 (the
 legacy interleaved layout: hole pairs first, the outer top and bottom last) and, per plate again,

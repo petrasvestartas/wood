@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Every picture of the shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid and vault template pages, rendered by the session_viewer through
-# render_template_docs.py from the built examples: the recipe, so the pages can be regenerated whole after any change.
+# Every picture of the template pages, a screenshot of the session_viewer cropped through render_template_docs.py from the built examples: the
+# recipe, so the pages can be regenerated whole after any change. Each line names the example and the groups it shoots; tools/check_element_pages.py
+# reads these lines to prove every picture on a page is made here.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid or vault
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, truss or bow
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows). SHOT_PORT_BASE moves the Chrome ports off 9333.
 set -euo pipefail
@@ -20,6 +21,18 @@ render_job() {
     if [ $((SLOT % SHOTS)) -eq 0 ]; then wait; fi
 }
 RENDER=(render_job)
+
+# one scene file shot whole into the picture given (render_scene_picture.py), the same slots
+scene_job() {
+    SHOT_PORT=$((${SHOT_PORT_BASE:-9333} + SLOT % SHOTS)) "${PYTHON:-python3}" tools/render_scene_picture.py "$1" "$2" || echo "FAILED $2" &
+    SLOT=$((SLOT + 1))
+    if [ $((SLOT % SHOTS)) -eq 0 ]; then wait; fi
+}
+
+# the built example, wherever the generator put it
+example_exe() {
+    if [ -x "build/Release/$1.exe" ]; then echo "build/Release/$1"; else echo "build/$1"; fi
+}
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = shells ]; then
     "${RENDER[@]}" templates_shells_1_translation_shell curves sections mesh plates
@@ -87,11 +100,9 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
-    "${RENDER[@]}" templates_cross_1_vda_mesh all mesh plates connectors
+    "${RENDER[@]}" templates_cross_1_vda_mesh all plates connectors
     # a scene of planes alone stays on a white page: each with the mesh it stands on
-    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name face_planes templates_cross_1_vda_mesh mesh+face_planes
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_cross_1_vda_mesh mesh+edge_planes
-    VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name bisector_planes templates_cross_1_vda_mesh mesh+bisector_planes
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name connector_frames templates_cross_1_vda_mesh mesh+connector_frames
     "${RENDER[@]}" --wheel 6,0.5,0.3 --name cross_laps templates_cross_1_vda_mesh plates
 fi
@@ -107,11 +118,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" templates_module_1_wall all
     "${RENDER[@]}" --name frame templates_module_1_wall rails+studs+opening_0+opening_1
     "${RENDER[@]}" --name sheathing templates_module_1_wall sheathing_0+sheathing_1
-    "${RENDER[@]}" --name contacts templates_module_1_wall contacts_frame+contacts_sheathing
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_1_wall all
-    "${RENDER[@]}" templates_module_2_cassette_shell all cassette_4 contacts
+    "${RENDER[@]}" templates_module_2_cassette_shell all cassette_4
     "${RENDER[@]}" --name two_cassettes templates_module_2_cassette_shell cassette_4+cassette_8
-    "${RENDER[@]}" templates_module_3_cassette_house all contacts
+    "${RENDER[@]}" templates_module_3_cassette_house all
     "${RENDER[@]}" --opacity 0.95 --name inside templates_module_3_cassette_house all
     "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
     "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
@@ -125,7 +135,6 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" --view right --name section templates_module_4_room_module all
     "${RENDER[@]}" --name single templates_module_4_room_module module_0_1
     "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_start_rails+module_0_0_wall_start_studs+module_0_0_wall_start_opening_0
-    "${RENDER[@]}" --name contacts templates_module_4_room_module contacts_frame+contacts_sheathing
     "${RENDER[@]}" templates_module_5_module_block all
     "${RENDER[@]}" templates_module_6_bank_pavilion all
     PAVILION=module_0_0_floor+module_0_0_posts+module_0_0_wall_front+module_0_0_wall_back+module_0_0_wall_start+module_0_0_wall_end
@@ -151,11 +160,39 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
+    "${RENDER[@]}" templates_vault_1_arch all
+    "${RENDER[@]}" templates_vault_2_barrel all
+    "${RENDER[@]}" templates_vault_4_dome all
+    "${RENDER[@]}" templates_vault_5_wall all
+    "${RENDER[@]}" templates_vault_6_cross_vault all
+    "${RENDER[@]}" templates_vault_7_cloister_vault all
     # one run of the example, every picture shot from its scene
     VAULT_SCENE="$(mktemp -d)/vault.pb"
     for bay in quadripartite_wells:quadripartite tierceron_exeter:tierceron star_stellar_burgos:star lierne_star_ely:lierne net_reticulated_parler:net fan_conoid_gloucester:fan; do
         "${RENDER[@]}" --scene "$VAULT_SCENE" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
         "${RENDER[@]}" --scene "$VAULT_SCENE" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
+    done
+fi
+# the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
+if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then
+    rm -f data/output/pb/truss_*.pb
+    "$(example_exe templates_truss_1_pratt)" > /dev/null
+    cp data/output/pb/live.pb data/output/pb/truss_templates_truss_1_pratt.pb
+    "$(example_exe templates_truss_2_library)" > /dev/null
+    for pb in data/output/pb/truss_*.pb; do
+        name=$(basename "$pb" .pb)
+        name=${name#truss_templates_}
+        case "$name" in truss_1_pratt) name=templates_truss_1_pratt ;; esac
+        scene_job "$pb" "docs/images/templates/$name.png"
+    done
+fi
+
+# Bow's 325 trusses (data/templates/truss_bow_1873.json), one webp each
+if [ "$FAMILY" = all ] || [ "$FAMILY" = bow ]; then
+    rm -f data/output/pb/truss_bow_*.pb
+    "$(example_exe templates_truss_3_bow)" > /dev/null
+    for pb in data/output/pb/truss_bow_*.pb; do
+        scene_job "$pb" "docs/images/templates/$(basename "$pb" .pb).webp"
     done
 fi
 wait

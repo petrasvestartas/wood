@@ -1,6 +1,6 @@
 """The assembly of a chevron template's 4 x 4 block as a GIF, docs/images/templates/<example>.gif (<example>_assembly.gif when the name does not end in _assembly): the example writes its scene and
 data/output/pb/assembly.json (the reach, the order, every box's plates, vector and bounds, the block); every box of the block then slides in
-along its vector into the ones placed before it, in the order, over `--slides` frames each, every frame a scene the viewer renders with the
+along its vector into the ones placed before it, in the order, over `--slides` frames each, every frame a scene the viewer crate's native renderer draws with the
 camera fitted once to the block in place and every box at its start, so the frames hold still, all cropped alike to what they draw.
 
     python tools/render_assembly_gif.py templates_chevron_4_chevron_assembly [--slides 5] [--size 2400x1600] [--scale 0.5] [--view iso] [--opacity 1.0]
@@ -17,6 +17,17 @@ from PIL import Image, ImageChops
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import render_template_docs as docs  # noqa: E402
+
+# The one picture tool that is not a viewer screenshot: the frames need one fixed camera, which the native headless renderer
+# of the viewer crate (examples/selftest) gives and the browser tool does not (it fits every shot to what it holds).
+WOOD = docs.WOOD
+RENDERER = (
+    WOOD.parent / "session/session_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
+    if docs.WINDOWS
+    else WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+)
+if not RENDERER.exists():
+    RENDERER = WOOD.parent / "session/session_viewer/target/course-runtime" / RENDERER.name
 
 FRAMES = r"""
 import json, sys
@@ -102,7 +113,7 @@ def render_frame(
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
         subprocess.run(
-            [str(docs.RENDERER), str(ppm), str(pb)],
+            [str(RENDERER), str(ppm), str(pb)],
             env=env,
             check=True,
             capture_output=True,
