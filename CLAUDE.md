@@ -11,10 +11,10 @@ steps apply only when changing the kernels; wood remains a C++ consumer.
   would follow faster inline, or one kept "for later"; write the code where it is used instead.
 
 - Use explicit types, one concept per file, normal multiline function bodies, short
-functions and the standard section banners. Keep one header/source pair for Joint, JointPlate and JointBeam. Plate factories,
-parameters, Annen and Vidy stay in the JointPlate pair; use sections and small
+functions and the standard section banners. Keep one header/source pair for JointElement, JointPlateElement and JointBeamElement. Plate factories,
+parameters, Annen and Vidy stay in the JointPlateElement pair; use sections and small
 functions instead of files per factory or family. Expose library designs by their
-actual names, such as `JointPlate::top_side_tenons`, with their own parameters.
+actual names, such as `JointPlateElement::top_side_tenons`, with their own parameters.
 Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
 completion accurately. Generated protobuf files follow the generator's format.
 
@@ -46,7 +46,7 @@ completion accurately. Generated protobuf files follow the generator's format.
   the contact, never computed in a template), it is added, and it is passed to each member with `add_interaction`:
 
 ```cpp
-    const std::shared_ptr<JointBeam> pins = JointBeam::centred_pins(*contact.a, *contact.b, *contact.face);
+    const std::shared_ptr<JointBeamElement> pins = JointBeamElement::centred_pins(*contact.a, *contact.b, *contact.face);
     add(pins, group);
     add_interaction(pins, contact.a, pins->interaction(0));
     add_interaction(pins, contact.b, pins->interaction(1));
@@ -65,16 +65,16 @@ completion accurately. Generated protobuf files follow the generator's format.
     add_interaction(wedge, seam.b, wedge->interaction(1));
 ```
 
-- Every screw, dowel or pin is a `Pin`: one cylinder along its axis, a child of its connector. No class, factory,
-  field or element name says screw or dowel; they say pin. A connector of pins is a `JointBeam` made by
-  `JointBeam::centred_pins` (centred across the contact, bored into both members) or `JointBeam::headed_pins`
+- Every screw, dowel or pin is a `JointPinElement`: one cylinder along its axis, a child of its connector. No class, factory,
+  field or element name says screw or dowel; they say pin. A connector of pins is a `JointBeamElement` made by
+  `JointBeamElement::centred_pins` (centred across the contact, bored into both members) or `JointBeamElement::headed_pins`
   (from a head on the far face of the first member, pre-drilled), its pins laid out on the contact by `PinLayout`.
 - An interaction belongs to its target, the element the source acts on: the target hosts the contact, the cut, the
   holes; the source keeps only what it is.
 - An element is named where it is made, by its place (`connector_seam_wedge_<q>`, `inner_beams_<i>_<q>`), never
   numbered from the session afterwards.
 - Colour and look belong to the element class (a connector and its parts and pins are
-  `JointBeam::CONNECTOR_COLOR`); a template does not paint nodes.
+  `JointBeamElement::CONNECTOR_COLOR`); a template does not paint nodes.
 - The tree is the model's structure: groups by place and family (`quarter_q` > `outer_ribs_q` > `outer_ribs_<i>_<q>`),
   an element's own parts nested under it, its attributes (base plane) in its `attributes` group. Read elements back
   by name (`get_element_by_name`, `get_elements_numbered`) rather than keeping lists beside the session.
@@ -123,7 +123,7 @@ Floor::Floor(const FloorGuide& guide, const std::string& name)
   (`QuarterContacts`). Each field is a `Contact {a, b, face}` named after its two members (`seam_beam_oculus_beam`).
   `a` is the source (the member a pin passes through first) and `b` the target.
 - **Connectors**: `compute_connectors(contacts) const` builds each joint element from its contact with a factory of
-  the joint class (`JointBeam::wedge`, `rectangle_plate`, `centred_pins`, `headed_pins`), on uncut members, before any
+  the joint class (`JointBeamElement::wedge`, `rectangle_plate`, `centred_pins`, `headed_pins`), on uncut members, before any
   is added. The result struct (`QuarterConnectors`) mirrors the contacts struct field for field. A factory returning
   null throws, naming the contact. Names are given at the end of the function as `connector_<kind>_<n>`, numbered in
   the order `add_connectors` adds them, so `get_elements_numbered` reads them back in that order.
@@ -214,11 +214,18 @@ https://petrasvestartas.github.io/session/
 
 ## Elements: example, picture and page
 
+- An element class name starts with its category, ends in `Element` and derives from its base: `EdgeElement` (`EdgeStraightElement`,
+  `EdgeCurvedElement`, `EdgeVariableElement`), `FaceElement` (`FacePlanarElement`, `FaceCurvedElement`), `NodeElement`
+  (`NodeBlockElement`, `NodeSupportElement`) and `JointElement` for everything that modifies another element (`JointBeamElement`,
+  `JointPlateElement`, `JointPinElement`, `JointCutPlaneElement`, `JointConnectorPartElement`). A base holds only what its classes
+  really share. The library is these seven elements and the joints. Holes, sessions, plane cuts and joint assignment are not
+  elements: they are sections on the element pages.
+- A column is an `EdgeStraightElement` named `column_<i>`; a section is a profile it takes, never its own element.
 - Every element class in `src/joinery_solver/wood_elements/` has all three, added or updated with
   every new element or constructor:
   - `examples/elements/element_<type>.cpp`: minimal like an API, one instance of the element and
     nothing else, registered as `ADD_EXE(element_<type> ...)`; a case that needs other elements (a
-    column with glued blocks and cuts, a beam cut by plane elements) is its own example,
+    column with glued blocks and cuts, an edge cut by a JointCutPlaneElement) is its own example,
     `element_<type>_<case>.cpp`, showing them through `add_interaction(source, target, feature)`.
   - `docs/images/elements/<example>.png`: a screenshot of the real viewer by
     `bash wood/tools/screenshot_element_docs.sh <example> ...`: it publishes the example to the live
@@ -228,9 +235,11 @@ https://petrasvestartas.github.io/session/
     or interaction features.
   - `docs/elements/element_<type>.md` (`{#elements_<type>}`, `[TOC]` under the title): one sentence
     on what it is, a `## Constructors` section with the constructors as a code block, then one `##`
-    section per case with its picture, one line naming what it shows and the example by
+    section per case (a session of several elements, holes, cut by plane, assign joints), each a complete example that was built and
+    run: its picture, one line naming what it shows and the example by
     `\include{lineno} elements/<example>.cpp`; listed in the table and the subpages of
     `docs/elements.md`. The sections fill the page outline on the right.
+    The constructors list is the only code block on a page, never a fragment; `tools/check_element_pages.py` enforces it.
 
 ## Before push to github
 

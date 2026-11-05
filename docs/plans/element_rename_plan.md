@@ -801,3 +801,19 @@ same rename at step 8. `wood/.claude/agents/wood-agent.md` and `joint-from-photo
   Do not run `session/bash/gen_proto.sh` whole: it regenerates the kernel's files too.
 - **The kernel and column jobs land first.** Section 5, conflict 11.
 - **The session push in step 6b needs the user's yes at that moment.**
+
+## 12. Status and what is held
+
+Steps 0 to 7 done; step 8 is proposed text for the lead to apply; step 6b waits for step 8 and the user's yes on the session push.
+
+Differences from this plan as it was written:
+
+- 18 new examples, not 19: `element_node_block_joints` would duplicate `element_joint_beam_centred_pins`, which pins two blocks.
+- `FaceCurvedElement` keeps its patch mesh and takes a closed tessellation only when it has solid features. Tessellating every curved
+  plate stalled or crashed the folding templates.
+- Plane features on `EdgeCurvedElement` go through its `cuts` path, the one that trims the exact surfaces.
+
+**Waiting on the kernel's exact boolean on curved faces, examples in the tree, sections and pictures out of the pages:** `element_face_curved_cut_plane`, `element_face_curved_holes`, `element_face_curved_joints`, `element_edge_curved_joints`, and `element_edge_curved_holes` for the same ribbed surface.
+
+To restore one: remove it from `HELD` in the page list, shoot its picture, look at it.
+
