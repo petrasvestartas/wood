@@ -169,6 +169,23 @@ compas_model is the shape of its `Modifier.apply`.
 - Gate: oracle and reference goldens unchanged, every example's output identical, the floor template
   unchanged in its text.
 
+### Step 10: fewer casts, shorter functions (from `casting_and_readability.md`)
+
+611 casts in `src/`: 117 type dispatch (69 in `wood_session.cpp`), 446 numeric of which 222 are
+`int`/`size_t` noise, 26 enum arithmetic. 41 functions over 100 lines, 74 with more than six
+parameters, 77 call sites passing literal bools.
+
+- Dispatch: one virtual per behaviour; the `add_interaction` ladders go with step 9.
+- Now: the six BRep patch helpers copied between `edge_curved` and `face_curved` into one header;
+  the instance `transformed` ladder becomes `clone()` + `place()`; `ContactType` and the other
+  enums built by arithmetic written as cases; `-1` sentinels become `optional`; the string type
+  tests become virtuals; the 222 index casts; `plane_to_face` (12 parameters) and
+  `face_to_face_wood` return results; `Truss::add_web_butts` (441 lines) and the other long
+  template functions split; literal-bool parameters on wood's own functions become enums.
+- Check: `FacePlanarElement::place` does not move `plane_features` and `transformed` drops them
+  (`wood_element_face_planar.cpp:493-530`), unlike edges and blocks.
+- Gate: every example's output identical, all ctest targets, counts unchanged.
+
 ### Later, after the above
 
 - Curved elements with solid features now cut exactly; the five held docs sections return as
