@@ -140,6 +140,11 @@ not cut, not saved. The viewer tessellates what it draws.
   overlap checks read BRep faces and planar outlines; tests measure with exact volumes.
 - Scenes: `pb_dump` writes BReps only. The viewer tessellates on load; its speed on the vault
   and floor scenes is measured and fixed in the viewer, not by writing meshes again.
+- Where the mesh lives (decided 2026-11-05): the kernel's `Brep` owns its trimmed mesh. `Brep::mesh()`
+  returns a cached triangulation of the trimmed faces, computed on first read and dropped when the
+  BRep changes; it is derived data, never serialized. The same member exists in the C++, Python and
+  Rust kernels. Wood's examples and the viewer read the mesh from the BRep, so the API is BRep-only
+  and both live in the same object.
 - Gate: oracle and reference goldens unchanged, every example's solids closed and exact,
   every scene opens in the viewer in the time recorded in the recipe.
 
