@@ -29,7 +29,7 @@ public:
     EdgeVariableElement(
         const Line& axis,
         const std::vector<Polyline>& sections,
-        const std::string& name = "beam_variable"
+        const std::string& name = "edge_variable"
     );
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -38,7 +38,7 @@ public:
 
     /// A straight beam between two end sections, its axis from the first section's centroid to the last's; the ends may be slanted.
     static std::shared_ptr<EdgeVariableElement>
-    between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
+    between(const Polyline& first, const Polyline& last, const std::string& name = "edge_variable");
 
     /// A straight beam of rectangular section, `length` along the horizontal `direction` from `start`.
     static std::shared_ptr<EdgeVariableElement>

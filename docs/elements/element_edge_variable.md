@@ -7,9 +7,9 @@ A member whose section changes along its axis, lofted through closed station sec
 ## Constructors
 
 ```cpp
-EdgeVariableElement(const Line& axis, const std::vector<Polyline>& sections, const std::string& name = "beam_variable");
+EdgeVariableElement(const Line& axis, const std::vector<Polyline>& sections, const std::string& name = "edge_variable");
 
-static std::shared_ptr<EdgeVariableElement> between(const Polyline& first, const Polyline& last, const std::string& name = "beam_variable");
+static std::shared_ptr<EdgeVariableElement> between(const Polyline& first, const Polyline& last, const std::string& name = "edge_variable");
 static std::shared_ptr<EdgeVariableElement> box(const Point& start, const Vector& direction, double length, double width, double height, const std::string& name = "beam");
 
 // Standard pairs for examples and tests

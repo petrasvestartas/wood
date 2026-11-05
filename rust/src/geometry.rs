@@ -61,6 +61,28 @@ fn section_frame(direction: &Vector, up: &Vector) -> (Vector, Vector) {
     (side.clone(), along.cross(&side).normalized())
 }
 
+/// The up of a member along axis: the axis across world x, or across world y when they run together, turned by rotation degrees, so a profile's x follows world x.
+pub fn compute_up(axis: &Line, rotation: f64) -> Vector {
+    let along = axis.to_vector().normalized();
+    let mut x = Vector::x_axis() - along.clone() * along.dot(&Vector::x_axis());
+
+    if x.magnitude() < Tolerance::RELATIVE {
+        x = Vector::y_axis() - along.clone() * along.dot(&Vector::y_axis());
+    }
+
+    along.cross(&x.normalized().transformed(&Xform::rotation(&along, rotation, true)))
+}
+
+/// True when the loop lies in a plane square to the direction.
+pub fn is_square_to(ring: &Polyline, direction: &Vector) -> bool {
+    let along = direction.normalized();
+    let points = ring.get_points();
+
+    points
+        .iter()
+        .all(|point| (point.clone() - points[0].clone()).dot(&along).abs() <= 1e-6)
+}
+
 /// The closed square of half-width radius at a point, normal to direction, its rise toward up.
 pub fn square_section(at: &Point, direction: &Vector, up: &Vector, radius: f64) -> Polyline {
     let (side, rise) = section_frame(direction, up);

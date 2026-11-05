@@ -4,9 +4,9 @@ use crate::proto;
 use session_rust::element::ElementFeature;
 use session_rust::{BRep, Mesh, Plane, Polyline};
 
-/// A timber plate: a bottom and a top outline of one point count, as wood's Plate.
+/// A timber plate: a bottom and a top outline of one point count, as wood's FacePlanarElement.
 #[derive(Clone, Debug)]
-pub struct Plate {
+pub struct FacePlanarElement {
     pub name: String,                                        // Element name.
     pub bottom: Polyline, // Bottom outline, its Newell normal pointing away from the top.
     pub top: Polyline,    // Top outline.
@@ -14,7 +14,7 @@ pub struct Plate {
     pub solid_features: Vec<proto::InteractionFeatureSolid>, // Features other elements put on it, carried untouched.
 }
 
-impl Plate {
+impl FacePlanarElement {
 
     /// A plate between two outlines, both reversed when the bottom normal points toward the top, as the C++ constructor does.
     pub fn new(bottom: &Polyline, top: &Polyline, name: &str) -> Self {
@@ -46,9 +46,9 @@ impl Plate {
     }
 }
 
-impl WoodElement for Plate {
-    const TYPE: &'static str = "Plate";
-    const LEGACY_TYPE: &'static str = "WoodElement";
+impl WoodElement for FacePlanarElement {
+    const TYPE: &'static str = "FacePlanarElement";
+    const LEGACY_TYPES: &'static [&'static str] = &["Plate", "WoodElement"];
     type Payload = proto::FacePlanarElement;
 
     fn from_payload(name: &str, payload: proto::FacePlanarElement) -> Option<Self> {

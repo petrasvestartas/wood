@@ -3,9 +3,9 @@ use crate::geometry::{brep_between_loops, frame_along, mesh_brep};
 use crate::proto;
 use session_rust::{BRep, Mesh, Plane, Polyline};
 
-/// A solid block, as wood's Block (written under "Solid").
+/// A solid block, as wood's NodeBlockElement.
 #[derive(Clone, Debug)]
-pub struct Block {
+pub struct NodeBlockElement {
     pub name: String,                                        // Element name.
     pub loops: Vec<Polyline>, // Bottom loop, top loop, then their holes paired in order.
     pub cuts: Vec<Plane>,     // Planes the solid is cut by, kept by the C++ side.
@@ -14,7 +14,7 @@ pub struct Block {
     pub plane_features: Vec<proto::InteractionFeaturePlane>, // Planes other elements cut it by, carried untouched.
 }
 
-impl Block {
+impl NodeBlockElement {
 
     /// A block lofted between a bottom and a top loop, then hole pairs.
     pub fn new(loops: Vec<Polyline>, name: &str) -> Self {
@@ -41,9 +41,9 @@ impl Block {
     }
 }
 
-impl WoodElement for Block {
-    const TYPE: &'static str = "Solid";
-    const LEGACY_TYPE: &'static str = "BlockElement";
+impl WoodElement for NodeBlockElement {
+    const TYPE: &'static str = "NodeBlockElement";
+    const LEGACY_TYPES: &'static [&'static str] = &["Solid", "BlockElement"];
     type Payload = proto::NodeBlockElement;
 
     fn from_payload(name: &str, payload: proto::NodeBlockElement) -> Option<Self> {

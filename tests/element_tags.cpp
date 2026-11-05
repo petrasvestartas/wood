@@ -22,6 +22,7 @@ static const std::vector<std::string> SCENES = {
     "rust/tests/data/element_plate.pb",
     "rust/tests/data/element_support.pb",
     "rust/tests/data/rust_elements.pb",
+    "rust/tests/data/rust_elements_legacy.pb",
 };
 static const std::set<std::string> OLD_TAGS = {
     "Solid",

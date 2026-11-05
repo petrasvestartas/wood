@@ -14,6 +14,10 @@ using namespace wood_session;
 static const std::string GOLDEN =
     std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements.pb";
 
+/// The same session as the old viewer wrote it, every tag and the two Columns as they were.
+static const std::string LEGACY =
+    std::string(WOOD_SOURCE_DIR) + "/rust/tests/data/rust_elements_legacy.pb";
+
 static void check(bool condition, const std::string& message) {
     if (!condition)
         throw std::runtime_error(message);
@@ -78,10 +82,11 @@ static void reads_column(const WoodSession& session, const wood_proto::WoodSessi
     );
 }
 
-int main() {
-    std::ifstream in(GOLDEN, std::ios::binary);
+/// The seven elements of one file, each as its class.
+static void reads_file(const std::string& path, bool legacy) {
+    std::ifstream in(path, std::ios::binary);
     const std::string bytes((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-    check(!bytes.empty(), "missing " + GOLDEN);
+    check(!bytes.empty(), "missing " + path);
 
     wood_proto::WoodSession file;
     check(
@@ -92,13 +97,23 @@ int main() {
 
     reads_back<FacePlanarElement, wood_proto::FacePlanarElement>(session, file, 0);
     reads_back<EdgeStraightElement, wood_proto::EdgeStraightElement>(session, file, 1);
-    reads_column(session, file, 2);
-    reads_column(session, file, 3);
+    if (legacy) {
+        reads_column(session, file, 2);
+        reads_column(session, file, 3);
+    } else {
+        reads_back<EdgeStraightElement, wood_proto::EdgeStraightElement>(session, file, 2);
+        reads_back<EdgeStraightElement, wood_proto::EdgeStraightElement>(session, file, 3);
+    }
     reads_back<NodeBlockElement, wood_proto::NodeBlockElement>(session, file, 4);
     reads_back<EdgeVariableElement, wood_proto::EdgeVariableElement>(session, file, 5);
     reads_back<NodeSupportElement, wood_proto::NodeSupportElement>(session, file, 6);
     check(session.consistent(), "the Rust session loads consistent");
+}
 
-    std::cout << "rust_elements: 7 elements typed, payloads and BReps equal\n";
+int main() {
+    reads_file(GOLDEN, false);
+    reads_file(LEGACY, true);
+
+    std::cout << "rust_elements: 7 elements typed, payloads and BReps equal, old tags read\n";
     return 0;
 }

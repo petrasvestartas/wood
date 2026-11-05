@@ -7,9 +7,9 @@ use crate::proto;
 use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline, Xform};
 use std::f64::consts::PI;
 
-/// An adjustable column base, as wood's Support, with the manufacturer's dimensions by default.
+/// An adjustable column base, as wood's NodeSupportElement, with the manufacturer's dimensions by default.
 #[derive(Clone, Debug)]
-pub struct Support {
+pub struct NodeSupportElement {
     pub name: String,                     // Element name.
     pub plane: Plane, // Base plate underside centre, z up the column, x along a base plate side.
     pub height: f64,  // Base plate underside to head plate top.
@@ -35,7 +35,7 @@ pub struct Support {
     pub chord_tolerance: f64, // Largest deviation of a round part's facets.
 }
 
-impl Support {
+impl NodeSupportElement {
 
     /// A support on a plane, its origin the base plate underside centre, with the default dimensions.
     pub fn new(plane: &Plane, name: &str) -> Self {
@@ -178,8 +178,9 @@ impl Support {
     }
 }
 
-impl WoodElement for Support {
-    const TYPE: &'static str = "Support";
+impl WoodElement for NodeSupportElement {
+    const TYPE: &'static str = "NodeSupportElement";
+    const LEGACY_TYPES: &'static [&'static str] = &["Support"];
     type Payload = proto::NodeSupportElement;
 
     fn from_payload(name: &str, p: proto::NodeSupportElement) -> Option<Self> {

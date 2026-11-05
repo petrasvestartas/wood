@@ -2,19 +2,17 @@ pub mod proto {
     include!("proto/wood_proto.rs");
 }
 
-pub mod beam;
-pub mod beam_variable;
-pub mod block;
-pub mod column;
+pub mod edge_straight;
+pub mod edge_variable;
 pub mod element;
+pub mod face_planar;
 pub mod geometry;
-pub mod plate;
-pub mod support;
+pub mod node_block;
+pub mod node_support;
 
-pub use beam::Beam;
-pub use beam_variable::BeamVariable;
-pub use block::Block;
-pub use column::Column;
+pub use edge_straight::EdgeStraightElement;
+pub use edge_variable::EdgeVariableElement;
 pub use element::WoodElement;
-pub use plate::Plate;
-pub use support::Support;
+pub use face_planar::FacePlanarElement;
+pub use node_block::NodeBlockElement;
+pub use node_support::NodeSupportElement;

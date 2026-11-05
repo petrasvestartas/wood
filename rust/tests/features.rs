@@ -1,7 +1,7 @@
 mod common;
 
 use common::*;
-use wood::{Beam, BeamVariable, Block, Column, Plate, Support, WoodElement};
+use wood::{EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement, WoodElement};
 
 /// The Rust features of the dumped element: same types, faces and outline points as C++ within 1e-9.
 fn same_features<T: WoodElement>(name: &str) {
@@ -39,10 +39,10 @@ fn same_features<T: WoodElement>(name: &str) {
 
 #[test]
 fn every_element_writes_the_features_cpp_writes() {
-    same_features::<Plate>("element_plate");
-    same_features::<Beam>("element_beam");
-    same_features::<Column>("element_column");
-    same_features::<Block>("element_block");
-    same_features::<BeamVariable>("element_beam_variable");
-    same_features::<Support>("element_support");
+    same_features::<FacePlanarElement>("element_face_planar");
+    same_features::<EdgeStraightElement>("element_edge_straight");
+    same_features::<EdgeStraightElement>("element_edge_straight_column");
+    same_features::<NodeBlockElement>("element_node_block");
+    same_features::<EdgeVariableElement>("element_edge_variable");
+    same_features::<NodeSupportElement>("element_node_support");
 }

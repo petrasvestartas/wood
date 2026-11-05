@@ -2,8 +2,10 @@
 
 use session_rust::element::ElementGeometry;
 use session_rust::{BRep, Element, Line, Mesh, Plane, Point, Polyline, Session};
-use wood::geometry::profile_rectangle;
-use wood::{Beam, BeamVariable, Block, Column, Plate, Support};
+use wood::geometry::{compute_up, profile_rectangle};
+use wood::{
+    EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement,
+};
 
 /// A point from three numbers.
 pub fn p(x: f64, y: f64, z: f64) -> Point {
@@ -21,8 +23,8 @@ pub fn rectangle(corner: Point, width: f64, height: f64) -> Polyline {
     ])
 }
 
-/// The plate of examples/elements/element_plate.cpp.
-pub fn plate() -> Plate {
+/// The plate of examples/elements/element_face_planar.cpp.
+pub fn plate() -> FacePlanarElement {
     let bottom = Polyline::new(vec![
         p(0.0, 0.0, 0.0),
         p(600.0, 0.0, 0.0),
@@ -30,39 +32,36 @@ pub fn plate() -> Plate {
         p(0.0, 300.0, 0.0),
         p(0.0, 0.0, 0.0),
     ]);
-    Plate::new(
+    FacePlanarElement::new(
         &bottom,
         &bottom.translated(&session_rust::Vector::new(0.0, 0.0, 40.0)),
         "plate",
     )
 }
 
-/// The beam of examples/elements/element_beam.cpp.
-pub fn beam() -> Beam {
-    let axis = Polyline::new(vec![
-        p(0.0, 0.0, 0.0),
-        p(600.0, 0.0, 0.0),
-        p(1000.0, 300.0, 0.0),
-    ]);
-    Beam::from_profile(
+/// The beam of examples/elements/element_edge_straight.cpp.
+pub fn beam() -> EdgeStraightElement {
+    let axis = Polyline::new(vec![p(0.0, 0.0, 0.0), p(1000.0, 0.0, 0.0)]);
+    EdgeStraightElement::from_profile(
         &axis,
         vec![rectangle(p(-60.0, -100.0, 0.0), 120.0, 200.0)],
+        Vec::new(),
         "beam",
     )
 }
 
-/// The column of examples/elements/element_column.cpp.
-pub fn column() -> Column {
-    Column::new(
+/// The column of examples/elements/element_edge_straight_column.cpp.
+pub fn column() -> EdgeStraightElement {
+    EdgeStraightElement::from_section(
         &Line::from_points(&p(0.0, 0.0, 0.0), &p(0.0, 0.0, 3500.0)),
         &rectangle(p(-100.0, -150.0, 0.0), 200.0, 300.0),
         "column",
     )
 }
 
-/// The block of examples/elements/element_block.cpp.
-pub fn block() -> Block {
-    Block::new(
+/// The block of examples/elements/element_node_block.cpp.
+pub fn block() -> NodeBlockElement {
+    NodeBlockElement::new(
         vec![
             rectangle(p(50.0, 50.0, 0.0), 200.0, 200.0),
             rectangle(p(0.0, 0.0, 250.0), 300.0, 300.0),
@@ -71,8 +70,8 @@ pub fn block() -> Block {
     )
 }
 
-/// The variable beam of examples/elements/element_beam_variable.cpp.
-pub fn beam_variable() -> BeamVariable {
+/// The variable beam of examples/elements/element_edge_variable.cpp.
+pub fn beam_variable() -> EdgeVariableElement {
     let length = 3000.0;
     let sections = (0..7)
         .map(|i| {
@@ -87,24 +86,25 @@ pub fn beam_variable() -> BeamVariable {
             ])
         })
         .collect();
-    BeamVariable::new(
+    EdgeVariableElement::new(
         &Line::from_points(&p(0.0, 0.0, 0.0), &p(length, 0.0, 0.0)),
         sections,
         "rib",
     )
 }
 
-/// The support of examples/elements/element_support.cpp.
-pub fn support() -> Support {
-    Support::new(&Plane::xy_plane(), "support")
+/// The support of examples/elements/element_node_support.cpp.
+pub fn support() -> NodeSupportElement {
+    NodeSupportElement::new(&Plane::xy_plane(), "support")
 }
 
-/// A column from a profile, the Element Column command's path.
-pub fn column_from_profile() -> Column {
-    Column::from_profile(
-        &Line::from_points(&p(0.0, 0.0, 0.0), &p(0.0, 0.0, 3000.0)),
+/// A column from a profile, the Element Edge Straight Column command's path.
+pub fn column_from_profile() -> EdgeStraightElement {
+    let axis = Line::from_points(&p(0.0, 0.0, 0.0), &p(0.0, 0.0, 3000.0));
+    EdgeStraightElement::from_profile(
+        &Polyline::new(vec![axis.start(), axis.end()]),
         profile_rectangle(200.0, 300.0),
-        0.0,
+        vec![compute_up(&axis, 0.0)],
         "column",
     )
 }

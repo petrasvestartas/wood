@@ -22,8 +22,8 @@ pub trait WoodElement: Sized {
     /// The element_type the class is written under, as the C++ class registers it.
     const TYPE: &'static str;
 
-    /// An older element_type still read as this class; empty when there is none.
-    const LEGACY_TYPE: &'static str = "";
+    /// Older element_types still read as this class.
+    const LEGACY_TYPES: &'static [&'static str] = &[];
 
     /// The payload message element_data holds.
     type Payload: Message + Default + PartialEq + std::fmt::Debug;
@@ -55,7 +55,7 @@ pub trait WoodElement: Sized {
     fn from_element(element: &Element) -> Option<Self> {
         let tag = element.element_type_name();
 
-        if tag != Self::TYPE && (Self::LEGACY_TYPE.is_empty() || tag != Self::LEGACY_TYPE) {
+        if tag != Self::TYPE && !Self::LEGACY_TYPES.contains(&tag) {
             return None;
         }
 

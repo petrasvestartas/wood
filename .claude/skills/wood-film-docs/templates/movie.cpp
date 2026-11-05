@@ -172,7 +172,7 @@ void Frame::dimension(const Point& a, const Point& b, const Vector& offset, cons
 }
 
 void Frame::solid(const std::array<Polyline, 2>& loops, const Color& color) {
-    element(std::make_shared<Plate>(up(loops[1]), up(loops[0]), "outline"), color);
+    element(std::make_shared<FacePlanarElement>(up(loops[1]), up(loops[0]), "outline"), color);
 }
 
 void Frame::element(const std::shared_ptr<Element>& element, const Color& color) {

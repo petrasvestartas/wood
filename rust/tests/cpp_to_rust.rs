@@ -2,7 +2,7 @@ mod common;
 
 use common::*;
 use prost::Message;
-use wood::{Beam, BeamVariable, Block, Column, Plate, Support, WoodElement};
+use wood::{EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement, WoodElement};
 
 /// The dumped element downcasts, its payload survives the class unchanged, and the Rust solid equals the C++ one.
 fn reads_back<T: WoodElement>(name: &str, built: &T, solid: bool) {
@@ -46,35 +46,35 @@ fn reads_back<T: WoodElement>(name: &str, built: &T, solid: bool) {
 
 #[test]
 fn plate_reads_back() {
-    reads_back::<Plate>("element_plate", &plate(), true);
+    reads_back::<FacePlanarElement>("element_face_planar", &plate(), true);
 }
 
 #[test]
 fn beam_reads_back() {
-    reads_back::<Beam>("element_beam", &beam(), true);
+    reads_back::<EdgeStraightElement>("element_edge_straight", &beam(), true);
 }
 
 #[test]
 fn column_reads_back() {
-    reads_back::<Column>("element_column", &column(), true);
+    reads_back::<EdgeStraightElement>("element_edge_straight_column", &column(), true);
 }
 
 #[test]
 fn block_reads_back() {
-    reads_back::<Block>("element_block", &block(), true);
+    reads_back::<NodeBlockElement>("element_node_block", &block(), true);
 }
 
 #[test]
 fn beam_variable_reads_back() {
-    reads_back::<BeamVariable>("element_beam_variable", &beam_variable(), true);
+    reads_back::<EdgeVariableElement>("element_edge_variable", &beam_variable(), true);
 }
 
 #[test]
 fn support_reads_back() {
-    reads_back::<Support>("element_support", &support(), false);
+    reads_back::<NodeSupportElement>("element_node_support", &support(), false);
 
     // both exact: as many faces, six of them cylinders (four anchor holes, the rod, the head plate)
-    let cpp = brep_of(&dumped("element_support"));
+    let cpp = brep_of(&dumped("element_node_support"));
     let rust = support().brep();
     assert_eq!(rust.face_count(), cpp.face_count(), "support faces");
     assert_eq!(cylinders(&rust), 6, "support cylinders");
@@ -125,6 +125,24 @@ fn every_element_is_written_as_a_brep() {
 
 #[test]
 fn another_type_does_not_downcast() {
-    assert!(Plate::from_element(&dumped("element_beam")).is_none());
-    assert!(Beam::from_element(&dumped("element_plate")).is_none());
+    assert!(FacePlanarElement::from_element(&dumped("element_edge_straight")).is_none());
+    assert!(EdgeStraightElement::from_element(&dumped("element_face_planar")).is_none());
 }
+
+/// Scenes saved under the old tags keep loading as the classes they became, a column as an edge of the same solid.
+#[test]
+fn old_tags_still_read() {
+    assert!(FacePlanarElement::from_element(&dumped("element_plate")).is_some());
+    assert!(EdgeStraightElement::from_element(&dumped("element_beam")).is_some());
+    assert!(NodeBlockElement::from_element(&dumped("element_block")).is_some());
+    assert!(EdgeVariableElement::from_element(&dumped("element_beam_variable")).is_some());
+    assert!(NodeSupportElement::from_element(&dumped("element_support")).is_some());
+
+    let saved = dumped("element_column");
+    let column = EdgeStraightElement::from_element(&saved).unwrap();
+    assert!(
+        same_solid(&column.solid(), &mesh_of(&saved), 1e-9),
+        "an old column keeps its solid"
+    );
+}
+

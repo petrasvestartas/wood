@@ -2,7 +2,7 @@ mod common;
 
 use common::*;
 use session_rust::{Element, Session};
-use wood::{Beam, BeamVariable, Block, Column, Plate, Support, WoodElement};
+use wood::{EdgeStraightElement, EdgeVariableElement, FacePlanarElement, NodeBlockElement, NodeSupportElement, WoodElement};
 
 const GOLDEN: &str = "tests/data/rust_elements.pb";
 
@@ -55,12 +55,12 @@ fn the_golden_session_holds_one_element_per_class() {
         );
     }
 
-    assert!(Plate::from_element(&stored[0]).is_some());
-    assert!(Beam::from_element(&stored[1]).is_some());
+    assert!(FacePlanarElement::from_element(&stored[0]).is_some());
+    assert!(EdgeStraightElement::from_element(&stored[1]).is_some());
     assert!(
-        Column::from_element(&stored[2]).is_some() && Column::from_element(&stored[3]).is_some()
+        EdgeStraightElement::from_element(&stored[2]).is_some() && EdgeStraightElement::from_element(&stored[3]).is_some()
     );
-    assert!(Block::from_element(&stored[4]).is_some());
-    assert!(BeamVariable::from_element(&stored[5]).is_some());
-    assert!(Support::from_element(&stored[6]).is_some());
+    assert!(NodeBlockElement::from_element(&stored[4]).is_some());
+    assert!(EdgeVariableElement::from_element(&stored[5]).is_some());
+    assert!(NodeSupportElement::from_element(&stored[6]).is_some());
 }

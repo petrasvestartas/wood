@@ -266,7 +266,7 @@ void column_cutters(const Context& context) {
 void elements(const Context& context) {
 
     const Floor& floor = context.members;
-    Frame frame(CHAPTER, 915, "elements", "add_quarters, add_oculus, add_columns: the loops become elements, ribs and beams BeamVariable, t-sections, beds and blocks Plate", "iso", FLOOR);
+    Frame frame(CHAPTER, 915, "elements", "add_quarters, add_oculus, add_columns: the loops become elements, ribs and beams EdgeVariableElement, t-sections, beds and blocks FacePlanarElement", "iso", FLOOR);
     frame.distance = 0.75;
 
     for (size_t q = 0; q < 4; q++) {
@@ -279,10 +279,10 @@ void elements(const Context& context) {
                 frame.element(member, RESULT);
     }
 
-    for (const std::shared_ptr<BeamVariable>& beam : floor.ring)
+    for (const std::shared_ptr<EdgeVariableElement>& beam : floor.ring)
         frame.element(beam, BUILT);
 
-    for (const std::shared_ptr<Plate>& plate : floor.oculus_plates)
+    for (const std::shared_ptr<FacePlanarElement>& plate : floor.oculus_plates)
         frame.element(plate, RESULT);
 
     for (const ColumnModel& model : floor.columns) {
@@ -290,9 +290,9 @@ void elements(const Context& context) {
         frame.element(model.support, STEEL);
     }
 
-    frame.label("BeamVariable outer_ribs_0_0", up(middle(context.guide.outer_ribs(0)[0])));
-    frame.label("Plate beds_1_2_0", up(middle(context.guide.beds(0)[1][2])));
-    frame.label("Column column_2", floor.columns[2].column->axis.center());
+    frame.label("EdgeVariableElement outer_ribs_0_0", up(middle(context.guide.outer_ribs(0)[0])));
+    frame.label("FacePlanarElement beds_1_2_0", up(middle(context.guide.beds(0)[1][2])));
+    frame.label("EdgeStraightElement column_2", floor.columns[2].column->axis.center());
     frame.write(context.dir);
 }
 
@@ -341,7 +341,7 @@ void connectors(const Context& context) {
     quarter_members(frame, floor, 0, GREY);
 
     // the parts of quarter 0's connectors: those in its quarter of the plan
-    for (const std::shared_ptr<ConnectorPart>& part : floor.get_elements<ConnectorPart>()) {
+    for (const std::shared_ptr<JointConnectorPartElement>& part : floor.get_elements<JointConnectorPartElement>()) {
         const std::vector<Point> points = part->element_geometry_mesh().to_vertices_and_faces().first;
 
         if (!points.empty() && Point::centroid(points)[0] < 0.0 && Point::centroid(points)[1] < 0.0)
@@ -383,7 +383,7 @@ void floor_model(const Context& context) {
             for (const std::shared_ptr<Element>& member : members(floor.quarters[q], family))
                 frame.element(member, family_color(family));
 
-    for (const std::shared_ptr<BeamVariable>& beam : floor.ring)
+    for (const std::shared_ptr<EdgeVariableElement>& beam : floor.ring)
         frame.element(beam, RING);
 
     for (const ColumnModel& model : floor.columns) {
@@ -391,7 +391,7 @@ void floor_model(const Context& context) {
         frame.element(model.support, STEEL);
     }
 
-    for (const std::shared_ptr<ConnectorPart>& part : floor.get_elements<ConnectorPart>())
+    for (const std::shared_ptr<JointConnectorPartElement>& part : floor.get_elements<JointConnectorPartElement>())
         frame.element(part, BUILT);
 
     frame.write(context.dir);

@@ -4,9 +4,9 @@ use crate::proto;
 use session_rust::element::ElementFeature;
 use session_rust::{BRep, Line, Mesh, Plane, Point, Polyline};
 
-/// A beam whose section changes along a straight axis, as wood's BeamVariable.
+/// A beam whose section changes along a straight axis, as wood's EdgeVariableElement.
 #[derive(Clone, Debug)]
-pub struct BeamVariable {
+pub struct EdgeVariableElement {
     pub name: String,                                        // Element name.
     pub axis: Line, // Straight reference line from the first section to the last.
     pub sections: Vec<Polyline>, // Closed rings with one point count, one per station in axis order.
@@ -15,7 +15,7 @@ pub struct BeamVariable {
     pub plane_features: Vec<proto::InteractionFeaturePlane>, // Planes other elements cut it by, carried untouched.
 }
 
-impl BeamVariable {
+impl EdgeVariableElement {
 
     /// A variable beam through its sections along an axis.
     pub fn new(axis: &Line, sections: Vec<Polyline>, name: &str) -> Self {
@@ -38,8 +38,9 @@ impl BeamVariable {
     }
 }
 
-impl WoodElement for BeamVariable {
-    const TYPE: &'static str = "BeamVariable";
+impl WoodElement for EdgeVariableElement {
+    const TYPE: &'static str = "EdgeVariableElement";
+    const LEGACY_TYPES: &'static [&'static str] = &["BeamVariable"];
     type Payload = proto::EdgeVariableElement;
 
     fn from_payload(name: &str, payload: proto::EdgeVariableElement) -> Option<Self> {

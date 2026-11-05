@@ -11,7 +11,7 @@ using namespace session_cpp;
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructors
 // ═══════════════════════════════════════════════════════════════════════════
-EdgeVariableElement::EdgeVariableElement() : EdgeElement("beam_variable") {
+EdgeVariableElement::EdgeVariableElement() : EdgeElement("edge_variable") {
 }
 
 EdgeVariableElement::EdgeVariableElement(
