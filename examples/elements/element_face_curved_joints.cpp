@@ -49,16 +49,16 @@ int main() {
         a->name,
         a->model_geometry_brep().face_count(),
         a->model_geometry_brep().is_solid(),
-        a->model_geometry_brep().volume(),
-        a->element_geometry_brep().volume()
+        a->model_geometry_brep().volume_exact(),
+        a->element_geometry_brep().volume_exact()
     );
     std::cout << fmt::format(
         "{}: {} faces, solid {}, volume {:.0f} of {:.0f} mm3\n",
         b->name,
         b->model_geometry_brep().face_count(),
         b->model_geometry_brep().is_solid(),
-        b->model_geometry_brep().volume(),
-        b->element_geometry_brep().volume()
+        b->model_geometry_brep().volume_exact(),
+        b->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

@@ -49,8 +49,8 @@ int main() {
         face->name,
         face->model_geometry_brep().face_count(),
         face->model_geometry_brep().is_solid(),
-        face->model_geometry_brep().volume(),
-        face->element_geometry_brep().volume()
+        face->model_geometry_brep().volume_exact(),
+        face->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

@@ -40,6 +40,9 @@ public:
     /// The closed solid of six patches.
     const BRep& element_geometry_brep() const override;
 
+    /// The cut solid as an exact BRep: plane cuts and solid features as exact booleans on the six patches.
+    const BRep& model_geometry_brep() const override;
+
     /// Moves the four meridians and drops every cached solid.
     void place(const Xform& xform) override;
 

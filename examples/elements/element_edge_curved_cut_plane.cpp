@@ -37,8 +37,8 @@ int main() {
         edge->name,
         edge->model_geometry_brep().face_count(),
         edge->model_geometry_brep().is_solid(),
-        edge->model_geometry_brep().volume(),
-        edge->element_geometry_brep().volume()
+        edge->model_geometry_brep().volume_exact(),
+        edge->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

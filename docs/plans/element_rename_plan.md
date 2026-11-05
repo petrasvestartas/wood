@@ -813,7 +813,7 @@ Differences from this plan as it was written:
   plate stalled or crashed the folding templates.
 - Plane features on `EdgeCurvedElement` go through its `cuts` path, the one that trims the exact surfaces.
 
-**Waiting on the kernel's exact boolean on curved faces, examples in the tree, sections and pictures out of the pages:** `element_face_curved_cut_plane`, `element_face_curved_holes`, `element_face_curved_joints`, `element_edge_curved_joints`, and `element_edge_curved_holes` for the same ribbed surface.
+**Held:** `element_face_curved_holes`. The kernel's exact boolean makes it a 7-face solid of the right volume, but drawn, the drilled curved plate shows a serrated hole rim and ticks along its silhouette; the four other curved sections are back (2026-11-05).
 
 To restore one: remove it from `HELD` in the page list, shoot its picture, look at it.
 

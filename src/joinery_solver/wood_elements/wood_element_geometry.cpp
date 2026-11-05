@@ -839,6 +839,23 @@ Mesh apply_solid_features(
     return mesh;
 }
 
+BRep exact_solid_features(BRep solid, const std::vector<InteractionFeatureSolid>& features) {
+
+    for (const InteractionFeatureSolid& feature : features) {
+        if (feature.operation != SolidOperation::subtract)
+            throw std::invalid_argument("exact_solid_features: only subtract features");
+
+        if (feature.mesh.number_of_faces() > 0)
+            for (const Mesh& piece : solid_pieces(feature.mesh))
+                solid = solid.boolean_difference(mesh_brep(piece));
+
+        for (const Line& drill : feature.drills)
+            solid = solid.boolean_difference(drill_brep(drill, feature.drill_radius));
+    }
+
+    return solid;
+}
+
 BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
 
     std::vector<Drill> drills;

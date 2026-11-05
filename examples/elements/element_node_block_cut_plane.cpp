@@ -23,8 +23,8 @@ int main() {
         block->name,
         block->model_geometry_brep().face_count(),
         block->model_geometry_brep().is_solid(),
-        block->model_geometry_brep().volume(),
-        block->element_geometry_brep().volume()
+        block->model_geometry_brep().volume_exact(),
+        block->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

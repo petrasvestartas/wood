@@ -30,6 +30,14 @@ Three arches side by side.
 
 \include{lineno} elements/element_edge_curved_session.cpp
 
+## Holes
+
+A hole is a drill, a joint; its interaction bores the arch at its crown.
+
+![](elements/element_edge_curved_holes.png)
+
+\include{lineno} elements/element_edge_curved_holes.cpp
+
 ## Cut by a plane
 
 A cutting plane is a joint; the arch keeps the side its normal points to.
@@ -37,3 +45,11 @@ A cutting plane is a joint; the arch keeps the side its normal points to.
 ![](elements/element_edge_curved_cut_plane.png)
 
 \include{lineno} elements/element_edge_curved_cut_plane.cpp
+
+## Assign joints
+
+Two half arches cut flat at the crown, pins centred across their contact.
+
+![](elements/element_edge_curved_joints.png)
+
+\include{lineno} elements/element_edge_curved_joints.cpp

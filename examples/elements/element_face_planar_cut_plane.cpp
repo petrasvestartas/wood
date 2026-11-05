@@ -24,8 +24,8 @@ int main() {
         plate->name,
         plate->model_geometry_brep().face_count(),
         plate->model_geometry_brep().is_solid(),
-        plate->model_geometry_brep().volume(),
-        plate->element_geometry_brep().volume()
+        plate->model_geometry_brep().volume_exact(),
+        plate->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

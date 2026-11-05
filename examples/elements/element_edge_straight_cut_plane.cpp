@@ -24,8 +24,8 @@ int main() {
         beam->name,
         beam->model_geometry_brep().face_count(),
         beam->model_geometry_brep().is_solid(),
-        beam->model_geometry_brep().volume(),
-        beam->element_geometry_brep().volume()
+        beam->model_geometry_brep().volume_exact(),
+        beam->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

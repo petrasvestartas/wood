@@ -41,6 +41,9 @@ int circle_segments(double radius, double chord_tolerance);
 Mesh drill_mesh(const Line& axis, double radius, double chord_tolerance);
 BRep drill_brep(const Line& axis, double radius);
 
+/// The solid less every subtract feature, each piece of its mesh and each drill an exact boolean on the solid's own surfaces.
+BRep exact_solid_features(BRep solid, const std::vector<InteractionFeatureSolid>& features);
+
 /// The feature_type names an element writes for its own geometry: "outline", "axis", "section", "top", "bottom"; every other type is joinery.
 bool is_geometry_feature(std::string_view feature_type);
 

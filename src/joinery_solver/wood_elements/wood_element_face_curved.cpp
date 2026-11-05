@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_element_geometry.h"
 #include "wood_element_face_curved.h"
 #include "primitives.h"
 #include <map>
@@ -237,6 +238,18 @@ void FaceCurvedElement::place(const Xform& xform) {
     _element_geometry_brep.reset();
     _model_mesh_cache.reset();
     _model_brep_cache.reset();
+}
+
+const BRep& FaceCurvedElement::model_geometry_brep() const {
+
+    if (plane_features.empty() && solid_features.empty())
+        return WoodElement::model_geometry_brep();
+
+    if (!_model_brep_cache)
+        _model_brep_cache =
+            exact_solid_features(cut_brep(element_geometry_brep(), feature_planes()), solid_features);
+
+    return *_model_brep_cache;
 }
 
 Mesh FaceCurvedElement::trimmed_mesh() const {

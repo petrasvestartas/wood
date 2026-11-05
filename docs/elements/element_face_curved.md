@@ -25,3 +25,19 @@ Three strips of a barrel vault side by side.
 ![](elements/element_face_curved_session.png)
 
 \include{lineno} elements/element_face_curved_session.cpp
+
+## Cut by a plane
+
+A cutting plane is a joint; the strip keeps the side its normal points to.
+
+![](elements/element_face_curved_cut_plane.png)
+
+\include{lineno} elements/element_face_curved_cut_plane.cpp
+
+## Assign joints
+
+Two strips side by side, pins centred across their contact.
+
+![](elements/element_face_curved_joints.png)
+
+\include{lineno} elements/element_face_curved_joints.cpp

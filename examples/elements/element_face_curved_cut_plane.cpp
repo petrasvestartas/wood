@@ -35,7 +35,7 @@ int main() {
     scene.add(face);
 
     const std::shared_ptr<JointCutPlaneElement> cut = std::make_shared<JointCutPlaneElement>(
-        Plane::from_point_normal({1400.0, 0.0, 1400.0}, {-1.0, 0.0, -0.4}), 1200.0, "cut"
+        Plane::from_point_normal({1400.0, 0.0, 1400.0}, {-1.0, 0.0, 0.0}), 1200.0, "cut"
     );
     scene.add(cut);
     scene.add_interaction(cut, face, cut->interaction(0));
@@ -45,8 +45,8 @@ int main() {
         face->name,
         face->model_geometry_brep().face_count(),
         face->model_geometry_brep().is_solid(),
-        face->model_geometry_brep().volume(),
-        face->element_geometry_brep().volume()
+        face->model_geometry_brep().volume_exact(),
+        face->element_geometry_brep().volume_exact()
     );
 
     std::cout << scene << std::endl;

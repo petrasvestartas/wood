@@ -200,7 +200,7 @@ public:
     /// The uncut solid as a closed 6-patch NURBS BRep bounded by edge_curves().
     const BRep& element_geometry_brep() const override;
 
-    /// The cut solid as a BRep: plane features join the cuts, the path that trims the exact surfaces.
+    /// The cut solid as an exact BRep: plane features join the cuts, solid features are exact booleans on the lamellae.
     const BRep& model_geometry_brep() const override;
 
     /// The line between the ends of the centreline.
