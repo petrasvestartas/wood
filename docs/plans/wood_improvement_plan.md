@@ -169,6 +169,25 @@ compas_model is the shape of its `Modifier.apply`.
 - Gate: oracle and reference goldens unchanged, every example's output identical, the floor template
   unchanged in its text.
 
+### Step 9b: contacts measured against Coal (`coal_contacts.md`, 2026-11-05)
+
+Contact detection is 0.6-11 % of any run (grid 41 ms of 390, floor 3.9 s of 83.6 and that is
+the first `planes()` of 866 cut members, datasets 317 ms of 56.7 s, truss none). So the Coal
+study found nothing to speed up and one correctness bug: the kernel's
+`Intersection::line_line_parameters` clamps both segment parameters independently
+(`intersection.cpp:394-397`); on skewed beams the contact point lands 53 mm off and the gap is
+overstated by 3.4 mm, so contacts near `min_distance` are dropped.
+
+- Take now: Ericson's segment-segment closest points in all three kernels, callers listed,
+  axis contact count changes listed pair by pair.
+- Take later: a kernel `gjk.{h,cpp}` (about 450 lines, no Eigen, exact cylinder support) for a
+  model-level overlap check with penetration depth, which wood lacks today; cached face lists
+  (about 50 ms); a dynamic AABB tree at about 10^4 elements.
+- Rejected with numbers: tighter bounding volumes, dual-tree traversal, sweep-and-prune, GJK
+  before Clipper2, Sutherland-Hodgman instead of Clipper2.
+- Open design question: the floor's 4 s is cut members being evaluated for contacts; if
+  contacts may use uncut members it goes away.
+
 ### Step 10: fewer casts, shorter functions (from `casting_and_readability.md`)
 
 611 casts in `src/`: 117 type dispatch (69 in `wood_session.cpp`), 446 numeric of which 222 are
