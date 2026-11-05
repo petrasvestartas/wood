@@ -124,6 +124,25 @@ Each step has a gate. A step is done when its gate passes in CI, not on one mach
   stops cloning wood.
 - Gate: every wood scene draws as before; session CI green without wood.
 
+### Step 8: BRep only (decided 2026-11-05)
+
+The user's decision: wood uses only BRep; the viewer deals with mesh conversion itself. So
+an element has one geometry, its BRep. The mesh is not a model anywhere in wood: not stored,
+not cut, not saved. The viewer tessellates what it draws.
+
+- Measure first: every dataset and example run with exact booleans only, time per feature and
+  every failure recorded, so the speed work below has a benchmark and the switch is proven
+  before Manifold goes.
+- Kernel speed: planar faces against planar faces take a direct polyhedral path; the general
+  NURBS path stays for curved parts. Booleans run only when geometry is read.
+- Elements: `model_geometry_brep` is the geometry; `model_geometry_mesh`, `mesh_brep`,
+  `apply_solid_features` on meshes and the Manifold feature path go. Contacts, bounds and
+  overlap checks read BRep faces and planar outlines; tests measure with exact volumes.
+- Scenes: `pb_dump` writes BReps only. The viewer tessellates on load; its speed on the vault
+  and floor scenes is measured and fixed in the viewer, not by writing meshes again.
+- Gate: oracle and reference goldens unchanged, every example's solids closed and exact,
+  every scene opens in the viewer in the time recorded in the recipe.
+
 ### Later, after the above
 
 - Curved elements with solid features now cut exactly; the five held docs sections return as
