@@ -3,7 +3,7 @@
 # by tools/shoot_ui.sh with the viewer's interface, the layer panel open with every row, the elements alone (no attributes, no interaction features), Arctic,
 # the orthographic isometric view (the back view for a column, whose head and cuts face the inside of the floor), 3200 x 2000.
 #   bash wood/tools/shoot_elements_ui.sh                       every example
-#   bash wood/tools/shoot_elements_ui.sh element_plate ...     the ones named
+#   bash wood/tools/shoot_elements_ui.sh element_face_planar ...     the ones named
 #   OUT=<dir> writes the pictures there instead of docs/images/elements
 set -euo pipefail
 WOOD="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,7 +16,7 @@ fi
 cmake --build build --target "$@" --parallel 6 > /dev/null
 for name in "$@"; do
     view=iso
-    case "$name" in element_column*) view=iso_back ;; element_joint_beam_butt*) echo "$name: shot by tools/shoot_butt.sh"; continue ;; esac
+    case "$name" in element_edge_straight_column*) view=iso_back ;; element_joint_beam_butt*) echo "$name: shot by tools/shoot_butt.sh"; continue ;; esac
     if ! ./build/"$name" > /dev/null 2>&1; then
         echo "$name: the example failed"
         continue

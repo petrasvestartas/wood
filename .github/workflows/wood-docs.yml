@@ -36,6 +36,10 @@ jobs:
     - name: Configure CMake
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
+    # Every case on an element or joint page shows a whole example and its picture, never a fragment.
+    - name: Check element pages
+      run: python3 tools/check_element_pages.py
+
     - name: Build docs
       run: cmake --build build --target docs
 

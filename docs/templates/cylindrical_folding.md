@@ -2,7 +2,7 @@
 
 [TOC]
 
-Folded structures of exact cylindrical [Curved Plate](@ref elements_plate_curved) lamellas with parallel straight rulings, zero Gaussian curvature, rational NURBS ellipse creases, and zero flat-unfolding distortion.
+Folded structures of exact cylindrical [Curved Plate](@ref elements_face_curved) lamellas with parallel straight rulings, zero Gaussian curvature, rational NURBS ellipse creases, and zero flat-unfolding distortion.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reflection_principle">

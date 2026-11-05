@@ -1,7 +1,7 @@
 """A viewer screenshot cropped for the docs: the command bar under the canvas and the empty canvas around the drawing are cut off, a margin
 kept. Cropping only: every pixel left is the pixel the viewer drew.
 
-    python tools/crop_viewer_shot.py docs/images/elements/element_plate.png ...
+    python tools/crop_viewer_shot.py docs/images/elements/element_face_planar.png ...
 
 SHOT_ASPECT=1.5 widens the crop to that width / height.
 """

@@ -2,7 +2,7 @@
 
 [TOC]
 
-Dowel and screw pin connectors placed across the `InteractionContactFace` of two members according to a `PinLayout`, boring into both targets and nesting [`JointPinElement`](@ref elements_pin) child elements.
+Dowel and screw pin connectors placed across the `InteractionContactFace` of two members according to a `PinLayout`, boring into both targets and nesting [`JointPinElement`](@ref elements_joint_pin) child elements.
 
 ![](diagrams/wood_beam_joints_connectors.webp)
 

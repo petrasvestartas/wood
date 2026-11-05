@@ -1,0 +1,47 @@
+#include "wood_session.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+/// A variable beam like the floor's outer rib: rectangles along a straight axis, their depth a parabola.
+int main() {
+
+    WoodSession scene("element_edge_variable");
+
+    const double length = 3000.0;
+    std::vector<Polyline> sections;
+
+    for (size_t i = 0; i < 7; i++) {
+        const double x = length * i / 6.0;
+        const double depth = 300.0 + 430.0 * (1.0 - x / length) * (1.0 - x / length);
+        sections.push_back(
+            Polyline({{x, -60.0, 0.0}, {x, -60.0, -depth}, {x, 60.0, -depth}, {x, 60.0, 0.0}})
+                .closed()
+        );
+    }
+
+    scene.add(std::make_shared<EdgeVariableElement>(
+        Line::from_points({0.0, 0.0, 0.0}, {length, 0.0, 0.0}), sections, "rib"
+    ));
+
+    std::cout << scene << std::endl;
+    scene.pb_dump(pb_path("live"));
+    return 0;
+}
+
+/*
+|||||||| DESCRIPTION ||||||||
+A variable beam like the floor's outer rib: a straight 3000 axis along its top and seven 120 wide rectangles hanging from it, 730 deep at the start and 300 at the end on a parabola, lofted from one to the next. The axis and the two end sections are its features.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target element_edge_variable --parallel 6 && ./build/element_edge_variable && ../bash/publish-scene.sh --target element_edge_variable
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
+*/

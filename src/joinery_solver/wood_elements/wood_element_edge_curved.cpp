@@ -1465,6 +1465,23 @@ BRep EdgeCurvedElement::trimmed_brep() const {
     return brep;
 }
 
+const BRep& EdgeCurvedElement::model_geometry_brep() const {
+
+    if (plane_features.empty() || !solid_features.empty())
+        return WoodElement::model_geometry_brep();
+
+    if (!_model_brep_cache) {
+        EdgeCurvedElement trimmed = *this;
+        const std::vector<Plane> planes = feature_planes();
+        trimmed.cuts.insert(trimmed.cuts.end(), planes.begin(), planes.end());
+        trimmed.plane_features.clear();
+        trimmed.invalidate_geometry();
+        _model_brep_cache = trimmed.trimmed_brep();
+    }
+
+    return *_model_brep_cache;
+}
+
 Line EdgeCurvedElement::chord() const {
 
     if (!centreline.is_valid())

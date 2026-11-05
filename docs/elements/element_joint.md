@@ -35,4 +35,8 @@ A box mesh subtracted from a beam's top face (`SolidOperation::subtract`) and an
 
 ## Support seat
 
-`JointElement::support(support, column)` recesses a [Support](@ref elements_support)'s circular head plate and inclined pin bores into a column base (see [Column](@ref elements_column)).
+`JointElement::support(support, column)` recesses a [Support](@ref elements_node_support)'s circular head plate and inclined pin bores into a column base (see [Column](@ref elements_edge_straight)).
+
+![](elements/element_joint_support.png)
+
+\include{lineno} elements/element_joint_support.cpp

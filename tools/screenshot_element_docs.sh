@@ -6,7 +6,7 @@
 # tools/crop_viewer_shot.py to 3:2 with the viewer's backdrop around the element, which only crops. On Windows the scene is served from this machine
 # instead of published: every example is built and run first, its scene kept aside, then the shots run SHOTS at a time (3 by default),
 # each Chrome on its own port.
-#   bash wood/tools/screenshot_element_docs.sh element_plate element_column ...
+#   bash wood/tools/screenshot_element_docs.sh element_face_planar element_edge_straight_column ...
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 SHOTS="${SHOTS:-3}"
@@ -16,7 +16,7 @@ shoot() {
     local name="$1" port="$2" pb="${3:-}"
     local view="View Isometric"
     # a column's head and cuts face the inside of the floor, away from the usual corner
-    case "$name" in element_column*) view="View Isometric Back" ;; esac
+    case "$name" in element_edge_straight_column*) view="View Isometric Back" ;; esac
     # the elements selected and fitted, so the hidden attribute rows do not widen the frame, then the selection cleared
     # the command bar and the empty canvas cut off, nothing else; a shot of a scene that had not loaded is taken again
     local try
@@ -63,7 +63,6 @@ esac
 while read -r overview example; do
     if [ -f "wood/examples/elements/$example.cpp" ]; then cp "wood/docs/images/elements/$example.png" "wood/docs/images/elements/$overview.png"; fi
 done <<'OVERVIEWS'
-element_cut_plane element_beam_variable_cut
 element_joint element_joint_drill
 element_joint_beam element_joint_beam_wedge
 element_joint_beam_connectors element_joint_beam_butterfly_key

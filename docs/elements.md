@@ -5,12 +5,12 @@
 ## Node
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_block.html">
-    <img src="element_block.png" alt="block">
+  <a class="wood-card" href="elements_node_block.html">
+    <img src="element_node_block.png" alt="block">
     <span class="wood-card-title">block</span>
   </a>
-  <a class="wood-card" href="elements_support.html">
-    <img src="element_support.png" alt="support">
+  <a class="wood-card" href="elements_node_support.html">
+    <img src="element_node_support.png" alt="support">
     <span class="wood-card-title">support</span>
   </a>
 </div>
@@ -18,16 +18,16 @@
 ## Edge
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_beam.html">
-    <img src="element_beam.png" alt="straight">
+  <a class="wood-card" href="elements_edge_straight.html">
+    <img src="element_edge_straight.png" alt="straight">
     <span class="wood-card-title">straight</span>
   </a>
-  <a class="wood-card" href="elements_beam_curved.html">
-    <img src="element_beam_curved.png" alt="curved">
+  <a class="wood-card" href="elements_edge_curved.html">
+    <img src="element_edge_curved.png" alt="curved">
     <span class="wood-card-title">curved</span>
   </a>
-  <a class="wood-card" href="elements_beam_variable.html">
-    <img src="element_beam_variable.png" alt="variable">
+  <a class="wood-card" href="elements_edge_variable.html">
+    <img src="element_edge_variable.png" alt="variable">
     <span class="wood-card-title">variable</span>
   </a>
 </div>
@@ -35,12 +35,12 @@
 ## Face
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_plate.html">
-    <img src="element_plate.png" alt="planar">
+  <a class="wood-card" href="elements_face_planar.html">
+    <img src="element_face_planar.png" alt="planar">
     <span class="wood-card-title">planar</span>
   </a>
-  <a class="wood-card" href="elements_plate_curved.html">
-    <img src="element_plate_curved.png" alt="curved">
+  <a class="wood-card" href="elements_face_curved.html">
+    <img src="element_face_curved.png" alt="curved">
     <span class="wood-card-title">curved</span>
   </a>
 </div>
@@ -129,8 +129,8 @@
 ### Cuts
 
 <div class="wood-card-grid cols-4">
-  <a class="wood-card" href="elements_cut_plane.html">
-    <img src="element_beam_variable_cut.png" alt="cut plane">
+  <a class="wood-card" href="elements_joint_cut_plane.html">
+    <img src="element_edge_variable_cut_plane.png" alt="cut plane">
     <span class="wood-card-title">cut plane</span>
   </a>
   <a class="wood-card" href="elements_joint.html">
@@ -150,17 +150,15 @@ A joint is an element: it is added, then handed to each member it cuts.
 \include{lineno} two_plates.cpp
 
 <div style="display:none">
-- @subpage elements_block
-- @subpage elements_support
-- @subpage elements_beam
-- @subpage elements_beam_curved
-- @subpage elements_beam_variable
-- @subpage elements_column
-- @subpage elements_profile
-- @subpage elements_plate
-- @subpage elements_plate_curved
-- @subpage elements_cut_plane
-- @subpage elements_pin
+- @subpage elements_node_block
+- @subpage elements_node_support
+- @subpage elements_edge_straight
+- @subpage elements_edge_curved
+- @subpage elements_edge_variable
+- @subpage elements_face_planar
+- @subpage elements_face_curved
+- @subpage elements_joint_cut_plane
+- @subpage elements_joint_pin
 - @subpage elements_joint
 - @subpage elements_joint_plate
 - @subpage elements_joint_plate_top_side

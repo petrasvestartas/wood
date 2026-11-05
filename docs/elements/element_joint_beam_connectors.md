@@ -2,7 +2,7 @@
 
 [TOC]
 
-Face-contact timber connectors (`wedge`, `rectangle_plate`, `butterfly_key`) that cut pockets and pin bores into both members while nesting the connector `NodeBlockElement` and [`JointPinElement`](@ref elements_pin) children under the joint.
+Face-contact timber connectors (`wedge`, `rectangle_plate`, `butterfly_key`) that cut pockets and pin bores into both members while nesting the connector `NodeBlockElement` and [`JointPinElement`](@ref elements_joint_pin) children under the joint.
 
 ![](diagrams/wood_beam_joints_connectors.webp)
 

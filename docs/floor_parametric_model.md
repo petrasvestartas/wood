@@ -1112,7 +1112,7 @@ every member it passes as a target; `WoodSession::pre_drill_lines(guid)` gives a
 pre-drill lines by reading the connectors that name it, so both members of a joint read the same
 line and nothing can drift. `pre_drill` is field 23 of `wood_proto.JointElement`, the lines and targets
 the joint's own fields, and the session graph holds an edge from the connector to every target.
-The viewer draws each pin as a Pin child of its connector, `<connector>_pin_<i>`, an exact
+The viewer draws each pin as a JointPinElement child of its connector, `<connector>_pin_<i>`, an exact
 cylinder.
 
 `relationships(floor)` appends 36 pin rows after the 52 of the design (none of those changes), 88 rows in all,

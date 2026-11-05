@@ -1066,12 +1066,12 @@ The counts:
 
 | | per quarter | total |
 |---|---|---|
-| outer ribs, BeamVariable | 2 | 8 |
-| inner ribs, BeamVariable | 2 | 8 |
-| inner beams, BeamVariable | 3 | 12 |
-| column blocks, Plate `wedges_*` | 3 | 12 |
-| t-sections, Plate | 6 | 24 |
-| beds, Plate | 3 rows, one plate per rail segment | 12 rows |
+| outer ribs, EdgeVariableElement | 2 | 8 |
+| inner ribs, EdgeVariableElement | 2 | 8 |
+| inner beams, EdgeVariableElement | 3 | 12 |
+| column blocks, FacePlanarElement `wedges_*` | 3 | 12 |
+| t-sections, FacePlanarElement | 6 | 24 |
+| beds, FacePlanarElement | 3 rows, one plate per rail segment | 12 rows |
 | columns | 1 | 4 |
 | ring beams, bottom wedges, central plate | | 4, 4, 1 |
 | contacts | 17 | 68 |

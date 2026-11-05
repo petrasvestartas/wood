@@ -2,7 +2,7 @@
 
 [TOC]
 
-Developable [Curved Plate](@ref elements_plate_curved) structures including ruled tent shells, curved-crease accordion unfoldings, and quad-diagonal flat development checks.
+Developable [Curved Plate](@ref elements_face_curved) structures including ruled tent shells, curved-crease accordion unfoldings, and quad-diagonal flat development checks.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#curved_fold_roof">

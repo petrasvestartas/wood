@@ -70,6 +70,15 @@ jobs:
     # drills, a protobuf round trip, a rigid motion and the committed goldens under
     # tests/golden/joint_library. The table names every failing variant; exit 1 only when a
     # variant of tests/golden/joint_library/passing.txt fails, a regression.
+    # Every example on the element and joint pages runs, one after another; a page never shows code that does not.
+    - name: Element examples
+      run: |
+        for example in build/element_*; do
+          [ -x "$example" ] && [ -f "$example" ] || continue
+          echo "$example"
+          timeout 300 "$example" > /dev/null
+        done
+
     - name: Joint library oracle
       run: |
         stdbuf -oL -eL timeout 600 build/joint_library

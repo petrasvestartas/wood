@@ -110,7 +110,7 @@ The floor uses `vertical`.
 
 Code: `PinLayout`, [wood_element_joint_beam.h](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.h); `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_joint_beam.cpp).
 
-## 308. The Pin children
+## 308. The JointPinElement children
 
 ![](floor/308_pin_children.webp)
 

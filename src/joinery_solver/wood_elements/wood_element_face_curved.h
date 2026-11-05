@@ -54,6 +54,9 @@ public:
     }
 
 protected:
+    /// The solid a boolean cuts: one closed mesh when it has solid features, the patch meshes otherwise.
+    Mesh trimmed_mesh() const override;
+
     void compute_geometry_mesh_impl() override;
     void compute_geometry_brep_impl() override;
 

@@ -39,15 +39,14 @@ Every WoodElement caches two lazy geometric states in both Mesh and BRep form: u
 
 | Element | Defining Geometry | Stock Representation |
 | --- | --- | --- |
-| Plate | Planar bottom and top Polyline loops | Bottom face 0, top face 1, side faces j + 2 |
-| PlateCurved | Four boundary NurbsCurve rails | Exact 6-patch ruled NURBS solid |
-| Beam | Polyline axis, section radii, up vectors, side count | Rectangular or polygonal/round swept timber prism |
-| BeamCurved | Centreline NurbsCurve, width, height, lamellae | Curved glulam with RMF frames and 6-patch NURBS BRep |
-| BeamVariable | Axis Line, station Polylines | Multi-section lofted prism or parabolic rib |
-| Column | Axis, frame, width | Square shaft with head blocks |
-| Support | Plane, base_width, head_diameter, pin_length | Two steel base plates and three anchor pins |
-| Block / Pin / ConnectorPart | Mesh / cylinder axis and radius / connector plate | Connector solids and dowels nested under joints |
-| CutPlane | Plane | Half-space clip plane |
+| FacePlanarElement | Planar bottom and top Polyline loops | Bottom face 0, top face 1, side faces j + 2 |
+| FaceCurvedElement | Four boundary NurbsCurve rails | Exact 6-patch ruled NURBS solid |
+| EdgeStraightElement | Polyline axis, section radii or profile, up vectors | Beam or column: rectangular, profiled or round swept timber prism |
+| EdgeCurvedElement | Centreline NurbsCurve, width, height, lamellae | Curved glulam with RMF frames and 6-patch NURBS BRep |
+| EdgeVariableElement | Axis Line, station Polylines | Multi-section lofted prism or parabolic rib |
+| NodeSupportElement | Plane, base_width, head_diameter, pin_length | Two steel base plates and three anchor pins |
+| NodeBlockElement / JointPinElement / JointConnectorPartElement | Mesh / cylinder axis and radius / connector plate | Connector solids and dowels nested under joints |
+| JointCutPlaneElement | Plane | Half-space clip plane |
 
 ## Contact Detection {#arch_contact_detection}
 

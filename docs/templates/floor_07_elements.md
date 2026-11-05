@@ -285,7 +285,7 @@ const Line axis = support->column_axis(guide.bay_height);
 
 Code: `NodeSupportElement::column_axis`, [wood_element_node_support.cpp](https://github.com/petrasvestartas/wood/blob/main/src/joinery_solver/wood_elements/wood_element_node_support.cpp).
 
-## 223. Column::square
+## 223. EdgeStraightElement::corner_square
 
 ![](floor/223_column_square.webp)
 

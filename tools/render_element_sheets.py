@@ -27,13 +27,13 @@ FRAME = (205, 205, 212)
 TEXT = (30, 30, 30)
 
 SHEET_1 = [
-    "element_block",
-    "element_support",
-    "element_beam",
-    "element_beam_curved",
-    "element_beam_variable",
-    "element_plate",
-    "element_plate_curved",
+    "element_node_block",
+    "element_node_support",
+    "element_edge_straight",
+    "element_edge_curved",
+    "element_edge_variable",
+    "element_face_planar",
+    "element_face_curved",
 ]
 BEAM_CUT_FAMILIES = [
     "cross",
@@ -58,8 +58,8 @@ SHEET_4 = [
     "element_joint_beam_connectors",
     "element_joint_beam_pins",
     "element_joint_beam_keyed_box",
-    "element_pin",
-    "element_beam_variable_cut",
+    "element_joint_pin",
+    "element_edge_variable_cut_plane",
 ]
 
 # all example names
@@ -95,9 +95,9 @@ sheets = [
 # each sheet's groups: a title, the part of the name that picks its pictures, the words the captions then leave out
 GROUPS = {
     "1_elements": [
-        ("Node", r"^element_(block|support)", ""),
-        ("Edge", r"^element_beam", "beam "),
-        ("Face", r"^element_plate", "plate "),
+        ("Node", r"^element_node", "node "),
+        ("Edge", r"^element_edge", "edge "),
+        ("Face", r"^element_face", "face "),
     ],
     "2_plate_joints": [
         ("Side to Side, In Plane", r"side_side_inplane", "side side inplane "),
@@ -116,7 +116,7 @@ GROUPS = {
         ("Nodes", r"beam_column_head", ""),
     ],
     "4_connectors": [
-        ("Pins", r"(_pins|element_pin)$", ""),
+        ("Pins", r"(_pins|element_joint_pin)$", ""),
         ("Connectors", r"_joint_beam_", ""),
         ("Cuts and Drills", r"", "joint "),
     ],

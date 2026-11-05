@@ -239,6 +239,14 @@ void FaceCurvedElement::place(const Xform& xform) {
     _model_brep_cache.reset();
 }
 
+Mesh FaceCurvedElement::trimmed_mesh() const {
+
+    if (solid_features.empty())
+        return stock_mesh();
+
+    return element_geometry_brep().tessellate(1.0);
+}
+
 void FaceCurvedElement::compute_geometry_mesh_impl() {
     set_geometry(model_geometry_mesh());
     set_features(session_features(*this));
