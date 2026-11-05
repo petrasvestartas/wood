@@ -143,6 +143,27 @@ not cut, not saved. The viewer tessellates what it draws.
 - Gate: oracle and reference goldens unchanged, every example's solids closed and exact,
   every scene opens in the viewer in the time recorded in the recipe.
 
+### Step 9: one `apply` per interaction, geometry folded from the graph (from the compas_model comparison)
+
+`docs/plans/compas_model_comparison.md` measured it: following one centred-pin joint from contact to
+cut takes about 12 files and 10,000 lines, and what a joint does is decided twice, once when it builds
+its payload and once in the session's 357-line type ladder. The one thing worth taking from
+compas_model is the shape of its `Modifier.apply`.
+
+- Every `InteractionFeature*` gets one virtual `apply(source, target BRep)`. `add_interaction` only
+  stores the interaction on the edge and invalidates the target; the ladder in `wood_session.cpp:877-1068`
+  and `:1754-1918` goes. This is review item 6's fix.
+- An element's geometry is computed on read from its own BRep and its incoming edges in insertion
+  order, so the copies hosted on targets that `remove_interaction` has to erase in three places go.
+  Invalidation runs through setters and reaches dependents along outgoing edges.
+- Contact provenance: computed and user-authored contacts are distinguished, and recomputing contacts
+  never wipes named ones.
+- Contacts keep every overlap region, not only `solution[0]`.
+- Beam axis contacts go through `SpatialBVH` instead of every pair against every pair; the unused
+  world-size code goes; the kernel's traversal stack gets a real bound.
+- Gate: oracle and reference goldens unchanged, every example's output identical, the floor template
+  unchanged in its text.
+
 ### Later, after the above
 
 - Curved elements with solid features now cut exactly; the five held docs sections return as
