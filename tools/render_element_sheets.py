@@ -1,9 +1,8 @@
-"""Compose the four element contact sheets shown on docs/elements.md.
+"""Compose the element contact sheet shown on docs/elements.md.
 
-Reads every docs/images/elements/*.png, the whole picture, and lays the pictures out
-five per row with a caption, one sheet per kind: elements, plate joints, beam joints, connectors and pins,
-each sheet in titled groups: nodes, edges and faces; side to side, top to side; and so on.
-Writes docs/images/diagrams/wood_elements_sheet_<n>_<name>.webp (4400 px wide, quality 90).
+Lays the element pictures of docs/images/elements out five per row with a caption, in titled
+groups: nodes, edges and faces.
+Writes docs/images/diagrams/wood_elements_sheet_1_elements.webp (4400 px wide, quality 90).
 
 Run from wood/:  python tools/render_element_sheets.py
 """
@@ -35,62 +34,7 @@ SHEET_1 = [
     "element_face_planar",
     "element_face_curved",
 ]
-BEAM_CUT_FAMILIES = [
-    "cross",
-    "side_side",
-    "top_side",
-    "jupiter_scarf",
-    "butt",
-    "end_to_end",
-    "column_head",
-    "column_head_rotated",
-]
-SHEET_4 = [
-    "element_joint",
-    "element_joint_cutter",
-    "element_joint_drill",
-    "element_joint_beam_butt_plates",
-    "element_joint_beam_butterfly_key",
-    "element_joint_beam_centred_pins",
-    "element_joint_beam_headed_pins",
-    "element_joint_beam_rectangle_plate",
-    "element_joint_beam_wedge",
-    "element_joint_beam_connectors",
-    "element_joint_beam_pins",
-    "element_joint_beam_keyed_box",
-    "element_joint_pin",
-    "element_edge_variable_cut_plane",
-]
-
-# all example names
-names = []
-for path in sorted(glob.glob(os.path.join(ELEMENTS, "*.png"))):
-    names.append(os.path.splitext(os.path.basename(path))[0])
-
-# plate joints: the overview first, then every plate joint
-sheet_2 = ["element_joint_plate"]
-for name in names:
-    if name.startswith("element_joint_plate_"):
-        sheet_2.append(name)
-
-# beam joints: the overview first, then the cuts between beams family by family
-sheet_3 = ["element_joint_beam"]
-for family in BEAM_CUT_FAMILIES:
-    for name in names:
-        if name.startswith("element_joint_beam_"):
-            rest = name[len("element_joint_beam_") :]
-            if rest == family or (
-                family in ["cross", "side_side", "top_side"]
-                and rest.startswith(family + "_")
-            ):
-                sheet_3.append(name)
-
-sheets = [
-    ("1_elements", SHEET_1),
-    ("2_plate_joints", sheet_2),
-    ("3_beam_joints", sheet_3),
-    ("4_connectors", SHEET_4),
-]
+sheets = [("1_elements", SHEET_1)]
 
 # each sheet's groups: a title, the part of the name that picks its pictures, the words the captions then leave out
 GROUPS = {
@@ -98,27 +42,6 @@ GROUPS = {
         ("Node", r"^element_node", "node "),
         ("Edge", r"^element_edge", "edge "),
         ("Face", r"^element_face", "face "),
-    ],
-    "2_plate_joints": [
-        ("Side to Side, In Plane", r"side_side_inplane", "side side inplane "),
-        ("Side to Side, Out of Plane", r"side_side_outplane", "side side outplane "),
-        ("Side to Side, Rotated", r"side_side_rotated", "side side rotated "),
-        ("Top to Side", r"top_side", "top side "),
-        ("Top to Top", r"top_top", "top top "),
-        ("Cross", r"cross", "cross "),
-        ("Border, Nodes and Parameters", r"", ""),
-    ],
-    "3_beam_joints": [
-        ("Cross", r"beam_cross", "cross "),
-        ("Top to Side", r"beam_top_side", "top side "),
-        ("End to End", r"beam_(side_side|jupiter)", ""),
-        ("Butt", r"beam_butt$", ""),
-        ("Nodes", r"beam_column_head", ""),
-    ],
-    "4_connectors": [
-        ("Pins", r"(_pins|element_joint_pin)$", ""),
-        ("Connectors", r"_joint_beam_", ""),
-        ("Cuts and Drills", r"", "joint "),
     ],
 }
 

@@ -13,15 +13,8 @@ import crop_viewer_shot  # noqa: E402
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 WINDOWS = os.name == "nt"
-RENDERER = (
-    WOOD.parent / "session/session_viewer/target/x86_64-pc-windows-msvc/release/examples/selftest.exe"
-    if WINDOWS
-    else WOOD.parent
-    / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
-)
-if not RENDERER.exists():
-    RENDERER = WOOD.parent / "session/session_viewer/target/course-runtime" / RENDERER.name
-PYTHON = WOOD.parent / (
+# the session_py environment that reads and writes scenes; WOOD_PYTHON names another when wood is not checked out beside session
+PYTHON = pathlib.Path(os.environ["WOOD_PYTHON"]) if "WOOD_PYTHON" in os.environ else WOOD.parent / (
     "session/session_py/.venv/Scripts/python.exe"
     if WINDOWS
     else "session/session_py/.venv/bin/python"

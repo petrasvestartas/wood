@@ -41,8 +41,18 @@ int main() {
 }
 
 /*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 10_profile_cuts --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/10_profile_cuts
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/10_profile_cuts.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
+|||||||| DESCRIPTION ||||||||
+A plate cut by profile outlines pushed through it: a convex profile, a through slot that leaves two pieces and a concave pocket that splits the solid.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 10_profile_cuts --parallel 6 && ./build/10_profile_cuts && ../bash/publish-scene.sh --target 10_profile_cuts
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

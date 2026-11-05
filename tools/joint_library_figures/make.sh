@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every joint-unit picture of the JointPlateElement family pages, drawn by the session viewer's renderer (tools/shoot_native.sh: Arctic, black outlines), two per
+# Every joint-unit picture of the JointPlateElement family pages, drawn by the session viewer's renderer (tools/joint_library_figures/shoot_native.sh: Arctic, black outlines), two per
 # design and never overlapping: <id>_unit.png, the design's male and female outlines in its unit box at half scale, its axes, sides and parameters
 # labelled, and <id>.png, the oracle's pair drawn
 # apart, the plates with the merged outlines and the joint's solids (keys, drills). The parameter sweeps are grids of either, labelled.
@@ -38,13 +38,13 @@ for pb in "$WORK"/tiles/*.pb; do
     png="$OUT/$(basename "$pb" .pb).png"
     labels="${pb%.pb}.labels"
     if [ -f "$labels" ]; then
-        LABELS="$labels" bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+        LABELS="$labels" bash tools/joint_library_figures/shoot_native.sh "$png" "$pb" > /dev/null
     else
-        bash tools/shoot_native.sh "$png" "$pb" > /dev/null
+        bash tools/joint_library_figures/shoot_native.sh "$png" "$pb" > /dev/null
     fi
 done
 for pb in "$WORK"/sweep/*.pb; do
-    bash tools/shoot_native.sh "$WORK/sweep/$(basename "$pb" .pb).png" "$pb" > /dev/null
+    bash tools/joint_library_figures/shoot_native.sh "$WORK/sweep/$(basename "$pb" .pb).png" "$pb" > /dev/null
 done
 
 # a sweep: its name, title (for the reader of this script), columns, the picture kind (unit or plates) and label|id pairs

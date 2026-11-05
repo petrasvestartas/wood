@@ -42,7 +42,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_4_dome --parallel 4 && ./build/templates_vault_4_dome && ../bash/publish-scene.sh --target templates_vault_4_dome
+cmake --build build --target templates_vault_4_dome --parallel 6 && ./build/templates_vault_4_dome && ../bash/publish-scene.sh --target templates_vault_4_dome
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_4_dome.cpp

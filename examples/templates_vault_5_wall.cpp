@@ -41,7 +41,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_5_wall --parallel 4 && ./build/templates_vault_5_wall && ../bash/publish-scene.sh --target templates_vault_5_wall
+cmake --build build --target templates_vault_5_wall --parallel 6 && ./build/templates_vault_5_wall && ../bash/publish-scene.sh --target templates_vault_5_wall
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_5_wall.cpp

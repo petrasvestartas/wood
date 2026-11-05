@@ -8,7 +8,7 @@ pipeline   diagrams/wood_architecture.webp, one model through plates, contacts, 
 landing    landing/landing_architecture.webp, the same model cut, at the landing page's 16:9
 wiring     diagrams/wood_joint_unit_box.webp, three joints by three rows: the joint, the joint on its contact, the members it cut
 cutting    diagrams/wood_boolean_cutting.webp, stock, cutter and result of four cuts
-sheets     diagrams/wood_templates_pipeline.webp, one shot per family, and wood_beam_joints_connectors.webp, tiled from the element pictures
+sheets     diagrams/wood_beam_joints_connectors.webp, tiled from the element pictures
 """
 
 import pathlib
@@ -44,7 +44,6 @@ branch.pb_dump(sys.argv[3])
 
 # example: attributes shown, opacity, x-ray
 EXAMPLES = {
-    "1_session_contacts": (True, "0.4", False),
     "2_contacts": (True, "1", True),
     "3_features": (True, "0.4", False),
     "4_traversal": (True, "0.4", False),
@@ -86,21 +85,6 @@ CUTS = [
     ("10_profile_cuts", "Concave pocket / solid split", "blind pocket"),
     ("element_joint_drill", "all", "drill holes"),
     ("12_solid_features", "Difference / sloped solids", "solid pocket"),
-]
-# caption, example, group: one picture per family, the landing page's sheet
-FAMILIES = [
-    ("Shells", "templates_shells_1_translation_shell", "plates"),
-    ("Folding Flat", "templates_folding_1_reflex_fold", "plates"),
-    ("Folding Cylindrical", "templates_cylindrical_folding_1_reflection", "lamellas"),
-    ("Folding Developable", "templates_developable_folding_1_curved_fold", "lamellas"),
-    ("Chevron", "templates_chevron_1_chevron", "plates"),
-    ("Cross", "templates_cross_1_vda_mesh", "plates"),
-    ("Module", "templates_module_3_cassette_house", "all"),
-    ("Reciprocal", "templates_reciprocal_1_rotation", "beams+frame"),
-    ("Grid", "templates_grid_5_framing", "head_section"),
-    ("Floor", "templates_floor_3_contacts", "all"),
-    ("Truss", "templates_truss_1_pratt", "all"),
-    ("Vault", "templates_vault_9_gothic_ribbed_vault", "tierceron_exeter"),
 ]
 BEAM_SHEET = ["cross", "top_side", "end_to_end", "butt", "wedge", "centred_pins"]
 
@@ -292,18 +276,7 @@ def cutting(tmp: pathlib.Path) -> None:
 
 
 def sheets(tmp: pathlib.Path) -> None:
-    """The landing page's sheet of the template families, shot to the tile's shape, and the beam joints' sheet from the element pictures."""
-    tiles = []
-    for caption, example, group in FAMILIES:
-        scene = tmp / f"{example}.pb"
-        if not scene.exists():
-            docs.run_example(example, scene)
-        branch = tmp / f"{example}_{caption.replace(' ', '_')}.pb"
-        subprocess.run([str(docs.PYTHON), "-c", docs.BRANCH, str(scene), group, str(branch), "elements"], check=True, capture_output=True)
-        tiles.append((docs.render(branch, "iso", "1", "4800x3200", "", False, False, ASPECT), caption))
-        print(caption, flush=True)
-    sheet(tiles, 3, 3376, DIAGRAMS / "wood_templates_pipeline.webp")
-
+    """The beam joints' sheet, tiled from the element pictures."""
     tiles = [
         (
             Image.open(IMAGES / "elements" / f"element_joint_beam_{name}.png").convert(

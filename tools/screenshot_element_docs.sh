@@ -17,12 +17,15 @@ shoot() {
     local view="View Isometric"
     # a column's head and cuts face the inside of the floor, away from the usual corner
     case "$name" in element_edge_straight_column*) view="View Isometric Back" ;; esac
+    # the butt joints show the drawn input (axes and mid-plane polygons) through the members at 40 percent
+    local opacity=1 attributes="Element Attributes Off"
+    case "$name" in element_joint_beam_butt*) opacity=0.4; attributes="Element Attributes On" ;; esac
     # the elements selected and fitted, so the hidden attribute rows do not widen the frame, then the selection cleared
     # the command bar and the empty canvas cut off, nothing else; a shot of a scene that had not loaded is taken again
     local try
     for try in 1 2 3; do
-        SHOT_PB="$pb" SHOT_PORT="$port" SHOT_SCALE=3 SHOT_QUERY="opacity=1&nomarkers=1&thickness=0.7" node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
-            "Layers Off" "Element Interactions Off" "Element Attributes Off" "Arctic On" "Outline Off" "$view" "View Orthographic" "Select All" "Fit" "Escape" > /dev/null
+        SHOT_PB="$pb" SHOT_PORT="$port" SHOT_SCALE=3 SHOT_QUERY="opacity=$opacity&nomarkers=1&thickness=0.7" node --experimental-websocket wood/tools/screenshot_viewer.mjs "wood/docs/images/elements/$name.png" \
+            "Layers Off" "Element Interactions Off" "$attributes" "Arctic On" "Outline Off" "$view" "View Orthographic" "Select All" "Fit" "Escape" > /dev/null
         if SHOT_ASPECT=1.5 python wood/tools/crop_viewer_shot.py "wood/docs/images/elements/$name.png" > /dev/null; then
             echo "$name"
             return 0
@@ -63,14 +66,11 @@ esac
 while read -r overview example; do
     if [ -f "wood/examples/elements/$example.cpp" ]; then cp "wood/docs/images/elements/$example.png" "wood/docs/images/elements/$overview.png"; fi
 done <<'OVERVIEWS'
-element_joint element_joint_drill
-element_joint_beam element_joint_beam_wedge
 element_joint_beam_connectors element_joint_beam_butterfly_key
 element_joint_beam_cross element_joint_beam_cross_half_lap
 element_joint_beam_end_to_end element_joint_beam_jupiter_scarf
 element_joint_beam_pins element_joint_beam_headed_pins
 element_joint_beam_top_side element_joint_beam_top_side_milled_wedge
-element_joint_plate element_joint_plate_parameters
 element_joint_plate_cross element_joint_plate_cross_slot
 element_joint_plate_side_side_inplane element_joint_plate_side_side_inplane_dovetails
 element_joint_plate_side_side_outplane element_joint_plate_side_side_outplane_fingers

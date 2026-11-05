@@ -43,7 +43,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_developable_folding_1_curved_fold --parallel 6 && ./build/templates_developable_folding_1_curved_fold && ./bash/publish-scene.sh --target templates_developable_folding_1_curved_fold
+cmake --build build --target templates_developable_folding_1_curved_fold --parallel 6 && ./build/templates_developable_folding_1_curved_fold && ../bash/publish-scene.sh --target templates_developable_folding_1_curved_fold
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

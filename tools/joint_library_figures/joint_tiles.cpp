@@ -185,7 +185,7 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
 }
 
 /// The unit tile's annotations: an axis tripod at the origin, an arrow along x, y and z a third of the box long, and the labels for
-/// shoot_native.sh, one "x y z|text" line per letter at its arrow's tip.
+/// joint_library_figures/shoot_native.sh, one "x y z|text" line per letter at its arrow's tip.
 static std::string add_unit_annotations(WoodSession& scene) {
 
     const std::shared_ptr<TreeNode> group = scene.group_named("annotations");

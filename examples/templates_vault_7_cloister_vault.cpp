@@ -40,7 +40,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_7_cloister_vault --parallel 4 && ./build/templates_vault_7_cloister_vault && ../bash/publish-scene.sh --target templates_vault_7_cloister_vault
+cmake --build build --target templates_vault_7_cloister_vault --parallel 6 && ./build/templates_vault_7_cloister_vault && ../bash/publish-scene.sh --target templates_vault_7_cloister_vault
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_7_cloister_vault.cpp

@@ -60,7 +60,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_developable_folding_12_corrugated_funnel --parallel 6 && ./build/templates_developable_folding_12_corrugated_funnel && ./bash/publish-scene.sh --target templates_developable_folding_12_corrugated_funnel
+cmake --build build --target templates_developable_folding_12_corrugated_funnel --parallel 6 && ./build/templates_developable_folding_12_corrugated_funnel && ../bash/publish-scene.sh --target templates_developable_folding_12_corrugated_funnel
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

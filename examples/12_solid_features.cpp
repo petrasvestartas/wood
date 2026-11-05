@@ -38,8 +38,18 @@ int main() {
 }
 
 /*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 12_solid_features --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/12_solid_features
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/12_solid_features.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
+|||||||| DESCRIPTION ||||||||
+A plate under the three solid operations of a joint: difference, intersection and union.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 12_solid_features --parallel 6 && ./build/12_solid_features && ../bash/publish-scene.sh --target 12_solid_features
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */

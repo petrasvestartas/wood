@@ -42,7 +42,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_2_barrel --parallel 4 && ./build/templates_vault_2_barrel && ../bash/publish-scene.sh --target templates_vault_2_barrel
+cmake --build build --target templates_vault_2_barrel --parallel 6 && ./build/templates_vault_2_barrel && ../bash/publish-scene.sh --target templates_vault_2_barrel
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_2_barrel.cpp

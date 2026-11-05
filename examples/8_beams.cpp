@@ -47,7 +47,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target 8_beams --parallel 4 && ./build/8_beams && ../bash/publish-scene.sh --target 8_beams
+cmake --build build --target 8_beams --parallel 6 && ./build/8_beams && ../bash/publish-scene.sh --target 8_beams
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

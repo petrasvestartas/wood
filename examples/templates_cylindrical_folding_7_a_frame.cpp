@@ -58,7 +58,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_cylindrical_folding_7_a_frame --parallel 6 && ./build/templates_cylindrical_folding_7_a_frame && ./bash/publish-scene.sh --target templates_cylindrical_folding_7_a_frame
+cmake --build build --target templates_cylindrical_folding_7_a_frame --parallel 6 && ./build/templates_cylindrical_folding_7_a_frame && ../bash/publish-scene.sh --target templates_cylindrical_folding_7_a_frame
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

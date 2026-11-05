@@ -98,7 +98,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_vault_9_gothic_ribbed_vault --parallel 4 && ./build/templates_vault_9_gothic_ribbed_vault && ../bash/publish-scene.sh --target templates_vault_9_gothic_ribbed_vault
+cmake --build build --target templates_vault_9_gothic_ribbed_vault --parallel 6 && ./build/templates_vault_9_gothic_ribbed_vault && ../bash/publish-scene.sh --target templates_vault_9_gothic_ribbed_vault
 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_9_gothic_ribbed_vault.cpp

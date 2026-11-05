@@ -45,7 +45,7 @@ cd wood_research/wood
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
-cmake --build build --target templates_developable_folding_4_crease_quadrants --parallel 6 && ./build/templates_developable_folding_4_crease_quadrants && ./bash/publish-scene.sh --target templates_developable_folding_4_crease_quadrants
+cmake --build build --target templates_developable_folding_4_crease_quadrants --parallel 6 && ./build/templates_developable_folding_4_crease_quadrants && ../bash/publish-scene.sh --target templates_developable_folding_4_crease_quadrants
 
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/

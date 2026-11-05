@@ -15,8 +15,8 @@ functions and the standard section banners. Keep one header/source pair for Join
 parameters, Annen and Vidy stay in the JointPlateElement pair; use sections and small
 functions instead of files per factory or family. Expose library designs by their
 actual names, such as `JointPlateElement::top_side_tenons`, with their own parameters.
-Preserve the user-owned TODO checklist in `examples/1_elements.cpp` and mark its
-completion accurately. Generated protobuf files follow the generator's format.
+Generated protobuf files follow the generator's format and are never edited by hand: `generated/` comes from
+`bash tools/regen_proto.sh`, `rust/src/proto/wood_proto.rs` from `cargo build` in `rust/`, and CI regenerates both.
 
 ## Class constructors
 
@@ -36,7 +36,7 @@ completion accurately. Generated protobuf files follow the generator's format.
   each result in a named, fixed-size variable before keeping it, and reads top to bottom as the recipe. No separate
   `compute()`, no setters that ask for a recompute, no validity checks in between.
 - Public methods only return what the constructor stored. The docs page of the class follows the same blocks, one
-  snippet and one picture per block (`wood-agent`, Protocol 5).
+  snippet and one picture per block (the `wood-film-docs` skill).
 
 ## Using the session
 
@@ -55,7 +55,7 @@ completion accurately. Generated protobuf files follow the generator's format.
 - A model is built with two calls: `add(element, group)` puts an element in the tree, and
   `add_interaction(source, target, interaction)` puts what the source does to the target on their edge: a contact,
   a glued block, a cut, a joint, a connector, pins. No wrapper adds an element and its effects in one call (no
-  `add_joint`, `add_connector`, `add_column`-style helpers): the code shows every element and every effect.
+  `add_joint` or `add_connector`-style helpers; a template's own member builders such as `Floor::add_column` are its recipe, not a wrapper): the code shows every element and every effect.
 - A joint, connector or pin set says what it does to its target i with `interaction(i)`, so it goes on each target
   in its own line, in the joint's target order:
 

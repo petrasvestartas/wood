@@ -36,8 +36,18 @@ int main() {
 }
 
 /*
-directory: cd /home/petras/code/code_cpp/wood_research/wood
-run: buildslot ~/.local/bin/cmake --build build --target 11_drill_solids --parallel 4 && tools/run_guarded.sh -t 10 -m 4 -- build/11_drill_solids
-cloudflare: ../bash/publish-scene.sh "$PWD/data/output/pb/11_drill_solids.pb" --no-notify
-view: https://petrasvestartas.github.io/session/
+|||||||| DESCRIPTION ||||||||
+A drill on an axis made as a mesh solid at three tolerances, the circle approximated by fewer or more segments.
+
+|||||||| DIRECTORY ||||||||
+cd wood_research/wood
+
+|||||||| CMAKE CONFIGURE ||||||||
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+|||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
+cmake --build build --target 11_drill_solids --parallel 6 && ./build/11_drill_solids && ../bash/publish-scene.sh --target 11_drill_solids
+
+|||||||| VIEW ||||||||
+https://petrasvestartas.github.io/session/
 */
