@@ -2,7 +2,7 @@ name: Wood Test
 
 on:
   push:
-    branches: [main]
+    branches: ['**'] # every branch: agents gate their work on the runners, not on this machine
   pull_request:
     branches: [main]
 
