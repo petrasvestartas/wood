@@ -258,37 +258,16 @@ private:
     /// The outer parabola over a rib axis.
     Polyline outer_parabola(const Line& axis, double distance) const;
 
-    /// The z where an outer rib's soffit meets its fan plane, and the rib start that lands it on a level, by the secant from the wedge.
+    /// The z where an outer rib's soffit meets its fan plane, and the rib start that lands it on a level, solved on the parabola's polyline.
     double fan_end(const Line& axis, double distance, const Plane& fan, const Plane& seam) const;
-    double
-    rib_start_at_level(const Line& axis, const Plane& fan, const Plane& seam, double level) const;
+    double rib_start_at_level(const Line& axis, const Plane& fan, double level) const;
 
-    /// Rule A: the closure root nearest the reference and its helpers.
+    /// Rule A: the horizontal sweep along which both inner ribs close, the root of its quadratic nearest the reference.
     static Vector rib_sweep(
         const std::array<Polyline, 2>& shadows,
         const std::array<Vector, 2>& normals,
         double thickness,
         const Vector& reference
-    );
-    static double closure(
-        const std::array<Polyline, 2>& shadows,
-        const std::array<Vector, 2>& normals,
-        double thickness,
-        const Vector& r
-    );
-    static bool sweep_sides(
-        const std::array<Vector, 2>& normals,
-        const Vector& reference,
-        double degrees,
-        std::array<bool, 2>& sides
-    );
-    static double bisect(
-        const std::array<Polyline, 2>& shadows,
-        const std::array<Vector, 2>& normals,
-        double thickness,
-        const Vector& reference,
-        double lo,
-        double hi
     );
     static Vector turned(const Vector& reference, double degrees);
 

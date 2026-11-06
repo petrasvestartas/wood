@@ -10,12 +10,8 @@ namespace wood_floor {
 
 const double EXTENSION = 1000.0;
 const double RIGHT_ANGLE = 1e-9;
-const double RIB_START_TOLERANCE = 1e-11;
-const size_t RIB_START_STEPS = 50;
-const double SCAN_STEP = 0.5;
-const double SCAN_RANGE = 85.0;
+const double SWEEP_RANGE = 85.0;
 const double GRAZING = 1e-3;
-const size_t BISECTIONS = 200;
 const double CUTTER_MARGIN = 100.0;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -459,57 +455,59 @@ std::array<double, 2> FloorGuide::compute_rib_starts(const ConstructionPlanes& c
     const std::array<Line, 2> axes = {outer_rib_axis(cp, 0), outer_rib_axis(cp, 1)};
     const std::array<Plane, 2> fans = {cp.wedges[0][0], cp.wedges[2][0]};
     const std::array<Plane, 2> seams = {cp.inner_beams[0][0], cp.inner_beams[2][0]};
-    const double level = std::max(
+    const std::array<double, 2> ends = {
         fan_end(axes[0], size_wedge, fans[0], seams[0]),
         fan_end(axes[1], size_wedge, fans[1], seams[1])
-    );
+    };
+    const double level = std::max(ends[0], ends[1]);
 
-    const double start0 = rib_start_at_level(axes[0], fans[0], seams[0], level);
-    const double start1 = rib_start_at_level(axes[1], fans[1], seams[1], level);
+    // the rib whose fan end sets the level keeps the wedge, the other starts where its parabola reaches it
+    const double start0 =
+        ends[0] == level ? size_wedge : rib_start_at_level(axes[0], fans[0], level);
+    const double start1 =
+        ends[1] == level ? size_wedge : rib_start_at_level(axes[1], fans[1], level);
 
     return {start0, start1};
 }
 
-double FloorGuide::rib_start_at_level(
-    const Line& axis, const Plane& fan, const Plane& seam, double level
-) const {
+double FloorGuide::rib_start_at_level(const Line& axis, const Plane& fan, double level) const {
 
+    // the fan plane's trace on the rib's vertical plane at the level: n . (start + along x + z level - origin) = 0
     const double length = axis.length();
-    double x0 = size_wedge;
-    double f0 = fan_end(axis, x0, fan, seam) - level;
+    const Vector along = axis.to_vector().normalized();
+    const Vector& normal = fan.z_axis();
+    const double fan_x =
+        -(normal.dot(axis.start() - fan.origin()) + normal[2] * level) / normal.dot(along);
 
-    if (std::abs(f0) <= RIB_START_TOLERANCE)
-        return x0;
+    // the parabola's vertex heights do not depend on its start d, only their places: x = d + (L - d) t, read at d = 0
+    const std::vector<Point> vertices = outer_parabola(axis, 0.0).get_points();
+    const size_t last = vertices.size() - 2;
+    size_t segment =
+        std::abs(level - vertices[0][2]) < std::abs(level - vertices[last + 1][2]) ? 0 : last;
+    for (size_t i = 0; i <= last; i++)
+        if ((vertices[i][2] - level) * (vertices[i + 1][2] - level) <= 0.0) {
+            segment = i;
+            break;
+        }
 
-    double x1 = x0 + 1.0;
-    double f1 = fan_end(axis, x1, fan, seam) - level;
+    // the level's fraction t along the segment holding it, its start extended past the ends, then d from x = fan_x
+    const double t0 = (vertices[segment] - axis.start()).dot(along) / length;
+    const double t1 = (vertices[segment + 1] - axis.start()).dot(along) / length;
+    const double share =
+        (level - vertices[segment][2]) / (vertices[segment + 1][2] - vertices[segment][2]);
+    const double t = t0 + (t1 - t0) * share;
+    const double start = (fan_x - length * t) / (1.0 - t);
 
-    for (size_t i = 0; i < RIB_START_STEPS; i++) {
-        if (std::abs(f1) <= RIB_START_TOLERANCE)
-            return x1;
+    if (start <= 0.0 || start >= length)
+        throw std::runtime_error(fmt::format(
+            "an outer rib's start for the column level {:.3f} leaves its axis: {:.3f} of "
+            "{:.3f} mm",
+            level,
+            start,
+            length
+        ));
 
-        const double x2 = x1 - f1 * (x1 - x0) / (f1 - f0);
-
-        if (x2 <= 0.0 || x2 >= length)
-            throw std::runtime_error(fmt::format(
-                "an outer rib's start for the column level {:.3f} leaves its axis: {:.3f} of "
-                "{:.3f} mm",
-                level,
-                x2,
-                length
-            ));
-
-        x0 = x1;
-        f0 = f1;
-        x1 = x2;
-        f1 = fan_end(axis, x1, fan, seam) - level;
-    }
-
-    throw std::runtime_error(fmt::format(
-        "an outer rib's start for the column level {:.3f} did not converge: {:.3e} mm off",
-        level,
-        f1
-    ));
+    return start;
 }
 
 double
@@ -659,97 +657,47 @@ Vector FloorGuide::rib_sweep(
     const Vector& reference
 ) {
 
+    // closed when (a + k r) x (b + k r) = a x b + k (a - b) x r is 0, k = thickness (1 / n1.r - 1 / n0.r): the start and
+    // vertex chords a and b shifted along r over both faces; times (n0.r)(n1.r) a quadratic form in r = (cos, sin)
+    const size_t n = shadows[0].point_count() - 1;
+    const Vector a = (shadows[1].get_point(0) - shadows[0].get_point(0)).flattened();
+    const Vector b = (shadows[1].get_point(n) - shadows[0].get_point(n)).flattened();
+    const Vector chords = a - b;
+    const double ab = a.cross(b)[2];
+    const double cc = ab * normals[0][0] * normals[1][0] -
+                      thickness * (normals[0][0] - normals[1][0]) * chords[1];
+    const double cs = ab * (normals[0][0] * normals[1][1] + normals[0][1] * normals[1][0]) +
+                      thickness * ((normals[0][0] - normals[1][0]) * chords[0] -
+                                   (normals[0][1] - normals[1][1]) * chords[1]);
+    const double ss = ab * normals[0][1] * normals[1][1] +
+                      thickness * (normals[0][1] - normals[1][1]) * chords[0];
+
+    // the form as m + R cos(2 phi - alpha): its roots, r and -r alike, as turns of the reference within the range
+    const double mean = 0.5 * (cc + ss);
+    const double amplitude = std::hypot(0.5 * (cc - ss), 0.5 * cs);
+    const double alpha = std::atan2(0.5 * cs, 0.5 * (cc - ss));
+    const Vector flat = reference.flattened().normalized();
+    const double base = std::atan2(flat[1], flat[0]);
     double best = 0.0;
     bool found = false;
 
-    for (double lo = -SCAN_RANGE; lo < SCAN_RANGE; lo += SCAN_STEP) {
-        const double hi = lo + SCAN_STEP;
-        std::array<bool, 2> sides_lo;
-        std::array<bool, 2> sides_hi;
-
-        const bool found_lo = sweep_sides(normals, reference, lo, sides_lo);
-        const bool found_hi = sweep_sides(normals, reference, hi, sides_hi);
-
-        if (!found_lo || !found_hi || sides_lo != sides_hi)
-            continue;
-
-        const double f_lo = closure(shadows, normals, thickness, turned(reference, lo));
-        const double f_hi = closure(shadows, normals, thickness, turned(reference, hi));
-
-        if ((f_lo > 0.0) == (f_hi > 0.0) && f_lo != 0.0 && f_hi != 0.0)
-            continue;
-
-        const double root = bisect(shadows, normals, thickness, reference, lo, hi);
-
-        if (!found || std::abs(root) < std::abs(best))
-            best = root;
-
-        found = true;
+    if (amplitude > 0.0 && std::abs(mean) <= amplitude) {
+        const double opening = std::acos(-mean / amplitude);
+        for (const double twice : {alpha + opening, alpha - opening}) {
+            double degrees = (0.5 * twice - base) * Tolerance::TO_DEGREES;
+            degrees -= 180.0 * std::round(degrees / 180.0);
+            const Vector r = turned(reference, degrees);
+            const bool grazing =
+                std::abs(normals[0].dot(r)) <= GRAZING || std::abs(normals[1].dot(r)) <= GRAZING;
+            if (grazing || std::abs(degrees) > SWEEP_RANGE)
+                continue;
+            if (!found || std::abs(degrees) < std::abs(best))
+                best = degrees;
+            found = true;
+        }
     }
 
-    return turned(reference, found ? best : 0.0);
-}
-
-double FloorGuide::closure(
-    const std::array<Polyline, 2>& shadows,
-    const std::array<Vector, 2>& normals,
-    double thickness,
-    const Vector& r
-) {
-
-    const std::array<double, 2> shift = {
-        thickness / normals[0].dot(r), thickness / normals[1].dot(r)
-    };
-    const size_t n = shadows[0].point_count() - 1;
-    const Vector start =
-        ((shadows[1].get_point(0) + r * shift[1]) - (shadows[0].get_point(0) + r * shift[0]))
-            .flattened();
-    const Vector vertex =
-        ((shadows[1].get_point(n) + r * shift[1]) - (shadows[0].get_point(n) + r * shift[0]))
-            .flattened();
-
-    return start.cross(vertex)[2] / (start.magnitude() * vertex.magnitude());
-}
-
-bool FloorGuide::sweep_sides(
-    const std::array<Vector, 2>& normals,
-    const Vector& reference,
-    double degrees,
-    std::array<bool, 2>& sides
-) {
-
-    const Vector r = turned(reference, degrees);
-    sides = {normals[0].dot(r) > 0.0, normals[1].dot(r) > 0.0};
-
-    return std::abs(normals[0].dot(r)) > GRAZING && std::abs(normals[1].dot(r)) > GRAZING;
-}
-
-double FloorGuide::bisect(
-    const std::array<Polyline, 2>& shadows,
-    const std::array<Vector, 2>& normals,
-    double thickness,
-    const Vector& reference,
-    double lo,
-    double hi
-) {
-
-    double f_lo = closure(shadows, normals, thickness, turned(reference, lo));
-
-    for (size_t i = 0; i < BISECTIONS && lo != hi; i++) {
-        const double mid = 0.5 * (lo + hi);
-        const double f_mid = closure(shadows, normals, thickness, turned(reference, mid));
-
-        if (f_mid == 0.0 || mid == lo || mid == hi)
-            return mid;
-
-        if ((f_mid > 0.0) == (f_lo > 0.0)) {
-            lo = mid;
-            f_lo = f_mid;
-        } else
-            hi = mid;
-    }
-
-    return 0.5 * (lo + hi);
+    return turned(reference, best);
 }
 
 Vector FloorGuide::turned(const Vector& reference, double degrees) {
