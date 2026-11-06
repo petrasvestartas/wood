@@ -6,12 +6,15 @@
 # Slots: wood/build/.buildlock and .buildlock2 (mkdir is the lock). Tickets: wood/build/.buildqueue/.
 # The owner file names the holder with its Windows pid so a stale lock can be told from a live one.
 set -u
+# Everything lives in one function called on the last line, so bash parses the whole file
+# before running it: editing this script no longer kills the waiters already running it.
+main() {
 # `--run` marks a command that runs programs but compiles nothing (test suites, example sweeps,
 # dataset runs, about 1 GB each): it may also use the third slot, which builds never take.
 mode=build
 if [ "${1:-}" = "--run" ]; then mode=run; shift; fi
 agent="${1:?agent name}"; shift
-[ $# -gt 0 ] || { echo "buildslot: command missing" >&2; exit 2; }
+[ $# -gt 0 ] || { echo "buildslot: command missing" >&2; return 2; }
 here="$(cd "$(dirname "$0")/.." && pwd)"
 build="$here/build"
 queue="$build/.buildqueue"
@@ -60,3 +63,5 @@ echo "buildslot: $agent holds $(basename "$lock") after ${waited}s: $*" >&2
 status=$?
 echo "buildslot: $agent releases $(basename "$lock"), exit $status" >&2
 exit $status
+}
+main "$@"
