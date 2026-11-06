@@ -52,10 +52,7 @@ private:
     /// The circular arc through base at the supports and base + change at mid-span: its value and slope at x.
     std::pair<double, double> profile(double base, double change, double x) const;
 
-    /// The point a thickness inside a profile at the arc's parameter u: its x and its distance from the axis.
-    std::pair<double, double> inside_point(double base, double change, double u) const;
-
-    /// The inner profile's distance from the axis at x, by bisection on the arc's parameter.
+    /// The inner profile's distance from the axis at x: the arc's concentric circle a thickness toward the axis.
     double inner_distance(double base, double change, double x) const;
 
     /// Every beam, beam_<b> its group: its four plates and its webs.
@@ -130,30 +127,16 @@ CurvedFoldedBeam::profile(double base, double change, double x) const {
     return std::make_pair(base + change - sign * radius + sign * root, -sign * x / root);
 }
 
-inline std::pair<double, double>
-CurvedFoldedBeam::inside_point(double base, double change, double u) const {
-
-    const std::pair<double, double> value = profile(base, change, u);
-    const double length = std::sqrt(1.0 + value.second * value.second);
-
-    return std::make_pair(u + thickness * value.second / length, value.first - thickness / length);
-}
-
 inline double CurvedFoldedBeam::inner_distance(double base, double change, double x) const {
 
-    double low = x - 2.0 * thickness;
-    double high = x + 2.0 * thickness;
+    // the arc's centre on the far side of its bulge, the inner circle a thickness nearer the axis
+    const double half = 0.5 * span;
+    const double radius = (half * half + change * change) / (2.0 * std::abs(change));
+    const double sign = change > 0.0 ? 1.0 : -1.0;
+    const double centre = base + change - sign * radius;
+    const double inner = radius - sign * thickness;
 
-    for (int i = 0; i < 80; i++) {
-        const double middle = 0.5 * (low + high);
-
-        if (inside_point(base, change, middle).first < x)
-            low = middle;
-        else
-            high = middle;
-    }
-
-    return inside_point(base, change, 0.5 * (low + high)).second;
+    return centre + sign * std::sqrt(inner * inner - x * x);
 }
 
 inline void CurvedFoldedBeam::add_beams(const std::array<std::vector<Point>, 2>& corner) {
@@ -219,19 +202,11 @@ inline void CurvedFoldedBeam::add_webs(
         for (size_t e = 0; e < 4; e++) {
             const double x = station + (e < 2 ? -0.5 : 0.5) * thickness;
             const double side = e % 2 == 0 ? 1.0 : -1.0;
-            double low = inner_crease.domain_start();
-            double high = inner_crease.domain_end();
-
-            for (int i = 0; i < 80; i++) {
-                const double middle = 0.5 * (low + high);
-
-                if (inner_crease.point_at(middle)[0] < x)
-                    low = middle;
-                else
-                    high = middle;
-            }
-
-            const Point point = inner_crease.point_at(0.5 * (low + high));
+            const Plane station_plane =
+                Plane::from_point_normal(Point(x, 0.0, 0.0), Vector(1.0, 0.0, 0.0));
+            const Point point = inner_crease.point_at(
+                Intersection::curve_plane(inner_crease, station_plane).front()
+            );
             const Point left(x, shift - point[1], side * point[2]);
             const Point right(x, shift + point[1], side * point[2]);
             curves[e] = NurbsCurve::create(false, 1, {left, right});

@@ -93,7 +93,14 @@ private:
     std::pair<size_t, size_t>
     generatrix_planes(const Segment& segment, double radius, double angle) const;
 
-    /// The angle between end and other where the generatrix is a millimetre long, by bisection.
+    /// The distance along the generatrix at an angle to footprint plane p as k + s sin + c cos: {k, s, c}.
+    static std::array<double, 3> plane_distance(const Segment& segment, double radius, size_t p);
+
+    /// The angles in [low, high] where a sin + b cos + c is 0, in order.
+    static std::vector<double>
+    sinusoid_roots(double a, double b, double c, double low, double high);
+
+    /// The angle between end and other nearest end where the generatrix is a millimetre long, a root of its length.
     double drawn_in(const Segment& segment, double radius, double end, double other) const;
 
     /// The angles the meridians of the cylinder of the radius change their plane at, the spans of the panel's multi-span arcs.
@@ -286,22 +293,71 @@ CylinderVault::generatrix_planes(const Segment& segment, double radius, double a
     return std::make_pair(ends[0].second, ends[1].second);
 }
 
+inline std::array<double, 3>
+CylinderVault::plane_distance(const Segment& segment, double radius, size_t p) {
+
+    // n . (origin - centre - x r sin - y r cos) over n . axis, as clip measures it
+    const Plane& plane = segment.footprint[p];
+    const double speed = plane.z_axis().dot(segment.axis);
+
+    return {
+        plane.z_axis().dot(plane.origin() - segment.centre) / speed,
+        -radius * plane.z_axis().dot(segment.x) / speed,
+        -radius * plane.z_axis().dot(segment.y) / speed,
+    };
+}
+
+inline std::vector<double>
+CylinderVault::sinusoid_roots(double a, double b, double c, double low, double high) {
+
+    // a sin + b cos is h cos(angle - phase), equal to -c either side of the phase, every turn of it within the range
+    const double amplitude = std::hypot(a, b);
+    std::vector<double> roots;
+
+    if (amplitude < 1e-12 || std::abs(c) > amplitude)
+        return roots;
+
+    const double phase = std::atan2(a, b);
+    const double opening = std::acos(-c / amplitude);
+
+    for (const double root : {phase + opening, phase - opening})
+        for (int turn = -2; turn <= 2; turn++) {
+            const double angle = root + 2.0 * Tolerance::PI * static_cast<double>(turn);
+            if (angle >= low && angle <= high)
+                roots.push_back(angle);
+        }
+
+    std::sort(roots.begin(), roots.end());
+    return roots;
+}
+
 inline double
 CylinderVault::drawn_in(const Segment& segment, double radius, double end, double other) const {
 
-    double short_angle = end;
-    double long_angle = other;
+    // every entry plane against every exit plane: the length between them a sinusoid, a millimetre at its roots
+    const double low = std::min(end, other);
+    const double high = std::max(end, other);
+    double nearest = other;
 
-    for (int step = 0; step < 60; step++) {
-        const double middle = 0.5 * (short_angle + long_angle);
+    for (size_t i = 0; i < segment.footprint.size(); i++)
+        for (size_t j = 0; j < segment.footprint.size(); j++) {
+            if (segment.footprint[i].z_axis().dot(segment.axis) < 1e-12 ||
+                segment.footprint[j].z_axis().dot(segment.axis) > -1e-12)
+                continue;
 
-        if (generatrix_length(segment, radius, middle) < 1.0)
-            short_angle = middle;
-        else
-            long_angle = middle;
-    }
+            const std::array<double, 3> entry = plane_distance(segment, radius, i);
+            const std::array<double, 3> exit = plane_distance(segment, radius, j);
+            const std::vector<double> roots = sinusoid_roots(
+                exit[1] - entry[1], exit[2] - entry[2], exit[0] - entry[0] - 1.0, low, high
+            );
 
-    return long_angle;
+            for (const double angle : roots)
+                if (std::abs(generatrix_length(segment, radius, angle) - 1.0) < 1e-6 &&
+                    std::abs(angle - end) < std::abs(nearest - end))
+                    nearest = angle;
+        }
+
+    return nearest;
 }
 
 inline std::vector<double>
@@ -316,30 +372,35 @@ CylinderVault::compute_spans(const Segment& segment, double radius) const {
     if (generatrix_length(segment, radius, last) < 1.0)
         last = drawn_in(segment, radius, last, first);
 
-    std::vector<double> spans = {first};
-    const size_t fine = 1024;
+    // two entry (or two exit) planes are as far along where their difference, a sinusoid, is 0: a span ends there
+    // where the generatrix really changes its plane
+    std::vector<double> changes;
 
-    for (size_t k = 0; k < fine; k++) {
-        double low = first + (last - first) * static_cast<double>(k) / static_cast<double>(fine);
-        double high =
-            first + (last - first) * static_cast<double>(k + 1) / static_cast<double>(fine);
-        const std::pair<size_t, size_t> at_low = generatrix_planes(segment, radius, low);
+    for (size_t i = 0; i < segment.footprint.size(); i++)
+        for (size_t j = i + 1; j < segment.footprint.size(); j++) {
+            const double speed_i = segment.footprint[i].z_axis().dot(segment.axis);
+            const double speed_j = segment.footprint[j].z_axis().dot(segment.axis);
 
-        if (at_low == generatrix_planes(segment, radius, high))
-            continue;
+            if (std::abs(speed_i) < 1e-12 || std::abs(speed_j) < 1e-12 ||
+                (speed_i > 0.0) != (speed_j > 0.0))
+                continue;
 
-        for (int step = 0; step < 50; step++) {
-            const double middle = 0.5 * (low + high);
+            const std::array<double, 3> a = plane_distance(segment, radius, i);
+            const std::array<double, 3> b = plane_distance(segment, radius, j);
 
-            if (generatrix_planes(segment, radius, middle) == at_low)
-                low = middle;
-            else
-                high = middle;
+            for (const double angle :
+                 sinusoid_roots(a[1] - b[1], a[2] - b[2], a[0] - b[0], first, last))
+                if (generatrix_planes(segment, radius, angle - 1e-9) !=
+                    generatrix_planes(segment, radius, angle + 1e-9))
+                    changes.push_back(angle);
         }
 
-        if (0.5 * (low + high) - spans.back() > 1e-6)
-            spans.push_back(0.5 * (low + high));
-    }
+    std::sort(changes.begin(), changes.end());
+    std::vector<double> spans = {first};
+
+    for (const double angle : changes)
+        if (angle - spans.back() > 1e-6)
+            spans.push_back(angle);
 
     if (last - spans.back() > 1e-6)
         spans.push_back(last);
