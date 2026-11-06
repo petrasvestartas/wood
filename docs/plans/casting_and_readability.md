@@ -373,3 +373,5 @@ Gate for each: oracle and reference goldens unchanged, every example's output id
   (`wood_element_face_planar.cpp:493-530`). Edges and blocks move theirs. `add_interaction` puts a
   plane feature on any `WoodElement` target (`wood_session.cpp:983-1009`), so a placed or instanced
   plate with a plane cut would keep it in the old place. Not run.
+
+Correction (2026-11-06, `fix-axis-contacts`): the four ternaries in contact detection are not duplication. `Element::planes()`/`polylines()` call `ensure_geometry()`, which lofts a plate's solid; the ternaries read the plate's planes without lofting, and `tests/joint_elements.cpp` checks that detection must not loft. They stay, with a comment. The per-pair `is_plate` cast and the `ContactType` arithmetic were fixed (12 casts to 6).

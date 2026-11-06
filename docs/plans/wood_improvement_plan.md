@@ -164,8 +164,12 @@ compas_model is the shape of its `Modifier.apply`.
 - Contact provenance: computed and user-authored contacts are distinguished, and recomputing contacts
   never wipes named ones.
 - Contacts keep every overlap region, not only `solution[0]`.
-- Beam axis contacts go through `SpatialBVH` instead of every pair against every pair; the unused
-  world-size code goes; the kernel's traversal stack gets a real bound.
+- Done (eaaa028c): beam axis contacts go through `SpatialBVH` (1,200 beams: 127 s to 107 ms; identical
+  results on every real call). Only `compute_axis_contacts` callers meet it: `8_beams`, the beam datasets,
+  the joint tests; no template does, so this never mattered for truss, grid or floor. The kernel's
+  traversal stack bound is on `kernel-full-build`'s branch.
+- Found on the way: `WoodF2F_phanomema_node.pb` is not stable across runs of the same binary (433,943 /
+  435,287 bytes): some beam feature output depends on guid order. Step 1 territory: find and fix.
 - Gate: oracle and reference goldens unchanged, every example's output identical, the floor template
   unchanged in its text.
 
