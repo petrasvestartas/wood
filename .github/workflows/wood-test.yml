@@ -107,11 +107,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # the shared messages the wood protos import live in the session repository
-    - name: Fetch session_proto
+    # the shared messages the wood protos import live in the session repository; session_proto
+    # and session_rust are submodules of it, so a sparse checkout alone leaves them empty.
+    # The commit is the superproject's `session` pointer; bump it with the pointer.
+    - name: Fetch session_proto and session_rust
       run: |
-        git clone --depth 1 --filter=blob:none --sparse https://github.com/petrasvestartas/session.git ../session
-        git -C ../session sparse-checkout set session_proto
+        SESSION_COMMIT=710cb875b5fd1c9e77e6e93f2d990d8cfa2e4b54
+        git init -q ../session
+        git -C ../session fetch --depth 1 https://github.com/petrasvestartas/session.git "$SESSION_COMMIT"
+        git -C ../session checkout -q FETCH_HEAD
+        git -C ../session submodule update --init --depth 1 session_proto session_rust
 
     - uses: arduino/setup-protoc@v3
       with:
