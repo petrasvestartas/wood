@@ -625,7 +625,6 @@ std::shared_ptr<Element> to_vault_panel(
     double hy,
     const std::vector<Point>& corners,
     double thickness,
-    int subdivisions,
     const std::string& panel_name = "vault_panel"
 ) {
     const size_t k_cnt = corners.size();
@@ -660,18 +659,38 @@ std::shared_ptr<Element> to_vault_panel(
     e_outer.reserve(k_cnt);
     e_rise.reserve(k_cnt);
     curves.reserve(k_cnt);
+    // the web is translational, cubic across and straight along: the image of a uv line is the profile shifted along the
+    // generators by the line's other parameter, linear in the profile's, so exact with the shift at the Greville abscissae
+    const int across = surface.order(0) > 2 ? 0 : 1;
+    const std::pair<double, double> along = surface.domain(1 - across);
+    const NurbsCurve start_profile = surface.iso_curve(across, along.first);
+    const NurbsCurve end_profile = surface.iso_curve(across, along.second);
     for (size_t k = 0; k < k_cnt; ++k) {
         const size_t next = (k + 1) % k_cnt;
-        std::vector<Point> samples;
-        samples.reserve(subdivisions + 1);
-        for (int t = 0; t <= subdivisions; ++t) {
-            const Point uv =
-                uvs[k] + (uvs[next] - uvs[k]) * (static_cast<double>(t) / subdivisions);
-            samples.push_back(surface.point_at(uv[0], uv[1]));
-        }
-        NurbsCurve edge_crv = NurbsCurve::create_interpolated(
-            samples, CurveNurbsKnotStyle::Uniform, CurveInterpStyle::Occt
+        const double from = uvs[k][across];
+        const double to = uvs[next][across];
+        NurbsCurve edge_crv = NurbsCurve::create(
+            false, 1, {brep.m_vertices[inner[k]].point, brep.m_vertices[inner[next]].point}
         );
+        if (std::abs(to - from) > 1e-12) {
+            // both profiles cut to the edge first, so every shift stays within the edge's own range
+            NurbsCurve start_part = start_profile;
+            NurbsCurve end_part = end_profile;
+            start_part.trim(std::min(from, to), std::max(from, to));
+            end_part.trim(std::min(from, to), std::max(from, to));
+            const double slope = (uvs[next][1 - across] - uvs[k][1 - across]) / (to - from);
+            edge_crv = start_part;
+            for (int i = 0; i < start_part.cv_count(); ++i) {
+                const double shift =
+                    uvs[k][1 - across] + (start_part.greville_abcissa(i) - from) * slope;
+                const double share = (shift - along.first) / (along.second - along.first);
+                edge_crv.set_cv(
+                    i, start_part.get_cv(i) + (end_part.get_cv(i) - start_part.get_cv(i)) * share
+                );
+            }
+            if (from > to)
+                edge_crv.reverse();
+        }
         edge_crv.set_domain(0.0, 1.0);
         curves.push_back(edge_crv);
         const int inner_curve = brep.add_curve_3d(curves.back());
@@ -1312,7 +1331,7 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             const NurbsSurface& web_surf = (ux <= uy + 1e-6) ? surf_ns : surf_ew;
 
             result.push_back(
-                to_vault_panel(web_surf, hx, hy, clean_poly, panel_thickness, edge_sub, panel_name)
+                to_vault_panel(web_surf, hx, hy, clean_poly, panel_thickness, panel_name)
             );
         }
     }
