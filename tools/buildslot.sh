@@ -25,7 +25,10 @@ trap 'exit 129' HUP
 winpid="$(cat /proc/$$/winpid 2>/dev/null || echo $$)"
 waited=0
 while :; do
-    oldest="$(ls "$queue" 2>/dev/null | sort | head -n 1)"
+    # A ticket is alive while its waiter keeps touching it; a ticket nobody has touched for two
+    # minutes (a killed waiter, or one made by hand) no longer blocks the queue.
+    touch "$ticket"
+    oldest="$(find "$queue" -mindepth 1 -maxdepth 1 -mmin -2 -printf '%f\n' 2>/dev/null | sort | head -n 1)"
     if [ "$(basename "$ticket")" = "$oldest" ]; then
         for candidate in "$build/.buildlock" "$build/.buildlock2"; do
             if mkdir "$candidate" 2>/dev/null; then
