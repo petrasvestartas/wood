@@ -47,6 +47,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target two_plates --parallel 6 && ./build/two_plates && ../bash/publish-scene.sh --target two_plates
 
+|||||||| TIME ||||||||
+1.93 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

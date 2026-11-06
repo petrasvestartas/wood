@@ -45,6 +45,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_edge_curved_session --parallel 6 && ./build/element_edge_curved_session && ../bash/publish-scene.sh --target element_edge_curved_session
 
+|||||||| TIME ||||||||
+0.78 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

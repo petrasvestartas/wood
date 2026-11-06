@@ -40,6 +40,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_module_4_room_module --parallel 6 && ./build/templates_module_4_room_module && ../bash/publish-scene.sh --target templates_module_4_room_module
 
+|||||||| TIME ||||||||
+1.44 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

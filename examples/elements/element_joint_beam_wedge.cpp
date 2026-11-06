@@ -43,6 +43,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_beam_wedge --parallel 6 && ./build/element_joint_beam_wedge && ../bash/publish-scene.sh --target element_joint_beam_wedge
 
+|||||||| TIME ||||||||
+1.48 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

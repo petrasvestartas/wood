@@ -49,6 +49,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 8_beams --parallel 6 && ./build/8_beams && ../bash/publish-scene.sh --target 8_beams
 
+|||||||| TIME ||||||||
+0.76 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

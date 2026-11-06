@@ -46,6 +46,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_beam_side_side_inplane_cross_splayed_scarf --parallel 6 && ./build/element_joint_beam_side_side_inplane_cross_splayed_scarf && ../bash/publish-scene.sh --target element_joint_beam_side_side_inplane_cross_splayed_scarf
 
+|||||||| TIME ||||||||
+1.23 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

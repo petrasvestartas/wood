@@ -58,6 +58,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_module_6_bank_pavilion --parallel 6 && ./build/templates_module_6_bank_pavilion && ../bash/publish-scene.sh --target templates_module_6_bank_pavilion
 
+|||||||| TIME ||||||||
+2.28 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

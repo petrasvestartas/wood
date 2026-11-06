@@ -32,6 +32,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_edge_straight_column --parallel 6 && ./build/element_edge_straight_column && ../bash/publish-scene.sh --target element_edge_straight_column
 
+|||||||| TIME ||||||||
+2.36 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

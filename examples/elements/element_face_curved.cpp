@@ -53,6 +53,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_face_curved --parallel 6 && ./build/element_face_curved && ../bash/publish-scene.sh --target element_face_curved
 
+|||||||| TIME ||||||||
+0.50 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

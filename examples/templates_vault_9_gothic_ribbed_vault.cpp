@@ -107,6 +107,9 @@ examples/templates_vault_9_gothic_ribbed_vault.cpp
  |-- add(elem, group) for every corner support NodeBlockElement and mitered EdgeCurvedElement rib
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
+|||||||| TIME ||||||||
+0.96 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

@@ -283,6 +283,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_grid_5_framing --parallel 6 && ./build/templates_grid_5_framing && ../bash/publish-scene.sh --target templates_grid_5_framing
 
+|||||||| TIME ||||||||
+1.33 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

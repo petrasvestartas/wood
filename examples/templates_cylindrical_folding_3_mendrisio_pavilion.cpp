@@ -60,6 +60,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_cylindrical_folding_3_mendrisio_pavilion --parallel 6 && ./build/templates_cylindrical_folding_3_mendrisio_pavilion && ../bash/publish-scene.sh --target templates_cylindrical_folding_3_mendrisio_pavilion
 
+|||||||| TIME ||||||||
+1.32 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

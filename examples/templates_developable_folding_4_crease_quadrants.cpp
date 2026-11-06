@@ -47,6 +47,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_developable_folding_4_crease_quadrants --parallel 6 && ./build/templates_developable_folding_4_crease_quadrants && ../bash/publish-scene.sh --target templates_developable_folding_4_crease_quadrants
 
+|||||||| TIME ||||||||
+1.19 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

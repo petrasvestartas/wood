@@ -62,6 +62,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 4_traversal --parallel 6 && ./build/4_traversal && ../bash/publish-scene.sh --target 4_traversal
 
+|||||||| TIME ||||||||
+1.03 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

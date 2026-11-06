@@ -40,6 +40,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_truss_4_custom_wireframe --parallel 6 && ./build/templates_truss_4_custom_wireframe && ../bash/publish-scene.sh --target templates_truss_4_custom_wireframe
 
+|||||||| TIME ||||||||
+2.17 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

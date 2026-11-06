@@ -353,6 +353,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target main_session_round_trip --parallel 6 && ./build/main_session_round_trip && ../bash/publish-scene.sh --target main_session_round_trip
 
+|||||||| TIME ||||||||
+3.94 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

@@ -104,6 +104,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_reciprocal_2_move --parallel 6 && ./build/templates_reciprocal_2_move && ../bash/publish-scene.sh --target templates_reciprocal_2_move
 
+|||||||| TIME ||||||||
+0.93 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

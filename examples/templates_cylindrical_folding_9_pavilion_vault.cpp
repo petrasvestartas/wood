@@ -43,6 +43,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_cylindrical_folding_9_pavilion_vault --parallel 6 && ./build/templates_cylindrical_folding_9_pavilion_vault && ../bash/publish-scene.sh --target templates_cylindrical_folding_9_pavilion_vault
 
+|||||||| TIME ||||||||
+3.48 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

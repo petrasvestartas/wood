@@ -62,6 +62,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_developable_folding_12_corrugated_funnel --parallel 6 && ./build/templates_developable_folding_12_corrugated_funnel && ../bash/publish-scene.sh --target templates_developable_folding_12_corrugated_funnel
 
+|||||||| TIME ||||||||
+19.62 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

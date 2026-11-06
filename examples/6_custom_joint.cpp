@@ -58,6 +58,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 6_custom_joint --parallel 6 && ./build/6_custom_joint && ../bash/publish-scene.sh --target 6_custom_joint
 
+|||||||| TIME ||||||||
+0.83 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

@@ -51,6 +51,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_plate_top_top_circle_pins --parallel 6 && ./build/element_joint_plate_top_top_circle_pins && ../bash/publish-scene.sh --target element_joint_plate_top_top_circle_pins
 
+|||||||| TIME ||||||||
+1.05 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

@@ -30,6 +30,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_pin --parallel 6 && ./build/element_joint_pin && ../bash/publish-scene.sh --target element_joint_pin
 
+|||||||| TIME ||||||||
+0.44 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

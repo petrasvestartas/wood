@@ -51,6 +51,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_plate_top_top_polylabel_pin --parallel 6 && ./build/element_joint_plate_top_top_polylabel_pin && ../bash/publish-scene.sh --target element_joint_plate_top_top_polylabel_pin
 
+|||||||| TIME ||||||||
+2.36 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

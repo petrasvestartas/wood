@@ -53,6 +53,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_plate_side_side_rotated_miter --parallel 6 && ./build/element_joint_plate_side_side_rotated_miter && ../bash/publish-scene.sh --target element_joint_plate_side_side_rotated_miter
 
+|||||||| TIME ||||||||
+0.83 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

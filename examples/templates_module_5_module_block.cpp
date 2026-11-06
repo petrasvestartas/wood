@@ -39,6 +39,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_module_5_module_block --parallel 6 && ./build/templates_module_5_module_block && ../bash/publish-scene.sh --target templates_module_5_module_block
 
+|||||||| TIME ||||||||
+3.50 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

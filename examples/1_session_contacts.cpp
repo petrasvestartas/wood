@@ -80,6 +80,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 1_session_contacts --parallel 6 && ./build/1_session_contacts && ../bash/publish-scene.sh --target 1_session_contacts
 
+|||||||| TIME ||||||||
+1.20 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/?cmd=Arctic%20On;View%20Xray;View%20Isometric;Fit
 */

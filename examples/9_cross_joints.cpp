@@ -45,6 +45,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 9_cross_joints --parallel 6 && ./build/9_cross_joints && ../bash/publish-scene.sh --target 9_cross_joints
 
+|||||||| TIME ||||||||
+1.21 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

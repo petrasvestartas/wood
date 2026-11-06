@@ -150,6 +150,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_grid_2_solid --parallel 6 && ./build/templates_grid_2_solid && ../bash/publish-scene.sh --target templates_grid_2_solid
 
+|||||||| TIME ||||||||
+5.16 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

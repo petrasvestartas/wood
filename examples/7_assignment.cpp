@@ -83,6 +83,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 7_assignment --parallel 6 && ./build/7_assignment && ../bash/publish-scene.sh --target 7_assignment
 
+|||||||| TIME ||||||||
+1.53 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

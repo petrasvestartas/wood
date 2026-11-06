@@ -52,6 +52,9 @@ examples/templates_vault_4_dome.cpp
  |-- compute_face_contacts(0)                    coplanar face overlaps between every pair
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
+|||||||| TIME ||||||||
+1.12 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

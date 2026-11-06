@@ -60,6 +60,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_cylindrical_folding_7_a_frame --parallel 6 && ./build/templates_cylindrical_folding_7_a_frame && ../bash/publish-scene.sh --target templates_cylindrical_folding_7_a_frame
 
+|||||||| TIME ||||||||
+4.61 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

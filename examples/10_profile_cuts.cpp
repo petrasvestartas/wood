@@ -53,6 +53,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 10_profile_cuts --parallel 6 && ./build/10_profile_cuts && ../bash/publish-scene.sh --target 10_profile_cuts
 
+|||||||| TIME ||||||||
+0.89 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

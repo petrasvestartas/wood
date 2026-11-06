@@ -48,6 +48,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target 11_drill_solids --parallel 6 && ./build/11_drill_solids && ../bash/publish-scene.sh --target 11_drill_solids
 
+|||||||| TIME ||||||||
+1.31 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

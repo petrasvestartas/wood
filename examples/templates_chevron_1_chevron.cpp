@@ -33,6 +33,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_chevron_1_chevron --parallel 6 && ./build/templates_chevron_1_chevron && ../bash/publish-scene.sh --target templates_chevron_1_chevron
 
+|||||||| TIME ||||||||
+14.43 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

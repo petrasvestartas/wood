@@ -35,6 +35,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_floor_8_rectangle --parallel 6 && ./build/templates_floor_8_rectangle && ../bash/publish-scene.sh --target templates_floor_8_rectangle
 
+|||||||| TIME ||||||||
+5.94 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

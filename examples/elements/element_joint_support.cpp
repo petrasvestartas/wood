@@ -41,6 +41,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target element_joint_support --parallel 6 && ./build/element_joint_support && ../bash/publish-scene.sh --target element_joint_support
 
+|||||||| TIME ||||||||
+2.71 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */

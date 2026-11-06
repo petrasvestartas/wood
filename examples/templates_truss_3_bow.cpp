@@ -30,6 +30,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 |||||||| CMAKE BUILD && RUN && CLOUDFLARE ||||||||
 cmake --build build --target templates_truss_3_bow --parallel 6 && ./build/templates_truss_3_bow && ../bash/publish-scene.sh --target templates_truss_3_bow
 
+|||||||| TIME ||||||||
+31.83 s, Release on Windows, measured 2026-11-06
+
 |||||||| VIEW ||||||||
 https://petrasvestartas.github.io/session/
 */
