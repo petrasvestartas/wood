@@ -238,18 +238,13 @@ void add_outline(const Polyline& pl, std::vector<Point>& corners) {
         corners.push_back(pl.get_point(k));
 }
 
-/// Whether the element follows the plate face convention: [0] bottom, [1] top, [2..] sides.
-bool is_plate(const Element& e) {
-    return dynamic_cast<const FacePlanarElement*>(&e) != nullptr;
-}
-
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
 
     const auto* plate = dynamic_cast<const FacePlanarElement*>(&e);
     const std::vector<Polyline> fallback = plate ? std::vector<Polyline>{} : e.polylines();
     const auto& loops = plate ? plate->polylines : fallback;
-    if (is_plate(e) && loops.size() > 1) {
+    if (plate && loops.size() > 1) {
         out.reserve(loops[0].point_count() + loops[1].point_count());
         add_outline(loops[1], out);
         add_outline(loops[0], out);
@@ -260,50 +255,60 @@ void bounding_points(Element& e, std::vector<Point>& out) {
         add_outline(loop, out);
 }
 
-/// Whether face i is an outer (top/bottom) face of a plate.
-bool outer_face(const Element& e, size_t i) {
-    return is_plate(e) && i < 2;
-}
+/// One side of a face pair, cast once per element pair; a plate's faces are [0] bottom, [1] top.
+struct FaceOwner {
+    const FacePlanarElement* plate; // The element as a plate, else null.
+    const EdgeElement* edge; // The element as a beam, else null.
+};
 
-/// Whether a triangular overlap of faces i and j is a contact.
-bool triangle_contact(const Element& a, size_t i, const Element& b, size_t j) {
+/// Whether a triangular overlap of faces i and j is a contact: between two plates, outer faces only.
+bool triangle_contact(const FaceOwner& a, size_t i, const FaceOwner& b, size_t j) {
 
-    if (!is_plate(a) || !is_plate(b))
+    if (!a.plate || !b.plate)
         return true;
 
-    return outer_face(a, i) && outer_face(b, j);
+    return i < 2 && j < 2;
 }
 
-/// Topology class of a face pair; unknown unless both sides follow the plate convention.
+/// Whether a beam's face in plane is an end, across its chord.
+bool is_end(const EdgeElement& edge, const Plane& plane) {
+
+    const Line axis = edge.chord();
+    if (axis.length() <= 0.0)
+        return false;
+
+    return std::abs(plane.z_axis().dot(axis.to_vector().normalized())) > 1e-6;
+}
+
+/// Topology class of a face pair; unknown unless each side is a beam or a plate.
 ContactType contact_type(
-    const Element& a, size_t i, const Element& b, size_t j, const Plane& pa, const Plane& pb
+    const FaceOwner& a, size_t i, const FaceOwner& b, size_t j, const Plane& pa, const Plane& pb
 ) {
 
-    const bool linear_a = dynamic_cast<const EdgeElement*>(&a) != nullptr;
-    const bool linear_b = dynamic_cast<const EdgeElement*>(&b) != nullptr;
-    auto is_end = [](const Element& element, const Plane& plane) {
-        const Line axis = static_cast<const EdgeElement&>(element).chord();
-        if (axis.length() <= 0.0)
-            return false;
-        return std::abs(plane.z_axis().dot(axis.to_vector().normalized())) > 1e-6;
-    };
-    if (linear_a && linear_b) {
-        const bool end_a = is_end(a, pa), end_b = is_end(b, pb);
+    if (a.edge && b.edge) {
+        const bool end_a = is_end(*a.edge, pa);
+        const bool end_b = is_end(*b.edge, pb);
         if (end_a != end_b)
             return ContactType::end_side;
         return end_a ? ContactType::end_end : ContactType::side_side;
     }
-    if ((linear_a && is_plate(b)) || (linear_b && is_plate(a))) {
-        const bool end = linear_a ? is_end(a, pa) : is_end(b, pb);
-        const bool top = linear_a ? j < 2 : i < 2;
+    if ((a.edge && b.plate) || (b.edge && a.plate)) {
+        const bool end = a.edge ? is_end(*a.edge, pa) : is_end(*b.edge, pb);
+        const bool top = a.edge ? j < 2 : i < 2;
         if (end)
             return top ? ContactType::end_top : ContactType::end_side;
         return top ? ContactType::side_top : ContactType::side_side;
     }
-    if (!is_plate(a) || !is_plate(b))
+    if (!a.plate || !b.plate)
         return ContactType::unknown;
 
-    return static_cast<ContactType>(int(outer_face(a, i)) + int(outer_face(b, j)));
+    const bool top_a = i < 2;
+    const bool top_b = j < 2;
+    if (top_a && top_b)
+        return ContactType::top_top;
+    if (top_a || top_b)
+        return ContactType::side_top;
+    return ContactType::side_side;
 }
 
 }
@@ -492,8 +497,11 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
 
     const double cos_angle = std::cos(settings.angle);
 
-    const auto* plate_a = dynamic_cast<const FacePlanarElement*>(&ea);
-    const auto* plate_b = dynamic_cast<const FacePlanarElement*>(&eb);
+    auto* plate_a = dynamic_cast<FacePlanarElement*>(&ea);
+    auto* plate_b = dynamic_cast<FacePlanarElement*>(&eb);
+    const FaceOwner owner_a{plate_a, dynamic_cast<const EdgeElement*>(&ea)};
+    const FaceOwner owner_b{plate_b, dynamic_cast<const EdgeElement*>(&eb)};
+    // a plate's own fields, not planes(): that lofts the plate's solid first (ensure_geometry)
     std::vector<Plane> planes_a = plate_a ? plate_a->planes : ea.planes();
     std::vector<Plane> planes_b = plate_b ? plate_b->planes : eb.planes();
     std::vector<Polyline> outlines_a = plate_a ? plate_a->polylines : ea.polylines();
@@ -514,8 +522,8 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
                 trace->coplanar++;
 
             Polyline polygon;
-            const bool triangles = triangle_contact(ea, i, eb, j);
-            const int decimals = is_plate(ea) && is_plate(eb) ? CONTACT_DECIMALS : 6;
+            const bool triangles = triangle_contact(owner_a, i, owner_b, j);
+            const int decimals = plate_a && plate_b ? CONTACT_DECIMALS : 6;
             if (!face_overlap_area(
                     outlines_a[i],
                     outlines_b[j],
@@ -536,19 +544,19 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
             contacts.emplace_back(
                 static_cast<int>(i),
                 static_cast<int>(j),
-                contact_type(ea, i, eb, j, planes_a[i], planes_b[j]),
+                contact_type(owner_a, i, owner_b, j, planes_a[i], planes_b[j]),
                 std::move(polygon)
             );
         }
     }
 
-    if (with_volumes && is_plate(ea) && is_plate(eb)) {
+    if (with_volumes && plate_a && plate_b) {
         for (auto& contact : contacts) {
             InteractionFeaturePlate joint;
             bool flip = false;
             if (!face_to_face_wood(
-                    static_cast<FacePlanarElement&>(ea),
-                    static_cast<FacePlanarElement&>(eb),
+                    *plate_a,
+                    *plate_b,
                     {0, 1},
                     0,
                     settings,
