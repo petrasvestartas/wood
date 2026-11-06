@@ -100,6 +100,29 @@ struct AssemblySolid {
         return least;
     }
 
+    /// The distances d in [0, reach] where p + direction d lies in the bounds and between the faces, a little wider: outside it
+    /// contains is false; empty when the first exceeds the second.
+    std::pair<double, double> span(const Point& p, const Vector& direction, double reach) const {
+        std::pair<double, double> range = {0.0, reach};
+        const auto clip = [&](double start, double speed, double from, double to) {
+            if (std::abs(speed) < 1e-15) {
+                if (start < from || start > to)
+                    range = {1.0, 0.0};
+                return;
+            }
+            const double a = (from - start) / speed;
+            const double b = (to - start) / speed;
+            range = {
+                std::max(range.first, std::min(a, b) - 1e-6),
+                std::min(range.second, std::max(a, b) + 1e-6)
+            };
+        };
+        for (int c = 0; c < 3; c++)
+            clip(p[c], direction[c], low[c], high[c]);
+        clip((p - base.origin()).dot(up), direction.dot(up), 0.0, thickness);
+        return range;
+    }
+
     /// Whether p lies in the prism: between the faces, inside the outer loop and outside every hole at its height.
     bool contains(const Point& p) const {
         if (p[0] < low[0] || p[0] > high[0] || p[1] < low[1] || p[1] > high[1] || p[2] < low[2] ||
@@ -594,10 +617,26 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
                 std::optional<AssemblyCollision> met;
                 int inside = 0;
 
-                // the moving plate's points along the way through the placed plate, and the placed plate's points through the moving one
+                // the moving plate's points along the way through the placed plate, and the placed plate's points through the moving one,
+                // each only at the steps where its path is within the other's bounds and faces
+                const auto first_step = [&](const std::pair<double, double>& range) {
+                    return range.second >= reach
+                               ? steps
+                               : std::min(
+                                     steps - 1, static_cast<int>(std::floor(range.second / step))
+                                 );
+                };
+                const auto last_step = [&](const std::pair<double, double>& range) {
+                    return range.first > (steps - 1) * step
+                               ? steps
+                               : static_cast<int>(std::ceil(range.first / step));
+                };
                 double deepest = 0.0;
-                for (const Point& sample : m.samples)
-                    for (int i = steps; i >= 0; i--) {
+                for (const Point& sample : m.samples) {
+                    const std::pair<double, double> range = q.span(sample, v * -1.0, reach);
+                    if (range.first > range.second)
+                        continue;
+                    for (int i = first_step(range); i >= last_step(range); i--) {
                         const double d = std::min(reach, i * step);
                         const double depth = q.depth(sample - v * d);
                         if (depth <= 0.0)
@@ -610,8 +649,12 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
                         if (d == 0.0)
                             inside++;
                     }
-                for (const Point& sample : q.samples)
-                    for (int i = steps; i >= 0; i--) {
+                }
+                for (const Point& sample : q.samples) {
+                    const std::pair<double, double> range = m.span(sample, v, reach);
+                    if (range.first > range.second)
+                        continue;
+                    for (int i = first_step(range); i >= last_step(range); i--) {
                         const double d = std::min(reach, i * step);
                         const double depth = m.depth(sample + v * d);
                         if (depth <= 0.0)
@@ -624,6 +667,7 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
                         if (d == 0.0)
                             inside++;
                     }
+                }
 
                 if (met) {
                     met->inside = inside;
