@@ -15,7 +15,7 @@ static void check(bool ok, const std::string& message) {
 }
 
 static void contact_round_trip(const InteractionContactFace& contact) {
-    const auto restored =
+    const InteractionContactFace restored =
         InteractionContactFace::interaction_data_loads(contact.interaction_data_dumps());
     check(
         restored.face_a == contact.face_a && restored.face_b == contact.face_b,
@@ -27,7 +27,7 @@ static void contact_round_trip(const InteractionContactFace& contact) {
             restored.volumes[i].get_points() == contact.volumes[i].get_points(),
             "contact volume serialization"
         );
-    const auto twice =
+    const std::shared_ptr<InteractionContactFace> twice =
         std::dynamic_pointer_cast<InteractionContactFace>(contact.flipped()->flipped());
     check(
         twice->face_a == contact.face_a && twice->face_b == contact.face_b,
@@ -64,7 +64,7 @@ stacked_pins(WoodSession& scene, std::shared_ptr<FacePlanarElement>& lower, std:
     upper = FacePlanarElement::from_rectangle({0, 0, 40}, {1, 0, 0}, {0, 1, 0}, 100, 100, 40);
     scene.add(lower);
     scene.add(upper);
-    const auto contact = scene.compute_face_contact(lower, upper);
+    const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(lower, upper);
     check(contact != nullptr, "stacked plates touch");
     return JointBeamElement::centred_pins(*lower, *upper, *contact, 4.0, 30.0, 20.0, 10.0);
 }
@@ -131,9 +131,30 @@ static void check_scene_calls() {
         first.add(FacePlanarElement::from_rectangle({0, 100.0 * i, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10));
     const std::shared_ptr<TreeNode> group_a = second.add_group("a");
     const std::shared_ptr<TreeNode> group_b = second.add_group("b");
-    const auto p2 = FacePlanarElement::from_rectangle({0, 300, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p3 = FacePlanarElement::from_rectangle({0, 400, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    const auto p4 = FacePlanarElement::from_rectangle({0, 600, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const std::shared_ptr<FacePlanarElement> p2 = FacePlanarElement::from_rectangle(
+        {0, 300, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    const std::shared_ptr<FacePlanarElement> p3 = FacePlanarElement::from_rectangle(
+        {0, 400, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    const std::shared_ptr<FacePlanarElement> p4 = FacePlanarElement::from_rectangle(
+        {0, 600, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
     second.add(p2, group_b);
     second.add(p3, group_b);
     second.add(p4, group_a);
@@ -186,12 +207,27 @@ static void check_scene_calls() {
 static void check_beam_curved_and_profiles() {
     // 1. Concave and hollow profile beams (W, T, HSS) have triangulated caps and closed solids
     const Polyline axis({{0.0, 0.0, 0.0}, {0.0, 800.0, 0.0}});
-    for (const auto& loops : {
-             profile_w(200.0, 300.0, 20.0, 12.0),
-             profile_t(300.0, 300.0, 20.0, 40.0),
+    for (const std::vector<Polyline>& loops : {
+             profile_w(
+                 200.0,
+                 300.0,
+                 20.0,
+                 12.0
+             ),
+             profile_t(
+                 300.0,
+                 300.0,
+                 20.0,
+                 40.0
+             ),
              profile_hss(200.0, 300.0, 12.0),
          }) {
-        const auto pbeam = std::make_shared<EdgeStraightElement>(axis, loops, std::vector<Vector>{}, "prof");
+        const std::shared_ptr<EdgeStraightElement> pbeam = std::make_shared<EdgeStraightElement>(
+            axis,
+            loops,
+            std::vector<Vector>{},
+            "prof"
+        );
         check(
             pbeam->element_geometry_mesh().is_closed() &&
                 !pbeam->element_geometry_mesh().get_triangulation().empty(),
@@ -205,7 +241,14 @@ static void check_beam_curved_and_profiles() {
 
     // 2. Single-curved glulam arch
     const NurbsCurve arch = Primitives::arc({0.0, 0.0, 0.0}, {1000.0, 0.0, 400.0}, {2000.0, 0.0, 0.0});
-    const auto single_beam = EdgeCurvedElement::single_curved(arch, 120.0, 240.0, 6, 24, "single_glulam");
+    const std::shared_ptr<EdgeCurvedElement> single_beam = EdgeCurvedElement::single_curved(
+        arch,
+        120.0,
+        240.0,
+        6,
+        24,
+        "single_glulam"
+    );
     check(single_beam->is_single_curved() && !single_beam->is_double_curved(), "single-curved detection");
     check(
         std::abs(single_beam->lamella_width() - 120.0) < 1e-9 &&
@@ -241,8 +284,17 @@ static void check_beam_curved_and_profiles() {
         Vector(0.0, 0.4, 1.0).normalized(),
         Vector(0.0, -0.2, 1.0).normalized(),
     };
-    const auto double_beam =
-        EdgeCurvedElement::double_curved(spatial, 140.0, 240.0, guides, {}, 2, 6, 24, "double_glulam");
+    const std::shared_ptr<EdgeCurvedElement> double_beam = EdgeCurvedElement::double_curved(
+        spatial,
+        140.0,
+        240.0,
+        guides,
+        {},
+        2,
+        6,
+        24,
+        "double_glulam"
+    );
     check(double_beam->is_double_curved() && !double_beam->is_single_curved(), "double-curved detection");
     double_beam->max_curvature(kw, kh);
     check(kw > 1e-5 && kh > 1e-5, "double-curved curvature in both axes");
@@ -268,7 +320,8 @@ static void check_beam_curved_and_profiles() {
     curved_scene.add(double_beam);
     const WoodSession round_trip = WoodSession::pb_loads(curved_scene.pb_dumps());
     check(round_trip.get_elements<EdgeCurvedElement>().size() == 2, "EdgeCurvedElement protobuf round trip");
-    const auto reloaded_double = round_trip.get_element<EdgeCurvedElement>(double_beam->guid());
+    const std::shared_ptr<EdgeCurvedElement> reloaded_double =
+        round_trip.get_element<EdgeCurvedElement>(double_beam->guid());
     check(
         reloaded_double && reloaded_double->num_width == 2 && reloaded_double->num_height == 6 &&
             reloaded_double->cuts.size() == 1 &&
@@ -281,66 +334,73 @@ static void check_beam_curved_and_profiles() {
     std::cout << "beam curved and profile checks passed\n";
 }
 
+namespace {
+
+struct Fingers {
+    size_t closed = 0; // Closed plate solid count.
+    size_t plates = 0; // Total plate count.
+    double overlap = 0.0; // Total pairwise overlap volume.
+    double wood = 0.0; // Total cut wood volume.
+    double depth = 0.0; // Mean finger depth across seams.
+    double divisions = 0.0; // Mean division count across seams.
+};
+
+/// Measures in-plane finger geometry and solid fit on inplane_hexshell.
+Fingers measure_fingers(double division, const std::vector<double>& extension, double scale) {
+
+    WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
+    scene.settings.joint_parameters[0] = division;
+    scene.settings.joint_volume_extension = extension;
+    scene.settings.joint_depth_scale = scale;
+    scene.compute_features();
+
+    Fingers fingers;
+    std::vector<Mesh> solids;
+    for (const std::shared_ptr<FacePlanarElement>& plate : scene.get_elements<FacePlanarElement>()) {
+        solids.push_back(plate->model_geometry_mesh());
+        fingers.closed += solids.back().is_closed();
+        fingers.wood += compute_volume(solids.back());
+    }
+    fingers.plates = solids.size();
+    for (size_t i = 0; i < solids.size(); i++)
+        for (size_t j = i + 1; j < solids.size(); j++) {
+            const Mesh both = solid_boolean(solids[i], solids[j], SolidOperation::intersect);
+            if (both.number_of_faces() > 0)
+                fingers.overlap += compute_volume(both);
+        }
+
+    // the depth from the outline itself, across the seam, the mean over the joints
+    const std::vector<InteractionFeaturePlate> joints = scene.get_plate_features();
+    for (const InteractionFeaturePlate& joint : joints) {
+        const Polyline& outline = joint.male_outlines[0][0];
+        const Polyline& ends = joint.male_outlines[0][1];
+        const Vector along = (ends[1] - ends[0]).normalized();
+        const Vector across = along.cross(
+            ((*joint.joint_volumes[0])[3] - (*joint.joint_volumes[0])[0]).normalized()
+        );
+        double low = std::numeric_limits<double>::max();
+        double high = std::numeric_limits<double>::lowest();
+        for (const Point& point : outline.get_points()) {
+            low = std::min(low, (point - ends[0]).dot(across.normalized()));
+            high = std::max(high, (point - ends[0]).dot(across.normalized()));
+        }
+        fingers.depth += (high - low) / joints.size();
+        fingers.divisions += double(joint.divisions) / joints.size();
+    }
+
+    return fingers;
+}
+
+} // namespace
+
 /// The fingers of an in-plane joint sized without touching the plates, on the folded hexagonal shell: the depth setting leaves the default alone, the plates still fit at every fold, and
 /// the depth and the count come out as asked. A negative volume width is measured too: it is why the depth has a setting of its own.
 static void check_joint_depth_scale() {
 
-    struct Fingers {
-        size_t closed = 0;
-        size_t plates = 0;
-        double overlap = 0.0;
-        double wood = 0.0;
-        double depth = 0.0;
-        double divisions = 0.0;
-    };
-    const auto measured = [](double division, const std::vector<double>& extension, double scale) {
-        WoodSession scene = WoodSession::yaml_load(config::Dataset::inplane_hexshell);
-        scene.settings.joint_parameters[0] = division;
-        scene.settings.joint_volume_extension = extension;
-        scene.settings.joint_depth_scale = scale;
-        scene.compute_features();
-
-        Fingers fingers;
-        std::vector<Mesh> solids;
-        for (const std::shared_ptr<FacePlanarElement>& plate : scene.get_elements<FacePlanarElement>()) {
-            solids.push_back(plate->model_geometry_mesh());
-            fingers.closed += solids.back().is_closed();
-            fingers.wood += compute_volume(solids.back());
-        }
-        fingers.plates = solids.size();
-        for (size_t i = 0; i < solids.size(); i++)
-            for (size_t j = i + 1; j < solids.size(); j++) {
-                const Mesh both = solid_boolean(solids[i], solids[j], SolidOperation::intersect);
-                if (both.number_of_faces() > 0)
-                    fingers.overlap += compute_volume(both);
-            }
-
-        // the depth from the outline itself, across the seam, the mean over the joints
-        const std::vector<InteractionFeaturePlate> joints = scene.get_plate_features();
-        for (const InteractionFeaturePlate& joint : joints) {
-            const Polyline& outline = joint.male_outlines[0][0];
-            const Polyline& ends = joint.male_outlines[0][1];
-            const Vector along = (ends[1] - ends[0]).normalized();
-            const Vector across = along.cross(
-                ((*joint.joint_volumes[0])[3] - (*joint.joint_volumes[0])[0]).normalized()
-            );
-            double low = std::numeric_limits<double>::max();
-            double high = std::numeric_limits<double>::lowest();
-            for (const Point& point : outline.get_points()) {
-                low = std::min(low, (point - ends[0]).dot(across.normalized()));
-                high = std::max(high, (point - ends[0]).dot(across.normalized()));
-            }
-            fingers.depth += (high - low) / joints.size();
-            fingers.divisions += double(joint.divisions) / joints.size();
-        }
-
-        return fingers;
-    };
-
-    const Fingers dataset = measured(40.0, {-5.0, 0.0, -10.0}, 1.0);
-    const Fingers full = measured(40.0, {0.0, 0.0, -10.0}, 1.0);
-    const Fingers small = measured(40.0, {0.0, 0.0, -10.0}, 0.2);
-    const Fingers shrunk = measured(40.0, {-14.9, 0.0, -10.0}, 1.0);
+    const Fingers dataset = measure_fingers(40.0, {-5.0, 0.0, -10.0}, 1.0);
+    const Fingers full = measure_fingers(40.0, {0.0, 0.0, -10.0}, 1.0);
+    const Fingers small = measure_fingers(40.0, {0.0, 0.0, -10.0}, 0.2);
+    const Fingers shrunk = measure_fingers(40.0, {-14.9, 0.0, -10.0}, 1.0);
 
     check(full.overlap < 1.0, fmt::format("the full volume overlaps {:.3f} mm3", full.overlap));
     check(small.closed == small.plates, fmt::format("{} of {} plates closed", small.closed, small.plates));
@@ -443,16 +503,30 @@ int main() {
     check_axis_lattice();
 
     WoodSession scene("joint API checks");
-    const auto a = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 400, 300, 40);
-    const auto b = FacePlanarElement::from_rectangle({150, 0, 40}, {0, 1, 0}, {0, 0, 1}, 300, 400, 40);
+    const std::shared_ptr<FacePlanarElement> a = FacePlanarElement::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        400,
+        300,
+        40
+    );
+    const std::shared_ptr<FacePlanarElement> b = FacePlanarElement::from_rectangle(
+        {150, 0, 40},
+        {0, 1, 0},
+        {0, 0, 1},
+        300,
+        400,
+        40
+    );
     scene.add(a);
     scene.add(b);
-    const auto contact = scene.compute_face_contact(a, b);
+    const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(a, b);
     check(contact && contact->face_a == 1 && contact->face_b == 5, "plate contact faces");
     check(!a->geometry_synced() && !b->geometry_synced(), "plate detection must not loft solids");
     check(contact->type == ContactType::side_top, "plate contact classification");
     contact_round_trip(*contact);
-    const auto reverse = scene.compute_face_contact(b, a);
+    const std::shared_ptr<InteractionContactFace> reverse = scene.compute_face_contact(b, a);
     check(
         reverse && reverse->face_a == 5 && reverse->face_b == 1 &&
             reverse->type == ContactType::side_top,
@@ -462,7 +536,7 @@ int main() {
         !scene.compute_face_contact(a, a) && !scene.compute_face_contact(nullptr, b),
         "missing/self contact"
     );
-    const auto joint = JointPlateElement::side_to_top();
+    const std::shared_ptr<JointPlateElement> joint = JointPlateElement::side_to_top();
     contact->flip();
     joint->orient(contact);
     scene.add(joint);
@@ -485,8 +559,9 @@ int main() {
             ),
         "joint brep solids"
     );
-    const auto restored = WoodSession::pb_loads(scene.pb_dumps());
-    const auto restored_joint = restored.get_element<JointPlateElement>(joint->guid());
+    const WoodSession restored = WoodSession::pb_loads(scene.pb_dumps());
+    const std::shared_ptr<JointPlateElement> restored_joint =
+        restored.get_element<JointPlateElement>(joint->guid());
     check(
         restored_joint && restored_joint->connections.size() == 1 && restored.consistent(),
         "joint element round trip"
@@ -497,14 +572,21 @@ int main() {
         "joint geometry round trip"
     );
 
-    const auto beam = EdgeStraightElement::square(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
-    const auto column = EdgeStraightElement::from_section(
+    const std::shared_ptr<EdgeStraightElement> beam =
+        EdgeStraightElement::square(Polyline({{500, 50, 900}, {900, 50, 900}}), 50.0);
+    const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::from_section(
         Line::from_points({950, 50, 0}, {950, 50, 950}),
-        Polyline::rectangle({900, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100)
+        Polyline::rectangle(
+            {900, 0, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            100,
+            100
+        )
     );
     scene.add(beam);
     scene.add(column);
-    const auto linear = scene.compute_face_contact(column, beam);
+    const std::shared_ptr<InteractionContactFace> linear = scene.compute_face_contact(column, beam);
     check(
         linear && linear->face_a == 5 && linear->face_b == 5 &&
             linear->type == ContactType::end_side,
@@ -512,28 +594,42 @@ int main() {
     );
     check(linear->volumes[0].point_count() == 0, "linear contact has no plate volume");
     check(!scene.compute_face_contact(a, beam), "disjoint contact");
-    auto support = FacePlanarElement::from_rectangle({500, 0, 810}, {1, 0, 0}, {0, 1, 0}, 400, 100, 40);
-    auto mixed = scene.compute_face_contact(support, beam);
+    const std::shared_ptr<FacePlanarElement> support = FacePlanarElement::from_rectangle(
+        {500, 0, 810},
+        {1, 0, 0},
+        {0, 1, 0},
+        400,
+        100,
+        40
+    );
+    const std::shared_ptr<InteractionContactFace> mixed = scene.compute_face_contact(support, beam);
     check(
         mixed && mixed->type == ContactType::side_top && mixed->volumes[0].point_count() == 0,
         "mixed plate/beam contact"
     );
     contact_round_trip(*linear);
 
-    const auto cutter = std::make_shared<JointElement>(Plane::from_point_normal({700, 0, 0}, {-1, 0, 0}));
+    const std::shared_ptr<JointElement> cutter =
+        std::make_shared<JointElement>(Plane::from_point_normal({700, 0, 0}, {-1, 0, 0}));
     cutter->targets = {beam->guid()};
     const double uncut = compute_volume(beam->model_geometry_mesh());
     scene.add(cutter);
     scene.add_interaction(cutter, beam, cutter->interaction(0));
     check(compute_volume(beam->model_geometry_mesh()) < uncut, "plane cutter modifies beam");
-    const auto cut_scene = WoodSession::pb_loads(scene.pb_dumps());
+    const WoodSession cut_scene = WoodSession::pb_loads(scene.pb_dumps());
     check(
         cut_scene.get_element<JointElement>(cutter->guid())->cuts.size() == 1, "plane cutter round trip"
     );
 
-    const Polyline profile_outline =
-        Polyline::rectangle({500, 25, 875}, {0, 1, 0}, {0, 0, 1}, 50, 50);
-    const auto profile = std::make_shared<JointElement>(profile_outline, Vector(200, 0, 0));
+    const Polyline profile_outline = Polyline::rectangle(
+        {500, 25, 875},
+        {0, 1, 0},
+        {0, 0, 1},
+        50,
+        50
+    );
+    const std::shared_ptr<JointElement> profile =
+        std::make_shared<JointElement>(profile_outline, Vector(200, 0, 0));
     profile->targets = {beam->guid()};
     const double before_profile = compute_volume(beam->model_geometry_mesh());
     scene.add(profile);
@@ -544,8 +640,10 @@ int main() {
     check(profile->element_geometry_brep().is_valid(), "profile cutter solid");
 
     WoodSession beams("beam joint");
-    auto ba = EdgeStraightElement::square(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
-    auto bb = EdgeStraightElement::square(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
+    const std::shared_ptr<EdgeStraightElement> ba =
+        EdgeStraightElement::square(Polyline({{-100, 0, 0}, {100, 0, 0}}), 10);
+    const std::shared_ptr<EdgeStraightElement> bb =
+        EdgeStraightElement::square(Polyline({{0, -100, 0}, {0, 100, 0}}), 10);
     beams.add(ba);
     beams.add(bb);
     beams.compute_axis_contacts(1);
@@ -554,10 +652,11 @@ int main() {
     check(beam_count == 3, "beam joint element created");
     beams.compute_beam_features(40, 0.5, 0);
     check(beams.objects.elements->size() == beam_count, "beam solve replaces old joint");
-    auto beam_copy = WoodSession::pb_loads(beams.pb_dumps());
+    const WoodSession beam_copy = WoodSession::pb_loads(beams.pb_dumps());
     int beam_joints = 0;
-    for (const auto& e : *beam_copy.objects.elements)
-        if (auto j = std::dynamic_pointer_cast<JointBeamElement>(e)) {
+    for (const std::shared_ptr<Element>& e : *beam_copy.objects.elements)
+        if (const std::shared_ptr<JointBeamElement> j =
+                std::dynamic_pointer_cast<JointBeamElement>(e)) {
             ++beam_joints;
             check(
                 j->targets.size() == 2 && j->element_geometry_mesh().number_of_faces() > 0,
@@ -568,13 +667,34 @@ int main() {
     check(beam_joints == 1, "beam joint type round trip");
 
     WoodSession drilling("drill joint");
-    auto lower = FacePlanarElement::from_rectangle({0, 0, 0}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
-    auto upper = FacePlanarElement::from_rectangle({0, 0, 10}, {1, 0, 0}, {0, 1, 0}, 100, 100, 10);
+    const std::shared_ptr<FacePlanarElement> lower = FacePlanarElement::from_rectangle(
+        {0, 0, 0},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
+    const std::shared_ptr<FacePlanarElement> upper = FacePlanarElement::from_rectangle(
+        {0, 0, 10},
+        {1, 0, 0},
+        {0, 1, 0},
+        100,
+        100,
+        10
+    );
     drilling.add(lower);
     drilling.add(upper);
-    auto drill_contact = drilling.compute_face_contact(lower, upper);
+    const std::shared_ptr<InteractionContactFace> drill_contact =
+        drilling.compute_face_contact(lower, upper);
     check(drill_contact && drill_contact->type == ContactType::top_top, "top-top contact");
-    auto drill = std::make_shared<JointPlateElement>(lower, upper, *drill_contact, 40, 6);
+    const std::shared_ptr<JointPlateElement> drill = std::make_shared<JointPlateElement>(
+        lower,
+        upper,
+        *drill_contact,
+        40,
+        6
+    );
     drill->line_radius = 2.0;
     drilling.add(drill);
     drilling.add_interaction(drill, lower, drill->interaction(0));
@@ -584,38 +704,41 @@ int main() {
         drill->element_geometry_brep().is_valid() && drill->element_geometry_brep().is_solid(),
         "line joint has brep solids"
     );
-    auto moved = drill->transformed(Xform::translation(100, 0, 0));
+    const std::shared_ptr<JointElement> moved = drill->transformed(Xform::translation(100, 0, 0));
     check(
         moved && moved->element_type_name() == "JointPlateElement", "joint transformation preserves type"
     );
 
-    for (const std::string dataset :
-         {"cross_corners", "annen_box_pair", "vidy_corner", "inplane_hexshell"}) {
+    for (const std::string& dataset : std::vector<std::string>{
+             "cross_corners", "annen_box_pair", "vidy_corner", "inplane_hexshell"
+         }) {
         config::reset_defaults();
-        auto model = WoodSession::yaml_load(dataset);
+        WoodSession model = WoodSession::yaml_load(dataset);
         check(!model.get_elements<FacePlanarElement>().empty(), "missing dataset " + dataset);
-        auto start = std::chrono::steady_clock::now();
+        const std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         if (dataset == "cross_corners")
             model.compute_cross_contacts();
         else
             model.compute_face_contacts();
-        const auto joints =
+        const std::vector<InteractionFeaturePlate> joints =
             model.compute_features(dataset == "cross_corners" ? cross_joint : face_to_face);
         check(!joints.empty() && model.consistent(), "dataset joints " + dataset);
-        const auto count = model.objects.elements->size();
+        const size_t count = model.objects.elements->size();
         model.compute_features(dataset == "cross_corners" ? cross_joint : face_to_face);
         check(
             model.objects.elements->size() == count,
             "recompute must replace joint elements " + dataset
         );
-        const auto reloaded = WoodSession::pb_loads(model.pb_dumps());
+        const WoodSession reloaded = WoodSession::pb_loads(model.pb_dumps());
         check(
             reloaded.get_plate_features().size() == joints.size() && reloaded.consistent(),
             "dataset serialization " + dataset
         );
         int multi = 0;
-        for (const auto& e : *model.objects.elements)
-            if (auto j = std::dynamic_pointer_cast<JointPlateElement>(e); j && j->targets.size() > 2)
+        for (const std::shared_ptr<Element>& e : *model.objects.elements)
+            if (const std::shared_ptr<JointPlateElement> j =
+                    std::dynamic_pointer_cast<JointPlateElement>(e);
+                j && j->targets.size() > 2)
                 ++multi;
         if (dataset == "annen_box_pair" || dataset == "vidy_corner")
             check(multi > 0, "multi-element joints " + dataset);

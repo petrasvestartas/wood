@@ -64,13 +64,14 @@ std::string Settings::pb_dumps() const {
     proto.set_clipper_scale(clipper_scale);
     proto.set_clipper_area(clipper_area);
     proto.mutable_beams()->Add(beams.begin(), beams.end());
-    for (const auto& [family, outlines] : custom_joints) {
+    for (const std::pair<const std::string, std::array<std::vector<Polyline>, 2>>& custom_joint :
+         custom_joints) {
         wood_proto::CustomJoint* entry = proto.add_custom_joints();
-        entry->set_family(family);
-        for (const Polyline& outline : outlines[0])
+        entry->set_family(custom_joint.first);
+        for (const Polyline& outline : custom_joint.second[0])
             if (!entry->add_male()->ParseFromString(outline.pb_dumps()))
                 throw std::runtime_error("Failed to parse Polyline protobuf data");
-        for (const Polyline& outline : outlines[1])
+        for (const Polyline& outline : custom_joint.second[1])
             if (!entry->add_female()->ParseFromString(outline.pb_dumps()))
                 throw std::runtime_error("Failed to parse Polyline protobuf data");
     }

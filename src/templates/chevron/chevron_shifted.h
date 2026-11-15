@@ -112,13 +112,11 @@ public:
     const std::vector<std::pair<int, int>>& adjacency() const;
 
 private:
-    using EdgeKey = std::pair<size_t, size_t>;
-
     NurbsSurface _across;
     std::vector<std::vector<Point>> _points;
     wood_chevron::ShiftedCells _cells;
     Mesh _mesh;
-    std::map<EdgeKey, Plane> _edge_planes;
+    std::map<std::pair<size_t, size_t>, Plane> _edge_planes;
     std::vector<Plane> _face_planes;
     std::vector<std::vector<wood_chevron::ShiftedSide>> _sides;
     std::vector<std::vector<Vector>> _insertion_vectors;
@@ -138,10 +136,11 @@ private:
     Mesh compute_mesh() const;
 
     /// A plane through every edge along the surface normal; on a naked edge along the curvature of the nearest long side curve.
-    std::map<EdgeKey, Plane> compute_edge_planes() const;
+    std::map<std::pair<size_t, size_t>, Plane> compute_edge_planes() const;
 
     /// The edge planes with both halves of every even cell's long sides merged into one plane through their middle, turned by edge_rotation; not turned on a naked side.
-    std::map<EdgeKey, Plane> compute_merged_edge_planes(std::map<EdgeKey, Plane> planes) const;
+    std::map<std::pair<size_t, size_t>, Plane>
+    compute_merged_edge_planes(std::map<std::pair<size_t, size_t>, Plane> planes) const;
 
     /// A plane at the surface point nearest every cell's centre, x along the rows, z into the surface.
     std::vector<Plane> compute_face_planes() const;
@@ -158,8 +157,35 @@ private:
     /// The grid point of a vertex key.
     const Point& point(size_t key) const;
 
+    /// The vertex key of row i and column j in the point grid.
+    size_t vertex_key(int i, int j) const;
+
+    /// Appends a cell with vertex keys, kind mask and column to cells.
+    static void add_cell(
+        wood_chevron::ShiftedCells& cells,
+        std::vector<size_t> keys,
+        int mask,
+        int column
+    );
+
+    /// Appends a hexagon cell starting at row i and column j with kind mask to cells.
+    void add_hexagon(
+        wood_chevron::ShiftedCells& cells,
+        int i,
+        int j,
+        int mask
+    ) const;
+
+    /// Appends a quad cell starting at row i and column j with kind mask to cells.
+    void add_quad(
+        wood_chevron::ShiftedCells& cells,
+        int i,
+        int j,
+        int mask
+    ) const;
+
     /// The sorted vertex pair of a cell's edge.
-    EdgeKey edge_key(int cell, int edge) const;
+    std::pair<size_t, size_t> edge_key(int cell, int edge) const;
 
     /// Per side of a cell's outline whether the top and bottom plates step in by a wall (-1) or stay (0); a first quad steps in on its left side too, under the even neighbour's wall, which the definition left unstepped.
     static std::vector<int> step_flags(int mask);
@@ -231,11 +257,11 @@ inline ChevronShifted::ChevronShifted(
     add_mesh(_mesh, add_group("mesh"));
 
     // edge_planes: through every edge along the surface normal, the even cells' long sides merged and turned
-    const std::map<EdgeKey, Plane> edge_planes = compute_edge_planes();
+    const std::map<std::pair<size_t, size_t>, Plane> edge_planes = compute_edge_planes();
     _edge_planes = compute_merged_edge_planes(edge_planes);
     const std::shared_ptr<TreeNode> planes = add_group("edge_planes");
 
-    for (const std::pair<const EdgeKey, Plane>& plane : _edge_planes)
+    for (const std::pair<const std::pair<size_t, size_t>, Plane>& plane : _edge_planes)
         add_plane(plane.second, planes);
 
     // sides: a plane at every cell's centre and its loop of side planes with the neighbours' cross planes inserted
@@ -370,55 +396,57 @@ inline std::vector<std::vector<Point>> ChevronShifted::compute_points() const {
 inline wood_chevron::ShiftedCells ChevronShifted::compute_cells() const {
 
     const int columns = point_count - 1;
-    std::vector<std::vector<size_t>> vertices;
-    std::vector<int> masks;
-    std::vector<int> cell_columns;
-    std::vector<std::vector<int>> sequence(columns);
-
-    const auto key = [&](int i, int j) {
-        return static_cast<size_t>(i * point_count + j);
-    };
-    const auto add_cell = [&](std::vector<size_t> keys, int mask, int j) {
-        sequence[j].push_back(static_cast<int>(vertices.size()));
-        vertices.push_back(std::move(keys));
-        masks.push_back(mask);
-        cell_columns.push_back(j);
-    };
-    const auto hexagon = [&](int i, int j, int mask) {
-        add_cell(
-            {key(i, j),
-             key(i, j + 1),
-             key(i + 1, j + 1),
-             key(i + 2, j + 1),
-             key(i + 2, j),
-             key(i + 1, j)},
-            mask,
-            j
-        );
-    };
-    const auto quad = [&](int i, int j, int mask) {
-        add_cell({key(i, j), key(i, j + 1), key(i + 1, j + 1), key(i + 1, j)}, mask, j);
-    };
+    wood_chevron::ShiftedCells draft;
 
     for (int i = 0; i < iso_count - 2; i++)
         for (int j = 0; j < columns; j++) {
             if (i % 2 == 0 && j % 2 == 0) {
-                hexagon(i, j, j % 4 == 2 ? 2 : 20);
+                add_hexagon(
+                    draft,
+                    i,
+                    j,
+                    j % 4 == 2 ? 2 : 20
+                );
 
                 if (i == iso_count - 4)
-                    quad(i + 2, j, 3);
+                    add_quad(
+                        draft,
+                        i + 2,
+                        j,
+                        3
+                    );
             }
 
             if (i % 2 == 1 && j % 2 == 1) {
                 if (i == 1)
-                    quad(0, j, -1);
+                    add_quad(
+                        draft,
+                        0,
+                        j,
+                        -1
+                    );
 
-                hexagon(i, j, -2);
+                add_hexagon(
+                    draft,
+                    i,
+                    j,
+                    -2
+                );
 
                 if (i == iso_count - 4)
-                    quad(i + 2, j, -3);
+                    add_quad(
+                        draft,
+                        i + 2,
+                        j,
+                        -3
+                    );
             }
         }
+
+    std::vector<std::vector<int>> sequence(columns);
+
+    for (size_t cell = 0; cell < draft.columns.size(); cell++)
+        sequence[draft.columns[cell]].push_back(static_cast<int>(cell));
 
     wood_chevron::ShiftedCells cells;
 
@@ -428,11 +456,13 @@ inline wood_chevron::ShiftedCells ChevronShifted::compute_cells() const {
         if (j % 2 == 1)
             std::reverse(order.begin(), order.end());
 
-        for (const int cell : order) {
-            cells.faces.vertices.push_back(vertices[cell]);
-            cells.masks.push_back(masks[cell]);
-            cells.columns.push_back(cell_columns[cell]);
-        }
+        for (const int cell : order)
+            add_cell(
+                cells,
+                draft.faces.vertices[cell],
+                draft.masks[cell],
+                draft.columns[cell]
+            );
     }
 
     for (size_t cell = 0; cell < cells.faces.vertices.size(); cell++) {
@@ -470,7 +500,58 @@ inline const Point& ChevronShifted::point(size_t key) const {
     return _points[key / point_count][key % point_count];
 }
 
-inline ChevronShifted::EdgeKey ChevronShifted::edge_key(int cell, int edge) const {
+inline size_t ChevronShifted::vertex_key(int i, int j) const {
+    return static_cast<size_t>(i * point_count + j);
+}
+
+inline void ChevronShifted::add_cell(
+    wood_chevron::ShiftedCells& cells,
+    std::vector<size_t> keys,
+    int mask,
+    int column
+) {
+
+    cells.faces.vertices.push_back(std::move(keys));
+    cells.masks.push_back(mask);
+    cells.columns.push_back(column);
+}
+
+inline void ChevronShifted::add_hexagon(
+    wood_chevron::ShiftedCells& cells,
+    int i,
+    int j,
+    int mask
+) const {
+
+    add_cell(
+        cells,
+        {vertex_key(i, j),
+         vertex_key(i, j + 1),
+         vertex_key(i + 1, j + 1),
+         vertex_key(i + 2, j + 1),
+         vertex_key(i + 2, j),
+         vertex_key(i + 1, j)},
+        mask,
+        j
+    );
+}
+
+inline void ChevronShifted::add_quad(
+    wood_chevron::ShiftedCells& cells,
+    int i,
+    int j,
+    int mask
+) const {
+
+    add_cell(
+        cells,
+        {vertex_key(i, j), vertex_key(i, j + 1), vertex_key(i + 1, j + 1), vertex_key(i + 1, j)},
+        mask,
+        j
+    );
+}
+
+inline std::pair<size_t, size_t> ChevronShifted::edge_key(int cell, int edge) const {
 
     const std::vector<size_t>& keys = _cells.faces.vertices[cell];
     const size_t a = keys[edge];
@@ -481,15 +562,16 @@ inline ChevronShifted::EdgeKey ChevronShifted::edge_key(int cell, int edge) cons
 // ═══════════════════════════════════════════════════════════════════════════
 // Planes
 // ═══════════════════════════════════════════════════════════════════════════
-inline std::map<ChevronShifted::EdgeKey, Plane> ChevronShifted::compute_edge_planes() const {
+inline std::map<std::pair<size_t, size_t>, Plane> ChevronShifted::compute_edge_planes() const {
 
     const std::pair<double, double> domain_u = _across.domain(0);
     const std::array<NurbsCurve, 2> sides = {
         _across.iso_curve(1, domain_u.first), _across.iso_curve(1, domain_u.second)
     };
-    std::map<EdgeKey, Plane> planes;
+    std::map<std::pair<size_t, size_t>, Plane> planes;
 
-    for (const std::pair<const EdgeKey, std::vector<int>>& edge : _cells.faces.edge_faces) {
+    for (const std::pair<const std::pair<size_t, size_t>, std::vector<int>>& edge :
+         _cells.faces.edge_faces) {
         const Point& start = point(edge.first.first);
         const Point& end = point(edge.first.second);
         const Point middle = Point::mid_point(start, end);
@@ -520,8 +602,9 @@ inline std::map<ChevronShifted::EdgeKey, Plane> ChevronShifted::compute_edge_pla
     return planes;
 }
 
-inline std::map<ChevronShifted::EdgeKey, Plane>
-ChevronShifted::compute_merged_edge_planes(std::map<EdgeKey, Plane> planes) const {
+inline std::map<std::pair<size_t, size_t>, Plane> ChevronShifted::compute_merged_edge_planes(
+    std::map<std::pair<size_t, size_t>, Plane> planes
+) const {
 
     if (!average_planes)
         return planes;
@@ -537,8 +620,8 @@ ChevronShifted::compute_merged_edge_planes(std::map<EdgeKey, Plane> planes) cons
         const double turn = mask == 2 ? -angle : angle;
 
         for (const std::array<int, 2> pair : {std::array<int, 2>{1, 2}, std::array<int, 2>{4, 5}}) {
-            const EdgeKey first = edge_key(static_cast<int>(cell), pair[0]);
-            const EdgeKey second = edge_key(static_cast<int>(cell), pair[1]);
+            const std::pair<size_t, size_t> first = edge_key(static_cast<int>(cell), pair[0]);
+            const std::pair<size_t, size_t> second = edge_key(static_cast<int>(cell), pair[1]);
             const Plane& a = planes.at(first);
             const Plane& b = planes.at(second);
             const Point middle = Point::mid_point(a.origin(), b.origin());
@@ -612,7 +695,7 @@ inline std::vector<std::vector<wood_chevron::ShiftedSide>> ChevronShifted::compu
         std::vector<wood_chevron::ShiftedSide> loop;
 
         for (int j = 0; j < count; j++) {
-            const EdgeKey key = edge_key(static_cast<int>(cell), j);
+            const std::pair<size_t, size_t> key = edge_key(static_cast<int>(cell), j);
             loop.push_back({_edge_planes.at(key), j});
 
             if (count != 6 || (j != 1 && j != 4))
@@ -656,7 +739,7 @@ inline std::vector<std::vector<wood_chevron::ShiftedSide>> ChevronShifted::compu
         if (_cells.masks[cell] != -2)
             continue;
 
-        const EdgeKey key = edge_key(static_cast<int>(cell), 1);
+        const std::pair<size_t, size_t> key = edge_key(static_cast<int>(cell), 1);
         const std::vector<int>& on_edge = _cells.faces.edge_faces.at(key);
 
         if (on_edge.size() != 2)
@@ -821,11 +904,12 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
     const double half = plate_thickness * 0.5;
 
     // where a wall stands inside a cell: a cell's own inward sides and its neighbours' outward ones, so a wall of another cell ending on that edge stops a wall short of it
-    std::set<std::pair<EdgeKey, int>> occupied;
+    std::set<std::pair<std::pair<size_t, size_t>, int>> occupied;
 
     for (size_t cell = 0; cell < _cells.masks.size(); cell++)
         for (const std::pair<int, bool>& wall : wall_sides(_cells.masks[cell])) {
-            const EdgeKey key = edge_key(static_cast<int>(cell), _sides[cell][wall.first].edge);
+            const std::pair<size_t, size_t> key =
+                edge_key(static_cast<int>(cell), _sides[cell][wall.first].edge);
 
             for (const int on_edge : _cells.faces.edge_faces.at(key))
                 if ((on_edge == static_cast<int>(cell)) != wall.second)
@@ -942,7 +1026,7 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
         for (size_t r = 0; r < runs.size(); r++) {
             const Plane& plane = sides[runs[r].first].plane;
             const Plane moved = stepped(plane, plate_thickness, top.origin(), !runs[r].outward);
-            std::vector<EdgeKey> keys;
+            std::vector<std::pair<size_t, size_t>> keys;
 
             for (int k = runs[r].first; k <= runs[r].last; k++)
                 if (sides[k].edge >= 0)
@@ -1037,8 +1121,8 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
     _feature_axes.assign(plates.plates.size(), {});
     _joints_per_face.assign(plates.plates.size(), {});
     _divisions_per_face.assign(plates.plates.size(), {});
-    std::map<EdgeKey, Vector> directions;
-    std::map<EdgeKey, Vector> axes;
+    std::map<std::pair<size_t, size_t>, Vector> directions;
+    std::map<std::pair<size_t, size_t>, Vector> axes;
     std::vector<Line> lines;
 
     // per cell its direction, the bisector of two of its own sides on its outline, and its axis, the mean of those sides' surface normals, which the definition's cut planes follow, both on the edges whose walls it slides into
@@ -1080,7 +1164,7 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
                     continue;
 
                 types[2 + k] = 23;
-                const std::map<EdgeKey, Vector>::const_iterator found =
+                const std::map<std::pair<size_t, size_t>, Vector>::const_iterator found =
                     directions.find(edge_key(static_cast<int>(cell), edges[k]));
 
                 if (found == directions.end())
@@ -1104,7 +1188,7 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
         _joints_per_face[wall] = std::vector<int>(6, 0);
         _divisions_per_face[wall] = std::vector<int>(6, 0);
 
-        for (const EdgeKey& key : plates.wall_edges[w]) {
+        for (const std::pair<size_t, size_t>& key : plates.wall_edges[w]) {
             std::vector<int> cells = _cells.faces.edge_faces.at(key);
             std::rotate(
                 cells.begin(),

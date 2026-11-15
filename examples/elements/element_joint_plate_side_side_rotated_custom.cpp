@@ -3,6 +3,24 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Seam edge reference line on face y of the unit box.
+static Polyline edge(double y) {
+
+    return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
+}
+
+/// Rectangular step strip from x0 on face y of the unit box.
+static Polyline strip(double x0, double y) {
+
+    return Polyline({
+        {x0, y, 0.6},
+        {-0.5, y, 0.6},
+        {-0.5, y, -0.6},
+        {x0, y, -0.6},
+        {x0, y, 0.6},
+    });
+}
+
 /// side_side_rotated_custom.
 int main() {
 
@@ -10,13 +28,6 @@ int main() {
     scene.settings.rotated_joint_as_average = true;
     scene.settings.all_treated_as_rotated = true;
 
-    const auto edge = [](double y) {
-        return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
-    };
-    const auto strip = [](double x0, double y) {
-        return Polyline({{x0, y, 0.6}, {-0.5, y, 0.6}, {-0.5, y, -0.6}, {x0, y, -0.6}, {x0, y, 0.6}}
-        );
-    };
     const std::vector<Polyline> male = {
         edge(-0.5), edge(0.5), edge(-0.5), edge(0.5), strip(0.0, 0.0), strip(0.0, 0.5)
     };

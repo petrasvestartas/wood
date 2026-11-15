@@ -1,3 +1,16 @@
+/// Closed polyline of a 2D bridle plan at height `x`, flipped along z by `sign`.
+static inline Polyline
+bridle_layer(const std::vector<std::array<double, 2>>& plan, double x, double sign) {
+
+    std::vector<Point> points;
+    for (const std::array<double, 2>& point : plan)
+        points.push_back(Point(x, point[0], sign * point[1]));
+
+    points.push_back(points.front());
+
+    return Polyline(points);
+}
+
 /// A skew T-bridle: the side member ends in a fork of two cheeks around a tongue left in the top member. In the unit box y runs across the top member
 /// from its near face at -0.5 to its far face, z along it, x through the height. The tongue is the middle layer, `tongue` of the height; a cheek lies in a
 /// pocket on either side of it, flush with both faces. The pocket has one wall square to the top member at the side member's obtuse corner; at its acute
@@ -43,14 +56,6 @@ static void top_side_bridle(
     const double corner = joint.shift - 0.5;
     const double wall = 0.5 - slope * joint.shift;
 
-    const auto layer = [sign](const std::vector<std::array<double, 2>>& plan, const double x) {
-        std::vector<Point> points;
-        for (const std::array<double, 2>& point : plan)
-            points.push_back(Point(x, point[0], sign * point[1]));
-        points.push_back(points.front());
-        return Polyline(points);
-    };
-
     // the slot's line, and where the saw cut through the tongue meets the square wall: the near face, or the slot's line when that is further in
     const double run = slope * aspect * aspect;
     const double sawn = std::max(-0.5, corner + run * (-0.5 - wall));
@@ -67,9 +72,15 @@ static void top_side_bridle(
         {corner, wall}, {sawn, -0.5}, {near_side, -0.5}, {near_side, wall}
     };
     joint.female_outlines[0] = {
-        layer(pocket, half), layer(pocket, -reach), layer(triangle, -reach)
+        bridle_layer(pocket, half, sign),
+        bridle_layer(pocket, -reach, sign),
+        bridle_layer(triangle, -reach, sign)
     };
-    joint.female_outlines[1] = {layer(pocket, reach), layer(pocket, -half), layer(triangle, reach)};
+    joint.female_outlines[1] = {
+        bridle_layer(pocket, reach, sign),
+        bridle_layer(pocket, -half, sign),
+        bridle_layer(triangle, reach, sign)
+    };
 
     // the male: through the whole height what lies past the far face, past the square wall and at the tooth, then the slot
     const std::vector<std::array<double, 2>> ends = {
@@ -88,8 +99,8 @@ static void top_side_bridle(
         {past, -past},
         {past, reach}
     };
-    joint.male_outlines[0] = {layer(ends, -reach), layer(slot, -half)};
-    joint.male_outlines[1] = {layer(ends, reach), layer(slot, half)};
+    joint.male_outlines[0] = {bridle_layer(ends, -reach, sign), bridle_layer(slot, -half, sign)};
+    joint.male_outlines[1] = {bridle_layer(ends, reach, sign), bridle_layer(slot, half, sign)};
 
     joint.female_fabrication_types = {
         std::vector<int>(3, FabricationType::mill), std::vector<int>(3, FabricationType::mill)

@@ -64,19 +64,53 @@ static void join(
 // Pairs
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// A pair butted, or butted side_side, in its own scene.
-static void pair(
+namespace {
+
+struct ButtCase {
+    WoodSession scene; // Scene owning the pair and its butt joint.
+    std::shared_ptr<Element> a; // First member after the butt cut.
+    std::shared_ptr<Element> b; // Second member after the butt cut.
+};
+
+/// A 150 x 150 square beam between start and end.
+std::shared_ptr<EdgeStraightElement> square_beam(const Point& start, const Point& end) {
+
+    return EdgeStraightElement::square(Polyline({start, end}), 75.0, "beam");
+}
+
+/// A 120 thick, 1500 tall upright wall plate along start to end.
+std::shared_ptr<FacePlanarElement> wall_plate(const Point& start, const Point& end) {
+
+    return FacePlanarElement::from_line(
+        Line::from_points(start, end),
+        Vector(0.0, 0.0, 1.0),
+        1500.0,
+        120.0,
+        "wall"
+    );
+}
+
+/// Checks that value matches expected within FLUSH.
+void near(double value, double expected, const std::string& what) {
+
+    check(
+        std::abs(value - expected) < FLUSH,
+        fmt::format("{} at {}, not {}", what, value, expected)
+    );
+}
+
+/// Runs a pairwise butt cut in its own scene, checks configuration and overlap, and returns the cut members.
+ButtCase run_pair(
     const std::string& name,
     const std::shared_ptr<Element>& a,
     const std::shared_ptr<Element>& b,
     ButtConfiguration expected,
-    const std::function<void()>& measure,
     bool side_side = false
 ) {
 
-    WoodSession scene(name);
-    scene.add(a);
-    scene.add(b);
+    ButtCase result{WoodSession(name), a, b};
+    result.scene.add(a);
+    result.scene.add(b);
     const std::shared_ptr<JointBeamElement> butt =
         side_side ? JointBeamElement::butt_side_side(*a, *b) : JointBeamElement::butt(*a, *b);
     check(
@@ -88,122 +122,147 @@ static void pair(
             (int)expected
         )
     );
-    scene.add(butt);
-    scene.add_interaction(butt, a, butt->interaction(0));
-    scene.add_interaction(butt, b, butt->interaction(1));
-    measure();
+    result.scene.add(butt);
+    result.scene.add_interaction(butt, a, butt->interaction(0));
+    result.scene.add_interaction(butt, b, butt->interaction(1));
     if (expected != ButtConfiguration::cross)
         check(
             shared(*a, *b) < OVERLAP_REL,
             fmt::format("{}: the pair overlaps by {} of the smaller", name, shared(*a, *b))
         );
+
+    return result;
 }
 
-/// Pairwise beam and plate butt cases, each checked at its measured faces.
-static void pairs() {
+/// Pairwise beam butt cases, each checked at its measured faces.
+void beam_pairs() {
 
-    const auto beam = [](const Point& start, const Point& end) {
-        return EdgeStraightElement::square(Polyline({start, end}), 75.0, "beam");
-    };
-    const auto wall = [](const Point& start, const Point& end) {
-        return FacePlanarElement::from_line(
-            Line::from_points(start, end), Vector(0.0, 0.0, 1.0), 1500.0, 120.0, "wall"
-        );
-    };
-    const auto near = [](double value, double expected, const std::string& what) {
-        check(
-            std::abs(value - expected) < FLUSH,
-            fmt::format("{} at {}, not {}", what, value, expected)
-        );
-    };
+    const ButtCase top_side = run_pair(
+        "beam_top_side",
+        square_beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}),
+        square_beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}),
+        ButtConfiguration::top_side
+    );
+    near(extreme(*top_side.b, 2, false), 75.0, "beam_top_side: the post's foot");
+    near(extreme(*top_side.a, 0, true), 1000.0, "beam_top_side: the through beam's end");
 
-    // beams: top_side, top_side at 18 degrees, top_side at an end drawn past and short, side_side_outplane, side_side_inplane and a cross
-    std::shared_ptr<EdgeStraightElement> a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
-    std::shared_ptr<EdgeStraightElement> b = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0});
-    pair("beam_top_side", a, b, ButtConfiguration::top_side, [&] {
-        near(extreme(*b, 2, false), 75.0, "beam_top_side: the post's foot");
-        near(extreme(*a, 0, true), 1000.0, "beam_top_side: the through beam's end");
-    });
-    a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
-    b = beam({0.0, 0.0, 0.0}, {-1902.1130325903071, 0.0, -618.03398874989485});
-    pair("beam_top_side_shallow", a, b, ButtConfiguration::top_side, [&] {
-        near(extreme(*b, 2, true), -75.0, "beam_top_side_shallow: the strut's top at 18 degrees");
-    });
+    const ButtCase shallow = run_pair(
+        "beam_top_side_shallow",
+        square_beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}),
+        square_beam({0.0, 0.0, 0.0}, {-1902.1130325903071, 0.0, -618.03398874989485}),
+        ButtConfiguration::top_side
+    );
+    near(extreme(*shallow.b, 2, true), -75.0, "beam_top_side_shallow: the strut's top at 18 degrees");
+
     for (const double drawn : {-150.0, 100.0}) {
-        a = beam({drawn, 0.0, 0.0}, {1500.0, 0.0, 0.0});
-        b = beam({0.0, 0.0, drawn}, {0.0, 0.0, 1500.0});
-        pair(fmt::format("beam_top_side_end_{}", drawn), a, b, ButtConfiguration::top_side, [&] {
-            near(extreme(*a, 0, false), -75.0, "beam_top_side_end: the running end");
-            near(extreme(*b, 2, false), 75.0, "beam_top_side_end: the butting end");
-        });
+        const ButtCase end_case = run_pair(
+            fmt::format("beam_top_side_end_{}", drawn),
+            square_beam({drawn, 0.0, 0.0}, {1500.0, 0.0, 0.0}),
+            square_beam({0.0, 0.0, drawn}, {0.0, 0.0, 1500.0}),
+            ButtConfiguration::top_side
+        );
+        near(extreme(*end_case.a, 0, false), -75.0, "beam_top_side_end: the running end");
+        near(extreme(*end_case.b, 2, false), 75.0, "beam_top_side_end: the butting end");
     }
-    a = beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0});
-    b = beam({0.0, 0.0, 0.0}, {-750.0, 0.0, 1300.0});
-    pair("beam_side_side_outplane", a, b, ButtConfiguration::side_side_outplane, [&] {
-        near(extreme(*a, 2, false), -75.0, "beam_side_side_outplane: the left beam's underside");
-    });
-    a = beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0});
-    b = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0});
-    pair(
+
+    const ButtCase outplane = run_pair(
+        "beam_side_side_outplane",
+        square_beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}),
+        square_beam({0.0, 0.0, 0.0}, {-750.0, 0.0, 1300.0}),
+        ButtConfiguration::side_side_outplane
+    );
+    near(extreme(*outplane.a, 2, false), -75.0, "beam_side_side_outplane: the left beam's underside");
+
+    const ButtCase outplane_square = run_pair(
         "beam_side_side_outplane_square",
-        a,
-        b,
+        square_beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}),
+        square_beam({0.0, 0.0, 0.0}, {0.0, 0.0, 1500.0}),
         ButtConfiguration::side_side_outplane,
-        [&] {
-            near(
-                extreme(*a, 0, false),
-                -75.0,
-                "beam_side_side_outplane_square: the left beam's outer corner"
-            );
-            near(
-                extreme(*b, 2, false),
-                -75.0,
-                "beam_side_side_outplane_square: the right beam's outer corner"
-            );
-        },
         true
     );
-    a = beam({-1500.0, 0.0, 0.0}, {0.0, 0.0, 0.0});
-    b = beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0});
-    pair("beam_side_side_inplane", a, b, ButtConfiguration::side_side_inplane, [&] {
-        near(extreme(*a, 0, true), 0.0, "beam_side_side_inplane: the left end");
-        near(extreme(*b, 0, false), 0.0, "beam_side_side_inplane: the right end");
-    });
-    a = beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
-    b = beam({0.0, -1000.0, 0.0}, {0.0, 1000.0, 0.0});
-    pair("beam_cross", a, b, ButtConfiguration::cross, [&] {
-        near(extreme(*a, 0, true), 1000.0, "beam_cross: the first beam's end");
-    });
-
-    // plates: top_side at an end, side_side_outplane at 120 degrees, side_side_inplane, top_side on a floor
-    std::shared_ptr<FacePlanarElement> p = wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0});
-    std::shared_ptr<FacePlanarElement> q = wall({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0});
-    pair("plate_top_side_end", p, q, ButtConfiguration::top_side, [&] {
-        near(extreme(*p, 0, false), -60.0, "plate_top_side_end: the running wall's end");
-        near(extreme(*q, 1, false), 60.0, "plate_top_side_end: the butting wall's end");
-    });
-    p = wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0});
-    q = wall({0.0, 0.0, 0.0}, {-1000.0, 1732.0508075688772, 0.0});
-    pair("plate_side_side_outplane", p, q, ButtConfiguration::side_side_outplane, [&] {
-        near(extreme(*p, 1, false), -60.0, "plate_side_side_outplane: the left wall's outer face");
-    });
-    p = wall({-2000.0, 0.0, 0.0}, {0.0, 0.0, 0.0});
-    q = wall({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0});
-    pair("plate_side_side_inplane", p, q, ButtConfiguration::side_side_inplane, [&] {
-        near(extreme(*p, 0, true), 0.0, "plate_side_side_inplane: the left end");
-        near(extreme(*q, 0, false), 0.0, "plate_side_side_inplane: the right end");
-    });
-    p = FacePlanarElement::from_rectangle(
-        {-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "floor"
+    near(
+        extreme(*outplane_square.a, 0, false),
+        -75.0,
+        "beam_side_side_outplane_square: the left beam's outer corner"
     );
-    q = wall({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0});
-    pair("plate_top_side_floor", p, q, ButtConfiguration::top_side, [&] {
-        near(extreme(*q, 2, false), 100.0, "plate_top_side_floor: the wall's foot");
-    });
+    near(
+        extreme(*outplane_square.b, 2, false),
+        -75.0,
+        "beam_side_side_outplane_square: the right beam's outer corner"
+    );
 
-    // beams and plates: a column under a slab, a wall on a beam
-    p = FacePlanarElement::from_rectangle(
-        {-1500.0, -1500.0, -100.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, 3000.0, 3000.0, 200.0, "slab"
+    const ButtCase inplane = run_pair(
+        "beam_side_side_inplane",
+        square_beam({-1500.0, 0.0, 0.0}, {0.0, 0.0, 0.0}),
+        square_beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}),
+        ButtConfiguration::side_side_inplane
+    );
+    near(extreme(*inplane.a, 0, true), 0.0, "beam_side_side_inplane: the left end");
+    near(extreme(*inplane.b, 0, false), 0.0, "beam_side_side_inplane: the right end");
+
+    const ButtCase cross = run_pair(
+        "beam_cross",
+        square_beam({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}),
+        square_beam({0.0, -1000.0, 0.0}, {0.0, 1000.0, 0.0}),
+        ButtConfiguration::cross
+    );
+    near(extreme(*cross.a, 0, true), 1000.0, "beam_cross: the first beam's end");
+}
+
+/// Pairwise plate and mixed beam-plate butt cases, each checked at its measured faces.
+void plate_pairs() {
+
+    const ButtCase top_side_end = run_pair(
+        "plate_top_side_end",
+        wall_plate({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}),
+        wall_plate({0.0, 0.0, 0.0}, {0.0, 2000.0, 0.0}),
+        ButtConfiguration::top_side
+    );
+    near(extreme(*top_side_end.a, 0, false), -60.0, "plate_top_side_end: the running wall's end");
+    near(extreme(*top_side_end.b, 1, false), 60.0, "plate_top_side_end: the butting wall's end");
+
+    const ButtCase outplane = run_pair(
+        "plate_side_side_outplane",
+        wall_plate({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}),
+        wall_plate({0.0, 0.0, 0.0}, {-1000.0, 1732.0508075688772, 0.0}),
+        ButtConfiguration::side_side_outplane
+    );
+    near(extreme(*outplane.a, 1, false), -60.0, "plate_side_side_outplane: the left wall's outer face");
+
+    const ButtCase inplane = run_pair(
+        "plate_side_side_inplane",
+        wall_plate({-2000.0, 0.0, 0.0}, {0.0, 0.0, 0.0}),
+        wall_plate({0.0, 0.0, 0.0}, {2000.0, 0.0, 0.0}),
+        ButtConfiguration::side_side_inplane
+    );
+    near(extreme(*inplane.a, 0, true), 0.0, "plate_side_side_inplane: the left end");
+    near(extreme(*inplane.b, 0, false), 0.0, "plate_side_side_inplane: the right end");
+
+    const std::shared_ptr<FacePlanarElement> floor = FacePlanarElement::from_rectangle(
+        {-1500.0, -1500.0, -100.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        3000.0,
+        3000.0,
+        200.0,
+        "floor"
+    );
+    const ButtCase on_floor = run_pair(
+        "plate_top_side_floor",
+        floor,
+        wall_plate({-1000.0, 0.0, 0.0}, {1000.0, 0.0, 0.0}),
+        ButtConfiguration::top_side
+    );
+    near(extreme(*on_floor.b, 2, false), 100.0, "plate_top_side_floor: the wall's foot");
+
+    const std::shared_ptr<FacePlanarElement> slab = FacePlanarElement::from_rectangle(
+        {-1500.0, -1500.0, -100.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        3000.0,
+        3000.0,
+        200.0,
+        "slab"
     );
     const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::corner_square(
         Line::from_points({0.0, 0.0, -2000.0}, {0.0, 0.0, 0.0}),
@@ -211,15 +270,32 @@ static void pairs() {
         200.0,
         "column"
     );
-    pair("column_top_side_plate", p, column, ButtConfiguration::top_side, [&] {
-        near(extreme(*column, 2, true), -100.0, "column_top_side_plate: the column's head");
-    });
+    const ButtCase column_plate = run_pair(
+        "column_top_side_plate",
+        slab,
+        column,
+        ButtConfiguration::top_side
+    );
+    near(extreme(*column_plate.b, 2, true), -100.0, "column_top_side_plate: the column's head");
+
     const std::shared_ptr<EdgeStraightElement> sill =
         EdgeStraightElement::square(Polyline({{-1500.0, 0.0, 0.0}, {1500.0, 0.0, 0.0}}), 100.0, "beam");
-    q = wall({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0});
-    pair("plate_top_side_beam", sill, q, ButtConfiguration::top_side, [&] {
-        near(extreme(*q, 2, false), 100.0, "plate_top_side_beam: the wall's foot");
-    });
+    const ButtCase wall_beam = run_pair(
+        "plate_top_side_beam",
+        sill,
+        wall_plate({-1200.0, 0.0, 0.0}, {1200.0, 0.0, 0.0}),
+        ButtConfiguration::top_side
+    );
+    near(extreme(*wall_beam.b, 2, false), 100.0, "plate_top_side_beam: the wall's foot");
+}
+
+} // namespace
+
+/// Pairwise beam and plate butt cases, each checked at its measured faces.
+static void pairs() {
+
+    beam_pairs();
+    plate_pairs();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -508,24 +584,35 @@ static void folded_roof() {
 // Frame
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace {
+
+/// A 140 x 140 timber-frame member between start and end.
+std::shared_ptr<EdgeStraightElement>
+frame_beam(const Point& start, const Point& end, const std::string& name) {
+
+    return EdgeStraightElement::square(Polyline({start, end}), 70.0, name);
+}
+
+} // namespace
+
 /// Timber-frame wall with posts, sill, plate, lintel, and diagonal brace.
 static void frame() {
 
     WoodSession scene("butt_frame");
-    const auto beam = [](const Point& start, const Point& end, const std::string& name) {
-        return EdgeStraightElement::square(Polyline({start, end}), 70.0, name);
-    };
-    const std::shared_ptr<EdgeStraightElement> sill = beam({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}, "sill");
-    const std::shared_ptr<EdgeStraightElement> head = beam({0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}, "head");
-    const std::shared_ptr<EdgeStraightElement> left_post = beam({0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}, "left_post");
+    const std::shared_ptr<EdgeStraightElement> sill =
+        frame_beam({0.0, 0.0, 0.0}, {3000.0, 0.0, 0.0}, "sill");
+    const std::shared_ptr<EdgeStraightElement> head =
+        frame_beam({0.0, 0.0, 2400.0}, {3000.0, 0.0, 2400.0}, "head");
+    const std::shared_ptr<EdgeStraightElement> left_post =
+        frame_beam({0.0, 0.0, 0.0}, {0.0, 0.0, 2400.0}, "left_post");
     const std::shared_ptr<EdgeStraightElement> middle_post =
-        beam({1500.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "middle_post");
+        frame_beam({1500.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "middle_post");
     const std::shared_ptr<EdgeStraightElement> right_post =
-        beam({3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}, "right_post");
+        frame_beam({3000.0, 0.0, 0.0}, {3000.0, 0.0, 2400.0}, "right_post");
     const std::shared_ptr<EdgeStraightElement> left_brace =
-        beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "left_brace");
+        frame_beam({0.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "left_brace");
     const std::shared_ptr<EdgeStraightElement> right_brace =
-        beam({3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "right_brace");
+        frame_beam({3000.0, 0.0, 0.0}, {1500.0, 0.0, 2400.0}, "right_brace");
     const std::array<std::shared_ptr<EdgeStraightElement>, 7> all = {
         sill, head, left_post, middle_post, right_post, left_brace, right_brace
     };

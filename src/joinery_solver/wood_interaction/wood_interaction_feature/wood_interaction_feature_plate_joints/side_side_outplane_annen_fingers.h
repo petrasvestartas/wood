@@ -1,3 +1,28 @@
+/// Corner segment from `box_faces[0]` to `box_faces[1]` where two planes meet.
+static inline std::optional<Line>
+annen_corner_line(const Plane& first, const Plane& second, const std::array<Plane, 2>& box_faces) {
+
+    Line meet;
+    Point start;
+    Point end;
+    if (!Intersection::plane_plane(first, second, meet) ||
+        !Intersection::line_plane(meet, box_faces[0], start, false) ||
+        !Intersection::line_plane(meet, box_faces[1], end, false))
+        return std::nullopt;
+
+    return Line::from_points(start, end);
+}
+
+/// Intersect a corner line with a cut plane.
+static inline Point annen_cut_point(const Line& line, const Plane& cut) {
+
+    Point point;
+    if (!Intersection::line_plane(line, cut, point, false))
+        return point;
+
+    return point;
+}
+
 /// The Annen corner fingers of Christopher Robeller's 2017 plugin, built in world space where the two walls of a box meet: their
 /// corner from the box's bottom face to its top in n equal parts, cut at every part by a plane parallel to the box faces turned by
 /// +angle and -angle in turn about the long edge of the axis wall, the one whose mitre face carries the design; the first part above
@@ -79,26 +104,17 @@ static void side_side_outplane_annen_fingers(
         corners[axis].top.start(), corners[axis].top.to_vector(), corners[1 - axis].top.to_vector()
     );
 
-    // a corner line from the bottom face to the top where two planes meet
-    const auto corner_line = [&](const Plane& first, const Plane& second, Line& line) {
-        Line meet;
-        Point start;
-        Point end;
-        if (!Intersection::plane_plane(first, second, meet) ||
-            !Intersection::line_plane(meet, bottom_plane, start, false) ||
-            !Intersection::line_plane(meet, top_plane, end, false))
-            return false;
-        line = Line::from_points(start, end);
-        return true;
-    };
-    Line outer_corner;
-    Line inner_corner;
-    if (!corner_line(corners[0].outer, corners[1].outer, outer_corner) ||
-        !corner_line(corners[0].inner, corners[1].inner, inner_corner))
+    const std::array<Plane, 2> box_faces = {bottom_plane, top_plane};
+    const std::optional<Line> outer_corner =
+        annen_corner_line(corners[0].outer, corners[1].outer, box_faces);
+    const std::optional<Line> inner_corner =
+        annen_corner_line(corners[0].inner, corners[1].inner, box_faces);
+    if (!outer_corner || !inner_corner)
         return;
+
     const Line centre = Line::from_points(
-        Point::mid_point(outer_corner.start(), inner_corner.start()),
-        Point::mid_point(outer_corner.end(), inner_corner.end())
+        Point::mid_point(outer_corner->start(), inner_corner->start()),
+        Point::mid_point(outer_corner->end(), inner_corner->end())
     );
 
     // the cuts: the box faces at the ends, between them planes parallel to them through the centre line's stations, turned about the axis wall's long edge
@@ -129,24 +145,21 @@ static void side_side_outplane_annen_fingers(
         const FacePlanarElement& wall = *walls[k];
         const Corner& other = corners[1 - k];
         for (int face = 0; face < 2; face++) {
-            Line with_outer;
-            Line with_inner;
-            if (!corner_line(wall.planes[face], other.outer, with_outer) ||
-                !corner_line(wall.planes[face], other.inner, with_inner))
+            const std::optional<Line> with_outer =
+                annen_corner_line(wall.planes[face], other.outer, box_faces);
+            const std::optional<Line> with_inner =
+                annen_corner_line(wall.planes[face], other.inner, box_faces);
+            if (!with_outer || !with_inner)
                 return;
-            const Line& first = k == axis ? with_outer : with_inner;
-            const Line& second = k == axis ? with_inner : with_outer;
-            const auto at = [&](const Line& line, int i) {
-                Point point;
-                Intersection::line_plane(line, cuts[i], point, false);
-                return point;
-            };
-            std::vector<Point> run = {at(first, 0)};
+
+            const Line& first = k == axis ? *with_outer : *with_inner;
+            const Line& second = k == axis ? *with_inner : *with_outer;
+            std::vector<Point> run = {annen_cut_point(first, cuts[0])};
             for (int i = 1; i < parts; i++) {
-                run.push_back(at(i % 2 == 1 ? first : second, i));
-                run.push_back(at(i % 2 == 1 ? second : first, i));
+                run.push_back(annen_cut_point(i % 2 == 1 ? first : second, cuts[i]));
+                run.push_back(annen_cut_point(i % 2 == 1 ? second : first, cuts[i]));
             }
-            run.push_back(at(parts % 2 == 1 ? first : second, parts));
+            run.push_back(annen_cut_point(parts % 2 == 1 ? first : second, cuts[parts]));
             std::array<std::vector<Polyline>, 2>& outlines =
                 k == 0 ? joint.male_outlines : joint.female_outlines;
             std::array<std::vector<int>, 2>& types =

@@ -61,10 +61,10 @@ std::string InteractionContactFace::interaction_type_name() const {
 std::string InteractionContactFace::interaction_data_dumps() const {
 
     wood_proto::InteractionContactFace proto;
-    for (const auto& line : lines)
+    for (const Line& line : lines)
         if (!proto.add_lines()->ParseFromString(line.pb_dumps()))
             throw std::runtime_error("Invalid contact line");
-    for (const auto& volume : volumes)
+    for (const Polyline& volume : volumes)
         if (!proto.add_volumes()->ParseFromString(volume.pb_dumps()))
             throw std::runtime_error("Invalid contact volume");
     proto.set_face_a(face_a);

@@ -18,6 +18,208 @@ const double GRAZING = 1e-3;
 const size_t BISECTIONS = 200;
 const double CUTTER_MARGIN = 100.0;
 
+namespace {
+
+/// Build a plan quad on z = 0 from four side planes in cyclic order.
+Polyline quad_of(const std::array<Plane, 4>& planes) {
+    return Polyline::from_planes(
+        {planes[3], planes[0], planes[1], planes[2]}, Plane::xy_plane_at(0.0)
+    );
+}
+
+/// Fit an upward-pointing plane to the trimmed ends of two face traces.
+Plane fitted(
+    const std::array<Polyline, 2>& faces, const Plane& cut_plane0, const Plane& cut_plane1
+) {
+
+    const Polyline trimmed0 = faces[0].trimmed(cut_plane0, cut_plane1, EXTENSION);
+    const Polyline trimmed1 = faces[1].trimmed(cut_plane0, cut_plane1, EXTENSION);
+    std::array<std::vector<Point>, 2> pts = {trimmed0.get_points(), trimmed1.get_points()};
+
+    if (pts[0].front()[2] > pts[0].back()[2]) {
+        std::reverse(pts[0].begin(), pts[0].end());
+        std::reverse(pts[1].begin(), pts[1].end());
+    }
+
+    const Plane plane = Plane::from_points_pca({pts[0][0], pts[0][1], pts[1][0], pts[1][1]});
+    const Vector normal = plane.z_axis();
+    const Vector up = normal[2] < 0.0 ? -normal : normal;
+
+    return Plane::from_point_normal(plane.origin(), up);
+}
+
+/// Trim the lower and upper layer traces on a panel's two side planes alike.
+std::array<std::array<Polyline, 2>, 2> bed_row(
+    const std::array<Polyline, 2>& lower,
+    const std::array<Polyline, 2>& upper,
+    const Plane& cut_plane0,
+    const Plane& cut_plane1
+) {
+
+    const std::vector<Polyline> layers = Polyline::trimmed_alike(
+        {lower[0], lower[1], upper[0], upper[1]},
+        cut_plane0,
+        cut_plane1,
+        EXTENSION
+    );
+
+    return std::array<std::array<Polyline, 2>, 2>{
+        {{layers[0], layers[1]}, {layers[2], layers[3]}}
+    };
+}
+
+/// Project an outer parabola's +t and +2t layers onto two panel side planes and trim them as a bed row.
+std::array<std::array<Polyline, 2>, 2> outer_bed_row(
+    const std::array<Polyline, 3>& parabola,
+    const Plane& side0,
+    const Plane& side1,
+    const Vector& normal,
+    const Plane& cut_plane0,
+    const Plane& cut_plane1
+) {
+
+    const Xform projection0 = Xform::project_to_plane_by_axis(side0, normal);
+    const Xform projection1 = Xform::project_to_plane_by_axis(side1, normal);
+
+    return bed_row(
+        {parabola[1].transformed(projection0), parabola[1].transformed(projection1)},
+        {parabola[2].transformed(projection0), parabola[2].transformed(projection1)},
+        cut_plane0,
+        cut_plane1
+    );
+}
+
+/// Trim and close a t-section's soffit and +t traces on its near and projected far faces.
+std::array<Polyline, 2> tsection(
+    const Polyline& soffit,
+    const Polyline& layer,
+    const Plane& cut_plane0,
+    const Plane& cut_plane1,
+    const Xform& projection10,
+    const Xform& projection11
+) {
+
+    const Polyline far_soffit = soffit.transformed(projection10);
+    const Polyline far_layer = layer.transformed(projection11);
+    const std::vector<Point> cut00 =
+        soffit.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+    const std::vector<Point> cut01 =
+        far_soffit.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+    const std::vector<Point> cut10 =
+        layer.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+    const std::vector<Point> cut11 =
+        far_layer.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
+
+    std::vector<Point> top = cut00;
+    top.insert(top.end(), cut10.rbegin(), cut10.rend());
+
+    std::vector<Point> bottom = cut01;
+    bottom.insert(bottom.end(), cut11.rbegin(), cut11.rend());
+
+    return std::array<Polyline, 2>{Polyline(top).closed(), Polyline(bottom).closed()};
+}
+
+/// Build an outer t-section by projecting the parabola onto the first face and continuing to the far face.
+std::array<Polyline, 2> outer_tsection(
+    const std::array<Polyline, 3>& parabola,
+    const std::array<Plane, 2>& faces,
+    const Vector& outer,
+    const Vector& sweep,
+    const Plane& cut_plane0,
+    const Plane& cut_plane1
+) {
+
+    const Xform projection = Xform::project_to_plane_by_axis(faces[0], outer);
+
+    return tsection(
+        parabola[0].transformed(projection),
+        parabola[1].transformed(projection),
+        cut_plane0,
+        cut_plane1,
+        Xform::project_to_plane_by_axis(faces[1], sweep),
+        Xform::project_to_plane_by_axis(faces[1], outer)
+    );
+}
+
+/// Stretch a cutter quad in its own plane by CUTTER_MARGIN along its long sides and inwards.
+std::vector<Point> stretch(std::vector<Point> quad, bool top) {
+
+    Polyline::extend_line_segment(
+        quad[0],
+        quad[1],
+        CUTTER_MARGIN,
+        CUTTER_MARGIN
+    );
+    Polyline::extend_line_segment(
+        quad[2],
+        quad[3],
+        CUTTER_MARGIN,
+        CUTTER_MARGIN
+    );
+
+    const Vector d2 = (quad[2] - quad[1]).normalized() * CUTTER_MARGIN;
+    const Vector d3 = (quad[0] - quad[3]).normalized() * CUTTER_MARGIN;
+    quad[0] = quad[0] - d2;
+    quad[1] = quad[1] - d2;
+
+    if (top) {
+        quad[2] = quad[2] - d3;
+        quad[3] = quad[3] - d3;
+    }
+
+    return quad;
+}
+
+/// Close one side of a rib trace against the z = 0 floor plane and its end cut planes.
+Polyline rib_loop(
+    const std::vector<Point>& pts,
+    const Plane& cut_plane0,
+    const Plane& cut_plane1,
+    bool inner
+) {
+
+    const Vector span = (pts.back() - pts.front()).flattened();
+    const Plane rib_plane = Plane::from_point_normal(pts.front(), span.cross(Vector::z_axis()));
+    const Point p0 =
+        Intersection::plane_plane_plane(cut_plane0, Plane::xy_plane_at(0.0), rib_plane).value();
+    Point p1(pts.back()[0], pts.back()[1], 0.0);
+
+    if (inner)
+        p1 = Intersection::line_plane(Line::from_points(p0, p1), cut_plane1, false).value();
+
+    std::vector<Point> loop = {p1, p0};
+    loop.insert(loop.end(), pts.begin(), pts.end());
+
+    return Polyline(loop).closed();
+}
+
+/// One member family as drawn in the guide session.
+struct DrawnFamily {
+    std::string name; // Group prefix for the family.
+    Color color; // Display colour for quads, planes, and parabolas.
+    std::span<const Polyline> quads; // Plan quads in member order.
+    std::span<const std::array<Plane, 2>> planes; // Side face planes in member order.
+    int parabola; // Index of the first rib parabola, or -1 when none.
+};
+
+/// Add a styled named polyline to a guide session group.
+void draw_line(
+    Session& session,
+    Polyline polyline,
+    const std::string& name,
+    const Color& color,
+    double width,
+    const std::shared_ptr<TreeNode>& group
+) {
+
+    polyline.name = name;
+    polyline.linecolor = color;
+    polyline.width = width;
+    session.add_polyline(polyline, group);
+}
+
+} // namespace
+
 // ═══════════════════════════════════════════════════════════════════════════
 // The guide
 // ═══════════════════════════════════════════════════════════════════════════
@@ -330,13 +532,6 @@ ConstructionPlanes FloorGuide::compute_construction_planes(size_t q) const {
 ConstructionQuads FloorGuide::compute_construction_quads(size_t q) const {
 
     const ConstructionPlanes& cp = _construction_planes[q];
-
-    const auto quad_of = [](const std::array<Plane, 4>& planes) {
-        return Polyline::from_planes(
-            {planes[3], planes[0], planes[1], planes[2]}, Plane::xy_plane_at(0.0)
-        );
-    };
-
     ConstructionQuads quad;
     quad.outer_ribs = {
         quad_of({cp.outer_ribs[0][0], cp.inner_beams[0][0], cp.outer_ribs[0][1], cp.wedges[0][0]}),
@@ -573,26 +768,6 @@ std::array<Plane, 3> FloorGuide::compute_bed_top_planes(size_t q) const {
     const std::array<std::array<Polyline, 3>, 4>& parabolas = _boundary_parabolas[q];
     const CentralPanel& panel = _central_panel[q];
 
-    const auto fitted = [](const std::array<Polyline, 2>& faces,
-                           const Plane& cut_plane0,
-                           const Plane& cut_plane1) {
-        const Polyline trimmed0 = faces[0].trimmed(cut_plane0, cut_plane1, EXTENSION);
-        const Polyline trimmed1 = faces[1].trimmed(cut_plane0, cut_plane1, EXTENSION);
-        std::array<std::vector<Point>, 2> pts = {trimmed0.get_points(), trimmed1.get_points()};
-
-        if (pts[0].front()[2] > pts[0].back()[2]) {
-            std::reverse(pts[0].begin(), pts[0].end());
-            std::reverse(pts[1].begin(), pts[1].end());
-        }
-
-        const Plane plane = Plane::from_points_pca({pts[0][0], pts[0][1], pts[1][0], pts[1][1]});
-
-        const Vector normal = plane.z_axis();
-        const Vector up = normal[2] < 0.0 ? -normal : normal;
-
-        return Plane::from_point_normal(plane.origin(), up);
-    };
-
     const Vector across0 = cp.outer_ribs[0][0].z_axis();
     const Vector across1 = cp.outer_ribs[1][0].z_axis();
     const Xform side00 = Xform::project_to_plane_by_axis(cp.inner_ribs[0][0], across0);
@@ -763,40 +938,6 @@ Vector FloorGuide::turned(const Vector& reference, double degrees) {
 std::array<std::array<std::array<Polyline, 2>, 2>, 3> FloorGuide::compute_bed_rails(size_t q
 ) const {
 
-    // one row: the lower and upper layer on the panel's two side planes trimmed alike
-    const auto bed_row = [](const std::array<Polyline, 2>& lower,
-                            const std::array<Polyline, 2>& upper,
-                            const Plane& cut_plane0,
-                            const Plane& cut_plane1) {
-        const std::vector<Polyline> layers = Polyline::trimmed_alike(
-            {lower[0], lower[1], upper[0], upper[1]}, cut_plane0, cut_plane1, EXTENSION
-        );
-
-        return std::array<std::array<Polyline, 2>, 2>{
-            {{layers[0], layers[1]}, {layers[2], layers[3]}}
-        };
-    };
-
-    // an outer row: the parabola's +t and +2t projected along the outer rib normal onto the panel's two side planes
-    const auto outer_bed_row = [&bed_row](
-                                   const std::array<Polyline, 3>& parabola,
-                                   const Plane& side0,
-                                   const Plane& side1,
-                                   const Vector& normal,
-                                   const Plane& cut_plane0,
-                                   const Plane& cut_plane1
-                               ) {
-        const Xform projection0 = Xform::project_to_plane_by_axis(side0, normal);
-        const Xform projection1 = Xform::project_to_plane_by_axis(side1, normal);
-
-        return bed_row(
-            {parabola[1].transformed(projection0), parabola[1].transformed(projection1)},
-            {parabola[2].transformed(projection0), parabola[2].transformed(projection1)},
-            cut_plane0,
-            cut_plane1
-        );
-    };
-
     const ConstructionPlanes& cp = construction_planes(q);
     const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
     const CentralPanel& panel = central_panel(q);
@@ -861,54 +1002,6 @@ std::array<std::vector<std::array<Polyline, 2>>, 3> FloorGuide::compute_beds(siz
 
 std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_tsections(size_t q) const {
 
-    // a t-section: its soffit and +t traces trimmed on its first face and closed into one loop, the same projected onto its second face
-    const auto tsection = [](const Polyline& soffit,
-                             const Polyline& layer,
-                             const Plane& cut_plane0,
-                             const Plane& cut_plane1,
-                             const Xform& projection10,
-                             const Xform& projection11) {
-        const Polyline far_soffit = soffit.transformed(projection10);
-        const Polyline far_layer = layer.transformed(projection11);
-        const std::vector<Point> cut00 =
-            soffit.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
-        const std::vector<Point> cut01 =
-            far_soffit.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
-        const std::vector<Point> cut10 =
-            layer.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
-        const std::vector<Point> cut11 =
-            far_layer.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
-
-        std::vector<Point> top = cut00;
-        top.insert(top.end(), cut10.rbegin(), cut10.rend());
-
-        std::vector<Point> bottom = cut01;
-        bottom.insert(bottom.end(), cut11.rbegin(), cut11.rend());
-
-        return std::array<Polyline, 2>{Polyline(top).closed(), Polyline(bottom).closed()};
-    };
-
-    // beside an outer rib face: the parabola and its +t projected along the outer rib normal onto the face, the soffit continued to the far face along the sweep, the +t along the panel
-    const auto outer_tsection = [&tsection](
-                                    const std::array<Polyline, 3>& parabola,
-                                    const std::array<Plane, 2>& faces,
-                                    const Vector& outer,
-                                    const Vector& sweep,
-                                    const Plane& cut_plane0,
-                                    const Plane& cut_plane1
-                                ) {
-        const Xform projection = Xform::project_to_plane_by_axis(faces[0], outer);
-
-        return tsection(
-            parabola[0].transformed(projection),
-            parabola[1].transformed(projection),
-            cut_plane0,
-            cut_plane1,
-            Xform::project_to_plane_by_axis(faces[1], sweep),
-            Xform::project_to_plane_by_axis(faces[1], outer)
-        );
-    };
-
     const ConstructionPlanes& cp = construction_planes(q);
     const std::array<std::array<Polyline, 3>, 4>& pb = boundary_parabolas(q);
     const CentralPanel& panel = central_panel(q);
@@ -923,9 +1016,21 @@ std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_tsections(size_t q) c
     const Xform ruling3 = Xform::project_to_plane_by_axis(ts[3][1], panel.ruling);
 
     return {
-        outer_tsection(pb[0], ts[0], outer0, outer0, cp.inner_beams[0][1], cp.wedges[0][0]),
         outer_tsection(
-            pb[0], ts[1], outer0, panel.rib_sweep, cp.inner_beams[0][1], cp.wedges[0][0]
+            pb[0],
+            ts[0],
+            outer0,
+            outer0,
+            cp.inner_beams[0][1],
+            cp.wedges[0][0]
+        ),
+        outer_tsection(
+            pb[0],
+            ts[1],
+            outer0,
+            panel.rib_sweep,
+            cp.inner_beams[0][1],
+            cp.wedges[0][0]
         ),
         tsection(
             panel.traces[0][0],
@@ -944,9 +1049,21 @@ std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_tsections(size_t q) c
             ruling3
         ),
         outer_tsection(
-            pb[1], ts[4], outer1, panel.rib_sweep, cp.inner_beams[2][1], cp.wedges[2][0]
+            pb[1],
+            ts[4],
+            outer1,
+            panel.rib_sweep,
+            cp.inner_beams[2][1],
+            cp.wedges[2][0]
         ),
-        outer_tsection(pb[1], ts[5], outer1, outer1, cp.inner_beams[2][1], cp.wedges[2][0]),
+        outer_tsection(
+            pb[1],
+            ts[5],
+            outer1,
+            outer1,
+            cp.inner_beams[2][1],
+            cp.wedges[2][0]
+        ),
     };
 }
 
@@ -1076,24 +1193,6 @@ Plane FloorGuide::ring_inner(size_t q) const {
 // ═══════════════════════════════════════════════════════════════════════════
 std::array<std::array<Polyline, 2>, 6> FloorGuide::compute_column_cutters(size_t q) const {
 
-    // a cutter quad stretched in its own plane: its long sides by the margin at both ends, then its short sides inwards, both for a top quad, only the first for a bottom one
-    const auto stretch = [](std::vector<Point> quad, bool top) {
-        Polyline::extend_line_segment(quad[0], quad[1], CUTTER_MARGIN, CUTTER_MARGIN);
-        Polyline::extend_line_segment(quad[2], quad[3], CUTTER_MARGIN, CUTTER_MARGIN);
-
-        const Vector d2 = (quad[2] - quad[1]).normalized() * CUTTER_MARGIN;
-        const Vector d3 = (quad[0] - quad[3]).normalized() * CUTTER_MARGIN;
-        quad[0] = quad[0] - d2;
-        quad[1] = quad[1] - d2;
-
-        if (top) {
-            quad[2] = quad[2] - d3;
-            quad[3] = quad[3] - d3;
-        }
-
-        return quad;
-    };
-
     const std::vector<Point> head = quarter_column_polygon(q);
     const Vector down(0.0, 0.0, -1.0);
     const Plane xy2 = Plane::xy_plane_at(column_levels(q)[2]);
@@ -1205,25 +1304,6 @@ std::array<Polyline, 2> FloorGuide::rib(
     bool inner
 ) {
 
-    const auto rib_loop = [](const std::vector<Point>& pts,
-                             const Plane& cut_plane0,
-                             const Plane& cut_plane1,
-                             bool inner) {
-        const Vector span = (pts.back() - pts.front()).flattened();
-        const Plane rib_plane = Plane::from_point_normal(pts.front(), span.cross(Vector::z_axis()));
-        const Point p0 =
-            Intersection::plane_plane_plane(cut_plane0, Plane::xy_plane_at(0.0), rib_plane).value();
-        Point p1(pts.back()[0], pts.back()[1], 0.0);
-
-        if (inner)
-            p1 = Intersection::line_plane(Line::from_points(p0, p1), cut_plane1, false).value();
-
-        std::vector<Point> loop = {p1, p0};
-        loop.insert(loop.end(), pts.begin(), pts.end());
-
-        return Polyline(loop).closed();
-    };
-
     std::vector<Point> near = trace.trimmed(cut_plane0, cut_plane1, EXTENSION).get_points();
 
     if (std::abs(cut_plane0.signed_distance(near.front())) >
@@ -1242,8 +1322,18 @@ std::array<Polyline, 2> FloorGuide::rib(
     far[0] = Intersection::line_plane(first_facet, cut_plane0, false).value();
     far[n - 1] = Intersection::line_plane(last_facet, cut_plane1, false).value();
 
-    const Polyline near_loop = rib_loop(near, cut_plane0, cut_plane1, inner);
-    const Polyline far_loop = rib_loop(far, cut_plane0, cut_plane1, inner);
+    const Polyline near_loop = rib_loop(
+        near,
+        cut_plane0,
+        cut_plane1,
+        inner
+    );
+    const Polyline far_loop = rib_loop(
+        far,
+        cut_plane0,
+        cut_plane1,
+        inner
+    );
 
     return {near_loop, far_loop};
 }
@@ -1253,28 +1343,6 @@ std::array<Polyline, 2> FloorGuide::rib(
 // ═══════════════════════════════════════════════════════════════════════════
 void FloorGuide::draw() {
 
-    // one member family as it is drawn: its name, its colour, its plan quads and face planes in member order, and the index of its first rib parabola, -1 for none
-    struct DrawnFamily {
-        std::string name;
-        Color color;
-        std::span<const Polyline> quads;
-        std::span<const std::array<Plane, 2>> planes;
-        int parabola;
-    };
-
-    const auto line = [this](
-                          Polyline polyline,
-                          const std::string& name,
-                          const Color& color,
-                          double width,
-                          const std::shared_ptr<TreeNode>& group
-                      ) {
-        polyline.name = name;
-        polyline.linecolor = color;
-        polyline.width = width;
-        add_polyline(polyline, group);
-    };
-
     for (size_t q = 0; q < 4; q++) {
         const std::string suffix = fmt::format("_{}", q);
         const ConstructionPlanes& cp = construction_planes(q);
@@ -1282,8 +1350,16 @@ void FloorGuide::draw() {
         const std::shared_ptr<TreeNode> quarter = add_group("quarter" + suffix);
         const std::shared_ptr<TreeNode> plan = add_group("plan" + suffix, quarter);
 
-        line(Polyline(quarter_polygon(q)).closed(), "polygon" + suffix, Color::black(), 3.0, plan);
-        line(
+        draw_line(
+            *this,
+            Polyline(quarter_polygon(q)).closed(),
+            "polygon" + suffix,
+            Color::black(),
+            3.0,
+            plan
+        );
+        draw_line(
+            *this,
             Polyline(quarter_column_polygon(q)).closed(),
             "size_column_head" + suffix,
             Color::black(),
@@ -1324,7 +1400,14 @@ void FloorGuide::draw() {
             for (size_t i = 0; i < family.quads.size(); i++) {
                 const std::shared_ptr<TreeNode> member =
                     add_group(fmt::format("{}_{}{}", name, i, suffix), group);
-                line(family.quads[i].closed(), "quad", color, 2.0, member);
+                draw_line(
+                    *this,
+                    family.quads[i].closed(),
+                    "quad",
+                    color,
+                    2.0,
+                    member
+                );
 
                 for (size_t side = 0; side < 2; side++) {
                     Plane face = family.planes[i][side];
@@ -1338,9 +1421,30 @@ void FloorGuide::draw() {
 
                 const std::array<Polyline, 3>& parabola =
                     boundary_parabolas(q)[static_cast<size_t>(family.parabola) + i];
-                line(parabola[0], "soffit", color, 2.0, member);
-                line(parabola[1], "tsections_top", color, 1.0, member);
-                line(parabola[2], "beds_top", color, 1.0, member);
+                draw_line(
+                    *this,
+                    parabola[0],
+                    "soffit",
+                    color,
+                    2.0,
+                    member
+                );
+                draw_line(
+                    *this,
+                    parabola[1],
+                    "tsections_top",
+                    color,
+                    1.0,
+                    member
+                );
+                draw_line(
+                    *this,
+                    parabola[2],
+                    "beds_top",
+                    color,
+                    1.0,
+                    member
+                );
             }
         }
     }

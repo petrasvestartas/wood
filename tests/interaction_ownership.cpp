@@ -18,13 +18,24 @@ static const ElementFeature* feature(const Element& element, const std::string& 
 
 int main() {
     WoodSession scene("interaction ownership");
-    const auto beam = EdgeStraightElement::square(Polyline({{0, 0, 0}, {100, 0, 0}}), 10.0);
-    const auto column = EdgeStraightElement::square(Polyline({{50, 0, -50}, {50, 0, 50}}), 10.0);
+    const std::shared_ptr<EdgeStraightElement> beam =
+        EdgeStraightElement::square(Polyline({{0, 0, 0}, {100, 0, 0}}), 10.0);
+    const std::shared_ptr<EdgeStraightElement> column =
+        EdgeStraightElement::square(Polyline({{50, 0, -50}, {50, 0, 50}}), 10.0);
     scene.add(beam);
     scene.add(column);
 
-    const auto contact = std::make_shared<InteractionContactFace>(
-        2, 4, ContactType::side_side, Polyline::rectangle({45, -5, 0}, {1, 0, 0}, {0, 1, 0}, 10, 10)
+    const std::shared_ptr<InteractionContactFace> contact = std::make_shared<InteractionContactFace>(
+        2,
+        4,
+        ContactType::side_side,
+        Polyline::rectangle(
+            {45, -5, 0},
+            {1, 0, 0},
+            {0, 1, 0},
+            10,
+            10
+        )
     );
     scene.add_interaction(beam, column, contact);
     const ElementFeature* hosted_contact = feature(*column, contact->guid());
@@ -41,11 +52,11 @@ int main() {
     );
     check(scene.get_interaction(beam, column).size() == 1, "contact is not duplicated");
 
-    const auto joint = std::make_shared<InteractionFeatureBeam>();
+    const std::shared_ptr<InteractionFeatureBeam> joint = std::make_shared<InteractionFeatureBeam>();
     for (int i = 0; i < 4; ++i)
         joint->volumes[i] = Polyline::rectangle({double(i), 0, 0}, {1, 0, 0}, {0, 1, 0}, 2, 3);
 
-    const auto stored =
+    const std::shared_ptr<InteractionFeatureBeam> stored =
         std::dynamic_pointer_cast<InteractionFeatureBeam>(scene.add_interaction(column, beam, joint)
         );
     check(!feature(*beam, joint->guid()), "existing edge's first endpoint must not own the joint");

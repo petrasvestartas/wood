@@ -119,6 +119,29 @@ struct AssemblySolid {
                 return false;
         return true;
     }
+
+    /// Project a polyline onto the base frame as 2D coordinates, dropping a duplicate closing vertex.
+    std::vector<std::array<double, 2>> flat(const Polyline& polyline) const {
+
+        std::vector<std::array<double, 2>> points;
+        const std::vector<Point> source = polyline.get_points();
+        const size_t count =
+            source.size() > 1 && Point::distance(source.front(), source.back()) < 1e-9
+                ? source.size() - 1
+                : source.size();
+
+        for (size_t k = 0; k < count; k++) {
+            const Vector d = source[k] - base.origin();
+            points.push_back({d.dot(base.x_axis()), d.dot(base.y_axis())});
+        }
+
+        return points;
+    }
+
+    /// Evaluate a 3D point from in-plane coordinates (u, v) and height h along up.
+    Point at(double u, double v, double h) const {
+        return base.origin() + base.x_axis() * u + base.y_axis() * v + up * h;
+    }
 };
 
 /// The assembly of a shell box by box: every box slides in along its one insertion vector into the boxes already placed, in an order where
@@ -183,6 +206,9 @@ private:
 
     /// Every box swept along its vector into the boxes before it in the order.
     std::vector<AssemblyCollision> compute_collisions() const;
+
+    /// Order collisions from deepest penetration to shallowest.
+    static bool deeper_collision(const AssemblyCollision& a, const AssemblyCollision& b);
 };
 
 inline Assembly::Assembly(const WoodSession& session, double reach, double clearance)
@@ -263,11 +289,24 @@ Assembly::compute_box_plates(const WoodSession& session) const {
         index[_plates[i]->guid()] = static_cast<int>(i);
 
     std::vector<std::vector<int>> plates;
-    std::function<void(const TreeNode*, int)> visit = [&](const TreeNode* node, int box) {
+    const TreeNode* root = session.tree.root().get();
+
+    if (root == nullptr)
+        return plates;
+
+    std::vector<std::pair<const TreeNode*, int>> stack = {{root, -1}};
+    const size_t max_steps = 1000000;
+
+    for (size_t step = 0; !stack.empty() && step < max_steps; step++) {
+        const std::pair<const TreeNode*, int> current = stack.back();
+        stack.pop_back();
+        const TreeNode* node = current.first;
+        int box = current.second;
+
         if (node->name.rfind("box_", 0) == 0) {
             box = std::stoi(node->name.substr(4));
 
-            if (box >= (int)plates.size())
+            if (box >= static_cast<int>(plates.size()))
                 plates.resize(box + 1);
         } else if (box >= 0) {
             const std::unordered_map<std::string, int>::const_iterator found =
@@ -277,10 +316,11 @@ Assembly::compute_box_plates(const WoodSession& session) const {
                 plates[box].push_back(found->second);
         }
 
-        for (const TreeNode* child : node->children())
-            visit(child, box);
-    };
-    visit(session.tree.root().get(), -1);
+        const std::vector<TreeNode*> children = node->children();
+
+        for (size_t i = children.size(); i-- > 0;)
+            stack.emplace_back(children[i], box);
+    }
 
     return plates;
 }
@@ -289,17 +329,31 @@ inline std::vector<Vector> Assembly::compute_directions(const WoodSession& sessi
 
     // the lines of the insertion group
     std::vector<Line> lines;
-    std::function<void(const TreeNode*, bool)> visit = [&](const TreeNode* node, bool inside) {
-        inside = inside || node->name == "insertion";
+    const TreeNode* root = session.tree.root().get();
 
-        if (inside && node->is_leaf())
-            if (const std::shared_ptr<const Line> line = session.get_object<Line>(node->name))
-                lines.push_back(*line);
+    if (root != nullptr) {
+        std::vector<std::pair<const TreeNode*, bool>> stack = {{root, false}};
+        const size_t max_steps = 1000000;
 
-        for (const TreeNode* child : node->children())
-            visit(child, inside);
-    };
-    visit(session.tree.root().get(), false);
+        for (size_t step = 0; !stack.empty() && step < max_steps; step++) {
+            const std::pair<const TreeNode*, bool> current = stack.back();
+            stack.pop_back();
+            const TreeNode* node = current.first;
+            const bool inside = current.second || node->name == "insertion";
+
+            if (inside && node->is_leaf()) {
+                const std::shared_ptr<const Line> line = session.get_object<Line>(node->name);
+
+                if (line)
+                    lines.push_back(*line);
+            }
+
+            const std::vector<TreeNode*> children = node->children();
+
+            for (size_t i = children.size(); i-- > 0;)
+                stack.emplace_back(children[i], inside);
+        }
+    }
 
     std::vector<Vector> directions(_boxes.size(), Vector(0.0, 0.0, 0.0));
 
@@ -328,17 +382,17 @@ inline std::vector<Vector> Assembly::compute_directions(const WoodSession& sessi
         }
 
         // no line: the first insertion vector a plate of the box carries on a side
-        for (size_t p = 0; p < _boxes[box].plates.size() && directions[box].magnitude() < 1e-9;
-             p++) {
-            const std::vector<Vector>& vectors =
-                _plates[_boxes[box].plates[p]]->insertion_vectors();
+        const std::vector<int>& box_plates = _boxes[box].plates;
 
-            for (size_t face = 2; face < vectors.size() && directions[box].magnitude() < 1e-9;
-                 face++)
+        for (size_t p = 0; p < box_plates.size() && directions[box].magnitude() < 1e-9; p++) {
+            const std::vector<Vector>& vectors = _plates[box_plates[p]]->insertion_vectors();
+
+            for (size_t face = 2; face < vectors.size() && directions[box].magnitude() < 1e-9; face++)
                 directions[box] = vectors[face];
         }
 
-        directions[box].normalize_self();
+        if (!directions[box].normalize_self())
+            directions[box] = Vector(0.0, 0.0, 0.0);
     }
 
     return directions;
@@ -419,7 +473,7 @@ inline std::vector<int> Assembly::compute_order() const {
         if (pending[box] == 0)
             ready.push_back(static_cast<int>(box));
 
-    while (!ready.empty()) {
+    for (size_t step = 0; !ready.empty() && step < _boxes.size(); step++) {
         const int box = ready.front();
         ready.pop_front();
         order.push_back(box);
@@ -459,19 +513,6 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
         const std::vector<Polyline>& tops = plate.features.top.empty()
                                                 ? std::vector<Polyline>{plate.polylines[1]}
                                                 : plate.features.top;
-        const auto flat = [&](const Polyline& polyline) {
-            std::vector<std::array<double, 2>> points;
-            const std::vector<Point> source = polyline.get_points();
-            const size_t count =
-                source.size() > 1 && Point::distance(source.front(), source.back()) < 1e-9
-                    ? source.size() - 1
-                    : source.size();
-            for (size_t k = 0; k < count; k++) {
-                const Vector d = source[k] - solid.base.origin();
-                points.push_back({d.dot(solid.base.x_axis()), d.dot(solid.base.y_axis())});
-            }
-            return points;
-        };
 
         for (size_t k = 0; k < bottoms.size() && k < tops.size(); k++) {
             // the loop nearer the first face first, whichever face the merge listed it under: the holes lean, so the faces must not swap
@@ -481,8 +522,8 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
                 std::abs((lower->get_point(0) - plate.planes[0].origin()).dot(solid.up)) >
                     std::abs((lower->get_point(0) - plate.planes[1].origin()).dot(solid.up)))
                 std::swap(lower, upper);
-            std::vector<std::array<double, 2>> bottom = flat(*lower);
-            std::vector<std::array<double, 2>> top = flat(*upper);
+            std::vector<std::array<double, 2>> bottom = solid.flat(*lower);
+            std::vector<std::array<double, 2>> top = solid.flat(*upper);
             if (bottom.size() < 3 || top.size() < 3)
                 continue;
             if (bottom.size() != top.size())
@@ -505,10 +546,6 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
                     }
 
         // the samples: a grid over both faces just inside them, and along every edge of every loop at three heights, clearance into the material
-        const auto at = [&](double u, double v, double h) {
-            return solid.base.origin() + solid.base.x_axis() * u + solid.base.y_axis() * v +
-                   solid.up * h;
-        };
         double u0 = 1e300;
         double u1 = -1e300;
         double v0 = 1e300;
@@ -522,9 +559,11 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
         const double pitch = 20.0;
         for (const double h : {clearance, solid.thickness - clearance})
             for (double u = u0 + pitch * 0.5; u < u1; u += pitch)
-                for (double v = v0 + pitch * 0.5; v < v1; v += pitch)
-                    if (solid.contains(at(u, v, h)))
-                        solid.samples.push_back(at(u, v, h));
+                for (double v = v0 + pitch * 0.5; v < v1; v += pitch) {
+                    const Point sample = solid.at(u, v, h);
+                    if (solid.contains(sample))
+                        solid.samples.push_back(sample);
+                }
         for (const double s : {0.25, 0.5, 0.75})
             for (size_t k = 0; k < solid.bottom.size(); k++) {
                 const std::vector<std::array<double, 2>> points = solid.loop(k, s);
@@ -541,10 +580,9 @@ inline std::vector<AssemblySolid> Assembly::compute_solids() const {
                     const double nx = -ey / length * side * clearance;
                     const double ny = ex / length * side * clearance;
                     for (const double t : {0.25, 0.5, 0.75}) {
-                        const Point sample =
-                            at(points[j][0] + ex * t + nx,
-                               points[j][1] + ey * t + ny,
-                               s * solid.thickness);
+                        const double su = points[j][0] + ex * t + nx;
+                        const double sv = points[j][1] + ey * t + ny;
+                        const Point sample = solid.at(su, sv, s * solid.thickness);
                         if (solid.contains(sample))
                             solid.samples.push_back(sample);
                     }
@@ -643,6 +681,10 @@ inline std::vector<AssemblyCollision> Assembly::compute_collisions() const {
 // ═══════════════════════════════════════════════════════════════════════════
 // Report
 // ═══════════════════════════════════════════════════════════════════════════
+inline bool Assembly::deeper_collision(const AssemblyCollision& a, const AssemblyCollision& b) {
+    return a.depth > b.depth;
+}
+
 inline std::string Assembly::report() const {
 
     int binding = 0;
@@ -663,11 +705,7 @@ inline std::string Assembly::report() const {
     );
 
     std::vector<AssemblyCollision> listed = _collisions;
-    std::sort(
-        listed.begin(), listed.end(), [](const AssemblyCollision& a, const AssemblyCollision& b) {
-            return a.depth > b.depth;
-        }
-    );
+    std::sort(listed.begin(), listed.end(), deeper_collision);
 
     for (size_t i = 0; i < listed.size() && i < 10; i++) {
         const AssemblyCollision& collision = listed[i];

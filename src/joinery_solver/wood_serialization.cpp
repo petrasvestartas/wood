@@ -19,8 +19,8 @@ nlohmann::ordered_json json_of(const google::protobuf::Message& message) {
     nlohmann::ordered_json parsed = nlohmann::ordered_json::parse(text);
     nlohmann::ordered_json data = nlohmann::ordered_json::object();
     data["type"] = message.GetDescriptor()->name();
-    for (auto& [key, value] : parsed.items())
-        data[key] = std::move(value);
+    for (auto it = parsed.begin(); it != parsed.end(); ++it)
+        data[it.key()] = std::move(it.value());
 
     return data;
 }

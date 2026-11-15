@@ -4,9 +4,9 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-// ═════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 // Measurements
-// ═════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 static const double RADIUS = 15000.0;
 static const double HEIGHT = 7600.0;
 static const double OVERHANG = 300.0;

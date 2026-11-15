@@ -247,6 +247,7 @@ public:
 
     /// The joint id 2024's tables give a design by its name.
     static int library_id(const std::string& name);
+
     /// The id of cross_half_lap with its drills: 32 none, 33 two diagonal, 34 one.
     static int cross_half_lap_id(CrossDrills drills);
     void orient(

@@ -605,7 +605,7 @@ void reuse_or_create_geometry(
     // the bridle's tile depends on the lean of each joint's own plate
     const bool use_cache = joint.linked_joints.empty() && family.id != 26;
 
-    const auto cache_entry =
+    const std::map<std::string, CachedJointGeometry>::iterator cache_entry =
         use_cache ? unique_joints_cache.find(cache_key) : unique_joints_cache.end();
     if (cache_entry != unique_joints_cache.end()) {
         const CachedJointGeometry& cached = cache_entry->second;
@@ -1311,6 +1311,21 @@ hilti_disc(const Xform& frame, double start, double end, double z, double radius
     };
 }
 
+namespace {
+
+/// Orders contact corners from highest to lowest along the seam up axis.
+struct HiltiCornerHigher {
+    Point centre; // Contact centroid.
+    Vector axis; // Seam upward axis.
+
+    /// Return whether p lies higher than q along axis.
+    bool operator()(const Point& p, const Point& q) const {
+        return (p - centre).dot(axis) > (q - centre).dot(axis);
+    }
+};
+
+}
+
 std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_hilti(
     const FacePlanarElement& a,
     const FacePlanarElement& b,
@@ -1355,9 +1370,7 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_hilti(
     if (z.dot(Vector(0.0, 0.0, 1.0)) < 0.0)
         z = z * -1.0;
     std::vector<Point> corners = points;
-    std::sort(corners.begin(), corners.end(), [&](const Point& p, const Point& q) {
-        return (p - centre).dot(z) > (q - centre).dot(z);
-    });
+    std::sort(corners.begin(), corners.end(), HiltiCornerHigher{centre, z});
     const Point origin = corners[0] + (corners[1] - corners[0]) * 0.5;
 
     InteractionFeaturePlate connection;

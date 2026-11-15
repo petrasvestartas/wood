@@ -3,33 +3,39 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Chamfered half-lap slot outline on a male face at y in the unit box.
+static Polyline male_slot(double y) {
+
+    return Polyline({
+        {0.75, y, -1.0},
+        {-0.75, y, -1.0},
+        {-0.5, y, -0.75},
+        {-0.5, y, -0.4},
+        {0.5, y, -0.4},
+        {0.5, y, -0.75},
+        {0.75, y, -1.0},
+    });
+}
+
+/// Chamfered half-lap slot outline on a female face at x in the unit box.
+static Polyline female_slot(double x) {
+
+    return Polyline({
+        {x, -0.75, 1.0},
+        {x, 0.75, 1.0},
+        {x, 0.5, 0.75},
+        {x, 0.5, -0.4},
+        {x, -0.5, -0.4},
+        {x, -0.5, 0.75},
+        {x, -0.75, 1.0},
+    });
+}
+
 /// cross_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_cross_custom");
 
-    const auto male_slot = [](double y) {
-        return Polyline(
-            {{0.75, y, -1.0},
-             {-0.75, y, -1.0},
-             {-0.5, y, -0.75},
-             {-0.5, y, -0.4},
-             {0.5, y, -0.4},
-             {0.5, y, -0.75},
-             {0.75, y, -1.0}}
-        );
-    };
-    const auto female_slot = [](double x) {
-        return Polyline(
-            {{x, -0.75, 1.0},
-             {x, 0.75, 1.0},
-             {x, 0.5, 0.75},
-             {x, 0.5, -0.4},
-             {x, -0.5, -0.4},
-             {x, -0.5, 0.75},
-             {x, -0.75, 1.0}}
-        );
-    };
     const std::vector<Polyline> male = {male_slot(0.5), male_slot(-0.5)};
     const std::vector<Polyline> female = {female_slot(-0.5), female_slot(0.5)};
 

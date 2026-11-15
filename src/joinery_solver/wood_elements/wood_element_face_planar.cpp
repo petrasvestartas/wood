@@ -335,7 +335,7 @@ std::shared_ptr<FacePlanarElement> FacePlanarElement::from_element(Element e) {
                     message_from_json(payload, proto);
                     bottom = Polyline::pb_loads(proto.bottom().SerializeAsString());
                     top = Polyline::pb_loads(proto.top().SerializeAsString());
-                    for (const auto& cut : proto.solid_features())
+                    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
                         saved_cuts.push_back(
                             InteractionFeatureSolid::pb_loads(cut.SerializeAsString())
                         );
@@ -354,7 +354,7 @@ std::shared_ptr<FacePlanarElement> FacePlanarElement::from_element(Element e) {
             top = Polyline::pb_loads(proto.top().SerializeAsString());
         }
         reversed = proto.reversed();
-        for (const auto& cut : proto.solid_features())
+        for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
             saved_cuts.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     }
 
@@ -438,8 +438,9 @@ Mesh FacePlanarElement::trimmed_mesh() const {
 
         const Mesh cap = Mesh::from_polygon_with_holes(loops);
         const Vector normal = face == 0 ? out : out * -1.0;
-        for (const auto& [key, triangles] : cap.get_triangulation())
-            for (const std::array<size_t, 3>& triangle : triangles) {
+        for (const std::pair<const size_t, std::vector<std::array<size_t, 3>>>& face_triangles :
+             cap.get_triangulation())
+            for (const std::array<size_t, 3>& triangle : face_triangles.second) {
                 std::vector<Point> corners = {
                     *cap.vertex_point(triangle[0]),
                     *cap.vertex_point(triangle[1]),
@@ -499,7 +500,7 @@ std::shared_ptr<FacePlanarElement> FacePlanarElement::transformed(const Xform& x
     plate->name = name;
     plate->guid() = guid();
     plate->polylines = transformed_list(polylines, xform);
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         plate->solid_features.push_back(cut.transformed(xform));
     plate->planes = transformed_list(planes, xform);
     plate->thickness = thickness;
@@ -518,7 +519,7 @@ void FacePlanarElement::place(const Xform& xform) {
 
     Element::place(xform);
     polylines = transformed_list(polylines, xform);
-    for (auto& cut : solid_features)
+    for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
     planes = transformed_list(planes, xform);
     features = {transformed_list(features.top, xform), transformed_list(features.bottom, xform)};
@@ -678,7 +679,7 @@ std::string FacePlanarElement::element_data_dumps() const {
             throw std::runtime_error("Failed to parse Polyline protobuf data");
     proto.set_reversed(reversed);
 
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
     return proto.SerializeAsString();

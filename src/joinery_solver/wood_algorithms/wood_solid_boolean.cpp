@@ -28,9 +28,10 @@ to_plane(const std::vector<Point>& points, const Point& origin, const Vector& x,
 static double signed_area_2d(const std::vector<std::pair<double, double>>& ring) {
 
     double area = 0.0;
+
     for (size_t i = 0; i < ring.size(); i++) {
-        const auto& a = ring[i];
-        const auto& b = ring[(i + 1) % ring.size()];
+        const std::pair<double, double>& a = ring[i];
+        const std::pair<double, double>& b = ring[(i + 1) % ring.size()];
         area += a.first * b.second - b.first * a.second;
     }
 
@@ -56,7 +57,8 @@ triangles_normal(const Mesh& mesh, const std::vector<std::array<size_t, 3>>& tri
 /// The triangles of one face as vertex keys wound like the face.
 static std::vector<std::array<size_t, 3>> face_triangles(const Mesh& mesh, size_t face) {
 
-    const auto& cached = mesh.get_triangulation();
+    const std::map<size_t, std::vector<std::array<size_t, 3>>>& cached = mesh.get_triangulation();
+
     if (const auto it = cached.find(face); it != cached.end())
         return it->second;
 
@@ -218,9 +220,11 @@ static manifold::Manifold build_manifold(const Mesh& mesh, uint64_t first_id) {
     gl.vertProperties.reserve(n_verts * 3);
     index.reserve(n_verts);
 
-    for (const auto& [key, vdata] : mesh.vertex) {
-        index[key] = gl.vertProperties.size() / 3;
-        gl.vertProperties.insert(gl.vertProperties.end(), {vdata.x, vdata.y, vdata.z});
+    for (const std::pair<const size_t, VertexData>& entry : mesh.vertex) {
+        index[entry.first] = gl.vertProperties.size() / 3;
+        gl.vertProperties.insert(
+            gl.vertProperties.end(), {entry.second.x, entry.second.y, entry.second.z}
+        );
     }
 
     for (const size_t face : mesh.faces())
@@ -445,6 +449,17 @@ static void add_region(
         );
 }
 
+namespace {
+
+/// Vertex v of a Manifold mesh as a Point.
+Point manifold_vertex(const manifold::MeshGL64& gl, uint64_t v) {
+    return Point(
+        gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
+    );
+}
+
+}
+
 /// The Manifold as a mesh.
 static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = false) {
 
@@ -453,9 +468,7 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
     std::vector<size_t> keys;
 
     for (size_t v = 0; v < gl.NumVert(); v++)
-        keys.push_back(mesh.add_vertex(Point(
-            gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
-        )));
+        keys.push_back(mesh.add_vertex(manifold_vertex(gl, v)));
 
     std::map<uint64_t, std::vector<size_t>> faces;
 
@@ -463,22 +476,17 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
         faces[gl.faceID[t]].push_back(t);
 
     if (merge_planes) {
-        const auto vertex = [&gl](uint64_t v) {
-            return Point(
-                gl.vertProperties[3 * v], gl.vertProperties[3 * v + 1], gl.vertProperties[3 * v + 2]
-            );
-        };
         std::vector<std::pair<uint64_t, Plane>> planes;
         std::map<uint64_t, std::vector<size_t>> grouped;
 
         for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces) {
             Vector sum(0.0, 0.0, 0.0);
-            const Point origin = vertex(gl.triVerts[3 * face.second.front()]);
+            const Point origin = manifold_vertex(gl, gl.triVerts[3 * face.second.front()]);
 
             for (size_t t : face.second) {
-                const Point a = vertex(gl.triVerts[3 * t]);
-                const Point b = vertex(gl.triVerts[3 * t + 1]);
-                const Point c = vertex(gl.triVerts[3 * t + 2]);
+                const Point a = manifold_vertex(gl, gl.triVerts[3 * t]);
+                const Point b = manifold_vertex(gl, gl.triVerts[3 * t + 1]);
+                const Point c = manifold_vertex(gl, gl.triVerts[3 * t + 2]);
                 sum += (b - a).cross(c - a);
             }
 
@@ -543,8 +551,9 @@ static manifold::Manifold largest_piece(const manifold::Manifold& solid) {
 static Bounds mesh_bounds(const Mesh& mesh) {
 
     Bounds box;
-    for (const auto& [key, v] : mesh.vertex) {
-        (void)key;
+
+    for (const std::pair<const size_t, VertexData>& entry : mesh.vertex) {
+        const VertexData& v = entry.second;
         box.low[0] = std::min(box.low[0], v.x);
         box.low[1] = std::min(box.low[1], v.y);
         box.low[2] = std::min(box.low[2], v.z);

@@ -88,7 +88,8 @@ std::array<ElementFeature, 2> InteractionFeaturePlate::to_features() const {
 std::shared_ptr<InteractionContact> InteractionFeaturePlate::to_contact() const {
 
     if (joint_type != 30) {
-        auto result = std::make_shared<InteractionContactFace>(contact);
+        std::shared_ptr<InteractionContactFace> result =
+            std::make_shared<InteractionContactFace>(contact);
         result->lines = joint_lines;
         for (int k = 0; k < 4; ++k)
             result->volumes[k] =

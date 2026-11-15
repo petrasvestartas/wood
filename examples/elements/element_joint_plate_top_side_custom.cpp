@@ -3,37 +3,46 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Two chamfered through-tenons on upright face x of the unit box.
+static Polyline profile(double x) {
+
+    return Polyline({
+        {x, -0.5, -0.45},
+        {x, -0.5, -0.32},
+        {x, 0.5, -0.28},
+        {x, 0.5, -0.16},
+        {x, -0.5, -0.12},
+        {x, -0.5, 0.12},
+        {x, 0.5, 0.16},
+        {x, 0.5, 0.28},
+        {x, -0.5, 0.32},
+        {x, -0.5, 0.45},
+    });
+}
+
+/// Tenon shoulder reference line on upright face x of the unit box.
+static Polyline end_line(double x) {
+
+    return Polyline({{x, -0.5, -0.45}, {x, -0.5, 0.45}});
+}
+
+/// Tapered mortise rectangle centred at centre on base face y of the unit box.
+static Polyline mortise(double centre, double y, double half) {
+
+    return Polyline({
+        {-0.5, y, centre + half},
+        {0.5, y, centre + half},
+        {0.5, y, centre - half},
+        {-0.5, y, centre - half},
+        {-0.5, y, centre + half},
+    });
+}
+
 /// top_side_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_top_side_custom");
 
-    const auto profile = [](double x) {
-        return Polyline({
-            {x, -0.5, -0.45},
-            {x, -0.5, -0.32},
-            {x, 0.5, -0.28},
-            {x, 0.5, -0.16},
-            {x, -0.5, -0.12},
-            {x, -0.5, 0.12},
-            {x, 0.5, 0.16},
-            {x, 0.5, 0.28},
-            {x, -0.5, 0.32},
-            {x, -0.5, 0.45},
-        });
-    };
-    const auto end_line = [](double x) {
-        return Polyline({{x, -0.5, -0.45}, {x, -0.5, 0.45}});
-    };
-    const auto mortise = [](double centre, double y, double half) {
-        return Polyline(
-            {{-0.5, y, centre + half},
-             {0.5, y, centre + half},
-             {0.5, y, centre - half},
-             {-0.5, y, centre - half},
-             {-0.5, y, centre + half}}
-        );
-    };
     const std::vector<Polyline> male = {profile(0.5), profile(-0.5), end_line(0.5), end_line(-0.5)};
     const std::vector<Polyline> female = {
         mortise(-0.22, -0.5, 0.1),

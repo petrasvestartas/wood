@@ -387,6 +387,11 @@ void JointElement::read_proto(const wood_proto::JointElement& proto) {
         drill_lines.push_back(Line::pb_loads(axis.SerializeAsString()));
 }
 
+/// Decode protobuf bytes as an Element and promote it to a JointElement.
+static std::shared_ptr<Element> joint_from_protobuf(const std::string& data) {
+    return JointElement::from_element(Element::pb_loads(data));
+}
+
 void JointElement::register_type() {
     for (const std::string kind :
          {"JointElement",
@@ -404,9 +409,7 @@ void JointElement::register_type() {
           "JointVidy",
           "ConnectorPart",
           "Pin"})
-        Element::register_type(kind, [](const std::string& data) {
-            return JointElement::from_element(Element::pb_loads(data));
-        });
+        Element::register_type(kind, joint_from_protobuf);
 }
 
 int circle_segments(double radius, double tolerance) {

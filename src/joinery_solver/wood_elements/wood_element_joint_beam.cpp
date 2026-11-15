@@ -605,9 +605,16 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::let_in_plate(
     double height
 ) {
 
-    const auto [origin, axes] = plate_frame(rib, contact);
-    const std::array<Polyline, 2> loops =
-        frame_box(origin, axes, -back, front, width, -height, 0.0);
+    const std::pair<Point, std::array<Vector, 3>> frame = plate_frame(rib, contact);
+    const std::array<Polyline, 2> loops = frame_box(
+        frame.first,
+        frame.second,
+        -back,
+        front,
+        width,
+        -height,
+        0.0
+    );
     const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(
         loops[0], loops[1], contact.name.empty() ? "let_in_plate" : contact.name
     );
@@ -628,7 +635,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::rectangle_plate(
     int pin_sides
 ) {
 
-    const auto [origin, axes] = plate_frame(rib, contact);
+    const std::pair<Point, std::array<Vector, 3>> frame = plate_frame(rib, contact);
+    const Point& origin = frame.first;
+    const std::array<Vector, 3>& axes = frame.second;
     std::array<double, 3> low = {1e300, 1e300, 1e300};
     std::array<double, 3> high = {-1e300, -1e300, -1e300};
 
@@ -646,23 +655,42 @@ std::shared_ptr<JointBeamElement> JointBeamElement::rectangle_plate(
     joint->insertions = pulled_apart(column, rib, contact);
     joint->insertions.push_back(Vector(0.0, 0.0, 1.0));
 
-    const std::array<Polyline, 2> pocket =
-        frame_box(origin, axes, low[0], high[0], high[1] - low[1], low[2], high[2] + overshoot);
+    const std::array<Polyline, 2> pocket = frame_box(
+        origin,
+        axes,
+        low[0],
+        high[0],
+        high[1] - low[1],
+        low[2],
+        high[2] + overshoot
+    );
     joint->cutters = {{pocket}, {pocket}, {}};
 
     const double half = 1e5;
+    const std::array<std::pair<double, const Element*>, 2> pin_columns = {
+        {{low[0] + margin_x * pin_radius, &column}, {high[0] - margin_x * pin_radius, &rib}}
+    };
 
-    for (const auto& [station, member] : std::array<std::pair<double, const Element*>, 2>{
-             {{low[0] + margin_x * pin_radius, &column}, {high[0] - margin_x * pin_radius, &rib}}
-         })
-        for (const double level : {high[2] - margin_z * pin_radius, low[2] + margin_z * pin_radius})
-            joint->drill_lines.push_back(flush_pin(
-                Line::from_points(
-                    frame_point(origin, axes, station, -half, level),
-                    frame_point(origin, axes, station, half, level)
-                ),
-                {member}
-            ));
+    for (const std::pair<double, const Element*>& pin_column : pin_columns)
+        for (const double level : {high[2] - margin_z * pin_radius, low[2] + margin_z * pin_radius}) {
+            const Point pin_start = frame_point(
+                origin,
+                axes,
+                pin_column.first,
+                -half,
+                level
+            );
+            const Point pin_end = frame_point(
+                origin,
+                axes,
+                pin_column.first,
+                half,
+                level
+            );
+            joint->drill_lines.push_back(
+                flush_pin(Line::from_points(pin_start, pin_end), {pin_column.second})
+            );
+        }
 
     joint->line_radius = pin_radius;
     joint->chord_tolerance = sides_tolerance(pin_radius, pin_sides);
@@ -1172,6 +1200,69 @@ static std::shared_ptr<JointBeamElement> butt_joint(
     return joint;
 }
 
+namespace {
+
+/// Project a point onto a plane's local xy coordinates.
+Point plane_xy(const Plane& plane, const Point& point) {
+    return Point(
+        (point - plane.origin()).dot(plane.x_axis()),
+        (point - plane.origin()).dot(plane.y_axis()),
+        0.0
+    );
+}
+
+/// Loft a sheared prism across a plate's mid-plane from a 2D outline.
+Mesh plate_end_prism(
+    const Plane& middle,
+    std::vector<Point> outline,
+    double half,
+    const Vector& shear
+) {
+
+    double area = 0.0;
+    for (size_t k = 0; k < outline.size(); k++)
+        area += outline[k][0] * outline[(k + 1) % outline.size()][1] -
+                outline[(k + 1) % outline.size()][0] * outline[k][1];
+
+    if (area < 0.0)
+        std::reverse(outline.begin(), outline.end());
+
+    std::vector<Point> bottom;
+    std::vector<Point> top;
+    for (const Point& corner : outline) {
+        bottom.push_back(
+            middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] +
+            (middle.z_axis() + shear) * half
+        );
+        top.push_back(
+            middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] -
+            (middle.z_axis() + shear) * half
+        );
+    }
+
+    bottom.push_back(bottom.front());
+    top.push_back(top.front());
+
+    return Mesh::loft({Polyline(bottom)}, {Polyline(top)}, true);
+}
+
+/// Intersect two lines in the xy plane given by two points each.
+std::optional<Point>
+line_crossing_2d(const std::array<Point, 2>& first, const std::array<Point, 2>& second) {
+
+    const Vector u = first[1] - first[0];
+    const Vector v = second[1] - second[0];
+    const double denominator = u[0] * v[1] - u[1] * v[0];
+    if (std::abs(denominator) < 1e-9 * u.magnitude() * v.magnitude())
+        return std::nullopt;
+
+    const Vector gap = second[0] - first[0];
+
+    return first[0] + u * ((gap[0] * v[1] - gap[1] * v[0]) / denominator);
+}
+
+}
+
 std::array<Mesh, 2> JointBeamElement::plate_end(
     const FacePlanarElement& plate, size_t end, const std::map<size_t, Plane>& planes, double overshoot
 ) {
@@ -1179,46 +1270,6 @@ std::array<Mesh, 2> JointBeamElement::plate_end(
     const ButtMember member = butt_member(plate);
     const size_t count = member.drawn.size();
     const Plane middle = Plane::from_points(member.drawn);
-    const auto flat = [&middle](const Point& point) {
-        return Point(
-            (point - middle.origin()).dot(middle.x_axis()),
-            (point - middle.origin()).dot(middle.y_axis()),
-            0.0
-        );
-    };
-    const auto prism = [&middle](std::vector<Point> outline, double half, const Vector& shear) {
-        double area = 0.0;
-        for (size_t k = 0; k < outline.size(); k++)
-            area += outline[k][0] * outline[(k + 1) % outline.size()][1] -
-                    outline[(k + 1) % outline.size()][0] * outline[k][1];
-        if (area < 0.0)
-            std::reverse(outline.begin(), outline.end());
-        std::vector<Point> bottom;
-        std::vector<Point> top;
-        for (const Point& corner : outline) {
-            bottom.push_back(
-                middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] +
-                (middle.z_axis() + shear) * half
-            );
-            top.push_back(
-                middle.origin() + middle.x_axis() * corner[0] + middle.y_axis() * corner[1] -
-                (middle.z_axis() + shear) * half
-            );
-        }
-        bottom.push_back(bottom.front());
-        top.push_back(top.front());
-        return Mesh::loft({Polyline(bottom)}, {Polyline(top)}, true);
-    };
-    const auto crossing = [](const std::array<Point, 2>& first,
-                             const std::array<Point, 2>& second) -> std::optional<Point> {
-        const Vector u = first[1] - first[0];
-        const Vector v = second[1] - second[0];
-        const double denominator = u[0] * v[1] - u[1] * v[0];
-        if (std::abs(denominator) < 1e-9 * u.magnitude() * v.magnitude())
-            return std::nullopt;
-        const Vector gap = second[0] - first[0];
-        return first[0] + u * ((gap[0] * v[1] - gap[1] * v[0]) / denominator);
-    };
 
     // on to: the plane's line overshoot past it and past the lean when that runs out
     std::vector<std::array<Point, 2>> drawn(count);
@@ -1228,7 +1279,7 @@ std::array<Mesh, 2> JointBeamElement::plate_end(
     std::vector<Vector> slant(count, Vector(0.0, 0.0, 0.0));
     std::vector<bool> runs(count, false);
     for (size_t j = 0; j < count; j++) {
-        drawn[j] = {flat(member.drawn[j]), flat(member.drawn[(j + 1) % count])};
+        drawn[j] = {plane_xy(middle, member.drawn[j]), plane_xy(middle, member.drawn[(j + 1) % count])};
         bound[j] = drawn[j];
         outward[j] = Vector(
                          member.ends[j].out.dot(middle.x_axis()),
@@ -1241,7 +1292,7 @@ std::array<Mesh, 2> JointBeamElement::plate_end(
         const std::optional<Line> line = Intersection::plane_plane(planes.at(j), middle);
         if (!line)
             continue;
-        cut[j] = std::array<Point, 2>{flat(line->start()), flat(line->end())};
+        cut[j] = std::array<Point, 2>{plane_xy(middle, line->start()), plane_xy(middle, line->end())};
         const Vector out = middle.x_axis() * outward[j][0] + middle.y_axis() * outward[j][1];
         slant[j] =
             out * (-planes.at(j).z_axis().dot(middle.z_axis()) / planes.at(j).z_axis().dot(out));
@@ -1268,13 +1319,14 @@ std::array<Mesh, 2> JointBeamElement::plate_end(
     const size_t after = (end + 1) % count;
     if (runs[end]) {
         const std::array<std::optional<Point>, 4> corners = {
-            crossing(drawn[end], bound[before]),
-            crossing(drawn[end], bound[after]),
-            crossing(bound[end], bound[after]),
-            crossing(bound[end], bound[before])
+            line_crossing_2d(drawn[end], bound[before]),
+            line_crossing_2d(drawn[end], bound[after]),
+            line_crossing_2d(bound[end], bound[after]),
+            line_crossing_2d(bound[end], bound[before])
         };
         if (corners[0] && corners[1] && corners[2] && corners[3])
-            result[0] = prism(
+            result[0] = plate_end_prism(
+                middle,
                 {*corners[0], *corners[1], *corners[2], *corners[3]},
                 0.5 * member.depth,
                 Vector(0.0, 0.0, 0.0)
@@ -1323,7 +1375,12 @@ std::array<Mesh, 2> JointBeamElement::plate_end(
         box = clipped;
     }
     if (box.size() > 2)
-        result[1] = prism(box, 0.5 * member.depth + overshoot, slant[end]);
+        result[1] = plate_end_prism(
+            middle,
+            box,
+            0.5 * member.depth + overshoot,
+            slant[end]
+        );
 
     return result;
 }
@@ -1450,17 +1507,16 @@ struct HeadBeam {
     double far = 0.0; // Distance of its other end.
 };
 
-/// A half plane in a plan: keeps a x + b y <= c.
-using HalfPlane = std::array<double, 3>;
-using HeadPlan = std::vector<std::array<double, 2>>;
-
 /// A square of half side `size` cut by half planes, in order around.
-static HeadPlan head_region(double size, const std::vector<HalfPlane>& halves) {
+static std::vector<std::array<double, 2>>
+head_region(double size, const std::vector<std::array<double, 3>>& halves) {
 
-    HeadPlan plan = {{-size, -size}, {size, -size}, {size, size}, {-size, size}};
+    std::vector<std::array<double, 2>> plan = {
+        {-size, -size}, {size, -size}, {size, size}, {-size, size}
+    };
 
-    for (const HalfPlane& half : halves) {
-        HeadPlan kept;
+    for (const std::array<double, 3>& half : halves) {
+        std::vector<std::array<double, 2>> kept;
         for (size_t i = 0; i < plan.size(); i++) {
             const std::array<double, 2>& a = plan[i];
             const std::array<double, 2>& b = plan[(i + 1) % plan.size()];
@@ -1481,7 +1537,7 @@ static HeadPlan head_region(double size, const std::vector<HalfPlane>& halves) {
 
 /// A plan's prism between two levels, as a connector's pair of loops.
 static std::array<Polyline, 2> head_prism(
-    const HeadPlan& plan,
+    const std::vector<std::array<double, 2>>& plan,
     const Point& origin,
     const Vector& x,
     const Vector& y,
@@ -1502,23 +1558,161 @@ static std::array<Polyline, 2> head_prism(
     return loops;
 }
 
-/// A beam read from its own solid in the frame of the column's head; throws naming the beam when it can not join it.
-static HeadBeam read_head_beam(
-    const EdgeStraightElement& beam, size_t target, const Point& head, const Vector& z, double radius
+namespace {
+
+/// Throw a column_head validation error naming the offending beam.
+[[noreturn]] void fail_head_beam(const EdgeStraightElement& beam, const std::string& reason) {
+    throw std::invalid_argument(fmt::format("column_head: beam {} {}", beam.name, reason));
+}
+
+/// Component of `point - head` perpendicular to the column axis `z`.
+Vector head_level_offset(const Point& point, const Point& head, const Vector& z) {
+
+    const Vector offset = point - head;
+
+    return offset - z * offset.dot(z);
+}
+
+/// Canonical orientation of a line direction, first non-zero coordinate positive.
+Vector head_line_direction(const Vector& out) {
+
+    for (size_t i = 0; i < 3; i++)
+        if (std::abs(out[i]) > 1e-6)
+            return out[i] < 0.0 ? out * -1.0 : out;
+
+    return out;
+}
+
+/// Accumulator for column head slot plans by floor level and their cutter prisms.
+struct HeadColumnSlot {
+    Point origin; // Column axis at beam top level.
+    Vector x_axis; // Main beam direction.
+    Vector y_axis; // Perpendicular level direction.
+    Vector z; // Outward column axis.
+    double top = 0.0; // Beam top level.
+    double cut_high = 0.0; // Upper level of column slot cuts.
+    std::map<long long, Clipper2Lib::PathsD> plans; // 2D slot plans keyed by millimetre-thousandths floor.
+    std::vector<std::array<Polyline, 2>> prisms; // 3D slot cutter loop pairs.
+};
+
+/// Add a plan at orientation `turn` and floor `low` to the column slot.
+void add_column_slot_cut(
+    HeadColumnSlot& slot,
+    const std::vector<std::array<double, 2>>& plan,
+    double turn,
+    double low
 ) {
 
-    const auto fail = [&beam](const std::string& reason) {
-        throw std::invalid_argument(fmt::format("column_head: beam {} {}", beam.name, reason));
+    if (plan.size() < 3)
+        return;
+
+    Clipper2Lib::PathD path;
+    for (const std::array<double, 2>& point : plan)
+        path.push_back({turn * point[0], turn * point[1]});
+
+    slot.plans[std::llround(low * 1e3)].push_back(path);
+    slot.prisms.push_back(head_prism(
+        plan,
+        slot.origin,
+        slot.x_axis * turn,
+        slot.y_axis * turn,
+        slot.z,
+        low - slot.top,
+        slot.cut_high
+    ));
+}
+
+/// Plan coordinates at `(along, across)` in the 2D basis `axes = {u, w}`.
+std::array<double, 2>
+head_tail_corner(const std::array<std::array<double, 2>, 2>& axes, double along, double across) {
+    return {
+        across * axes[1][0] + along * axes[0][0],
+        across * axes[1][1] + along * axes[0][1]
     };
+}
+
+/// Throw a column_head validation error for a secondary beam at `angle` degrees.
+[[noreturn]] void
+refuse_secondary_beam(const HeadBeam& secondary, double angle, const std::string& reason) {
+    throw std::invalid_argument(fmt::format(
+        "column_head: beam {} at {:.1f} degrees to the main beams {}",
+        secondary.beam->name,
+        angle,
+        reason
+    ));
+}
+
+/// Frame of one side of a column head, oriented with its tongue on +y.
+struct HeadSideFrame {
+    Point origin; // Column axis at beam top level.
+    Vector x; // Side x axis (`x_axis * turn`).
+    Vector y; // Side y axis (`y_axis * turn`).
+    Vector z; // Outward column axis.
+    double size = 0.0; // Half-side of clipping plan square.
+};
+
+/// Destination and vertical span for prism cuts on one member of a column head.
+struct HeadCutTarget {
+    HeadSideFrame frame; // Side coordinate frame and clipping size.
+    double low = 0.0; // Lower z offset from origin.
+    double high = 0.0; // Upper z offset from origin.
+    std::vector<std::array<Polyline, 2>>* cuts = nullptr; // Target cutter list.
+};
+
+/// Clip a half-plane region and append its prism to `target` when non-empty.
+void add_head_cut(const HeadCutTarget& target, const std::vector<std::array<double, 3>>& halves) {
+
+    const std::vector<std::array<double, 2>> plan = head_region(target.frame.size, halves);
+    if (plan.size() >= 3)
+        target.cuts->push_back(head_prism(
+            plan,
+            target.frame.origin,
+            target.frame.x,
+            target.frame.y,
+            target.frame.z,
+            target.low,
+            target.high
+        ));
+}
+
+/// Loft the stock extension mesh a short beam gains between `levels` relative to the head origin.
+Mesh head_gain_mesh(
+    const HeadSideFrame& frame,
+    const std::vector<std::array<double, 2>>& plan,
+    const std::array<double, 2>& levels
+) {
+
+    const std::array<Polyline, 2> loops = head_prism(
+        plan,
+        frame.origin,
+        frame.x,
+        frame.y,
+        frame.z,
+        levels[0],
+        levels[1]
+    );
+
+    return Mesh::loft({loops[0]}, {loops[1]}, true);
+}
+
+}
+
+/// A beam read from its own solid in the frame of the column's head; throws naming the beam when it can not join it.
+static HeadBeam read_head_beam(
+    const EdgeStraightElement& beam,
+    size_t target,
+    const Point& head,
+    const Vector& z,
+    double radius
+) {
+
     if (beam.axis.segment_count() != 1)
-        fail("is not straight");
+        fail_head_beam(beam, "is not straight");
 
     const std::array<Point, 2> ends = {beam.axis.get_point(0), beam.axis.get_point(1)};
-    const auto level_offset = [&](const Point& point) {
-        const Vector offset = point - head;
-        return offset - z * offset.dot(z);
+    const std::array<Vector, 2> offsets = {
+        head_level_offset(ends[0], head, z), head_level_offset(ends[1], head, z)
     };
-    const std::array<Vector, 2> offsets = {level_offset(ends[0]), level_offset(ends[1])};
     const size_t near_end = offsets[0].magnitude() <= offsets[1].magnitude() ? 0 : 1;
     const Vector near_offset = offsets[near_end];
     const Vector far_offset = offsets[1 - near_end];
@@ -1527,14 +1721,15 @@ static HeadBeam read_head_beam(
     const Vector along = (ends[1 - near_end] - ends[near_end]).normalized();
     const double tilt = std::asin(std::min(1.0, std::abs(along.dot(z)))) * Tolerance::TO_DEGREES;
     if (tilt > 0.1)
-        fail(fmt::format("is tilted {:.2f} degrees off square to the column", tilt));
+        fail_head_beam(beam, fmt::format("is tilted {:.2f} degrees off square to the column", tilt));
 
     const Vector out = (far_offset - near_offset).normalized();
     const double miss = std::abs(near_offset.cross(out).dot(z));
     if (miss > 1.0)
-        fail(fmt::format("misses the column's axis by {:.1f}", miss));
+        fail_head_beam(beam, fmt::format("misses the column's axis by {:.1f}", miss));
     if (near_offset.magnitude() > radius + 1e-6)
-        fail(
+        fail_head_beam(
+            beam,
             near_offset.dot(far_offset) < 0.0
                 ? "runs past the column on both sides"
                 : fmt::format("stops {:.1f} short of the column", near_offset.magnitude() - radius)
@@ -1565,7 +1760,7 @@ static HeadBeam read_head_beam(
     read.width = right - left;
     const double box = read.width * (read.high - read.low) * (read.far - read.start);
     if (std::abs(compute_volume(solid) - box) > 0.01 * box)
-        fail("is not a rectangular section square to the column");
+        fail_head_beam(beam, "is not a rectangular section square to the column");
 
     return read;
 }
@@ -1574,14 +1769,6 @@ static HeadBeam read_head_beam(
 /// were given in decides nothing: the shorter pair, as in the photographed node, then the pair running most along world x, y, z.
 static std::array<size_t, 2>
 head_main_pair(const std::array<HeadBeam, 4>& beams, const EdgeStraightElement* main_beam) {
-
-    // a line's direction, the same whichever way it is read
-    const auto direction = [](const Vector& out) {
-        for (size_t i = 0; i < 3; i++)
-            if (std::abs(out[i]) > 1e-6)
-                return out[i] < 0.0 ? out * -1.0 : out;
-        return out;
-    };
 
     std::array<size_t, 2> best = {0, 1};
     double best_line = std::numeric_limits<double>::max();
@@ -1593,7 +1780,7 @@ head_main_pair(const std::array<HeadBeam, 4>& beams, const EdgeStraightElement* 
                 continue;
             const double line = 1.0 + beams[i].out.dot(beams[j].out);
             const double length = beams[i].far + beams[j].far;
-            const Vector way = direction(beams[i].out);
+            const Vector way = head_line_direction(beams[i].out);
             bool better = line < best_line - 1e-9;
             if (std::abs(line - best_line) <= 1e-9) {
                 if (std::abs(length - best_length) > 1.0)
@@ -1670,20 +1857,23 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     const std::array<const EdgeStraightElement*, 4> members = {&a, &b, &c, &d};
     std::array<HeadBeam, 4> beams;
     for (size_t i = 0; i < 4; i++)
-        beams[i] = read_head_beam(*members[i], i + 1, head, z, radius);
+        beams[i] = read_head_beam(
+            *members[i],
+            i + 1,
+            head,
+            z,
+            radius
+        );
 
     // their tops flush, on the column
     const double top = beams[0].high;
-    const auto fail = [](const HeadBeam& beam, const std::string& reason) {
-        throw std::invalid_argument(fmt::format("column_head: beam {} {}", beam.beam->name, reason));
-    };
     for (const HeadBeam& beam : beams) {
         if (std::abs(beam.high - top) > 1.0)
-            fail(beam, fmt::format("has its top {:.1f} off the others'", beam.high - top));
+            fail_head_beam(*beam.beam, fmt::format("has its top {:.1f} off the others'", beam.high - top));
         if (beam.low >= 0.0)
-            fail(beam, "sits above the column's head");
+            fail_head_beam(*beam.beam, "sits above the column's head");
         if (beam.low < -column_axis.length())
-            fail(beam, "runs below the column's far end");
+            fail_head_beam(*beam.beam, "runs below the column's far end");
     }
 
     // the main pair, the two most nearly in line, and the frame on them: x along the line at the column's axis, level with the tops
@@ -1692,7 +1882,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     const HeadBeam& main_1 = beams[mains[1]];
     if (std::abs(main_0.width - main_1.width) > 1.0 ||
         std::abs(main_0.low - main_1.low) > 1.0)
-        fail(main_1, fmt::format("has another section than its pair {}", main_0.beam->name));
+        fail_head_beam(*main_1.beam, fmt::format("has another section than its pair {}", main_0.beam->name));
 
     Vector x_axis = main_1.out;
     for (size_t i = 0; i < 3; i++)
@@ -1711,7 +1901,10 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
             continue;
         const size_t place = beams[i].out.dot(y_axis) > 0.0 ? 0 : 1;
         if (secondaries[place])
-            fail(beams[i], fmt::format("is on the same side of the main beams as {}", secondaries[place]->beam->name));
+            fail_head_beam(
+                *beams[i].beam,
+                fmt::format("is on the same side of the main beams as {}", secondaries[place]->beam->name)
+            );
         secondaries[place] = &beams[i];
     }
 
@@ -1737,21 +1930,19 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     joint->gains.assign(5, Mesh());
 
     // the column's slot along the main line, as wide as the tongues, and a housing for each main beam
-    std::map<long long, Clipper2Lib::PathsD> slot_plans;
-    std::vector<std::array<Polyline, 2>> slot_prisms;
-    const auto column_cut = [&](const HeadPlan& plan, double turn, double low) {
-        if (plan.size() < 3)
-            return;
-        Clipper2Lib::PathD path;
-        for (const std::array<double, 2>& point : plan)
-            path.push_back({turn * point[0], turn * point[1]});
-        slot_plans[std::llround(low * 1e3)].push_back(path);
-        slot_prisms.push_back(
-            head_prism(plan, origin, x_axis * turn, y_axis * turn, z, low - top, cut_high)
-        );
+    HeadColumnSlot slot{
+        origin,
+        x_axis,
+        y_axis,
+        z,
+        top,
+        cut_high,
+        {},
+        {}
     };
     const double slot_end = radius + overshoot;
-    column_cut(
+    add_column_slot_cut(
+        slot,
         head_region(
             size,
             {{0.0, 1.0, half_tongue},
@@ -1763,7 +1954,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         main_0.low
     );
     for (const double way : {1.0, -1.0})
-        column_cut(
+        add_column_slot_cut(
+            slot,
             head_region(
                 size,
                 {{0.0, 1.0, 0.5 * main_width},
@@ -1805,51 +1997,49 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         const std::array<double, 2> flank_way_1 = {flare * u[0] - w[0], flare * u[1] - w[1]};
 
         // the tail's corners in the tongue: at its tip, and where its flanks leave the tongue's edge
-        const auto corner = [&](double along, double across) {
-            return std::array<double, 2>{
-                across * w[0] + along * u[0], across * w[1] + along * u[1]
-            };
-        };
+        const std::array<std::array<double, 2>, 2> beam_axes = {u, w};
         const double root_along_0 = (half_tongue - flank_0 * w[1]) / (u[1] - flare * w[1]);
         const double root_along_1 = (half_tongue + flank_1 * w[1]) / (u[1] + flare * w[1]);
         const double root_across_0 = flank_0 - flare * root_along_0;
         const double root_across_1 = flare * root_along_1 - flank_1;
         const std::array<std::array<double, 2>, 4> tail = {
-            corner(tail_tip, offset + tip_half),
-            corner(tail_tip, offset - tip_half),
-            corner(root_along_0, root_across_0),
-            corner(root_along_1, root_across_1)
+            head_tail_corner(beam_axes, tail_tip, offset + tip_half),
+            head_tail_corner(beam_axes, tail_tip, offset - tip_half),
+            head_tail_corner(beam_axes, root_along_0, root_across_0),
+            head_tail_corner(beam_axes, root_along_1, root_across_1)
         };
 
-        const auto refuse = [&](const std::string& reason) {
-            throw std::invalid_argument(fmt::format(
-                "column_head: beam {} at {:.1f} degrees to the main beams {}",
-                secondary.beam->name,
-                angle,
-                reason
-            ));
-        };
         if (root_across_0 > half || root_across_1 < -half)
-            refuse("has its dovetail outside its tenon");
+            refuse_secondary_beam(secondary, angle, "has its dovetail outside its tenon");
         for (const std::array<double, 2>& point : tail) {
             if (std::abs(point[0]) > tongue_end)
-                refuse("has its dovetail past the end of the tongue");
+                refuse_secondary_beam(secondary, angle, "has its dovetail past the end of the tongue");
             if ((point[1] + seam_slope * point[0]) / std::sqrt(1.0 + seam_slope * seam_slope) <
                 min_wood * main_width)
-                refuse("leaves too little of the tongue behind its dovetail");
+                refuse_secondary_beam(
+                    secondary, angle, "leaves too little of the tongue behind its dovetail"
+                );
         }
 
         // the main beam here: past the tongue's tip, beside it, beyond the seam, and the tail's pocket
-        std::vector<std::array<Polyline, 2>>& main_cuts = joint->cutters[main_here.target];
-        const auto main_cut = [&](const std::vector<HalfPlane>& halves) {
-            const HeadPlan plan = head_region(size, halves);
-            if (plan.size() >= 3)
-                main_cuts.push_back(head_prism(plan, origin, x, y, z, main_low - top, main_high - top));
+        const HeadSideFrame side_frame{
+            origin,
+            x,
+            y,
+            z,
+            size
         };
-        main_cut({{-1.0, 0.0, -tongue_end}});
-        main_cut({{0.0, -1.0, -half_tongue}, {-1.0, 0.0, tongue_end}});
-        main_cut({{seam_slope, 1.0, 0.0}, {-1.0, 0.0, tongue_end}});
-        main_cut(
+        const HeadCutTarget main_target{
+            side_frame,
+            main_low - top,
+            main_high - top,
+            &joint->cutters[main_here.target]
+        };
+        add_head_cut(main_target, {{-1.0, 0.0, -tongue_end}});
+        add_head_cut(main_target, {{0.0, -1.0, -half_tongue}, {-1.0, 0.0, tongue_end}});
+        add_head_cut(main_target, {{seam_slope, 1.0, 0.0}, {-1.0, 0.0, tongue_end}});
+        add_head_cut(
+            main_target,
             {{flank_way_0[0], flank_way_0[1], flank_0},
              {flank_way_1[0], flank_way_1[1], flank_1},
              {-u[0], -u[1], -tail_tip},
@@ -1857,32 +2047,33 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         );
 
         // the secondary beam: beside its tenon, off the tongue but for its tail, and out of the main beam's shoulders
-        std::vector<std::array<Polyline, 2>>& secondary_cuts = joint->cutters[secondary.target];
-        const auto secondary_cut = [&](const std::vector<HalfPlane>& halves) {
-            const HeadPlan plan = head_region(size, halves);
-            if (plan.size() >= 3)
-                secondary_cuts.push_back(head_prism(
-                    plan, origin, x, y, z, secondary.low - overshoot - top, overshoot
-                ));
+        const HeadCutTarget secondary_target{
+            side_frame,
+            secondary.low - overshoot - top,
+            overshoot,
+            &joint->cutters[secondary.target]
         };
-        secondary_cut({{-w[0], -w[1], -half}, {u[0], u[1], beam_shoulder}});
-        secondary_cut({{w[0], w[1], -half}, {u[0], u[1], beam_shoulder}});
-        secondary_cut({{-flank_way_0[0], -flank_way_0[1], -flank_0}, {0.0, 1.0, half_tongue}});
-        secondary_cut({{-flank_way_1[0], -flank_way_1[1], -flank_1}, {0.0, 1.0, half_tongue}});
-        secondary_cut({{u[0], u[1], tail_tip}, {0.0, 1.0, half_tongue}});
-        secondary_cut(
+        add_head_cut(secondary_target, {{-w[0], -w[1], -half}, {u[0], u[1], beam_shoulder}});
+        add_head_cut(secondary_target, {{w[0], w[1], -half}, {u[0], u[1], beam_shoulder}});
+        add_head_cut(secondary_target, {{-flank_way_0[0], -flank_way_0[1], -flank_0}, {0.0, 1.0, half_tongue}});
+        add_head_cut(secondary_target, {{-flank_way_1[0], -flank_way_1[1], -flank_1}, {0.0, 1.0, half_tongue}});
+        add_head_cut(secondary_target, {{u[0], u[1], tail_tip}, {0.0, 1.0, half_tongue}});
+        add_head_cut(
+            secondary_target,
             {{-1.0, 0.0, -tongue_end},
              {0.0, 1.0, 0.5 * main_width},
              {0.0, -1.0, 0.5 * main_width}}
         );
-        secondary_cut(
+        add_head_cut(
+            secondary_target,
             {{1.0, 0.0, -tongue_end},
              {0.0, 1.0, 0.5 * main_width},
              {0.0, -1.0, 0.5 * main_width}}
         );
 
         // the column's slot for this tenon, overlapping the main slot so no skin of wood is left between them, and its housing
-        column_cut(
+        add_column_slot_cut(
+            slot,
             head_region(
                 size,
                 {{w[0], w[1], half},
@@ -1893,7 +2084,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
             turn,
             secondary.low
         );
-        column_cut(
+        add_column_slot_cut(
+            slot,
             head_region(
                 size,
                 {{w[0], w[1], 0.5 * width},
@@ -1906,51 +2098,54 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         );
 
         // what a beam too short gains: its own section as far as the joint needs
-        const auto gain = [&](const HeadBeam& beam, const HeadPlan& plan) {
-            const std::array<Polyline, 2> loops =
-                head_prism(plan, origin, x, y, z, beam.low - top, beam.high - top);
-            joint->gains[beam.target] = Mesh::loft({loops[0]}, {loops[1]}, true);
-        };
         if (main_here.start > -tongue_end - overshoot)
-            gain(
-                main_here,
+            joint->gains[main_here.target] = head_gain_mesh(
+                side_frame,
                 head_region(
                     size,
                     {{1.0, 0.0, tongue_end + overshoot},
                      {-1.0, 0.0, main_here.start + overshoot},
                      {0.0, 1.0, 0.5 * main_width},
                      {0.0, -1.0, 0.5 * main_width}}
-                )
+                ),
+                {main_here.low - top, main_here.high - top}
             );
         double reach_in = tail_tip;
         for (const double across : {half, -half})
             reach_in = std::min(reach_in, (half_tongue - across * w[1]) / u[1]);
         if (secondary.start > reach_in - overshoot)
-            gain(
-                secondary,
+            joint->gains[secondary.target] = head_gain_mesh(
+                side_frame,
                 head_region(
                     size,
                     {{-u[0], -u[1], -(reach_in - overshoot)},
                      {u[0], u[1], secondary.start + overshoot},
                      {w[0], w[1], 0.5 * width},
                      {-w[0], -w[1], 0.5 * width}}
-                )
+                ),
+                {secondary.low - top, secondary.high - top}
             );
     }
 
     // the slot, its plans joined into one outline per floor: the column takes one clean prism, not walls in pieces
-    for (const std::pair<const long long, Clipper2Lib::PathsD>& floor : slot_plans)
+    for (const std::pair<const long long, Clipper2Lib::PathsD>& floor : slot.plans)
         for (const Clipper2Lib::PathD& path :
              Clipper2Lib::Union(floor.second, Clipper2Lib::FillRule::NonZero, 6)) {
-            HeadPlan outline;
+            std::vector<std::array<double, 2>> outline;
             for (const Clipper2Lib::PointD& point : path)
                 if (outline.empty() || std::hypot(point.x - outline.back()[0], point.y - outline.back()[1]) >= 1e-5)
                     outline.push_back({point.x, point.y});
             if (std::hypot(outline.back()[0] - outline[0][0], outline.back()[1] - outline[0][1]) < 1e-5)
                 outline.pop_back();
-            joint->cutters[0].push_back(
-                head_prism(outline, origin, x_axis, y_axis, z, floor.first * 1e-3 - top, cut_high)
-            );
+            joint->cutters[0].push_back(head_prism(
+                outline,
+                origin,
+                x_axis,
+                y_axis,
+                z,
+                floor.first * 1e-3 - top,
+                cut_high
+            ));
         }
 
     // the posts: what the slot leaves of the column's head, one each between two neighbouring beams, cut prism by prism: the joined outline can leave a split post touching itself
@@ -1958,14 +2153,22 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
     for (const HeadBeam& beam : beams)
         highest_floor = std::max(highest_floor, beam.low);
     const double head_low = highest_floor - top + 1.0;
-    const HeadPlan square = head_region(size, {});
-    const std::array<Polyline, 2> slab = head_prism(square, origin, x_axis, y_axis, z, head_low, cut_high);
+    const std::vector<std::array<double, 2>> square = head_region(size, {});
+    const std::array<Polyline, 2> slab = head_prism(
+        square,
+        origin,
+        x_axis,
+        y_axis,
+        z,
+        head_low,
+        cut_high
+    );
     Mesh head_solid = solid_boolean(
         column.element_geometry_mesh(),
         Mesh::loft({slab[0]}, {slab[1]}, true),
         SolidOperation::intersect
     );
-    for (const std::array<Polyline, 2>& prism : slot_prisms)
+    for (const std::array<Polyline, 2>& prism : slot.prisms)
         head_solid = solid_boolean(
             head_solid, Mesh::loft({prism[0]}, {prism[1]}, true), SolidOperation::subtract
         );
@@ -1992,6 +2195,41 @@ std::shared_ptr<JointBeamElement> JointBeamElement::column_head(
         ));
 
     return joint;
+}
+
+namespace {
+
+/// Local frame and key taper of a keyed_box connector.
+struct KeyedBoxFrame {
+    Point origin; // Contact centroid.
+    Vector x; // Normal from plate a into plate b.
+    Vector y; // Key insertion direction.
+    Vector z; // Cross axis in the contact plane.
+    double key_width = 0.0; // Key width factor in plate-thickness units.
+    double unit = 0.0; // Reference thickness (`a.thickness`).
+    double key_taper = 0.0; // Key flank slope.
+    double half_width = 0.0; // Half of box width in mm.
+};
+
+/// Outer flank offset of a key at `height` relative to the box middle.
+double keyed_box_flank(const KeyedBoxFrame& frame, double height) {
+    return frame.key_width * frame.unit + frame.key_taper * (height - frame.half_width);
+}
+
+/// Pair of loops at `-half` and `+half` along z from a 2D plan in `(x, y)`.
+std::array<Polyline, 2>
+keyed_box_slab(const KeyedBoxFrame& frame, const std::vector<std::array<double, 2>>& plan, double half) {
+    return head_prism(
+        plan,
+        frame.origin,
+        frame.x,
+        frame.y,
+        frame.z,
+        -half,
+        half
+    );
+}
+
 }
 
 std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
@@ -2025,10 +2263,18 @@ std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
     const double half_mortise = 0.5 * mortise * unit;
     const double proud = key_proud * unit;
     const double reach = proud + 0.1 * unit;
-    const auto flank = [&](double height) {
-        return key_width * unit + key_taper * (height - half_width);
+    const KeyedBoxFrame box_frame{
+        origin,
+        x,
+        y,
+        z,
+        key_width,
+        unit,
+        key_taper,
+        half_width
     };
-    if (half_mortise >= half_depth || flank(-half_width - proud) <= 0.0 || key_taper <= 0.0)
+    if (half_mortise >= half_depth || keyed_box_flank(box_frame, -half_width - proud) <= 0.0 ||
+        key_taper <= 0.0)
         return nullptr;
 
     // the box's corners must pass through both plates, or its mortise breaks their edges
@@ -2042,22 +2288,6 @@ std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
                 inside_stretches(b.element_geometry_mesh(), line).empty())
                 return nullptr;
         }
-
-    // a plan in x and y as the pair of loops either side of the box's middle
-    using Plan = std::vector<std::array<double, 2>>;
-    const auto slab = [&](const Plan& plan, double half) {
-        std::array<Polyline, 2> loops;
-        for (size_t side = 0; side < 2; side++) {
-            std::vector<Point> ring;
-            for (const std::array<double, 2>& point : plan)
-                ring.push_back(
-                    origin + x * point[0] + y * point[1] + z * (side == 0 ? -half : half)
-                );
-            ring.push_back(ring.front());
-            loops[side] = Polyline(ring);
-        }
-        return loops;
-    };
 
     const double near_face = -a.thickness;
     const double far_face = b.thickness;
@@ -2073,7 +2303,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
     joint->insertions.push_back(y);
 
     // the box, and the two keys, each with its straight flank on a plate's outer face
-    joint->parts.push_back(slab(
+    joint->parts.push_back(keyed_box_slab(
+        box_frame,
         {{box_start, -half_width},
          {box_end, -half_width},
          {box_end, half_width},
@@ -2082,29 +2313,32 @@ std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
     ));
     const double key_top = half_width + proud;
     const double key_bottom = -half_width - proud;
-    joint->parts.push_back(slab(
+    joint->parts.push_back(keyed_box_slab(
+        box_frame,
         {{far_face, key_bottom},
-         {far_face + flank(key_bottom), key_bottom},
-         {far_face + flank(key_top), key_top},
+         {far_face + keyed_box_flank(box_frame, key_bottom), key_bottom},
+         {far_face + keyed_box_flank(box_frame, key_top), key_top},
          {far_face, key_top}},
         half_mortise
     ));
-    joint->parts.push_back(slab(
-        {{near_face - flank(key_bottom), key_bottom},
+    joint->parts.push_back(keyed_box_slab(
+        box_frame,
+        {{near_face - keyed_box_flank(box_frame, key_bottom), key_bottom},
          {near_face, key_bottom},
          {near_face, key_top},
-         {near_face - flank(key_top), key_top}},
+         {near_face - keyed_box_flank(box_frame, key_top), key_top}},
         half_mortise
     ));
 
     // the box's one long mortise, its ends leaning with the keys' outer flanks
     const double low = -half_width - reach;
     const double high = half_width + reach;
-    const std::array<Polyline, 2> long_mortise = slab(
-        {{near_face - flank(low), low},
-         {far_face + flank(low), low},
-         {far_face + flank(high), high},
-         {near_face - flank(high), high}},
+    const std::array<Polyline, 2> long_mortise = keyed_box_slab(
+        box_frame,
+        {{near_face - keyed_box_flank(box_frame, low), low},
+         {far_face + keyed_box_flank(box_frame, low), low},
+         {far_face + keyed_box_flank(box_frame, high), high},
+         {near_face - keyed_box_flank(box_frame, high), high}},
         half_mortise
     );
     joint->solid_features.push_back(InteractionFeatureSolid(
@@ -2113,7 +2347,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::keyed_box(
 
     // the same mortise through each plate, as big as the box's section
     const double through = 0.1 * unit;
-    const std::array<Polyline, 2> hole = slab(
+    const std::array<Polyline, 2> hole = keyed_box_slab(
+        box_frame,
         {{near_face - through, -half_width},
          {far_face + through, -half_width},
          {far_face + through, half_width},

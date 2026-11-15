@@ -473,8 +473,10 @@ bool inside_plan(const std::vector<Point>& polygon, const Point& point, double t
 /// Short members on small and narrow bays.
 void check_short_members() {
 
-    for (const auto& [half_x, half_y] :
+    for (const std::pair<double, double>& spans :
          std::vector<std::pair<double, double>>{{1200.0, 1200.0}, {3000.0, 1200.0}}) {
+        const double half_x = spans.first;
+        const double half_y = spans.second;
         const wood_floor::FloorGuide guide = rectangle_guide(half_x, half_y);
 
         for (size_t q = 0; q < 4; q++) {
@@ -634,9 +636,9 @@ std::vector<std::pair<std::string, Polyline>> contact_interactions(const WoodSes
 
     std::vector<std::pair<std::string, Polyline>> contacts;
 
-    for (const auto& [u, w] : scene.graph.get_edges()) {
-        const std::shared_ptr<Element> a = scene.get_element<Element>(u);
-        const std::shared_ptr<Element> b = scene.get_element<Element>(w);
+    for (const std::tuple<std::string, std::string>& edge : scene.graph.get_edges()) {
+        const std::shared_ptr<Element> a = scene.get_element<Element>(std::get<0>(edge));
+        const std::shared_ptr<Element> b = scene.get_element<Element>(std::get<1>(edge));
 
         if (!a || !b)
             continue;
@@ -657,9 +659,9 @@ void check_contacts() {
     std::map<std::string, size_t> counts;
     double smallest = 1e300;
 
-    for (const auto& [name, polygon] : contact_interactions(scene)) {
-        counts[name.substr(0, name.find_first_of("0123456789") - 1)]++;
-        smallest = std::min(smallest, polygon.area());
+    for (const std::pair<std::string, Polyline>& entry : contact_interactions(scene)) {
+        counts[entry.first.substr(0, entry.first.find_first_of("0123456789") - 1)]++;
+        smallest = std::min(smallest, entry.second.area());
     }
 
     check(
@@ -2089,7 +2091,9 @@ void check_floor_pins(const wood_floor::FloorGuide& guide, const std::string& la
 
     for (size_t i = 0; i < pins.size(); i++) {
         const JointBeamElement& connector = *pins[i];
-        const auto& [kind, pair] = joined[i];
+        const std::pair<std::string, std::array<std::shared_ptr<Element>, 2>>& entry = joined[i];
+        const std::string& kind = entry.first;
+        const std::array<std::shared_ptr<Element>, 2>& pair = entry.second;
         counts[kind] += connector.drill_lines.size();
         check(
             connector.pre_drill && connector.cutters.empty() && connector.parts.empty() &&

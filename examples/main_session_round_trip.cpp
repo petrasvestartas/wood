@@ -87,7 +87,7 @@ int main() {
     check(a.objects.meshes->size() == b.objects.meshes->size(), "loose mesh count");
     check(a.graph.number_of_vertices() == b.graph.number_of_vertices(), "graph vertex count");
     size_t joint_elements = 0;
-    for (const auto& element : *a.objects.elements)
+    for (const std::shared_ptr<Element>& element : *a.objects.elements)
         if (std::dynamic_pointer_cast<JointElement>(element))
             ++joint_elements;
     check(

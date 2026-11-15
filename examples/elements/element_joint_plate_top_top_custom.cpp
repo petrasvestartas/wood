@@ -3,22 +3,25 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Butterfly key pocket outline at depth y of the unit box.
+static Polyline bow_tie(double y) {
+
+    return Polyline({
+        {-0.3, y, -0.15},
+        {0.0, y, -0.06},
+        {0.3, y, -0.15},
+        {0.3, y, 0.15},
+        {0.0, y, 0.06},
+        {-0.3, y, 0.15},
+        {-0.3, y, -0.15},
+    });
+}
+
 /// top_top_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_top_top_custom");
 
-    const auto bow_tie = [](double y) {
-        return Polyline(
-            {{-0.3, y, -0.15},
-             {0.0, y, -0.06},
-             {0.3, y, -0.15},
-             {0.3, y, 0.15},
-             {0.0, y, 0.06},
-             {-0.3, y, 0.15},
-             {-0.3, y, -0.15}}
-        );
-    };
     const std::vector<Polyline> male = {bow_tie(-0.25), bow_tie(0.0)};
     const std::vector<Polyline> female = {bow_tie(0.0), bow_tie(0.25)};
 

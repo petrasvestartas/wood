@@ -3,35 +3,47 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// A horizontal 100 x 185 beam ending at the column head from angle degrees in plan.
+static std::shared_ptr<EdgeStraightElement>
+beam(double angle, double length, const std::string& name) {
+
+    const double width = 100.0;
+    const double height = 185.0;
+    const double turn = angle * Tolerance::TO_RADIANS;
+    const Polyline rectangle = Polyline::rectangle(
+        {-0.5 * width, -0.5 * height, 0.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        width,
+        height
+    );
+    const Polyline axis({
+        Point(std::cos(turn) * length, std::sin(turn) * length, -0.5 * height),
+        Point(0.0, 0.0, -0.5 * height),
+    });
+    return std::make_shared<EdgeStraightElement>(
+        axis,
+        std::vector<Polyline>{rectangle},
+        std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+        name
+    );
+}
+
 /// column_head with its secondary beams turned, each its own way: the same call, every cut read from the beams, so the posts come out unequal. Drawn apart.
 int main() {
 
     WoodSession scene("element_joint_beam_column_head_rotated");
 
     // a round column 200 across and 425 long, its head at the origin
-    const double width = 100.0;
-    const double height = 185.0;
     const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::round(
-        Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}), width, 0.02, "column"
+        Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}),
+        100.0,
+        0.02,
+        "column"
     );
     scene.add(column);
 
     // four 100 x 185 beams, their axes ending at the column's: the main pair in line, one secondary beam at 75 degrees to it, the other at 80 degrees the other side
-    const std::vector<Polyline> section = {Polyline::rectangle(
-        {-0.5 * width, -0.5 * height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, height
-    )};
-    const auto beam = [&](double angle, double length, const std::string& name) {
-        const double turn = angle * Tolerance::PI / 180.0;
-        return std::make_shared<EdgeStraightElement>(
-            Polyline(
-                {Point(std::cos(turn) * length, std::sin(turn) * length, -0.5 * height),
-                 Point(0.0, 0.0, -0.5 * height)}
-            ),
-            section,
-            std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
-            name
-        );
-    };
     const std::shared_ptr<EdgeStraightElement> first = beam(180.0, 385.0, "first");
     const std::shared_ptr<EdgeStraightElement> second = beam(0.0, 385.0, "second");
     const std::shared_ptr<EdgeStraightElement> third = beam(75.0, 465.0, "third");

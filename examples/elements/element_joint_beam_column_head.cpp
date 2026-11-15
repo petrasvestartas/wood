@@ -3,6 +3,25 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// A horizontal 100 x 185 beam between two axis points.
+static std::shared_ptr<EdgeStraightElement>
+beam(const Point& from, const Point& to, const std::string& name) {
+
+    const Polyline rectangle = Polyline::rectangle(
+        {-50.0, -92.5, 0.0},
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        100.0,
+        185.0
+    );
+    return std::make_shared<EdgeStraightElement>(
+        Polyline({from, to}),
+        std::vector<Polyline>{rectangle},
+        std::vector<Vector>{Vector(0.0, 0.0, 1.0)},
+        name
+    );
+}
+
 /// column_head: five members in one node, rebuilt from photographs: a round column, two main beams in a scarf and two secondary beams on dovetails, drawn apart.
 int main() {
 
@@ -12,20 +31,15 @@ int main() {
     const double width = 100.0;
     const double height = 185.0;
     const std::shared_ptr<EdgeStraightElement> column = EdgeStraightElement::round(
-        Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}), width, 0.02, "column"
+        Line::from_points({0.0, 0.0, -425.0}, {0.0, 0.0, 0.0}),
+        width,
+        0.02,
+        "column"
     );
     scene.add(column);
 
     // four 100 x 185 beams, tops flush with the head: main beams along x reaching 385 from it, secondary along y reaching 465, each axis simply ending at the column's: the joint finds the rest
     const double level = -0.5 * height;
-    const std::vector<Polyline> section = {Polyline::rectangle(
-        {-0.5 * width, -0.5 * height, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, width, height
-    )};
-    const auto beam = [&](const Point& from, const Point& to, const std::string& name) {
-        return std::make_shared<EdgeStraightElement>(
-            Polyline({from, to}), section, std::vector<Vector>{Vector(0.0, 0.0, 1.0)}, name
-        );
-    };
     const std::shared_ptr<EdgeStraightElement> first = beam({-385.0, 0.0, level}, {0.0, 0.0, level}, "first");
     const std::shared_ptr<EdgeStraightElement> second = beam({385.0, 0.0, level}, {0.0, 0.0, level}, "second");
     const std::shared_ptr<EdgeStraightElement> third = beam({0.0, -465.0, level}, {0.0, 0.0, level}, "third");

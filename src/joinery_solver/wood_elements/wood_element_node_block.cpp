@@ -67,7 +67,7 @@ std::shared_ptr<NodeBlockElement> NodeBlockElement::from_element(Element e) {
         block->source_mesh = Mesh::pb_loads(proto.source_mesh().SerializeAsString());
     else if (block->loops.empty() && block->_geometry_mesh)
         block->source_mesh = *block->_geometry_mesh;
-    for (const auto& cut : proto.solid_features())
+    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         block->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
         block->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString(
@@ -99,9 +99,10 @@ split_loops(const std::vector<Polyline>& loops) {
 const Mesh& NodeBlockElement::element_geometry_mesh() const {
 
     if (!_element_geometry_mesh) {
-        const auto [bottom, top] = split_loops(loops);
-        _element_geometry_mesh =
-            bottom.empty() ? source_mesh.value_or(Mesh()) : Mesh::loft(bottom, top, true);
+        const std::pair<std::vector<Polyline>, std::vector<Polyline>> split = split_loops(loops);
+        _element_geometry_mesh = split.first.empty()
+                                     ? source_mesh.value_or(Mesh())
+                                     : Mesh::loft(split.first, split.second, true);
     }
 
     return *_element_geometry_mesh;
@@ -110,9 +111,10 @@ const Mesh& NodeBlockElement::element_geometry_mesh() const {
 const BRep& NodeBlockElement::element_geometry_brep() const {
 
     if (!_element_geometry_brep) {
-        const auto [bottom, top] = split_loops(loops);
-        _element_geometry_brep =
-            bottom.empty() ? mesh_brep(element_geometry_mesh()) : brep_between_loops(bottom, top);
+        const std::pair<std::vector<Polyline>, std::vector<Polyline>> split = split_loops(loops);
+        _element_geometry_brep = split.first.empty()
+                                     ? mesh_brep(element_geometry_mesh())
+                                     : brep_between_loops(split.first, split.second);
     }
 
     return *_element_geometry_brep;
@@ -140,7 +142,7 @@ std::shared_ptr<NodeBlockElement> NodeBlockElement::transformed(const Xform& xfo
     if (source_mesh)
         block->source_mesh = source_mesh->transformed(xform);
     block->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         block->solid_features.push_back(cut.transformed(xform));
     for (const InteractionFeaturePlane& feature : plane_features)
         block->plane_features.push_back(feature.transformed(xform));
@@ -157,7 +159,7 @@ void NodeBlockElement::place(const Xform& xform) {
     if (source_mesh)
         source_mesh = source_mesh->transformed(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_features)
+    for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
     for (InteractionFeaturePlane& feature : plane_features)
         feature = feature.transformed(xform);
@@ -235,7 +237,7 @@ std::string NodeBlockElement::element_data_dumps() const {
         if (!proto.add_cuts()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Failed to parse Plane protobuf data");
 
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
     for (const InteractionFeaturePlane& feature : plane_features)

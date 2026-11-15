@@ -178,7 +178,11 @@ static std::vector<std::shared_ptr<NodeBlockElement>> compute_head_blocks(
     std::vector<std::shared_ptr<NodeBlockElement>> blocks;
 
     for (size_t i = 0; i < spans.size(); i++) {
-        const auto [a0, b0, a1, b1] = spans[i];
+        const std::array<double, 4>& span = spans[i];
+        const double a0 = span[0];
+        const double b0 = span[1];
+        const double a1 = span[2];
+        const double b1 = span[3];
         const Polyline base = Polyline({
                                            origin + x.normalized() * a0 + y.normalized() * b0,
                                            origin + x.normalized() * a1 + y.normalized() * b0,

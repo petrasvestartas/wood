@@ -51,6 +51,24 @@ std::vector<std::vector<std::vector<std::pair<int, bool>>>> joint_membership_per
     return membership;
 }
 
+/// Finds the union-find root of joint i with a bounded walk.
+int find_root(const std::vector<int>& parent, int i) {
+
+    const size_t limit = parent.size();
+
+    for (size_t step = 0; step < limit && parent[i] != i; step++)
+        i = parent[i];
+
+    return i;
+}
+
+/// Merges the union-find sets of joints a and b.
+void unite_joints(std::vector<int>& parent, int a, int b) {
+
+    if (a >= 0 && b >= 0)
+        parent[find_root(parent, b)] = find_root(parent, a);
+}
+
 }
 
 namespace wood_session {
@@ -280,75 +298,96 @@ std::vector<InteractionFeaturePlate> WoodSession::compute_features(SearchType se
             promote(plate);
 
     std::vector<int> parent(joints.size());
+
     for (size_t i = 0; i < parent.size(); ++i)
         parent[i] = static_cast<int>(i);
-    auto root = [&](int i) {
-        while (parent[i] != i)
-            i = parent[i];
-        return i;
-    };
-    auto unite = [&](int a, int b) {
-        if (a >= 0 && b >= 0)
-            parent[root(b)] = root(a);
-    };
+
     std::unordered_map<std::string, int> joint_indices;
+
     for (size_t i = 0; i < joints.size(); ++i)
         joint_indices[joints[i].guid()] = static_cast<int>(i);
+
     for (size_t i = 0; i < joints.size(); ++i)
-        for (const auto& linked : joints[i].linked_joints)
+        for (const std::string& linked : joints[i].linked_joints)
             if (joint_indices.count(linked))
-                unite(static_cast<int>(i), joint_indices.at(linked));
+                unite_joints(parent, static_cast<int>(i), joint_indices.at(linked));
+
     const bool annen =
         three_valence.size() > 1 && (three_valence[0].empty() || three_valence[0][0] == 0);
+
     if (annen) {
-        const auto pairs = joints_of_element_pairs(elements, joints);
+        const std::unordered_map<uint64_t, std::vector<int>> pairs =
+            joints_of_element_pairs(elements, joints);
+
         for (size_t i = 1; i < three_valence.size(); ++i) {
-            const auto& group = three_valence[i];
+            const std::vector<int>& group = three_valence[i];
+
             if (group.size() < 4)
                 continue;
+
             int a = -1;
             int b = -1;
+
             if (row_joints(
-                    pairs, pair_key(group[0], group[1]), pair_key(group[2], group[3]), joints, a, b
+                    pairs,
+                    pair_key(group[0], group[1]),
+                    pair_key(group[2], group[3]),
+                    joints,
+                    a,
+                    b
                 ))
-                unite(a, b);
+                unite_joints(parent, a, b);
         }
     }
+
     merge_deferred = true;
     std::map<int, std::vector<int>> groups;
+
     for (size_t i = 0; i < joints.size(); ++i)
-        groups[root(static_cast<int>(i))].push_back(static_cast<int>(i));
-    for (const auto& [id, indices] : groups) {
+        groups[find_root(parent, static_cast<int>(i))].push_back(static_cast<int>(i));
+
+    for (const std::pair<const int, std::vector<int>>& group_entry : groups) {
+        const std::vector<int>& indices = group_entry.second;
         std::shared_ptr<JointPlateElement> element;
+
         if (indices.size() > 1 && annen)
             element = std::make_shared<JointAnnenElement>();
         else if (indices.size() > 1)
             element = std::make_shared<JointVidyElement>();
         else
             element = std::make_shared<JointPlateElement>();
+
         for (int index : indices) {
-            auto& joint = joints[index];
+            InteractionFeaturePlate& joint = joints[index];
             joint.sync_features();
-            const auto male = get_element<Element>(joint.element_a);
-            const auto female = get_element<Element>(joint.element_b);
+            const std::shared_ptr<Element> male = get_element<Element>(joint.element_a);
+            const std::shared_ptr<Element> female = get_element<Element>(joint.element_b);
+
             if (!male || !female)
                 continue;
+
             // a border joint has its one plate: no edge between two plates to carry the contact
             if (male != female)
                 add_interaction(male, female, joint.to_contact());
+
             element->connections.push_back(joint);
         }
+
         if (element->connections.empty())
             continue;
+
         element->name =
             indices.size() > 1 ? element->element_type_name() : element->connections[0].name;
         element->generated = true;
         element->compute_key(elements);
 
         add(element, group_named(element->element_type_name(), group_named("joints")));
+
         for (size_t i = 0; i < element->interaction_count(); i++)
             add_interaction(
-                element, get_element<FacePlanarElement>(element->interaction_target(i)), element->interaction(i)
+                element,
+                get_element<FacePlanarElement>(element->interaction_target(i)),
+                element->interaction(i)
             );
     }
     merge_deferred = false;

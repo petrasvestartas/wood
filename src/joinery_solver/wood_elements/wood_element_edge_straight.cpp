@@ -184,7 +184,7 @@ std::shared_ptr<EdgeStraightElement> EdgeStraightElement::from_element(Element e
     for (const session_proto::Polyline& ring : proto.profile())
         beam->profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
 
-    for (const auto& cut : proto.solid_features())
+    for (const wood_proto::InteractionFeatureSolid& cut : proto.solid_features())
         beam->solid_features.push_back(InteractionFeatureSolid::pb_loads(cut.SerializeAsString()));
     for (const wood_proto::InteractionFeaturePlane& feature : proto.plane_features())
         beam->plane_features.push_back(InteractionFeaturePlane::pb_loads(feature.SerializeAsString()
@@ -407,7 +407,7 @@ std::shared_ptr<EdgeStraightElement> EdgeStraightElement::transformed(const Xfor
     beam->allowed_type = allowed_type;
     beam->guid() = guid();
     beam->cuts = transformed_list(cuts, xform);
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         beam->solid_features.push_back(cut.transformed(xform));
     for (const InteractionFeaturePlane& feature : plane_features)
         beam->plane_features.push_back(feature.transformed(xform));
@@ -426,7 +426,7 @@ void EdgeStraightElement::place(const Xform& xform) {
     directions = transformed_directions(directions, axis.segment_count(), xform);
     axis.transform(xform);
     cuts = transformed_list(cuts, xform);
-    for (auto& cut : solid_features)
+    for (InteractionFeatureSolid& cut : solid_features)
         cut = cut.transformed(xform);
     for (InteractionFeaturePlane& feature : plane_features)
         feature = feature.transformed(xform);
@@ -522,7 +522,7 @@ std::string EdgeStraightElement::element_data_dumps() const {
         if (!proto.add_profile()->ParseFromString(ring.pb_dumps()))
             throw std::runtime_error("Failed to parse Polyline protobuf data");
 
-    for (const auto& cut : solid_features)
+    for (const InteractionFeatureSolid& cut : solid_features)
         if (!proto.add_solid_features()->ParseFromString(cut.pb_dumps()))
             throw std::runtime_error("Invalid solid cut");
     for (const InteractionFeaturePlane& feature : plane_features)

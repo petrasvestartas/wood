@@ -49,7 +49,7 @@ int main() {
 
     const Color pink(0.807f, 0.063f, 0.258f);
     for (const Point& pt : {straight_seam, angled_seam, tenon_edge}) {
-        auto marker = std::make_shared<Point>(pt);
+        const std::shared_ptr<Point> marker = std::make_shared<Point>(pt);
         marker->pointcolor = pink;
         wood_session.add_point(marker);
     }
@@ -57,7 +57,7 @@ int main() {
         const Vector u = dir_line.to_vector().normalized();
         const Vector n = std::abs(u[2]) < 0.1 ? Vector(-u[1], u[0], 0) : Vector(0, -u[2], u[1]);
         const Point tip = dir_line.end();
-        auto arrow = std::make_shared<Polyline>(std::vector<Point>{
+        const std::shared_ptr<Polyline> arrow = std::make_shared<Polyline>(std::vector<Point>{
             dir_line.start(), tip, tip - u * 28 + n * 14, tip, tip - u * 28 - n * 14
         });
         arrow->linecolor = pink;

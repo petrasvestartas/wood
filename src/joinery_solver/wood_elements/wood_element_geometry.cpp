@@ -856,6 +856,15 @@ BRep exact_solid_features(BRep solid, const std::vector<InteractionFeatureSolid>
     return solid;
 }
 
+namespace {
+
+/// Whether a solid feature carries a cutter mesh.
+bool has_cutter_mesh(const InteractionFeatureSolid& cut) {
+    return cut.mesh.number_of_faces() > 0;
+}
+
+}
+
 BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
 
     std::vector<Drill> drills;
@@ -868,11 +877,7 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
         }
 
     if (!drills.empty()) {
-        const bool has_solid_cuts = std::any_of(
-            cuts.begin(),
-            cuts.end(),
-            [](const InteractionFeatureSolid& cut) { return cut.mesh.number_of_faces() > 0; }
-        );
+        const bool has_solid_cuts = std::any_of(cuts.begin(), cuts.end(), has_cutter_mesh);
         const Mesh milled_storage =
             has_solid_cuts ? apply_solid_features(mesh, cuts, false) : Mesh();
         const Mesh& milled = has_solid_cuts ? milled_storage : mesh;

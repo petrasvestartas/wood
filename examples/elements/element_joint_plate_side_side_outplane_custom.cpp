@@ -3,16 +3,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Z coordinate of a sunrise tenon wall fanned from the seam bisector.
+static double fanned(double wall, double x, double y) {
+
+    const double turn = 10.0 * Tolerance::TO_RADIANS * wall / 0.375;
+    return wall + std::tan(turn) * 0.5 * (x + y);
+}
+
 /// side_side_outplane_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_outplane_custom");
 
     const std::array<double, 6> walls = {-0.375, -0.225, -0.075, 0.075, 0.225, 0.375};
-    const auto fanned = [](double wall, double x, double y) {
-        const double turn = 10.0 * Tolerance::TO_RADIANS * wall / 0.375;
-        return wall + std::tan(turn) * 0.5 * (x + y);
-    };
     std::array<std::vector<Polyline>, 2> wall_faces;
     std::array<std::vector<Polyline>, 2> floor_faces;
     for (int face = 0; face < 2; face++) {

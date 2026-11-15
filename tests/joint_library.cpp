@@ -407,22 +407,97 @@ static Fixture make_fixture(const std::string& token, WoodSession& scene, const 
 // Variants - a library factory per id, the custom designs on unit outlines
 // ═══════════════════════════════════════════════════════════════════════════
 
+namespace {
+
+/// Feather profile in the unit box at face y.
+Polyline ip_profile(double y) {
+
+    std::vector<Point> points = {Point(0.0, y, 0.5)};
+
+    for (int i = 0; i <= 8; i++)
+        points.push_back(Point(i % 2 == 0 ? -0.5 : 0.5, y, 0.45 - i * 0.1125));
+
+    points.push_back(Point(0.0, y, -0.5));
+    return Polyline(points);
+}
+
+/// Seam end line in the unit box at face y.
+Polyline ip_end_line(double y) {
+
+    return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
+}
+
+/// Tapered tenon profile in the unit box at face x.
+Polyline ts_profile(double x) {
+
+    return Polyline({
+        {x, -0.5, -0.35},
+        {x, -0.5, -0.25},
+        {x, 0.5, -0.15},
+        {x, 0.5, 0.15},
+        {x, -0.5, 0.25},
+        {x, -0.5, 0.35},
+    });
+}
+
+/// Tenon end line in the unit box at face x.
+Polyline ts_end_line(double x) {
+
+    return Polyline({{x, -0.5, -0.35}, {x, -0.5, 0.35}});
+}
+
+/// Mortise rectangle in the unit box at face y with half-width half.
+Polyline ts_mortise(double y, double half) {
+
+    return Polyline({
+        {-0.5, y, half},
+        {0.5, y, half},
+        {0.5, y, -half},
+        {-0.5, y, -half},
+        {-0.5, y, half},
+    });
+}
+
+/// Butterfly key outline in the unit box at depth y.
+Polyline tt_bow_tie(double y) {
+
+    return Polyline({
+        {-0.3, y, -0.15},
+        {0.0, y, -0.06},
+        {0.3, y, -0.15},
+        {0.3, y, 0.15},
+        {0.0, y, 0.06},
+        {-0.3, y, 0.15},
+        {-0.3, y, -0.15},
+    });
+}
+
+/// Rotated seam edge line in the unit box at face y.
+Polyline rotated_edge(double y) {
+
+    return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
+}
+
+/// Rotated step strip in the unit box from x0 at face y.
+Polyline rotated_strip(double x0, double y) {
+
+    return Polyline({
+        {x0, y, 0.6},
+        {-0.5, y, 0.6},
+        {-0.5, y, -0.6},
+        {x0, y, -0.6},
+        {x0, y, 0.6},
+    });
+}
+
+} // namespace
+
 /// The male and female unit outlines of a custom design, face 0 then face 1 of each pair.
 static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& family) {
 
     if (family == "ip") {
-        const auto profile = [](double y) {
-            std::vector<Point> points = {Point(0.0, y, 0.5)};
-            for (int i = 0; i <= 8; i++)
-                points.push_back(Point(i % 2 == 0 ? -0.5 : 0.5, y, 0.45 - i * 0.1125));
-            points.push_back(Point(0.0, y, -0.5));
-            return Polyline(points);
-        };
-        const auto end_line = [](double y) {
-            return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
-        };
         const std::vector<Polyline> outlines = {
-            profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)
+            ip_profile(-0.5), ip_profile(0.5), ip_end_line(-0.5), ip_end_line(0.5)
         };
         return {outlines, outlines};
     }
@@ -480,34 +555,13 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         };
     }
 
-    if (family == "ts") {
-        const auto profile = [](double x) {
-            return Polyline(
-                {{x, -0.5, -0.35},
-                 {x, -0.5, -0.25},
-                 {x, 0.5, -0.15},
-                 {x, 0.5, 0.15},
-                 {x, -0.5, 0.25},
-                 {x, -0.5, 0.35}}
-            );
-        };
-        const auto end_line = [](double x) {
-            return Polyline({{x, -0.5, -0.35}, {x, -0.5, 0.35}});
-        };
-        const auto mortise = [](double y, double half) {
-            return Polyline(
-                {{-0.5, y, half},
-                 {0.5, y, half},
-                 {0.5, y, -half},
-                 {-0.5, y, -half},
-                 {-0.5, y, half}}
-            );
-        };
+    if (family == "ts")
         return {
-            std::vector<Polyline>{profile(0.5), profile(-0.5), end_line(0.5), end_line(-0.5)},
-            std::vector<Polyline>{mortise(-0.5, 0.25), mortise(0.5, 0.15)}
+            std::vector<Polyline>{
+                ts_profile(0.5), ts_profile(-0.5), ts_end_line(0.5), ts_end_line(-0.5)
+            },
+            std::vector<Polyline>{ts_mortise(-0.5, 0.25), ts_mortise(0.5, 0.15)}
         };
-    }
 
     if (family == "cr") {
         const Polyline male0(
@@ -541,38 +595,23 @@ static std::array<std::vector<Polyline>, 2> custom_outlines(const std::string& f
         return {std::vector<Polyline>{male0, male1}, std::vector<Polyline>{female0, female1}};
     }
 
-    if (family == "tt") {
-        const auto bow_tie = [](double y) {
-            return Polyline(
-                {{-0.3, y, -0.15},
-                 {0.0, y, -0.06},
-                 {0.3, y, -0.15},
-                 {0.3, y, 0.15},
-                 {0.0, y, 0.06},
-                 {-0.3, y, 0.15},
-                 {-0.3, y, -0.15}}
-            );
-        };
+    if (family == "tt")
         return {
-            std::vector<Polyline>{bow_tie(-0.25), bow_tie(0.0)},
-            std::vector<Polyline>{bow_tie(0.0), bow_tie(0.25)}
+            std::vector<Polyline>{tt_bow_tie(-0.25), tt_bow_tie(0.0)},
+            std::vector<Polyline>{tt_bow_tie(0.0), tt_bow_tie(0.25)}
         };
-    }
 
     // rotated: the step
-    const auto edge = [](double y) {
-        return Polyline({{-0.5, y, 0.5}, {-0.5, y, -0.5}});
-    };
-    const auto strip = [](double x0, double y) {
-        return Polyline(
-            {{x0, y, 0.6}, {-0.5, y, 0.6}, {-0.5, y, -0.6}, {x0, y, -0.6}, {x0, y, 0.6}}
-        );
-    };
     return {
         std::vector<Polyline>{
-            edge(-0.5), edge(0.5), edge(-0.5), edge(0.5), strip(0.0, 0.0), strip(0.0, 0.5)
+            rotated_edge(-0.5),
+            rotated_edge(0.5),
+            rotated_edge(-0.5),
+            rotated_edge(0.5),
+            rotated_strip(0.0, 0.0),
+            rotated_strip(0.0, 0.5)
         },
-        std::vector<Polyline>{strip(0.1, -0.5), strip(0.1, 0.0)}
+        std::vector<Polyline>{rotated_strip(0.1, -0.5), rotated_strip(0.1, 0.0)}
     };
 }
 

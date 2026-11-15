@@ -1,8 +1,3 @@
-// The scenes of docs/joint_library.md, two session files per design for the viewer, never overlapping: <id>_unit.pb, the design's male and
-// female outlines in its unit box, polylines since a plate joint is outlines merged into the plates', with <id>_unit.txt, its factory call with
-// the parameters the user can change, the page's code snippet; and <id>.pb, the oracle's pair joined
-// by it, the plates with the merged outlines and any solid the joint owns as BReps.
-//   ./build/joint_tiles <out_dir> [family/library/parameters ... | beam/<design>/<angle> ...]     every oracle variant when no id is given
 #define main joint_library_main
 #include "../../tests/joint_library.cpp"
 #undef main
@@ -30,6 +25,93 @@ static const std::map<std::string, std::string> SHIFT_MEANING = { // What the sh
 // The unit box
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Runs the named library builder on a unit connection, returning false when the design has none.
+static bool apply_named_design(const Built& built, InteractionFeaturePlate& unit) {
+
+    const std::string& library = built.library;
+    const JointPlateParameters& p = built.joint->parameters;
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = {
+        built.fixture.a, built.fixture.b
+    };
+    std::vector<InteractionFeaturePlate> no_joints;
+
+    if (library == "side_side_inplane_three_fingers")
+        side_side_inplane_three_fingers(unit);
+    else if (library == "side_side_inplane_dovetails")
+        side_side_inplane_dovetails(unit);
+    else if (library == "side_side_inplane_butterfly_keys")
+        side_side_inplane_butterfly_keys(unit, plates);
+    else if (library == "side_side_inplane_splayed_scarf")
+        side_side_inplane_splayed_scarf(unit);
+    else if (library == "side_side_inplane_cross_splayed_scarf")
+        side_side_inplane_cross_splayed_scarf(unit);
+    else if (library == "side_side_inplane_tooth_keys")
+        side_side_inplane_tooth_keys(unit, plates);
+    else if (library == "side_side_outplane_three_fingers")
+        side_side_outplane_three_fingers(unit);
+    else if (library == "side_side_outplane_fingers")
+        side_side_outplane_fingers(unit);
+    else if (library == "side_side_outplane_graded_fingers")
+        side_side_outplane_graded_fingers(unit);
+    else if (library == "side_side_outplane_miter_tenon")
+        side_side_outplane_miter_tenon(unit);
+    else if (library == "side_side_outplane_tenons")
+        side_side_outplane_tenons(
+            unit,
+            p.taper,
+            p.chamfer,
+            p.modify_outline,
+            p.x[0],
+            p.x[1],
+            p.y[0],
+            p.y[1],
+            p.z[0],
+            p.z[1]
+        );
+    else if (library == "side_side_outplane_linked_tenons")
+        side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions);
+    else if (library == "side_side_outplane_linked_tenons_wall")
+        side_side_outplane_linked_tenons_wall(unit, no_joints);
+    else if (library == "side_side_outplane_capped_fingers")
+        side_side_outplane_capped_fingers(unit);
+    else if (library == "side_side_outplane_notch")
+        side_side_outplane_notch(unit);
+    else if (library == "top_side_three_tenons")
+        top_side_three_tenons(unit);
+    else if (library == "top_side_dense_tenons")
+        top_side_dense_tenons(unit);
+    else if (library == "top_side_tenons")
+        top_side_tenons(unit);
+    else if (library == "top_side_milled_wedge")
+        top_side_milled_wedge(unit);
+    else if (library == "top_side_snap_fit")
+        top_side_snap_fit(unit);
+    else if (library == "top_side_bridle")
+        top_side_bridle(unit, plates, 1.0 / 3.0);
+    else if (library == "cross_slot")
+        cross_slot(unit);
+    else if (library == "cross_sliced_half_lap")
+        cross_sliced_half_lap(unit);
+    else if (library == "cross_half_lap")
+        cross_half_lap(unit);
+    else if (library == "cross_half_lap_diagonal_drills")
+        cross_half_lap(unit, CrossDrills::two_diagonal);
+    else if (library == "cross_half_lap_drill")
+        cross_half_lap(unit, CrossDrills::one);
+    else if (library == "cross_brussels_half_lap")
+        cross_brussels_half_lap(unit);
+    else if (library == "side_side_rotated_hooks")
+        side_side_rotated_hooks(unit, plates);
+    else if (library == "side_side_rotated_keys")
+        side_side_rotated_keys(unit, plates);
+    else if (library == "jupiter_scarf")
+        jupiter_scarf(unit);
+    else
+        return false;
+
+    return true;
+}
+
 /// The design's outlines in its unit box, the library function run on a joint with the built one's parameters, a custom design's the
 /// user's own pairs; false for a design that is built on the plates in their own space (top to top, side removal, side_side_rotated_miter) or leaves the
 /// box empty, which has no unit box to draw.
@@ -47,25 +129,6 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
     // show the divisions
     if (built.library == "side_side_inplane_butterfly_keys" || built.library == "side_side_inplane_tooth_keys" || built.library == "side_side_rotated_hooks" || built.library == "side_side_rotated_keys" || built.library == "top_side_snap_fit")
         unit.divisions = 1;
-    const std::vector<std::shared_ptr<FacePlanarElement>> plates = {built.fixture.a, built.fixture.b};
-    std::vector<InteractionFeaturePlate> no_joints;
-
-    const std::map<std::string, std::function<void()>> designs = {
-        {"side_side_inplane_three_fingers", [&] { side_side_inplane_three_fingers(unit); }}, {"side_side_inplane_dovetails", [&] { side_side_inplane_dovetails(unit); }}, {"side_side_inplane_butterfly_keys", [&] { side_side_inplane_butterfly_keys(unit, plates); }},
-        {"side_side_inplane_splayed_scarf", [&] { side_side_inplane_splayed_scarf(unit); }}, {"side_side_inplane_cross_splayed_scarf", [&] { side_side_inplane_cross_splayed_scarf(unit); }}, {"side_side_inplane_tooth_keys", [&] { side_side_inplane_tooth_keys(unit, plates); }},
-        {"side_side_outplane_three_fingers", [&] { side_side_outplane_three_fingers(unit); }}, {"side_side_outplane_fingers", [&] { side_side_outplane_fingers(unit); }}, {"side_side_outplane_graded_fingers", [&] { side_side_outplane_graded_fingers(unit); }},
-        {"side_side_outplane_miter_tenon", [&] { side_side_outplane_miter_tenon(unit); }},
-        {"side_side_outplane_tenons", [&] { side_side_outplane_tenons(unit, p.taper, p.chamfer, p.modify_outline, p.x[0], p.x[1], p.y[0], p.y[1], p.z[0], p.z[1]); }},
-        {"side_side_outplane_linked_tenons", [&] { side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions); }}, {"side_side_outplane_linked_tenons_wall", [&] { side_side_outplane_linked_tenons_wall(unit, no_joints); }},
-        {"side_side_outplane_capped_fingers", [&] { side_side_outplane_capped_fingers(unit); }}, {"side_side_outplane_notch", [&] { side_side_outplane_notch(unit); }},
-        {"top_side_three_tenons", [&] { top_side_three_tenons(unit); }}, {"top_side_dense_tenons", [&] { top_side_dense_tenons(unit); }},
-        {"top_side_tenons", [&] { top_side_tenons(unit); }}, {"top_side_milled_wedge", [&] { top_side_milled_wedge(unit); }}, {"top_side_snap_fit", [&] { top_side_snap_fit(unit); }},
-        {"top_side_bridle", [&] { top_side_bridle(unit, plates, 1.0 / 3.0); }},
-        {"cross_slot", [&] { cross_slot(unit); }}, {"cross_sliced_half_lap", [&] { cross_sliced_half_lap(unit); }}, {"cross_half_lap", [&] { cross_half_lap(unit); }},
-        {"cross_half_lap_diagonal_drills", [&] { cross_half_lap(unit, CrossDrills::two_diagonal); }}, {"cross_half_lap_drill", [&] { cross_half_lap(unit, CrossDrills::one); }}, {"cross_brussels_half_lap", [&] { cross_brussels_half_lap(unit); }},
-        {"side_side_rotated_hooks", [&] { side_side_rotated_hooks(unit, plates); }}, {"side_side_rotated_keys", [&] { side_side_rotated_keys(unit, plates); }},
-        {"jupiter_scarf", [&] { jupiter_scarf(unit); }},
-    };
 
     // a custom design: the user's pairs, face 0 then face 1
     if (built.library.ends_with("_custom")) {
@@ -76,13 +139,12 @@ static bool unit_outlines(const Built& built, InteractionFeaturePlate& unit) {
         return true;
     }
 
-    const auto design = designs.find(built.library);
-    if (design == designs.end())
+    if (!apply_named_design(built, unit))
         return false;
-    design->second();
 
     // a design that cuts only on the plates (side_side_inplane_butterfly_keys's pockets) leaves the box empty
-    for (const auto* outlines : {&unit.male_outlines, &unit.female_outlines})
+    for (const std::array<std::vector<Polyline>, 2>* outlines :
+         {&unit.male_outlines, &unit.female_outlines})
         for (const std::vector<Polyline>& face : *outlines)
             for (const Polyline& outline : face)
                 if (outline.point_count() >= 3)
@@ -158,7 +220,9 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
                 std::array<double, 3> end = {u, v, h};
                 std::rotate(start.begin(), start.begin() + 2 - axis, start.end());
                 std::rotate(end.begin(), end.begin() + 2 - axis, end.end());
-                auto edge = std::make_shared<Polyline>(std::vector<Point>{Point(start[0], start[1], start[2]), Point(end[0], end[1], end[2])});
+                const std::shared_ptr<Polyline> edge = std::make_shared<Polyline>(std::vector<Point>{
+                    Point(start[0], start[1], start[2]), Point(end[0], end[1], end[2])
+                });
                 *edge = edge->transformed(place);
                 edge->linecolor = EDGE;
                 edge->width = 2.0;
@@ -175,7 +239,8 @@ static void add_unit_box(WoodSession& scene, const InteractionFeaturePlate& unit
             for (const Polyline& outline : side == 0 ? unit.male_outlines[face] : unit.female_outlines[face]) {
                 if (outline.point_count() < 3)
                     continue;
-                auto drawn = std::make_shared<Polyline>(outline.transformed(place));
+                const std::shared_ptr<Polyline> drawn =
+                    std::make_shared<Polyline>(outline.transformed(place));
                 drawn->linecolor = side == 0 ? MALE : FEMALE;
                 drawn->width = 6.0;
                 drawn->name = fmt::format("{}_face_{}", side == 0 ? "male" : "female", face);
@@ -238,12 +303,14 @@ static void write_scene(const std::string& id, const std::string& dir) {
         for (int side = 0; side < 2; side++)
             for (int face = 0; face < 2; face++)
                 for (const Polyline& outline : side == 0 ? connection.male_outlines[face] : connection.female_outlines[face]) {
-                    auto drawn = std::make_shared<Polyline>(outline);
+                    const std::shared_ptr<Polyline> drawn = std::make_shared<Polyline>(outline);
                     drawn->linecolor = side == 0 ? MALE : FEMALE;
                     drawn->width = 6.0;
                     unit_scene.add_polyline(drawn, group);
                 }
-        auto contact = std::make_shared<Polyline>(built.fixture.face ? built.fixture.face->polygon : Polyline());
+        const std::shared_ptr<Polyline> contact = std::make_shared<Polyline>(
+            built.fixture.face ? built.fixture.face->polygon : Polyline()
+        );
         contact->linecolor = EDGE;
         contact->width = 2.0;
         if (contact->point_count() > 0)

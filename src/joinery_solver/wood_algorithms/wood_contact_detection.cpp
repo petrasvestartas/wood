@@ -21,24 +21,29 @@ namespace wood_session {
 
 namespace {
 
+/// Samples a curve at uniform parameter steps across its domain.
+std::vector<Point> sample_curve_domain(const NurbsCurve& curve, size_t samples) {
+
+    std::vector<Point> points;
+    points.reserve(samples + 1);
+
+    for (size_t k = 0; k <= samples; k++)
+        points.push_back(curve.point_at(
+            curve.domain_start() + (curve.domain_end() - curve.domain_start()) *
+                                       static_cast<double>(k) / static_cast<double>(samples)
+        ));
+
+    return points;
+}
+
 /// A curved plate's six faces in the order of its patches, outer, inner.
 std::array<std::array<std::vector<Point>, 2>, 6>
 curved_faces(const FaceCurvedElement& plate, size_t samples) {
 
-    const std::function<std::vector<Point>(const NurbsCurve&)> sample =
-        [samples](const NurbsCurve& curve) {
-            std::vector<Point> points;
-            for (size_t k = 0; k <= samples; k++)
-                points.push_back(curve.point_at(
-                    curve.domain_start() + (curve.domain_end() - curve.domain_start()) *
-                                               static_cast<double>(k) / static_cast<double>(samples)
-                ));
-            return points;
-        };
-    const std::vector<Point> outer_a = sample(plate.outer_a);
-    const std::vector<Point> outer_b = sample(plate.outer_b);
-    const std::vector<Point> inner_a = sample(plate.inner_a);
-    const std::vector<Point> inner_b = sample(plate.inner_b);
+    const std::vector<Point> outer_a = sample_curve_domain(plate.outer_a, samples);
+    const std::vector<Point> outer_b = sample_curve_domain(plate.outer_b, samples);
+    const std::vector<Point> inner_a = sample_curve_domain(plate.inner_a, samples);
+    const std::vector<Point> inner_b = sample_curve_domain(plate.inner_b, samples);
 
     return {{
         {outer_a, outer_b},
@@ -241,9 +246,10 @@ void add_outline(const Polyline& pl, std::vector<Point>& corners) {
 /// The points that bound an element: a plate by its two outlines, anything else by every loop.
 void bounding_points(Element& e, std::vector<Point>& out) {
 
-    const auto* plate = dynamic_cast<const FacePlanarElement*>(&e);
+    const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(&e);
     const std::vector<Polyline> fallback = plate ? std::vector<Polyline>{} : e.polylines();
-    const auto& loops = plate ? plate->polylines : fallback;
+    const std::vector<Polyline>& loops = plate ? plate->polylines : fallback;
+
     if (plate && loops.size() > 1) {
         out.reserve(loops[0].point_count() + loops[1].point_count());
         add_outline(loops[1], out);
@@ -346,7 +352,7 @@ std::vector<std::pair<int, int>> adjacency_search(
 
         corners.clear();
         bounding_points(*elements[i], corners);
-        const auto* plate = dynamic_cast<const FacePlanarElement*>(elements[i].get());
+        const FacePlanarElement* plate = dynamic_cast<const FacePlanarElement*>(elements[i].get());
         const std::vector<Plane> planes = plate ? plate->planes : elements[i]->planes();
         if (!planes.empty())
             obbs[i] = OBB::from_points(corners, planes[0], inflate);
@@ -489,16 +495,16 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     Element& ea, Element& eb, const Settings& settings, DetectionTrace* trace, bool with_volumes
 ) {
 
-    const auto* curved_a = dynamic_cast<const FaceCurvedElement*>(&ea);
-    const auto* curved_b = dynamic_cast<const FaceCurvedElement*>(&eb);
+    const FaceCurvedElement* curved_a = dynamic_cast<const FaceCurvedElement*>(&ea);
+    const FaceCurvedElement* curved_b = dynamic_cast<const FaceCurvedElement*>(&eb);
 
     if (curved_a && curved_b)
         return curved_contacts(*curved_a, *curved_b, 10.0 * settings.distance);
 
     const double cos_angle = std::cos(settings.angle);
 
-    auto* plate_a = dynamic_cast<FacePlanarElement*>(&ea);
-    auto* plate_b = dynamic_cast<FacePlanarElement*>(&eb);
+    FacePlanarElement* plate_a = dynamic_cast<FacePlanarElement*>(&ea);
+    FacePlanarElement* plate_b = dynamic_cast<FacePlanarElement*>(&eb);
     const FaceOwner owner_a{plate_a, dynamic_cast<const EdgeElement*>(&ea)};
     const FaceOwner owner_b{plate_b, dynamic_cast<const EdgeElement*>(&eb)};
     // a plate's own fields, not planes(): that lofts the plate's solid first (ensure_geometry)
@@ -551,7 +557,7 @@ std::vector<InteractionContactFace> face_contacts_for_pair(
     }
 
     if (with_volumes && plate_a && plate_b) {
-        for (auto& contact : contacts) {
+        for (InteractionContactFace& contact : contacts) {
             InteractionFeaturePlate joint;
             bool flip = false;
             if (!face_to_face_wood(
@@ -589,10 +595,11 @@ std::vector<std::tuple<int, int, InteractionContactFace>> face_contacts(
 ) {
 
     std::vector<std::tuple<int, int, InteractionContactFace>> contacts;
-    for (const auto& [ia, ib] : adjacency_search(elements, settings.distance, names))
+
+    for (const std::pair<int, int>& pair : adjacency_search(elements, settings.distance, names))
         for (InteractionContactFace& face :
-             face_contacts_for_pair(*elements[ia], *elements[ib], settings))
-            contacts.emplace_back(ia, ib, std::move(face));
+             face_contacts_for_pair(*elements[pair.first], *elements[pair.second], settings))
+            contacts.emplace_back(pair.first, pair.second, std::move(face));
 
     return contacts;
 }
@@ -919,28 +926,31 @@ bool plane_to_face(
 namespace {
 
 /// Closest points of two axis segments and where they sit on their polylines.
-struct Closest {
-    double dist_sq;
-    int pid0;
-    int sid0;
-    int pid1;
-    int sid1;
-    double t0;
-    double t1;
+struct AxisClosest {
+    double dist_sq; // Squared distance between the closest segment points.
+    int pid0; // First axis index.
+    int sid0; // Segment index on the first axis.
+    int pid1; // Second axis index.
+    int sid1; // Segment index on the second axis.
+    double t0; // Parameter along the first segment.
+    double t1; // Parameter along the second segment.
 };
 
 /// The closest segment pair of every two axes within min_distance, keyed by axis pair.
-std::map<uint64_t, Closest>
+std::map<uint64_t, AxisClosest>
 closest_pairs(const std::vector<std::vector<Line>>& lines, const double min_distance) {
 
     // every segment of non-zero length as (axis, segment), its box grown by min_distance
     std::vector<std::pair<int, int>> segments;
     std::vector<AABB> boxes;
+
     for (size_t a = 0; a < lines.size(); a++)
         for (size_t sa = 0; sa < lines[a].size(); sa++) {
             const Line& line = lines[a][sa];
+
             if (!(line.squared_length() > 0.0))
                 continue;
+
             segments.emplace_back((int)a, (int)sa);
             boxes.push_back(AABB::from_points({line.start(), line.end()}, std::abs(min_distance)));
         }
@@ -949,36 +959,52 @@ closest_pairs(const std::vector<std::vector<Line>>& lines, const double min_dist
     bvh.build_from_aabbs(boxes.data(), boxes.size(), 0.0);
 
     // candidates by box overlap, in the brute-force order so a tie keeps the same pair
-    std::map<uint64_t, Closest> contacts;
+    std::map<uint64_t, AxisClosest> contacts;
+
     for (size_t i = 0; i < segments.size(); i++) {
-        const auto [a, sa] = segments[i];
+        const int a = segments[i].first;
+        const int sa = segments[i].second;
         const Line& la = lines[a][sa];
 
         std::vector<int> candidates = bvh.query_aabb(boxes[i]);
         std::sort(candidates.begin(), candidates.end());
 
         for (int k : candidates) {
-            const auto [b, sb] = segments[k];
+            const int b = segments[k].first;
+            const int sb = segments[k].second;
+
             if (b <= a)
                 continue;
 
             const Line& lb = lines[b][sb];
             double t0;
             double t1;
-            if (!Intersection::line_line_parameters(la, lb, t0, t1, 0.0, true, true))
+
+            if (!Intersection::line_line_parameters(
+                    la,
+                    lb,
+                    t0,
+                    t1,
+                    0.0,
+                    true,
+                    true
+                ))
                 continue;
+
             if (!std::isfinite(t0) || !std::isfinite(t1))
                 continue;
 
             const Point q0 = la.point_at(t0);
             const Point q1 = lb.point_at(t1);
             const double d2 = (q0 - q1).magnitude_squared();
+
             if (!std::isfinite(d2) || d2 > min_distance * min_distance)
                 continue;
 
             const uint64_t id = ((uint64_t)b << 32) | (uint64_t)a;
-            const Closest c{d2, a, sa, b, sb, t0, t1};
+            const AxisClosest c{d2, a, sa, b, sb, t0, t1};
             const auto it = contacts.find(id);
+
             if (it == contacts.end() || d2 < it->second.dist_sq)
                 contacts[id] = c;
         }
@@ -993,16 +1019,29 @@ axis_contacts(const std::vector<std::shared_ptr<EdgeStraightElement>>& beams, do
 
     std::vector<std::vector<Line>> lines;
     lines.reserve(beams.size());
+
     for (const std::shared_ptr<EdgeStraightElement>& beam : beams)
         lines.push_back(beam->axis.get_lines());
 
     std::vector<std::tuple<int, int, InteractionContactAxis>> contacts;
-    for (const auto& [key, c] : closest_pairs(lines, min_distance)) {
+
+    for (const std::pair<const uint64_t, AxisClosest>& entry : closest_pairs(lines, min_distance)) {
+        const AxisClosest& c = entry.second;
         const Line& s0 = lines[c.pid0][c.sid0];
         const Line& s1 = lines[c.pid1][c.sid1];
         const Line closest = Line::from_points(s0.point_at(c.t0), s1.point_at(c.t1));
         contacts.emplace_back(
-            c.pid0, c.pid1, InteractionContactAxis(closest, c.t0, c.t1, 0, c.sid0, 0, c.sid1)
+            c.pid0,
+            c.pid1,
+            InteractionContactAxis(
+                closest,
+                c.t0,
+                c.t1,
+                0,
+                c.sid0,
+                0,
+                c.sid1
+            )
         );
     }
 

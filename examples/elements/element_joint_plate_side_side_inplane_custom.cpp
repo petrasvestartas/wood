@@ -3,22 +3,30 @@
 using namespace session_cpp;
 using namespace wood_session;
 
+/// Feather profile of eight sharp teeth on face y of the unit box.
+static Polyline profile(double y) {
+
+    std::vector<Point> points = {Point(0.0, y, 0.5)};
+
+    for (int i = 0; i <= 8; i++)
+        points.push_back(Point(i % 2 == 0 ? -0.5 : 0.5, y, 0.45 - i * 0.1125));
+
+    points.push_back(Point(0.0, y, -0.5));
+    return Polyline(points);
+}
+
+/// Straight seam reference line on face y of the unit box.
+static Polyline end_line(double y) {
+
+    return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
+}
+
 /// side_side_inplane_custom.
 int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_custom");
 
     // the unit box: x across the seam, y the thickness, z along the joint line; per face a feather profile, eight sharp teeth
-    const auto profile = [](double y) {
-        std::vector<Point> points = {Point(0.0, y, 0.5)};
-        for (int i = 0; i <= 8; i++)
-            points.push_back(Point(i % 2 == 0 ? -0.5 : 0.5, y, 0.45 - i * 0.1125));
-        points.push_back(Point(0.0, y, -0.5));
-        return Polyline(points);
-    };
-    const auto end_line = [](double y) {
-        return Polyline({{0.0, y, 0.5}, {0.0, y, -0.5}});
-    };
     const std::vector<Polyline> outlines = {
         profile(-0.5), profile(0.5), end_line(-0.5), end_line(0.5)
     };
