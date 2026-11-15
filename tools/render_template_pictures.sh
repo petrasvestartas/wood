@@ -4,7 +4,7 @@
 # reads these lines to prove every picture on a page is made here.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, truss or bow
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, plaited, truss or bow
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows). SHOT_PORT_BASE moves the Chrome ports off 9333.
 set -euo pipefail
@@ -172,6 +172,19 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
         "${RENDER[@]}" --scene "$VAULT_SCENE" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
         "${RENDER[@]}" --scene "$VAULT_SCENE" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
     done
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = plaited ]; then
+    "${RENDER[@]}" templates_plaited_1_flat_floor blocks
+    "${RENDER[@]}" --view bottom --name intrados templates_plaited_1_flat_floor blocks
+    "${RENDER[@]}" templates_plaited_2_arch blocks
+    "${RENDER[@]}" --view bottom --name intrados templates_plaited_2_arch blocks
+    "${RENDER[@]}" templates_plaited_3_dome blocks
+    "${RENDER[@]}" --view bottom --name intrados templates_plaited_3_dome blocks
+    "${RENDER[@]}" templates_plaited_4_hotwire_blocks abeille_open sphera_open
+    "${RENDER[@]}" --view top --name plan templates_plaited_4_hotwire_blocks abeille_open
+    "${RENDER[@]}" --name arch_pinned templates_plaited_5_reciprocal_arch beams+frame+pins
+    "${RENDER[@]}" --opacity 0.55 --wheel 8,0.48,0.38 --name pins_detail templates_plaited_5_reciprocal_arch beams+frame+pins
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

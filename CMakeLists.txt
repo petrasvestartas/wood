@@ -110,6 +110,8 @@ set(WOOD_SOURCES
     src/templates/module/wall.cpp
     src/templates/module/room_module.cpp
     src/templates/module/cassette_shell.cpp
+    src/templates/plaited/plaited_guide.cpp
+    src/templates/plaited/plaited.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -290,6 +292,7 @@ target_compile_definitions(joint_tiles PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_
 ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
 ADD_EXE(element_tags                     tests/element_tags.cpp)
 target_compile_definitions(element_tags PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+ADD_EXE(plaited_elements                 tests/plaited_elements.cpp)
 
 enable_testing()
 set(WOOD_TEST_TARGETS
@@ -305,6 +308,7 @@ set(WOOD_TEST_TARGETS
     plate_assignment
     rust_elements
     element_tags
+    plaited_elements
     joint_library
     reference_datasets
     main_session_round_trip
@@ -500,6 +504,12 @@ ADD_EXE(templates_vault_5_wall           examples/templates_vault_5_wall.cpp)
 ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.cpp)
 ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
 ADD_EXE(templates_vault_9_gothic_ribbed_vault examples/templates_vault_9_gothic_ribbed_vault.cpp)
+
+ADD_EXE(templates_plaited_1_flat_floor   examples/templates_plaited_1_flat_floor.cpp)
+ADD_EXE(templates_plaited_2_arch         examples/templates_plaited_2_arch.cpp)
+ADD_EXE(templates_plaited_3_dome         examples/templates_plaited_3_dome.cpp)
+ADD_EXE(templates_plaited_4_hotwire_blocks examples/templates_plaited_4_hotwire_blocks.cpp)
+ADD_EXE(templates_plaited_5_reciprocal_arch examples/templates_plaited_5_reciprocal_arch.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and
