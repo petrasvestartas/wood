@@ -190,13 +190,15 @@ fi
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     "${RENDER[@]}" --name mesh_axes templates_vidy_1_main_mesh base_mesh+axes+folds
     "${RENDER[@]}" --view top --name plan templates_vidy_1_main_mesh base_mesh+axes+folds
-    "${RENDER[@]}" --opacity 0.72 --name offset_shells templates_vidy_2_offset_mesh inner_surface+outer_surface
-    "${RENDER[@]}" --opacity 0.80 templates_vidy_2_offset_mesh two_bay_shells
+    "${RENDER[@]}" --opacity 0.68 --name offset_shells templates_vidy_2_offset_mesh inner_surface+outer_surface+miter_planes
+    "${RENDER[@]}" --opacity 0.72 templates_vidy_2_offset_mesh two_bay_shells
     "${RENDER[@]}" --name pavilion templates_vidy_3_panels inner_walls+outer_walls+inner_roof+outer_roof
-    "${RENDER[@]}" templates_vidy_3_panels two_bay_cutaway
-    "${RENDER[@]}" --name section templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
-    "${RENDER[@]}" --wheel 5,0.42,0.28 templates_vidy_4_section_joints cavity_cutaway
-    "${RENDER[@]}" --wheel 4,0.38,0.34 templates_vidy_4_section_joints eave_joint_node
+    "${RENDER[@]}" templates_vidy_3_panels two_bay_panels
+    VIDY4_SCENE="$(mktemp -d)/vidy4.pb"
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints first_row_section
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" --wheel 2,0.38,0.40 templates_vidy_4_section_joints eave_joint_node
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints erection_1_walls erection_2_roof_bottom erection_3_roof_top erection_4_roof_onto_walls
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

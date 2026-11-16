@@ -4,36 +4,33 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 2 — Four-surface double-layer miter offset meshes (0, 45, 255 and 300 mm) across the 210 mm Vidy cavity.
+/// Stage 2 — Four concentric mitered offset surfaces (h = 0, 45, 255, 300 mm) and 236 miter connection planes across the Théâtre de Vidy pavilion.
 int main() {
 
-    WoodSession scene("templates_vidy_2_offset_mesh");
+    wood_vidy::VidyGuide guide(11);
 
-    const wood_vidy::VidyGuide full_guide(11);
-    scene.add_mesh(full_guide.base_mesh(), scene.add_group("inner_surface"));
-    scene.add_mesh(full_guide.outer_mesh(), scene.add_group("outer_surface"));
-
-    const wood_vidy::VidyGuide bay_guide(2);
-    const std::shared_ptr<TreeNode> bay_shells = scene.add_group("two_bay_shells");
-    scene.add_mesh(bay_guide.base_mesh(), bay_shells);
-    scene.add_mesh(bay_guide.inner_cavity_mesh(), bay_shells);
-    scene.add_mesh(bay_guide.outer_cavity_mesh(), bay_shells);
-    scene.add_mesh(bay_guide.outer_mesh(), bay_shells);
+    const wood_vidy::VidyGuide two_bay(2);
+    const std::shared_ptr<TreeNode> shells_group = guide.add_group("two_bay_shells");
+    guide.add_mesh(two_bay.base_mesh(), shells_group);
+    guide.add_mesh(two_bay.inner_cavity_mesh(), shells_group);
+    guide.add_mesh(two_bay.outer_cavity_mesh(), shells_group);
+    guide.add_mesh(two_bay.outer_mesh(), shells_group);
+    guide.add_mesh(two_bay.miter_planes_mesh(), shells_group);
 
     std::cout << fmt::format(
-        "vidy offset meshes: {} inner/outer facets across {:.0f} mm shell ({:.0f} mm cavity)\n",
-        full_guide.facets().size(),
-        full_guide.total_offset,
-        full_guide.cavity_gap()
+        "vidy offset shells: 4 concentric meshes ({} faces each) + {} miter connection planes, cavity = {:.0f} mm\n",
+        guide.outer_mesh().number_of_faces(),
+        guide.miter_planes_mesh().number_of_faces(),
+        guide.cavity_gap()
     );
-    scene.pb_dump(pb_path("live"));
+    guide.pb_dump(pb_path("live"));
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 2 double-layer miter offset meshes of the Théâtre de Vidy pavilion: exact bisector offsets at h = 0, 45, 255 and 300 mm with flush z = 0 ground bases and vertical XZ bay-separation planes.
+Stage 2 double-layer miter offset surfaces and miter connection planes of the Théâtre de Vidy pavilion: four concentric shell meshes at h = {0, 45, 255, 300} mm together with all 236 angle-bisector and vertical XZ miter ribbons.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

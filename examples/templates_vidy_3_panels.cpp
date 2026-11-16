@@ -4,21 +4,19 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 3 — Mitered double-layer 45 mm 5-ply CLT panels (308 unique plate shapes) across the 11-bay Théâtre de Vidy pavilion.
+/// Stage 3 — Mitered double-layer 45 mm 5-ply CLT panels (308 unique plate shapes with non-colliding corner chamfers) across the 11-bay Théâtre de Vidy pavilion.
 int main() {
 
     const wood_vidy::VidyGuide guide(11);
     wood_vidy::VidyPavilion pavilion(guide, false);
 
+    // Complete 2-bay double-layer section (all 56 inner and outer panels present, zero missing plates).
     const wood_vidy::VidyGuide two_bay_guide(2);
     const wood_vidy::VidyPavilion two_bay(two_bay_guide, false);
-    const std::shared_ptr<TreeNode> cutaway = pavilion.add_group("two_bay_cutaway");
+    const std::shared_ptr<TreeNode> two_bay_group = pavilion.add_group("two_bay_panels");
     for (size_t f = 0; f < two_bay.guide.facets().size(); f++) {
-        pavilion.add(two_bay.inner_plates()[f]->clone(), cutaway);
-        if (two_bay.guide.facets()[f].bay == 0 ||
-            two_bay.guide.facets()[f].role != wood_vidy::VidyFacetRole::Roof) {
-            pavilion.add(two_bay.outer_plates()[f]->clone(), cutaway);
-        }
+        pavilion.add(two_bay.inner_plates()[f]->clone(), two_bay_group);
+        pavilion.add(two_bay.outer_plates()[f]->clone(), two_bay_group);
     }
 
     std::cout << fmt::format(
@@ -35,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 3 offset mesh with 308 mitered 45 mm CLT panels of the 11-bay Théâtre de Vidy pavilion (220 antiprismatic roof triangles and 88 V-pleated vertical wall quads) plus a two-bay cutaway exposing the 210 mm hollow cavity.
+Stage 3 offset mesh with all 308 mitered 45 mm CLT panels of the 11-bay Théâtre de Vidy pavilion (220 antiprismatic roof triangles and 88 V-pleated vertical wall quads) with angle-proportional corner chamfers preventing multi-valent corner collisions, plus a complete 56-panel two-bay double-layer module.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

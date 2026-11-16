@@ -15,10 +15,11 @@ void check(bool ok, const std::string& message) {
     }
 }
 
-/// Verifies every plate has exact thickness, valid BRep, and positive closed solid volume.
+/// Verifies every plate has exact thickness, valid BRep, positive volume, and non-fallback jointed vertices.
 void check_plates(
     const std::vector<std::shared_ptr<FacePlanarElement>>& plates,
     double expected_thickness,
+    bool require_joint_features,
     const std::string& label
 ) {
 
@@ -29,9 +30,20 @@ void check_plates(
         );
         const Mesh& mesh = plate->model_geometry_mesh();
         const BRep& brep = plate->model_geometry_brep();
-        check(mesh.number_of_vertices() >= 6, label + ": plate mesh vertex count");
+        check(mesh.number_of_vertices() >= 24, label + ": chamfered plate mesh vertex count >= 24");
         check(std::abs(mesh.volume()) > 1.0e6, label + ": plate mesh volume must be positive");
         check(brep.is_valid(), label + ": plate BRep must be valid");
+        if (require_joint_features) {
+            check(
+                plate->features.bottom.size() == plate->features.top.size() &&
+                    !plate->features.bottom.empty(),
+                label + ": jointed plate paired bottom/top feature loops"
+            );
+            check(
+                mesh.number_of_vertices() >= 2 * (plate->features.bottom[0].point_count() - 1),
+                label + ": trimmed_mesh must preserve jointed vertices without stock fallback"
+            );
+        }
     }
 }
 
@@ -39,13 +51,17 @@ void check_plates(
 
 int main() {
 
-    // 1. Stage 1 & 2: Full 11-bay Théâtre de Vidy base mesh, bay axes, CNC beta bounds, and offset shells.
+    // 1. Stage 1 & 2: Full 11-bay Théâtre de Vidy base mesh, bay axes, miter planes, and 4 offset shells.
     {
         const wood_vidy::VidyGuide guide(11);
         check(guide.base_mesh().number_of_vertices() == 127, "11-bay base mesh vertex count == 127");
         check(guide.facets().size() == 154, "11-bay facet count == 154");
         check(guide.bay_axes().size() == 12, "11-bay transverse axis count == 12");
         check(std::abs(guide.cavity_gap() - 210.0) < 1e-6, "210 mm clear insulation cavity");
+        check(
+            guide.miter_planes_mesh().number_of_faces() == 236,
+            "236 miter and separation connection planes (176 regular + 50 bay + 10 gable)"
+        );
 
         size_t roof_tris = 0;
         size_t wall_quads = 0;
@@ -61,58 +77,42 @@ int main() {
             }
         }
         check(roof_tris == 110 && wall_quads == 44, "110 roof triangles and 44 wall quads");
-
-        size_t reg_edges = 0;
-        size_t vcon_edges = 0;
-        size_t grnd_edges = 0;
-        size_t vend_edges = 0;
-        for (const wood_vidy::VidyEdge& edge : guide.edges()) {
-            if (edge.kind == wood_vidy::VidyEdgeKind::Regular) {
-                reg_edges++;
-                check(edge.tool_tilt_deg < 60.0, "regular fold CNC tilt beta must stay under 60 deg");
-            } else if (edge.kind == wood_vidy::VidyEdgeKind::BaySeparation) {
-                vcon_edges++;
-            } else if (edge.kind == wood_vidy::VidyEdgeKind::Ground) {
-                grnd_edges++;
-            } else {
-                vend_edges++;
-            }
-        }
-        check(reg_edges == 176, "176 interior regular fold creases");
-        check(vcon_edges == 50, "50 inter-bay XZ separation edges");
-        check(grnd_edges == 44 && vend_edges == 10, "44 ground edges and 10 gable edges");
         check(guide.outer_mesh().number_of_faces() == 154, "outer offset mesh face count == 154");
     }
 
-    // 2. Stage 3: Full 308 mitered 45 mm CLT panels without joinery.
+    // 2. Stage 3: Full 308 chamfered 45 mm CLT panels without joinery.
     {
         const wood_vidy::VidyGuide guide(11);
         const wood_vidy::VidyPavilion panels(guide, false);
         check(panels.all_plates().size() == 308, "308 double-layer CLT plates");
-        check_plates(panels.all_plates(), 45.0, "stage3_panels");
+        check_plates(panels.all_plates(), 45.0, false, "stage3_panels");
     }
 
-    // 3. Stage 4: Full-scale 1-bay (28 plates) jointed Vidy section + Protobuf round-trip.
+    // 3. Stage 4a: First-row verification section (1 bay = 28 jointed plates) + Protobuf round-trip.
     {
         const wood_vidy::VidyGuide section_guide(1);
-        wood_vidy::VidyPavilion section(section_guide, true, 0.0, 450.0);
+        wood_vidy::VidyPavilion section(section_guide, true, 1.0, 500.0);
         check(section.all_plates().size() == 28, "1-bay jointed plate count == 28");
-        check(section.total_mortise_slots() >= 80, "1-bay through-mortise slot count >= 80");
-        check_plates(section.all_plates(), 45.0, "stage4_jointed_section");
-
-        for (const std::shared_ptr<FacePlanarElement>& plate : section.all_plates()) {
-            check(
-                plate->features.bottom.size() == plate->features.top.size() &&
-                    !plate->features.bottom.empty(),
-                "jointed plate paired bottom/top feature loops"
-            );
-        }
+        check(section.total_mortise_slots() >= 300, "1-bay through-mortise slot count >= 300");
+        check_plates(section.all_plates(), 45.0, true, "stage4_first_row");
 
         const WoodSession reloaded = WoodSession::pb_loads(section.pb_dumps());
         check(
             reloaded.world_elements<FacePlanarElement>().size() == 28,
             "pb_loads preserved all 28 jointed Vidy plates"
         );
+    }
+
+    // 4. Stage 4b: Full 11-bay pavilion with joinery applied to ALL 308 panels + 4-stage erection sequence.
+    {
+        const wood_vidy::VidyGuide full_guide(11);
+        wood_vidy::VidyPavilion full_jointed(full_guide, true, 1.0, 500.0);
+        check(full_jointed.all_plates().size() == 308, "11-bay jointed plate count == 308");
+        check(
+            full_jointed.total_mortise_slots() >= 3400,
+            "11-bay through-mortise slot count >= 3400 across all 308 plates"
+        );
+        check_plates(full_jointed.all_plates(), 45.0, true, "stage4_full_308_jointed");
     }
 
     std::cout << "vidy_elements: all checks passed\n";

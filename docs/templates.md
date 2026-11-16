@@ -54,7 +54,7 @@
     <span class="wood-card-title">Plaited</span>
   </a>
   <a class="wood-card" href="templates_vidy.html">
-    <img src="templates_vidy_4_section_joints_section.webp" alt="Vidy">
+    <img src="templates_vidy_4_section_joints_full_pavilion.webp" alt="Vidy">
     <span class="wood-card-title">Vidy</span>
   </a>
 </div>

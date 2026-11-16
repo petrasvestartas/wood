@@ -4,42 +4,52 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 4 — Double-layer Théâtre de Vidy linked-tenon and shadow-joint system (side_side_outplane_linked_tenons + side_side_outplane_linked_tenons_wall).
+/// Stage 4 — Full 11-bay (308-plate) Théâtre de Vidy double-layer through-tenon joinery, first-row verification section, eave node, and 4-step erection sequence.
 int main() {
 
-    const wood_vidy::VidyGuide section_guide(1);
-    wood_vidy::VidyPavilion section(section_guide, true, 0.0, 350.0);
+    const wood_vidy::VidyGuide full_guide(11);
+    wood_vidy::VidyPavilion pavilion(full_guide, true, 1.0, 500.0);
 
-    // Cutaway group hiding three outer haunch roof plates so the 210 mm cavity and cross-layer shadow tenons are exposed.
-    const std::shared_ptr<TreeNode> cavity_view = section.add_group("cavity_cutaway");
-    for (size_t f = 0; f < section.guide.facets().size(); f++) {
-        section.add(section.inner_plates()[f]->clone(), cavity_view);
-        const size_t loc = section.guide.facets()[f].local_index;
-        if (loc != 4 && loc != 5 && loc != 6) {
-            section.add(section.outer_plates()[f]->clone(), cavity_view);
-        }
+    // First-row verification section (Bay 0 = 28 jointed plates, matching vidy_one_section_with_joints.3dm).
+    const std::shared_ptr<TreeNode> first_row = pavilion.add_group("first_row_section");
+    for (size_t loc = 0; loc < 14; loc++) {
+        pavilion.add(wood_vidy::VidyPavilion::copy_plate(*pavilion.inner_plates()[loc]), first_row);
+        pavilion.add(wood_vidy::VidyPavilion::copy_plate(*pavilion.outer_plates()[loc]), first_row);
     }
 
-    // Close-up 10-plate Vidy eave & haunch node: V-pleated left walls (0, 1) meeting three sloped roof triangles (4, 5, 9).
-    const std::shared_ptr<TreeNode> corner_node = section.add_group("eave_joint_node");
-    for (const size_t f : {size_t{0}, size_t{1}, size_t{4}, size_t{5}, size_t{9}}) {
-        section.add(section.inner_plates()[f]->clone(), corner_node);
-        section.add(section.outer_plates()[f]->clone(), corner_node);
+    // Close-up eave & haunch node on Bay 5 (all 10 inner & outer plates; outer eave lifted to expose cavity spacers).
+    const std::shared_ptr<TreeNode> corner_node = pavilion.add_group("eave_joint_node");
+    const size_t mid_base = 14 * 5;
+    for (const size_t loc : {size_t{0}, size_t{1}, size_t{4}, size_t{5}, size_t{9}}) {
+        pavilion.add(
+            wood_vidy::VidyPavilion::copy_plate(*pavilion.inner_plates()[mid_base + loc]),
+            corner_node
+        );
+        const Vector lift =
+            (loc == 4) ? (full_guide.facets()[mid_base + 4].normal * 680.0) : Vector(0.0, 0.0, 0.0);
+        pavilion.add(
+            wood_vidy::VidyPavilion::copy_plate(*pavilion.outer_plates()[mid_base + loc], lift),
+            corner_node
+        );
     }
+
+    // Gradual 4-stage real-building erection sequence (1: vertical walls, 2: roof bottom, 3: roof top, 4: roof onto walls).
+    pavilion.add_erection_sequence_groups(5);
 
     std::cout << fmt::format(
-        "vidy double-layer section joinery: {} plates, {} through-mortise slots\n",
-        section.all_plates().size(),
-        section.total_mortise_slots()
+        "vidy full pavilion joinery: {} jointed CLT plates across {} bays, {} through-mortise slots\n",
+        pavilion.all_plates().size(),
+        full_guide.bays,
+        pavilion.total_mortise_slots()
     );
-    section.pb_dump(pb_path("live"));
+    pavilion.pb_dump(pb_path("live"));
 
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 4 double-layer Théâtre de Vidy timber joinery on a full-scale 28-plate bay arch section: native side_side_outplane_linked_tenons on roof/eave creases, side_side_outplane_linked_tenons_wall on V-pleated wall seams, and cross-layer Vidy shadow joints bridging the 210 mm hollow cavity.
+Stage 4 double-layer Théâtre de Vidy timber joinery across all 308 CLT plates of the 11-bay pavilion: stepped chamfered Double_Pins bridging the 210 mm cavity, interleaved Single_Pins, vertical +Z on-site eave joints, first-row verification arch, and four-stage gradual erection sequence.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

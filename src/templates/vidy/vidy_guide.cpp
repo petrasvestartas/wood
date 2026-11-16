@@ -137,13 +137,18 @@ VidyGuide::VidyGuide(
     // Stage 1: alternating 6-vertex even bay stations and 5-vertex odd V-pleat mid-stations
     build_stations_and_facets();
 
-    // Stage 2: edge classification (regl/vcon/vend/grnd), 5-axis beta angles, and 4 miter offset rings
+    // Stage 2: edge classification (regl/vcon/vend/grnd), miter planes, and 4 miter offset shells
     build_edges_and_miter_rings();
     _inner_cavity_mesh = build_offset_mesh(1);
     _outer_cavity_mesh = build_offset_mesh(2);
     _outer_mesh = build_offset_mesh(3);
+    _miter_planes_mesh = build_miter_planes_mesh();
 
     draw();
+}
+
+const std::vector<Point>& VidyGuide::vertices() const {
+    return _vertices;
 }
 
 double VidyGuide::cavity_gap() const {
@@ -164,6 +169,10 @@ const Mesh& VidyGuide::outer_cavity_mesh() const {
 
 const Mesh& VidyGuide::outer_mesh() const {
     return _outer_mesh;
+}
+
+const Mesh& VidyGuide::miter_planes_mesh() const {
+    return _miter_planes_mesh;
 }
 
 const std::vector<Line>& VidyGuide::bay_axes() const {
@@ -221,7 +230,7 @@ void VidyGuide::build_stations_and_facets() {
         } else {
             const double xwm = circular_arc_value(y, ref_odd_y, odd_half_mid, odd_half_end);
             const double zem = circular_arc_value(
-                y, ref_odd_y, eave_height_mid + 0.396 * 1000.0, eave_height_end + 0.572 * 1000.0
+                y, ref_odd_y, eave_height_mid + 396.0, eave_height_end + 572.0
             );
             const double xcr = circular_arc_value(
                 y, ref_odd_y, 2.75 * asymmetry, 0.94 * asymmetry
@@ -310,10 +319,10 @@ void VidyGuide::build_edges_and_miter_rings() {
                 lookup.emplace(key, eid);
                 facet.edge_ids[k] = static_cast<int>(eid);
             } else {
-                const size_t eid = found->second;
-                _edges[eid].facet_b = static_cast<int>(f);
-                _edges[eid].side_b = static_cast<int>(k);
-                facet.edge_ids[k] = static_cast<int>(eid);
+                VidyEdge& edge = _edges[found->second];
+                edge.facet_b = static_cast<int>(f);
+                edge.side_b = static_cast<int>(k);
+                facet.edge_ids[k] = static_cast<int>(found->second);
             }
         }
     }
@@ -322,23 +331,25 @@ void VidyGuide::build_edges_and_miter_rings() {
         const Point& pu = _vertices[edge.u];
         const Point& pv = _vertices[edge.v];
         if (edge.facet_b < 0) {
-            edge.kind = (std::abs(pu[2]) < 1e-3 && std::abs(pv[2]) < 1e-3)
-                ? VidyEdgeKind::Ground
-                : VidyEdgeKind::GableEnd;
+            const bool on_ground = (std::abs(pu[2]) < 1e-3 && std::abs(pv[2]) < 1e-3);
+            edge.kind = on_ground ? VidyEdgeKind::Ground : VidyEdgeKind::GableEnd;
             continue;
         }
+
         const VidyFacet& fa = _facets[static_cast<size_t>(edge.facet_a)];
         const VidyFacet& fb = _facets[static_cast<size_t>(edge.facet_b)];
         if (fa.bay != fb.bay) {
             edge.kind = VidyEdgeKind::BaySeparation;
+            edge.positive_fold = false;
             continue;
         }
+
         edge.kind = VidyEdgeKind::Regular;
         edge.positive_fold = (fb.centroid - fa.centroid).dot(fa.normal) < 0.0;
-        edge.in_situ_eave = (fa.role != VidyFacetRole::Roof) != (fb.role != VidyFacetRole::Roof);
-        const double cos_ang = std::clamp(fa.normal.dot(fb.normal), -1.0, 1.0);
-        const double normal_deg = std::acos(cos_ang) * (180.0 / Tolerance::PI);
-        edge.tool_tilt_deg = std::abs(normal_deg - 90.0);
+        edge.in_situ_eave = (fa.role == VidyFacetRole::Roof) != (fb.role == VidyFacetRole::Roof);
+        const double cos_n = std::clamp(fa.normal.dot(fb.normal), -1.0, 1.0);
+        const double phi_deg = 0.5 * (180.0 - std::acos(cos_n) * 180.0 / Tolerance::PI);
+        edge.tool_tilt_deg = std::abs(phi_deg - 90.0);
     }
 
     const std::array<double, 4> heights = layer_heights();
@@ -352,22 +363,25 @@ void VidyGuide::build_edges_and_miter_rings() {
                 _vertices, _facets, f, edge, facet.vertices[k], facet.vertices[(k + 1) % m]
             );
         }
+
         for (size_t hi = 0; hi < 4; hi++) {
-            const Plane cap = Plane::from_point_normal(
+            const Plane offset_plane = Plane::from_point_normal(
                 facet.centroid + facet.normal * heights[hi], facet.normal
             );
             facet.miter_rings[hi].resize(m);
             for (size_t k = 0; k < m; k++) {
-                Point hit = _vertices[facet.vertices[k]] + facet.normal * heights[hi];
-                Intersection::plane_plane_plane(
-                    cap,
-                    facet.side_planes[(k + m - 1) % m],
-                    facet.side_planes[k],
-                    hit
-                );
-                facet.miter_rings[hi][k] = hit;
+                const Plane& prev_side = facet.side_planes[(k + m - 1) % m];
+                const Plane& curr_side = facet.side_planes[k];
+                Point corner = _vertices[facet.vertices[k]] + facet.normal * heights[hi];
+                Intersection::plane_plane_plane(offset_plane, prev_side, curr_side, corner);
+                facet.miter_rings[hi][k] = corner;
             }
         }
+    }
+
+    for (VidyEdge& edge : _edges) {
+        const VidyFacet& fa = _facets[static_cast<size_t>(edge.facet_a)];
+        edge.miter_plane = fa.side_planes[static_cast<size_t>(edge.side_a)];
     }
 }
 
@@ -375,7 +389,7 @@ Mesh VidyGuide::build_offset_mesh(size_t ring_index) const {
 
     std::vector<Point> pts;
     std::vector<std::vector<size_t>> faces;
-    pts.reserve(_facets.size() * 4);
+    pts.reserve(4 * _facets.size());
     faces.reserve(_facets.size());
 
     for (const VidyFacet& facet : _facets) {
@@ -388,26 +402,67 @@ Mesh VidyGuide::build_offset_mesh(size_t ring_index) const {
         }
         faces.push_back(loop);
     }
-
     return Mesh::from_vertices_and_faces(pts, faces);
+}
+
+Mesh VidyGuide::build_miter_planes_mesh() const {
+
+    std::vector<Point> pts;
+    std::vector<std::vector<size_t>> quads;
+    pts.reserve(4 * _edges.size());
+    quads.reserve(_edges.size());
+
+    for (const VidyEdge& edge : _edges) {
+        if (edge.kind == VidyEdgeKind::Ground) {
+            continue;
+        }
+        const VidyFacet& fa = _facets[static_cast<size_t>(edge.facet_a)];
+        const size_t sa = static_cast<size_t>(edge.side_a);
+        const size_t ma = fa.vertices.size();
+        const Point& p0_in = fa.miter_rings[0][sa];
+        const Point& p1_in = fa.miter_rings[0][(sa + 1) % ma];
+        const Point& p1_out = fa.miter_rings[3][(sa + 1) % ma];
+        const Point& p0_out = fa.miter_rings[3][sa];
+        const size_t base = pts.size();
+        pts.push_back(p0_in);
+        pts.push_back(p1_in);
+        pts.push_back(p1_out);
+        pts.push_back(p0_out);
+        quads.push_back({base, base + 1, base + 2, base + 3});
+    }
+    return Mesh::from_vertices_and_faces(pts, quads);
 }
 
 void VidyGuide::draw() {
 
-    const std::shared_ptr<TreeNode> axes_group = group_named("axes");
-    for (const Line& axis : _bay_axes) {
+    const std::shared_ptr<TreeNode> base_group = add_group("base_mesh");
+    add_mesh(_base_mesh, base_group);
+
+    const std::shared_ptr<TreeNode> axes_group = add_group("axes");
+    for (Line axis : _bay_axes) {
+        axis.width = 1.6;
+        axis.linecolor = Color(120, 120, 120, 255);
         add_line(axis, axes_group);
     }
 
-    add_mesh(_base_mesh, group_named("base_mesh"));
-    add_mesh(_inner_cavity_mesh, group_named("inner_cavity_mesh"));
-    add_mesh(_outer_cavity_mesh, group_named("outer_cavity_mesh"));
-    add_mesh(_outer_mesh, group_named("outer_mesh"));
-
-    const std::shared_ptr<TreeNode> folds_group = group_named("folds");
+    const std::shared_ptr<TreeNode> folds_group = add_group("folds");
     for (const VidyEdge& edge : _edges) {
-        add_line(Line::from_points(_vertices[edge.u], _vertices[edge.v]), folds_group);
+        if (edge.kind != VidyEdgeKind::Regular && edge.kind != VidyEdgeKind::BaySeparation) {
+            continue;
+        }
+        Line crease = Line::from_points(_vertices[edge.u], _vertices[edge.v]);
+        crease.width = edge.kind == VidyEdgeKind::BaySeparation ? 2.2 : 1.5;
+        crease.linecolor = edge.kind == VidyEdgeKind::BaySeparation
+            ? Color(40, 90, 175, 255)
+            : (edge.positive_fold ? Color(195, 55, 45, 255) : Color(35, 135, 95, 255));
+        add_line(crease, folds_group);
     }
+
+    add_mesh(_inner_cavity_mesh, add_group("inner_cavity"));
+    add_mesh(_outer_cavity_mesh, add_group("outer_cavity"));
+    add_mesh(_outer_mesh, add_group("outer_surface"));
+    add_mesh(_base_mesh, add_group("inner_surface"));
+    add_mesh(_miter_planes_mesh, add_group("miter_planes"));
 }
 
 } // namespace wood_vidy

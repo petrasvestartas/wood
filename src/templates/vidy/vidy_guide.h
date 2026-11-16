@@ -50,6 +50,7 @@ struct VidyEdge {
     bool positive_fold = true; // True when exterior fold is convex (pos), false when valley (neg).
     bool in_situ_eave = false; // True on wall-to-roof eaves assembled vertically along +Z on site (situ).
     double tool_tilt_deg = 0.0; // Five-axis CNC bevel tilt |phi - 90| in degrees on Regular folds.
+    Plane miter_plane; // Shared angle-bisector, XZ separation, or ground miter plane on this edge.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -74,7 +75,7 @@ public:
     const double plate_thickness; // Single-layer 5-ply CLT thickness t_plate in mm (45 mm).
     const double total_offset; // Total double-layer shell depth t_offs from inner to outer face in mm (300 mm).
 
-    /// Builds the Stage 1 base DCEL mesh + bay axes and Stage 2 double-layer miter offset meshes.
+    /// Builds the Stage 1 base DCEL mesh + bay axes and Stage 2 double-layer miter offset meshes + miter planes.
     explicit VidyGuide(
         size_t bays = 11,
         double bay_length = 2609.62,
@@ -93,6 +94,9 @@ public:
         const std::string& name = "vidy_guide"
     );
 
+    /// Base mesh vertex coordinates across all 2 * bays + 1 stations.
+    const std::vector<Point>& vertices() const;
+
     /// Clear insulation cavity thickness between inner and outer CLT layers (total_offset - 2 * plate_thickness).
     double cavity_gap() const;
 
@@ -108,13 +112,16 @@ public:
     /// Stage 2 exterior surface mesh of the outer CLT layer (h = total_offset).
     const Mesh& outer_mesh() const;
 
+    /// Stage 2 quad connection ribbons spanning h = 0..total_offset across every miter and separation plane.
+    const Mesh& miter_planes_mesh() const;
+
     /// Transverse bay-axis grid lines 0..bays on z = 0 separating the prefabricated bays.
     const std::vector<Line>& bay_axes() const;
 
     /// Every planar facet with its outward normal, side miter planes and four offset corner rings.
     const std::vector<VidyFacet>& facets() const;
 
-    /// Every classified mesh topology edge with fold polarity and 5-axis CNC tool-tilt angle.
+    /// Every classified mesh topology edge with fold polarity, miter plane and 5-axis CNC tool-tilt angle.
     const std::vector<VidyEdge>& edges() const;
 
     /// Four exact offset heights {0, plate_thickness, total_offset - plate_thickness, total_offset}.
@@ -129,10 +136,12 @@ private:
     Mesh _inner_cavity_mesh; // Offset mesh at h = plate_thickness.
     Mesh _outer_cavity_mesh; // Offset mesh at h = total_offset - plate_thickness.
     Mesh _outer_mesh; // Exterior offset mesh at h = total_offset.
+    Mesh _miter_planes_mesh; // Quad miter ribbons spanning h = 0..total_offset along every fold/separation plane.
 
     void build_stations_and_facets();
     void build_edges_and_miter_rings();
     Mesh build_offset_mesh(size_t ring_index) const;
+    Mesh build_miter_planes_mesh() const;
     void draw();
 };
 
