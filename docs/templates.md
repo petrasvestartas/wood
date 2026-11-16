@@ -53,6 +53,10 @@
     <img src="templates_plaited_4_hotwire_blocks_sphera_open.webp" alt="Plaited">
     <span class="wood-card-title">Plaited</span>
   </a>
+  <a class="wood-card" href="templates_vidy.html">
+    <img src="templates_vidy_4_section_joints_section.webp" alt="Vidy">
+    <span class="wood-card-title">Vidy</span>
+  </a>
 </div>
 
 <div style="display:none">
@@ -69,4 +73,5 @@
 - @subpage templates_truss
 - @subpage templates_vault
 - @subpage templates_plaited
+- @subpage templates_vidy
 </div>

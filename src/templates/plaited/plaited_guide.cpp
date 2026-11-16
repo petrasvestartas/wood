@@ -503,24 +503,29 @@ Mesh barrel_hex_mesh(
     return Mesh::from_vertices_and_faces(vertices, faces);
 }
 
-Mesh spherical_cap_hex_mesh(double span, double rise, int rings) {
+Mesh spherical_cap_hex_mesh(double span, double rise, int rings, bool circular_rim) {
 
     const int n = std::max(1, rings);
+    const int grid_extent = circular_rim ? (n + 2) : n;
     const double half_span = 0.5 * span;
     const double sphere_radius = (half_span * half_span + rise * rise) / (2.0 * rise);
     const double z_centre = rise - sphere_radius;
     const double theta_max = std::atan2(half_span, sphere_radius - rise);
     const double root3 = std::sqrt(3.0);
+    const double circle_radial = 2.0 * static_cast<double>(n);
 
     std::vector<std::array<Point, 6>> planar_hexes;
     double max_radial = 0.0;
 
-    for (int q = -n; q <= n; q++) {
-        const int r_min = std::max(-n, -q - n);
-        const int r_max = std::min(n, -q + n);
+    for (int q = -grid_extent; q <= grid_extent; q++) {
+        const int r_min = std::max(-grid_extent, -q - grid_extent);
+        const int r_max = std::min(grid_extent, -q + grid_extent);
         for (int r = r_min; r <= r_max; r++) {
             const double cx = 1.5 * static_cast<double>(q);
             const double cy = root3 * (static_cast<double>(r) + 0.5 * static_cast<double>(q));
+            if (circular_rim && std::hypot(cx, cy) > circle_radial + 1.35) {
+                continue;
+            }
             std::array<Point, 6> hex;
             for (int k = 0; k < 6; k++) {
                 const double angle = static_cast<double>(k) * (Tolerance::PI / 3.0);
@@ -533,6 +538,7 @@ Mesh spherical_cap_hex_mesh(double span, double rise, int rings) {
         }
     }
 
+    const double ref_radial = circular_rim ? circle_radial : max_radial;
     std::map<QuantizedKey, size_t> table;
     std::vector<Point> vertices;
     std::vector<std::vector<size_t>> faces;
@@ -542,7 +548,7 @@ Mesh spherical_cap_hex_mesh(double span, double rise, int rings) {
         mapped.reserve(6);
         for (const Point& pt : hex) {
             const double radial = std::hypot(pt[0], pt[1]);
-            const double theta = max_radial > 0.0 ? theta_max * (radial / max_radial) : 0.0;
+            const double theta = ref_radial > 0.0 ? theta_max * (radial / ref_radial) : 0.0;
             const double phi = std::atan2(pt[1], pt[0]);
             mapped.emplace_back(
                 sphere_radius * std::sin(theta) * std::cos(phi),
@@ -611,8 +617,9 @@ Mesh geodesic_dome_mesh(double radius, int frequency, double clip_ratio) {
     std::vector<std::vector<size_t>> faces;
 
     for (size_t v = 0; v < primal_dirs.size(); v++) {
-        if (incident[v].size() < 5 || primal_dirs[v][2] <= 0.08)
+        if (incident[v].size() < 5 || primal_dirs[v][2] <= -0.35) {
             continue;
+        }
         const Vector& normal = primal_dirs[v];
         const Vector axis_x = perpendicular_unit({1.0, 0.0, 0.0}, normal);
         const Vector axis_y = normal.cross(axis_x).normalized();
@@ -625,14 +632,22 @@ Mesh geodesic_dome_mesh(double radius, int frequency, double clip_ratio) {
         std::sort(ordered.begin(), ordered.end());
 
         std::vector<Point> poly;
-        for (const std::pair<double, size_t>& item : ordered)
+        for (const std::pair<double, size_t>& item : ordered) {
             poly.push_back(dual_points[item.second]);
+        }
 
         std::vector<Point> clipped = clip_polygon_above_z(poly, z_cut);
-        if (clipped.size() < 3)
+        if (clipped.size() < 3) {
             continue;
-        for (Point& pt : clipped)
+        }
+        double max_above = 0.0;
+        for (Point& pt : clipped) {
+            max_above = std::max(max_above, pt[2] - z_cut);
             pt = Point(pt[0], pt[1], pt[2] - z_cut);
+        }
+        if (max_above <= 1.0) {
+            continue;
+        }
         append_welded_face(clipped, out_table, vertices, faces);
     }
 
@@ -787,10 +802,12 @@ std::optional<Plane> PlaitedGuide::compute_base_plane() const {
         }
     }
 
-    if (z_max - z_min <= 1e-2)
+    if (z_max - z_min <= 1e-2) {
         return std::nullopt;
+    }
 
-    return Plane::from_point_normal({0.0, 0.0, z_min}, {0.0, 0.0, 1.0});
+    const double z_level = (z_min < -1e-2 && z_max > 1e-2) ? 0.0 : z_min;
+    return Plane::from_point_normal({0.0, 0.0, z_level}, {0.0, 0.0, 1.0});
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -186,6 +186,18 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = plaited ]; then
     "${RENDER[@]}" --name arch_pinned templates_plaited_5_reciprocal_arch beams+frame+pins
     "${RENDER[@]}" --opacity 0.55 --wheel 8,0.48,0.38 --name pins_detail templates_plaited_5_reciprocal_arch beams+frame+pins
 fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
+    "${RENDER[@]}" --name mesh_axes templates_vidy_1_main_mesh base_mesh+axes+folds
+    "${RENDER[@]}" --view top --name plan templates_vidy_1_main_mesh base_mesh+axes+folds
+    "${RENDER[@]}" --opacity 0.72 --name offset_shells templates_vidy_2_offset_mesh inner_surface+outer_surface
+    "${RENDER[@]}" --opacity 0.80 templates_vidy_2_offset_mesh two_bay_shells
+    "${RENDER[@]}" --name pavilion templates_vidy_3_panels inner_walls+outer_walls+inner_roof+outer_roof
+    "${RENDER[@]}" templates_vidy_3_panels two_bay_cutaway
+    "${RENDER[@]}" --name section templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
+    "${RENDER[@]}" --wheel 5,0.42,0.28 templates_vidy_4_section_joints cavity_cutaway
+    "${RENDER[@]}" --wheel 4,0.38,0.34 templates_vidy_4_section_joints eave_joint_node
+fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then
     rm -f data/output/pb/truss_*.pb

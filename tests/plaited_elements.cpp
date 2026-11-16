@@ -273,6 +273,41 @@ int main() {
             true
         );
         check_stereotomy(hotwire_sphera, 21, "hotwire_sphera");
+
+        const Mesh circular_cap = wood_plaited::spherical_cap_hex_mesh(5200.0, 1350.0, 3, true);
+        const wood_plaited::PlaitedStereotomy circular_sphera(
+            circular_cap,
+            wood_plaited::PlaitedPattern::Sphera,
+            190.0,
+            0.42,
+            0.0,
+            false,
+            false,
+            true,
+            0.44,
+            true
+        );
+        check(circular_sphera.blocks().size() > 60, "circular_sphera 1.5x finer block count");
+        check(
+            circular_sphera.graph.number_of_edges() >= circular_sphera.blocks().size(),
+            "circular_sphera connected contact graph"
+        );
+        size_t ground_blocks = 0;
+        for (const std::shared_ptr<NodeBlockElement>& block : circular_sphera.blocks()) {
+            const Mesh& mesh = block->model_geometry_mesh();
+            double z_min = std::numeric_limits<double>::max();
+            for (const size_t fk : mesh.faces()) {
+                for (const size_t vk : mesh.face_vertices(fk).value()) {
+                    const Point pt = mesh.vertex_point(vk).value();
+                    z_min = std::min(z_min, pt[2]);
+                }
+            }
+            check(z_min >= -1e-1, "circular_sphera no vertex below ground");
+            if (z_min <= 1e-1) {
+                ground_blocks++;
+            }
+        }
+        check(ground_blocks >= 18, "circular_sphera perimeter blocks sit horizontally on z = 0");
     }
 
     std::cout << "plaited_elements: all checks passed\n";

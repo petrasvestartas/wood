@@ -5,7 +5,7 @@ using namespace session_cpp;
 using namespace wood_session;
 
 const double DOME_RADIUS = 3000.0;
-const int FREQUENCY = 2;
+const int FREQUENCY = 3;
 const double CLIP_RATIO = 0.40;
 const double THICKNESS = 180.0;
 const double BEVEL = 0.36;

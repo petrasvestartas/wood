@@ -112,6 +112,8 @@ set(WOOD_SOURCES
     src/templates/module/cassette_shell.cpp
     src/templates/plaited/plaited_guide.cpp
     src/templates/plaited/plaited.cpp
+    src/templates/vidy/vidy_guide.cpp
+    src/templates/vidy/vidy.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp
@@ -293,6 +295,7 @@ ADD_EXE(reference_datasets               tests/reference_datasets.cpp)
 ADD_EXE(element_tags                     tests/element_tags.cpp)
 target_compile_definitions(element_tags PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 ADD_EXE(plaited_elements                 tests/plaited_elements.cpp)
+ADD_EXE(vidy_elements                    tests/vidy_elements.cpp)
 
 enable_testing()
 set(WOOD_TEST_TARGETS
@@ -309,6 +312,7 @@ set(WOOD_TEST_TARGETS
     rust_elements
     element_tags
     plaited_elements
+    vidy_elements
     joint_library
     reference_datasets
     main_session_round_trip
@@ -510,6 +514,11 @@ ADD_EXE(templates_plaited_2_arch         examples/templates_plaited_2_arch.cpp)
 ADD_EXE(templates_plaited_3_dome         examples/templates_plaited_3_dome.cpp)
 ADD_EXE(templates_plaited_4_hotwire_blocks examples/templates_plaited_4_hotwire_blocks.cpp)
 ADD_EXE(templates_plaited_5_reciprocal_arch examples/templates_plaited_5_reciprocal_arch.cpp)
+
+ADD_EXE(templates_vidy_1_main_mesh       examples/templates_vidy_1_main_mesh.cpp)
+ADD_EXE(templates_vidy_2_offset_mesh     examples/templates_vidy_2_offset_mesh.cpp)
+ADD_EXE(templates_vidy_3_panels          examples/templates_vidy_3_panels.cpp)
+ADD_EXE(templates_vidy_4_section_joints  examples/templates_vidy_4_section_joints.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

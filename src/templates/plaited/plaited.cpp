@@ -301,6 +301,178 @@ std::vector<wood_reciprocal::CutFace> beam_end_cuts(
     return cuts;
 }
 
+/// Signed 2D shoelace area of a planar polygon loop.
+double signed_area_2d(const std::vector<std::pair<double, double>>& poly) {
+
+    if (poly.size() < 3) {
+        return 0.0;
+    }
+    double area = 0.0;
+    for (size_t i = 0; i < poly.size(); i++) {
+        const std::pair<double, double>& p = poly[i];
+        const std::pair<double, double>& q = poly[(i + 1) % poly.size()];
+        area += p.first * q.second - q.first * p.second;
+    }
+    return 0.5 * area;
+}
+
+/// Extracts the 2D counter-clockwise vertex loop of mesh lying on plane, or empty when absent.
+std::vector<std::pair<double, double>> face_loop_on_plane(const Mesh& mesh, const Plane& plane) {
+
+    const Point& origin = plane.origin();
+    const Vector& ux = plane.x_axis();
+    const Vector& uy = plane.y_axis();
+    const Vector& uz = plane.z_axis();
+
+    for (const size_t fk : mesh.faces()) {
+        const std::vector<size_t> vids = mesh.face_vertices(fk).value();
+        if (vids.size() < 3) {
+            continue;
+        }
+        bool coplanar = true;
+        std::vector<std::pair<double, double>> loop;
+        loop.reserve(vids.size());
+        for (const size_t vk : vids) {
+            const Vector rel = mesh.vertex_point(vk).value() - origin;
+            if (std::abs(rel.dot(uz)) > 0.5) {
+                coplanar = false;
+                break;
+            }
+            loop.emplace_back(rel.dot(ux), rel.dot(uy));
+        }
+        if (!coplanar) {
+            continue;
+        }
+        if (signed_area_2d(loop) < 0.0) {
+            std::reverse(loop.begin(), loop.end());
+        }
+        return loop;
+    }
+    return {};
+}
+
+/// Sutherland-Hodgman intersection of two counter-clockwise 2D convex polygons.
+std::vector<std::pair<double, double>> clip_convex_polygons_2d(
+    const std::vector<std::pair<double, double>>& subject,
+    const std::vector<std::pair<double, double>>& clipper
+) {
+
+    std::vector<std::pair<double, double>> output = subject;
+    for (size_t i = 0; i < clipper.size() && !output.empty(); i++) {
+        const std::pair<double, double>& a = clipper[i];
+        const std::pair<double, double>& b = clipper[(i + 1) % clipper.size()];
+        const double ex = b.first - a.first;
+        const double ey = b.second - a.second;
+
+        const std::vector<std::pair<double, double>> input = output;
+        output.clear();
+        for (size_t j = 0; j < input.size(); j++) {
+            const std::pair<double, double>& prev = input[(j + input.size() - 1) % input.size()];
+            const std::pair<double, double>& curr = input[j];
+            const double prev_side = ex * (prev.second - a.second) - ey * (prev.first - a.first);
+            const double curr_side = ex * (curr.second - a.second) - ey * (curr.first - a.first);
+            if (curr_side >= -1e-6) {
+                if (prev_side < -1e-6) {
+                    const double t = prev_side / (prev_side - curr_side);
+                    output.emplace_back(
+                        prev.first + t * (curr.first - prev.first),
+                        prev.second + t * (curr.second - prev.second)
+                    );
+                }
+                output.push_back(curr);
+            } else if (prev_side >= -1e-6) {
+                const double t = prev_side / (prev_side - curr_side);
+                output.emplace_back(
+                    prev.first + t * (curr.first - prev.first),
+                    prev.second + t * (curr.second - prev.second)
+                );
+            }
+        }
+    }
+    return output;
+}
+
+/// True when two sliced blocks share positive-area coplanar contact on plane.
+bool blocks_touch_on_plane(
+    const NodeBlockElement& a,
+    const NodeBlockElement& b,
+    const Plane& plane
+) {
+
+    const std::vector<std::pair<double, double>> loop_a =
+        face_loop_on_plane(a.model_geometry_mesh(), plane);
+    if (loop_a.size() < 3) {
+        return false;
+    }
+    const std::vector<std::pair<double, double>> loop_b =
+        face_loop_on_plane(b.model_geometry_mesh(), plane);
+    if (loop_b.size() < 3) {
+        return false;
+    }
+    const std::vector<std::pair<double, double>> overlap =
+        clip_convex_polygons_2d(loop_a, loop_b);
+    return std::abs(signed_area_2d(overlap)) > 50.0;
+}
+
+/// Keeps only candidate blocks connected by positive-area seam contacts to the highest crown block.
+std::vector<std::shared_ptr<NodeBlockElement>> filter_crown_component(
+    const PlaitedGuide& guide,
+    const std::vector<std::shared_ptr<NodeBlockElement>>& candidates
+) {
+
+    size_t apex_idx = SIZE_MAX;
+    double best_z = std::numeric_limits<double>::lowest();
+    for (size_t i = 0; i < candidates.size(); i++) {
+        if (!candidates[i]) {
+            continue;
+        }
+        const Mesh& mesh = candidates[i]->model_geometry_mesh();
+        for (const size_t fk : mesh.faces()) {
+            for (const size_t vk : mesh.face_vertices(fk).value()) {
+                const double z = mesh.vertex_point(vk).value()[2];
+                if (z > best_z) {
+                    best_z = z;
+                    apex_idx = i;
+                }
+            }
+        }
+    }
+    if (apex_idx == SIZE_MAX) {
+        return {};
+    }
+
+    std::vector<bool> visited(candidates.size(), false);
+    std::vector<size_t> queue = {apex_idx};
+    visited[apex_idx] = true;
+    for (size_t head = 0; head < queue.size(); head++) {
+        const size_t curr = queue[head];
+        for (size_t k = 0; k < 4; k++) {
+            const int nbr = guide.neighbor_cell(curr, k);
+            if (nbr < 0) {
+                continue;
+            }
+            const size_t nbr_idx = static_cast<size_t>(nbr);
+            if (visited[nbr_idx] || !candidates[nbr_idx]) {
+                continue;
+            }
+            if (blocks_touch_on_plane(
+                    *candidates[curr], *candidates[nbr_idx], guide.side_plane(curr, k)
+                )) {
+                visited[nbr_idx] = true;
+                queue.push_back(nbr_idx);
+            }
+        }
+    }
+
+    std::vector<std::shared_ptr<NodeBlockElement>> connected;
+    for (size_t i = 0; i < candidates.size(); i++) {
+        if (visited[i]) {
+            connected.push_back(candidates[i]);
+        }
+    }
+    return connected;
+}
+
 } // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -356,28 +528,77 @@ const std::vector<std::shared_ptr<NodeBlockElement>>& PlaitedStereotomy::blocks(
 std::vector<std::shared_ptr<NodeBlockElement>> PlaitedStereotomy::compute_blocks() const {
 
     const size_t count = guide.cells().size();
-    std::vector<std::shared_ptr<NodeBlockElement>> blocks;
-    blocks.reserve(count);
+    std::vector<std::shared_ptr<NodeBlockElement>> candidates(count);
+    bool any_pruned = false;
+    bool mesh_below_base = false;
+    if (guide.base_plane().has_value()) {
+        const Plane& base = *guide.base_plane();
+        for (const size_t fk : guide.mesh.faces()) {
+            for (const size_t vk : guide.mesh.face_vertices(fk).value()) {
+                const Point pt = guide.mesh.vertex_point(vk).value();
+                if ((pt - base.origin()).dot(base.z_axis()) < -1.0) {
+                    mesh_below_base = true;
+                }
+            }
+        }
+    }
 
     for (size_t cell_idx = 0; cell_idx < count; cell_idx++) {
         std::shared_ptr<NodeBlockElement> block = make_base_block(guide, cell_idx);
 
         if (guide.relief_depth > 0.0) {
             for (const size_t k : {size_t{1}, size_t{3}}) {
-                if (guide.neighbor_cell(cell_idx, k) >= 0 || guide.bevel_naked_edges)
+                if (guide.neighbor_cell(cell_idx, k) >= 0 || guide.bevel_naked_edges) {
                     append_effective_cut(*block, guide.relief_plane(cell_idx, k));
+                }
             }
         }
 
-        if (!guide.bevel_naked_edges)
+        if (!guide.bevel_naked_edges) {
             trim_convex_boundary_fangs(guide, cell_idx, *block);
+        }
 
-        if (guide.base_plane().has_value())
-            append_effective_cut(*block, *guide.base_plane());
+        if (guide.base_plane().has_value()) {
+            const Plane& base = *guide.base_plane();
+            if (mesh_below_base) {
+                const double min_height = guide.opening > 0.0 ? (0.85 * guide.thickness) : 25.0;
+                const double min_volume = guide.opening > 0.0 ? 8.0e5 : 1.0e5;
+                const Mesh& pre_mesh = block->model_geometry_mesh();
+                double max_dist = std::numeric_limits<double>::lowest();
+                for (const size_t fk : pre_mesh.faces()) {
+                    for (const size_t vk : pre_mesh.face_vertices(fk).value()) {
+                        const Point pt = pre_mesh.vertex_point(vk).value();
+                        max_dist = std::max(max_dist, (pt - base.origin()).dot(base.z_axis()));
+                    }
+                }
+                if (max_dist <= min_height) {
+                    any_pruned = true;
+                    continue;
+                }
+                append_effective_cut(*block, base);
+                if (std::abs(block->model_geometry_mesh().volume()) <= min_volume) {
+                    any_pruned = true;
+                    continue;
+                }
+            } else {
+                append_effective_cut(*block, base);
+            }
+        }
 
-        blocks.push_back(block);
+        candidates[cell_idx] = block;
     }
 
+    if (any_pruned) {
+        return filter_crown_component(guide, candidates);
+    }
+
+    std::vector<std::shared_ptr<NodeBlockElement>> blocks;
+    blocks.reserve(count);
+    for (const std::shared_ptr<NodeBlockElement>& block : candidates) {
+        if (block) {
+            blocks.push_back(block);
+        }
+    }
     return blocks;
 }
 

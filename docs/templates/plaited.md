@@ -94,7 +94,9 @@ Setting `opening > 0` realizes the open-lattice reciprocal block vaults of Falla
   <img src="templates_plaited_4_hotwire_blocks_plan.webp" alt="Top plan view showing flush square boundary and open pinwheel T-junctions">
 </div>
 
-### Hexagonal Hot-Wire Sphera Dome {#plaited_hotwire_sphera}
+### Circular Hot-Wire Sphera Dome {#plaited_hotwire_sphera}
+
+Passing `circular_rim = true` to `spherical_cap_hex_mesh` with `flat_base = true` extends the hexagonal rhombille seamlessly through a circular base ring and slices every springing bar horizontally flush on `z = 0`.
 
 ![](templates/templates_plaited_4_hotwire_blocks_sphera_open.webp)
 

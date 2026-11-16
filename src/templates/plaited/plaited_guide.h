@@ -100,8 +100,8 @@ Mesh barrel_hex_mesh(
     int rings
 );
 
-/// Spherical cap of span and rise tiled by concentric rings of whole hexagons.
-Mesh spherical_cap_hex_mesh(double span, double rise, int rings);
+/// Spherical cap of span and rise tiled by concentric rings of whole hexagons, optionally extended across a circular base.
+Mesh spherical_cap_hex_mesh(double span, double rise, int rings, bool circular_rim = false);
 
 /// Planar-faced Goldberg polyhedron dome of pentagons and hexagons clipped to a level circular base.
 Mesh geodesic_dome_mesh(double radius, int frequency = 2, double clip_ratio = 0.42);

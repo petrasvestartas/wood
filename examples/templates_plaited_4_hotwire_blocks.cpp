@@ -30,7 +30,7 @@ int main() {
     );
     scene.graft(abeille_open.get_branch("blocks"), scene.add_group("abeille_open"));
 
-    Mesh sphera_shell = wood_plaited::spherical_cap_hex_mesh(5200.0, 1350.0, 2);
+    Mesh sphera_shell = wood_plaited::spherical_cap_hex_mesh(5200.0, 1350.0, 3, true);
     sphera_shell.transform(Xform::translation(SHELL_SPAN + 2400.0, 0.0, 0.0));
     const wood_plaited::PlaitedStereotomy sphera_open(
         sphera_shell,
