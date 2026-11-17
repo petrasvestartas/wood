@@ -197,7 +197,6 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     VIDY4_SCENE="$(mktemp -d)/vidy4.pb"
     "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints first_row_section
-    "${RENDER[@]}" --scene "$VIDY4_SCENE" --wheel 2,0.38,0.40 templates_vidy_4_section_joints eave_joint_node
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints module_1_haunch_wings module_2_haunches_joined module_3_inner_crowns_eaves module_4_outer_covers module_5_vertical_walls module_6_roof_onto_walls
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each

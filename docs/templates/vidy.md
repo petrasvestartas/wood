@@ -96,8 +96,6 @@ With `with_joints = true`, `VidyPavilion` generates production Vidy joinery acro
   <img src="templates_vidy_4_section_joints_full_pavilion.webp" alt="Full 11-bay 308-plate Théâtre de Vidy pavilion with through-tenon joinery on every panel">
 </div>
 
-![Close-up of the assembled V-pleated left wall, vertical +Z situ eave tenon mortises, haunch joints and non-colliding corner chamfers](templates_vidy_4_section_joints_eave_joint_node.webp)
-
 ### Six-Step Module Assembly Sequence
 
 Each `28`-plate prefabricated bay module follows the six-step IBOIS *Design for Assembly* sequence (`add_module_assembly_groups`):
