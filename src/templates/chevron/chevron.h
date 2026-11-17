@@ -622,7 +622,7 @@ inline std::vector<std::array<Plane, 4>> Chevron::compute_edge_planes() const {
 inline std::vector<std::array<Plane, 4>>
 Chevron::compute_turned_edge_planes(std::vector<std::array<Plane, 4>> planes) const {
 
-    const double angle = edge_rotation * Tolerance::PI / 180.0;
+    const double angle = edge_rotation * Tolerance::TO_RADIANS;
 
     for (size_t face = 0; face < _faces.vertices.size(); face++) {
         const std::vector<size_t>& vertices = _faces.vertices[face];

@@ -69,7 +69,7 @@ public:
         int iso_count = 54,
         int point_count = 9,
         double shift = 0.4,
-        double edge_rotation = 0.05 * 180.0 / Tolerance::PI,
+        double edge_rotation = 0.05 * Tolerance::TO_DEGREES,
         double plate_offset = 300.0,
         double plate_thickness = 40.0,
         double wall_extend = 80.0,
@@ -609,7 +609,7 @@ inline std::map<std::pair<size_t, size_t>, Plane> ChevronShifted::compute_merged
     if (!average_planes)
         return planes;
 
-    const double angle = edge_rotation * Tolerance::PI / 180.0;
+    const double angle = edge_rotation * Tolerance::TO_RADIANS;
 
     for (size_t cell = 0; cell < _cells.masks.size(); cell++) {
         const int mask = _cells.masks[cell];

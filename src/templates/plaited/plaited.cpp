@@ -74,7 +74,7 @@ void append_effective_cut(NodeBlockElement& block, const Plane& candidate) {
 }
 
 /// Builds the initial uncut hexahedral or stock-box NodeBlockElement for one plaited cell.
-std::shared_ptr<NodeBlockElement> make_base_block(const PlaitedGuide& guide, size_t cell_idx) {
+std::shared_ptr<NodeBlockElement> compute_base_block(const PlaitedGuide& guide, size_t cell_idx) {
 
     const PlaitedCell& cell = guide.cells()[cell_idx];
     const Plane extrados_cap = Plane::from_point_normal(cell.centre, -cell.normal);
@@ -544,7 +544,7 @@ std::vector<std::shared_ptr<NodeBlockElement>> PlaitedStereotomy::compute_blocks
     }
 
     for (size_t cell_idx = 0; cell_idx < count; cell_idx++) {
-        std::shared_ptr<NodeBlockElement> block = make_base_block(guide, cell_idx);
+        std::shared_ptr<NodeBlockElement> block = compute_base_block(guide, cell_idx);
 
         if (guide.relief_depth > 0.0) {
             for (const size_t k : {size_t{1}, size_t{3}}) {

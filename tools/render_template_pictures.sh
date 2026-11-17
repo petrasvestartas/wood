@@ -192,10 +192,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     "${RENDER[@]}" --view top --name plan templates_vidy_1_main_mesh base_mesh+axes
     "${RENDER[@]}" --opacity 0.68 --name offset_shells templates_vidy_2_offset_mesh inner_surface+outer_surface+miter_planes
     "${RENDER[@]}" --opacity 0.72 templates_vidy_2_offset_mesh two_bay_shells
-    "${RENDER[@]}" --name pavilion templates_vidy_3_panels inner_walls+outer_walls+inner_roof+outer_roof
+    "${RENDER[@]}" --name pavilion templates_vidy_3_panels inner_walls+outer_walls+inner_roof+outer_roof+border_boards
     "${RENDER[@]}" templates_vidy_3_panels two_bay_panels
     VIDY4_SCENE="$(mktemp -d)/vidy4.pb"
-    "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof+border_boards
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints first_row_section
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints module_1_haunch_wings module_2_haunches_joined module_3_inner_crowns_eaves module_4_outer_covers module_5_vertical_walls module_6_roof_onto_walls
 fi

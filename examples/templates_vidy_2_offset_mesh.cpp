@@ -4,13 +4,13 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 2 — Four concentric mitered offset surfaces (h = 0, 45, 255, 300 mm) and 236 miter connection planes across the Théâtre de Vidy pavilion.
+/// Four concentric mitered offset shells (h = 0, 45, 255, 300 mm) and 236 miter planes of the Vidy pavilion.
 int main() {
 
     wood_vidy::VidyGuide guide(11);
-
     const wood_vidy::VidyGuide two_bay(2);
     const std::shared_ptr<TreeNode> shells_group = guide.add_group("two_bay_shells");
+
     guide.add_mesh(two_bay.base_mesh(), shells_group);
     guide.add_mesh(two_bay.inner_cavity_mesh(), shells_group);
     guide.add_mesh(two_bay.outer_cavity_mesh(), shells_group);

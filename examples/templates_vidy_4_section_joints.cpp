@@ -4,39 +4,41 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 4 — Full 11-bay (308-plate) Théâtre de Vidy double-layer through-tenon joinery, first-row verification section, eave node, and roof-onto-walls assembly.
+/// Full 11-bay Théâtre de Vidy double-layer through-tenon joinery, cavity border boards and module assembly.
 int main() {
 
     const wood_vidy::VidyGuide full_guide(11);
     wood_vidy::VidyPavilion pavilion(full_guide, true, 1.0, 500.0);
-
-    // First-row verification section (Bay 0 = 28 jointed plates, matching vidy_one_section_with_joints.3dm).
     const std::shared_ptr<TreeNode> first_row = pavilion.add_group("first_row_section");
+
     for (size_t loc = 0; loc < 14; loc++) {
-        pavilion.add(wood_vidy::VidyPavilion::copy_plate(*pavilion.inner_plates()[loc]), first_row);
-        pavilion.add(wood_vidy::VidyPavilion::copy_plate(*pavilion.outer_plates()[loc]), first_row);
+        pavilion.add(pavilion.inner_plates()[loc]->clone(), first_row);
+        pavilion.add(pavilion.outer_plates()[loc]->clone(), first_row);
+
+        for (const std::shared_ptr<FacePlanarElement>& board :
+             pavilion.border_plates_for_facet(loc))
+            pavilion.add(board->clone(), first_row);
     }
 
-    // Close-up assembled eave & haunch node on Bay 5 (all 10 inner & outer plates in true non-colliding positions).
     const std::shared_ptr<TreeNode> corner_node = pavilion.add_group("eave_joint_node");
     const size_t mid_base = 14 * 5;
+
     for (const size_t loc : {size_t{0}, size_t{1}, size_t{4}, size_t{5}, size_t{9}}) {
-        pavilion.add(
-            wood_vidy::VidyPavilion::copy_plate(*pavilion.inner_plates()[mid_base + loc]),
-            corner_node
-        );
-        pavilion.add(
-            wood_vidy::VidyPavilion::copy_plate(*pavilion.outer_plates()[mid_base + loc]),
-            corner_node
-        );
+        pavilion.add(pavilion.inner_plates()[mid_base + loc]->clone(), corner_node);
+        pavilion.add(pavilion.outer_plates()[mid_base + loc]->clone(), corner_node);
+
+        for (const std::shared_ptr<FacePlanarElement>& board :
+             pavilion.border_plates_for_facet(mid_base + loc))
+            pavilion.add(board->clone(), corner_node);
     }
 
-    // Six-step module assembly sequence from the IBOIS Théâtre de Vidy animation (co8yamUb6nI, 29s-48s).
     pavilion.add_module_assembly_groups(5, 1650.0);
 
     std::cout << fmt::format(
-        "vidy full pavilion joinery: {} plates ({} bays), {} jointed seams, {} pins ({} Double_Pins + {} Single/Extend_Pins), {} mortise slots\n",
+        "vidy full pavilion joinery: {} total plates ({} shell + {} border across {} bays), {} jointed seams, {} pins ({} Double_Pins + {} Single/Extend_Pins), {} mortise slots\n",
         pavilion.all_plates().size(),
+        pavilion.shell_plates().size(),
+        pavilion.border_plates().size(),
         full_guide.bays,
         pavilion.total_jointed_seams(),
         pavilion.total_pins(),
@@ -51,7 +53,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 4 double-layer Théâtre de Vidy timber joinery across all 308 CLT plates of the 11-bay pavilion: stepped chamfered Double_Pins bridging the 210 mm cavity, interleaved Single_Pins, vertical +Z on-site eave joints, first-row verification arch, and 6-step module assembly sequence.
+Stage 4 double-layer Théâtre de Vidy timber joinery across all 462 plates of the 11-bay pavilion (308 folded shell plates + 154 perpendicular cavity-closing border boards): stepped chamfered Double_Pins bridging the 210 mm cavity, interleaved Single_Pins, vertical +Z on-site eave joints, first-row verification arch, and six-step module assembly sequence.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

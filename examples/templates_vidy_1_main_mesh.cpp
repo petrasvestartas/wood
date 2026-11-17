@@ -4,14 +4,14 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Stage 1 — Main mesh geometry of the 11-bay Théâtre de Vidy pavilion: antiprismatic roof triangles, V-pleated vertical wall quads, and bay axes.
+/// Main mesh geometry of the 11-bay Théâtre de Vidy pavilion: roof triangles, wall quads and bay axes.
 int main() {
 
     wood_vidy::VidyGuide guide(11);
-
     size_t reg_count = 0;
     size_t vcon_count = 0;
     double max_beta = 0.0;
+
     for (const wood_vidy::VidyEdge& edge : guide.edges()) {
         if (edge.kind == wood_vidy::VidyEdgeKind::Regular) {
             reg_count++;
