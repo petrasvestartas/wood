@@ -88,7 +88,7 @@ Vector ring_newell(const std::vector<Point>& pts) {
     return n;
 }
 
-/// Projects a 4-arris tenon shaft along v_ins onto the bottom and top planes of receiving facet_fem.
+/// Projects a 4-arris tenon shaft along v_ins onto receiving facet_fem with 0.4 mm CNC slot clearance.
 void append_projected_slot(
     const std::pair<Point, Point>& shaft_bot,
     const std::pair<Point, Point>& shaft_top,
@@ -109,9 +109,19 @@ void append_projected_slot(
         shaft_bot.first, shaft_bot.second, shaft_top.second, shaft_top.first
     };
     MortiseSlot slot;
+    Point cb(0.0, 0.0, 0.0);
+    Point ct(0.0, 0.0, 0.0);
     for (size_t c = 0; c < 4; c++) {
         slot.bottom[c] = intersect_line_plane(arris[c], v_ins, p_bot);
         slot.top[c] = intersect_line_plane(arris[c], v_ins, p_top);
+        cb = cb + Vector(slot.bottom[c][0], slot.bottom[c][1], slot.bottom[c][2]) * 0.25;
+        ct = ct + Vector(slot.top[c][0], slot.top[c][1], slot.top[c][2]) * 0.25;
+    }
+    for (size_t c = 0; c < 4; c++) {
+        const Vector db = (slot.bottom[c] - cb).normalized();
+        const Vector dt = (slot.top[c] - ct).normalized();
+        slot.bottom[c] = slot.bottom[c] + db * 0.5;
+        slot.top[c] = slot.top[c] + dt * 0.5;
     }
     out_slots.push_back(slot);
 }
@@ -184,6 +194,7 @@ void emit_multiple_double_pins(
     bool step_bot,
     int n_dp,
     double pitch,
+    double min_pocket_half,
     double shift_val,
     const VidyFacet& fem_facet,
     const std::array<double, 4>& heights,
@@ -196,18 +207,25 @@ void emit_multiple_double_pins(
 ) {
 
     const Vector nf = (ends[1] - ends[0]).normalized();
-    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt) + nf * shift_val;
-    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt) + nf * shift_val;
-    const Point pm_b = m_b0 - v_ins * (step_bot ? le_tab : 0.0);
-    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.0 : le_tab);
+    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt);
+    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt);
+    const Point pm_b = m_b0 - v_ins * (step_bot ? (le_tab + 0.5) : 0.5);
+    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.5 : (le_tab + 0.5));
     const double f_off = first_pin_offset(n_dp, pitch);
-    const double sh_half = f_off + 135.0 + 40.0;
     const double obliq = std::abs(v_ins.dot(nf)) * le_tab + 12.0;
+    const double max_reach = std::min(
+        std::min(m_b0.distance(ends[0]), m_b0.distance(ends[1])),
+        std::min(m_t0.distance(ends[2]), m_t0.distance(ends[3]))
+    );
+    const double sh_half = std::min(
+        std::max(f_off + std::abs(shift_val) + 135.0 + 40.0, min_pocket_half),
+        std::max(f_off + std::abs(shift_val) + 145.0, max_reach - obliq - 95.0)
+    );
 
     out_bot = {m_b0 - nf * (sh_half + obliq), pm_b - nf * sh_half};
     out_top = {m_t0 - nf * (sh_half + obliq), pm_t - nf * sh_half};
-    const Point ptc_b = pm_b - nf * f_off;
-    const Point ptc_t = pm_t - nf * f_off;
+    const Point ptc_b = (pm_b + nf * shift_val) - nf * f_off;
+    const Point ptc_t = (pm_t + nf * shift_val) - nf * f_off;
 
     for (int i = 0; i < n_dp; i++) {
         const double step = pitch * static_cast<double>(i);
@@ -243,6 +261,7 @@ void emit_multiple_single_pins(
     bool step_bot,
     int n_sp,
     double pitch,
+    double min_pocket_half,
     double shift_val,
     const VidyFacet& fem_facet,
     double h_bot,
@@ -253,18 +272,25 @@ void emit_multiple_single_pins(
 ) {
 
     const Vector nf = (ends[1] - ends[0]).normalized();
-    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt) + nf * shift_val;
-    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt) + nf * shift_val;
-    const Point pm_b = m_b0 - v_ins * (step_bot ? le_tab : 0.0);
-    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.0 : le_tab);
+    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt);
+    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt);
+    const Point pm_b = m_b0 - v_ins * (step_bot ? (le_tab + 0.5) : 0.5);
+    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.5 : (le_tab + 0.5));
     const double f_off = first_pin_offset(n_sp, pitch);
-    const double sh_half = f_off + 90.0 + 40.0;
     const double obliq = std::abs(v_ins.dot(nf)) * le_tab + 12.0;
+    const double max_reach = std::min(
+        std::min(m_b0.distance(ends[0]), m_b0.distance(ends[1])),
+        std::min(m_t0.distance(ends[2]), m_t0.distance(ends[3]))
+    );
+    const double sh_half = std::min(
+        std::max(f_off + std::abs(shift_val) + 90.0 + 40.0, min_pocket_half),
+        std::max(f_off + std::abs(shift_val) + 100.0, max_reach - obliq - 95.0)
+    );
 
     out_bot = {m_b0 - nf * (sh_half + obliq), pm_b - nf * sh_half};
     out_top = {m_t0 - nf * (sh_half + obliq), pm_t - nf * sh_half};
-    const Point ptc_b = pm_b - nf * f_off;
-    const Point ptc_t = pm_t - nf * f_off;
+    const Point ptc_b = (pm_b + nf * shift_val) - nf * f_off;
+    const Point ptc_t = (pm_t + nf * shift_val) - nf * f_off;
 
     for (int i = 0; i < n_sp; i++) {
         const double step = pitch * static_cast<double>(i);
@@ -301,18 +327,23 @@ void emit_extend_tab(
     const double ext_b = le_tab * (step_bot ? 2.0 : 1.0);
     const double ext_t = le_tab * (step_bot ? 1.0 : 2.0);
     const double obliq = std::abs(v_ins.dot(nf)) * (2.0 * le_tab) + 15.0;
+    const double max_reach = std::min(
+        std::min(pm_b.distance(ends[0]), pm_b.distance(ends[1])),
+        std::min(pm_t.distance(ends[2]), pm_t.distance(ends[3]))
+    );
+    const double span = std::min(half_span, std::max(120.0, max_reach - obliq - 110.0));
 
     out_bot = {
-        pm_b - nf * (half_span + obliq),
-        (pm_b - nf * half_span) + v_ins * ext_b,
-        (pm_b + nf * half_span) + v_ins * ext_b,
-        pm_b + nf * (half_span + obliq)
+        pm_b - nf * (span + obliq),
+        (pm_b - nf * span) + v_ins * ext_b,
+        (pm_b + nf * span) + v_ins * ext_b,
+        pm_b + nf * (span + obliq)
     };
     out_top = {
-        pm_t - nf * (half_span + obliq),
-        (pm_t - nf * half_span) + v_ins * ext_t,
-        (pm_t + nf * half_span) + v_ins * ext_t,
-        pm_t + nf * (half_span + obliq)
+        pm_t - nf * (span + obliq),
+        (pm_t - nf * span) + v_ins * ext_t,
+        (pm_t + nf * span) + v_ins * ext_t,
+        pm_t + nf * (span + obliq)
     };
 }
 
@@ -336,18 +367,23 @@ void emit_extend_no_pins(
     const double ext_b = le_offs - (step_bot ? le_tab : 0.0);
     const double ext_t = le_offs - (step_bot ? 0.0 : le_tab);
     const double obliq = std::abs(v_ins.dot(nf)) * le_offs + 15.0;
+    const double max_reach = std::min(
+        std::min(m_b0.distance(ends[0]), m_b0.distance(ends[1])),
+        std::min(m_t0.distance(ends[2]), m_t0.distance(ends[3]))
+    );
+    const double span = std::min(half_span, std::max(120.0, max_reach - obliq - 95.0));
 
     out_bot = {
-        m_b0 - nf * (half_span + obliq),
-        (m_b0 - nf * half_span) + v_ins * ext_b,
-        (m_b0 + nf * half_span) + v_ins * ext_b,
-        m_b0 + nf * (half_span + obliq)
+        m_b0 - nf * (span + obliq),
+        (m_b0 - nf * span) + v_ins * ext_b,
+        (m_b0 + nf * span) + v_ins * ext_b,
+        m_b0 + nf * (span + obliq)
     };
     out_top = {
-        m_t0 - nf * (half_span + obliq),
-        (m_t0 - nf * half_span) + v_ins * ext_t,
-        (m_t0 + nf * half_span) + v_ins * ext_t,
-        m_t0 + nf * (half_span + obliq)
+        m_t0 - nf * (span + obliq),
+        (m_t0 - nf * span) + v_ins * ext_t,
+        (m_t0 + nf * span) + v_ins * ext_t,
+        m_t0 + nf * (span + obliq)
     };
 }
 
@@ -361,6 +397,7 @@ void emit_extend_pins(
     bool step_bot,
     int n_dp,
     double pitch,
+    double min_shelf_half,
     double shift_val,
     const VidyFacet& fem_facet,
     double h_bot,
@@ -371,13 +408,21 @@ void emit_extend_pins(
 ) {
 
     const Vector nf = (ends[1] - ends[0]).normalized();
-    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt) + nf * shift_val;
-    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt) + nf * shift_val;
-    const Point pm_b = m_b0 - v_ins * (step_bot ? le_tab : 0.0);
-    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.0 : le_tab);
+    const Point m_b0 = correct_midpoint(ends[0], ends[1], ref_pt);
+    const Point m_t0 = correct_midpoint(ends[2], ends[3], ref_pt);
+    const Point pm_b = m_b0 - v_ins * (step_bot ? (le_tab + 0.5) : 0.5);
+    const Point pm_t = m_t0 - v_ins * (step_bot ? 0.5 : (le_tab + 0.5));
     const double f_off = first_pin_offset(n_dp, pitch);
-    const double half_span = f_off + 90.0 + 45.0;
     const double obliq = std::abs(v_ins.dot(nf)) * (le_offs + le_tab) + 20.0;
+    const double max_reach = std::min(
+        std::min(m_b0.distance(ends[0]), m_b0.distance(ends[1])),
+        std::min(m_t0.distance(ends[2]), m_t0.distance(ends[3]))
+    );
+    const double req_shelf = std::max(f_off + std::abs(shift_val) + 125.0, min_shelf_half);
+    const double half_span = std::min(
+        req_shelf,
+        std::max(f_off + std::abs(shift_val) + 98.0, max_reach - obliq - 95.0)
+    );
 
     const Point p3_b = (pm_b - nf * half_span) + v_ins * le_offs;
     const Point p4_b = (pm_b + nf * half_span) + v_ins * le_offs;
@@ -386,8 +431,8 @@ void emit_extend_pins(
 
     out_bot = {m_b0 - nf * (half_span + obliq), p3_b};
     out_top = {m_t0 - nf * (half_span + obliq), p3_t};
-    const Point ptc_b = Point::mid_point(p3_b, p4_b) - nf * f_off;
-    const Point ptc_t = Point::mid_point(p3_t, p4_t) - nf * f_off;
+    const Point ptc_b = (Point::mid_point(p3_b, p4_b) + nf * shift_val) - nf * f_off;
+    const Point ptc_t = (Point::mid_point(p3_t, p4_t) + nf * shift_val) - nf * f_off;
 
     for (int i = 0; i < n_dp; i++) {
         const double step = pitch * static_cast<double>(i);
@@ -419,8 +464,22 @@ size_t find_shared_side(const VidyFacet& facet, size_t u, size_t v) {
     return 0;
 }
 
-/// Connects directed edge profiles around facet at ring hi with Robeller's angle-proportional corner chamfers.
+/// Required edge snip along -u from apex so a roof corner clears transverse station bounds [y_min, y_max].
+double station_clearance_snip(const Point& apex, const Vector& u, double y_min, double y_max) {
+
+    double snip = 0.0;
+    if (apex[1] < y_min - 1e-3 && u[1] < -1e-3) {
+        snip = std::max(snip, (y_min + 0.6 - apex[1]) / (-u[1]));
+    }
+    if (apex[1] > y_max + 1e-3 && u[1] > 1e-3) {
+        snip = std::max(snip, (apex[1] - (y_max - 0.6)) / u[1]);
+    }
+    return snip;
+}
+
+/// Connects directed edge profiles around facet at ring hi with non-colliding multi-valent corner chamfers.
 Polyline assemble_chamfered_ring(
+    const VidyGuide& guide,
     const VidyFacet& facet,
     size_t hi,
     double factor,
@@ -430,6 +489,13 @@ Polyline assemble_chamfered_ring(
     const size_t m = facet.vertices.size();
     std::vector<Point> pts;
     pts.reserve(64);
+
+    const double half_total = 0.5 * static_cast<double>(guide.bays) * guide.bay_length;
+    const double y_bay0 = -half_total + static_cast<double>(facet.bay) * guide.bay_length;
+    const double y_min =
+        (facet.local_index <= 8) ? y_bay0 : (y_bay0 + 0.5 * guide.bay_length);
+    const double y_max =
+        (facet.local_index <= 8) ? (y_bay0 + 0.5 * guide.bay_length) : (y_bay0 + guide.bay_length);
 
     for (size_t k = 0; k < m; k++) {
         const Point& apex = facet.miter_rings[hi][k];
@@ -443,9 +509,15 @@ Polyline assemble_chamfered_ring(
         const Vector ub = len_b > 1e-9 ? (vb * (1.0 / len_b)) : Vector(0.0, 1.0, 0.0);
         const double ang_deg =
             std::acos(std::clamp(ua.dot(ub), -1.0, 1.0)) * 180.0 / Tolerance::PI;
-        const double chamfer = std::min({(180.0 - ang_deg) * factor, 0.45 * len_a, 0.45 * len_b});
-        pts.push_back(apex - ua * chamfer);
-        pts.push_back(apex - ub * chamfer);
+        const double base_c = (180.0 - ang_deg) * factor;
+        double ca = base_c;
+        double cb = base_c;
+        if (facet.role == VidyFacetRole::Roof) {
+            ca = std::max(ca, station_clearance_snip(apex, ua, y_min, y_max));
+            cb = std::max(cb, station_clearance_snip(apex, ub, y_min, y_max));
+        }
+        pts.push_back(apex - ua * std::min(ca, 0.88 * len_a));
+        pts.push_back(apex - ub * std::min(cb, 0.88 * len_b));
         pts.insert(pts.end(), side_profiles[k].begin(), side_profiles[k].end());
     }
 
@@ -487,10 +559,230 @@ void attach_plate_features(
 
 /// Intra-bay crease descriptor matching Robeller's VidyComponent.cs segment roles.
 struct BayCreaseSpec {
-    size_t loc_a; // Female-outer / Extend_Pins segment local index in 0..13.
-    size_t loc_b; // Double_Pin / Single_Pin sender segment local index in 0..13.
-    int kind; // 0 = wall_pleat, 1 = situ_eave, 2 = knee, 3 = crown_L, 4 = crown_R, 5 = valley.
+    size_t loc_a; // Primary segment local index in 0..13 (female Extend on outer roof/wall).
+    size_t loc_b; // Mating segment local index in 0..13.
+    int kind; // 0 = wall_pleat, 1 = situ_eave, 2 = knee_L, 3 = crown_L, 4 = crown_R, 5 = valley, 6 = knee_R.
 };
+
+/// Resolved 3D miter endpoints, insertion vectors, and bevel stepbacks for one intra-bay Regular crease.
+struct CreaseFrame {
+    std::array<Point, 4> ends_a_in; // Inner bottom/top miter endpoints on facet A.
+    std::array<Point, 4> ends_a_out; // Outer bottom/top miter endpoints on facet A.
+    std::array<Point, 4> ends_b_in; // Inner bottom/top miter endpoints on facet B.
+    std::array<Point, 4> ends_b_out; // Outer bottom/top miter endpoints on facet B.
+    Point ref_b; // Shared inner bottom reference midpoint.
+    Point ref_t; // Shared outer bottom reference midpoint.
+    Vector v_ins_a; // Insertion direction from facet A across the crease.
+    Vector v_ins_b; // Insertion direction from facet B across the crease.
+    double min_len = 0.0; // Shortest of the four miter edge segments.
+    double l_tab_a = 0.0; // Single-layer bevel tab length along v_ins_a.
+    double l_offs_a = 0.0; // Cavity-spanning bevel offset length along v_ins_a.
+    double l_tab_b = 0.0; // Single-layer bevel tab length along v_ins_b.
+    double l_offs_b = 0.0; // Cavity-spanning bevel offset length along v_ins_b.
+    size_t fa_i = 0; // Global facet index A.
+    size_t sa = 0; // Directed side index on facet A.
+    size_t fb_i = 0; // Global facet index B.
+    size_t sb = 0; // Directed side index on facet B.
+};
+
+/// Emits wall V-pleat (kind 0) or on-site situ eave (kind 1) contours and updates pin totals.
+void emit_wall_or_situ_crease(
+    const BayCreaseSpec& spec,
+    const CreaseFrame& cf,
+    double pitch,
+    const VidyFacet& fa,
+    const VidyFacet& fb,
+    const std::array<double, 4>& heights,
+    std::array<std::vector<std::vector<std::vector<Point>>>, 4>& edge_polys,
+    std::array<std::vector<std::vector<MortiseSlot>>, 2>& plate_slots,
+    size_t& dp_count,
+    size_t& sp_count
+) {
+
+    if (spec.kind == 1) {
+        const double situ_pitch = std::min(pitch, 400.0);
+        emit_multiple_double_pins(
+            cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, false, 2, situ_pitch, 420.0, 0.0,
+            fa, heights, 0, 1, edge_polys[0][cf.fb_i][cf.sb], edge_polys[1][cf.fb_i][cf.sb],
+            plate_slots[0][cf.fa_i], plate_slots[1][cf.fa_i]
+        );
+        emit_multiple_single_pins(
+            cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, false, 2, situ_pitch, 390.0, 0.0,
+            fa, heights[2], heights[3], edge_polys[2][cf.fb_i][cf.sb], edge_polys[3][cf.fb_i][cf.sb],
+            plate_slots[1][cf.fa_i]
+        );
+        emit_extend_no_pins(
+            cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, false, 355.0, 0.0,
+            edge_polys[0][cf.fa_i][cf.sa], edge_polys[1][cf.fa_i][cf.sa]
+        );
+        emit_extend_tab(
+            cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, true, 315.0, 0.0,
+            edge_polys[2][cf.fa_i][cf.sa], edge_polys[3][cf.fa_i][cf.sa]
+        );
+        dp_count += 2;
+        sp_count += 2;
+        return;
+    }
+
+    const int n_dp = 12;
+    const int n_sp = 12;
+    const double sh_dp = -125.0;
+    const double sh_sp = 125.0;
+    const double f_dp = first_pin_offset(n_dp, pitch);
+    const double ext_half = first_pin_offset(n_sp, pitch) + 125.0 + 90.0 + 25.0;
+    const double ep_shelf = f_dp + 125.0 + 135.0 + 45.0;
+    const double sp_pocket = ext_half + 55.0;
+    const double dp_pocket = ep_shelf + 55.0;
+
+    emit_extend_tab(
+        cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, true, ext_half, 0.0,
+        edge_polys[2][cf.fa_i][cf.sa], edge_polys[3][cf.fa_i][cf.sa]
+    );
+    emit_extend_pins(
+        cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, false, n_dp, pitch, ep_shelf, -sh_dp,
+        fb, heights[2], heights[3], edge_polys[0][cf.fa_i][cf.sa], edge_polys[1][cf.fa_i][cf.sa],
+        plate_slots[1][cf.fb_i]
+    );
+    emit_multiple_single_pins(
+        cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, false, n_sp, pitch, sp_pocket, sh_sp,
+        fa, heights[2], heights[3], edge_polys[2][cf.fb_i][cf.sb], edge_polys[3][cf.fb_i][cf.sb],
+        plate_slots[1][cf.fa_i]
+    );
+    emit_multiple_double_pins(
+        cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, false, n_dp, pitch, dp_pocket, sh_dp,
+        fa, heights, 0, 1, edge_polys[0][cf.fb_i][cf.sb], edge_polys[1][cf.fb_i][cf.sb],
+        plate_slots[0][cf.fa_i], plate_slots[1][cf.fa_i]
+    );
+    dp_count += static_cast<size_t>(n_dp);
+    sp_count += static_cast<size_t>(n_dp + n_sp);
+}
+
+/// Emits negative-fold central valley (kind 5) contours and updates pin totals.
+void emit_valley_crease(
+    const BayCreaseSpec& spec,
+    const CreaseFrame& cf,
+    double pitch,
+    const VidyFacet& fa,
+    const VidyFacet& fb,
+    const std::array<double, 4>& heights,
+    std::array<std::vector<std::vector<std::vector<Point>>>, 4>& edge_polys,
+    std::array<std::vector<std::vector<MortiseSlot>>, 2>& plate_slots,
+    size_t& dp_count,
+    size_t& sp_count
+) {
+
+    const int n_dp = 11;
+    const int max_even_sp = std::clamp(
+        2 * static_cast<int>(std::max(1000.0, cf.min_len - 1850.0) / (2.0 * pitch)), 10, 16
+    );
+    const int n_sp = std::min(14, max_even_sp);
+    const double f_sp = first_pin_offset(n_sp, pitch);
+    const double f_dp = first_pin_offset(n_dp, pitch);
+    const double ext_val = std::max(f_sp, f_dp) + 135.0 + 25.0;
+    const double skew =
+        std::abs(cf.v_ins_a.dot((cf.ends_a_out[1] - cf.ends_a_out[0]).normalized()));
+    const double ep_shelf = f_dp + 135.0 + skew * cf.l_tab_b + 45.0;
+    const double ep_reach = ep_shelf + skew * (cf.l_offs_a + 2.0 * cf.l_tab_a) + 55.0;
+
+    emit_multiple_double_pins(
+        cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, true, n_dp, pitch, ep_reach, 0.0,
+        fa, heights, 1, 0, edge_polys[2][cf.fb_i][cf.sb], edge_polys[3][cf.fb_i][cf.sb],
+        plate_slots[1][cf.fa_i], plate_slots[0][cf.fa_i]
+    );
+    emit_extend_tab(
+        cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, false, ext_val, 0.0,
+        edge_polys[0][cf.fb_i][cf.sb], edge_polys[1][cf.fb_i][cf.sb]
+    );
+    emit_extend_pins(
+        cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, true, n_dp, pitch, ep_shelf, 0.0,
+        fb, heights[0], heights[1], edge_polys[2][cf.fa_i][cf.sa], edge_polys[3][cf.fa_i][cf.sa],
+        plate_slots[0][cf.fb_i]
+    );
+    emit_multiple_single_pins(
+        cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, true, n_sp, pitch, ext_val + 65.0, 0.0,
+        fb, heights[0], heights[1], edge_polys[0][cf.fa_i][cf.sa], edge_polys[1][cf.fa_i][cf.sa],
+        plate_slots[0][cf.fb_i]
+    );
+    dp_count += static_cast<size_t>(n_dp);
+    sp_count += static_cast<size_t>(n_dp + n_sp);
+}
+
+/// Emits Flip_Insert knee and crown (kinds 2, 3, 4, 6) contours and updates pin totals.
+void emit_knee_or_crown_crease(
+    const BayCreaseSpec& spec,
+    const CreaseFrame& cf,
+    double pitch,
+    const VidyFacet& fa,
+    const VidyFacet& fb,
+    const std::array<double, 4>& heights,
+    std::array<std::vector<std::vector<std::vector<Point>>>, 4>& edge_polys,
+    std::array<std::vector<std::vector<MortiseSlot>>, 2>& plate_slots,
+    size_t& dp_count,
+    size_t& sp_count
+) {
+
+    const int n_dp = (spec.kind == 2) ? 3 : ((spec.kind == 6) ? 4 : ((spec.kind == 3) ? 6 : 5));
+    int n_sp = (spec.kind == 2) ? 5 : ((spec.kind == 6) ? 5 : ((spec.kind == 3) ? 10 : 8));
+
+    const Vector nf_a = (cf.ends_a_in[1] - cf.ends_a_in[0]).normalized();
+    const double skew_a = std::abs(cf.v_ins_a.dot(nf_a));
+    double sh_to_apex_b = 0.0;
+    double sh_dp_a = 0.0;
+    double sh_b = 0.0;
+    if (spec.kind == 3 || spec.kind == 4) {
+        sh_to_apex_b = (spec.kind == 3) ? 260.0 : 220.0;
+        const double to_apex_a =
+            (std::abs(cf.ends_a_in[1][0]) < std::abs(cf.ends_a_in[0][0])) ? 1.0 : -1.0;
+        sh_b = -sh_to_apex_b * to_apex_a;
+        sh_dp_a = -0.45 * skew_a * cf.l_offs_a * to_apex_a;
+    }
+
+    const double avail_apex = 0.5 * cf.min_len - sh_to_apex_b - 360.0;
+    const double avail_acute = (spec.kind == 3 || spec.kind == 4)
+        ? (0.5 * cf.min_len + sh_to_apex_b - 820.0)
+        : (0.5 * cf.min_len - 260.0);
+    const double avail = std::min(avail_apex, avail_acute);
+    for (int guard = 0; guard < 8 && n_sp > 3; guard++) {
+        const double p_try = ((n_dp % 2) == (n_sp % 2)) ? 125.0 : 0.0;
+        const double reach = first_pin_offset(n_sp, pitch) + p_try + 115.0 + skew_a * (2.0 * cf.l_tab_a) + 45.0;
+        if (reach <= avail) {
+            break;
+        }
+        n_sp--;
+    }
+
+    const double p_shift = ((n_dp % 2) == (n_sp % 2)) ? 125.0 : 0.0;
+    const double f_dp = first_pin_offset(n_dp, pitch);
+    const double f_max = std::max(first_pin_offset(n_sp, pitch), f_dp) + sh_to_apex_b + p_shift;
+    const double ext_half = f_max + 90.0 + 24.0 + skew_a * (2.0 * cf.l_tab_a);
+    const double sp_pocket =
+        std::max(ext_half + skew_a * (2.0 * cf.l_tab_a), f_dp + std::abs(sh_dp_a) + skew_a * cf.l_offs_a + 135.0) + 55.0;
+    const double ep_shelf =
+        f_dp + std::max(sh_to_apex_b + p_shift, std::abs(sh_dp_a)) + 135.0 + skew_a * (cf.l_tab_a + cf.l_tab_b) + 45.0;
+    const double dp_pocket = ep_shelf + skew_a * cf.l_offs_b + 55.0;
+
+    emit_extend_tab(
+        cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, true, ext_half, 0.0,
+        edge_polys[2][cf.fa_i][cf.sa], edge_polys[3][cf.fa_i][cf.sa]
+    );
+    emit_multiple_double_pins(
+        cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, false, n_dp, pitch, dp_pocket,
+        sh_dp_a, fb, heights, 0, 1, edge_polys[0][cf.fa_i][cf.sa], edge_polys[1][cf.fa_i][cf.sa],
+        plate_slots[0][cf.fb_i], plate_slots[1][cf.fb_i]
+    );
+    emit_extend_pins(
+        cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, false, n_dp, pitch, ep_shelf,
+        sh_b - p_shift, fa, heights[2], heights[3], edge_polys[0][cf.fb_i][cf.sb],
+        edge_polys[1][cf.fb_i][cf.sb], plate_slots[1][cf.fa_i]
+    );
+    emit_multiple_single_pins(
+        cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, false, n_sp, pitch, sp_pocket, sh_b + p_shift,
+        fa, heights[2], heights[3], edge_polys[2][cf.fb_i][cf.sb], edge_polys[3][cf.fb_i][cf.sb],
+        plate_slots[1][cf.fa_i]
+    );
+    dp_count += static_cast<size_t>(n_dp);
+    sp_count += static_cast<size_t>(n_dp + n_sp);
+}
 
 /// Populates all 8 contour profiles and mortise slots for one intra-bay Regular crease.
 void build_bay_crease_joinery(
@@ -499,15 +791,18 @@ void build_bay_crease_joinery(
     const BayCreaseSpec& spec,
     double pitch,
     std::array<std::vector<std::vector<std::vector<Point>>>, 4>& edge_polys,
-    std::array<std::vector<std::vector<MortiseSlot>>, 2>& plate_slots
+    std::array<std::vector<std::vector<MortiseSlot>>, 2>& plate_slots,
+    size_t& dp_count,
+    size_t& sp_count
 ) {
 
     const std::vector<VidyFacet>& facets = guide.facets();
     const std::array<double, 4> heights = guide.layer_heights();
-    const size_t fa_i = 14 * bay + spec.loc_a;
-    const size_t fb_i = 14 * bay + spec.loc_b;
-    const VidyFacet& fa = facets[fa_i];
-    const VidyFacet& fb = facets[fb_i];
+    CreaseFrame cf;
+    cf.fa_i = 14 * bay + spec.loc_a;
+    cf.fb_i = 14 * bay + spec.loc_b;
+    const VidyFacet& fa = facets[cf.fa_i];
+    const VidyFacet& fb = facets[cf.fb_i];
 
     std::vector<size_t> shared;
     for (const size_t va : fa.vertices) {
@@ -521,140 +816,53 @@ void build_bay_crease_joinery(
         return;
     }
 
-    const size_t sa = find_shared_side(fa, shared[0], shared[1]);
-    const size_t sb = find_shared_side(fb, shared[0], shared[1]);
+    cf.sa = find_shared_side(fa, shared[0], shared[1]);
+    cf.sb = find_shared_side(fb, shared[0], shared[1]);
     const size_t ma = fa.vertices.size();
     const size_t mb = fb.vertices.size();
-
-    const std::array<Point, 4> ends_a_in = {
-        fa.miter_rings[0][sa], fa.miter_rings[0][(sa + 1) % ma],
-        fa.miter_rings[1][sa], fa.miter_rings[1][(sa + 1) % ma]
+    cf.ends_a_in = {
+        fa.miter_rings[0][cf.sa], fa.miter_rings[0][(cf.sa + 1) % ma],
+        fa.miter_rings[1][cf.sa], fa.miter_rings[1][(cf.sa + 1) % ma]
     };
-    const std::array<Point, 4> ends_a_out = {
-        fa.miter_rings[2][sa], fa.miter_rings[2][(sa + 1) % ma],
-        fa.miter_rings[3][sa], fa.miter_rings[3][(sa + 1) % ma]
+    cf.ends_a_out = {
+        fa.miter_rings[2][cf.sa], fa.miter_rings[2][(cf.sa + 1) % ma],
+        fa.miter_rings[3][cf.sa], fa.miter_rings[3][(cf.sa + 1) % ma]
     };
-    const std::array<Point, 4> ends_b_in = {
-        fb.miter_rings[0][sb], fb.miter_rings[0][(sb + 1) % mb],
-        fb.miter_rings[1][sb], fb.miter_rings[1][(sb + 1) % mb]
+    cf.ends_b_in = {
+        fb.miter_rings[0][cf.sb], fb.miter_rings[0][(cf.sb + 1) % mb],
+        fb.miter_rings[1][cf.sb], fb.miter_rings[1][(cf.sb + 1) % mb]
     };
-    const std::array<Point, 4> ends_b_out = {
-        fb.miter_rings[2][sb], fb.miter_rings[2][(sb + 1) % mb],
-        fb.miter_rings[3][sb], fb.miter_rings[3][(sb + 1) % mb]
+    cf.ends_b_out = {
+        fb.miter_rings[2][cf.sb], fb.miter_rings[2][(cf.sb + 1) % mb],
+        fb.miter_rings[3][cf.sb], fb.miter_rings[3][(cf.sb + 1) % mb]
     };
-
-    const Point ref_b = Point::mid_point(ends_a_in[0], ends_a_in[1]);
-    const Point ref_t = Point::mid_point(ends_a_out[0], ends_a_out[1]);
-    const double min_len = std::min({
-        ends_a_in[0].distance(ends_a_in[1]),
-        ends_a_out[2].distance(ends_a_out[3]),
-        ends_b_in[0].distance(ends_b_in[1]),
-        ends_b_out[2].distance(ends_b_out[3])
+    cf.ref_b = Point::mid_point(cf.ends_a_in[0], cf.ends_a_in[1]);
+    cf.ref_t = Point::mid_point(cf.ends_a_out[0], cf.ends_a_out[1]);
+    cf.min_len = std::min({
+        cf.ends_a_in[0].distance(cf.ends_a_in[1]), cf.ends_a_out[2].distance(cf.ends_a_out[3]),
+        cf.ends_b_in[0].distance(cf.ends_b_in[1]), cf.ends_b_out[2].distance(cf.ends_b_out[3])
     });
 
     const double phi = 0.5 * std::acos(std::clamp(fa.normal.dot(fb.normal), -1.0, 1.0));
-    const double cos_dev = std::max(0.35, std::cos(std::abs(0.5 * Tolerance::PI - 2.0 * phi)));
-    const double l_tab_perp = guide.plate_thickness / cos_dev;
-    const double l_offs_perp = (guide.total_offset - guide.plate_thickness) / cos_dev;
+    const double cos_dev = std::max(0.05, std::cos(std::abs(0.5 * Tolerance::PI - 2.0 * phi)));
+    const Vector perp_a = inplane_outward_perp(fa, cf.ends_a_in[0], cf.ends_a_in[1]);
+    const Vector perp_b = inplane_outward_perp(fb, cf.ends_b_in[0], cf.ends_b_in[1]);
+    cf.v_ins_a = (spec.kind == 3 || spec.kind == 4) ? crown_bisector_vector(fa, guide.vertices()) : perp_a;
+    cf.v_ins_b = (spec.kind == 1) ? Vector(0.0, 0.0, 1.0) : perp_b;
+    const double cos_a = std::max(0.05, std::abs(cf.v_ins_a.dot(perp_a)));
+    const double cos_b = std::max(0.05, std::abs(cf.v_ins_b.dot(perp_b)));
+    cf.l_tab_a = (guide.plate_thickness / cos_dev) / cos_a;
+    cf.l_offs_a = ((guide.total_offset - guide.plate_thickness) / cos_dev) / cos_a;
+    cf.l_tab_b = (guide.plate_thickness / cos_dev) / cos_b;
+    cf.l_offs_b = ((guide.total_offset - guide.plate_thickness) / cos_dev) / cos_b;
 
-    const Vector perp_a = inplane_outward_perp(fa, ends_a_in[0], ends_a_in[1]);
-    const Vector perp_b = inplane_outward_perp(fb, ends_b_in[0], ends_b_in[1]);
-    Vector v_ins_a = perp_a;
-    Vector v_ins_b = perp_b;
-    if (spec.kind == 1) {
-        v_ins_b = Vector(0.0, 0.0, 1.0);
-    } else if (spec.kind == 3 || spec.kind == 4) {
-        v_ins_a = crown_bisector_vector(fa, guide.vertices());
-    }
-
-    const double cos_a = std::max(0.45, std::abs(v_ins_a.dot(perp_a)));
-    const double cos_b = std::max(0.45, std::abs(v_ins_b.dot(perp_b)));
-    const double l_tab_a = l_tab_perp / cos_a;
-    const double l_offs_a = l_offs_perp / cos_a;
-    const double l_tab_b = l_tab_perp / cos_b;
-    const double l_offs_b = l_offs_perp / cos_b;
-
-    if (spec.kind == 1) {
-        emit_multiple_double_pins(
-            ends_b_in, ref_b, v_ins_b, l_tab_b, l_offs_b, false, 2, pitch, 0.0, fa, heights, 0, 1,
-            edge_polys[0][fb_i][sb], edge_polys[1][fb_i][sb], plate_slots[0][fa_i], plate_slots[1][fa_i]
-        );
-        emit_multiple_single_pins(
-            ends_b_out, ref_t, v_ins_b, l_tab_b, false, 2, pitch, 0.0, fa, heights[2], heights[3],
-            edge_polys[2][fb_i][sb], edge_polys[3][fb_i][sb], plate_slots[1][fa_i]
-        );
-        emit_extend_no_pins(
-            ends_a_in, ref_b, v_ins_a, l_tab_a, l_offs_a, false, 440.0, 0.0,
-            edge_polys[0][fa_i][sa], edge_polys[1][fa_i][sa]
-        );
-        emit_extend_tab(
-            ends_a_out, ref_t, v_ins_a, l_tab_a, true, 440.0, 0.0,
-            edge_polys[2][fa_i][sa], edge_polys[3][fa_i][sa]
-        );
-        return;
-    }
-
-    if (spec.kind == 5) {
-        const int n_pins = std::clamp(static_cast<int>(std::max(600.0, min_len - 2800.0) / pitch), 2, 11);
-        emit_multiple_double_pins(
-            ends_b_out, ref_t, v_ins_b, l_tab_b, l_offs_b, true, n_pins, pitch, 0.0, fa, heights, 1, 0,
-            edge_polys[2][fb_i][sb], edge_polys[3][fb_i][sb], plate_slots[1][fa_i], plate_slots[0][fa_i]
-        );
-        emit_extend_tab(
-            ends_b_in, ref_b, v_ins_b, l_tab_b, false, 0.5 * n_pins * pitch + 90.0, 0.0,
-            edge_polys[0][fb_i][sb], edge_polys[1][fb_i][sb]
-        );
-        emit_extend_pins(
-            ends_a_out, ref_t, v_ins_a, l_tab_a, l_offs_a, true, n_pins, pitch, 0.0, fb, heights[0], heights[1],
-            edge_polys[2][fa_i][sa], edge_polys[3][fa_i][sa], plate_slots[0][fb_i]
-        );
-        emit_multiple_single_pins(
-            ends_a_in, ref_b, v_ins_a, l_tab_a, true, n_pins, pitch, 0.0, fb, heights[0], heights[1],
-            edge_polys[0][fa_i][sa], edge_polys[1][fa_i][sa], plate_slots[0][fb_i]
-        );
-        return;
-    }
-
-    int n_sp = 2;
-    int n_dp = 2;
-    if (spec.kind == 0) {
-        n_sp = std::clamp(static_cast<int>(std::max(1000.0, min_len - 1100.0) / pitch), 2, 12);
-        n_dp = std::max(2, n_sp - 1);
-    } else if (spec.kind == 2) {
-        n_sp = std::clamp(static_cast<int>(std::max(800.0, min_len - 1700.0) / pitch), 2, 5);
-        n_dp = std::max(2, n_sp - 1);
+    if (spec.kind == 0 || spec.kind == 1) {
+        emit_wall_or_situ_crease(spec, cf, pitch, fa, fb, heights, edge_polys, plate_slots, dp_count, sp_count);
+    } else if (spec.kind == 5) {
+        emit_valley_crease(spec, cf, pitch, fa, fb, heights, edge_polys, plate_slots, dp_count, sp_count);
     } else {
-        n_sp = std::clamp(static_cast<int>(std::max(1000.0, min_len - 3000.0) / pitch), 3, 8);
-        n_dp = std::clamp(n_sp - 2, 2, 5);
+        emit_knee_or_crown_crease(spec, cf, pitch, fa, fb, heights, edge_polys, plate_slots, dp_count, sp_count);
     }
-    if ((n_sp % 2) == (n_dp % 2)) {
-        n_dp = std::max(2, n_sp - 1);
-    }
-
-    double sh_a = 0.0;
-    if (spec.kind == 3) {
-        sh_a = 380.0 * (ends_a_in[1][0] > ends_a_in[0][0] ? -1.0 : 1.0);
-    } else if (spec.kind == 4) {
-        sh_a = 240.0 * (ends_a_in[1][0] > ends_a_in[0][0] ? 1.0 : -1.0);
-    }
-    const double sh_b = -sh_a;
-
-    emit_extend_tab(
-        ends_a_out, ref_t, v_ins_a, l_tab_a, true, 0.5 * n_sp * pitch + 160.0, sh_a,
-        edge_polys[2][fa_i][sa], edge_polys[3][fa_i][sa]
-    );
-    emit_extend_pins(
-        ends_a_in, ref_b, v_ins_a, l_tab_a, l_offs_a, false, n_dp, pitch, sh_a, fb, heights[2], heights[3],
-        edge_polys[0][fa_i][sa], edge_polys[1][fa_i][sa], plate_slots[1][fb_i]
-    );
-    emit_multiple_single_pins(
-        ends_b_out, ref_t, v_ins_b, l_tab_b, false, n_sp, pitch, sh_b, fa, heights[2], heights[3],
-        edge_polys[2][fb_i][sb], edge_polys[3][fb_i][sb], plate_slots[1][fa_i]
-    );
-    emit_multiple_double_pins(
-        ends_b_in, ref_b, v_ins_b, l_tab_b, l_offs_b, false, n_dp, pitch, sh_b, fa, heights, 0, 1,
-        edge_polys[0][fb_i][sb], edge_polys[1][fb_i][sb], plate_slots[0][fa_i], plate_slots[1][fa_i]
-    );
 }
 
 } // namespace
@@ -697,6 +905,22 @@ const std::vector<std::shared_ptr<FacePlanarElement>>& VidyPavilion::all_plates(
     return _all_plates;
 }
 
+size_t VidyPavilion::total_jointed_seams() const {
+    return _total_jointed_seams;
+}
+
+size_t VidyPavilion::total_double_pins() const {
+    return _total_double_pins;
+}
+
+size_t VidyPavilion::total_single_pins() const {
+    return _total_single_pins;
+}
+
+size_t VidyPavilion::total_pins() const {
+    return _total_double_pins + _total_single_pins;
+}
+
 size_t VidyPavilion::total_mortise_slots() const {
     return _total_mortise_slots;
 }
@@ -720,108 +944,93 @@ std::shared_ptr<FacePlanarElement> VidyPavilion::copy_plate(
     return dst;
 }
 
-Vector VidyPavilion::plate_insertion_vector(size_t facet_idx, size_t layer) const {
-
-    const VidyFacet& facet = guide.facets()[facet_idx];
-    const size_t loc = facet.local_index;
-    if (facet.role != VidyFacetRole::Roof) {
-        const size_t mate_loc = (loc == 0) ? 1 : ((loc == 1) ? 0 : ((loc == 2) ? 3 : 2));
-        const VidyFacet& mate = guide.facets()[14 * facet.bay + mate_loc];
-        std::vector<size_t> shared;
-        for (const size_t u : facet.vertices) {
-            for (const size_t v : mate.vertices) {
-                if (u == v) {
-                    shared.push_back(u);
-                }
-            }
-        }
-        const size_t s = find_shared_side(facet, shared[0], shared[1]);
-        const size_t m = facet.vertices.size();
-        const Vector v_pleat =
-            inplane_outward_perp(facet, facet.miter_rings[0][s], facet.miter_rings[0][(s + 1) % m]);
-        return (layer == 0) ? v_pleat : (v_pleat * 0.85 - facet.normal * 0.52).normalized();
-    }
-    if (layer == 1 && (loc == 4 || loc == 6 || loc == 8 || loc == 9 || loc == 11 || loc == 13)) {
-        return -facet.normal;
-    }
-    if (loc == 6 || loc == 11) {
-        return crown_bisector_vector(facet, guide.vertices());
-    }
-    if (loc == 4 || loc == 8 || loc == 9 || loc == 13) {
-        const size_t haunch_loc = (loc == 4) ? 5 : ((loc == 9) ? 10 : ((loc == 8) ? 7 : 12));
-        const VidyFacet& haunch = guide.facets()[14 * facet.bay + haunch_loc];
-        std::vector<size_t> shared;
-        for (const size_t u : facet.vertices) {
-            for (const size_t v : haunch.vertices) {
-                if (u == v) {
-                    shared.push_back(u);
-                }
-            }
-        }
-        const size_t s = find_shared_side(facet, shared[0], shared[1]);
-        return inplane_outward_perp(facet, facet.miter_rings[0][s], facet.miter_rings[0][(s + 1) % 3]);
-    }
-    const size_t valley_mate = (loc == 5) ? 10 : ((loc == 10) ? 5 : ((loc == 7) ? 12 : 7));
-    const VidyFacet& mate = guide.facets()[14 * facet.bay + valley_mate];
-    std::vector<size_t> shared;
-    for (const size_t u : facet.vertices) {
-        for (const size_t v : mate.vertices) {
-            if (u == v) {
-                shared.push_back(u);
-            }
-        }
-    }
-    const size_t s = find_shared_side(facet, shared[0], shared[1]);
-    const Vector v_valley =
-        inplane_outward_perp(facet, facet.miter_rings[0][s], facet.miter_rings[0][(s + 1) % 3]);
-    return (layer == 0) ? v_valley : (-facet.normal * 0.88 + v_valley * 0.47).normalized();
-}
-
-void VidyPavilion::add_erection_sequence_groups(size_t bay_idx) {
+void VidyPavilion::add_module_assembly_groups(size_t bay_idx, double roof_lift) {
 
     const size_t b = std::min(bay_idx, guide.bays - 1);
     const size_t base = 14 * b;
-    const std::array<size_t, 10> roof_order = {10, 5, 12, 7, 6, 11, 4, 9, 8, 13};
+    const std::vector<VidyFacet>& facets = guide.facets();
 
-    // Stage 1: Two vertical V-pleated walls assembled first, plates inserted gradually one after another.
-    const std::shared_ptr<TreeNode> g1 = add_group("erection_1_walls");
-    const std::array<double, 8> wall_lags = {0.0, 260.0, 520.0, 780.0, 0.0, 360.0, 720.0, 1080.0};
-    const std::array<size_t, 8> wall_locs = {0, 1, 0, 1, 2, 3, 2, 3};
-    const std::array<size_t, 8> wall_layers = {0, 0, 1, 1, 0, 0, 1, 1};
-    for (size_t i = 0; i < 8; i++) {
-        const size_t f = base + wall_locs[i];
-        const size_t lyr = wall_layers[i];
-        const Vector retreat = -plate_insertion_vector(f, lyr) * wall_lags[i];
-        const FacePlanarElement& src = (lyr == 0) ? *_inner_plates[f] : *_outer_plates[f];
-        add(copy_plate(src, retreat), g1);
+    // Step 1 (29-31s): Two 4-plate double-layer haunch wings closing across their valley creases.
+    const std::shared_ptr<TreeNode> s1 = add_group("module_1_haunch_wings");
+    for (const size_t loc : {size_t{5}, size_t{10}, size_t{7}, size_t{12}}) {
+        const double x_wing = (loc == 5 || loc == 10) ? -750.0 : 750.0;
+        const double y_val = (loc == 5 || loc == 7) ? -580.0 : 580.0;
+        const Vector delta(x_wing, y_val, 0.0);
+        add(copy_plate(*_inner_plates[base + loc], delta), s1);
+        add(copy_plate(*_outer_plates[base + loc], delta), s1);
     }
 
-    // Stage 2: Roof bottom (inner) layer assembled separately, 10 triangles inserted one after another.
-    const std::shared_ptr<TreeNode> g2 = add_group("erection_2_roof_bottom");
-    for (size_t step = 0; step < 10; step++) {
-        const size_t f = base + roof_order[step];
-        const Vector retreat = -plate_insertion_vector(f, 0) * (160.0 * static_cast<double>(step));
-        add(copy_plate(*_inner_plates[f], retreat), g2);
+    // Step 2 (32-33s): Left and right double-layer haunch wings sliding inward to meet at the crown apex.
+    const std::shared_ptr<TreeNode> s2 = add_group("module_2_haunches_joined");
+    for (const size_t loc : {size_t{5}, size_t{10}, size_t{7}, size_t{12}}) {
+        const Vector delta((loc == 5 || loc == 10) ? -520.0 : 520.0, 0.0, 0.0);
+        add(copy_plate(*_inner_plates[base + loc], delta), s2);
+        add(copy_plate(*_outer_plates[base + loc], delta), s2);
     }
 
-    // Stage 3: Roof top (outer) layer inserted gradually one after another onto the locked bottom roof.
-    const std::shared_ptr<TreeNode> g3 = add_group("erection_3_roof_top");
-    for (size_t step = 0; step < 10; step++) {
-        const size_t f = base + roof_order[step];
-        add(copy_plate(*_inner_plates[f]), g3);
-        const Vector retreat = -plate_insertion_vector(f, 1) * (130.0 * static_cast<double>(step));
-        add(copy_plate(*_outer_plates[f], retreat), g3);
+    // Step 3 (34-35s): Inner crown and eave triangles sliding in-plane with stepped Double_Pins into haunches.
+    const std::shared_ptr<TreeNode> s3 = add_group("module_3_inner_crowns_eaves");
+    for (const size_t loc : {size_t{5}, size_t{10}, size_t{7}, size_t{12}}) {
+        add(copy_plate(*_inner_plates[base + loc]), s3);
+        add(copy_plate(*_outer_plates[base + loc]), s3);
+    }
+    for (const size_t loc : {size_t{6}, size_t{11}, size_t{4}, size_t{9}, size_t{8}, size_t{13}}) {
+        const VidyFacet& fc = facets[base + loc];
+        Vector delta(0.0, 0.0, 0.0);
+        if (loc == 6 || loc == 11) {
+            delta = -crown_bisector_vector(fc, guide.vertices()) * 1350.0;
+        } else {
+            const size_t mate = (loc == 4) ? 5 : ((loc == 9) ? 10 : ((loc == 8) ? 7 : 12));
+            const VidyFacet& fm = facets[base + mate];
+            std::vector<size_t> sh;
+            for (const size_t va : fc.vertices) {
+                for (const size_t vb : fm.vertices) {
+                    if (va == vb) {
+                        sh.push_back(va);
+                    }
+                }
+            }
+            const size_t sk = find_shared_side(fc, sh[0], sh[1]);
+            const Vector v_knee = inplane_outward_perp(
+                fc, fc.miter_rings[0][sk], fc.miter_rings[0][(sk + 1) % fc.vertices.size()]
+            );
+            delta = -v_knee * 1250.0;
+        }
+        add(copy_plate(*_inner_plates[base + loc], delta), s3);
     }
 
-    // Stage 4: Complete pre-assembled 20-plate double-layer roof lowered vertically (-Z) onto vertical walls.
-    const std::shared_ptr<TreeNode> g4 = add_group("erection_4_roof_onto_walls");
+    // Step 4 (36-37s): Six female outer cover triangles closing onto exposed Single_Pins and Extend_Pins.
+    const std::shared_ptr<TreeNode> s4 = add_group("module_4_outer_covers");
+    for (size_t loc = 4; loc < 14; loc++) {
+        add(copy_plate(*_inner_plates[base + loc]), s4);
+        const bool is_cover =
+            (loc == 4 || loc == 6 || loc == 8 || loc == 9 || loc == 11 || loc == 13);
+        const Vector delta = is_cover ? (facets[base + loc].normal * 760.0) : Vector(0.0, 0.0, 0.0);
+        add(copy_plate(*_outer_plates[base + loc], delta), s4);
+    }
+
+    // Step 5 (38-43s): Vertical V-pleated double-layer walls assembling horizontally below the completed roof.
+    const std::shared_ptr<TreeNode> s5 = add_group("module_5_vertical_walls");
+    for (size_t loc = 4; loc < 14; loc++) {
+        add(copy_plate(*_inner_plates[base + loc], Vector(0.0, 0.0, roof_lift)), s5);
+        add(copy_plate(*_outer_plates[base + loc], Vector(0.0, 0.0, roof_lift)), s5);
+    }
     for (size_t loc = 0; loc < 4; loc++) {
-        add(copy_plate(*_inner_plates[base + loc]), g4);
-        add(copy_plate(*_outer_plates[base + loc]), g4);
+        const double y_in = (loc == 0 || loc == 2) ? -920.0 : 0.0;
+        const Vector n_out = (loc == 0 || loc == 2) ? (facets[base + loc].normal * 640.0) : Vector(0.0, 0.0, 0.0);
+        add(copy_plate(*_inner_plates[base + loc], Vector(0.0, y_in, 0.0)), s5);
+        add(copy_plate(*_outer_plates[base + loc], Vector(0.0, y_in, 0.0) + n_out), s5);
+    }
+
+    // Step 6 (44-48s): Complete 20-plate double-layer roof lowering vertically (-Z) onto the vertical walls.
+    const std::shared_ptr<TreeNode> s6 = add_group("module_6_roof_onto_walls");
+    for (size_t loc = 0; loc < 4; loc++) {
+        add(copy_plate(*_inner_plates[base + loc]), s6);
+        add(copy_plate(*_outer_plates[base + loc]), s6);
     }
     for (size_t loc = 4; loc < 14; loc++) {
-        add(copy_plate(*_inner_plates[base + loc], Vector(0.0, 0.0, 1650.0)), g4);
-        add(copy_plate(*_outer_plates[base + loc], Vector(0.0, 0.0, 1650.0)), g4);
+        add(copy_plate(*_inner_plates[base + loc], Vector(0.0, 0.0, roof_lift)), s6);
+        add(copy_plate(*_outer_plates[base + loc], Vector(0.0, 0.0, roof_lift)), s6);
     }
 }
 
@@ -844,34 +1053,43 @@ void VidyPavilion::build_panels_and_joints() {
                 const Point& p0 = facets[f].miter_rings[hi][k];
                 const Point& p1 = facets[f].miter_rings[hi][(k + 1) % m];
                 const Vector nf = (p1 - p0).normalized();
-                stock_polys[hi][f][k] = {p0 + nf * 500.0, p1 - nf * 500.0};
-                edge_polys[hi][f][k] = {p0 + nf * 140.0, p1 - nf * 140.0};
+                const double inset = std::min(460.0, 0.42 * p0.distance(p1));
+                stock_polys[hi][f][k] = {p0 + nf * inset, p1 - nf * inset};
+                edge_polys[hi][f][k] = {p0 + nf * inset, p1 - nf * inset};
             }
         }
     }
     plate_slots[0].resize(fcount);
     plate_slots[1].resize(fcount);
 
+    _total_jointed_seams = 0;
+    _total_double_pins = 0;
+    _total_single_pins = 0;
+
     if (with_joints) {
         const std::array<BayCreaseSpec, 16> specs = {{
-            {1, 0, 0}, {3, 2, 0},
+            {0, 1, 0}, {2, 3, 0},
             {4, 0, 1}, {9, 1, 1}, {8, 2, 1}, {13, 3, 1},
-            {4, 5, 2}, {9, 10, 2}, {8, 7, 2}, {13, 12, 2},
+            {4, 5, 2}, {9, 10, 2}, {8, 7, 6}, {13, 12, 6},
             {6, 5, 3}, {11, 10, 3}, {6, 7, 4}, {11, 12, 4},
             {5, 10, 5}, {7, 12, 5}
         }};
         for (size_t b = 0; b < guide.bays; b++) {
             for (const BayCreaseSpec& spec : specs) {
-                build_bay_crease_joinery(guide, b, spec, pin_pitch, edge_polys, plate_slots);
+                build_bay_crease_joinery(
+                    guide, b, spec, pin_pitch, edge_polys, plate_slots,
+                    _total_double_pins, _total_single_pins
+                );
+                _total_jointed_seams++;
             }
         }
     }
 
     const std::array<double, 4> s3_factors = {
-        0.30 * corner_scale, 0.70 * corner_scale, 0.70 * corner_scale, 0.70 * corner_scale
+        0.40 * corner_scale, 0.75 * corner_scale, 1.08 * corner_scale, 1.25 * corner_scale
     };
     const std::array<double, 4> s4_factors = {
-        0.25 * corner_scale, 0.65 * corner_scale, 0.65 * corner_scale, 0.65 * corner_scale
+        0.40 * corner_scale, 0.75 * corner_scale, 1.08 * corner_scale, 1.25 * corner_scale
     };
 
     _inner_plates.clear();
@@ -893,17 +1111,17 @@ void VidyPavilion::build_panels_and_joints() {
                 fmt::format("{}_{}_b{}_f{}", prefix, role_tag, facet.bay, facet.local_index);
 
             const Polyline s_bot =
-                assemble_chamfered_ring(facet, h_b, s3_factors[h_b], stock_polys[h_b][f]);
+                assemble_chamfered_ring(guide, facet, h_b, s3_factors[h_b], stock_polys[h_b][f]);
             const Polyline s_top =
-                assemble_chamfered_ring(facet, h_t, s3_factors[h_t], stock_polys[h_t][f]);
+                assemble_chamfered_ring(guide, facet, h_t, s3_factors[h_t], stock_polys[h_t][f]);
             std::shared_ptr<FacePlanarElement> plate =
                 std::make_shared<FacePlanarElement>(s_bot, s_top, plate_name);
 
             if (with_joints) {
                 const Polyline j_bot =
-                    assemble_chamfered_ring(facet, h_b, s4_factors[h_b], edge_polys[h_b][f]);
+                    assemble_chamfered_ring(guide, facet, h_b, s4_factors[h_b], edge_polys[h_b][f]);
                 const Polyline j_top =
-                    assemble_chamfered_ring(facet, h_t, s4_factors[h_t], edge_polys[h_t][f]);
+                    assemble_chamfered_ring(guide, facet, h_t, s4_factors[h_t], edge_polys[h_t][f]);
                 attach_plate_features(*plate, facet, j_bot, j_top, plate_slots[layer][f]);
                 _total_mortise_slots += plate_slots[layer][f].size();
             }

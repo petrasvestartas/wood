@@ -188,8 +188,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = plaited ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
-    "${RENDER[@]}" --name mesh_axes templates_vidy_1_main_mesh base_mesh+axes+folds
-    "${RENDER[@]}" --view top --name plan templates_vidy_1_main_mesh base_mesh+axes+folds
+    "${RENDER[@]}" --name mesh_axes templates_vidy_1_main_mesh base_mesh+axes
+    "${RENDER[@]}" --view top --name plan templates_vidy_1_main_mesh base_mesh+axes
     "${RENDER[@]}" --opacity 0.68 --name offset_shells templates_vidy_2_offset_mesh inner_surface+outer_surface+miter_planes
     "${RENDER[@]}" --opacity 0.72 templates_vidy_2_offset_mesh two_bay_shells
     "${RENDER[@]}" --name pavilion templates_vidy_3_panels inner_walls+outer_walls+inner_roof+outer_roof
@@ -198,7 +198,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints first_row_section
     "${RENDER[@]}" --scene "$VIDY4_SCENE" --wheel 2,0.38,0.40 templates_vidy_4_section_joints eave_joint_node
-    "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints erection_1_walls erection_2_roof_bottom erection_3_roof_top erection_4_roof_onto_walls
+    "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints module_1_haunch_wings module_2_haunches_joined module_3_inner_crowns_eaves module_4_outer_covers module_5_vertical_walls module_6_roof_onto_walls
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

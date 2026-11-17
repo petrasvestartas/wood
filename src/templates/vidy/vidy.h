@@ -42,11 +42,20 @@ public:
         const Vector& delta = Vector(0.0, 0.0, 0.0)
     );
 
-    /// Unit assembly insertion vector of facet_idx (0 = inner layer, 1 = outer layer), pointing along insertion travel.
-    Vector plate_insertion_vector(size_t facet_idx, size_t layer) const;
+    /// Adds the 6-step module assembly sequence (module_1_haunch_wings .. module_6_roof_onto_walls).
+    void add_module_assembly_groups(size_t bay_idx = 5, double roof_lift = 1650.0);
 
-    /// Populates four progressive erection groups (walls, roof bottom, roof top, roof onto walls) for bay_idx.
-    void add_erection_sequence_groups(size_t bay_idx = 0);
+    /// Total number of jointed double-layer Regular crease seams (16 per bay, 176 across 11 bays).
+    size_t total_jointed_seams() const;
+
+    /// Total number of stepped cavity-bridging Double_Pins across the pavilion.
+    size_t total_double_pins() const;
+
+    /// Total number of Single_Pins and Extend_Pins across the pavilion.
+    size_t total_single_pins() const;
+
+    /// Total number of integral through-tenon pins (Double_Pins + Single_Pins + Extend_Pins).
+    size_t total_pins() const;
 
     /// Total number of rectangular through-mortise hole loops cut across all plates in the pavilion.
     size_t total_mortise_slots() const;
@@ -55,6 +64,9 @@ private:
     std::vector<std::shared_ptr<FacePlanarElement>> _inner_plates; // Room-facing CLT layer plates.
     std::vector<std::shared_ptr<FacePlanarElement>> _outer_plates; // Exterior CLT layer plates.
     std::vector<std::shared_ptr<FacePlanarElement>> _all_plates; // Combined plate list (2 * f, 2 * f + 1).
+    size_t _total_jointed_seams = 0; // Jointed double-layer Regular seam count.
+    size_t _total_double_pins = 0; // Stepped Double_Pin count.
+    size_t _total_single_pins = 0; // Single_Pin + Extend_Pin count.
     size_t _total_mortise_slots = 0; // Through-mortise slot count across all plates.
 
     void build_panels_and_joints();

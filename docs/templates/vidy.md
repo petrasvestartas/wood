@@ -2,7 +2,7 @@
 
 [TOC]
 
-Double-layer folded timber pavilion (`VidyGuide` and `VidyPavilion`) in `src/templates/vidy/vidy.h`, after Christopher Robeller and Yves Weinand's *Théâtre de Vidy* pavilion in Lausanne (IBOIS / EPFL, 2017). Each longitudinal bay combines **four planar vertical V-pleated wall quads** with **ten planar antiprismatic roof triangles** (`154` base facets across `11` bays, `308` unique `45 mm` 5-ply CLT plates separated by a `210 mm` insulated cavity for a `300 mm` structural shell depth). Angle-proportional corner chamfers prevent multi-valent corner collisions, while integral stepped chamfered **Double Through-Tenons (`Double_Pin`)**, interleaved **Single Through-Tenons (`Single_Pin`)**, and vertical `+Z` on-site eave tenons (`situ`) lock all `308` plates across all `11` bays.
+Double-layer folded timber pavilion (`VidyGuide` and `VidyPavilion`) in `src/templates/vidy/vidy.h`, after Christopher Robeller and Yves Weinand's *Théâtre de Vidy* pavilion in Lausanne (IBOIS / EPFL, 2017). Each longitudinal bay combines **four planar vertical V-pleated wall quads** with **ten planar antiprismatic roof triangles** (`154` base facets across `11` bays, `308` unique `45 mm` 5-ply CLT plates separated by a `210 mm` insulated cavity for a `300 mm` structural shell depth). Angle-proportional corner chamfers and transverse station clearance snips prevent multi-valent 3D corner collisions (`0` CSG overlaps across all `308` plates), while integral stepped chamfered **Double Through-Tenons (`Double_Pin`)**, interleaved **Single Through-Tenons (`Single_Pin` / `Extend_Pins`)**, and vertical `+Z` on-site eave tenons (`situ`) lock all `308` plates across all `11` bays.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#vidy_main_mesh">
@@ -33,7 +33,7 @@ Double-layer folded timber pavilion (`VidyGuide` and `VidyPavilion`) in `src/tem
 | `eave_height_mid`, `eave_height_end` | `7482.78`, `6512.31` | via `guide` | Vertical pleated wall eave heights from centre to gable ends in mm |
 | `crown_height_mid`, `crown_height_end` | `10347.67`, `9723.09` | via `guide` | Antiprismatic roof ridge heights in mm |
 | `plate_thickness`, `total_offset` | `45.0`, `300.0` | via `guide` | Single-layer CLT thickness `t_plate` and total shell depth `t_offs` (`210 mm` cavity) |
-| `with_joints` | — | `true` | Generates stepped `Double_Pin`s, `Single_Pin`s, `+Z` `situ` eave tenons and `3,618` mortise slots |
+| `with_joints` | — | `true` | Generates `990` `Double_Pin`s, `2,132` `Single/Extend_Pin`s (`3,122` pins) and `4,112` mortise slots |
 | `corner_scale`, `pin_pitch` | — | `1.0`, `500.0` | Angle-proportional multi-valent corner chamfer scale and tenon pitch in mm |
 
 ---
@@ -66,7 +66,7 @@ Each topology edge carries its exact fabrication miter plane: angle-bisector pla
 
 ## 3. Offset Mesh with Two-Layer Panels {#vidy_panels}
 
-With `with_joints = false`, `VidyPavilion` lofts all `154` inner and `154` outer `45 mm` `FacePlanarElement` panels (`308` panels total) with Robeller's angle-proportional corner chamfers (`(180 - delta) * factor`: `0.30` on `h = 0`, `0.70` on `h = 45, 255, 300`), producing `12`-vertex roof triangles and `16`-vertex wall quads that prevent 3D corner collisions at five- and six-valent nodes.
+With `with_joints = false`, `VidyPavilion` lofts all `154` inner and `154` outer `45 mm` `FacePlanarElement` panels (`308` panels total) with Robeller's angle-proportional corner chamfers (`(180 - delta) * factor`: `{0.40, 0.75, 1.08, 1.25}` across `h = {0, 45, 255, 300} mm`) and half-bay station clearance snips, producing `12`-vertex roof triangles and `16`-vertex wall quads with zero 3D solid collisions at five- and six-valent saddle nodes.
 
 <div class="wood-pair-grid">
   <img src="templates_vidy_3_panels_pavilion.webp" alt="Full 11-bay Théâtre de Vidy pavilion with all 308 chamfered double-layer CLT panels">
@@ -77,32 +77,51 @@ With `with_joints = false`, `VidyPavilion` lofts all `154` inner and `154` outer
 
 ---
 
-## 4. Full-Pavilion Double-Layer Joinery and Erection Sequence {#vidy_section_joints}
+## 4. Full-Pavilion Double-Layer Joinery and Module Assembly {#vidy_section_joints}
 
-With `with_joints = true`, `VidyPavilion` generates production Vidy joinery across **all `308` panels of all `11` bays** (`3,618` rectangular through-mortise slots): `12`-vertex stepped chamfered `Double_Pin`s (`270 mm` base shaft stepping by `35 mm` shoulders to a `180 mm` outer shaft and `140 mm` chamfered tip at `500 mm` pitch), `6`-vertex `Single_Pin`s, cavity-bridging `Extend_Pins` / `Extend_NoPins` tabs, and vertical `+Z` `situ` eave tenons.
+With `with_joints = true`, `VidyPavilion` generates production Vidy joinery across **all `308` panels of all `11` bays** (`176` jointed double-layer seams, `3,122` integral through-tenon pins, and `4,112` rectangular through-mortise slots): `12`-vertex stepped chamfered `Double_Pin`s (`270 mm` base shaft stepping by `35 mm` shoulders to a `180 mm` outer shaft and `140 mm` chamfered tip at `500 mm` pitch), `6`-vertex `Single_Pin`s, cavity-bridging `Extend_Pins` / `Extend_NoPins` shelves, and vertical `+Z` `situ` eave tenons.
+
+| Metric | 3D Rhino Fabrication Model | `VidyPavilion` (`wood`) |
+| --- | --- | --- |
+| Double-layer CLT plates (`1` bay / `11` bays) | `28` / `308` | `28` / `308` |
+| Jointed double-layer Regular seams (`1` bay / `11` bays) | `16` / `176` | `16` / `176` |
+| Stepped `Double_Pin`s (`1` bay roof + wall / `11` bays) | `90` (`58` + `32`) / `992` | `90` (`58` + `32`) / `990` |
+| `Single_Pin`s + `Extend_Pin`s (`11` bays) | `2,128` | `2,132` |
+| Total integral through-tenon pins (`11` bays) | `3,120` | `3,122` |
+| Rectangular through-mortise slots (`11` bays) | `4,111` | `4,112` |
+| 3D Manifold CSG solid collisions (`308` plates) | `0` | `0` (`0.0 mm^3`) |
 
 <div class="wood-pair-grid">
   <img src="templates_vidy_4_section_joints_first_row_section.webp" alt="First-row 28-plate verification arch section matching the Rhino production joinery polylines">
   <img src="templates_vidy_4_section_joints_full_pavilion.webp" alt="Full 11-bay 308-plate Théâtre de Vidy pavilion with through-tenon joinery on every panel">
 </div>
 
-![Close-up of the V-pleated left wall, vertical +Z situ eave tenons, stepped haunch Double_Pins and non-colliding corner chamfers](templates_vidy_4_section_joints_eave_joint_node.webp)
+![Close-up of the assembled V-pleated left wall, vertical +Z situ eave tenon mortises, haunch joints and non-colliding corner chamfers](templates_vidy_4_section_joints_eave_joint_node.webp)
 
-### Real-Building Four-Stage Insertion Sequence
+### Six-Step Module Assembly Sequence
 
-1. **Vertical walls assembled first** (`erection_1_walls`): inner and outer V-pleated wall quads slide horizontally along their in-plane insertion vectors.
-2. **Roof bottom layer assembled separately** (`erection_2_roof_bottom`): the ten inner roof triangles insert gradually one after another from valley haunches to crown bisectors to eaves.
-3. **Roof top layer assembled onto bottom layer** (`erection_3_roof_top`): the ten outer roof triangles slide gradually onto the stepped `Double_Pin` spacers across the `210 mm` cavity.
-4. **Whole double-layer roof lowered onto vertical walls** (`erection_4_roof_onto_walls`): the completed `20`-plate double-layer roof drops vertically along `-Z` onto the walls' `+Z` `situ` eave tenons.
+Each `28`-plate prefabricated bay module follows the six-step IBOIS *Design for Assembly* sequence (`add_module_assembly_groups`):
+
+1. **`module_1_haunch_wings`**: The left (`{5, 10}`) and right (`{7, 12}`) `4`-plate double-layer haunch wings close across their negative-fold valley creases (`11` outer `Double_Pin`s piercing into the inner valley plates).
+2. **`module_2_haunches_joined`**: The two `4`-plate double-layer haunch wings slide inward to meet at the central crown apex.
+3. **`module_3_inner_crowns_eaves`**: The two inner crown triangles (`6_in, 11_in`, carrying `6 + 5 = 11` stepped `Double_Pin`s along their crown bisectors) and four inner eave triangles (`4_in, 9_in` with `3` `Double_Pin`s; `8_in, 13_in` with `4` `Double_Pin`s) slide in-plane into the haunches.
+4. **`module_4_outer_covers`**: The six pure-female (`0`-pin) outer cover triangles (`4_out, 6_out, 8_out, 9_out, 11_out, 13_out`) close along `-normal` onto the exposed `Single_Pin`s and `Extend_Pin`s, completing the `20`-plate double-layer roof arch.
+5. **`module_5_vertical_walls`**: Beneath the completed `20`-plate roof arch, the two vertical V-pleated double-layer walls (`{0, 1}` and `{2, 3}`, `8` plates with `12` horizontal `Double_Pin`s + `12` `Extend_Pin`s + `12` `Single_Pin`s per V-pleat) slide together horizontally.
+6. **`module_6_roof_onto_walls`**: The `20`-plate double-layer roof arch lowers vertically (`-Z`) onto the upward `+Z` `situ` tenons (`2` `Double_Pin`s on each inner wall quad + `2` `Single_Pin`s on each outer wall quad).
 
 <div class="wood-pair-grid">
-  <img src="templates_vidy_4_section_joints_erection_1_walls.webp" alt="Step 1: Vertical V-pleated double-layer walls assembled first">
-  <img src="templates_vidy_4_section_joints_erection_2_roof_bottom.webp" alt="Step 2: Roof bottom (inner) layer plates inserted gradually one after another">
+  <img src="templates_vidy_4_section_joints_module_1_haunch_wings.webp" alt="Step 1: Left and right 4-plate double-layer haunch wings closing across their valley creases">
+  <img src="templates_vidy_4_section_joints_module_2_haunches_joined.webp" alt="Step 2: Left and right double-layer haunch wings sliding inward to meet at the crown apex">
 </div>
 
 <div class="wood-pair-grid">
-  <img src="templates_vidy_4_section_joints_erection_3_roof_top.webp" alt="Step 3: Roof top (outer) layer plates inserted gradually onto the bottom roof layer">
-  <img src="templates_vidy_4_section_joints_erection_4_roof_onto_walls.webp" alt="Step 4: Complete double-layer roof lowered vertically onto the vertical walls">
+  <img src="templates_vidy_4_section_joints_module_3_inner_crowns_eaves.webp" alt="Step 3: Inner crown and eave triangles sliding in-plane with stepped Double_Pins into the haunches">
+  <img src="templates_vidy_4_section_joints_module_4_outer_covers.webp" alt="Step 4: Six pure-female outer cover triangles closing onto exposed Single_Pins and Extend_Pins">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vidy_4_section_joints_module_5_vertical_walls.webp" alt="Step 5: Two vertical V-pleated double-layer walls assembling horizontally beneath the completed roof">
+  <img src="templates_vidy_4_section_joints_module_6_roof_onto_walls.webp" alt="Step 6: Complete 20-plate double-layer roof arch lowering vertically onto the vertical walls">
 </div>
 
 \include{lineno} templates_vidy_4_section_joints.cpp

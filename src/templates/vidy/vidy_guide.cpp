@@ -440,8 +440,7 @@ void VidyGuide::draw() {
 
     const std::shared_ptr<TreeNode> axes_group = add_group("axes");
     for (Line axis : _bay_axes) {
-        axis.width = 1.6;
-        axis.linecolor = Color(120, 120, 120, 255);
+        axis.linecolor = Color::black();
         add_line(axis, axes_group);
     }
 
@@ -451,10 +450,7 @@ void VidyGuide::draw() {
             continue;
         }
         Line crease = Line::from_points(_vertices[edge.u], _vertices[edge.v]);
-        crease.width = edge.kind == VidyEdgeKind::BaySeparation ? 2.2 : 1.5;
-        crease.linecolor = edge.kind == VidyEdgeKind::BaySeparation
-            ? Color(40, 90, 175, 255)
-            : (edge.positive_fold ? Color(195, 55, 45, 255) : Color(35, 135, 95, 255));
+        crease.linecolor = Color::black();
         add_line(crease, folds_group);
     }
 
