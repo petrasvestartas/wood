@@ -7,6 +7,9 @@ namespace wood_grid {
 
 namespace {
 
+using PlanEdge = Plan::Edge;
+using PlanCell = Plan::Cell;
+
 constexpr double PLAN_TOL = 1.0;
 constexpr double PLAN_MERGE = 5.0;
 
@@ -535,19 +538,6 @@ Point Plan::to_world(double u, double v, double w) const {
     return frame.origin() + frame.x_axis() * u + frame.y_axis() * v + frame.z_axis() * w;
 }
 
-Point Plan::to_local(const Point& world) const {
-    const Vector d = world - frame.origin();
-    return Point(d.dot(frame.x_axis()), d.dot(frame.y_axis()), d.dot(frame.z_axis()));
-}
-
-Polyline Plan::lift_polyline(const Polyline& local_loop, double w) const {
-    std::vector<Point> pts;
-    pts.reserve(local_loop.point_count());
-    for (const Point& p : local_loop.get_points())
-        pts.push_back(to_world(p[0], p[1], w));
-    return Polyline(pts);
-}
-
 Plan Plan::bay(size_t index) const {
     return bays({index});
 }
@@ -734,46 +724,61 @@ Stack Stack::from_footprint(
     if (elevations.size() < 2)
         return stack;
 
+    const Vector X(1.0, 0.0, 0.0);
+    const Vector Y(0.0, 1.0, 0.0);
     for (size_t l = 1; l < elevations.size(); ++l) {
-        const double z = elevations[l];
-        const double h = elevations[l] - elevations[l - 1];
-        const Plane floor_frame = Plane(
-            Point(0.0, 0.0, z), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)
-        );
+        const Plane floor_frame(Point(0.0, 0.0, elevations[l]), X, Y);
         Framing floor_framing = framing;
-        floor_framing.post_height = h;
-        stack.levels.push_back(LevelSpec{
-            Plan::from_footprint(footprint, pattern, cores, floor_frame),
-            floor_framing,
-            fmt::format("level_{}", l),
-        });
+        floor_framing.height = elevations[l] - elevations[l - 1];
+        stack.levels.push_back(
+            Level{Plan::from_footprint(footprint, pattern, cores, floor_frame), floor_framing}
+        );
     }
     return stack;
 }
 
-namespace {
+Stack Stack::from_levels(std::vector<Level> levels, double base_z, bool plumb_columns) {
+    double prev_z = base_z;
+    for (size_t i = 0; i < levels.size(); ++i) {
+        const double z = levels[i].plan.frame.origin()[2];
+        levels[i].framing.height = std::max(0.0, z - prev_z);
 
-Point pattern_or_footprint_pivot(
-    const std::vector<Polyline>& footprint, const Pattern& pattern
-) {
-    if (!footprint.empty())
-        return Point::centroid(strip_closing_point(footprint.front()));
-    std::vector<Point> pts;
-    for (const Line& l : pattern.lines) {
-        pts.push_back(l.start());
-        pts.push_back(l.end());
+        if (plumb_columns && i > 0 && !levels[i - 1].plan.boundary.empty()) {
+            std::vector<Polyline> prev_rings;
+            prev_rings.reserve(levels[i - 1].plan.boundary.size());
+            for (const Polyline& r : levels[i - 1].plan.boundary) {
+                std::vector<Point> pts;
+                pts.reserve(r.point_count());
+                for (const Point& p : r.get_points()) {
+                    const Point w = levels[i - 1].plan.to_world(p[0], p[1], 0.0);
+                    pts.emplace_back(w[0], w[1], 0.0);
+                }
+                prev_rings.emplace_back(std::move(pts));
+            }
+            for (size_t v = 0; v < levels[i].plan.nodes.size(); ++v) {
+                if (v >= levels[i].plan.standing.size() || !levels[i].plan.standing[v])
+                    continue;
+                const Point w =
+                    levels[i].plan.to_world(levels[i].plan.nodes[v][0], levels[i].plan.nodes[v][1], 0.0);
+                const Point flat(w[0], w[1], 0.0);
+                if (!inside_even_odd_2d(prev_rings, flat) &&
+                    !point_on_any_ring_2d(prev_rings, flat, PLAN_MERGE * 2.0)) {
+                    levels[i].plan.standing[v] = false;
+                }
+            }
+        }
+        prev_z = z;
     }
-    return pts.empty() ? Point(0.0, 0.0, 0.0) : Point::centroid(pts);
+    return Stack{std::move(levels), {}};
 }
 
-Stack build_morphed_stack(
-    const std::vector<Polyline>& base_footprint,
+Stack Stack::morph(
+    const std::vector<Polyline>& footprint,
     const std::vector<double>& elevations,
-    const Pattern& base_pattern,
+    const Pattern& pattern,
+    const std::function<Xform(double)>& xform_at,
     const Framing& framing,
-    const std::vector<Polyline>& cores,
-    bool transform_cores,
-    const std::function<Xform(double)>& xform_at
+    const std::vector<Polyline>& cores
 ) {
     Stack stack;
     if (elevations.size() < 2)
@@ -788,14 +793,12 @@ Stack build_morphed_stack(
         const double t = (elevations[idx] - z0) / z_span;
         const Xform xf = xform_at(t);
         std::vector<Polyline> fp;
-        for (const Polyline& r : base_footprint)
+        fp.reserve(footprint.size());
+        for (const Polyline& r : footprint)
             fp.push_back(r.transformed(xf));
-        std::vector<Polyline> crs;
-        for (const Polyline& c : cores)
-            crs.push_back(transform_cores ? c.transformed(xf) : c);
         const Plane fl_frame(Point(0.0, 0.0, elevations[idx]), X, Y);
         return std::make_pair(
-            Plan::from_footprint(fp, base_pattern.transformed(xf), crs, fl_frame), xf
+            Plan::from_footprint(fp, pattern.transformed(xf), cores, fl_frame), xf
         );
     };
 
@@ -804,26 +807,23 @@ Stack build_morphed_stack(
         auto [curr_plan, curr_xf] = make_plan_at(l);
         curr_plan.column_feet.assign(curr_plan.nodes.size(), std::nullopt);
 
-        // Map `prev_plan` nodes through the incremental transform to pair leaning/twisting columns!
         const Xform inv_prev = prev_xf.inverse().value_or(Xform::identity());
         for (size_t v = 0; v < curr_plan.nodes.size(); ++v) {
             if (v >= curr_plan.standing.size() || !curr_plan.standing[v])
                 continue;
-            const Point curr_xy = curr_plan.to_world(curr_plan.nodes[v][0], curr_plan.nodes[v][1], 0.0);
-            const Point back_xy = Point(curr_xy[0], curr_xy[1], 0.0).transformed(inv_prev);
-            const Point target_prev = back_xy.transformed(prev_xf);
-            (void)target_prev;
-
-            // Compare `back_xy` against un-transformed or `prev_xf`-inverted `prev_plan` nodes:
+            const Point curr_xy =
+                curr_plan.to_world(curr_plan.nodes[v][0], curr_plan.nodes[v][1], 0.0);
             double best_d = 80.0;
             std::optional<Point> match_foot;
             for (size_t u = 0; u < prev_plan.nodes.size(); ++u) {
                 if (u < prev_plan.standing.size() && !prev_plan.standing[u])
                     continue;
-                const Point prev_w = prev_plan.to_world(prev_plan.nodes[u][0], prev_plan.nodes[u][1], 0.0);
+                const Point prev_w =
+                    prev_plan.to_world(prev_plan.nodes[u][0], prev_plan.nodes[u][1], 0.0);
                 const Point prev_predicted =
                     Point(prev_w[0], prev_w[1], 0.0).transformed(inv_prev).transformed(curr_xf);
-                const double d = std::hypot(curr_xy[0] - prev_predicted[0], curr_xy[1] - prev_predicted[1]);
+                const double d =
+                    std::hypot(curr_xy[0] - prev_predicted[0], curr_xy[1] - prev_predicted[1]);
                 if (d < best_d) {
                     best_d = d;
                     match_foot = prev_w;
@@ -836,156 +836,23 @@ Stack build_morphed_stack(
         }
 
         Framing fl_frm = framing;
-        fl_frm.post_height = elevations[l] - elevations[l - 1];
-        stack.levels.push_back(LevelSpec{std::move(curr_plan), fl_frm, fmt::format("level_{}", l)});
+        fl_frm.height = elevations[l] - elevations[l - 1];
+        stack.levels.push_back(Level{std::move(curr_plan), fl_frm});
         prev_plan = stack.levels.back().plan;
         prev_xf = curr_xf;
     }
     return stack;
 }
 
-} // namespace
-
-Stack Stack::shifted(
-    const std::vector<Polyline>& base_footprint,
-    const std::vector<double>& elevations,
-    const std::vector<std::pair<double, double>>& shifts_xy,
-    const Pattern& shared_pattern,
-    const Framing& framing,
-    const std::vector<Polyline>& cores
-) {
-    Stack stack;
-    if (elevations.size() < 2)
-        return stack;
-
-    const Vector X(1.0, 0.0, 0.0);
-    const Vector Y(0.0, 1.0, 0.0);
-    std::vector<Polyline> prev_rings = base_footprint;
-
-    for (size_t l = 1; l < elevations.size(); ++l) {
-        const auto [dx, dy] = (l - 1 < shifts_xy.size()) ? shifts_xy[l - 1] : std::make_pair(0.0, 0.0);
-        const Xform shift = Xform::translation(dx, dy, 0.0);
-        std::vector<Polyline> fp;
-        for (const Polyline& r : base_footprint)
-            fp.push_back(r.transformed(shift));
-
-        const Plane fl_frame(Point(0.0, 0.0, elevations[l]), X, Y);
-        Plan curr = Plan::from_footprint(fp, shared_pattern, cores, fl_frame);
-
-        // On storeys above ground (`l > 1`), omit columns under overhanging cantilevers outside `prev_rings`!
-        if (l > 1 && !prev_rings.empty()) {
-            for (size_t v = 0; v < curr.nodes.size(); ++v) {
-                if (!curr.standing[v])
-                    continue;
-                const Point w = curr.to_world(curr.nodes[v][0], curr.nodes[v][1], 0.0);
-                const Point flat(w[0], w[1], 0.0);
-                if (!inside_even_odd_2d(prev_rings, flat) &&
-                    !point_on_any_ring_2d(prev_rings, flat, PLAN_MERGE * 2.0)) {
-                    curr.standing[v] = false;
-                }
-            }
-        }
-
-        Framing fl_frm = framing;
-        fl_frm.post_height = elevations[l] - elevations[l - 1];
-        stack.levels.push_back(LevelSpec{std::move(curr), fl_frm, fmt::format("level_{}", l)});
-        prev_rings = std::move(fp);
-    }
-    return stack;
-}
-
-Stack Stack::tapered(
-    const std::vector<Polyline>& base_footprint,
-    const std::vector<double>& elevations,
-    const Pattern& base_pattern,
-    double top_scale,
-    const Framing& framing,
-    const std::vector<Polyline>& cores
-) {
-    const Point p = pattern_or_footprint_pivot(base_footprint, base_pattern);
-    return build_morphed_stack(
-        base_footprint,
-        elevations,
-        base_pattern,
-        framing,
-        cores,
-        false,
-        [p, top_scale](double t) {
-            const double s = 1.0 - (1.0 - top_scale) * t;
-            return Xform::scale_non_uniform(Point(p[0], p[1], 0.0), s, s, 1.0);
-        }
-    );
-}
-
-Stack Stack::twisted(
-    const std::vector<Polyline>& base_footprint,
-    const std::vector<double>& elevations,
-    const Pattern& base_pattern,
-    double total_twist_degrees,
-    const Framing& framing,
-    const std::vector<Polyline>& cores
-) {
-    const Point p = pattern_or_footprint_pivot(base_footprint, base_pattern);
-    return build_morphed_stack(
-        base_footprint,
-        elevations,
-        base_pattern,
-        framing,
-        cores,
-        false,
-        [p, total_twist_degrees](double t) {
-            return Xform::translation(p[0], p[1], 0.0) *
-                   Xform::rotation_z(total_twist_degrees * t, true) *
-                   Xform::translation(-p[0], -p[1], 0.0);
-        }
-    );
-}
-
-Stack Stack::from_levels(
-    double base_elevation,
-    const std::vector<std::tuple<
-        double,
-        std::vector<Polyline>,
-        Pattern,
-        Framing,
-        std::vector<Polyline>>>& storeys
-) {
-    Stack stack;
-    double prev_z = base_elevation;
-    for (size_t i = 0; i < storeys.size(); ++i) {
-        const auto& [z, fp, pat, frm, crs] = storeys[i];
-        const Plane floor_frame = Plane(
-            Point(0.0, 0.0, z), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)
-        );
-        Framing floor_framing = frm;
-        floor_framing.post_height = z - prev_z;
-        stack.levels.push_back(LevelSpec{
-            Plan::from_footprint(fp, pat, crs, floor_frame),
-            floor_framing,
-            fmt::format("level_{}", i + 1),
-        });
-                prev_z = z;
-    }
-    return stack;
-}
-
-void Stack::add_perimeter_facades(
-    const Polyline& /*footprint_outer*/,
-    double z_bottom,
-    double /*z_top*/,
-    double target_bay,
-    const std::vector<double>& /*storey_heights*/,
-    const Framing& facade_framing
-) {
+void Stack::add_facades(double target_bay, const Framing& framing, double base_z) {
     if (levels.empty())
         return;
 
-    // Frame each clear perimeter bay opening between columns, lower deck, and upper edge beam!
     for (size_t li = 0; li < levels.size(); ++li) {
-        const LevelSpec& lvl = levels[li];
+        const Level& lvl = levels[li];
         const double z_top_datum = lvl.plan.frame.origin()[2];
         const double col_w = wood_session::compute_size(lvl.framing.profiles.column).first;
-        // Identify building corner vertices (2 boundary edges meeting non-collinearly) so braces go on corner bays.
+
         std::vector<std::vector<Vector>> bnd_dirs(lvl.plan.nodes.size());
         for (const PlanEdge& e : lvl.plan.edges) {
             if (!e.boundary)
@@ -1005,13 +872,12 @@ void Stack::add_perimeter_facades(
             lvl.framing.profiles.beam.empty() ? lvl.framing.profiles.girder : lvl.framing.profiles.beam
         );
         const auto [purlin_w, purlin_d] = wood_session::compute_size(lvl.framing.profiles.purlin);
-        const double fm_hw = 0.5 * wood_session::compute_size(facade_framing.profiles.girder).first;
-        const auto& ft_prof = facade_framing.profiles.beam.empty()
-                                  ? facade_framing.profiles.girder
-                                  : facade_framing.profiles.beam;
+        const double fm_hw = 0.5 * wood_session::compute_size(framing.profiles.girder).first;
+        const auto& ft_prof =
+            framing.profiles.beam.empty() ? framing.profiles.girder : framing.profiles.beam;
         const double ft_hw = 0.5 * wood_session::compute_size(ft_prof).first;
 
-        double z_lo = (li == 0) ? z_bottom : levels[li - 1].plan.frame.origin()[2];
+        double z_lo = (li == 0) ? base_z : levels[li - 1].plan.frame.origin()[2];
         if (li > 0 && levels[li - 1].framing.deck > PLAN_TOL && !levels[li - 1].framing.deck_flush)
             z_lo += levels[li - 1].framing.deck;
 
@@ -1024,7 +890,6 @@ void Stack::add_perimeter_facades(
             }
         }
 
-        size_t bnd_idx = 0;
         for (const PlanEdge& edge : lvl.plan.edges) {
             if (!edge.boundary)
                 continue;
@@ -1039,11 +904,13 @@ void Stack::add_perimeter_facades(
             if (lvl.framing.system == System::PostAndBeam) {
                 beam_w = is_primary ? girder_w : sec_w;
                 soffit_d = is_primary ? girder_d : sec_d;
-            } else if (lvl.framing.system == System::GirderPurlin) {
+            } else if (lvl.framing.system == System::GirderPurlin ||
+                       lvl.framing.system == System::StackedPurlin) {
+                const bool stacked = (lvl.framing.system == System::StackedPurlin);
                 if (is_primary) {
                     beam_w = girder_w;
-                    soffit_d = (lvl.framing.purlin == PurlinMode::Stacked) ? (purlin_d + girder_d) : girder_d;
-                } else if (lvl.framing.purlin == PurlinMode::Flush) {
+                    soffit_d = stacked ? (purlin_d + girder_d) : girder_d;
+                } else if (!stacked) {
                     beam_w = sec_w;
                     soffit_d = sec_d;
                 } else {
@@ -1072,9 +939,9 @@ void Stack::add_perimeter_facades(
             const std::vector<double> u_bays = compute_bays(clear_len, target_bay);
             const Plan wall_plan = Plan::facade(base, clear_h, u_bays, {clear_h});
 
-            Framing ff = facade_framing;
-            ff.post_height = 0.0;
-            if (ff.brace != BraceMode::None && !wall_plan.cells.empty()) {
+            Framing ff = framing;
+            ff.height = 0.0;
+            if (ff.brace != Brace::None && !wall_plan.cells.empty()) {
                 const bool at_start = is_bldg_corner(u);
                 const bool at_end = is_bldg_corner(v);
                 size_t min_ci = 0;
@@ -1085,7 +952,8 @@ void Stack::add_perimeter_facades(
                     double sum_u = 0.0;
                     for (size_t vi : wall_plan.cells[ci].outer)
                         sum_u += wall_plan.nodes[vi][0];
-                    const double cu = sum_u / std::max<size_t>(1, wall_plan.cells[ci].outer.size());
+                    const double cu =
+                        sum_u / std::max<size_t>(1, wall_plan.cells[ci].outer.size());
                     if (cu < min_u) {
                         min_u = cu;
                         min_ci = ci;
@@ -1101,11 +969,9 @@ void Stack::add_perimeter_facades(
                 if (at_end && max_ci != min_ci)
                     ff.braced_bays.push_back(max_ci);
                 if (ff.braced_bays.empty())
-                    ff.brace = BraceMode::None;
+                    ff.brace = Brace::None;
             }
-            facades.push_back(
-                LevelSpec{wall_plan, ff, fmt::format("facade_{}_{}", li + 1, bnd_idx++)}
-            );
+            facades.push_back(Level{wall_plan, ff});
         }
     }
 }

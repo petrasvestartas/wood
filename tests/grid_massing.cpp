@@ -4,6 +4,7 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_grid;
 
 namespace {
 
@@ -91,7 +92,7 @@ double largest_clash(const WoodSession& session) {
     return worst;
 }
 
-void verify_grid(const std::string& label, const wood_grid::Grid& grid) {
+void verify_grid(const std::string& label, const Grid& grid) {
     check(!grid.elements().empty(), label + ": produced zero elements");
     check(grid.objects.meshes->empty(), label + ": plan must not emit triangulated meshes");
     const double clash = largest_clash(grid);
@@ -123,113 +124,58 @@ int main() {
         Point(0.0, 8000.0, 0.0),
         Point(0.0, 0.0, 0.0),
     });
-    const wood_grid::Plan l_plan = wood_grid::Plan::from_footprint(
-        {l_ring}, wood_grid::Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}), {}, FLOOR
+    const Plan l_plan = Plan::from_footprint(
+        {l_ring}, Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}), {}, FLOOR
     );
     check(l_plan.bay_count() == 5, "L-plan must have 5 bays");
-    const wood_grid::Plan sub_bay = l_plan.bay(0);
+    const Plan sub_bay = l_plan.bay(0);
     check(sub_bay.bay_count() == 1, "isolated bay must have 1 cell");
     check(sub_bay.edges.size() == 4, "isolated rectangular bay must have 4 boundary edges");
     verify_grid(
         "isolated_bay",
-        wood_grid::Grid(
-            sub_bay,
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Flush,
-                .span = 0,
-                .deck = 160.0,
-            }
-        )
+        Grid(sub_bay, Framing{.system = System::PostAndBeam, .node = Node::Flush, .span = 0, .deck = 160.0})
     );
 
-    // 2. Single-bay framing modes (Slab+Head, PostAndBeam+Head, Flush, Through, Stacked, Round).
-    const wood_grid::Plan one =
-        wood_grid::Plan::from_pattern(wood_grid::Pattern::orthogonal({6000.0}, {6000.0}), FLOOR);
+    // 2. Single-bay framing modes (Slab+Head, PostAndBeam+Head, Flush, Through, StackedPurlin).
+    const Plan one = Plan::from_pattern(Pattern::orthogonal({6000.0}, {6000.0}), FLOOR);
     verify_grid(
         "slab_head",
-        wood_grid::Grid(
-            one,
-            wood_grid::Framing{
-                .system = wood_grid::System::Slab,
-                .node = wood_grid::NodeMode::Head,
-                .deck = 240.0,
-                .panel_width = 3000.0,
-            }
-        )
+        Grid(one, Framing{.system = System::Slab, .node = Node::Head, .deck = 240.0, .panel = 3000.0})
     );
     verify_grid(
         "beam_head",
-        wood_grid::Grid(
-            one,
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Head,
-                .span = -1,
-            }
-        )
+        Grid(one, Framing{.system = System::PostAndBeam, .node = Node::Head, .span = -1})
     );
     verify_grid(
         "purlin_flush",
-        wood_grid::Grid(
-            one,
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Flush,
-                .purlin = wood_grid::PurlinMode::Flush,
-                .spacing = 2000.0,
-                .deck = 140.0,
-            }
-        )
+        Grid(one, Framing{.system = System::GirderPurlin, .node = Node::Flush, .spacing = 2000.0, .deck = 140.0})
     );
     verify_grid(
         "node_through",
-        wood_grid::Grid(
-            one,
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Through,
-                .spacing = 2000.0,
-            }
-        )
+        Grid(one, Framing{.system = System::GirderPurlin, .node = Node::Through, .spacing = 2000.0})
     );
     verify_grid(
         "purlin_stacked",
-        wood_grid::Grid(
-            one,
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Flush,
-                .purlin = wood_grid::PurlinMode::Stacked,
-                .spacing = 2000.0,
-            }
-        )
+        Grid(one, Framing{.system = System::StackedPurlin, .node = Node::Flush, .spacing = 2000.0})
     );
 
-    // 3. Non-orthogonal footprints: skewed, radial (with overhang check!), triangular, hexagonal, irregular.
+    // 3. Non-orthogonal footprints: skewed, radial (with overhang check), triangular, hexagonal, irregular.
     verify_grid(
         "skewed",
-        wood_grid::Grid(
-            wood_grid::Plan::from_pattern(
-                wood_grid::Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0}, 30.0), FLOOR
-            ),
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Flush,
-                .spacing = 2000.0,
-            }
+        Grid(
+            Plan::from_pattern(Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0}, 30.0), FLOOR),
+            Framing{.system = System::GirderPurlin, .node = Node::Flush, .spacing = 2000.0}
         )
     );
 
-    const wood_grid::Plan radial_plan = wood_grid::Plan::from_pattern(
-        wood_grid::Pattern::radial({5000.0, 10000.0, 15000.0}, 16, true), FLOOR
-    );
+    const Plan radial_plan =
+        Plan::from_pattern(Pattern::radial({5000.0, 10000.0, 15000.0}, 16, true), FLOOR);
     check(radial_plan.bay_count() == 32, "16-sector 2-annulus radial grid must have 32 quad bays");
-    const wood_grid::Grid radial_grid(
+    const Grid radial_grid(
         radial_plan,
-        wood_grid::Framing{
-            .system = wood_grid::System::PostAndBeam,
-            .node = wood_grid::NodeMode::Flush,
+        Framing{
+            .system = System::PostAndBeam,
+            .node = Node::Flush,
             .span = 0,
             .profiles = {.column = profile_round(280.0)},
         }
@@ -244,11 +190,11 @@ int main() {
 
     verify_grid(
         "triangular",
-        wood_grid::Grid(
-            wood_grid::Plan::from_pattern(wood_grid::Pattern::triangular(6000.0, 3, 2), FLOOR),
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Flush,
+        Grid(
+            Plan::from_pattern(Pattern::triangular(6000.0, 3, 2), FLOOR),
+            Framing{
+                .system = System::PostAndBeam,
+                .node = Node::Flush,
                 .span = -1,
                 .profiles = {.column = profile_round(280.0)},
             }
@@ -256,11 +202,11 @@ int main() {
     );
     verify_grid(
         "hexagonal",
-        wood_grid::Grid(
-            wood_grid::Plan::from_pattern(wood_grid::Pattern::hexagonal(4000.0, 3, 2), FLOOR),
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Flush,
+        Grid(
+            Plan::from_pattern(Pattern::hexagonal(4000.0, 3, 2), FLOOR),
+            Framing{
+                .system = System::PostAndBeam,
+                .node = Node::Flush,
                 .span = -1,
                 .profiles = {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 420.0)},
             }
@@ -268,8 +214,8 @@ int main() {
     );
     verify_grid(
         "irregular_t_joints",
-        wood_grid::Grid(
-            wood_grid::Plan::from_footprint(
+        Grid(
+            Plan::from_footprint(
                 {Polyline({
                     Point(0.0, 0.0, 0.0),
                     Point(26000.0, 1500.0, 0.0),
@@ -278,7 +224,7 @@ int main() {
                     Point(-1000.0, 11500.0, 0.0),
                     Point(0.0, 0.0, 0.0),
                 })},
-                wood_grid::Pattern::from_lines({
+                Pattern::from_lines({
                     Line::from_points(Point(-2000.0, 4800.0, 0.0), Point(30000.0, 6000.0, 0.0)),
                     Line::from_points(Point(-2000.0, 9000.0, 0.0), Point(30000.0, 10200.0, 0.0)),
                     Line::from_points(Point(7200.0, -2000.0, 0.0), Point(5800.0, 20000.0, 0.0)),
@@ -288,9 +234,9 @@ int main() {
                 {},
                 FLOOR
             ),
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Flush,
+            Framing{
+                .system = System::PostAndBeam,
+                .node = Node::Flush,
                 .span = 0,
                 .profiles =
                     {.column = profile_rectangle(240.0, 240.0),
@@ -299,8 +245,8 @@ int main() {
         )
     );
 
-    // 4. Vertical facade grid (`Plan::facade`) with X-braces & flush spandrels.
-    const wood_grid::Plan facade_plan = wood_grid::Plan::facade(
+    // 4. Vertical facade grid (`Plan::facade`) with X-braces.
+    const Plan facade_plan = Plan::facade(
         Line::from_points(Point(0.0, 0.0, 0.0), Point(12000.0, 0.0, 0.0)),
         7200.0,
         {4000.0, 4000.0, 4000.0},
@@ -308,106 +254,112 @@ int main() {
     );
     verify_grid(
         "braced_facade",
-        wood_grid::Grid(
+        Grid(
             facade_plan,
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .brace = wood_grid::BraceMode::Cross,
+            Framing{
+                .system = System::PostAndBeam,
+                .brace = Brace::Cross,
                 .braced_bays = {0, 2},
                 .span = 1,
-                .post_height = 0.0,
+                .height = 0.0,
             }
         )
     );
 
     // 5. Multi-storey `Stack` with through-columns & notched CLT decks.
-    const wood_grid::Stack stack = wood_grid::Stack::from_footprint(
+    const Stack stack = Stack::from_footprint(
         {l_ring},
         {0.0, 3600.0, 7200.0},
-        wood_grid::Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
-        wood_grid::Framing{
-            .system = wood_grid::System::PostAndBeam,
-            .node = wood_grid::NodeMode::Through,
-            .span = -1,
-            .deck = 160.0,
-        }
+        Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
+        Framing{.system = System::PostAndBeam, .node = Node::Through, .span = -1, .deck = 160.0}
     );
-    verify_grid("multistorey_stack", wood_grid::Grid(stack));
+    verify_grid("multistorey_stack", Grid(stack));
 
     // 6. Multi-storey `Stack` with pinwheel CLT core walls + perimeter braced facades.
     const Polyline box_outer = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 16000.0, 12000.0);
     const Polyline box_core = Polyline::rectangle(Point(4000.0, 3000.0, 0.0), X, Y, 8000.0, 6000.0);
-    wood_grid::Stack core_stack = wood_grid::Stack::from_footprint(
+    Stack core_stack = Stack::from_footprint(
         {box_outer},
         {0.0, 3800.0, 7600.0},
-        wood_grid::Pattern::orthogonal({8000.0, 8000.0}, {6000.0, 6000.0}),
-        wood_grid::Framing{
-            .system = wood_grid::System::GirderPurlin,
-            .node = wood_grid::NodeMode::Flush,
+        Pattern::orthogonal({8000.0, 8000.0}, {6000.0, 6000.0}),
+        Framing{
+            .system = System::GirderPurlin,
+            .node = Node::Flush,
             .spacing = 2000.0,
             .deck = 160.0,
             .wall = 240.0,
         },
         {box_core}
     );
-    core_stack.add_perimeter_facades(
-        box_outer,
-        0.0,
-        7600.0,
+    core_stack.add_facades(
         3800.0,
-        {3800.0, 3800.0},
-        wood_grid::Framing{
-            .system = wood_grid::System::PostAndBeam,
-            .brace = wood_grid::BraceMode::Cross,
+        Framing{
+            .system = System::PostAndBeam,
+            .brace = Brace::Cross,
             .span = 1,
-            .post_height = 0.0,
             .profiles =
                 {.girder = profile_rectangle(140.0, 180.0),
                  .beam = profile_rectangle(120.0, 180.0),
                  .brace = profile_rectangle(120.0, 140.0)},
         }
     );
-    verify_grid("core_and_facade_stack", wood_grid::Grid(core_stack));
+    verify_grid("core_and_facade_stack", Grid(core_stack));
 
     // 7. In-line chamfered column heads (`[-beam_depth, 0]`) + notched flush cassette decks.
-    const wood_grid::Stack inline_head_stack = wood_grid::Stack::from_footprint(
+    const Stack inline_head_stack = Stack::from_footprint(
         {l_ring},
         {0.0, 3400.0, 6800.0},
-        wood_grid::Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
-        wood_grid::Framing{
-            .system = wood_grid::System::PostAndBeam,
-            .node = wood_grid::NodeMode::Head,
+        Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
+        Framing{
+            .system = System::PostAndBeam,
+            .node = Node::Head,
             .span = -1,
             .deck = 180.0,
             .deck_flush = true,
-            .head_reach = 220.0,
+            .reach = 220.0,
         }
     );
-    verify_grid("inline_heads_five_bay", wood_grid::Grid(inline_head_stack));
+    verify_grid("inline_heads_five_bay", Grid(inline_head_stack));
 
-    // 8. Shifted, tapered, and twisted multi-storey stacks (`0.000 mm3` clash across inclined columns!).
+    // 8. Shifted (`from_levels`) and morphed (`morph`: tapered & twisted) stacks (`0.000 mm3` clash).
     const Polyline sq_fp = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 12000.0, 12000.0);
-    const wood_grid::Pattern sq_pat = wood_grid::Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0});
+    const Point sq_pivot(6000.0, 6000.0, 0.0);
+    const Pattern sq_pat = Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0});
+    const Pattern shift_pat =
+        Pattern::orthogonal(std::vector<double>(6, 3000.0), std::vector<double>(6, 3000.0));
+    const Framing shift_frm{.system = System::PostAndBeam, .deck = 160.0};
+    auto shift_lvl = [&](double z, double dx, double dy) {
+        return Stack::Level{
+            Plan::from_footprint(
+                {sq_fp.transformed(Xform::translation(dx, dy, 0.0))},
+                shift_pat,
+                {},
+                Plane(Point(0.0, 0.0, z), X, Y)
+            ),
+            shift_frm,
+        };
+    };
     verify_grid(
         "shifted_stack",
-        wood_grid::Grid(wood_grid::Stack::shifted(
-            {sq_fp},
-            {0.0, 3600.0, 7200.0, 10800.0},
-            {{0.0, 0.0}, {3000.0, 0.0}, {3000.0, 3000.0}},
-            wood_grid::Pattern::orthogonal(std::vector<double>(6, 3000.0), std::vector<double>(6, 3000.0)),
-            wood_grid::Framing{.system = wood_grid::System::PostAndBeam, .deck = 160.0}
-        ))
+        Grid(Stack::from_levels({
+            shift_lvl(3600.0, 0.0, 0.0),
+            shift_lvl(7200.0, 3000.0, 0.0),
+            shift_lvl(10800.0, 3000.0, 3000.0),
+        }))
     );
     verify_grid(
         "tapered_stack",
-        wood_grid::Grid(wood_grid::Stack::tapered(
+        Grid(Stack::morph(
             {sq_fp},
             {0.0, 3800.0, 7600.0, 11400.0},
             sq_pat,
-            0.65,
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Through,
+            [sq_pivot](double t) {
+                const double s = 1.0 - 0.35 * t;
+                return Xform::scale_non_uniform(sq_pivot, s, s, 1.0);
+            },
+            Framing{
+                .system = System::GirderPurlin,
+                .node = Node::Through,
                 .spacing = 2200.0,
                 .deck = 160.0,
             }
@@ -415,14 +367,18 @@ int main() {
     );
     verify_grid(
         "twisted_stack",
-        wood_grid::Grid(wood_grid::Stack::twisted(
+        Grid(Stack::morph(
             {sq_fp},
             {0.0, 3800.0, 7600.0, 11400.0},
             sq_pat,
-            36.0,
-            wood_grid::Framing{
-                .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Through,
+            [sq_pivot](double t) {
+                return Xform::translation(sq_pivot[0], sq_pivot[1], 0.0) *
+                       Xform::rotation_z(36.0 * t, true) *
+                       Xform::translation(-sq_pivot[0], -sq_pivot[1], 0.0);
+            },
+            Framing{
+                .system = System::PostAndBeam,
+                .node = Node::Through,
                 .deck = 160.0,
                 .profiles = {.column = profile_round(300.0)},
             }
@@ -438,21 +394,21 @@ int main() {
     });
     verify_grid(
         "oblique_flatiron_stack",
-        wood_grid::Grid(wood_grid::Stack::from_footprint(
+        Grid(Stack::from_footprint(
             {flatiron_fp},
             {0.0, 3800.0, 7600.0},
-            wood_grid::Pattern::orthogonal({6000.0, 6000.0, 6000.0}, {6000.0, 6000.0}),
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .node = wood_grid::NodeMode::Flush,
+            Pattern::orthogonal({6000.0, 6000.0, 6000.0}, {6000.0, 6000.0}),
+            Framing{
+                .system = System::GirderPurlin,
+                .node = Node::Flush,
                 .spacing = 2000.0,
                 .deck = 160.0,
             }
         ))
     );
 
-    // 9. Developed two-layer modulated fin screen (`PurlinMode::Stacked` on vertical Plane).
-    const wood_grid::Plan fin_plan = wood_grid::Plan::facade(
+    // 9. Developed two-layer modulated fin screen (`System::StackedPurlin` on vertical Plane).
+    const Plan fin_plan = Plan::facade(
         Line::from_points(Point(0.0, 0.0, 0.0), Point(9000.0, 0.0, 0.0)),
         7200.0,
         {950.0, 680.0, 1240.0, 880.0, 750.0, 950.0, 680.0, 1240.0, 880.0, 750.0},
@@ -460,13 +416,12 @@ int main() {
     );
     verify_grid(
         "stammhaus_fin_screen",
-        wood_grid::Grid(
+        Grid(
             fin_plan,
-            wood_grid::Framing{
-                .system = wood_grid::System::GirderPurlin,
-                .purlin = wood_grid::PurlinMode::Stacked,
+            Framing{
+                .system = System::StackedPurlin,
                 .span = 0,
-                .post_height = 0.0,
+                .height = 0.0,
                 .spacing = 100000.0,
                 .profiles =
                     {.girder = profile_rectangle(760.0, 180.0),

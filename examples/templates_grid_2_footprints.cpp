@@ -3,14 +3,15 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_grid;
 
 struct FootprintCase {
     std::string name;
-    wood_grid::Plan plan;
-    wood_grid::Framing framing;
+    Plan plan;
+    Framing framing;
 };
 
-std::pair<double, double> plan_u_extent(const wood_grid::Plan& plan) {
+std::pair<double, double> plan_u_extent(const Plan& plan) {
     double lo = std::numeric_limits<double>::max();
     double hi = -lo;
     for (const Point& p : plan.nodes) {
@@ -29,7 +30,7 @@ int main() {
 
     const std::vector<FootprintCase> cases = {
         {"orthogonal",
-         wood_grid::Plan::from_footprint(
+         Plan::from_footprint(
              {Polyline({
                  Point(0.0, 0.0, 0.0),
                  Point(24000.0, 0.0, 0.0),
@@ -39,69 +40,65 @@ int main() {
                  Point(0.0, 15000.0, 0.0),
                  Point(0.0, 0.0, 0.0),
              })},
-             wood_grid::Pattern::orthogonal({8000.0, 8000.0, 8000.0}, {7500.0, 7500.0}),
+             Pattern::orthogonal({8000.0, 8000.0, 8000.0}, {7500.0, 7500.0}),
              {},
              FLOOR
          ),
-         wood_grid::Framing{
-             .system = wood_grid::System::GirderPurlin,
-             .node = wood_grid::NodeMode::Flush,
+         Framing{
+             .system = System::GirderPurlin,
+             .node = Node::Flush,
              .span = 0,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .spacing = 2500.0,
              .deck = 160.0,
-             .panel_width = 2500.0,
+             .panel = 2500.0,
          }},
         {"skewed",
-         wood_grid::Plan::from_pattern(
-             wood_grid::Pattern::orthogonal(
-                 std::vector<double>(4, 6000.0), std::vector<double>(3, 6000.0), 30.0
-             ),
+         Plan::from_pattern(
+             Pattern::orthogonal(std::vector<double>(4, 6000.0), std::vector<double>(3, 6000.0), 30.0),
              FLOOR
          ),
-         wood_grid::Framing{
-             .system = wood_grid::System::GirderPurlin,
-             .node = wood_grid::NodeMode::Flush,
+         Framing{
+             .system = System::GirderPurlin,
+             .node = Node::Flush,
              .span = 0,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .spacing = 2000.0,
          }},
         {"radial",
-         wood_grid::Plan::from_pattern(
-             wood_grid::Pattern::radial({4000.0, 8000.0, 12000.0}, 12, true), FLOOR
-         ),
-         wood_grid::Framing{
-             .system = wood_grid::System::PostAndBeam,
-             .node = wood_grid::NodeMode::Flush,
+         Plan::from_pattern(Pattern::radial({4000.0, 8000.0, 12000.0}, 12, true), FLOOR),
+         Framing{
+             .system = System::PostAndBeam,
+             .node = Node::Flush,
              .span = 0,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .profiles =
                  {.column = profile_round(240.0),
                   .girder = profile_rectangle(240.0, 480.0),
                   .beam = profile_rectangle(240.0, 420.0)},
          }},
         {"triangular",
-         wood_grid::Plan::from_pattern(wood_grid::Pattern::triangular(6000.0, 4, 3), FLOOR),
-         wood_grid::Framing{
-             .system = wood_grid::System::PostAndBeam,
-             .node = wood_grid::NodeMode::Flush,
+         Plan::from_pattern(Pattern::triangular(6000.0, 4, 3), FLOOR),
+         Framing{
+             .system = System::PostAndBeam,
+             .node = Node::Flush,
              .span = -1,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .profiles =
                  {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 440.0)},
          }},
         {"hexagonal",
-         wood_grid::Plan::from_pattern(wood_grid::Pattern::hexagonal(4200.0, 3, 2), FLOOR),
-         wood_grid::Framing{
-             .system = wood_grid::System::PostAndBeam,
-             .node = wood_grid::NodeMode::Flush,
+         Plan::from_pattern(Pattern::hexagonal(4200.0, 3, 2), FLOOR),
+         Framing{
+             .system = System::PostAndBeam,
+             .node = Node::Flush,
              .span = -1,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .profiles =
                  {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 420.0)},
          }},
         {"irregular",
-         wood_grid::Plan::from_footprint(
+         Plan::from_footprint(
              {Polyline({
                  Point(0.0, 0.0, 0.0),
                  Point(26000.0, 1500.0, 0.0),
@@ -110,7 +107,7 @@ int main() {
                  Point(-1000.0, 11500.0, 0.0),
                  Point(0.0, 0.0, 0.0),
              })},
-             wood_grid::Pattern::from_lines({
+             Pattern::from_lines({
                  Line::from_points(Point(-2000.0, 4800.0, 0.0), Point(30000.0, 6000.0, 0.0)),
                  Line::from_points(Point(-2000.0, 9000.0, 0.0), Point(30000.0, 10200.0, 0.0)),
                  Line::from_points(Point(7200.0, -2000.0, 0.0), Point(5800.0, 20000.0, 0.0)),
@@ -120,30 +117,28 @@ int main() {
              {},
              FLOOR
          ),
-         wood_grid::Framing{
-             .system = wood_grid::System::PostAndBeam,
-             .node = wood_grid::NodeMode::Flush,
+         Framing{
+             .system = System::PostAndBeam,
+             .node = Node::Flush,
              .span = 0,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .profiles =
                  {.column = profile_rectangle(240.0, 240.0),
                   .girder = profile_rectangle(240.0, 460.0)},
          }},
         {"courtyard",
-         wood_grid::Plan::from_footprint(
+         Plan::from_footprint(
              {Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 32000.0, 24000.0),
               Polyline::rectangle(Point(8000.0, 8000.0, 0.0), X, Y, 16000.0, 8000.0)},
-             wood_grid::Pattern::orthogonal(
-                 wood_grid::compute_bays(32000.0, 8000.0), wood_grid::compute_bays(24000.0, 8000.0)
-             ),
+             Pattern::orthogonal(compute_bays(32000.0, 8000.0), compute_bays(24000.0, 8000.0)),
              {},
              FLOOR
          ),
-         wood_grid::Framing{
-             .system = wood_grid::System::GirderPurlin,
-             .node = wood_grid::NodeMode::Through,
+         Framing{
+             .system = System::GirderPurlin,
+             .node = Node::Through,
              .span = 0,
-             .post_height = 4000.0,
+             .height = 4000.0,
              .spacing = 2666.7,
          }},
     };
@@ -152,8 +147,8 @@ int main() {
     double cursor = 0.0;
     for (const FootprintCase& item : cases) {
         const auto [lo, hi] = plan_u_extent(item.plan);
-        const wood_grid::Plan placed = item.plan.transformed(Xform::translation(cursor - lo, 0.0, 0.0));
-        const wood_grid::Grid grid(placed, item.framing, item.name);
+        const Plan placed = item.plan.transformed(Xform::translation(cursor - lo, 0.0, 0.0));
+        const Grid grid(placed, item.framing, item.name);
         session.graft(grid, session.add_group(item.name));
         cursor += (hi - lo) + GAP;
     }
@@ -165,7 +160,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Single-floor planar grid patterns and footprints side by side: an L-plan with uneven bays, girders, purlins and CLT strips; a 30-degree skewed grid; a 12-sector concentric glulam ring pavilion around an open central oculus; an equilateral triangular diagrid with six-way mitered nodes; a honeycomb hexagonal floor on round timber columns and chamfered heads; a five-sided irregular footprint crossed by hand-drawn axes without triangulation diagonals; and a courtyard ring with continuous through-columns.
+Single-floor planar grid patterns and footprints side by side: an L-plan with uneven bays, girders, purlins and CLT strips; a 30-degree skewed grid with beveled T-section perimeter girders; a 12-sector concentric glulam ring pavilion around an open central oculus with square-ended radial girders and T-butted ring beams; an equilateral triangular diagrid with six-way mitered nodes; a honeycomb hexagonal floor with three-way Y-miters on round timber columns; a five-sided irregular footprint with continuous girders and T-butted cross-beams; and a courtyard ring with continuous through-columns.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

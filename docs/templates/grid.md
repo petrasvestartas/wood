@@ -45,10 +45,10 @@ flowchart LR
    - Horizontal `Plane` for a **single floor** (`Plan::from_pattern`, `Plan::from_footprint`).
    - Vertical or pitched `Plane` for a **timber facade** (`Plan::facade`, with window openings and gable silhouettes).
    - **`Plan::bay(i)` / `Plan::bays({...})`** isolates one bay or a subset of bays as its own standalone `Plan` without mesh triangulation diagonals.
-3. **`Framing` & `Grid`** build non-overlapping timber `EdgeStraightElement`, `NodeBlockElement`, and `FacePlanarElement` solids with face-to-face contacts:
-   - **Systems (`System`)**: `Slab` (point-supported CLT), `PostAndBeam` (girders and transverse/ring beams), and `GirderPurlin` (`PurlinMode::Flush` or `PurlinMode::Stacked`—which on a vertical facade plane places continuous outer vertical timber fins proud of inner horizontal spandrel ledgers).
-   - **Column nodes (`NodeMode`) & T-section carpentry**: `Flush` (columns stop at framing soffit; in hierarchical `span >= 0` frames, primary girders/mullions run flush to outer corner faces while secondary beams and purlins butt in clean T-sections against their inner faces, reserving multi-way sector miters for isotropic `span = -1` lattices such as `triangular` and `hexagonal`), `Through` (continuous columns with beams and decks trimmed to column faces), and `Head` (**in-line** chamfered polygonal timber head block occupying `[-beam_depth, 0]` flush with beam tops and soffits, or beneath a beamless `Slab`).
-   - **Multi-storey topologies (`Stack`)**: `from_footprint`, `from_levels` (setbacks/cantilevers), `shifted` (staggered cantilevered floor plates over a plumb column grid), `tapered` (scaling floors with inclined perimeter columns), and `twisted` (progressively rotated floors with helicoidal columns).
+3. **`Framing` & `Grid`** build non-overlapping timber `EdgeStraightElement`, `EdgeVariableElement`, `NodeBlockElement`, and `FacePlanarElement` solids with face-to-face contacts:
+   - **Systems (`System`)**: `Slab` (point-supported CLT), `PostAndBeam` (girders and transverse/ring beams), `GirderPurlin` (flush subdivided purlins trimmed to girder side faces), and `StackedPurlin` (continuous purlins stacked over lowered girders—which on a vertical facade plane places continuous outer vertical glulam fins proud of inner horizontal spandrel fascia bands).
+   - **Column nodes (`Node`) & T-section carpentry**: `Flush` (columns stop at framing soffit; in hierarchical `span >= 0` frames, primary girders/mullions run flush to outer corner faces while secondary beams and purlins butt in clean T-sections against their inner faces, reserving multi-way sector miters for isotropic `span = -1` lattices such as `triangular` and `hexagonal`), `Through` (continuous columns with beams and decks trimmed to column faces), and `Head` (**in-line** chamfered polygonal timber head block occupying `[-beam_depth, 0]` flush with beam tops and soffits, or beneath a beamless `Slab`).
+   - **Multi-storey topologies (`Stack`)**: `from_footprint`, `from_levels` (stepped terraces and shifted cantilevers over plumb column grids), `morph` (`Xform(t)` scaling/twisting towers with inclined or helicoidal columns), and `add_facades`.
 
 ---
 
@@ -56,7 +56,7 @@ flowchart LR
 
 ### 1 Bay Isolation and In-Line Column Heads {#grid_example_1}
 
-Isolates bay `0` from a five-bay L-shaped floor plan via `Plan::bay(0)`, then compares pure-timber framing and node details—including **in-line** chamfered timber column heads (`NodeMode::Head` sitting in `[-beam_depth, 0]` between square-ended beams), under-slab chamfered heads, flush girders and purlins, continuous through-columns, stacked purlins, and round timber columns.
+Isolates bay `0` from a five-bay L-shaped floor plan via `Plan::bay(0)`, then compares pure-timber framing and node details—including **in-line** chamfered timber column heads (`Node::Head` sitting in `[-beam_depth, 0]` between square-ended beams), under-slab chamfered heads, flush girders and purlins, continuous through-columns, stacked purlins, and round timber columns.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_grid_1_bay_framing_floor_l_plan.webp">
@@ -138,7 +138,7 @@ Frames single-floor footprints across seven planar grid patterns: orthogonal L-f
 
 ### 3 Timber Facade Grids {#grid_example_3}
 
-Uses `Plan::facade` (`post_height = 0.0`) to frame vertical timber curtain walls, punched window/spandrel facades (`deck_flush = true`), co-planar X-braced heavy-timber frames (`BraceMode::Cross`), and pitched pentagonal gable walls (`BraceMode::Chevron`).
+Uses `Plan::facade` (`height = 0.0`) to frame vertical timber curtain walls, punched window/spandrel facades (`deck_flush = true`), co-planar X-braced heavy-timber frames (`Brace::Cross`), and pitched pentagonal gable walls (`Brace::Chevron`).
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_grid_3_facades_curtain_mullion.webp">
@@ -165,7 +165,7 @@ Uses `Plan::facade` (`post_height = 0.0`) to frame vertical timber curtain walls
 
 ### 4 Developed Timber Facade (Stammhaus Progression) {#grid_example_4}
 
-Develops a five-storey timber headquarters inspired by the Blumer-Lehmann Stammhaus in Gossau: **(1)** primary glulam structure with an eight-bay recessed ground colonnade, four cantilevered upper CLT slabs, and a projecting flat timber roof cornice; **(2)** recessed ground storefront glazing and upper ribbon window mullions; **(3)** the isolated two-layer developed timber screen (`PurlinMode::Stacked` on `Plan::facade`) pairing `760 mm` solid horizontal timber spandrel fascia bands in the inner layer with continuous syncopated vertical glulam fins (`{950, 680, 1240, 880, 750} mm` rhythm) standing proud in the outer layer; and **(4–6)** isometric, front-elevation, and corner-detail views of the complete headquarters.
+Develops a five-storey timber headquarters inspired by the Blumer-Lehmann Stammhaus in Gossau: **(1)** primary glulam structure with an eight-bay recessed ground colonnade, four cantilevered upper CLT slabs, and a projecting flat timber roof cornice; **(2)** recessed ground storefront glazing and upper ribbon window mullions; **(3)** the isolated two-layer developed timber screen (`System::StackedPurlin` on `Plan::facade`) pairing `760 mm` solid horizontal timber spandrel fascia bands in the inner layer with continuous syncopated vertical glulam fins (`{950, 680, 1240, 880, 750} mm` rhythm) standing proud in the outer layer; and **(4–6)** isometric, front-elevation, and corner-detail views of the complete headquarters.
 
 <div class="wood-card-grid cols-3">
   <a class="wood-card" href="templates_grid_4_developed_facade_stage_1_colonnade.webp">
@@ -200,7 +200,7 @@ Develops a five-storey timber headquarters inspired by the Blumer-Lehmann Stammh
 
 ### 5 Multi-Storey Building Topologies {#grid_example_5}
 
-Eight multi-storey timber building topologies composed via `Stack`: a two-storey L-frame with **in-line** chamfered column heads and 45°-notched flush CLT cassette decks (`five_bay`), five storeys of **shifted** cantilevered floor boxes over a plumb column grid (`Stack::shifted`), a six-storey **tapered** tower with seamless continuous leaning columns (`Stack::tapered`), a seven-storey `42°` **twisting** tower with seamless helicoidal round timber columns (`Stack::twisted`), a six-storey cascading **stepped-terrace** building around an open central atrium (`Stack::from_levels`), a four-storey 16-sector **cylindrical** ring-and-radial rotunda (`Pattern::radial`), a four-storey chamfered pentagonal **flatiron** building with `45°` diagonal facade cuts, and a three-storey **core-and-braced** hybrid frame (`Stack::add_perimeter_facades`).
+Eight multi-storey timber building topologies composed via `Stack`: a two-storey L-frame with **in-line** chamfered column heads and 45°-notched flush CLT cassette decks (`five_bay`), five storeys of **shifted** cantilevered floor boxes over a plumb column grid (`Stack::from_levels`), a six-storey **tapered** tower with seamless continuous leaning columns (`Stack::morph`), a seven-storey `42°` **twisting** tower with seamless helicoidal round timber columns (`Stack::morph`), a six-storey cascading **stepped-terrace** building around an open central atrium (`Stack::from_levels`), a four-storey 16-sector **cylindrical** ring-and-radial rotunda (`Pattern::radial`), a four-storey chamfered pentagonal **flatiron** building with `45°` diagonal facade cuts, and a three-storey **core-and-braced** hybrid frame (`Stack::add_facades`).
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_grid_5_multistorey_five_bay.webp">

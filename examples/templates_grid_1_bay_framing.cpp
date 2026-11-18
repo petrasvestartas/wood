@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_grid;
 
 struct Case {
     std::string name;
-    wood_grid::Plan plan;
-    wood_grid::Framing framing;
+    Plan plan;
+    Framing framing;
 };
 
 int main() {
@@ -26,19 +27,17 @@ int main() {
         Point(0.0, 8000.0, 0.0),
         Point(0.0, 0.0, 0.0),
     });
-    const Plane floor_at_3600 = Plane(Point(0.0, 0.0, 3600.0), X, Y);
-    const wood_grid::Plan l_plan = wood_grid::Plan::from_footprint(
+    const Plan l_plan = Plan::from_footprint(
         {l_footprint},
-        wood_grid::Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
+        Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
         {},
-        floor_at_3600
+        Plane(Point(0.0, 0.0, 3600.0), X, Y)
     );
-    const wood_grid::Plan one_bay = wood_grid::Plan::from_pattern(
-        wood_grid::Pattern::orthogonal({BAY}, {BAY}),
-        Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    const Plan one_bay = Plan::from_pattern(
+        Pattern::orthogonal({BAY}, {BAY}), Plane(Point(0.0, 0.0, 4200.0), X, Y)
     );
 
-    const wood_grid::Profiles glulam{
+    const Profiles glulam{
         .column = profile_rectangle(280.0, 280.0),
         .girder = profile_rectangle(280.0, 600.0),
         .purlin = profile_rectangle(220.0, 440.0),
@@ -47,11 +46,11 @@ int main() {
     const std::vector<std::pair<Case, double>> cases = {
         {{"floor_l_plan",
           l_plan,
-          wood_grid::Framing{
-              .system = wood_grid::System::PostAndBeam,
-              .node = wood_grid::NodeMode::Flush,
+          Framing{
+              .system = System::PostAndBeam,
+              .node = Node::Flush,
               .span = 0,
-              .post_height = 3600.0,
+              .height = 3600.0,
               .deck = 160.0,
               .profiles =
                   {.column = profile_rectangle(240.0, 240.0),
@@ -60,11 +59,11 @@ int main() {
          12000.0},
         {{"isolated_bay",
           l_plan.bay(0),
-          wood_grid::Framing{
-              .system = wood_grid::System::PostAndBeam,
-              .node = wood_grid::NodeMode::Flush,
+          Framing{
+              .system = System::PostAndBeam,
+              .node = Node::Flush,
               .span = 0,
-              .post_height = 3600.0,
+              .height = 3600.0,
               .deck = 160.0,
               .profiles =
                   {.column = profile_rectangle(240.0, 240.0),
@@ -73,28 +72,28 @@ int main() {
          4000.0},
         {{"slab_head",
           one_bay,
-          wood_grid::Framing{
-              .system = wood_grid::System::Slab,
-              .node = wood_grid::NodeMode::Head,
-              .post_height = 4200.0,
+          Framing{
+              .system = System::Slab,
+              .node = Node::Head,
+              .height = 4200.0,
               .deck = 240.0,
-              .panel_width = 3000.0,
-              .head_height = 280.0,
-              .head_reach = 240.0,
+              .panel = 3000.0,
+              .head = 280.0,
+              .reach = 240.0,
               .profiles = glulam,
           }},
          BAY},
         {{"beam_head",
-          wood_grid::Plan::from_pattern(
-              wood_grid::Pattern::orthogonal({4500.0, 4500.0}, {6000.0}),
+          Plan::from_pattern(
+              Pattern::orthogonal({4500.0, 4500.0}, {6000.0}),
               Plane(Point(0.0, 0.0, 4200.0), X, Y)
           ),
-          wood_grid::Framing{
-              .system = wood_grid::System::PostAndBeam,
-              .node = wood_grid::NodeMode::Head,
+          Framing{
+              .system = System::PostAndBeam,
+              .node = Node::Head,
               .span = -1,
-              .post_height = 4200.0,
-              .head_reach = 220.0,
+              .height = 4200.0,
+              .reach = 220.0,
               .profiles =
                   {.column = profile_rectangle(260.0, 260.0),
                    .girder = profile_rectangle(260.0, 460.0)},
@@ -102,50 +101,46 @@ int main() {
          9000.0},
         {{"node_flush",
           one_bay,
-          wood_grid::Framing{
-              .system = wood_grid::System::GirderPurlin,
-              .node = wood_grid::NodeMode::Flush,
-              .purlin = wood_grid::PurlinMode::Flush,
+          Framing{
+              .system = System::GirderPurlin,
+              .node = Node::Flush,
               .span = 0,
-              .post_height = 4200.0,
+              .height = 4200.0,
               .spacing = 2000.0,
               .deck = 140.0,
-              .panel_width = 2000.0,
+              .panel = 2000.0,
               .profiles = glulam,
           }},
          BAY},
         {{"node_through",
           one_bay,
-          wood_grid::Framing{
-              .system = wood_grid::System::GirderPurlin,
-              .node = wood_grid::NodeMode::Through,
-              .purlin = wood_grid::PurlinMode::Flush,
+          Framing{
+              .system = System::GirderPurlin,
+              .node = Node::Through,
               .span = 0,
-              .post_height = 4200.0,
+              .height = 4200.0,
               .spacing = 2000.0,
               .profiles = glulam,
           }},
          BAY},
         {{"purlin_stacked",
           one_bay,
-          wood_grid::Framing{
-              .system = wood_grid::System::GirderPurlin,
-              .node = wood_grid::NodeMode::Flush,
-              .purlin = wood_grid::PurlinMode::Stacked,
+          Framing{
+              .system = System::StackedPurlin,
+              .node = Node::Flush,
               .span = 0,
-              .post_height = 4200.0,
+              .height = 4200.0,
               .spacing = 2000.0,
               .profiles = glulam,
           }},
          BAY},
         {{"round_columns",
           one_bay,
-          wood_grid::Framing{
-              .system = wood_grid::System::GirderPurlin,
-              .node = wood_grid::NodeMode::Flush,
-              .purlin = wood_grid::PurlinMode::Flush,
+          Framing{
+              .system = System::GirderPurlin,
+              .node = Node::Flush,
               .span = 0,
-              .post_height = 4200.0,
+              .height = 4200.0,
               .spacing = 2000.0,
               .deck = 140.0,
               .profiles =
@@ -159,8 +154,8 @@ int main() {
     WoodSession session("templates_grid_1_bay_framing");
     double offset = 0.0;
     for (const auto& [item, width] : cases) {
-        const wood_grid::Plan shifted = item.plan.transformed(Xform::translation(offset, 0.0, 0.0));
-        const wood_grid::Grid grid(shifted, item.framing, item.name);
+        const Plan shifted = item.plan.transformed(Xform::translation(offset, 0.0, 0.0));
+        const Grid grid(shifted, item.framing, item.name);
         session.graft(grid, session.add_group(item.name));
         offset += width + GAP;
     }
@@ -172,7 +167,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Single-floor bay isolation and pure-timber framing modes side by side: a five-bay L floor beside bay 0 isolated via Plan::bay(0); a point-supported CLT slab on columns with a single chamfered timber head; post-and-beam resting on chamfered timber heads; girder-and-purlin with flush columns and CLT strips; continuous through-columns with beams butting to column faces; continuous purlins stacked on lowered girders; and glulam framing on round timber columns.
+Single-floor bay isolation and pure-timber framing modes side by side: a five-bay L floor beside bay 0 isolated via Plan::bay(0); a point-supported CLT slab on columns with a single chamfered timber head; post-and-beam with in-line chamfered timber heads; girder-and-purlin with flush columns and CLT strips; continuous through-columns with beams butting to column faces; continuous purlins stacked on lowered girders; and glulam framing on round timber columns.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
