@@ -4,6 +4,7 @@
 #include "element_joint.pb.h"
 #include "wood_element_geometry.h"
 #include "src/templates/cavity_border.h"
+#include "src/templates/vidy/vidy_joint_kernel.h"
 
 using namespace session_cpp;
 
@@ -2474,103 +2475,15 @@ JointVidyElement::JointVidyElement(
 
 namespace {
 
-/// Four-corner bottom/top mortise loop pair on a Vidy double-layer node plate.
-struct VidyNodeSlot {
-    std::array<Point, 4> bottom; // Bottom-face mortise corners.
-    std::array<Point, 4> top; // Top-face mortise corners.
-};
-
-/// Projects a tenon arris pair along v_ins onto (p_bot, p_top) with 0.5 mm clearance.
-VidyNodeSlot project_vidy_node_slot(
-    const std::pair<Point, Point>& sb,
-    const std::pair<Point, Point>& st,
-    const Vector& v_ins,
-    const Plane& p_bot,
-    const Plane& p_top
-) {
-
-    const std::array<Point, 4> arris = {sb.first, sb.second, st.second, st.first};
-    VidyNodeSlot slot;
-
-    for (size_t c = 0; c < 4; c++) {
-        const Line ray = Line::from_point_and_vector(arris[c], v_ins);
-        slot.bottom[c] = Intersection::line_plane(ray, p_bot, false).value_or(arris[c]);
-        slot.top[c] = Intersection::line_plane(ray, p_top, false).value_or(arris[c]);
-    }
-
-    const Point cb =
-        Point::centroid({slot.bottom[0], slot.bottom[1], slot.bottom[2], slot.bottom[3]});
-    const Point ct = Point::centroid({slot.top[0], slot.top[1], slot.top[2], slot.top[3]});
-
-    for (size_t c = 0; c < 4; c++) {
-        slot.bottom[c] = slot.bottom[c] + (slot.bottom[c] - cb).normalized() * 0.5;
-        slot.top[c] = slot.top[c] + (slot.top[c] - ct).normalized() * 0.5;
-    }
-
-    return slot;
-}
-
-/// Twelve-point stepped chamfered Double_Pin contour at centre pm along nf and v_ins.
-std::vector<Point> build_vidy_node_double_pin(
-    const Point& pm,
-    const Vector& nf,
-    const Vector& v_ins,
-    double l_tab,
-    double l_offs,
-    double scale,
-    std::pair<Point, Point>& out_base,
-    std::pair<Point, Point>& out_tip
-) {
-
-    const Point mi1 = pm - nf * (135.0 * scale);
-    const Point pl1 = pm + nf * (135.0 * scale);
-    const Point mi2 = mi1 + v_ins * (0.30 * l_offs);
-    const Point pl2 = pl1 + v_ins * (0.30 * l_offs);
-    const Point mi3 = (pm - nf * (125.0 * scale)) + v_ins * l_offs;
-    const Point pl3 = (pm + nf * (125.0 * scale)) + v_ins * l_offs;
-    const Point mi4 = mi3 + nf * (35.0 * scale);
-    const Point pl4 = pl3 - nf * (35.0 * scale);
-    const Point mi5 = mi4 + v_ins * (1.20 * l_tab);
-    const Point pl5 = pl4 + v_ins * (1.20 * l_tab);
-    const Point mi6 = (mi4 + v_ins * (2.00 * l_tab)) + nf * (20.0 * scale);
-    const Point pl6 = (pl4 + v_ins * (2.00 * l_tab)) - nf * (20.0 * scale);
-    out_base = {mi1, pl1};
-    out_tip = {mi4, pl4};
-
-    return {mi1, mi2, mi3, mi4, mi5, mi6, pl6, pl5, pl4, pl3, pl2, pl1};
-}
-
-/// Six-point chamfered Single_Pin contour at centre pm along nf and v_ins.
-std::vector<Point> build_vidy_node_single_pin(
-    const Point& pm,
-    const Vector& nf,
-    const Vector& v_ins,
-    double l_tab,
-    double scale,
-    std::pair<Point, Point>& out_shaft
-) {
-
-    const Point mi1 = pm - nf * (90.0 * scale);
-    const Point pl1 = pm + nf * (90.0 * scale);
-    const Point mi2 = mi1 + v_ins * (1.20 * l_tab);
-    const Point pl2 = pl1 + v_ins * (1.20 * l_tab);
-    const Point mi3 = (mi1 + v_ins * (2.00 * l_tab)) + nf * (20.0 * scale);
-    const Point pl3 = (pl1 + v_ins * (2.00 * l_tab)) - nf * (20.0 * scale);
-    out_shaft = {mi1, pl1};
-
-    return {mi1, mi2, mi3, pl3, pl2, pl1};
-}
-
-/// Builds a closed jointed quad outline with side_prof inserted on seam_side and attaches mortises.
+/// Builds a closed jointed quad plate with (prof_b, prof_t) on seam_side and attaches mortises.
 std::shared_ptr<FacePlanarElement> make_vidy_node_plate(
     const std::array<Point, 4>& ring_b,
     const std::array<Point, 4>& ring_t,
     size_t seam_side,
-    const std::vector<Point>& prof_b,
-    const std::vector<Point>& prof_t,
+    const std::array<std::vector<Point>, 2>& prof,
     const Vector& facet_normal,
     const Vector& v_ins,
-    const std::vector<VidyNodeSlot>& slots,
+    const std::vector<wood_vidy::VidyMortiseSlot>& slots,
     const std::string& plate_name
 ) {
 
@@ -2595,8 +2508,8 @@ std::shared_ptr<FacePlanarElement> make_vidy_node_plate(
         jt.push_back(ring_t[k]);
 
         if (k == seam_side) {
-            jb.insert(jb.end(), prof_b.begin(), prof_b.end());
-            jt.insert(jt.end(), prof_t.begin(), prof_t.end());
+            jb.insert(jb.end(), prof[0].begin(), prof[0].end());
+            jt.insert(jt.end(), prof[1].begin(), prof[1].end());
         }
     }
 
@@ -2607,26 +2520,8 @@ std::shared_ptr<FacePlanarElement> make_vidy_node_plate(
 
     jb.push_back(jb.front());
     jt.push_back(jt.front());
-    plate->features.bottom = {Polyline(jb)};
-    plate->features.top = {Polyline(jt)};
-
-    for (const VidyNodeSlot& slot : slots) {
-        std::vector<Point> hb(slot.bottom.begin(), slot.bottom.end());
-        std::vector<Point> ht(slot.top.begin(), slot.top.end());
-
-        if (compute_newell(hb).dot(facet_normal) < 0.0) {
-            std::reverse(hb.begin(), hb.end());
-            std::reverse(ht.begin(), ht.end());
-        }
-
-        hb.push_back(hb.front());
-        ht.push_back(ht.front());
-        plate->features.bottom.push_back(Polyline(hb));
-        plate->features.top.push_back(Polyline(ht));
-    }
-
+    wood_vidy::vidy_attach_plate_features(*plate, facet_normal, Polyline(jb), Polyline(jt), slots);
     plate->set_insertion_vectors({v_ins});
-    plate->invalidate_geometry();
 
     return plate;
 }
@@ -2669,8 +2564,10 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     const Vector n_b(-std::cos(phi), 0.0, std::sin(phi));
     const Vector perp_a(0.0, 0.0, 1.0);
     const Vector perp_b = -dir_b;
+    const Point c_a(0.0, 0.5 * w, 0.5 * l);
     const Point e0(0.0, 0.0, l);
     const Point e1(0.0, w, l);
+    const Point c_b = e0 + dir_b * (0.5 * l) + Vector(0.0, 0.5 * w, 0.0);
     const Vector bis = (n_a + n_b).normalized();
     Vector mn_a = Vector(0.0, -1.0, 0.0).cross(bis).normalized();
 
@@ -2696,10 +2593,8 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     std::array<std::array<Point, 4>, 4> rb;
 
     for (size_t hi = 0; hi < 4; hi++) {
-        pa[hi] = Plane::from_point_normal(Point(0.0, 0.5 * w, 0.5 * l) + n_a * hs[hi], n_a);
-        pb[hi] = Plane::from_point_normal(
-            (e0 + dir_b * (0.5 * l) + Vector(0.0, 0.5 * w, 0.0)) + n_b * hs[hi], n_b
-        );
+        pa[hi] = Plane::from_point_normal(c_a + n_a * hs[hi], n_a);
+        pb[hi] = Plane::from_point_normal(c_b + n_b * hs[hi], n_b);
         ra[hi] = intersect_quad_sides(pa[hi], sides_a, e0);
         rb[hi] = intersect_quad_sides(pb[hi], sides_b, e0);
     }
@@ -2709,130 +2604,80 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     const double l_offs = (h_tot - t) / sin_a;
     const int cnt_sp = std::max(1, static_cast<int>(std::floor((w - 0.65 * pitch) / pitch)));
     const int cnt_dp = cnt_sp >= 2 ? (cnt_sp - 1) : 1;
-    const double f_off_sp = (cnt_sp % 2 == 0)
-                                ? (static_cast<double>(cnt_sp / 2 - 1) * pitch + 0.5 * pitch)
-                                : (static_cast<double>((cnt_sp - 1) / 2) * pitch);
-    const double f_off_dp = (cnt_dp % 2 == 0)
-                                ? (static_cast<double>(cnt_dp / 2 - 1) * pitch + 0.5 * pitch)
-                                : (static_cast<double>((cnt_dp - 1) / 2) * pitch);
-    const double span_sp = 0.5 * static_cast<double>(cnt_sp) * pitch;
-    const double span_dp = 0.5 * static_cast<double>(cnt_dp) * pitch;
-    const double sh_dp = std::max(span_dp + 2.0, f_off_dp + 145.0 * scale);
-    const double sh_sp = std::max(span_sp + 2.0, f_off_sp + 100.0 * scale);
-    std::vector<VidyNodeSlot> slots_a_in;
-    std::vector<VidyNodeSlot> slots_a_out;
-    std::vector<VidyNodeSlot> slots_b_out;
+    const Point ref_in = Point::mid_point(rb[0][0], rb[0][1]);
+    const Point ref_out = Point::mid_point(rb[2][0], rb[2][1]);
+    std::vector<wood_vidy::VidyMortiseSlot> slots_a_in;
+    std::vector<wood_vidy::VidyMortiseSlot> slots_a_out;
+    std::vector<wood_vidy::VidyMortiseSlot> slots_b_out;
 
-    // inner_b (side 0, +Y): stepped Double_Pins into inner_a and outer_a (staggered by 0.5 * pitch)
-    const Vector nf_b(0.0, 1.0, 0.0);
-    const Point mb_in0 = Point::mid_point(rb[0][0], rb[0][1]);
-    const Point mb_in1 = Point::mid_point(rb[1][0], rb[1][1]);
-    const Point pmb_0 = mb_in0 - perp_b * 0.5;
-    const Point pmb_1 = mb_in1 - perp_b * (l_tab + 0.5);
-    std::vector<Point> dp_b = {mb_in0 - nf_b * sh_dp, pmb_0 - nf_b * sh_dp};
-    std::vector<Point> dp_t = {mb_in1 - nf_b * sh_dp, pmb_1 - nf_b * sh_dp};
-
-    for (int i = 0; i < cnt_dp; i++) {
-        const double stp = -f_off_dp + pitch * static_cast<double>(i);
-        std::pair<Point, Point> bb0;
-        std::pair<Point, Point> tb0;
-        std::pair<Point, Point> bb1;
-        std::pair<Point, Point> tb1;
-        const std::vector<Point> c0 = build_vidy_node_double_pin(
-            pmb_0 + nf_b * stp, nf_b, perp_b, l_tab, l_offs, scale, bb0, tb0
-        );
-        const std::vector<Point> c1 = build_vidy_node_double_pin(
-            pmb_1 + nf_b * stp, nf_b, perp_b, l_tab, l_offs, scale, bb1, tb1
-        );
-        dp_b.insert(dp_b.end(), c0.begin(), c0.end());
-        dp_t.insert(dp_t.end(), c1.begin(), c1.end());
-        slots_a_in.push_back(project_vidy_node_slot(bb0, bb1, perp_b, pa[0], pa[1]));
-        slots_a_out.push_back(project_vidy_node_slot(tb0, tb1, perp_b, pa[2], pa[3]));
-    }
-
-    dp_b.push_back(pmb_0 + nf_b * sh_dp);
-    dp_b.push_back(mb_in0 + nf_b * sh_dp);
-    dp_t.push_back(pmb_1 + nf_b * sh_dp);
-    dp_t.push_back(mb_in1 + nf_b * sh_dp);
-
-    // outer_b (side 0, +Y): Single_Pins into outer_a
-    const Point mb_out0 = Point::mid_point(rb[2][0], rb[2][1]);
-    const Point mb_out1 = Point::mid_point(rb[3][0], rb[3][1]);
-    const Point pmbo_0 = mb_out0 - perp_b * 0.5;
-    const Point pmbo_1 = mb_out1 - perp_b * (l_tab + 0.5);
-    std::vector<Point> sp_b = {mb_out0 - nf_b * sh_sp, pmbo_0 - nf_b * sh_sp};
-    std::vector<Point> sp_t = {mb_out1 - nf_b * sh_sp, pmbo_1 - nf_b * sh_sp};
-
-    for (int i = 0; i < cnt_sp; i++) {
-        const double stp = -f_off_sp + pitch * static_cast<double>(i);
-        std::pair<Point, Point> sb0;
-        std::pair<Point, Point> sb1;
-        const std::vector<Point> c0 =
-            build_vidy_node_single_pin(pmbo_0 + nf_b * stp, nf_b, perp_b, l_tab, scale, sb0);
-        const std::vector<Point> c1 =
-            build_vidy_node_single_pin(pmbo_1 + nf_b * stp, nf_b, perp_b, l_tab, scale, sb1);
-        sp_b.insert(sp_b.end(), c0.begin(), c0.end());
-        sp_t.insert(sp_t.end(), c1.begin(), c1.end());
-        slots_a_out.push_back(project_vidy_node_slot(sb0, sb1, perp_b, pa[2], pa[3]));
-    }
-
-    sp_b.push_back(pmbo_0 + nf_b * sh_sp);
-    sp_b.push_back(mb_out0 + nf_b * sh_sp);
-    sp_t.push_back(pmbo_1 + nf_b * sh_sp);
-    sp_t.push_back(mb_out1 + nf_b * sh_sp);
-
-    // inner_a (side 2, -Y): Extend_Pins cavity-bridging shelf + Single_Pins into outer_b
-    const Vector nf_a(0.0, -1.0, 0.0);
-    const Point ma_in0 = Point::mid_point(ra[0][2], ra[0][3]);
-    const Point ma_in1 = Point::mid_point(ra[1][2], ra[1][3]);
-    const Point pma_0 = (ma_in0 - perp_a * 0.5) + perp_a * l_offs;
-    const Point pma_1 = (ma_in1 - perp_a * (l_tab + 0.5)) + perp_a * l_offs;
-    std::vector<Point> ep_b = {ma_in0 - nf_a * span_dp, pma_0 - nf_a * span_dp};
-    std::vector<Point> ep_t = {ma_in1 - nf_a * span_dp, pma_1 - nf_a * span_dp};
-
-    for (int i = 0; i < cnt_dp; i++) {
-        const double stp = -f_off_dp + pitch * static_cast<double>(i);
-        std::pair<Point, Point> sb0;
-        std::pair<Point, Point> sb1;
-        const std::vector<Point> c0 =
-            build_vidy_node_single_pin(pma_0 + nf_a * stp, nf_a, perp_a, l_tab, scale, sb0);
-        const std::vector<Point> c1 =
-            build_vidy_node_single_pin(pma_1 + nf_a * stp, nf_a, perp_a, l_tab, scale, sb1);
-        ep_b.insert(ep_b.end(), c0.begin(), c0.end());
-        ep_t.insert(ep_t.end(), c1.begin(), c1.end());
-        slots_b_out.push_back(project_vidy_node_slot(sb0, sb1, perp_a, pb[2], pb[3]));
-    }
-
-    ep_b.push_back(pma_0 + nf_a * span_dp);
-    ep_b.push_back(ma_in0 + nf_a * span_dp);
-    ep_t.push_back(pma_1 + nf_a * span_dp);
-    ep_t.push_back(ma_in1 + nf_a * span_dp);
-
-    // outer_a (side 2, -Y): Extend rabbet lip
-    const Point ma_out0 = Point::mid_point(ra[2][2], ra[2][3]);
-    const Point ma_out1 = Point::mid_point(ra[3][2], ra[3][3]);
-    const double ex_span = span_sp - 0.5;
-    const std::vector<Point> ex_b = {
-        ma_out0 - nf_a * ex_span,
-        (ma_out0 - nf_a * ex_span) + perp_a * (2.0 * l_tab - 0.5),
-        (ma_out0 + nf_a * ex_span) + perp_a * (2.0 * l_tab - 0.5),
-        ma_out0 + nf_a * ex_span
+    const wood_vidy::VidyPinBand dp_band = {
+        {rb[0][0], rb[0][1], rb[1][0], rb[1][1]},
+        ref_in,
+        perp_b,
+        l_tab,
+        l_offs,
+        false,
+        cnt_dp,
+        pitch,
+        2.0,
+        0.0,
+        scale
     };
-    const std::vector<Point> ex_t = {
-        ma_out1 - nf_a * ex_span,
-        (ma_out1 - nf_a * ex_span) + perp_a * (l_tab - 0.5),
-        (ma_out1 + nf_a * ex_span) + perp_a * (l_tab - 0.5),
-        ma_out1 + nf_a * ex_span
+    const wood_vidy::VidyPinBand sp_band = {
+        {rb[2][0], rb[2][1], rb[3][0], rb[3][1]},
+        ref_out,
+        perp_b,
+        l_tab,
+        0.0,
+        false,
+        cnt_sp,
+        pitch,
+        2.0,
+        0.0,
+        scale
     };
+    const wood_vidy::VidyPinBand ep_band = {
+        {ra[0][2], ra[0][3], ra[1][2], ra[1][3]},
+        ref_in,
+        perp_a,
+        l_tab,
+        l_offs,
+        false,
+        cnt_dp,
+        pitch,
+        0.0,
+        0.0,
+        scale
+    };
+    const wood_vidy::VidyPinBand ex_band = {
+        {ra[2][2], ra[2][3], ra[3][2], ra[3][3]},
+        ref_out,
+        perp_a,
+        l_tab,
+        0.0,
+        true,
+        cnt_sp,
+        pitch,
+        0.0,
+        0.0,
+        scale
+    };
+    const std::array<std::vector<Point>, 2> dp_p =
+        wood_vidy::vidy_emit_double_pins(dp_band, c_a, n_a, hs, 0, slots_a_in, slots_a_out);
+    const std::array<std::vector<Point>, 2> sp_p =
+        wood_vidy::vidy_emit_single_pins(sp_band, c_a, n_a, hs[2], hs[3], slots_a_out);
+    const std::array<std::vector<Point>, 2> ep_p =
+        wood_vidy::vidy_emit_extend_pins(ep_band, c_b, n_b, hs[2], hs[3], slots_b_out);
+    const std::array<std::vector<Point>, 2> ex_p = wood_vidy::vidy_emit_extend_lip(ex_band, false);
 
     VidyDoubleLayerNode node;
     node.inner_a =
-        make_vidy_node_plate(ra[0], ra[1], 2, ep_b, ep_t, n_a, perp_a, slots_a_in, "inner_wall");
+        make_vidy_node_plate(ra[0], ra[1], 2, ep_p, n_a, perp_a, slots_a_in, "inner_wall");
     node.outer_a =
-        make_vidy_node_plate(ra[2], ra[3], 2, ex_b, ex_t, n_a, -perp_b, slots_a_out, "outer_wall");
-    node.inner_b = make_vidy_node_plate(rb[0], rb[1], 0, dp_b, dp_t, n_b, perp_b, {}, "inner_roof");
+        make_vidy_node_plate(ra[2], ra[3], 2, ex_p, n_a, -perp_b, slots_a_out, "outer_wall");
+    node.inner_b = make_vidy_node_plate(rb[0], rb[1], 0, dp_p, n_b, perp_b, {}, "inner_roof");
     node.outer_b =
-        make_vidy_node_plate(rb[2], rb[3], 0, sp_b, sp_t, n_b, -perp_a, slots_b_out, "outer_roof");
+        make_vidy_node_plate(rb[2], rb[3], 0, sp_p, n_b, -perp_a, slots_b_out, "outer_roof");
 
     // Full-corner perpendicular cavity border boards along open boundary edges
     const std::vector<size_t> b_sides_a =
