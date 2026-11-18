@@ -170,7 +170,7 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         if (framing.span < 0)
             spec.tier = 2;
         else
-            spec.tier = edge.boundary ? 3 : (is_primary ? 2 : 1);
+            spec.tier = (is_primary || (edge.boundary && edge.family < 0)) ? 3 : 2;
         return spec;
     }
 
@@ -197,7 +197,8 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
     }
 
     // Non-primary boundary/rim edge in `PurlinMode::Flush` carries a full edge beam (`beam` or `girder`)
-    // so perimeter beams, columns, and slab edges align cleanly in one flush facade plane!
+    // at tier 2 so primary girders run flush to the corner face and secondary rim beams T-butt cleanly!
+    // (Oblique silhouette edges `edge.family < 0` get tier 3 so continuous diagonal/rake walls aren't chopped.)
     if (framing.purlin == PurlinMode::Flush && edge.boundary) {
         spec.role = Role::Beam;
         spec.profile = secondary_beam_profile(framing.profiles);
@@ -206,7 +207,7 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         spec.depth = bd;
         spec.w_top = 0.0;
         spec.w_bot = -bd;
-        spec.tier = 3;
+        spec.tier = (edge.family < 0) ? 3 : 2;
         return spec;
     }
 
@@ -620,6 +621,51 @@ EndTrim compute_node_trim(
         if (best_i >= 0) {
             rays[best_i].tier = max_t + 1;
             rays[best_j].tier = max_t + 1;
+        } else if (framing.span >= 0 && rays.size() == 3) {
+            // Non-collinear 3-ray perimeter corner/apex (e.g. gable peak or polygon corner with interior beam):
+            // promote the two boundary edges so the interior member T-butts cleanly into their inner faces!
+            std::vector<size_t> bnds;
+            for (size_t i = 0; i < rays.size(); ++i)
+                if (plan.edges[rays[i].edge_idx].boundary)
+                    bnds.push_back(i);
+            if (bnds.size() == 2 &&
+                std::max(rays[bnds[0]].tier, rays[bnds[1]].tier) == max_t) {
+                const IncidentRay& a = rays[bnds[0]];
+                const IncidentRay& b = rays[bnds[1]];
+                const double turn = std::abs(Tolerance::PI - wrap_ccw(b.angle - a.angle));
+                const bool sym_apex =
+                    std::abs(std::abs(a.dir[0]) - std::abs(b.dir[0])) < 1e-3 &&
+                    a.dir[1] * b.dir[1] > 0.0;
+                if (turn < 0.68 || sym_apex) {
+                    rays[bnds[0]].tier = max_t + 1;
+                    rays[bnds[1]].tier = max_t + 1;
+                } else {
+                    const bool a_wins =
+                        std::abs(a.half_w - b.half_w) > 1.0
+                            ? (a.half_w > b.half_w)
+                            : (std::abs(std::abs(a.dir[0]) - std::abs(b.dir[0])) > 1e-3
+                                   ? (std::abs(a.dir[0]) > std::abs(b.dir[0]))
+                                   : (a.edge_idx < b.edge_idx));
+                    rays[bnds[a_wins ? 0 : 1]].tier = max_t + 2;
+                    rays[bnds[a_wins ? 1 : 0]].tier = max_t + 1;
+                }
+            }
+        }
+    } else if (rays.size() == 2 && framing.span >= 0 && rays[0].tier == rays[1].tier) {
+        // 2-ray corner in hierarchical framing (`span >= 0`): prefer a T-section bypass-and-butt joint
+        // over a miter (except at gentle polygonal ring bends `< 39 deg` or mirror-symmetric gable peaks)!
+        const double turn = std::abs(Tolerance::PI - wrap_ccw(rays[1].angle - rays[0].angle));
+        const bool sym_apex =
+            std::abs(std::abs(rays[0].dir[0]) - std::abs(rays[1].dir[0])) < 1e-3 &&
+            rays[0].dir[1] * rays[1].dir[1] > 0.0;
+        if (turn >= 0.68 && !sym_apex) {
+            const bool r0_wins =
+                std::abs(rays[0].half_w - rays[1].half_w) > 1.0
+                    ? (rays[0].half_w > rays[1].half_w)
+                    : (std::abs(std::abs(rays[0].dir[0]) - std::abs(rays[1].dir[0])) > 1e-3
+                           ? (std::abs(rays[0].dir[0]) > std::abs(rays[1].dir[0]))
+                           : (rays[0].edge_idx < rays[1].edge_idx));
+            rays[r0_wins ? 0 : 1].tier += 1;
         }
     }
 
@@ -729,12 +775,18 @@ EndTrim compute_node_trim(
         if (has_through_col) {
             trim.overrun = std::min(through_overrun, max_overrun);
         } else {
-            // Check if lower-tier boundary rays meet `self` at an oblique/perpendicular perimeter:
-            // bevel `self`'s end flush with the boundary member's outer facade face!
-            bool beveled_to_facade = false;
-            double ext = 0.0;
+            // Check if lower-tier boundary/corner rays meet `self`:
+            // - Single facade plane (2-ray corner or straight oblique wall): bevel `self` coplanar with that outer face!
+            // - Two angled ring facets on opposite sides (e.g. radial inner oculus & outer ring): cut `self` squarely
+            //   where its side faces meet both ring beams' outer/oculus corners!
+            struct FacadeHit {
+                const IncidentRay* ray = nullptr;
+                Vector n_in;
+                double speed = 0.0;
+            };
+            std::vector<FacadeHit> hits;
             for (const IncidentRay& r : rays) {
-                if (r.edge_idx == self.edge_idx || !plan.edges[r.edge_idx].boundary)
+                if (r.edge_idx == self.edge_idx || (!plan.edges[r.edge_idx].boundary && rays.size() > 2))
                     continue;
                 const double sin_a = std::abs(self.dir[0] * r.dir[1] - self.dir[1] * r.dir[0]);
                 if (sin_a <= 0.15)
@@ -745,17 +797,42 @@ EndTrim compute_node_trim(
                 const double speed = self.dir.dot(n_in);
                 if (speed <= 0.15)
                     continue;
-                const Vector self_s = left_2d(self.dir);
-                const double req =
-                    (r.half_w + self.half_w * std::abs(self_s.dot(n_in))) / speed;
-                ext = std::max(ext, req);
-                add_unique_plane(
-                    trim.planes, lift_plane_uv(plan, origin_uv - n_in * r.half_w, n_in)
-                );
-                beveled_to_facade = true;
+                hits.push_back({&r, n_in, speed});
             }
 
-            if (!beveled_to_facade) {
+            bool single_facade_plane = !hits.empty();
+            for (size_t i = 1; i < hits.size(); ++i)
+                if (hits[i].n_in.dot(hits[0].n_in) < 0.999)
+                    single_facade_plane = false;
+
+            double ext = 0.0;
+            if (!hits.empty() && single_facade_plane) {
+                const Vector self_s = left_2d(self.dir);
+                for (const FacadeHit& fh : hits) {
+                    const double req =
+                        (fh.ray->half_w + self.half_w * std::abs(self_s.dot(fh.n_in))) / fh.speed;
+                    ext = std::max(ext, req);
+                    add_unique_plane(
+                        trim.planes,
+                        lift_plane_uv(plan, origin_uv - fh.n_in * fh.ray->half_w, fh.n_in)
+                    );
+                }
+                trim.overrun = std::min(ext, max_overrun);
+            } else if (!hits.empty()) {
+                for (const FacadeHit& fh : hits) {
+                    const Vector s_toward =
+                        fh.ray->dir.dot(left_2d(self.dir)) >= 0.0 ? left_2d(self.dir)
+                                                                  : right_2d(self.dir);
+                    const double req = std::max(
+                        0.0, (fh.ray->half_w + self.half_w * s_toward.dot(fh.n_in)) / fh.speed
+                    );
+                    ext = std::max(ext, req);
+                }
+                trim.overrun = std::min(ext, max_overrun);
+                add_unique_plane(
+                    trim.planes, lift_plane_uv(plan, origin_uv - self.dir * trim.overrun, self.dir)
+                );
+            } else {
                 if (rays.size() >= 2) {
                     for (const IncidentRay& r : rays) {
                         if (r.edge_idx == self.edge_idx)
@@ -773,8 +850,6 @@ EndTrim compute_node_trim(
                 add_unique_plane(
                     trim.planes, lift_plane_uv(plan, origin_uv - self.dir * trim.overrun, self.dir)
                 );
-            } else {
-                trim.overrun = std::min(ext, max_overrun);
             }
         }
         return trim;

@@ -50,7 +50,7 @@ int main() {
           wood_grid::Framing{
               .system = wood_grid::System::PostAndBeam,
               .node = wood_grid::NodeMode::Flush,
-              .span = -1,
+              .span = 0,
               .post_height = 3600.0,
               .deck = 160.0,
               .profiles =
@@ -63,7 +63,7 @@ int main() {
           wood_grid::Framing{
               .system = wood_grid::System::PostAndBeam,
               .node = wood_grid::NodeMode::Flush,
-              .span = -1,
+              .span = 0,
               .post_height = 3600.0,
               .deck = 160.0,
               .profiles =

@@ -123,7 +123,7 @@ int main() {
          wood_grid::Framing{
              .system = wood_grid::System::PostAndBeam,
              .node = wood_grid::NodeMode::Flush,
-             .span = -1,
+             .span = 0,
              .post_height = 4000.0,
              .profiles =
                  {.column = profile_rectangle(240.0, 240.0),

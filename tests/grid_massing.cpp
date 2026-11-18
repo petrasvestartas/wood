@@ -137,7 +137,7 @@ int main() {
             wood_grid::Framing{
                 .system = wood_grid::System::PostAndBeam,
                 .node = wood_grid::NodeMode::Flush,
-                .span = -1,
+                .span = 0,
                 .deck = 160.0,
             }
         )
@@ -260,9 +260,41 @@ int main() {
             wood_grid::Plan::from_pattern(wood_grid::Pattern::hexagonal(4000.0, 3, 2), FLOOR),
             wood_grid::Framing{
                 .system = wood_grid::System::PostAndBeam,
-                .node = wood_grid::NodeMode::Head,
+                .node = wood_grid::NodeMode::Flush,
                 .span = -1,
-                .profiles = {.column = profile_round(260.0)},
+                .profiles = {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 420.0)},
+            }
+        )
+    );
+    verify_grid(
+        "irregular_t_joints",
+        wood_grid::Grid(
+            wood_grid::Plan::from_footprint(
+                {Polyline({
+                    Point(0.0, 0.0, 0.0),
+                    Point(26000.0, 1500.0, 0.0),
+                    Point(28000.0, 13500.0, 0.0),
+                    Point(14000.0, 18000.0, 0.0),
+                    Point(-1000.0, 11500.0, 0.0),
+                    Point(0.0, 0.0, 0.0),
+                })},
+                wood_grid::Pattern::from_lines({
+                    Line::from_points(Point(-2000.0, 4800.0, 0.0), Point(30000.0, 6000.0, 0.0)),
+                    Line::from_points(Point(-2000.0, 9000.0, 0.0), Point(30000.0, 10200.0, 0.0)),
+                    Line::from_points(Point(7200.0, -2000.0, 0.0), Point(5800.0, 20000.0, 0.0)),
+                    Line::from_points(Point(14800.0, -2000.0, 0.0), Point(15600.0, 20000.0, 0.0)),
+                    Line::from_points(Point(21200.0, -2000.0, 0.0), Point(22000.0, 20000.0, 0.0)),
+                }),
+                {},
+                FLOOR
+            ),
+            wood_grid::Framing{
+                .system = wood_grid::System::PostAndBeam,
+                .node = wood_grid::NodeMode::Flush,
+                .span = 0,
+                .profiles =
+                    {.column = profile_rectangle(240.0, 240.0),
+                     .girder = profile_rectangle(240.0, 460.0)},
             }
         )
     );
