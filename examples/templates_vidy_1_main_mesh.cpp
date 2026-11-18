@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Main mesh geometry of the 11-bay Théâtre de Vidy pavilion: roof triangles, wall quads and bay axes.
+/// Vidy base mesh: 127 vertices, 154 planar facets, 12 bay axes.
 int main() {
 
     wood_vidy::VidyGuide guide(11);
@@ -22,7 +22,7 @@ int main() {
     }
 
     std::cout << fmt::format(
-        "vidy main mesh: {} vertices, {} facets, {} regular folds (max CNC tilt {:.1f} deg), {} bay separations\n",
+        "vidy 1: {} verts, {} facets, {} folds (max {:.1f} deg), {} bay axes\n",
         guide.base_mesh().number_of_vertices(),
         guide.facets().size(),
         reg_count,
@@ -36,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 1 main mesh geometry of the 11-bay Théâtre de Vidy timber pavilion (after Robeller & Weinand, IBOIS / EPFL): 110 planar antiprismatic roof triangles and 44 planar vertical V-pleated wall quads across 12 transverse bay axes.
+Vidy 1: 28.7 x 19.1 x 10.3 m, 11 bays x 2609.6 mm, 127 vertices, 110 roof triangles + 44 vertical wall quads = 154 facets.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

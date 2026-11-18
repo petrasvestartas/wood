@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Four concentric mitered offset shells (h = 0, 45, 255, 300 mm) and 236 miter planes of the Vidy pavilion.
+/// Vidy miter offset shells at h = {0, 45, 255, 300} mm and 236 miter planes.
 int main() {
 
     wood_vidy::VidyGuide guide(11);
@@ -18,7 +18,7 @@ int main() {
     guide.add_mesh(two_bay.miter_planes_mesh(), shells_group);
 
     std::cout << fmt::format(
-        "vidy offset shells: 4 concentric meshes ({} faces each) + {} miter connection planes, cavity = {:.0f} mm\n",
+        "vidy 2: 4 shells x {} faces, {} miter planes, {:.0f} mm cavity\n",
         guide.outer_mesh().number_of_faces(),
         guide.miter_planes_mesh().number_of_faces(),
         guide.cavity_gap()
@@ -30,7 +30,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 2 double-layer miter offset surfaces and miter connection planes of the Théâtre de Vidy pavilion: four concentric shell meshes at h = {0, 45, 255, 300} mm together with all 236 angle-bisector and vertical XZ miter ribbons.
+Vidy 2: 4 offset shells at h = {0, 45, 255, 300} mm (210 mm cavity), 236 miter planes (176 fold, 50 bay XZ, 10 gable XZ).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

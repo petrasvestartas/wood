@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Mitered double-layer 45 mm CLT panels (308 shell plates + 154 cavity border boards) of the Vidy pavilion.
+/// Vidy 45 mm CLT panels: 308 shell plates + 154 full-corner border boards = 462 plates.
 int main() {
 
     const wood_vidy::VidyGuide guide(11);
@@ -22,7 +22,7 @@ int main() {
     }
 
     std::cout << fmt::format(
-        "vidy double-layer panels: {} total plates ({} inner + {} outer + {} border boards, {:.0f} mm thick)\n",
+        "vidy 3: {} plates ({} inner + {} outer + {} borders, {:.0f} mm)\n",
         pavilion.all_plates().size(),
         pavilion.inner_plates().size(),
         pavilion.outer_plates().size(),
@@ -36,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 3 double-layer 45 mm CLT panels of the 11-bay Théâtre de Vidy pavilion: 308 mitered folded shell plates with angle-proportional corner chamfers plus 154 perpendicular 45 x 210 mm cavity-closing border boards along bay separations, gables and ground sills (462 plates total), together with an 84-plate two-bay module.
+Vidy 3: 308 x 45 mm shell plates + 154 x 45 x 210 mm full-corner border boards = 462 plates (84 in 2-bay module).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

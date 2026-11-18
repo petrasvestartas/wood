@@ -97,6 +97,9 @@ public:
     /// Base mesh vertex coordinates across all 2 * bays + 1 stations.
     const std::vector<Point>& vertices() const;
 
+    /// Incident facet count per base mesh vertex.
+    const std::vector<size_t>& vertex_valences() const;
+
     /// Clear insulation cavity thickness between inner and outer CLT layers.
     double cavity_gap() const;
 
@@ -129,6 +132,7 @@ public:
 
 private:
     std::vector<Point> _vertices; // Base mesh vertex coordinates across 2 * bays + 1 stations.
+    std::vector<size_t> _vertex_valences; // Incident facet count per base mesh vertex.
     std::vector<Line> _bay_axes; // Transverse bay-axis lines on z = 0.
     Mesh _base_mesh; // Base polygonal mesh at h = 0 with outward normals.
     std::vector<VidyFacet> _facets; // Per-facet topology, planes and four miter corner rings.
@@ -146,6 +150,9 @@ private:
 
     /// Planar wall quads and roof triangles per bay from the station rings.
     std::vector<VidyFacet> compute_facets(const std::vector<std::vector<size_t>>& stations) const;
+
+    /// Incident facet count per vertex in 0.._vertices.size() - 1.
+    std::vector<size_t> compute_vertex_valences() const;
 
     /// Base polygonal mesh at h = 0 assembled from _vertices and _facets.
     Mesh compute_base_mesh() const;

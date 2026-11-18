@@ -10,7 +10,7 @@ namespace wood_vidy {
 // VidyPavilion
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Double-layer folded CLT pavilion built from a VidyGuide with corner chamfers, cavity border boards and Vidy joinery.
+/// Double-layer folded CLT pavilion built from a VidyGuide with cavity borders and Vidy joinery.
 class VidyPavilion : public WoodSession {
 public:
     const VidyGuide guide; // Underlying base mesh and four-surface miter offset guide.
@@ -18,7 +18,7 @@ public:
     const double corner_scale; // Scale multiplier on multi-valent corner chamfers (1.0 = Rhino).
     const double pin_pitch; // Centre-to-centre pitch of stepped tenon pins along creases in mm.
 
-    /// Builds the double-layer 45 mm CLT panels, perpendicular cavity border boards and optional Vidy joinery.
+    /// Builds the double-layer 45 mm CLT panels, perpendicular cavity borders and Vidy joinery.
     explicit VidyPavilion(
         const VidyGuide& guide = VidyGuide(11),
         bool with_joints = true,
@@ -36,7 +36,7 @@ public:
     /// Inner room-side CLT plates (h = 0 to plate_thickness) in guide facet order.
     const std::vector<std::shared_ptr<FacePlanarElement>>& inner_plates() const;
 
-    /// Outer exterior CLT plates (h = total_offset - plate_thickness to total_offset) in guide facet order.
+    /// Outer exterior CLT plates (h = total_offset - plate_thickness to total_offset) in facet order.
     const std::vector<std::shared_ptr<FacePlanarElement>>& outer_plates() const;
 
     /// All main folded inner and outer CLT shell plates (inner followed by outer per facet).
@@ -51,6 +51,9 @@ public:
 
     /// Every CLT plate in the pavilion (main shell plates plus cavity-closing border boards).
     const std::vector<std::shared_ptr<FacePlanarElement>>& all_plates() const;
+
+    /// Single rigid-body assembly insertion unit vector of plate (facet_idx, layer 0=inner / 1=outer).
+    Vector plate_insertion_vector(size_t facet_idx, size_t layer) const;
 
     /// Adds the six-step module assembly sequence (module_1_haunch_wings to module_6_roof_onto_walls).
     void add_module_assembly_groups(size_t bay_idx = 5, double roof_lift = 1650.0);
@@ -78,15 +81,20 @@ private:
     std::vector<std::vector<std::shared_ptr<FacePlanarElement>>>
         _facet_border_plates; // Border boards indexed by facet f.
     std::vector<std::shared_ptr<FacePlanarElement>> _all_plates; // Shell and border plates.
+    std::array<std::vector<Vector>, 2>
+        _insertion_vectors; // Rigid-body insertion vector [layer][f].
     size_t _total_jointed_seams = 0; // Jointed double-layer Regular seam count.
     size_t _total_double_pins = 0; // Stepped Double_Pin count.
     size_t _total_single_pins = 0; // Single_Pin and Extend_Pin count.
     size_t _total_mortise_slots = 0; // Through-mortise slot count across all plates.
 
-    /// Builds the inner and outer chamfered CLT shell plates with optional tenon and mortise joinery.
+    /// Computes one consistent rigid-body assembly insertion vector per shell plate.
+    void compute_insertion_vectors();
+
+    /// Builds the inner and outer CLT shell plates with selective chamfers and Vidy joinery.
     void compute_shell_plates();
 
-    /// Builds the perpendicular cavity-closing border boards on all non-Regular facet edges.
+    /// Builds the perpendicular cavity-closing border boards extending to all corner planes.
     void compute_border_plates();
 
     /// Adds the roof haunch and inner crown assembly steps 1..3 of bay b.

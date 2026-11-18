@@ -115,6 +115,8 @@ VidyGuide::VidyGuide(
     // facets: ten antiprismatic roof triangles and four vertical wall quads per bay
     const std::vector<VidyFacet> facets = compute_facets(stations.second);
     _facets = facets;
+    const std::vector<size_t> valences = compute_vertex_valences();
+    _vertex_valences = valences;
     const Mesh base_mesh = compute_base_mesh();
     _base_mesh = base_mesh;
 
@@ -137,6 +139,10 @@ VidyGuide::VidyGuide(
 
 const std::vector<Point>& VidyGuide::vertices() const {
     return _vertices;
+}
+
+const std::vector<size_t>& VidyGuide::vertex_valences() const {
+    return _vertex_valences;
 }
 
 double VidyGuide::cavity_gap() const {
@@ -191,8 +197,8 @@ VidyGuide::compute_stations() const {
     const double ref_odd_y = 5.0 * bay_length;
     const double half_span_mid = 0.5 * span_mid;
     const double half_span_end = 0.5 * span_end;
-    const double odd_half_mid = half_span_mid + 0.88 * wall_pleat;
-    const double odd_half_end = half_span_end + 1.27 * wall_pleat;
+    const double odd_half_mid = half_span_mid + 0.8809 * wall_pleat;
+    const double odd_half_end = half_span_end + 1.2724 * wall_pleat;
     std::vector<Point> vertices;
     std::vector<std::vector<size_t>> station_vids(2 * bays + 1);
 
@@ -206,10 +212,15 @@ VidyGuide::compute_stations() const {
             const double zkl = compute_arc_profile(
                 y,
                 ref_even_y,
-                eave_height_mid + 0.92 * knee_rise,
-                eave_height_end + 1.08 * knee_rise
+                eave_height_mid + 0.9221 * knee_rise,
+                eave_height_end + 1.0788 * knee_rise
             );
-            const double zkr = zkl + asymmetry;
+            const double zkr = compute_arc_profile(
+                y,
+                ref_even_y,
+                eave_height_mid + 0.9221 * knee_rise + 0.9991 * asymmetry,
+                eave_height_end + 1.0788 * knee_rise + 1.0495 * asymmetry
+            );
             ring = {
                 {-xw, y, 0.0},
                 {-xw, y, ze},
@@ -220,10 +231,11 @@ VidyGuide::compute_stations() const {
             };
         } else {
             const double xwm = compute_arc_profile(y, ref_odd_y, odd_half_mid, odd_half_end);
-            const double zem =
-                compute_arc_profile(y, ref_odd_y, eave_height_mid + 396.0, eave_height_end + 572.0);
+            const double zem = compute_arc_profile(
+                y, ref_odd_y, eave_height_mid + 396.29, eave_height_end + 572.45
+            );
             const double xcr =
-                compute_arc_profile(y, ref_odd_y, 2.75 * asymmetry, 0.94 * asymmetry);
+                compute_arc_profile(y, ref_odd_y, 2.7484 * asymmetry, 0.9414 * asymmetry);
             const double zcr =
                 compute_arc_profile(y, ref_odd_y, crown_height_mid, crown_height_end);
             ring = {{-xwm, y, 0.0}, {-xwm, y, zem}, {xcr, y, zcr}, {xwm, y, zem}, {xwm, y, 0.0}};
@@ -295,6 +307,17 @@ VidyGuide::compute_facets(const std::vector<std::vector<size_t>>& stations) cons
     }
 
     return facets;
+}
+
+std::vector<size_t> VidyGuide::compute_vertex_valences() const {
+
+    std::vector<size_t> valences(_vertices.size(), 0);
+
+    for (const VidyFacet& facet : _facets)
+        for (const size_t vid : facet.vertices)
+            valences[vid]++;
+
+    return valences;
 }
 
 Mesh VidyGuide::compute_base_mesh() const {

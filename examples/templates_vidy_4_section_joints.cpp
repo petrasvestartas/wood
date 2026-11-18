@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Full 11-bay Théâtre de Vidy double-layer through-tenon joinery, cavity border boards and module assembly.
+/// Vidy 11-bay joinery: 462 plates, 176 seams, single-axis through-tenons and 6-step module assembly.
 int main() {
 
     const wood_vidy::VidyGuide full_guide(11);
@@ -20,26 +20,13 @@ int main() {
             pavilion.add(board->clone(), first_row);
     }
 
-    const std::shared_ptr<TreeNode> corner_node = pavilion.add_group("eave_joint_node");
-    const size_t mid_base = 14 * 5;
-
-    for (const size_t loc : {size_t{0}, size_t{1}, size_t{4}, size_t{5}, size_t{9}}) {
-        pavilion.add(pavilion.inner_plates()[mid_base + loc]->clone(), corner_node);
-        pavilion.add(pavilion.outer_plates()[mid_base + loc]->clone(), corner_node);
-
-        for (const std::shared_ptr<FacePlanarElement>& board :
-             pavilion.border_plates_for_facet(mid_base + loc))
-            pavilion.add(board->clone(), corner_node);
-    }
-
     pavilion.add_module_assembly_groups(5, 1650.0);
 
     std::cout << fmt::format(
-        "vidy full pavilion joinery: {} total plates ({} shell + {} border across {} bays), {} jointed seams, {} pins ({} Double_Pins + {} Single/Extend_Pins), {} mortise slots\n",
+        "vidy 4: {} plates ({} shell + {} border), {} seams, {} pins ({} double + {} single), {} slots\n",
         pavilion.all_plates().size(),
         pavilion.shell_plates().size(),
         pavilion.border_plates().size(),
-        full_guide.bays,
         pavilion.total_jointed_seams(),
         pavilion.total_pins(),
         pavilion.total_double_pins(),
@@ -53,7 +40,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Stage 4 double-layer Théâtre de Vidy timber joinery across all 462 plates of the 11-bay pavilion (308 folded shell plates + 154 perpendicular cavity-closing border boards): stepped chamfered Double_Pins bridging the 210 mm cavity, interleaved Single_Pins, vertical +Z on-site eave joints, first-row verification arch, and six-step module assembly sequence.
+Vidy 4: 462 plates, 176 seams, 500 mm pitch, Double_Pin 270/180/140 mm, Single_Pin 180/140 mm, +Z eave tenons, 6-step assembly.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
