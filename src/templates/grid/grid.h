@@ -1,209 +1,243 @@
 #pragma once
+
 #include "wood_session.h"
 #include "wood_profile.h"
 
 namespace wood_grid {
 
-using namespace session_cpp;
+// ═══════════════════════════════════════════════════════════════════════════
+// Framing
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Structural framing family on a planar grid.
+enum class System {
+    Slab,         ///< Point-supported CLT slab directly on columns or chamfered heads.
+    PostAndBeam,  ///< Beams along grid axes (`span` selects primary family or `-1` for all axes).
+    GirderPurlin, ///< Primary girders on `span` axes with subdivided secondary purlins/joists.
+};
+
+/// Column-to-frame connection detail at standing grid nodes.
+enum class NodeMode {
+    Flush,   ///< Columns stop at the framing soffit; beams meet cleanly above the column.
+    Through, ///< Columns run continuously to the plane datum; beams and decks butt to column faces.
+    Head,    ///< One chamfered timber head block sits on each column beneath the slab or girders.
+};
+
+/// Vertical relation between secondary purlins and primary girders in `System::GirderPurlin`.
+enum class PurlinMode {
+    Flush,   ///< Purlins frame flush with the girder top (`w = 0`), trimmed to girder side faces.
+    Stacked, ///< Purlins sit continuously on top of lowered primary girders.
+};
+
+/// In-plane timber bracing pattern inside selected quadrilateral bays.
+enum class BraceMode {
+    None,     ///< Unbraced open bay.
+    Diagonal, ///< Single diagonal timber brace per braced bay.
+    Cross,    ///< Co-planar X-brace: continuous primary diagonal with split secondary diagonal.
+    Chevron,  ///< Inverted-V chevron braces meeting at the midpoint of the top member.
+};
+
+/// Timber cross-sections (rectangular glulam/CLT billets or round turned columns) by member role.
+struct Profiles {
+    std::vector<session_cpp::Polyline> column = wood_session::profile_rectangle(300.0, 300.0);
+    std::vector<session_cpp::Polyline> girder = wood_session::profile_rectangle(260.0, 520.0);
+    std::vector<session_cpp::Polyline> beam; ///< Optional secondary/perimeter beam in `PostAndBeam`; empty reuses `girder`.
+    std::vector<session_cpp::Polyline> purlin = wood_session::profile_rectangle(180.0, 360.0);
+    std::vector<session_cpp::Polyline> brace = wood_session::profile_rectangle(160.0, 160.0);
+};
+
+/// Timber framing specification for a single planar `Plan` or multi-storey `Stack`.
+struct Framing {
+    System system = System::PostAndBeam;
+    NodeMode node = NodeMode::Flush;
+    PurlinMode purlin = PurlinMode::Flush;
+    BraceMode brace = BraceMode::None;
+    std::vector<size_t> braced_bays; ///< Bay indices receiving braces (`empty` braces all quad bays when `brace != None`).
+    int span = 0;                    ///< Primary axis family (`0` or `1`), or `-1` to make all grid axes primary.
+    double post_height = 3600.0;     ///< Post/column length along `-frame.z_axis()` (`0.0` omits normal posts, e.g. facades).
+    double spacing = 2000.0;         ///< Target centre-to-centre purlin spacing in `System::GirderPurlin`.
+    double deck = 0.0;               ///< CLT deck or infill panel thickness (`0.0` omits panels).
+    bool deck_flush = false;         ///< `false`: deck sits on `[0, +deck]`; `true`: flush infill in `[-deck, 0]`.
+    double panel_width = 0.0;        ///< Maximum CLT transport strip width (`0.0` keeps one plate per bay).
+    double wall = 0.0;               ///< CLT shear wall thickness around `Plan::cores` (`0.0` omits core walls).
+    double head_height = 240.0;      ///< Height of the single chamfered timber head block (`NodeMode::Head`).
+    double head_reach = 180.0;       ///< Outward corbel projection of the chamfered head beyond interior column faces.
+    Profiles profiles;
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Pattern
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Plan lines a building is drawn on, at z 0, each in a parallel family.
+/// Divides `length` into equal bays closest to `target`.
+std::vector<double> compute_bays(double length, double target);
+
+/// 2D axis lines and optional intrinsic boundary rings in local `(u, v)` coordinates of a `Plane`.
 struct Pattern {
-    std::vector<Line>
-        lines; // Segments in plan, as long as the pattern extends; a footprint beyond them gets no members there.
-    std::vector<int> families; // One per line.
+    std::vector<session_cpp::Line> lines;
+    std::vector<int> families;
+    std::vector<session_cpp::Polyline> boundary; ///< Optional default boundary + hole loops (e.g. radial oculus).
 
-    /// Lines along x at the sums of ys and along y at the sums of xs, the y lines leaning skew degrees.
+    /// Two axis families spaced by `u_bays` and `v_bays`, with family 1 skewed by `skew_degrees` from +v.
+    static Pattern orthogonal(
+        const std::vector<double>& u_bays,
+        const std::vector<double>& v_bays,
+        double skew_degrees = 0.0
+    );
+
+    /// Concentric polygon rings at `radii` and `sectors` radial rays (`inner_hole` leaves the inner ring open as an oculus).
     static Pattern
-    orthogonal(const std::vector<double>& xs, const std::vector<double>& ys, double skew = 0.0);
+    radial(const std::vector<double>& radii, int sectors, bool inner_hole = true);
 
-    /// Rays from the first radius to the last and ring chords at every radius over sweep degrees.
-    static Pattern radial(const std::vector<double>& radii, int sectors, double sweep = 360.0);
+    /// Three axis families at 0, 60 and 120 degrees forming equilateral triangles of `side`.
+    static Pattern triangular(double side, int nu, int nv);
 
-    /// Three families of lines at 0, 60 and 120 degrees, side apart, over nx by ny rhombi.
-    static Pattern triangular(double side, int nx, int ny);
+    /// Regular honeycomb of hexagons of `side`, `nu` columns by `nv` rows.
+    static Pattern hexagonal(double side, int nu, int nv);
 
-    /// Edges of pointy-top hexagons of side in nx columns and ny rows, every edge a free line (family -1).
-    static Pattern hexagonal(double side, int nx, int ny);
-
-    /// Lines as drawn with a family per line, all free when families is empty.
+    /// Explicit 2D lines with optional family tags (`0`, `1`, ...).
     static Pattern
-    from_lines(const std::vector<Line>& lines, const std::vector<int>& families = {});
+    from_lines(const std::vector<session_cpp::Line>& lines, const std::vector<int>& families = {});
 
-    /// A copy moved by xform: the pattern's origin and rotation under the building.
-    Pattern transformed(const Xform& xform) const;
-};
-
-/// Bay widths over length at spacing, Branch's rule.
-std::vector<double> compute_bays(double length, double spacing, double remainder = 304.8);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Framing
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Section per role, each a profile centred on the member axis, x width and y depth up.
-struct Profiles {
-    std::vector<Polyline> column = wood_session::profile_rectangle(300.0, 300.0);
-    std::vector<Polyline> girder = wood_session::profile_rectangle(200.0, 600.0);
-    std::vector<Polyline> beam = {}; // Members on free lines and under span -1; empty takes girder.
-    std::vector<Polyline> purlin = {}; // Purlin rows under system 2; empty takes beam.
-    std::vector<Polyline> brace = {}; // Workflow C braces; empty takes beam.
-};
-
-/// How every level is framed and jointed.
-struct Framing {
-    int system = 1; // 0 point supported, 1 post and beam, 2 purlin on girder.
-    int span = 0; // Pattern family the girders run on; -1 every line carries a beam.
-    double spacing = 3000.0; // Largest purlin spacing under system 2.
-    int node = 0; // Column joint: 0 head, 1 flush, 2 through.
-    double drop =
-        0.0; // Girder top below the datum: 0 flush with the purlins, 203.2 hung as Branch, the purlin depth stacked.
-    double deck =
-        200.0; // Deck thickness, above the datum or flush in the bay under post and beam with heads.
-    double wall = 200.0; // Facade and core wall thickness, centred on the line.
-    double head = 300.0; // Height of a head that carries the deck alone.
-    double reach = 400.0; // How far a head reaches from the column centre.
-    int capital = 0; // Head under the deck alone: 0 conical, 1 stepped under a drop panel.
-    double panel = 0.0; // Largest deck strip width across the deck span; 0 one deck per bay.
-    double taper =
-        30.0; // Largest lean in degrees of a column following a moving section; beyond it the vertex is a transfer.
-    bool facade = false; // A wall under every perimeter member.
-    Profiles profiles = {}; // Sections per role.
+    /// Copy transformed in 2D/3D by `xform`.
+    Pattern transformed(const session_cpp::Xform& xform) const;
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Building
+// Plan (Single Floor, Single Bay, or Single Facade on Any Plane)
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// One level: its datum, its cores and its plan, whose double attributes a user may set before building a Grid.
-struct Level {
-    double z = 0.0; // Datum: the framing top, the deck underside.
-    std::vector<Polyline> cores; // Core rings on the wall centre line, counter-clockwise at z 0.
-    Mesh
-        plan; // Arrangement of the pattern and the section rings: faces are bays, edges member lines, vertices column points.
+/// One topological segment between two nodes of a `Plan`.
+struct PlanEdge {
+    size_t a = 0;
+    size_t b = 0;
+    int family = -1;       ///< Pattern axis family (`0`, `1`, `2`), or `-1` for a pure boundary segment.
+    bool boundary = false; ///< True when the edge bounds the outer perimeter or an opening/courtyard hole.
+    bool core = false;     ///< True when the edge lies on a core ring.
 };
 
-/// A building as its levels: the same pipeline from a massing, a footprint or drawn lines; a Grid frames it.
-struct Building {
-    std::vector<Level> levels; // Ascending; storey k spans levels[k] to levels[k + 1].
-    std::vector<Line> braces; // Tilted lines from from_lines, built as beams cut by what they meet.
-    double tolerance = 1.0; // Weld distance and coplanarity tolerance the plans were built with.
+/// One bounded polygonal bay of a `Plan` in local `(u, v)` vertex indices (no triangulation chords).
+struct PlanCell {
+    std::vector<size_t> outer;              ///< Counter-clockwise outer boundary loop in `Plan::nodes`.
+    std::vector<std::vector<size_t>> holes; ///< Optional inner hole loops in `Plan::nodes`.
+};
 
-    /// A.
-    static Building from_solid(
-        const Mesh& massing,
+/// Clean 2D cell-edge-node subdivision embedded on an arbitrary 3D `Plane` (floor, roof, or facade).
+struct Plan {
+    session_cpp::Plane frame = session_cpp::Plane::xy_plane();
+    std::vector<session_cpp::Point> nodes;       ///< Local `(u, v, 0)` coordinates on `frame`.
+    std::vector<bool> standing;                  ///< True at structural column/post nodes.
+    std::vector<PlanEdge> edges;                 ///< Unique undirected structural/boundary edges.
+    std::vector<PlanCell> cells;                 ///< Polygonal bays without mesh triangulation diagonals.
+    std::vector<session_cpp::Polyline> cores;    ///< Closed core loops in local `(u, v, 0)`.
+    std::vector<session_cpp::Polyline> boundary; ///< Outer + hole boundary loops in local `(u, v, 0)`.
+
+    /// Maps local `(u, v, w)` coordinates on `frame` into 3D world space.
+    session_cpp::Point to_world(double u, double v, double w = 0.0) const;
+
+    /// Maps a 3D world point into local `(u, v, w)` coordinates of `frame`.
+    session_cpp::Point to_local(const session_cpp::Point& world) const;
+
+    /// Lifts a local `(u, v, 0)` polyline to world space at normal offset `w`.
+    session_cpp::Polyline lift_polyline(const session_cpp::Polyline& local_loop, double w = 0.0) const;
+
+    /// Number of bounded polygonal bays in this plan.
+    size_t bay_count() const {
+        return cells.size();
+    }
+
+    /// Isolates a single bay `index` as its own standalone `Plan` on the same `Plane`.
+    Plan bay(size_t index) const;
+
+    /// Isolates a subset of bays `indices` as a standalone `Plan` on the same `Plane`.
+    Plan bays(const std::vector<size_t>& indices) const;
+
+    /// Copy with `frame` moved by `xform` (keeping local `(u, v)` topology intact).
+    Plan transformed(const session_cpp::Xform& xform) const;
+
+    /// Every bounded cell of `pattern` on `frame` (uses `pattern.boundary` when present).
+    static Plan from_pattern(
+        const Pattern& pattern, const session_cpp::Plane& frame = session_cpp::Plane::xy_plane()
+    );
+
+    /// Clips `pattern` to world-space `footprint` rings (outer + holes) and `cores` projected onto `frame`.
+    static Plan from_footprint(
+        const std::vector<session_cpp::Polyline>& footprint,
+        const Pattern& pattern,
+        const std::vector<session_cpp::Polyline>& cores = {},
+        const session_cpp::Plane& frame = session_cpp::Plane::xy_plane()
+    );
+
+    /// Vertical (or custom-plane) facade grid over `baseline` and `height`, with optional `(u, v)` window `openings` and `silhouette`.
+    static Plan facade(
+        const session_cpp::Line& baseline,
+        double height,
+        const std::vector<double>& u_bays,
+        const std::vector<double>& v_levels,
+        const std::vector<session_cpp::Polyline>& openings_uv = {},
+        const session_cpp::Polyline& silhouette_uv = {}
+    );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Stack (Thin Multi-Storey Composition of Floor & Facade Plans)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// One elevated floor level in a multi-storey `Stack`.
+struct LevelSpec {
+    Plan plan;
+    Framing framing;
+    std::string name;
+};
+
+/// Multi-storey timber building composed of horizontal floor `Plan`s and optional vertical facade `Plan`s.
+struct Stack {
+    std::vector<LevelSpec> levels;
+    std::vector<LevelSpec> facades;
+
+    /// Extrudes one `footprint` + `pattern` + `cores` across `elevations` (`elevations[0]` is ground base; `1..n` are framed levels).
+    static Stack from_footprint(
+        const std::vector<session_cpp::Polyline>& footprint,
         const std::vector<double>& elevations,
         const Pattern& pattern,
-        const std::vector<Polyline>& cores = {},
-        double tolerance = 1.0,
-        double merge = 1000.0
+        const Framing& framing = {},
+        const std::vector<session_cpp::Polyline>& cores = {}
     );
 
-    /// B.
-    static Building from_footprint(
-        const std::vector<Polyline>& footprint,
-        const std::vector<double>& elevations,
-        const Pattern& pattern,
-        const std::vector<Polyline>& cores = {},
-        double tolerance = 1.0,
-        double merge = 1000.0
+    /// Builds a multi-storey stack where each storey supplies its own `(elevation, footprint, pattern, framing, cores)`.
+    static Stack from_levels(
+        double base_elevation,
+        const std::vector<std::tuple<
+            double,
+            std::vector<session_cpp::Polyline>,
+            Pattern,
+            Framing,
+            std::vector<session_cpp::Polyline>>>& storeys
     );
 
-    /// C.
-    static Building from_lines(
-        const std::vector<Line>& lines,
-        const std::vector<Polyline>& surfaces,
-        double tolerance = 1.0,
-        double angle = 10.0
+    /// Appends vertical facade `Plan`s around the outer ring of `footprint` spanning `[z_bottom, z_top]`.
+    void add_perimeter_facades(
+        const session_cpp::Polyline& footprint_outer,
+        double z_bottom,
+        double z_top,
+        double target_bay,
+        const std::vector<double>& storey_heights,
+        const Framing& facade_framing
     );
 };
 
-namespace build {
-struct Context;
-struct Stack;
-}
-
 // ═══════════════════════════════════════════════════════════════════════════
-// Grid
+// Grid Session
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// The timber building, a session built level by level from a Building guide and a Framing.
+/// Timber framing generator: builds elements and face-to-face contacts for one `Plan` or a multi-storey `Stack`.
 class Grid : public wood_session::WoodSession {
 public:
-    const Framing framing; // How every level is framed and jointed.
-    const Building guide; // The levels, their plans with the roles filled.
+    /// Frames a single floor, single isolated bay, sloped roof, or vertical facade `Plan`.
+    Grid(const Plan& plan, const Framing& framing = {}, std::string name = "grid");
 
-    /// The building of the guide framed by framing, as the session named name.
-    explicit Grid(
-        const Building& guide, const Framing& framing = {}, const std::string& name = "grid"
-    );
-
-    /// Not copied, as a session is not.
-    Grid(const Grid&) = delete;
-
-    /// Not assigned, as it is not copied.
-    Grid& operator=(const Grid&) = delete;
-
-private:
-    /// Adds every level's plan at its datum: the member lines and the column points.
-    void add_plans();
-
-    /// Adds the storey's columns, walls, heads, members, purlins, decks and braces under the level it caps.
-    void add_storey(size_t storey);
-
-    /// Adds the columns of the storey from the deck top below to the head bottom or the datum.
-    void add_columns(
-        const Building& working,
-        size_t storey,
-        const std::vector<build::Stack>& stacks,
-        const build::Context& upper
-    );
-
-    /// Adds the core walls in a pinwheel and the facade walls under the perimeter members.
-    void add_walls(const Building& working, size_t storey, const build::Context& upper);
-
-    /// Adds the head on every column under node 0 and returns the heads by plan vertex.
-    std::map<size_t, std::shared_ptr<Element>> add_heads(
-        const Level& level,
-        const std::vector<build::Stack>& stacks,
-        const build::Context& upper,
-        size_t place
-    );
-
-    /// Adds the girders, beams and purlins of a level, their ends cut by the joint rules.
-    void add_members(
-        const Level& level,
-        const build::Context& upper,
-        const std::map<size_t, std::vector<Polyline>>& outlines,
-        size_t place
-    );
-
-    /// Adds the decks of a level, a flush deck cut by the heads at its corners.
-    void add_decks(
-        const Level& level,
-        const build::Context& context,
-        const std::map<size_t, std::vector<Polyline>>& outlines,
-        const std::map<size_t, std::shared_ptr<Element>>& heads,
-        size_t place
-    );
-
-    /// Adds the drawn braces standing in the storey.
-    void add_braces(size_t storey, const build::Context& ground, const build::Context& upper);
-
-    /// Adds each element under its family group of the level, named by its kind, count and level.
-    void add_numbered(const std::vector<std::shared_ptr<Element>>& elements, size_t place);
-
-    /// The group of a level, made the first time.
-    std::shared_ptr<TreeNode> level_group(size_t place);
-
-    /// The framing as built: point supported with node 2 framed as node 1.
-    static Framing compute_framing(const Framing& framing);
-
-    /// The guide with every plan's roles filled and the columns inside core walls removed.
-    static Building compute_guide(const Building& guide, const Framing& framing);
+    /// Frames a multi-storey `Stack` of floor plans and optional facade plans.
+    Grid(const Stack& stack, std::string name = "building");
 };
 
-}
+} // namespace wood_grid

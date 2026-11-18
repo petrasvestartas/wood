@@ -146,17 +146,13 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
-    # one picture per building, every group of each example's scene, cut to the card tiles; each example runs once
+    # one picture per case, cut to the card tiles; each example runs once
     GRID_SCENES="$(mktemp -d)"
-    "${RENDER[@]}" --scene "$GRID_SCENES/footprint.pb" --aspect 1.5 templates_grid_1_footprint orthogonal radial hexagonal irregular courtyard pentagon cores
-    # the isometric view looks along these two grids: turned, so they do not read as a flat sheet
-    SHOT_ORBIT=300 "${RENDER[@]}" --scene "$GRID_SCENES/footprint.pb" --aspect 1.5 templates_grid_1_footprint skewed triangular
-    "${RENDER[@]}" --aspect 1.5 templates_grid_2_solid box prism taper setback atrium curved
-    "${RENDER[@]}" --aspect 1.5 templates_grid_3_lines crea_4x4 braced
-    "${RENDER[@]}" --aspect 1.5 templates_grid_4_reference branch_plate branch_post_and_beam branch_purlin_on_girder branch_residential timber_bay_v1 timber_bay_v2 timber_bay_v3 timber_bay_v4
-    "${RENDER[@]}" --aspect 1.5 templates_grid_5_framing head_section head_conical head_stepped node_flush node_through purlin_flush purlin_hung purlin_stacked profile_rectangle profile_round profile_w profile_hss profile_slab_band profile_t
-    "${RENDER[@]}" --scene "$GRID_SCENES/footprint.pb" templates_grid_1_footprint walls_1 purlins_1
-    "${RENDER[@]}" templates_grid_6_five_bay all plan_2 columns_1 heads_1 beams_1 decks_1
+    "${RENDER[@]}" --scene "$GRID_SCENES/bay.pb" --aspect 1.5 templates_grid_1_bay_framing floor_l_plan isolated_bay slab_head beam_head node_flush node_through purlin_stacked round_columns
+    "${RENDER[@]}" --scene "$GRID_SCENES/footprints.pb" --aspect 1.5 templates_grid_2_footprints orthogonal radial hexagonal irregular courtyard
+    SHOT_ORBIT=300 "${RENDER[@]}" --scene "$GRID_SCENES/footprints.pb" --aspect 1.5 templates_grid_2_footprints skewed triangular
+    "${RENDER[@]}" --scene "$GRID_SCENES/facades.pb" --aspect 1.5 templates_grid_3_facades curtain_mullion punched_openings braced_facade gable_facade
+    "${RENDER[@]}" --scene "$GRID_SCENES/multistorey.pb" --aspect 1.5 templates_grid_4_multistorey five_bay setback_tower core_and_facade
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then

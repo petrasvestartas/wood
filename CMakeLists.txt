@@ -97,8 +97,6 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_profile_boolean.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
     src/templates/grid/grid_plan.cpp
-    src/templates/grid/grid_levels.cpp
-    src/templates/grid/grid_joints.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
     src/templates/floor/floor_guide.cpp
@@ -309,6 +307,7 @@ set(WOOD_TEST_TARGETS
     joint_beams
     joint_border
     joint_butt
+    grid_massing
     plate_assignment
     rust_elements
     element_tags
@@ -385,12 +384,10 @@ ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_ca
 ADD_EXE(templates_module_4_room_module            examples/templates_module_4_room_module.cpp)
 ADD_EXE(templates_module_5_module_block           examples/templates_module_5_module_block.cpp)
 ADD_EXE(templates_module_6_bank_pavilion          examples/templates_module_6_bank_pavilion.cpp)
-ADD_EXE(templates_grid_1_footprint         examples/templates_grid_1_footprint.cpp)
-ADD_EXE(templates_grid_2_solid             examples/templates_grid_2_solid.cpp)
-ADD_EXE(templates_grid_3_lines             examples/templates_grid_3_lines.cpp)
-ADD_EXE(templates_grid_4_reference         examples/templates_grid_4_reference.cpp)
-ADD_EXE(templates_grid_5_framing           examples/templates_grid_5_framing.cpp)
-ADD_EXE(templates_grid_6_five_bay          examples/templates_grid_6_five_bay.cpp)
+ADD_EXE(templates_grid_1_bay_framing       examples/templates_grid_1_bay_framing.cpp)
+ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.cpp)
+ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)
+ADD_EXE(templates_grid_4_multistorey       examples/templates_grid_4_multistorey.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)
 ADD_EXE(templates_truss_3_bow                 examples/templates_truss_3_bow.cpp)

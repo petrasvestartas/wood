@@ -1,325 +1,908 @@
 #include "pch.h"
-#include "src/templates/grid/grid_plan.h"
+#include "src/templates/grid/grid.h"
 
 using namespace session_cpp;
 
-namespace wood_grid::plan {
+namespace wood_grid {
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Loops
-// ═══════════════════════════════════════════════════════════════════════════
-std::vector<Point> to_loop(const Polyline& polyline) {
+namespace {
 
-    std::vector<Point> points = polyline.get_points();
-    if (points.size() > 1 && points.front().distance(points.back()) < Tolerance::APPROXIMATION)
-        points.pop_back();
+constexpr double PLAN_TOL = 1.0;
+constexpr double PLAN_MERGE = 5.0;
 
-    return points;
+std::vector<Point> strip_closing_point(const Polyline& pl) {
+    std::vector<Point> pts = pl.get_points();
+    if (pts.size() > 1 && pts.front().distance(pts.back()) < PLAN_TOL)
+        pts.pop_back();
+    return pts;
 }
 
-Polyline to_polyline(std::vector<Point> points) {
-
-    points.push_back(points.front());
-
-    return Polyline(points);
+Polyline close_loop(std::vector<Point> pts) {
+    if (!pts.empty() && pts.front().distance(pts.back()) >= 1e-6)
+        pts.push_back(pts.front());
+    return Polyline(pts);
 }
 
-double compute_area(const std::vector<Point>& points) {
-
+double signed_area_2d(const std::vector<Point>& pts) {
     double area = 0.0;
-    for (size_t i = 0; i < points.size(); i++)
-        area += points[i][0] * points[(i + 1) % points.size()][1] -
-                points[(i + 1) % points.size()][0] * points[i][1];
-
-    return area / 2.0;
-}
-
-Vector compute_direction(const Point& a, const Point& b) {
-    return Vector(b[0] - a[0], b[1] - a[1], 0.0).normalized();
-}
-
-double compute_distance(const Point& a, const Point& b) {
-    return std::hypot(b[0] - a[0], b[1] - a[1]);
-}
-
-Point compute_lift(const Point& point, double z) {
-    return Point(point[0], point[1], z);
-}
-
-Polyline compute_lifted(const Polyline& polyline, double z) {
-
-    std::vector<Point> points;
-    for (const Point& point : polyline.get_points())
-        points.push_back(compute_lift(point, z));
-
-    return Polyline(points);
-}
-
-std::vector<Point> compute_flat(const Mesh& mesh, const std::vector<size_t>& ring) {
-
-    std::vector<Point> points;
-    for (const size_t key : ring)
-        points.push_back(compute_lift(*mesh.vertex_point(key), 0.0));
-
-    return points;
-}
-
-Point compute_interior(const std::vector<Point>& points) {
-
-    const Vector along = compute_direction(points[0], points[1]);
-    const Vector inward =
-        Vector(0.0, 0.0, 1.0).cross(along) * (compute_area(points) < 0.0 ? -0.1 : 0.1);
-
-    return compute_lift(points[0] + (points[1] - points[0]) * 0.5 + inward, 0.0);
-}
-
-bool is_convex(const std::vector<Point>& points) {
-
-    const size_t count = points.size();
-    for (size_t i = 0; i < count; i++) {
-        const Vector along = compute_direction(points[i], points[(i + 1) % count]);
-        const Vector next = compute_direction(points[(i + 1) % count], points[(i + 2) % count]);
-        if (along.cross(next)[2] < -1e-9)
-            return false;
+    const size_t n = pts.size();
+    for (size_t i = 0; i < n; ++i) {
+        const Point& a = pts[i];
+        const Point& b = pts[(i + 1) % n];
+        area += a[0] * b[1] - b[0] * a[1];
     }
-
-    return true;
+    return 0.5 * area;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Regions
-// ═══════════════════════════════════════════════════════════════════════════
-bool is_inside(const std::vector<Polyline>& rings, const Point& point) {
+Point interior_sample_2d(const std::vector<Point>& outer, const std::vector<std::vector<Point>>& holes) {
+    if (outer.size() < 3)
+        return outer.empty() ? Point(0.0, 0.0, 0.0) : outer.front();
 
+    // Try ear centroids / midpoints nudged inward along edges until strictly inside outer & outside holes.
+    const Polyline outer_pl = close_loop(outer);
+    std::vector<Polyline> hole_pls;
+    hole_pls.reserve(holes.size());
+    for (const auto& h : holes)
+        hole_pls.push_back(close_loop(h));
+
+    const double sign = signed_area_2d(outer) >= 0.0 ? 1.0 : -1.0;
+    for (size_t i = 0; i < outer.size(); ++i) {
+        const Point& a = outer[i];
+        const Point& b = outer[(i + 1) % outer.size()];
+        const Vector ab(b[0] - a[0], b[1] - a[1], 0.0);
+        const double len = ab.magnitude();
+        if (len < PLAN_TOL)
+            continue;
+        const Vector dir = ab / len;
+        const Vector inward(-dir[1] * sign, dir[0] * sign, 0.0);
+        for (double step : {10.0, 1.0, 0.2}) {
+            const Point probe(
+                0.5 * (a[0] + b[0]) + inward[0] * step,
+                0.5 * (a[1] + b[1]) + inward[1] * step,
+                0.0
+            );
+            if (!outer_pl.point_in_polygon_2d(probe))
+                continue;
+            bool in_hole = false;
+            for (const Polyline& hp : hole_pls)
+                if (hp.point_in_polygon_2d(probe)) {
+                    in_hole = true;
+                    break;
+                }
+            if (!in_hole)
+                return probe;
+        }
+    }
+    return Point::centroid(outer);
+}
+
+bool inside_even_odd_2d(const std::vector<Polyline>& rings, const Point& pt) {
     int count = 0;
     for (const Polyline& ring : rings)
-        count += ring.point_in_polygon_2d(point) ? 1 : 0;
-
-    return count % 2 == 1;
+        if (ring.point_in_polygon_2d(pt))
+            ++count;
+    return (count % 2) == 1;
 }
 
-Polyline compute_wall_ring(const Polyline& core, double wall) {
-
-    Polyline ring = core;
-    if (!Intersection::offset_in_3d(ring, Plane::xy_plane(), wall / 2.0))
-        return core;
-
-    return ring;
-}
-
-Point compute_corner(
-    const Point& corner, const Vector& before, double a, const Vector& after, double b
-) {
-
-    const double cosine = before.dot(after);
-    if (1.0 - cosine * cosine < 1e-9)
-        return corner + before * std::max(a, b);
-
-    return corner + before * ((a - cosine * b) / (1.0 - cosine * cosine)) +
-           after * ((b - cosine * a) / (1.0 - cosine * cosine));
-}
-
-/// A crossing of a line with a ring side: the parameter along the line, the ring and the side.
-struct Crossing {
-    double t = 0.0;
-    int ring = -1;
-    int side = -1;
-};
-
-/// True when a comes before b along the line.
-bool is_before(const Crossing& a, const Crossing& b) {
-    return a.t < b.t;
-}
-
-std::vector<Piece> compute_pieces(
-    const Line& line, const std::vector<Polyline>& rings, bool inside, double tolerance
-) {
-
-    if (rings.empty())
-        return {Piece{line}};
-
-    std::vector<Crossing> crossings = {{0.0, -1, -1}, {1.0, -1, -1}};
-    for (size_t r = 0; r < rings.size(); r++) {
-        const std::vector<Point> corners = to_loop(rings[r]);
-        for (size_t i = 0; i < corners.size(); i++) {
-            double t = 0.0;
-            double s = 0.0;
-            const Line side = Line::from_points(corners[i], corners[(i + 1) % corners.size()]);
-            if (Intersection::line_line_parameters(line, side, t, s, tolerance, true, false) &&
-                line.point_at(t).distance(side.point_at(s)) <= tolerance)
-                crossings.push_back({t, static_cast<int>(r), static_cast<int>(i)});
-        }
+bool point_on_ring_2d(const Polyline& ring, const Point& pt, double tol) {
+    const std::vector<Point> corners = strip_closing_point(ring);
+    for (size_t i = 0; i < corners.size(); ++i) {
+        const Point& a = corners[i];
+        const Point& b = corners[(i + 1) % corners.size()];
+        const Vector ab(b[0] - a[0], b[1] - a[1], 0.0);
+        const double len2 = ab.dot(ab);
+        if (len2 < 1e-12)
+            continue;
+        const double t = std::clamp(Vector(pt[0] - a[0], pt[1] - a[1], 0.0).dot(ab) / len2, 0.0, 1.0);
+        const Point proj(a[0] + ab[0] * t, a[1] + ab[1] * t, 0.0);
+        if (std::hypot(pt[0] - proj[0], pt[1] - proj[1]) <= tol)
+            return true;
     }
-    std::sort(crossings.begin(), crossings.end(), is_before);
+    return false;
+}
 
-    std::vector<Piece> pieces;
-    for (size_t k = 0; k + 1 < crossings.size(); k++)
-        if ((crossings[k + 1].t - crossings[k].t) * line.length() > tolerance &&
-            is_inside(rings, line.point_at((crossings[k].t + crossings[k + 1].t) / 2.0)) ==
-                inside) {
-            const Line part =
-                Line::from_points(line.point_at(crossings[k].t), line.point_at(crossings[k + 1].t));
-            pieces.push_back(
-                {part,
-                 {crossings[k].ring, crossings[k + 1].ring},
-                 {crossings[k].side, crossings[k + 1].side}}
-            );
+bool point_on_any_ring_2d(const std::vector<Polyline>& rings, const Point& pt, double tol) {
+    for (const Polyline& r : rings)
+        if (point_on_ring_2d(r, pt, tol))
+            return true;
+    return false;
+}
+
+std::vector<Line> clip_line_to_region_2d(
+    const Line& line, const std::vector<Polyline>& boundary_rings, const std::vector<Polyline>& core_rings
+) {
+    std::vector<double> ts = {0.0, 1.0};
+    auto collect_crossings = [&](const std::vector<Polyline>& rings) {
+        for (const Polyline& ring : rings) {
+            const std::vector<Point> pts = strip_closing_point(ring);
+            for (size_t i = 0; i < pts.size(); ++i) {
+                const Line seg = Line::from_points(pts[i], pts[(i + 1) % pts.size()]);
+                double t = 0.0;
+                double s = 0.0;
+                if (Intersection::line_line_parameters(line, seg, t, s, PLAN_TOL, true, false) &&
+                    line.point_at(t).distance(seg.point_at(s)) <= PLAN_TOL) {
+                    ts.push_back(std::clamp(t, 0.0, 1.0));
+                }
+            }
         }
+    };
+    collect_crossings(boundary_rings);
+    collect_crossings(core_rings);
+    std::sort(ts.begin(), ts.end());
 
+    std::vector<Line> pieces;
+    const double len = line.length();
+    for (size_t i = 0; i + 1 < ts.size(); ++i) {
+        if ((ts[i + 1] - ts[i]) * len <= PLAN_TOL)
+            continue;
+        const Point mid = line.point_at(0.5 * (ts[i] + ts[i + 1]));
+        const bool in_bounds =
+            boundary_rings.empty() || inside_even_odd_2d(boundary_rings, mid) ||
+            point_on_any_ring_2d(boundary_rings, mid, PLAN_TOL * 2.0);
+        const bool in_core = !core_rings.empty() && inside_even_odd_2d(core_rings, mid) &&
+                             !point_on_any_ring_2d(core_rings, mid, PLAN_TOL * 2.0);
+        if (in_bounds && !in_core)
+            pieces.push_back(Line::from_points(line.point_at(ts[i]), line.point_at(ts[i + 1])));
+    }
     return pieces;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Arrangement
-// ═══════════════════════════════════════════════════════════════════════════
-double compute_ring_id(size_t ring, size_t edge) {
-    return 1000000.0 + 1000.0 * ring + edge;
+void recompute_standing(Plan& plan) {
+    plan.standing.assign(plan.nodes.size(), false);
+    std::vector<std::vector<Vector>> dirs(plan.nodes.size());
+    for (const PlanEdge& e : plan.edges) {
+        if (e.core)
+            continue;
+        const Vector d = (plan.nodes[e.b] - plan.nodes[e.a]).normalized();
+        dirs[e.a].push_back(d);
+        dirs[e.b].push_back(-d);
+    }
+
+    for (size_t v = 0; v < plan.nodes.size(); ++v) {
+        if (point_on_any_ring_2d(plan.cores, plan.nodes[v], PLAN_MERGE))
+            continue;
+        bool corner_or_crossing = false;
+        for (size_t i = 0; i < dirs[v].size() && !corner_or_crossing; ++i)
+            for (size_t j = i + 1; j < dirs[v].size(); ++j)
+                if (std::abs(dirs[v][i][0] * dirs[v][j][1] - dirs[v][i][1] * dirs[v][j][0]) > 0.20) {
+                    corner_or_crossing = true;
+                    break;
+                }
+        plan.standing[v] = corner_or_crossing;
+    }
 }
 
-bool is_ring(double id) {
-    return id >= 1000000.0;
-}
-
-Mesh compute_arrangement(
-    const std::vector<Line>& lines,
-    const std::vector<Line>& rings,
-    const std::vector<double>& ids,
-    double tolerance,
-    double merge
+Plan build_plan_uv(
+    const std::vector<Polyline>& boundary_uv,
+    const Pattern& pattern_uv,
+    const std::vector<Polyline>& cores_uv,
+    const Plane& frame
 ) {
+    Plan result;
+    result.frame = frame;
+    result.boundary = boundary_uv.empty() ? pattern_uv.boundary : boundary_uv;
+    result.cores = cores_uv;
 
-    Mesh plan = Mesh::from_arrangement(lines, rings, tolerance, merge);
-    std::map<size_t, std::set<double>> meeting;
-    for (const std::pair<size_t, size_t>& edge : plan.edges()) {
-        const double source = *plan.edge_attribute(edge, "line");
-        const double id = source < 0.0 ? -1.0 : ids[static_cast<size_t>(source)];
-        plan.set_edge_attribute(edge, "line", id);
-        meeting[edge.first].insert(id);
-        meeting[edge.second].insert(id);
+    std::vector<Line> clipped_lines;
+    std::vector<int> clipped_families;
+    for (size_t i = 0; i < pattern_uv.lines.size(); ++i) {
+        const Point s = pattern_uv.lines[i].start();
+        const Point e = pattern_uv.lines[i].end();
+        const Line flat = Line::from_points(Point(s[0], s[1], 0.0), Point(e[0], e[1], 0.0));
+        if (flat.length() <= PLAN_TOL)
+            continue;
+        const int fam = i < pattern_uv.families.size() ? pattern_uv.families[i] : 0;
+        for (const Line& piece : clip_line_to_region_2d(flat, result.boundary, result.cores)) {
+            clipped_lines.push_back(piece);
+            clipped_families.push_back(fam);
+        }
     }
 
-    for (const std::pair<const size_t, std::set<double>>& entry : meeting) {
-        plan.set_vertex_attribute(entry.first, "line_a", *entry.second.begin());
-        plan.set_vertex_attribute(
-            entry.first,
-            "line_b",
-            entry.second.size() > 1 ? *std::next(entry.second.begin()) : *entry.second.begin()
+    std::vector<Line> ring_lines;
+    auto append_ring_segments = [&](const std::vector<Polyline>& rings) {
+        for (const Polyline& ring : rings) {
+            const std::vector<Point> pts = strip_closing_point(ring);
+            for (size_t i = 0; i < pts.size(); ++i) {
+                const Point a(pts[i][0], pts[i][1], 0.0);
+                const Point b(pts[(i + 1) % pts.size()][0], pts[(i + 1) % pts.size()][1], 0.0);
+                if (a.distance(b) > PLAN_TOL)
+                    ring_lines.push_back(Line::from_points(a, b));
+            }
+        }
+    };
+    append_ring_segments(result.boundary);
+    append_ring_segments(result.cores);
+
+    Mesh arr = Mesh::from_arrangement(clipped_lines, ring_lines, PLAN_TOL, PLAN_MERGE);
+
+    std::map<size_t, size_t> vmap;
+    for (const size_t vk : arr.vertices()) {
+        const Point p = *arr.vertex_point(vk);
+        vmap[vk] = result.nodes.size();
+        result.nodes.emplace_back(p[0], p[1], 0.0);
+    }
+
+    // Extract clean polygonal bays (outer + holes), filtering out exterior or core interiors.
+    std::map<std::pair<size_t, size_t>, int> edge_cell_count;
+    auto bump_loop_edges = [&](const std::vector<size_t>& loop) {
+        for (size_t i = 0; i < loop.size(); ++i) {
+            size_t u = loop[i];
+            size_t v = loop[(i + 1) % loop.size()];
+            if (u > v)
+                std::swap(u, v);
+            edge_cell_count[{u, v}]++;
+        }
+    };
+
+    for (const size_t fk : arr.faces()) {
+        const std::vector<size_t> raw_outer = *arr.face_vertices(fk);
+        if (raw_outer.size() < 3)
+            continue;
+
+        std::vector<size_t> outer_idx;
+        std::vector<Point> outer_pts;
+        outer_idx.reserve(raw_outer.size());
+        outer_pts.reserve(raw_outer.size());
+        for (const size_t vk : raw_outer) {
+            const size_t idx = vmap.at(vk);
+            outer_idx.push_back(idx);
+            outer_pts.push_back(result.nodes[idx]);
+        }
+        if (signed_area_2d(outer_pts) < 0.0) {
+            std::reverse(outer_idx.begin(), outer_idx.end());
+            std::reverse(outer_pts.begin(), outer_pts.end());
+        }
+
+        std::vector<std::vector<size_t>> holes_idx;
+        std::vector<std::vector<Point>> holes_pts;
+        if (auto hole_it = arr.get_face_holes().find(fk); hole_it != arr.get_face_holes().end()) {
+            for (const std::vector<size_t>& rh : hole_it->second) {
+                if (rh.size() < 3)
+                    continue;
+                std::vector<size_t> h_idx;
+                std::vector<Point> h_pts;
+                for (const size_t vk : rh) {
+                    const size_t idx = vmap.at(vk);
+                    h_idx.push_back(idx);
+                    h_pts.push_back(result.nodes[idx]);
+                }
+                if (signed_area_2d(h_pts) > 0.0) {
+                    std::reverse(h_idx.begin(), h_idx.end());
+                    std::reverse(h_pts.begin(), h_pts.end());
+                }
+                holes_idx.push_back(std::move(h_idx));
+                holes_pts.push_back(std::move(h_pts));
+            }
+        }
+
+        const Point sample = interior_sample_2d(outer_pts, holes_pts);
+        if (!result.boundary.empty() && !inside_even_odd_2d(result.boundary, sample))
+            continue;
+        if (!result.cores.empty() && inside_even_odd_2d(result.cores, sample))
+            continue;
+
+        bump_loop_edges(outer_idx);
+        for (const auto& h : holes_idx)
+            bump_loop_edges(h);
+
+        result.cells.push_back(PlanCell{std::move(outer_idx), std::move(holes_idx)});
+    }
+
+    // Collect canonical family directions so pure boundary segments aligned with an axis inherit its family.
+    std::map<int, Vector> canonical_dirs;
+    for (size_t i = 0; i < clipped_lines.size(); ++i) {
+        if (!canonical_dirs.count(clipped_families[i]))
+            canonical_dirs[clipped_families[i]] = clipped_lines[i].to_vector().normalized();
+    }
+
+    for (const std::pair<size_t, size_t>& raw_e : arr.edges()) {
+        const double src = arr.edge_attribute(raw_e, "line").value_or(-1.0);
+        if (src < 0.0)
+            continue;
+
+        size_t u = vmap.at(raw_e.first);
+        size_t v = vmap.at(raw_e.second);
+        if (u == v)
+            continue;
+        if (u > v)
+            std::swap(u, v);
+
+        const int cell_adj = edge_cell_count.count({u, v}) ? edge_cell_count.at({u, v}) : 0;
+        if (!result.cells.empty() && cell_adj == 0) {
+            const Point mid = Point::mid_point(result.nodes[u], result.nodes[v]);
+            const bool keep_free =
+                (result.boundary.empty() || inside_even_odd_2d(result.boundary, mid)) &&
+                (result.cores.empty() || !inside_even_odd_2d(result.cores, mid));
+            if (!keep_free)
+                continue;
+        }
+
+        const Point mid = Point::mid_point(result.nodes[u], result.nodes[v]);
+        const bool on_core = !result.cores.empty() && point_on_any_ring_2d(result.cores, mid, PLAN_MERGE);
+        const bool is_boundary = (cell_adj <= 1) && !on_core;
+
+        int family = -1;
+        const size_t src_idx = static_cast<size_t>(src);
+        if (src_idx < clipped_families.size()) {
+            family = clipped_families[src_idx];
+        } else {
+            const Vector dir = (result.nodes[v] - result.nodes[u]).normalized();
+            for (const auto& [fam, fdir] : canonical_dirs) {
+                if (std::abs(dir.dot(fdir)) > 0.999) {
+                    family = fam;
+                    break;
+                }
+            }
+        }
+
+        result.edges.push_back(PlanEdge{u, v, family, is_boundary, on_core});
+    }
+
+    recompute_standing(result);
+    return result;
+}
+
+} // namespace
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pattern
+// ═══════════════════════════════════════════════════════════════════════════
+
+std::vector<double> compute_bays(double length, double target) {
+    const int count = std::max(1, static_cast<int>(std::round(length / std::max(1.0, target))));
+    return std::vector<double>(count, length / count);
+}
+
+Pattern Pattern::orthogonal(
+    const std::vector<double>& u_bays, const std::vector<double>& v_bays, double skew_degrees
+) {
+    std::vector<double> us = {0.0};
+    for (double du : u_bays)
+        us.push_back(us.back() + du);
+
+    std::vector<double> vs = {0.0};
+    for (double dv : v_bays)
+        vs.push_back(vs.back() + dv);
+
+    const double rad = skew_degrees * Tolerance::TO_RADIANS;
+    const Vector u_dir(1.0, 0.0, 0.0);
+    const Vector v_dir(std::sin(rad), std::cos(rad), 0.0);
+
+    Pattern pat;
+    for (double v : vs) {
+        const Point a = Point(0.0, 0.0, 0.0) + v_dir * v;
+        pat.lines.push_back(Line::from_points(a, a + u_dir * us.back()));
+        pat.families.push_back(0);
+    }
+    for (double u : us) {
+        const Point a = Point(0.0, 0.0, 0.0) + u_dir * u;
+        pat.lines.push_back(Line::from_points(a, a + v_dir * vs.back()));
+        pat.families.push_back(1);
+    }
+    return pat;
+}
+
+Pattern Pattern::radial(const std::vector<double>& radii, int sectors, bool inner_hole) {
+    Pattern pat;
+    if (radii.empty() || sectors < 3)
+        return pat;
+
+    std::vector<double> sorted_r = radii;
+    std::sort(sorted_r.begin(), sorted_r.end());
+
+    const bool has_oculus = inner_hole && sorted_r.size() >= 2 && sorted_r.front() > PLAN_TOL;
+    const double r_start = has_oculus ? sorted_r.front() : 0.0;
+    const double r_end = sorted_r.back();
+
+    // Family 0: radial rays.
+    for (int s = 0; s < sectors; ++s) {
+        const double ang = Tolerance::TWO_PI * s / sectors;
+        const Vector dir(std::cos(ang), std::sin(ang), 0.0);
+        pat.lines.push_back(
+            Line::from_points(Point(0.0, 0.0, 0.0) + dir * r_start, Point(0.0, 0.0, 0.0) + dir * r_end)
         );
+        pat.families.push_back(0);
     }
 
+    // Family 1: concentric polygon rings.
+    auto make_ring = [&](double r) {
+        std::vector<Point> pts;
+        pts.reserve(sectors + 1);
+        for (int s = 0; s <= sectors; ++s) {
+            const double ang = Tolerance::TWO_PI * (s % sectors) / sectors;
+            pts.emplace_back(r * std::cos(ang), r * std::sin(ang), 0.0);
+        }
+        return Polyline(pts);
+    };
+
+    for (double r : sorted_r) {
+        if (r <= PLAN_TOL)
+            continue;
+        const Polyline ring = make_ring(r);
+        for (int s = 0; s < sectors; ++s) {
+            pat.lines.push_back(Line::from_points(ring.get_point(s), ring.get_point(s + 1)));
+            pat.families.push_back(1);
+        }
+    }
+
+    pat.boundary.push_back(make_ring(r_end));
+    if (has_oculus)
+        pat.boundary.push_back(make_ring(sorted_r.front()));
+
+    return pat;
+}
+
+Pattern Pattern::triangular(double side, int nu, int nv) {
+    Pattern pat;
+    if (side <= PLAN_TOL || nu < 1 || nv < 1)
+        return pat;
+
+    const double h = side * std::sqrt(3.0) * 0.5;
+    auto pt = [&](int i, int j) { return Point((i + 0.5 * j) * side, j * h, 0.0); };
+
+    // Family 0: 0 deg lines.
+    for (int j = 0; j <= nv; ++j) {
+        pat.lines.push_back(Line::from_points(pt(0, j), pt(nu, j)));
+        pat.families.push_back(0);
+    }
+    // Family 1: 60 deg lines.
+    for (int i = 0; i <= nu; ++i) {
+        pat.lines.push_back(Line::from_points(pt(i, 0), pt(i, nv)));
+        pat.families.push_back(1);
+    }
+    // Family 2: 120 deg diagonals across each parallelogram cell.
+    for (int s = 1; s < nu + nv; ++s) {
+        const int j_min = std::max(0, s - nu);
+        const int j_max = std::min(nv, s);
+        if (j_max > j_min) {
+            pat.lines.push_back(Line::from_points(pt(s - j_min, j_min), pt(s - j_max, j_max)));
+            pat.families.push_back(2);
+        }
+    }
+    return pat;
+}
+
+Pattern Pattern::hexagonal(double side, int nu, int nv) {
+    Pattern pat;
+    if (side <= PLAN_TOL || nu < 1 || nv < 1)
+        return pat;
+
+    const double h = std::sqrt(3.0) * side;
+    std::vector<std::pair<Point, Point>> unique_edges;
+
+    auto same_pt = [](const Point& a, const Point& b) { return a.distance(b) < PLAN_TOL; };
+    auto has_edge = [&](const Point& a, const Point& b) {
+        for (const auto& [ea, eb] : unique_edges)
+            if ((same_pt(a, ea) && same_pt(b, eb)) || (same_pt(a, eb) && same_pt(b, ea)))
+                return true;
+        return false;
+    };
+
+    for (int col = 0; col < nu; ++col) {
+        for (int row = 0; row < nv; ++row) {
+            const double cx = side + col * 1.5 * side;
+            const double cy = 0.5 * h + (row + 0.5 * (col % 2)) * h;
+            std::array<Point, 6> corners;
+            for (int k = 0; k < 6; ++k) {
+                const double ang = Tolerance::PI / 3.0 * k;
+                corners[k] = Point(cx + side * std::cos(ang), cy + side * std::sin(ang), 0.0);
+            }
+            for (int k = 0; k < 6; ++k) {
+                const Point& a = corners[k];
+                const Point& b = corners[(k + 1) % 6];
+                if (!has_edge(a, b)) {
+                    unique_edges.emplace_back(a, b);
+                    pat.lines.push_back(Line::from_points(a, b));
+                    pat.families.push_back(k % 3);
+                }
+            }
+        }
+    }
+    return pat;
+}
+
+Pattern Pattern::from_lines(const std::vector<Line>& lines, const std::vector<int>& families) {
+    Pattern pat;
+    pat.lines = lines;
+    if (families.size() == lines.size()) {
+        pat.families = families;
+    } else {
+        for (const Line& l : lines) {
+            const Vector d = l.to_vector().normalized();
+            pat.families.push_back(std::abs(d[0]) >= std::abs(d[1]) ? 0 : 1);
+        }
+    }
+    return pat;
+}
+
+Pattern Pattern::transformed(const Xform& xform) const {
+    Pattern out;
+    out.families = families;
+    out.lines.reserve(lines.size());
+    for (const Line& l : lines)
+        out.lines.push_back(l.transformed(xform));
+    out.boundary.reserve(boundary.size());
+    for (const Polyline& b : boundary)
+        out.boundary.push_back(b.transformed(xform));
+    return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Plan
+// ═══════════════════════════════════════════════════════════════════════════
+
+Point Plan::to_world(double u, double v, double w) const {
+    return frame.origin() + frame.x_axis() * u + frame.y_axis() * v + frame.z_axis() * w;
+}
+
+Point Plan::to_local(const Point& world) const {
+    const Vector d = world - frame.origin();
+    return Point(d.dot(frame.x_axis()), d.dot(frame.y_axis()), d.dot(frame.z_axis()));
+}
+
+Polyline Plan::lift_polyline(const Polyline& local_loop, double w) const {
+    std::vector<Point> pts;
+    pts.reserve(local_loop.point_count());
+    for (const Point& p : local_loop.get_points())
+        pts.push_back(to_world(p[0], p[1], w));
+    return Polyline(pts);
+}
+
+Plan Plan::bay(size_t index) const {
+    return bays({index});
+}
+
+Plan Plan::bays(const std::vector<size_t>& indices) const {
+    Plan sub;
+    sub.frame = frame;
+    if (indices.empty())
+        return sub;
+
+    std::map<size_t, size_t> v_remap;
+    auto map_v = [&](size_t old_v) {
+        auto it = v_remap.find(old_v);
+        if (it != v_remap.end())
+            return it->second;
+        const size_t nv = sub.nodes.size();
+        v_remap[old_v] = nv;
+        sub.nodes.push_back(nodes[old_v]);
+        return nv;
+    };
+
+    std::map<std::pair<size_t, size_t>, int> sub_adj;
+    auto record_loop = [&](const std::vector<size_t>& old_loop) {
+        std::vector<size_t> mapped;
+        mapped.reserve(old_loop.size());
+        for (size_t ov : old_loop)
+            mapped.push_back(map_v(ov));
+        for (size_t i = 0; i < mapped.size(); ++i) {
+            size_t a = mapped[i];
+            size_t b = mapped[(i + 1) % mapped.size()];
+            if (a > b)
+                std::swap(a, b);
+            sub_adj[{a, b}]++;
+        }
+        return mapped;
+    };
+
+    for (size_t idx : indices) {
+        if (idx >= cells.size())
+            continue;
+        PlanCell sc;
+        sc.outer = record_loop(cells[idx].outer);
+        for (const auto& h : cells[idx].holes)
+            sc.holes.push_back(record_loop(h));
+        sub.cells.push_back(std::move(sc));
+    }
+
+    // Map old edge metadata by unordered old vertex pair.
+    std::map<std::pair<size_t, size_t>, const PlanEdge*> old_edge_map;
+    for (const PlanEdge& e : edges) {
+        size_t a = e.a;
+        size_t b = e.b;
+        if (a > b)
+            std::swap(a, b);
+        old_edge_map[{a, b}] = &e;
+    }
+
+    std::map<size_t, size_t> inv_remap;
+    for (const auto& [old_v, new_v] : v_remap)
+        inv_remap[new_v] = old_v;
+
+    for (const auto& [uv, adj] : sub_adj) {
+        size_t oa = inv_remap.at(uv.first);
+        size_t ob = inv_remap.at(uv.second);
+        if (oa > ob)
+            std::swap(oa, ob);
+        int fam = -1;
+        bool core = false;
+        if (auto it = old_edge_map.find({oa, ob}); it != old_edge_map.end()) {
+            fam = it->second->family;
+            core = it->second->core;
+        }
+        sub.edges.push_back(PlanEdge{uv.first, uv.second, fam, adj <= 1 && !core, core});
+    }
+
+    recompute_standing(sub);
+    return sub;
+}
+
+Plan Plan::transformed(const Xform& xform) const {
+    Plan copy = *this;
+    const Point new_origin = frame.origin().transformed(xform);
+    const Point px = (frame.origin() + frame.x_axis()).transformed(xform);
+    const Point py = (frame.origin() + frame.y_axis()).transformed(xform);
+    copy.frame = Plane(
+        new_origin, (px - new_origin).normalized(), (py - new_origin).normalized()
+    );
+    return copy;
+}
+
+Plan Plan::from_pattern(const Pattern& pattern, const Plane& frame) {
+    return build_plan_uv({}, pattern, {}, frame);
+}
+
+Plan Plan::from_footprint(
+    const std::vector<Polyline>& footprint,
+    const Pattern& pattern,
+    const std::vector<Polyline>& cores,
+    const Plane& frame
+) {
+    const bool world_xy_frame =
+        std::abs(frame.z_axis()[2] - 1.0) < 1e-6 &&
+        std::abs(frame.x_axis()[0] - 1.0) < 1e-6 &&
+        std::abs(frame.y_axis()[1] - 1.0) < 1e-6;
+
+    auto project_ring = [&](const Polyline& ring) {
+        std::vector<Point> pts;
+        for (const Point& p : ring.get_points()) {
+            if (world_xy_frame) {
+                pts.emplace_back(p[0] - frame.origin()[0], p[1] - frame.origin()[1], 0.0);
+            } else {
+                const Vector d = p - frame.origin();
+                pts.emplace_back(d.dot(frame.x_axis()), d.dot(frame.y_axis()), 0.0);
+            }
+        }
+        return Polyline(pts);
+    };
+
+    std::vector<Polyline> bound_uv;
+    bound_uv.reserve(footprint.size());
+    for (const Polyline& r : footprint)
+        bound_uv.push_back(project_ring(r));
+
+    std::vector<Polyline> cores_uv;
+    cores_uv.reserve(cores.size());
+    for (const Polyline& c : cores)
+        cores_uv.push_back(project_ring(c));
+
+    Pattern pat_uv = pattern;
+    if (world_xy_frame && (std::abs(frame.origin()[0]) > 1e-6 || std::abs(frame.origin()[1]) > 1e-6)) {
+        pat_uv = pattern.transformed(Xform::translation(-frame.origin()[0], -frame.origin()[1], 0.0));
+    }
+
+    return build_plan_uv(bound_uv, pat_uv, cores_uv, frame);
+}
+
+Plan Plan::facade(
+    const Line& baseline,
+    double height,
+    const std::vector<double>& u_bays,
+    const std::vector<double>& v_levels,
+    const std::vector<Polyline>& openings_uv,
+    const Polyline& silhouette_uv
+) {
+    const Vector u_axis = baseline.to_vector().normalized();
+    const Vector v_axis =
+        std::abs(u_axis[2]) > 0.99 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 0.0, 1.0);
+    const Plane wall_frame = Plane(baseline.start(), u_axis, v_axis);
+
+    const double width = baseline.length();
+    std::vector<Polyline> rings_uv;
+    if (silhouette_uv.point_count() >= 3) {
+        rings_uv.push_back(close_loop(strip_closing_point(silhouette_uv)));
+    } else {
+        rings_uv.push_back(Polyline::rectangle(
+            Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), width, height
+        ));
+    }
+    for (const Polyline& op : openings_uv)
+        rings_uv.push_back(close_loop(strip_closing_point(op)));
+
+    const Pattern pat = Pattern::orthogonal(u_bays, v_levels);
+    Plan plan = build_plan_uv(rings_uv, pat, {}, wall_frame);
+    // Facades are planar wall frames without normal posts unless explicitly requested.
+    std::fill(plan.standing.begin(), plan.standing.end(), false);
     return plan;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Planes
+// Stack
 // ═══════════════════════════════════════════════════════════════════════════
-std::optional<Plane>
-compute_exit(const std::vector<Point>& polygon, const Point& origin, const Vector& direction) {
 
-    if (!is_convex(polygon))
-        return Plane::from_point_normal(
-            origin + direction * compute_reach(polygon, origin, direction), direction
+Stack Stack::from_footprint(
+    const std::vector<Polyline>& footprint,
+    const std::vector<double>& elevations,
+    const Pattern& pattern,
+    const Framing& framing,
+    const std::vector<Polyline>& cores
+) {
+    Stack stack;
+    if (elevations.size() < 2)
+        return stack;
+
+    for (size_t l = 1; l < elevations.size(); ++l) {
+        const double z = elevations[l];
+        const double h = elevations[l] - elevations[l - 1];
+        const Plane floor_frame = Plane(
+            Point(0.0, 0.0, z), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)
         );
+        Framing floor_framing = framing;
+        floor_framing.post_height = h;
+        stack.levels.push_back(LevelSpec{
+            Plan::from_footprint(footprint, pattern, cores, floor_frame),
+            floor_framing,
+            fmt::format("level_{}", l),
+        });
+    }
+    return stack;
+}
 
-    std::optional<Plane> exit;
-    double best = std::numeric_limits<double>::max();
-    for (size_t i = 0; i < polygon.size(); i++) {
-        const Vector normal = compute_direction(polygon[i], polygon[(i + 1) % polygon.size()])
-                                  .cross(Vector(0.0, 0.0, 1.0));
-        const double speed = direction.dot(normal);
-        if (speed <= 1e-9)
-            continue;
+Stack Stack::from_levels(
+    double base_elevation,
+    const std::vector<std::tuple<
+        double,
+        std::vector<Polyline>,
+        Pattern,
+        Framing,
+        std::vector<Polyline>>>& storeys
+) {
+    Stack stack;
+    double prev_z = base_elevation;
+    for (size_t i = 0; i < storeys.size(); ++i) {
+        const auto& [z, fp, pat, frm, crs] = storeys[i];
+        const Plane floor_frame = Plane(
+            Point(0.0, 0.0, z), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)
+        );
+        Framing floor_framing = frm;
+        floor_framing.post_height = z - prev_z;
+        stack.levels.push_back(LevelSpec{
+            Plan::from_footprint(fp, pat, crs, floor_frame),
+            floor_framing,
+            fmt::format("level_{}", i + 1),
+        });
+        prev_z = z;
+    }
+    return stack;
+}
 
-        const double t = (compute_lift(polygon[i], origin[2]) - origin).dot(normal) / speed;
-        if (t < best) {
-            best = t;
-            exit = Plane::from_point_normal(origin + direction * t, normal);
+void Stack::add_perimeter_facades(
+    const Polyline& /*footprint_outer*/,
+    double z_bottom,
+    double /*z_top*/,
+    double target_bay,
+    const std::vector<double>& /*storey_heights*/,
+    const Framing& facade_framing
+) {
+    if (levels.empty())
+        return;
+
+    // Frame each clear perimeter bay opening between columns, lower deck, and upper edge beam!
+    for (size_t li = 0; li < levels.size(); ++li) {
+        const LevelSpec& lvl = levels[li];
+        const double z_top_datum = lvl.plan.frame.origin()[2];
+        const double col_w = wood_session::compute_size(lvl.framing.profiles.column).first;
+        // Identify building corner vertices (2 boundary edges meeting non-collinearly) so braces go on corner bays.
+        std::vector<std::vector<Vector>> bnd_dirs(lvl.plan.nodes.size());
+        for (const PlanEdge& e : lvl.plan.edges) {
+            if (!e.boundary)
+                continue;
+            const Vector d = (lvl.plan.nodes[e.b] - lvl.plan.nodes[e.a]).normalized();
+            bnd_dirs[e.a].push_back(d);
+            bnd_dirs[e.b].push_back(-d);
+        }
+        auto is_bldg_corner = [&](size_t nv) {
+            return bnd_dirs[nv].size() >= 2 &&
+                   std::abs(bnd_dirs[nv][0][0] * bnd_dirs[nv][1][1] -
+                            bnd_dirs[nv][0][1] * bnd_dirs[nv][1][0]) > 0.2;
+        };
+
+        const auto [girder_w, girder_d] = wood_session::compute_size(lvl.framing.profiles.girder);
+        const auto [purlin_w, purlin_d] = wood_session::compute_size(lvl.framing.profiles.purlin);
+        const double fm_hw = 0.5 * wood_session::compute_size(facade_framing.profiles.girder).first;
+        const auto& ft_prof = facade_framing.profiles.beam.empty()
+                                  ? facade_framing.profiles.girder
+                                  : facade_framing.profiles.beam;
+        const double ft_hw = 0.5 * wood_session::compute_size(ft_prof).first;
+
+        double z_lo = (li == 0) ? z_bottom : levels[li - 1].plan.frame.origin()[2];
+        if (li > 0 && levels[li - 1].framing.deck > PLAN_TOL && !levels[li - 1].framing.deck_flush)
+            z_lo += levels[li - 1].framing.deck;
+
+        std::map<std::pair<size_t, size_t>, std::pair<size_t, size_t>> ccw_dir;
+        for (const PlanCell& cell : lvl.plan.cells) {
+            for (size_t i = 0; i < cell.outer.size(); ++i) {
+                const size_t u = cell.outer[i];
+                const size_t v = cell.outer[(i + 1) % cell.outer.size()];
+                ccw_dir[std::minmax(u, v)] = {u, v};
+            }
+        }
+
+        size_t bnd_idx = 0;
+        for (const PlanEdge& edge : lvl.plan.edges) {
+            if (!edge.boundary)
+                continue;
+            const auto key = std::minmax(edge.a, edge.b);
+            const auto [u, v] = ccw_dir.count(key) ? ccw_dir.at(key) : std::make_pair(edge.a, edge.b);
+
+            const bool is_girder_edge =
+                lvl.framing.system == System::PostAndBeam ||
+                edge.family == std::max(0, lvl.framing.span);
+            const double beam_d =
+                lvl.framing.system == System::Slab ? 0.0 : (is_girder_edge ? girder_d : purlin_d);
+            const double beam_w =
+                lvl.framing.system == System::Slab ? col_w : (is_girder_edge ? girder_w : purlin_w);
+            const double soffit_d =
+                lvl.framing.system == System::Slab
+                    ? 0.0
+                    : (is_girder_edge ? girder_d : std::max(purlin_d, girder_d * 0.0));
+            const double clear_h = (z_top_datum - soffit_d) - z_lo - 2.0 * ft_hw;
+            if (clear_h <= ft_hw * 2.0)
+                continue;
+
+            const Point p0 = lvl.plan.to_world(lvl.plan.nodes[u][0], lvl.plan.nodes[u][1], 0.0);
+            const Point p1 = lvl.plan.to_world(lvl.plan.nodes[v][0], lvl.plan.nodes[v][1], 0.0);
+            const Point c0(p0[0], p0[1], z_lo + ft_hw);
+            const Point c1(p1[0], p1[1], z_lo + ft_hw);
+            const Vector dir = (c1 - c0).normalized();
+            const double end_inset = 0.5 * col_w + fm_hw;
+            const double clear_len = c0.distance(c1) - 2.0 * end_inset;
+            if (clear_len <= target_bay * 0.35)
+                continue;
+
+            const Vector outward(dir[1], -dir[0], 0.0);
+            const Vector align = outward * (0.5 * std::min(col_w, beam_w));
+            const Line base =
+                Line::from_points(c0 + dir * end_inset + align, c1 - dir * end_inset + align);
+            const std::vector<double> u_bays = compute_bays(clear_len, target_bay);
+            const Plan wall_plan = Plan::facade(base, clear_h, u_bays, {clear_h});
+
+            Framing ff = facade_framing;
+            ff.post_height = 0.0;
+            if (ff.brace != BraceMode::None && !wall_plan.cells.empty()) {
+                const bool at_start = is_bldg_corner(u);
+                const bool at_end = is_bldg_corner(v);
+                size_t min_ci = 0;
+                size_t max_ci = 0;
+                double min_u = std::numeric_limits<double>::max();
+                double max_u = -min_u;
+                for (size_t ci = 0; ci < wall_plan.cells.size(); ++ci) {
+                    double sum_u = 0.0;
+                    for (size_t vi : wall_plan.cells[ci].outer)
+                        sum_u += wall_plan.nodes[vi][0];
+                    const double cu = sum_u / std::max<size_t>(1, wall_plan.cells[ci].outer.size());
+                    if (cu < min_u) {
+                        min_u = cu;
+                        min_ci = ci;
+                    }
+                    if (cu > max_u) {
+                        max_u = cu;
+                        max_ci = ci;
+                    }
+                }
+                ff.braced_bays.clear();
+                if (at_start)
+                    ff.braced_bays.push_back(min_ci);
+                if (at_end && max_ci != min_ci)
+                    ff.braced_bays.push_back(max_ci);
+                if (ff.braced_bays.empty())
+                    ff.brace = BraceMode::None;
+            }
+            facades.push_back(
+                LevelSpec{wall_plan, ff, fmt::format("facade_{}_{}", li + 1, bnd_idx++)}
+            );
         }
     }
-
-    return exit;
 }
 
-double
-compute_reach(const std::vector<Point>& polygon, const Point& point, const Vector& direction) {
-
-    double reach = 0.0;
-    for (const Point& corner : polygon)
-        reach =
-            std::max(reach, (compute_lift(corner, 0.0) - compute_lift(point, 0.0)).dot(direction));
-
-    return reach;
-}
-
-std::vector<Point> compute_strip(const Point& origin, const Vector& direction, double half) {
-
-    const Vector side = direction.cross(Vector(0.0, 0.0, 1.0));
-    const Vector along = direction * 1e7;
-    const Point centre = compute_lift(origin, 0.0);
-
-    return {
-        centre - along + side * half,
-        centre + along + side * half,
-        centre + along - side * half,
-        centre - along - side * half
-    };
-}
-
-Plane compute_bisector(const Point& origin, const Vector& a, const Vector& b) {
-
-    const Vector normal = a - b;
-
-    return Plane::from_point_normal(origin, normal.magnitude() < 1e-6 ? a : normal.normalized());
-}
-
-Polyline compute_polygon(
-    const std::vector<Vector>& directions, const Point& centre, const std::vector<double>& distances
-) {
-
-    std::vector<Point> points;
-    for (size_t j = 0; j < directions.size(); j++)
-        points.push_back(compute_corner(
-            centre,
-            directions[j],
-            distances[j],
-            directions[(j + 1) % directions.size()],
-            distances[(j + 1) % directions.size()]
-        ));
-
-    return to_polyline(points);
-}
-
-std::vector<Vector> compute_directions(const Mesh& plan, size_t vertex) {
-
-    const Point origin = *plan.vertex_point(vertex);
-    std::vector<double> angles;
-    for (const size_t other : plan.vertex_neighbors(vertex).value_or(std::vector<size_t>())) {
-        const Point point = *plan.vertex_point(other);
-        angles.push_back(std::atan2(point[1] - origin[1], point[0] - origin[0]));
-        angles.push_back(std::atan2(origin[1] - point[1], origin[0] - point[0]));
-    }
-    if (angles.empty())
-        angles = {-Tolerance::HALF_PI, 0.0, Tolerance::HALF_PI, Tolerance::PI};
-    std::sort(angles.begin(), angles.end());
-
-    std::vector<double> merged;
-    for (const double angle : angles)
-        if (merged.empty() || angle - merged.back() > Tolerance::TO_RADIANS)
-            merged.push_back(angle);
-    if (merged.size() > 1 &&
-        merged.front() + Tolerance::TWO_PI - merged.back() <= Tolerance::TO_RADIANS)
-        merged.pop_back();
-    if (merged.size() == 2) {
-        merged.push_back(merged[0] + Tolerance::HALF_PI);
-        merged.push_back(merged[0] - Tolerance::HALF_PI);
-        std::sort(merged.begin(), merged.end());
-    }
-
-    std::vector<Vector> directions;
-    for (const double angle : merged)
-        directions.emplace_back(std::cos(angle), std::sin(angle), 0.0);
-
-    return directions;
-}
-
-}
+} // namespace wood_grid
