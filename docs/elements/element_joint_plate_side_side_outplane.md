@@ -26,6 +26,15 @@ static std::shared_ptr<JointPlateElement> side_side_outplane_capped_fingers(int 
 static std::shared_ptr<JointPlateElement> side_side_outplane_annen_fingers(int divisions = 7, double angle = 15.0);
 static std::shared_ptr<JointPlateElement> side_side_outplane_notch();
 static std::shared_ptr<JointPlateElement> side_side_outplane_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female);
+static VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
+    double dihedral_degrees = 110.0,
+    double seam_width = 1300.0,
+    double wing_length = 900.0,
+    double plate_thickness = 45.0,
+    double total_offset = 300.0,
+    double pin_pitch = 500.0,
+    bool cutaway_front = true
+);
 
 void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::vector<std::shared_ptr<FacePlanarElement>>& elements);
 std::shared_ptr<Interaction> interaction(size_t target) const;
@@ -96,7 +105,7 @@ Linked tenon variant for the Vidy theatre wall seams where the secondary linked 
 
 ## Vidy node: four folded plates
 
-A four-plate folded Vidy corner node combining `side_side_outplane_linked_tenons` on the roof seams and `side_side_outplane_linked_tenons_wall` on the wall seams.
+Christopher Robeller's 2017 Théâtre de Vidy double-layer folded crease node (`JointVidyElement::folded_double_layer_node`): four `45 mm` CLT plates across `300 mm` depth (`210 mm` hollow cavity closed to the corners by perpendicular border boards), joined by stepped 12-point `Double_Pin` tenons (`270 mm` base, `35 mm` shoulder, `180 mm` shaft, `140 mm` tip) bridging the cavity into outer-cover through-mortises, an `Extend_Pins` cavity shelf carrying 6-point `Single_Pin` tenons (`180/140 mm`), an `Extend` rabbet lip, and one rigid-body insertion vector per plate.
 
 ![](elements/element_joint_plate_vidy_node.png)
 

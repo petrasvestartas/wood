@@ -112,6 +112,7 @@ set(WOOD_SOURCES
     src/templates/module/cassette_shell.cpp
     src/templates/plaited/plaited_guide.cpp
     src/templates/plaited/plaited.cpp
+    src/templates/vidy/origami_shell.cpp
     src/templates/vidy/vidy_guide.cpp
     src/templates/vidy/vidy.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
@@ -519,6 +520,8 @@ ADD_EXE(templates_vidy_1_main_mesh       examples/templates_vidy_1_main_mesh.cpp
 ADD_EXE(templates_vidy_2_offset_mesh     examples/templates_vidy_2_offset_mesh.cpp)
 ADD_EXE(templates_vidy_3_panels          examples/templates_vidy_3_panels.cpp)
 ADD_EXE(templates_vidy_4_section_joints  examples/templates_vidy_4_section_joints.cpp)
+ADD_EXE(templates_vidy_5_parametric      examples/templates_vidy_5_parametric.cpp)
+ADD_EXE(templates_vidy_6_origami_shapes  examples/templates_vidy_6_origami_shapes.cpp)
 
 # Documentation: `cmake --build build --target docs` writes build/docs/html from the headers'
 # docstrings, src/docs.md as the main page (its Mermaid fences rendered by the footer) and

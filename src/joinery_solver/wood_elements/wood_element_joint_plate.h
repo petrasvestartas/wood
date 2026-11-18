@@ -398,7 +398,19 @@ public:
     }
 };
 
-/// Element that represents the joints of a Vidy dataset: plate joints built from its plates, connections and groups.
+/// Four-plate double-layer Théâtre de Vidy folded corner node with cavity border boards.
+struct VidyDoubleLayerNode {
+    std::shared_ptr<FacePlanarElement>
+        inner_a; // Inner wall plate carrying Extend_Pins cavity shelf.
+    std::shared_ptr<FacePlanarElement>
+        outer_a; // Outer wall plate carrying Extend lip and mortises.
+    std::shared_ptr<FacePlanarElement> inner_b; // Inner roof plate carrying stepped Double_Pins.
+    std::shared_ptr<FacePlanarElement>
+        outer_b; // Outer roof plate carrying Single_Pins and mortises.
+    std::vector<std::shared_ptr<FacePlanarElement>> borders; // Perpendicular cavity border boards.
+};
+
+/// Element that represents the joints of a Vidy dataset or double-layer folded crease node.
 class JointVidyElement : public JointPlateElement {
 public:
     JointVidyElement() = default;
@@ -407,6 +419,17 @@ public:
         std::vector<InteractionFeaturePlate> connections,
         const std::vector<std::vector<int>>& groups,
         const Settings& settings = Settings()
+    );
+
+    /// Builds a double-layer folded Vidy crease node with stepped tenons and cavity border boards.
+    static VidyDoubleLayerNode folded_double_layer_node(
+        double dihedral_degrees = 110.0,
+        double seam_width = 1300.0,
+        double wing_length = 900.0,
+        double plate_thickness = 45.0,
+        double total_offset = 300.0,
+        double pin_pitch = 500.0,
+        bool cutaway_front = true
     );
 
     std::string element_type_name() const override {

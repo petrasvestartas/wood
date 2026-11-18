@@ -1,6 +1,9 @@
 #include "wood_session.h"
 #include "wood_element_geometry.h"
 #include "src/templates/cavity_border.h"
+#include "src/templates/folding/counter_fold.h"
+#include "src/templates/folding/diagonal_fold.h"
+#include "src/templates/folding/single_fold.h"
 #include "src/templates/vidy/vidy.h"
 
 using namespace session_cpp;
@@ -95,7 +98,14 @@ void check_plates(
         );
         check(
             mesh.number_of_vertices() >= 2 * (plate->features.bottom[0].point_count() - 1),
-            fmt::format("{} ({}): trimmed_mesh vertex count check", label, plate->name)
+            fmt::format(
+                "{} ({}): trimmed_mesh vertices {} < 2*({}-1) holes={}",
+                label,
+                plate->name,
+                mesh.number_of_vertices(),
+                plate->features.bottom[0].point_count(),
+                plate->features.bottom.size() - 1
+            )
         );
     }
 }
@@ -207,10 +217,7 @@ void test_bay_border_closure(const wood_vidy::VidyPavilion& panels, size_t bay) 
         check(
             end_a <= 2.5 && end_b <= 2.5,
             fmt::format(
-                "border corner gap on {} ends=({:.2f}, {:.2f})",
-                bay_borders[i]->name,
-                end_a,
-                end_b
+                "border corner gap on {} ends=({:.2f}, {:.2f})", bay_borders[i]->name, end_a, end_b
             )
         );
     }
@@ -306,10 +313,9 @@ void test_slot_edge_clearances(const wood_vidy::VidyPavilion& pav, const std::st
                         if (outer[e].distance(outer[e + 1]) < 1e-6)
                             continue;
 
-                        const Point cp =
-                            Line::from_points(outer[e], outer[e + 1])
-                                .closest_point(hole[c], true)
-                                .second;
+                        const Point cp = Line::from_points(outer[e], outer[e + 1])
+                                             .closest_point(hole[c], true)
+                                             .second;
                         const double d = hole[c].distance(cp);
 
                         if (d < global_min) {
@@ -452,7 +458,9 @@ void test_sliding_kinematics(const wood_vidy::VidyPavilion& pav, size_t bay) {
             for (const Mesh& wm : walls) {
                 const Mesh inter = solid_boolean(lifted, wm, SolidOperation::intersect);
                 const double vol = inter.number_of_faces() > 0 ? compute_volume(inter) : 0.0;
-                check(vol <= 5.0, fmt::format("roof -Z lift collision at dz={:.0f}: {:.1f}", dz, vol));
+                check(
+                    vol <= 5.0, fmt::format("roof -Z lift collision at dz={:.0f}: {:.1f}", dz, vol)
+                );
             }
         }
     }
@@ -545,19 +553,256 @@ void test_stage4_pavilion() {
     }
 }
 
+/// Verifies parametric VidyPavilion configurations (compact symmetric, tapered hall and wide arch).
+void test_parametric_vidy() {
+
+    const wood_vidy::VidyGuide g_compact(
+        3,
+        2400.0,
+        12800.0,
+        12800.0,
+        480.0,
+        4800.0,
+        4800.0,
+        7200.0,
+        7200.0,
+        3900.0,
+        1850.0,
+        0.0,
+        40.0,
+        240.0
+    );
+    const wood_vidy::VidyPavilion compact(g_compact, true, 1.0, 420.0, "compact_symmetric");
+    check_plates(compact.shell_plates(), 40.0, true, "param_compact_shell");
+    check_border_plates(compact.border_plates(), 40.0, "param_compact_borders");
+    check(
+        report_plate_collisions(compact.all_plates(), "param_compact") == 0,
+        "param_compact zero collisions"
+    );
+
+    const wood_vidy::VidyGuide g_tapered(
+        5,
+        2800.0,
+        21000.0,
+        14800.0,
+        760.0,
+        7800.0,
+        6000.0,
+        11600.0,
+        9000.0,
+        6200.0,
+        2450.0,
+        820.0,
+        45.0,
+        320.0
+    );
+    const wood_vidy::VidyPavilion tapered(g_tapered, true, 1.0, 500.0, "tapered_hall");
+    check_plates(tapered.shell_plates(), 45.0, true, "param_tapered_shell");
+    check_border_plates(tapered.border_plates(), 45.0, "param_tapered_borders");
+    check(
+        report_plate_collisions(tapered.all_plates(), "param_tapered") == 0,
+        "param_tapered zero collisions"
+    );
+
+    const wood_vidy::VidyGuide g_wide(
+        4,
+        2500.0,
+        22000.0,
+        19500.0,
+        580.0,
+        5200.0,
+        4800.0,
+        8400.0,
+        7800.0,
+        7000.0,
+        2350.0,
+        0.0,
+        45.0,
+        280.0
+    );
+    const wood_vidy::VidyPavilion wide(g_wide, true, 1.0, 480.0, "wide_shallow");
+    check_plates(wide.shell_plates(), 45.0, true, "param_wide_shell");
+    check_border_plates(wide.border_plates(), 45.0, "param_wide_borders");
+    check(
+        report_plate_collisions(wide.all_plates(), "param_wide") == 0, "param_wide zero collisions"
+    );
 }
 
-/// Runs the reusable cavity border, Vidy guide, Stage 3, Stage 4 section and full pavilion checks.
+/// Verifies one OrigamiShell shape: BReps, 0 collisions, slot clearances and sliding kinematics.
+size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::string& label) {
+
+    std::cout << fmt::format(
+        "[{}] facets={} shell={} border={} seams={} dp={} sp={} slots={}\n",
+        label,
+        shell.facets().size(),
+        shell.shell_plates().size(),
+        shell.border_plates().size(),
+        shell.total_jointed_seams(),
+        shell.total_double_pins(),
+        shell.total_single_pins(),
+        shell.total_mortise_slots()
+    );
+    check(shell.shell_plates().size() == 2 * shell.facets().size(), label + ": 2 plates per facet");
+    check(!shell.border_plates().empty(), label + ": cavity border boards present");
+    check(shell.total_jointed_seams() > 0 && shell.total_double_pins() > 0, label + ": pins built");
+    check_plates(shell.shell_plates(), shell.plate_thickness, true, label + "_shell");
+    check_border_plates(shell.border_plates(), shell.plate_thickness, label + "_borders");
+    const size_t col_hits = report_plate_collisions(shell.all_plates(), label);
+
+    // Sequential rigid-body sliding kinematics along each facet's single insertion vector.
+    const std::vector<size_t>& order = shell.assembly_order();
+    std::vector<Mesh> in_meshes(shell.facets().size());
+    std::vector<Mesh> out_meshes(shell.facets().size());
+    std::vector<AABB> in_boxes(shell.facets().size());
+    std::vector<AABB> out_boxes(shell.facets().size());
+
+    for (size_t f = 0; f < shell.facets().size(); f++) {
+        in_meshes[f] = shell.inner_plates()[f]->model_geometry_mesh();
+        out_meshes[f] = shell.outer_plates()[f]->model_geometry_mesh();
+        in_boxes[f] = shell.inner_plates()[f]->aabb(200.0);
+        out_boxes[f] = shell.outer_plates()[f]->aabb(200.0);
+    }
+
+    size_t slide_hits = 0;
+
+    for (size_t step = 1; step < order.size(); step++) {
+        const size_t f = order[step];
+        const Vector v_ins = shell.plate_insertion_vector(f, 0);
+        check(std::abs(v_ins.magnitude() - 1.0) < 1e-6, label + ": unit insertion vector");
+
+        for (const double d : {8.0, 45.0, 120.0}) {
+            const Xform xf = Xform::translation(-v_ins[0] * d, -v_ins[1] * d, -v_ins[2] * d);
+            const Mesh m_in = in_meshes[f].transformed(xf);
+            const Mesh m_out = out_meshes[f].transformed(xf);
+
+            for (size_t prev = 0; prev < step; prev++) {
+                const size_t pf = order[prev];
+
+                if (!in_boxes[f].intersects(in_boxes[pf]) &&
+                    !out_boxes[f].intersects(out_boxes[pf]))
+                    continue;
+
+                for (size_t cl = 0; cl < 2; cl++)
+                    for (size_t tl = 0; tl < 2; tl++) {
+                        const Mesh& cand = cl == 0 ? m_in : m_out;
+                        const Mesh& targ = tl == 0 ? in_meshes[pf] : out_meshes[pf];
+                        const Mesh inter = solid_boolean(cand, targ, SolidOperation::intersect);
+                        const double vol =
+                            inter.number_of_faces() > 0 ? compute_volume(inter) : 0.0;
+
+                        if (vol > 5.0) {
+                            std::cout << fmt::format(
+                                "  SLIDE [{}]: f{}(L{})->f{}(L{}) d={:.0f} vol={:.1f}\n",
+                                label,
+                                f,
+                                cl,
+                                pf,
+                                tl,
+                                d,
+                                vol
+                            );
+                            slide_hits++;
+                        }
+                    }
+            }
+        }
+    }
+
+    std::cout << fmt::format("[{}] slide_hits={}\n", label, slide_hits);
+
+    return col_hits + slide_hits;
+}
+
+/// Verifies OrigamiShell across Miura-ori, Yoshimura, CounterFold, DiagonalFold and SingleFold.
+void test_origami_shapes() {
+
+    size_t issues = 0;
+    const wood_vidy::OrigamiShell miura(
+        wood_vidy::OrigamiShell::miura_arch_mesh(6, 3, 12000.0, 9600.0, 4400.0, 560.0, 420.0),
+        40.0,
+        240.0,
+        true,
+        true,
+        420.0,
+        1.0,
+        "miura_arch"
+    );
+    issues += verify_origami_shell(miura, "origami_miura");
+
+    const wood_vidy::OrigamiShell yoshimura(
+        wood_vidy::OrigamiShell::yoshimura_arch_mesh(3, 5, 12000.0, 2800.0, 4600.0, 540.0),
+        40.0,
+        240.0,
+        true,
+        true,
+        400.0,
+        1.0,
+        "yoshimura_vault"
+    );
+    issues += verify_origami_shell(yoshimura, "origami_yoshimura");
+
+    const CounterFold cf_base(
+        CounterFold::elevated_centre(3, 1600.0, 1500.0, 12800.0, 1500.0),
+        Folding::ridge_to_ridge,
+        40.0
+    );
+    const wood_vidy::OrigamiShell counter_fold(
+        cf_base.mesh(), 40.0, 240.0, true, true, 420.0, 1.0, "counter_fold"
+    );
+    issues += verify_origami_shell(counter_fold, "origami_counter_fold");
+
+    const DiagonalFold df_base(14400.0, {2800.0, 0.0, 5600.0, 0.5, 3400.0}, 40.0);
+    const wood_vidy::OrigamiShell cross_fold(
+        df_base.mesh(), 40.0, 240.0, true, true, 400.0, 1.0, "cross_fold"
+    );
+    issues += verify_origami_shell(cross_fold, "origami_cross_fold");
+
+    const SingleFold sf_base(5, 8500.0, 0.0, 4200.0, 5800.0, 40.0);
+    const wood_vidy::OrigamiShell single_fold(
+        sf_base.mesh(), 40.0, 240.0, true, true, 400.0, 1.0, "single_fold"
+    );
+    issues += verify_origami_shell(single_fold, "origami_single_fold");
+    check(issues == 0, "all five origami shapes must have 0 collisions and 0 slide hits");
+}
+
+/// Verifies JointVidyElement::folded_double_layer_node across 110 and 90 degree angles.
+void test_vidy_element_node() {
+
+    for (const double deg : {110.0, 90.0}) {
+        const VidyDoubleLayerNode node = JointVidyElement::folded_double_layer_node(
+            deg, 1300.0, 900.0, 45.0, 300.0, 500.0, false
+        );
+        const std::vector<std::shared_ptr<FacePlanarElement>> shells = {
+            node.inner_a, node.outer_a, node.inner_b, node.outer_b
+        };
+        std::vector<std::shared_ptr<FacePlanarElement>> all = shells;
+        all.insert(all.end(), node.borders.begin(), node.borders.end());
+        check(node.borders.size() == 6, "full closed Vidy node has 6 border boards");
+        check_plates(shells, 45.0, true, "vidy_element_node_shells");
+        check_border_plates(node.borders, 45.0, "vidy_element_node_borders");
+        check(
+            report_plate_collisions(all, fmt::format("vidy_node_{:.0f}", deg)) == 0,
+            "JointVidyElement::folded_double_layer_node zero collisions"
+        );
+    }
+}
+
+}
+
+/// Runs cavity border, Vidy guide, Stages 3-4, parametric Vidy and multi-origami checks.
 int main() {
 
     std::cout << std::unitbuf;
 
     try {
         test_reusable_cavity_border();
+        test_vidy_element_node();
         test_guide();
         test_stage3_panels();
         test_stage4_section();
         test_stage4_pavilion();
+        test_parametric_vidy();
+        test_origami_shapes();
         std::cout << "vidy_elements: all checks passed\n";
     } catch (const std::exception& ex) {
         std::cout << "vidy_elements EXCEPTION: " << ex.what() << "\n";

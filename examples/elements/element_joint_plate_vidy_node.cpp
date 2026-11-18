@@ -3,34 +3,52 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One Vidy node.
+/// Double-layer Théâtre de Vidy folded crease node: assembled cutaway and exploded 4-plate view.
 int main() {
 
-    const WoodSession corner = WoodSession::yaml_load(config::Dataset::vidy_corner);
     WoodSession scene("element_joint_plate_vidy_node");
-    scene.settings = corner.settings;
-    const std::vector<std::shared_ptr<FacePlanarElement>> plates = corner.get_elements<FacePlanarElement>();
-    const std::array<std::string, 4> names = {"wall_0", "wall_1", "roof_0", "roof_1"};
-    const std::array<int, 4> node = {6, 7, 9, 8};
-    for (size_t i = 0; i < 4; i++) {
-        const std::shared_ptr<FacePlanarElement> plate = std::make_shared<FacePlanarElement>(*plates[node[i]]);
-        plate->name = names[i];
-        scene.add(plate);
+
+    // assembled: 110-degree double-layer node (45 mm CLT + 210 mm cavity + 45 mm CLT = 300 mm)
+    const std::shared_ptr<TreeNode> assembled = scene.add_group("assembled");
+    const VidyDoubleLayerNode node =
+        JointVidyElement::folded_double_layer_node(110.0, 1300.0, 900.0, 45.0, 300.0, 500.0, true);
+    scene.add(node.inner_a, assembled);
+    scene.add(node.outer_a, assembled);
+    scene.add(node.inner_b, assembled);
+    scene.add(node.outer_b, assembled);
+
+    for (const std::shared_ptr<FacePlanarElement>& border : node.borders)
+        scene.add(border, assembled);
+
+    // exploded: the four jointed CLT plates drawn apart along each plate's single insertion vector
+    const std::shared_ptr<TreeNode> exploded = scene.add_group("exploded");
+    const VidyDoubleLayerNode exp =
+        JointVidyElement::folded_double_layer_node(110.0, 1300.0, 900.0, 45.0, 300.0, 500.0, true);
+    const Vector shift_y(0.0, 1850.0, 0.0);
+    const std::array<std::pair<std::shared_ptr<FacePlanarElement>, double>, 4> parts = {{
+        {exp.inner_a, 0.0},
+        {exp.inner_b, 380.0},
+        {exp.outer_b, 300.0},
+        {exp.outer_a, 320.0},
+    }};
+
+    for (const std::pair<std::shared_ptr<FacePlanarElement>, double>& item : parts) {
+        const Vector v_ins = item.first->insertion_vectors().front();
+        const Vector delta = shift_y - v_ins * item.second;
+        item.first->name = item.first->name + "_exploded";
+        item.first->place(Xform::translation(delta[0], delta[1], delta[2]));
+        scene.add(item.first, exploded);
     }
-
-    // the node as a three-valence group: the Vidy instruction 1, then the two walls and the two roof plates in the sidecar's order
-    scene.three_valence = {{1}, {0, 1, 2, 3}};
-
-    scene.compute_features();
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
+
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-One Vidy node: two wall plates and two roof plates meeting at one edge, joined by the linked tenons side_side_outplane_linked_tenons and their shadow joint.
+Double-layer Vidy node: 4 x 45 mm CLT plates across 300 mm depth (210 mm cavity + perpendicular border boards), stepped Double_Pin (270/180/140 mm), Extend_Pins + Single_Pin (180/140 mm), Extend lip and through-mortises, assembled and exploded along single insertion vectors.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

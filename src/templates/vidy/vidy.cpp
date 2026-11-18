@@ -218,22 +218,23 @@ std::vector<Point> compute_double_pin(
     const Vector& v_ins,
     double le_tab,
     double le_offs,
+    double scale,
     std::pair<Point, Point>& out_base,
     std::pair<Point, Point>& out_tip
 ) {
 
-    const Point mi1 = pm - nf * 135.0;
-    const Point pl1 = pm + nf * 135.0;
+    const Point mi1 = pm - nf * (135.0 * scale);
+    const Point pl1 = pm + nf * (135.0 * scale);
     const Point mi2 = mi1 + v_ins * (0.30 * le_offs);
     const Point pl2 = pl1 + v_ins * (0.30 * le_offs);
-    const Point mi3 = (pm - nf * 125.0) + v_ins * le_offs;
-    const Point pl3 = (pm + nf * 125.0) + v_ins * le_offs;
-    const Point mi4 = mi3 + nf * 35.0;
-    const Point pl4 = pl3 - nf * 35.0;
+    const Point mi3 = (pm - nf * (125.0 * scale)) + v_ins * le_offs;
+    const Point pl3 = (pm + nf * (125.0 * scale)) + v_ins * le_offs;
+    const Point mi4 = mi3 + nf * (35.0 * scale);
+    const Point pl4 = pl3 - nf * (35.0 * scale);
     const Point mi5 = mi4 + v_ins * (1.20 * le_tab);
     const Point pl5 = pl4 + v_ins * (1.20 * le_tab);
-    const Point mi6 = (mi4 + v_ins * (2.00 * le_tab)) + nf * 20.0;
-    const Point pl6 = (pl4 + v_ins * (2.00 * le_tab)) - nf * 20.0;
+    const Point mi6 = (mi4 + v_ins * (2.00 * le_tab)) + nf * (20.0 * scale);
+    const Point pl6 = (pl4 + v_ins * (2.00 * le_tab)) - nf * (20.0 * scale);
     out_base = {mi1, pl1};
     out_tip = {mi4, pl4};
 
@@ -246,15 +247,16 @@ std::vector<Point> compute_single_pin(
     const Vector& nf,
     const Vector& v_ins,
     double le_tab,
+    double scale,
     std::pair<Point, Point>& out_shaft
 ) {
 
-    const Point mi1 = pm - nf * 90.0;
-    const Point pl1 = pm + nf * 90.0;
+    const Point mi1 = pm - nf * (90.0 * scale);
+    const Point pl1 = pm + nf * (90.0 * scale);
     const Point mi2 = mi1 + v_ins * (1.20 * le_tab);
     const Point pl2 = pl1 + v_ins * (1.20 * le_tab);
-    const Point mi3 = (mi1 + v_ins * (2.00 * le_tab)) + nf * 20.0;
-    const Point pl3 = (pl1 + v_ins * (2.00 * le_tab)) - nf * 20.0;
+    const Point mi3 = (mi1 + v_ins * (2.00 * le_tab)) + nf * (20.0 * scale);
+    const Point pl3 = (pl1 + v_ins * (2.00 * le_tab)) - nf * (20.0 * scale);
     out_shaft = {mi1, pl1};
 
     return {mi1, mi2, mi3, pl3, pl2, pl1};
@@ -284,7 +286,9 @@ Point align_top_ref(
     if (w_p.magnitude() < 1e-6)
         return top_line.closest_point(m_b0, false).second;
 
-    return Intersection::line_plane(top_line, Plane::from_point_normal(m_b0, w_p.normalized()), false)
+    return Intersection::line_plane(
+               top_line, Plane::from_point_normal(m_b0, w_p.normalized()), false
+    )
         .value_or(top_line.closest_point(m_b0, false).second);
 }
 
@@ -304,10 +308,11 @@ std::array<std::vector<Point>, 2> compute_double_pins(
     const Point m_t0 = align_top_ref(m_b0, band.ends[2], band.ends[3], nf, band.v_ins);
     const Point pm_b = m_b0 - band.v_ins * (band.step_bot ? band.le_tab + 0.5 : 0.5);
     const Point pm_t = m_t0 - band.v_ins * (band.step_bot ? 0.5 : band.le_tab + 0.5);
+    const double scale = std::min(1.0, band.pitch / 500.0);
     const double f_off = compute_first_pin_offset(band.count, band.pitch);
     const double sh_half = std::max(
         0.5 * static_cast<double>(band.count) * band.pitch + band.pocket_extra,
-        f_off + std::abs(band.shift) + 145.0
+        f_off + std::abs(band.shift) + 145.0 * scale
     );
     const size_t opp_layer = 1 - same_layer;
     std::vector<Point> bot = {m_b0 - nf * sh_half, pm_b - nf * sh_half};
@@ -322,10 +327,10 @@ std::array<std::vector<Point>, 2> compute_double_pins(
         std::pair<Point, Point> base_t;
         std::pair<Point, Point> tip_t;
         const std::vector<Point> pb = compute_double_pin(
-            ptc_b + nf * step, nf, band.v_ins, band.le_tab, band.le_offs, base_b, tip_b
+            ptc_b + nf * step, nf, band.v_ins, band.le_tab, band.le_offs, scale, base_b, tip_b
         );
         const std::vector<Point> pt = compute_double_pin(
-            ptc_t + nf * step, nf, band.v_ins, band.le_tab, band.le_offs, base_t, tip_t
+            ptc_t + nf * step, nf, band.v_ins, band.le_tab, band.le_offs, scale, base_t, tip_t
         );
         bot.insert(bot.end(), pb.begin(), pb.end());
         top.insert(top.end(), pt.begin(), pt.end());
@@ -372,10 +377,11 @@ std::array<std::vector<Point>, 2> compute_single_pins(
     const Point m_t0 = align_top_ref(m_b0, band.ends[2], band.ends[3], nf, band.v_ins);
     const Point pm_b = m_b0 - band.v_ins * (band.step_bot ? band.le_tab + 0.5 : 0.5);
     const Point pm_t = m_t0 - band.v_ins * (band.step_bot ? 0.5 : band.le_tab + 0.5);
+    const double scale = std::min(1.0, band.pitch / 500.0);
     const double f_off = compute_first_pin_offset(band.count, band.pitch);
     const double sh_half = std::max(
         0.5 * static_cast<double>(band.count) * band.pitch + band.pocket_extra,
-        f_off + std::abs(band.shift) + 100.0
+        f_off + std::abs(band.shift) + 100.0 * scale
     );
     std::vector<Point> bot = {m_b0 - nf * sh_half, pm_b - nf * sh_half};
     std::vector<Point> top = {m_t0 - nf * sh_half, pm_t - nf * sh_half};
@@ -387,9 +393,9 @@ std::array<std::vector<Point>, 2> compute_single_pins(
         std::pair<Point, Point> sh_b;
         std::pair<Point, Point> sh_t;
         const std::vector<Point> pb =
-            compute_single_pin(ptc_b + nf * step, nf, band.v_ins, band.le_tab, sh_b);
+            compute_single_pin(ptc_b + nf * step, nf, band.v_ins, band.le_tab, scale, sh_b);
         const std::vector<Point> pt =
-            compute_single_pin(ptc_t + nf * step, nf, band.v_ins, band.le_tab, sh_t);
+            compute_single_pin(ptc_t + nf * step, nf, band.v_ins, band.le_tab, scale, sh_t);
         bot.insert(bot.end(), pb.begin(), pb.end());
         top.insert(top.end(), pt.begin(), pt.end());
         append_projected_slot(sh_b, sh_t, band.v_ins, fem_facet, h_bot, h_top, slots);
@@ -485,6 +491,7 @@ std::array<std::vector<Point>, 2> compute_extend_pins(
     const Point p4_t = (pm_t + nf * span) + band.v_ins * band.le_offs;
     std::vector<Point> bot = {base_l_b, p3_b};
     std::vector<Point> top = {base_l_t, p3_t};
+    const double scale = std::min(1.0, band.pitch / 500.0);
     const Point ptc_b = Point::mid_point(p3_b, p4_b) - nf * f_off;
     const Point ptc_t = Point::mid_point(p3_t, p4_t) - nf * f_off;
 
@@ -493,9 +500,9 @@ std::array<std::vector<Point>, 2> compute_extend_pins(
         std::pair<Point, Point> sh_b;
         std::pair<Point, Point> sh_t;
         const std::vector<Point> pb =
-            compute_single_pin(ptc_b + nf * step, nf, band.v_ins, band.le_tab, sh_b);
+            compute_single_pin(ptc_b + nf * step, nf, band.v_ins, band.le_tab, scale, sh_b);
         const std::vector<Point> pt =
-            compute_single_pin(ptc_t + nf * step, nf, band.v_ins, band.le_tab, sh_t);
+            compute_single_pin(ptc_t + nf * step, nf, band.v_ins, band.le_tab, scale, sh_t);
         bot.insert(bot.end(), pb.begin(), pb.end());
         top.insert(top.end(), pt.begin(), pt.end());
         append_projected_slot(sh_b, sh_t, band.v_ins, fem_facet, h_bot, h_top, slots);
@@ -526,6 +533,149 @@ void assign_layer_edge(
     edge_polys[2 * layer + 1][facet_idx][side_idx] = pair[1];
 }
 
+/// Available longitudinal half-span from ref_pt/m_t0 to the nearest corner minus corner_keep.
+double band_available_half_span(
+    const std::array<Point, 4>& ends, const Point& ref_pt, const Vector& v_ins, double corner_keep
+) {
+
+    const Vector nf_b = (ends[1] - ends[0]).normalized();
+    const Vector nf_t = (ends[3] - ends[2]).normalized();
+    const double len_b = ends[0].distance(ends[1]);
+    const double len_t = ends[2].distance(ends[3]);
+    const Point m_b0 = Line::from_points(ends[0], ends[1]).closest_point(ref_pt, false).second;
+    const Point m_t0 = align_top_ref(m_b0, ends[2], ends[3], nf_b, v_ins);
+    const double sb = (m_b0 - ends[0]).dot(nf_b);
+    const double st = (m_t0 - ends[2]).dot(nf_t);
+
+    return std::min({sb, len_b - sb, st, len_t - st}) - corner_keep;
+}
+
+/// True when pt clears all non-crease sides of facet (including pocket stepback on Regular sides).
+bool vidy_pt_clears_non_crease_sides(
+    const VidyGuide& guide,
+    const Point& pt,
+    const VidyFacet& facet,
+    size_t ring_idx,
+    size_t crease_side
+) {
+
+    const std::vector<VidyEdge>& edges = guide.edges();
+    const std::vector<Point>& ring = facet.miter_rings[ring_idx];
+    const size_t m = ring.size();
+
+    for (size_t k = 0; k < m; k++) {
+        if (k == crease_side)
+            continue;
+
+        const Point& a = ring[k];
+        const Point& b = ring[(k + 1) % m];
+        const Vector edge = b - a;
+
+        if (edge.magnitude() < 1e-6)
+            continue;
+
+        Vector inward = facet.normal.cross(edge.normalized()).normalized();
+
+        if ((facet.centroid - a).dot(inward) < 0.0)
+            inward = -inward;
+
+        const VidyEdge& ed = edges[static_cast<size_t>(facet.edge_ids[k])];
+        const double req = ed.kind == VidyEdgeKind::Regular ? (1.55 * guide.plate_thickness)
+                                                            : (0.85 * guide.plate_thickness);
+
+        if ((pt - a).dot(inward) < req)
+            return false;
+    }
+
+    return true;
+}
+
+/// True when two 4-corner planar quads on normal's plane come closer than min_gap (2D SAT).
+bool quads_closer_than_2d(
+    const std::array<Point, 4>& qa,
+    const std::array<Point, 4>& qb,
+    const Vector& normal,
+    double min_gap
+) {
+
+    const Plane frame = Plane::from_point_normal(qa[0], normal);
+    const Vector ex = frame.x_axis();
+    const Vector ey = frame.y_axis();
+    std::array<std::pair<double, double>, 4> a2;
+    std::array<std::pair<double, double>, 4> b2;
+
+    for (size_t i = 0; i < 4; i++) {
+        const Vector da = qa[i] - qa[0];
+        const Vector db = qb[i] - qa[0];
+        a2[i] = {da.dot(ex), da.dot(ey)};
+        b2[i] = {db.dot(ex), db.dot(ey)};
+    }
+
+    for (int which = 0; which < 2; which++) {
+        const std::array<std::pair<double, double>, 4>& poly = which == 0 ? a2 : b2;
+
+        for (size_t i = 0; i < 4; i++) {
+            const double dx = poly[(i + 1) % 4].first - poly[i].first;
+            const double dy = poly[(i + 1) % 4].second - poly[i].second;
+            const double len = std::hypot(dx, dy);
+
+            if (len < 1e-9)
+                continue;
+
+            const double nx = -dy / len;
+            const double ny = dx / len;
+            double min_a = 1e18;
+            double max_a = -1e18;
+            double min_b = 1e18;
+            double max_b = -1e18;
+
+            for (size_t c = 0; c < 4; c++) {
+                const double pa = a2[c].first * nx + a2[c].second * ny;
+                const double pb = b2[c].first * nx + b2[c].second * ny;
+                min_a = std::min(min_a, pa);
+                max_a = std::max(max_a, pa);
+                min_b = std::min(min_b, pb);
+                max_b = std::max(max_b, pb);
+            }
+
+            if (max_a + min_gap <= min_b || max_b + min_gap <= min_a)
+                return false;
+        }
+    }
+
+    return true;
+}
+
+/// True when all slots from start_idx onward clear non-crease sides and stay >= 14 mm from prior slots.
+bool new_vidy_slots_valid(
+    const VidyGuide& guide,
+    const std::vector<MortiseSlot>& slots,
+    size_t start_idx,
+    const VidyFacet& facet,
+    size_t layer,
+    size_t crease_side
+) {
+
+    const size_t rb = 2 * layer;
+    const size_t rt = 2 * layer + 1;
+
+    for (size_t idx = start_idx; idx < slots.size(); idx++) {
+        const MortiseSlot& s = slots[idx];
+
+        for (size_t c = 0; c < 4; c++)
+            if (!vidy_pt_clears_non_crease_sides(guide, s.bottom[c], facet, rb, crease_side) ||
+                !vidy_pt_clears_non_crease_sides(guide, s.top[c], facet, rt, crease_side))
+                return false;
+
+        for (size_t prev = 0; prev < idx; prev++)
+            if (quads_closer_than_2d(s.bottom, slots[prev].bottom, facet.normal, 14.0) ||
+                quads_closer_than_2d(s.top, slots[prev].top, facet.normal, 14.0))
+                return false;
+    }
+
+    return true;
+}
+
 /// Emits wall V-pleat (kind 0) or on-site situ eave (kind 1) contours and mortise slots.
 void compute_wall_or_situ_crease(
     const BayCreaseSpec& spec,
@@ -540,56 +690,107 @@ void compute_wall_or_situ_crease(
     const std::array<double, 4> heights = guide.layer_heights();
 
     if (spec.kind == 1) {
-        const Vector to_even =
-            std::abs(cf.ends_b_out[0][0]) < std::abs(cf.ends_b_out[1][0])
-                ? (cf.ends_b_out[0] - cf.ends_b_out[1]).normalized()
-                : (cf.ends_b_out[1] - cf.ends_b_out[0]).normalized();
+        const Vector to_even = std::abs(cf.ends_b_out[0][0]) < std::abs(cf.ends_b_out[1][0])
+                                   ? (cf.ends_b_out[0] - cf.ends_b_out[1]).normalized()
+                                   : (cf.ends_b_out[1] - cf.ends_b_out[0]).normalized();
         const Point situ_ref_b =
             Point::mid_point(cf.ends_b_in[0], cf.ends_b_in[1]) + to_even * 35.0;
         const Point situ_ref_t =
             Point::mid_point(cf.ends_b_out[0], cf.ends_b_out[1]) + to_even * 35.0;
-        const PinBand dp_band = {
-            cf.ends_b_in, situ_ref_b, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, false, 2, pitch, 80.0, 0.0
-        };
-        const PinBand sp_band = {
-            cf.ends_b_out, situ_ref_t, cf.v_ins_b, cf.l_tab_b, 0.0, false, 2, pitch, 80.0, 0.0
-        };
-        const PinBand np_band = {
-            cf.ends_a_in, situ_ref_b, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, false, 2, pitch, 0.0, 0.0
-        };
-        const PinBand ex_band = {
-            cf.ends_a_out, situ_ref_t, cf.v_ins_a, cf.l_tab_a, 0.0, true, 2, pitch, 0.0, 0.0
-        };
-        assign_layer_edge(
-            tables.edge_polys,
-            0,
-            cf.fb_i,
-            cf.sb,
-            compute_double_pins(
-                dp_band,
-                fa,
-                heights,
+        const double situ_ex = 80.0 * std::min(1.0, pitch / 500.0);
+        const int max_situ = cf.min_len >= 2.0 * pitch + 260.0 ? 2 : 1;
+        const size_t sa0 = tables.plate_slots[0][cf.fa_i].size();
+        const size_t sa1 = tables.plate_slots[1][cf.fa_i].size();
+        int n_situ = max_situ;
+
+        for (int try_n = max_situ; try_n >= 1; try_n--) {
+            tables.plate_slots[0][cf.fa_i].resize(sa0);
+            tables.plate_slots[1][cf.fa_i].resize(sa1);
+            const PinBand dp_band = {
+                cf.ends_b_in,
+                situ_ref_b,
+                cf.v_ins_b,
+                cf.l_tab_b,
+                cf.l_offs_b,
+                false,
+                try_n,
+                pitch,
+                situ_ex,
+                0.0
+            };
+            const PinBand sp_band = {
+                cf.ends_b_out,
+                situ_ref_t,
+                cf.v_ins_b,
+                cf.l_tab_b,
+                0.0,
+                false,
+                try_n,
+                pitch,
+                situ_ex,
+                0.0
+            };
+            const PinBand np_band = {
+                cf.ends_a_in,
+                situ_ref_b,
+                cf.v_ins_a,
+                cf.l_tab_a,
+                cf.l_offs_a,
+                false,
+                try_n,
+                pitch,
+                0.0,
+                0.0
+            };
+            const PinBand ex_band = {
+                cf.ends_a_out, situ_ref_t, cf.v_ins_a, cf.l_tab_a, 0.0, true, try_n, pitch, 0.0, 0.0
+            };
+            assign_layer_edge(
+                tables.edge_polys,
                 0,
-                tables.plate_slots[0][cf.fa_i],
-                tables.plate_slots[1][cf.fa_i]
-            )
-        );
-        assign_layer_edge(
-            tables.edge_polys,
-            1,
-            cf.fb_i,
-            cf.sb,
-            compute_single_pins(sp_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i])
-        );
-        assign_layer_edge(tables.edge_polys, 0, cf.fa_i, cf.sa, compute_extend_no_pins(np_band));
-        assign_layer_edge(tables.edge_polys, 1, cf.fa_i, cf.sa, compute_extend_tab(ex_band));
-        tables.double_pins += 2;
-        tables.single_pins += 2;
+                cf.fb_i,
+                cf.sb,
+                compute_double_pins(
+                    dp_band,
+                    fa,
+                    heights,
+                    0,
+                    tables.plate_slots[0][cf.fa_i],
+                    tables.plate_slots[1][cf.fa_i]
+                )
+            );
+            assign_layer_edge(
+                tables.edge_polys,
+                1,
+                cf.fb_i,
+                cf.sb,
+                compute_single_pins(
+                    sp_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i]
+                )
+            );
+            assign_layer_edge(
+                tables.edge_polys, 0, cf.fa_i, cf.sa, compute_extend_no_pins(np_band)
+            );
+            assign_layer_edge(tables.edge_polys, 1, cf.fa_i, cf.sa, compute_extend_tab(ex_band));
+            n_situ = try_n;
+            const bool ok0 =
+                new_vidy_slots_valid(guide, tables.plate_slots[0][cf.fa_i], sa0, fa, 0, cf.sa);
+            const bool ok1 =
+                new_vidy_slots_valid(guide, tables.plate_slots[1][cf.fa_i], sa1, fa, 1, cf.sa);
+
+            if (ok0 && ok1)
+                break;
+        }
+
+        tables.double_pins += static_cast<size_t>(n_situ);
+        tables.single_pins += static_cast<size_t>(n_situ);
         return;
     }
 
-    const int n_dp = cf.min_len >= 7200.0 ? 11 : 10;
-    const int n_sp = cf.min_len >= 7000.0 ? 12 : 10;
+    const int max_w_dp = std::max(1, static_cast<int>(std::floor(0.76 * cf.min_len / pitch)));
+    const int max_w_sp = std::max(1, static_cast<int>(std::floor(0.86 * cf.min_len / pitch)));
+    const int n_dp = std::min(cf.min_len >= 7200.0 ? 11 : 10, max_w_dp);
+    const int n_sp = std::min(cf.min_len >= 7000.0 ? 12 : 10, max_w_sp);
     const PinBand ex_band = {
         cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, 0.0, true, n_sp, pitch, 0.0, 0.0
     };
@@ -638,45 +839,117 @@ void compute_valley_crease(
     const VidyFacet& fa = guide.facets()[cf.fa_i];
     const VidyFacet& fb = guide.facets()[cf.fb_i];
     const std::array<double, 4> heights = guide.layer_heights();
-    const int n_dp = 11;
-    const int n_sp = cf.min_len >= 10200.0 ? 16 : (cf.min_len >= 9200.0 ? 14 : 13);
-    const PinBand dp_band = {
-        cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, true, n_dp, pitch, 3.0, 0.0
-    };
-    const PinBand ex_band = {
-        cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, 0.0, false, n_sp, pitch, 0.0, 0.0
-    };
-    const PinBand ep_band = {
-        cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, true, n_dp, pitch, 0.0, 0.0
-    };
-    const PinBand sp_band = {
-        cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, 0.0, true, n_sp, pitch, 2.0, 0.0
-    };
+    const double keep_v_dp = 1.35 * guide.total_offset;
+    const double keep_v_sp = 0.85 * guide.total_offset;
+    const double av_v_dp = std::min(
+        band_available_half_span(cf.ends_b_out, cf.ref_t, cf.v_ins_b, keep_v_dp) - 3.0,
+        band_available_half_span(cf.ends_a_out, cf.ref_t, cf.v_ins_a, keep_v_dp)
+    );
+    const double av_v_sp = std::min(
+        band_available_half_span(cf.ends_b_in, cf.ref_b, cf.v_ins_b, keep_v_sp),
+        band_available_half_span(cf.ends_a_in, cf.ref_b, cf.v_ins_a, keep_v_sp) - 2.0
+    );
+    const int max_v_dp = std::min(
+        std::max(1, static_cast<int>(std::floor(0.64 * cf.min_len / pitch))),
+        std::max(1, static_cast<int>(std::floor(2.0 * av_v_dp / pitch)))
+    );
+    const int max_v_sp = std::min(
+        std::max(1, static_cast<int>(std::floor(0.80 * cf.min_len / pitch))),
+        std::max(1, static_cast<int>(std::floor(2.0 * av_v_sp / pitch)))
+    );
+    const int max_dp = std::min(11, max_v_dp);
+    const int max_sp =
+        std::min(cf.min_len >= 10200.0 ? 16 : (cf.min_len >= 9200.0 ? 14 : 13), max_v_sp);
+    const size_t sa0 = tables.plate_slots[0][cf.fa_i].size();
+    const size_t sa1 = tables.plate_slots[1][cf.fa_i].size();
+    const size_t sb0 = tables.plate_slots[0][cf.fb_i].size();
+    int n_dp = max_dp;
 
-    assign_layer_edge(
-        tables.edge_polys,
-        1,
-        cf.fb_i,
-        cf.sb,
-        compute_double_pins(
-            dp_band, fa, heights, 1, tables.plate_slots[1][cf.fa_i], tables.plate_slots[0][cf.fa_i]
-        )
-    );
-    assign_layer_edge(tables.edge_polys, 0, cf.fb_i, cf.sb, compute_extend_tab(ex_band));
-    assign_layer_edge(
-        tables.edge_polys,
-        1,
-        cf.fa_i,
-        cf.sa,
-        compute_extend_pins(ep_band, fb, heights[0], heights[1], tables.plate_slots[0][cf.fb_i])
-    );
-    assign_layer_edge(
-        tables.edge_polys,
-        0,
-        cf.fa_i,
-        cf.sa,
-        compute_single_pins(sp_band, fb, heights[0], heights[1], tables.plate_slots[0][cf.fb_i])
-    );
+    for (int try_dp = max_dp; try_dp >= 1; try_dp--) {
+        tables.plate_slots[0][cf.fa_i].resize(sa0);
+        tables.plate_slots[1][cf.fa_i].resize(sa1);
+        tables.plate_slots[0][cf.fb_i].resize(sb0);
+        const PinBand dp_band = {
+            cf.ends_b_out,
+            cf.ref_t,
+            cf.v_ins_b,
+            cf.l_tab_b,
+            cf.l_offs_b,
+            true,
+            try_dp,
+            pitch,
+            3.0,
+            0.0
+        };
+        const PinBand ep_band = {
+            cf.ends_a_out,
+            cf.ref_t,
+            cf.v_ins_a,
+            cf.l_tab_a,
+            cf.l_offs_a,
+            true,
+            try_dp,
+            pitch,
+            0.0,
+            0.0
+        };
+        assign_layer_edge(
+            tables.edge_polys,
+            1,
+            cf.fb_i,
+            cf.sb,
+            compute_double_pins(
+                dp_band,
+                fa,
+                heights,
+                1,
+                tables.plate_slots[1][cf.fa_i],
+                tables.plate_slots[0][cf.fa_i]
+            )
+        );
+        assign_layer_edge(
+            tables.edge_polys,
+            1,
+            cf.fa_i,
+            cf.sa,
+            compute_extend_pins(ep_band, fb, heights[0], heights[1], tables.plate_slots[0][cf.fb_i])
+        );
+        n_dp = try_dp;
+        const bool ok_a0 =
+            new_vidy_slots_valid(guide, tables.plate_slots[0][cf.fa_i], sa0, fa, 0, cf.sa);
+        const bool ok_a1 =
+            new_vidy_slots_valid(guide, tables.plate_slots[1][cf.fa_i], sa1, fa, 1, cf.sa);
+        const bool ok_b0 =
+            new_vidy_slots_valid(guide, tables.plate_slots[0][cf.fb_i], sb0, fb, 0, cf.sb);
+
+        if (ok_a0 && ok_a1 && ok_b0)
+            break;
+    }
+
+    const size_t sb0_sp = tables.plate_slots[0][cf.fb_i].size();
+    int n_sp = max_sp;
+
+    for (int try_sp = max_sp; try_sp >= 1; try_sp--) {
+        tables.plate_slots[0][cf.fb_i].resize(sb0_sp);
+        const PinBand ex_band = {
+            cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, 0.0, false, try_sp, pitch, 0.0, 0.0
+        };
+        const PinBand sp_band = {
+            cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, 0.0, true, try_sp, pitch, 2.0, 0.0
+        };
+        assign_layer_edge(tables.edge_polys, 0, cf.fb_i, cf.sb, compute_extend_tab(ex_band));
+        assign_layer_edge(
+            tables.edge_polys,
+            0,
+            cf.fa_i,
+            cf.sa,
+            compute_single_pins(sp_band, fb, heights[0], heights[1], tables.plate_slots[0][cf.fb_i])
+        );
+        n_sp = try_sp;
+
+        if (new_vidy_slots_valid(guide, tables.plate_slots[0][cf.fb_i], sb0_sp, fb, 0, cf.sb))
+            break;
+    }
     tables.double_pins += static_cast<size_t>(n_dp);
     tables.single_pins += static_cast<size_t>(n_dp + n_sp);
 }
@@ -693,11 +966,11 @@ void compute_knee_or_crown_crease(
     const VidyFacet& fa = guide.facets()[cf.fa_i];
     const VidyFacet& fb = guide.facets()[cf.fb_i];
     const std::array<double, 4> heights = guide.layer_heights();
-    const int n_dp =
-        spec.kind == 2 ? 3
-                       : (spec.kind == 6 ? 4
-                                         : (spec.kind == 3 ? 6 : (cf.min_len >= 4900.0 ? 5 : 4)));
-    const int n_sp =
+    const int raw_dp =
+        spec.kind == 2
+            ? 3
+            : (spec.kind == 6 ? 4 : (spec.kind == 3 ? 6 : (cf.min_len >= 4900.0 ? 5 : 4)));
+    const int raw_sp =
         spec.kind == 2
             ? (cf.min_len >= 3950.0 ? 6 : 5)
             : (spec.kind == 6
@@ -705,6 +978,8 @@ void compute_knee_or_crown_crease(
                    : (spec.kind == 3
                           ? (cf.min_len >= 6950.0 ? 12 : 11)
                           : (cf.min_len >= 5150.0 ? 9 : (cf.min_len >= 4820.0 ? 8 : 7))));
+    const double dp_fill = spec.kind == 2 ? 0.45 : (spec.kind == 3 ? 0.48 : 0.54);
+    const double sp_fill = spec.kind == 2 ? 0.80 : (spec.kind == 6 ? 0.84 : 0.88);
     const Vector nf_a = (cf.ends_a_in[1] - cf.ends_a_in[0]).normalized();
     const Vector nf_b = (cf.ends_b_in[1] - cf.ends_b_in[0]).normalized();
     const double skew_a = std::abs(cf.v_ins_a.dot(nf_a));
@@ -713,43 +988,125 @@ void compute_knee_or_crown_crease(
     const double dp_extra = ep_extra + skew_b * cf.l_offs_b + 3.0;
     const double sp_extra =
         std::max(skew_b * (2.0 * cf.l_tab_b), skew_a * (2.0 * cf.l_tab_a)) + 3.0;
-    const PinBand ex_band = {
-        cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, 0.0, true, n_sp, pitch, 0.0, 0.0
-    };
-    const PinBand dp_band = {
-        cf.ends_a_in, cf.ref_b, cf.v_ins_a, cf.l_tab_a, cf.l_offs_a, false, n_dp, pitch, dp_extra, 0.0
-    };
-    const PinBand ep_band = {
-        cf.ends_b_in, cf.ref_b, cf.v_ins_b, cf.l_tab_b, cf.l_offs_b, false, n_dp, pitch, ep_extra, 0.0
-    };
-    const PinBand sp_band = {
-        cf.ends_b_out, cf.ref_t, cf.v_ins_b, cf.l_tab_b, 0.0, false, n_sp, pitch, sp_extra, 0.0
-    };
+    const double keep_dp = 1.45 * guide.total_offset;
+    const double keep_sp = 0.85 * guide.total_offset;
+    const double av_dp = std::min(
+        band_available_half_span(cf.ends_a_in, cf.ref_b, cf.v_ins_a, keep_dp) - dp_extra,
+        band_available_half_span(cf.ends_b_in, cf.ref_b, cf.v_ins_b, keep_dp) - ep_extra
+    );
+    const double av_sp = std::min(
+        band_available_half_span(cf.ends_a_out, cf.ref_t, cf.v_ins_a, keep_sp),
+        band_available_half_span(cf.ends_b_out, cf.ref_t, cf.v_ins_b, keep_sp) - sp_extra
+    );
+    const int max_dp = std::min(
+        {raw_dp,
+         std::max(1, static_cast<int>(std::floor(dp_fill * cf.min_len / pitch))),
+         std::max(1, static_cast<int>(std::floor(2.0 * av_dp / pitch)))}
+    );
+    const int max_sp = std::min(
+        {raw_sp,
+         std::max(1, static_cast<int>(std::floor(sp_fill * cf.min_len / pitch))),
+         std::max(1, static_cast<int>(std::floor(2.0 * av_sp / pitch)))}
+    );
+    const size_t sb0 = tables.plate_slots[0][cf.fb_i].size();
+    const size_t sb1 = tables.plate_slots[1][cf.fb_i].size();
+    const size_t sa1_dp = tables.plate_slots[1][cf.fa_i].size();
+    int n_dp = max_dp;
 
-    assign_layer_edge(tables.edge_polys, 1, cf.fa_i, cf.sa, compute_extend_tab(ex_band));
-    assign_layer_edge(
-        tables.edge_polys,
-        0,
-        cf.fa_i,
-        cf.sa,
-        compute_double_pins(
-            dp_band, fb, heights, 0, tables.plate_slots[0][cf.fb_i], tables.plate_slots[1][cf.fb_i]
-        )
-    );
-    assign_layer_edge(
-        tables.edge_polys,
-        0,
-        cf.fb_i,
-        cf.sb,
-        compute_extend_pins(ep_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i])
-    );
-    assign_layer_edge(
-        tables.edge_polys,
-        1,
-        cf.fb_i,
-        cf.sb,
-        compute_single_pins(sp_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i])
-    );
+    for (int try_dp = max_dp; try_dp >= 1; try_dp--) {
+        tables.plate_slots[0][cf.fb_i].resize(sb0);
+        tables.plate_slots[1][cf.fb_i].resize(sb1);
+        tables.plate_slots[1][cf.fa_i].resize(sa1_dp);
+        const PinBand dp_band = {
+            cf.ends_a_in,
+            cf.ref_b,
+            cf.v_ins_a,
+            cf.l_tab_a,
+            cf.l_offs_a,
+            false,
+            try_dp,
+            pitch,
+            dp_extra,
+            0.0
+        };
+        const PinBand ep_band = {
+            cf.ends_b_in,
+            cf.ref_b,
+            cf.v_ins_b,
+            cf.l_tab_b,
+            cf.l_offs_b,
+            false,
+            try_dp,
+            pitch,
+            ep_extra,
+            0.0
+        };
+        assign_layer_edge(
+            tables.edge_polys,
+            0,
+            cf.fa_i,
+            cf.sa,
+            compute_double_pins(
+                dp_band,
+                fb,
+                heights,
+                0,
+                tables.plate_slots[0][cf.fb_i],
+                tables.plate_slots[1][cf.fb_i]
+            )
+        );
+        assign_layer_edge(
+            tables.edge_polys,
+            0,
+            cf.fb_i,
+            cf.sb,
+            compute_extend_pins(ep_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i])
+        );
+        n_dp = try_dp;
+        const bool ok_b0 =
+            new_vidy_slots_valid(guide, tables.plate_slots[0][cf.fb_i], sb0, fb, 0, cf.sb);
+        const bool ok_b1 =
+            new_vidy_slots_valid(guide, tables.plate_slots[1][cf.fb_i], sb1, fb, 1, cf.sb);
+        const bool ok_a1 =
+            new_vidy_slots_valid(guide, tables.plate_slots[1][cf.fa_i], sa1_dp, fa, 1, cf.sa);
+
+        if (ok_b0 && ok_b1 && ok_a1)
+            break;
+    }
+
+    const size_t sa1_sp = tables.plate_slots[1][cf.fa_i].size();
+    int n_sp = max_sp;
+
+    for (int try_sp = max_sp; try_sp >= 1; try_sp--) {
+        tables.plate_slots[1][cf.fa_i].resize(sa1_sp);
+        const PinBand ex_band = {
+            cf.ends_a_out, cf.ref_t, cf.v_ins_a, cf.l_tab_a, 0.0, true, try_sp, pitch, 0.0, 0.0
+        };
+        const PinBand sp_band = {
+            cf.ends_b_out,
+            cf.ref_t,
+            cf.v_ins_b,
+            cf.l_tab_b,
+            0.0,
+            false,
+            try_sp,
+            pitch,
+            sp_extra,
+            0.0
+        };
+        assign_layer_edge(tables.edge_polys, 1, cf.fa_i, cf.sa, compute_extend_tab(ex_band));
+        assign_layer_edge(
+            tables.edge_polys,
+            1,
+            cf.fb_i,
+            cf.sb,
+            compute_single_pins(sp_band, fa, heights[2], heights[3], tables.plate_slots[1][cf.fa_i])
+        );
+        n_sp = try_sp;
+
+        if (new_vidy_slots_valid(guide, tables.plate_slots[1][cf.fa_i], sa1_sp, fa, 1, cf.sa))
+            break;
+    }
     tables.double_pins += static_cast<size_t>(n_dp);
     tables.single_pins += static_cast<size_t>(n_dp + n_sp);
 }
@@ -806,8 +1163,7 @@ compute_crease_frame(const VidyGuide& guide, size_t bay, const BayCreaseSpec& sp
     const double tb0 = (cf.ends_b_out[0] - cf.ends_a_out[0]).dot(u_out);
     const double tb1 = (cf.ends_b_out[1] - cf.ends_a_out[0]).dot(u_out);
     const double lo_out = std::max(0.0, std::min(tb0, tb1));
-    const double hi_out =
-        std::min(cf.ends_a_out[0].distance(cf.ends_a_out[1]), std::max(tb0, tb1));
+    const double hi_out = std::min(cf.ends_a_out[0].distance(cf.ends_a_out[1]), std::max(tb0, tb1));
     cf.ref_b = Point::mid_point(cf.ends_a_in[0], cf.ends_a_in[1]);
     cf.ref_t = hi_out > lo_out ? (cf.ends_a_out[0] + u_out * (0.5 * (lo_out + hi_out)))
                                : Point::mid_point(cf.ends_a_out[0], cf.ends_a_out[1]);
@@ -829,12 +1185,14 @@ compute_crease_frame(const VidyGuide& guide, size_t bay, const BayCreaseSpec& sp
         situ_a = -situ_a;
 
     const bool is_crown = spec.kind == 3 || spec.kind == 4;
+    const Vector hc_b =
+        is_crown ? compute_haunch_crown_vector(guide, bay, spec.loc_a, perp_b) : perp_b;
+    const bool use_hc = is_crown && std::abs(hc_b.dot(perp_b)) >= 0.38;
     cf.v_ins_a =
         is_crown ? compute_crown_inplane_vector(guide, fa) : (spec.kind == 1 ? situ_a : perp_a);
-    cf.v_ins_b = is_crown ? compute_haunch_crown_vector(guide, bay, spec.loc_a, perp_b)
-                          : (spec.kind == 1 ? Vector{0.0, 0.0, 1.0} : perp_b);
-    const double cos_a = std::max(0.05, std::abs(cf.v_ins_a.dot(perp_a)));
-    const double cos_b = std::max(0.05, std::abs(cf.v_ins_b.dot(perp_b)));
+    cf.v_ins_b = use_hc ? hc_b : (spec.kind == 1 ? Vector{0.0, 0.0, 1.0} : perp_b);
+    const double cos_a = std::max(0.25, std::abs(cf.v_ins_a.dot(perp_a)));
+    const double cos_b = std::max(0.25, std::abs(cf.v_ins_b.dot(perp_b)));
     cf.l_tab_a = (guide.plate_thickness / cos_dev) / cos_a;
     cf.l_offs_a = ((guide.total_offset - guide.plate_thickness) / cos_dev) / cos_a;
     cf.l_tab_b = (guide.plate_thickness / cos_dev) / cos_b;
@@ -914,8 +1272,7 @@ std::pair<double, double> compute_plane_corner_snips(
     const double sd = raw + clearance;
 
     return {
-        ra >= 0.12 ? std::min(520.0, sd / ra) : 0.0,
-        rb >= 0.12 ? std::min(520.0, sd / rb) : 0.0
+        ra >= 0.12 ? std::min(520.0, sd / ra) : 0.0, rb >= 0.12 ? std::min(520.0, sd / rb) : 0.0
     };
 }
 
@@ -960,15 +1317,13 @@ std::pair<double, double> compute_saddle_snips(
         if (!bis)
             continue;
 
-        const std::pair<double, double> ps =
-            compute_plane_corner_snips(apex, ua, ub, *bis, 0.8);
+        const std::pair<double, double> ps = compute_plane_corner_snips(apex, ua, ub, *bis, 0.8);
         snip_a = std::max(snip_a, ps.first);
         snip_b = std::max(snip_b, ps.second);
     }
 
     const double half_total = 0.5 * static_cast<double>(guide.bays) * guide.bay_length;
-    const double y_mid =
-        -half_total + (static_cast<double>(facet.bay) + 0.5) * guide.bay_length;
+    const double y_mid = -half_total + (static_cast<double>(facet.bay) + 0.5) * guide.bay_length;
     const size_t loc = facet.local_index;
 
     if ((loc == 4 || loc == 8 || loc == 9 || loc == 13) &&
@@ -995,8 +1350,8 @@ double compute_station_snip(
     const double y_bay1 = y_bay0 + guide.bay_length;
     const size_t loc = facet.local_index;
     const bool outer_haunch = hi >= 2 && (loc == 5 || loc == 7 || loc == 10 || loc == 12);
-    const double y_min =
-        outer_haunch ? (y_bay0 + guide.plate_thickness + 1.2) : (facet.bay > 0 ? y_bay0 + 0.6 : -1e9);
+    const double y_min = outer_haunch ? (y_bay0 + guide.plate_thickness + 1.2)
+                                      : (facet.bay > 0 ? y_bay0 + 0.6 : -1e9);
     const double y_max = outer_haunch ? (y_bay1 - guide.plate_thickness - 1.2)
                                       : (facet.bay + 1 < guide.bays ? y_bay1 - 0.6 : 1e9);
     double snip = 0.0;
@@ -1201,8 +1556,7 @@ compute_facet_border_spec(const VidyGuide& guide, const VidyFacet& facet, size_t
     spec.end_neighbor_thickness = guide.plate_thickness;
     spec.start_setback = 0.5;
     spec.end_setback = 0.5;
-    const std::optional<Plane> start_bis =
-        find_arch_knee_bisector(guide, facet, facet.vertices[k]);
+    const std::optional<Plane> start_bis = find_arch_knee_bisector(guide, facet, facet.vertices[k]);
     const std::optional<Plane> end_bis =
         find_arch_knee_bisector(guide, facet, facet.vertices[(k + 1) % m]);
 
@@ -1436,9 +1790,7 @@ void VidyPavilion::compute_shell_plates() {
         compute_joinery_tables(guide, with_joints, pin_pitch, _total_jointed_seams);
     _total_double_pins = tables.double_pins;
     _total_single_pins = tables.single_pins;
-    const std::array<double, 4> factors = {
-        corner_scale, corner_scale, corner_scale, corner_scale
-    };
+    const std::array<double, 4> factors = {corner_scale, corner_scale, corner_scale, corner_scale};
 
     for (size_t f = 0; f < facets.size(); f++) {
         const VidyFacet& facet = facets[f];

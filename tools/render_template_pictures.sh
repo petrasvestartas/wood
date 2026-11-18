@@ -4,7 +4,7 @@
 # reads these lines to prove every picture on a page is made here.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, plaited, truss or bow
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, plaited, vidy, truss or bow
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows). SHOT_PORT_BASE moves the Chrome ports off 9333.
 set -euo pipefail
@@ -198,6 +198,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     "${RENDER[@]}" --scene "$VIDY4_SCENE" --name full_pavilion templates_vidy_4_section_joints inner_walls+outer_walls+inner_roof+outer_roof+border_boards
     "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints first_row_section
     SHOT_ORBIT=95 "${RENDER[@]}" --scene "$VIDY4_SCENE" templates_vidy_4_section_joints module_1_haunch_wings module_2_haunches_joined module_3_inner_crowns_eaves module_4_outer_covers module_5_vertical_walls module_6_roof_onto_walls
+    VIDY5_SCENE="$(mktemp -d)/vidy5.pb"
+    "${RENDER[@]}" --scene "$VIDY5_SCENE" templates_vidy_5_parametric parametric_family compact_symmetric tapered_hall wide_shallow
+    VIDY6_SCENE="$(mktemp -d)/vidy6.pb"
+    "${RENDER[@]}" --scene "$VIDY6_SCENE" templates_vidy_6_origami_shapes miura_arch yoshimura_vault counter_fold cross_fold
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

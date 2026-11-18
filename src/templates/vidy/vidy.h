@@ -1,4 +1,5 @@
 #pragma once
+#include "src/templates/vidy/origami_shell.h"
 #include "src/templates/vidy/vidy_guide.h"
 
 using namespace session_cpp;

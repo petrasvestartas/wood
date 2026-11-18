@@ -193,8 +193,8 @@ std::pair<std::vector<Point>, std::vector<std::vector<size_t>>>
 VidyGuide::compute_stations() const {
 
     const double half_length = 0.5 * static_cast<double>(bays) * bay_length;
-    const double ref_even_y = 0.5 * 11.0 * bay_length;
-    const double ref_odd_y = 5.0 * bay_length;
+    const double ref_even_y = std::max(5.5, 0.5 * static_cast<double>(bays)) * bay_length;
+    const double ref_odd_y = std::max(5.0, (0.5 * static_cast<double>(bays) - 0.5)) * bay_length;
     const double half_span_mid = 0.5 * span_mid;
     const double half_span_end = 0.5 * span_end;
     const double odd_half_mid = half_span_mid + 0.8809 * wall_pleat;

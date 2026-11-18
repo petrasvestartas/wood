@@ -2,10 +2,9 @@
 
 [TOC]
 
-`src/templates/vidy/vidy.h` — `28.7 × 19.1 × 10.3 m`, `11` bays × `2609.6 mm`.
-`45 mm` inner CLT + `210 mm` cavity + `45 mm` outer CLT = `300 mm` (`308` shell + `154` border = `462` plates).
+`src/templates/vidy/vidy.h` — `VidyPavilion` (`28.7 × 19.1 × 10.3 m`, `11` bays, `45 / 300 mm`, `462` plates) + `OrigamiShell` (arbitrary planar origami mesh, `4` miter shells, selective chamfers, corner borders, stepped tenons).
 
-<div class="wood-card-grid cols-4">
+<div class="wood-card-grid cols-3">
   <a class="wood-card" href="#vidy_main_mesh">
     <img src="templates_vidy_1_main_mesh_mesh_axes.webp" alt="1. Main Mesh">
     <span class="wood-card-title">1. Main Mesh</span>
@@ -22,20 +21,28 @@
     <img src="templates_vidy_4_section_joints_full_pavilion.webp" alt="4. Joinery">
     <span class="wood-card-title">4. Joinery</span>
   </a>
+  <a class="wood-card" href="#vidy_parametric">
+    <img src="templates_vidy_5_parametric_parametric_family.webp" alt="5. Parametric">
+    <span class="wood-card-title">5. Parametric</span>
+  </a>
+  <a class="wood-card" href="#vidy_origami_shapes">
+    <img src="templates_vidy_6_origami_shapes_miura_arch.webp" alt="6. Origami Shapes">
+    <span class="wood-card-title">6. Origami Shapes</span>
+  </a>
 </div>
 
 ## Parameters
 
-| Parameter | `VidyGuide` | `VidyPavilion` | Dimensions |
+| Parameter | `VidyGuide` / `VidyPavilion` | `OrigamiShell` | Dimensions |
 | --- | --- | --- | --- |
-| `bays`, `bay_length` | `11`, `2609.62` | `guide` | Bay count, pitch (`mm`) |
-| `span_mid`, `span_end` | `19115.80`, `16285.82` | `guide` | Mid span, end span (`mm`) |
-| `wall_pleat` | `656.0` | `guide` | Wall V-pleat (`mm`) |
-| `eave_height_mid`, `eave_height_end` | `7482.78`, `6512.31` | `guide` | Mid eave, end eave (`mm`) |
-| `crown_height_mid`, `crown_height_end` | `10347.67`, `9723.09` | `guide` | Mid crown, end crown (`mm`) |
-| `plate_thickness`, `total_offset` | `45.0`, `300.0` | `guide` | CLT thickness, shell depth (`mm`) |
-| `with_joints` | — | `true` | Tenons and mortises |
-| `corner_scale`, `pin_pitch` | — | `1.0`, `500.0` | Saddle chamfer scale, pitch (`mm`) |
+| `input_mesh` | `guide` (`11` × `2609.62`) | `Mesh` | Base planar origami mesh (`mm`) |
+| `span_mid`, `span_end` | `19115.80`, `16285.82` | — | Mid span, end span (`mm`) |
+| `wall_pleat` | `656.0` | — | Wall V-pleat (`mm`) |
+| `eave_height_mid`, `eave_height_end` | `7482.78`, `6512.31` | — | Mid eave, end eave (`mm`) |
+| `crown_height_mid`, `crown_height_end` | `10347.67`, `9723.09` | — | Mid crown, end crown (`mm`) |
+| `plate_thickness`, `total_offset` | `45.0`, `300.0` | `40.0`, `240.0` | CLT thickness, shell depth (`mm`) |
+| `with_joints`, `with_borders` | `true`, `true` | `true`, `true` | Stepped tenons, corner borders |
+| `corner_scale`, `pin_pitch` | `1.0`, `500.0` | `1.0`, `450.0` | Saddle chamfer scale, pitch (`mm`) |
 
 ---
 
@@ -80,7 +87,7 @@
 
 ## 4. Joinery and Assembly {#vidy_section_joints}
 
-`176` seams, `3187` pins (`954` `Double_Pin` + `2233` `Single_Pin`), `4141` mortise slots (`>= 44.6 mm` edge clearance), `500 mm` pitch, `1` insertion vector / plate:
+`176` seams, `3181` pins (`951` `Double_Pin` + `2230` `Single_Pin`), `4132` mortise slots (`>= 44.6 mm` edge clearance), `500 mm` pitch, `1` insertion vector / plate:
 - `Double_Pin`: `270 mm` base, `35 mm` shoulder, `180 mm` shaft, `140 mm` tip (`20 mm` bevel).
 - `Single_Pin`: `180 mm` shaft, `140 mm` tip (`20 mm` bevel).
 - `situ` eave: `2` `Double_Pin` + `2` `Single_Pin` / wall (`+Z`).
@@ -115,3 +122,45 @@
 </div>
 
 \include{lineno} templates_vidy_4_section_joints.cpp
+
+---
+
+## 5. Parametric Variations {#vidy_parametric}
+
+- `compact_symmetric`: `3` × `2400 mm`, `12.8 × 7.2 m`, `40 / 240 mm`, `126` plates (`84` + `42`), `744` pins (`0` collisions).
+- `tapered_hall`: `5` × `2800 mm`, `21.0 -> 14.8 × 11.6 -> 9.0 m`, `45 / 320 mm`, `210` plates (`140` + `70`), `1450` pins (`0` collisions).
+- `wide_shallow`: `4` × `2500 mm`, `22.0 -> 19.5 × 8.4 -> 7.8 m`, `45 / 280 mm`, `168` plates (`112` + `56`), `1132` pins (`0` collisions).
+
+<div class="wood-pair-grid">
+  <img src="templates_vidy_5_parametric_parametric_family.webp" alt="Parametric Vidy family">
+  <img src="templates_vidy_5_parametric_compact_symmetric.webp" alt="Compact symmetric 3-bay">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vidy_5_parametric_tapered_hall.webp" alt="Tapered 5-bay hall">
+  <img src="templates_vidy_5_parametric_wide_shallow.webp" alt="Wide shallow 4-bay">
+</div>
+
+\include{lineno} templates_vidy_5_parametric.cpp
+
+---
+
+## 6. Origami Shapes {#vidy_origami_shapes}
+
+`OrigamiShell` (`40 mm` CLT + `160 mm` cavity + `40 mm` CLT = `240 mm`, `1` insertion vector / plate, `0` collisions):
+- `miura_arch`: `12.0 × 9.6 × 4.4 m`, `36` quads, `96` plates (`72` + `24`), `52` seams, `209` pins, `291` slots.
+- `yoshimura_vault`: `12.0 × 8.4 × 4.6 m`, `60` triangles, `136` plates (`120` + `16`), `58` seams, `286` pins, `394` slots.
+- `counter_fold`: `12.8 × 9.6 × 3.0 m`, `18` facets, `50` plates (`36` + `14`), `20` seams, `478` pins, `720` slots.
+- `cross_fold`: `14.4 × 14.4 × 5.6 m`, `16` facets, `40` plates (`32` + `8`), `20` seams, `528` pins, `783` slots.
+
+<div class="wood-pair-grid">
+  <img src="templates_vidy_6_origami_shapes_miura_arch.webp" alt="Miura-ori quad arch">
+  <img src="templates_vidy_6_origami_shapes_yoshimura_vault.webp" alt="Yoshimura diamond vault">
+</div>
+
+<div class="wood-pair-grid">
+  <img src="templates_vidy_6_origami_shapes_counter_fold.webp" alt="CounterFold span">
+  <img src="templates_vidy_6_origami_shapes_cross_fold.webp" alt="CrossFold dome">
+</div>
+
+\include{lineno} templates_vidy_6_origami_shapes.cpp
