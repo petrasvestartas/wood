@@ -11,7 +11,7 @@ int main() {
     // assembled: 110-degree double-layer node (45 mm CLT + 210 mm cavity + 45 mm CLT = 300 mm)
     const std::shared_ptr<TreeNode> assembled = scene.add_group("assembled");
     const VidyDoubleLayerNode node =
-        JointVidyElement::folded_double_layer_node(110.0, 1300.0, 900.0, 45.0, 300.0, 500.0, true);
+        JointVidyElement::folded_double_layer_node(110.0, 1650.0, 950.0, 45.0, 300.0, 500.0, true);
     scene.add(node.inner_a, assembled);
     scene.add(node.outer_a, assembled);
     scene.add(node.inner_b, assembled);
@@ -23,8 +23,8 @@ int main() {
     // exploded: the four jointed CLT plates drawn apart along each plate's single insertion vector
     const std::shared_ptr<TreeNode> exploded = scene.add_group("exploded");
     const VidyDoubleLayerNode exp =
-        JointVidyElement::folded_double_layer_node(110.0, 1300.0, 900.0, 45.0, 300.0, 500.0, true);
-    const Vector shift_y(0.0, 1850.0, 0.0);
+        JointVidyElement::folded_double_layer_node(110.0, 1650.0, 950.0, 45.0, 300.0, 500.0, true);
+    const Vector shift_y(0.0, 2800.0, 0.0);
     const std::array<std::pair<std::shared_ptr<FacePlanarElement>, double>, 4> parts = {{
         {exp.inner_a, 0.0},
         {exp.inner_b, 380.0},

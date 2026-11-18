@@ -26,8 +26,8 @@
     <span class="wood-card-title">5. Parametric</span>
   </a>
   <a class="wood-card" href="#vidy_origami_shapes">
-    <img src="templates_vidy_6_origami_shapes_miura_arch.webp" alt="6. Origami Shapes">
-    <span class="wood-card-title">6. Origami Shapes</span>
+    <img src="templates_vidy_6_origami_shapes_counter_fold.webp" alt="6. Deep Folded Halls">
+    <span class="wood-card-title">6. Deep Folded Halls</span>
   </a>
 </div>
 
@@ -40,9 +40,9 @@
 | `wall_pleat` | `656.0` | — | Wall V-pleat (`mm`) |
 | `eave_height_mid`, `eave_height_end` | `7482.78`, `6512.31` | — | Mid eave, end eave (`mm`) |
 | `crown_height_mid`, `crown_height_end` | `10347.67`, `9723.09` | — | Mid crown, end crown (`mm`) |
-| `plate_thickness`, `total_offset` | `45.0`, `300.0` | `40.0`, `240.0` | CLT thickness, shell depth (`mm`) |
+| `plate_thickness`, `total_offset` | `45.0`, `300.0` | `45.0`, `300.0` | CLT thickness, shell depth (`mm`) |
 | `with_joints`, `with_borders` | `true`, `true` | `true`, `true` | Stepped tenons, corner borders |
-| `corner_scale`, `pin_pitch` | `1.0`, `500.0` | `1.0`, `450.0` | Saddle chamfer scale, pitch (`mm`) |
+| `corner_scale`, `pin_pitch` | `1.0`, `500.0` | `1.0`, `500.0` | Saddle chamfer scale, pitch (`mm`) |
 
 ---
 
@@ -145,22 +145,15 @@
 
 ---
 
-## 6. Origami Shapes {#vidy_origami_shapes}
+## 6. Deep Folded Halls {#vidy_origami_shapes}
 
-`OrigamiShell` (`40 mm` CLT + `160 mm` cavity + `40 mm` CLT = `240 mm`, `1` insertion vector / plate, `0` collisions):
-- `miura_arch`: `12.0 × 9.6 × 4.4 m`, `36` quads, `96` plates (`72` + `24`), `52` seams, `209` pins, `291` slots.
-- `yoshimura_vault`: `12.0 × 8.4 × 4.6 m`, `60` triangles, `136` plates (`120` + `16`), `58` seams, `286` pins, `394` slots.
-- `counter_fold`: `12.8 × 9.6 × 3.0 m`, `18` facets, `50` plates (`36` + `14`), `20` seams, `478` pins, `720` slots.
-- `cross_fold`: `14.4 × 14.4 × 5.6 m`, `16` facets, `40` plates (`32` + `8`), `20` seams, `528` pins, `783` slots.
+`OrigamiShell` (`45 mm` CLT + `210 mm` cavity + `45 mm` CLT = `300 mm`, `500 mm` pitch, `250 mm` row stagger, `180 / 270 mm` tenons, `|θ| <= 35°`, `0` unjoined creases, `0` collisions):
+- `prismatic_fold`: `14.0 × 13.2 × 2.2 m`, `6` facets, `26` plates (`12` + `14`), `5` seams, `255` pins (`125` + `130`), `380` slots, `0.0°` skew.
+- `counter_fold`: `14.0 × 13.2 × 4.4 m`, `18` facets, `50` plates (`36` + `14`), `20` seams, `444` pins (`212` + `232`), `656` slots, `24.0°` max skew.
 
 <div class="wood-pair-grid">
-  <img src="templates_vidy_6_origami_shapes_miura_arch.webp" alt="Miura-ori quad arch">
-  <img src="templates_vidy_6_origami_shapes_yoshimura_vault.webp" alt="Yoshimura diamond vault">
-</div>
-
-<div class="wood-pair-grid">
-  <img src="templates_vidy_6_origami_shapes_counter_fold.webp" alt="CounterFold span">
-  <img src="templates_vidy_6_origami_shapes_cross_fold.webp" alt="CrossFold dome">
+  <img src="templates_vidy_6_origami_shapes_prismatic_fold.webp" alt="PrismaticFold 14 m hall">
+  <img src="templates_vidy_6_origami_shapes_counter_fold.webp" alt="CounterFold 14 m hall">
 </div>
 
 \include{lineno} templates_vidy_6_origami_shapes.cpp

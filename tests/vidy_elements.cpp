@@ -3,7 +3,7 @@
 #include "src/templates/cavity_border.h"
 #include "src/templates/folding/counter_fold.h"
 #include "src/templates/folding/diagonal_fold.h"
-#include "src/templates/folding/single_fold.h"
+#include "src/templates/folding/prismatic_fold.h"
 #include "src/templates/vidy/vidy.h"
 
 using namespace session_cpp;
@@ -632,7 +632,7 @@ void test_parametric_vidy() {
 size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::string& label) {
 
     std::cout << fmt::format(
-        "[{}] facets={} shell={} border={} seams={} dp={} sp={} slots={}\n",
+        "[{}] facets={} shell={} border={} seams={} dp={} sp={} slots={} skew={:.1f}deg unjoined={}\n",
         label,
         shell.facets().size(),
         shell.shell_plates().size(),
@@ -640,11 +640,15 @@ size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::str
         shell.total_jointed_seams(),
         shell.total_double_pins(),
         shell.total_single_pins(),
-        shell.total_mortise_slots()
+        shell.total_mortise_slots(),
+        shell.max_insertion_skew_deg(),
+        shell.unjoined_interior_creases()
     );
     check(shell.shell_plates().size() == 2 * shell.facets().size(), label + ": 2 plates per facet");
     check(!shell.border_plates().empty(), label + ": cavity border boards present");
     check(shell.total_jointed_seams() > 0 && shell.total_double_pins() > 0, label + ": pins built");
+    check(shell.unjoined_interior_creases() == 0, label + ": all interior creases jointed");
+    check(shell.max_insertion_skew_deg() <= 35.0, label + ": Robeller |theta| <= 35 deg");
     check_plates(shell.shell_plates(), shell.plate_thickness, true, label + "_shell");
     check_border_plates(shell.border_plates(), shell.plate_thickness, label + "_borders");
     const size_t col_hits = report_plate_collisions(shell.all_plates(), label);
@@ -713,78 +717,70 @@ size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::str
     return col_hits + slide_hits;
 }
 
-/// Verifies OrigamiShell across Miura-ori, Yoshimura, CounterFold, DiagonalFold and SingleFold.
+/// Verifies OrigamiShell across assemblable long deep folds and rejects locked radial domes.
 void test_origami_shapes() {
 
     size_t issues = 0;
-    const wood_vidy::OrigamiShell miura(
-        wood_vidy::OrigamiShell::miura_arch_mesh(6, 3, 12000.0, 9600.0, 4400.0, 560.0, 420.0),
-        40.0,
-        240.0,
-        true,
-        true,
-        420.0,
-        1.0,
-        "miura_arch"
+    const PrismaticFold pf_base(
+        PrismaticFold::zigzag(3, 2200.0, 2200.0), 14000.0, 45.0, 0, 0.0, "prismatic_base"
     );
-    issues += verify_origami_shell(miura, "origami_miura");
+    const wood_vidy::OrigamiShell prismatic_fold(
+        pf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "prismatic_fold"
+    );
+    issues += verify_origami_shell(prismatic_fold, "origami_prismatic_fold");
 
-    const wood_vidy::OrigamiShell yoshimura(
-        wood_vidy::OrigamiShell::yoshimura_arch_mesh(3, 5, 12000.0, 2800.0, 4600.0, 540.0),
-        40.0,
-        240.0,
-        true,
-        true,
-        400.0,
-        1.0,
-        "yoshimura_vault"
+    const CounterFold cr_base(
+        CounterFold::counter_running(3, 2200.0, 2200.0, 14000.0), Folding::ridge_to_ridge, 45.0
     );
-    issues += verify_origami_shell(yoshimura, "origami_yoshimura");
+    const wood_vidy::OrigamiShell counter_running(
+        cr_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_running"
+    );
+    issues += verify_origami_shell(counter_running, "origami_counter_running");
 
     const CounterFold cf_base(
-        CounterFold::elevated_centre(3, 1600.0, 1500.0, 12800.0, 1500.0),
+        CounterFold::elevated_centre(3, 2200.0, 2200.0, 14000.0, 2200.0),
         Folding::ridge_to_ridge,
-        40.0
+        45.0
     );
     const wood_vidy::OrigamiShell counter_fold(
-        cf_base.mesh(), 40.0, 240.0, true, true, 420.0, 1.0, "counter_fold"
+        cf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_fold"
     );
     issues += verify_origami_shell(counter_fold, "origami_counter_fold");
+    check(issues == 0, "all assemblable origami shapes must have 0 collisions and 0 slide hits");
 
-    const DiagonalFold df_base(14400.0, {2800.0, 0.0, 5600.0, 0.5, 3400.0}, 40.0);
-    const wood_vidy::OrigamiShell cross_fold(
-        df_base.mesh(), 40.0, 240.0, true, true, 400.0, 1.0, "cross_fold"
+    // Robeller (EPFL Thesis 6564, 2015): closed acute-triangle stars exceed |theta| <= 36.8 deg.
+    const DiagonalFold df_base(16000.0, {3300.0, 0.0, 6200.0, 0.5, 3300.0}, 45.0);
+    const wood_vidy::OrigamiShell locked_cross(
+        df_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "locked_cross"
     );
-    issues += verify_origami_shell(cross_fold, "origami_cross_fold");
-
-    const SingleFold sf_base(5, 8500.0, 0.0, 4200.0, 5800.0, 40.0);
-    const wood_vidy::OrigamiShell single_fold(
-        sf_base.mesh(), 40.0, 240.0, true, true, 400.0, 1.0, "single_fold"
+    check(
+        locked_cross.unjoined_interior_creases() > 0,
+        "closed acute-triangle radial dome must flag unjoined creases exceeding Robeller skew limit"
     );
-    issues += verify_origami_shell(single_fold, "origami_single_fold");
-    check(issues == 0, "all five origami shapes must have 0 collisions and 0 slide hits");
 }
 
 /// Verifies JointVidyElement::folded_double_layer_node across 110 and 90 degree angles.
 void test_vidy_element_node() {
 
-    for (const double deg : {110.0, 90.0}) {
-        const VidyDoubleLayerNode node = JointVidyElement::folded_double_layer_node(
-            deg, 1300.0, 900.0, 45.0, 300.0, 500.0, false
-        );
-        const std::vector<std::shared_ptr<FacePlanarElement>> shells = {
-            node.inner_a, node.outer_a, node.inner_b, node.outer_b
-        };
-        std::vector<std::shared_ptr<FacePlanarElement>> all = shells;
-        all.insert(all.end(), node.borders.begin(), node.borders.end());
-        check(node.borders.size() == 6, "full closed Vidy node has 6 border boards");
-        check_plates(shells, 45.0, true, "vidy_element_node_shells");
-        check_border_plates(node.borders, 45.0, "vidy_element_node_borders");
-        check(
-            report_plate_collisions(all, fmt::format("vidy_node_{:.0f}", deg)) == 0,
-            "JointVidyElement::folded_double_layer_node zero collisions"
-        );
-    }
+    for (const double width : {1300.0, 1650.0})
+        for (const double deg : {110.0, 90.0}) {
+            const VidyDoubleLayerNode node = JointVidyElement::folded_double_layer_node(
+                deg, width, 950.0, 45.0, 300.0, 500.0, false
+            );
+            const std::vector<std::shared_ptr<FacePlanarElement>> shells = {
+                node.inner_a, node.outer_a, node.inner_b, node.outer_b
+            };
+            std::vector<std::shared_ptr<FacePlanarElement>> all = shells;
+            all.insert(all.end(), node.borders.begin(), node.borders.end());
+            check(node.borders.size() == 6, "full closed Vidy node has 6 border boards");
+            check_plates(shells, 45.0, true, "vidy_element_node_shells");
+            check_border_plates(node.borders, 45.0, "vidy_element_node_borders");
+            check(
+                report_plate_collisions(all, fmt::format("vidy_node_{:.0f}_{:.0f}", width, deg)) ==
+                    0,
+                "JointVidyElement::folded_double_layer_node zero collisions"
+            );
+        }
 }
 
 }

@@ -201,7 +201,7 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vidy ]; then
     VIDY5_SCENE="$(mktemp -d)/vidy5.pb"
     "${RENDER[@]}" --scene "$VIDY5_SCENE" templates_vidy_5_parametric parametric_family compact_symmetric tapered_hall wide_shallow
     VIDY6_SCENE="$(mktemp -d)/vidy6.pb"
-    "${RENDER[@]}" --scene "$VIDY6_SCENE" templates_vidy_6_origami_shapes miura_arch yoshimura_vault counter_fold cross_fold
+    "${RENDER[@]}" --scene "$VIDY6_SCENE" templates_vidy_6_origami_shapes prismatic_fold counter_fold
 fi
 # the library's trusses and the Pratt truss: every scene the examples write as truss_*.pb, one picture each
 if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then

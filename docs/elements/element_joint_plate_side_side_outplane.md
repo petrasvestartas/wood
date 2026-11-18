@@ -105,7 +105,7 @@ Linked tenon variant for the Vidy theatre wall seams where the secondary linked 
 
 ## Vidy node: four folded plates
 
-Christopher Robeller's 2017 Théâtre de Vidy double-layer folded crease node (`JointVidyElement::folded_double_layer_node`): four `45 mm` CLT plates across `300 mm` depth (`210 mm` hollow cavity closed to the corners by perpendicular border boards), joined by stepped 12-point `Double_Pin` tenons (`270 mm` base, `35 mm` shoulder, `180 mm` shaft, `140 mm` tip) bridging the cavity into outer-cover through-mortises, an `Extend_Pins` cavity shelf carrying 6-point `Single_Pin` tenons (`180/140 mm`), an `Extend` rabbet lip, and one rigid-body insertion vector per plate.
+Christopher Robeller's 2017 Théâtre de Vidy double-layer folded crease node (`JointVidyElement::folded_double_layer_node`): four `45 mm` CLT plates across `300 mm` depth (`210 mm` hollow cavity closed to the corners by perpendicular border boards), `500 mm` pitch with `250 mm` half-pitch stagger between outer 6-point `Single_Pin` tenons (`180 mm` shaft, `140 mm` tip) and inner stepped 12-point `Double_Pin` tenons (`270 mm` base, `35 mm` shoulder, `180 mm` shaft, `140 mm` tip), an `Extend_Pins` cavity shelf, an `Extend` rabbet lip, and one rigid-body insertion vector per plate.
 
 ![](elements/element_joint_plate_vidy_node.png)
 

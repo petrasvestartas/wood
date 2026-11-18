@@ -703,7 +703,8 @@ JointPlateElement::JointPlateElement() {
     name = "JointPlateElement";
 }
 
-JointPlateElement::JointPlateElement(const InteractionFeaturePlate& connection) : connections{connection} {
+JointPlateElement::JointPlateElement(const InteractionFeaturePlate& connection)
+    : connections{connection} {
     name = connection.name;
 }
 
@@ -1127,7 +1128,8 @@ static bool outline_pair_repeated(const std::array<std::vector<Polyline>, 2>& ou
     return false;
 }
 
-std::vector<Mesh> JointPlateElement::side_solids(const InteractionFeaturePlate& connection, int side) {
+std::vector<Mesh>
+JointPlateElement::side_solids(const InteractionFeaturePlate& connection, int side) {
 
     const std::array<std::vector<Polyline>, 2>& outlines =
         side == 0 ? connection.male_outlines : connection.female_outlines;
@@ -1154,7 +1156,8 @@ std::vector<Mesh> JointPlateElement::side_solids(const InteractionFeaturePlate& 
     return pieces;
 }
 
-std::vector<Line> JointPlateElement::side_drills(const InteractionFeaturePlate& connection, int side) {
+std::vector<Line>
+JointPlateElement::side_drills(const InteractionFeaturePlate& connection, int side) {
 
     const std::array<std::vector<Polyline>, 2>& outlines =
         side == 0 ? connection.male_outlines : connection.female_outlines;
@@ -1174,7 +1177,9 @@ std::vector<Line> JointPlateElement::side_drills(const InteractionFeaturePlate& 
     return drills;
 }
 
-void JointPlateElement::compute_key(const std::vector<std::shared_ptr<FacePlanarElement>>& elements) {
+void JointPlateElement::compute_key(
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements
+) {
 
     key = Mesh();
     for (const InteractionFeaturePlate& connection : connections) {
@@ -1516,7 +1521,8 @@ void JointPlateElement::construct(
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::shared_ptr<JointPlateElement> JointPlateElement::from_library(const std::string& library, int contact_type) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::from_library(const std::string& library, int contact_type) {
 
     const std::shared_ptr<JointPlateElement> joint = std::make_shared<JointPlateElement>();
     joint->name = library;
@@ -1638,7 +1644,8 @@ void JointPlateElement::construct(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// An in-plane design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane(const std::string& library) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_inplane(const std::string& library) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library(library, 12);
     joint->division_distance = 300.0;
@@ -1652,18 +1659,22 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_three_fi
     return side_side_inplane("side_side_inplane_three_fingers");
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_dovetails(int divisions, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_inplane_dovetails(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_inplane("side_side_inplane_dovetails");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_inplane("side_side_inplane_dovetails");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_butterfly_keys(int divisions) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_inplane_butterfly_keys(int divisions) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_inplane("side_side_inplane_butterfly_keys");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_inplane("side_side_inplane_butterfly_keys");
     joint->parameters.divisions = divisions;
 
     return joint;
@@ -1681,7 +1692,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_cross_sp
 
 std::shared_ptr<JointPlateElement> JointPlateElement::side_side_inplane_tooth_keys(int divisions) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_inplane("side_side_inplane_tooth_keys");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_inplane("side_side_inplane_tooth_keys");
     joint->parameters.divisions = divisions;
 
     return joint;
@@ -1731,7 +1743,8 @@ bool JointPlateElement::compute_side_side_inplane(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// An out-of-plane design on its 2024 family defaults: geometric divisions every 450 mm of the joint line, shift 0.64.
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane(const std::string& library) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_outplane(const std::string& library) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library(library, 11);
     joint->division_distance = 450.0;
@@ -1745,9 +1758,11 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_three_f
     return side_side_outplane("side_side_outplane_three_fingers");
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_fingers(int divisions, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_outplane_fingers(int divisions, double shift) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_outplane("side_side_outplane_fingers");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_outplane("side_side_outplane_fingers");
     joint->parameters.divisions = divisions;
     joint->shift = shift;
 
@@ -1780,7 +1795,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_tenons(
     const std::array<double, 2>& z
 ) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_outplane("side_side_outplane_tenons");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_outplane("side_side_outplane_tenons");
     joint->parameters.divisions = divisions;
     joint->parameters.taper = taper;
     joint->parameters.chamfer = chamfer;
@@ -1803,7 +1819,8 @@ JointPlateElement::side_side_outplane_linked_tenons(int divisions, bool disable_
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_linked_tenons_wall(int divisions) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_outplane_linked_tenons_wall(int divisions) {
 
     const std::shared_ptr<JointPlateElement> joint =
         side_side_outplane("side_side_outplane_linked_tenons_wall");
@@ -1812,7 +1829,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_linked_
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_capped_fingers(int divisions) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_outplane_capped_fingers(int divisions) {
 
     const std::shared_ptr<JointPlateElement> joint =
         side_side_outplane("side_side_outplane_capped_fingers");
@@ -1841,7 +1859,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_outplane_custom(
     const std::vector<Polyline>& male, const std::vector<Polyline>& female
 ) {
 
-    const std::shared_ptr<JointPlateElement> joint = side_side_outplane("side_side_outplane_custom");
+    const std::shared_ptr<JointPlateElement> joint =
+        side_side_outplane("side_side_outplane_custom");
     joint->parameters.outlines = {male, female};
 
     return joint;
@@ -1918,14 +1937,16 @@ std::shared_ptr<JointPlateElement> JointPlateElement::top_side_annen_tenons(doub
 std::shared_ptr<JointPlateElement>
 JointPlateElement::top_side_annen_shifted_tenons(int divisions, double long_edge) {
 
-    const std::shared_ptr<JointPlateElement> joint = from_library("top_side_annen_shifted_tenons", 20);
+    const std::shared_ptr<JointPlateElement> joint =
+        from_library("top_side_annen_shifted_tenons", 20);
     joint->parameters.divisions = divisions;
     joint->division_distance = long_edge;
 
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::top_side_dense_tenons(int divisions, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::top_side_dense_tenons(int divisions, double shift) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("top_side_dense_tenons", 20);
     joint->parameters.divisions = divisions;
@@ -1956,7 +1977,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::top_side_snap_fit(int divi
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::top_side_bridle(double shoulder, double tongue) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::top_side_bridle(double shoulder, double tongue) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("top_side_bridle", 20);
     joint->parameters.z = {-0.5 * tongue, 0.5 * tongue};
@@ -2079,8 +2101,9 @@ JointPlateElement::top_top_rectangle_pins(double division_length, double shift, 
     return joint;
 }
 
-std::shared_ptr<JointPlateElement>
-JointPlateElement::top_top_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlateElement> JointPlateElement::top_top_custom(
+    const std::vector<Polyline>& male, const std::vector<Polyline>& female
+) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("top_top_custom", 40);
     joint->parameters.outlines = {male, female};
@@ -2157,11 +2180,13 @@ int JointPlateElement::cross_half_lap_id(CrossDrills drills) {
     return 32 + static_cast<int>(drills);
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::cross_half_lap(double shift, CrossDrills drills) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::cross_half_lap(double shift, CrossDrills drills) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("cross_half_lap", 30);
     joint->shift = shift;
-    joint->variant = cross_half_lap_id(drills); // the drills are stored as the id, which a saved joint keeps
+    joint->variant =
+        cross_half_lap_id(drills); // the drills are stored as the id, which a saved joint keeps
 
     return joint;
 }
@@ -2174,8 +2199,9 @@ std::shared_ptr<JointPlateElement> JointPlateElement::cross_brussels_half_lap(do
     return joint;
 }
 
-std::shared_ptr<JointPlateElement>
-JointPlateElement::cross_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlateElement> JointPlateElement::cross_custom(
+    const std::vector<Polyline>& male, const std::vector<Polyline>& female
+) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("cross_custom", 30);
     joint->parameters.outlines = {male, female};
@@ -2211,7 +2237,8 @@ bool JointPlateElement::compute_cross(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// A rotated design on its 2024 family defaults: geometric divisions every 300 mm of the joint line, shift 0.5.
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_rotated(const std::string& library) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_rotated(const std::string& library) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library(library, 13);
     joint->division_distance = 300.0;
@@ -2225,7 +2252,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_rotated_miter() 
     return side_side_rotated("side_side_rotated_miter");
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_rotated_hooks(int divisions, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_rotated_hooks(int divisions, double shift) {
 
     const std::shared_ptr<JointPlateElement> joint = side_side_rotated("side_side_rotated_hooks");
     joint->parameters.divisions = divisions;
@@ -2234,7 +2262,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::side_side_rotated_hooks(in
     return joint;
 }
 
-std::shared_ptr<JointPlateElement> JointPlateElement::side_side_rotated_keys(int divisions, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_side_rotated_keys(int divisions, double shift) {
 
     const std::shared_ptr<JointPlateElement> joint = side_side_rotated("side_side_rotated_keys");
     joint->parameters.divisions = divisions;
@@ -2279,7 +2308,8 @@ bool JointPlateElement::compute_side_side_rotated(
 // ═══════════════════════════════════════════════════════════════════════════
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
-std::shared_ptr<JointPlateElement> JointPlateElement::side_removal(bool merge_with_joint, double shift) {
+std::shared_ptr<JointPlateElement>
+JointPlateElement::side_removal(bool merge_with_joint, double shift) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("side_removal", 0);
     joint->parameters.merge_with_joint = merge_with_joint;
@@ -2297,7 +2327,8 @@ std::shared_ptr<JointPlateElement> JointPlateElement::jupiter_scarf() {
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
 bool JointPlateElement::compute_side_removal(
-    InteractionFeaturePlate& connection, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
+    InteractionFeaturePlate& connection,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) const {
 
     if (parameters.library == "side_removal")
@@ -2318,8 +2349,9 @@ std::shared_ptr<JointPlateElement> JointPlateElement::border() {
     return from_library("border", 60);
 }
 
-std::shared_ptr<JointPlateElement>
-JointPlateElement::border_custom(const std::vector<Polyline>& male, const std::vector<Polyline>& female) {
+std::shared_ptr<JointPlateElement> JointPlateElement::border_custom(
+    const std::vector<Polyline>& male, const std::vector<Polyline>& female
+) {
 
     const std::shared_ptr<JointPlateElement> joint = from_library("border_custom", 60);
     joint->parameters.outlines = {male, female};
@@ -2330,7 +2362,9 @@ JointPlateElement::border_custom(const std::vector<Polyline>& male, const std::v
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
-bool JointPlateElement::compute_b(InteractionFeaturePlate& connection, const Settings& settings) const {
+bool JointPlateElement::compute_b(
+    InteractionFeaturePlate& connection, const Settings& settings
+) const {
 
     if (parameters.library == "border")
         ::border(connection);
@@ -2628,8 +2662,8 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     const double l = std::max(500.0, wing_length);
     const double t = std::max(15.0, plate_thickness);
     const double h_tot = std::max(2.4 * t, total_offset);
-    const double pitch = std::clamp(pin_pitch, 250.0, 650.0);
-    const double scale = std::clamp(pitch / 500.0, 0.40, 1.15);
+    const double scale = std::clamp(t / 45.0, 0.80, 1.25);
+    const double pitch = std::clamp(pin_pitch, 450.0 * scale, 1000.0);
     const Vector n_a(1.0, 0.0, 0.0);
     const Vector dir_b(-std::sin(phi), 0.0, -std::cos(phi));
     const Vector n_b(-std::cos(phi), 0.0, std::sin(phi));
@@ -2673,17 +2707,23 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     const double sin_a = std::max(0.20, std::sin(Tolerance::PI - phi));
     const double l_tab = t / sin_a;
     const double l_offs = (h_tot - t) / sin_a;
-    const int cnt = std::max(1, static_cast<int>(std::floor((w - 0.85 * pitch) / pitch)));
-    const double f_off = (cnt % 2 == 0) ? (static_cast<double>(cnt / 2 - 1) * pitch + 0.5 * pitch)
-                                        : (static_cast<double>((cnt - 1) / 2) * pitch);
-    const double span = 0.5 * static_cast<double>(cnt) * pitch;
-    const double sh_dp = std::max(span + 2.0, f_off + 145.0 * scale);
-    const double sh_sp = std::max(span + 2.0, f_off + 100.0 * scale);
+    const int cnt_sp = std::max(1, static_cast<int>(std::floor((w - 0.65 * pitch) / pitch)));
+    const int cnt_dp = cnt_sp >= 2 ? (cnt_sp - 1) : 1;
+    const double f_off_sp = (cnt_sp % 2 == 0)
+                                ? (static_cast<double>(cnt_sp / 2 - 1) * pitch + 0.5 * pitch)
+                                : (static_cast<double>((cnt_sp - 1) / 2) * pitch);
+    const double f_off_dp = (cnt_dp % 2 == 0)
+                                ? (static_cast<double>(cnt_dp / 2 - 1) * pitch + 0.5 * pitch)
+                                : (static_cast<double>((cnt_dp - 1) / 2) * pitch);
+    const double span_sp = 0.5 * static_cast<double>(cnt_sp) * pitch;
+    const double span_dp = 0.5 * static_cast<double>(cnt_dp) * pitch;
+    const double sh_dp = std::max(span_dp + 2.0, f_off_dp + 145.0 * scale);
+    const double sh_sp = std::max(span_sp + 2.0, f_off_sp + 100.0 * scale);
     std::vector<VidyNodeSlot> slots_a_in;
     std::vector<VidyNodeSlot> slots_a_out;
     std::vector<VidyNodeSlot> slots_b_out;
 
-    // inner_b (side 0, +Y): stepped Double_Pins into inner_a and outer_a
+    // inner_b (side 0, +Y): stepped Double_Pins into inner_a and outer_a (staggered by 0.5 * pitch)
     const Vector nf_b(0.0, 1.0, 0.0);
     const Point mb_in0 = Point::mid_point(rb[0][0], rb[0][1]);
     const Point mb_in1 = Point::mid_point(rb[1][0], rb[1][1]);
@@ -2692,8 +2732,8 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     std::vector<Point> dp_b = {mb_in0 - nf_b * sh_dp, pmb_0 - nf_b * sh_dp};
     std::vector<Point> dp_t = {mb_in1 - nf_b * sh_dp, pmb_1 - nf_b * sh_dp};
 
-    for (int i = 0; i < cnt; i++) {
-        const double stp = -f_off + pitch * static_cast<double>(i);
+    for (int i = 0; i < cnt_dp; i++) {
+        const double stp = -f_off_dp + pitch * static_cast<double>(i);
         std::pair<Point, Point> bb0;
         std::pair<Point, Point> tb0;
         std::pair<Point, Point> bb1;
@@ -2723,8 +2763,8 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     std::vector<Point> sp_b = {mb_out0 - nf_b * sh_sp, pmbo_0 - nf_b * sh_sp};
     std::vector<Point> sp_t = {mb_out1 - nf_b * sh_sp, pmbo_1 - nf_b * sh_sp};
 
-    for (int i = 0; i < cnt; i++) {
-        const double stp = -f_off + pitch * static_cast<double>(i);
+    for (int i = 0; i < cnt_sp; i++) {
+        const double stp = -f_off_sp + pitch * static_cast<double>(i);
         std::pair<Point, Point> sb0;
         std::pair<Point, Point> sb1;
         const std::vector<Point> c0 =
@@ -2747,11 +2787,11 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
     const Point ma_in1 = Point::mid_point(ra[1][2], ra[1][3]);
     const Point pma_0 = (ma_in0 - perp_a * 0.5) + perp_a * l_offs;
     const Point pma_1 = (ma_in1 - perp_a * (l_tab + 0.5)) + perp_a * l_offs;
-    std::vector<Point> ep_b = {ma_in0 - nf_a * span, pma_0 - nf_a * span};
-    std::vector<Point> ep_t = {ma_in1 - nf_a * span, pma_1 - nf_a * span};
+    std::vector<Point> ep_b = {ma_in0 - nf_a * span_dp, pma_0 - nf_a * span_dp};
+    std::vector<Point> ep_t = {ma_in1 - nf_a * span_dp, pma_1 - nf_a * span_dp};
 
-    for (int i = 0; i < cnt; i++) {
-        const double stp = -f_off + pitch * static_cast<double>(i);
+    for (int i = 0; i < cnt_dp; i++) {
+        const double stp = -f_off_dp + pitch * static_cast<double>(i);
         std::pair<Point, Point> sb0;
         std::pair<Point, Point> sb1;
         const std::vector<Point> c0 =
@@ -2763,15 +2803,15 @@ VidyDoubleLayerNode JointVidyElement::folded_double_layer_node(
         slots_b_out.push_back(project_vidy_node_slot(sb0, sb1, perp_a, pb[2], pb[3]));
     }
 
-    ep_b.push_back(pma_0 + nf_a * span);
-    ep_b.push_back(ma_in0 + nf_a * span);
-    ep_t.push_back(pma_1 + nf_a * span);
-    ep_t.push_back(ma_in1 + nf_a * span);
+    ep_b.push_back(pma_0 + nf_a * span_dp);
+    ep_b.push_back(ma_in0 + nf_a * span_dp);
+    ep_t.push_back(pma_1 + nf_a * span_dp);
+    ep_t.push_back(ma_in1 + nf_a * span_dp);
 
     // outer_a (side 2, -Y): Extend rabbet lip
     const Point ma_out0 = Point::mid_point(ra[2][2], ra[2][3]);
     const Point ma_out1 = Point::mid_point(ra[3][2], ra[3][3]);
-    const double ex_span = span - 0.5;
+    const double ex_span = span_sp - 0.5;
     const std::vector<Point> ex_b = {
         ma_out0 - nf_a * ex_span,
         (ma_out0 - nf_a * ex_span) + perp_a * (2.0 * l_tab - 0.5),

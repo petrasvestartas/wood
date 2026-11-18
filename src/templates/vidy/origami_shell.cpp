@@ -58,6 +58,7 @@ struct OrigamiCreaseFrame {
     size_t mal_f = 0; // Male facet index (assembled later).
     size_t mal_s = 0; // Directed side index on male facet.
     bool positive_fold = true; // True on convex fold, false on valley fold.
+    double skew_deg = 0.0; // In-plane Robeller insertion skew angle theta in degrees.
 };
 
 /// Per-ring directed edge profiles, per-layer mortises and pin counters across all facets.
@@ -68,6 +69,7 @@ struct OrigamiJoineryTables {
     size_t seams = 0; // Jointed crease seam count.
     size_t double_pins = 0; // Stepped Double_Pin count.
     size_t single_pins = 0; // Single_Pin count.
+    double max_skew_deg = 0.0; // Largest insertion skew theta across jointed creases.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -969,7 +971,8 @@ bool slot_clears_plate(
     const std::vector<OrigamiSlot>& existing_slots,
     const std::vector<OrigamiSlot>& local_slots,
     double plate_thickness,
-    double min_edge_clear
+    double min_edge_clear,
+    double min_slot_gap
 ) {
 
     const size_t rb = 2 * layer;
@@ -1004,13 +1007,13 @@ bool slot_clears_plate(
     }
 
     for (const OrigamiSlot& prev : existing_slots)
-        if (quads_closer_than_2d(slot.bottom, prev.bottom, facet.normal, 18.0) ||
-            quads_closer_than_2d(slot.top, prev.top, facet.normal, 18.0))
+        if (quads_closer_than_2d(slot.bottom, prev.bottom, facet.normal, min_slot_gap) ||
+            quads_closer_than_2d(slot.top, prev.top, facet.normal, min_slot_gap))
             return false;
 
     for (const OrigamiSlot& prev : local_slots)
-        if (quads_closer_than_2d(slot.bottom, prev.bottom, facet.normal, 14.0) ||
-            quads_closer_than_2d(slot.top, prev.top, facet.normal, 14.0))
+        if (quads_closer_than_2d(slot.bottom, prev.bottom, facet.normal, min_slot_gap) ||
+            quads_closer_than_2d(slot.top, prev.top, facet.normal, min_slot_gap))
             return false;
 
     return true;
@@ -1087,6 +1090,7 @@ int find_safe_pin_count(
     double l_offs_rec,
     double rec_extra,
     int max_count,
+    int required_parity,
     bool is_double_pin,
     double scale,
     const OrigamiFacet& rec_facet,
@@ -1107,8 +1111,12 @@ int find_safe_pin_count(
     const Point pm_b = m_b0 - proto.v_ins * (proto.step_bot ? proto.le_tab + 0.5 : 0.5);
     const Point pm_t = m_t0 - proto.v_ins * (proto.step_bot ? 0.5 : proto.le_tab + 0.5);
     const size_t opp_layer = 1 - same_layer;
+    const double min_slot_gap = std::max(45.0, 0.22 * proto.pitch);
 
     for (int cnt = max_count; cnt >= 1; cnt--) {
+        if (required_parity >= 0 && (cnt % 2) != required_parity)
+            continue;
+
         const double f_off = compute_first_pin_offset(cnt, proto.pitch);
         const Point ptc_b = pm_b - nf * f_off;
         const Point ptc_t = pm_t - nf * f_off;
@@ -1171,7 +1179,8 @@ int find_safe_pin_count(
                          tables.plate_slots[same_layer][rec_facet.index],
                          local_same,
                          plate_thickness,
-                         min_edge_clear
+                         min_edge_clear,
+                         min_slot_gap
                      ) &&
                      slot_clears_plate(
                          edges,
@@ -1185,7 +1194,8 @@ int find_safe_pin_count(
                          tables.plate_slots[opp_layer][rec_facet.index],
                          local_opp,
                          plate_thickness,
-                         min_edge_clear
+                         min_edge_clear,
+                         min_slot_gap
                      );
                 local_same.push_back(s_same);
                 local_opp.push_back(s_opp);
@@ -1227,7 +1237,8 @@ int find_safe_pin_count(
                          tables.plate_slots[same_layer][rec_facet.index],
                          local_same,
                          plate_thickness,
-                         min_edge_clear
+                         min_edge_clear,
+                         min_slot_gap
                      );
                 local_same.push_back(s_same);
             }
@@ -1410,7 +1421,8 @@ std::optional<OrigamiCreaseFrame> compute_origami_crease_frame(
     double total_offset
 ) {
 
-    if (edge.is_boundary || edge.facet_b < 0 || edge.dihedral_rad < 0.22)
+    if (edge.is_boundary || edge.facet_b < 0 || edge.dihedral_rad < 0.65 ||
+        edge.dihedral_rad > 2.53)
         return std::nullopt;
 
     const size_t fa = static_cast<size_t>(edge.facet_a);
@@ -1478,9 +1490,11 @@ std::optional<OrigamiCreaseFrame> compute_origami_crease_frame(
     cf.v_ins_mal = ins_vecs[cf.mal_f];
     const double cos_mal = cf.v_ins_mal.dot(perp_mal);
 
-    if (cos_mal < 0.30)
+    // Robeller (EPFL Thesis 6564, 2015): 1DOF simultaneous multi-edge skew |theta| <= ~36.8 deg.
+    if (cos_mal < 0.80)
         return std::nullopt;
 
+    cf.skew_deg = std::acos(std::clamp(cos_mal, -1.0, 1.0)) * Tolerance::TO_DEGREES;
     const double sin_alpha = std::max(0.18, std::sin(edge.dihedral_rad));
     cf.l_tab_rec = plate_thickness / sin_alpha;
     cf.l_offs_rec = (total_offset - plate_thickness) / sin_alpha;
@@ -1517,12 +1531,12 @@ void apply_origami_crease_joinery(
     OrigamiJoineryTables& tables
 ) {
 
-    const double scale = std::clamp(pitch / 500.0, 0.35, 1.15);
+    const double scale = std::clamp(plate_thickness / 45.0, 0.80, 1.25);
     const OrigamiFacet& rec = facets[cf.rec_f];
     const OrigamiFacet& mal = facets[cf.mal_f];
     const double c_sin =
         std::min(min_crease_corner_sin(rec, cf.rec_s), min_crease_corner_sin(mal, cf.mal_s));
-    const double corner_margin = std::max(0.45 * pitch, 1.35 * total_offset) / c_sin;
+    const double corner_margin = std::max(0.55 * pitch, 1.40 * total_offset) / c_sin;
 
     if (cf.min_len < 2.0 * corner_margin + 0.5 * pitch)
         return;
@@ -1535,7 +1549,7 @@ void apply_origami_crease_joinery(
         std::max(0.0, 135.0 * scale + skew_mal * (1.8 * cf.l_tab_mal) + 14.0 - 0.5 * pitch);
     const double dp_extra = rec_extra + skew_mal * (cf.l_offs_mal + cf.l_tab_mal + 125.0) + 6.0;
     const double sp_extra = rec_extra + skew_mal * (2.0 * cf.l_tab_mal + 125.0) + 6.0;
-    const double min_clear = std::max(32.0, 0.85 * plate_thickness);
+    const double min_clear = std::max(45.0, 1.05 * plate_thickness);
     const size_t dp_layer = cf.positive_fold ? 0 : 1;
     const size_t sp_layer = 1 - dp_layer;
     const bool mal_dp_step_bot = !cf.positive_fold;
@@ -1555,7 +1569,7 @@ void apply_origami_crease_joinery(
         band_available_half_span(mal_sp_ends, sp_ref, cf.v_ins_mal, corner_margin) - sp_extra,
         band_available_half_span(rec_ex_ends, sp_ref, cf.v_ins_rec, corner_margin) - rec_extra
     );
-    const int max_dp = std::max(0, static_cast<int>(std::floor(2.0 * av_dp / pitch)));
+    const int raw_max_dp = std::max(0, static_cast<int>(std::floor(2.0 * av_dp / pitch)));
     const int max_sp =
         std::min(max_cnt, std::max(0, static_cast<int>(std::floor(2.0 * av_sp / pitch))));
     OrigamiBand dp_band = {
@@ -1572,27 +1586,6 @@ void apply_origami_crease_joinery(
     OrigamiBand sp_band = {
         mal_sp_ends, sp_ref, cf.v_ins_mal, cf.l_tab_mal, 0.0, mal_sp_step_bot, 0, pitch, sp_extra
     };
-    const int n_dp = max_dp > 0 ? find_safe_pin_count(
-                                      edges,
-                                      dp_band,
-                                      rec_sh_ends,
-                                      cf.v_ins_rec,
-                                      cf.l_offs_rec,
-                                      rec_extra,
-                                      max_dp,
-                                      true,
-                                      scale,
-                                      rec,
-                                      mal,
-                                      cf.rec_s,
-                                      heights,
-                                      dp_layer,
-                                      stock_rings[cf.rec_f],
-                                      tables,
-                                      plate_thickness,
-                                      min_clear
-                                  )
-                                : 0;
     const int n_sp = max_sp > 0 ? find_safe_pin_count(
                                       edges,
                                       sp_band,
@@ -1601,6 +1594,7 @@ void apply_origami_crease_joinery(
                                       0.0,
                                       rec_extra,
                                       max_sp,
+                                      -1,
                                       false,
                                       scale,
                                       rec,
@@ -1608,6 +1602,61 @@ void apply_origami_crease_joinery(
                                       cf.rec_s,
                                       heights,
                                       sp_layer,
+                                      stock_rings[cf.rec_f],
+                                      tables,
+                                      plate_thickness,
+                                      min_clear
+                                  )
+                                : 0;
+
+    if (n_sp > 0) {
+        sp_band.count = n_sp;
+        const OrigamiBand ex_band = {
+            rec_ex_ends,
+            sp_ref,
+            cf.v_ins_rec,
+            cf.l_tab_rec,
+            0.0,
+            cf.positive_fold,
+            n_sp,
+            pitch,
+            rec_extra
+        };
+        const std::array<std::vector<Point>, 2> sp_pair = emit_origami_single_pins(
+            sp_band,
+            scale,
+            rec,
+            heights[2 * sp_layer],
+            heights[2 * sp_layer + 1],
+            tables.plate_slots[sp_layer][cf.rec_f]
+        );
+        const std::array<std::vector<Point>, 2> ex_pair = emit_origami_extend_tab(ex_band);
+        tables.edge_polys[2 * sp_layer][cf.mal_f][cf.mal_s] = sp_pair[0];
+        tables.edge_polys[2 * sp_layer + 1][cf.mal_f][cf.mal_s] = sp_pair[1];
+        tables.edge_polys[2 * sp_layer][cf.rec_f][cf.rec_s] = ex_pair[0];
+        tables.edge_polys[2 * sp_layer + 1][cf.rec_f][cf.rec_s] = ex_pair[1];
+        tables.single_pins += static_cast<size_t>(n_sp);
+    }
+
+    const int max_dp =
+        n_sp >= 2 ? std::min(raw_max_dp, n_sp - 1) : std::min(raw_max_dp, std::max(1, n_sp));
+    const int dp_parity = n_sp >= 2 ? ((n_sp + 1) % 2) : -1;
+    const int n_dp = max_dp > 0 ? find_safe_pin_count(
+                                      edges,
+                                      dp_band,
+                                      rec_sh_ends,
+                                      cf.v_ins_rec,
+                                      cf.l_offs_rec,
+                                      rec_extra,
+                                      max_dp,
+                                      dp_parity,
+                                      true,
+                                      scale,
+                                      rec,
+                                      mal,
+                                      cf.rec_s,
+                                      heights,
+                                      dp_layer,
                                       stock_rings[cf.rec_f],
                                       tables,
                                       plate_thickness,
@@ -1644,36 +1693,8 @@ void apply_origami_crease_joinery(
         tables.double_pins += static_cast<size_t>(n_dp);
     }
 
-    if (n_sp > 0) {
-        sp_band.count = n_sp;
-        const OrigamiBand ex_band = {
-            rec_ex_ends,
-            sp_ref,
-            cf.v_ins_rec,
-            cf.l_tab_rec,
-            0.0,
-            cf.positive_fold,
-            n_sp,
-            pitch,
-            rec_extra
-        };
-        const std::array<std::vector<Point>, 2> sp_pair = emit_origami_single_pins(
-            sp_band,
-            scale,
-            rec,
-            heights[2 * sp_layer],
-            heights[2 * sp_layer + 1],
-            tables.plate_slots[sp_layer][cf.rec_f]
-        );
-        const std::array<std::vector<Point>, 2> ex_pair = emit_origami_extend_tab(ex_band);
-        tables.edge_polys[2 * sp_layer][cf.mal_f][cf.mal_s] = sp_pair[0];
-        tables.edge_polys[2 * sp_layer + 1][cf.mal_f][cf.mal_s] = sp_pair[1];
-        tables.edge_polys[2 * sp_layer][cf.rec_f][cf.rec_s] = ex_pair[0];
-        tables.edge_polys[2 * sp_layer + 1][cf.rec_f][cf.rec_s] = ex_pair[1];
-        tables.single_pins += static_cast<size_t>(n_sp);
-    }
-
     tables.seams++;
+    tables.max_skew_deg = std::max(tables.max_skew_deg, cf.skew_deg);
 }
 
 /// Attaches jointed outer outlines and consistently wound through-mortise hole loops onto plate.
@@ -1709,174 +1730,6 @@ void attach_origami_features(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Parametric origami mesh generators
-// ═══════════════════════════════════════════════════════════════════════════
-
-Mesh OrigamiShell::yoshimura_arch_mesh(
-    size_t bays,
-    size_t arch_segments,
-    double span,
-    double bay_length,
-    double rise,
-    double pleat_depth
-) {
-
-    const size_t nb = std::max<size_t>(1, bays);
-    const size_t ns = std::max<size_t>(3, arch_segments);
-    const double half_span = 0.5 * std::max(2000.0, span);
-    const double h = std::max(800.0, rise);
-    const double pitch_y = std::max(800.0, bay_length);
-    const double half_len = 0.5 * static_cast<double>(nb) * pitch_y;
-    const double r0 = (half_span * half_span + h * h) / (2.0 * h);
-    const double cz = h - r0;
-    const double theta_max = std::atan2(half_span, r0 - h);
-    std::vector<Point> pts;
-    std::vector<std::vector<size_t>> st(2 * nb + 1);
-
-    for (size_t s = 0; s <= 2 * nb; s++) {
-        const double y = -half_len + 0.5 * pitch_y * static_cast<double>(s);
-
-        if (s % 2 == 0) {
-            for (size_t j = 0; j <= ns; j++) {
-                const double th =
-                    -theta_max + 2.0 * theta_max * static_cast<double>(j) / static_cast<double>(ns);
-                const double z = (j == 0 || j == ns) ? 0.0 : (cz + r0 * std::cos(th));
-                st[s].push_back(pts.size());
-                pts.push_back({r0 * std::sin(th), y, z});
-            }
-        } else {
-            for (size_t j = 0; j < ns; j++) {
-                const double th = -theta_max + 2.0 * theta_max * (static_cast<double>(j) + 0.5) /
-                                                   static_cast<double>(ns);
-                const double r_odd = r0 + pleat_depth;
-                st[s].push_back(pts.size());
-                pts.push_back(
-                    {r_odd * std::sin(th), y, std::max(200.0, cz + r_odd * std::cos(th))}
-                );
-            }
-        }
-    }
-
-    std::vector<std::vector<size_t>> faces;
-
-    for (size_t b = 0; b < nb; b++) {
-        const std::vector<size_t>& e0 = st[2 * b];
-        const std::vector<size_t>& o1 = st[2 * b + 1];
-        const std::vector<size_t>& e2 = st[2 * b + 2];
-        faces.push_back({e0[0], o1[0], e2[0]});
-
-        for (size_t j = 0; j < ns; j++) {
-            faces.push_back({e0[j], e0[j + 1], o1[j]});
-            faces.push_back({e2[j + 1], e2[j], o1[j]});
-        }
-
-        for (size_t j = 0; j + 1 < ns; j++) {
-            faces.push_back({o1[j], e0[j + 1], o1[j + 1]});
-            faces.push_back({o1[j + 1], e2[j + 1], o1[j]});
-        }
-
-        faces.push_back({e2[ns], o1[ns - 1], e0[ns]});
-    }
-
-    return Mesh::from_vertices_and_faces(pts, faces);
-}
-
-Mesh OrigamiShell::miura_arch_mesh(
-    size_t arch_folds,
-    size_t strips,
-    double span,
-    double length,
-    double rise,
-    double pleat_depth,
-    double chevron_shift
-) {
-
-    const size_t m = std::max<size_t>(4, arch_folds + (arch_folds % 2));
-    const size_t rows = 2 * std::max<size_t>(1, strips);
-    const double half_span = 0.5 * std::max(2000.0, span);
-    const double h = std::max(800.0, rise);
-    const double half_len = 0.5 * std::max(1600.0, length);
-    const double step_y = (2.0 * half_len) / static_cast<double>(rows);
-    const double r0 = (half_span * half_span + h * h) / (2.0 * h);
-    const double cz = h - r0;
-    const double theta_max = std::atan2(half_span, r0 - h);
-    std::vector<Point> arc(m + 1);
-
-    for (size_t i = 0; i <= m; i++) {
-        const double th =
-            -theta_max + 2.0 * theta_max * static_cast<double>(i) / static_cast<double>(m);
-        arc[i] = {r0 * std::sin(th), 0.0, (i == 0 || i == m) ? 0.0 : (cz + r0 * std::cos(th))};
-    }
-
-    std::vector<Vector> tangents(m);
-
-    for (size_t i = 0; i < m; i++)
-        tangents[i] = (arc[i + 1] - arc[i]).normalized();
-
-    const size_t mid_i = m / 2;
-    std::vector<std::vector<Point>> grid(m + 1, std::vector<Point>(rows + 1));
-
-    for (size_t j = 0; j <= rows; j++) {
-        const double sgn = (j % 2 == 0) ? -1.0 : 1.0;
-        const double y = -half_len + step_y * static_cast<double>(j);
-        grid[mid_i][j] = {sgn * chevron_shift, y, h + sgn * (0.5 * pleat_depth)};
-    }
-
-    for (size_t step = 0; step < mid_i; step++) {
-        const size_t il = mid_i - 1 - step;
-        const size_t ir = mid_i + 1 + step;
-
-        for (size_t j = 0; j <= rows; j++) {
-            const double sgn = (j % 2 == 0) ? -1.0 : 1.0;
-            Plane pl = Plane::xy_plane();
-            Plane pr = Plane::xy_plane();
-
-            if (il > 0) {
-                const Vector nl = (tangents[il - 1] + tangents[il]).normalized();
-                const Vector rl = Vector{-nl[2], 0.0, nl[0]}.normalized();
-                pl = Plane::from_point_normal(
-                    arc[il] + rl * (sgn * 0.5 * pleat_depth) + nl * (sgn * chevron_shift), nl
-                );
-            }
-
-            if (ir < m) {
-                const Vector nr = (tangents[ir - 1] + tangents[ir]).normalized();
-                const Vector rr = Vector{-nr[2], 0.0, nr[0]}.normalized();
-                pr = Plane::from_point_normal(
-                    arc[ir] + rr * (sgn * 0.5 * pleat_depth) + nr * (sgn * chevron_shift), nr
-                );
-            }
-
-            grid[il][j] = Intersection::line_plane(
-                              Line::from_point_and_vector(grid[il + 1][j], -tangents[il]), pl, false
-            )
-                              .value_or(arc[il]);
-            grid[ir][j] =
-                Intersection::line_plane(
-                    Line::from_point_and_vector(grid[ir - 1][j], tangents[ir - 1]), pr, false
-                )
-                    .value_or(arc[ir]);
-        }
-    }
-
-    std::vector<Point> pts;
-    std::vector<std::vector<size_t>> faces;
-
-    for (size_t i = 0; i <= m; i++)
-        for (size_t j = 0; j <= rows; j++)
-            pts.push_back(grid[i][j]);
-
-    for (size_t i = 0; i < m; i++)
-        for (size_t j = 0; j < rows; j++) {
-            const size_t v00 = i * (rows + 1) + j;
-            const size_t v10 = (i + 1) * (rows + 1) + j;
-            faces.push_back({v00, v10, v10 + 1, v00 + 1});
-        }
-
-    return Mesh::from_vertices_and_faces(pts, faces);
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Constructor and accessors
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1893,7 +1746,13 @@ OrigamiShell::OrigamiShell(
     : WoodSession(name), plate_thickness(std::max(12.0, plate_thickness)),
       total_offset(std::max(2.4 * std::max(12.0, plate_thickness), total_offset)),
       with_joints(with_joints), with_borders(with_borders),
-      pin_pitch(std::clamp(pin_pitch, 200.0, 650.0)),
+      pin_pitch(
+          std::clamp(
+              pin_pitch,
+              450.0 * std::clamp(std::max(12.0, plate_thickness) / 45.0, 0.80, 1.25),
+              1200.0
+          )
+      ),
       corner_scale(std::clamp(corner_scale, 0.0, 2.0)) {
 
     // base mesh and four miter offset shells
@@ -2010,6 +1869,14 @@ size_t OrigamiShell::total_pins() const {
 
 size_t OrigamiShell::total_mortise_slots() const {
     return _total_mortise_slots;
+}
+
+double OrigamiShell::max_insertion_skew_deg() const {
+    return _max_insertion_skew_deg;
+}
+
+size_t OrigamiShell::unjoined_interior_creases() const {
+    return _unjoined_interior_creases;
 }
 
 void OrigamiShell::copy_plates_to(
@@ -2259,73 +2126,99 @@ void OrigamiShell::compute_assembly_and_vectors() {
     if (fcount == 0)
         return;
 
-    // Reverse boundary peeling: peels exposed boundary facets from last step down to 0.
-    std::vector<bool> remaining(fcount, true);
+    // Directional reverse peeling: tests monotonic sweep axes to maximize min_cos (minimize theta).
+    const std::array<Vector, 4> sweep_axes = {
+        Vector(0.0, 1.0, 0.0), Vector(0.0, -1.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(-1.0, 0.0, 0.0)
+    };
+    double best_global_min_cos = -2.0;
+    std::vector<size_t> best_order(fcount, 0);
 
-    for (size_t rev = 0; rev < fcount; rev++) {
-        const size_t step = fcount - 1 - rev;
-        size_t best_f = 0;
-        double best_score = -1e18;
+    for (const Vector& axis : sweep_axes) {
+        std::vector<bool> remaining(fcount, true);
+        std::vector<size_t> trial_order(fcount, 0);
+        double worst_cos = 1.0;
 
-        for (size_t f = 0; f < fcount; f++) {
-            if (!remaining[f])
-                continue;
+        for (size_t rev = 0; rev < fcount; rev++) {
+            const size_t step = fcount - 1 - rev;
+            size_t best_f = 0;
+            double best_score = -1e18;
+            double chosen_cos = 1.0;
 
-            const OrigamiFacet& facet = _facets[f];
-            const size_t m = facet.vertices.size();
-            size_t exposed_edges = 0;
-            std::vector<Vector> perps;
-
-            for (size_t k = 0; k < m; k++) {
-                const OrigamiEdge& e = _edges[static_cast<size_t>(facet.edge_ids[k])];
-
-                if (e.is_boundary) {
-                    exposed_edges++;
+            for (size_t f = 0; f < fcount; f++) {
+                if (!remaining[f])
                     continue;
+
+                const OrigamiFacet& facet = _facets[f];
+                const size_t m = facet.vertices.size();
+                size_t exposed_edges = 0;
+                std::vector<Vector> perps;
+
+                for (size_t k = 0; k < m; k++) {
+                    const OrigamiEdge& e = _edges[static_cast<size_t>(facet.edge_ids[k])];
+
+                    if (e.is_boundary) {
+                        exposed_edges++;
+                        continue;
+                    }
+
+                    const size_t nb = static_cast<size_t>(
+                        e.facet_a == static_cast<int>(f) ? e.facet_b : e.facet_a
+                    );
+
+                    if (!remaining[nb])
+                        exposed_edges++;
+                    else
+                        perps.push_back(compute_inplane_outward(
+                            facet, facet.miter_rings[0][k], facet.miter_rings[0][(k + 1) % m]
+                        ));
                 }
 
-                const size_t nb =
-                    static_cast<size_t>(e.facet_a == static_cast<int>(f) ? e.facet_b : e.facet_a);
+                if (exposed_edges == 0 && rev > 0)
+                    continue;
 
-                if (!remaining[nb])
-                    exposed_edges++;
-                else
-                    perps.push_back(compute_inplane_outward(
-                        facet, facet.miter_rings[0][k], facet.miter_rings[0][(k + 1) % m]
-                    ));
+                double min_cos = 1.0;
+
+                if (perps.size() >= 2) {
+                    Vector sum = {0.0, 0.0, 0.0};
+
+                    for (const Vector& p : perps)
+                        sum = sum + p;
+
+                    const Vector dir = sum.magnitude() > 1e-6 ? sum.normalized() : perps[0];
+                    min_cos = 1.0;
+
+                    for (const Vector& p : perps)
+                        min_cos = std::min(min_cos, dir.dot(p));
+                }
+
+                const double feas_bonus = min_cos >= 0.80 ? 1e7 : (2e5 * min_cos);
+                const double sweep_coord =
+                    Vector(facet.centroid[0], facet.centroid[1], facet.centroid[2]).dot(axis);
+                const double score = feas_bonus + sweep_coord + 50.0 * min_cos -
+                                     10.0 * static_cast<double>(perps.size());
+
+                if (score > best_score) {
+                    best_score = score;
+                    best_f = f;
+                    chosen_cos = min_cos;
+                }
             }
 
-            double min_cos = 1.0;
-
-            if (perps.size() >= 2) {
-                Vector sum = {0.0, 0.0, 0.0};
-
-                for (const Vector& p : perps)
-                    sum = sum + p;
-
-                const Vector dir = sum.magnitude() > 1e-6 ? sum.normalized() : perps[0];
-                min_cos = 1.0;
-
-                for (const Vector& p : perps)
-                    min_cos = std::min(min_cos, dir.dot(p));
-            }
-
-            const double exp_bonus = exposed_edges > 0 ? 1000.0 : 0.0;
-            const double deg_bonus = -25.0 * static_cast<double>(perps.size());
-            const double cos_bonus = 200.0 * min_cos;
-            const double tie = 1e-4 * (facet.centroid[1] + 0.3 * facet.centroid[0]);
-            const double score = exp_bonus + cos_bonus + deg_bonus + tie;
-
-            if (score > best_score) {
-                best_score = score;
-                best_f = f;
-            }
+            remaining[best_f] = false;
+            trial_order[step] = best_f;
+            worst_cos = std::min(worst_cos, chosen_cos);
         }
 
-        remaining[best_f] = false;
-        _facets[best_f].assembly_step = step;
-        _assembly_order[step] = best_f;
+        if (worst_cos > best_global_min_cos) {
+            best_global_min_cos = worst_cos;
+            best_order = trial_order;
+        }
     }
+
+    _assembly_order = best_order;
+
+    for (size_t step = 0; step < fcount; step++)
+        _facets[_assembly_order[step]].assembly_step = step;
 
     // Single insertion vector per facet: normalized sum of orthogonal vectors to earlier creases.
     for (size_t f = 0; f < fcount; f++) {
@@ -2442,9 +2335,18 @@ void OrigamiShell::compute_shell_plates() {
             );
     }
 
+    size_t interior_creases = 0;
+
+    for (const OrigamiEdge& edge : _edges)
+        if (!edge.is_boundary && edge.facet_b >= 0 && edge.dihedral_rad >= 0.22)
+            interior_creases++;
+
     _total_jointed_seams = tables.seams;
     _total_double_pins = tables.double_pins;
     _total_single_pins = tables.single_pins;
+    _max_insertion_skew_deg = tables.max_skew_deg;
+    _unjoined_interior_creases =
+        (with_joints && interior_creases >= tables.seams) ? (interior_creases - tables.seams) : 0;
 
     for (size_t f = 0; f < fcount; f++) {
         const OrigamiFacet& facet = _facets[f];

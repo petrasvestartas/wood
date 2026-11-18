@@ -55,11 +55,11 @@ public:
     /// Builds four miter shells, selective chamfers, border boards and Vidy joinery from input_mesh.
     explicit OrigamiShell(
         const Mesh& input_mesh,
-        double plate_thickness = 40.0,
-        double total_offset = 240.0,
+        double plate_thickness = 45.0,
+        double total_offset = 300.0,
         bool with_joints = true,
         bool with_borders = true,
-        double pin_pitch = 450.0,
+        double pin_pitch = 500.0,
         double corner_scale = 1.0,
         const std::string& name = "origami_shell"
     );
@@ -69,27 +69,6 @@ public:
 
     /// Not assigned, as it is not copied.
     OrigamiShell& operator=(const OrigamiShell&) = delete;
-
-    /// Parametric Yoshimura antiprismatic diamond-triangulated barrel vault mesh on z = 0.
-    static Mesh yoshimura_arch_mesh(
-        size_t bays = 4,
-        size_t arch_segments = 6,
-        double span = 12000.0,
-        double bay_length = 2600.0,
-        double rise = 4800.0,
-        double pleat_depth = 520.0
-    );
-
-    /// Parametric Miura-ori herringbone planar-quad arch mesh with flat feet on z = 0.
-    static Mesh miura_arch_mesh(
-        size_t arch_folds = 6,
-        size_t strips = 4,
-        double span = 12000.0,
-        double length = 9600.0,
-        double rise = 4500.0,
-        double pleat_depth = 520.0,
-        double chevron_shift = 420.0
-    );
 
     /// Base mesh vertex coordinates at h = 0.
     const std::vector<Point>& vertices() const;
@@ -169,6 +148,12 @@ public:
     /// Total number of rectangular through-mortise hole loops cut across all plates.
     size_t total_mortise_slots() const;
 
+    /// Maximum in-plane insertion skew angle theta (degrees) across all jointed creases.
+    double max_insertion_skew_deg() const;
+
+    /// Interior fold creases skipped because dihedral or insertion-skew limits were exceeded.
+    size_t unjoined_interior_creases() const;
+
 private:
     double _ground_z = 0.0; // Lowest z coordinate of the input mesh.
     std::array<double, 4> _plan_bounds = {
@@ -197,6 +182,8 @@ private:
     size_t _total_double_pins = 0; // Stepped Double_Pin count.
     size_t _total_single_pins = 0; // Single_Pin count.
     size_t _total_mortise_slots = 0; // Through-mortise slot count across all plates.
+    double _max_insertion_skew_deg = 0.0; // Largest in-plane insertion skew theta in degrees.
+    size_t _unjoined_interior_creases = 0; // Interior creases exceeding Robeller assembly limits.
 
     /// Extracts welded vertices, consistently oriented outward faces and envelope bounds.
     void extract_oriented_facets(const Mesh& input_mesh);
