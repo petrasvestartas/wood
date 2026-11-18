@@ -196,7 +196,21 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         return spec;
     }
 
-    // Non-primary grid line or oblique boundary edge carries a purlin / rim member.
+    // Non-primary boundary/rim edge in `PurlinMode::Flush` carries a full edge beam (`beam` or `girder`)
+    // so perimeter beams, columns, and slab edges align cleanly in one flush facade plane!
+    if (framing.purlin == PurlinMode::Flush && edge.boundary) {
+        spec.role = Role::Beam;
+        spec.profile = secondary_beam_profile(framing.profiles);
+        const auto [bw, bd] = wood_session::compute_size(spec.profile);
+        spec.width = bw;
+        spec.depth = bd;
+        spec.w_top = 0.0;
+        spec.w_bot = -bd;
+        spec.tier = 3;
+        return spec;
+    }
+
+    // Interior non-primary grid line (or `PurlinMode::Stacked` upper layer) carries a purlin.
     spec.role = Role::Purlin;
     spec.profile = framing.profiles.purlin;
     spec.width = pw;
@@ -395,10 +409,15 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
 }
 
 std::optional<Plane> polygon_exit_plane_uv(
-    const Plan& plan, const std::vector<Point>& poly_uv, const Point& origin_uv, const Vector& dir_uv
+    const Plan& plan,
+    const std::vector<Point>& poly_uv,
+    const Point& origin_uv,
+    const Vector& dir_uv,
+    const std::optional<Point>& col_foot_w = std::nullopt
 ) {
     double best_t = std::numeric_limits<double>::max();
     std::optional<Plane> best;
+    const Point top_node_w = plan.to_world(origin_uv[0], origin_uv[1], 0.0);
     for (size_t i = 0; i < poly_uv.size(); ++i) {
         const Point& a = poly_uv[i];
         const Point& b = poly_uv[(i + 1) % poly_uv.size()];
@@ -413,7 +432,19 @@ std::optional<Plane> polygon_exit_plane_uv(
         const double t = (a - origin_uv).dot(n_out) / denom;
         if (t > -TOL && t < best_t) {
             best_t = t;
-            best = lift_plane_uv(plan, a, n_out);
+            if (col_foot_w.has_value()) {
+                const Vector down_w = *col_foot_w - top_node_w;
+                const Point wa = plan.to_world(a[0], a[1], 0.0);
+                const Point wb = plan.to_world(b[0], b[1], 0.0);
+                const Vector out_horiz =
+                    plan.frame.x_axis() * n_out[0] + plan.frame.y_axis() * n_out[1];
+                Vector n_3d = down_w.cross(wb - wa).normalized();
+                if (n_3d.dot(out_horiz) < 0.0)
+                    n_3d = -n_3d;
+                best = Plane::from_point_normal(wa, n_3d);
+            } else {
+                best = lift_plane_uv(plan, a, n_out);
+            }
         }
     }
     return best;
@@ -512,11 +543,28 @@ EndTrim compute_node_trim(
 
     const bool has_through_col =
         framing.node == NodeMode::Through && columns.count(node_v) > 0;
+    double through_overrun = 0.0;
     if (has_through_col) {
-        if (const auto col_plane =
-                polygon_exit_plane_uv(plan, columns.at(node_v).raw_uv, origin_uv, target_dir);
+        const std::optional<Point> col_foot_w =
+            (node_v < plan.column_feet.size()) ? plan.column_feet[node_v] : std::nullopt;
+        if (const auto col_plane = polygon_exit_plane_uv(
+                plan, columns.at(node_v).raw_uv, origin_uv, target_dir, col_foot_w
+            );
             col_plane.has_value()) {
             add_unique_plane(trim.planes, *col_plane);
+            if (col_foot_w.has_value()) {
+                const Vector w_dir =
+                    (plan.frame.x_axis() * target_dir[0] + plan.frame.y_axis() * target_dir[1])
+                        .normalized();
+                const double speed = w_dir.dot(col_plane->z_axis());
+                if (speed > 0.15) {
+                    const Point soffit_orig =
+                        plan.to_world(origin_uv[0], origin_uv[1], target_s.w_bot);
+                    const double t_soffit =
+                        (col_plane->origin() - soffit_orig).dot(col_plane->z_axis()) / speed;
+                    through_overrun = std::max(0.0, -t_soffit);
+                }
+            }
         }
     }
 
@@ -536,37 +584,42 @@ EndTrim compute_node_trim(
         return a.angle < b.angle;
     });
 
-    // Promote straight-through collinear boundary walls (or 3-ray T-junctions) when all rays share one tier.
+    // Promote straight-through collinear continuous members (perimeter walls, mullions passing window corners,
+    // girders passing courtyard corners, or 3-ray T-junctions) so transverse sills/trimmers butt cleanly at 90 deg!
     if (rays.size() >= 3) {
-        bool same_tier = true;
-        for (size_t i = 1; i < rays.size(); ++i)
-            if (rays[i].tier != rays[0].tier)
-                same_tier = false;
-        if (same_tier) {
-            bool promoted = false;
-            for (size_t i = 0; i < rays.size() && !promoted; ++i) {
-                if (!plan.edges[rays[i].edge_idx].boundary)
+        int max_t = rays[0].tier;
+        for (const IncidentRay& r : rays)
+            max_t = std::max(max_t, r.tier);
+
+        int best_i = -1;
+        int best_j = -1;
+        std::pair<int, int> best_score{-1, -1};
+        for (size_t i = 0; i < rays.size(); ++i) {
+            for (size_t j = i + 1; j < rays.size(); ++j) {
+                if (rays[i].dir.dot(rays[j].dir) >= -0.985)
                     continue;
-                for (size_t j = i + 1; j < rays.size(); ++j) {
-                    if (plan.edges[rays[j].edge_idx].boundary &&
-                        rays[i].dir.dot(rays[j].dir) < -0.985) {
-                        rays[i].tier += 1;
-                        rays[j].tier += 1;
-                        promoted = true;
-                        break;
-                    }
+                if (std::abs(rays[i].half_w - rays[j].half_w) > 1.0)
+                    continue;
+                const int hi = std::max(rays[i].tier, rays[j].tier);
+                const int lo = std::min(rays[i].tier, rays[j].tier);
+                if (hi < max_t)
+                    continue;
+                const bool both_bnd = plan.edges[rays[i].edge_idx].boundary &&
+                                      plan.edges[rays[j].edge_idx].boundary;
+                const bool mixed_cont = (hi != lo);
+                if (!both_bnd && !mixed_cont && rays.size() > 3)
+                    continue;
+                const std::pair<int, int> sc{both_bnd ? hi + 1 : hi, lo};
+                if (sc > best_score) {
+                    best_score = sc;
+                    best_i = static_cast<int>(i);
+                    best_j = static_cast<int>(j);
                 }
             }
-            if (!promoted && rays.size() == 3) {
-                for (size_t i = 0; i < 3; ++i) {
-                    const size_t j = (i + 1) % 3;
-                    if (rays[i].dir.dot(rays[j].dir) < -0.985) {
-                        rays[i].tier += 1;
-                        rays[j].tier += 1;
-                        break;
-                    }
-                }
-            }
+        }
+        if (best_i >= 0) {
+            rays[best_i].tier = max_t + 1;
+            rays[best_j].tier = max_t + 1;
         }
     }
 
@@ -656,7 +709,8 @@ EndTrim compute_node_trim(
             }
         }
 
-        trim.overrun = has_through_col ? 0.0 : std::min(trim.overrun, max_overrun);
+        trim.overrun =
+            has_through_col ? std::min(through_overrun, max_overrun) : std::min(trim.overrun, max_overrun);
         return trim;
     }
 
@@ -672,7 +726,9 @@ EndTrim compute_node_trim(
     }
 
     if (top.size() == 1) {
-        if (!has_through_col) {
+        if (has_through_col) {
+            trim.overrun = std::min(through_overrun, max_overrun);
+        } else {
             // Check if lower-tier boundary rays meet `self` at an oblique/perpendicular perimeter:
             // bevel `self`'s end flush with the boundary member's outer facade face!
             bool beveled_to_facade = false;
@@ -742,7 +798,8 @@ EndTrim compute_node_trim(
             );
             trim.overrun = std::max(trim.overrun, plane_overrun_uv(self.dir, self.half_w, keep_uv));
         }
-        trim.overrun = has_through_col ? 0.0 : std::min(trim.overrun, max_overrun);
+        trim.overrun =
+            has_through_col ? std::min(through_overrun, max_overrun) : std::min(trim.overrun, max_overrun);
         return trim;
     }
 
@@ -768,7 +825,8 @@ EndTrim compute_node_trim(
         trim.overrun = std::max(trim.overrun, plane_overrun_uv(self.dir, self.half_w, keep_uv));
     }
 
-    trim.overrun = has_through_col ? 0.0 : std::min(trim.overrun, max_overrun);
+    trim.overrun =
+        has_through_col ? std::min(through_overrun, max_overrun) : std::min(trim.overrun, max_overrun);
     return trim;
 }
 
@@ -1197,10 +1255,15 @@ BuiltSupport build_column_and_head(
                                  : (has_slab_head ? cf.seat_w - framing.head_height : cf.seat_w);
 
     const bool custom_foot = v < plan.column_feet.size() && plan.column_feet[v].has_value();
+    const Point top_datum_w = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], 0.0);
     const Point foot_w = custom_foot
                              ? *plan.column_feet[v]
                              : plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_foot);
-    const Point top_w = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_col_top);
+    const double dz_rem = (top_datum_w - foot_w).dot(plan.frame.z_axis());
+    const Point top_w =
+        (custom_foot && dz_rem > TOL)
+            ? top_datum_w + (top_datum_w - foot_w) * (w_col_top / dz_rem)
+            : plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_col_top);
 
     if ((top_w - foot_w).dot(plan.frame.z_axis()) > TOL * 2.0) {
         const Vector axis_dir = (top_w - foot_w).normalized();
@@ -1209,20 +1272,11 @@ BuiltSupport build_column_and_head(
         const bool is_inclined = std::abs(axis_dir.dot(plan.frame.z_axis())) < 0.9999;
 
         if (is_inclined) {
-            up_w = (up_w - axis_dir * up_w.dot(axis_dir)).normalized();
-            const double col_ext =
-                1.5 * wood_session::compute_size(framing.profiles.column).first;
-            auto col = std::make_shared<wood_session::EdgeStraightElement>(
-                Polyline({foot_w - axis_dir * col_ext, top_w + axis_dir * col_ext}),
-                framing.profiles.column,
-                std::vector<Vector>{up_w},
-                "column"
-            );
-            col->cuts = {
-                Plane::from_point_normal(foot_w, plan.frame.z_axis()),
-                Plane::from_point_normal(top_w, -plan.frame.z_axis()),
-            };
-            out.column = col;
+            const Point nominal_top = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_col_top);
+            const Polyline top_ring =
+                plan.lift_polyline(close_ring(cf.raw_uv), w_col_top).translated(top_w - nominal_top);
+            const Polyline bot_ring = top_ring.translated(foot_w - top_w);
+            out.column = wood_session::EdgeVariableElement::between(bot_ring, top_ring, "column");
         } else {
             auto col = std::make_shared<wood_session::EdgeStraightElement>(
                 Polyline({foot_w, top_w}),
@@ -1684,9 +1738,11 @@ void populate_plan_unit(
                 target.add_element(el, grp);
         }
     } else {
-        if (!girder_elems.empty()) {
+        std::vector<std::shared_ptr<Element>> all_girders = girder_elems;
+        all_girders.insert(all_girders.end(), beam_elems.begin(), beam_elems.end());
+        if (!all_girders.empty()) {
             auto grp = target.add_group(group_name("girders"), parent_group);
-            for (const auto& el : girder_elems)
+            for (const auto& el : all_girders)
                 target.add_element(el, grp);
         }
         if (!purlin_elems.empty()) {
@@ -1741,9 +1797,16 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
             if (below.framing.deck > TOL && !below.framing.deck_flush &&
                 lvl.framing.node != NodeMode::Through) {
                 lvl_framing.post_height = std::max(0.0, lvl_framing.post_height - below.framing.deck);
-                for (std::optional<Point>& foot : lvl_plan.column_feet)
-                    if (foot.has_value())
-                        foot = *foot + below.plan.frame.z_axis() * below.framing.deck;
+                for (size_t v = 0; v < lvl_plan.column_feet.size(); ++v) {
+                    if (!lvl_plan.column_feet[v].has_value())
+                        continue;
+                    const Point top_d =
+                        lvl_plan.to_world(lvl_plan.nodes[v][0], lvl_plan.nodes[v][1], 0.0);
+                    const Point foot_d = *lvl_plan.column_feet[v];
+                    const double dz = (top_d - foot_d).dot(lvl_plan.frame.z_axis());
+                    if (dz > TOL)
+                        lvl_plan.column_feet[v] = foot_d + (top_d - foot_d) * (below.framing.deck / dz);
+                }
             }
         }
         if (i + 1 < stack.levels.size() && lvl.framing.deck > TOL && !lvl.framing.deck_flush) {
@@ -1752,15 +1815,32 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
                 std::vector<EdgeSpec> above_specs(above.plan.edges.size());
                 for (size_t ei = 0; ei < above.plan.edges.size(); ++ei)
                     above_specs[ei] = classify_edge(above.plan.edges[ei], above.framing);
-                for (const auto& [_, cf] :
+                for (const auto& [av, cf] :
                      compute_column_footprints(above.plan, above.framing, above_specs)) {
-                    std::vector<Point> mapped_uv;
+                    const Point top_d =
+                        above.plan.to_world(above.plan.nodes[av][0], above.plan.nodes[av][1], 0.0);
+                    const bool has_foot =
+                        av < above.plan.column_feet.size() && above.plan.column_feet[av].has_value();
+                    const Point foot_d =
+                        has_foot ? *above.plan.column_feet[av] : top_d;
+                    const double dz = std::max(TOL, (top_d - foot_d).dot(lvl.plan.frame.z_axis()));
+                    const Vector shift_bot = foot_d - top_d;
+                    const Vector shift_top =
+                        shift_bot + (top_d - foot_d) * (lvl.framing.deck / dz);
+
+                    std::vector<Point> swept_pts;
                     for (const Point& p : cf.raw_uv) {
-                        const Point world_p = above.plan.to_world(p[0], p[1], 0.0);
-                        const Point loc = lvl.plan.to_local(world_p);
-                        mapped_uv.emplace_back(loc[0], loc[1], 0.0);
+                        const Point wp = above.plan.to_world(p[0], p[1], 0.0);
+                        const Point lb = lvl.plan.to_local(wp + shift_bot);
+                        const Point lt = lvl.plan.to_local(wp + shift_top);
+                        swept_pts.emplace_back(lb[0], lb[1], 0.0);
+                        if (has_foot)
+                            swept_pts.emplace_back(lt[0], lt[1], 0.0);
                     }
-                    upper_col_notches_uv.push_back(close_ring(mapped_uv));
+                    const std::vector<Point> notch_hull =
+                        has_foot ? convex_hull_2d(std::move(swept_pts)) : std::move(swept_pts);
+                    if (notch_hull.size() >= 3)
+                        upper_col_notches_uv.push_back(close_ring(notch_hull));
                 }
             }
         }

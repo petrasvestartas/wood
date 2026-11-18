@@ -39,10 +39,10 @@ enum class BraceMode {
 
 /// Timber cross-sections (rectangular glulam/CLT billets or round turned columns) by member role.
 struct Profiles {
-    std::vector<session_cpp::Polyline> column = wood_session::profile_rectangle(300.0, 300.0);
+    std::vector<session_cpp::Polyline> column = wood_session::profile_rectangle(260.0, 260.0);
     std::vector<session_cpp::Polyline> girder = wood_session::profile_rectangle(260.0, 520.0);
     std::vector<session_cpp::Polyline> beam; ///< Optional secondary/perimeter beam in `PostAndBeam`; empty reuses `girder`.
-    std::vector<session_cpp::Polyline> purlin = wood_session::profile_rectangle(180.0, 360.0);
+    std::vector<session_cpp::Polyline> purlin = wood_session::profile_rectangle(160.0, 340.0);
     std::vector<session_cpp::Polyline> brace = wood_session::profile_rectangle(160.0, 160.0);
 };
 

@@ -153,7 +153,9 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
     SHOT_ORBIT=300 "${RENDER[@]}" --scene "$GRID_SCENES/footprints.pb" --aspect 1.5 templates_grid_2_footprints skewed triangular
     "${RENDER[@]}" --scene "$GRID_SCENES/facades.pb" --aspect 1.5 templates_grid_3_facades curtain_mullion punched_openings braced_facade gable_facade
     "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --aspect 1.5 templates_grid_4_developed_facade stage_1_colonnade stage_2_spandrels stage_3_fin_screen stammhaus_headquarters
-    "${RENDER[@]}" --scene "$GRID_SCENES/multistorey.pb" --aspect 1.5 templates_grid_5_multistorey five_bay shifted_floors tapered_tower twisted_tower setback_tower core_and_facade
+    "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --view front --aspect 1.5 --name stammhaus_elevation templates_grid_4_developed_facade stammhaus_headquarters
+    "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --wheel 8,0.26,0.58 --aspect 1.5 --name stammhaus_detail templates_grid_4_developed_facade stammhaus_headquarters
+    "${RENDER[@]}" --scene "$GRID_SCENES/multistorey.pb" --aspect 1.5 templates_grid_5_multistorey five_bay shifted_floors tapered_tower twisted_tower setback_tower cylindrical_rotunda oblique_flatiron core_and_facade
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then

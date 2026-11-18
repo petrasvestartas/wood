@@ -61,9 +61,9 @@ int main() {
             .deck = 160.0,
             .panel_width = 3000.0,
             .profiles =
-                {.column = profile_rectangle(280.0, 280.0),
+                {.column = profile_rectangle(260.0, 260.0),
                  .girder = profile_rectangle(260.0, 480.0),
-                 .purlin = profile_rectangle(180.0, 340.0)},
+                 .purlin = profile_rectangle(160.0, 320.0)},
         };
         const wood_grid::Stack stack = wood_grid::Stack::shifted(
             {base_fp},
@@ -76,7 +76,7 @@ int main() {
         cursor += 24000.0 + GAP;
     }
 
-    // 3. Six-storey tapered timber tower (`Stack::tapered`) with inclined perimeter columns.
+    // 3. Six-storey tapered timber tower (`Stack::tapered`) with seamless continuous leaning columns (`NodeMode::Through`).
     {
         const Polyline base_fp =
             Polyline::rectangle(Point(cursor, 0.0, 0.0), X, Y, 21000.0, 21000.0);
@@ -87,92 +87,156 @@ int main() {
                 .transformed(Xform::translation(cursor, 0.0, 0.0));
         const wood_grid::Framing frm{
             .system = wood_grid::System::GirderPurlin,
-            .node = wood_grid::NodeMode::Flush,
+            .node = wood_grid::NodeMode::Through,
             .span = 0,
             .spacing = 2200.0,
             .deck = 160.0,
             .panel_width = 2500.0,
             .profiles =
                 {.column = profile_rectangle(300.0, 300.0),
-                 .girder = profile_rectangle(260.0, 500.0),
-                 .purlin = profile_rectangle(180.0, 340.0)},
+                 .girder = profile_rectangle(300.0, 500.0),
+                 .purlin = profile_rectangle(160.0, 320.0)},
         };
         const wood_grid::Stack stack = wood_grid::Stack::tapered(
             {base_fp},
             {0.0, 4000.0, 7800.0, 11600.0, 15400.0, 19200.0, 23000.0},
             pat,
-            0.56,
+            0.55,
             frm
         );
         session.graft(wood_grid::Grid(stack, "tapered_tower"), session.add_group("tapered_tower"));
         cursor += 21000.0 + GAP;
     }
 
-    // 4. Six-storey twisting timber tower (`Stack::twisted`, 30 degrees total rotation) with helicoidal columns.
+    // 4. Seven-storey 42-degree twisting timber tower (`Stack::twisted`) with seamless helicoidal round columns.
     {
         const Polyline base_fp =
-            Polyline::rectangle(Point(cursor + 2000.0, 2000.0, 0.0), X, Y, 18000.0, 18000.0);
+            Polyline::rectangle(Point(cursor + 3000.0, 3000.0, 0.0), X, Y, 18000.0, 18000.0);
         const wood_grid::Pattern pat =
             wood_grid::Pattern::orthogonal(
                 wood_grid::compute_bays(18000.0, 6000.0), wood_grid::compute_bays(18000.0, 6000.0)
             )
-                .transformed(Xform::translation(cursor + 2000.0, 2000.0, 0.0));
+                .transformed(Xform::translation(cursor + 3000.0, 3000.0, 0.0));
         const wood_grid::Framing frm{
             .system = wood_grid::System::PostAndBeam,
-            .node = wood_grid::NodeMode::Flush,
+            .node = wood_grid::NodeMode::Through,
             .span = 0,
             .deck = 160.0,
             .panel_width = 3000.0,
             .profiles =
                 {.column = profile_round(320.0),
-                 .girder = profile_rectangle(260.0, 480.0),
-                 .beam = profile_rectangle(220.0, 420.0)},
+                 .girder = profile_rectangle(280.0, 460.0),
+                 .beam = profile_rectangle(240.0, 420.0)},
         };
         const wood_grid::Stack stack = wood_grid::Stack::twisted(
             {base_fp},
-            {0.0, 3800.0, 7600.0, 11400.0, 15200.0, 19000.0, 22800.0},
+            {0.0, 3600.0, 7200.0, 10800.0, 14400.0, 18000.0, 21600.0, 25200.0},
             pat,
-            30.0,
+            42.0,
             frm
         );
         session.graft(wood_grid::Grid(stack, "twisted_tower"), session.add_group("twisted_tower"));
-        cursor += 24000.0 + GAP;
+        cursor += 25000.0 + GAP;
     }
 
-    // 5. Five-storey podium + setback tower (`Stack::from_levels`) with continuous through-columns.
+    // 5. Six-storey cascading stepped-terrace building around an open central atrium (`Stack::from_levels`).
     {
-        const Polyline podium =
-            Polyline::rectangle(Point(cursor, 0.0, 0.0), X, Y, 24000.0, 18000.0);
-        const Polyline tower =
-            Polyline::rectangle(Point(cursor + 6000.0, 6000.0, 0.0), X, Y, 12000.0, 12000.0);
+        const Polyline atrium =
+            Polyline::rectangle(Point(cursor + 10000.0, 10000.0, 0.0), X, Y, 10000.0, 10000.0);
+        const Polyline tier1 =
+            Polyline::rectangle(Point(cursor, 0.0, 0.0), X, Y, 30000.0, 30000.0);
+        const Polyline tier2 =
+            Polyline::rectangle(Point(cursor + 5000.0, 5000.0, 0.0), X, Y, 25000.0, 25000.0);
+        const Polyline tier3 =
+            Polyline::rectangle(Point(cursor + 5000.0, 5000.0, 0.0), X, Y, 20000.0, 20000.0);
+
         const wood_grid::Pattern pat =
             wood_grid::Pattern::orthogonal(
-                wood_grid::compute_bays(24000.0, 6000.0), wood_grid::compute_bays(18000.0, 6000.0)
+                wood_grid::compute_bays(30000.0, 5000.0), wood_grid::compute_bays(30000.0, 5000.0)
             )
                 .transformed(Xform::translation(cursor, 0.0, 0.0));
+
         const wood_grid::Framing frm{
             .system = wood_grid::System::GirderPurlin,
-            .node = wood_grid::NodeMode::Through,
+            .node = wood_grid::NodeMode::Flush,
             .span = 0,
-            .spacing = 2000.0,
+            .spacing = 2500.0,
             .deck = 160.0,
-            .panel_width = 2000.0,
+            .panel_width = 2500.0,
         };
         const wood_grid::Stack stack = wood_grid::Stack::from_levels(
             0.0,
             {
-                {4000.0, {podium}, pat, frm, {}},
-                {8000.0, {podium}, pat, frm, {}},
-                {11600.0, {tower}, pat, frm, {}},
-                {15200.0, {tower}, pat, frm, {}},
-                {18800.0, {tower}, pat, frm, {}},
+                {4000.0, {tier1, atrium}, pat, frm, {}},
+                {8000.0, {tier1, atrium}, pat, frm, {}},
+                {11800.0, {tier2, atrium}, pat, frm, {}},
+                {15600.0, {tier2, atrium}, pat, frm, {}},
+                {19400.0, {tier3, atrium}, pat, frm, {}},
+                {23200.0, {tier3, atrium}, pat, frm, {}},
             }
         );
         session.graft(wood_grid::Grid(stack, "setback_tower"), session.add_group("setback_tower"));
-        cursor += 24000.0 + GAP;
+        cursor += 30000.0 + GAP;
     }
 
-    // 6. Three-storey hybrid timber building with pinwheel CLT shear core & corner X-braced facades.
+    // 6. Four-storey 16-sector cylindrical timber rotunda with concentric glulam rings & open central oculus.
+    {
+        const Point center(cursor + 14000.0, 14000.0, 0.0);
+        const wood_grid::Pattern rad_pat =
+            wood_grid::Pattern::radial({5000.0, 9500.0, 14000.0}, 16, true)
+                .transformed(Xform::translation(center[0], center[1], 0.0));
+        const wood_grid::Framing frm{
+            .system = wood_grid::System::PostAndBeam,
+            .node = wood_grid::NodeMode::Through,
+            .span = 0,
+            .deck = 160.0,
+            .profiles =
+                {.column = profile_round(260.0),
+                 .girder = profile_rectangle(240.0, 480.0),
+                 .beam = profile_rectangle(240.0, 420.0)},
+        };
+        const wood_grid::Stack stack = wood_grid::Stack::from_footprint(
+            rad_pat.boundary, {0.0, 4000.0, 7800.0, 11600.0, 15400.0}, rad_pat, frm
+        );
+        session.graft(
+            wood_grid::Grid(stack, "cylindrical_rotunda"), session.add_group("cylindrical_rotunda")
+        );
+        cursor += 28000.0 + GAP;
+    }
+
+    // 7. Four-storey chamfered pentagonal flatiron building with 45-degree diagonal facade cuts.
+    {
+        const Polyline flatiron({
+            Point(cursor + 0.0, 0.0, 0.0),
+            Point(cursor + 12000.0, 12000.0, 0.0),
+            Point(cursor + 30000.0, 12000.0, 0.0),
+            Point(cursor + 30000.0, 24000.0, 0.0),
+            Point(cursor + 0.0, 24000.0, 0.0),
+            Point(cursor + 0.0, 0.0, 0.0),
+        });
+        const wood_grid::Pattern pat =
+            wood_grid::Pattern::orthogonal(
+                wood_grid::compute_bays(30000.0, 6000.0), wood_grid::compute_bays(24000.0, 6000.0)
+            )
+                .transformed(Xform::translation(cursor, 0.0, 0.0));
+        const wood_grid::Framing frm{
+            .system = wood_grid::System::GirderPurlin,
+            .node = wood_grid::NodeMode::Flush,
+            .span = 0,
+            .spacing = 2000.0,
+            .deck = 160.0,
+            .panel_width = 3000.0,
+        };
+        const wood_grid::Stack stack = wood_grid::Stack::from_footprint(
+            {flatiron}, {0.0, 3800.0, 7600.0, 11400.0, 15200.0}, pat, frm
+        );
+        session.graft(
+            wood_grid::Grid(stack, "oblique_flatiron"), session.add_group("oblique_flatiron")
+        );
+        cursor += 30000.0 + GAP;
+    }
+
+    // 8. Three-storey hybrid timber office with pinwheel CLT shear core walls and corner X-braced facades.
     {
         const Polyline outer =
             Polyline::rectangle(Point(cursor, 0.0, 0.0), X, Y, 24000.0, 18000.0);
@@ -189,32 +253,30 @@ int main() {
             .span = 0,
             .spacing = 2000.0,
             .deck = 160.0,
-            .panel_width = 2667.0,
+            .panel_width = 2000.0,
             .wall = 240.0,
         };
         wood_grid::Stack stack = wood_grid::Stack::from_footprint(
-            {outer}, {0.0, 3800.0, 7600.0, 11400.0}, pat, floor_frm, {core}
+            {outer}, {0.0, 4000.0, 8000.0, 12000.0}, pat, floor_frm, {core}
         );
         stack.add_perimeter_facades(
             outer,
             0.0,
-            11400.0,
-            3800.0,
-            {3800.0, 3800.0, 3800.0},
+            12000.0,
+            4000.0,
+            {4000.0, 4000.0, 4000.0},
             wood_grid::Framing{
                 .system = wood_grid::System::PostAndBeam,
                 .brace = wood_grid::BraceMode::Cross,
                 .span = 1,
                 .post_height = 0.0,
                 .profiles =
-                    {.girder = profile_rectangle(140.0, 200.0),
-                     .beam = profile_rectangle(120.0, 200.0),
-                     .brace = profile_rectangle(120.0, 160.0)},
+                    {.girder = profile_rectangle(160.0, 200.0),
+                     .beam = profile_rectangle(140.0, 200.0),
+                     .brace = profile_rectangle(140.0, 160.0)},
             }
         );
-        session.graft(
-            wood_grid::Grid(stack, "core_and_facade"), session.add_group("core_and_facade")
-        );
+        session.graft(wood_grid::Grid(stack, "core_and_facade"), session.add_group("core_and_facade"));
     }
 
     std::cout << session << std::endl;
@@ -224,7 +286,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six multi-storey timber building topologies composed via Stack: a two-storey L-frame with in-line chamfered column heads and notched flush CLT cassette decks; five storeys of shifted cantilevered floor plates over a plumb column grid; a six-storey tapered tower with inclined perimeter columns; a six-storey 30-degree twisting tower with helicoidal round timber columns; a five-storey podium and setback tower with continuous through-columns; and a three-storey hybrid building around a pinwheel CLT core with corner X-braced perimeter facades.
+Eight multi-storey timber building topologies built with wood_grid::Stack: (1) a two-storey L-frame with in-line chamfered column heads and 45-degree notched flush CLT cassette decks; (2) five storeys of shifted cantilevered floor boxes over a plumb column grid; (3) a six-storey tapered tower with seamless continuous leaning columns; (4) a seven-storey 42-degree twisting tower with seamless helicoidal round timber columns; (5) a six-storey cascading stepped-terrace building around a central atrium; (6) a four-storey 16-sector cylindrical ring-and-radial rotunda around an open oculus; (7) a four-storey chamfered pentagonal flatiron building with diagonal facade cuts; and (8) a three-storey hybrid frame with pinwheel CLT core walls and corner X-braced facades.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

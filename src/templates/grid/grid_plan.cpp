@@ -1001,6 +1001,9 @@ void Stack::add_perimeter_facades(
         };
 
         const auto [girder_w, girder_d] = wood_session::compute_size(lvl.framing.profiles.girder);
+        const auto [sec_w, sec_d] = wood_session::compute_size(
+            lvl.framing.profiles.beam.empty() ? lvl.framing.profiles.girder : lvl.framing.profiles.beam
+        );
         const auto [purlin_w, purlin_d] = wood_session::compute_size(lvl.framing.profiles.purlin);
         const double fm_hw = 0.5 * wood_session::compute_size(facade_framing.profiles.girder).first;
         const auto& ft_prof = facade_framing.profiles.beam.empty()
@@ -1028,17 +1031,26 @@ void Stack::add_perimeter_facades(
             const auto key = std::minmax(edge.a, edge.b);
             const auto [u, v] = ccw_dir.count(key) ? ccw_dir.at(key) : std::make_pair(edge.a, edge.b);
 
-            const bool is_girder_edge =
-                lvl.framing.system == System::PostAndBeam ||
+            const bool is_primary =
+                (lvl.framing.system == System::PostAndBeam && lvl.framing.span < 0) ||
                 edge.family == std::max(0, lvl.framing.span);
-            const double beam_d =
-                lvl.framing.system == System::Slab ? 0.0 : (is_girder_edge ? girder_d : purlin_d);
-            const double beam_w =
-                lvl.framing.system == System::Slab ? col_w : (is_girder_edge ? girder_w : purlin_w);
-            const double soffit_d =
-                lvl.framing.system == System::Slab
-                    ? 0.0
-                    : (is_girder_edge ? girder_d : std::max(purlin_d, girder_d * 0.0));
+            double beam_w = col_w;
+            double soffit_d = 0.0;
+            if (lvl.framing.system == System::PostAndBeam) {
+                beam_w = is_primary ? girder_w : sec_w;
+                soffit_d = is_primary ? girder_d : sec_d;
+            } else if (lvl.framing.system == System::GirderPurlin) {
+                if (is_primary) {
+                    beam_w = girder_w;
+                    soffit_d = (lvl.framing.purlin == PurlinMode::Stacked) ? (purlin_d + girder_d) : girder_d;
+                } else if (lvl.framing.purlin == PurlinMode::Flush) {
+                    beam_w = sec_w;
+                    soffit_d = sec_d;
+                } else {
+                    beam_w = purlin_w;
+                    soffit_d = purlin_d;
+                }
+            }
             const double clear_h = (z_top_datum - soffit_d) - z_lo - 2.0 * ft_hw;
             if (clear_h <= ft_hw * 2.0)
                 continue;

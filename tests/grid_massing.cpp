@@ -373,7 +373,12 @@ int main() {
             {0.0, 3800.0, 7600.0, 11400.0},
             sq_pat,
             0.65,
-            wood_grid::Framing{.system = wood_grid::System::PostAndBeam, .deck = 160.0}
+            wood_grid::Framing{
+                .system = wood_grid::System::GirderPurlin,
+                .node = wood_grid::NodeMode::Through,
+                .spacing = 2200.0,
+                .deck = 160.0,
+            }
         ))
     );
     verify_grid(
@@ -382,21 +387,44 @@ int main() {
             {sq_fp},
             {0.0, 3800.0, 7600.0, 11400.0},
             sq_pat,
-            24.0,
+            36.0,
             wood_grid::Framing{
                 .system = wood_grid::System::PostAndBeam,
+                .node = wood_grid::NodeMode::Through,
                 .deck = 160.0,
                 .profiles = {.column = profile_round(300.0)},
+            }
+        ))
+    );
+    const Polyline flatiron_fp({
+        Point(0.0, 0.0, 0.0),
+        Point(6000.0, 6000.0, 0.0),
+        Point(18000.0, 6000.0, 0.0),
+        Point(18000.0, 12000.0, 0.0),
+        Point(0.0, 12000.0, 0.0),
+        Point(0.0, 0.0, 0.0),
+    });
+    verify_grid(
+        "oblique_flatiron_stack",
+        wood_grid::Grid(wood_grid::Stack::from_footprint(
+            {flatiron_fp},
+            {0.0, 3800.0, 7600.0},
+            wood_grid::Pattern::orthogonal({6000.0, 6000.0, 6000.0}, {6000.0, 6000.0}),
+            wood_grid::Framing{
+                .system = wood_grid::System::GirderPurlin,
+                .node = wood_grid::NodeMode::Flush,
+                .spacing = 2000.0,
+                .deck = 160.0,
             }
         ))
     );
 
     // 9. Developed two-layer modulated fin screen (`PurlinMode::Stacked` on vertical Plane).
     const wood_grid::Plan fin_plan = wood_grid::Plan::facade(
-        Line::from_points(Point(0.0, 0.0, 0.0), Point(9600.0, 0.0, 0.0)),
-        7000.0,
-        {1150.0, 850.0, 1450.0, 1350.0, 1150.0, 850.0, 1450.0, 1350.0},
-        {3500.0, 3500.0}
+        Line::from_points(Point(0.0, 0.0, 0.0), Point(9000.0, 0.0, 0.0)),
+        7200.0,
+        {950.0, 680.0, 1240.0, 880.0, 750.0, 950.0, 680.0, 1240.0, 880.0, 750.0},
+        {3600.0, 3600.0}
     );
     verify_grid(
         "stammhaus_fin_screen",
@@ -409,8 +437,8 @@ int main() {
                 .post_height = 0.0,
                 .spacing = 100000.0,
                 .profiles =
-                    {.girder = profile_rectangle(220.0, 160.0),
-                     .purlin = profile_rectangle(110.0, 320.0)},
+                    {.girder = profile_rectangle(760.0, 180.0),
+                     .purlin = profile_rectangle(95.0, 320.0)},
             }
         )
     );

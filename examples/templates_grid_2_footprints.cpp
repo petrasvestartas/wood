@@ -76,9 +76,9 @@ int main() {
              .span = 0,
              .post_height = 4000.0,
              .profiles =
-                 {.column = profile_round(280.0),
+                 {.column = profile_round(240.0),
                   .girder = profile_rectangle(240.0, 480.0),
-                  .beam = profile_rectangle(200.0, 400.0)},
+                  .beam = profile_rectangle(240.0, 420.0)},
          }},
         {"triangular",
          wood_grid::Plan::from_pattern(wood_grid::Pattern::triangular(6000.0, 4, 3), FLOOR),
@@ -88,7 +88,7 @@ int main() {
              .span = -1,
              .post_height = 4000.0,
              .profiles =
-                 {.column = profile_round(300.0), .girder = profile_rectangle(220.0, 440.0)},
+                 {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 440.0)},
          }},
         {"hexagonal",
          wood_grid::Plan::from_pattern(wood_grid::Pattern::hexagonal(4200.0, 3, 2), FLOOR),
@@ -98,7 +98,7 @@ int main() {
              .span = -1,
              .post_height = 4000.0,
              .profiles =
-                 {.column = profile_round(240.0), .girder = profile_rectangle(220.0, 420.0)},
+                 {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 420.0)},
          }},
         {"irregular",
          wood_grid::Plan::from_footprint(
@@ -126,7 +126,7 @@ int main() {
              .span = -1,
              .post_height = 4000.0,
              .profiles =
-                 {.column = profile_rectangle(280.0, 280.0),
+                 {.column = profile_rectangle(240.0, 240.0),
                   .girder = profile_rectangle(240.0, 460.0)},
          }},
         {"courtyard",

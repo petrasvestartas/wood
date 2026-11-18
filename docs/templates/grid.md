@@ -18,7 +18,7 @@ Planar, facade, and multi-storey timber grid generator in `src/templates/grid/gr
     <span class="wood-card-title">3 Facade Grids</span>
   </a>
   <a class="wood-card" href="#grid_example_4">
-    <img src="templates_grid_4_developed_facade_stammhaus_headquarters.webp" alt="Developed Timber Facade">
+    <img src="templates_grid_4_developed_facade_stammhaus_elevation.webp" alt="Developed Timber Facade">
     <span class="wood-card-title">4 Developed Facade</span>
   </a>
   <a class="wood-card" href="#grid_example_5">
@@ -165,24 +165,32 @@ Uses `Plan::facade` (`post_height = 0.0`) to frame vertical timber curtain walls
 
 ### 4 Developed Timber Facade (Stammhaus Progression) {#grid_example_4}
 
-Develops a five-storey timber headquarters facade inspired by the Blumer-Lehmann Stammhaus in Gossau across four stages: **(1)** recessed ground-floor glulam colonnade, cantilevered upper CLT floor slabs, and projecting roof cornice; **(2)** recessed ground storefront glazing and upper-storey punched timber spandrel bands; **(3)** the isolated two-layer brise-soleil screen where syncopated vertical glulam fins (`{1150, 850, 1450, 1350} mm` rhythm per `4800 mm` bay) run continuously in front of horizontal loggia ledgers via `PurlinMode::Stacked` on a vertical `Plane`; and **(4)** the complete four-sided headquarters assembly.
+Develops a five-storey timber headquarters inspired by the Blumer-Lehmann Stammhaus in Gossau: **(1)** primary glulam structure with an eight-bay recessed ground colonnade, four cantilevered upper CLT slabs, and a projecting flat timber roof cornice; **(2)** recessed ground storefront glazing and upper ribbon window mullions; **(3)** the isolated two-layer developed timber screen (`PurlinMode::Stacked` on `Plan::facade`) pairing `760 mm` solid horizontal timber spandrel fascia bands in the inner layer with continuous syncopated vertical glulam fins (`{950, 680, 1240, 880, 750} mm` rhythm) standing proud in the outer layer; and **(4–6)** isometric, front-elevation, and corner-detail views of the complete headquarters.
 
-<div class="wood-card-grid cols-4">
+<div class="wood-card-grid cols-3">
   <a class="wood-card" href="templates_grid_4_developed_facade_stage_1_colonnade.webp">
     <img src="templates_grid_4_developed_facade_stage_1_colonnade.webp" alt="Stage 1 Colonnade and Cantilevered Slabs">
     <span class="wood-card-title">1 Colonnade &amp; Slabs</span>
   </a>
   <a class="wood-card" href="templates_grid_4_developed_facade_stage_2_spandrels.webp">
-    <img src="templates_grid_4_developed_facade_stage_2_spandrels.webp" alt="Stage 2 Inner Spandrel Envelope">
-    <span class="wood-card-title">2 Spandrel Envelope</span>
+    <img src="templates_grid_4_developed_facade_stage_2_spandrels.webp" alt="Stage 2 Inner Window Envelope">
+    <span class="wood-card-title">2 Window Envelope</span>
   </a>
   <a class="wood-card" href="templates_grid_4_developed_facade_stage_3_fin_screen.webp">
-    <img src="templates_grid_4_developed_facade_stage_3_fin_screen.webp" alt="Stage 3 Modulated Vertical Fin Screen">
-    <span class="wood-card-title">3 Modulated Fin Screen</span>
+    <img src="templates_grid_4_developed_facade_stage_3_fin_screen.webp" alt="Stage 3 Two-Layer Fin Screen">
+    <span class="wood-card-title">3 Two-Layer Fin Screen</span>
   </a>
   <a class="wood-card" href="templates_grid_4_developed_facade_stammhaus_headquarters.webp">
     <img src="templates_grid_4_developed_facade_stammhaus_headquarters.webp" alt="Stage 4 Complete Headquarters">
     <span class="wood-card-title">4 Complete Headquarters</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_developed_facade_stammhaus_elevation.webp">
+    <img src="templates_grid_4_developed_facade_stammhaus_elevation.webp" alt="Front Elevation">
+    <span class="wood-card-title">5 Front Elevation</span>
+  </a>
+  <a class="wood-card" href="templates_grid_4_developed_facade_stammhaus_detail.webp">
+    <img src="templates_grid_4_developed_facade_stammhaus_detail.webp" alt="Corner Tectonic Detail">
+    <span class="wood-card-title">6 Corner Tectonic Detail</span>
   </a>
 </div>
 
@@ -192,9 +200,9 @@ Develops a five-storey timber headquarters facade inspired by the Blumer-Lehmann
 
 ### 5 Multi-Storey Building Topologies {#grid_example_5}
 
-Six multi-storey timber building topologies composed via `Stack`: a two-storey L-frame with **in-line** chamfered column heads and 45°-notched flush CLT cassette decks (`five_bay`), five storeys of **shifted** cantilevered floor boxes over a plumb column grid (`Stack::shifted`), a six-storey **tapered** tower with inclined perimeter columns (`Stack::tapered`), a six-storey `30°` **twisting** tower with helicoidal round timber columns (`Stack::twisted`), a five-storey podium and **setback** tower (`Stack::from_levels`), and a three-storey **core-and-braced** hybrid frame (`Stack::add_perimeter_facades`).
+Eight multi-storey timber building topologies composed via `Stack`: a two-storey L-frame with **in-line** chamfered column heads and 45°-notched flush CLT cassette decks (`five_bay`), five storeys of **shifted** cantilevered floor boxes over a plumb column grid (`Stack::shifted`), a six-storey **tapered** tower with seamless continuous leaning columns (`Stack::tapered`), a seven-storey `42°` **twisting** tower with seamless helicoidal round timber columns (`Stack::twisted`), a six-storey cascading **stepped-terrace** building around an open central atrium (`Stack::from_levels`), a four-storey 16-sector **cylindrical** ring-and-radial rotunda (`Pattern::radial`), a four-storey chamfered pentagonal **flatiron** building with `45°` diagonal facade cuts, and a three-storey **core-and-braced** hybrid frame (`Stack::add_perimeter_facades`).
 
-<div class="wood-card-grid cols-3">
+<div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_grid_5_multistorey_five_bay.webp">
     <img src="templates_grid_5_multistorey_five_bay.webp" alt="Five-Bay L Frame with In-Line Heads">
     <span class="wood-card-title">Five-Bay (In-Line Heads)</span>
@@ -209,11 +217,19 @@ Six multi-storey timber building topologies composed via `Stack`: a two-storey L
   </a>
   <a class="wood-card" href="templates_grid_5_multistorey_twisted_tower.webp">
     <img src="templates_grid_5_multistorey_twisted_tower.webp" alt="Twisted Timber Tower">
-    <span class="wood-card-title">Twisted Tower (30°)</span>
+    <span class="wood-card-title">Twisted Tower (42°)</span>
   </a>
   <a class="wood-card" href="templates_grid_5_multistorey_setback_tower.webp">
-    <img src="templates_grid_5_multistorey_setback_tower.webp" alt="Podium and Setback Tower">
-    <span class="wood-card-title">Setback Tower</span>
+    <img src="templates_grid_5_multistorey_setback_tower.webp" alt="Stepped Atrium Terraces">
+    <span class="wood-card-title">Stepped Atrium</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_multistorey_cylindrical_rotunda.webp">
+    <img src="templates_grid_5_multistorey_cylindrical_rotunda.webp" alt="Cylindrical Ring Rotunda">
+    <span class="wood-card-title">Cylindrical Rotunda</span>
+  </a>
+  <a class="wood-card" href="templates_grid_5_multistorey_oblique_flatiron.webp">
+    <img src="templates_grid_5_multistorey_oblique_flatiron.webp" alt="Oblique Flatiron Prism">
+    <span class="wood-card-title">Oblique Flatiron</span>
   </a>
   <a class="wood-card" href="templates_grid_5_multistorey_core_and_facade.webp">
     <img src="templates_grid_5_multistorey_core_and_facade.webp" alt="Core Walls and Braced Facades">

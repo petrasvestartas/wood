@@ -17,8 +17,8 @@ int main() {
     const double GAP = 5000.0;
 
     const wood_grid::Profiles mullion_profiles{
-        .girder = profile_rectangle(180.0, 320.0),
-        .beam = profile_rectangle(140.0, 260.0),
+        .girder = profile_rectangle(160.0, 280.0),
+        .beam = profile_rectangle(140.0, 280.0),
         .brace = profile_rectangle(140.0, 180.0),
     };
 
