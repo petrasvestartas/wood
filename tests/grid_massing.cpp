@@ -337,6 +337,84 @@ int main() {
     );
     verify_grid("core_and_facade_stack", wood_grid::Grid(core_stack));
 
+    // 7. In-line chamfered column heads (`[-beam_depth, 0]`) + notched flush cassette decks.
+    const wood_grid::Stack inline_head_stack = wood_grid::Stack::from_footprint(
+        {l_ring},
+        {0.0, 3400.0, 6800.0},
+        wood_grid::Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
+        wood_grid::Framing{
+            .system = wood_grid::System::PostAndBeam,
+            .node = wood_grid::NodeMode::Head,
+            .span = -1,
+            .deck = 180.0,
+            .deck_flush = true,
+            .head_reach = 220.0,
+        }
+    );
+    verify_grid("inline_heads_five_bay", wood_grid::Grid(inline_head_stack));
+
+    // 8. Shifted, tapered, and twisted multi-storey stacks (`0.000 mm3` clash across inclined columns!).
+    const Polyline sq_fp = Polyline::rectangle(Point(0.0, 0.0, 0.0), X, Y, 12000.0, 12000.0);
+    const wood_grid::Pattern sq_pat = wood_grid::Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0});
+    verify_grid(
+        "shifted_stack",
+        wood_grid::Grid(wood_grid::Stack::shifted(
+            {sq_fp},
+            {0.0, 3600.0, 7200.0, 10800.0},
+            {{0.0, 0.0}, {3000.0, 0.0}, {3000.0, 3000.0}},
+            wood_grid::Pattern::orthogonal(std::vector<double>(6, 3000.0), std::vector<double>(6, 3000.0)),
+            wood_grid::Framing{.system = wood_grid::System::PostAndBeam, .deck = 160.0}
+        ))
+    );
+    verify_grid(
+        "tapered_stack",
+        wood_grid::Grid(wood_grid::Stack::tapered(
+            {sq_fp},
+            {0.0, 3800.0, 7600.0, 11400.0},
+            sq_pat,
+            0.65,
+            wood_grid::Framing{.system = wood_grid::System::PostAndBeam, .deck = 160.0}
+        ))
+    );
+    verify_grid(
+        "twisted_stack",
+        wood_grid::Grid(wood_grid::Stack::twisted(
+            {sq_fp},
+            {0.0, 3800.0, 7600.0, 11400.0},
+            sq_pat,
+            24.0,
+            wood_grid::Framing{
+                .system = wood_grid::System::PostAndBeam,
+                .deck = 160.0,
+                .profiles = {.column = profile_round(300.0)},
+            }
+        ))
+    );
+
+    // 9. Developed two-layer modulated fin screen (`PurlinMode::Stacked` on vertical Plane).
+    const wood_grid::Plan fin_plan = wood_grid::Plan::facade(
+        Line::from_points(Point(0.0, 0.0, 0.0), Point(9600.0, 0.0, 0.0)),
+        7000.0,
+        {1150.0, 850.0, 1450.0, 1350.0, 1150.0, 850.0, 1450.0, 1350.0},
+        {3500.0, 3500.0}
+    );
+    verify_grid(
+        "stammhaus_fin_screen",
+        wood_grid::Grid(
+            fin_plan,
+            wood_grid::Framing{
+                .system = wood_grid::System::GirderPurlin,
+                .purlin = wood_grid::PurlinMode::Stacked,
+                .span = 0,
+                .post_height = 0.0,
+                .spacing = 100000.0,
+                .profiles =
+                    {.girder = profile_rectangle(220.0, 160.0),
+                     .purlin = profile_rectangle(110.0, 320.0)},
+            }
+        )
+    );
+
     std::cout << "grid checks passed" << std::endl;
     return 0;
     } catch (const std::exception& e) {

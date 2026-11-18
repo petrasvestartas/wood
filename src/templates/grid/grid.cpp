@@ -58,6 +58,62 @@ std::optional<Vector> solve_2d_lines(const Vector& n1, double d1, const Vector& 
     return Vector((d1 * n2[1] - n1[1] * d2) / det, (n1[0] * d2 - d1 * n2[0]) / det, 0.0);
 }
 
+/// Counter-clockwise 2D convex hull (monotone chain) in `(u, v, 0)`.
+std::vector<Point> convex_hull_2d(std::vector<Point> pts) {
+    std::sort(pts.begin(), pts.end(), [](const Point& a, const Point& b) {
+        return std::abs(a[0] - b[0]) > 1e-6 ? a[0] < b[0] : a[1] < b[1];
+    });
+    pts.erase(
+        std::unique(pts.begin(), pts.end(), [](const Point& a, const Point& b) {
+            return std::hypot(a[0] - b[0], a[1] - b[1]) < 0.05;
+        }),
+        pts.end()
+    );
+    if (pts.size() <= 2)
+        return pts;
+
+    auto cross = [](const Point& o, const Point& a, const Point& b) {
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    };
+    std::vector<Point> hull;
+    for (const Point& p : pts) {
+        while (hull.size() >= 2 && cross(hull[hull.size() - 2], hull.back(), p) <= 1e-5)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+    const size_t lower_n = hull.size();
+    for (size_t i = pts.size() - 1; i > 0; --i) {
+        const Point& p = pts[i - 1];
+        while (hull.size() > lower_n && cross(hull[hull.size() - 2], hull.back(), p) <= 1e-5)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+    hull.pop_back();
+    return hull;
+}
+
+/// Clips a 2D CCW polygon against half-plane `(P - origin) . normal_in >= 0`.
+std::vector<Point> clip_polygon_halfplane_2d(
+    const std::vector<Point>& poly, const Point& origin, const Vector& normal_in
+) {
+    if (poly.empty())
+        return {};
+    std::vector<Point> out;
+    for (size_t i = 0; i < poly.size(); ++i) {
+        const Point& a = poly[i];
+        const Point& b = poly[(i + 1) % poly.size()];
+        const double da = (a - origin).dot(normal_in);
+        const double db = (b - origin).dot(normal_in);
+        if (da >= -1e-5)
+            out.push_back(a);
+        if ((da >= -1e-5) != (db >= -1e-5) && std::abs(da - db) > 1e-9) {
+            const double t = da / (da - db);
+            out.emplace_back(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, 0.0);
+        }
+    }
+    return out;
+}
+
 void add_unique_plane(std::vector<Plane>& planes, const Plane& candidate) {
     for (const Plane& p : planes) {
         if (p.z_axis().dot(candidate.z_axis()) > 0.9999 &&
@@ -112,7 +168,7 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         spec.w_top = 0.0;
         spec.w_bot = -d;
         if (framing.span < 0)
-            spec.tier = edge.boundary ? 3 : 2;
+            spec.tier = 2;
         else
             spec.tier = edge.boundary ? 3 : (is_primary ? 2 : 1);
         return spec;
@@ -160,10 +216,11 @@ bool layers_overlap(const EdgeSpec& a, const EdgeSpec& b) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 struct ColumnFootprint {
-    std::vector<Point> raw_uv;       // Unclipped CCW polygon in (u, v)
-    std::vector<Plane> facade_clips; // Exterior boundary planes clipping oblique corner columns/heads
+    std::vector<Point> raw_uv;         // Unclipped CCW polygon in (u, v)
+    std::vector<Point> inline_head_uv; // Non-empty when `NodeMode::Head` sits in-line with beams!
+    std::vector<Plane> facade_clips;   // Exterior boundary planes clipping oblique corner columns/heads
     Vector up_uv = Vector(0.0, 1.0, 0.0);
-    double seat_w = 0.0;             // Underside of supported beams/slab at this node
+    double seat_w = 0.0;               // Underside of supported beams/slab at this node
 };
 
 std::map<size_t, ColumnFootprint> compute_column_footprints(
@@ -258,23 +315,77 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
             cf.seat_w = lowest;
         }
 
-        // At non-90-degree boundary corners, clip column/head to the exterior facade planes of boundary beams.
-        if (bnd_dirs.size() >= 2 && std::abs(bnd_dirs[0].dot(bnd_dirs[1])) > 0.02) {
-            for (size_t ei : adj[v]) {
-                const PlanEdge& e = plan.edges[ei];
-                if (!e.boundary)
-                    continue;
-                const auto key = std::minmax(e.a, e.b);
-                if (!boundary_inward_uv.count(key))
-                    continue;
-                const Vector n_in = boundary_inward_uv.at(key);
-                const double half_w = edge_specs[ei].role != Role::None
-                                          ? 0.5 * edge_specs[ei].width
-                                          : wood_session::compute_size(framing.profiles.column).first * 0.5;
-                cf.facade_clips.push_back(
-                    lift_plane_uv(plan, plan.nodes[v] - n_in * half_w, n_in)
-                );
+        // Collect exterior boundary half-planes `(origin_uv, inward_normal)` at this node.
+        std::vector<std::pair<Point, Vector>> bnd_halfplanes_uv;
+        for (size_t ei : adj[v]) {
+            const PlanEdge& e = plan.edges[ei];
+            if (!e.boundary)
+                continue;
+            const auto key = std::minmax(e.a, e.b);
+            if (!boundary_inward_uv.count(key))
+                continue;
+            const Vector n_in = boundary_inward_uv.at(key);
+            const double half_w =
+                edge_specs[ei].role != Role::None
+                    ? 0.5 * edge_specs[ei].width
+                    : wood_session::compute_size(framing.profiles.column).first * 0.5;
+            bnd_halfplanes_uv.emplace_back(plan.nodes[v] - n_in * half_w, n_in);
+        }
+
+        // At true non-90-degree, non-180-degree boundary corners, clip column to exterior facade planes.
+        if (bnd_dirs.size() >= 2) {
+            const double d_abs = std::abs(bnd_dirs[0].dot(bnd_dirs[1]));
+            if (d_abs > 0.02 && d_abs < 0.995) {
+                for (const auto& [orig_p, n_in] : bnd_halfplanes_uv)
+                    cf.facade_clips.push_back(lift_plane_uv(plan, orig_p, n_in));
             }
+        }
+
+        // Build chamfered IN-LINE head polygon (`[-beam_depth, 0]`) when `NodeMode::Head` frames beams!
+        if (framing.node == NodeMode::Head && framing.system != System::Slab &&
+            framing.head_reach > TOL) {
+            const double col_hw = 0.5 * wood_session::compute_size(framing.profiles.column).first;
+            double reach = col_hw + framing.head_reach;
+
+            struct HeadRay {
+                Vector d;
+                double ang;
+                double hw;
+            };
+            std::vector<HeadRay> hrays;
+            for (size_t ei : adj[v]) {
+                const EdgeSpec& es = edge_specs[ei];
+                if (es.role == Role::None || es.w_bot > cf.seat_w + 0.5 * es.depth)
+                    continue;
+                const PlanEdge& e = plan.edges[ei];
+                const size_t ov = (e.a == v) ? e.b : e.a;
+                const Vector d = (plan.nodes[ov] - plan.nodes[v]).normalized();
+                hrays.push_back({d, std::atan2(d[1], d[0]), 0.5 * es.width});
+            }
+            std::sort(hrays.begin(), hrays.end(), [](const HeadRay& a, const HeadRay& b) {
+                return a.ang < b.ang;
+            });
+            for (size_t i = 0; i < hrays.size() && hrays.size() >= 2; ++i) {
+                const HeadRay& a = hrays[i];
+                const HeadRay& b = hrays[(i + 1) % hrays.size()];
+                const double gap = wrap_ccw(b.ang - a.ang);
+                if (gap > 0.20 && gap < Tolerance::PI - 0.20) {
+                    const double clear_t = (b.hw + a.hw * std::cos(gap)) / std::sin(gap);
+                    reach = std::max(reach, std::min(clear_t + 2.0, col_hw * 3.0));
+                }
+            }
+
+            std::vector<Point> pts = cf.raw_uv;
+            for (const HeadRay& hr : hrays) {
+                const Vector s = left_2d(hr.d);
+                pts.push_back(plan.nodes[v] + hr.d * reach + s * hr.hw);
+                pts.push_back(plan.nodes[v] + hr.d * reach - s * hr.hw);
+            }
+            std::vector<Point> hull = convex_hull_2d(std::move(pts));
+            for (const auto& [orig_p, n_in] : bnd_halfplanes_uv)
+                hull = clip_polygon_halfplane_2d(hull, orig_p, n_in);
+            if (hull.size() >= 3)
+                cf.inline_head_uv = std::move(hull);
         }
 
         out[v] = std::move(cf);
@@ -325,6 +436,13 @@ struct IncidentRay {
     double half_w = 0.0;
 };
 
+double plane_overrun_uv(const Vector& dir, double half_w, const Vector& keep_n) {
+    const double speed = dir.dot(keep_n);
+    if (speed <= 1e-4)
+        return 0.0;
+    return half_w * std::abs(left_2d(dir).dot(keep_n)) / speed;
+}
+
 /// Miter plane keeping ray `a` (`dir_a`, `hw_a`) on its CW side against CCW neighbour `b` (`dir_b`, `hw_b`).
 std::pair<Plane, double> sector_miter_ccw(
     const Plan& plan,
@@ -339,7 +457,7 @@ std::pair<Plane, double> sector_miter_ccw(
     if (std::abs(delta - Tolerance::PI) < 0.09) {
         const Vector diff = dir_a - dir_b;
         const Vector n = diff.magnitude() > 1e-6 ? diff.normalized() : dir_a;
-        return {lift_plane_uv(plan, node_uv, n), 0.0};
+        return {lift_plane_uv(plan, node_uv, n), plane_overrun_uv(dir_a, hw_a, n)};
     }
 
     const Vector s_a_ccw = left_2d(dir_a);
@@ -349,8 +467,7 @@ std::pair<Plane, double> sector_miter_ccw(
         if (mag > 1e-6) {
             const Vector tangent = *corner / mag;
             const Vector keep_a = right_2d(tangent); // Points into ray A's sector CW of tangent!
-            const double need = std::max(0.0, corner->dot(dir_a));
-            return {lift_plane_uv(plan, node_uv, keep_a), need};
+            return {lift_plane_uv(plan, node_uv, keep_a), plane_overrun_uv(dir_a, hw_a, keep_a)};
         }
     }
 
@@ -377,7 +494,22 @@ EndTrim compute_node_trim(
     const double span_len = origin_uv.distance(plan.nodes[other_v]);
     const double max_overrun = std::min(target_s.width * 2.5, span_len * 0.4);
 
-    // 1. Continuous column (`NodeMode::Through`) cuts every overlapping beam at its exit face.
+    // 1. Continuous column (`NodeMode::Through`) or in-line head (`NodeMode::Head`) cuts beams at its exit face!
+    const bool has_inline_head =
+        framing.node == NodeMode::Head && columns.count(node_v) > 0 &&
+        !columns.at(node_v).inline_head_uv.empty() &&
+        target_s.w_bot <= columns.at(node_v).seat_w + 0.5 * target_s.depth;
+    if (has_inline_head) {
+        if (const auto hp = polygon_exit_plane_uv(
+                plan, columns.at(node_v).inline_head_uv, origin_uv, target_dir
+            );
+            hp.has_value()) {
+            add_unique_plane(trim.planes, *hp);
+        }
+        trim.overrun = 0.0;
+        return trim;
+    }
+
     const bool has_through_col =
         framing.node == NodeMode::Through && columns.count(node_v) > 0;
     if (has_through_col) {
@@ -404,14 +536,36 @@ EndTrim compute_node_trim(
         return a.angle < b.angle;
     });
 
-    // Promote straight-through collinear pairs at equal-tier T-junctions so the straight edge runs clean.
-    if (rays.size() == 3 && rays[0].tier == rays[1].tier && rays[1].tier == rays[2].tier) {
-        for (size_t i = 0; i < 3; ++i) {
-            const size_t j = (i + 1) % 3;
-            if (rays[i].dir.dot(rays[j].dir) < -0.985) {
-                rays[i].tier += 1;
-                rays[j].tier += 1;
-                break;
+    // Promote straight-through collinear boundary walls (or 3-ray T-junctions) when all rays share one tier.
+    if (rays.size() >= 3) {
+        bool same_tier = true;
+        for (size_t i = 1; i < rays.size(); ++i)
+            if (rays[i].tier != rays[0].tier)
+                same_tier = false;
+        if (same_tier) {
+            bool promoted = false;
+            for (size_t i = 0; i < rays.size() && !promoted; ++i) {
+                if (!plan.edges[rays[i].edge_idx].boundary)
+                    continue;
+                for (size_t j = i + 1; j < rays.size(); ++j) {
+                    if (plan.edges[rays[j].edge_idx].boundary &&
+                        rays[i].dir.dot(rays[j].dir) < -0.985) {
+                        rays[i].tier += 1;
+                        rays[j].tier += 1;
+                        promoted = true;
+                        break;
+                    }
+                }
+            }
+            if (!promoted && rays.size() == 3) {
+                for (size_t i = 0; i < 3; ++i) {
+                    const size_t j = (i + 1) % 3;
+                    if (rays[i].dir.dot(rays[j].dir) < -0.985) {
+                        rays[i].tier += 1;
+                        rays[j].tier += 1;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -519,24 +673,53 @@ EndTrim compute_node_trim(
 
     if (top.size() == 1) {
         if (!has_through_col) {
+            // Check if lower-tier boundary rays meet `self` at an oblique/perpendicular perimeter:
+            // bevel `self`'s end flush with the boundary member's outer facade face!
+            bool beveled_to_facade = false;
             double ext = 0.0;
-            if (rays.size() >= 2) {
-                for (const IncidentRay& r : rays) {
-                    if (r.edge_idx == self.edge_idx)
-                        continue;
-                    const double sin_a =
-                        std::abs(self.dir[0] * r.dir[1] - self.dir[1] * r.dir[0]);
-                    if (sin_a > 0.25)
-                        ext = std::max(ext, r.half_w / sin_a);
-                }
-            } else if (columns.count(node_v)) {
-                for (const Point& cp : columns.at(node_v).raw_uv)
-                    ext = std::max(ext, (cp - origin_uv).dot(-self.dir));
+            for (const IncidentRay& r : rays) {
+                if (r.edge_idx == self.edge_idx || !plan.edges[r.edge_idx].boundary)
+                    continue;
+                const double sin_a = std::abs(self.dir[0] * r.dir[1] - self.dir[1] * r.dir[0]);
+                if (sin_a <= 0.15)
+                    continue;
+                Vector n_in = left_2d(r.dir);
+                if (self.dir.dot(n_in) < 0.0)
+                    n_in = -n_in;
+                const double speed = self.dir.dot(n_in);
+                if (speed <= 0.15)
+                    continue;
+                const Vector self_s = left_2d(self.dir);
+                const double req =
+                    (r.half_w + self.half_w * std::abs(self_s.dot(n_in))) / speed;
+                ext = std::max(ext, req);
+                add_unique_plane(
+                    trim.planes, lift_plane_uv(plan, origin_uv - n_in * r.half_w, n_in)
+                );
+                beveled_to_facade = true;
             }
-            trim.overrun = std::min(ext, max_overrun);
-            add_unique_plane(
-                trim.planes, lift_plane_uv(plan, origin_uv - self.dir * trim.overrun, self.dir)
-            );
+
+            if (!beveled_to_facade) {
+                if (rays.size() >= 2) {
+                    for (const IncidentRay& r : rays) {
+                        if (r.edge_idx == self.edge_idx)
+                            continue;
+                        const double sin_a =
+                            std::abs(self.dir[0] * r.dir[1] - self.dir[1] * r.dir[0]);
+                        if (sin_a > 0.25)
+                            ext = std::max(ext, r.half_w / sin_a);
+                    }
+                } else if (columns.count(node_v)) {
+                    for (const Point& cp : columns.at(node_v).raw_uv)
+                        ext = std::max(ext, (cp - origin_uv).dot(-self.dir));
+                }
+                trim.overrun = std::min(ext, max_overrun);
+                add_unique_plane(
+                    trim.planes, lift_plane_uv(plan, origin_uv - self.dir * trim.overrun, self.dir)
+                );
+            } else {
+                trim.overrun = std::min(ext, max_overrun);
+            }
         }
         return trim;
     }
@@ -550,43 +733,39 @@ EndTrim compute_node_trim(
             add_unique_plane(trim.planes, mp);
             trim.overrun = std::max(trim.overrun, ov);
         } else {
-            const auto [mp_other, ov_other] =
+            const auto [mp_other, _] =
                 sector_miter_ccw(plan, origin_uv, other.dir, other.half_w, self.dir, self.half_w);
-            add_unique_plane(
-                trim.planes, Plane::from_point_normal(mp_other.origin(), -mp_other.z_axis())
+            const Plane mp = Plane::from_point_normal(mp_other.origin(), -mp_other.z_axis());
+            add_unique_plane(trim.planes, mp);
+            const Vector keep_uv(
+                mp.z_axis().dot(plan.frame.x_axis()), mp.z_axis().dot(plan.frame.y_axis()), 0.0
             );
-            const Vector s_ccw = left_2d(other.dir);
-            const Vector s_cw = right_2d(self.dir);
-            if (const auto c = solve_2d_lines(s_ccw, other.half_w, s_cw, self.half_w); c.has_value())
-                trim.overrun = std::max(trim.overrun, std::max(0.0, c->dot(self.dir)));
-            else
-                trim.overrun = std::max(trim.overrun, ov_other);
+            trim.overrun = std::max(trim.overrun, plane_overrun_uv(self.dir, self.half_w, keep_uv));
         }
         trim.overrun = has_through_col ? 0.0 : std::min(trim.overrun, max_overrun);
         return trim;
     }
 
-    // 3 or more equal-tier beams (e.g. 120 deg hexagonal Y, 4-way cross, 6-way 60 deg star):
-    // Miter against both immediate CCW and CW angular neighbours!
+    // 3 or more equal-tier beams (e.g. 120 deg hexagonal Y, 4-way cross, 60 deg corner with diagonal, 6-way star):
+    // Miter against both immediate CCW and CW angular neighbours around the full 360 deg ring!
     const IncidentRay& nb_ccw = *top[(top_self + 1) % top.size()];
     const IncidentRay& nb_cw = *top[(top_self + top.size() - 1) % top.size()];
-    const double gap_ccw = wrap_ccw(nb_ccw.angle - self.angle);
-    const double gap_cw = wrap_ccw(self.angle - nb_cw.angle);
 
-    if (gap_ccw <= Tolerance::PI + 0.05) {
+    {
         const auto [mp, ov] =
             sector_miter_ccw(plan, origin_uv, self.dir, self.half_w, nb_ccw.dir, nb_ccw.half_w);
         add_unique_plane(trim.planes, mp);
         trim.overrun = std::max(trim.overrun, ov);
     }
-    if (gap_cw <= Tolerance::PI + 0.05) {
+    {
         const auto [mp_cw, _] =
             sector_miter_ccw(plan, origin_uv, nb_cw.dir, nb_cw.half_w, self.dir, self.half_w);
-        add_unique_plane(trim.planes, Plane::from_point_normal(mp_cw.origin(), -mp_cw.z_axis()));
-        const Vector s_ccw = left_2d(nb_cw.dir);
-        const Vector s_cw = right_2d(self.dir);
-        if (const auto c = solve_2d_lines(s_ccw, nb_cw.half_w, s_cw, self.half_w); c.has_value())
-            trim.overrun = std::max(trim.overrun, std::max(0.0, c->dot(self.dir)));
+        const Plane mp = Plane::from_point_normal(mp_cw.origin(), -mp_cw.z_axis());
+        add_unique_plane(trim.planes, mp);
+        const Vector keep_uv(
+            mp.z_axis().dot(plan.frame.x_axis()), mp.z_axis().dot(plan.frame.y_axis()), 0.0
+        );
+        trim.overrun = std::max(trim.overrun, plane_overrun_uv(self.dir, self.half_w, keep_uv));
     }
 
     trim.overrun = has_through_col ? 0.0 : std::min(trim.overrun, max_overrun);
@@ -1008,36 +1187,76 @@ BuiltSupport build_column_and_head(
 ) {
     BuiltSupport out;
     const double w_foot = -framing.post_height;
-    const bool use_head =
-        framing.node == NodeMode::Head && framing.head_height > TOL && framing.head_reach > TOL;
+    const bool has_inline_head =
+        framing.node == NodeMode::Head && !cf.inline_head_uv.empty();
+    const bool has_slab_head =
+        framing.node == NodeMode::Head && framing.system == System::Slab &&
+        framing.head_height > TOL && framing.head_reach > TOL;
     const double w_col_top = framing.node == NodeMode::Through
                                  ? 0.0
-                                 : (use_head ? cf.seat_w - framing.head_height : cf.seat_w);
+                                 : (has_slab_head ? cf.seat_w - framing.head_height : cf.seat_w);
 
-    if (w_col_top - w_foot > TOL * 2.0) {
-        const Point foot_w = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_foot);
-        const Point top_w = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_col_top);
-        const Vector up_w =
+    const bool custom_foot = v < plan.column_feet.size() && plan.column_feet[v].has_value();
+    const Point foot_w = custom_foot
+                             ? *plan.column_feet[v]
+                             : plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_foot);
+    const Point top_w = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], w_col_top);
+
+    if ((top_w - foot_w).dot(plan.frame.z_axis()) > TOL * 2.0) {
+        const Vector axis_dir = (top_w - foot_w).normalized();
+        Vector up_w =
             (plan.frame.x_axis() * cf.up_uv[0] + plan.frame.y_axis() * cf.up_uv[1]).normalized();
-        auto col = std::make_shared<wood_session::EdgeStraightElement>(
-            Polyline({foot_w, top_w}), framing.profiles.column, std::vector<Vector>{up_w}, "column"
-        );
-        col->cuts = cf.facade_clips;
-        out.column = col;
+        const bool is_inclined = std::abs(axis_dir.dot(plan.frame.z_axis())) < 0.9999;
+
+        if (is_inclined) {
+            up_w = (up_w - axis_dir * up_w.dot(axis_dir)).normalized();
+            const double col_ext =
+                1.5 * wood_session::compute_size(framing.profiles.column).first;
+            auto col = std::make_shared<wood_session::EdgeStraightElement>(
+                Polyline({foot_w - axis_dir * col_ext, top_w + axis_dir * col_ext}),
+                framing.profiles.column,
+                std::vector<Vector>{up_w},
+                "column"
+            );
+            col->cuts = {
+                Plane::from_point_normal(foot_w, plan.frame.z_axis()),
+                Plane::from_point_normal(top_w, -plan.frame.z_axis()),
+            };
+            out.column = col;
+        } else {
+            auto col = std::make_shared<wood_session::EdgeStraightElement>(
+                Polyline({foot_w, top_w}),
+                framing.profiles.column,
+                std::vector<Vector>{up_w},
+                "column"
+            );
+            col->cuts = cf.facade_clips;
+            out.column = col;
+        }
     }
 
-    if (use_head) {
-        // Single chamfered timber head block (`NodeBlockElement`): flares outward on interior sides,
+    if (has_inline_head) {
+        // In-line chamfered timber head block (`[cf.seat_w, 0.0]`): flush with beam tops & soffits!
+        const Polyline ring_uv = close_ring(cf.inline_head_uv);
+        auto head = std::make_shared<wood_session::NodeBlockElement>(
+            std::vector<Polyline>{
+                plan.lift_polyline(ring_uv, cf.seat_w),
+                plan.lift_polyline(ring_uv, 0.0),
+            },
+            "head"
+        );
+        head->invalidate_geometry();
+        out.head = head;
+    } else if (has_slab_head) {
+        // Under-slab chamfered timber head (`[w_col_top, cf.seat_w]`): flares outward on interior sides,
         // stays flush with boundary edges on perimeter/corner columns!
         std::vector<size_t> bnd_edges;
         for (size_t ei = 0; ei < plan.edges.size(); ++ei)
             if (plan.edges[ei].boundary && (plan.edges[ei].a == v || plan.edges[ei].b == v))
                 bnd_edges.push_back(ei);
 
-        // Build exterior boundary limit planes at the column's own outer faces on boundary sides.
         std::vector<Plane> perim_limits = cf.facade_clips;
         if (!bnd_edges.empty() && perim_limits.empty()) {
-            // Orthogonal perimeter edge/corner: prevent head flare past outer column face on exterior side.
             for (const PlanCell& cell : plan.cells) {
                 const auto& loop = cell.outer;
                 for (size_t i = 0; i < loop.size(); ++i) {
@@ -1045,7 +1264,6 @@ BuiltSupport build_column_and_head(
                     const size_t b = loop[(i + 1) % loop.size()];
                     if (a != v && b != v)
                         continue;
-                    // Check if (a, b) is a boundary edge.
                     bool is_bnd = false;
                     for (size_t ei : bnd_edges)
                         if (std::minmax(plan.edges[ei].a, plan.edges[ei].b) == std::minmax(a, b))
@@ -1053,7 +1271,7 @@ BuiltSupport build_column_and_head(
                     if (!is_bnd)
                         continue;
                     const Vector d = (plan.nodes[b] - plan.nodes[a]).normalized();
-                    const Vector n_in = left_2d(d); // Points into floor interior
+                    const Vector n_in = left_2d(d);
                     double col_ext = 0.0;
                     for (const Point& cp : cf.raw_uv)
                         col_ext = std::max(col_ext, (cp - plan.nodes[v]).dot(-n_in));
@@ -1084,25 +1302,48 @@ BuiltSupport build_column_and_head(
     return out;
 }
 
-std::vector<Polyline> largest_region_with_holes(std::vector<Polyline> rings) {
-    std::stable_sort(rings.begin(), rings.end(), [](const Polyline& a, const Polyline& b) {
-        return std::abs(area_2d(loop_points(a))) > std::abs(area_2d(loop_points(b)));
-    });
-    if (rings.empty() || area_2d(loop_points(rings[0])) <= TOL * TOL)
-        return {};
-    std::vector<Polyline> kept = {rings[0]};
-    for (size_t i = 1; i < rings.size(); ++i) {
-        const std::vector<Point> pts = loop_points(rings[i]);
-        if (!pts.empty() && area_2d(pts) < -TOL * TOL && rings[0].point_in_polygon_2d(pts[0]))
-            kept.push_back(rings[i]);
+std::vector<std::vector<Polyline>> all_regions_with_holes(std::vector<Polyline> rings) {
+    std::vector<Polyline> outers;
+    std::vector<Polyline> holes;
+    for (Polyline& r : rings) {
+        const double a = area_2d(loop_points(r));
+        if (a > TOL * TOL)
+            outers.push_back(std::move(r));
+        else if (a < -TOL * TOL)
+            holes.push_back(std::move(r));
     }
-    return kept;
+    std::stable_sort(outers.begin(), outers.end(), [](const Polyline& a, const Polyline& b) {
+        return std::abs(area_2d(loop_points(a))) < std::abs(area_2d(loop_points(b)));
+    });
+    std::vector<std::vector<Polyline>> groups(outers.size());
+    for (size_t i = 0; i < outers.size(); ++i)
+        groups[i].push_back(outers[i]);
+    for (const Polyline& h : holes) {
+        const std::vector<Point> pts = loop_points(h);
+        if (pts.empty())
+            continue;
+        for (size_t i = 0; i < outers.size(); ++i) {
+            if (outers[i].point_in_polygon_2d(pts[0])) {
+                groups[i].push_back(h);
+                break;
+            }
+        }
+    }
+    return groups;
+}
+
+std::vector<Polyline> largest_region_with_holes(std::vector<Polyline> rings) {
+    auto groups = all_regions_with_holes(std::move(rings));
+    if (groups.empty())
+        return {};
+    return std::move(groups.back());
 }
 
 std::vector<std::shared_ptr<Element>> build_decks(
     const Plan& plan,
     const Framing& framing,
     const std::vector<EdgeSpec>& edge_specs,
+    const std::map<size_t, ColumnFootprint>& columns,
     const std::vector<Polyline>& outer_cores,
     const std::vector<Polyline>& rising_column_notches_uv
 ) {
@@ -1131,6 +1372,14 @@ std::vector<std::shared_ptr<Element>> build_decks(
     std::vector<Polyline> global_cutters = outer_cores;
     for (const Polyline& notch : rising_column_notches_uv)
         global_cutters.push_back(notch);
+    if (framing.deck_flush) {
+        for (const auto& [_, cf] : columns) {
+            if (!cf.inline_head_uv.empty())
+                global_cutters.push_back(close_ring(cf.inline_head_uv));
+            else if (framing.node == NodeMode::Through && !cf.raw_uv.empty())
+                global_cutters.push_back(close_ring(cf.raw_uv));
+        }
+    }
 
     for (const PlanCell& cell : plan.cells) {
         if (cell.outer.size() < 3)
@@ -1206,11 +1455,11 @@ std::vector<std::shared_ptr<Element>> build_decks(
                     c_uv + strip_along * 1e6 + strip_across * (0.5 * sw),
                     c_uv - strip_along * 1e6 + strip_across * (0.5 * sw),
                 });
-                const std::vector<Polyline> piece = largest_region_with_holes(
-                    BooleanPolyline::compute_regions(cell_loops, {band}, 0)
-                );
-                if (!piece.empty())
-                    panel_sets.push_back(piece);
+                for (std::vector<Polyline>& piece : all_regions_with_holes(
+                         BooleanPolyline::compute_regions(cell_loops, {band}, 0)
+                     )) {
+                    panel_sets.push_back(std::move(piece));
+                }
             }
         }
 
@@ -1287,26 +1536,29 @@ void populate_plan_unit(
     const Plan& plan,
     const Framing& framing,
     const std::string& suffix,
-    const std::vector<Polyline>& rising_column_notches_uv = {}
+    const std::vector<Polyline>& rising_column_notches_uv = {},
+    bool emit_plan_wireframe = true
 ) {
     auto group_name = [&](const std::string& base) {
         return suffix.empty() ? base : fmt::format("{}_{}", base, suffix);
     };
 
     // 1. Clean wireframe plan polylines at base/centreline (zero mesh triangulation diagonals!).
-    const double plan_w =
-        framing.post_height > TOL
-            ? -framing.post_height
-            : -0.5 * wood_session::compute_size(framing.profiles.girder).second;
-    auto plan_grp = target.add_group(group_name("plan"), parent_group);
-    for (const PlanEdge& e : plan.edges) {
-        target.add_polyline(
-            Polyline({
-                plan.to_world(plan.nodes[e.a][0], plan.nodes[e.a][1], plan_w),
-                plan.to_world(plan.nodes[e.b][0], plan.nodes[e.b][1], plan_w),
-            }),
-            plan_grp
-        );
+    if (emit_plan_wireframe) {
+        const double plan_w =
+            framing.post_height > TOL
+                ? -framing.post_height
+                : -0.5 * wood_session::compute_size(framing.profiles.girder).second;
+        auto plan_grp = target.add_group(group_name("plan"), parent_group);
+        for (const PlanEdge& e : plan.edges) {
+            target.add_polyline(
+                Polyline({
+                    plan.to_world(plan.nodes[e.a][0], plan.nodes[e.a][1], plan_w),
+                    plan.to_world(plan.nodes[e.b][0], plan.nodes[e.b][1], plan_w),
+                }),
+                plan_grp
+            );
+        }
     }
 
     // 2. Classify edges & standing column footprints.
@@ -1367,21 +1619,27 @@ void populate_plan_unit(
         EndTrim trim_a = compute_node_trim(plan, framing, edge_specs, columns, node_adj, e.a, ei);
         EndTrim trim_b = compute_node_trim(plan, framing, edge_specs, columns, node_adj, e.b, ei);
 
-        // In `Stacked` purlin mode, extend upper-layer purlins across the full top width of girders!
+        // In `Stacked` purlin mode, extend terminal upper-layer purlins across the full top width of girders!
         if (framing.system == System::GirderPurlin && framing.purlin == PurlinMode::Stacked &&
             es.role == Role::Purlin && framing.node != NodeMode::Through) {
             const double gw_half = 0.5 * wood_session::compute_size(framing.profiles.girder).first;
-            auto touches_girder = [&](size_t nv) {
-                for (size_t adj_ei : node_adj[nv])
+            auto is_terminal_over_girder = [&](size_t nv) {
+                bool has_girder = false;
+                for (size_t adj_ei : node_adj[nv]) {
+                    if (adj_ei == ei)
+                        continue;
                     if (edge_specs[adj_ei].role == Role::Girder)
-                        return true;
-                return false;
+                        has_girder = true;
+                    if (edge_specs[adj_ei].role == Role::Purlin)
+                        return false;
+                }
+                return has_girder;
             };
-            if (trim_a.overrun < gw_half && touches_girder(e.a)) {
+            if (trim_a.overrun < gw_half && is_terminal_over_girder(e.a)) {
                 trim_a.overrun = gw_half;
                 trim_a.planes = {lift_plane_uv(plan, plan.nodes[e.a] - dir * gw_half, dir)};
             }
-            if (trim_b.overrun < gw_half && touches_girder(e.b)) {
+            if (trim_b.overrun < gw_half && is_terminal_over_girder(e.b)) {
                 trim_b.overrun = gw_half;
                 trim_b.planes = {lift_plane_uv(plan, plan.nodes[e.b] + dir * gw_half, -dir)};
             }
@@ -1449,7 +1707,7 @@ void populate_plan_unit(
 
     // 6. CLT decks / flush infill panels.
     const std::vector<std::shared_ptr<Element>> deck_elems =
-        build_decks(plan, framing, edge_specs, outer_cores, rising_column_notches_uv);
+        build_decks(plan, framing, edge_specs, columns, outer_cores, rising_column_notches_uv);
     if (!deck_elems.empty()) {
         auto grp = target.add_group(group_name("decks"), parent_group);
         for (const auto& el : deck_elems)
@@ -1472,6 +1730,7 @@ Grid::Grid(const Plan& plan, const Framing& framing, std::string name)
 Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) {
     for (size_t i = 0; i < stack.levels.size(); ++i) {
         const LevelSpec& lvl = stack.levels[i];
+        Plan lvl_plan = lvl.plan;
         Framing lvl_framing = lvl.framing;
 
         // When the storey below has a top-mounted CLT deck (`!deck_flush && deck > 0`),
@@ -1482,6 +1741,9 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
             if (below.framing.deck > TOL && !below.framing.deck_flush &&
                 lvl.framing.node != NodeMode::Through) {
                 lvl_framing.post_height = std::max(0.0, lvl_framing.post_height - below.framing.deck);
+                for (std::optional<Point>& foot : lvl_plan.column_feet)
+                    if (foot.has_value())
+                        foot = *foot + below.plan.frame.z_axis() * below.framing.deck;
             }
         }
         if (i + 1 < stack.levels.size() && lvl.framing.deck > TOL && !lvl.framing.deck_flush) {
@@ -1505,14 +1767,16 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
 
         const std::string tag = lvl.name.empty() ? fmt::format("{}", i + 1) : lvl.name;
         auto lvl_grp = add_group(tag);
-        populate_plan_unit(*this, lvl_grp, lvl.plan, lvl_framing, std::to_string(i + 1), upper_col_notches_uv);
+        populate_plan_unit(
+            *this, lvl_grp, lvl_plan, lvl_framing, std::to_string(i + 1), upper_col_notches_uv, i == 0
+        );
     }
 
     for (size_t i = 0; i < stack.facades.size(); ++i) {
         const LevelSpec& fac = stack.facades[i];
         const std::string tag = fac.name.empty() ? fmt::format("facade_{}", i) : fac.name;
         auto fac_grp = add_group(tag);
-        populate_plan_unit(*this, fac_grp, fac.plan, fac.framing, tag);
+        populate_plan_unit(*this, fac_grp, fac.plan, fac.framing, tag, {}, false);
     }
 
     compute_face_contacts();

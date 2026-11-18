@@ -20,7 +20,7 @@ enum class System {
 enum class NodeMode {
     Flush,   ///< Columns stop at the framing soffit; beams meet cleanly above the column.
     Through, ///< Columns run continuously to the plane datum; beams and decks butt to column faces.
-    Head,    ///< One chamfered timber head block sits on each column beneath the slab or girders.
+    Head,    ///< Chamfered timber head block: in-line with the beams (`[-beam_depth, 0]`), or beneath a flat `Slab`.
 };
 
 /// Vertical relation between secondary purlins and primary girders in `System::GirderPurlin`.
@@ -127,6 +127,7 @@ struct Plan {
     session_cpp::Plane frame = session_cpp::Plane::xy_plane();
     std::vector<session_cpp::Point> nodes;       ///< Local `(u, v, 0)` coordinates on `frame`.
     std::vector<bool> standing;                  ///< True at structural column/post nodes.
+    std::vector<std::optional<session_cpp::Point>> column_feet; ///< Optional 3D world column foot per node (for tapered/twisted stacks).
     std::vector<PlanEdge> edges;                 ///< Unique undirected structural/boundary edges.
     std::vector<PlanCell> cells;                 ///< Polygonal bays without mesh triangulation diagonals.
     std::vector<session_cpp::Polyline> cores;    ///< Closed core loops in local `(u, v, 0)`.
@@ -213,6 +214,36 @@ struct Stack {
             Pattern,
             Framing,
             std::vector<session_cpp::Polyline>>>& storeys
+    );
+
+    /// Multi-storey building whose floor footprints shift horizontally by `shifts_xy` over a shared plumb column grid.
+    static Stack shifted(
+        const std::vector<session_cpp::Polyline>& base_footprint,
+        const std::vector<double>& elevations,
+        const std::vector<std::pair<double, double>>& shifts_xy,
+        const Pattern& shared_pattern,
+        const Framing& framing = {},
+        const std::vector<session_cpp::Polyline>& cores = {}
+    );
+
+    /// Multi-storey tapered building scaling smoothly from `1.0` at ground to `top_scale` at roof, with inclined columns.
+    static Stack tapered(
+        const std::vector<session_cpp::Polyline>& base_footprint,
+        const std::vector<double>& elevations,
+        const Pattern& base_pattern,
+        double top_scale,
+        const Framing& framing = {},
+        const std::vector<session_cpp::Polyline>& cores = {}
+    );
+
+    /// Multi-storey twisting tower rotating progressively up to `total_twist_degrees` at roof, with helicoidal columns.
+    static Stack twisted(
+        const std::vector<session_cpp::Polyline>& base_footprint,
+        const std::vector<double>& elevations,
+        const Pattern& base_pattern,
+        double total_twist_degrees,
+        const Framing& framing = {},
+        const std::vector<session_cpp::Polyline>& cores = {}
     );
 
     /// Appends vertical facade `Plan`s around the outer ring of `footprint` spanning `[z_bottom, z_top]`.

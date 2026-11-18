@@ -94,13 +94,11 @@ int main() {
          wood_grid::Plan::from_pattern(wood_grid::Pattern::hexagonal(4200.0, 3, 2), FLOOR),
          wood_grid::Framing{
              .system = wood_grid::System::PostAndBeam,
-             .node = wood_grid::NodeMode::Head,
+             .node = wood_grid::NodeMode::Flush,
              .span = -1,
              .post_height = 4000.0,
-             .head_height = 220.0,
-             .head_reach = 140.0,
              .profiles =
-                 {.column = profile_round(260.0), .girder = profile_rectangle(220.0, 420.0)},
+                 {.column = profile_round(240.0), .girder = profile_rectangle(220.0, 420.0)},
          }},
         {"irregular",
          wood_grid::Plan::from_footprint(

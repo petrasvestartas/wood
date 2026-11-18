@@ -85,17 +85,21 @@ int main() {
           }},
          BAY},
         {{"beam_head",
-          one_bay,
+          wood_grid::Plan::from_pattern(
+              wood_grid::Pattern::orthogonal({4500.0, 4500.0}, {6000.0}),
+              Plane(Point(0.0, 0.0, 4200.0), X, Y)
+          ),
           wood_grid::Framing{
               .system = wood_grid::System::PostAndBeam,
               .node = wood_grid::NodeMode::Head,
               .span = -1,
               .post_height = 4200.0,
-              .head_height = 240.0,
-              .head_reach = 180.0,
-              .profiles = glulam,
+              .head_reach = 220.0,
+              .profiles =
+                  {.column = profile_rectangle(260.0, 260.0),
+                   .girder = profile_rectangle(260.0, 460.0)},
           }},
-         BAY},
+         9000.0},
         {{"node_flush",
           one_bay,
           wood_grid::Framing{

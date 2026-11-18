@@ -635,6 +635,9 @@ Plan Plan::transformed(const Xform& xform) const {
     copy.frame = Plane(
         new_origin, (px - new_origin).normalized(), (py - new_origin).normalized()
     );
+    for (std::optional<Point>& foot : copy.column_feet)
+        if (foot.has_value())
+            foot = foot->transformed(xform);
     return copy;
 }
 
@@ -748,6 +751,196 @@ Stack Stack::from_footprint(
     return stack;
 }
 
+namespace {
+
+Point pattern_or_footprint_pivot(
+    const std::vector<Polyline>& footprint, const Pattern& pattern
+) {
+    if (!footprint.empty())
+        return Point::centroid(strip_closing_point(footprint.front()));
+    std::vector<Point> pts;
+    for (const Line& l : pattern.lines) {
+        pts.push_back(l.start());
+        pts.push_back(l.end());
+    }
+    return pts.empty() ? Point(0.0, 0.0, 0.0) : Point::centroid(pts);
+}
+
+Stack build_morphed_stack(
+    const std::vector<Polyline>& base_footprint,
+    const std::vector<double>& elevations,
+    const Pattern& base_pattern,
+    const Framing& framing,
+    const std::vector<Polyline>& cores,
+    bool transform_cores,
+    const std::function<Xform(double)>& xform_at
+) {
+    Stack stack;
+    if (elevations.size() < 2)
+        return stack;
+
+    const double z0 = elevations.front();
+    const double z_span = std::max(1.0, elevations.back() - z0);
+    const Vector X(1.0, 0.0, 0.0);
+    const Vector Y(0.0, 1.0, 0.0);
+
+    auto make_plan_at = [&](size_t idx) {
+        const double t = (elevations[idx] - z0) / z_span;
+        const Xform xf = xform_at(t);
+        std::vector<Polyline> fp;
+        for (const Polyline& r : base_footprint)
+            fp.push_back(r.transformed(xf));
+        std::vector<Polyline> crs;
+        for (const Polyline& c : cores)
+            crs.push_back(transform_cores ? c.transformed(xf) : c);
+        const Plane fl_frame(Point(0.0, 0.0, elevations[idx]), X, Y);
+        return std::make_pair(
+            Plan::from_footprint(fp, base_pattern.transformed(xf), crs, fl_frame), xf
+        );
+    };
+
+    auto [prev_plan, prev_xf] = make_plan_at(0);
+    for (size_t l = 1; l < elevations.size(); ++l) {
+        auto [curr_plan, curr_xf] = make_plan_at(l);
+        curr_plan.column_feet.assign(curr_plan.nodes.size(), std::nullopt);
+
+        // Map `prev_plan` nodes through the incremental transform to pair leaning/twisting columns!
+        const Xform inv_prev = prev_xf.inverse().value_or(Xform::identity());
+        for (size_t v = 0; v < curr_plan.nodes.size(); ++v) {
+            if (v >= curr_plan.standing.size() || !curr_plan.standing[v])
+                continue;
+            const Point curr_xy = curr_plan.to_world(curr_plan.nodes[v][0], curr_plan.nodes[v][1], 0.0);
+            const Point back_xy = Point(curr_xy[0], curr_xy[1], 0.0).transformed(inv_prev);
+            const Point target_prev = back_xy.transformed(prev_xf);
+            (void)target_prev;
+
+            // Compare `back_xy` against un-transformed or `prev_xf`-inverted `prev_plan` nodes:
+            double best_d = 80.0;
+            std::optional<Point> match_foot;
+            for (size_t u = 0; u < prev_plan.nodes.size(); ++u) {
+                if (u < prev_plan.standing.size() && !prev_plan.standing[u])
+                    continue;
+                const Point prev_w = prev_plan.to_world(prev_plan.nodes[u][0], prev_plan.nodes[u][1], 0.0);
+                const Point prev_predicted =
+                    Point(prev_w[0], prev_w[1], 0.0).transformed(inv_prev).transformed(curr_xf);
+                const double d = std::hypot(curr_xy[0] - prev_predicted[0], curr_xy[1] - prev_predicted[1]);
+                if (d < best_d) {
+                    best_d = d;
+                    match_foot = prev_w;
+                }
+            }
+            if (match_foot.has_value())
+                curr_plan.column_feet[v] = match_foot;
+            else
+                curr_plan.standing[v] = false;
+        }
+
+        Framing fl_frm = framing;
+        fl_frm.post_height = elevations[l] - elevations[l - 1];
+        stack.levels.push_back(LevelSpec{std::move(curr_plan), fl_frm, fmt::format("level_{}", l)});
+        prev_plan = stack.levels.back().plan;
+        prev_xf = curr_xf;
+    }
+    return stack;
+}
+
+} // namespace
+
+Stack Stack::shifted(
+    const std::vector<Polyline>& base_footprint,
+    const std::vector<double>& elevations,
+    const std::vector<std::pair<double, double>>& shifts_xy,
+    const Pattern& shared_pattern,
+    const Framing& framing,
+    const std::vector<Polyline>& cores
+) {
+    Stack stack;
+    if (elevations.size() < 2)
+        return stack;
+
+    const Vector X(1.0, 0.0, 0.0);
+    const Vector Y(0.0, 1.0, 0.0);
+    std::vector<Polyline> prev_rings = base_footprint;
+
+    for (size_t l = 1; l < elevations.size(); ++l) {
+        const auto [dx, dy] = (l - 1 < shifts_xy.size()) ? shifts_xy[l - 1] : std::make_pair(0.0, 0.0);
+        const Xform shift = Xform::translation(dx, dy, 0.0);
+        std::vector<Polyline> fp;
+        for (const Polyline& r : base_footprint)
+            fp.push_back(r.transformed(shift));
+
+        const Plane fl_frame(Point(0.0, 0.0, elevations[l]), X, Y);
+        Plan curr = Plan::from_footprint(fp, shared_pattern, cores, fl_frame);
+
+        // On storeys above ground (`l > 1`), omit columns under overhanging cantilevers outside `prev_rings`!
+        if (l > 1 && !prev_rings.empty()) {
+            for (size_t v = 0; v < curr.nodes.size(); ++v) {
+                if (!curr.standing[v])
+                    continue;
+                const Point w = curr.to_world(curr.nodes[v][0], curr.nodes[v][1], 0.0);
+                const Point flat(w[0], w[1], 0.0);
+                if (!inside_even_odd_2d(prev_rings, flat) &&
+                    !point_on_any_ring_2d(prev_rings, flat, PLAN_MERGE * 2.0)) {
+                    curr.standing[v] = false;
+                }
+            }
+        }
+
+        Framing fl_frm = framing;
+        fl_frm.post_height = elevations[l] - elevations[l - 1];
+        stack.levels.push_back(LevelSpec{std::move(curr), fl_frm, fmt::format("level_{}", l)});
+        prev_rings = std::move(fp);
+    }
+    return stack;
+}
+
+Stack Stack::tapered(
+    const std::vector<Polyline>& base_footprint,
+    const std::vector<double>& elevations,
+    const Pattern& base_pattern,
+    double top_scale,
+    const Framing& framing,
+    const std::vector<Polyline>& cores
+) {
+    const Point p = pattern_or_footprint_pivot(base_footprint, base_pattern);
+    return build_morphed_stack(
+        base_footprint,
+        elevations,
+        base_pattern,
+        framing,
+        cores,
+        false,
+        [p, top_scale](double t) {
+            const double s = 1.0 - (1.0 - top_scale) * t;
+            return Xform::scale_non_uniform(Point(p[0], p[1], 0.0), s, s, 1.0);
+        }
+    );
+}
+
+Stack Stack::twisted(
+    const std::vector<Polyline>& base_footprint,
+    const std::vector<double>& elevations,
+    const Pattern& base_pattern,
+    double total_twist_degrees,
+    const Framing& framing,
+    const std::vector<Polyline>& cores
+) {
+    const Point p = pattern_or_footprint_pivot(base_footprint, base_pattern);
+    return build_morphed_stack(
+        base_footprint,
+        elevations,
+        base_pattern,
+        framing,
+        cores,
+        false,
+        [p, total_twist_degrees](double t) {
+            return Xform::translation(p[0], p[1], 0.0) *
+                   Xform::rotation_z(total_twist_degrees * t, true) *
+                   Xform::translation(-p[0], -p[1], 0.0);
+        }
+    );
+}
+
 Stack Stack::from_levels(
     double base_elevation,
     const std::vector<std::tuple<
@@ -771,7 +964,7 @@ Stack Stack::from_levels(
             floor_framing,
             fmt::format("level_{}", i + 1),
         });
-        prev_z = z;
+                prev_z = z;
     }
     return stack;
 }
