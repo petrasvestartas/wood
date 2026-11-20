@@ -1238,3 +1238,128 @@ blind_haunched_mortise_tenon:
     - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2; b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
+
+double_through_mortise_tenon:
+  title: "Double through mortise and tenon"
+  german: "durchgehender doppelter Zapfen"
+  page: "542"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+    - "inset = 0.16666666666666666"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder w_out_1; a_end shoulder w_out_2; a_end shoulder w_in_1 w_in_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -end -w_out_2 -w_in_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+housed_double_through_mortise_tenon:
+  title: "Housed double through mortise and tenon"
+  german: "eingelassener durchgehender doppelter Zapfen"
+  page: "544"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+    - "inset = 0.16666666666666666"
+    - "house = 0.1"
+  points:
+    - "S = O + n"
+    - "H = O - 2*house*bh*n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "housing = H, n, O"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end housing w_out_1; a_end housing w_out_2; a_end housing w_in_1 w_in_2"
+    - "A3 a_end housing edge_1; a_end housing edge_2"
+    - "B2 b_node -end -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -end -w_out_2 -w_in_2 -edge_1 -edge_2; b_node -housing -side_1 -side_2 -face_1 -face_2"
+  insertions:
+    - "-u"
+
+t_bridle:
+  title: "T-bridle joint"
+  german: "Einhälsung"
+  page: "550"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder slot_1 slot_2"
+    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2"
+  insertions:
+    - "-u"
+
+t_bridle_blind_mortise_tenon:
+  title: "T-bridle joint with blind mortise and tenon"
+  german: "Einhälsung mit verdecktem Zapfen"
+  page: "552"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "depth = 0.4"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "stub = O - 2*depth*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end stub slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2; b_node -stub -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"

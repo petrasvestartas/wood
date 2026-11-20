@@ -102,6 +102,10 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_quadruple_through_mortise_tenon.png) | **Quadruple through mortise and tenon**<br>durchgehender vierfacher Zapfen, p. 514<br>`quadruple_through_mortise_tenon` |
 | ![](joint_library/beam_haunched_through_mortise_tenon.png) | **Haunched through mortise and tenon**<br>durchgehender Stufenzapfen, p. 516<br>`haunched_through_mortise_tenon` |
 | ![](joint_library/beam_blind_haunched_mortise_tenon.png) | **Blind haunched mortise and tenon**<br>verdeckter Stufenzapfen, p. 518<br>`blind_haunched_mortise_tenon` |
+| ![](joint_library/beam_double_through_mortise_tenon.png) | **Double through mortise and tenon**<br>durchgehender doppelter Zapfen, p. 542<br>`double_through_mortise_tenon` |
+| ![](joint_library/beam_housed_double_through_mortise_tenon.png) | **Housed double through mortise and tenon**<br>eingelassener durchgehender doppelter Zapfen, p. 544<br>`housed_double_through_mortise_tenon` |
+| ![](joint_library/beam_t_bridle.png) | **T-bridle joint**<br>Einhälsung, p. 550<br>`t_bridle` |
+| ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | **T-bridle joint with blind mortise and tenon**<br>Einhälsung mit verdecktem Zapfen, p. 552<br>`t_bridle_blind_mortise_tenon` |
 <!-- /joint-table -->
 
 ## Library
