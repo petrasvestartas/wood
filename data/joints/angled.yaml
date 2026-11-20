@@ -7,10 +7,13 @@
 #   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
 #               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
 #               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
-#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#               p and w, bh and bw half of b along n and w, bt half of b along t, R the point of a's axis nearest b's.
+#               A cross record (a passing over b, a rafter on a purlin): O is b's top over its axis, u up the slope, t downhill;
+#               its parameters sit, shift and tail place the pair it is drawn on (library_pair); expressions use + * / and unit length cross dot meet.
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
-#   parts       "name = start, end, up, half": a square peg or key from start to end, half its side wide, a side along up;
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
 #               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
@@ -665,3 +668,215 @@ pegged_angled_stopped_dovetail_half_lap:
     - "B3 peg"
   insertions:
     - "w"
+
+pegged_rafter_foot:
+  title: "Pegged rafter foot"
+  german: "Stütznagelung"
+  page: "624"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "shift = 1"
+    - "tail = 250"
+    - "peg = 0.15"
+    - "drop = 0.5"
+  points:
+    - "I = O - (bt - peg*ah/dot(u, t))*t"
+    - "C = meet(I, p, R, p)"
+  planes:
+  parts:
+    - "peg = C + 1.2*ah*p, meet(I, p, O - 2*drop*bh*n, n), w, peg*ah"
+  steps:
+    - "A2 peg"
+  insertions:
+    - "-n"
+
+pegged_mitered_rafter_foot:
+  title: "Pegged mitered rafter foot"
+  german: "Schiftungsstoß"
+  page: "626"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "shift = -1"
+    - "tail = 400"
+    - "peg = 0.15"
+    - "down = 0.5"
+    - "up = 0.5"
+  points:
+    - "U = O + n"
+    - "F = meet(R - ah*p, u, O, n)"
+    - "E = meet(R + ah*p, u, O, n)"
+    - "M = (E + F)/2"
+  planes:
+    - "top = O, n, U"
+  parts:
+    - "peg = M + 2*up*ah*n, M - 2*down*bh*n, w, peg*ah, none"
+  steps:
+    - "A2 a_node top"
+    - "A3 peg"
+    - "B2 peg"
+  insertions:
+    - "-n"
+
+housed_rafter_foot:
+  title: "Housed rafter foot"
+  german: "Einklauung"
+  page: "628"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.25"
+    - "tail = 400"
+    - "depth = 0.25"
+  points:
+    - "U = O + n"
+  planes:
+    - "top = O, n, U"
+    - "outer = O + bt*t, t, O"
+    - "floor = O - 2*depth*bh*n, n, O"
+    - "wall = O, t, O - bt*t"
+  parts:
+  steps:
+    - "A2 a_node outer"
+    - "A3 a_node top -wall"
+    - "A4 a_node floor wall"
+    - "B2 b_node -floor wall"
+  insertions:
+    - "-n"
+
+v_grooved_rafter_foot:
+  title: "V-grooved rafter foot"
+  german: "Schiftereinblattung"
+  page: "630"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.25"
+    - "tail = 400"
+    - "depth = 0.25"
+  points:
+    - "U = O + n"
+    - "X = O - 2*depth*bh*n"
+  planes:
+    - "top = O, n, U"
+    - "outer = O + bt*t, t, O"
+    - "wall = X, u, X + u"
+    - "under = R - ah*p, p, R"
+  parts:
+  steps:
+    - "A2 a_node outer"
+    - "A3 a_node top -wall"
+    - "B2 b_node wall -under"
+  insertions:
+    - "unit(u - n)"
+
+birdsmouth_rafter_foot:
+  title: "Birdsmouth rafter foot"
+  german: "Aufklauung"
+  page: "632"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.25"
+    - "shift = -1"
+    - "tail = 400"
+  points:
+    - "U = O + n"
+  planes:
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node top inner; a_node outer"
+  insertions:
+    - "-n"
+
+rafter_foot_tenon_undersquinted_shoulders:
+  title: "Rafter foot with tenon and undersquinted shoulders"
+  german: "Zapfung mit Klaue"
+  page: "634"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.25"
+    - "shift = -1"
+    - "tail = 400"
+    - "thickness = 0.3333333333333333"
+    - "depth = 0.4"
+    - "length = 0.5"
+  points:
+    - "U = O + n"
+    - "J = O - bt*t + 2*length*bt*t"
+  planes:
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "bottom = O - 2*depth*bh*n, n, O"
+    - "tenon_end = J, t, O - bt*t"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "under = R - ah*p, p, R"
+  parts:
+  steps:
+    - "A2 a_node outer"
+    - "A3 a_node top inner cheek_1; a_node top inner cheek_2"
+    - "A4 a_node top tenon_end; a_node bottom inner"
+    - "B2 b_node inner -tenon_end -bottom -cheek_1 -cheek_2 -under"
+  insertions:
+    - "-n"
+
+birdsmouth_rafter_joint:
+  title: "Birdsmouth rafter joint"
+  german: "Aufkervung"
+  page: "636"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "tail = 300"
+  points:
+    - "U = O + n"
+  planes:
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node top -outer inner"
+  insertions:
+    - "-n"
+
+notched_rafter_joint:
+  title: "Notched rafter joint"
+  german: "Aufkervung mit Ausklinkung"
+  page: "638"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "tail = 300"
+    - "depth = 0.15"
+    - "wall = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "floor = O - 2*depth*bh*n, n, O"
+    - "wall = O + wall*bt*t, t, O - bt*t"
+  parts:
+  steps:
+    - "A2 a_node top -outer inner -wall"
+    - "A3 a_node floor -outer wall"
+    - "B2 b_node -floor wall"
+  insertions:
+    - "-n"

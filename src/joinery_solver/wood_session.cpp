@@ -1900,12 +1900,15 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
     const std::shared_ptr<InteractionFeatureSolid> cut =
         std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
 
-    // a joint with a procedure: what its steps take from the target in one cut, its pegs and keys nested under it, the directions the target goes in along
+    // a joint with a procedure: what its steps take from the target in one cut (only the edge for a target it leaves whole), its pegs and keys nested under it, the directions the target goes in along
     if (!joint->steps.empty()) {
         Session::remove_interaction(joint, target);
         if (!cut)
             throw std::invalid_argument("A procedure joint's interaction is its InteractionFeatureSolid");
-        add_solid_interaction(joint, target, cut);
+        if (cut->mesh.number_of_faces() > 0)
+            add_solid_interaction(joint, target, cut);
+        else
+            Session::add_interaction(joint, target, cut);
         if (beam_joint && !beam_joint->parts.empty())
             nest_children(*this, *beam_joint);
 

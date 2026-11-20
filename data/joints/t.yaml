@@ -10,7 +10,8 @@
 #               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
-#   parts       "name = start, end, up, half": a square peg or key from start to end, half its side wide, a side along up;
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
 #               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or

@@ -209,4 +209,43 @@ LibraryRecord library_record(const std::string& design) {
     throw std::invalid_argument(fmt::format("joint library: no record {} in {}", design, folder.string()));
 }
 
+std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
+
+    const LibraryRecord record = library_record(design);
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}};
+    for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
+        const size_t equals = line.find('=');
+        numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
+    }
+
+    const bool crossing = record.fields.at("category") == "cross";
+    const double half = 60.0;
+    const double turn = (crossing ? 35.0 : square ? 90.0 : 130.0) * Tolerance::PI / 180.0;
+    const Vector along(std::cos(turn), 0.0, std::sin(turn));
+    std::shared_ptr<EdgeStraightElement> carrier;
+    std::shared_ptr<EdgeStraightElement> member;
+
+    // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets
+    if (crossing) {
+        carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, 450.0, 0.0)}), half, design + "_carrier");
+        carrier->directions = {Vector::z_axis()};
+        const Vector downhill(-1.0, 0.0, 0.0);
+        const Vector up(-std::sin(turn), 0.0, std::cos(turn));
+        const Point underside = at + Vector(0.0, 0.0, half) + downhill * (numbers["shift"] * half) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * half);
+        const Point on_axis = underside + up * half;
+        member = EdgeStraightElement::square(Polyline({on_axis - along * numbers["tail"], on_axis + along * 600.0}), half, design + "_member");
+        member->directions = {Vector::y_axis()};
+        return {member, carrier};
+    }
+
+    // an end on a side: the carrier along x, the member ending on its axis, its stock running past the end
+    carrier = EdgeStraightElement::square(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(450.0, 0.0, 0.0)}), half, design + "_carrier");
+    member = EdgeStraightElement::square(Polyline({at, at + along * 600.0}), half, design + "_member");
+    carrier->directions = {Vector::y_axis()};
+    member->directions = {Vector::y_axis()};
+    member->extension = 180.0;
+
+    return {member, carrier};
+}
+
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.h"
+#include "wood_element_edge_straight.h"
 
 using namespace session_cpp;
 
@@ -28,5 +29,11 @@ std::vector<std::string> library_designs(const std::string& chapter = "");
 
 /// The record of design in the first data/joints/*.yaml that has it; throws naming the design when none does.
 LibraryRecord library_record(const std::string& design);
+
+/// The member and the carrier a record is drawn on, 120 x 120, standing in the xz plane at `at`, on a square corner or an inclined
+/// one: a side_end member ending on a carrier along x, square or leaning 50 degrees from it, its stock 180 mm past its end; a cross
+/// member pitched 35 degrees over a carrier along y, its underside through the carrier's top centre moved shift of the half width downhill and sit of the depth
+/// down, running tail mm past the crossing (the record's parameters sit, shift and tail, 0, 0 and 600 when it has none).
+std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at);
 
 }

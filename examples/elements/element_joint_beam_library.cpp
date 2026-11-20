@@ -19,15 +19,13 @@ int main() {
             const std::string& design = designs[i];
             if (library_record(design).fields.at("corners").find(corner == 0 ? "square" : "inclined") == std::string::npos)
                 continue;
-            const double turn = (corner == 0 ? 90.0 : 130.0) * Tolerance::PI / 180.0;
             const Point node(1400.0 * static_cast<double>(corner), -1000.0 * static_cast<double>(i), 0.0);
-            const std::vector<Vector> across = {Vector::y_axis()};
             const std::string name = fmt::format("{}_{}", design, corner == 0 ? "square" : "inclined");
-            const std::shared_ptr<EdgeStraightElement> carrier = EdgeStraightElement::square(Polyline({node + Vector(-450.0, 0.0, 0.0), node + Vector(450.0, 0.0, 0.0)}), 60.0, name + "_carrier");
-            const std::shared_ptr<EdgeStraightElement> member = EdgeStraightElement::square(Polyline({node, node + Vector(600.0 * std::cos(turn), 0.0, 600.0 * std::sin(turn))}), 60.0, name + "_member");
-            carrier->directions = across;
-            member->directions = across;
-            member->extension = 180.0;
+            const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, corner == 0, node);
+            const std::shared_ptr<EdgeStraightElement> member = pair[0];
+            const std::shared_ptr<EdgeStraightElement> carrier = pair[1];
+            member->name = name + "_member";
+            carrier->name = name + "_carrier";
             scene.add(carrier, scene.group_named(design));
             scene.add(member, scene.group_named(design));
 
@@ -37,12 +35,15 @@ int main() {
             scene.add_interaction(joint, member, joint->interaction(0));
             scene.add_interaction(joint, carrier, joint->interaction(1));
 
-            // drawn apart as the book draws it, the member out along its own axis, whatever way it goes in
-            const Vector out = Vector(std::cos(turn), 0.0, std::sin(turn)) * 350.0;
+            // drawn apart as the book draws it: an end member out along its own axis whatever way it goes in, a crossing one lifted
+            // straight up with the pegs that run across it, each peg out along its own way
+            const bool crossing = library_record(design).fields.at("category") == "cross";
+            const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 350.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
             for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
                 if (part->name.starts_with(name + "_part")) {
-                    const Vector pulled = joint->insertion_directions(2)[0] * -200.0;
+                    const Vector way = joint->insertion_directions(2)[0];
+                    const Vector pulled = crossing && std::abs(way[2]) < 0.9 ? out - way * 200.0 : way * -200.0;
                     part->place(Xform::translation(pulled[0], pulled[1], pulled[2]));
                 }
         }
@@ -54,7 +55,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, the member 350 mm out along its own axis and every peg out along its own.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, an end member 350 mm out along its own axis, a crossing one lifted 650 mm with the pegs that run across it, every peg 200 mm out along its own way.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

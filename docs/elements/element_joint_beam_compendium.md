@@ -50,6 +50,14 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_pegged_angled_half_dovetail_half_lap.png) | **Pegged angled half-dovetail half lap joint**<br>schräges einseitiges Schwalbenschwanzblatt mit Dübelsicherung, p. 618<br>`pegged_angled_half_dovetail_half_lap` |
 | ![](joint_library/beam_pegged_stopped_angled_half_dovetail_half_lap.png) | **Pegged stopped angled half-dovetail half lap joint**<br>halbverdecktes schräges einseitiges Schwalbenschwanzblatt und Dübelsicherung, p. 620<br>`pegged_stopped_angled_half_dovetail_half_lap` |
 | ![](joint_library/beam_pegged_angled_stopped_dovetail_half_lap.png) | **Pegged angled stopped dovetail half lap joint**<br>halbverdecktes schräges Schwalbenschwanzblatt mit Dübelsicherung, p. 622<br>`pegged_angled_stopped_dovetail_half_lap` |
+| ![](joint_library/beam_pegged_rafter_foot.png) | **Pegged rafter foot**<br>Stütznagelung, p. 624<br>`pegged_rafter_foot` |
+| ![](joint_library/beam_pegged_mitered_rafter_foot.png) | **Pegged mitered rafter foot**<br>Schiftungsstoß, p. 626<br>`pegged_mitered_rafter_foot` |
+| ![](joint_library/beam_housed_rafter_foot.png) | **Housed rafter foot**<br>Einklauung, p. 628<br>`housed_rafter_foot` |
+| ![](joint_library/beam_v_grooved_rafter_foot.png) | **V-grooved rafter foot**<br>Schiftereinblattung, p. 630<br>`v_grooved_rafter_foot` |
+| ![](joint_library/beam_birdsmouth_rafter_foot.png) | **Birdsmouth rafter foot**<br>Aufklauung, p. 632<br>`birdsmouth_rafter_foot` |
+| ![](joint_library/beam_rafter_foot_tenon_undersquinted_shoulders.png) | **Rafter foot with tenon and undersquinted shoulders**<br>Zapfung mit Klaue, p. 634<br>`rafter_foot_tenon_undersquinted_shoulders` |
+| ![](joint_library/beam_birdsmouth_rafter_joint.png) | **Birdsmouth rafter joint**<br>Aufkervung, p. 636<br>`birdsmouth_rafter_joint` |
+| ![](joint_library/beam_notched_rafter_joint.png) | **Notched rafter joint**<br>Aufkervung mit Ausklinkung, p. 638<br>`notched_rafter_joint` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 <!-- /joint-table -->
 
