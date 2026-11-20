@@ -82,6 +82,14 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_blind_pegged.png) | **Blind pegged joint**<br>Verdollung, p. 470<br>`blind_pegged` |
 | ![](joint_library/beam_notch.png) | **Notch joint**<br>Ankämmung mit einseitigem Sitz, p. 472<br>`notch` |
 | ![](joint_library/beam_double_notch.png) | **Double notch joint**<br>Ankämmung, p. 474<br>`double_notch` |
+| ![](joint_library/beam_cog.png) | **Cog joint**<br>Ankämmung mit Stufe, p. 476<br>`cog` |
+| ![](joint_library/beam_stepped_cog.png) | **Stepped cog joint**<br>Ankämmung mit doppelter Stufe, p. 478<br>`stepped_cog` |
+| ![](joint_library/beam_double_cog.png) | **Double cog joint**<br>Ankämmung mit mittigem Haken, p. 480<br>`double_cog` |
+| ![](joint_library/beam_x_shaped_cog.png) | **X-shaped cog joint**<br>Ankämmung mit Kreuz, p. 482<br>`x_shaped_cog` |
+| ![](joint_library/beam_v_shaped_cog.png) | **V-shaped cog joint**<br>Ankämmung mit halbem Kreuz, p. 484<br>`v_shaped_cog` |
+| ![](joint_library/beam_dovetail_cog.png) | **Dovetail cog joint**<br>Ankämmung mit Schwalbenschwanz, p. 486<br>`dovetail_cog` |
+| ![](joint_library/beam_half_dovetail_cog.png) | **Half-dovetail cog joint**<br>Ankämmung mit einseitigem Schwalbenschwanz, p. 488<br>`half_dovetail_cog` |
+| ![](joint_library/beam_sloped_cog.png) | **Sloped cog joint**<br>Ankämmung mit schräger Stufe, p. 490<br>`sloped_cog` |
 <!-- /joint-table -->
 
 ## Library
