@@ -394,3 +394,97 @@ slotted_notched_oblique_thrust_visible_end:
     - "B3 b_node -front -seat cheek_1; b_node -front -seat cheek_2"
   insertions:
     - "unit(front + seat)"
+
+pegged_angled_half_lap:
+  title: "Pegged angled half lap joint"
+  german: "schräges Blatt mit Dübelsicherung"
+  page: "608"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 peg"
+    - "B2 b_node -mid -face_1 -face_2"
+    - "B3 peg"
+  insertions:
+    - "-u"
+    - "w"
+
+pegged_angled_stopped_half_lap:
+  title: "Pegged angled stopped half lap joint"
+  german: "halbverdecktes schräges Blatt mit Dübelsicherung"
+  page: "610"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.75"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 peg"
+    - "B2 b_node -mid -face_1 -face_2 -bottom"
+    - "B3 peg"
+  insertions:
+    - "-u"
+    - "w"
+
+pegged_angled_lapped_mortise_tenon:
+  title: "Pegged angled lapped mortise and tenon joint"
+  german: "schräges Blatt mit Zapfen und Dübelsicherung"
+  page: "612"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "s1 = O - 0.5*aw*w, w, O - aw*w"
+    - "s2 = O, w, O + aw*w"
+    - "s3 = O + 0.5*aw*w, w, O"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A3 a_end bottom"
+    - "A4 a_end shoulder s1 s2"
+    - "A5 a_end shoulder s3"
+    - "A6 peg"
+    - "B3 b_node -s1 -face_1 -face_2"
+    - "B4 b_node -s2 -s3 -face_1 -face_2"
+    - "B5 peg"
+  insertions:
+    - "-u"

@@ -42,6 +42,9 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_notched_oblique_thrust_pegged_mortise_tenon.png) | **Notched oblique thrust joint with pegged mortise and tenon**<br>Stirnversatz mit Zapfen und Dübelsicherung, p. 602<br>`notched_oblique_thrust_pegged_mortise_tenon` |
 | ![](joint_library/beam_slotted_notched_oblique_thrust.png) | **Slotted notched oblique thrust joint**<br>geschlitzter Stirnversatz, p. 604<br>`slotted_notched_oblique_thrust` |
 | ![](joint_library/beam_slotted_notched_oblique_thrust_visible_end.png) | **Slotted notched oblique thrust joint with visible end**<br>geschlitzter Brustversatz, p. 606<br>`slotted_notched_oblique_thrust_visible_end` |
+| ![](joint_library/beam_pegged_angled_half_lap.png) | **Pegged angled half lap joint**<br>schräges Blatt mit Dübelsicherung, p. 608<br>`pegged_angled_half_lap` |
+| ![](joint_library/beam_pegged_angled_stopped_half_lap.png) | **Pegged angled stopped half lap joint**<br>halbverdecktes schräges Blatt mit Dübelsicherung, p. 610<br>`pegged_angled_stopped_half_lap` |
+| ![](joint_library/beam_pegged_angled_lapped_mortise_tenon.png) | **Pegged angled lapped mortise and tenon joint**<br>schräges Blatt mit Zapfen und Dübelsicherung, p. 612<br>`pegged_angled_lapped_mortise_tenon` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 <!-- /joint-table -->
 
