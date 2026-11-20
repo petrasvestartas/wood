@@ -32,6 +32,7 @@ The records of the library so far, each on a square and an inclined corner where
 |---|---|
 | ![](joint_library/beam_notched_oblique_thrust.png) | **Notched oblique thrust joint**<br>Stirnversatz, p. 584<br>`notched_oblique_thrust` |
 | ![](joint_library/beam_notched_oblique_thrust_right_angled_end.png) | **Notched oblique thrust joint with right-angled end**<br>Stirnversatz mit rechtwinkliger Stirn, p. 586<br>`notched_oblique_thrust_right_angled_end` |
+| ![](joint_library/beam_notched_oblique_thrust_visible_end.png) | **Notched oblique thrust joint with visible end**<br>Brustversatz, p. 588<br>`notched_oblique_thrust_visible_end` |
 | ![](joint_library/beam_oblique_thrust_notched_heel.png) | **Oblique thrust joint with notched heel**<br>Fersenversatz, p. 590<br>`oblique_thrust_notched_heel` |
 | ![](joint_library/beam_double_notched_oblique_thrust.png) | **Double notched oblique thrust joint**<br>Stirn- und Fersenversatz, p. 592<br>`double_notched_oblique_thrust` |
 | ![](joint_library/beam_oblique_thrust_sloped_tenon_notched_heel.png) | **Oblique thrust joint with sloped tenon and notched heel**<br>Fersenversatz mit schrägem Zapfen, p. 594<br>`oblique_thrust_sloped_tenon_notched_heel` |
@@ -39,6 +40,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_oblique_thrust_sloped_mortise_tenon.png) | **Oblique thrust joint with sloped mortise and tenon**<br>schräger Stoß mit schrägem Zapfen, p. 598<br>`oblique_thrust_sloped_mortise_tenon` |
 | ![](joint_library/beam_notched_oblique_thrust_mortise_tenon.png) | **Notched oblique thrust joint with mortise and tenon**<br>Stirnversatz mit Zapfen, p. 600<br>`notched_oblique_thrust_mortise_tenon` |
 | ![](joint_library/beam_notched_oblique_thrust_pegged_mortise_tenon.png) | **Notched oblique thrust joint with pegged mortise and tenon**<br>Stirnversatz mit Zapfen und Dübelsicherung, p. 602<br>`notched_oblique_thrust_pegged_mortise_tenon` |
+| ![](joint_library/beam_slotted_notched_oblique_thrust.png) | **Slotted notched oblique thrust joint**<br>geschlitzter Stirnversatz, p. 604<br>`slotted_notched_oblique_thrust` |
+| ![](joint_library/beam_slotted_notched_oblique_thrust_visible_end.png) | **Slotted notched oblique thrust joint with visible end**<br>geschlitzter Brustversatz, p. 606<br>`slotted_notched_oblique_thrust_visible_end` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 <!-- /joint-table -->
 

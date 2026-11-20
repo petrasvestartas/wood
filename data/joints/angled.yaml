@@ -71,6 +71,34 @@ notched_oblique_thrust_right_angled_end:
     - "through w"
     - "through -w"
 
+notched_oblique_thrust_visible_end:
+  title: "Notched oblique thrust joint with visible end"
+  german: "Brustversatz"
+  page: "588"
+  category: "side_end"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "depth = 0.2"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "K = meet(E, u, O + 2*depth*bh*n, n)"
+    - "D = meet(K, unit(-t - u), O - 2*depth*bh*n, n)"
+  planes:
+    - "front = K, cross(D - K, w), F"
+    - "seat = D, cross(F - D, w), K"
+  parts:
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+  insertions:
+    - "unit(front + seat)"
+    - "through w"
+    - "through -w"
+
 oblique_thrust_notched_heel:
   title: "Oblique thrust joint with notched heel"
   german: "Fersenversatz"
@@ -301,5 +329,68 @@ notched_oblique_thrust_pegged_mortise_tenon:
     - "B3 b_node -front -seat"
     - "B4 b_node -front -tenon_front -tenon_back -cheek_1 -cheek_2"
     - "B5 peg"
+  insertions:
+    - "unit(front + seat)"
+
+slotted_notched_oblique_thrust:
+  title: "Slotted notched oblique thrust joint"
+  german: "geschlitzter Stirnversatz"
+  page: "604"
+  category: "side_end"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "depth = 0.2"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
+    - "U = O + n"
+  planes:
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(F - D, w), E"
+    - "bearing = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat"
+    - "A4 a_end bearing -cheek_1 -cheek_2"
+    - "B2 b -front"
+    - "B3 b_node -front -seat cheek_1; b_node -front -seat cheek_2"
+  insertions:
+    - "unit(front + seat)"
+
+slotted_notched_oblique_thrust_visible_end:
+  title: "Slotted notched oblique thrust joint with visible end"
+  german: "geschlitzter Brustversatz"
+  page: "606"
+  category: "side_end"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "depth = 0.2"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "K = meet(E, u, O + 2*depth*bh*n, n)"
+    - "D = meet(K, unit(-t - u), O - 2*depth*bh*n, n)"
+    - "U = O + n"
+  planes:
+    - "front = K, cross(D - K, w), F"
+    - "seat = D, cross(F - D, w), K"
+    - "bearing = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat"
+    - "A4 a_end bearing -cheek_1 -cheek_2"
+    - "B2 b -front"
+    - "B3 b_node -front -seat cheek_1; b_node -front -seat cheek_2"
   insertions:
     - "unit(front + seat)"
