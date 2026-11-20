@@ -66,6 +66,9 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
 | ![](joint_library/beam_beveled_half_lap.png) | **Beveled half lap joint**<br>Querblatt mit schräger Blattfläche, p. 424<br>`beveled_half_lap` |
 | ![](joint_library/beam_stopped_beveled_half_lap.png) | **Stopped beveled half lap joint**<br>halbverdecktes Querblatt mit schräger Blattfläche, p. 426<br>`stopped_beveled_half_lap` |
+| ![](joint_library/beam_cogged_lap.png) | **Cogged lap joint**<br>Hakenquerblatt, p. 428<br>`cogged_lap` |
+| ![](joint_library/beam_sloped_cogged_lap.png) | **Sloped cogged lap joint**<br>Hakenquerblatt mit schrägem Haken, p. 432<br>`sloped_cogged_lap` |
+| ![](joint_library/beam_double_cogged_lap.png) | **Double cogged lap joint**<br>Hakenquerblatt mit mittigem Haken, p. 434<br>`double_cogged_lap` |
 <!-- /joint-table -->
 
 ## Library
