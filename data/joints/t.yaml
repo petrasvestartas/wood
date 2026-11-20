@@ -163,26 +163,26 @@ cogged_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "start = 0.45"
-    - "end = 0.75"
-    - "drop = 0.4"
+    - "level = 0.3333333333333333"
+    - "near = 0.5"
+    - "far = 0.5"
   points:
     - "U = O + n"
+    - "S1 = O - ah*p - 2*near*bh*n"
+    - "S2 = O + ah*p - 2*far*bh*n"
   planes:
     - "bottom = O - 2*bh*n, n, O"
     - "shoulder = O, n, U"
-    - "mid = O, w, O - w"
-    - "low = O - drop*aw*w, w, O - 2*aw*w"
-    - "near = O - 2*start*bh*n, n, O - 2*bh*n"
-    - "far = O - 2*end*bh*n, n, O"
+    - "level_near = O - level*aw*w, w, O - 2*aw*w"
+    - "level_far = O + level*aw*w, w, O - 2*aw*w"
+    - "split = S1, cross(w, S2 - S1), O"
     - "face_1 = O + ah*p, p, O"
     - "face_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid"
-    - "A4 a_end low -near -far"
-    - "B2 b_node -low -face_1 -face_2; b_node -mid -face_1 -face_2 near; b_node -mid -face_1 -face_2 far"
+    - "A3 a_end shoulder level_far; a_end shoulder level_near -split"
+    - "B2 b_node -level_near -face_1 -face_2; b_node -level_far -face_1 -face_2 split"
   insertions:
     - "w"
 
@@ -194,29 +194,26 @@ sloped_cogged_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "start = 0.25"
-    - "top = 0.55"
-    - "end = 0.75"
-    - "drop = 0.4"
+    - "level = 0.3333333333333333"
+    - "near = 0.5"
+    - "far = 0.25"
   points:
     - "U = O + n"
-    - "S = O - 2*start*bh*n"
-    - "T = O - 2*top*bh*n - drop*aw*w"
+    - "S1 = O - ah*p - 2*near*bh*n"
+    - "S2 = O + ah*p - 2*far*bh*n"
   planes:
     - "bottom = O - 2*bh*n, n, O"
     - "shoulder = O, n, U"
-    - "mid = O, w, O - w"
-    - "low = O - drop*aw*w, w, O - 2*aw*w"
-    - "near = S, cross(p, T - S), O - 2*bh*n"
-    - "far = O - 2*end*bh*n, n, O"
+    - "level_near = O - level*aw*w, w, O - 2*aw*w"
+    - "level_far = O + level*aw*w, w, O - 2*aw*w"
+    - "split = S1, cross(w, S2 - S1), O"
     - "face_1 = O + ah*p, p, O"
     - "face_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid"
-    - "A4 a_end low -near -far"
-    - "B2 b_node -low -face_1 -face_2; b_node -mid -face_1 -face_2 near; b_node -mid -face_1 -face_2 far"
+    - "A3 a_end shoulder level_far; a_end shoulder level_near -split"
+    - "B2 b_node -level_near -face_1 -face_2; b_node -level_far -face_1 -face_2 split"
   insertions:
     - "w"
 
