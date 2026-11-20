@@ -15,7 +15,7 @@ struct LibraryValue {
 
 /// One record of the joint library, data/joints/*.yaml: its fields and its lists in order, quotes stripped.
 struct LibraryRecord {
-    std::map<std::string, std::string> fields; // title, german, page, category, family.
+    std::map<std::string, std::string> fields; // title, german, page, category, family, corners.
     std::map<std::string, std::vector<std::string>> lists; // parameters, points, planes, steps, insertions.
 };
 

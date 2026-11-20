@@ -25,21 +25,22 @@ Every step keeps its saw or chisel planes and the wood it takes away (`JointElem
 
 ## Families
 
-The records of the library so far, by the compendium's chapter, page and German name.
+The records of the library so far, each on a square and an inclined corner where it exists there, the member drawn out along its insertion. Pictures by `python3 tools/render_joint_library.py`.
 
-| design | joint | German | page |
-|---|---|---|---|
-| `notched_oblique_thrust` | Notched oblique thrust joint | Stirnversatz | 584 |
-| `notched_oblique_thrust_right_angled_end` | Notched oblique thrust joint with right-angled end | Stirnversatz mit rechtwinkliger Stirn | 586 |
-| `oblique_thrust_notched_heel` | Oblique thrust joint with notched heel | Fersenversatz | 590 |
-| `double_notched_oblique_thrust` | Double notched oblique thrust joint | Stirn- und Fersenversatz | 592 |
-| `oblique_thrust_sloped_tenon_notched_heel` | Oblique thrust joint with sloped tenon and notched heel | Fersenversatz mit schrägem Zapfen | 594 |
-| `oblique_thrust_mortise_tenon` | Oblique thrust joint with mortise and tenon | Schräger Stoß mit Zapfen | 596 |
-| `oblique_thrust_sloped_mortise_tenon` | Oblique thrust joint with sloped mortise and tenon | schräger Stoß mit schrägem Zapfen | 598 |
-| `blind_mortise_tenon` | Blind mortise and tenon | verdeckter Zapfen | 496 |
+| joint | compendium |
+|---|---|
+| ![](joint_library/beam_notched_oblique_thrust.png) | **Notched oblique thrust joint**<br>Stirnversatz, p. 584<br>`notched_oblique_thrust` |
+| ![](joint_library/beam_notched_oblique_thrust_right_angled_end.png) | **Notched oblique thrust joint with right-angled end**<br>Stirnversatz mit rechtwinkliger Stirn, p. 586<br>`notched_oblique_thrust_right_angled_end` |
+| ![](joint_library/beam_oblique_thrust_notched_heel.png) | **Oblique thrust joint with notched heel**<br>Fersenversatz, p. 590<br>`oblique_thrust_notched_heel` |
+| ![](joint_library/beam_double_notched_oblique_thrust.png) | **Double notched oblique thrust joint**<br>Stirn- und Fersenversatz, p. 592<br>`double_notched_oblique_thrust` |
+| ![](joint_library/beam_oblique_thrust_sloped_tenon_notched_heel.png) | **Oblique thrust joint with sloped tenon and notched heel**<br>Fersenversatz mit schrägem Zapfen, p. 594<br>`oblique_thrust_sloped_tenon_notched_heel` |
+| ![](joint_library/beam_oblique_thrust_mortise_tenon.png) | **Oblique thrust joint with mortise and tenon**<br>Schräger Stoß mit Zapfen, p. 596<br>`oblique_thrust_mortise_tenon` |
+| ![](joint_library/beam_oblique_thrust_sloped_mortise_tenon.png) | **Oblique thrust joint with sloped mortise and tenon**<br>schräger Stoß mit schrägem Zapfen, p. 598<br>`oblique_thrust_sloped_mortise_tenon` |
+| ![](joint_library/beam_notched_oblique_thrust_mortise_tenon.png) | **Notched oblique thrust joint with mortise and tenon**<br>Stirnversatz mit Zapfen, p. 600<br>`notched_oblique_thrust_mortise_tenon` |
+| ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 
 ## Library
-Every record built on a pair of 120 x 120 beams, one group per design: the angled joints with the member leaning at 50 degrees, the T-joints standing square, each member drawn out along its first insertion direction.
+Every record built on pairs of 120 x 120 beams standing in the xz plane, a group and a row per design: on a square corner and on one leaning at 50 degrees where the record exists there, each member drawn out along its first insertion direction.
 
 ![](elements/element_joint_beam_library.png)
 

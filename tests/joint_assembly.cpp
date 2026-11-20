@@ -127,9 +127,12 @@ static void blind_mortise_tenon() {
 /// Every record of the YAML library on a pair of beams: both cut, no wood shared, the member out along a direction it gives.
 static void library() {
 
-    for (const std::string& design : library_designs()) {
+    for (const std::string& design : library_designs())
+        for (const double angle : {90.0, 130.0}) {
+        if (library_record(design).fields.at("corners").find(angle == 90.0 ? "square" : "inclined") == std::string::npos)
+            continue;
         WoodSession scene(design);
-        const double turn = (library_record(design).fields.at("family") == "t" ? 90.0 : 130.0) * Tolerance::PI / 180.0;
+        const double turn = angle * Tolerance::PI / 180.0;
         const std::shared_ptr<EdgeStraightElement> carrier = beam(Point(-450.0, 0.0, 0.0), Point(450.0, 0.0, 0.0), 60.0, "carrier");
         const std::shared_ptr<EdgeStraightElement> member = beam(Point(0.0, 0.0, 0.0), Point(600.0 * std::cos(turn), 600.0 * std::sin(turn), 0.0), 60.0, "member");
         scene.add(carrier);
@@ -139,10 +142,10 @@ static void library() {
         scene.add_interaction(joint, member, joint->interaction(0));
         scene.add_interaction(joint, carrier, joint->interaction(1));
 
-        check(lost(*member) > 1000.0 && lost(*carrier) > 1000.0, fmt::format("library: {} cuts {} and {} mm3", design, lost(*member), lost(*carrier)));
-        check(shared(*member, *carrier) < 1.0, fmt::format("library: {} leaves {} mm3 shared", design, shared(*member, *carrier)));
-        check(AssemblySequence(scene, "carrier").locked().empty(), fmt::format("library: {} locks its member", design));
-    }
+        check(lost(*member) > 1000.0 && lost(*carrier) > 1000.0, fmt::format("library: {} at {} degrees cuts {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
+        check(shared(*member, *carrier) < 1.0, fmt::format("library: {} at {} degrees leaves {} mm3 shared", design, angle, shared(*member, *carrier)));
+        check(AssemblySequence(scene, "carrier").locked().empty(), fmt::format("library: {} locks its member at {} degrees", design, angle));
+        }
 }
 
 /// The king post truss comes apart: the tie stays, the king post comes up out of its mortise, every other member out across the plane.

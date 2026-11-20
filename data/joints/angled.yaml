@@ -1,6 +1,7 @@
 # Joinery Compendium (Bauer, Pauli 2024), Timber Joints, Angled Joints: one record per joint, built by JointBeamElement::from_library.
 #
-# A record: title, german, page, category and family, every value in double quotes (the reader takes a bare dash for a
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
 # list); then lists of quoted strings, read in order.
 #   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
 #   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
@@ -21,6 +22,7 @@ notched_oblique_thrust:
   page: "584"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.2"
   points:
@@ -46,6 +48,7 @@ notched_oblique_thrust_right_angled_end:
   page: "586"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.2"
   points:
@@ -70,6 +73,7 @@ oblique_thrust_notched_heel:
   page: "590"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.2"
   points:
@@ -97,6 +101,7 @@ double_notched_oblique_thrust:
   page: "592"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "front_depth = 0.2"
     - "heel_depth = 0.2"
@@ -130,6 +135,7 @@ oblique_thrust_sloped_tenon_notched_heel:
   page: "594"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.2"
     - "thickness = 0.3333333333333333"
@@ -159,6 +165,7 @@ oblique_thrust_mortise_tenon:
   page: "596"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.3"
     - "thickness = 0.3333333333333333"
@@ -190,6 +197,7 @@ oblique_thrust_sloped_mortise_tenon:
   page: "598"
   category: "side_end"
   family: "angled"
+  corners: "inclined"
   parameters:
     - "depth = 0.3"
     - "thickness = 0.3333333333333333"
@@ -214,3 +222,35 @@ oblique_thrust_sloped_mortise_tenon:
   insertions:
     - "-n"
     - "-u"
+
+notched_oblique_thrust_mortise_tenon:
+  title: "Notched oblique thrust joint with mortise and tenon"
+  german: "Stirnversatz mit Zapfen"
+  page: "600"
+  category: "side_end"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "depth = 0.2"
+    - "tenon_depth = 0.4"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
+  planes:
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(F - D, w), E"
+    - "bottom = O - 2*tenon_depth*bh*n, n, O"
+    - "under = F, p, F + p"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat cheek_1; a_end seat cheek_2"
+    - "A4 a_end bottom"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+    - "B4 b_node -front -bottom -under -cheek_1 -cheek_2"
+  insertions:
+    - "unit(front + seat)"

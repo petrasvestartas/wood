@@ -2721,8 +2721,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
     }
 
-    double reach = (face - node).dot(u);
-    double span = std::abs((face - node).dot(along_b));
+    // the boxes reach over the member's whole footprint on the face, whatever points the record names
+    double reach = (face - node).dot(u) + ah * std::abs(p.dot(n)) / u.dot(n);
+    double span = std::abs((face - node).dot(along_b)) + ah / u.dot(n);
     if (record.lists.count("points"))
         for (const std::string& line : record.lists.at("points")) {
             const std::vector<std::string> pair = split_top(line, '=');
@@ -2784,6 +2785,11 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         if (through && aw < bw - 1e-6)
             continue;
         const Vector direction = evaluate(through ? line.substr(8) : line, names).vector.normalized();
+        bool repeated = false;
+        for (const Vector& known : joint->target_insertions[0])
+            repeated = repeated || known.dot(direction) > 0.9999;
+        if (repeated)
+            continue;
         joint->target_insertions[0].push_back(direction);
         joint->target_insertions[1].push_back(direction * -1.0);
     }

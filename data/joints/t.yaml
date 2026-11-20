@@ -1,6 +1,7 @@
 # Joinery Compendium (Bauer, Pauli 2024), Timber Joints, T-Joints: one record per joint, built by JointBeamElement::from_library.
 #
-# A record: title, german, page, category and family, every value in double quotes (the reader takes a bare dash for a
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
 # list); then lists of quoted strings, read in order.
 #   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
 #   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
@@ -21,15 +22,16 @@ blind_mortise_tenon:
   page: "496"
   category: "side_end"
   family: "t"
+  corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
     - "inset = 0.16666666666666666"
     - "depth = 0.5"
   points:
-    - "S = O + u"
+    - "S = O + n"
   planes:
-    - "end = O - 2*depth*bh*u, u, O"
-    - "shoulder = O, u, S"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "shoulder = O, n, S"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
     - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
@@ -40,3 +42,4 @@ blind_mortise_tenon:
     - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
+    - "-n"
