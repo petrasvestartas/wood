@@ -48,3 +48,109 @@ blind_mortise_tenon:
   insertions:
     - "-u"
     - "-n"
+
+half_lap:
+  title: "Half lap joint"
+  german: "Querblatt"
+  page: "420"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2"
+  insertions:
+    - "-u"
+    - "w"
+
+stopped_half_lap:
+  title: "Stopped half lap joint"
+  german: "halbverdecktes Querblatt"
+  page: "422"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.75"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2 -bottom"
+  insertions:
+    - "-u"
+    - "w"
+
+beveled_half_lap:
+  title: "Beveled half lap joint"
+  german: "Querblatt mit schräger Blattfläche"
+  page: "424"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "bevel = 0.16"
+  points:
+    - "U = O + n"
+    - "N = O - bevel*aw*w"
+    - "F = O - 2*bh*n + bevel*aw*w"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = N, cross(p, F - N), N - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2"
+  insertions:
+    - "w"
+
+stopped_beveled_half_lap:
+  title: "Stopped beveled half lap joint"
+  german: "halbverdecktes Querblatt mit schräger Blattfläche"
+  page: "426"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.75"
+    - "bevel = 0.16"
+  points:
+    - "U = O + n"
+    - "N = O - bevel*aw*w"
+    - "F = O - 2*stop*bh*n + bevel*aw*w"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = N, cross(p, F - N), N - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2 -bottom"
+  insertions:
+    - "w"
