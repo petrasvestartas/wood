@@ -707,13 +707,11 @@ pegged_mitered_rafter_foot:
     - "up = 0.5"
   points:
     - "U = O + n"
-    - "F = meet(R - ah*p, u, O, n)"
-    - "E = meet(R + ah*p, u, O, n)"
-    - "M = (E + F)/2"
+    - "T = meet(O, n, R + ah*p, p)"
   planes:
     - "top = O, n, U"
   parts:
-    - "peg = M + 2*up*ah*n, M - 2*down*bh*n, w, peg*ah, none"
+    - "peg = O + up*(T - O), O - 2*down*bh*n, w, peg*ah, none"
   steps:
     - "A2 a_node top"
     - "A3 peg"
