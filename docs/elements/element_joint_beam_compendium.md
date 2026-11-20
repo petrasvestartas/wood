@@ -71,6 +71,12 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_double_cogged_lap.png) | **Double cogged lap joint**<br>Hakenquerblatt mit mittigem Haken, p. 434<br>`double_cogged_lap` |
 | ![](joint_library/beam_stopped_mortise_tenon.png) | **Stopped mortise and tenon joint**<br>Querzapfen, p. 436<br>`stopped_mortise_tenon` |
 | ![](joint_library/beam_stopped_dovetailed_mortise_tenon.png) | **Stopped dovetailed mortise and tenon joint**<br>Schwalbenschwanzquerzapfen, p. 438<br>`stopped_dovetailed_mortise_tenon` |
+| ![](joint_library/beam_dovetail_half_lap.png) | **Dovetail half lap joint**<br>Schwalbenschwanzquerblatt, p. 440<br>`dovetail_half_lap` |
+| ![](joint_library/beam_stopped_dovetail_half_lap.png) | **Stopped dovetail half lap joint**<br>halbverdecktes Schwalbenschwanzquerblatt, p. 442<br>`stopped_dovetail_half_lap` |
+| ![](joint_library/beam_one_sided_dovetail_half_lap.png) | **One-sided dovetail half lap joint**<br>einseitiges Schwalbenschwanzquerblatt, p. 444<br>`one_sided_dovetail_half_lap` |
+| ![](joint_library/beam_stopped_one_sided_dovetail_half_lap.png) | **Stopped one-sided dovetail half lap joint**<br>halbverdecktes einseitiges Schwalbenschwanzquerblatt, p. 446<br>`stopped_one_sided_dovetail_half_lap` |
+| ![](joint_library/beam_housed_dovetail_half_lap.png) | **Housed dovetail half lap joint**<br>eingelassenes Schwalbenschwanzquerblatt, p. 448<br>`housed_dovetail_half_lap` |
+| ![](joint_library/beam_stopped_housed_dovetail_half_lap.png) | **Stopped housed dovetail half lap joint**<br>halbverdecktes eingelassenes Schwalbenschwanzquerblatt, p. 450<br>`stopped_housed_dovetail_half_lap` |
 <!-- /joint-table -->
 
 ## Library

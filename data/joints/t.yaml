@@ -301,3 +301,196 @@ stopped_dovetailed_mortise_tenon:
     - "B2 b_node -end -cheek_1 -cheek_2"
   insertions:
     - "w"
+
+dovetail_half_lap:
+  title: "Dovetail half lap joint"
+  german: "Schwalbenschwanzquerblatt"
+  page: "440"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+  points:
+    - "U = O + n"
+    - "H = O"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*bh*n, n)"
+    - "N2 = meet(O + (1 - flare)*ah*p, u, H, n)"
+    - "Q2 = meet(O + ah*p, u, O - 2*bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "dove_2 = N2, cross(Q2 - N2, w), O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
+    - "B2 b_node -mid -dove_1 -dove_2"
+  insertions:
+    - "w"
+
+stopped_dovetail_half_lap:
+  title: "Stopped dovetail half lap joint"
+  german: "halbverdecktes Schwalbenschwanzquerblatt"
+  page: "442"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "stop = 0.75"
+  points:
+    - "U = O + n"
+    - "H = O"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*stop*bh*n, n)"
+    - "N2 = meet(O + (1 - flare)*ah*p, u, H, n)"
+    - "Q2 = meet(O + ah*p, u, O - 2*stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "dove_2 = N2, cross(Q2 - N2, w), O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
+    - "B2 b_node -mid -dove_1 -dove_2 -bottom"
+  insertions:
+    - "w"
+
+one_sided_dovetail_half_lap:
+  title: "One-sided dovetail half lap joint"
+  german: "einseitiges Schwalbenschwanzquerblatt"
+  page: "444"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+  points:
+    - "U = O + n"
+    - "H = O"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "face_1 = O + ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1"
+    - "B2 b_node -mid -dove_1 -face_1"
+  insertions:
+    - "w"
+
+stopped_one_sided_dovetail_half_lap:
+  title: "Stopped one-sided dovetail half lap joint"
+  german: "halbverdecktes einseitiges Schwalbenschwanzquerblatt"
+  page: "446"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "stop = 0.75"
+  points:
+    - "U = O + n"
+    - "H = O"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "face_1 = O + ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1"
+    - "B2 b_node -mid -dove_1 -face_1 -bottom"
+  insertions:
+    - "w"
+
+housed_dovetail_half_lap:
+  title: "Housed dovetail half lap joint"
+  german: "eingelassenes Schwalbenschwanzquerblatt"
+  page: "448"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "house = 0.1"
+  points:
+    - "U = O + n"
+    - "H = O - 2*house*bh*n"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*bh*n, n)"
+    - "N2 = meet(O + (1 - flare)*ah*p, u, H, n)"
+    - "Q2 = meet(O + ah*p, u, O - 2*bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "dove_2 = N2, cross(Q2 - N2, w), O"
+    - "house = H, n, O - 2*bh*n"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
+    - "B2 b_node -mid -dove_1 -dove_2; b_node house -side_1 -side_2"
+  insertions:
+    - "w"
+
+stopped_housed_dovetail_half_lap:
+  title: "Stopped housed dovetail half lap joint"
+  german: "halbverdecktes eingelassenes Schwalbenschwanzquerblatt"
+  page: "450"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "stop = 0.75"
+    - "house = 0.1"
+  points:
+    - "U = O + n"
+    - "H = O - 2*house*bh*n"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, H, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*stop*bh*n, n)"
+    - "N2 = meet(O + (1 - flare)*ah*p, u, H, n)"
+    - "Q2 = meet(O + ah*p, u, O - 2*stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = H, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "dove_2 = N2, cross(Q2 - N2, w), O"
+    - "house = H, n, O - 2*bh*n"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
+    - "B2 b_node -mid -dove_1 -dove_2 -bottom; b_node house -side_1 -side_2"
+  insertions:
+    - "w"
