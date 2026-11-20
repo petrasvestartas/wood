@@ -303,7 +303,8 @@ notched_oblique_thrust_pegged_mortise_tenon:
   corners: "inclined"
   parameters:
     - "depth = 0.2"
-    - "tenon_depth = 0.45"
+    - "tenon_depth = 0.65"
+    - "peg_depth = 0.3"
     - "thickness = 0.3333333333333333"
     - "peg = 0.15"
   points:
@@ -311,7 +312,7 @@ notched_oblique_thrust_pegged_mortise_tenon:
     - "F = meet(O - ah*p, u, O, n)"
     - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
     - "V = meet((D + F)/2, n, O - 2*tenon_depth*bh*n, n)"
-    - "P = (D + V + F)/3"
+    - "P = meet(V, n, O - 2*peg_depth*bh*n, n)"
   planes:
     - "front = E, cross(D - E, w), F"
     - "seat = D, cross(F - D, w), E"
