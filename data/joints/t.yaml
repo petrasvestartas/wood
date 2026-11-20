@@ -1169,8 +1169,8 @@ haunched_through_mortise_tenon:
   corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
-    - "haunch = 0.4"
-    - "top = 0.7"
+    - "haunch = 0.35"
+    - "split = 0"
   points:
     - "S = O + n"
   planes:
@@ -1179,13 +1179,13 @@ haunched_through_mortise_tenon:
     - "shoulder = O, n, S"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
-    - "edge_1 = O + top*ah*p, p, O"
-    - "mid = O, p, O - ah*p"
+    - "edge_1 = O + ah*p, p, O"
+    - "mid = O + split*ah*p, p, O - ah*p"
     - "edge_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
-    - "A3 a_end shoulder edge_1; a_end haunch_end mid"
+    - "A3 a_end haunch_end mid"
     - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2; b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
@@ -1199,9 +1199,9 @@ blind_haunched_mortise_tenon:
   corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
-    - "depth = 0.6"
-    - "haunch = 0.25"
-    - "top = 0.7"
+    - "depth = 0.67"
+    - "haunch = 0.32"
+    - "split = 0.3333333333333333"
   points:
     - "S = O + n"
   planes:
@@ -1210,13 +1210,13 @@ blind_haunched_mortise_tenon:
     - "shoulder = O, n, S"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
-    - "edge_1 = O + top*ah*p, p, O"
-    - "mid = O, p, O - ah*p"
+    - "edge_1 = O + ah*p, p, O"
+    - "mid = O + split*ah*p, p, O - ah*p"
     - "edge_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
-    - "A3 a_end shoulder edge_1; a_end haunch_end mid"
+    - "A3 a_end haunch_end mid"
     - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2; b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
@@ -1231,7 +1231,6 @@ double_through_mortise_tenon:
   parameters:
     - "inner = 0.2"
     - "outer = 0.6"
-    - "inset = 0.16666666666666666"
   points:
     - "S = O + n"
   planes:
@@ -1241,12 +1240,11 @@ double_through_mortise_tenon:
     - "w_in_1 = O + inner*aw*w, w, O + aw*w"
     - "w_in_2 = O - inner*aw*w, w, O - aw*w"
     - "w_out_2 = O - outer*aw*w, w, O"
-    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
-    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end end; a_end shoulder w_out_1; a_end shoulder w_out_2; a_end shoulder w_in_1 w_in_2"
-    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
     - "B2 b_node -end -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -end -w_out_2 -w_in_2 -edge_1 -edge_2"
   insertions:
     - "-u"
@@ -1261,7 +1259,6 @@ housed_double_through_mortise_tenon:
   parameters:
     - "inner = 0.2"
     - "outer = 0.6"
-    - "inset = 0.16666666666666666"
     - "house = 0.1"
   points:
     - "S = O + n"
@@ -1273,8 +1270,8 @@ housed_double_through_mortise_tenon:
     - "w_in_1 = O + inner*aw*w, w, O + aw*w"
     - "w_in_2 = O - inner*aw*w, w, O - aw*w"
     - "w_out_2 = O - outer*aw*w, w, O"
-    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
-    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
     - "face_1 = O + aw*w, w, O"
@@ -1282,7 +1279,6 @@ housed_double_through_mortise_tenon:
   parts:
   steps:
     - "A2 a_end end; a_end housing w_out_1; a_end housing w_out_2; a_end housing w_in_1 w_in_2"
-    - "A3 a_end housing edge_1; a_end housing edge_2"
     - "B2 b_node -end -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -end -w_out_2 -w_in_2 -edge_1 -edge_2; b_node -housing -side_1 -side_2 -face_1 -face_2"
   insertions:
     - "-u"
@@ -1322,9 +1318,9 @@ t_bridle_blind_mortise_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
-    - "depth = 0.4"
+    - "neck = 0.67"
+    - "thickness = 0.2"
+    - "depth = 0.5"
   points:
     - "S = O + n"
   planes:
@@ -1561,26 +1557,26 @@ x_shaped_stub_tenon:
   corners: "square inclined"
   parameters:
     - "thickness = 0.25"
-    - "reach = 0.75"
-    - "depth = 0.4"
+    - "depth = 0.25"
   points:
     - "S = O + n"
+    - "D = unit(ah*p + aw*w)"
+    - "E = unit(ah*p - aw*w)"
   planes:
     - "end = O - 2*depth*bh*n, n, O"
     - "shoulder = O, n, S"
-    - "w_1 = O + thickness*aw*w, w, O"
-    - "w_2 = O - thickness*aw*w, w, O"
-    - "p_1 = O + thickness*ah*p, p, O"
-    - "p_2 = O - thickness*ah*p, p, O"
-    - "w_far_1 = O + reach*aw*w, w, O"
-    - "w_far_2 = O - reach*aw*w, w, O"
-    - "p_far_1 = O + reach*ah*p, p, O"
-    - "p_far_2 = O - reach*ah*p, p, O"
+    - "d_1 = O + thickness*ah*D, D, O"
+    - "d_2 = O - thickness*ah*D, D, O"
+    - "e_1 = O + thickness*ah*E, E, O"
+    - "e_2 = O - thickness*ah*E, E, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
   parts:
   steps:
-    - "A2 a_end end; a_end shoulder w_far_1; a_end shoulder w_far_2; a_end shoulder p_far_1; a_end shoulder p_far_2"
-    - "A3 a_end shoulder w_1 p_1; a_end shoulder w_1 p_2; a_end shoulder w_2 p_1; a_end shoulder w_2 p_2"
-    - "B2 b_node -end -w_1 -w_2 -p_far_1 -p_far_2; b_node -end -p_1 -p_2 -w_far_1 -w_far_2"
+    - "A2 a_end end; a_end shoulder d_1 e_1; a_end shoulder d_1 e_2; a_end shoulder d_2 e_1; a_end shoulder d_2 e_2"
+    - "B2 b_node -end -e_1 -e_2 -edge_1 -edge_2 -face_1 -face_2; b_node -end -d_1 -d_2 -edge_1 -edge_2 -face_1 -face_2"
   insertions:
     - "-u"
 
@@ -1593,8 +1589,8 @@ fully_shouldered_blind_mortise_tenon:
   corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
-    - "height = 0.3333333333333333"
-    - "depth = 0.5"
+    - "height = 0.76"
+    - "depth = 0.24"
   points:
     - "S = O + n"
   planes:
