@@ -494,3 +494,63 @@ stopped_housed_dovetail_half_lap:
     - "B2 b_node -mid -dove_1 -dove_2 -bottom; b_node house -side_1 -side_2"
   insertions:
     - "w"
+
+stepped_lap:
+  title: "Stepped lap joint"
+  german: "halbverdecktes Stufenquerblatt"
+  page: "452"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.65"
+    - "split = 0.33"
+    - "step = 0.2"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper_near = O - step*aw*w, w, O - 2*aw*w"
+    - "upper_far = O + step*aw*w, w, O - 2*aw*w"
+    - "split = O - 2*split*bh*n, n, O"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper_near -split"
+    - "A4 a_end shoulder upper_far"
+    - "B2 b_node -upper_near -face_1 -face_2 -bottom"
+    - "B3 b_node -upper_far -face_1 -face_2 -bottom split"
+  insertions:
+    - "w"
+
+housed_mortise_tenon_shifted_shoulders:
+  title: "Housed mortise and tenon with shifted shoulders"
+  german: "Zapfen mit einseitig vorgeschobener Brüstung"
+  page: "454"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "house = 0.25"
+    - "length = 0.5"
+    - "low = 0.15"
+    - "high = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "lower = O - low*aw*w, w, O + aw*w"
+    - "upper = O + high*aw*w, w, O - aw*w"
+    - "housing = O - 2*house*bh*n, n, O"
+    - "end = O - 2*length*bh*n, n, O"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder lower; a_end housing upper"
+    - "B2 b_node -lower -upper -end -face_1 -face_2; b_node -lower -housing -face_1 -face_2"
+  insertions:
+    - "-u"
