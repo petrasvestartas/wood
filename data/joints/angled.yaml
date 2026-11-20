@@ -878,3 +878,79 @@ notched_rafter_joint:
     - "B2 b_node -floor wall"
   insertions:
     - "-n"
+
+v_grooved_rafter_joint:
+  title: "V-grooved rafter joint"
+  german: "Aufkervung mit Rückversatz"
+  page: "640"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.26"
+    - "tail = 300"
+  points:
+    - "B = meet(R, u, O, n)"
+  planes:
+    - "plumb = B, t, B + t"
+    - "square = B, u, B + u"
+    - "under = R - ah*p, p, R"
+  parts:
+  steps:
+    - "A2 a_node plumb square"
+    - "B2 b_node -square -under"
+  insertions:
+    - "-n"
+
+step_lap_rafter_joint:
+  title: "Step lap rafter joint"
+  german: "Aufkervung mit gestuftem Rückversatz"
+  page: "642"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.25"
+    - "tail = 300"
+    - "depth = 0.25"
+    - "width = 0.5"
+  points:
+    - "B = meet(R - ah*p + 2*depth*ah*p, u, O, n)"
+    - "C = B - 2*depth*ah*p"
+    - "F = C - 2*width*ah*u"
+  planes:
+    - "face = B, cross(F - B, w), F - u"
+    - "square = B, u, B + u"
+    - "under = R - ah*p, p, R"
+  parts:
+  steps:
+    - "A2 a_node face square"
+    - "B2 b_node -face -under; b_node -square -under"
+  insertions:
+    - "-n"
+
+stopped_birdsmouth_rafter_foot:
+  title: "Stopped birdsmouth rafter foot"
+  german: "Aufklauung mit Anschnitt"
+  page: "644"
+  category: "cross"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "sit = 0.6"
+    - "shift = -1"
+    - "tail = 400"
+    - "depth = 0.3"
+  points:
+    - "U = O + n"
+    - "Q = O - bt*t - 2*depth*bh*n"
+  planes:
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "square = Q, u, Q + u"
+  parts:
+  steps:
+    - "A2 a_node top inner square"
+    - "B2 b_node -square"
+  insertions:
+    - "-n"

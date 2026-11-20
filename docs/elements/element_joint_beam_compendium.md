@@ -58,6 +58,9 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_rafter_foot_tenon_undersquinted_shoulders.png) | **Rafter foot with tenon and undersquinted shoulders**<br>Zapfung mit Klaue, p. 634<br>`rafter_foot_tenon_undersquinted_shoulders` |
 | ![](joint_library/beam_birdsmouth_rafter_joint.png) | **Birdsmouth rafter joint**<br>Aufkervung, p. 636<br>`birdsmouth_rafter_joint` |
 | ![](joint_library/beam_notched_rafter_joint.png) | **Notched rafter joint**<br>Aufkervung mit Ausklinkung, p. 638<br>`notched_rafter_joint` |
+| ![](joint_library/beam_v_grooved_rafter_joint.png) | **V-grooved rafter joint**<br>Aufkervung mit Rückversatz, p. 640<br>`v_grooved_rafter_joint` |
+| ![](joint_library/beam_step_lap_rafter_joint.png) | **Step lap rafter joint**<br>Aufkervung mit gestuftem Rückversatz, p. 642<br>`step_lap_rafter_joint` |
+| ![](joint_library/beam_stopped_birdsmouth_rafter_foot.png) | **Stopped birdsmouth rafter foot**<br>Aufklauung mit Anschnitt, p. 644<br>`stopped_birdsmouth_rafter_foot` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 <!-- /joint-table -->
 
