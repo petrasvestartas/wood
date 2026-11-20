@@ -16,6 +16,7 @@
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way.
 
 notched_oblique_thrust:

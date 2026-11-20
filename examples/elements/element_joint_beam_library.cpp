@@ -27,6 +27,7 @@ int main() {
             const std::shared_ptr<EdgeStraightElement> member = EdgeStraightElement::square(Polyline({node, node + Vector(600.0 * std::cos(turn), 0.0, 600.0 * std::sin(turn))}), 60.0, name + "_member");
             carrier->directions = across;
             member->directions = across;
+            member->extension = 180.0;
             scene.add(carrier, scene.group_named(design));
             scene.add(member, scene.group_named(design));
 
@@ -53,7 +54,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees; each drawn apart as the book draws it, the member 350 mm out along its own axis and every peg out along its own.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, the member 350 mm out along its own axis and every peg out along its own.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
