@@ -111,6 +111,9 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_notched_lap_stub_tenon.png) | **Notched lap joint with stub tenon**<br>einseitige Einhälsung mit verdecktem Zapfen, p. 558<br>`notched_lap_stub_tenon` |
 | ![](joint_library/beam_lap_tenon.png) | **Lap joint with tenon**<br>einseitige Gabelaufblattung mit durchgehendem Zapfen, p. 560<br>`lap_tenon` |
 | ![](joint_library/beam_lap_stub_tenon.png) | **Lap joint with stub tenon**<br>einseitige Gabelaufblattung mit verdecktem Zapfen, p. 562<br>`lap_stub_tenon` |
+| ![](joint_library/beam_housed_dovetail.png) | **Housed dovetail joint**<br>eingeschobener abgesetzter Schwalbenschwanzzapfen, p. 572<br>`housed_dovetail` |
+| ![](joint_library/beam_x_shaped_stub_tenon.png) | **X-shaped stub tenon joint**<br>Kreuzzapfen, p. 574<br>`x_shaped_stub_tenon` |
+| ![](joint_library/beam_fully_shouldered_blind_mortise_tenon.png) | **Fully shouldered blind mortise and tenon**<br>verdeckter beidseitig abgesetzter Zapfen, p. 576<br>`fully_shouldered_blind_mortise_tenon` |
 <!-- /joint-table -->
 
 ## Library

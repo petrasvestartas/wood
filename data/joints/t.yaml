@@ -1541,3 +1541,91 @@ lap_stub_tenon:
     - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
   insertions:
     - "-u"
+
+housed_dovetail:
+  title: "Housed dovetail joint"
+  german: "eingeschobener abgesetzter Schwalbenschwanzzapfen"
+  page: "572"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.5"
+    - "neck = 0.3"
+    - "flare = 0.45"
+    - "depth = 0.5"
+  points:
+    - "S = O + n"
+    - "E = O - 2*depth*bh*n"
+  planes:
+    - "end = E, n, O"
+    - "shoulder = O, n, S"
+    - "back = O - thickness*aw*w, w, O"
+    - "flank_1 = O + neck*ah*p, cross(w, E + flare*ah*p - O - neck*ah*p), O"
+    - "flank_2 = O - neck*ah*p, cross(w, E - flare*ah*p - O + neck*ah*p), O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder back; a_end shoulder flank_1; a_end shoulder flank_2"
+    - "B2 b_node -end -back -flank_1 -flank_2"
+  insertions:
+    - "-w"
+
+x_shaped_stub_tenon:
+  title: "X-shaped stub tenon joint"
+  german: "Kreuzzapfen"
+  page: "574"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.25"
+    - "reach = 0.75"
+    - "depth = 0.4"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*depth*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "w_1 = O + thickness*aw*w, w, O"
+    - "w_2 = O - thickness*aw*w, w, O"
+    - "p_1 = O + thickness*ah*p, p, O"
+    - "p_2 = O - thickness*ah*p, p, O"
+    - "w_far_1 = O + reach*aw*w, w, O"
+    - "w_far_2 = O - reach*aw*w, w, O"
+    - "p_far_1 = O + reach*ah*p, p, O"
+    - "p_far_2 = O - reach*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder w_far_1; a_end shoulder w_far_2; a_end shoulder p_far_1; a_end shoulder p_far_2"
+    - "A3 a_end shoulder w_1 p_1; a_end shoulder w_1 p_2; a_end shoulder w_2 p_1; a_end shoulder w_2 p_2"
+    - "B2 b_node -end -w_1 -w_2 -p_far_1 -p_far_2; b_node -end -p_1 -p_2 -w_far_1 -w_far_2"
+  insertions:
+    - "-u"
+
+fully_shouldered_blind_mortise_tenon:
+  title: "Fully shouldered blind mortise and tenon"
+  german: "verdeckter beidseitig abgesetzter Zapfen"
+  page: "576"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "height = 0.3333333333333333"
+    - "depth = 0.5"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*depth*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + height*ah*p, p, O"
+    - "edge_2 = O - height*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
