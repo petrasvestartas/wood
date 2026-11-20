@@ -488,3 +488,178 @@ pegged_angled_lapped_mortise_tenon:
     - "B5 peg"
   insertions:
     - "-u"
+
+pegged_shouldered_angled_half_lap:
+  title: "Pegged shouldered angled half lap joint"
+  german: "beidseitig abgesetztes schräges Blatt mit Dübelsicherung"
+  page: "614"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "inset = 0.15"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "A5 peg"
+    - "B2 b_node -mid -edge_1 -edge_2"
+    - "B3 peg"
+  insertions:
+    - "-u"
+    - "w"
+
+pegged_angled_half_dovetail_lap_sloped_shoulder:
+  title: "Pegged angled half-dovetail lap joint with sloped shoulder"
+  german: "schräges einseitiges Schwalbenschwanzblatt mit verdecktem Versatz und Dübelsicherung"
+  page: "616"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "depth = 0.15"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - bh*n, n)"
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
+    - "N = meet(O - (1 - flare)*ah*p, u, O, n)"
+    - "Q = meet(O - ah*p, u, O - 2*bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "dove = N, cross(Q - N, w), O"
+    - "face_1 = O + ah*p, p, O"
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(F - D, w), E"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end front mid; a_end seat mid"
+    - "A4 a_end shoulder dove seat"
+    - "A5 peg"
+    - "B2 b_node -front -seat"
+    - "B3 b_node -mid -dove -face_1"
+    - "B4 peg"
+  insertions:
+    - "w"
+
+pegged_angled_half_dovetail_half_lap:
+  title: "Pegged angled half-dovetail half lap joint"
+  german: "schräges einseitiges Schwalbenschwanzblatt mit Dübelsicherung"
+  page: "618"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - bh*n, n)"
+    - "N = meet(O - (1 - flare)*ah*p, u, O, n)"
+    - "Q = meet(O - ah*p, u, O - 2*bh*n, n)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "dove = N, cross(Q - N, w), O"
+    - "face_1 = O + ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove"
+    - "A5 peg"
+    - "B2 b_node -mid -dove -face_1"
+    - "B3 peg"
+  insertions:
+    - "w"
+
+pegged_stopped_angled_half_dovetail_half_lap:
+  title: "Pegged stopped angled half-dovetail half lap joint"
+  german: "halbverdecktes schräges einseitiges Schwalbenschwanzblatt und Dübelsicherung"
+  page: "620"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "stop = 0.75"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - stop*bh*n, n)"
+    - "N = meet(O - (1 - flare)*ah*p, u, O, n)"
+    - "Q = meet(O - ah*p, u, O - 2*stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "dove = N, cross(Q - N, w), O"
+    - "face_1 = O + ah*p, p, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove"
+    - "A5 peg"
+    - "B2 b_node -mid -dove -face_1 -bottom"
+    - "B3 peg"
+  insertions:
+    - "w"
+
+pegged_angled_stopped_dovetail_half_lap:
+  title: "Pegged angled stopped dovetail half lap joint"
+  german: "halbverdecktes schräges Schwalbenschwanzblatt mit Dübelsicherung"
+  page: "622"
+  category: "side_end"
+  family: "angled"
+  corners: "square inclined"
+  parameters:
+    - "flare = 0.2"
+    - "stop = 0.75"
+    - "peg = 0.15"
+  points:
+    - "U = O + n"
+    - "P = meet(O, u, O - stop*bh*n, n)"
+    - "N1 = meet(O - (1 - flare)*ah*p, u, O, n)"
+    - "Q1 = meet(O - ah*p, u, O - 2*stop*bh*n, n)"
+    - "N2 = meet(O + (1 - flare)*ah*p, u, O, n)"
+    - "Q2 = meet(O + ah*p, u, O - 2*stop*bh*n, n)"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "dove_1 = N1, cross(Q1 - N1, w), O"
+    - "dove_2 = N2, cross(Q2 - N2, w), O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
+    - "A5 peg"
+    - "B2 b_node -mid -dove_1 -dove_2 -bottom"
+    - "B3 peg"
+  insertions:
+    - "w"

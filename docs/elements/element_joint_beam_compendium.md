@@ -25,7 +25,7 @@ Every step keeps its saw or chisel planes and the wood it takes away (`JointElem
 
 ## Families
 
-The records of the library so far, each on a square and an inclined corner where it exists there, the member drawn out along its insertion. Pictures by `python3 tools/render_joint_library.py`.
+The records of the library so far, each on a square and an inclined corner where it exists there, drawn apart as the book draws it. Pictures by `python3 tools/render_joint_library.py`.
 
 <!-- joint-table -->
 | joint | compendium |
@@ -45,11 +45,16 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_pegged_angled_half_lap.png) | **Pegged angled half lap joint**<br>schräges Blatt mit Dübelsicherung, p. 608<br>`pegged_angled_half_lap` |
 | ![](joint_library/beam_pegged_angled_stopped_half_lap.png) | **Pegged angled stopped half lap joint**<br>halbverdecktes schräges Blatt mit Dübelsicherung, p. 610<br>`pegged_angled_stopped_half_lap` |
 | ![](joint_library/beam_pegged_angled_lapped_mortise_tenon.png) | **Pegged angled lapped mortise and tenon joint**<br>schräges Blatt mit Zapfen und Dübelsicherung, p. 612<br>`pegged_angled_lapped_mortise_tenon` |
+| ![](joint_library/beam_pegged_shouldered_angled_half_lap.png) | **Pegged shouldered angled half lap joint**<br>beidseitig abgesetztes schräges Blatt mit Dübelsicherung, p. 614<br>`pegged_shouldered_angled_half_lap` |
+| ![](joint_library/beam_pegged_angled_half_dovetail_lap_sloped_shoulder.png) | **Pegged angled half-dovetail lap joint with sloped shoulder**<br>schräges einseitiges Schwalbenschwanzblatt mit verdecktem Versatz und Dübelsicherung, p. 616<br>`pegged_angled_half_dovetail_lap_sloped_shoulder` |
+| ![](joint_library/beam_pegged_angled_half_dovetail_half_lap.png) | **Pegged angled half-dovetail half lap joint**<br>schräges einseitiges Schwalbenschwanzblatt mit Dübelsicherung, p. 618<br>`pegged_angled_half_dovetail_half_lap` |
+| ![](joint_library/beam_pegged_stopped_angled_half_dovetail_half_lap.png) | **Pegged stopped angled half-dovetail half lap joint**<br>halbverdecktes schräges einseitiges Schwalbenschwanzblatt und Dübelsicherung, p. 620<br>`pegged_stopped_angled_half_dovetail_half_lap` |
+| ![](joint_library/beam_pegged_angled_stopped_dovetail_half_lap.png) | **Pegged angled stopped dovetail half lap joint**<br>halbverdecktes schräges Schwalbenschwanzblatt mit Dübelsicherung, p. 622<br>`pegged_angled_stopped_dovetail_half_lap` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 <!-- /joint-table -->
 
 ## Library
-Every record built on pairs of 120 x 120 beams standing in the xz plane, a group and a row per design: on a square corner and on one leaning at 50 degrees where the record exists there, each member drawn out along its first insertion direction.
+Every record built on pairs of 120 x 120 beams standing in the xz plane, a group and a row per design: on a square corner and on one leaning at 50 degrees where the record exists there, each drawn apart as the book draws it, the member 350 mm out along its own axis and every peg along its own; the ways each goes in are the record's insertions.
 
 ![](elements/element_joint_beam_library.png)
 

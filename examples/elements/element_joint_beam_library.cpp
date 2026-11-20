@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Every joint of the YAML library, a group and a row per design: on a square corner and on an inclined one, the member and its pegs drawn out along their insertions.
+/// Every joint of the YAML library, a group and a row per design: on a square corner and on an inclined one, drawn apart as the book draws it.
 int main() {
 
     WoodSession scene("element_joint_beam_library");
@@ -36,7 +36,8 @@ int main() {
             scene.add_interaction(joint, member, joint->interaction(0));
             scene.add_interaction(joint, carrier, joint->interaction(1));
 
-            const Vector out = joint->insertion_directions(0)[0] * -150.0;
+            // drawn apart as the book draws it, the member out along its own axis, whatever way it goes in
+            const Vector out = Vector(std::cos(turn), 0.0, std::sin(turn)) * 350.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
             for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
                 if (part->name.starts_with(name + "_part")) {
@@ -52,7 +53,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees; each member drawn 150 mm out along its first insertion direction.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees; each drawn apart as the book draws it, the member 350 mm out along its own axis and every peg out along its own.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
