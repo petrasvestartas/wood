@@ -69,6 +69,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_cogged_lap.png) | **Cogged lap joint**<br>Hakenquerblatt, p. 428<br>`cogged_lap` |
 | ![](joint_library/beam_sloped_cogged_lap.png) | **Sloped cogged lap joint**<br>Hakenquerblatt mit schrägem Haken, p. 432<br>`sloped_cogged_lap` |
 | ![](joint_library/beam_double_cogged_lap.png) | **Double cogged lap joint**<br>Hakenquerblatt mit mittigem Haken, p. 434<br>`double_cogged_lap` |
+| ![](joint_library/beam_stopped_mortise_tenon.png) | **Stopped mortise and tenon joint**<br>Querzapfen, p. 436<br>`stopped_mortise_tenon` |
+| ![](joint_library/beam_stopped_dovetailed_mortise_tenon.png) | **Stopped dovetailed mortise and tenon joint**<br>Schwalbenschwanzquerzapfen, p. 438<br>`stopped_dovetailed_mortise_tenon` |
 <!-- /joint-table -->
 
 ## Library

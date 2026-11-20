@@ -250,3 +250,54 @@ double_cogged_lap:
     - "B2 b_node -low -face_1 -face_2; b_node -mid -face_1 -face_2 near; b_node -mid -face_1 -face_2 far"
   insertions:
     - "w"
+
+stopped_mortise_tenon:
+  title: "Stopped mortise and tenon joint"
+  german: "Querzapfen"
+  page: "436"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.4"
+    - "length = 0.46"
+  points:
+    - "U = O + n"
+  planes:
+    - "end = O - 2*length*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "B2 b_node -end -cheek_1 -cheek_2"
+  insertions:
+    - "-u"
+    - "w"
+
+stopped_dovetailed_mortise_tenon:
+  title: "Stopped dovetailed mortise and tenon joint"
+  german: "Schwalbenschwanzquerzapfen"
+  page: "438"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.3"
+    - "flare = 0.45"
+    - "length = 0.46"
+  points:
+    - "U = O + n"
+    - "E = O - 2*length*bh*n"
+  planes:
+    - "end = E, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + neck*ah*p, cross(w, E + flare*ah*p - O - neck*ah*p), O"
+    - "cheek_2 = O - neck*ah*p, cross(w, E - flare*ah*p - O + neck*ah*p), O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "B2 b_node -end -cheek_1 -cheek_2"
+  insertions:
+    - "w"
