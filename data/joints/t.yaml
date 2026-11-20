@@ -10,6 +10,8 @@
 #               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half": a square peg or key from start to end, half its side wide, a side along up;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
@@ -36,6 +38,7 @@ blind_mortise_tenon:
     - "cheek_2 = O - thickness*aw*w, w, O"
     - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
     - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+  parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
     - "A3 a_end shoulder edge_1; a_end shoulder edge_2"

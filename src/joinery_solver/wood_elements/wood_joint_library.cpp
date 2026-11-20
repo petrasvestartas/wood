@@ -196,7 +196,7 @@ LibraryRecord library_record(const std::string& design) {
         LibraryRecord record;
         for (const std::string key : {"title", "german", "page", "category", "family", "corners"})
             record.fields[key] = unquoted(yaml[design][key].getData<std::string>());
-        for (const std::string key : {"parameters", "points", "planes", "steps", "insertions"}) {
+        for (const std::string key : {"parameters", "points", "planes", "parts", "steps", "insertions"}) {
             TINY_YAML::Node& list = yaml[design][key];
             if (list.hasData())
                 for (const std::string& item : list.getData<std::vector<std::string>>())

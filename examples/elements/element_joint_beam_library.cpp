@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Every joint of the YAML library, a group and a row per design: on a square corner and on an inclined one, the member drawn out along its insertion.
+/// Every joint of the YAML library, a group and a row per design: on a square corner and on an inclined one, the member and its pegs drawn out along their insertions.
 int main() {
 
     WoodSession scene("element_joint_beam_library");
@@ -38,6 +38,11 @@ int main() {
 
             const Vector out = joint->insertion_directions(0)[0] * -150.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
+            for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
+                if (part->name.starts_with(name + "_part")) {
+                    const Vector pulled = joint->insertion_directions(2)[0] * -200.0;
+                    part->place(Xform::translation(pulled[0], pulled[1], pulled[2]));
+                }
         }
 
     std::cout << scene << std::endl;

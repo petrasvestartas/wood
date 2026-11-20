@@ -2680,7 +2680,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     double overshoot
 ) {
 
-    const LibraryRecord record = library_record(design);
+    LibraryRecord record = library_record(design);
     if (record.fields.at("category") != "side_end")
         throw std::invalid_argument(fmt::format("from_library: {} is {}, only side_end is read yet", design, record.fields.at("category")));
 
@@ -2716,7 +2716,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     };
 
     // parameters, given ones first; then the points, every one also widening the boxes
-    for (const std::string& line : record.lists.at("parameters")) {
+    for (const std::string& line : record.lists["parameters"]) {
         const std::vector<std::string> pair = split_top(line, '=');
         names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
     }
@@ -2724,17 +2724,16 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     // the boxes reach over the member's whole footprint on the face, whatever points the record names
     double reach = (face - node).dot(u) + ah * std::abs(p.dot(n)) / u.dot(n);
     double span = std::abs((face - node).dot(along_b)) + ah / u.dot(n);
-    if (record.lists.count("points"))
-        for (const std::string& line : record.lists.at("points")) {
-            const std::vector<std::string> pair = split_top(line, '=');
-            names[pair[0]] = evaluate(pair[1], names);
-            reach = std::max(reach, (origin + names[pair[0]].vector - node).dot(u));
-            span = std::max(span, std::abs((origin + names[pair[0]].vector - node).dot(along_b)));
-        }
+    for (const std::string& line : record.lists["points"]) {
+        const std::vector<std::string> pair = split_top(line, '=');
+        names[pair[0]] = evaluate(pair[1], names);
+        reach = std::max(reach, (origin + names[pair[0]].vector - node).dot(u));
+        span = std::max(span, std::abs((origin + names[pair[0]].vector - node).dot(along_b)));
+    }
 
     // planes through a point, their normals turned away from the kept point
     std::map<std::string, Plane> planes;
-    for (const std::string& line : record.lists.at("planes")) {
+    for (const std::string& line : record.lists["planes"]) {
         const std::vector<std::string> pair = split_top(line, '=');
         const std::vector<std::string> terms = split_top(pair[1], ',');
         const Point at = origin + evaluate(terms[0], names).vector;
@@ -2747,14 +2746,29 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
 
     // the boxes the steps cut from: the end of a, b around the node, through b's width or as wide as a
     const double lateral = aw >= bw - 1e-6 ? bw + overshoot : aw;
-    const std::map<std::string, Mesh> boxes = {
+    std::map<std::string, Mesh> boxes = {
         {"a_end", frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot})},
         {"b_node", frame_solid(node, {along_b, w, n}, {-span - ah - aw - overshoot, span + ah + aw + overshoot}, {-lateral, lateral}, {-bh - overshoot, bh + overshoot})},
     };
 
-    // the steps: each region its box cut by its planes, the regions of a step side by side
+    // the parts: square pegs and keys between two points, each also a box the steps cut its hole with, the hole past both ends
     const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
-    for (const std::string& line : record.lists.at("steps")) {
+    std::vector<Vector> part_axes;
+    for (const std::string& line : record.lists["parts"]) {
+        const std::vector<std::string> pair = split_top(line, '=');
+        const std::vector<std::string> terms = split_top(pair[1], ',');
+        const Point start = origin + evaluate(terms[0], names).vector;
+        const Point end = origin + evaluate(terms[1], names).vector;
+        const Vector up = evaluate(terms[2], names).vector;
+        const double half = evaluate(terms[3], names).number;
+        const Vector axis = (end - start).normalized();
+        joint->parts.push_back({square_section(start, axis, up, half), square_section(end, axis, up, half)});
+        boxes[pair[0]] = Mesh::loft({square_section(start - axis * overshoot, axis, up, half)}, {square_section(end + axis * overshoot, axis, up, half)}, true);
+        part_axes.push_back(axis);
+    }
+
+    // the steps: each region its box cut by its planes, the regions of a step side by side
+    for (const std::string& line : record.lists["steps"]) {
         JointCutStep step;
         step.label = line.substr(0, line.find(' '));
         step.target = step.label[0] == 'A' ? 0 : 1;
@@ -2780,7 +2794,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
 
     // the ways a goes in, across only when it is as wide as b; b the opposite ways
     joint->target_insertions = {{}, {}};
-    for (const std::string& line : record.lists.at("insertions")) {
+    for (const std::string& line : record.lists["insertions"]) {
         const bool through = line.rfind("through ", 0) == 0;
         if (through && aw < bw - 1e-6)
             continue;
@@ -2793,6 +2807,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->target_insertions[0].push_back(direction);
         joint->target_insertions[1].push_back(direction * -1.0);
     }
+
+    for (const Vector& axis : part_axes)
+        joint->target_insertions.push_back({axis, axis * -1.0});
 
     joint->name = design;
     joint->design = design;

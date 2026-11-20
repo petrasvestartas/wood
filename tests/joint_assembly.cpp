@@ -144,7 +144,12 @@ static void library() {
 
         check(lost(*member) > 1000.0 && lost(*carrier) > 1000.0, fmt::format("library: {} at {} degrees cuts {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
         check(shared(*member, *carrier) < 1.0, fmt::format("library: {} at {} degrees leaves {} mm3 shared", design, angle, shared(*member, *carrier)));
-        check(AssemblySequence(scene, "carrier").locked().empty(), fmt::format("library: {} locks its member at {} degrees", design, angle));
+        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few
+        check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} degrees leaves {} and {} faces", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));
+        for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
+            check(shared(*part, *member) < 1.0 && shared(*part, *carrier) < 1.0, fmt::format("library: {} at {} degrees, its {} shares wood", design, angle, part->name));
+        const AssemblySequence sequence(scene, "carrier");
+        check(sequence.locked().empty() && sequence.steps().size() == 2 + joint->parts.size(), fmt::format("library: {} at {} degrees does not come apart\n{}", design, angle, sequence.str()));
         }
 }
 

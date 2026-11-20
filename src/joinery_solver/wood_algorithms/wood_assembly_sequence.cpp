@@ -7,12 +7,22 @@ namespace wood_session {
 AssemblySequence::AssemblySequence(const WoodSession& session, const std::string& base, double step, double clearance)
     : base(base), step(step), clearance(clearance) {
 
-    // members: every element a joint acts on, and per member the joints on it
-    for (const std::shared_ptr<JointElement>& joint : session.get_elements<JointElement>())
+    // members: every element a joint acts on and every peg or key nested under a joint, and per member the joints on it
+    for (const std::shared_ptr<JointElement>& joint : session.get_elements<JointElement>()) {
         for (size_t index = 0; index < joint->targets.size(); index++)
             joints[joint->targets[index]].emplace_back(joint, index);
+
+        const std::shared_ptr<TreeNode> node = session.tree.get_node_by_name(joint->guid());
+        const std::shared_ptr<JointBeamElement> beam_joint = std::dynamic_pointer_cast<JointBeamElement>(joint);
+        if (!node || !beam_joint || beam_joint->steps.empty())
+            continue;
+        size_t part = 0;
+        for (const TreeNode* child : node->children())
+            if (session.get_element<JointConnectorPartElement>(child->name))
+                joints[child->name].emplace_back(joint, joint->targets.size() + part++);
+    }
     for (const std::shared_ptr<Element>& element : session.elements())
-        if (joints.count(element->guid()) && !std::dynamic_pointer_cast<JointElement>(element))
+        if (joints.count(element->guid()) && (!std::dynamic_pointer_cast<JointElement>(element) || std::dynamic_pointer_cast<JointConnectorPartElement>(element)))
             members.push_back(element);
 
     // disassembly: member by member, the base last

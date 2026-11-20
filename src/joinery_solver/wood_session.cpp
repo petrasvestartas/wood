@@ -1900,6 +1900,24 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
     const std::shared_ptr<InteractionFeatureSolid> cut =
         std::dynamic_pointer_cast<InteractionFeatureSolid>(interaction);
 
+    // a joint with a procedure: what its steps take from the target in one cut, its pegs and keys nested under it, the directions the target goes in along
+    if (!joint->steps.empty()) {
+        Session::remove_interaction(joint, target);
+        if (!cut)
+            throw std::invalid_argument("A procedure joint's interaction is its InteractionFeatureSolid");
+        add_solid_interaction(joint, target, cut);
+        if (beam_joint && !beam_joint->parts.empty())
+            nest_children(*this, *beam_joint);
+
+        const size_t index = std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin();
+        std::vector<Vector> insertions = target->insertion_vectors();
+        for (const Vector& direction : joint->insertion_directions(index))
+            insertions.push_back(direction);
+        target->set_insertion_vectors(insertions);
+
+        return cut;
+    }
+
     // a connector: its parts and pins nest under it once; pre-drilled pins record their holes, which the targets read through pre_drill_lines
     if (beam_joint && beam_joint->is_connector()) {
         nest_children(*this, *beam_joint);
@@ -1994,22 +2012,6 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
                     );
             }
         }
-        return cut;
-    }
-
-    // a joint with a procedure: what its steps take from the target in one cut, and the directions the target goes in along
-    if (!joint->steps.empty()) {
-        Session::remove_interaction(joint, target);
-        if (!cut)
-            throw std::invalid_argument("A procedure joint's interaction is its InteractionFeatureSolid");
-        add_solid_interaction(joint, target, cut);
-
-        const size_t index = std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin();
-        std::vector<Vector> insertions = target->insertion_vectors();
-        for (const Vector& direction : joint->insertion_directions(index))
-            insertions.push_back(direction);
-        target->set_insertion_vectors(insertions);
-
         return cut;
     }
 

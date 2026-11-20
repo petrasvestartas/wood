@@ -15,7 +15,7 @@ struct AssemblyStep {
     std::vector<std::string> partners;
 };
 
-/// The assembly of the members a session's joints act on, found by taking it apart: again and again a member slides out along a
+/// The assembly of the members a session's joints act on and the pegs and keys nested under them, found by taking it apart: again and again a member slides out along a
 /// direction one of its joints gives, swept its own diagonal against every member still in without entering one, the base last.
 /// The assembly is that order reversed, every member going in the opposite way; a member no direction frees is locked, and a
 /// joint whose every direction one other member of the same element blocks is in conflict with that member's joint.

@@ -10,6 +10,8 @@
 #               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half": a square peg or key from start to end, half its side wide, a side along up;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
@@ -32,6 +34,7 @@ notched_oblique_thrust:
   planes:
     - "front = E, cross(D - E, w), F"
     - "seat = D, cross(F - D, w), E"
+  parts:
   steps:
     - "A2 a_end front"
     - "A3 a_end seat"
@@ -58,6 +61,7 @@ notched_oblique_thrust_right_angled_end:
   planes:
     - "front = E, u, F"
     - "seat = D, cross(F - D, w), E"
+  parts:
   steps:
     - "A2 a_end front; a_end seat"
     - "B2 b -front"
@@ -85,6 +89,7 @@ oblique_thrust_notched_heel:
     - "bearing = O, n, U"
     - "heel = H, u, H + u"
     - "under = F, p, F + p"
+  parts:
   steps:
     - "A2 a bearing"
     - "A3 a_end bearing heel"
@@ -116,6 +121,7 @@ double_notched_oblique_thrust:
     - "seat = D, cross(G - D, w), E"
     - "heel = H, u, H + u"
     - "under = F, p, F + p"
+  parts:
   steps:
     - "A2 a_end front"
     - "A3 a_end seat heel"
@@ -151,6 +157,7 @@ oblique_thrust_sloped_tenon_notched_heel:
     - "slope = E, cross(H - E, w), F"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
   steps:
     - "A2 a_end bearing heel cheek_1; a_end bearing heel cheek_2"
     - "A3 a_end slope"
@@ -182,6 +189,7 @@ oblique_thrust_mortise_tenon:
     - "under = F, p, F + p"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
   steps:
     - "A2 a_end bottom"
     - "A3 a_end bearing cheek_1; a_end bearing cheek_2"
@@ -214,6 +222,7 @@ oblique_thrust_sloped_mortise_tenon:
     - "front = M, t, F"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
   steps:
     - "A2 a_end slope"
     - "A3 a_end bearing cheek_1; a_end bearing cheek_2"
@@ -245,6 +254,7 @@ notched_oblique_thrust_mortise_tenon:
     - "under = F, p, F + p"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
   steps:
     - "A2 a_end front"
     - "A3 a_end seat cheek_1; a_end seat cheek_2"
@@ -252,5 +262,44 @@ notched_oblique_thrust_mortise_tenon:
     - "B2 b -front"
     - "B3 b_node -front -seat"
     - "B4 b_node -front -bottom -under -cheek_1 -cheek_2"
+  insertions:
+    - "unit(front + seat)"
+
+notched_oblique_thrust_pegged_mortise_tenon:
+  title: "Notched oblique thrust joint with pegged mortise and tenon"
+  german: "Stirnversatz mit Zapfen und Dübelsicherung"
+  page: "602"
+  category: "side_end"
+  family: "angled"
+  corners: "inclined"
+  parameters:
+    - "depth = 0.2"
+    - "tenon_depth = 0.45"
+    - "thickness = 0.3333333333333333"
+    - "peg = 0.15"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
+    - "V = meet((D + F)/2, n, O - 2*tenon_depth*bh*n, n)"
+    - "P = (D + V + F)/3"
+  planes:
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(F - D, w), E"
+    - "tenon_front = D, cross(V - D, w), F"
+    - "tenon_back = V, cross(F - V, w), D"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+    - "peg = P - bw*w, P + bw*w, n, peg*ah"
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat cheek_1; a_end seat cheek_2"
+    - "A4 a_end seat tenon_front; a_end seat tenon_back"
+    - "A5 peg"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+    - "B4 b_node -front -tenon_front -tenon_back -cheek_1 -cheek_2"
+    - "B5 peg"
   insertions:
     - "unit(front + seat)"

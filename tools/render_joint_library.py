@@ -1,6 +1,7 @@
 """One picture per joint of the beam joint library, docs/images/joint_library/beam_<design>.png: runs element_joint_beam_library,
 takes each design's group (the joint on a square corner and on an inclined one, as its record allows) and draws it with the
-viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, cropped to 3:2 with a margin.
+viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, cropped to 3:2 with a margin; then rewrites
+the table of docs/elements/element_joint_beam_compendium.md between its joint-table markers from the records.
 
     python3 tools/render_joint_library.py [design ...]
 """
@@ -8,6 +9,7 @@ viewer crate's native renderer in the Arctic look, ambient occlusion and outline
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -18,6 +20,7 @@ WOOD = pathlib.Path(__file__).resolve().parents[1]
 PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
 RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 PICTURES = WOOD / "docs/images/joint_library"
+PAGE = WOOD / "docs/elements/element_joint_beam_compendium.md"
 
 # Each design's group written alone, its interaction features off, by session_py.
 GROUPS = r"""
@@ -58,6 +61,18 @@ def render(pb: str) -> Image.Image:
     return framed.resize((width // 2, height // 2), Image.LANCZOS)
 
 
+def write_table() -> None:
+    """The page's table between its joint-table markers: a row per record of data/joints/*.yaml, picture, names and page."""
+    rows = ["| joint | compendium |", "|---|---|"]
+    for chapter in sorted((WOOD / "data/joints").glob("*.yaml")):
+        for match in re.finditer(r'^([a-z_0-9]+):\n  title: "(.*?)"\n  german: "(.*?)"\n  page: "(.*?)"', chapter.read_text(), re.M):
+            design, title, german, page = match.groups()
+            rows.append(f"| ![](joint_library/beam_{design}.png) | **{title}**<br>{german}, p. {page}<br>`{design}` |")
+    text = PAGE.read_text()
+    start = text.index("<!-- joint-table -->") + len("<!-- joint-table -->")
+    PAGE.write_text(text[:start] + "\n" + "\n".join(rows) + "\n" + text[text.index("<!-- /joint-table -->"):])
+
+
 def main(arguments: list) -> None:
     """Saves a picture per design, every design of the library when none is named."""
     listing = subprocess.run([str(WOOD / "build/element_joint_beam_library")], cwd=WOOD, check=True, capture_output=True, text=True)
@@ -71,6 +86,7 @@ def main(arguments: list) -> None:
             picture = PICTURES / f"beam_{name}.png"
             render(path).save(picture)
             print(picture.relative_to(WOOD))
+    write_table()
 
 
 if __name__ == "__main__":
