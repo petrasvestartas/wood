@@ -106,6 +106,11 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_housed_double_through_mortise_tenon.png) | **Housed double through mortise and tenon**<br>eingelassener durchgehender doppelter Zapfen, p. 544<br>`housed_double_through_mortise_tenon` |
 | ![](joint_library/beam_t_bridle.png) | **T-bridle joint**<br>Einhälsung, p. 550<br>`t_bridle` |
 | ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | **T-bridle joint with blind mortise and tenon**<br>Einhälsung mit verdecktem Zapfen, p. 552<br>`t_bridle_blind_mortise_tenon` |
+| ![](joint_library/beam_double_lap_stub_tenon.png) | **Double lap joint with stub tenon**<br>Gabelaufblattung mit verdecktem Zapfen, p. 554<br>`double_lap_stub_tenon` |
+| ![](joint_library/beam_notched_lap_tenon.png) | **Notched lap joint with tenon**<br>einseitige Einhälsung mit durchgehendem Zapfen, p. 556<br>`notched_lap_tenon` |
+| ![](joint_library/beam_notched_lap_stub_tenon.png) | **Notched lap joint with stub tenon**<br>einseitige Einhälsung mit verdecktem Zapfen, p. 558<br>`notched_lap_stub_tenon` |
+| ![](joint_library/beam_lap_tenon.png) | **Lap joint with tenon**<br>einseitige Gabelaufblattung mit durchgehendem Zapfen, p. 560<br>`lap_tenon` |
+| ![](joint_library/beam_lap_stub_tenon.png) | **Lap joint with stub tenon**<br>einseitige Gabelaufblattung mit verdecktem Zapfen, p. 562<br>`lap_stub_tenon` |
 <!-- /joint-table -->
 
 ## Library

@@ -1363,3 +1363,181 @@ t_bridle_blind_mortise_tenon:
     - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2; b_node -stub -cheek_1 -cheek_2 -tine_1 -tine_2"
   insertions:
     - "-u"
+
+double_lap_stub_tenon:
+  title: "Double lap joint with stub tenon"
+  german: "Gabelaufblattung mit verdecktem Zapfen"
+  page: "554"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "tine = 0.6666666666666666"
+    - "depth = 0.4"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "top_t = O - 2*tine*bh*n, n, O"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end top_t tine_1; a_end top_t tine_2"
+    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2 -top_t; b_node tine_2 -side_1 -side_2 -top_t"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"
+
+notched_lap_tenon:
+  title: "Notched lap joint with tenon"
+  german: "einseitige Einhälsung mit durchgehendem Zapfen"
+  page: "556"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "tine = 1.0"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "top_t = O - 2*tine*bh*n, n, O"
+    - "tenon_end = O - 2*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
+    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2 -top_t"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"
+
+notched_lap_stub_tenon:
+  title: "Notched lap joint with stub tenon"
+  german: "einseitige Einhälsung mit verdecktem Zapfen"
+  page: "558"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "tine = 1.0"
+    - "depth = 0.4"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "top_t = O - 2*tine*bh*n, n, O"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
+    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2 -top_t"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"
+
+lap_tenon:
+  title: "Lap joint with tenon"
+  german: "einseitige Gabelaufblattung mit durchgehendem Zapfen"
+  page: "560"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "tine = 0.6666666666666666"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "top_t = O - 2*tine*bh*n, n, O"
+    - "tenon_end = O - 2*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
+    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2 -top_t"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"
+
+lap_stub_tenon:
+  title: "Lap joint with stub tenon"
+  german: "einseitige Gabelaufblattung mit verdecktem Zapfen"
+  page: "562"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "neck = 0.5"
+    - "thickness = 0.3333333333333333"
+    - "tine = 0.6666666666666666"
+    - "depth = 0.4"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "top_t = O - 2*tine*bh*n, n, O"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "slot_1 = O + neck*aw*w, w, O + aw*w"
+    - "slot_2 = O - neck*aw*w, w, O - aw*w"
+    - "tine_1 = O + neck*aw*w, w, O"
+    - "tine_2 = O - neck*aw*w, w, O"
+    - "cheek_1 = O + thickness*ah*p, p, O"
+    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
+    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "B2 b_node tine_1 -side_1 -side_2 -top_t"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+  insertions:
+    - "-u"
