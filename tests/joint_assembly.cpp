@@ -100,7 +100,7 @@ static void notched_oblique_thrust() {
     check(JointBeamElement::from_library("notched_oblique_thrust", *narrow, *carrier)->insertion_directions(0).size() == 1, "notched_oblique_thrust: a blind notch lets the strut in along it only");
 }
 
-/// The blind mortise and tenon: the mortise a third of the member thick, two thirds of it long, half the carrier deep.
+/// The blind mortise and tenon: the mortise a third of the member thick, as long as the member is high, half the carrier deep.
 static void blind_mortise_tenon() {
 
     WoodSession scene("blind_mortise_tenon");
@@ -113,7 +113,7 @@ static void blind_mortise_tenon() {
     scene.add_interaction(joint, member, joint->interaction(0));
     scene.add_interaction(joint, carrier, joint->interaction(1));
 
-    const double mortise = 40.0 * 80.0 * 70.0;
+    const double mortise = 40.0 * 120.0 * 70.0;
     check(std::abs(lost(*carrier) - mortise) < 1.0, fmt::format("blind_mortise_tenon: the mortise is {} mm3, not {}", lost(*carrier), mortise));
     check(shared(*carrier, *member) < 1.0, "blind_mortise_tenon: the tenon fills the mortise without sharing wood");
     check(joint->insertion_directions(0).size() == 1 && joint->insertion_directions(0)[0].dot(Vector(0.0, -1.0, 0.0)) > 0.999, "blind_mortise_tenon: the member goes in along its axis");
