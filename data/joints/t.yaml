@@ -256,8 +256,8 @@ stopped_mortise_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "thickness = 0.4"
-    - "length = 0.46"
+    - "thickness = 0.3333333333333333"
+    - "length = 0.5"
   points:
     - "U = O + n"
   planes:
@@ -307,7 +307,7 @@ dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
+    - "flare = 0.4"
   points:
     - "U = O + n"
     - "H = O"
@@ -338,8 +338,8 @@ stopped_dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
-    - "stop = 0.75"
+    - "flare = 0.42"
+    - "stop = 0.8"
   points:
     - "U = O + n"
     - "H = O"
@@ -370,7 +370,7 @@ one_sided_dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
+    - "flare = 0.32"
   points:
     - "U = O + n"
     - "H = O"
@@ -399,8 +399,8 @@ stopped_one_sided_dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
-    - "stop = 0.75"
+    - "flare = 0.32"
+    - "stop = 0.8"
   points:
     - "U = O + n"
     - "H = O"
@@ -429,8 +429,8 @@ housed_dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
-    - "house = 0.1"
+    - "flare = 0.43"
+    - "house = 0.2"
   points:
     - "U = O + n"
     - "H = O - 2*house*bh*n"
@@ -464,9 +464,9 @@ stopped_housed_dovetail_half_lap:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "flare = 0.2"
-    - "stop = 0.75"
-    - "house = 0.1"
+    - "flare = 0.43"
+    - "stop = 0.8"
+    - "house = 0.2"
   points:
     - "U = O + n"
     - "H = O - 2*house*bh*n"
@@ -562,8 +562,8 @@ blind_pegged:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "peg = 0.15"
-    - "depth = 0.3"
+    - "peg = 0.2"
+    - "depth = 0.25"
   points:
   planes:
   parts:
@@ -584,7 +584,7 @@ notch:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.17"
   points:
     - "U = O + n"
   planes:
@@ -606,8 +606,8 @@ double_notch:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
-    - "split = 0.125"
+    - "sit = 0.3"
+    - "split = 0.15"
   points:
     - "U = O + n"
     - "L = O - 2*split*bh*n"
@@ -633,7 +633,7 @@ cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.16"
   points:
     - "U = O + n"
   planes:
@@ -660,7 +660,7 @@ stepped_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.2"
   points:
     - "U = O + n"
     - "H = O - sit*bh*n"
@@ -690,7 +690,7 @@ double_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.16"
   points:
     - "U = O + n"
   planes:
@@ -718,7 +718,7 @@ x_shaped_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.16"
   points:
     - "U = O + n"
   planes:
@@ -746,18 +746,18 @@ v_shaped_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.16"
   points:
     - "U = O + n"
-    - "P = O + aw*w"
+    - "P = O"
   planes:
     - "top = O, n, U"
     - "under = R - ah*p, p, R"
     - "inner = O - bt*t, t, O - 2*bt*t"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "arm_1 = P, cross(n, 2*aw*w + bt*t), P - bt*t"
-    - "arm_2 = P, cross(n, 2*aw*w - bt*t), P + bt*t"
+    - "arm_1 = P, cross(n, aw*w + bt*t), P - bt*t"
+    - "arm_2 = P, cross(n, aw*w - bt*t), P + bt*t"
   parts:
   steps:
     - "A2 a_node top -arm_1 inner; a_node top -arm_2"
@@ -775,9 +775,9 @@ dovetail_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
-    - "neck = 0.5"
-    - "flare = 0.75"
+    - "sit = 0.16"
+    - "neck = 0.67"
+    - "flare = 1.0"
   points:
     - "U = O + n"
     - "A1 = O - bt*t + neck*aw*w"
@@ -809,9 +809,9 @@ half_dovetail_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
-    - "neck = 0.25"
-    - "flare = 0.75"
+    - "sit = 0.16"
+    - "neck = 0.62"
+    - "flare = 0.95"
   points:
     - "U = O + n"
     - "A1 = O - bt*t + neck*aw*w"
@@ -840,21 +840,24 @@ sloped_cog:
   parameters:
     - "pitch = 0"
     - "tail = 60"
-    - "sit = 0.25"
+    - "sit = 0.16"
+    - "wide = 0.67"
+    - "narrow = 0.29"
   points:
     - "U = O + n"
-    - "S = O - 2*sit*bh*n - bt*t/2"
+    - "D1 = O + (2*wide - 1)*bt*t - aw*w"
+    - "D2 = O + (2*narrow - 1)*bt*t + aw*w"
   planes:
     - "top = O, n, U"
     - "under = R - ah*p, p, R"
     - "inner = O - bt*t, t, O - 2*bt*t"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "slope = O, cross(w, S - O), O - t"
+    - "diagonal = D1, cross(n, D2 - D1), O + 2*bt*t"
   parts:
   steps:
-    - "A2 a_node top slope"
-    - "B2 b_node -under -slope -side_1 -side_2"
+    - "A2 a_node top -diagonal"
+    - "B2 b_node -under diagonal -side_1 -side_2"
   insertions:
     - "-n"
 
