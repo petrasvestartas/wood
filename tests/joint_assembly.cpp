@@ -149,15 +149,19 @@ static void library() {
 
         check(lost(*member) > 1000.0 && (!cuts_carrier || lost(*carrier) > 1000.0), fmt::format("library: {} at {} cuts {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
         check(shared(*member, *carrier) < 1.0, fmt::format("library: {} at {} leaves {} mm3 shared", design, angle, shared(*member, *carrier)));
-        // every cavity cut into the carrier is filled by the member or a part: no gap the joint leaves open
+        // every cavity cut into the carrier is filled by the member or a part, but for the share a record leaves open on purpose (its open, 1 % by default)
         Mesh cavity = solid_boolean(carrier->element_geometry_mesh(), carrier->model_geometry_mesh(), SolidOperation::subtract);
         cavity = solid_boolean(cavity, member->model_geometry_mesh(), SolidOperation::subtract);
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
             cavity = solid_boolean(cavity, part->model_geometry_mesh(), SolidOperation::subtract);
         const double open = cavity.number_of_faces() == 0 ? 0.0 : compute_volume(cavity);
-        check(open < 0.01 * lost(*carrier) + 1.0, fmt::format("library: {} at {} leaves {} of {} mm3 cut from the carrier empty", design, angle, open, lost(*carrier)));
+        double allowed = 0.01;
+        for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>())
+            if (line.starts_with("open"))
+                allowed = std::stod(line.substr(line.find('=') + 1));
+        check(open < allowed * lost(*carrier) + 1.0, fmt::format("library: {} at {} leaves {} of {} mm3 cut from the carrier empty", design, angle, open, lost(*carrier)));
 
-        // where the uncut members overlapped, every bit of wood ends in one of them or a part: no slot or mortise cut too deep
+        // where the uncut members overlapped, every bit of wood ends in one of them or a part, or in the carrier's open share: no slot or mortise cut too deep
         Mesh overlap = solid_boolean(member->element_geometry_mesh(), carrier->element_geometry_mesh(), SolidOperation::intersect);
         const double overlapping = overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
         overlap = solid_boolean(overlap, member->model_geometry_mesh(), SolidOperation::subtract);
@@ -165,7 +169,7 @@ static void library() {
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
             overlap = solid_boolean(overlap, part->model_geometry_mesh(), SolidOperation::subtract);
         const double gap = overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
-        check(gap < 0.01 * overlapping + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in neither", design, angle, gap, overlapping));
+        check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in neither", design, angle, gap, overlapping));
 
         // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few
         check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} and {} faces", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));

@@ -860,3 +860,235 @@ sloped_cog:
     - "B2 b_node -under -slope -side_1 -side_2"
   insertions:
     - "-n"
+
+through_mortise_tenon:
+  title: "Through mortise and tenon"
+  german: "durchgehender Zapfen"
+  page: "492"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+  points:
+    - "S = O + n"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+through_mortise_tenon_housing:
+  title: "Through mortise and tenon with housing"
+  german: "eingelassener durchgehender Zapfen"
+  page: "494"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "house = 0.1"
+  points:
+    - "S = O + n"
+    - "H = O - 2*house*bh*n"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*bh*n, n, O"
+    - "housing = H, n, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "house_1 = O + aw*w, w, O"
+    - "house_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end housing cheek_1; a_end housing cheek_2"
+    - "A3 a_end housing edge_1; a_end housing edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -housing -side_1 -side_2 -house_1 -house_2"
+  insertions:
+    - "-u"
+
+tenon_chase_mortise:
+  title: "Tenon and chase mortise"
+  german: "Schleifzapfen"
+  page: "498"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "depth = 0.5"
+    - "chase = 1.0"
+    - "open = 0.4"
+  points:
+    - "S = O + n"
+    - "D = O - 2*depth*bh*n + (1 - 2*inset)*ah*p"
+    - "F = O + (1 - 2*inset + chase)*ah*p"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "ramp = D, cross(w, F - D), O - 2*bh*n"
+    - "chase_end = F, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -cheek_1 -cheek_2 ramp -chase_end edge_1"
+  insertions:
+    - "-u"
+
+mortise_tenon_beveled_shoulders:
+  title: "Mortise and tenon with beveled shoulders"
+  german: "verdeckter Zapfen mit schräger Brust"
+  page: "500"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "depth = 0.5"
+    - "bevel = 0.25"
+  points:
+    - "S = O + n"
+    - "B = O - (1 - 2*inset)*ah*p"
+    - "C = O - 2*bevel*bh*n - ah*p"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "brust = B, cross(w, C - B), O + ah*p - 2*bh*n"
+    - "low = B, p, O"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
+    - "lower = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1 -low; a_end shoulder cheek_2 -low"
+    - "A3 a_end shoulder edge_1; a_end -brust edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node brust edge_2 -lower -face_1 -face_2"
+  insertions:
+    - "-u"
+
+mortise_tenon_mitered_shoulders:
+  title: "Mortise and tenon with mitered shoulders"
+  german: "verdeckter Zapfen mit Führungsstoß"
+  page: "502"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "depth = 0.5"
+    - "miter = 0.3"
+  points:
+    - "S = O + n"
+    - "T = O - 2*miter*bh*n"
+    - "E1 = meet(O + ah*p, u, O, n)"
+    - "E2 = meet(O - ah*p, u, O, n)"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "miter_1 = T, cross(w, E1 - T), E2"
+    - "miter_2 = T, cross(w, E2 - T), E1"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end miter_1 cheek_1; a_end miter_1 cheek_2; a_end miter_2 cheek_1; a_end miter_2 cheek_2"
+    - "A3 a_end miter_1 edge_1; a_end miter_2 edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -miter_1 -miter_2 -face_1 -face_2"
+  insertions:
+    - "-u"
+
+pegged_through_mortise_tenon:
+  title: "Pegged through mortise and tenon"
+  german: "durchgehender Zapfen mit Dübelsicherung"
+  page: "504"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "peg = 0.15"
+  points:
+    - "S = O + n"
+    - "P = O - bh*n"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*bh*n, n, O"
+  parts:
+    - "peg = P - (bw + 1)*w, P + (bw + 1)*w, n, peg*ah"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "A4 peg"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+    - "B3 peg"
+  insertions:
+    - "-u"
+
+pegged_blind_mortise_tenon:
+  title: "Pegged blind mortise and tenon"
+  german: "verdeckter Zapfen mit Dübelsicherung"
+  page: "506"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "depth = 0.5"
+    - "peg = 0.15"
+  points:
+    - "S = O + n"
+    - "P = O - depth*bh*n"
+  planes:
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+  parts:
+    - "peg = P - (bw + 1)*w, P + (bw + 1)*w, n, peg*ah"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "A4 peg"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+    - "B3 peg"
+  insertions:
+    - "-u"

@@ -90,6 +90,13 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_dovetail_cog.png) | **Dovetail cog joint**<br>Ankämmung mit Schwalbenschwanz, p. 486<br>`dovetail_cog` |
 | ![](joint_library/beam_half_dovetail_cog.png) | **Half-dovetail cog joint**<br>Ankämmung mit einseitigem Schwalbenschwanz, p. 488<br>`half_dovetail_cog` |
 | ![](joint_library/beam_sloped_cog.png) | **Sloped cog joint**<br>Ankämmung mit schräger Stufe, p. 490<br>`sloped_cog` |
+| ![](joint_library/beam_through_mortise_tenon.png) | **Through mortise and tenon**<br>durchgehender Zapfen, p. 492<br>`through_mortise_tenon` |
+| ![](joint_library/beam_through_mortise_tenon_housing.png) | **Through mortise and tenon with housing**<br>eingelassener durchgehender Zapfen, p. 494<br>`through_mortise_tenon_housing` |
+| ![](joint_library/beam_tenon_chase_mortise.png) | **Tenon and chase mortise**<br>Schleifzapfen, p. 498<br>`tenon_chase_mortise` |
+| ![](joint_library/beam_mortise_tenon_beveled_shoulders.png) | **Mortise and tenon with beveled shoulders**<br>verdeckter Zapfen mit schräger Brust, p. 500<br>`mortise_tenon_beveled_shoulders` |
+| ![](joint_library/beam_mortise_tenon_mitered_shoulders.png) | **Mortise and tenon with mitered shoulders**<br>verdeckter Zapfen mit Führungsstoß, p. 502<br>`mortise_tenon_mitered_shoulders` |
+| ![](joint_library/beam_pegged_through_mortise_tenon.png) | **Pegged through mortise and tenon**<br>durchgehender Zapfen mit Dübelsicherung, p. 504<br>`pegged_through_mortise_tenon` |
+| ![](joint_library/beam_pegged_blind_mortise_tenon.png) | **Pegged blind mortise and tenon**<br>verdeckter Zapfen mit Dübelsicherung, p. 506<br>`pegged_blind_mortise_tenon` |
 <!-- /joint-table -->
 
 ## Library
