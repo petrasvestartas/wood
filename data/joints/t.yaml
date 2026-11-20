@@ -1092,3 +1092,149 @@ pegged_blind_mortise_tenon:
     - "B3 peg"
   insertions:
     - "-u"
+
+triple_shouldered_through_mortise_tenon:
+  title: "Triple-shouldered through mortise and tenon"
+  german: "durchgehender abgesetzter Zapfen"
+  page: "508"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "height = 0.6666666666666666"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (2*height - 1)*ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+fully_shouldered_through_mortise_tenon:
+  title: "Fully shouldered through mortise and tenon joint"
+  german: "durchgehender beidseitig abgesetzter Zapfen"
+  page: "510"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "height = 0.3333333333333333"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + height*ah*p, p, O"
+    - "edge_2 = O - height*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+quadruple_through_mortise_tenon:
+  title: "Quadruple through mortise and tenon"
+  german: "durchgehender vierfacher Zapfen"
+  page: "514"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "p_out_1 = O + outer*ah*p, p, O"
+    - "p_in_1 = O + inner*ah*p, p, O + ah*p"
+    - "p_in_2 = O - inner*ah*p, p, O - ah*p"
+    - "p_out_2 = O - outer*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder w_out_1; a_end shoulder w_out_2; a_end shoulder w_in_1 w_in_2"
+    - "A3 a_end shoulder p_out_1; a_end shoulder p_out_2; a_end shoulder p_in_1 p_in_2"
+    - "B2 b_node -end -w_out_1 -w_in_1 -p_out_1 -p_in_1; b_node -end -w_out_1 -w_in_1 -p_out_2 -p_in_2; b_node -end -w_out_2 -w_in_2 -p_out_1 -p_in_1; b_node -end -w_out_2 -w_in_2 -p_out_2 -p_in_2"
+  insertions:
+    - "-u"
+
+haunched_through_mortise_tenon:
+  title: "Haunched through mortise and tenon"
+  german: "durchgehender Stufenzapfen"
+  page: "516"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "haunch = 0.4"
+    - "top = 0.7"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "haunch_end = O - 2*haunch*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + top*ah*p, p, O"
+    - "mid = O, p, O - ah*p"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end haunch_end mid"
+    - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2; b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+blind_haunched_mortise_tenon:
+  title: "Blind haunched mortise and tenon"
+  german: "verdeckter Stufenzapfen"
+  page: "518"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "depth = 0.6"
+    - "haunch = 0.25"
+    - "top = 0.7"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*depth*bh*n, n, O"
+    - "haunch_end = O - 2*haunch*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + top*ah*p, p, O"
+    - "mid = O, p, O - ah*p"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end haunch_end mid"
+    - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2; b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
