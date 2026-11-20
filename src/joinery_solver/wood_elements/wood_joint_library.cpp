@@ -212,7 +212,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -220,7 +220,7 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 
     const bool crossing = record.fields.at("category") == "cross";
     const double half = 60.0;
-    const double turn = (crossing ? 35.0 : square ? 90.0 : 130.0) * Tolerance::PI / 180.0;
+    const double turn = (crossing ? numbers["pitch"] : square ? 90.0 : 130.0) * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), 0.0, std::sin(turn));
     std::shared_ptr<EdgeStraightElement> carrier;
     std::shared_ptr<EdgeStraightElement> member;
