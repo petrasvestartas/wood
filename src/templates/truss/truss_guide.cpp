@@ -2971,6 +2971,19 @@ TrussGuide::TrussGuide(const KingPost& design)
     : TrussGuide(king_post(design.span, design.rise, design.chord_radius, design.web_radius)) {
 }
 
+TrussGuide::TrussGuide(const KingPostCarpentry& design)
+    : TrussGuide(drawn(
+          {Polyline({Point(-design.overhang, 0.0, 0.0), Point(design.span + design.overhang, 0.0, 0.0)}),
+           Polyline({Point(0.0, 0.0, 0.0), Point(0.5 * design.span, 0.0, design.rise), Point(design.span, 0.0, 0.0)})},
+          {Line::from_points(Point(0.5 * design.span, 0.0, 0.0), Point(0.5 * design.span, 0.0, design.rise + design.head)),
+           Line::from_points(Point(0.5 * design.span, 0.0, design.seat), Point(0.25 * design.span, 0.0, 0.5 * design.rise)),
+           Line::from_points(Point(0.5 * design.span, 0.0, design.seat), Point(0.75 * design.span, 0.0, 0.5 * design.rise))},
+          {},
+          design.chord_radius,
+          design.web_radius
+      )) {
+}
+
 TrussGuide::TrussGuide(const QueenPost& design)
     : TrussGuide(queen_post(design.span, design.height, design.chord_radius, design.web_radius)) {
 }

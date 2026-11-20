@@ -103,6 +103,7 @@ set(WOOD_SOURCES
     src/templates/floor/floor.cpp
     src/templates/truss/truss_guide.cpp
     src/templates/truss/truss.cpp
+    src/templates/truss/carpentry_truss.cpp
     src/templates/module/framed_panel.cpp
     src/templates/module/module_contact.cpp
     src/templates/module/wall.cpp
@@ -131,6 +132,8 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_session.cpp
     src/joinery_solver/wood_instance.cpp
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp
+    src/joinery_solver/wood_algorithms/wood_joint_classification.cpp
+    src/joinery_solver/wood_algorithms/wood_assembly_sequence.cpp
 )
 
 # The wood protobuf messages (src/proto/*.proto), generated into generated/ by tools/regen_proto.sh
@@ -279,6 +282,7 @@ ADD_EXE(joint_pins                       tests/joint_pins.cpp)
 ADD_EXE(joint_beams                      tests/joint_beams.cpp)
 ADD_EXE(joint_border                     tests/joint_border.cpp)
 ADD_EXE(joint_butt                       tests/joint_butt.cpp)
+ADD_EXE(joint_assembly                   tests/joint_assembly.cpp)
 ADD_EXE(grid_massing                     tests/grid_massing.cpp)
 ADD_EXE(plate_assignment                 tests/plate_assignment.cpp)
 ADD_EXE(rust_elements                    tests/rust_elements.cpp)
@@ -307,6 +311,7 @@ set(WOOD_TEST_TARGETS
     joint_beams
     joint_border
     joint_butt
+    joint_assembly
     grid_massing
     plate_assignment
     rust_elements
@@ -390,6 +395,7 @@ ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp
 ADD_EXE(templates_grid_4_developed_facade  examples/templates_grid_4_developed_facade.cpp)
 ADD_EXE(templates_grid_5_multistorey       examples/templates_grid_5_multistorey.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
+ADD_EXE(templates_truss_5_carpentry_assembly examples/templates_truss_5_carpentry_assembly.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)
 ADD_EXE(templates_truss_3_bow                 examples/templates_truss_3_bow.cpp)
 ADD_EXE(templates_truss_4_custom_wireframe          examples/templates_truss_4_custom_wireframe.cpp)
@@ -488,6 +494,8 @@ ADD_EXE(element_joint_plate_side_side_inplane_hilti examples/elements/element_jo
 ADD_EXE(element_joint_plate_side_side_inplane_hilti_angles examples/elements/element_joint_plate_side_side_inplane_hilti_angles.cpp)
 ADD_EXE(element_joint_beam_rectangle_plate   examples/elements/element_joint_beam_rectangle_plate.cpp)
 ADD_EXE(element_joint_beam_butterfly_key     examples/elements/element_joint_beam_butterfly_key.cpp)
+ADD_EXE(element_joint_beam_notched_oblique_thrust examples/elements/element_joint_beam_notched_oblique_thrust.cpp)
+ADD_EXE(element_joint_beam_blind_mortise_tenon examples/elements/element_joint_beam_blind_mortise_tenon.cpp)
 ADD_EXE(element_joint_beam_centred_pins      examples/elements/element_joint_beam_centred_pins.cpp)
 ADD_EXE(element_joint_beam_headed_pins       examples/elements/element_joint_beam_headed_pins.cpp)
 ADD_EXE(element_joint_pin                          examples/elements/element_joint_pin.cpp)

@@ -48,6 +48,18 @@ struct KingPost {
     double web_radius = 60.0;
 };
 
+/// King post roof truss drawn for carpentry joints: the tie runs `overhang` past each heel, the king post `head` above the
+/// ridge, the struts rise from a seat `seat` up the king post to the middle of the rafters, so every end lands on a side.
+struct KingPostCarpentry {
+    double span = 8000.0;
+    double rise = 2667.0;
+    double overhang = 400.0;
+    double head = 300.0;
+    double seat = 700.0;
+    double chord_radius = 100.0;
+    double web_radius = 70.0;
+};
+
 /// Queen post truss.
 struct QueenPost {
     double span = 9000.0;
@@ -676,6 +688,7 @@ public:
     /// A design of the library by its parameters: the same guide, an overload per design.
     TrussGuide(const Pratt& design);
     TrussGuide(const KingPost& design);
+    TrussGuide(const KingPostCarpentry& design);
     TrussGuide(const QueenPost& design);
     TrussGuide(const Howe& design);
     TrussGuide(const Fink& design);

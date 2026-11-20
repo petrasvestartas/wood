@@ -1,0 +1,211 @@
+#include "pch.h"
+#include "wood_assembly_sequence.h"
+#include <fmt/ranges.h>
+
+namespace wood_session {
+
+AssemblySequence::AssemblySequence(const WoodSession& session, const std::string& base, double step, double clearance)
+    : base(base), step(step), clearance(clearance) {
+
+    // members: every element a joint acts on, and per member the joints on it
+    for (const std::shared_ptr<JointElement>& joint : session.get_elements<JointElement>())
+        for (size_t index = 0; index < joint->targets.size(); index++)
+            joints[joint->targets[index]].emplace_back(joint, index);
+    for (const std::shared_ptr<Element>& element : session.elements())
+        if (joints.count(element->guid()) && !std::dynamic_pointer_cast<JointElement>(element))
+            members.push_back(element);
+
+    // disassembly: member by member, the base last
+    const std::vector<AssemblyStep> removal = compute_disassembly();
+
+    // assembly: the disassembly reversed, every member going in against the way it came out
+    sequence.push_back({base, Vector(0.0, 0.0, 0.0), {}, {}});
+    for (std::vector<AssemblyStep>::const_reverse_iterator it = removal.rbegin(); it != removal.rend(); ++it)
+        sequence.push_back(*it);
+
+    // conflicts: joints of one member whose directions another of its joints' members blocks
+    blocked = compute_conflicts();
+}
+
+const std::vector<AssemblyStep>& AssemblySequence::steps() const {
+    return sequence;
+}
+
+const std::vector<std::string>& AssemblySequence::locked() const {
+    return stuck;
+}
+
+const std::vector<std::string>& AssemblySequence::conflicts() const {
+    return blocked;
+}
+
+std::vector<std::string> AssemblySequence::partners(const JointElement& joint, size_t index) {
+
+    std::vector<std::string> others;
+    for (size_t i = 0; i < joint.targets.size(); i++)
+        if (i != index)
+            others.push_back(joint.targets[i]);
+
+    return others;
+}
+
+bool AssemblySequence::slides_out(const Element& member, const Vector& direction, const std::vector<const Element*>& others) const {
+
+    const Mesh& solid = member.model_geometry_mesh();
+    const AABB box = AABB::from_mesh(solid);
+
+    for (double distance = 1.0; distance <= box.diagonal(); distance = distance < step ? step : distance + step) {
+        const Vector move = direction * distance;
+        const AABB moved_box(box.cx + move[0], box.cy + move[1], box.cz + move[2], box.hx, box.hy, box.hz);
+        const Mesh moved = solid.transformed(Xform::translation(move[0], move[1], move[2]));
+
+        for (const Element* other : others)
+            if (moved_box.intersects(AABB::from_mesh(other->model_geometry_mesh())) &&
+                compute_volume(solid_boolean(moved, other->model_geometry_mesh(), SolidOperation::intersect)) > clearance)
+                return false;
+    }
+
+    return true;
+}
+
+std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
+
+    std::vector<std::shared_ptr<Element>> remaining = members;
+    std::vector<AssemblyStep> removal;
+
+    while (remaining.size() > 1) {
+        bool taken = false;
+
+        for (size_t i = remaining.size(); i-- > 0 && !taken;) {
+            const std::shared_ptr<Element> member = remaining[i];
+            if (member->name == base)
+                continue;
+
+            // the members still in, and the joints on this member that still hold one of them
+            std::vector<const Element*> others;
+            std::set<std::string> in;
+            for (const std::shared_ptr<Element>& other : remaining)
+                if (other != member) {
+                    others.push_back(other.get());
+                    in.insert(other->guid());
+                }
+
+            for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()]) {
+                std::vector<std::string> holding;
+                for (const std::string& partner : partners(*joint.first, joint.second))
+                    if (in.count(partner))
+                        holding.push_back(partner);
+                if (holding.empty())
+                    continue;
+
+                for (const Vector& direction : joint.first->insertion_directions(joint.second)) {
+                    if (!slides_out(*member, direction * -1.0, others))
+                        continue;
+
+                    AssemblyStep out{member->name, direction, {}, {}};
+                    for (const std::pair<std::shared_ptr<JointElement>, size_t>& engaged : joints[member->guid()])
+                        for (const std::string& partner : partners(*engaged.first, engaged.second))
+                            for (const std::shared_ptr<Element>& other : remaining)
+                                if (other->guid() == partner && other != member) {
+                                    out.joints.push_back(engaged.first->name);
+                                    out.partners.push_back(other->name);
+                                }
+                    removal.push_back(out);
+                    remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
+                    taken = true;
+                    break;
+                }
+
+                if (taken)
+                    break;
+            }
+        }
+
+        if (!taken) {
+            for (const std::shared_ptr<Element>& member : remaining)
+                if (member->name != base)
+                    stuck.push_back(member->name);
+            break;
+        }
+    }
+
+    return removal;
+}
+
+std::vector<std::string> AssemblySequence::compute_conflicts() const {
+
+    std::vector<std::string> found;
+
+    for (const std::shared_ptr<Element>& member : members) {
+        const std::vector<std::pair<std::shared_ptr<JointElement>, size_t>>& on_member = joints.at(member->guid());
+
+        for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : on_member) {
+            const std::vector<Vector> directions = joint.first->insertion_directions(joint.second);
+
+            for (const std::pair<std::shared_ptr<JointElement>, size_t>& other : on_member) {
+                if (other.first == joint.first || directions.empty())
+                    continue;
+
+                std::vector<const Element*> others;
+                for (const std::shared_ptr<Element>& candidate : members)
+                    for (const std::string& partner : partners(*other.first, other.second))
+                        if (candidate->guid() == partner)
+                            others.push_back(candidate.get());
+
+                bool every = true;
+                for (const Vector& direction : directions)
+                    every = every && !slides_out(*member, direction * -1.0, others);
+                if (every)
+                    found.push_back(fmt::format("{}: {} blocked by {}", member->name, joint.first->name, other.first->name));
+            }
+        }
+    }
+
+    return found;
+}
+
+void AssemblySequence::json_dump(const std::string& filename) const {
+
+    nlohmann::ordered_json json;
+    json["base"] = base;
+    json["steps"] = nlohmann::ordered_json::array();
+    for (const AssemblyStep& move : sequence)
+        for (const std::shared_ptr<Element>& member : members)
+            if (member->name == move.element) {
+                const AABB box = AABB::from_mesh(member->model_geometry_mesh());
+                json["steps"].push_back({
+                    {"element", move.element},
+                    {"insertion", {move.insertion[0], move.insertion[1], move.insertion[2]}},
+                    {"joints", move.joints},
+                    {"partners", move.partners},
+                    {"low", {box.cx - box.hx, box.cy - box.hy, box.cz - box.hz}},
+                    {"high", {box.cx + box.hx, box.cy + box.hy, box.cz + box.hz}},
+                });
+            }
+    json["locked"] = stuck;
+    json["conflicts"] = blocked;
+
+    std::ofstream(filename) << json.dump(2);
+}
+
+std::string AssemblySequence::str() const {
+
+    std::string text;
+    for (size_t i = 0; i < sequence.size(); i++)
+        text += fmt::format(
+            "{:2d} {:<16} in along ({:6.3f}, {:6.3f}, {:6.3f}) engaging {}\n",
+            i,
+            sequence[i].element,
+            sequence[i].insertion[0],
+            sequence[i].insertion[1],
+            sequence[i].insertion[2],
+            fmt::join(sequence[i].joints, ", ")
+        );
+    text += fmt::format("locked: {}\n", stuck.empty() ? "none" : fmt::format("{}", fmt::join(stuck, ", ")));
+    for (const std::string& conflict : blocked)
+        text += fmt::format("conflict: {}\n", conflict);
+
+    return text;
+}
+
+}

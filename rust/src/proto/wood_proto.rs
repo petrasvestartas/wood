@@ -188,6 +188,43 @@ pub struct JointElement {
     /// A connector's direction each target slides off it, in targets order
     #[prost(message, repeated, tag = "24")]
     pub insertions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
+    /// The catalogue design it is made as, by its compendium name; empty for an older joint
+    #[prost(string, tag = "26")]
+    pub design: ::prost::alloc::string::String,
+    /// JointCategory: what meets in it
+    #[prost(int32, tag = "27")]
+    pub category: i32,
+    /// JointFamily: the family the catalogue files it under
+    #[prost(int32, tag = "28")]
+    pub family: i32,
+    /// Its cutting procedure in order, every target's steps
+    #[prost(message, repeated, tag = "29")]
+    pub steps: ::prost::alloc::vec::Vec<JointCutStep>,
+    /// Per target in targets order, the directions it can be inserted along
+    #[prost(message, repeated, tag = "30")]
+    pub target_insertions: ::prost::alloc::vec::Vec<JointInsertion>,
+}
+/// One step of a joint's cutting procedure on one of its targets.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JointCutStep {
+    /// "A1", "B2"
+    #[prost(string, tag = "1")]
+    pub label: ::prost::alloc::string::String,
+    /// Which target, in targets order
+    #[prost(uint32, tag = "2")]
+    pub target: u32,
+    /// The saw or chisel planes
+    #[prost(message, repeated, tag = "3")]
+    pub planes: ::prost::alloc::vec::Vec<::session_rust::proto::Plane>,
+    /// The wood it takes away; empty for a kerf
+    #[prost(message, optional, tag = "4")]
+    pub removal: ::core::option::Option<::session_rust::proto::Mesh>,
+}
+/// The directions one target of a joint can be inserted along.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JointInsertion {
+    #[prost(message, repeated, tag = "1")]
+    pub directions: ::prost::alloc::vec::Vec<::session_rust::proto::Vector>,
 }
 /// The solids a connector cuts out of one target, as bottom, top loop pairs.
 #[derive(Clone, PartialEq, ::prost::Message)]

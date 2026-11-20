@@ -2599,6 +2599,211 @@ std::shared_ptr<JointBeamElement> JointBeamElement::headed_pins(
     return joint;
 }
 
+/// A straight member's two section axes, unit, and half its section along each.
+static std::pair<std::array<Vector, 2>, std::array<double, 2>> section_axes(const EdgeStraightElement& member) {
+
+    const std::vector<Polyline> rings = member.sections();
+    if (member.axis.segment_count() != 1 || rings.empty() || rings[0].point_count() < 4)
+        throw std::invalid_argument(fmt::format("{}: needs one straight segment and a rectangular section", member.name));
+
+    const Vector x = rings[0].get_point(1) - rings[0].get_point(0);
+    const Vector y = rings[0].get_point(2) - rings[0].get_point(1);
+
+    return {{x.normalized(), y.normalized()}, {0.5 * x.magnitude(), 0.5 * y.magnitude()}};
+}
+
+/// Where the axis of member meets the axis of carrier, and member's axis away from there; throws when they do not meet.
+static std::pair<Point, Vector> end_on(const EdgeStraightElement& member, const EdgeStraightElement& carrier) {
+
+    const Line axis = Line::from_points(member.axis.get_point(0), member.axis.get_point(1));
+    const Line carrier_axis = Line::from_points(carrier.axis.get_point(0), carrier.axis.get_point(1));
+    double t_member = 0.0;
+    double t_carrier = 0.0;
+    if (!Intersection::line_line_parameters(axis, carrier_axis, t_member, t_carrier, 1.0, false, false))
+        throw std::invalid_argument(fmt::format("{} and {}: their axes do not meet", member.name, carrier.name));
+
+    const Vector up = axis.to_vector().normalized() * (t_member < 0.5 ? 1.0 : -1.0);
+
+    return {carrier_axis.point_at(t_carrier), up};
+}
+
+/// The closed box between the coordinates x, y and z of the frame at origin.
+static Mesh frame_solid(
+    const Point& origin,
+    const std::array<Vector, 3>& axes,
+    const std::array<double, 2>& x,
+    const std::array<double, 2>& y,
+    const std::array<double, 2>& z
+) {
+
+    const Point centre = frame_point(origin, axes, 0.0, 0.5 * (y[0] + y[1]), 0.0);
+    const std::array<Polyline, 2> loops = frame_box(centre, axes, x[0], x[1], y[1] - y[0], z[0], z[1]);
+
+    return Mesh::loft({loops[0]}, {loops[1]}, true);
+}
+
+/// How far along up the member's axis reaches back past node, its extension and overshoot included: where its end box starts.
+static double end_reach(const EdgeStraightElement& member, const Point& node, const Vector& up, double overshoot) {
+
+    const double start = (member.axis.get_point(0) - node).dot(up);
+    const double end = (member.axis.get_point(1) - node).dot(up);
+
+    return std::min(start, end) - member.extension - overshoot;
+}
+
+std::shared_ptr<JointBeamElement> JointBeamElement::notched_oblique_thrust(
+    const EdgeStraightElement& strut, const EdgeStraightElement& carrier, double depth, double overshoot
+) {
+
+    // the node, the strut away from it, the carrier's face it arrives on and the width across both
+    const std::pair<Point, Vector> meeting = end_on(strut, carrier);
+    const Point node = meeting.first;
+    const Vector up = meeting.second;
+    const std::pair<std::array<Vector, 2>, std::array<double, 2>> carrier_section = section_axes(carrier);
+    const std::pair<std::array<Vector, 2>, std::array<double, 2>> strut_section = section_axes(strut);
+    const size_t k = std::abs(carrier_section.first[0].dot(up)) >= std::abs(carrier_section.first[1].dot(up)) ? 0 : 1;
+    const Vector face = carrier_section.first[k] * (carrier_section.first[k].dot(up) > 0.0 ? 1.0 : -1.0);
+    const Vector lateral = carrier_section.first[1 - k];
+    if (std::abs(lateral.dot(up)) > 0.05 || face.dot(up) > 0.98)
+        throw std::invalid_argument(fmt::format("notched_oblique_thrust: {} must lean onto a face of {}", strut.name, carrier.name));
+
+    const size_t j = std::abs(strut_section.first[0].dot(lateral)) >= std::abs(strut_section.first[1].dot(lateral)) ? 0 : 1;
+    const double strut_half = strut_section.second[1 - j];
+    const bool through = strut_section.second[j] >= carrier_section.second[1 - k] - 1e-6;
+    const double notch_width = through ? carrier_section.second[1 - k] + overshoot : strut_section.second[j];
+    const Point top = node + face * carrier_section.second[k];
+
+    // where the strut's two faces meet the carrier's face: the obtuse corner on the side the thrust runs to, the acute one behind
+    const Vector across = lateral.cross(up).normalized();
+    const Vector thrust = (up * -1.0 + face * up.dot(face)).normalized();
+    std::array<Point, 2> corners;
+    for (size_t side = 0; side < 2; side++) {
+        const Point on_face = node + across * (side == 0 ? strut_half : -strut_half);
+        corners[side] = on_face + up * ((top - on_face).dot(face) / up.dot(face));
+    }
+    const size_t first = (corners[0] - node).dot(thrust) > (corners[1] - node).dot(thrust) ? 0 : 1;
+    const Point obtuse = corners[first];
+    const Point acute = corners[1 - first];
+
+    // the notch: the front face down the bisector of the obtuse angle to depth, the seat back up to the acute corner
+    const Vector bisector = (thrust + up).normalized() * -1.0;
+    const Point deep = obtuse + bisector * (depth * 2.0 * carrier_section.second[k] / -bisector.dot(face));
+    if (std::abs((deep - node).dot(across)) > strut_half)
+        throw std::invalid_argument(fmt::format("notched_oblique_thrust: the notch is deeper than {} is wide", strut.name));
+
+    Vector front_normal = (deep - obtuse).cross(lateral).normalized();
+    if ((acute - obtuse).dot(front_normal) > 0.0)
+        front_normal = front_normal * -1.0;
+    Vector seat_normal = (acute - deep).cross(lateral).normalized();
+    if ((obtuse - deep).dot(seat_normal) > 0.0)
+        seat_normal = seat_normal * -1.0;
+    const Plane front = Plane::from_point_normal(obtuse, front_normal);
+    const Plane seat = Plane::from_point_normal(deep, seat_normal);
+
+    // the strut's end: the stock beyond the front face, then everything under the seat, the two overlapping so no face is shared
+    const double reach = std::max({(obtuse - node).dot(up), (acute - node).dot(up), (deep - node).dot(up)}) + overshoot;
+    const double wide = strut_section.second[j] + overshoot;
+    const double high = strut_half + overshoot;
+    const Mesh end_box = frame_solid(node, {up, lateral, across}, {end_reach(strut, node, up, overshoot), reach}, {-wide, wide}, {-high, high});
+    const Mesh beyond_front = end_box.cut_by_plane(front);
+    const Mesh under_seat = end_box.cut_by_plane(seat);
+
+    // the carrier's notch, through its width or as wide as the strut
+    const Polyline section = Polyline({obtuse + face * overshoot, obtuse, deep, acute, acute + face * overshoot}).closed();
+    const Vector half_width = lateral * notch_width;
+    const Mesh notch = Mesh::loft(
+        {section.transformed(Xform::translation(-half_width[0], -half_width[1], -half_width[2]))},
+        {section.transformed(Xform::translation(half_width[0], half_width[1], half_width[2]))},
+        true
+    );
+
+    // the joint: its steps, and the strut going in against the notch's two faces, across too when the notch runs through
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
+    joint->name = "notched_oblique_thrust";
+    joint->design = "notched_oblique_thrust";
+    joint->category = JointCategory::side_end;
+    joint->family = std::abs(up.dot((carrier.axis.get_point(1) - carrier.axis.get_point(0)).normalized())) < 0.09 ? JointFamily::t : JointFamily::angled;
+    joint->targets = {strut.guid(), carrier.guid()};
+    joint->steps = {
+        {"A1", 0, {front}, beyond_front},
+        {"A2", 0, {seat}, under_seat},
+        {"B1", 1, {Plane::from_point_normal(obtuse, front_normal * -1.0)}, Mesh()},
+        {"B2", 1, {Plane::from_point_normal(deep, seat_normal * -1.0)}, notch},
+    };
+
+    const Vector strut_in = (front_normal + seat_normal).normalized();
+    joint->target_insertions = {{strut_in}, {strut_in * -1.0}};
+    if (through) {
+        joint->target_insertions[0].insert(joint->target_insertions[0].end(), {lateral, lateral * -1.0});
+        joint->target_insertions[1].insert(joint->target_insertions[1].end(), {lateral * -1.0, lateral});
+    }
+
+    return joint;
+}
+
+std::shared_ptr<JointBeamElement> JointBeamElement::blind_mortise_tenon(
+    const EdgeStraightElement& tenon,
+    const EdgeStraightElement& mortise,
+    double thickness,
+    double inset,
+    double depth,
+    double overshoot
+) {
+
+    // the node, the tenon member away from it and the mortise member's face it stands square on
+    const std::pair<Point, Vector> meeting = end_on(tenon, mortise);
+    const Point node = meeting.first;
+    const Vector up = meeting.second;
+    const std::pair<std::array<Vector, 2>, std::array<double, 2>> mortise_section = section_axes(mortise);
+    const std::pair<std::array<Vector, 2>, std::array<double, 2>> tenon_section = section_axes(tenon);
+    const size_t k = std::abs(mortise_section.first[0].dot(up)) >= std::abs(mortise_section.first[1].dot(up)) ? 0 : 1;
+    if (std::abs(mortise_section.first[k].dot(up)) < 0.996)
+        throw std::invalid_argument(fmt::format("blind_mortise_tenon: {} must stand square on a face of {}", tenon.name, mortise.name));
+
+    // the frame: up the tenon from the shoulder, across the mortise member, along it
+    const Vector across = mortise_section.first[1 - k];
+    const Vector along = up.cross(across).normalized();
+    const size_t j = std::abs(tenon_section.first[0].dot(across)) >= std::abs(tenon_section.first[1].dot(across)) ? 0 : 1;
+    const std::array<Vector, 3> axes = {up, across, along};
+    const Point shoulder = node + up * mortise_section.second[k];
+    const double cheek = thickness * tenon_section.second[j];
+    const double edge = (1.0 - 2.0 * inset) * tenon_section.second[1 - j];
+    const double length = depth * 2.0 * mortise_section.second[k];
+    const double wide = tenon_section.second[j] + overshoot;
+    const double long_side = tenon_section.second[1 - j] + overshoot;
+
+    // the tenon: crosscut to length, the cheeks ripped and crosscut, the edge shoulders sawn, each reaching over the steps before
+    // it so no two share a face; the mortise chopped
+    const double low = end_reach(tenon, shoulder, up, overshoot);
+    const Mesh to_length = frame_solid(shoulder, axes, {low, -length}, {-wide, wide}, {-long_side, long_side});
+    const Mesh cheeks = shells_side_by_side({
+        frame_solid(shoulder, axes, {low, 0.0}, {cheek, wide}, {-long_side, long_side}),
+        frame_solid(shoulder, axes, {low, 0.0}, {-wide, -cheek}, {-long_side, long_side}),
+    });
+    const Mesh edges = shells_side_by_side({
+        frame_solid(shoulder, axes, {low, 0.0}, {-wide, wide}, {edge, long_side}),
+        frame_solid(shoulder, axes, {low, 0.0}, {-wide, wide}, {-long_side, -edge}),
+    });
+    const Mesh hole = frame_solid(shoulder, axes, {-length, overshoot}, {-cheek, cheek}, {-edge, edge});
+    const Plane shoulder_plane = Plane::from_point_normal(shoulder, up * -1.0);
+
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
+    joint->name = "blind_mortise_tenon";
+    joint->design = "blind_mortise_tenon";
+    joint->category = JointCategory::side_end;
+    joint->family = JointFamily::t;
+    joint->targets = {tenon.guid(), mortise.guid()};
+    joint->steps = {
+        {"A1", 0, {Plane::from_point_normal(shoulder - up * length, up * -1.0)}, to_length},
+        {"A2", 0, {Plane::from_point_normal(shoulder + across * cheek, across), Plane::from_point_normal(shoulder - across * cheek, across * -1.0), shoulder_plane}, cheeks},
+        {"A3", 0, {Plane::from_point_normal(shoulder + along * edge, along), Plane::from_point_normal(shoulder - along * edge, along * -1.0), shoulder_plane}, edges},
+        {"B1", 1, {Plane::from_point_normal(shoulder - up * length, up)}, hole},
+    };
+    joint->target_insertions = {{up * -1.0}, {up}};
+
+    return joint;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Geometry
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2639,7 +2844,19 @@ Vector JointBeamElement::insertion(size_t target) const {
     return direction.normalized();
 }
 
+std::vector<Vector> JointBeamElement::insertion_directions(size_t target) const {
+
+    if (!target_insertions.empty() || !is_connector() || insertion(target).magnitude() == 0.0)
+        return JointElement::insertion_directions(target);
+
+    return {insertion(target) * -1.0};
+}
+
 std::shared_ptr<Interaction> JointBeamElement::interaction(size_t target) const {
+
+    // a joint with a procedure: its steps' removals on this target
+    if (!steps.empty())
+        return JointElement::interaction(target);
 
     // a butt: the block this target gains or loses
     if (is_butt)

@@ -107,6 +107,10 @@
     <img src="element_joint_beam_column_head.png" alt="column head">
     <span class="wood-card-title">column head</span>
   </a>
+  <a class="wood-card" href="elements_joint_beam_compendium.html">
+    <img src="element_joint_beam_notched_oblique_thrust.png" alt="compendium">
+    <span class="wood-card-title">compendium</span>
+  </a>
 </div>
 
 ### Connectors
@@ -173,6 +177,7 @@ A joint is an element: it is added, then handed to each member it cuts.
 - @subpage elements_joint_beam_top_side
 - @subpage elements_joint_beam_top_side_bridle
 - @subpage elements_joint_beam_column_head
+- @subpage elements_joint_beam_compendium
 - @subpage elements_joint_beam_keyed_box
 - @subpage elements_joint_beam_end_to_end
 - @subpage elements_joint_beam_butt

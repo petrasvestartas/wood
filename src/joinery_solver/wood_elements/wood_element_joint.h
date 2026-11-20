@@ -2,6 +2,8 @@
 
 #include "pch.h"
 #include "wood_element_geometry.h"
+#include "wood_joint_category.h"
+#include "wood_joint_cut_step.h"
 
 using namespace session_cpp;
 
@@ -28,6 +30,11 @@ public:
     Vector cutter_extrusion;
     std::vector<Line> drill_lines;
     SolidOperation operation = SolidOperation::subtract;
+    std::string design; // Its compendium design: "notched_oblique_thrust"; empty for an older joint.
+    JointCategory category = JointCategory::none; // What meets in it.
+    JointFamily family = JointFamily::none; // Its compendium family.
+    std::vector<JointCutStep> steps; // Its cutting procedure in order; a target loses its steps' removals in one boolean.
+    std::vector<std::vector<Vector>> target_insertions; // Per target, the unit directions it goes in along; it comes out the opposite way.
 
 protected:
     mutable std::optional<Mesh> mesh_;
@@ -55,8 +62,17 @@ public:
     static std::shared_ptr<JointElement> support(const NodeSupportElement& support, const EdgeStraightElement& column);
     virtual std::vector<Line> drill_axes() const;
 
-    /// The interaction this joint puts on its target i, for WoodSession::add_interaction.
+    /// The interaction this joint puts on its target i, for WoodSession::add_interaction: a joint with a procedure its removals on that target in one cut.
     virtual std::shared_ptr<Interaction> interaction(size_t target) const;
+
+    /// The steps of the procedure on target i, in order.
+    std::vector<JointCutStep> target_steps(size_t target) const;
+
+    /// What target i loses to the first count steps of the procedure on it, every removal side by side in one mesh for one boolean; all of them by default.
+    Mesh removal(size_t target, size_t count = std::numeric_limits<size_t>::max()) const;
+
+    /// The unit directions target i can be inserted along into the joint and its other targets, none when the joint does not say.
+    virtual std::vector<Vector> insertion_directions(size_t target) const;
 
     static std::shared_ptr<JointElement> from_element(Element element);
     static void register_type();
@@ -90,7 +106,7 @@ public:
     /// The joint's own solids.
     virtual std::vector<std::array<Polyline, 2>> bodies() const;
 
-    /// The joint's own solid when it is no loft of loops.
+    /// The joint's own solid when it is no loft of loops: a joint with a procedure every removal of it.
     virtual Mesh key_mesh() const;
 
 protected:

@@ -256,9 +256,27 @@ public:
         int sides = 16
     );
 
+    /// The notched oblique thrust joint (Stirnversatz, Joinery Compendium p. 584): the strut's end in a triangular notch of the carrier, depth a share of its depth.
+    static std::shared_ptr<JointBeamElement> notched_oblique_thrust(
+        const EdgeStraightElement& strut, const EdgeStraightElement& carrier, double depth = 0.2, double overshoot = 2.0
+    );
+
+    /// The blind mortise and tenon (verdeckter Zapfen, Joinery Compendium p. 496): sizes as shares of the tenon member and, depth, of the mortise member.
+    static std::shared_ptr<JointBeamElement> blind_mortise_tenon(
+        const EdgeStraightElement& tenon,
+        const EdgeStraightElement& mortise,
+        double thickness = 1.0 / 3.0,
+        double inset = 1.0 / 6.0,
+        double depth = 0.5,
+        double overshoot = 2.0
+    );
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Geometry
     // ═══════════════════════════════════════════════════════════════════════════
+
+    /// The directions target i goes in along: the stored ones, else a connector's against the way it slides off.
+    std::vector<Vector> insertion_directions(size_t target) const override;
 
     /// Whether this is a connector, with parts, cutters or pre-drilled pins of its own, rather than a beam-to-beam joint.
     bool is_connector() const;

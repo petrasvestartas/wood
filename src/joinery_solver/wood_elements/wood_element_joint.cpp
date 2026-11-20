@@ -109,7 +109,11 @@ std::shared_ptr<JointElement> JointElement::support(const NodeSupportElement& su
     return joint;
 }
 
-std::shared_ptr<Interaction> JointElement::interaction(size_t) const {
+std::shared_ptr<Interaction> JointElement::interaction(size_t target) const {
+
+    // a joint with a procedure: what its steps take from this target, in one cut
+    if (!steps.empty())
+        return std::make_shared<InteractionFeatureSolid>(removal(target), SolidOperation::subtract);
 
     // only cutting planes: the target takes the planes themselves, the edge keeps an empty record
     if (loops.empty() && drill_axes().empty() && !cuts.empty())
@@ -128,12 +132,45 @@ std::shared_ptr<Interaction> JointElement::interaction(size_t) const {
     return cut;
 }
 
+std::vector<JointCutStep> JointElement::target_steps(size_t target) const {
+
+    std::vector<JointCutStep> on_target;
+    for (const JointCutStep& step : steps)
+        if (step.target == target)
+            on_target.push_back(step);
+
+    return on_target;
+}
+
+Mesh JointElement::removal(size_t target, size_t count) const {
+
+    std::vector<Mesh> pieces;
+    for (const JointCutStep& step : target_steps(target)) {
+        if (pieces.size() >= count)
+            break;
+        if (step.removal.number_of_faces() > 0)
+            pieces.push_back(step.removal);
+    }
+
+    return shells_side_by_side(pieces);
+}
+
+std::vector<Vector> JointElement::insertion_directions(size_t target) const {
+    return target < target_insertions.size() ? target_insertions[target] : std::vector<Vector>();
+}
+
 std::vector<std::array<Polyline, 2>> JointElement::bodies() const {
     return {};
 }
 
 Mesh JointElement::key_mesh() const {
-    return Mesh();
+
+    std::vector<Mesh> pieces;
+    for (const JointCutStep& step : steps)
+        if (step.removal.number_of_faces() > 0)
+            pieces.push_back(step.removal);
+
+    return shells_side_by_side(pieces);
 }
 
 Mesh JointElement::body_mesh() const {
@@ -270,6 +307,13 @@ void JointElement::place(const Xform& xform) {
     cutter_extrusion = cutter_extrusion.transformed(xform);
     for (Line& axis : drill_lines)
         axis = axis.transformed(xform);
+    for (JointCutStep& step : steps) {
+        step.removal = step.removal.transformed(xform);
+        step.planes = transformed_list(step.planes, xform);
+    }
+    for (std::vector<Vector>& directions : target_insertions)
+        for (Vector& direction : directions)
+            direction = direction.transformed(xform).normalized();
     invalidate_geometry();
 }
 
@@ -328,6 +372,26 @@ void JointElement::write_proto(wood_proto::JointElement& proto) const {
             throw std::runtime_error("Invalid joint cut");
     for (const std::string& target : targets)
         proto.add_targets(target);
+    proto.set_design(design);
+    proto.set_category(static_cast<int>(category));
+    proto.set_family(static_cast<int>(family));
+    for (const JointCutStep& step : steps) {
+        wood_proto::JointCutStep* written = proto.add_steps();
+        written->set_label(step.label);
+        written->set_target(static_cast<uint32_t>(step.target));
+        if (step.removal.number_of_faces() > 0 &&
+            !written->mutable_removal()->ParseFromString(step.removal.pb_dumps()))
+            throw std::runtime_error("Invalid cutting step removal");
+        for (const Plane& plane : step.planes)
+            if (!written->add_planes()->ParseFromString(plane.pb_dumps()))
+                throw std::runtime_error("Invalid cutting step plane");
+    }
+    for (const std::vector<Vector>& directions : target_insertions) {
+        wood_proto::JointInsertion* written = proto.add_target_insertions();
+        for (const Vector& direction : directions)
+            if (!written->add_directions()->ParseFromString(direction.pb_dumps()))
+                throw std::runtime_error("Invalid insertion direction");
+    }
 }
 
 nlohmann::ordered_json JointElement::element_data_jsondump() const {
@@ -385,6 +449,24 @@ void JointElement::read_proto(const wood_proto::JointElement& proto) {
         cutter_profile.push_back(Polyline::pb_loads(ring.SerializeAsString()));
     for (const session_proto::Line& axis : proto.drill_lines())
         drill_lines.push_back(Line::pb_loads(axis.SerializeAsString()));
+    design = proto.design();
+    category = static_cast<JointCategory>(proto.category());
+    family = static_cast<JointFamily>(proto.family());
+    for (const wood_proto::JointCutStep& read : proto.steps()) {
+        JointCutStep step;
+        step.label = read.label();
+        step.target = read.target();
+        if (read.has_removal())
+            step.removal = Mesh::pb_loads(read.removal().SerializeAsString());
+        for (const session_proto::Plane& plane : read.planes())
+            step.planes.push_back(Plane::pb_loads(plane.SerializeAsString()));
+        steps.push_back(std::move(step));
+    }
+    for (const wood_proto::JointInsertion& read : proto.target_insertions()) {
+        target_insertions.emplace_back();
+        for (const session_proto::Vector& direction : read.directions())
+            target_insertions.back().push_back(Vector::pb_loads(direction.SerializeAsString()));
+    }
 }
 
 /// Decode protobuf bytes as an Element and promote it to a JointElement.

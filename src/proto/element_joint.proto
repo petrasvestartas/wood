@@ -1,5 +1,6 @@
 syntax = "proto3";
 package wood_proto;
+import "mesh.proto";
 import "polyline.proto";
 import "plane.proto";
 import "line.proto";
@@ -32,6 +33,24 @@ message JointElement {
   bool pre_drill = 23;                          // A connector of pins: its drill lines are pre-drilled holes in its targets, never cut
   double cut_size = 25;                         // A cutting plane: the side of the square it is drawn as
   repeated session_proto.Vector insertions = 24; // A connector's direction each target slides off it, in targets order
+  string design = 26;                           // The catalogue design it is made as, by its compendium name; empty for an older joint
+  int32 category = 27;                          // JointCategory: what meets in it
+  int32 family = 28;                            // JointFamily: the family the catalogue files it under
+  repeated JointCutStep steps = 29;             // Its cutting procedure in order, every target's steps
+  repeated JointInsertion target_insertions = 30; // Per target in targets order, the directions it can be inserted along
+}
+
+// One step of a joint's cutting procedure on one of its targets.
+message JointCutStep {
+  string label = 1;                             // "A1", "B2"
+  uint32 target = 2;                            // Which target, in targets order
+  repeated session_proto.Plane planes = 3;      // The saw or chisel planes
+  session_proto.Mesh removal = 4;               // The wood it takes away; empty for a kerf
+}
+
+// The directions one target of a joint can be inserted along.
+message JointInsertion {
+  repeated session_proto.Vector directions = 1;
 }
 
 // The solids a connector cuts out of one target, as bottom, top loop pairs.

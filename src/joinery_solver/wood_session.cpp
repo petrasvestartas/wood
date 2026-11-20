@@ -1997,6 +1997,22 @@ std::shared_ptr<Interaction> WoodSession::add_joint_interaction(
         return cut;
     }
 
+    // a joint with a procedure: what its steps take from the target in one cut, and the directions the target goes in along
+    if (!joint->steps.empty()) {
+        Session::remove_interaction(joint, target);
+        if (!cut)
+            throw std::invalid_argument("A procedure joint's interaction is its InteractionFeatureSolid");
+        add_solid_interaction(joint, target, cut);
+
+        const size_t index = std::find(joint->targets.begin(), joint->targets.end(), target->guid()) - joint->targets.begin();
+        std::vector<Vector> insertions = target->insertion_vectors();
+        for (const Vector& direction : joint->insertion_directions(index))
+            insertions.push_back(direction);
+        target->set_insertion_vectors(insertions);
+
+        return cut;
+    }
+
     // a beam-to-beam joint: its volumes on the edge, hosted on the target as a joint feature
     if (beam_joint) {
         const std::shared_ptr<InteractionFeatureBeam> volumes =
