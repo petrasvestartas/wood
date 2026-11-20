@@ -108,7 +108,7 @@
     <span class="wood-card-title">column head</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_compendium.html">
-    <img src="element_joint_beam_notched_oblique_thrust.png" alt="compendium">
+    <img src="element_joint_beam_library.png" alt="compendium">
     <span class="wood-card-title">compendium</span>
   </a>
 </div>

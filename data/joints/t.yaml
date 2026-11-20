@@ -1,0 +1,42 @@
+# Joinery Compendium (Bauer, Pauli 2024), Timber Joints, T-Joints: one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category and family, every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way.
+
+blind_mortise_tenon:
+  title: "Blind mortise and tenon"
+  german: "verdeckter Zapfen"
+  page: "496"
+  category: "side_end"
+  family: "t"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.16666666666666666"
+    - "depth = 0.5"
+  points:
+    - "S = O + u"
+  planes:
+    - "end = O - 2*depth*bh*u, u, O"
+    - "shoulder = O, u, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + (1 - 2*inset)*ah*p, p, O"
+    - "edge_2 = O - (1 - 2*inset)*ah*p, p, O"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder edge_1; a_end shoulder edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"

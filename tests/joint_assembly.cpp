@@ -2,6 +2,7 @@
 #include "wood_element_geometry.h"
 #include "wood_joint_classification.h"
 #include "wood_assembly_sequence.h"
+#include "wood_joint_library.h"
 #include "src/templates/truss/carpentry_truss.h"
 
 using namespace session_cpp;
@@ -63,12 +64,12 @@ static void notched_oblique_thrust() {
     const std::shared_ptr<EdgeStraightElement> strut = beam(Point(0.0, 0.0, 0.0), Point(-500.0, 420.0, 0.0), 60.0, "strut");
     scene.add(carrier);
     scene.add(strut);
-    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::notched_oblique_thrust(*strut, *carrier);
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library("notched_oblique_thrust", *strut, *carrier);
     scene.add(joint);
     scene.add_interaction(joint, strut, joint->interaction(0));
     scene.add_interaction(joint, carrier, joint->interaction(1));
 
-    check(joint->steps.size() == 4 && joint->steps[2].removal.number_of_faces() == 0, "notched_oblique_thrust: steps A1, A2, B1 (a kerf), B2");
+    check(joint->steps.size() == 4 && joint->steps[2].removal.number_of_faces() == 0, "notched_oblique_thrust: steps A2, A3, B2 (a kerf), B3");
     check(lost(*carrier) > 1000.0 && lost(*strut) > 1000.0, "notched_oblique_thrust: both members lose wood");
     check(shared(*carrier, *strut) < 1.0, fmt::format("notched_oblique_thrust: the members share {} mm3", shared(*carrier, *strut)));
     check(joint->insertion_directions(0).size() == 3, "notched_oblique_thrust: the strut goes in along the notch and across it, the notch running through");
@@ -77,7 +78,7 @@ static void notched_oblique_thrust() {
     // the procedure survives a round trip of the scene
     const WoodSession back = WoodSession::pb_loads(scene.pb_dumps());
     const std::shared_ptr<JointBeamElement> read = back.get_element_by_name<JointBeamElement>("notched_oblique_thrust");
-    check(read && read->steps.size() == 4 && read->steps[3].label == "B2" && read->target_insertions.size() == 2 && read->design == "notched_oblique_thrust", "notched_oblique_thrust: the steps and insertions are written with the scene");
+    check(read && read->steps.size() == 4 && read->steps[3].label == "B3" && read->target_insertions.size() == 2 && read->design == "notched_oblique_thrust", "notched_oblique_thrust: the steps and insertions are written with the scene");
 
     // mirrored and with the carrier's axis reversed: the same wood lost, none shared
     for (const double side : {1.0, -1.0}) {
@@ -86,7 +87,7 @@ static void notched_oblique_thrust() {
         const std::shared_ptr<EdgeStraightElement> leaning = beam(Point(500.0 * side, 420.0, 0.0), Point(0.0, 0.0, 0.0), 60.0, "leaning");
         mirrored.add(reversed);
         mirrored.add(leaning);
-        const std::shared_ptr<JointBeamElement> mirror = JointBeamElement::notched_oblique_thrust(*leaning, *reversed);
+        const std::shared_ptr<JointBeamElement> mirror = JointBeamElement::from_library("notched_oblique_thrust", *leaning, *reversed);
         mirrored.add(mirror);
         mirrored.add_interaction(mirror, leaning, mirror->interaction(0));
         mirrored.add_interaction(mirror, reversed, mirror->interaction(1));
@@ -96,7 +97,7 @@ static void notched_oblique_thrust() {
 
     // a strut narrower than the carrier: a blind notch, no way across
     const std::shared_ptr<EdgeStraightElement> narrow = beam(Point(0.0, 0.0, 0.0), Point(-500.0, 420.0, 0.0), 40.0, "narrow");
-    check(JointBeamElement::notched_oblique_thrust(*narrow, *carrier)->insertion_directions(0).size() == 1, "notched_oblique_thrust: a blind notch lets the strut in along it only");
+    check(JointBeamElement::from_library("notched_oblique_thrust", *narrow, *carrier)->insertion_directions(0).size() == 1, "notched_oblique_thrust: a blind notch lets the strut in along it only");
 }
 
 /// The blind mortise and tenon: the mortise a third of the member thick, two thirds of it long, half the carrier deep.
@@ -107,7 +108,7 @@ static void blind_mortise_tenon() {
     const std::shared_ptr<EdgeStraightElement> member = beam(Point(0.0, 0.0, 0.0), Point(0.0, 600.0, 0.0), 60.0, "member");
     scene.add(carrier);
     scene.add(member);
-    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::blind_mortise_tenon(*member, *carrier);
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library("blind_mortise_tenon", *member, *carrier);
     scene.add(joint);
     scene.add_interaction(joint, member, joint->interaction(0));
     scene.add_interaction(joint, carrier, joint->interaction(1));
@@ -121,6 +122,27 @@ static void blind_mortise_tenon() {
     joint->target_insertions = {{Vector(1.0, 0.0, 0.0)}, {Vector(-1.0, 0.0, 0.0)}};
     const AssemblySequence sideways(scene, "carrier");
     check(sideways.locked().size() == 1 && sideways.locked()[0] == "member", "blind_mortise_tenon: a tenon cannot slide sideways out of its mortise");
+}
+
+/// Every record of the YAML library on a pair of beams: both cut, no wood shared, the member out along a direction it gives.
+static void library() {
+
+    for (const std::string& design : library_designs()) {
+        WoodSession scene(design);
+        const double turn = (library_record(design).fields.at("family") == "t" ? 90.0 : 130.0) * Tolerance::PI / 180.0;
+        const std::shared_ptr<EdgeStraightElement> carrier = beam(Point(-450.0, 0.0, 0.0), Point(450.0, 0.0, 0.0), 60.0, "carrier");
+        const std::shared_ptr<EdgeStraightElement> member = beam(Point(0.0, 0.0, 0.0), Point(600.0 * std::cos(turn), 600.0 * std::sin(turn), 0.0), 60.0, "member");
+        scene.add(carrier);
+        scene.add(member);
+        const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *member, *carrier);
+        scene.add(joint);
+        scene.add_interaction(joint, member, joint->interaction(0));
+        scene.add_interaction(joint, carrier, joint->interaction(1));
+
+        check(lost(*member) > 1000.0 && lost(*carrier) > 1000.0, fmt::format("library: {} cuts {} and {} mm3", design, lost(*member), lost(*carrier)));
+        check(shared(*member, *carrier) < 1.0, fmt::format("library: {} leaves {} mm3 shared", design, shared(*member, *carrier)));
+        check(AssemblySequence(scene, "carrier").locked().empty(), fmt::format("library: {} locks its member", design));
+    }
 }
 
 /// The king post truss comes apart: the tie stays, the king post comes up out of its mortise, every other member out across the plane.
@@ -151,6 +173,7 @@ int main() {
     classification();
     notched_oblique_thrust();
     blind_mortise_tenon();
+    library();
     king_post();
     std::cout << "joint_assembly: categories read from axes, two compendium joints cut step by step, the king post truss taken apart" << std::endl;
     return 0;

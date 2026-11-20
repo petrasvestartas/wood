@@ -1,6 +1,6 @@
 """The assembly and disassembly of a jointed model as a GIF, docs/images/templates/<example>.gif (<example>_assembly.gif when the name does not end in _assembly): the example writes
 its scene and data/output/pb/joint_assembly.json (AssemblySequence::json_dump). The parts first stand apart, each `--reach` mm
-back along the way it goes in, a dark blue arrow on each; then they go in one by one in the order, the moving part blue and
+back along the way it goes in, a black arrow on each; then they go in one by one in the order, the moving part blue and
 the parts its joints engage light blue; the model holds assembled, then comes apart in the reverse order. Every frame is drawn by the
 viewer crate's native renderer with one fixed camera.
 
@@ -47,7 +47,7 @@ for n, frame in enumerate(plan["frames"]):
         line = Line.from_points(Point(*arrow[0]), Point(*arrow[1]))
         line.width = 8.0
         line.arrowhead = Arrowhead.END
-        line.linecolor = Color(20 / 255, 70 / 255, 140 / 255, 1.0)
+        line.linecolor = Color(0.0, 0.0, 0.0, 1.0)
         scene.add_line(line, None)
     low, high = plan["low"], plan["high"]
     scene.add_line(Line.from_points(Point(*low), Point(low[0] + 1.0, low[1], low[2])), None)

@@ -58,7 +58,7 @@ void CarpentryTruss::add_joints() {
 
             const std::shared_ptr<EdgeStraightElement> end = meeting.ends[0] ? beams[i] : beams[j];
             const std::shared_ptr<EdgeStraightElement> side = meeting.ends[0] ? beams[j] : beams[i];
-            const std::shared_ptr<JointBeamElement> joint = meeting.family == JointFamily::t ? JointBeamElement::blind_mortise_tenon(*end, *side) : JointBeamElement::notched_oblique_thrust(*end, *side);
+            const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(meeting.family == JointFamily::t ? "blind_mortise_tenon" : "notched_oblique_thrust", *end, *side);
             joint->name = fmt::format("{}_{}_{}", joint->design, end->name, side->name);
             add(joint, group_named("joints"));
             add_interaction(joint, end, joint->interaction(0));

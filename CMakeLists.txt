@@ -133,6 +133,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_instance.cpp
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp
     src/joinery_solver/wood_algorithms/wood_joint_classification.cpp
+    src/joinery_solver/wood_elements/wood_joint_library.cpp
     src/joinery_solver/wood_algorithms/wood_assembly_sequence.cpp
 )
 
@@ -494,8 +495,7 @@ ADD_EXE(element_joint_plate_side_side_inplane_hilti examples/elements/element_jo
 ADD_EXE(element_joint_plate_side_side_inplane_hilti_angles examples/elements/element_joint_plate_side_side_inplane_hilti_angles.cpp)
 ADD_EXE(element_joint_beam_rectangle_plate   examples/elements/element_joint_beam_rectangle_plate.cpp)
 ADD_EXE(element_joint_beam_butterfly_key     examples/elements/element_joint_beam_butterfly_key.cpp)
-ADD_EXE(element_joint_beam_notched_oblique_thrust examples/elements/element_joint_beam_notched_oblique_thrust.cpp)
-ADD_EXE(element_joint_beam_blind_mortise_tenon examples/elements/element_joint_beam_blind_mortise_tenon.cpp)
+ADD_EXE(element_joint_beam_library            examples/elements/element_joint_beam_library.cpp)
 ADD_EXE(element_joint_beam_centred_pins      examples/elements/element_joint_beam_centred_pins.cpp)
 ADD_EXE(element_joint_beam_headed_pins       examples/elements/element_joint_beam_headed_pins.cpp)
 ADD_EXE(element_joint_pin                          examples/elements/element_joint_pin.cpp)

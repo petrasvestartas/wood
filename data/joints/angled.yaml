@@ -1,0 +1,216 @@
+# Joinery Compendium (Bauer, Pauli 2024), Timber Joints, Angled Joints: one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category and family, every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way.
+
+notched_oblique_thrust:
+  title: "Notched oblique thrust joint"
+  german: "Stirnversatz"
+  page: "584"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.2"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*depth*bh*n, n)"
+  planes:
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(F - D, w), E"
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+  insertions:
+    - "unit(front + seat)"
+    - "through w"
+    - "through -w"
+
+notched_oblique_thrust_right_angled_end:
+  title: "Notched oblique thrust joint with right-angled end"
+  german: "Stirnversatz mit rechtwinkliger Stirn"
+  page: "586"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.2"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, -p, O - 2*depth*bh*n, n)"
+  planes:
+    - "front = E, u, F"
+    - "seat = D, cross(F - D, w), E"
+  steps:
+    - "A2 a_end front; a_end seat"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+  insertions:
+    - "unit(front + seat)"
+    - "through w"
+    - "through -w"
+
+oblique_thrust_notched_heel:
+  title: "Oblique thrust joint with notched heel"
+  german: "Fersenversatz"
+  page: "590"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.2"
+  points:
+    - "F = meet(O - ah*p, u, O, n)"
+    - "H = meet(F, -u, O - 2*depth*bh*n, n)"
+    - "G = meet(H, p, O, n)"
+    - "U = O + n"
+  planes:
+    - "bearing = O, n, U"
+    - "heel = H, u, H + u"
+    - "under = F, p, F + p"
+  steps:
+    - "A2 a bearing"
+    - "A3 a_end bearing heel"
+    - "B2 b -under"
+    - "B3 b_node -heel -under"
+  insertions:
+    - "unit(heel + under)"
+    - "through w"
+    - "through -w"
+
+double_notched_oblique_thrust:
+  title: "Double notched oblique thrust joint"
+  german: "Stirn- und Fersenversatz"
+  page: "592"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "front_depth = 0.2"
+    - "heel_depth = 0.2"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "D = meet(E, unit(-t - u), O - 2*front_depth*bh*n, n)"
+    - "H = meet(F, -u, O - 2*heel_depth*bh*n, n)"
+    - "G = meet(H, p, O, n)"
+  planes:
+    - "front = E, cross(D - E, w), F"
+    - "seat = D, cross(G - D, w), E"
+    - "heel = H, u, H + u"
+    - "under = F, p, F + p"
+  steps:
+    - "A2 a_end front"
+    - "A3 a_end seat heel"
+    - "A4 a heel"
+    - "B2 b -front"
+    - "B3 b_node -front -seat"
+    - "B4 b -heel"
+    - "B5 b_node -heel -under"
+  insertions:
+    - "unit(heel + under)"
+    - "through w"
+    - "through -w"
+
+oblique_thrust_sloped_tenon_notched_heel:
+  title: "Oblique thrust joint with sloped tenon and notched heel"
+  german: "Fersenversatz mit schrägem Zapfen"
+  page: "594"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.2"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "H = meet(F, -u, O - 2*depth*bh*n, n)"
+    - "U = O + n"
+  planes:
+    - "bearing = O, n, U"
+    - "heel = H, u, H + u"
+    - "under = F, p, F + p"
+    - "slope = E, cross(H - E, w), F"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  steps:
+    - "A2 a_end bearing heel cheek_1; a_end bearing heel cheek_2"
+    - "A3 a_end slope"
+    - "B2 b_node -heel -under"
+    - "B3 b_node -slope -under -cheek_1 -cheek_2"
+  insertions:
+    - "unit(heel + under)"
+
+oblique_thrust_mortise_tenon:
+  title: "Oblique thrust joint with mortise and tenon"
+  german: "Schräger Stoß mit Zapfen"
+  page: "596"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.3"
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.1"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "M = E + (F - E)*inset"
+    - "U = O + n"
+  planes:
+    - "bearing = O, n, U"
+    - "bottom = O - 2*depth*bh*n, n, O"
+    - "front = M, t, F"
+    - "under = F, p, F + p"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end bearing cheek_1; a_end bearing cheek_2"
+    - "A4 a_end bearing front"
+    - "B2 b_node -bottom -front -under -cheek_1 -cheek_2"
+  insertions:
+    - "-u"
+    - "-n"
+
+oblique_thrust_sloped_mortise_tenon:
+  title: "Oblique thrust joint with sloped mortise and tenon"
+  german: "schräger Stoß mit schrägem Zapfen"
+  page: "598"
+  category: "side_end"
+  family: "angled"
+  parameters:
+    - "depth = 0.3"
+    - "thickness = 0.3333333333333333"
+    - "inset = 0.1"
+  points:
+    - "E = meet(O + ah*p, u, O, n)"
+    - "F = meet(O - ah*p, u, O, n)"
+    - "M = E + (F - E)*inset"
+    - "K = M - 2*depth*bh*n"
+    - "U = O + n"
+  planes:
+    - "bearing = O, n, U"
+    - "slope = K, cross(F - K, w), U"
+    - "front = M, t, F"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  steps:
+    - "A2 a_end slope"
+    - "A3 a_end bearing cheek_1; a_end bearing cheek_2"
+    - "A4 a_end bearing front"
+    - "B2 b_node -slope -front -cheek_1 -cheek_2"
+  insertions:
+    - "-n"
+    - "-u"
