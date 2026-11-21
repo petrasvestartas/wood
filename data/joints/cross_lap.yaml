@@ -843,3 +843,64 @@ double_notch_stub_tenons_cross:
     - "B3 b_node level -sd su1 -sw1 -sw2; b_node level -sd su2 -sw1 -sw2"
   insertions:
     - "-n"
+
+v_mitered_cross_lap:
+  title: "V-mitered cross lap joint"
+  german: "Kreuzblatt mit Grat"
+  page: "652"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "vee = 0.6"
+  points:
+    - "A = O + (1 - vee)*bt*t"
+    - "C1 = O + bt*t + aw*w"
+    - "C2 = O + bt*t - aw*w"
+    - "K = O + bt*t"
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "v1 = A, cross(n, C1 - A), K"
+    - "v2 = A, cross(n, C2 - A), K"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer v1; a_node mid inner -outer v2"
+    - "B2 b_node -mid; b_node mid -v1 -v2 -outer"
+  insertions:
+    - "-n"
+
+mitered_abutments_cross_lap:
+  title: "Cross lap joint with mitered abutments"
+  german: "schräg abgesetztes Kreuzblatt"
+  page: "654"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "slope = 0.3"
+  points:
+    - "K = O - bh*n"
+    - "S1a = O - bh*n + bt*t"
+    - "S1b = O - 2*bh*n + (1 - slope)*bt*t"
+    - "S2a = O - bh*n - bt*t"
+    - "S2b = O - 2*bh*n - (1 - slope)*bt*t"
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "sl1 = S1a, cross(w, S1b - S1a), K"
+    - "sl2 = S2a, cross(w, S2b - S2a), K"
+  parts:
+  steps:
+    - "A2 a_node mid -sl1 -sl2"
+    - "B2 b_node -mid; b_node mid sl1 -outer; b_node mid sl2 inner"
+  insertions:
+    - "-n"
