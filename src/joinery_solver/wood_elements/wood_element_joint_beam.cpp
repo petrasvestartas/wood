@@ -2685,64 +2685,121 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     if (!crossing && record.fields.at("category") != "side_end" && record.fields.at("category") != "end_end_inplane")
         throw std::invalid_argument(fmt::format("from_library: {} is {}, only side_end, end_end_inplane and cross are read yet", design, record.fields.at("category")));
 
-    // the frame: where a meets b, b's face a is on, the way a leans along or across b, across both; a's end on b, or a passing over b
-    const Line a_axis = Line::from_points(a.axis.get_point(0), a.axis.get_point(a.axis.point_count() - 1));
-    const Line b_axis = Line::from_points(b.axis.get_point(0), b.axis.get_point(b.axis.point_count() - 1));
-    double t_a = 0.0;
-    double t_b = 0.0;
-    if (!Intersection::line_line_parameters(a_axis, b_axis, t_a, t_b, 0.0, false, false))
-        throw std::invalid_argument(fmt::format("{}: {} runs parallel to {}", design, a.name, b.name));
-    const Point on_a = a_axis.point_at(t_a);
-    const Point node = b_axis.point_at(t_b);
-    if (!crossing && Point::distance(on_a, node) > 1.0)
-        throw std::invalid_argument(fmt::format("{}: the axes of {} and {} do not meet", design, a.name, b.name));
-
-    Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
-    const Vector toward = crossing && Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : u;
-    const std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
-    const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
-    const size_t k = std::abs(b_section.first[0].dot(toward)) >= std::abs(b_section.first[1].dot(toward)) ? 0 : 1;
-    const Vector n = b_section.first[k] * (b_section.first[k].dot(toward) > 0.0 ? 1.0 : -1.0);
-    if (crossing && u.dot(n) < 0.0)
-        u = u * -1.0;
-
-    const Vector along_b = b_axis.to_vector().normalized();
-    const Vector lean = u * -1.0 + n * u.dot(n);
-    const Vector t = lean.magnitude() > 1e-6 ? lean.normalized() : along_b;
-    const Vector w = n.cross(t).normalized();
-    const Vector p = w.cross(u).normalized();
-    const size_t j = std::abs(a_section.first[0].dot(w)) >= std::abs(a_section.first[1].dot(w)) ? 0 : 1;
-    if (std::abs(a_section.first[j].dot(w)) < 0.95)
-        throw std::invalid_argument(fmt::format("{}: the section of {} is turned against {}", design, a.name, b.name));
-
-    // sizes: half of a across and along the lean, half of b's depth, its width across the joint and along the lean
-    const bool along = std::abs(t.dot(along_b)) > 0.9;
-    const double ah = a_section.second[1 - j];
-    const double aw = a_section.second[j];
-    const double bh = b_section.second[k];
-    const double bw = along ? b_section.second[1 - k] : 0.5 * b_axis.length();
-    const double bt = along ? 0.5 * b_axis.length() : b_section.second[1 - k];
     const Point origin(0.0, 0.0, 0.0);
-    const Point face = crossing ? node + n * bh : node + u * (bh / u.dot(n));
-    std::map<std::string, LibraryValue> names = {
-        {"O", {0.0, face - origin, true}}, {"u", {0.0, u, true}}, {"n", {0.0, n, true}}, {"t", {0.0, t, true}}, {"w", {0.0, w, true}},
-        {"p", {0.0, p, true}}, {"R", {0.0, on_a - origin, true}}, {"ah", {ah}}, {"aw", {aw}}, {"bh", {bh}}, {"bw", {bw}}, {"bt", {bt}},
-    };
+    std::map<std::string, LibraryValue> names;
+    std::map<std::string, Mesh> boxes;
+    double aw = 0.0;
+    double bw = 0.0;
 
-    // parameters, given ones first; then the points, every one also widening the boxes
-    for (const std::string& line : record.lists["parameters"]) {
-        const std::vector<std::string> pair = split_top(line, '=');
-        names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
+    // a splice: a and b on one line, overlapping; O the middle of the overlap, u along a away from b, p the section axis of a
+    // nearest the vertical, w across both, L half the overlap; a_end and b_end the boxes around it
+    if (record.fields.at("family") == "splicing") {
+        const Point a_first = a.axis.get_point(0);
+        const Point a_last = a.axis.get_point(a.axis.point_count() - 1);
+        const Point b_first = b.axis.get_point(0);
+        const Point b_last = b.axis.get_point(b.axis.point_count() - 1);
+        const Point a_middle = a_first + (a_last - a_first) * 0.5;
+        const Point b_middle = b_first + (b_last - b_first) * 0.5;
+        const bool a_starts = Point::distance(a_first, b_middle) < Point::distance(a_last, b_middle);
+        const Point a_near = a_starts ? a_first : a_last;
+        const Point a_far = a_starts ? a_last : a_first;
+        const Point b_near = Point::distance(b_first, a_middle) < Point::distance(b_last, a_middle) ? b_first : b_last;
+        const Point centre = a_near + (b_near - a_near) * 0.5;
+        const Vector u = (a_far - a_near).normalized();
+        const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        const size_t j = std::abs(a_section.first[0].dot(Vector::z_axis())) >= std::abs(a_section.first[1].dot(Vector::z_axis())) ? 0 : 1;
+        const Vector p = a_section.first[j] * (a_section.first[j].dot(Vector::z_axis()) < 0.0 ? -1.0 : 1.0);
+        const Vector w = u.cross(p).normalized();
+        const double ah = a_section.second[j];
+        aw = a_section.second[1 - j];
+        bw = aw;
+        const double half_lap = 0.5 * Point::distance(a_near, b_near);
+        names = {
+            {"O", {0.0, centre - origin, true}}, {"u", {0.0, u, true}}, {"p", {0.0, p, true}}, {"w", {0.0, w, true}},
+            {"ah", {ah}}, {"aw", {aw}}, {"L", {half_lap}},
+        };
+        for (const std::string& line : record.lists["parameters"]) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
+        }
+        double reach = half_lap + ah + aw;
+        for (const std::string& line : record.lists["points"]) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            names[pair[0]] = evaluate(pair[1], names);
+            reach = std::max(reach, std::abs((origin + names[pair[0]].vector - centre).dot(u)) + ah);
+        }
+        boxes["a_end"] = frame_solid(centre, {u, w, p}, {-reach - overshoot, reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+        boxes["b_end"] = boxes["a_end"];
     }
+    else {
+        // the frame: where a meets b, b's face a is on, the way a leans along or across b, across both; a's end on b, or a passing over b
+        const Line a_axis = Line::from_points(a.axis.get_point(0), a.axis.get_point(a.axis.point_count() - 1));
+        const Line b_axis = Line::from_points(b.axis.get_point(0), b.axis.get_point(b.axis.point_count() - 1));
+        double t_a = 0.0;
+        double t_b = 0.0;
+        if (!Intersection::line_line_parameters(a_axis, b_axis, t_a, t_b, 0.0, false, false))
+            throw std::invalid_argument(fmt::format("{}: {} runs parallel to {}", design, a.name, b.name));
+        const Point on_a = a_axis.point_at(t_a);
+        const Point node = b_axis.point_at(t_b);
+        if (!crossing && Point::distance(on_a, node) > 1.0)
+            throw std::invalid_argument(fmt::format("{}: the axes of {} and {} do not meet", design, a.name, b.name));
 
-    // the boxes reach over the member's whole footprint on the face, whatever points the record names
-    double reach = (face - node).dot(u) + ah * std::abs(p.dot(n)) / std::max(u.dot(n), 1e-6);
-    double span = std::abs((face - node).dot(t)) + ah / std::max(u.dot(n), 1e-6);
-    for (const std::string& line : record.lists["points"]) {
-        const std::vector<std::string> pair = split_top(line, '=');
-        names[pair[0]] = evaluate(pair[1], names);
-        reach = std::max(reach, (origin + names[pair[0]].vector - node).dot(u));
-        span = std::max(span, std::abs((origin + names[pair[0]].vector - node).dot(t)));
+        Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
+        const Vector toward = crossing && Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : u;
+        const std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
+        const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        const size_t k = std::abs(b_section.first[0].dot(toward)) >= std::abs(b_section.first[1].dot(toward)) ? 0 : 1;
+        const Vector n = b_section.first[k] * (b_section.first[k].dot(toward) > 0.0 ? 1.0 : -1.0);
+        if (crossing && u.dot(n) < 0.0)
+            u = u * -1.0;
+
+        const Vector along_b = b_axis.to_vector().normalized();
+        const Vector lean = u * -1.0 + n * u.dot(n);
+        const Vector t = lean.magnitude() > 1e-6 ? lean.normalized() : along_b;
+        const Vector w = n.cross(t).normalized();
+        const Vector p = w.cross(u).normalized();
+        const size_t j = std::abs(a_section.first[0].dot(w)) >= std::abs(a_section.first[1].dot(w)) ? 0 : 1;
+        if (std::abs(a_section.first[j].dot(w)) < 0.95)
+            throw std::invalid_argument(fmt::format("{}: the section of {} is turned against {}", design, a.name, b.name));
+
+        // sizes: half of a across and along the lean, half of b's depth, its width across the joint and along the lean
+        const bool along = std::abs(t.dot(along_b)) > 0.9;
+        const double ah = a_section.second[1 - j];
+        aw = a_section.second[j];
+        const double bh = b_section.second[k];
+        bw = along ? b_section.second[1 - k] : 0.5 * b_axis.length();
+        const double bt = along ? 0.5 * b_axis.length() : b_section.second[1 - k];
+        const Point face = crossing ? node + n * bh : node + u * (bh / u.dot(n));
+        names = {
+            {"O", {0.0, face - origin, true}}, {"u", {0.0, u, true}}, {"n", {0.0, n, true}}, {"t", {0.0, t, true}}, {"w", {0.0, w, true}},
+            {"p", {0.0, p, true}}, {"R", {0.0, on_a - origin, true}}, {"ah", {ah}}, {"aw", {aw}}, {"bh", {bh}}, {"bw", {bw}}, {"bt", {bt}},
+        };
+
+        // parameters, given ones first; then the points, every one also widening the boxes
+        for (const std::string& line : record.lists["parameters"]) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
+        }
+
+        // the boxes reach over the member's whole footprint on the face, whatever points the record names
+        double reach = (face - node).dot(u) + ah * std::abs(p.dot(n)) / std::max(u.dot(n), 1e-6);
+        double span = std::abs((face - node).dot(t)) + ah / std::max(u.dot(n), 1e-6);
+        for (const std::string& line : record.lists["points"]) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            names[pair[0]] = evaluate(pair[1], names);
+            reach = std::max(reach, (origin + names[pair[0]].vector - node).dot(u));
+            span = std::max(span, std::abs((origin + names[pair[0]].vector - node).dot(t)));
+        }
+
+        // the boxes the steps cut from: the end of a or a around the crossing, b around the node through its width or as wide as a
+        const double lateral = aw >= bw - 1e-6 ? bw + overshoot : aw;
+        const double t_extent = along ? span + ah + aw + overshoot : bt + overshoot;
+        const double around = 4.0 * (ah + bh) + 2.0 * bt + overshoot;
+        boxes["b_node"] = frame_solid(node, {t, w, n}, {-t_extent, t_extent}, {-lateral, lateral}, {-bh - overshoot, bh + overshoot});
+        if (crossing)
+            boxes["a_node"] = frame_solid(on_a, {u, w, p}, {-around, around}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+        else
+            boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
     }
 
     // planes through a point, their normals turned away from the kept point
@@ -2757,18 +2814,6 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         planes[pair[0]] = Plane::from_point_normal(at, normal);
         names[pair[0]] = {0.0, normal, true};
     }
-
-    // the boxes the steps cut from: the end of a or a around the crossing, b around the node through its width or as wide as a
-    const double lateral = aw >= bw - 1e-6 ? bw + overshoot : aw;
-    const double t_extent = along ? span + ah + aw + overshoot : bt + overshoot;
-    const double around = 4.0 * (ah + bh) + 2.0 * bt + overshoot;
-    std::map<std::string, Mesh> boxes = {
-        {"b_node", frame_solid(node, {t, w, n}, {-t_extent, t_extent}, {-lateral, lateral}, {-bh - overshoot, bh + overshoot})},
-    };
-    if (crossing)
-        boxes["a_node"] = frame_solid(on_a, {u, w, p}, {-around, around}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
-    else
-        boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
 
     // the parts: square pegs and keys, or wedges of a rectangular section narrowing from start to end, between two points;
     // each also a box the steps cut its hole with, the hole past the ends that leave the wood by its own size, so an end

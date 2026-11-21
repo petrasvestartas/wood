@@ -1,0 +1,75 @@
+# Joinery Compendium (Bauer, Pauli 2024), Timber Joints, Splicing Joints: one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               A splice (family splicing): a and b on one line overlapping, O the middle of the overlap, u along a away
+#               from b, p the section axis of a nearest the vertical, w across, ah and aw half of a along p and w, L half the
+#               overlap; boxes a_end and b_end; the parameter lap sets the overlap the pair is drawn with, in section heights.
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
+#               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+
+half_lap_splice:
+  title: "Half lap joint"
+  german: "gerades Blatt"
+  page: "42"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1"
+  points:
+  planes:
+    - "mid = O, p, O + p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end mid shoulder_a"
+    - "B2 b_end -mid shoulder_b"
+  insertions:
+    - "-p"
+
+beveled_lap_splice:
+  title: "Beveled lap joint"
+  german: "Zugblatt"
+  page: "46"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1"
+    - "low = -0.06"
+    - "high = 0.2"
+  points:
+    - "B1 = O - L*u + low*ah*p"
+    - "B2 = O + L*u + high*ah*p"
+  planes:
+    - "slope = B1, cross(w, B2 - B1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end slope shoulder_a"
+    - "B2 b_end -slope shoulder_b"
+  insertions:
+    - "-p"

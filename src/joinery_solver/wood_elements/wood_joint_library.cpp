@@ -212,7 +212,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"lap", 2.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -224,6 +224,16 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     const Vector along(std::cos(turn), 0.0, std::sin(turn));
     std::shared_ptr<EdgeStraightElement> carrier;
     std::shared_ptr<EdgeStraightElement> member;
+
+    // a splice: both along x on one line, overlapping by lap section heights, the member on the +x side
+    if (record.fields.at("family") == "splicing") {
+        const double overlap = numbers["lap"] * 2.0 * half;
+        member = EdgeStraightElement::square(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(600.0, 0.0, 0.0)}), half, design + "_member");
+        carrier = EdgeStraightElement::square(Polyline({at - Vector(600.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), half, design + "_carrier");
+        member->directions = {Vector::z_axis()};
+        carrier->directions = {Vector::z_axis()};
+        return {member, carrier};
+    }
 
     // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets
     if (crossing) {
