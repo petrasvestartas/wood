@@ -343,6 +343,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_x_shaped_stub_tenon.png) | **X-shaped stub tenon joint**<br>Kreuzzapfen, p. 574<br>`x_shaped_stub_tenon` |
 | ![](joint_library/beam_fully_shouldered_blind_mortise_tenon.png) | **Fully shouldered blind mortise and tenon**<br>verdeckter beidseitig abgesetzter Zapfen, p. 576<br>`fully_shouldered_blind_mortise_tenon` |
 | ![](joint_library/beam_post_stub_tenon_slot_mortise_splice.png) | **Post with stub tenon and open slot mortise and tenon**<br>abgesetzter Zapfenstoß auf verdecktem Zapfen, p. 578<br>`post_stub_tenon_slot_mortise_splice` |
+| ![](joint_library/beam_post_stub_tenon_lapped_splice.png) | **Post with stub tenon and lapped mortise and tenon**<br>gerades Blatt mit Zapfen auf verdecktem Zapfen, p. 580<br>`post_stub_tenon_lapped_splice` |
 <!-- /joint-table -->
 
 ## Library
