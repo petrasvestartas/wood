@@ -1055,12 +1055,12 @@ dado_rabbet_corner:
   planes:
     - "shoulder = O, n, S"
     - "tongue_end = O - depth*ah*n, n, O"
-    - "tongue_top = O + (1 - tongue)*ah*p, p, O + ah*p"
-    - "face_1 = O + ah*p, p, O"
+    - "tongue_top = O - (1 - tongue)*ah*p, p, O - ah*p"
+    - "face_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end shoulder tongue_top; a_end tongue_end"
-    - "B2 b_node -tongue_top -tongue_end -face_1"
+    - "B2 b_node -tongue_top -tongue_end -face_2"
   insertions:
     - "-u"
 
@@ -1079,8 +1079,8 @@ triple_shouldered_stub_tenon_corner:
   planes:
     - "shoulder = O, n, S"
     - "tenon_end = O - depth*ah*n, n, O"
-    - "edge = O + 0.24*ah*p, p, O + ah*p"
-    - "edge_2 = O + 0.76*ah*p, p, O - ah*p"
+    - "edge = O - 0.24*ah*p, p, O - ah*p"
+    - "edge_2 = O - 0.76*ah*p, p, O + ah*p"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
   parts:
