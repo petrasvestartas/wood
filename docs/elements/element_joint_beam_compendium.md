@@ -255,6 +255,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_triple_splayed_scarf.png) | **Triple-splayed scarf joint**<br>dreifache Schäftung, p. 160<br>`triple_splayed_scarf` |
 | ![](joint_library/beam_v_end_undercut_tenon_splice.png) | **Mortise and tenon with V-ends and undercut shoulders**<br>Zapfen mit hinterschnittener Brüstung und v-förmig eingeschnittener Stirn, p. 184<br>`v_end_undercut_tenon_splice` |
 | ![](joint_library/beam_pegged_undercut_tenon_splice.png) | **Pegged mortise and tenon with undercut shoulders**<br>Zapfen mit hinterschnittener Brüstung und Dübelsicherung, p. 186<br>`pegged_undercut_tenon_splice` |
+| ![](joint_library/beam_spear_point_beveled_tenon_splice.png) | **Spear point mortise and tenon with beveled shoulders**<br>Zapfen mit Gratschnitt und schräger Brüstung, p. 188<br>`spear_point_beveled_tenon_splice` |
+| ![](joint_library/beam_pegged_spear_point_v_shoulder_tenon_splice.png) | **Pegged spear point mortise and tenon with V-shaped shoulders**<br>Zapfen mit Gratschnitt, v-förmig eingeschnittener Brüstung und Dübelsicherung, p. 190<br>`pegged_spear_point_v_shoulder_tenon_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

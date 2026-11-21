@@ -2242,3 +2242,79 @@ pegged_undercut_tenon_splice:
     - "B3 peg_1; peg_2"
   insertions:
     - "-u"
+
+spear_point_beveled_tenon_splice:
+  title: "Spear point mortise and tenon with beveled shoulders"
+  german: "Zapfen mit Gratschnitt und schräger Brüstung"
+  page: "188"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.6"
+    - "thickness = 0.35"
+    - "bevel = 0.3"
+    - "spear = 0.4"
+  points:
+    - "S1a = O + (L - bevel*ah)*u + thickness*aw*w"
+    - "S1b = O + L*u + aw*w"
+    - "S2a = O + (L - bevel*ah)*u - thickness*aw*w"
+    - "S2b = O + L*u - aw*w"
+    - "TT = O + (spear*ah - L)*u + ah*p"
+    - "TB = O + (spear*ah - L)*u - ah*p"
+    - "TM = O - L*u"
+  planes:
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "o1 = O + thickness*aw*w, w, O"
+    - "o2 = O - thickness*aw*w, w, O"
+    - "sh1 = S1a, cross(p, S1b - S1a), O + 2*L*u"
+    - "sh2 = S2a, cross(p, S2b - S2a), O + 2*L*u"
+    - "ct = TM, cross(w, TT - TM), O"
+    - "cb = TM, cross(w, TB - TM), O"
+  parts:
+  steps:
+    - "A2 a_end sh1 o1; a_end sh2 o2; a_end ct -o1 -o2; a_end cb -o1 -o2"
+    - "B2 b_end -sh1 o1; b_end -sh2 o2; b_end f2 -o1 -o2 -ct -cb"
+  insertions:
+    - "-u"
+
+pegged_spear_point_v_shoulder_tenon_splice:
+  title: "Pegged spear point mortise and tenon with V-shaped shoulders"
+  german: "Zapfen mit Gratschnitt, v-förmig eingeschnittener Brüstung und Dübelsicherung"
+  page: "190"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.8"
+    - "thickness = 0.35"
+    - "vee = 0.4"
+    - "spear = 0.4"
+    - "peg = 0.1"
+  points:
+    - "VT = O + (L - vee*ah)*u + ah*p"
+    - "VB = O + (L - vee*ah)*u - ah*p"
+    - "VM = O + L*u"
+    - "TT = O + (spear*ah - L)*u + ah*p"
+    - "TB = O + (spear*ah - L)*u - ah*p"
+    - "TM = O - L*u"
+    - "K1 = O - 0.4*L*u"
+    - "K2 = O + 0.3*L*u"
+  planes:
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "o1 = O + thickness*aw*w, w, O"
+    - "o2 = O - thickness*aw*w, w, O"
+    - "vt = VM, cross(w, VT - VM), O + 2*L*u"
+    - "vb = VM, cross(w, VB - VM), O + 2*L*u"
+    - "ct = TM, cross(w, TT - TM), O"
+    - "cb = TM, cross(w, TB - TM), O"
+  parts:
+    - "peg_1 = K1 + 1.2*aw*w, K1 - 1.2*aw*w, u, peg*ah"
+    - "peg_2 = K2 + 1.2*aw*w, K2 - 1.2*aw*w, u, peg*ah"
+  steps:
+    - "A2 a_end o1 vt vb; a_end o2 vt vb; a_end ct -o1 -o2; a_end cb -o1 -o2"
+    - "A3 peg_1; peg_2"
+    - "B2 b_end o1 -vt; b_end o1 -vb; b_end o2 -vt; b_end o2 -vb; b_end f2 -o1 -o2 -ct -cb"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "-u"
