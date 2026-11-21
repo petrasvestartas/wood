@@ -2346,3 +2346,37 @@ wedged_collared_blind_mortise_tenon_corner:
   insertions:
     - "-u"
     - "key = -w"
+
+canvas_stretcher_corner:
+  title: "Canvas stretcher"
+  german: "Keilrahmen"
+  page: "364"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+    - "KC = I + 0.35*(X - I)"
+    - "D = unit(X - I)"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+    - "key = KC + (aw + 2)*w, KC - (aw + 2)*w, unit(cross(w, X - I)), 0.08*ah, 0.25*ah, 0.15*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end layer_1 miter; a_end layer_2 miter; a_end shoulder -layer_1 -layer_2"
+    - "B2 b_node layer_1 -miter; b_node layer_2 -miter"
+    - "A4 key"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = -w"
