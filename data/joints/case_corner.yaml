@@ -279,3 +279,56 @@ half_blind_dovetail_case_corner:
     - "B2 b_node -inner -end -l1 -r1; b_node -inner -end -l2 -r2; b_node -inner -end -l3 -r3"
   insertions:
     - "-p"
+
+mitered_rabbet_case_corner:
+  title: "Mitered rabbet joint"
+  german: "gefälzte Eckverbindung mit Gehrung"
+  page: "816"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "depth = 0.7"
+  points:
+    - "M1 = O - ah*p - 2*depth*bh*n"
+    - "M2 = O + ah*p - 2*bh*n"
+  planes:
+    - "side_2 = O - ah*p, p, O"
+    - "miter = M1, cross(w, M2 - M1), O"
+  parts:
+  steps:
+    - "A2 a_end miter"
+    - "B2 b_node -miter -side_2"
+  insertions:
+    - "-u"
+
+lock_case_corner:
+  title: "Lock joint"
+  german: "gespundete Eckverbindung mit Verdeck"
+  page: "820"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "tongue = 0.3"
+    - "lip = 0.25"
+    - "groove = 0.35"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "bottom = O - 2*bh*n, n, O"
+    - "side_2 = O - ah*p, p, O"
+    - "tgp = O + (2*tongue - 1)*ah*p, p, O + ah*p"
+    - "lipp = O + (1 - 2*lip)*ah*p, p, O - ah*p"
+    - "gend = O - 2*groove*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end bottom; a_end shoulder -tgp -lipp; a_end gend tgp"
+    - "B2 b_node tgp -gend -side_2; b_node lipp"
+  insertions:
+    - "-u"
