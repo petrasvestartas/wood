@@ -320,9 +320,10 @@ compute_regions(const manifold::MeshGL64& gl, const std::vector<size_t>& triangl
     return regions;
 }
 
-/// The one boundary loop of a region of triangles as vertex indices in winding order.
-static std::vector<uint64_t>
-compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
+/// The boundary loops of a region of triangles as vertex indices in winding order: the outline and its holes, empty when a
+/// boundary vertex starts two boundary edges.
+static std::vector<std::vector<uint64_t>>
+compute_loops(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles) {
 
     std::set<std::pair<uint64_t, uint64_t>> directed;
 
@@ -337,24 +338,26 @@ compute_loop(const manifold::MeshGL64& gl, const std::vector<size_t>& triangles)
             !next.emplace(edge.first, edge.second).second)
             return {};
 
-    if (next.empty())
-        return {};
+    std::vector<std::vector<uint64_t>> loops;
 
-    std::vector<uint64_t> loop = {next.begin()->first};
+    while (!next.empty()) {
+        std::vector<uint64_t> loop = {next.begin()->first};
 
-    for (size_t step = 0; step < next.size(); step++) {
-        const uint64_t following = next.at(loop.back());
+        while (true) {
+            const std::map<uint64_t, uint64_t>::iterator found = next.find(loop.back());
+            if (found == next.end())
+                return {};
+            const uint64_t following = found->second;
+            next.erase(found);
+            if (following == loop.front())
+                break;
+            loop.push_back(following);
+        }
 
-        if (following == loop.front())
-            break;
-
-        loop.push_back(following);
+        loops.push_back(loop);
     }
 
-    if (loop.size() != next.size())
-        return {};
-
-    return loop;
+    return loops;
 }
 
 /// Twice the area a loop of Manifold vertices encloses, by Newell: the length of the loop's normal.
@@ -405,7 +408,8 @@ static double triangles_area(const manifold::MeshGL64& gl, const std::vector<siz
     return area;
 }
 
-/// Adds one region.
+/// Adds one region: one face bounded by its outline, with the region's other loops as its holes, when the loops enclose
+/// exactly the triangles' area and no vertex lies inside; else a face per triangle.
 static void add_region(
     Mesh& mesh,
     const manifold::MeshGL64& gl,
@@ -413,19 +417,43 @@ static void add_region(
     const std::vector<size_t>& triangles
 ) {
 
-    const std::vector<uint64_t> loop = compute_loop(gl, triangles);
+    const std::vector<std::vector<uint64_t>> loops = compute_loops(gl, triangles);
     const double area = triangles_area(gl, triangles);
 
-    if (loop.size() >= 3 && loop.size() == triangles.size() + 2 &&
-        std::abs(loop_area(gl, loop) - area) <= 1e-6 * area) {
+    // the outline is the loop enclosing the most; every other loop is a hole in it
+    size_t outline = 0;
+    size_t boundary = 0;
+    double holes_area = 0.0;
+    for (size_t i = 0; i < loops.size(); i++) {
+        boundary += loops[i].size();
+        if (loop_area(gl, loops[i]) > loop_area(gl, loops[outline]))
+            outline = i;
+    }
+    for (size_t i = 0; i < loops.size(); i++)
+        if (i != outline)
+            holes_area += loop_area(gl, loops[i]);
+
+    if (!loops.empty() && loops[outline].size() >= 3 && boundary + 2 * (loops.size() - 1) == triangles.size() + 2 &&
+        std::abs(loop_area(gl, loops[outline]) - holes_area - area) <= 1e-6 * area) {
         std::vector<size_t> face;
 
-        for (const uint64_t vertex : loop)
+        for (const uint64_t vertex : loops[outline])
             face.push_back(keys[vertex]);
 
         const std::optional<size_t> key = mesh.add_face(face);
 
         if (key) {
+            std::vector<std::vector<size_t>> rings;
+            for (size_t i = 0; i < loops.size(); i++) {
+                if (i == outline)
+                    continue;
+                rings.emplace_back();
+                for (const uint64_t vertex : loops[i])
+                    rings.back().push_back(keys[vertex]);
+            }
+            if (!rings.empty())
+                mesh.set_face_holes(*key, rings);
+
             if (triangles.size() > 1) {
                 std::vector<std::array<size_t, 3>> triangulation;
 

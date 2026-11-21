@@ -259,6 +259,7 @@ static void split_sides(std::vector<PlanarFace>& faces) {
 /// The plane of every mesh face: its ring, corners and unit normal; empty when a face is not planar.
 struct FacePlane {
     std::vector<size_t> ring;
+    std::vector<std::vector<size_t>> holes; // the face's hole rings
     std::vector<Point> points; // the ring's corners
     Vector normal;
 };
@@ -271,6 +272,9 @@ static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
     for (const size_t key : mesh.faces()) {
         FacePlane plane;
         plane.ring = mesh.face_vertices(key).value();
+        const std::map<size_t, std::vector<std::vector<size_t>>>::const_iterator holes = mesh.get_face_holes().find(key);
+        if (holes != mesh.get_face_holes().end())
+            plane.holes = holes->second;
         std::vector<Point> points;
 
         for (const size_t vertex : plane.ring)
@@ -366,8 +370,10 @@ static std::vector<PlanarFace> region_faces(
 
     std::vector<std::vector<size_t>> members;
 
-    for (const size_t f : region)
+    for (const size_t f : region) {
         members.push_back(planes[f].ring);
+        members.insert(members.end(), planes[f].holes.begin(), planes[f].holes.end());
+    }
 
     const std::vector<std::vector<size_t>> loops = region_loops(members);
     size_t outer = loops.size();
@@ -403,7 +409,14 @@ static std::vector<PlanarFace> region_faces(
         for (const size_t vertex : planes[f].ring)
             points.push_back(mesh.vertex_point(vertex).value());
 
-        faces.push_back(framed_face(points, {}, planes[f].normal));
+        std::vector<std::vector<Point>> holes;
+        for (const std::vector<size_t>& ring : planes[f].holes) {
+            holes.emplace_back();
+            for (const size_t vertex : ring)
+                holes.back().push_back(mesh.vertex_point(vertex).value());
+        }
+
+        faces.push_back(framed_face(points, holes, planes[f].normal));
     }
 
     return faces;
