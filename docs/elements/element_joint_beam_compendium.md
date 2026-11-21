@@ -78,6 +78,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_floating_tenon_edge.png) | **Floating tenon joint**<br>Stoß mit eingesetztem Zapfen, p. 776<br>`floating_tenon_edge` |
 | ![](joint_library/beam_spline_groove_edge.png) | **Spline and groove joint**<br>Nut mit eingesetzter Feder, p. 780<br>`spline_groove_edge` |
 | ![](joint_library/beam_butterfly_key_edge.png) | **Butterfly key joint**<br>Schwalbenschwanzeinlage, p. 786<br>`butterfly_key_edge` |
+| ![](joint_library/beam_tongued_rabbeted_edge.png) | **Tongued and rabbeted joint**<br>Nut und Feder mit versetzter Brüstung, p. 774<br>`tongued_rabbeted_edge` |
 | ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
 | ![](joint_library/beam_tongue_groove_breadboard.png) | **Tongue and groove breadboard end**<br>Hirnleiste mit Nut und Feder, p. 806<br>`tongue_groove_breadboard` |
 | ![](joint_library/beam_dado_tongue_breadboard.png) | **Dado and tongue breadboard end**<br>Hirnleiste mit Falz und Feder, p. 808<br>`dado_tongue_breadboard` |

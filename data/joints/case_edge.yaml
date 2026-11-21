@@ -188,3 +188,34 @@ butterfly_key_edge:
     - "-u"
     - "wing_1 = -p"
     - "wing_2 = -p"
+
+tongued_rabbeted_edge:
+  title: "Tongued and rabbeted joint"
+  german: "Nut und Feder mit versetzter Brüstung"
+  page: "774"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 3"
+    - "tongue = 0.33"
+    - "offset = 0.8"
+    - "reach = 1.2"
+  points:
+  planes:
+    - "c1 = O + tongue*ah*p, p, O"
+    - "c2 = O - tongue*ah*p, p, O"
+    - "s_a = O + offset*ah*u, u, O + 2*L*u"
+    - "s_b = O + offset*ah*u, u, O - 2*L*u"
+    - "g_a = O + (offset + reach)*ah*u, u, O + 2*L*u"
+    - "g_b = O + (offset + reach)*ah*u, u, O - 2*L*u"
+    - "m_a = O - offset*ah*u, u, O + 2*L*u"
+    - "m_b = O - offset*ah*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end s_a c1; a_end g_a -c1 -c2; a_end m_a c2"
+    - "B2 b_end s_b c1; b_end g_b -c1 -c2; b_end m_b c2"
+  insertions:
+    - "-u"
