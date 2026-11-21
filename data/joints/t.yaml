@@ -483,6 +483,7 @@ housed_dovetail_half_lap:
     - "Q2 = meet(O + ah*p, u, O - 2*bh*n, n)"
   planes:
     - "bottom = O - 2*bh*n, n, O"
+    - "face = O, n, U"
     - "shoulder = H, n, U"
     - "mid = O, w, O - w"
     - "dove_1 = N1, cross(Q1 - N1, w), O"
@@ -493,9 +494,9 @@ housed_dovetail_half_lap:
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid"
+    - "A3 a_end face mid"
     - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
-    - "B2 b_node -mid -dove_1 -dove_2; b_node house -side_1 -side_2"
+    - "B2 b_node -mid -dove_1 -dove_2; b_node house -side_1 -side_2 -mid"
   insertions:
     - "w"
 
@@ -519,6 +520,7 @@ stopped_housed_dovetail_half_lap:
     - "Q2 = meet(O + ah*p, u, O - 2*stop*bh*n, n)"
   planes:
     - "bottom = O - 2*stop*bh*n, n, O"
+    - "face = O, n, U"
     - "shoulder = H, n, U"
     - "mid = O, w, O - w"
     - "dove_1 = N1, cross(Q1 - N1, w), O"
@@ -529,9 +531,9 @@ stopped_housed_dovetail_half_lap:
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid"
+    - "A3 a_end face mid"
     - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
-    - "B2 b_node -mid -dove_1 -dove_2 -bottom; b_node house -side_1 -side_2"
+    - "B2 b_node -mid -dove_1 -dove_2 -bottom; b_node house -side_1 -side_2 -mid"
   insertions:
     - "w"
 
@@ -773,25 +775,28 @@ housed_mortise_tenon_beveled_shoulders:
   corners: "square"
   parameters:
     - "band = 0.3333333333333333"
-    - "depth = 0.6"
+    - "depth = 0.67"
+    - "house = 0.33"
+    - "bevel = 0.12"
   points:
     - "S = O + n"
+    - "Ht = O - 2*house*bh*n + aw*w"
+    - "Hb = O - 2*(house - bevel)*bh*n + band*aw*w"
   planes:
     - "shoulder = O, n, S"
-    - "far = O - 2*bh*n, n, O"
     - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "house_end = Ht, cross(p, Hb - Ht), O"
     - "lo = O - band*aw*w, w, O"
     - "hi = O + band*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end shoulder lo; a_end tenon_end -lo -hi; a_end far hi"
-    - "B2 b_node hi -side_1 -side_2"
+    - "A2 a_end shoulder lo; a_end tenon_end -lo -hi; a_end house_end hi"
+    - "B2 b_node hi -house_end -side_1 -side_2"
     - "B3 b_node -lo -hi -side_1 -side_2 -tenon_end"
   insertions:
     - "-u"
-    - "-w"
 
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
@@ -915,8 +920,8 @@ cog:
     - "half = O, t, O - t"
   parts:
   steps:
-    - "A2 a_node top half"
-    - "B2 b_node -under -half -side_1 -side_2"
+    - "A2 a_node top -half inner"
+    - "B2 b_node -under half -side_1 -side_2"
   insertions:
     - "-n"
 
@@ -945,8 +950,8 @@ stepped_cog:
     - "level = H, n, U"
   parts:
   steps:
-    - "A2 a_node top third_2; a_node level third_1"
-    - "B2 b_node -under -third_1 -side_1 -side_2; b_node -level -third_2 -side_1 -side_2"
+    - "A2 a_node top -third_1 inner; a_node level -third_2 inner"
+    - "B2 b_node -under third_2 -side_1 -side_2; b_node -level third_1 -side_1 -side_2"
   insertions:
     - "-n"
 
@@ -1023,15 +1028,14 @@ v_shaped_cog:
   planes:
     - "top = O, n, U"
     - "under = R - ah*p, p, R"
-    - "inner = O - bt*t, t, O - 2*bt*t"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
     - "arm_1 = P, cross(n, aw*w + bt*t), P - bt*t"
     - "arm_2 = P, cross(n, aw*w - bt*t), P + bt*t"
   parts:
   steps:
-    - "A2 a_node top -arm_1 inner; a_node top -arm_2"
-    - "B2 b_node -under arm_1 arm_2 -side_2"
+    - "A2 a_node top arm_1 arm_2"
+    - "B2 b_node -under -side_1 -side_2 -arm_1; b_node -under -side_1 -side_2 -arm_2"
   insertions:
     - "-n"
 
@@ -1126,8 +1130,8 @@ sloped_cog:
     - "diagonal = D1, cross(n, D2 - D1), O + 2*bt*t"
   parts:
   steps:
-    - "A2 a_node top -diagonal"
-    - "B2 b_node -under diagonal -side_1 -side_2"
+    - "A2 a_node top diagonal inner"
+    - "B2 b_node -under -diagonal -side_1 -side_2"
   insertions:
     - "-n"
 
@@ -1198,7 +1202,7 @@ tenon_chase_mortise:
   parameters:
     - "thickness = 0.3333333333333333"
     - "depth = 0.3333333333333333"
-    - "chase = 2.7"
+    - "chase = 1.2"
     - "open = 0.5"
   points:
     - "S = O + n"
@@ -1723,26 +1727,32 @@ wedged_through_mortise_tenon:
     - "kerf = 0.5"
     - "wedge = 0.6"
     - "flare = 0.06"
+    - "splay = 0.1"
+    - "open = 0.1"
   points:
     - "S = O + n"
     - "F = O - 2*bh*n"
     - "W1 = meet(O + kerf*ah*p, u, F, n)"
     - "W2 = meet(O - kerf*ah*p, u, F, n)"
     - "E = u*(2*wedge*bh/dot(u, n))"
+    - "T1 = meet(O + ah*p, u, O, n)"
+    - "T2 = meet(O - ah*p, u, O, n)"
+    - "D1 = meet(O + (1 + splay)*ah*p, u, F, n)"
+    - "D2 = meet(O - (1 + splay)*ah*p, u, F, n)"
   planes:
     - "end = O - 2*bh*n, n, O"
     - "shoulder = O, n, S"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
-    - "edge_1 = O + ah*p, p, O"
-    - "edge_2 = O - ah*p, p, O"
+    - "fan_1 = T1, cross(w, D1 - T1), O"
+    - "fan_2 = T2, cross(w, D2 - T2), O"
   parts:
     - "wedge_1 = W1, W1 + E, w, thickness*aw, flare*ah, 0.005*ah, start"
     - "wedge_2 = W2, W2 + E, w, thickness*aw, flare*ah, 0.005*ah, start"
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
     - "A3 wedge_1; wedge_2"
-    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -fan_1 -fan_2"
   insertions:
     - "-u"
 
@@ -1995,7 +2005,7 @@ t_bridle_blind_mortise_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "neck = 0.67"
+    - "neck = 0.6"
     - "thickness = 0.2"
     - "depth = 0.5"
   points:
@@ -2008,14 +2018,14 @@ t_bridle_blind_mortise_tenon:
     - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
     - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end end; a_end stub slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
-    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2; b_node -stub -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2; b_node -stub -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2213,7 +2223,7 @@ double_lap_stub_tenon:
   corners: "square inclined"
   parameters:
     - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
+    - "thickness = 0.25"
     - "tine = 0.6666666666666666"
     - "depth = 0.4"
   points:
@@ -2227,8 +2237,8 @@ double_lap_stub_tenon:
     - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
     - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
@@ -2236,7 +2246,7 @@ double_lap_stub_tenon:
     - "A2 a_end end; a_end top_t tine_1; a_end top_t tine_2"
     - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
     - "B2 b_node tine_1 -side_1 -side_2 -top_t; b_node tine_2 -side_1 -side_2 -top_t"
-    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2249,7 +2259,7 @@ notched_lap_tenon:
   corners: "square inclined"
   parameters:
     - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
+    - "thickness = 0.5"
     - "tine = 1.0"
   points:
     - "S = O + n"
@@ -2259,19 +2269,17 @@ notched_lap_tenon:
     - "top_t = O - 2*tine*bh*n, n, O"
     - "tenon_end = O - 2*bh*n, n, O"
     - "slot_1 = O + neck*aw*w, w, O + aw*w"
-    - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
-    - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O, w, O - aw*w"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
-    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder slot_1 cheek_1"
     - "B2 b_node tine_1 -side_1 -side_2 -top_t"
-    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2284,7 +2292,7 @@ notched_lap_stub_tenon:
   corners: "square inclined"
   parameters:
     - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
+    - "thickness = 0.5"
     - "tine = 1.0"
     - "depth = 0.4"
   points:
@@ -2295,19 +2303,17 @@ notched_lap_stub_tenon:
     - "top_t = O - 2*tine*bh*n, n, O"
     - "tenon_end = O - 2*depth*bh*n, n, O"
     - "slot_1 = O + neck*aw*w, w, O + aw*w"
-    - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
-    - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O, w, O - aw*w"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
-    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder cheek_2"
+    - "A3 a_end tenon_end slot_1; a_end shoulder slot_1 cheek_1"
     - "B2 b_node tine_1 -side_1 -side_2 -top_t"
-    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2320,7 +2326,7 @@ lap_tenon:
   corners: "square inclined"
   parameters:
     - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
+    - "thickness = 0.5"
     - "tine = 0.6666666666666666"
   points:
     - "S = O + n"
@@ -2330,19 +2336,17 @@ lap_tenon:
     - "top_t = O - 2*tine*bh*n, n, O"
     - "tenon_end = O - 2*bh*n, n, O"
     - "slot_1 = O + neck*aw*w, w, O + aw*w"
-    - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
-    - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O, w, O - aw*w"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
-    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder cheek_2"
+    - "A3 a_end shoulder slot_1 cheek_1"
     - "B2 b_node tine_1 -side_1 -side_2 -top_t"
-    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2355,7 +2359,7 @@ lap_stub_tenon:
   corners: "square inclined"
   parameters:
     - "neck = 0.5"
-    - "thickness = 0.3333333333333333"
+    - "thickness = 0.5"
     - "tine = 0.6666666666666666"
     - "depth = 0.4"
   points:
@@ -2366,19 +2370,17 @@ lap_stub_tenon:
     - "top_t = O - 2*tine*bh*n, n, O"
     - "tenon_end = O - 2*depth*bh*n, n, O"
     - "slot_1 = O + neck*aw*w, w, O + aw*w"
-    - "slot_2 = O - neck*aw*w, w, O - aw*w"
     - "tine_1 = O + neck*aw*w, w, O"
-    - "tine_2 = O - neck*aw*w, w, O"
-    - "cheek_1 = O + thickness*ah*p, p, O"
-    - "cheek_2 = O - thickness*ah*p, p, O"
+    - "cheek_1 = O, w, O - aw*w"
+    - "cheek_2 = O - thickness*aw*w, w, O"
     - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end end; a_end top_t tine_1; a_end shoulder tine_2"
-    - "A3 a_end tenon_end slot_1 slot_2; a_end shoulder slot_1 slot_2 cheek_1; a_end shoulder slot_1 slot_2 cheek_2"
+    - "A2 a_end end; a_end top_t tine_1; a_end shoulder cheek_2"
+    - "A3 a_end tenon_end slot_1; a_end shoulder slot_1 cheek_1"
     - "B2 b_node tine_1 -side_1 -side_2 -top_t"
-    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -tine_1 -tine_2"
+    - "B3 b_node -tenon_end -cheek_1 -cheek_2 -side_1 -side_2"
   insertions:
     - "-u"
 
@@ -2518,7 +2520,8 @@ post_stub_tenon_lapped_splice:
   corners: "square"
   filled: "bc"
   parameters:
-    - "lap = 0.4"
+    - "lap = 0.5"
+    - "seat = 0.2"
     - "stub = 0.6"
     - "stub_wide = 0.33"
     - "stub_high = 0.4"
@@ -2527,6 +2530,7 @@ post_stub_tenon_lapped_splice:
     - "mid = O, p, O + p"
     - "shoulder_a = O + L*u, u, O + 2*L*u"
     - "f2 = O - L*u, u, O - 2*L*u"
+    - "upper = O + (L - 2*seat*ah)*u, u, O + 2*L*u"
     - "su1 = O + stub*ah*u, u, O"
     - "su2 = O - stub*ah*u, u, O"
     - "sw1 = O + stub_wide*aw*w, w, O"
@@ -2537,9 +2541,9 @@ post_stub_tenon_lapped_splice:
     - "c = 0 0 -12, 0 0 -600, 1 0 0, 60, 60"
   parts:
   steps:
-    - "A2 a_end mid shoulder_a"
+    - "A2 a_end mid shoulder_a; a_end -mid upper sw1; a_end -mid upper sw2"
     - "A3 a_end -su1 -su2 -sw1 -sw2 stub_top"
-    - "B2 b_end -mid f2"
+    - "B2 b_end -mid -upper; b_end -mid -sw1 -sw2 f2"
     - "B3 b_end -su1 -su2 -sw1 -sw2 stub_top"
     - "C2 c post_top su1; c post_top su2; c post_top sw1; c post_top sw2"
   insertions:
@@ -2559,24 +2563,32 @@ right_angle_spline_tenon_tapered_key:
     - "into_a = 1.5"
     - "into_b = 1.4"
     - "key = 0.08"
+    - "guide = 0.15"
+    - "guide_in = 0.5"
+    - "guide_out = 0.7"
   points:
     - "S = O + n"
-    - "E = O + 2*into_a*ah*n"
-    - "KB = O - 1.2*bh*n"
+    - "K = O + 0.9*ah*u"
   planes:
     - "shoulder = O, n, S"
+    - "guide_end = O - 2*guide*bh*n, n, O"
+    - "guide_p_1 = O + wide*ah*p, p, O"
+    - "guide_p_2 = O - wide*ah*p, p, O"
+    - "guide_in_1 = O + guide_in*aw*w, w, O"
+    - "guide_in_2 = O - guide_in*aw*w, w, O"
+    - "guide_out_1 = O + guide_out*aw*w, w, O"
+    - "guide_out_2 = O - guide_out*aw*w, w, O"
   parts:
     - "spline = O + into_a*ah*u, O - into_b*bh*n, w, thin*aw, wide*ah, wide*ah, none"
-    - "key = KB + 1.4*aw*w, KB - 1.4*aw*w, n, key*bh, 0.6*wide*ah, 0.45*wide*ah"
+    - "key = K + 1.1*ah*p, K - 0.8*ah*p, w, 0.45*aw, key*ah, 0.7*key*ah, start"
   steps:
-    - "A2 a_end shoulder"
-    - "A3 spline"
-    - "B2 spline; key"
+    - "A2 a_end guide_end; a_end shoulder guide_p_1; a_end shoulder guide_p_2; a_end shoulder guide_out_1; a_end shoulder guide_out_2; a_end shoulder -guide_in_1 -guide_in_2"
+    - "A3 spline; key"
+    - "B2 spline; b_node -guide_end guide_in_1 -guide_out_1 -guide_p_1 -guide_p_2; b_node -guide_end guide_in_2 -guide_out_2 -guide_p_1 -guide_p_2"
     - "P1 key"
   insertions:
     - "-u"
     - "spline = -u"
-    - "key = -w"
 
 housed_right_angle_spline_tenon_keys_peg:
   title: "Housed right-angle joint with spline tenon, tapered keys, and peg"
@@ -2596,8 +2608,9 @@ housed_right_angle_spline_tenon_keys_peg:
   points:
     - "S = O + n"
     - "H = O - 2*house*bh*n"
-    - "KB = O - 1.2*bh*n"
-    - "PA = O + 1.0*ah*n"
+    - "K1 = O + 0.6*ah*u"
+    - "K2 = O + 1.05*ah*u"
+    - "PB = O - 0.95*bh*n"
   planes:
     - "house_floor = H, n, O"
     - "side_1 = O + ah*p, p, O"
@@ -2606,16 +2619,15 @@ housed_right_angle_spline_tenon_keys_peg:
     - "w2 = O - aw*w, w, O"
   parts:
     - "spline = H + into_a*ah*u, O - into_b*bh*n, w, thin*aw, wide*ah, wide*ah, none"
-    - "key = KB + 1.4*aw*w, KB - 1.4*aw*w, n, key*bh, 0.6*wide*ah, 0.45*wide*ah"
-    - "peg = PA + 1.3*aw*w, PA - 1.3*aw*w, n, peg*ah"
+    - "key_1 = K1 + 1.1*ah*p, K1 - 0.8*ah*p, w, 0.45*aw, key*ah, 0.7*key*ah, start"
+    - "key_2 = K2 + 1.1*ah*p, K2 - 0.8*ah*p, w, 0.45*aw, key*ah, 0.7*key*ah, start"
+    - "peg = PB + 1.3*bw*w, PB - 1.3*bw*w, n, peg*ah"
   steps:
     - "A2 a_end house_floor"
-    - "A3 spline; peg"
+    - "A3 spline; key_1; key_2"
     - "B2 b_node -house_floor -side_1 -side_2 -w1 -w2"
-    - "B3 spline; key"
-    - "P1 key; peg"
+    - "B3 spline; peg"
+    - "P1 key_1; key_2; peg"
   insertions:
     - "-u"
     - "spline = -u"
-    - "key = -w"
-    - "peg = -w"
