@@ -147,7 +147,9 @@ static void library() {
         for (const JointCutStep& step : joint->steps)
             cuts_carrier = cuts_carrier || (step.target == 1 && step.removal.number_of_faces() > 0);
 
-        check(lost(*member) > 1000.0 && (!cuts_carrier || lost(*carrier) > 1000.0), fmt::format("library: {} at {} cuts {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
+        // every member a record cuts loses a real volume, at least 10 cm3 (a small groove is 25): a near-empty cut is a broken record
+        const double least = 10000.0;
+        check(lost(*member) > least && (!cuts_carrier || lost(*carrier) > least), fmt::format("library: {} at {} cuts only {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
         check(shared(*member, *carrier) < 1.0, fmt::format("library: {} at {} leaves {} mm3 shared", design, angle, shared(*member, *carrier)));
         // every cavity cut into the carrier is filled by the member or a part, but for the share a record leaves open on purpose (its open, 1 % by default)
         Mesh cavity = solid_boolean(carrier->element_geometry_mesh(), carrier->model_geometry_mesh(), SolidOperation::subtract);
