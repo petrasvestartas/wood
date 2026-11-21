@@ -626,3 +626,44 @@ housed_stopped_dovetail_lap_post_stub_tenon:
   insertions:
     - "w"
     - "c = n"
+
+pegged_two_way_splayed_scarf:
+  title: "Pegged two-way splayed scarf joint"
+  german: "eingeschobene Schäftung mit Dübelsicherung"
+  page: "738"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "long = 0.7"
+    - "thin = 0.3"
+    - "peg = 0.08"
+  points:
+    - "S1 = O - 2*bh*n - long*bw*t"
+    - "S2 = O + long*bw*t"
+    - "K1 = O - 0.7*bh*n + 0.4*long*bw*t"
+    - "K2 = O - 1.3*bh*n - 0.4*long*bw*t"
+  planes:
+    - "shoulder = O, n, O + n"
+    - "slope = S1, cross(w, S2 - S1), O"
+    - "tl1 = O + long*bw*t, t, O"
+    - "tl2 = O - long*bw*t, t, O"
+    - "tw1 = O + thin*aw*w, w, O"
+    - "tw2 = O - thin*aw*w, w, O"
+    - "c_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 60, 0 0 -600, 0 1 0, 60, 60"
+  parts:
+    - "peg_1 = K1 - 1.3*bw*w, K1 + 1.3*bw*w, n, peg*bh"
+    - "peg_2 = K2 - 1.3*bw*w, K2 + 1.3*bw*w, n, peg*bh"
+  steps:
+    - "A2 a_end shoulder tl1; a_end shoulder tl2; a_end shoulder tw1; a_end shoulder tw2; a_end shoulder slope"
+    - "A3 peg_1; peg_2"
+    - "B2 b_node -tl1 -tl2 -tw1 -tw2"
+    - "B3 peg_1; peg_2"
+    - "C2 c c_shoulder tl1; c c_shoulder tl2; c c_shoulder tw1; c c_shoulder tw2; c c_shoulder -slope"
+    - "C3 peg_1; peg_2"
+  insertions:
+    - "-u"
+    - "c = n"
