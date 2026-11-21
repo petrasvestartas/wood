@@ -1737,3 +1737,67 @@ blind_mitered_cogged_corner_lap:
   insertions:
     - "-u"
     - "w"
+
+blind_mitered_beveled_corner_lap:
+  title: "Blind mitered beveled corner lap joint"
+  german: "verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung"
+  page: "270"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "tilt = 0.25"
+    - "slope = 0.25"
+    - "cheek = 0.15"
+  points:
+    - "U = O + n"
+    - "M = O - bh*n"
+    - "C = O + ah*p - 2*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = M, unit(w + tilt*p + slope*n), M - w"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "miter = C, p + n, C - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid -cheek_in; a_end shoulder cheek_in -miter"
+    - "B2 b_node -mid -face_2 -cheek_in; b_node cheek_in miter"
+  insertions:
+    - "w"
+
+half_blind_mitered_sloped_cogged_corner_lap:
+  title: "Half-blind mitered sloped cogged corner lap joint"
+  german: "halbverdecktes schräges Hakeneckblatt mit Wange auf Gehrung"
+  page: "282"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+    - "slant = 0.3"
+    - "cheek = 0.15"
+  points:
+    - "U = O + n"
+    - "K1 = O + slant*ah*p"
+    - "K2 = O - 2*bh*n - slant*ah*p"
+    - "C = O + ah*p - 2*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "face_2 = O - ah*p, p, O"
+    - "split = K1, cross(w, K2 - K1), O - ah*p"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "miter = C, p + n, C - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper -cheek_in; a_end shoulder cheek_in -miter"
+    - "A4 a_end shoulder lower split -cheek_in"
+    - "B2 b_node -lower -face_2 -cheek_in; b_node -upper -split -face_2 -cheek_in; b_node cheek_in miter"
+  insertions:
+    - "w"
