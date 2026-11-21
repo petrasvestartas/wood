@@ -2064,3 +2064,36 @@ blind_mitered_mortise_tenon:
     - "B2 b_node -miter; b_node miter -layer_1 -layer_2 -t_top -t_bot -tenon_end"
   insertions:
     - "-u"
+
+housed_dovetail_corner:
+  title: "Housed dovetail joint"
+  german: "verdeckter beidseitig abgesetzter Schwalbenschwanzeckzapfen"
+  page: "400"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "depth = 0.4"
+    - "top = 0.2"
+    - "foot = 0.32"
+    - "stop = 0.5"
+  points:
+    - "U = O + n"
+    - "E = O - 2*depth*bh*n"
+    - "A1 = O + top*aw*w"
+    - "B1 = E + foot*aw*w"
+    - "A2 = O - top*aw*w"
+    - "B2 = E - foot*aw*w"
+    - "C = (O + E)/2"
+  planes:
+    - "shoulder = O, n, U"
+    - "tenon_end = E, n, O"
+    - "lid = O - stop*ah*p, p, O"
+    - "f1 = A1, cross(p, B1 - A1), C"
+    - "f2 = A2, cross(p, B2 - A2), C"
+  parts:
+  steps:
+    - "A2 a_end tenon_end; a_end shoulder f1; a_end shoulder f2; a_end shoulder lid"
+    - "B2 b_node -tenon_end -lid -f1 -f2"
+  insertions:
+    - "-p"
