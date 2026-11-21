@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 29 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 28 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 5 left of 110
 
@@ -35,13 +35,12 @@ All done.
 - p. 650, Four-part cogged cross lap joint (viergliedriges Kreuzblatt mit Haken)
 - p. 670, Dovetailed cross lap joint (Kreuzblatt mit abgesetzten Schwalbenschwänzen)
 
-## Timber specialty joints: 8 left of 29
+## Timber specialty joints: 7 left of 29
 
 - p. 718, Notched corner-post joint with beveled-shoulder tenons (Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust)
 - p. 730, Chidori puzzle joint (einfach abgesetztes Kreuzblatt und Stab mit Rundholzverbindung)
 - p. 732, Cross puzzle (Zimmermannsknoten)
 - p. 734, Diagonal cross puzzle (diagonaler Zimmermannsknoten)
-- p. 736, Wedged two-way cogged lap joint (verkeiltes gerades Hakendruckschloss)
 - p. 740, Pegged two-way gooseneck joint (Sichelzapfenverbindung mit Dübelsicherung)
 - p. 742, Wedged two-way oblique cogged joint (verkeiltes zweiseitiges Hakendruckschloss mit schrägen Haken)
 - p. 744, Wedged four-way splayed cogged joint (verkeiltes vierseitiges Hakendruckschloss mit schrägen Haken)

@@ -973,3 +973,49 @@ four_way_rod_tenon_keys_pegs:
     - "c = n"
     - "d = w"
     - "e = -w"
+
+wedged_two_way_cogged_lap:
+  title: "Wedged two-way cogged lap joint"
+  german: "verkeiltes gerades Hakendruckschloss"
+  page: "736"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  filled: "c"
+  parameters:
+    - "lap = 1"
+    - "hook = 0.24"
+    - "gap = 0.16"
+    - "over = 20"
+    - "e = 0.12"
+  points:
+    - "W1 = O + (aw + over)*w"
+    - "W2 = O - (aw + over)*w"
+  planes:
+    - "face_l = O + hook*ah*p, p, O + 2*ah*p"
+    - "face_r = O - hook*ah*p, p, O + 2*ah*p"
+    - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
+    - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "pu1 = O + L*u, u, O"
+    - "pu2 = O - L*u, u, O"
+    - "pw1 = O + 0.5*aw*w, w, O"
+    - "pw2 = O - 0.5*aw*w, w, O"
+    - "pp1 = O + ah*p, p, O"
+    - "pp2 = O - ah*p, p, O"
+  more:
+    - "c = 0 0 -600, 0 0 60, 1 0 0, 60, 60"
+  parts:
+    - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
+    - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
+  steps:
+    - "A2 a_end face_r shoulder_a; a_end face_l cut_a"
+    - "B2 b_end -face_l shoulder_b; b_end -face_r -cut_b"
+    - "C2 c -pu1 -pu2 -pw1 -pw2 -pp1 -pp2"
+    - "C3 wedge_1; wedge_2"
+    - "A3 a_end pw1; a_end pw2"
+    - "B3 b_end pw1; b_end pw2"
+  insertions:
+    - "-p"
+    - "c = p"
