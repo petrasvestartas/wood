@@ -618,6 +618,40 @@ mortise_tenon_sloped_shoulder:
   insertions:
     - "-u"
 
+blind_housed_mortise_tenon_sloped_shoulder:
+  title: "Blind housed mortise and tenon with sloped shoulder"
+  german: "verdeckter Zapfen mit schräger und gestufter Brüstung"
+  page: "460"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "house = 0.25"
+    - "length = 0.5"
+  points:
+    - "U = O + n"
+    - "K = O + aw*w"
+    - "H = O + 0.5*aw*w"
+    - "Q = H - 2*house*bh*n"
+  planes:
+    - "end = O - 2*length*bh*n, n, O"
+    - "housing_end = O - 2*house*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "tenon_top = O, w, O - aw*w"
+    - "above_house = H, w, O"
+    - "below = O - 0.5*aw*w, w, O"
+    - "slope = K, cross(p, Q - K), U"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder below"
+    - "A3 a_end housing_end tenon_top; a_end slope above_house"
+    - "B2 b_node -end -tenon_top -below -face_1 -face_2"
+    - "B3 b_node -housing_end -above_house -below -face_1 -face_2; b_node -slope tenon_top -housing_end -face_1 -face_2"
+  insertions:
+    - "-u"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"
