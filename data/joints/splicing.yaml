@@ -3102,3 +3102,44 @@ pegged_rabbeted_stop_splayed_cogged_scarf_stub_tenons:
     - "B3 peg_1; peg_2"
   insertions:
     - "w"
+
+haunched_gooseneck_stub_tenons_splice:
+  title: "Haunched gooseneck tenon with stub tenons"
+  german: "Sichelstufenzapfen mit doppeltem Brüstungszapfen"
+  page: "252"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stub = 0.3"
+    - "band = 0.3"
+    - "lap = 1.24"
+    - "head = 0.47"
+    - "neck = 0.19"
+    - "wide = 0.42"
+    - "tip = 0.32"
+  points:
+    - "H = O + (head*2*ah - L)*u"
+    - "W1 = H + wide*aw*w"
+    - "E1 = O - L*u + tip*aw*w"
+    - "W2 = H - wide*aw*w"
+    - "E2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hend = H, u, O - 2*L*u"
+    - "neck_1 = O + neck*aw*w, w, O"
+    - "neck_2 = O - neck*aw*w, w, O"
+    - "flank_1 = W1, cross(p, E1 - W1), O - L*u"
+    - "flank_2 = W2, cross(p, E2 - W2), O - L*u"
+    - "lvl = O, p, O + p"
+    - "tip_a = O - (L - stub*ah)*u, u, O + 2*L*u"
+    - "tip_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "sb1 = O + band*aw*w, w, O"
+    - "sb2 = O - band*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a lvl -tip_b; a_end shoulder_a lvl tip_b -sb1 -sb2; a_end shoulder_a hend neck_1 -lvl -tip_b; a_end shoulder_a hend neck_1 -lvl tip_b -sb1 -sb2; a_end shoulder_a hend neck_2 -lvl -tip_b; a_end shoulder_a hend neck_2 -lvl tip_b -sb1 -sb2; a_end -hend flank_1 -lvl -tip_b; a_end -hend flank_1 -lvl tip_b -sb1 -sb2; a_end -hend flank_2 -lvl -tip_b; a_end -hend flank_2 -lvl tip_b -sb1 -sb2; a_end tip_a sb1; a_end tip_a sb2"
+    - "B2 b_end hend -neck_1 -neck_2 -lvl -tip_a; b_end hend -neck_1 -neck_2 -lvl tip_a -sb1 -sb2; b_end f2 -hend -flank_1 -flank_2 -lvl -tip_a; b_end f2 -hend -flank_1 -flank_2 -lvl tip_a -sb1 -sb2; b_end tip_b sb1; b_end tip_b sb2"
+  insertions:
+    - "-p"
