@@ -1035,3 +1035,75 @@ half_blind_double_tenon_splice:
     - "B2 b_end f2 -w_out_1 -w_in_1 -blind; b_end f2 -w_out_2 -w_in_2 -blind"
   insertions:
     - "-p"
+
+blind_square_stub_tenon_splice:
+  title: "Blind square stub tenon joint"
+  german: "verdeckter beidseitig abgesetzter Zapfen"
+  page: "202"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "thickness = 0.36"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + thickness*ah*p, p, O"
+    - "edge_2 = O - thickness*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a cheek_1; a_end shoulder_a cheek_2; a_end shoulder_a edge_1; a_end shoulder_a edge_2"
+    - "B2 b_end f2 -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+x_shaped_tenon_splice:
+  title: "X-shaped tenon joint"
+  german: "Kreuzzapfen"
+  page: "212"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.8"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "d1 = O, cross(u, p + w), O + p - w"
+    - "d2 = O, cross(u, p - w), O + p + w"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a d1 -d2; a_end shoulder_a -d1 d2"
+    - "B2 b_end f2 d1 d2; b_end f2 -d1 -d2"
+  insertions:
+    - "-u"
+
+cross_shaped_stub_tenon_splice:
+  title: "Cross-shaped stub tenon joint"
+  german: "kreuzförmiger Zapfen"
+  page: "216"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.8"
+    - "thickness = 0.36"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + thickness*ah*p, p, O"
+    - "edge_2 = O - thickness*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a cheek_1 edge_1; a_end shoulder_a cheek_1 edge_2; a_end shoulder_a cheek_2 edge_1; a_end shoulder_a cheek_2 edge_2"
+    - "B2 b_end f2 -cheek_1 -cheek_2; b_end f2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
