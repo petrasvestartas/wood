@@ -1778,3 +1778,48 @@ lapped_gooseneck_splice:
     - "B2 b_end hs_b -lvl; b_end hend -neck_1 -neck_2 -lvl; b_end f2 -hend -flank_1 -flank_2 -lvl"
   insertions:
     - "-p"
+
+lapped_gooseneck_stub_tenon_splice:
+  title: "Lapped gooseneck joint with stub tenon"
+  german: "Sichelzapfen mit geradem Blatt und Brüstungszapfen"
+  page: "250"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.24"
+    - "head = 0.47"
+    - "neck = 0.19"
+    - "wide = 0.42"
+    - "tip = 0.32"
+    - "step = 0.4"
+    - "stub = 0.3"
+    - "band = 0.33"
+  points:
+    - "H = O + (head*2*ah - L)*u"
+    - "W1 = H + wide*aw*w"
+    - "E1 = O - L*u + tip*aw*w"
+    - "W2 = H - wide*aw*w"
+    - "E2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hend = H, u, O - 2*L*u"
+    - "neck_1 = O + neck*aw*w, w, O"
+    - "neck_2 = O - neck*aw*w, w, O"
+    - "flank_1 = W1, cross(p, E1 - W1), O - L*u"
+    - "flank_2 = W2, cross(p, E2 - W2), O - L*u"
+    - "lvl = O, p, O + p"
+    - "hs_a = O + (L - step*ah)*u, u, O + 2*L*u"
+    - "hs_b = O + (L - step*ah)*u, u, O - 2*L*u"
+    - "st_a = O + (L - stub*ah)*u, u, O + 2*L*u"
+    - "st_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "k1 = O + band*aw*w, w, O"
+    - "k2 = O - band*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end st_a lvl; a_end shoulder_a lvl k1; a_end shoulder_a lvl k2; a_end hs_a hend neck_1 -lvl; a_end hs_a hend neck_2 -lvl; a_end -hend flank_1 -lvl; a_end -hend flank_2 -lvl"
+    - "B2 b_end hs_b -lvl; b_end st_b lvl -k1 -k2; b_end hend -neck_1 -neck_2 -lvl; b_end f2 -hend -flank_1 -flank_2 -lvl"
+  insertions:
+    - "-p"
+

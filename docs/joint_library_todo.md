@@ -1,8 +1,8 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 167 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 166 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 53 left of 110
+## Timber splicing joints: 52 left of 110
 
 - p. 52, Half lap joint with haunched tenon (gerades Blatt mit Stufenzapfen)
 - p. 82, Undersquinted spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit schrägem Gratschnitt)
@@ -51,7 +51,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 238, Four-faced dovetail joint (diagonaler doppelter Schwalbenschwanzzapfen)
 - p. 240, Tapered dovetail tenon joint with mitered shoulders (Stoß mit Gratschnitt und keilförmigen Schwalbenschwanzzapfen)
 - p. 242, Kawai joint (diagonal angeschnittener Stoß mit dreifacher polyedrischer Ausstemmung)
-- p. 250, Lapped gooseneck joint with stub tenon (Sichelzapfen mit geradem Blatt und Brüstungszapfen)
 - p. 252, Haunched gooseneck tenon with stub tenons (Sichelstufenzapfen mit doppeltem Brüstungszapfen)
 - p. 254, Rabbeted gooseneck joint with barb (abgesetzter Sichelzapfen mit Steckfalz und abgesetztem Gehrungsblatt)
 - p. 256, Butt joint with floating gooseneck tenon (Stoß mit eingesetztem Sichelzapfen)

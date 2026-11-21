@@ -196,6 +196,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_half_lap_floating_piece_splice.png) | **Half lap joint with floating piece**<br>gerades Blatt mit eingesetztem Mittelstück, p. 84<br>`half_lap_floating_piece_splice` |
 | ![](joint_library/beam_triple_shouldered_gooseneck_splice.png) | **Triple-shouldered gooseneck tenon joint**<br>abgesetzter Sichelzapfen, p. 246<br>`triple_shouldered_gooseneck_splice` |
 | ![](joint_library/beam_lapped_gooseneck_splice.png) | **Lapped gooseneck joint**<br>Sichelzapfen mit geradem Blatt, p. 248<br>`lapped_gooseneck_splice` |
+| ![](joint_library/beam_lapped_gooseneck_stub_tenon_splice.png) | **Lapped gooseneck joint with stub tenon**<br>Sichelzapfen mit geradem Blatt und Brüstungszapfen, p. 250<br>`lapped_gooseneck_stub_tenon_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
