@@ -2344,3 +2344,39 @@ double_mortise_stub_tenon_splice:
     - "B2 b_end -mid p1; b_end -mid p2; b_end mid f2 -w1 -w2 p1; b_end mid f2 -w1 -w2 p2"
   insertions:
     - "-u"
+
+two_half_rods_tapered_keys_splice:
+  title: "Rod joint with two half rods and tapered keys"
+  german: "beidseitiger Stabzapfen mit Spannkeilen"
+  page: "196"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+    - "rod = 0.5"
+    - "thick = 0.75"
+    - "key = 0.1"
+  points:
+    - "KA = O - 0.75*L*u - 0.5*rod*ah*p"
+    - "KB = O + 0.75*L*u + 0.5*rod*ah*p"
+  planes:
+    - "mid = O, u, O + u"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "w1 = O + thick*aw*w, w, O"
+    - "w2 = O - thick*aw*w, w, O"
+    - "pa_top = O, p, O - p"
+    - "pa_bot = O - rod*ah*p, p, O"
+    - "pb_top = O + rod*ah*p, p, O"
+    - "pb_bot = O, p, O + p"
+  parts:
+    - "key_a = KA - 1.3*ah*p, KA + 1.3*ah*p, u, key*ah, 0.5*thick*aw, 0.35*thick*aw"
+    - "key_b = KB + 1.3*ah*p, KB - 1.3*ah*p, u, key*ah, 0.5*thick*aw, 0.35*thick*aw"
+  steps:
+    - "A2 a_end mid w1; a_end mid w2; a_end mid -w1 -w2 pa_top; a_end mid -w1 -w2 pa_bot; a_end -mid shoulder_a -w1 -w2 -pb_top -pb_bot"
+    - "A3 key_a; key_b"
+    - "B2 b_end -mid w1; b_end -mid w2; b_end -mid -w1 -w2 pb_top; b_end -mid -w1 -w2 pb_bot; b_end mid f2 -w1 -w2 -pa_top -pa_bot"
+    - "B3 key_a; key_b"
+  insertions:
+    - "-u"
