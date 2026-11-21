@@ -28,7 +28,7 @@ PAGE = WOOD / "docs/elements/element_joint_beam_compendium.md"
 # Each design's group written alone, its interaction features off, its pegs, wedges and keys a deep blue, by session_py; and
 # a second copy with the wood a solid white, for the pass that keeps the blue strong through the see-through drawing.
 GROUPS = r"""
-import json, sys
+import json, re, sys
 from session_py.session import Session
 from session_py.color import Color
 scene_path, out, names = sys.argv[1], sys.argv[2], sys.argv[3:]
@@ -41,7 +41,7 @@ for name in names:
             branch.interactions[edge] = []
         for element in branch.objects.elements:
             element.set_features([])
-            part = "_part" in element.name or "_pin" in element.name
+            part = re.search(r"_(part|pin)(_[0-9]+)?$", element.name) is not None
             if part or solid:
                 branch.set_node_color(branch.get_node(element.guid), Color(0.0, 0.32, 0.86, 1.0) if part else Color(0.97, 0.97, 0.97, 1.0))
         path = "%s/%s%s.pb" % (out, name, "_solid" if solid else "")
