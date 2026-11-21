@@ -3696,3 +3696,49 @@ triple_faced_splayed_scarf:
     - "B2 b_end -midw d1; b_end midw d2"
   insertions:
     - "-u"
+
+stop_splayed_cogged_scarf_stub_tenons_blind_pegs:
+  title: "Stop-splayed cogged scarf joint with stub tenons and blind pegs"
+  german: "schräges Hakenblatt mit Brüstungszapfen und Dollen"
+  page: "132"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "peg = 0.1"
+    - "peg_reach = 0.25"
+    - "stub = 0.3"
+    - "band = 0.3"
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+    - "G1 = S1 + 0.65*(S2 - S1) + 0.5*aw*w"
+    - "G2 = S1 + 0.85*(S2 - S1) - 0.5*aw*w"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "tip_a = O - (L - stub*ah)*u, u, O + 2*L*u"
+    - "tip_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "sb1 = O + band*aw*w, w, O"
+    - "sb2 = O - band*aw*w, w, O"
+  parts:
+    - "peg_1 = G1 + peg_reach*ah*p, G1 - peg_reach*ah*p, u, peg*ah, none"
+    - "peg_2 = G2 + peg_reach*ah*p, G2 - peg_reach*ah*p, u, peg*ah, none"
+  steps:
+    - "A2 a_end -upper shoulder_a cut -tip_b; a_end -upper shoulder_a cut tip_b -sb1 -sb2; a_end -splay shoulder_a -cut -tip_b; a_end -splay shoulder_a -cut tip_b -sb1 -sb2; a_end tip_a sb1; a_end tip_a sb2"
+    - "A3 peg_1; peg_2"
+    - "B2 b_end upper shoulder_b cut -tip_a; b_end upper shoulder_b cut tip_a -sb1 -sb2; b_end splay shoulder_b -cut -tip_a; b_end splay shoulder_b -cut tip_a -sb1 -sb2; b_end tip_b sb1; b_end tip_b sb2"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "p"
+    - "peg_1 = p"
+    - "peg_2 = p"
