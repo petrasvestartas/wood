@@ -744,3 +744,62 @@ plain_miter_spline_key:
   insertions:
     - "-u"
     - "key = D"
+
+bridle_one_sided_miter:
+  title: "Bridle joint with one-sided miter"
+  german: "Zapfen mit einseitiger Gehrung"
+  page: "362"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end layer_1 miter; a_end shoulder -layer_1 -layer_2"
+    - "B2 b_node layer_1 -miter; b_node layer_2 -face_2"
+  insertions:
+    - "-u"
+
+double_mortise_tenon_miter:
+  title: "Double mortise and tenon miter"
+  german: "Zapfen mit doppeltem Gehrungsblatt"
+  page: "366"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end w_out_1 miter; a_end w_out_2 miter; a_end shoulder -w_out_1 -w_in_1; a_end shoulder -w_out_2 -w_in_2"
+    - "B2 b_node w_out_1 -miter; b_node w_out_2 -miter; b_node w_in_1 w_in_2 -face_2"
+  insertions:
+    - "-u"
