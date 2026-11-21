@@ -112,6 +112,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_undersquinted_stop_splayed_scarf.png) | **Undersquinted stop-splayed scarf joint**<br>schräges Blatt mit schräger Brüstung, p. 116<br>`undersquinted_stop_splayed_scarf` |
 | ![](joint_library/beam_pegged_stop_splayed_scarf.png) | **Pegged stop-splayed scarf joint**<br>schräges Blatt mit Dübelsicherung, p. 120<br>`pegged_stop_splayed_scarf` |
 | ![](joint_library/beam_stop_splayed_cogged_scarf.png) | **Stop-splayed cogged scarf joint**<br>schräges Hakenblatt, p. 122<br>`stop_splayed_cogged_scarf` |
+| ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf.png) | **Undersquinted stop-splayed cogged scarf joint**<br>schräges Hakenblatt mit schräger Brüstung, p. 124<br>`undersquinted_stop_splayed_cogged_scarf` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

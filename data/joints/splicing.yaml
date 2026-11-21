@@ -497,3 +497,37 @@ stop_splayed_cogged_scarf:
     - "B2 b_end -upper shoulder_b cut; b_end -splay shoulder_b -cut"
   insertions:
     - "-p"
+
+undersquinted_stop_splayed_cogged_scarf:
+  title: "Undersquinted stop-splayed cogged scarf joint"
+  german: "schräges Hakenblatt mit schräger Brüstung"
+  page: "124"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+    - "squint = 0.2"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+    - "E1 = O + (L - squint*ah)*u - ah*p"
+    - "F1 = O - (L - squint*ah)*u + ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "low_face = E1, cross(w, S2 - E1), O"
+    - "up_face = F1, cross(w, H1 - F1), O"
+  parts:
+  steps:
+    - "A2 a_end upper cut -low_face; a_end splay -cut -low_face"
+    - "A3 a_end -upper up_face"
+    - "B2 b_end -upper cut -up_face; b_end -splay -cut -up_face"
+    - "B3 b_end splay low_face"
+  insertions:
+    - "w"
