@@ -1191,3 +1191,69 @@ butt_butterfly_key_splice:
     - "-u"
     - "wing_1 = -p"
     - "wing_2 = -p"
+
+lapped_dovetail_splice:
+  title: "Lapped dovetail joint"
+  german: "Schwalbenschwanzzapfen mit geradem Blatt"
+  page: "224"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.8"
+    - "socket = 0.49"
+    - "root = 0.2"
+    - "tip = 0.52"
+  points:
+    - "Z = O + (socket*2*ah - L)*u"
+    - "R1 = Z + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = Z - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+  planes:
+    - "mid = O, p, O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "zone = Z, u, O + 2*L*u"
+    - "flank_1 = R1, cross(p, T1 - R1), O"
+    - "flank_2 = R2, cross(p, T2 - R2), O"
+  parts:
+  steps:
+    - "A2 a_end mid shoulder_a; a_end -mid zone flank_1; a_end -mid zone flank_2; a_end -mid -f2"
+    - "B2 b_end -mid f2 zone -flank_1 -flank_2; b_end -mid -zone"
+  insertions:
+    - "-p"
+
+gooseneck_tenon_splice:
+  title: "Gooseneck tenon joint"
+  german: "Sichelzapfen"
+  page: "244"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.24"
+    - "head = 0.47"
+    - "neck = 0.19"
+    - "wide = 0.42"
+    - "tip = 0.32"
+  points:
+    - "H = O + (head*2*ah - L)*u"
+    - "W1 = H + wide*aw*w"
+    - "E1 = O - L*u + tip*aw*w"
+    - "W2 = H - wide*aw*w"
+    - "E2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hend = H, u, O - 2*L*u"
+    - "neck_1 = O + neck*aw*w, w, O"
+    - "neck_2 = O - neck*aw*w, w, O"
+    - "flank_1 = W1, cross(p, E1 - W1), O - L*u"
+    - "flank_2 = W2, cross(p, E2 - W2), O - L*u"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a hend neck_1; a_end shoulder_a hend neck_2; a_end -hend flank_1; a_end -hend flank_2"
+    - "B2 b_end hend -neck_1 -neck_2; b_end f2 -hend -flank_1 -flank_2"
+  insertions:
+    - "-p"
