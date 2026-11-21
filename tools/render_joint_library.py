@@ -25,35 +25,52 @@ RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu
 PICTURES = WOOD / "docs/images/joint_library"
 PAGE = WOOD / "docs/elements/element_joint_beam_compendium.md"
 
-# Each design's group written alone, its interaction features off, by session_py.
+# Each design's group written alone, its interaction features off, its pegs, wedges and keys a deep blue, by session_py; and
+# a second copy with the wood a solid white, for the pass that keeps the blue strong through the see-through drawing.
 GROUPS = r"""
 import json, sys
 from session_py.session import Session
+from session_py.color import Color
 scene_path, out, names = sys.argv[1], sys.argv[2], sys.argv[3:]
 written = []
 for name in names:
-    branch = Session.pb_load(scene_path).get_branch(name)
-    for edge in list(branch.interactions):
-        branch.interactions[edge] = []
-    for element in branch.objects.elements:
-        element.set_features([])
-    path = "%s/%s.pb" % (out, name)
-    branch.pb_dump(path)
-    written.append([name, path])
+    pair = []
+    for solid in (False, True):
+        branch = Session.pb_load(scene_path).get_branch(name)
+        for edge in list(branch.interactions):
+            branch.interactions[edge] = []
+        for element in branch.objects.elements:
+            element.set_features([])
+            part = "_part" in element.name or "_pin" in element.name
+            if part or solid:
+                branch.set_node_color(branch.get_node(element.guid), Color(0.0, 0.32, 0.86, 1.0) if part else Color(0.97, 0.97, 0.97, 1.0))
+        path = "%s/%s%s.pb" % (out, name, "_solid" if solid else "")
+        branch.pb_dump(path)
+        pair.append(path)
+    written.append([name] + pair)
 print(json.dumps(written))
 """
 
 
-def render(pb: str) -> Image.Image:
-    """The scene drawn isometric at 3600 x 2400, the outline twice its width for the halving, cropped to 3:2 and halved."""
+def frame(pb: str, opacity: str) -> Image.Image:
+    """The scene drawn isometric at 3600 x 2400, the outline twice its width for the halving."""
     env = dict(
-        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY="0.45", VIEWER_W="3600", VIEWER_H="2400", VIEWER_DPR="2",
+        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY=opacity, VIEWER_W="3600", VIEWER_H="2400", VIEWER_DPR="2",
         VIEWER_THICKNESS="1", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0", VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
     )
     with tempfile.TemporaryDirectory() as tmp:
         ppm = pathlib.Path(tmp) / "frame.ppm"
         subprocess.run([str(RENDERER), str(ppm), pb], env=env, check=True, capture_output=True)
-        image = Image.open(ppm).convert("RGB")
+        return Image.open(ppm).convert("RGB")
+
+
+def render(pb: str, solid: str) -> Image.Image:
+    """The see-through drawing with the blue of the solid one laid over it where a part is in view, cropped to 3:2 and halved."""
+    image = frame(pb, "0.45")
+    strong = frame(solid, "1.0")
+    red, green, blue = strong.split()
+    bluish = ImageChops.subtract(blue, red).point(lambda value: 255 if value > 60 else 0)
+    image.paste(strong, (0, 0), bluish)
     clear = image.getpixel((2, 2))
     box = ImageChops.difference(image, Image.new("RGB", image.size, clear)).getbbox()
     image = image.crop((box[0] - 60, box[1] - 60, box[2] + 60, box[3] + 60))
@@ -85,9 +102,9 @@ def main(arguments: list) -> None:
         scene = pathlib.Path(tmp) / "scene.pb"
         scene.write_bytes((WOOD / "data/output/pb/live.pb").read_bytes())
         written = subprocess.run([str(PYTHON), "-c", GROUPS, str(scene), tmp, *designs], check=True, capture_output=True, text=True).stdout
-        for name, path in json.loads(written.strip().splitlines()[-1]):
+        for name, path, solid in json.loads(written.strip().splitlines()[-1]):
             picture = PICTURES / f"beam_{name}.png"
-            render(path).save(picture)
+            render(path, solid).save(picture)
             print(picture.relative_to(WOOD))
     write_table()
     joint_library_todo.main()

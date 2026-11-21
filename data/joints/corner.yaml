@@ -1813,24 +1813,22 @@ rabbeted_tenoned_miter:
   family: "corner"
   corners: "square"
   parameters:
-    - "inner = 0.35"
-    - "tongue = 0.17"
+    - "third = 0.3333333333333333"
     - "depth = 0.3"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
-    - "S = O - inner*2*bh*n"
   planes:
-    - "face_2 = O - ah*p, p, O"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
-    - "strip = O + (2*inner - 1)*ah*p, p, O + ah*p"
-    - "shelf = S, n, O"
-    - "tg_band = O + (2*tongue - 1)*ah*p, p, O + ah*p"
-    - "tongue_end = S - depth*2*bh*n, n, O"
+    - "t_out = O + third*ah*p, p, O"
+    - "t_in = O - third*ah*p, p, O"
+    - "face = O, n, O + n"
+    - "inner_face = O - ah*p, p, O"
+    - "tongue_end = O - depth*2*bh*n, n, O"
   parts:
   steps:
-    - "A2 a_end miter -strip; a_end strip shelf -tg_band; a_end strip tongue_end"
-    - "B2 b_node -miter -strip; b_node strip -shelf -face_2; b_node strip shelf -tongue_end tg_band -face_2"
+    - "A2 a_end miter t_out; a_end face -t_out -t_in; a_end tongue_end t_in"
+    - "B2 b_node -miter t_out; b_node t_in -tongue_end face -inner_face"
   insertions:
     - "-u"
 
