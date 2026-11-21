@@ -1,0 +1,54 @@
+# Joint library: plan for the unfinished joints {#elements_joint_library_plan}
+
+[TOC]
+
+State on 2026-11-21: 400 of the 407 joints of the Joinery Compendium (Bauer, Pauli 2024) have a record in `data/joints/*.yaml`;
+7 have none and 14 are simplified. Each joint below has what is wrong or missing, the reference, and the step that solves it.
+A joint is done when its record passes `tests/joint_assembly.cpp`, its picture is checked against the book's projections
+(`tools/compare_joint_projections.py`) and it is committed with CI green.
+
+## 1. Missing joints that the record format can already express
+
+| Page | Joint | Reading | Step |
+|---|---|---|---|
+| 242 | Kawai joint (splice) | Two square ends, each cut into three fingers by planes through the cube diagonal; they slide together along the diagonal of the section, a 120 degree symmetry | Planes through the body diagonal of the end cube, three regions per member, insertion along the diagonal |
+| 404 | Kawai joint (corner) | The same three-finger cube on the corner of two members | As 242 on a corner frame |
+| 650 | Four-part cogged cross lap | Four arms meeting at a cross, each pair lapped with hooks | Read the arm heights from the book's projections and steps, four members (two as more members) |
+| 744 | Wedged four-way splayed cogged joint | Two pairs of beams in a post, splayed cogs, wedged | Extend p. 742 to four beams at two heights |
+
+Kawai status (2026-11-21): every one of the six wedges is cut correctly on its own (288 000 mm3 each), but a member's
+three wedges meet only along the diagonal, and the one cut that takes all three away (`JointElement::removal`, shells side by
+side, subtracted by Manifold) leaves the member with one finger. Uniting the steps with a Manifold union first gives a mesh that
+is not closed; a core prism about the diagonal did not help. The fix belongs in the solid boolean, not in the records.
+
+References: Kawai tsugite, [woodgears.ca](https://woodgears.ca/puzzles/3way_joint.html), [Instructables](https://www.instructables.com/Kawai-Tsugite-Amazing-Three-way-Japanese-Joint).
+
+## 2. Simplified joints to correct
+
+| Page | Joint | Simplification | Step |
+|---|---|---|---|
+| 92, 98 | Folding-wedge splices | One blind tapered key | Two folding wedges (wedge parts with a flat face) |
+| 750 | Four-way rod tenon | Pegs missing | Pegs as parts, their holes through the rods by a P step |
+| 748 | Three-way rod tenon | Haunch wedge missing | A wedge part in the haunch |
+| 538, 540 | Spline tenon joints | Spline without its dovetail | The spline as a prism part with a dovetail section |
+| 154 | Scarf | Hidden rabbet missing | A rabbet region on both members |
+| 218 | Scarf | Undercut missing | An undercut plane in the cog |
+| 88 | Cogged lap with floating piece | Its tenon drawn as a loose tenon | The tenon as a second prism part fixed to the piece |
+| 364, 842 | Canvas stretcher key, radial dovetail | Approximate shapes | Re-read the projections, fix the planes |
+
+## 3. Joints that need more than straight moves
+
+| Page | Joint | Why | Step |
+|---|---|---|---|
+| 792 | Keyhole batten | Lugs drop through the keyholes, then slide | A two-leg insertion path in AssemblySequence |
+| 736, 740, 742 | Two-way joints in a through post | Beams enter the post's slot, then drop onto each other | The same two-leg path, then the post runs on through |
+| 730 | Chidori puzzle | Locks with a quarter turn of the round-notched stick | A turn as the last move, or the record marked as turned with the check skipped |
+| 732 | Cross puzzle | Three identical A pieces do not come apart one at a time in my reading | Re-read the B pieces from the steps; if two pieces must move together, group moves in AssemblySequence |
+
+Step 3 changes the kernel of the assembly check: a member's way in becomes a path of straight legs, each swept against the
+members still in. It is proposed before it is built.
+
+## 4. Review of the finished joints
+
+Only pp. 322, 360, 670 and 734 were compared with the book's projections side by side. The gallery, drawn see-through in
+assembly order with arrows, goes out as contact sheets of 30 joints; every joint found wrong there is corrected like p. 322.
