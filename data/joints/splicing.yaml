@@ -406,10 +406,10 @@ stop_splayed_scarf:
     - "shoulder_b = O - L*u, u, O - 2*L*u"
   parts:
   steps:
-    - "A2 a_end splay shoulder_a"
-    - "B2 b_end -splay shoulder_b"
+    - "A2 a_end -splay shoulder_a"
+    - "B2 b_end splay shoulder_b"
   insertions:
-    - "-p"
+    - "p"
 
 undersquinted_stop_splayed_scarf:
   title: "Undersquinted stop-splayed scarf joint"
@@ -435,8 +435,8 @@ undersquinted_stop_splayed_scarf:
     - "up_face = F1, cross(w, F2 - F1), O"
   parts:
   steps:
-    - "A2 a_end splay -low_face; a_end -splay up_face"
-    - "B2 b_end -splay -up_face; b_end splay low_face"
+    - "A2 a_end -splay -low_face; a_end splay up_face"
+    - "B2 b_end splay -up_face; b_end -splay low_face"
   insertions:
     - "w"
 
@@ -461,12 +461,12 @@ pegged_stop_splayed_scarf:
   parts:
     - "peg = O + aw*w, O - aw*w, u, peg*ah"
   steps:
-    - "A2 a_end splay shoulder_a"
+    - "A2 a_end -splay shoulder_a"
     - "A3 peg"
-    - "B2 b_end -splay shoulder_b"
+    - "B2 b_end splay shoulder_b"
     - "B3 peg"
   insertions:
-    - "-p"
+    - "p"
 
 stop_splayed_cogged_scarf:
   title: "Stop-splayed cogged scarf joint"
@@ -493,10 +493,10 @@ stop_splayed_cogged_scarf:
     - "cut = O, u, O + u"
   parts:
   steps:
-    - "A2 a_end upper shoulder_a cut; a_end splay shoulder_a -cut"
-    - "B2 b_end -upper shoulder_b cut; b_end -splay shoulder_b -cut"
+    - "A2 a_end -upper shoulder_a cut; a_end -splay shoulder_a -cut"
+    - "B2 b_end upper shoulder_b cut; b_end splay shoulder_b -cut"
   insertions:
-    - "-p"
+    - "p"
 
 undersquinted_stop_splayed_cogged_scarf:
   title: "Undersquinted stop-splayed cogged scarf joint"
@@ -525,10 +525,10 @@ undersquinted_stop_splayed_cogged_scarf:
     - "up_face = F1, cross(w, H1 - F1), O"
   parts:
   steps:
-    - "A2 a_end upper cut -low_face; a_end splay -cut -low_face"
-    - "A3 a_end -upper up_face"
-    - "B2 b_end -upper cut -up_face; b_end -splay -cut -up_face"
-    - "B3 b_end splay low_face"
+    - "A2 a_end -upper cut -low_face; a_end -splay -cut -low_face"
+    - "A3 a_end upper up_face"
+    - "B2 b_end upper cut -up_face; b_end splay -cut -up_face"
+    - "B3 b_end -splay low_face"
   insertions:
     - "w"
 
@@ -560,9 +560,66 @@ stop_splayed_scarf_stub_tenons:
     - "cheek_2 = O - thickness*aw*w, w, O"
   parts:
   steps:
-    - "A2 a_end splay shoulder_a; a_end tip_a cheek_1; a_end tip_a cheek_2"
-    - "A3 a_end splay -shoulder_a -deep_a -cheek_1 -cheek_2"
-    - "B2 b_end -splay shoulder_b; b_end tip_b cheek_1; b_end tip_b cheek_2"
-    - "B3 b_end -splay -shoulder_b -deep_b -cheek_1 -cheek_2"
+    - "A2 a_end -splay shoulder_a; a_end tip_a cheek_1; a_end tip_a cheek_2"
+    - "A3 a_end -splay -shoulder_a -deep_a -cheek_1 -cheek_2"
+    - "B2 b_end splay shoulder_b; b_end tip_b cheek_1; b_end tip_b cheek_2"
+    - "B3 b_end splay -shoulder_b -deep_b -cheek_1 -cheek_2"
   insertions:
-    - "-p"
+    - "p"
+
+pegged_stop_splayed_cogged_scarf:
+  title: "Pegged stop-splayed cogged scarf joint"
+  german: "schräges Hakenblatt mit Dübelsicherung"
+  page: "130"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+    - "peg = 0.13"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+  parts:
+    - "peg = O + 0.1*ah*u + ah*p, O + 0.1*ah*u - ah*p, u, peg*ah"
+  steps:
+    - "A2 a_end -upper shoulder_a cut; a_end -splay shoulder_a -cut"
+    - "B2 b_end upper shoulder_b cut; b_end splay shoulder_b -cut"
+    - "A3 peg"
+    - "B3 peg"
+  insertions:
+    - "p"
+
+splayed_scarf:
+  title: "Splayed scarf joint"
+  german: "Schäftung"
+  page: "156"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+  points:
+    - "S1 = O - L*u - ah*p"
+    - "S2 = O + L*u + ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -splay shoulder_a"
+    - "B2 b_end splay shoulder_b"
+  insertions:
+    - "p"
