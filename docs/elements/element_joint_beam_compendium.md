@@ -79,17 +79,20 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_spline_groove_edge.png) | **Spline and groove joint**<br>Nut mit eingesetzter Feder, p. 780<br>`spline_groove_edge` |
 | ![](joint_library/beam_butterfly_key_edge.png) | **Butterfly key joint**<br>Schwalbenschwanzeinlage, p. 786<br>`butterfly_key_edge` |
 | ![](joint_library/beam_tongued_rabbeted_edge.png) | **Tongued and rabbeted joint**<br>Nut und Feder mit versetzter Brüstung, p. 774<br>`tongued_rabbeted_edge` |
+| ![](joint_library/beam_blind_dovetail_edge.png) | **Blind dovetail joint**<br>abgesetzte Fuge mit Trapezprofil, p. 784<br>`blind_dovetail_edge` |
 | ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
 | ![](joint_library/beam_tongue_groove_breadboard.png) | **Tongue and groove breadboard end**<br>Hirnleiste mit Nut und Feder, p. 806<br>`tongue_groove_breadboard` |
 | ![](joint_library/beam_dado_tongue_breadboard.png) | **Dado and tongue breadboard end**<br>Hirnleiste mit Falz und Feder, p. 808<br>`dado_tongue_breadboard` |
 | ![](joint_library/beam_splined_breadboard.png) | **Splined breadboard end**<br>Hirnleiste mit Nut und Fremdfeder, p. 804<br>`splined_breadboard` |
 | ![](joint_library/beam_haunched_mortise_tenon_breadboard.png) | **Haunched mortise and tenon breadboard end**<br>Hirnleiste mit Nut, Feder und Zapfenlöchern, p. 810<br>`haunched_mortise_tenon_breadboard` |
+| ![](joint_library/beam_dovetail_end.png) | **End-to-end dovetail joint**<br>Zinkenstoß, p. 798<br>`dovetail_end` |
 | ![](joint_library/beam_housing_case.png) | **Housing joint**<br>Nutverbindung, p. 844<br>`housing_case` |
 | ![](joint_library/beam_stopped_housing_case.png) | **Stopped housing joint**<br>abgesetzte Nutverbindung, p. 846<br>`stopped_housing_case` |
 | ![](joint_library/beam_tongue_dado_case.png) | **Tongue and dado joint**<br>Nutverbindung mit mittiger Feder, p. 850<br>`tongue_dado_case` |
 | ![](joint_library/beam_rabbet_dado_case.png) | **Rabbet and dado joint**<br>Nutverbindung mit außermittiger Feder, p. 852<br>`rabbet_dado_case` |
 | ![](joint_library/beam_sliding_dovetail_case.png) | **Sliding dovetail joint**<br>Gratnutverbindung, p. 854<br>`sliding_dovetail_case` |
 | ![](joint_library/beam_single_shouldered_sliding_dovetail_case.png) | **Single-shouldered sliding dovetail joint**<br>einseitige Gratnutverbindung, p. 856<br>`single_shouldered_sliding_dovetail_case` |
+| ![](joint_library/beam_beveled_housing_case.png) | **Beveled housing joint**<br>schräg eingelassene Winkelverbindung, p. 848<br>`beveled_housing_case` |
 | ![](joint_library/beam_corner_lap.png) | **Corner lap joint**<br>Eckblatt, p. 262<br>`corner_lap` |
 | ![](joint_library/beam_dovetailed_corner_lap.png) | **Dovetailed corner lap joint**<br>Eckblatt mit schräger Blattfläche, p. 266<br>`dovetailed_corner_lap` |
 | ![](joint_library/beam_beveled_corner_lap.png) | **Beveled corner lap joint**<br>Eckblatt mit zweifach schräger Blattfläche, p. 268<br>`beveled_corner_lap` |

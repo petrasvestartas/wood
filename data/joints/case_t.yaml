@@ -208,3 +208,29 @@ single_shouldered_sliding_dovetail_case:
     - "B2 b_node -end -flank_1 -side_2"
   insertions:
     - "w"
+
+beveled_housing_case:
+  title: "Beveled housing joint"
+  german: "schräg eingelassene Winkelverbindung"
+  page: "848"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "depth = 0.5"
+    - "bevel = 0.3"
+  points:
+    - "E1 = O - 2*depth*bh*n - ah*p"
+    - "E2 = O - 2*(depth - bevel)*bh*n + ah*p"
+  planes:
+    - "end = E1, cross(w, E2 - E1), O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end"
+    - "B2 b_node -end -side_1 -side_2"
+  insertions:
+    - "-u"

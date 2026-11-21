@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 133 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 130 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 45 left of 110
 
@@ -136,19 +136,17 @@ All done.
 - p. 762, Two-way splined rod joint with tapered keys and a peg (durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung)
 - p. 764, Pegged two-way lapped rod tenon joint with housing (durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung)
 
-## Case edge joints: 6 left of 13
+## Case edge joints: 5 left of 13
 
 - p. 778, Foxtail-wedged floating tenon joint (Stoß mit verkeiltem eingesetztem Zapfen)
 - p. 782, Floating tenon and spline joint (Nut mit eingesetzter Feder und Zapfen)
-- p. 784, Blind dovetail joint (abgesetzte Fuge mit Trapezprofil)
 - p. 788, Sliding dovetail batten (Gratleiste)
 - p. 790, Sliding dovetail batten with keys (Gratleiste mit Dübelschloss)
 - p. 792, Blind dovetailed keyhole batten (Mehrfach abgesetzte Gratleiste)
 
-## Case end joints: 5 left of 10
+## Case end joints: 4 left of 10
 
 - p. 794, Halved splayed joint (schräg angeschnittene wechselseitige Überblattung)
-- p. 798, End-to-end dovetail joint (Zinkenstoß)
 - p. 800, V-shaped dado with spline (eingelassene keilförmige Hirnleiste)
 - p. 802, Dado with spline (eingelassene Hirnleiste)
 - p. 812, Wedged and haunched tenon breadboard end (verkeilte Hirnleiste mit Nut und Zapfenloch)
@@ -162,6 +160,6 @@ All done.
 - p. 840, Angled finger joint (Eckverbindung mit schrägen Fingerzinken)
 - p. 842, Radial dovetail joint (Eckverbindung mit Teufelszinken)
 
-## Case T-joints: 1 left of 6
+## Case T-joints: 0 left of 6
 
-- p. 848, Beveled housing joint (schräg eingelassene Winkelverbindung)
+All done.

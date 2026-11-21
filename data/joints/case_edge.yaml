@@ -219,3 +219,35 @@ tongued_rabbeted_edge:
     - "B2 b_end s_b c1; b_end g_b -c1 -c2; b_end m_b c2"
   insertions:
     - "-u"
+
+blind_dovetail_edge:
+  title: "Blind dovetail joint"
+  german: "abgesetzte Fuge mit Trapezprofil"
+  page: "784"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 1.2"
+    - "root = 0.25"
+    - "tip = 0.42"
+    - "stop = 0.6"
+  points:
+    - "R1 = O + L*u + root*ah*p"
+    - "T1 = O - L*u + tip*ah*p"
+    - "R2 = O + L*u - root*ah*p"
+    - "T2 = O - L*u - tip*ah*p"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "fl_1 = R1, cross(w, T1 - R1), O"
+    - "fl_2 = R2, cross(w, T2 - R2), O"
+    - "stopped = O + stop*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a fl_1; a_end shoulder_a fl_2; a_end shoulder_a stopped"
+    - "B2 b_end f2 -fl_1 -fl_2 -stopped"
+  insertions:
+    - "w"

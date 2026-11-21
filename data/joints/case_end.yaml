@@ -188,3 +188,48 @@ haunched_mortise_tenon_breadboard:
     - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -end -c1 -c2 -t1 t2; b_node -end -c1 -c2 t3 -t4"
   insertions:
     - "-u"
+
+dovetail_end:
+  title: "End-to-end dovetail joint"
+  german: "Zinkenstoß"
+  page: "798"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 2.5"
+    - "root = 0.1"
+    - "tip = 0.18"
+  points:
+    - "A1l = O + L*u + (-0.6 - root)*aw*w"
+    - "B1l = O - L*u + (-0.6 - tip)*aw*w"
+    - "A1r = O + L*u + (-0.6 + root)*aw*w"
+    - "B1r = O - L*u + (-0.6 + tip)*aw*w"
+    - "C1 = O + -0.6*aw*w"
+    - "A2l = O + L*u + (0.0 - root)*aw*w"
+    - "B2l = O - L*u + (0.0 - tip)*aw*w"
+    - "A2r = O + L*u + (0.0 + root)*aw*w"
+    - "B2r = O - L*u + (0.0 + tip)*aw*w"
+    - "C2 = O + 0.0*aw*w"
+    - "A3l = O + L*u + (0.6 - root)*aw*w"
+    - "B3l = O - L*u + (0.6 - tip)*aw*w"
+    - "A3r = O + L*u + (0.6 + root)*aw*w"
+    - "B3r = O - L*u + (0.6 + tip)*aw*w"
+    - "C3 = O + 0.6*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "l1 = A1l, cross(p, B1l - A1l), C1"
+    - "r1 = A1r, cross(p, B1r - A1r), C1"
+    - "l2 = A2l, cross(p, B2l - A2l), C2"
+    - "r2 = A2r, cross(p, B2r - A2r), C2"
+    - "l3 = A3l, cross(p, B3l - A3l), C3"
+    - "r3 = A3r, cross(p, B3r - A3r), C3"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a l1; a_end shoulder_a r1 l2; a_end shoulder_a r2 l3; a_end shoulder_a r3"
+    - "B2 b_end f2 -l1 -r1; b_end f2 -l2 -r2; b_end f2 -l3 -r3"
+  insertions:
+    - "-p"
