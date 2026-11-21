@@ -175,7 +175,7 @@ static void library() {
         // stands 65 m from the origin, as in the gallery, where a sliver's normal is noisiest
         check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} and {} faces, a face per triangle", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
-            check(shared(*part, *member) < 1.0 && shared(*part, *carrier) < 1.0, fmt::format("library: {} at {}, its {} shares wood", design, angle, part->name));
+            check(shared(*part, *member) < 1.0 && shared(*part, *carrier) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with the member and {} with the carrier", design, angle, part->name, shared(*part, *member), shared(*part, *carrier)));
         const AssemblySequence sequence(scene, carrier->name);
         check(sequence.locked().empty() && sequence.steps().size() == 2 + joint->parts.size(), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
         }
