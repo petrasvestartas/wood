@@ -22,6 +22,7 @@
 #               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
@@ -812,3 +813,55 @@ pegged_two_way_lapped_rod_tenon_housing:
   insertions:
     - "-u"
     - "c = n"
+
+two_way_splined_rod_keys_peg:
+  title: "Two-way splined rod joint with tapered keys and a peg"
+  german: "durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung"
+  page: "762"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "long = 0.6"
+    - "thin = 0.3"
+    - "into = 0.8"
+    - "peg = 0.08"
+    - "key = 0.08"
+  points:
+    - "S = O + n"
+    - "E = O + 1.5*into*bh*n"
+    - "SP0 = O + 2*bh*n"
+    - "SP1 = O - 4*bh*n"
+    - "KA = O + 1.4*bh*n"
+    - "KC = O - 3.4*bh*n"
+    - "PG = O - bh*n"
+  planes:
+    - "shoulder = O, n, S"
+    - "into_end = O + into*bh*n, n, O"
+    - "tl1 = O + long*bw*t, t, O"
+    - "tl2 = O - long*bw*t, t, O"
+    - "tw1 = O + thin*aw*w, w, O"
+    - "tw2 = O - thin*aw*w, w, O"
+    - "c_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 -60, 0 0 -600, 0 1 0, 60, 60"
+  parts:
+    - "spline = SP0, SP1, w, long*bw, thin*aw, thin*aw, none"
+    - "key_a = KA - 1.3*aw*w, KA + 1.3*aw*w, n, key*bh, 0.3*thin*aw + 0.45*long*bw, 0.3*long*bw"
+    - "key_c = KC - 1.3*aw*w, KC + 1.3*aw*w, n, key*bh, 0.45*long*bw, 0.3*long*bw"
+    - "peg = PG + 0.4*long*bw*t + 1.3*aw*w, PG + 0.4*long*bw*t - 1.3*aw*w, n, peg*aw"
+  steps:
+    - "A2 a_end shoulder"
+    - "A3 spline; key_a"
+    - "B2 spline; peg"
+    - "C2 c c_shoulder"
+    - "C3 spline; key_c"
+    - "P1 key_a; key_c; peg"
+  insertions:
+    - "-u"
+    - "c = n"
+    - "spline = -u"
+    - "key_a = w"
+    - "key_c = w"
+    - "peg = w"

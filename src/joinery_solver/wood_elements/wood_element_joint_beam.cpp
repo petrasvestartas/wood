@@ -2936,6 +2936,11 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             regions.push_back(removal);
         }
         step.removal = shells_side_by_side(regions);
+        // a step labelled P cuts the parts: a key's hole through a spline, each part keeping what another part's box leaves of it
+        if (step.label[0] == 'P') {
+            joint->solid_features.push_back(InteractionFeatureSolid(step.removal, SolidOperation::subtract));
+            continue;
+        }
         joint->steps.push_back(step);
     }
 
