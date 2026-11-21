@@ -3358,3 +3358,33 @@ four_faced_gooseneck_splice:
     - "B2 b_end hend -neck_1 -neck_2; b_end f2 -hend -flank_1 -flank_2"
   insertions:
     - "-D1"
+
+tapered_dovetail_mitered_shoulders_splice:
+  title: "Tapered dovetail tenon joint with mitered shoulders"
+  german: "Stoß mit Gratschnitt und keilförmigen Schwalbenschwanzzapfen"
+  page: "240"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.6"
+    - "root = 0.2"
+    - "tip = 0.38"
+    - "taper = 0.15"
+  points:
+    - "R1 = O + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = O - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+  planes:
+    - "v1 = O, cross(p, L*u + aw*w), O + L*u"
+    - "v2 = O, cross(p, L*u - aw*w), O + L*u"
+    - "fl_1 = R1, cross(p + taper*w, T1 - R1), O"
+    - "fl_2 = R2, cross(p - taper*w, T2 - R2), O"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end v1 fl_1; a_end v1 fl_2; a_end v2 fl_1; a_end v2 fl_2"
+    - "B2 b_end -v1 -v2; b_end f2 -fl_1 -fl_2"
+  insertions:
+    - "-p"
