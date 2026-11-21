@@ -420,6 +420,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_fully_shouldered_blind_mortise_tenon.png) | **Fully shouldered blind mortise and tenon**<br>verdeckter beidseitig abgesetzter Zapfen, p. 576<br>`fully_shouldered_blind_mortise_tenon` |
 | ![](joint_library/beam_post_stub_tenon_slot_mortise_splice.png) | **Post with stub tenon and open slot mortise and tenon**<br>abgesetzter Zapfenstoß auf verdecktem Zapfen, p. 578<br>`post_stub_tenon_slot_mortise_splice` |
 | ![](joint_library/beam_post_stub_tenon_lapped_splice.png) | **Post with stub tenon and lapped mortise and tenon**<br>gerades Blatt mit Zapfen auf verdecktem Zapfen, p. 580<br>`post_stub_tenon_lapped_splice` |
+| ![](joint_library/beam_right_angle_spline_tenon_tapered_key.png) | **Right-angle joint with dovetailed spline tenon and tapered key**<br>Stoß mit Führungszapfen und eingesetztem Schwalbenschwanzzapfen mit Spannkeil, p. 538<br>`right_angle_spline_tenon_tapered_key` |
+| ![](joint_library/beam_housed_right_angle_spline_tenon_keys_peg.png) | **Housed right-angle joint with spline tenon, tapered keys, and peg**<br>eingelassener stumpfer Stoß mit eingesetztem Zapfen und Dübelsicherung sowie Spannkeilen, p. 540<br>`housed_right_angle_spline_tenon_keys_peg` |
 <!-- /joint-table -->
 
 ## Library

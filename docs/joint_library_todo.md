@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 19 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 17 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 4 left of 110
 
@@ -16,10 +16,8 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 364, Canvas stretcher (Keilrahmen)
 - p. 404, Kawai joint (diagonal angeschnittener Eckstoß mit dreifacher polyedrischer Ausstemmung)
 
-## Timber T-joints: 3 left of 82
+## Timber T-joints: 1 left of 82
 
-- p. 538, Right-angle joint with dovetailed spline tenon and tapered key (Stoß mit Führungszapfen und eingesetztem Schwalbenschwanzzapfen mit Spannkeil)
-- p. 540, Housed right-angle joint with spline tenon, tapered keys, and peg (eingelassener stumpfer Stoß mit eingesetztem Zapfen und Dübelsicherung sowie Spannkeilen)
 - p. 568, Rising dovetail joint (schräg angeschnittener schräg abgesetzter Schwalbenschwanzzapfen)
 
 ## Timber angled joints: 0 left of 31

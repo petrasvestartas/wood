@@ -2510,3 +2510,77 @@ post_stub_tenon_lapped_splice:
   insertions:
     - "-p"
     - "c = p"
+
+right_angle_spline_tenon_tapered_key:
+  title: "Right-angle joint with dovetailed spline tenon and tapered key"
+  german: "Stoß mit Führungszapfen und eingesetztem Schwalbenschwanzzapfen mit Spannkeil"
+  page: "538"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "thin = 0.3"
+    - "wide = 0.5"
+    - "into_a = 1.5"
+    - "into_b = 1.4"
+    - "key = 0.08"
+  points:
+    - "S = O + n"
+    - "E = O + 2*into_a*ah*n"
+    - "KB = O - 1.2*bh*n"
+  planes:
+    - "shoulder = O, n, S"
+  parts:
+    - "spline = O + into_a*ah*u, O - into_b*bh*n, w, thin*aw, wide*ah, wide*ah, none"
+    - "key = KB + 1.4*aw*w, KB - 1.4*aw*w, n, key*bh, 0.6*wide*ah, 0.45*wide*ah"
+  steps:
+    - "A2 a_end shoulder"
+    - "A3 spline"
+    - "B2 spline; key"
+    - "P1 key"
+  insertions:
+    - "-u"
+    - "spline = -u"
+    - "key = -w"
+
+housed_right_angle_spline_tenon_keys_peg:
+  title: "Housed right-angle joint with spline tenon, tapered keys, and peg"
+  german: "eingelassener stumpfer Stoß mit eingesetztem Zapfen und Dübelsicherung sowie Spannkeilen"
+  page: "540"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "thin = 0.3"
+    - "wide = 0.5"
+    - "into_a = 1.5"
+    - "into_b = 1.4"
+    - "house = 0.15"
+    - "key = 0.08"
+    - "peg = 0.08"
+  points:
+    - "S = O + n"
+    - "H = O - 2*house*bh*n"
+    - "KB = O - 1.2*bh*n"
+    - "PA = O + 1.0*ah*n"
+  planes:
+    - "house_floor = H, n, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "w1 = O + aw*w, w, O"
+    - "w2 = O - aw*w, w, O"
+  parts:
+    - "spline = H + into_a*ah*u, O - into_b*bh*n, w, thin*aw, wide*ah, wide*ah, none"
+    - "key = KB + 1.4*aw*w, KB - 1.4*aw*w, n, key*bh, 0.6*wide*ah, 0.45*wide*ah"
+    - "peg = PA + 1.3*aw*w, PA - 1.3*aw*w, n, peg*ah"
+  steps:
+    - "A2 a_end house_floor"
+    - "A3 spline; peg"
+    - "B2 b_node -house_floor -side_1 -side_2 -w1 -w2"
+    - "B3 spline; key"
+    - "P1 key; peg"
+  insertions:
+    - "-u"
+    - "spline = -u"
+    - "key = -w"
+    - "peg = -w"
