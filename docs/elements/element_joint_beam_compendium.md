@@ -68,6 +68,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_splined_miter_case_corner.png) | **Splined miter joint**<br>Eckverbindung auf Gehrung mit eingesetzter Feder, p. 824<br>`splined_miter_case_corner` |
 | ![](joint_library/beam_miter_spline_keys_case_corner.png) | **Miter joint with spline keys**<br>Eckverbindung auf Gehrung mit eingesetzten Federn, p. 826<br>`miter_spline_keys_case_corner` |
 | ![](joint_library/beam_finger_case_corner.png) | **Finger joint**<br>Eckverbindung mit Fingerzinken, p. 830<br>`finger_case_corner` |
+| ![](joint_library/beam_through_dovetail_case_corner.png) | **Through dovetail joint**<br>Schwalbenschwanzzinken, p. 832<br>`through_dovetail_case_corner` |
+| ![](joint_library/beam_half_blind_dovetail_case_corner.png) | **Half-blind dovetail joint**<br>halbverdeckte Schwalbenschwanzzinken, p. 834<br>`half_blind_dovetail_case_corner` |
 | ![](joint_library/beam_shiplap_edge.png) | **Shiplap joint**<br>Überfälzung, p. 768<br>`shiplap_edge` |
 | ![](joint_library/beam_v_grooved_edge.png) | **V-grooved joint**<br>v-förmige Nut, p. 770<br>`v_grooved_edge` |
 | ![](joint_library/beam_tongue_groove_edge.png) | **Tongue and groove joint**<br>Nut und Feder, p. 772<br>`tongue_groove_edge` |
