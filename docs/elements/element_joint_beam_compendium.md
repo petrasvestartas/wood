@@ -135,6 +135,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_square_stub_tenon_splice.png) | **Blind square stub tenon joint**<br>verdeckter beidseitig abgesetzter Zapfen, p. 202<br>`blind_square_stub_tenon_splice` |
 | ![](joint_library/beam_x_shaped_tenon_splice.png) | **X-shaped tenon joint**<br>Kreuzzapfen, p. 212<br>`x_shaped_tenon_splice` |
 | ![](joint_library/beam_cross_shaped_stub_tenon_splice.png) | **Cross-shaped stub tenon joint**<br>kreuzförmiger Zapfen, p. 216<br>`cross_shaped_stub_tenon_splice` |
+| ![](joint_library/beam_dovetail_tenon_splice.png) | **Dovetail tenon joint**<br>Schwalbenschwanzzapfen, p. 220<br>`dovetail_tenon_splice` |
+| ![](joint_library/beam_butt_floating_butterfly_tenon_splice.png) | **Butt joint with floating butterfly tenon**<br>eingesetzter Schwalbenschwanzzapfen, p. 230<br>`butt_floating_butterfly_tenon_splice` |
+| ![](joint_library/beam_butt_butterfly_key_splice.png) | **Butt joint with butterfly key**<br>Schwalbenschwanzeinlage, p. 232<br>`butt_butterfly_key_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

@@ -1107,3 +1107,87 @@ cross_shaped_stub_tenon_splice:
     - "B2 b_end f2 -cheek_1 -cheek_2; b_end f2 -edge_1 -edge_2"
   insertions:
     - "-u"
+
+dovetail_tenon_splice:
+  title: "Dovetail tenon joint"
+  german: "Schwalbenschwanzzapfen"
+  page: "220"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "root = 0.23"
+    - "tip = 0.61"
+  points:
+    - "R1 = O + L*u + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = O + L*u - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "flank_1 = R1, cross(p, T1 - R1), O"
+    - "flank_2 = R2, cross(p, T2 - R2), O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a flank_1; a_end shoulder_a flank_2"
+    - "B2 b_end f2 -flank_1 -flank_2"
+  insertions:
+    - "-p"
+
+butt_floating_butterfly_tenon_splice:
+  title: "Butt joint with floating butterfly tenon"
+  german: "eingesetzter Schwalbenschwanzzapfen"
+  page: "230"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "wing = 0.67"
+    - "waist = 0.24"
+    - "flare = 0.6"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+  parts:
+    - "wing_1 = O, O + wing*ah*u, p, ah, waist*aw, flare*aw, none"
+    - "wing_2 = O, O - wing*ah*u, p, ah, waist*aw, flare*aw, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 wing_1; wing_2"
+    - "B2 wing_1; wing_2"
+  insertions:
+    - "-u"
+    - "wing_1 = -p"
+    - "wing_2 = -p"
+
+butt_butterfly_key_splice:
+  title: "Butt joint with butterfly key"
+  german: "Schwalbenschwanzeinlage"
+  page: "232"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "wing = 0.67"
+    - "waist = 0.24"
+    - "flare = 0.6"
+    - "depth = 0.5"
+  points:
+    - "K = O + (1 - depth)*ah*p"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+  parts:
+    - "wing_1 = K, K + wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
+    - "wing_2 = K, K - wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 wing_1; wing_2"
+    - "B2 wing_1; wing_2"
+  insertions:
+    - "-u"
+    - "wing_1 = -p"
+    - "wing_2 = -p"
