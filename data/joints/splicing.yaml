@@ -3169,3 +3169,36 @@ half_blind_l_stub_tenon_splice:
     - "B2 b_end f2 pa wl; b_end f2 wa pl"
   insertions:
     - "-u"
+
+stop_splayed_scarf_hidden_hook:
+  title: "Stop-splayed scarf joint with hidden hook"
+  german: "schräges Blatt mit verdecktem Haken"
+  page: "136"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "band = 0.4"
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "sb1 = O + band*aw*w, w, O"
+    - "sb2 = O - band*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end -upper shoulder_a cut -sb1 -sb2; a_end -splay shoulder_a -cut; a_end -splay shoulder_a cut sb1; a_end -splay shoulder_a cut sb2"
+    - "B2 b_end upper shoulder_b cut -sb1 -sb2; b_end splay shoulder_b -cut; b_end splay shoulder_b cut sb1; b_end splay shoulder_b cut sb2"
+  insertions:
+    - "p"
