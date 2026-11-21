@@ -386,3 +386,56 @@ twice_pegged_undersquinted_spear_point_half_lap_splice:
     - "B3 peg_1; peg_2"
   insertions:
     - "-u"
+
+stop_splayed_scarf:
+  title: "Stop-splayed scarf joint"
+  german: "schräges Blatt"
+  page: "114"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end splay shoulder_a"
+    - "B2 b_end -splay shoulder_b"
+  insertions:
+    - "-p"
+
+undersquinted_stop_splayed_scarf:
+  title: "Undersquinted stop-splayed scarf joint"
+  german: "schräges Blatt mit schräger Brüstung"
+  page: "116"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "squint = 0.2"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "E1 = O + (L - squint*ah)*u - ah*p"
+    - "E2 = O + L*u + stop*ah*p"
+    - "F1 = O - (L - squint*ah)*u + ah*p"
+    - "F2 = O - L*u - stop*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "low_face = E1, cross(w, E2 - E1), O"
+    - "up_face = F1, cross(w, F2 - F1), O"
+  parts:
+  steps:
+    - "A2 a_end splay -low_face; a_end -splay up_face"
+    - "B2 b_end -splay -up_face; b_end splay low_face"
+  insertions:
+    - "w"
