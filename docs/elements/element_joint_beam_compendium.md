@@ -104,6 +104,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_twice_pegged_undersquinted_half_lap_splice.png) | **Pegged undersquinted half lap joint**<br>gerades Blatt mit hinterschnittener Brüstung und zweifacher Dübelsicherung, p. 60<br>`twice_pegged_undersquinted_half_lap_splice` |
 | ![](joint_library/beam_spear_point_half_lap_splice.png) | **Spear point half lap joint**<br>gerades Blatt mit Gratschnitt, p. 62<br>`spear_point_half_lap_splice` |
 | ![](joint_library/beam_beveled_spear_point_lap_splice.png) | **Beveled spear point lap joint**<br>Zugblatt mit Gratschnitt, p. 64<br>`beveled_spear_point_lap_splice` |
+| ![](joint_library/beam_undersquinted_spear_point_half_lap_splice.png) | **Undersquinted spear point half lap joint**<br>gerades Blatt mit schrägem Gratschnitt, p. 66<br>`undersquinted_spear_point_half_lap_splice` |
+| ![](joint_library/beam_cogged_lap_splice.png) | **Cogged lap joint**<br>gerades Hakenblatt, p. 72<br>`cogged_lap_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
