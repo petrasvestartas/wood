@@ -103,21 +103,18 @@ dado_tongue_breadboard:
     - "carrier_wide = 30"
     - "flat = 1"
     - "span = 150"
-    - "tongue = 0.5"
-    - "depth = 0.5"
+    - "tongue = 0.33"
+    - "groove = 0.7"
   points:
-    - "U = O + n"
   planes:
-    - "shoulder = O, n, U"
-    - "edge_1 = O + ah*p, p, O"
-    - "edge_2 = O - ah*p, p, O"
-    - "end = O - 2*depth*bh*n, n, O"
-    - "c1 = O + (1 - 2*tongue)*aw*w, w, O"
-    - "side_2 = O - aw*w, w, O"
+    - "top = O, n, O - n"
+    - "shoulder = O - groove*aw*n, n, O"
+    - "c1 = O + tongue*aw*w, w, O"
+    - "c2 = O - tongue*aw*w, w, O"
   parts:
   steps:
-    - "A2 a_end end; a_end shoulder c1"
-    - "B2 b_node -end -c1 -side_2 -edge_1 -edge_2"
+    - "A2 a_end shoulder; a_end -top -c1 -c2"
+    - "B2 b_node -shoulder c1; b_node -shoulder c2"
   insertions:
     - "-u"
 
@@ -169,7 +166,7 @@ haunched_mortise_tenon_breadboard:
     - "span = 150"
     - "tongue = 0.33"
     - "haunch = 0.25"
-    - "depth = 0.75"
+    - "depth = 1.0"
     - "tenon = 0.2"
   points:
     - "U = O + n"
@@ -188,7 +185,7 @@ haunched_mortise_tenon_breadboard:
   parts:
   steps:
     - "A2 a_end end; a_end shoulder c1; a_end shoulder c2; a_end haunch_end -end t1; a_end haunch_end -end -t2 -t3; a_end haunch_end -end t4"
-    - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -end -c1 -c2 -t1 t2; b_node -end -c1 -c2 t3 -t4"
+    - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -c1 -c2 -t1 t2; b_node -c1 -c2 t3 -t4"
   insertions:
     - "-u"
 
@@ -303,22 +300,22 @@ halved_splayed_end:
   parameters:
     - "stock_thick = 12"
     - "stock_wide = 150"
-    - "lap = 6"
+    - "lap = 12"
   points:
-    - "SA1 = O + L*u + aw*w"
-    - "SA2 = O - aw*w"
-    - "SB1 = O + aw*w"
-    - "SB2 = O - L*u - aw*w"
+    - "P1 = O - L*u - aw*w"
+    - "P2 = O + L*u + aw*w"
+    - "Q1 = O - L*u + aw*w"
+    - "Q2 = O + L*u - aw*w"
   planes:
     - "mid = O, p, O + p"
-    - "sa = SA1, cross(p, SA2 - SA1), O - L*u"
-    - "sb = SB1, cross(p, SB2 - SB1), O + L*u"
+    - "d1 = P1, cross(p, P2 - P1), Q2"
+    - "d2 = Q1, cross(p, Q2 - Q1), P2"
   parts:
   steps:
-    - "A2 a_end sb; a_end -sb -sa mid"
-    - "B2 b_end sa; b_end -sa -sb -mid"
+    - "A2 a_end d1 d2; a_end -mid d1; a_end mid d2"
+    - "B2 b_end -d1 -d2; b_end -mid -d1; b_end mid -d2"
   insertions:
-    - "-p"
+    - "-u"
 
 wedged_haunched_tenon_breadboard:
   title: "Wedged and haunched tenon breadboard end"
@@ -338,35 +335,36 @@ wedged_haunched_tenon_breadboard:
     - "haunch = 0.25"
     - "depth = 1.0"
     - "slack = 0.08"
-    - "tenon = 0.2"
+    - "tenon = 0.33"
+  more:
+    - "c = -75 0 -30, -75 0 330, 0 1 0, 12, 75"
   points:
     - "U = O + n"
-    - "F1 = O - 2*bh*n + (0.5 + tenon + slack/2)*ah*p"
-    - "F2 = O - 2*bh*n - (0.5 + tenon + slack/2)*ah*p"
-    - "N1 = O - 2*haunch*bh*n + (0.5 + tenon + slack/2)*ah*p"
-    - "N2 = O - 2*haunch*bh*n - (0.5 + tenon + slack/2)*ah*p"
+    - "F1 = O - 2*bh*n + (tenon + slack/2)*ah*p"
+    - "F2 = O - 2*bh*n - (tenon + slack/2)*ah*p"
+    - "N1 = O - 2*haunch*bh*n + (tenon + slack/2)*ah*p"
+    - "N2 = O - 2*haunch*bh*n - (tenon + slack/2)*ah*p"
   planes:
     - "shoulder = O, n, U"
+    - "seam = O, p, O + p"
     - "edge_1 = O + ah*p, p, O"
     - "edge_2 = O - ah*p, p, O"
     - "haunch_end = O - 2*haunch*bh*n, n, O"
     - "end = O - 2*depth*bh*n, n, O"
     - "c1 = O + tongue*aw*w, w, O"
     - "c2 = O - tongue*aw*w, w, O"
-    - "t1 = O + (0.5 + tenon)*ah*p, p, O"
-    - "t2 = O + (0.5 - tenon)*ah*p, p, O"
-    - "t3 = O - (0.5 - tenon)*ah*p, p, O"
-    - "t4 = O - (0.5 + tenon)*ah*p, p, O"
-    - "m1 = O + (0.5 + tenon + slack)*ah*p, p, O"
-    - "m4 = O - (0.5 + tenon + slack)*ah*p, p, O"
+    - "t1 = O + tenon*ah*p, p, O"
+    - "t2 = O - tenon*ah*p, p, O"
   parts:
     - "wedge_1 = F1, N1, w, tongue*aw, slack*ah/2, 0.01*ah, start"
     - "wedge_2 = F2, N2, w, tongue*aw, slack*ah/2, 0.01*ah, start"
   steps:
-    - "A2 a_end end; a_end shoulder c1; a_end shoulder c2; a_end haunch_end -end t1; a_end haunch_end -end -t2 -t3; a_end haunch_end -end t4"
-    - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -end -c1 -c2 -t1 t2; b_node -end -c1 -c2 t3 -t4"
+    - "A2 a_all seam; a_end end; a_end shoulder c1; a_end shoulder c2; a_end haunch_end -end t1"
+    - "C2 c end; c shoulder c1; c shoulder c2; c haunch_end -end t2"
+    - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -c1 -c2 -t1 -t2"
     - "B3 wedge_1; wedge_2"
   insertions:
     - "-u"
+    - "c = -u"
     - "wedge_1 = n"
     - "wedge_2 = n"

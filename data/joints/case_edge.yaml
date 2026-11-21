@@ -172,25 +172,28 @@ butterfly_key_edge:
     - "stock_wide = 150"
     - "lap = 0.1"
     - "depth = 0.5"
-    - "wing = 5"
-    - "waist = 0.06"
-    - "flare = 0.22"
+    - "wing = 4"
+    - "waist = 0.07"
+    - "flare = 0.21"
   points:
-    - "K = O + (1 - depth)*ah*p"
+    - "S = O + L*u + ah*p"
+    - "K1 = S + wing*ah*u + flare*aw*w"
+    - "K2 = S + waist*aw*w"
+    - "K3 = S - wing*ah*u + flare*aw*w"
+    - "K4 = S - wing*ah*u - flare*aw*w"
+    - "K5 = S - waist*aw*w"
+    - "K6 = S + wing*ah*u - flare*aw*w"
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
-    - "f2 = O - L*u, u, O - 2*L*u"
   parts:
-    - "wing_1 = K, K + wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
-    - "wing_2 = K, K - wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
+    - "key = K1 K2 K3 K4 K5 K6, -2*depth*ah*p, start"
   steps:
     - "A2 a_end shoulder_a"
-    - "A3 wing_1; wing_2"
-    - "B2 wing_1; wing_2"
+    - "A3 key"
+    - "B2 key"
   insertions:
     - "-u"
-    - "wing_1 = -p"
-    - "wing_2 = -p"
+    - "key = -p"
 
 tongued_rabbeted_edge:
   title: "Tongued and rabbeted joint"
@@ -274,6 +277,8 @@ sliding_dovetail_batten:
     - "sit = 0.4"
     - "top = 0.6"
     - "foot = 0.85"
+  more:
+    - "c = -100 -200 0, -100 200 0, 0 0 1, 12, 100"
   points:
     - "U = O + n"
     - "D = R - ah*p"
@@ -286,12 +291,15 @@ sliding_dovetail_batten:
     - "under = R - ah*p, p, R"
     - "flank_1 = A1, cross(t, B1 - A1), O"
     - "flank_2 = A2, cross(t, B2 - A2), O"
+    - "seam = O, u, O + u"
   parts:
   steps:
     - "A2 a_node top flank_1; a_node top flank_2"
-    - "B2 b_node top -under -flank_1 -flank_2"
+    - "B2 b_all seam; b_node top -under -flank_1 -flank_2"
+    - "C2 c top -under -flank_1 -flank_2"
   insertions:
     - "t"
+    - "c = -n"
 
 floating_tenon_spline_edge:
   title: "Floating tenon and spline joint"
@@ -391,19 +399,28 @@ foxtail_wedged_floating_tenon_edge:
     - "tenon = 0.33"
     - "reach = 2.5"
     - "width = 0.25"
-    - "fox = 0.05"
+    - "fox = 0.02"
   points:
+    - "C = O + L*u"
+    - "S = C - tenon*ah*p"
+    - "H1 = S + reach*ah*u + (width + 2*fox)*aw*w"
+    - "H2 = S + width*aw*w"
+    - "H3 = S - reach*ah*u + (width + 2*fox)*aw*w"
+    - "H4 = S - reach*ah*u - (width + 2*fox)*aw*w"
+    - "H5 = S - width*aw*w"
+    - "H6 = S + reach*ah*u - (width + 2*fox)*aw*w"
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
-    - "f2 = O - L*u, u, O - 2*L*u"
   parts:
-    - "tenon = O + reach*ah*u, O - reach*ah*u, p, tenon*ah, width*aw, width*aw, none"
-    - "wedge_a = O + (reach*ah - 0.5)*u, O + 0.5*reach*ah*u, p, tenon*ah, fox*aw, 0.01*aw, none"
-    - "wedge_b = O - (reach*ah - 0.5)*u, O - 0.5*reach*ah*u, p, tenon*ah, fox*aw, 0.01*aw, none"
+    - "tenon = H1 H2 H3 H4 H5 H6, 2*tenon*ah*p, none"
+    - "wedge_a1 = C + (reach*ah - 0.5)*u + width*aw/3*w, C + 0.5*reach*ah*u + width*aw/3*w, p, tenon*ah, fox*aw, 0.01*aw, none"
+    - "wedge_a2 = C + (reach*ah - 0.5)*u - width*aw/3*w, C + 0.5*reach*ah*u - width*aw/3*w, p, tenon*ah, fox*aw, 0.01*aw, none"
+    - "wedge_b1 = C - (reach*ah - 0.5)*u + width*aw/3*w, C - 0.5*reach*ah*u + width*aw/3*w, p, tenon*ah, fox*aw, 0.01*aw, none"
+    - "wedge_b2 = C - (reach*ah - 0.5)*u - width*aw/3*w, C - 0.5*reach*ah*u - width*aw/3*w, p, tenon*ah, fox*aw, 0.01*aw, none"
   steps:
     - "A2 a_end shoulder_a"
     - "A3 tenon"
-    - "P1 wedge_a; wedge_b"
+    - "P1 wedge_a1; wedge_a2; wedge_b1; wedge_b2"
     - "B2 tenon"
   insertions:
     - "-u"

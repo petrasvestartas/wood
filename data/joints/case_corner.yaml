@@ -66,21 +66,19 @@ dado_rabbet_case_corner:
   parameters:
     - "stock_thick = 12"
     - "stock_wide = 150"
-    - "tongue = 0.33"
+    - "tongue = 0.5"
     - "depth = 0.5"
   points:
     - "U = O + n"
   planes:
-    - "bottom = O - 2*bh*n, n, O"
     - "shoulder = O, n, U"
-    - "side_1 = O + ah*p, p, O"
     - "side_2 = O - ah*p, p, O"
     - "tongue_end = O - 2*depth*bh*n, n, O"
-    - "tongue_top = O + (1 - 2*tongue)*ah*p, p, O + ah*p"
+    - "split = O + (2*tongue - 1)*ah*p, p, O - ah*p"
   parts:
   steps:
-    - "A2 a_end tongue_end; a_end shoulder tongue_top"
-    - "B2 b_node -tongue_top -tongue_end -side_2"
+    - "A2 a_end tongue_end; a_end shoulder split"
+    - "B2 b_node -tongue_end -split -side_2"
   insertions:
     - "-u"
 
@@ -94,7 +92,7 @@ splined_miter_case_corner:
   parameters:
     - "stock_thick = 12"
     - "stock_wide = 150"
-    - "spline = 0.15"
+    - "spline = 0.25"
     - "reach = 0.3"
   points:
     - "U = O + n"
@@ -110,7 +108,7 @@ splined_miter_case_corner:
     - "side_2 = O - ah*p, p, O"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
   parts:
-    - "spline = M - (aw + 2)*w, M + (aw + 2)*w, A, spline*ah, reach*length(I - X), reach*length(I - X), none"
+    - "spline = M - (aw + 2)*w, M + (aw + 2)*w, D, spline*ah, reach*length(I - X), reach*length(I - X), none"
   steps:
     - "A2 a_end miter"
     - "A3 spline"
@@ -293,17 +291,19 @@ mitered_rabbet_case_corner:
   parameters:
     - "stock_thick = 12"
     - "stock_wide = 150"
-    - "depth = 0.7"
+    - "depth = 0.67"
+    - "lip = 0.33"
   points:
-    - "M1 = O - ah*p - 2*depth*bh*n"
-    - "M2 = O + ah*p - 2*bh*n"
+    - "M1 = O + (1 - 2*lip)*ah*p - 2*depth*bh*n"
+    - "X = O + ah*p - 2*bh*n"
   planes:
     - "side_2 = O - ah*p, p, O"
-    - "miter = M1, cross(w, M2 - M1), O"
+    - "floor = M1, n, O"
+    - "miter = M1, cross(w, X - M1), O"
   parts:
   steps:
-    - "A2 a_end miter"
-    - "B2 b_node -miter -side_2"
+    - "A2 a_end floor miter"
+    - "B2 b_node -floor -side_2; b_node -miter -side_2"
   insertions:
     - "-u"
 
@@ -566,41 +566,37 @@ radial_dovetail_case_corner:
   parameters:
     - "stock_thick = 12"
     - "stock_wide = 150"
-    - "top = 0.12"
-    - "foot = 0.2"
-    - "depth = 1"
-    - "rad = 0.15"
+    - "slope = 1"
   points:
-    - "U = O + n"
-    - "D = O - 2*depth*bh*n"
-    - "A1l = O + (-0.6 - top)*aw*w"
-    - "B1l = D + (-0.6 - foot)*aw*w"
-    - "A1r = O + (-0.6 + top)*aw*w"
-    - "B1r = D + (-0.6 + foot)*aw*w"
-    - "C1 = (O + D)/2 + -0.6*aw*w"
-    - "A2l = O + (0.0 - top)*aw*w"
-    - "B2l = D + (0.0 - foot)*aw*w"
-    - "A2r = O + (0.0 + top)*aw*w"
-    - "B2r = D + (0.0 + foot)*aw*w"
-    - "C2 = (O + D)/2 + 0.0*aw*w"
-    - "A3l = O + (0.6 - top)*aw*w"
-    - "B3l = D + (0.6 - foot)*aw*w"
-    - "A3r = O + (0.6 + top)*aw*w"
-    - "B3r = D + (0.6 + foot)*aw*w"
-    - "C3 = (O + D)/2 + 0.6*aw*w"
+    - "M0 = O + 0.5*ah*p - 1.5*bh*n"
+    - "Q1 = M0 + (1/4 - 1)*aw*w"
+    - "Q2 = M0 + (2/4 - 1)*aw*w"
+    - "Q3 = M0 + (3/4 - 1)*aw*w"
+    - "Q4 = M0 + (4/4 - 1)*aw*w"
+    - "Q5 = M0 + (5/4 - 1)*aw*w"
+    - "Q6 = M0 + (6/4 - 1)*aw*w"
+    - "Q7 = M0 + (7/4 - 1)*aw*w"
   planes:
-    - "shoulder = O, n, U"
-    - "end = D, n, O"
-    - "inner = O - ah*p, p, O + p"
-    - "l1 = A1l, cross(p + rad*w, B1l - A1l), C1"
-    - "r1 = A1r, cross(p + rad*w, B1r - A1r), C1"
-    - "l2 = A2l, cross(p + rad*w, B2l - A2l), C2"
-    - "r2 = A2r, cross(p + rad*w, B2r - A2r), C2"
-    - "l3 = A3l, cross(p + rad*w, B3l - A3l), C3"
-    - "r3 = A3r, cross(p + rad*w, B3r - A3r), C3"
+    - "shoulder = O, n, O + n"
+    - "end = O - 2*bh*n, n, O"
+    - "inner = O - ah*p, p, O"
+    - "l1 = Q1, w - slope*unit(p - n), Q1 - 100*w"
+    - "r1 = Q1, w + slope*unit(p - n), Q1 - 100*w"
+    - "l2 = Q2, w - slope*unit(p - n), Q2 - 100*w"
+    - "r2 = Q2, w + slope*unit(p - n), Q2 - 100*w"
+    - "l3 = Q3, w - slope*unit(p - n), Q3 - 100*w"
+    - "r3 = Q3, w + slope*unit(p - n), Q3 - 100*w"
+    - "l4 = Q4, w - slope*unit(p - n), Q4 - 100*w"
+    - "r4 = Q4, w + slope*unit(p - n), Q4 - 100*w"
+    - "l5 = Q5, w - slope*unit(p - n), Q5 - 100*w"
+    - "r5 = Q5, w + slope*unit(p - n), Q5 - 100*w"
+    - "l6 = Q6, w - slope*unit(p - n), Q6 - 100*w"
+    - "r6 = Q6, w + slope*unit(p - n), Q6 - 100*w"
+    - "l7 = Q7, w - slope*unit(p - n), Q7 - 100*w"
+    - "r7 = Q7, w + slope*unit(p - n), Q7 - 100*w"
   parts:
   steps:
-    - "A2 a_end end; a_end shoulder l1; a_end shoulder r1 l2; a_end shoulder r2 l3; a_end shoulder r3"
-    - "B2 b_node -inner -end -l1 -r1; b_node -inner -end -l2 -r2; b_node -inner -end -l3 -r3"
+    - "A2 a_end end; a_end shoulder l1 r1 -l2; a_end shoulder l1 r1 -r2; a_end shoulder l3 r3 -l4; a_end shoulder l3 r3 -r4; a_end shoulder l5 r5 -l6; a_end shoulder l5 r5 -r6; a_end shoulder l7 r7"
+    - "B2 b_node -inner -l1; b_node -inner -r1; b_node -inner l2 r2 -l3; b_node -inner l2 r2 -r3; b_node -inner l4 r4 -l5; b_node -inner l4 r4 -r5; b_node -inner l6 r6 -l7; b_node -inner l6 r6 -r7"
   insertions:
-    - "-unit(p + rad*w)"
+    - "-unit(p + n)"
