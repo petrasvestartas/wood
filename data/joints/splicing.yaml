@@ -2471,3 +2471,43 @@ stepped_cogged_lap_floating_piece_splice:
   insertions:
     - "-u"
     - "piece = -w"
+
+butt_floating_gooseneck_tenon_splice:
+  title: "Butt joint with floating gooseneck tenon"
+  german: "Stoß mit eingesetztem Sichelzapfen"
+  page: "256"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "span = 1.6"
+    - "head = 0.4"
+    - "taper = 0.3"
+    - "head_wide = 0.45"
+    - "neck_wide = 0.2"
+  points:
+    - "B = O - ah*p"
+    - "K1 = B - span*ah*u - head_wide*aw*w"
+    - "K2 = B - (span - head)*ah*u - head_wide*aw*w"
+    - "K3 = B - (span - head - taper)*ah*u - neck_wide*aw*w"
+    - "K4 = B + (span - head - taper)*ah*u - neck_wide*aw*w"
+    - "K5 = B + (span - head)*ah*u - head_wide*aw*w"
+    - "K6 = B + span*ah*u - head_wide*aw*w"
+    - "K7 = B + span*ah*u + head_wide*aw*w"
+    - "K8 = B + (span - head)*ah*u + head_wide*aw*w"
+    - "K9 = B + (span - head - taper)*ah*u + neck_wide*aw*w"
+    - "K10 = B - (span - head - taper)*ah*u + neck_wide*aw*w"
+    - "K11 = B - (span - head)*ah*u + head_wide*aw*w"
+    - "K12 = B - span*ah*u + head_wide*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+  parts:
+    - "key = K1 K2 K3 K4 K5 K6 K7 K8 K9 K10 K11 K12, 2*ah*p"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 key"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = -p"
