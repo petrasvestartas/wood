@@ -531,3 +531,38 @@ undersquinted_stop_splayed_cogged_scarf:
     - "B3 b_end splay low_face"
   insertions:
     - "w"
+
+stop_splayed_scarf_stub_tenons:
+  title: "Stop-splayed scarf joint with stub tenons"
+  german: "schräges Blatt mit Brüstungszapfen"
+  page: "118"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3.2"
+    - "stop = 0.6"
+    - "stub = 0.3"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "M = L - stub*ah"
+    - "S1 = O - M*u - stop*ah*p"
+    - "S2 = O + M*u + stop*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + M*u, u, O + 2*L*u"
+    - "shoulder_b = O - M*u, u, O - 2*L*u"
+    - "tip_a = O - M*u, u, O"
+    - "tip_b = O + M*u, u, O"
+    - "deep_a = O + L*u, u, O"
+    - "deep_b = O - L*u, u, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end splay shoulder_a; a_end tip_a cheek_1; a_end tip_a cheek_2"
+    - "A3 a_end splay -shoulder_a -deep_a -cheek_1 -cheek_2"
+    - "B2 b_end -splay shoulder_b; b_end tip_b cheek_1; b_end tip_b cheek_2"
+    - "B3 b_end -splay -shoulder_b -deep_b -cheek_1 -cheek_2"
+  insertions:
+    - "-p"
