@@ -888,10 +888,10 @@ mitered_abutments_cross_lap:
     - "slope = 0.3"
   points:
     - "K = O - bh*n"
-    - "S1a = O - bh*n + bt*t"
-    - "S1b = O - 2*bh*n + (1 - slope)*bt*t"
-    - "S2a = O - bh*n - bt*t"
-    - "S2b = O - 2*bh*n - (1 - slope)*bt*t"
+    - "S1a = O - bh*n + (1 - slope)*bt*t"
+    - "S1b = O - 2*bh*n + bt*t"
+    - "S2a = O - bh*n - (1 - slope)*bt*t"
+    - "S2b = O - 2*bh*n - bt*t"
   planes:
     - "mid = O - bh*n, n, O"
     - "inner = O - bt*t, t, O - 2*bt*t"
