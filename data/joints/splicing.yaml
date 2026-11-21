@@ -2952,3 +2952,48 @@ undersquinted_spear_point_cogged_lap_folding_wedges_splice:
     - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut_b; b_end face_r end_1; b_end face_r end_2"
   insertions:
     - "-p"
+
+rabbeted_cogged_lap_stub_tenons_folding_wedges_splice:
+  title: "Rabbeted cogged lap joint with stub tenons and folding wedges"
+  german: "verkeiltes gerades Hakenblatt mit Steckfalz und Brüstungszapfen"
+  page: "110"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stub = 0.3"
+    - "band = 0.3"
+    - "gap = 0.16"
+    - "over = 20"
+    - "e = 0.12"
+    - "lap = 2.4"
+    - "lip = 0.38"
+    - "rabbet = 0.4"
+    - "cog = 0.18"
+  points:
+    - "W1 = O + ((-cog*ah) + (cog*ah))/2*p + (aw + over)*w"
+    - "W2 = O + ((-cog*ah) + (cog*ah))/2*p - (aw + over)*w"
+  planes:
+    - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
+    - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
+    - "m_l = O + cog*ah*p, p, O + 2*ah*p"
+    - "m_r = O - cog*ah*p, p, O + 2*ah*p"
+    - "lo_l = O + (cog - lip)*ah*p, p, O + 2*ah*p"
+    - "hi_r = O + (lip - cog)*ah*p, p, O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "tip_a = O - (L - stub*ah)*u, u, O + 2*L*u"
+    - "tip_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "sb1 = O + band*ah*p, p, O"
+    - "sb2 = O - band*ah*p, p, O"
+  parts:
+    - "wedge_1 = W1 + e*u, W2 + e*u, p, (((cog*ah)) - ((-cog*ah)))/2, gap*ah, e, both, u"
+    - "wedge_2 = W2 - e*u, W1 - e*u, p, (((cog*ah)) - ((-cog*ah)))/2, gap*ah, e, both, -u"
+  steps:
+    - "A2 a_end -m_l cut -tip_b; a_end -m_l cut tip_b -sb1 -sb2; a_end -m_r -cut_b e1 -tip_b; a_end -m_r -cut_b e1 tip_b -sb1 -sb2; a_end -m_r hi_r -e1 e2 -tip_b; a_end -m_r hi_r -e1 e2 tip_b -sb1 -sb2; a_end lo_l -f1 -tip_b; a_end lo_l -f1 tip_b -sb1 -sb2; a_end m_l -f2 -tip_b; a_end m_l -f2 tip_b -sb1 -sb2; a_end tip_a sb1; a_end tip_a sb2"
+    - "B2 b_end m_l f1 cut_a -tip_a; b_end m_l f1 cut_a tip_a -sb1 -sb2; b_end m_r -cut -tip_a; b_end m_r -cut tip_a -sb1 -sb2; b_end -lo_l m_l -f1 f2 -tip_a; b_end -lo_l m_l -f1 f2 tip_a -sb1 -sb2; b_end -hi_r -e1 -tip_a; b_end -hi_r -e1 tip_a -sb1 -sb2; b_end -m_r -e2 -tip_a; b_end -m_r -e2 tip_a -sb1 -sb2; b_end tip_b sb1; b_end tip_b sb2"
+  insertions:
+    - "w"
