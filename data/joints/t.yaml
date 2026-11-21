@@ -680,6 +680,44 @@ undersquinted_stopped_half_lap:
   insertions:
     - "w"
 
+housed_stop_mitered_mortise_tenon:
+  title: "Housed stop-mitered mortise and tenon"
+  german: "keilförmig eingelassener Zapfen"
+  page: "466"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "house = 0.33"
+    - "taper = 0.72"
+    - "tenon_width = 0.6"
+    - "tenon_height = 0.3333333333333333"
+    - "length = 0.67"
+  points:
+    - "U = O + n"
+    - "E1 = meet(O + ah*p, u, O, n)"
+    - "E2 = meet(O - ah*p, u, O, n)"
+    - "F1 = meet(O + taper*ah*p, u, O - 2*house*bh*n, n)"
+    - "F2 = meet(O - taper*ah*p, u, O - 2*house*bh*n, n)"
+  planes:
+    - "end = O - 2*length*bh*n, n, O"
+    - "house_end = O - 2*house*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter_1 = E1, cross(w, F1 - E1), O"
+    - "miter_2 = E2, cross(w, F2 - E2), O"
+    - "cheek_1 = O + tenon_height*aw*w, w, O"
+    - "cheek_2 = O - tenon_height*aw*w, w, O"
+    - "edge_1 = O + tenon_width*ah*p, p, O"
+    - "edge_2 = O - tenon_width*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end house_end cheek_1; a_end house_end cheek_2; a_end house_end edge_1; a_end house_end edge_2"
+    - "A3 a_end shoulder -house_end miter_1; a_end shoulder -house_end miter_2"
+    - "B2 b_node -house_end -miter_1 -miter_2"
+    - "B3 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"
