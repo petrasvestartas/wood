@@ -2026,6 +2026,47 @@ wedged_half_dovetailed_t_bridle:
   insertions:
     - "unit(D - B)"
 
+dovetail_t_bridle:
+  title: "Dovetail T-bridle joint"
+  german: "schwalbenschwanzförmige Einhälsung"
+  page: "564"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "slot = 0.5"
+    - "inside = 0.67"
+  points:
+    - "S = O + n"
+    - "A1 = O + ah*p + aw*w"
+    - "A2 = O + inside*ah*p + slot*aw*w"
+    - "B1 = O - ah*p + aw*w"
+    - "B2 = O - inside*ah*p + slot*aw*w"
+    - "C1 = O + ah*p - aw*w"
+    - "C2 = O + inside*ah*p - slot*aw*w"
+    - "D1 = O - ah*p - aw*w"
+    - "D2 = O - inside*ah*p - slot*aw*w"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "slot_1 = O + slot*aw*w, w, O + aw*w"
+    - "slot_2 = O - slot*aw*w, w, O - aw*w"
+    - "tine_1 = O + slot*aw*w, w, O"
+    - "tine_2 = O - slot*aw*w, w, O"
+    - "over_1 = O + 0.9*slot*aw*w, w, O"
+    - "over_2 = O - 0.9*slot*aw*w, w, O"
+    - "side_a = A1, cross(u, A2 - A1), O"
+    - "side_b = B1, cross(u, B2 - B1), O"
+    - "side_c = C1, cross(u, C2 - C1), O"
+    - "side_d = D1, cross(u, D2 - D1), O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder slot_1 slot_2; a_end shoulder over_1 side_a; a_end shoulder over_1 side_b; a_end shoulder over_2 side_c; a_end shoulder over_2 side_d"
+    - "B2 b_node tine_1 -side_a -side_b; b_node tine_2 -side_c -side_d"
+  insertions:
+    - "-u"
+
+
 
 double_lap_stub_tenon:
   title: "Double lap joint with stub tenon"
