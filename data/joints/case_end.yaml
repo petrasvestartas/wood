@@ -233,3 +233,86 @@ dovetail_end:
     - "B2 b_end f2 -l1 -r1; b_end f2 -l2 -r2; b_end f2 -l3 -r3"
   insertions:
     - "-p"
+
+dado_spline_end:
+  title: "Dado with spline"
+  german: "eingelassene Hirnleiste"
+  page: "802"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 4"
+    - "carrier_wide = 15"
+    - "flat = 1"
+    - "span = 150"
+  points:
+  planes:
+    - "shoulder = O, n, O + n"
+    - "far = O - 2*bh*n, n, O"
+    - "g1 = O + bw*w, w, O"
+    - "g2 = O - bw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end far; a_end shoulder -far -g1 -g2"
+  insertions:
+    - "-u"
+
+v_dado_spline_end:
+  title: "V-shaped dado with spline"
+  german: "eingelassene keilförmige Hirnleiste"
+  page: "800"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: ""
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 8"
+    - "carrier_wide = 15"
+    - "flat = 1"
+    - "span = 150"
+  points:
+    - "B1 = O - 2*bh*n + bw*w"
+    - "B2 = O - 2*bh*n - bw*w"
+  planes:
+    - "shoulder = O, n, O + n"
+    - "far = O - 2*bh*n, n, O"
+    - "v1 = O, cross(t, B1 - O), O - 2*bh*n"
+    - "v2 = O, cross(t, B2 - O), O - 2*bh*n"
+  parts:
+  steps:
+    - "A2 a_end far; a_end shoulder -far -v1 -v2"
+    - "B2 b_node v1; b_node v2"
+  insertions:
+    - "-u"
+
+halved_splayed_end:
+  title: "Halved splayed joint"
+  german: "schräg angeschnittene wechselseitige Überblattung"
+  page: "794"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 6"
+  points:
+    - "SA1 = O + L*u + aw*w"
+    - "SA2 = O - aw*w"
+    - "SB1 = O + aw*w"
+    - "SB2 = O - L*u - aw*w"
+  planes:
+    - "mid = O, p, O + p"
+    - "sa = SA1, cross(p, SA2 - SA1), O - L*u"
+    - "sb = SB1, cross(p, SB2 - SB1), O + L*u"
+  parts:
+  steps:
+    - "A2 a_end sb; a_end -sb -sa mid"
+    - "B2 b_end sa; b_end -sa -sb -mid"
+  insertions:
+    - "-p"
