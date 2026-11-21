@@ -2380,3 +2380,44 @@ two_half_rods_tapered_keys_splice:
     - "B3 key_a; key_b"
   insertions:
     - "-u"
+
+cogged_lap_floating_piece_splice:
+  title: "Cogged lap joint with floating piece"
+  german: "gerades Hakenblatt mit eingesetztem Hakenstück"
+  page: "90"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "span = 2.4"
+    - "cog = 0.8"
+    - "band = 0.6"
+    - "seat = 0.95"
+  points:
+    - "B = O - ah*p"
+    - "P1 = B - span*ah*u + aw*w"
+    - "P2 = B + span*ah*u + aw*w"
+    - "P3 = B + span*ah*u + (1 - band)*aw*w"
+    - "P4 = B + cog*ah*u + (1 - band)*aw*w"
+    - "P5 = B + cog*ah*u + (1 - seat)*aw*w"
+    - "P6 = B - cog*ah*u + (1 - seat)*aw*w"
+    - "P7 = B - cog*ah*u + (1 - band)*aw*w"
+    - "P8 = B - span*ah*u + (1 - band)*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "r1 = O + (1 - band)*aw*w, w, O"
+    - "r2 = O + (1 - seat)*aw*w, w, O"
+    - "s_a = O + span*ah*u, u, O"
+    - "c_a = O + cog*ah*u, u, O"
+    - "s_b = O - span*ah*u, u, O"
+    - "c_b = O - cog*ah*u, u, O"
+  parts:
+    - "piece = P1 P2 P3 P4 P5 P6 P7 P8, 2*ah*p"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 a_end r1 -s_a; a_end r2 -c_a"
+    - "B2 b_end r1 -s_b; b_end r2 -c_b"
+  insertions:
+    - "-u"
+    - "piece = -w"

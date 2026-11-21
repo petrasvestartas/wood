@@ -2826,6 +2826,35 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     for (const std::string& line : record.lists["parts"]) {
         const std::vector<std::string> pair = split_top(line, '=');
         const std::vector<std::string> terms = split_top(pair[1], ',');
+
+        // a prism: its section through three or more named points, swept along a vector; its hole runs past its open ends like a peg's
+        std::istringstream corners(terms[0]);
+        std::vector<Point> section;
+        std::string corner;
+        bool named = true;
+        while (corners >> corner) {
+            named = named && names.count(corner) > 0;
+            if (named)
+                section.push_back(origin + names.at(corner).vector);
+        }
+        if (named && section.size() >= 3) {
+            const Vector sweep = evaluate(terms[1], names).vector;
+            const Vector axis = sweep.normalized();
+            if (compute_newell(section).dot(axis) < 0.0)
+                std::reverse(section.begin(), section.end());
+            const std::string through = terms.size() > 2 ? terms[2] : "both";
+            const double before = through == "both" || through == "start" ? overshoot + 1.0 : 0.0;
+            const double after = through == "both" || through == "end" ? overshoot + 1.0 : 0.0;
+            const Polyline start_section = Polyline(section).closed();
+            const Polyline end_section = start_section.transformed(Xform::translation(sweep[0], sweep[1], sweep[2]));
+            joint->parts.push_back({start_section, end_section});
+            const Vector back = axis * -before;
+            const Vector out = sweep + axis * after;
+            boxes[pair[0]] = Mesh::loft({start_section.transformed(Xform::translation(back[0], back[1], back[2]))}, {start_section.transformed(Xform::translation(out[0], out[1], out[2]))}, true);
+            part_axes.push_back(axis);
+            continue;
+        }
+
         const Point start = origin + evaluate(terms[0], names).vector;
         const Point end = origin + evaluate(terms[1], names).vector;
         const Vector up = evaluate(terms[2], names).vector;
@@ -2878,6 +2907,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             tokens >> box;
             Mesh removal = boxes.count(box) ? boxes.at(box) : Mesh();
             while (tokens >> name) {
+                if (!planes.count(name[0] == '-' ? name.substr(1) : name))
+                    throw std::invalid_argument(fmt::format("{}: step {} names no plane {}", design, step.label, name));
                 const Plane& plane = planes.at(name[0] == '-' ? name.substr(1) : name);
                 const Plane cut = name[0] == '-' ? Plane::from_point_normal(plane.origin(), plane.z_axis() * -1.0) : plane;
                 step.planes.push_back(cut);
