@@ -118,6 +118,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.png) | **Triple-shouldered and sloped through mortise and tenon**<br>abgesetzter durchgehender schräger Eckzapfen, p. 316<br>`triple_shouldered_sloped_through_mortise_tenon` |
 | ![](joint_library/beam_dado_rabbet_corner.png) | **Dado and rabbet joint**<br>Eckstoß mit Führungszapfen, p. 326<br>`dado_rabbet_corner` |
 | ![](joint_library/beam_triple_shouldered_stub_tenon_corner.png) | **Triple-shouldered stub tenon**<br>verdeckter abgesetzter Eckzapfen, p. 398<br>`triple_shouldered_stub_tenon_corner` |
+| ![](joint_library/beam_through_single_dovetail_miter.png) | **Through single dovetail miter**<br>durchgehender Schwalbenschwanzzapfen mit Gehrungsstoß, p. 356<br>`through_single_dovetail_miter` |
+| ![](joint_library/beam_plain_miter_spline.png) | **Plain miter with spline**<br>Gehrungsstoß mit Federstäbchen, p. 338<br>`plain_miter_spline` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |

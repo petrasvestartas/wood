@@ -1089,3 +1089,63 @@ triple_shouldered_stub_tenon_corner:
     - "B2 b_node -edge -edge_2 -cheek_1 -cheek_2 -tenon_end"
   insertions:
     - "-u"
+
+through_single_dovetail_miter:
+  title: "Through single dovetail miter"
+  german: "durchgehender Schwalbenschwanzzapfen mit Gehrungsstoß"
+  page: "356"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "neck = 0.25"
+    - "flare = 0.45"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+    - "N1 = O - ah*p + neck*aw*w"
+    - "F1 = O + ah*p + flare*aw*w"
+    - "N2 = O - ah*p - neck*aw*w"
+    - "F2 = O + ah*p - flare*aw*w"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "flank_1 = N1, cross(u, F1 - N1), O"
+    - "flank_2 = N2, cross(u, F2 - N2), O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end flank_1 miter; a_end flank_2 miter; a_end shoulder -flank_1 -flank_2"
+    - "B2 b_node flank_1 -miter; b_node flank_2 -miter"
+  insertions:
+    - "-u"
+
+plain_miter_spline:
+  title: "Plain miter with spline"
+  german: "Gehrungsstoß mit Federstäbchen"
+  page: "338"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "spline = 0.1"
+    - "reach = 0.3"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "A = unit(cross(w, X - I))"
+    - "M = (I + X)/2"
+  planes:
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "spline = M - (aw + 2)*w, M + (aw + 2)*w, A, spline*ah, reach*length(I - X), reach*length(I - X), none"
+  steps:
+    - "A2 a_end miter"
+    - "A3 spline"
+    - "B2 b_node -miter"
+    - "B3 spline"
+  insertions:
+    - "-u"
+    - "spline = w"
