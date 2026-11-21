@@ -608,3 +608,81 @@ plain_miter_butterfly_key:
     - "-u"
     - "wing_1 = -w"
     - "wing_2 = -w"
+
+mitered_half_lap:
+  title: "Mitered half lap"
+  german: "Eckblatt auf Gehrung"
+  page: "346"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "mid = O, w, O - w"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end mid miter"
+    - "B2 b_node -mid -face_2; b_node mid -miter"
+  insertions:
+    - "w"
+
+blind_mitered_half_lap:
+  title: "Blind mitered half lap"
+  german: "verdecktes Eckblatt auf Gehrung"
+  page: "348"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "reach = 0.8"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "tip = O - 2*reach*bh*n, n, O"
+    - "mid = O, w, O - w"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end mid miter; a_end -mid miter tip"
+    - "B2 b_node mid -miter; b_node -mid -miter; b_node -mid -tip -face_2"
+  insertions:
+    - "-u"
+
+mitered_bridle:
+  title: "Mitered bridle joint"
+  german: "durchgehender Zapfen mit Gehrungsstoß"
+  page: "352"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end layer_1 miter; a_end layer_2 miter; a_end shoulder -layer_1 -layer_2"
+    - "B2 b_node layer_1 -miter; b_node layer_2 -miter"
+  insertions:
+    - "-u"
