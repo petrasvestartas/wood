@@ -93,6 +93,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_dado_spline_end.png) | **Dado with spline**<br>eingelassene Hirnleiste, p. 802<br>`dado_spline_end` |
 | ![](joint_library/beam_v_dado_spline_end.png) | **V-shaped dado with spline**<br>eingelassene keilförmige Hirnleiste, p. 800<br>`v_dado_spline_end` |
 | ![](joint_library/beam_halved_splayed_end.png) | **Halved splayed joint**<br>schräg angeschnittene wechselseitige Überblattung, p. 794<br>`halved_splayed_end` |
+| ![](joint_library/beam_wedged_haunched_tenon_breadboard.png) | **Wedged and haunched tenon breadboard end**<br>verkeilte Hirnleiste mit Nut und Zapfenloch, p. 812<br>`wedged_haunched_tenon_breadboard` |
 | ![](joint_library/beam_housing_case.png) | **Housing joint**<br>Nutverbindung, p. 844<br>`housing_case` |
 | ![](joint_library/beam_stopped_housing_case.png) | **Stopped housing joint**<br>abgesetzte Nutverbindung, p. 846<br>`stopped_housing_case` |
 | ![](joint_library/beam_tongue_dado_case.png) | **Tongue and dado joint**<br>Nutverbindung mit mittiger Feder, p. 850<br>`tongue_dado_case` |
