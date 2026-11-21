@@ -309,8 +309,8 @@ cogged_lap_splice:
     - "shoulder_b = O - L*u, u, O - 2*L*u"
   parts:
   steps:
-    - "A2 a_end face_r shoulder_a; a_end face_l cut"
-    - "B2 b_end -face_l shoulder_b; b_end -face_r -cut"
+    - "A2 a_end face_r shoulder_a; a_end face_l -cut shoulder_a"
+    - "B2 b_end -face_l shoulder_b; b_end -face_r cut shoulder_b"
   insertions:
     - "-p"
 
@@ -1400,8 +1400,8 @@ cogged_lap_folding_wedges_splice:
     - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
     - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
   steps:
-    - "A2 a_end face_r shoulder_a; a_end face_l cut_a"
-    - "B2 b_end -face_l shoulder_b; b_end -face_r -cut_b"
+    - "A2 a_end face_r shoulder_a; a_end face_l -cut_b shoulder_a"
+    - "B2 b_end -face_l shoulder_b; b_end -face_r cut_a shoulder_b"
   insertions:
     - "-p"
 
@@ -1602,8 +1602,8 @@ spear_point_cogged_lap_splice:
     - "cut = O, u, O + u"
   parts:
   steps:
-    - "A2 a_end face_r -end_1 -end_2; a_end face_l cut; a_end -face_l shoulder_1; a_end -face_l shoulder_2"
-    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut; b_end face_r end_1; b_end face_r end_2"
+    - "A2 a_end face_r -end_1 -end_2; a_end face_l -cut -end_1 -end_2; a_end -face_r shoulder_1; a_end -face_r shoulder_2"
+    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r cut -shoulder_1 -shoulder_2; b_end face_l end_1; b_end face_l end_2"
   insertions:
     - "-p"
 
@@ -1643,8 +1643,8 @@ spear_point_cogged_lap_folding_wedges_splice:
     - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
     - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
   steps:
-    - "A2 a_end face_r -end_1 -end_2; a_end face_l cut_a; a_end -face_l shoulder_1; a_end -face_l shoulder_2"
-    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut_b; b_end face_r end_1; b_end face_r end_2"
+    - "A2 a_end face_r -end_1 -end_2; a_end face_l -cut_b -end_1 -end_2; a_end -face_r shoulder_1; a_end -face_r shoulder_2"
+    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r cut_a -shoulder_1 -shoulder_2; b_end face_l end_1; b_end face_l end_2"
   insertions:
     - "-p"
 
@@ -1674,14 +1674,16 @@ undersquinted_cogged_lap_folding_wedges_splice:
     - "face_r = O - hook*ah*p, p, O + 2*ah*p"
     - "up_face = F1, cross(w, F2 - F1), O"
     - "low_face = E1, cross(w, E2 - E1), O"
+    - "tip_a = O + L*u, u, O"
+    - "tip_b = O - L*u, u, O"
     - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
     - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
   parts:
     - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
     - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
   steps:
-    - "A2 a_end face_r -low_face; a_end face_l cut_a; a_end -face_l up_face"
-    - "B2 b_end -face_l -up_face; b_end -face_r -cut_b; b_end face_r low_face"
+    - "A2 a_end face_r -low_face; a_end face_l -cut_b -low_face -tip_a; a_end -face_r up_face"
+    - "B2 b_end -face_l -up_face; b_end -face_r cut_a -up_face -tip_b; b_end face_l low_face"
   insertions:
     - "w"
 
@@ -2236,8 +2238,8 @@ pegged_undercut_tenon_splice:
     - "sh1 = S1a, cross(p, S1b - S1a), O + 2*L*u"
     - "sh2 = S2a, cross(p, S2b - S2a), O + 2*L*u"
   parts:
-    - "peg_1 = K1 + 1.2*ah*p, K1 - 1.2*ah*p, u, peg*ah"
-    - "peg_2 = K2 + 1.2*ah*p, K2 - 1.2*ah*p, u, peg*ah"
+    - "peg_1 = K1 + 1.2*aw*w, K1 - 1.2*aw*w, u, peg*ah"
+    - "peg_2 = K2 + 1.2*aw*w, K2 - 1.2*aw*w, u, peg*ah"
   steps:
     - "A2 a_end sh1 o1; a_end sh2 o2"
     - "A3 peg_1; peg_2"
@@ -2754,8 +2756,8 @@ pegged_rabbeted_mortise_tenon_splice:
     - "lip = 0.4"
     - "peg = 0.08"
   points:
-    - "K1 = O - 0.5*L*u"
-    - "K2 = O + 0.2*L*u"
+    - "K1 = O - 0.5*L*u + thickness*aw*w"
+    - "K2 = O + 0.2*L*u - thickness*aw*w"
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
     - "f2 = O - L*u, u, O - 2*L*u"
@@ -2788,8 +2790,8 @@ rabbeted_rod_tenon_tapered_keys_splice:
     - "lip = 0.4"
     - "key = 0.08"
   points:
-    - "K1 = O - 0.5*L*u"
-    - "K2 = O + 0.2*L*u"
+    - "K1 = O - 0.5*L*u + thickness*aw*w"
+    - "K2 = O + 0.2*L*u - thickness*aw*w"
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
     - "f2 = O - L*u, u, O - 2*L*u"
@@ -2798,8 +2800,8 @@ rabbeted_rod_tenon_tapered_keys_splice:
     - "lip_u = O + (L - rabbet*ah)*u, u, O + 2*L*u"
     - "lip_p = O + (1 - 2*lip)*ah*p, p, O"
   parts:
-    - "key_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, u, key*ah, 0.45*aw, 0.3*aw"
-    - "key_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, u, key*ah, 0.45*aw, 0.3*aw"
+    - "key_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, u, key*ah, 0.15*aw, 0.1*aw"
+    - "key_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, u, key*ah, 0.15*aw, 0.1*aw"
   steps:
     - "A2 a_end lip_u cheek_1; a_end lip_u cheek_2; a_end shoulder_a -lip_u -lip_p cheek_1; a_end shoulder_a -lip_u -lip_p cheek_2"
     - "A3 key_1; key_2"
@@ -2950,14 +2952,16 @@ undersquinted_spear_point_cogged_lap_folding_wedges_splice:
     - "end_2 = C2, cross(T1 - C2, p + squint*u), O"
     - "shoulder_1 = D1, cross(T2 - D1, p + squint*u), O"
     - "shoulder_2 = D2, cross(T2 - D2, p + squint*u), O"
+    - "tip_a = O + L*u, u, O"
+    - "tip_b = O - L*u, u, O"
     - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
     - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
   parts:
     - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
     - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
   steps:
-    - "A2 a_end face_r -end_1 -end_2; a_end face_l cut_a; a_end -face_l shoulder_1; a_end -face_l shoulder_2"
-    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut_b; b_end face_r end_1; b_end face_r end_2"
+    - "A2 a_end face_r -end_1 -end_2; a_end face_l -cut_b -end_1 -end_2 -tip_a; a_end -face_r shoulder_1; a_end -face_r shoulder_2"
+    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r cut_a -shoulder_1 -shoulder_2 -tip_b; b_end face_l end_1; b_end face_l end_2"
   insertions:
     - "-p"
 
@@ -3576,7 +3580,7 @@ pegged_half_blind_rabbeted_stop_splayed_cogged_scarf:
     - "cover = O + (1 - 2*cheek)*aw*w, w, O"
   parts:
     - "peg_1 = O - spacing*L*u + 1.2*ah*p, O - spacing*L*u - 1.2*ah*p, u, peg*ah"
-    - "peg_2 = O + spacing*L*u + 1.2*ah*p, O + spacing*L*u - 1.2*ah*p, u, peg*ah"
+    - "peg_2 = O + spacing*L*u + 1.2*aw*w, O + spacing*L*u - 1.2*aw*w, u, peg*ah"
   steps:
     - "A2 a_end -upper cut -cover; a_end -splay -cut e1 -cover; a_end -splay high -e1 e2 -cover; a_end low -f1 -cover; a_end upper -f2 -cover"
     - "B2 b_end upper cut f1; b_end upper -low f2 -f1; b_end splay -cut; b_end -high -e1; b_end -splay -e2; b_end f2 cover"
@@ -3725,8 +3729,8 @@ stop_splayed_cogged_scarf_stub_tenons_blind_pegs:
     - "C = O + cog*ah*p"
     - "H1 = O - L*u - stop*ah*p + cog*ah*p"
     - "H2 = O + L*u + stop*ah*p + cog*ah*p"
-    - "G1 = S1 + 0.65*(S2 - S1) + 0.5*aw*w"
-    - "G2 = S1 + 0.85*(S2 - S1) - 0.5*aw*w"
+    - "G1 = H1 + 0.25*(H2 - H1)"
+    - "G2 = S1 + 0.75*(S2 - S1)"
   planes:
     - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
     - "shoulder_a = O + L*u, u, O + 2*L*u"
