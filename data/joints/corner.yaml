@@ -2381,3 +2381,43 @@ canvas_stretcher_corner:
   insertions:
     - "-u"
     - "key = -w"
+
+blind_dovetail_tenon_corner:
+  title: "Blind dovetail tenon"
+  german: "verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung"
+  page: "322"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "top_cheek = 0.6"
+    - "bottom_cheek = 0.3"
+    - "flare = 0.15"
+    - "blind = 0.3"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "FT = O + (top_cheek - flare)*aw*w"
+    - "GT = O - 2*bh*n + top_cheek*aw*w"
+    - "FB = O + (flare - bottom_cheek)*aw*w"
+    - "GB = O - 2*bh*n - bottom_cheek*aw*w"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "top = O + top_cheek*aw*w, w, O"
+    - "bot = O - bottom_cheek*aw*w, w, O"
+    - "f_top = FT, cross(p, GT - FT), O"
+    - "f_bot = FB, cross(p, GB - FB), O"
+    - "stop = O + (1 - blind)*ah*p, p, O"
+    - "inner = O - ah*p, p, O - 2*ah*p"
+  parts:
+  steps:
+    - "A1 a_end bottom"
+    - "A2 a_end miter top"
+    - "A3 a_end -f_top -f_bot -stop"
+    - "B2 b_node -miter top; b_node bot inner"
+    - "B3 b_node f_top -top inner; b_node f_bot -bot inner; b_node stop -top -bot"
+  insertions:
+    - "-n"
+    - "-p"
+    - "unit(-n - p)"

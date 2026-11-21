@@ -183,6 +183,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_fan_double_tenon_corner.png) | **Blind fan-shaped double mortise and tenon**<br>verdeckter doppelter trapezförmiger Eckzapfen mit Wange auf Gehrung, p. 402<br>`blind_fan_double_tenon_corner` |
 | ![](joint_library/beam_wedged_collared_blind_mortise_tenon_corner.png) | **Wedged collared blind mortise and tenon**<br>verkeilter durchgehender abgesetzter Eckzapfen mit Führungszapfen und Wange auf Gehrung, p. 332<br>`wedged_collared_blind_mortise_tenon_corner` |
 | ![](joint_library/beam_canvas_stretcher_corner.png) | **Canvas stretcher**<br>Keilrahmen, p. 364<br>`canvas_stretcher_corner` |
+| ![](joint_library/beam_blind_dovetail_tenon_corner.png) | **Blind dovetail tenon**<br>verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung, p. 322<br>`blind_dovetail_tenon_corner` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
