@@ -34,7 +34,8 @@ LibraryRecord library_record(const std::string& design);
 /// one: a side_end member ending on a carrier along x, square or leaning 50 degrees from it, its stock 180 mm past its end (an
 /// end_end_inplane corner's carrier ending flush with the member's outer face); a cross
 /// member pitched over a carrier along y, its underside through the carrier's top centre moved shift of the half width downhill and sit of the depth
-/// down, running tail mm past the crossing (the record's parameters pitch, sit, shift and tail, 35 degrees, 0, 0 and 600 when it has none).
+/// down, running tail mm past the crossing (the record's parameters pitch, sit, shift and tail, 35 degrees, 0, 0 and 600 when it has none), the carrier running reach mm past
+/// it (450; 60 for a corner, flush with the member's side).
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at);
 
 }

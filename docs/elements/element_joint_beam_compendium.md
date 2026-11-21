@@ -88,6 +88,11 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_plain_miter_spline_key.png) | **Plain miter with spline key**<br>Gehrungsstoß mit Feder, p. 336<br>`plain_miter_spline_key` |
 | ![](joint_library/beam_bridle_one_sided_miter.png) | **Bridle joint with one-sided miter**<br>Zapfen mit einseitiger Gehrung, p. 362<br>`bridle_one_sided_miter` |
 | ![](joint_library/beam_double_mortise_tenon_miter.png) | **Double mortise and tenon miter**<br>Zapfen mit doppeltem Gehrungsblatt, p. 366<br>`double_mortise_tenon_miter` |
+| ![](joint_library/beam_blind_pegged_corner.png) | **Blind pegged joint**<br>Verdollung, p. 408<br>`blind_pegged_corner` |
+| ![](joint_library/beam_cog_corner.png) | **Cog joint**<br>Eckkamm, p. 410<br>`cog_corner` |
+| ![](joint_library/beam_sloped_cog_corner.png) | **Sloped cog joint**<br>schräger Eckkamm, p. 412<br>`sloped_cog_corner` |
+| ![](joint_library/beam_dovetail_cog_corner.png) | **Dovetail cog joint**<br>Eckkamm mit Schwalbenschwanz, p. 414<br>`dovetail_cog_corner` |
+| ![](joint_library/beam_v_shaped_cog_corner.png) | **V-shaped cog joint**<br>Eckkamm mit halbem Kreuz, p. 416<br>`v_shaped_cog_corner` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

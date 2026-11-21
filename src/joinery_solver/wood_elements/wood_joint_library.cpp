@@ -212,7 +212,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -227,7 +227,7 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 
     // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets
     if (crossing) {
-        carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, 450.0, 0.0)}), half, design + "_carrier");
+        carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), half, design + "_carrier");
         carrier->directions = {Vector::z_axis()};
         const Vector downhill(-1.0, 0.0, 0.0);
         const Vector up(-std::sin(turn), 0.0, std::cos(turn));
