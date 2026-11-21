@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 146 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 143 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 49 left of 110
 
@@ -54,7 +54,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 258, Butt joint with a gooseneck key and stub tenons (Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen)
 - p. 260, Four-faced gooseneck joint (diagonaler doppelter Sichelzapfen mit Steckfalz)
 
-## Timber corner joints: 31 left of 79
+## Timber corner joints: 28 left of 79
 
 - p. 264, Blind mitered corner lap joint (verdecktes Eckblatt mit Wange auf Gehrung)
 - p. 270, Blind mitered beveled corner lap joint (verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung)
@@ -74,10 +74,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 358, Blind dovetail miter (verdeckter Schwalbenschwanzzapfen mit Gehrungsstoß)
 - p. 360, Stopped miter with blind dovetail tenon (verdeckter Schwalbenschwanzzapfen mit abgesetztem Gehrungsstoß)
 - p. 364, Canvas stretcher (Keilrahmen)
-- p. 368, Double mortise and tenon with one-sided lapped miter (doppelter Zapfen mit Gehrungsblatt)
-- p. 370, Haunched through mortise and tenon with two-sided lapped miter (durchgehender abgesetzter Stufen-zapfen mit zweiseitigem Gehrungsblatt)
 - p. 372, Haunched through mortise and tenon with two-sided stopped miter (durchgehender abgesetzter Stufenzapfen mit zweiseitigem halben Gehrungsblatt)
-- p. 374, Haunched through mortise and tenon with one-sided lapped miter (durchgehender abgesetzter Stufenzapfen mit Gehrungsblatt)
 - p. 376, Haunched through mortise and tenon with one-sided stopped lapped miter (durchgehender abgesetzter Stufenzapfen mit halbem Gehrungsblatt)
 - p. 378, Blind haunched mortise and tenon miter (verdeckter abgesetzter Stufenzapfen mit Gehrungsblatt und Wange)
 - p. 380, Haunched through double mortise and tenon with one-sided lapped miter (durchgehender abgesetzter doppelter Stufenzapfen mit Gehrungsblatt)

@@ -138,6 +138,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_housed_dovetail_tenon_corner.png) | **Blind housed dovetail tenon**<br>Schwalbenschwanzeckzapfen mit gestufter Brüstung, p. 388<br>`blind_housed_dovetail_tenon_corner` |
 | ![](joint_library/beam_half_blind_gooseneck_tenon_corner.png) | **Half-blind gooseneck tenon**<br>halbverdeckter Sicheleckzapfen, p. 390<br>`half_blind_gooseneck_tenon_corner` |
 | ![](joint_library/beam_plain_miter_perpendicular_butterfly_key.png) | **Plain miter with perpendicular butterfly key**<br>Gehrungsstoß mit Schwalbenschwanzdübel, p. 344<br>`plain_miter_perpendicular_butterfly_key` |
+| ![](joint_library/beam_double_mortise_tenon_one_sided_miter.png) | **Double mortise and tenon with one-sided lapped miter**<br>doppelter Zapfen mit Gehrungsblatt, p. 368<br>`double_mortise_tenon_one_sided_miter` |
+| ![](joint_library/beam_haunched_through_tenon_two_sided_miter.png) | **Haunched through mortise and tenon with two-sided lapped miter**<br>durchgehender abgesetzter Stufenzapfen mit zweiseitigem Gehrungsblatt, p. 370<br>`haunched_through_tenon_two_sided_miter` |
+| ![](joint_library/beam_haunched_through_tenon_one_sided_miter.png) | **Haunched through mortise and tenon with one-sided lapped miter**<br>durchgehender abgesetzter Stufenzapfen mit Gehrungsblatt, p. 374<br>`haunched_through_tenon_one_sided_miter` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
