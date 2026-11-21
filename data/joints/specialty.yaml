@@ -667,3 +667,101 @@ pegged_two_way_splayed_scarf:
   insertions:
     - "-u"
     - "c = n"
+
+two_way_rabbeted_rod_tenon:
+  title: "Two-way rabbeted rod tenon joint with tapered keys"
+  german: "eingelassener durchgesteckter Stabzapfen mit Steckfalz und Spannkeilen"
+  page: "756"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "into = 1.6"
+    - "thin = 0.3"
+    - "house = 0.25"
+    - "house_wide = 1.05"
+    - "key = 0.09"
+  points:
+    - "S = O + n"
+    - "E = O + 1.5*into*bh*n"
+    - "K1 = O + 0.75*into*bh*n + 0.45*ah*p"
+  planes:
+    - "shoulder = O, n, S"
+    - "into_end = O + into*bh*n, n, O"
+    - "rp1 = O + 0.75*ah*p, p, O"
+    - "rp0 = O + 0.15*ah*p, p, O + ah*p"
+    - "tw1 = O + thin*aw*w, w, O"
+    - "tw2 = O - thin*aw*w, w, O"
+    - "hs_top = O, p, O - p"
+    - "hp_low = O - ah*p, p, O"
+    - "hw1 = O + house_wide*aw*w, w, O"
+    - "hw2 = O - house_wide*aw*w, w, O"
+    - "a_house = O - house*bh*n, n, O"
+    - "c_house = O - (2 - house)*bh*n, n, O - 4*bh*n"
+    - "c_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 156, 0 0 -600, 0 1 0, 60, 60"
+  parts:
+    - "key = K1 - 1.3*aw*w, K1 + 1.3*aw*w, p, 0.25*ah, key*bh, 0.6*key*bh"
+  steps:
+    - "A2 a_end shoulder hs_top; a_end shoulder hw1; a_end shoulder hw2; a_end a_house"
+    - "A3 a_end -into_end -rp1 -rp0 -tw1 -tw2"
+    - "A4 key"
+    - "B2 b_node -rp1 -rp0 -tw1 -tw2"
+    - "B3 b_node -hs_top -hp_low -hw1 -hw2 -a_house"
+    - "B4 b_node -hs_top -hp_low -hw1 -hw2 -c_house"
+    - "C2 c c_shoulder hs_top rp1; c c_shoulder hs_top rp0; c c_shoulder hs_top tw1; c c_shoulder hs_top tw2; c c_shoulder hs_top into_end; c c_shoulder -hs_top hw1; c c_shoulder -hs_top hw2; c c_shoulder -hs_top c_house"
+    - "C3 key"
+  insertions:
+    - "-u"
+    - "c = n"
+
+two_way_partially_housed_rod_tenon:
+  title: "Two-way partially housed rod tenon joint with tapered keys"
+  german: "eingelassener durchgesteckter Stabzapfen mit abgesetzter Nut und Spannkeilen"
+  page: "758"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "into = 1.6"
+    - "thin = 0.3"
+    - "house = 0.25"
+    - "house_wide = 0.5"
+    - "key = 0.09"
+  points:
+    - "S = O + n"
+    - "E = O + 1.5*into*bh*n"
+    - "K1 = O + 0.75*into*bh*n + 0.45*ah*p"
+  planes:
+    - "shoulder = O, n, S"
+    - "into_end = O + into*bh*n, n, O"
+    - "rp1 = O + 0.75*ah*p, p, O"
+    - "rp0 = O + 0.15*ah*p, p, O + ah*p"
+    - "tw1 = O + thin*aw*w, w, O"
+    - "tw2 = O - thin*aw*w, w, O"
+    - "hs_top = O, p, O - p"
+    - "hp_low = O - ah*p, p, O"
+    - "hw1 = O + house_wide*aw*w, w, O"
+    - "hw2 = O - house_wide*aw*w, w, O"
+    - "a_house = O - house*bh*n, n, O"
+    - "c_house = O - (2 - house)*bh*n, n, O - 4*bh*n"
+    - "c_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 156, 0 0 -600, 0 1 0, 60, 60"
+  parts:
+    - "key = K1 - 1.3*aw*w, K1 + 1.3*aw*w, p, 0.25*ah, key*bh, 0.6*key*bh"
+  steps:
+    - "A2 a_end shoulder hs_top; a_end shoulder hw1; a_end shoulder hw2; a_end a_house"
+    - "A3 a_end -into_end -rp1 -rp0 -tw1 -tw2"
+    - "A4 key"
+    - "B2 b_node -rp1 -rp0 -tw1 -tw2"
+    - "B3 b_node -hs_top -hp_low -hw1 -hw2 -a_house"
+    - "B4 b_node -hs_top -hp_low -hw1 -hw2 -c_house"
+    - "C2 c c_shoulder hs_top rp1; c c_shoulder hs_top rp0; c c_shoulder hs_top tw1; c c_shoulder hs_top tw2; c c_shoulder hs_top into_end; c c_shoulder -hs_top hw1; c c_shoulder -hs_top hw2; c c_shoulder -hs_top c_house"
+    - "C3 key"
+  insertions:
+    - "-u"
+    - "c = n"

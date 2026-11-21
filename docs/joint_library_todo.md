@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 67 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 65 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 29 left of 110
 
@@ -63,7 +63,7 @@ All done.
 - p. 650, Four-part cogged cross lap joint (viergliedriges Kreuzblatt mit Haken)
 - p. 670, Dovetailed cross lap joint (Kreuzblatt mit abgesetzten Schwalbenschwänzen)
 
-## Timber specialty joints: 14 left of 29
+## Timber specialty joints: 12 left of 29
 
 - p. 718, Notched corner-post joint with beveled-shoulder tenons (Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust)
 - p. 730, Chidori puzzle joint (einfach abgesetztes Kreuzblatt und Stab mit Rundholzverbindung)
@@ -75,8 +75,6 @@ All done.
 - p. 744, Wedged four-way splayed cogged joint (verkeiltes vierseitiges Hakendruckschloss mit schrägen Haken)
 - p. 748, Three-way rod tenon joint with tapered keys and wedged haunched tenon (durchgesteckter Stabzapfen mit Spannkeilen und verkeiltem Stufenzapfen)
 - p. 750, Four-way rod tenon joint with tapered keys and pegs (durchgesteckte Stufenstabzapfen mit Spannkeilen und Dübelsicherung)
-- p. 756, Two-way rabbeted rod tenon joint with tapered keys (eingelassener durchgesteckter Stabzapfen mit Steckfalz und Spannkeilen)
-- p. 758, Two-way partially housed rod tenon joint with tapered keys (eingelassener durchgesteckter Stabzapfen mit abgesetzter Nut und Spannkeilen)
 - p. 762, Two-way splined rod joint with tapered keys and a peg (durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung)
 - p. 764, Pegged two-way lapped rod tenon joint with housing (durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung)
 
