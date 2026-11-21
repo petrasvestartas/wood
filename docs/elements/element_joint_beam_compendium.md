@@ -316,6 +316,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_stop_splayed_scarf_hidden_hook.png) | **Stop-splayed scarf joint with hidden hook**<br>schräges Blatt mit verdecktem Haken, p. 136<br>`stop_splayed_scarf_hidden_hook` |
 | ![](joint_library/beam_spear_point_stop_splayed_cogged_scarf_folding_wedges.png) | **Spear point stop-splayed cogged scarf joint with folding wedges**<br>verkeiltes schräges Hakenblatt mit Gratschnitt, p. 134<br>`spear_point_stop_splayed_cogged_scarf_folding_wedges` |
 | ![](joint_library/beam_pegged_rabbeted_stop_splayed_sloped_cogged_scarf.png) | **Pegged rabbeted stop-splayed sloped cogged scarf joint**<br>stehendes schräges Hakenblatt mit Steckfalz und doppelter Dübelsicherung, p. 146<br>`pegged_rabbeted_stop_splayed_sloped_cogged_scarf` |
+| ![](joint_library/beam_four_faced_dovetail_splice.png) | **Four-faced dovetail joint**<br>diagonaler doppelter Schwalbenschwanzzapfen, p. 238<br>`four_faced_dovetail_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

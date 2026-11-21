@@ -3292,3 +3292,33 @@ pegged_rabbeted_stop_splayed_sloped_cogged_scarf:
     - "B3 peg_1; peg_2"
   insertions:
     - "w"
+
+four_faced_dovetail_splice:
+  title: "Four-faced dovetail joint"
+  german: "diagonaler doppelter Schwalbenschwanzzapfen"
+  page: "238"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "root = 0.3"
+    - "tip = 0.6"
+  points:
+    - "D1 = unit(ah*p + aw*w)"
+    - "D2 = unit(ah*p - aw*w)"
+    - "R1 = O + L*u + root*ah*D2"
+    - "T1 = O - L*u + tip*ah*D2"
+    - "R2 = O + L*u - root*ah*D2"
+    - "T2 = O - L*u - tip*ah*D2"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "flank_1 = R1, cross(D1, T1 - R1), O"
+    - "flank_2 = R2, cross(D1, T2 - R2), O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a flank_1; a_end shoulder_a flank_2"
+    - "B2 b_end f2 -flank_1 -flank_2"
+  insertions:
+    - "-D1"
