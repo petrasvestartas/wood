@@ -130,6 +130,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_x_shaped_cog_cross.png) | **X-shaped cog joint**<br>Kreuzkamm mit Kreuz, p. 702<br>`x_shaped_cog_cross` |
 | ![](joint_library/beam_dovetail_cog_cross.png) | **Dovetail cog joint**<br>Kreuzkamm mit Schwalbenschwanz, p. 704<br>`dovetail_cog_cross` |
 | ![](joint_library/beam_half_dovetail_cog_cross.png) | **Half-dovetail cog joint**<br>Kreuzkamm mit einseitigem Schwalbenschwanz, p. 706<br>`half_dovetail_cog_cross` |
+| ![](joint_library/beam_double_notch_blind_peg_cross.png) | **Double notch joint with blind peg**<br>Kreuzkamm mit Dolle, p. 686<br>`double_notch_blind_peg_cross` |
+| ![](joint_library/beam_stepped_cross_lap.png) | **Stepped cross lap joint**<br>Kreuzblatt mit Haken, p. 656<br>`stepped_cross_lap` |
+| ![](joint_library/beam_cogged_cross_lap.png) | **Cogged cross lap joint**<br>Kreuzblatt mit mittigem Haken, p. 658<br>`cogged_cross_lap` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |

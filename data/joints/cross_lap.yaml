@@ -365,3 +365,90 @@ half_dovetail_cog_cross:
     - "B2 b_node -under -flank_1 -side_2"
   insertions:
     - "-n"
+
+double_notch_blind_peg_cross:
+  title: "Double notch joint with blind peg"
+  german: "Kreuzkamm mit Dolle"
+  page: "686"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.3"
+    - "split = 0.15"
+    - "peg = 0.18"
+    - "depth = 0.25"
+  points:
+    - "U = O + n"
+    - "L = O - 2*split*bh*n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "level = L, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+  parts:
+    - "peg = L + 2*depth*ah*n, L - 2*depth*bh*n, w, peg*ah, none"
+  steps:
+    - "A2 a_node level inner -outer"
+    - "A3 peg"
+    - "B2 b_node -level -side_1 -side_2"
+    - "B3 peg"
+  insertions:
+    - "-n"
+
+stepped_cross_lap:
+  title: "Stepped cross lap joint"
+  german: "Kreuzblatt mit Haken"
+  page: "656"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "step = 0.25"
+  points:
+  planes:
+    - "hi = O - (1 - step)*bh*n, n, O"
+    - "lo = O - (1 + step)*bh*n, n, O"
+    - "half = O, t, O + t"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node hi half inner -outer; a_node lo -half inner -outer"
+    - "B2 b_node -hi half; b_node -lo -half"
+  insertions:
+    - "-n"
+
+cogged_cross_lap:
+  title: "Cogged cross lap joint"
+  german: "Kreuzblatt mit mittigem Haken"
+  page: "658"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "cog = 0.3"
+    - "band = 0.2"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "rtop = O - (1 - cog)*bh*n, n, O - 2*bh*n"
+    - "r1 = O + band*bt*t, t, O"
+    - "r2 = O - band*bt*t, t, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer; a_node -mid -rtop -r1 -r2"
+    - "B2 b_node -mid rtop; b_node -mid -rtop r1; b_node -mid -rtop r2"
+  insertions:
+    - "-n"
