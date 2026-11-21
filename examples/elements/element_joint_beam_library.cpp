@@ -64,12 +64,14 @@ int main() {
                 const Vector out = step.insertion * -(0.5 * box.diagonal() + 150.0 * static_cast<double>(j));
                 drawn->place(Xform::translation(out[0], out[1], out[2]));
 
-                // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them
+                // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them,
+                // longer the later the piece goes in: 60 mm and 80 mm per step of the order
                 const Vector way = step.insertion;
                 const Point centre = Point(box.cx, box.cy, box.cz) + out;
                 const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
-                Line arrow = Line::from_points(centre - way * (behind + 140.0), centre - way * (behind + 15.0));
-                arrow.width = 3.0;
+                const double shaft = 60.0 + 80.0 * static_cast<double>(j);
+                Line arrow = Line::from_points(centre - way * (behind + 15.0 + shaft), centre - way * (behind + 15.0));
+                arrow.width = 6.0;
                 arrow.linecolor = Color(0, 0, 0, 255);
                 arrow.arrowhead = Arrowhead::END;
                 scene.add_line(arrow, scene.group_named(design));
@@ -83,7 +85,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by half its diagonal and 150 mm per step, so the later ones stand farther out, a black arrow behind each along its way in.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by half its diagonal and 150 mm per step, so the later ones stand farther out, a black arrow behind each along its way in, 60 mm and 80 mm per step of the order long.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
