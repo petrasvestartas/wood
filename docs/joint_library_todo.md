@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 104 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 103 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 34 left of 110
 
@@ -112,11 +112,10 @@ All done.
 - p. 762, Two-way splined rod joint with tapered keys and a peg (durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung)
 - p. 764, Pegged two-way lapped rod tenon joint with housing (durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung)
 
-## Case edge joints: 5 left of 13
+## Case edge joints: 4 left of 13
 
 - p. 778, Foxtail-wedged floating tenon joint (Stoß mit verkeiltem eingesetztem Zapfen)
 - p. 782, Floating tenon and spline joint (Nut mit eingesetzter Feder und Zapfen)
-- p. 788, Sliding dovetail batten (Gratleiste)
 - p. 790, Sliding dovetail batten with keys (Gratleiste mit Dübelschloss)
 - p. 792, Blind dovetailed keyhole batten (Mehrfach abgesetzte Gratleiste)
 

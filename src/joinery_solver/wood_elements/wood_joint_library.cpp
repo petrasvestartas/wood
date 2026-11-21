@@ -252,19 +252,23 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         return {member, carrier};
     }
 
-    // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets
+    // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets; carrier_thick and
+    // carrier_wide make the carrier a board lying flat, stock_thick and stock_wide the member a batten standing on it
     if (crossing) {
-        carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), half, design + "_carrier");
-        if (square_stock)
+        const double carrier_thick = numbers.count("carrier_thick") ? numbers["carrier_thick"] : half;
+        const double carrier_wide = numbers.count("carrier_wide") ? numbers["carrier_wide"] : half;
+        const double member_thick = numbers["stock_thick"];
+        carrier = stock(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), Vector::z_axis(), carrier_thick, carrier_wide, design + "_carrier");
+        if (std::abs(carrier_thick - carrier_wide) < 1e-9)
             carrier->directions = {Vector::z_axis()};
         // plan turns the member about z from square across the carrier (90 degrees) to the crossing angle it names
         const double plan = (numbers.count("plan") ? numbers["plan"] : 90.0) * Tolerance::PI / 180.0;
         const Vector downhill(-std::sin(plan), -std::cos(plan), 0.0);
         const Vector up(-std::sin(turn) * std::sin(plan), -std::sin(turn) * std::cos(plan), std::cos(turn));
         const Vector slope(std::cos(turn) * std::sin(plan), std::cos(turn) * std::cos(plan), std::sin(turn));
-        const Point underside = at + Vector(0.0, 0.0, half) + downhill * (numbers["shift"] * half) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * half);
-        const Point on_axis = underside + up * half;
-        member = EdgeStraightElement::square(Polyline({on_axis - slope * numbers["tail"], on_axis + slope * 600.0}), half, design + "_member");
+        const Point underside = at + Vector(0.0, 0.0, carrier_thick) + downhill * (numbers["shift"] * carrier_thick) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * carrier_thick);
+        const Point on_axis = underside + up * member_thick;
+        member = stock(Polyline({on_axis - slope * numbers["tail"], on_axis + slope * 600.0}), up, member_thick, numbers["stock_wide"], design + "_member");
         if (square_stock)
             member->directions = {Vector(-std::cos(plan), std::sin(plan), 0.0)};
         return {member, carrier};

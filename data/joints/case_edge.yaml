@@ -251,3 +251,40 @@ blind_dovetail_edge:
     - "B2 b_end f2 -fl_1 -fl_2 -stopped"
   insertions:
     - "w"
+
+sliding_dovetail_batten:
+  title: "Sliding dovetail batten"
+  german: "Gratleiste"
+  page: "788"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 300"
+    - "reach = 300"
+    - "carrier_thick = 12"
+    - "carrier_wide = 200"
+    - "stock_thick = 15"
+    - "stock_wide = 25"
+    - "sit = 0.4"
+    - "top = 0.6"
+    - "foot = 0.85"
+  points:
+    - "U = O + n"
+    - "D = R - ah*p"
+    - "A1 = O + top*aw*w"
+    - "B1 = D + foot*aw*w"
+    - "A2 = O - top*aw*w"
+    - "B2 = D - foot*aw*w"
+  planes:
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "flank_1 = A1, cross(t, B1 - A1), O"
+    - "flank_2 = A2, cross(t, B2 - A2), O"
+  parts:
+  steps:
+    - "A2 a_node top flank_1; a_node top flank_2"
+    - "B2 b_node top -under -flank_1 -flank_2"
+  insertions:
+    - "t"
