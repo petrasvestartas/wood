@@ -60,16 +60,17 @@ int main() {
                 const std::shared_ptr<Element> drawn = scene.get_element_by_name<Element>(name + step.element.substr(design.size()));
                 if (!drawn)
                     continue;
+                // out by its own depth along the way it goes in and 40 mm a step of the order: close, so the drawing stays compact
                 const AABB box = AABB::from_mesh(drawn->model_geometry_mesh());
-                const Vector out = step.insertion * -(0.5 * box.diagonal() + 150.0 * static_cast<double>(j));
+                const Vector way = step.insertion;
+                const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
+                const Vector out = way * -(std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
                 drawn->place(Xform::translation(out[0], out[1], out[2]));
 
                 // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them,
-                // longer the later the piece goes in: 60 mm and 80 mm per step of the order
-                const Vector way = step.insertion;
+                // longer the later the piece goes in: 30 mm and 30 mm per step of the order
                 const Point centre = Point(box.cx, box.cy, box.cz) + out;
-                const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
-                const double shaft = 60.0 + 80.0 * static_cast<double>(j);
+                const double shaft = 30.0 + 30.0 * static_cast<double>(j);
                 Line arrow = Line::from_points(centre - way * (behind + 15.0 + shaft), centre - way * (behind + 15.0));
                 arrow.width = 6.0;
                 arrow.linecolor = Color(0, 0, 0, 255);
@@ -85,7 +86,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by half its diagonal and 150 mm per step, so the later ones stand farther out, a black arrow behind each along its way in, 60 mm and 80 mm per step of the order long.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by its own depth (at most 160 mm) and 40 mm per step, so the later ones stand farther out, a black arrow behind each along its way in, 30 mm and 30 mm per step of the order long.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
