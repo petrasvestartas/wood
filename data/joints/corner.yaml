@@ -468,3 +468,58 @@ pegged_through_dovetail_tenon:
     - "B3 peg"
   insertions:
     - "-p"
+
+half_blind_bridle:
+  title: "Half-blind bridle joint"
+  german: "halbverdeckter Scherzapfen"
+  page: "302"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "cheek = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "cheek = O + (1 - cheek)*ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2 -cheek"
+    - "B2 b_node cheek"
+    - "B3 b_node cheek_1 -face_2; b_node cheek_2 -face_2"
+  insertions:
+    - "-u"
+
+triple_shouldered_through_mortise_tenon_corner:
+  title: "Triple-shouldered through mortise and tenon joint"
+  german: "durchgehender abgesetzter Eckzapfen"
+  page: "308"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "height = 0.66"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge = O - 2*height*bh*n, n, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -edge -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge -face_2"
+  insertions:
+    - "-p"

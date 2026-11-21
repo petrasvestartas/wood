@@ -76,6 +76,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_twin_bridle.png) | **Twin bridle joint**<br>doppelter Scherzapfen, p. 296<br>`twin_bridle` |
 | ![](joint_library/beam_through_dovetail_tenon.png) | **Through dovetail tenon joint**<br>durchgehender Schwalbenschwanzeckzapfen, p. 298<br>`through_dovetail_tenon` |
 | ![](joint_library/beam_pegged_through_dovetail_tenon.png) | **Pegged through dovetail tenon joint**<br>durchgehender Schwalbenschwanzeckzapfen mit Dübelsicherung, p. 300<br>`pegged_through_dovetail_tenon` |
+| ![](joint_library/beam_half_blind_bridle.png) | **Half-blind bridle joint**<br>halbverdeckter Scherzapfen, p. 302<br>`half_blind_bridle` |
+| ![](joint_library/beam_triple_shouldered_through_mortise_tenon_corner.png) | **Triple-shouldered through mortise and tenon joint**<br>durchgehender abgesetzter Eckzapfen, p. 308<br>`triple_shouldered_through_mortise_tenon_corner` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
