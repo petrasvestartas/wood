@@ -1,8 +1,8 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 106 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 105 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 36 left of 110
+## Timber splicing joints: 35 left of 110
 
 - p. 82, Undersquinted spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit schrägem Gratschnitt)
 - p. 88, Cogged lap joint with floating tenoned piece (gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen)
@@ -30,7 +30,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 194, Rabbeted rod tenon joint with tapered keys (Stabzapfen mit Steckfalz und Spannkeilen)
 - p. 196, Rod joint with two half rods and tapered keys (beidseitiger Stabzapfen mit Spannkeilen)
 - p. 206, Half-blind L-shaped stub tenon joint (Winkelzapfen)
-- p. 214, Double mortise and stub tenon joint (geschlitzter Zapfen mit beidseitigem Zapfenloch)
 - p. 218, Spear point cross-shaped stub tenon joint with undercut shoulders (kreuzförmiger Zapfen mit Gratschnitt und hinterschnittener Brüstung)
 - p. 238, Four-faced dovetail joint (diagonaler doppelter Schwalbenschwanzzapfen)
 - p. 240, Tapered dovetail tenon joint with mitered shoulders (Stoß mit Gratschnitt und keilförmigen Schwalbenschwanzzapfen)

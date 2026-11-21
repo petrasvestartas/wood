@@ -2318,3 +2318,29 @@ pegged_spear_point_v_shoulder_tenon_splice:
     - "B3 peg_1; peg_2"
   insertions:
     - "-u"
+
+double_mortise_stub_tenon_splice:
+  title: "Double mortise and stub tenon joint"
+  german: "geschlitzter Zapfen mit beidseitigem Zapfenloch"
+  page: "214"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.6"
+    - "band = 0.35"
+  points:
+  planes:
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "mid = O, u, O + u"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "w1 = O + band*aw*w, w, O"
+    - "w2 = O - band*aw*w, w, O"
+    - "p1 = O + band*ah*p, p, O"
+    - "p2 = O - band*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end mid w1; a_end mid w2; a_end mid -w1 -w2 -p1 -p2; a_end -mid shoulder_a -p1 -p2"
+    - "B2 b_end -mid p1; b_end -mid p2; b_end mid f2 -w1 -w2 p1; b_end mid f2 -w1 -w2 p2"
+  insertions:
+    - "-u"
