@@ -1,11 +1,10 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 187 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 182 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 64 left of 110
+## Timber splicing joints: 59 left of 110
 
 - p. 52, Half lap joint with haunched tenon (gerades Blatt mit Stufenzapfen)
-- p. 74, Cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt)
 - p. 76, Undersquinted cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung)
 - p. 78, Spear point cogged lap joint (gerades Hakenblatt mit Gratschnitt)
 - p. 80, Spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit Gratschnitt)
@@ -19,15 +18,11 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 96, Stepped cogged lap joint with floating piece (gestuftes Hakenblatt mit eingesetztem Hakenstück)
 - p. 98, Stepped cogged lap joint with floating piece and folding wedges (verkeiltes gestuftes Hakenblatt mit eingesetztem Hakenstück)
 - p. 100, Undersquinted stepped cogged lap joint with floating piece and folding wedges (verkeiltes gestuftes Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück)
-- p. 108, Rabbeted cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit Steckfalz)
 - p. 110, Rabbeted cogged lap joint with stub tenons and folding wedges (verkeiltes gerades Hakenblatt mit Steckfalz und Brüstungszapfen)
 - p. 112, Half-blind rabbeted lap joint with tapered keys (halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen)
-- p. 126, Stop-splayed cogged scarf joint with folding wedges (verkeiltes schräges Hakenblatt)
-- p. 128, Undersquinted stop-splayed cogged scarf joint with folding wedges (verkeiltes schräges Hakenblatt mit schräger Brüstung)
 - p. 132, Stop-splayed cogged scarf joint with stub tenons and blind pegs (schräges Hakenblatt mit Brüstungszapfen und Dollen)
 - p. 134, Spear point stop-splayed cogged scarf joint with folding wedges (verkeiltes schräges Hakenblatt mit Gratschnitt)
 - p. 136, Stop-splayed scarf joint with hidden hook (schräges Blatt mit verdecktem Haken)
-- p. 142, Rabbeted stop-splayed cogged scarf joint with folding wedges (verkeiltes schräges Hakenblatt mit Steckfalz)
 - p. 144, Rabbeted stop-splayed cogged scarf joint with stub tenons and folding wedges (verkeiltes schräges Hakenblatt mit Steckfalz und Brüstungszapfen)
 - p. 146, Pegged rabbeted stop-splayed sloped cogged scarf joint (stehendes schräges Hakenblatt mit Steckfalz und doppelter Dübelsicherung)
 - p. 148, Pegged rabbeted notched stop-splayed cogged scarf joint (stehendes schräges Hakenblatt mit unterbrochener Steckfalz und Dübelsicherung)

@@ -176,6 +176,11 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_double_halved_lap_splice.png) | **Double halved lap joint**<br>diagonal versetztes abgesetztes Blatt, p. 210<br>`double_halved_lap_splice` |
 | ![](joint_library/beam_double_dovetail_tenon_splice.png) | **Double dovetail tenon joint**<br>doppelter Schwalbenschwanzzapfen, p. 236<br>`double_dovetail_tenon_splice` |
 | ![](joint_library/beam_half_lap_butterfly_key_splice.png) | **Half lap joint with butterfly key**<br>gerades Blatt mit Schwalbenschwanzeinlage, p. 234<br>`half_lap_butterfly_key_splice` |
+| ![](joint_library/beam_cogged_lap_folding_wedges_splice.png) | **Cogged lap joint with folding wedges**<br>verkeiltes gerades Hakenblatt, p. 74<br>`cogged_lap_folding_wedges_splice` |
+| ![](joint_library/beam_rabbeted_cogged_lap_folding_wedges_splice.png) | **Rabbeted cogged lap joint with folding wedges**<br>verkeiltes gerades Hakenblatt mit Steckfalz, p. 108<br>`rabbeted_cogged_lap_folding_wedges_splice` |
+| ![](joint_library/beam_stop_splayed_cogged_scarf_folding_wedges.png) | **Stop-splayed cogged scarf joint with folding wedges**<br>verkeiltes schräges Hakenblatt, p. 126<br>`stop_splayed_cogged_scarf_folding_wedges` |
+| ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf_folding_wedges.png) | **Undersquinted stop-splayed cogged scarf joint with folding wedges**<br>verkeiltes schräges Hakenblatt mit schräger Brüstung, p. 128<br>`undersquinted_stop_splayed_cogged_scarf_folding_wedges` |
+| ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) | **Rabbeted stop-splayed cogged scarf joint with folding wedges**<br>verkeiltes schräges Hakenblatt mit Steckfalz, p. 142<br>`rabbeted_stop_splayed_cogged_scarf_folding_wedges` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
