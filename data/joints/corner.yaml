@@ -23,7 +23,8 @@
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
-#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
+#               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
 
 corner_lap:
   title: "Corner lap joint"
@@ -555,3 +556,55 @@ half_blind_haunched_mortise_tenon:
     - "B3 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge split"
   insertions:
     - "-p"
+
+plain_miter:
+  title: "Plain miter"
+  german: "stumpfer Gehrungstoß"
+  page: "334"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+  planes:
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+  steps:
+    - "A2 a_end miter"
+    - "B2 b_node -miter"
+  insertions:
+    - "-u"
+
+plain_miter_butterfly_key:
+  title: "Plain miter with butterfly key"
+  german: "Gehrungsstoß mit Schwalbenschwanzeinlage"
+  page: "342"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "depth = 0.33"
+    - "waist = 0.1"
+    - "flare = 0.42"
+    - "wing = 1.0"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "A = unit(cross(w, X - I))"
+    - "M = (I + X)/2 + (aw - depth*aw + 1)*w"
+  planes:
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "wing_1 = M, M + wing*ah*A, w, depth*aw, waist*ah, flare*ah, start"
+    - "wing_2 = M, M - wing*ah*A, w, depth*aw, waist*ah, flare*ah, start"
+  steps:
+    - "A2 a_end miter"
+    - "A3 wing_1; wing_2"
+    - "B2 b_node -miter"
+    - "B3 wing_1; wing_2"
+  insertions:
+    - "-u"
+    - "wing_1 = -w"
+    - "wing_2 = -w"

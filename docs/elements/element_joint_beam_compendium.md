@@ -79,6 +79,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_half_blind_bridle.png) | **Half-blind bridle joint**<br>halbverdeckter Scherzapfen, p. 302<br>`half_blind_bridle` |
 | ![](joint_library/beam_triple_shouldered_through_mortise_tenon_corner.png) | **Triple-shouldered through mortise and tenon joint**<br>durchgehender abgesetzter Eckzapfen, p. 308<br>`triple_shouldered_through_mortise_tenon_corner` |
 | ![](joint_library/beam_half_blind_haunched_mortise_tenon.png) | **Half-blind haunched mortise and tenon joint**<br>halbverdeckter Stufeneckzapfen, p. 304<br>`half_blind_haunched_mortise_tenon` |
+| ![](joint_library/beam_plain_miter.png) | **Plain miter**<br>stumpfer Gehrungstoß, p. 334<br>`plain_miter` |
+| ![](joint_library/beam_plain_miter_butterfly_key.png) | **Plain miter with butterfly key**<br>Gehrungsstoß mit Schwalbenschwanzeinlage, p. 342<br>`plain_miter_butterfly_key` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

@@ -2786,13 +2786,10 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const double side_start = tapered ? evaluate(terms[4], names).number : half_up;
         const double side_end = tapered ? evaluate(terms[5], names).number : half_up;
         const Vector axis = (end - start).normalized();
-        const double length = Point::distance(start, end);
         const std::string through = terms.size() > (tapered ? 6 : 4) ? terms[tapered ? 6 : 4] : "both";
         const double reach_out = overshoot + std::max({half_up, side_start, side_end});
         const double before = through == "both" || through == "start" ? reach_out : 0.0;
         const double after = through == "both" || through == "end" ? reach_out : 0.0;
-        const double flare = (side_start - side_end) / length;
-
         // a folding wedge keeps the face looking along its last term flat: each section moves by what it narrows
         Vector flat(0.0, 0.0, 0.0);
         if (tapered && terms.size() > 7) {
@@ -2801,12 +2798,22 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             flat = side * (side.dot(evaluate(terms[7], names).vector) < 0.0 ? -1.0 : 1.0);
         }
         const Vector shift_end = flat * (side_start - side_end);
-        joint->parts.push_back({rectangle_section(start, axis, up, half_up, side_start), rectangle_section(end + shift_end, axis, up, half_up, side_end)});
-        boxes[pair[0]] = Mesh::loft(
-            {rectangle_section(start - axis * before - flat * (flare * before), axis, up, half_up, side_start + flare * before)},
-            {rectangle_section(end + axis * after + shift_end + flat * (flare * after), axis, up, half_up, side_end - flare * after)},
-            true
-        );
+        const Polyline start_section = rectangle_section(start, axis, up, half_up, side_start);
+        const Polyline end_section = rectangle_section(end + shift_end, axis, up, half_up, side_end);
+        joint->parts.push_back({start_section, end_section});
+
+        // a straight part's hole is its loft run past its open ends; a wedge's is its own loft with a straight piece of its end's
+        // section past each open end, since running the taper on would widen the hole along the whole wedge
+        if (!tapered)
+            boxes[pair[0]] = Mesh::loft({rectangle_section(start - axis * before, axis, up, half_up, side_start)}, {rectangle_section(end + axis * after, axis, up, half_up, side_end)}, true);
+        else {
+            std::vector<Mesh> pieces = {Mesh::loft({start_section}, {end_section}, true)};
+            if (before > 0.0)
+                pieces.push_back(Mesh::loft({rectangle_section(start - axis * before, axis, up, half_up, side_start)}, {rectangle_section(start + axis * 1.0, axis, up, half_up, side_start)}, true));
+            if (after > 0.0)
+                pieces.push_back(Mesh::loft({rectangle_section(end + shift_end - axis * 1.0, axis, up, half_up, side_end)}, {rectangle_section(end + shift_end + axis * after, axis, up, half_up, side_end)}, true));
+            boxes[pair[0]] = shells_side_by_side(pieces);
+        }
         part_axes.push_back(axis);
     }
 
@@ -2837,7 +2844,14 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
 
     // the ways a goes in, across only when it is as wide as b; b the opposite ways
     joint->target_insertions = {{}, {}};
+    // the ways the member goes in, the carrier the opposite ways; "part = v" gives a part its way in instead of its axis
+    std::map<std::string, Vector> part_ways;
     for (const std::string& line : record.lists["insertions"]) {
+        if (line.find('=') != std::string::npos) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            part_ways[pair[0]] = evaluate(pair[1], names).vector.normalized();
+            continue;
+        }
         const bool through = line.rfind("through ", 0) == 0;
         if (through && aw < bw - 1e-6)
             continue;
@@ -2851,8 +2865,13 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->target_insertions[1].push_back(direction * -1.0);
     }
 
-    for (const Vector& axis : part_axes)
-        joint->target_insertions.push_back({axis, axis * -1.0});
+    for (size_t k = 0; k < part_axes.size(); k++) {
+        const std::string part = split_top(record.lists["parts"][k], '=')[0];
+        if (part_ways.count(part))
+            joint->target_insertions.push_back({part_ways.at(part)});
+        else
+            joint->target_insertions.push_back({part_axes[k], part_axes[k] * -1.0});
+    }
 
     joint->name = design;
     joint->design = design;
