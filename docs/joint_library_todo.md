@@ -1,14 +1,12 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 71 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 69 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 31 left of 110
+## Timber splicing joints: 29 left of 110
 
 - p. 82, Undersquinted spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit schrägem Gratschnitt)
 - p. 88, Cogged lap joint with floating tenoned piece (gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen)
-- p. 92, Cogged lap joint with floating piece and folding wedges (verkeiltes gerades Hakenblatt mit eingesetztem Hakenstück)
 - p. 94, Undersquinted cogged lap joint with floating piece and folding wedges (verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück)
-- p. 98, Stepped cogged lap joint with floating piece and folding wedges (verkeiltes gestuftes Hakenblatt mit eingesetztem Hakenstück)
 - p. 100, Undersquinted stepped cogged lap joint with floating piece and folding wedges (verkeiltes gestuftes Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück)
 - p. 110, Rabbeted cogged lap joint with stub tenons and folding wedges (verkeiltes gerades Hakenblatt mit Steckfalz und Brüstungszapfen)
 - p. 112, Half-blind rabbeted lap joint with tapered keys (halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen)
