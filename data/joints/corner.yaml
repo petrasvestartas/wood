@@ -523,3 +523,35 @@ triple_shouldered_through_mortise_tenon_corner:
     - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge -face_2"
   insertions:
     - "-p"
+
+half_blind_haunched_mortise_tenon:
+  title: "Half-blind haunched mortise and tenon joint"
+  german: "halbverdeckter Stufeneckzapfen"
+  page: "304"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "cheek = 0.6666666666666666"
+    - "split = 0.3333333333333333"
+    - "haunch = 0.7"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge = O - 2*haunch*bh*n, n, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "cheek = O + (1 - cheek)*ah*p, p, O"
+    - "split = O - split*ah*p, p, O - ah*p"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2 -split; a_end shoulder -cheek_1 -cheek_2 -cheek -edge"
+    - "B2 b_node cheek"
+    - "B3 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge split"
+  insertions:
+    - "-p"
