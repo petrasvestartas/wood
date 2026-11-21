@@ -2677,7 +2677,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     const EdgeStraightElement& a,
     const EdgeStraightElement& b,
     const std::map<std::string, double>& parameters,
-    double overshoot
+    double overshoot,
+    const std::vector<const EdgeStraightElement*>& more
 ) {
 
     LibraryRecord record = library_record(design);
@@ -2805,6 +2806,17 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
     }
 
+    // more members: each a box over its whole length, named by its letter after b (c, d, ...)
+    for (size_t k = 0; k < more.size(); k++) {
+        const EdgeStraightElement& member = *more[k];
+        const std::pair<std::array<Vector, 2>, std::array<double, 2>> section = section_axes(member);
+        const Point start = member.axis.get_point(0);
+        const Point end = member.axis.get_point(member.axis.point_count() - 1);
+        const Vector along = (end - start).normalized();
+        const double half_length = 0.5 * Point::distance(start, end) + member.extension + overshoot;
+        boxes[std::string(1, static_cast<char>('c' + k))] = frame_solid(start + (end - start) * 0.5, {along, section.first[0], section.first[1]}, {-half_length, half_length}, {-section.second[0] - overshoot, section.second[0] + overshoot}, {-section.second[1] - overshoot, section.second[1] + overshoot});
+    }
+
     // planes through a point, their normals turned away from the kept point
     std::map<std::string, Plane> planes;
     for (const std::string& line : record.lists["planes"]) {
@@ -2898,7 +2910,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     for (const std::string& line : record.lists["steps"]) {
         JointCutStep step;
         step.label = line.substr(0, line.find(' '));
-        step.target = step.label[0] == 'A' ? 0 : 1;
+        step.target = static_cast<size_t>(step.label[0] - 'A');
         std::vector<Mesh> regions;
         for (const std::string& region : split_top(line.substr(line.find(' ') + 1), ';')) {
             std::istringstream tokens(region);
@@ -2944,6 +2956,12 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->target_insertions[1].push_back(direction * -1.0);
     }
 
+    // more members go in along the way their letter names ("c = v")
+    for (size_t k = 0; k < more.size(); k++) {
+        const std::string letter(1, static_cast<char>('c' + k));
+        joint->target_insertions.push_back(part_ways.count(letter) ? std::vector<Vector>{part_ways.at(letter)} : std::vector<Vector>{});
+    }
+
     for (size_t k = 0; k < part_axes.size(); k++) {
         const std::string part = split_top(record.lists["parts"][k], '=')[0];
         if (part_ways.count(part))
@@ -2955,6 +2973,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     joint->name = design;
     joint->design = design;
     joint->targets = {a.guid(), b.guid()};
+    for (const EdgeStraightElement* member : more)
+        joint->targets.push_back(member->guid());
     for (int category = 0; category <= static_cast<int>(JointCategory::end_top); category++)
         if (to_string(static_cast<JointCategory>(category)) == record.fields.at("category"))
             joint->category = static_cast<JointCategory>(category);

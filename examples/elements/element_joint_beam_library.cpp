@@ -21,29 +21,41 @@ int main() {
                 continue;
             const Point node(1400.0 * static_cast<double>(corner), -1000.0 * static_cast<double>(i), 0.0);
             const std::string name = fmt::format("{}_{}", design, corner == 0 ? "square" : "inclined");
-            const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, corner == 0, node);
-            const std::shared_ptr<EdgeStraightElement> member = pair[0];
-            const std::shared_ptr<EdgeStraightElement> carrier = pair[1];
+            const std::vector<std::shared_ptr<EdgeStraightElement>> members = library_members(design, corner == 0, node);
+            const std::shared_ptr<EdgeStraightElement> member = members[0];
+            const std::shared_ptr<EdgeStraightElement> carrier = members[1];
             member->name = name + "_member";
             carrier->name = name + "_carrier";
-            scene.add(carrier, scene.group_named(design));
-            scene.add(member, scene.group_named(design));
+            std::vector<const EdgeStraightElement*> more;
+            for (size_t m = 2; m < members.size(); m++) {
+                members[m]->name = fmt::format("{}_{}", name, static_cast<char>('a' + m));
+                more.push_back(members[m].get());
+            }
+            for (const std::shared_ptr<EdgeStraightElement>& each : members)
+                scene.add(each, scene.group_named(design));
 
-            const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *member, *carrier);
+            const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *member, *carrier, {}, 2.0, more);
             joint->name = name;
             scene.add(joint, scene.group_named(design));
-            scene.add_interaction(joint, member, joint->interaction(0));
-            scene.add_interaction(joint, carrier, joint->interaction(1));
+            for (size_t m = 0; m < members.size(); m++)
+                scene.add_interaction(joint, members[m], joint->interaction(m));
 
             // drawn apart as the book draws it: an end member out along its own axis whatever way it goes in, a crossing one lifted
             // straight up with the pegs that run across it, each peg or wedge out along its own way and aside from the carrier's axis
             const bool crossing = library_record(design).fields.at("category") == "cross";
             const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 500.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
+            // a more member out along its own axis, away from the node
+            for (size_t m = 2; m < members.size(); m++) {
+                const Point start = members[m]->axis.get_point(0);
+                const Point end = members[m]->axis.get_point(1);
+                const Vector away = (Point::distance(start, node) < Point::distance(end, node) ? end - start : start - end).normalized() * 500.0;
+                members[m]->place(Xform::translation(away[0], away[1], away[2]));
+            }
             size_t k = 0;
             for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
                 if (part->name.starts_with(name + "_part")) {
-                    const Vector way = joint->insertion_directions(2 + k++)[0];
+                    const Vector way = joint->insertion_directions(joint->targets.size() + k++)[0];
                     const AABB box = AABB::from_mesh(part->model_geometry_mesh());
                     const double clear = box.diagonal() + 150.0;
                     const Point start = carrier->axis.get_point(0);

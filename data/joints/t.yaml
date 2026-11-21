@@ -2433,3 +2433,42 @@ fully_shouldered_blind_mortise_tenon:
     - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
+
+post_stub_tenon_slot_mortise_splice:
+  title: "Post with stub tenon and open slot mortise and tenon"
+  german: "abgesetzter Zapfenstoß auf verdecktem Zapfen"
+  page: "578"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "lap = 0.8"
+    - "thickness = 0.33"
+    - "stub = 0.6"
+    - "stub_wide = 0.33"
+    - "stub_high = 0.4"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "su1 = O + stub*ah*u, u, O"
+    - "su2 = O - stub*ah*u, u, O"
+    - "sw1 = O + stub_wide*aw*w, w, O"
+    - "sw2 = O - stub_wide*aw*w, w, O"
+    - "stub_top = O - (1 - 2*stub_high)*ah*p, p, O"
+    - "post_top = O - ah*p, p, O - 2*ah*p"
+  more:
+    - "c = 0 0 -12, 0 0 -600, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a cheek_1; a_end shoulder_a cheek_2"
+    - "A3 a_end -su1 -su2 -sw1 -sw2 stub_top"
+    - "B2 b_end f2 -cheek_1 -cheek_2"
+    - "B3 b_end -su1 -su2 -sw1 -sw2 stub_top"
+    - "C2 c post_top su1; c post_top su2; c post_top sw1; c post_top sw2"
+  insertions:
+    - "-p"
+    - "c = p"

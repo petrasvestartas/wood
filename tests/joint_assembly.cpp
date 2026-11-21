@@ -124,7 +124,7 @@ static void blind_mortise_tenon() {
     check(sideways.locked().size() == 1 && sideways.locked()[0] == "member", "blind_mortise_tenon: a tenon cannot slide sideways out of its mortise");
 }
 
-/// Every record of the YAML library on a pair of beams: both cut, no wood shared, the member out along a direction it gives.
+/// Every record of the YAML library on its members: all cut, no wood shared, each member out along a direction it gives.
 static void library() {
 
     for (const std::string& design : library_designs())
@@ -134,52 +134,80 @@ static void library() {
             continue;
         const std::string angle = square ? "a square corner" : "an inclined corner";
         WoodSession scene(design);
-        const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, square, Point(1400.0, -65000.0, 0.0));
-        const std::shared_ptr<EdgeStraightElement> member = pair[0];
-        const std::shared_ptr<EdgeStraightElement> carrier = pair[1];
-        scene.add(carrier);
-        scene.add(member);
-        const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *member, *carrier);
+        const std::vector<std::shared_ptr<EdgeStraightElement>> members = library_members(design, square, Point(1400.0, -65000.0, 0.0));
+        const std::shared_ptr<EdgeStraightElement> member = members[0];
+        const std::shared_ptr<EdgeStraightElement> carrier = members[1];
+        std::vector<const EdgeStraightElement*> more;
+        for (size_t i = 2; i < members.size(); i++)
+            more.push_back(members[i].get());
+        for (const std::shared_ptr<EdgeStraightElement>& each : members)
+            scene.add(each);
+        const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *member, *carrier, {}, 2.0, more);
         scene.add(joint);
-        scene.add_interaction(joint, member, joint->interaction(0));
-        scene.add_interaction(joint, carrier, joint->interaction(1));
-        bool cuts_carrier = false;
+        for (size_t i = 0; i < members.size(); i++)
+            scene.add_interaction(joint, members[i], joint->interaction(i));
+        std::vector<bool> cut(members.size(), false);
         for (const JointCutStep& step : joint->steps)
-            cuts_carrier = cuts_carrier || (step.target == 1 && step.removal.number_of_faces() > 0);
+            if (step.target < cut.size())
+                cut[step.target] = cut[step.target] || step.removal.number_of_faces() > 0;
 
         // every member a record cuts loses a real volume, at least 10 cm3 (a small groove is 25): a near-empty cut is a broken record
         const double least = 10000.0;
-        check(lost(*member) > least && (!cuts_carrier || lost(*carrier) > least), fmt::format("library: {} at {} cuts only {} and {} mm3", design, angle, lost(*member), lost(*carrier)));
-        check(shared(*member, *carrier) < 1.0, fmt::format("library: {} at {} leaves {} mm3 shared", design, angle, shared(*member, *carrier)));
-        // every cavity cut into the carrier is filled by the member or a part, but for the share a record leaves open on purpose (its open, 1 % by default)
-        Mesh cavity = solid_boolean(carrier->element_geometry_mesh(), carrier->model_geometry_mesh(), SolidOperation::subtract);
-        cavity = solid_boolean(cavity, member->model_geometry_mesh(), SolidOperation::subtract);
-        for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
-            cavity = solid_boolean(cavity, part->model_geometry_mesh(), SolidOperation::subtract);
-        const double open = cavity.number_of_faces() == 0 ? 0.0 : compute_volume(cavity);
+        for (size_t i = 0; i < members.size(); i++)
+            check(!cut[i] || lost(*members[i]) > least, fmt::format("library: {} at {} cuts only {} mm3 from {}", design, angle, lost(*members[i]), members[i]->name));
+        check(lost(*member) > least, fmt::format("library: {} at {} cuts only {} mm3 from the member", design, angle, lost(*member)));
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t j = i + 1; j < members.size(); j++)
+                check(shared(*members[i], *members[j]) < 1.0, fmt::format("library: {} at {} leaves {} mm3 shared by {} and {}", design, angle, shared(*members[i], *members[j]), members[i]->name, members[j]->name));
+
+        // every cavity cut into the carrier, and into the more members the record lists under filled, is filled by the other
+        // members or a part, but for the share a record leaves open on purpose (its open, 1 % by default)
         double allowed = 0.01;
         for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>())
             if (line.starts_with("open"))
                 allowed = std::stod(line.substr(line.find('=') + 1));
-        check(open < allowed * lost(*carrier) + 1.0, fmt::format("library: {} at {} leaves {} of {} mm3 cut from the carrier empty", design, angle, open, lost(*carrier)));
+        const std::string filled = record.fields.count("filled") ? record.fields.at("filled") : "b";
+        double open = 0.0;
+        for (size_t i = 1; i < members.size(); i++) {
+            if (filled.find(static_cast<char>('a' + i)) == std::string::npos)
+                continue;
+            Mesh cavity = solid_boolean(members[i]->element_geometry_mesh(), members[i]->model_geometry_mesh(), SolidOperation::subtract);
+            for (size_t j = 0; j < members.size(); j++)
+                if (j != i)
+                    cavity = solid_boolean(cavity, members[j]->model_geometry_mesh(), SolidOperation::subtract);
+            for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
+                cavity = solid_boolean(cavity, part->model_geometry_mesh(), SolidOperation::subtract);
+            const double empty = cavity.number_of_faces() == 0 ? 0.0 : compute_volume(cavity);
+            check(empty < allowed * lost(*members[i]) + 1.0, fmt::format("library: {} at {} leaves {} of {} mm3 cut from {} empty", design, angle, empty, lost(*members[i]), members[i]->name));
+            open += empty;
+        }
 
-        // where the uncut members overlapped, every bit of wood ends in one of them or a part, or in the carrier's open share: no slot or mortise cut too deep
-        Mesh overlap = solid_boolean(member->element_geometry_mesh(), carrier->element_geometry_mesh(), SolidOperation::intersect);
-        const double overlapping = overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
-        overlap = solid_boolean(overlap, member->model_geometry_mesh(), SolidOperation::subtract);
-        overlap = solid_boolean(overlap, carrier->model_geometry_mesh(), SolidOperation::subtract);
-        for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
-            overlap = solid_boolean(overlap, part->model_geometry_mesh(), SolidOperation::subtract);
-        const double gap = overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
-        check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in neither", design, angle, gap, overlapping));
+        // where the uncut members overlapped, every bit of wood ends in one of them or a part, or in an open share: no slot or mortise cut too deep
+        double overlapping = 0.0;
+        double gap = 0.0;
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t j = i + 1; j < members.size(); j++) {
+                Mesh overlap = solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect);
+                if (overlap.number_of_faces() == 0)
+                    continue;
+                overlapping += compute_volume(overlap);
+                for (const std::shared_ptr<EdgeStraightElement>& each : members)
+                    overlap = solid_boolean(overlap, each->model_geometry_mesh(), SolidOperation::subtract);
+                for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
+                    overlap = solid_boolean(overlap, part->model_geometry_mesh(), SolidOperation::subtract);
+                gap += overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
+            }
+        check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in none", design, angle, gap, overlapping));
 
-        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few; the pair
-        // stands 65 m from the origin, as in the gallery, where a sliver's normal is noisiest
-        check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} and {} faces, a face per triangle", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));
+        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few; the members
+        // stand 65 m from the origin, as in the gallery, where a sliver's normal is noisiest
+        for (const std::shared_ptr<EdgeStraightElement>& each : members)
+            check(each->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} faces on {}, a face per triangle", design, angle, each->model_geometry_brep().face_count(), each->name));
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
-            check(shared(*part, *member) < 1.0 && shared(*part, *carrier) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with the member and {} with the carrier", design, angle, part->name, shared(*part, *member), shared(*part, *carrier)));
+            for (const std::shared_ptr<EdgeStraightElement>& each : members)
+                check(shared(*part, *each) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with {}", design, angle, part->name, shared(*part, *each), each->name));
         const AssemblySequence sequence(scene, carrier->name);
-        check(sequence.locked().empty() && sequence.steps().size() == 2 + joint->parts.size(), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
+        check(sequence.locked().empty() && sequence.steps().size() == members.size() + joint->parts.size(), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
         }
 }
 

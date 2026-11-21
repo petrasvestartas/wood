@@ -2,6 +2,8 @@
 #include "wood_joint_library.h"
 #include "wood_config.h"
 #include "yaml.hpp"
+#include <sstream>
+#include <fstream>
 #include "wood_element_geometry.h"
 
 namespace wood_session {
@@ -216,6 +218,28 @@ LibraryRecord library_record(const std::string& design) {
                     record.lists[key].push_back(unquoted(item));
         }
 
+        // the keys only some records have, read from the record's own lines: filled (the members whose cuts the others fill,
+        // b by default) and more (members after b)
+        std::ifstream text(file);
+        std::string line;
+        bool inside = false;
+        bool in_more = false;
+        while (std::getline(text, line)) {
+            if (!line.empty() && line[0] != ' ' && line[0] != '#') {
+                inside = line == design + ":";
+                in_more = false;
+                continue;
+            }
+            if (!inside)
+                continue;
+            if (line.starts_with("  filled:"))
+                record.fields["filled"] = unquoted(line.substr(9));
+            if (line.starts_with("  ") && !line.starts_with("    "))
+                in_more = line.starts_with("  more:");
+            else if (in_more && line.starts_with("    - "))
+                record.lists["more"].push_back(unquoted(line.substr(6)));
+        }
+
         return record;
     }
 
@@ -292,6 +316,31 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     member->extension = 180.0;
 
     return {member, carrier};
+}
+
+std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::string& design, bool square, const Point& at) {
+
+    const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, square, at);
+    std::vector<std::shared_ptr<EdgeStraightElement>> members = {pair[0], pair[1]};
+    const LibraryRecord record = library_record(design);
+    for (const std::string& line : record.lists.count("more") ? record.lists.at("more") : std::vector<std::string>()) {
+        const size_t equals = line.find('=');
+        const std::string letter = unquoted(line.substr(0, equals));
+        std::vector<double> numbers;
+        std::istringstream values(line.substr(equals + 1));
+        std::string value;
+        while (std::getline(values, value, ','))
+            for (std::istringstream words(value); words >> value;)
+                numbers.push_back(std::stod(value));
+        if (numbers.size() != 11)
+            throw std::invalid_argument(fmt::format("{}: more {} needs start, end and up as three numbers each and two halves", design, letter));
+        const Point start = at + Vector(numbers[0], numbers[1], numbers[2]);
+        const Point end = at + Vector(numbers[3], numbers[4], numbers[5]);
+        const Vector up(numbers[6], numbers[7], numbers[8]);
+        members.push_back(EdgeStraightElement::from_section(Line::from_points(start, end), rectangle_section(start, (end - start).normalized(), up, numbers[9], numbers[10]), design + "_" + letter));
+    }
+
+    return members;
 }
 
 }

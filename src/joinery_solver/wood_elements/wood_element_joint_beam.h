@@ -257,13 +257,15 @@ public:
     );
 
     /// A joint of the library, data/joints/*.yaml, by its design name (notched_oblique_thrust, blind_mortise_tenon, ...):
-    /// a the member it ends, b the member it ends on; parameters override the record's, shares of the members' sizes.
+    /// a the member it ends, b the member it ends on; parameters override the record's, shares of the members' sizes; more
+    /// members, the record's c, d, ..., are its targets after b, each cut from a box around it named by its letter.
     static std::shared_ptr<JointBeamElement> from_library(
         const std::string& design,
         const EdgeStraightElement& a,
         const EdgeStraightElement& b,
         const std::map<std::string, double>& parameters = {},
-        double overshoot = 2.0
+        double overshoot = 2.0,
+        const std::vector<const EdgeStraightElement*>& more = {}
     );
 
     // ═══════════════════════════════════════════════════════════════════════════

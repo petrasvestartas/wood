@@ -16,8 +16,8 @@ struct LibraryValue {
 
 /// One record of the joint library, data/joints/*.yaml: its fields and its lists in order, quotes stripped.
 struct LibraryRecord {
-    std::map<std::string, std::string> fields; // title, german, page, category, family, corners.
-    std::map<std::string, std::vector<std::string>> lists; // parameters, points, planes, parts, steps, insertions.
+    std::map<std::string, std::string> fields; // title, german, page, category, family, corners, and filled when given.
+    std::map<std::string, std::vector<std::string>> lists; // parameters, points, planes, parts, steps, insertions, more.
 };
 
 /// The value of a library expression: numbers, names, + - * / and parentheses, unit(v), length(v), cross(a, b), dot(a, b) and
@@ -40,5 +40,9 @@ LibraryRecord library_record(const std::string& design);
 /// carrier_thick and carrier_wide give a side or corner carrier its own section and span its half length (450); flat lays a board
 /// and its batten in the plane of the joint, their thickness across it.
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at);
+
+/// The members a record is drawn on: library_pair's member and carrier, then one more per line of its list more, "c = start,
+/// end, up, half_up, half_side", three numbers each in mm from `at` for start, end and the up of its section, halves in mm.
+std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::string& design, bool square, const Point& at);
 
 }
