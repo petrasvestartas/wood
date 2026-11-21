@@ -718,6 +718,44 @@ housed_stop_mitered_mortise_tenon:
   insertions:
     - "-u"
 
+mortise_tenon_fan_shaped_housing:
+  title: "Mortise and tenon with fan-shaped housing"
+  german: "schwalbenschwanzförmiger eingelassener Zapfen"
+  page: "468"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "house = 0.33"
+    - "fan = 0.64"
+    - "tenon_width = 0.75"
+    - "tenon_height = 0.3333333333333333"
+    - "length = 0.67"
+  points:
+    - "U = O + n"
+    - "T1 = meet(O + ah*p + aw*w, u, O, n)"
+    - "B1 = meet(O + fan*ah*p - aw*w, u, O, n)"
+    - "T2 = meet(O - ah*p + aw*w, u, O, n)"
+    - "B2 = meet(O - fan*ah*p - aw*w, u, O, n)"
+  planes:
+    - "end = O - 2*length*bh*n, n, O"
+    - "house_end = O - 2*house*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "fan_1 = T1, cross(u, B1 - T1), O"
+    - "fan_2 = T2, cross(u, B2 - T2), O"
+    - "cheek_1 = O + tenon_height*aw*w, w, O"
+    - "cheek_2 = O - tenon_height*aw*w, w, O"
+    - "edge_1 = O + tenon_width*ah*p, p, O"
+    - "edge_2 = O - tenon_width*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end house_end cheek_1; a_end house_end cheek_2; a_end house_end edge_1; a_end house_end edge_2"
+    - "A3 a_end shoulder -house_end fan_1; a_end shoulder -house_end fan_2"
+    - "B2 b_node -house_end -fan_1 -fan_2"
+    - "B3 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"
