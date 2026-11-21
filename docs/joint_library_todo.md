@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 90 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 89 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 31 left of 110
 
@@ -72,7 +72,7 @@ All done.
 - p. 678, Three-way cross lap joint (doppelte Überblattung)
 - p. 688, Double notch joint with stub tenons (Kreuzkamm mit abgesetzter Falz)
 
-## Timber specialty joints: 24 left of 29
+## Timber specialty joints: 23 left of 29
 
 - p. 718, Notched corner-post joint with beveled-shoulder tenons (Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust)
 - p. 720, Corner-post joint with open slot mortise and tenon (Scherzapfen mit Zapfenloch und durchgehendem Zapfen)
@@ -95,7 +95,6 @@ All done.
 - p. 754, Two-way collared rod tenon joint with tapered keys (eingelassener durchgesteckter Stabzapfen mit gestufter abgesetzter Brust und Spannkeilen)
 - p. 756, Two-way rabbeted rod tenon joint with tapered keys (eingelassener durchgesteckter Stabzapfen mit Steckfalz und Spannkeilen)
 - p. 758, Two-way partially housed rod tenon joint with tapered keys (eingelassener durchgesteckter Stabzapfen mit abgesetzter Nut und Spannkeilen)
-- p. 760, Pegged two-way tenon joint (durchgesteckter Zapfen mit Dübelsicherung)
 - p. 762, Two-way splined rod joint with tapered keys and a peg (durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung)
 - p. 764, Pegged two-way lapped rod tenon joint with housing (durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung)
 
