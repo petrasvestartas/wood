@@ -63,6 +63,12 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_v_grooved_rafter_joint.png) | **V-grooved rafter joint**<br>Aufkervung mit Rückversatz, p. 640<br>`v_grooved_rafter_joint` |
 | ![](joint_library/beam_step_lap_rafter_joint.png) | **Step lap rafter joint**<br>Aufkervung mit gestuftem Rückversatz, p. 642<br>`step_lap_rafter_joint` |
 | ![](joint_library/beam_stopped_birdsmouth_rafter_foot.png) | **Stopped birdsmouth rafter foot**<br>Aufklauung mit Anschnitt, p. 644<br>`stopped_birdsmouth_rafter_foot` |
+| ![](joint_library/beam_shiplap_edge.png) | **Shiplap joint**<br>Überfälzung, p. 768<br>`shiplap_edge` |
+| ![](joint_library/beam_v_grooved_edge.png) | **V-grooved joint**<br>v-förmige Nut, p. 770<br>`v_grooved_edge` |
+| ![](joint_library/beam_tongue_groove_edge.png) | **Tongue and groove joint**<br>Nut und Feder, p. 772<br>`tongue_groove_edge` |
+| ![](joint_library/beam_floating_tenon_edge.png) | **Floating tenon joint**<br>Stoß mit eingesetztem Zapfen, p. 776<br>`floating_tenon_edge` |
+| ![](joint_library/beam_spline_groove_edge.png) | **Spline and groove joint**<br>Nut mit eingesetzter Feder, p. 780<br>`spline_groove_edge` |
+| ![](joint_library/beam_butterfly_key_edge.png) | **Butterfly key joint**<br>Schwalbenschwanzeinlage, p. 786<br>`butterfly_key_edge` |
 | ![](joint_library/beam_corner_lap.png) | **Corner lap joint**<br>Eckblatt, p. 262<br>`corner_lap` |
 | ![](joint_library/beam_dovetailed_corner_lap.png) | **Dovetailed corner lap joint**<br>Eckblatt mit schräger Blattfläche, p. 266<br>`dovetailed_corner_lap` |
 | ![](joint_library/beam_beveled_corner_lap.png) | **Beveled corner lap joint**<br>Eckblatt mit zweifach schräger Blattfläche, p. 268<br>`beveled_corner_lap` |

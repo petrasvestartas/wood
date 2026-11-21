@@ -1,0 +1,190 @@
+# Joinery Compendium (Bauer, Pauli 2024), Case Joints, Edge Joints (boards joined along their edges): one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               A splice (family splicing): a and b on one line overlapping, O the middle of the overlap, u along a away
+#               from b, p the section axis of a nearest the vertical, w across, ah and aw half of a along p and w, L half the
+#               overlap; boxes a_end and b_end; the parameter lap sets the overlap the pair is drawn with, in section heights.
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
+#               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+
+shiplap_edge:
+  title: "Shiplap joint"
+  german: "Überfälzung"
+  page: "768"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 1"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "mid = O, p, O + p"
+  parts:
+  steps:
+    - "A2 a_end mid shoulder_a"
+    - "B2 b_end -mid f2"
+  insertions:
+    - "-p"
+
+v_grooved_edge:
+  title: "V-grooved joint"
+  german: "v-förmige Nut"
+  page: "770"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 0.75"
+  points:
+    - "A = O - L*u"
+    - "U1 = O + L*u + ah*p"
+    - "U2 = O + L*u - ah*p"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "v_up = A, cross(w, U1 - A), O + L*u"
+    - "v_dn = A, cross(w, U2 - A), O + L*u"
+  parts:
+  steps:
+    - "A2 a_end v_up; a_end v_dn"
+    - "B2 b_end -v_up -v_dn"
+  insertions:
+    - "-u"
+
+tongue_groove_edge:
+  title: "Tongue and groove joint"
+  german: "Nut und Feder"
+  page: "772"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 1"
+    - "tongue = 0.33"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "c1 = O + tongue*ah*p, p, O"
+    - "c2 = O - tongue*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a c1; a_end shoulder_a c2"
+    - "B2 b_end f2 -c1 -c2"
+  insertions:
+    - "-u"
+
+floating_tenon_edge:
+  title: "Floating tenon joint"
+  german: "Stoß mit eingesetztem Zapfen"
+  page: "776"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 0.1"
+    - "tenon = 0.33"
+    - "reach = 2.5"
+    - "width = 0.25"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "tenon = O + reach*ah*u, O - reach*ah*u, p, tenon*ah, width*aw, width*aw, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 tenon"
+    - "B2 tenon"
+  insertions:
+    - "-u"
+
+spline_groove_edge:
+  title: "Spline and groove joint"
+  german: "Nut mit eingesetzter Feder"
+  page: "780"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 0.1"
+    - "spline = 0.25"
+    - "reach = 1.2"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "spline = O + reach*ah*u, O - reach*ah*u, p, spline*ah, aw + 2, aw + 2, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 spline"
+    - "B2 spline"
+  insertions:
+    - "-u"
+    - "spline = w"
+
+butterfly_key_edge:
+  title: "Butterfly key joint"
+  german: "Schwalbenschwanzeinlage"
+  page: "786"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 0.1"
+    - "depth = 0.5"
+    - "wing = 5"
+    - "waist = 0.06"
+    - "flare = 0.22"
+  points:
+    - "K = O + (1 - depth)*ah*p"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "wing_1 = K, K + wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
+    - "wing_2 = K, K - wing*ah*u, p, depth*ah + 0.5, waist*aw, flare*aw, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 wing_1; wing_2"
+    - "B2 wing_1; wing_2"
+  insertions:
+    - "-u"
+    - "wing_1 = -p"
+    - "wing_2 = -p"

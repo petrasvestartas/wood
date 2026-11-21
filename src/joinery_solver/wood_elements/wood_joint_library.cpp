@@ -2,6 +2,7 @@
 #include "wood_joint_library.h"
 #include "wood_config.h"
 #include "yaml.hpp"
+#include "wood_element_geometry.h"
 
 namespace wood_session {
 
@@ -137,6 +138,18 @@ struct Reader {
     }
 };
 
+/// A beam along axis, square of half side thick when wide is the same, else a board thick across up and wide across both.
+std::shared_ptr<EdgeStraightElement> stock(const Polyline& axis, const Vector& up, double thick, double wide, const std::string& name) {
+
+    if (std::abs(thick - wide) < 1e-9)
+        return EdgeStraightElement::square(axis, thick, name);
+
+    const Point start = axis.get_point(0);
+    const Vector along = (axis.get_point(1) - start).normalized();
+
+    return EdgeStraightElement::from_section(Line::from_points(start, axis.get_point(1)), rectangle_section(start, along, up, thick, wide), name);
+}
+
 /// The text without the quotes and spaces around it.
 std::string unquoted(std::string text) {
 
@@ -212,7 +225,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"lap", 2.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"lap", 2.0}, {"stock_thick", 60.0}, {"stock_wide", 60.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -227,9 +240,9 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 
     // a splice: both along x on one line, overlapping by lap section heights, the member on the +x side
     if (record.fields.at("family") == "splicing") {
-        const double overlap = numbers["lap"] * 2.0 * half;
-        member = EdgeStraightElement::square(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(600.0, 0.0, 0.0)}), half, design + "_member");
-        carrier = EdgeStraightElement::square(Polyline({at - Vector(600.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), half, design + "_carrier");
+        const double overlap = numbers["lap"] * 2.0 * numbers["stock_thick"];
+        member = stock(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(600.0, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_member");
+        carrier = stock(Polyline({at - Vector(600.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
         member->directions = {Vector::z_axis()};
         carrier->directions = {Vector::z_axis()};
         return {member, carrier};
@@ -250,9 +263,10 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 
     // an end on a side: the carrier along x, the member ending on its axis, its stock running past the end; at a corner the
     // carrier ends flush with the member's outer face
-    const double carrier_end = record.fields.at("category") == "end_end_inplane" ? half : 450.0;
-    carrier = EdgeStraightElement::square(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), half, design + "_carrier");
-    member = EdgeStraightElement::square(Polyline({at, at + along * 600.0}), half, design + "_member");
+    const double carrier_end = record.fields.at("category") == "end_end_inplane" ? numbers["stock_thick"] : 450.0;
+    const Vector across(-std::sin(turn), 0.0, std::cos(turn));
+    carrier = stock(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
+    member = stock(Polyline({at, at + along * 600.0}), across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
     carrier->directions = {Vector::y_axis()};
     member->directions = {Vector::y_axis()};
     member->extension = 180.0;

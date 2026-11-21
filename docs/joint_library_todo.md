@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 209 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 203 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 68 left of 110
 
@@ -185,18 +185,12 @@ All done.
 - p. 762, Two-way splined rod joint with tapered keys and a peg (durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung)
 - p. 764, Pegged two-way lapped rod tenon joint with housing (durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung)
 
-## Case edge joints: 13 left of 13
+## Case edge joints: 7 left of 13
 
-- p. 768, Shiplap joint (Überfälzung)
-- p. 770, V-grooved joint (v-förmige Nut)
-- p. 772, Tongue and groove joint (Nut und Feder)
 - p. 774, Tongued and rabbeted joint (Nut und Feder mit versetzter Brüstung)
-- p. 776, Floating tenon joint (Stoß mit eingesetztem Zapfen)
 - p. 778, Foxtail-wedged floating tenon joint (Stoß mit verkeiltem eingesetztem Zapfen)
-- p. 780, Spline and groove joint (Nut mit eingesetzter Feder)
 - p. 782, Floating tenon and spline joint (Nut mit eingesetzter Feder und Zapfen)
 - p. 784, Blind dovetail joint (abgesetzte Fuge mit Trapezprofil)
-- p. 786, Butterfly key joint (Schwalbenschwanzeinlage)
 - p. 788, Sliding dovetail batten (Gratleiste)
 - p. 790, Sliding dovetail batten with keys (Gratleiste mit Dübelschloss)
 - p. 792, Blind dovetailed keyhole batten (Mehrfach abgesetzte Gratleiste)
