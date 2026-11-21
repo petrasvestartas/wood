@@ -439,3 +439,61 @@ undersquinted_stop_splayed_scarf:
     - "B2 b_end -splay -up_face; b_end splay low_face"
   insertions:
     - "w"
+
+pegged_stop_splayed_scarf:
+  title: "Pegged stop-splayed scarf joint"
+  german: "schräges Blatt mit Dübelsicherung"
+  page: "120"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "peg = 0.12"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+  parts:
+    - "peg = O + aw*w, O - aw*w, u, peg*ah"
+  steps:
+    - "A2 a_end splay shoulder_a"
+    - "A3 peg"
+    - "B2 b_end -splay shoulder_b"
+    - "B3 peg"
+  insertions:
+    - "-p"
+
+stop_splayed_cogged_scarf:
+  title: "Stop-splayed cogged scarf joint"
+  german: "schräges Hakenblatt"
+  page: "122"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+  parts:
+  steps:
+    - "A2 a_end upper shoulder_a cut; a_end splay shoulder_a -cut"
+    - "B2 b_end -upper shoulder_b cut; b_end -splay shoulder_b -cut"
+  insertions:
+    - "-p"
