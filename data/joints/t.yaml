@@ -1365,6 +1365,39 @@ fully_shouldered_through_mortise_tenon:
   insertions:
     - "-u"
 
+triple_through_mortise_tenon:
+  title: "Triple through mortise and tenon"
+  german: "durchgehender dreifacher Zapfen"
+  page: "512"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "left_low = 0.6"
+    - "left_high = 0.16"
+    - "right_low = 0.2"
+    - "right_high = 0.62"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "s1 = O - (ah/3)*p, p, O"
+    - "s3 = O + (ah/3)*p, p, O"
+    - "cL1 = O - left_low*aw*w, w, O"
+    - "cL2 = O - left_high*aw*w, w, O - aw*w"
+    - "cR1 = O + right_low*aw*w, w, O + aw*w"
+    - "cR2 = O + right_high*aw*w, w, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cL1; a_end shoulder cR2; a_end shoulder cL2 cR1"
+    - "A3 a_end shoulder s1 cL2; a_end shoulder s3 cL2; a_end shoulder -s1 -s3 cR1"
+    - "B2 b_node -end s1 -cL1 -cL2 -edge_2; b_node -end s3 -cL1 -cL2 -edge_1; b_node -end -s1 -s3 -cR1 -cR2"
+  insertions:
+    - "-u"
+
 quadruple_through_mortise_tenon:
   title: "Quadruple through mortise and tenon"
   german: "durchgehender vierfacher Zapfen"

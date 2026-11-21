@@ -106,6 +106,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_pegged_blind_mortise_tenon.png) | **Pegged blind mortise and tenon**<br>verdeckter Zapfen mit Dübelsicherung, p. 506<br>`pegged_blind_mortise_tenon` |
 | ![](joint_library/beam_triple_shouldered_through_mortise_tenon.png) | **Triple-shouldered through mortise and tenon**<br>durchgehender abgesetzter Zapfen, p. 508<br>`triple_shouldered_through_mortise_tenon` |
 | ![](joint_library/beam_fully_shouldered_through_mortise_tenon.png) | **Fully shouldered through mortise and tenon joint**<br>durchgehender beidseitig abgesetzter Zapfen, p. 510<br>`fully_shouldered_through_mortise_tenon` |
+| ![](joint_library/beam_triple_through_mortise_tenon.png) | **Triple through mortise and tenon**<br>durchgehender dreifacher Zapfen, p. 512<br>`triple_through_mortise_tenon` |
 | ![](joint_library/beam_quadruple_through_mortise_tenon.png) | **Quadruple through mortise and tenon**<br>durchgehender vierfacher Zapfen, p. 514<br>`quadruple_through_mortise_tenon` |
 | ![](joint_library/beam_haunched_through_mortise_tenon.png) | **Haunched through mortise and tenon**<br>durchgehender Stufenzapfen, p. 516<br>`haunched_through_mortise_tenon` |
 | ![](joint_library/beam_blind_haunched_mortise_tenon.png) | **Blind haunched mortise and tenon**<br>verdeckter Stufenzapfen, p. 518<br>`blind_haunched_mortise_tenon` |
