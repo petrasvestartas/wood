@@ -2258,3 +2258,46 @@ blind_triple_shouldered_through_tenon_corner:
     - "B9 b_node cheek_in cheek_miter"
   insertions:
     - "-u"
+
+blind_fan_double_tenon_corner:
+  title: "Blind fan-shaped double mortise and tenon"
+  german: "verdeckter doppelter trapezförmiger Eckzapfen mit Wange auf Gehrung"
+  page: "402"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.15"
+    - "depth = 0.6"
+  points:
+    - "CX = O + ah*p - 2*bh*n"
+    - "U = O + n"
+    - "E = O - 2*depth*bh*n"
+    - "P1 = O + 0.6*aw*w"
+    - "Q1 = E + 0.5*aw*w"
+    - "P2 = O + 0.15*aw*w"
+    - "Q2 = E + 0.25*aw*w"
+    - "P3 = O - 0.15*aw*w"
+    - "Q3 = E - 0.25*aw*w"
+    - "P4 = O - 0.6*aw*w"
+    - "Q4 = E - 0.5*aw*w"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "tenon_end = E, n, O"
+    - "f1 = P1, cross(p, Q1 - P1), O"
+    - "f2 = P2, cross(p, Q2 - P2), O + aw*w"
+    - "f3 = P3, cross(p, Q3 - P3), O - aw*w"
+    - "f4 = P4, cross(p, Q4 - P4), O"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_miter = CX, p + n, CX - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_in f1; a_end shoulder -cheek_in f2 f3; a_end shoulder -cheek_in f4; a_end tenon_end -cheek_in"
+    - "B2 b_node -f1 -f2 -tenon_end -cheek_in -face_2; b_node -f3 -f4 -tenon_end -cheek_in -face_2"
+    - "A9 a_end shoulder cheek_in -cheek_miter"
+    - "B9 b_node cheek_in cheek_miter"
+  insertions:
+    - "-u"

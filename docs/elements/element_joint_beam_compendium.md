@@ -179,6 +179,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_notched_lap_stub_tenon_corner.png) | **Notched lap joint with stub tenon**<br>Meisterwitz, p. 406<br>`notched_lap_stub_tenon_corner` |
 | ![](joint_library/beam_triple_shouldered_double_tenon_miter.png) | **Triple-shouldered double tenon miter**<br>durchgehender abgesetzter doppelter Zapfen mit Gehrungsblatt und Wange, p. 382<br>`triple_shouldered_double_tenon_miter` |
 | ![](joint_library/beam_blind_triple_shouldered_through_tenon_corner.png) | **Blind triple-shouldered through mortise and tenon**<br>durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung, p. 324<br>`blind_triple_shouldered_through_tenon_corner` |
+| ![](joint_library/beam_blind_fan_double_tenon_corner.png) | **Blind fan-shaped double mortise and tenon**<br>verdeckter doppelter trapezförmiger Eckzapfen mit Wange auf Gehrung, p. 402<br>`blind_fan_double_tenon_corner` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
