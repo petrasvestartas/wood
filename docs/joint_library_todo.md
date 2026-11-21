@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 153 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 152 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 49 left of 110
 
@@ -54,7 +54,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 258, Butt joint with a gooseneck key and stub tenons (Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen)
 - p. 260, Four-faced gooseneck joint (diagonaler doppelter Sichelzapfen mit Steckfalz)
 
-## Timber corner joints: 38 left of 79
+## Timber corner joints: 37 left of 79
 
 - p. 264, Blind mitered corner lap joint (verdecktes Eckblatt mit Wange auf Gehrung)
 - p. 270, Blind mitered beveled corner lap joint (verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung)
@@ -83,7 +83,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 378, Blind haunched mortise and tenon miter (verdeckter abgesetzter Stufenzapfen mit Gehrungsblatt und Wange)
 - p. 380, Haunched through double mortise and tenon with one-sided lapped miter (durchgehender abgesetzter doppelter Stufenzapfen mit Gehrungsblatt)
 - p. 382, Triple-shouldered double tenon miter (durchgehender abgesetzter doppelter Zapfen mit Gehrungsblatt und Wange)
-- p. 386, Housed dovetail tenon (halbverdeckter eingelassener Schwalbenschwanzeckzapfen)
 - p. 388, Blind housed dovetail tenon (Schwalbenschwanzeckzapfen mit gestufter Brüstung)
 - p. 390, Half-blind gooseneck tenon (halbverdeckter Sicheleckzapfen)
 - p. 392, Half-blind dovetail bridle joint (halbverdeckter Schwalbenschwanzeckzapfen)

@@ -1206,3 +1206,39 @@ housed_stub_tenon_corner:
     - "B2 b_node -house_floor -side_2 -w1 -w2; b_node -tenon_end -side_2 -w_lo -w_hi"
   insertions:
     - "-u"
+
+housed_dovetail_tenon_corner:
+  title: "Housed dovetail tenon"
+  german: "halbverdeckter eingelassener Schwalbenschwanzeckzapfen"
+  page: "386"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "house = 0.2"
+    - "depth = 0.55"
+    - "top = 0.2"
+    - "foot = 0.38"
+  points:
+    - "U = O + n"
+    - "H = O - 2*house*bh*n"
+    - "E = O - 2*depth*bh*n"
+    - "A1 = H + top*aw*w"
+    - "B1 = E + foot*aw*w"
+    - "A2 = H - top*aw*w"
+    - "B2 = E - foot*aw*w"
+    - "C = (H + E)/2"
+  planes:
+    - "house_floor = H, n, O"
+    - "tenon_end = E, n, O"
+    - "side_2 = O - ah*p, p, O"
+    - "w1 = O + aw*w, w, O"
+    - "w2 = O - aw*w, w, O"
+    - "f1 = A1, cross(p, B1 - A1), C"
+    - "f2 = A2, cross(p, B2 - A2), C"
+  parts:
+  steps:
+    - "A2 a_end tenon_end; a_end house_floor f1; a_end house_floor f2"
+    - "B2 b_node -house_floor -side_2 -w1 -w2; b_node -tenon_end -side_2 -f1 -f2"
+  insertions:
+    - "-p"
