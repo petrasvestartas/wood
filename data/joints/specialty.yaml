@@ -765,3 +765,50 @@ two_way_partially_housed_rod_tenon:
   insertions:
     - "-u"
     - "c = n"
+
+pegged_two_way_lapped_rod_tenon_housing:
+  title: "Pegged two-way lapped rod tenon joint with housing"
+  german: "durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung"
+  page: "764"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "long = 0.6"
+    - "thin = 0.3"
+    - "into = 0.8"
+    - "house = 0.15"
+    - "peg = 0.1"
+  points:
+    - "S = O + n"
+    - "E = O + 1.5*into*bh*n"
+    - "K1 = O - bh*n + 0.5*long*bw*t"
+    - "K2 = O - bh*n - 0.5*long*bw*t"
+  planes:
+    - "hs_a = O - house*bh*n, n, O + n"
+    - "hs_c = O - (2 - house)*bh*n, n, O - 4*bh*n"
+    - "ta1 = O + ah*t, t, O"
+    - "ta2 = O - ah*t, t, O"
+    - "t0 = O, t, O - t"
+    - "tl1 = O + long*bw*t, t, O"
+    - "tl2 = O - long*bw*t, t, O"
+    - "tw1 = O + thin*aw*w, w, O"
+    - "tw2 = O - thin*aw*w, w, O"
+    - "ra_end = O - (2*bh + into*bh)*n, n, O"
+    - "rc_end = O + into*bh*n, n, O"
+  more:
+    - "c = 0 0 156, 0 0 -600, 0 1 0, 60, 60"
+  parts:
+    - "peg_1 = K1 - 1.3*aw*w, K1 + 1.3*aw*w, n, peg*aw"
+    - "peg_2 = K2 - 1.3*aw*w, K2 + 1.3*aw*w, n, peg*aw"
+  steps:
+    - "A2 a_end hs_a -t0; a_end hs_a tl1; a_end hs_a tw1; a_end hs_a tw2; a_end ra_end; a_end -hs_a -rc_end -t0 -tl2 -tw1 -tw2"
+    - "A3 peg_1"
+    - "B2 b_node -tl1 -tl2 -tw1 -tw2; b_node -hs_a -ta1 -ta2; b_node -hs_c -ta1 -ta2"
+    - "B3 peg_1; peg_2"
+    - "C2 c hs_c t0; c hs_c tl2; c hs_c tw1; c hs_c tw2; c rc_end; c -hs_c -ra_end t0 -tl1 -tw1 -tw2"
+    - "C3 peg_2"
+  insertions:
+    - "-u"
+    - "c = n"

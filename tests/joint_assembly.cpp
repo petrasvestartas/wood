@@ -199,10 +199,16 @@ static void library() {
             }
         check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in none", design, angle, gap, overlapping));
 
-        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few; the members
-        // stand 65 m from the origin, as in the gallery, where a sliver's normal is noisiest
-        for (const std::shared_ptr<EdgeStraightElement>& each : members)
-            check(each->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} faces on {}, a face per triangle", design, angle, each->model_geometry_brep().face_count(), each->name));
+        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens of triangles where a joint makes a few
+        // polygons; a member with many holes may have more than 30 faces, but then they are polygons. The members stand 65 m
+        // from the origin, as in the gallery, where a sliver's normal is noisiest
+        for (const std::shared_ptr<EdgeStraightElement>& each : members) {
+            const Mesh& cut = each->model_geometry_mesh();
+            int triangles = 0;
+            for (const size_t face : cut.faces())
+                triangles += cut.face_vertices(face).value().size() == 3 ? 1 : 0;
+            check(each->model_geometry_brep().face_count() < 30 || triangles < 8, fmt::format("library: {} at {} leaves {} faces on {}, {} of them triangles: a face per triangle", design, angle, each->model_geometry_brep().face_count(), each->name, triangles));
+        }
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
             for (const std::shared_ptr<EdgeStraightElement>& each : members)
                 check(shared(*part, *each) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with {}", design, angle, part->name, shared(*part, *each), each->name));
