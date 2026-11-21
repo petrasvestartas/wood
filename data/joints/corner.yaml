@@ -1968,3 +1968,34 @@ beveled_triple_shouldered_housed_tenon_corner:
     - "B2 b_node -slant -face_2 -w1 -w2; b_node slant -tenon_end -cheek_1 -cheek_2 -t_in -t_out"
   insertions:
     - "-u"
+
+blind_bridle_corner:
+  title: "Blind bridle joint"
+  german: "verdeckter Scherzapfen mit Wange auf Gehrung"
+  page: "320"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.15"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "CX = O + ah*p - 2*bh*n"
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_miter = CX, p + n, CX - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2 -cheek_in"
+    - "B2 b_node cheek_1 -face_2 -cheek_in; b_node cheek_2 -face_2 -cheek_in"
+    - "A9 a_end shoulder cheek_in -cheek_miter"
+    - "B9 b_node cheek_in cheek_miter"
+  insertions:
+    - "-u"
