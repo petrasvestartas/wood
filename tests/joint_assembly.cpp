@@ -212,8 +212,10 @@ static void library() {
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
             for (const std::shared_ptr<EdgeStraightElement>& each : members)
                 check(shared(*part, *each) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with {}", design, angle, part->name, shared(*part, *each), each->name));
+        // a sealed record (a foxtail-wedged tenon) is locked for good once its wedges are driven: it need not come apart
         const AssemblySequence sequence(scene, carrier->name);
-        check(sequence.locked().empty() && sequence.steps().size() == members.size() + joint->parts.size(), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
+        const bool sealed = record.fields.count("sealed") && record.fields.at("sealed") == "true";
+        check(sealed || (sequence.locked().empty() && sequence.steps().size() == members.size() + joint->parts.size()), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
         }
 }
 

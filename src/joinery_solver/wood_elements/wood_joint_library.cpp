@@ -234,6 +234,8 @@ LibraryRecord library_record(const std::string& design) {
                 continue;
             if (line.starts_with("  filled:"))
                 record.fields["filled"] = unquoted(line.substr(9));
+            if (line.starts_with("  sealed:"))
+                record.fields["sealed"] = unquoted(line.substr(9));
             if (line.starts_with("  ") && !line.starts_with("    "))
                 in_more = line.starts_with("  more:");
             else if (in_more && line.starts_with("    - "))
