@@ -121,6 +121,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_horizontally_wedged_double_tusk_tenon.png) | **Horizontally wedged double tusk tenon**<br>durchgesteckter doppelter Zapfen mit Keilschloss, p. 536<br>`horizontally_wedged_double_tusk_tenon` |
 | ![](joint_library/beam_double_through_mortise_tenon.png) | **Double through mortise and tenon**<br>durchgehender doppelter Zapfen, p. 542<br>`double_through_mortise_tenon` |
 | ![](joint_library/beam_housed_double_through_mortise_tenon.png) | **Housed double through mortise and tenon**<br>eingelassener durchgehender doppelter Zapfen, p. 544<br>`housed_double_through_mortise_tenon` |
+| ![](joint_library/beam_double_mortise_tenon_mitered_shoulders.png) | **Double mortise and tenon with mitered shoulders**<br>durchgehender doppelter Zapfen mit Führungsstoß, p. 546<br>`double_mortise_tenon_mitered_shoulders` |
 | ![](joint_library/beam_t_bridle.png) | **T-bridle joint**<br>Einhälsung, p. 550<br>`t_bridle` |
 | ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | **T-bridle joint with blind mortise and tenon**<br>Einhälsung mit verdecktem Zapfen, p. 552<br>`t_bridle_blind_mortise_tenon` |
 | ![](joint_library/beam_double_lap_stub_tenon.png) | **Double lap joint with stub tenon**<br>Gabelaufblattung mit verdecktem Zapfen, p. 554<br>`double_lap_stub_tenon` |

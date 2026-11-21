@@ -1891,6 +1891,42 @@ housed_double_through_mortise_tenon:
   insertions:
     - "-u"
 
+double_mortise_tenon_mitered_shoulders:
+  title: "Double mortise and tenon with mitered shoulders"
+  german: "durchgehender doppelter Zapfen mit Führungsstoß"
+  page: "546"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+    - "miter = 0.52"
+  points:
+    - "T = O - 2*miter*bh*n"
+    - "E1 = meet(O + ah*p, u, O, n)"
+    - "E2 = meet(O - ah*p, u, O, n)"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "miter_1 = T, cross(w, E1 - T), E2"
+    - "miter_2 = T, cross(w, E2 - T), E1"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end miter_1 w_out_1; a_end miter_1 w_out_2; a_end miter_1 w_in_1 w_in_2; a_end miter_2 w_out_1; a_end miter_2 w_out_2; a_end miter_2 w_in_1 w_in_2"
+    - "B2 b_node -miter_1 -miter_2 -face_1 -face_2"
+    - "B3 b_node -end -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -end -w_out_2 -w_in_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+
 t_bridle:
   title: "T-bridle joint"
   german: "Einhälsung"
