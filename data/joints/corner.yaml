@@ -319,7 +319,7 @@ rabbeted_tenoned_corner:
     - "face_2 = O - ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end deep; a_end shoulder -out -in; a_end shallow in"
+    - "A2 a_end deep; a_end shoulder -out -in; a_end shallow -out"
     - "B2 b_node out -deep; b_node in -shallow -face_2"
   insertions:
     - "-u"
@@ -596,21 +596,26 @@ plain_miter_butterfly_key:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
-    - "M = (I + X)/2 + (aw - depth*aw + 1)*w"
+    - "D = unit(I - X)"
+    - "M = (I + X)/2 + aw*w"
+    - "Q1 = M + wing*ah*A + flare*ah*D"
+    - "Q2 = M + wing*ah*A - flare*ah*D"
+    - "Q3 = M - waist*ah*D"
+    - "Q4 = M - wing*ah*A - flare*ah*D"
+    - "Q5 = M - wing*ah*A + flare*ah*D"
+    - "Q6 = M + waist*ah*D"
   planes:
     - "miter = I, cross(w, X - I), O + 2*bh*n"
   parts:
-    - "wing_1 = M, M + wing*ah*A, w, depth*aw, waist*ah, flare*ah, start"
-    - "wing_2 = M, M - wing*ah*A, w, depth*aw, waist*ah, flare*ah, start"
+    - "key = Q1 Q2 Q3 Q4 Q5 Q6, -2*depth*aw*w, start"
   steps:
     - "A2 a_end miter"
-    - "A3 wing_1; wing_2"
+    - "A3 key"
     - "B2 b_node -miter"
-    - "B3 wing_1; wing_2"
+    - "B3 key"
   insertions:
     - "-u"
-    - "wing_1 = -w"
-    - "wing_2 = -w"
+    - "key = -w"
 
 mitered_half_lap:
   title: "Mitered half lap"
@@ -853,8 +858,8 @@ cog_corner:
     - "half = O, t, O - t"
   parts:
   steps:
-    - "A2 a_node top half"
-    - "B2 b_node -under -half -side_1 -side_2"
+    - "A2 a_node top -half inner"
+    - "B2 b_node -under half -side_1 -side_2"
   insertions:
     - "-n"
 
@@ -885,8 +890,8 @@ sloped_cog_corner:
     - "diagonal = D1, cross(n, D2 - D1), O + 2*bt*t"
   parts:
   steps:
-    - "A2 a_node top -diagonal"
-    - "B2 b_node -under diagonal -side_1 -side_2"
+    - "A2 a_node top diagonal inner"
+    - "B2 b_node -under -diagonal -side_1 -side_2"
   insertions:
     - "-n"
 
@@ -939,15 +944,15 @@ v_shaped_cog_corner:
     - "sit = 0.16"
   points:
     - "U = O + n"
-    - "P = O"
+    - "P = O + aw*w"
   planes:
     - "top = O, n, U"
     - "under = R - ah*p, p, R"
     - "inner = O - bt*t, t, O - 2*bt*t"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "arm_1 = P, cross(n, aw*w + bt*t), P - bt*t"
-    - "arm_2 = P, cross(n, aw*w - bt*t), P + bt*t"
+    - "arm_1 = P, cross(n, 2*aw*w + bt*t), P - bt*t"
+    - "arm_2 = P, cross(n, 2*aw*w - bt*t), P + bt*t"
   parts:
   steps:
     - "A2 a_node top -arm_1 inner; a_node top -arm_2"
@@ -1083,13 +1088,13 @@ triple_shouldered_stub_tenon_corner:
     - "shoulder = O, n, S"
     - "tenon_end = O - depth*ah*n, n, O"
     - "edge = O - 0.24*ah*p, p, O - ah*p"
-    - "edge_2 = O - 0.76*ah*p, p, O + ah*p"
+    - "face_2 = O - ah*p, p, O"
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
   parts:
   steps:
-    - "A2 a_end shoulder edge; a_end shoulder edge_2; a_end shoulder cheek_1; a_end shoulder cheek_2; a_end tenon_end"
-    - "B2 b_node -edge -edge_2 -cheek_1 -cheek_2 -tenon_end"
+    - "A2 a_end shoulder edge; a_end shoulder cheek_1; a_end shoulder cheek_2; a_end tenon_end"
+    - "B2 b_node -edge -face_2 -cheek_1 -cheek_2 -tenon_end"
   insertions:
     - "-u"
 
@@ -1133,25 +1138,36 @@ plain_miter_spline:
   family: "corner"
   corners: "square"
   parameters:
-    - "spline = 0.1"
-    - "reach = 0.3"
+    - "spline = 0.12"
+    - "reach = 0.35"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
+    - "D = unit(I - X)"
     - "M = (I + X)/2"
+    - "S1 = X - spline*aw*w"
+    - "S2 = X + reach*2*ah*(D + A) - spline*aw*w"
+    - "S3 = I + reach*2*ah*(D + A) - spline*aw*w"
+    - "S4 = I - spline*aw*w"
+    - "S5 = I + reach*2*ah*(D - A) - spline*aw*w"
+    - "S6 = X + reach*2*ah*(D - A) - spline*aw*w"
   planes:
     - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "reach_a = M - reach*2*ah*A, A, M"
+    - "reach_b = M + reach*2*ah*A, A, M"
+    - "side_1 = O + spline*aw*w, w, O"
+    - "side_2 = O - spline*aw*w, w, O"
   parts:
-    - "spline = M - (aw + 2)*w, M + (aw + 2)*w, A, spline*ah, reach*length(I - X), reach*length(I - X), none"
+    - "spline = S1 S2 S3 S4 S5 S6, 2*spline*aw*w, none"
   steps:
     - "A2 a_end miter"
-    - "A3 spline"
+    - "A3 a_end -side_1 -side_2 -reach_a"
     - "B2 b_node -miter"
-    - "B3 spline"
+    - "B3 b_node -side_1 -side_2 -reach_b"
   insertions:
     - "-u"
-    - "spline = w"
+    - "spline = D"
 
 blind_dado_rabbet_corner:
   title: "Blind dado and rabbet joint"
@@ -1427,28 +1443,38 @@ plain_miter_perpendicular_butterfly_key:
   family: "corner"
   corners: "square"
   parameters:
-    - "wing = 0.07"
-    - "waist = 0.22"
-    - "flare = 0.3"
+    - "wing = 0.45"
+    - "waist = 0.05"
+    - "flare = 0.11"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
-    - "K = (I + X)/2"
+    - "D = unit(I - X)"
+    - "E = I + wing*ah*D"
+    - "R1 = E + wing*ah*A + flare*aw*w"
+    - "R2 = E + wing*ah*A - flare*aw*w"
+    - "R3 = E - waist*aw*w"
+    - "R4 = E - wing*ah*A - flare*aw*w"
+    - "R5 = E - wing*ah*A + flare*aw*w"
+    - "R6 = E + waist*aw*w"
   planes:
     - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "face_p = O + ah*p, p, O"
+    - "face_n = O - 2*bh*n, n, O"
+    - "inner_p = O - ah*p, p, O"
+    - "inner_n = O, n, O - n"
   parts:
-    - "wing_1 = K, K + wing*length(X - I)*A, w, aw + 2, waist*length(X - I), flare*length(X - I), none"
-    - "wing_2 = K, K - wing*length(X - I)*A, w, aw + 2, waist*length(X - I), flare*length(X - I), none"
+    - "key = R1 R2 R3 R4 R5 R6, X - I - 2*wing*ah*D"
   steps:
     - "A2 a_end miter"
-    - "A3 wing_1; wing_2"
+    - "A3 key"
     - "B2 b_node -miter"
-    - "B3 wing_1; wing_2"
+    - "B3 key"
+    - "P key face_p; key face_n; key inner_p inner_n"
   insertions:
     - "-u"
-    - "wing_1 = w"
-    - "wing_2 = w"
+    - "key = D"
 
 double_mortise_tenon_one_sided_miter:
   title: "Double mortise and tenon with one-sided lapped miter"
@@ -1621,28 +1647,29 @@ blind_haunched_tenon_miter:
   corners: "square"
   parameters:
     - "thickness = 0.3333333333333333"
-    - "haunch = 0.3"
-    - "haunch_width = 0.35"
-    - "depth = 0.7"
+    - "edge = -0.2"
+    - "haunch_edge = 0.3"
+    - "haunch = 0.725"
+    - "depth = 0.875"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "U = O + n"
   planes:
     - "bottom = O - 2*bh*n, n, O"
-    - "shoulder = O, n, U"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
     - "layer_1 = O + thickness*aw*w, w, O"
     - "layer_2 = O - thickness*aw*w, w, O"
     - "face_2 = O - ah*p, p, O"
-    - "tenon_edge = O + (1 - 2*haunch_width)*ah*p, p, O - ah*p"
+    - "tenon_edge = O + edge*ah*p, p, O - ah*p"
+    - "haunch_side = O + haunch_edge*ah*p, p, O - ah*p"
     - "haunch_floor = O - 2*haunch*bh*n, n, O"
     - "tenon_end = O - 2*depth*bh*n, n, O"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end miter layer_1; a_end miter layer_2; a_end miter -layer_1 -layer_2 tenon_edge haunch_floor; a_end miter -layer_1 -layer_2 -tenon_edge tenon_end"
-    - "B2 b_node -miter; b_node miter -layer_1 -layer_2 -tenon_edge -tenon_end -face_2; b_node miter -layer_1 -layer_2 tenon_edge -haunch_floor"
+    - "A3 a_end miter layer_1; a_end miter layer_2; a_end miter tenon_end; a_end miter tenon_edge haunch_floor; a_end miter haunch_side"
+    - "B2 b_node -miter; b_node -layer_1 -layer_2 -tenon_edge -tenon_end -face_2; b_node -layer_1 -layer_2 -haunch_side -haunch_floor -face_2"
   insertions:
     - "-u"
 
@@ -1699,12 +1726,13 @@ blind_mitered_corner_lap:
     - "mid = O, w, O - w"
     - "face_2 = O - ah*p, p, O"
     - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_b = O - 2*bh*n + 2*cheek*ah*n, n, O - 2*bh*n"
     - "miter = C, p + n, C - p"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid -cheek_in; a_end shoulder cheek_in -miter"
-    - "B2 b_node -mid -face_2 -cheek_in; b_node cheek_in miter"
+    - "A3 a_end shoulder mid -cheek_in; a_end shoulder mid -miter; a_end -cheek_b -miter"
+    - "B2 b_node -mid -face_2 cheek_b; b_node -mid -face_2 miter; b_node cheek_in miter"
   insertions:
     - "-u"
     - "w"
@@ -1762,12 +1790,13 @@ blind_mitered_beveled_corner_lap:
     - "mid = M, unit(w + tilt*p + slope*n), M - w"
     - "face_2 = O - ah*p, p, O"
     - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_b = O - 2*bh*n + 2*cheek*ah*n, n, O - 2*bh*n"
     - "miter = C, p + n, C - p"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder mid -cheek_in; a_end shoulder cheek_in -miter"
-    - "B2 b_node -mid -face_2 -cheek_in; b_node cheek_in miter"
+    - "A3 a_end shoulder mid -cheek_in; a_end shoulder mid -miter; a_end -cheek_b -miter"
+    - "B2 b_node -mid -face_2 cheek_b; b_node -mid -face_2 miter; b_node cheek_in miter"
   insertions:
     - "w"
 
@@ -2043,26 +2072,28 @@ blind_mitered_mortise_tenon:
   family: "corner"
   corners: "square"
   parameters:
-    - "thickness = 0.3333333333333333"
-    - "band = 0.35"
-    - "depth = 0.6"
+    - "skin = 0.16"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "U = O + n"
   planes:
     - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
-    - "layer_1 = O + thickness*aw*w, w, O"
-    - "layer_2 = O - thickness*aw*w, w, O"
-    - "t_top = O + band*ah*p, p, O"
-    - "t_bot = O - band*ah*p, p, O"
-    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "skin_p = O + (1 - 2*skin)*ah*p, p, O"
+    - "skin_n = O - 2*bh*n + 2*skin*bh*n, n, O - 2*bh*n"
+    - "top = O + (1 - 2*skin)*aw*w, w, O"
+    - "bot = O - (1 - 2*skin)*aw*w, w, O"
+    - "mid = O, w, O - w"
+    - "face_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end miter layer_1; a_end miter layer_2; a_end miter -layer_1 -layer_2 t_top; a_end miter -layer_1 -layer_2 t_bot; a_end miter tenon_end"
-    - "B2 b_node -miter; b_node miter -layer_1 -layer_2 -t_top -t_bot -tenon_end"
+    - "A3 a_end miter skin_p; a_end miter -skin_n; a_end miter top; a_end miter -mid"
+    - "A4 a_end shoulder -skin_p skin_n -bot -mid"
+    - "B2 b_node -miter skin_p; b_node -miter -skin_n; b_node -miter bot; b_node -miter mid"
+    - "B3 b_node -face_2 -skin_p skin_n -top mid"
   insertions:
     - "-u"
 
@@ -2107,33 +2138,34 @@ plain_miter_dovetail_key:
   family: "corner"
   corners: "square"
   parameters:
-    - "wing = 0.3"
-    - "flare = 0.2"
-    - "waist = 0.1"
+    - "depth = 0.9"
+    - "mouth = 0.07"
+    - "root = 0.22"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
     - "D = unit(I - X)"
-    - "K = (I + X)/2 - (aw + 1)*w"
-    - "Q1 = K + wing*ah*A + flare*ah*D"
-    - "Q2 = K + wing*ah*A - flare*ah*D"
-    - "Q3 = K - waist*ah*D"
-    - "Q4 = K - wing*ah*A - flare*ah*D"
-    - "Q5 = K - wing*ah*A + flare*ah*D"
-    - "Q6 = K + waist*ah*D"
+    - "K = X - depth*ah*A"
+    - "Q1 = K - mouth*aw*w"
+    - "Q2 = K + mouth*aw*w"
+    - "Q3 = K + depth*ah*D + root*aw*w"
+    - "Q4 = K + depth*ah*D - root*aw*w"
   planes:
     - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "face_p = O + ah*p, p, O"
+    - "face_n = O - 2*bh*n, n, O"
   parts:
-    - "key = Q1 Q2 Q3 Q4 Q5 Q6, (2*aw + 2)*w"
+    - "key = Q1 Q2 Q3 Q4, 2*depth*ah*A, none"
   steps:
     - "A2 a_end miter"
     - "A3 key"
     - "B2 b_node -miter"
     - "B3 key"
+    - "P key face_p; key face_n"
   insertions:
     - "-u"
-    - "key = w"
+    - "key = A"
 
 diagonally_cut_cog_corner:
   title: "Diagonally cut cog joint"
@@ -2158,7 +2190,7 @@ diagonally_cut_cog_corner:
     - "half = O - sit*bh*n, unit(t + n), O - t"
   parts:
   steps:
-    - "A2 a_node top half"
+    - "A2 a_node top half inner"
     - "B2 b_node -under -half -side_1 -side_2"
   insertions:
     - "-n"
@@ -2234,11 +2266,10 @@ blind_triple_shouldered_through_tenon_corner:
   family: "corner"
   corners: "square"
   parameters:
-    - "cheek = 0.15"
-    - "thickness = 0.3333333333333333"
-    - "height = 0.66"
+    - "cheek = 0.13"
+    - "thickness = 0.2"
+    - "height = 0.5"
   points:
-    - "CX = O + ah*p - 2*bh*n"
     - "U = O + n"
   planes:
     - "bottom = O - 2*bh*n, n, O"
@@ -2247,17 +2278,15 @@ blind_triple_shouldered_through_tenon_corner:
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
     - "face_2 = O - ah*p, p, O"
-    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
-    - "cheek_miter = CX, p + n, CX - p"
+    - "cheek_b = O - 2*bh*n + 2*cheek*bh*n, n, O - 2*bh*n"
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end shoulder -cheek_in edge; a_end shoulder -cheek_in cheek_1; a_end shoulder -cheek_in cheek_2"
-    - "B2 b_node -edge -cheek_1 -cheek_2 -cheek_in -face_2"
-    - "A9 a_end shoulder cheek_in -cheek_miter"
-    - "B9 b_node cheek_in cheek_miter"
+    - "A3 a_end shoulder -edge -cheek_1 -cheek_2"
+    - "A4 a_end -cheek_b"
+    - "B2 b_node -face_2 cheek_b cheek_1; b_node -face_2 cheek_b cheek_2; b_node -face_2 cheek_b edge"
   insertions:
-    - "-u"
+    - "-p"
 
 blind_fan_double_tenon_corner:
   title: "Blind fan-shaped double mortise and tenon"
@@ -2356,30 +2385,41 @@ canvas_stretcher_corner:
   corners: "square"
   parameters:
     - "thickness = 0.3333333333333333"
+    - "rise = 1.0"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
-    - "U = O + n"
-    - "KC = I + 0.35*(X - I)"
-    - "D = unit(X - I)"
+    - "PA = O + ah*p"
+    - "PB = O - ah*p + rise*ah*n"
+    - "QA = O - ah*p - 2*bh*n"
+    - "QB = O - ah*p - rise*bh*p"
+    - "K1A = PA"
+    - "K1B = O - ah*p"
+    - "K1C = PB"
+    - "K2A = QA - thickness*aw*w"
+    - "K2B = O - ah*p - thickness*aw*w"
+    - "K2C = QB - thickness*aw*w"
   planes:
     - "bottom = O - 2*bh*n, n, O"
-    - "shoulder = O, n, U"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
     - "layer_1 = O + thickness*aw*w, w, O"
     - "layer_2 = O - thickness*aw*w, w, O"
-    - "face_2 = O - ah*p, p, O"
+    - "mid = O, w, O - w"
+    - "incline_1 = PA, cross(w, PB - PA), O + 2*ah*n"
+    - "incline_2 = QA, cross(w, QB - QA), O - 4*ah*p - bh*n"
   parts:
-    - "key = KC + (aw + 2)*w, KC - (aw + 2)*w, unit(cross(w, X - I)), 0.08*ah, 0.25*ah, 0.15*ah"
+    - "key_1 = K1A K1B K1C, thickness*aw*w, none"
+    - "key_2 = K2A K2B K2C, thickness*aw*w, none"
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end layer_1 miter; a_end layer_2 miter; a_end shoulder -layer_1 -layer_2"
+    - "A3 a_end layer_1 miter; a_end layer_2 miter"
+    - "A4 a_end -layer_1 mid incline_1"
     - "B2 b_node layer_1 -miter; b_node layer_2 -miter"
-    - "A4 key"
-    - "B3 key"
+    - "B3 b_node -layer_2 -mid incline_2"
   insertions:
     - "-u"
-    - "key = -w"
+    - "key_1 = p"
+    - "key_2 = -n"
 
 blind_dovetail_tenon_corner:
   title: "Blind dovetail tenon"
@@ -2389,37 +2429,33 @@ blind_dovetail_tenon_corner:
   family: "corner"
   corners: "square"
   parameters:
-    - "top_cheek = 0.6"
-    - "bottom_cheek = 0.3"
-    - "flare = 0.15"
-    - "blind = 0.3"
+    - "cheek = 0.15"
+    - "root = 0.36"
+    - "tip = 0.5"
   points:
-    - "I = O - ah*p"
-    - "X = O + ah*p - 2*bh*n"
-    - "FT = O + (top_cheek - flare)*aw*w"
-    - "GT = O - 2*bh*n + top_cheek*aw*w"
-    - "FB = O + (flare - bottom_cheek)*aw*w"
-    - "GB = O - 2*bh*n - bottom_cheek*aw*w"
+    - "CX = O + ah*p - 2*bh*n"
+    - "U = O + n"
+    - "FT = O - ah*p + root*aw*w"
+    - "GT = O + ah*p + tip*aw*w"
+    - "FB = O - ah*p - root*aw*w"
+    - "GB = O + ah*p - tip*aw*w"
   planes:
     - "bottom = O - 2*bh*n, n, O"
-    - "miter = I, cross(w, X - I), O + 2*bh*n"
-    - "top = O + top_cheek*aw*w, w, O"
-    - "bot = O - bottom_cheek*aw*w, w, O"
-    - "f_top = FT, cross(p, GT - FT), O"
-    - "f_bot = FB, cross(p, GB - FB), O"
-    - "stop = O + (1 - blind)*ah*p, p, O"
-    - "inner = O - ah*p, p, O - 2*ah*p"
+    - "shoulder = O, n, U"
+    - "f_top = FT, cross(n, GT - FT), O"
+    - "f_bot = FB, cross(n, GB - FB), O"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_miter = CX, p + n, CX - p"
   parts:
   steps:
-    - "A1 a_end bottom"
-    - "A2 a_end miter f_top"
-    - "A3 a_end -f_top -f_bot -stop"
-    - "B2 b_node -miter top; b_node bot inner"
-    - "B3 b_node f_top -top inner -miter; b_node f_bot -bot inner; b_node stop -top -bot"
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -f_top -f_bot -cheek_in"
+    - "B2 b_node f_top -face_2 -cheek_in; b_node f_bot -face_2 -cheek_in"
+    - "A5 a_end shoulder cheek_in -cheek_miter"
+    - "B6 b_node cheek_in cheek_miter"
   insertions:
-    - "-n"
-    - "-p"
-    - "unit(-n - p)"
+    - "-u"
 
 stopped_miter_blind_dovetail_tenon:
   title: "Stopped miter with blind dovetail tenon"
@@ -2430,23 +2466,23 @@ stopped_miter_blind_dovetail_tenon:
   corners: "square"
   parameters:
     - "tip = 0.49"
-    - "root = 0.75"
-    - "end = 0.38"
+    - "root = 0.36"
+    - "end = 0.5"
   points:
     - "U = O + n"
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
-    - "T0 = O + root*aw*w"
-    - "T1 = O - 2*bh*n + end*aw*w"
-    - "B0 = O - root*aw*w"
-    - "B1 = O - 2*bh*n - end*aw*w"
+    - "T0 = O - ah*p + root*aw*w"
+    - "T1 = O + tip*ah*p + end*aw*w"
+    - "B0 = O - ah*p - root*aw*w"
+    - "B1 = O + tip*ah*p - end*aw*w"
   planes:
     - "bottom = O - 2*bh*n, n, O"
     - "shoulder = O, n, U"
     - "miter = I, cross(w, X - I), O + 2*bh*n"
     - "tenon_end = O + tip*ah*p, p, O"
-    - "f_top = T0, cross(p, T1 - T0), O"
-    - "f_bot = B0, cross(p, B1 - B0), O"
+    - "f_top = T0, cross(n, T1 - T0), O"
+    - "f_bot = B0, cross(n, B1 - B0), O"
   parts:
   steps:
     - "A1 a_end bottom"
@@ -2454,4 +2490,4 @@ stopped_miter_blind_dovetail_tenon:
     - "A3 a_end -miter shoulder -tenon_end -f_top -f_bot"
     - "B2 b_node -miter tenon_end; b_node -miter f_top; b_node -miter f_bot"
   insertions:
-    - "-p"
+    - "-u"
