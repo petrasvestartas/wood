@@ -769,3 +769,41 @@ cross_lap_stub_tenons:
     - "B3 b_node mid -sd su1 -sw1 -sw2; b_node mid -sd su2 -sw1 -sw2"
   insertions:
     - "-n"
+
+cogged_cross_lap_stub_tenons:
+  title: "Cogged cross lap joint with stub tenons"
+  german: "Kreuzblatt mit mittigem Haken und beidseitigen Brüstungszapfen"
+  page: "660"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "stub = 0.3"
+    - "stub_w = 0.7"
+    - "stub_d = 0.25"
+    - "cog = 0.3"
+    - "band = 0.2"
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "su1 = O + (1 - stub)*bt*t, t, O"
+    - "su2 = O - (1 - stub)*bt*t, t, O"
+    - "sw1 = O + stub_w*aw*w, w, O"
+    - "sw2 = O - stub_w*aw*w, w, O"
+    - "sd = O - (1 + stub_d)*bh*n, n, O"
+    - "rtop = O - (1 - cog)*bh*n, n, O - 2*bh*n"
+    - "r1 = O + band*bt*t, t, O"
+    - "r2 = O - band*bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer -su1 -su2; a_node mid -outer su1 sw1; a_node mid -outer su1 sw2; a_node mid -outer su1 -sw1 -sw2 sd; a_node mid inner su2 sw1; a_node mid inner su2 sw2; a_node mid inner su2 -sw1 -sw2 sd; a_node -mid -rtop -r1 -r2"
+    - "B2 b_node -mid rtop; b_node -mid -rtop r1; b_node -mid -rtop r2"
+    - "B3 b_node mid -sd su1 -sw1 -sw2; b_node mid -sd su2 -sw1 -sw2"
+  insertions:
+    - "-n"
+
