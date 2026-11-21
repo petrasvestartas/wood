@@ -792,3 +792,92 @@ pegged_rabbeted_stop_splayed_cogged_scarf:
     - "B3 peg_1; peg_2"
   insertions:
     - "w"
+
+mitered_half_lap_splice:
+  title: "Mitered half lap joint"
+  german: "gerades Blatt mit einseitig schrägem Stoß"
+  page: "44"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1"
+  points:
+  planes:
+    - "mid = O, p, O + 2*ah*p"
+    - "diag = O, cross(p, L*u - aw*w), O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -mid diag; a_end mid -f2"
+    - "B2 b_end -mid -diag; b_end mid f2"
+  insertions:
+    - "p"
+
+beveled_lap_stub_tenons_splice:
+  title: "Beveled lap joint with stub tenons"
+  german: "Zugblatt mit Brüstungszapfen"
+  page: "48"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.5"
+    - "stub = 0.25"
+    - "thickness = 0.3333333333333333"
+    - "low = -0.06"
+    - "high = 0.2"
+  points:
+    - "M = L - stub*2*ah"
+    - "B1 = O - M*u + low*ah*p"
+    - "B2 = O + M*u + high*ah*p"
+  planes:
+    - "slope = B1, cross(w, B2 - B1), O + 2*ah*p"
+    - "shoulder_a = O + M*u, u, O + 2*L*u"
+    - "shoulder_b = O - M*u, u, O - 2*L*u"
+    - "tip_a = O - M*u, u, O"
+    - "tip_b = O + M*u, u, O"
+    - "deep_a = O + L*u, u, O"
+    - "deep_b = O - L*u, u, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end slope shoulder_a; a_end tip_a cheek_1; a_end tip_a cheek_2"
+    - "A3 a_end slope -shoulder_a -deep_a -cheek_1 -cheek_2"
+    - "B2 b_end -slope shoulder_b; b_end tip_b cheek_1; b_end tip_b cheek_2"
+    - "B3 b_end -slope -shoulder_b -deep_b -cheek_1 -cheek_2"
+  insertions:
+    - "-p"
+
+half_lap_stub_tenons_splice:
+  title: "Half lap joint with stub tenons"
+  german: "gerades Blatt mit beidseitigem Zapfen"
+  page: "54"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.5"
+    - "stub = 0.25"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "M = L - stub*2*ah"
+  planes:
+    - "mid = O, p, O + p"
+    - "shoulder_a = O + M*u, u, O + 2*L*u"
+    - "shoulder_b = O - M*u, u, O - 2*L*u"
+    - "tip_a = O - M*u, u, O"
+    - "tip_b = O + M*u, u, O"
+    - "deep_a = O + L*u, u, O"
+    - "deep_b = O - L*u, u, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end mid shoulder_a; a_end tip_a cheek_1; a_end tip_a cheek_2"
+    - "A3 a_end mid -shoulder_a -deep_a -cheek_1 -cheek_2"
+    - "B2 b_end -mid shoulder_b; b_end tip_b cheek_1; b_end tip_b cheek_2"
+    - "B3 b_end -mid -shoulder_b -deep_b -cheek_1 -cheek_2"
+  insertions:
+    - "-p"

@@ -123,6 +123,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_rabbeted_cogged_lap_splice.png) | **Rabbeted cogged lap joint**<br>gerades Hakenblatt mit Steckfalz, p. 106<br>`rabbeted_cogged_lap_splice` |
 | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf.png) | **Rabbeted stop-splayed cogged scarf joint**<br>schräges Hakenblatt mit Steckfalz, p. 138<br>`rabbeted_stop_splayed_cogged_scarf` |
 | ![](joint_library/beam_pegged_rabbeted_stop_splayed_cogged_scarf.png) | **Pegged rabbeted stop-splayed cogged scarf joint**<br>schräges Hakenblatt mit Steckfalz und Dübelsicherung, p. 140<br>`pegged_rabbeted_stop_splayed_cogged_scarf` |
+| ![](joint_library/beam_mitered_half_lap_splice.png) | **Mitered half lap joint**<br>gerades Blatt mit einseitig schrägem Stoß, p. 44<br>`mitered_half_lap_splice` |
+| ![](joint_library/beam_beveled_lap_stub_tenons_splice.png) | **Beveled lap joint with stub tenons**<br>Zugblatt mit Brüstungszapfen, p. 48<br>`beveled_lap_stub_tenons_splice` |
+| ![](joint_library/beam_half_lap_stub_tenons_splice.png) | **Half lap joint with stub tenons**<br>gerades Blatt mit beidseitigem Zapfen, p. 54<br>`half_lap_stub_tenons_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
