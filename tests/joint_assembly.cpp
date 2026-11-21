@@ -134,7 +134,7 @@ static void library() {
             continue;
         const std::string angle = square ? "a square corner" : "an inclined corner";
         WoodSession scene(design);
-        const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, square, Point(0.0, 0.0, 0.0));
+        const std::array<std::shared_ptr<EdgeStraightElement>, 2> pair = library_pair(design, square, Point(1400.0, -65000.0, 0.0));
         const std::shared_ptr<EdgeStraightElement> member = pair[0];
         const std::shared_ptr<EdgeStraightElement> carrier = pair[1];
         scene.add(carrier);
@@ -171,8 +171,9 @@ static void library() {
         const double gap = overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
         check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in neither", design, angle, gap, overlapping));
 
-        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few
-        check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} and {} faces", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));
+        // a cut the planar BRep cannot rebuild falls back to a face per triangle: dozens where a joint makes a few; the pair
+        // stands 65 m from the origin, as in the gallery, where a sliver's normal is noisiest
+        check(member->model_geometry_brep().face_count() < 30 && carrier->model_geometry_brep().face_count() < 30, fmt::format("library: {} at {} leaves {} and {} faces, a face per triangle", design, angle, member->model_geometry_brep().face_count(), carrier->model_geometry_brep().face_count()));
         for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
             check(shared(*part, *member) < 1.0 && shared(*part, *carrier) < 1.0, fmt::format("library: {} at {}, its {} shares wood", design, angle, part->name));
         const AssemblySequence sequence(scene, carrier->name);

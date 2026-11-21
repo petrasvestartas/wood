@@ -256,11 +256,11 @@ static void split_sides(std::vector<PlanarFace>& faces) {
     }
 }
 
-/// The plane of every mesh face: its ring, unit normal and offset; empty when a face is not planar.
+/// The plane of every mesh face: its ring, corners and unit normal; empty when a face is not planar.
 struct FacePlane {
     std::vector<size_t> ring;
+    std::vector<Point> points; // the ring's corners
     Vector normal;
-    double offset = 0.0;
 };
 
 /// The planes of the mesh faces in key order; empty when a face is not planar.
@@ -279,8 +279,16 @@ static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
         if (points.empty())
             return {};
 
-        plane.normal = compute_newell(points).normalized();
-        plane.offset = plane.normal.dot(points[0] - Point(0.0, 0.0, 0.0));
+        // a sliver thinner than 1e-4 mm has no plane to build a face on: the faces around it close without it
+        const Vector newell = compute_newell(points);
+        double longest = 0.0;
+        for (size_t k = 0; k < points.size(); k++)
+            longest = std::max(longest, Point::distance(points[k], points[(k + 1) % points.size()]));
+        if (newell.magnitude() < 1e-4 * longest)
+            continue;
+
+        plane.normal = newell.normalized();
+        plane.points = points;
 
         for (const Point& point : points)
             if (std::abs((point - points[0]).dot(plane.normal)) > 1e-4)
@@ -292,7 +300,8 @@ static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
     return planes;
 }
 
-/// The regions of edge-adjacent coplanar faces.
+/// The regions of edge-adjacent coplanar faces: a neighbour joins when its normal agrees and its corners lie on the face's
+/// plane to 1e-4 mm, so a sliver's noisy normal far from the origin still merges.
 static std::vector<std::pair<size_t, std::vector<size_t>>>
 coplanar_regions(const std::vector<FacePlane>& planes) {
 
@@ -315,8 +324,10 @@ coplanar_regions(const std::vector<FacePlane>& planes) {
             const size_t f = edge.second[0];
             const size_t g = edge.second[1];
 
-            if (planes[f].normal.dot(planes[g].normal) > 1.0 - 1e-9 &&
-                std::abs(planes[f].offset - planes[g].offset) < 1e-6)
+            bool flush = planes[f].normal.dot(planes[g].normal) > 1.0 - 1e-6;
+            for (const Point& point : planes[g].points)
+                flush = flush && std::abs((point - planes[f].points[0]).dot(planes[f].normal)) < 1e-4;
+            if (flush)
                 parent[find_face(parent, g)] = find_face(parent, f);
         }
 
@@ -1141,8 +1152,20 @@ static void trace_edge_uses(const BRep& brep) {
                 uses[edge.index]++;
 
     for (const std::pair<const int, int>& use : uses)
-        if (use.second != 2)
-            std::cout << "edge " << use.first << " used " << use.second << " times" << std::endl;
+        if (use.second != 2) {
+            const BRepEdge& edge = brep.m_edges[use.first];
+            const Point a = brep.m_vertices[edge.start_vertex].point;
+            const Point b = brep.m_vertices[edge.end_vertex].point;
+            std::cout << fmt::format("edge {} used {} times: {:.3f} {:.3f} {:.3f} -> {:.3f} {:.3f} {:.3f}", use.first, use.second, a[0], a[1], a[2], b[0], b[1], b[2]) << std::endl;
+            const std::vector<Plane> planes = brep.face_planes();
+            for (size_t f = 0; f < brep.m_faces.size(); f++)
+                for (size_t w = 0; w < brep.m_faces[f].wires.size(); w++)
+                    for (const BRepRef& ref : brep.m_wires[brep.m_faces[f].wires[w].index].edges)
+                        if (ref.index == use.first) {
+                            const Vector normal = planes[f].z_axis();
+                            std::cout << fmt::format("   face {} wire {} of {} wires, {} edges, normal {:.3f} {:.3f} {:.3f}", f, w, brep.m_faces[f].wires.size(), brep.m_wires[brep.m_faces[f].wires[w].index].edges.size(), normal[0], normal[1], normal[2]) << std::endl;
+                        }
+        }
 }
 
 std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& given) {
@@ -1198,8 +1221,11 @@ std::optional<BRep> drilled_brep(const Mesh& mesh, const std::vector<Drill>& giv
     BRep& brep = drilling.builder.brep;
     brep.add_solid({{brep.add_shell(drilling.shell), BRepOrientation::Forward}});
 
-    if (!check_volume(brep, mesh, drilling.removed, drills, stretches))
+    if (!check_volume(brep, mesh, drilling.removed, drills, stretches)) {
+        if constexpr (TRACE)
+            trace_edge_uses(brep);
         return std::nullopt;
+    }
 
     if constexpr (TRACE)
         trace_edge_uses(brep);

@@ -472,8 +472,19 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
 
     std::map<uint64_t, std::vector<size_t>> faces;
 
-    for (size_t t = 0; t < gl.NumTri(); t++)
-        faces[gl.faceID[t]].push_back(t);
+    // a triangle thinner than 1e-4 mm, left where two cutters share a plane, stays a face of its own: in its face's group it
+    // would join pieces that only touch along a line
+    std::vector<size_t> slivers;
+    for (size_t t = 0; t < gl.NumTri(); t++) {
+        const Point a = manifold_vertex(gl, gl.triVerts[3 * t]);
+        const Point b = manifold_vertex(gl, gl.triVerts[3 * t + 1]);
+        const Point c = manifold_vertex(gl, gl.triVerts[3 * t + 2]);
+        const double longest = std::max({Point::distance(a, b), Point::distance(b, c), Point::distance(c, a)});
+        if ((b - a).cross(c - a).magnitude() < 1e-4 * longest)
+            slivers.push_back(t);
+        else
+            faces[gl.faceID[t]].push_back(t);
+    }
 
     if (merge_planes) {
         std::vector<std::pair<uint64_t, Plane>> planes;
@@ -513,6 +524,8 @@ static Mesh from_manifold(const manifold::Manifold& solid, bool merge_planes = f
     for (const std::pair<const uint64_t, std::vector<size_t>>& face : faces)
         for (const std::vector<size_t>& region : compute_regions(gl, face.second))
             add_region(mesh, gl, keys, region);
+    for (const size_t sliver : slivers)
+        add_region(mesh, gl, keys, {sliver});
 
     return mesh;
 }

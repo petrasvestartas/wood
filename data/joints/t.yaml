@@ -1157,7 +1157,7 @@ tenon_chase_mortise:
   page: "498"
   category: "side_end"
   family: "t"
-  corners: "square"
+  corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
     - "depth = 0.3333333333333333"
@@ -1180,7 +1180,7 @@ tenon_chase_mortise:
   parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
-    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -cheek_1 -cheek_2 ramp edge_1"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -cheek_1 -cheek_2 ramp -edge_2 -end"
   insertions:
     - "-u"
 
@@ -1496,7 +1496,7 @@ through_mortise_tenon_sloped_haunch:
   page: "520"
   category: "side_end"
   family: "t"
-  corners: "square"
+  corners: "square inclined"
   parameters:
     - "thickness = 0.3333333333333333"
     - "top = 0.3"
@@ -1511,16 +1511,54 @@ through_mortise_tenon_sloped_haunch:
     - "cheek_1 = O + thickness*aw*w, w, O"
     - "cheek_2 = O - thickness*aw*w, w, O"
     - "top = O + (1 - 2*top)*ah*p, p, O"
-    - "slope = K, cross(w, H - K), O - ah*p"
+    - "slope = K, cross(w, H - K), S"
     - "edge_1 = O + ah*p, p, O"
     - "edge_2 = O - ah*p, p, O"
   parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
     - "A3 a_end top slope"
-    - "B2 b_node -end -cheek_1 -cheek_2 -top -edge_2; b_node -slope -cheek_1 -cheek_2 top -edge_1"
+    - "B2 b_node -end -cheek_1 -cheek_2 -top -edge_2; b_node -slope -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
+
+blind_housed_haunched_through_mortise_tenon:
+  title: "Blind housed haunched through mortise and tenon"
+  german: "durchgehender Stufenzapfen mit gestufter Brüstung"
+  page: "522"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "house = 0.16"
+    - "house_width = 0.7"
+    - "haunch = 0.14"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "housing = O - 2*house*bh*n, n, O"
+    - "haunch_end = O - 2*(house + haunch)*bh*n, n, O"
+    - "house_1 = O + house_width*aw*w, w, O"
+    - "house_2 = O - house_width*aw*w, w, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "tenon_top = O, p, O - ah*p"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder house_1; a_end shoulder house_2"
+    - "A3 a_end housing cheek_1; a_end housing cheek_2"
+    - "A4 a_end haunch_end tenon_top"
+    - "B2 b_node -housing -house_1 -house_2 -edge_1 -edge_2"
+    - "B3 b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
+    - "B4 b_node -end -cheek_1 -cheek_2 -tenon_top -edge_2"
+  insertions:
+    - "-u"
+
 
 
 double_through_mortise_tenon:
