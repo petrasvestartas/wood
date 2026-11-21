@@ -228,3 +228,35 @@ cogged_dovetailed_corner_lap:
     - "B2 b_node -lower -face_1 -face_2; b_node -upper -band_1 -band_2"
   insertions:
     - "w"
+
+half_blind_cogged_corner_lap:
+  title: "Half-blind cogged corner lap joint"
+  german: "halbverdecktes Hakeneckblatt mit Wange"
+  page: "280"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+    - "cheek = 0.64"
+    - "split = -0.31"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "cheek = O + (1 - cheek)*ah*p, p, O"
+    - "split = O + split*ah*p, p, O - ah*p"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper -cheek"
+    - "A4 a_end shoulder lower split -cheek"
+    - "B2 b_node cheek"
+    - "B3 b_node -lower -face_2; b_node -upper -split -face_2"
+  insertions:
+    - "-u"
+    - "w"
