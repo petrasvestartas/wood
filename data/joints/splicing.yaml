@@ -2765,3 +2765,40 @@ pegged_rabbeted_mortise_tenon_splice:
     - "B3 peg_1; peg_2"
   insertions:
     - "-p"
+
+rabbeted_rod_tenon_tapered_keys_splice:
+  title: "Rabbeted rod tenon joint with tapered keys"
+  german: "Stabzapfen mit Steckfalz und Spannkeilen"
+  page: "194"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "thickness = 0.33"
+    - "rabbet = 0.35"
+    - "lip = 0.4"
+    - "key = 0.08"
+  points:
+    - "K1 = O - 0.5*L*u"
+    - "K2 = O + 0.2*L*u"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "lip_u = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "lip_p = O + (1 - 2*lip)*ah*p, p, O"
+  parts:
+    - "key_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, u, key*ah, 0.45*aw, 0.3*aw"
+    - "key_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, u, key*ah, 0.45*aw, 0.3*aw"
+  steps:
+    - "A2 a_end lip_u cheek_1; a_end lip_u cheek_2; a_end shoulder_a -lip_u -lip_p cheek_1; a_end shoulder_a -lip_u -lip_p cheek_2"
+    - "A3 key_1; key_2"
+    - "B2 b_end f2 -cheek_1 -cheek_2; b_end -lip_u lip_p cheek_1; b_end -lip_u lip_p cheek_2"
+    - "B3 key_1; key_2"
+  insertions:
+    - "-p"
+    - "key_1 = -p"
+    - "key_2 = -p"
+
