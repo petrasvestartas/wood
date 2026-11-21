@@ -72,6 +72,10 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_half_blind_dovetailed_corner_lap.png) | **Half-blind dovetailed corner lap joint**<br>halbes Schwalbenschwanzeckblatt, p. 286<br>`half_blind_dovetailed_corner_lap` |
 | ![](joint_library/beam_rabbeted_tenoned_corner.png) | **Rabbeted tenoned corner joint**<br>abgesetzter Eckstoß mit Führungszapfen, p. 290<br>`rabbeted_tenoned_corner` |
 | ![](joint_library/beam_rabbeted_tongue_dado_corner.png) | **Rabbeted tongue and dado corner joint**<br>Eckstoß mit doppeltem Führungszapfen, p. 288<br>`rabbeted_tongue_dado_corner` |
+| ![](joint_library/beam_bridle.png) | **Bridle joint**<br>Scherzapfen, p. 294<br>`bridle` |
+| ![](joint_library/beam_twin_bridle.png) | **Twin bridle joint**<br>doppelter Scherzapfen, p. 296<br>`twin_bridle` |
+| ![](joint_library/beam_through_dovetail_tenon.png) | **Through dovetail tenon joint**<br>durchgehender Schwalbenschwanzeckzapfen, p. 298<br>`through_dovetail_tenon` |
+| ![](joint_library/beam_pegged_through_dovetail_tenon.png) | **Pegged through dovetail tenon joint**<br>durchgehender Schwalbenschwanzeckzapfen mit Dübelsicherung, p. 300<br>`pegged_through_dovetail_tenon` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

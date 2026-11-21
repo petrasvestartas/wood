@@ -350,3 +350,121 @@ rabbeted_tongue_dado_corner:
     - "B3 b_node qi -l1 -face_2"
   insertions:
     - "w"
+
+bridle:
+  title: "Bridle joint"
+  german: "Scherzapfen"
+  page: "294"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2"
+  insertions:
+    - "-u"
+
+twin_bridle:
+  title: "Twin bridle joint"
+  german: "doppelter Scherzapfen"
+  page: "296"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "inner = 0.2"
+    - "outer = 0.6"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -w_out_1 -w_in_1; a_end shoulder -w_out_2 -w_in_2"
+    - "B2 b_node w_out_1 -face_2; b_node w_out_2 -face_2; b_node w_in_1 w_in_2 -face_2"
+  insertions:
+    - "-u"
+
+through_dovetail_tenon:
+  title: "Through dovetail tenon joint"
+  german: "durchgehender Schwalbenschwanzeckzapfen"
+  page: "298"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "root = 0.27"
+    - "tip = 0.4"
+  points:
+    - "U = O + n"
+    - "A1 = O + root*aw*w"
+    - "B1 = O - 2*bh*n + tip*aw*w"
+    - "A2 = O - root*aw*w"
+    - "B2 = O - 2*bh*n - tip*aw*w"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = A1, cross(p, B1 - A1), O"
+    - "cheek_2 = A2, cross(p, B2 - A2), O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2"
+  insertions:
+    - "-p"
+
+pegged_through_dovetail_tenon:
+  title: "Pegged through dovetail tenon joint"
+  german: "durchgehender Schwalbenschwanzeckzapfen mit Dübelsicherung"
+  page: "300"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "root = 0.27"
+    - "tip = 0.4"
+    - "peg = 0.18"
+  points:
+    - "U = O + n"
+    - "A1 = O + root*aw*w"
+    - "B1 = O - 2*bh*n + tip*aw*w"
+    - "A2 = O - root*aw*w"
+    - "B2 = O - 2*bh*n - tip*aw*w"
+    - "P = O - bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = A1, cross(p, B1 - A1), O"
+    - "cheek_2 = A2, cross(p, B2 - A2), O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+    - "peg = P + aw*w, P - aw*w, p, peg*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2"
+    - "A4 peg"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2"
+    - "B3 peg"
+  insertions:
+    - "-p"
