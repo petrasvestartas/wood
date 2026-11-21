@@ -2421,3 +2421,53 @@ cogged_lap_floating_piece_splice:
   insertions:
     - "-u"
     - "piece = -w"
+
+stepped_cogged_lap_floating_piece_splice:
+  title: "Stepped cogged lap joint with floating piece"
+  german: "gestuftes Hakenblatt mit eingesetztem Hakenstück"
+  page: "96"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "span = 2.4"
+    - "outer = 1.6"
+    - "inner = 0.8"
+    - "centre = 0.35"
+    - "middle = 0.55"
+    - "end = 0.75"
+  points:
+    - "B = O - ah*p"
+    - "Q1 = B - span*ah*u + aw*w"
+    - "Q2 = B + span*ah*u + aw*w"
+    - "Q3 = B + span*ah*u + (1 - end)*aw*w"
+    - "Q4 = B + outer*ah*u + (1 - end)*aw*w"
+    - "Q5 = B + outer*ah*u + (1 - middle)*aw*w"
+    - "Q6 = B + inner*ah*u + (1 - middle)*aw*w"
+    - "Q7 = B + inner*ah*u + (1 - centre)*aw*w"
+    - "Q8 = B - inner*ah*u + (1 - centre)*aw*w"
+    - "Q9 = B - inner*ah*u + (1 - middle)*aw*w"
+    - "Q10 = B - outer*ah*u + (1 - middle)*aw*w"
+    - "Q11 = B - outer*ah*u + (1 - end)*aw*w"
+    - "Q12 = B - span*ah*u + (1 - end)*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "r_c = O + (1 - centre)*aw*w, w, O"
+    - "r_m = O + (1 - middle)*aw*w, w, O"
+    - "r_e = O + (1 - end)*aw*w, w, O"
+    - "s_a = O + span*ah*u, u, O"
+    - "o_a = O + outer*ah*u, u, O"
+    - "i_a = O + inner*ah*u, u, O"
+    - "s_b = O - span*ah*u, u, O"
+    - "o_b = O - outer*ah*u, u, O"
+    - "i_b = O - inner*ah*u, u, O"
+  parts:
+    - "piece = Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 Q9 Q10 Q11 Q12, 2*ah*p"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 a_end r_c -s_a; a_end r_m i_a -s_a; a_end r_e o_a -s_a"
+    - "B2 b_end r_c -s_b; b_end r_m i_b -s_b; b_end r_e o_b -s_b"
+  insertions:
+    - "-u"
+    - "piece = -w"

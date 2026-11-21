@@ -261,6 +261,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_double_mortise_stub_tenon_splice.png) | **Double mortise and stub tenon joint**<br>geschlitzter Zapfen mit beidseitigem Zapfenloch, p. 214<br>`double_mortise_stub_tenon_splice` |
 | ![](joint_library/beam_two_half_rods_tapered_keys_splice.png) | **Rod joint with two half rods and tapered keys**<br>beidseitiger Stabzapfen mit Spannkeilen, p. 196<br>`two_half_rods_tapered_keys_splice` |
 | ![](joint_library/beam_cogged_lap_floating_piece_splice.png) | **Cogged lap joint with floating piece**<br>gerades Hakenblatt mit eingesetztem Hakenstück, p. 90<br>`cogged_lap_floating_piece_splice` |
+| ![](joint_library/beam_stepped_cogged_lap_floating_piece_splice.png) | **Stepped cogged lap joint with floating piece**<br>gestuftes Hakenblatt mit eingesetztem Hakenstück, p. 96<br>`stepped_cogged_lap_floating_piece_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
