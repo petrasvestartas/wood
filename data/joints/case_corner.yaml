@@ -362,3 +362,34 @@ angled_finger_case_corner:
     - "B2 b_node -side_2 -c1; b_node -side_2 c2 -c3; b_node -side_2 c4"
   insertions:
     - "-p"
+
+lock_miter_case_corner:
+  title: "Lock miter joint"
+  german: "gespundete Eckverbindung mit Verdeck auf Gehrung"
+  page: "822"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "tongue = 0.3"
+    - "lip = 0.25"
+    - "groove = 0.35"
+  points:
+    - "U = O + n"
+    - "C = O + ah*p - 2*bh*n"
+  planes:
+    - "shoulder = O, n, U"
+    - "bottom = O - 2*bh*n, n, O"
+    - "side_2 = O - ah*p, p, O"
+    - "tgp = O + (2*tongue - 1)*ah*p, p, O + ah*p"
+    - "lipp = O + (1 - 2*lip)*ah*p, p, O - ah*p"
+    - "gend = O - 2*groove*bh*n, n, O"
+    - "miter = C, p + n, C - p"
+  parts:
+  steps:
+    - "A2 a_end bottom; a_end shoulder -tgp -lipp; a_end gend tgp; a_end shoulder lipp -miter"
+    - "B2 b_node tgp -gend -side_2; b_node lipp miter"
+  insertions:
+    - "-u"
