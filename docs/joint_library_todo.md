@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 147 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 146 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 49 left of 110
 
@@ -54,7 +54,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 258, Butt joint with a gooseneck key and stub tenons (Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen)
 - p. 260, Four-faced gooseneck joint (diagonaler doppelter Sichelzapfen mit Steckfalz)
 
-## Timber corner joints: 32 left of 79
+## Timber corner joints: 31 left of 79
 
 - p. 264, Blind mitered corner lap joint (verdecktes Eckblatt mit Wange auf Gehrung)
 - p. 270, Blind mitered beveled corner lap joint (verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung)
@@ -70,7 +70,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 330, Collared haunched mortise and tenon joint (durchgehender abgesetzter Stufen-eckzapfen mit Führungszapfen)
 - p. 332, Wedged collared blind mortise and tenon (verkeilter durchgehender abgesetzter Eckzapfen mit Führungszapfen und Wange auf Gehrung)
 - p. 340, Plain miter with dovetail key (Gehrungsstoß mit Schwalbenschwanzfeder)
-- p. 344, Plain miter with perpendicular butterfly key (Gehrungsstoß mit Schwalbenschwanzdübel)
 - p. 350, Blind mitered mortise and tenon joint (verdeckter beidseitiger Zapfen mit Gehrungsstoß)
 - p. 358, Blind dovetail miter (verdeckter Schwalbenschwanzzapfen mit Gehrungsstoß)
 - p. 360, Stopped miter with blind dovetail tenon (verdeckter Schwalbenschwanzzapfen mit abgesetztem Gehrungsstoß)

@@ -1415,3 +1415,34 @@ half_blind_gooseneck_tenon_corner:
     - "B2 b_node -hstart -side_2 -neck_1 -neck_2; b_node hstart -tenon_end -side_2 -f1 -f2"
   insertions:
     - "-p"
+
+plain_miter_perpendicular_butterfly_key:
+  title: "Plain miter with perpendicular butterfly key"
+  german: "Gehrungsstoß mit Schwalbenschwanzdübel"
+  page: "344"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "wing = 0.07"
+    - "waist = 0.22"
+    - "flare = 0.3"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "A = unit(cross(w, X - I))"
+    - "K = (I + X)/2"
+  planes:
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "wing_1 = K, K + wing*length(X - I)*A, w, aw + 2, waist*length(X - I), flare*length(X - I), none"
+    - "wing_2 = K, K - wing*length(X - I)*A, w, aw + 2, waist*length(X - I), flare*length(X - I), none"
+  steps:
+    - "A2 a_end miter"
+    - "A3 wing_1; wing_2"
+    - "B2 b_node -miter"
+    - "B3 wing_1; wing_2"
+  insertions:
+    - "-u"
+    - "wing_1 = w"
+    - "wing_2 = w"
