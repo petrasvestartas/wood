@@ -1923,3 +1923,121 @@ lapped_double_dovetail_splice:
     - "B2 b_end -lvl -sp; b_end -lvl sp f2 -flank_1 -flank_2; b_end lvl -sp g_1; b_end lvl -sp g_2"
   insertions:
     - "-p"
+
+half_lap_haunched_tenon_splice:
+  title: "Half lap joint with haunched tenon"
+  german: "gerades Blatt mit Stufenzapfen"
+  page: "52"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.4"
+    - "tenon = 0.5"
+    - "band = 0.33"
+  points:
+  planes:
+    - "mid = O, p, O + p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hb_a = O + (tenon*ah - L)*u, u, O + 2*L*u"
+    - "hb_b = O + (tenon*ah - L)*u, u, O - 2*L*u"
+    - "k1 = O + band*aw*w, w, O"
+    - "k2 = O - band*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a mid; a_end hb_a -mid k1; a_end hb_a -mid k2"
+    - "B2 b_end hb_b -mid; b_end f2 -hb_b -mid -k1 -k2"
+  insertions:
+    - "-p"
+
+half_lap_mitered_ends_splice:
+  title: "Half lap joint with mitered ends"
+  german: "stehendes gerades Blatt mit beidseitig schrägem Stoß"
+  page: "158"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.6"
+    - "slant = 0.6"
+  points:
+    - "E1 = O - L*u - ah*p"
+    - "E2 = O + (slant*ah - L)*u + ah*p"
+    - "S1 = O + (L - slant*ah)*u - ah*p"
+    - "S2 = O + L*u + ah*p"
+  planes:
+    - "midw = O, w, O + w"
+    - "e_a = E1, cross(w, E2 - E1), O + 2*L*u"
+    - "e_b = E1, cross(w, E2 - E1), O - 2*L*u"
+    - "s_a = S1, cross(w, S2 - S1), O + 2*L*u"
+    - "s_b = S1, cross(w, S2 - S1), O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end e_a; a_end s_a midw"
+    - "B2 b_end e_b -midw; b_end s_b"
+  insertions:
+    - "-w"
+
+blind_fan_stub_tenon_splice:
+  title: "Blind fan-shaped stub tenon joint"
+  german: "verdeckter trapezförmiger Zapfen"
+  page: "204"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.44"
+    - "foot = 0.5"
+    - "top = 0.3"
+    - "height = 0.5"
+  points:
+    - "B1 = O - height*ah*p + foot*aw*w"
+    - "T1 = O + height*ah*p + top*aw*w"
+    - "B2 = O - height*ah*p - foot*aw*w"
+    - "T2 = O + height*ah*p - top*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "roof = O + height*ah*p, p, O"
+    - "floor = O - height*ah*p, p, O"
+    - "fl_1 = B1, cross(u, T1 - B1), O"
+    - "fl_2 = B2, cross(u, T2 - B2), O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a roof; a_end shoulder_a floor; a_end shoulder_a fl_1; a_end shoulder_a fl_2"
+    - "B2 b_end f2 -roof -floor -fl_1 -fl_2"
+  insertions:
+    - "-u"
+
+blind_u_stub_tenon_splice:
+  title: "Blind U-shaped stub tenon joint"
+  german: "verdeckter u-förmiger Zapfen"
+  page: "208"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.4"
+    - "outer = 0.64"
+    - "slot = 0.35"
+    - "roof_at = 0.6"
+    - "floor_at = 0.65"
+    - "slot_floor = 0.33"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "roof = O + roof_at*ah*p, p, O"
+    - "floor = O - floor_at*ah*p, p, O"
+    - "o1 = O + outer*aw*w, w, O"
+    - "o2 = O - outer*aw*w, w, O"
+    - "s1 = O + slot*aw*w, w, O"
+    - "s2 = O - slot*aw*w, w, O"
+    - "sf = O - slot_floor*ah*p, p, O + ah*p"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a roof; a_end shoulder_a floor; a_end shoulder_a o1; a_end shoulder_a o2; a_end shoulder_a -s1 -s2 -sf"
+    - "B2 b_end f2 -roof -floor -o1 s1; b_end f2 -roof -floor -o2 s2; b_end f2 -s1 -s2 -floor sf"
+  insertions:
+    - "-u"
