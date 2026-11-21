@@ -148,3 +148,37 @@ stacked_tenon_mortised_cross_lap:
   insertions:
     - "-n"
     - "c = n"
+
+castle_joint:
+  title: "Castle joint"
+  german: "doppelte Einhälsung"
+  page: "716"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "slot = 0.35"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "st1 = O + slot*bt*t, t, O"
+    - "st2 = O - slot*bt*t, t, O"
+    - "sw1 = O + slot*aw*w, w, O"
+    - "sw2 = O - slot*aw*w, w, O"
+    - "pt1 = O + bt*t, t, O"
+    - "pt2 = O - bt*t, t, O"
+    - "post_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 60, 0 0 -600, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_node -pt1 -pt2 sw1; a_node -pt1 -pt2 sw2; a_node mid -st1 -st2"
+    - "B2 b_node st1; b_node st2; b_node -mid -sw1 -sw2"
+    - "C2 c post_shoulder -sw1 -sw2; c post_shoulder -st1 -st2"
+  insertions:
+    - "-n"
+    - "c = n"
