@@ -3414,3 +3414,31 @@ spear_point_cross_stub_tenon_splice:
     - "B2 b_end -v1 -v2; b_end f2 -cw1 -cw2; b_end f2 -cp1 -cp2"
   insertions:
     - "-u"
+
+blind_rabbeted_diagonal_half_lap_key_splice:
+  title: "Blind rabbeted diagonally cut half lap joint with a key"
+  german: "diagonales Blatt mit verdecktem Steckfalz und Spannkeil"
+  page: "154"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.6"
+    - "key = 0.08"
+  points:
+    - "D1 = unit(ah*p + aw*w)"
+    - "N = unit(cross(u, D1))"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "diag = O, N, O + N"
+  parts:
+    - "key = O + 1.5*ah*N, O - 1.5*ah*N, u, key*ah, 0.35*aw, 0.25*aw"
+  steps:
+    - "A2 a_end shoulder_a diag"
+    - "A3 key"
+    - "B2 b_end f2 -diag"
+    - "B3 key"
+  insertions:
+    - "-N"
+    - "key = -N"

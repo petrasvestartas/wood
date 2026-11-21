@@ -320,6 +320,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_four_faced_gooseneck_splice.png) | **Four-faced gooseneck joint**<br>diagonaler doppelter Sichelzapfen mit Steckfalz, p. 260<br>`four_faced_gooseneck_splice` |
 | ![](joint_library/beam_tapered_dovetail_mitered_shoulders_splice.png) | **Tapered dovetail tenon joint with mitered shoulders**<br>Stoß mit Gratschnitt und keilförmigen Schwalbenschwanzzapfen, p. 240<br>`tapered_dovetail_mitered_shoulders_splice` |
 | ![](joint_library/beam_spear_point_cross_stub_tenon_splice.png) | **Spear point cross-shaped stub tenon joint with undercut shoulders**<br>kreuzförmiger Zapfen mit Gratschnitt und hinterschnittener Brüstung, p. 218<br>`spear_point_cross_stub_tenon_splice` |
+| ![](joint_library/beam_blind_rabbeted_diagonal_half_lap_key_splice.png) | **Blind rabbeted diagonally cut half lap joint with a key**<br>diagonales Blatt mit verdecktem Steckfalz und Spannkeil, p. 154<br>`blind_rabbeted_diagonal_half_lap_key_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
