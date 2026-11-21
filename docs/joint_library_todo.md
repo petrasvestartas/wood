@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 83 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 82 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 31 left of 110
 
@@ -72,10 +72,9 @@ All done.
 - p. 678, Three-way cross lap joint (doppelte Überblattung)
 - p. 688, Double notch joint with stub tenons (Kreuzkamm mit abgesetzter Falz)
 
-## Timber specialty joints: 17 left of 29
+## Timber specialty joints: 16 left of 29
 
 - p. 718, Notched corner-post joint with beveled-shoulder tenons (Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust)
-- p. 722, Corner-post joint with fan-shaped stub tenon and blind dado and rabbet joint (Eckstoß mit Führungszapfen und Wange auf Gehrung sowie durchgehendem trapezförmigem Zapfen)
 - p. 724, Housed and stopped dovetail lap and fully shouldered stub tenon (verdeckter eingelassener Schwalben-schwanzzapfen mit abgesetzter Brust und Pfosten mit verdecktem Zapfen)
 - p. 730, Chidori puzzle joint (einfach abgesetztes Kreuzblatt und Stab mit Rundholzverbindung)
 - p. 732, Cross puzzle (Zimmermannsknoten)
