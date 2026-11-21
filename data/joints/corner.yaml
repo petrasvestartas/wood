@@ -717,3 +717,30 @@ blind_stub_tenon_miter:
     - "B3 b_node miter -end -cheek_1 -cheek_2 -outer -face_2"
   insertions:
     - "-u"
+
+plain_miter_spline_key:
+  title: "Plain miter with spline key"
+  german: "Gehrungsstoß mit Feder"
+  page: "336"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "depth = 0.75"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "D = unit(I - X)"
+  planes:
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "key = X + depth*ah*D, X, w, thickness*aw, depth*ah, 0.01*ah, end"
+  steps:
+    - "A2 a_end miter"
+    - "A3 key"
+    - "B2 b_node -miter"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = D"

@@ -85,6 +85,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_blind_mitered_half_lap.png) | **Blind mitered half lap**<br>verdecktes Eckblatt auf Gehrung, p. 348<br>`blind_mitered_half_lap` |
 | ![](joint_library/beam_mitered_bridle.png) | **Mitered bridle joint**<br>durchgehender Zapfen mit Gehrungsstoß, p. 352<br>`mitered_bridle` |
 | ![](joint_library/beam_blind_stub_tenon_miter.png) | **Blind stub tenon miter**<br>verdeckter Zapfen mit Gehrungsstoß, p. 354<br>`blind_stub_tenon_miter` |
+| ![](joint_library/beam_plain_miter_spline_key.png) | **Plain miter with spline key**<br>Gehrungsstoß mit Feder, p. 336<br>`plain_miter_spline_key` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
