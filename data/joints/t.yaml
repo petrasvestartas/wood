@@ -1559,6 +1559,44 @@ blind_housed_haunched_through_mortise_tenon:
   insertions:
     - "-u"
 
+haunched_collared_through_mortise_tenon:
+  title: "Haunched collared through mortise and tenon"
+  german: "durchgehender Stufenzapfen mit Führungszapfen"
+  page: "524"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "haunch = 0.33"
+    - "collar = 0.12"
+    - "lip = 0.1"
+  points:
+    - "S = O + n"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "haunch_end = O - 2*haunch*bh*n, n, O"
+    - "collar_end = O - 2*collar*bh*n, n, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "mid = O, p, O - ah*p"
+    - "collar_top = O - (1 - 2*lip)*ah*p, p, O - ah*p"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "face_1 = O + aw*w, w, O"
+    - "face_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1 collar_top; a_end shoulder cheek_2 collar_top; a_end collar_end cheek_1; a_end collar_end cheek_2"
+    - "A3 a_end haunch_end mid"
+    - "B2 b_node -end -cheek_1 -cheek_2 -mid -edge_2"
+    - "B3 b_node -haunch_end -cheek_1 -cheek_2 -edge_1 -edge_2"
+    - "B4 b_node -collar_end -collar_top -edge_2 -face_1 -face_2"
+  insertions:
+    - "-u"
+
+
 
 
 double_through_mortise_tenon:
