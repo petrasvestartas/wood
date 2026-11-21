@@ -2161,3 +2161,32 @@ diagonally_cut_cog_corner:
     - "B2 b_node -under -half -side_1 -side_2"
   insertions:
     - "-n"
+
+notched_lap_stub_tenon_corner:
+  title: "Notched lap joint with stub tenon"
+  german: "Meisterwitz"
+  page: "406"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "stub = 0.25"
+    - "depth = 0.25"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "sp = O + (2*stub - 1)*ah*p, p, O - ah*p"
+    - "sd = O - 2*depth*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder cheek_1; a_end shoulder cheek_2 sp; a_end shoulder cheek_2 sd"
+    - "B2 b_node -cheek_1 -cheek_2 -face_2; b_node cheek_2 -sp -sd -face_2"
+  insertions:
+    - "-u"

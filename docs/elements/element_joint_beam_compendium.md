@@ -174,6 +174,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_housed_dovetail_corner.png) | **Housed dovetail joint**<br>verdeckter beidseitig abgesetzter Schwalbenschwanzeckzapfen, p. 400<br>`housed_dovetail_corner` |
 | ![](joint_library/beam_plain_miter_dovetail_key.png) | **Plain miter with dovetail key**<br>Gehrungsstoß mit Schwalbenschwanzfeder, p. 340<br>`plain_miter_dovetail_key` |
 | ![](joint_library/beam_diagonally_cut_cog_corner.png) | **Diagonally cut cog joint**<br>Eckkamm mit Haken, p. 418<br>`diagonally_cut_cog_corner` |
+| ![](joint_library/beam_notched_lap_stub_tenon_corner.png) | **Notched lap joint with stub tenon**<br>Meisterwitz, p. 406<br>`notched_lap_stub_tenon_corner` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
