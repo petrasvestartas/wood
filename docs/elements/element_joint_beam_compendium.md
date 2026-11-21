@@ -187,6 +187,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_oblique_notched_cross_lap.png) | **Oblique notched cross lap joint**<br>schräges Kreuzblatt mit Stirnversatz, p. 672<br>`oblique_notched_cross_lap` |
 | ![](joint_library/beam_oblique_notched_heel_cross_lap.png) | **Oblique notched heel cross lap joint**<br>schräges Kreuzblatt mit Fersenversatz, p. 674<br>`oblique_notched_heel_cross_lap` |
 | ![](joint_library/beam_double_notched_oblique_cross_lap.png) | **Double notched oblique cross lap joint**<br>schräges Kreuzblatt mit Stirn- und Fersenversatz, p. 676<br>`double_notched_oblique_cross_lap` |
+| ![](joint_library/beam_post_through_tenon_crossed.png) | **Post with through tenon and mortised crossed joint**<br>durchgesteckter Zapfen mit aufgesetzter Überkreuzung, p. 712<br>`post_through_tenon_crossed` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |

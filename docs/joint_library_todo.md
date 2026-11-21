@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 95 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 94 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 31 left of 110
 
@@ -72,11 +72,10 @@ All done.
 - p. 678, Three-way cross lap joint (doppelte Überblattung)
 - p. 688, Double notch joint with stub tenons (Kreuzkamm mit abgesetzter Falz)
 
-## Timber specialty joints: 29 left of 29
+## Timber specialty joints: 28 left of 29
 
 - p. 708, Post with stub tenon and mortised double cogged joint (verdeckter Zapfen mit Kreuzkamm und mittiger Stufe)
 - p. 710, T-bridle joint with stub tenons and mortised beam (Einhälsung mit Brüstungszapfen und aufgesetzter Überkreuzung)
-- p. 712, Post with through tenon and mortised crossed joint (durchgesteckter Zapfen mit aufgesetzter Überkreuzung)
 - p. 714, Stacked tenon and mortised cross lap joint (durchgesteckter beidseitig abgesetzter Stufenzapfen mit Kreuzblatt)
 - p. 716, Castle joint (doppelte Einhälsung)
 - p. 718, Notched corner-post joint with beveled-shoulder tenons (Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust)
