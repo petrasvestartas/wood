@@ -2066,3 +2066,81 @@ undersquinted_half_lap_floating_piece_splice:
   insertions:
     - "-u"
     - "piece = w"
+
+halved_splayed_scarf:
+  title: "Halved splayed scarf joint"
+  german: "doppelte Schäftung"
+  page: "162"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+  points:
+    - "P1 = O - L*u + ah*p"
+    - "P2 = O + L*u - ah*p"
+    - "Q1 = O - L*u - ah*p"
+    - "Q2 = O + L*u + ah*p"
+  planes:
+    - "midw = O, w, O + w"
+    - "d1 = P1, cross(w, P2 - P1), O - 2*L*u"
+    - "d2 = Q1, cross(w, Q2 - Q1), O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -midw -d1; a_end midw -d2"
+    - "B2 b_end -midw d1; b_end midw d2"
+  insertions:
+    - "-u"
+
+four_faced_splayed_scarf:
+  title: "Four-faced splayed scarf joint"
+  german: "vierseitige Schäftung"
+  page: "174"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.5"
+  points:
+    - "A = O - L*u"
+    - "K = O + 0.5*L*u"
+    - "B1 = O + L*u + ah*p + aw*w"
+    - "B2 = O + L*u + ah*p - aw*w"
+    - "B3 = O + L*u - ah*p - aw*w"
+    - "B4 = O + L*u - ah*p + aw*w"
+  planes:
+    - "f_top = A, cross(B1 - A, B2 - A), K"
+    - "f_left = A, cross(B2 - A, B3 - A), K"
+    - "f_bottom = A, cross(B3 - A, B4 - A), K"
+    - "f_right = A, cross(B4 - A, B1 - A), K"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end f_top; a_end f_left; a_end f_bottom; a_end f_right"
+    - "B2 b_end f2 -f_top -f_left -f_bottom -f_right"
+  insertions:
+    - "-u"
+
+diagonally_cut_birdsmouth_splice:
+  title: "Diagonally cut birdsmouth"
+  german: "diagonale doppelte Schäftung"
+  page: "170"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.5"
+  points:
+    - "A = O + L*u"
+    - "G = unit(aw*p + ah*w)"
+    - "C1 = O - L*u + ah*p - aw*w"
+    - "C2 = O - L*u - ah*p + aw*w"
+  planes:
+    - "v_1 = A, cross(G, C1 - A), O - L*u - ah*p - aw*w"
+    - "v_2 = A, cross(G, C2 - A), O - L*u + ah*p + aw*w"
+  parts:
+  steps:
+    - "A2 a_end -v_1 -v_2"
+    - "B2 b_end v_1; b_end v_2"
+  insertions:
+    - "-u"
