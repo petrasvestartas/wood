@@ -184,6 +184,43 @@ cogged_lap:
   insertions:
     - "w"
 
+cogged_lap_stub_tenon:
+  title: "Cogged lap joint with stub tenon"
+  german: "Hakenquerblatt mit Brüstungszapfen"
+  page: "430"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "near = 0.6666666666666666"
+    - "far = 0.3333333333333333"
+    - "stub = 0.16666666666666666"
+    - "stub_width = 0.48"
+    - "stub_length = 0.24"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "half = O - bh*n, n, O"
+    - "low_near = O + (2*near - 1)*bw*w, w, O - 2*bw*w"
+    - "low_far = O + (2*far - 1)*bw*w, w, O - 2*bw*w"
+    - "stub_top = O + (2*(near + stub) - 1)*bw*w, w, O - 2*bw*w"
+    - "stub_1 = O + stub_width*ah*p, p, O"
+    - "stub_2 = O - stub_width*ah*p, p, O"
+    - "stub_end = O - 2*stub_length*bh*n, n, O"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end half low_far"
+    - "A4 a_end shoulder stub_top; a_end shoulder low_near stub_1; a_end shoulder low_near stub_2; a_end stub_end low_near"
+    - "B2 b_node -low_near -half -face_1 -face_2; b_node -low_far half -face_1 -face_2"
+    - "B3 b_node -stub_top low_near -stub_1 -stub_2 -stub_end"
+  insertions:
+    - "w"
+
 sloped_cogged_lap:
   title: "Sloped cogged lap joint"
   german: "Hakenquerblatt mit schrägem Haken"
