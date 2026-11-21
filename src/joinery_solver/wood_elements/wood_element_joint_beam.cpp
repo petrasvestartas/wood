@@ -2745,7 +2745,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             throw std::invalid_argument(fmt::format("{}: the axes of {} and {} do not meet", design, a.name, b.name));
 
         Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
-        const Vector toward = crossing && Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : u;
+        // a crossing's member lies over the carrier; when the axes meet (a cross lap) it lies over it along world up
+    const Vector toward = !crossing ? u : Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : Vector::z_axis();
         const std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
         const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
         const size_t k = std::abs(b_section.first[0].dot(toward)) >= std::abs(b_section.first[1].dot(toward)) ? 0 : 1;

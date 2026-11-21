@@ -1,0 +1,367 @@
+# Joinery Compendium (Bauer, Pauli 2024), Timber Joints, Cross Lap Joints: one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               (a corner, end_end_inplane, is read as side_end: b ends flush with a's outer face)
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
+#               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+
+cross_lap:
+  title: "Cross lap joint"
+  german: "Kreuzblatt"
+  page: "646"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer"
+    - "B2 b_node -mid"
+  insertions:
+    - "-n"
+
+pegged_cross_lap:
+  title: "Pegged cross lap joint"
+  german: "Kreuzblatt mit Dübel"
+  page: "648"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+    - "peg = 0.12"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+  parts:
+    - "peg = O, O - 2*bh*n, w, peg*ah"
+  steps:
+    - "A2 a_node mid inner -outer"
+    - "A3 peg"
+    - "B2 b_node -mid"
+    - "B3 peg"
+  insertions:
+    - "-n"
+
+blind_pegged_cross:
+  title: "Joint with blind peg"
+  german: "Überkreuzung mit Dolle"
+  page: "680"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "peg = 0.2"
+    - "depth = 0.25"
+  points:
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+  parts:
+    - "peg = O + 2*depth*ah*n, O - 2*depth*bh*n, w, peg*ah, none"
+  steps:
+    - "A2 peg"
+    - "B2 peg"
+  insertions:
+    - "-n"
+
+notch_cross:
+  title: "Notch joint"
+  german: "Kreuzkamm mit einseitigem Sitz"
+  page: "682"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.17"
+  points:
+    - "U = O + n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+  parts:
+  steps:
+    - "A2 a_node top inner inner -outer"
+  insertions:
+    - "-n"
+
+double_notch_cross:
+  title: "Double notch joint"
+  german: "Kreuzkamm"
+  page: "684"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.3"
+    - "split = 0.15"
+  points:
+    - "U = O + n"
+    - "L = O - 2*split*bh*n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "level = L, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_node level inner inner -outer"
+    - "B2 b_node -level -side_1 -side_2"
+  insertions:
+    - "-n"
+
+cog_cross:
+  title: "Cog joint"
+  german: "Kreuzkamm mit Stufe"
+  page: "692"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+  points:
+    - "U = O + n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "half = O, t, O - t"
+  parts:
+  steps:
+    - "A2 a_node top half inner -outer"
+    - "B2 b_node -under -half -side_1 -side_2"
+  insertions:
+    - "-n"
+
+double_cog_cross:
+  title: "Double cog joint"
+  german: "Kreuzkamm mit mittiger Stufe"
+  page: "694"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+  points:
+    - "U = O + n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "third_1 = O - bt*t/3, t, O - bt*t"
+    - "third_2 = O + bt*t/3, t, O - bt*t"
+  parts:
+  steps:
+    - "A2 a_node top third_1 -third_2 inner -outer"
+    - "B2 b_node -under -third_1 -side_1 -side_2; b_node -under third_2 -side_1 -side_2"
+  insertions:
+    - "-n"
+
+sloped_cog_cross:
+  title: "Sloped cog joint"
+  german: "Kreuzkamm mit einseitig schräger Stufe"
+  page: "696"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+    - "wide = 0.67"
+    - "narrow = 0.29"
+  points:
+    - "U = O + n"
+    - "D1 = O + (2*wide - 1)*bt*t - aw*w"
+    - "D2 = O + (2*narrow - 1)*bt*t + aw*w"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "diagonal = D1, cross(n, D2 - D1), O + 2*bt*t"
+  parts:
+  steps:
+    - "A2 a_node top -diagonal inner -outer"
+    - "B2 b_node -under diagonal -side_1 -side_2"
+  insertions:
+    - "-n"
+
+v_shaped_cog_cross:
+  title: "V-shaped cog joint"
+  german: "Kreuzkamm mit halbem Kreuz"
+  page: "700"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+  points:
+    - "U = O + n"
+    - "P = O"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "arm_1 = P, cross(n, aw*w + bt*t), P - bt*t"
+    - "arm_2 = P, cross(n, aw*w - bt*t), P + bt*t"
+  parts:
+  steps:
+    - "A2 a_node top -arm_1 inner inner -outer; a_node top -arm_2 inner -outer"
+    - "B2 b_node -under arm_1 arm_2 -side_2"
+  insertions:
+    - "-n"
+
+x_shaped_cog_cross:
+  title: "X-shaped cog joint"
+  german: "Kreuzkamm mit Kreuz"
+  page: "702"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+  points:
+    - "U = O + n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "diag_a = O, bt*w - aw*t, O + t"
+    - "diag_b = O, bt*w + aw*t, O - t"
+  parts:
+  steps:
+    - "A2 a_node top -diag_a -diag_b inner -outer; a_node top diag_a diag_b inner -outer"
+    - "B2 b_node -under diag_a -diag_b; b_node -under -diag_a diag_b"
+  insertions:
+    - "-n"
+
+dovetail_cog_cross:
+  title: "Dovetail cog joint"
+  german: "Kreuzkamm mit Schwalbenschwanz"
+  page: "704"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+    - "neck = 0.67"
+    - "flare = 1.0"
+  points:
+    - "U = O + n"
+    - "A1 = O - bt*t + neck*aw*w"
+    - "B1 = O + bt*t + flare*aw*w"
+    - "A2 = O - bt*t - neck*aw*w"
+    - "B2 = O + bt*t - flare*aw*w"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "flank_1 = A1, cross(n, B1 - A1), O"
+    - "flank_2 = A2, cross(n, B2 - A2), O"
+  parts:
+  steps:
+    - "A2 a_node top flank_1 inner inner -outer; a_node top flank_2 inner inner -outer"
+    - "B2 b_node -under -flank_1 -flank_2"
+  insertions:
+    - "-n"
+
+half_dovetail_cog_cross:
+  title: "Half-dovetail cog joint"
+  german: "Kreuzkamm mit einseitigem Schwalbenschwanz"
+  page: "706"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+    - "neck = 0.62"
+    - "flare = 0.95"
+  points:
+    - "U = O + n"
+    - "A1 = O - bt*t + neck*aw*w"
+    - "B1 = O + bt*t + flare*aw*w"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "flank_1 = A1, cross(n, B1 - A1), O"
+  parts:
+  steps:
+    - "A2 a_node top flank_1 inner inner -outer"
+    - "B2 b_node -under -flank_1 -side_2"
+  insertions:
+    - "-n"
