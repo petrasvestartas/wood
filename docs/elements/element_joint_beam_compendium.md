@@ -161,6 +161,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_collared_haunched_mortise_tenon_corner.png) | **Collared haunched mortise and tenon joint**<br>durchgehender abgesetzter Stufen-eckzapfen mit Führungszapfen, p. 330<br>`collared_haunched_mortise_tenon_corner` |
 | ![](joint_library/beam_beveled_triple_shouldered_housed_tenon_corner.png) | **Beveled triple-shouldered mortise and tenon with housing**<br>verdeckter abgesetzter Eckzapfen mit schräger Brust, p. 314<br>`beveled_triple_shouldered_housed_tenon_corner` |
 | ![](joint_library/beam_blind_bridle_corner.png) | **Blind bridle joint**<br>verdeckter Scherzapfen mit Wange auf Gehrung, p. 320<br>`blind_bridle_corner` |
+| ![](joint_library/beam_blind_dovetail_miter.png) | **Blind dovetail miter**<br>verdeckter Schwalbenschwanzzapfen mit Gehrungsstoß, p. 358<br>`blind_dovetail_miter` |
+| ![](joint_library/beam_blind_mitered_mortise_tenon.png) | **Blind mitered mortise and tenon joint**<br>verdeckter beidseitiger Zapfen mit Gehrungsstoß, p. 350<br>`blind_mitered_mortise_tenon` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
