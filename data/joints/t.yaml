@@ -1019,11 +1019,11 @@ tenon_chase_mortise:
   page: "498"
   category: "side_end"
   family: "t"
-  corners: "square inclined"
+  corners: "square"
   parameters:
     - "thickness = 0.3333333333333333"
-    - "depth = 0.25"
-    - "chase = 3.5"
+    - "depth = 0.3333333333333333"
+    - "chase = 2.7"
     - "open = 0.5"
   points:
     - "S = O + n"
@@ -1039,11 +1039,10 @@ tenon_chase_mortise:
     - "edge_2 = O - ah*p, p, O"
     - "end = O - 2*depth*bh*n, n, O"
     - "ramp = D, cross(w, F - D), O - 2*bh*n"
-    - "chase_end = F, V, O"
   parts:
   steps:
     - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
-    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -cheek_1 -cheek_2 ramp -chase_end edge_1"
+    - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2; b_node -cheek_1 -cheek_2 ramp edge_1"
   insertions:
     - "-u"
 
