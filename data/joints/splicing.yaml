@@ -2695,3 +2695,39 @@ halved_splayed_scarf_oblique_key:
   insertions:
     - "-u"
     - "key = -p"
+
+halved_splayed_rabbeted_scarf_key:
+  title: "Halved splayed rabbeted scarf joint with tapered key"
+  german: "doppelte Schäftung mit Brüstungszapfen und Spannkeil"
+  page: "164"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stub = 0.3"
+    - "band = 0.3"
+    - "lap = 3"
+  points:
+    - "P1 = O - L*u + ah*p"
+    - "P2 = O + L*u - ah*p"
+    - "Q1 = O - L*u - ah*p"
+    - "Q2 = O + L*u + ah*p"
+  planes:
+    - "midw = O, w, O + w"
+    - "d1 = P1, cross(w, P2 - P1), O - 2*L*u"
+    - "d2 = Q1, cross(w, Q2 - Q1), O - 2*L*u"
+    - "tip_a = O - (L - stub*ah)*u, u, O + 2*L*u"
+    - "tip_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "sw1 = O + band*aw*w, w, O"
+    - "sw2 = O - band*aw*w, w, O"
+  parts:
+    - "key = O + (ah + 1)*p, O - 0.6*ah*p, u, 0.08*ah, 0.35*aw, 0.25*aw, start"
+  steps:
+    - "A2 a_end -midw -d1 -tip_b; a_end midw -d2 -tip_b; a_end -midw -d1 tip_b -sw1 -sw2; a_end midw -d2 tip_b -sw1 -sw2; a_end tip_a sw1; a_end tip_a sw2"
+    - "A3 key"
+    - "B2 b_end -midw d1 -tip_a; b_end midw d2 -tip_a; b_end -midw d1 tip_a -sw1 -sw2; b_end midw d2 tip_a -sw1 -sw2; b_end tip_b sw1; b_end tip_b sw2"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = -p"
+

@@ -1,8 +1,8 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 60 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 59 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 27 left of 110
+## Timber splicing joints: 26 left of 110
 
 - p. 82, Undersquinted spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit schrägem Gratschnitt)
 - p. 88, Cogged lap joint with floating tenoned piece (gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen)
@@ -19,7 +19,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 150, Pegged rabbeted stop-splayed cogged scarf joint with stub tenons (stehendes schräges Hakenblatt mit Steckfalz, Brüstungszapfen und Dübelsicherung)
 - p. 152, Pegged half blind rabbeted stop-splayed cogged scarf joint (halbverdecktes schräges Hakenblatt mit Steckfalz und Dübelsicherung)
 - p. 154, Blind rabbeted diagonally cut half lap joint with a key (diagonales Blatt mit verdecktem Steckfalz und Spannkeil)
-- p. 164, Halved splayed rabbeted scarf joint with tapered key (doppelte Schäftung mit Brüstungszapfen und Spannkeil)
 - p. 172, Triple-faced splayed scarf joint (einseitig schräg angeschnittene doppelte Schäftung)
 - p. 192, Pegged rabbeted mortise and tenon joint (Zapfen mit Steckfalz und Dübelsicherung)
 - p. 194, Rabbeted rod tenon joint with tapered keys (Stabzapfen mit Steckfalz und Spannkeilen)
