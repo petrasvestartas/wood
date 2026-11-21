@@ -3202,3 +3202,47 @@ stop_splayed_scarf_hidden_hook:
     - "B2 b_end upper shoulder_b cut -sb1 -sb2; b_end splay shoulder_b -cut; b_end splay shoulder_b cut sb1; b_end splay shoulder_b cut sb2"
   insertions:
     - "p"
+
+spear_point_stop_splayed_cogged_scarf_folding_wedges:
+  title: "Spear point stop-splayed cogged scarf joint with folding wedges"
+  german: "verkeiltes schräges Hakenblatt mit Gratschnitt"
+  page: "134"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "gap = 0.16"
+    - "over = 20"
+    - "e = 0.12"
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+    - "spear = 0.7"
+  points:
+    - "W1 = O + (cog*ah/2)*p + (aw + over)*w"
+    - "W2 = O + (cog*ah/2)*p - (aw + over)*w"
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+  planes:
+    - "end_1 = O + (L - spear*aw)*u + aw*w, cross(p, spear*aw*u - aw*w), O"
+    - "end_2 = O + (L - spear*aw)*u - aw*w, cross(p, spear*aw*u + aw*w), O"
+    - "sh_1 = O - (L - spear*aw)*u + aw*w, cross(p, spear*aw*u + aw*w), O"
+    - "sh_2 = O - (L - spear*aw)*u - aw*w, cross(p, spear*aw*u - aw*w), O"
+    - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
+    - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+  parts:
+    - "wedge_1 = W1 + e*u, W2 + e*u, p, (0.3*cog*ah), gap*ah, e, both, u"
+    - "wedge_2 = W2 - e*u, W1 - e*u, p, (0.3*cog*ah), gap*ah, e, both, -u"
+  steps:
+    - "A2 a_end -upper -end_1 -end_2 cut; a_end -splay -end_1 -end_2 -cut_b; a_end sh_1; a_end sh_2"
+    - "B2 b_end upper -sh_1 -sh_2 cut_a; b_end splay -sh_1 -sh_2 -cut; b_end end_1; b_end end_2"
+  insertions:
+    - "p"
