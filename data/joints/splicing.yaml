@@ -708,3 +708,87 @@ rabbeted_cogged_lap_splice:
     - "B2 b_end m_l f1 cut; b_end m_r -cut; b_end -lo_l m_l -f1 f2; b_end -hi_r -e1; b_end -m_r -e2"
   insertions:
     - "w"
+
+rabbeted_stop_splayed_cogged_scarf:
+  title: "Rabbeted stop-splayed cogged scarf joint"
+  german: "schräges Hakenblatt mit Steckfalz"
+  page: "138"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+    - "stop = 0.6"
+    - "cog = 0.24"
+    - "lip = 0.3"
+    - "rabbet = 0.3"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "H1 = S1 + cog*ah*p"
+    - "H2 = S2 + cog*ah*p"
+    - "D1 = H1 - lip*ah*p"
+    - "D2 = H2 - lip*ah*p"
+    - "G1 = S1 + lip*ah*p"
+    - "G2 = S2 + lip*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "low = D1, cross(w, D2 - D1), O + 2*ah*p"
+    - "high = G1, cross(w, G2 - G1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -upper cut; a_end -splay -cut e1; a_end -splay high -e1 e2; a_end low -f1; a_end upper -f2"
+    - "B2 b_end upper cut f1; b_end upper -low f2 -f1; b_end splay -cut; b_end -high -e1; b_end -splay -e2"
+  insertions:
+    - "w"
+
+pegged_rabbeted_stop_splayed_cogged_scarf:
+  title: "Pegged rabbeted stop-splayed cogged scarf joint"
+  german: "schräges Hakenblatt mit Steckfalz und Dübelsicherung"
+  page: "140"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+    - "stop = 0.6"
+    - "cog = 0.24"
+    - "lip = 0.3"
+    - "rabbet = 0.3"
+    - "peg = 0.13"
+    - "spacing = 0.4"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "H1 = S1 + cog*ah*p"
+    - "H2 = S2 + cog*ah*p"
+    - "D1 = H1 - lip*ah*p"
+    - "D2 = H2 - lip*ah*p"
+    - "G1 = S1 + lip*ah*p"
+    - "G2 = S2 + lip*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "low = D1, cross(w, D2 - D1), O + 2*ah*p"
+    - "high = G1, cross(w, G2 - G1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "peg_1 = O - spacing*L*u + 1.2*ah*p, O - spacing*L*u - 1.2*ah*p, u, peg*ah"
+    - "peg_2 = O + spacing*L*u + 1.2*ah*p, O + spacing*L*u - 1.2*ah*p, u, peg*ah"
+  steps:
+    - "A2 a_end -upper cut; a_end -splay -cut e1; a_end -splay high -e1 e2; a_end low -f1; a_end upper -f2"
+    - "B2 b_end upper cut f1; b_end upper -low f2 -f1; b_end splay -cut; b_end -high -e1; b_end -splay -e2"
+    - "A3 peg_1; peg_2"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "w"
