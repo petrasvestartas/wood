@@ -2171,3 +2171,74 @@ triple_splayed_scarf:
     - "B2 b_end o1 d1; b_end o2 d1; b_end -o1 -o2 d2"
   insertions:
     - "-u"
+
+v_end_undercut_tenon_splice:
+  title: "Mortise and tenon with V-ends and undercut shoulders"
+  german: "Zapfen mit hinterschnittener Brüstung und v-förmig eingeschnittener Stirn"
+  page: "184"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.4"
+    - "thickness = 0.35"
+    - "undercut = 0.25"
+    - "notch = 0.6"
+  points:
+    - "S1a = O + (L - undercut*ah)*u + aw*w"
+    - "S1b = O + L*u + thickness*aw*w"
+    - "S2a = O + (L - undercut*ah)*u - aw*w"
+    - "S2b = O + L*u - thickness*aw*w"
+    - "VT = O - L*u + ah*p"
+    - "VB = O - L*u - ah*p"
+    - "VM = O + (notch*ah - L)*u"
+  planes:
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "o1 = O + thickness*aw*w, w, O"
+    - "o2 = O - thickness*aw*w, w, O"
+    - "sh1 = S1a, cross(p, S1b - S1a), O + 2*L*u"
+    - "sh2 = S2a, cross(p, S2b - S2a), O + 2*L*u"
+    - "vt = VT, cross(w, VM - VT), O"
+    - "vb = VB, cross(w, VM - VB), O"
+  parts:
+  steps:
+    - "A2 a_end sh1 o1; a_end sh2 o2; a_end -o1 -o2 vt vb"
+    - "B2 b_end -sh1 o1; b_end -sh2 o2; b_end f2 -o1 -o2 -vt; b_end f2 -o1 -o2 -vb"
+  insertions:
+    - "-u"
+
+pegged_undercut_tenon_splice:
+  title: "Pegged mortise and tenon with undercut shoulders"
+  german: "Zapfen mit hinterschnittener Brüstung und Dübelsicherung"
+  page: "186"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.4"
+    - "thickness = 0.35"
+    - "undercut = 0.25"
+    - "peg = 0.1"
+  points:
+    - "S1a = O + (L - undercut*ah)*u + aw*w"
+    - "S1b = O + L*u + thickness*aw*w"
+    - "S2a = O + (L - undercut*ah)*u - aw*w"
+    - "S2b = O + L*u - thickness*aw*w"
+    - "K1 = O - 0.5*L*u"
+    - "K2 = O + 0.5*L*u"
+  planes:
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "o1 = O + thickness*aw*w, w, O"
+    - "o2 = O - thickness*aw*w, w, O"
+    - "sh1 = S1a, cross(p, S1b - S1a), O + 2*L*u"
+    - "sh2 = S2a, cross(p, S2b - S2a), O + 2*L*u"
+  parts:
+    - "peg_1 = K1 + 1.2*ah*p, K1 - 1.2*ah*p, u, peg*ah"
+    - "peg_2 = K2 + 1.2*ah*p, K2 - 1.2*ah*p, u, peg*ah"
+  steps:
+    - "A2 a_end sh1 o1; a_end sh2 o2"
+    - "A3 peg_1; peg_2"
+    - "B2 b_end -sh1 o1; b_end -sh2 o2; b_end f2 -o1 -o2"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "-u"
