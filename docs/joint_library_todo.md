@@ -1,14 +1,13 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 9 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 8 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 1 left of 110
 
 - p. 242, Kawai joint (diagonal angeschnittener Stoß mit dreifacher polyedrischer Ausstemmung)
 
-## Timber corner joints: 2 left of 79
+## Timber corner joints: 1 left of 79
 
-- p. 360, Stopped miter with blind dovetail tenon (verdeckter Schwalbenschwanzzapfen mit abgesetztem Gehrungsstoß)
 - p. 404, Kawai joint (diagonal angeschnittener Eckstoß mit dreifacher polyedrischer Ausstemmung)
 
 ## Timber T-joints: 0 left of 82
