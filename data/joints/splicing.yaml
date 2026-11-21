@@ -1823,3 +1823,103 @@ lapped_gooseneck_stub_tenon_splice:
   insertions:
     - "-p"
 
+triple_shouldered_dovetail_tenon_splice:
+  title: "Triple-shouldered dovetail tenon joint"
+  german: "abgesetzter Schwalbenschwanzzapfen"
+  page: "222"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "root = 0.23"
+    - "tip = 0.61"
+  points:
+    - "R1 = O + L*u + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = O + L*u - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "flank_1 = R1, cross(p, T1 - R1), O"
+    - "flank_2 = R2, cross(p, T2 - R2), O"
+    - "lvl = O, p, O + p"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a lvl; a_end shoulder_a flank_1 -lvl; a_end shoulder_a flank_2 -lvl"
+    - "B2 b_end f2 -flank_1 -flank_2 -lvl"
+  insertions:
+    - "-p"
+
+lapped_dovetail_stub_tenon_splice:
+  title: "Lapped dovetail joint with stub tenon"
+  german: "Schwalbenschwanzzapfen mit geradem Blatt und Brüstungszapfen"
+  page: "226"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.8"
+    - "socket = 0.49"
+    - "root = 0.2"
+    - "tip = 0.52"
+    - "stub = 0.3"
+    - "band = 0.33"
+  points:
+    - "Z = O + (socket*2*ah - L)*u"
+    - "R1 = Z + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = Z - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+  planes:
+    - "mid = O, p, O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "zone = Z, u, O + 2*L*u"
+    - "flank_1 = R1, cross(p, T1 - R1), O"
+    - "flank_2 = R2, cross(p, T2 - R2), O"
+    - "st_a = O + (L - stub*ah)*u, u, O + 2*L*u"
+    - "st_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "k1 = O + band*aw*w, w, O"
+    - "k2 = O - band*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end mid st_a; a_end mid shoulder_a k1; a_end mid shoulder_a k2; a_end -mid zone flank_1; a_end -mid zone flank_2; a_end -mid -f2"
+    - "B2 b_end -mid f2 zone -flank_1 -flank_2; b_end -mid -zone; b_end mid st_b -k1 -k2"
+  insertions:
+    - "-p"
+
+lapped_double_dovetail_splice:
+  title: "Lapped double dovetail joint"
+  german: "beidseitiger Schwalbenschwanzzapfen mit geradem Blatt"
+  page: "228"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.2"
+    - "root = 0.25"
+    - "tip = 0.55"
+  points:
+    - "R1 = O + root*aw*w"
+    - "T1 = O - L*u + tip*aw*w"
+    - "R2 = O - root*aw*w"
+    - "T2 = O - L*u - tip*aw*w"
+    - "G1 = O + L*u + tip*aw*w"
+    - "G2 = O + L*u - tip*aw*w"
+  planes:
+    - "lvl = O, p, O + p"
+    - "sp = O, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "flank_1 = R1, cross(p, T1 - R1), O"
+    - "flank_2 = R2, cross(p, T2 - R2), O"
+    - "g_1 = R1, cross(p, G1 - R1), O"
+    - "g_2 = R2, cross(p, G2 - R2), O"
+  parts:
+  steps:
+    - "A2 a_end -lvl sp flank_1; a_end -lvl sp flank_2; a_end lvl sp; a_end lvl -sp shoulder_a -g_1 -g_2"
+    - "B2 b_end -lvl -sp; b_end -lvl sp f2 -flank_1 -flank_2; b_end lvl -sp g_1; b_end lvl -sp g_2"
+  insertions:
+    - "-p"
