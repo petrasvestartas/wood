@@ -1070,3 +1070,56 @@ wedged_two_way_oblique_cogged:
   insertions:
     - "w"
     - "c = p"
+
+pegged_two_way_gooseneck:
+  title: "Pegged two-way gooseneck joint"
+  german: "Sichelzapfenverbindung mit Dübelsicherung"
+  page: "740"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  filled: "c"
+  parameters:
+    - "peg = 0.08"
+    - "lap = 1"
+    - "head = 0.47"
+    - "neck = 0.19"
+    - "wide = 0.42"
+    - "tip = 0.32"
+  points:
+    - "H = O + (head*2*ah - L)*u"
+    - "W1 = H + wide*aw*w"
+    - "E1 = O - L*u + tip*aw*w"
+    - "W2 = H - wide*aw*w"
+    - "E2 = O - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hend = H, u, O - 2*L*u"
+    - "neck_1 = O + neck*aw*w, w, O"
+    - "neck_2 = O - neck*aw*w, w, O"
+    - "flank_1 = W1, cross(p, E1 - W1), O - L*u"
+    - "flank_2 = W2, cross(p, E2 - W2), O - L*u"
+    - "pu1 = O + L*u, u, O"
+    - "pu2 = O - L*u, u, O"
+    - "pw1 = O + 0.5*aw*w, w, O"
+    - "pw2 = O - 0.5*aw*w, w, O"
+    - "pp1 = O + ah*p, p, O"
+    - "pp2 = O - ah*p, p, O"
+  more:
+    - "c = 0 0 -600, 0 0 60, 1 0 0, 60, 60"
+  parts:
+    - "peg = O - 0.5*L*u + 1.3*aw*w, O - 0.5*L*u - 1.3*aw*w, u, peg*ah"
+  steps:
+    - "A2 a_end shoulder_a hend neck_1; a_end shoulder_a hend neck_2; a_end -hend flank_1; a_end -hend flank_2"
+    - "B2 b_end hend -neck_1 -neck_2; b_end f2 -hend -flank_1 -flank_2"
+    - "C2 c -pu1 -pu2 -pw1 -pw2 -pp1 -pp2"
+    - "A3 a_end pw1; a_end pw2"
+    - "B3 b_end pw1; b_end pw2"
+    - "A4 peg"
+    - "B4 peg"
+    - "C3 peg"
+  insertions:
+    - "-p"
+    - "c = p"
+    - "peg = w"
