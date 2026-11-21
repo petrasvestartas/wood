@@ -1149,3 +1149,32 @@ plain_miter_spline:
   insertions:
     - "-u"
     - "spline = w"
+
+blind_dado_rabbet_corner:
+  title: "Blind dado and rabbet joint"
+  german: "Eckstoß mit Führungszapfen und Wange auf Gehrung"
+  page: "328"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "tongue = 0.24"
+    - "depth = 0.24"
+    - "cheek = 0.15"
+  points:
+    - "S = O + n"
+    - "C = O + ah*p - 2*bh*n"
+  planes:
+    - "shoulder = O, n, S"
+    - "bottom = O - 2*bh*n, n, O"
+    - "tongue_end = O - depth*ah*n, n, O"
+    - "tongue_top = O - (1 - tongue)*ah*p, p, O - ah*p"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - cheek)*ah*p, p, O"
+    - "miter = C, p + n, C - p"
+  parts:
+  steps:
+    - "A2 a_end bottom; a_end shoulder tongue_top -cheek_in; a_end tongue_end -cheek_in; a_end shoulder cheek_in -miter"
+    - "B2 b_node -tongue_top -tongue_end -face_2; b_node cheek_in miter"
+  insertions:
+    - "-u"
