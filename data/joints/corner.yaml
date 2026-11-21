@@ -2133,3 +2133,31 @@ plain_miter_dovetail_key:
   insertions:
     - "-u"
     - "key = w"
+
+diagonally_cut_cog_corner:
+  title: "Diagonally cut cog joint"
+  german: "Eckkamm mit Haken"
+  page: "418"
+  category: "cross"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "reach = 60"
+    - "pitch = 0"
+    - "tail = 60"
+    - "sit = 0.35"
+  points:
+    - "U = O + n"
+  planes:
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "half = O - sit*bh*n, unit(t + n), O - t"
+  parts:
+  steps:
+    - "A2 a_node top half"
+    - "B2 b_node -under -half -side_1 -side_2"
+  insertions:
+    - "-n"

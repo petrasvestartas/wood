@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 39 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 38 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 8 left of 110
 
@@ -13,7 +13,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 242, Kawai joint (diagonal angeschnittener Stoß mit dreifacher polyedrischer Ausstemmung)
 - p. 254, Rabbeted gooseneck joint with barb (abgesetzter Sichelzapfen mit Steckfalz und abgesetztem Gehrungsblatt)
 
-## Timber corner joints: 10 left of 79
+## Timber corner joints: 9 left of 79
 
 - p. 322, Blind dovetail tenon (verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung)
 - p. 324, Blind triple-shouldered through mortise and tenon (durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung)
@@ -24,7 +24,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 402, Blind fan-shaped double mortise and tenon (verdeckter doppelter trapezförmiger Eckzapfen mit Wange auf Gehrung)
 - p. 404, Kawai joint (diagonal angeschnittener Eckstoß mit dreifacher polyedrischer Ausstemmung)
 - p. 406, Notched lap joint with stub tenon (Meisterwitz)
-- p. 418, Diagonally cut cog joint (Eckkamm mit Haken)
 
 ## Timber T-joints: 3 left of 82
 
