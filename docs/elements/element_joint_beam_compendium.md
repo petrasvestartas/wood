@@ -85,6 +85,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_tongued_rabbeted_edge.png) | **Tongued and rabbeted joint**<br>Nut und Feder mit versetzter Brüstung, p. 774<br>`tongued_rabbeted_edge` |
 | ![](joint_library/beam_blind_dovetail_edge.png) | **Blind dovetail joint**<br>abgesetzte Fuge mit Trapezprofil, p. 784<br>`blind_dovetail_edge` |
 | ![](joint_library/beam_sliding_dovetail_batten.png) | **Sliding dovetail batten**<br>Gratleiste, p. 788<br>`sliding_dovetail_batten` |
+| ![](joint_library/beam_floating_tenon_spline_edge.png) | **Floating tenon and spline joint**<br>Nut mit eingesetzter Feder und Zapfen, p. 782<br>`floating_tenon_spline_edge` |
 | ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
 | ![](joint_library/beam_tongue_groove_breadboard.png) | **Tongue and groove breadboard end**<br>Hirnleiste mit Nut und Feder, p. 806<br>`tongue_groove_breadboard` |
 | ![](joint_library/beam_dado_tongue_breadboard.png) | **Dado and tongue breadboard end**<br>Hirnleiste mit Falz und Feder, p. 808<br>`dado_tongue_breadboard` |

@@ -288,3 +288,36 @@ sliding_dovetail_batten:
     - "B2 b_node top -under -flank_1 -flank_2"
   insertions:
     - "t"
+
+floating_tenon_spline_edge:
+  title: "Floating tenon and spline joint"
+  german: "Nut mit eingesetzter Feder und Zapfen"
+  page: "782"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "lap = 0.1"
+    - "spline = 0.25"
+    - "reach = 1.2"
+    - "tenon = 0.3"
+    - "tenon_reach = 3"
+    - "tw = 0.3"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "spline_1 = O + reach*ah*u + ((tw + 1)/2*aw + 1)*w, O - reach*ah*u + ((tw + 1)/2*aw + 1)*w, p, spline*ah, (1 - tw)/2*aw + 1, (1 - tw)/2*aw + 1, none"
+    - "spline_2 = O + reach*ah*u - ((tw + 1)/2*aw + 1)*w, O - reach*ah*u - ((tw + 1)/2*aw + 1)*w, p, spline*ah, (1 - tw)/2*aw + 1, (1 - tw)/2*aw + 1, none"
+    - "tenon = O + tenon_reach*ah*u, O - tenon_reach*ah*u, p, tenon*ah, tw*aw, tw*aw, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 spline_1; spline_2; tenon"
+    - "B2 spline_1; spline_2; tenon"
+  insertions:
+    - "-u"
+    - "spline_1 = -w"
+    - "spline_2 = w"
