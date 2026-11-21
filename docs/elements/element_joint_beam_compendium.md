@@ -252,6 +252,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_halved_splayed_scarf.png) | **Halved splayed scarf joint**<br>doppelte Schäftung, p. 162<br>`halved_splayed_scarf` |
 | ![](joint_library/beam_four_faced_splayed_scarf.png) | **Four-faced splayed scarf joint**<br>vierseitige Schäftung, p. 174<br>`four_faced_splayed_scarf` |
 | ![](joint_library/beam_diagonally_cut_birdsmouth_splice.png) | **Diagonally cut birdsmouth**<br>diagonale doppelte Schäftung, p. 170<br>`diagonally_cut_birdsmouth_splice` |
+| ![](joint_library/beam_triple_splayed_scarf.png) | **Triple-splayed scarf joint**<br>dreifache Schäftung, p. 160<br>`triple_splayed_scarf` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

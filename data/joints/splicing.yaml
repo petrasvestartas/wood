@@ -2144,3 +2144,30 @@ diagonally_cut_birdsmouth_splice:
     - "B2 b_end v_1; b_end v_2"
   insertions:
     - "-u"
+
+triple_splayed_scarf:
+  title: "Triple-splayed scarf joint"
+  german: "dreifache Schäftung"
+  page: "160"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.5"
+    - "band = 0.3333333333333333"
+  points:
+    - "P1 = O - L*u + ah*p"
+    - "P2 = O + L*u - ah*p"
+    - "Q1 = O - L*u - ah*p"
+    - "Q2 = O + L*u + ah*p"
+  planes:
+    - "o1 = O + band*aw*w, w, O"
+    - "o2 = O - band*aw*w, w, O"
+    - "d1 = P1, cross(w, P2 - P1), O - 2*L*u"
+    - "d2 = Q1, cross(w, Q2 - Q1), O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end o1 -d1; a_end o2 -d1; a_end -o1 -o2 -d2"
+    - "B2 b_end o1 d1; b_end o2 d1; b_end -o1 -o2 d2"
+  insertions:
+    - "-u"
