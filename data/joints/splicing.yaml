@@ -2666,3 +2666,32 @@ butt_gooseneck_key_stub_tenons_splice:
   insertions:
     - "-u"
     - "key = -p"
+
+halved_splayed_scarf_oblique_key:
+  title: "Halved splayed scarf joint with oblique mating surfaces and tapered key"
+  german: "schräg angeschnittene doppelte Schäftung mit Spannkeil"
+  page: "166"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 3"
+  points:
+    - "P1 = O - L*u + ah*p"
+    - "P2 = O + L*u - ah*p"
+    - "Q1 = O - L*u - ah*p"
+    - "Q2 = O + L*u + ah*p"
+  planes:
+    - "midw = O, w, O + w"
+    - "d1 = P1, cross(w, P2 - P1), O - 2*L*u"
+    - "d2 = Q1, cross(w, Q2 - Q1), O - 2*L*u"
+  parts:
+    - "key = O + (ah + 1)*p, O - 0.6*ah*p, u, 0.08*ah, 0.35*aw, 0.25*aw, start"
+  steps:
+    - "A2 a_end -midw -d1; a_end midw -d2"
+    - "A3 key"
+    - "B2 b_end -midw d1; b_end midw d2"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = -p"
