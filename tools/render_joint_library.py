@@ -1,7 +1,8 @@
 """One picture per joint of the beam joint library, docs/images/joint_library/beam_<design>.png: runs element_joint_beam_library,
 takes each design's group (the joint on a square corner and on an inclined one, as its record allows) and draws it with the
 viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, cropped to 3:2 with a margin; then rewrites
-the table of docs/elements/element_joint_beam_compendium.md between its joint-table markers from the records.
+the table of docs/elements/element_joint_beam_compendium.md between its joint-table markers from the records, and the list of
+the book's joints still to do (tools/joint_library_todo.py).
 
     python3 tools/render_joint_library.py [design ...]
 """
@@ -15,6 +16,8 @@ import sys
 import tempfile
 
 from PIL import Image, ImageChops
+
+import joint_library_todo
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
@@ -87,6 +90,7 @@ def main(arguments: list) -> None:
             render(path).save(picture)
             print(picture.relative_to(WOOD))
     write_table()
+    joint_library_todo.main()
 
 
 if __name__ == "__main__":

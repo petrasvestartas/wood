@@ -1,0 +1,410 @@
+# Joinery Compendium (Bauer, Pauli 2024): every joint of the book, one line each: chapter | page | title | German title.
+# The page is the left page of the joint's spread. tools/joint_library_todo.py lists the ones no data/joints/*.yaml record has yet.
+
+splicing | 42 | Half lap joint | gerades Blatt
+splicing | 44 | Mitered half lap joint | gerades Blatt mit einseitig schrägem Stoß
+splicing | 46 | Beveled lap joint | Zugblatt
+splicing | 48 | Beveled lap joint with stub tenons | Zugblatt mit Brüstungszapfen
+splicing | 50 | Half lap joint with stub tenon | gerades Blatt mit einseitigem Zapfen
+splicing | 52 | Half lap joint with haunched tenon | gerades Blatt mit Stufenzapfen
+splicing | 54 | Half lap joint with stub tenons | gerades Blatt mit beidseitigem Zapfen
+splicing | 56 | Undersquinted half lap joint | gerades Blatt mit hinterschnittener Brüstung
+splicing | 58 | Pegged undersquinted half lap joint | gerades Blatt mit hinterschnittener Brüstung und Dübelsicherung
+splicing | 60 | Pegged undersquinted half lap joint | gerades Blatt mit hinterschnittener Brüstung und zweifacher Dübelsicherung
+splicing | 62 | Spear point half lap joint | gerades Blatt mit Gratschnitt
+splicing | 64 | Beveled spear point lap joint | Zugblatt mit Gratschnitt
+splicing | 66 | Undersquinted spear point half lap joint | gerades Blatt mit schrägem Gratschnitt
+splicing | 68 | Pegged undersquinted spear point half lap joint | gerades Blatt mit schrägem Gratschnitt und Dübelsicherung
+splicing | 70 | Pegged undersquinted spear point half lap joint | gerades Blatt mit schrägem Gratschnitt und zweifacher Dübelsicherung
+splicing | 72 | Cogged lap joint | gerades Hakenblatt
+splicing | 74 | Cogged lap joint with folding wedges | verkeiltes gerades Hakenblatt
+splicing | 76 | Undersquinted cogged lap joint with folding wedges | verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung
+splicing | 78 | Spear point cogged lap joint | gerades Hakenblatt mit Gratschnitt
+splicing | 80 | Spear point cogged lap joint with folding wedges | verkeiltes gerades Hakenblatt mit Gratschnitt
+splicing | 82 | Undersquinted spear point cogged lap joint with folding wedges | verkeiltes gerades Hakenblatt mit schrägem Gratschnitt
+splicing | 84 | Half lap joint with floating piece | gerades Blatt mit eingesetztem Mittelstück
+splicing | 86 | Undersquinted half lap joint with floating piece | gerades Blatt mit hinterschnittener Brüstung und eingesetztem Mittelstück
+splicing | 88 | Cogged lap joint with floating tenoned piece | gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen
+splicing | 90 | Cogged lap joint with floating piece | gerades Hakenblatt mit eingesetztem Hakenstück
+splicing | 92 | Cogged lap joint with floating piece and folding wedges | verkeiltes gerades Hakenblatt mit eingesetztem Hakenstück
+splicing | 94 | Undersquinted cogged lap joint with floating piece and folding wedges | verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück
+splicing | 96 | Stepped cogged lap joint with floating piece | gestuftes Hakenblatt mit eingesetztem Hakenstück
+splicing | 98 | Stepped cogged lap joint with floating piece and folding wedges | verkeiltes gestuftes Hakenblatt mit eingesetztem Hakenstück
+splicing | 100 | Undersquinted stepped cogged lap joint with floating piece and folding wedges | verkeiltes gestuftes Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück
+splicing | 102 | Triple-cogged lap joint | gerades Hakenblatt mit dreifachem Haken
+splicing | 104 | Rabbeted half lap joint | gerades Blatt mit Steckfalz
+splicing | 106 | Rabbeted cogged lap joint | gerades Hakenblatt mit Steckfalz
+splicing | 108 | Rabbeted cogged lap joint with folding wedges | verkeiltes gerades Hakenblatt mit Steckfalz
+splicing | 110 | Rabbeted cogged lap joint with stub tenons and folding wedges | verkeiltes gerades Hakenblatt mit Steckfalz und Brüstungszapfen
+splicing | 112 | Half-blind rabbeted lap joint with tapered keys | halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen
+splicing | 114 | Stop-splayed scarf joint | schrăges Blatt
+splicing | 116 | Undersquinted stop-splayed scarf joint | schrăges Blatt mit schräger Brüstung
+splicing | 118 | Stop-splayed scarf joint with stub tenons | schrăges Blatt mit Brüstungszapfen
+splicing | 120 | Pegged stop-splayed scarf joint | schräges Blatt mit Dübelsicherung
+splicing | 122 | Stop-splayed cogged scarf joint | schräges Hakenblatt
+splicing | 124 | Undersquinted stop-splayed cogged scarf joint | schrāges Hakenblatt mit schrāger Brüstung
+splicing | 126 | Stop-splayed cogged scarf joint with folding wedges | verkeiltes schräges Hakenblatt
+splicing | 128 | Undersquinted stop-splayed cogged scarf joint with folding wedges | verkeiltes schräges Hakenblatt mit schräger Brüstung
+splicing | 130 | Pegged stop-splayed cogged scarf joint | schrāges Hakenblatt mit Dübelsicherung
+splicing | 132 | Stop-splayed cogged scarf joint with stub tenons and blind pegs | schräges Hakenblatt mit Brüstungszapfen und Dollen
+splicing | 134 | Spear point stop-splayed cogged scarf joint with folding wedges | verkeiltes schräges Hakenblatt mit Gratschnitt
+splicing | 136 | Stop-splayed scarf joint with hidden hook | schräges Blatt mit verdecktem Haken
+splicing | 138 | Rabbeted stop-splayed cogged scarf joint | schräges Hakenblatt mit Steckfalz
+splicing | 140 | Pegged rabbeted stop-splayed cogged scarf joint | schräges Hakenblatt mit Steckfalz und zweifacher Dübelsicherung
+splicing | 142 | Rabbeted stop-splayed cogged scarf joint with folding wedges | verkeiltes schräges Hakenblatt mit Steckfalz
+splicing | 144 | Rabbeted stop-splayed cogged scarf joint with stub tenons and folding wedges | verkeiltes schräges Hakenblatt mit Steckfalz und Brüstungszapfen
+splicing | 146 | Pegged rabbeted stop-splayed sloped cogged scarf joint | stehendes schräges Hakenblatt mit Steckfalz und doppelter Dübelsicherung
+splicing | 148 | Pegged rabbeted notched stop-splayed cogged scarf joint | stehendes schräges Hakenblatt mit unterbrochener Steckfalz und Dübelsicherung
+splicing | 150 | Pegged rabbeted stop-splayed cogged scarf joint with stub tenons | stehendes schräges Hakenblatt mit Steckfalz, Brüstungszapfen und Dübelsicherung
+splicing | 152 | Pegged half blind rabbeted stop-splayed cogged scarf joint | halbverdecktes schräges Hakenblatt mit Steckfalz und Dübelsicherung
+splicing | 154 | Blind rabbeted diagonally cut half lap joint with a key | diagonales Blatt mit verdecktem Steckfalz und Spannkeil
+splicing | 156 | Splayed scarf joint | Schäftung
+splicing | 158 | Half lap joint with mitered ends | stehendes gerades Blatt mit beidseitig schrägem Stoß
+splicing | 160 | Triple-splayed scarf joint | dreifache Schäftung
+splicing | 162 | Halved splayed scarf joint | doppelte Schäftung
+splicing | 164 | Halved splayed rabbeted scarf joint with tapered key | doppelte Schäftung mit Brüstungszapfen und Spannkeil
+splicing | 166 | Halved splayed scarf joint with oblique mating surfaces and tapered key | German schräg angeschnittene doppelte Schäftung mit Spannkeil
+splicing | 168 | Birdsmouth | Gratstoß
+splicing | 170 | Diagonally cut birdsmouth | diagonale doppelte Schäftung
+splicing | 172 | Triple-faced splayed scarf joint | einseitig schräg angeschnittene doppelte Schäftung
+splicing | 174 | Four-faced splayed scarf joint | vierseitige Schäftung
+splicing | 176 | Stub tenon joint | Zapfen
+splicing | 178 | Half-blind stub tenon joint | einseitig abgesetzter Zapfen
+splicing | 180 | Floating tenon joint | eingesetzter Zapfen
+splicing | 182 | Pegged bridle joint | Zapfen mit Dübelsicherung
+splicing | 184 | Mortise and tenon with V-ends and undercut shoulders | Zapfen mit hinterschnittener Brüstung und v-förmig eingeschnittener Stirn
+splicing | 186 | Pegged mortise and tenon with undercut shoulders | Zapfen mit hinterschnittener Brüstung und Dübelsicherung
+splicing | 188 | Spear point mortise and tenon with beveled shoulders | Zapfen mit Gratschnitt und schräger Brüstung
+splicing | 190 | Pegged spear point mortise and tenon with V-shaped shoulders | Zapfen mit Gratschnitt, v-förmig eingeschnittener Brüstung und Dübelsicherung
+splicing | 192 | Pegged rabbeted mortise and tenon joint | Zapfen mit Steckfalz und Dübelsicherung
+splicing | 194 | Rabbeted rod tenon joint with tapered keys | Stabzapfen mit Steckfalz und Spannkeilen
+splicing | 196 | Rod joint with two half rods and tapered keys | beidseitiger Stabzapfen mit Spannkeilen
+splicing | 198 | Double tenon joint | doppelter Zapfen
+splicing | 200 | Half-blind double tenon joint | einseitig abgesetzter doppelter Zapfen
+splicing | 202 | Blind square stub tenon joint | verdeckter beidseitig abgesetzter Zapfen
+splicing | 204 | Blind fan-shaped stub tenon joint | verdeckter trapezförmiger Zapfen
+splicing | 206 | Half-blind L-shaped stub tenon joint | Winkelzapfen
+splicing | 208 | Blind U-shaped stub tenon joint | verdeckter u-förmiger Zapfen
+splicing | 210 | Double halved lap joint | diagonal versetztes abgesetztes Blatt
+splicing | 212 | X-shaped tenon joint | Kreuzzapfen
+splicing | 214 | Double mortise and stub tenon joint | geschlitzter Zapfen mit beidseitigem Zapfenloch
+splicing | 216 | Cross-shaped stub tenon joint | kreuzförmiger Zapfen
+splicing | 218 | Spear point cross-shaped stub tenon joint with undercut shoulders | kreuzförmiger Zapfen mit Gratschnitt und hinterschnittener Brüstung
+splicing | 220 | Dovetail tenon joint | Schwalbenschwanzzapfen
+splicing | 222 | Triple-shouldered dovetail tenon joint | abgesetzter Schwalbenschwanzzapfen
+splicing | 224 | Lapped dovetail joint | Schwalbenschwanzzapfen mit geradem Blatt
+splicing | 226 | Lapped dovetail joint with stub tenon | Schwalbenschwanzzapfen mit geradem Blatt und Brüstungszapfen
+splicing | 228 | Lapped double dovetail joint | beidseitiger Schwalbenschwanzzapfen mit geradem Blatt
+splicing | 230 | Butt joint with floating butterfly tenon | eingesetzter Schwalbenschwanzzapfen
+splicing | 232 | Butt joint with butterfly key | Schwalbenschwanzeinlage
+splicing | 234 | Half lap joint with butterfly key | gerades Blatt mit Schwalbenschwanzeinlage
+splicing | 236 | Double dovetail tenon joint | doppelter Schwalbenschwanzzapfen
+splicing | 238 | Four-faced dovetail joint | diagonaler doppelter Schwalbenschwanzzapfen
+splicing | 240 | Tapered dovetail tenon joint with mitered shoulders | Stoß mit Gratschnitt und keilförmigen Schwalbenschwanzzapfen
+splicing | 242 | Kawai joint | diagonal angeschnittener Stoß mit dreifacher polyedrischer Ausstemmung
+splicing | 244 | Gooseneck tenon joint | Sichelzapfen
+splicing | 246 | Triple-shouldered gooseneck tenon joint | abgesetzter Sichelzapfen
+splicing | 248 | Lapped gooseneck joint | Sichelzapfen mit geradem Blatt
+splicing | 250 | Lapped gooseneck joint with stub tenon | Sichelzapfen mit geradem Blatt und Brüstungszapfen
+splicing | 252 | Haunched gooseneck tenon with stub tenons | Sichelstufenzapfen mit doppeltem Brüstungszapfen
+splicing | 254 | Rabbeted gooseneck joint with barb | abgesetzter Sichelzapfen mit Steckfalz und abgesetztem Gehrungsblatt
+splicing | 256 | Butt joint with floating gooseneck tenon | Stoß mit eingesetztem Sichelzapfen
+splicing | 258 | Butt joint with a gooseneck key and stub tenons | Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen
+splicing | 260 | Four-faced gooseneck joint | diagonaler doppelter Sichelzapfen mit Steckfalz
+corner | 262 | Corner lap joint | Eckblatt
+corner | 264 | Blind mitered corner lap joint | verdecktes Eckblatt mit Wange auf Gehrung
+corner | 266 | Dovetailed corner lap joint | Eckblatt mit schräger Blattfläche
+corner | 268 | Beveled corner lap joint | Eckblatt mit zweifach schräger Blattfläche
+corner | 270 | Blind mitered beveled corner lap joint | verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung
+corner | 272 | Cogged corner lap joint | Hakeneckblatt
+corner | 274 | Sloped cogged corner lap joint | Hakeneckblatt mit schrägem Haken
+corner | 276 | Double cogged corner lap joint | Hakeneckblatt mit mittigem Haken
+corner | 278 | Cogged dovetailed corner lap joint | Hakeneckblatt mit schwalbenschwanzförmigem Haken
+corner | 280 | Half-blind cogged corner lap joint | halbverdecktes Hakeneckblatt mit Wange
+corner | 282 | Half-blind mitered sloped cogged corner lap joint | halbverdecktes schräges Hakeneckblatt mit Wange auf Gehrung
+corner | 284 | Blind mitered cogged corner lap joint | verdecktes Hakeneckblatt mit Wange auf Gehrung
+corner | 286 | Half-blind dovetailed corner lap joint | halbes Schwalbenschwanzeckblatt
+corner | 288 | Rabbeted tongue and dado corner joint | Eckstoß mit doppeltem Führungszapfen
+corner | 290 | Rabbeted tenoned corner joint | abgesetzter Eckstoß mit Führungszapfen
+corner | 292 | Rabbeted tenoned miter joint | abgesetzter Eckstoß auf Gehrung mit Führungszapfen
+corner | 294 | Bridle joint | Scherzapfen
+corner | 296 | Twin bridle joint | doppelter Scherzapfen
+corner | 298 | Through dovetail tenon joint | durchgehender Schwalben-schwanzeckzapfen
+corner | 300 | Pegged through dovetail tenon joint | durchgehender Schwalbenschwanz-eckzapfen mit Dübelsicherung
+corner | 302 | Half-blind bridle joint | halbverdeckter Scherzapfen
+corner | 304 | Half-blind haunched mortise and tenon joint | halbverdeckter Stufeneckzapfen
+corner | 306 | Wedged haunched through mortise and tenon joint | verkeilter durchgehender Stufeneckzapfen
+corner | 308 | Triple-shouldered through mortise and tenon joint | durchgehender abgesetzter Eckzapfen
+corner | 310 | Wedged triple-shouldered through mortise and tenon joint | durchgehender abgesetzter Eckzapfen mit Keilschloss
+corner | 312 | Through mortise and tenon with sloped haunch | durchgehender abgesetzter Eckzapfen mit schräger Stufe
+corner | 314 | Beveled triple-shouldered mortise and tenon with housing | verdeckter abgesetzter Eckzapfen mit schräger Brust
+corner | 316 | Triple-shouldered and sloped through mortise and tenon | abgesetzter durchgehender schräger Eckzapfen
+corner | 318 | Fully shouldered through mortise and tenon | beidseitig abgesetzter durchgehender Eckzapfen
+corner | 320 | Blind bridle joint | verdeckter Scherzapfen mit Wange auf Gehrung
+corner | 322 | Blind dovetail tenon | verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung
+corner | 324 | Blind triple-shouldered through mortise and tenon | durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung
+corner | 326 | Dado and rabbet joint | Eckstoß mit Führungszapfen
+corner | 328 | Blind dado and rabbet joint | Eckstoß mit Führungszapfen und Wange auf Gehrung
+corner | 330 | Collared haunched mortise and tenon joint | durchgehender abgesetzter Stufen-eckzapfen mit Führungszapfen
+corner | 332 | Wedged collared blind mortise and tenon | verkeilter durchgehender abgesetzter Eckzapfen mit Führungszapfen und Wange auf Gehrung
+corner | 334 | Plain miter | stumpfer Gehrungstoß
+corner | 336 | Plain miter with spline key | Gehrungsstoß mit Feder
+corner | 338 | Plain miter with spline | Gehrungsstoß mit Federstäbchen
+corner | 340 | Plain miter with dovetail key | Gehrungsstoß mit Schwalbenschwanzfeder
+corner | 342 | Plain miter with butterfly key | Gehrungsstoß mit Schwalbenschwanzeinlage
+corner | 344 | Plain miter with perpendicular butterfly key | Gehrungsstoß mit Schwalbenschwanzdübel
+corner | 346 | Mitered half lap | Eckblatt auf Gehrung
+corner | 348 | Blind mitered half lap | verdecktes Eckblatt auf Gehrung
+corner | 350 | Blind mitered mortise and tenon joint | verdeckter beidseitiger Zapfen mit Gehrungsstoß
+corner | 352 | Mitered bridle joint | durchgehender Zapfen mit Gehrungsstoß
+corner | 354 | Blind stub tenon miter | verdeckter Zapfen mit Gehrungsstoß
+corner | 356 | Through single dovetail miter | durchgehender Schwalbenschwanz-zapfen mit Gehrungsstoß
+corner | 358 | Blind dovetail miter | verdeckter Schwalbenschwanzzapfen mit Gehrungsstoß
+corner | 360 | Stopped miter with blind dovetail tenon | verdeckter Schwalbenschwanzzapfen mit abgesetztem Gehrungsstoß
+corner | 362 | Bridle joint with one-sided miter | Zapfen mit einseitiger Gehrung
+corner | 364 | Canvas stretcher | Keilrahmen
+corner | 366 | Double mortise and tenon miter | Zapfen mit doppeltem Gehrungsblatt
+corner | 368 | Double mortise and tenon with one-sided lapped miter | doppelter Zapfen mit Gehrungsblatt
+corner | 370 | Haunched through mortise and tenon with two-sided lapped miter | durchgehender abgesetzter Stufen-zapfen mit zweiseitigem Gehrungsblatt
+corner | 372 | Haunched through mortise and tenon with two-sided stopped miter | durchgehender abgesetzter Stufenzapfen mit zweiseitigem halben Gehrungsblatt
+corner | 374 | Haunched through mortise and tenon with one-sided lapped miter | durchgehender abgesetzter Stufenzapfen mit Gehrungsblatt
+corner | 376 | Haunched through mortise and tenon with one-sided stopped lapped miter | durchgehender abgesetzter Stufenzapfen mit halbem Gehrungsblatt
+corner | 378 | Blind haunched mortise and tenon miter | verdeckter abgesetzter Stufenzapfen mit Gehrungsblatt und Wange
+corner | 380 | Haunched through double mortise and tenon with one-sided lapped miter | durchgehender abgesetzter doppelter Stufenzapfen mit Gehrungsblatt
+corner | 382 | Triple-shouldered double tenon miter | durchgehender abgesetzter doppelter Zapfen mit Gehrungsblatt und Wange
+corner | 384 | Housed stub tenon | halbverdeckter eingelassener Eckzapfen
+corner | 386 | Housed dovetail tenon | halbverdeckter eingelassener Schwalbenschwanzeckzapfen
+corner | 388 | Blind housed dovetail tenon | Schwalbenschwanzeckzapfen mit gestufter Brüstung
+corner | 390 | Half-blind gooseneck tenon | halbverdeckter Sicheleckzapfen
+corner | 392 | Half-blind dovetail bridle joint | halbverdeckter Schwalbenschwanzeckzapfen
+corner | 394 | Through dovetail bridle joint | durchgehender Schwalbenschwanzeckzapfen
+corner | 396 | Half-blind triple shouldered dovetail tenon | halbverdeckter abgesetzter Schwalbenschwanzeckzapfen
+corner | 398 | Triple-shouldered stub tenon | verdeckter abgesetzter Eckzapfen
+corner | 400 | Housed dovetail joint | verdeckter beidseitig abgesetzter Schwalbenschwanzeckzapfen
+corner | 402 | Blind fan-shaped double mortise and tenon | verdeckter doppelter trapezförmiger Eckzapfen mit Wange auf Gehrung
+corner | 404 | Kawai joint | diagonal angeschnittener Eckstoß mit dreifacher polyedrischer Ausstemmung
+corner | 406 | Notched lap joint with stub tenon | Meisterwitz
+corner | 408 | Blind pegged joint | Verdollung
+corner | 410 | Cog joint | Eckkamm
+corner | 412 | Sloped cog joint | schräger Eckkamm
+corner | 414 | Dovetail cog joint | Eckkamm mit Schwalbenschwanz
+corner | 416 | V-shaped cog joint | Eckkamm mit halbem Kreuz
+corner | 418 | Diagonally cut cog joint | Eckkamm mit Haken
+t | 420 | Half lap joint | Querblatt
+t | 422 | Stopped half lap joint | halbverdecktes Querblatt
+t | 424 | Beveled half lap joint | Querblatt mit schräger Blattfläche
+t | 426 | Stopped beveled half lap joint | halbverdecktes Querblatt mit schräger Blattfläche
+t | 428 | Cogged lap joint | Hakenquerblatt
+t | 430 | Cogged lap joint with stub tenon | Hakenquerblatt mit Brüstungszapfen
+t | 432 | Sloped cogged lap joint | Hakenquerblatt mit schrägem Haken
+t | 434 | Double cogged lap joint | Hakenquerblatt mit mittigem Haken
+t | 436 | Stopped mortise and tenon joint | Querzapfen
+t | 438 | Stopped dovetailed mortise and tenon joint | Schwalbenschwanzquerzapfen
+t | 440 | Dovetail half lap joint | Schwalbenschwanzquerblatt
+t | 442 | Stopped dovetail half lap joint | halbverdecktes Schwalbenschwanzquerblatt
+t | 444 | One-sided dovetail half lap joint | einseitiges Schwalbenschwanzquerblatt
+t | 446 | Stopped one-sided dovetail half lap joint | halbverdecktes einseitiges Schwalbenschwanzquerblatt
+t | 448 | Housed dovetail half lap joint | eingelassenes Schwalbenschwanzquerblatt
+t | 450 | Stopped housed dovetail half lap joint | halbverdecktes eingelassenes Schwalbenschwanzquerblatt
+t | 452 | Stepped lap joint | halbverdecktes Stufenquerblatt
+t | 454 | Housed mortise and tenon with shifted shouders | Zapfen mit einseitig vorgeschobener Brüstung
+t | 456 | Sloped stopped half lap | verdecktes schräg angeschnittenes Querblatt
+t | 458 | Mortise and tenon with sloped shoulder | verdeckter Zapfen mit einseitig schräger Brüstung
+t | 460 | Blind housed mortise and tenon with sloped shoulder | verdeckter Zapfen mit schräger und gestufter Brüstung
+t | 462 | Undersquinted stopped half lap | halbverdecktes gerades Blatt mit schräger Stirn
+t | 464 | Mortise and tenon with beveled shoulders | verdeckter Zapfen mit eingelassener schräger Brüstung
+t | 466 | Housed stop-mitered mortise and tenon | keilförmig eingelassener Zapfen
+t | 468 | Mortise and tenon with fan-shaped housing | schwalbenschwanzförmiger eingelassener Zapfen
+t | 470 | Blind pegged joint | Verdollung
+t | 472 | Notch joint | Ankämmung mit einseitigem Sitz
+t | 474 | Double notch joint | Ankämmung
+t | 476 | Cog joint | Ankämmung mit Stufe
+t | 478 | Stepped cog joint | Ankämmung mit doppelter Stufe
+t | 480 | Double cog joint | Ankämmung mit mittigem Haken
+t | 482 | X-shaped cog joint | Ankāmmung mit Kreuz
+t | 484 | V-shaped cog joint | Ankämmung mit halbem Kreuz
+t | 486 | Dovetail cog joint | Ankämmung mit Schwalbenschwanz
+t | 488 | Half-dovetail cog joint | Ankämmung mit einseitigem Schwalbenschwanz
+t | 490 | Sloped cog joint | Ankämmung mit schräger Stufe
+t | 492 | Through mortise and tenon | durchgehender Zapfen
+t | 494 | Through mortise and tenon with housing | eingelassener durchgehender Zapfen
+t | 496 | Blind mortise and tenon | verdeckter Zapfen
+t | 498 | Tenon and chase mortise | Schleifzapfen
+t | 500 | Mortise and tenon with beveled shoulders | verdeckter Zapfen mit schräger Brust
+t | 502 | Mortise and tenon with mitered shoulders | verdeckter Zapfen mit Führungsstoß
+t | 504 | Pegged through mortise and tenon | durchgehender Zapfen mit Dübelsicherung
+t | 506 | Pegged blind mortise and tenon | verdeckter Zapfen mit Dübelsicherung
+t | 508 | Triple-shouldered through mortise and tenon | durchgehender abgesetzter Zapfen
+t | 510 | Fully shouldered through mortise and tenon joint | durchgehender beidseitig abgesetzter Zapfen
+t | 512 | Triple through mortise and tenon | durchgehender dreifacher Zapfen
+t | 514 | Quadruple through mortise and tenon | durchgehender vierfacher Zapfen
+t | 516 | Haunched through mortise and tenon | durchgehender Stufenzapfen
+t | 518 | Blind haunched mortise and tenon | verdeckter Stufenzapfen
+t | 520 | Through mortise and tenon with sloped haunch | durchgehender Zapfen mit schräger Stufe
+t | 522 | Blind housed haunched through mortise and tenon | durchgehender Stufenzapfen mit gestufter Brüstung
+t | 524 | Haunched collared through mortise and tenon | durchgehender Stufenzapfen mit Führungszapfen
+t | 526 | Half-dovetail tenon with folding wedges | verkeilter verdeckter einseitiger Schwalbenschwanzzapfen
+t | 528 | Foxtail-wedged mortise and tenon | verkeilter verdeckter Zapfen
+t | 530 | Wedged through mortise and tenon | verkeilter durchgehender Zapfen
+t | 532 | Vertically wedged tusk tenon | durchgesteckter Zapfen mit Keilschloss
+t | 534 | Horizontally wedged tusk tenon | durchgesteckter Zapfen mit doppeltem Keilschloss
+t | 536 | Horizontally wedged double tusk tenon | durchgesteckter doppelter Zapfen mit Keilschloss
+t | 538 | Right-angle joint with dovetailed spline tenon and tapered key | Stoß mit Führungszapfen und eingesetztem Schwalbenschwanzzapfen mit Spannkeil
+t | 540 | Housed right-angle joint with spline tenon, tapered keys, and peg | eingelassener stumpfer Stoß mit eingesetztem Zapfen und Dübelsicherung sowie Spannkeilen
+t | 542 | Double through mortise and tenon | durchgehender doppelter Zapfen
+t | 544 | Housed double through mortise and tenon | eingelassener durchgehender doppelter Zapfen
+t | 546 | Double mortise and tenon with mitered shoulders | durchgehender doppelter Zapfen mit Führungsstoß
+t | 548 | Wedged half-dovetailed T-bridle joint | verkeilte einseitig trapezförmige Einhälsung
+t | 550 | T-bridle joint | Einhälsung
+t | 552 | T-bridle joint with blind mortise and tenon | Einhålsung mit verdecktem Zapfen
+t | 554 | Double lap joint with stub tenon | Gabelaufblattung mit verdecktem Zapfen
+t | 556 | Notched lap joint with tenon | einseitige Einhälsung mit durchgehendem Zapfen
+t | 558 | Notched lap joint with stub tenon | einseitige Einhälsung mit verdecktem Zapfen
+t | 560 | Lap joint with tenon | einseitige Gabelaufblattung mit durchgehendem Zapfen
+t | 562 | Lap joint with stub tenon | einseitige Gabelaufblattung mit verdecktem Zapfen
+t | 564 | Dovetail T-bridle joint | schräg angeschnittener Schlitzzapfen (continued across the gutter)
+t | 566 | Diagonally cut T-bridle joint | diagonale Einhälsung
+t | 568 | Rising dovetail joint | schräg angeschnittener schräg abgesetzter Schwalbenschwanzzapfen
+t | 570 | Wedged dovetail half lap joint | verkeiltes Schwalbenschwanzblatt
+t | 572 | Housed dovetail joint | eingeschobener abgesetzter Schwalbenschwanzzapfen
+t | 574 | X-shaped stub tenon joint | Kreuzzapfen
+t | 576 | Fully shouldered blind mortise and tenon | verdeckter beidseitig abgesetzter Zapfen
+t | 578 | Post with stub tenon and open slot mortise and tenon | abgesetzter Zapfenstoß auf verdecktem Zapfen
+t | 580 | Post with stub tenon and lapped mortise and tenon | gerades Blatt mit Zapfen auf verdecktem Zapfen
+t | 582 | Post with through tenon and mortised stop-splayed cogged scarf joint with stub tenons | schräges Hakenblatt mit Brüstungszapfen auf durchgehendem Pfostenzapfen
+angled | 584 | Notched oblique thrust joint | Stirnversatz
+angled | 586 | Notched oblique thrust joint with right-angled end | Stirnversatz mit rechtwinkliger Stirn
+angled | 588 | Notched oblique thrust joint with visible end | Brustversatz
+angled | 590 | Oblique thrust joint with notched heel | Fersenversatz
+angled | 592 | Double notched oblique thrust joint | Stirn-und Versenversatz
+angled | 594 | Oblique thrust joint with sloped tenon and notched heel | Fersenversatz mit schrägem Zapfen
+angled | 596 | Oblique thrust joint with mortise and tenon | Schräger Stoß mit Zapfen
+angled | 598 | Oblique thrust joint with sloped mortise and tenon | schräger Stoß mit schrägem Zapfen
+angled | 600 | Notched oblique thrust joint with mortise and tenon | Stirnversatz mit Zapfen
+angled | 602 | Notched oblique thrust joint with pegged mortise and tenon | Stirnversatz mit Zapfen und Dübelsicherung
+angled | 604 | Slotted notched oblique thrust joint | geschlitzter Stirnversatz
+angled | 606 | Slotted notched oblique thrust joint with visible end | geschlitzter Brustversatz
+angled | 608 | Pegged angled half lap joint | schräges Blatt mit Dübelsicherung
+angled | 610 | Pegged angled stopped half lap joint | halbverdecktes schräges Blatt mit Dübelsicherung
+angled | 612 | Pegged angled lapped mortise and tenon joint | schrāges Blatt mit Zapfen und Dübelsicherung
+angled | 614 | Pegged shouldered angled half lap joint | beidseitig abgesetztes schrăges Blatt mit Dübelsicherung
+angled | 616 | Pegged angled half-dovetail lap joint with sloped shoulder | schräges einseitiges Schwalbenschwanzblatt mit verdecktem Versatz und Dübelsicherung
+angled | 618 | Pegged angled half-dovetail half lap joint | schräges einseitiges Schwalbenschwanzblatt mit Dübelsicherung
+angled | 620 | Pegged stopped angled half-dovetail half lap joint | halbverdecktes schräges einseitiges Schwalbenschwanzblatt und Dübelsicherung
+angled | 622 | Pegged angled stopped dovetail half lap joint | halbverdecktes schräges Schwalbenschwanzblatt mit Dübelsicherung
+angled | 624 | Pegged rafter foot | Stütznagelung
+angled | 626 | Pegged mitered rafter foot | Schiftungsstoß
+angled | 628 | Housed rafter foot | Einklauung
+angled | 630 | V-grooved rafter foot | Schiftereinblattung
+angled | 632 | Birdsmouth rafter foot | Aufklauung
+angled | 634 | Rafter foot with tenon and undersquinted shoulders | Zapfung mit Klaue
+angled | 636 | Birdsmouth rafter joint | Aufkervung
+angled | 638 | Notched rafter joint | Aufkervung mit Ausklinkung
+angled | 640 | V-grooved rafter joint | Aufkervung mit Rückversatz
+angled | 642 | Step lap rafter joint | Aufkervung mit gestuftem Rückversatz
+angled | 644 | Stopped birdsmouth rafter foot | Aufklaung mit Anschnitt
+cross_lap | 646 | Cross lap joint | Kreuzblatt
+cross_lap | 648 | Pegged cross lap joint | Kreuzblatt mit Dübel
+cross_lap | 650 | Four-part cogged cross lap joint | viergliedriges Kreuzblatt mit Haken
+cross_lap | 652 | V-mitered cross lap joint | Kreuzblatt mit Grat
+cross_lap | 654 | Cross lap joint with mitered abutments | schräg abgesetztes Kreuzblatt
+cross_lap | 656 | Stepped cross lap joint | Kreuzblatt mit Haken
+cross_lap | 658 | Cogged cross lap joint | Kreuzblatt mit mittigem Haken
+cross_lap | 660 | Cogged cross lap joint with stub tenons | Kreuzblatt mit mittigem Haken und beidseitigen Brüstungszapfen
+cross_lap | 662 | Cross lap joint with stub tenons | Kreuzblatt mit beidseitigen Brüstungszapfen
+cross_lap | 664 | Offset cross lap joint | Kreuzblatt mit Führung
+cross_lap | 666 | Double offset cross lap joint | zweiseitig abgesetztes Kreuzblatt
+cross_lap | 668 | Triple offset cross lap joint | zweiseitig abgesetztes Kreuzblatt mit Führung
+cross_lap | 670 | Dovetailed cross lap joint | Kreuzblatt mit abgesetzten Schwalbenschwänzen
+cross_lap | 672 | Oblique notched cross lap joint | schrăges Kreuzblatt mit Stirnversatz
+cross_lap | 674 | Oblique notched heel cross lap joint | schräges Kreuzblatt mit Fersenversatz
+cross_lap | 676 | Double notched oblique cross lap joint | schräges Kreuzblatt mit Stirn-und Fersenversatz
+cross_lap | 678 | Three-way cross lap joint | doppelte Überblattung
+cross_lap | 680 | Joint with blind peg | Überkreuzung mit Dolle
+cross_lap | 682 | Notch joint | Kreuzkamm mit einseitigem Sitz
+cross_lap | 684 | Double notch joint | Kreuzkamm
+cross_lap | 686 | Double notch joint with blind peg | Kreuzkamm mit Dolle
+cross_lap | 688 | Double notch joint with stub tenons | Kreuzkamm mit abgesetzter Falz
+cross_lap | 690 | Oblique double notch joint | Kreuzkamm als Versatz
+cross_lap | 692 | Cog joint | Kreuzkamm mit Stufe
+cross_lap | 694 | Double cog joint | Kreuzkamm mit mittiger Stufe
+cross_lap | 696 | Sloped cog joint | Kreuzkamm mit einseitig schräger Stufe
+cross_lap | 698 | Sloped double cog joint | Kreuzkamm mit mittiger beidseitig schräger Stufe
+cross_lap | 700 | V-shaped cog joint | Kreuzkamm mit halbem Kreuz
+cross_lap | 702 | X-shaped cog joint | Kreuzkamm mit Kreuz
+cross_lap | 704 | Dovetail cog joint | Kreuzkamm mit Schwalbenschwanz
+cross_lap | 706 | Half-dovetail cog joint | Kreuzkamm mit einseitigem Schwalbenschwanz
+specialty | 708 | Post with stub tenon and mortised double cogged joint | verdeckter Zapfen mit Kreuzkamm und mittiger Stufe
+specialty | 710 | T-bridle joint with stub tenons and mortised beam | Einhälsung mit Brüstungszapfen und aufgesetzter Überkreuzung
+specialty | 712 | Post with through tenon and mortised crossed joint | durchgesteckter Zapfen mit aufgesetzter Überkreuzung
+specialty | 714 | Stacked tenon and mortised cross lap joint | durchgesteckter beidseitig abgesetzter Stufenzapfen mit Kreuzblatt
+specialty | 716 | Castle joint | doppelte Einhälsung
+specialty | 718 | Notched corner-post joint with beveled-shoulder tenons | Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust
+specialty | 720 | Corner-post joint with open slot mortise and tenon | Scherzapfen mit Zapfenloch und durchgehendem Zapfen
+specialty | 722 | Corner-post joint with fan-shaped stub tenon and blind dado and rabbet joint | Eckstoß mit Führungszapfen und Wange auf Gehrung sowie durchgehendem trapezförmigem Zapfen
+specialty | 724 | Housed and stopped dovetail lap and fully shouldered stub tenon | verdeckter eingelassener Schwalben-schwanzzapfen mit abgesetzter Brust und Pfosten mit verdecktem Zapfen
+specialty | 726 | Lapped and haunched mortise and tenon joint | wechselseitig abgesetzte verdeckte Stufenzapfen
+specialty | 728 | Mitered and haunched mortise and tenon joint | verdeckte Stufenzapfen auf Gehrung
+specialty | 730 | Chidori puzzle joint | einfach abgesetztes Kreuzblatt und Stab mit Rundholzverbindung
+specialty | 732 | Cross puzzle | Zimmermannsknoten
+specialty | 734 | Diagonal cross puzzle | diagonaler Zimmermannsknoten
+specialty | 736 | Wedged two-way cogged lap joint | verkeiltes gerades Hakendruckschloss
+specialty | 738 | Pegged two-way splayed scarf joint | eingeschobene Schäftung mit Dübelsicherung
+specialty | 740 | Pegged two-way gooseneck joint | Sichelzapfenverbindung mit Dübelsicherung
+specialty | 742 | Wedged two-way oblique cogged joint | verkeiltes zweiseitiges Hakendruckschloss mit schrägen Haken
+specialty | 744 | Wedged four-way splayed cogged joint | verkeiltes vierseitiges Hakendruckschloss mit schrägen Haken
+specialty | 746 | Two-way rod tenon joint with tapered keys | durchgesteckter Stabzapfen mit Spannkeilen
+specialty | 748 | Three-way rod tenon joint with tapered keys and wedged haunched tenon | durchgesteckter Stabzapfen mit Spannkeilen und verkeiltem Stufenzapfen
+specialty | 750 | Four-way rod tenon joint with tapered keys and pegs | durchgesteckte Stufenstabzapfen mit Spannkeilen und Dübelsicherung
+specialty | 752 | Two-way blind housed rod tenon joint with tapered keys | eingelassener durchgesteckter Stabzapfen mit gestufter Brust und Spannkeilen
+specialty | 754 | Two-way collared rod tenon joint with tapered keys | eingelassener durchgesteckter Stabzapfen mit gestufter abgesetzter Brust und Spannkeilen
+specialty | 756 | Two-way rabbeted rod tenon joint with tapered keys | eingelassener durchgesteckter Stabzapfen mit Steckfalz und Spannkeilen
+specialty | 758 | Two-way partially housed rod tenon joint with tapered keys | eingelassener durchgesteckter Stabzapfen mit abgesetzter Nut und Spannkeilen
+specialty | 760 | Pegged two-way tenon joint | durchgesteckter Zapfen mit Dübelsicherung
+specialty | 762 | Two-way splined rod joint with tapered keys and a peg | durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung
+specialty | 764 | Pegged two-way lapped rod tenon joint with housing | durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung
+case_edge | 768 | Shiplap joint | Überfälzung
+case_edge | 770 | V-grooved joint | v-förmige Nut
+case_edge | 772 | Tongue and groove joint | Nut und Feder
+case_edge | 774 | Tongued and rabbeted joint | Nut und Feder mit versetzter Brüstung
+case_edge | 776 | Floating tenon joint | Stoß mit eingesetztem Zapfen
+case_edge | 778 | Foxtail-wedged floating tenon joint | Stoß mit verkeiltem eingesetztem Zapfen
+case_edge | 780 | Spline and groove joint | Nut mit eingesetzter Feder
+case_edge | 782 | Floating tenon and spline joint | Nut mit eingesetzter Feder und Zapfen
+case_edge | 784 | Blind dovetail joint | abgesetzte Fuge mit Trapezprofil
+case_edge | 786 | Butterfly key joint | Schwalbenschwanzeinlage
+case_edge | 788 | Sliding dovetail batten | Gratleiste
+case_edge | 790 | Sliding dovetail batten with keys | Gratleiste mit Dübelschloss
+case_edge | 792 | Blind dovetailed keyhole batten | Mehrfach abgesetzte Gratleiste
+case_end | 794 | Halved splayed joint | schräg angeschnittene wechselseitige Überblattung
+case_end | 796 | End-to-end finger joint | Fingerzinkenstoß
+case_end | 798 | End-to-end dovetail joint | Zinkenstoß
+case_end | 800 | V-shaped dado with spline | eingelassene keilförmige Hirnleiste
+case_end | 802 | Dado with spline | eingelassene Hirnleiste
+case_end | 804 | Splined breadboard end | Hirnleiste mit Nut und Fremdfeder
+case_end | 806 | Tongue and groove breadboard end | Hirnleiste mit Nut
+case_end | 808 | Dado and tongue breadboard end | Hirnleiste mit Feder
+case_end | 810 | Haunched mortise and tenon breadboard end | Hirnleiste mit Nut und Zapfenlöchern
+case_end | 812 | Wedged and haunched tenon breadboard end | verkeilte Hirnleiste mit Nut und Zapfenloch
+case_corner | 814 | Rabbet joint | gefälzte Eckverbindung
+case_corner | 816 | Mitered rabbet joint | gefälzte Eckverbindung mit Gehrung
+case_corner | 818 | Dado and rabbet joint | gespundete Eckverbindung
+case_corner | 820 | Lock joint | gespundete Eckverbindung mit Verdeck
+case_corner | 822 | Lock miter joint | gespundete Eckverbindung mit Verdeck auf Gehrung
+case_corner | 824 | Splined miter joint | Eckverbindung auf Gehrung mit eingesetzter Feder
+case_corner | 826 | Miter joint with spline keys | Eckverbindung auf Gehrung mit eingesetzten Federn
+case_corner | 828 | Miter joint with dovetail keys | Eckverbindung auf Gehrung mit eingesetzten Schwalbenschwanzfedern
+case_corner | 830 | Finger joint | Eckverbindung mit Fingerzinken
+case_corner | 832 | Through dovetail joint | Eckverbindung mit Schwalbenschwanzzinken
+case_corner | 834 | Half-blind dovetail joint | Eckverbindung mit halbverdeckten Schwalbenschwanzzinken
+case_corner | 836 | Blind dovetail joint | Eckverbindung mit verdeckten Schwalbenschwanzzinken
+case_corner | 838 | Cogged dovetail joint | Eckverbindung mit ganzen und abgesetzten Schwalbenschwanzzinken
+case_corner | 840 | Angled finger joint | Eckverbindung mit schrägen Fingerzinken
+case_corner | 842 | Radial dovetail joint | Eckverbindung mit Teufelszinken
+case_corner | 844 | Housing joint | Nutverbindung
+case_t | 846 | Stopped housing joint | abgesetzte Nutverbindung
+case_t | 848 | Beveled housing joint | schräg eingelassene Winkelverbindung
+case_t | 850 | Tongue and dado joint | Nutverbindung mit mittiger Feder
+case_t | 852 | Rabbet and dado joint | Nutverbindung mit außermittiger Feder
+case_t | 854 | Sliding dovetail joint | Gratnutverbindung
+case_t | 856 | Single-shouldered sliding dovetail joint | einseitige Gratnutverbindung

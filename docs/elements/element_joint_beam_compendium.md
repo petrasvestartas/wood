@@ -27,6 +27,8 @@ Every step keeps its saw or chisel planes and the wood it takes away (`JointElem
 
 The records of the library so far, each on a square and an inclined corner where it exists there, drawn apart as the book draws it. Pictures by `python3 tools/render_joint_library.py`.
 
+The joints of the book not in the library yet are listed on @ref elements_joint_library_todo.
+
 <!-- joint-table -->
 | joint | compendium |
 |---|---|

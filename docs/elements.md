@@ -178,6 +178,7 @@ A joint is an element: it is added, then handed to each member it cuts.
 - @subpage elements_joint_beam_top_side_bridle
 - @subpage elements_joint_beam_column_head
 - @subpage elements_joint_beam_compendium
+- @subpage elements_joint_library_todo
 - @subpage elements_joint_beam_keyed_box
 - @subpage elements_joint_beam_end_to_end
 - @subpage elements_joint_beam_butt
