@@ -1570,3 +1570,114 @@ rabbeted_stop_splayed_cogged_scarf_folding_wedges:
     - "B2 b_end upper cut_a f1; b_end upper -low f2 -f1; b_end splay -cut; b_end -high -e1; b_end -splay -e2"
   insertions:
     - "w"
+
+spear_point_cogged_lap_splice:
+  title: "Spear point cogged lap joint"
+  german: "gerades Hakenblatt mit Gratschnitt"
+  page: "78"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "hook = 0.24"
+    - "spear = 0.7"
+  points:
+    - "T1 = O + L*u"
+    - "C1 = O + (L - spear*aw)*u + aw*w"
+    - "C2 = O + (L - spear*aw)*u - aw*w"
+    - "T2 = O - L*u"
+    - "D1 = O - (L - spear*aw)*u + aw*w"
+    - "D2 = O - (L - spear*aw)*u - aw*w"
+  planes:
+    - "face_l = O + hook*ah*p, p, O + 2*ah*p"
+    - "face_r = O - hook*ah*p, p, O + 2*ah*p"
+    - "end_1 = C1, cross(p, T1 - C1), O"
+    - "end_2 = C2, cross(p, T1 - C2), O"
+    - "shoulder_1 = D1, cross(p, T2 - D1), O"
+    - "shoulder_2 = D2, cross(p, T2 - D2), O"
+    - "cut = O, u, O + u"
+  parts:
+  steps:
+    - "A2 a_end face_r -end_1 -end_2; a_end face_l cut; a_end -face_l shoulder_1; a_end -face_l shoulder_2"
+    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut; b_end face_r end_1; b_end face_r end_2"
+  insertions:
+    - "-p"
+
+spear_point_cogged_lap_folding_wedges_splice:
+  title: "Spear point cogged lap joint with folding wedges"
+  german: "verkeiltes gerades Hakenblatt mit Gratschnitt"
+  page: "80"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "hook = 0.24"
+    - "spear = 0.7"
+    - "gap = 0.16"
+    - "over = 20"
+    - "e = 0.12"
+  points:
+    - "T1 = O + L*u"
+    - "C1 = O + (L - spear*aw)*u + aw*w"
+    - "C2 = O + (L - spear*aw)*u - aw*w"
+    - "T2 = O - L*u"
+    - "D1 = O - (L - spear*aw)*u + aw*w"
+    - "D2 = O - (L - spear*aw)*u - aw*w"
+    - "W1 = O + (aw + over)*w"
+    - "W2 = O - (aw + over)*w"
+  planes:
+    - "face_l = O + hook*ah*p, p, O + 2*ah*p"
+    - "face_r = O - hook*ah*p, p, O + 2*ah*p"
+    - "end_1 = C1, cross(p, T1 - C1), O"
+    - "end_2 = C2, cross(p, T1 - C2), O"
+    - "shoulder_1 = D1, cross(p, T2 - D1), O"
+    - "shoulder_2 = D2, cross(p, T2 - D2), O"
+    - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
+    - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
+  parts:
+    - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
+    - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
+  steps:
+    - "A2 a_end face_r -end_1 -end_2; a_end face_l cut_a; a_end -face_l shoulder_1; a_end -face_l shoulder_2"
+    - "B2 b_end -face_l -shoulder_1 -shoulder_2; b_end -face_r -cut_b; b_end face_r end_1; b_end face_r end_2"
+  insertions:
+    - "-p"
+
+undersquinted_cogged_lap_folding_wedges_splice:
+  title: "Undersquinted cogged lap joint with folding wedges"
+  german: "verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung"
+  page: "76"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2"
+    - "hook = 0.24"
+    - "squint = 0.4"
+    - "gap = 0.16"
+    - "over = 20"
+    - "e = 0.12"
+  points:
+    - "F1 = O - (L - squint*ah)*u + ah*p"
+    - "F2 = O - L*u + hook*ah*p"
+    - "E1 = O + (L - squint*ah)*u - ah*p"
+    - "E2 = O + L*u - hook*ah*p"
+    - "W1 = O + (aw + over)*w"
+    - "W2 = O - (aw + over)*w"
+  planes:
+    - "face_l = O + hook*ah*p, p, O + 2*ah*p"
+    - "face_r = O - hook*ah*p, p, O + 2*ah*p"
+    - "up_face = F1, cross(w, F2 - F1), O"
+    - "low_face = E1, cross(w, E2 - E1), O"
+    - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
+    - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
+  parts:
+    - "wedge_1 = W1 + e*u, W2 + e*u, p, hook*ah, gap*ah, e, both, u"
+    - "wedge_2 = W2 - e*u, W1 - e*u, p, hook*ah, gap*ah, e, both, -u"
+  steps:
+    - "A2 a_end face_r -low_face; a_end face_l cut_a; a_end -face_l up_face"
+    - "B2 b_end -face_l -up_face; b_end -face_r -cut_b; b_end face_r low_face"
+  insertions:
+    - "w"
