@@ -260,3 +260,35 @@ half_blind_cogged_corner_lap:
   insertions:
     - "-u"
     - "w"
+
+half_blind_dovetailed_corner_lap:
+  title: "Half-blind dovetailed corner lap joint"
+  german: "halbes Schwalbenschwanzeckblatt"
+  page: "286"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.38"
+    - "root = 0.62"
+    - "tip = 0.8"
+  points:
+    - "U = O + n"
+    - "R = O - ah*p - 2*root*bh*n"
+    - "T = O + (1 - cheek)*ah*p - 2*tip*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "cheek = O + (1 - cheek)*ah*p, p, O"
+    - "flank = R, cross(w, T - R), O"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid -cheek -flank -face_2"
+    - "B2 b_node -mid -face_1 -face_2"
+    - "B3 b_node mid cheek; b_node mid flank -face_2"
+  insertions:
+    - "w"
