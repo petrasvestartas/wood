@@ -2041,3 +2041,28 @@ blind_u_stub_tenon_splice:
     - "B2 b_end f2 -roof -floor -o1 s1; b_end f2 -roof -floor -o2 s2; b_end f2 -s1 -s2 -floor sf"
   insertions:
     - "-u"
+
+undersquinted_half_lap_floating_piece_splice:
+  title: "Undersquinted half lap joint with floating piece"
+  german: "gerades Blatt mit hinterschnittener Brüstung und eingesetztem Mittelstück"
+  page: "86"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.3"
+    - "foot = 1.3"
+    - "head = 1.0"
+  points:
+  planes:
+    - "butt = O, u, O + u"
+  parts:
+    - "piece = O, O + ah*p, w, aw, foot*ah, head*ah, none"
+  steps:
+    - "A2 a_end butt"
+    - "A3 piece"
+    - "B2 b_end -butt"
+    - "B3 piece"
+  insertions:
+    - "-u"
+    - "piece = w"

@@ -248,6 +248,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_half_lap_mitered_ends_splice.png) | **Half lap joint with mitered ends**<br>stehendes gerades Blatt mit beidseitig schrägem Stoß, p. 158<br>`half_lap_mitered_ends_splice` |
 | ![](joint_library/beam_blind_fan_stub_tenon_splice.png) | **Blind fan-shaped stub tenon joint**<br>verdeckter trapezförmiger Zapfen, p. 204<br>`blind_fan_stub_tenon_splice` |
 | ![](joint_library/beam_blind_u_stub_tenon_splice.png) | **Blind U-shaped stub tenon joint**<br>verdeckter u-förmiger Zapfen, p. 208<br>`blind_u_stub_tenon_splice` |
+| ![](joint_library/beam_undersquinted_half_lap_floating_piece_splice.png) | **Undersquinted half lap joint with floating piece**<br>gerades Blatt mit hinterschnittener Brüstung und eingesetztem Mittelstück, p. 86<br>`undersquinted_half_lap_floating_piece_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
