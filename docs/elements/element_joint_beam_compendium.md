@@ -94,6 +94,8 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_dovetail_cog_corner.png) | **Dovetail cog joint**<br>Eckkamm mit Schwalbenschwanz, p. 414<br>`dovetail_cog_corner` |
 | ![](joint_library/beam_v_shaped_cog_corner.png) | **V-shaped cog joint**<br>Eckkamm mit halbem Kreuz, p. 416<br>`v_shaped_cog_corner` |
 | ![](joint_library/beam_fully_shouldered_through_mortise_tenon_corner.png) | **Fully shouldered through mortise and tenon**<br>beidseitig abgesetzter durchgehender Eckzapfen, p. 318<br>`fully_shouldered_through_mortise_tenon_corner` |
+| ![](joint_library/beam_through_mortise_tenon_sloped_haunch_corner.png) | **Through mortise and tenon with sloped haunch**<br>durchgehender abgesetzter Eckzapfen mit schräger Stufe, p. 312<br>`through_mortise_tenon_sloped_haunch_corner` |
+| ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.png) | **Triple-shouldered and sloped through mortise and tenon**<br>abgesetzter durchgehender schräger Eckzapfen, p. 316<br>`triple_shouldered_sloped_through_mortise_tenon` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

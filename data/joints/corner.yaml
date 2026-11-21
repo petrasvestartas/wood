@@ -978,3 +978,64 @@ fully_shouldered_through_mortise_tenon_corner:
     - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node -edge_1 -face_2; b_node edge_2 -face_2"
   insertions:
     - "-p"
+
+through_mortise_tenon_sloped_haunch_corner:
+  title: "Through mortise and tenon with sloped haunch"
+  german: "durchgehender abgesetzter Eckzapfen mit schräger Stufe"
+  page: "312"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "height = 0.8"
+    - "haunch = 0.2"
+  points:
+    - "U = O + n"
+    - "H1 = O - ah*p - 2*bh*n"
+    - "H2 = O - (1 - 2*haunch)*ah*p - 2*height*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge = O - 2*height*bh*n, n, O"
+    - "slope = H1, cross(w, H2 - H1), O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -edge -cheek_1 -cheek_2; a_end shoulder -slope -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge slope -face_2"
+  insertions:
+    - "-p"
+
+triple_shouldered_sloped_through_mortise_tenon:
+  title: "Triple-shouldered and sloped through mortise and tenon"
+  german: "abgesetzter durchgehender schräger Eckzapfen"
+  page: "316"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "root = 0.78"
+    - "tip = 0.5"
+  points:
+    - "U = O + n"
+    - "E1 = O - ah*p - 2*root*bh*n"
+    - "E2 = O + ah*p - 2*tip*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge = E1, cross(w, E2 - E1), O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -edge -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge -face_2"
+  insertions:
+    - "-p"
