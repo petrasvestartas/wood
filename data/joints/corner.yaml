@@ -951,3 +951,30 @@ v_shaped_cog_corner:
     - "B2 b_node -under arm_1 arm_2 -side_2"
   insertions:
     - "-n"
+
+fully_shouldered_through_mortise_tenon_corner:
+  title: "Fully shouldered through mortise and tenon"
+  german: "beidseitig abgesetzter durchgehender Eckzapfen"
+  page: "318"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge_1 = O - 2*thickness*bh*n, n, O"
+    - "edge_2 = O - 2*(1 - thickness)*bh*n, n, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder edge_1 -edge_2 -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node -edge_1 -face_2; b_node edge_2 -face_2"
+  insertions:
+    - "-p"
