@@ -1178,3 +1178,31 @@ blind_dado_rabbet_corner:
     - "B2 b_node -tongue_top -tongue_end -face_2; b_node cheek_in miter"
   insertions:
     - "-u"
+
+housed_stub_tenon_corner:
+  title: "Housed stub tenon"
+  german: "halbverdeckter eingelassener Eckzapfen"
+  page: "384"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "house = 0.2"
+    - "depth = 0.5"
+    - "half = 0.2"
+  points:
+    - "U = O + n"
+  planes:
+    - "house_floor = O - 2*house*bh*n, n, O"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "side_2 = O - ah*p, p, O"
+    - "w1 = O + aw*w, w, O"
+    - "w2 = O - aw*w, w, O"
+    - "w_lo = O - half*aw*w, w, O"
+    - "w_hi = O + half*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end tenon_end; a_end house_floor w_lo; a_end house_floor w_hi"
+    - "B2 b_node -house_floor -side_2 -w1 -w2; b_node -tenon_end -side_2 -w_lo -w_hi"
+  insertions:
+    - "-u"
