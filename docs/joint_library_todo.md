@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 225 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 224 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 68 left of 110
 
@@ -120,9 +120,8 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 406, Notched lap joint with stub tenon (Meisterwitz)
 - p. 418, Diagonally cut cog joint (Eckkamm mit Haken)
 
-## Timber T-joints: 8 left of 82
+## Timber T-joints: 7 left of 82
 
-- p. 464, Mortise and tenon with beveled shoulders (verdeckter Zapfen mit eingelassener schräger Brüstung)
 - p. 538, Right-angle joint with dovetailed spline tenon and tapered key (Stoß mit Führungszapfen und eingesetztem Schwalbenschwanzzapfen mit Spannkeil)
 - p. 540, Housed right-angle joint with spline tenon, tapered keys, and peg (eingelassener stumpfer Stoß mit eingesetztem Zapfen und Dübelsicherung sowie Spannkeilen)
 - p. 566, Diagonally cut T-bridle joint (diagonale Einhälsung)

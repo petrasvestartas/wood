@@ -164,6 +164,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_undersquinted_stopped_half_lap.png) | **Undersquinted stopped half lap**<br>halbverdecktes gerades Blatt mit schräger Stirn, p. 462<br>`undersquinted_stopped_half_lap` |
 | ![](joint_library/beam_housed_stop_mitered_mortise_tenon.png) | **Housed stop-mitered mortise and tenon**<br>keilförmig eingelassener Zapfen, p. 466<br>`housed_stop_mitered_mortise_tenon` |
 | ![](joint_library/beam_mortise_tenon_fan_shaped_housing.png) | **Mortise and tenon with fan-shaped housing**<br>schwalbenschwanzförmiger eingelassener Zapfen, p. 468<br>`mortise_tenon_fan_shaped_housing` |
+| ![](joint_library/beam_housed_mortise_tenon_beveled_shoulders.png) | **Mortise and tenon with beveled shoulders**<br>verdeckter Zapfen mit eingelassener schräger Brüstung, p. 464<br>`housed_mortise_tenon_beveled_shoulders` |
 | ![](joint_library/beam_housed_mortise_tenon_shifted_shoulders.png) | **Housed mortise and tenon with shifted shoulders**<br>Zapfen mit einseitig vorgeschobener Brüstung, p. 454<br>`housed_mortise_tenon_shifted_shoulders` |
 | ![](joint_library/beam_blind_pegged.png) | **Blind pegged joint**<br>Verdollung, p. 470<br>`blind_pegged` |
 | ![](joint_library/beam_notch.png) | **Notch joint**<br>Ankämmung mit einseitigem Sitz, p. 472<br>`notch` |

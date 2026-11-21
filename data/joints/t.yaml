@@ -761,6 +761,35 @@ mortise_tenon_fan_shaped_housing:
   insertions:
     - "-u"
 
+housed_mortise_tenon_beveled_shoulders:
+  title: "Mortise and tenon with beveled shoulders"
+  german: "verdeckter Zapfen mit eingelassener schräger Brüstung"
+  page: "464"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "band = 0.3333333333333333"
+    - "depth = 0.6"
+  points:
+    - "S = O + n"
+  planes:
+    - "shoulder = O, n, S"
+    - "far = O - 2*bh*n, n, O"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+    - "lo = O - band*aw*w, w, O"
+    - "hi = O + band*aw*w, w, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder lo; a_end tenon_end -lo -hi; a_end far hi"
+    - "B2 b_node hi -side_1 -side_2"
+    - "B3 b_node -lo -hi -side_1 -side_2 -tenon_end"
+  insertions:
+    - "-u"
+    - "-w"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"
