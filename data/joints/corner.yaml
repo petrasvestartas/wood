@@ -320,3 +320,33 @@ rabbeted_tenoned_corner:
   insertions:
     - "-u"
     - "w"
+
+rabbeted_tongue_dado_corner:
+  title: "Rabbeted tongue and dado corner joint"
+  german: "Eckstoß mit doppeltem Führungszapfen"
+  page: "288"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "quarter = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "pos = O, p, O - ah*p"
+    - "neg = O, p, O + ah*p"
+    - "qo = O + quarter*ah*p, p, O"
+    - "qi = O - quarter*ah*p, p, O"
+    - "l1 = O - 0.5*bh*n, n, O"
+    - "l2 = O - bh*n, n, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder neg -qi; a_end l1 qi; a_end l1 -l2 pos -qo"
+    - "B2 b_node pos -l1; b_node pos l2; b_node qo"
+    - "B3 b_node qi -l1 -face_2"
+  insertions:
+    - "w"
