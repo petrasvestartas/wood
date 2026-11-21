@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 203 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 192 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 68 left of 110
 
@@ -208,30 +208,19 @@ All done.
 - p. 810, Haunched mortise and tenon breadboard end (Hirnleiste mit Nut und Zapfenlöchern)
 - p. 812, Wedged and haunched tenon breadboard end (verkeilte Hirnleiste mit Nut und Zapfenloch)
 
-## Case corner joints: 16 left of 16
+## Case corner joints: 10 left of 16
 
-- p. 814, Rabbet joint (gefälzte Eckverbindung)
 - p. 816, Mitered rabbet joint (gefälzte Eckverbindung mit Gehrung)
-- p. 818, Dado and rabbet joint (gespundete Eckverbindung)
 - p. 820, Lock joint (gespundete Eckverbindung mit Verdeck)
 - p. 822, Lock miter joint (gespundete Eckverbindung mit Verdeck auf Gehrung)
-- p. 824, Splined miter joint (Eckverbindung auf Gehrung mit eingesetzter Feder)
-- p. 826, Miter joint with spline keys (Eckverbindung auf Gehrung mit eingesetzten Federn)
 - p. 828, Miter joint with dovetail keys (Eckverbindung auf Gehrung mit eingesetzten Schwalbenschwanzfedern)
-- p. 830, Finger joint (Eckverbindung mit Fingerzinken)
 - p. 832, Through dovetail joint (Eckverbindung mit Schwalbenschwanzzinken)
 - p. 834, Half-blind dovetail joint (Eckverbindung mit halbverdeckten Schwalbenschwanzzinken)
 - p. 836, Blind dovetail joint (Eckverbindung mit verdeckten Schwalbenschwanzzinken)
 - p. 838, Cogged dovetail joint (Eckverbindung mit ganzen und abgesetzten Schwalbenschwanzzinken)
 - p. 840, Angled finger joint (Eckverbindung mit schrägen Fingerzinken)
 - p. 842, Radial dovetail joint (Eckverbindung mit Teufelszinken)
-- p. 844, Housing joint (Nutverbindung)
 
-## Case T-joints: 6 left of 6
+## Case T-joints: 1 left of 6
 
-- p. 846, Stopped housing joint (abgesetzte Nutverbindung)
 - p. 848, Beveled housing joint (schräg eingelassene Winkelverbindung)
-- p. 850, Tongue and dado joint (Nutverbindung mit mittiger Feder)
-- p. 852, Rabbet and dado joint (Nutverbindung mit außermittiger Feder)
-- p. 854, Sliding dovetail joint (Gratnutverbindung)
-- p. 856, Single-shouldered sliding dovetail joint (einseitige Gratnutverbindung)

@@ -232,6 +232,8 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     }
 
     const bool crossing = record.fields.at("category") == "cross";
+    // a board keeps the section it is made with; a square beam is turned by its directions
+    const bool square_stock = std::abs(numbers["stock_thick"] - numbers["stock_wide"]) < 1e-9;
     const double half = 60.0;
     const double turn = (crossing ? numbers["pitch"] : square ? 90.0 : 130.0) * Tolerance::PI / 180.0;
     const Vector along(std::cos(turn), 0.0, std::sin(turn));
@@ -243,21 +245,25 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         const double overlap = numbers["lap"] * 2.0 * numbers["stock_thick"];
         member = stock(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(600.0, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_member");
         carrier = stock(Polyline({at - Vector(600.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
-        member->directions = {Vector::z_axis()};
-        carrier->directions = {Vector::z_axis()};
+        if (square_stock)
+            member->directions = {Vector::z_axis()};
+        if (square_stock)
+            carrier->directions = {Vector::z_axis()};
         return {member, carrier};
     }
 
     // a cross: the carrier along y, the member pitched over it, its underside through the point the record sets
     if (crossing) {
         carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), half, design + "_carrier");
-        carrier->directions = {Vector::z_axis()};
+        if (square_stock)
+            carrier->directions = {Vector::z_axis()};
         const Vector downhill(-1.0, 0.0, 0.0);
         const Vector up(-std::sin(turn), 0.0, std::cos(turn));
         const Point underside = at + Vector(0.0, 0.0, half) + downhill * (numbers["shift"] * half) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * half);
         const Point on_axis = underside + up * half;
         member = EdgeStraightElement::square(Polyline({on_axis - along * numbers["tail"], on_axis + along * 600.0}), half, design + "_member");
-        member->directions = {Vector::y_axis()};
+        if (square_stock)
+            member->directions = {Vector::y_axis()};
         return {member, carrier};
     }
 
@@ -267,8 +273,10 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     const Vector across(-std::sin(turn), 0.0, std::cos(turn));
     carrier = stock(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
     member = stock(Polyline({at, at + along * 600.0}), across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
-    carrier->directions = {Vector::y_axis()};
-    member->directions = {Vector::y_axis()};
+    if (square_stock)
+        carrier->directions = {Vector::y_axis()};
+    if (square_stock)
+        member->directions = {Vector::y_axis()};
     member->extension = 180.0;
 
     return {member, carrier};

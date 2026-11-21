@@ -1,0 +1,185 @@
+# Joinery Compendium (Bauer, Pauli 2024), Case Joints, Corner Joints (boards): one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               (a corner, end_end_inplane, is read as side_end: b ends flush with a's outer face)
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
+#               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+
+rabbet_case_corner:
+  title: "Rabbet joint"
+  german: "gefälzte Eckverbindung"
+  page: "814"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "depth = 0.67"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "floor = O - 2*depth*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end floor"
+    - "B2 b_node -floor -side_2"
+  insertions:
+    - "-u"
+    - "-p"
+
+dado_rabbet_case_corner:
+  title: "Dado and rabbet joint"
+  german: "gespundete Eckverbindung"
+  page: "818"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "tongue = 0.33"
+    - "depth = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "tongue_end = O - 2*depth*bh*n, n, O"
+    - "tongue_top = O + (1 - 2*tongue)*ah*p, p, O + ah*p"
+  parts:
+  steps:
+    - "A2 a_end tongue_end; a_end shoulder tongue_top"
+    - "B2 b_node -tongue_top -tongue_end -side_2"
+  insertions:
+    - "-u"
+
+splined_miter_case_corner:
+  title: "Splined miter joint"
+  german: "Eckverbindung auf Gehrung mit eingesetzter Feder"
+  page: "824"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "spline = 0.15"
+    - "reach = 0.3"
+  points:
+    - "U = O + n"
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "A = unit(cross(w, X - I))"
+    - "D = unit(I - X)"
+    - "M = (I + X)/2"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "spline = M - (aw + 2)*w, M + (aw + 2)*w, A, spline*ah, reach*length(I - X), reach*length(I - X), none"
+  steps:
+    - "A2 a_end miter"
+    - "A3 spline"
+    - "B2 b_node -miter"
+    - "B3 spline"
+  insertions:
+    - "-u"
+    - "spline = w"
+
+miter_spline_keys_case_corner:
+  title: "Miter joint with spline keys"
+  german: "Eckverbindung auf Gehrung mit eingesetzten Federn"
+  page: "826"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "key = 2.5"
+    - "depth = 1.6"
+  points:
+    - "U = O + n"
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "A = unit(cross(w, X - I))"
+    - "D = unit(I - X)"
+    - "M = (I + X)/2"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+  parts:
+    - "key_1 = X + 0.5*aw*w + depth*ah*D, X + 0.5*aw*w, w, key, depth*ah, 0.01*ah, end"
+    - "key_2 = X - 0.5*aw*w + depth*ah*D, X - 0.5*aw*w, w, key, depth*ah, 0.01*ah, end"
+  steps:
+    - "A2 a_end miter"
+    - "A3 key_1; key_2"
+    - "B2 b_node -miter"
+    - "B3 key_1; key_2"
+  insertions:
+    - "-u"
+    - "key_1 = D"
+    - "key_2 = D"
+
+finger_case_corner:
+  title: "Finger joint"
+  german: "Eckverbindung mit Fingerzinken"
+  page: "830"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "c1 = O + -0.6*aw*w, w, O - 1000*w"
+    - "c2 = O + -0.2*aw*w, w, O - 1000*w"
+    - "c3 = O + 0.2*aw*w, w, O - 1000*w"
+    - "c4 = O + 0.6*aw*w, w, O - 1000*w"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder c1 -c2; a_end shoulder c3 -c4"
+    - "B2 b_node -side_2 -c1; b_node -side_2 c2 -c3; b_node -side_2 c4"
+  insertions:
+    - "-u"
