@@ -1902,3 +1902,69 @@ wedged_triple_shouldered_through_tenon_corner:
   insertions:
     - "-u"
     - "wedge = n"
+
+collared_haunched_mortise_tenon_corner:
+  title: "Collared haunched mortise and tenon joint"
+  german: "durchgehender abgesetzter Stufen-eckzapfen mit Führungszapfen"
+  page: "330"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "haunch = 0.3"
+    - "haunch_width = 0.35"
+    - "guide = 0.15"
+    - "guide_depth = 0.15"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "tenon_edge = O + (1 - 2*haunch_width)*ah*p, p, O - ah*p"
+    - "haunch_floor = O - 2*haunch*bh*n, n, O"
+    - "guide_band = O + (2*guide - 1)*ah*p, p, O + ah*p"
+    - "guide_end = O - 2*guide_depth*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder layer_1 -guide_band; a_end shoulder layer_2 -guide_band; a_end guide_end layer_1; a_end guide_end layer_2; a_end shoulder -layer_1 -layer_2 tenon_edge haunch_floor"
+    - "B2 b_node layer_1 guide_band -guide_end -face_2; b_node layer_2 guide_band -guide_end -face_2; b_node -layer_1 -layer_2 -tenon_edge -face_2; b_node -layer_1 -layer_2 tenon_edge -haunch_floor"
+  insertions:
+    - "-u"
+
+beveled_triple_shouldered_housed_tenon_corner:
+  title: "Beveled triple-shouldered mortise and tenon with housing"
+  german: "verdeckter abgesetzter Eckzapfen mit schräger Brust"
+  page: "314"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "slope = 0.3"
+    - "thickness = 0.3"
+    - "depth = 0.7"
+    - "inner = 0.75"
+    - "outer = 0.2"
+  points:
+    - "S1 = O - ah*p"
+    - "S2 = O + ah*p - 2*slope*bh*n"
+  planes:
+    - "face_2 = O - ah*p, p, O"
+    - "slant = S1, cross(w, S2 - S1), O + 2*bh*n"
+    - "w1 = O + aw*w, w, O"
+    - "w2 = O - aw*w, w, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "t_in = O - inner*ah*p, p, O"
+    - "t_out = O + outer*ah*p, p, O - ah*p"
+    - "tenon_end = O - 2*depth*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end tenon_end; a_end slant cheek_1; a_end slant cheek_2; a_end slant t_in; a_end slant t_out"
+    - "B2 b_node -slant -face_2 -w1 -w2; b_node slant -tenon_end -cheek_1 -cheek_2 -t_in -t_out"
+  insertions:
+    - "-u"
