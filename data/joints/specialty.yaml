@@ -1123,3 +1123,48 @@ pegged_two_way_gooseneck:
     - "-p"
     - "c = p"
     - "peg = w"
+
+notched_corner_post_beveled_tenons:
+  title: "Notched corner-post joint with beveled-shoulder tenons"
+  german: "Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust"
+  page: "718"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "tenon = 0.35"
+    - "bevel = 0.3"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "U = O + n"
+    - "V1 = O - bh*n - aw*w + 0.9*bh*n"
+    - "V2 = O - bh*n - (1 - bevel)*aw*w - 0.9*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+    - "cf = V1, cross(t, V2 - V1), O - bh*n - 2*aw*w"
+    - "tx1 = O - bh*n + tenon*bh*t, t, O - bh*n"
+    - "tx2 = O - bh*n - tenon*bh*t, t, O - bh*n"
+    - "tz1 = O - bh*n + tenon*bh*n, n, O - bh*n"
+    - "tz2 = O - bh*n - tenon*bh*n, n, O - bh*n"
+    - "tend = O - bh*n + 0.5*aw*w, w, O - bh*n"
+    - "hend = O - bh*n - 0.5*aw*w, w, O - bh*n"
+  more:
+    - "c = 0 30 0, 0 -600 0, 0 0 1, 60, 60"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end mid miter"
+    - "B2 b_node -mid -face_2; b_node mid -miter"
+    - "A4 a_end -tx1 -tx2 -tz1 -tz2 -tend; a_end -cf -mid"
+    - "B3 b_node -tx1 -tx2 -tz1 -tz2 -tend"
+    - "C2 c cf tx1; c cf tx2; c cf tz1; c cf tz2"
+  insertions:
+    - "w"
+    - "c = w"
