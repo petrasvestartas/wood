@@ -2066,6 +2066,47 @@ dovetail_t_bridle:
   insertions:
     - "-u"
 
+wedged_dovetail_half_lap:
+  title: "Wedged dovetail half lap joint"
+  german: "verkeiltes Schwalbenschwanzblatt"
+  page: "570"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "root = 0.44"
+    - "tip = 0.72"
+    - "kerf = 0.05"
+    - "wedge = 0.8"
+    - "open = 0.05"
+  points:
+    - "S = O + n"
+    - "F = O - 2*bh*n"
+    - "R1 = meet(O + root*ah*p, u, O, n)"
+    - "R2 = meet(O - root*ah*p, u, O, n)"
+    - "T1 = meet(O + tip*ah*p, u, F, n)"
+    - "T2 = meet(O - tip*ah*p, u, F, n)"
+    - "Ws = meet(O, u, F - 0.1*ah*n, n) + 0.5*aw*w"
+    - "We = meet(O, u, F + 2*wedge*bh*n, n) + 0.5*aw*w"
+  planes:
+    - "end = F, n, O"
+    - "shoulder = O, n, S"
+    - "lap = O, w, O + aw*w"
+    - "flank_1 = R1, cross(w, T1 - R1), O"
+    - "flank_2 = R2, cross(w, T2 - R2), O"
+    - "kerf_1 = O + kerf*ah*p, p, O + ah*p"
+    - "kerf_2 = O - kerf*ah*p, p, O - ah*p"
+    - "kerf_end = F + 2*(wedge + 0.05)*bh*n, n, F"
+  parts:
+    - "wedge = Ws, We, w, 0.5*aw, kerf*ah, 0.005*ah, start"
+  steps:
+    - "A2 a_end end; a_end shoulder lap; a_end shoulder flank_1; a_end shoulder flank_2"
+    - "A3 a_end kerf_1 kerf_2 -kerf_end"
+    - "B2 b_node -flank_1 -flank_2 -lap"
+  insertions:
+    - "-w"
+
+
 
 
 double_lap_stub_tenon:

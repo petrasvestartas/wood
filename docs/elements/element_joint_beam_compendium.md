@@ -126,6 +126,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | **T-bridle joint with blind mortise and tenon**<br>Einhälsung mit verdecktem Zapfen, p. 552<br>`t_bridle_blind_mortise_tenon` |
 | ![](joint_library/beam_wedged_half_dovetailed_t_bridle.png) | **Wedged half-dovetailed T-bridle joint**<br>verkeilte einseitig trapezförmige Einhälsung, p. 548<br>`wedged_half_dovetailed_t_bridle` |
 | ![](joint_library/beam_dovetail_t_bridle.png) | **Dovetail T-bridle joint**<br>schwalbenschwanzförmige Einhälsung, p. 564<br>`dovetail_t_bridle` |
+| ![](joint_library/beam_wedged_dovetail_half_lap.png) | **Wedged dovetail half lap joint**<br>verkeiltes Schwalbenschwanzblatt, p. 570<br>`wedged_dovetail_half_lap` |
 | ![](joint_library/beam_double_lap_stub_tenon.png) | **Double lap joint with stub tenon**<br>Gabelaufblattung mit verdecktem Zapfen, p. 554<br>`double_lap_stub_tenon` |
 | ![](joint_library/beam_notched_lap_tenon.png) | **Notched lap joint with tenon**<br>einseitige Einhälsung mit durchgehendem Zapfen, p. 556<br>`notched_lap_tenon` |
 | ![](joint_library/beam_notched_lap_stub_tenon.png) | **Notched lap joint with stub tenon**<br>einseitige Einhälsung mit verdecktem Zapfen, p. 558<br>`notched_lap_stub_tenon` |
