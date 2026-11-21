@@ -320,12 +320,17 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     const double back = corner && !spanned ? numbers["beam_length"] - carrier_end : numbers["span"];
     const Vector across(-std::sin(turn), 0.0, std::cos(turn));
     carrier = stock(Polyline({at - Vector(back, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), flat ? Vector::y_axis() : Vector::z_axis(), carrier_thick, carrier_wide, design + "_carrier");
-    member = stock(Polyline({at, at + along * numbers["beam_length"]}), flat ? Vector::y_axis() : across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
+    // the member shows beam_length: at a corner from the carrier's outer face, on a side from the carrier's face out
+    const double inside = (flat ? carrier_wide : carrier_thick) / std::max(std::abs(std::sin(turn)), 0.2);
+    // the stock's extension (180 mm, so a lap can pass through the carrier) also runs past the far end: the axis is shorter by it
+    const double extension = 180.0;
+    const double run = (corner ? numbers["beam_length"] - inside : numbers["beam_length"] + inside) - extension;
+    member = stock(Polyline({at, at + along * run}), flat ? Vector::y_axis() : across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
     if (std::abs(carrier_thick - carrier_wide) < 1e-9)
         carrier->directions = {Vector::y_axis()};
     if (square_stock)
         member->directions = {Vector::y_axis()};
-    member->extension = 180.0;
+    member->extension = extension;
 
     return {member, carrier};
 }
@@ -353,14 +358,15 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
         Point start = at + Vector(numbers[0], numbers[1], numbers[2]);
         Point end = at + Vector(numbers[3], numbers[4], numbers[5]);
         const Vector up(numbers[6], numbers[7], numbers[8]);
-        // every beam as long as the record's length: one ending near the joint keeps that end, one passing it is centred on its middle
+        // every beam as long as the record's length: one ending near the joint keeps that end and shows length past the joint's
+        // section (60 mm), one passing it is centred on its middle
         const Vector along = (end - start).normalized();
         const double whole = Point::distance(start, end);
         const double node = (at - start).dot(along);
         if (whole > length && node < 0.75 * length)
-            end = start + along * length;
+            end = start + along * std::min(node + 60.0 + length, whole);
         else if (whole > length && whole - node < 0.75 * length)
-            start = end - along * length;
+            start = end - along * std::min(whole - node + 60.0 + length, whole);
         else if (whole > length) {
             const Point middle = start + along * (0.5 * whole);
             start = middle - along * (0.5 * length);

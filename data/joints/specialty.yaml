@@ -872,7 +872,6 @@ three_way_rod_tenon_keys_wedged_haunch:
   corners: "square"
   filled: "bcd"
   parameters:
-    - "beam_length = 400"
     - "long = 0.4"
     - "thin = 0.3"
     - "into = 1.6"
@@ -923,7 +922,6 @@ four_way_rod_tenon_keys_pegs:
   corners: "square"
   filled: "bcde"
   parameters:
-    - "beam_length = 400"
     - "long = 0.4"
     - "thin = 0.3"
     - "into = 1.6"
