@@ -1257,3 +1257,48 @@ gooseneck_tenon_splice:
     - "B2 b_end hend -neck_1 -neck_2; b_end f2 -hend -flank_1 -flank_2"
   insertions:
     - "-p"
+
+birdsmouth_splice:
+  title: "Birdsmouth"
+  german: "Gratstoß"
+  page: "168"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.8"
+  points:
+    - "A = O + L*u"
+    - "U1 = O - L*u + ah*p"
+    - "U2 = O - L*u - ah*p"
+  planes:
+    - "v_up = A, cross(w, U1 - A), O - L*u"
+    - "v_dn = A, cross(w, U2 - A), O - L*u"
+  parts:
+  steps:
+    - "A2 a_end -v_up -v_dn"
+    - "B2 b_end v_up; b_end v_dn"
+  insertions:
+    - "-u"
+
+double_halved_lap_splice:
+  title: "Double halved lap joint"
+  german: "diagonal versetztes abgesetztes Blatt"
+  page: "210"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.3"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hp = O, p, O - p"
+    - "hw = O, w, O - w"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a hp -hw; a_end shoulder_a -hp hw"
+    - "B2 b_end f2 hp hw; b_end f2 -hp -hw"
+  insertions:
+    - "-u"

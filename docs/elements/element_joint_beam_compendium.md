@@ -74,6 +74,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_floating_tenon_edge.png) | **Floating tenon joint**<br>Stoß mit eingesetztem Zapfen, p. 776<br>`floating_tenon_edge` |
 | ![](joint_library/beam_spline_groove_edge.png) | **Spline and groove joint**<br>Nut mit eingesetzter Feder, p. 780<br>`spline_groove_edge` |
 | ![](joint_library/beam_butterfly_key_edge.png) | **Butterfly key joint**<br>Schwalbenschwanzeinlage, p. 786<br>`butterfly_key_edge` |
+| ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
 | ![](joint_library/beam_housing_case.png) | **Housing joint**<br>Nutverbindung, p. 844<br>`housing_case` |
 | ![](joint_library/beam_stopped_housing_case.png) | **Stopped housing joint**<br>abgesetzte Nutverbindung, p. 846<br>`stopped_housing_case` |
 | ![](joint_library/beam_tongue_dado_case.png) | **Tongue and dado joint**<br>Nutverbindung mit mittiger Feder, p. 850<br>`tongue_dado_case` |
@@ -171,6 +172,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_butt_butterfly_key_splice.png) | **Butt joint with butterfly key**<br>Schwalbenschwanzeinlage, p. 232<br>`butt_butterfly_key_splice` |
 | ![](joint_library/beam_lapped_dovetail_splice.png) | **Lapped dovetail joint**<br>Schwalbenschwanzzapfen mit geradem Blatt, p. 224<br>`lapped_dovetail_splice` |
 | ![](joint_library/beam_gooseneck_tenon_splice.png) | **Gooseneck tenon joint**<br>Sichelzapfen, p. 244<br>`gooseneck_tenon_splice` |
+| ![](joint_library/beam_birdsmouth_splice.png) | **Birdsmouth**<br>Gratstoß, p. 168<br>`birdsmouth_splice` |
+| ![](joint_library/beam_double_halved_lap_splice.png) | **Double halved lap joint**<br>diagonal versetztes abgesetztes Blatt, p. 210<br>`double_halved_lap_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
