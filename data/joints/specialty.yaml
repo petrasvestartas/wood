@@ -406,3 +406,40 @@ two_way_collared_rod_tenon:
     - "-u"
     - "c = n"
 
+corner_post_open_slot_mortise_tenon:
+  title: "Corner-post joint with open slot mortise and tenon"
+  german: "Scherzapfen mit Zapfenloch und durchgehendem Zapfen"
+  page: "720"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "tenon = 0.3"
+    - "thickness = 0.3333333333333333"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "pf = O + aw*w, w, O + 2*aw*w"
+    - "tx1 = O - bh*n + tenon*bh*t, t, O - bh*n"
+    - "tx2 = O - bh*n - tenon*bh*t, t, O - bh*n"
+    - "tz1 = O - bh*n + tenon*bh*n, n, O - bh*n"
+    - "tz2 = O - bh*n - tenon*bh*n, n, O - bh*n"
+  more:
+    - "c = 0 -60 0, 0 600 0, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_1 -cheek_2"
+    - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2"
+    - "A4 a_end -tx1 -tx2 -tz1 -tz2"
+    - "B3 b_node -tx1 -tx2 -tz1 -tz2"
+    - "C2 c pf tx1; c pf tx2; c pf tz1; c pf tz2"
+  insertions:
+    - "-u"
+    - "c = -w"
