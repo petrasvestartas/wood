@@ -543,3 +543,67 @@ triple_offset_cross_lap:
     - "B2 b_node -g -k1 -k2; b_node g -mid -j1 -j2"
   insertions:
     - "-n"
+
+sloped_double_cog_cross:
+  title: "Sloped double cog joint"
+  german: "Kreuzkamm mit mittiger beidseitig schräger Stufe"
+  page: "698"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+    - "wide = 0.5"
+    - "narrow = 0.2"
+  points:
+    - "U = O + n"
+    - "P1 = O + wide*bt*t - aw*w"
+    - "P2 = O + narrow*bt*t + aw*w"
+    - "Q1 = O - wide*bt*t - aw*w"
+    - "Q2 = O - narrow*bt*t + aw*w"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "diag_1 = P1, cross(n, P2 - P1), O + 2*bt*t"
+    - "diag_2 = Q1, cross(n, Q2 - Q1), O - 2*bt*t"
+  parts:
+  steps:
+    - "A2 a_node top diag_1 diag_2 inner -outer"
+    - "B2 b_node -under -diag_1 -side_1 -side_2; b_node -under -diag_2 -side_1 -side_2"
+  insertions:
+    - "-n"
+
+oblique_double_notch_cross:
+  title: "Oblique double notch joint"
+  german: "Kreuzkamm als Versatz"
+  page: "690"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.25"
+  points:
+    - "U = O + n"
+    - "S1 = O - bt*t"
+    - "S2 = O + bt*t - 2*sit*bh*n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "slope = S1, cross(w, S2 - S1), O + 2*bh*n"
+  parts:
+  steps:
+    - "A2 a_node top slope inner -outer"
+    - "B2 b_node -slope -side_1 -side_2"
+  insertions:
+    - "-n"

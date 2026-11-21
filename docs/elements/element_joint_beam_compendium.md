@@ -163,6 +163,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_offset_cross_lap.png) | **Offset cross lap joint**<br>Kreuzblatt mit Führung, p. 664<br>`offset_cross_lap` |
 | ![](joint_library/beam_double_offset_cross_lap.png) | **Double offset cross lap joint**<br>zweiseitig abgesetztes Kreuzblatt, p. 666<br>`double_offset_cross_lap` |
 | ![](joint_library/beam_triple_offset_cross_lap.png) | **Triple offset cross lap joint**<br>zweiseitig abgesetztes Kreuzblatt mit Führung, p. 668<br>`triple_offset_cross_lap` |
+| ![](joint_library/beam_sloped_double_cog_cross.png) | **Sloped double cog joint**<br>Kreuzkamm mit mittiger beidseitig schräger Stufe, p. 698<br>`sloped_double_cog_cross` |
+| ![](joint_library/beam_oblique_double_notch_cross.png) | **Oblique double notch joint**<br>Kreuzkamm als Versatz, p. 690<br>`oblique_double_notch_cross` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |

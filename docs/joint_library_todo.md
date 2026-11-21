@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 139 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 137 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 49 left of 110
 
@@ -94,7 +94,7 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 
 All done.
 
-## Timber cross lap joints: 13 left of 31
+## Timber cross lap joints: 11 left of 31
 
 - p. 650, Four-part cogged cross lap joint (viergliedriges Kreuzblatt mit Haken)
 - p. 652, V-mitered cross lap joint (Kreuzblatt mit Grat)
@@ -107,8 +107,6 @@ All done.
 - p. 676, Double notched oblique cross lap joint (schräges Kreuzblatt mit Stirn-und Fersenversatz)
 - p. 678, Three-way cross lap joint (doppelte Überblattung)
 - p. 688, Double notch joint with stub tenons (Kreuzkamm mit abgesetzter Falz)
-- p. 690, Oblique double notch joint (Kreuzkamm als Versatz)
-- p. 698, Sloped double cog joint (Kreuzkamm mit mittiger beidseitig schräger Stufe)
 
 ## Timber specialty joints: 29 left of 29
 
