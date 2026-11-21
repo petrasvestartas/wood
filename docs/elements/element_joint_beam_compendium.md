@@ -345,6 +345,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_cogged_lap_floating_tenoned_piece_splice.png) | **Cogged lap joint with floating tenoned piece**<br>gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen, p. 88<br>`cogged_lap_floating_tenoned_piece_splice` |
 | ![](joint_library/beam_triple_faced_splayed_scarf.png) | **Triple-faced splayed scarf joint**<br>einseitig schräg angeschnittene doppelte Schäftung, p. 172<br>`triple_faced_splayed_scarf` |
 | ![](joint_library/beam_stop_splayed_cogged_scarf_stub_tenons_blind_pegs.png) | **Stop-splayed cogged scarf joint with stub tenons and blind pegs**<br>schräges Hakenblatt mit Brüstungszapfen und Dollen, p. 132<br>`stop_splayed_cogged_scarf_stub_tenons_blind_pegs` |
+| ![](joint_library/beam_rabbeted_gooseneck_barb_splice.png) | **Rabbeted gooseneck joint with barb**<br>abgesetzter Sichelzapfen mit Steckfalz und abgesetztem Gehrungsblatt, p. 254<br>`rabbeted_gooseneck_barb_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
