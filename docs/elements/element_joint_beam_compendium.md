@@ -98,6 +98,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.png) | **Triple-shouldered and sloped through mortise and tenon**<br>abgesetzter durchgehender schräger Eckzapfen, p. 316<br>`triple_shouldered_sloped_through_mortise_tenon` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
+| ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
