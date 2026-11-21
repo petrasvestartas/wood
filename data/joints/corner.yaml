@@ -2301,3 +2301,48 @@ blind_fan_double_tenon_corner:
     - "B9 b_node cheek_in cheek_miter"
   insertions:
     - "-u"
+
+wedged_collared_blind_mortise_tenon_corner:
+  title: "Wedged collared blind mortise and tenon"
+  german: "verkeilter durchgehender abgesetzter Eckzapfen mit Führungszapfen und Wange auf Gehrung"
+  page: "332"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.15"
+    - "key_thick = 0.1"
+    - "thickness = 0.3333333333333333"
+    - "haunch = 0.3"
+    - "haunch_width = 0.35"
+    - "guide = 0.15"
+    - "guide_depth = 0.15"
+  points:
+    - "U = O + n"
+    - "CX = O + ah*p - 2*bh*n"
+    - "KC = O - bh*n - 0.3*ah*p"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "tenon_edge = O + (1 - 2*haunch_width)*ah*p, p, O - ah*p"
+    - "haunch_floor = O - 2*haunch*bh*n, n, O"
+    - "guide_band = O + (2*guide - 1)*ah*p, p, O + ah*p"
+    - "guide_end = O - 2*guide_depth*bh*n, n, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_miter = CX, p + n, CX - p"
+  parts:
+    - "key = KC + 1.4*aw*w, KC - 1.4*aw*w, n, key_thick*2*bh, 0.2*ah, 0.14*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder layer_1 -guide_band -cheek_in; a_end shoulder layer_2 -guide_band -cheek_in; a_end guide_end layer_1 -cheek_in; a_end guide_end layer_2 -cheek_in; a_end shoulder -layer_1 -layer_2 tenon_edge haunch_floor -cheek_in"
+    - "B2 b_node layer_1 guide_band -guide_end -face_2 -cheek_in; b_node layer_2 guide_band -guide_end -face_2 -cheek_in; b_node -layer_1 -layer_2 -tenon_edge -face_2 -cheek_in; b_node -layer_1 -layer_2 tenon_edge -haunch_floor -cheek_in"
+    - "A9 a_end shoulder cheek_in -cheek_miter"
+    - "B9 b_node cheek_in cheek_miter"
+    - "A8 key"
+    - "B8 key"
+  insertions:
+    - "-u"
+    - "key = -w"
