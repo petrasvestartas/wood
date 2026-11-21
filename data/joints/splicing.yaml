@@ -3442,3 +3442,55 @@ blind_rabbeted_diagonal_half_lap_key_splice:
   insertions:
     - "-N"
     - "key = -N"
+
+
+post_through_tenon_stop_splayed_scarf_stub_tenons:
+  title: "Post with through tenon and mortised stop-splayed cogged scarf joint with stub tenons"
+  german: "schräges Hakenblatt mit Brüstungszapfen auf durchgehendem Pfostenzapfen"
+  page: "582"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "stub = 0.3"
+    - "band = 0.3"
+    - "tu = 0.3"
+    - "tw = 0.3"
+    - "lap = 2.9"
+    - "stop = 0.6"
+    - "cog = 0.24"
+  points:
+    - "S1 = O - L*u - stop*ah*p"
+    - "S2 = O + L*u + stop*ah*p"
+    - "C = O + cog*ah*p"
+    - "H1 = O - L*u - stop*ah*p + cog*ah*p"
+    - "H2 = O + L*u + stop*ah*p + cog*ah*p"
+  planes:
+    - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder_b = O - L*u, u, O - 2*L*u"
+    - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "tu1 = O + tu*ah*u, u, O"
+    - "tu2 = O - tu*ah*u, u, O"
+    - "tw1 = O + tw*aw*w, w, O"
+    - "tw2 = O - tw*aw*w, w, O"
+    - "post_top = O - ah*p, p, O - 2*ah*p"
+    - "tip_a = O - (L - stub*ah)*u, u, O + 2*L*u"
+    - "tip_b = O + (L - stub*ah)*u, u, O - 2*L*u"
+    - "sb1 = O + band*aw*w, w, O"
+    - "sb2 = O - band*aw*w, w, O"
+  more:
+    - "c = 0 0 60, 0 0 -660, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_end -upper shoulder_a cut -tip_b; a_end -upper shoulder_a cut tip_b -sb1 -sb2; a_end -splay shoulder_a -cut -tip_b; a_end -splay shoulder_a -cut tip_b -sb1 -sb2; a_end tip_a sb1; a_end tip_a sb2"
+    - "B2 b_end upper shoulder_b cut -tip_a; b_end upper shoulder_b cut tip_a -sb1 -sb2; b_end splay shoulder_b -cut -tip_a; b_end splay shoulder_b -cut tip_a -sb1 -sb2; b_end tip_b sb1; b_end tip_b sb2"
+    - "A3 a_end -tu1 -tu2 -tw1 -tw2"
+    - "B3 b_end -tu1 -tu2 -tw1 -tw2"
+    - "C2 c post_top tu1; c post_top tu2; c post_top tw1; c post_top tw2"
+  insertions:
+    - "p"
+    - "c = p"
+
