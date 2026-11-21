@@ -651,3 +651,30 @@ triple_cogged_lap_splice:
     - "B2 b_end -lo -c1 shoulder_b; b_end -hi c1 -c2; b_end -lo c2 -c3; b_end -hi c3 -c4; b_end -lo c4 -c5; b_end -hi c5"
   insertions:
     - "-p"
+
+rabbeted_half_lap_splice:
+  title: "Rabbeted half lap joint"
+  german: "gerades Blatt mit Steckfalz"
+  page: "104"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "lip = 0.38"
+    - "rabbet = 0.4"
+  points:
+  planes:
+    - "mid = O, p, O + 2*ah*p"
+    - "lo = O - lip*ah*p, p, O + 2*ah*p"
+    - "hi = O + lip*ah*p, p, O + 2*ah*p"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -mid e1; a_end -mid hi e2; a_end lo -f1; a_end mid -f2"
+    - "B2 b_end mid f1; b_end -lo mid f2; b_end -hi -e1; b_end -mid -e2"
+  insertions:
+    - "w"
