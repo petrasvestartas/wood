@@ -2731,3 +2731,37 @@ halved_splayed_rabbeted_scarf_key:
     - "-u"
     - "key = -p"
 
+
+pegged_rabbeted_mortise_tenon_splice:
+  title: "Pegged rabbeted mortise and tenon joint"
+  german: "Zapfen mit Steckfalz und Dübelsicherung"
+  page: "192"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.4"
+    - "thickness = 0.33"
+    - "rabbet = 0.35"
+    - "lip = 0.4"
+    - "peg = 0.08"
+  points:
+    - "K1 = O - 0.5*L*u"
+    - "K2 = O + 0.2*L*u"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "lip_u = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "lip_p = O + (1 - 2*lip)*ah*p, p, O"
+  parts:
+    - "peg_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, u, peg*ah"
+    - "peg_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, u, peg*ah"
+  steps:
+    - "A2 a_end lip_u cheek_1; a_end lip_u cheek_2; a_end shoulder_a -lip_u -lip_p cheek_1; a_end shoulder_a -lip_u -lip_p cheek_2"
+    - "A3 peg_1; peg_2"
+    - "B2 b_end f2 -cheek_1 -cheek_2; b_end -lip_u lip_p cheek_1; b_end -lip_u lip_p cheek_2"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "-p"
