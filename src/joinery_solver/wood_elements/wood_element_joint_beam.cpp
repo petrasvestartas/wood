@@ -2773,7 +2773,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const Point face = crossing ? node + n * bh : node + u * (bh / u.dot(n));
         names = {
             {"O", {0.0, face - origin, true}}, {"u", {0.0, u, true}}, {"n", {0.0, n, true}}, {"t", {0.0, t, true}}, {"w", {0.0, w, true}},
-            {"p", {0.0, p, true}}, {"R", {0.0, on_a - origin, true}}, {"ah", {ah}}, {"aw", {aw}}, {"bh", {bh}}, {"bw", {bw}}, {"bt", {bt}},
+            {"p", {0.0, p, true}}, {"c", {0.0, along_b, true}}, {"R", {0.0, on_a - origin, true}}, {"ah", {ah}}, {"aw", {aw}}, {"bh", {bh}}, {"bw", {bw}}, {"bt", {bt}},
         };
 
         // parameters, given ones first; then the points, every one also widening the boxes
@@ -2794,7 +2794,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
 
         // the boxes the steps cut from: the end of a or a around the crossing, b around the node through its width or as wide as a
         const double lateral = aw >= bw - 1e-6 ? bw + overshoot : aw;
-        const double t_extent = along ? span + ah + aw + overshoot : bt + overshoot;
+        // across b the box reaches over the footprint of a on b, measured along t: longer where a crosses b obliquely in plan
+    const double sine = std::max(t.cross(along_b).magnitude(), 0.2);
+    const double t_extent = along ? span + ah + aw + overshoot : (bt + aw * std::abs(t.dot(along_b))) / sine + overshoot;
         const double around = 4.0 * (ah + bh) + 2.0 * bt + overshoot;
         boxes["b_node"] = frame_solid(node, {t, w, n}, {-t_extent, t_extent}, {-lateral, lateral}, {-bh - overshoot, bh + overshoot});
         if (crossing)

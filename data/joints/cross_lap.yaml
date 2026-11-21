@@ -607,3 +607,99 @@ oblique_double_notch_cross:
     - "B2 b_node -slope -side_1 -side_2"
   insertions:
     - "-n"
+
+oblique_notched_cross_lap:
+  title: "Oblique notched cross lap joint"
+  german: "schräges Kreuzblatt mit Stirnversatz"
+  page: "672"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "plan = 50"
+    - "tail = 600"
+    - "sit = 1"
+    - "step = 0.3"
+  points:
+    - "K = unit(cross(n, c))"
+    - "F1 = O - bh*n + (aw - step*aw)*w"
+    - "F2 = O + (aw - 0.4*step*aw)*w"
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "cs1 = O + bt*K, K, O"
+    - "cs2 = O - bt*K, K, O"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "front = F1, cross(t, F2 - F1), O"
+  parts:
+  steps:
+    - "A2 a_node mid -cs1 -cs2; a_node -mid front -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -front"
+  insertions:
+    - "-n"
+
+oblique_notched_heel_cross_lap:
+  title: "Oblique notched heel cross lap joint"
+  german: "schräges Kreuzblatt mit Fersenversatz"
+  page: "674"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "plan = 50"
+    - "tail = 600"
+    - "sit = 1"
+    - "step = 0.3"
+  points:
+    - "K = unit(cross(n, c))"
+    - "H1 = O - bh*n - (aw - step*aw)*w"
+    - "H2 = O - (aw - 0.4*step*aw)*w"
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "cs1 = O + bt*K, K, O"
+    - "cs2 = O - bt*K, K, O"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "heel = H1, cross(t, H2 - H1), O"
+  parts:
+  steps:
+    - "A2 a_node mid -cs1 -cs2; a_node -mid heel -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -heel"
+  insertions:
+    - "-n"
+
+double_notched_oblique_cross_lap:
+  title: "Double notched oblique cross lap joint"
+  german: "schräges Kreuzblatt mit Stirn- und Fersenversatz"
+  page: "676"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "pitch = 0"
+    - "plan = 50"
+    - "tail = 600"
+    - "sit = 1"
+    - "step = 0.3"
+  points:
+    - "K = unit(cross(n, c))"
+    - "F1 = O - bh*n + (aw - step*aw)*w"
+    - "F2 = O + (aw - 0.4*step*aw)*w"
+    - "H1 = O - bh*n - (aw - step*aw)*w"
+    - "H2 = O - (aw - 0.4*step*aw)*w"
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "cs1 = O + bt*K, K, O"
+    - "cs2 = O - bt*K, K, O"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "front = F1, cross(t, F2 - F1), O"
+    - "heel = H1, cross(t, H2 - H1), O"
+  parts:
+  steps:
+    - "A2 a_node mid -cs1 -cs2; a_node -mid front -cs1 -cs2; a_node -mid heel -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -front -heel"
+  insertions:
+    - "-n"

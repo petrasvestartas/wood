@@ -257,13 +257,16 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         carrier = EdgeStraightElement::square(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), half, design + "_carrier");
         if (square_stock)
             carrier->directions = {Vector::z_axis()};
-        const Vector downhill(-1.0, 0.0, 0.0);
-        const Vector up(-std::sin(turn), 0.0, std::cos(turn));
+        // plan turns the member about z from square across the carrier (90 degrees) to the crossing angle it names
+        const double plan = (numbers.count("plan") ? numbers["plan"] : 90.0) * Tolerance::PI / 180.0;
+        const Vector downhill(-std::sin(plan), -std::cos(plan), 0.0);
+        const Vector up(-std::sin(turn) * std::sin(plan), -std::sin(turn) * std::cos(plan), std::cos(turn));
+        const Vector slope(std::cos(turn) * std::sin(plan), std::cos(turn) * std::cos(plan), std::sin(turn));
         const Point underside = at + Vector(0.0, 0.0, half) + downhill * (numbers["shift"] * half) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * half);
         const Point on_axis = underside + up * half;
-        member = EdgeStraightElement::square(Polyline({on_axis - along * numbers["tail"], on_axis + along * 600.0}), half, design + "_member");
+        member = EdgeStraightElement::square(Polyline({on_axis - slope * numbers["tail"], on_axis + slope * 600.0}), half, design + "_member");
         if (square_stock)
-            member->directions = {Vector::y_axis()};
+            member->directions = {Vector(-std::cos(plan), std::sin(plan), 0.0)};
         return {member, carrier};
     }
 
