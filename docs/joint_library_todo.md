@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 24 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 23 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 5 left of 110
 
@@ -10,10 +10,9 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 242, Kawai joint (diagonal angeschnittener Stoß mit dreifacher polyedrischer Ausstemmung)
 - p. 254, Rabbeted gooseneck joint with barb (abgesetzter Sichelzapfen mit Steckfalz und abgesetztem Gehrungsblatt)
 
-## Timber corner joints: 7 left of 79
+## Timber corner joints: 6 left of 79
 
 - p. 322, Blind dovetail tenon (verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung)
-- p. 324, Blind triple-shouldered through mortise and tenon (durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung)
 - p. 332, Wedged collared blind mortise and tenon (verkeilter durchgehender abgesetzter Eckzapfen mit Führungszapfen und Wange auf Gehrung)
 - p. 360, Stopped miter with blind dovetail tenon (verdeckter Schwalbenschwanzzapfen mit abgesetztem Gehrungsstoß)
 - p. 364, Canvas stretcher (Keilrahmen)

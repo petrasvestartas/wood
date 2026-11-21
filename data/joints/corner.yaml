@@ -2225,3 +2225,36 @@ triple_shouldered_double_tenon_miter:
     - "B2 b_node layer_1 -miter; b_node -s2 -s3 -face_2 -ts; b_node s4 -s5 -face_2 -ts"
   insertions:
     - "-u"
+
+blind_triple_shouldered_through_tenon_corner:
+  title: "Blind triple-shouldered through mortise and tenon"
+  german: "durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung"
+  page: "324"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.15"
+    - "thickness = 0.3333333333333333"
+    - "height = 0.66"
+  points:
+    - "CX = O + ah*p - 2*bh*n"
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "edge = O - 2*height*bh*n, n, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "cheek_miter = CX, p + n, CX - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder -cheek_in edge; a_end shoulder -cheek_in cheek_1; a_end shoulder -cheek_in cheek_2"
+    - "B2 b_node -edge -cheek_1 -cheek_2 -cheek_in -face_2"
+    - "A9 a_end shoulder cheek_in -cheek_miter"
+    - "B9 b_node cheek_in cheek_miter"
+  insertions:
+    - "-u"
