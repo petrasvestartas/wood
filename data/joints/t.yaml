@@ -2056,6 +2056,34 @@ wedged_half_dovetailed_t_bridle:
   insertions:
     - "unit(D - B)"
 
+diagonally_cut_t_bridle:
+  title: "Diagonally cut T-bridle joint"
+  german: "diagonale Einhälsung"
+  page: "566"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "neck = 0.5"
+  points:
+    - "S = O + n"
+    - "D = unit(ah*w - aw*p)"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "slot_1 = O + neck*aw*D, D, O + aw*D"
+    - "slot_2 = O - neck*aw*D, D, O - aw*D"
+    - "tine_1 = O + neck*aw*D, D, O"
+    - "tine_2 = O - neck*aw*D, D, O"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder slot_1 slot_2"
+    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2"
+  insertions:
+    - "-u"
+
 dovetail_t_bridle:
   title: "Dovetail T-bridle joint"
   german: "schwalbenschwanzförmige Einhälsung"
