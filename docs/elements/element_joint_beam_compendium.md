@@ -327,6 +327,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_rabbeted_diagonal_half_lap_key_splice.png) | **Blind rabbeted diagonally cut half lap joint with a key**<br>diagonales Blatt mit verdecktem Steckfalz und Spannkeil, p. 154<br>`blind_rabbeted_diagonal_half_lap_key_splice` |
 | ![](joint_library/beam_post_through_tenon_stop_splayed_scarf_stub_tenons.png) | **Post with through tenon and mortised stop-splayed cogged scarf joint with stub tenons**<br>schräges Hakenblatt mit Brüstungszapfen auf durchgehendem Pfostenzapfen, p. 582<br>`post_through_tenon_stop_splayed_scarf_stub_tenons` |
 | ![](joint_library/beam_half_blind_rabbeted_lap_tapered_keys_splice.png) | **Half-blind rabbeted lap joint with tapered keys**<br>halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen, p. 112<br>`half_blind_rabbeted_lap_tapered_keys_splice` |
+| ![](joint_library/beam_pegged_half_blind_rabbeted_stop_splayed_cogged_scarf.png) | **Pegged half blind rabbeted stop-splayed cogged scarf joint**<br>halbverdecktes schräges Hakenblatt mit Steckfalz und Dübelsicherung, p. 152<br>`pegged_half_blind_rabbeted_stop_splayed_cogged_scarf` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
