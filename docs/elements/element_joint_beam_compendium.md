@@ -304,6 +304,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_halved_splayed_rabbeted_scarf_key.png) | **Halved splayed rabbeted scarf joint with tapered key**<br>doppelte Schäftung mit Brüstungszapfen und Spannkeil, p. 164<br>`halved_splayed_rabbeted_scarf_key` |
 | ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.png) | **Pegged rabbeted mortise and tenon joint**<br>Zapfen mit Steckfalz und Dübelsicherung, p. 192<br>`pegged_rabbeted_mortise_tenon_splice` |
 | ![](joint_library/beam_rabbeted_rod_tenon_tapered_keys_splice.png) | **Rabbeted rod tenon joint with tapered keys**<br>Stabzapfen mit Steckfalz und Spannkeilen, p. 194<br>`rabbeted_rod_tenon_tapered_keys_splice` |
+| ![](joint_library/beam_undersquinted_cogged_lap_floating_piece_wedges_splice.png) | **Undersquinted cogged lap joint with floating piece and folding wedges**<br>verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück, p. 94<br>`undersquinted_cogged_lap_floating_piece_wedges_splice` |
+| ![](joint_library/beam_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.png) | **Undersquinted stepped cogged lap joint with floating piece and folding wedges**<br>verkeiltes gestuftes Hakenblatt mit hinterschnittener Brüstung und eingesetztem Hakenstück, p. 100<br>`undersquinted_stepped_cogged_lap_floating_piece_wedges_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
