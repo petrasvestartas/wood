@@ -3322,3 +3322,39 @@ four_faced_dovetail_splice:
     - "B2 b_end f2 -flank_1 -flank_2"
   insertions:
     - "-D1"
+
+four_faced_gooseneck_splice:
+  title: "Four-faced gooseneck joint"
+  german: "diagonaler doppelter Sichelzapfen mit Steckfalz"
+  page: "260"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.24"
+    - "head = 0.47"
+    - "neck = 0.19"
+    - "wide = 0.42"
+    - "tip = 0.32"
+  points:
+    - "D1 = unit(ah*p + aw*w)"
+    - "D2 = unit(ah*p - aw*w)"
+    - "H = O + (head*2*ah - L)*u"
+    - "W1 = H + wide*ah*D2"
+    - "E1 = O - L*u + tip*ah*D2"
+    - "W2 = H - wide*ah*D2"
+    - "E2 = O - L*u - tip*ah*D2"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "hend = H, u, O - 2*L*u"
+    - "neck_1 = O + neck*ah*D2, D2, O"
+    - "neck_2 = O - neck*ah*D2, D2, O"
+    - "flank_1 = W1, cross(D1, E1 - W1), O - L*u"
+    - "flank_2 = W2, cross(D1, E2 - W2), O - L*u"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a hend neck_1; a_end shoulder_a hend neck_2; a_end -hend flank_1; a_end -hend flank_2"
+    - "B2 b_end hend -neck_1 -neck_2; b_end f2 -hend -flank_1 -flank_2"
+  insertions:
+    - "-D1"
