@@ -132,6 +132,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_dado_rabbet_corner.png) | **Blind dado and rabbet joint**<br>Eckstoß mit Führungszapfen und Wange auf Gehrung, p. 328<br>`blind_dado_rabbet_corner` |
 | ![](joint_library/beam_housed_stub_tenon_corner.png) | **Housed stub tenon**<br>halbverdeckter eingelassener Eckzapfen, p. 384<br>`housed_stub_tenon_corner` |
 | ![](joint_library/beam_housed_dovetail_tenon_corner.png) | **Housed dovetail tenon**<br>halbverdeckter eingelassener Schwalbenschwanzeckzapfen, p. 386<br>`housed_dovetail_tenon_corner` |
+| ![](joint_library/beam_half_blind_dovetail_bridle_corner.png) | **Half-blind dovetail bridle joint**<br>halbverdeckter Schwalbenschwanzeckzapfen, p. 392<br>`half_blind_dovetail_bridle_corner` |
+| ![](joint_library/beam_through_dovetail_bridle_corner.png) | **Through dovetail bridle joint**<br>durchgehender Schwalbenschwanzeckzapfen, p. 394<br>`through_dovetail_bridle_corner` |
+| ![](joint_library/beam_half_blind_triple_shouldered_dovetail_corner.png) | **Half-blind triple shouldered dovetail tenon**<br>halbverdeckter abgesetzter Schwalbenschwanzeckzapfen, p. 396<br>`half_blind_triple_shouldered_dovetail_corner` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |
