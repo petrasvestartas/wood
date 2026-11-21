@@ -61,3 +61,90 @@ post_through_tenon_crossed:
   insertions:
     - "-n"
     - "c = n"
+
+post_stub_tenon_double_cogged:
+  title: "Post with stub tenon and mortised double cogged joint"
+  german: "verdeckter Zapfen mit Kreuzkamm und mittiger Stufe"
+  page: "708"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "stub_t = 0.3"
+    - "stub_w = 0.6"
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0.16"
+  points:
+    - "U = O + n"
+  planes:
+    - "outer = O + bt*t, t, O"
+    - "top = O, n, U"
+    - "under = R - ah*p, p, R"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "side_1 = O + aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+    - "third_1 = O - bt*t/3, t, O - bt*t"
+    - "third_2 = O + bt*t/3, t, O - bt*t"
+    - "st1 = O + stub_t*bt*t, t, O"
+    - "st2 = O - stub_t*bt*t, t, O"
+    - "sw1 = O + stub_w*bt*w, w, O"
+    - "sw2 = O - stub_w*bt*w, w, O"
+    - "stub_top = O - 1.2*bh*n, n, O"
+    - "post_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 -12, 0 0 -600, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_node top third_1 -third_2 inner -outer"
+    - "B2 b_node -under -third_1 -side_1 -side_2; b_node -under third_2 -side_1 -side_2"
+    - "B3 b_node -st1 -st2 -sw1 -sw2 stub_top"
+    - "C2 c post_shoulder st1; c post_shoulder st2; c post_shoulder sw1; c post_shoulder sw2"
+  insertions:
+    - "-n"
+    - "c = n"
+
+stacked_tenon_mortised_cross_lap:
+  title: "Stacked tenon and mortised cross lap joint"
+  german: "durchgesteckter beidseitig abgesetzter Stufenzapfen mit Kreuzblatt"
+  page: "714"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "low_t = 0.35"
+    - "low_w = 0.6"
+    - "top_t = 0.2"
+    - "top_w = 0.2"
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "lt1 = O + low_t*bt*t, t, O"
+    - "lt2 = O - low_t*bt*t, t, O"
+    - "lw1 = O + low_w*bt*w, w, O"
+    - "lw2 = O - low_w*bt*w, w, O"
+    - "ut1 = O + top_t*bt*t, t, O"
+    - "ut2 = O - top_t*bt*t, t, O"
+    - "uw1 = O + top_w*bt*w, w, O"
+    - "uw2 = O - top_w*bt*w, w, O"
+    - "step = O - bh*n, n, O"
+    - "post_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 60, 0 0 -600, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer"
+    - "B2 b_node -mid"
+    - "A3 a_node -ut1 -ut2 -uw1 -uw2"
+    - "B3 b_node -lt1 -lt2 -lw1 -lw2 step; b_node -ut1 -ut2 -uw1 -uw2"
+    - "C2 c post_shoulder lt1; c post_shoulder lt2; c post_shoulder lw1; c post_shoulder lw2; c -step ut1; c -step ut2; c -step uw1; c -step uw2"
+  insertions:
+    - "-n"
+    - "c = n"
