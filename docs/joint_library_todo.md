@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 25 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 24 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 5 left of 110
 
@@ -52,9 +52,9 @@ All done.
 
 All done.
 
-## Case corner joints: 1 left of 16
+## Case corner joints: 0 left of 16
 
-- p. 842, Radial dovetail joint (Eckverbindung mit Teufelszinken)
+All done.
 
 ## Case T-joints: 0 left of 6
 

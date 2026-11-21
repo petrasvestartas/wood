@@ -553,3 +553,52 @@ cogged_dovetail_case_corner:
     - "B2 b_node -inner -end -l1 -r1; b_node -inner -cog_end -l2 -r2; b_node -inner -end -l3 -r3"
   insertions:
     - "-p"
+
+radial_dovetail_case_corner:
+  title: "Radial dovetail joint"
+  german: "Eckverbindung mit Teufelszinken"
+  page: "842"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "top = 0.12"
+    - "foot = 0.2"
+    - "depth = 1"
+    - "rad = 0.15"
+  points:
+    - "U = O + n"
+    - "D = O - 2*depth*bh*n"
+    - "A1l = O + (-0.6 - top)*aw*w"
+    - "B1l = D + (-0.6 - foot)*aw*w"
+    - "A1r = O + (-0.6 + top)*aw*w"
+    - "B1r = D + (-0.6 + foot)*aw*w"
+    - "C1 = (O + D)/2 + -0.6*aw*w"
+    - "A2l = O + (0.0 - top)*aw*w"
+    - "B2l = D + (0.0 - foot)*aw*w"
+    - "A2r = O + (0.0 + top)*aw*w"
+    - "B2r = D + (0.0 + foot)*aw*w"
+    - "C2 = (O + D)/2 + 0.0*aw*w"
+    - "A3l = O + (0.6 - top)*aw*w"
+    - "B3l = D + (0.6 - foot)*aw*w"
+    - "A3r = O + (0.6 + top)*aw*w"
+    - "B3r = D + (0.6 + foot)*aw*w"
+    - "C3 = (O + D)/2 + 0.6*aw*w"
+  planes:
+    - "shoulder = O, n, U"
+    - "end = D, n, O"
+    - "inner = O - ah*p, p, O + p"
+    - "l1 = A1l, cross(p + rad*w, B1l - A1l), C1"
+    - "r1 = A1r, cross(p + rad*w, B1r - A1r), C1"
+    - "l2 = A2l, cross(p + rad*w, B2l - A2l), C2"
+    - "r2 = A2r, cross(p + rad*w, B2r - A2r), C2"
+    - "l3 = A3l, cross(p + rad*w, B3l - A3l), C3"
+    - "r3 = A3r, cross(p + rad*w, B3r - A3r), C3"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder l1; a_end shoulder r1 l2; a_end shoulder r2 l3; a_end shoulder r3"
+    - "B2 b_node -inner -end -l1 -r1; b_node -inner -end -l2 -r2; b_node -inner -end -l3 -r3"
+  insertions:
+    - "-unit(p + rad*w)"
