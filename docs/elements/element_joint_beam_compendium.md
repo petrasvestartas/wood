@@ -150,6 +150,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_haunched_through_tenon_one_sided_stopped_miter.png) | **Haunched through mortise and tenon with one-sided stopped lapped miter**<br>durchgehender abgesetzter Stufenzapfen mit halbem Gehrungsblatt, p. 376<br>`haunched_through_tenon_one_sided_stopped_miter` |
 | ![](joint_library/beam_blind_haunched_tenon_miter.png) | **Blind haunched mortise and tenon miter**<br>verdeckter abgesetzter Stufenzapfen mit Gehrungsblatt und Wange, p. 378<br>`blind_haunched_tenon_miter` |
 | ![](joint_library/beam_haunched_through_double_tenon_one_sided_miter.png) | **Haunched through double mortise and tenon with one-sided lapped miter**<br>durchgehender abgesetzter doppelter Stufenzapfen mit Gehrungsblatt, p. 380<br>`haunched_through_double_tenon_one_sided_miter` |
+| ![](joint_library/beam_blind_mitered_corner_lap.png) | **Blind mitered corner lap joint**<br>verdecktes Eckblatt mit Wange auf Gehrung, p. 264<br>`blind_mitered_corner_lap` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |

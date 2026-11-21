@@ -1677,3 +1677,31 @@ haunched_through_double_tenon_one_sided_miter:
     - "B2 b_node layer_1 -miter; b_node -s2 -s3 -tenon_edge -face_2; b_node -s2 -s3 tenon_edge -haunch_floor; b_node s4 -tenon_edge -face_2; b_node s4 tenon_edge -haunch_floor"
   insertions:
     - "-u"
+
+blind_mitered_corner_lap:
+  title: "Blind mitered corner lap joint"
+  german: "verdecktes Eckblatt mit Wange auf Gehrung"
+  page: "264"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "cheek = 0.15"
+  points:
+    - "U = O + n"
+    - "C = O + ah*p - 2*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_2 = O - ah*p, p, O"
+    - "cheek_in = O + (1 - 2*cheek)*ah*p, p, O"
+    - "miter = C, p + n, C - p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid -cheek_in; a_end shoulder cheek_in -miter"
+    - "B2 b_node -mid -face_2 -cheek_in; b_node cheek_in miter"
+  insertions:
+    - "-u"
+    - "w"
