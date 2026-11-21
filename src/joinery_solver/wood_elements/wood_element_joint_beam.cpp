@@ -2748,11 +2748,25 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
         // a crossing's member lies over the carrier; when the axes meet (a cross lap) it lies over it along world up
     const Vector toward = !crossing ? u : Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : Vector::z_axis();
-        const std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
-        const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
+        std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        // a record's roll turned both sections about their axes (a diagonal puzzle): the frame is taken from them turned back
+        for (const std::string& line : record.lists["parameters"]) {
+            const std::vector<std::string> pair = split_top(line, '=');
+            if (pair[0] != "roll")
+                continue;
+            const double roll = parameters.count("roll") ? parameters.at("roll") : std::stod(pair[1]);
+            const Xform back_a = Xform::rotation(a_axis.to_vector().normalized(), -roll, true);
+            const Xform back_b = Xform::rotation(b_axis.to_vector().normalized(), -roll, true);
+            for (size_t i = 0; i < 2; i++) {
+                a_section.first[i] = a_section.first[i].transformed(back_a);
+                b_section.first[i] = b_section.first[i].transformed(back_b);
+            }
+        }
         const size_t k = std::abs(b_section.first[0].dot(toward)) >= std::abs(b_section.first[1].dot(toward)) ? 0 : 1;
         const Vector n = b_section.first[k] * (b_section.first[k].dot(toward) > 0.0 ? 1.0 : -1.0);
-        if (crossing && u.dot(n) < 0.0)
+        // a level member (pitch 0) keeps its own direction: rounding noise in the dot must not turn the frame
+        if (crossing && u.dot(n) < -1e-9)
             u = u * -1.0;
 
         const Vector along_b = b_axis.to_vector().normalized();

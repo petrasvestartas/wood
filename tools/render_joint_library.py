@@ -1,6 +1,6 @@
 """One picture per joint of the beam joint library, docs/images/joint_library/beam_<design>.png: runs element_joint_beam_library,
 takes each design's group (the joint on a square corner and on an inclined one, as its record allows) and draws it with the
-viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, cropped to 3:2 with a margin; then rewrites
+viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, see-through so hidden cuts show, cropped to 3:2 with a margin; then rewrites
 the table of docs/elements/element_joint_beam_compendium.md between its joint-table markers from the records, and the list of
 the book's joints still to do (tools/joint_library_todo.py).
 
@@ -47,7 +47,7 @@ print(json.dumps(written))
 def render(pb: str) -> Image.Image:
     """The scene drawn isometric at 3600 x 2400, the outline twice its width for the halving, cropped to 3:2 and halved."""
     env = dict(
-        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY="1.0", VIEWER_W="3600", VIEWER_H="2400", VIEWER_DPR="2",
+        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY="0.45", VIEWER_W="3600", VIEWER_H="2400", VIEWER_DPR="2",
         VIEWER_THICKNESS="1", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0", VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
     )
     with tempfile.TemporaryDirectory() as tmp:

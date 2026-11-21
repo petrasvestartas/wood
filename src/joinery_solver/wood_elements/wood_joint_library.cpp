@@ -140,10 +140,11 @@ struct Reader {
     }
 };
 
-/// A beam along axis, square of half side thick when wide is the same, else a board thick across up and wide across both.
-std::shared_ptr<EdgeStraightElement> stock(const Polyline& axis, const Vector& up, double thick, double wide, const std::string& name) {
+/// A beam along axis, square of half side thick when wide is the same, else a board thick across up and wide across both; a
+/// rolled beam keeps up even when square.
+std::shared_ptr<EdgeStraightElement> stock(const Polyline& axis, const Vector& up, double thick, double wide, const std::string& name, bool rolled = false) {
 
-    if (std::abs(thick - wide) < 1e-9)
+    if (std::abs(thick - wide) < 1e-9 && !rolled)
         return EdgeStraightElement::square(axis, thick, name);
 
     const Point start = axis.get_point(0);
@@ -251,7 +252,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"span", 450.0}, {"lap", 2.0}, {"stock_thick", 60.0}, {"stock_wide", 60.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 300.0}, {"pitch", 35.0}, {"reach", 225.0}, {"span", 225.0}, {"lap", 2.0}, {"stock_thick", 60.0}, {"stock_wide", 60.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -269,8 +270,8 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     // a splice: both along x on one line, overlapping by lap section heights, the member on the +x side
     if (record.fields.at("family") == "splicing") {
         const double overlap = numbers["lap"] * 2.0 * numbers["stock_thick"];
-        member = stock(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(600.0, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_member");
-        carrier = stock(Polyline({at - Vector(600.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
+        member = stock(Polyline({at - Vector(0.5 * overlap, 0.0, 0.0), at + Vector(300.0, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_member");
+        carrier = stock(Polyline({at - Vector(300.0, 0.0, 0.0), at + Vector(0.5 * overlap, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
         if (square_stock)
             member->directions = {Vector::z_axis()};
         if (square_stock)
@@ -284,8 +285,10 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         const double carrier_thick = numbers.count("carrier_thick") ? numbers["carrier_thick"] : half;
         const double carrier_wide = numbers.count("carrier_wide") ? numbers["carrier_wide"] : half;
         const double member_thick = numbers["stock_thick"];
-        carrier = stock(Polyline({at + Vector(0.0, -450.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), Vector::z_axis(), carrier_thick, carrier_wide, design + "_carrier");
-        if (std::abs(carrier_thick - carrier_wide) < 1e-9)
+        // roll turns both sections about their own axes (a diagonal puzzle's sticks stand on an edge) and keeps them from being turned
+        const double roll = (numbers.count("roll") ? numbers["roll"] : 0.0) * Tolerance::PI / 180.0;
+        carrier = stock(Polyline({at + Vector(0.0, -225.0, 0.0), at + Vector(0.0, numbers["reach"], 0.0)}), Vector(std::sin(roll), 0.0, std::cos(roll)), carrier_thick, carrier_wide, design + "_carrier", roll != 0.0);
+        if (std::abs(carrier_thick - carrier_wide) < 1e-9 && roll == 0.0)
             carrier->directions = {Vector::z_axis()};
         // plan turns the member about z from square across the carrier (90 degrees) to the crossing angle it names
         const double plan = (numbers.count("plan") ? numbers["plan"] : 90.0) * Tolerance::PI / 180.0;
@@ -294,8 +297,8 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         const Vector slope(std::cos(turn) * std::sin(plan), std::cos(turn) * std::cos(plan), std::sin(turn));
         const Point underside = at + Vector(0.0, 0.0, carrier_thick) + downhill * (numbers["shift"] * carrier_thick) - Vector(0.0, 0.0, numbers["sit"] * 2.0 * carrier_thick);
         const Point on_axis = underside + up * member_thick;
-        member = stock(Polyline({on_axis - slope * numbers["tail"], on_axis + slope * 600.0}), up, member_thick, numbers["stock_wide"], design + "_member");
-        if (square_stock)
+        member = stock(Polyline({on_axis - slope * numbers["tail"], on_axis + slope * 300.0}), up * std::cos(roll) + slope.cross(up) * std::sin(roll), member_thick, numbers["stock_wide"], design + "_member", roll != 0.0);
+        if (square_stock && roll == 0.0)
             member->directions = {Vector(-std::cos(plan), std::sin(plan), 0.0)};
         return {member, carrier};
     }
@@ -310,7 +313,7 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     const double carrier_end = record.fields.at("category") == "end_end_inplane" ? numbers["stock_thick"] : numbers["span"];
     const Vector across(-std::sin(turn), 0.0, std::cos(turn));
     carrier = stock(Polyline({at - Vector(numbers["span"], 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), flat ? Vector::y_axis() : Vector::z_axis(), carrier_thick, carrier_wide, design + "_carrier");
-    member = stock(Polyline({at, at + along * 600.0}), flat ? Vector::y_axis() : across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
+    member = stock(Polyline({at, at + along * 300.0}), flat ? Vector::y_axis() : across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
     if (std::abs(carrier_thick - carrier_wide) < 1e-9)
         carrier->directions = {Vector::y_axis()};
     if (square_stock)

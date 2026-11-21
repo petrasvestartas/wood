@@ -43,13 +43,13 @@ int main() {
             // drawn apart as the book draws it: an end member out along its own axis whatever way it goes in, a crossing one lifted
             // straight up with the pegs that run across it, each peg or wedge out along its own way and aside from the carrier's axis
             const bool crossing = library_record(design).fields.at("category") == "cross";
-            const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 500.0;
+            const Vector out = crossing ? Vector(0.0, 0.0, 325.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 250.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
             // a more member out along its own axis away from the node, or on a crossing lifted twice as high as the member
             for (size_t m = 2; m < members.size(); m++) {
                 const Point start = members[m]->axis.get_point(0);
                 const Point end = members[m]->axis.get_point(1);
-                const Vector along_axis = (Point::distance(start, node) < Point::distance(end, node) ? end - start : start - end).normalized() * 500.0;
+                const Vector along_axis = (Point::distance(start, node) < Point::distance(end, node) ? end - start : start - end).normalized() * 250.0;
                 const Vector away = crossing ? out * 2.0 : along_axis;
                 members[m]->place(Xform::translation(away[0], away[1], away[2]));
             }
@@ -76,7 +76,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, an end member 500 mm out along its own axis, a crossing one lifted 650 mm with the pegs that run across it, every peg or wedge out along its own way by its length and 150 mm and as far aside from the carrier.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, an end member 250 mm out along its own axis, a crossing one lifted 325 mm with the pegs that run across it, every peg or wedge out along its own way by its length and 150 mm and as far aside from the carrier.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

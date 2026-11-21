@@ -24,6 +24,7 @@
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
+#   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
@@ -1169,3 +1170,75 @@ notched_corner_post_beveled_tenons:
   insertions:
     - "w"
     - "c = w"
+
+diagonal_cross_puzzle:
+  title: "Diagonal cross puzzle"
+  german: "diagonaler Zimmermannsknoten"
+  page: "734"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "abdef"
+  parameters:
+    - "pitch = 0"
+    - "tail = 300"
+    - "sit = 0.292893"
+    - "roll = 45"
+    - "open = 0.03"
+  points:
+    - "AC = O + 84.8528*t + 0.0000*w + 24.8528*n"
+    - "BC = O + 0.0000*t + 0.0000*w + -60.0000*n"
+    - "CC = O + 84.8528*t + 0.0000*w + -144.8528*n"
+    - "DC = O + 169.7056*t + 0.0000*w + -60.0000*n"
+    - "EC = O + 84.8528*t + -84.8528*w + -60.0000*n"
+    - "FC = O + 84.8528*t + 84.8528*w + -60.0000*n"
+  planes:
+    - "a1 = O + 84.8528*t + -84.9942*w + 24.9942*n, -0.0000*t + -0.7071*w + 0.7071*n, AC"
+    - "a2 = O + 84.8528*t + -84.9942*w + 24.7114*n, -0.0000*t + -0.7071*w + -0.7071*n, AC"
+    - "a3 = O + 84.8528*t + 84.9942*w + 24.9942*n, -0.0000*t + 0.7071*w + 0.7071*n, AC"
+    - "a4 = O + 84.8528*t + 84.9942*w + 24.7114*n, -0.0000*t + 0.7071*w + -0.7071*n, AC"
+    - "b1 = O + -84.9942*t + -0.0000*w + -59.8586*n, -0.7071*t + -0.0000*w + 0.7071*n, BC"
+    - "b2 = O + -84.9942*t + -0.0000*w + -60.1414*n, -0.7071*t + -0.0000*w + -0.7071*n, BC"
+    - "b3 = O + 84.9942*t + -0.0000*w + -59.8586*n, 0.7071*t + -0.0000*w + 0.7071*n, BC"
+    - "b4 = O + 84.9942*t + -0.0000*w + -60.1414*n, 0.7071*t + -0.0000*w + -0.7071*n, BC"
+    - "c1 = O + 84.8528*t + -84.9942*w + -144.7114*n, -0.0000*t + -0.7071*w + 0.7071*n, CC"
+    - "c2 = O + 84.8528*t + -84.9942*w + -144.9942*n, -0.0000*t + -0.7071*w + -0.7071*n, CC"
+    - "c3 = O + 84.8528*t + 84.9942*w + -144.7114*n, -0.0000*t + 0.7071*w + 0.7071*n, CC"
+    - "c4 = O + 84.8528*t + 84.9942*w + -144.9942*n, -0.0000*t + 0.7071*w + -0.7071*n, CC"
+    - "d1 = O + 84.7114*t + -0.0000*w + -59.8586*n, -0.7071*t + -0.0000*w + 0.7071*n, DC"
+    - "d2 = O + 84.7114*t + -0.0000*w + -60.1414*n, -0.7071*t + -0.0000*w + -0.7071*n, DC"
+    - "d3 = O + 254.6999*t + -0.0000*w + -59.8586*n, 0.7071*t + -0.0000*w + 0.7071*n, DC"
+    - "d4 = O + 254.6999*t + -0.0000*w + -60.1414*n, 0.7071*t + -0.0000*w + -0.7071*n, DC"
+    - "e1 = O + -0.1414*t + -84.9942*w + -60.0000*n, -0.7071*t + -0.7071*w + 0.0000*n, EC"
+    - "e2 = O + -0.1414*t + -84.7114*w + -60.0000*n, -0.7071*t + 0.7071*w + 0.0000*n, EC"
+    - "e3 = O + 169.8470*t + -84.9942*w + -60.0000*n, 0.7071*t + -0.7071*w + 0.0000*n, EC"
+    - "e4 = O + 169.8470*t + -84.7114*w + -60.0000*n, 0.7071*t + 0.7071*w + 0.0000*n, EC"
+    - "f1 = O + -0.1414*t + 84.7114*w + -60.0000*n, -0.7071*t + -0.7071*w + 0.0000*n, FC"
+    - "f2 = O + -0.1414*t + 84.9942*w + -60.0000*n, -0.7071*t + 0.7071*w + 0.0000*n, FC"
+    - "f3 = O + 169.8470*t + 84.7114*w + -60.0000*n, 0.7071*t + -0.7071*w + 0.0000*n, FC"
+    - "f4 = O + 169.8470*t + 84.9942*w + -60.0000*n, 0.7071*t + 0.7071*w + 0.0000*n, FC"
+  more:
+    - "c = -384.8528 0.0000 -84.8528, 215.1472 0.0000 -84.8528, 0 1 1, 60, 60"
+    - "d = -169.7056 -300.0000 0.0000, -169.7056 300.0000 0.0000, 1 0 1, 60, 60"
+    - "e = -84.8528 84.8528 -300.0000, -84.8528 84.8528 300.0000, 1 1 0, 60, 60"
+    - "f = -84.8528 -84.8528 -300.0000, -84.8528 -84.8528 300.0000, 1 1 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_all -d1 -d2 -d3 -d4"
+    - "A3 a_all -b1 -b2 -b3 -b4"
+    - "A4 a_all -f1 -f2 -f3 -f4"
+    - "B2 b_all -c1 -c2 -c3 -c4"
+    - "B3 b_all -e1 -e2 -e3 -e4"
+    - "B4 b_all -f1 -f2 -f3 -f4"
+    - "D2 d -c1 -c2 -c3 -c4"
+    - "D3 d -e1 -e2 -e3 -e4"
+    - "E2 e -c1 -c2 -c3 -c4"
+    - "E3 e -a1 -a2 -a3 -a4"
+    - "F2 f -c1 -c2 -c3 -c4"
+    - "F3 f -d1 -d2 -d3 -d4"
+  insertions:
+    - "-1.0000*t + 1.0000*w + -1.0000*n"
+    - "c = -1.0000*t + 0.0000*w + 0.0000*n"
+    - "d = -1.0000*t + -1.0000*w + 1.0000*n"
+    - "e = -1.0000*t + 0.0000*w + 0.0000*n"
+    - "f = -1.0000*t + -1.0000*w + 1.0000*n"
