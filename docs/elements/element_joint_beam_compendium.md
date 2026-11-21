@@ -224,6 +224,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_two_way_partially_housed_rod_tenon.png) | **Two-way partially housed rod tenon joint with tapered keys**<br>eingelassener durchgesteckter Stabzapfen mit abgesetzter Nut und Spannkeilen, p. 758<br>`two_way_partially_housed_rod_tenon` |
 | ![](joint_library/beam_pegged_two_way_lapped_rod_tenon_housing.png) | **Pegged two-way lapped rod tenon joint with housing**<br>durchgesteckte Stabzapfen mit Blatt und Zapfenloch sowie Dübelsicherung, p. 764<br>`pegged_two_way_lapped_rod_tenon_housing` |
 | ![](joint_library/beam_two_way_splined_rod_keys_peg.png) | **Two-way splined rod joint with tapered keys and a peg**<br>durchgesteckter Fremdzapfen mit Spannkeilen und Dübelsicherung, p. 762<br>`two_way_splined_rod_keys_peg` |
+| ![](joint_library/beam_three_way_rod_tenon_keys_wedged_haunch.png) | **Three-way rod tenon joint with tapered keys and wedged haunched tenon**<br>durchgesteckter Stabzapfen mit Spannkeilen und verkeiltem Stufenzapfen, p. 748<br>`three_way_rod_tenon_keys_wedged_haunch` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |
