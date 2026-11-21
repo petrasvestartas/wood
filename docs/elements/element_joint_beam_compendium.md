@@ -212,6 +212,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_double_notch_stub_tenons_cross.png) | **Double notch joint with stub tenons**<br>Kreuzkamm mit abgesetzter Falz, p. 688<br>`double_notch_stub_tenons_cross` |
 | ![](joint_library/beam_v_mitered_cross_lap.png) | **V-mitered cross lap joint**<br>Kreuzblatt mit Grat, p. 652<br>`v_mitered_cross_lap` |
 | ![](joint_library/beam_mitered_abutments_cross_lap.png) | **Cross lap joint with mitered abutments**<br>schräg abgesetztes Kreuzblatt, p. 654<br>`mitered_abutments_cross_lap` |
+| ![](joint_library/beam_dovetailed_cross_lap.png) | **Dovetailed cross lap joint**<br>Kreuzblatt mit abgesetzten Schwalbenschwänzen, p. 670<br>`dovetailed_cross_lap` |
 | ![](joint_library/beam_post_through_tenon_crossed.png) | **Post with through tenon and mortised crossed joint**<br>durchgesteckter Zapfen mit aufgesetzter Überkreuzung, p. 712<br>`post_through_tenon_crossed` |
 | ![](joint_library/beam_post_stub_tenon_double_cogged.png) | **Post with stub tenon and mortised double cogged joint**<br>verdeckter Zapfen mit Kreuzkamm und mittiger Stufe, p. 708<br>`post_stub_tenon_double_cogged` |
 | ![](joint_library/beam_stacked_tenon_mortised_cross_lap.png) | **Stacked tenon and mortised cross lap joint**<br>durchgesteckter beidseitig abgesetzter Stufenzapfen mit Kreuzblatt, p. 714<br>`stacked_tenon_mortised_cross_lap` |
