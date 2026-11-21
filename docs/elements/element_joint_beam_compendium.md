@@ -98,6 +98,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_fully_shouldered_through_mortise_tenon_corner.png) | **Fully shouldered through mortise and tenon**<br>beidseitig abgesetzter durchgehender Eckzapfen, p. 318<br>`fully_shouldered_through_mortise_tenon_corner` |
 | ![](joint_library/beam_through_mortise_tenon_sloped_haunch_corner.png) | **Through mortise and tenon with sloped haunch**<br>durchgehender abgesetzter Eckzapfen mit schräger Stufe, p. 312<br>`through_mortise_tenon_sloped_haunch_corner` |
 | ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.png) | **Triple-shouldered and sloped through mortise and tenon**<br>abgesetzter durchgehender schräger Eckzapfen, p. 316<br>`triple_shouldered_sloped_through_mortise_tenon` |
+| ![](joint_library/beam_dado_rabbet_corner.png) | **Dado and rabbet joint**<br>Eckstoß mit Führungszapfen, p. 326<br>`dado_rabbet_corner` |
+| ![](joint_library/beam_triple_shouldered_stub_tenon_corner.png) | **Triple-shouldered stub tenon**<br>verdeckter abgesetzter Eckzapfen, p. 398<br>`triple_shouldered_stub_tenon_corner` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |

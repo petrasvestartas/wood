@@ -1039,3 +1039,53 @@ triple_shouldered_sloped_through_mortise_tenon:
     - "B2 b_node cheek_1 -face_2; b_node cheek_2 -face_2; b_node edge -face_2"
   insertions:
     - "-p"
+
+dado_rabbet_corner:
+  title: "Dado and rabbet joint"
+  german: "Eckstoß mit Führungszapfen"
+  page: "326"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "tongue = 0.24"
+    - "depth = 0.24"
+  points:
+    - "S = O + n"
+  planes:
+    - "shoulder = O, n, S"
+    - "tongue_end = O - depth*ah*n, n, O"
+    - "tongue_top = O + (1 - tongue)*ah*p, p, O + ah*p"
+    - "face_1 = O + ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder tongue_top; a_end tongue_end"
+    - "B2 b_node -tongue_top -tongue_end -face_1"
+  insertions:
+    - "-u"
+
+triple_shouldered_stub_tenon_corner:
+  title: "Triple-shouldered stub tenon"
+  german: "verdeckter abgesetzter Eckzapfen"
+  page: "398"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.24"
+    - "depth = 0.3"
+  points:
+    - "S = O + n"
+  planes:
+    - "shoulder = O, n, S"
+    - "tenon_end = O - depth*ah*n, n, O"
+    - "edge = O + 0.24*ah*p, p, O + ah*p"
+    - "edge_2 = O + 0.76*ah*p, p, O - ah*p"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder edge; a_end shoulder edge_2; a_end shoulder cheek_1; a_end shoulder cheek_2; a_end tenon_end"
+    - "B2 b_node -edge -edge_2 -cheek_1 -cheek_2 -tenon_end"
+  insertions:
+    - "-u"
