@@ -74,6 +74,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_lock_case_corner.png) | **Lock joint**<br>gespundete Eckverbindung mit Verdeck, p. 820<br>`lock_case_corner` |
 | ![](joint_library/beam_angled_finger_case_corner.png) | **Angled finger joint**<br>Eckverbindung mit schrägen Fingerzinken, p. 840<br>`angled_finger_case_corner` |
 | ![](joint_library/beam_lock_miter_case_corner.png) | **Lock miter joint**<br>gespundete Eckverbindung mit Verdeck auf Gehrung, p. 822<br>`lock_miter_case_corner` |
+| ![](joint_library/beam_miter_dovetail_keys_case_corner.png) | **Miter joint with dovetail keys**<br>Eckverbindung auf Gehrung mit eingesetzten Schwalbenschwanzfedern, p. 828<br>`miter_dovetail_keys_case_corner` |
 | ![](joint_library/beam_shiplap_edge.png) | **Shiplap joint**<br>Überfälzung, p. 768<br>`shiplap_edge` |
 | ![](joint_library/beam_v_grooved_edge.png) | **V-grooved joint**<br>v-förmige Nut, p. 770<br>`v_grooved_edge` |
 | ![](joint_library/beam_tongue_groove_edge.png) | **Tongue and groove joint**<br>Nut und Feder, p. 772<br>`tongue_groove_edge` |
