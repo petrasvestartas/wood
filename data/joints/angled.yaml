@@ -709,7 +709,6 @@ pegged_mitered_rafter_foot:
   corners: "inclined"
   parameters:
     - "shift = -1"
-    - "tail = 400"
     - "peg = 0.15"
     - "down = 0.5"
     - "up = 0.5"
@@ -736,7 +735,6 @@ housed_rafter_foot:
   corners: "inclined"
   parameters:
     - "sit = 0.25"
-    - "tail = 400"
     - "depth = 0.25"
   points:
     - "U = O + n"
@@ -763,7 +761,6 @@ v_grooved_rafter_foot:
   corners: "inclined"
   parameters:
     - "sit = 0.25"
-    - "tail = 400"
     - "depth = 0.25"
   points:
     - "U = O + n"
@@ -791,7 +788,6 @@ birdsmouth_rafter_foot:
   parameters:
     - "sit = 0.25"
     - "shift = -1"
-    - "tail = 400"
   points:
     - "U = O + n"
   planes:
@@ -814,7 +810,6 @@ rafter_foot_tenon_undersquinted_shoulders:
   parameters:
     - "sit = 0.25"
     - "shift = -1"
-    - "tail = 400"
     - "thickness = 0.3333333333333333"
     - "depth = 0.4"
     - "length = 0.5"
@@ -847,7 +842,6 @@ birdsmouth_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
-    - "tail = 300"
   points:
     - "U = O + n"
   planes:
@@ -868,7 +862,6 @@ notched_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
-    - "tail = 300"
     - "depth = 0.15"
     - "wall = 0.5"
   points:
@@ -896,7 +889,6 @@ v_grooved_rafter_joint:
   corners: "inclined"
   parameters:
     - "sit = 0.26"
-    - "tail = 300"
   points:
     - "B = meet(R, u, O, n)"
   planes:
@@ -919,7 +911,6 @@ step_lap_rafter_joint:
   corners: "inclined"
   parameters:
     - "sit = 0.25"
-    - "tail = 300"
     - "depth = 0.25"
     - "width = 0.5"
   points:
@@ -947,7 +938,6 @@ stopped_birdsmouth_rafter_foot:
   parameters:
     - "sit = 0.6"
     - "shift = -1"
-    - "tail = 400"
     - "depth = 0.3"
   points:
     - "U = O + n"

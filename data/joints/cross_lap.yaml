@@ -38,7 +38,6 @@ cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
   points:
   planes:
@@ -61,7 +60,6 @@ pegged_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "peg = 0.12"
   points:
@@ -88,7 +86,6 @@ blind_pegged_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "peg = 0.2"
     - "depth = 0.25"
   points:
@@ -112,7 +109,6 @@ notch_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.17"
   points:
     - "U = O + n"
@@ -135,7 +131,6 @@ double_notch_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.3"
     - "split = 0.15"
   points:
@@ -163,7 +158,6 @@ cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
   points:
     - "U = O + n"
@@ -191,7 +185,6 @@ double_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
   points:
     - "U = O + n"
@@ -220,7 +213,6 @@ sloped_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
     - "wide = 0.67"
     - "narrow = 0.29"
@@ -252,7 +244,6 @@ v_shaped_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
   points:
     - "U = O + n"
@@ -282,7 +273,6 @@ x_shaped_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
   points:
     - "U = O + n"
@@ -311,7 +301,6 @@ dovetail_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
     - "neck = 0.67"
     - "flare = 1.0"
@@ -346,7 +335,6 @@ half_dovetail_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
     - "neck = 0.62"
     - "flare = 0.95"
@@ -378,7 +366,6 @@ double_notch_blind_peg_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.3"
     - "split = 0.15"
     - "peg = 0.18"
@@ -411,7 +398,6 @@ stepped_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "step = 0.25"
   points:
@@ -437,7 +423,6 @@ cogged_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "cog = 0.3"
     - "band = 0.2"
@@ -465,7 +450,6 @@ offset_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "guide = 0.4"
     - "band = 0.6"
@@ -495,7 +479,6 @@ double_offset_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "band = 0.7"
   points:
@@ -523,7 +506,6 @@ triple_offset_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "guide = 0.4"
     - "band = 0.75"
@@ -556,7 +538,6 @@ sloped_double_cog_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
     - "wide = 0.5"
     - "narrow = 0.2"
@@ -591,7 +572,6 @@ oblique_double_notch_cross:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.25"
   points:
     - "U = O + n"
@@ -621,7 +601,6 @@ oblique_notched_cross_lap:
   parameters:
     - "pitch = 0"
     - "plan = 50"
-    - "tail = 600"
     - "sit = 1"
     - "step = 0.3"
   points:
@@ -652,7 +631,6 @@ oblique_notched_heel_cross_lap:
   parameters:
     - "pitch = 0"
     - "plan = 50"
-    - "tail = 600"
     - "sit = 1"
     - "step = 0.3"
   points:
@@ -683,7 +661,6 @@ double_notched_oblique_cross_lap:
   parameters:
     - "pitch = 0"
     - "plan = 50"
-    - "tail = 600"
     - "sit = 1"
     - "step = 0.3"
   points:
@@ -718,7 +695,6 @@ three_way_cross_lap:
   parameters:
     - "pitch = 0"
     - "plan = 60"
-    - "tail = 600"
     - "sit = 1"
   points:
   planes:
@@ -753,7 +729,6 @@ cross_lap_stub_tenons:
     - "stub_w = 0.7"
     - "stub_d = 0.25"
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
   points:
   planes:
@@ -787,7 +762,6 @@ cogged_cross_lap_stub_tenons:
     - "cog = 0.3"
     - "band = 0.2"
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
   points:
   planes:
@@ -822,7 +796,6 @@ double_notch_stub_tenons_cross:
     - "stub_w = 0.5"
     - "stub_d = 0.12"
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.45"
     - "split = 0.15"
   points:
@@ -856,7 +829,6 @@ v_mitered_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "vee = 0.6"
   points:
@@ -886,7 +858,6 @@ mitered_abutments_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "slope = 0.3"
   points:
@@ -917,7 +888,6 @@ dovetailed_cross_lap:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "dd = 0.25"
     - "root = 0.15"

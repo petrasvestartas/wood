@@ -39,7 +39,6 @@ post_through_tenon_crossed:
   filled: "bc"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "tenon = 0.3"
   points:
@@ -77,7 +76,6 @@ post_stub_tenon_double_cogged:
     - "stub_t = 0.3"
     - "stub_w = 0.6"
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0.16"
   points:
     - "U = O + n"
@@ -122,7 +120,6 @@ stacked_tenon_mortised_cross_lap:
     - "top_t = 0.2"
     - "top_w = 0.2"
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
   points:
   planes:
@@ -162,7 +159,6 @@ castle_joint:
   filled: "bc"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 1"
     - "slot = 0.35"
   points:
@@ -196,7 +192,6 @@ t_bridle_stub_tenons_mortised_beam:
   filled: "bc"
   parameters:
     - "pitch = 0"
-    - "tail = 600"
     - "sit = 0"
     - "slot = 0.35"
     - "stub = 0.3"
@@ -877,6 +872,7 @@ three_way_rod_tenon_keys_wedged_haunch:
   corners: "square"
   filled: "bcd"
   parameters:
+    - "beam_length = 400"
     - "long = 0.4"
     - "thin = 0.3"
     - "into = 1.6"
@@ -927,6 +923,7 @@ four_way_rod_tenon_keys_pegs:
   corners: "square"
   filled: "bcde"
   parameters:
+    - "beam_length = 400"
     - "long = 0.4"
     - "thin = 0.3"
     - "into = 1.6"
@@ -1181,7 +1178,9 @@ diagonal_cross_puzzle:
   filled: "abdef"
   parameters:
     - "pitch = 0"
-    - "tail = 300"
+    - "beam_length = 460"
+    - "tail = 314.85"
+    - "reach = 230"
     - "sit = 0.292893"
     - "roll = 45"
     - "open = 0.03"
@@ -1218,10 +1217,10 @@ diagonal_cross_puzzle:
     - "f3 = O + 169.8470*t + 84.7114*w + -60.0000*n, 0.7071*t + -0.7071*w + 0.0000*n, FC"
     - "f4 = O + 169.8470*t + 84.9942*w + -60.0000*n, 0.7071*t + 0.7071*w + 0.0000*n, FC"
   more:
-    - "c = -384.8528 0.0000 -84.8528, 215.1472 0.0000 -84.8528, 0 1 1, 60, 60"
-    - "d = -169.7056 -300.0000 0.0000, -169.7056 300.0000 0.0000, 1 0 1, 60, 60"
-    - "e = -84.8528 84.8528 -300.0000, -84.8528 84.8528 300.0000, 1 1 0, 60, 60"
-    - "f = -84.8528 -84.8528 -300.0000, -84.8528 -84.8528 300.0000, 1 1 0, 60, 60"
+    - "c = -314.8528 0.0000 -84.8528, 145.1472 0.0000 -84.8528, 0 1 1, 60, 60"
+    - "d = -169.7056 -230.0000 0.0000, -169.7056 230.0000 0.0000, 1 0 1, 60, 60"
+    - "e = -84.8528 84.8528 -230.0000, -84.8528 84.8528 230.0000, 1 1 0, 60, 60"
+    - "f = -84.8528 -84.8528 -230.0000, -84.8528 -84.8528 230.0000, 1 1 0, 60, 60"
   parts:
   steps:
     - "A2 a_all -d1 -d2 -d3 -d4"

@@ -2414,10 +2414,10 @@ blind_dovetail_tenon_corner:
   parts:
   steps:
     - "A1 a_end bottom"
-    - "A2 a_end miter top"
+    - "A2 a_end miter f_top"
     - "A3 a_end -f_top -f_bot -stop"
     - "B2 b_node -miter top; b_node bot inner"
-    - "B3 b_node f_top -top inner; b_node f_bot -bot inner; b_node stop -top -bot"
+    - "B3 b_node f_top -top inner -miter; b_node f_bot -bot inner; b_node stop -top -bot"
   insertions:
     - "-n"
     - "-p"

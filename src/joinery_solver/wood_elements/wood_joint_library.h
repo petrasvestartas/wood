@@ -34,11 +34,11 @@ LibraryRecord library_record(const std::string& design);
 /// one: a side_end member ending on a carrier along x, square or leaning 50 degrees from it, its stock 180 mm past its end (an
 /// end_end_inplane corner's carrier ending flush with the member's outer face); a cross
 /// member pitched over a carrier along y, its underside through the carrier's top centre moved shift of the half width downhill and sit of the depth
-/// down, running tail mm past the crossing (the record's parameters pitch, sit, shift and tail, 35 degrees, 0, 0 and 300 when it has none), the carrier running reach mm past
-/// it (225; 60 for a corner, flush with the member's side); a splice's two along x on one line, overlapping by lap section heights (2).
+/// down, running tail mm past the crossing (the record's parameters pitch, sit, shift and tail, 35 degrees, 0, 0 and 150 when it has none), the carrier running reach mm past
+/// it (150; 60 for a corner, flush with the member's side); a splice's two along x on one line, overlapping by lap section heights (2).
 /// A record with stock_thick and stock_wide (half sizes, 60 each) draws boards: thick across the plane of the joint, wide out of it.
-/// carrier_thick and carrier_wide give a side or corner carrier its own section and span its half length (225); flat lays a board
-/// and its batten in the plane of the joint, their thickness across it. roll turns a crossing's two sections about their axes (degrees).
+/// carrier_thick and carrier_wide give a side or corner carrier its own section and span its half length (150); flat lays a board
+/// and its batten in the plane of the joint, their thickness across it. roll turns a crossing's two sections about their axes (degrees). Every beam is beam_length mm long (300), extra members trimmed to it.
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at);
 
 /// The members a record is drawn on: library_pair's member and carrier, then one more per line of its list more, "c = start,

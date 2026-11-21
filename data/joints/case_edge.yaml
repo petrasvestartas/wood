@@ -264,8 +264,9 @@ sliding_dovetail_batten:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 300"
-    - "reach = 300"
+    - "beam_length = 400"
+    - "tail = 200"
+    - "reach = 200"
     - "carrier_thick = 12"
     - "carrier_wide = 200"
     - "stock_thick = 15"
@@ -334,8 +335,9 @@ sliding_dovetail_batten_keys:
   corners: "square"
   parameters:
     - "pitch = 0"
-    - "tail = 300"
-    - "reach = 300"
+    - "beam_length = 400"
+    - "tail = 200"
+    - "reach = 200"
     - "carrier_thick = 12"
     - "carrier_wide = 200"
     - "stock_thick = 15"
