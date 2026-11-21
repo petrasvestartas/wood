@@ -36,14 +36,22 @@ int main() {
             scene.add_interaction(joint, carrier, joint->interaction(1));
 
             // drawn apart as the book draws it: an end member out along its own axis whatever way it goes in, a crossing one lifted
-            // straight up with the pegs that run across it, each peg out along its own way
+            // straight up with the pegs that run across it, each peg or wedge out along its own way and aside from the carrier's axis
             const bool crossing = library_record(design).fields.at("category") == "cross";
-            const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 350.0;
+            const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 500.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
+            size_t k = 0;
             for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
                 if (part->name.starts_with(name + "_part")) {
-                    const Vector way = joint->insertion_directions(2)[0];
-                    const Vector pulled = crossing && std::abs(way[2]) < 0.9 ? out - way * 200.0 : way * -200.0;
+                    const Vector way = joint->insertion_directions(2 + k++)[0];
+                    const AABB box = AABB::from_mesh(part->model_geometry_mesh());
+                    const double clear = box.diagonal() + 150.0;
+                    const Point start = carrier->axis.get_point(0);
+                    const Vector along_carrier = (carrier->axis.get_point(1) - start).normalized();
+                    const Vector off_axis = Point(box.cx, box.cy, box.cz) - start;
+                    const Vector away = off_axis - along_carrier * off_axis.dot(along_carrier);
+                    const Vector aside = away.magnitude() > 1.0 ? away.normalized() * clear : Vector(0.0, 0.0, 0.0);
+                    const Vector pulled = (crossing && std::abs(way[2]) < 0.9 ? out - way * clear : way * -clear) + aside;
                     part->place(Xform::translation(pulled[0], pulled[1], pulled[2]));
                 }
         }
@@ -55,7 +63,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, an end member 350 mm out along its own axis, a crossing one lifted 650 mm with the pegs that run across it, every peg 200 mm out along its own way.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart as the book draws it, an end member 500 mm out along its own axis, a crossing one lifted 650 mm with the pegs that run across it, every peg or wedge out along its own way by its length and 150 mm and as far aside from the carrier.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

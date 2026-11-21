@@ -3,7 +3,8 @@
 # A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
 # every value in double quotes (the reader takes a bare dash for a
 # list); then lists of quoted strings, read in order.
-#   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
 #   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
 #               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
 #               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
@@ -13,8 +14,9 @@
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
 #   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
-#               "name = start, end, up, half_up, half_start, half_end[, ends]": a wedge, half_up thick along up, its other
-#               half side narrowing from half_start at start to half_end at end, driven in along start to end;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
 #               its hole runs past the ends that leave the wood: both (default), start, end or none;
 #               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),

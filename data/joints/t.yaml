@@ -3,7 +3,8 @@
 # A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
 # every value in double quotes (the reader takes a bare dash for a
 # list); then lists of quoted strings, read in order.
-#   parameters  "name = number", shares of the members' sizes, each overridable by from_library.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
 #   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
 #               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
 #               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
@@ -11,8 +12,9 @@
 #   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
 #               a plane's name in an expression is its normal.
 #   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
-#               "name = start, end, up, half_up, half_start, half_end[, ends]": a wedge, half_up thick along up, its other
-#               half side narrowing from half_start at start to half_end at end, driven in along start to end;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
 #               its hole runs past the ends that leave the wood: both (default), start, end or none;
 #               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
 #   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
@@ -1598,6 +1600,84 @@ haunched_collared_through_mortise_tenon:
   insertions:
     - "-u"
 
+half_dovetail_tenon_folding_wedges:
+  title: "Half-dovetail tenon with folding wedges"
+  german: "verkeilter verdeckter einseitiger Schwalbenschwanzzapfen"
+  page: "526"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "length = 0.63"
+    - "neck = 0.54"
+    - "gap = 0.5"
+    - "out = 0.45"
+    - "open = 0.1"
+  points:
+    - "S = O + n"
+    - "B = meet(O - neck*ah*p, u, O, n)"
+    - "D = meet(O - ah*p, u, O - 2*length*bh*n, n)"
+    - "L1 = O + (1 + 0.375*gap)*ah*p"
+    - "L2 = O + (1 + 0.875*gap)*ah*p"
+  planes:
+    - "end = O - 2*length*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "flank = B, cross(w, D - B), O"
+    - "top = O + (1 + gap)*ah*p, p, O"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+    - "wedge_1 = meet(L1, u, O + 2*out*bh*n, n), meet(L1, u, O - 2*(length - 0.1)*bh*n, n), w, thickness*aw, 0.375*gap*ah, 0.125*gap*ah, start, -p"
+    - "wedge_2 = meet(L2, u, O + 2*out*bh*n, n), meet(L2, u, O - 2*(length - 0.1)*bh*n, n), w, thickness*aw, 0.125*gap*ah, 0.375*gap*ah, start, p"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2; a_end shoulder flank"
+    - "B2 b_node -end -cheek_1 -cheek_2 -flank -top"
+  insertions:
+    - "unit(D - B)"
+
+foxtail_wedged_mortise_tenon:
+  title: "Foxtail-wedged mortise and tenon"
+  german: "verkeilter verdeckter Zapfen"
+  page: "528"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "length = 0.62"
+    - "kerf = 0.5"
+    - "wedge = 0.6"
+    - "flare = 0.08"
+    - "splay = 0.12"
+    - "open = 0.25"
+  points:
+    - "S = O + n"
+    - "E = O - 2*length*bh*n"
+    - "W1 = meet(O + kerf*ah*p, u, E + 0.1*bh*n, n)"
+    - "W2 = meet(O - kerf*ah*p, u, E + 0.1*bh*n, n)"
+    - "T1 = meet(O + ah*p, u, O, n)"
+    - "T2 = meet(O - ah*p, u, O, n)"
+    - "D1 = meet(O + (1 + splay)*ah*p, u, E, n)"
+    - "D2 = meet(O - (1 + splay)*ah*p, u, E, n)"
+  planes:
+    - "end = E, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "fan_1 = T1, cross(w, D1 - T1), O"
+    - "fan_2 = T2, cross(w, D2 - T2), O"
+  parts:
+    - "wedge_1 = W1, W1 + u*(2*wedge*length*bh/dot(u, n)), w, thickness*aw, flare*ah, 0.005*ah, start"
+    - "wedge_2 = W2, W2 + u*(2*wedge*length*bh/dot(u, n)), w, thickness*aw, flare*ah, 0.005*ah, start"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 wedge_1; wedge_2"
+    - "B2 b_node -end -cheek_1 -cheek_2 -fan_1 -fan_2"
+  insertions:
+    - "-u"
+
+
 wedged_through_mortise_tenon:
   title: "Wedged through mortise and tenon"
   german: "verkeilter durchgehender Zapfen"
@@ -1632,6 +1712,118 @@ wedged_through_mortise_tenon:
     - "B2 b_node -end -cheek_1 -cheek_2 -edge_1 -edge_2"
   insertions:
     - "-u"
+
+vertically_wedged_tusk_tenon:
+  title: "Vertically wedged tusk tenon"
+  german: "durchgesteckter Zapfen mit Keilschloss"
+  page: "532"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "protrude = 0.95"
+    - "key_thickness = 0.13"
+    - "key_top = 0.4"
+    - "key_bottom = 0.24"
+    - "key_length = 1.6"
+  points:
+    - "S = O + n"
+    - "F = O - 2*bh*n"
+    - "C = meet(O, u, F, n) - (key_top*ah + 1)*n"
+    - "K = unit(p - dot(p, n)*n)"
+  planes:
+    - "end = F - 2*protrude*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+    - "key = C + key_length*ah*K, C - key_length*ah*K, w, key_thickness*aw, key_top*ah, key_bottom*ah"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 key"
+    - "B2 b_node -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+horizontally_wedged_tusk_tenon:
+  title: "Horizontally wedged tusk tenon"
+  german: "durchgesteckter Zapfen mit doppeltem Keilschloss"
+  page: "534"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "protrude = 1"
+    - "height = 0.33"
+    - "key_height = 0.08"
+    - "key_wide = 0.22"
+    - "key_narrow = 0.14"
+    - "key_length = 1.4"
+  points:
+    - "S = O + n"
+    - "F = O - 2*bh*n"
+    - "C1 = meet(O + height*ah*p, u, F, n) - (key_wide*ah + 1)*n"
+    - "C2 = meet(O - height*ah*p, u, F, n) - (key_wide*ah + 1)*n"
+  planes:
+    - "end = F - 2*protrude*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+    - "key_1 = C1 + key_length*aw*w, C1 - key_length*aw*w, t, key_height*ah, key_wide*ah, key_narrow*ah"
+    - "key_2 = C2 - key_length*aw*w, C2 + key_length*aw*w, t, key_height*ah, key_wide*ah, key_narrow*ah"
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 key_1; key_2"
+    - "B2 b_node -cheek_1 -cheek_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+horizontally_wedged_double_tusk_tenon:
+  title: "Horizontally wedged double tusk tenon"
+  german: "durchgesteckter doppelter Zapfen mit Keilschloss"
+  page: "536"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "inner = 0.21"
+    - "outer = 0.58"
+    - "protrude = 1"
+    - "key_height = 0.15"
+    - "key_wide = 0.22"
+    - "key_narrow = 0.16"
+    - "key_length = 1.4"
+  points:
+    - "S = O + n"
+    - "F = O - 2*bh*n"
+    - "C = meet(O, u, F, n) - (key_wide*ah + 1)*n"
+  planes:
+    - "end = F - 2*protrude*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+    - "key = C + key_length*aw*w, C - key_length*aw*w, t, key_height*ah, key_wide*ah, key_narrow*ah"
+  steps:
+    - "A2 a_end end; a_end shoulder w_out_1; a_end shoulder w_out_2; a_end shoulder w_in_1 w_in_2"
+    - "A3 key"
+    - "B2 b_node -w_out_1 -w_in_1 -edge_1 -edge_2; b_node -w_out_2 -w_in_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+
+
 
 
 

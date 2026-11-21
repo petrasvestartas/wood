@@ -113,7 +113,12 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_through_mortise_tenon_sloped_haunch.png) | **Through mortise and tenon with sloped haunch**<br>durchgehender Zapfen mit schräger Stufe, p. 520<br>`through_mortise_tenon_sloped_haunch` |
 | ![](joint_library/beam_blind_housed_haunched_through_mortise_tenon.png) | **Blind housed haunched through mortise and tenon**<br>durchgehender Stufenzapfen mit gestufter Brüstung, p. 522<br>`blind_housed_haunched_through_mortise_tenon` |
 | ![](joint_library/beam_haunched_collared_through_mortise_tenon.png) | **Haunched collared through mortise and tenon**<br>durchgehender Stufenzapfen mit Führungszapfen, p. 524<br>`haunched_collared_through_mortise_tenon` |
+| ![](joint_library/beam_half_dovetail_tenon_folding_wedges.png) | **Half-dovetail tenon with folding wedges**<br>verkeilter verdeckter einseitiger Schwalbenschwanzzapfen, p. 526<br>`half_dovetail_tenon_folding_wedges` |
+| ![](joint_library/beam_foxtail_wedged_mortise_tenon.png) | **Foxtail-wedged mortise and tenon**<br>verkeilter verdeckter Zapfen, p. 528<br>`foxtail_wedged_mortise_tenon` |
 | ![](joint_library/beam_wedged_through_mortise_tenon.png) | **Wedged through mortise and tenon**<br>verkeilter durchgehender Zapfen, p. 530<br>`wedged_through_mortise_tenon` |
+| ![](joint_library/beam_vertically_wedged_tusk_tenon.png) | **Vertically wedged tusk tenon**<br>durchgesteckter Zapfen mit Keilschloss, p. 532<br>`vertically_wedged_tusk_tenon` |
+| ![](joint_library/beam_horizontally_wedged_tusk_tenon.png) | **Horizontally wedged tusk tenon**<br>durchgesteckter Zapfen mit doppeltem Keilschloss, p. 534<br>`horizontally_wedged_tusk_tenon` |
+| ![](joint_library/beam_horizontally_wedged_double_tusk_tenon.png) | **Horizontally wedged double tusk tenon**<br>durchgesteckter doppelter Zapfen mit Keilschloss, p. 536<br>`horizontally_wedged_double_tusk_tenon` |
 | ![](joint_library/beam_double_through_mortise_tenon.png) | **Double through mortise and tenon**<br>durchgehender doppelter Zapfen, p. 542<br>`double_through_mortise_tenon` |
 | ![](joint_library/beam_housed_double_through_mortise_tenon.png) | **Housed double through mortise and tenon**<br>eingelassener durchgehender doppelter Zapfen, p. 544<br>`housed_double_through_mortise_tenon` |
 | ![](joint_library/beam_t_bridle.png) | **T-bridle joint**<br>Einhälsung, p. 550<br>`t_bridle` |

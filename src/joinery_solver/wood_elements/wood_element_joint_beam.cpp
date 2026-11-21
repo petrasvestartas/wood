@@ -2792,10 +2792,19 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const double before = through == "both" || through == "start" ? reach_out : 0.0;
         const double after = through == "both" || through == "end" ? reach_out : 0.0;
         const double flare = (side_start - side_end) / length;
-        joint->parts.push_back({rectangle_section(start, axis, up, half_up, side_start), rectangle_section(end, axis, up, half_up, side_end)});
+
+        // a folding wedge keeps the face looking along its last term flat: each section moves by what it narrows
+        Vector flat(0.0, 0.0, 0.0);
+        if (tapered && terms.size() > 7) {
+            const Vector rise = (up - axis * up.dot(axis)).normalized();
+            const Vector side = rise.cross(axis).normalized();
+            flat = side * (side.dot(evaluate(terms[7], names).vector) < 0.0 ? -1.0 : 1.0);
+        }
+        const Vector shift_end = flat * (side_start - side_end);
+        joint->parts.push_back({rectangle_section(start, axis, up, half_up, side_start), rectangle_section(end + shift_end, axis, up, half_up, side_end)});
         boxes[pair[0]] = Mesh::loft(
-            {rectangle_section(start - axis * before, axis, up, half_up, side_start + flare * before)},
-            {rectangle_section(end + axis * after, axis, up, half_up, side_end - flare * after)},
+            {rectangle_section(start - axis * before - flat * (flare * before), axis, up, half_up, side_start + flare * before)},
+            {rectangle_section(end + axis * after + shift_end + flat * (flare * after), axis, up, half_up, side_end - flare * after)},
             true
         );
         part_axes.push_back(axis);
