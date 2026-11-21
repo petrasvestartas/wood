@@ -37,6 +37,8 @@ LibraryRecord library_record(const std::string& design);
 /// down, running tail mm past the crossing (the record's parameters pitch, sit, shift and tail, 35 degrees, 0, 0 and 600 when it has none), the carrier running reach mm past
 /// it (450; 60 for a corner, flush with the member's side); a splice's two along x on one line, overlapping by lap section heights (2).
 /// A record with stock_thick and stock_wide (half sizes, 60 each) draws boards: thick across the plane of the joint, wide out of it.
+/// carrier_thick and carrier_wide give a side or corner carrier its own section and span its half length (450); flat lays a board
+/// and its batten in the plane of the joint, their thickness across it.
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at);
 
 }

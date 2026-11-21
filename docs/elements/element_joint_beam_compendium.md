@@ -75,6 +75,10 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_spline_groove_edge.png) | **Spline and groove joint**<br>Nut mit eingesetzter Feder, p. 780<br>`spline_groove_edge` |
 | ![](joint_library/beam_butterfly_key_edge.png) | **Butterfly key joint**<br>Schwalbenschwanzeinlage, p. 786<br>`butterfly_key_edge` |
 | ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
+| ![](joint_library/beam_tongue_groove_breadboard.png) | **Tongue and groove breadboard end**<br>Hirnleiste mit Nut und Feder, p. 806<br>`tongue_groove_breadboard` |
+| ![](joint_library/beam_dado_tongue_breadboard.png) | **Dado and tongue breadboard end**<br>Hirnleiste mit Falz und Feder, p. 808<br>`dado_tongue_breadboard` |
+| ![](joint_library/beam_splined_breadboard.png) | **Splined breadboard end**<br>Hirnleiste mit Nut und Fremdfeder, p. 804<br>`splined_breadboard` |
+| ![](joint_library/beam_haunched_mortise_tenon_breadboard.png) | **Haunched mortise and tenon breadboard end**<br>Hirnleiste mit Nut, Feder und Zapfenlöchern, p. 810<br>`haunched_mortise_tenon_breadboard` |
 | ![](joint_library/beam_housing_case.png) | **Housing joint**<br>Nutverbindung, p. 844<br>`housing_case` |
 | ![](joint_library/beam_stopped_housing_case.png) | **Stopped housing joint**<br>abgesetzte Nutverbindung, p. 846<br>`stopped_housing_case` |
 | ![](joint_library/beam_tongue_dado_case.png) | **Tongue and dado joint**<br>Nutverbindung mit mittiger Feder, p. 850<br>`tongue_dado_case` |

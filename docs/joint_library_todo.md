@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 163 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 159 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 49 left of 110
 
@@ -167,16 +167,12 @@ All done.
 - p. 790, Sliding dovetail batten with keys (Gratleiste mit Dübelschloss)
 - p. 792, Blind dovetailed keyhole batten (Mehrfach abgesetzte Gratleiste)
 
-## Case end joints: 9 left of 10
+## Case end joints: 5 left of 10
 
 - p. 794, Halved splayed joint (schräg angeschnittene wechselseitige Überblattung)
 - p. 798, End-to-end dovetail joint (Zinkenstoß)
 - p. 800, V-shaped dado with spline (eingelassene keilförmige Hirnleiste)
 - p. 802, Dado with spline (eingelassene Hirnleiste)
-- p. 804, Splined breadboard end (Hirnleiste mit Nut und Fremdfeder)
-- p. 806, Tongue and groove breadboard end (Hirnleiste mit Nut)
-- p. 808, Dado and tongue breadboard end (Hirnleiste mit Feder)
-- p. 810, Haunched mortise and tenon breadboard end (Hirnleiste mit Nut und Zapfenlöchern)
 - p. 812, Wedged and haunched tenon breadboard end (verkeilte Hirnleiste mit Nut und Zapfenloch)
 
 ## Case corner joints: 10 left of 16

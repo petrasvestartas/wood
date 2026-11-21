@@ -53,3 +53,138 @@ finger_end:
     - "B2 b_end f2 -c1; b_end f2 c2 -c3; b_end f2 c4"
   insertions:
     - "-p"
+
+tongue_groove_breadboard:
+  title: "Tongue and groove breadboard end"
+  german: "Hirnleiste mit Nut und Feder"
+  page: "806"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 15"
+    - "carrier_wide = 30"
+    - "flat = 1"
+    - "span = 150"
+    - "tongue = 0.33"
+    - "depth = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "c1 = O + tongue*aw*w, w, O"
+    - "c2 = O - tongue*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder c1; a_end shoulder c2"
+    - "B2 b_node -end -c1 -c2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+dado_tongue_breadboard:
+  title: "Dado and tongue breadboard end"
+  german: "Hirnleiste mit Falz und Feder"
+  page: "808"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 15"
+    - "carrier_wide = 30"
+    - "flat = 1"
+    - "span = 150"
+    - "tongue = 0.5"
+    - "depth = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "c1 = O + (1 - 2*tongue)*aw*w, w, O"
+    - "side_2 = O - aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder c1"
+    - "B2 b_node -end -c1 -side_2 -edge_1 -edge_2"
+  insertions:
+    - "-u"
+
+splined_breadboard:
+  title: "Splined breadboard end"
+  german: "Hirnleiste mit Nut und Fremdfeder"
+  page: "804"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 15"
+    - "carrier_wide = 30"
+    - "flat = 1"
+    - "span = 150"
+    - "spline = 0.33"
+    - "reach = 0.5"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+    - "spline = O - (ah + 2)*p, O + (ah + 2)*p, w, spline*aw, reach*2*bh, reach*2*bh, none"
+  steps:
+    - "A2 a_end shoulder"
+    - "A3 spline"
+    - "B3 spline"
+  insertions:
+    - "-u"
+    - "spline = p"
+
+haunched_mortise_tenon_breadboard:
+  title: "Haunched mortise and tenon breadboard end"
+  german: "Hirnleiste mit Nut, Feder und Zapfenlöchern"
+  page: "810"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+    - "carrier_thick = 15"
+    - "carrier_wide = 30"
+    - "flat = 1"
+    - "span = 150"
+    - "tongue = 0.33"
+    - "haunch = 0.25"
+    - "depth = 0.75"
+    - "tenon = 0.2"
+  points:
+    - "U = O + n"
+  planes:
+    - "shoulder = O, n, U"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+    - "haunch_end = O - 2*haunch*bh*n, n, O"
+    - "end = O - 2*depth*bh*n, n, O"
+    - "c1 = O + tongue*aw*w, w, O"
+    - "c2 = O - tongue*aw*w, w, O"
+    - "t1 = O + (0.5 + tenon)*ah*p, p, O"
+    - "t2 = O + (0.5 - tenon)*ah*p, p, O"
+    - "t3 = O - (0.5 - tenon)*ah*p, p, O"
+    - "t4 = O - (0.5 + tenon)*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder c1; a_end shoulder c2; a_end haunch_end -end t1; a_end haunch_end -end -t2 -t3; a_end haunch_end -end t4"
+    - "B2 b_node -haunch_end -c1 -c2 -edge_1 -edge_2; b_node -end -c1 -c2 -t1 t2; b_node -end -c1 -c2 t3 -t4"
+  insertions:
+    - "-u"

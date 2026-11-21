@@ -225,7 +225,7 @@ LibraryRecord library_record(const std::string& design) {
 std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::string& design, bool square, const Point& at) {
 
     const LibraryRecord record = library_record(design);
-    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"lap", 2.0}, {"stock_thick", 60.0}, {"stock_wide", 60.0}};
+    std::map<std::string, double> numbers = {{"sit", 0.0}, {"shift", 0.0}, {"tail", 600.0}, {"pitch", 35.0}, {"reach", 450.0}, {"span", 450.0}, {"lap", 2.0}, {"stock_thick", 60.0}, {"stock_wide", 60.0}};
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         numbers[unquoted(line.substr(0, equals))] = std::stod(line.substr(equals + 1));
@@ -269,11 +269,16 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 
     // an end on a side: the carrier along x, the member ending on its axis, its stock running past the end; at a corner the
     // carrier ends flush with the member's outer face
-    const double carrier_end = record.fields.at("category") == "end_end_inplane" ? numbers["stock_thick"] : 450.0;
+    // carrier_thick and carrier_wide give the carrier its own section (a batten); flat lays both in the plane of the joint, a board
+    // ending on a batten along its end, the thickness of both across that plane
+    const double carrier_thick = numbers.count("carrier_thick") ? numbers["carrier_thick"] : numbers["stock_thick"];
+    const double carrier_wide = numbers.count("carrier_wide") ? numbers["carrier_wide"] : numbers["stock_wide"];
+    const bool flat = numbers.count("flat") && numbers["flat"] > 0.5;
+    const double carrier_end = record.fields.at("category") == "end_end_inplane" ? numbers["stock_thick"] : numbers["span"];
     const Vector across(-std::sin(turn), 0.0, std::cos(turn));
-    carrier = stock(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), Vector::z_axis(), numbers["stock_thick"], numbers["stock_wide"], design + "_carrier");
-    member = stock(Polyline({at, at + along * 600.0}), across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
-    if (square_stock)
+    carrier = stock(Polyline({at - Vector(numbers["span"], 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), flat ? Vector::y_axis() : Vector::z_axis(), carrier_thick, carrier_wide, design + "_carrier");
+    member = stock(Polyline({at, at + along * 600.0}), flat ? Vector::y_axis() : across, numbers["stock_thick"], numbers["stock_wide"], design + "_member");
+    if (std::abs(carrier_thick - carrier_wide) < 1e-9)
         carrier->directions = {Vector::y_axis()};
     if (square_stock)
         member->directions = {Vector::y_axis()};
