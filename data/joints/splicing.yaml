@@ -3388,3 +3388,29 @@ tapered_dovetail_mitered_shoulders_splice:
     - "B2 b_end -v1 -v2; b_end f2 -fl_1 -fl_2"
   insertions:
     - "-p"
+
+spear_point_cross_stub_tenon_splice:
+  title: "Spear point cross-shaped stub tenon joint with undercut shoulders"
+  german: "kreuzförmiger Zapfen mit Gratschnitt und hinterschnittener Brüstung"
+  page: "218"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "arm = 0.3"
+  points:
+  planes:
+    - "v1 = O, cross(p, L*u + aw*w), O + L*u"
+    - "v2 = O, cross(p, L*u - aw*w), O + L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cw1 = O + arm*aw*w, w, O"
+    - "cw2 = O - arm*aw*w, w, O"
+    - "cp1 = O + arm*ah*p, p, O"
+    - "cp2 = O - arm*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end v1 cw1 cp1; a_end v1 cw1 cp2; a_end v1 cw2 cp1; a_end v1 cw2 cp2; a_end v2 cw1 cp1; a_end v2 cw1 cp2; a_end v2 cw2 cp1; a_end v2 cw2 cp2"
+    - "B2 b_end -v1 -v2; b_end f2 -cw1 -cw2; b_end f2 -cp1 -cp2"
+  insertions:
+    - "-u"
