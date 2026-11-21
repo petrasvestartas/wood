@@ -332,3 +332,33 @@ lock_case_corner:
     - "B2 b_node tgp -gend -side_2; b_node lipp"
   insertions:
     - "-u"
+
+angled_finger_case_corner:
+  title: "Angled finger joint"
+  german: "Eckverbindung mit schrägen Fingerzinken"
+  page: "840"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "slant = 0.12"
+    - "stock_thick = 12"
+    - "stock_wide = 150"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "c1 = O + -0.6*aw*w, cross(p, slant*aw*w - 2*bh*n), O - 1000*w"
+    - "c2 = O + -0.2*aw*w, cross(p, slant*aw*w - 2*bh*n), O - 1000*w"
+    - "c3 = O + 0.2*aw*w, cross(p, slant*aw*w - 2*bh*n), O - 1000*w"
+    - "c4 = O + 0.6*aw*w, cross(p, slant*aw*w - 2*bh*n), O - 1000*w"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder c1 -c2; a_end shoulder c3 -c4"
+    - "B2 b_node -side_2 -c1; b_node -side_2 c2 -c3; b_node -side_2 c4"
+  insertions:
+    - "-p"

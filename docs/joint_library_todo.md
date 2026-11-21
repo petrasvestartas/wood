@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 130 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 129 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 45 left of 110
 
@@ -151,13 +151,12 @@ All done.
 - p. 802, Dado with spline (eingelassene Hirnleiste)
 - p. 812, Wedged and haunched tenon breadboard end (verkeilte Hirnleiste mit Nut und Zapfenloch)
 
-## Case corner joints: 6 left of 16
+## Case corner joints: 5 left of 16
 
 - p. 822, Lock miter joint (gespundete Eckverbindung mit Verdeck auf Gehrung)
 - p. 828, Miter joint with dovetail keys (Eckverbindung auf Gehrung mit eingesetzten Schwalbenschwanzfedern)
 - p. 836, Blind dovetail joint (Eckverbindung mit verdeckten Schwalbenschwanzzinken)
 - p. 838, Cogged dovetail joint (Eckverbindung mit ganzen und abgesetzten Schwalbenschwanzzinken)
-- p. 840, Angled finger joint (Eckverbindung mit schrägen Fingerzinken)
 - p. 842, Radial dovetail joint (Eckverbindung mit Teufelszinken)
 
 ## Case T-joints: 0 left of 6
