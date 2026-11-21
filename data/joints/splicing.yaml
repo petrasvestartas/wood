@@ -310,3 +310,79 @@ cogged_lap_splice:
     - "B2 b_end -face_l shoulder_b; b_end -face_r -cut"
   insertions:
     - "-p"
+
+pegged_undersquinted_spear_point_half_lap_splice:
+  title: "Pegged undersquinted spear point half lap joint"
+  german: "gerades Blatt mit schrägem Gratschnitt und Dübelsicherung"
+  page: "68"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.1"
+    - "spear = 0.7"
+    - "squint = 0.4"
+    - "key = 0.2"
+  points:
+    - "T1 = O + L*u"
+    - "C1 = O + (L - spear*aw)*u + aw*w"
+    - "C2 = O + (L - spear*aw)*u - aw*w"
+    - "Q1 = O + (L - squint*ah)*u - ah*p"
+    - "T2 = O - L*u"
+    - "D1 = O - (L - spear*aw)*u + aw*w"
+    - "D2 = O - (L - spear*aw)*u - aw*w"
+    - "Q2 = O - (L - squint*ah)*u + ah*p"
+  planes:
+    - "mid = O, p, O + p"
+    - "end_1 = T1, cross(C1 - T1, Q1 - T1), O"
+    - "end_2 = T1, cross(C2 - T1, Q1 - T1), O"
+    - "shoulder_1 = T2, cross(D1 - T2, Q2 - T2), O"
+    - "shoulder_2 = T2, cross(D2 - T2, Q2 - T2), O"
+  parts:
+    - "key = O + aw*w, O - aw*w, u, key*ah"
+  steps:
+    - "A2 a_end mid -end_1 -end_2; a_end -mid shoulder_1; a_end -mid shoulder_2"
+    - "B2 b_end -mid -shoulder_1 -shoulder_2; b_end mid end_1; b_end mid end_2"
+    - "A3 key"
+    - "B3 key"
+  insertions:
+    - "-u"
+
+twice_pegged_undersquinted_spear_point_half_lap_splice:
+  title: "Pegged undersquinted spear point half lap joint"
+  german: "gerades Blatt mit schrägem Gratschnitt und zweifacher Dübelsicherung"
+  page: "70"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.1"
+    - "spear = 0.7"
+    - "squint = 0.4"
+    - "peg = 0.12"
+    - "spacing = 0.3"
+  points:
+    - "T1 = O + L*u"
+    - "C1 = O + (L - spear*aw)*u + aw*w"
+    - "C2 = O + (L - spear*aw)*u - aw*w"
+    - "Q1 = O + (L - squint*ah)*u - ah*p"
+    - "T2 = O - L*u"
+    - "D1 = O - (L - spear*aw)*u + aw*w"
+    - "D2 = O - (L - spear*aw)*u - aw*w"
+    - "Q2 = O - (L - squint*ah)*u + ah*p"
+  planes:
+    - "mid = O, p, O + p"
+    - "end_1 = T1, cross(C1 - T1, Q1 - T1), O"
+    - "end_2 = T1, cross(C2 - T1, Q1 - T1), O"
+    - "shoulder_1 = T2, cross(D1 - T2, Q2 - T2), O"
+    - "shoulder_2 = T2, cross(D2 - T2, Q2 - T2), O"
+  parts:
+    - "peg_1 = O + spacing*L*u + ah*p, O + spacing*L*u - ah*p, u, peg*ah"
+    - "peg_2 = O - spacing*L*u + ah*p, O - spacing*L*u - ah*p, u, peg*ah"
+  steps:
+    - "A2 a_end mid -end_1 -end_2; a_end -mid shoulder_1; a_end -mid shoulder_2"
+    - "B2 b_end -mid -shoulder_1 -shoulder_2; b_end mid end_1; b_end mid end_2"
+    - "A3 peg_1; peg_2"
+    - "B3 peg_1; peg_2"
+  insertions:
+    - "-u"
