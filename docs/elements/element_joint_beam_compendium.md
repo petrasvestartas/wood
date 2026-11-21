@@ -64,6 +64,10 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_corner_lap.png) | **Corner lap joint**<br>Eckblatt, p. 262<br>`corner_lap` |
 | ![](joint_library/beam_dovetailed_corner_lap.png) | **Dovetailed corner lap joint**<br>Eckblatt mit schräger Blattfläche, p. 266<br>`dovetailed_corner_lap` |
 | ![](joint_library/beam_beveled_corner_lap.png) | **Beveled corner lap joint**<br>Eckblatt mit zweifach schräger Blattfläche, p. 268<br>`beveled_corner_lap` |
+| ![](joint_library/beam_cogged_corner_lap.png) | **Cogged corner lap joint**<br>Hakeneckblatt, p. 272<br>`cogged_corner_lap` |
+| ![](joint_library/beam_sloped_cogged_corner_lap.png) | **Sloped cogged corner lap joint**<br>Hakeneckblatt mit schrägem Haken, p. 274<br>`sloped_cogged_corner_lap` |
+| ![](joint_library/beam_double_cogged_corner_lap.png) | **Double cogged corner lap joint**<br>Hakeneckblatt mit mittigem Haken, p. 276<br>`double_cogged_corner_lap` |
+| ![](joint_library/beam_cogged_dovetailed_corner_lap.png) | **Cogged dovetailed corner lap joint**<br>Hakeneckblatt mit schwalbenschwanzförmigem Haken, p. 278<br>`cogged_dovetailed_corner_lap` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

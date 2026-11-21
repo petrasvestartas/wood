@@ -102,3 +102,129 @@ beveled_corner_lap:
     - "B2 b_node -mid -face_1 -face_2"
   insertions:
     - "w"
+
+cogged_corner_lap:
+  title: "Cogged corner lap joint"
+  german: "Hakeneckblatt"
+  page: "272"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+    - "split = O, p, O - ah*p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper"
+    - "A4 a_end shoulder lower split"
+    - "B2 b_node -lower -face_1 -face_2; b_node -upper -split -face_1 -face_2"
+  insertions:
+    - "-u"
+    - "w"
+
+sloped_cogged_corner_lap:
+  title: "Sloped cogged corner lap joint"
+  german: "Hakeneckblatt mit schrägem Haken"
+  page: "274"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+    - "slant = 0.3"
+  points:
+    - "U = O + n"
+    - "K1 = O + slant*ah*p"
+    - "K2 = O - 2*bh*n - slant*ah*p"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+    - "split = K1, cross(w, K2 - K1), O - ah*p"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper"
+    - "A4 a_end shoulder lower split"
+    - "B2 b_node -lower -face_1 -face_2; b_node -upper -split -face_1 -face_2"
+  insertions:
+    - "w"
+
+double_cogged_corner_lap:
+  title: "Double cogged corner lap joint"
+  german: "Hakeneckblatt mit mittigem Haken"
+  page: "276"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+    - "band = 0.35"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+    - "band_1 = O + band*ah*p, p, O"
+    - "band_2 = O - band*ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper"
+    - "A4 a_end shoulder lower band_1; a_end shoulder lower band_2"
+    - "B2 b_node -lower -face_1 -face_2; b_node -upper -band_1 -band_2"
+  insertions:
+    - "-u"
+    - "w"
+
+cogged_dovetailed_corner_lap:
+  title: "Cogged dovetailed corner lap joint"
+  german: "Hakeneckblatt mit schwalbenschwanzförmigem Haken"
+  page: "278"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "level = 0.3"
+    - "neck = 0.37"
+    - "flare = 0.63"
+  points:
+    - "U = O + n"
+    - "N1 = O + neck*ah*p"
+    - "F1 = O - 2*bh*n + flare*ah*p"
+    - "N2 = O - neck*ah*p"
+    - "F2 = O - 2*bh*n - flare*ah*p"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "upper = O + level*aw*w, w, O"
+    - "lower = O - level*aw*w, w, O - aw*w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+    - "band_1 = N1, cross(w, F1 - N1), O"
+    - "band_2 = N2, cross(w, F2 - N2), O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder upper"
+    - "A4 a_end shoulder lower band_1; a_end shoulder lower band_2"
+    - "B2 b_node -lower -face_1 -face_2; b_node -upper -band_1 -band_2"
+  insertions:
+    - "w"
