@@ -118,6 +118,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_splayed_scarf.png) | **Splayed scarf joint**<br>Schäftung, p. 156<br>`splayed_scarf` |
 | ![](joint_library/beam_triple_cogged_lap_splice.png) | **Triple-cogged lap joint**<br>gerades Hakenblatt mit dreifachem Haken, p. 102<br>`triple_cogged_lap_splice` |
 | ![](joint_library/beam_rabbeted_half_lap_splice.png) | **Rabbeted half lap joint**<br>gerades Blatt mit Steckfalz, p. 104<br>`rabbeted_half_lap_splice` |
+| ![](joint_library/beam_rabbeted_cogged_lap_splice.png) | **Rabbeted cogged lap joint**<br>gerades Hakenblatt mit Steckfalz, p. 106<br>`rabbeted_cogged_lap_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

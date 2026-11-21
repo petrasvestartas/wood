@@ -678,3 +678,33 @@ rabbeted_half_lap_splice:
     - "B2 b_end mid f1; b_end -lo mid f2; b_end -hi -e1; b_end -mid -e2"
   insertions:
     - "w"
+
+rabbeted_cogged_lap_splice:
+  title: "Rabbeted cogged lap joint"
+  german: "gerades Hakenblatt mit Steckfalz"
+  page: "106"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "lip = 0.38"
+    - "rabbet = 0.4"
+    - "cog = 0.18"
+  points:
+  planes:
+    - "m_l = O + cog*ah*p, p, O + 2*ah*p"
+    - "m_r = O - cog*ah*p, p, O + 2*ah*p"
+    - "lo_l = O + (cog - lip)*ah*p, p, O + 2*ah*p"
+    - "hi_r = O + (lip - cog)*ah*p, p, O + 2*ah*p"
+    - "cut = O, u, O + u"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+  steps:
+    - "A2 a_end -m_l cut; a_end -m_r -cut e1; a_end -m_r hi_r -e1 e2; a_end lo_l -f1; a_end m_l -f2"
+    - "B2 b_end m_l f1 cut; b_end m_r -cut; b_end -lo_l m_l -f1 f2; b_end -hi_r -e1; b_end -m_r -e2"
+  insertions:
+    - "w"
