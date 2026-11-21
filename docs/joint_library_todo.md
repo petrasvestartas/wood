@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 124 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 123 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 45 left of 110
 
@@ -50,11 +50,10 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 258, Butt joint with a gooseneck key and stub tenons (Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen)
 - p. 260, Four-faced gooseneck joint (diagonaler doppelter Sichelzapfen mit Steckfalz)
 
-## Timber corner joints: 23 left of 79
+## Timber corner joints: 22 left of 79
 
 - p. 270, Blind mitered beveled corner lap joint (verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung)
 - p. 282, Half-blind mitered sloped cogged corner lap joint (halbverdecktes schräges Hakeneckblatt mit Wange auf Gehrung)
-- p. 284, Blind mitered cogged corner lap joint (verdecktes Hakeneckblatt mit Wange auf Gehrung)
 - p. 292, Rabbeted tenoned miter joint (abgesetzter Eckstoß auf Gehrung mit Führungszapfen)
 - p. 306, Wedged haunched through mortise and tenon joint (verkeilter durchgehender Stufeneckzapfen)
 - p. 310, Wedged triple-shouldered through mortise and tenon joint (durchgehender abgesetzter Eckzapfen mit Keilschloss)
