@@ -1490,6 +1490,39 @@ blind_haunched_mortise_tenon:
   insertions:
     - "-u"
 
+through_mortise_tenon_sloped_haunch:
+  title: "Through mortise and tenon with sloped haunch"
+  german: "durchgehender Zapfen mit schräger Stufe"
+  page: "520"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "top = 0.3"
+    - "haunch = 0.3"
+  points:
+    - "S = O + n"
+    - "K = meet(O + ah*p, u, O, n)"
+    - "H = meet(O + (1 - 2*top)*ah*p, u, O - 2*haunch*bh*n, n)"
+  planes:
+    - "end = O - 2*bh*n, n, O"
+    - "shoulder = O, n, S"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "top = O + (1 - 2*top)*ah*p, p, O"
+    - "slope = K, cross(w, H - K), O - ah*p"
+    - "edge_1 = O + ah*p, p, O"
+    - "edge_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder cheek_1; a_end shoulder cheek_2"
+    - "A3 a_end top slope"
+    - "B2 b_node -end -cheek_1 -cheek_2 -top -edge_2; b_node -slope -cheek_1 -cheek_2 top -edge_1"
+  insertions:
+    - "-u"
+
+
 double_through_mortise_tenon:
   title: "Double through mortise and tenon"
   german: "durchgehender doppelter Zapfen"
