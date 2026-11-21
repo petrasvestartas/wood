@@ -737,3 +737,35 @@ three_way_cross_lap:
   insertions:
     - "-n"
     - "c = n"
+
+cross_lap_stub_tenons:
+  title: "Cross lap joint with stub tenons"
+  german: "Kreuzblatt mit beidseitigen Brüstungszapfen"
+  page: "662"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  parameters:
+    - "stub = 0.3"
+    - "stub_w = 0.7"
+    - "stub_d = 0.25"
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 1"
+  points:
+  planes:
+    - "mid = O - bh*n, n, O"
+    - "inner = O - bt*t, t, O - 2*bt*t"
+    - "outer = O + bt*t, t, O"
+    - "su1 = O + (1 - stub)*bt*t, t, O"
+    - "su2 = O - (1 - stub)*bt*t, t, O"
+    - "sw1 = O + stub_w*aw*w, w, O"
+    - "sw2 = O - stub_w*aw*w, w, O"
+    - "sd = O - (1 + stub_d)*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_node mid inner -outer -su1 -su2; a_node mid -outer su1 sw1; a_node mid -outer su1 sw2; a_node mid -outer su1 -sw1 -sw2 sd; a_node mid inner su2 sw1; a_node mid inner su2 sw2; a_node mid inner su2 -sw1 -sw2 sd"
+    - "B2 b_node -mid"
+    - "B3 b_node mid -sd su1 -sw1 -sw2; b_node mid -sd su2 -sw1 -sw2"
+  insertions:
+    - "-n"
