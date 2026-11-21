@@ -652,6 +652,34 @@ blind_housed_mortise_tenon_sloped_shoulder:
   insertions:
     - "-u"
 
+undersquinted_stopped_half_lap:
+  title: "Undersquinted stopped half lap"
+  german: "halbverdecktes gerades Blatt mit schräger Stirn"
+  page: "462"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.67"
+    - "squint = 0.3"
+  points:
+    - "U = O + n"
+    - "A = O - 2*stop*bh*n - aw*w"
+    - "B = O - 2*(stop - squint)*bh*n"
+  planes:
+    - "stirn = A, cross(p, B - A), O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end stirn"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2 -stirn"
+  insertions:
+    - "w"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"

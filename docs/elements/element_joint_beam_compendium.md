@@ -82,6 +82,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_sloped_stopped_half_lap.png) | **Sloped stopped half lap**<br>verdecktes schräg angeschnittenes Querblatt, p. 456<br>`sloped_stopped_half_lap` |
 | ![](joint_library/beam_mortise_tenon_sloped_shoulder.png) | **Mortise and tenon with sloped shoulder**<br>verdeckter Zapfen mit einseitig schräger Brüstung, p. 458<br>`mortise_tenon_sloped_shoulder` |
 | ![](joint_library/beam_blind_housed_mortise_tenon_sloped_shoulder.png) | **Blind housed mortise and tenon with sloped shoulder**<br>verdeckter Zapfen mit schräger und gestufter Brüstung, p. 460<br>`blind_housed_mortise_tenon_sloped_shoulder` |
+| ![](joint_library/beam_undersquinted_stopped_half_lap.png) | **Undersquinted stopped half lap**<br>halbverdecktes gerades Blatt mit schräger Stirn, p. 462<br>`undersquinted_stopped_half_lap` |
 | ![](joint_library/beam_housed_mortise_tenon_shifted_shoulders.png) | **Housed mortise and tenon with shifted shoulders**<br>Zapfen mit einseitig vorgeschobener Brüstung, p. 454<br>`housed_mortise_tenon_shifted_shoulders` |
 | ![](joint_library/beam_blind_pegged.png) | **Blind pegged joint**<br>Verdollung, p. 470<br>`blind_pegged` |
 | ![](joint_library/beam_notch.png) | **Notch joint**<br>Ankämmung mit einseitigem Sitz, p. 472<br>`notch` |
