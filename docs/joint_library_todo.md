@@ -1,6 +1,6 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 120 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 118 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
 ## Timber splicing joints: 45 left of 110
 
@@ -50,10 +50,8 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 258, Butt joint with a gooseneck key and stub tenons (Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen)
 - p. 260, Four-faced gooseneck joint (diagonaler doppelter Sichelzapfen mit Steckfalz)
 
-## Timber corner joints: 19 left of 79
+## Timber corner joints: 17 left of 79
 
-- p. 306, Wedged haunched through mortise and tenon joint (verkeilter durchgehender Stufeneckzapfen)
-- p. 310, Wedged triple-shouldered through mortise and tenon joint (durchgehender abgesetzter Eckzapfen mit Keilschloss)
 - p. 314, Beveled triple-shouldered mortise and tenon with housing (verdeckter abgesetzter Eckzapfen mit schräger Brust)
 - p. 320, Blind bridle joint (verdeckter Scherzapfen mit Wange auf Gehrung)
 - p. 322, Blind dovetail tenon (verdeckter Schwalbenschwanz-eckzapfen mit Wange auf Gehrung)

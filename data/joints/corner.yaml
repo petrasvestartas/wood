@@ -1830,3 +1830,75 @@ rabbeted_tenoned_miter:
     - "B2 b_node -miter -strip; b_node strip -shelf -face_2; b_node strip shelf -tongue_end tg_band -face_2"
   insertions:
     - "-u"
+
+wedged_haunched_through_tenon_corner:
+  title: "Wedged haunched through mortise and tenon joint"
+  german: "verkeilter durchgehender Stufeneckzapfen"
+  page: "306"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "haunch = 0.3"
+    - "haunch_width = 0.35"
+    - "key_thick = 0.1"
+    - "key_wide = 0.22"
+    - "key_narrow = 0.15"
+  points:
+    - "U = O + n"
+    - "C = O - bh*n - 0.35*ah*p"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "tenon_edge = O + (1 - 2*haunch_width)*ah*p, p, O - ah*p"
+    - "haunch_floor = O - 2*haunch*bh*n, n, O"
+  parts:
+    - "key = C + 1.4*aw*w, C - 1.4*aw*w, n, key_thick*2*bh, key_wide*ah, key_narrow*ah"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder layer_1; a_end shoulder layer_2; a_end shoulder -layer_1 -layer_2 tenon_edge haunch_floor"
+    - "A4 key"
+    - "B2 b_node -layer_1 -layer_2 -tenon_edge -face_2; b_node -layer_1 -layer_2 tenon_edge -haunch_floor"
+    - "B3 key"
+  insertions:
+    - "-u"
+    - "key = -w"
+
+wedged_triple_shouldered_through_tenon_corner:
+  title: "Wedged triple-shouldered through mortise and tenon joint"
+  german: "durchgehender abgesetzter Eckzapfen mit Keilschloss"
+  page: "310"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "thickness = 0.3333333333333333"
+    - "tenon_p = 0.15"
+    - "wedge_foot = 0.12"
+    - "wedge_length = 0.8"
+  points:
+    - "U = O + n"
+    - "E = O + tenon_p*ah*p"
+    - "W0 = O - (1 + wedge_foot)*ah*p - (2*bh + 1)*n"
+    - "W1 = O - (1 + wedge_foot)*ah*p - 2*(1 - wedge_length)*bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "layer_1 = O + thickness*aw*w, w, O"
+    - "layer_2 = O - thickness*aw*w, w, O"
+    - "face_2 = O - ah*p, p, O"
+    - "tenon_side = E, p, O - ah*p"
+  parts:
+    - "wedge = W0, W1, w, thickness*aw, wedge_foot*ah, 0.01*ah, start, p"
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder layer_1; a_end shoulder layer_2; a_end shoulder tenon_side"
+    - "B2 b_node -layer_1 -layer_2 -tenon_side -face_2"
+    - "B3 wedge"
+  insertions:
+    - "-u"
+    - "wedge = n"
