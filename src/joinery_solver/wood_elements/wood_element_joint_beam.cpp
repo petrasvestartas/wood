@@ -2770,7 +2770,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     else
         boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
 
-    // the parts: square pegs and keys between two points, each also a box the steps cut its hole with, the hole past the ends that leave the wood
+    // the parts: square pegs and keys, or wedges of a rectangular section narrowing from start to end, between two points;
+    // each also a box the steps cut its hole with, the hole past the ends that leave the wood by its own size, so an end
+    // that leaves through a face at a slant leaves no sliver
     const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
     std::vector<Vector> part_axes;
     for (const std::string& line : record.lists["parts"]) {
@@ -2779,13 +2781,23 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const Point start = origin + evaluate(terms[0], names).vector;
         const Point end = origin + evaluate(terms[1], names).vector;
         const Vector up = evaluate(terms[2], names).vector;
-        const double half = evaluate(terms[3], names).number;
+        const bool tapered = terms.size() > 5;
+        const double half_up = evaluate(terms[3], names).number;
+        const double side_start = tapered ? evaluate(terms[4], names).number : half_up;
+        const double side_end = tapered ? evaluate(terms[5], names).number : half_up;
         const Vector axis = (end - start).normalized();
-        const std::string through = terms.size() > 4 ? terms[4] : "both";
-        const double before = through == "both" || through == "start" ? overshoot : 0.0;
-        const double after = through == "both" || through == "end" ? overshoot : 0.0;
-        joint->parts.push_back({square_section(start, axis, up, half), square_section(end, axis, up, half)});
-        boxes[pair[0]] = Mesh::loft({square_section(start - axis * before, axis, up, half)}, {square_section(end + axis * after, axis, up, half)}, true);
+        const double length = Point::distance(start, end);
+        const std::string through = terms.size() > (tapered ? 6 : 4) ? terms[tapered ? 6 : 4] : "both";
+        const double reach_out = overshoot + std::max({half_up, side_start, side_end});
+        const double before = through == "both" || through == "start" ? reach_out : 0.0;
+        const double after = through == "both" || through == "end" ? reach_out : 0.0;
+        const double flare = (side_start - side_end) / length;
+        joint->parts.push_back({rectangle_section(start, axis, up, half_up, side_start), rectangle_section(end, axis, up, half_up, side_end)});
+        boxes[pair[0]] = Mesh::loft(
+            {rectangle_section(start - axis * before, axis, up, half_up, side_start + flare * before)},
+            {rectangle_section(end + axis * after, axis, up, half_up, side_end - flare * after)},
+            true
+        );
         part_axes.push_back(axis);
     }
 

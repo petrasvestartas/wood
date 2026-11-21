@@ -60,6 +60,9 @@ std::vector<ElementFeature> session_features(const Element& element);
 /// A closed square of half-width `radius` centred at `at`, in the plane normal to `direction`.
 Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius);
 
+/// The closed rectangle at a point across a direction, half_up along up (made square to the direction) and half_side across both.
+Polyline rectangle_section(const Point& at, const Vector& direction, const Vector& up, double half_up, double half_side);
+
 /// The closed solid through consecutive closed sections of the same point count: one quad strip per pair, a cap at each end.
 Mesh sweep_sections(const std::vector<Polyline>& sections);
 

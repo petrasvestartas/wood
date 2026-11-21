@@ -39,6 +39,10 @@ std::vector<ElementFeature> session_features(const Element& element) {
 }
 
 Polyline square_section(const Point& at, const Vector& direction, const Vector& up, double radius) {
+    return rectangle_section(at, direction, up, radius, radius);
+}
+
+Polyline rectangle_section(const Point& at, const Vector& direction, const Vector& up, double half_up, double half_side) {
 
     const Vector along = direction.normalized();
     Vector rise = up.is_parallel_to(along) == 0 ? up : Vector::z_axis();
@@ -48,8 +52,8 @@ Polyline square_section(const Point& at, const Vector& direction, const Vector& 
     const Vector side = rise.cross(along).normalized();
     rise = along.cross(side).normalized();
 
-    const Vector s = side * radius;
-    const Vector u = rise * radius;
+    const Vector s = side * half_side;
+    const Vector u = rise * half_up;
 
     return Polyline({at - u - s, at - u + s, at + u + s, at + u - s, at - u - s});
 }
