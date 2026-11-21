@@ -881,3 +881,157 @@ half_lap_stub_tenons_splice:
     - "B3 b_end -mid -shoulder_b -deep_b -cheek_1 -cheek_2"
   insertions:
     - "-p"
+
+stub_tenon_splice:
+  title: "Stub tenon joint"
+  german: "Zapfen"
+  page: "176"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "thickness = 0.38"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a cheek_1; a_end shoulder_a cheek_2"
+    - "B2 b_end f2 -cheek_1 -cheek_2"
+  insertions:
+    - "-p"
+
+half_blind_stub_tenon_splice:
+  title: "Half-blind stub tenon joint"
+  german: "einseitig abgesetzter Zapfen"
+  page: "178"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "thickness = 0.38"
+    - "depth = 0.5"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+    - "blind = O - (2*depth - 1)*ah*p, p, O + ah*p"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a cheek_1; a_end shoulder_a cheek_2; a_end shoulder_a blind"
+    - "B2 b_end f2 -cheek_1 -cheek_2 -blind"
+  insertions:
+    - "-p"
+
+floating_tenon_splice:
+  title: "Floating tenon joint"
+  german: "eingesetzter Zapfen"
+  page: "180"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.02"
+    - "thickness = 0.3"
+    - "reach = 0.7"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "tenon = O + (L - reach*2*ah)*u, O - (L - reach*2*ah)*u, w, thickness*aw, ah, ah, none"
+  steps:
+    - "A2 a_end shoulder_a"
+    - "A3 tenon"
+    - "B2 tenon"
+  insertions:
+    - "-u"
+    - "tenon = -p"
+
+pegged_bridle_splice:
+  title: "Pegged bridle joint"
+  german: "Zapfen mit Dübelsicherung"
+  page: "182"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.1"
+    - "thickness = 0.38"
+    - "peg = 0.15"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cheek_1 = O + thickness*aw*w, w, O"
+    - "cheek_2 = O - thickness*aw*w, w, O"
+  parts:
+    - "peg = O + 1.2*aw*w, O - 1.2*aw*w, u, peg*ah"
+  steps:
+    - "A2 a_end shoulder_a cheek_1; a_end shoulder_a cheek_2"
+    - "A3 peg"
+    - "B2 b_end f2 -cheek_1 -cheek_2"
+    - "B3 peg"
+  insertions:
+    - "-p"
+
+double_tenon_splice:
+  title: "Double tenon joint"
+  german: "doppelter Zapfen"
+  page: "198"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "inner = 0.2"
+    - "outer = 0.7"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a w_out_1; a_end shoulder_a w_out_2; a_end shoulder_a w_in_1 w_in_2"
+    - "B2 b_end f2 -w_out_1 -w_in_1; b_end f2 -w_out_2 -w_in_2"
+  insertions:
+    - "-p"
+
+half_blind_double_tenon_splice:
+  title: "Half-blind double tenon joint"
+  german: "einseitig abgesetzter doppelter Zapfen"
+  page: "200"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "inner = 0.2"
+    - "outer = 0.7"
+    - "depth = 0.75"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "w_out_1 = O + outer*aw*w, w, O"
+    - "w_in_1 = O + inner*aw*w, w, O + aw*w"
+    - "w_in_2 = O - inner*aw*w, w, O - aw*w"
+    - "w_out_2 = O - outer*aw*w, w, O"
+    - "blind = O - (2*depth - 1)*ah*p, p, O + ah*p"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a w_out_1; a_end shoulder_a w_out_2; a_end shoulder_a w_in_1 w_in_2; a_end shoulder_a blind"
+    - "B2 b_end f2 -w_out_1 -w_in_1 -blind; b_end f2 -w_out_2 -w_in_2 -blind"
+  insertions:
+    - "-p"

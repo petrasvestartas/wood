@@ -1,8 +1,8 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 239 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 233 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 82 left of 110
+## Timber splicing joints: 76 left of 110
 
 - p. 52, Half lap joint with haunched tenon (gerades Blatt mit Stufenzapfen)
 - p. 74, Cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt)
@@ -43,10 +43,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 170, Diagonally cut birdsmouth (diagonale doppelte Schäftung)
 - p. 172, Triple-faced splayed scarf joint (einseitig schräg angeschnittene doppelte Schäftung)
 - p. 174, Four-faced splayed scarf joint (vierseitige Schäftung)
-- p. 176, Stub tenon joint (Zapfen)
-- p. 178, Half-blind stub tenon joint (einseitig abgesetzter Zapfen)
-- p. 180, Floating tenon joint (eingesetzter Zapfen)
-- p. 182, Pegged bridle joint (Zapfen mit Dübelsicherung)
 - p. 184, Mortise and tenon with V-ends and undercut shoulders (Zapfen mit hinterschnittener Brüstung und v-förmig eingeschnittener Stirn)
 - p. 186, Pegged mortise and tenon with undercut shoulders (Zapfen mit hinterschnittener Brüstung und Dübelsicherung)
 - p. 188, Spear point mortise and tenon with beveled shoulders (Zapfen mit Gratschnitt und schräger Brüstung)
@@ -54,8 +50,6 @@ The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library 
 - p. 192, Pegged rabbeted mortise and tenon joint (Zapfen mit Steckfalz und Dübelsicherung)
 - p. 194, Rabbeted rod tenon joint with tapered keys (Stabzapfen mit Steckfalz und Spannkeilen)
 - p. 196, Rod joint with two half rods and tapered keys (beidseitiger Stabzapfen mit Spannkeilen)
-- p. 198, Double tenon joint (doppelter Zapfen)
-- p. 200, Half-blind double tenon joint (einseitig abgesetzter doppelter Zapfen)
 - p. 202, Blind square stub tenon joint (verdeckter beidseitig abgesetzter Zapfen)
 - p. 204, Blind fan-shaped stub tenon joint (verdeckter trapezförmiger Zapfen)
 - p. 206, Half-blind L-shaped stub tenon joint (Winkelzapfen)
