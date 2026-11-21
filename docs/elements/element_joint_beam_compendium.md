@@ -296,6 +296,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_butt_floating_gooseneck_tenon_splice.png) | **Butt joint with floating gooseneck tenon**<br>Stoß mit eingesetztem Sichelzapfen, p. 256<br>`butt_floating_gooseneck_tenon_splice` |
 | ![](joint_library/beam_cogged_lap_floating_piece_folding_wedges_splice.png) | **Cogged lap joint with floating piece and folding wedges**<br>verkeiltes gerades Hakenblatt mit eingesetztem Hakenstück, p. 92<br>`cogged_lap_floating_piece_folding_wedges_splice` |
 | ![](joint_library/beam_stepped_cogged_lap_floating_piece_folding_wedges_splice.png) | **Stepped cogged lap joint with floating piece and folding wedges**<br>verkeiltes gestuftes Hakenblatt mit eingesetztem Hakenstück, p. 98<br>`stepped_cogged_lap_floating_piece_folding_wedges_splice` |
+| ![](joint_library/beam_butt_gooseneck_key_stub_tenons_splice.png) | **Butt joint with a gooseneck key and stub tenons**<br>Stoß mit Sichelzapfeneinlage und doppelten Brüstungszapfen, p. 258<br>`butt_gooseneck_key_stub_tenons_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
