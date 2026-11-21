@@ -200,6 +200,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_lapped_haunched_mortise_tenon_post.png) | **Lapped and haunched mortise and tenon joint**<br>wechselseitig abgesetzte verdeckte Stufenzapfen, p. 726<br>`lapped_haunched_mortise_tenon_post` |
 | ![](joint_library/beam_mitered_haunched_mortise_tenon_post.png) | **Mitered and haunched mortise and tenon joint**<br>verdeckte Stufenzapfen auf Gehrung, p. 728<br>`mitered_haunched_mortise_tenon_post` |
 | ![](joint_library/beam_corner_post_fan_stub_tenon_blind_dado.png) | **Corner-post joint with fan-shaped stub tenon and blind dado and rabbet joint**<br>Eckstoß mit Führungszapfen und Wange auf Gehrung sowie durchgehendem trapezförmigem Zapfen, p. 722<br>`corner_post_fan_stub_tenon_blind_dado` |
+| ![](joint_library/beam_housed_stopped_dovetail_lap_post_stub_tenon.png) | **Housed and stopped dovetail lap and fully shouldered stub tenon**<br>verdeckter eingelassener Schwalbenschwanzzapfen mit abgesetzter Brust und Pfosten mit verdecktem Zapfen, p. 724<br>`housed_stopped_dovetail_lap_post_stub_tenon` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |
