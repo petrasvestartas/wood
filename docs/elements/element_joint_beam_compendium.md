@@ -154,6 +154,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_blind_mitered_cogged_corner_lap.png) | **Blind mitered cogged corner lap joint**<br>verdecktes Hakeneckblatt mit Wange auf Gehrung, p. 284<br>`blind_mitered_cogged_corner_lap` |
 | ![](joint_library/beam_blind_mitered_beveled_corner_lap.png) | **Blind mitered beveled corner lap joint**<br>verdecktes Eckblatt mit zweifach schräger Blattfläche und Wange auf Gehrung, p. 270<br>`blind_mitered_beveled_corner_lap` |
 | ![](joint_library/beam_half_blind_mitered_sloped_cogged_corner_lap.png) | **Half-blind mitered sloped cogged corner lap joint**<br>halbverdecktes schräges Hakeneckblatt mit Wange auf Gehrung, p. 282<br>`half_blind_mitered_sloped_cogged_corner_lap` |
+| ![](joint_library/beam_rabbeted_tenoned_miter.png) | **Rabbeted tenoned miter joint**<br>abgesetzter Eckstoß auf Gehrung mit Führungszapfen, p. 292<br>`rabbeted_tenoned_miter` |
 | ![](joint_library/beam_cross_lap.png) | **Cross lap joint**<br>Kreuzblatt, p. 646<br>`cross_lap` |
 | ![](joint_library/beam_pegged_cross_lap.png) | **Pegged cross lap joint**<br>Kreuzblatt mit Dübel, p. 648<br>`pegged_cross_lap` |
 | ![](joint_library/beam_blind_pegged_cross.png) | **Joint with blind peg**<br>Überkreuzung mit Dolle, p. 680<br>`blind_pegged_cross` |

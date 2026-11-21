@@ -1801,3 +1801,32 @@ half_blind_mitered_sloped_cogged_corner_lap:
     - "B2 b_node -lower -face_2 -cheek_in; b_node -upper -split -face_2 -cheek_in; b_node cheek_in miter"
   insertions:
     - "w"
+
+rabbeted_tenoned_miter:
+  title: "Rabbeted tenoned miter joint"
+  german: "abgesetzter Eckstoß auf Gehrung mit Führungszapfen"
+  page: "292"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "inner = 0.35"
+    - "tongue = 0.17"
+    - "depth = 0.3"
+  points:
+    - "I = O - ah*p"
+    - "X = O + ah*p - 2*bh*n"
+    - "S = O - inner*2*bh*n"
+  planes:
+    - "face_2 = O - ah*p, p, O"
+    - "miter = I, cross(w, X - I), O + 2*bh*n"
+    - "strip = O + (2*inner - 1)*ah*p, p, O + ah*p"
+    - "shelf = S, n, O"
+    - "tg_band = O + (2*tongue - 1)*ah*p, p, O + ah*p"
+    - "tongue_end = S - depth*2*bh*n, n, O"
+  parts:
+  steps:
+    - "A2 a_end miter -strip; a_end strip shelf -tg_band; a_end strip tongue_end"
+    - "B2 b_node -miter -strip; b_node strip -shelf -face_2; b_node strip shelf -tongue_end tg_band -face_2"
+  insertions:
+    - "-u"
