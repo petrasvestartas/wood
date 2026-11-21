@@ -1681,3 +1681,27 @@ undersquinted_cogged_lap_folding_wedges_splice:
     - "B2 b_end -face_l -up_face; b_end -face_r -cut_b; b_end face_r low_face"
   insertions:
     - "w"
+
+half_lap_floating_piece_splice:
+  title: "Half lap joint with floating piece"
+  german: "gerades Blatt mit eingesetztem Mittelstück"
+  page: "84"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.3"
+    - "reach = 1.2"
+  points:
+  planes:
+    - "butt = O, u, O + u"
+  parts:
+    - "piece = O - reach*ah*u + 0.5*ah*p, O + reach*ah*u + 0.5*ah*p, p, 0.5*ah, aw, aw, none"
+  steps:
+    - "A2 a_end butt"
+    - "A3 piece"
+    - "B2 b_end -butt"
+    - "B3 piece"
+  insertions:
+    - "-u"
+    - "piece = -p"

@@ -1,12 +1,11 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 179 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 178 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 56 left of 110
+## Timber splicing joints: 55 left of 110
 
 - p. 52, Half lap joint with haunched tenon (gerades Blatt mit Stufenzapfen)
 - p. 82, Undersquinted spear point cogged lap joint with folding wedges (verkeiltes gerades Hakenblatt mit schrägem Gratschnitt)
-- p. 84, Half lap joint with floating piece (gerades Blatt mit eingesetztem Mittelstück)
 - p. 86, Undersquinted half lap joint with floating piece (gerades Blatt mit hinterschnittener Brüstung und eingesetztem Mittelstück)
 - p. 88, Cogged lap joint with floating tenoned piece (gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen)
 - p. 90, Cogged lap joint with floating piece (gerades Hakenblatt mit eingesetztem Hakenstück)

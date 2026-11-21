@@ -184,6 +184,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_spear_point_cogged_lap_splice.png) | **Spear point cogged lap joint**<br>gerades Hakenblatt mit Gratschnitt, p. 78<br>`spear_point_cogged_lap_splice` |
 | ![](joint_library/beam_spear_point_cogged_lap_folding_wedges_splice.png) | **Spear point cogged lap joint with folding wedges**<br>verkeiltes gerades Hakenblatt mit Gratschnitt, p. 80<br>`spear_point_cogged_lap_folding_wedges_splice` |
 | ![](joint_library/beam_undersquinted_cogged_lap_folding_wedges_splice.png) | **Undersquinted cogged lap joint with folding wedges**<br>verkeiltes gerades Hakenblatt mit hinterschnittener Brüstung, p. 76<br>`undersquinted_cogged_lap_folding_wedges_splice` |
+| ![](joint_library/beam_half_lap_floating_piece_splice.png) | **Half lap joint with floating piece**<br>gerades Blatt mit eingesetztem Mittelstück, p. 84<br>`half_lap_floating_piece_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |
