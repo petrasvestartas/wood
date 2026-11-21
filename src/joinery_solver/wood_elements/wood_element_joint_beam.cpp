@@ -2806,15 +2806,21 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
     }
 
-    // more members: each a box over its whole length, named by its letter after b (c, d, ...)
-    for (size_t k = 0; k < more.size(); k++) {
-        const EdgeStraightElement& member = *more[k];
+    // more members: each a box over its whole length, named by its letter after b (c, d, ...), its axis named by its letter and u (cu);
+    // a_all and b_all the like boxes over a and b
+    std::vector<const EdgeStraightElement*> whole = {&a, &b};
+    whole.insert(whole.end(), more.begin(), more.end());
+    for (size_t k = 0; k < whole.size(); k++) {
+        const EdgeStraightElement& member = *whole[k];
         const std::pair<std::array<Vector, 2>, std::array<double, 2>> section = section_axes(member);
         const Point start = member.axis.get_point(0);
         const Point end = member.axis.get_point(member.axis.point_count() - 1);
         const Vector along = (end - start).normalized();
         const double half_length = 0.5 * Point::distance(start, end) + member.extension + overshoot;
-        boxes[std::string(1, static_cast<char>('c' + k))] = frame_solid(start + (end - start) * 0.5, {along, section.first[0], section.first[1]}, {-half_length, half_length}, {-section.second[0] - overshoot, section.second[0] + overshoot}, {-section.second[1] - overshoot, section.second[1] + overshoot});
+        const std::string letter(1, static_cast<char>('a' + k));
+        if (k >= 2)
+            names[letter + "u"] = {0.0, along, true};
+        boxes[k < 2 ? letter + "_all" : letter] = frame_solid(start + (end - start) * 0.5, {along, section.first[0], section.first[1]}, {-half_length, half_length}, {-section.second[0] - overshoot, section.second[0] + overshoot}, {-section.second[1] - overshoot, section.second[1] + overshoot});
     }
 
     // planes through a point, their normals turned away from the kept point

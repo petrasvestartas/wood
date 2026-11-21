@@ -45,11 +45,12 @@ int main() {
             const bool crossing = library_record(design).fields.at("category") == "cross";
             const Vector out = crossing ? Vector(0.0, 0.0, 650.0) : (member->axis.get_point(1) - member->axis.get_point(0)).normalized() * 500.0;
             member->place(Xform::translation(out[0], out[1], out[2]));
-            // a more member out along its own axis, away from the node
+            // a more member out along its own axis away from the node, or on a crossing lifted twice as high as the member
             for (size_t m = 2; m < members.size(); m++) {
                 const Point start = members[m]->axis.get_point(0);
                 const Point end = members[m]->axis.get_point(1);
-                const Vector away = (Point::distance(start, node) < Point::distance(end, node) ? end - start : start - end).normalized() * 500.0;
+                const Vector along_axis = (Point::distance(start, node) < Point::distance(end, node) ? end - start : start - end).normalized() * 500.0;
+                const Vector away = crossing ? out * 2.0 : along_axis;
                 members[m]->place(Xform::translation(away[0], away[1], away[2]));
             }
             size_t k = 0;

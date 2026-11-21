@@ -703,3 +703,37 @@ double_notched_oblique_cross_lap:
     - "B2 b_node -mid -side_1 -side_2 -front -heel"
   insertions:
     - "-n"
+
+three_way_cross_lap:
+  title: "Three-way cross lap joint"
+  german: "doppelte Überblattung"
+  page: "678"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "pitch = 0"
+    - "plan = 60"
+    - "tail = 600"
+    - "sit = 1"
+  points:
+  planes:
+    - "hi = O - (2/3)*bh*n, n, O"
+    - "lo = O - (4/3)*bh*n, n, O"
+    - "a1 = O + aw*unit(cross(n, u)), unit(cross(n, u)), O"
+    - "a2 = O - aw*unit(cross(n, u)), unit(cross(n, u)), O"
+    - "b1 = O + bh*unit(cross(n, c)), unit(cross(n, c)), O"
+    - "b2 = O - bh*unit(cross(n, c)), unit(cross(n, c)), O"
+    - "c1 = O + bh*unit(cross(n, cu)), unit(cross(n, cu)), O"
+    - "c2 = O - bh*unit(cross(n, cu)), unit(cross(n, cu)), O"
+  more:
+    - "c = 520 -300 0, -520 300 0, 0 0 1, 60, 60"
+  parts:
+  steps:
+    - "A2 a_all hi -b1 -b2; a_all lo -c1 -c2"
+    - "B2 b_all -hi -a1 -a2; b_all lo -c1 -c2"
+    - "C2 c -lo -a1 -a2; c -lo -b1 -b2"
+  insertions:
+    - "-n"
+    - "c = n"
