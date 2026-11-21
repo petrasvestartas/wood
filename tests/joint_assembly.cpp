@@ -127,8 +127,12 @@ static void blind_mortise_tenon() {
 /// Every record of the YAML library on its members: all cut, no wood shared, each member out along a direction it gives.
 static void library() {
 
+    // JOINT_DESIGNS="a,b" checks only those records, for working on a few
+    const char* only = std::getenv("JOINT_DESIGNS");
     for (const std::string& design : library_designs())
         for (const bool square : {true, false}) {
+        if (only && ("," + std::string(only) + ",").find("," + design + ",") == std::string::npos)
+            continue;
         const LibraryRecord record = library_record(design);
         if (record.fields.at("corners").find(square ? "square" : "inclined") == std::string::npos)
             continue;
