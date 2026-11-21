@@ -191,6 +191,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_post_stub_tenon_double_cogged.png) | **Post with stub tenon and mortised double cogged joint**<br>verdeckter Zapfen mit Kreuzkamm und mittiger Stufe, p. 708<br>`post_stub_tenon_double_cogged` |
 | ![](joint_library/beam_stacked_tenon_mortised_cross_lap.png) | **Stacked tenon and mortised cross lap joint**<br>durchgesteckter beidseitig abgesetzter Stufenzapfen mit Kreuzblatt, p. 714<br>`stacked_tenon_mortised_cross_lap` |
 | ![](joint_library/beam_castle_joint.png) | **Castle joint**<br>doppelte Einhälsung, p. 716<br>`castle_joint` |
+| ![](joint_library/beam_t_bridle_stub_tenons_mortised_beam.png) | **T-bridle joint with stub tenons and mortised beam**<br>Einhälsung mit Brüstungszapfen und aufgesetzter Überkreuzung, p. 710<br>`t_bridle_stub_tenons_mortised_beam` |
 | ![](joint_library/beam_half_lap_splice.png) | **Half lap joint**<br>gerades Blatt, p. 42<br>`half_lap_splice` |
 | ![](joint_library/beam_beveled_lap_splice.png) | **Beveled lap joint**<br>Zugblatt, p. 46<br>`beveled_lap_splice` |
 | ![](joint_library/beam_half_lap_stub_tenon_splice.png) | **Half lap joint with stub tenon**<br>gerades Blatt mit einseitigem Zapfen, p. 50<br>`half_lap_stub_tenon_splice` |

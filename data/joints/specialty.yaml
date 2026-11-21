@@ -182,3 +182,39 @@ castle_joint:
   insertions:
     - "-n"
     - "c = n"
+
+t_bridle_stub_tenons_mortised_beam:
+  title: "T-bridle joint with stub tenons and mortised beam"
+  german: "Einhälsung mit Brüstungszapfen und aufgesetzter Überkreuzung"
+  page: "710"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bc"
+  parameters:
+    - "pitch = 0"
+    - "tail = 600"
+    - "sit = 0"
+    - "slot = 0.35"
+    - "stub = 0.3"
+  points:
+  planes:
+    - "top = O, n, O - n"
+    - "st1 = O + slot*bt*t, t, O"
+    - "st2 = O - slot*bt*t, t, O"
+    - "pt1 = O + bt*t, t, O"
+    - "pt2 = O - bt*t, t, O"
+    - "tw1 = O + stub*aw*w, w, O"
+    - "tw2 = O - stub*aw*w, w, O"
+    - "stub_top = O + 0.8*bh*n, n, O + 2*bh*n"
+    - "post_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+  more:
+    - "c = 0 0 108, 0 0 -600, 1 0 0, 60, 60"
+  parts:
+  steps:
+    - "A2 a_node -tw1 -tw2 st1 -pt1 stub_top; a_node -tw1 -tw2 st2 -pt2 stub_top"
+    - "B2 b_node st1; b_node st2"
+    - "C2 c post_shoulder -st1 -st2; c top tw1; c top tw2; c top -st1 -st2"
+  insertions:
+    - "-n"
+    - "c = n"
