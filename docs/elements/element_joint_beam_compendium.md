@@ -174,6 +174,8 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_gooseneck_tenon_splice.png) | **Gooseneck tenon joint**<br>Sichelzapfen, p. 244<br>`gooseneck_tenon_splice` |
 | ![](joint_library/beam_birdsmouth_splice.png) | **Birdsmouth**<br>Gratstoß, p. 168<br>`birdsmouth_splice` |
 | ![](joint_library/beam_double_halved_lap_splice.png) | **Double halved lap joint**<br>diagonal versetztes abgesetztes Blatt, p. 210<br>`double_halved_lap_splice` |
+| ![](joint_library/beam_double_dovetail_tenon_splice.png) | **Double dovetail tenon joint**<br>doppelter Schwalbenschwanzzapfen, p. 236<br>`double_dovetail_tenon_splice` |
+| ![](joint_library/beam_half_lap_butterfly_key_splice.png) | **Half lap joint with butterfly key**<br>gerades Blatt mit Schwalbenschwanzeinlage, p. 234<br>`half_lap_butterfly_key_splice` |
 | ![](joint_library/beam_blind_mortise_tenon.png) | **Blind mortise and tenon**<br>verdeckter Zapfen, p. 496<br>`blind_mortise_tenon` |
 | ![](joint_library/beam_half_lap.png) | **Half lap joint**<br>Querblatt, p. 420<br>`half_lap` |
 | ![](joint_library/beam_stopped_half_lap.png) | **Stopped half lap joint**<br>halbverdecktes Querblatt, p. 422<br>`stopped_half_lap` |

@@ -1302,3 +1302,70 @@ double_halved_lap_splice:
     - "B2 b_end f2 hp hw; b_end f2 -hp -hw"
   insertions:
     - "-u"
+
+double_dovetail_tenon_splice:
+  title: "Double dovetail tenon joint"
+  german: "doppelter Schwalbenschwanzzapfen"
+  page: "236"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.5"
+    - "root = 0.12"
+    - "tip = 0.3"
+    - "centre = 0.5"
+  points:
+    - "C1 = O + centre*aw*w"
+    - "C2 = O - centre*aw*w"
+    - "R11 = C1 + L*u + root*aw*w"
+    - "T11 = C1 - L*u + tip*aw*w"
+    - "R12 = C1 + L*u - root*aw*w"
+    - "T12 = C1 - L*u - tip*aw*w"
+    - "R21 = C2 + L*u + root*aw*w"
+    - "T21 = C2 - L*u + tip*aw*w"
+    - "R22 = C2 + L*u - root*aw*w"
+    - "T22 = C2 - L*u - tip*aw*w"
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "f11 = R11, cross(p, T11 - R11), C1"
+    - "f12 = R12, cross(p, T12 - R12), C1"
+    - "f21 = R21, cross(p, T21 - R21), C2"
+    - "f22 = R22, cross(p, T22 - R22), C2"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a f11; a_end shoulder_a f12 f21; a_end shoulder_a f22"
+    - "B2 b_end f2 -f11 -f12; b_end f2 -f21 -f22"
+  insertions:
+    - "-p"
+
+half_lap_butterfly_key_splice:
+  title: "Half lap joint with butterfly key"
+  german: "gerades Blatt mit Schwalbenschwanzeinlage"
+  page: "234"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1.5"
+    - "wing = 0.8"
+    - "waist = 0.2"
+    - "flare = 0.45"
+  points:
+  planes:
+    - "mid = O, p, O + p"
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+  parts:
+    - "wing_1 = O, O + wing*ah*p, w, aw + 2, waist*ah, flare*ah, none"
+    - "wing_2 = O, O - wing*ah*p, w, aw + 2, waist*ah, flare*ah, none"
+  steps:
+    - "A2 a_end mid shoulder_a"
+    - "A3 wing_1; wing_2"
+    - "B2 b_end -mid f2"
+    - "B3 wing_1; wing_2"
+  insertions:
+    - "-p"
+    - "wing_1 = w"
+    - "wing_2 = w"
