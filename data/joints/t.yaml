@@ -2126,6 +2126,39 @@ dovetail_t_bridle:
     - "-u"
 
 
+rising_dovetail:
+  title: "Rising dovetail joint"
+  german: "schräg angeschnittener schräg abgesetzter Schwalbenschwanzzapfen"
+  page: "568"
+  category: "side_end"
+  family: "t"
+  corners: "square"
+  parameters:
+    - "neck = 0.3"
+    - "flare = 0.45"
+    - "depth = 0.5"
+    - "rise = 0.25"
+  points:
+    - "S = O + n"
+    - "E = O - 2*depth*bh*n"
+    - "Q = O - aw*w"
+    - "R = O + aw*w - 2*rise*bh*n"
+  planes:
+    - "end = E, n, O"
+    - "shoulder = Q, cross(p, R - Q), Q + n"
+    - "side_1 = O + ah*p, p, O"
+    - "side_2 = O - ah*p, p, O"
+    - "w1 = O + aw*w, w, O"
+    - "w2 = O - aw*w, w, O"
+    - "flank_1 = O + neck*ah*p, cross(w, E + flare*ah*p - O - neck*ah*p), O"
+    - "flank_2 = O - neck*ah*p, cross(w, E - flare*ah*p - O + neck*ah*p), O"
+  parts:
+  steps:
+    - "A2 a_end end; a_end shoulder flank_1; a_end shoulder flank_2"
+    - "B2 b_node -end -flank_1 -flank_2; b_node -shoulder -side_1 -side_2 -w1 -w2"
+  insertions:
+    - "-w"
+
 wedged_dovetail_half_lap:
   title: "Wedged dovetail half lap joint"
   german: "verkeiltes Schwalbenschwanzblatt"
