@@ -3143,3 +3143,29 @@ haunched_gooseneck_stub_tenons_splice:
     - "B2 b_end hend -neck_1 -neck_2 -lvl -tip_a; b_end hend -neck_1 -neck_2 -lvl tip_a -sb1 -sb2; b_end f2 -hend -flank_1 -flank_2 -lvl -tip_a; b_end f2 -hend -flank_1 -flank_2 -lvl tip_a -sb1 -sb2; b_end tip_b sb1; b_end tip_b sb2"
   insertions:
     - "-p"
+
+half_blind_l_stub_tenon_splice:
+  title: "Half-blind L-shaped stub tenon joint"
+  german: "Winkelzapfen"
+  page: "206"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 0.4"
+    - "arm = 0.25"
+    - "reach = 1.2"
+  points:
+  planes:
+    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "pa = O + (1 - 2*arm)*ah*p, p, O"
+    - "wa = O + (1 - 2*arm)*aw*w, w, O"
+    - "pl = O + (1 - reach)*ah*p, p, O - ah*p"
+    - "wl = O + (1 - reach)*aw*w, w, O - aw*w"
+  parts:
+  steps:
+    - "A2 a_end shoulder_a -pa -wa; a_end shoulder_a pa -wl; a_end shoulder_a wa -pl"
+    - "B2 b_end f2 pa wl; b_end f2 wa pl"
+  insertions:
+    - "-u"
