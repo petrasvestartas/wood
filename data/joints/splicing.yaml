@@ -3494,3 +3494,38 @@ post_through_tenon_stop_splayed_scarf_stub_tenons:
     - "p"
     - "c = p"
 
+half_blind_rabbeted_lap_tapered_keys_splice:
+  title: "Half-blind rabbeted lap joint with tapered keys"
+  german: "halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen"
+  page: "112"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 2.4"
+    - "lip = 0.38"
+    - "rabbet = 0.4"
+    - "cheek = 0.15"
+    - "key = 0.08"
+  points:
+  planes:
+    - "mid = O, p, O + 2*ah*p"
+    - "lo = O - lip*ah*p, p, O + 2*ah*p"
+    - "hi = O + lip*ah*p, p, O + 2*ah*p"
+    - "e1 = O + (L - rabbet*ah)*u, u, O + 2*L*u"
+    - "e2 = O + L*u, u, O + 2*L*u"
+    - "f1 = O - (L - rabbet*ah)*u, u, O - 2*L*u"
+    - "f2 = O - L*u, u, O - 2*L*u"
+    - "cover = O + (1 - 2*cheek)*aw*w, w, O"
+  parts:
+    - "key_1 = O - 0.4*L*u + (ah + 1)*p, O - 0.4*L*u - (ah + 1)*p, u, key*ah, 0.3*aw, 0.2*aw"
+    - "key_2 = O + 0.4*L*u + (ah + 1)*p, O + 0.4*L*u - (ah + 1)*p, u, key*ah, 0.3*aw, 0.2*aw"
+  steps:
+    - "A2 a_end -mid e1 -cover; a_end -mid hi e2 -cover; a_end lo -f1 -cover; a_end mid -f2 -cover"
+    - "A3 key_1; key_2"
+    - "B2 b_end mid f1; b_end -lo mid f2; b_end -hi -e1; b_end -mid -e2; b_end f2 cover"
+    - "B3 key_1; key_2"
+  insertions:
+    - "-w"
+    - "key_1 = -p"
+    - "key_2 = -p"

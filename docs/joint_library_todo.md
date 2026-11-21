@@ -1,11 +1,10 @@
 # Joint library: what is left {#elements_joint_library_todo}
 
-The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 35 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
+The joints of the Joinery Compendium (Bauer, Pauli 2024) the beam joint library has no record of yet: 34 of 407. Written by `python3 tools/joint_library_todo.py` from `data/joints/compendium_index.txt`; a joint leaves the list when a `data/joints/*.yaml` record names its page.
 
-## Timber splicing joints: 8 left of 110
+## Timber splicing joints: 7 left of 110
 
 - p. 88, Cogged lap joint with floating tenoned piece (gerades Hakenblatt mit eingesetztem Hakenstück mit Zapfen)
-- p. 112, Half-blind rabbeted lap joint with tapered keys (halbverdecktes gerades Blatt mit Steckfalz und Spannkeilen)
 - p. 132, Stop-splayed cogged scarf joint with stub tenons and blind pegs (schräges Hakenblatt mit Brüstungszapfen und Dollen)
 - p. 148, Pegged rabbeted notched stop-splayed cogged scarf joint (stehendes schräges Hakenblatt mit unterbrochener Steckfalz und Dübelsicherung)
 - p. 152, Pegged half blind rabbeted stop-splayed cogged scarf joint (halbverdecktes schräges Hakenblatt mit Steckfalz und Dübelsicherung)
