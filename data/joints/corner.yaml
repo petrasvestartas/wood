@@ -1,0 +1,104 @@
+# Joinery Compendium (Bauer, Pauli 2024), Timber Joints, Corner Joints: one record per joint, built by JointBeamElement::from_library.
+#
+# A record: title, german, page, category, family and corners (square, inclined or both: where the joint exists),
+# every value in double quotes (the reader takes a bare dash for a
+# list); then lists of quoted strings, read in order.
+#   parameters  "name = number", shares of the members' sizes, each overridable by from_library; the test reads open, the
+#               share of the carrier's cut a joint leaves empty on purpose.
+#   points      "name = expression", in the frame of the joint (side_end: the end of member a on a side of member b):
+#               (a corner, end_end_inplane, is read as side_end: b ends flush with a's outer face)
+#               O where the axis of a meets the face of b, u along a away from b, n the face normal of b, t along b the way
+#               a leans, w across both (n x t), p across a towards the side it leans to (w x u); ah and aw half of a along
+#               p and w, bh and bw half of b along n and w; expressions use + * / and unit length cross dot meet.
+#   planes      "name = point, normal, kept": the normal turned away from the kept point, towards the wood taken away;
+#               a plane's name in an expression is its normal.
+#   parts       "name = start, end, up, half[, ends]": a square peg or key from start to end, half its side wide, a side along up;
+#               "name = start, end, up, half_up, half_start, half_end[, ends[, flat]]": a wedge, half_up thick along up, its
+#               other half side narrowing from half_start at start to half_end at end, driven in along start to end; a folding
+#               wedge keeps its face looking along flat flat;
+#               its hole runs past the ends that leave the wood: both (default), start, end or none;
+#               it is nested under the joint, goes in along its axis, and its name is a box the steps cut its hole with.
+#   steps       "label box plane plane" labelled as the book does (A1 and B1 are its marking, so cuts start at 2),
+#               regions joined by ";": the box (a_end the end of a, b_node b around the node; a or
+#               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
+#               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
+#   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
+#   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way.
+
+corner_lap:
+  title: "Corner lap joint"
+  german: "Eckblatt"
+  page: "262"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, w, O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2"
+  insertions:
+    - "-u"
+    - "w"
+
+dovetailed_corner_lap:
+  title: "Dovetailed corner lap joint"
+  german: "Eckblatt mit schräger Blattfläche"
+  page: "266"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "tilt = 0.25"
+  points:
+    - "U = O + n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = O, unit(w + tilt*p), O - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2"
+  insertions:
+    - "-u"
+    - "w"
+
+beveled_corner_lap:
+  title: "Beveled corner lap joint"
+  german: "Eckblatt mit zweifach schräger Blattfläche"
+  page: "268"
+  category: "end_end_inplane"
+  family: "corner"
+  corners: "square"
+  parameters:
+    - "tilt = 0.25"
+    - "slope = 0.25"
+  points:
+    - "U = O + n"
+    - "C = O - bh*n"
+  planes:
+    - "bottom = O - 2*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "mid = C, unit(w + tilt*p + slope*n), C - w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder mid"
+    - "B2 b_node -mid -face_1 -face_2"
+  insertions:
+    - "w"

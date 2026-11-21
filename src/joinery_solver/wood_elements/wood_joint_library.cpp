@@ -238,8 +238,10 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
         return {member, carrier};
     }
 
-    // an end on a side: the carrier along x, the member ending on its axis, its stock running past the end
-    carrier = EdgeStraightElement::square(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(450.0, 0.0, 0.0)}), half, design + "_carrier");
+    // an end on a side: the carrier along x, the member ending on its axis, its stock running past the end; at a corner the
+    // carrier ends flush with the member's outer face
+    const double carrier_end = record.fields.at("category") == "end_end_inplane" ? half : 450.0;
+    carrier = EdgeStraightElement::square(Polyline({at + Vector(-450.0, 0.0, 0.0), at + Vector(carrier_end, 0.0, 0.0)}), half, design + "_carrier");
     member = EdgeStraightElement::square(Polyline({at, at + along * 600.0}), half, design + "_member");
     carrier->directions = {Vector::y_axis()};
     member->directions = {Vector::y_axis()};

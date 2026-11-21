@@ -2682,8 +2682,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
 
     LibraryRecord record = library_record(design);
     const bool crossing = record.fields.at("category") == "cross";
-    if (!crossing && record.fields.at("category") != "side_end")
-        throw std::invalid_argument(fmt::format("from_library: {} is {}, only side_end and cross are read yet", design, record.fields.at("category")));
+    if (!crossing && record.fields.at("category") != "side_end" && record.fields.at("category") != "end_end_inplane")
+        throw std::invalid_argument(fmt::format("from_library: {} is {}, only side_end, end_end_inplane and cross are read yet", design, record.fields.at("category")));
 
     // the frame: where a meets b, b's face a is on, the way a leans along or across b, across both; a's end on b, or a passing over b
     const Line a_axis = Line::from_points(a.axis.get_point(0), a.axis.get_point(a.axis.point_count() - 1));
