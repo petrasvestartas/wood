@@ -247,7 +247,7 @@ v_shaped_cog_cross:
     - "sit = 0.16"
   points:
     - "U = O + n"
-    - "P = O"
+    - "P = O + aw*w"
   planes:
     - "outer = O + bt*t, t, O"
     - "top = O, n, U"
@@ -255,11 +255,11 @@ v_shaped_cog_cross:
     - "inner = O - bt*t, t, O - 2*bt*t"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "arm_1 = P, cross(n, aw*w + bt*t), P - bt*t"
-    - "arm_2 = P, cross(n, aw*w - bt*t), P + bt*t"
+    - "arm_1 = P, cross(n, 2*aw*w + bt*t), P - bt*t"
+    - "arm_2 = P, cross(n, 2*aw*w - bt*t), P + bt*t"
   parts:
   steps:
-    - "A2 a_node top -arm_1 inner inner -outer; a_node top -arm_2 inner -outer"
+    - "A2 a_node top -arm_1 inner -outer; a_node top -arm_2 inner -outer"
     - "B2 b_node -under arm_1 arm_2 -side_2"
   insertions:
     - "-n"
@@ -604,20 +604,23 @@ oblique_notched_cross_lap:
     - "sit = 1"
     - "step = 0.3"
   points:
-    - "K = unit(cross(n, c))"
-    - "F1 = O - bh*n + (aw - step*aw)*w"
-    - "F2 = O + (aw - 0.4*step*aw)*w"
+    - "K = unit(cross(n, dot(c, t)*c))"
+    - "B1 = meet(O + aw*w, t, O + bt*K, K) - step*aw*w"
+    - "A1 = meet(O + aw*w, t, O - bt*K, K)"
+    - "B2 = meet(O - aw*w, t, O - bt*K, K) + step*aw*w"
+    - "A2 = meet(O - aw*w, t, O + bt*K, K)"
   planes:
     - "mid = O - bh*n, n, O"
     - "cs1 = O + bt*K, K, O"
     - "cs2 = O - bt*K, K, O"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "front = F1, cross(t, F2 - F1), O"
+    - "front_1 = A1, cross(n, B1 - A1), O"
+    - "front_2 = A2, cross(n, B2 - A2), O"
   parts:
   steps:
-    - "A2 a_node mid -cs1 -cs2; a_node -mid front -cs1 -cs2"
-    - "B2 b_node -mid -side_1 -side_2 -front"
+    - "A2 a_node mid -cs1 -cs2; a_node front_1 -cs1 -cs2; a_node front_2 -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -front_1 -front_2"
   insertions:
     - "-n"
 
@@ -633,21 +636,31 @@ oblique_notched_heel_cross_lap:
     - "plan = 50"
     - "sit = 1"
     - "step = 0.3"
+    - "heel = 0.35"
   points:
-    - "K = unit(cross(n, c))"
-    - "H1 = O - bh*n - (aw - step*aw)*w"
-    - "H2 = O - (aw - 0.4*step*aw)*w"
+    - "K = unit(cross(n, dot(c, t)*c))"
+    - "B1 = meet(O + aw*w, t, O + bt*K, K)"
+    - "A1 = meet(O + aw*w, t, O - bt*K, K)"
+    - "B2 = meet(O - aw*w, t, O - bt*K, K)"
+    - "A2 = meet(O - aw*w, t, O + bt*K, K)"
+    - "E1 = A1 + heel*(B1 - A1)"
+    - "E2 = A2 + heel*(B2 - A2)"
+    - "T1 = E1 - step*aw*w"
+    - "T2 = E2 + step*aw*w"
   planes:
     - "mid = O - bh*n, n, O"
     - "cs1 = O + bt*K, K, O"
     - "cs2 = O - bt*K, K, O"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "heel = H1, cross(t, H2 - H1), O"
+    - "heel_1 = A1, cross(n, T1 - A1), O"
+    - "heel_2 = A2, cross(n, T2 - A2), O"
+    - "tooth_1 = E1, B1 - A1, A1"
+    - "tooth_2 = E2, B2 - A2, A2"
   parts:
   steps:
-    - "A2 a_node mid -cs1 -cs2; a_node -mid heel -cs1 -cs2"
-    - "B2 b_node -mid -side_1 -side_2 -heel"
+    - "A2 a_node mid -cs1 -cs2; a_node heel_1 -tooth_1 -cs1 -cs2; a_node heel_2 -tooth_2 -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -heel_1 -heel_2; b_node -mid -side_1 -side_2 -heel_1 tooth_2; b_node -mid -side_1 -side_2 tooth_1 -heel_2; b_node -mid -side_1 -side_2 tooth_1 tooth_2"
   insertions:
     - "-n"
 
@@ -663,24 +676,33 @@ double_notched_oblique_cross_lap:
     - "plan = 50"
     - "sit = 1"
     - "step = 0.3"
+    - "heel = 0.35"
   points:
-    - "K = unit(cross(n, c))"
-    - "F1 = O - bh*n + (aw - step*aw)*w"
-    - "F2 = O + (aw - 0.4*step*aw)*w"
-    - "H1 = O - bh*n - (aw - step*aw)*w"
-    - "H2 = O - (aw - 0.4*step*aw)*w"
+    - "K = unit(cross(n, dot(c, t)*c))"
+    - "B1 = meet(O + aw*w, t, O + bt*K, K)"
+    - "A1 = meet(O + aw*w, t, O - bt*K, K)"
+    - "B2 = meet(O - aw*w, t, O - bt*K, K)"
+    - "A2 = meet(O - aw*w, t, O + bt*K, K)"
+    - "E1 = A1 + heel*(B1 - A1)"
+    - "E2 = A2 + heel*(B2 - A2)"
+    - "T1 = E1 - step*aw*w"
+    - "T2 = E2 + step*aw*w"
   planes:
     - "mid = O - bh*n, n, O"
     - "cs1 = O + bt*K, K, O"
     - "cs2 = O - bt*K, K, O"
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
-    - "front = F1, cross(t, F2 - F1), O"
-    - "heel = H1, cross(t, H2 - H1), O"
+    - "heel_1 = A1, cross(n, T1 - A1), O"
+    - "heel_2 = A2, cross(n, T2 - A2), O"
+    - "tooth_1 = E1, B1 - A1, A1"
+    - "tooth_2 = E2, B2 - A2, A2"
+    - "front_1 = E1, cross(n, B1 - step*aw*w - E1), O"
+    - "front_2 = E2, cross(n, B2 + step*aw*w - E2), O"
   parts:
   steps:
-    - "A2 a_node mid -cs1 -cs2; a_node -mid front -cs1 -cs2; a_node -mid heel -cs1 -cs2"
-    - "B2 b_node -mid -side_1 -side_2 -front -heel"
+    - "A2 a_node mid -cs1 -cs2; a_node heel_1 -tooth_1 -cs1 -cs2; a_node heel_2 -tooth_2 -cs1 -cs2; a_node front_1 -cs1 -cs2; a_node front_2 -cs1 -cs2"
+    - "B2 b_node -mid -side_1 -side_2 -heel_1 -heel_2; b_node -mid -side_1 -side_2 -heel_1 tooth_2 -front_2; b_node -mid -side_1 -side_2 tooth_1 -front_1 -heel_2; b_node -mid -side_1 -side_2 tooth_1 -front_1 tooth_2 -front_2"
   insertions:
     - "-n"
 
@@ -792,8 +814,7 @@ double_notch_stub_tenons_cross:
   family: "cross_lap"
   corners: "square"
   parameters:
-    - "stub = 0.3"
-    - "stub_w = 0.5"
+    - "stub = 0.24"
     - "stub_d = 0.12"
     - "pitch = 0"
     - "sit = 0.45"
@@ -808,15 +829,14 @@ double_notch_stub_tenons_cross:
     - "side_1 = O + aw*w, w, O"
     - "side_2 = O - aw*w, w, O"
     - "su1 = O + (1 - stub)*bt*t, t, O"
-    - "su2 = O - (1 - stub)*bt*t, t, O"
-    - "sw1 = O + stub_w*aw*w, w, O"
-    - "sw2 = O - stub_w*aw*w, w, O"
+    - "sw1 = O + (1 - stub)*aw*w, w, O"
+    - "sw2 = O - (1 - stub)*aw*w, w, O"
     - "sd = L - 2*stub_d*bh*n, n, O"
   parts:
   steps:
-    - "A2 a_node level inner -outer -su1 -su2; a_node level -outer su1 sw1; a_node level -outer su1 sw2; a_node level -outer su1 -sw1 -sw2 sd; a_node level inner su2 sw1; a_node level inner su2 sw2; a_node level inner su2 -sw1 -sw2 sd"
+    - "A2 a_node level inner -outer -su1; a_node level inner -outer -sw1 -sw2; a_node level inner -outer sd"
     - "B2 b_node -level -side_1 -side_2"
-    - "B3 b_node level -sd su1 -sw1 -sw2; b_node level -sd su2 -sw1 -sw2"
+    - "B3 b_node -sd su1 sw1 -side_1; b_node -sd su1 sw2 -side_2"
   insertions:
     - "-n"
 

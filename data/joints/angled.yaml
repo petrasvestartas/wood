@@ -735,6 +735,7 @@ housed_rafter_foot:
   corners: "inclined"
   parameters:
     - "sit = 0.25"
+    - "shift = -1"
     - "depth = 0.25"
   points:
     - "U = O + n"
@@ -746,9 +747,9 @@ housed_rafter_foot:
   parts:
   steps:
     - "A2 a_node outer"
-    - "A3 a_node top -wall"
-    - "A4 a_node floor wall"
-    - "B2 b_node -floor wall"
+    - "A3 a_node top wall"
+    - "A4 a_node floor"
+    - "B2 b_node -floor -wall"
   insertions:
     - "-n"
 
@@ -760,23 +761,23 @@ v_grooved_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
-    - "sit = 0.25"
-    - "depth = 0.25"
+    - "sit = 0.6"
+    - "shift = -1"
+    - "length = 0.5"
   points:
-    - "U = O + n"
-    - "X = O - 2*depth*bh*n"
+    - "S = O - bt*t"
+    - "E = S - 2*length*ah*u"
   planes:
-    - "top = O, n, U"
-    - "outer = O + bt*t, t, O"
-    - "wall = X, u, X + u"
-    - "under = R - ah*p, p, R"
+    - "seat = S, p, S + p"
+    - "end = E, u, E + u"
+    - "shoulder = S, t, S - t"
   parts:
   steps:
-    - "A2 a_node outer"
-    - "A3 a_node top -wall"
-    - "B2 b_node wall -under"
+    - "A2 a_node end"
+    - "A3 a_node seat shoulder"
+    - "B2 b_node -seat -end"
   insertions:
-    - "unit(u - n)"
+    - "-n"
 
 birdsmouth_rafter_foot:
   title: "Birdsmouth rafter foot"
