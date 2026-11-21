@@ -79,6 +79,7 @@ The records of the library so far, each on a square and an inclined corner where
 | ![](joint_library/beam_housed_dovetail_half_lap.png) | **Housed dovetail half lap joint**<br>eingelassenes Schwalbenschwanzquerblatt, p. 448<br>`housed_dovetail_half_lap` |
 | ![](joint_library/beam_stopped_housed_dovetail_half_lap.png) | **Stopped housed dovetail half lap joint**<br>halbverdecktes eingelassenes Schwalbenschwanzquerblatt, p. 450<br>`stopped_housed_dovetail_half_lap` |
 | ![](joint_library/beam_stepped_lap.png) | **Stepped lap joint**<br>halbverdecktes Stufenquerblatt, p. 452<br>`stepped_lap` |
+| ![](joint_library/beam_sloped_stopped_half_lap.png) | **Sloped stopped half lap**<br>verdecktes schräg angeschnittenes Querblatt, p. 456<br>`sloped_stopped_half_lap` |
 | ![](joint_library/beam_housed_mortise_tenon_shifted_shoulders.png) | **Housed mortise and tenon with shifted shoulders**<br>Zapfen mit einseitig vorgeschobener Brüstung, p. 454<br>`housed_mortise_tenon_shifted_shoulders` |
 | ![](joint_library/beam_blind_pegged.png) | **Blind pegged joint**<br>Verdollung, p. 470<br>`blind_pegged` |
 | ![](joint_library/beam_notch.png) | **Notch joint**<br>Ankämmung mit einseitigem Sitz, p. 472<br>`notch` |

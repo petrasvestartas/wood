@@ -558,6 +558,33 @@ stepped_lap:
   insertions:
     - "w"
 
+sloped_stopped_half_lap:
+  title: "Sloped stopped half lap"
+  german: "verdecktes schräg angeschnittenes Querblatt"
+  page: "456"
+  category: "side_end"
+  family: "t"
+  corners: "square inclined"
+  parameters:
+    - "stop = 0.5"
+  points:
+    - "U = O + n"
+    - "T = O + aw*w"
+    - "E = O - 2*stop*bh*n"
+  planes:
+    - "bottom = O - 2*stop*bh*n, n, O"
+    - "shoulder = O, n, U"
+    - "slope = T, cross(p, E - T), O - aw*w"
+    - "face_1 = O + ah*p, p, O"
+    - "face_2 = O - ah*p, p, O"
+  parts:
+  steps:
+    - "A2 a_end bottom"
+    - "A3 a_end shoulder slope"
+    - "B2 b_node -slope -face_1 -face_2 -bottom"
+  insertions:
+    - "w"
+
 housed_mortise_tenon_shifted_shoulders:
   title: "Housed mortise and tenon with shifted shoulders"
   german: "Zapfen mit einseitig vorgeschobener Brüstung"
