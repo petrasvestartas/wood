@@ -2532,16 +2532,16 @@ cogged_lap_floating_piece_folding_wedges_splice:
     - "band = 0.6"
     - "seat = 0.95"
   points:
-    - "W1 = O - 0.5*ah*p - (aw + over)*w"
-    - "W2 = O - 0.5*ah*p + (0.95 - 2*seat)*aw*w"
     - "B = O - ah*p"
     - "P1 = B - span*ah*u + aw*w"
     - "P2 = B + span*ah*u + aw*w"
     - "P3 = B + span*ah*u + (1 - band)*aw*w"
-    - "P4 = B + cog*ah*u + (1 - band)*aw*w"
-    - "P5 = B + cog*ah*u + (1 - seat)*aw*w"
-    - "P6 = B - cog*ah*u + (1 - seat)*aw*w"
-    - "P7 = B - cog*ah*u + (1 - band)*aw*w"
+    - "P4 = B + (cog*ah - 2*gap*ah - 2*e)*u + (1 - band)*aw*w"
+    - "P5 = B + (cog*ah - 2*gap*ah - 2*e)*u + (1 - seat)*aw*w"
+    - "P6 = B - (cog*ah - 2*gap*ah - 2*e)*u + (1 - seat)*aw*w"
+    - "P7 = B - (cog*ah - 2*gap*ah - 2*e)*u + (1 - band)*aw*w"
+    - "S1 = O + (cog*ah - gap*ah - e)*u + (1 - 0.5*seat - 0.5*band)*aw*w"
+    - "S2 = O - (cog*ah - gap*ah - e)*u + (1 - 0.5*seat - 0.5*band)*aw*w"
     - "P8 = B - span*ah*u + (1 - band)*aw*w"
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
@@ -2552,17 +2552,22 @@ cogged_lap_floating_piece_folding_wedges_splice:
     - "s_b = O - span*ah*u, u, O"
     - "c_b = O - cog*ah*u, u, O"
   parts:
-    - "key = W1, W2, p, 0.45*ah, gap*ah, 0.6*gap*ah, start"
+    - "wedge_1 = S1 + (ah + over)*p + e*u, S1 - (ah + over)*p + e*u, w, 0.5*(seat - band)*aw, gap*ah, e, both, u"
+    - "wedge_2 = S1 - (ah + over)*p - e*u, S1 + (ah + over)*p - e*u, w, 0.5*(seat - band)*aw, gap*ah, e, both, -u"
+    - "wedge_3 = S2 + (ah + over)*p + e*u, S2 - (ah + over)*p + e*u, w, 0.5*(seat - band)*aw, gap*ah, e, both, u"
+    - "wedge_4 = S2 - (ah + over)*p - e*u, S2 + (ah + over)*p - e*u, w, 0.5*(seat - band)*aw, gap*ah, e, both, -u"
     - "piece = P1 P2 P3 P4 P5 P6 P7 P8, 2*ah*p"
   steps:
     - "A2 a_end shoulder_a"
     - "A3 a_end r1 -s_a; a_end r2 -c_a"
-    - "A4 key"
     - "B2 b_end r1 -s_b; b_end r2 -c_b"
-    - "B3 key"
   insertions:
     - "-u"
     - "piece = -w"
+    - "wedge_1 = -p"
+    - "wedge_2 = p"
+    - "wedge_3 = -p"
+    - "wedge_4 = p"
 
 stepped_cogged_lap_floating_piece_folding_wedges_splice:
   title: "Stepped cogged lap joint with floating piece and folding wedges"
