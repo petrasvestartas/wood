@@ -37,7 +37,7 @@ The small scripts are throwaway ones in the session's scratch folder and are not
 
 ## The tile
 
-`JointPlate::top_side_bridle(shoulder = 0.3, tongue = 1.0 / 3.0)`, id 26, in [`top_side_bridle.h`](../../../src/joinery_solver/wood_interaction/wood_interaction_feature/wood_interaction_feature_plate_joints/top_side_bridle.h). As in every plate tile, male and female are outlines in a unit box, lofted in pairs. Here each pair is one milled cutter, `FabricationType::mill`.
+`JointPlate::top_side_bridle(shoulder = 0.3, tongue = 1.0 / 3.0)`, id 26, a record of [`data/joints/plate/top_side.yaml`](../../../data/joints/plate/top_side.yaml). As in every plate tile, male and female are outlines in a unit box, lofted in pairs. Here each pair is one milled cutter, `FabricationType::mill`.
 
 The box is the joint volume: **x** through the height, **y** across the first beam from its near face (-0.5) to its far face (+0.5), **z** along it. Looking down x at 57 degrees, the grey square is the box, y to the right, z up:
 
