@@ -255,11 +255,11 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Triple-shouldered and sloped through mortise and tenon**, p. 316 | | |
 | ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.gif) | ![](joint_library/beam_triple_shouldered_sloped_through_mortise_tenon.png) | ![](joint_library/tile_triple_shouldered_sloped_through_mortise_tenon.png) |
 | **Dado and rabbet joint**, p. 326 | | |
-|  | ![](joint_library/beam_dado_rabbet_corner.png) | ![](joint_library/tile_dado_rabbet_corner.png) |
+| ![](joint_library/beam_dado_rabbet_corner.gif) | ![](joint_library/beam_dado_rabbet_corner.png) | ![](joint_library/tile_dado_rabbet_corner.png) |
 | **Triple-shouldered stub tenon**, p. 398 | | |
-|  | ![](joint_library/beam_triple_shouldered_stub_tenon_corner.png) | ![](joint_library/tile_triple_shouldered_stub_tenon_corner.png) |
+| ![](joint_library/beam_triple_shouldered_stub_tenon_corner.gif) | ![](joint_library/beam_triple_shouldered_stub_tenon_corner.png) | ![](joint_library/tile_triple_shouldered_stub_tenon_corner.png) |
 | **Through single dovetail miter**, p. 356 | | |
-|  | ![](joint_library/beam_through_single_dovetail_miter.png) | ![](joint_library/tile_through_single_dovetail_miter.png) |
+| ![](joint_library/beam_through_single_dovetail_miter.gif) | ![](joint_library/beam_through_single_dovetail_miter.png) | ![](joint_library/tile_through_single_dovetail_miter.png) |
 | **Plain miter with spline**, p. 338 | | |
 |  | ![](joint_library/beam_plain_miter_spline.png) | ![](joint_library/tile_plain_miter_spline.png) |
 | **Blind dado and rabbet joint**, p. 328 | | |

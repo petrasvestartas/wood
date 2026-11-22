@@ -41,6 +41,7 @@ notched_oblique_thrust:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
   points:
     - "E = meet(O + ah*p, u, O, n)"
@@ -68,6 +69,7 @@ notched_oblique_thrust_right_angled_end:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
   points:
     - "E = meet(O + ah*p, u, O, n)"
@@ -94,18 +96,21 @@ notched_oblique_thrust_visible_end:
   family: "angled"
   corners: "inclined"
   parameters:
-    - "depth = 0.2"
+    - "span = 270"
+    - "depth = 0.25"
+    - "breast = 0.21"
   points:
     - "E = meet(O + ah*p, u, O, n)"
     - "F = meet(O - ah*p, u, O, n)"
-    - "K = meet(E, u, O + 2*depth*bh*n, n)"
-    - "D = meet(K, unit(-t - u), O - 2*depth*bh*n, n)"
+    - "S = E + breast*(F - E)"
+    - "D = meet(S, unit(-t - u), O - 2*depth*bh*n, n)"
   planes:
-    - "front = K, cross(D - K, w), F"
-    - "seat = D, cross(F - D, w), K"
+    - "face = O, -1*n, O + n"
+    - "front = S, cross(D - S, w), F"
+    - "seat = D, cross(F - D, w), S"
   parts:
   steps:
-    - "A2 a_end front"
+    - "A2 a_end face front"
     - "A3 a_end seat"
     - "B2 b -front"
     - "B3 b_node -front -seat"
