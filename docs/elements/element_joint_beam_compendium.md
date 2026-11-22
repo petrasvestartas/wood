@@ -181,7 +181,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Pegged spear point mortise and tenon with V-shaped shoulders**, p. 190 | | |
 |  | ![](joint_library/beam_pegged_spear_point_v_shoulder_tenon_splice.png) | ![](joint_library/tile_pegged_spear_point_v_shoulder_tenon_splice.png) |
 | **Pegged rabbeted mortise and tenon joint**, p. 192 | | |
-|  | ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.png) | ![](joint_library/tile_pegged_rabbeted_mortise_tenon_splice.png) |
+| ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.gif) | ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.png) | ![](joint_library/tile_pegged_rabbeted_mortise_tenon_splice.png) |
 | **Rabbeted rod tenon joint with tapered keys**, p. 194 | | |
 |  | ![](joint_library/beam_rabbeted_rod_tenon_tapered_keys_splice.png) | ![](joint_library/tile_rabbeted_rod_tenon_tapered_keys_splice.png) |
 | **Rod joint with two half rods and tapered keys**, p. 196 | | |
