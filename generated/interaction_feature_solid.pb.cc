@@ -47,12 +47,12 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
     {
       PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_._has_bits_),
       0, // no _extensions_
-      9, 120,  // max_field_number, fast_idx_mask
+      11, 120,  // max_field_number, fast_idx_mask
       offsetof(ParseTableT_, field_lookup_table),
-      4294966784,  // skipmap
+      4294965248,  // skipmap
       offsetof(ParseTableT_, field_entries),
-      9,  // num_field_entries
-      4,  // num_aux_entries
+      11,  // num_field_entries
+      5,  // num_aux_entries
       offsetof(ParseTableT_, aux_entries),
       class_data,
       nullptr,  // post_loop_handler
@@ -64,11 +64,11 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
       {::_pbi::TcParser::MiniParse, {}},
       // string source = 1;
       {::_pbi::TcParser::FastUS1,
-       {10, 2, 0,
+       {10, 3, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.source_)}},
       // .session_proto.Mesh mesh = 2;
       {::_pbi::TcParser::FastMtS1,
-       {18, 3, 0,
+       {18, 4, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.mesh_)}},
       // repeated .session_proto.Polyline profile = 3;
       {::_pbi::TcParser::FastMtR1,
@@ -76,15 +76,15 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.profile_)}},
       // .session_proto.Vector extrusion = 4;
       {::_pbi::TcParser::FastMtS1,
-       {34, 4, 2,
+       {34, 5, 2,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.extrusion_)}},
       // int32 operation = 5;
-      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionFeatureSolid, _impl_.operation_), 8>(),
-       {40, 8, 0,
+      {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(InteractionFeatureSolid, _impl_.operation_), 10>(),
+       {40, 10, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.operation_)}},
       // double tolerance = 6;
       {::_pbi::TcParser::FastF64S1,
-       {49, 5, 0,
+       {49, 6, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.tolerance_)}},
       // repeated .session_proto.Line drills = 7;
       {::_pbi::TcParser::FastMtR1,
@@ -92,14 +92,20 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drills_)}},
       // double drill_radius = 8;
       {::_pbi::TcParser::FastF64S1,
-       {65, 6, 0,
+       {65, 7, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_radius_)}},
       // double drill_tolerance = 9;
       {::_pbi::TcParser::FastF64S1,
-       {73, 7, 0,
+       {73, 8, 0,
         PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_tolerance_)}},
-      {::_pbi::TcParser::MiniParse, {}},
-      {::_pbi::TcParser::MiniParse, {}},
+      // repeated .session_proto.Line posts = 10;
+      {::_pbi::TcParser::FastMtR1,
+       {82, 2, 4,
+        PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.posts_)}},
+      // double post_radius = 11;
+      {::_pbi::TcParser::FastF64S1,
+       {89, 9, 0,
+        PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.post_radius_)}},
       {::_pbi::TcParser::MiniParse, {}},
       {::_pbi::TcParser::MiniParse, {}},
       {::_pbi::TcParser::MiniParse, {}},
@@ -108,23 +114,27 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
       65535, 65535
     }}, {{
       // string source = 1;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.source_), _Internal::kHasBitsOffset + 2, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.source_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kUtf8String | ::_fl::kRepAString)},
       // .session_proto.Mesh mesh = 2;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.mesh_), _Internal::kHasBitsOffset + 3, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.mesh_), _Internal::kHasBitsOffset + 4, 0, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // repeated .session_proto.Polyline profile = 3;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.profile_), _Internal::kHasBitsOffset + 0, 1, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // .session_proto.Vector extrusion = 4;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.extrusion_), _Internal::kHasBitsOffset + 4, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.extrusion_), _Internal::kHasBitsOffset + 5, 2, (0 | ::_fl::kFcOptional | ::_fl::kMessage | ::_fl::kTvTable)},
       // int32 operation = 5;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.operation_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.operation_), _Internal::kHasBitsOffset + 10, 0, (0 | ::_fl::kFcOptional | ::_fl::kInt32)},
       // double tolerance = 6;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.tolerance_), _Internal::kHasBitsOffset + 5, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.tolerance_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // repeated .session_proto.Line drills = 7;
       {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drills_), _Internal::kHasBitsOffset + 1, 3, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
       // double drill_radius = 8;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_radius_), _Internal::kHasBitsOffset + 6, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_radius_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
       // double drill_tolerance = 9;
-      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_tolerance_), _Internal::kHasBitsOffset + 7, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.drill_tolerance_), _Internal::kHasBitsOffset + 8, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
+      // repeated .session_proto.Line posts = 10;
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.posts_), _Internal::kHasBitsOffset + 2, 4, (0 | ::_fl::kFcRepeated | ::_fl::kMessage | ::_fl::kTvTable)},
+      // double post_radius = 11;
+      {PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.post_radius_), _Internal::kHasBitsOffset + 9, 0, (0 | ::_fl::kFcOptional | ::_fl::kDouble)},
     }},
     {{
         #ifndef PROTOBUF_MESSAGE_GLOBALS
@@ -141,6 +151,11 @@ constexpr InteractionFeatureSolid::ParseTableT_ InteractionFeatureSolid::Interna
         {::_pbi::TcParser::GetTable<::session_proto::Vector>()},
         #else
         {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Vector_globals_},
+        #endif
+        #ifndef PROTOBUF_MESSAGE_GLOBALS
+        {::_pbi::TcParser::GetTable<::session_proto::Line>()},
+        #else
+        {::_pbi::FieldAuxMessageGlobals(), &::session_proto::Line_globals_},
         #endif
         #ifndef PROTOBUF_MESSAGE_GLOBALS
         {::_pbi::TcParser::GetTable<::session_proto::Line>()},
@@ -170,6 +185,11 @@ inline constexpr InteractionFeatureSolid::Impl_::Impl_(
             PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.drills_)>()
          }
         ,
+        posts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionFeatureSolid,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.posts_)>()
+         }
+        ,
         source_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
@@ -178,6 +198,7 @@ inline constexpr InteractionFeatureSolid::Impl_::Impl_(
         tolerance_{0},
         drill_radius_{0},
         drill_tolerance_{0},
+        post_radius_{0},
         operation_{0} {}
 
 template <typename>
@@ -282,7 +303,7 @@ const ::uint32_t
         protodesc_cold) = {
         0x081, // bitmap
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_._has_bits_),
-        12, // hasbit index offset
+        14, // hasbit index offset
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.source_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.mesh_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.profile_),
@@ -292,15 +313,19 @@ const ::uint32_t
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.drills_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.drill_radius_),
         PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.drill_tolerance_),
-        2,
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.posts_),
+        PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.post_radius_),
         3,
-        0,
         4,
-        8,
+        0,
         5,
-        1,
+        10,
         6,
+        1,
         7,
+        8,
+        2,
+        9,
 };
 
 static const ::_pbi::MigrationSchema
@@ -315,14 +340,16 @@ const char descriptor_table_protodef_interaction_5ffeature_5fsolid_2eproto[] ABS
     protodesc_cold) = {
     "\n\037interaction_feature_solid.proto\022\nwood_"
     "proto\032\nmesh.proto\032\016polyline.proto\032\014vecto"
-    "r.proto\032\nline.proto\"\232\002\n\027InteractionFeatu"
+    "r.proto\032\nline.proto\"\323\002\n\027InteractionFeatu"
     "reSolid\022\016\n\006source\030\001 \001(\t\022!\n\004mesh\030\002 \001(\0132\023."
     "session_proto.Mesh\022(\n\007profile\030\003 \003(\0132\027.se"
     "ssion_proto.Polyline\022(\n\textrusion\030\004 \001(\0132"
     "\025.session_proto.Vector\022\021\n\toperation\030\005 \001("
     "\005\022\021\n\ttolerance\030\006 \001(\001\022#\n\006drills\030\007 \003(\0132\023.s"
     "ession_proto.Line\022\024\n\014drill_radius\030\010 \001(\001\022"
-    "\027\n\017drill_tolerance\030\t \001(\001b\006proto3"
+    "\027\n\017drill_tolerance\030\t \001(\001\022\"\n\005posts\030\n \003(\0132"
+    "\023.session_proto.Line\022\023\n\013post_radius\030\013 \001("
+    "\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* PROTOBUF_NONNULL const
     descriptor_table_interaction_5ffeature_5fsolid_2eproto_deps[4] = {
@@ -335,7 +362,7 @@ static ::absl::once_flag descriptor_table_interaction_5ffeature_5fsolid_2eproto_
 PROTOBUF_CONSTINIT const ::_pbi::DescriptorTable descriptor_table_interaction_5ffeature_5fsolid_2eproto = {
     false,
     false,
-    392,
+    449,
     descriptor_table_protodef_interaction_5ffeature_5fsolid_2eproto,
     "interaction_feature_solid.proto",
     &descriptor_table_interaction_5ffeature_5fsolid_2eproto_once,
@@ -354,7 +381,7 @@ namespace wood_proto {
 void InteractionFeatureSolid::clear_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.mesh_ != nullptr) _impl_.mesh_->Clear();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
 }
 void InteractionFeatureSolid::clear_profile() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
@@ -364,12 +391,17 @@ void InteractionFeatureSolid::clear_profile() {
 void InteractionFeatureSolid::clear_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (_impl_.extrusion_ != nullptr) _impl_.extrusion_->Clear();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
 }
 void InteractionFeatureSolid::clear_drills() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.drills_.Clear();
   ClearHasBit(_impl_._has_bits_[0], 0x00000002U);
+}
+void InteractionFeatureSolid::clear_posts() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.posts_.Clear();
+  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
 }
 InteractionFeatureSolid::InteractionFeatureSolid(::google::protobuf::Arena* PROTOBUF_NULLABLE arena)
 #if defined(PROTOBUF_CUSTOM_VTABLE)
@@ -399,6 +431,13 @@ PROTOBUF_NDEBUG_INLINE InteractionFeatureSolid::Impl_::Impl_(
           , arena, from.drills_
         }
         ,
+        posts_ {
+          visibility, ::_pbi::InternalMetadataOffset::Build<
+              ::wood_proto::InteractionFeatureSolid,
+              PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.posts_)>()
+          , arena, from.posts_
+        }
+        ,
         source_(arena, from.source_) {}
 
 InteractionFeatureSolid::InteractionFeatureSolid(
@@ -416,10 +455,10 @@ InteractionFeatureSolid::InteractionFeatureSolid(
       from._internal_metadata_);
   new (&_impl_) Impl_(internal_visibility(), arena, from._impl_, from);
   ::uint32_t cached_has_bits = _impl_._has_bits_[0];
-  _impl_.mesh_ = (CheckHasBit(cached_has_bits, 0x00000008U))
+  _impl_.mesh_ = (CheckHasBit(cached_has_bits, 0x00000010U))
                  ? Super_::CopyConstruct(arena, *from._impl_.mesh_)
                  : nullptr;
-  _impl_.extrusion_ = (CheckHasBit(cached_has_bits, 0x00000010U))
+  _impl_.extrusion_ = (CheckHasBit(cached_has_bits, 0x00000020U))
                  ? Super_::CopyConstruct(arena, *from._impl_.extrusion_)
                  : nullptr;
   ::memcpy(reinterpret_cast<char*>(&_impl_) +
@@ -443,6 +482,11 @@ PROTOBUF_NDEBUG_INLINE InteractionFeatureSolid::Impl_::Impl_(
         drills_ { visibility, ::_pbi::InternalMetadataOffset::Build<
             ::wood_proto::InteractionFeatureSolid,
             PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.drills_)>()
+         }
+        ,
+        posts_ { visibility, ::_pbi::InternalMetadataOffset::Build<
+            ::wood_proto::InteractionFeatureSolid,
+            PROTOBUF_FIELD_OFFSET(::wood_proto::InteractionFeatureSolid, _impl_.posts_)>()
          }
         ,
         source_(arena) {}
@@ -506,7 +550,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   ::uint32_t cached_has_bits [[maybe_unused]] = 0;
 
   cached_has_bits = this_._impl_._has_bits_[0];
-  if (BatchCheckHasBit(cached_has_bits, 0x0000001fU)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x0000003fU)) {
     if (CheckHasBit(cached_has_bits, 0x00000001U)) {
       _impl_.profile_.Clear();
     }
@@ -514,25 +558,34 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
       _impl_.drills_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
-      this_._impl_.source_.ClearNonDefaultToEmpty();
+      _impl_.posts_.Clear();
     }
     if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+      this_._impl_.source_.ClearNonDefaultToEmpty();
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(this_._impl_.mesh_ != nullptr);
       this_._impl_.mesh_->Clear();
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(this_._impl_.extrusion_ != nullptr);
       this_._impl_.extrusion_->Clear();
     }
   }
-  if (BatchCheckHasBit(cached_has_bits, 0x000000e0U)) {
+  if (BatchCheckHasBit(cached_has_bits, 0x000000c0U)) {
     ::memset(&this_._impl_.tolerance_, 0,
              static_cast<::size_t>(
-                 reinterpret_cast<char*>(&this_._impl_.drill_tolerance_) -
+                 reinterpret_cast<char*>(&this_._impl_.drill_radius_) -
                  reinterpret_cast<char*>(&this_._impl_.tolerance_)) +
-                 sizeof(_impl_.drill_tolerance_));
+                 sizeof(_impl_.drill_radius_));
   }
-  this_._impl_.operation_ = 0;
+  if (BatchCheckHasBit(cached_has_bits, 0x00000700U)) {
+    ::memset(&this_._impl_.drill_tolerance_, 0,
+             static_cast<::size_t>(
+                 reinterpret_cast<char*>(&this_._impl_.operation_) -
+                 reinterpret_cast<char*>(&this_._impl_.drill_tolerance_)) +
+                 sizeof(_impl_.operation_));
+  }
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -557,7 +610,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
 
   cached_has_bits = this_._impl_._has_bits_[0];
   // string source = 1;
-  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
     if (!this_._internal_source().empty()) {
       const ::std::string& _s = this_._internal_source();
       ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
@@ -567,7 +620,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   }
 
   // .session_proto.Mesh mesh = 2;
-  if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         2, *this_._impl_.mesh_, this_._impl_.mesh_->GetCachedSize(), target,
         stream);
@@ -586,14 +639,14 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   }
 
   // .session_proto.Vector extrusion = 4;
-  if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
     target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
         4, *this_._impl_.extrusion_, this_._impl_.extrusion_->GetCachedSize(), target,
         stream);
   }
 
   // int32 operation = 5;
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000400U)) {
     if (this_._internal_operation() != 0) {
       target =
           ::google::protobuf::internal::WireFormatLite::WriteInt32ToArrayWithField<5>(
@@ -602,7 +655,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   }
 
   // double tolerance = 6;
-  if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_tolerance()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -623,7 +676,7 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   }
 
   // double drill_radius = 8;
-  if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_drill_radius()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
@@ -632,11 +685,32 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
   }
 
   // double drill_tolerance = 9;
-  if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
     if (::absl::bit_cast<::uint64_t>(this_._internal_drill_tolerance()) != 0) {
       target = stream->EnsureSpace(target);
       target = ::_pbi::WireFormatLite::WriteDoubleToArray(
           9, this_._internal_drill_tolerance(), target);
+    }
+  }
+
+  // repeated .session_proto.Line posts = 10;
+  if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+    for (unsigned i = 0, n = static_cast<unsigned>(
+                             this_._internal_posts_size());
+         i < n; i++) {
+      const auto& repfield = this_._internal_posts().Get(i);
+      target = ::google::protobuf::internal::WireFormatLite::InternalWriteMessage(
+          10, repfield, repfield.GetCachedSize(), target,
+          stream);
+    }
+  }
+
+  // double post_radius = 11;
+  if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+    if (::absl::bit_cast<::uint64_t>(this_._internal_post_radius()) != 0) {
+      target = stream->EnsureSpace(target);
+      target = ::_pbi::WireFormatLite::WriteDoubleToArray(
+          11, this_._internal_post_radius(), target);
     }
   }
 
@@ -678,45 +752,58 @@ PROTOBUF_NOINLINE void InteractionFeatureSolid::Clear() {
         total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
       }
     }
-    // string source = 1;
+    // repeated .session_proto.Line posts = 10;
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      total_size += 1UL * this_._internal_posts_size();
+      for (const auto& msg : this_._internal_posts()) {
+        total_size += ::google::protobuf::internal::WireFormatLite::MessageSize(msg);
+      }
+    }
+    // string source = 1;
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (!this_._internal_source().empty()) {
         total_size += 1 + ::google::protobuf::internal::WireFormatLite::StringSize(
                                         this_._internal_source());
       }
     }
     // .session_proto.Mesh mesh = 2;
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.mesh_);
     }
     // .session_proto.Vector extrusion = 4;
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       total_size += 1 +
                     ::google::protobuf::internal::WireFormatLite::MessageSize(*this_._impl_.extrusion_);
     }
     // double tolerance = 6;
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_tolerance()) != 0) {
         total_size += 9;
       }
     }
     // double drill_radius = 8;
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_drill_radius()) != 0) {
         total_size += 9;
       }
     }
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000700U)) {
     // double drill_tolerance = 9;
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (::absl::bit_cast<::uint64_t>(this_._internal_drill_tolerance()) != 0) {
         total_size += 9;
       }
     }
-  }
-   {
+    // double post_radius = 11;
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (::absl::bit_cast<::uint64_t>(this_._internal_post_radius()) != 0) {
+        total_size += 9;
+      }
+    }
     // int32 operation = 5;
-    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
       if (this_._internal_operation() != 0) {
         total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(
             this_._internal_operation());
@@ -753,6 +840,11 @@ void InteractionFeatureSolid::MergeImpl(::google::protobuf::MessageLite& to_msg,
           from._internal_drills());
     }
     if (CheckHasBit(cached_has_bits, 0x00000004U)) {
+      _this->_internal_mutable_posts()->InternalMergeFromWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), arena,
+          from._internal_posts());
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
       if (!from._internal_source().empty()) {
         _this->_internal_set_source(from._internal_source());
       } else {
@@ -761,7 +853,7 @@ void InteractionFeatureSolid::MergeImpl(::google::protobuf::MessageLite& to_msg,
         }
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000008U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
       ABSL_DCHECK(from._impl_.mesh_ != nullptr);
       if (_this->_impl_.mesh_ == nullptr) {
         _this->_impl_.mesh_ = Super_::CopyConstruct(arena, *from._impl_.mesh_);
@@ -769,7 +861,7 @@ void InteractionFeatureSolid::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.mesh_->MergeFrom(*from._impl_.mesh_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000010U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
       ABSL_DCHECK(from._impl_.extrusion_ != nullptr);
       if (_this->_impl_.extrusion_ == nullptr) {
         _this->_impl_.extrusion_ = Super_::CopyConstruct(arena, *from._impl_.extrusion_);
@@ -777,25 +869,32 @@ void InteractionFeatureSolid::MergeImpl(::google::protobuf::MessageLite& to_msg,
         _this->_impl_.extrusion_->MergeFrom(*from._impl_.extrusion_);
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000020U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_tolerance()) != 0) {
         _this->_impl_.tolerance_ = from._impl_.tolerance_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000040U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_drill_radius()) != 0) {
         _this->_impl_.drill_radius_ = from._impl_.drill_radius_;
       }
     }
-    if (CheckHasBit(cached_has_bits, 0x00000080U)) {
+  }
+  if (BatchCheckHasBit(cached_has_bits, 0x00000700U)) {
+    if (CheckHasBit(cached_has_bits, 0x00000100U)) {
       if (::absl::bit_cast<::uint64_t>(from._internal_drill_tolerance()) != 0) {
         _this->_impl_.drill_tolerance_ = from._impl_.drill_tolerance_;
       }
     }
-  }
-  if (CheckHasBit(cached_has_bits, 0x00000100U)) {
-    if (from._internal_operation() != 0) {
-      _this->_impl_.operation_ = from._impl_.operation_;
+    if (CheckHasBit(cached_has_bits, 0x00000200U)) {
+      if (::absl::bit_cast<::uint64_t>(from._internal_post_radius()) != 0) {
+        _this->_impl_.post_radius_ = from._impl_.post_radius_;
+      }
+    }
+    if (CheckHasBit(cached_has_bits, 0x00000400U)) {
+      if (from._internal_operation() != 0) {
+        _this->_impl_.operation_ = from._impl_.operation_;
+      }
     }
   }
   _this->_impl_._has_bits_[0] |= cached_has_bits;
@@ -819,6 +918,7 @@ void InteractionFeatureSolid::InternalSwap(InteractionFeatureSolid* PROTOBUF_RES
   swap(_impl_._has_bits_[0], other->_impl_._has_bits_[0]);
   _impl_.profile_.InternalSwap(&other->_impl_.profile_);
   _impl_.drills_.InternalSwap(&other->_impl_.drills_);
+  _impl_.posts_.InternalSwap(&other->_impl_.posts_);
   ::_pbi::ArenaStringPtr::InternalSwap(&_impl_.source_, &other->_impl_.source_, arena);
   ::google::protobuf::internal::memswap<
       PROTOBUF_FIELD_OFFSET(InteractionFeatureSolid, _impl_.operation_)

@@ -8,11 +8,11 @@ using namespace session_cpp;
 namespace wood_session {
 
 /// One move of an assembly: the member, the unit direction it goes in along (zero for the base), the moves it makes after it
-/// (in, then along the slot), the joints it engages and their other members.
+/// (in, then along the slot, or a turn about a line), the joints it engages and their other members.
 struct AssemblyStep {
     std::string element;
     Vector insertion;
-    std::vector<Vector> legs;
+    std::vector<JointMove> legs;
     std::vector<std::string> joints;
     std::vector<std::string> partners;
 };
@@ -45,6 +45,9 @@ public:
     /// The assembly one step per line, then the locked members and the conflicts.
     std::string str() const;
 
+    /// The moves out of a way in's legs: the last undone first.
+    static std::vector<JointMove> out_legs(const std::vector<JointMove>& legs);
+
 private:
     std::vector<std::shared_ptr<Element>> members; // Every element a joint acts on, in session order.
     std::map<std::string, std::vector<std::pair<std::shared_ptr<JointElement>, size_t>>> joints; // Per member guid, each joint on it and its index there.
@@ -55,12 +58,10 @@ private:
     /// The other members of a joint, by guid.
     static std::vector<std::string> partners(const JointElement& joint, size_t index);
 
-    /// Whether member makes the moves legs, as long as each, then slides out along direction, its own diagonal, without
+    /// Whether member makes the moves legs (slides and turns, each swept in steps), then slides out along direction, its own diagonal, without
     /// entering any of others.
-    bool slides_out(const Element& member, const std::vector<Vector>& legs, const Vector& direction, const std::vector<const Element*>& others) const;
+    bool slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others) const;
 
-    /// The moves out of a way in's legs: the last undone first, each turned round.
-    static std::vector<Vector> out_legs(const std::vector<Vector>& legs);
 
     /// Takes the members apart one by one; returns the steps in removal order and fills stuck.
     std::vector<AssemblyStep> compute_disassembly();

@@ -23,6 +23,7 @@
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
+#   posts       "letter = start, end, radius": a round post the member's cut keeps, an exact cylinder (a Chidori neck).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
 #   base        the letter of the member that stays while the others go in (c: a post the slats go into); b by default.
 #   moves       how a piece goes in by two straight moves (in along the slot, then down onto the other), written out; the
@@ -35,6 +36,7 @@
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
 #               "v; m1; m2" approaches along v, then makes the moves m1, m2 as long as they are (in, then along the slot).
+#               A move "turn P, d, degrees" turns the piece about the line through P along d (a Chidori stick locking).
 
 post_through_tenon_crossed:
   title: "Post with through tenon and mortised crossed joint"
@@ -1324,6 +1326,58 @@ notched_corner_post_beveled_tenons:
   insertions:
     - "-u"
     - "c = -p"
+
+chidori_puzzle:
+  title: "Chidori puzzle joint"
+  german: "einfach abgesetztes Kreuzblatt und Stab mit Rundholzverbindung"
+  page: "730"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "b"
+  base: "c"
+  moves: "a slides in sideways past the post of c; b goes down with its post above, then turns a quarter about its own axis into the gap: it passes through a while it turns"
+  parameters:
+    - "pitch = 0"
+    - "sit = 1"
+    - "stock_thick = 30"
+    - "stock_wide = 30"
+    - "carrier_thick = 30"
+    - "carrier_wide = 30"
+    - "tail = 150"
+    - "reach = 150"
+    - "beam_length = 300"
+    - "open = 0.9"
+  points:
+  planes:
+    - "xlom30 = O + 30*t + -0*w + -30*n, -1*t, O + 31*t + -0*w + -30*n"
+    - "xhi30 = O + -30*t + -0*w + -30*n, 1*t, O + -31*t + -0*w + -30*n"
+    - "yhi0 = O + -0*t + 0*w + -30*n, 1*w, O + -0*t + -1*w + -30*n"
+    - "ylom0p5 = O + -0*t + 0.5*w + -30*n, -1*w, O + -0*t + 1.5*w + -30*n"
+    - "zhi0 = O + -0*t + -0*w + -30*n, -1*n, O + -0*t + -0*w + -29*n"
+    - "ylom30 = O + -0*t + 30*w + -30*n, -1*w, O + -0*t + 31*w + -30*n"
+    - "yhi30 = O + -0*t + -30*w + -30*n, 1*w, O + -0*t + -31*w + -30*n"
+    - "xhi0 = O + 0*t + -0*w + -30*n, 1*t, O + -1*t + -0*w + -30*n"
+    - "xlom0p5 = O + 0.5*t + -0*w + -30*n, -1*t, O + 1.5*t + -0*w + -30*n"
+    - "zlo0 = O + -0*t + -0*w + -30*n, 1*n, O + -0*t + -0*w + -31*n"
+    - "zlom30 = O + -0*t + -0*w + -60*n, 1*n, O + -0*t + -0*w + -61*n"
+    - "zhi30 = O + -0*t + -0*w + 0*n, -1*n, O + -0*t + -0*w + 1*n"
+
+  more:
+    - "c = 0 0 -150, 0 0 150, 1 0 0, 30, 30"
+  posts:
+    - "c = O + 15*t + 15*w + -61*n, O + 15*t + 15*w + 1*n, 14.5"
+  parts:
+  steps:
+    - "A2 a_all xlom30 xhi30 yhi0"
+    - "A3 a_all xlom30 xhi30 ylom0p5 zhi0"
+    - "B2 b_all ylom30 yhi30 xhi0"
+    - "B3 b_all ylom30 yhi30 xlom0p5 zlo0"
+    - "C2 c zlom30 zhi30"
+
+  insertions:
+    - "a = w"
+    - "b = -1*n; turn O - 30*n, -1*w, 90"
 
 cross_puzzle:
   title: "Cross puzzle"

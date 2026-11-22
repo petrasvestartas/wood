@@ -134,6 +134,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_three_valence.cpp
     src/joinery_solver/wood_algorithms/wood_joint_classification.cpp
     src/joinery_solver/wood_elements/wood_joint_library.cpp
+    src/joinery_solver/wood_elements/wood_joint_move.cpp
     src/joinery_solver/wood_algorithms/wood_assembly_sequence.cpp
 )
 

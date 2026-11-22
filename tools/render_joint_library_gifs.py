@@ -22,6 +22,7 @@ WOOD = pathlib.Path(__file__).resolve().parents[1]
 PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
 RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 PICTURES = WOOD / "docs/images/joint_library"
+SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, so a row of the page reads as one.
 
 # Every frame of the plan twice, see-through and solid: the design's corner alone, each piece placed by the moves the frame
 # gives it in order (a slide {"t": [x, y, z]} or a turn {"line": [point, direction], "angle": degrees}, each with the share of
@@ -174,7 +175,7 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
         written = json.loads(listing.strip().splitlines()[-1])
         images = [drawing(pair, written["target"]) for pair in written["paths"]]
 
-    # cropped alike to what any frame draws with a margin, framed 3:2, halved; the GIF on one palette, undithered
+    # cropped alike to what any frame draws with a margin, framed 3:2, scaled to SIZE; the GIF on one palette, undithered
     clear = images[0].getpixel((2, 2))
     box = None
     for image in images:
@@ -189,7 +190,7 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
         canvas = Image.new("RGB", (width, height), clear)
         piece = image.crop(crop)
         canvas.paste(piece, ((width - piece.width) // 2, (height - piece.height) // 2))
-        framed.append(canvas.resize((width // 2, height // 2), Image.LANCZOS))
+        framed.append(canvas.resize(SIZE, Image.LANCZOS))
     picture = PICTURES / f"beam_{design}.png"
     framed[0].save(picture)
     # the palette from every frame, so the moving piece keeps its tint

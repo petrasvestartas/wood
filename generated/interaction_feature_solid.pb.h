@@ -220,12 +220,14 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
   enum : int {
     kProfileFieldNumber = 3,
     kDrillsFieldNumber = 7,
+    kPostsFieldNumber = 10,
     kSourceFieldNumber = 1,
     kMeshFieldNumber = 2,
     kExtrusionFieldNumber = 4,
     kToleranceFieldNumber = 6,
     kDrillRadiusFieldNumber = 8,
     kDrillToleranceFieldNumber = 9,
+    kPostRadiusFieldNumber = 11,
     kOperationFieldNumber = 5,
   };
   // repeated .session_proto.Polyline profile = 3;
@@ -266,6 +268,26 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
   private:
   const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_drills() const;
   ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_drills();
+
+  public:
+  // repeated .session_proto.Line posts = 10;
+  [[nodiscard]] int posts_size() const;
+  private:
+  int _internal_posts_size() const;
+
+  public:
+  void clear_posts() ;
+  [[nodiscard]] const ::session_proto::Line& posts(int index) const;
+  [[nodiscard]] ::session_proto::Line* PROTOBUF_NONNULL mutable_posts(int index);
+  ::session_proto::Line* PROTOBUF_NONNULL add_posts();
+  [[nodiscard]] const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+  posts() const;
+  [[nodiscard]] ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+  mutable_posts();
+
+  private:
+  const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& _internal_posts() const;
+  ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL _internal_mutable_posts();
 
   public:
   // string source = 1;
@@ -343,6 +365,16 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
   void _internal_set_drill_tolerance(double value);
 
   public:
+  // double post_radius = 11;
+  void clear_post_radius() ;
+  [[nodiscard]] double post_radius() const;
+  void set_post_radius(double value);
+
+  private:
+  double _internal_post_radius() const;
+  void _internal_set_post_radius(double value);
+
+  public:
   // int32 operation = 5;
   void clear_operation() ;
   [[nodiscard]] ::int32_t operation() const;
@@ -357,8 +389,8 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
  private:
   class _Internal;
   using ParseTableT_ =
-      ::google::protobuf::internal::TcParseTable<4, 9,
-                          4, 57,
+      ::google::protobuf::internal::TcParseTable<4, 11,
+                          5, 57,
                           2>;
   static constexpr ParseTableT_ InternalGenerateParseTable_(
       const ::google::protobuf::internal::ClassData* PROTOBUF_NONNULL class_data);
@@ -388,12 +420,14 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
     ::google::protobuf::internal::CachedSize _cached_size_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Polyline > profile_;
     ::google::protobuf::RepeatedPtrField< ::session_proto::Line > drills_;
+    ::google::protobuf::RepeatedPtrField< ::session_proto::Line > posts_;
     ::google::protobuf::internal::ArenaStringPtr source_;
     ::session_proto::Mesh* PROTOBUF_NULLABLE mesh_;
     ::session_proto::Vector* PROTOBUF_NULLABLE extrusion_;
     double tolerance_;
     double drill_radius_;
     double drill_tolerance_;
+    double post_radius_;
     ::int32_t operation_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -421,7 +455,7 @@ class  PROTOBUF_FUTURE_ADD_EARLY_WARN_UNUSED InteractionFeatureSolid final : pub
 inline void InteractionFeatureSolid::clear_source() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.source_.ClearToEmpty();
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
 }
 inline const ::std::string& InteractionFeatureSolid::source() const
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
@@ -431,13 +465,13 @@ inline const ::std::string& InteractionFeatureSolid::source() const
 template <typename Arg_, typename... Args_>
 PROTOBUF_ALWAYS_INLINE void InteractionFeatureSolid::set_source(Arg_&& arg, Args_... args) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   _impl_.source_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.source)
 }
 inline ::std::string* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_source()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   ::std::string* _s = _internal_mutable_source();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.source)
   return _s;
@@ -457,10 +491,10 @@ inline ::std::string* PROTOBUF_NONNULL InteractionFeatureSolid::_internal_mutabl
 inline ::std::string* PROTOBUF_NULLABLE InteractionFeatureSolid::release_source() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureSolid.source)
-  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000004U)) {
+  if (!CheckHasBit(_impl_._has_bits_[0], 0x00000008U)) {
     return nullptr;
   }
-  ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   auto* released = _impl_.source_.Release();
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString()) {
     _impl_.source_.Set("", GetArena());
@@ -470,9 +504,9 @@ inline ::std::string* PROTOBUF_NULLABLE InteractionFeatureSolid::release_source(
 inline void InteractionFeatureSolid::set_allocated_source(::std::string* PROTOBUF_NULLABLE value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000004U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
   }
   _impl_.source_.SetAllocated(value, GetArena());
   if (::google::protobuf::internal::DebugHardenForceCopyDefaultString() && _impl_.source_.IsDefault()) {
@@ -483,7 +517,7 @@ inline void InteractionFeatureSolid::set_allocated_source(::std::string* PROTOBU
 
 // .session_proto.Mesh mesh = 2;
 inline bool InteractionFeatureSolid::has_mesh() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000008U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
   PROTOBUF_ASSUME(!value || _impl_.mesh_ != nullptr);
   return value;
 }
@@ -504,16 +538,16 @@ inline void InteractionFeatureSolid::unsafe_arena_set_allocated_mesh(
   }
   _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeatureSolid.mesh)
 }
 inline ::session_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::release_mesh() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* released = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -533,7 +567,7 @@ inline ::session_proto::Mesh* PROTOBUF_NULLABLE InteractionFeatureSolid::unsafe_
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureSolid.mesh)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* temp = _impl_.mesh_;
   _impl_.mesh_ = nullptr;
   return temp;
@@ -548,7 +582,7 @@ inline ::session_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::_interna
 }
 inline ::session_proto::Mesh* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_mesh()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   ::session_proto::Mesh* _msg = _internal_mutable_mesh();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.mesh)
   return _msg;
@@ -565,9 +599,9 @@ inline void InteractionFeatureSolid::set_allocated_mesh(::session_proto::Mesh* P
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000008U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000008U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
   }
 
   _impl_.mesh_ = reinterpret_cast<::session_proto::Mesh*>(value);
@@ -626,7 +660,7 @@ InteractionFeatureSolid::_internal_mutable_profile() {
 
 // .session_proto.Vector extrusion = 4;
 inline bool InteractionFeatureSolid::has_extrusion() const {
-  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000010U);
+  bool value = CheckHasBit(_impl_._has_bits_[0], 0x00000020U);
   PROTOBUF_ASSUME(!value || _impl_.extrusion_ != nullptr);
   return value;
 }
@@ -647,16 +681,16 @@ inline void InteractionFeatureSolid::unsafe_arena_set_allocated_extrusion(
   }
   _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
   if (value != nullptr) {
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:wood_proto.InteractionFeatureSolid.extrusion)
 }
 inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::release_extrusion() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Vector* released = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   if (::google::protobuf::internal::DebugHardenForceCopyInRelease()) {
@@ -676,7 +710,7 @@ inline ::session_proto::Vector* PROTOBUF_NULLABLE InteractionFeatureSolid::unsaf
   ::google::protobuf::internal::TSanWrite(&_impl_);
   // @@protoc_insertion_point(field_release:wood_proto.InteractionFeatureSolid.extrusion)
 
-  ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Vector* temp = _impl_.extrusion_;
   _impl_.extrusion_ = nullptr;
   return temp;
@@ -691,7 +725,7 @@ inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::_inter
 }
 inline ::session_proto::Vector* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_extrusion()
     ABSL_ATTRIBUTE_LIFETIME_BOUND {
-  SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   ::session_proto::Vector* _msg = _internal_mutable_extrusion();
   // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.extrusion)
   return _msg;
@@ -708,9 +742,9 @@ inline void InteractionFeatureSolid::set_allocated_extrusion(::session_proto::Ve
     if (message_arena != submessage_arena) {
       value = ::google::protobuf::internal::GetOwnedMessage(message_arena, value, submessage_arena);
     }
-    SetHasBit(_impl_._has_bits_[0], 0x00000010U);
+    SetHasBit(_impl_._has_bits_[0], 0x00000020U);
   } else {
-    ClearHasBit(_impl_._has_bits_[0], 0x00000010U);
+    ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
   }
 
   _impl_.extrusion_ = reinterpret_cast<::session_proto::Vector*>(value);
@@ -721,7 +755,7 @@ inline void InteractionFeatureSolid::set_allocated_extrusion(::session_proto::Ve
 inline void InteractionFeatureSolid::clear_operation() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.operation_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000400U);
 }
 inline ::int32_t InteractionFeatureSolid::operation() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.operation)
@@ -729,7 +763,7 @@ inline ::int32_t InteractionFeatureSolid::operation() const {
 }
 inline void InteractionFeatureSolid::set_operation(::int32_t value) {
   _internal_set_operation(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000400U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.operation)
 }
 inline ::int32_t InteractionFeatureSolid::_internal_operation() const {
@@ -745,7 +779,7 @@ inline void InteractionFeatureSolid::_internal_set_operation(::int32_t value) {
 inline void InteractionFeatureSolid::clear_tolerance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.tolerance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000020U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
 }
 inline double InteractionFeatureSolid::tolerance() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.tolerance)
@@ -753,7 +787,7 @@ inline double InteractionFeatureSolid::tolerance() const {
 }
 inline void InteractionFeatureSolid::set_tolerance(double value) {
   _internal_set_tolerance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000020U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.tolerance)
 }
 inline double InteractionFeatureSolid::_internal_tolerance() const {
@@ -819,7 +853,7 @@ InteractionFeatureSolid::_internal_mutable_drills() {
 inline void InteractionFeatureSolid::clear_drill_radius() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.drill_radius_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000040U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
 }
 inline double InteractionFeatureSolid::drill_radius() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.drill_radius)
@@ -827,7 +861,7 @@ inline double InteractionFeatureSolid::drill_radius() const {
 }
 inline void InteractionFeatureSolid::set_drill_radius(double value) {
   _internal_set_drill_radius(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000040U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.drill_radius)
 }
 inline double InteractionFeatureSolid::_internal_drill_radius() const {
@@ -843,7 +877,7 @@ inline void InteractionFeatureSolid::_internal_set_drill_radius(double value) {
 inline void InteractionFeatureSolid::clear_drill_tolerance() {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.drill_tolerance_ = 0;
-  ClearHasBit(_impl_._has_bits_[0], 0x00000080U);
+  ClearHasBit(_impl_._has_bits_[0], 0x00000100U);
 }
 inline double InteractionFeatureSolid::drill_tolerance() const {
   // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.drill_tolerance)
@@ -851,7 +885,7 @@ inline double InteractionFeatureSolid::drill_tolerance() const {
 }
 inline void InteractionFeatureSolid::set_drill_tolerance(double value) {
   _internal_set_drill_tolerance(value);
-  SetHasBit(_impl_._has_bits_[0], 0x00000080U);
+  SetHasBit(_impl_._has_bits_[0], 0x00000100U);
   // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.drill_tolerance)
 }
 inline double InteractionFeatureSolid::_internal_drill_tolerance() const {
@@ -861,6 +895,80 @@ inline double InteractionFeatureSolid::_internal_drill_tolerance() const {
 inline void InteractionFeatureSolid::_internal_set_drill_tolerance(double value) {
   ::google::protobuf::internal::TSanWrite(&_impl_);
   _impl_.drill_tolerance_ = value;
+}
+
+// repeated .session_proto.Line posts = 10;
+inline int InteractionFeatureSolid::_internal_posts_size() const {
+  return _internal_posts().size();
+}
+inline int InteractionFeatureSolid::posts_size() const {
+  return _internal_posts_size();
+}
+inline const ::session_proto::Line& InteractionFeatureSolid::posts(int index) const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.posts)
+  return _internal_posts().Get(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::mutable_posts(int index)
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_mutable:wood_proto.InteractionFeatureSolid.posts)
+  return _internal_mutable_posts()->Mutable(index);
+}
+inline ::session_proto::Line* PROTOBUF_NONNULL InteractionFeatureSolid::add_posts()
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  ::session_proto::Line* _add =
+      _internal_mutable_posts()->InternalAddWithArena(
+          ::google::protobuf::MessageLite::internal_visibility(), GetArena());
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_add:wood_proto.InteractionFeatureSolid.posts)
+  return _add;
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>& InteractionFeatureSolid::posts() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_list:wood_proto.InteractionFeatureSolid.posts)
+  return _internal_posts();
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+InteractionFeatureSolid::mutable_posts() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  SetHasBit(_impl_._has_bits_[0], 0x00000004U);
+  // @@protoc_insertion_point(field_mutable_list:wood_proto.InteractionFeatureSolid.posts)
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  return _internal_mutable_posts();
+}
+inline const ::google::protobuf::RepeatedPtrField<::session_proto::Line>&
+InteractionFeatureSolid::_internal_posts() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.posts_;
+}
+inline ::google::protobuf::RepeatedPtrField<::session_proto::Line>* PROTOBUF_NONNULL
+InteractionFeatureSolid::_internal_mutable_posts() {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return &_impl_.posts_;
+}
+
+// double post_radius = 11;
+inline void InteractionFeatureSolid::clear_post_radius() {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.post_radius_ = 0;
+  ClearHasBit(_impl_._has_bits_[0], 0x00000200U);
+}
+inline double InteractionFeatureSolid::post_radius() const {
+  // @@protoc_insertion_point(field_get:wood_proto.InteractionFeatureSolid.post_radius)
+  return _internal_post_radius();
+}
+inline void InteractionFeatureSolid::set_post_radius(double value) {
+  _internal_set_post_radius(value);
+  SetHasBit(_impl_._has_bits_[0], 0x00000200U);
+  // @@protoc_insertion_point(field_set:wood_proto.InteractionFeatureSolid.post_radius)
+}
+inline double InteractionFeatureSolid::_internal_post_radius() const {
+  ::google::protobuf::internal::TSanRead(&_impl_);
+  return _impl_.post_radius_;
+}
+inline void InteractionFeatureSolid::_internal_set_post_radius(double value) {
+  ::google::protobuf::internal::TSanWrite(&_impl_);
+  _impl_.post_radius_ = value;
 }
 
 #ifdef __GNUC__

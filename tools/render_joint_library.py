@@ -1,6 +1,6 @@
 """The pictures of the beam joint library and their page: each design's picture and assembly GIF, drawn alike by
 tools/render_joint_library_gifs.py, then the table of docs/elements/element_joint_beam_compendium.md between its joint-table
-markers (title, then GIF, picture and joinery tile) and the list of the book's joints still to do (tools/joint_library_todo.py).
+markers (title, then GIF, picture and joinery tile, by page) and the list of the book's joints still to do (tools/joint_library_todo.py).
 
     python3 tools/render_joint_library.py [design ...]
 """
@@ -21,13 +21,15 @@ def write_table() -> None:
     """The page's table between its joint-table markers: per record of data/joints/*.yaml its title and page in a row of their
     own, then its assembly GIF, picture and tile side by side."""
     rows = ["| assembly | joint | tile |", "|---|---|---|"]
+    records = []
     for chapter in sorted((WOOD / "data/joints").glob("*.yaml")):
-        for match in re.finditer(r'^([a-z_0-9]+):\n  title: "(.*?)"\n  german: "(.*?)"\n  page: "(.*?)"', chapter.read_text(), re.M):
-            design, title, german, page = match.groups()
-            gif = f"![](joint_library/beam_{design}.gif)" if (PICTURES / f"beam_{design}.gif").exists() else ""
-            tile = f"![](joint_library/tile_{design}.png)" if (PICTURES / f"tile_{design}.png").exists() else ""
-            rows.append(f"| **{title}**, p. {page} | | |")
-            rows.append(f"| {gif} | ![](joint_library/beam_{design}.png) | {tile} |")
+        records += re.findall(r'^([a-z_0-9]+):\n  title: "(.*?)"\n  german: "(.*?)"\n  page: "(.*?)"', chapter.read_text(), re.M)
+    # in the order of the book's pages
+    for design, title, german, page in sorted(records, key=lambda record: int(record[3])):
+        gif = f"![](joint_library/beam_{design}.gif)" if (PICTURES / f"beam_{design}.gif").exists() else ""
+        tile = f"![](joint_library/tile_{design}.png)" if (PICTURES / f"tile_{design}.png").exists() else ""
+        rows.append(f"| **{title}**, p. {page} | | |")
+        rows.append(f"| {gif} | ![](joint_library/beam_{design}.png) | {tile} |")
     text = PAGE.read_text()
     start = text.index("<!-- joint-table -->") + len("<!-- joint-table -->")
     PAGE.write_text(text[:start] + "\n" + "\n".join(rows) + "\n" + text[text.index("<!-- /joint-table -->"):])

@@ -29,6 +29,12 @@ pub struct InteractionFeatureSolid {
     /// Chord tolerance the drills are meshed at
     #[prost(double, tag = "9")]
     pub drill_tolerance: f64,
+    /// Round posts it keeps where it takes the wood around them, exact in the BRep
+    #[prost(message, repeated, tag = "10")]
+    pub posts: ::prost::alloc::vec::Vec<::session_rust::proto::Line>,
+    /// Radius of the posts
+    #[prost(double, tag = "11")]
+    pub post_radius: f64,
 }
 /// A plane an element is cut by, keeping the side its normal points to, in the element's frame.
 #[derive(Clone, PartialEq, ::prost::Message)]

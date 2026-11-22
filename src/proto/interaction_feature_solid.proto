@@ -15,4 +15,6 @@ message InteractionFeatureSolid {
   repeated session_proto.Line drills = 7;    // Round holes kept as axes, exact in the BRep
   double drill_radius = 8;                   // Radius of the drills
   double drill_tolerance = 9;                // Chord tolerance the drills are meshed at
+  repeated session_proto.Line posts = 10;    // Round posts it keeps where it takes the wood around them, exact in the BRep
+  double post_radius = 11;                   // Radius of the posts
 }

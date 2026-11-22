@@ -2969,19 +2969,30 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     }
 
     // the ways a goes in, across only when it is as wide as b; b the opposite ways; "v; m1; m2" approaches along v, then makes
-    // the moves m1, m2 as long as they are (in, then along the slot), b the same moves turned round
+    // the moves m1, m2 (in, then along the slot), b the same moves undone; a move "turn P, d, degrees" turns the piece about the
+    // line through P along d
     joint->target_insertions = {{}, {}};
     joint->target_legs = {{}, {}};
     // the ways the member goes in, the carrier the opposite ways; "part = v" gives a part its way in instead of its axis
     std::map<std::string, Vector> part_ways;
-    std::map<std::string, std::vector<Vector>> part_legs;
+    std::map<std::string, std::vector<JointMove>> part_legs;
     for (const std::string& line : record.lists["insertions"]) {
         const bool named = line.find('=') != std::string::npos;
         const std::vector<std::string> pair = split_top(line, '=');
         const std::vector<std::string> moves = split_top(named ? pair[1] : line, ';');
-        std::vector<Vector> legs;
-        for (size_t m = 1; m < moves.size(); m++)
-            legs.push_back(evaluate(moves[m], names).vector);
+        std::vector<JointMove> legs;
+        for (size_t m = 1; m < moves.size(); m++) {
+            const std::string& move = moves[m];
+            if (move.rfind("turn ", 0) != 0) {
+                legs.push_back(JointMove::slide(evaluate(move, names).vector));
+                continue;
+            }
+            const std::vector<std::string> terms = split_top(move.substr(5), ',');
+            if (terms.size() != 3)
+                throw std::invalid_argument(fmt::format("{}: a turn is \"turn point, direction, degrees\", not \"{}\"", design, move));
+            const Point pivot = origin + evaluate(terms[0], names).vector;
+            legs.push_back(JointMove::turn(Line::from_points(pivot, pivot + evaluate(terms[1], names).vector.normalized()), evaluate(terms[2], names).number));
+        }
         if (named) {
             part_ways[pair[0]] = evaluate(moves[0], names).vector.normalized();
             part_legs[pair[0]] = legs;
@@ -2996,9 +3007,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             repeated = repeated || known.dot(direction) > 0.9999;
         if (repeated && legs.empty())
             continue;
-        std::vector<Vector> turned;
-        for (const Vector& leg : legs)
-            turned.push_back(leg * -1.0);
+        std::vector<JointMove> turned;
+        for (const JointMove& leg : legs)
+            turned.push_back(leg.reversed());
         joint->target_insertions[0].push_back(direction);
         joint->target_insertions[1].push_back(direction * -1.0);
         joint->target_legs[0].push_back(legs);
@@ -3018,7 +3029,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     for (size_t k = 0; k < more.size(); k++) {
         const std::string letter(1, static_cast<char>('c' + k));
         joint->target_insertions.push_back(part_ways.count(letter) ? std::vector<Vector>{part_ways.at(letter)} : std::vector<Vector>{});
-        joint->target_legs.push_back(part_legs.count(letter) ? std::vector<std::vector<Vector>>{part_legs.at(letter)} : std::vector<std::vector<Vector>>{});
+        joint->target_legs.push_back(part_legs.count(letter) ? std::vector<std::vector<JointMove>>{part_legs.at(letter)} : std::vector<std::vector<JointMove>>{});
     }
 
     for (size_t k = 0; k < part_axes.size(); k++) {
@@ -3027,7 +3038,18 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             joint->target_insertions.push_back({part_ways.at(part)});
         else
             joint->target_insertions.push_back({part_axes[k], part_axes[k] * -1.0});
-        joint->target_legs.push_back(part_legs.count(part) ? std::vector<std::vector<Vector>>{part_legs.at(part)} : std::vector<std::vector<Vector>>{});
+        joint->target_legs.push_back(part_legs.count(part) ? std::vector<std::vector<JointMove>>{part_legs.at(part)} : std::vector<std::vector<JointMove>>{});
+    }
+
+    // round posts a member's cut keeps: "letter = start, end, radius", an exact cylinder from start to end
+    joint->target_posts.assign(2 + more.size(), {});
+    for (const std::string& line : record.lists["posts"]) {
+        const std::vector<std::string> pair = split_top(line, '=');
+        const std::vector<std::string> terms = split_top(pair[1], ',');
+        if (pair.size() != 2 || pair[0].size() != 1 || terms.size() != 3 || static_cast<size_t>(pair[0][0] - 'a') >= joint->target_posts.size())
+            throw std::invalid_argument(fmt::format("{}: a post is \"letter = start, end, radius\", not \"{}\"", design, line));
+        joint->target_posts[static_cast<size_t>(pair[0][0] - 'a')].push_back(Line::from_points(origin + evaluate(terms[0], names).vector, origin + evaluate(terms[1], names).vector));
+        joint->post_radius = evaluate(terms[2], names).number;
     }
 
     joint->name = design;

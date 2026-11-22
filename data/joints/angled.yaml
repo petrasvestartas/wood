@@ -24,6 +24,7 @@
 #               b alone for a kerf that takes nothing) cut by every plane, a leading minus for the plane turned round.
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
+#   posts       "letter = start, end, radius": a round post the member's cut keeps, an exact cylinder (a Chidori neck).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
@@ -32,6 +33,7 @@
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
 #               "v; m1; m2" approaches along v, then makes the moves m1, m2 as long as they are (in, then along the slot).
+#               A move "turn P, d, degrees" turns the piece about the line through P along d (a Chidori stick locking).
 
 notched_oblique_thrust:
   title: "Notched oblique thrust joint"

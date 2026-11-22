@@ -77,13 +77,23 @@ int main() {
                 const AABB box = AABB::from_mesh(drawn->model_geometry_mesh());
                 const Vector way = step.insertion;
                 const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
-                // a piece going in by more moves (in, then along the slot) stands back along its approach only, its moves drawn as
-                // arrows: undone they would set it where a wedge or another piece sits
+                // a piece going in by more moves (in, then along the slot, or a turn) stands where it starts them: the moves undone,
+                // the last first, then back along its approach
                 const Vector out = way * -(std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
-                drawn->place(Xform::translation(out[0], out[1], out[2]));
+                Xform undone;
+                for (const JointMove& leg : AssemblySequence::out_legs(step.legs))
+                    undone = leg.at(1.0) * undone;
+                drawn->place(Xform::translation(out[0], out[1], out[2]) * undone);
                 nlohmann::ordered_json legs = nlohmann::ordered_json::array();
-                for (const Vector& leg : step.legs)
-                    legs.push_back({leg[0], leg[1], leg[2]});
+                for (const JointMove& leg : step.legs) {
+                    if (!leg.is_turn()) {
+                        legs.push_back({{"shift", {leg.shift[0], leg.shift[1], leg.shift[2]}}});
+                        continue;
+                    }
+                    const Point pivot = leg.axis.start();
+                    const Vector along = leg.axis.to_vector().normalized();
+                    legs.push_back({{"line", {pivot[0], pivot[1], pivot[2], along[0], along[1], along[2]}}, {"angle", leg.angle}});
+                }
                 orders[name].push_back({{"element", drawn->name}, {"way", {way[0], way[1], way[2]}}, {"legs", legs}, {"out", {out[0], out[1], out[2]}}});
 
                 // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them,
@@ -96,16 +106,22 @@ int main() {
                 arrow.arrowhead = Arrowhead::END;
                 scene.add_line(arrow, scene.group_named(design));
 
-                // then an arrow per later move, from the piece's centre the way it goes, as long as the move and at least 40 mm
+                // then an arrow per later move from the piece's centre: a slide the way it goes, as long as the move and at least
+                // 40 mm; a turn as an arc of eight arrows about its line
                 Point from = centre;
-                for (const Vector& leg : step.legs) {
-                    const Point to = from + leg.normalized() * std::max(leg.magnitude(), 40.0);
-                    Line slide = Line::from_points(from, to);
-                    slide.width = 6.0;
-                    slide.linecolor = Color(0, 0, 0, 255);
-                    slide.arrowhead = Arrowhead::END;
-                    scene.add_line(slide, scene.group_named(design));
-                    from = to;
+                for (const JointMove& leg : step.legs) {
+                    const int pieces = leg.is_turn() ? 8 : 1;
+                    for (int k = 1; k <= pieces; k++) {
+                        // a turn drawn about its line moved out with the piece
+                        const Xform around = Xform::translation(out[0], out[1], out[2]) * leg.at(static_cast<double>(k) / pieces) * Xform::translation(-out[0], -out[1], -out[2]);
+                        const Point to = leg.is_turn() ? around.transform_point(centre) : from + leg.shift.normalized() * std::max(leg.shift.magnitude(), 40.0);
+                        Line move = Line::from_points(from, to);
+                        move.width = 6.0;
+                        move.linecolor = Color(0, 0, 0, 255);
+                        move.arrowhead = k == pieces ? Arrowhead::END : Arrowhead::NONE;
+                        scene.add_line(move, scene.group_named(design));
+                        from = to;
+                    }
                 }
             }
         }

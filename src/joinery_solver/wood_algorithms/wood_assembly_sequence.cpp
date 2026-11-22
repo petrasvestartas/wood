@@ -59,35 +59,36 @@ std::vector<std::string> AssemblySequence::partners(const JointElement& joint, s
     return others;
 }
 
-std::vector<Vector> AssemblySequence::out_legs(const std::vector<Vector>& legs) {
+std::vector<JointMove> AssemblySequence::out_legs(const std::vector<JointMove>& legs) {
 
-    std::vector<Vector> out;
-    for (std::vector<Vector>::const_reverse_iterator it = legs.rbegin(); it != legs.rend(); ++it)
-        out.push_back(*it * -1.0);
+    std::vector<JointMove> out;
+    for (std::vector<JointMove>::const_reverse_iterator it = legs.rbegin(); it != legs.rend(); ++it)
+        out.push_back(it->reversed());
 
     return out;
 }
 
-bool AssemblySequence::slides_out(const Element& member, const std::vector<Vector>& legs, const Vector& direction, const std::vector<const Element*>& others) const {
+bool AssemblySequence::slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others) const {
 
     const Mesh& solid = member.model_geometry_mesh();
     const AABB box = AABB::from_mesh(solid);
 
-    // the places the member passes: along every leg in steps, then along direction from where the legs end
-    std::vector<Vector> places;
-    Vector reached(0.0, 0.0, 0.0);
-    for (const Vector& leg : legs) {
-        const double count = std::max(std::ceil(leg.magnitude() / step), 1.0);
+    // the placements the member passes: every move in steps no longer than step at its farthest corner, then along direction
+    // from where the moves end
+    std::vector<Xform> places;
+    Xform reached;
+    for (const JointMove& leg : legs) {
+        const double count = std::max(std::ceil(leg.reach(AABB::from_mesh(solid.transformed(reached))) / step), 1.0);
         for (double i = 1.0; i <= count; i += 1.0)
-            places.push_back(reached + leg * (i / count));
-        reached = reached + leg;
+            places.push_back(leg.at(i / count) * reached);
+        reached = leg.at(1.0) * reached;
     }
     for (double distance = 1.0; distance <= box.diagonal(); distance = distance < step ? step : distance + step)
-        places.push_back(reached + direction * distance);
+        places.push_back(Xform::translation(direction[0] * distance, direction[1] * distance, direction[2] * distance) * reached);
 
-    for (const Vector& move : places) {
-        const AABB moved_box(box.cx + move[0], box.cy + move[1], box.cz + move[2], box.hx, box.hy, box.hz);
-        const Mesh moved = solid.transformed(Xform::translation(move[0], move[1], move[2]));
+    for (const Xform& place : places) {
+        const Mesh moved = solid.transformed(place);
+        const AABB moved_box = AABB::from_mesh(moved);
 
         for (const Element* other : others)
             if (moved_box.intersects(AABB::from_mesh(other->model_geometry_mesh())) &&
@@ -130,7 +131,7 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
 
                 const std::vector<Vector> directions = joint.first->insertion_directions(joint.second);
                 for (size_t way = 0; way < directions.size(); way++) {
-                    const std::vector<Vector> legs = joint.first->insertion_legs(joint.second, way);
+                    const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
                     if (!slides_out(*member, out_legs(legs), directions[way] * -1.0, others))
                         continue;
 

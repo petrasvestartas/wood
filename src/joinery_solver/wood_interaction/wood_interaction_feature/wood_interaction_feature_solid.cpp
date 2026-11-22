@@ -39,6 +39,11 @@ InteractionFeatureSolid InteractionFeatureSolid::transformed(const Xform& xform)
     for (const Line& drill : drills)
         result.drills.push_back(drill.transformed(xform));
 
+    result.posts.clear();
+
+    for (const Line& post : posts)
+        result.posts.push_back(post.transformed(xform));
+
     return result;
 }
 
@@ -76,6 +81,10 @@ std::string InteractionFeatureSolid::pb_dumps() const {
 
     proto.set_drill_radius(drill_radius);
     proto.set_drill_tolerance(drill_tolerance);
+    for (const Line& post : posts)
+        if (!proto.add_posts()->ParseFromString(post.pb_dumps()))
+            throw std::runtime_error("Cannot serialize the solid feature post");
+    proto.set_post_radius(post_radius);
 
     return proto.SerializeAsString();
 }
@@ -106,6 +115,9 @@ InteractionFeatureSolid InteractionFeatureSolid::pb_loads(const std::string& dat
 
     feature.drill_radius = proto.drill_radius();
     feature.drill_tolerance = proto.drill_tolerance() > 0.0 ? proto.drill_tolerance() : 0.05;
+    for (const session_proto::Line& post : proto.posts())
+        feature.posts.push_back(Line::pb_loads(post.SerializeAsString()));
+    feature.post_radius = proto.post_radius();
 
     return feature;
 }

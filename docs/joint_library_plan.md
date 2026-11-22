@@ -105,3 +105,13 @@ with a centre notch 4 units long and half deep across the full width, two B (a 2
 full-height cut at each end of the 4-unit zone, on one side) and the solid key C. A voxel search over the burr's six slots
 found the one layout where the key slides out along its length; the record's members follow it: AAA first (the upright pair
 and the bar through their window), then each B sideways and down by 30 mm, then C. Only Chidori (p. 730) is left.
+
+## 8. Turns and round posts (2026-11-22)
+
+- A move after the approach is a `JointMove`: a slide or a turn about a line (`"turn P, d, degrees"`); `at(share)` is its
+  matrix part way, so the assembly check, the gallery and the GIFs sweep the same placements.
+- `posts:` keeps a round post in a member's cut (`InteractionFeatureSolid::posts`); the BRep takes the cut with the post's
+  exact cylinder carved out of it, so the stick is never split.
+- Chidori (p. 730): A keeps a round post in one quarter of its notch, each B a square post in another; B slides in, the second
+  B goes down and turns a quarter about its own axis (`moves`: it passes through the first while it turns). All 407 done.
+- Pictures, GIFs and tiles are 960 x 640, see-through; the page lists the joints by page, without its outline menu.

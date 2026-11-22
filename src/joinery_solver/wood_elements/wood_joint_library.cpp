@@ -221,15 +221,15 @@ LibraryRecord library_record(const std::string& design) {
         }
 
         // the keys only some records have, read from the record's own lines: filled (the members whose cuts the others fill,
-        // b by default) and more (members after b)
+        // b by default), more (members after b) and posts (round posts a cut keeps)
         std::ifstream text(file);
         std::string line;
         bool inside = false;
-        bool in_more = false;
+        std::string in_list;
         while (std::getline(text, line)) {
             if (!line.empty() && line[0] != ' ' && line[0] != '#') {
                 inside = line == design + ":";
-                in_more = false;
+                in_list.clear();
                 continue;
             }
             if (!inside)
@@ -243,9 +243,9 @@ LibraryRecord library_record(const std::string& design) {
             if (line.starts_with("  base:"))
                 record.fields["base"] = unquoted(line.substr(7));
             if (line.starts_with("  ") && !line.starts_with("    "))
-                in_more = line.starts_with("  more:");
-            else if (in_more && line.starts_with("    - "))
-                record.lists["more"].push_back(unquoted(line.substr(6)));
+                in_list = line.starts_with("  more:") ? "more" : line.starts_with("  posts:") ? "posts" : "";
+            else if (!in_list.empty() && line.starts_with("    - "))
+                record.lists[in_list].push_back(unquoted(line.substr(6)));
         }
 
         return record;

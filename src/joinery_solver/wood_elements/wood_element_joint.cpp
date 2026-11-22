@@ -112,8 +112,14 @@ std::shared_ptr<JointElement> JointElement::support(const NodeSupportElement& su
 std::shared_ptr<Interaction> JointElement::interaction(size_t target) const {
 
     // a joint with a procedure: what its steps take from this target, in one cut
-    if (!steps.empty())
-        return std::make_shared<InteractionFeatureSolid>(removal(target), SolidOperation::subtract);
+    if (!steps.empty()) {
+        const std::shared_ptr<InteractionFeatureSolid> cut = std::make_shared<InteractionFeatureSolid>(removal(target), SolidOperation::subtract);
+        if (target < target_posts.size()) {
+            cut->posts = target_posts[target];
+            cut->post_radius = post_radius;
+        }
+        return cut;
+    }
 
     // only cutting planes: the target takes the planes themselves, the edge keeps an empty record
     if (loops.empty() && drill_axes().empty() && !cuts.empty())
@@ -159,8 +165,8 @@ std::vector<Vector> JointElement::insertion_directions(size_t target) const {
     return target < target_insertions.size() ? target_insertions[target] : std::vector<Vector>();
 }
 
-std::vector<Vector> JointElement::insertion_legs(size_t target, size_t way) const {
-    return target < target_legs.size() && way < target_legs[target].size() ? target_legs[target][way] : std::vector<Vector>();
+std::vector<JointMove> JointElement::insertion_legs(size_t target, size_t way) const {
+    return target < target_legs.size() && way < target_legs[target].size() ? target_legs[target][way] : std::vector<JointMove>();
 }
 
 std::vector<std::array<Polyline, 2>> JointElement::bodies() const {
@@ -318,10 +324,13 @@ void JointElement::place(const Xform& xform) {
     for (std::vector<Vector>& directions : target_insertions)
         for (Vector& direction : directions)
             direction = direction.transformed(xform).normalized();
-    for (std::vector<std::vector<Vector>>& ways : target_legs)
-        for (std::vector<Vector>& legs : ways)
-            for (Vector& leg : legs)
+    for (std::vector<std::vector<JointMove>>& ways : target_legs)
+        for (std::vector<JointMove>& legs : ways)
+            for (JointMove& leg : legs)
                 leg = leg.transformed(xform);
+    for (std::vector<Line>& posts : target_posts)
+        for (Line& post : posts)
+            post = post.transformed(xform);
     invalidate_geometry();
 }
 

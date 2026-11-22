@@ -31,6 +31,8 @@ public:
         drills; // Round holes it also makes, kept as axes so a BRep can make them exact.
     double drill_radius = 0.0; // Radius of every drill.
     double drill_tolerance = 0.05; // Chord tolerance the drills are meshed at.
+    std::vector<Line> posts; // Round posts it keeps within the wood it takes (a Chidori stick's neck), exact cylinders in the BRep.
+    double post_radius = 0.0; // Radius of every post.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Constructors
@@ -52,7 +54,7 @@ public:
     /// "solid".
     std::string_view kind() const override;
 
-    /// A copy with the solid, the profile, the extrusion and the drills moved by xform.
+    /// A copy with the solid, the profile, the extrusion, the drills and the posts moved by xform.
     InteractionFeatureSolid transformed(const Xform& xform) const;
 
     // ═══════════════════════════════════════════════════════════════════════════

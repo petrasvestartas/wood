@@ -835,6 +835,16 @@ Mesh apply_solid_features(
             pending.push_back(cut.mesh);
         else
             mesh = solid_boolean(mesh, cut.mesh, cut.operation, cut.tolerance);
+
+        // the round posts the cut keeps: its wood taken first, then each post added back
+        if (cut.posts.empty())
+            continue;
+        if (!pending.empty()) {
+            mesh = solid_difference(mesh, pending);
+            pending.clear();
+        }
+        for (const Line& post : cut.posts)
+            mesh = solid_boolean(mesh, drill_mesh(post, cut.post_radius, cut.drill_tolerance), SolidOperation::add);
     }
 
     if (!pending.empty())
@@ -870,6 +880,24 @@ bool has_cutter_mesh(const InteractionFeatureSolid& cut) {
 }
 
 BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureSolid>& cuts) {
+
+    // a cut that keeps round posts: the solid of the other cuts, less each convex piece of this cut with its posts' exact
+    // cylinders taken out of it, so the member is never split in two (a notch leaves its stick in two until the post joins them)
+    std::vector<InteractionFeatureSolid> plain;
+    std::vector<InteractionFeatureSolid> posted;
+    for (const InteractionFeatureSolid& cut : cuts)
+        (cut.posts.empty() ? plain : posted).push_back(cut);
+    if (!posted.empty()) {
+        BRep solid = solid_features_brep(mesh, plain);
+        for (const InteractionFeatureSolid& cut : posted)
+            for (const Mesh& piece : solid_pieces(cut.mesh)) {
+                BRep cutter = mesh_brep(piece);
+                for (const Line& post : cut.posts)
+                    cutter = cutter.boolean_difference(drill_brep(post, cut.post_radius));
+                solid = solid.boolean_difference(cutter);
+            }
+        return solid;
+    }
 
     std::vector<Drill> drills;
     double chord_tolerance = 0.0;
