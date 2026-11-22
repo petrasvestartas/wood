@@ -3497,27 +3497,26 @@ tapered_dovetail_mitered_shoulders_splice:
   family: "splicing"
   corners: "square"
   parameters:
-    - "lap = 0.6"
-    - "root = 0.2"
-    - "tip = 0.38"
-    - "taper = 0.15"
+    - "lap = 0.5"
+    - "root = 0.43"
+    - "tip = 0.53"
   points:
-    - "R1 = O + root*aw*w"
-    - "T1 = O - L*u + tip*aw*w"
-    - "R2 = O - root*aw*w"
-    - "T2 = O - L*u - tip*aw*w"
+    - "P1 = O + L*u + root*ah*p"
+    - "P3 = O - L*u + tip*ah*p"
+    - "Q1 = O + L*u - root*ah*p"
+    - "Q3 = O - L*u - tip*ah*p"
   planes:
-    - "v1 = O, cross(p, L*u + aw*w), O + L*u"
-    - "v2 = O, cross(p, L*u - aw*w), O + L*u"
-    - "fl_1 = R1, cross(p + taper*w, T1 - R1), O"
-    - "fl_2 = R2, cross(p - taper*w, T2 - R2), O"
-    - "f2 = O - L*u, u, O - 2*L*u"
+    - "f1 = O - L*u, cross(p, u + w), O + L*u"
+    - "f2 = O - L*u, cross(p, u - w), O + L*u"
+    - "top = P1, cross(u + w, P3 - P1), O"
+    - "bot = Q1, cross(u + w, Q3 - Q1), O"
+    - "tip_l = O - L*u, u, O"
   parts:
   steps:
-    - "A2 a_end v1 fl_1; a_end v1 fl_2; a_end v2 fl_1; a_end v2 fl_2"
-    - "B2 b_end -v1 -v2; b_end f2 -fl_1 -fl_2"
+    - "A2 a_end f1 top; a_end f1 bot; a_end f2 top; a_end f2 bot"
+    - "B2 b_end -f1 -f2; b_end -top -bot -tip_l"
   insertions:
-    - "-p"
+    - "-u - w"
 
 spear_point_cross_stub_tenon_splice:
   title: "Spear point cross-shaped stub tenon joint with undercut shoulders"
