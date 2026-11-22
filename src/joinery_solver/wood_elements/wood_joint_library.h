@@ -53,6 +53,8 @@ struct LibraryTile {
     std::vector<std::vector<std::array<Polyline, 2>>> cuts; // Per member, its cuts' outline pairs.
     std::vector<std::array<Polyline, 2>> parts; // The pegs, keys and wedges, each its two end outlines.
     int unsupported = 0; // Cuts that are no prism between two parallel faces.
+    std::vector<int> divisions; // Per member, how often one unit repeats along the joint (fingers, tenons, keys); 1 for a fixed tile.
+    std::vector<int> axes; // Per member, the unit box axis it repeats along (0 x, 1 y, 2 z); -1 for a fixed tile.
     Point centre; // The unit box's centre in the record's drawing (library_members at the origin, square corner when it has one).
     Vector size; // The unit box's sizes along x, y and z in mm.
 };

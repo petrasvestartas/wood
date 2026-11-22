@@ -491,6 +491,49 @@ static std::array<Polyline, 2> prism_faces(const Mesh& piece) {
     return {};
 }
 
+/// How often one unit repeats in pairs: every pair the same outlines moved along axis, evenly spaced, at least three (two are
+/// the cheeks either side of one tenon, a fixed joint); 1 when the pairs are no such row. axis is set to the axis of the row.
+static int repeats(const std::vector<std::array<Polyline, 2>>& pairs, int& axis) {
+
+    axis = -1;
+    if (pairs.size() < 3)
+        return 1;
+    for (int k = 0; k < 3; k++) {
+        std::vector<double> places;
+        bool row = true;
+        const std::vector<Point> first = pairs.front()[0].get_points();
+        for (const std::array<Polyline, 2>& pair : pairs) {
+            for (size_t side = 0; side < 2 && row; side++) {
+                const std::vector<Point> points = pair[side].get_points();
+                const std::vector<Point> reference = pairs.front()[side].get_points();
+                if (points.size() != reference.size()) {
+                    row = false;
+                    break;
+                }
+                const double shift = points.front()[static_cast<size_t>(k)] - reference.front()[static_cast<size_t>(k)];
+                for (size_t i = 0; i < points.size() && row; i++)
+                    for (size_t j = 0; j < 3 && row; j++)
+                        row = std::abs(points[i][j] - reference[i][j] - (static_cast<int>(j) == k ? shift : 0.0)) < 0.5;
+            }
+            if (!row)
+                break;
+            places.push_back(pair[0].get_points().front()[static_cast<size_t>(k)] - first.front()[static_cast<size_t>(k)]);
+        }
+        if (!row)
+            continue;
+        std::sort(places.begin(), places.end());
+        bool even = places.back() - places.front() > 1.0;
+        for (size_t i = 2; i < places.size() && even; i++)
+            even = std::abs((places[i] - places[i - 1]) - (places[1] - places[0])) < 0.5;
+        if (even) {
+            axis = k;
+            return static_cast<int>(pairs.size());
+        }
+    }
+
+    return 1;
+}
+
 LibraryTile library_tile(const std::string& design) {
 
     // the joint on its members at the origin, on a square corner when the record has one
@@ -538,6 +581,13 @@ LibraryTile library_tile(const std::string& design) {
         }
     }
     tile.parts = joint->parts;
+
+    // a member whose cuts are one unit in an even row repeats by divisions, measured before the unit box (in mm)
+    for (const std::vector<std::array<Polyline, 2>>& member_cuts : tile.cuts) {
+        int axis = -1;
+        tile.divisions.push_back(repeats(member_cuts, axis));
+        tile.axes.push_back(axis);
+    }
 
     // the unit box: every outline point's box, mapped to [-0.5, 0.5]
     Point low(1e18, 1e18, 1e18);

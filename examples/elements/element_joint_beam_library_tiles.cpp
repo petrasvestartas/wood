@@ -1,5 +1,6 @@
 #include "wood_session.h"
 #include "wood_joint_library.h"
+#include <fmt/ranges.h>
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -31,8 +32,8 @@ int main() {
         nlohmann::ordered_json members = nlohmann::ordered_json::array();
         for (const std::vector<std::array<Polyline, 2>>& cuts : tile.cuts)
             members.push_back(pairs_json(cuts));
-        tiles[design] = {{"members", members}, {"parts", pairs_json(tile.parts)}, {"unsupported", tile.unsupported}, {"size", {tile.size[0], tile.size[1], tile.size[2]}}};
-        std::cout << fmt::format("{} {} pairs, {} unsupported", design, tile.cuts[0].size() + tile.cuts[1].size(), tile.unsupported) << std::endl;
+        tiles[design] = {{"members", members}, {"parts", pairs_json(tile.parts)}, {"unsupported", tile.unsupported}, {"size", {tile.size[0], tile.size[1], tile.size[2]}}, {"divisions", tile.divisions}, {"axes", tile.axes}};
+        std::cout << fmt::format("{} {} pairs, {} unsupported, divisions {}", design, tile.cuts[0].size() + tile.cuts[1].size(), tile.unsupported, fmt::join(tile.divisions, " ")) << std::endl;
     }
     const std::string path = pb_path("joint_library_tiles");
     std::ofstream(path.substr(0, path.size() - 3) + ".json") << tiles.dump(1);

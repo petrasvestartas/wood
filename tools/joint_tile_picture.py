@@ -1,5 +1,6 @@
 """A joint library tile as a picture: the unit box drawn isometric, every cut's two outlines and the lines joining them, the male
-member's (a) blue, the female's (b) red, other members' green, loose parts grey. Reads data/output/pb/joint_library_tiles.json
+member's (a) blue, the female's (b) red, other members' green, loose parts grey, labelled fixed or with the divisions a
+member's unit repeats by along the joint (fingers, tenons, keys). Reads data/output/pb/joint_library_tiles.json
 (element_joint_beam_library_tiles) and writes docs/images/joint_library/tile_<design>.png.
 
     python3 tools/joint_tile_picture.py [design ...]
@@ -45,6 +46,11 @@ def draw(design: str, tile: dict, size: int = 600) -> Image.Image:
                 pen.line([project(p, size, scale) for p in outline], fill=colour, width=2)
             for p, q in zip(pair[0], pair[1]):
                 pen.line([project(p, size, scale), project(q, size, scale)], fill=colour, width=1)
+    # what the tile is: fixed, or a unit repeating by divisions along an axis (as the plate joints' fingers)
+    rows = [f"member {'abcdefgh'[k]}: {n} x along {'xyz'[axis]}" for k, (n, axis) in enumerate(zip(tile.get("divisions", []), tile.get("axes", []))) if n > 1]
+    pen.text((12, size - 22 - 14 * len(rows)), "fixed tile" if not rows else "parametric, repeats by divisions", fill=(0, 0, 0))
+    for k, row in enumerate(rows):
+        pen.text((12, size - 22 - 14 * (len(rows) - 1 - k)), row, fill=(0, 0, 0))
     return image
 
 
