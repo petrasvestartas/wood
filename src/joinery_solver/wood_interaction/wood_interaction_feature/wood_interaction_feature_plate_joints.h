@@ -50,7 +50,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 // cross: cross in-plane, type 30
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/cross_sliced_half_lap.h"
 #include "wood_interaction_feature_plate_joints/cross_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════

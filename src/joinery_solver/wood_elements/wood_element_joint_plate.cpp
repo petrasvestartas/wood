@@ -469,7 +469,7 @@ static bool build_cross(const int id, InteractionFeaturePlate& joint, BuildConte
         plate_from_library("cross_slot", joint, context.elements, {});
         return true;
     case 31:
-        cross_sliced_half_lap(joint);
+        plate_from_library("cross_sliced_half_lap", joint, context.elements, {});
         return true;
     case 32:
     case 33:
@@ -2410,7 +2410,7 @@ bool JointPlateElement::compute_cross(
     if (parameters.library == "cross_slot")
         plate_from_library("cross_slot", connection, {}, {});
     else if (parameters.library == "cross_sliced_half_lap")
-        ::cross_sliced_half_lap(connection);
+        plate_from_library("cross_sliced_half_lap", connection, {}, {});
     else if (parameters.library == "cross_half_lap")
         plate_from_library("cross_half_lap", connection, {}, {{"drills", static_cast<double>(variant - 32)}});
     else if (parameters.library == "cross_brussels_half_lap")
