@@ -628,7 +628,7 @@ LibraryTile library_tile(const std::string& design) {
     }
 
     // the joint's zone, which a's cuts are kept within so trimming its stock's extension is no part of the tile: the box of
-    // every other member's cuts and of the parts; where only a is cut, the box where the uncut members overlap
+    // every other member's cuts, of the parts and of where the uncut members overlap
     Point zone_low(1e18, 1e18, 1e18);
     Point zone_high(-1e18, -1e18, -1e18);
     std::vector<Point> marking;
@@ -640,11 +640,10 @@ LibraryTile library_tile(const std::string& design) {
         for (const Polyline& outline : part)
             for (const Point& point : outline.get_points())
                 marking.push_back(point);
-    if (marking.empty())
-        for (size_t i = 0; i < members.size(); i++)
-            for (size_t j = i + 1; j < members.size(); j++)
-                for (const Point& point : solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect).to_vertices_and_faces().first)
-                    marking.push_back(point);
+    for (size_t i = 0; i < members.size(); i++)
+        for (size_t j = i + 1; j < members.size(); j++)
+            for (const Point& point : solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect).to_vertices_and_faces().first)
+                marking.push_back(point);
     for (const Point& point : marking)
         for (size_t k = 0; k < 3; k++) {
             zone_low[k] = std::min(zone_low[k], point[k] - 1.0);
