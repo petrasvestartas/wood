@@ -244,7 +244,9 @@ static bool plate_from_library(
     // a design called by another (the linked tenons) keeps the caller's name
     if (!(record.fields.count("named") && record.fields.at("named") == "false"))
         joint.name = record.fields.count("name") ? record.fields.at("name") : design;
+    // unit_scale "true" scales the box to the plate's thickness, "flag" only marks the joint unit scaled
     const bool scaled = record.fields.count("unit_scale") && record.fields.at("unit_scale") == "true";
+    const bool flagged = record.fields.count("unit_scale") && record.fields.at("unit_scale") == "flag";
     if (scaled)
         joint.unit_scale_distance = unit_scale_distance(joint, elements);
     std::map<std::string, LibraryValue> names = {
@@ -253,6 +255,8 @@ static bool plate_from_library(
         {"length", {joint.joint_lines[0].length() * joint.scale[2]}},
         {"unit", {joint.unit_scale_distance}},
         {"joint_length", {joint.length * joint.scale[2]}},
+        {"volume_edge", {joint.joint_volumes[0] && joint.joint_volumes[0]->point_count() >= 3
+                             ? Point::distance(joint.joint_volumes[0]->get_point(1), joint.joint_volumes[0]->get_point(2)) : 0.0}},
     };
     for (const std::string& line : record.lists["parameters"]) {
         const std::vector<std::string> pair = top_parts(line, '=');
@@ -324,7 +328,7 @@ static bool plate_from_library(
             slot.push_back(fabrication_named(name));
     }
 
-    if (scaled)
+    if (scaled || flagged)
         joint.unit_scale = true;
 
     // volume_size squares the joint volumes about the seam, the size the profiles are then scaled to
@@ -474,7 +478,7 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
         plate_from_library("top_side_milled_wedge", joint, context.elements, {});
         return true;
     case 25:
-        top_side_snap_fit(joint);
+        plate_from_library("top_side_snap_fit", joint, context.elements, {});
         return true;
     case 26:
         top_side_bridle(joint, context.elements, 1.0 / 3.0);
@@ -2250,7 +2254,7 @@ bool JointPlateElement::compute_top_side(
     else if (parameters.library == "top_side_milled_wedge")
         plate_from_library("top_side_milled_wedge", connection, elements, {});
     else if (parameters.library == "top_side_snap_fit")
-        ::top_side_snap_fit(connection);
+        plate_from_library("top_side_snap_fit", connection, elements, {});
     else if (parameters.library == "top_side_bridle")
         ::top_side_bridle(connection, elements, parameters.z[1] - parameters.z[0]);
     else if (parameters.library == "top_side_custom")

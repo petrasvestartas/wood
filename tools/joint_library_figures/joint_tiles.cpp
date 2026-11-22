@@ -53,8 +53,6 @@ static bool apply_named_design(const Built& built, InteractionFeaturePlate& unit
         side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions);
     else if (library == "side_side_outplane_linked_tenons_wall")
         side_side_outplane_linked_tenons_wall(unit, no_joints);
-    else if (library == "top_side_snap_fit")
-        top_side_snap_fit(unit);
     else if (library == "top_side_bridle")
         top_side_bridle(unit, plates, 1.0 / 3.0);
     else
