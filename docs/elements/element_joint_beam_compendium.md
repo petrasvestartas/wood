@@ -317,7 +317,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Dado and rabbet joint**, p. 326 | | |
 | ![](joint_library/beam_dado_rabbet_corner.gif) | ![](joint_library/beam_dado_rabbet_corner.png) | ![](joint_library/tile_dado_rabbet_corner.png) |
 | **Blind dado and rabbet joint**, p. 328 | | |
-|  | ![](joint_library/beam_blind_dado_rabbet_corner.png) | ![](joint_library/tile_blind_dado_rabbet_corner.png) |
+| ![](joint_library/beam_blind_dado_rabbet_corner.gif) | ![](joint_library/beam_blind_dado_rabbet_corner.png) | ![](joint_library/tile_blind_dado_rabbet_corner.png) |
 | **Collared haunched mortise and tenon joint**, p. 330 | | |
 |  | ![](joint_library/beam_collared_haunched_mortise_tenon_corner.png) | ![](joint_library/tile_collared_haunched_mortise_tenon_corner.png) |
 | **Wedged collared blind mortise and tenon**, p. 332 | | |
@@ -327,7 +327,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Plain miter with spline key**, p. 336 | | |
 | ![](joint_library/beam_plain_miter_spline_key.gif) | ![](joint_library/beam_plain_miter_spline_key.png) | ![](joint_library/tile_plain_miter_spline_key.png) |
 | **Plain miter with spline**, p. 338 | | |
-|  | ![](joint_library/beam_plain_miter_spline.png) | ![](joint_library/tile_plain_miter_spline.png) |
+| ![](joint_library/beam_plain_miter_spline.gif) | ![](joint_library/beam_plain_miter_spline.png) | ![](joint_library/tile_plain_miter_spline.png) |
 | **Plain miter with dovetail key**, p. 340 | | |
 |  | ![](joint_library/beam_plain_miter_dovetail_key.png) | ![](joint_library/tile_plain_miter_dovetail_key.png) |
 | **Plain miter with butterfly key**, p. 342 | | |
@@ -373,19 +373,19 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Triple-shouldered double tenon miter**, p. 382 | | |
 |  | ![](joint_library/beam_triple_shouldered_double_tenon_miter.png) | ![](joint_library/tile_triple_shouldered_double_tenon_miter.png) |
 | **Housed stub tenon**, p. 384 | | |
-|  | ![](joint_library/beam_housed_stub_tenon_corner.png) | ![](joint_library/tile_housed_stub_tenon_corner.png) |
+| ![](joint_library/beam_housed_stub_tenon_corner.gif) | ![](joint_library/beam_housed_stub_tenon_corner.png) | ![](joint_library/tile_housed_stub_tenon_corner.png) |
 | **Housed dovetail tenon**, p. 386 | | |
-|  | ![](joint_library/beam_housed_dovetail_tenon_corner.png) | ![](joint_library/tile_housed_dovetail_tenon_corner.png) |
+| ![](joint_library/beam_housed_dovetail_tenon_corner.gif) | ![](joint_library/beam_housed_dovetail_tenon_corner.png) | ![](joint_library/tile_housed_dovetail_tenon_corner.png) |
 | **Blind housed dovetail tenon**, p. 388 | | |
-|  | ![](joint_library/beam_blind_housed_dovetail_tenon_corner.png) | ![](joint_library/tile_blind_housed_dovetail_tenon_corner.png) |
+| ![](joint_library/beam_blind_housed_dovetail_tenon_corner.gif) | ![](joint_library/beam_blind_housed_dovetail_tenon_corner.png) | ![](joint_library/tile_blind_housed_dovetail_tenon_corner.png) |
 | **Half-blind gooseneck tenon**, p. 390 | | |
 |  | ![](joint_library/beam_half_blind_gooseneck_tenon_corner.png) | ![](joint_library/tile_half_blind_gooseneck_tenon_corner.png) |
 | **Half-blind dovetail bridle joint**, p. 392 | | |
-|  | ![](joint_library/beam_half_blind_dovetail_bridle_corner.png) | ![](joint_library/tile_half_blind_dovetail_bridle_corner.png) |
+| ![](joint_library/beam_half_blind_dovetail_bridle_corner.gif) | ![](joint_library/beam_half_blind_dovetail_bridle_corner.png) | ![](joint_library/tile_half_blind_dovetail_bridle_corner.png) |
 | **Through dovetail bridle joint**, p. 394 | | |
-|  | ![](joint_library/beam_through_dovetail_bridle_corner.png) | ![](joint_library/tile_through_dovetail_bridle_corner.png) |
+| ![](joint_library/beam_through_dovetail_bridle_corner.gif) | ![](joint_library/beam_through_dovetail_bridle_corner.png) | ![](joint_library/tile_through_dovetail_bridle_corner.png) |
 | **Half-blind triple shouldered dovetail tenon**, p. 396 | | |
-|  | ![](joint_library/beam_half_blind_triple_shouldered_dovetail_corner.png) | ![](joint_library/tile_half_blind_triple_shouldered_dovetail_corner.png) |
+| ![](joint_library/beam_half_blind_triple_shouldered_dovetail_corner.gif) | ![](joint_library/beam_half_blind_triple_shouldered_dovetail_corner.png) | ![](joint_library/tile_half_blind_triple_shouldered_dovetail_corner.png) |
 | **Triple-shouldered stub tenon**, p. 398 | | |
 | ![](joint_library/beam_triple_shouldered_stub_tenon_corner.gif) | ![](joint_library/beam_triple_shouldered_stub_tenon_corner.png) | ![](joint_library/tile_triple_shouldered_stub_tenon_corner.png) |
 | **Housed dovetail joint**, p. 400 | | |
