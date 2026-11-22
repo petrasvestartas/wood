@@ -57,8 +57,15 @@ int main() {
             const LibraryRecord record = library_record(design);
             const size_t base = record.fields.count("base") ? static_cast<size_t>(record.fields.at("base")[0] - 'a') : 1;
             const AssemblySequence sequence(apart, fresh[base]->name);
-            for (size_t j = 1; j < sequence.steps().size(); j++) {
-                const AssemblyStep& step = sequence.steps()[j];
+            // a member the sequence cannot take out on its own (a pair hooked together outside the post) is still drawn apart,
+            // along the way its record gives it
+            std::vector<AssemblyStep> steps = sequence.steps();
+            for (const std::string& locked : sequence.locked())
+                for (size_t m = 0; m < fresh.size(); m++)
+                    if (fresh[m]->name == locked && !twin->insertion_directions(m).empty())
+                        steps.push_back({locked, twin->insertion_directions(m)[0], twin->insertion_legs(m, 0), {}, {}});
+            for (size_t j = 1; j < steps.size(); j++) {
+                const AssemblyStep& step = steps[j];
                 const std::shared_ptr<Element> drawn = scene.get_element_by_name<Element>(name + step.element.substr(design.size()));
                 if (!drawn)
                     continue;

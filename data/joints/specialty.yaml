@@ -1211,8 +1211,8 @@ wedged_four_way_splayed_cogged:
   steps:
     - "A2 a_all p_lt0 x_lt_20; a_all x_lt_m57; a_all s01_dn x_gt_m58 x_lt_m20; a_all s12_up x_gt_m58 x_lt_m20; a_all s23_up x_gt_m21 x_lt_21; a_all s34_up s45_dn x_gt_20"
     - "B2 b_all p_lt0 x_gt_m20; b_all x_gt_57; b_all s01_up s12_dn x_gt_m58 x_lt_m20; b_all s23_dn x_gt_m21 x_lt_20; b_all s34_dn x_gt_19; b_all s45_up x_gt_20"
-    - "C2 c p_gt0 y_gt_m20; c y_gt_57; c t01_dn t12_up y_gt_m58 y_lt_m20; c t23_up y_gt_m21 y_lt_20; c t34_up y_gt_19; c t45_dn y_gt_20"
-    - "D2 d p_gt0 y_lt_20; d y_lt_m57; d t01_up y_gt_m58 y_lt_m20; d t12_dn y_gt_m58 y_lt_m20; d t23_dn y_gt_m21 y_lt_21; d t34_dn t45_up y_gt_20"
+    - "C2 c p_gt0 y_gt_m20; c y_gt_57; c t01_up t12_dn y_gt_m58 y_lt_m20; c t23_dn y_gt_m21 y_lt_20; c t34_dn y_gt_19; c t45_up y_gt_20"
+    - "D2 d p_gt0 y_lt_20; d y_lt_m57; d t01_dn y_gt_m58 y_lt_m20; d t12_up y_gt_m58 y_lt_m20; d t23_up y_gt_m21 y_lt_21; d t34_up t45_dn y_gt_20"
     - "E2 e -xw1 -xw2 -xp1 -xp2"
     - "E3 e -yu1 -yu2 -yp1 -yp2"
   insertions:
