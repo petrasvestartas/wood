@@ -3,6 +3,7 @@
 #include "wood_three_valence.h"
 #include "element_joint.pb.h"
 #include "wood_element_geometry.h"
+#include "wood_joint_library.h"
 #include "src/templates/cavity_border.h"
 #include "src/templates/vidy/vidy_joint_kernel.h"
 
@@ -115,6 +116,146 @@ const std::unordered_map<std::string, int> LIBRARY_IDS = {
 };
 
 /// What a builder may read while it fills a InteractionFeaturePlate.
+/// A fabrication type by its name: "edge_insertion", "mill_project", ...; edge_insertion for an unknown name.
+static FabricationType fabrication_named(const std::string& name) {
+
+    static const std::map<std::string, FabricationType> NAMES = {
+        {"nothing", FabricationType::nothing}, {"hole", FabricationType::hole}, {"edge_insertion", FabricationType::edge_insertion},
+        {"insert_between_multiple_edges", FabricationType::insert_between_multiple_edges}, {"slice", FabricationType::slice},
+        {"mill", FabricationType::mill}, {"mill_project", FabricationType::mill_project}, {"cut", FabricationType::cut},
+        {"drill", FabricationType::drill}, {"drill_50", FabricationType::drill_50}, {"drill_10", FabricationType::drill_10},
+    };
+    const std::map<std::string, FabricationType>::const_iterator found = NAMES.find(name);
+    return found == NAMES.end() ? FabricationType::edge_insertion : found->second;
+}
+
+/// The text between top-level separators of text, parentheses kept whole, each part trimmed.
+static std::vector<std::string> top_parts(const std::string& text, char separator) {
+
+    std::vector<std::string> parts(1);
+    int depth = 0;
+    for (const char c : text) {
+        depth += c == '(' ? 1 : c == ')' ? -1 : 0;
+        if (c == separator && depth == 0)
+            parts.emplace_back();
+        else
+            parts.back() += c;
+    }
+    for (std::string& part : parts) {
+        part.erase(0, part.find_first_not_of(' '));
+        part.erase(part.find_last_not_of(' ') + 1);
+    }
+
+    return parts;
+}
+
+/// The points of an outline: "x, y, z; x, y, z", each coordinate an expression of names; "repeat j < n: ..." writes the
+/// points once for j = 0 ... n - 1.
+static std::vector<Point> outline_points(const std::string& text, std::map<std::string, LibraryValue>& names) {
+
+    std::string list = text;
+    std::string index;
+    int times = 1;
+    if (text.rfind("repeat ", 0) == 0) {
+        const size_t less = text.find('<');
+        const size_t colon = text.find(':');
+        index = top_parts(text.substr(7, less - 7), ' ')[0];
+        times = static_cast<int>(std::llround(evaluate(text.substr(less + 1, colon - less - 1), names).number));
+        list = text.substr(colon + 1);
+    }
+
+    std::vector<Point> points;
+    for (int k = 0; k < times; k++) {
+        if (!index.empty())
+            names[index] = {static_cast<double>(k)};
+        for (const std::string& point : top_parts(list, ';')) {
+            const std::vector<std::string> xyz = top_parts(point, ',');
+            if (xyz.size() != 3)
+                throw std::invalid_argument(fmt::format("plate outline point \"{}\" needs x, y and z", point));
+            points.emplace_back(evaluate(xyz[0], names).number, evaluate(xyz[1], names).number, evaluate(xyz[2], names).number);
+        }
+    }
+
+    return points;
+}
+
+/// The outlines of design from its record of data/joints/plate/*.yaml, in the unit box (z along the joint line): its parameters
+/// read with the joint's divisions, shift, length (the joint line scaled) and unit (the plate thickness the box is scaled to
+/// along the line, when the record has unit_scale); each "role face = points" an outline, "role face = ends" the line between
+/// the ends of the face's first outline, "role face = other face" a copy; each outline of fabrication type as the record names
+/// (edge_insertion by default) unless "types" names it. False when no record names the design.
+static bool plate_from_library(
+    const std::string& design, InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
+) {
+
+    LibraryRecord record = plate_record(design);
+    if (record.lists.empty() && record.fields.empty())
+        return false;
+
+    joint.name = design;
+    const bool scaled = record.fields.count("unit_scale") && record.fields.at("unit_scale") == "true";
+    if (scaled)
+        joint.unit_scale_distance = unit_scale_distance(joint, elements);
+    std::map<std::string, LibraryValue> names = {
+        {"divisions", {static_cast<double>(joint.divisions)}},
+        {"shift", {joint.shift}},
+        {"length", {joint.joint_lines[0].length() * joint.scale[2]}},
+        {"unit", {joint.unit_scale_distance}},
+    };
+    for (const std::string& line : record.lists["parameters"]) {
+        const std::vector<std::string> pair = top_parts(line, '=');
+        names[pair[0]] = evaluate(pair[1], names);
+    }
+
+    // the outlines, slot by slot: male 0, male 1, female 0, female 1
+    std::map<std::string, std::vector<Polyline>*> slots = {
+        {"male 0", &joint.male_outlines[0]}, {"male 1", &joint.male_outlines[1]},
+        {"female 0", &joint.female_outlines[0]}, {"female 1", &joint.female_outlines[1]},
+    };
+    for (std::pair<const std::string, std::vector<Polyline>*>& slot : slots)
+        slot.second->clear();
+    for (const std::string& line : record.lists["outlines"]) {
+        const size_t equals = line.find('=');
+        const std::string slot = top_parts(line.substr(0, equals), ';')[0];
+        const std::string trimmed = top_parts(line.substr(equals + 1), '\n')[0];
+        if (!slots.count(slot))
+            throw std::invalid_argument(fmt::format("{}: no outline slot \"{}\"", design, slot));
+        std::vector<Polyline>& outlines = *slots.at(slot);
+        if (trimmed == "ends") {
+            outlines.push_back(Polyline({outlines.front().get_point(0), outlines.front().get_point(outlines.front().point_count() - 1)}));
+            continue;
+        }
+        if (slots.count(trimmed)) {
+            const std::vector<Polyline> copy = *slots.at(trimmed);
+            outlines.insert(outlines.end(), copy.begin(), copy.end());
+            continue;
+        }
+        outlines.push_back(Polyline(outline_points(trimmed, names)));
+    }
+
+    // a fabrication type per outline
+    const FabricationType fabrication = fabrication_named(record.fields.count("fabrication") ? record.fields.at("fabrication") : "edge_insertion");
+    joint.male_fabrication_types[0].assign(joint.male_outlines[0].size(), fabrication);
+    joint.male_fabrication_types[1].assign(joint.male_outlines[1].size(), fabrication);
+    joint.female_fabrication_types[0].assign(joint.female_outlines[0].size(), fabrication);
+    joint.female_fabrication_types[1].assign(joint.female_outlines[1].size(), fabrication);
+    std::map<std::string, std::vector<int>*> types = {
+        {"male 0", &joint.male_fabrication_types[0]}, {"male 1", &joint.male_fabrication_types[1]},
+        {"female 0", &joint.female_fabrication_types[0]}, {"female 1", &joint.female_fabrication_types[1]},
+    };
+    for (const std::string& line : record.lists["types"]) {
+        const size_t equals = line.find('=');
+        std::vector<int>& slot = *types.at(top_parts(line.substr(0, equals), ';')[0]);
+        slot.clear();
+        for (const std::string& name : top_parts(line.substr(equals + 1), ','))
+            slot.push_back(fabrication_named(name));
+    }
+
+    if (scaled)
+        joint.unit_scale = true;
+    return true;
+}
+
 struct BuildContext {
     const Settings& settings;
     std::vector<std::shared_ptr<FacePlanarElement>>& elements;
@@ -165,10 +306,10 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
         side_side_inplane_dovetails(joint);
         return true;
     case 2:
-        side_side_inplane_three_fingers(joint);
+        plate_from_library("side_side_inplane_three_fingers", joint, context.elements);
         return true;
     case 3:
-        side_side_inplane_butterfly_keys(joint, context.elements);
+        plate_from_library("side_side_inplane_butterfly_keys", joint, context.elements);
         return true;
     case 4:
         side_side_inplane_splayed_scarf(joint);
@@ -177,7 +318,7 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
         side_side_inplane_cross_splayed_scarf(joint);
         return true;
     case 6:
-        side_side_inplane_tooth_keys(joint, context.elements);
+        plate_from_library("side_side_inplane_tooth_keys", joint, context.elements);
         return true;
     case 7:
         jupiter_scarf(joint);
@@ -197,13 +338,13 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
 
     switch (id) {
     case 10:
-        side_side_outplane_fingers(joint);
+        plate_from_library("side_side_outplane_fingers", joint, context.elements);
         return true;
     case 11:
         side_side_outplane_graded_fingers(joint);
         return true;
     case 12:
-        side_side_outplane_three_fingers(joint);
+        plate_from_library("side_side_outplane_three_fingers", joint, context.elements);
         return true;
     case 13:
         side_side_outplane_miter_tenon(joint);
@@ -397,7 +538,7 @@ void build_family_default(const int family, InteractionFeaturePlate& joint, Buil
         side_side_inplane_dovetails(joint);
         return;
     case 1:
-        side_side_outplane_fingers(joint);
+        plate_from_library("side_side_outplane_fingers", joint, context.elements);
         return;
     case 2:
         top_side_tenons(joint);
@@ -445,7 +586,7 @@ void joint_create_geometry(
 
     if (family < 0) {
         if (joint.joint_type == 11 || joint.joint_type == 12)
-            side_side_outplane_fingers(joint);
+            plate_from_library("side_side_outplane_fingers", joint, context.elements);
         else if (joint.joint_type == 20)
             top_side_tenons(joint);
         return;
@@ -1720,17 +1861,17 @@ bool JointPlateElement::compute_side_side_inplane(
 ) const {
 
     if (parameters.library == "side_side_inplane_three_fingers")
-        ::side_side_inplane_three_fingers(connection);
+        plate_from_library("side_side_inplane_three_fingers", connection, elements);
     else if (parameters.library == "side_side_inplane_dovetails")
         ::side_side_inplane_dovetails(connection);
     else if (parameters.library == "side_side_inplane_butterfly_keys")
-        ::side_side_inplane_butterfly_keys(connection, elements);
+        plate_from_library("side_side_inplane_butterfly_keys", connection, elements);
     else if (parameters.library == "side_side_inplane_splayed_scarf")
         ::side_side_inplane_splayed_scarf(connection);
     else if (parameters.library == "side_side_inplane_cross_splayed_scarf")
         ::side_side_inplane_cross_splayed_scarf(connection);
     else if (parameters.library == "side_side_inplane_tooth_keys")
-        ::side_side_inplane_tooth_keys(connection, elements);
+        plate_from_library("side_side_inplane_tooth_keys", connection, elements);
     else if (parameters.library == "side_side_inplane_custom")
         ::side_side_inplane_custom(connection, settings);
     else
@@ -1878,9 +2019,9 @@ bool JointPlateElement::compute_side_side_outplane(
 ) const {
 
     if (parameters.library == "side_side_outplane_three_fingers")
-        ::side_side_outplane_three_fingers(connection);
+        plate_from_library("side_side_outplane_three_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_fingers")
-        ::side_side_outplane_fingers(connection);
+        plate_from_library("side_side_outplane_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_graded_fingers")
         ::side_side_outplane_graded_fingers(connection);
     else if (parameters.library == "side_side_outplane_miter_tenon")

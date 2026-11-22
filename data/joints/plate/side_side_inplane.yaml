@@ -1,0 +1,60 @@
+# Plate joints between two plates side by side in one plane (the in-plane family, ids 1-9): each design's outlines in the
+# unit box, x across the seam, y through the thickness (-0.5 face 0, 0.5 face 1), z along the joint line, read by
+# JointPlateElement through plate_from_library. A record:
+#   id           the 2024 id the solver's joints_parameters_and_types give (one per design).
+#   unit_scale   "true" scales the box along the line to the plate's thickness (a tooth keeps its shape as the line grows).
+#   fabrication  the fabrication type of every outline (edge_insertion by default); types overrides it per face.
+#   parameters   "name = expression", read in order with divisions, shift, length (the joint line) and unit (the thickness).
+#   outlines     "role face = points": role male or female, face 0 or 1; points "x, y, z; ..." each an expression;
+#                "repeat j < n: points" writes the points once for j = 0 ... n - 1 (a tooth along the line, a finger a
+#                division); "ends" the line between the ends of the face's first outline; "male 0" a copy of that face.
+
+side_side_inplane_three_fingers:
+  id: "2"
+  parameters:
+    - "a = 0.357142857142857"
+    - "b = 0.214285714285714"
+    - "c = 0.0714285714285715"
+  outlines:
+    - "male 0 = 0.0, -0.5, a; -0.5, -0.5, a; -0.5, -0.5, b; 0.5, -0.5, b; 0.5, -0.5, c; -0.5, -0.5, c; -0.5, -0.5, -c; 0.5, -0.5, -c; 0.5, -0.5, -b; -0.5, -0.5, -b; -0.5, -0.5, -a; 0.0, -0.5, -a"
+    - "male 0 = 0.0, -0.5, 0.5; 0.0, -0.5, -0.5"
+    - "male 1 = 0.0, 0.5, a; -0.5, 0.5, a; -0.5, 0.5, b; 0.5, 0.5, b; 0.5, 0.5, c; -0.5, 0.5, c; -0.5, 0.5, -c; 0.5, 0.5, -c; 0.5, 0.5, -b; -0.5, 0.5, -b; -0.5, 0.5, -a; 0.0, 0.5, -a"
+    - "male 1 = 0.0, 0.5, 0.5; 0.0, 0.5, -0.5"
+    - "female 0 = male 0"
+    - "female 1 = male 1"
+
+side_side_inplane_butterfly_keys:
+  id: "3"
+  unit_scale: "true"
+  parameters:
+    - "move = length / (divisions * unit)"
+    - "total = length / unit"
+    - "start = (total * 0.5) - (move * 0.5)"
+    - "step = -move"
+  outlines:
+    - "male 0 = repeat j < divisions: 0.0, -0.5, 0.1166666667 + (start + step*j); -0.5, -0.5, 0.4 + (start + step*j); -0.5, -0.5, -0.4 + (start + step*j); 0.0, -0.5, -0.1166666667 + (start + step*j)"
+    - "male 0 = ends"
+    - "male 1 = repeat j < divisions: 0.0, 0.5, 0.1166666667 + (start + step*j); -0.5, 0.5, 0.4 + (start + step*j); -0.5, 0.5, -0.4 + (start + step*j); 0.0, 0.5, -0.1166666667 + (start + step*j)"
+    - "male 1 = ends"
+    - "female 0 = repeat j < divisions: 0.0, -0.5, 0.1166666667 + (start + step*j); 0.5, -0.5, 0.4 + (start + step*j); 0.5, -0.5, -0.4 + (start + step*j); 0.0, -0.5, -0.1166666667 + (start + step*j)"
+    - "female 0 = ends"
+    - "female 1 = repeat j < divisions: 0.0, 0.5, 0.1166666667 + (start + step*j); 0.5, 0.5, 0.4 + (start + step*j); 0.5, 0.5, -0.4 + (start + step*j); 0.0, 0.5, -0.1166666667 + (start + step*j)"
+    - "female 1 = ends"
+
+side_side_inplane_tooth_keys:
+  id: "6"
+  unit_scale: "true"
+  parameters:
+    - "move = length / (divisions * unit)"
+    - "total = length / unit"
+    - "start = (total * 0.5) - (move * 0.5)"
+    - "step = -move"
+  outlines:
+    - "male 0 = repeat j < divisions: 0, -0.5, 0.166667 + (start + step*j); -0.116667, -0.5, 0.166667 + (start + step*j); -0.619628, -0.5, 0.375 + (start + step*j); -1.0, -0.5, 0.375 + (start + step*j); -1.0, -0.5, -0.375 + (start + step*j); -0.619628, -0.5, -0.375 + (start + step*j); -0.116667, -0.5, -0.166667 + (start + step*j); 0, -0.5, -0.166667 + (start + step*j)"
+    - "male 0 = ends"
+    - "male 1 = repeat j < divisions: 0, 0.5, 0.166667 + (start + step*j); -0.116667, 0.5, 0.166667 + (start + step*j); -0.619628, 0.5, 0.375 + (start + step*j); -1.0, 0.5, 0.375 + (start + step*j); -1.0, 0.5, -0.375 + (start + step*j); -0.619628, 0.5, -0.375 + (start + step*j); -0.116667, 0.5, -0.166667 + (start + step*j); 0, 0.5, -0.166667 + (start + step*j)"
+    - "male 1 = ends"
+    - "female 0 = repeat j < divisions: 0, -0.5, 0.166667 + (start + step*j); 0.116667, -0.5, 0.166667 + (start + step*j); 0.619628, -0.5, 0.375 + (start + step*j); 1.0, -0.5, 0.375 + (start + step*j); 1.0, -0.5, -0.375 + (start + step*j); 0.619628, -0.5, -0.375 + (start + step*j); 0.116667, -0.5, -0.166667 + (start + step*j); 0, -0.5, -0.166667 + (start + step*j)"
+    - "female 0 = ends"
+    - "female 1 = repeat j < divisions: 0, 0.5, 0.166667 + (start + step*j); 0.116667, 0.5, 0.166667 + (start + step*j); 0.619628, 0.5, 0.375 + (start + step*j); 1.0, 0.5, 0.375 + (start + step*j); 1.0, 0.5, -0.375 + (start + step*j); 0.619628, 0.5, -0.375 + (start + step*j); 0.116667, 0.5, -0.166667 + (start + step*j); 0, 0.5, -0.166667 + (start + step*j)"
+    - "female 1 = ends"

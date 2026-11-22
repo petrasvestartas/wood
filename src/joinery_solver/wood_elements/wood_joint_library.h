@@ -29,6 +29,10 @@ LibraryValue evaluate(const std::string& expression, const std::map<std::string,
 /// number, and in a step every such region, but for one naming a unit past the count; names gets count. A record with no repeat is left as it is.
 void library_repeat(LibraryRecord& record, std::map<std::string, LibraryValue>& names);
 
+/// The record of a plate design of data/joints/plate/*.yaml: its fields ("unit_scale", "fabrication") and its lists
+/// ("parameters", "outlines", "types"), quotes stripped; empty when no file names the design.
+LibraryRecord plate_record(const std::string& design);
+
 /// The designs of data/joints/<chapter>.yaml in the order the file has them, every file's when chapter is empty.
 std::vector<std::string> library_designs(const std::string& chapter = "");
 

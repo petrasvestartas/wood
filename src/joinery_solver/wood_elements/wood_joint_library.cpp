@@ -112,7 +112,7 @@ struct Reader {
         return found->second;
     }
 
-    /// unit, length, cross, dot, meet, round, max or min of its arguments.
+    /// unit, length, cross, dot, meet, round, max, min, mod or sign of its arguments.
     LibraryValue call(const std::string& name) {
 
         std::vector<LibraryValue> arguments;
@@ -132,6 +132,10 @@ struct Reader {
             return {0.0, arguments[0].vector.cross(arguments[1].vector), true};
         if (name == "dot" && arguments.size() == 2)
             return {arguments[0].vector.dot(arguments[1].vector), Vector(), false};
+        if (name == "sign" && arguments.size() == 1)
+            return {static_cast<double>((arguments[0].number > 0.0) - (arguments[0].number < 0.0)), Vector(), false};
+        if (name == "mod" && arguments.size() == 2)
+            return {std::fmod(arguments[0].number, arguments[1].number), Vector(), false};
         if (name == "round" && arguments.size() == 1)
             return {std::round(arguments[0].number), Vector(), false};
         if (name == "max" && arguments.size() == 2)
@@ -313,6 +317,51 @@ std::vector<std::string> library_designs(const std::string& chapter) {
     }
 
     return designs;
+}
+
+LibraryRecord plate_record(const std::string& design) {
+
+    // every line of the record: "  key: value" a field, "  key:" a list of the "    - item" lines below it
+    LibraryRecord record;
+    const std::filesystem::path folder = config::session_data_dir() / "joints" / "plate";
+    if (!std::filesystem::exists(folder))
+        return record;
+    std::vector<std::filesystem::path> files;
+    for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(folder))
+        if (entry.path().extension() == ".yaml")
+            files.push_back(entry.path());
+    std::sort(files.begin(), files.end());
+    for (const std::filesystem::path& file : files) {
+        std::ifstream text(file);
+        std::string line;
+        bool inside = false;
+        std::string list;
+        while (std::getline(text, line)) {
+            if (!line.empty() && line[0] != ' ' && line[0] != '#') {
+                if (inside)
+                    return record;
+                inside = line == design + ":";
+                continue;
+            }
+            if (!inside || line.empty())
+                continue;
+            if (line.starts_with("    - ")) {
+                record.lists[list].push_back(unquoted(line.substr(6)));
+                continue;
+            }
+            const size_t colon = line.find(':');
+            const std::string key = unquoted(line.substr(0, colon));
+            const std::string value = line.substr(colon + 1);
+            if (value.find_first_not_of(' ') == std::string::npos)
+                list = key;
+            else
+                record.fields[key] = unquoted(value);
+        }
+        if (inside)
+            return record;
+    }
+
+    return record;
 }
 
 LibraryRecord library_record(const std::string& design) {
