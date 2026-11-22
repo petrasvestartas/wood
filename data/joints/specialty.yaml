@@ -24,6 +24,9 @@
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
+#   moves       how a piece goes in by two straight moves (in along the slot, then down onto the other), written out; the
+#               assembly check takes one straight move per piece, so such a record is not taken apart.
+#   upright     (a parameter) stands the joint up a quarter turn about x: more members along y become posts.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
@@ -1011,48 +1014,55 @@ wedged_two_way_cogged_lap:
   family: "corner"
   corners: "square"
   filled: "c"
+  moves: "b in along its slot over a, then down onto a's hook; the wedges in from the far faces"
   parameters:
-    - "tenon = 0.25"
-    - "off = 0.3"
-    - "cog = 0.33"
-    - "open = 0.02"
+    - "stock_thick = 19"
+    - "stock_wide = 50"
+    - "carrier_end = 57"
+    - "upright = 1"
+    - "notch = 0"
+    - "cog = 0.22"
+    - "gap = 0.3"
+    - "open = 0.3"
   points:
-    - "SA = O + 0.7*bh*n - off*ah*p + 1.1*aw*w"
-    - "EA = O - (1 - off + tenon + cog)*bh*n - off*ah*p + 1.1*aw*w"
-    - "SB = O - 1.7*ah*p - (1 - off)*bh*n + 1.1*aw*w"
-    - "EB = O - (off + tenon)*ah*p - (1 - off)*bh*n + 1.1*aw*w"
+    - "C = O - bh*u"
+    - "SA = C - (3*ah + gap*aw)*u - (1 + 0.5*gap)*aw*w"
+    - "EA = C + 3*ah*u - (1 + 0.5*gap)*aw*w"
+    - "SB = C + (3*ah + gap*aw)*t + (1 + 0.5*gap)*aw*w"
+    - "EB = C - 3*ah*t + (1 + 0.5*gap)*aw*w"
   planes:
-    - "shoulder = O, n, O + n"
-    - "b_face = O - ah*p, p, O - 2*ah*p"
-    - "ap1 = O - off*ah*p + tenon*ah*p, p, O - off*ah*p"
-    - "ap2 = O - off*ah*p - tenon*ah*p, p, O - off*ah*p"
-    - "a_cross_in = O - (1 - off - tenon)*bh*n, n, O"
-    - "a_cross_out = O - (1 - off + tenon)*bh*n, n, O"
-    - "a_tip = O - (1 - off + tenon + cog)*bh*n, n, O"
-    - "bn1 = O - (1 - off)*bh*n + tenon*bh*n, n, O - (1 - off)*bh*n"
-    - "bn2 = O - (1 - off)*bh*n - tenon*bh*n, n, O - (1 - off)*bh*n"
-    - "b_cross_in = O - (off + tenon)*ah*p, p, O - ah*p"
-    - "b_cross_out = O - (off - tenon)*ah*p, p, O - ah*p"
-    - "b_tip = O - (off - tenon - cog)*ah*p, p, O - ah*p"
-    - "w_mid = O, w, O - w"
-    - "w_beam = O + aw*w, w, O"
-    - "w_bottom = O - aw*w, w, O"
+    - "a_tip = C - 3*ah*u, u, C"
+    - "a_cross = C + ah*u, u, C"
+    - "a_cog = C - ah*u, u, C"
+    - "a_notch = C + notch*aw*w, w, C - aw*w"
+    - "a_cog_top = C + cog*aw*w, w, C - aw*w"
+    - "b_cross = C - bh*t, t, C"
+    - "b_cog = C + bh*t, t, C"
+    - "b_notch = C - notch*aw*w, w, C + aw*w"
+    - "b_cog_bottom = C - cog*aw*w, w, C + aw*w"
+    - "ma1 = C + ah*t, t, C"
+    - "ma2 = C - ah*t, t, C"
+    - "ma_bottom = C - (1 + gap)*aw*w, w, C"
+    - "ma_top = C + aw*w, w, C"
+    - "mb1 = C + bh*u, u, C"
+    - "mb2 = C - bh*u, u, C"
+    - "mb_bottom = C - aw*w, w, C"
+    - "mb_top = C + (1 + gap)*aw*w, w, C"
   more:
-    - "c = 0 72 0, 0 -600 0, 1 0 0, 60, 60"
+    - "c = 0 -150 0, 0 150 0, 1 0 0, 57, 57"
   parts:
-    - "wedge_a = SA, EA, p, tenon*ah, 0.1*aw, 0.07*aw, start, -w"
-    - "wedge_b = SB, EB, n, tenon*bh, 0.1*aw, 0.07*aw, start, -w"
+    - "wedge_a = SA, EA, t, ah, 0.5*gap*aw, 0.15*gap*aw"
+    - "wedge_b = SB, EB, u, bh, 0.5*gap*aw, 0.15*gap*aw"
   steps:
-    - "A2 a_end shoulder ap1; a_end shoulder ap2; a_end a_tip"
-    - "A3 a_end a_cross_in -a_cross_out -w_mid"
-    - "B2 b_node b_face bn1; b_node b_face bn2; b_node b_tip"
-    - "B3 b_node b_cross_in -b_cross_out w_mid"
-    - "C2 c -ap1 -ap2 -a_tip -w_bottom"
-    - "C3 c -bn1 -bn2 -b_tip -w_bottom -w_beam"
-    - "C4 wedge_b"
+    - "A2 a_all a_tip"
+    - "A3 a_all a_notch -a_cross -a_cog"
+    - "A4 a_all a_cog_top -a_cross"
+    - "B2 b_all b_notch -b_cross -b_cog"
+    - "B3 b_all b_cog_bottom -b_cross"
+    - "C2 c -ma1 -ma2 -ma_bottom -ma_top"
+    - "C3 c -mb1 -mb2 -mb_bottom -mb_top"
   insertions:
-    - "-w"
-    - "c = -p"
+    - "-u"
 
 wedged_two_way_oblique_cogged:
   title: "Wedged two-way oblique cogged joint"

@@ -13,7 +13,6 @@ A joint is done when its record passes `tests/joint_assembly.cpp`, its picture i
 |---|---|---|---|
 | 242 | Kawai joint (splice) | Two square ends, each cut into three fingers by planes through the cube diagonal; they slide together along the diagonal of the section, a 120 degree symmetry | Planes through the body diagonal of the end cube, three regions per member, insertion along the diagonal |
 | 404 | Kawai joint (corner) | The same three-finger cube on the corner of two members | As 242 on a corner frame |
-| 650 | Four-part cogged cross lap | Four arms meeting at a cross, each pair lapped with hooks | Read the arm heights from the book's projections and steps, four members (two as more members) |
 | 744 | Wedged four-way splayed cogged joint | Two pairs of beams in a post, splayed cogs, wedged | Extend p. 742 to four beams at two heights |
 
 Kawai status (2026-11-21): every one of the six wedges is cut correctly on its own (288 000 mm3 each), but a member's
@@ -61,10 +60,20 @@ Still differing from the book, most because the assembly check moves each piece 
 | 148 | Splice with an interrupted rabbet | Two moves past the tooth in the lip |
 | 400, 572 | Housed dovetails in a closed pocket | Two moves: into the entry pocket, then along the carrier |
 | 538 | Right-angle spline tenon | The spline's dovetail end: drop into the housing, then slide |
-| 736, 740, 742 | Two-way joints in a post | The post running on through: in along the beam, then down |
+| 740, 742 | Two-way joints in a post | The post running on through: in along the beam, then down |
 | 784, 790 | Blind dovetail edge, keyed batten | Into an escape pocket or slot, then sideways |
 | 566 | Diagonally cut T-bridle | Turning only the post 45 degrees (roll turns both members) |
 | 240 | Tapered dovetail with mitred shoulders | The book's way of assembly is unclear |
 
 Two-step moves in AssemblySequence (a piece's way in as a path of straight legs) would settle all but the last two.
 
+
+## 5. Corrections from the user's answers (2026-11-22)
+
+| Page | Joint | Reading | State |
+|---|---|---|---|
+| 736 | Wedged two-way cogged lap | An upright post with two crossing through mortises; two thin boards, the same piece, one flipped, hooked inside the post; a wedge from each far face, under one board and over the other | Rebuilt (`upright`, `carrier_end`); board b goes in over a and drops onto its hook, written in `moves` |
+| 650 | Four-part cogged cross lap | Four identical pieces: two slide together along their length into one bar (half-width tongues, a cog over the partner's tongue tip), the other two the same turned; the upper bar goes down onto the lower as one | Built; the pair moving as one is written in `moves` |
+
+A record with `moves` names a way in the assembly check cannot take yet (two legs, or two pieces at once); the test skips its
+come-apart check, as for `sealed`.

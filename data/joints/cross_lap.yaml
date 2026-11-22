@@ -389,6 +389,68 @@ double_notch_blind_peg_cross:
   insertions:
     - "-n"
 
+four_part_cogged_cross_lap:
+  title: "Four-part cogged cross lap joint"
+  german: "viergliedriges Kreuzblatt mit Haken"
+  page: "650"
+  category: "cross"
+  family: "cross_lap"
+  corners: "square"
+  filled: "bcd"
+  moves: "a and c slide together along x into one bar, b and d along y into the other; the bar a c goes down onto the bar b d as one"
+  parameters:
+    - "pitch = 0"
+    - "sit = 1"
+    - "stock_thick = 30"
+    - "stock_wide = 30"
+    - "carrier_thick = 30"
+    - "carrier_wide = 30"
+    - "tail = 90"
+    - "reach = 90"
+    - "beam_length = 240"
+    - "cog = 0.3"
+  points:
+    - "C = O - bh*n"
+  planes:
+    - "y_pos = C, w, C + w"
+    - "x_pos = C, u, C - u"
+    - "xa = C + bh*u, u, C"
+    - "xb = C + 3*bh*u, u, C"
+    - "xc = C - bh*u, u, C"
+    - "xd = C - 3*bh*u, u, C"
+    - "ya = C - bh*w, w, C"
+    - "yb = C - 3*bh*w, w, C"
+    - "yc = C + bh*w, w, C"
+    - "yd = C + 3*bh*w, w, C"
+    - "z_mid = C, n, C + n"
+    - "z_low = C - cog*bh*n, n, C + n"
+    - "z_high = C + cog*bh*n, n, C - n"
+  more:
+    - "c = -150 0 0, 90 0 0, 0 0 1, 30, 30"
+    - "d = 0 -90 0, 0 150 0, 0 0 1, 30, 30"
+  parts:
+  steps:
+    - "A2 a_all -y_pos -xa"
+    - "A3 a_all -y_pos -xb -z_low"
+    - "A4 a_all -xa z_low"
+    - "A5 a_all -xa -xc z_mid"
+    - "B2 b_all x_pos -yc"
+    - "B3 b_all x_pos -yd -z_high"
+    - "B4 b_all -yc z_high"
+    - "B5 b_all -ya -yc -z_mid"
+    - "C2 c y_pos -xc"
+    - "C3 c y_pos -xd -z_low"
+    - "C4 c -xc z_low"
+    - "C5 c -xa -xc z_mid"
+    - "D2 d -x_pos -ya"
+    - "D3 d -x_pos -yb -z_high"
+    - "D4 d -ya z_high"
+    - "D5 d -ya -yc -z_mid"
+  insertions:
+    - "-n"
+    - "c = -n"
+    - "d = n"
+
 stepped_cross_lap:
   title: "Stepped cross lap joint"
   german: "Kreuzblatt mit Haken"

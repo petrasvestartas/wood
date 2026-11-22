@@ -198,6 +198,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_dovetail_cog_cross.png) | **Dovetail cog joint**<br>Kreuzkamm mit Schwalbenschwanz, p. 704<br>`dovetail_cog_cross` |
 | ![](joint_library/beam_half_dovetail_cog_cross.png) | **Half-dovetail cog joint**<br>Kreuzkamm mit einseitigem Schwalbenschwanz, p. 706<br>`half_dovetail_cog_cross` |
 | ![](joint_library/beam_double_notch_blind_peg_cross.png) | **Double notch joint with blind peg**<br>Kreuzkamm mit Dolle, p. 686<br>`double_notch_blind_peg_cross` |
+| ![](joint_library/beam_four_part_cogged_cross_lap.png) | **Four-part cogged cross lap joint**<br>viergliedriges Kreuzblatt mit Haken, p. 650<br>`four_part_cogged_cross_lap` |
 | ![](joint_library/beam_stepped_cross_lap.png) | **Stepped cross lap joint**<br>Kreuzblatt mit Haken, p. 656<br>`stepped_cross_lap` |
 | ![](joint_library/beam_cogged_cross_lap.png) | **Cogged cross lap joint**<br>Kreuzblatt mit mittigem Haken, p. 658<br>`cogged_cross_lap` |
 | ![](joint_library/beam_offset_cross_lap.png) | **Offset cross lap joint**<br>Kreuzblatt mit Führung, p. 664<br>`offset_cross_lap` |

@@ -237,6 +237,8 @@ LibraryRecord library_record(const std::string& design) {
                 record.fields["filled"] = unquoted(line.substr(9));
             if (line.starts_with("  sealed:"))
                 record.fields["sealed"] = unquoted(line.substr(9));
+            if (line.starts_with("  moves:"))
+                record.fields["moves"] = unquoted(line.substr(8));
             if (line.starts_with("  ") && !line.starts_with("    "))
                 in_more = line.starts_with("  more:");
             else if (in_more && line.starts_with("    - "))
@@ -312,7 +314,8 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
     const double carrier_wide = numbers.count("carrier_wide") ? numbers["carrier_wide"] : numbers["stock_wide"];
     const bool flat = numbers.count("flat") && numbers["flat"] > 0.5;
     const bool corner = record.fields.at("category") == "end_end_inplane";
-    const double carrier_end = corner ? numbers["stock_thick"] : numbers["span"];
+    // carrier_end runs the carrier past the node by its own length (a board through a post to its far face)
+    const double carrier_end = numbers.count("carrier_end") ? numbers["carrier_end"] : corner ? numbers["stock_thick"] : numbers["span"];
     // a corner carrier runs the whole length back from the corner unless the record sets its span
     bool spanned = false;
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>())
@@ -341,9 +344,13 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     std::vector<std::shared_ptr<EdgeStraightElement>> members = {pair[0], pair[1]};
     const LibraryRecord record = library_record(design);
     double length = 300.0;
-    for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>())
+    bool upright = false;
+    for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         if (unquoted(line.substr(0, line.find('='))) == "beam_length")
             length = std::stod(line.substr(line.find('=') + 1));
+        if (unquoted(line.substr(0, line.find('='))) == "upright")
+            upright = std::stod(line.substr(line.find('=') + 1)) > 0.5;
+    }
     for (const std::string& line : record.lists.count("more") ? record.lists.at("more") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
         const std::string letter = unquoted(line.substr(0, equals));
@@ -373,6 +380,13 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
             end = middle + along * (0.5 * length);
         }
         members.push_back(EdgeStraightElement::from_section(Line::from_points(start, end), rectangle_section(start, (end - start).normalized(), up, numbers[9], numbers[10]), design + "_" + letter));
+    }
+
+    // upright stands the joint up a quarter turn about x, its more members along y then vertical (a post the beams go into)
+    if (upright) {
+        const Xform stand = Xform::rotation_around_line(Line::from_points(at, at + Vector::x_axis()), 90.0, true);
+        for (std::shared_ptr<EdgeStraightElement>& each : members)
+            each = each->transformed(stand);
     }
 
     return members;
