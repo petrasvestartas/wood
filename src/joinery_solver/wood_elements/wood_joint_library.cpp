@@ -429,7 +429,8 @@ static bool by_angle(const std::pair<double, Point>& left, const std::pair<doubl
 }
 
 /// The two faces of a convex piece across which it is a prism: its vertices on the lowest and highest plane along one of x, y, z
-/// or a face normal, each face's points in turn about its centre, the shorter repeated to match the longer; empty when none.
+/// or a face normal, a face shrinking to an edge or a point where the piece narrows, each face's points in turn about its centre,
+/// the shorter repeated to match the longer; empty when none.
 static std::array<Polyline, 2> prism_faces(const Mesh& piece) {
 
     const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = piece.to_vertices_and_faces();
@@ -458,7 +459,8 @@ static std::array<Polyline, 2> prism_faces(const Mesh& piece) {
             else
                 prism = false;
         }
-        if (!prism || faces[0].size() < 3 || faces[1].size() < 3)
+        // a face may shrink to an edge or a point (a wedge's ridge, a slab's apex), but the two together span a solid
+        if (!prism || faces[0].empty() || faces[1].empty() || faces[0].size() + faces[1].size() < 4)
             continue;
 
         // each face's points in turn about the face's centre, in one sense seen along direction
@@ -544,6 +546,63 @@ static int repeats(const std::vector<std::array<Polyline, 2>>& pairs, int& axis)
     return 1;
 }
 
+/// A convex piece no prism, as slabs that are: cut by parallel planes through every vertex along the one of x, y, z or a face
+/// normal that needs the fewest, each slab has its vertices on its two faces, so it is the loft of their outlines.
+static std::vector<std::array<Polyline, 2>> slab_faces(const Mesh& piece) {
+
+    const std::vector<Point> points = piece.to_vertices_and_faces().first;
+    std::vector<Vector> directions = {Vector::x_axis(), Vector::y_axis(), Vector::z_axis()};
+    for (const size_t face : piece.faces())
+        if (piece.face_normal(face))
+            directions.push_back(piece.face_normal(face)->normalized());
+
+    // the direction with the fewest vertex levels
+    Vector best_direction = directions.front();
+    std::vector<double> best_levels;
+    for (const Vector& direction : directions) {
+        std::vector<double> levels;
+        for (const Point& point : points) {
+            const double along = Vector(point[0], point[1], point[2]).dot(direction);
+            bool known = false;
+            for (const double level : levels)
+                known = known || std::abs(level - along) < 1e-3;
+            if (!known)
+                levels.push_back(along);
+        }
+        if (best_levels.empty() || levels.size() < best_levels.size()) {
+            best_levels = levels;
+            best_direction = direction;
+        }
+    }
+    std::sort(best_levels.begin(), best_levels.end());
+
+    // each slab: the piece within a box between two neighbouring levels, as the faces of its prism
+    Point sum(0.0, 0.0, 0.0);
+    for (const Point& point : points)
+        for (size_t k = 0; k < 3; k++)
+            sum[k] += point[k] / static_cast<double>(points.size());
+    const AABB box = AABB::from_mesh(piece);
+    const double wide = 4.0 * box.diagonal() + 1.0;
+    const Vector side = (std::abs(best_direction[0]) < 0.9 ? Vector::x_axis() : Vector::y_axis()).cross(best_direction).normalized();
+    const Vector other = best_direction.cross(side);
+    std::vector<std::array<Polyline, 2>> slabs;
+    for (size_t i = 0; i + 1 < best_levels.size(); i++) {
+        const double low = best_levels[i];
+        const double high = best_levels[i + 1];
+        const Vector to_centre = Vector(sum[0], sum[1], sum[2]);
+        const Point middle = sum + best_direction * ((low + high) / 2.0 - to_centre.dot(best_direction));
+        const Mesh slab_box = Mesh::create_box(wide, wide, high - low).transformed(Xform::frame_to_world(middle, side, other, best_direction));
+        const Mesh slab = solid_boolean(piece, slab_box, SolidOperation::intersect);
+        if (slab.number_of_faces() == 0)
+            continue;
+        const std::array<Polyline, 2> faces = prism_faces(slab);
+        if (faces[0].point_count() > 0)
+            slabs.push_back(faces);
+    }
+
+    return slabs;
+}
+
 LibraryTile library_tile(const std::string& design) {
 
     // the joint on its members at the origin, on a square corner when the record has one
@@ -602,10 +661,15 @@ LibraryTile library_tile(const std::string& design) {
             const Mesh kept = m == 0 ? solid_boolean(piece, zone, SolidOperation::intersect) : piece;
             for (const Mesh& convex : solid_pieces(kept)) {
                 const std::array<Polyline, 2> faces = prism_faces(convex);
-                if (faces[0].point_count() == 0)
-                    tile.unsupported++;
-                else
+                if (faces[0].point_count() > 0) {
                     tile.cuts[m].push_back(faces);
+                    continue;
+                }
+                const std::vector<std::array<Polyline, 2>> slabs = slab_faces(convex);
+                if (slabs.empty())
+                    tile.unsupported++;
+                for (const std::array<Polyline, 2>& slab : slabs)
+                    tile.cuts[m].push_back(slab);
             }
         }
     tile.parts = joint->parts;
