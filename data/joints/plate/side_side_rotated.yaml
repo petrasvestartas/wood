@@ -1,0 +1,35 @@
+# Plate joints between two plates side by side, one turned about the seam (the rotated family, ids 50-59), read as the
+# in-plane records are (see side_side_inplane.yaml); volume_size squares the joint volumes to that size about the seam, the
+# unit the profiles are scaled to.
+
+side_side_rotated_keys:
+  id: "54"
+  unit_scale: "true"
+  fabrication: "mill_project"
+  volume_size: "120.0 * shift"
+  parameters:
+    - "count = max(1, divisions)"
+    - "step = joint_length / (count * unit)"
+    - "total = joint_length / unit"
+    - "z0 = total * 0.5 - step * 0.5"
+  outlines:
+    - "male 0 = each j < 2 * count: 0.40237, 0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.502961, 0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, 0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, 0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.502961, 0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.40237, 0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "male 1 = each j < 2 * count: 0.40237, -0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.502961, -0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, -0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, -0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.502961, -0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.40237, -0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "female 0 = each j < 2 * count: -0.40237, 0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.502961, 0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, 0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, 0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.502961, 0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.40237, 0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "female 1 = each j < 2 * count: -0.40237, -0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.502961, -0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, -0.6, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, -0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.502961, -0.6, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.40237, -0.6, 0 + (z0 - step * ((j - mod(j, 2)) / 2))"
+
+side_side_rotated_hooks:
+  id: "55"
+  unit_scale: "true"
+  fabrication: "mill_project"
+  volume_size: "120.0 * shift"
+  parameters:
+    - "count = max(1, divisions)"
+    - "step = joint_length / (count * unit)"
+    - "total = joint_length / unit"
+    - "z0 = total * 0.5 - step * 0.5"
+  outlines:
+    - "male 0 = each j < 2 * count: 0.2, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.116667, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.619628, 0.275, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, 0.275, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, 0.275, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.619628, 0.275, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.116667, 0.275, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.2, 0.275, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.2, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "male 1 = each j < 2 * count: 0.2, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.116667, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.619628, -0.7, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, -0.7, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -1.0, -0.7, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.619628, -0.7, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.116667, -0.7, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.2, -0.7, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.2, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "female 0 = each j < 2 * count: -0.2, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.2, 0.275, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.116667, 0.275, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.619628, 0.275, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, 0.275, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, 0.275, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.619628, 0.275, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.116667, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.2, 0.275, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2))"
+    - "female 1 = each j < 2 * count: -0.2, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.2, -0.7, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.116667, -0.7, -0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.619628, -0.7, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, -0.7, -0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 1.0, -0.7, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.619628, -0.7, 0.375 + (z0 - step * ((j - mod(j, 2)) / 2)); 0.116667, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2)); -0.2, -0.7, 0.166667 + (z0 - step * ((j - mod(j, 2)) / 2))"

@@ -56,9 +56,6 @@ using namespace wood_session;
 // side_side_rotated: side-side rotated, type 13 (jupiter_scarf is the trait de Jupiter of two plates in line)
 // ═══════════════════════════════════════════════════════════════════════════
 #include "wood_interaction_feature_plate_joints/side_side_rotated_miter.h"
-#include "wood_interaction_feature_plate_joints/rotated_core.h"
-#include "wood_interaction_feature_plate_joints/side_side_rotated_hooks.h"
-#include "wood_interaction_feature_plate_joints/side_side_rotated_keys.h"
 #include "wood_interaction_feature_plate_joints/side_side_rotated_custom.h"
 #include "wood_interaction_feature_plate_joints/side_removal.h"
 #include "wood_interaction_feature_plate_joints/jupiter_scarf.h"

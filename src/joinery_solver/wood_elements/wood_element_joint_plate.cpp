@@ -205,6 +205,32 @@ static std::vector<Point> outline_points(const std::string& text, std::map<std::
     return points;
 }
 
+/// Every joint volume of joint made a size wide square about the middle of its first edge, reaching twice half the size along
+/// its second: the rotated joints' volumes, as 2024 drew them.
+static void square_volumes(InteractionFeaturePlate& joint, double size) {
+
+    for (int vi = 0; vi < 4; vi++) {
+        std::optional<Polyline>& volume = joint.joint_volumes[vi];
+        if (!volume || volume->point_count() != 5)
+            continue;
+        const Point p0 = volume->get_point(0);
+        const Point p1 = volume->get_point(1);
+        const Point p2 = volume->get_point(2);
+        const Point c = Point::mid_point(p0, p1);
+        Vector xd = p1 - p0;
+        const double xl = std::sqrt(xd.magnitude_squared());
+        if (xl < 1e-12)
+            continue;
+        xd = xd * (size * 0.5 / xl);
+        Vector yd = p2 - p1;
+        const double yl = std::sqrt(yd.magnitude_squared());
+        if (yl < 1e-12)
+            continue;
+        yd = yd * (size * 0.5 / yl);
+        *volume = Polyline({c + xd + 2 * yd, c - xd + 2 * yd, c - xd, c + xd, c + xd + 2 * yd});
+    }
+}
+
 /// The outlines of design from its record of data/joints/plate/*.yaml, in the unit box (z along the joint line): its parameters
 /// read with the joint's divisions, shift, length (the joint line scaled) and unit (the plate thickness the box is scaled to
 /// along the line, when the record has unit_scale); each "role face = points" an outline, "role face = ends" the line between
@@ -233,6 +259,7 @@ static bool plate_from_library(
         {"shift", {joint.shift}},
         {"length", {joint.joint_lines[0].length() * joint.scale[2]}},
         {"unit", {joint.unit_scale_distance}},
+        {"joint_length", {joint.length * joint.scale[2]}},
     };
     for (const std::string& line : record.lists["parameters"]) {
         const std::vector<std::string> pair = top_parts(line, '=');
@@ -306,6 +333,14 @@ static bool plate_from_library(
 
     if (scaled)
         joint.unit_scale = true;
+
+    // volume_size squares the joint volumes about the seam, the size the profiles are then scaled to
+    if (record.fields.count("volume_size")) {
+        const double size = evaluate(record.fields.at("volume_size"), names).number;
+        square_volumes(joint, size);
+        joint.unit_scale_distance = size;
+    }
+
     return true;
 }
 
@@ -526,10 +561,10 @@ static bool build_rotated(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 54:
-        side_side_rotated_keys(joint, context.elements);
+        plate_from_library("side_side_rotated_keys", joint, context.elements, {});
         return true;
     case 55:
-        side_side_rotated_hooks(joint, context.elements);
+        plate_from_library("side_side_rotated_hooks", joint, context.elements, {});
         return true;
     case 56:
         side_side_rotated_miter(joint);
@@ -2485,9 +2520,9 @@ bool JointPlateElement::compute_side_side_rotated(
     if (parameters.library == "side_side_rotated_miter")
         ::side_side_rotated_miter(connection);
     else if (parameters.library == "side_side_rotated_hooks")
-        ::side_side_rotated_hooks(connection, elements);
+        plate_from_library("side_side_rotated_hooks", connection, elements, {});
     else if (parameters.library == "side_side_rotated_keys")
-        ::side_side_rotated_keys(connection, elements);
+        plate_from_library("side_side_rotated_keys", connection, elements, {});
     else if (parameters.library == "side_side_rotated_custom")
         ::side_side_rotated_custom(connection, settings);
     else
