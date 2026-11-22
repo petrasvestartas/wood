@@ -177,6 +177,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_housed_dovetail_corner.png) | **Housed dovetail joint**<br>verdeckter beidseitig abgesetzter Schwalbenschwanzeckzapfen, p. 400<br>`housed_dovetail_corner` |
 | ![](joint_library/beam_plain_miter_dovetail_key.png) | **Plain miter with dovetail key**<br>Gehrungsstoß mit Schwalbenschwanzfeder, p. 340<br>`plain_miter_dovetail_key` |
 | ![](joint_library/beam_diagonally_cut_cog_corner.png) | **Diagonally cut cog joint**<br>Eckkamm mit Haken, p. 418<br>`diagonally_cut_cog_corner` |
+| ![](joint_library/beam_kawai_corner.png) | **Kawai joint**<br>Kawai-Eckverbindung, p. 404<br>`kawai_corner` |
 | ![](joint_library/beam_notched_lap_stub_tenon_corner.png) | **Notched lap joint with stub tenon**<br>Meisterwitz, p. 406<br>`notched_lap_stub_tenon_corner` |
 | ![](joint_library/beam_triple_shouldered_double_tenon_miter.png) | **Triple-shouldered double tenon miter**<br>durchgehender abgesetzter doppelter Zapfen mit Gehrungsblatt und Wange, p. 382<br>`triple_shouldered_double_tenon_miter` |
 | ![](joint_library/beam_blind_triple_shouldered_through_tenon_corner.png) | **Blind triple-shouldered through mortise and tenon**<br>durchgehender abgesetzer Eckzapfen mit Wange auf Gehrung, p. 324<br>`blind_triple_shouldered_through_tenon_corner` |
@@ -283,6 +284,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_butt_floating_butterfly_tenon_splice.png) | **Butt joint with floating butterfly tenon**<br>eingesetzter Schwalbenschwanzzapfen, p. 230<br>`butt_floating_butterfly_tenon_splice` |
 | ![](joint_library/beam_butt_butterfly_key_splice.png) | **Butt joint with butterfly key**<br>Schwalbenschwanzeinlage, p. 232<br>`butt_butterfly_key_splice` |
 | ![](joint_library/beam_lapped_dovetail_splice.png) | **Lapped dovetail joint**<br>Schwalbenschwanzzapfen mit geradem Blatt, p. 224<br>`lapped_dovetail_splice` |
+| ![](joint_library/beam_kawai_splice.png) | **Kawai joint**<br>Kawai-Stoß, p. 242<br>`kawai_splice` |
 | ![](joint_library/beam_gooseneck_tenon_splice.png) | **Gooseneck tenon joint**<br>Sichelzapfen, p. 244<br>`gooseneck_tenon_splice` |
 | ![](joint_library/beam_birdsmouth_splice.png) | **Birdsmouth**<br>Gratstoß, p. 168<br>`birdsmouth_splice` |
 | ![](joint_library/beam_double_halved_lap_splice.png) | **Double halved lap joint**<br>diagonal versetztes abgesetztes Blatt, p. 210<br>`double_halved_lap_splice` |

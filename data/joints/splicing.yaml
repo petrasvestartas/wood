@@ -1236,6 +1236,42 @@ lapped_dovetail_splice:
   insertions:
     - "-p"
 
+kawai_splice:
+  title: "Kawai joint"
+  german: "Kawai-Stoß"
+  page: "242"
+  category: "end_end_inplane"
+  family: "splicing"
+  corners: "square"
+  parameters:
+    - "lap = 1"
+    - "core = 0.004"
+    - "open = 0.02"
+  points:
+  planes:
+    - "s_hi = O + aw*w, w - u + p, O"
+    - "s_lo = O - aw*w, w - u + p, O"
+    - "cube_a = O + L*u, u, O"
+    - "cube_b = O - L*u, u, O"
+    - "k1 = O - core*(u - w + 2*p), u - w + 2*p, O"
+    - "k2 = O - core*(-w - 2*u - p), -w - 2*u - p, O"
+    - "k3 = O - core*(2*w + u - p), 2*w + u - p, O"
+    - "r1 = O - core*(w + 2*u + p), w + 2*u + p, O"
+    - "r2 = O - core*(-2*w - u + p), -2*w - u + p, O"
+    - "r3 = O - core*(w - u - 2*p), w - u - 2*p, O"
+  parts:
+  steps:
+    - "A2 a_end s_hi -cube_a"
+    - "A3 a_end -k1 -k3 -s_lo -cube_a"
+    - "A4 a_end -k1 -k2 -s_lo -cube_a"
+    - "A5 a_end -k2 -k3 -s_lo -cube_a"
+    - "B2 b_end s_lo -cube_b"
+    - "B3 b_end -r1 -r2 -s_hi -cube_b"
+    - "B4 b_end -r2 -r3 -s_hi -cube_b"
+    - "B5 b_end -r3 -r1 -s_hi -cube_b"
+  insertions:
+    - "w - u + p"
+
 gooseneck_tenon_splice:
   title: "Gooseneck tenon joint"
   german: "Sichelzapfen"

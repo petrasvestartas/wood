@@ -11,8 +11,6 @@ A joint is done when its record passes `tests/joint_assembly.cpp`, its picture i
 
 | Page | Joint | Reading | Step |
 |---|---|---|---|
-| 242 | Kawai joint (splice) | Two square ends, each cut into three fingers by planes through the cube diagonal; they slide together along the diagonal of the section, a 120 degree symmetry | Planes through the body diagonal of the end cube, three regions per member, insertion along the diagonal |
-| 404 | Kawai joint (corner) | The same three-finger cube on the corner of two members | As 242 on a corner frame |
 | 744 | Wedged four-way splayed cogged joint | Two pairs of beams in a post, splayed cogs, wedged | Extend p. 742 to four beams at two heights |
 
 Kawai status (2026-11-21): every one of the six wedges is cut correctly on its own (288 000 mm3 each), but a member's
@@ -77,3 +75,4 @@ Two-step moves in AssemblySequence (a piece's way in as a path of straight legs)
 
 A record with `moves` names a way in the assembly check cannot take yet (two legs, or two pieces at once); the test skips its
 come-apart check, as for `sealed`.
+| 242, 404 | Kawai joint, splice and corner | From the user's STEP model: the end cube split by three planes through its body diagonal and the midpoints of its edges into six 60 degree sectors over the middle third of the diagonal; each piece keeps its root corner and three alternate sectors, the other piece the rest, sliding apart along the diagonal. The corner is the same cube with the second body on a face next to the first | Built; the removed sectors overlap by 0.01 mm about the diagonal so their shells never share an edge (the old one-finger boolean) |
