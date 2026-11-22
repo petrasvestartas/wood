@@ -409,7 +409,7 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
         plate_from_library("side_side_inplane_tooth_keys", joint, context.elements, {});
         return true;
     case 7:
-        jupiter_scarf(joint);
+        plate_from_library("jupiter_scarf", joint, context.elements, {});
         return true;
     case 8:
         side_removal(joint, context.elements);
@@ -2560,7 +2560,7 @@ bool JointPlateElement::compute_side_removal(
     if (parameters.library == "side_removal")
         ::side_removal(connection, elements, parameters.merge_with_joint, true);
     else if (parameters.library == "jupiter_scarf")
-        ::jupiter_scarf(connection);
+        plate_from_library("jupiter_scarf", connection, elements, {});
     else
         return false;
 

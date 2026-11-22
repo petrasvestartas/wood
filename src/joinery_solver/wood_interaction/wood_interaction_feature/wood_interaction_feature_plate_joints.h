@@ -58,7 +58,6 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/side_side_rotated_miter.h"
 #include "wood_interaction_feature_plate_joints/side_side_rotated_custom.h"
 #include "wood_interaction_feature_plate_joints/side_removal.h"
-#include "wood_interaction_feature_plate_joints/jupiter_scarf.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // b: beam, type 60
