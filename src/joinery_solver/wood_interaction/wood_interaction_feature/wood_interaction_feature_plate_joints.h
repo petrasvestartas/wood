@@ -20,7 +20,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 // side_side_outplane: side-side out-of-plane, type 11 (side_side_outplane_linked_tenons calls side_side_outplane_tenons, side_side_outplane_linked_tenons_wall calls side_side_outplane_linked_tenons)
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/side_side_outplane_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_annen_fingers.h"

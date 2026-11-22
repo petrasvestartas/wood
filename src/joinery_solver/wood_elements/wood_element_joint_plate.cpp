@@ -13,6 +13,13 @@ namespace {
 
 using namespace wood_session;
 
+static bool plate_from_library(
+    const std::string& design,
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
+    const std::map<std::string, double>& given
+);
+
 #include "wood_interaction_feature_plate_joints.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -153,7 +160,7 @@ static std::vector<std::string> top_parts(const std::string& text, char separato
 }
 
 /// The points of an outline: parts joined by "|", each "x, y, z; x, y, z" with every coordinate an expression of names, or
-/// "repeat j < n: points" with the points written once for j = 0 ... n - 1.
+/// "repeat j < n: points" with the points written once for j = 0 ... n - 1; a point "if c: x, y, z" only where c is not zero.
 static std::vector<Point> outline_points(const std::string& text, std::map<std::string, LibraryValue>& names) {
 
     std::vector<Point> points;
@@ -171,7 +178,15 @@ static std::vector<Point> outline_points(const std::string& text, std::map<std::
         for (int k = 0; k < times; k++) {
             if (!index.empty())
                 names[index] = {static_cast<double>(k)};
-            for (const std::string& point : top_parts(list, ';')) {
+            for (const std::string& written : top_parts(list, ';')) {
+                // "if c: x, y, z" a point only where c is not zero (a chamfer, a middle point a design may leave out)
+                std::string point = written;
+                if (written.rfind("if ", 0) == 0) {
+                    const size_t colon = written.find(':');
+                    if (evaluate(written.substr(3, colon - 3), names).number == 0.0)
+                        continue;
+                    point = written.substr(colon + 1);
+                }
                 const std::vector<std::string> xyz = top_parts(point, ',');
                 if (xyz.size() != 3)
                     throw std::invalid_argument(fmt::format("plate outline point \"{}\" needs x, y and z", point));
@@ -190,14 +205,19 @@ static std::vector<Point> outline_points(const std::string& text, std::map<std::
 /// each outline of the fabrication type the record names for its role (male_fabrication, female_fabrication, else fabrication,
 /// else edge_insertion) unless "types" names it. False when no record names the design.
 static bool plate_from_library(
-    const std::string& design, InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
+    const std::string& design,
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
+    const std::map<std::string, double>& given
 ) {
 
     LibraryRecord record = plate_record(design);
     if (record.lists.empty() && record.fields.empty())
         return false;
 
-    joint.name = design;
+    // a design called by another (the linked tenons) keeps the caller's name
+    if (!(record.fields.count("named") && record.fields.at("named") == "false"))
+        joint.name = design;
     const bool scaled = record.fields.count("unit_scale") && record.fields.at("unit_scale") == "true";
     if (scaled)
         joint.unit_scale_distance = unit_scale_distance(joint, elements);
@@ -209,34 +229,51 @@ static bool plate_from_library(
     };
     for (const std::string& line : record.lists["parameters"]) {
         const std::vector<std::string> pair = top_parts(line, '=');
-        names[pair[0]] = evaluate(pair[1], names);
+        names[pair[0]] = given.count(pair[0]) ? LibraryValue{given.at(pair[0])} : evaluate(pair[1], names);
     }
 
-    // the outlines, slot by slot: male 0, male 1, female 0, female 1
+    // the outlines, slot by slot: male 0, male 1, female 0, female 1, each with its fabrication type: the role's default
+    // (male_fabrication, female_fabrication, else fabrication, else edge_insertion) or the one "... as type" names
+    const std::string common = record.fields.count("fabrication") ? record.fields.at("fabrication") : "edge_insertion";
+    const FabricationType male = fabrication_named(record.fields.count("male_fabrication") ? record.fields.at("male_fabrication") : common);
+    const FabricationType female = fabrication_named(record.fields.count("female_fabrication") ? record.fields.at("female_fabrication") : common);
     std::map<std::string, std::vector<Polyline>*> slots = {
         {"male 0", &joint.male_outlines[0]}, {"male 1", &joint.male_outlines[1]},
         {"female 0", &joint.female_outlines[0]}, {"female 1", &joint.female_outlines[1]},
     };
+    std::map<std::string, std::vector<int>*> types = {
+        {"male 0", &joint.male_fabrication_types[0]}, {"male 1", &joint.male_fabrication_types[1]},
+        {"female 0", &joint.female_fabrication_types[0]}, {"female 1", &joint.female_fabrication_types[1]},
+    };
     for (std::pair<const std::string, std::vector<Polyline>*>& slot : slots)
+        slot.second->clear();
+    for (std::pair<const std::string, std::vector<int>*>& slot : types)
         slot.second->clear();
     for (const std::string& line : record.lists["outlines"]) {
         const size_t equals = line.find('=');
         const std::string slot = top_parts(line.substr(0, equals), ';')[0];
-        const std::string trimmed = top_parts(line.substr(equals + 1), '\n')[0];
+        std::string trimmed = top_parts(line.substr(equals + 1), '\n')[0];
         if (!slots.count(slot))
             throw std::invalid_argument(fmt::format("{}: no outline slot \"{}\"", design, slot));
-        std::vector<Polyline>& outlines = *slots.at(slot);
-        if (trimmed == "ends") {
-            outlines.push_back(Polyline({outlines.front().get_point(0), outlines.front().get_point(outlines.front().point_count() - 1)}));
-            continue;
+        int type = slot.rfind("male", 0) == 0 ? male : female;
+        const size_t as = trimmed.rfind(" as ");
+        if (as != std::string::npos && trimmed.find(';', as) == std::string::npos && trimmed.find(',', as) == std::string::npos) {
+            type = fabrication_named(top_parts(trimmed.substr(as + 4), ' ')[0]);
+            trimmed = top_parts(trimmed.substr(0, as), '\n')[0];
         }
-        if (slots.count(trimmed)) {
+        std::vector<Polyline>& outlines = *slots.at(slot);
+        const size_t before = outlines.size();
+        if (trimmed == "ends")
+            outlines.push_back(Polyline({outlines.front().get_point(0), outlines.front().get_point(outlines.front().point_count() - 1)}));
+        else if (slots.count(trimmed)) {
             const std::vector<Polyline> copy = *slots.at(trimmed);
             outlines.insert(outlines.end(), copy.begin(), copy.end());
+            const std::vector<int> copied = *types.at(trimmed);
+            types.at(slot)->insert(types.at(slot)->end(), copied.begin(), copied.end());
             continue;
         }
         // "each k < n: points" an outline per k (a hole per tenon), else one outline
-        if (trimmed.rfind("each ", 0) == 0) {
+        else if (trimmed.rfind("each ", 0) == 0) {
             const size_t less = trimmed.find('<');
             const size_t colon = trimmed.find(':');
             const std::string index = top_parts(trimmed.substr(5, less - 5), ' ')[0];
@@ -245,23 +282,13 @@ static bool plate_from_library(
                 names[index] = {static_cast<double>(k)};
                 outlines.push_back(Polyline(outline_points(trimmed.substr(colon + 1), names)));
             }
-            continue;
         }
-        outlines.push_back(Polyline(outline_points(trimmed, names)));
+        else
+            outlines.push_back(Polyline(outline_points(trimmed, names)));
+        types.at(slot)->insert(types.at(slot)->end(), outlines.size() - before, type);
     }
 
-    // a fabrication type per outline
-    const std::string common = record.fields.count("fabrication") ? record.fields.at("fabrication") : "edge_insertion";
-    const FabricationType male = fabrication_named(record.fields.count("male_fabrication") ? record.fields.at("male_fabrication") : common);
-    const FabricationType female = fabrication_named(record.fields.count("female_fabrication") ? record.fields.at("female_fabrication") : common);
-    joint.male_fabrication_types[0].assign(joint.male_outlines[0].size(), male);
-    joint.male_fabrication_types[1].assign(joint.male_outlines[1].size(), male);
-    joint.female_fabrication_types[0].assign(joint.female_outlines[0].size(), female);
-    joint.female_fabrication_types[1].assign(joint.female_outlines[1].size(), female);
-    std::map<std::string, std::vector<int>*> types = {
-        {"male 0", &joint.male_fabrication_types[0]}, {"male 1", &joint.male_fabrication_types[1]},
-        {"female 0", &joint.female_fabrication_types[0]}, {"female 1", &joint.female_fabrication_types[1]},
-    };
+    // "types" names a face's types outright
     for (const std::string& line : record.lists["types"]) {
         const size_t equals = line.find('=');
         std::vector<int>& slot = *types.at(top_parts(line.substr(0, equals), ';')[0]);
@@ -322,22 +349,22 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 1:
-        plate_from_library("side_side_inplane_dovetails", joint, context.elements);
+        plate_from_library("side_side_inplane_dovetails", joint, context.elements, {});
         return true;
     case 2:
-        plate_from_library("side_side_inplane_three_fingers", joint, context.elements);
+        plate_from_library("side_side_inplane_three_fingers", joint, context.elements, {});
         return true;
     case 3:
-        plate_from_library("side_side_inplane_butterfly_keys", joint, context.elements);
+        plate_from_library("side_side_inplane_butterfly_keys", joint, context.elements, {});
         return true;
     case 4:
-        plate_from_library("side_side_inplane_splayed_scarf", joint, context.elements);
+        plate_from_library("side_side_inplane_splayed_scarf", joint, context.elements, {});
         return true;
     case 5:
-        plate_from_library("side_side_inplane_cross_splayed_scarf", joint, context.elements);
+        plate_from_library("side_side_inplane_cross_splayed_scarf", joint, context.elements, {});
         return true;
     case 6:
-        plate_from_library("side_side_inplane_tooth_keys", joint, context.elements);
+        plate_from_library("side_side_inplane_tooth_keys", joint, context.elements, {});
         return true;
     case 7:
         jupiter_scarf(joint);
@@ -357,19 +384,19 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
 
     switch (id) {
     case 10:
-        plate_from_library("side_side_outplane_fingers", joint, context.elements);
+        plate_from_library("side_side_outplane_fingers", joint, context.elements, {});
         return true;
     case 11:
-        plate_from_library("side_side_outplane_graded_fingers", joint, context.elements);
+        plate_from_library("side_side_outplane_graded_fingers", joint, context.elements, {});
         return true;
     case 12:
-        plate_from_library("side_side_outplane_three_fingers", joint, context.elements);
+        plate_from_library("side_side_outplane_three_fingers", joint, context.elements, {});
         return true;
     case 13:
-        plate_from_library("side_side_outplane_miter_tenon", joint, context.elements);
+        plate_from_library("side_side_outplane_miter_tenon", joint, context.elements, {});
         return true;
     case 14:
-        side_side_outplane_tenons(joint);
+        plate_from_library("side_side_outplane_tenons", joint, context.elements, {});
         return true;
     case 15:
         side_side_outplane_linked_tenons(joint, context.all_joints, false);
@@ -395,10 +422,10 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 20:
-        plate_from_library("top_side_tenons", joint, context.elements);
+        plate_from_library("top_side_tenons", joint, context.elements, {});
         return true;
     case 21:
-        plate_from_library("top_side_dense_tenons", joint, context.elements);
+        plate_from_library("top_side_dense_tenons", joint, context.elements, {});
         return true;
     case 22:
         top_side_annen_tenons(joint, context.elements, context.all_joints);
@@ -432,7 +459,7 @@ static bool build_cross(const int id, InteractionFeaturePlate& joint, BuildConte
 
     switch (id) {
     case 30:
-        plate_from_library("cross_slot", joint, context.elements);
+        plate_from_library("cross_slot", joint, context.elements, {});
         return true;
     case 31:
         cross_sliced_half_lap(joint);
@@ -554,16 +581,16 @@ bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& con
 void build_family_default(const int family, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (family) {
     case 0:
-        plate_from_library("side_side_inplane_dovetails", joint, context.elements);
+        plate_from_library("side_side_inplane_dovetails", joint, context.elements, {});
         return;
     case 1:
-        plate_from_library("side_side_outplane_fingers", joint, context.elements);
+        plate_from_library("side_side_outplane_fingers", joint, context.elements, {});
         return;
     case 2:
-        plate_from_library("top_side_tenons", joint, context.elements);
+        plate_from_library("top_side_tenons", joint, context.elements, {});
         return;
     case 3:
-        plate_from_library("cross_slot", joint, context.elements);
+        plate_from_library("cross_slot", joint, context.elements, {});
         return;
     case 4:
         top_top_centre_pin(joint, context.elements);
@@ -605,9 +632,9 @@ void joint_create_geometry(
 
     if (family < 0) {
         if (joint.joint_type == 11 || joint.joint_type == 12)
-            plate_from_library("side_side_outplane_fingers", joint, context.elements);
+            plate_from_library("side_side_outplane_fingers", joint, context.elements, {});
         else if (joint.joint_type == 20)
-            plate_from_library("top_side_tenons", joint, context.elements);
+            plate_from_library("top_side_tenons", joint, context.elements, {});
         return;
     }
 
@@ -1880,17 +1907,17 @@ bool JointPlateElement::compute_side_side_inplane(
 ) const {
 
     if (parameters.library == "side_side_inplane_three_fingers")
-        plate_from_library("side_side_inplane_three_fingers", connection, elements);
+        plate_from_library("side_side_inplane_three_fingers", connection, elements, {});
     else if (parameters.library == "side_side_inplane_dovetails")
-        plate_from_library("side_side_inplane_dovetails", connection, elements);
+        plate_from_library("side_side_inplane_dovetails", connection, elements, {});
     else if (parameters.library == "side_side_inplane_butterfly_keys")
-        plate_from_library("side_side_inplane_butterfly_keys", connection, elements);
+        plate_from_library("side_side_inplane_butterfly_keys", connection, elements, {});
     else if (parameters.library == "side_side_inplane_splayed_scarf")
-        plate_from_library("side_side_inplane_splayed_scarf", connection, elements);
+        plate_from_library("side_side_inplane_splayed_scarf", connection, elements, {});
     else if (parameters.library == "side_side_inplane_cross_splayed_scarf")
-        plate_from_library("side_side_inplane_cross_splayed_scarf", connection, elements);
+        plate_from_library("side_side_inplane_cross_splayed_scarf", connection, elements, {});
     else if (parameters.library == "side_side_inplane_tooth_keys")
-        plate_from_library("side_side_inplane_tooth_keys", connection, elements);
+        plate_from_library("side_side_inplane_tooth_keys", connection, elements, {});
     else if (parameters.library == "side_side_inplane_custom")
         ::side_side_inplane_custom(connection, settings);
     else
@@ -2038,25 +2065,21 @@ bool JointPlateElement::compute_side_side_outplane(
 ) const {
 
     if (parameters.library == "side_side_outplane_three_fingers")
-        plate_from_library("side_side_outplane_three_fingers", connection, elements);
+        plate_from_library("side_side_outplane_three_fingers", connection, elements, {});
     else if (parameters.library == "side_side_outplane_fingers")
-        plate_from_library("side_side_outplane_fingers", connection, elements);
+        plate_from_library("side_side_outplane_fingers", connection, elements, {});
     else if (parameters.library == "side_side_outplane_graded_fingers")
-        plate_from_library("side_side_outplane_graded_fingers", connection, elements);
+        plate_from_library("side_side_outplane_graded_fingers", connection, elements, {});
     else if (parameters.library == "side_side_outplane_miter_tenon")
-        plate_from_library("side_side_outplane_miter_tenon", connection, elements);
+        plate_from_library("side_side_outplane_miter_tenon", connection, elements, {});
     else if (parameters.library == "side_side_outplane_tenons")
-        ::side_side_outplane_tenons(
+        plate_from_library(
+            "side_side_outplane_tenons",
             connection,
-            parameters.taper,
-            parameters.chamfer,
-            parameters.modify_outline,
-            parameters.x[0],
-            parameters.x[1],
-            parameters.y[0],
-            parameters.y[1],
-            parameters.z[0],
-            parameters.z[1]
+            elements,
+            {{"t", parameters.taper}, {"chamfer", parameters.chamfer ? 1.0 : 0.0}, {"modify", parameters.modify_outline ? 1.0 : 0.0},
+             {"x0", parameters.x[0]}, {"x1", parameters.x[1]}, {"y0", parameters.y[0]}, {"y1", parameters.y[1]},
+             {"z0e", parameters.z[0]}, {"z1e", parameters.z[1]}}
         );
     else if (parameters.library == "side_side_outplane_annen_fingers")
         ::side_side_outplane_annen_fingers(
@@ -2067,9 +2090,9 @@ bool JointPlateElement::compute_side_side_outplane(
     else if (parameters.library == "side_side_outplane_linked_tenons_wall")
         ::side_side_outplane_linked_tenons_wall(connection, connections);
     else if (parameters.library == "side_side_outplane_capped_fingers")
-        plate_from_library("side_side_outplane_capped_fingers", connection, elements);
+        plate_from_library("side_side_outplane_capped_fingers", connection, elements, {});
     else if (parameters.library == "side_side_outplane_notch")
-        plate_from_library("side_side_outplane_notch", connection, elements);
+        plate_from_library("side_side_outplane_notch", connection, elements, {});
     else if (parameters.library == "side_side_outplane_custom")
         ::side_side_outplane_custom(connection, settings);
     else
@@ -2169,7 +2192,7 @@ bool JointPlateElement::compute_top_side(
 ) const {
 
     if (parameters.library == "top_side_three_tenons")
-        plate_from_library("top_side_three_tenons", connection, elements);
+        plate_from_library("top_side_three_tenons", connection, elements, {});
     else if (parameters.library == "top_side_annen_tenons")
         ::top_side_annen_tenons(connection, elements, connections);
     else if (parameters.library == "top_side_annen_shifted_tenons")
@@ -2177,9 +2200,9 @@ bool JointPlateElement::compute_top_side(
             connection, elements, connections, parameters.divisions, settings.limit_min_joint_length
         );
     else if (parameters.library == "top_side_dense_tenons")
-        plate_from_library("top_side_dense_tenons", connection, elements);
+        plate_from_library("top_side_dense_tenons", connection, elements, {});
     else if (parameters.library == "top_side_tenons")
-        plate_from_library("top_side_tenons", connection, elements);
+        plate_from_library("top_side_tenons", connection, elements, {});
     else if (parameters.library == "top_side_milled_wedge")
         ::top_side_milled_wedge(connection);
     else if (parameters.library == "top_side_snap_fit")
@@ -2378,7 +2401,7 @@ bool JointPlateElement::compute_cross(
 ) const {
 
     if (parameters.library == "cross_slot")
-        plate_from_library("cross_slot", connection, {});
+        plate_from_library("cross_slot", connection, {}, {});
     else if (parameters.library == "cross_sliced_half_lap")
         ::cross_sliced_half_lap(connection);
     else if (parameters.library == "cross_half_lap")
