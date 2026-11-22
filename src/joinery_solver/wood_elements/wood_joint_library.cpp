@@ -112,7 +112,7 @@ struct Reader {
         return found->second;
     }
 
-    /// unit, length, cross, dot, meet, round, max, min, mod, sign, pick (the second when the first is not zero, else the third) or less of its arguments.
+    /// unit, length, cross, dot, meet, round, max, min, mod, sign, pick (the second when the first is not zero, else the third), less or vec (a vector of three numbers) of its arguments.
     LibraryValue call(const std::string& name) {
 
         std::vector<LibraryValue> arguments;
@@ -132,6 +132,8 @@ struct Reader {
             return {0.0, arguments[0].vector.cross(arguments[1].vector), true};
         if (name == "dot" && arguments.size() == 2)
             return {arguments[0].vector.dot(arguments[1].vector), Vector(), false};
+        if (name == "vec" && arguments.size() == 3)
+            return {0.0, Vector(arguments[0].number, arguments[1].number, arguments[2].number), true};
         if (name == "pick" && arguments.size() == 3)
             return arguments[0].number != 0.0 ? arguments[1] : arguments[2];
         if (name == "less" && arguments.size() == 2)
@@ -323,7 +325,38 @@ std::vector<std::string> library_designs(const std::string& chapter) {
     return designs;
 }
 
+/// The record of design as written in data/joints/plate/*.yaml, without its base.
+static LibraryRecord plate_record_written(const std::string& design);
+
 LibraryRecord plate_record(const std::string& design) {
+
+    // a record with a base takes the base's fields, outlines and types, and its parameters with its own replacing them by name
+    LibraryRecord record = plate_record_written(design);
+    if (!record.fields.count("base"))
+        return record;
+    LibraryRecord base = plate_record(record.fields.at("base"));
+    for (const std::pair<const std::string, std::string>& field : record.fields)
+        base.fields[field.first] = field.second;
+    base.fields.erase("base");
+    for (const std::string& line : record.lists["parameters"]) {
+        const std::string name = line.substr(0, line.find_first_of(" ="));
+        bool replaced = false;
+        for (std::string& known : base.lists["parameters"])
+            if (known.substr(0, known.find_first_of(" =")) == name) {
+                known = line;
+                replaced = true;
+            }
+        if (!replaced)
+            base.lists["parameters"].push_back(line);
+    }
+    for (const std::string key : {"outlines", "types"})
+        if (record.lists.count(key))
+            base.lists[key] = record.lists.at(key);
+
+    return base;
+}
+
+static LibraryRecord plate_record_written(const std::string& design) {
 
     // every line of the record: "  key: value" a field, "  key:" a list of the "    - item" lines below it
     LibraryRecord record;

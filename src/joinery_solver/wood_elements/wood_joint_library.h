@@ -30,7 +30,8 @@ LibraryValue evaluate(const std::string& expression, const std::map<std::string,
 void library_repeat(LibraryRecord& record, std::map<std::string, LibraryValue>& names);
 
 /// The record of a plate design of data/joints/plate/*.yaml: its fields ("unit_scale", "fabrication") and its lists
-/// ("parameters", "outlines", "types"), quotes stripped; empty when no file names the design.
+/// ("parameters", "outlines", "types"), quotes stripped; a record naming a base takes the base's and replaces the parameters it
+/// names; empty when no file names the design.
 LibraryRecord plate_record(const std::string& design);
 
 /// The designs of data/joints/<chapter>.yaml in the order the file has them, every file's when chapter is empty.

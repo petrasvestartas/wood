@@ -160,7 +160,8 @@ static std::vector<std::string> top_parts(const std::string& text, char separato
 }
 
 /// The points of an outline: parts joined by "|", each "x, y, z; x, y, z" with every coordinate an expression of names, or
-/// "repeat j < n: points" with the points written once for j = 0 ... n - 1; a point "if c: x, y, z" only where c is not zero.
+/// "repeat j < n: points" with the points written once for j = 0 ... n - 1; a point "if c: x, y, z" only where c is not zero;
+/// a point may be one vector expression.
 static std::vector<Point> outline_points(const std::string& text, std::map<std::string, LibraryValue>& names) {
 
     std::vector<Point> points;
@@ -188,6 +189,12 @@ static std::vector<Point> outline_points(const std::string& text, std::map<std::
                     point = written.substr(colon + 1);
                 }
                 const std::vector<std::string> xyz = top_parts(point, ',');
+                // a point as one vector expression (a corner moved along a normal)
+                if (xyz.size() == 1) {
+                    const Vector at = evaluate(xyz[0], names).vector;
+                    points.emplace_back(at[0], at[1], at[2]);
+                    continue;
+                }
                 if (xyz.size() != 3)
                     throw std::invalid_argument(fmt::format("plate outline point \"{}\" needs x, y and z", point));
                 points.emplace_back(evaluate(xyz[0], names).number, evaluate(xyz[1], names).number, evaluate(xyz[2], names).number);
@@ -217,7 +224,7 @@ static bool plate_from_library(
 
     // a design called by another (the linked tenons) keeps the caller's name
     if (!(record.fields.count("named") && record.fields.at("named") == "false"))
-        joint.name = design;
+        joint.name = record.fields.count("name") ? record.fields.at("name") : design;
     const bool scaled = record.fields.count("unit_scale") && record.fields.at("unit_scale") == "true";
     if (scaled)
         joint.unit_scale_distance = unit_scale_distance(joint, elements);
@@ -467,10 +474,10 @@ static bool build_cross(const int id, InteractionFeaturePlate& joint, BuildConte
     case 32:
     case 33:
     case 34:
-        cross_half_lap(joint, static_cast<CrossDrills>(id - 32));
+        plate_from_library("cross_half_lap", joint, context.elements, {{"drills", static_cast<double>(id - 32)}});
         return true;
     case 35:
-        cross_brussels_half_lap(joint);
+        plate_from_library("cross_brussels_half_lap", joint, context.elements, {});
         return true;
     case 38:
         side_removal(joint, context.elements);
@@ -2405,9 +2412,9 @@ bool JointPlateElement::compute_cross(
     else if (parameters.library == "cross_sliced_half_lap")
         ::cross_sliced_half_lap(connection);
     else if (parameters.library == "cross_half_lap")
-        ::cross_half_lap(connection, static_cast<CrossDrills>(variant - 32));
+        plate_from_library("cross_half_lap", connection, {}, {{"drills", static_cast<double>(variant - 32)}});
     else if (parameters.library == "cross_brussels_half_lap")
-        ::cross_brussels_half_lap(connection);
+        plate_from_library("cross_brussels_half_lap", connection, {}, {});
     else if (parameters.library == "cross_custom")
         ::cross_custom(connection, settings);
     else
