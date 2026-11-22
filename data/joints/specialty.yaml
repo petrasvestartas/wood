@@ -24,10 +24,12 @@
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
+#   base        the letter of the member that stays while the others go in (c: a post the slats go into); b by default.
 #   moves       how a piece goes in by two straight moves (in along the slot, then down onto the other), written out; the
 #               assembly check takes one straight move per piece, so such a record is not taken apart.
 #   upright     (a parameter) stands the joint up a quarter turn about x: more members along y become posts.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
+#   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
@@ -648,42 +650,41 @@ pegged_two_way_splayed_scarf:
   title: "Pegged two-way splayed scarf joint"
   german: "eingeschobene Schäftung mit Dübelsicherung"
   page: "738"
-  category: "side_end"
-  family: "t"
+  category: "end_end_inplane"
+  family: "splicing"
   corners: "square"
   filled: "bc"
+  base: "c"
   parameters:
-    - "long = 0.7"
-    - "thin = 0.3"
-    - "peg = 0.08"
+    - "stock_thick = 60"
+    - "stock_wide = 24"
+    - "lap = 1"
+    - "peg = 0.1"
   points:
-    - "S1 = O - 2*bh*n - long*bw*t"
-    - "S2 = O + long*bw*t"
-    - "K1 = O - 0.7*bh*n + 0.4*long*bw*t"
-    - "K2 = O - 1.3*bh*n - 0.4*long*bw*t"
+    - "S1 = O - L*u + ah*p"
+    - "S2 = O + L*u - ah*p"
+    - "PA = O + 0.5*L*u + 0.5*ah*p"
+    - "PB = O - 0.5*L*u - 0.5*ah*p"
   planes:
-    - "shoulder = O, n, O + n"
-    - "slope = S1, cross(w, S2 - S1), O"
-    - "tl1 = O + long*bw*t, t, O"
-    - "tl2 = O - long*bw*t, t, O"
-    - "tw1 = O + thin*aw*w, w, O"
-    - "tw2 = O - thin*aw*w, w, O"
-    - "c_shoulder = O - 2*bh*n, n, O - 4*bh*n"
+    - "splay = S1, cross(w, S2 - S1), O + 3*ah*p"
+    - "mw1 = O + aw*w, w, O"
+    - "mw2 = O - aw*w, w, O"
+    - "mp1 = O + ah*p, p, O"
+    - "mp2 = O - ah*p, p, O"
   more:
-    - "c = 0 0 60, 0 0 -600, 0 1 0, 60, 60"
+    - "c = 0 0 -150, 0 0 150, 1 0 0, 60, 60"
   parts:
-    - "peg_1 = K1 - 1.3*bw*w, K1 + 1.3*bw*w, n, peg*bh"
-    - "peg_2 = K2 - 1.3*bw*w, K2 + 1.3*bw*w, n, peg*bh"
+    - "peg_a = PA + (ah + 20)*w, PA - (ah + 20)*w, p, peg*ah"
+    - "peg_b = PB + (ah + 20)*w, PB - (ah + 20)*w, p, peg*ah"
   steps:
-    - "A2 a_end shoulder tl1; a_end shoulder tl2; a_end shoulder tw1; a_end shoulder tw2; a_end shoulder slope"
-    - "A3 peg_1; peg_2"
-    - "B2 b_node -tl1 -tl2 -tw1 -tw2"
-    - "B3 peg_1; peg_2"
-    - "C2 c c_shoulder tl1; c c_shoulder tl2; c c_shoulder tw1; c c_shoulder tw2; c c_shoulder -slope"
-    - "C3 peg_1; peg_2"
+    - "A2 a_end splay"
+    - "A3 peg_a"
+    - "B2 b_end -splay"
+    - "B3 peg_b"
+    - "C2 c -mw1 -mw2 -mp1 -mp2"
+    - "C3 peg_a; peg_b"
   insertions:
     - "-u"
-    - "c = n"
 
 two_way_rabbeted_rod_tenon:
   title: "Two-way rabbeted rod tenon joint with tapered keys"
@@ -1087,9 +1088,9 @@ wedged_two_way_oblique_cogged:
     - "K1 = O - valley*ah*u - hook*ah*p"
     - "K2 = O + valley*ah*u + hook*ah*p"
     - "K3 = O + L*u"
-    - "SA = O + (ah + 20)*u + (1 + 0.5*gap)*ah*p"
+    - "SA = O + (ah + 70)*u + (1 + 0.5*gap)*ah*p"
     - "EA = O + 2*u + (1 + 0.5*gap)*ah*p"
-    - "SB = O - (ah + 20)*u + (1 + 0.5*gap)*ah*p"
+    - "SB = O - (ah + 70)*u + (1 + 0.5*gap)*ah*p"
     - "EB = O - 2*u + (1 + 0.5*gap)*ah*p"
   planes:
     - "l01 = K0, cross(w, K1 - K0), O + 3*ah*p"
@@ -1108,8 +1109,8 @@ wedged_two_way_oblique_cogged:
   more:
     - "c = 0 0 -150, 0 0 150, 1 0 0, 60, 60"
   parts:
-    - "wedge_a = SA, EA, w, aw, 0.5*gap*ah, 0.1*gap*ah"
-    - "wedge_b = SB, EB, w, aw, 0.5*gap*ah, 0.1*gap*ah"
+    - "wedge_a = SA, EA, w, aw, 0.5*gap*ah, 0.04*gap*ah, both, -p"
+    - "wedge_b = SB, EB, w, aw, 0.5*gap*ah, 0.04*gap*ah, both, -p"
   steps:
     - "A2 a_end l01 v1 -end_r; a_end l12 l23 v1b -end_r"
     - "B2 b_end -l01 -l12 v2 -end_l; b_end -l23 v2b -end_l"
@@ -1125,7 +1126,8 @@ pegged_two_way_gooseneck:
   category: "end_end_inplane"
   family: "splicing"
   corners: "square"
-  filled: "bc"
+  filled: "abc"
+  base: "c"
   parameters:
     - "stock_thick = 60"
     - "stock_wide = 24"
@@ -1134,6 +1136,7 @@ pegged_two_way_gooseneck:
     - "head = 0.4"
     - "neck_len = 0.4"
     - "chamfer = 0.16"
+    - "open = 0.3"
   points:
     - "C1a = O + (L - neck_len*ah)*u + neck*ah*p"
     - "C1b = O + (L - (neck_len + chamfer)*ah)*u + head*ah*p"
@@ -1171,13 +1174,11 @@ pegged_two_way_gooseneck:
     - "A3 a_end c1t uh; a_end c1b uh; a_end c2t; a_end c2b"
     - "A4 a_end nt un -shoulder; a_end nb un -shoulder"
     - "A5 peg"
-    - "B2 b_end -flat_t -flat_b -c1t -c1b -c2t -c2b -tipp"
-    - "B3 b_end -nt -nb un"
+    - "B2 b_end -flat_t -flat_b -c2t -c2b -tipp"
     - "C2 c -mw1 -mw2 -mp1 -mp2"
     - "C3 peg"
   insertions:
-    - "w"
-    - "c = u"
+    - "-u"
 
 notched_corner_post_beveled_tenons:
   title: "Notched corner-post joint with beveled-shoulder tenons"

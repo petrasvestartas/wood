@@ -2742,7 +2742,11 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             throw std::invalid_argument(fmt::format("{}: {} runs parallel to {}", design, a.name, b.name));
         const Point on_a = a_axis.point_at(t_a);
         const Point node = b_axis.point_at(t_b);
-        if (!crossing && Point::distance(on_a, node) > 1.0)
+        // a record's member_shift sets a beside b's axis on purpose (a post wider than its beam, flush with one face)
+        bool member_shifted = false;
+        for (const std::string& line : record.lists["parameters"])
+            member_shifted = member_shifted || split_top(line, '=')[0] == "member_shift";
+        if (!crossing && !member_shifted && Point::distance(on_a, node) > 1.0)
             throw std::invalid_argument(fmt::format("{}: the axes of {} and {} do not meet", design, a.name, b.name));
 
         Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
@@ -2789,7 +2793,9 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const double bh = b_section.second[k];
         bw = along ? b_section.second[1 - k] : 0.5 * b_axis.length();
         const double bt = along ? 0.5 * b_axis.length() : b_section.second[1 - k];
-        const Point face = crossing ? node + n * bh : node + u * (bh / u.dot(n));
+        // the frame stays on a's axis: a shifted member's O is where its own axis meets b's face
+        const Point beside = member_shifted ? node + (on_a - node) - u * (on_a - node).dot(u) : node;
+        const Point face = crossing ? node + n * bh : beside + u * (bh / u.dot(n));
         names = {
             {"O", {0.0, face - origin, true}}, {"u", {0.0, u, true}}, {"n", {0.0, n, true}}, {"t", {0.0, t, true}}, {"w", {0.0, w, true}},
             {"p", {0.0, p, true}}, {"c", {0.0, along_b, true}}, {"R", {0.0, on_a - origin, true}}, {"ah", {ah}}, {"aw", {aw}}, {"bh", {bh}}, {"bw", {bw}}, {"bt", {bt}},

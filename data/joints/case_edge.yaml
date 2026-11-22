@@ -27,6 +27,7 @@
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
+#   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
@@ -42,7 +43,7 @@ shiplap_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 1"
   points:
   planes:
@@ -65,7 +66,7 @@ v_grooved_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.75"
   points:
     - "A = O - L*u"
@@ -92,7 +93,7 @@ tongue_groove_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 1"
     - "tongue = 0.33"
   points:
@@ -117,11 +118,11 @@ floating_tenon_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.1"
     - "tenon = 0.33"
     - "reach = 2.5"
-    - "width = 0.25"
+    - "width = 0.4"
   points:
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
@@ -144,7 +145,7 @@ spline_groove_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.1"
     - "spline = 0.25"
     - "reach = 1.2"
@@ -171,7 +172,7 @@ butterfly_key_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.1"
     - "depth = 0.5"
     - "wing = 4"
@@ -206,7 +207,7 @@ tongued_rabbeted_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 3"
     - "tongue = 0.33"
     - "offset = 0.8"
@@ -237,7 +238,7 @@ blind_dovetail_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 1.2"
     - "root = 0.25"
     - "tip = 0.42"
@@ -283,8 +284,8 @@ sliding_dovetail_batten:
     - "reach = 200"
     - "carrier_thick = 12"
     - "carrier_wide = 200"
-    - "stock_thick = 15"
-    - "stock_wide = 25"
+    - "stock_thick = 29"
+    - "stock_wide = 14"
     - "sit = 0.4"
     - "top = 0.6"
     - "foot = 0.85"
@@ -321,7 +322,7 @@ floating_tenon_spline_edge:
   corners: "square"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.1"
     - "spline = 0.25"
     - "reach = 1.2"
@@ -359,8 +360,8 @@ sliding_dovetail_batten_keys:
     - "reach = 200"
     - "carrier_thick = 12"
     - "carrier_wide = 200"
-    - "stock_thick = 15"
-    - "stock_wide = 25"
+    - "stock_thick = 29"
+    - "stock_wide = 14"
     - "sit = 0.4"
     - "top = 0.6"
     - "foot = 0.85"
@@ -487,11 +488,11 @@ foxtail_wedged_floating_tenon_edge:
   sealed: "true"
   parameters:
     - "stock_thick = 12"
-    - "stock_wide = 150"
+    - "stock_wide = 68"
     - "lap = 0.1"
     - "tenon = 0.33"
     - "reach = 2.5"
-    - "width = 0.25"
+    - "width = 0.4"
     - "fox = 0.02"
   points:
     - "C = O + L*u"

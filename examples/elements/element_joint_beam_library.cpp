@@ -54,7 +54,9 @@ int main() {
             apart.add(twin);
             for (size_t m = 0; m < fresh.size(); m++)
                 apart.add_interaction(twin, fresh[m], twin->interaction(m));
-            const AssemblySequence sequence(apart, fresh[1]->name);
+            const LibraryRecord record = library_record(design);
+            const size_t base = record.fields.count("base") ? static_cast<size_t>(record.fields.at("base")[0] - 'a') : 1;
+            const AssemblySequence sequence(apart, fresh[base]->name);
             for (size_t j = 1; j < sequence.steps().size(); j++) {
                 const AssemblyStep& step = sequence.steps()[j];
                 const std::shared_ptr<Element> drawn = scene.get_element_by_name<Element>(name + step.element.substr(design.size()));

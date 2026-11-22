@@ -24,6 +24,7 @@
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
+#   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
@@ -2227,7 +2228,8 @@ double_lap_stub_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
-    - "neck = 0.5"
+    - "carrier_wide = 36"
+    - "neck = 0.6"
     - "thickness = 0.25"
     - "tine = 0.6666666666666666"
     - "depth = 0.4"
@@ -2330,6 +2332,8 @@ lap_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
+    - "carrier_wide = 45"
+    - "member_shift = 15"
     - "neck = 0.5"
     - "thickness = 0.5"
     - "tine = 0.6666666666666666"
@@ -2363,6 +2367,8 @@ lap_stub_tenon:
   family: "t"
   corners: "square inclined"
   parameters:
+    - "carrier_wide = 45"
+    - "member_shift = 15"
     - "neck = 0.5"
     - "thickness = 0.5"
     - "tine = 0.6666666666666666"

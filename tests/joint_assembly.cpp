@@ -189,6 +189,8 @@ static void library() {
         // where the uncut members overlapped, every bit of wood ends in one of them or a part, or in an open share: no slot or mortise cut too deep
         double overlapping = 0.0;
         double gap = 0.0;
+        // a hole where three members overlapped (two slats in a post) is one hole: each pair's gap leaves out the ones counted before
+        std::vector<Mesh> counted;
         for (size_t i = 0; i < members.size(); i++)
             for (size_t j = i + 1; j < members.size(); j++) {
                 Mesh overlap = solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect);
@@ -199,7 +201,12 @@ static void library() {
                     overlap = solid_boolean(overlap, each->model_geometry_mesh(), SolidOperation::subtract);
                 for (const std::shared_ptr<JointConnectorPartElement>& part : scene.get_elements<JointConnectorPartElement>())
                     overlap = solid_boolean(overlap, part->model_geometry_mesh(), SolidOperation::subtract);
-                gap += overlap.number_of_faces() == 0 ? 0.0 : compute_volume(overlap);
+                for (const Mesh& before : counted)
+                    overlap = solid_boolean(overlap, before, SolidOperation::subtract);
+                if (overlap.number_of_faces() == 0)
+                    continue;
+                gap += compute_volume(overlap);
+                counted.push_back(overlap);
             }
         check(gap < 0.01 * overlapping + open + 1.0, fmt::format("library: {} at {} leaves {} of the {} mm3 the members overlapped in none", design, angle, gap, overlapping));
 
@@ -218,7 +225,9 @@ static void library() {
                 check(shared(*part, *each) < 1.0, fmt::format("library: {} at {}, its {} shares {} mm3 with {}", design, angle, part->name, shared(*part, *each), each->name));
         // a sealed record (a foxtail-wedged tenon) is locked for good once its wedges are driven: it need not come apart; nor one
         // whose record names moves, a piece going in by two straight moves where the sequence takes one per piece
-        const AssemblySequence sequence(scene, carrier->name);
+        // the member that stays: the carrier, or the one the record's base names by letter (a post the slats go into)
+        const std::string base = record.fields.count("base") ? members[static_cast<size_t>(record.fields.at("base")[0] - 'a')]->name : carrier->name;
+        const AssemblySequence sequence(scene, base);
         const bool sealed = (record.fields.count("sealed") && record.fields.at("sealed") == "true") || record.fields.count("moves");
         check(sealed || (sequence.locked().empty() && sequence.steps().size() == members.size() + joint->parts.size()), fmt::format("library: {} at {} does not come apart\n{}", design, angle, sequence.str()));
         }

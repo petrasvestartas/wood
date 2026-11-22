@@ -81,3 +81,11 @@ A way in can now be a path: `insertions: "v; m1; m2"` approaches along v, then m
 and AssemblySequence sweeps a member back along those moves before sliding it out, so such a joint is checked for real
 (pp. 400, 572: into a keyhole mortise in the side face, then along the beam into the undercut). Turns (Chidori, p. 730) are
 not paths yet.
+
+## 6. Member sizes (2026-11-22)
+
+A review of every sheet for members the book draws at different sizes flagged 24 joints, now fixed: thin slats in a through
+post (pp. 736-742, the post as the base with `base: c`), narrower beams under a wider post (pp. 554 with the tines outside the
+beam, 560/562 flush with one post face by `member_shift`), battens on edge (pp. 788/790), breadboards as thick as the board
+(pp. 804-812), and edge and end boards about half as wide (pp. 768-786, 794-798). The joint test counts an empty region shared
+by three members once (two slats in a post).

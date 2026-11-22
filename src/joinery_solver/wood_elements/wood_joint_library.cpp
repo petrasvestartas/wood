@@ -239,6 +239,8 @@ LibraryRecord library_record(const std::string& design) {
                 record.fields["sealed"] = unquoted(line.substr(9));
             if (line.starts_with("  moves:"))
                 record.fields["moves"] = unquoted(line.substr(8));
+            if (line.starts_with("  base:"))
+                record.fields["base"] = unquoted(line.substr(7));
             if (line.starts_with("  ") && !line.starts_with("    "))
                 in_more = line.starts_with("  more:");
             else if (in_more && line.starts_with("    - "))
@@ -346,6 +348,7 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     double length = 300.0;
     bool upright = false;
     double member_turn = 0.0;
+    double member_shift = 0.0;
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         if (unquoted(line.substr(0, line.find('='))) == "beam_length")
             length = std::stod(line.substr(line.find('=') + 1));
@@ -353,7 +356,14 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
             upright = std::stod(line.substr(line.find('=') + 1)) > 0.5;
         if (unquoted(line.substr(0, line.find('='))) == "member_turn")
             member_turn = std::stod(line.substr(line.find('=') + 1));
+        if (unquoted(line.substr(0, line.find('='))) == "member_shift")
+            member_shift = std::stod(line.substr(line.find('=') + 1));
     }
+
+    // member_shift moves the member alone across the joint (along y, the w of a corner or T), in mm: a post wider than its beam,
+    // flush with one face
+    if (member_shift != 0.0)
+        members[0] = members[0]->transformed(Xform::translation(0.0, member_shift, 0.0));
 
     // member_turn turns the member alone about its own axis, in degrees (a post set diagonally under a square beam)
     if (member_turn != 0.0) {
