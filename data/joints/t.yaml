@@ -23,6 +23,7 @@
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
+#   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
@@ -2078,23 +2079,26 @@ diagonally_cut_t_bridle:
   family: "t"
   corners: "square"
   parameters:
-    - "neck = 0.5"
+    - "member_turn = 45"
+    - "neck = 0.37"
   points:
     - "S = O + n"
-    - "D = unit(ah*w - aw*p)"
+    - "VP = O + 1.41421356*ah*w"
+    - "VN = O - 1.41421356*ah*w"
   planes:
     - "end = O - 2*bh*n, n, O"
     - "shoulder = O, n, S"
-    - "slot_1 = O + neck*aw*D, D, O + aw*D"
-    - "slot_2 = O - neck*aw*D, D, O - aw*D"
-    - "tine_1 = O + neck*aw*D, D, O"
-    - "tine_2 = O - neck*aw*D, D, O"
-    - "side_1 = O + ah*p, p, O"
-    - "side_2 = O - ah*p, p, O"
+    - "sw1 = O + neck*aw*w, w, O"
+    - "sw2 = O - neck*aw*w, w, O"
+    - "d1 = VP, p + w, O"
+    - "d2 = VP, w - p, O"
+    - "d3 = VN, -p - w, O"
+    - "d4 = VN, p - w, O"
   parts:
   steps:
-    - "A2 a_end end; a_end shoulder slot_1 slot_2"
-    - "B2 b_node tine_1 -side_1 -side_2; b_node tine_2 -side_1 -side_2"
+    - "A2 a_all end"
+    - "A3 a_all shoulder -sw1 -sw2"
+    - "B2 b_node -d1 -d2 -d3 -d4 sw1; b_node -d1 -d2 -d3 -d4 sw2"
   insertions:
     - "-u"
 

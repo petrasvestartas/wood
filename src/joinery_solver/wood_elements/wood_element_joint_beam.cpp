@@ -2775,7 +2775,11 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const Vector w = n.cross(t).normalized();
         const Vector p = w.cross(u).normalized();
         const size_t j = std::abs(a_section.first[0].dot(w)) >= std::abs(a_section.first[1].dot(w)) ? 0 : 1;
-        if (std::abs(a_section.first[j].dot(w)) < 0.95)
+        // a record's member_turn turns a's square section on purpose (a post set diagonally under a beam)
+        bool member_turned = false;
+        for (const std::string& line : record.lists["parameters"])
+            member_turned = member_turned || split_top(line, '=')[0] == "member_turn";
+        if (!member_turned && std::abs(a_section.first[j].dot(w)) < 0.95)
             throw std::invalid_argument(fmt::format("{}: the section of {} is turned against {}", design, a.name, b.name));
 
         // sizes: half of a across and along the lean, half of b's depth, its width across the joint and along the lean

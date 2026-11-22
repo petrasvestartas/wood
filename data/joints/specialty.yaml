@@ -27,6 +27,7 @@
 #   moves       how a piece goes in by two straight moves (in along the slot, then down onto the other), written out; the
 #               assembly check takes one straight move per piece, so such a record is not taken apart.
 #   upright     (a parameter) stands the joint up a quarter turn about x: more members along y become posts.
+#   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;

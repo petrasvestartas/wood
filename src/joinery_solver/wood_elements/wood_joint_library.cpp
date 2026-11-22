@@ -345,11 +345,20 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     const LibraryRecord record = library_record(design);
     double length = 300.0;
     bool upright = false;
+    double member_turn = 0.0;
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
         if (unquoted(line.substr(0, line.find('='))) == "beam_length")
             length = std::stod(line.substr(line.find('=') + 1));
         if (unquoted(line.substr(0, line.find('='))) == "upright")
             upright = std::stod(line.substr(line.find('=') + 1)) > 0.5;
+        if (unquoted(line.substr(0, line.find('='))) == "member_turn")
+            member_turn = std::stod(line.substr(line.find('=') + 1));
+    }
+
+    // member_turn turns the member alone about its own axis, in degrees (a post set diagonally under a square beam)
+    if (member_turn != 0.0) {
+        const Line axis = Line::from_points(members[0]->axis.get_point(0), members[0]->axis.get_point(1));
+        members[0] = members[0]->transformed(Xform::rotation_around_line(axis, member_turn, true));
     }
     for (const std::string& line : record.lists.count("more") ? record.lists.at("more") : std::vector<std::string>()) {
         const size_t equals = line.find('=');
