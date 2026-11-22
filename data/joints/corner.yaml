@@ -1875,7 +1875,7 @@ wedged_haunched_through_tenon_corner:
     - "thickness = 0.3333333333333333"
     - "haunch = 0.3"
     - "haunch_width = 0.35"
-    - "key_thick = 0.1"
+    - "key_thick = 0.03"
     - "key_wide = 0.22"
     - "key_narrow = 0.15"
   points:
@@ -1890,7 +1890,7 @@ wedged_haunched_through_tenon_corner:
     - "tenon_edge = O + (1 - 2*haunch_width)*ah*p, p, O - ah*p"
     - "haunch_floor = O - 2*haunch*bh*n, n, O"
   parts:
-    - "key = C + 1.4*aw*w, C - 1.4*aw*w, n, key_thick*2*bh, key_wide*ah, key_narrow*ah"
+    - "key = C + 1.15*aw*w, C - 1.15*aw*w, n, key_thick*2*bh, key_wide*ah, key_narrow*ah"
   steps:
     - "A2 a_end bottom"
     - "A3 a_end shoulder layer_1; a_end shoulder layer_2; a_end shoulder -layer_1 -layer_2 tenon_edge haunch_floor"
