@@ -1,0 +1,21 @@
+# Plate joints where two plates cross through each other (the cross family, ids 30-39), read as the in-plane records
+# are (see side_side_inplane.yaml).
+
+cross_slot:
+  id: "30"
+  parameters:
+    - "s = 1.0"
+  outlines:
+    - "female 0 = -0.5, 0.5, s; -0.5, -0.5, s; -0.5, -0.5, 0; -0.5, 0.5, 0; -0.5, 0.5, s"
+    - "female 0 = -0.5, 0.5, s; -0.5, -0.5, s; -0.5, -0.5, 0; -0.5, 0.5, 0; -0.5, 0.5, s"
+    - "female 1 = 0.5, 0.5, s; 0.5, -0.5, s; 0.5, -0.5, 0; 0.5, 0.5, 0; 0.5, 0.5, s"
+    - "female 1 = 0.5, 0.5, s; 0.5, -0.5, s; 0.5, -0.5, 0; 0.5, 0.5, 0; 0.5, 0.5, s"
+    - "male 0 = 0.5, 0.5, -s; -0.5, 0.5, -s; -0.5, 0.5, 0; 0.5, 0.5, 0; 0.5, 0.5, -s"
+    - "male 0 = 0.5, 0.5, -s; -0.5, 0.5, -s; -0.5, 0.5, 0; 0.5, 0.5, 0; 0.5, 0.5, -s"
+    - "male 1 = 0.5, -0.5, -s; -0.5, -0.5, -s; -0.5, -0.5, 0; 0.5, -0.5, 0; 0.5, -0.5, -s"
+    - "male 1 = 0.5, -0.5, -s; -0.5, -0.5, -s; -0.5, -0.5, 0; 0.5, -0.5, 0; 0.5, -0.5, -s"
+  types:
+    - "female 0 = insert_between_multiple_edges, insert_between_multiple_edges"
+    - "female 1 = insert_between_multiple_edges, insert_between_multiple_edges"
+    - "male 0 = insert_between_multiple_edges, insert_between_multiple_edges"
+    - "male 1 = insert_between_multiple_edges, insert_between_multiple_edges"

@@ -28,6 +28,7 @@ static const std::string PASSING_FILE = GOLDEN_DIR + "/passing.txt";
 /// Every design of the library with its default and a non-default parameter set: "family/library/parameters...".
 static const std::vector<std::string> VARIANTS = {
     "ip/side_side_inplane_three_fingers",
+    "ip/side_side_inplane_cross_splayed_scarf",
     "ip/side_side_inplane_dovetails",
     "ip/side_side_inplane_dovetails/8/0.5",
     "ip/side_side_inplane_dovetails/4/0.0",
@@ -57,6 +58,7 @@ static const std::vector<std::string> VARIANTS = {
     "op/side_side_outplane_linked_tenons/8/1",
     "op/side_side_outplane_capped_fingers/4",
     "op/side_side_outplane_notch",
+    "op/side_side_outplane_miter_tenon",
     "op/side_side_outplane_custom",
     "op/side_removal/1/0.5",
     "ts/top_side_three_tenons",

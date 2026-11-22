@@ -113,11 +113,13 @@ cr@45/cross_half_lap_diagonal_drills
 cr@45/cross_half_lap_drill
 cr@45/cross_brussels_half_lap
 ip@trapezoid/side_side_inplane_three_fingers
+ip@trapezoid/side_side_inplane_cross_splayed_scarf
 ip@trapezoid/side_side_inplane_dovetails
 ip@trapezoid/side_side_inplane_butterfly_keys
 ip@trapezoid/side_side_inplane_splayed_scarf
 ip@trapezoid/side_side_inplane_tooth_keys
 ip@short/side_side_inplane_three_fingers
+ip@short/side_side_inplane_cross_splayed_scarf
 ip@short/side_side_inplane_dovetails
 ip@short/side_side_inplane_butterfly_keys
 ip@short/side_side_inplane_splayed_scarf

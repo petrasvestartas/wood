@@ -15,26 +15,21 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 // side_side_inplane: side-side in-plane, type 12
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/side_side_inplane_splayed_scarf.h"
-#include "wood_interaction_feature_plate_joints/side_side_inplane_cross_splayed_scarf.h"
 #include "wood_interaction_feature_plate_joints/side_side_inplane_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // side_side_outplane: side-side out-of-plane, type 11 (side_side_outplane_linked_tenons calls side_side_outplane_tenons, side_side_outplane_linked_tenons_wall calls side_side_outplane_linked_tenons)
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/side_side_outplane_miter_tenon.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_capped_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_annen_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_custom.h"
-#include "wood_interaction_feature_plate_joints/side_side_outplane_notch.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // top_side: top-side, type 20
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/top_side_three_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_annen_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_annen_shifted_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_dense_tenons.h"
@@ -59,7 +54,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 // cross: cross in-plane, type 30
 // ═══════════════════════════════════════════════════════════════════════════
-#include "wood_interaction_feature_plate_joints/cross_slot.h"
 #include "wood_interaction_feature_plate_joints/cross_sliced_half_lap.h"
 #include "wood_interaction_feature_plate_joints/cross_core.h"
 #include "wood_interaction_feature_plate_joints/cross_half_lap.h"

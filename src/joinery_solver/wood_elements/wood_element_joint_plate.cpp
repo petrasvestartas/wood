@@ -122,7 +122,10 @@ static FabricationType fabrication_named(const std::string& name) {
     static const std::map<std::string, FabricationType> NAMES = {
         {"nothing", FabricationType::nothing}, {"hole", FabricationType::hole}, {"edge_insertion", FabricationType::edge_insertion},
         {"insert_between_multiple_edges", FabricationType::insert_between_multiple_edges}, {"slice", FabricationType::slice},
-        {"mill", FabricationType::mill}, {"mill_project", FabricationType::mill_project}, {"cut", FabricationType::cut},
+        {"slice_projectsheer", FabricationType::slice_projectsheer}, {"mill", FabricationType::mill},
+        {"mill_project", FabricationType::mill_project}, {"mill_projectsheer", FabricationType::mill_projectsheer},
+        {"cut", FabricationType::cut}, {"cut_project", FabricationType::cut_project}, {"cut_projectsheer", FabricationType::cut_projectsheer},
+        {"cut_reverse", FabricationType::cut_reverse}, {"conic", FabricationType::conic}, {"conic_reverse", FabricationType::conic_reverse},
         {"drill", FabricationType::drill}, {"drill_50", FabricationType::drill_50}, {"drill_10", FabricationType::drill_10},
     };
     const std::map<std::string, FabricationType>::const_iterator found = NAMES.find(name);
@@ -313,10 +316,10 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
         plate_from_library("side_side_inplane_butterfly_keys", joint, context.elements);
         return true;
     case 4:
-        side_side_inplane_splayed_scarf(joint);
+        plate_from_library("side_side_inplane_splayed_scarf", joint, context.elements);
         return true;
     case 5:
-        side_side_inplane_cross_splayed_scarf(joint);
+        plate_from_library("side_side_inplane_cross_splayed_scarf", joint, context.elements);
         return true;
     case 6:
         plate_from_library("side_side_inplane_tooth_keys", joint, context.elements);
@@ -348,7 +351,7 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
         plate_from_library("side_side_outplane_three_fingers", joint, context.elements);
         return true;
     case 13:
-        side_side_outplane_miter_tenon(joint);
+        plate_from_library("side_side_outplane_miter_tenon", joint, context.elements);
         return true;
     case 14:
         side_side_outplane_tenons(joint);
@@ -414,7 +417,7 @@ static bool build_cross(const int id, InteractionFeaturePlate& joint, BuildConte
 
     switch (id) {
     case 30:
-        cross_slot(joint);
+        plate_from_library("cross_slot", joint, context.elements);
         return true;
     case 31:
         cross_sliced_half_lap(joint);
@@ -545,7 +548,7 @@ void build_family_default(const int family, InteractionFeaturePlate& joint, Buil
         top_side_tenons(joint);
         return;
     case 3:
-        cross_slot(joint);
+        plate_from_library("cross_slot", joint, context.elements);
         return;
     case 4:
         top_top_centre_pin(joint, context.elements);
@@ -1868,9 +1871,9 @@ bool JointPlateElement::compute_side_side_inplane(
     else if (parameters.library == "side_side_inplane_butterfly_keys")
         plate_from_library("side_side_inplane_butterfly_keys", connection, elements);
     else if (parameters.library == "side_side_inplane_splayed_scarf")
-        ::side_side_inplane_splayed_scarf(connection);
+        plate_from_library("side_side_inplane_splayed_scarf", connection, elements);
     else if (parameters.library == "side_side_inplane_cross_splayed_scarf")
-        ::side_side_inplane_cross_splayed_scarf(connection);
+        plate_from_library("side_side_inplane_cross_splayed_scarf", connection, elements);
     else if (parameters.library == "side_side_inplane_tooth_keys")
         plate_from_library("side_side_inplane_tooth_keys", connection, elements);
     else if (parameters.library == "side_side_inplane_custom")
@@ -2026,7 +2029,7 @@ bool JointPlateElement::compute_side_side_outplane(
     else if (parameters.library == "side_side_outplane_graded_fingers")
         plate_from_library("side_side_outplane_graded_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_miter_tenon")
-        ::side_side_outplane_miter_tenon(connection);
+        plate_from_library("side_side_outplane_miter_tenon", connection, elements);
     else if (parameters.library == "side_side_outplane_tenons")
         ::side_side_outplane_tenons(
             connection,
@@ -2051,7 +2054,7 @@ bool JointPlateElement::compute_side_side_outplane(
     else if (parameters.library == "side_side_outplane_capped_fingers")
         ::side_side_outplane_capped_fingers(connection);
     else if (parameters.library == "side_side_outplane_notch")
-        ::side_side_outplane_notch(connection);
+        plate_from_library("side_side_outplane_notch", connection, elements);
     else if (parameters.library == "side_side_outplane_custom")
         ::side_side_outplane_custom(connection, settings);
     else
@@ -2151,7 +2154,7 @@ bool JointPlateElement::compute_top_side(
 ) const {
 
     if (parameters.library == "top_side_three_tenons")
-        ::top_side_three_tenons(connection);
+        plate_from_library("top_side_three_tenons", connection, elements);
     else if (parameters.library == "top_side_annen_tenons")
         ::top_side_annen_tenons(connection, elements, connections);
     else if (parameters.library == "top_side_annen_shifted_tenons")
@@ -2360,7 +2363,7 @@ bool JointPlateElement::compute_cross(
 ) const {
 
     if (parameters.library == "cross_slot")
-        ::cross_slot(connection);
+        plate_from_library("cross_slot", connection, {});
     else if (parameters.library == "cross_sliced_half_lap")
         ::cross_sliced_half_lap(connection);
     else if (parameters.library == "cross_half_lap")
