@@ -71,7 +71,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Spear point cogged lap joint with folding wedges**, p. 80 | | |
 |  | ![](joint_library/beam_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_folding_wedges_splice.png) |
 | **Undersquinted spear point cogged lap joint with folding wedges**, p. 82 | | |
-|  | ![](joint_library/beam_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) |
+| ![](joint_library/beam_undersquinted_spear_point_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) |
 | **Half lap joint with floating piece**, p. 84 | | |
 |  | ![](joint_library/beam_half_lap_floating_piece_splice.png) | ![](joint_library/tile_half_lap_floating_piece_splice.png) |
 | **Undersquinted half lap joint with floating piece**, p. 86 | | |
@@ -79,17 +79,17 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Cogged lap joint with floating tenoned piece**, p. 88 | | |
 |  | ![](joint_library/beam_cogged_lap_floating_tenoned_piece_splice.png) | ![](joint_library/tile_cogged_lap_floating_tenoned_piece_splice.png) |
 | **Cogged lap joint with floating piece**, p. 90 | | |
-|  | ![](joint_library/beam_cogged_lap_floating_piece_splice.png) | ![](joint_library/tile_cogged_lap_floating_piece_splice.png) |
+| ![](joint_library/beam_cogged_lap_floating_piece_splice.gif) | ![](joint_library/beam_cogged_lap_floating_piece_splice.png) | ![](joint_library/tile_cogged_lap_floating_piece_splice.png) |
 | **Cogged lap joint with floating piece and folding wedges**, p. 92 | | |
-|  | ![](joint_library/beam_cogged_lap_floating_piece_folding_wedges_splice.png) | ![](joint_library/tile_cogged_lap_floating_piece_folding_wedges_splice.png) |
+| ![](joint_library/beam_cogged_lap_floating_piece_folding_wedges_splice.gif) | ![](joint_library/beam_cogged_lap_floating_piece_folding_wedges_splice.png) | ![](joint_library/tile_cogged_lap_floating_piece_folding_wedges_splice.png) |
 | **Undersquinted cogged lap joint with floating piece and folding wedges**, p. 94 | | |
-|  | ![](joint_library/beam_undersquinted_cogged_lap_floating_piece_wedges_splice.png) | ![](joint_library/tile_undersquinted_cogged_lap_floating_piece_wedges_splice.png) |
+| ![](joint_library/beam_undersquinted_cogged_lap_floating_piece_wedges_splice.gif) | ![](joint_library/beam_undersquinted_cogged_lap_floating_piece_wedges_splice.png) | ![](joint_library/tile_undersquinted_cogged_lap_floating_piece_wedges_splice.png) |
 | **Stepped cogged lap joint with floating piece**, p. 96 | | |
-|  | ![](joint_library/beam_stepped_cogged_lap_floating_piece_splice.png) | ![](joint_library/tile_stepped_cogged_lap_floating_piece_splice.png) |
+| ![](joint_library/beam_stepped_cogged_lap_floating_piece_splice.gif) | ![](joint_library/beam_stepped_cogged_lap_floating_piece_splice.png) | ![](joint_library/tile_stepped_cogged_lap_floating_piece_splice.png) |
 | **Stepped cogged lap joint with floating piece and folding wedges**, p. 98 | | |
-|  | ![](joint_library/beam_stepped_cogged_lap_floating_piece_folding_wedges_splice.png) | ![](joint_library/tile_stepped_cogged_lap_floating_piece_folding_wedges_splice.png) |
+| ![](joint_library/beam_stepped_cogged_lap_floating_piece_folding_wedges_splice.gif) | ![](joint_library/beam_stepped_cogged_lap_floating_piece_folding_wedges_splice.png) | ![](joint_library/tile_stepped_cogged_lap_floating_piece_folding_wedges_splice.png) |
 | **Undersquinted stepped cogged lap joint with floating piece and folding wedges**, p. 100 | | |
-|  | ![](joint_library/beam_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.png) | ![](joint_library/tile_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.png) |
+| ![](joint_library/beam_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.gif) | ![](joint_library/beam_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.png) | ![](joint_library/tile_undersquinted_stepped_cogged_lap_floating_piece_wedges_splice.png) |
 | **Triple-cogged lap joint**, p. 102 | | |
 |  | ![](joint_library/beam_triple_cogged_lap_splice.png) | ![](joint_library/tile_triple_cogged_lap_splice.png) |
 | **Rabbeted half lap joint**, p. 104 | | |
@@ -133,7 +133,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Rabbeted stop-splayed cogged scarf joint with folding wedges**, p. 142 | | |
 |  | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) |
 | **Rabbeted stop-splayed cogged scarf joint with stub tenons and folding wedges**, p. 144 | | |
-|  | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) |
+| ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.gif) | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) |
 | **Pegged rabbeted stop-splayed sloped cogged scarf joint**, p. 146 | | |
 | ![](joint_library/beam_pegged_rabbeted_stop_splayed_sloped_cogged_scarf.gif) | ![](joint_library/beam_pegged_rabbeted_stop_splayed_sloped_cogged_scarf.png) | ![](joint_library/tile_pegged_rabbeted_stop_splayed_sloped_cogged_scarf.png) |
 | **Pegged rabbeted notched stop-splayed cogged scarf joint**, p. 148 | | |
@@ -153,9 +153,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Halved splayed scarf joint**, p. 162 | | |
 | ![](joint_library/beam_halved_splayed_scarf.gif) | ![](joint_library/beam_halved_splayed_scarf.png) | ![](joint_library/tile_halved_splayed_scarf.png) |
 | **Halved splayed rabbeted scarf joint with tapered key**, p. 164 | | |
-|  | ![](joint_library/beam_halved_splayed_rabbeted_scarf_key.png) | ![](joint_library/tile_halved_splayed_rabbeted_scarf_key.png) |
+| ![](joint_library/beam_halved_splayed_rabbeted_scarf_key.gif) | ![](joint_library/beam_halved_splayed_rabbeted_scarf_key.png) | ![](joint_library/tile_halved_splayed_rabbeted_scarf_key.png) |
 | **Halved splayed scarf joint with oblique mating surfaces and tapered key**, p. 166 | | |
-|  | ![](joint_library/beam_halved_splayed_scarf_oblique_key.png) | ![](joint_library/tile_halved_splayed_scarf_oblique_key.png) |
+| ![](joint_library/beam_halved_splayed_scarf_oblique_key.gif) | ![](joint_library/beam_halved_splayed_scarf_oblique_key.png) | ![](joint_library/tile_halved_splayed_scarf_oblique_key.png) |
 | **Birdsmouth**, p. 168 | | |
 |  | ![](joint_library/beam_birdsmouth_splice.png) | ![](joint_library/tile_birdsmouth_splice.png) |
 | **Diagonally cut birdsmouth**, p. 170 | | |
@@ -175,17 +175,17 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Mortise and tenon with V-ends and undercut shoulders**, p. 184 | | |
 | ![](joint_library/beam_v_end_undercut_tenon_splice.gif) | ![](joint_library/beam_v_end_undercut_tenon_splice.png) | ![](joint_library/tile_v_end_undercut_tenon_splice.png) |
 | **Pegged mortise and tenon with undercut shoulders**, p. 186 | | |
-|  | ![](joint_library/beam_pegged_undercut_tenon_splice.png) | ![](joint_library/tile_pegged_undercut_tenon_splice.png) |
+| ![](joint_library/beam_pegged_undercut_tenon_splice.gif) | ![](joint_library/beam_pegged_undercut_tenon_splice.png) | ![](joint_library/tile_pegged_undercut_tenon_splice.png) |
 | **Spear point mortise and tenon with beveled shoulders**, p. 188 | | |
-|  | ![](joint_library/beam_spear_point_beveled_tenon_splice.png) | ![](joint_library/tile_spear_point_beveled_tenon_splice.png) |
+| ![](joint_library/beam_spear_point_beveled_tenon_splice.gif) | ![](joint_library/beam_spear_point_beveled_tenon_splice.png) | ![](joint_library/tile_spear_point_beveled_tenon_splice.png) |
 | **Pegged spear point mortise and tenon with V-shaped shoulders**, p. 190 | | |
-|  | ![](joint_library/beam_pegged_spear_point_v_shoulder_tenon_splice.png) | ![](joint_library/tile_pegged_spear_point_v_shoulder_tenon_splice.png) |
+| ![](joint_library/beam_pegged_spear_point_v_shoulder_tenon_splice.gif) | ![](joint_library/beam_pegged_spear_point_v_shoulder_tenon_splice.png) | ![](joint_library/tile_pegged_spear_point_v_shoulder_tenon_splice.png) |
 | **Pegged rabbeted mortise and tenon joint**, p. 192 | | |
 | ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.gif) | ![](joint_library/beam_pegged_rabbeted_mortise_tenon_splice.png) | ![](joint_library/tile_pegged_rabbeted_mortise_tenon_splice.png) |
 | **Rabbeted rod tenon joint with tapered keys**, p. 194 | | |
-|  | ![](joint_library/beam_rabbeted_rod_tenon_tapered_keys_splice.png) | ![](joint_library/tile_rabbeted_rod_tenon_tapered_keys_splice.png) |
+| ![](joint_library/beam_rabbeted_rod_tenon_tapered_keys_splice.gif) | ![](joint_library/beam_rabbeted_rod_tenon_tapered_keys_splice.png) | ![](joint_library/tile_rabbeted_rod_tenon_tapered_keys_splice.png) |
 | **Rod joint with two half rods and tapered keys**, p. 196 | | |
-|  | ![](joint_library/beam_two_half_rods_tapered_keys_splice.png) | ![](joint_library/tile_two_half_rods_tapered_keys_splice.png) |
+| ![](joint_library/beam_two_half_rods_tapered_keys_splice.gif) | ![](joint_library/beam_two_half_rods_tapered_keys_splice.png) | ![](joint_library/tile_two_half_rods_tapered_keys_splice.png) |
 | **Double tenon joint**, p. 198 | | |
 |  | ![](joint_library/beam_double_tenon_splice.png) | ![](joint_library/tile_double_tenon_splice.png) |
 | **Half-blind double tenon joint**, p. 200 | | |
@@ -203,7 +203,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **X-shaped tenon joint**, p. 212 | | |
 |  | ![](joint_library/beam_x_shaped_tenon_splice.png) | ![](joint_library/tile_x_shaped_tenon_splice.png) |
 | **Double mortise and stub tenon joint**, p. 214 | | |
-|  | ![](joint_library/beam_double_mortise_stub_tenon_splice.png) | ![](joint_library/tile_double_mortise_stub_tenon_splice.png) |
+| ![](joint_library/beam_double_mortise_stub_tenon_splice.gif) | ![](joint_library/beam_double_mortise_stub_tenon_splice.png) | ![](joint_library/tile_double_mortise_stub_tenon_splice.png) |
 | **Cross-shaped stub tenon joint**, p. 216 | | |
 |  | ![](joint_library/beam_cross_shaped_stub_tenon_splice.png) | ![](joint_library/tile_cross_shaped_stub_tenon_splice.png) |
 | **Spear point cross-shaped stub tenon joint with undercut shoulders**, p. 218 | | |
@@ -241,13 +241,13 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Lapped gooseneck joint with stub tenon**, p. 250 | | |
 |  | ![](joint_library/beam_lapped_gooseneck_stub_tenon_splice.png) | ![](joint_library/tile_lapped_gooseneck_stub_tenon_splice.png) |
 | **Haunched gooseneck tenon with stub tenons**, p. 252 | | |
-|  | ![](joint_library/beam_haunched_gooseneck_stub_tenons_splice.png) | ![](joint_library/tile_haunched_gooseneck_stub_tenons_splice.png) |
+| ![](joint_library/beam_haunched_gooseneck_stub_tenons_splice.gif) | ![](joint_library/beam_haunched_gooseneck_stub_tenons_splice.png) | ![](joint_library/tile_haunched_gooseneck_stub_tenons_splice.png) |
 | **Rabbeted gooseneck joint with barb**, p. 254 | | |
 |  | ![](joint_library/beam_rabbeted_gooseneck_barb_splice.png) | ![](joint_library/tile_rabbeted_gooseneck_barb_splice.png) |
 | **Butt joint with floating gooseneck tenon**, p. 256 | | |
-|  | ![](joint_library/beam_butt_floating_gooseneck_tenon_splice.png) | ![](joint_library/tile_butt_floating_gooseneck_tenon_splice.png) |
+| ![](joint_library/beam_butt_floating_gooseneck_tenon_splice.gif) | ![](joint_library/beam_butt_floating_gooseneck_tenon_splice.png) | ![](joint_library/tile_butt_floating_gooseneck_tenon_splice.png) |
 | **Butt joint with a gooseneck key and stub tenons**, p. 258 | | |
-|  | ![](joint_library/beam_butt_gooseneck_key_stub_tenons_splice.png) | ![](joint_library/tile_butt_gooseneck_key_stub_tenons_splice.png) |
+| ![](joint_library/beam_butt_gooseneck_key_stub_tenons_splice.gif) | ![](joint_library/beam_butt_gooseneck_key_stub_tenons_splice.png) | ![](joint_library/tile_butt_gooseneck_key_stub_tenons_splice.png) |
 | **Four-faced gooseneck joint**, p. 260 | | |
 |  | ![](joint_library/beam_four_faced_gooseneck_splice.png) | ![](joint_library/tile_four_faced_gooseneck_splice.png) |
 | **Corner lap joint**, p. 262 | | |
@@ -311,7 +311,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Blind bridle joint**, p. 320 | | |
 | ![](joint_library/beam_blind_bridle_corner.gif) | ![](joint_library/beam_blind_bridle_corner.png) | ![](joint_library/tile_blind_bridle_corner.png) |
 | **Blind dovetail tenon**, p. 322 | | |
-|  | ![](joint_library/beam_blind_dovetail_tenon_corner.png) | ![](joint_library/tile_blind_dovetail_tenon_corner.png) |
+| ![](joint_library/beam_blind_dovetail_tenon_corner.gif) | ![](joint_library/beam_blind_dovetail_tenon_corner.png) | ![](joint_library/tile_blind_dovetail_tenon_corner.png) |
 | **Blind triple-shouldered through mortise and tenon**, p. 324 | | |
 | ![](joint_library/beam_blind_triple_shouldered_through_tenon_corner.gif) | ![](joint_library/beam_blind_triple_shouldered_through_tenon_corner.png) | ![](joint_library/tile_blind_triple_shouldered_through_tenon_corner.png) |
 | **Dado and rabbet joint**, p. 326 | | |
@@ -349,11 +349,11 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Blind dovetail miter**, p. 358 | | |
 | ![](joint_library/beam_blind_dovetail_miter.gif) | ![](joint_library/beam_blind_dovetail_miter.png) | ![](joint_library/tile_blind_dovetail_miter.png) |
 | **Stopped miter with blind dovetail tenon**, p. 360 | | |
-|  | ![](joint_library/beam_stopped_miter_blind_dovetail_tenon.png) | ![](joint_library/tile_stopped_miter_blind_dovetail_tenon.png) |
+| ![](joint_library/beam_stopped_miter_blind_dovetail_tenon.gif) | ![](joint_library/beam_stopped_miter_blind_dovetail_tenon.png) | ![](joint_library/tile_stopped_miter_blind_dovetail_tenon.png) |
 | **Bridle joint with one-sided miter**, p. 362 | | |
 | ![](joint_library/beam_bridle_one_sided_miter.gif) | ![](joint_library/beam_bridle_one_sided_miter.png) | ![](joint_library/tile_bridle_one_sided_miter.png) |
 | **Canvas stretcher**, p. 364 | | |
-|  | ![](joint_library/beam_canvas_stretcher_corner.png) | ![](joint_library/tile_canvas_stretcher_corner.png) |
+| ![](joint_library/beam_canvas_stretcher_corner.gif) | ![](joint_library/beam_canvas_stretcher_corner.png) | ![](joint_library/tile_canvas_stretcher_corner.png) |
 | **Double mortise and tenon miter**, p. 366 | | |
 | ![](joint_library/beam_double_mortise_tenon_miter.gif) | ![](joint_library/beam_double_mortise_tenon_miter.png) | ![](joint_library/tile_double_mortise_tenon_miter.png) |
 | **Double mortise and tenon with one-sided lapped miter**, p. 368 | | |
@@ -475,73 +475,73 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **V-shaped cog joint**, p. 484 | | |
 |  | ![](joint_library/beam_v_shaped_cog.png) | ![](joint_library/tile_v_shaped_cog.png) |
 | **Dovetail cog joint**, p. 486 | | |
-|  | ![](joint_library/beam_dovetail_cog.png) | ![](joint_library/tile_dovetail_cog.png) |
+| ![](joint_library/beam_dovetail_cog.gif) | ![](joint_library/beam_dovetail_cog.png) | ![](joint_library/tile_dovetail_cog.png) |
 | **Half-dovetail cog joint**, p. 488 | | |
-|  | ![](joint_library/beam_half_dovetail_cog.png) | ![](joint_library/tile_half_dovetail_cog.png) |
+| ![](joint_library/beam_half_dovetail_cog.gif) | ![](joint_library/beam_half_dovetail_cog.png) | ![](joint_library/tile_half_dovetail_cog.png) |
 | **Sloped cog joint**, p. 490 | | |
-|  | ![](joint_library/beam_sloped_cog.png) | ![](joint_library/tile_sloped_cog.png) |
+| ![](joint_library/beam_sloped_cog.gif) | ![](joint_library/beam_sloped_cog.png) | ![](joint_library/tile_sloped_cog.png) |
 | **Through mortise and tenon**, p. 492 | | |
-|  | ![](joint_library/beam_through_mortise_tenon.png) | ![](joint_library/tile_through_mortise_tenon.png) |
+| ![](joint_library/beam_through_mortise_tenon.gif) | ![](joint_library/beam_through_mortise_tenon.png) | ![](joint_library/tile_through_mortise_tenon.png) |
 | **Through mortise and tenon with housing**, p. 494 | | |
-|  | ![](joint_library/beam_through_mortise_tenon_housing.png) | ![](joint_library/tile_through_mortise_tenon_housing.png) |
+| ![](joint_library/beam_through_mortise_tenon_housing.gif) | ![](joint_library/beam_through_mortise_tenon_housing.png) | ![](joint_library/tile_through_mortise_tenon_housing.png) |
 | **Blind mortise and tenon**, p. 496 | | |
 |  | ![](joint_library/beam_blind_mortise_tenon.png) | ![](joint_library/tile_blind_mortise_tenon.png) |
 | **Tenon and chase mortise**, p. 498 | | |
-|  | ![](joint_library/beam_tenon_chase_mortise.png) | ![](joint_library/tile_tenon_chase_mortise.png) |
+| ![](joint_library/beam_tenon_chase_mortise.gif) | ![](joint_library/beam_tenon_chase_mortise.png) | ![](joint_library/tile_tenon_chase_mortise.png) |
 | **Mortise and tenon with beveled shoulders**, p. 500 | | |
-|  | ![](joint_library/beam_mortise_tenon_beveled_shoulders.png) | ![](joint_library/tile_mortise_tenon_beveled_shoulders.png) |
+| ![](joint_library/beam_mortise_tenon_beveled_shoulders.gif) | ![](joint_library/beam_mortise_tenon_beveled_shoulders.png) | ![](joint_library/tile_mortise_tenon_beveled_shoulders.png) |
 | **Mortise and tenon with mitered shoulders**, p. 502 | | |
-|  | ![](joint_library/beam_mortise_tenon_mitered_shoulders.png) | ![](joint_library/tile_mortise_tenon_mitered_shoulders.png) |
+| ![](joint_library/beam_mortise_tenon_mitered_shoulders.gif) | ![](joint_library/beam_mortise_tenon_mitered_shoulders.png) | ![](joint_library/tile_mortise_tenon_mitered_shoulders.png) |
 | **Pegged through mortise and tenon**, p. 504 | | |
-|  | ![](joint_library/beam_pegged_through_mortise_tenon.png) | ![](joint_library/tile_pegged_through_mortise_tenon.png) |
+| ![](joint_library/beam_pegged_through_mortise_tenon.gif) | ![](joint_library/beam_pegged_through_mortise_tenon.png) | ![](joint_library/tile_pegged_through_mortise_tenon.png) |
 | **Pegged blind mortise and tenon**, p. 506 | | |
-|  | ![](joint_library/beam_pegged_blind_mortise_tenon.png) | ![](joint_library/tile_pegged_blind_mortise_tenon.png) |
+| ![](joint_library/beam_pegged_blind_mortise_tenon.gif) | ![](joint_library/beam_pegged_blind_mortise_tenon.png) | ![](joint_library/tile_pegged_blind_mortise_tenon.png) |
 | **Triple-shouldered through mortise and tenon**, p. 508 | | |
-|  | ![](joint_library/beam_triple_shouldered_through_mortise_tenon.png) | ![](joint_library/tile_triple_shouldered_through_mortise_tenon.png) |
+| ![](joint_library/beam_triple_shouldered_through_mortise_tenon.gif) | ![](joint_library/beam_triple_shouldered_through_mortise_tenon.png) | ![](joint_library/tile_triple_shouldered_through_mortise_tenon.png) |
 | **Fully shouldered through mortise and tenon joint**, p. 510 | | |
-|  | ![](joint_library/beam_fully_shouldered_through_mortise_tenon.png) | ![](joint_library/tile_fully_shouldered_through_mortise_tenon.png) |
+| ![](joint_library/beam_fully_shouldered_through_mortise_tenon.gif) | ![](joint_library/beam_fully_shouldered_through_mortise_tenon.png) | ![](joint_library/tile_fully_shouldered_through_mortise_tenon.png) |
 | **Triple through mortise and tenon**, p. 512 | | |
-|  | ![](joint_library/beam_triple_through_mortise_tenon.png) | ![](joint_library/tile_triple_through_mortise_tenon.png) |
+| ![](joint_library/beam_triple_through_mortise_tenon.gif) | ![](joint_library/beam_triple_through_mortise_tenon.png) | ![](joint_library/tile_triple_through_mortise_tenon.png) |
 | **Quadruple through mortise and tenon**, p. 514 | | |
-|  | ![](joint_library/beam_quadruple_through_mortise_tenon.png) | ![](joint_library/tile_quadruple_through_mortise_tenon.png) |
+| ![](joint_library/beam_quadruple_through_mortise_tenon.gif) | ![](joint_library/beam_quadruple_through_mortise_tenon.png) | ![](joint_library/tile_quadruple_through_mortise_tenon.png) |
 | **Haunched through mortise and tenon**, p. 516 | | |
-|  | ![](joint_library/beam_haunched_through_mortise_tenon.png) | ![](joint_library/tile_haunched_through_mortise_tenon.png) |
+| ![](joint_library/beam_haunched_through_mortise_tenon.gif) | ![](joint_library/beam_haunched_through_mortise_tenon.png) | ![](joint_library/tile_haunched_through_mortise_tenon.png) |
 | **Blind haunched mortise and tenon**, p. 518 | | |
-|  | ![](joint_library/beam_blind_haunched_mortise_tenon.png) | ![](joint_library/tile_blind_haunched_mortise_tenon.png) |
+| ![](joint_library/beam_blind_haunched_mortise_tenon.gif) | ![](joint_library/beam_blind_haunched_mortise_tenon.png) | ![](joint_library/tile_blind_haunched_mortise_tenon.png) |
 | **Through mortise and tenon with sloped haunch**, p. 520 | | |
-|  | ![](joint_library/beam_through_mortise_tenon_sloped_haunch.png) | ![](joint_library/tile_through_mortise_tenon_sloped_haunch.png) |
+| ![](joint_library/beam_through_mortise_tenon_sloped_haunch.gif) | ![](joint_library/beam_through_mortise_tenon_sloped_haunch.png) | ![](joint_library/tile_through_mortise_tenon_sloped_haunch.png) |
 | **Blind housed haunched through mortise and tenon**, p. 522 | | |
-|  | ![](joint_library/beam_blind_housed_haunched_through_mortise_tenon.png) | ![](joint_library/tile_blind_housed_haunched_through_mortise_tenon.png) |
+| ![](joint_library/beam_blind_housed_haunched_through_mortise_tenon.gif) | ![](joint_library/beam_blind_housed_haunched_through_mortise_tenon.png) | ![](joint_library/tile_blind_housed_haunched_through_mortise_tenon.png) |
 | **Haunched collared through mortise and tenon**, p. 524 | | |
-|  | ![](joint_library/beam_haunched_collared_through_mortise_tenon.png) | ![](joint_library/tile_haunched_collared_through_mortise_tenon.png) |
+| ![](joint_library/beam_haunched_collared_through_mortise_tenon.gif) | ![](joint_library/beam_haunched_collared_through_mortise_tenon.png) | ![](joint_library/tile_haunched_collared_through_mortise_tenon.png) |
 | **Half-dovetail tenon with folding wedges**, p. 526 | | |
-|  | ![](joint_library/beam_half_dovetail_tenon_folding_wedges.png) | ![](joint_library/tile_half_dovetail_tenon_folding_wedges.png) |
+| ![](joint_library/beam_half_dovetail_tenon_folding_wedges.gif) | ![](joint_library/beam_half_dovetail_tenon_folding_wedges.png) | ![](joint_library/tile_half_dovetail_tenon_folding_wedges.png) |
 | **Foxtail-wedged mortise and tenon**, p. 528 | | |
-|  | ![](joint_library/beam_foxtail_wedged_mortise_tenon.png) | ![](joint_library/tile_foxtail_wedged_mortise_tenon.png) |
+| ![](joint_library/beam_foxtail_wedged_mortise_tenon.gif) | ![](joint_library/beam_foxtail_wedged_mortise_tenon.png) | ![](joint_library/tile_foxtail_wedged_mortise_tenon.png) |
 | **Wedged through mortise and tenon**, p. 530 | | |
-|  | ![](joint_library/beam_wedged_through_mortise_tenon.png) | ![](joint_library/tile_wedged_through_mortise_tenon.png) |
+| ![](joint_library/beam_wedged_through_mortise_tenon.gif) | ![](joint_library/beam_wedged_through_mortise_tenon.png) | ![](joint_library/tile_wedged_through_mortise_tenon.png) |
 | **Vertically wedged tusk tenon**, p. 532 | | |
-|  | ![](joint_library/beam_vertically_wedged_tusk_tenon.png) | ![](joint_library/tile_vertically_wedged_tusk_tenon.png) |
+| ![](joint_library/beam_vertically_wedged_tusk_tenon.gif) | ![](joint_library/beam_vertically_wedged_tusk_tenon.png) | ![](joint_library/tile_vertically_wedged_tusk_tenon.png) |
 | **Horizontally wedged tusk tenon**, p. 534 | | |
-|  | ![](joint_library/beam_horizontally_wedged_tusk_tenon.png) | ![](joint_library/tile_horizontally_wedged_tusk_tenon.png) |
+| ![](joint_library/beam_horizontally_wedged_tusk_tenon.gif) | ![](joint_library/beam_horizontally_wedged_tusk_tenon.png) | ![](joint_library/tile_horizontally_wedged_tusk_tenon.png) |
 | **Horizontally wedged double tusk tenon**, p. 536 | | |
-|  | ![](joint_library/beam_horizontally_wedged_double_tusk_tenon.png) | ![](joint_library/tile_horizontally_wedged_double_tusk_tenon.png) |
+| ![](joint_library/beam_horizontally_wedged_double_tusk_tenon.gif) | ![](joint_library/beam_horizontally_wedged_double_tusk_tenon.png) | ![](joint_library/tile_horizontally_wedged_double_tusk_tenon.png) |
 | **Right-angle joint with dovetailed spline tenon and tapered key**, p. 538 | | |
 |  | ![](joint_library/beam_right_angle_spline_tenon_tapered_key.png) | ![](joint_library/tile_right_angle_spline_tenon_tapered_key.png) |
 | **Housed right-angle joint with spline tenon, tapered keys, and peg**, p. 540 | | |
 |  | ![](joint_library/beam_housed_right_angle_spline_tenon_keys_peg.png) | ![](joint_library/tile_housed_right_angle_spline_tenon_keys_peg.png) |
 | **Double through mortise and tenon**, p. 542 | | |
-|  | ![](joint_library/beam_double_through_mortise_tenon.png) | ![](joint_library/tile_double_through_mortise_tenon.png) |
+| ![](joint_library/beam_double_through_mortise_tenon.gif) | ![](joint_library/beam_double_through_mortise_tenon.png) | ![](joint_library/tile_double_through_mortise_tenon.png) |
 | **Housed double through mortise and tenon**, p. 544 | | |
-|  | ![](joint_library/beam_housed_double_through_mortise_tenon.png) | ![](joint_library/tile_housed_double_through_mortise_tenon.png) |
+| ![](joint_library/beam_housed_double_through_mortise_tenon.gif) | ![](joint_library/beam_housed_double_through_mortise_tenon.png) | ![](joint_library/tile_housed_double_through_mortise_tenon.png) |
 | **Double mortise and tenon with mitered shoulders**, p. 546 | | |
-|  | ![](joint_library/beam_double_mortise_tenon_mitered_shoulders.png) | ![](joint_library/tile_double_mortise_tenon_mitered_shoulders.png) |
+| ![](joint_library/beam_double_mortise_tenon_mitered_shoulders.gif) | ![](joint_library/beam_double_mortise_tenon_mitered_shoulders.png) | ![](joint_library/tile_double_mortise_tenon_mitered_shoulders.png) |
 | **Wedged half-dovetailed T-bridle joint**, p. 548 | | |
-|  | ![](joint_library/beam_wedged_half_dovetailed_t_bridle.png) | ![](joint_library/tile_wedged_half_dovetailed_t_bridle.png) |
+| ![](joint_library/beam_wedged_half_dovetailed_t_bridle.gif) | ![](joint_library/beam_wedged_half_dovetailed_t_bridle.png) | ![](joint_library/tile_wedged_half_dovetailed_t_bridle.png) |
 | **T-bridle joint**, p. 550 | | |
-|  | ![](joint_library/beam_t_bridle.png) | ![](joint_library/tile_t_bridle.png) |
+| ![](joint_library/beam_t_bridle.gif) | ![](joint_library/beam_t_bridle.png) | ![](joint_library/tile_t_bridle.png) |
 | **T-bridle joint with blind mortise and tenon**, p. 552 | | |
-|  | ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | ![](joint_library/tile_t_bridle_blind_mortise_tenon.png) |
+| ![](joint_library/beam_t_bridle_blind_mortise_tenon.gif) | ![](joint_library/beam_t_bridle_blind_mortise_tenon.png) | ![](joint_library/tile_t_bridle_blind_mortise_tenon.png) |
 | **Double lap joint with stub tenon**, p. 554 | | |
 |  | ![](joint_library/beam_double_lap_stub_tenon.png) | ![](joint_library/tile_double_lap_stub_tenon.png) |
 | **Notched lap joint with tenon**, p. 556 | | |
@@ -553,13 +553,13 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Lap joint with stub tenon**, p. 562 | | |
 |  | ![](joint_library/beam_lap_stub_tenon.png) | ![](joint_library/tile_lap_stub_tenon.png) |
 | **Dovetail T-bridle joint**, p. 564 | | |
-|  | ![](joint_library/beam_dovetail_t_bridle.png) | ![](joint_library/tile_dovetail_t_bridle.png) |
+| ![](joint_library/beam_dovetail_t_bridle.gif) | ![](joint_library/beam_dovetail_t_bridle.png) | ![](joint_library/tile_dovetail_t_bridle.png) |
 | **Diagonally cut T-bridle joint**, p. 566 | | |
-|  | ![](joint_library/beam_diagonally_cut_t_bridle.png) | ![](joint_library/tile_diagonally_cut_t_bridle.png) |
+| ![](joint_library/beam_diagonally_cut_t_bridle.gif) | ![](joint_library/beam_diagonally_cut_t_bridle.png) | ![](joint_library/tile_diagonally_cut_t_bridle.png) |
 | **Rising dovetail joint**, p. 568 | | |
-|  | ![](joint_library/beam_rising_dovetail.png) | ![](joint_library/tile_rising_dovetail.png) |
+| ![](joint_library/beam_rising_dovetail.gif) | ![](joint_library/beam_rising_dovetail.png) | ![](joint_library/tile_rising_dovetail.png) |
 | **Wedged dovetail half lap joint**, p. 570 | | |
-|  | ![](joint_library/beam_wedged_dovetail_half_lap.png) | ![](joint_library/tile_wedged_dovetail_half_lap.png) |
+| ![](joint_library/beam_wedged_dovetail_half_lap.gif) | ![](joint_library/beam_wedged_dovetail_half_lap.png) | ![](joint_library/tile_wedged_dovetail_half_lap.png) |
 | **Housed dovetail joint**, p. 572 | | |
 |  | ![](joint_library/beam_housed_dovetail.png) | ![](joint_library/tile_housed_dovetail.png) |
 | **X-shaped stub tenon joint**, p. 574 | | |
@@ -635,77 +635,77 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Stopped birdsmouth rafter foot**, p. 644 | | |
 | ![](joint_library/beam_stopped_birdsmouth_rafter_foot.gif) | ![](joint_library/beam_stopped_birdsmouth_rafter_foot.png) | ![](joint_library/tile_stopped_birdsmouth_rafter_foot.png) |
 | **Cross lap joint**, p. 646 | | |
-|  | ![](joint_library/beam_cross_lap.png) | ![](joint_library/tile_cross_lap.png) |
+| ![](joint_library/beam_cross_lap.gif) | ![](joint_library/beam_cross_lap.png) | ![](joint_library/tile_cross_lap.png) |
 | **Pegged cross lap joint**, p. 648 | | |
-|  | ![](joint_library/beam_pegged_cross_lap.png) | ![](joint_library/tile_pegged_cross_lap.png) |
+| ![](joint_library/beam_pegged_cross_lap.gif) | ![](joint_library/beam_pegged_cross_lap.png) | ![](joint_library/tile_pegged_cross_lap.png) |
 | **Four-part cogged cross lap joint**, p. 650 | | |
-|  | ![](joint_library/beam_four_part_cogged_cross_lap.png) | ![](joint_library/tile_four_part_cogged_cross_lap.png) |
+| ![](joint_library/beam_four_part_cogged_cross_lap.gif) | ![](joint_library/beam_four_part_cogged_cross_lap.png) | ![](joint_library/tile_four_part_cogged_cross_lap.png) |
 | **V-mitered cross lap joint**, p. 652 | | |
-|  | ![](joint_library/beam_v_mitered_cross_lap.png) | ![](joint_library/tile_v_mitered_cross_lap.png) |
+| ![](joint_library/beam_v_mitered_cross_lap.gif) | ![](joint_library/beam_v_mitered_cross_lap.png) | ![](joint_library/tile_v_mitered_cross_lap.png) |
 | **Cross lap joint with mitered abutments**, p. 654 | | |
-|  | ![](joint_library/beam_mitered_abutments_cross_lap.png) | ![](joint_library/tile_mitered_abutments_cross_lap.png) |
+| ![](joint_library/beam_mitered_abutments_cross_lap.gif) | ![](joint_library/beam_mitered_abutments_cross_lap.png) | ![](joint_library/tile_mitered_abutments_cross_lap.png) |
 | **Stepped cross lap joint**, p. 656 | | |
-|  | ![](joint_library/beam_stepped_cross_lap.png) | ![](joint_library/tile_stepped_cross_lap.png) |
+| ![](joint_library/beam_stepped_cross_lap.gif) | ![](joint_library/beam_stepped_cross_lap.png) | ![](joint_library/tile_stepped_cross_lap.png) |
 | **Cogged cross lap joint**, p. 658 | | |
-|  | ![](joint_library/beam_cogged_cross_lap.png) | ![](joint_library/tile_cogged_cross_lap.png) |
+| ![](joint_library/beam_cogged_cross_lap.gif) | ![](joint_library/beam_cogged_cross_lap.png) | ![](joint_library/tile_cogged_cross_lap.png) |
 | **Cogged cross lap joint with stub tenons**, p. 660 | | |
-|  | ![](joint_library/beam_cogged_cross_lap_stub_tenons.png) | ![](joint_library/tile_cogged_cross_lap_stub_tenons.png) |
+| ![](joint_library/beam_cogged_cross_lap_stub_tenons.gif) | ![](joint_library/beam_cogged_cross_lap_stub_tenons.png) | ![](joint_library/tile_cogged_cross_lap_stub_tenons.png) |
 | **Cross lap joint with stub tenons**, p. 662 | | |
-|  | ![](joint_library/beam_cross_lap_stub_tenons.png) | ![](joint_library/tile_cross_lap_stub_tenons.png) |
+| ![](joint_library/beam_cross_lap_stub_tenons.gif) | ![](joint_library/beam_cross_lap_stub_tenons.png) | ![](joint_library/tile_cross_lap_stub_tenons.png) |
 | **Offset cross lap joint**, p. 664 | | |
-|  | ![](joint_library/beam_offset_cross_lap.png) | ![](joint_library/tile_offset_cross_lap.png) |
+| ![](joint_library/beam_offset_cross_lap.gif) | ![](joint_library/beam_offset_cross_lap.png) | ![](joint_library/tile_offset_cross_lap.png) |
 | **Double offset cross lap joint**, p. 666 | | |
-|  | ![](joint_library/beam_double_offset_cross_lap.png) | ![](joint_library/tile_double_offset_cross_lap.png) |
+| ![](joint_library/beam_double_offset_cross_lap.gif) | ![](joint_library/beam_double_offset_cross_lap.png) | ![](joint_library/tile_double_offset_cross_lap.png) |
 | **Triple offset cross lap joint**, p. 668 | | |
-|  | ![](joint_library/beam_triple_offset_cross_lap.png) | ![](joint_library/tile_triple_offset_cross_lap.png) |
+| ![](joint_library/beam_triple_offset_cross_lap.gif) | ![](joint_library/beam_triple_offset_cross_lap.png) | ![](joint_library/tile_triple_offset_cross_lap.png) |
 | **Dovetailed cross lap joint**, p. 670 | | |
-|  | ![](joint_library/beam_dovetailed_cross_lap.png) | ![](joint_library/tile_dovetailed_cross_lap.png) |
+| ![](joint_library/beam_dovetailed_cross_lap.gif) | ![](joint_library/beam_dovetailed_cross_lap.png) | ![](joint_library/tile_dovetailed_cross_lap.png) |
 | **Oblique notched cross lap joint**, p. 672 | | |
-|  | ![](joint_library/beam_oblique_notched_cross_lap.png) | ![](joint_library/tile_oblique_notched_cross_lap.png) |
+| ![](joint_library/beam_oblique_notched_cross_lap.gif) | ![](joint_library/beam_oblique_notched_cross_lap.png) | ![](joint_library/tile_oblique_notched_cross_lap.png) |
 | **Oblique notched heel cross lap joint**, p. 674 | | |
-|  | ![](joint_library/beam_oblique_notched_heel_cross_lap.png) | ![](joint_library/tile_oblique_notched_heel_cross_lap.png) |
+| ![](joint_library/beam_oblique_notched_heel_cross_lap.gif) | ![](joint_library/beam_oblique_notched_heel_cross_lap.png) | ![](joint_library/tile_oblique_notched_heel_cross_lap.png) |
 | **Double notched oblique cross lap joint**, p. 676 | | |
-|  | ![](joint_library/beam_double_notched_oblique_cross_lap.png) | ![](joint_library/tile_double_notched_oblique_cross_lap.png) |
+| ![](joint_library/beam_double_notched_oblique_cross_lap.gif) | ![](joint_library/beam_double_notched_oblique_cross_lap.png) | ![](joint_library/tile_double_notched_oblique_cross_lap.png) |
 | **Three-way cross lap joint**, p. 678 | | |
-|  | ![](joint_library/beam_three_way_cross_lap.png) | ![](joint_library/tile_three_way_cross_lap.png) |
+| ![](joint_library/beam_three_way_cross_lap.gif) | ![](joint_library/beam_three_way_cross_lap.png) | ![](joint_library/tile_three_way_cross_lap.png) |
 | **Joint with blind peg**, p. 680 | | |
-|  | ![](joint_library/beam_blind_pegged_cross.png) | ![](joint_library/tile_blind_pegged_cross.png) |
+| ![](joint_library/beam_blind_pegged_cross.gif) | ![](joint_library/beam_blind_pegged_cross.png) | ![](joint_library/tile_blind_pegged_cross.png) |
 | **Notch joint**, p. 682 | | |
-|  | ![](joint_library/beam_notch_cross.png) | ![](joint_library/tile_notch_cross.png) |
+| ![](joint_library/beam_notch_cross.gif) | ![](joint_library/beam_notch_cross.png) | ![](joint_library/tile_notch_cross.png) |
 | **Double notch joint**, p. 684 | | |
-|  | ![](joint_library/beam_double_notch_cross.png) | ![](joint_library/tile_double_notch_cross.png) |
+| ![](joint_library/beam_double_notch_cross.gif) | ![](joint_library/beam_double_notch_cross.png) | ![](joint_library/tile_double_notch_cross.png) |
 | **Double notch joint with blind peg**, p. 686 | | |
-|  | ![](joint_library/beam_double_notch_blind_peg_cross.png) | ![](joint_library/tile_double_notch_blind_peg_cross.png) |
+| ![](joint_library/beam_double_notch_blind_peg_cross.gif) | ![](joint_library/beam_double_notch_blind_peg_cross.png) | ![](joint_library/tile_double_notch_blind_peg_cross.png) |
 | **Double notch joint with stub tenons**, p. 688 | | |
-|  | ![](joint_library/beam_double_notch_stub_tenons_cross.png) | ![](joint_library/tile_double_notch_stub_tenons_cross.png) |
+| ![](joint_library/beam_double_notch_stub_tenons_cross.gif) | ![](joint_library/beam_double_notch_stub_tenons_cross.png) | ![](joint_library/tile_double_notch_stub_tenons_cross.png) |
 | **Oblique double notch joint**, p. 690 | | |
-|  | ![](joint_library/beam_oblique_double_notch_cross.png) | ![](joint_library/tile_oblique_double_notch_cross.png) |
+| ![](joint_library/beam_oblique_double_notch_cross.gif) | ![](joint_library/beam_oblique_double_notch_cross.png) | ![](joint_library/tile_oblique_double_notch_cross.png) |
 | **Cog joint**, p. 692 | | |
-|  | ![](joint_library/beam_cog_cross.png) | ![](joint_library/tile_cog_cross.png) |
+| ![](joint_library/beam_cog_cross.gif) | ![](joint_library/beam_cog_cross.png) | ![](joint_library/tile_cog_cross.png) |
 | **Double cog joint**, p. 694 | | |
-|  | ![](joint_library/beam_double_cog_cross.png) | ![](joint_library/tile_double_cog_cross.png) |
+| ![](joint_library/beam_double_cog_cross.gif) | ![](joint_library/beam_double_cog_cross.png) | ![](joint_library/tile_double_cog_cross.png) |
 | **Sloped cog joint**, p. 696 | | |
-|  | ![](joint_library/beam_sloped_cog_cross.png) | ![](joint_library/tile_sloped_cog_cross.png) |
+| ![](joint_library/beam_sloped_cog_cross.gif) | ![](joint_library/beam_sloped_cog_cross.png) | ![](joint_library/tile_sloped_cog_cross.png) |
 | **Sloped double cog joint**, p. 698 | | |
-|  | ![](joint_library/beam_sloped_double_cog_cross.png) | ![](joint_library/tile_sloped_double_cog_cross.png) |
+| ![](joint_library/beam_sloped_double_cog_cross.gif) | ![](joint_library/beam_sloped_double_cog_cross.png) | ![](joint_library/tile_sloped_double_cog_cross.png) |
 | **V-shaped cog joint**, p. 700 | | |
-|  | ![](joint_library/beam_v_shaped_cog_cross.png) | ![](joint_library/tile_v_shaped_cog_cross.png) |
+| ![](joint_library/beam_v_shaped_cog_cross.gif) | ![](joint_library/beam_v_shaped_cog_cross.png) | ![](joint_library/tile_v_shaped_cog_cross.png) |
 | **X-shaped cog joint**, p. 702 | | |
-|  | ![](joint_library/beam_x_shaped_cog_cross.png) | ![](joint_library/tile_x_shaped_cog_cross.png) |
+| ![](joint_library/beam_x_shaped_cog_cross.gif) | ![](joint_library/beam_x_shaped_cog_cross.png) | ![](joint_library/tile_x_shaped_cog_cross.png) |
 | **Dovetail cog joint**, p. 704 | | |
-|  | ![](joint_library/beam_dovetail_cog_cross.png) | ![](joint_library/tile_dovetail_cog_cross.png) |
+| ![](joint_library/beam_dovetail_cog_cross.gif) | ![](joint_library/beam_dovetail_cog_cross.png) | ![](joint_library/tile_dovetail_cog_cross.png) |
 | **Half-dovetail cog joint**, p. 706 | | |
-|  | ![](joint_library/beam_half_dovetail_cog_cross.png) | ![](joint_library/tile_half_dovetail_cog_cross.png) |
+| ![](joint_library/beam_half_dovetail_cog_cross.gif) | ![](joint_library/beam_half_dovetail_cog_cross.png) | ![](joint_library/tile_half_dovetail_cog_cross.png) |
 | **Post with stub tenon and mortised double cogged joint**, p. 708 | | |
-|  | ![](joint_library/beam_post_stub_tenon_double_cogged.png) | ![](joint_library/tile_post_stub_tenon_double_cogged.png) |
+| ![](joint_library/beam_post_stub_tenon_double_cogged.gif) | ![](joint_library/beam_post_stub_tenon_double_cogged.png) | ![](joint_library/tile_post_stub_tenon_double_cogged.png) |
 | **T-bridle joint with stub tenons and mortised beam**, p. 710 | | |
-|  | ![](joint_library/beam_t_bridle_stub_tenons_mortised_beam.png) | ![](joint_library/tile_t_bridle_stub_tenons_mortised_beam.png) |
+| ![](joint_library/beam_t_bridle_stub_tenons_mortised_beam.gif) | ![](joint_library/beam_t_bridle_stub_tenons_mortised_beam.png) | ![](joint_library/tile_t_bridle_stub_tenons_mortised_beam.png) |
 | **Post with through tenon and mortised crossed joint**, p. 712 | | |
-|  | ![](joint_library/beam_post_through_tenon_crossed.png) | ![](joint_library/tile_post_through_tenon_crossed.png) |
+| ![](joint_library/beam_post_through_tenon_crossed.gif) | ![](joint_library/beam_post_through_tenon_crossed.png) | ![](joint_library/tile_post_through_tenon_crossed.png) |
 | **Stacked tenon and mortised cross lap joint**, p. 714 | | |
-|  | ![](joint_library/beam_stacked_tenon_mortised_cross_lap.png) | ![](joint_library/tile_stacked_tenon_mortised_cross_lap.png) |
+| ![](joint_library/beam_stacked_tenon_mortised_cross_lap.gif) | ![](joint_library/beam_stacked_tenon_mortised_cross_lap.png) | ![](joint_library/tile_stacked_tenon_mortised_cross_lap.png) |
 | **Castle joint**, p. 716 | | |
-|  | ![](joint_library/beam_castle_joint.png) | ![](joint_library/tile_castle_joint.png) |
+| ![](joint_library/beam_castle_joint.gif) | ![](joint_library/beam_castle_joint.png) | ![](joint_library/tile_castle_joint.png) |
 | **Notched corner-post joint with beveled-shoulder tenons**, p. 718 | | |
 |  | ![](joint_library/beam_notched_corner_post_beveled_tenons.png) | ![](joint_library/tile_notched_corner_post_beveled_tenons.png) |
 | **Corner-post joint with open slot mortise and tenon**, p. 720 | | |
@@ -741,7 +741,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Four-way rod tenon joint with tapered keys and pegs**, p. 750 | | |
 | ![](joint_library/beam_four_way_rod_tenon_keys_pegs.gif) | ![](joint_library/beam_four_way_rod_tenon_keys_pegs.png) | ![](joint_library/tile_four_way_rod_tenon_keys_pegs.png) |
 | **Two-way blind housed rod tenon joint with tapered keys**, p. 752 | | |
-|  | ![](joint_library/beam_two_way_blind_housed_rod_tenon.png) | ![](joint_library/tile_two_way_blind_housed_rod_tenon.png) |
+| ![](joint_library/beam_two_way_blind_housed_rod_tenon.gif) | ![](joint_library/beam_two_way_blind_housed_rod_tenon.png) | ![](joint_library/tile_two_way_blind_housed_rod_tenon.png) |
 | **Two-way collared rod tenon joint with tapered keys**, p. 754 | | |
 |  | ![](joint_library/beam_two_way_collared_rod_tenon.png) | ![](joint_library/tile_two_way_collared_rod_tenon.png) |
 | **Two-way rabbeted rod tenon joint with tapered keys**, p. 756 | | |
@@ -749,7 +749,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Two-way partially housed rod tenon joint with tapered keys**, p. 758 | | |
 |  | ![](joint_library/beam_two_way_partially_housed_rod_tenon.png) | ![](joint_library/tile_two_way_partially_housed_rod_tenon.png) |
 | **Pegged two-way tenon joint**, p. 760 | | |
-|  | ![](joint_library/beam_pegged_two_way_tenon.png) | ![](joint_library/tile_pegged_two_way_tenon.png) |
+| ![](joint_library/beam_pegged_two_way_tenon.gif) | ![](joint_library/beam_pegged_two_way_tenon.png) | ![](joint_library/tile_pegged_two_way_tenon.png) |
 | **Two-way splined rod joint with tapered keys and a peg**, p. 762 | | |
 |  | ![](joint_library/beam_two_way_splined_rod_keys_peg.png) | ![](joint_library/tile_two_way_splined_rod_keys_peg.png) |
 | **Pegged two-way lapped rod tenon joint with housing**, p. 764 | | |
