@@ -32,3 +32,20 @@ side_side_outplane_fingers:
     - "female 0 = ends"
     - "female 1 = repeat j < div: -0.5, (1 - mod(j, 2)) - 0.5, -0.5 + (j + 1) / (div + 1) + vz; -0.5, 0.5 - (1 - mod(j, 2)), -0.5 + (j + 1) / (div + 1)"
     - "female 1 = ends"
+
+side_side_outplane_graded_fingers:
+  id: "11"
+  parameters:
+    - "half = max(4, min(20, divisions))"
+    - "div = half + mod(half, 2)"
+    - "mid = div * 0.5 - mod(div * 0.5, 1)"
+    - "vz = sign(shift) * (-0.5 + shift * 1.0) / (div + 1)"
+  outlines:
+    - "male 1 = repeat j < div: pick((1 - mod(j, 2)), 0.5, -0.5), pick((1 - mod(j, 2)), -0.5, -0.5), pick((1 - mod(j, 2)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1)) - 4*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j))); pick((1 - mod(j, 2)), -0.5, 0.5), pick((1 - mod(j, 2)), -0.5, -0.5), pick((1 - mod(j, 2)), (-0.5 + (j + 1)/(div + 1)) - 4*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)))"
+    - "male 1 = ends"
+    - "male 0 = repeat j < div: pick(mod(j, 2), -0.5, 0.5), pick(mod(j, 2), 0.5, 0.5), pick(mod(j, 2), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1))); pick(mod(j, 2), 0.5, -0.5), pick(mod(j, 2), 0.5, 0.5), pick(mod(j, 2), (-0.5 + (j + 1)/(div + 1)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)))"
+    - "male 0 = ends"
+    - "female 0 = repeat j < div: pick((1 - mod(j, 2)), -0.5, -0.5), pick((1 - mod(j, 2)), -0.5, 0.5), pick((1 - mod(j, 2)), (-0.5 + (j + 1)/(div + 1)) - 4*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j))); pick((1 - mod(j, 2)), -0.5, -0.5), pick((1 - mod(j, 2)), 0.5, -0.5), pick((1 - mod(j, 2)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1)) - 4*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)))"
+    - "female 0 = ends"
+    - "female 1 = repeat j < div: pick(mod(j, 2), 0.5, 0.5), pick(mod(j, 2), 0.5, -0.5), pick(mod(j, 2), (-0.5 + (j + 1)/(div + 1)), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j))); pick(mod(j, 2), 0.5, 0.5), pick(mod(j, 2), -0.5, 0.5), pick(mod(j, 2), (-0.5 + (j + 1)/(div + 1)) - 2*vz*(2*less(j, mid) - 1)*(less(j, mid - 1) + less(mid, j)), (-0.5 + (j + 1)/(div + 1)))"
+    - "female 1 = ends"

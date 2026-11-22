@@ -58,3 +58,17 @@ side_side_inplane_tooth_keys:
     - "female 0 = ends"
     - "female 1 = repeat j < divisions: 0, 0.5, 0.166667 + (start + step*j); 0.116667, 0.5, 0.166667 + (start + step*j); 0.619628, 0.5, 0.375 + (start + step*j); 1.0, 0.5, 0.375 + (start + step*j); 1.0, 0.5, -0.375 + (start + step*j); 0.619628, 0.5, -0.375 + (start + step*j); 0.116667, 0.5, -0.166667 + (start + step*j); 0, 0.5, -0.166667 + (start + step*j)"
     - "female 1 = ends"
+
+side_side_inplane_dovetails:
+  id: "1"
+  parameters:
+    - "half = max(2, min(100, divisions))"
+    - "div = half + mod(half, 2)"
+    - "vdz = -(1.0 / ((div + 1) * 2)) * (-0.5 + shift * 1.0)"
+  outlines:
+    - "male 0 = 0.0, -0.5, (0.5 + (-1.0)*((0 + 1)/(div + 1))); -0.5, -0.5, (0.5 + (-1.0)*((0 + 1)/(div + 1))) - vdz | repeat j < div - 2: pick(mod(j + 1, 2), -0.5, 0.5), -0.5, (0.5 + (-1.0)*(((j + 1) + 1)/(div + 1))) + vdz; pick(mod(j + 1, 2), 0.5, -0.5), -0.5, (0.5 + (-1.0)*(((j + 1) + 1)/(div + 1))) - vdz | -0.5, -0.5, (0.5 + (-1.0)*(((div - 1) + 1)/(div + 1))) + vdz; 0.0, -0.5, (0.5 + (-1.0)*(((div - 1) + 1)/(div + 1)))"
+    - "male 0 = ends"
+    - "male 1 = 0.0, 0.5, (0.5 + (-1.0)*((0 + 1)/(div + 1))); -0.5, 0.5, (0.5 + (-1.0)*((0 + 1)/(div + 1))) - vdz | repeat j < div - 2: pick(mod(j + 1, 2), -0.5, 0.5), 0.5, (0.5 + (-1.0)*(((j + 1) + 1)/(div + 1))) + vdz; pick(mod(j + 1, 2), 0.5, -0.5), 0.5, (0.5 + (-1.0)*(((j + 1) + 1)/(div + 1))) - vdz | -0.5, 0.5, (0.5 + (-1.0)*(((div - 1) + 1)/(div + 1))) + vdz; 0.0, 0.5, (0.5 + (-1.0)*(((div - 1) + 1)/(div + 1)))"
+    - "male 1 = ends"
+    - "female 0 = male 0"
+    - "female 1 = male 1"

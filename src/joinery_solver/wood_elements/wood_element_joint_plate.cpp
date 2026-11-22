@@ -149,30 +149,31 @@ static std::vector<std::string> top_parts(const std::string& text, char separato
     return parts;
 }
 
-/// The points of an outline: "x, y, z; x, y, z", each coordinate an expression of names; "repeat j < n: ..." writes the
-/// points once for j = 0 ... n - 1.
+/// The points of an outline: parts joined by "|", each "x, y, z; x, y, z" with every coordinate an expression of names, or
+/// "repeat j < n: points" with the points written once for j = 0 ... n - 1.
 static std::vector<Point> outline_points(const std::string& text, std::map<std::string, LibraryValue>& names) {
 
-    std::string list = text;
-    std::string index;
-    int times = 1;
-    if (text.rfind("repeat ", 0) == 0) {
-        const size_t less = text.find('<');
-        const size_t colon = text.find(':');
-        index = top_parts(text.substr(7, less - 7), ' ')[0];
-        times = static_cast<int>(std::llround(evaluate(text.substr(less + 1, colon - less - 1), names).number));
-        list = text.substr(colon + 1);
-    }
-
     std::vector<Point> points;
-    for (int k = 0; k < times; k++) {
-        if (!index.empty())
-            names[index] = {static_cast<double>(k)};
-        for (const std::string& point : top_parts(list, ';')) {
-            const std::vector<std::string> xyz = top_parts(point, ',');
-            if (xyz.size() != 3)
-                throw std::invalid_argument(fmt::format("plate outline point \"{}\" needs x, y and z", point));
-            points.emplace_back(evaluate(xyz[0], names).number, evaluate(xyz[1], names).number, evaluate(xyz[2], names).number);
+    for (const std::string& part : top_parts(text, '|')) {
+        std::string list = part;
+        std::string index;
+        int times = 1;
+        if (part.rfind("repeat ", 0) == 0) {
+            const size_t less = part.find('<');
+            const size_t colon = part.find(':');
+            index = top_parts(part.substr(7, less - 7), ' ')[0];
+            times = static_cast<int>(std::llround(evaluate(part.substr(less + 1, colon - less - 1), names).number));
+            list = part.substr(colon + 1);
+        }
+        for (int k = 0; k < times; k++) {
+            if (!index.empty())
+                names[index] = {static_cast<double>(k)};
+            for (const std::string& point : top_parts(list, ';')) {
+                const std::vector<std::string> xyz = top_parts(point, ',');
+                if (xyz.size() != 3)
+                    throw std::invalid_argument(fmt::format("plate outline point \"{}\" needs x, y and z", point));
+                points.emplace_back(evaluate(xyz[0], names).number, evaluate(xyz[1], names).number, evaluate(xyz[2], names).number);
+            }
         }
     }
 
@@ -303,7 +304,7 @@ static bool build_inplane(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 1:
-        side_side_inplane_dovetails(joint);
+        plate_from_library("side_side_inplane_dovetails", joint, context.elements);
         return true;
     case 2:
         plate_from_library("side_side_inplane_three_fingers", joint, context.elements);
@@ -341,7 +342,7 @@ static bool build_outofplane(const int id, InteractionFeaturePlate& joint, Build
         plate_from_library("side_side_outplane_fingers", joint, context.elements);
         return true;
     case 11:
-        side_side_outplane_graded_fingers(joint);
+        plate_from_library("side_side_outplane_graded_fingers", joint, context.elements);
         return true;
     case 12:
         plate_from_library("side_side_outplane_three_fingers", joint, context.elements);
@@ -535,7 +536,7 @@ bool build_joint(const int id, InteractionFeaturePlate& joint, BuildContext& con
 void build_family_default(const int family, InteractionFeaturePlate& joint, BuildContext& context) {
     switch (family) {
     case 0:
-        side_side_inplane_dovetails(joint);
+        plate_from_library("side_side_inplane_dovetails", joint, context.elements);
         return;
     case 1:
         plate_from_library("side_side_outplane_fingers", joint, context.elements);
@@ -1863,7 +1864,7 @@ bool JointPlateElement::compute_side_side_inplane(
     if (parameters.library == "side_side_inplane_three_fingers")
         plate_from_library("side_side_inplane_three_fingers", connection, elements);
     else if (parameters.library == "side_side_inplane_dovetails")
-        ::side_side_inplane_dovetails(connection);
+        plate_from_library("side_side_inplane_dovetails", connection, elements);
     else if (parameters.library == "side_side_inplane_butterfly_keys")
         plate_from_library("side_side_inplane_butterfly_keys", connection, elements);
     else if (parameters.library == "side_side_inplane_splayed_scarf")
@@ -2023,7 +2024,7 @@ bool JointPlateElement::compute_side_side_outplane(
     else if (parameters.library == "side_side_outplane_fingers")
         plate_from_library("side_side_outplane_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_graded_fingers")
-        ::side_side_outplane_graded_fingers(connection);
+        plate_from_library("side_side_outplane_graded_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_miter_tenon")
         ::side_side_outplane_miter_tenon(connection);
     else if (parameters.library == "side_side_outplane_tenons")

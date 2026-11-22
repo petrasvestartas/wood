@@ -112,7 +112,7 @@ struct Reader {
         return found->second;
     }
 
-    /// unit, length, cross, dot, meet, round, max, min, mod or sign of its arguments.
+    /// unit, length, cross, dot, meet, round, max, min, mod, sign, pick (the second when the first is not zero, else the third) or less of its arguments.
     LibraryValue call(const std::string& name) {
 
         std::vector<LibraryValue> arguments;
@@ -132,6 +132,10 @@ struct Reader {
             return {0.0, arguments[0].vector.cross(arguments[1].vector), true};
         if (name == "dot" && arguments.size() == 2)
             return {arguments[0].vector.dot(arguments[1].vector), Vector(), false};
+        if (name == "pick" && arguments.size() == 3)
+            return arguments[0].number != 0.0 ? arguments[1] : arguments[2];
+        if (name == "less" && arguments.size() == 2)
+            return {arguments[0].number < arguments[1].number ? 1.0 : 0.0, Vector(), false};
         if (name == "sign" && arguments.size() == 1)
             return {static_cast<double>((arguments[0].number > 0.0) - (arguments[0].number < 0.0)), Vector(), false};
         if (name == "mod" && arguments.size() == 2)
