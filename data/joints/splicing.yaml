@@ -2838,8 +2838,8 @@ pegged_rabbeted_mortise_tenon_splice:
     - "lip_u = O + (L - rabbet*ah)*u, u, O + 2*L*u"
     - "lip_p = O + (1 - 2*lip)*ah*p, p, O"
   parts:
-    - "peg_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, u, peg*ah"
-    - "peg_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, u, peg*ah"
+    - "peg_1 = K1 + (ah + 1)*p, K1 - (ah + 1)*p, unit(u + w), peg*ah"
+    - "peg_2 = K2 + (ah + 1)*p, K2 - (ah + 1)*p, unit(u + w), peg*ah"
   steps:
     - "A2 a_end lip_u cheek_1; a_end lip_u cheek_2; a_end shoulder_a -lip_u -lip_p cheek_1; a_end shoulder_a -lip_u -lip_p cheek_2"
     - "A3 peg_1; peg_2"
