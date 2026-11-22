@@ -240,24 +240,33 @@ blind_dovetail_edge:
     - "lap = 1.2"
     - "root = 0.25"
     - "tip = 0.42"
-    - "stop = 0.6"
+    - "ten = 0.2"
+    - "slide = 0.4"
+    - "open = 0.6"
   points:
     - "R1 = O + L*u + root*ah*p"
     - "T1 = O - L*u + tip*ah*p"
     - "R2 = O + L*u - root*ah*p"
     - "T2 = O - L*u - tip*ah*p"
   planes:
-    - "shoulder_a = O + L*u, u, O + 2*L*u"
+    - "shoulder = O + L*u, u, O + 2*L*u"
     - "f2 = O - L*u, u, O - 2*L*u"
     - "fl_1 = R1, cross(w, T1 - R1), O"
     - "fl_2 = R2, cross(w, T2 - R2), O"
-    - "stopped = O + stop*aw*w, w, O"
+    - "e1 = O + ten*aw*w, w, O"
+    - "e2 = O - ten*aw*w, w, O"
+    - "en1 = O - (slide + ten)*aw*w, w, O"
+    - "en2 = O - (slide - ten)*aw*w, w, O"
+    - "sl = O - slide*aw*w, w, O"
+    - "pt = O + tip*ah*p, p, O"
+    - "pb = O - tip*ah*p, p, O"
   parts:
   steps:
-    - "A2 a_end shoulder_a fl_1; a_end shoulder_a fl_2; a_end shoulder_a stopped"
-    - "B2 b_end f2 -fl_1 -fl_2 -stopped"
+    - "A2 a_end shoulder fl_1; a_end shoulder fl_2; a_end shoulder e1; a_end shoulder e2"
+    - "B2 b_end f2 -en1 en2 -pt -pb"
+    - "B3 b_end f2 -sl -e1 -fl_1 -fl_2"
   insertions:
-    - "w"
+    - "-u; slide*aw*w"
 
 sliding_dovetail_batten:
   title: "Sliding dovetail batten"
