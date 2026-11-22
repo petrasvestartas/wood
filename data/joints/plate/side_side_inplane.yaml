@@ -1,13 +1,22 @@
 # Plate joints between two plates side by side in one plane (the in-plane family, ids 1-9): each design's outlines in the
 # unit box, x across the seam, y through the thickness (-0.5 face 0, 0.5 face 1), z along the joint line, read by
-# JointPlateElement through plate_from_library. A record:
-#   id           the 2024 id the solver's joints_parameters_and_types give (one per design).
-#   unit_scale   "true" scales the box along the line to the plate's thickness (a tooth keeps its shape as the line grows).
-#   fabrication  the fabrication type of every outline (edge_insertion by default); types overrides it per face.
-#   parameters   "name = expression", read in order with divisions, shift, length (the joint line) and unit (the thickness).
-#   outlines     "role face = points": role male or female, face 0 or 1; points "x, y, z; ..." each an expression;
-#                "repeat j < n: points" writes the points once for j = 0 ... n - 1 (a tooth along the line, a finger a
-#                division); "ends" the line between the ends of the face's first outline; "male 0" a copy of that face.
+# JointPlateElement::library_outlines (every family's file in this folder reads the same way). A record:
+#   id           the 2024 id the solver's joints_parameters_and_types give.
+#   base         a record this one builds on: its fields, outlines and types, its parameters replaced by name.
+#   name         the joint's name when it is not the design's; named "false" keeps the caller's (the linked tenons).
+#   unit_scale   "true" scales the box along the line to the plate's thickness (a tooth keeps its shape as the line grows);
+#                "flag" only marks the joint unit scaled.
+#   measure      "lean" gives the names lean and aspect, measured on the plates (the bridle).
+#   volume_size  squares the joint volumes about the seam to this size, the unit then (the rotated keys).
+#   fabrication  the type of every outline (edge_insertion by default); male_fabrication and female_fabrication per role;
+#                an outline's own "... as type"; types names a face's list outright.
+#   parameters   "name = expression", read in order with divisions, shift, length (the joint line), joint_length,
+#                unit (the box's size along the line) and volume_edge; a caller may give any of them (a linked tenon's taper).
+#   outlines     "role face = points": role male or female, face 0 or 1; points "x, y, z; ..." each coordinate an expression,
+#                or one vector expression (vec, unit, cross, dot); parts joined by "|"; "repeat j < n: points" the points
+#                once per j (a tooth a division); "if c: x, y, z" a point only where c is not zero; "each k < n: points" an
+#                outline per k (a hole per tenon); "ends" the line between the face's first outline's ends; "male 0" a copy.
+#   Expressions: + - * / and brackets, max, min, round, mod, sign, less, pick(c, a, b), vec, unit, length, cross, dot.
 
 side_side_inplane_three_fingers:
   id: "2"
