@@ -2723,6 +2723,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             const std::vector<std::string> pair = split_top(line, '=');
             names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
         }
+        // a repeat writes the record's braced lines once per unit, as many as the joint's size gives
+        library_repeat(record, names);
         double reach = half_lap + ah + aw;
         for (const std::string& line : record.lists["points"]) {
             const std::vector<std::string> pair = split_top(line, '=');
@@ -2806,6 +2808,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             const std::vector<std::string> pair = split_top(line, '=');
             names[pair[0]] = {parameters.count(pair[0]) ? parameters.at(pair[0]) : evaluate(pair[1], names).number};
         }
+        // a repeat writes the record's braced lines once per unit, as many as the joint's size gives
+        library_repeat(record, names);
 
         // the boxes reach over the member's whole footprint on the face, whatever points the record names
         double reach = (face - node).dot(u) + ah * std::abs(p.dot(n)) / std::max(u.dot(n), 1e-6);

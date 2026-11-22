@@ -24,6 +24,11 @@ struct LibraryRecord {
 /// meet(point, direction, plane point, plane normal), where the line through point along direction meets the plane.
 LibraryValue evaluate(const std::string& expression, const std::map<std::string, LibraryValue>& names);
 
+/// A record's repeat ("k = count", count an expression of its parameters and frame, k the index): every line of its points,
+/// planes, parts and insertions with a {expression} written once for k = 0 ... count - 1 with each {expression} its whole
+/// number, and in a step every such region, but for one naming a unit past the count; names gets count. A record with no repeat is left as it is.
+void library_repeat(LibraryRecord& record, std::map<std::string, LibraryValue>& names);
+
 /// The designs of data/joints/<chapter>.yaml in the order the file has them, every file's when chapter is empty.
 std::vector<std::string> library_designs(const std::string& chapter = "");
 

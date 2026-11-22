@@ -26,6 +26,10 @@
 #               Steps of one member overlap rather than meet, so the one boolean that takes them away leaves no skin.
 #               Labels C, D, ... cut the more members; a step labelled P cuts the parts themselves (a key's hole through a spline).
 #   posts       "letter = start, end, radius": a round post the member's cut keeps, an exact cylinder (a Chidori neck).
+#   repeat      "k = count": the units a joint repeats by division (fingers, tenons, keys), count an expression of the
+#               parameters and the frame (2*round(aw/division)); a line of points, planes, parts or insertions with a {expression}
+#               is written once for k = 0 ... count - 1, the expression its whole number; in a step each such region, but for
+#               one naming a unit past the count.
 #   sealed      "true" for a joint that is locked for good once assembled (a foxtail-wedged tenon): it need not come apart.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.

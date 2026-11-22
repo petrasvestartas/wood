@@ -112,7 +112,7 @@ struct Reader {
         return found->second;
     }
 
-    /// unit, length, cross, dot or meet of its arguments.
+    /// unit, length, cross, dot, meet, round, max or min of its arguments.
     LibraryValue call(const std::string& name) {
 
         std::vector<LibraryValue> arguments;
@@ -132,6 +132,12 @@ struct Reader {
             return {0.0, arguments[0].vector.cross(arguments[1].vector), true};
         if (name == "dot" && arguments.size() == 2)
             return {arguments[0].vector.dot(arguments[1].vector), Vector(), false};
+        if (name == "round" && arguments.size() == 1)
+            return {std::round(arguments[0].number), Vector(), false};
+        if (name == "max" && arguments.size() == 2)
+            return {std::max(arguments[0].number, arguments[1].number), Vector(), false};
+        if (name == "min" && arguments.size() == 2)
+            return {std::min(arguments[0].number, arguments[1].number), Vector(), false};
         if (name == "meet" && arguments.size() == 4) {
             const double along = (arguments[2].vector - arguments[0].vector).dot(arguments[3].vector) / arguments[1].vector.dot(arguments[3].vector);
             return {0.0, arguments[0].vector + arguments[1].vector * along, true};
@@ -188,6 +194,113 @@ static std::vector<std::filesystem::path> library_files(const std::string& chapt
     return files;
 }
 
+/// line with every {expression} in it replaced by its whole number, the expression read with the names and the index.
+static std::string braced(const std::string& line, const std::map<std::string, LibraryValue>& names) {
+
+    std::string out;
+    size_t at = 0;
+    while (true) {
+        const size_t open = line.find('{', at);
+        if (open == std::string::npos)
+            break;
+        const size_t close = line.find('}', open);
+        out += line.substr(at, open - at);
+        out += std::to_string(static_cast<long>(std::llround(evaluate(line.substr(open + 1, close - open - 1), names).number)));
+        at = close + 1;
+    }
+
+    return out + line.substr(at);
+}
+
+/// Whether a braced expression of line names a unit past the count (the fingers of every other unit, 2*k and 2*k + 1).
+static bool outside(const std::string& line, const std::map<std::string, LibraryValue>& names, int count) {
+
+    size_t at = 0;
+    while (true) {
+        const size_t open = line.find('{', at);
+        if (open == std::string::npos)
+            return false;
+        const size_t close = line.find('}', open);
+        const long unit = std::llround(evaluate(line.substr(open + 1, close - open - 1), names).number);
+        if (unit < 0 || unit >= count)
+            return true;
+        at = close + 1;
+    }
+}
+
+/// line with every {expression} its whole number and every other k (the index, a whole word) its number, so the line no longer
+/// depends on the index once written.
+static std::string written(const std::string& line, const std::map<std::string, LibraryValue>& names, const std::string& letter, int k) {
+
+    const std::string filled = braced(line, names);
+    std::string out;
+    size_t at = 0;
+    while (at < filled.size()) {
+        const char c = filled[at];
+        if (!(std::isalpha(static_cast<unsigned char>(c)) || c == '_')) {
+            out += c;
+            at++;
+            continue;
+        }
+        size_t end = at;
+        while (end < filled.size() && (std::isalnum(static_cast<unsigned char>(filled[end])) || filled[end] == '_'))
+            end++;
+        const std::string word = filled.substr(at, end - at);
+        out += word == letter ? std::to_string(k) : word;
+        at = end;
+    }
+
+    return out;
+}
+
+void library_repeat(LibraryRecord& record, std::map<std::string, LibraryValue>& names) {
+
+    if (!record.fields.count("repeat"))
+        return;
+    const std::string field = record.fields.at("repeat");
+    const std::string index = field.substr(0, field.find('='));
+    const std::string letter = index.substr(0, index.find_last_not_of(' ') + 1);
+    const int count = static_cast<int>(std::llround(evaluate(field.substr(field.find('=') + 1), names).number));
+    names["count"] = {static_cast<double>(count)};
+
+    for (const std::string key : {"points", "planes", "parts", "steps", "insertions"}) {
+        if (!record.lists.count(key))
+            continue;
+        std::vector<std::string> expanded;
+        for (const std::string& line : record.lists.at(key)) {
+            if (line.find('{') == std::string::npos) {
+                expanded.push_back(line);
+                continue;
+            }
+            // a step repeats its braced regions within the one step; any other line repeats whole
+            if (key == "steps") {
+                const size_t space = line.find(' ');
+                std::string regions;
+                std::istringstream parts(line.substr(space + 1));
+                std::string region;
+                while (std::getline(parts, region, ';')) {
+                    const size_t first = region.find_first_not_of(' ');
+                    region = first == std::string::npos ? "" : region.substr(first);
+                    const int times = region.find('{') == std::string::npos ? 1 : count;
+                    for (int k = 0; k < times; k++) {
+                        names[letter] = {static_cast<double>(k)};
+                        if (outside(region, names, count))
+                            continue;
+                        regions += (regions.empty() ? "" : "; ") + written(region, names, letter, k);
+                    }
+                }
+                expanded.push_back(line.substr(0, space) + " " + regions);
+                continue;
+            }
+            for (int k = 0; k < count; k++) {
+                names[letter] = {static_cast<double>(k)};
+                expanded.push_back(written(line, names, letter, k));
+            }
+        }
+        record.lists[key] = expanded;
+    }
+}
+
 std::vector<std::string> library_designs(const std::string& chapter) {
 
     std::vector<std::string> designs;
@@ -242,6 +355,8 @@ LibraryRecord library_record(const std::string& design) {
                 record.fields["moves"] = unquoted(line.substr(8));
             if (line.starts_with("  base:"))
                 record.fields["base"] = unquoted(line.substr(7));
+            if (line.starts_with("  repeat:"))
+                record.fields["repeat"] = unquoted(line.substr(9));
             if (line.starts_with("  ") && !line.starts_with("    "))
                 in_list = line.starts_with("  more:") ? "more" : line.starts_with("  posts:") ? "posts" : "";
             else if (!in_list.empty() && line.starts_with("    - "))
