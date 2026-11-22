@@ -28,6 +28,7 @@
 #   base        the letter of the member that stays while the others go in (c: a post the slats go into); b by default.
 #   moves       how a piece goes in by two straight moves (in along the slot, then down onto the other), written out; the
 #               assembly check takes one straight move per piece, so such a record is not taken apart.
+#   stand       (a parameter) stands the joint up a quarter turn about y: the carrier becomes a post, the beams lie level.
 #   upright     (a parameter) stands the joint up a quarter turn about x: more members along y become posts.
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
@@ -235,6 +236,9 @@ pegged_two_way_tenon:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "long = 0.85"
     - "thin = 0.3"
     - "into = 0.8"
@@ -278,6 +282,9 @@ two_way_rod_tenon_tapered_keys:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "thin = 0.3"
     - "into = 1.6"
     - "key = 0.1"
@@ -320,6 +327,9 @@ two_way_blind_housed_rod_tenon:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "into = 1.6"
     - "thin = 0.3"
     - "house = 0.25"
@@ -371,6 +381,9 @@ two_way_collared_rod_tenon:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "into = 1.6"
     - "thin = 0.3"
     - "house = 0.25"
@@ -697,6 +710,9 @@ two_way_rabbeted_rod_tenon:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "into = 1.6"
     - "thin = 0.3"
     - "house = 0.25"
@@ -759,6 +775,9 @@ two_way_partially_housed_rod_tenon:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "into = 1.6"
     - "thin = 0.3"
     - "house = 0.25"
@@ -810,6 +829,9 @@ pegged_two_way_lapped_rod_tenon_housing:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "long = 0.6"
     - "thin = 0.3"
     - "into = 0.8"
@@ -857,6 +879,9 @@ two_way_splined_rod_keys_peg:
   corners: "square"
   filled: "bc"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "long = 0.6"
     - "thin = 0.3"
     - "into = 0.8"
@@ -901,6 +926,9 @@ three_way_rod_tenon_keys_wedged_haunch:
   filled: "bcd"
   sealed: "true"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "thin = 0.3"
     - "into = 1.6"
     - "key = 0.1"
@@ -957,6 +985,9 @@ four_way_rod_tenon_keys_pegs:
   corners: "square"
   filled: "bcde"
   parameters:
+    - "stand = 1"
+    - "span = 270"
+    - "carrier_end = 270"
     - "thin = 0.3"
     - "into = 1.6"
     - "key = 0.1"

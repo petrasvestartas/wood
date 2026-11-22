@@ -44,8 +44,8 @@ shiplap_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 1"
   points:
   planes:
@@ -67,8 +67,8 @@ v_grooved_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.75"
   points:
     - "A = O - L*u"
@@ -94,8 +94,8 @@ tongue_groove_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 1"
     - "tongue = 0.33"
   points:
@@ -119,8 +119,8 @@ floating_tenon_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.1"
     - "tenon = 0.33"
     - "reach = 2.5"
@@ -146,8 +146,8 @@ spline_groove_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.1"
     - "spline = 0.25"
     - "reach = 1.2"
@@ -173,8 +173,8 @@ butterfly_key_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.1"
     - "depth = 0.5"
     - "wing = 4"
@@ -208,8 +208,8 @@ tongued_rabbeted_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 3"
     - "tongue = 0.33"
     - "offset = 0.8"
@@ -239,8 +239,8 @@ blind_dovetail_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 1.2"
     - "root = 0.25"
     - "tip = 0.42"
@@ -323,8 +323,8 @@ floating_tenon_spline_edge:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.1"
     - "spline = 0.25"
     - "reach = 1.2"
@@ -489,8 +489,8 @@ foxtail_wedged_floating_tenon_edge:
   corners: "square"
   sealed: "true"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 68"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 0.1"
     - "tenon = 0.33"
     - "reach = 2.5"

@@ -348,6 +348,7 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     const LibraryRecord record = library_record(design);
     double length = 300.0;
     bool upright = false;
+    bool stand = false;
     double member_turn = 0.0;
     double member_shift = 0.0;
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
@@ -355,6 +356,8 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
             length = std::stod(line.substr(line.find('=') + 1));
         if (unquoted(line.substr(0, line.find('='))) == "upright")
             upright = std::stod(line.substr(line.find('=') + 1)) > 0.5;
+        if (unquoted(line.substr(0, line.find('='))) == "stand")
+            stand = std::stod(line.substr(line.find('=') + 1)) > 0.5;
         if (unquoted(line.substr(0, line.find('='))) == "member_turn")
             member_turn = std::stod(line.substr(line.find('=') + 1));
         if (unquoted(line.substr(0, line.find('='))) == "member_shift")
@@ -407,6 +410,13 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
         const Xform stand = Xform::rotation_around_line(Line::from_points(at, at + Vector::x_axis()), 90.0, true);
         for (std::shared_ptr<EdgeStraightElement>& each : members)
             each = each->transformed(stand);
+    }
+
+    // stand turns the joint a quarter about y: the carrier along x stands up as a post, the beams going into it lie level
+    if (stand) {
+        const Xform turn = Xform::rotation_around_line(Line::from_points(at, at + Vector::y_axis()), 90.0, true);
+        for (std::shared_ptr<EdgeStraightElement>& each : members)
+            each = each->transformed(turn);
     }
 
     return members;

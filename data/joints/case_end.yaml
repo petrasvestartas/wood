@@ -44,21 +44,22 @@ finger_end:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 80"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 2"
   points:
   planes:
     - "shoulder_a = O + L*u, u, O + 2*L*u"
     - "f2 = O - L*u, u, O - 2*L*u"
-    - "c1 = O - 0.6*aw*w, w, O - 1000*w"
-    - "c2 = O - 0.2*aw*w, w, O - 1000*w"
-    - "c3 = O + 0.2*aw*w, w, O - 1000*w"
-    - "c4 = O + 0.6*aw*w, w, O - 1000*w"
+    - "d1 = O - 0.6667*aw*w, w, O - 1000*w"
+    - "d2 = O - 0.3333*aw*w, w, O - 1000*w"
+    - "d3 = O, w, O - 1000*w"
+    - "d4 = O + 0.3333*aw*w, w, O - 1000*w"
+    - "d5 = O + 0.6667*aw*w, w, O - 1000*w"
   parts:
   steps:
-    - "A2 a_end shoulder_a c1 -c2; a_end shoulder_a c3 -c4"
-    - "B2 b_end f2 -c1; b_end f2 c2 -c3; b_end f2 c4"
+    - "A2 a_end shoulder_a -d1; a_end shoulder_a d2 -d3; a_end shoulder_a d4 -d5"
+    - "B2 b_end f2 d1 -d2; b_end f2 d3 -d4; b_end f2 d5"
   insertions:
     - "-p"
 
@@ -75,6 +76,7 @@ tongue_groove_breadboard:
     - "carrier_thick = 12"
     - "carrier_wide = 16"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
     - "tongue = 0.33"
     - "depth = 0.5"
@@ -107,6 +109,7 @@ dado_tongue_breadboard:
     - "carrier_thick = 12"
     - "carrier_wide = 14"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
     - "tongue = 0.33"
     - "groove = 0.7"
@@ -136,6 +139,7 @@ splined_breadboard:
     - "carrier_thick = 12"
     - "carrier_wide = 16"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
     - "spline = 0.33"
     - "reach = 0.5"
@@ -168,6 +172,7 @@ haunched_mortise_tenon_breadboard:
     - "carrier_thick = 12"
     - "carrier_wide = 22"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
     - "tongue = 0.33"
     - "haunch = 0.25"
@@ -202,8 +207,8 @@ dovetail_end:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 80"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 2.5"
     - "root = 0.1"
     - "tip = 0.18"
@@ -252,6 +257,7 @@ dado_spline_end:
     - "carrier_thick = 4"
     - "carrier_wide = 15"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
   points:
   planes:
@@ -279,6 +285,7 @@ v_dado_spline_end:
     - "carrier_thick = 8"
     - "carrier_wide = 15"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
   points:
     - "B1 = O - 2*bh*n + bw*w"
@@ -303,8 +310,8 @@ halved_splayed_end:
   family: "splicing"
   corners: "square"
   parameters:
-    - "stock_thick = 12"
-    - "stock_wide = 80"
+    - "stock_thick = 24"
+    - "stock_wide = 220"
     - "lap = 12"
   points:
     - "P1 = O - L*u - aw*w"
@@ -335,6 +342,7 @@ wedged_haunched_tenon_breadboard:
     - "carrier_thick = 12"
     - "carrier_wide = 20"
     - "flat = 1"
+    - "upright = 1"
     - "span = 150"
     - "tongue = 0.33"
     - "haunch = 0.25"
