@@ -544,42 +544,60 @@ LibraryTile library_tile(const std::string& design) {
         more.push_back(members[m].get());
     const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *members[0], *members[1], {}, 2.0, more);
 
-    // the joint's zone: the box of where the uncut members overlap, so trimming a stock's extension is no part of the tile
-    Point zone_low(1e18, 1e18, 1e18);
-    Point zone_high(-1e18, -1e18, -1e18);
-    for (size_t i = 0; i < members.size(); i++)
-        for (size_t j = i + 1; j < members.size(); j++) {
-            const Mesh overlap = solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect);
-            if (overlap.number_of_faces() == 0)
-                continue;
-            for (const Point& point : overlap.to_vertices_and_faces().first)
-                for (size_t k = 0; k < 3; k++) {
-                    zone_low[k] = std::min(zone_low[k], point[k] - 1.0);
-                    zone_high[k] = std::max(zone_high[k], point[k] + 1.0);
-                }
-        }
-    Mesh zone = Mesh::create_box(zone_high[0] - zone_low[0], zone_high[1] - zone_low[1], zone_high[2] - zone_low[2]);
-    zone = zone.transformed(Xform::translation((zone_low[0] + zone_high[0]) / 2.0, (zone_low[1] + zone_high[1]) / 2.0, (zone_low[2] + zone_high[2]) / 2.0));
-
-    // every cut: each step's wood on its member within the zone, piece by piece, as the two faces of its prism
-    LibraryTile tile;
-    tile.cuts.resize(members.size());
+    // every cut: each step's wood on its member, piece by piece
+    std::vector<std::vector<Mesh>> pieces(members.size());
     for (const JointCutStep& step : joint->steps) {
         if (step.target >= members.size() || step.removal.number_of_faces() == 0)
             continue;
         for (const Mesh& region : solid_pieces(step.removal)) {
-            const Mesh wood = solid_boolean(solid_boolean(region, members[step.target]->element_geometry_mesh(), SolidOperation::intersect), zone, SolidOperation::intersect);
+            const Mesh wood = solid_boolean(region, members[step.target]->element_geometry_mesh(), SolidOperation::intersect);
             if (wood.number_of_faces() == 0)
                 continue;
-            for (const Mesh& piece : solid_pieces(wood)) {
-                const std::array<Polyline, 2> faces = prism_faces(piece);
+            for (const Mesh& piece : solid_pieces(wood))
+                pieces[step.target].push_back(piece);
+        }
+    }
+
+    // the joint's zone, which a's cuts are kept within so trimming its stock's extension is no part of the tile: the box of
+    // every other member's cuts and of the parts; where only a is cut, the box where the uncut members overlap
+    Point zone_low(1e18, 1e18, 1e18);
+    Point zone_high(-1e18, -1e18, -1e18);
+    std::vector<Point> marking;
+    for (size_t m = 1; m < members.size(); m++)
+        for (const Mesh& piece : pieces[m])
+            for (const Point& point : piece.to_vertices_and_faces().first)
+                marking.push_back(point);
+    for (const std::array<Polyline, 2>& part : joint->parts)
+        for (const Polyline& outline : part)
+            for (const Point& point : outline.get_points())
+                marking.push_back(point);
+    if (marking.empty())
+        for (size_t i = 0; i < members.size(); i++)
+            for (size_t j = i + 1; j < members.size(); j++)
+                for (const Point& point : solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect).to_vertices_and_faces().first)
+                    marking.push_back(point);
+    for (const Point& point : marking)
+        for (size_t k = 0; k < 3; k++) {
+            zone_low[k] = std::min(zone_low[k], point[k] - 1.0);
+            zone_high[k] = std::max(zone_high[k], point[k] + 1.0);
+        }
+    Mesh zone = Mesh::create_box(zone_high[0] - zone_low[0], zone_high[1] - zone_low[1], zone_high[2] - zone_low[2]);
+    zone = zone.transformed(Xform::translation((zone_low[0] + zone_high[0]) / 2.0, (zone_low[1] + zone_high[1]) / 2.0, (zone_low[2] + zone_high[2]) / 2.0));
+
+    // each piece as the two faces of its prism, a's within the zone
+    LibraryTile tile;
+    tile.cuts.resize(members.size());
+    for (size_t m = 0; m < members.size(); m++)
+        for (const Mesh& piece : pieces[m]) {
+            const Mesh kept = m == 0 ? solid_boolean(piece, zone, SolidOperation::intersect) : piece;
+            for (const Mesh& convex : solid_pieces(kept)) {
+                const std::array<Polyline, 2> faces = prism_faces(convex);
                 if (faces[0].point_count() == 0)
                     tile.unsupported++;
                 else
-                    tile.cuts[step.target].push_back(faces);
+                    tile.cuts[m].push_back(faces);
             }
         }
-    }
     tile.parts = joint->parts;
 
     // a member whose cuts are one unit in an even row repeats by divisions, measured before the unit box (in mm)
