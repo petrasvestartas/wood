@@ -159,6 +159,10 @@ std::vector<Vector> JointElement::insertion_directions(size_t target) const {
     return target < target_insertions.size() ? target_insertions[target] : std::vector<Vector>();
 }
 
+std::vector<Vector> JointElement::insertion_legs(size_t target, size_t way) const {
+    return target < target_legs.size() && way < target_legs[target].size() ? target_legs[target][way] : std::vector<Vector>();
+}
+
 std::vector<std::array<Polyline, 2>> JointElement::bodies() const {
     return {};
 }
@@ -314,6 +318,10 @@ void JointElement::place(const Xform& xform) {
     for (std::vector<Vector>& directions : target_insertions)
         for (Vector& direction : directions)
             direction = direction.transformed(xform).normalized();
+    for (std::vector<std::vector<Vector>>& ways : target_legs)
+        for (std::vector<Vector>& legs : ways)
+            for (Vector& leg : legs)
+                leg = leg.transformed(xform);
     invalidate_geometry();
 }
 

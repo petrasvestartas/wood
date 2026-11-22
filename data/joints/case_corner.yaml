@@ -28,6 +28,7 @@
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+#               "v; m1; m2" approaches along v, then makes the moves m1, m2 as long as they are (in, then along the slot).
 
 rabbet_case_corner:
   title: "Rabbet joint"

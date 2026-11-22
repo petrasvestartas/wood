@@ -28,6 +28,7 @@
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
+#               "v; m1; m2" approaches along v, then makes the moves m1, m2 as long as they are (in, then along the slot).
 
 corner_lap:
   title: "Corner lap joint"
@@ -2104,38 +2105,39 @@ housed_dovetail_corner:
   category: "end_end_inplane"
   family: "corner"
   corners: "square"
-  moves: "a drops into the entry pocket on the top of b along -w, then slides along t into the hidden dovetail housing"
   parameters:
     - "upright = 1"
     - "tenon_len = 0.7"
+    - "tenon_side = 0.35"
     - "tenon_root = 0.33"
     - "tenon_tip = 0.45"
-    - "tenon_half = 0.35"
-    - "slide = 0.9"
-    - "open = 0.75"
+    - "slide = 0.7"
+    - "open = 0.6"
   points:
-    - "R1 = O + tenon_root*ah*t"
-    - "T1 = O - tenon_len*bh*u + tenon_tip*ah*t"
-    - "R2 = O - tenon_root*ah*t"
-    - "T2 = O - tenon_len*bh*u - tenon_tip*ah*t"
+    - "R1 = O + tenon_root*aw*w"
+    - "T1 = O - tenon_len*bh*u + tenon_tip*aw*w"
+    - "R2 = O - tenon_root*aw*w"
+    - "T2 = O - tenon_len*bh*u - tenon_tip*aw*w"
   planes:
     - "face = O, u, O - u"
     - "tip = O - tenon_len*bh*u, u, O"
-    - "fr = R1, cross(w, T1 - R1), O"
-    - "fl = R2, cross(w, T2 - R2), O"
-    - "top_w = O + tenon_half*aw*w, w, O"
-    - "bottom_w = O - tenon_half*aw*w, w, O"
-    - "e1 = O - (slide + tenon_tip)*ah*t, t, O"
-    - "e2 = O - (slide - tenon_tip)*ah*t, t, O"
-    - "sl = O - slide*ah*t, t, O"
+    - "f_up = R1, cross(t, T1 - R1), O"
+    - "f_down = R2, cross(t, T2 - R2), O"
+    - "side_1 = O + tenon_side*ah*t, t, O"
+    - "side_2 = O - tenon_side*ah*t, t, O"
+    - "entry_1 = O - (slide + tenon_side)*ah*t, t, O"
+    - "entry_2 = O - (slide - tenon_side)*ah*t, t, O"
+    - "entry_up = O + tenon_tip*aw*w, w, O"
+    - "entry_down = O - tenon_tip*aw*w, w, O"
+    - "slid = O - slide*ah*t, t, O"
   parts:
   steps:
     - "A2 a_end tip"
-    - "A3 a_end -face top_w; a_end -face bottom_w; a_end -face fr; a_end -face fl"
-    - "B2 b_node -face -tip -e1 e2 -bottom_w"
-    - "B3 b_node -face -tip -fr -sl -bottom_w -top_w"
+    - "A3 a_end -face side_1; a_end -face side_2; a_end -face f_up; a_end -face f_down"
+    - "B2 b_node -face -tip -entry_1 entry_2 -entry_up -entry_down"
+    - "B3 b_node -face -tip -slid -side_1 -f_up -f_down"
   insertions:
-    - "-w"
+    - "-u; slide*ah*t"
 
 plain_miter_dovetail_key:
   title: "Plain miter with dovetail key"

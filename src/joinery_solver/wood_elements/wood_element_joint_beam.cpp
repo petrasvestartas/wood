@@ -2958,33 +2958,48 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->steps.push_back(step);
     }
 
-    // the ways a goes in, across only when it is as wide as b; b the opposite ways
+    // the ways a goes in, across only when it is as wide as b; b the opposite ways; "v; m1; m2" approaches along v, then makes
+    // the moves m1, m2 as long as they are (in, then along the slot), b the same moves turned round
     joint->target_insertions = {{}, {}};
+    joint->target_legs = {{}, {}};
     // the ways the member goes in, the carrier the opposite ways; "part = v" gives a part its way in instead of its axis
     std::map<std::string, Vector> part_ways;
+    std::map<std::string, std::vector<Vector>> part_legs;
     for (const std::string& line : record.lists["insertions"]) {
-        if (line.find('=') != std::string::npos) {
-            const std::vector<std::string> pair = split_top(line, '=');
-            part_ways[pair[0]] = evaluate(pair[1], names).vector.normalized();
+        const bool named = line.find('=') != std::string::npos;
+        const std::vector<std::string> pair = split_top(line, '=');
+        const std::vector<std::string> moves = split_top(named ? pair[1] : line, ';');
+        std::vector<Vector> legs;
+        for (size_t m = 1; m < moves.size(); m++)
+            legs.push_back(evaluate(moves[m], names).vector);
+        if (named) {
+            part_ways[pair[0]] = evaluate(moves[0], names).vector.normalized();
+            part_legs[pair[0]] = legs;
             continue;
         }
-        const bool through = line.rfind("through ", 0) == 0;
+        const bool through = moves[0].rfind("through ", 0) == 0;
         if (through && aw < bw - 1e-6)
             continue;
-        const Vector direction = evaluate(through ? line.substr(8) : line, names).vector.normalized();
+        const Vector direction = evaluate(through ? moves[0].substr(8) : moves[0], names).vector.normalized();
         bool repeated = false;
         for (const Vector& known : joint->target_insertions[0])
             repeated = repeated || known.dot(direction) > 0.9999;
-        if (repeated)
+        if (repeated && legs.empty())
             continue;
+        std::vector<Vector> turned;
+        for (const Vector& leg : legs)
+            turned.push_back(leg * -1.0);
         joint->target_insertions[0].push_back(direction);
         joint->target_insertions[1].push_back(direction * -1.0);
+        joint->target_legs[0].push_back(legs);
+        joint->target_legs[1].push_back(turned);
     }
 
     // more members go in along the way their letter names ("c = v")
     for (size_t k = 0; k < more.size(); k++) {
         const std::string letter(1, static_cast<char>('c' + k));
         joint->target_insertions.push_back(part_ways.count(letter) ? std::vector<Vector>{part_ways.at(letter)} : std::vector<Vector>{});
+        joint->target_legs.push_back(part_legs.count(letter) ? std::vector<std::vector<Vector>>{part_legs.at(letter)} : std::vector<std::vector<Vector>>{});
     }
 
     for (size_t k = 0; k < part_axes.size(); k++) {
@@ -2993,6 +3008,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             joint->target_insertions.push_back({part_ways.at(part)});
         else
             joint->target_insertions.push_back({part_axes[k], part_axes[k] * -1.0});
+        joint->target_legs.push_back(part_legs.count(part) ? std::vector<std::vector<Vector>>{part_legs.at(part)} : std::vector<std::vector<Vector>>{});
     }
 
     joint->name = design;

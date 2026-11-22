@@ -7,10 +7,12 @@ using namespace session_cpp;
 
 namespace wood_session {
 
-/// One move of an assembly: the member, the unit direction it goes in along (zero for the base), the joints it engages and their other members.
+/// One move of an assembly: the member, the unit direction it goes in along (zero for the base), the moves it makes after it
+/// (in, then along the slot), the joints it engages and their other members.
 struct AssemblyStep {
     std::string element;
     Vector insertion;
+    std::vector<Vector> legs;
     std::vector<std::string> joints;
     std::vector<std::string> partners;
 };
@@ -53,8 +55,12 @@ private:
     /// The other members of a joint, by guid.
     static std::vector<std::string> partners(const JointElement& joint, size_t index);
 
-    /// Whether member slides out along direction, its own diagonal, without entering any of others.
-    bool slides_out(const Element& member, const Vector& direction, const std::vector<const Element*>& others) const;
+    /// Whether member makes the moves legs, as long as each, then slides out along direction, its own diagonal, without
+    /// entering any of others.
+    bool slides_out(const Element& member, const std::vector<Vector>& legs, const Vector& direction, const std::vector<const Element*>& others) const;
+
+    /// The moves out of a way in's legs: the last undone first, each turned round.
+    static std::vector<Vector> out_legs(const std::vector<Vector>& legs);
 
     /// Takes the members apart one by one; returns the steps in removal order and fills stuck.
     std::vector<AssemblyStep> compute_disassembly();

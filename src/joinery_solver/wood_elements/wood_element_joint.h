@@ -35,6 +35,7 @@ public:
     JointFamily family = JointFamily::none; // Its compendium family.
     std::vector<JointCutStep> steps; // Its cutting procedure in order; a target loses its steps' removals in one boolean.
     std::vector<std::vector<Vector>> target_insertions; // Per target, the unit directions it goes in along; it comes out the opposite way.
+    std::vector<std::vector<std::vector<Vector>>> target_legs; // Per target and way in (as target_insertions), the moves after the approach in assembly order, each as long as it goes; none for a straight way in.
 
 protected:
     mutable std::optional<Mesh> mesh_;
@@ -73,6 +74,9 @@ public:
 
     /// The unit directions target i can be inserted along into the joint and its other targets, none when the joint does not say.
     virtual std::vector<Vector> insertion_directions(size_t target) const;
+
+    /// The moves target i makes after approaching along its way in number way, in assembly order: in, then along the slot; none for a straight way in.
+    std::vector<Vector> insertion_legs(size_t target, size_t way) const;
 
     static std::shared_ptr<JointElement> from_element(Element element);
     static void register_type();

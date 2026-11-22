@@ -76,3 +76,8 @@ Two-step moves in AssemblySequence (a piece's way in as a path of straight legs)
 A record with `moves` names a way in the assembly check cannot take yet (two legs, or two pieces at once); the test skips its
 come-apart check, as for `sealed`.
 | 242, 404 | Kawai joint, splice and corner | From the user's STEP model: the end cube split by three planes through its body diagonal and the midpoints of its edges into six 60 degree sectors over the middle third of the diagonal; each piece keeps its root corner and three alternate sectors, the other piece the rest, sliding apart along the diagonal. The corner is the same cube with the second body on a face next to the first | Built; the removed sectors overlap by 0.01 mm about the diagonal so their shells never share an edge (the old one-finger boolean) |
+
+A way in can now be a path: `insertions: "v; m1; m2"` approaches along v, then makes the moves m1, m2 (JointElement::target_legs),
+and AssemblySequence sweeps a member back along those moves before sliding it out, so such a joint is checked for real
+(pp. 400, 572: into a keyhole mortise in the side face, then along the beam into the undercut). Turns (Chidori, p. 730) are
+not paths yet.
