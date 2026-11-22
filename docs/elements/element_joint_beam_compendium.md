@@ -67,9 +67,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Undersquinted cogged lap joint with folding wedges**, p. 76 | | |
 |  | ![](joint_library/beam_undersquinted_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_cogged_lap_folding_wedges_splice.png) |
 | **Spear point cogged lap joint**, p. 78 | | |
-|  | ![](joint_library/beam_spear_point_cogged_lap_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_splice.png) |
+| ![](joint_library/beam_spear_point_cogged_lap_splice.gif) | ![](joint_library/beam_spear_point_cogged_lap_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_splice.png) |
 | **Spear point cogged lap joint with folding wedges**, p. 80 | | |
-|  | ![](joint_library/beam_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_folding_wedges_splice.png) |
+| ![](joint_library/beam_spear_point_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_folding_wedges_splice.png) |
 | **Undersquinted spear point cogged lap joint with folding wedges**, p. 82 | | |
 | ![](joint_library/beam_undersquinted_spear_point_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_spear_point_cogged_lap_folding_wedges_splice.png) |
 | **Half lap joint with floating piece**, p. 84 | | |
@@ -97,7 +97,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Rabbeted cogged lap joint**, p. 106 | | |
 | ![](joint_library/beam_rabbeted_cogged_lap_splice.gif) | ![](joint_library/beam_rabbeted_cogged_lap_splice.png) | ![](joint_library/tile_rabbeted_cogged_lap_splice.png) |
 | **Rabbeted cogged lap joint with folding wedges**, p. 108 | | |
-|  | ![](joint_library/beam_rabbeted_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_rabbeted_cogged_lap_folding_wedges_splice.png) |
+| ![](joint_library/beam_rabbeted_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_rabbeted_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_rabbeted_cogged_lap_folding_wedges_splice.png) |
 | **Rabbeted cogged lap joint with stub tenons and folding wedges**, p. 110 | | |
 | ![](joint_library/beam_rabbeted_cogged_lap_stub_tenons_folding_wedges_splice.gif) | ![](joint_library/beam_rabbeted_cogged_lap_stub_tenons_folding_wedges_splice.png) | ![](joint_library/tile_rabbeted_cogged_lap_stub_tenons_folding_wedges_splice.png) |
 | **Half-blind rabbeted lap joint with tapered keys**, p. 112 | | |
@@ -131,7 +131,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Pegged rabbeted stop-splayed cogged scarf joint**, p. 140 | | |
 | ![](joint_library/beam_pegged_rabbeted_stop_splayed_cogged_scarf.gif) | ![](joint_library/beam_pegged_rabbeted_stop_splayed_cogged_scarf.png) | ![](joint_library/tile_pegged_rabbeted_stop_splayed_cogged_scarf.png) |
 | **Rabbeted stop-splayed cogged scarf joint with folding wedges**, p. 142 | | |
-|  | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) |
+| ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_folding_wedges.gif) | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_folding_wedges.png) |
 | **Rabbeted stop-splayed cogged scarf joint with stub tenons and folding wedges**, p. 144 | | |
 | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.gif) | ![](joint_library/beam_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) | ![](joint_library/tile_rabbeted_stop_splayed_cogged_scarf_stub_tenons_folding_wedges.png) |
 | **Pegged rabbeted stop-splayed sloped cogged scarf joint**, p. 146 | | |
