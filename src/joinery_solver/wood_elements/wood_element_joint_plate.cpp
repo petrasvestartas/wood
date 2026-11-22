@@ -13,13 +13,6 @@ namespace {
 
 using namespace wood_session;
 
-static bool plate_from_library(
-    const std::string& design,
-    InteractionFeaturePlate& joint,
-    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
-    const std::map<std::string, double>& given
-);
-
 #include "wood_interaction_feature_plate_joints.h"
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -478,7 +471,7 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
         );
         return true;
     case 24:
-        top_side_milled_wedge(joint);
+        plate_from_library("top_side_milled_wedge", joint, context.elements, {});
         return true;
     case 25:
         top_side_snap_fit(joint);
@@ -957,6 +950,15 @@ JointPlateElement::JointPlateElement(
         throw std::invalid_argument("Missing joint plates");
 
     orient(std::make_shared<InteractionContactFace>(contact), {source, target}, settings);
+}
+
+bool JointPlateElement::library_outlines(
+    const std::string& design,
+    InteractionFeaturePlate& joint,
+    const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
+    const std::map<std::string, double>& given
+) {
+    return plate_from_library(design, joint, elements, given);
 }
 
 int JointPlateElement::library_id(const std::string& name) {
@@ -2246,7 +2248,7 @@ bool JointPlateElement::compute_top_side(
     else if (parameters.library == "top_side_tenons")
         plate_from_library("top_side_tenons", connection, elements, {});
     else if (parameters.library == "top_side_milled_wedge")
-        ::top_side_milled_wedge(connection);
+        plate_from_library("top_side_milled_wedge", connection, elements, {});
     else if (parameters.library == "top_side_snap_fit")
         ::top_side_snap_fit(connection);
     else if (parameters.library == "top_side_bridle")

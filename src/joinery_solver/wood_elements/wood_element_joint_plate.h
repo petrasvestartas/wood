@@ -248,6 +248,15 @@ public:
     /// The joint id 2024's tables give a design by its name.
     static int library_id(const std::string& name);
 
+    /// The outlines of design from its record of data/joints/plate/*.yaml written into joint, the given parameters replacing the
+    /// record's (a linked tenon's taper, a cross half lap's drills); false when no record names the design.
+    static bool library_outlines(
+        const std::string& design,
+        InteractionFeaturePlate& joint,
+        const std::vector<std::shared_ptr<FacePlanarElement>>& elements,
+        const std::map<std::string, double>& given = {}
+    );
+
     /// The id of cross_half_lap with its drills: 32 none, 33 two diagonal, 34 one.
     static int cross_half_lap_id(CrossDrills drills);
     void orient(

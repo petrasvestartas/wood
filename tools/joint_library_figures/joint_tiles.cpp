@@ -35,77 +35,28 @@ static bool apply_named_design(const Built& built, InteractionFeaturePlate& unit
     };
     std::vector<InteractionFeaturePlate> no_joints;
 
-    if (library == "side_side_inplane_three_fingers")
-        side_side_inplane_three_fingers(unit);
-    else if (library == "side_side_inplane_dovetails")
-        side_side_inplane_dovetails(unit);
-    else if (library == "side_side_inplane_butterfly_keys")
-        side_side_inplane_butterfly_keys(unit, plates);
-    else if (library == "side_side_inplane_splayed_scarf")
-        side_side_inplane_splayed_scarf(unit);
-    else if (library == "side_side_inplane_cross_splayed_scarf")
-        side_side_inplane_cross_splayed_scarf(unit);
-    else if (library == "side_side_inplane_tooth_keys")
-        side_side_inplane_tooth_keys(unit, plates);
-    else if (library == "side_side_outplane_three_fingers")
-        side_side_outplane_three_fingers(unit);
-    else if (library == "side_side_outplane_fingers")
-        side_side_outplane_fingers(unit);
-    else if (library == "side_side_outplane_graded_fingers")
-        side_side_outplane_graded_fingers(unit);
-    else if (library == "side_side_outplane_miter_tenon")
-        side_side_outplane_miter_tenon(unit);
-    else if (library == "side_side_outplane_tenons")
-        side_side_outplane_tenons(
-            unit,
-            p.taper,
-            p.chamfer,
-            p.modify_outline,
-            p.x[0],
-            p.x[1],
-            p.y[0],
-            p.y[1],
-            p.z[0],
-            p.z[1]
-        );
-    else if (library == "side_side_outplane_linked_tenons")
+    // a design from its YAML record: the tenons with the built joint's taper, chamfer and extents, a cross half lap's drills by
+    // its name
+    std::map<std::string, double> given;
+    std::string design = library;
+    if (library == "side_side_outplane_tenons")
+        given = {{"t", p.taper}, {"chamfer", p.chamfer ? 1.0 : 0.0}, {"modify", p.modify_outline ? 1.0 : 0.0}, {"x0", p.x[0]}, {"x1", p.x[1]},
+                 {"y0", p.y[0]}, {"y1", p.y[1]}, {"z0e", p.z[0]}, {"z1e", p.z[1]}};
+    if (library == "cross_half_lap_diagonal_drills" || library == "cross_half_lap_drill") {
+        design = "cross_half_lap";
+        given = {{"drills", library == "cross_half_lap_drill" ? 2.0 : 1.0}};
+    }
+    if (JointPlateElement::library_outlines(design, unit, plates, given))
+        return true;
+
+    if (library == "side_side_outplane_linked_tenons")
         side_side_outplane_linked_tenons(unit, no_joints, p.disable_divisions);
     else if (library == "side_side_outplane_linked_tenons_wall")
         side_side_outplane_linked_tenons_wall(unit, no_joints);
-    else if (library == "side_side_outplane_capped_fingers")
-        side_side_outplane_capped_fingers(unit);
-    else if (library == "side_side_outplane_notch")
-        side_side_outplane_notch(unit);
-    else if (library == "top_side_three_tenons")
-        top_side_three_tenons(unit);
-    else if (library == "top_side_dense_tenons")
-        top_side_dense_tenons(unit);
-    else if (library == "top_side_tenons")
-        top_side_tenons(unit);
-    else if (library == "top_side_milled_wedge")
-        top_side_milled_wedge(unit);
     else if (library == "top_side_snap_fit")
         top_side_snap_fit(unit);
     else if (library == "top_side_bridle")
         top_side_bridle(unit, plates, 1.0 / 3.0);
-    else if (library == "cross_slot")
-        cross_slot(unit);
-    else if (library == "cross_sliced_half_lap")
-        cross_sliced_half_lap(unit);
-    else if (library == "cross_half_lap")
-        cross_half_lap(unit);
-    else if (library == "cross_half_lap_diagonal_drills")
-        cross_half_lap(unit, CrossDrills::two_diagonal);
-    else if (library == "cross_half_lap_drill")
-        cross_half_lap(unit, CrossDrills::one);
-    else if (library == "cross_brussels_half_lap")
-        cross_brussels_half_lap(unit);
-    else if (library == "side_side_rotated_hooks")
-        side_side_rotated_hooks(unit, plates);
-    else if (library == "side_side_rotated_keys")
-        side_side_rotated_keys(unit, plates);
-    else if (library == "jupiter_scarf")
-        jupiter_scarf(unit);
     else
         return false;
 
