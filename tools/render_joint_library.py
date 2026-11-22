@@ -83,14 +83,16 @@ def render(pb: str, solid: str) -> Image.Image:
 
 
 def write_table() -> None:
-    """The page's table between its joint-table markers: a row per record of data/joints/*.yaml, picture, names and page."""
-    rows = ["| assembly | joint | tile | compendium |", "|---|---|---|---|"]
+    """The page's table between its joint-table markers: per record of data/joints/*.yaml its title and page in a row of their
+    own, then its assembly GIF, picture and tile side by side."""
+    rows = ["| assembly | joint | tile |", "|---|---|---|"]
     for chapter in sorted((WOOD / "data/joints").glob("*.yaml")):
         for match in re.finditer(r'^([a-z_0-9]+):\n  title: "(.*?)"\n  german: "(.*?)"\n  page: "(.*?)"', chapter.read_text(), re.M):
             design, title, german, page = match.groups()
             gif = f"![](joint_library/beam_{design}.gif)" if (PICTURES / f"beam_{design}.gif").exists() else ""
             tile = f"![](joint_library/tile_{design}.png)" if (PICTURES / f"tile_{design}.png").exists() else ""
-            rows.append(f"| {gif} | ![](joint_library/beam_{design}.png) | {tile} | **{title}**<br>{german}, p. {page}<br>`{design}` |")
+            rows.append(f"| **{title}**, p. {page} | | |")
+            rows.append(f"| {gif} | ![](joint_library/beam_{design}.png) | {tile} |")
     text = PAGE.read_text()
     start = text.index("<!-- joint-table -->") + len("<!-- joint-table -->")
     PAGE.write_text(text[:start] + "\n" + "\n".join(rows) + "\n" + text[text.index("<!-- /joint-table -->"):])
