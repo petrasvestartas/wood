@@ -50,5 +50,21 @@ members still in. It is proposed before it is built.
 
 ## 4. Review of the finished joints
 
-Only pp. 322, 360, 670 and 734 were compared with the book's projections side by side. The gallery, drawn see-through in
-assembly order with arrows, goes out as contact sheets of 30 joints; every joint found wrong there is corrected like p. 322.
+Done on 2026-11-22: every one of the 400 records was compared with the book's spread (projections and cutting steps) and with
+at least one external source, mostly the JAANUS dictionary entry for its Japanese name: 282 ok, 111 wrong, 7 unsure. The
+wrong and unsure ones were corrected record by record, each passing the joint test and checked again against the book.
+Still differing from the book, most because the assembly check moves each piece along one straight line:
+
+| Page | Joint | What it needs |
+|---|---|---|
+| 110, 144, 150 | Splices with T-shaped tips | Two moves: along the beam by the wedge or pin gap, then across |
+| 148 | Splice with an interrupted rabbet | Two moves past the tooth in the lip |
+| 400, 572 | Housed dovetails in a closed pocket | Two moves: into the entry pocket, then along the carrier |
+| 538 | Right-angle spline tenon | The spline's dovetail end: drop into the housing, then slide |
+| 736, 740, 742 | Two-way joints in a post | The post running on through: in along the beam, then down |
+| 784, 790 | Blind dovetail edge, keyed batten | Into an escape pocket or slot, then sideways |
+| 566 | Diagonally cut T-bridle | Turning only the post 45 degrees (roll turns both members) |
+| 240 | Tapered dovetail with mitred shoulders | The book's way of assembly is unclear |
+
+Two-step moves in AssemblySequence (a piece's way in as a path of straight legs) would settle all but the last two.
+
