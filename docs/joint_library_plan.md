@@ -99,3 +99,9 @@ within the joint's zone, as pairs of outlines in the unit box: the two parallel 
 the male, b the female; loose parts likewise. 385 of 405 joints convert whole; 20 have cuts that are no prism between two
 parallel faces (the Kawai fingers among them) and are counted, not drawn. Next: mark which tiles repeat along a joint's length
 (fingers, multiple tenons) as parametric, and review every joint's outlines against the book, the hard ones first.
+
+The cross puzzle (p. 732, Zimmermannsknoten) is the six-piece burr the book draws: sticks 2 x 2 x 8 units of 30 mm, three A
+with a centre notch 4 units long and half deep across the full width, two B (a 2-long half-deep centre notch and a half-wide
+full-height cut at each end of the 4-unit zone, on one side) and the solid key C. A voxel search over the burr's six slots
+found the one layout where the key slides out along its length; the record's members follow it: AAA first (the upright pair
+and the bar through their window), then each B sideways and down by 30 mm, then C. Only Chidori (p. 730) is left.
