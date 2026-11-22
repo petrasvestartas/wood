@@ -241,6 +241,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_four_way_rod_tenon_keys_pegs.png) | **Four-way rod tenon joint with tapered keys and pegs**<br>durchgesteckte Stufenstabzapfen mit Spannkeilen und Dübelsicherung, p. 750<br>`four_way_rod_tenon_keys_pegs` |
 | ![](joint_library/beam_wedged_two_way_cogged_lap.png) | **Wedged two-way cogged lap joint**<br>verkeiltes gerades Hakendruckschloss, p. 736<br>`wedged_two_way_cogged_lap` |
 | ![](joint_library/beam_wedged_two_way_oblique_cogged.png) | **Wedged two-way oblique cogged joint**<br>verkeiltes zweiseitiges Hakendruckschloss mit schrägen Haken, p. 742<br>`wedged_two_way_oblique_cogged` |
+| ![](joint_library/beam_wedged_four_way_splayed_cogged.png) | **Wedged four-way splayed cogged joint**<br>verkeiltes vierseitiges Hakendruckschloss mit schrägen Haken, p. 744<br>`wedged_four_way_splayed_cogged` |
 | ![](joint_library/beam_pegged_two_way_gooseneck.png) | **Pegged two-way gooseneck joint**<br>Sichelzapfenverbindung mit Dübelsicherung, p. 740<br>`pegged_two_way_gooseneck` |
 | ![](joint_library/beam_notched_corner_post_beveled_tenons.png) | **Notched corner-post joint with beveled-shoulder tenons**<br>Zapfen mit schräger einseitig auf Gehrung angeschnittener Brust, p. 718<br>`notched_corner_post_beveled_tenons` |
 | ![](joint_library/beam_diagonal_cross_puzzle.png) | **Diagonal cross puzzle**<br>diagonaler Zimmermannsknoten, p. 734<br>`diagonal_cross_puzzle` |

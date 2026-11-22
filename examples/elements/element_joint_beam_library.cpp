@@ -66,11 +66,9 @@ int main() {
                 const AABB box = AABB::from_mesh(drawn->model_geometry_mesh());
                 const Vector way = step.insertion;
                 const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
-                // a piece going in by more moves (in, then along the slot) stands back by them too
-                Vector undone(0.0, 0.0, 0.0);
-                for (const Vector& leg : step.legs)
-                    undone = undone - leg;
-                const Vector out = undone - way * (std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
+                // a piece going in by more moves (in, then along the slot) stands back along its approach only, its moves drawn as
+                // arrows: undone they would set it where a wedge or another piece sits
+                const Vector out = way * -(std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
                 drawn->place(Xform::translation(out[0], out[1], out[2]));
 
                 // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them,
@@ -104,7 +102,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by its own depth (at most 160 mm) and 40 mm per step, so the later ones stand farther out, a black arrow behind each along its way in, 30 mm and 30 mm per step of the order long; a piece that goes in by more moves (in, then along the slot) stands back by them too, an arrow for each.
+Every joint of the beam joint library (data/joints/*.yaml, Bauer and Pauli's Joinery Compendium) built by JointBeamElement::from_library on a pair of 120 x 120 beams, one group and one row per design named after it: the member square on the carrier, then leaning at 50 degrees, its stock running 180 mm past its axis end so a lap can pass through the carrier; each drawn apart in the order it goes together: the joint's AssemblySequence takes a twin apart, the carrier stays, and every other member, peg or wedge moves out along the way it goes in by its own depth (at most 160 mm) and 40 mm per step, so the later ones stand farther out, a black arrow behind each along its way in, 30 mm and 30 mm per step of the order long; a piece that goes in by more moves (in, then along the slot) gets an arrow for each.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

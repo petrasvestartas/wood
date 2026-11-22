@@ -2827,7 +2827,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         if (crossing)
             boxes["a_node"] = frame_solid(on_a, {u, w, p}, {-around, around}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
         else
-            boxes["a_end"] = frame_solid(node, {u, w, p}, {end_reach(a, node, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+            boxes["a_end"] = frame_solid(beside, {u, w, p}, {end_reach(a, beside, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
     }
 
     // more members: each a box over its whole length, named by its letter after b (c, d, ...), its axis named by its letter and u (cu);
@@ -3003,6 +3003,15 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         joint->target_insertions[1].push_back(direction * -1.0);
         joint->target_legs[0].push_back(legs);
         joint->target_legs[1].push_back(turned);
+    }
+
+    // "a = v" and "b = v" give the member and the carrier their own ways in, each against a base the record names
+    for (size_t k = 0; k < 2; k++) {
+        const std::string letter(1, static_cast<char>('a' + k));
+        if (!part_ways.count(letter))
+            continue;
+        joint->target_insertions[k] = {part_ways.at(letter)};
+        joint->target_legs[k] = {part_legs.at(letter)};
     }
 
     // more members go in along the way their letter names ("c = v")
