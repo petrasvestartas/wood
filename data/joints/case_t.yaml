@@ -42,6 +42,7 @@ housing_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.33"
@@ -69,6 +70,7 @@ stopped_housing_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.33"
@@ -97,6 +99,7 @@ tongue_dado_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.4"
@@ -127,6 +130,7 @@ rabbet_dado_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.4"
@@ -156,6 +160,7 @@ sliding_dovetail_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.4"
@@ -191,6 +196,7 @@ single_shouldered_sliding_dovetail_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.4"
@@ -225,6 +231,7 @@ beveled_housing_case:
   family: "t"
   corners: "square"
   parameters:
+    - "stand = 1"
     - "stock_thick = 12"
     - "stock_wide = 150"
     - "depth = 0.5"
