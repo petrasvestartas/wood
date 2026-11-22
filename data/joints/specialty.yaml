@@ -1015,7 +1015,6 @@ wedged_two_way_cogged_lap:
   family: "corner"
   corners: "square"
   filled: "c"
-  moves: "b in along its slot over a, then down onto a's hook; the wedges in from the far faces"
   parameters:
     - "stock_thick = 19"
     - "stock_wide = 50"
@@ -1063,7 +1062,8 @@ wedged_two_way_cogged_lap:
     - "C2 c -ma1 -ma2 -ma_bottom -ma_top"
     - "C3 c -mb1 -mb2 -mb_bottom -mb_top"
   insertions:
-    - "-u"
+    - "-u; gap*aw*w"
+    - "c = -t"
 
 wedged_two_way_oblique_cogged:
   title: "Wedged two-way oblique cogged joint"
