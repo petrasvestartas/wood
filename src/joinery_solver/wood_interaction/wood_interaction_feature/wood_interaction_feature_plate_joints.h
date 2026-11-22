@@ -30,7 +30,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 #include "wood_interaction_feature_plate_joints/top_side_annen_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_annen_shifted_tenons.h"
-#include "wood_interaction_feature_plate_joints/top_side_bridle.h"
 #include "wood_interaction_feature_plate_joints/top_side_custom.h"
 
 // ═══════════════════════════════════════════════════════════════════════════

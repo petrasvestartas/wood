@@ -258,6 +258,24 @@ static bool plate_from_library(
         {"volume_edge", {joint.joint_volumes[0] && joint.joint_volumes[0]->point_count() >= 3
                              ? Point::distance(joint.joint_volumes[0]->get_point(1), joint.joint_volumes[0]->get_point(2)) : 0.0}},
     };
+    // measure "lean": how far the male plate runs along the female per width across it, and the box's length over its width
+    if (record.fields.count("measure") && record.fields.at("measure") == "lean") {
+        double lean = 0.0;
+        double aspect = 1.0;
+        const int male = index_of_plate(elements, joint.element_a);
+        if (male >= 0 && joint.joint_volumes[0] && joint.joint_volumes[1]) {
+            const Polyline& first = *joint.joint_volumes[0];
+            const Polyline& second = *joint.joint_volumes[1];
+            const Vector across = first[3] - first[0];
+            const Vector along = second[0] - first[0];
+            const FacePlanarElement& plate = *elements[male];
+            const Vector middle = Point::mid_point(plate.polylines[0].center(), plate.polylines[1].center()) - Point::mid_point(first[0], second[1]);
+            lean = (middle.dot(along) / along.magnitude_squared()) / (middle.dot(across) / across.magnitude_squared());
+            aspect = along.magnitude() / across.magnitude();
+        }
+        names["lean"] = {lean};
+        names["aspect"] = {aspect};
+    }
     for (const std::string& line : record.lists["parameters"]) {
         const std::vector<std::string> pair = top_parts(line, '=');
         names[pair[0]] = given.count(pair[0]) ? LibraryValue{given.at(pair[0])} : evaluate(pair[1], names);
@@ -481,7 +499,7 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
         plate_from_library("top_side_snap_fit", joint, context.elements, {});
         return true;
     case 26:
-        top_side_bridle(joint, context.elements, 1.0 / 3.0);
+        plate_from_library("top_side_bridle", joint, context.elements, {});
         return true;
     case 28:
         side_removal(joint, context.elements);
@@ -2256,7 +2274,7 @@ bool JointPlateElement::compute_top_side(
     else if (parameters.library == "top_side_snap_fit")
         plate_from_library("top_side_snap_fit", connection, elements, {});
     else if (parameters.library == "top_side_bridle")
-        ::top_side_bridle(connection, elements, parameters.z[1] - parameters.z[0]);
+        plate_from_library("top_side_bridle", connection, elements, {{"tongue", parameters.z[1] - parameters.z[0]}});
     else if (parameters.library == "top_side_custom")
         ::top_side_custom(connection, settings);
     else
