@@ -89,6 +89,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | ![](joint_library/beam_sliding_dovetail_batten.png) | **Sliding dovetail batten**<br>Gratleiste, p. 788<br>`sliding_dovetail_batten` |
 | ![](joint_library/beam_floating_tenon_spline_edge.png) | **Floating tenon and spline joint**<br>Nut mit eingesetzter Feder und Zapfen, p. 782<br>`floating_tenon_spline_edge` |
 | ![](joint_library/beam_sliding_dovetail_batten_keys.png) | **Sliding dovetail batten with keys**<br>Gratleiste mit Dübelschloss, p. 790<br>`sliding_dovetail_batten_keys` |
+| ![](joint_library/beam_blind_dovetailed_keyhole_batten.png) | **Blind dovetailed keyhole batten**<br>Mehrfach abgesetzte Gratleiste, p. 792<br>`blind_dovetailed_keyhole_batten` |
 | ![](joint_library/beam_foxtail_wedged_floating_tenon_edge.png) | **Foxtail-wedged floating tenon joint**<br>Stoß mit verkeiltem eingesetztem Zapfen, p. 778<br>`foxtail_wedged_floating_tenon_edge` |
 | ![](joint_library/beam_finger_end.png) | **End-to-end finger joint**<br>Fingerzinkenstoß, p. 796<br>`finger_end` |
 | ![](joint_library/beam_tongue_groove_breadboard.png) | **Tongue and groove breadboard end**<br>Hirnleiste mit Nut und Feder, p. 806<br>`tongue_groove_breadboard` |
