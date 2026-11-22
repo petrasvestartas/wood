@@ -115,3 +115,19 @@ and the bar through their window), then each B sideways and down by 30 mm, then 
 - Chidori (p. 730): A keeps a round post in one quarter of its notch, each B a square post in another; B slides in, the second
   B goes down and turns a quarter about its own axis (`moves`: it passes through the first while it turns). All 407 done.
 - Pictures, GIFs and tiles are 960 x 640, see-through; the page lists the joints by page, without its outline menu.
+
+## 9. Joinery in files: parametric records (2026-11-22)
+
+Beam records repeat by division: `repeat: "k = count"` with count an expression of the joint's size and a `division`
+parameter; every braced line or step region is written once per unit (p. 796: six fingers at 220 mm, twelve at 400).
+
+Plate joints read from `data/joints/plate/*.yaml` (one file per family) through `JointPlateElement::library_outlines`,
+in place of a header per design: outlines in the unit box as point expressions of `divisions`, `shift`, `length`,
+`joint_length` and `unit`; `repeat j < n:` points a division each, `each k < n:` an outline each (a hole per tenon),
+`if c:` a point only where c holds, `ends`, copies, `| ` joined parts, a point as one vector expression (`vec`, `unit`,
+`cross`, `dot`), `pick`, `less`, `mod`, `sign`; fabrication per role or per outline (`as hole`); parameters a caller
+may give (the linked tenons' taper); `base:` a record on another's (the Brussels half lap, the sliced half lap);
+`volume_size` squares the joint volumes (the rotated keys). 26 designs moved, each matching the joint library golden
+test (and, for two untested ones, goldens written from the old code first), the 2025 datasets unchanged.
+Left in C++: the designs that build on the plates themselves (pins, borders, side removal, rotated miter, Annen,
+bridle), the user's custom outlines (already data) and the snap fit (no golden to prove a copy).
