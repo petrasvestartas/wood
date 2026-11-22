@@ -3,7 +3,7 @@
 it (data/output/pb/live.pb), see-through with its pegs, wedges and keys a strong blue, one fixed camera, one 3:2 frame. The
 picture is the GIF's first frame: every piece apart, back along its way in. The GIF then takes the pieces in one by one in
 the assembly order (data/output/pb/joint_library_orders.json): each slides in along its way, then makes its further moves,
-slides and turns about a line, each swept as a matrix; the moving piece tinted light blue, still see-through. Pieces pass through each other freely:
+slides and turns about a line, each swept as a matrix; the moving piece a strong blue, as the parts. Pieces pass through each other freely:
 the GIF shows the order and the moves, not a collision check.
 
     python3 tools/render_joint_library_gifs.py [design ...] [--slides 6]
@@ -64,9 +64,9 @@ def frame_branch(frame, solid):
         if moves:
             element.place(placement(moves))
         part = re.search(r"_(part|pin)(_[0-9]+)?$", element.name) is not None
-        # the moving piece tinted in the see-through pass only, so it stays see-through; parts a strong blue in both
-        moving = element.name == frame["moving"] and not part
-        colour = [0.0, 0.32, 0.86, 1.0] if part else [0.97, 0.97, 0.97, 1.0] if solid else [0.55, 0.75, 0.95, 1.0] if moving else None
+        # the moving piece and the parts a strong blue in both passes, the solid one laying it over the see-through drawing
+        moving = element.name == frame["moving"]
+        colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.97, 0.97, 0.97, 1.0] if solid else None
         if colour:
             branch.set_node_color(branch.get_node(element.guid), Color(*colour))
     for line in list(branch.objects.lines):
