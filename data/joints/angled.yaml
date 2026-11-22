@@ -129,6 +129,7 @@ oblique_thrust_notched_heel:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
   points:
     - "F = meet(O - ah*p, u, O, n)"
@@ -158,6 +159,7 @@ double_notched_oblique_thrust:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "front_depth = 0.2"
     - "heel_depth = 0.2"
   points:
@@ -193,6 +195,7 @@ oblique_thrust_sloped_tenon_notched_heel:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
     - "thickness = 0.3333333333333333"
   points:
@@ -224,6 +227,7 @@ oblique_thrust_mortise_tenon:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.3"
     - "thickness = 0.3333333333333333"
     - "inset = 0.1"
@@ -257,6 +261,7 @@ oblique_thrust_sloped_mortise_tenon:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.3"
     - "thickness = 0.3333333333333333"
     - "inset = 0.1"
@@ -290,6 +295,7 @@ notched_oblique_thrust_mortise_tenon:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
     - "tenon_depth = 0.4"
     - "thickness = 0.3333333333333333"
@@ -323,6 +329,7 @@ notched_oblique_thrust_pegged_mortise_tenon:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
     - "tenon_depth = 0.65"
     - "peg_depth = 0.3"
@@ -363,6 +370,7 @@ slotted_notched_oblique_thrust:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
     - "thickness = 0.3333333333333333"
   points:
@@ -394,6 +402,7 @@ slotted_notched_oblique_thrust_visible_end:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "span = 270"
     - "depth = 0.2"
     - "thickness = 0.3333333333333333"
   points:
@@ -426,6 +435,7 @@ pegged_angled_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "peg = 0.15"
   points:
     - "U = O + n"
@@ -456,6 +466,7 @@ pegged_angled_stopped_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "stop = 0.75"
     - "peg = 0.15"
   points:
@@ -487,6 +498,7 @@ pegged_angled_lapped_mortise_tenon:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "peg = 0.15"
   points:
     - "U = O + n"
@@ -520,6 +532,7 @@ pegged_shouldered_angled_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "inset = 0.15"
     - "peg = 0.15"
   points:
@@ -552,6 +565,7 @@ pegged_angled_half_dovetail_lap_sloped_shoulder:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "flare = 0.2"
     - "depth = 0.15"
     - "peg = 0.15"
@@ -592,6 +606,7 @@ pegged_angled_half_dovetail_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "flare = 0.2"
     - "peg = 0.15"
   points:
@@ -625,6 +640,7 @@ pegged_stopped_angled_half_dovetail_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "flare = 0.2"
     - "stop = 0.75"
     - "peg = 0.15"
@@ -659,6 +675,7 @@ pegged_angled_stopped_dovetail_half_lap:
   family: "angled"
   corners: "square inclined"
   parameters:
+    - "span = 270"
     - "flare = 0.2"
     - "stop = 0.75"
     - "peg = 0.15"

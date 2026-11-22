@@ -1,5 +1,5 @@
 """The picture and the assembly GIF of every joint of the beam joint library, docs/images/joint_library/beam_<design>.png and
-.gif, drawn alike: the square corner of each design (its inclined one when it has none) as element_joint_beam_library draws
+.gif, drawn alike: each design at the corner the book draws (leaning for an angled joint, else square where it has one) as element_joint_beam_library draws
 it (data/output/pb/live.pb), see-through with its pegs, wedges and keys a strong blue, one fixed camera, one 3:2 frame. The
 picture is the GIF's first frame: every piece apart, back along its way in. The GIF then takes the pieces in one by one in
 the assembly order (data/output/pb/joint_library_orders.json): each slides in along its way, then makes its further moves,
@@ -12,6 +12,7 @@ the GIF shows the order and the moves, not a collision check.
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,7 @@ WOOD = pathlib.Path(__file__).resolve().parents[1]
 PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
 RENDERER = WOOD.parent / "session/session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
 PICTURES = WOOD / "docs/images/joint_library"
+RECORDS = "".join(path.read_text() for path in sorted((WOOD / "data/joints").glob("*.yaml")))  # Every record, for its family.
 SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, so a row of the page reads as one.
 
 # Every frame of the plan twice, see-through and solid: the design's corner alone, each piece placed by the moves the frame
@@ -51,26 +53,36 @@ def placement(moves):
         xform = step * xform
     return xform
 
-def frame_branch(frame, solid):
+def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
     branch = Session.pb_load(scene_path).get_branch(design)
     for edge in list(branch.interactions):
         branch.interactions[edge] = []
+    # no arrows, no base planes and no joint element: undrawn, they would still widen the camera's framing (the joint's empty
+    # box sits at the origin); the joint's parts, which hang under it, go back in at the root
+    for line in list(branch.objects.lines) + list(branch.objects.planes):
+        branch.remove_object(line.guid)
     for element in list(branch.objects.elements):
-        if not element.name.startswith(variant + "_") and element.name != variant:
+        if element.name == variant:
+            branch.remove_object(element.guid)
+    for element in list(branch.objects.elements):
+        if element.name.startswith(variant + "_") and re.search(r"_(part|pin)(_[0-9]+)?$", element.name):
+            branch.remove_object(element.guid)
+            branch.add_element(element)
+    for element in list(branch.objects.elements):
+        # the corner's members and parts only
+        if not element.name.startswith(variant + "_"):
             branch.remove_object(element.guid)
             continue
         element.set_features([])
-        moves = frame["moves"].get(element.name)
-        if moves:
-            element.place(placement(moves))
+        # its moves, then the shift that centres every frame's bounds on the origin, where the renderer frames best
+        placed = Xform.translation(*shift) * placement(frame["moves"].get(element.name) or [])
+        element.place(placed)
         part = re.search(r"_(part|pin)(_[0-9]+)?$", element.name) is not None
         # the moving piece and the parts a strong blue in both passes, the solid one laying it over the see-through drawing
         moving = element.name == frame["moving"]
         colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.97, 0.97, 0.97, 1.0] if solid else None
         if colour:
             branch.set_node_color(branch.get_node(element.guid), Color(*colour))
-    for line in list(branch.objects.lines):
-        branch.remove_object(line.guid)
     return branch
 
 # the bounds of every frame, so all are drawn from one camera
@@ -81,11 +93,14 @@ for frame in plan["frames"]:
             for k in range(3):
                 low[k] = min(low[k], corner[k])
                 high[k] = max(high[k], corner[k])
+shift = [-(a + b) / 2 for a, b in zip(low, high)]
+low = [a + d for a, d in zip(low, shift)]
+high = [b + d for b, d in zip(high, shift)]
 paths = []
 for n, frame in enumerate(plan["frames"]):
     pair = []
     for solid in (False, True):
-        branch = frame_branch(frame, solid)
+        branch = frame_branch(frame, solid, shift)
         for a, b in ((low, [low[0] + 0.5, low[1], low[2]]), (high, [high[0] - 0.5, high[1], high[2]])):
             mark = Line.from_points(Point(*a), Point(*b))
             mark.linecolor = Color(0.969, 0.969, 0.969, 1.0)
@@ -94,7 +109,7 @@ for n, frame in enumerate(plan["frames"]):
         branch.pb_dump(path)
         pair.append(path)
     paths.append(pair)
-print(json.dumps({"paths": paths, "target": [(a + b) / 2 for a, b in zip(low, high)]}))
+print(json.dumps({"paths": paths, "target": [0.0, 0.0, 0.0]}))
 """
 
 
@@ -164,8 +179,11 @@ def drawing(pair: list, target: list) -> Image.Image:
 
 
 def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> list:
-    """The picture and the GIF of design's square corner (its inclined corner when it has no square one)."""
-    variant = f"{design}_square" if f"{design}_square" in orders or f"{design}_inclined" not in orders else f"{design}_inclined"
+    """The picture and the GIF of design at the corner the book draws: leaning for an angled joint, else square where it has one."""
+    # the corner the book draws: an angled joint leaning, every other square where it can be
+    family = re.search(r'^' + design + r':\n(?:  .*\n)*?  family: "(.*?)"', RECORDS, re.M)
+    leaning = family is not None and family.group(1) == "angled" and f"{design}_inclined" in orders
+    variant = f"{design}_inclined" if leaning or f"{design}_square" not in orders else f"{design}_square"
     order = orders.get(variant, [])
     frames = plan_frames(order, slides)
     with tempfile.TemporaryDirectory() as tmp:
