@@ -186,8 +186,9 @@ static std::vector<Point> outline_points(const std::string& text, std::map<std::
 /// The outlines of design from its record of data/joints/plate/*.yaml, in the unit box (z along the joint line): its parameters
 /// read with the joint's divisions, shift, length (the joint line scaled) and unit (the plate thickness the box is scaled to
 /// along the line, when the record has unit_scale); each "role face = points" an outline, "role face = ends" the line between
-/// the ends of the face's first outline, "role face = other face" a copy; each outline of fabrication type as the record names
-/// (edge_insertion by default) unless "types" names it. False when no record names the design.
+/// the ends of the face's first outline, "role face = other face" a copy, "role face = each k < n: points" an outline per k;
+/// each outline of the fabrication type the record names for its role (male_fabrication, female_fabrication, else fabrication,
+/// else edge_insertion) unless "types" names it. False when no record names the design.
 static bool plate_from_library(
     const std::string& design, InteractionFeaturePlate& joint, const std::vector<std::shared_ptr<FacePlanarElement>>& elements
 ) {
@@ -234,15 +235,29 @@ static bool plate_from_library(
             outlines.insert(outlines.end(), copy.begin(), copy.end());
             continue;
         }
+        // "each k < n: points" an outline per k (a hole per tenon), else one outline
+        if (trimmed.rfind("each ", 0) == 0) {
+            const size_t less = trimmed.find('<');
+            const size_t colon = trimmed.find(':');
+            const std::string index = top_parts(trimmed.substr(5, less - 5), ' ')[0];
+            const int times = static_cast<int>(std::llround(evaluate(trimmed.substr(less + 1, colon - less - 1), names).number));
+            for (int k = 0; k < times; k++) {
+                names[index] = {static_cast<double>(k)};
+                outlines.push_back(Polyline(outline_points(trimmed.substr(colon + 1), names)));
+            }
+            continue;
+        }
         outlines.push_back(Polyline(outline_points(trimmed, names)));
     }
 
     // a fabrication type per outline
-    const FabricationType fabrication = fabrication_named(record.fields.count("fabrication") ? record.fields.at("fabrication") : "edge_insertion");
-    joint.male_fabrication_types[0].assign(joint.male_outlines[0].size(), fabrication);
-    joint.male_fabrication_types[1].assign(joint.male_outlines[1].size(), fabrication);
-    joint.female_fabrication_types[0].assign(joint.female_outlines[0].size(), fabrication);
-    joint.female_fabrication_types[1].assign(joint.female_outlines[1].size(), fabrication);
+    const std::string common = record.fields.count("fabrication") ? record.fields.at("fabrication") : "edge_insertion";
+    const FabricationType male = fabrication_named(record.fields.count("male_fabrication") ? record.fields.at("male_fabrication") : common);
+    const FabricationType female = fabrication_named(record.fields.count("female_fabrication") ? record.fields.at("female_fabrication") : common);
+    joint.male_fabrication_types[0].assign(joint.male_outlines[0].size(), male);
+    joint.male_fabrication_types[1].assign(joint.male_outlines[1].size(), male);
+    joint.female_fabrication_types[0].assign(joint.female_outlines[0].size(), female);
+    joint.female_fabrication_types[1].assign(joint.female_outlines[1].size(), female);
     std::map<std::string, std::vector<int>*> types = {
         {"male 0", &joint.male_fabrication_types[0]}, {"male 1", &joint.male_fabrication_types[1]},
         {"female 0", &joint.female_fabrication_types[0]}, {"female 1", &joint.female_fabrication_types[1]},
@@ -380,10 +395,10 @@ static bool build_topside(const int id, InteractionFeaturePlate& joint, BuildCon
 
     switch (id) {
     case 20:
-        top_side_tenons(joint);
+        plate_from_library("top_side_tenons", joint, context.elements);
         return true;
     case 21:
-        top_side_dense_tenons(joint);
+        plate_from_library("top_side_dense_tenons", joint, context.elements);
         return true;
     case 22:
         top_side_annen_tenons(joint, context.elements, context.all_joints);
@@ -545,7 +560,7 @@ void build_family_default(const int family, InteractionFeaturePlate& joint, Buil
         plate_from_library("side_side_outplane_fingers", joint, context.elements);
         return;
     case 2:
-        top_side_tenons(joint);
+        plate_from_library("top_side_tenons", joint, context.elements);
         return;
     case 3:
         plate_from_library("cross_slot", joint, context.elements);
@@ -592,7 +607,7 @@ void joint_create_geometry(
         if (joint.joint_type == 11 || joint.joint_type == 12)
             plate_from_library("side_side_outplane_fingers", joint, context.elements);
         else if (joint.joint_type == 20)
-            top_side_tenons(joint);
+            plate_from_library("top_side_tenons", joint, context.elements);
         return;
     }
 
@@ -2052,7 +2067,7 @@ bool JointPlateElement::compute_side_side_outplane(
     else if (parameters.library == "side_side_outplane_linked_tenons_wall")
         ::side_side_outplane_linked_tenons_wall(connection, connections);
     else if (parameters.library == "side_side_outplane_capped_fingers")
-        ::side_side_outplane_capped_fingers(connection);
+        plate_from_library("side_side_outplane_capped_fingers", connection, elements);
     else if (parameters.library == "side_side_outplane_notch")
         plate_from_library("side_side_outplane_notch", connection, elements);
     else if (parameters.library == "side_side_outplane_custom")
@@ -2162,9 +2177,9 @@ bool JointPlateElement::compute_top_side(
             connection, elements, connections, parameters.divisions, settings.limit_min_joint_length
         );
     else if (parameters.library == "top_side_dense_tenons")
-        ::top_side_dense_tenons(connection);
+        plate_from_library("top_side_dense_tenons", connection, elements);
     else if (parameters.library == "top_side_tenons")
-        ::top_side_tenons(connection);
+        plate_from_library("top_side_tenons", connection, elements);
     else if (parameters.library == "top_side_milled_wedge")
         ::top_side_milled_wedge(connection);
     else if (parameters.library == "top_side_snap_fit")

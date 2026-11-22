@@ -81,3 +81,19 @@ side_side_outplane_notch:
     - "male 0 = -0.5, 0.5, 0.5; -0.5, 0.5, -0.5"
     - "male 1 = -0.5, -0.5, -0.25; 0.5, -0.5, -0.25; 0.5, -0.5, 0.25; -0.5, -0.5, 0.25"
     - "male 1 = -0.5, -0.5, 0.5; -0.5, -0.5, -0.5"
+
+side_side_outplane_capped_fingers:
+  parameters:
+    - "half = max(2, min(20, divisions))"
+    - "div = half + mod(half, 2)"
+    - "n = div / 2"
+    - "d = 1.0 / (4 * n + 2)"
+  outlines:
+    - "female 0 = 0.5, 0.5, -0.5 | repeat k < 2 * n: 0.5, pick(mod(k, 2), -0.5, 0.5), -(2 * n - 1 - 2 * k) * d; 0.5, pick(mod(k, 2), 0.5, -0.5), -(2 * n - 1 - 2 * k) * d | 0.5, 0.5, 0.5"
+    - "female 0 = ends"
+    - "female 1 = -0.5, 0.5, -0.5 | repeat k < 2 * n: -0.5, pick(mod(k, 2), -0.5, 0.5), -(2 * n - 1 - 2 * k) * d; -0.5, pick(mod(k, 2), 0.5, -0.5), -(2 * n - 1 - 2 * k) * d | -0.5, 0.5, 0.5"
+    - "female 1 = ends"
+    - "male 0 = -0.5, 0.5, 0.5 | repeat k < 2 * n: pick(mod(k, 2), 0.5, -0.5), 0.5, (2 * n - 1 - 2 * k) * d; pick(mod(k, 2), -0.5, 0.5), 0.5, (2 * n - 1 - 2 * k) * d | -0.5, 0.5, -0.5"
+    - "male 0 = ends"
+    - "male 1 = -0.5, -0.5, 0.5 | repeat k < 2 * n: pick(mod(k, 2), 0.5, -0.5), -0.5, (2 * n - 1 - 2 * k) * d; pick(mod(k, 2), -0.5, 0.5), -0.5, (2 * n - 1 - 2 * k) * d | -0.5, -0.5, -0.5"
+    - "male 1 = ends"

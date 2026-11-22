@@ -23,7 +23,6 @@ using namespace wood_session;
 #include "wood_interaction_feature_plate_joints/side_side_outplane_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_linked_tenons_wall.h"
-#include "wood_interaction_feature_plate_joints/side_side_outplane_capped_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_annen_fingers.h"
 #include "wood_interaction_feature_plate_joints/side_side_outplane_custom.h"
 
@@ -32,8 +31,6 @@ using namespace wood_session;
 // ═══════════════════════════════════════════════════════════════════════════
 #include "wood_interaction_feature_plate_joints/top_side_annen_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_annen_shifted_tenons.h"
-#include "wood_interaction_feature_plate_joints/top_side_dense_tenons.h"
-#include "wood_interaction_feature_plate_joints/top_side_tenons.h"
 #include "wood_interaction_feature_plate_joints/top_side_milled_wedge.h"
 #include "wood_interaction_feature_plate_joints/top_side_snap_fit.h"
 #include "wood_interaction_feature_plate_joints/top_side_bridle.h"
