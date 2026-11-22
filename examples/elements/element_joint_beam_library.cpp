@@ -9,6 +9,9 @@ using namespace wood_session;
 int main() {
 
     WoodSession scene("element_joint_beam_library");
+    // per design and corner the order its pieces go in, each piece's way, further moves and where the drawing set it, for
+    // tools/render_joint_library_gifs.py
+    nlohmann::ordered_json orders;
 
     // a design to a row, standing in the xz plane: the member square on the carrier, then leaning at 50 degrees, at the corners its record names
     const std::vector<std::string> designs = library_designs();
@@ -58,12 +61,13 @@ int main() {
             const size_t base = record.fields.count("base") ? static_cast<size_t>(record.fields.at("base")[0] - 'a') : 1;
             const AssemblySequence sequence(apart, fresh[base]->name);
             // a member the sequence cannot take out on its own (a pair hooked together outside the post) is still drawn apart,
-            // along the way its record gives it
-            std::vector<AssemblyStep> steps = sequence.steps();
+            // along the way its record gives it, going in right after the base: what the sequence took out stays in it
+            std::vector<AssemblyStep> steps = {sequence.steps().front()};
             for (const std::string& locked : sequence.locked())
                 for (size_t m = 0; m < fresh.size(); m++)
                     if (fresh[m]->name == locked && !twin->insertion_directions(m).empty())
                         steps.push_back({locked, twin->insertion_directions(m)[0], twin->insertion_legs(m, 0), {}, {}});
+            steps.insert(steps.end(), sequence.steps().begin() + 1, sequence.steps().end());
             for (size_t j = 1; j < steps.size(); j++) {
                 const AssemblyStep& step = steps[j];
                 const std::shared_ptr<Element> drawn = scene.get_element_by_name<Element>(name + step.element.substr(design.size()));
@@ -77,6 +81,10 @@ int main() {
                 // arrows: undone they would set it where a wedge or another piece sits
                 const Vector out = way * -(std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
                 drawn->place(Xform::translation(out[0], out[1], out[2]));
+                nlohmann::ordered_json legs = nlohmann::ordered_json::array();
+                for (const Vector& leg : step.legs)
+                    legs.push_back({leg[0], leg[1], leg[2]});
+                orders[name].push_back({{"element", drawn->name}, {"way", {way[0], way[1], way[2]}}, {"legs", legs}, {"out", {out[0], out[1], out[2]}}});
 
                 // a black arrow behind it along the way it goes in, its head at the back of the part's box, as the truss draws them,
                 // longer the later the piece goes in: 30 mm and 30 mm per step of the order
@@ -104,6 +112,7 @@ int main() {
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
+    std::ofstream(pb_path("joint_library_orders").substr(0, pb_path("joint_library_orders").size() - 3) + ".json") << orders.dump(1);
     return 0;
 }
 

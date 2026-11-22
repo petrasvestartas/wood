@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include "wood_element_geometry.h"
+#include "wood_element_joint_beam.h"
 
 namespace wood_session {
 
@@ -409,6 +410,162 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     }
 
     return members;
+}
+
+
+/// Whether left turns less than right about a face's centre.
+static bool by_angle(const std::pair<double, Point>& left, const std::pair<double, Point>& right) {
+    return left.first < right.first;
+}
+
+/// The two faces of a convex piece across which it is a prism: its vertices on the lowest and highest plane along one of x, y, z
+/// or a face normal, each face's points in turn about its centre, the shorter repeated to match the longer; empty when none.
+static std::array<Polyline, 2> prism_faces(const Mesh& piece) {
+
+    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> data = piece.to_vertices_and_faces();
+    std::vector<Vector> directions = {Vector::x_axis(), Vector::y_axis(), Vector::z_axis()};
+    for (const size_t face : piece.faces())
+        if (piece.face_normal(face))
+            directions.push_back(piece.face_normal(face)->normalized());
+
+    for (const Vector& direction : directions) {
+        double low = 1e18;
+        double high = -1e18;
+        for (const Point& point : data.first) {
+            low = std::min(low, Vector(point[0], point[1], point[2]).dot(direction));
+            high = std::max(high, Vector(point[0], point[1], point[2]).dot(direction));
+        }
+        if (high - low < 1e-3)
+            continue;
+        std::array<std::vector<Point>, 2> faces;
+        bool prism = true;
+        for (const Point& point : data.first) {
+            const double along = Vector(point[0], point[1], point[2]).dot(direction);
+            if (std::abs(along - low) < 1e-3)
+                faces[0].push_back(point);
+            else if (std::abs(along - high) < 1e-3)
+                faces[1].push_back(point);
+            else
+                prism = false;
+        }
+        if (!prism || faces[0].size() < 3 || faces[1].size() < 3)
+            continue;
+
+        // each face's points in turn about the face's centre, in one sense seen along direction
+        const Vector side = (std::abs(direction[0]) < 0.9 ? Vector::x_axis() : Vector::y_axis()).cross(direction).normalized();
+        const Vector other = direction.cross(side);
+        std::array<std::vector<std::pair<double, Point>>, 2> turned;
+        for (size_t k = 0; k < 2; k++) {
+            Vector sum(0.0, 0.0, 0.0);
+            for (const Point& point : faces[k])
+                sum = sum + Vector(point[0], point[1], point[2]);
+            const Vector centre = sum / static_cast<double>(faces[k].size());
+            for (const Point& point : faces[k]) {
+                const Vector arm = Vector(point[0], point[1], point[2]) - centre;
+                turned[k].push_back({std::atan2(arm.dot(other), arm.dot(side)), point});
+            }
+            std::sort(turned[k].begin(), turned[k].end(), by_angle);
+        }
+
+        // the shorter face's points repeated, each where its angle is nearest, so both outlines have as many points
+        const size_t longer = turned[0].size() >= turned[1].size() ? 0 : 1;
+        std::array<std::vector<Point>, 2> outlines;
+        for (const std::pair<double, Point>& entry : turned[longer]) {
+            outlines[longer].push_back(entry.second);
+            double best = 1e18;
+            Point nearest = turned[1 - longer].front().second;
+            for (const std::pair<double, Point>& candidate : turned[1 - longer]) {
+                const double gap = std::abs(std::remainder(candidate.first - entry.first, 2.0 * Tolerance::PI));
+                if (gap < best) {
+                    best = gap;
+                    nearest = candidate.second;
+                }
+            }
+            outlines[1 - longer].push_back(nearest);
+        }
+        for (std::vector<Point>& outline : outlines)
+            outline.push_back(outline.front());
+        return {Polyline(outlines[0]), Polyline(outlines[1])};
+    }
+
+    return {};
+}
+
+LibraryTile library_tile(const std::string& design) {
+
+    // the joint on its members at the origin, on a square corner when the record has one
+    const bool square = library_record(design).fields.at("corners").find("square") != std::string::npos;
+    const std::vector<std::shared_ptr<EdgeStraightElement>> members = library_members(design, square, Point(0.0, 0.0, 0.0));
+    std::vector<const EdgeStraightElement*> more;
+    for (size_t m = 2; m < members.size(); m++)
+        more.push_back(members[m].get());
+    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, *members[0], *members[1], {}, 2.0, more);
+
+    // the joint's zone: the box of where the uncut members overlap, so trimming a stock's extension is no part of the tile
+    Point zone_low(1e18, 1e18, 1e18);
+    Point zone_high(-1e18, -1e18, -1e18);
+    for (size_t i = 0; i < members.size(); i++)
+        for (size_t j = i + 1; j < members.size(); j++) {
+            const Mesh overlap = solid_boolean(members[i]->element_geometry_mesh(), members[j]->element_geometry_mesh(), SolidOperation::intersect);
+            if (overlap.number_of_faces() == 0)
+                continue;
+            for (const Point& point : overlap.to_vertices_and_faces().first)
+                for (size_t k = 0; k < 3; k++) {
+                    zone_low[k] = std::min(zone_low[k], point[k] - 1.0);
+                    zone_high[k] = std::max(zone_high[k], point[k] + 1.0);
+                }
+        }
+    Mesh zone = Mesh::create_box(zone_high[0] - zone_low[0], zone_high[1] - zone_low[1], zone_high[2] - zone_low[2]);
+    zone = zone.transformed(Xform::translation((zone_low[0] + zone_high[0]) / 2.0, (zone_low[1] + zone_high[1]) / 2.0, (zone_low[2] + zone_high[2]) / 2.0));
+
+    // every cut: each step's wood on its member within the zone, piece by piece, as the two faces of its prism
+    LibraryTile tile;
+    tile.cuts.resize(members.size());
+    for (const JointCutStep& step : joint->steps) {
+        if (step.target >= members.size() || step.removal.number_of_faces() == 0)
+            continue;
+        for (const Mesh& region : solid_pieces(step.removal)) {
+            const Mesh wood = solid_boolean(solid_boolean(region, members[step.target]->element_geometry_mesh(), SolidOperation::intersect), zone, SolidOperation::intersect);
+            if (wood.number_of_faces() == 0)
+                continue;
+            for (const Mesh& piece : solid_pieces(wood)) {
+                const std::array<Polyline, 2> faces = prism_faces(piece);
+                if (faces[0].point_count() == 0)
+                    tile.unsupported++;
+                else
+                    tile.cuts[step.target].push_back(faces);
+            }
+        }
+    }
+    tile.parts = joint->parts;
+
+    // the unit box: every outline point's box, mapped to [-0.5, 0.5]
+    Point low(1e18, 1e18, 1e18);
+    Point high(-1e18, -1e18, -1e18);
+    std::vector<std::array<Polyline, 2>*> pairs;
+    for (std::vector<std::array<Polyline, 2>>& member_cuts : tile.cuts)
+        for (std::array<Polyline, 2>& pair : member_cuts)
+            pairs.push_back(&pair);
+    for (std::array<Polyline, 2>& pair : tile.parts)
+        pairs.push_back(&pair);
+    for (std::array<Polyline, 2>* pair : pairs)
+        for (const Polyline& outline : *pair)
+            for (const Point& point : outline.get_points())
+                for (size_t k = 0; k < 3; k++) {
+                    low[k] = std::min(low[k], point[k]);
+                    high[k] = std::max(high[k], point[k]);
+                }
+    tile.centre = Point((low[0] + high[0]) / 2.0, (low[1] + high[1]) / 2.0, (low[2] + high[2]) / 2.0);
+    tile.size = Vector(std::max(high[0] - low[0], 1e-6), std::max(high[1] - low[1], 1e-6), std::max(high[2] - low[2], 1e-6));
+    for (std::array<Polyline, 2>* pair : pairs)
+        for (Polyline& outline : *pair) {
+            std::vector<Point> unit;
+            for (const Point& point : outline.get_points())
+                unit.emplace_back((point[0] - tile.centre[0]) / tile.size[0], (point[1] - tile.centre[1]) / tile.size[1], (point[2] - tile.centre[2]) / tile.size[2]);
+            outline = Polyline(unit);
+        }
+
+    return tile;
 }
 
 }

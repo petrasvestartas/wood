@@ -1,4 +1,5 @@
-"""One picture per joint of the beam joint library, docs/images/joint_library/beam_<design>.png: runs element_joint_beam_library,
+"""One picture per joint of the beam joint library (and, in the page's table, its assembly GIF from
+tools/render_joint_library_gifs.py and its joinery tile from tools/joint_tile_picture.py), docs/images/joint_library/beam_<design>.png: runs element_joint_beam_library,
 takes each design's group (the joint on a square corner and on an inclined one, as its record allows) and draws it with the
 viewer crate's native renderer in the Arctic look, ambient occlusion and outlines, see-through so hidden cuts show, cropped to 3:2 with a margin; then rewrites
 the table of docs/elements/element_joint_beam_compendium.md between its joint-table markers from the records, and the list of
@@ -83,11 +84,13 @@ def render(pb: str, solid: str) -> Image.Image:
 
 def write_table() -> None:
     """The page's table between its joint-table markers: a row per record of data/joints/*.yaml, picture, names and page."""
-    rows = ["| joint | compendium |", "|---|---|"]
+    rows = ["| assembly | joint | tile | compendium |", "|---|---|---|---|"]
     for chapter in sorted((WOOD / "data/joints").glob("*.yaml")):
         for match in re.finditer(r'^([a-z_0-9]+):\n  title: "(.*?)"\n  german: "(.*?)"\n  page: "(.*?)"', chapter.read_text(), re.M):
             design, title, german, page = match.groups()
-            rows.append(f"| ![](joint_library/beam_{design}.png) | **{title}**<br>{german}, p. {page}<br>`{design}` |")
+            gif = f"![](joint_library/beam_{design}.gif)" if (PICTURES / f"beam_{design}.gif").exists() else ""
+            tile = f"![](joint_library/tile_{design}.png)" if (PICTURES / f"tile_{design}.png").exists() else ""
+            rows.append(f"| {gif} | ![](joint_library/beam_{design}.png) | {tile} | **{title}**<br>{german}, p. {page}<br>`{design}` |")
     text = PAGE.read_text()
     start = text.index("<!-- joint-table -->") + len("<!-- joint-table -->")
     PAGE.write_text(text[:start] + "\n" + "\n".join(rows) + "\n" + text[text.index("<!-- /joint-table -->"):])

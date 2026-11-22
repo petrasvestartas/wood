@@ -45,4 +45,19 @@ std::array<std::shared_ptr<EdgeStraightElement>, 2> library_pair(const std::stri
 /// end, up, half_up, half_side", three numbers each in mm from `at` for start, end and the up of its section, halves in mm.
 std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::string& design, bool square, const Point& at);
 
+/// A record as its joinery tile: per member in targets order (a the male, b the female, then more members) the wood each cut
+/// takes away as pairs of outlines, the two parallel faces of a prism the solver lofts, and the record's loose parts likewise;
+/// all in the tile's unit box, the box of every cut and part mapped to [-0.5, 0.5] along x, y and z. A cut no prism between
+/// two parallel faces is counted, not drawn.
+struct LibraryTile {
+    std::vector<std::vector<std::array<Polyline, 2>>> cuts; // Per member, its cuts' outline pairs.
+    std::vector<std::array<Polyline, 2>> parts; // The pegs, keys and wedges, each its two end outlines.
+    int unsupported = 0; // Cuts that are no prism between two parallel faces.
+    Point centre; // The unit box's centre in the record's drawing (library_members at the origin, square corner when it has one).
+    Vector size; // The unit box's sizes along x, y and z in mm.
+};
+
+/// The joinery tile of design: its joint built on library_members at the origin, every cut step's wood clipped to its member.
+LibraryTile library_tile(const std::string& design);
+
 }

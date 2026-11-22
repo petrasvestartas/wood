@@ -496,6 +496,7 @@ ADD_EXE(element_joint_plate_side_side_inplane_hilti_angles examples/elements/ele
 ADD_EXE(element_joint_beam_rectangle_plate   examples/elements/element_joint_beam_rectangle_plate.cpp)
 ADD_EXE(element_joint_beam_butterfly_key     examples/elements/element_joint_beam_butterfly_key.cpp)
 ADD_EXE(element_joint_beam_library            examples/elements/element_joint_beam_library.cpp)
+ADD_EXE(element_joint_beam_library_tiles      examples/elements/element_joint_beam_library_tiles.cpp)
 ADD_EXE(element_joint_beam_centred_pins      examples/elements/element_joint_beam_centred_pins.cpp)
 ADD_EXE(element_joint_beam_headed_pins       examples/elements/element_joint_beam_headed_pins.cpp)
 ADD_EXE(element_joint_pin                          examples/elements/element_joint_pin.cpp)

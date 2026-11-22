@@ -89,3 +89,13 @@ post (pp. 736-742, the post as the base with `base: c`), narrower beams under a 
 beam, 560/562 flush with one post face by `member_shift`), battens on edge (pp. 788/790), breadboards as thick as the board
 (pp. 804-812), and edge and end boards about half as wide (pp. 768-786, 794-798). The joint test counts an empty region shared
 by three members once (two slats in a post).
+
+## 7. Assembly GIFs and joinery tiles (2026-11-22)
+
+Each joint's page row shows its assembly GIF (tools/render_joint_library_gifs.py: the pieces apart, then in one by one in the
+assembly order along their ways and further moves, collisions not shown), its picture and its joinery tile. The tile
+(`library_tile`, element_joint_beam_library_tiles, tools/joint_tile_picture.py) is the wood every cut takes from each member
+within the joint's zone, as pairs of outlines in the unit box: the two parallel faces of a prism the solver lofts, member a
+the male, b the female; loose parts likewise. 385 of 405 joints convert whole; 20 have cuts that are no prism between two
+parallel faces (the Kawai fingers among them) and are counted, not drawn. Next: mark which tiles repeat along a joint's length
+(fingers, multiple tenons) as parametric, and review every joint's outlines against the book, the hard ones first.
