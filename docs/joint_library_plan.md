@@ -119,7 +119,9 @@ and the bar through their window), then each B sideways and down by 30 mm, then 
 ## 9. Joinery in files: parametric records (2026-11-22)
 
 Beam records repeat by division: `repeat: "k = count"` with count an expression of the joint's size and a `division`
-parameter; every braced line or step region is written once per unit (p. 796: six fingers at 220 mm, twelve at 400).
+parameter; every braced line or step region is written once per unit. Record sizes are halves (`stock_wide = 220` is a
+440 mm board, `aw` half the width): p. 796 has three fingers a board at the book's width and more as the board widens; the
+dovetail end, the finger and angled finger corners and the four dovetail corners repeat the same way.
 
 Plate joints read from `data/joints/plate/*.yaml` (one file per family) through `JointPlateElement::library_outlines`,
 in place of a header per design: outlines in the unit box as point expressions of `divisions`, `shift`, `length`,
