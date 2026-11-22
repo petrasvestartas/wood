@@ -712,6 +712,8 @@ pegged_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "shift = 1"
     - "tail = 250"
     - "peg = 0.15"
@@ -735,6 +737,8 @@ pegged_mitered_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "shift = -1"
     - "peg = 0.15"
     - "down = 0.5"
@@ -761,6 +765,8 @@ housed_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.25"
     - "shift = -1"
     - "depth = 0.25"
@@ -788,6 +794,8 @@ v_grooved_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.6"
     - "shift = -1"
     - "length = 0.5"
@@ -814,6 +822,8 @@ birdsmouth_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.25"
     - "shift = -1"
   points:
@@ -836,6 +846,8 @@ rafter_foot_tenon_undersquinted_shoulders:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.25"
     - "shift = -1"
     - "thickness = 0.3333333333333333"
@@ -870,6 +882,8 @@ birdsmouth_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
   points:
     - "U = O + n"
   planes:
@@ -890,6 +904,8 @@ notched_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "depth = 0.15"
     - "wall = 0.5"
   points:
@@ -916,6 +932,8 @@ v_grooved_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.26"
   points:
     - "B = meet(R, u, O, n)"
@@ -938,6 +956,8 @@ step_lap_rafter_joint:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.25"
     - "depth = 0.25"
     - "width = 0.5"
@@ -964,6 +984,8 @@ stopped_birdsmouth_rafter_foot:
   family: "angled"
   corners: "inclined"
   parameters:
+    - "beam_length = 540"
+    - "reach = 270"
     - "sit = 0.6"
     - "shift = -1"
     - "depth = 0.3"
