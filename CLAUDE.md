@@ -240,6 +240,10 @@ https://petrasvestartas.github.io/session/
     `\include{lineno} elements/<example>.cpp`; listed in the table and the subpages of
     `docs/elements.md`. The sections fill the page outline on the right.
     The constructors list is the only code block on a page, never a fragment; `tools/check_element_pages.py` enforces it.
+  - The plate and beam joint pages show each case as the compendium does, not by screenshot: one table row of its assembly
+    GIF, its picture (every piece apart) and its unit tile, `joint_library/assembly_<example>.gif|png` by
+    `python3 tools/render_family_gifs.py`. Their examples build the joint assembled, never drawn apart: the GIF takes it
+    apart in its `AssemblySequence` order (`WOOD_ASSEMBLY=<path>` makes `pb_dump` write it).
 
 ## Before push to github
 

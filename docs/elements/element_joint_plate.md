@@ -10,31 +10,31 @@ Parametric plate-to-plate and boundary-edge joinery defined in the unit box `[-0
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_plate_top_side.html">
-    <img src="element_joint_plate_top_side.png" alt="Plate Top-to-Side">
+    <img src="assembly_element_joint_plate_top_side_three_tenons.gif" alt="Plate Top-to-Side">
     <span class="wood-card-title">Top-to-Side</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_inplane.html">
-    <img src="element_joint_plate_side_side_inplane.png" alt="Plate In-Plane">
+    <img src="assembly_element_joint_plate_side_side_inplane_dovetails.gif" alt="Plate In-Plane">
     <span class="wood-card-title">In-Plane</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_outplane.html">
-    <img src="element_joint_plate_side_side_outplane.png" alt="Plate Out-of-Plane">
+    <img src="assembly_element_joint_plate_side_side_outplane_fingers.gif" alt="Plate Out-of-Plane">
     <span class="wood-card-title">Out-of-Plane</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_rotated.html">
-    <img src="element_joint_plate_side_side_rotated.png" alt="Plate Rotated">
+    <img src="assembly_element_joint_plate_side_side_rotated_hooks.gif" alt="Plate Rotated">
     <span class="wood-card-title">Rotated</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_cross.html">
-    <img src="element_joint_plate_cross.png" alt="Plate Cross">
+    <img src="assembly_element_joint_plate_cross_slot.gif" alt="Plate Cross">
     <span class="wood-card-title">Cross</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_top_top.html">
-    <img src="element_joint_plate_top_top.png" alt="Plate Top-to-Top">
+    <img src="assembly_element_joint_plate_top_top_circle_pins.gif" alt="Plate Top-to-Top">
     <span class="wood-card-title">Top-to-Top</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_border.html">
-    <img src="element_joint_plate_border.png" alt="Plate Border">
+    <img src="assembly_element_joint_plate_border.gif" alt="Plate Border">
     <span class="wood-card-title">Border</span>
   </a>
 </div>

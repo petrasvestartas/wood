@@ -37,50 +37,50 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-Every standard example shows two pairs (`FacePlanarElement::pair_in_plane(180.0)` coplanar and `FacePlanarElement::pair_in_plane(165.0)` shallow V) separated to reveal the seam geometry.
+Every standard example shows two pairs (`FacePlanarElement::pair_in_plane(180.0)` coplanar and `FacePlanarElement::pair_in_plane(165.0)` shallow V), each assembled; its GIF takes it apart.
 
 ## Three Fingers
 Three fixed 20 mm deep rectangular fingers merged into both plate edges.
 
-![](elements/element_joint_plate_side_side_inplane_three_fingers.png)
-
-![](joint_library/ip_side_side_inplane_three_fingers_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_three_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_three_fingers.png) | ![](joint_library/ip_side_side_inplane_three_fingers_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_three_fingers.cpp
 
 ## Parametric Fingers
 Eight divisions at `shift = 0.5` producing four interlocking fingers per plate along the seam.
 
-![](elements/element_joint_plate_side_side_inplane_dovetails.png)
-
-![](joint_library/ip_side_side_inplane_dovetails_8_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_dovetails.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_dovetails.png) | ![](joint_library/ip_side_side_inplane_dovetails_8_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_dovetails.cpp
 
 ## Butterfly Keys
 Four butterfly pockets cut across the seam along with the four butterfly key blocks that lock both plates together.
 
-![](elements/element_joint_plate_side_side_inplane_butterfly_keys.png)
-
-![](joint_library/ip_side_side_inplane_butterfly_keys_4_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_butterfly_keys.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_butterfly_keys.png) | ![](joint_library/ip_side_side_inplane_butterfly_keys_4_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_butterfly_keys.cpp
 
 ## Reversed-Tooth Keys
 Four reversed eight-point tooth pockets cut across the seam along with their matching key blocks.
 
-![](elements/element_joint_plate_side_side_inplane_tooth_keys.png)
-
-![](joint_library/ip_side_side_inplane_tooth_keys_4_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_tooth_keys.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_tooth_keys.png) | ![](joint_library/ip_side_side_inplane_tooth_keys_4_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_tooth_keys.cpp
 
 ## Custom Outlines
 A custom feather joint of eight alternating V-teeth defined in the `[-0.5, 0.5]^3` unit box and merged into both plate edges.
 
-![](elements/element_joint_plate_side_side_inplane_custom.png)
-
-![](joint_library/ip_side_side_inplane_custom_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_custom.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_custom.png) | ![](joint_library/ip_side_side_inplane_custom_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_custom.cpp
 
@@ -89,7 +89,9 @@ A bow-tie pocket milled into two 200 mm CLT slabs folded at 30 degrees, housing 
 
 ![](hilti_reference_photo.jpg)
 
-![](elements/element_joint_plate_side_side_inplane_hilti.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_hilti.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_hilti.png) |  |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_hilti.cpp
 
@@ -97,7 +99,9 @@ A bow-tie pocket milled into two 200 mm CLT slabs folded at 30 degrees, housing 
 
 Six slab pairs folded from 0 to 50 degrees in 10-degree steps, showing how the pocket depth tracks the fold angle while the connector key remains invariant.
 
-![](elements/element_joint_plate_side_side_inplane_hilti_angles.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_inplane_hilti_angles.gif) | ![](joint_library/assembly_element_joint_plate_side_side_inplane_hilti_angles.png) |  |
 
 \include{lineno} elements/element_joint_plate_side_side_inplane_hilti_angles.cpp
 

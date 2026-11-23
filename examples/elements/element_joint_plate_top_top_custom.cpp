@@ -45,10 +45,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, lower, joint->interaction(0));
         scene.add_interaction(joint, upper, joint->interaction(1));
-
-        const Vector apart(0.0, 0.0, 300.0);
-        upper->place(Xform::translation(apart[0], apart[1], apart[2]));
-        joint->place(Xform::translation(apart[0] * 0.5, apart[1] * 0.5, apart[2] * 0.5));
     }
 
     std::cout << scene << std::endl;
@@ -58,7 +54,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_top_custom: your own outlines on two stacked plates, a hidden butterfly key pocket milled into each, on the pairs square and turned 30 degrees, each drawn apart.
+top_top_custom: your own outlines on two stacked plates, a hidden butterfly key pocket milled into each, on the pairs square and turned 30 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

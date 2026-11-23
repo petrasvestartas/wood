@@ -29,10 +29,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, left, joint->interaction(0));
         scene.add_interaction(joint, right, joint->interaction(1));
-
-        const Vector apart =
-            (right->polylines[0].center() - left->polylines[0].center()).normalized() * 150.0;
-        right->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -42,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_miter: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees, each drawn apart.
+side_side_rotated_miter: the four slices of two plates folded along a shared edge, their contact read as rotated, on the pairs side by side and twisted 20 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

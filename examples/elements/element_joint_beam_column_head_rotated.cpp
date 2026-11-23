@@ -29,7 +29,7 @@ beam(double angle, double length, const std::string& name) {
     );
 }
 
-/// column_head with its secondary beams turned, each its own way: the same call, every cut read from the beams, so the posts come out unequal. Drawn apart.
+/// column_head with its secondary beams turned, each its own way: the same call, every cut read from the beams, so the posts come out unequal.
 int main() {
 
     WoodSession scene("element_joint_beam_column_head_rotated");
@@ -62,12 +62,6 @@ int main() {
     scene.add_interaction(joint, third, joint->interaction(3));
     scene.add_interaction(joint, fourth, joint->interaction(4));
 
-    // drawn apart: every beam lifted off the head along the column, the way it comes out, the secondary ones last in and highest
-    first->place(Xform::translation(0.0, 0.0, 260.0));
-    second->place(Xform::translation(0.0, 0.0, 260.0));
-    third->place(Xform::translation(0.0, 0.0, 520.0));
-    fourth->place(Xform::translation(0.0, 0.0, 520.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -75,7 +69,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-column_head with its secondary beams turned, one at 75 degrees to the main pair and the other at 80 degrees the other side: the same call as the square node, every cut read from the beams, so the four posts come out unequal. Drawn apart along the column.
+column_head with its secondary beams turned, one at 75 degrees to the main pair and the other at 80 degrees the other side: the same call as the square node, every cut read from the beams, so the four posts come out unequal.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

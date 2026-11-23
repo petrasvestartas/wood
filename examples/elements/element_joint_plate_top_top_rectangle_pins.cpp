@@ -29,9 +29,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, lower, joint->interaction(0));
         scene.add_interaction(joint, upper, joint->interaction(1));
-
-        const Vector apart(0.0, 0.0, 150.0);
-        upper->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -41,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_top_rectangle_pins: pin holes every 60 along the largest rectangle inscribed in the contact of two stacked plates, scaled 0.95, drilled through both, on the pairs square and turned 30 degrees, each drawn apart.
+top_top_rectangle_pins: pin holes every 60 along the largest rectangle inscribed in the contact of two stacked plates, scaled 0.95, drilled through both, on the pairs square and turned 30 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

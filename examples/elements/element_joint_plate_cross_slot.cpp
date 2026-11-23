@@ -28,9 +28,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, first, joint->interaction(0));
         scene.add_interaction(joint, second, joint->interaction(1));
-
-        const Vector apart(0.0, 0.0, -250.0);
-        second->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -40,7 +37,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cross_slot: the plain slot of two upright plates crossing at their middles, a slot into each over half the cross's depth, on the pairs square and crossing at 60 degrees, each drawn apart.
+cross_slot: the plain slot of two upright plates crossing at their middles, a slot into each over half the cross's depth, on the pairs square and crossing at 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

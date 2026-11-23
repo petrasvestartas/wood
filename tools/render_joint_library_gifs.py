@@ -53,31 +53,39 @@ def placement(moves):
         xform = step * xform
     return xform
 
+# a library design: its corner's group, the joint element named as the corner, its parts by name; an element example (design
+# "-"): the whole scene, the joints and the parts the plan names
+joints = plan.get("joints", [variant])
+def is_part(name):
+    return name in plan["parts"] if "parts" in plan else re.search(r"_(part|pin)(_[0-9]+)?$", name) is not None
+
 def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
-    branch = Session.pb_load(scene_path).get_branch(design)
+    branch = Session.pb_load(scene_path)
+    if design != "-":
+        branch = branch.get_branch(design)
     for edge in list(branch.interactions):
         branch.interactions[edge] = []
     # no arrows, no base planes and no joint element: undrawn, they would still widen the camera's framing (the joint's empty
     # box sits at the origin); the joint's parts, which hang under it, go back in at the root
-    for line in list(branch.objects.lines) + list(branch.objects.planes):
+    for line in list(branch.objects.lines) + list(branch.objects.planes) + list(branch.objects.polylines):
         branch.remove_object(line.guid)
     for element in list(branch.objects.elements):
-        if element.name == variant:
+        if element.name in joints:
             branch.remove_object(element.guid)
     for element in list(branch.objects.elements):
-        if element.name.startswith(variant + "_") and re.search(r"_(part|pin)(_[0-9]+)?$", element.name):
+        if element.name.startswith(variant) and is_part(element.name):
             branch.remove_object(element.guid)
             branch.add_element(element)
     for element in list(branch.objects.elements):
         # the corner's members and parts only
-        if not element.name.startswith(variant + "_"):
+        if not element.name.startswith(variant):
             branch.remove_object(element.guid)
             continue
         element.set_features([])
         # its moves, then the shift that centres every frame's bounds on the origin, where the renderer frames best
         placed = Xform.translation(*shift) * placement(frame["moves"].get(element.name) or [])
         element.place(placed)
-        part = re.search(r"_(part|pin)(_[0-9]+)?$", element.name) is not None
+        part = is_part(element.name)
         # the moving piece and the parts a strong blue in both passes, the solid one laying it over the see-through drawing
         moving = element.name == frame["moving"]
         colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.97, 0.97, 0.97, 1.0] if solid else None
@@ -184,12 +192,18 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
     family = re.search(r'^' + design + r':\n(?:  .*\n)*?  family: "(.*?)"', RECORDS, re.M)
     leaning = family is not None and family.group(1) == "angled" and f"{design}_inclined" in orders
     variant = f"{design}_inclined" if leaning or f"{design}_square" not in orders else f"{design}_square"
-    order = orders.get(variant, [])
+    return draw(scene, design, variant + "_", orders.get(variant, []), slides, f"beam_{design}", {"joints": [variant]})
+
+
+def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict) -> list:
+    """The picture and the GIF of the pieces of scene whose names start with prefix (the group design, the whole scene for "-"),
+    apart, then in by order, saved as docs/images/joint_library/<name>.png and .gif; names gives the joints to leave out and the
+    parts to draw blue."""
     frames = plan_frames(order, slides)
     with tempfile.TemporaryDirectory() as tmp:
         plan_path = pathlib.Path(tmp) / "plan.json"
-        plan_path.write_text(json.dumps({"frames": frames}))
-        listing = subprocess.run([str(PYTHON), "-c", FRAMES, str(scene), design, variant, str(plan_path), tmp], check=True, capture_output=True, text=True).stdout
+        plan_path.write_text(json.dumps(dict(names, frames=frames)))
+        listing = subprocess.run([str(PYTHON), "-c", FRAMES, str(scene), design, prefix, str(plan_path), tmp], check=True, capture_output=True, text=True).stdout
         written = json.loads(listing.strip().splitlines()[-1])
         images = [drawing(pair, written["target"]) for pair in written["paths"]]
 
@@ -209,14 +223,14 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
         piece = image.crop(crop)
         canvas.paste(piece, ((width - piece.width) // 2, (height - piece.height) // 2))
         framed.append(canvas.resize(SIZE, Image.LANCZOS))
-    picture = PICTURES / f"beam_{design}.png"
+    picture = PICTURES / f"{name}.png"
     framed[0].save(picture)
     # the palette from every frame, so the moving piece keeps its tint
     sample = Image.new("RGB", (framed[0].width, framed[0].height * len(framed)))
     for k, image in enumerate(framed):
         sample.paste(image, (0, framed[0].height * k))
     palette = sample.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
-    animation = PICTURES / f"beam_{design}.gif"
+    animation = PICTURES / f"{name}.gif"
     quantized = [image.quantize(palette=palette, dither=Image.Dither.NONE) for image in framed]
     quantized[0].save(animation, save_all=True, append_images=quantized[1:], duration=[f["duration"] for f in frames], loop=0, optimize=True)
     return [picture, animation]

@@ -10,7 +10,9 @@ Dowel and screw pin connectors placed across the `InteractionContactFace` of two
 
 Four dowel pins placed at the inset corners of the contact face between two stacked blocks, embedded half into each block.
 
-![](elements/element_joint_beam_centred_pins.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_centred_pins.gif) | ![](joint_library/assembly_element_joint_beam_centred_pins.png) |  |
 
 \include{lineno} elements/element_joint_beam_centred_pins.cpp
 
@@ -24,7 +26,9 @@ Four dowel pins placed at the inset corners of the contact face between two stac
 
 Long screws driven from a header beam's outer face through into an abutting joist across all three `PinLayout` modes: four `corners`, a `vertical` column, and a `horizontal` row.
 
-![](elements/element_joint_beam_headed_pins.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_headed_pins.gif) | ![](joint_library/assembly_element_joint_beam_headed_pins.png) |  |
 
 \include{lineno} elements/element_joint_beam_headed_pins.cpp
 

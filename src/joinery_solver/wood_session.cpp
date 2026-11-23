@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "wood_session.h"
+#include "wood_assembly_sequence.h"
 #include "wood_contact_detection.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_session.pb.h"
@@ -1223,6 +1224,18 @@ void WoodSession::pb_dump(const std::string& filename) {
     const std::string data = pb_dumps();
     std::ofstream file(filename, std::ios::binary);
     file.write(data.data(), data.size());
+
+    // WOOD_ASSEMBLY=<path> also writes how the scene goes together, its first jointed member the base, for
+    // tools/render_family_gifs.py (an element example drawn apart in its assembly order)
+    const char* assembly = std::getenv("WOOD_ASSEMBLY");
+    if (!assembly)
+        return;
+    for (const std::shared_ptr<Element>& element : elements())
+        for (const std::shared_ptr<JointElement>& joint : get_elements<JointElement>())
+            if (std::find(joint->targets.begin(), joint->targets.end(), element->guid()) != joint->targets.end()) {
+                AssemblySequence(*this, element->name).json_dump(assembly);
+                return;
+            }
 }
 
 void WoodSession::sync_attributes() {

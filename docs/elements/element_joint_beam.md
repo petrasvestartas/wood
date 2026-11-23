@@ -10,27 +10,27 @@ Parametric beam and member joinery covering axis-contact feature volumes, automa
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_beam_cross.html">
-    <img src="element_joint_beam_cross.png" alt="Beam Cross">
+    <img src="assembly_element_joint_beam_cross_half_lap.gif" alt="Beam Cross">
     <span class="wood-card-title">Cross</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_top_side.html">
-    <img src="element_joint_beam_top_side.png" alt="Beam Top-to-Side">
+    <img src="assembly_element_joint_beam_top_side_milled_wedge.gif" alt="Beam Top-to-Side">
     <span class="wood-card-title">Top-to-Side</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_end_to_end.html">
-    <img src="element_joint_beam_end_to_end.png" alt="Beam End-to-End">
+    <img src="assembly_element_joint_beam_jupiter_scarf.gif" alt="Beam End-to-End">
     <span class="wood-card-title">End-to-End</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_butt.html">
-    <img src="element_joint_beam_butt.png" alt="Beam Butt">
+    <img src="assembly_element_joint_beam_butt.gif" alt="Beam Butt">
     <span class="wood-card-title">Butt</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_connectors.html">
-    <img src="element_joint_beam_connectors.png" alt="Beam Connectors">
+    <img src="assembly_element_joint_beam_butterfly_key.gif" alt="Beam Connectors">
     <span class="wood-card-title">Connectors</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_pins.html">
-    <img src="element_joint_beam_pins.png" alt="Beam Pins">
+    <img src="assembly_element_joint_beam_headed_pins.gif" alt="Beam Pins">
     <span class="wood-card-title">Pins</span>
   </a>
 </div>

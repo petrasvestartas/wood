@@ -29,11 +29,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, left, joint->interaction(0));
         scene.add_interaction(joint, right, joint->interaction(1));
-
-        const Vector apart =
-            (right->polylines[0].center() - left->polylines[0].center()).normalized() * 150.0;
-        right->place(Xform::translation(apart[0], apart[1], apart[2]));
-        joint->place(Xform::translation(apart[0] * 0.5, apart[1] * 0.5, apart[2] * 0.5));
     }
 
     std::cout << scene << std::endl;
@@ -43,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_keys: the diamond pockets of two plates folded along a shared edge, their contact read as rotated, and the key that fills both, on the pairs side by side and twisted 20 degrees, each drawn apart.
+side_side_rotated_keys: the diamond pockets of two plates folded along a shared edge, their contact read as rotated, and the key that fills both, on the pairs side by side and twisted 20 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

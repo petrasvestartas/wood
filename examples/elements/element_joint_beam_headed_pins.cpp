@@ -20,6 +20,8 @@ int main() {
         const std::shared_ptr<EdgeVariableElement> joist = beams[1];
         beam->place(Xform::translation(800.0 * i, 0.0, 0.0));
         joist->place(Xform::translation(800.0 * i, 0.0, 0.0));
+        beam->name = fmt::format("beam_{}", i);
+        joist->name = fmt::format("joist_{}", i);
         scene.add(beam, group);
         scene.add(joist, group);
 

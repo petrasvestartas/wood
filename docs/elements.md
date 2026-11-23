@@ -51,31 +51,31 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_plate_side_side_inplane.html">
-    <img src="element_joint_plate_side_side_inplane.png" alt="side to side, in plane">
+    <img src="assembly_element_joint_plate_side_side_inplane_dovetails.gif" alt="side to side, in plane">
     <span class="wood-card-title">side to side, in plane</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_outplane.html">
-    <img src="element_joint_plate_side_side_outplane.png" alt="side to side, out of plane">
+    <img src="assembly_element_joint_plate_side_side_outplane_fingers.gif" alt="side to side, out of plane">
     <span class="wood-card-title">side to side, out of plane</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_side_side_rotated.html">
-    <img src="element_joint_plate_side_side_rotated.png" alt="side to side, rotated">
+    <img src="assembly_element_joint_plate_side_side_rotated_hooks.gif" alt="side to side, rotated">
     <span class="wood-card-title">side to side, rotated</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_top_side.html">
-    <img src="element_joint_plate_top_side.png" alt="top to side">
+    <img src="assembly_element_joint_plate_top_side_three_tenons.gif" alt="top to side">
     <span class="wood-card-title">top to side</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_top_top.html">
-    <img src="element_joint_plate_top_top.png" alt="top to top">
+    <img src="assembly_element_joint_plate_top_top_circle_pins.gif" alt="top to top">
     <span class="wood-card-title">top to top</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_cross.html">
-    <img src="element_joint_plate_cross.png" alt="cross">
+    <img src="assembly_element_joint_plate_cross_slot.gif" alt="cross">
     <span class="wood-card-title">cross</span>
   </a>
   <a class="wood-card" href="elements_joint_plate_border.html">
-    <img src="element_joint_plate_border.png" alt="border">
+    <img src="assembly_element_joint_plate_border.gif" alt="border">
     <span class="wood-card-title">border</span>
   </a>
 </div>
@@ -84,27 +84,27 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_beam_cross.html">
-    <img src="element_joint_beam_cross.png" alt="cross">
+    <img src="assembly_element_joint_beam_cross_half_lap.gif" alt="cross">
     <span class="wood-card-title">cross</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_top_side.html">
-    <img src="element_joint_beam_top_side.png" alt="top to side">
+    <img src="assembly_element_joint_beam_top_side_milled_wedge.gif" alt="top to side">
     <span class="wood-card-title">top to side</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_top_side_bridle.html">
-    <img src="element_joint_beam_top_side_bridle.png" alt="bridle">
+    <img src="assembly_element_joint_beam_top_side_bridle.gif" alt="bridle">
     <span class="wood-card-title">bridle</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_end_to_end.html">
-    <img src="element_joint_beam_end_to_end.png" alt="end to end">
+    <img src="assembly_element_joint_beam_jupiter_scarf.gif" alt="end to end">
     <span class="wood-card-title">end to end</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_butt.html">
-    <img src="element_joint_beam_butt.png" alt="butt">
+    <img src="assembly_element_joint_beam_butt.gif" alt="butt">
     <span class="wood-card-title">butt</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_column_head.html">
-    <img src="element_joint_beam_column_head.png" alt="column head">
+    <img src="assembly_element_joint_beam_column_head.gif" alt="column head">
     <span class="wood-card-title">column head</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_compendium.html">
@@ -117,15 +117,15 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_joint_beam_connectors.html">
-    <img src="element_joint_beam_connectors.png" alt="connectors">
+    <img src="assembly_element_joint_beam_butterfly_key.gif" alt="connectors">
     <span class="wood-card-title">connectors</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_keyed_box.html">
-    <img src="element_joint_beam_keyed_box.png" alt="keyed box">
+    <img src="assembly_element_joint_beam_keyed_box.gif" alt="keyed box">
     <span class="wood-card-title">keyed box</span>
   </a>
   <a class="wood-card" href="elements_joint_beam_pins.html">
-    <img src="element_joint_beam_pins.png" alt="pins">
+    <img src="assembly_element_joint_beam_headed_pins.gif" alt="pins">
     <span class="wood-card-title">pins</span>
   </a>
 </div>

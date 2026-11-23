@@ -23,9 +23,11 @@ Sizes are shares of a beam's own width, except the shoulder, which is a share of
 - `min_post`: the least area of a post, in square beam widths.
 
 ## Column Head
-A node of a 200 round column and four 100 x 185 beams, rebuilt from photographs of a made node and drawn apart along the column, the way each beam comes out. Every wall runs along the column, so the four beams drop in from above in any order; the scarf resists pulling apart, and the column's walls stop it sliding along its seam.
+A node of a 200 round column and four 100 x 185 beams, rebuilt from photographs of a made node; its GIF takes each beam out along the column. Every wall runs along the column, so the four beams drop in from above in any order; the scarf resists pulling apart, and the column's walls stop it sliding along its seam.
 
-![](elements/element_joint_beam_column_head.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_column_head.gif) | ![](joint_library/assembly_element_joint_beam_column_head.png) |  |
 
 \include{lineno} elements/element_joint_beam_column_head.cpp
 
@@ -34,6 +36,8 @@ The same call with the secondary beams turned, one at `75°` to the main pair an
 
 The main pair must stay in line, because both tongues share one straight slot. The secondary beams may turn, each on its own. For 100 x 185 beams on a 200 column turned together the range is `67°` to `113°`, set by `min_post`: past that a post drops below 500 mm². Lowering `min_post` opens it only to `65°` and `115°`, the last angles with one solid post: further on a post splits, and by `47°` it is gone. The range is measured for these proportions only. Beams must be square to the column and aimed at its axis; a tilted beam is refused.
 
-![](elements/element_joint_beam_column_head_rotated.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_column_head_rotated.gif) | ![](joint_library/assembly_element_joint_beam_column_head_rotated.png) |  |
 
 \include{lineno} elements/element_joint_beam_column_head_rotated.cpp

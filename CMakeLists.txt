@@ -572,6 +572,7 @@ if(DOXYGEN_FOUND)
     file(GLOB_RECURSE WOOD_DOC_EXTRA_IMAGES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.webp
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.png
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.gif
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.svg
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.webp
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.png

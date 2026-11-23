@@ -52,10 +52,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, left, joint->interaction(0));
         scene.add_interaction(joint, right, joint->interaction(1));
-
-        const Vector apart =
-            (right->polylines[0].center() - left->polylines[0].center()).normalized() * 100.0;
-        right->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -65,7 +61,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_inplane_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and in a shallow V of 165 degrees, each drawn apart.
+side_side_inplane_custom: your own feather joint, sharp V teeth, between two plates edge to edge in one plane, on the pairs in line and in a shallow V of 165 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

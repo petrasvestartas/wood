@@ -20,7 +20,7 @@ int main() {
     for (const std::shared_ptr<FacePlanarElement>& border : node.borders)
         scene.add(border, assembled);
 
-    // exploded: the four jointed CLT plates drawn apart along each plate's single insertion vector
+    // exploded: the four jointed CLT plates along each plate's single insertion vector
     const std::shared_ptr<TreeNode> exploded = scene.add_group("exploded");
     const VidyDoubleLayerNode exp =
         JointVidyElement::folded_double_layer_node(110.0, 1650.0, 950.0, 45.0, 300.0, 500.0, true);

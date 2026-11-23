@@ -43,63 +43,63 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 ## Three Fingers
 Three fixed mitered fingers merged into the floor and wall edges at 90 and 60 degrees.
 
-![](elements/element_joint_plate_side_side_outplane_three_fingers.png)
-
-![](joint_library/op_side_side_outplane_three_fingers_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_three_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_three_fingers.png) | ![](joint_library/op_side_side_outplane_three_fingers_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_three_fingers.cpp
 
 ## Parametric Fingers
 Eight divisions producing four mitered fingers on the floor interlocking with four notches in the wall.
 
-![](elements/element_joint_plate_side_side_outplane_fingers.png)
-
-![](joint_library/op_side_side_outplane_fingers_8_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_fingers.png) | ![](joint_library/op_side_side_outplane_fingers_8_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_fingers.cpp
 
 ## Graded Splay Fingers
 Eight divisions with a non-uniform shift that splays the central finger pairs twice as far as the outer pairs.
 
-![](elements/element_joint_plate_side_side_outplane_graded_fingers.png)
-
-![](joint_library/op_side_side_outplane_graded_fingers_8_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_graded_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_graded_fingers.png) | ![](joint_library/op_side_side_outplane_graded_fingers_8_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_graded_fingers.cpp
 
 ## Miter Tenon and Mortise
 A single central tenon on the mitered wall edge passing through a matching mortise in the floor lip.
 
-![](elements/element_joint_plate_side_side_outplane_miter_tenon.png)
-
-![](joint_library/op_side_side_outplane_miter_tenon_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_miter_tenon.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_miter_tenon.png) | ![](joint_library/op_side_side_outplane_miter_tenon_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_miter_tenon.cpp
 
 ## Chamfered Tenons and Through Mortises
 Parametric tenons along the mitered wall edge paired with through-mortises in the floor plate.
 
-![](elements/element_joint_plate_side_side_outplane_tenons.png)
-
-![](joint_library/op_side_side_outplane_tenons_8_0_0_1_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_tenons.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_tenons.png) | ![](joint_library/op_side_side_outplane_tenons_8_0_0_1_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_tenons.cpp
 
 ## Linked Tenons
 Extended chamfered tenons designed to interlock with adjacent linked joints at multi-plate folded nodes.
 
-![](elements/element_joint_plate_side_side_outplane_linked_tenons.png)
-
-![](joint_library/op_side_side_outplane_linked_tenons_8_0_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_linked_tenons.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_linked_tenons.png) | ![](joint_library/op_side_side_outplane_linked_tenons_8_0_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons.cpp
 
 ## Vidy Wall Tenons
 Linked tenon variant for the Vidy theatre wall seams where the secondary linked joint divisions are disabled.
 
-![](elements/element_joint_plate_side_side_outplane_linked_tenons_wall.png)
-
-![](joint_library/op_side_side_outplane_linked_tenons_wall_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_linked_tenons_wall.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_linked_tenons_wall.png) | ![](joint_library/op_side_side_outplane_linked_tenons_wall_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_linked_tenons_wall.cpp
 
@@ -114,34 +114,36 @@ Christopher Robeller's 2017 Théâtre de Vidy double-layer folded crease node (`
 ## Fingers with Flat Miter Caps
 Four divisions producing two interior fingers flanked by flat miter caps at both ends of the seam.
 
-![](elements/element_joint_plate_side_side_outplane_capped_fingers.png)
-
-![](joint_library/op_side_side_outplane_capped_fingers_4_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_capped_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_capped_fingers.png) | ![](joint_library/op_side_side_outplane_capped_fingers_4_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_capped_fingers.cpp
 
 ## Annen Corner Fingers
 The corner fingers of Christopher Robeller's 2017 Annen plugin, built in world space where the two plates meet: their corner from one end of the seam to the other in seven parts, cut at every part by a plane across the seam turned 15 degrees each way in turn about the first plate's long edge, the first part a finger of the first plate, every finger reaching the other plate's outer face.
 
-![](elements/element_joint_plate_side_side_outplane_annen_fingers.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_annen_fingers.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_annen_fingers.png) |  |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_annen_fingers.cpp
 
 ## Single Central Notch
 A single rectangular tongue-and-notch over the middle half of the mitered seam.
 
-![](elements/element_joint_plate_side_side_outplane_notch.png)
-
-![](joint_library/op_side_side_outplane_notch_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_notch.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_notch.png) | ![](joint_library/op_side_side_outplane_notch_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_notch.cpp
 
 ## Custom Outlines
 Custom wide-narrow-wide fingers on the floor plate and matching sockets in the wall plate defined in the `[-0.5, 0.5]^3` unit box.
 
-![](elements/element_joint_plate_side_side_outplane_custom.png)
-
-![](joint_library/op_side_side_outplane_custom_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_outplane_custom.gif) | ![](joint_library/assembly_element_joint_plate_side_side_outplane_custom.png) | ![](joint_library/op_side_side_outplane_custom_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_outplane_custom.cpp
 

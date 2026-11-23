@@ -13,6 +13,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | `images/templates/truss_*.png`, `templates_truss_1_pratt.png` | `bash tools/render_template_pictures.sh truss` |
 | `images/templates/truss_bow_*.webp` | `bash tools/render_template_pictures.sh bow` |
 | `images/templates/*_assembly.gif` | `python tools/render_assembly_gif.py <example>` (the one tool that does not use the browser: it needs the viewer crate's native renderer for a fixed camera) |
+| `images/joint_library/assembly_*.png`, `.gif` | `python3 tools/render_family_gifs.py [example ...]` (every example of the plate and beam joint pages, run with `WOOD_ASSEMBLY` for its assembly order, drawn apart and taken in one by one like the library's joints) |
 | `images/joint_library/beam_*.png` | `python3 tools/render_joint_library.py [design ...]` (every record of data/joints/*.yaml on a square and an inclined corner; native renderer) |
 | `images/templates/templates_truss_5_carpentry_assembly.gif` | `python3 tools/render_joint_assembly_gif.py templates_truss_5_carpentry_assembly` (an AssemblySequence's order and directions, apart, in one by one, out in reverse; native renderer) |
 | `images/examples/ex_*.webp`, `images/diagrams/wood_architecture`, `wood_joint_unit_box`, `wood_boolean_cutting`, `wood_beam_joints_connectors`, `images/landing/landing_architecture` | `python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]` |

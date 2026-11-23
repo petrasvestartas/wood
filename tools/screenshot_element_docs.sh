@@ -61,20 +61,3 @@ case "$(uname -s)" in
             shoot "$name" 9333
         done ;;
 esac
-
-# the family pages' overview pictures are copies of one example's
-while read -r overview example; do
-    if [ -f "wood/examples/elements/$example.cpp" ]; then cp "wood/docs/images/elements/$example.png" "wood/docs/images/elements/$overview.png"; fi
-done <<'OVERVIEWS'
-element_joint_beam_connectors element_joint_beam_butterfly_key
-element_joint_beam_cross element_joint_beam_cross_half_lap
-element_joint_beam_end_to_end element_joint_beam_jupiter_scarf
-element_joint_beam_pins element_joint_beam_headed_pins
-element_joint_beam_top_side element_joint_beam_top_side_milled_wedge
-element_joint_plate_cross element_joint_plate_cross_slot
-element_joint_plate_side_side_inplane element_joint_plate_side_side_inplane_dovetails
-element_joint_plate_side_side_outplane element_joint_plate_side_side_outplane_fingers
-element_joint_plate_side_side_rotated element_joint_plate_side_side_rotated_hooks
-element_joint_plate_top_side element_joint_plate_top_side_three_tenons
-element_joint_plate_top_top element_joint_plate_top_top_circle_pins
-OVERVIEWS

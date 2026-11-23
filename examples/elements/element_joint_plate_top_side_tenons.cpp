@@ -29,10 +29,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, upright, joint->interaction(0));
         scene.add_interaction(joint, base, joint->interaction(1));
-
-        const Vector apart =
-            (upright->polylines[0].center() - base->polylines[0].center()).normalized() * 120.0;
-        upright->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -42,7 +38,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_tenons: the parametric tenons of an upright plate standing on a base plate, a tenon per four divisions, through their mortises in the base, on the pairs upright and leaning to 60 degrees, each drawn apart.
+top_side_tenons: the parametric tenons of an upright plate standing on a base plate, a tenon per four divisions, through their mortises in the base, on the pairs upright and leaning to 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

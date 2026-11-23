@@ -16,33 +16,35 @@ Collinear beams (`angle_degrees = 0.0`) use the in-plane scarf preset in `settin
 ## Splayed Scarf
 A collinear splayed scarf splice with end shoulders, key groove, and two vertical pin bores.
 
-![](elements/element_joint_beam_side_side_inplane_splayed_scarf.png)
-
-![](joint_library/ip_side_side_inplane_splayed_scarf_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_side_side_inplane_splayed_scarf.gif) | ![](joint_library/assembly_element_joint_beam_side_side_inplane_splayed_scarf.png) | ![](joint_library/ip_side_side_inplane_splayed_scarf_unit.png) |
 
 \include{lineno} elements/element_joint_beam_side_side_inplane_splayed_scarf.cpp
 
 ## Cross-Splayed Scarf
 A collinear scarf whose upper and lower halves splay in opposite directions to lock the splice against lateral shear both ways.
 
-![](elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.png)
-
-![](joint_library/ip_side_side_inplane_cross_splayed_scarf_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_side_side_inplane_cross_splayed_scarf.gif) | ![](joint_library/assembly_element_joint_beam_side_side_inplane_cross_splayed_scarf.png) | ![](joint_library/ip_side_side_inplane_cross_splayed_scarf_unit.png) |
 
 \include{lineno} elements/element_joint_beam_side_side_inplane_cross_splayed_scarf.cpp
 
 ## Angled End Miter
 A beam pair meeting at `60°` whose extensions are trimmed cleanly along the bisecting miter plane.
 
-![](elements/element_joint_beam_side_side_rotated_miter.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_side_side_rotated_miter.gif) | ![](joint_library/assembly_element_joint_beam_side_side_rotated_miter.png) |  |
 
 \include{lineno} elements/element_joint_beam_side_side_rotated_miter.cpp
 
 ## Trait De Jupiter Scarf
 A classical trait de Jupiter tension scarf with hooked tables, twin slopes, central key slot, and locking wedge key.
 
-![](elements/element_joint_beam_jupiter_scarf.png)
-
-![](joint_library/ip_jupiter_scarf_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_jupiter_scarf.gif) | ![](joint_library/assembly_element_joint_beam_jupiter_scarf.png) | ![](joint_library/ip_jupiter_scarf_unit.png) |
 
 \include{lineno} elements/element_joint_beam_jupiter_scarf.cpp

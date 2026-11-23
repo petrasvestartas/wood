@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A wedge connector between two beams side by side: a prism let into both, pinned across, drawn apart.
+/// A wedge connector between two beams side by side: a prism let into both, pinned across.
 int main() {
 
     WoodSession scene("element_joint_beam_wedge");
@@ -22,9 +22,6 @@ int main() {
     scene.add_interaction(wedge, left, wedge->interaction(0));
     scene.add_interaction(wedge, right, wedge->interaction(1));
 
-    // drawn apart: the right beam moved off, its pocket and the wedge in the left one in view
-    right->place(Xform::translation(0.0, 300.0, 0.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -32,7 +29,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-A wedge connector between two beams side by side: a prism let into both, pinned across, drawn apart.
+A wedge connector between two beams side by side: a prism let into both, pinned across.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

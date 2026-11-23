@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_side_bridle on beams: a skew T-bridle rebuilt from photographs of a made joint, a fork around a tongue, drawn apart.
+/// top_side_bridle on beams: a skew T-bridle rebuilt from photographs of a made joint, a fork around a tongue.
 int main() {
 
     WoodSession scene("element_joint_beam_top_side_bridle");
@@ -48,9 +48,6 @@ int main() {
         scene.add_interaction(end, first, end->interaction(0));
     }
 
-    // drawn apart: the second beam slid back off the tongue, square to the first, the only way it comes out
-    second->place(Xform::translation(0.0, 250.0, 0.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -58,7 +55,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_bridle on beams: a skew T-bridle rebuilt from photographs of a made joint. The second beam ends in a fork around a tongue left in the first, with a shoulder at its acute corner, drawn apart.
+top_side_bridle on beams: a skew T-bridle rebuilt from photographs of a made joint. The second beam ends in a fork around a tongue left in the first, with a shoulder at its acute corner.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

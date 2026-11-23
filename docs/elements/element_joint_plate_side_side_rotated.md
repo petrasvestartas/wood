@@ -20,45 +20,45 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 ## Four-Way Miter Slices
 Splits the shared contact volume through its thickness and slices the twisted seam corners off both plates.
 
-![](elements/element_joint_plate_side_side_rotated_miter.png)
-
-![](joint_library/r_side_side_rotated_miter_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_rotated_miter.gif) | ![](joint_library/assembly_element_joint_plate_side_side_rotated_miter.png) | ![](joint_library/r_side_side_rotated_miter_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_miter.cpp
 
 ## Hook Pockets and Key
 Cuts one hook pocket per division into each plate's side face and generates the interlocking hook keys between them.
 
-![](elements/element_joint_plate_side_side_rotated_hooks.png)
-
-![](joint_library/r@120_side_side_rotated_hooks_4_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_rotated_hooks.gif) | ![](joint_library/assembly_element_joint_plate_side_side_rotated_hooks.png) | ![](joint_library/r@120_side_side_rotated_hooks_4_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_hooks.cpp
 
 ## Diamond Pockets and Key
 Cuts one diamond pocket per division into each plate's side face and generates the diamond keys that bridge the seam.
 
-![](elements/element_joint_plate_side_side_rotated_keys.png)
-
-![](joint_library/r@120_side_side_rotated_keys_4_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_rotated_keys.gif) | ![](joint_library/assembly_element_joint_plate_side_side_rotated_keys.png) | ![](joint_library/r@120_side_side_rotated_keys_4_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_keys.cpp
 
 ## Custom Outlines
 A custom half-lap step along the seam where the male plate's tongue fits into the female plate's rebate.
 
-![](elements/element_joint_plate_side_side_rotated_custom.png)
-
-![](joint_library/r_side_side_rotated_custom_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_rotated_custom.gif) | ![](joint_library/assembly_element_joint_plate_side_side_rotated_custom.png) | ![](joint_library/r_side_side_rotated_custom_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_custom.cpp
 
 ## Planar Side-Face Trim
 Mills each plate's side face along its neighbour's plane so the twisted pair meets flush across the entire seam.
 
-![](elements/element_joint_plate_side_side_rotated_side_removal.png)
-
-![](joint_library/r_side_removal_0_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_side_side_rotated_side_removal.gif) | ![](joint_library/assembly_element_joint_plate_side_side_rotated_side_removal.png) | ![](joint_library/r_side_removal_0_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_plate_side_side_rotated_side_removal.cpp
 

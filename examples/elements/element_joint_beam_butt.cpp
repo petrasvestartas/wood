@@ -10,14 +10,14 @@ int main() {
 
     // two 150 x 150 beams on axes meeting at a node: top_side, the post standing on the middle of the sill, and top_side at an end, the post on the sill's end
     for (const double x : {0.0, 1600.0}) {
-        const std::shared_ptr<TreeNode> group =
-            scene.add_group(x == 0.0 ? "top_side" : "top_side_end");
+        const std::string place = x == 0.0 ? "top_side" : "top_side_end";
+        const std::shared_ptr<TreeNode> group = scene.add_group(place);
         const double node = x == 0.0 ? 0.0 : 600.0;
         const std::shared_ptr<EdgeStraightElement> sill = EdgeStraightElement::square(
-            Polyline({{x - 600.0, 0.0, 0.0}, {x + 600.0, 0.0, 0.0}}), 75.0, "sill"
+            Polyline({{x - 600.0, 0.0, 0.0}, {x + 600.0, 0.0, 0.0}}), 75.0, "sill_" + place
         );
         const std::shared_ptr<EdgeStraightElement> post = EdgeStraightElement::square(
-            Polyline({{x + node, 0.0, 0.0}, {x + node, 0.0, 800.0}}), 75.0, "post"
+            Polyline({{x + node, 0.0, 0.0}, {x + node, 0.0, 800.0}}), 75.0, "post_" + place
         );
         scene.add(sill, group);
         scene.add(post, group);

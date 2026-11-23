@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// jupiter_scarf on beams: the trait de Jupiter splicing two extended beams end to end, drawn apart.
+/// jupiter_scarf on beams: the trait de Jupiter splicing two extended beams end to end.
 int main() {
 
     WoodSession scene("element_joint_beam_jupiter_scarf");
@@ -24,9 +24,6 @@ int main() {
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    // drawn apart: the second beam moved along its axis
-    second->place(Xform::translation(300.0, 0.0, 0.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -34,7 +31,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-jupiter_scarf on beams: the trait de Jupiter splicing two extended beams end to end, drawn apart.
+jupiter_scarf on beams: the trait de Jupiter splicing two extended beams end to end.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

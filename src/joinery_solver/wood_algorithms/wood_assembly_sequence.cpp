@@ -99,6 +99,52 @@ bool AssemblySequence::slides_out(const Element& member, const std::vector<Joint
     return true;
 }
 
+/// Whether left takes the member out farther from its partners' centre than right, by the cosine each stores first.
+static bool farther_out(const std::pair<double, Vector>& left, const std::pair<double, Vector>& right) {
+    return left.first > right.first;
+}
+
+std::vector<Vector> AssemblySequence::candidate_directions(const Element& member, const std::vector<const Element*>& partners) {
+
+    const Mesh& solid = member.model_geometry_mesh();
+    std::vector<Vector> found;
+    std::vector<Vector> tried;
+    for (const size_t face : solid.faces())
+        if (solid.face_normal(face))
+            tried.push_back(solid.face_normal(face)->normalized());
+    for (const Vector& axis : {Vector::x_axis(), Vector::y_axis(), Vector::z_axis()})
+        tried.push_back(axis);
+
+    // each normal and its opposite once
+    for (const Vector& normal : tried)
+        for (const Vector& direction : {normal, normal * -1.0}) {
+            bool known = false;
+            for (const Vector& other : found)
+                known = known || direction.dot(other) > 0.9999;
+            if (!known)
+                found.push_back(direction);
+        }
+
+    // the ways out that lead away from the partners' centre first: a post lifts off its sill, plain fingers slide apart
+    const AABB own = AABB::from_mesh(solid);
+    Vector away(0.0, 0.0, 0.0);
+    for (const Element* partner : partners) {
+        const AABB other = AABB::from_mesh(partner->model_geometry_mesh());
+        away = away + Vector(own.cx - other.cx, own.cy - other.cy, own.cz - other.cz);
+    }
+    if (away.magnitude() > 1e-9)
+        away = away.normalized();
+    std::vector<std::pair<double, Vector>> ranked;
+    for (const Vector& direction : found)
+        ranked.emplace_back((direction * -1.0).dot(away), direction);
+    std::stable_sort(ranked.begin(), ranked.end(), farther_out);
+    std::vector<Vector> ordered;
+    for (const std::pair<double, Vector>& each : ranked)
+        ordered.push_back(each.second);
+
+    return ordered;
+}
+
 std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
 
     std::vector<std::shared_ptr<Element>> remaining = members;
@@ -121,6 +167,18 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                     in.insert(other->guid());
                 }
 
+            // a member none of whose joints holds one still in is free (the base of a pair set beside another): it stays where it is
+            bool held = false;
+            for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()])
+                for (const std::string& partner : partners(*joint.first, joint.second))
+                    held = held || in.count(partner) > 0;
+            if (!held) {
+                removal.push_back({member->name, Vector(0.0, 0.0, 0.0), {}, {}, {}});
+                remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
+                taken = true;
+                break;
+            }
+
             for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()]) {
                 std::vector<std::string> holding;
                 for (const std::string& partner : partners(*joint.first, joint.second))
@@ -129,7 +187,14 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                 if (holding.empty())
                     continue;
 
-                const std::vector<Vector> directions = joint.first->insertion_directions(joint.second);
+                // a joint that names no way in (a plate's fingers, a beam factory's half lap) is tried along the member's own face
+                // normals and the axes: the sweep keeps the first that frees it
+                const std::vector<Vector> named = joint.first->insertion_directions(joint.second);
+                std::vector<const Element*> held;
+                for (const std::shared_ptr<Element>& other : remaining)
+                    if (std::find(holding.begin(), holding.end(), other->guid()) != holding.end())
+                        held.push_back(other.get());
+                const std::vector<Vector> directions = named.empty() ? candidate_directions(*member, held) : named;
                 for (size_t way = 0; way < directions.size(); way++) {
                     const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
                     if (!slides_out(*member, out_legs(legs), directions[way] * -1.0, others))
@@ -206,9 +271,20 @@ void AssemblySequence::json_dump(const std::string& filename) const {
         for (const std::shared_ptr<Element>& member : members)
             if (member->name == move.element) {
                 const AABB box = AABB::from_mesh(member->model_geometry_mesh());
+                nlohmann::ordered_json legs = nlohmann::ordered_json::array();
+                for (const JointMove& leg : move.legs) {
+                    if (!leg.is_turn()) {
+                        legs.push_back({{"shift", {leg.shift[0], leg.shift[1], leg.shift[2]}}});
+                        continue;
+                    }
+                    const Point pivot = leg.axis.start();
+                    const Vector along = leg.axis.to_vector().normalized();
+                    legs.push_back({{"line", {pivot[0], pivot[1], pivot[2], along[0], along[1], along[2]}}, {"angle", leg.angle}});
+                }
                 json["steps"].push_back({
                     {"element", move.element},
                     {"insertion", {move.insertion[0], move.insertion[1], move.insertion[2]}},
+                    {"legs", legs},
                     {"joints", move.joints},
                     {"partners", move.partners},
                     {"low", {box.cx - box.hx, box.cy - box.hy, box.cz - box.hz}},
@@ -216,6 +292,25 @@ void AssemblySequence::json_dump(const std::string& filename) const {
                 });
             }
     json["locked"] = stuck;
+    // each locked member's partners and box, so a drawing can still take it out of them
+    json["locked_members"] = nlohmann::ordered_json::array();
+    for (const std::string& name : stuck)
+        for (const std::shared_ptr<Element>& member : members)
+            if (member->name == name) {
+                std::vector<std::string> others;
+                for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints.at(member->guid()))
+                    for (const std::string& partner : partners(*joint.first, joint.second))
+                        for (const std::shared_ptr<Element>& other : members)
+                            if (other->guid() == partner && other != member)
+                                others.push_back(other->name);
+                const AABB box = AABB::from_mesh(member->model_geometry_mesh());
+                json["locked_members"].push_back({
+                    {"element", name},
+                    {"partners", others},
+                    {"low", {box.cx - box.hx, box.cy - box.hy, box.cz - box.hz}},
+                    {"high", {box.cx + box.hx, box.cy + box.hy, box.cz + box.hz}},
+                });
+            }
     json["conflicts"] = blocked;
 
     std::ofstream(filename) << json.dump(2);

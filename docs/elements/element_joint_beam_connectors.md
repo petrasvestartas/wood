@@ -10,7 +10,9 @@ Face-contact timber connectors (`wedge`, `rectangle_plate`, `butterfly_key`) tha
 
 A tapered hardwood wedge let into the top seam of two side-by-side beams and pinned across; the right beam is shifted aside to show the pocket and cross-pins.
 
-![](elements/element_joint_beam_wedge.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_wedge.gif) | ![](joint_library/assembly_element_joint_beam_wedge.png) |  |
 
 \include{lineno} elements/element_joint_beam_wedge.cpp
 
@@ -28,7 +30,9 @@ A tapered hardwood wedge let into the top seam of two side-by-side beams and pin
 
 A flush steel shear plate (`let_in_plate`) slotted into the top of a column and an abutting rib, fastened by two cross-pins in the column and two in the rib (`rectangle_plate`).
 
-![](elements/element_joint_beam_rectangle_plate.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_rectangle_plate.gif) | ![](joint_library/assembly_element_joint_beam_rectangle_plate.png) |  |
 
 \include{lineno} elements/element_joint_beam_rectangle_plate.cpp
 
@@ -45,7 +49,9 @@ A flush steel shear plate (`let_in_plate`) slotted into the top of a column and 
 
 A double-dovetail butterfly key inlaid across the end-to-end seam of two collinear beams along with its mated pockets in both members.
 
-![](elements/element_joint_beam_butterfly_key.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_butterfly_key.gif) | ![](joint_library/assembly_element_joint_beam_butterfly_key.png) |  |
 
 \include{lineno} elements/element_joint_beam_butterfly_key.cpp
 

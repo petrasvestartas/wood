@@ -16,18 +16,18 @@ Every example shows one pair crossing at `60°` with the lower beam shifted down
 ## Plain Half-Lap Slot
 A straight half-depth rectangular lap slot cut into both crossing beams.
 
-![](elements/element_joint_beam_cross_slot.png)
-
-![](joint_library/cr_cross_slot_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_slot.gif) | ![](joint_library/assembly_element_joint_beam_cross_slot.png) | ![](joint_library/cr_cross_slot_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_slot.cpp
 
 ## Sliced Half-Lap
 A nine-ring half-lap per beam where the centre and top sides are milled while the bottom sides and corner wedges are sliced.
 
-![](elements/element_joint_beam_cross_sliced_half_lap.png)
-
-![](joint_library/cr_cross_sliced_half_lap_0.5_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_sliced_half_lap.gif) | ![](joint_library/assembly_element_joint_beam_cross_sliced_half_lap.png) | ![](joint_library/cr_cross_sliced_half_lap_0.5_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_sliced_half_lap.cpp
 
@@ -36,18 +36,18 @@ A five-ring milled half-lap per beam with sheer upper walls and extended lower b
 
 ### No drills
 
-![](elements/element_joint_beam_cross_half_lap.png)
-
-![](joint_library/cr_cross_half_lap_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_half_lap.gif) | ![](joint_library/assembly_element_joint_beam_cross_half_lap.png) | ![](joint_library/cr_cross_half_lap_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_half_lap.cpp
 
 ### Two diagonal drills
 `CrossDrills::two_diagonal`: two diagonal pin bores through both beams.
 
-![](elements/element_joint_beam_cross_half_lap_diagonal_drills.png)
-
-![](joint_library/cr_cross_half_lap_diagonal_drills_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_half_lap_diagonal_drills.gif) | ![](joint_library/assembly_element_joint_beam_cross_half_lap_diagonal_drills.png) | ![](joint_library/cr_cross_half_lap_diagonal_drills_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_half_lap_diagonal_drills.cpp
 
@@ -55,9 +55,9 @@ A five-ring milled half-lap per beam with sheer upper walls and extended lower b
 ### One drill
 `CrossDrills::one`: a single vertical pin bore down the crossing axis.
 
-![](elements/element_joint_beam_cross_half_lap_drill.png)
-
-![](joint_library/cr_cross_half_lap_drill_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_half_lap_drill.gif) | ![](joint_library/assembly_element_joint_beam_cross_half_lap_drill.png) | ![](joint_library/cr_cross_half_lap_drill_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_half_lap_drill.cpp
 
@@ -65,8 +65,8 @@ A five-ring milled half-lap per beam with sheer upper walls and extended lower b
 ## Brussels Half-Lap
 An asymmetric milled half-lap with a vertical 50 mm counterbore and a horizontal 10 mm cross-pin bore.
 
-![](elements/element_joint_beam_cross_brussels_half_lap.png)
-
-![](joint_library/cr_cross_brussels_half_lap_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_brussels_half_lap.gif) | ![](joint_library/assembly_element_joint_beam_cross_brussels_half_lap.png) | ![](joint_library/cr_cross_brussels_half_lap_unit.png) |
 
 \include{lineno} elements/element_joint_beam_cross_brussels_half_lap.cpp

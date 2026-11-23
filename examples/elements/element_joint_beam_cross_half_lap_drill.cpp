@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// cross_half_lap_drill on beams: one vertical drill, on a pair crossing at 60 degrees, drawn apart.
+/// cross_half_lap_drill on beams: one vertical drill, on a pair crossing at 60 degrees.
 int main() {
 
     WoodSession scene("element_joint_beam_cross_half_lap_drill");
@@ -26,9 +26,6 @@ int main() {
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    // drawn apart: the second beam moved down off the first, the way it comes out of its notch
-    second->place(Xform::translation(0.0, 0.0, -300.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -36,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-cross_half_lap_drill on beams: one vertical drill, on a pair crossing at 60 degrees, drawn apart.
+cross_half_lap_drill on beams: one vertical drill, on a pair crossing at 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

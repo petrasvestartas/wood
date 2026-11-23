@@ -22,63 +22,63 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 ## Centroid Pin
 Drills a single hole at the centroid of the contact polygon through both stacked plates.
 
-![](elements/element_joint_plate_top_top_centre_pin.png)
-
-![](joint_library/tt_top_top_centre_pin_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_centre_pin.gif) | ![](joint_library/assembly_element_joint_plate_top_top_centre_pin.png) | ![](joint_library/tt_top_top_centre_pin_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_centre_pin.cpp
 
 ## Pole of Inaccessibility Pin
 Drills a single hole at the polylabel (centre of the largest inscribed circle) of the contact polygon.
 
-![](elements/element_joint_plate_top_top_polylabel_pin.png)
-
-![](joint_library/tt_top_top_polylabel_pin_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_polylabel_pin.gif) | ![](joint_library/assembly_element_joint_plate_top_top_polylabel_pin.png) | ![](joint_library/tt_top_top_polylabel_pin_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_polylabel_pin.cpp
 
 ## Inscribed Circle Pins
 Drills `divisions` equally spaced holes around the contact's largest inscribed circle scaled by `shift`.
 
-![](elements/element_joint_plate_top_top_circle_pins.png)
-
-![](joint_library/tt_top_top_circle_pins_6_0.95_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_circle_pins.gif) | ![](joint_library/assembly_element_joint_plate_top_top_circle_pins.png) | ![](joint_library/tt_top_top_circle_pins_6_0.95_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_circle_pins.cpp
 
 ## Offset Perimeter Ring Pins
 Offsets the contact perimeter inward by `shift` and drills a hole every `division_length` along the inset ring.
 
-![](elements/element_joint_plate_top_top_ring_pins.png)
-
-![](joint_library/tt_top_top_ring_pins_60_12_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_ring_pins.gif) | ![](joint_library/assembly_element_joint_plate_top_top_ring_pins.png) | ![](joint_library/tt_top_top_ring_pins_60_12_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_ring_pins.cpp
 
 ## Interior Lattice Pins
 Fills the inward-offset contact polygon with a 2D lattice of holes spaced by `division_length`.
 
-![](elements/element_joint_plate_top_top_grid_pins.png)
-
-![](joint_library/tt_top_top_grid_pins_60_12_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_grid_pins.gif) | ![](joint_library/assembly_element_joint_plate_top_top_grid_pins.png) | ![](joint_library/tt_top_top_grid_pins_60_12_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_grid_pins.cpp
 
 ## Inscribed Rectangle Pins
 Finds the largest axis-aligned rectangle inside the contact and places holes every `division_length` along its edges (or fills a grid when `division_length` is negative).
 
-![](elements/element_joint_plate_top_top_rectangle_pins.png)
-
-![](joint_library/tt_top_top_rectangle_pins_60_0.95_8_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_rectangle_pins.gif) | ![](joint_library/assembly_element_joint_plate_top_top_rectangle_pins.png) | ![](joint_library/tt_top_top_rectangle_pins_60_0.95_8_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_rectangle_pins.cpp
 
 ## Custom Face Outlines
 Mills a custom hidden bow-tie pocket into the mating faces of both stacked plates to house an internal butterfly key.
 
-![](elements/element_joint_plate_top_top_custom.png)
-
-![](joint_library/tt_top_top_custom_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_top_custom.gif) | ![](joint_library/assembly_element_joint_plate_top_top_custom.png) | ![](joint_library/tt_top_top_custom_unit.png) |
 
 \include{lineno} elements/element_joint_plate_top_top_custom.cpp
 

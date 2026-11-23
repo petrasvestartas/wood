@@ -63,6 +63,10 @@ private:
     bool slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others) const;
 
 
+    /// The ways a member whose joint names none is tried along: its faces' normals and the axes, each both ways, once, the
+    /// ones whose way out leads farthest from its partners' centre first.
+    static std::vector<Vector> candidate_directions(const Element& member, const std::vector<const Element*>& partners);
+
     /// Takes the members apart one by one; returns the steps in removal order and fills stuck.
     std::vector<AssemblyStep> compute_disassembly();
 

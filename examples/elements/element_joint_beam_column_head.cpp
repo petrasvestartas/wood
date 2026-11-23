@@ -22,7 +22,7 @@ beam(const Point& from, const Point& to, const std::string& name) {
     );
 }
 
-/// column_head: five members in one node, rebuilt from photographs: a round column, two main beams in a scarf and two secondary beams on dovetails, drawn apart.
+/// column_head: five members in one node, rebuilt from photographs: a round column, two main beams in a scarf and two secondary beams on dovetails.
 int main() {
 
     WoodSession scene("element_joint_beam_column_head");
@@ -58,12 +58,6 @@ int main() {
     scene.add_interaction(joint, third, joint->interaction(3));
     scene.add_interaction(joint, fourth, joint->interaction(4));
 
-    // drawn apart: every beam lifted off the head along the column, the way it comes out, the secondary ones last in and highest
-    first->place(Xform::translation(0.0, 0.0, 260.0));
-    second->place(Xform::translation(0.0, 0.0, 260.0));
-    third->place(Xform::translation(0.0, 0.0, 520.0));
-    fourth->place(Xform::translation(0.0, 0.0, 520.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -71,7 +65,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-column_head: five members in one node, rebuilt from photographs. A round column keeps four posts around a cross slot; two main beams meet in it in a scarf of two tapered tongues; two secondary beams end on those tongues in one dovetail each. Drawn apart along the column, the way each comes out.
+column_head: five members in one node, rebuilt from photographs. A round column keeps four posts around a cross slot; two main beams meet in it in a scarf of two tapered tongues; two secondary beams end on those tongues in one dovetail each.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

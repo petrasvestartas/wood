@@ -28,10 +28,6 @@ int main() {
         scene.add(joint, group);
         scene.add_interaction(joint, wall, joint->interaction(0));
         scene.add_interaction(joint, floor, joint->interaction(1));
-
-        const Vector apart =
-            (wall->polylines[0].center() - floor->polylines[0].center()).normalized() * 141.4;
-        wall->place(Xform::translation(apart[0], apart[1], apart[2]));
     }
 
     std::cout << scene << std::endl;
@@ -41,7 +37,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_outplane_linked_tenons: the tenons of a floor and a wall plate mitered at a right angle with no linked joint, on the pairs square and folded to 60 degrees, each drawn apart.
+side_side_outplane_linked_tenons: the tenons of a floor and a wall plate mitered at a right angle with no linked joint, on the pairs square and folded to 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

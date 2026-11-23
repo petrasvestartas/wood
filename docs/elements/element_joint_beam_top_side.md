@@ -14,8 +14,8 @@ static std::shared_ptr<JointBeamElement> from_contact(const EdgeStraightElement&
 ## Milled Wedge Tenon
 A through-tenon and mortise with a milled wedge slot on a T-beam pair at `60°`.
 
-![](elements/element_joint_beam_top_side_milled_wedge.png)
-
-![](joint_library/ts_top_side_milled_wedge_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_top_side_milled_wedge.gif) | ![](joint_library/assembly_element_joint_beam_top_side_milled_wedge.png) | ![](joint_library/ts_top_side_milled_wedge_unit.png) |
 
 \include{lineno} elements/element_joint_beam_top_side_milled_wedge.cpp

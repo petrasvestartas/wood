@@ -78,12 +78,8 @@ def recipe_pictures() -> set:
 
 
 def element_pictures() -> set:
-    """Every example of the element pages, shot by screenshot_element_docs.sh, and the overviews it copies."""
-    script = (tools / "screenshot_element_docs.sh").read_text(encoding="utf-8")
-    overviews = re.search(r"<<'OVERVIEWS'\n(.*?)\nOVERVIEWS", script, re.S).group(1)
-    made = {f"{name}.png" for name in targets if name.startswith("element_")}
-    made |= {f"{line.split()[0]}.png" for line in overviews.splitlines()}
-    return made
+    """Every example of the element pages, shot by screenshot_element_docs.sh."""
+    return {f"{name}.png" for name in targets if name.startswith("element_")}
 
 
 def is_made(path: pathlib.PurePosixPath, recipes: dict) -> bool:

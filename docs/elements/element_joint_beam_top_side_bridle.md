@@ -17,8 +17,10 @@ static std::shared_ptr<JointBeamElement> JointBeamElement::from_contact(const Ed
 The walls of the pocket are square to the first beam at any angle, read from the second beam's lean. The second beam must reach the first beam's far face: `extension` lengthens a beam at both ends, so its stock has to allow for that.
 
 ## Skew Bridle
-A pair at `57°`, 100 x 100, rebuilt from photographs of a made joint and drawn apart: the tongue with its sawn near face, the pocket's square wall and shoulder and the fork with the notch for the shoulder's tooth.
+A pair at `57°`, 100 x 100, rebuilt from photographs of a made joint: the tongue with its sawn near face, the pocket's square wall and shoulder and the fork with the notch for the shoulder's tooth.
 
-![](elements/element_joint_beam_top_side_bridle.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_top_side_bridle.gif) | ![](joint_library/assembly_element_joint_beam_top_side_bridle.png) |  |
 
 \include{lineno} elements/element_joint_beam_top_side_bridle.cpp

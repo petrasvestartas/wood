@@ -26,9 +26,6 @@ int main() {
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    // drawn apart: the second beam moved off the first
-    second->place(Xform::translation(0.0, 300.0, 0.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -36,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-side_side_rotated_miter on beams: a miter trimming two extended beams at their corner, on a pair meeting at 60 degrees, drawn apart.
+side_side_rotated_miter on beams: a miter trimming two extended beams at their corner, on a pair meeting at 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

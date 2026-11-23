@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees, drawn apart.
+/// top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees.
 int main() {
 
     WoodSession scene("element_joint_beam_top_side_milled_wedge");
@@ -26,9 +26,6 @@ int main() {
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    // drawn apart: the second beam moved off the first
-    second->place(Xform::translation(0.0, 0.0, 300.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -36,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees, drawn apart.
+top_side_milled_wedge on beams: the milled wedge, on a pair at 60 degrees.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -22,17 +22,17 @@ Every example shows two crossing pairs (`FacePlanarElement::pair_crossing(90.0)`
 ## Plain Half-Depth Slot
 The family default cutting a half-depth rectangular slot from the top of the first plate and the bottom of the second plate.
 
-![](elements/element_joint_plate_cross_slot.png)
-
-![](joint_library/cr_cross_slot_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_cross_slot.gif) | ![](joint_library/assembly_element_joint_plate_cross_slot.png) | ![](joint_library/cr_cross_slot_unit.png) |
 
 \include{lineno} elements/element_joint_plate_cross_slot.cpp
 
 ## Custom Outlines
 User-defined crossing slot outlines in the `[-0.5, 0.5]^3` unit box (`male` on the `y` faces, `female` on the `x` faces).
 
-![](elements/element_joint_plate_cross_custom.png)
-
-![](joint_library/cr_cross_custom_unit.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_cross_custom.gif) | ![](joint_library/assembly_element_joint_plate_cross_custom.png) | ![](joint_library/cr_cross_custom_unit.png) |
 
 \include{lineno} elements/element_joint_plate_cross_custom.cpp

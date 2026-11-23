@@ -26,7 +26,9 @@ static std::shared_ptr<FacePlanarElement> FacePlanarElement::from_line(const Lin
 
 A mid-span post and a corner post resting on a sill beam: both posts stop on the sill's top face while the sill runs flush to the corner post's outer face.
 
-![](elements/element_joint_beam_butt.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_butt.gif) | ![](joint_library/assembly_element_joint_beam_butt.png) |  |
 
 \include{lineno} elements/element_joint_beam_butt.cpp
 
@@ -34,6 +36,8 @@ A mid-span post and a corner post resting on a sill beam: both posts stop on the
 
 Two wall plates meeting at a corner on top of a floor slab: the floor slab runs beneath both walls while the long wall runs flush to the outer face of the short wall.
 
-![](elements/element_joint_beam_butt_plates.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_butt_plates.gif) | ![](joint_library/assembly_element_joint_beam_butt_plates.png) |  |
 
 \include{lineno} elements/element_joint_beam_butt_plates.cpp
