@@ -7,11 +7,11 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A piece's outline on the isometric screen the pictures use (turned 30 degrees about z, tilted 30 degrees down): the
-/// hull of its points seen on the screen, grown 7.5 mm, in mm.
+/// A piece's outline on the isometric screen the pictures use (the viewer's View::Iso: turned -30 degrees about z, then
+/// -30 degrees about the turned x): the hull of its points seen on the screen, grown 7.5 mm, in mm.
 static Polyline on_screen(const Mesh& mesh, const Xform& placed) {
-    const Vector right(std::sqrt(0.5), std::sqrt(0.5), 0.0);
-    const Vector up(0.5 * std::sqrt(0.5), -0.5 * std::sqrt(0.5), 0.5 * std::sqrt(3.0));
+    const Vector right(0.5 * std::sqrt(3.0), -0.5, 0.0);
+    const Vector up(0.25, 0.25 * std::sqrt(3.0), 0.5 * std::sqrt(3.0));
     std::vector<Point> seen;
     for (const Point& point : mesh.transformed(placed).to_vertices_and_faces().first) {
         const Vector position(point[0], point[1], point[2]);
