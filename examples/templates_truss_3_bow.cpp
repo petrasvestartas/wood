@@ -8,12 +8,18 @@ using namespace wood_session;
 /// each its own scene truss_bow_<number>.
 int main() {
 
+    // a truss whose plated joinery a drawn node of the catalogue defeats is named and left out
     const std::vector<wood_truss::Bow> designs = wood_truss::Bow::all();
-    for (const wood_truss::Bow& design : designs) {
-        wood_truss::Truss truss(wood_truss::TrussGuide(design), "truss_" + design.name());
-        truss.pb_dump(pb_path("truss_" + design.name()));
-    }
-    std::cout << designs.size() << " Bow trusses" << std::endl;
+    size_t built = 0;
+    for (const wood_truss::Bow& design : designs)
+        try {
+            wood_truss::Truss truss(wood_truss::TrussGuide(design), "truss_" + design.name());
+            truss.pb_dump(pb_path("truss_" + design.name()));
+            built++;
+        } catch (const std::exception& error) {
+            std::cout << fmt::format("{} left out: {}", design.name(), error.what()) << std::endl;
+        }
+    std::cout << fmt::format("{} of {} Bow trusses", built, designs.size()) << std::endl;
     return 0;
 }
 

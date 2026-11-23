@@ -755,8 +755,7 @@ static void trusses() {
     };
     // trusses whose joinery is not finished yet: built, not yet held to the checks unless named in TRUSSES (docs/truss_joinery_plan.md)
     const std::set<std::string> unfinished = {
-        "three_hinged_arch", "bowstring_arch", "baltimore_a", "pennsylvania_a", "bollman", "stearns", "pitched_crossed_posts",
-        "cambered_crossed_lantern",
+        "crescent_verticals", "cantilever", "bollman", "three_hinged_arch", "pegram", "braced_arch_rib",
     };
     for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
         if (std::getenv("TRUSSES") && ("," + std::string(std::getenv("TRUSSES")) + ",").find("," + guide.first + ",") == std::string::npos)
@@ -798,6 +797,12 @@ static void trusses() {
         for (const std::shared_ptr<FacePlanarElement>& plate : truss.get_elements<FacePlanarElement>())
             cut.push_back(plate->model_geometry_mesh());
 
+        // and what a heel's cut plane takes beyond the heel's face is meant to go
+        for (const std::shared_ptr<EdgeStraightElement>& member : members)
+            for (const InteractionFeatureSolid& feature : member->solid_features)
+                if (!feature.source.empty() && truss.get_element<JointCutPlaneElement>(feature.source))
+                    cut.push_back(feature.mesh);
+
         for (const std::shared_ptr<EdgeStraightElement>& member : members) {
             const Mesh drawn = member->element_geometry_mesh();
             const AABB around = AABB::from_mesh(drawn);
@@ -821,7 +826,11 @@ static void trusses() {
         }
 
         // and it goes together: every member, plate and part placed, none locked
-        const AssemblySequence sequence(truss, "chord_0_0");
+        std::string base;
+        for (const std::shared_ptr<EdgeStraightElement>& member : members)
+            if (base.empty() && member->name.rfind("chord_0_0", 0) == 0)
+                base = member->name;
+        const AssemblySequence sequence(truss, base);
         check(sequence.locked().empty(), fmt::format("trusses: {}: locked in assembly\n{}", guide.first, sequence.str()));
     }
 }

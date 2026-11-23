@@ -130,22 +130,22 @@ no butt is left.
 
 ## Joinery {#truss_joinery}
 
-Every member is as thick across the truss as the deepest chord, so all faces are flush; webs in line through a node are one
-member. The axial forces of the line graph (`TrussGuide::bars`, a pin-jointed solve) tell which members push and which pull;
-each node then gets:
+Every member is as thick across the truss as the deepest chord, so all faces are flush, and is split at every node on it (the
+ends of the others and the points where members cross), so each piece runs from node to node; a short piece hanging past a node
+goes. Every node is then joined the same way:
 
-| Node | Joint |
+| At a node | How |
 | --- | --- |
-| One member ending on another | its role's joint of the [beam library](#elements_joint_beam_compendium), taken in turn: a heel the notched heel (p. 590, double p. 592 under 30°), a push the notched oblique thrusts (pp. 584, 586, 588) or a mortise and tenon (p. 436), a pull the dovetail half laps (pp. 440–450, wedged p. 570) |
-| Several members ending in one, or a chord's kink | a node plate let into all of them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`); at a kink the two runs mitered |
-| Two members crossing | a cross lap (p. 646), oblique notched cross laps (pp. 672, 676) where they cross at an angle |
+| Chords | mitered on their bisector; meeting sharp (a heel) the steeper bears on the flatter and one plane cuts both, so the heel ends in one face |
+| Webs | flush on the chords' faces, mitered with each other (bearing where they meet under 35°) |
+| All of them | one plate in the middle of the thickness, the convex hull of their strips inside them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
 
-The member they end in runs through the node, or on past it: a post, the tie at a heel. Every
-member goes in from the face, as a truss is laid out flat; a plate drops in last along its slot. Each truss is checked whole
-(no member overlaps another or loses wood no member fills) and taken apart by an `AssemblySequence`, nothing locked.
-Eight trusses are still being finished: three-hinged arch, bowstring arch, Baltimore, Pennsylvania, Bollman, Stearns, pitched
-crossed posts, cambered crossed lantern. Where three or more members cross at one point, all but one are split there, so it is a
-node with its plate.
+The members go in from the face, as a truss is laid out flat; each plate drops in last along its slot in the truss's plane, square
+to the node's chord when its path is clear and keeps 60° off the node's members, else the clear way farthest off them, and from
+the face at a node too dense for any way 45° off its members. Each truss is checked whole (no member overlaps another or loses wood
+no member fills) and taken apart by an `AssemblySequence`, nothing locked. Six are still being finished: crescent with verticals,
+cantilever, three-hinged arch, Pegram, Bollman, braced arch rib. The carpentry king post below is the truss jointed with the book's
+joints alone.
 
 | Heel | Apex | Post foot |
 | --- | --- | --- |

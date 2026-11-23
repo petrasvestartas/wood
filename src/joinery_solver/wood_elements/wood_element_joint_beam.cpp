@@ -745,7 +745,8 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
     const std::vector<double>& reaches,
     double thickness,
     double inset,
-    const std::string& name
+    const std::string& name,
+    double offset
 ) {
 
     // each member's strip in the plane of the plate, from the node to its reach, inset from its edges: the plate is their
@@ -773,7 +774,7 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
             points.push_back(point);
     const std::vector<Point> outline = ConvexHull::hull_2d(points);
 
-    return std::make_shared<FacePlanarElement>(lifted(outline, node, x, y, z * (-0.5 * thickness)), lifted(outline, node, x, y, z * (0.5 * thickness)), name);
+    return std::make_shared<FacePlanarElement>(lifted(outline, node, x, y, z * (offset - 0.5 * thickness)), lifted(outline, node, x, y, z * (offset + 0.5 * thickness)), name);
 }
 
 std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
@@ -810,11 +811,19 @@ std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
     }
     const Vector far = out * 1e4;
     const Point shift(far.dot(x), far.dot(y), 0.0);
-    std::vector<Point> path = flat;
-    for (const Point& corner : flat)
-        path.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
-    const std::vector<Point> swept = ConvexHull::hull_2d(path);
-    const std::array<Polyline, 2> cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
+    // across the plate (it drops in from a face): a pocket from its far face out through the near one; in its plane: the hull
+    // of the plate and the plate far out
+    std::array<Polyline, 2> cutter;
+    if (std::abs(out.dot(normal)) > 0.9) {
+        const Polyline& far_face = out.dot(normal) > 0.0 ? bottom : top;
+        cutter = {far_face, far_face.translated(out * 1e4)};
+    } else {
+        std::vector<Point> path = flat;
+        for (const Point& corner : flat)
+            path.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
+        const std::vector<Point> swept = ConvexHull::hull_2d(path);
+        cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
+    }
     for (size_t m = 0; m < members.size(); m++)
         joint->cutters.push_back({cutter});
     joint->cutters.push_back({});

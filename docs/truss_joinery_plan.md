@@ -86,24 +86,22 @@ must accept that axis. The joint choice per node is checked against this before 
 5. The library fit clearance; the assembly test for every jointed truss in CI.
 6. Docs: a truss joinery page, one row per truss (GIF, picture, the joints it uses with their pages).
 
-## 8. Implementation design (from the king post)
+## 8. As built (2026-11-24)
 
-- **Forces** (done): `TrussGuide::bars()` solves the line graph as a pin-jointed truss; a roof is loaded on every chord but the
-  lowest, a level bridge on its deck; a second case on the left half only; a bar that pulls in either is a tie. Tested on the
-  Pratt and Howe bridges and the king post truss (`tests/joint_assembly.cpp`, `forces`).
-- **Joinery by node, not by butt.** Replacing butts one by one cannot make the heels, the apex or a post foot: there every
-  member ends at the node. `Truss::add_joinery` reads every node of the graph: its members, which ends there and which runs
-  through, its node type (section 3), and gives each pair of members a library joint with explicit roles (member, carrier),
-  never a butt; `from_library` takes the roles, not `classify_joint`.
-- **Run-on.** A joint whose carrier must run past the node (the tie past a heel notch, the king post above the rafters, a
-  chord past a web's lap) gets it as an added prism on that member, its own section from the node out by the joint's need;
-  a member's end that must reach into the carrier sets `extension` while `from_library` builds, so the joint's boxes cut it.
-- **King post truss** (first): heel = rafter on tie, oblique thrust with notched heel (590), the tie running on past it;
-  apex = the king post running on above the ridge, each rafter a notched oblique thrust (584) on its side; post foot = the post
-  into the tie, a wedged dovetail half lap (570) or stopped dovetail half lap (442), the struts bearing on the post's sides
-  (586) and into the tie (584); strut head = strut on the rafter, notched oblique thrust (584). Ways in: the tie stays; the
-  post down into its lap (face); the rafters from the face onto heel and post; the struts last from the face.
-- **Checks**: `tests/joint_butt.cpp` (no overlap, no lost wood) and an `AssemblySequence` with nothing locked, per truss.
+The user's decisions after the first rounds: crowded nodes take a slotted-in plate with pins (their reference: a Schlitzblech
+node), a truss is one system, plates at every node with members split at every node, the plate in the middle of the thickness;
+the book's joints alone stay in the carpentry king post (`CarpentryTruss`). `Truss::add_joinery` keeps the book path
+(`add_book_joinery`) for a truss whose every node is one member ending on another, which none of the library has; every library
+truss takes `add_plated_joinery`:
+
+- members flush faced and split at every node on them, short pieces hanging past a node removed;
+- chords mitered (`butt_side_side`), a heel (under 35 degrees) the rafter running on, bearing on the tie, one plane cutting both;
+- webs flush on the chords, mitered with each other, bearing under 35 degrees;
+- one plate per node (`JointBeamElement::node_plate`, convex hull of the member strips, middle of the thickness), slotted along
+  its way in the plane (square to the chord, else the clear way farthest off the node's members), from the face at a node too
+  dense for 45 degrees; one row of two pins per member (`slotted_plate`);
+- `tests/joint_butt.cpp` checks every truss whole and assembled; six are listed unfinished (crowded plates overlapping, chords
+  whose two plates leave no common way in, a short piece losing wood).
 
 ## 9. Sources
 

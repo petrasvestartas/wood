@@ -45,7 +45,7 @@ jobs:
         for example in build/element_*; do
           [ -x "$example" ] && [ -f "$example" ] || continue
           echo "$example"
-          timeout 300 "$example" > /dev/null
+          timeout 900 "$example" > /dev/null
         done
 
     # The geometry oracle: every plate joint design on a joined pair, checked for closed

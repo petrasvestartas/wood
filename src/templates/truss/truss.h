@@ -35,10 +35,12 @@ public:
         {JointRole::hanging_post, {"wedged_dovetail_half_lap", "stopped_dovetail_half_lap", "housed_dovetail_half_lap", "stopped_housed_dovetail_half_lap"}},
         {JointRole::pulling, {"stopped_dovetail_half_lap", "dovetail_half_lap", "stopped_housed_dovetail_half_lap", "housed_dovetail_half_lap"}},
     }; // Each role's designs, taken in turn (heel pp. 590, 592; push pp. 584, 586, 588, 436, 428; pull pp. 570, 442, 440, 450, 448).
+    static constexpr double OVERHANG = 6.0; // Half depths a piece hanging past a node is shorter than to be removed.
     static constexpr double MITER_ANGLE = 35.0; // Degrees two ends at a plate node meet at, at least, to be mitered; sharper, one bears on the other.
-    static constexpr double PLATE_CLEAR_ANGLE = 25.0; // Degrees a node plate's way in keeps from every member of its node.
     static constexpr double PIN_RADIUS = 6.0; // mm, a node plate's pins.
     static constexpr double PLATE_INSET = 15.0; // mm, a node plate kept in from its members' edges.
+    static constexpr double PLATE_KEEP_ANGLE = 60.0; // Degrees off every member of its node the plate's way square to the chord is kept at, when clear.
+    static constexpr double PLATE_FACE_ANGLE = 45.0; // Degrees off every member of its node a plate's way in the truss's plane keeps, at least; else from the face.
     const TrussGuide guide; // The lines the truss is drawn with.
 
     /// The truss: the guide's lines, the members on them, their butts so every end meets, then the book's joinery in place of
@@ -61,13 +63,53 @@ private:
     /// Each web's ends on the runs and on other webs, chord ends on webs.
     void add_web_butts();
 
-    /// The book's joinery at every node, no butt left: each member ending at a node jointed into the member that runs through
-    /// it (at a heel the tie, at an apex the post, each running on past the node), a later end bearing on the side of an earlier
-    /// one (steepest first), by the node and by whether the member pulls (TrussGuide::bars): a rafter on the tie the oblique
-    /// thrust with notched heel (p. 590), a push at an angle the notched
-    /// oblique thrust (p. 584), a push square the stopped mortise and tenon (p. 436), a pulling post the wedged dovetail half
-    /// lap (p. 570), any other pull the stopped dovetail half lap (p. 442). See docs/truss_joinery_plan.md.
+    /// The joinery in place of the draft's butts, one of two: the book's joints where every node is one member ending on another
+    /// (add_book_joinery), else a plate at every node (add_plated_joinery). See docs/truss_joinery_plan.md.
     void add_joinery();
+
+    /// Every end of a member's axis, once.
+    std::vector<Point> nodes() const;
+
+    /// The members ending at node, and those running through it.
+    std::array<std::vector<std::shared_ptr<EdgeStraightElement>>, 2> meeting(const Point& node) const;
+
+    /// The member the others at node are jointed into: one running through, else a post ending there, else the lowest chord,
+    /// else the steepest web.
+    std::shared_ptr<EdgeStraightElement> carrier_at(const Point& node) const;
+
+    /// Whether every node is one member ending on another: no two ending in one, no chord's kink, no three crossing at a point.
+    bool book_fits() const;
+
+    /// The book's joint of every end on its carrier at its node (the carrier running on past it when it ends there), by
+    /// whether the end pulls (TrussGuide::bars): a heel the notched heel (pp. 590, 592), a push the notched oblique thrusts
+    /// (pp. 584, 586, 588) or a mortise and tenon (p. 436), a pull the dovetail half laps (pp. 440-450, wedged p. 570); two
+    /// members crossing a cross lap (pp. 646, 672, 676).
+    void add_book_joinery();
+
+    /// Every member split at every node on it, a short piece hanging past a node removed; at each node the chords mitered with
+    /// each other (a heel: the steeper bearing on the flatter, both cut square to it), the webs mitered with each other and flush
+    /// on the chords, one plate let into them all, pinned.
+    void add_plated_joinery();
+
+    /// bearing stopping on holding: losing what holding is so far (its drawn stock where that is no closed solid).
+    void bear(const std::shared_ptr<EdgeStraightElement>& holding, const std::shared_ptr<EdgeStraightElement>& bearing);
+
+    /// first and second mitered on their bisector at node, true; two pieces of one line cut square on the node, true; meeting
+    /// under MITER_ANGLE not mitered, false.
+    bool add_miter(const std::shared_ptr<EdgeStraightElement>& first, const std::shared_ptr<EdgeStraightElement>& second, const Point& node);
+
+    /// A box from the plane through node square to keep, reaching out the other way: a member losing it is cut on that plane.
+    Mesh cut_away(const Point& node, const Vector& keep) const;
+
+    /// node's chords mitered with each other (a heel: the steeper bearing on the flatter, both cut square to it), its webs
+    /// mitered with each other and flush on the chords, one plate let into them all, pinned.
+    void add_plated_node(const Point& node);
+
+    /// Every member cut at every node strictly inside it (another's end or a crossing), its pieces <name>_<k> along it.
+    void split_at_nodes();
+
+    /// The points where members pass through each other, neither ending there, with who passes each.
+    std::vector<std::pair<Point, std::vector<std::shared_ptr<EdgeStraightElement>>>> crossings() const;
 
     /// The joint of role for end on side at node, the role's next design in turns that lets end go in along the bench's way
     /// (against the plane normal), its face turned where the record has one; else the first that fits. Returned, null when none.
@@ -112,10 +154,10 @@ private:
     /// How steep member's axis is, 0 level to 1 plumb.
     static double steepness(const EdgeStraightElement& member);
 
-    /// A plate let into every member of a crowded node (the first the carrier, running on carried past it), slotted along the path it drops in by, square
-    /// to the node's chord away from the others, one row of two pins in each member clear of the others (JointBeamElement::node_plate,
-    /// slotted_plate).
-    void add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement>>& members, const Point& node, double carried);
+    /// A plate in the middle of the thickness let into every member ending at node, slotted along the way it drops in by in the
+    /// truss's plane (square to the node's chord, else the clear way farthest off its members), at a node too dense for that from
+    /// the face; one row of two pins in each member clear of the others (JointBeamElement::node_plate, slotted_plate).
+    void add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement>>& members, const Point& node);
 
     /// How far along member's axis from node its section is clear of other's, other running on run_on past the node.
     double clear_of(const EdgeStraightElement& member, const EdgeStraightElement& other, const Point& node, double run_on) const;
@@ -123,31 +165,10 @@ private:
     /// Whether member's axis ends at node.
     static bool ends_at(const EdgeStraightElement& member, const Point& node);
 
-    /// Every point where three or more members pass through each other split into a node: a chord (else the longest member)
-    /// runs on through it, every other is cut in two there, `<name>_0` and `<name>_1`.
-    void split_crossings();
-
-    /// The pairs of members whose ways out of node lie next to each other around it (one running on through it leaving both
-    /// ways).
-    std::set<std::pair<const EdgeStraightElement*, const EdgeStraightElement*>> neighbours(
-        const std::vector<std::shared_ptr<EdgeStraightElement>>& members,
-        const std::vector<std::shared_ptr<EdgeStraightElement>>& runners,
-        const Point& node
-    ) const;
-
-    /// A box from the plane through node square to keep, reaching out the other way: a member losing it is cut on that plane.
-    Mesh cut_away(const Point& node, const Vector& keep) const;
-
-    /// Whether butt is the miter of a chord's kink: between two consecutive runs of one chord.
-    bool is_kink_miter(const JointBeamElement& butt) const;
-
     /// Whether a and b are runs of one chord.
     static bool same_chord(const EdgeStraightElement& a, const EdgeStraightElement& b);
 
-    /// The run s of a chord named chord_<c>_<s>.
-    static size_t run_index(const EdgeStraightElement& chord);
-
-    /// The member guide web w became: its own, or the web it was joined into, in line with it.
+    /// The member guide web w became: its own, the web it was joined into in line with it, else the web nearest its middle.
     std::shared_ptr<EdgeStraightElement> web_member(size_t w) const;
 
     /// Half the truss's thickness across its plane, every member's: its deepest chord's half section.
@@ -155,9 +176,6 @@ private:
 
     /// The normal of the truss's plane.
     Vector plane_normal() const;
-
-    /// Whether a's axis is steeper than b's.
-    static bool steeper(const std::shared_ptr<EdgeStraightElement>& a, const std::shared_ptr<EdgeStraightElement>& b);
 
     /// The height of member's axis midpoint.
     static double lowness(const EdgeStraightElement& member);
