@@ -550,6 +550,7 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
     double length = 300.0;
     bool upright = false;
     bool stand = false;
+    bool flip = false;
     double member_turn = 0.0;
     double member_shift = 0.0;
     for (const std::string& line : record.lists.count("parameters") ? record.lists.at("parameters") : std::vector<std::string>()) {
@@ -559,6 +560,8 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
             upright = std::stod(line.substr(line.find('=') + 1)) > 0.5;
         if (unquoted(line.substr(0, line.find('='))) == "stand")
             stand = std::stod(line.substr(line.find('=') + 1)) > 0.5;
+        if (unquoted(line.substr(0, line.find('='))) == "flip")
+            flip = std::stod(line.substr(line.find('=') + 1)) > 0.5;
         if (unquoted(line.substr(0, line.find('='))) == "member_turn")
             member_turn = std::stod(line.substr(line.find('=') + 1));
         if (unquoted(line.substr(0, line.find('='))) == "member_shift")
@@ -618,6 +621,14 @@ std::vector<std::shared_ptr<EdgeStraightElement>> library_members(const std::str
         const Xform turn = Xform::rotation_around_line(Line::from_points(at, at + Vector::y_axis()), 90.0, true);
         for (std::shared_ptr<EdgeStraightElement>& each : members)
             each = each->transformed(turn);
+    }
+
+    // flip turns the joint upside down, a half turn about x: the member hangs under the carrier (a post the beam sits on, its
+    // wedge driven down from above)
+    if (flip) {
+        const Xform over = Xform::rotation_around_line(Line::from_points(at, at + Vector::x_axis()), 180.0, true);
+        for (std::shared_ptr<EdgeStraightElement>& each : members)
+            each = each->transformed(over);
     }
 
     return members;

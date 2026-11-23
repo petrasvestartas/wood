@@ -32,6 +32,7 @@
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
+#   flip        (a parameter) turns the joint upside down, a half turn about x: the member hangs under the carrier.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
@@ -1455,12 +1456,13 @@ plain_miter_perpendicular_butterfly_key:
     - "wing = 0.45"
     - "waist = 0.05"
     - "flare = 0.11"
+    - "reach = 0.6"
   points:
     - "I = O - ah*p"
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
     - "D = unit(I - X)"
-    - "E = I + wing*ah*D"
+    - "E = I + 2*wing*ah*D"
     - "R1 = E + wing*ah*A + flare*aw*w"
     - "R2 = E + wing*ah*A - flare*aw*w"
     - "R3 = E - waist*aw*w"
@@ -1474,7 +1476,7 @@ plain_miter_perpendicular_butterfly_key:
     - "inner_p = O - ah*p, p, O"
     - "inner_n = O, n, O - n"
   parts:
-    - "key = R1 R2 R3 R4 R5 R6, X - I - 2*wing*ah*D"
+    - "key = R1 R2 R3 R4 R5 R6, reach*(X - I) - 2*wing*ah*D"
   steps:
     - "A2 a_end miter"
     - "A3 key"
@@ -1483,7 +1485,7 @@ plain_miter_perpendicular_butterfly_key:
     - "P key face_p; key face_n; key inner_p inner_n"
   insertions:
     - "-u"
-    - "key = D"
+    - "key = -D"
 
 double_mortise_tenon_one_sided_miter:
   title: "Double mortise and tenon with one-sided lapped miter"
@@ -2068,8 +2070,8 @@ blind_dovetail_miter:
   parts:
   steps:
     - "A2 a_end bottom"
-    - "A3 a_end flank_1 miter -stop; a_end flank_2 miter -stop; a_end shoulder -flank_1 -flank_2 -stop; a_end miter stop"
-    - "B2 b_node flank_1 -miter -stop; b_node flank_2 -miter -stop; b_node -miter stop"
+    - "A3 a_end flank_1 miter; a_end flank_2 miter; a_end shoulder -flank_1 -flank_2 -stop; a_end miter stop"
+    - "B2 b_node flank_1 -miter; b_node flank_2 -miter; b_node -miter stop"
   insertions:
     - "-u"
 
@@ -2163,7 +2165,7 @@ plain_miter_dovetail_key:
     - "X = O + ah*p - 2*bh*n"
     - "A = unit(cross(w, X - I))"
     - "D = unit(I - X)"
-    - "K = X - depth*ah*A"
+    - "K = X - depth*ah*A - 0.1*ah*D"
     - "Q1 = K - mouth*aw*w"
     - "Q2 = K + mouth*aw*w"
     - "Q3 = K + depth*ah*D + root*aw*w"

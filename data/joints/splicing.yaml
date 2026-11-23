@@ -34,6 +34,7 @@
 #   member_turn (a parameter) turns the member alone about its own axis in degrees: a post set diagonally under a square beam.
 #   member_shift (a parameter) moves the member alone across the joint in mm (along y): a post wider than its beam, flush with one face.
 #   roll        (a parameter) turns a crossing's two sections about their axes in degrees: a diagonal puzzle's sticks stand on an edge.
+#   flip        (a parameter) turns the joint upside down, a half turn about x: the member hangs under the carrier.
 #   stock       a's axis ends on b's axis; a joint whose a passes through b (a lap) needs a's stock there, its extension.
 #   insertions  expressions for the ways a goes in; "through v" only when a is as wide as b; b goes in the opposite way;
 #               "part = v" the way a part goes in, where it does not go in along its own axis (an inlay).
@@ -437,10 +438,10 @@ undersquinted_stop_splayed_scarf:
   points:
     - "S1 = O - L*u - stop*ah*p"
     - "S2 = O + L*u + stop*ah*p"
-    - "E1 = O + (L - squint*ah)*u - ah*p"
-    - "E2 = O + L*u + stop*ah*p"
-    - "F1 = O - (L - squint*ah)*u + ah*p"
-    - "F2 = O - L*u - stop*ah*p"
+    - "E1 = O + L*u + stop*ah*p"
+    - "E2 = O + (L - squint*(1 - stop)*ah)*u + ah*p"
+    - "F1 = O - L*u - stop*ah*p"
+    - "F2 = O - (L - squint*(1 - stop)*ah)*u - ah*p"
   planes:
     - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
     - "low_face = E1, cross(w, E2 - E1), O"
@@ -527,14 +528,14 @@ undersquinted_stop_splayed_cogged_scarf:
     - "S2 = O + L*u + stop*ah*p"
     - "H1 = O - L*u - stop*ah*p + cog*ah*p"
     - "H2 = O + L*u + stop*ah*p + cog*ah*p"
-    - "E1 = O + (L - squint*ah)*u - ah*p"
-    - "F1 = O - (L - squint*ah)*u + ah*p"
+    - "E1 = O + (L - squint*(1 - stop)*ah)*u + ah*p"
+    - "F1 = O - (L - squint*(1 - stop + cog)*ah)*u - ah*p"
   planes:
     - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
     - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
     - "cut = O, u, O + u"
-    - "low_face = E1, cross(w, S2 - E1), O"
-    - "up_face = F1, cross(w, H1 - F1), O"
+    - "low_face = S2, cross(w, E1 - S2), O"
+    - "up_face = H1, cross(w, F1 - H1), O"
   parts:
   steps:
     - "A2 a_end -upper cut -low_face; a_end -splay -cut -low_face"
@@ -1564,16 +1565,16 @@ undersquinted_stop_splayed_cogged_scarf_folding_wedges:
     - "S2 = O + L*u + stop*ah*p"
     - "H1 = O - L*u - stop*ah*p + cog*ah*p"
     - "H2 = O + L*u + stop*ah*p + cog*ah*p"
-    - "E1 = O + (L - squint*ah)*u - ah*p"
-    - "F1 = O - (L - squint*ah)*u + ah*p"
+    - "E1 = O + (L - squint*(1 - stop)*ah)*u + ah*p"
+    - "F1 = O - (L - squint*(1 - stop + cog)*ah)*u - ah*p"
   planes:
     - "cut_a = O + (gap*ah + e)*u, u, O + 2*ah*u"
     - "cut_b = O - (gap*ah + e)*u, u, O + 2*ah*u"
     - "splay = S1, cross(w, S2 - S1), O + 2*ah*p"
     - "upper = H1, cross(w, H2 - H1), O + 2*ah*p"
     - "cut = O, u, O + u"
-    - "low_face = E1, cross(w, S2 - E1), O"
-    - "up_face = F1, cross(w, H1 - F1), O"
+    - "low_face = S2, cross(w, E1 - S2), O"
+    - "up_face = H1, cross(w, F1 - H1), O"
   parts:
     - "wedge_1 = W1 + e*u, W2 + e*u, p, (0.3*cog*ah), gap*ah, e, both, u"
     - "wedge_2 = W2 - e*u, W1 - e*u, p, (0.3*cog*ah), gap*ah, e, both, -u"
