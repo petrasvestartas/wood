@@ -924,3 +924,19 @@ div.contents .wood-pair-grid img,
 }
 
 
+
+/* a table of pictures (the joint library's GIF, picture and tile per joint): equal columns, every picture the width of its
+   column, so the three of a row are the same size */
+
+table.markdownTable:has(img.inline),
+table.markdownTable:has(img.inline) tbody {
+    display: table !important;
+    table-layout: fixed;
+    width: 100%;
+}
+
+table.markdownTable td img.inline {
+    display: block;
+    width: 100%;
+    height: auto;
+}
