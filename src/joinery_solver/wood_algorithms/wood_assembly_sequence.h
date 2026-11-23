@@ -36,7 +36,8 @@ public:
     /// The members no direction frees, by name; empty when the whole assembly comes apart.
     const std::vector<std::string>& locked() const;
 
-    /// "<member>: <joint> blocked by <other member>", one per joint every direction of which the other member blocks.
+    /// "<member>: <joint> blocked by <other member>", one per joint every direction of which the other member blocks; empty
+    /// when no member is locked.
     const std::vector<std::string>& conflicts() const;
 
     /// The order, the directions, every member's box, the locked members and the conflicts as JSON, for tools/render_joint_assembly_gif.py.

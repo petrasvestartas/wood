@@ -33,8 +33,9 @@ AssemblySequence::AssemblySequence(const WoodSession& session, const std::string
     for (std::vector<AssemblyStep>::const_reverse_iterator it = removal.rbegin(); it != removal.rend(); ++it)
         sequence.push_back(*it);
 
-    // conflicts: joints of one member whose directions another of its joints' members blocks
-    blocked = compute_conflicts();
+    // conflicts, when a member is locked, to say why: joints of one member whose directions another of its joints' members blocks
+    if (!stuck.empty())
+        blocked = compute_conflicts();
 }
 
 const std::vector<AssemblyStep>& AssemblySequence::steps() const {
@@ -83,17 +84,41 @@ bool AssemblySequence::slides_out(const Element& member, const std::vector<Joint
             places.push_back(leg.at(i / count) * reached);
         reached = leg.at(1.0) * reached;
     }
+    const size_t turning = places.size();
     for (double distance = 1.0; distance <= box.diagonal(); distance = distance < step ? step : distance + step)
         places.push_back(Xform::translation(direction[0] * distance, direction[1] * distance, direction[2] * distance) * reached);
 
-    for (const Xform& place : places) {
-        const Mesh moved = solid.transformed(place);
-        const AABB moved_box = AABB::from_mesh(moved);
+    // how far each other reaches along the way out, and how far behind it the member starts once its moves are done: past an
+    // other along a straight way out it can never meet it again
+    std::vector<AABB> other_boxes;
+    std::vector<double> other_far;
+    for (const Element* other : others) {
+        other_boxes.push_back(AABB::from_mesh(other->model_geometry_mesh()));
+        double far = -1e300;
+        for (const Point& corner : other->model_geometry_mesh().to_vertices_and_faces().first)
+            far = std::max(far, (corner - Point(0.0, 0.0, 0.0)).dot(direction));
+        other_far.push_back(far);
+    }
+    double near = 1e300;
+    for (const Point& corner : solid.transformed(reached).to_vertices_and_faces().first)
+        near = std::min(near, (corner - Point(0.0, 0.0, 0.0)).dot(direction));
 
-        for (const Element* other : others)
-            if (moved_box.intersects(AABB::from_mesh(other->model_geometry_mesh())) &&
-                compute_volume(solid_boolean(moved, other->model_geometry_mesh(), SolidOperation::intersect)) > clearance)
+    for (size_t k = 0; k < places.size(); k++) {
+        const Mesh moved = solid.transformed(places[k]);
+        const AABB moved_box = AABB::from_mesh(moved);
+        const double travelled = k < turning ? 0.0 : (k == turning ? 1.0 : (k - turning) * step);
+        bool ahead = k < turning;
+
+        for (size_t o = 0; o < others.size(); o++) {
+            if (k >= turning && near + travelled > other_far[o] + 1e-6)
+                continue;
+            ahead = true;
+            if (moved_box.intersects(other_boxes[o]) &&
+                compute_volume(solid_boolean(moved, others[o]->model_geometry_mesh(), SolidOperation::intersect)) > clearance)
                 return false;
+        }
+        if (!ahead)
+            return true;
     }
 
     return true;
@@ -191,6 +216,26 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                 remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
                 taken = true;
                 break;
+            }
+
+            // a member of the base's chain that nothing still in holds (a top chord once its webs are out) is lifted off along the
+            // first of its joints' ways that sweeps clear: in assembly it is laid down before the partners that join it
+            if (!held) {
+                for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()]) {
+                    const std::vector<Vector> named = joint.first->insertion_directions(joint.second);
+                    for (size_t way = 0; way < named.size() && !taken; way++) {
+                        const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
+                        if (!slides_out(*member, out_legs(legs), named[way] * -1.0, others))
+                            continue;
+                        removal.push_back({member->name, named[way], legs, {}, {}});
+                        remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
+                        taken = true;
+                    }
+                    if (taken)
+                        break;
+                }
+                if (taken)
+                    break;
             }
 
             for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()]) {

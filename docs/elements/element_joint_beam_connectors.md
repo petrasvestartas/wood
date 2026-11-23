@@ -2,7 +2,7 @@
 
 [TOC]
 
-Face-contact timber connectors (`wedge`, `rectangle_plate`, `butterfly_key`) that cut pockets and pin bores into both members while nesting the connector `NodeBlockElement` and [`JointPinElement`](@ref elements_joint_pin) children under the joint.
+Face-contact timber connectors (`wedge`, `rectangle_plate`, `node_plate` with `slotted_plate`, `butterfly_key`) that cut pockets and pin bores into both members while nesting the connector `NodeBlockElement` and [`JointPinElement`](@ref elements_joint_pin) children under the joint.
 
 ![](diagrams/wood_beam_joints_connectors.webp)
 
@@ -44,6 +44,19 @@ A flush steel shear plate (`let_in_plate`) slotted into the top of a column and 
 | `pin_length`, `pin_radius` | auto, `25` | Dowel pin length and radius through the column, rib, and plate |
 | `margin_x`, `margin_z` | `6.05`, `3` | Longitudinal and vertical pocket clearance around the steel plate |
 | `overshoot`, `pin_sides` | `25`, `16` | Extra bore depth past the pins and cylindrical facet count |
+
+## Node plate
+
+Members meeting at one node, each stopping on the ones before it, joined by one plate let into all of them: the convex hull
+of each member's strip from the node, inside its edges (`node_plate`), slotted along the way it drops in and pinned, one row of
+two pins in each member past where it is clear of the others (`slotted_plate`). The truss template puts one at every node
+where several members end in one ([Truss joinery](@ref truss_joinery)).
+
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_node_plate.gif) | ![](joint_library/assembly_element_joint_beam_node_plate.png) |  |
+
+\include{lineno} elements/element_joint_beam_node_plate.cpp
 
 ## Butterfly key
 

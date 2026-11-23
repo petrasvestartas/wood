@@ -50,7 +50,7 @@ A truss is two lists of members, the chords and the webs (a post is a web), each
 | `TrussMember` | Type | Default | Role |
 | --- | --- | --- | --- |
 | `axis` | `Polyline` | | Through its nodes, end to end: a chord turns at its kinks, a web is straight between two nodes |
-| `radius` | `double` | `80.0` | Half its square section, mm (`80.0` → `160 × 160 mm`) |
+| `radius` | `double` | `80.0` | Half its depth in the truss plane, mm; every member is as thick across the plane as the deepest chord |
 | `level` | `int` | `0` | 1 primary, 2 secondary, 3 tertiary; `0`: read from the drawing |
 | `runs_on` | `std::array<bool, 2>` | `{false, false}` | A chord's start and end running on where chord ends meet, in place of the automatic choice |
 
@@ -105,24 +105,54 @@ Every node is solved by six rules:
 ## Constructor Pipeline
 
 ```cpp
-Truss::Truss(const TrussGuide& guide, const std::string& name)
-    : WoodSession(name),
-      guide(guide) {
+Truss::Truss(const TrussGuide& guide, const std::string& name) : WoodSession(name), guide(guide) {
 
-    // 1. input: the guide's chords and webs as drawn
+    // input: the guide's lines as drawn
     add_input();
 
-    // 2. members: a EdgeStraightElement per chord run and per web
+    // members: a beam per chord run and per web
     add_chords();
     add_webs();
 
-    // 3. chords: runs mitered at kinks, butted at heels, lapped at crossings
+    // chords: the runs mitered at kinks, butted at heels
     add_chord_butts();
 
-    // 4. webs: let into chords, lapped at crossings, mitered with same-rank neighbours
+    // webs: on the chords, lapped where they cross, mitered with their neighbours at every node
     add_web_butts();
+
+    // joinery: every end on a side the book's joint in place of its butt, all able to go in across the plane
+    add_joinery();
 }
 ```
+
+The butts are the first draft of every node; `add_joinery` replaces each with a joint of the beam library or a node plate, so
+no butt is left.
+
+## Joinery {#truss_joinery}
+
+Every member is as thick across the truss as the deepest chord, so all faces are flush; webs in line through a node are one
+member. The axial forces of the line graph (`TrussGuide::bars`, a pin-jointed solve) tell which members push and which pull;
+each node then gets:
+
+| Node | Joint |
+| --- | --- |
+| One member ending on another | its role's joint of the [beam library](#elements_joint_beam_compendium), taken in turn: a heel the notched heel (p. 590, double p. 592 under 30°), a push the notched oblique thrusts (pp. 584, 586, 588) or a mortise and tenon (p. 436), a pull the dovetail half laps (pp. 440–450, wedged p. 570) |
+| Several members ending in one | a node plate let into all of them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
+| Two members crossing | a cross lap (p. 646), oblique notched cross laps (pp. 672, 676) where they cross at an angle |
+
+The member they end in runs through the node, or on past it: a post, the even run at a chord's kink, the tie at a heel. Every
+member goes in from the face, as a truss is laid out flat; a plate drops in last along its slot. Each truss is checked whole
+(no member overlaps another or loses wood no member fills) and taken apart by an `AssemblySequence`, nothing locked.
+Thirteen trusses are still being finished: quarter fan, sawtooth, three-hinged arch, bowstring arch, Baltimore, Pennsylvania,
+double intersection Pratt, Schwedler, Bollman, Fink bridge, Stearns, pitched crossed posts, cambered crossed lantern.
+
+| Heel | Apex | Post foot |
+| --- | --- | --- |
+| ![](templates/truss_node_heel.png) | ![](templates/truss_node_apex.png) | ![](templates/truss_node_foot.png) |
+| **Strut head** | **Howe node** | **Kink** |
+| ![](templates/truss_node_strut.png) | ![](templates/truss_node_howe.png) | ![](templates/truss_node_kink.png) |
+| **Crossing** | | |
+| ![](templates/truss_node_crossing.png) | | |
 
 ---
 

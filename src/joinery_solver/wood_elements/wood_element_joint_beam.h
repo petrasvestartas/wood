@@ -148,6 +148,35 @@ public:
         int pin_sides = 16
     );
 
+    /// A plate through the node where members meet, in the plane through node square to normal and thickness thick: the convex
+    /// hull of each member's strip along its axis from the node to its reach (both ways for a member running through) and a
+    /// square of the first member's section around the node (it must run through the node or on past it), inset from the
+    /// members' edges, so its slot is the plate swept straight out.
+    static std::shared_ptr<FacePlanarElement> node_plate(
+        const std::vector<const EdgeStraightElement*>& members,
+        const Point& node,
+        const Vector& normal,
+        const std::vector<double>& reaches,
+        double thickness,
+        double inset = 15.0,
+        const std::string& name = "node_plate"
+    );
+
+    /// The joint that lets a node plate into its members, each slotted along the path the plate drops in along (the plate swept
+    /// out along way), so it goes in against way without touching wood once they lie in place, with one row of two pins in
+    /// each member 2 pins past clear (along its axis from the node, where it is free of the others; 0 puts them in the node),
+    /// square to the plate; the members go in from the face (against the plate's normal) or along way, the plate last against
+    /// way. Its targets are the members, then the plate.
+    static std::shared_ptr<JointBeamElement> slotted_plate(
+        const std::vector<const EdgeStraightElement*>& members,
+        const FacePlanarElement& plate,
+        const Point& node,
+        const Vector& way,
+        const std::vector<double>& clear,
+        double pin_radius = 6.0,
+        int pin_sides = 16
+    );
+
     /// A butt of two members drawn as lines and polygons, beams, columns or plates.
     static std::shared_ptr<JointBeamElement> butt(const Element& a, const Element& b, double reach = 0.0);
 

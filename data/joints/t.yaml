@@ -361,6 +361,7 @@ dovetail_half_lap:
   corners: "square inclined"
   parameters:
     - "flare = 0.4"
+    - "face = 1"
   points:
     - "U = O + n"
     - "H = O"
@@ -371,7 +372,7 @@ dovetail_half_lap:
   planes:
     - "bottom = O - 2*bh*n, n, O"
     - "shoulder = H, n, U"
-    - "mid = O, w, O - w"
+    - "mid = O, face*w, O - face*w"
     - "dove_1 = N1, cross(Q1 - N1, w), O"
     - "dove_2 = N2, cross(Q2 - N2, w), O"
   parts:
@@ -381,7 +382,7 @@ dovetail_half_lap:
     - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
     - "B2 b_node -mid -dove_1 -dove_2"
   insertions:
-    - "w"
+    - "face*w"
 
 stopped_dovetail_half_lap:
   title: "Stopped dovetail half lap joint"
@@ -393,6 +394,7 @@ stopped_dovetail_half_lap:
   parameters:
     - "flare = 0.42"
     - "stop = 0.8"
+    - "face = 1"
   points:
     - "U = O + n"
     - "H = O"
@@ -403,7 +405,7 @@ stopped_dovetail_half_lap:
   planes:
     - "bottom = O - 2*stop*bh*n, n, O"
     - "shoulder = H, n, U"
-    - "mid = O, w, O - w"
+    - "mid = O, face*w, O - face*w"
     - "dove_1 = N1, cross(Q1 - N1, w), O"
     - "dove_2 = N2, cross(Q2 - N2, w), O"
   parts:
@@ -413,7 +415,7 @@ stopped_dovetail_half_lap:
     - "A4 a_end shoulder dove_1; a_end shoulder dove_2"
     - "B2 b_node -mid -dove_1 -dove_2 -bottom"
   insertions:
-    - "w"
+    - "face*w"
 
 one_sided_dovetail_half_lap:
   title: "One-sided dovetail half lap joint"

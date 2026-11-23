@@ -256,13 +256,43 @@ static void king_post() {
             check(shared(*members[i], *members[j]) < 1.0, fmt::format("king_post: {} and {} share wood", members[i]->name, members[j]->name));
 }
 
+/// The guide as a pin-jointed truss: a level Pratt bridge's diagonals and a level Howe's verticals (not its end posts) pull
+/// under the deck load, a king post truss's tie and post pull and its rafters and struts never do under the roof load.
+static void forces() {
+
+    for (const std::pair<std::string, wood_truss::TrussGuide>& truss : std::vector<std::pair<std::string, wood_truss::TrussGuide>>{
+             {"pratt", wood_truss::TrussGuide(wood_truss::PrattBridge{})}, {"howe", wood_truss::TrussGuide(wood_truss::HoweFlat{})}}) {
+        for (const wood_truss::TrussBar& bar : truss.second.bars()) {
+            if (bar.chord)
+                continue;
+            const bool vertical = std::abs(bar.end[0] - bar.start[0]) < 1.0;
+            if (truss.first == "pratt" && !vertical)
+                check(bar.force > 1e-6, fmt::format("forces: a pratt diagonal (web {}) pulls, not {:.3f}", bar.member, bar.force));
+            // the end posts over the supports carry the reactions down: they push
+            const bool end_post = std::abs(bar.start[0]) < 1.0 || std::abs(bar.start[0] - 12000.0) < 1.0;
+            if (truss.first == "howe" && vertical && !end_post)
+                check(bar.force > -1e-6, fmt::format("forces: a howe vertical (web {}) pulls, not {:.3f}", bar.member, bar.force));
+        }
+    }
+
+    const wood_truss::TrussGuide king(wood_truss::KingPost{});
+    for (const wood_truss::TrussBar& bar : king.bars()) {
+        const bool level = std::abs(bar.end[2] - bar.start[2]) < 1.0;
+        const bool vertical = std::abs(bar.end[0] - bar.start[0]) < 1.0;
+        const std::string what = bar.chord ? (level ? "tie" : "rafter") : (vertical ? "post" : "strut");
+        const bool pulls = what == "tie" || what == "post";
+        check(pulls ? bar.force > 1e-6 : bar.force < 1e-6, fmt::format("forces: the king post truss's {} {}, {:.3f}", what, pulls ? "pulls" : "never pulls", bar.force));
+    }
+}
+
 int main() {
 
+    forces();
     classification();
     notched_oblique_thrust();
     blind_mortise_tenon();
     library();
     king_post();
-    std::cout << "joint_assembly: categories read from axes, two compendium joints cut step by step, the king post truss taken apart" << std::endl;
+    std::cout << "joint_assembly: truss forces signed, categories read from axes, two compendium joints cut step by step, the king post truss taken apart" << std::endl;
     return 0;
 }

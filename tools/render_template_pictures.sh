@@ -208,11 +208,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = truss ]; then
     "$(example_exe templates_truss_1_pratt)" > /dev/null
     cp data/output/pb/live.pb data/output/pb/truss_templates_truss_1_pratt.pb
     "$(example_exe templates_truss_2_library)" > /dev/null
-    for pb in data/output/pb/truss_*.pb; do
-        name=$(basename "$pb" .pb)
-        name=${name#truss_templates_}
-        case "$name" in truss_1_pratt) name=templates_truss_1_pratt ;; esac
-        scene_job "$pb" "docs/images/templates/$name.png"
+    mv data/output/pb/truss_templates_truss_1_pratt.pb data/output/pb/templates_truss_1_pratt.pb
+    # drawn like the joint library and the elements (see-through, as dark as solid, one isometric camera), not screenshot
+    "${PYTHON:-python3}" tools/render_element_pictures.py --scenes docs/images/templates data/output/pb/truss_*.pb data/output/pb/templates_truss_1_pratt.pb
+    # the joinery's nodes close up: the king post's heel, apex, foot and strut head, a Howe node, a kink and a crossing
+    for node in "truss_king_post truss_node_heel 0,0,0 23" "truss_king_post truss_node_apex 4000,0,2667 23" \
+        "truss_king_post truss_node_foot 4000,0,0 23" "truss_king_post truss_node_strut 2000,0,1333 23" \
+        "truss_howe truss_node_howe 4000,0,0 23" "truss_roof_cambered_tie truss_node_kink 6000,0,500 22" \
+        "truss_town_lattice truss_node_crossing 1556,0,1500 23"; do
+        set -- $node
+        "${PYTHON:-python3}" tools/render_element_pictures.py --close docs/images/templates "data/output/pb/$1.pb" "$2" "$3" "$4"
     done
 fi
 

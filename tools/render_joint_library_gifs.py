@@ -88,7 +88,7 @@ def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
         part = is_part(element.name)
         # the moving piece and the parts a strong blue in both passes, the solid one laying it over the see-through drawing
         moving = element.name == frame["moving"]
-        colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.97, 0.97, 0.97, 1.0] if solid else None
+        colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.55, 0.55, 0.55, 1.0] if solid else None
         if colour:
             branch.set_node_color(branch.get_node(element.guid), Color(*colour))
     return branch
@@ -177,9 +177,10 @@ def render(pb: str, target: list, opacity: str) -> Image.Image:
 
 
 def drawing(pair: list, target: list) -> Image.Image:
-    """The see-through pass with the blue of the solid one laid over it where a part or the moving piece is in view."""
-    image = render(pair[0], target, "0.45")
+    """The see-through pass as dark as the solid one (the darker of the two at every pixel: the wood keeps the solid's
+    shading, the hidden edges still show), with the blue of the solid one laid over it where a part or the moving piece is."""
     strong = render(pair[1], target, "1.0")
+    image = ImageChops.darker(render(pair[0], target, "0.45"), strong)
     red, green, blue = strong.split()
     bluish = ImageChops.subtract(blue, red).point(lambda value: 255 if value > 60 else 0)
     image.paste(strong, (0, 0), bluish)
@@ -195,10 +196,10 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
     return draw(scene, design, variant + "_", orders.get(variant, []), slides, f"beam_{design}", {"joints": [variant]})
 
 
-def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict) -> list:
+def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict, folder: pathlib.Path = PICTURES, animate: bool = True) -> list:
     """The picture and the GIF of the pieces of scene whose names start with prefix (the group design, the whole scene for "-"),
-    apart, then in by order, saved as docs/images/joint_library/<name>.png and .gif; names gives the joints to leave out and the
-    parts to draw blue."""
+    apart, then in by order, saved as <folder>/<name>.png and .gif (the picture alone when not animate); names gives the joints
+    to leave out and the parts to draw blue."""
     frames = plan_frames(order, slides)
     with tempfile.TemporaryDirectory() as tmp:
         plan_path = pathlib.Path(tmp) / "plan.json"
@@ -223,14 +224,16 @@ def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int
         piece = image.crop(crop)
         canvas.paste(piece, ((width - piece.width) // 2, (height - piece.height) // 2))
         framed.append(canvas.resize(SIZE, Image.LANCZOS))
-    picture = PICTURES / f"{name}.png"
+    picture = folder / f"{name}.png"
     framed[0].save(picture)
+    if not animate:
+        return [picture]
     # the palette from every frame, so the moving piece keeps its tint
     sample = Image.new("RGB", (framed[0].width, framed[0].height * len(framed)))
     for k, image in enumerate(framed):
         sample.paste(image, (0, framed[0].height * k))
     palette = sample.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
-    animation = PICTURES / f"{name}.gif"
+    animation = folder / f"{name}.gif"
     quantized = [image.quantize(palette=palette, dither=Image.Dither.NONE) for image in framed]
     quantized[0].save(animation, save_all=True, append_images=quantized[1:], duration=[f["duration"] for f in frames], loop=0, optimize=True)
     return [picture, animation]

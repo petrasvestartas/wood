@@ -7,6 +7,8 @@
 #include "wood_element_joint_pin.h"
 #include "wood_element_joint_connector_part.h"
 #include "wood_joint_library.h"
+#include "boolean_polyline.h"
+#include "convex_hull.h"
 #include "../src/clipper2/clipper.h"
 
 namespace wood_session {
@@ -696,6 +698,220 @@ std::shared_ptr<JointBeamElement> JointBeamElement::rectangle_plate(
     joint->line_radius = pin_radius;
     joint->chord_tolerance = sides_tolerance(pin_radius, pin_sides);
     joint->drill_overshoot = overshoot;
+
+    return joint;
+}
+
+/// Where member's axis leaves node: one way for an end there, both for a member running through it.
+static std::vector<Vector> ways_from(const EdgeStraightElement& member, const Point& node) {
+
+    const Point first = member.axis.get_point(0);
+    const Point last = member.axis.get_point(member.axis.point_count() - 1);
+    const Vector along = (last - first).normalized();
+    std::vector<Vector> ways;
+    if (Point::distance(first, node) > 1.0)
+        ways.push_back(along * -1.0);
+    if (Point::distance(last, node) > 1.0)
+        ways.push_back(along);
+
+    return ways;
+}
+
+/// How far member's section reaches from its axis along direction.
+static double section_reach(const EdgeStraightElement& member, const Vector& direction) {
+
+    double reach = 0.0;
+    const Point base = member.axis.get_point(0);
+    for (const Point& corner : member.sections().front().get_points())
+        reach = std::max(reach, std::abs((corner - base).dot(direction)));
+
+    return reach;
+}
+
+/// The union of closed rings in xy, taken one at a time: a ring inside another is added, never read as its hole.
+static std::vector<Polyline> united(const std::vector<Polyline>& rings) {
+
+    std::vector<Polyline> union_rings;
+    for (const Polyline& ring : rings)
+        union_rings = union_rings.empty() ? std::vector<Polyline>{ring} : BooleanPolyline::compute_regions(union_rings, {ring}, 1);
+
+    return union_rings;
+}
+
+/// The largest of the closed rings, its corners without the closing repeat.
+static std::vector<Point> largest_ring(const std::vector<Polyline>& rings) {
+
+    std::vector<Point> best;
+    double most = -1.0;
+    for (const Polyline& ring : rings) {
+        std::vector<Point> corners = ring.get_points();
+        if (corners.size() > 1 && Point::distance(corners.front(), corners.back()) < 1e-9)
+            corners.pop_back();
+        double area = 0.0;
+        for (size_t k = 0; k < corners.size(); k++) {
+            const Point& a = corners[k];
+            const Point& b = corners[(k + 1) % corners.size()];
+            area += a[0] * b[1] - b[0] * a[1];
+        }
+        if (std::abs(area) > most) {
+            most = std::abs(area);
+            best = corners;
+        }
+    }
+
+    // without repeated corners or corners on a straight edge: a loft over them stays closed
+    bool dropped = true;
+    while (dropped && best.size() > 3) {
+        dropped = false;
+        for (size_t k = 0; k < best.size() && best.size() > 3; k++) {
+            const Point& before = best[(k + best.size() - 1) % best.size()];
+            const Point& after = best[(k + 1) % best.size()];
+            const Vector in = best[k] - before;
+            const Vector on = after - best[k];
+            if (in.magnitude() < 1e-6 || on.magnitude() < 1e-6 || std::abs(in[0] * on[1] - in[1] * on[0]) < 1e-6 * in.magnitude() * on.magnitude()) {
+                best.erase(best.begin() + static_cast<std::ptrdiff_t>(k));
+                dropped = true;
+                break;
+            }
+        }
+    }
+
+    return best;
+}
+
+/// A closed loop through points in the plane of x and y at origin, offset along z.
+static Polyline lifted(const std::vector<Point>& flat, const Point& origin, const Vector& x, const Vector& y, const Vector& z) {
+
+    std::vector<Point> corners;
+    for (const Point& corner : flat)
+        corners.push_back(origin + x * corner[0] + y * corner[1] + z);
+    corners.push_back(corners.front());
+
+    return Polyline(corners);
+}
+
+std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
+    const std::vector<const EdgeStraightElement*>& members,
+    const Point& node,
+    const Vector& normal,
+    const std::vector<double>& reaches,
+    double thickness,
+    double inset,
+    const std::string& name
+) {
+
+    // each member's strip in the plane of the plate, from the node to its reach, inset from its edges: the plate is their
+    // union, so all of it lies inside the members
+    const Vector z = normal.normalized();
+    const Vector x = (std::abs(z[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0)).cross(z).normalized();
+    const Vector y = z.cross(x);
+    std::vector<Polyline> strips;
+    for (size_t m = 0; m < members.size(); m++)
+        for (const Vector& way : ways_from(*members[m], node)) {
+            const Vector across = z.cross(way).normalized();
+            const double half = section_reach(*members[m], across) - inset;
+            std::vector<Point> corners;
+            for (const std::array<double, 2>& corner : std::vector<std::array<double, 2>>{{0.0, -half}, {reaches[m], -half}, {reaches[m], half}, {0.0, half}, {0.0, -half}}) {
+                const Vector offset = way * corner[0] + across * corner[1];
+                corners.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
+            }
+            strips.push_back(Polyline(corners));
+        }
+
+    // and a square of the first member's section around the node, inside it (it runs through the node or on past it), so the
+    // strips meet in one piece
+    const Vector carrier = (members.front()->axis.get_point(1) - members.front()->axis.get_point(0)).normalized();
+    const Vector square = z.cross(carrier).normalized();
+    const double core = section_reach(*members.front(), square) - inset;
+    std::vector<Point> corners;
+    for (const std::array<double, 2>& corner : std::vector<std::array<double, 2>>{{-core, -core}, {core, -core}, {core, core}, {-core, core}, {-core, -core}}) {
+        const Vector offset = carrier * corner[0] + square * corner[1];
+        corners.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
+    }
+    strips.push_back(Polyline(corners));
+
+    // the plate the convex hull of them: its slot is the plate swept straight out, nothing for it to catch on
+    std::vector<Point> points;
+    for (const Polyline& strip : strips)
+        for (const Point& point : strip.get_points())
+            points.push_back(point);
+    const std::vector<Point> outline = ConvexHull::hull_2d(points);
+
+    return std::make_shared<FacePlanarElement>(lifted(outline, node, x, y, z * (-0.5 * thickness)), lifted(outline, node, x, y, z * (0.5 * thickness)), name);
+}
+
+std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
+    const std::vector<const EdgeStraightElement*>& members,
+    const FacePlanarElement& plate,
+    const Point& node,
+    const Vector& way,
+    const std::vector<double>& clear,
+    double pin_radius,
+    int pin_sides
+) {
+
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
+    joint->name = plate.name + "_pins";
+    joint->is_visible = true;
+    for (const EdgeStraightElement* member : members)
+        joint->targets.push_back(member->guid());
+    joint->targets.push_back(plate.guid());
+
+    // the slot: the plate swept out along way, the path it drops in along: the plate, the plate far out, and every edge swept
+    // between them, one cutter for every member
+    const Vector out = way.normalized();
+    const Polyline& bottom = plate.polylines[0];
+    const Polyline& top = plate.polylines[1];
+    const Vector rise = top.get_point(0) - bottom.get_point(0);
+    const Vector normal = rise.normalized();
+    const Vector x = (std::abs(normal[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0)).cross(normal).normalized();
+    const Vector y = normal.cross(x);
+    const Point origin = bottom.get_point(0);
+    std::vector<Point> flat;
+    for (const Point& corner : bottom.get_points()) {
+        const Vector offset = corner - origin;
+        flat.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
+    }
+    const Vector far = out * 1e4;
+    const Point shift(far.dot(x), far.dot(y), 0.0);
+    std::vector<Polyline> pieces = {Polyline(flat)};
+    std::vector<Point> moved;
+    for (const Point& corner : flat)
+        moved.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
+    pieces.push_back(Polyline(moved));
+    for (size_t k = 0; k + 1 < flat.size(); k++)
+        pieces.push_back(Polyline({flat[k], flat[k + 1], moved[k + 1], moved[k], flat[k]}));
+    const std::vector<Point> swept = largest_ring(united(pieces));
+    const std::array<Polyline, 2> cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
+    for (size_t m = 0; m < members.size(); m++)
+        joint->cutters.push_back({cutter});
+    joint->cutters.push_back({});
+
+    // the pins: in each member one row of two, 2 pins past clear
+    const double diameter = 2.0 * pin_radius;
+    for (size_t m = 0; m < members.size(); m++)
+        for (const Vector& along : ways_from(*members[m], node)) {
+            const Vector across = normal.cross(along).normalized();
+            const double half = section_reach(*members[m], across);
+            for (const double row : {2.0})
+                for (const double side : {-0.45 * half, 0.45 * half}) {
+                    const Point at = node + along * (clear[m] + row * diameter) + across * side;
+                    const Line whole = Line::from_points(at - normal * 1e4, at + normal * 1e4);
+                    const Line pin = flush_pin(whole, {members[m]});
+                    if (pin.length() < whole.length() - 1.0)
+                        joint->drill_lines.push_back(pin);
+                }
+        }
+    joint->line_radius = pin_radius;
+    joint->chord_tolerance = sides_tolerance(pin_radius, pin_sides);
+
+    // the ways in: each member from the face or along the slot, the plate against way
+    for (size_t m = 0; m < members.size(); m++) {
+        joint->target_insertions.push_back({normal * -1.0, out});
+        joint->target_legs.push_back({{}, {}});
+    }
+    joint->target_insertions.push_back({out * -1.0});
+    joint->target_legs.push_back({{}});
 
     return joint;
 }
@@ -2752,8 +2968,13 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             throw std::invalid_argument(fmt::format("{}: the axes of {} and {} do not meet", design, a.name, b.name));
 
         Vector u = a_axis.to_vector().normalized() * (crossing || t_a < 0.5 ? 1.0 : -1.0);
-        // a crossing's member lies over the carrier; when the axes meet (a cross lap) it lies over it along world up
-    const Vector toward = !crossing ? u : Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : Vector::z_axis();
+        // a crossing's member lies over the carrier; when the axes meet (a cross lap) it lies over it along their common normal,
+        // turned up (world up for beams crossing in plan, the plane's normal for members crossing in a truss)
+        Vector common = a_axis.to_vector().cross(b_axis.to_vector());
+        common = common.magnitude() > 1e-9 ? common.normalized() : Vector::z_axis();
+        const double upward = std::abs(common[2]) > 1e-9 ? common[2] : std::abs(common[1]) > 1e-9 ? common[1] : common[0];
+        common = upward < 0.0 ? common * -1.0 : common;
+    const Vector toward = !crossing ? u : Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : common;
         std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
         std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
         // a record's roll turned both sections about their axes (a diagonal puzzle): the frame is taken from them turned back

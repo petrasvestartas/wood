@@ -156,6 +156,148 @@ bool TrussGuide::runs_on_at(size_t chord, size_t side) const {
     return best->chord == chord && best->side == side;
 }
 
+/// The index of a node in nodes, added when it is not there yet.
+static size_t node_index(std::vector<Point>& nodes, const Point& point) {
+
+    for (size_t i = 0; i < nodes.size(); i++)
+        if (Point::distance(nodes[i], point) < 1.0)
+            return i;
+    nodes.push_back(point);
+    return nodes.size() - 1;
+}
+
+/// The axial force of every bar of a pin-jointed truss in the plane of x and z under loads at its nodes, pinned at node pin
+/// and on a roller (z only) at node roller: the joints' balance solved by least squares, positive pulls.
+static std::vector<double> bar_forces(const std::vector<Point>& nodes, const std::vector<std::array<size_t, 2>>& ends, const std::vector<double>& loads, size_t pin, size_t roller) {
+
+    const int rows = static_cast<int>(2 * nodes.size());
+    const int unknowns = static_cast<int>(ends.size() + 3);
+    Matrix balance = Matrix::zeros(rows, unknowns);
+    std::vector<double> external(rows, 0.0);
+    for (size_t b = 0; b < ends.size(); b++)
+        for (size_t k = 0; k < 2; k++) {
+            const size_t at = ends[b][k];
+            const Vector along = (nodes[ends[b][1 - k]] - nodes[at]).normalized();
+            balance(static_cast<int>(2 * at), static_cast<int>(b)) = along[0];
+            balance(static_cast<int>(2 * at + 1), static_cast<int>(b)) = along[2];
+        }
+    balance(static_cast<int>(2 * pin), unknowns - 3) = 1.0;
+    balance(static_cast<int>(2 * pin + 1), unknowns - 2) = 1.0;
+    balance(static_cast<int>(2 * roller + 1), unknowns - 1) = 1.0;
+    // the bars and reactions balance the loads: A x = -loads
+    for (size_t n = 0; n < nodes.size(); n++)
+        external[2 * n + 1] = -loads[n];
+
+    // the normal equations, a little stiffness on the diagonal so a mechanism still gives an answer
+    const Matrix across = balance.transpose();
+    Matrix normal = across * balance;
+    for (int i = 0; i < unknowns; i++)
+        normal(i, i) += 1e-9;
+    const std::optional<Matrix> solved = normal.solve(across * Matrix::column(external));
+    std::vector<double> forces(ends.size(), 0.0);
+    if (solved)
+        for (size_t b = 0; b < ends.size(); b++)
+            forces[b] = (*solved)(static_cast<int>(b), 0);
+
+    return forces;
+}
+
+std::vector<TrussBar> TrussGuide::bars() const {
+
+    // the nodes: every chord vertex and web end, and every point where a web or chord passes another's node
+    std::vector<Point> nodes;
+    for (const TrussMember& chord : chords)
+        for (const Point& point : chord.axis.get_points())
+            node_index(nodes, point);
+    for (const TrussMember& web : webs) {
+        node_index(nodes, web.start());
+        node_index(nodes, web.end());
+    }
+
+    // the bars: each chord segment and each web, split at the nodes lying on it
+    std::vector<TrussBar> bars;
+    std::vector<std::array<size_t, 2>> ends;
+    std::vector<std::pair<bool, size_t>> owners;
+    std::vector<std::array<Point, 2>> lines;
+    for (size_t c = 0; c < chords.size(); c++) {
+        const std::vector<Point> points = chords[c].axis.get_points();
+        for (size_t k = 0; k + 1 < points.size(); k++) {
+            lines.push_back({points[k], points[k + 1]});
+            owners.emplace_back(true, c);
+        }
+    }
+    for (size_t w = 0; w < webs.size(); w++) {
+        lines.push_back({webs[w].start(), webs[w].end()});
+        owners.emplace_back(false, w);
+    }
+    for (size_t l = 0; l < lines.size(); l++) {
+        const Vector along = lines[l][1] - lines[l][0];
+        std::vector<std::pair<double, size_t>> on;
+        for (size_t n = 0; n < nodes.size(); n++) {
+            const double t = (nodes[n] - lines[l][0]).dot(along) / along.dot(along);
+            if (t > -1e-9 && t < 1.0 + 1e-9 && Point::distance(lines[l][0] + along * t, nodes[n]) < 1.0)
+                on.emplace_back(t, n);
+        }
+        std::sort(on.begin(), on.end());
+        for (size_t k = 0; k + 1 < on.size(); k++)
+            if (on[k].second != on[k + 1].second) {
+                ends.push_back({on[k].second, on[k + 1].second});
+                bars.push_back({owners[l].first, owners[l].second, nodes[on[k].second], nodes[on[k + 1].second], 0.0});
+            }
+    }
+
+    // the supports: of the nodes in the lowest tenth of the height, the leftmost pinned and the rightmost on a roller
+    double low = std::numeric_limits<double>::max();
+    double high = std::numeric_limits<double>::lowest();
+    for (const Point& node : nodes) {
+        low = std::min(low, node[2]);
+        high = std::max(high, node[2]);
+    }
+    const double band = low + 0.1 * (high - low) + 1.0;
+    size_t pin = 0;
+    size_t roller = 0;
+    bool found = false;
+    for (size_t n = 0; n < nodes.size(); n++) {
+        if (nodes[n][2] > band)
+            continue;
+        if (!found || nodes[n][0] < nodes[pin][0])
+            pin = n;
+        if (!found || nodes[n][0] > nodes[roller][0])
+            roller = n;
+        found = true;
+    }
+
+    // a unit load down at every node on a chord, then at the left half's alone; each bar keeps its larger pull
+    std::vector<double> everywhere(nodes.size(), 0.0);
+    std::vector<double> left(nodes.size(), 0.0);
+    const double middle = 0.5 * (nodes[pin][0] + nodes[roller][0]);
+    // where the load comes on: a roof (a chord pitched) on every chord but the lowest, a bridge (all chords level) on its deck,
+    // the lowest chord
+    size_t lowest = 0;
+    bool pitched = false;
+    std::vector<double> height(chords.size(), 0.0);
+    for (size_t c = 0; c < chords.size(); c++) {
+        const std::vector<Point> points = chords[c].axis.get_points();
+        for (const Point& point : points)
+            height[c] += point[2] / static_cast<double>(points.size());
+        for (size_t k = 0; k + 1 < points.size(); k++)
+            pitched = pitched || std::abs(points[k + 1][2] - points[k][2]) > 1.0;
+        lowest = height[c] < height[lowest] ? c : lowest;
+    }
+    for (size_t b = 0; b < bars.size(); b++)
+        for (const size_t n : ends[b])
+            if (bars[b].chord && (pitched ? bars[b].member != lowest : bars[b].member == lowest)) {
+                everywhere[n] = -1.0;
+                left[n] = nodes[n][0] <= middle ? -1.0 : 0.0;
+            }
+    const std::vector<double> full = bar_forces(nodes, ends, everywhere, pin, roller);
+    const std::vector<double> half = bar_forces(nodes, ends, left, pin, roller);
+    for (size_t b = 0; b < bars.size(); b++)
+        bars[b].force = std::max(full[b], half[b]);
+
+    return bars;
+}
+
 std::optional<std::array<Point, 2>> TrussGuide::end_cut(size_t chord, size_t side) const {
 
     if (!runs_on_at(chord, side))

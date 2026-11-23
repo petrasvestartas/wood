@@ -24,6 +24,16 @@ struct TrussMember {
     Point end() const;
 };
 
+/// A straight bar of the guide's graph: a chord run or a web between two of its nodes, the member it belongs to and the axial
+/// force it carries as a pin-jointed truss (positive pulls, negative pushes).
+struct TrussBar {
+    bool chord = false; // A chord's, else a web's.
+    size_t member = 0; // The index of its chord or web.
+    Point start; // Its first node.
+    Point end; // Its second node.
+    double force = 0.0; // The larger pull (or the smaller push) of the two load cases.
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Designs
 // ═══════════════════════════════════════════════════════════════════════════
@@ -771,6 +781,12 @@ public:
     /// the members it carries on both its sides, so the contour runs on clean; flush with the outer face of the members on one
     /// side met at 40 degrees or more; else square past the node; the node always in wood. None for an end not running on.
     std::optional<std::array<Point, 2>> end_cut(size_t chord, size_t side) const;
+
+    /// Every chord run and web split at the nodes on it, solved as a pin-jointed truss in its plane: pinned at the lowest left
+    /// node, on a roller at the lowest right, a unit load down at every node of the roof (every chord but the lowest, when one is
+    /// pitched) or of the deck (the lowest chord of a level truss), then at the left half's alone (wind can turn a web round);
+    /// each bar keeps the larger pull of the two, so a bar that pulls in either is a tie.
+    std::vector<TrussBar> bars() const;
 };
 
 }
