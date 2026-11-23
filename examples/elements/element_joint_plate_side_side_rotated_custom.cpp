@@ -39,7 +39,7 @@ int main() {
         const std::shared_ptr<FacePlanarElement> left = pair[0];
         const std::shared_ptr<FacePlanarElement> right = pair[1];
         for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
-            plate->place(Xform::translation(0.0, angle == 0.0 ? 0.0 : 800.0, 0.0));
+            plate->place(Xform::translation(0.0, angle == 0.0 ? 0.0 : 500.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);
         }

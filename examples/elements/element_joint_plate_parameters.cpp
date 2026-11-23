@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// One design, top_side_tenons, with its divisions and shift changed, drawn apart.
+/// One design, top_side_tenons, with its divisions and shift changed.
 int main() {
 
     WoodSession scene("element_joint_plate_parameters");
@@ -49,8 +49,6 @@ int main() {
         scene.add(joints[i], group);
         scene.add_interaction(joints[i], upright, joints[i]->interaction(0));
         scene.add_interaction(joints[i], base, joints[i]->interaction(1));
-
-        upright->place(Xform::translation(0.0, 0.0, 200.0));
     }
 
     std::cout << scene << std::endl;
@@ -60,7 +58,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-One design, top_side_tenons, with its divisions and shift changed, drawn apart.
+One design, top_side_tenons, with its divisions and shift changed.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

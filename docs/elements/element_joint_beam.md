@@ -59,7 +59,9 @@ std::vector<std::shared_ptr<JointElement>> children() const;
 
 A wedge between two beams that meet face to face: the joint is added, then given to each beam.
 
-![](elements/element_joint_beam_wedge.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_wedge.gif) | ![](joint_library/assembly_element_joint_beam_wedge.png) |  |
 
 \include{lineno} elements/element_joint_beam_wedge.cpp
 

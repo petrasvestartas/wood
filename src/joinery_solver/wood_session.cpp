@@ -1221,21 +1221,28 @@ void WoodSession::remove_interaction(
 // WoodSession - Protobuf
 // ═══════════════════════════════════════════════════════════════════════════
 void WoodSession::pb_dump(const std::string& filename) {
-    const std::string data = pb_dumps();
-    std::ofstream file(filename, std::ios::binary);
-    file.write(data.data(), data.size());
+    {
+        const std::string data = pb_dumps();
+        std::ofstream file(filename, std::ios::binary);
+        file.write(data.data(), data.size());
+    }
 
-    // WOOD_ASSEMBLY=<path> also writes how the scene goes together, its first jointed member the base, for
-    // tools/render_family_gifs.py (an element example drawn apart in its assembly order)
+    // WOOD_ASSEMBLY=<path> also writes how the scene goes together, its first jointed member (no joint, a connector's part
+    // aside) the base, for tools/render_family_gifs.py (an element example drawn apart in its assembly order)
     const char* assembly = std::getenv("WOOD_ASSEMBLY");
     if (!assembly)
         return;
-    for (const std::shared_ptr<Element>& element : elements())
-        for (const std::shared_ptr<JointElement>& joint : get_elements<JointElement>())
-            if (std::find(joint->targets.begin(), joint->targets.end(), element->guid()) != joint->targets.end()) {
+    const std::vector<std::shared_ptr<JointElement>> joints = get_elements<JointElement>();
+    for (const std::shared_ptr<Element>& element : elements()) {
+        const bool joint = std::dynamic_pointer_cast<JointElement>(element) && !std::dynamic_pointer_cast<JointConnectorPartElement>(element);
+        if (joint)
+            continue;
+        for (const std::shared_ptr<JointElement>& each : joints)
+            if (std::find(each->targets.begin(), each->targets.end(), element->guid()) != each->targets.end()) {
                 AssemblySequence(*this, element->name).json_dump(assembly);
                 return;
             }
+    }
 }
 
 void WoodSession::sync_attributes() {

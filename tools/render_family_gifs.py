@@ -17,8 +17,8 @@ import sys
 import render_joint_library_gifs as library
 
 WOOD = library.WOOD
-PAGES = sorted((WOOD / "docs/elements").glob("element_joint_plate_*.md")) + [
-    page for page in sorted((WOOD / "docs/elements").glob("element_joint_beam_*.md")) if page.stem != "element_joint_beam_compendium"
+PAGES = sorted((WOOD / "docs/elements").glob("element_joint_plate*.md")) + [
+    page for page in sorted((WOOD / "docs/elements").glob("element_joint_beam*.md")) if page.stem != "element_joint_beam_compendium"
 ]
 
 # Where every moving member of an example waits, as the joint library places its pieces: out along its way by its own depth
@@ -185,12 +185,20 @@ def main(arguments: list) -> None:
                 print(f"skipped {example}: not built", flush=True)
                 continue
             assembly.unlink(missing_ok=True)
-            subprocess.run([str(binary)], cwd=WOOD, env=dict(os.environ, WOOD_ASSEMBLY=str(assembly)), check=True, capture_output=True)
-            scene.write_bytes((WOOD / "data/output/pb/live.pb").read_bytes())
+            live = WOOD / "data/output/pb/live.pb"
+            before = live.stat().st_mtime_ns if live.exists() else 0
+            run = subprocess.run([str(binary)], cwd=WOOD, env=dict(os.environ, WOOD_ASSEMBLY=str(assembly)), capture_output=True, text=True)
+            # a failed run, or one that wrote no scene of its own, is reported and drawn from nothing stale
+            if run.returncode != 0 or not live.exists() or live.stat().st_mtime_ns == before:
+                print(f"failed {example}: exit {run.returncode}\n{run.stderr[-2000:]}", flush=True)
+                scene.unlink(missing_ok=True)
+                assembly.unlink(missing_ok=True)
+                continue
+            scene.write_bytes(live.read_bytes())
             print(f"scene {example}", flush=True)
         if scenes_only:
             continue
-        if not assembly.exists():
+        if not assembly.exists() or not scene.exists():
             print(f"skipped {example}: no joint", flush=True)
             continue
         apart = kept / f"{example}_apart.pb"

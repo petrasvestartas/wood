@@ -129,8 +129,7 @@ std::vector<Vector> AssemblySequence::candidate_directions(const Element& member
     const AABB own = AABB::from_mesh(solid);
     Vector away(0.0, 0.0, 0.0);
     for (const Element* partner : partners) {
-        const AABB other = AABB::from_mesh(partner->model_geometry_mesh());
-        away = away + Vector(own.cx - other.cx, own.cy - other.cy, own.cz - other.cz);
+        away = away + (own.center() - AABB::from_mesh(partner->model_geometry_mesh()).center());
     }
     if (away.magnitude() > 1e-9)
         away = away.normalized();
@@ -150,6 +149,21 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
     std::vector<std::shared_ptr<Element>> remaining = members;
     std::vector<AssemblyStep> removal;
 
+    // the members joined to the base through any chain of joints: only a member outside them (a pair set beside another) may
+    // stay where it is once nothing holds it
+    std::set<std::string> joined;
+    for (const std::shared_ptr<Element>& member : members)
+        if (member->name == base)
+            joined.insert(member->guid());
+    for (size_t grown = 0; grown != joined.size();) {
+        grown = joined.size();
+        for (const std::shared_ptr<Element>& member : members)
+            for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()])
+                for (const std::string& partner : partners(*joint.first, joint.second))
+                    if (joined.count(partner))
+                        joined.insert(member->guid());
+    }
+
     while (remaining.size() > 1) {
         bool taken = false;
 
@@ -167,12 +181,12 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                     in.insert(other->guid());
                 }
 
-            // a member none of whose joints holds one still in is free (the base of a pair set beside another): it stays where it is
+            // a member of a pair set beside another, none of whose joints holds one still in, is that pair's base: it stays
             bool held = false;
             for (const std::pair<std::shared_ptr<JointElement>, size_t>& joint : joints[member->guid()])
                 for (const std::string& partner : partners(*joint.first, joint.second))
                     held = held || in.count(partner) > 0;
-            if (!held) {
+            if (!held && !joined.count(member->guid())) {
                 removal.push_back({member->name, Vector(0.0, 0.0, 0.0), {}, {}, {}});
                 remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
                 taken = true;
@@ -190,11 +204,11 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                 // a joint that names no way in (a plate's fingers, a beam factory's half lap) is tried along the member's own face
                 // normals and the axes: the sweep keeps the first that frees it
                 const std::vector<Vector> named = joint.first->insertion_directions(joint.second);
-                std::vector<const Element*> held;
+                std::vector<const Element*> holding_members;
                 for (const std::shared_ptr<Element>& other : remaining)
                     if (std::find(holding.begin(), holding.end(), other->guid()) != holding.end())
-                        held.push_back(other.get());
-                const std::vector<Vector> directions = named.empty() ? candidate_directions(*member, held) : named;
+                        holding_members.push_back(other.get());
+                const std::vector<Vector> directions = named.empty() ? candidate_directions(*member, holding_members) : named;
                 for (size_t way = 0; way < directions.size(); way++) {
                     const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
                     if (!slides_out(*member, out_legs(legs), directions[way] * -1.0, others))

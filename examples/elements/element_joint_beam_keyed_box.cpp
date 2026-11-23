@@ -3,7 +3,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// keyed_box: two plates face to face, held by a box through a mortise in both and locked by two wedge keys, drawn before its last step, the plates together and the second key lifted out.
+/// keyed_box: two plates face to face, held by a box through a mortise in both and locked by two wedge keys.
 int main() {
 
     WoodSession scene("element_joint_beam_keyed_box");
@@ -29,12 +29,6 @@ int main() {
     scene.add_interaction(joint, first, joint->interaction(0));
     scene.add_interaction(joint, second, joint->interaction(1));
 
-    const std::shared_ptr<JointBeamElement> key_second =
-        scene.get_element_by_name<JointBeamElement>("keyed_box_part_2");
-
-    // the plates together on the box, the second key lifted out: it only goes in once the plates are seated
-    key_second->place(Xform::translation(0.0, 0.0, 220.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;
@@ -42,7 +36,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-keyed_box: two plates face to face, held by a box through a mortise in both and locked by two wedge keys. The first key stops the box on the second plate; the second, driven in once the plates meet, pinches them together. Drawn before its last step, the plates together and the second key lifted out.
+keyed_box: two plates face to face, held by a box through a mortise in both and locked by two wedge keys. The first key stops the box on the second plate; the second, driven in once the plates meet, pinches them together.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

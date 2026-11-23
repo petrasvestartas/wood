@@ -54,6 +54,8 @@ The rib trimmed at both ends by two cutting planes, each a joint.
 
 Two ribs side by side, a wedge let into both.
 
-![](elements/element_joint_beam_wedge.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_wedge.gif) | ![](joint_library/assembly_element_joint_beam_wedge.png) |  |
 
 \include{lineno} elements/element_joint_beam_wedge.cpp

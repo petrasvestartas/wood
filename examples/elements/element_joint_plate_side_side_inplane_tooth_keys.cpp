@@ -8,14 +8,14 @@ int main() {
 
     WoodSession scene("element_joint_plate_side_side_inplane_tooth_keys");
 
-    // two 300 x 400 plates 40 thick edge to edge in one plane, their seam the miter: in line and in a shallow V of 165 degrees, the second pair 800 along y, each in its group
+    // two 150 x 400 plates 40 thick edge to edge in one plane, their seam the miter: in line and in a shallow V of 165 degrees, the second pair 500 along y, each in its group
     for (const double angle : {180.0, 165.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_in_plane(angle);
         const std::shared_ptr<FacePlanarElement> left = pair[0];
         const std::shared_ptr<FacePlanarElement> right = pair[1];
         for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
-            plate->place(Xform::translation(0.0, angle == 180.0 ? 0.0 : 800.0, 0.0));
+            plate->place(Xform::translation(0.0, angle == 180.0 ? 0.0 : 500.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);
         }

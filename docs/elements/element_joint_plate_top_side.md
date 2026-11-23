@@ -20,7 +20,7 @@ void orient(const std::shared_ptr<InteractionContactFace>& contact, const std::v
 std::shared_ptr<Interaction> interaction(size_t target) const;
 ```
 
-Every example below shows two pairs (`FacePlanarElement::pair_top_side(90.0)` and `FacePlanarElement::pair_top_side(60.0)`) with the upright plate lifted above its mortises.
+Every example below shows two pairs (`FacePlanarElement::pair_top_side(90.0)` and `FacePlanarElement::pair_top_side(60.0)`), each assembled; its GIF lifts the upright off its mortises.
 
 ## Three Fixed Tenons
 Three fixed tenons on the upright's bottom edge with three matching through-mortises in the base plate.

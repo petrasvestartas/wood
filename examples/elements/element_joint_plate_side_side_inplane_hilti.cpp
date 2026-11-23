@@ -35,8 +35,6 @@ int main() {
     scene.add_interaction(hilti, slabs[0], hilti->interaction(0));
     scene.add_interaction(hilti, slabs[1], hilti->interaction(1));
 
-    slabs[1]->place(Xform::translation(300.0, 0.0, 0.0));
-
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
     return 0;

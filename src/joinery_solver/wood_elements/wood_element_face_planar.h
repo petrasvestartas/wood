@@ -88,7 +88,7 @@ public:
     /// Two plates edge to edge, "left" along x and "right" folded up about their seam so the two meet at `angle_degrees`.
     static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_in_plane(
         double angle_degrees = 180.0,
-        double length = 300.0,
+        double length = 150.0,
         double width = 400.0,
         double thickness = 40.0
     );
@@ -96,16 +96,16 @@ public:
     /// A "floor" `length` x `width` and a "wall" `height` high on its edge x = length, both `thickness`.
     static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_folded(
         double angle_degrees = 90.0,
-        double length = 300.0,
+        double length = 150.0,
         double width = 400.0,
-        double height = 300.0,
+        double height = 150.0,
         double thickness = 40.0
     );
 
     /// A "base" `base_size` square and an "upright" `upright_size` square standing on the middle of its top, both `thickness`.
     static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_top_side(
         double angle_degrees = 90.0,
-        double base_size = 400.0,
+        double base_size = 300.0,
         double upright_size = 250.0,
         double thickness = 40.0
     );
@@ -113,7 +113,7 @@ public:
     /// Creates two upright plates crossing at their centres at the specified angle.
     static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_crossing(
         double angle_degrees = 90.0,
-        double length = 400.0,
+        double length = 250.0,
         double height = 200.0,
         double thickness = 40.0
     );
@@ -129,7 +129,7 @@ public:
     /// Two plates end to end, "left" and "right".
     static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_rotated(
         double twist_degrees = 10.0,
-        double length = 300.0,
+        double length = 150.0,
         double width = 400.0,
         double thickness = 100.0
     );

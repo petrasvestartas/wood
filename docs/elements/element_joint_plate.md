@@ -62,7 +62,9 @@ std::shared_ptr<Interaction> interaction(size_t target) const;
 
 Target `0` receives the male outline and target `1` the female outline.
 
-![](elements/element_joint_plate_top_side_tenons.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_top_side_tenons.gif) | ![](joint_library/assembly_element_joint_plate_top_side_tenons.png) |  |
 
 \include{lineno} elements/element_joint_plate_top_side_tenons.cpp
 
@@ -70,7 +72,9 @@ Target `0` receives the male outline and target `1` the female outline.
 
 Parameter sweep of `top_side_tenons` varying `divisions = {8, 16, 24}` in the back row and `shift = {0.0, 0.25, 1.0}` in the front row.
 
-![](elements/element_joint_plate_parameters.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_plate_parameters.gif) | ![](joint_library/assembly_element_joint_plate_parameters.png) |  |
 
 \include{lineno} elements/element_joint_plate_parameters.cpp
 

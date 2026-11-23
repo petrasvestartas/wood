@@ -39,14 +39,14 @@ int main() {
     const std::vector<Polyline> male = {male_slot(0.5), male_slot(-0.5)};
     const std::vector<Polyline> female = {female_slot(-0.5), female_slot(0.5)};
 
-    // two upright 400 x 200 plates 40 thick crossing at their middles: square and crossing at 60 degrees, the second pair 800 along y, each in its group
+    // two upright 250 x 200 plates 40 thick crossing at their middles: square and crossing at 60 degrees, the second pair 500 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_crossing(angle);
         const std::shared_ptr<FacePlanarElement> first = pair[0];
         const std::shared_ptr<FacePlanarElement> second = pair[1];
         for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
-            plate->place(Xform::translation(0.0, angle == 90.0 ? 0.0 : 800.0, 0.0));
+            plate->place(Xform::translation(0.0, angle == 90.0 ? 0.0 : 500.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);
         }

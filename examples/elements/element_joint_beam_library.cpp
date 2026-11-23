@@ -19,7 +19,8 @@ static Polyline on_screen(const Mesh& mesh, const Xform& placed) {
             seen.push_back(Point(position.dot(right) + (k & 1 ? 7.5 : -7.5), position.dot(up) + (k & 2 ? 7.5 : -7.5), 0.0));
     }
     std::vector<Point> hull = ConvexHull::hull_2d(seen);
-    hull.push_back(hull.front());
+    if (!hull.empty())
+        hull.push_back(hull.front());
     return Polyline(hull);
 }
 
@@ -111,7 +112,7 @@ int main() {
                 // would touch another's goes farther out, 10 mm at a time, so two pieces are never drawn as one
                 const Mesh shape = drawn->model_geometry_mesh();
                 double distance = std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j);
-                for (int push = 0; push < 300; push++) {
+                for (int push = 0; push < 300 && way.magnitude() > 0.0; push++) {
                     const Vector trial = way * -distance;
                     const Polyline outline = on_screen(shape, Xform::translation(trial[0], trial[1], trial[2]) * undone);
                     bool touches = false;

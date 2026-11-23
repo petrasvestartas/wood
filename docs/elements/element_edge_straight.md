@@ -80,6 +80,8 @@ A cutting plane is a joint; the edge keeps the side its normal points to.
 
 A joint computes itself from its two edges and goes on each with `add_interaction`.
 
-![](elements/element_joint_beam_cross_half_lap.png)
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_cross_half_lap.gif) | ![](joint_library/assembly_element_joint_beam_cross_half_lap.png) |  |
 
 \include{lineno} elements/element_joint_beam_cross_half_lap.cpp

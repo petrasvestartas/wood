@@ -8,14 +8,14 @@ int main() {
 
     WoodSession scene("element_joint_plate_side_side_outplane_linked_tenons_wall");
 
-    // a 300 x 400 floor and a 300 high wall, both 40 thick, mitered on the bisector: square and folded to 60 degrees, the second pair 800 along y, each in its group
+    // a 150 x 400 floor and a 150 high wall, both 40 thick, mitered on the bisector: square and folded to 60 degrees, the second pair 500 along y, each in its group
     for (const double angle : {90.0, 60.0}) {
         const std::shared_ptr<TreeNode> group = scene.add_group(fmt::format("angle_{:g}", angle));
         const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_folded(angle);
         const std::shared_ptr<FacePlanarElement> floor = pair[0];
         const std::shared_ptr<FacePlanarElement> wall = pair[1];
         for (const std::shared_ptr<FacePlanarElement>& plate : pair) {
-            plate->place(Xform::translation(0.0, angle == 90.0 ? 0.0 : 800.0, 0.0));
+            plate->place(Xform::translation(0.0, angle == 90.0 ? 0.0 : 500.0, 0.0));
             plate->name = fmt::format("{}_{:g}", plate->name, angle);
             scene.add(plate, group);
         }

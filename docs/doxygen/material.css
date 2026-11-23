@@ -939,4 +939,6 @@ table.markdownTable td img.inline {
     display: block;
     width: 100%;
     height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
 }

@@ -14,11 +14,11 @@ static std::shared_ptr<FacePlanarElement> from_line(const Line& base, const Vect
 static std::vector<std::shared_ptr<FacePlanarElement>> row_between(const std::array<Polyline, 2>& bottom, const std::array<Polyline, 2>& top, const std::string& name = "plate");
 
 // Standard pairs for examples and tests
-static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 300.0, double width = 400.0, double thickness = 40.0);
-static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_folded(double angle_degrees = 90.0, double length = 300.0, double width = 400.0, double height = 300.0, double thickness = 40.0);
-static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_rotated(double twist_degrees = 10.0, double length = 300.0, double width = 400.0, double thickness = 100.0);
-static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 400.0, double upright_size = 250.0, double thickness = 40.0);
-static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_crossing(double angle_degrees = 90.0, double length = 400.0, double height = 200.0, double thickness = 40.0);
+static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_in_plane(double angle_degrees = 180.0, double length = 150.0, double width = 400.0, double thickness = 40.0);
+static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_folded(double angle_degrees = 90.0, double length = 150.0, double width = 400.0, double height = 150.0, double thickness = 40.0);
+static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_rotated(double twist_degrees = 10.0, double length = 150.0, double width = 400.0, double thickness = 100.0);
+static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_top_side(double angle_degrees = 90.0, double base_size = 300.0, double upright_size = 250.0, double thickness = 40.0);
+static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_crossing(double angle_degrees = 90.0, double length = 250.0, double height = 200.0, double thickness = 40.0);
 static std::array<std::shared_ptr<FacePlanarElement>, 2> pair_stacked(double twist_degrees = 0.0, double length = 400.0, double width = 300.0, double thickness = 40.0);
 ```
 
