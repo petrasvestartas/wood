@@ -2,6 +2,8 @@
 #include "src/templates/truss/truss.h"
 #include "wood_element_geometry.h"
 #include "wood_joint_classification.h"
+#include "boolean_polyline.h"
+#include "convex_hull.h"
 
 namespace wood_truss {
 
@@ -64,6 +66,9 @@ void Truss::add_joinery() {
             remove_interaction(butt, get_element<Element>(target));
         remove_object(butt->guid());
     }
+
+    // three or more members crossing at one point cannot all be lapped: all but one are split there, making it a node
+    split_crossings();
 
     // the nodes: every end of a member's axis
     const std::vector<std::shared_ptr<EdgeStraightElement>> members = get_elements<EdgeStraightElement>();
@@ -184,10 +189,15 @@ void Truss::add_joinery() {
                         continue;
                     }
 
-                    // two ends of a kind side by side: mitered on their bisector
+                    // two ends of a kind side by side: mitered on their bisector, or, meeting at a sharp angle (the miter would run far
+                    // along both), the later bearing on the earlier
                     if (beside.count({first.get(), second.get()}) || beside.count({second.get(), first.get()})) {
                         const Vector from_first = away_from(*first, node);
                         const Vector from_second = away_from(*second, node);
+                        if (from_first.dot(from_second) > std::cos(MITER_ANGLE * Tolerance::PI / 180.0)) {
+                            add_interaction(first, second, std::make_shared<InteractionFeatureSolid>(bodies.at(first.get()), SolidOperation::subtract));
+                            continue;
+                        }
                         add_interaction(second, first, std::make_shared<InteractionFeatureSolid>(cut_away(node, (from_first - from_second).normalized()), SolidOperation::subtract));
                         add_interaction(first, second, std::make_shared<InteractionFeatureSolid>(cut_away(node, (from_second - from_first).normalized()), SolidOperation::subtract));
                     }
@@ -310,22 +320,81 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
         reaches.push_back(free + 4.0 * 2.0 * PIN_RADIUS);
     }
 
-    // the plate out of the node square to its chord (else to the carrier), away from the other members
-    std::shared_ptr<EdgeStraightElement> chord = members.front();
+    // every way a member leaves the node, both for one running on through it
+    const Vector across = plane_normal();
+    const Vector x = Vector(0.0, 0.0, 1.0).cross(across).normalized();
+    const Vector y = across.cross(x);
+    std::vector<double> angles;
+    for (const std::shared_ptr<EdgeStraightElement>& member : members) {
+        const Vector away = away_from(*member, node);
+        angles.push_back(std::atan2(away.dot(y), away.dot(x)));
+        if (!ends_at(*member, node) || (member == carrier && carried > 0.0))
+            angles.push_back(std::atan2(-away.dot(y), -away.dot(x)));
+    }
+    const std::shared_ptr<FacePlanarElement> plate = JointBeamElement::node_plate(raw, node, plane_normal(), reaches, 2.0 * half_thickness() / 3.0, PLATE_INSET, fmt::format("node_plate_{:.0f}_{:.0f}", node[0], node[2]));
+
+    // the plate's way in: square to the node's chord away from its ends, else the way nearest it at least PLATE_CLEAR_ANGLE off
+    // every member of the node (the slot would split one lengthwise) along which the plate's path, swept out of the node, meets
+    // no other member of the truss (a plate dropping in from there hits nothing)
+    std::vector<Point> outline;
+    for (const Point& corner : plate->polylines[0].get_points())
+        outline.push_back(Point((corner - node).dot(x), (corner - node).dot(y), 0.0));
+    std::vector<Polyline> others;
+    for (const std::shared_ptr<EdgeStraightElement>& member : get_elements<EdgeStraightElement>()) {
+        if (std::find(members.begin(), members.end(), member) != members.end())
+            continue;
+        const Point first = member->axis.get_point(0);
+        const Point last = member->axis.get_point(member->axis.point_count() - 1);
+        const Vector along = (last - first).normalized();
+        const Vector side = across.cross(along).normalized() * extent(*member, across.cross(along).normalized());
+        std::vector<Point> corners;
+        for (const Point& corner : {first + side, last + side, last - side, first - side, first + side})
+            corners.push_back(Point((corner - node).dot(x), (corner - node).dot(y), 0.0));
+        others.push_back(Polyline(corners));
+    }
+    std::shared_ptr<EdgeStraightElement> chord = carrier;
     for (const std::shared_ptr<EdgeStraightElement>& member : members)
         if (member->name.rfind("chord_", 0) == 0 && chord->name.rfind("chord_", 0) != 0)
             chord = member;
-    const Vector along = (chord->axis.get_point(1) - chord->axis.get_point(0)).normalized();
-    Vector way = plane_normal().cross(along).normalized();
+    const Vector square = across.cross((chord->axis.get_point(1) - chord->axis.get_point(0)).normalized()).normalized();
     Vector toward(0.0, 0.0, 0.0);
     for (const std::shared_ptr<EdgeStraightElement>& member : members)
-        if (member != chord)
-            if (ends_at(*member, node))
-                toward = toward + away_from(*member, node);
-    if (way.dot(toward) > 0.0)
-        way = way * -1.0;
+        if (member != chord && ends_at(*member, node))
+            toward = toward + away_from(*member, node);
+    const double sense = square.dot(toward) > 0.0 ? -1.0 : 1.0;
+    double chosen = std::atan2(square.dot(y) * sense, square.dot(x) * sense);
+    const double base = chosen;
+    for (double turn = 0.0; turn <= Tolerance::PI; turn += 5.0 * Tolerance::PI / 180.0) {
+        bool found = false;
+        for (const double sign : {1.0, -1.0}) {
+            const double angle = base + sign * turn;
 
-    const std::shared_ptr<FacePlanarElement> plate = JointBeamElement::node_plate(raw, node, plane_normal(), reaches, 2.0 * half_thickness() / 3.0, PLATE_INSET, fmt::format("node_plate_{:.0f}_{:.0f}", node[0], node[2]));
+            // never along one of the node's own members: the slot would split it lengthwise
+            bool apart = true;
+            for (const double leaving : angles)
+                apart = apart && std::abs(std::remainder(angle - leaving, 2.0 * Tolerance::PI)) >= PLATE_CLEAR_ANGLE * Tolerance::PI / 180.0;
+            if (!apart)
+                continue;
+            const Point shift(1e4 * std::cos(angle), 1e4 * std::sin(angle), 0.0);
+            std::vector<Point> path = outline;
+            for (const Point& corner : outline)
+                path.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
+            std::vector<Point> band = ConvexHull::hull_2d(path);
+            band.push_back(band.front());
+            bool clear_path = true;
+            for (const Polyline& other : others)
+                clear_path = clear_path && BooleanPolyline::compute_count(Polyline(band), other, 0) == 0;
+            if (clear_path) {
+                chosen = angle;
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            break;
+    }
+    const Vector way = x * std::cos(chosen) + y * std::sin(chosen);
+
     const std::shared_ptr<JointBeamElement> pins = JointBeamElement::slotted_plate(raw, *plate, node, way, clear, PIN_RADIUS);
     add(plate, group_named("joinery"));
     add(pins, group_named("joinery"));
@@ -348,13 +417,72 @@ double Truss::clear_of(const EdgeStraightElement& member, const EdgeStraightElem
     if (ends_at(other, node) && cosine < -1e-6)
         clear = std::min(clear, (half * sine + run_on) / -cosine);
 
-    return clear;
+    // two leaving along one line one way lie in each other: no side to be clear of; never past the member's own far end
+    if (sine <= 1e-6 && cosine > 0.0)
+        clear = 0.0;
+
+    return std::min(clear, member.axis.length());
 }
 
 bool Truss::ends_at(const EdgeStraightElement& member, const Point& node) {
 
     return Point::distance(member.axis.get_point(0), node) < NODE_TOLERANCE ||
            Point::distance(member.axis.get_point(member.axis.point_count() - 1), node) < NODE_TOLERANCE;
+}
+
+void Truss::split_crossings() {
+
+    // the points where members pass through each other, neither ending there, and who passes each
+    const std::vector<std::shared_ptr<EdgeStraightElement>> members = get_elements<EdgeStraightElement>();
+    std::vector<std::pair<Point, std::vector<std::shared_ptr<EdgeStraightElement>>>> crossings;
+    for (size_t i = 0; i < members.size(); i++)
+        for (size_t j = i + 1; j < members.size(); j++) {
+            const Line first = Line::from_points(members[i]->axis.get_point(0), members[i]->axis.get_point(members[i]->axis.point_count() - 1));
+            const Line second = Line::from_points(members[j]->axis.get_point(0), members[j]->axis.get_point(members[j]->axis.point_count() - 1));
+            double t_first = 0.0;
+            double t_second = 0.0;
+            if (std::abs(first.to_vector().normalized().dot(second.to_vector().normalized())) > 0.9999 ||
+                !Intersection::line_line_parameters(first, second, t_first, t_second, 1.0, true, false))
+                continue;
+            const Point crossing = first.point_at(t_first);
+            if (Point::distance(crossing, second.point_at(t_second)) > NODE_TOLERANCE || ends_at(*members[i], crossing) || ends_at(*members[j], crossing))
+                continue;
+            bool known = false;
+            for (std::pair<Point, std::vector<std::shared_ptr<EdgeStraightElement>>>& known_crossing : crossings)
+                if (Point::distance(known_crossing.first, crossing) < NODE_TOLERANCE) {
+                    for (const std::shared_ptr<EdgeStraightElement>& member : {members[i], members[j]})
+                        if (std::find(known_crossing.second.begin(), known_crossing.second.end(), member) == known_crossing.second.end())
+                            known_crossing.second.push_back(member);
+                    known = true;
+                }
+            if (!known)
+                crossings.push_back({crossing, {members[i], members[j]}});
+        }
+
+    // where three or more pass: a chord (else the longest) runs on through, every other is split in two there
+    for (const std::pair<Point, std::vector<std::shared_ptr<EdgeStraightElement>>>& crossing : crossings) {
+        if (crossing.second.size() < 3)
+            continue;
+        std::shared_ptr<EdgeStraightElement> kept = crossing.second.front();
+        for (const std::shared_ptr<EdgeStraightElement>& member : crossing.second) {
+            const bool chord = member->name.rfind("chord_", 0) == 0;
+            const bool kept_chord = kept->name.rfind("chord_", 0) == 0;
+            if ((chord && !kept_chord) || (chord == kept_chord && member->axis.length() > kept->axis.length()))
+                kept = member;
+        }
+        for (const std::shared_ptr<EdgeStraightElement>& member : crossing.second) {
+            if (member == kept)
+                continue;
+            const Point first = member->axis.get_point(0);
+            const Point last = member->axis.get_point(member->axis.point_count() - 1);
+            const Vector in_plane = plane_normal().cross((last - first).normalized()).normalized();
+            const double depth = extent(*member, in_plane);
+            const std::string name = member->name;
+            remove_object(member->guid());
+            add(flush(first, crossing.first, plane_normal(), half_thickness(), depth, name + "_0"), group_named("webs"));
+            add(flush(crossing.first, last, plane_normal(), half_thickness(), depth, name + "_1"), group_named("webs"));
+        }
+    }
 }
 
 std::set<std::pair<const EdgeStraightElement*, const EdgeStraightElement*>> Truss::neighbours(
@@ -554,9 +682,15 @@ std::shared_ptr<JointBeamElement> Truss::build_library_joint(
 ) const {
 
     // the joint made on the end as if its stock ran on through the side, so its cuts reach through it
+    // a design whose cuts cannot be made at this angle (a cutter left open) is one that does not fit
     const double kept = end.extension;
     end.extension = through_length(end, side, node);
-    const std::shared_ptr<JointBeamElement> joint = JointBeamElement::from_library(design, end, side, given);
+    std::shared_ptr<JointBeamElement> joint;
+    try {
+        joint = JointBeamElement::from_library(design, end, side, given);
+    } catch (const std::exception&) {
+        joint = nullptr;
+    }
     end.extension = kept;
 
     return joint;

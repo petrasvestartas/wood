@@ -755,8 +755,8 @@ static void trusses() {
     };
     // trusses whose joinery is not finished yet: built, not yet held to the checks unless named in TRUSSES (docs/truss_joinery_plan.md)
     const std::set<std::string> unfinished = {
-        "quarter_fan", "sawtooth", "three_hinged_arch", "bowstring_arch", "baltimore_a", "pennsylvania_a", "double_intersection_pratt",
-        "schwedler", "bollman", "fink_bridge", "stearns", "pitched_crossed_posts", "cambered_crossed_lantern",
+        "three_hinged_arch", "bowstring_arch", "baltimore_a", "pennsylvania_a", "bollman", "stearns", "pitched_crossed_posts",
+        "cambered_crossed_lantern",
     };
     for (const std::pair<std::string, wood_truss::TrussGuide>& guide : guides) {
         if (std::getenv("TRUSSES") && ("," + std::string(std::getenv("TRUSSES")) + ",").find("," + guide.first + ",") == std::string::npos)

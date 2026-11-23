@@ -35,6 +35,8 @@ public:
         {JointRole::hanging_post, {"wedged_dovetail_half_lap", "stopped_dovetail_half_lap", "housed_dovetail_half_lap", "stopped_housed_dovetail_half_lap"}},
         {JointRole::pulling, {"stopped_dovetail_half_lap", "dovetail_half_lap", "stopped_housed_dovetail_half_lap", "housed_dovetail_half_lap"}},
     }; // Each role's designs, taken in turn (heel pp. 590, 592; push pp. 584, 586, 588, 436, 428; pull pp. 570, 442, 440, 450, 448).
+    static constexpr double MITER_ANGLE = 35.0; // Degrees two ends at a plate node meet at, at least, to be mitered; sharper, one bears on the other.
+    static constexpr double PLATE_CLEAR_ANGLE = 25.0; // Degrees a node plate's way in keeps from every member of its node.
     static constexpr double PIN_RADIUS = 6.0; // mm, a node plate's pins.
     static constexpr double PLATE_INSET = 15.0; // mm, a node plate kept in from its members' edges.
     const TrussGuide guide; // The lines the truss is drawn with.
@@ -120,6 +122,10 @@ private:
 
     /// Whether member's axis ends at node.
     static bool ends_at(const EdgeStraightElement& member, const Point& node);
+
+    /// Every point where three or more members pass through each other split into a node: a chord (else the longest member)
+    /// runs on through it, every other is cut in two there, `<name>_0` and `<name>_1`.
+    void split_crossings();
 
     /// The pairs of members whose ways out of node lie next to each other around it (one running on through it leaving both
     /// ways).

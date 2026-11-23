@@ -7,7 +7,6 @@
 #include "wood_element_joint_pin.h"
 #include "wood_element_joint_connector_part.h"
 #include "wood_joint_library.h"
-#include "boolean_polyline.h"
 #include "convex_hull.h"
 #include "../src/clipper2/clipper.h"
 
@@ -728,57 +727,6 @@ static double section_reach(const EdgeStraightElement& member, const Vector& dir
     return reach;
 }
 
-/// The union of closed rings in xy, taken one at a time: a ring inside another is added, never read as its hole.
-static std::vector<Polyline> united(const std::vector<Polyline>& rings) {
-
-    std::vector<Polyline> union_rings;
-    for (const Polyline& ring : rings)
-        union_rings = union_rings.empty() ? std::vector<Polyline>{ring} : BooleanPolyline::compute_regions(union_rings, {ring}, 1);
-
-    return union_rings;
-}
-
-/// The largest of the closed rings, its corners without the closing repeat.
-static std::vector<Point> largest_ring(const std::vector<Polyline>& rings) {
-
-    std::vector<Point> best;
-    double most = -1.0;
-    for (const Polyline& ring : rings) {
-        std::vector<Point> corners = ring.get_points();
-        if (corners.size() > 1 && Point::distance(corners.front(), corners.back()) < 1e-9)
-            corners.pop_back();
-        double area = 0.0;
-        for (size_t k = 0; k < corners.size(); k++) {
-            const Point& a = corners[k];
-            const Point& b = corners[(k + 1) % corners.size()];
-            area += a[0] * b[1] - b[0] * a[1];
-        }
-        if (std::abs(area) > most) {
-            most = std::abs(area);
-            best = corners;
-        }
-    }
-
-    // without repeated corners or corners on a straight edge: a loft over them stays closed
-    bool dropped = true;
-    while (dropped && best.size() > 3) {
-        dropped = false;
-        for (size_t k = 0; k < best.size() && best.size() > 3; k++) {
-            const Point& before = best[(k + best.size() - 1) % best.size()];
-            const Point& after = best[(k + 1) % best.size()];
-            const Vector in = best[k] - before;
-            const Vector on = after - best[k];
-            if (in.magnitude() < 1e-6 || on.magnitude() < 1e-6 || std::abs(in[0] * on[1] - in[1] * on[0]) < 1e-6 * in.magnitude() * on.magnitude()) {
-                best.erase(best.begin() + static_cast<std::ptrdiff_t>(k));
-                dropped = true;
-                break;
-            }
-        }
-    }
-
-    return best;
-}
-
 /// A closed loop through points in the plane of x and y at origin, offset along z.
 static Polyline lifted(const std::vector<Point>& flat, const Point& origin, const Vector& x, const Vector& y, const Vector& z) {
 
@@ -845,8 +793,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
         joint->targets.push_back(member->guid());
     joint->targets.push_back(plate.guid());
 
-    // the slot: the plate swept out along way, the path it drops in along: the plate, the plate far out, and every edge swept
-    // between them, one cutter for every member
+    // the slot: the plate (convex) swept out along way, the path it drops in along: the hull of the plate and the plate far out,
+    // one cutter for every member
     const Vector out = way.normalized();
     const Polyline& bottom = plate.polylines[0];
     const Polyline& top = plate.polylines[1];
@@ -862,14 +810,10 @@ std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
     }
     const Vector far = out * 1e4;
     const Point shift(far.dot(x), far.dot(y), 0.0);
-    std::vector<Polyline> pieces = {Polyline(flat)};
-    std::vector<Point> moved;
+    std::vector<Point> path = flat;
     for (const Point& corner : flat)
-        moved.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
-    pieces.push_back(Polyline(moved));
-    for (size_t k = 0; k + 1 < flat.size(); k++)
-        pieces.push_back(Polyline({flat[k], flat[k + 1], moved[k + 1], moved[k], flat[k]}));
-    const std::vector<Point> swept = largest_ring(united(pieces));
+        path.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
+    const std::vector<Point> swept = ConvexHull::hull_2d(path);
     const std::array<Polyline, 2> cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
     for (size_t m = 0; m < members.size(); m++)
         joint->cutters.push_back({cutter});

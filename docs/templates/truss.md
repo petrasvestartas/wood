@@ -143,8 +143,9 @@ each node then gets:
 The member they end in runs through the node, or on past it: a post, the tie at a heel. Every
 member goes in from the face, as a truss is laid out flat; a plate drops in last along its slot. Each truss is checked whole
 (no member overlaps another or loses wood no member fills) and taken apart by an `AssemblySequence`, nothing locked.
-Thirteen trusses are still being finished: quarter fan, sawtooth, three-hinged arch, bowstring arch, Baltimore, Pennsylvania,
-double intersection Pratt, Schwedler, Bollman, Fink bridge, Stearns, pitched crossed posts, cambered crossed lantern.
+Eight trusses are still being finished: three-hinged arch, bowstring arch, Baltimore, Pennsylvania, Bollman, Stearns, pitched
+crossed posts, cambered crossed lantern. Where three or more members cross at one point, all but one are split there, so it is a
+node with its plate.
 
 | Heel | Apex | Post foot |
 | --- | --- | --- |
