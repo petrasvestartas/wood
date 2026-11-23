@@ -254,9 +254,11 @@ void Truss::add_plated_joinery() {
 void Truss::add_plated_node(const Point& node) {
 
     {
+        // the members ending here, kept: a loop over a part of the returned array would outlive it (before C++23)
+        const std::array<std::vector<std::shared_ptr<EdgeStraightElement>>, 2> met = meeting(node);
         std::vector<std::shared_ptr<EdgeStraightElement>> chords;
         std::vector<std::shared_ptr<EdgeStraightElement>> webs;
-        for (const std::shared_ptr<EdgeStraightElement>& member : meeting(node)[0])
+        for (const std::shared_ptr<EdgeStraightElement>& member : met[0])
             (member->name.rfind("chord_", 0) == 0 ? chords : webs).push_back(member);
         if (chords.size() + webs.size() < 2)
             return;
@@ -348,10 +350,12 @@ bool Truss::add_miter(const std::shared_ptr<EdgeStraightElement>& first, const s
 
 Mesh Truss::cut_away(const Point& node, const Vector& keep) const {
 
-    // a box from the plane through node square to keep, out the other way: what a member losing it keeps is on keep's side
+    // a box from the plane through node square to keep, out the other way: what a member losing it keeps is on keep's side. It
+    // reaches past every member's wood at the node (a heel's run-on at most) and no farther: the kernel's loft caps scale their
+    // corners to whole numbers and overflow past about 3 m
     const Vector across = plane_normal();
     const Vector along = across.cross(keep).normalized();
-    const double reach = 1e4;
+    const double reach = 1400.0;
     const Polyline face({
         node + along * reach + across * reach,
         node - along * reach + across * reach,
@@ -525,7 +529,7 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
             continue;
         std::vector<Point> path = outline;
         for (const Point& corner : outline)
-            path.push_back(Point(corner[0] + 1e4 * std::cos(angle), corner[1] + 1e4 * std::sin(angle), 0.0));
+            path.push_back(Point(corner[0] + 1500.0 * std::cos(angle), corner[1] + 1500.0 * std::sin(angle), 0.0));
         std::vector<Point> band = ConvexHull::hull_2d(path);
         band.push_back(band.front());
         bool clear_path = true;

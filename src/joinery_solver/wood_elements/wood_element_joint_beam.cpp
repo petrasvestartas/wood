@@ -809,14 +809,16 @@ std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
         const Vector offset = corner - origin;
         flat.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
     }
-    const Vector far = out * 1e4;
+    // swept far enough to clear every member of the node, no farther: the kernel's loft caps scale their corners to whole
+    // numbers and overflow past about 3 m
+    const Vector far = out * 1500.0;
     const Point shift(far.dot(x), far.dot(y), 0.0);
     // across the plate (it drops in from a face): a pocket from its far face out through the near one; in its plane: the hull
     // of the plate and the plate far out
     std::array<Polyline, 2> cutter;
     if (std::abs(out.dot(normal)) > 0.9) {
         const Polyline& far_face = out.dot(normal) > 0.0 ? bottom : top;
-        cutter = {far_face, far_face.translated(out * 1e4)};
+        cutter = {far_face, far_face.translated(out * 1500.0)};
     } else {
         std::vector<Point> path = flat;
         for (const Point& corner : flat)
