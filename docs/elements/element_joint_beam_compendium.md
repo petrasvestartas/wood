@@ -65,7 +65,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Cogged lap joint with folding wedges**, p. 74 | | |
 | ![](joint_library/beam_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_cogged_lap_folding_wedges_splice.png) |
 | **Undersquinted cogged lap joint with folding wedges**, p. 76 | | |
-|  | ![](joint_library/beam_undersquinted_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_cogged_lap_folding_wedges_splice.png) |
+| ![](joint_library/beam_undersquinted_cogged_lap_folding_wedges_splice.gif) | ![](joint_library/beam_undersquinted_cogged_lap_folding_wedges_splice.png) | ![](joint_library/tile_undersquinted_cogged_lap_folding_wedges_splice.png) |
 | **Spear point cogged lap joint**, p. 78 | | |
 | ![](joint_library/beam_spear_point_cogged_lap_splice.gif) | ![](joint_library/beam_spear_point_cogged_lap_splice.png) | ![](joint_library/tile_spear_point_cogged_lap_splice.png) |
 | **Spear point cogged lap joint with folding wedges**, p. 80 | | |
@@ -115,9 +115,9 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Undersquinted stop-splayed cogged scarf joint**, p. 124 | | |
 | ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf.gif) | ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf.png) | ![](joint_library/tile_undersquinted_stop_splayed_cogged_scarf.png) |
 | **Stop-splayed cogged scarf joint with folding wedges**, p. 126 | | |
-|  | ![](joint_library/beam_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_stop_splayed_cogged_scarf_folding_wedges.png) |
+| ![](joint_library/beam_stop_splayed_cogged_scarf_folding_wedges.gif) | ![](joint_library/beam_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_stop_splayed_cogged_scarf_folding_wedges.png) |
 | **Undersquinted stop-splayed cogged scarf joint with folding wedges**, p. 128 | | |
-|  | ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_undersquinted_stop_splayed_cogged_scarf_folding_wedges.png) |
+| ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf_folding_wedges.gif) | ![](joint_library/beam_undersquinted_stop_splayed_cogged_scarf_folding_wedges.png) | ![](joint_library/tile_undersquinted_stop_splayed_cogged_scarf_folding_wedges.png) |
 | **Pegged stop-splayed cogged scarf joint**, p. 130 | | |
 | ![](joint_library/beam_pegged_stop_splayed_cogged_scarf.gif) | ![](joint_library/beam_pegged_stop_splayed_cogged_scarf.png) | ![](joint_library/tile_pegged_stop_splayed_cogged_scarf.png) |
 | **Stop-splayed cogged scarf joint with stub tenons and blind pegs**, p. 132 | | |
@@ -165,7 +165,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Four-faced splayed scarf joint**, p. 174 | | |
 | ![](joint_library/beam_four_faced_splayed_scarf.gif) | ![](joint_library/beam_four_faced_splayed_scarf.png) | ![](joint_library/tile_four_faced_splayed_scarf.png) |
 | **Stub tenon joint**, p. 176 | | |
-|  | ![](joint_library/beam_stub_tenon_splice.png) | ![](joint_library/tile_stub_tenon_splice.png) |
+| ![](joint_library/beam_stub_tenon_splice.gif) | ![](joint_library/beam_stub_tenon_splice.png) | ![](joint_library/tile_stub_tenon_splice.png) |
 | **Half-blind stub tenon joint**, p. 178 | | |
 | ![](joint_library/beam_half_blind_stub_tenon_splice.gif) | ![](joint_library/beam_half_blind_stub_tenon_splice.png) | ![](joint_library/tile_half_blind_stub_tenon_splice.png) |
 | **Floating tenon joint**, p. 180 | | |
@@ -201,7 +201,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Double halved lap joint**, p. 210 | | |
 | ![](joint_library/beam_double_halved_lap_splice.gif) | ![](joint_library/beam_double_halved_lap_splice.png) | ![](joint_library/tile_double_halved_lap_splice.png) |
 | **X-shaped tenon joint**, p. 212 | | |
-|  | ![](joint_library/beam_x_shaped_tenon_splice.png) | ![](joint_library/tile_x_shaped_tenon_splice.png) |
+| ![](joint_library/beam_x_shaped_tenon_splice.gif) | ![](joint_library/beam_x_shaped_tenon_splice.png) | ![](joint_library/tile_x_shaped_tenon_splice.png) |
 | **Double mortise and stub tenon joint**, p. 214 | | |
 | ![](joint_library/beam_double_mortise_stub_tenon_splice.gif) | ![](joint_library/beam_double_mortise_stub_tenon_splice.png) | ![](joint_library/tile_double_mortise_stub_tenon_splice.png) |
 | **Cross-shaped stub tenon joint**, p. 216 | | |
@@ -211,7 +211,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Dovetail tenon joint**, p. 220 | | |
 | ![](joint_library/beam_dovetail_tenon_splice.gif) | ![](joint_library/beam_dovetail_tenon_splice.png) | ![](joint_library/tile_dovetail_tenon_splice.png) |
 | **Triple-shouldered dovetail tenon joint**, p. 222 | | |
-|  | ![](joint_library/beam_triple_shouldered_dovetail_tenon_splice.png) | ![](joint_library/tile_triple_shouldered_dovetail_tenon_splice.png) |
+| ![](joint_library/beam_triple_shouldered_dovetail_tenon_splice.gif) | ![](joint_library/beam_triple_shouldered_dovetail_tenon_splice.png) | ![](joint_library/tile_triple_shouldered_dovetail_tenon_splice.png) |
 | **Lapped dovetail joint**, p. 224 | | |
 | ![](joint_library/beam_lapped_dovetail_splice.gif) | ![](joint_library/beam_lapped_dovetail_splice.png) | ![](joint_library/tile_lapped_dovetail_splice.png) |
 | **Lapped dovetail joint with stub tenon**, p. 226 | | |
@@ -235,7 +235,7 @@ The joints of the book not in the library yet are listed on @ref elements_joint_
 | **Gooseneck tenon joint**, p. 244 | | |
 | ![](joint_library/beam_gooseneck_tenon_splice.gif) | ![](joint_library/beam_gooseneck_tenon_splice.png) | ![](joint_library/tile_gooseneck_tenon_splice.png) |
 | **Triple-shouldered gooseneck tenon joint**, p. 246 | | |
-|  | ![](joint_library/beam_triple_shouldered_gooseneck_splice.png) | ![](joint_library/tile_triple_shouldered_gooseneck_splice.png) |
+| ![](joint_library/beam_triple_shouldered_gooseneck_splice.gif) | ![](joint_library/beam_triple_shouldered_gooseneck_splice.png) | ![](joint_library/tile_triple_shouldered_gooseneck_splice.png) |
 | **Lapped gooseneck joint**, p. 248 | | |
 | ![](joint_library/beam_lapped_gooseneck_splice.gif) | ![](joint_library/beam_lapped_gooseneck_splice.png) | ![](joint_library/tile_lapped_gooseneck_splice.png) |
 | **Lapped gooseneck joint with stub tenon**, p. 250 | | |
