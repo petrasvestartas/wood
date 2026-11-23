@@ -78,7 +78,7 @@ def recipe_pictures() -> set:
 
 
 def element_pictures() -> set:
-    """Every example of the element pages, shot by screenshot_element_docs.sh."""
+    """Every example of the element pages, drawn by render_element_pictures.py."""
     return {f"{name}.png" for name in targets if name.startswith("element_")}
 
 

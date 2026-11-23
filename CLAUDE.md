@@ -227,12 +227,10 @@ https://petrasvestartas.github.io/session/
     nothing else, registered as `ADD_EXE(element_<type> ...)`; a case that needs other elements (a
     column with glued blocks and cuts, an edge cut by a JointCutPlaneElement) is its own example,
     `element_<type>_<case>.cpp`, showing them through `add_interaction(source, target, feature)`.
-  - `docs/images/elements/<example>.png`: a screenshot of the real viewer by
-    `bash wood/tools/screenshot_element_docs.sh <example> ...`: it publishes the example to the live
-    viewer and opens it with `?cmd=Layers All;Arctic On;View Isometric;View Orthographic;Fit` in a Chrome window on the GPU (`tools/screenshot_viewer.mjs`, which starts
-    Chrome with the radeon Vulkan env of the user's launcher; any other Chrome loses its WebGPU
-    device). The layer panel is expanded; the picture shows the elements alone, never their attributes (base plane, outlines)
-    or interaction features.
+  - `docs/images/elements/<example>.png`: drawn by `python3 tools/render_element_pictures.py <example> ...` the way the
+    joint library draws its joints (native renderer, one isometric camera, see-through and as dark as solid, 960 x 640), so
+    every picture of the docs reads alike; the picture shows the elements alone, never their attributes (base plane,
+    outlines) or interaction features.
   - `docs/elements/element_<type>.md` (`{#elements_<type>}`, `[TOC]` under the title): one sentence
     on what it is, a `## Constructors` section with the constructors as a code block, then one `##`
     section per case (a session of several elements, holes, cut by plane, assign joints), each a complete example that was built and

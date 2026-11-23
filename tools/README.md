@@ -1,14 +1,15 @@
 # tools
 
-Every docs picture is a screenshot of the hosted viewer, cropped and nothing else (no filter, recolour or scale),
-made by one recipe line. `python3 tools/check_element_pages.py` (run by `wood-docs.yml`) proves that every picture a
+Every docs picture is made by one recipe line: the element, joint and truss pictures drawn by the viewer's native
+renderer the way the joint library draws its joints (see-through, as dark as solid, one isometric camera), the other
+template pictures screenshots of the hosted viewer, cropped and nothing else. `python3 tools/check_element_pages.py` (run by `wood-docs.yml`) proves that every picture a
 page shows exists, that every file under `docs/images` is shown by a page, and that a recipe makes it.
 
 ## Which command makes which folder
 
 | Folder under `docs/` | Command |
 | --- | --- |
-| `images/elements/` | `bash tools/screenshot_element_docs.sh element_face_planar ...` (names are the example targets; the overview pictures it copies are listed at its end) |
+| `images/elements/` | `python3 tools/render_element_pictures.py [example ...]` (names are the example targets, every picture there when none; drawn like the joint library) |
 | `images/templates/` (shells, folding, chevron, cross, reciprocal, module, grid, vault) | `bash tools/render_template_pictures.sh [family]` |
 | `images/templates/truss_*.png`, `templates_truss_1_pratt.png` | `bash tools/render_template_pictures.sh truss` (each library truss and the joinery's nodes close up, drawn by `render_element_pictures.py --scenes` / `--close` like the joint library: see-through, as dark as solid; native renderer) |
 | `images/templates/truss_bow_*.webp` | `bash tools/render_template_pictures.sh bow` |
