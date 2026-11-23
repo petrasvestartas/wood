@@ -805,7 +805,7 @@ div.contents img[src$=".webp"] {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 .wood-card-grid.cols-2 {
-    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(480px, 100%), 1fr));
 }
 /* The landing page: four chapters in one column, each one picture at its natural height */
 .wood-landing {
@@ -883,7 +883,8 @@ div.contents a.wood-card img,
 .wood-card img,
 a.wood-card img {
     width: 100%;
-    height: 180px;
+    height: auto; /* as wide as its card and 3:2, so a picture grows with the card instead of shrinking into bands */
+    aspect-ratio: 3 / 2;
     object-fit: contain;
     background: #f0f0f0; /* the viewer's Arctic backdrop, so a screenshot has no visible edge */
     border-radius: 2px;
