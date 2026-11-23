@@ -1,9 +1,27 @@
 #include "wood_session.h"
 #include "wood_joint_library.h"
 #include "wood_assembly_sequence.h"
+#include "convex_hull.h"
+#include "boolean_polyline.h"
 
 using namespace session_cpp;
 using namespace wood_session;
+
+/// A piece's outline on the isometric screen the pictures use (turned 30 degrees about z, tilted 30 degrees down): the
+/// hull of its points seen on the screen, grown 7.5 mm, in mm.
+static Polyline on_screen(const Mesh& mesh, const Xform& placed) {
+    const Vector right(std::sqrt(0.5), std::sqrt(0.5), 0.0);
+    const Vector up(0.5 * std::sqrt(0.5), -0.5 * std::sqrt(0.5), 0.5 * std::sqrt(3.0));
+    std::vector<Point> seen;
+    for (const Point& point : mesh.transformed(placed).to_vertices_and_faces().first) {
+        const Vector position(point[0], point[1], point[2]);
+        for (int k = 0; k < 4; k++)
+            seen.push_back(Point(position.dot(right) + (k & 1 ? 7.5 : -7.5), position.dot(up) + (k & 2 ? 7.5 : -7.5), 0.0));
+    }
+    std::vector<Point> hull = ConvexHull::hull_2d(seen);
+    hull.push_back(hull.front());
+    return Polyline(hull);
+}
 
 /// Every joint of the YAML library, a group and a row per design: on a square corner and on an inclined one, drawn apart in its assembly order.
 int main() {
@@ -68,6 +86,12 @@ int main() {
                     if (fresh[m]->name == locked && !twin->insertion_directions(m).empty())
                         steps.push_back({locked, twin->insertion_directions(m)[0], twin->insertion_legs(m, 0), {}, {}});
             steps.insert(steps.end(), sequence.steps().begin() + 1, sequence.steps().end());
+            // the base stays where it is: with three pieces or more, crowding round it, every piece waits clear of it too (a
+            // member alone slides straight out of it and reads apart even where the two overlap on the screen)
+            std::vector<Polyline> waiting;
+            const std::shared_ptr<Element> staying = scene.get_element_by_name<Element>(name + steps.front().element.substr(design.size()));
+            if (staying && steps.size() > 2)
+                waiting.push_back(on_screen(staying->model_geometry_mesh(), Xform()));
             for (size_t j = 1; j < steps.size(); j++) {
                 const AssemblyStep& step = steps[j];
                 const std::shared_ptr<Element> drawn = scene.get_element_by_name<Element>(name + step.element.substr(design.size()));
@@ -79,11 +103,27 @@ int main() {
                 const double behind = box.hx * std::abs(way[0]) + box.hy * std::abs(way[1]) + box.hz * std::abs(way[2]);
                 // a piece going in by more moves (in, then along the slot, or a turn) stands where it starts them: the moves undone,
                 // the last first, then back along its approach
-                const Vector out = way * -(std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j));
                 Xform undone;
                 for (const JointMove& leg : AssemblySequence::out_legs(step.legs))
                     undone = leg.at(1.0) * undone;
+
+                // and clear of every piece already waiting where the picture sees it: one whose outline on the isometric screen
+                // would touch another's goes farther out, 10 mm at a time, so two pieces are never drawn as one
+                const Mesh shape = drawn->model_geometry_mesh();
+                double distance = std::min(2.0 * behind, 160.0) + 40.0 * static_cast<double>(j);
+                for (int push = 0; push < 300; push++) {
+                    const Vector trial = way * -distance;
+                    const Polyline outline = on_screen(shape, Xform::translation(trial[0], trial[1], trial[2]) * undone);
+                    bool touches = false;
+                    for (const Polyline& earlier : waiting)
+                        touches = touches || BooleanPolyline::compute_count(outline, earlier, 0) > 0;
+                    if (!touches)
+                        break;
+                    distance += 10.0;
+                }
+                const Vector out = way * -distance;
                 drawn->place(Xform::translation(out[0], out[1], out[2]) * undone);
+                waiting.push_back(on_screen(shape, Xform::translation(out[0], out[1], out[2]) * undone));
                 nlohmann::ordered_json legs = nlohmann::ordered_json::array();
                 for (const JointMove& leg : step.legs) {
                     if (!leg.is_turn()) {
