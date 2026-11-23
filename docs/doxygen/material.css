@@ -781,6 +781,7 @@ blockquote {
 /* Responsive documentation figures */
 div.contents .image img,
 div.contents img[src$=".png"],
+div.contents img[src$=".gif"],
 div.contents img[src$=".svg"],
 div.contents img[src$=".webp"] {
     max-width: 100%;
@@ -802,6 +803,9 @@ div.contents img[src$=".webp"] {
 }
 .wood-card-grid.cols-3 {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.wood-card-grid.cols-2 {
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
 }
 /* The landing page: four chapters in one column, each one picture at its natural height */
 .wood-landing {

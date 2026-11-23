@@ -4,7 +4,7 @@ the moving piece and the parts a strong blue, one fixed camera, 960 x 640. Each 
 WoodSession::pb_dump also writes how it goes together (an AssemblySequence, its first jointed member staying); every other
 member waits out along its way in, clear on the screen of the pieces waiting before it, and the GIF takes them in one by one.
 
-    python3 tools/render_family_gifs.py [example ...] [--slides 6] [--scenes | --draw]
+    python3 tools/render_family_gifs.py [example ...] [--slides 6] [--size 960x640] [--scenes | --draw]
 """
 
 import json
@@ -171,6 +171,7 @@ def main(arguments: list) -> None:
     examples alone, one after another (each writes data/output/pb/live.pb), keeping each scene and assembly in
     build/family_scenes; --draw draws from those alone, so several draws can run at once."""
     slides = int(library.option(arguments, "--slides", "6"))
+    size = tuple(int(value) for value in library.option(arguments, "--size", "960x640").split("x"))
     scenes_only = "--scenes" in arguments
     draw_only = "--draw" in arguments
     arguments = [argument for argument in arguments if argument not in ("--scenes", "--draw")]
@@ -204,7 +205,7 @@ def main(arguments: list) -> None:
         apart = kept / f"{example}_apart.pb"
         placed = json.loads(subprocess.run([str(library.PYTHON), "-c", OUTS, str(scene), str(assembly), str(apart)], check=True, capture_output=True, text=True).stdout.strip().splitlines()[-1])
         names = {"joints": placed["joints"], "parts": placed["parts"]}
-        for path in library.draw(apart, "-", "", placed["order"], slides, f"assembly_{example}", names):
+        for path in library.draw(apart, "-", "", placed["order"], slides, f"assembly_{example}", names, size=size):
             print(path.relative_to(WOOD), flush=True)
 
 

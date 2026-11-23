@@ -110,16 +110,30 @@ private:
     /// How steep member's axis is, 0 level to 1 plumb.
     static double steepness(const EdgeStraightElement& member);
 
-    /// A plate let into every member of a crowded node (the first the carrier), slotted along the path it drops in by, square
+    /// A plate let into every member of a crowded node (the first the carrier, running on carried past it), slotted along the path it drops in by, square
     /// to the node's chord away from the others, one row of two pins in each member clear of the others (JointBeamElement::node_plate,
     /// slotted_plate).
-    void add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement>>& members, const Point& node);
+    void add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement>>& members, const Point& node, double carried);
 
     /// How far along member's axis from node its section is clear of other's, other running on run_on past the node.
     double clear_of(const EdgeStraightElement& member, const EdgeStraightElement& other, const Point& node, double run_on) const;
 
     /// Whether member's axis ends at node.
     static bool ends_at(const EdgeStraightElement& member, const Point& node);
+
+    /// The pairs of members whose ways out of node lie next to each other around it (one running on through it leaving both
+    /// ways).
+    std::set<std::pair<const EdgeStraightElement*, const EdgeStraightElement*>> neighbours(
+        const std::vector<std::shared_ptr<EdgeStraightElement>>& members,
+        const std::vector<std::shared_ptr<EdgeStraightElement>>& runners,
+        const Point& node
+    ) const;
+
+    /// A box from the plane through node square to keep, reaching out the other way: a member losing it is cut on that plane.
+    Mesh cut_away(const Point& node, const Vector& keep) const;
+
+    /// Whether butt is the miter of a chord's kink: between two consecutive runs of one chord.
+    bool is_kink_miter(const JointBeamElement& butt) const;
 
     /// Whether a and b are runs of one chord.
     static bool same_chord(const EdgeStraightElement& a, const EdgeStraightElement& b);

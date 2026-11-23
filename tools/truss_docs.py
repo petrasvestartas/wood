@@ -95,7 +95,7 @@ library = [
     "with their defaults as `templates_truss_2_library` builds them, each its own scene `truss_<name>.pb`. Every design "
     "also takes `.chord_radius = 80` and `.web_radius = 60`, the half sections of the chords and posts and of the webs.",
     "",
-    '<div class="wood-card-grid cols-4">',
+    '<div class="wood-card-grid cols-2">',
 ]
 for doc, struct, fields in structs:
     name = re.sub(r"(?<!^)(?=[A-Z0-9])", "_", struct).lower()

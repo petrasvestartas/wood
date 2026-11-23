@@ -18,13 +18,14 @@ import render_joint_library_gifs as library
 WOOD = library.WOOD
 FOLDER = WOOD / "docs/images/elements"
 SKIPPED = {"element_joint_beam_library"}  # The compendium's overview: every design at once, drawn by its own example.
+LARGE = (1920, 1280)  # A scene drawn whole (a truss of 12 m) or a point close up: twice the joint pictures, sharp on a wide page.
 
 
 def draw_scenes(folder: pathlib.Path, scenes: list) -> None:
     """Draws each scene file whole into folder, named after it (the truss library's truss_<name>.pb as truss_<name>.png)."""
     for scene in scenes:
-        for path in library.draw(pathlib.Path(scene), "-", "", [], 1, pathlib.Path(scene).stem, {"joints": [], "parts": []}, folder, animate=False):
-            print(path.relative_to(WOOD), flush=True)
+        for path in library.draw(pathlib.Path(scene), "-", "", [], 1, pathlib.Path(scene).stem, {"joints": [], "parts": []}, folder, animate=False, size=LARGE):
+            print(path, flush=True)
 
 
 # The scene without its lines, planes and polylines (a template's drawn guide), the interactions' features dropped: wood alone.
@@ -49,8 +50,8 @@ def draw_close(folder: pathlib.Path, scene: str, name: str, target: str, zoom: s
         image = library.drawing([str(wood), str(wood)], [float(value) for value in target.split(",")])
         del os.environ["VIEWER_ZOOM"]
     path = folder / f"{name}.png"
-    image.resize(library.SIZE).save(path)
-    print(path.relative_to(WOOD), flush=True)
+    image.resize(LARGE).save(path)
+    print(path, flush=True)
 
 
 def main(arguments: list) -> None:

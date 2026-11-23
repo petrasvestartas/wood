@@ -753,7 +753,7 @@ static void trusses() {
         {"trapezoid_king_crossed", wood_truss::TrapezoidKingCrossed{}},
         {"topology_optimised", wood_truss::TopologyOptimised{}},
     };
-    // trusses whose joinery is not finished yet: built, not yet held to the checks (docs/truss_joinery_plan.md)
+    // trusses whose joinery is not finished yet: built, not yet held to the checks unless named in TRUSSES (docs/truss_joinery_plan.md)
     const std::set<std::string> unfinished = {
         "quarter_fan", "sawtooth", "three_hinged_arch", "bowstring_arch", "baltimore_a", "pennsylvania_a", "double_intersection_pratt",
         "schwedler", "bollman", "fink_bridge", "stearns", "pitched_crossed_posts", "cambered_crossed_lantern",
@@ -762,7 +762,7 @@ static void trusses() {
         if (std::getenv("TRUSSES") && ("," + std::string(std::getenv("TRUSSES")) + ",").find("," + guide.first + ",") == std::string::npos)
             continue;
         wood_truss::Truss truss(guide.second, guide.first);
-        if (unfinished.count(guide.first))
+        if (unfinished.count(guide.first) && !std::getenv("TRUSSES"))
             continue;
         std::vector<std::shared_ptr<EdgeStraightElement>> members;
         for (const std::shared_ptr<Element>& element : *truss.objects.elements)

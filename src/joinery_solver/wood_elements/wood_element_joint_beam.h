@@ -149,9 +149,8 @@ public:
     );
 
     /// A plate through the node where members meet, in the plane through node square to normal and thickness thick: the convex
-    /// hull of each member's strip along its axis from the node to its reach (both ways for a member running through) and a
-    /// square of the first member's section around the node (it must run through the node or on past it), inset from the
-    /// members' edges, so its slot is the plate swept straight out.
+    /// hull of each member's strip along its axis from the node to its reach (both ways for a member running through), inset
+    /// from the members' edges, so its slot is the plate swept straight out.
     static std::shared_ptr<FacePlanarElement> node_plate(
         const std::vector<const EdgeStraightElement*>& members,
         const Point& node,

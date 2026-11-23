@@ -818,18 +818,6 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
             strips.push_back(Polyline(corners));
         }
 
-    // and a square of the first member's section around the node, inside it (it runs through the node or on past it), so the
-    // strips meet in one piece
-    const Vector carrier = (members.front()->axis.get_point(1) - members.front()->axis.get_point(0)).normalized();
-    const Vector square = z.cross(carrier).normalized();
-    const double core = section_reach(*members.front(), square) - inset;
-    std::vector<Point> corners;
-    for (const std::array<double, 2>& corner : std::vector<std::array<double, 2>>{{-core, -core}, {core, -core}, {core, core}, {-core, core}, {-core, -core}}) {
-        const Vector offset = carrier * corner[0] + square * corner[1];
-        corners.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
-    }
-    strips.push_back(Polyline(corners));
-
     // the plate the convex hull of them: its slot is the plate swept straight out, nothing for it to catch on
     std::vector<Point> points;
     for (const Polyline& strip : strips)

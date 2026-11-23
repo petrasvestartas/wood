@@ -137,10 +137,10 @@ each node then gets:
 | Node | Joint |
 | --- | --- |
 | One member ending on another | its role's joint of the [beam library](#elements_joint_beam_compendium), taken in turn: a heel the notched heel (p. 590, double p. 592 under 30°), a push the notched oblique thrusts (pp. 584, 586, 588) or a mortise and tenon (p. 436), a pull the dovetail half laps (pp. 440–450, wedged p. 570) |
-| Several members ending in one | a node plate let into all of them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
+| Several members ending in one, or a chord's kink | a node plate let into all of them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`); at a kink the two runs mitered |
 | Two members crossing | a cross lap (p. 646), oblique notched cross laps (pp. 672, 676) where they cross at an angle |
 
-The member they end in runs through the node, or on past it: a post, the even run at a chord's kink, the tie at a heel. Every
+The member they end in runs through the node, or on past it: a post, the tie at a heel. Every
 member goes in from the face, as a truss is laid out flat; a plate drops in last along its slot. Each truss is checked whole
 (no member overlaps another or loses wood no member fills) and taken apart by an `AssemblySequence`, nothing locked.
 Thirteen trusses are still being finished: quarter fan, sawtooth, three-hinged arch, bowstring arch, Baltimore, Pennsylvania,
@@ -168,7 +168,12 @@ Two chords and five webs given as polylines with their half sections.
 
 ### Pratt Roof Truss {#truss_ex_pratt}
 
-![templates_truss_1_pratt](templates/templates_truss_1_pratt.png)
+The Pratt roof truss jointed and taken apart: its heels notched, every node where several members end a plate with pins, the
+members going in from the face and the plates dropping in last.
+
+![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.gif)
+
+![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.png)
 
 \include{lineno} templates_truss_1_pratt.cpp
 
@@ -186,7 +191,7 @@ Two chords and five webs given as polylines with their half sections.
 
 The 68 designs of the library, each a struct of its parameters and its own `TrussGuide` overload, pictured with their defaults as `templates_truss_2_library` builds them, each its own scene `truss_<name>.pb`. Every design also takes `.chord_radius = 80` and `.web_radius = 60`, the half sections of the chords and posts and of the webs.
 
-<div class="wood-card-grid cols-4">
+<div class="wood-card-grid cols-2">
   <div class="wood-card">
     <img src="truss_pratt.png" alt="Pratt" loading="lazy">
     <span class="wood-card-title">Pratt{.span = 12000, .rise = 3000, .panels = 6}</span>

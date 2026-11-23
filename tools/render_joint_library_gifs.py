@@ -196,10 +196,10 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
     return draw(scene, design, variant + "_", orders.get(variant, []), slides, f"beam_{design}", {"joints": [variant]})
 
 
-def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict, folder: pathlib.Path = PICTURES, animate: bool = True) -> list:
+def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict, folder: pathlib.Path = PICTURES, animate: bool = True, size: tuple = SIZE) -> list:
     """The picture and the GIF of the pieces of scene whose names start with prefix (the group design, the whole scene for "-"),
-    apart, then in by order, saved as <folder>/<name>.png and .gif (the picture alone when not animate); names gives the joints
-    to leave out and the parts to draw blue."""
+    apart, then in by order, saved as <folder>/<name>.png and .gif (the picture alone when not animate) at size; names gives
+    the joints to leave out and the parts to draw blue."""
     frames = plan_frames(order, slides)
     with tempfile.TemporaryDirectory() as tmp:
         plan_path = pathlib.Path(tmp) / "plan.json"
@@ -223,7 +223,7 @@ def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int
         canvas = Image.new("RGB", (width, height), clear)
         piece = image.crop(crop)
         canvas.paste(piece, ((width - piece.width) // 2, (height - piece.height) // 2))
-        framed.append(canvas.resize(SIZE, Image.LANCZOS))
+        framed.append(canvas.resize(size, Image.LANCZOS))
     picture = folder / f"{name}.png"
     framed[0].save(picture)
     if not animate:
