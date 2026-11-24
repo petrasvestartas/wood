@@ -567,7 +567,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
     set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
     # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/;
-    # wood.css on top of it gives the look: cool white or graphite, one pine yellow, the pictures on one panel.
+    # wood.css on top of it gives the look: white, green and brown, the pictures without an edge.
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/wood.css)
@@ -581,7 +581,6 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates/*.svg
     )
     set(DOXYGEN_HTML_EXTRA_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/app.js
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero.mp4
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero_small.mp4
@@ -618,5 +617,9 @@ if(DOXYGEN_FOUND)
         VERBATIM
     )
     add_dependencies(docs wood_doc_examples)
+    add_custom_command(TARGET docs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -DWOOD_HTML_DIR=${DOXYGEN_OUTPUT_DIRECTORY}/html -P ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/lazy_images.cmake
+        VERBATIM
+    )
 endif()
 

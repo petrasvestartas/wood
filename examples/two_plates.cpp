@@ -26,17 +26,13 @@ int main() {
     scene.add_interaction(joint, upright, joint->interaction(0));
     scene.add_interaction(joint, base, joint->interaction(1));
 
-    // the upright lifted off its base, so the tenons and mortises show
-    const Vector apart = (upright->polylines[0].center() - base->polylines[0].center()).normalized() * 120.0;
-    upright->place(Xform::translation(apart[0], apart[1], apart[2]));
-
     scene.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Two plates and one joint: an upright plate on a base plate, the contact between them, and a tenon joint cut into both, drawn apart.
+Two plates and one joint: an upright plate on a base plate, the contact between them, and a tenon joint cut into both.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

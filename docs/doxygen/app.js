@@ -5,6 +5,14 @@
   if (matchMedia("(prefers-reduced-motion: reduce)").matches)
     document.querySelectorAll("video.wood-film").forEach(film => { film.removeAttribute("autoplay"); film.load(); });
 
+  // the chapter this page belongs to, in the bar
+  const page = location.pathname.split("/").pop();
+  for (const link of document.querySelectorAll("#chapters a")) {
+    const chapter = link.getAttribute("href").split("/").pop().replace(".html", "");
+    if (page.startsWith(chapter) || (chapter === "annotated" && /^(class|struct|namespace|hierarchy|functions)/.test(page)))
+      link.classList.add("on");
+  }
+
   const block = document.querySelector("div.contents > div.textblock");
   if (!block || block.querySelector(".wood-hero") || document.querySelector("table.memberdecls, table.directory"))
     return;
@@ -64,6 +72,25 @@
     return frame;
   };
 
+  // the joint library's rows (a title, then GIF, still and tile) as cards: the GIF, the title under it, the tile beside the title
+  const cards = table => {
+    const grid = make("div", "wood-joint-grid");
+    let title = "";
+    for (const row of table.querySelectorAll("tr")) {
+      const [gif, , tile] = [...row.cells].map(cell => cell.querySelector("img"));
+      if (gif) {
+        const name = make("span", "wood-joint-name", title);
+        const card = make("figure", "wood-joint", gif, make("figcaption", "", name));
+        if (tile)
+          card.lastChild.append(tile);
+        grid.append(card);
+      } else if (row.querySelector("td")) {
+        title = row.textContent.trim().replace(/,\s*p\.\s*(\d+)$/, ", p. $1");
+      }
+    }
+    return grid;
+  };
+
   const section = nodes => {
     const out = make("section", "wood-section");
     const figures = [], codes = [], wide = [], notes = [], links = [], kept = [];
@@ -79,8 +106,10 @@
         wide.push(node);
       } else if (node.matches("div.image, div.wood-pair-grid, pre.mermaid") || (node.matches("p") && node.querySelector("img") && textless(node))) {
         figures.push(node);
+      } else if (node.querySelector && node.querySelectorAll("td:first-child img[src$='.gif']").length > 8 && node.querySelector("td:nth-child(2) img[src$='.png']")) {
+        wide.push(cards(node));
       } else if (node.querySelector && node.querySelector("img.inline")) {
-        (node.querySelectorAll("tr").length > 4 ? wide : figures).push(node);
+        (nodes.some(other => other.matches && other.matches("div.fragment")) ? figures : wide).push(node);
       } else if (node.matches("p") && node.querySelector("span[style^='color:']")) {
         node.classList.add("wood-legend");
         links.push(node);

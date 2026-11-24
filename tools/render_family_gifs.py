@@ -3,6 +3,8 @@ assembly_<example>.png and .gif, drawn as the joint library draws its joints (to
 the moving piece and the parts brown, one fixed camera, 960 x 640. Each example is run with WOOD_ASSEMBLY, so its
 WoodSession::pb_dump also writes how it goes together (an AssemblySequence, its first jointed member staying); every other
 member waits out along its way in, clear on the screen of the pieces waiting before it, and the GIF takes them in one by one.
+An example no sequence takes apart is stacked: its lowest member stays, the others come down onto it in the order of their
+height, or, from four members on, in towards the middle.
 
     python3 tools/render_family_gifs.py [example ...] [--slides 6] [--size 960x640] [--scenes | --draw]
 """
@@ -155,6 +157,32 @@ scene.pb_dump(apart_path)
 print(json.dumps({"order": order, "joints": joints, "parts": parts}))
 """
 
+# The assembly of a scene no sequence takes apart, as an AssemblySequence writes one: the lowest first, every member straight
+# down, or in towards the scene's middle when there are four of them or more.
+STACK = r"""
+import json, sys
+from session_py.session import Session
+scene = Session.pb_load(sys.argv[1])
+members = []
+for element in scene.objects.elements:
+    corners = element.aabb.get_corners()
+    low = [min(c[k] for c in corners) for k in range(3)]
+    high = [max(c[k] for c in corners) for k in range(3)]
+    if max(b - a for a, b in zip(low, high)) > 1.0:
+        members.append((round(low[2], 1), round(high[2], 1), element.name, low, high))
+members.sort()
+middle = [sum(0.5 * (m[3][k] + m[4][k]) for m in members) / len(members) for k in range(3)]
+steps = []
+for k, (_, _, name, low, high) in enumerate(members):
+    way = [0.0, 0.0, -1.0]
+    if len(members) > 3:
+        away = [middle[i] - 0.5 * (low[i] + high[i]) for i in range(3)]
+        length = sum(value * value for value in away) ** 0.5
+        way = [value / length for value in away] if length > 1.0 else way
+    steps.append({"element": name, "insertion": way if k else [0.0, 0.0, 0.0], "low": low, "high": high, "legs": [], "partners": [], "joints": []})
+json.dump({"steps": steps}, open(sys.argv[2], "w"))
+"""
+
 
 def examples() -> list:
     """The examples the plate and beam joint pages include, in page order."""
@@ -199,9 +227,11 @@ def main(arguments: list) -> None:
             print(f"scene {example}", flush=True)
         if scenes_only:
             continue
-        if not assembly.exists() or not scene.exists():
-            print(f"skipped {example}: no joint", flush=True)
+        if not scene.exists():
+            print(f"skipped {example}: no scene", flush=True)
             continue
+        if not assembly.exists() or sum(any(abs(v) > 1e-9 for v in step["insertion"]) for step in json.loads(assembly.read_text())["steps"]) == 0:
+            subprocess.run([str(library.PYTHON), "-c", STACK, str(scene), str(assembly)], check=True)
         apart = kept / f"{example}_apart.pb"
         placed = json.loads(subprocess.run([str(library.PYTHON), "-c", OUTS, str(scene), str(assembly), str(apart)], check=True, capture_output=True, text=True).stdout.strip().splitlines()[-1])
         names = {"joints": placed["joints"], "parts": placed["parts"]}

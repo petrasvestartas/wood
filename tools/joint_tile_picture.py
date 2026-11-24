@@ -1,5 +1,5 @@
 """A joint library tile as a picture: the unit box drawn isometric, every cut's two outlines and the lines joining them, the male
-member's (a) brown, the female's (b) red, other members' green, loose parts grey, labelled fixed or with the divisions a
+member's (a) brown, the female's (b) green, the others lighter green, terracotta and grey, loose parts dark grey, labelled fixed or with the divisions a
 member's unit repeats by along the joint (fingers, tenons, keys). Reads data/output/pb/joint_library_tiles.json
 (element_joint_beam_library_tiles) and writes docs/images/joint_library/tile_<design>.png.
 
@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 PICTURES = WOOD / "docs/images/joint_library"
-COLOURS = [(173, 141, 104), (210, 50, 50), (40, 150, 70), (120, 60, 170), (200, 120, 0)]
+COLOURS = [(208, 154, 103), (0, 124, 86), (127, 169, 115), (195, 103, 84), (93, 95, 88)]  # brown, green, then lighter green, terracotta and grey
 PART = (90, 90, 90)
 SIZE = (960, 640)  # The size of the library's pictures and GIFs, so a row of the page reads as one.
 BACKGROUND = (247, 247, 247)  # The renders' background.
@@ -45,9 +45,9 @@ def draw(design: str, tile: dict) -> Image.Image:
     for colour, pairs in groups:
         for pair in pairs:
             for outline in pair:
-                pen.line([project(p, scale) for p in outline], fill=colour, width=2)
+                pen.line([project(p, scale) for p in outline], fill=colour, width=3)
             for p, q in zip(pair[0], pair[1]):
-                pen.line([project(p, scale), project(q, scale)], fill=colour, width=1)
+                pen.line([project(p, scale), project(q, scale)], fill=colour, width=2)
     # what the tile is: fixed, or a unit repeating by divisions along an axis (as the plate joints' fingers)
     rows = [f"member {'abcdefgh'[k]}: {n} x along {'xyz'[axis]}" for k, (n, axis) in enumerate(zip(tile.get("divisions", []), tile.get("axes", []))) if n > 1]
     pen.text((16, SIZE[1] - 26 - 16 * len(rows)), "fixed tile" if not rows else "parametric, repeats by divisions", fill=(0, 0, 0))
