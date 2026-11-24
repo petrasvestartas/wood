@@ -567,7 +567,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
     set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
     # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/;
-    # wood.css on top of it gives the look: warm paper or ink, one orange, the pictures on one panel.
+    # wood.css on top of it gives the look: cool white or graphite, one pine yellow, the pictures on one panel.
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/wood.css)

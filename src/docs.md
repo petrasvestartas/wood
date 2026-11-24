@@ -2,7 +2,7 @@
 
 <div class="wood-hero">
   <div>
-    <span class="wood-hero-title" role="heading" aria-level="1">Timber <span class="wood-dots">joinery</span> solver</span>
+    <span class="wood-hero-title" role="heading" aria-level="1">Timber <span class="wood-mark">joinery</span> solver</span>
     <span class="wood-hero-line">The members are given, wood finds where they touch and cuts the joints.</span>
     <span class="wood-hero-line wood-light">From the doctoral thesis <a href="https://infoscience.epfl.ch/record/288650">Design-to-Fabrication Workflow for Raw-Sawn-Timber using Joinery Solver</a> (EPFL, 2021), a C++ library on the <a href="https://github.com/petrasvestartas/session_cpp">session_cpp</a> kernel.</span>
   </div>

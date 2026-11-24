@@ -1,54 +1,54 @@
-/* The wood look over doxygen-awesome: warm paper (ink when dark), one orange accent, Outfit for text, Doto for the
- * dotted accents, a dot grid behind titles and pictures. Everything below reads the palette; nothing else names a color. */
+/* The wood look over doxygen-awesome: cool white (graphite when dark), one accent, the yellow of cut pine, Outfit for
+ * text, a dot grid behind titles. Everything below reads the palette. */
 
 /* ==================================================================
  * Palette and sizes
  * ================================================================== */
 
 html {
-    --wood-orange: #ff6b1a; /* fills, rules, shadows */
-    --wood-accent: #b8420a; /* orange as text: 4.8:1 on paper */
-    --wood-bg: #f2efe8;
-    --wood-panel: #fbf9f4;
-    --wood-sunken: #e8e3d7;
-    --wood-fg: #1c1a16;
-    --wood-fg-light: #625d52;
-    --wood-fg-lighter: #a39c8c;
-    --wood-line: #d9d3c5;
-    --wood-dot: rgba(28, 26, 22, .16);
-    --wood-code-bg: #e8e3d7;
-    --wood-code-fg: #2c2923;
+    --wood-pine: #f0b429; /* fills, rules, shadows */
+    --wood-accent: #7d5a00; /* pine as text, dark enough to read on white */
+    --wood-bg: #f4f5f6;
+    --wood-panel: #ffffff;
+    --wood-sunken: #e3e6e8;
+    --wood-fg: #16191c;
+    --wood-fg-light: #555d63;
+    --wood-fg-lighter: #98a1a7;
+    --wood-line: #d6dbde;
+    --wood-dot: rgba(22, 25, 28, .15);
+    --wood-code-bg: #e9ecee;
+    --wood-code-fg: #262b2f;
     --wood-hl-keyword: #24568f;
     --wood-hl-string: #276a3f;
-    --wood-hl-function: #9a3707;
+    --wood-hl-function: #6a3f97;
     --wood-hl-special: #8a5a00;
     --wood-picture-filter: brightness(1.07);
     --wood-picture-blend: multiply;
-    --wood-bar: #1c1a16; /* the header bar, ink in both schemes */
-    --wood-bar-fg: #f2efe8;
+    --wood-bar: #16191c; /* the header bar, ink in both schemes */
+    --wood-bar-fg: #f4f5f6;
     --wood-header-height: 56px;
     --wood-gutter: 48px;
     --wood-radius: 4px;
-    --wood-shadow: 0 10px 30px rgba(28, 26, 22, .14);
+    --wood-shadow: 0 10px 30px rgba(22, 25, 28, .12);
 }
 
 /* the dark scheme, written twice like doxygen-awesome's: once for the system preference, once for the toggle */
 @media (prefers-color-scheme: dark) {
     html:not(.light-mode) {
-        --wood-accent: #ff6b1a;
-        --wood-bg: #171511;
-        --wood-panel: #211f1a;
-        --wood-sunken: #12110d;
-        --wood-fg: #ece7da;
-        --wood-fg-light: #a8a191;
-        --wood-fg-lighter: #6f695c;
-        --wood-line: #37332b;
-        --wood-dot: rgba(236, 231, 218, .13);
-        --wood-code-bg: #211f1a;
-        --wood-code-fg: #d9d3c4;
+        --wood-accent: #f0b429;
+        --wood-bg: #14171a;
+        --wood-panel: #1d2226;
+        --wood-sunken: #0f1214;
+        --wood-fg: #e4e8ea;
+        --wood-fg-light: #9ba5ab;
+        --wood-fg-lighter: #657078;
+        --wood-line: #323a40;
+        --wood-dot: rgba(228, 232, 234, .12);
+        --wood-code-bg: #1d2226;
+        --wood-code-fg: #cfd6da;
         --wood-hl-keyword: #82b4f2;
         --wood-hl-string: #79c490;
-        --wood-hl-function: #ff9a5c;
+        --wood-hl-function: #c9a9f5;
         --wood-hl-special: #e6b04a;
         --wood-picture-filter: brightness(1.07) invert(1) hue-rotate(180deg) brightness(1.3);
         --wood-picture-blend: screen;
@@ -58,20 +58,20 @@ html {
 }
 
 html.dark-mode {
-    --wood-accent: #ff6b1a;
-    --wood-bg: #171511;
-    --wood-panel: #211f1a;
-    --wood-sunken: #12110d;
-    --wood-fg: #ece7da;
-    --wood-fg-light: #a8a191;
-    --wood-fg-lighter: #6f695c;
-    --wood-line: #37332b;
-    --wood-dot: rgba(236, 231, 218, .13);
-    --wood-code-bg: #211f1a;
-    --wood-code-fg: #d9d3c4;
+    --wood-accent: #f0b429;
+    --wood-bg: #14171a;
+    --wood-panel: #1d2226;
+    --wood-sunken: #0f1214;
+    --wood-fg: #e4e8ea;
+    --wood-fg-light: #9ba5ab;
+    --wood-fg-lighter: #657078;
+    --wood-line: #323a40;
+    --wood-dot: rgba(228, 232, 234, .12);
+    --wood-code-bg: #1d2226;
+    --wood-code-fg: #cfd6da;
     --wood-hl-keyword: #82b4f2;
     --wood-hl-string: #79c490;
-    --wood-hl-function: #ff9a5c;
+    --wood-hl-function: #c9a9f5;
     --wood-hl-special: #e6b04a;
     --wood-picture-filter: brightness(1.07) invert(1) hue-rotate(180deg) brightness(1.3);
     --wood-picture-blend: screen;
@@ -84,7 +84,6 @@ html.dark-mode {
 html, html.dark-mode, html:not(.dark-mode) {
     --font-family: Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     --font-family-monospace: "JetBrains Mono", SFMono-Regular, Consolas, Menlo, monospace;
-    --font-family-dots: Doto, "JetBrains Mono", monospace;
     --page-font-size: 16px;
     --navigation-font-size: 14px;
     --toc-font-size: 14px;
@@ -98,7 +97,7 @@ html, html.dark-mode, html:not(.dark-mode) {
 
     --primary-color: var(--wood-accent);
     --primary-dark-color: var(--wood-accent);
-    --primary-light-color: var(--wood-orange);
+    --primary-light-color: var(--wood-pine);
     --page-background-color: var(--wood-bg);
     --page-foreground-color: var(--wood-fg);
     --page-secondary-foreground-color: var(--wood-fg-light);
@@ -117,7 +116,7 @@ html, html.dark-mode, html:not(.dark-mode) {
     --toc-foreground: var(--wood-fg);
     --header-background: var(--wood-bar);
     --header-foreground: var(--wood-bar-fg);
-    --searchbar-background: rgba(242, 239, 232, .1);
+    --searchbar-background: rgba(244, 245, 246, .1);
     --searchbar-foreground: var(--wood-bar-fg);
     --searchbar-height: 36px;
     --searchbar-width: 234px;
@@ -149,11 +148,11 @@ html, html.dark-mode, html:not(.dark-mode) {
     --bug-color: rgba(196, 59, 59, .12);
     --bug-color-dark: #c43b3b;
     --bug-color-darker: var(--wood-fg);
-    --todo-color: rgba(255, 107, 26, .12);
-    --todo-color-dark: #ff6b1a;
+    --todo-color: rgba(240, 180, 41, .16);
+    --todo-color-dark: #f0b429;
     --todo-color-darker: var(--wood-fg);
-    --deprecated-color: rgba(163, 156, 140, .16);
-    --deprecated-color-dark: #a39c8c;
+    --deprecated-color: rgba(152, 161, 167, .16);
+    --deprecated-color-dark: #98a1a7;
     --deprecated-color-darker: var(--wood-fg);
     --invariant-color: rgba(63, 154, 91, .14);
     --invariant-color-dark: #3f9a5b;
@@ -166,12 +165,12 @@ body {
 }
 
 ::selection {
-    background: var(--wood-orange);
-    color: #1c1a16;
+    background: var(--wood-pine);
+    color: #16191c;
 }
 
 :focus-visible {
-    outline: 2px solid var(--wood-orange);
+    outline: 2px solid var(--wood-pine);
     outline-offset: 2px;
 }
 
@@ -183,7 +182,7 @@ a, a:visited, .contents a:visited, a.el, a.elRef {
 a:hover, .contents a:hover, a.el:hover {
     color: var(--wood-accent);
     text-decoration: underline;
-    text-decoration-color: var(--wood-orange);
+    text-decoration-color: var(--wood-pine);
     text-decoration-thickness: 2px;
     text-underline-offset: 3px;
 }
@@ -194,7 +193,7 @@ a:hover, .contents a:hover, a.el:hover {
 
 #top {
     background: var(--wood-bar);
-    border-bottom: 2px solid var(--wood-orange);
+    border-bottom: none;
     box-shadow: none;
     position: relative;
     z-index: 10;
@@ -252,7 +251,7 @@ doxygen-awesome-dark-mode-toggle > svg {
 }
 
 doxygen-awesome-dark-mode-toggle:hover {
-    background: rgba(242, 239, 232, .1) !important;
+    background: rgba(244, 245, 246, .1) !important;
 }
 
 #projectrepo, #projectrepo:visited, #projectrepo:hover {
@@ -282,18 +281,18 @@ doxygen-awesome-dark-mode-toggle:hover {
 
 #MSearchBox {
     width: var(--searchbar-width);
-    border: 1px solid rgba(242, 239, 232, .18);
+    border: 1px solid rgba(244, 245, 246, .18);
     box-shadow: none;
     background: var(--searchbar-background);
 }
 
 #MSearchBox:hover {
-    border-color: rgba(242, 239, 232, .4);
+    border-color: rgba(244, 245, 246, .4);
 }
 
 #MSearchBox.MSearchBoxActive {
-    background: #f2efe8;
-    border-color: var(--wood-orange);
+    background: #f4f5f6;
+    border-color: var(--wood-pine);
 }
 
 #MSearchField {
@@ -304,11 +303,11 @@ doxygen-awesome-dark-mode-toggle:hover {
 }
 
 #MSearchField::placeholder {
-    color: rgba(242, 239, 232, .65);
+    color: rgba(244, 245, 246, .65);
 }
 
 #MSearchBox.MSearchBoxActive #MSearchField {
-    color: #1c1a16;
+    color: #16191c;
 }
 
 #MSearchBox span.left #MSearchSelect, #MSearchBox .left #MSearchSelectExt {
@@ -375,7 +374,7 @@ doxygen-awesome-dark-mode-toggle:hover {
 #nav-tree .selected {
     background: none;
     border-radius: 0;
-    box-shadow: inset 3px 0 0 var(--wood-orange);
+    box-shadow: inset 3px 0 0 var(--wood-pine);
     text-shadow: none;
 }
 
@@ -473,7 +472,7 @@ ul.page-outline li.vis {
 }
 
 ul.page-outline li.vis > div.item {
-    border-left-color: var(--wood-orange);
+    border-left-color: var(--wood-pine);
 }
 
 ul.page-outline li.vis > div.item a {
@@ -617,14 +616,14 @@ div.contents .textblock > p:first-child:has(> a.anchor:only-child) + h1 {
     margin-top: 8px;
 }
 
-/* the orange mark over a section title */
+/* the mark over a section title */
 div.contents h1::before, div.contents h2.groupheader::before {
     content: "";
     display: block;
     width: 28px;
     height: 3px;
     margin-bottom: 14px;
-    background: var(--wood-orange);
+    background: var(--wood-pine);
 }
 
 div.contents h3, div.contents h4 {
@@ -755,13 +754,13 @@ pre.mermaid .node rect, pre.mermaid .node polygon, pre.mermaid .node circle {
 }
 
 pre.mermaid .edgePaths path, pre.mermaid .flowchart-link {
-    stroke: var(--wood-orange) !important;
+    stroke: var(--wood-pine) !important;
     stroke-width: 1.5px !important;
 }
 
 pre.mermaid marker path {
-    fill: var(--wood-orange) !important;
-    stroke: var(--wood-orange) !important;
+    fill: var(--wood-pine) !important;
+    stroke: var(--wood-pine) !important;
 }
 
 pre.mermaid .nodeLabel, pre.mermaid .edgeLabel, pre.mermaid .nodeLabel p, pre.mermaid .edgeLabel p {
@@ -888,7 +887,7 @@ dl.invariant, dl.pre, dl.post, dl.remark, dl.see {
 }
 
 blockquote {
-    border-left: 3px solid var(--wood-orange);
+    border-left: 3px solid var(--wood-pine);
     color: var(--wood-fg-light);
 }
 
@@ -920,7 +919,7 @@ div.contents img[src$=".jpg"] {
 
 /* the floor's steps: a legend names the colors of the picture over it, so the pictures keep them */
 div.contents:has(span[style^="color:"]) div.image {
-    background: #fbf9f4;
+    background: #ffffff;
 }
 
 div.contents:has(span[style^="color:"]) div.image img {
@@ -1033,8 +1032,8 @@ a.wood-card, a.wood-card:visited {
 }
 
 a.wood-card:hover, a.wood-card:focus-visible {
-    border-color: var(--wood-orange);
-    box-shadow: 5px 5px 0 var(--wood-orange);
+    border-color: var(--wood-pine);
+    box-shadow: 5px 5px 0 var(--wood-pine);
     transform: translate(-3px, -3px);
     color: var(--wood-fg) !important;
 }
@@ -1048,7 +1047,7 @@ div.contents .wood-card img {
     box-sizing: border-box;
 }
 
-/* a card's name behind an orange square, always starting with a capital */
+/* a card's name behind a square, always starting with a capital */
 .wood-card .wood-card-title {
     display: block;
     position: relative;
@@ -1068,7 +1067,7 @@ div.contents .wood-card img {
     top: 19px;
     width: 7px;
     height: 7px;
-    background: var(--wood-orange);
+    background: var(--wood-pine);
 }
 
 /* ==================================================================
@@ -1119,11 +1118,8 @@ div.contents:has(.wood-hero) {
     text-wrap: balance;
 }
 
-.wood-hero-title .wood-dots {
-    color: var(--wood-orange);
-    font-family: var(--font-family-dots);
-    font-weight: 900;
-    letter-spacing: -.02em;
+.wood-hero-title .wood-mark {
+    color: var(--wood-accent);
 }
 
 .wood-hero-line {
@@ -1149,10 +1145,10 @@ div.contents:has(.wood-hero) {
 
 .wood-hero svg .face { fill: var(--wood-panel); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
 .wood-hero svg .side { fill: var(--wood-sunken); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .cut { fill: var(--wood-orange); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .cut-side { fill: #c94e0c; stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .contact { fill: var(--wood-orange); fill-opacity: .22; stroke: var(--wood-orange); stroke-width: 2; stroke-linejoin: round; }
-.wood-hero svg .guide { fill: none; stroke: var(--wood-orange); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.wood-hero svg .cut { fill: var(--wood-pine); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .cut-side { fill: #b9851a; stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .contact { fill: var(--wood-pine); fill-opacity: .22; stroke: var(--wood-pine); stroke-width: 2; stroke-linejoin: round; }
+.wood-hero svg .guide { fill: none; stroke: var(--wood-pine); stroke-width: 1.2; stroke-dasharray: 3 4; }
 .wood-hero svg .leader { fill: none; stroke: var(--wood-fg); stroke-width: 1.2; }
 .wood-hero svg .leader-end { fill: var(--wood-fg); }
 .wood-hero svg .name { fill: var(--wood-fg); font: 600 24px var(--font-family); }
@@ -1181,7 +1177,9 @@ div.contents:has(.wood-hero) {
     content: counter(chapter, decimal-leading-zero);
     grid-row: span 2;
     color: var(--wood-accent);
-    font: 900 clamp(48px, 5vw, 72px) / 1 var(--font-family-dots);
+    font: 500 clamp(30px, 3.4vw, 44px) / 1.15 var(--font-family);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
     align-self: start;
 }
 
@@ -1218,8 +1216,8 @@ div.contents .wood-landing img {
 
 .wood-landing a.wood-chapter:hover .wood-chapter-picture,
 .wood-landing a.wood-chapter:focus-visible .wood-chapter-picture {
-    border-color: var(--wood-orange);
-    box-shadow: 8px 8px 0 var(--wood-orange);
+    border-color: var(--wood-pine);
+    box-shadow: 8px 8px 0 var(--wood-pine);
     transform: translate(-4px, -4px);
 }
 
