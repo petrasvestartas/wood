@@ -1,96 +1,141 @@
-"""The drawing of the landing page: one tenon joint taken apart in an isometric view, written as docs/doxygen/hero.svg.
+"""The film of the landing page: the timber floor of templates_floor_7_contacts_cantilevers coming apart family by family, its
+connectors brown, and going together again, a loop. Every frame is drawn by the viewer's native renderer from one isometric
+camera and cropped alike; written as docs/doxygen/hero.mp4, hero_small.mp4
+for phones and hero.webp, its still apart (the poster).
 
-    python3 tools/render_hero.py
+    uv run --with av --with pillow tools/render_hero.py [frames of the way apart]"""
 
-An upright with three tenons, the contact it makes with its base, and the base with the mortises cut. The classes are
-styled by docs/doxygen/wood.css, so the drawing follows the scheme toggle; src/docs.md includes it in the page."""
-
-import math
+import concurrent.futures
+import os
 import pathlib
+import subprocess
+import sys
+import tempfile
 
-WOOD = pathlib.Path(__file__).resolve().parent.parent
-LENGTH, THICKNESS, HEIGHT = 300.0, 52.0, 150.0  # the upright
-TENONS = [(30.0, 90.0), (120.0, 180.0), (210.0, 270.0)]  # along the upright
-DEPTH = 44.0  # of a tenon, the thickness of the base
-BASE = (-40.0, 340.0, -84.0, 136.0)  # x from, x to, y from, y to
-UPRIGHT_Z, CONTACT_Z, BASE_Z = 330.0, 130.0, 0.0  # the three levels, drawn apart
+import av
+from PIL import Image, ImageChops
 
+WOOD = pathlib.Path(__file__).resolve().parents[1]
+SESSION = WOOD.parent / "session"
+PYTHON = SESSION / "session_py/.venv/bin/python"
+RENDERER = SESSION / "session_viewer/target/x86_64-unknown-linux-gnu/release/examples/selftest"
+EXAMPLE = "templates_floor_7_contacts_cantilevers"
+RENDERED = (3200, 2600)  # What is drawn, before the crop.
+WIDTHS = {"hero.mp4": 1200, "hero_small.mp4": 640}  # Of the film and of its copy for phones, whose thin lines a browser would break up.
+RATE = 30
 
-def project(x: float, y: float, z: float) -> tuple[float, float]:
-    """The screen point of a model point, seen from (+, +, +)."""
-    return (x - y) * math.cos(math.radians(30)), (x + y) * math.sin(math.radians(30)) - z
+# The frames as scenes: every element placed by its family's way apart, the family's share of it eased and delayed, so the beds
+# lift first and the columns come last. Lines in the background's colour at the corners of every frame's bounds keep the camera.
+SCENES = r"""
+import sys
+from session_py.session import Session
+from session_py.xform import Xform
+from session_py.color import Color
+from session_py.line import Line
+from session_py.point import Point
+source, out, count, first, last = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])
+BROWN = Color(0.4196, 0.2667, 0.1373, 1.0)  # #AD8D68, linear
+OUT = 620.0  # every quarter away from the seams
+# a family's name, its lift, how far out it goes (in OUT) and when it starts (of the whole way)
+FAMILIES = [
+    ("beds", 2350.0, 1.0, 0.00), ("tsections", 1500.0, 1.0, 0.10), ("connector_pins_outer", 1150.0, 1.0, 0.18), ("wedges", 1250.0, 1.0, 0.18),
+    ("inner_ribs", 950.0, 1.0, 0.22), ("outer_ribs", 620.0, 1.0, 0.26), ("inner_beams", 620.0, 0.45, 0.26), ("connector_seam", 620.0, 0.0, 0.26),
+    ("connector_oculus", 620.0, 0.0, 0.26), ("connector_column_plate", 420.0, 1.0, 0.30), ("column_plate", 420.0, 1.0, 0.30), ("column", 0.0, 1.0, 0.34), ("support", -420.0, 1.0, 0.34),
+    ("connector", 620.0, 1.0, 0.26), ("", 620.0, 0.0, 0.26),
+]
+LONG = 1.0 - 0.34
 
+def placement(element, t):
+    family = next(f for f in FAMILIES if element.name.startswith(f[0]))
+    share = min(max((t - family[3]) / LONG, 0.0), 1.0)
+    share = share * share * (3.0 - 2.0 * share)
+    # the quarter it lies in, none on a seam
+    centre = element.aabb.center
+    x, y = ((centre[k] > 1.0) - (centre[k] < -1.0) for k in (0, 1))
+    return Xform.translation(x * OUT * family[2] * share, y * OUT * family[2] * share, family[1] * share)
 
-def path(points: list[tuple[float, float, float]]) -> str:
-    """The closed path through model points."""
-    return "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in (project(*point) for point in points)) + " Z"
-
-
-def face(name: str, points: list[tuple[float, float, float]], extra: str = "") -> str:
-    """A filled face of a css class."""
-    return f'<path class="{name}" d="{path(points)}"{extra}/>'
-
-
-def box(x0: float, x1: float, y0: float, y1: float, z0: float, z1: float, front: str, side: str) -> list[str]:
-    """The two upright faces of a box that are seen: the one towards +y and the one towards +x."""
-    return [
-        face(side, [(x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1)]),
-        face(front, [(x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)]),
-    ]
-
-
-def top(x0: float, x1: float, y0: float, y1: float, z: float) -> list[tuple[float, float, float]]:
-    """A rectangle at a height."""
-    return [(x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z)]
-
-
-def label(point: tuple[float, float, float], name: str, says: str) -> list[str]:
-    """A leader from a model point out to the right, with the name of what it points at and what it is."""
-    x, y = project(*point)
-    end = 372.0
-    return [
-        f'<path class="leader" d="M{x:.1f} {y:.1f} H{end}"/>',
-        f'<circle class="leader-end" cx="{x:.1f}" cy="{y:.1f}" r="3.5"/>',
-        f'<text class="name" x="{end + 12}" y="{y + 1:.1f}">{name}</text>',
-        f'<text class="says" x="{end + 12}" y="{y + 23:.1f}">{says}</text>',
-    ]
-
-
-def main() -> None:
-    lines: list[str] = []
-
-    # base: its sides, its top, then every mortise: the two walls seen through the opening, clipped by it
-    x0, x1, y0, y1 = BASE
-    lines += box(x0, x1, y0, y1, BASE_Z - DEPTH, BASE_Z, "side", "side")
-    lines.append(face("face", top(x0, x1, y0, y1, BASE_Z)))
-    for i, (a, b) in enumerate(TENONS):
-        opening = top(a, b, 0.0, THICKNESS, BASE_Z)
-        lines.append(f'<clipPath id="mortise-{i}"><path d="{path(opening)}"/></clipPath>')
-        clip = f' clip-path="url(#mortise-{i})"'
-        lines.append(face("cut", [(a, 0.0, BASE_Z), (a, THICKNESS, BASE_Z), (a, THICKNESS, BASE_Z - DEPTH), (a, 0.0, BASE_Z - DEPTH)], clip))
-        lines.append(face("cut-side", [(a, 0.0, BASE_Z), (b, 0.0, BASE_Z), (b, 0.0, BASE_Z - DEPTH), (a, 0.0, BASE_Z - DEPTH)], clip))
-        lines.append(f'<path class="guide" style="stroke-dasharray:none" d="{path(opening)}"/>')
-
-    # contact: the face the two members share, with the guides it hangs between
-    for x, y in ((0.0, THICKNESS), (LENGTH, 0.0), (LENGTH, THICKNESS)):
-        a, b = project(x, y, BASE_Z), project(x, y, UPRIGHT_Z)
-        lines.append(f'<path class="guide" d="M{a[0]:.1f} {a[1]:.1f} L{b[0]:.1f} {b[1]:.1f}"/>')
-    lines.append(face("contact", top(0.0, LENGTH, 0.0, THICKNESS, CONTACT_Z)))
-
-    # upright: its tenons from the back to the front, then its body
-    for a, b in TENONS:
-        lines += box(a, b, 0.0, THICKNESS, UPRIGHT_Z - DEPTH, UPRIGHT_Z, "cut", "cut-side")
-    lines += box(0.0, LENGTH, 0.0, THICKNESS, UPRIGHT_Z, UPRIGHT_Z + HEIGHT, "face", "side")
-    lines.append(face("face", top(0.0, LENGTH, 0.0, THICKNESS, UPRIGHT_Z + HEIGHT)))
-
-    # labels
-    lines += label((LENGTH, THICKNESS / 2, UPRIGHT_Z + HEIGHT / 2), "Elements", "the members, uncut")
-    lines += label((LENGTH, THICKNESS / 2, CONTACT_Z), "Contacts", "where they touch")
-    lines += label((x1, y0 + 30.0, BASE_Z), "Joints", "what they cut")
-
-    title = "A tenon joint taken apart: the upright, the contact and the base"
-    svg = f'<svg viewBox="-230 -420 760 660" role="img" aria-label="{title}">\n' + "\n".join(lines) + "\n</svg>\n"
-    (WOOD / "docs/doxygen/hero.svg").write_text(svg)
+paths = []
+for frame in range(first, last):
+    scene = Session.pb_load(source)
+    for edge in list(scene.interactions):
+        scene.interactions[edge] = []
+    for drawn in list(scene.objects.lines) + list(scene.objects.planes) + list(scene.objects.polylines):
+        scene.remove_object(drawn.guid)
+    for element in list(scene.objects.elements):
+        if "cutters" in element.name:
+            scene.remove_object(element.guid)
+            continue
+        element.set_features([])
+        element.place(placement(element, frame / (count - 1)))
+        if element.name.startswith(("connector", "column_plate")):
+            scene.set_node_color(scene.get_node(element.guid), BROWN)
+    for a in ((-4200.0, -4200.0, -600.0), (4200.0, 4200.0, 6200.0)):
+        mark = Line.from_points(Point(*a), Point(a[0] + 0.5, a[1], a[2]))
+        mark.linecolor = Color(0.969, 0.969, 0.969, 1.0)
+        scene.add_line(mark, None)
+    paths.append("%s/frame_%03d.pb" % (out, frame))
+    scene.pb_dump(paths[-1])
+"""
 
 
-main()
+def render(scene: pathlib.Path) -> Image.Image:
+    """A scene drawn isometric in the Arctic look, as the joint library's pictures."""
+    env = dict(
+        os.environ, VIEWER_SHEETS="0", VIEWER_OPACITY="1.0", VIEWER_W=str(RENDERED[0]), VIEWER_H=str(RENDERED[1]), VIEWER_DPR="1",
+        VIEWER_THICKNESS="0.5", VIEWER_VIEW="iso", VIEWER_PLANE_SIZE="0", VIEWER_NO_GRID="1", VIEWER_AO="1", VIEWER_OUTLINES="1",
+    )
+    picture = scene.with_suffix(".ppm")
+    subprocess.run([str(RENDERER), str(picture), str(scene)], env=env, check=True, capture_output=True)
+    image = Image.open(picture).convert("RGB")
+    picture.unlink()
+    return image
+
+
+def write_film(path: pathlib.Path, images: list) -> None:
+    """The images as a silent H.264 film every browser plays."""
+    with av.open(str(path), "w", options={"movflags": "faststart"}) as film:
+        stream = film.add_stream("libx264", rate=RATE)
+        stream.width, stream.height, stream.pix_fmt = *images[0].size, "yuv420p"
+        stream.options = {"crf": "24", "preset": "veryslow", "tune": "animation"}
+        for image in images:
+            film.mux(stream.encode(av.VideoFrame.from_image(image)))
+        film.mux(stream.encode())
+
+
+def main(count: int) -> None:
+    """Draws count frames of the way apart and writes the film and its poster."""
+    with tempfile.TemporaryDirectory() as tmp:
+        # the floor's scene, written by its example to a folder of its own
+        source = pathlib.Path(tmp) / "floor.pb"
+        live = WOOD / "data/output/pb/live.pb"
+        kept = live.read_bytes() if live.exists() else None
+        subprocess.run([str(WOOD / "build" / EXAMPLE)], cwd=WOOD, check=True, capture_output=True)
+        source.write_bytes(live.read_bytes())
+        if kept is not None:
+            live.write_bytes(kept)
+
+        # the scenes, four processes at once, then the pictures one by one
+        bounds = [round(k * count / 4) for k in range(5)]
+        runs = [subprocess.Popen([str(PYTHON), "-c", SCENES, str(source), tmp, str(count), str(a), str(b)]) for a, b in zip(bounds, bounds[1:])]
+        if any([run.wait() for run in runs]):
+            raise SystemExit("a scene was not written")
+        images = [render(pathlib.Path(tmp) / f"frame_{frame:03d}.pb") for frame in range(count)]
+
+    # cropped alike to what any frame draws, with a margin, an even number of pixels each way
+    clear = images[0].getpixel((2, 2))
+    box = None
+    for image in images:
+        drawn = ImageChops.difference(image, Image.new("RGB", image.size, clear)).convert("L").point(lambda value: 255 if value > 14 else 0).getbbox()
+        box = drawn if box is None else (min(box[0], drawn[0]), min(box[1], drawn[1]), max(box[2], drawn[2]), max(box[3], drawn[3]))
+    box = (box[0] - 24, box[1] - 24, box[2] + 24, box[3] + 24)
+    folder = WOOD / "docs/doxygen"
+    for name, width in WIDTHS.items():
+        size = (width, round((box[3] - box[1]) * width / (box[2] - box[0]) / 2) * 2)
+        scaled = [image.crop(box).resize(size, Image.Resampling.LANCZOS) for image in images]
+        write_film(folder / name, [scaled[-1]] * 50 + scaled[::-1] + [scaled[0]] * 34 + scaled)
+        if name == "hero.mp4":
+            scaled[-1].save(folder / "hero.webp", quality=90, method=6)
+        print(name, size, (folder / name).stat().st_size)
+
+
+main(int(sys.argv[1]) if len(sys.argv) > 1 else 48)

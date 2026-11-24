@@ -55,11 +55,11 @@ $extrastylesheet
 <script type="text/javascript">
   DoxygenAwesomeDarkModeToggle.init();
   // Doxygen saves the panel widths at every window resize, so one narrow window left the tree collapsed for
-  // good: a width under 150 px is neither saved nor restored, the tree opens at 280 px again.
+  // good: a width under 150 px, of the tree or the outline, is neither saved nor restored, it opens at 280 px again.
   if (typeof Cookie !== "undefined") {
     const read = Cookie.readSetting.bind(Cookie), write = Cookie.writeSetting.bind(Cookie);
-    Cookie.readSetting = (name, fallback) => { const value = read(name, fallback); return name === "width" && parseInt(value) < 150 ? 280 : value; };
-    Cookie.writeSetting = (name, value, days) => { if (name !== "width" || parseInt(value) >= 150) write(name, value, days); };
+    Cookie.readSetting = (name, fallback) => { const value = read(name, fallback); return (name === "width" || name === "pagenav") && parseInt(value) < 150 ? 280 : value; };
+    Cookie.writeSetting = (name, value, days) => { if ((name !== "width" && name !== "pagenav") || parseInt(value) >= 150) write(name, value, days); };
   }
 </script>
 </head>

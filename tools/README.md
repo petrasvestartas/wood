@@ -20,7 +20,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | `images/examples/ex_*.webp`, `images/diagrams/wood_architecture`, `wood_joint_unit_box`, `wood_boolean_cutting`, `wood_beam_joints_connectors`, `images/landing/landing_architecture` | `python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]` |
 | `images/diagrams/wood_elements_sheet_1_elements.webp` | `python tools/render_element_sheets.py` (after the element pictures) |
 | `images/joint_library/` | `bash tools/joint_library_figures/make.sh` (the other native-renderer pipeline: labelled tiles, trimmed and scaled; not yet on the viewer tool) |
-| `doxygen/hero.svg` (the landing page's drawing, styled by `doxygen/wood.css`) | `python3 tools/render_hero.py` |
+| `doxygen/hero.mp4`, `hero_small.mp4`, `hero.webp` (the landing page's film and its poster) | `uv run --with av --with pillow tools/render_hero.py` (builds on `templates_floor_7_contacts_cantilevers`; native renderer) |
 | `templates/floor/` | the `wood-film-docs` skill |
 
 Not yet made by a recipe (listed in `UNRECIPED` in `check_element_pages.py`): `two_plates.png`,

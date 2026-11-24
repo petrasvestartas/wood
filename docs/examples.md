@@ -4,15 +4,15 @@
 
 ## Build and run
 
-Needs Git, CMake 3.22 or newer and a C++23 compiler (Visual Studio 2022, GCC 13 or Clang 17). The first configure downloads the kernel and its libraries, so it takes a few minutes.
+```bash
+git clone https://github.com/petrasvestartas/wood.git && cd wood
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --target two_plates --parallel 6
+./build/two_plates                                   # build\Release\two_plates.exe on Windows
+bash ../bash/publish-scene.sh --target two_plates    # shows data/output/pb/live.pb in the viewer
+```
 
-1. Clone: `git clone https://github.com/petrasvestartas/wood.git` and `cd wood`
-2. Configure: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release`
-3. Build one example: `cmake --build build --config Release --target two_plates --parallel 6`
-4. Run it: `./build/two_plates` on Linux, `build\Release\two_plates.exe` on Windows
-5. View: the run writes `data/output/pb/live.pb`; `bash ../bash/publish-scene.sh --target two_plates` publishes it to the [viewer](https://petrasvestartas.github.io/session/)
-
-Every other example builds and runs the same way with its own target name.
+Git, CMake 3.22 and a C++23 compiler (Visual Studio 2022, GCC 13, Clang 17); every example builds by its target name.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#ex_two_plates">

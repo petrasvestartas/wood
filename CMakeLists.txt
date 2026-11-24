@@ -582,6 +582,10 @@ if(DOXYGEN_FOUND)
     )
     set(DOXYGEN_HTML_EXTRA_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome-darkmode-toggle.js
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/app.js
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero.mp4
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero_small.mp4
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero.webp
         ${WOOD_DOC_EXTRA_IMAGES}
     )
     set(DOXYGEN_HTML_COLORSTYLE LIGHT)

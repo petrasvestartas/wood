@@ -6,7 +6,8 @@
  * ================================================================== */
 
 html {
-    --wood-pine: #f0b429; /* fills, rules, shadows */
+    --wood-pine: #f0b429;
+    --wood-brown: #96754e; /* the pictures' brown as text */ /* fills, rules, shadows */
     --wood-accent: #7d5a00; /* pine as text, dark enough to read on white */
     --wood-bg: #f4f5f6;
     --wood-panel: #ffffff;
@@ -36,6 +37,7 @@ html {
 @media (prefers-color-scheme: dark) {
     html:not(.light-mode) {
         --wood-accent: #f0b429;
+        --wood-brown: #c9a77c;
         --wood-bg: #14171a;
         --wood-panel: #1d2226;
         --wood-sunken: #0f1214;
@@ -59,6 +61,7 @@ html {
 
 html.dark-mode {
     --wood-accent: #f0b429;
+    --wood-brown: #c9a77c;
     --wood-bg: #14171a;
     --wood-panel: #1d2226;
     --wood-sunken: #0f1214;
@@ -1047,27 +1050,14 @@ div.contents .wood-card img {
     box-sizing: border-box;
 }
 
-/* a card's name behind a square, always starting with a capital */
+/* a card's name, always starting with a capital */
 .wood-card .wood-card-title {
     display: block;
-    position: relative;
-    margin-top: 10px;
-    padding: 12px 14px 13px 31px;
-    border-top: 1px solid var(--wood-line);
+    padding: 4px 16px 15px;
 }
 
 .wood-card .wood-card-title::first-letter {
     text-transform: uppercase;
-}
-
-.wood-card .wood-card-title::before {
-    content: "";
-    position: absolute;
-    left: 14px;
-    top: 19px;
-    width: 7px;
-    height: 7px;
-    background: var(--wood-pine);
 }
 
 /* ==================================================================
@@ -1085,23 +1075,14 @@ div.contents:has(.wood-hero) {
 .wood-hero {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    grid-template-columns: minmax(0, .62fr) minmax(0, 1fr);
     align-items: center;
-    gap: 24px;
-    margin: 0 calc(-1 * var(--wood-gutter)) 24px;
-    padding: 48px max(var(--wood-gutter), (100% - var(--content-maxwidth) + 2 * var(--wood-gutter)) / 2) 64px;
+    gap: 32px;
+    min-height: calc(100vh - var(--wood-header-height));
+    margin: 0 calc(-1 * var(--wood-gutter));
+    padding: 16px max(var(--wood-gutter), (100% - 1560px) / 2);
+    box-sizing: border-box;
     overflow: hidden;
-}
-
-/* a ridge of dots rising from the foot of the hero */
-.wood-hero::after {
-    content: "";
-    position: absolute;
-    inset: 40% 0 0;
-    background: radial-gradient(circle, var(--wood-dot) 1.3px, transparent 1.8px) 0 0 / 7px 7px;
-    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-opacity='.35'/%3E%3Cstop offset='1' stop-opacity='1'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23g)' d='M0 22 L4 21 L7 17 L13 18 L17 14 L22 15 L27 20 L33 22 L39 19 L44 20 L50 24 L57 22 L62 17 L66 18 L71 12 L76 10 L80 13 L85 8 L90 6 L94 9 L100 4 V40 H0Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-opacity='.35'/%3E%3Cstop offset='1' stop-opacity='1'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23g)' d='M0 22 L4 21 L7 17 L13 18 L17 14 L22 15 L27 20 L33 22 L39 19 L44 20 L50 24 L57 22 L62 17 L66 18 L71 12 L76 10 L80 13 L85 8 L90 6 L94 9 L100 4 V40 H0Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
-    pointer-events: none;
 }
 
 .wood-hero > * {
@@ -1109,101 +1090,85 @@ div.contents:has(.wood-hero) {
     z-index: 1;
 }
 
+/* the film is drawn on the pictures' backdrop: it is lifted and blended as they are, so it stands on the page itself */
+.wood-film {
+    display: block;
+    width: 100%;
+    max-height: calc(100vh - var(--wood-header-height) - 48px);
+    object-fit: contain;
+    filter: var(--wood-picture-filter);
+    mix-blend-mode: var(--wood-picture-blend);
+}
+
 .wood-hero-title {
     display: block;
-    font-size: clamp(44px, 5.4vw, 84px);
+    font-size: clamp(44px, 4.6vw, 84px);
     font-weight: 600;
     line-height: 1.02;
-    letter-spacing: -.03em;
+    letter-spacing: -.035em;
     text-wrap: balance;
 }
 
 .wood-hero-title .wood-mark {
-    color: var(--wood-accent);
+    color: var(--wood-brown);
 }
 
-.wood-hero-line {
-    display: block;
-    max-width: 44ch;
-    margin: 24px 0 0;
-    font-size: clamp(17px, 1.4vw, 20px);
-    line-height: 1.5;
+.wood-hero-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 40px;
 }
 
-.wood-hero-line.wood-light {
-    margin-top: 14px;
-    font-size: 15px;
-    color: var(--wood-fg-light);
+a.wood-button, a.wood-button:visited {
+    padding: 11px 22px;
+    border: 1px solid var(--wood-line);
+    border-radius: 99px;
+    background: var(--wood-panel);
+    color: var(--wood-fg) !important;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: border-color .15s ease, transform .15s ease;
 }
 
-.wood-hero svg {
-    display: block;
-    width: 100%;
-    height: auto;
-    overflow: visible;
+a.wood-button.main, a.wood-button.main:visited {
+    border-color: var(--wood-fg);
+    background: var(--wood-fg);
+    color: var(--wood-bg) !important;
 }
 
-.wood-hero svg .face { fill: var(--wood-panel); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .side { fill: var(--wood-sunken); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .cut { fill: var(--wood-pine); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .cut-side { fill: #b9851a; stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
-.wood-hero svg .contact { fill: var(--wood-pine); fill-opacity: .22; stroke: var(--wood-pine); stroke-width: 2; stroke-linejoin: round; }
-.wood-hero svg .guide { fill: none; stroke: var(--wood-pine); stroke-width: 1.2; stroke-dasharray: 3 4; }
-.wood-hero svg .leader { fill: none; stroke: var(--wood-fg); stroke-width: 1.2; }
-.wood-hero svg .leader-end { fill: var(--wood-fg); }
-.wood-hero svg .name { fill: var(--wood-fg); font: 600 24px var(--font-family); }
-.wood-hero svg .says { fill: var(--wood-fg-light); font: 400 16px var(--font-family); }
+a.wood-button:hover {
+    border-color: var(--wood-pine);
+    transform: translateY(-2px);
+}
 
 .wood-landing {
     display: flex;
     flex-direction: column;
-    gap: 88px;
-    max-width: calc(var(--content-maxwidth) - 2 * var(--wood-gutter));
-    margin: 64px auto 24px;
-    counter-reset: chapter;
+    gap: 64px;
+    max-width: 1560px;
+    margin: 48px auto 24px;
 }
 
 .wood-landing a.wood-chapter {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 20px;
-    align-items: baseline;
-    text-decoration: none !important;
+    display: block;
     color: var(--wood-fg) !important;
-    counter-increment: chapter;
-}
-
-.wood-landing a.wood-chapter::before {
-    content: counter(chapter, decimal-leading-zero);
-    grid-row: span 2;
-    color: var(--wood-accent);
-    font: 500 clamp(30px, 3.4vw, 44px) / 1.15 var(--font-family);
-    letter-spacing: -.02em;
-    font-variant-numeric: tabular-nums;
-    align-self: start;
+    text-decoration: none !important;
 }
 
 .wood-landing .wood-chapter-title {
     display: block;
-    font-size: clamp(30px, 3.4vw, 44px);
+    font-size: clamp(28px, 3vw, 44px);
     font-weight: 600;
     line-height: 1.15;
     letter-spacing: -.02em;
 }
 
-.wood-landing .wood-chapter-line {
-    display: block;
-    font-size: clamp(16px, 1.4vw, 19px);
-    font-weight: 400;
-    color: var(--wood-fg-light);
-    margin: 4px 0 0;
-}
-
 .wood-landing .wood-chapter-picture {
     isolation: isolate;
     display: block;
-    grid-column: 1 / -1;
-    margin-top: 24px;
+    margin-top: 18px;
     background: var(--wood-panel);
     border: 1px solid var(--wood-line);
     border-radius: var(--wood-radius);
@@ -1212,6 +1177,8 @@ div.contents:has(.wood-hero) {
 
 div.contents .wood-landing img {
     width: 100%;
+    max-height: 72vh;
+    object-fit: contain;
 }
 
 .wood-landing a.wood-chapter:hover .wood-chapter-picture,
@@ -1219,6 +1186,260 @@ div.contents .wood-landing img {
     border-color: var(--wood-pine);
     box-shadow: 8px 8px 0 var(--wood-pine);
     transform: translate(-4px, -4px);
+}
+
+/* ==================================================================
+ * Pages (app.js): tabs, then per section its figures beside its source
+ * ================================================================== */
+
+html.wood-app {
+    --content-maxwidth: 1720px;
+}
+
+html.wood-app #page-nav, html.wood-app #page-nav-resize-handle {
+    display: none !important;
+}
+
+html.wood-app div.contents {
+    display: block;
+}
+
+html.wood-app #container {
+    grid-template-columns: auto !important;
+}
+
+.wood-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    gap: 4px;
+    margin: 0 calc(-1 * var(--wood-gutter)) 8px;
+    padding: 10px var(--wood-gutter);
+    border-bottom: 1px solid var(--wood-line);
+    background: var(--wood-bg);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.wood-tabs a, .wood-tabs a:visited {
+    flex: none;
+    padding: 6px 14px;
+    border-radius: 99px;
+    color: var(--wood-fg-light) !important;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.wood-tabs a:hover {
+    color: var(--wood-fg) !important;
+    background: var(--wood-sunken);
+}
+
+.wood-tabs a.on {
+    color: var(--wood-bg) !important;
+    background: var(--wood-fg);
+}
+
+.wood-section {
+    margin: 0 0 8px;
+}
+
+.wood-tabs + .wood-section {
+    padding-top: 12px;
+}
+
+.wood-section .doxsection .anchor {
+    scroll-margin-top: 72px;
+}
+
+div.contents .wood-lead {
+    max-width: 92ch;
+    margin: 0 0 18px;
+    color: var(--wood-fg-light);
+    font-size: 17px;
+    line-height: 1.5;
+}
+
+.wood-cut {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.wood-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.wood-panes > .wood-codes {
+    position: sticky;
+    top: 68px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.wood-figures {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.wood-section > .wood-figures.many {
+    grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+}
+
+div.contents .wood-figures > * {
+    min-width: 0;
+    margin: 0 !important;
+}
+
+div.contents .wood-figures > p {
+    isolation: isolate;
+    max-width: none;
+    padding: 16px;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    background: var(--wood-panel);
+}
+
+div.contents .wood-figures img {
+    max-height: 70vh;
+}
+
+/* a joint's row: its assembly large, the joint and its tile under it */
+.wood-figures table.markdownTable:has(img.inline), .wood-figures table.markdownTable:has(img.inline) tbody {
+    display: block !important;
+    border: none;
+}
+
+.wood-figures table.markdownTable:has(img.inline) tr.markdownTableHead {
+    display: none;
+}
+
+.wood-figures table.markdownTable:has(img.inline) tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.wood-figures table.markdownTable:has(img.inline) td {
+    isolation: isolate;
+    flex: 1 1 calc(50% - 60px);
+    padding: 12px;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    background: var(--wood-panel);
+}
+
+.wood-figures table.markdownTable:has(img.inline) td:first-child {
+    flex-basis: 100%;
+}
+
+.wood-figures table.markdownTable:has(img.inline) td:not(:has(img)) {
+    display: none;
+}
+
+.wood-source {
+    position: relative;
+    min-width: 0;
+    margin: 0 0 14px;
+}
+
+.wood-codes .wood-source {
+    margin: 0;
+}
+
+.wood-source > * {
+    margin: 0 !important;
+}
+
+.wood-source > div.fragment, .wood-source > pre {
+    max-height: min(62vh, 640px);
+    overflow: auto;
+    box-sizing: border-box;
+}
+
+.wood-source.open > div.fragment, .wood-source.open > pre {
+    max-height: none;
+}
+
+.wood-expand {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    padding: 5px 14px;
+    border: 1px solid var(--wood-line);
+    border-radius: 99px;
+    background: var(--wood-panel);
+    color: var(--wood-fg);
+    font: 500 13px var(--font-family);
+    cursor: pointer;
+}
+
+.wood-expand:hover {
+    border-color: var(--wood-pine);
+}
+
+.wood-notes {
+    margin: 12px 0 0;
+    color: var(--wood-fg-light);
+}
+
+.wood-notes > summary {
+    display: block;
+    width: fit-content;
+    padding: 4px 0;
+    color: var(--wood-fg-light);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    list-style: none;
+}
+
+.wood-notes > summary::before {
+    content: none !important;
+}
+
+.wood-notes > summary::after {
+    content: " +";
+}
+
+.wood-notes[open] > summary::after {
+    content: " \2212";
+}
+
+.wood-notes > summary:hover {
+    color: var(--wood-accent);
+}
+
+.wood-notes > :not(summary) {
+    max-width: 92ch;
+    font-size: 15px;
+}
+
+div.contents .wood-legend, div.contents .wood-code-link {
+    margin: 12px 0 0;
+    max-width: none;
+    font-size: 14px;
+    color: var(--wood-fg-light);
+}
+
+@media screen and (max-width: 1100px) {
+    .wood-panes {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .wood-panes > .wood-codes {
+        position: static;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1261,16 +1482,10 @@ div.contents .wood-landing img {
 @media screen and (max-width: 900px) {
     .wood-hero {
         grid-template-columns: minmax(0, 1fr);
-        gap: 40px;
+        min-height: 0;
+        padding-top: 48px;
     }
 
-    .wood-hero svg .name {
-        font-size: 32px;
-    }
-
-    .wood-hero svg .says {
-        display: none;
-    }
 }
 
 @media screen and (max-width: 767px) {
