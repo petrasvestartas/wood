@@ -291,10 +291,33 @@ void Truss::add_plated_node(const Point& node) {
                 if (!add_miter(webs[j], webs[k], node))
                     sharp.push_back(steepness(*webs[j]) >= steepness(*webs[k]) ? std::array<std::shared_ptr<EdgeStraightElement>, 2>{webs[j], webs[k]} : std::array<std::shared_ptr<EdgeStraightElement>, 2>{webs[k], webs[j]});
 
-        // then every web flush on the chords' faces
+        // a chord ending here with no other chord (an outer corner) runs on to the far face of the webs, so the corner is wood
+        for (const std::shared_ptr<EdgeStraightElement>& chord : chords) {
+            if (chords.size() > 1 || webs.empty())
+                continue;
+            double reach = 0.0;
+            for (const std::shared_ptr<EdgeStraightElement>& web : webs) {
+                const double sine = away_from(*chord, node).cross(away_from(*web, node)).magnitude();
+                reach = std::max(reach, extent(*web, plane_normal().cross(away_from(*web, node)).normalized()) / std::max(sine, 0.2));
+            }
+            add_run_on(chord, node, reach);
+        }
+
+        // then every web flush on the chords' faces: it loses the chord as mitered with its section carried a millimetre past its
+        // ends, one clean face that meets no other face on the node (coinciding faces leave a boolean slivers)
         for (const std::shared_ptr<EdgeStraightElement>& web : webs)
-            for (const std::shared_ptr<EdgeStraightElement>& chord : chords)
-                bear(chord, web);
+            for (const std::shared_ptr<EdgeStraightElement>& chord : chords) {
+                const Point first = chord->axis.get_point(0);
+                const Point last = chord->axis.get_point(chord->axis.point_count() - 1);
+                const Vector along = (last - first).normalized();
+                const double depth = extent(*chord, plane_normal().cross(along).normalized());
+                const std::shared_ptr<EdgeStraightElement> band = flush(first - along * 1.0, last + along * 1.0, plane_normal(), half_thickness() + 1.0, depth, chord->name + "_band");
+                Mesh body = band->element_geometry_mesh();
+                const Mesh mitered = chord->model_geometry_mesh();
+                if (mitered.number_of_faces() > 0 && mitered.is_closed())
+                    body = solid_boolean(mitered, body, SolidOperation::add);
+                add_interaction(chord, web, std::make_shared<InteractionFeatureSolid>(body, SolidOperation::subtract));
+            }
         for (const std::array<std::shared_ptr<EdgeStraightElement>, 2>& pair : sharp)
             bear(pair[0], pair[1]);
 
