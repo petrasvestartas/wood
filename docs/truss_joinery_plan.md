@@ -98,8 +98,9 @@ truss takes `add_plated_joinery`:
 - chords mitered (`butt_side_side`), a heel (under 35 degrees) the rafter running on, bearing on the tie, one plane cutting both;
 - webs flush on the chords, mitered with each other, bearing under 35 degrees;
 - one plate per node (`JointBeamElement::node_plate`, convex hull of the member strips, middle of the thickness), slotted along
-  its way in the plane (square to the chord, else the clear way farthest off the node's members), from the face at a node too
-  dense for 45 degrees; one row of two pins per member (`slotted_plate`);
+  its way in the plane (square to the chord, else the clear way farthest off the node's members, else the way past fewest
+  others, the base chord last, never within 25 degrees of a member) and run on along it to fill the wood its slot passes, flush
+  with the members' surface, nothing cut from a face (the user, 2026-11-24); one row of two pins per member (`slotted_plate`);
 - `tests/joint_butt.cpp` checks every truss whole and assembled; six are listed unfinished (crowded plates overlapping, chords
   whose two plates leave no common way in, a short piece losing wood).
 

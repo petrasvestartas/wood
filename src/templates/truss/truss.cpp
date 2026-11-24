@@ -550,9 +550,11 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
     for (const Point& corner : plate->polylines[0].get_points())
         outline.push_back(Point((corner - node).dot(x), (corner - node).dot(y), 0.0));
     std::vector<Polyline> others;
+    std::vector<bool> bases;
     for (const std::shared_ptr<EdgeStraightElement>& member : get_elements<EdgeStraightElement>()) {
         if (std::find(members.begin(), members.end(), member) != members.end())
             continue;
+        bases.push_back(member->name.rfind("chord_0_0", 0) == 0);
         const Point first = member->axis.get_point(0);
         const Point last = member->axis.get_point(member->axis.point_count() - 1);
         const Vector side = across.cross((last - first).normalized()).normalized() * extent(*member, across.cross((last - first).normalized()).normalized());
@@ -563,7 +565,8 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
     }
 
     // the plate's way in, in the truss's plane: square to the node's chord away from the members when its path is clear and it
-    // keeps PLATE_KEEP_ANGLE off them, else the clear way farthest off them (the nearer one, the longer its kerf runs along it)
+    // keeps PLATE_KEEP_ANGLE off them, else the clear way farthest off them, at least PLATE_OFF_ANGLE (nearer one, its slot runs
+    // along it and the plate cannot leave it)
     std::shared_ptr<EdgeStraightElement> chord = members.front();
     const Vector square = across.cross((chord->axis.get_point(1) - chord->axis.get_point(0)).normalized()).normalized();
     Vector toward(0.0, 0.0, 0.0);
@@ -579,7 +582,7 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
         double nearest = Tolerance::PI;
         for (const double leaving : angles)
             nearest = std::min(nearest, std::abs(std::remainder(angle - leaving, 2.0 * Tolerance::PI)));
-        if (nearest <= best || (best >= PLATE_KEEP_ANGLE * Tolerance::PI / 180.0 && turn > 0.0))
+        if (nearest <= best || nearest < PLATE_OFF_ANGLE * Tolerance::PI / 180.0 || (best >= PLATE_KEEP_ANGLE * Tolerance::PI / 180.0 && turn > 0.0))
             continue;
         std::vector<Point> path = outline;
         for (const Point& corner : outline)
@@ -595,15 +598,45 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
         }
     }
 
-    // a node too dense for that (every clear way within PLATE_FACE_ANGLE of a member): the plate, still in the middle of the
-    // thickness, from the face, its pocket open on it
-    const Vector way = best < PLATE_FACE_ANGLE * Tolerance::PI / 180.0 ? across : x * std::cos(chosen) + y * std::sin(chosen);
-    const std::shared_ptr<JointBeamElement> pins = JointBeamElement::slotted_plate(raw, *plate, node, way, clear, PIN_RADIUS);
-    add(plate, group_named("joinery"));
+    // no way clear of the others: the way past the fewest of them, the first chord's counted first (they come off before it in
+    // the assembly, but the first chord is the base it is built on), then the farthest off the node's members, the middle of the
+    // widest gap
+    if (best < 0.0) {
+        size_t fewest = 1000 * (others.size() + 1);
+        for (double turn = 0.0; turn < 2.0 * Tolerance::PI; turn += 5.0 * Tolerance::PI / 180.0) {
+            const double angle = base + turn;
+            double nearest = Tolerance::PI;
+            for (const double leaving : angles)
+                nearest = std::min(nearest, std::abs(std::remainder(angle - leaving, 2.0 * Tolerance::PI)));
+            if (nearest < PLATE_OFF_ANGLE * Tolerance::PI / 180.0)
+                continue;
+            std::vector<Point> path = outline;
+            for (const Point& corner : outline)
+                path.push_back(Point(corner[0] + 1500.0 * std::cos(angle), corner[1] + 1500.0 * std::sin(angle), 0.0));
+            std::vector<Point> band = ConvexHull::hull_2d(path);
+            band.push_back(band.front());
+            size_t met = 0;
+            for (size_t o = 0; o < others.size(); o++)
+                if (BooleanPolyline::compute_count(Polyline(band), others[o], 0) > 0)
+                    met += bases[o] ? 1000 : 1;
+            if (met < fewest || (met == fewest && nearest > best)) {
+                chosen = angle;
+                best = nearest;
+                fewest = met;
+            }
+        }
+    }
+
+    // the plate run on along that way to the members' outer surface, flush with it, kept within them; its slot exactly it, cut
+    // in the middle of the thickness only
+    const Vector way = x * std::cos(chosen) + y * std::sin(chosen);
+    const std::shared_ptr<FacePlanarElement> flush_plate = JointBeamElement::node_plate(raw, node, plane_normal(), reaches, 2.0 * half_thickness() / 3.0, PLATE_INSET, plate->name, 0.0, way, 1500.0);
+    const std::shared_ptr<JointBeamElement> pins = JointBeamElement::slotted_plate(raw, *flush_plate, node, way, clear, PIN_RADIUS);
+    add(flush_plate, group_named("joinery"));
     add(pins, group_named("joinery"));
     for (size_t m = 0; m < members.size(); m++)
         add_interaction(pins, members[m], pins->interaction(m));
-    add_interaction(pins, plate, pins->interaction(members.size()));
+    add_interaction(pins, flush_plate, pins->interaction(members.size()));
 }
 
 double Truss::clear_of(const EdgeStraightElement& member, const EdgeStraightElement& other, const Point& node, double run_on) const {

@@ -60,8 +60,8 @@ private:
     static std::vector<std::string> partners(const JointElement& joint, size_t index);
 
     /// Whether member makes the moves legs (slides and turns, each swept in steps), then slides out along direction, its own diagonal, without
-    /// entering any of others.
-    bool slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others) const;
+    /// entering any of others; when not, blocker (if given) takes the guid of the one it first enters.
+    bool slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others, std::string* blocker = nullptr) const;
 
 
     /// The ways a member whose joint names none is tried along: its faces' normals and the axes, each both ways, once, the

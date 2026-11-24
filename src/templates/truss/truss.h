@@ -40,8 +40,8 @@ public:
     static constexpr double PIN_RADIUS = 6.0; // mm, a node plate's pins.
     static constexpr double PROUD = 1.0; // mm a member another bears on is taken past its faces in that cut, so the cut shares no face.
     static constexpr double PLATE_INSET = 15.0; // mm, a node plate kept in from its members' edges.
+    static constexpr double PLATE_OFF_ANGLE = 25.0; // Degrees off every member of its node a plate's way in keeps, at least.
     static constexpr double PLATE_KEEP_ANGLE = 60.0; // Degrees off every member of its node the plate's way square to the chord is kept at, when clear.
-    static constexpr double PLATE_FACE_ANGLE = 45.0; // Degrees off every member of its node a plate's way in the truss's plane keeps, at least; else from the face.
     const TrussGuide guide; // The lines the truss is drawn with.
 
     /// The truss: the guide's lines, the members on them, their butts so every end meets, then the book's joinery in place of
@@ -163,8 +163,10 @@ private:
     static double steepness(const EdgeStraightElement& member);
 
     /// A plate in the middle of the thickness let into every member ending at node, slotted along the way it drops in by in the
-    /// truss's plane (square to the node's chord, else the clear way farthest off its members), at a node too dense for that from
-    /// the face; one row of two pins in each member clear of the others (JointBeamElement::node_plate, slotted_plate).
+    /// truss's plane (square to the node's chord, else the clear way farthest off its members, else the way past the fewest
+    /// others, the base chord last, never within PLATE_OFF_ANGLE of a member) and run on along it to fill the wood its slot
+    /// passes, flush with their outer surface; one row of two pins in each member clear of the others (JointBeamElement::node_plate,
+    /// slotted_plate).
     void add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement>>& members, const Point& node);
 
     /// How far along member's axis from node its section is clear of other's, other running on run_on past the node.

@@ -138,11 +138,12 @@ goes. Every node is then joined the same way:
 | --- | --- |
 | Chords | mitered on their bisector; meeting sharp (a heel) the steeper bears on the flatter and one plane cuts both, so the heel ends in one face |
 | Webs | flush on the chords' faces, mitered with each other (bearing where they meet under 35°) |
-| All of them | one plate in the middle of the thickness, the convex hull of their strips inside them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
+| All of them | one plate in the middle of the thickness, the convex hull of their strips run on along its way in to their outer surface and kept inside them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
 
 The members go in from the face, as a truss is laid out flat; each plate drops in last along its slot in the truss's plane, square
-to the node's chord when its path is clear and keeps 60° off the node's members, else the clear way farthest off them, and from
-the face at a node too dense for any way 45° off its members. Each truss is checked whole (no member overlaps another or loses wood
+to the node's chord when its path is clear and keeps 60° off the node's members, else the clear way farthest off them, else the
+way past the fewest others (the first chord, the base, last), never within 25° of one. The plate fills the wood its slot passes, so its edge is flush with
+the members' surface and nothing is cut but the middle of the thickness. Each truss is checked whole (no member overlaps another or loses wood
 no member fills) and taken apart by an `AssemblySequence`, nothing locked. Six are still being finished: crescent with verticals,
 cantilever, three-hinged arch, Pegram, Bollman, braced arch rib. The carpentry king post below is the truss jointed with the book's
 joints alone.

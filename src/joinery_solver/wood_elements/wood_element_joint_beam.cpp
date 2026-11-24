@@ -8,6 +8,7 @@
 #include "wood_element_joint_connector_part.h"
 #include "wood_joint_library.h"
 #include "convex_hull.h"
+#include "boolean_polyline.h"
 #include "../src/clipper2/clipper.h"
 
 namespace wood_session {
@@ -716,6 +717,39 @@ static std::vector<Vector> ways_from(const EdgeStraightElement& member, const Po
     return ways;
 }
 
+/// How far from point along (dx, dy) the ray leaves the convex outline in xy: 0 when point is not in it.
+static double exit_along(const std::vector<Point>& outline, const Point& point, double dx, double dy) {
+
+    // inside: on the inner side of every edge (counter-clockwise); then the nearest edge the ray goes out through
+    double leaves = 1e300;
+    for (size_t k = 0; k < outline.size(); k++) {
+        const Point& p = outline[k];
+        const Point& q = outline[(k + 1) % outline.size()];
+        const double ex = q[0] - p[0];
+        const double ey = q[1] - p[1];
+        const double side = ex * (point[1] - p[1]) - ey * (point[0] - p[0]);
+        if (side < -1e-6)
+            return 0.0;
+        const double toward = ex * dy - ey * dx;
+        if (toward < -1e-12)
+            leaves = std::min(leaves, side / -toward);
+    }
+
+    return leaves < 1e299 ? leaves : 0.0;
+}
+
+/// How far outline (in xy) moves along (dx, dy) before it is clear of the convex piece: where the ray from the origin leaves
+/// the convex hull of their differences (piece minus outline); 0 when they do not overlap.
+static double clear_along(const std::vector<Point>& piece, const std::vector<Point>& outline, double dx, double dy) {
+
+    std::vector<Point> differences;
+    for (const Point& corner : piece)
+        for (const Point& point : outline)
+            differences.push_back(Point(corner[0] - point[0], corner[1] - point[1], 0.0));
+
+    return exit_along(ConvexHull::hull_2d(differences), Point(0.0, 0.0, 0.0), dx, dy);
+}
+
 /// How far member's section reaches from its axis along direction.
 static double section_reach(const EdgeStraightElement& member, const Vector& direction) {
 
@@ -746,7 +780,9 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
     double thickness,
     double inset,
     const std::string& name,
-    double offset
+    double offset,
+    const Vector& way,
+    double sweep
 ) {
 
     // each member's strip in the plane of the plate, from the node to its reach, inset from its edges: the plate is their
@@ -772,7 +808,92 @@ std::shared_ptr<FacePlanarElement> JointBeamElement::node_plate(
     for (const Polyline& strip : strips)
         for (const Point& point : strip.get_points())
             points.push_back(point);
-    const std::vector<Point> outline = ConvexHull::hull_2d(points);
+    std::vector<Point> outline = ConvexHull::hull_2d(points);
+
+    // run on along way (its way in) and kept within the members: its edge flush with their outer surface where it goes in,
+    // nothing of it in the air between them
+    if (sweep > 0.0) {
+        // each member's wood in the plane, as it is cut so far (its miters and run-ons): the hull of its corners, a straight
+        // member's outline
+        std::vector<std::vector<Point>> wood;
+        for (const EdgeStraightElement* member : members) {
+            std::vector<Point> corners;
+            for (const Point& corner : member->model_geometry_mesh().to_vertices_and_faces().first)
+                corners.push_back(Point((corner - node).dot(x), (corner - node).dot(y), 0.0));
+            if (corners.size() >= 3)
+                wood.push_back(ConvexHull::hull_2d(corners));
+        }
+
+        // how far the plate runs along way before it has left that wood, at most sweep
+        const double wx = way.dot(x);
+        const double wy = way.dot(y);
+        double run = 0.0;
+        for (const std::vector<Point>& piece : wood)
+            run = std::max(run, clear_along(piece, outline, wx, wy));
+        run = std::min(run, sweep);
+
+        // the plate: its path out that far, within the wood, so it fills the slot it leaves by and is flush with the members'
+        // outer surface; the region around the node where the path parts into several
+        std::vector<Point> path = outline;
+        for (const Point& corner : outline)
+            path.push_back(Point(corner[0] + wx * run, corner[1] + wy * run, 0.0));
+        std::vector<Point> swept = ConvexHull::hull_2d(path);
+        swept.push_back(swept.front());
+
+        // the members' wood as one region: grown by half a millimetre, united and shrunk back, so the hairline between two
+        // members bearing on each other closes
+        Clipper2Lib::PathsD pieces;
+        for (const std::vector<Point>& piece : wood) {
+            Clipper2Lib::PathD ring;
+            for (const Point& corner : piece)
+                ring.push_back(Clipper2Lib::PointD(corner[0], corner[1]));
+            pieces.push_back(ring);
+        }
+        const Clipper2Lib::PathsD grown = Clipper2Lib::InflatePaths(pieces, 0.5, Clipper2Lib::JoinType::Miter, Clipper2Lib::EndType::Polygon, 2.0, 6);
+        const Clipper2Lib::PathsD closed = Clipper2Lib::InflatePaths(Clipper2Lib::Union(grown, Clipper2Lib::FillRule::NonZero, 6), -0.5, Clipper2Lib::JoinType::Miter, Clipper2Lib::EndType::Polygon, 2.0, 6);
+        std::vector<Polyline> united;
+        for (const Clipper2Lib::PathD& ring : closed) {
+            std::vector<Point> corners;
+            for (const Clipper2Lib::PointD& corner : ring)
+                corners.push_back(Point(corner.x, corner.y, 0.0));
+            corners.push_back(corners.front());
+            united.push_back(Polyline(corners));
+        }
+        std::vector<Point> flush;
+        double most = 0.0;
+        for (const Polyline& ring : BooleanPolyline::compute_regions({Polyline(swept)}, united, 0)) {
+            std::vector<Point> corners = ring.get_points();
+            if (corners.size() > 1 && Point::distance(corners.front(), corners.back()) < 1e-9)
+                corners.pop_back();
+            double area = 0.0;
+            for (size_t k = 0; k < corners.size(); k++)
+                area += 0.5 * (corners[k][0] * corners[(k + 1) % corners.size()][1] - corners[(k + 1) % corners.size()][0] * corners[k][1]);
+            if (std::abs(area) > most) {
+                most = std::abs(area);
+                flush = corners;
+            }
+        }
+
+        // without repeated corners or corners on a straight edge, so its loft is closed
+        bool dropped = true;
+        while (dropped && flush.size() > 3) {
+            dropped = false;
+            for (size_t k = 0; k < flush.size() && flush.size() > 3; k++) {
+                const Point& before = flush[(k + flush.size() - 1) % flush.size()];
+                const Point& after = flush[(k + 1) % flush.size()];
+                const double in_x = flush[k][0] - before[0], in_y = flush[k][1] - before[1];
+                const double on_x = after[0] - flush[k][0], on_y = after[1] - flush[k][1];
+                const double in_length = std::hypot(in_x, in_y), on_length = std::hypot(on_x, on_y);
+                if (in_length < 0.01 || on_length < 0.01 || std::abs(in_x * on_y - in_y * on_x) < 1e-6 * in_length * on_length) {
+                    flush.erase(flush.begin() + static_cast<std::ptrdiff_t>(k));
+                    dropped = true;
+                    break;
+                }
+            }
+        }
+        if (flush.size() >= 3 && manifold_solid(FacePlanarElement(lifted(flush, node, x, y, z * (offset - 0.5 * thickness)), lifted(flush, node, x, y, z * (offset + 0.5 * thickness)), name).element_geometry_mesh()))
+            outline = flush;
+    }
 
     return std::make_shared<FacePlanarElement>(lifted(outline, node, x, y, z * (offset - 0.5 * thickness)), lifted(outline, node, x, y, z * (offset + 0.5 * thickness)), name);
 }
@@ -794,38 +915,40 @@ std::shared_ptr<JointBeamElement> JointBeamElement::slotted_plate(
         joint->targets.push_back(member->guid());
     joint->targets.push_back(plate.guid());
 
-    // the slot: the plate (convex) swept out along way, the path it drops in along: the hull of the plate and the plate far out,
-    // one cutter for every member
+    // the slot: the plate swept out along way, the path it drops in along (node_plate ran the plate on to fill the part of it in
+    // wood, so the plate is flush with the members' outer surface), one cutter for every member
     const Vector out = way.normalized();
     const Polyline& bottom = plate.polylines[0];
-    const Polyline& top = plate.polylines[1];
-    const Vector rise = top.get_point(0) - bottom.get_point(0);
+    const Vector rise = plate.polylines[1].get_point(0) - bottom.get_point(0);
     const Vector normal = rise.normalized();
     const Vector x = (std::abs(normal[2]) < 0.9 ? Vector(0.0, 0.0, 1.0) : Vector(1.0, 0.0, 0.0)).cross(normal).normalized();
     const Vector y = normal.cross(x);
     const Point origin = bottom.get_point(0);
+
+    // as far as it takes the plate to clear the node's members, and 20 mm more
+    std::vector<std::vector<Point>> wood;
+    for (const EdgeStraightElement* member : members) {
+        std::vector<Point> corners;
+        for (const Point& corner : member->model_geometry_mesh().to_vertices_and_faces().first)
+            corners.push_back(Point((corner - origin).dot(x), (corner - origin).dot(y), 0.0));
+        if (corners.size() >= 3)
+            wood.push_back(ConvexHull::hull_2d(corners));
+    }
     std::vector<Point> flat;
-    for (const Point& corner : bottom.get_points()) {
-        const Vector offset = corner - origin;
-        flat.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
-    }
-    // swept far enough to clear every member of the node, no farther: the kernel's loft caps scale their corners to whole
-    // numbers and overflow past about 3 m
-    const Vector far = out * 1500.0;
-    const Point shift(far.dot(x), far.dot(y), 0.0);
-    // across the plate (it drops in from a face): a pocket from its far face out through the near one; in its plane: the hull
-    // of the plate and the plate far out
-    std::array<Polyline, 2> cutter;
-    if (std::abs(out.dot(normal)) > 0.9) {
-        const Polyline& far_face = out.dot(normal) > 0.0 ? bottom : top;
-        cutter = {far_face, far_face.translated(out * 1500.0)};
-    } else {
-        std::vector<Point> path = flat;
-        for (const Point& corner : flat)
-            path.push_back(Point(corner[0] + shift[0], corner[1] + shift[1], 0.0));
-        const std::vector<Point> swept = ConvexHull::hull_2d(path);
-        cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
-    }
+    for (const Point& corner : bottom.get_points())
+        flat.push_back(Point((corner - origin).dot(x), (corner - origin).dot(y), 0.0));
+    double clearing = 0.0;
+    for (const std::vector<Point>& piece : wood)
+        clearing = std::max(clearing, clear_along(piece, flat, out.dot(x), out.dot(y)));
+    clearing = std::min(clearing + 20.0, 1500.0);
+    std::vector<Point> path;
+    for (const Point& corner : bottom.get_points())
+        for (const double reach : {0.0, clearing}) {
+            const Vector offset = corner + out * reach - origin;
+            path.push_back(Point(offset.dot(x), offset.dot(y), 0.0));
+        }
+    const std::vector<Point> swept = ConvexHull::hull_2d(path);
+    const std::array<Polyline, 2> cutter = {lifted(swept, origin, x, y, Vector(0.0, 0.0, 0.0)), lifted(swept, origin, x, y, rise)};
     for (size_t m = 0; m < members.size(); m++)
         joint->cutters.push_back({cutter});
     joint->cutters.push_back({});

@@ -151,7 +151,8 @@ public:
     /// A plate through the node where members meet, in the plane through node square to normal and thickness thick: the convex
     /// hull of each member's strip along its axis from the node to its reach (both ways for a member running through), inset
     /// from the members' edges, so its slot is the plate swept straight out; centred offset off the node along normal (a plate
-    /// let in flush with a face).
+    /// let in flush with a face); given a way in and a sweep, run on along it and kept within the members' outlines, so its edge
+    /// is flush with their outer surface where it goes in and nothing of it is in the air.
     static std::shared_ptr<FacePlanarElement> node_plate(
         const std::vector<const EdgeStraightElement*>& members,
         const Point& node,
@@ -160,12 +161,14 @@ public:
         double thickness,
         double inset = 15.0,
         const std::string& name = "node_plate",
-        double offset = 0.0
+        double offset = 0.0,
+        const Vector& way = Vector(0.0, 0.0, 0.0),
+        double sweep = 0.0
     );
 
     /// The joint that lets a node plate into its members, each slotted along the path the plate drops in along (the plate swept
-    /// out along way in its plane, or, way across it, a pocket open on that face), so it goes in against way without touching
-    /// wood once they lie in place, with one row of two pins in
+    /// out along way in its plane until it clears them, 20 mm more), so it goes in against way without touching wood once they
+    /// lie in place (node_plate run on along way fills the slot to the members' outer surface), with one row of two pins in
     /// each member 2 pins past clear (along its axis from the node, where it is free of the others; 0 puts them in the node),
     /// square to the plate; the members go in from the face (against the plate's normal) or along way, the plate last against
     /// way. Its targets are the members, then the plate.

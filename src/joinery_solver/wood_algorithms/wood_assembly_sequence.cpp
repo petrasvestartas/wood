@@ -69,7 +69,7 @@ std::vector<JointMove> AssemblySequence::out_legs(const std::vector<JointMove>& 
     return out;
 }
 
-bool AssemblySequence::slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others) const {
+bool AssemblySequence::slides_out(const Element& member, const std::vector<JointMove>& legs, const Vector& direction, const std::vector<const Element*>& others, std::string* blocker) const {
 
     const Mesh& solid = member.model_geometry_mesh();
     const AABB box = AABB::from_mesh(solid);
@@ -114,8 +114,11 @@ bool AssemblySequence::slides_out(const Element& member, const std::vector<Joint
                 continue;
             ahead = true;
             if (moved_box.intersects(other_boxes[o]) &&
-                compute_volume(solid_boolean(moved, others[o]->model_geometry_mesh(), SolidOperation::intersect)) > clearance)
+                compute_volume(solid_boolean(moved, others[o]->model_geometry_mesh(), SolidOperation::intersect)) > clearance) {
+                if (blocker)
+                    *blocker = others[o]->guid();
                 return false;
+            }
         }
         if (!ahead)
             return true;
@@ -189,6 +192,10 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                         joined.insert(member->guid());
     }
 
+    // each slide tried and blocked, by the member it ran into: blocked again as long as that one is still in (the others only
+    // ever leave), so not swept again until it is out
+    std::map<std::string, std::string> blocked;
+
     while (remaining.size() > 1) {
         bool taken = false;
 
@@ -225,7 +232,10 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                     const std::vector<Vector> named = joint.first->insertion_directions(joint.second);
                     for (size_t way = 0; way < named.size() && !taken; way++) {
                         const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
-                        if (!slides_out(*member, out_legs(legs), named[way] * -1.0, others))
+                        const std::string tried = fmt::format("{} {} {} lifted", member->guid(), joint.first->guid(), way);
+                        if (blocked.count(tried) && in.count(blocked[tried]))
+                            continue;
+                        if (!slides_out(*member, out_legs(legs), named[way] * -1.0, others, &blocked[tried]))
                             continue;
                         removal.push_back({member->name, named[way], legs, {}, {}});
                         remaining.erase(remaining.begin() + static_cast<std::ptrdiff_t>(i));
@@ -256,7 +266,10 @@ std::vector<AssemblyStep> AssemblySequence::compute_disassembly() {
                 const std::vector<Vector> directions = named.empty() ? candidate_directions(*member, holding_members) : named;
                 for (size_t way = 0; way < directions.size(); way++) {
                     const std::vector<JointMove> legs = joint.first->insertion_legs(joint.second, way);
-                    if (!slides_out(*member, out_legs(legs), directions[way] * -1.0, others))
+                    const std::string tried = fmt::format("{} {} {} {} {} {}", member->guid(), joint.first->guid(), way, directions[way][0], directions[way][1], directions[way][2]);
+                    if (blocked.count(tried) && in.count(blocked[tried]))
+                        continue;
+                    if (!slides_out(*member, out_legs(legs), directions[way] * -1.0, others, &blocked[tried]))
                         continue;
 
                     AssemblyStep out{member->name, directions[way], legs, {}, {}};
