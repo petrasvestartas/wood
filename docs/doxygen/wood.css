@@ -1,0 +1,1335 @@
+/* The wood look over doxygen-awesome: warm paper (ink when dark), one orange accent, Outfit for text, Doto for the
+ * dotted accents, a dot grid behind titles and pictures. Everything below reads the palette; nothing else names a color. */
+
+/* ==================================================================
+ * Palette and sizes
+ * ================================================================== */
+
+html {
+    --wood-orange: #ff6b1a; /* fills, rules, shadows */
+    --wood-accent: #b8420a; /* orange as text: 4.8:1 on paper */
+    --wood-bg: #f2efe8;
+    --wood-panel: #fbf9f4;
+    --wood-sunken: #e8e3d7;
+    --wood-fg: #1c1a16;
+    --wood-fg-light: #625d52;
+    --wood-fg-lighter: #a39c8c;
+    --wood-line: #d9d3c5;
+    --wood-dot: rgba(28, 26, 22, .16);
+    --wood-code-bg: #e8e3d7;
+    --wood-code-fg: #2c2923;
+    --wood-hl-keyword: #24568f;
+    --wood-hl-string: #276a3f;
+    --wood-hl-function: #9a3707;
+    --wood-hl-special: #8a5a00;
+    --wood-picture-filter: brightness(1.07);
+    --wood-picture-blend: multiply;
+    --wood-bar: #1c1a16; /* the header bar, ink in both schemes */
+    --wood-bar-fg: #f2efe8;
+    --wood-header-height: 56px;
+    --wood-gutter: 48px;
+    --wood-radius: 4px;
+    --wood-shadow: 0 10px 30px rgba(28, 26, 22, .14);
+}
+
+/* the dark scheme, written twice like doxygen-awesome's: once for the system preference, once for the toggle */
+@media (prefers-color-scheme: dark) {
+    html:not(.light-mode) {
+        --wood-accent: #ff6b1a;
+        --wood-bg: #171511;
+        --wood-panel: #211f1a;
+        --wood-sunken: #12110d;
+        --wood-fg: #ece7da;
+        --wood-fg-light: #a8a191;
+        --wood-fg-lighter: #6f695c;
+        --wood-line: #37332b;
+        --wood-dot: rgba(236, 231, 218, .13);
+        --wood-code-bg: #211f1a;
+        --wood-code-fg: #d9d3c4;
+        --wood-hl-keyword: #82b4f2;
+        --wood-hl-string: #79c490;
+        --wood-hl-function: #ff9a5c;
+        --wood-hl-special: #e6b04a;
+        --wood-picture-filter: brightness(1.07) invert(1) hue-rotate(180deg) brightness(1.3);
+        --wood-picture-blend: screen;
+        --wood-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+        color-scheme: dark;
+    }
+}
+
+html.dark-mode {
+    --wood-accent: #ff6b1a;
+    --wood-bg: #171511;
+    --wood-panel: #211f1a;
+    --wood-sunken: #12110d;
+    --wood-fg: #ece7da;
+    --wood-fg-light: #a8a191;
+    --wood-fg-lighter: #6f695c;
+    --wood-line: #37332b;
+    --wood-dot: rgba(236, 231, 218, .13);
+    --wood-code-bg: #211f1a;
+    --wood-code-fg: #d9d3c4;
+    --wood-hl-keyword: #82b4f2;
+    --wood-hl-string: #79c490;
+    --wood-hl-function: #ff9a5c;
+    --wood-hl-special: #e6b04a;
+    --wood-picture-filter: brightness(1.07) invert(1) hue-rotate(180deg) brightness(1.3);
+    --wood-picture-blend: screen;
+    --wood-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+    color-scheme: dark;
+}
+
+/* doxygen-awesome's own variables, mapped onto the palette above; the selector matches the
+ * specificity of doxygen-awesome's dark-mode rules so this one wins in both schemes. */
+html, html.dark-mode, html:not(.dark-mode) {
+    --font-family: Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-family-monospace: "JetBrains Mono", SFMono-Regular, Consolas, Menlo, monospace;
+    --font-family-dots: Doto, "JetBrains Mono", monospace;
+    --page-font-size: 16px;
+    --navigation-font-size: 14px;
+    --toc-font-size: 14px;
+    --code-font-size: 13px;
+    --title-font-size: 18px;
+    --content-line-height: 1.65;
+    --content-maxwidth: 1240px;
+    --table-line-height: 1.6;
+    --tree-item-height: 30px;
+    --memtitle-font-size: 16px;
+
+    --primary-color: var(--wood-accent);
+    --primary-dark-color: var(--wood-accent);
+    --primary-light-color: var(--wood-orange);
+    --page-background-color: var(--wood-bg);
+    --page-foreground-color: var(--wood-fg);
+    --page-secondary-foreground-color: var(--wood-fg-light);
+    --separator-color: var(--wood-line);
+    --border-radius-small: var(--wood-radius);
+    --border-radius-medium: var(--wood-radius);
+    --border-radius-large: var(--wood-radius);
+    --box-shadow: var(--wood-shadow);
+    --odd-color: transparent;
+    --menu-selected-background: transparent;
+    --side-nav-background: var(--wood-bg);
+    --side-nav-foreground: var(--wood-fg);
+    --side-nav-arrow-opacity: .54;
+    --side-nav-arrow-hover-opacity: .87;
+    --toc-background: var(--wood-bg);
+    --toc-foreground: var(--wood-fg);
+    --header-background: var(--wood-bar);
+    --header-foreground: var(--wood-bar-fg);
+    --searchbar-background: rgba(242, 239, 232, .1);
+    --searchbar-foreground: var(--wood-bar-fg);
+    --searchbar-height: 36px;
+    --searchbar-width: 234px;
+    --searchbar-border-radius: var(--wood-radius);
+    --tablehead-background: transparent;
+    --tablehead-foreground: var(--wood-fg-light);
+    --blockquote-background: transparent;
+    --blockquote-foreground: var(--wood-fg-light);
+    --code-background: var(--wood-code-bg);
+    --code-foreground: var(--wood-code-fg);
+    --fragment-background: var(--wood-code-bg);
+    --fragment-foreground: var(--wood-code-fg);
+    --fragment-keyword: var(--wood-hl-keyword);
+    --fragment-keywordtype: var(--wood-hl-keyword);
+    --fragment-keywordflow: var(--wood-hl-keyword);
+    --fragment-token: var(--wood-hl-string);
+    --fragment-comment: var(--wood-fg-light);
+    --fragment-link: var(--wood-hl-function);
+    --fragment-preprocessor: var(--wood-hl-special);
+    --fragment-linenumber-color: var(--wood-fg-lighter);
+    --fragment-linenumber-background: var(--wood-code-bg);
+    --fragment-linenumber-border: transparent;
+    --note-color: rgba(59, 120, 196, .12);
+    --note-color-dark: #3b78c4;
+    --note-color-darker: var(--wood-fg);
+    --warning-color: rgba(217, 148, 15, .14);
+    --warning-color-dark: #d9940f;
+    --warning-color-darker: var(--wood-fg);
+    --bug-color: rgba(196, 59, 59, .12);
+    --bug-color-dark: #c43b3b;
+    --bug-color-darker: var(--wood-fg);
+    --todo-color: rgba(255, 107, 26, .12);
+    --todo-color-dark: #ff6b1a;
+    --todo-color-darker: var(--wood-fg);
+    --deprecated-color: rgba(163, 156, 140, .16);
+    --deprecated-color-dark: #a39c8c;
+    --deprecated-color-darker: var(--wood-fg);
+    --invariant-color: rgba(63, 154, 91, .14);
+    --invariant-color-dark: #3f9a5b;
+    --invariant-color-darker: var(--wood-fg);
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+    background: var(--wood-orange);
+    color: #1c1a16;
+}
+
+:focus-visible {
+    outline: 2px solid var(--wood-orange);
+    outline-offset: 2px;
+}
+
+a, a:visited, .contents a:visited, a.el, a.elRef {
+    color: var(--wood-accent);
+    font-weight: 500;
+}
+
+a:hover, .contents a:hover, a.el:hover {
+    color: var(--wood-accent);
+    text-decoration: underline;
+    text-decoration-color: var(--wood-orange);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+
+/* ==================================================================
+ * Header bar
+ * ================================================================== */
+
+#top {
+    background: var(--wood-bar);
+    border-bottom: 2px solid var(--wood-orange);
+    box-shadow: none;
+    position: relative;
+    z-index: 10;
+}
+
+#titlearea {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: var(--wood-header-height);
+    padding: 0 20px;
+    border-bottom: none;
+    box-sizing: border-box;
+    color: var(--wood-bar-fg);
+}
+
+#projectlogo, #projectlogo img {
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+#projectname, #projectname:visited, #projectname:hover {
+    flex: 1;
+    margin: 0;
+    color: var(--wood-bar-fg) !important;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    line-height: var(--wood-header-height);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+}
+
+#searchalign {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+doxygen-awesome-dark-mode-toggle {
+    order: -1;
+    height: 40px;
+    width: 40px;
+    margin: 0;
+    border-radius: 50%;
+}
+
+doxygen-awesome-dark-mode-toggle > svg {
+    fill: var(--wood-bar-fg);
+    transform: none;
+}
+
+doxygen-awesome-dark-mode-toggle:hover {
+    background: rgba(242, 239, 232, .1) !important;
+}
+
+#projectrepo, #projectrepo:visited, #projectrepo:hover {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 8px;
+    color: var(--wood-bar-fg) !important;
+    font-weight: 400;
+    font-size: 14px;
+    opacity: .85;
+}
+
+#projectrepo:hover {
+    opacity: 1;
+}
+
+#projectrepo svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+/* ==================================================================
+ * Search
+ * ================================================================== */
+
+#MSearchBox {
+    width: var(--searchbar-width);
+    border: 1px solid rgba(242, 239, 232, .18);
+    box-shadow: none;
+    background: var(--searchbar-background);
+}
+
+#MSearchBox:hover {
+    border-color: rgba(242, 239, 232, .4);
+}
+
+#MSearchBox.MSearchBoxActive {
+    background: #f2efe8;
+    border-color: var(--wood-orange);
+}
+
+#MSearchField {
+    width: calc(var(--searchbar-width) - 70px);
+    color: var(--wood-bar-fg);
+    font-size: 15px;
+    font-family: var(--font-family);
+}
+
+#MSearchField::placeholder {
+    color: rgba(242, 239, 232, .65);
+}
+
+#MSearchBox.MSearchBoxActive #MSearchField {
+    color: #1c1a16;
+}
+
+#MSearchBox span.left #MSearchSelect, #MSearchBox .left #MSearchSelectExt {
+    filter: brightness(0) invert(1);
+    opacity: .8;
+}
+
+#MSearchBox.MSearchBoxActive span.left #MSearchSelect,
+#MSearchBox.MSearchBoxActive .left #MSearchSelectExt {
+    filter: none;
+    opacity: .54;
+}
+
+#MSearchResults, #MSearchResults a, #MSearchResults span {
+    font-family: var(--font-family);
+}
+
+#MSearchResultsWindow {
+    top: var(--wood-header-height) !important;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    box-shadow: var(--wood-shadow);
+    background: var(--wood-panel);
+}
+
+/* ==================================================================
+ * Navigation tree, the left column
+ * ================================================================== */
+
+/* the 6 px of padding are doxygen's: it subtracts them from the width it saves, so without them the tree lost 6 px a page */
+#side-nav {
+    box-sizing: content-box;
+    padding-right: 6px !important;
+    background: var(--wood-bg);
+    border-right: none;
+    box-shadow: inset -1px 0 var(--wood-line);
+}
+
+#nav-tree, #nav-tree-contents {
+    background: var(--wood-bg);
+    border-right: none;
+}
+
+#nav-tree-contents {
+    margin-top: 16px;
+}
+
+#nav-tree .label {
+    font-size: 14px;
+    line-height: var(--tree-item-height);
+}
+
+#nav-tree .label a, #nav-tree a {
+    color: var(--wood-fg) !important;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+#nav-tree .item:hover .label a,
+#nav-tree a:hover {
+    color: var(--wood-accent) !important;
+}
+
+#nav-tree .selected {
+    background: none;
+    border-radius: 0;
+    box-shadow: inset 3px 0 0 var(--wood-orange);
+    text-shadow: none;
+}
+
+#nav-tree .selected::after {
+    display: none;
+}
+
+#nav-tree .selected .label a,
+#nav-tree .selected a {
+    color: var(--wood-accent) !important;
+    font-weight: 500;
+}
+
+/* the chapters */
+#nav-tree-contents > ul > li > ul > li > .item .label a {
+    font-weight: 500;
+}
+
+/* where a page has subpages the tree lists only them: its own sections are in the outline on the right */
+#nav-tree ul:has(> li > .item .label a:not([href*="#"])) > li:has(> .item .label a[href*="#"]) {
+    display: none;
+}
+
+#nav-tree .arrow {
+    color: var(--wood-fg-lighter);
+}
+
+#nav-sync, .ui-resizable-handle, #splitbar {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#nav-sync {
+    display: none;
+}
+
+/* ==================================================================
+ * Page outline, the right column
+ * ================================================================== */
+
+#page-nav {
+    background: var(--wood-bg);
+    border-left: none;
+}
+
+#page-nav-resize-handle {
+    background: transparent;
+}
+
+/* a narrow window gives up the outline on the right first; the tree on the left goes only below 768 px */
+@media screen and (max-width: 1199px) {
+    #page-nav, #page-nav-resize-handle {
+        display: none !important;
+    }
+
+    #container {
+        grid-template-columns: auto !important;
+    }
+}
+
+ul.page-outline {
+    margin: 36px 16px 24px 0;
+}
+
+ul.page-outline li {
+    white-space: normal;
+}
+
+ul.page-outline div.item {
+    display: flex;
+    align-items: baseline;
+    padding: 3px 0 3px 12px;
+    border-left: 2px solid var(--wood-line);
+    font: 14px var(--font-family);
+    line-height: 20px;
+}
+
+ul.page-outline ul {
+    padding: 0;
+}
+
+ul.page-outline a, ul.page-outline a:visited {
+    color: var(--wood-fg-light) !important;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+ul.page-outline a:hover {
+    color: var(--wood-accent) !important;
+}
+
+ul.page-outline li.vis {
+    background: none;
+}
+
+ul.page-outline li.vis > div.item {
+    border-left-color: var(--wood-orange);
+}
+
+ul.page-outline li.vis > div.item a {
+    color: var(--wood-fg) !important;
+}
+
+/* the outline is always open, its indent says what its arrows would */
+ul.page-outline .arrowhead {
+    display: none;
+}
+
+ul.page-outline .arrow {
+    flex: none;
+    width: auto;
+    height: 0;
+}
+
+div.toc {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+div.toc h3 {
+    color: var(--wood-fg-light);
+    font-weight: 400;
+    font-size: 14px;
+}
+
+div.toc li a {
+    color: var(--wood-fg) !important;
+}
+
+div.toc li a:hover, div.toc li a.active {
+    color: var(--wood-accent) !important;
+}
+
+/* ==================================================================
+ * Titles
+ * ================================================================== */
+
+#doc-content, div.contents {
+    background: var(--wood-bg);
+}
+
+div.header .headertitle {
+    padding: 0;
+}
+
+/* every page starts at the same left edge, with or without an outline on the right */
+div.header .title, div.header .summary, div.contents {
+    box-sizing: border-box;
+    max-width: var(--content-maxwidth);
+    margin-left: 0;
+    margin-right: auto;
+    padding-left: var(--wood-gutter);
+    padding-right: var(--wood-gutter);
+}
+
+div.contents {
+    margin-top: 0;
+    padding-bottom: 96px;
+}
+
+div.contents p, div.contents li, div.contents dd {
+    line-height: 1.65;
+}
+
+div.contents > p, div.contents > ul, div.contents > ol, div.contents > dl, div.contents .textblock > p,
+div.contents .textblock > ul, div.contents .textblock > ol {
+    max-width: 78ch;
+}
+
+/* the dot grid behind a title fades out towards the text and the page */
+div.header {
+    position: relative;
+    background: none;
+    border-bottom: none;
+}
+
+div.header::before, .wood-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, var(--wood-dot) 1.1px, transparent 1.6px) 0 0 / 12px 12px;
+    -webkit-mask-image: linear-gradient(100deg, transparent 30%, #000 100%);
+    mask-image: linear-gradient(100deg, transparent 30%, #000 100%);
+    pointer-events: none;
+}
+
+div.header .title {
+    position: relative;
+    margin: 0;
+    padding-top: 40px;
+    padding-bottom: 24px;
+    color: var(--wood-fg);
+    font-size: clamp(30px, 3.2vw, 44px);
+    font-weight: 600;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+}
+
+div.header .summary {
+    position: relative;
+    color: var(--wood-fg-light);
+}
+
+div.contents h1, div.contents h2, div.contents h3, div.contents h4 {
+    color: var(--wood-fg);
+    letter-spacing: -.01em;
+    text-wrap: balance;
+}
+
+/* doxygen writes a page's ## as h1 and its ### as h2 */
+div.contents h1, div.contents h2, h2.groupheader {
+    margin: 64px 0 20px;
+    padding: 0;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.25;
+    box-shadow: none !important;
+    border-bottom: none;
+}
+
+div.contents h1 {
+    font-size: 28px;
+}
+
+div.contents h2:not(.groupheader) {
+    margin: 44px 0 14px;
+    font-size: 21px;
+}
+
+/* a page that opens with a section: the empty paragraph holds doxygen's anchor only */
+div.contents .textblock > p:first-child:has(> a.anchor:only-child) {
+    margin: 0;
+}
+
+div.contents .textblock > p:first-child:has(> a.anchor:only-child) + h1 {
+    margin-top: 8px;
+}
+
+/* the orange mark over a section title */
+div.contents h1::before, div.contents h2.groupheader::before {
+    content: "";
+    display: block;
+    width: 28px;
+    height: 3px;
+    margin-bottom: 14px;
+    background: var(--wood-orange);
+}
+
+div.contents h3, div.contents h4 {
+    margin: 36px 0 12px;
+    font-size: 19px;
+    font-weight: 500;
+}
+
+div.contents h4 {
+    font-size: 17px;
+}
+
+td.memSeparator, tr.heading h2 {
+    border: none;
+}
+
+div.contents b,
+div.contents strong {
+    font-weight: 400;
+}
+
+/* a section title already separates */
+div.contents hr {
+    display: none;
+}
+
+/* ==================================================================
+ * Code
+ * ================================================================== */
+
+/* inline code uses website font; code blocks use monospace */
+code, tt, .tt, span.tt {
+    font-family: var(--font-family);
+    font-weight: 400;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+}
+
+div.contents p code, div.contents li code, div.contents td code,
+div.contents p span.tt, div.contents li span.tt, div.contents td span.tt {
+    color: var(--wood-fg);
+}
+
+div.fragment, pre.fragment, div.contents pre, pre code {
+    font-family: var(--font-family-monospace);
+    padding: 16px 20px;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    background: var(--wood-code-bg);
+    color: var(--wood-code-fg);
+    font-size: 13px;
+    line-height: 1.55;
+    box-shadow: none;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wood-fg-lighter) transparent;
+}
+
+div.contents pre code {
+    padding: 0;
+    border: none;
+}
+
+/* a line keeps its length, the block scrolls */
+div.fragment {
+    display: block;
+    margin: 20px 0;
+}
+
+div.line {
+    min-height: 20px;
+    width: max-content;
+    min-width: 100%;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+div.fragment .lineno {
+    color: var(--wood-fg-lighter);
+    background: transparent;
+    border: none;
+    user-select: none;
+}
+
+/* highlight.js tokens (header.html) in the palette above */
+div.fragment .hljs-keyword,
+div.fragment .hljs-type,
+div.fragment .hljs-built_in,
+div.fragment .hljs-literal {
+    color: var(--wood-hl-keyword);
+}
+
+div.fragment .hljs-string {
+    color: var(--wood-hl-string);
+}
+
+div.fragment .hljs-number,
+div.fragment .hljs-meta {
+    color: var(--wood-hl-special);
+}
+
+div.fragment .hljs-title {
+    color: var(--wood-hl-function);
+}
+
+div.fragment .hljs-comment {
+    color: var(--wood-fg-light);
+    font-style: normal;
+}
+
+/* Mermaid: the diagrams of the pages, drawn with the palette so they follow the scheme toggle */
+div.contents pre.mermaid {
+    padding: 24px;
+    border: 1px solid var(--wood-line);
+    background: var(--wood-panel);
+    text-align: center;
+}
+
+pre.mermaid .node rect, pre.mermaid .node polygon, pre.mermaid .node circle {
+    fill: var(--wood-bg) !important;
+    stroke: var(--wood-fg) !important;
+    stroke-width: 1.25px !important;
+}
+
+pre.mermaid .edgePaths path, pre.mermaid .flowchart-link {
+    stroke: var(--wood-orange) !important;
+    stroke-width: 1.5px !important;
+}
+
+pre.mermaid marker path {
+    fill: var(--wood-orange) !important;
+    stroke: var(--wood-orange) !important;
+}
+
+pre.mermaid .nodeLabel, pre.mermaid .edgeLabel, pre.mermaid .nodeLabel p, pre.mermaid .edgeLabel p {
+    color: var(--wood-fg) !important;
+    font-family: var(--font-family) !important;
+}
+
+pre.mermaid .edgeLabel, pre.mermaid .edgeLabel p, pre.mermaid .labelBkg {
+    background: var(--wood-panel) !important;
+}
+
+/* ==================================================================
+ * Tables and member documentation
+ * ================================================================== */
+
+table.markdownTable, table.doxtable, table.fieldtable {
+    padding: 0;
+    border: none;
+    border-top: 2px solid var(--wood-fg);
+    border-bottom: 1px solid var(--wood-line);
+    border-radius: 0;
+    border-spacing: 0;
+    box-shadow: none;
+}
+
+table.markdownTable tbody, table.doxtable tbody {
+    margin: 0;
+    box-shadow: none;
+}
+
+table.markdownTable td, table.markdownTable th,
+table.doxtable td, table.doxtable th {
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: left;
+    font-variant-numeric: tabular-nums;
+}
+
+table.markdownTable th, table.doxtable th, table.fieldtable th {
+    background: transparent;
+    color: var(--wood-fg-light);
+    font-weight: 500;
+}
+
+table.markdownTable td, table.markdownTable th,
+table.doxtable td, table.doxtable th,
+table.fieldtable td, table.fieldtable th {
+    padding: 11px 24px 11px 0;
+    border: none;
+    border-top: 1px solid var(--wood-line);
+}
+
+table.markdownTable tr:first-child th,
+table.doxtable tr:first-child th {
+    border-top: none;
+}
+
+table.markdownTable tr:hover td, table.doxtable tr:hover td {
+    background: transparent;
+    box-shadow: none;
+}
+
+table.memberdecls {
+    border-spacing: 0;
+}
+
+table.memberdecls tr[class^='memitem'] td,
+table.memberdecls tr[class^='memdesc'] td {
+    background: transparent;
+    border-color: var(--wood-line) !important;
+}
+
+.memtitle {
+    background: var(--wood-code-bg);
+    border: none;
+    font-weight: 500;
+}
+
+div.memitem {
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    box-shadow: none;
+}
+
+div.memproto, h2.memtitle {
+    background: var(--wood-code-bg);
+    border: none;
+}
+
+div.memdoc {
+    background: transparent;
+    border-top: 1px solid var(--wood-line);
+}
+
+/* the class list */
+table.directory tr.odd, table.directory tr.even, table.directory tr:hover {
+    background: transparent;
+}
+
+table.directory td.entry, table.directory td.desc {
+    border-left: none;
+    border-bottom: 1px solid var(--wood-line);
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.directory .levels span {
+    color: var(--wood-accent);
+}
+
+.icon {
+    background: var(--wood-fg);
+    color: var(--wood-bg);
+    border-radius: 2px;
+    box-shadow: none;
+}
+
+/* admonitions */
+dl.note, dl.warning, dl.attention, dl.important, dl.todo, dl.bug, dl.deprecated,
+dl.invariant, dl.pre, dl.post, dl.remark, dl.see {
+    border-left: 3px solid;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+blockquote {
+    border-left: 3px solid var(--wood-orange);
+    color: var(--wood-fg-light);
+}
+
+/* ==================================================================
+ * Pictures: every one on the same panel. Their backdrops are three near whites (255, 248, 240): the filter lifts all of
+ * them to white and the blend lays them on the panel, so no picture shows an edge; dark turns the drawing over.
+ * ================================================================== */
+
+div.contents .image img,
+div.contents img[src$=".png"],
+div.contents img[src$=".gif"],
+div.contents img[src$=".webp"] {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    background: none;
+    border-radius: 0;
+    filter: var(--wood-picture-filter);
+    mix-blend-mode: var(--wood-picture-blend);
+}
+
+div.contents img[src$=".jpg"] {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* the floor's steps: a legend names the colors of the picture over it, so the pictures keep them */
+div.contents:has(span[style^="color:"]) div.image {
+    background: #fbf9f4;
+}
+
+div.contents:has(span[style^="color:"]) div.image img {
+    filter: brightness(1.07);
+    mix-blend-mode: multiply;
+}
+
+/* a view from below fills its frame, it has no backdrop to turn over */
+div.contents .wood-pair-grid img[src*="_bottom"] {
+    filter: none;
+    mix-blend-mode: normal;
+    clip-path: inset(5%);
+}
+
+div.contents div.image {
+    isolation: isolate;
+    margin: 20px 0;
+    padding: 16px;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    background: var(--wood-panel);
+    text-align: center;
+}
+
+div.image .caption {
+    margin-top: 12px;
+    color: var(--wood-fg-light);
+    font-weight: 400;
+}
+
+/* side by side (an isometric and a view from below) */
+.wood-pair-grid {
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+    padding: 16px;
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    background: var(--wood-panel);
+}
+
+div.contents .wood-pair-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media screen and (max-width: 767px) {
+    .wood-pair-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* a table of pictures (the joint library's GIF, picture and tile per joint): equal columns, every picture the width of its
+   column, so the three of a row are the same size */
+table.markdownTable:has(img.inline),
+table.markdownTable:has(img.inline) tbody {
+    display: table !important;
+    table-layout: fixed;
+    width: 100%;
+}
+
+table.markdownTable:has(img.inline) td, table.markdownTable:has(img.inline) th {
+    padding: 11px 12px;
+}
+
+table.markdownTable td img.inline {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
+}
+
+/* ==================================================================
+ * Cards: the image grids of the Elements, Templates and Examples pages
+ * ================================================================== */
+
+.wood-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+    gap: 20px;
+    margin: 20px 0 32px;
+}
+
+.wood-card-grid.cols-3 {
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+}
+
+.wood-card-grid.cols-2 {
+    grid-template-columns: repeat(auto-fill, minmax(min(480px, 100%), 1fr));
+}
+
+.wood-card,
+a.wood-card, a.wood-card:visited {
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: var(--wood-panel);
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--wood-fg) !important;
+    text-decoration: none !important;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+a.wood-card:hover, a.wood-card:focus-visible {
+    border-color: var(--wood-orange);
+    box-shadow: 5px 5px 0 var(--wood-orange);
+    transform: translate(-3px, -3px);
+    color: var(--wood-fg) !important;
+}
+
+div.contents .wood-card img {
+    width: 100%;
+    height: auto; /* as wide as its card and 3:2, so a picture grows with the card instead of shrinking into bands */
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
+    padding: 10px 10px 0;
+    box-sizing: border-box;
+}
+
+/* a card's name behind an orange square, always starting with a capital */
+.wood-card .wood-card-title {
+    display: block;
+    position: relative;
+    margin-top: 10px;
+    padding: 12px 14px 13px 31px;
+    border-top: 1px solid var(--wood-line);
+}
+
+.wood-card .wood-card-title::first-letter {
+    text-transform: uppercase;
+}
+
+.wood-card .wood-card-title::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 19px;
+    width: 7px;
+    height: 7px;
+    background: var(--wood-orange);
+}
+
+/* ==================================================================
+ * Landing page: the hero, then four chapters in one column, each one picture at its natural height
+ * ================================================================== */
+
+#doc-content:has(.wood-hero) div.header {
+    display: none;
+}
+
+div.contents:has(.wood-hero) {
+    max-width: none;
+}
+
+.wood-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    align-items: center;
+    gap: 24px;
+    margin: 0 calc(-1 * var(--wood-gutter)) 24px;
+    padding: 48px max(var(--wood-gutter), (100% - var(--content-maxwidth) + 2 * var(--wood-gutter)) / 2) 64px;
+    overflow: hidden;
+}
+
+/* a ridge of dots rising from the foot of the hero */
+.wood-hero::after {
+    content: "";
+    position: absolute;
+    inset: 40% 0 0;
+    background: radial-gradient(circle, var(--wood-dot) 1.3px, transparent 1.8px) 0 0 / 7px 7px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-opacity='.35'/%3E%3Cstop offset='1' stop-opacity='1'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23g)' d='M0 22 L4 21 L7 17 L13 18 L17 14 L22 15 L27 20 L33 22 L39 19 L44 20 L50 24 L57 22 L62 17 L66 18 L71 12 L76 10 L80 13 L85 8 L90 6 L94 9 L100 4 V40 H0Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-opacity='.35'/%3E%3Cstop offset='1' stop-opacity='1'/%3E%3C/linearGradient%3E%3Cpath fill='url(%23g)' d='M0 22 L4 21 L7 17 L13 18 L17 14 L22 15 L27 20 L33 22 L39 19 L44 20 L50 24 L57 22 L62 17 L66 18 L71 12 L76 10 L80 13 L85 8 L90 6 L94 9 L100 4 V40 H0Z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+    pointer-events: none;
+}
+
+.wood-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.wood-hero-title {
+    display: block;
+    font-size: clamp(44px, 5.4vw, 84px);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -.03em;
+    text-wrap: balance;
+}
+
+.wood-hero-title .wood-dots {
+    color: var(--wood-orange);
+    font-family: var(--font-family-dots);
+    font-weight: 900;
+    letter-spacing: -.02em;
+}
+
+.wood-hero-line {
+    display: block;
+    max-width: 44ch;
+    margin: 24px 0 0;
+    font-size: clamp(17px, 1.4vw, 20px);
+    line-height: 1.5;
+}
+
+.wood-hero-line.wood-light {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--wood-fg-light);
+}
+
+.wood-hero svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.wood-hero svg .face { fill: var(--wood-panel); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .side { fill: var(--wood-sunken); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .cut { fill: var(--wood-orange); stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .cut-side { fill: #c94e0c; stroke: var(--wood-fg); stroke-width: 1.6; stroke-linejoin: round; }
+.wood-hero svg .contact { fill: var(--wood-orange); fill-opacity: .22; stroke: var(--wood-orange); stroke-width: 2; stroke-linejoin: round; }
+.wood-hero svg .guide { fill: none; stroke: var(--wood-orange); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.wood-hero svg .leader { fill: none; stroke: var(--wood-fg); stroke-width: 1.2; }
+.wood-hero svg .leader-end { fill: var(--wood-fg); }
+.wood-hero svg .name { fill: var(--wood-fg); font: 600 24px var(--font-family); }
+.wood-hero svg .says { fill: var(--wood-fg-light); font: 400 16px var(--font-family); }
+
+.wood-landing {
+    display: flex;
+    flex-direction: column;
+    gap: 88px;
+    max-width: calc(var(--content-maxwidth) - 2 * var(--wood-gutter));
+    margin: 64px auto 24px;
+    counter-reset: chapter;
+}
+
+.wood-landing a.wood-chapter {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 20px;
+    align-items: baseline;
+    text-decoration: none !important;
+    color: var(--wood-fg) !important;
+    counter-increment: chapter;
+}
+
+.wood-landing a.wood-chapter::before {
+    content: counter(chapter, decimal-leading-zero);
+    grid-row: span 2;
+    color: var(--wood-accent);
+    font: 900 clamp(48px, 5vw, 72px) / 1 var(--font-family-dots);
+    align-self: start;
+}
+
+.wood-landing .wood-chapter-title {
+    display: block;
+    font-size: clamp(30px, 3.4vw, 44px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -.02em;
+}
+
+.wood-landing .wood-chapter-line {
+    display: block;
+    font-size: clamp(16px, 1.4vw, 19px);
+    font-weight: 400;
+    color: var(--wood-fg-light);
+    margin: 4px 0 0;
+}
+
+.wood-landing .wood-chapter-picture {
+    isolation: isolate;
+    display: block;
+    grid-column: 1 / -1;
+    margin-top: 24px;
+    background: var(--wood-panel);
+    border: 1px solid var(--wood-line);
+    border-radius: var(--wood-radius);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+div.contents .wood-landing img {
+    width: 100%;
+}
+
+.wood-landing a.wood-chapter:hover .wood-chapter-picture,
+.wood-landing a.wood-chapter:focus-visible .wood-chapter-picture {
+    border-color: var(--wood-orange);
+    box-shadow: 8px 8px 0 var(--wood-orange);
+    transform: translate(-4px, -4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wood-card, .wood-landing .wood-chapter-picture {
+        transition: none !important;
+    }
+}
+
+/* ==================================================================
+ * Footer: none, the empty #nav-path takes no height
+ * ================================================================== */
+
+#nav-path {
+    display: none;
+}
+
+/* ==================================================================
+ * Phones: the navigation tree becomes a drawer
+ * ================================================================== */
+
+#navdrawer {
+    display: none;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    margin-left: -8px;
+    padding: 8px;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+}
+
+#navdrawer svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--wood-bar-fg);
+}
+
+@media screen and (max-width: 900px) {
+    .wood-hero {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 40px;
+    }
+
+    .wood-hero svg .name {
+        font-size: 32px;
+    }
+
+    .wood-hero svg .says {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    html {
+        --wood-gutter: 18px;
+    }
+
+    #navdrawer {
+        display: block;
+    }
+
+    #titlearea {
+        gap: 8px;
+        padding: 0 8px 0 12px;
+    }
+
+    #projectlogo {
+        display: none;
+    }
+
+    #projectname {
+        min-width: 0;
+    }
+
+    #MSearchBox {
+        width: 132px;
+    }
+
+    #MSearchField {
+        width: 72px;
+    }
+
+    #projectrepo span {
+        display: none;
+    }
+
+    #projectrepo {
+        padding: 0 8px;
+    }
+
+    .wood-landing {
+        gap: 56px;
+    }
+
+    html.nav-open #side-nav {
+        display: block;
+        position: fixed;
+        top: var(--wood-header-height);
+        left: 0;
+        z-index: 20;
+        width: 280px !important;
+        height: calc(100vh - var(--wood-header-height)) !important;
+        box-shadow: var(--wood-shadow);
+    }
+
+    html.nav-open #nav-tree {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}

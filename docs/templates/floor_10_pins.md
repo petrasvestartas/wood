@@ -18,7 +18,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 ![](floor/301_pins.webp)
 
-<span style="color:#2196EA">■ built</span> the pin connectors of quarter 0   <span style="color:#A3A3A3">■ context</span> quarter 0's members
+<span style="color:#2196EA">■</span> built the pin connectors of quarter 0   <span style="color:#A3A3A3">■</span> context quarter 0's members
 
 Per quarter there are two `outer_rib_seam_beam`, two `seam_beam_oculus_beam` and two `oculus_beam_inner_rib` connectors and one `ring_corner`.
 Each holds two pins.
@@ -30,7 +30,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/302_pin_contact.webp)
 
-<span style="color:#737373">■ input</span> the contact `pins_outer_rib_0_0`   <span style="color:#A3A3A3">■ context</span> the seam beam and the outer rib
+<span style="color:#737373">■</span> input the contact `pins_outer_rib_0_0`   <span style="color:#A3A3A3">■</span> context the seam beam and the outer rib
 
 `add_contacts` stores `pins_outer_rib_0_0` with the seam beam first, the member the pins pass through, then the outer rib.
 `headed_pins` turns the contact's normal to point into the member that ends on it, here the rib.
@@ -41,7 +41,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/303_pin_axes.webp)
 
-<span style="color:#E8478B">■ variable</span> `x` and `y`   <span style="color:#737373">■ input</span> the contact
+<span style="color:#E8478B">■</span> variable `x` and `y`   <span style="color:#737373">■</span> input the contact
 
 x runs level along the contact, z cross the normal.
 y runs up it.
@@ -53,7 +53,7 @@ Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://git
 
 ![](floor/304_pin_stations.webp)
 
-<span style="color:#E8478B">■ variable</span> the two stations   <span style="color:#737373">■ input</span> the inset contact
+<span style="color:#E8478B">■</span> variable the two stations   <span style="color:#737373">■</span> input the inset contact
 
 `PinLayout::vertical` with two pins insets the contact by `PIN_INSET` = 20.
 One station stands at the inset contact's top and one at its bottom.
@@ -65,7 +65,7 @@ Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://git
 
 ![](floor/305_pin_head.webp)
 
-<span style="color:#F2CC0C">■ result</span> the pin head   <span style="color:#E8478B">■ variable</span> the pin's direction   <span style="color:#A3A3A3">■ context</span> the two members
+<span style="color:#F2CC0C">■</span> result the pin head   <span style="color:#E8478B">■</span> variable the pin's direction   <span style="color:#A3A3A3">■</span> context the two members
 
 `pin_head` goes back from the station along the pin's direction, the level axis of the member that ends on the contact.
 It puts the head where the line leaves the other member's stock.
@@ -77,7 +77,7 @@ Code: `pin_head`, `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp]
 
 ![](floor/306_pins_at_a_seam.webp)
 
-<span style="color:#2196EA">■ built</span> the two quarters' pins   <span style="color:#A3A3A3">■ context</span> the seam beams
+<span style="color:#2196EA">■</span> built the two quarters' pins   <span style="color:#A3A3A3">■</span> context the seam beams
 
 Only `outer_rib_seam_beam` and `seam_beam_oculus_beam` are shifted.
 The two quarters' contacts at a seam face opposite ways, so the same `PIN_SHIFT` along each puts their pins either side: the heads stand 30 apart.
@@ -103,7 +103,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/307_pin_layouts.webp)
 
-<span style="color:#E8478B">■ variable</span> the stations of each layout   <span style="color:#737373">■ input</span> the contact
+<span style="color:#E8478B">■</span> variable the stations of each layout   <span style="color:#737373">■</span> input the contact
 
 `PinLayout` on the same contact: `corners` at the inset contact's extreme corners, `vertical` a column up it, `horizontal` a row along it.
 The floor uses `vertical`.
@@ -114,7 +114,7 @@ Code: `PinLayout`, [wood_element_joint_beam.h](https://github.com/petrasvestarta
 
 ![](floor/308_pin_children.webp)
 
-<span style="color:#2196EA">■ built</span> the `JointPinElement` children   <span style="color:#A3A3A3">■ context</span> the two members
+<span style="color:#2196EA">■</span> built the `JointPinElement` children   <span style="color:#A3A3A3">■</span> context the two members
 
 A pin connector nests one `JointPinElement` per line, named `connector_pins_outer_rib_0_0_pin_i`.
 Its holes are pre-drilled into both members, a Ø4 hole (radius 2) each.
@@ -125,7 +125,7 @@ Code: `JointBeamElement::children`, [wood_element_joint_beam.cpp](https://github
 
 ![](floor/309_every_pin.webp)
 
-<span style="color:#2196EA">■ built</span> every pin   <span style="color:#A3A3A3">■ context</span> the members
+<span style="color:#2196EA">■</span> built every pin   <span style="color:#A3A3A3">■</span> context the members
 
 28 pin connectors `connector_pins_<joint>_<place>` hold 56 pins.
 The butt joints are in `connectors_q` of their quarter.

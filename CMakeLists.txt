@@ -546,7 +546,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_FILTER_PATTERNS "*.md=${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/mermaid_filter.sh")
     # `\include` shows the examples without their trailing description and build block
     set(WOOD_DOC_EXAMPLES_OUT ${CMAKE_BINARY_DIR}/doc_examples)
-    set(DOXYGEN_EXAMPLE_PATH ${WOOD_DOC_EXAMPLES_OUT})
+    set(DOXYGEN_EXAMPLE_PATH ${WOOD_DOC_EXAMPLES_OUT} ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen)
     set(DOXYGEN_IMAGE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/diagrams
@@ -563,13 +563,14 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_DISABLE_INDEX YES)
     set(DOXYGEN_FULL_SIDEBAR NO)
     set(DOXYGEN_PROJECT_LOGO ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/compas_icon_white.png)
+    set(DOXYGEN_PROJECT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/compas_icon_white.png)
     set(DOXYGEN_HTML_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/header.html)
     set(DOXYGEN_HTML_FOOTER ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/footer.html)
     # doxygen-awesome-css v2.3.4 (MIT, jothepro/doxygen-awesome-css), committed under docs/doxygen/;
-    # material.css on top of it gives the MkDocs Material appearance.
+    # wood.css on top of it gives the look: warm paper or ink, one orange, the pictures on one panel.
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/doxygen-awesome.css
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/material.css)
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/wood.css)
     file(GLOB_RECURSE WOOD_DOC_EXTRA_IMAGES CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.webp
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/images/*.png
@@ -585,6 +586,7 @@ if(DOXYGEN_FOUND)
     )
     set(DOXYGEN_HTML_COLORSTYLE LIGHT)
     set(DOXYGEN_HTML_DYNAMIC_SECTIONS NO)
+    set(DOXYGEN_HTML_CODE_FOLDING NO)
     set(DOXYGEN_SHOW_FILES NO)
     set(DOXYGEN_SHOW_NAMESPACES NO)
     set(DOXYGEN_SOURCE_BROWSER NO)
@@ -596,6 +598,7 @@ if(DOXYGEN_FOUND)
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/wood_kernel.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/elements
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/joint_library_todo.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates.md
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/templates
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/examples.md

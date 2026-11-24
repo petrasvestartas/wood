@@ -15,7 +15,7 @@ The examples under `examples/` show the guide, its contacts, one column and the 
 
 ![](floor/351_compute_breps.webp)
 
-<span style="color:#2196EA">■ built</span> `inner_beams_0_0` as a BRep
+<span style="color:#2196EA">■</span> built `inner_beams_0_0` as a BRep
 
 `WoodSession::compute_breps` is called first by `pb_dump` (through `pb_dumps`).
 It writes every cut member, connector part, pin and support as its BRep instead of its mesh, the bores exact cylinders.
@@ -27,7 +27,7 @@ Code: `WoodSession::compute_breps`, `WoodSession::pb_dumps`, [wood_session.cpp](
 
 ![](floor/352_example_column.webp)
 
-<span style="color:#2196EA">■ built</span> `column_0` and `support_0`
+<span style="color:#2196EA">■</span> built `column_0` and `support_0`
 
 One column on its support with its glued and carved head, read back from the floor.
 
@@ -37,7 +37,7 @@ One column on its support with its glued and carved head, read back from the flo
 
 ![](floor/357_example_square.webp)
 
-<span style="color:#2196EA">■ built</span> the connector parts   <span style="color:#A3A3A3">■ context</span> the members, cut
+<span style="color:#2196EA">■</span> built the connector parts   <span style="color:#A3A3A3">■</span> context the members, cut
 
 `Floor(guide)` on the 6000 x 6000 bay, its pins among the connectors, written as BReps.
 
@@ -47,7 +47,7 @@ One column on its support with its glued and carved head, read back from the flo
 
 ![](floor/358_example_rectangle.webp)
 
-<span style="color:#2196EA">■ built</span> the connector parts   <span style="color:#A3A3A3">■ context</span> the members, cut
+<span style="color:#2196EA">■</span> built the connector parts   <span style="color:#A3A3A3">■</span> context the members, cut
 
 The same on a 6000 x 4800 bay, where each quarter has its own shape.
 
