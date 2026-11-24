@@ -854,7 +854,7 @@ Every record built on pairs of 120 x 120 beams standing in the xz plane, a group
 \include{lineno} elements/element_joint_beam_library.cpp
 
 ## Tiles
-Every record as its joinery tile: the wood each cut takes from each member within the joint's zone as pairs of outlines in the unit box, the faces of a prism the solver lofts, the male a blue and the female b red, labelled fixed or repeating by divisions.
+Every record as its joinery tile: the wood each cut takes from each member within the joint's zone as pairs of outlines in the unit box, the faces of a prism the solver lofts, the male a brown and the female b red, labelled fixed or repeating by divisions.
 
 ![](joint_library/tile_wedged_four_way_splayed_cogged.png)
 

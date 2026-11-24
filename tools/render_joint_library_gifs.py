@@ -1,9 +1,9 @@
 """The picture and the assembly GIF of every joint of the beam joint library, docs/images/joint_library/beam_<design>.png and
 .gif, drawn alike: each design at the corner the book draws (leaning for an angled joint, else square where it has one) as element_joint_beam_library draws
-it (data/output/pb/live.pb), see-through with its pegs, wedges and keys a strong blue, one fixed camera, one 3:2 frame. The
+it (data/output/pb/live.pb), see-through with its pegs, wedges and keys brown, one fixed camera, one 3:2 frame. The
 picture is the GIF's first frame: every piece apart, back along its way in. The GIF then takes the pieces in one by one in
 the assembly order (data/output/pb/joint_library_orders.json): each slides in along its way, then makes its further moves,
-slides and turns about a line, each swept as a matrix; the moving piece a strong blue, as the parts. Pieces pass through each other freely:
+slides and turns about a line, each swept as a matrix; the moving piece brown, as the parts. Pieces pass through each other freely:
 the GIF shows the order and the moves, not a collision check.
 
     python3 tools/render_joint_library_gifs.py [design ...] [--slides 6]
@@ -28,7 +28,7 @@ SIZE = (960, 640)  # Every picture, GIF and tile of the library the same size, s
 
 # Every frame of the plan twice, see-through and solid: the design's corner alone, each piece placed by the moves the frame
 # gives it in order (a slide {"t": [x, y, z]} or a turn {"line": [point, direction], "angle": degrees}, each with the share of
-# it made), the moving piece light blue, the parts a deep blue, the wood white in the solid copy; two marks in the background's
+# it made), the moving piece and the parts brown (linear, as the renderer takes node colours), the wood white in the solid copy; two marks in the background's
 # colour at the corners of every frame's bounds keep the camera still.
 FRAMES = r"""
 import json, re, sys
@@ -86,9 +86,9 @@ def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
         placed = Xform.translation(*shift) * placement(frame["moves"].get(element.name) or [])
         element.place(placed)
         part = is_part(element.name)
-        # the moving piece and the parts a strong blue in both passes, the solid one laying it over the see-through drawing
+        # the moving piece and the parts brown in both passes, the solid one laying it over the see-through drawing
         moving = element.name == frame["moving"]
-        colour = [0.0, 0.32, 0.86, 1.0] if part or moving else [0.55, 0.55, 0.55, 1.0] if solid else None
+        colour = [0.4196, 0.2667, 0.1373, 1.0] if part or moving else [0.55, 0.55, 0.55, 1.0] if solid else None
         if colour:
             branch.set_node_color(branch.get_node(element.guid), Color(*colour))
     return branch
@@ -178,12 +178,12 @@ def render(pb: str, target: list, opacity: str) -> Image.Image:
 
 def drawing(pair: list, target: list) -> Image.Image:
     """The see-through pass as dark as the solid one (the darker of the two at every pixel: the wood keeps the solid's
-    shading, the hidden edges still show), with the blue of the solid one laid over it where a part or the moving piece is."""
+    shading, the hidden edges still show), with the brown of the solid one laid over it where a part or the moving piece is."""
     strong = render(pair[1], target, "1.0")
     image = ImageChops.darker(render(pair[0], target, "0.45"), strong)
     red, green, blue = strong.split()
-    bluish = ImageChops.subtract(blue, red).point(lambda value: 255 if value > 60 else 0)
-    image.paste(strong, (0, 0), bluish)
+    brownish = ImageChops.subtract(red, blue).point(lambda value: 255 if value > 16 else 0)
+    image.paste(strong, (0, 0), brownish)
     return image
 
 
@@ -199,7 +199,7 @@ def pictures(design: str, orders: dict, scene: pathlib.Path, slides: int) -> lis
 def draw(scene: pathlib.Path, design: str, prefix: str, order: list, slides: int, name: str, names: dict, folder: pathlib.Path = PICTURES, animate: bool = True, size: tuple = SIZE) -> list:
     """The picture and the GIF of the pieces of scene whose names start with prefix (the group design, the whole scene for "-"),
     apart, then in by order, saved as <folder>/<name>.png and .gif (the picture alone when not animate) at size; names gives
-    the joints to leave out and the parts to draw blue."""
+    the joints to leave out and the parts to draw brown."""
     frames = plan_frames(order, slides)
     with tempfile.TemporaryDirectory() as tmp:
         plan_path = pathlib.Path(tmp) / "plan.json"

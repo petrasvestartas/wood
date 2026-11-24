@@ -38,7 +38,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/233_compute_face_contact.webp)
 
-<span style="color:#2196EA">■</span> built `polygon`, the face the two share   <span style="color:#737373">■</span> input a, by its loops   <span style="color:#A3A3A3">■</span> context b
+<span style="color:#AD8D68">■</span> built `polygon`, the face the two share   <span style="color:#737373">■</span> input a, by its loops   <span style="color:#A3A3A3">■</span> context b
 
 `add_contact` asks `compute_face_contact(a, b)`, the session's face contact search, for the faces the two share.
 `compute_face_contact` keeps the largest, its polygon where they overlap.
@@ -50,7 +50,7 @@ Code: `Floor::add_contact`, [floor.cpp](https://github.com/petrasvestartas/wood/
 
 ![](floor/234_add_interaction.webp)
 
-<span style="color:#2196EA">■</span> built the session's edge between the two members   <span style="color:#A3A3A3">■</span> context the two seam beams
+<span style="color:#AD8D68">■</span> built the session's edge between the two members   <span style="color:#A3A3A3">■</span> context the two seam beams
 
 The contact is named by its kind and place, here `seam_wedge_0`.
 `add_interaction(a, b, contact)` stores it on the edge between the two.
@@ -63,7 +63,7 @@ Code: `Floor::add_contact`, [floor.cpp](https://github.com/petrasvestartas/wood/
 
 ![](floor/235_oculus_wedge.webp)
 
-<span style="color:#2196EA">■</span> built `oculus_wedge_0`   <span style="color:#E8478B">■</span> variable the oculus beam, by its loops   <span style="color:#A3A3A3">■</span> context the ring beam
+<span style="color:#AD8D68">■</span> built `oculus_wedge_0`   <span style="color:#E8478B">■</span> variable the oculus beam, by its loops   <span style="color:#A3A3A3">■</span> context the ring beam
 
 The oculus beam `inner_beams_1_q` and its ring beam `oculus_q` touch on the tilted oculus plane: `oculus_wedge_q`.
 
@@ -73,7 +73,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/236_column_plate.webp)
 
-<span style="color:#2196EA">■</span> built `column_plate_0_0`, `column_plate_0_1`   <span style="color:#E8478B">■</span> variable the outer ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column
+<span style="color:#AD8D68">■</span> built `column_plate_0_0`, `column_plate_0_1`   <span style="color:#E8478B">■</span> variable the outer ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column
 
 Once the columns are in the floor, column q and each outer rib k touch on the carved head: `column_plate_q_k`.
 The contact `column_plate_q_k` and the `FacePlanarElement` of page 9 share this name.
@@ -84,7 +84,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/237_block_pins_outer.webp)
 
-<span style="color:#2196EA">■</span> built the two contacts   <span style="color:#E8478B">■</span> variable the outer ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column blocks
+<span style="color:#AD8D68">■</span> built the two contacts   <span style="color:#E8478B">■</span> variable the outer ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column blocks
 
 Each outer rib touches the column block beside it.
 `outer_ribs_0_q` and `wedges_0_q` make `block_pins_q_0_0`.
@@ -96,7 +96,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/238_block_pins_inner.webp)
 
-<span style="color:#2196EA">■</span> built the four contacts   <span style="color:#E8478B">■</span> variable the inner ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column blocks
+<span style="color:#AD8D68">■</span> built the four contacts   <span style="color:#E8478B">■</span> variable the inner ribs, by their loops   <span style="color:#A3A3A3">■</span> context the column blocks
 
 Each inner rib runs between two blocks and touches both, four more contacts named by block and side, six `block_pins` per quarter in all.
 
@@ -106,7 +106,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/239_pin_contacts.webp)
 
-<span style="color:#2196EA">■</span> built the butt-joint and ring corner contacts   <span style="color:#A3A3A3">■</span> context the columns and the bay edges
+<span style="color:#AD8D68">■</span> built the butt-joint and ring corner contacts   <span style="color:#A3A3A3">■</span> context the columns and the bay edges
 
 Three butt joints on each side k of a quarter are held by pins, the member the pins pass through first.
 `pins_outer_rib_q_k` is the seam beam and the outer rib ending on it.
@@ -136,7 +136,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/240_every_contact.webp)
 
-<span style="color:#2196EA">■</span> built every contact polygon   <span style="color:#A3A3A3">■</span> context the columns and the bay edges
+<span style="color:#AD8D68">■</span> built every contact polygon   <span style="color:#A3A3A3">■</span> context the columns and the bay edges
 
 The default floor has 68 contacts, 17 per quarter.
 They are 4 `seam_wedge`, 4 `oculus_wedge`, 8 `column_plate`, 24 `block_pins`, 24 butt-joint pin contacts and 4 `pins_ring_corner`.

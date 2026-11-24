@@ -1,6 +1,6 @@
 """The picture and the assembly GIF of every example of the plate and beam joint pages, docs/images/joint_library/
 assembly_<example>.png and .gif, drawn as the joint library draws its joints (tools/render_joint_library_gifs.py): see-through,
-the moving piece and the parts a strong blue, one fixed camera, 960 x 640. Each example is run with WOOD_ASSEMBLY, so its
+the moving piece and the parts brown, one fixed camera, 960 x 640. Each example is run with WOOD_ASSEMBLY, so its
 WoodSession::pb_dump also writes how it goes together (an AssemblySequence, its first jointed member staying); every other
 member waits out along its way in, clear on the screen of the pieces waiting before it, and the GIF takes them in one by one.
 
@@ -25,7 +25,7 @@ PAGES = sorted((WOOD / "docs/elements").glob("element_joint_plate*.md")) + [
 # and 40 mm a step of the order, then farther, 10 mm at a time, until its outline on the isometric screen (the viewer's
 # View::Iso: right (0.866, -0.5, 0), up (0.25, 0.433, 0.866)) is 15 mm clear of every piece waiting before it and of the
 # members that stay, a pair's own base aside. Writes the scene with each there and prints the order, the joints to leave out
-# and the parts to draw blue.
+# and the parts to draw brown.
 OUTS = r"""
 import json, sys
 from session_py.session import Session

@@ -18,7 +18,7 @@ html {
     --wood-dot: rgba(22, 25, 28, .15);
     --wood-code-bg: #e9ecee;
     --wood-code-fg: #262b2f;
-    --wood-hl-keyword: #24568f;
+    --wood-hl-keyword: #6b4423;
     --wood-hl-string: #276a3f;
     --wood-hl-function: #6a3f97;
     --wood-hl-special: #8a5a00;
@@ -46,7 +46,7 @@ html {
         --wood-dot: rgba(228, 232, 234, .12);
         --wood-code-bg: #1d2226;
         --wood-code-fg: #cfd6da;
-        --wood-hl-keyword: #82b4f2;
+        --wood-hl-keyword: #d9ab82;
         --wood-hl-string: #79c490;
         --wood-hl-function: #c9a9f5;
         --wood-hl-special: #e6b04a;
@@ -69,7 +69,7 @@ html.dark-mode {
     --wood-dot: rgba(228, 232, 234, .12);
     --wood-code-bg: #1d2226;
     --wood-code-fg: #cfd6da;
-    --wood-hl-keyword: #82b4f2;
+    --wood-hl-keyword: #d9ab82;
     --wood-hl-string: #79c490;
     --wood-hl-function: #c9a9f5;
     --wood-hl-special: #e6b04a;
@@ -139,8 +139,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --fragment-linenumber-color: var(--wood-fg-lighter);
     --fragment-linenumber-background: var(--wood-code-bg);
     --fragment-linenumber-border: transparent;
-    --note-color: rgba(59, 120, 196, .12);
-    --note-color-dark: #3b78c4;
+    --note-color: rgba(107, 68, 35, .12);
+    --note-color-dark: #8a5d36;
     --note-color-darker: var(--wood-fg);
     --warning-color: rgba(217, 148, 15, .14);
     --warning-color-dark: #d9940f;

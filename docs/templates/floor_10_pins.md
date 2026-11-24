@@ -18,7 +18,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 ![](floor/301_pins.webp)
 
-<span style="color:#2196EA">■</span> built the pin connectors of quarter 0   <span style="color:#A3A3A3">■</span> context quarter 0's members
+<span style="color:#AD8D68">■</span> built the pin connectors of quarter 0   <span style="color:#A3A3A3">■</span> context quarter 0's members
 
 Per quarter there are two `outer_rib_seam_beam`, two `seam_beam_oculus_beam` and two `oculus_beam_inner_rib` connectors and one `ring_corner`.
 Each holds two pins.
@@ -77,7 +77,7 @@ Code: `pin_head`, `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp]
 
 ![](floor/306_pins_at_a_seam.webp)
 
-<span style="color:#2196EA">■</span> built the two quarters' pins   <span style="color:#A3A3A3">■</span> context the seam beams
+<span style="color:#AD8D68">■</span> built the two quarters' pins   <span style="color:#A3A3A3">■</span> context the seam beams
 
 Only `outer_rib_seam_beam` and `seam_beam_oculus_beam` are shifted.
 The two quarters' contacts at a seam face opposite ways, so the same `PIN_SHIFT` along each puts their pins either side: the heads stand 30 apart.
@@ -114,7 +114,7 @@ Code: `PinLayout`, [wood_element_joint_beam.h](https://github.com/petrasvestarta
 
 ![](floor/308_pin_children.webp)
 
-<span style="color:#2196EA">■</span> built the `JointPinElement` children   <span style="color:#A3A3A3">■</span> context the two members
+<span style="color:#AD8D68">■</span> built the `JointPinElement` children   <span style="color:#A3A3A3">■</span> context the two members
 
 A pin connector nests one `JointPinElement` per line, named `connector_pins_outer_rib_0_0_pin_i`.
 Its holes are pre-drilled into both members, a Ø4 hole (radius 2) each.
@@ -125,7 +125,7 @@ Code: `JointBeamElement::children`, [wood_element_joint_beam.cpp](https://github
 
 ![](floor/309_every_pin.webp)
 
-<span style="color:#2196EA">■</span> built every pin   <span style="color:#A3A3A3">■</span> context the members
+<span style="color:#AD8D68">■</span> built every pin   <span style="color:#A3A3A3">■</span> context the members
 
 28 pin connectors `connector_pins_<joint>_<place>` hold 56 pins.
 The butt joints are in `connectors_q` of their quarter.

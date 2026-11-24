@@ -19,7 +19,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 ![](floor/251_add_connectors.webp)
 
-<span style="color:#2196EA">■</span> seam_wedge, block_pins   <span style="color:#F2CC0C">■</span> oculus_wedge   <span style="color:#E8478B">■</span> column_plate   <span style="color:#A3A3A3">■</span> context quarter 0's members, by their loops
+<span style="color:#AD8D68">■</span> seam_wedge, block_pins   <span style="color:#F2CC0C">■</span> oculus_wedge   <span style="color:#E8478B">■</span> column_plate   <span style="color:#A3A3A3">■</span> context quarter 0's members, by their loops
 
 `compute_connectors` builds every quarter's connectors from its `QuarterContacts`, one part of the function per kind.
 It builds them all before `add_connectors` adds any, so each is built on uncut members.
@@ -52,7 +52,7 @@ Code: `JointBeamElement::wedge`, [wood_element_joint_beam.cpp](https://github.co
 
 ![](floor/254_wedge_part.webp)
 
-<span style="color:#2196EA">■</span> built `parts[0]`   <span style="color:#E8478B">■</span> variable its `profile`   <span style="color:#737373">■</span> input the two seam beams' loops, end on
+<span style="color:#AD8D68">■</span> built `parts[0]`   <span style="color:#E8478B">■</span> variable its `profile`   <span style="color:#737373">■</span> input the two seam beams' loops, end on
 
 The `WEDGE_PROFILE` triangle, apex 197 below the top edge, is cut level with the edge by `below_top` and swept from end to end: the wedge part.
 
@@ -62,7 +62,7 @@ Code: `JointBeamElement::wedge`, [wood_element_joint_beam.cpp](https://github.co
 
 ![](floor/255_wedge_pins.webp)
 
-<span style="color:#2196EA">■</span> built `drill_lines`   <span style="color:#A3A3A3">■</span> context the wedge part   <span style="color:#737373">■</span> input the beams' loops
+<span style="color:#AD8D68">■</span> built `drill_lines`   <span style="color:#A3A3A3">■</span> context the wedge part   <span style="color:#737373">■</span> input the beams' loops
 
 One pin of radius 10 stands every `pin_spacing` (320) of length.
 Each runs across the wedge 100 below its top, cut by `flush_pin` to end flush with the two beams.
@@ -83,7 +83,7 @@ Code: `JointBeamElement::wedge`, [wood_element_joint_beam.cpp](https://github.co
 
 ![](floor/257_wedge_cut.webp)
 
-<span style="color:#2196EA">■</span> built the two seam beams, cut
+<span style="color:#AD8D68">■</span> built the two seam beams, cut
 
 `add_interaction(wedge, beam, wedge->interaction(i))` nests the wedge part and its pins under the connector and cuts the pocket and the pin holes out of that beam as solid features.
 
@@ -93,7 +93,7 @@ Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wo
 
 ![](floor/258_oculus_wedge.webp)
 
-<span style="color:#2196EA">■</span> built the wedge part and pins   <span style="color:#A3A3A3">■</span> context the oculus beam and the ring beam
+<span style="color:#AD8D68">■</span> built the wedge part and pins   <span style="color:#A3A3A3">■</span> context the oculus beam and the ring beam
 
 The oculus-wedge part of `compute_connectors` puts the same wedge on the oculus beam and its ring beam.
 It is sized by the thicker of the two, measured by `FloorGuide::thickness`.
@@ -105,7 +105,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/259_plate_frame.webp)
 
-<span style="color:#2196EA">■</span> built `column_plate_0_0`   <span style="color:#E8478B">■</span> variable the frame's `x` and `z`   <span style="color:#A3A3A3">■</span> context the column   <span style="color:#737373">■</span> input the outer rib's loops
+<span style="color:#AD8D68">■</span> built `column_plate_0_0`   <span style="color:#E8478B">■</span> variable the frame's `x` and `z`   <span style="color:#A3A3A3">■</span> context the column   <span style="color:#737373">■</span> input the outer rib's loops
 
 The column plate's frame sits at the middle of the contact's top: x the contact normal made horizontal and turned towards the rib, z up. `JointBeamElement::let_in_plate` and `JointBeamElement::rectangle_plate` both build on it.
 
@@ -115,7 +115,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/260_plate_box.webp)
 
-<span style="color:#2196EA">■</span> built `column_plate_0_0`   <span style="color:#737373">■</span> input the outer rib's loops
+<span style="color:#AD8D68">■</span> built `column_plate_0_0`   <span style="color:#737373">■</span> input the outer rib's loops
 
 `JointBeamElement::let_in_plate(rib, contact)` makes the plate, a `FacePlanarElement` named after its contact: 220 back into the column, 265 forward into the rib, 30 wide and 250 down from the top.
 
@@ -125,7 +125,7 @@ Code: `JointBeamElement::let_in_plate`, `frame_box`, [wood_element_joint_beam.cp
 
 ![](floor/261_plate_pins.webp)
 
-<span style="color:#2196EA">■</span> built `drill_lines`   <span style="color:#F2CC0C">■</span> result `cutters[0]`, the pocket   <span style="color:#737373">■</span> input the outer rib's loops
+<span style="color:#AD8D68">■</span> built `drill_lines`   <span style="color:#F2CC0C">■</span> result `cutters[0]`, the pocket   <span style="color:#737373">■</span> input the outer rib's loops
 
 `JointBeamElement::rectangle_plate(column, rib, plate, contact)` lets the plate in.
 The plate's box raised 25 above its top is the pocket cut out of column and rib.
@@ -149,7 +149,7 @@ Code: `Floor::compute_connectors`, `Floor::add_connectors`, [floor.cpp](https://
 
 ![](floor/263_block_pins.webp)
 
-<span style="color:#2196EA">■</span> built `drill_lines`   <span style="color:#737373">■</span> input the contact `block_pins_0_1_0`   <span style="color:#A3A3A3">■</span> context the middle column block
+<span style="color:#AD8D68">■</span> built `drill_lines`   <span style="color:#737373">■</span> input the contact `block_pins_0_1_0`   <span style="color:#A3A3A3">■</span> context the middle column block
 
 The block-pins part of `compute_connectors` calls `JointBeamElement::centred_pins`.
 The contact polygon is inset by 50.
@@ -162,7 +162,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/264_names_and_groups.webp)
 
-<span style="color:#2196EA">■</span> built quarter 0's connector parts and pins   <span style="color:#A3A3A3">■</span> context quarter 0's members
+<span style="color:#AD8D68">■</span> built quarter 0's connector parts and pins   <span style="color:#A3A3A3">■</span> context quarter 0's members
 
 Each connector is named after its contact where its factory makes it, `connector_<contact name>`.
 Examples are `connector_seam_wedge_0`, `connector_column_plate_0_1`, `connector_block_pins_0_2_1` and `connector_pins_outer_rib_0_0`.
@@ -176,7 +176,7 @@ Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wo
 
 ![](floor/265_every_connector.webp)
 
-<span style="color:#2196EA">■</span> built every connector part and pin   <span style="color:#A3A3A3">■</span> context the members, cut
+<span style="color:#AD8D68">■</span> built every connector part and pin   <span style="color:#A3A3A3">■</span> context the members, cut
 
 The default floor gets 4 seam wedges and 4 oculus wedges.
 It gets 8 column `FacePlanarElement`s with their 8 plate joints, and 4 cross laps (`JointPlateElement`).

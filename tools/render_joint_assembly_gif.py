@@ -1,7 +1,7 @@
 """The assembly and disassembly of a jointed model as a GIF, docs/images/templates/<example>.gif (<example>_assembly.gif when the name does not end in _assembly): the example writes
 its scene and data/output/pb/joint_assembly.json (AssemblySequence::json_dump). The parts first stand apart, each `--reach` mm
-back along the way it goes in, a black arrow on each; then they go in one by one in the order, the moving part blue and
-the parts its joints engage light blue; the model holds assembled, then comes apart in the reverse order. Every frame is drawn by the
+back along the way it goes in, a black arrow on each; then they go in one by one in the order, the moving part brown and
+the parts its joints engage light brown; the model holds assembled, then comes apart in the reverse order. Every frame is drawn by the
 viewer crate's native renderer with one fixed camera.
 
     python3 tools/render_joint_assembly_gif.py templates_truss_5_carpentry_assembly [--reach 900] [--slides 10] [--size 3600x2100] [--view iso]
@@ -58,8 +58,8 @@ for n, frame in enumerate(plan["frames"]):
 print(json.dumps(frames))
 """
 
-MOVING = [33 / 255, 150 / 255, 234 / 255, 1.0]
-ENGAGED = [170 / 255, 210 / 255, 245 / 255, 1.0]
+MOVING = [0.4196, 0.2667, 0.1373, 1.0]  # brown #AD8D68, linear as the renderer takes node colours
+ENGAGED = [0.730, 0.637, 0.539, 1.0]  # light brown #DED1C2, linear
 
 
 def option(arguments: list, flag: str, default: str) -> str:

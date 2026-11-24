@@ -1,5 +1,5 @@
 """A joint library tile as a picture: the unit box drawn isometric, every cut's two outlines and the lines joining them, the male
-member's (a) blue, the female's (b) red, other members' green, loose parts grey, labelled fixed or with the divisions a
+member's (a) brown, the female's (b) red, other members' green, loose parts grey, labelled fixed or with the divisions a
 member's unit repeats by along the joint (fingers, tenons, keys). Reads data/output/pb/joint_library_tiles.json
 (element_joint_beam_library_tiles) and writes docs/images/joint_library/tile_<design>.png.
 
@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
 PICTURES = WOOD / "docs/images/joint_library"
-COLOURS = [(33, 110, 220), (210, 50, 50), (40, 150, 70), (120, 60, 170), (200, 120, 0)]
+COLOURS = [(173, 141, 104), (210, 50, 50), (40, 150, 70), (120, 60, 170), (200, 120, 0)]
 PART = (90, 90, 90)
 SIZE = (960, 640)  # The size of the library's pictures and GIFs, so a row of the page reads as one.
 BACKGROUND = (247, 247, 247)  # The renders' background.
