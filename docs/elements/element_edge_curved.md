@@ -50,6 +50,8 @@ A cutting plane is a joint; the arch keeps the side its normal points to.
 
 Two half arches cut flat at the crown, pins centred across their contact.
 
-![](elements/element_edge_curved_joints.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_edge_curved_joints.gif) | ![](elements/element_edge_curved_joints.png) |  |
 
 \include{lineno} elements/element_edge_curved_joints.cpp

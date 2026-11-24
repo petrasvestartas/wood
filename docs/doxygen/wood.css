@@ -962,7 +962,7 @@ table.markdownTable td img.inline {
 }
 
 /* a joint's GIF shows it apart and together: its still is left out */
-table.markdownTable:has(td:first-child img[src$=".gif"]):has(td:nth-child(2) img[src$=".png"]) :is(td, th):nth-child(2) {
+table.markdownTable:has(td:first-child img[src$=".gif"]):has(td:nth-child(2) img:is([src$=".png"], [src$=".webp"])) :is(td, th):nth-child(2) {
     display: none;
 }
 

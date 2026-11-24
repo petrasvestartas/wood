@@ -6,7 +6,7 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_node_block.html">
-    <img src="element_node_block.png" alt="block">
+    <img src="assembly_element_node_block_session.gif" alt="block">
     <span class="wood-card-title">block</span>
   </a>
   <a class="wood-card" href="elements_node_support.html">
@@ -19,15 +19,15 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_edge_straight.html">
-    <img src="element_edge_straight.png" alt="straight">
+    <img src="assembly_element_edge_straight_session.gif" alt="straight">
     <span class="wood-card-title">straight</span>
   </a>
   <a class="wood-card" href="elements_edge_curved.html">
-    <img src="element_edge_curved.png" alt="curved">
+    <img src="assembly_element_edge_curved_joints.gif" alt="curved">
     <span class="wood-card-title">curved</span>
   </a>
   <a class="wood-card" href="elements_edge_variable.html">
-    <img src="element_edge_variable.png" alt="variable">
+    <img src="assembly_element_edge_variable_session.gif" alt="variable">
     <span class="wood-card-title">variable</span>
   </a>
 </div>
@@ -36,11 +36,11 @@
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="elements_face_planar.html">
-    <img src="element_face_planar.png" alt="planar">
+    <img src="assembly_element_face_planar_session.gif" alt="planar">
     <span class="wood-card-title">planar</span>
   </a>
   <a class="wood-card" href="elements_face_curved.html">
-    <img src="element_face_curved.png" alt="curved">
+    <img src="assembly_element_face_curved_session.gif" alt="curved">
     <span class="wood-card-title">curved</span>
   </a>
 </div>
@@ -149,7 +149,7 @@
 
 A joint is an element: it is added, then handed to each member it cuts.
 
-![](examples/two_plates.png)
+![](joint_library/assembly_two_plates.gif)
 
 \include{lineno} two_plates.cpp
 

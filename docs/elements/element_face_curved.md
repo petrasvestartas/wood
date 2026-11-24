@@ -22,7 +22,9 @@ A 120 mm thick strip between two outer quarter arcs of radius 2000 mm, 600 mm ap
 
 Three strips of a barrel vault side by side.
 
-![](elements/element_face_curved_session.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_face_curved_session.gif) | ![](elements/element_face_curved_session.png) |  |
 
 \include{lineno} elements/element_face_curved_session.cpp
 
@@ -38,6 +40,8 @@ A cutting plane is a joint; the strip keeps the side its normal points to.
 
 Two strips side by side, pins centred across their contact.
 
-![](elements/element_face_curved_joints.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_face_curved_joints.gif) | ![](elements/element_face_curved_joints.png) |  |
 
 \include{lineno} elements/element_face_curved_joints.cpp

@@ -34,7 +34,9 @@ A four-sided plate lofted between a bottom polygon and the same polygon lifted 4
 
 A row of bed plates made between a near and a far parabolic rail.
 
-![](elements/element_face_planar_session.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_face_planar_session.gif) | ![](elements/element_face_planar_session.png) |  |
 
 \include{lineno} elements/element_face_planar_session.cpp
 

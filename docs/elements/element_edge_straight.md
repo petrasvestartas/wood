@@ -56,7 +56,9 @@ A floor corner column: glued head blocks, a steel support and pocket cuts, each 
 
 Two columns and the beam on them, each added to its group.
 
-![](elements/element_edge_straight_session.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_edge_straight_session.gif) | ![](elements/element_edge_straight_session.png) |  |
 
 \include{lineno} elements/element_edge_straight_session.cpp
 

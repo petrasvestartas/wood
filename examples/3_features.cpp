@@ -13,6 +13,11 @@ int main() {
     wood_session.settings.joint_volume_extension = {0.0, 0.0, -10.0};
     wood_session.settings.joint_depth_scale = 0.2;
 
+    // every plate its own name: the assembly sequence tells the pieces apart by name
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = wood_session.get_elements<FacePlanarElement>();
+    for (size_t i = 0; i < plates.size(); i++)
+        plates[i]->name = fmt::format("plate_{}", i);
+
     wood_session.compute_features();
 
     for (const InteractionFeaturePlate& joint : wood_session.get_plate_features())

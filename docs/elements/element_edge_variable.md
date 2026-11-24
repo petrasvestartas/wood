@@ -30,7 +30,9 @@ Seven sections along a 3000 mm axis, the depth falling parabolically from 730 mm
 
 The joist and the beam of a tee.
 
-![](elements/element_edge_variable_session.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_edge_variable_session.gif) | ![](elements/element_edge_variable_session.png) |  |
 
 \include{lineno} elements/element_edge_variable_session.cpp
 

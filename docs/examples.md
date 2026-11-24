@@ -16,7 +16,7 @@ Git, CMake 3.22 and a C++23 compiler (Visual Studio 2022, GCC 13, Clang 17); eve
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#ex_two_plates">
-    <img src="two_plates.png" alt="Two Plates">
+    <img src="assembly_two_plates.gif" alt="Two Plates">
     <span class="wood-card-title">Two Plates</span>
   </a>
   <a class="wood-card" href="#ex_2_contacts">
@@ -24,7 +24,7 @@ Git, CMake 3.22 and a C++23 compiler (Visual Studio 2022, GCC 13, Clang 17); eve
     <span class="wood-card-title">Contacts</span>
   </a>
   <a class="wood-card" href="#ex_3_features">
-    <img src="ex_3_features.webp" alt="Plate Joinery">
+    <img src="assembly_3_features.gif" alt="Plate Joinery">
     <span class="wood-card-title">Plate Joinery</span>
   </a>
   <a class="wood-card" href="#ex_4_traversal">
@@ -40,11 +40,11 @@ Git, CMake 3.22 and a C++23 compiler (Visual Studio 2022, GCC 13, Clang 17); eve
     <span class="wood-card-title">Custom Joint</span>
   </a>
   <a class="wood-card" href="#ex_7_assignment">
-    <img src="ex_7_assignment.webp" alt="Joint Assignment">
+    <img src="assembly_7_assignment.gif" alt="Joint Assignment">
     <span class="wood-card-title">Joint Assignment</span>
   </a>
   <a class="wood-card" href="#ex_8_beams">
-    <img src="ex_8_beams.webp" alt="Beam Contacts">
+    <img src="assembly_8_beams.gif" alt="Beam Contacts">
     <span class="wood-card-title">Beam Contacts</span>
   </a>
   <a class="wood-card" href="#ex_9_cross_joints">
@@ -71,7 +71,9 @@ Git, CMake 3.22 and a C++23 compiler (Visual Studio 2022, GCC 13, Clang 17); eve
 
 Two plates and one joint: the contact between them and a tenon joint cut into both.
 
-![](two_plates.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_two_plates.gif) | ![](two_plates.png) |  |
 
 \include{lineno} two_plates.cpp
 
@@ -88,9 +90,11 @@ Detects face, axis, and cross contacts across an in-plane hexagonal shell datase
 
 ## Plate Joinery {#ex_3_features}
 
-Runs the plate joinery solver on a hexagonal shell, orienting finger joints across shared edges and evaluating boolean-cut plate meshes. The fingers are sized by two settings: `joint_parameters[0]` is the length along the seam that one division takes, and `joint_depth_scale` is their depth across it as a share of the joint volume, whose width is the plate thickness.
+Runs the plate joinery solver on a hexagonal shell, orienting finger joints across shared edges and evaluating boolean-cut plate meshes. The fingers are sized by two settings: `joint_parameters[0]` is the length along the seam that one division takes, and `joint_depth_scale` is their depth across it as a share of the joint volume, whose width is the plate thickness. The sequence finds two of the 23 plates locked; the film draws them straight out.
 
-![](ex_3_features.webp)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_3_features.gif) | ![](ex_3_features.webp) |  |
 
 \include{lineno} 3_features.cpp
 
@@ -128,9 +132,11 @@ Defines custom butterfly dovetail outlines in unit-box space and tiles them alon
 
 ## Joint Assignment {#ex_7_assignment}
 
-Assigns in-plane finger joints and top-to-side tenon-mortise joints from points on shared plate edges, and alters both finger and tenon-mortise directions from lines placed on those edges.
+Assigns in-plane finger joints and top-to-side tenon-mortise joints from points on shared plate edges, and alters both finger and tenon-mortise directions from lines placed on those edges. The sequence finds the wall locked on its angled tenons; the film draws it straight out.
 
-![](ex_7_assignment.webp)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_7_assignment.gif) | ![](ex_7_assignment.webp) |  |
 
 \include{lineno} 7_assignment.cpp
 
@@ -140,7 +146,9 @@ Assigns in-plane finger joints and top-to-side tenon-mortise joints from points 
 
 Detects axis intersections between three orthogonal timber beams and solves their oriented crossing and end-to-side joint volumes.
 
-![](ex_8_beams.webp)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_8_beams.gif) | ![](ex_8_beams.webp) |  |
 
 \include{lineno} 8_beams.cpp
 

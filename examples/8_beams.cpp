@@ -12,6 +12,11 @@ int main() {
     );
     wood_session.add(EdgeStraightElement::square(Polyline({Point(0, 0, 0), Point(0, 0, 1000)}), 60.0));
 
+    // every beam its own name: the assembly sequence tells the pieces apart by name
+    const std::vector<std::shared_ptr<EdgeStraightElement>> beams = wood_session.get_elements<EdgeStraightElement>();
+    for (size_t i = 0; i < beams.size(); i++)
+        beams[i]->name = fmt::format("beam_{}", i);
+
     wood_session.compute_axis_contacts(5.0);
     wood_session.compute_beam_features(400.0, 0.9, 1);
 

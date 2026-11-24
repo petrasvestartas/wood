@@ -28,7 +28,9 @@ A frustum between a 200 × 200 mm square and a 300 × 300 mm square 250 mm above
 
 A block on a block.
 
-![](elements/element_node_block_session.png)
+| assembly | still | |
+|---|---|---|
+| ![](joint_library/assembly_element_node_block_session.gif) | ![](elements/element_node_block_session.png) |  |
 
 \include{lineno} elements/element_node_block_session.cpp
 

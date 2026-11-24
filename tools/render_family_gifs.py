@@ -3,8 +3,9 @@ assembly_<example>.png and .gif, drawn as the joint library draws its joints (to
 the moving piece and the parts brown, one fixed camera, 960 x 640. Each example is run with WOOD_ASSEMBLY, so its
 WoodSession::pb_dump also writes how it goes together (an AssemblySequence, its first jointed member staying); every other
 member waits out along its way in, clear on the screen of the pieces waiting before it, and the GIF takes them in one by one.
-An example no sequence takes apart is stacked: its lowest member stays, the others come down onto it in the order of their
-height, or, from four members on, in towards the middle.
+An example without joints is stacked: its lowest member stays, the others come down onto it in the order of their height, or,
+from four members on, in towards the middle. A jointed example is only ever drawn by its sequence, and every element needs
+its own name: pieces are moved by name.
 
     python3 tools/render_family_gifs.py [example ...] [--slides 6] [--size 960x640] [--scenes | --draw]
 """
@@ -157,7 +158,7 @@ scene.pb_dump(apart_path)
 print(json.dumps({"order": order, "joints": joints, "parts": parts}))
 """
 
-# The assembly of a scene no sequence takes apart, as an AssemblySequence writes one: the lowest first, every member straight
+# The assembly of a scene without joints, as an AssemblySequence writes one: the lowest first, every member straight
 # down, or in towards the scene's middle when there are four of them or more.
 STACK = r"""
 import json, sys
@@ -230,8 +231,15 @@ def main(arguments: list) -> None:
         if not scene.exists():
             print(f"skipped {example}: no scene", flush=True)
             continue
-        if not assembly.exists() or sum(any(abs(v) > 1e-9 for v in step["insertion"]) for step in json.loads(assembly.read_text())["steps"]) == 0:
+        if not assembly.exists():
             subprocess.run([str(library.PYTHON), "-c", STACK, str(scene), str(assembly)], check=True)
+        members = [step["element"] for step in json.loads(assembly.read_text())["steps"]]
+        if len(set(members)) < len(members):
+            print(f"skipped {example}: elements share a name", flush=True)
+            continue
+        if len(members) < 2:
+            print(f"skipped {example}: nothing to take apart", flush=True)
+            continue
         apart = kept / f"{example}_apart.pb"
         placed = json.loads(subprocess.run([str(library.PYTHON), "-c", OUTS, str(scene), str(assembly), str(apart)], check=True, capture_output=True, text=True).stdout.strip().splitlines()[-1])
         names = {"joints": placed["joints"], "parts": placed["parts"]}

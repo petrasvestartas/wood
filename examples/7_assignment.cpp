@@ -44,6 +44,11 @@ int main() {
     );
     wood_session.assign_insertion_vectors_by_lines({finger_dir, tenon_dir}, 30.0);
 
+    // every plate its own name: the assembly sequence tells the pieces apart by name
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = wood_session.get_elements<FacePlanarElement>();
+    for (size_t i = 0; i < plates.size(); i++)
+        plates[i]->name = fmt::format("plate_{}", i);
+
     wood_session.compute_features(face_to_face);
     std::cout << wood_session.get_plate_features().size() << " assigned joints solved\n";
 
