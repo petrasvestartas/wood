@@ -265,16 +265,19 @@ void Truss::add_plated_node(const Point& node) {
 
         // the chords mitered with each other; two meeting sharp (a heel): the steeper running on, bearing on the flatter, both cut
         // by one plane square to the flatter at the node, so the heel ends in one face
+        bool heel_here = false;
         for (size_t k = 1; k < chords.size(); k++)
             for (size_t j = 0; j < k; j++)
                 if (!add_miter(chords[j], chords[k], node)) {
+                    heel_here = true;
                     const bool first_flatter = steepness(*chords[j]) < steepness(*chords[k]);
                     const std::shared_ptr<EdgeStraightElement>& flatter = first_flatter ? chords[j] : chords[k];
                     const std::shared_ptr<EdgeStraightElement>& steeper_chord = first_flatter ? chords[k] : chords[j];
 
                     // the steeper running on past the node first, so its cut at the heel's face is whole
                     add_run_on(steeper_chord, node, RUN_ON * extent(*steeper_chord, plane_normal().cross(away_from(*steeper_chord, node)).normalized()) / std::max(std::sin(std::acos(std::clamp(away_from(*flatter, node).dot(away_from(*steeper_chord, node)), -1.0, 1.0))), 0.2));
-                    bear(flatter, steeper_chord);
+                    // on the flatter run on past the heel, whose plane its end lies in: the steeper loses all beyond it anyway
+                    bear(flatter, steeper_chord, node, 2.0 * half_thickness());
                     const std::shared_ptr<JointCutPlaneElement> heel = std::make_shared<JointCutPlaneElement>(
                         Plane::from_point_normal(node, away_from(*flatter, node)), 4.0 * half_thickness(), fmt::format("heel_cut_{:.0f}_{:.0f}", node[0], node[2]));
                     heel->is_visible = false;
@@ -303,21 +306,18 @@ void Truss::add_plated_node(const Point& node) {
             add_run_on(chord, node, reach);
         }
 
-        // then every web flush on the chords' faces: it loses the chord as mitered with its section carried a millimetre past its
-        // ends, one clean face that meets no other face on the node (coinciding faces leave a boolean slivers)
-        for (const std::shared_ptr<EdgeStraightElement>& web : webs)
-            for (const std::shared_ptr<EdgeStraightElement>& chord : chords) {
-                const Point first = chord->axis.get_point(0);
-                const Point last = chord->axis.get_point(chord->axis.point_count() - 1);
-                const Vector along = (last - first).normalized();
-                const double depth = extent(*chord, plane_normal().cross(along).normalized());
-                const std::shared_ptr<EdgeStraightElement> band = flush(first - along * 1.0, last + along * 1.0, plane_normal(), half_thickness() + 1.0, depth, chord->name + "_band");
-                Mesh body = band->element_geometry_mesh();
-                const Mesh mitered = chord->model_geometry_mesh();
-                if (mitered.number_of_faces() > 0 && mitered.is_closed())
-                    body = solid_boolean(mitered, body, SolidOperation::add);
-                add_interaction(chord, web, std::make_shared<InteractionFeatureSolid>(body, SolidOperation::subtract));
-            }
+        // then every web flush on the chords' faces; where the chords are mitered pieces of one chord, on each piece run on past
+        // the node into the next: into a straight next piece by a full depth (half of it at most), so no cut ends near the web,
+        // past a kink by PROUD
+        const std::optional<Point> joined = chords.size() > 1 && !heel_here ? std::optional<Point>(node) : std::nullopt;
+        for (const std::shared_ptr<EdgeStraightElement>& chord : chords) {
+            double past = PROUD;
+            for (const std::shared_ptr<EdgeStraightElement>& other : chords)
+                if (away_from(*chord, node).dot(away_from(*other, node)) < -0.9998)
+                    past = std::max(past, std::min(2.0 * half_thickness(), 0.5 * other->axis.length()));
+            for (const std::shared_ptr<EdgeStraightElement>& web : webs)
+                bear(chord, web, joined, past);
+        }
         for (const std::array<std::shared_ptr<EdgeStraightElement>, 2>& pair : sharp)
             bear(pair[0], pair[1]);
 
@@ -328,16 +328,47 @@ void Truss::add_plated_node(const Point& node) {
     }
 }
 
-void Truss::bear(const std::shared_ptr<EdgeStraightElement>& holding, const std::shared_ptr<EdgeStraightElement>& bearing) {
+void Truss::bear(
+    const std::shared_ptr<EdgeStraightElement>& holding,
+    const std::shared_ptr<EdgeStraightElement>& bearing,
+    const std::optional<Point>& joined,
+    double past
+) {
 
     // what holding is so far, mitered and cut; its drawn stock where that is no closed solid or the cut is refused
     Mesh body = holding->model_geometry_mesh();
     if (body.number_of_faces() == 0 || !body.is_closed())
         body = holding->element_geometry_mesh();
+
+    // taken PROUD past the truss's faces: every member is as thick as the truss, so a cut flush with them would share their
+    // faces, and the boolean leaves shared faces in slivers
+    const Point mid = guide.chords.front().axis.get_point(0);
+    const Vector across = plane_normal();
+    const Vector up(0.0, 0.0, 1.0);
+    const Vector along = up.cross(across).normalized();
+    Xform proud = Xform::frame_to_world(mid, along, up, across) *
+                  Xform::scale_xyz(1.0, 1.0, (half_thickness() + PROUD) / half_thickness()) *
+                  Xform::world_to_frame(mid, along, up, across);
+
+    // and past its end at joined, from its far end: the piece taking over there is cut flush with that end, and two cuts
+    // meeting on one face leave a fin of bearing between them
+    if (joined) {
+        const Vector away = away_from(*holding, *joined);
+        const Point first = holding->axis.get_point(0);
+        const Point last = holding->axis.get_point(holding->axis.point_count() - 1);
+        const Point far = Point::distance(first, *joined) < Point::distance(last, *joined) ? last : first;
+        const Vector side = across.cross(away).normalized();
+        const double length = Point::distance(first, last);
+        proud = Xform::frame_to_world(far, side, across, away) * Xform::scale_xyz(1.0, 1.0, (length + past) / length) *
+                Xform::world_to_frame(far, side, across, away) * proud;
+    }
+
     try {
-        add_interaction(holding, bearing, std::make_shared<InteractionFeatureSolid>(body, SolidOperation::subtract));
+        add_interaction(holding, bearing, std::make_shared<InteractionFeatureSolid>(body.transformed(proud), SolidOperation::subtract));
     } catch (const std::invalid_argument&) {
-        add_interaction(holding, bearing, std::make_shared<InteractionFeatureSolid>(holding->element_geometry_mesh(), SolidOperation::subtract));
+        add_interaction(
+            holding, bearing, std::make_shared<InteractionFeatureSolid>(holding->element_geometry_mesh().transformed(proud), SolidOperation::subtract)
+        );
     }
 }
 
@@ -662,15 +693,22 @@ double Truss::pull_at(const std::vector<TrussBar>& bars, const EdgeStraightEleme
 
 Mesh Truss::add_run_on(const std::shared_ptr<EdgeStraightElement>& member, const Point& node, double length) {
 
-    // the member's own section from its far end to length past the node, added: the wood a joint into it needs beyond the node
+    // the member's own drawn stock moved and stretched to run from its middle to length past the node, added: the wood a joint
+    // into it needs beyond the node; its own faces, not rebuilt, and clear of its far end, so the union leaves no sliver
     const Vector out = away_from(*member, node) * -1.0;
     const Point first = member->axis.get_point(0);
     const Point back = Point::distance(first, node) < NODE_TOLERANCE ? member->axis.get_point(member->axis.point_count() - 1) : first;
     const Vector across = plane_normal();
-    const std::shared_ptr<EdgeStraightElement> prism = flush(back, node + out * length, across, extent(*member, across), extent(*member, across.cross(out).normalized()), member->name + "_run_on");
+    const Vector side = across.cross(out).normalized();
+    const double span = Point::distance(back, node);
+    const double drawn = member->axis.length();
+    const Mesh stock = member->element_geometry_mesh().transformed(
+        Xform::frame_to_world(back, side, across, out) * Xform::translation(0.0, 0.0, 0.5 * span) *
+        Xform::scale_xyz(1.0, 1.0, (0.5 * span + length) / drawn) * Xform::world_to_frame(back, side, across, out)
+    );
     const std::shared_ptr<JointBeamElement> run_on = std::make_shared<JointBeamElement>();
     run_on->is_butt = true;
-    run_on->butt_solids = {InteractionFeatureSolid(prism->model_geometry_mesh(), SolidOperation::add), InteractionFeatureSolid()};
+    run_on->butt_solids = {InteractionFeatureSolid(stock, SolidOperation::add), InteractionFeatureSolid()};
     run_on->name = fmt::format("run_on_{}_{:.0f}_{:.0f}", member->name, node[0], node[2]);
     add(run_on, group_named("joinery"));
     add_interaction(run_on, member, run_on->interaction(0));

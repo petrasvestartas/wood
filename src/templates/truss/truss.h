@@ -38,6 +38,7 @@ public:
     static constexpr double OVERHANG = 6.0; // Half depths a piece hanging past a node is shorter than to be removed.
     static constexpr double MITER_ANGLE = 35.0; // Degrees two ends at a plate node meet at, at least, to be mitered; sharper, one bears on the other.
     static constexpr double PIN_RADIUS = 6.0; // mm, a node plate's pins.
+    static constexpr double PROUD = 1.0; // mm a member another bears on is taken past its faces in that cut, so the cut shares no face.
     static constexpr double PLATE_INSET = 15.0; // mm, a node plate kept in from its members' edges.
     static constexpr double PLATE_KEEP_ANGLE = 60.0; // Degrees off every member of its node the plate's way square to the chord is kept at, when clear.
     static constexpr double PLATE_FACE_ANGLE = 45.0; // Degrees off every member of its node a plate's way in the truss's plane keeps, at least; else from the face.
@@ -91,8 +92,15 @@ private:
     /// on the chords, one plate let into them all, pinned.
     void add_plated_joinery();
 
-    /// bearing stopping on holding: losing what holding is so far (its drawn stock where that is no closed solid).
-    void bear(const std::shared_ptr<EdgeStraightElement>& holding, const std::shared_ptr<EdgeStraightElement>& bearing);
+    /// bearing stopping on holding: losing what holding is so far (its drawn stock where that is no closed solid), taken PROUD
+    /// past the truss's faces, and past holding's end at joined, the node where the next piece of its chord takes over, so the
+    /// two cuts overlap there instead of meeting on one face.
+    void bear(
+        const std::shared_ptr<EdgeStraightElement>& holding,
+        const std::shared_ptr<EdgeStraightElement>& bearing,
+        const std::optional<Point>& joined = std::nullopt,
+        double past = PROUD
+    );
 
     /// first and second mitered on their bisector at node, true; two pieces of one line cut square on the node, true; meeting
     /// under MITER_ANGLE not mitered, false.
