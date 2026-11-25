@@ -10,7 +10,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | Folder under `docs/` | Command |
 | --- | --- |
 | `images/elements/` | `python3 tools/render_element_pictures.py [example ...]` (names are the example targets, every picture there when none; drawn like the joint library) |
-| `images/templates/` (shells, folding, chevron, cross, reciprocal, module, grid, vault) | `bash tools/render_template_pictures.sh [family]` |
+| `images/templates/` (shells, folding, chevron, cross, reciprocal, module, timber_floor, grid, vault) | `bash tools/render_template_pictures.sh [family]` |
 | `images/templates/truss_*.png`, `templates_truss_1_pratt.png` | `bash tools/render_template_pictures.sh truss` (each library truss and the joinery's nodes close up, drawn by `render_element_pictures.py --scenes` / `--close` like the joint library: see-through, as dark as solid; native renderer) |
 | `images/templates/truss_bow_*.webp` | `bash tools/render_template_pictures.sh bow` |
 | `images/templates/*_assembly.gif` | `python tools/render_assembly_gif.py <example>` (the one tool that does not use the browser: it needs the viewer crate's native renderer for a fixed camera) |

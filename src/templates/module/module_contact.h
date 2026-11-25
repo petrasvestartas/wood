@@ -25,4 +25,12 @@ struct Contact {
 /// Stores face contacts between touching beams and plates and draws their polygons.
 std::array<size_t, 2> add_module_contacts(WoodSession& session);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Assembly of pins
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// One part per connector of the pins along one line, driven along it.
+std::vector<AssemblyModule>
+pin_parts(const WoodSession& session, const std::vector<std::shared_ptr<JointBeamElement>>& connectors);
+
 }

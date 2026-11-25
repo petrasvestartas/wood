@@ -210,73 +210,12 @@ void FramedPanel::add_studs() {
 void FramedPanel::add_sheathing() {
 
     const double face = 0.5 * guide.stud_depth;
-    std::vector<std::pair<double, size_t>> doors;
-
-    // doors: left to right, as the outline walks along the foot
-    for (size_t o = 0; o < guide.openings.size(); o++)
-        if (guide.openings[o].sill <= 0.0)
-            doors.push_back({guide.openings[o].x, o});
-
-    std::sort(doors.begin(), doors.end());
 
     for (size_t side = 0; side < 2; side++) {
-        const std::shared_ptr<TreeNode> sheets = group(fmt::format("sheathing_{}", side));
         const double sign = side == 0 ? -1.0 : 1.0;
         const std::array<double, 2> levels = {sign * face, sign * (face + guide.sheet_thickness)};
-        std::array<Polyline, 2> outlines;
-
-        // outline: the whole panel, every door a notch up from its foot
-        for (size_t k = 0; k < 2; k++) {
-            std::vector<Point> corners = {local(0.0, levels[k], 0.0)};
-
-            for (const std::pair<double, size_t>& entry : doors) {
-                const Opening& door = guide.openings[entry.second];
-                corners.push_back(local(door.x, levels[k], 0.0));
-                corners.push_back(local(door.x, levels[k], door.head));
-                corners.push_back(local(door.x + door.width, levels[k], door.head));
-                corners.push_back(local(door.x + door.width, levels[k], 0.0));
-            }
-
-            corners.push_back(local(guide.length, levels[k], 0.0));
-            corners.push_back(local(guide.length, levels[k], guide.height));
-            corners.push_back(local(0.0, levels[k], guide.height));
-            corners.push_back(corners[0]);
-            outlines[k] = Polyline(corners);
-        }
-
-        const std::shared_ptr<FacePlanarElement> sheet = std::make_shared<FacePlanarElement>(
-            outlines[0], outlines[1], named(fmt::format("sheathing_{}", side))
-        );
-
-        // windows: a hole through both faces of the sheet
-        Features features;
-        features.bottom.push_back(sheet->polylines[0]);
-        features.top.push_back(sheet->polylines[1]);
-
-        for (const Opening& opening : guide.openings) {
-            if (opening.sill <= 0.0)
-                continue;
-
-            const double height = opening.head - opening.sill;
-            features.bottom.push_back(Polyline::rectangle(
-                local(opening.x, levels[0], opening.sill),
-                base.x_axis(),
-                base.y_axis(),
-                opening.width,
-                height
-            ));
-            features.top.push_back(Polyline::rectangle(
-                local(opening.x, levels[1], opening.sill),
-                base.x_axis(),
-                base.y_axis(),
-                opening.width,
-                height
-            ));
-        }
-
-        sheet->features = features;
-        sheet->invalidate_geometry();
-        _session.add(sheet, sheets);
+        const std::string part = fmt::format("sheathing_{}", side);
+        _session.add(panel_plate(guide, base, levels, named(part)), group(part));
     }
 }
 
@@ -302,6 +241,70 @@ std::shared_ptr<EdgeStraightElement> FramedPanel::member(
     const Polyline axis({start, end});
     const std::vector<Polyline> profile = profile_rectangle(guide.stud_depth, size);
     return std::make_shared<EdgeStraightElement>(axis, profile, std::vector<Vector>{up}, named(part));
+}
+
+std::shared_ptr<FacePlanarElement> panel_plate(
+    const WallGuide& guide, const Plane& base, const std::array<double, 2>& levels, const std::string& name
+) {
+
+    const Vector along = base.x_axis();
+    const Vector up = base.y_axis();
+    const std::array<Point, 2> foot = {
+        base.origin() + base.z_axis() * levels[0],
+        base.origin() + base.z_axis() * levels[1],
+    };
+    std::vector<std::pair<double, size_t>> doors;
+
+    // doors: left to right, as the outline walks along the foot
+    for (size_t o = 0; o < guide.openings.size(); o++)
+        if (guide.openings[o].sill <= 0.0)
+            doors.push_back({guide.openings[o].x, o});
+
+    std::sort(doors.begin(), doors.end());
+
+    // outline: the whole panel, every door a notch up from its foot
+    std::array<Polyline, 2> outlines;
+
+    for (size_t k = 0; k < 2; k++) {
+        std::vector<Point> corners = {foot[k]};
+
+        for (const std::pair<double, size_t>& entry : doors) {
+            const Opening& door = guide.openings[entry.second];
+            corners.push_back(foot[k] + along * door.x);
+            corners.push_back(foot[k] + along * door.x + up * door.head);
+            corners.push_back(foot[k] + along * (door.x + door.width) + up * door.head);
+            corners.push_back(foot[k] + along * (door.x + door.width));
+        }
+
+        corners.push_back(foot[k] + along * guide.length);
+        corners.push_back(foot[k] + along * guide.length + up * guide.height);
+        corners.push_back(foot[k] + up * guide.height);
+        corners.push_back(corners[0]);
+        outlines[k] = Polyline(corners);
+    }
+
+    const std::shared_ptr<FacePlanarElement> plate =
+        std::make_shared<FacePlanarElement>(outlines[0], outlines[1], name);
+
+    // windows: a hole through both faces of the plate
+    Features features;
+    features.bottom.push_back(plate->polylines[0]);
+    features.top.push_back(plate->polylines[1]);
+
+    for (const Opening& opening : guide.openings) {
+        if (opening.sill <= 0.0)
+            continue;
+
+        const Vector corner = along * opening.x + up * opening.sill;
+        const double height = opening.head - opening.sill;
+        features.bottom.push_back(Polyline::rectangle(foot[0] + corner, along, up, opening.width, height));
+        features.top.push_back(Polyline::rectangle(foot[1] + corner, along, up, opening.width, height));
+    }
+
+    plate->features = features;
+    plate->invalidate_geometry();
+
+    return plate;
 }
 
 AssemblyModule panel_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements) {

@@ -6,6 +6,11 @@ using namespace wood_session;
 
 namespace wood_module {
 
+/// The plate of a panel in base between two levels across it: the whole panel, every door a notch up from its foot and every window a hole.
+std::shared_ptr<FacePlanarElement> panel_plate(
+    const WallGuide& guide, const Plane& base, const std::array<double, 2>& levels, const std::string& name
+);
+
 /// How a panel of elements goes together: its frame members in the order they were made, then its sheets.
 AssemblyModule panel_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements);
 

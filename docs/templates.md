@@ -41,6 +41,10 @@
     <img src="card_floor.gif" alt="Floor">
     <span class="wood-card-title">Floor</span>
   </a>
+  <a class="wood-card" href="templates_timber_floor.html">
+    <img src="card_timber_floor.gif" alt="Timber Floors">
+    <span class="wood-card-title">Timber Floors</span>
+  </a>
   <a class="wood-card" href="templates_truss.html">
     <img src="card_truss.gif" alt="Truss">
     <span class="wood-card-title">Truss</span>
@@ -70,6 +74,7 @@
 - @subpage templates_reciprocal
 - @subpage templates_grid
 - @subpage templates_floor
+- @subpage templates_timber_floor
 - @subpage templates_truss
 - @subpage templates_vault
 - @subpage templates_plaited

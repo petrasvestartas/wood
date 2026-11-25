@@ -107,6 +107,9 @@ set(WOOD_SOURCES
     src/templates/module/framed_panel.cpp
     src/templates/module/module_contact.cpp
     src/templates/module/wall.cpp
+    src/templates/module/spatial_module.cpp
+    src/templates/module/module_building.cpp
+    src/templates/timber_floor/timber_floor.cpp
     src/templates/module/room_module.cpp
     src/templates/module/cassette_shell.cpp
     src/templates/plaited/plaited_guide.cpp
@@ -397,6 +400,17 @@ ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_ca
 ADD_EXE(templates_module_4_room_module            examples/templates_module_4_room_module.cpp)
 ADD_EXE(templates_module_5_module_block           examples/templates_module_5_module_block.cpp)
 ADD_EXE(templates_module_6_bank_pavilion          examples/templates_module_6_bank_pavilion.cpp)
+ADD_EXE(templates_module_7_module_types           examples/templates_module_7_module_types.cpp)
+ADD_EXE(templates_module_8_open_module            examples/templates_module_8_open_module.cpp)
+ADD_EXE(templates_module_9_stacked_modules        examples/templates_module_9_stacked_modules.cpp)
+ADD_EXE(templates_module_10_module_rack           examples/templates_module_10_module_rack.cpp)
+ADD_EXE(templates_module_11_module_frame          examples/templates_module_11_module_frame.cpp)
+ADD_EXE(templates_module_12_module_levels         examples/templates_module_12_module_levels.cpp)
+ADD_EXE(templates_module_13_module_corridor       examples/templates_module_13_module_corridor.cpp)
+ADD_EXE(templates_module_14_wet_room              examples/templates_module_14_wet_room.cpp)
+ADD_EXE(templates_timber_floor_1_systems          examples/templates_timber_floor_1_systems.cpp)
+ADD_EXE(templates_timber_floor_2_bearings         examples/templates_timber_floor_2_bearings.cpp)
+ADD_EXE(templates_timber_floor_3_joints           examples/templates_timber_floor_3_joints.cpp)
 ADD_EXE(templates_grid_1_bay_framing       examples/templates_grid_1_bay_framing.cpp)
 ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.cpp)
 ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)

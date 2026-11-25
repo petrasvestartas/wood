@@ -4,7 +4,7 @@
 # reads these lines to prove every picture on a page is made here.
 #
 #   bash tools/render_template_pictures.sh            every family
-#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, grid, vault, plaited, vidy, truss or bow
+#   bash tools/render_template_pictures.sh module     one family: shells, folding, cylindrical_folding, developable_folding, chevron, cross, reciprocal, module, timber_floor, grid, vault, plaited, vidy, truss or bow
 #
 # PYTHON names the interpreter that runs the renderer (python3 by default, python on Windows). SHOT_PORT_BASE moves the Chrome ports off 9333.
 set -euo pipefail
@@ -146,6 +146,47 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     PAVILION+=+module_0_3_floor+module_0_3_posts+module_0_3_wall_front+module_0_3_wall_back+module_0_3_wall_start+module_0_3_wall_end
     "${RENDER[@]}" --view top --name plan templates_module_6_bank_pavilion "$PAVILION"
     "${RENDER[@]}" --name open templates_module_6_bank_pavilion "$PAVILION+module_0_1_ceiling_beams+module_0_2_ceiling_beams"
+    "${RENDER[@]}" templates_module_7_module_types all
+    "${RENDER[@]}" --aspect 1.5 templates_module_7_module_types mixed
+    "${RENDER[@]}" --aspect 1.5 --name framed_bones templates_module_7_module_types framed_floor_rails+framed_floor_studs+framed_wall_back_rails+framed_wall_back_studs+framed_wall_front_rails+framed_wall_front_studs+framed_wall_front_opening_0+framed_wall_front_opening_1+framed_wall_start_rails+framed_wall_start_studs+framed_wall_start_opening_0+framed_wall_end_rails+framed_wall_end_studs+framed_wall_end_opening_0+framed_ceiling_rails+framed_ceiling_studs
+    "${RENDER[@]}" --aspect 1.5 --name solid_inside templates_module_7_module_types solid_floor_panel+solid_wall_back_panel+solid_wall_end_panel+solid_wall_start_panel
+    "${RENDER[@]}" templates_module_8_open_module all
+    "${RENDER[@]}" templates_module_9_stacked_modules all
+    "${RENDER[@]}" --view right --turn 180 --name front templates_module_9_stacked_modules all
+    "${RENDER[@]}" --name bearings templates_module_9_stacked_modules bearings_1+module_0_0_0_ceiling+module_0_0_1_ceiling+module_0_0_2_ceiling
+    "${RENDER[@]}" templates_module_10_module_rack all
+    "${RENDER[@]}" templates_module_10_module_rack skeleton
+    "${RENDER[@]}" templates_module_11_module_frame all
+    "${RENDER[@]}" templates_module_11_module_frame skeleton
+    "${RENDER[@]}" templates_module_12_module_levels all
+    "${RENDER[@]}" templates_module_12_module_levels skeleton
+    "${RENDER[@]}" templates_module_13_module_corridor all
+    CORRIDOR=corridor_0
+    CORRIDOR+=+module_0_0_0_floor+module_0_0_0_wall_front+module_0_0_0_wall_back+module_0_0_0_wall_start+module_0_0_0_wall_end+module_0_0_1_floor
+    CORRIDOR+=+module_0_0_1_wall_front+module_0_0_1_wall_start+module_0_0_1_wall_end+module_0_0_1_frame_1+module_0_0_2_floor+module_0_0_2_wall_back
+    CORRIDOR+=+module_0_0_2_wall_start+module_0_0_2_wall_end+module_0_0_2_frame_0+module_0_0_3_floor+module_0_0_3_wall_front+module_0_0_3_wall_back
+    CORRIDOR+=+module_0_0_3_wall_start+module_0_0_3_wall_end+module_1_0_0_floor+module_1_0_0_wall_front+module_1_0_0_wall_back+module_1_0_0_wall_start
+    CORRIDOR+=+module_1_0_0_wall_end+module_1_0_1_floor+module_1_0_1_wall_front+module_1_0_1_wall_start+module_1_0_1_wall_end+module_1_0_1_frame_1
+    CORRIDOR+=+module_1_0_2_floor+module_1_0_2_wall_back+module_1_0_2_wall_start+module_1_0_2_wall_end+module_1_0_2_frame_0+module_1_0_3_floor
+    CORRIDOR+=+module_1_0_3_wall_front+module_1_0_3_wall_back+module_1_0_3_wall_start+module_1_0_3_wall_end
+    "${RENDER[@]}" --name plan templates_module_13_module_corridor "$CORRIDOR"
+    WET=bearings_0
+    WET+=+module_0_0_0_floor+module_0_0_0_wall_back+module_0_0_0_wall_front+module_0_0_0_wall_start+module_0_0_0_wall_end+module_0_0_0_pod
+    WET+=+module_0_0_1_floor+module_0_0_1_wall_back+module_0_0_1_wall_front+module_0_0_1_wall_start+module_0_0_1_wall_end+module_0_0_1_pod
+    "${RENDER[@]}" --name all templates_module_14_wet_room "$WET"
+fi
+
+if [ "$FAMILY" = all ] || [ "$FAMILY" = timber_floor ]; then
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_1_systems joists ribbed box hollow planks dowelled cross_laminated composite
+    "${RENDER[@]}" --view right --name section templates_timber_floor_1_systems all
+    "${RENDER[@]}" templates_timber_floor_2_bearings all
+    "${RENDER[@]}" --view front --aspect 2.5 --name resting_section templates_timber_floor_2_bearings resting
+    "${RENDER[@]}" --view front --aspect 2.5 --name rebated_section templates_timber_floor_2_bearings rebated
+    "${RENDER[@]}" --view front --aspect 2.5 --name battens_section templates_timber_floor_2_bearings battens
+    "${RENDER[@]}" templates_timber_floor_3_joints all
+    "${RENDER[@]}" --view right --aspect 3 --name tongue_section templates_timber_floor_3_joints tongue
+    "${RENDER[@]}" --view right --aspect 3 --name strip_section templates_timber_floor_3_joints strip
+    "${RENDER[@]}" --view right --aspect 3 --name board_section templates_timber_floor_3_joints board
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then

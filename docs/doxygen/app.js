@@ -19,7 +19,7 @@
     elements_joint_beam_butt: "beam_butt", elements_joint_beam_connectors: "connectors", elements_joint_beam_pins: "beam_pins",
     templates_shells: "translation_shell", templates_folding: "reflex_fold", templates_cylindrical_folding: "cylindrical_folding",
     templates_developable_folding: "developable_folding", templates_chevron: "chevron", templates_cross: "cross", templates_module: "module",
-    templates_reciprocal: "reciprocal_rotation", templates_grid: "grid", templates_floor: "floor", templates_truss: "truss", templates_vault: "vault",
+    templates_reciprocal: "reciprocal_rotation", templates_grid: "grid", templates_floor: "floor", templates_timber_floor: "timber_floor", templates_truss: "truss", templates_vault: "vault",
     templates_plaited: "plaited", templates_vidy: "vidy",
     "#assembly_sequence": "insertion_direction", "#reflex_fold": "reflex_fold", "#diamond_mesh": "templates", "#reciprocal_move": "reciprocal_move", "#reciprocal_rotation": "reciprocal_rotation",
     "#ex_two_plates": "plate_top_side", "#ex_2_contacts": "joint_type", "#ex_3_features": "solver", "#ex_4_traversal": "architecture", "#ex_5_settings": "beam_todo",

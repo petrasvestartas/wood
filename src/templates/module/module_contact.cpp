@@ -89,4 +89,27 @@ std::array<size_t, 2> add_module_contacts(WoodSession& session) {
     return found;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Assembly of pins
+// ═══════════════════════════════════════════════════════════════════════════
+std::vector<AssemblyModule>
+pin_parts(const WoodSession& session, const std::vector<std::shared_ptr<JointBeamElement>>& connectors) {
+
+    std::vector<AssemblyModule> parts;
+
+    for (const std::shared_ptr<JointBeamElement>& connector : connectors) {
+        const std::vector<std::shared_ptr<JointPinElement>> pins =
+            session.get_elements_under<JointPinElement>(connector->guid());
+
+        if (pins.empty())
+            continue;
+
+        const Vector along = pins[0]->axis().to_vector().normalized();
+        const std::vector<std::shared_ptr<Element>> driven(pins.begin(), pins.end());
+        parts.push_back(AssemblyModule::part(connector->name, driven, {along, along * -1.0}));
+    }
+
+    return parts;
+}
+
 }

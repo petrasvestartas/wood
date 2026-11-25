@@ -102,6 +102,22 @@ PAGES = {
             ("templates_module_4_room_module", "Room module: floor, walls, posts, ceiling"),
             ("templates_module_5_module_block", "Module block"),
             ("templates_module_6_bank_pavilion", "Bank pavilion"),
+            ("templates_module_7_module_types", "Module types: framed, solid, mixed"),
+            ("templates_module_8_open_module", "Open modules: frame, braced"),
+            ("templates_module_9_stacked_modules", "Stacked modules: bearings, modules, couplers"),
+            ("templates_module_10_module_rack", "Rack: the skeleton, the modules slid in"),
+            ("templates_module_11_module_frame", "Frame: a deck per storey, the modules on it"),
+            ("templates_module_12_module_levels", "Levels: a deck every second storey"),
+            ("templates_module_13_module_corridor", "Corridor between two rows"),
+            ("templates_module_14_wet_room", "Wet room set in before the ceiling"),
+        ],
+    ),
+    "timber_floor": (
+        "The beams, then the ribs and the boards or the panels in their order, what joins them last; a dowel-laminated panel's boards one by one.",
+        [
+            ("templates_timber_floor_1_systems", "Systems"),
+            ("templates_timber_floor_2_bearings", "Bearings"),
+            ("templates_timber_floor_3_joints", "Joints"),
         ],
     ),
     "reciprocal": (
