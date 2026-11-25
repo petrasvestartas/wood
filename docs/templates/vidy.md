@@ -165,13 +165,13 @@
 <!-- assembly:begin -->
 ## Assembly Sequence {#vidy_assembly_sequence}
 
-A bay is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate along its one insertion vector where that is free. The roof is lowered on the walls, and the bays slide one after another along the hall. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+A row is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate along its one insertion vector where that is free. First the two walls go up, along the hall against the walls before them, then the roof is lowered on them, then the next row's walls and its roof, row after row. One corner of one roof grazes the next (46 mm3), so the whole is swept with 0.9 mm of play. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
-| **Pavilion: wall, roof, bay, eleven bays**, 462 elements, 461 moves | | |
+| **Pavilion: wall, roof, eleven rows**, 462 elements, 461 moves | | |
 | ![wall left, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_left.gif) wall left, 8 pieces | ![wall right, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_right.gif) wall right, 8 pieces | ![roof, 26 pieces](assembly/assembly_templates_vidy_4_section_joints_roof.gif) roof, 26 pieces |
-| ![bay, 3 pieces](assembly/assembly_templates_vidy_4_section_joints_bay.gif) bay, 3 pieces | ![vidy pavilion, 11 pieces](assembly/assembly_templates_vidy_4_section_joints.gif) vidy pavilion, 11 pieces |  |
+| ![vidy pavilion, 33 pieces](assembly/assembly_templates_vidy_4_section_joints.gif) vidy pavilion, 33 pieces |  |  |
 | **Parametric family**, 504 elements, 501 moves | | |
 | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric_bay.gif) bay, 3 pieces | ![compact symmetric, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric.gif) compact symmetric, 3 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall_bay.gif) bay, 3 pieces |
 | ![tapered hall, 5 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall.gif) tapered hall, 5 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow_bay.gif) bay, 3 pieces | ![wide shallow, 4 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow.gif) wide shallow, 4 pieces |
