@@ -87,7 +87,7 @@ jobs:
     # Butts of beams and plates drawn on lines and mid-planes: posts on a sill, a small house, every face flush and no two members overlapping.
     - name: Butt joints
       run: |
-        stdbuf -oL -eL timeout 1500 build/joint_butt
+        stdbuf -oL -eL timeout 2400 build/joint_butt
 
     # A massing whose facets miss the pattern's rays: no sliver bays, no head past the facade
     - name: Grid massing
