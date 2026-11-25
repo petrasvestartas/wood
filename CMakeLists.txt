@@ -390,6 +390,7 @@ ADD_EXE(templates_developable_folding_11_corrugated_dome               examples/
 ADD_EXE(templates_developable_folding_12_corrugated_funnel             examples/templates_developable_folding_12_corrugated_funnel.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_cross_2_assembly               examples/templates_cross_2_assembly.cpp)
+ADD_EXE(templates_cross_3_cardboard_shell        examples/templates_cross_3_cardboard_shell.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
 ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_cassette_house.cpp)

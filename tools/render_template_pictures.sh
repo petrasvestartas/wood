@@ -104,7 +104,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
     # a scene of planes alone stays on a white page: each with the mesh it stands on
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name edge_planes templates_cross_1_vda_mesh mesh+edge_planes
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name connector_frames templates_cross_1_vda_mesh mesh+connector_frames
-    "${RENDER[@]}" --wheel 6,0.5,0.3 --name cross_laps templates_cross_1_vda_mesh plates
+    "${RENDER[@]}" --name cross_laps templates_cross_1_vda_mesh plates+connectors
+    "${RENDER[@]}" templates_cross_3_cardboard_shell all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = reciprocal ]; then
