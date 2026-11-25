@@ -41,7 +41,7 @@ Code: `Floor::add_contacts`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/303_pin_axes.webp)
 
-<span style="color:#E8478B">■</span> variable `x` and `y`   <span style="color:#737373">■</span> input the contact
+<span style="color:#007C55">■</span> variable `x` and `y`   <span style="color:#737373">■</span> input the contact
 
 x runs level along the contact, z cross the normal.
 y runs up it.
@@ -53,7 +53,7 @@ Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://git
 
 ![](floor/304_pin_stations.webp)
 
-<span style="color:#E8478B">■</span> variable the two stations   <span style="color:#737373">■</span> input the inset contact
+<span style="color:#007C55">■</span> variable the two stations   <span style="color:#737373">■</span> input the inset contact
 
 `PinLayout::vertical` with two pins insets the contact by `PIN_INSET` = 20.
 One station stands at the inset contact's top and one at its bottom.
@@ -65,7 +65,7 @@ Code: `JointBeamElement::headed_pins`, [wood_element_joint_beam.cpp](https://git
 
 ![](floor/305_pin_head.webp)
 
-<span style="color:#F2CC0C">■</span> result the pin head   <span style="color:#E8478B">■</span> variable the pin's direction   <span style="color:#A3A3A3">■</span> context the two members
+<span style="color:#F2CC0C">■</span> result the pin head   <span style="color:#007C55">■</span> variable the pin's direction   <span style="color:#A3A3A3">■</span> context the two members
 
 `pin_head` goes back from the station along the pin's direction, the level axis of the member that ends on the contact.
 It puts the head where the line leaves the other member's stock.
@@ -103,7 +103,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/307_pin_layouts.webp)
 
-<span style="color:#E8478B">■</span> variable the stations of each layout   <span style="color:#737373">■</span> input the contact
+<span style="color:#007C55">■</span> variable the stations of each layout   <span style="color:#737373">■</span> input the contact
 
 `PinLayout` on the same contact: `corners` at the inset contact's extreme corners, `vertical` a column up it, `horizontal` a row along it.
 The floor uses `vertical`.

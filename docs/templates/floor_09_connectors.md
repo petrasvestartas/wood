@@ -19,7 +19,7 @@ Example: [templates_floor_7_contacts_cantilevers.cpp](https://github.com/petrasv
 
 ![](floor/251_add_connectors.webp)
 
-<span style="color:#AD8D68">■</span> seam_wedge, block_pins   <span style="color:#F2CC0C">■</span> oculus_wedge   <span style="color:#E8478B">■</span> column_plate   <span style="color:#A3A3A3">■</span> context quarter 0's members, by their loops
+<span style="color:#AD8D68">■</span> seam_wedge, block_pins   <span style="color:#F2CC0C">■</span> oculus_wedge   <span style="color:#007C55">■</span> column_plate   <span style="color:#A3A3A3">■</span> context quarter 0's members, by their loops
 
 `compute_connectors` builds every quarter's connectors from its `QuarterContacts`, one part of the function per kind.
 It builds them all before `add_connectors` adds any, so each is built on uncut members.
@@ -31,7 +31,7 @@ Code: `Floor::add_connectors`, [floor.cpp](https://github.com/petrasvestartas/wo
 
 ![](floor/252_wedge_size.webp)
 
-<span style="color:#E8478B">■</span> variable `end`, the bay's outer face   <span style="color:#A3A3A3">■</span> context the two seam beams
+<span style="color:#007C55">■</span> variable `end`, the bay's outer face   <span style="color:#A3A3A3">■</span> context the two seam beams
 
 The seam-wedge part of `compute_connectors` sizes the wedge by `guide.size_inner_beams`, `size` (60).
 Its end plane is the bay's outer face, `construction_planes(q).outer_ribs[0][0]` lifted to the floor.
@@ -42,7 +42,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/253_wedge_frame.webp)
 
-<span style="color:#737373">■</span> input the contact, its `top_edge` dashed and the end plane   <span style="color:#E8478B">■</span> variable the two ends of the wedge
+<span style="color:#737373">■</span> input the contact, its `top_edge` dashed and the end plane   <span style="color:#007C55">■</span> variable the two ends of the wedge
 
 `JointBeamElement::wedge` lays x along the contact's top edge and y along its normal made square to x; it stops `length_margin = 1.5 size` (90) in from both ends of the edge, the end nearer the end plane moved onto it, so the wedge runs out to the bay's outer face.
 
@@ -52,7 +52,7 @@ Code: `JointBeamElement::wedge`, [wood_element_joint_beam.cpp](https://github.co
 
 ![](floor/254_wedge_part.webp)
 
-<span style="color:#AD8D68">■</span> built `parts[0]`   <span style="color:#E8478B">■</span> variable its `profile`   <span style="color:#737373">■</span> input the two seam beams' loops, end on
+<span style="color:#AD8D68">■</span> built `parts[0]`   <span style="color:#007C55">■</span> variable its `profile`   <span style="color:#737373">■</span> input the two seam beams' loops, end on
 
 The `WEDGE_PROFILE` triangle, apex 197 below the top edge, is cut level with the edge by `below_top` and swept from end to end: the wedge part.
 
@@ -105,7 +105,7 @@ Code: `Floor::compute_connectors`, [floor.cpp](https://github.com/petrasvestarta
 
 ![](floor/259_plate_frame.webp)
 
-<span style="color:#AD8D68">■</span> built `column_plate_0_0`   <span style="color:#E8478B">■</span> variable the frame's `x` and `z`   <span style="color:#A3A3A3">■</span> context the column   <span style="color:#737373">■</span> input the outer rib's loops
+<span style="color:#AD8D68">■</span> built `column_plate_0_0`   <span style="color:#007C55">■</span> variable the frame's `x` and `z`   <span style="color:#A3A3A3">■</span> context the column   <span style="color:#737373">■</span> input the outer rib's loops
 
 The column plate's frame sits at the middle of the contact's top: x the contact normal made horizontal and turned towards the rib, z up. `JointBeamElement::let_in_plate` and `JointBeamElement::rectangle_plate` both build on it.
 
@@ -139,7 +139,7 @@ Code: `JointBeamElement::rectangle_plate`, [wood_element_joint_beam.cpp](https:/
 
 ![](floor/262_cross_lap.webp)
 
-<span style="color:#E8478B">■</span> a `column_plate_0_0`   <span style="color:#F2CC0C">■</span> b `column_plate_0_1`   <span style="color:#A3A3A3">■</span> context the column
+<span style="color:#007C55">■</span> a `column_plate_0_0`   <span style="color:#F2CC0C">■</span> b `column_plate_0_1`   <span style="color:#A3A3A3">■</span> context the column
 
 The two plates of a column cross inside its head. `compute_cross_contact(plates[0], plates[1])` finds the crossing; `JointPlateElement::cross_slot()`, oriented on it, is the half lap. `add_connectors` adds it last, and each `add_interaction(lap, plate, lap->interaction(i))` merges the lap into that plate's outlines.
 

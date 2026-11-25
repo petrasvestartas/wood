@@ -32,7 +32,7 @@ Code: `Floor::Floor`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/m
 
 ![](floor/202_add_members.webp)
 
-<span style="color:#AD8D68">■</span> add_quarters the quarters' members   <span style="color:#F2CC0C">■</span> add_oculus the ring and the oculus plates   <span style="color:#E8478B">■</span> add_columns the columns and their supports
+<span style="color:#AD8D68">■</span> add_quarters the quarters' members   <span style="color:#F2CC0C">■</span> add_oculus the ring and the oculus plates   <span style="color:#007C55">■</span> add_columns the columns and their supports
 
 The constructor calls six private steps in order: `add_quarters`, `add_oculus`, `add_columns`, `add_contacts`, `compute_connectors` and `add_connectors`.
 
@@ -91,7 +91,7 @@ Code: `Floor::add_quarters`, `Floor::add_oculus`, `Floor::add_column`, [floor.cp
 
 ![](floor/205_bed_row.webp)
 
-<span style="color:#AD8D68">■</span> built the plates of bed row 0   <span style="color:#737373">■</span> input `bottom`, the two bottom rails   <span style="color:#E8478B">■</span> variable `top`, the two top rails   <span style="color:#A3A3A3">■</span> context the rest of quarter 0
+<span style="color:#AD8D68">■</span> built the plates of bed row 0   <span style="color:#737373">■</span> input `bottom`, the two bottom rails   <span style="color:#007C55">■</span> variable `top`, the two top rails   <span style="color:#A3A3A3">■</span> context the rest of quarter 0
 
 `add_quarters` starts with the beds: `guide.bed_rails(q)` gives each row's two bottom and two top rails, and `FacePlanarElement::row_between(bottom, top)` lofts one plate per rail segment, its bottom quad and its top quad.
 
@@ -101,7 +101,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/206_bed_rows.webp)
 
-<span style="color:#AD8D68">■</span> row 0   <span style="color:#F2CC0C">■</span> row 1   <span style="color:#E8478B">■</span> row 2   <span style="color:#A3A3A3">■</span> context the rest of quarter 0
+<span style="color:#AD8D68">■</span> row 0   <span style="color:#F2CC0C">■</span> row 1   <span style="color:#007C55">■</span> row 2   <span style="color:#A3A3A3">■</span> context the rest of quarter 0
 
 Row r goes in the group `beds_r_q` under `beds_q`, its plates named `beds_r_i_q`.
 
@@ -121,7 +121,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/208_rib_loops.webp)
 
-<span style="color:#E8478B">■</span> near `loops[0]`, its soffit points dotted   <span style="color:#F2CC0C">■</span> far `loops[1]`
+<span style="color:#007C55">■</span> near `loops[0]`, its soffit points dotted   <span style="color:#F2CC0C">■</span> far `loops[1]`
 
 The soffit is the rib's curved underside.
 A rib's two face loops each list the two top corners `near[0]` and `near[1]`, then the soffit points from `near[2]`.
@@ -143,7 +143,7 @@ Code: `Floor::rib`, [floor.cpp](https://github.com/petrasvestartas/wood/blob/mai
 
 ![](floor/210_rib_axis.webp)
 
-<span style="color:#E8478B">■</span> variable `axis`   <span style="color:#A3A3A3">■</span> context the rib it makes
+<span style="color:#007C55">■</span> variable `axis`   <span style="color:#A3A3A3">■</span> context the rib it makes
 
 The axis runs from the middle of the two loops' corners `[1]` to the middle of their corners `[0]`, and `EdgeVariableElement(axis, sections)` is the rib.
 
@@ -183,7 +183,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/214_beam_caps.webp)
 
-<span style="color:#E8478B">■</span> first from loop corners 0 and 3   <span style="color:#F2CC0C">■</span> last from loop corners 1 and 2   <span style="color:#A3A3A3">■</span> context the beam
+<span style="color:#007C55">■</span> first from loop corners 0 and 3   <span style="color:#F2CC0C">■</span> last from loop corners 1 and 2   <span style="color:#A3A3A3">■</span> context the beam
 
 `beam(loops, {0, 3}, {1, 2})` takes the end sections from corners 0 and 3 and from corners 1 and 2 of both loops, and `EdgeVariableElement::between(first, last)` lofts the beam between them.
 
@@ -203,7 +203,7 @@ Code: `Floor::add_quarters`, [floor.cpp](https://github.com/petrasvestartas/wood
 
 ![](floor/216_add_quarters.webp)
 
-<span style="color:#E8478B">■</span> outer_ribs   <span style="color:#F2CC0C">■</span> inner_ribs   <span style="color:#7C7C7C">■</span> inner_beams   <span style="color:#A8A8A8">■</span> wedges   <span style="color:#F5D890">■</span> tsections   <span style="color:#DED1C2">■</span> beds
+<span style="color:#007C55">■</span> outer_ribs   <span style="color:#F2CC0C">■</span> inner_ribs   <span style="color:#7C7C7C">■</span> inner_beams   <span style="color:#A8A8A8">■</span> wedges   <span style="color:#F5D890">■</span> tsections   <span style="color:#DED1C2">■</span> beds
 
 `add_quarters` runs the same code for every quarter at its own corner, the families in the order beds, tsections, outer_ribs, inner_ribs, wedges, inner_beams, each in its group under `quarter_q`.
 
@@ -260,7 +260,7 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 ![](floor/221_support.webp)
 
-<span style="color:#AD8D68">■</span> built `support_0`   <span style="color:#E8478B">■</span> variable `support_plane(0)`
+<span style="color:#AD8D68">■</span> built `support_0`   <span style="color:#007C55">■</span> variable `support_plane(0)`
 
 A `NodeSupportElement` stands on `guide.support_plane(corner)`, its base plate on the slab under the column, named `support_<corner>`.
 
@@ -275,7 +275,7 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 ![](floor/222_column_axis.webp)
 
-<span style="color:#E8478B">■</span> variable `column_axis(bay_height)`   <span style="color:#A3A3A3">■</span> context the support
+<span style="color:#007C55">■</span> variable `column_axis(bay_height)`   <span style="color:#A3A3A3">■</span> context the support
 
 The axis runs from the support's head plate, less its recess, straight up to the floor top at `bay_height`.
 
@@ -289,7 +289,7 @@ Code: `NodeSupportElement::column_axis`, [wood_element_node_support.cpp](https:/
 
 ![](floor/223_column_square.webp)
 
-<span style="color:#AD8D68">■</span> built `column_0`, the shaft   <span style="color:#E8478B">■</span> variable `column_frame(0)`
+<span style="color:#AD8D68">■</span> built `column_0`, the shaft   <span style="color:#007C55">■</span> variable `column_frame(0)`
 
 The shaft is the 220 square `size_column_head` swept up the axis, its sides along the corner frame's x and y.
 
@@ -347,7 +347,7 @@ Code: `Floor::add_column`, [floor.cpp](https://github.com/petrasvestartas/wood/b
 
 ![](floor/226_support_joint.webp)
 
-<span style="color:#AD8D68">■</span> built the head plate disc of the joint   <span style="color:#E8478B">■</span> variable `drill_lines`, the three column pins   <span style="color:#A3A3A3">■</span> context the support
+<span style="color:#AD8D68">■</span> built the head plate disc of the joint   <span style="color:#007C55">■</span> variable `drill_lines`, the three column pins   <span style="color:#A3A3A3">■</span> context the support
 
 The support is added, and its seat, `JointElement::support`, lets the head plate up into the column end and drills its three pins into the shaft.
 
