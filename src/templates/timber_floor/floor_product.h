@@ -91,6 +91,35 @@ struct FloorProduct {
     /// Stora Enso LVL rib: veneer lumber ribs 51 every 735 under a panel 27, a strip 300 x 36 under each when semi-open.
     static FloorProduct lvl_rib(bool strips, double depth = 357.0);
 
+    /// Ribs every spacing under a panel, count of them; a strip under each when it has a width, a panel when it reaches the next.
+    static FloorProduct ribs(
+        double span, size_t count, double spacing, double width, double depth, double panel, double strip = 0.0, double strip_depth = 0.0
+    );
+
+    /// VMG Lignum joists: flanges width x 39 of veneer lumber, a web 10 of particle board, under a deck 22.
+    static FloorProduct i_joists(double span, size_t count, double spacing, double width, double depth);
+
+    /// Pollmeier BauBuche: GL75 joists 120 every 850 under BauBuche Q 40, as deep as the span and the loads ask.
+    static FloorProduct baubuche(double span, double g = 3.0, double q = 3.0);
+
+    /// Metsa Kerto-Ripa: ribs every 612 under Kerto-Q 25, a strip 300 x 43 under each when boxed, as deep as asked.
+    static FloorProduct kerto_ripa(double span, bool boxed, double g = 1.9, double q = 2.0);
+
+    /// Lignatur surface elements as deep as the span and the loads ask.
+    static FloorProduct lignatur(double span, double g = 1.0, double q = 2.8);
+
+    /// Schneider CLT BOX, the least depth and then the least rib.
+    static FloorProduct clt_box_spanning(double span, double g = 2.5, double q = 3.0);
+
+    /// The lightest Kielsteg that stays over 8 Hz.
+    static FloorProduct kielsteg_spanning(double span, double q = 4.5);
+
+    /// VMG Lignum beams of a grade every metre under boards 25, the lightest of the stock.
+    static FloorProduct vmg_beams(double span, size_t grade = 48, double g = 1.0, double q = 2.0);
+
+    /// VMG Lignum joists every spacing, the lightest of the stock.
+    static FloorProduct vmg_joists(double span, double spacing = 600.0, double g = 1.0, double q = 2.0);
+
     /// Derix void panel: two cross-laminated plates with strips of a core between them.
     static FloorProduct void_panel(double plate = 80.0, double core = 120.0);
 
@@ -153,6 +182,9 @@ struct FloorProduct {
     /// Cree, ZECH: glulam ribs 240 x 280, paired in the middle, under concrete 100 let into their notches.
     static FloorProduct composite_ribs();
 
+    /// The floor with its parts along the whole span as long as a new one.
+    FloorProduct spanning(double length) const;
+
     /// Adds a box from low to high as a part along the span.
     FloorPart& add_box(const std::string& name, const std::array<double, 3>& low, const std::array<double, 3>& high);
 
@@ -164,7 +196,7 @@ struct FloorProduct {
 // FloorProducts
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Floor products side by side.
+/// Floor products side by side, their sections to the front.
 class FloorProducts : public WoodSession {
 public:
     static constexpr double GAP = 900.0; // Between two products.
@@ -179,13 +211,13 @@ public:
     );
 
 private:
-    /// Adds a product at its corner, its parts and what is let into them, its pins.
-    void add_product(const std::string& name, const FloorProduct& product, const Point& corner);
+    /// Adds a product in its base, its parts and what is let into them, its pins.
+    void add_product(const std::string& name, const FloorProduct& product, const Plane& base);
 };
 
-/// Adds the parts and pins of a product at corner to session under group, every name prefixed.
+/// Adds the parts and pins of a product in base to session under group, every name prefixed; x of base is along the span.
 void add_floor_product(
-    WoodSession& session, const std::string& name, const FloorProduct& product, const Point& corner, const std::shared_ptr<TreeNode>& group
+    WoodSession& session, const std::string& name, const FloorProduct& product, const Plane& base, const std::shared_ptr<TreeNode>& group
 );
 
 }

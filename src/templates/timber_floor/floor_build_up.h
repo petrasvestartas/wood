@@ -56,8 +56,8 @@ public:
     explicit FloorBuildUps(const std::vector<FloorBuildUp>& build_ups, const std::string& name = "floor_build_ups", size_t count = 4);
 
 private:
-    /// Adds the sample of a build-up at its corner.
-    void add_sample(const FloorBuildUp& build_up, const Point& corner);
+    /// Adds the sample of a build-up in its base.
+    void add_sample(const FloorBuildUp& build_up, const Plane& base);
 
     /// The structural layer as pieces, length long.
     FloorProduct structure(const FloorLayer& layer, double length) const;

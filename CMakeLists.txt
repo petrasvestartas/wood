@@ -113,6 +113,7 @@ set(WOOD_SOURCES
     src/templates/timber_floor/earth_floor.cpp
     src/templates/timber_floor/floor_product.cpp
     src/templates/timber_floor/floor_build_up.cpp
+    src/templates/timber_floor/floor_sizing.cpp
     src/templates/module/room_module.cpp
     src/templates/module/cassette_shell.cpp
     src/templates/plaited/plaited_guide.cpp
@@ -420,6 +421,7 @@ ADD_EXE(templates_timber_floor_6_producers        examples/templates_timber_floo
 ADD_EXE(templates_timber_floor_7_shear            examples/templates_timber_floor_7_shear.cpp)
 ADD_EXE(templates_timber_floor_8_build_ups        examples/templates_timber_floor_8_build_ups.cpp)
 ADD_EXE(templates_timber_floor_9_ribs             examples/templates_timber_floor_9_ribs.cpp)
+ADD_EXE(templates_timber_floor_10_spans           examples/templates_timber_floor_10_spans.cpp)
 ADD_EXE(templates_grid_1_bay_framing       examples/templates_grid_1_bay_framing.cpp)
 ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.cpp)
 ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)

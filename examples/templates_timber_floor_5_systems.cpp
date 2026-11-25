@@ -33,7 +33,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the timber floors: the sixteen floors of the floor chapter no one producer makes, samples 2400 long: joists exposed, partly exposed over boards between them and clad on battens, joists trimmed round an opening, ribs glued to a panel over or under them and between two, solid beams butted under a board and with a comb of tongues, glulam elements on edge with a strip in their joint, boards on edge held by dowels and by nails, cross-laminated timber of three, five and seven layers, and a veneer panel.
+Step 5 of the timber floors: the sixteen floors of the floor chapter no one producer makes, samples 1200 long: joists exposed, partly exposed over boards between them and clad on battens, joists trimmed round an opening, ribs glued to a panel over or under them and between two, solid beams butted under a board and with a comb of tongues, glulam elements on edge with a strip in their joint, boards on edge held by dowels and by nails, cross-laminated timber of three, five and seven layers, and a veneer panel.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

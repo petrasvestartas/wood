@@ -62,7 +62,7 @@ private:
 // TimberFloors
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Timber floors side by side.
+/// Timber floors side by side, their sections to the front.
 class TimberFloors : public WoodSession {
 public:
     static constexpr double GAP = 900.0; // Between two floors.

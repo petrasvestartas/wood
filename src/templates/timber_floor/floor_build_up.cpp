@@ -56,7 +56,12 @@ FloorBuildUps::FloorBuildUps(const std::vector<FloorBuildUp>& build_ups, const s
         }
 
         add_sample(
-            build_ups[k], Point(static_cast<double>(row) * (LENGTH + GAP), static_cast<double>(place) * (WIDTH + GAP), 0.0)
+            build_ups[k],
+            Plane(
+                Point(static_cast<double>(place) * (WIDTH + GAP) + WIDTH, static_cast<double>(row) * (LENGTH + GAP), 0.0),
+                Vector::y_axis(),
+                Vector::x_axis() * -1.0
+            )
         );
         place++;
     }
@@ -129,11 +134,13 @@ FloorProduct FloorBuildUps::structure(const FloorLayer& layer, double length) co
     return floor;
 }
 
-void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Point& corner) {
+void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Plane& base) {
 
     const std::string sample = fmt::format("floor_{}_{}", build_up.table, build_up.number);
     const std::shared_ptr<TreeNode> group = group_named(sample);
-    const Vector z = Vector::z_axis();
+    const auto at = [&](double x, double z) {
+        return Plane(base.origin() + base.x_axis() * x + base.z_axis() * z, base.x_axis(), base.y_axis());
+    };
 
     // from the lowest layer up, each on the one under it and ending before it
     double level = 0.0;
@@ -153,7 +160,6 @@ void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Point& corner
 
         const double start = STEP * static_cast<double>(placed);
         const double length = LENGTH - start;
-        const Point foot = corner + Vector::x_axis() * start;
         const std::string name = fmt::format("{}_{}", sample, k);
 
         // skins: one under the ribs, one on them
@@ -166,11 +172,11 @@ void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Point& corner
             lower.span = length;
             lower.width = WIDTH;
             lower.add_box("lower", {0.0, 0.0, 0.0}, {length, WIDTH, skin});
-            add_floor_product(*this, name, lower, foot + z * level, group);
+            add_floor_product(*this, name, lower, at(start, level), group);
             level += skin;
         }
 
-        add_floor_product(*this, name, floor, foot + z * level, group);
+        add_floor_product(*this, name, floor, at(start, level), group);
 
         // inside: what lies between the joists or the battens of this layer, listed after it, the last the lowest
         size_t end = k + 1;
@@ -211,7 +217,7 @@ void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Point& corner
                     filling.parts.push_back({part, section, STEP, WIDTH, 1, {}});
             }
 
-            add_floor_product(*this, name, filling, foot + Vector::x_axis() * (joists ? STEP : 0.0) + z * level, group);
+            add_floor_product(*this, name, filling, at(start + (joists ? STEP : 0.0), level), group);
             between += fill.thickness;
         }
 

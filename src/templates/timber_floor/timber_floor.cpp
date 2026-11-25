@@ -420,10 +420,11 @@ TimberFloors::TimberFloors(
     double across = 0.0;
 
     for (const std::pair<std::string, TimberFloorGuide>& floor : floors) {
-        const Plane base(Point(0.0, across, 0.0), Vector::x_axis(), Vector::y_axis());
+        across += floor.second.width;
+        const Plane base(Point(across, 0.0, 0.0), Vector::y_axis(), Vector::x_axis() * -1.0);
         const TimberFloor bay(*this, floor.second, base, floor.first);
         assemblies.push_back(bay.assembly());
-        across += floor.second.width + GAP;
+        across += GAP;
     }
 
     // contacts: every two members and boards that touch

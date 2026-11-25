@@ -105,7 +105,9 @@ Sections in mm, lengths in m; a cell of the matrices is the area of the section 
 | Beech rod-laminated (SSH) | b 80 to 280, h 80 to 1240 | 64 to 3472 | 13.5 | Kolb, Kolb, Müller, *Holzbau mit System*, 2024, p. 89 |
 | Beech veneer beam, GL75 | b 100 to 300, h 80 to 1360 by 40 | 80 to 4080 | 12 to 18 | [BauBuche](https://www.pollmeier.com/wp-content/uploads/2023/04/2025-11_DE_BauBuche_02_Produktuebersicht_web.pdf) |
 | Spruce veneer beam (Kerto S) | 45, 51, 57, 63 x 200 to 600 | 90 to 378 | 2 to 25 | [Kerto S](https://www.metsagroup.com/metsawood/products-and-services/products/kerto-lvl/s-beam/) |
+| Pine veneer beam (VMG Lignum) | 36, 39, 45, 63, 75 x 90 to 400 | 32 to 300 | to 18 | [VMG](https://www.vmg-lignum.eu/product/lvl-laminated-veneer-lumber/) |
 | I-joist (STEICO SJ) | flanges 45, 60, 90 x 39, h 160 to 500 | | 10 to 13 | [STEICO](https://www.steico.com/fileadmin/user_upload/Public_Docs/EUR_en/EUR_en_Technical_Data_Sheets/4._Product_information_construction_products/STEICO_product-sheet_building-system_EUR_en_i.pdf) |
+| I-joist (VMG Lignum) | flanges 45, 60, 90 x 39, web 10, h 200 to 400 | | to 18 | [VMG](https://www.vmg-lignum.eu/wp-content/uploads/2024/03/VMG_LIGNUM_JOIST_2025_08_23.pdf) |
 | Round glulam column | diameter 120 to 240 | 113 to 452 | | [Mayr-Melnhof](https://www.mm-holz.com/wp-content/uploads/2026/04/101a_MMmasterline_Sonderbauteile_EN_2024_v1_digital.pdf) |
 | Square columns from stock | 100, 120, 140, 160, 180, 200, 240 | 100, 144, 196, 256, 324, 400, 576 | 13 | [holzbau handbuch R4 T2 F1](https://www.habisreutinger.de/media/import/CSimages/1432/143225/R4_T2_F1_KVH_Duo_Triobalken.pdf) |
 | Beech veneer column, GL75 | 200 x 200 to 600 x 600 | 400 to 3600 | 2 to 18 | [BauBuche](https://www.pollmeier.com/wp-content/uploads/2023/04/BauBuche-16Stuetzen-04-23-DE-150dpi.pdf) |

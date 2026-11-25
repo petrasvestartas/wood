@@ -30,7 +30,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 6 of the timber floors: the floors of five producers, samples 2400 long with the sections of their approvals. Best wood Schneider CLT BOX, three glulam ribs per 1200 between cross-laminated flanges 60, closed, open above, and the roof's two ribs; Lignatur box 200 wide, surface element of four cells per 1000, with the blocks of silence, and the shell; Lignotrend Rippe Q3 and Block Q3, 625 wide, of boards lying on each other; Novatop Element, ribs 27 both ways between panels 27, and Open; Kielsteg 280 and 730, chord timbers half a pitch apart above and below and webs bent between their joints.
+Step 6 of the timber floors: the floors of five producers, samples 1200 long with the sections of their approvals. Best wood Schneider CLT BOX, three glulam ribs per 1200 between cross-laminated flanges 60, closed, open above, and the roof's two ribs; Lignatur box 200 wide, surface element of four cells per 1000, with the blocks of silence, and the shell; Lignotrend Rippe Q3 and Block Q3, 625 wide, of boards lying on each other; Novatop Element, ribs 27 both ways between panels 27, and Open; Kielsteg 280 and 730, chord timbers half a pitch apart above and below and webs bent between their joints.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

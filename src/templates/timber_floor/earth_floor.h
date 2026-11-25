@@ -53,7 +53,7 @@ private:
 // EarthFloors
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Floor elements of timber and rammed earth side by side.
+/// Floor elements of timber and rammed earth side by side, their sections to the front.
 class EarthFloors : public WoodSession {
 public:
     static constexpr double GAP = 900.0; // Between two elements.
