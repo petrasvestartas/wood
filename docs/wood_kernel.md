@@ -1,4 +1,4 @@
-# Architecture {#architecture}
+# Code Structure {#architecture}
 
 ## 1 Session {#arch_session}
 

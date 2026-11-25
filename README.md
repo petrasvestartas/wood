@@ -18,6 +18,6 @@ On Windows with Visual Studio the program is `build\Release\two_plates.exe`. It 
 
 ## Documentation
 
-[Overview](https://petrasvestartas.github.io/wood/) · [Architecture](https://petrasvestartas.github.io/wood/architecture.html) · [Elements](https://petrasvestartas.github.io/wood/elements.html) · [Templates](https://petrasvestartas.github.io/wood/templates.html) · [Examples](https://petrasvestartas.github.io/wood/examples.html) · [Setup](SETUP.md)
+[Overview](https://petrasvestartas.github.io/wood/) · [Code Structure](https://petrasvestartas.github.io/wood/architecture.html) · [Elements](https://petrasvestartas.github.io/wood/elements.html) · [Templates](https://petrasvestartas.github.io/wood/templates.html) · [Examples](https://petrasvestartas.github.io/wood/examples.html) · [Setup](SETUP.md)
 
 Run all tests with `cmake --build build --target run_tests`. Build these pages with `cmake --build build --target docs`.

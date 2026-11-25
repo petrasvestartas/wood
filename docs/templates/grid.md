@@ -33,7 +33,7 @@ Planar, facade, and multi-storey timber grid generator in `src/templates/grid/gr
 
 ---
 
-## Architecture {#grid_architecture}
+## Code Structure {#grid_architecture}
 
 ```mermaid
 flowchart LR

@@ -10,8 +10,8 @@
 
 <div class="wood-landing">
   <a class="wood-chapter" href="architecture.html">
-    <span class="wood-chapter-title">Architecture</span>
-    <span class="wood-chapter-picture"><img src="landing_architecture.webp" alt="Architecture"></span>
+    <span class="wood-chapter-title">Code Structure</span>
+    <span class="wood-chapter-picture"><img src="landing_architecture.webp" alt="Code Structure"></span>
   </a>
   <a class="wood-chapter" href="elements.html">
     <span class="wood-chapter-title">Elements</span>
