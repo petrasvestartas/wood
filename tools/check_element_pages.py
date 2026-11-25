@@ -52,7 +52,7 @@ def check_element_page(page: pathlib.Path) -> None:
 def recipe_pictures() -> set:
     """The picture names the lines of render_template_pictures.sh make: <example>_<name or last group>.webp."""
     made = set()
-    values = {"--view", "--opacity", "--size", "--wheel", "--name", "--scene", "--aspect"}
+    values = {"--view", "--opacity", "--size", "--wheel", "--name", "--scene", "--aspect", "--turn"}
     for line in (tools / "render_template_pictures.sh").read_text(encoding="utf-8").splitlines():
         if '"${RENDER[@]}"' not in line:
             continue

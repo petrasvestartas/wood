@@ -5,6 +5,10 @@
 Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlateElement::cross_slot()` half-laps.
 
 <div class="wood-card-grid cols-4">
+  <a class="wood-card" href="#cross_cardboard_shell">
+    <img src="templates_cross_3_cardboard_shell_eye_level.webp" alt="Cardboard Shell">
+    <span class="wood-card-title">Cardboard Shell</span>
+  </a>
   <a class="wood-card" href="#cross_planes">
     <img src="templates_cross_1_vda_mesh_edge_planes.webp" alt="Reference Planes">
     <span class="wood-card-title">Reference Planes</span>
@@ -25,11 +29,21 @@ Segmented plate shells joined across interior edges by cross-slotted connector p
     <img src="assembly_templates_cross_2_assembly.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
   </a>
-  <a class="wood-card" href="#cross_example_3">
-    <img src="templates_cross_3_cardboard_shell_all.webp" alt="Cardboard Shell">
-    <span class="wood-card-title">Cardboard Shell</span>
-  </a>
 </div>
+
+## Corrugated Cardboard Shell {#cross_cardboard_shell}
+
+The corrugated cardboard pavilion of the Vilnius Academy of Arts (VDA, 2019; [Vestarte, Vestartas and Kucinskas, AAG 2020](https://thinkshell.fr/wp-content/uploads/2019/10/AAG2020_27_Vestarte.pdf)), seen at eye level.
+
+![](templates/templates_cross_3_cardboard_shell_eye_level.webp)
+
+### The shell in code {#cross_cardboard_shell_code}
+
+The dataset `cross_vda_shell`: 1516 cardboard plates about 3.5 mm thick, two layers 90 mm apart spanning 5.6 x 6.1 x 3.1 m on five supports and the connectors through both layers, slotted together by 2938 cross joints.
+
+![](templates/templates_cross_3_cardboard_shell_all.webp)
+
+\include{lineno} templates_cross_3_cardboard_shell.cpp
 
 ## Parameters
 
@@ -121,11 +135,3 @@ The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 
 The same dome made to go together: the connectors of every edge turned along the slide of its later face (`VdaMesh::assembly_lines`), so a plate slides onto all of its connectors at once, in the order of `VdaMesh::assembly_order`.
 
 \include{lineno} templates_cross_2_assembly.cpp
-
-### 3 Cardboard Shell {#cross_example_3}
-
-The corrugated cardboard shell of the VDA pavilion, the dataset `cross_vda_shell`: 1516 cardboard plates about 3.5 mm thick, two layers 90 mm apart spanning 5.6 x 6.1 x 3.1 m and the connectors through both layers, slotted together by 2938 cross joints.
-
-![](templates/templates_cross_3_cardboard_shell_all.webp)
-
-\include{lineno} templates_cross_3_cardboard_shell.cpp

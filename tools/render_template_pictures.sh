@@ -106,6 +106,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = cross ]; then
     VIEWER_PLANE_SIZE=550 "${RENDER[@]}" --opacity 0.55 --name connector_frames templates_cross_1_vda_mesh mesh+connector_frames
     "${RENDER[@]}" --name cross_laps templates_cross_1_vda_mesh plates+connectors
     "${RENDER[@]}" templates_cross_3_cardboard_shell all
+    # the shell as the photograph of the paper shows it, from eye level
+    "${RENDER[@]}" --view eye --turn 106 --size 6400x4000 --name eye_level templates_cross_3_cardboard_shell all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = reciprocal ]; then

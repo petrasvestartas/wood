@@ -28,6 +28,7 @@ LOCK = pathlib.Path(tempfile.gettempdir()) / "wood_live_pb.lock"
 BRANCH = r"""
 import sys
 from session_py.session import Session
+from session_py.xform import Xform
 scene = Session.pb_load(sys.argv[1])
 names = sys.argv[2].split("+")
 branch = scene if names[0] == "all" else scene.get_branch(names[0])
@@ -38,10 +39,13 @@ if sys.argv[4] == "elements":
         element.set_features([])
     for edge in list(branch.interactions):
         branch.interactions[edge] = []
+if float(sys.argv[5]):
+    for child in branch.tree.root.children:
+        branch.set_xform(child.name, Xform.rotation_z(float(sys.argv[5]), True) * branch.xform(child.name))
 branch.name = ""  # no document title over the scene
 branch.pb_dump(sys.argv[3])
 """  # the scene, or groups of its tree joined by + with everything under them, written to their own file; the elements alone, their cut solids without
-# their attributes, unless asked for: no features (the joint lines and volumes) and no interactions (the face contacts the viewer fills red)
+# their attributes, unless asked for: no features (the joint lines and volumes) and no interactions (the face contacts the viewer fills red); the whole turned about z by the degrees given
 
 
 def run_example(name: str, out: pathlib.Path) -> None:
@@ -81,9 +85,10 @@ def render(pb: pathlib.Path, view: str, opacity: str, size: str, wheel: str = ""
         SHOT_SCALE=str(max(3, min(5, width // 1600))),
         SHOT_QUERY=f"opacity={opacity}&nomarkers=1&thickness=0.7",
     )
-    camera = {"top": "View Top", "front": "View Front", "right": "View Right", "bottom": "View Bottom"}.get(view, "View Isometric")
+    camera = {"top": "View Top", "front": "View Front", "right": "View Right", "bottom": "View Bottom", "eye": "View Front"}.get(view, "View Isometric")
+    projection = "View Perspective" if view == "eye" else "View Orthographic"
     shown = [] if attributes else ["Element Interactions Off", "Element Attributes Off"]
-    commands = ["Layers Off", *shown, "Arctic On", "Outline Off", camera, "View Orthographic", *(["View Xray"] if xray else [])]
+    commands = ["Layers Off", *shown, "Arctic On", "Outline Off", camera, projection, *(["View Xray"] if xray else [])]
     if wheel:
         env["SHOT_WHEEL"] = wheel
     if int(os.environ.get("VIEWER_PLANE_SIZE", "0")):
@@ -123,7 +128,7 @@ def option(arguments: list, flag: str, default: str) -> str:
 def main(arguments: list) -> None:
     """Saves docs/images/templates/<example>_<group>.webp for every group named after the example, `all` the whole scene, `mesh+planes` both groups in one picture named after the last.
 
-    `--view top` for a plan, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--wheel 12,0.35,0.45` to turn the
+    `--view top` for a plan, `--view eye` for a level perspective from the front at half the scene's height, `--turn 106` to turn the scene about z first, `--opacity 0.95` to see inside, `--size 4800x3200` to render larger, `--wheel 12,0.35,0.45` to turn the
     viewer's wheel that many ticks over that share of the canvas for a close-up, `--name detail` to save the one group as <example>_detail.webp, `--attributes` to draw the
     elements' attributes too, their features (joint lines and volumes) and interactions (the face contacts the viewer fills red), which are left out by default;
     `--scene file.pb` to keep the example's scene in that file and shoot from it when it is there, so a slow example runs once for all its pictures;
@@ -134,6 +139,7 @@ def main(arguments: list) -> None:
     opacity = option(arguments, "--opacity", "1.0")
     size = option(arguments, "--size", "2400x1600")
     wheel = option(arguments, "--wheel", "")
+    turn = option(arguments, "--turn", "0")
     rename = option(arguments, "--name", "")
     kept = option(arguments, "--scene", "")
     aspect = float(option(arguments, "--aspect", "0"))
@@ -149,7 +155,7 @@ def main(arguments: list) -> None:
         for index, group in enumerate(groups):
             branch = pathlib.Path(tmp) / f"branch_{index}.pb"
             subprocess.run(
-                [str(PYTHON), "-c", BRANCH, str(scene), group, str(branch), shown],
+                [str(PYTHON), "-c", BRANCH, str(scene), group, str(branch), shown, turn],
                 check=True,
                 capture_output=True,
             )
