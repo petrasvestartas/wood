@@ -225,20 +225,20 @@ Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` al
 <!-- assembly:begin -->
 ## Assembly Sequence {#cylindrical_folding_assembly_sequence}
 
-The lamellas one sheet is folded into by its reflections make one strip, raised from its feet; the strips go side by side. Curved plates are swept as closed polyhedra through their four meridians. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+The lamellas of one segment make one row along the profile; the rows go in one after another from one foot over the crown to the other. Curved plates are swept as closed polyhedra through their four meridians. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
 | **Reflection**, 2 elements, 1 moves | | |
 | ![reflection fold, 2 pieces](assembly/assembly_templates_cylindrical_folding_1_reflection.gif) reflection fold, 2 pieces |  |  |
-| **Curved folded plate arch: strips of five lamellas**, 30 elements, 29 moves | | |
-| ![strip, 5 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate_strip.gif) strip, 5 pieces | ![reflection fold, 6 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate.gif) reflection fold, 6 pieces |  |
+| **Curved folded plate arch: five rows of six lamellas**, 30 elements, 29 moves | | |
+| ![row, 6 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate_row.gif) row, 6 pieces | ![reflection fold, 5 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate.gif) reflection fold, 5 pieces |  |
 | **Mendrisio pavilion**, 5 elements, 4 moves | | |
 | ![reflection fold, 5 pieces](assembly/assembly_templates_cylindrical_folding_3_mendrisio_pavilion.gif) reflection fold, 5 pieces |  |  |
 | **Two-hinged arch**, 24 elements, 23 moves | | |
-| ![strip, 6 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch_strip.gif) strip, 6 pieces | ![reflection fold, 4 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch.gif) reflection fold, 4 pieces |  |
+| ![row, 4 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch_row.gif) row, 4 pieces | ![reflection fold, 6 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch.gif) reflection fold, 6 pieces |  |
 | **A-frame**, 16 elements, 15 moves | | |
-| ![strip, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame_strip.gif) strip, 4 pieces | ![reflection fold, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame.gif) reflection fold, 4 pieces |  |
+| ![row, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame_row.gif) row, 4 pieces | ![reflection fold, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame.gif) reflection fold, 4 pieces |  |
 | **Groin vault**, 4 elements, 3 moves | | |
 | ![cylinder vault, 4 pieces](assembly/assembly_templates_cylindrical_folding_8_groin_vault.gif) cylinder vault, 4 pieces |  |  |
 | **Pavilion vault: the walls stand, the lamellas lowered on them**, 8 elements, 7 moves | | |
