@@ -119,6 +119,10 @@ PAGES = {
             ("templates_timber_floor_2_bearings", "Bearings"),
             ("templates_timber_floor_3_joints", "Joints"),
             ("templates_timber_floor_4_earth", "Timber and earth"),
+            ("templates_timber_floor_5_systems", "Floors of the book"),
+            ("templates_timber_floor_6_producers", "Producers"),
+            ("templates_timber_floor_7_shear", "Joints and concrete"),
+            ("templates_timber_floor_9_ribs", "Ribs, voids, dowels"),
         ],
     ),
     "reciprocal": (

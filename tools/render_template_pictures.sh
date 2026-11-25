@@ -193,6 +193,42 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = timber_floor ]; then
     "${RENDER[@]}" --view right --aspect 4 --name straight_section templates_timber_floor_4_earth straight_beams+straight_earth+straight_top
     "${RENDER[@]}" --view right --aspect 4 --name flush_section templates_timber_floor_4_earth flush_beams+flush_earth+flush_top
     "${RENDER[@]}" --view right --aspect 4 --name concealed_section templates_timber_floor_4_earth concealed_beams+concealed_earth+concealed_top
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_5_systems joists_exposed joists_partly_exposed joists_clad joists_trimmed ribbed_above ribbed_below box beams_butted beams_comb glulam_elements boards_dowelled boards_nailed cross_laminated_3 cross_laminated_5 cross_laminated_7 veneer
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_6_producers clt_box_closed clt_box_open clt_box_roof lignatur_box lignatur_surface lignatur_silence lignatur_shell lignotrend_rib lignotrend_block novatop_element novatop_open kielsteg kielsteg_deep
+    "${RENDER[@]}" --view right --aspect 4 --name clt_box_closed_section templates_timber_floor_6_producers clt_box_closed
+    "${RENDER[@]}" --view right --aspect 4 --name lignatur_box_section templates_timber_floor_6_producers lignatur_box
+    "${RENDER[@]}" --view right --aspect 4 --name lignatur_surface_section templates_timber_floor_6_producers lignatur_surface
+    "${RENDER[@]}" --view right --aspect 4 --name lignotrend_rib_section templates_timber_floor_6_producers lignotrend_rib
+    "${RENDER[@]}" --view right --aspect 4 --name novatop_element_section templates_timber_floor_6_producers novatop_element
+    "${RENDER[@]}" --view right --aspect 4 --name kielsteg_section templates_timber_floor_6_producers kielsteg
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_7_shear joint_cover joint_grout joint_keys joint_blocks concrete_stepped concrete_micro concrete_notched
+    "${RENDER[@]}" --aspect 1.5 --name concrete_stepped_open templates_timber_floor_7_shear concrete_stepped_timber
+    "${RENDER[@]}" --aspect 1.5 --name concrete_micro_open templates_timber_floor_7_shear concrete_micro_timber
+    "${RENDER[@]}" --aspect 1.5 --name concrete_notched_open templates_timber_floor_7_shear concrete_notched_timber+concrete_notched_pins
+    "${RENDER[@]}" --aspect 1.5 --name concrete_lugs_open templates_timber_floor_7_shear concrete_lugs_timber
+    "${RENDER[@]}" --aspect 1.5 --name concrete_wave_open templates_timber_floor_7_shear concrete_wave_timber
+    "${RENDER[@]}" --aspect 1.5 --name concrete_crossed_open templates_timber_floor_7_shear concrete_crossed_timber+concrete_crossed_pins
+    "${RENDER[@]}" --aspect 1.5 --name concrete_locks_open templates_timber_floor_7_shear concrete_locks_timber+concrete_locks_pins
+    "${RENDER[@]}" --aspect 1.5 --name concrete_bars_open templates_timber_floor_7_shear concrete_bars_timber+concrete_bars_pins
+    "${RENDER[@]}" --aspect 1.5 --name concrete_plates_open templates_timber_floor_7_shear concrete_plates_timber
+    "${RENDER[@]}" --aspect 1.5 --name concrete_glued_open templates_timber_floor_7_shear concrete_glued_timber
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_9_ribs clt_rib clt_rib_box void_panel lvl_rib lvl_rib_strips dowelled_layers concrete_ribs
+    "${RENDER[@]}" --aspect 1.5 --name concrete_ribs_open templates_timber_floor_9_ribs concrete_ribs_timber+concrete_ribs_pins
+    "${RENDER[@]}" templates_timber_floor_8_build_ups all
+    "${RENDER[@]}" --name table_11 templates_timber_floor_8_build_ups floor_11_1+floor_11_2+floor_11_3+floor_11_4+floor_11_5+floor_11_6+floor_11_7+floor_11_8
+    "${RENDER[@]}" --name table_12 templates_timber_floor_8_build_ups floor_12_1+floor_12_2
+    "${RENDER[@]}" --name table_13 templates_timber_floor_8_build_ups floor_13_1+floor_13_2+floor_13_3+floor_13_4
+    "${RENDER[@]}" --name table_14 templates_timber_floor_8_build_ups floor_14_1+floor_14_2
+    "${RENDER[@]}" --name table_15 templates_timber_floor_8_build_ups floor_15_1+floor_15_2
+    "${RENDER[@]}" --name table_16 templates_timber_floor_8_build_ups floor_16_1+floor_16_2+floor_16_3+floor_16_4
+    "${RENDER[@]}" --name table_17 templates_timber_floor_8_build_ups floor_17_1+floor_17_2+floor_17_3+floor_17_4+floor_17_5+floor_17_6+floor_17_7+floor_17_8
+    "${RENDER[@]}" --name table_18 templates_timber_floor_8_build_ups floor_18_1+floor_18_2+floor_18_3+floor_18_4+floor_18_5
+    "${RENDER[@]}" --name table_19 templates_timber_floor_8_build_ups floor_19_1+floor_19_2+floor_19_3+floor_19_4
+    "${RENDER[@]}" --name table_20 templates_timber_floor_8_build_ups floor_20_1+floor_20_2
+    "${RENDER[@]}" --name table_21 templates_timber_floor_8_build_ups floor_21_1+floor_21_2
+    "${RENDER[@]}" --name table_22 templates_timber_floor_8_build_ups floor_22_1+floor_22_2+floor_22_3
+    "${RENDER[@]}" --name table_23 templates_timber_floor_8_build_ups floor_23_1+floor_23_2+floor_23_3
+    "${RENDER[@]}" --name table_24 templates_timber_floor_8_build_ups floor_24_1+floor_24_2+floor_24_3+floor_24_4+floor_24_5+floor_24_6+floor_24_7+floor_24_8+floor_24_9+floor_24_10+floor_24_11+floor_24_12+floor_24_13
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then

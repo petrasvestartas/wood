@@ -1,0 +1,191 @@
+#pragma once
+#include "wood_session.h"
+
+using namespace session_cpp;
+using namespace wood_session;
+
+namespace wood_timber_floor {
+
+/// A section's corners: across and up for a part along the span, along and up for one across it, along and across for an upright one.
+using FloorSection = std::vector<std::array<double, 2>>;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FloorPart
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// One straight piece of a floor product, in mm from its corner at its underside.
+struct FloorPart {
+    std::string name;
+    FloorSection section;
+    double start = 0.0; // Where it starts along its run.
+    double end = 0.0; // Where it ends.
+    size_t run = 0; // 0 along the span, 1 across it, 2 upright.
+    std::vector<std::string> pockets; // The parts it is let into.
+};
+
+/// Pins through a floor product: their axes and the parts they are bored into.
+struct FloorPins {
+    std::string name;
+    std::vector<std::array<std::array<double, 3>, 2>> axes;
+    double radius = 4.0;
+    std::vector<std::string> into; // The parts they are bored into.
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FloorProduct
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// A floor system as its pieces: what the timber floor chapter shows and what producers make, a sample of it.
+struct FloorProduct {
+    double span = 0.0; // Along the span, x.
+    double width = 0.0; // Across it, y.
+    std::vector<FloorPart> parts; // In the order they go together.
+    std::vector<FloorPins> pins;
+
+    /// Depth from the lowest to the highest corner.
+    double depth() const;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Joists, ribs and boxes
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Joists under boards; lining 0 none, 1 boards between the joists on battens, 2 battens and boards under them.
+    static FloorProduct joists(size_t lining = 0, double width = 140.0, double depth = 200.0, double spacing = 600.0);
+
+    /// Joists trimmed round an opening.
+    static FloorProduct trimmed(double width = 140.0, double depth = 200.0, double spacing = 600.0);
+
+    /// Ribs glued to one panel, over them or under them.
+    static FloorProduct ribbed(bool below = false, double width = 80.0, double depth = 220.0, double spacing = 625.0, double panel = 27.0);
+
+    /// Ribs glued between two panels.
+    static FloorProduct box(double width = 60.0, double depth = 180.0, double spacing = 600.0, double panel = 27.0);
+
+    /// A cross-laminated plate on glulam ribs, or two with the ribs between.
+    static FloorProduct cross_laminated_ribs(bool closed, double plate, double width, double depth, double spacing, double element);
+
+    /// Best wood Schneider CLT BOX: glulam ribs and cross-laminated flanges 60, kind 0 closed, 1 open above, 2 the roof's.
+    static FloorProduct clt_box(size_t kind = 0, double depth = 240.0, double rib = 80.0);
+
+    /// Novatop Element: three-layer panels 27 over and under ribs 27 both ways, every 340 along.
+    static FloorProduct novatop(double depth = 240.0);
+
+    /// Novatop Open: ribs 60 every 625 on a three-layer panel 27.
+    static FloorProduct novatop_open(double rib_depth = 220.0);
+
+    /// Lignatur box element LKE: a hollow box per 200, tongue in groove.
+    static FloorProduct lignatur_box(double depth = 200.0);
+
+    /// Lignatur surface element LFE: four cells per 1000; kind 1 with blocks on pads in the cells, 2 open above with an absorber (the shell LSE).
+    static FloorProduct lignatur_surface(double depth = 200.0, size_t kind = 0);
+
+    /// Lignotrend Rippe Q3: ribs of boards lying on each other, crossed now and then, on a closed layer.
+    static FloorProduct lignotrend_rib(double depth = 190.0);
+
+    /// Lignotrend Block Q3: a closed box of the same boards.
+    static FloorProduct lignotrend_block(double depth = 190.0);
+
+    /// Kielsteg: timbers side by side above and below, webs bent between them.
+    static FloorProduct kielsteg(double depth = 280.0, double chord_depth = 40.0, double chord_width = 102.0, double web = 4.0);
+
+    /// Stora Enso LVL rib: veneer lumber ribs 51 every 735 under a panel 27, a strip 300 x 36 under each when semi-open.
+    static FloorProduct lvl_rib(bool strips, double depth = 357.0);
+
+    /// Derix void panel: two cross-laminated plates with strips of a core between them.
+    static FloorProduct void_panel(double plate = 80.0, double core = 120.0);
+
+    /// Holz100 and the like: layers of boards and squared timber held by upright beech dowels, no glue.
+    static FloorProduct dowelled_layers();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Solid timber
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Solid beams butted under a board; with a comb of two tongues instead.
+    static FloorProduct planks(bool comb, double depth = 160.0, double plank = 200.0);
+
+    /// Glulam elements on edge with a strip in their joint.
+    static FloorProduct glulam_elements(double depth = 160.0, double lamination = 40.0);
+
+    /// Boards on edge held by dowels, or by nails.
+    static FloorProduct laminated(bool nailed, double depth = 160.0, double board = 40.0);
+
+    /// Cross-laminated layers from the bottom, the odd ones along the span; joint 0 none, 1 cover board and strip, 2 grout, 3 wedge keys, 4 shear blocks.
+    static FloorProduct cross_laminated(const std::vector<double>& layers, size_t joint = 0);
+
+    /// Veneer lumber panel.
+    static FloorProduct veneer(double depth = 75.0);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Timber and concrete
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Boards on edge of two depths, the concrete between the deep ones.
+    static FloorProduct composite_stepped(double depth = 160.0, double step = 40.0, double concrete = 80.0);
+
+    /// Boards on edge with small notches over their whole top.
+    static FloorProduct composite_micro(double depth = 160.0, double concrete = 80.0);
+
+    /// Boards on edge with deep notches and pins in them.
+    static FloorProduct composite_notched(double depth = 160.0, double concrete = 100.0);
+
+    /// Joists with pockets for the lugs of a precast slab.
+    static FloorProduct composite_lugs();
+
+    /// Veneer lumber with a wave-shaped recess.
+    static FloorProduct composite_wave();
+
+    /// Joists and boards with crossed pins.
+    static FloorProduct composite_crossed();
+
+    /// Boards on edge with flat steel locks let in across them.
+    static FloorProduct composite_locks();
+
+    /// Joists with bars let in along them.
+    static FloorProduct composite_bars();
+
+    /// Cross-laminated timber with perforated plates glued in along the span.
+    static FloorProduct composite_plates();
+
+    /// Cross-laminated timber with concrete glued on.
+    static FloorProduct composite_glued();
+
+    /// Cree, ZECH: glulam ribs 240 x 280, paired in the middle, under concrete 100 let into their notches.
+    static FloorProduct composite_ribs();
+
+    /// Adds a box from low to high as a part along the span.
+    FloorPart& add_box(const std::string& name, const std::array<double, 3>& low, const std::array<double, 3>& high);
+
+    /// Adds a part along the span of a section.
+    FloorPart& add_along(const std::string& name, const FloorSection& section);
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FloorProducts
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Floor products side by side.
+class FloorProducts : public WoodSession {
+public:
+    static constexpr double GAP = 900.0; // Between two products.
+
+    const std::vector<std::pair<std::string, FloorProduct>> products; // Every product's name and pieces.
+
+    /// Every product as the session named name, in rows of count.
+    explicit FloorProducts(
+        const std::vector<std::pair<std::string, FloorProduct>>& products,
+        const std::string& name = "floor_products",
+        size_t count = 4
+    );
+
+private:
+    /// Adds a product at its corner, its parts and what is let into them, its pins.
+    void add_product(const std::string& name, const FloorProduct& product, const Point& corner);
+};
+
+/// Adds the parts and pins of a product at corner to session under group, every name prefixed.
+void add_floor_product(
+    WoodSession& session, const std::string& name, const FloorProduct& product, const Point& corner, const std::shared_ptr<TreeNode>& group
+);
+
+}

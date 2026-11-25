@@ -1,0 +1,440 @@
+[
+  {"table": 11, "number": 1, "title": "Structural Floors (Raw Floors)", "name": "Timber Joist Floors: Joist Layer", "weight": 29.0, "height": 221.0, "airborne": "26", "impact": "90", "energy": "0.40", "ghg": "0.05", "layers": [
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 11, "number": 2, "title": "Structural Floors (Raw Floors)", "name": "Hollow Box Floors: Three-Layer Panel Glued to Rib", "weight": 36.0, "height": 234.0, "airborne": "36", "impact": "86", "energy": "1.20", "ghg": "0.27", "layers": [
+    {"name": "Three-layer panel glued to rib", "printed": "27 mm", "kind": "skins", "thickness": 27.0, "width": 0.0, "inside": false},
+    {"name": "Rib", "printed": "60/180 mm", "kind": "ribs", "thickness": 180.0, "width": 60.0, "inside": false},
+    {"name": "Mineral-fibre board, 40–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 11, "number": 3, "title": "Structural Floors (Raw Floors)", "name": "Hollow Box Floors: Box Element, System Provider", "weight": 47.0, "height": 200.0, "airborne": "33", "impact": "89", "energy": "0.29", "ghg": "0.07", "layers": [
+    {"name": "Box element, system provider", "printed": "200 mm", "kind": "box", "thickness": 200.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 11, "number": 4, "title": "Structural Floors (Raw Floors)", "name": "Solid Timber Floors: Glulam / Dowel-Joined / Solid Timber Beams with T&G", "weight": 54.0, "height": 120.0, "airborne": "37", "impact": "88", "energy": "1.35", "ghg": "0.30", "layers": [
+    {"name": "Glulam / planks / solid timber beams with tongue-and-groove", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 11, "number": 5, "title": "Structural Floors (Raw Floors)", "name": "Solid Timber Floors: Brettstapel (Nail- or Dowel-Laminated Timber)", "weight": 72.0, "height": 160.0, "airborne": "36", "impact": "82", "energy": "0.65", "ghg": "0.17", "layers": [
+    {"name": "Brettstapel", "printed": "160 mm", "kind": "boards", "thickness": 160.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 11, "number": 6, "title": "Structural Floors (Raw Floors)", "name": "Solid Timber Floors, Panel-Type: Cross-Laminated Timber", "weight": 72.0, "height": 160.0, "airborne": "40", "impact": "88", "energy": "1.81", "ghg": "0.39", "layers": [
+    {"name": "Cross-laminated timber (CLT)", "printed": "160 mm", "kind": "panel", "thickness": 160.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 11, "number": 7, "title": "Structural Floors (Raw Floors)", "name": "Timber–Concrete Composite Floor: Joist Layer", "weight": 204.0, "height": 273.0, "airborne": "42", "impact": "88", "energy": "1.87", "ghg": "0.66", "layers": [
+    {"name": "Composite concrete topping", "printed": "70 mm", "kind": "plate", "thickness": 70.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 11, "number": 8, "title": "Structural Floors (Raw Floors)", "name": "Timber–Concrete Composite Floor: Brettstapel", "weight": 247.0, "height": 230.0, "airborne": "44", "impact": "85", "energy": "2.13", "ghg": "0.73", "layers": [
+    {"name": "Composite concrete topping", "printed": "70 mm", "kind": "plate", "thickness": 70.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel", "printed": "160 mm", "kind": "boards", "thickness": 160.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 12, "number": 1, "title": "Timber Joist Floors, Load-Bearing Structure Exposed", "name": "Floating particleboard on battens and mineral-fibre insulation", "weight": 52.0, "height": 309.0, "airborne": "40", "impact": "73", "energy": "4.43", "ghg": "0.97", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "3 mm", "kind": "plate", "thickness": 3.0, "width": 0.0, "inside": false},
+    {"name": "Battens, fastened", "printed": "60/60 mm", "kind": "battens", "thickness": 60.0, "width": 60.0, "inside": false},
+    {"name": "Mineral-fibre board, 40–70 kg/m3", "printed": "60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": true},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 12, "number": 2, "title": "Timber Joist Floors, Load-Bearing Structure Exposed", "name": "Cement screed on mineral-fibre impact sound insulation", "weight": 150.0, "height": 296.0, "airborne": "46", "impact": "70", "energy": "1.47", "ghg": "0.54", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–100 kg/m3", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 13, "number": 1, "title": "Timber Joist Floors, Load-Bearing Structure Exposed and Ballasted", "name": "Floating particleboard on dry concrete slabs", "weight": 168.0, "height": 309.0, "airborne": "50", "impact": "66", "energy": "4.91", "ghg": "1.31", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs 500/500 mm, dry, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "3 mm", "kind": "plate", "thickness": 3.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 13, "number": 2, "title": "Timber Joist Floors, Load-Bearing Structure Exposed and Ballasted", "name": "Floating particleboard on battens and dried sand fill", "weight": 127.0, "height": 301.0, "airborne": "50", "impact": "69", "energy": "4.54", "ghg": "0.98", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "3 mm", "kind": "plate", "thickness": 3.0, "width": 0.0, "inside": false},
+    {"name": "Battens, fastened", "printed": "50/50 mm", "kind": "battens", "thickness": 50.0, "width": 50.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": true},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 13, "number": 3, "title": "Timber Joist Floors, Load-Bearing Structure Exposed and Ballasted", "name": "Fermacell screed element on honeycomb fill", "weight": 99.0, "height": 281.0, "airborne": "49", "impact": "63", "energy": "3.99", "ghg": "1.00", "layers": [
+    {"name": "Fermacell screed element", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Fermacell honeycomb fill", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 13, "number": 4, "title": "Timber Joist Floors, Load-Bearing Structure Exposed and Ballasted", "name": "Cement screed on mineral-fibre insulation and dried sand", "weight": 203.0, "height": 342.0, "airborne": "56", "impact": "58", "energy": "2.00", "ghg": "0.65", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Decking boards", "printed": "22 mm", "kind": "plate", "thickness": 22.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/220 mm", "kind": "joists", "thickness": 220.0, "width": 140.0, "inside": false}
+  ]},
+  {"table": 14, "number": 1, "title": "Timber Joist Floors, Load-Bearing Structure Partially Exposed", "name": "Floating particleboard, cavity insulation, and lower particleboard sheathing", "weight": 62.0, "height": 252.0, "airborne": "46", "impact": "67", "energy": "7.61", "ghg": "1.62", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "2 × 6 mm", "kind": "plate", "thickness": 12.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 14, "number": 2, "title": "Timber Joist Floors, Load-Bearing Structure Partially Exposed", "name": "Cement screed, cavity insulation, and lower particleboard sheathing", "weight": 155.0, "height": 296.0, "airborne": "50", "impact": "60", "energy": "2.57", "ghg": "0.79", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 15, "number": 1, "title": "Timber Joist Floors, Load-Bearing Structure Partially Exposed and Ballasted", "name": "Floating particleboard on dry concrete slabs, cavity insulation, lower particleboard", "weight": 197.0, "height": 309.0, "airborne": "55", "impact": "58", "energy": "6.01", "ghg": "1.57", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs 500/500 mm, dry, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "3 mm", "kind": "plate", "thickness": 3.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 15, "number": 2, "title": "Timber Joist Floors, Load-Bearing Structure Partially Exposed and Ballasted", "name": "Floating particleboard on dried sand fill, cavity insulation, lower particleboard", "weight": 144.0, "height": 306.0, "airborne": "55", "impact": "55", "energy": "3.34", "ghg": "0.73", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Battens, fastened", "printed": "50/50 mm", "kind": "battens", "thickness": 50.0, "width": 50.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": true},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 16, "number": 1, "title": "Timber Joist Floors, Clad", "name": "Sanded medium-density hardboard, resilient-clip particleboard ceiling", "weight": 59.0, "height": 273.0, "airborne": "51", "impact": "68", "energy": "2.14", "ghg": "0.47", "layers": [
+    {"name": "Sanded medium-density hardboard", "printed": "5.4 mm", "kind": "plate", "thickness": 5.4, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 16, "number": 2, "title": "Timber Joist Floors, Clad", "name": "Floating particleboard on fleece, resilient-clip particleboard ceiling", "weight": 72.0, "height": 298.0, "airborne": "56", "impact": "57", "energy": "2.74", "ghg": "1.68", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "2 × 6 mm", "kind": "plate", "thickness": 12.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 16, "number": 3, "title": "Timber Joist Floors, Clad", "name": "Cement screed, resilient-clip particleboard ceiling", "weight": 174.0, "height": 346.0, "airborne": "60", "impact": "55", "energy": "2.69", "ghg": "0.81", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 16, "number": 4, "title": "Timber Joist Floors, Clad", "name": "Cement screed, resilient-clip double gypsum fibreboard ceiling", "weight": 183.0, "height": 355.0, "airborne": "63", "impact": "53", "energy": "4.20", "ghg": "1.16", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboards", "printed": "2 × 12.5 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 17, "number": 1, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Floating particleboard on dry concrete slabs, resilient-clip gypsum fibreboard ceiling", "weight": 197.0, "height": 370.0, "airborne": "63", "impact": "44", "energy": "7.62", "ghg": "1.93", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs 500/500 mm, dry, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Impact sound insulation fleece", "printed": "3 mm", "kind": "plate", "thickness": 3.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboards", "printed": "2 × 12.5 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 17, "number": 2, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Floating particleboard on dried sand fill, resilient-clip particleboard ceiling", "weight": 144.0, "height": 356.0, "airborne": "62", "impact": "45", "energy": "3.46", "ghg": "0.75", "layers": [
+    {"name": "Particleboard, floating installation", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3, battens fastened", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Particleboard", "printed": "16 mm", "kind": "plate", "thickness": 16.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 17, "number": 3, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Fermacell screed on honeycomb fill, resilient-clip Fermacell HD board ceiling", "weight": 62.0, "height": 329.0, "airborne": "62", "impact": "47", "energy": "5.30", "ghg": "1.30", "layers": [
+    {"name": "Fermacell screed element", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Fermacell honeycomb fill", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Timber boarding", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/200 mm", "kind": "joists", "thickness": 200.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Fermacell HD board", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 17, "number": 4, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Cement screed on dried sand fill, resilient-clip gypsum fibreboard ceiling", "weight": 267.0, "height": 424.0, "airborne": "63", "impact": "44", "energy": "3.73", "ghg": "1.06", "layers": [
+    {"name": "Cement screed, 120 kg/m2, separating layer", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Decking boards", "printed": "22 mm", "kind": "plate", "thickness": 22.0, "width": 0.0, "inside": false},
+    {"name": "Joist layer", "printed": "140/220 mm", "kind": "joists", "thickness": 220.0, "width": 140.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "100 mm", "kind": "plate", "thickness": 100.0, "width": 0.0, "inside": true},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboards", "printed": "12.5 mm", "kind": "plate", "thickness": 12.5, "width": 0.0, "inside": false}
+  ]},
+  {"table": 17, "number": 5, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Cement screed on dry concrete slabs glued onto hollow box element (cavity insulation)", "weight": 327.0, "height": 404.0, "airborne": "61", "impact": "48", "energy": "2.90", "ghg": "1.25", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued onto hollow box element", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Hollow box element", "printed": "234 mm", "kind": "box", "thickness": 234.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 30–70 kg/m3", "printed": "60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 17, "number": 6, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Cement screed on dry concrete slabs and ballasted hollow box element (slabs or sand)", "weight": 435.0, "height": 404.0, "airborne": "62", "impact": "44", "energy": "3.00", "ghg": "1.27", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued onto hollow box element", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Hollow box element", "printed": "234 mm", "kind": "box", "thickness": 234.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued / or dry sand, 1500 kg/m3, with trickle protection membrane", "printed": "50 mm / 80 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 17, "number": 7, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Cement screed on gypsum fibreboard and 150 mm ballasted hollow box element", "weight": 432.0, "height": 339.0, "airborne": "63", "impact": "44", "energy": "4.65", "ghg": "1.61", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard, stapled onto hollow box element, fastener spacing 250–300 mm", "printed": "15 mm", "kind": "box", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Hollow box element", "printed": "204 mm", "kind": "box", "thickness": 204.0, "width": 0.0, "inside": false},
+    {"name": "Dry sand, 1500 kg/m3, with trickle protection membrane or grit fill, 1500 kg/m3", "printed": "150 mm", "kind": "plate", "thickness": 150.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 17, "number": 8, "title": "Timber Joist and Hollow Box Floors, Clad and Ballasted", "name": "Cement screed on gypsum fibreboard and 80 mm ballasted hollow box element", "weight": 432.0, "height": 339.0, "airborne": "63", "impact": "45", "energy": "4.10", "ghg": "1.38", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard, stapled onto hollow box element, fastener spacing 250–300 mm", "printed": "15 mm", "kind": "box", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Hollow box element", "printed": "204 mm", "kind": "box", "thickness": 204.0, "width": 0.0, "inside": false},
+    {"name": "Dry sand, 1500 kg/m3, with trickle protection membrane or grit fill, 1500 kg/m3", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": true}
+  ]},
+  {"table": 18, "number": 1, "title": "Solid Timber Floors, Various Insulation Interlayers", "name": "Particleboard on extra-porous wood-fibre impact sound insulation board", "weight": 74.0, "height": 155.0, "airborne": "49", "impact": "71", "energy": "3.27", "ghg": "0.7", "layers": [
+    {"name": "Particleboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Extra-porous wood-fibre impact sound insulation board", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 18, "number": 2, "title": "Solid Timber Floors, Various Insulation Interlayers", "name": "Laminated hardboard on mineral-fibre impact sound insulation board", "weight": 72.0, "height": 155.0, "airborne": "49", "impact": "67", "energy": "4.28", "ghg": "1.03", "layers": [
+    {"name": "Laminated hardboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 18, "number": 3, "title": "Solid Timber Floors, Various Insulation Interlayers", "name": "Particleboard on homogeneous cork board", "weight": 73.0, "height": 155.0, "airborne": "44", "impact": "73", "energy": "3.75", "ghg": "0.75", "layers": [
+    {"name": "Particleboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Homogeneous cork board", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 18, "number": 4, "title": "Solid Timber Floors, Various Insulation Interlayers", "name": "Particleboard on elasticised polyester impact sound insulation board", "weight": 73.0, "height": 165.0, "airborne": "47", "impact": "68", "energy": "3.17", "ghg": "0.67", "layers": [
+    {"name": "Particleboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Polyester impact sound insulation board, elasticised", "printed": "20 mm", "kind": "plate", "thickness": 20.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 18, "number": 5, "title": "Solid Timber Floors, Various Insulation Interlayers", "name": "Particleboard on dry insulating fill", "weight": 76.0, "height": 175.0, "airborne": "49", "impact": "75", "energy": "3.40", "ghg": "0.82", "layers": [
+    {"name": "Particleboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Dry insulating fill", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 19, "number": 1, "title": "Solid Timber Floors, Various Subfloor Boards or Cement Screeds", "name": "Particleboard on mineral-fibre impact sound insulation board", "weight": 72.0, "height": 155.0, "airborne": "49", "impact": "67", "energy": "2.79", "ghg": "0.59", "layers": [
+    {"name": "Particleboard", "printed": "25 mm", "kind": "plate", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 19, "number": 2, "title": "Solid Timber Floors, Various Subfloor Boards or Cement Screeds", "name": "Bonded gypsum fibreboards on mineral-fibre impact sound insulation board", "weight": 79.0, "height": 150.0, "airborne": "47", "impact": "68", "energy": "3.33", "ghg": "0.73", "layers": [
+    {"name": "Gypsum fibreboards 20 mm, bonded", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 19, "number": 3, "title": "Solid Timber Floors, Various Subfloor Boards or Cement Screeds", "name": "Cement screed on 10 mm mineral-fibre insulation and solid timber floor", "weight": 164.0, "height": 180.0, "airborne": "53", "impact": "64", "energy": "2.29", "ghg": "0.72", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "10 mm", "kind": "plate", "thickness": 10.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 19, "number": 4, "title": "Solid Timber Floors, Various Subfloor Boards or Cement Screeds", "name": "Cement screed on 30 mm mineral-fibre insulation and Brettstapel", "weight": 176.0, "height": 200.0, "airborne": "53", "impact": "57", "energy": "1.77", "ghg": "0.62", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel, nailed or dowelled", "printed": "120 mm", "kind": "boards", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 20, "number": 1, "title": "Solid Timber Floors with Ceiling Linings", "name": "Cement screed, LIGNATUR hollow box element, resilient-clip gypsum fibreboard ceiling", "weight": 172.0, "height": 257.0, "airborne": "59", "impact": "52", "energy": "3.50", "ghg": "0.99", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Hollow box floor / LIGNATUR box element", "printed": "140 mm", "kind": "box", "thickness": 140.0, "width": 0.0, "inside": false},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard", "printed": "18 mm", "kind": "plate", "thickness": 18.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 20, "number": 2, "title": "Solid Timber Floors with Ceiling Linings", "name": "Cement screed, dried sand fill, Brettstapel, resilient-clip gypsum fibreboard ceiling", "weight": 253.0, "height": 287.0, "airborne": "62", "impact": "47", "energy": "3.64", "ghg": "1.04", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel, nailed or dowelled", "printed": "120 mm", "kind": "boards", "thickness": 120.0, "width": 0.0, "inside": false},
+    {"name": "Battens mounted with resilient clips", "printed": "30 mm", "kind": "battens", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard", "printed": "12.5 mm", "kind": "plate", "thickness": 12.5, "width": 0.0, "inside": false}
+  ]},
+  {"table": 21, "number": 1, "title": "Solid Timber Floors; Wearing Surface with Floorboards", "name": "Floorboards on T&G wood-fibre board with integrated battens", "weight": 73.0, "height": 181.0, "airborne": "49", "impact": "67", "energy": "5.22", "ghg": "1.08", "layers": [
+    {"name": "Floorboards", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Wood-fibre board, T&G, pre-assembled with battens, system provider", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 21, "number": 2, "title": "Solid Timber Floors; Wearing Surface with Floorboards", "name": "Floorboards on T&G wood-fibre board, extra-porous wood-fibre strips, and dried sand", "weight": 125.0, "height": 219.0, "airborne": "53", "impact": "60", "energy": "5.80", "ghg": "1.21", "layers": [
+    {"name": "Floorboards", "printed": "21 mm", "kind": "plate", "thickness": 21.0, "width": 0.0, "inside": false},
+    {"name": "Wood-fibre board, T&G, pre-assembled with battens, system provider", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Extra-porous wood-fibre board laid between battens", "printed": "8 mm", "kind": "plate", "thickness": 8.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3, battens fastened", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "120 mm", "kind": "planks", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 22, "number": 1, "title": "Solid Timber Floors, Ballasted", "name": "Double wood-fibre boards on dried sand fill and solid timber floor", "weight": 165.0, "height": 235.0, "airborne": "55", "impact": "58", "energy": "4.82", "ghg": "1.16", "layers": [
+    {"name": "Wood-fibre board, hard", "printed": "23 mm", "kind": "plate", "thickness": 23.0, "width": 0.0, "inside": false},
+    {"name": "Wood-fibre board", "printed": "22 mm", "kind": "plate", "thickness": 22.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3, battens fastened", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Solid timber floor / glulam / dowel-joined planks", "printed": "140 mm", "kind": "planks", "thickness": 140.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 22, "number": 2, "title": "Solid Timber Floors, Ballasted", "name": "Cement screed on dry concrete slabs and nailed Brettstapel", "weight": 285.0, "height": 260.0, "airborne": "61", "impact": "52", "energy": "2.41", "ghg": "0.96", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs 500/500 mm, dry, 100 kg/m2", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel, nailed", "printed": "140 mm", "kind": "boards", "thickness": 140.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 22, "number": 3, "title": "Solid Timber Floors, Ballasted", "name": "Cement screed on dried sand fill and nailed Brettstapel", "weight": 237.0, "height": 240.0, "airborne": "61", "impact": "52", "energy": "2.10", "ghg": "0.69", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50, 60 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Dried sand, 1500 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Trickle protection membrane", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel, nailed", "printed": "120 mm", "kind": "boards", "thickness": 120.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 23, "number": 1, "title": "Solid Timber Floors, Timber–Concrete Composite", "name": "Timber–concrete composite floor with 120 kg/m² cement screed", "weight": 537.0, "height": 380.0, "airborne": "62", "impact": "44", "energy": "4.63", "ghg": "1.79", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "In-situ composite concrete", "printed": "120 mm", "kind": "plate", "thickness": 120.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel", "printed": "140 mm", "kind": "boards", "thickness": 140.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 23, "number": 2, "title": "Solid Timber Floors, Timber–Concrete Composite", "name": "Timber–concrete composite floor with 25 mm damped service cavity and gypsum fibreboard", "weight": 555.0, "height": 423.0, "airborne": "62", "impact": "45", "energy": "6.37", "ghg": "2.18", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "In-situ composite concrete", "printed": "120 mm", "kind": "plate", "thickness": 120.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel", "printed": "140 mm", "kind": "boards", "thickness": 140.0, "width": 0.0, "inside": false},
+    {"name": "Service cavity, damped", "printed": "25 mm", "kind": "cavity", "thickness": 25.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard on batten grid", "printed": "18 mm", "kind": "plate", "thickness": 18.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 23, "number": 3, "title": "Solid Timber Floors, Timber–Concrete Composite", "name": "Timber–concrete composite floor with 140 mm service cavity and gypsum fibreboard", "weight": 559.0, "height": 538.0, "airborne": "63", "impact": "37", "energy": "6.5", "ghg": "2.21", "layers": [
+    {"name": "Cement screed, 170 kg/m2", "printed": "80 mm", "kind": "plate", "thickness": 80.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation board, 80–110 kg/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "In-situ composite concrete", "printed": "120 mm", "kind": "plate", "thickness": 120.0, "width": 0.0, "inside": false},
+    {"name": "Brettstapel", "printed": "140 mm", "kind": "boards", "thickness": 140.0, "width": 0.0, "inside": false},
+    {"name": "Service cavity", "printed": "140 mm", "kind": "cavity", "thickness": 140.0, "width": 0.0, "inside": false},
+    {"name": "Gypsum fibreboard on batten grid", "printed": "18 mm", "kind": "plate", "thickness": 18.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 1, "title": "System Providers", "name": "LIGNATUR Box Element with Dry Build-Up", "weight": 68.0, "height": 258.0, "airborne": "49", "impact": "67", "energy": "2.03", "ghg": "0.43", "layers": [
+    {"name": "Subfloor board", "printed": "28 mm", "kind": "plate", "thickness": 28.0, "width": 0.0, "inside": false},
+    {"name": "Isover Akustic EP2, s′ ≤ 15 MN/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "LIGNATUR box element", "printed": "200 mm", "kind": "box", "thickness": 200.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 2, "title": "System Providers", "name": "LIGNATUR Box Element, silence 12 with Honeycomb Fill", "weight": 213.0, "height": 288.0, "airborne": "69", "impact": "47", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Subfloor particleboard", "printed": "28 mm", "kind": "plate", "thickness": 28.0, "width": 0.0, "inside": false},
+    {"name": "Isover Akustic EP2, s′ ≤ 15 MN/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Fermacell honeycomb fill", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "LIGNATUR box element, silence 12 with fill 75 kg/m2", "printed": "200 mm", "kind": "box", "thickness": 200.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 3, "title": "System Providers", "name": "LIGNATUR Surface Element with Dry Build-Up", "weight": 218.0, "height": 310.0, "airborne": "73", "impact": "47", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Knauf gypsum fibreboard GIFAfloor", "printed": "18 mm", "kind": "plate", "thickness": 18.0, "width": 0.0, "inside": false},
+    {"name": "Knauf gypsum fibreboard GIFAfloor", "printed": "32 mm", "kind": "plate", "thickness": 32.0, "width": 0.0, "inside": false},
+    {"name": "Knauf TPT03, s′ = 9 MN/m3", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Grit fill", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "LIGNATUR surface element with fill 50 kg/m2", "printed": "200 mm", "kind": "surface", "thickness": 200.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 4, "title": "System Providers", "name": "LIGNATUR Surface Element – Wet Screed and Tuned Mass Damper Brick", "weight": 296.0, "height": 400.0, "airborne": "72", "impact": "45", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Isover Akustic EP1, s′ ≤ 7 MN/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Grit fill", "printed": "70 mm", "kind": "plate", "thickness": 70.0, "width": 0.0, "inside": false},
+    {"name": "LIGNATUR surface element silence 12", "printed": "240 mm", "kind": "surface", "thickness": 240.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 5, "title": "System Providers", "name": "LIGNATUR Surface Element with Cement Screed and Hollow Floor", "weight": 265.0, "height": 422.0, "airborne": "74", "impact": "43", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Hollow floor 32 mm GIFAfloor FHB", "printed": "132 mm", "kind": "plate", "thickness": 132.0, "width": 0.0, "inside": false},
+    {"name": "Cement screed, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Isover Akustic EP1, s′ ≤ 7 MN/m3", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "LIGNATUR surface element with fill 50 kg/m2", "printed": "200 mm", "kind": "surface", "thickness": 200.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 6, "title": "System Providers", "name": "LIGNO® Rippe-x Cross-Laminated Timber Rib Element with Dry Build-Up Without Fill", "weight": 136.0, "height": 355.0, "airborne": "66", "impact": "55", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Cement screed", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation, Isover Akustic EP1 (dyn. stiffness s′ = 5 MN/m3)", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Pressure distribution board, wood-fibre softboard Gutex Standard-n", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit", "printed": "250 mm", "kind": "spaced", "thickness": 250.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 7, "title": "System Providers", "name": "LIGNO® Rippe-x Cross-Laminated Timber Rib Element with Dry Build-Up and Fill", "weight": 140.0, "height": 295.0, "airborne": "67", "impact": "47", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Dry screed element Fermacell", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Pressure distribution board, wood-fibre softboard Gutex Standard-n", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill 88 kg/m2", "printed": "250 mm", "kind": "spaced", "thickness": 250.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 8, "title": "System Providers", "name": "LIGNO® Rippe-x Cross-Laminated Timber Rib Element with Cement Screed", "weight": 251.0, "height": 355.0, "airborne": "78", "impact": "37", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Cement screed, 120 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Separating layer", "printed": "-", "kind": "membrane", "thickness": 0.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre impact sound insulation, Isover Akustic EP1, s′ = 5 MN/m3", "printed": "40/35 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Pressure distribution board, wood-fibre softboard Gutex Standard-n", "printed": "15 mm", "kind": "plate", "thickness": 15.0, "width": 0.0, "inside": false},
+    {"name": "Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill approx. 196 kg/m2", "printed": "250 mm", "kind": "spaced", "thickness": 250.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 9, "title": "System Providers", "name": "LIGNO® Rippe-x Cross-Laminated Timber Rib Element for Roof Terrace with Timber Decking", "weight": 155.0, "height": 593.0, "airborne": "64", "impact": "35", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Timber decking grating", "printed": "26 mm", "kind": "plate", "thickness": 26.0, "width": 0.0, "inside": false},
+    {"name": "Support battens", "printed": "40 mm", "kind": "battens", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Sylomer bearing; s′ 3", "printed": "12 mm", "kind": "plate", "thickness": 12.0, "width": 0.0, "inside": false},
+    {"name": "Concrete slabs, 40 mm; crushed stone grit (grading 5/8) between, 39 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "EPDM roofing membrane, alwitra", "printed": "2.5 mm", "kind": "plate", "thickness": 2.5, "width": 0.0, "inside": false},
+    {"name": "Flat roof insulation board EPS 035 DAA (dyn. stiffness s′ = 30 MN/m3)", "printed": "200 mm", "kind": "plate", "thickness": 200.0, "width": 0.0, "inside": false},
+    {"name": "Pressure distribution board OSB 4 TOP (Egger)", "printed": "22 mm", "kind": "plate", "thickness": 22.0, "width": 0.0, "inside": false},
+    {"name": "Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill approx. 98 kg/m2", "printed": "250 mm", "kind": "spaced", "thickness": 250.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 10, "title": "System Providers", "name": "NOVATOP Element with Dry Build-Up Without Fill", "weight": 151.0, "height": 328.0, "airborne": "59", "impact": "60", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Gypsum fibreboard", "printed": "20 mm", "kind": "plate", "thickness": 20.0, "width": 0.0, "inside": false},
+    {"name": "Wood-fibre board", "printed": "8 mm", "kind": "plate", "thickness": 8.0, "width": 0.0, "inside": false},
+    {"name": "Screed honeycomb with fill; 90 kg/m2", "printed": "60 mm", "kind": "plate", "thickness": 60.0, "width": 0.0, "inside": false},
+    {"name": "NOVATOP element", "printed": "240 mm", "kind": "grid", "thickness": 240.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 11, "title": "System Providers", "name": "NOVATOP Element with Dry Build-Up and Fill", "weight": 161.0, "height": 330.0, "airborne": "62", "impact": "54", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Gypsum fibreboard", "printed": "20 mm", "kind": "plate", "thickness": 20.0, "width": 0.0, "inside": false},
+    {"name": "Wood-fibre board", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "Screed honeycomb with fill; 45 kg/m2", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "NOVATOP element with limestone grit fill, 40 kg/m2", "printed": "240 mm", "kind": "grid", "thickness": 240.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 12, "title": "System Providers", "name": "NOVATOP Element with Cement Boards and Fill", "weight": 153.0, "height": 330.0, "airborne": "58", "impact": "67", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Cement boards, 115 kg/m2", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Mineral-fibre boards", "printed": "40 mm", "kind": "plate", "thickness": 40.0, "width": 0.0, "inside": false},
+    {"name": "NOVATOP element with limestone grit fill, 40 kg/m2", "printed": "240 mm", "kind": "grid", "thickness": 240.0, "width": 0.0, "inside": false}
+  ]},
+  {"table": 24, "number": 13, "title": "System Providers", "name": "NOVATOP Element with Cement Screed and Fill", "weight": 244.0, "height": 363.0, "airborne": "63", "impact": "44", "energy": "*", "ghg": "*", "layers": [
+    {"name": "Oak parquet flooring", "printed": "12 mm", "kind": "plate", "thickness": 12.0, "width": 0.0, "inside": false},
+    {"name": "Steico Underfloor", "printed": "5 mm", "kind": "plate", "thickness": 5.0, "width": 0.0, "inside": false},
+    {"name": "Cement screed", "printed": "50 mm", "kind": "plate", "thickness": 50.0, "width": 0.0, "inside": false},
+    {"name": "Isover TDPT", "printed": "20 mm", "kind": "plate", "thickness": 20.0, "width": 0.0, "inside": false},
+    {"name": "Isover TDPT", "printed": "30 mm", "kind": "plate", "thickness": 30.0, "width": 0.0, "inside": false},
+    {"name": "Stralon", "printed": "6 mm", "kind": "plate", "thickness": 6.0, "width": 0.0, "inside": false},
+    {"name": "NOVATOP element with timber grid 180 mm and limestone grit fill 80 kg/m2", "printed": "240 mm", "kind": "grid", "thickness": 240.0, "width": 0.0, "inside": false}
+  ]}
+]

@@ -49,6 +49,22 @@ One bay of every timber floor system on two beams, sized for a use, a span and a
     <img src="templates_timber_floor_4_earth_arch.webp" alt="Timber and Earth">
     <span class="wood-card-title">Timber and Earth</span>
   </a>
+  <a class="wood-card" href="#timber_floor_book">
+    <img src="templates_timber_floor_5_systems_beams_comb.webp" alt="Floors of the Book">
+    <span class="wood-card-title">Floors of the Book</span>
+  </a>
+  <a class="wood-card" href="#timber_floor_producers">
+    <img src="templates_timber_floor_6_producers_kielsteg.webp" alt="Producers">
+    <span class="wood-card-title">Producers</span>
+  </a>
+  <a class="wood-card" href="#timber_floor_shear">
+    <img src="templates_timber_floor_7_shear_concrete_wave_open.webp" alt="Joints and Concrete">
+    <span class="wood-card-title">Joints and Concrete</span>
+  </a>
+  <a class="wood-card" href="#timber_floor_build_ups">
+    <img src="templates_timber_floor_8_build_ups_all.webp" alt="Build-ups">
+    <span class="wood-card-title">Build-ups</span>
+  </a>
   <a class="wood-card" href="#timber_floor_assembly_sequence">
     <img src="assembly_templates_timber_floor_1_systems_ribbed.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
@@ -282,6 +298,300 @@ Element sizes, `227` and the values: Rematter, [factsheet](https://www.rematter.
 
 \include{lineno} templates_timber_floor_4_earth.cpp
 
+---
+
+## Floors of the Book {#timber_floor_book}
+
+Every floor of the floor chapter that no one producer makes, samples 2.4 m long (`FloorProduct`, `floor_product.h`): a product is its straight pieces, each a section and a run, what is let into what, and its pins.
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| ![](templates/templates_timber_floor_5_systems_joists_exposed.webp) Joists, exposed | ![](templates/templates_timber_floor_5_systems_joists_partly_exposed.webp) Joists, boards between them | ![](templates/templates_timber_floor_5_systems_joists_clad.webp) Joists, clad on battens | ![](templates/templates_timber_floor_5_systems_joists_trimmed.webp) Joists trimmed round an opening |
+| ![](templates/templates_timber_floor_5_systems_ribbed_above.webp) Ribs under a panel, glued | ![](templates/templates_timber_floor_5_systems_ribbed_below.webp) Ribs on a panel, glued | ![](templates/templates_timber_floor_5_systems_box.webp) Ribs between two panels, glued | ![](templates/templates_timber_floor_5_systems_beams_butted.webp) Solid beams, a board on them |
+| ![](templates/templates_timber_floor_5_systems_beams_comb.webp) Solid beams, a comb of two tongues | ![](templates/templates_timber_floor_5_systems_glulam_elements.webp) Glulam elements on edge, a strip in the joint | ![](templates/templates_timber_floor_5_systems_boards_dowelled.webp) Boards on edge, dowelled | ![](templates/templates_timber_floor_5_systems_boards_nailed.webp) Boards on edge, nailed |
+| ![](templates/templates_timber_floor_5_systems_cross_laminated_3.webp) Cross-laminated 40 40 40 | ![](templates/templates_timber_floor_5_systems_cross_laminated_5.webp) Cross-laminated 40 20 40 20 40 | ![](templates/templates_timber_floor_5_systems_cross_laminated_7.webp) Cross-laminated 30 40 30 40 30 40 30 | ![](templates/templates_timber_floor_5_systems_veneer.webp) Veneer lumber 75 |
+
+```cpp
+/// One straight piece of a floor product, in mm from its corner at its underside.
+struct FloorPart {
+    std::string name;
+    FloorSection section;
+    double start = 0.0; // Where it starts along its run.
+    double end = 0.0; // Where it ends.
+    size_t run = 0; // 0 along the span, 1 across it, 2 upright.
+    std::vector<std::string> pockets; // The parts it is let into.
+};
+```
+
+\include{lineno} templates_timber_floor_5_systems.cpp
+
+---
+
+## Producers {#timber_floor_producers}
+
+Best wood Schneider's CLT BOX, Lignatur, Lignotrend, Novatop and Kielsteg with the sections of their approvals.
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| ![](templates/templates_timber_floor_6_producers_clt_box_closed.webp) Schneider CLT BOX, closed, 240 | ![](templates/templates_timber_floor_6_producers_clt_box_open.webp) Schneider CLT BOX, open, 220 | ![](templates/templates_timber_floor_6_producers_clt_box_roof.webp) Schneider CLT BOX roof, 220 | ![](templates/templates_timber_floor_6_producers_lignatur_box.webp) Lignatur box LKE, 200 |
+| ![](templates/templates_timber_floor_6_producers_lignatur_surface.webp) Lignatur surface LFE, 200 | ![](templates/templates_timber_floor_6_producers_lignatur_silence.webp) Lignatur LFE silence, 240 | ![](templates/templates_timber_floor_6_producers_lignatur_shell.webp) Lignatur shell LSE, 200 | ![](templates/templates_timber_floor_6_producers_lignotrend_rib.webp) Lignotrend Rippe Q3, 190 |
+| ![](templates/templates_timber_floor_6_producers_lignotrend_block.webp) Lignotrend Block Q3, 190 | ![](templates/templates_timber_floor_6_producers_novatop_element.webp) Novatop Element A2, 240 | ![](templates/templates_timber_floor_6_producers_novatop_open.webp) Novatop Open, 247 | ![](templates/templates_timber_floor_6_producers_kielsteg.webp) Kielsteg 280-40-102 |
+| ![](templates/templates_timber_floor_6_producers_kielsteg_deep.webp) Kielsteg 730-80-134 |  |  |  |
+
+Their sections:
+
+|  |  |
+| --- | --- |
+| ![](templates/templates_timber_floor_6_producers_clt_box_closed_section.webp) CLT BOX | ![](templates/templates_timber_floor_6_producers_lignatur_box_section.webp) Lignatur LKE |
+| ![](templates/templates_timber_floor_6_producers_lignatur_surface_section.webp) Lignatur LFE | ![](templates/templates_timber_floor_6_producers_lignotrend_rib_section.webp) Lignotrend Rippe Q3 |
+| ![](templates/templates_timber_floor_6_producers_novatop_element_section.webp) Novatop Element | ![](templates/templates_timber_floor_6_producers_kielsteg_section.webp) Kielsteg |
+
+| Element | Depths mm | Width mm | Length m | Parts mm | kg/m² | Source |
+| --- | --- | --- | --- | --- | --- | --- |
+| CLT BOX closed | 220 to 480 by 20 | 1000 to 1200 | 2.3 to 16 | cross-laminated 60 (below 60 or 90), three glulam ribs 80, 100, 120 x 100 to 360 | 60 at 220, 64 at 260, 71 at 340 (computed) | [ETA-21/0336](https://www.schneider-holz.com/site/assets/files/6878/best-wood-schneider_eta_clt-box_de.pdf), [catalogue 2026](https://www.schneider-holz.com/de/service/downloads/download/produktuebersicht-holz-schweiz/) |
+| CLT BOX open, roof | 160 to 460 by 20 | 900 to 1200 | to 16 | one flange 60 (90), ribs to 400, the roof's two | | as above |
+| Lignatur LKE | 120 to 200 by 20, 240 to 320 by 20 | 200 | 12 | shells 31, webs 32, tongue 13 x 10 | 38 at 120, 50 at 200, 56 at 240, 74 at 320 | [ETA-11/0137](https://www.lignatur.ch/fileadmin/ablage/downloads/das-element/eta-11-0137-lignatur-de.pdf), [weights](https://www.lignatur.ch/produkt/statik/kennwerte), [spans](https://www.lignatur.ch/produkt/statik/vorstatik) |
+| Lignatur LFE | 120 to 240 by 20, 280, 320, 360 | 1000 | 16 | boards 31 or 40, five webs 31 | 33 at 120, 39 at 200, 42 at 240, 45 at 280 | as above |
+| Lignotrend Rippe Q3 | 150 to 450 by 20 | 625 | 15, from 190 18 | three stacks of boards 20 and 26.5, 70 to 75 wide; closed layer 32 | 49 at 150, 55 at 190, 66 at 250, 73 at 290, 120 at 450 | [Z-9.1-555](https://www.dibt.de/pdf_storage/2025/Z-9.1-555%281.9.1-38!22%29.pdf), [Rippe](https://lignotrend.com/_Resources/Persistent/5/d/e/d/5ded1af7816ec8419aab71ca8183ca7a4db2b885/2024-08-14_TD%20LIGNO%20Rippe-x_D-k.pdf), [Block](https://lignotrend.com/_Resources/Persistent/e/1/5/0/e150836a8beb14c43a7b97cae60426baaf4b709d/2026-02-18_TD%20LIGNO%20Block-x_DE_k.pdf) |
+| Lignotrend Block Q3 | 150 to 450 by 20 | 625 | 15, from 190 18 | the same, closed above 45 | 50 at 150, 57 at 190, 75 at 290, 142 at 450 | as above |
+| Novatop Element A2 | 160 to 400 by 20 | 1030, 2090, 2450 | 6, to 12 | three-layer panels 27, ribs 27 every 340, across them every 600 to 1000 | 32 at 160, 35 at 240, 39 at 320, 42 at 400 | [Element](https://novatop-system.com/wp-content/uploads/TD_NOVATOP_ELEMENT_EN.pdf), [Open](https://novatop-system.com/wp-content/uploads/TD_NOVATOP_OPEN_EN.pdf), [ETA-11/0310](https://novatop-system.com/wp-content/uploads/NOVATOP_Element_ETA_EN.pdf) |
+| Novatop Open | 227, 247, 267 | 1030, 2090, 2450 | 6, to 12 | panel 27, ribs 60 x 200, 220, 240 every 625 | | as above |
+| Kielsteg | 280 to 800, fifteen | 1200 | 2 to 35 | chords 35 to 80 x 85 to 134, plywood webs 4, from 485 oriented strand 8 to 12 | 43 to 152 | [ETA-18/1014](https://www.dibt.de/pdf_storage/2025/ETA-18!1014%288.03.04-76!24%29e.pdf), [guide](https://www.kielsteg.com/elements-guide/) |
+
+| Span m | CLT BOX 60 / 60, depth / rib, at g 2.5, q 3.0 | Lignatur LFE in a house, q 2.8, g 1.0 | Novatop Element A2, g 2.0, q 3.0 | Kielsteg, q 2, 6 Hz |
+| --- | --- | --- | --- | --- |
+| 4 | | 160 (4.3) | 160 | |
+| 5 | | 200 (5.2) | 200 | |
+| 6 | 220 / 80 | 240 (6.1) | 260 | |
+| 7 | 260 / 80 | 320 (7.7) | 300 | |
+| 8 | 300 / 80 | 360 (8.8) | 360 | 280-35 (8.3) |
+| 9 | 340 / 80 | | | 330-40 (9.3) |
+| 10 | 380 / 80 | | | 370-60 (10.3) |
+| 11 | 420 / 100 | | | 485-50 (11.1) |
+| 12 | | | | 560-50 (12.1) |
+
+Single spans as each producer gives them, under its own loads (kN/m²) and limits, so the columns are not comparable without them; the number in brackets is the span of that depth.
+
+\include{lineno} templates_timber_floor_6_producers.cpp
+
+### Ribs, voids, dowels {#timber_floor_ribs}
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| ![](templates/templates_timber_floor_9_ribs_clt_rib.webp) Hasslacher, plate 120 on ribs 140 x 280 | ![](templates/templates_timber_floor_9_ribs_clt_rib_box.webp) Derix box, plates 100, ribs 120 x 300 | ![](templates/templates_timber_floor_9_ribs_void_panel.webp) Derix void panel 80 / 120 / 80 | ![](templates/templates_timber_floor_9_ribs_lvl_rib.webp) Stora Enso LVL rib, open |
+| ![](templates/templates_timber_floor_9_ribs_lvl_rib_strips.webp) Stora Enso LVL rib, semi-open | ![](templates/templates_timber_floor_9_ribs_dowelled_layers.webp) Dowelled layers (Holz100, Nur-Holz) | ![](templates/templates_timber_floor_9_ribs_concrete_ribs_open.webp) Cree, ZECH: ribs 240 x 280, the notches | ![](templates/templates_timber_floor_9_ribs_concrete_ribs.webp) Cree, ZECH with its concrete 100 |
+
+| Element | Sizes mm | Width m | Length m | Span m | Source |
+| --- | --- | --- | --- | --- | --- |
+| Hasslacher rib panel | plate 80 to 240, ribs 80 to 280 x 80 to 1280; plate 120 at g 1.0: 120 x 160 at 6 m, 140 x 280 at 8, 160 x 440 at 10 | 1.25, to 3.20 | 24 | 6 to 11 | [Hasslacher](https://www.hasslacher.com/data/_dateimanager/broschuere/Rippenplattendecke-DE.pdf) |
+| KLH rib | plate 110, ribs 140 at 600: 160 at 6 m, 240 at 8, 360 at 10 (g 1.0) | 2.95 | 16.5 | from 6 | [KLH](https://www.klh.at/wp-content/uploads/2019/09/klh-rib-elements-en.pdf) |
+| Derix rib, box | to 540, to 600 deep; plates to 120, ribs 60 to 180 x 100 to 480, clear to 600 | 3.00 | 10 | from 6 | [Derix](https://derix.de/media/freie-dokumente/XXL-Deckensysteme-aus-Holz.pdf) |
+| Derix void panel | to 360: plates to 80, strips 60 to 120 x 120 to 186, voids to 372 | 2.15, 2.70, 3.25 | 18.5 | 6 to 10 | as above |
+| Woodtec Fankhauser rib, box | to 400; plates 27 to 100, ribs 60 to 100 x 300 at 500 to 800 | 2.70 | 10 | | [Z-9.1-931](https://www.dibt.de/pdf_storage/2025/Z-9.1-931%281.9.1-9!21%29.pdf) |
+| Stora Enso LVL rib | ribs 39 to 75 x 100 to 1150, panels 22 to 73 | 2.40, 2.50 | 6 to 18 | | [ETA-18/1132](https://storaenso.com/-/media/documents/download-center/certificates/wood-products-approvals-and-certificates/eta/eta-sylva-lvl-rib-by-stora-enso---may-2023.pdf) |
+| Kerto-Ripa | veneer ribs glued to veneer panels, open, semi-open, box; the floor's rib pitch is not published | 1.80, 2.40, 2.50 | 6 to 20 | 5 to 10 | [Metsä](https://www.metsagroup.com/metsawood/explore-wood/kerto-lvl-applications/floor-elements/kerto-ripa-floor-elements/) |
+| Holz100 | to 400; boards from 24, squared timber from 40, beech dowels 20; the layers here are an example | 3.00 | 10 | | [ETA-13/0785](https://www.dibt.de/pdf_storage/2018/ETA-13!0785%288.03.04-92!17%29.pdf) |
+| ZECH, as Cree | 380: ribs 240 x 280, concrete 100, notches 250 x 200 x 40, two pins 10 x 300 each | 2.60 to 2.80 | 6.55 to 7.85 | 6.25 to 7.55 | [Z-9.1-911](https://www.dibt.de/pdf_storage/2024/Z-9.1-911%281.9.1-15!24%29.pdf) |
+| TS3 point-supported | cross-laminated 180 on 4 x 4 m, 230 on 5 x 5, 280 on 6 x 6, 300 on 7 x 7, joints grouted 4 wide | 3.50 | 16 | 4 to 9 both ways | [TS3](https://www.ts3.biz/media/docs/downloads/en/2024.06_Factsheet_Architektur_en.pdf) |
+
+\include{lineno} templates_timber_floor_9_ribs.cpp
+
+---
+
+## Joints and Concrete {#timber_floor_shear}
+
+Joints between cross-laminated panels:
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| ![](templates/templates_timber_floor_7_shear_joint_cover.webp) Cover board and strip | ![](templates/templates_timber_floor_7_shear_joint_grout.webp) Grouted joint | ![](templates/templates_timber_floor_7_shear_joint_keys.webp) Wedge keys | ![](templates/templates_timber_floor_7_shear_joint_blocks.webp) Steel shear blocks |
+
+Ten ways to hold concrete to timber, without the concrete. The book shows them without sizes: the notches, lugs, locks and bars here are assumed, but the crossed pins at 45° and the plates 45 deep on both sides, which follow the approvals [ETA-13/0699](https://www.dibt.de/pdf_storage/2022/ETA-13!0699%288.03.03-36!22%29.pdf) and [Z-9.1-557](https://www.dibt.de/pdf_storage/2020/Z-9.1-557%281.9.1-41!19%29.pdf).
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| ![](templates/templates_timber_floor_7_shear_concrete_stepped_open.webp) Boards of two depths | ![](templates/templates_timber_floor_7_shear_concrete_micro_open.webp) Small notches all over | ![](templates/templates_timber_floor_7_shear_concrete_notched_open.webp) Deep notches and pins | ![](templates/templates_timber_floor_7_shear_concrete_lugs_open.webp) Lugs of a precast slab in pockets |
+| ![](templates/templates_timber_floor_7_shear_concrete_wave_open.webp) Wave-shaped recess in veneer lumber | ![](templates/templates_timber_floor_7_shear_concrete_crossed_open.webp) Crossed pins | ![](templates/templates_timber_floor_7_shear_concrete_locks_open.webp) Flat steel locks | ![](templates/templates_timber_floor_7_shear_concrete_bars_open.webp) V-shaped bars, glued in |
+| ![](templates/templates_timber_floor_7_shear_concrete_plates_open.webp) Perforated plates, glued in | ![](templates/templates_timber_floor_7_shear_concrete_glued_open.webp) Glue alone |  |  |
+
+| whole | | |
+| --- | --- | --- |
+| ![](templates/templates_timber_floor_7_shear_concrete_stepped.webp) | ![](templates/templates_timber_floor_7_shear_concrete_micro.webp) | ![](templates/templates_timber_floor_7_shear_concrete_notched.webp) |
+
+\include{lineno} templates_timber_floor_7_shear.cpp
+
+---
+
+## Build-ups {#timber_floor_build_ups}
+
+The 62 floors of the book's tables 11 to 24, every layer, with what it weighs and does (`FloorBuildUp`, `data/timber_floors/build_ups.json`). In a sample every layer ends 90 mm before the one under it; membranes are not drawn.
+
+![](templates/templates_timber_floor_8_build_ups_all.webp)
+
+Source: Kolb, Kolb, Müller, *Holzbau mit System*, 2024, p. 414 to 426. R'w is airborne, L'n,w impact sound, for comparing in a first design; energy in kWh and greenhouse gas in kg CO2-eq, both per m² and year; *on request* from the producer. Depths are as printed; in fifteen rows the printed layers add up to a few millimetres more or less, or the book counts resilient clips.
+
+### Structural Floors (Raw Floors) {#timber_floor_table_11}
+
+![](templates/templates_timber_floor_8_build_ups_table_11.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Timber boarding 21; Joist layer 140/200 | 221 | 29 | 26 | 90 | 0.40 | 0.05 |
+| Three-layer panel glued to rib 27; Rib 60/180; Mineral-fibre board, 40–70 kg/m3 80 | 234 | 36 | 36 | 86 | 1.20 | 0.27 |
+| Box element, system provider 200 | 200 | 47 | 33 | 89 | 0.29 | 0.07 |
+| Glulam / planks / solid timber beams with tongue-and-groove 120 | 120 | 54 | 37 | 88 | 1.35 | 0.30 |
+| Brettstapel 160 | 160 | 72 | 36 | 82 | 0.65 | 0.17 |
+| Cross-laminated timber (CLT) 160 | 160 | 72 | 40 | 88 | 1.81 | 0.39 |
+| Composite concrete topping 70; Timber boarding 21; Joist layer 140/200 | 273 | 204 | 42 | 88 | 1.87 | 0.66 |
+| Composite concrete topping 70; Brettstapel 160 | 230 | 247 | 44 | 85 | 2.13 | 0.73 |
+
+### Timber Joist Floors, Load-Bearing Structure Exposed {#timber_floor_table_12}
+
+![](templates/templates_timber_floor_8_build_ups_table_12.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard, floating installation 25; Impact sound insulation fleece 3; Battens, fastened 60/60; Mineral-fibre board, 40–70 kg/m3 60; Timber boarding 21; Joist layer 140/200 | 309 | 52 | 40 | 73 | 4.43 | 0.97 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–100 kg/m3 15; Timber boarding 21; Joist layer 140/200 | 296 | 150 | 46 | 70 | 1.47 | 0.54 |
+
+### Timber Joist Floors, Load-Bearing Structure Exposed and Ballasted {#timber_floor_table_13}
+
+![](templates/templates_timber_floor_8_build_ups_table_13.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard, floating installation 25; Mineral-fibre board, 80–110 kg/m3 10; Concrete slabs 500/500 mm, dry, 120 kg/m2 50; Impact sound insulation fleece 3; Timber boarding 21; Joist layer 140/200 | 309 | 168 | 50 | 66 | 4.91 | 1.31 |
+| Particleboard, floating installation 25; Impact sound insulation fleece 3; Battens, fastened 50/50; Dried sand, 1500 kg/m3 50; Trickle protection membrane; Timber boarding 21; Joist layer 140/200 | 301 | 127 | 50 | 69 | 4.54 | 0.98 |
+| Fermacell screed element 30; Fermacell honeycomb fill 30; Trickle protection membrane; Timber boarding 21; Joist layer 140/200 | 281 | 99 | 49 | 63 | 3.99 | 1.00 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–110 kg/m3 30; Dried sand, 1500 kg/m3 30; Trickle protection membrane; Decking boards 22; Joist layer 140/220 | 342 | 203 | 56 | 58 | 2.00 | 0.65 |
+
+### Timber Joist Floors, Load-Bearing Structure Partially Exposed {#timber_floor_table_14}
+
+![](templates/templates_timber_floor_8_build_ups_table_14.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard, floating installation 25; Impact sound insulation fleece 2 × 6; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Particleboard 16 | 252 | 62 | 46 | 67 | 7.61 | 1.62 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–110 kg/m3 15; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Particleboard 16 | 296 | 155 | 50 | 60 | 2.57 | 0.79 |
+
+### Timber Joist Floors, Load-Bearing Structure Partially Exposed and Ballasted {#timber_floor_table_15}
+
+![](templates/templates_timber_floor_8_build_ups_table_15.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard, floating installation 25; Mineral-fibre board, 80–110 kg/m3 10; Concrete slabs 500/500 mm, dry, 120 kg/m2 50; Impact sound insulation fleece 3; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Particleboard 16 | 309 | 197 | 55 | 58 | 6.01 | 1.57 |
+| Particleboard, floating installation 25; Mineral-fibre board, 80–110 kg/m3 10; Battens, fastened 50/50; Dried sand, 1500 kg/m3 50; Trickle protection membrane; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Particleboard 16 | 306 | 144 | 55 | 55 | 3.34 | 0.73 |
+
+### Timber Joist Floors, Clad {#timber_floor_table_16}
+
+![](templates/templates_timber_floor_8_build_ups_table_16.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sanded medium-density hardboard 5.4; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Particleboard 16 | 273 | 59 | 51 | 68 | 2.14 | 0.47 |
+| Particleboard, floating installation 25; Impact sound insulation fleece 2 × 6; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Particleboard 16 | 298 | 72 | 56 | 57 | 2.74 | 1.68 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–110 kg/m3 15; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Particleboard 16 | 346 | 174 | 60 | 55 | 2.69 | 0.81 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–110 kg/m3 15; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Gypsum fibreboards 2 × 12.5 | 355 | 183 | 63 | 53 | 4.20 | 1.16 |
+
+### Timber Joist and Hollow Box Floors, Clad and Ballasted {#timber_floor_table_17}
+
+![](templates/templates_timber_floor_8_build_ups_table_17.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard, floating installation 25; Mineral-fibre board, 80–110 kg/m3 10; Concrete slabs 500/500 mm, dry, 120 kg/m2 50; Impact sound insulation fleece 3; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Gypsum fibreboards 2 × 12.5 | 370 | 197 | 63 | 44 | 7.62 | 1.93 |
+| Particleboard, floating installation 25; Mineral-fibre board, 80–110 kg/m3 10; Dried sand, 1500 kg/m3, battens fastened 50; Trickle protection membrane; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Particleboard 16 | 356 | 144 | 62 | 45 | 3.46 | 0.75 |
+| Fermacell screed element 30; Fermacell honeycomb fill 30; Trickle protection membrane; Timber boarding 21; Joist layer 140/200; Mineral-fibre board, 30–70 kg/m3 80; Battens mounted with resilient clips 30; Fermacell HD board 15 | 329 | 62 | 62 | 47 | 5.30 | 1.30 |
+| Cement screed, 120 kg/m2, separating layer 50, 60; Mineral-fibre board, 80–110 kg/m3 30; Dried sand, 1500 kg/m3 60; Trickle protection membrane; Decking boards 22; Joist layer 140/220; Mineral-fibre board, 30–70 kg/m3 100; Battens mounted with resilient clips 30; Gypsum fibreboards 12.5 | 424 | 267 | 63 | 44 | 3.73 | 1.06 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre board, 80–110 kg/m3 40; Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued onto hollow box element 50; Hollow box element 234; Mineral-fibre board, 30–70 kg/m3 60 | 404 | 327 | 61 | 48 | 2.90 | 1.25 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre board, 80–110 kg/m3 40; Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued onto hollow box element 50; Hollow box element 234; Concrete slabs, dry, 120 kg/m2, 500 × 500 mm, glued / or dry sand, 1500 kg/m3, with trickle protection membrane 50 / 80 | 404 | 435 | 62 | 44 | 3.00 | 1.27 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre board, 80–110 kg/m3 40; Gypsum fibreboard, stapled onto hollow box element, fastener spacing 250–300 mm 15; Hollow box element 204; Dry sand, 1500 kg/m3, with trickle protection membrane or grit fill, 1500 kg/m3 150 | 339 | 432 | 63 | 44 | 4.65 | 1.61 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre board, 80–110 kg/m3 40; Gypsum fibreboard, stapled onto hollow box element, fastener spacing 250–300 mm 15; Hollow box element 204; Dry sand, 1500 kg/m3, with trickle protection membrane or grit fill, 1500 kg/m3 80 | 339 | 432 | 63 | 45 | 4.10 | 1.38 |
+
+### Solid Timber Floors, Various Insulation Interlayers {#timber_floor_table_18}
+
+![](templates/templates_timber_floor_8_build_ups_table_18.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard 25; Extra-porous wood-fibre impact sound insulation board 10; Solid timber floor / glulam / dowel-joined planks 120 | 155 | 74 | 49 | 71 | 3.27 | 0.7 |
+| Laminated hardboard 25; Mineral-fibre impact sound insulation board, 80–110 kg/m3 10; Solid timber floor / glulam / dowel-joined planks 120 | 155 | 72 | 49 | 67 | 4.28 | 1.03 |
+| Particleboard 25; Homogeneous cork board 10; Solid timber floor / glulam / dowel-joined planks 120 | 155 | 73 | 44 | 73 | 3.75 | 0.75 |
+| Particleboard 25; Polyester impact sound insulation board, elasticised 20; Solid timber floor / glulam / dowel-joined planks 120 | 165 | 73 | 47 | 68 | 3.17 | 0.67 |
+| Particleboard 25; Dry insulating fill 30; Solid timber floor / glulam / dowel-joined planks 120 | 175 | 76 | 49 | 75 | 3.40 | 0.82 |
+
+### Solid Timber Floors, Various Subfloor Boards or Cement Screeds {#timber_floor_table_19}
+
+![](templates/templates_timber_floor_8_build_ups_table_19.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Particleboard 25; Mineral-fibre impact sound insulation board, 80–110 kg/m3 10; Solid timber floor / glulam / dowel-joined planks 120 | 155 | 72 | 49 | 67 | 2.79 | 0.59 |
+| Gypsum fibreboards 20 mm, bonded 30; Mineral-fibre impact sound insulation board, 80–110 kg/m3 10; Solid timber floor / glulam / dowel-joined planks 120 | 150 | 79 | 47 | 68 | 3.33 | 0.73 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 10; Solid timber floor / glulam / dowel-joined planks 120 | 180 | 164 | 53 | 64 | 2.29 | 0.72 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre board, 80–110 kg/m3 30; Brettstapel, nailed or dowelled 120 | 200 | 176 | 53 | 57 | 1.77 | 0.62 |
+
+### Solid Timber Floors with Ceiling Linings {#timber_floor_table_20}
+
+![](templates/templates_timber_floor_8_build_ups_table_20.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 15; Hollow box floor / LIGNATUR box element 140; Battens mounted with resilient clips 30; Gypsum fibreboard 18 | 257 | 172 | 59 | 52 | 3.50 | 0.99 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 30; Dried sand, 1500 kg/m3 40; Trickle protection membrane; Brettstapel, nailed or dowelled 120; Battens mounted with resilient clips 30; Gypsum fibreboard 12.5 | 287 | 253 | 62 | 47 | 3.64 | 1.04 |
+
+### Solid Timber Floors; Wearing Surface with Floorboards {#timber_floor_table_21}
+
+![](templates/templates_timber_floor_8_build_ups_table_21.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Floorboards 21; Wood-fibre board, T&G, pre-assembled with battens, system provider 40; Solid timber floor / glulam / dowel-joined planks 120 | 181 | 73 | 49 | 67 | 5.22 | 1.08 |
+| Floorboards 21; Wood-fibre board, T&G, pre-assembled with battens, system provider 40; Extra-porous wood-fibre board laid between battens 8; Dried sand, 1500 kg/m3, battens fastened 30; Trickle protection membrane; Solid timber floor / glulam / dowel-joined planks 120 | 219 | 125 | 53 | 60 | 5.80 | 1.21 |
+
+### Solid Timber Floors, Ballasted {#timber_floor_table_22}
+
+![](templates/templates_timber_floor_8_build_ups_table_22.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Wood-fibre board, hard 23; Wood-fibre board 22; Dried sand, 1500 kg/m3, battens fastened 50; Trickle protection membrane; Solid timber floor / glulam / dowel-joined planks 140 | 235 | 165 | 55 | 58 | 4.82 | 1.16 |
+| Cement screed, 120 kg/m2 50; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 30; Concrete slabs 500/500 mm, dry, 100 kg/m2 40; Brettstapel, nailed 140 | 260 | 285 | 61 | 52 | 2.41 | 0.96 |
+| Cement screed, 120 kg/m2 50, 60; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 30; Dried sand, 1500 kg/m3 40; Trickle protection membrane; Brettstapel, nailed 120 | 240 | 237 | 61 | 52 | 2.10 | 0.69 |
+
+### Solid Timber Floors, Timber–Concrete Composite {#timber_floor_table_23}
+
+![](templates/templates_timber_floor_8_build_ups_table_23.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cement screed, 120 kg/m2 80; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 40; In-situ composite concrete 120; Brettstapel 140 | 380 | 537 | 62 | 44 | 4.63 | 1.79 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 40; In-situ composite concrete 120; Brettstapel 140; Service cavity, damped 25; Gypsum fibreboard on batten grid 18 | 423 | 555 | 62 | 45 | 6.37 | 2.18 |
+| Cement screed, 170 kg/m2 80; Separating layer; Mineral-fibre impact sound insulation board, 80–110 kg/m3 40; In-situ composite concrete 120; Brettstapel 140; Service cavity 140; Gypsum fibreboard on batten grid 18 | 538 | 559 | 63 | 37 | 6.5 | 2.21 |
+
+### System Providers {#timber_floor_table_24}
+
+![](templates/templates_timber_floor_8_build_ups_table_24.webp)
+
+| Layers from the top, mm | Depth mm | kg/m² | R'w dB | L'n,w dB | Energy | Greenhouse gas |
+| --- | --- | --- | --- | --- | --- | --- |
+| Subfloor board 28; Isover Akustic EP2, s′ up to  15 MN/m3 30; LIGNATUR box element 200 | 258 | 68 | 49 | 67 | 2.03 | 0.43 |
+| Subfloor particleboard 28; Isover Akustic EP2, s′ up to  15 MN/m3 30; Fermacell honeycomb fill 30; LIGNATUR box element, silence 12 with fill 75 kg/m2 200 | 288 | 213 | 69 | 47 | on request | on request |
+| Knauf gypsum fibreboard GIFAfloor 18; Knauf gypsum fibreboard GIFAfloor 32; Knauf TPT03, s′ = 9 MN/m3 30; Grit fill 30; LIGNATUR surface element with fill 50 kg/m2 200 | 310 | 218 | 73 | 47 | on request | on request |
+| Cement screed, 120 kg/m2 50; Isover Akustic EP1, s′ up to  7 MN/m3 40; Grit fill 70; LIGNATUR surface element silence 12 240 | 400 | 296 | 72 | 45 | on request | on request |
+| Hollow floor 32 mm GIFAfloor FHB 132; Cement screed, 120 kg/m2 50; Isover Akustic EP1, s′ up to  7 MN/m3 40; LIGNATUR surface element with fill 50 kg/m2 200 | 422 | 265 | 74 | 43 | on request | on request |
+| Cement screed 50; Separating layer; Mineral-fibre impact sound insulation, Isover Akustic EP1 (dyn. stiffness s′ = 5 MN/m3) 40; Pressure distribution board, wood-fibre softboard Gutex Standard-n 15; Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit 250 | 355 | 136 | 66 | 55 | on request | on request |
+| Dry screed element Fermacell 30; Pressure distribution board, wood-fibre softboard Gutex Standard-n 15; Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill 88 kg/m2 250 | 295 | 140 | 67 | 47 | on request | on request |
+| Cement screed, 120 kg/m2 50; Separating layer; Mineral-fibre impact sound insulation, Isover Akustic EP1, s′ = 5 MN/m3 40/35; Pressure distribution board, wood-fibre softboard Gutex Standard-n 15; Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill approx. 196 kg/m2 250 | 355 | 251 | 78 | 37 | on request | on request |
+| Timber decking grating 26; Support battens 40; Sylomer bearing; s′ 3 12; Concrete slabs, 40 mm; crushed stone grit (grading 5/8) between, 39 kg/m2 50; EPDM roofing membrane, alwitra 2.5; Flat roof insulation board EPS 035 DAA (dyn. stiffness s′ = 30 MN/m3) 200; Pressure distribution board OSB 4 TOP (Egger) 22; Cross-laminated timber floor element LIGNO® Rippe-v with factory-finished timber soffit, with grit fill approx. 98 kg/m2 250 | 593 | 155 | 64 | 35 | on request | on request |
+| Gypsum fibreboard 20; Wood-fibre board 8; Screed honeycomb with fill; 90 kg/m2 60; NOVATOP element 240 | 328 | 151 | 59 | 60 | on request | on request |
+| Gypsum fibreboard 20; Wood-fibre board 40; Screed honeycomb with fill; 45 kg/m2 30; NOVATOP element with limestone grit fill, 40 kg/m2 240 | 330 | 161 | 62 | 54 | on request | on request |
+| Cement boards, 115 kg/m2 50; Mineral-fibre boards 40; NOVATOP element with limestone grit fill, 40 kg/m2 240 | 330 | 153 | 58 | 67 | on request | on request |
+| Oak parquet flooring 12; Steico Underfloor 5; Cement screed 50; Isover TDPT 20; Isover TDPT 30; Stralon 6; NOVATOP element with timber grid 180 mm and limestone grit fill 80 kg/m2 240 | 363 | 244 | 63 | 44 | on request | on request |
+
+\include{lineno} templates_timber_floor_8_build_ups.cpp
+
 <!-- assembly:begin -->
 ## Assembly Sequence {#timber_floor_assembly_sequence}
 
@@ -300,5 +610,16 @@ The beams, then the ribs and the boards or the panels in their order, what joins
 | ![tongue, 4 pieces](assembly/assembly_templates_timber_floor_3_joints_tongue.gif) tongue, 4 pieces |  |  |
 | **Timber and earth**, 409 elements, 69 moves | | |
 | ![arch, 18 pieces](assembly/assembly_templates_timber_floor_4_earth_arch.gif) arch, 18 pieces | ![flush, 18 pieces](assembly/assembly_templates_timber_floor_4_earth_flush.gif) flush, 18 pieces |  |
+| **Floors of the book**, 149 elements, 133 moves | | |
+| ![beams comb, 6 pieces](assembly/assembly_templates_timber_floor_5_systems_beams_comb.gif) beams comb, 6 pieces | ![boards dowelled, 18 pieces](assembly/assembly_templates_timber_floor_5_systems_boards_dowelled.gif) boards dowelled, 18 pieces | ![glulam elements, 31 pieces](assembly/assembly_templates_timber_floor_5_systems_glulam_elements.gif) glulam elements, 31 pieces |
+| ![joists clad, 11 pieces](assembly/assembly_templates_timber_floor_5_systems_joists_clad.gif) joists clad, 11 pieces |  |  |
+| **Producers**, 510 elements, 497 moves | | |
+| ![clt box closed, 11 pieces](assembly/assembly_templates_timber_floor_6_producers_clt_box_closed.gif) clt box closed, 11 pieces | ![kielsteg, 39 pieces](assembly/assembly_templates_timber_floor_6_producers_kielsteg.gif) kielsteg, 39 pieces | ![lignatur box, 24 pieces](assembly/assembly_templates_timber_floor_6_producers_lignatur_box.gif) lignatur box, 24 pieces |
+| ![lignatur silence, 75 pieces](assembly/assembly_templates_timber_floor_6_producers_lignatur_silence.gif) lignatur silence, 75 pieces | ![lignotrend rib, 92 pieces](assembly/assembly_templates_timber_floor_6_producers_lignotrend_rib.gif) lignotrend rib, 92 pieces | ![novatop element, 33 pieces](assembly/assembly_templates_timber_floor_6_producers_novatop_element.gif) novatop element, 33 pieces |
+| **Joints and concrete**, 141 elements, 127 moves | | |
+| ![concrete locks, 23 pieces](assembly/assembly_templates_timber_floor_7_shear_concrete_locks.gif) concrete locks, 23 pieces | ![concrete plates, 9 pieces](assembly/assembly_templates_timber_floor_7_shear_concrete_plates.gif) concrete plates, 9 pieces | ![concrete wave, 6 pieces](assembly/assembly_templates_timber_floor_7_shear_concrete_wave.gif) concrete wave, 6 pieces |
+| ![joint cover, 12 pieces](assembly/assembly_templates_timber_floor_7_shear_joint_cover.gif) joint cover, 12 pieces | ![joint keys, 12 pieces](assembly/assembly_templates_timber_floor_7_shear_joint_keys.gif) joint keys, 12 pieces |  |
+| **Ribs, voids, dowels**, 95 elements, 88 moves | | |
+| ![clt rib box, 6 pieces](assembly/assembly_templates_timber_floor_9_ribs_clt_rib_box.gif) clt rib box, 6 pieces | ![concrete ribs, 21 pieces](assembly/assembly_templates_timber_floor_9_ribs_concrete_ribs.gif) concrete ribs, 21 pieces |  |
 
 <!-- assembly:end -->
