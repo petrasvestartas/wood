@@ -189,18 +189,16 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = timber_floor ]; then
     "${RENDER[@]}" --aspect 1.5 --name open templates_timber_floor_4_earth arch_bearings+arch_beams+arch_earth
     "${RENDER[@]}" --view front --aspect 4 --name arch_section templates_timber_floor_4_earth arch_beams+arch_earth+arch_top
     "${RENDER[@]}" --view front --aspect 4 --name concealed_section templates_timber_floor_4_earth concealed_beams+concealed_earth+concealed_top
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_5_systems joists_partly_exposed joists_trimmed ribbed_above beams_comb boards_dowelled cross_laminated_5
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_6_producers clt_box_closed lignatur_surface lignatur_silence lignotrend_rib novatop_element kielsteg
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_5_systems joists ribbed_above box beams_comb boards_dowelled cross_laminated_5
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_6_producers clt_box_closed lignatur_surface lignotrend_rib novatop_element
     "${RENDER[@]}" --aspect 1.5 templates_timber_floor_9_ribs clt_rib_box lvl_rib_strips
     "${RENDER[@]}" --aspect 1.5 --name concrete_ribs_open templates_timber_floor_9_ribs concrete_ribs_timber+concrete_ribs_pins
     "${RENDER[@]}" templates_timber_floor_10_spans all
     "${RENDER[@]}" --view front --name section templates_timber_floor_10_spans baubuche_7+kerto_rib_7+kerto_box_7+clt_box_7
-    "${RENDER[@]}" --view front --name section_2 templates_timber_floor_10_spans lignatur_7+kielsteg_7+vmg_beam_7+vmg_joist_7
+    "${RENDER[@]}" --view front --name section_2 templates_timber_floor_10_spans lignatur_7+vmg_beam_7+vmg_joist_7
     "${RENDER[@]}" --aspect 1.5 templates_timber_floor_7_shear joint_cover joint_keys
     "${RENDER[@]}" --aspect 1.5 --name concrete_notched_open templates_timber_floor_7_shear concrete_notched_timber+concrete_notched_pins
-    "${RENDER[@]}" --aspect 1.5 --name concrete_wave_open templates_timber_floor_7_shear concrete_wave_timber
     "${RENDER[@]}" --aspect 1.5 --name concrete_crossed_open templates_timber_floor_7_shear concrete_crossed_timber+concrete_crossed_pins
-    "${RENDER[@]}" --aspect 1.5 --name concrete_plates_open templates_timber_floor_7_shear concrete_plates_timber
     "${RENDER[@]}" templates_timber_floor_8_build_ups all
 fi
 

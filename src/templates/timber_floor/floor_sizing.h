@@ -31,18 +31,6 @@ struct SizingLayer {
     double real = 0.0; // Width its weight counts with, 0 for the width.
 };
 
-/// A Kielsteg type, its stiffness read back from the producer's spans.
-struct KielstegType {
-    double depth = 0.0;
-    double chord_depth = 0.0;
-    double chord_width = 0.0;
-    double stiffness = 0.0; // MN m2 per metre of width.
-    double weight = 0.0; // kg/m2.
-
-    /// The sixteen types, the shallow first.
-    static const std::vector<KielstegType>& all();
-};
-
 // ═══════════════════════════════════════════════════════════════════════════
 // SizingRule
 // ═══════════════════════════════════════════════════════════════════════════
@@ -161,12 +149,6 @@ struct SizingRule {
 
     /// Novatop Element, a metre of it.
     SizingSection novatop_section(double depth) const;
-
-    /// Kielsteg floors: 6 or 8 Hz with three fifths of the imposed load in the mass.
-    static SizingRule kielsteg(double hertz = 8.0);
-
-    /// A metre of a Kielsteg type.
-    static SizingSection kielsteg_section(const KielstegType& type);
 
     /// Hasslacher ribs under cross-laminated 120: 8 Hz under the permanent load.
     static SizingRule clt_rib();

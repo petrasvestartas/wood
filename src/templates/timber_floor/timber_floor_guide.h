@@ -49,6 +49,10 @@ inline const std::array<std::array<FloorSize, 6>, 3> FLOOR_SIZES = {{
     }},
 }};
 
+/// All the layers on a structure together: 0.8 kN/m2 (dry boards, a fill) and 1.8 kN/m2 (screed, insulation, a fill).
+inline constexpr double LAYERS_LIGHT = 60.0;
+inline constexpr double LAYERS_HEAVY = 110.0;
+
 // ═══════════════════════════════════════════════════════════════════════════
 // TimberFloorGuide
 // ═══════════════════════════════════════════════════════════════════════════
@@ -75,12 +79,14 @@ struct TimberFloorGuide {
     double notch = 20.0; // Depth of the notches the concrete fills.
     size_t notches = 3; // Notches in each half of the span.
 
+    double layers = 0.0; // All the layers on the structure together, as one, 0 for none.
+
     size_t seat = 0; // Bearings: 0 on the beams, 1 in their rebates, 2 on battens glued to their faces.
     double beam_width = 160.0; // Width of the beams.
     double beam_depth = 280.0; // Depth of the beams below the floor.
     double seat_length = 60.0; // Length of the bearing in a rebate or on a batten.
 
-    /// Depth of the whole floor.
+    /// Depth of the structure.
     double depth() const {
         return bottom + rib_depth + top + panel + concrete;
     }
@@ -101,6 +107,7 @@ struct TimberFloorGuide {
         const FloorSize size = size_of(use, span, heavy);
         TimberFloorGuide guide;
         guide.span = span;
+        guide.layers = heavy ? LAYERS_HEAVY : LAYERS_LIGHT;
         guide.rib_width = size.joists.at(spacing)[0];
         guide.rib_depth = size.joists.at(spacing)[1];
         guide.rib_spacing = 500.0 + 100.0 * static_cast<double>(spacing);
@@ -125,6 +132,7 @@ struct TimberFloorGuide {
 
         TimberFloorGuide guide;
         guide.span = span;
+        guide.layers = heavy ? LAYERS_HEAVY : LAYERS_LIGHT;
         guide.panel = size_of(use, span, heavy).dowelled;
         guide.panel_width = 600.0;
         guide.lamella = 40.0;
@@ -138,6 +146,7 @@ struct TimberFloorGuide {
         const FloorSize size = size_of(use, span, heavy);
         TimberFloorGuide guide;
         guide.span = span;
+        guide.layers = heavy ? LAYERS_HEAVY : LAYERS_LIGHT;
         guide.panel = size.composite[0];
         guide.concrete = size.composite[1];
 
@@ -149,6 +158,7 @@ struct TimberFloorGuide {
 
         TimberFloorGuide guide;
         guide.span = span;
+        guide.layers = heavy ? LAYERS_HEAVY : LAYERS_LIGHT;
         guide.panel = size_of(use, span, heavy).hollow;
         guide.panel_width = 1200.0;
         guide.skin = 31.0;

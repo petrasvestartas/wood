@@ -30,7 +30,7 @@ std::vector<FloorBuildUp> FloorBuildUp::library(size_t table) {
         build_up.ghg = item["ghg"];
 
         for (const nlohmann::json& layer : item["layers"])
-            build_up.layers.push_back({layer["name"], layer["printed"], layer["kind"], layer["thickness"], layer["width"], layer["inside"]});
+            build_up.layers.push_back({layer["name"], layer["printed"], layer["kind"], layer["thickness"], layer["width"], layer["inside"], layer["bearing"]});
 
         if (table == 0 || build_up.table == table)
             found.push_back(build_up);
@@ -39,57 +39,66 @@ std::vector<FloorBuildUp> FloorBuildUp::library(size_t table) {
     return found;
 }
 
+std::vector<FloorLayer> FloorBuildUp::structure() const {
+
+    std::vector<FloorLayer> found;
+
+    for (const FloorLayer& layer : layers)
+        if (layer.bearing)
+            found.push_back(layer);
+
+    return found;
+}
+
+double FloorBuildUp::top() const {
+
+    double thickness = 0.0;
+
+    for (const FloorLayer& layer : layers) {
+        if (layer.bearing)
+            break;
+
+        thickness += layer.inside ? 0.0 : layer.thickness;
+    }
+
+    return thickness;
+}
+
+FloorBuildUp FloorBuildUp::find(size_t table, size_t number) {
+
+    for (const FloorBuildUp& build_up : library(table))
+        if (build_up.number == number)
+            return build_up;
+
+    throw std::invalid_argument("no such build-up in the tables");
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // FloorBuildUps
 // ═══════════════════════════════════════════════════════════════════════════
 FloorBuildUps::FloorBuildUps(const std::vector<FloorBuildUp>& build_ups, const std::string& name, size_t count)
     : WoodSession(name), build_ups(build_ups) {
 
-    // samples: in rows, a table in its own, each in its group
-    size_t row = 0;
-    size_t place = 0;
-
+    // samples: in rows, each in its group
     for (size_t k = 0; k < build_ups.size(); k++) {
-        if (k > 0 && (place == count || build_ups[k].table != build_ups[k - 1].table)) {
-            row++;
-            place = 0;
-        }
-
-        add_sample(
-            build_ups[k],
-            Plane(
-                Point(static_cast<double>(place) * (WIDTH + GAP) + WIDTH, static_cast<double>(row) * (LENGTH + GAP), 0.0),
-                Vector::y_axis(),
-                Vector::x_axis() * -1.0
-            )
-        );
-        place++;
+        const double across = static_cast<double>(k % count) * (WIDTH + GAP) + WIDTH;
+        const double along = static_cast<double>(k / count) * (LENGTH + GAP);
+        add_sample(build_ups[k], Plane(Point(across, along, 0.0), Vector::y_axis(), Vector::x_axis() * -1.0));
     }
 }
 
-FloorProduct FloorBuildUps::structure(const FloorLayer& layer, double length) const {
+FloorProduct FloorBuildUps::structure(const FloorLayer& layer) const {
 
     FloorProduct floor;
-    floor.span = length;
+    floor.span = LENGTH;
     floor.width = WIDTH;
     const double depth = layer.thickness;
 
-    // joists, ribs and battens: over the width at 600, battens at 500 across them
+    // joists and ribs: over the width at 600
     if (layer.kind == "joists" || layer.kind == "ribs") {
         for (size_t k = 0; k < 3; k++) {
             const double near = (WIDTH - layer.width) * 0.5 * static_cast<double>(k);
             floor.add_along(fmt::format("joist_{}", k), {{near, 0.0}, {near + layer.width, 0.0}, {near + layer.width, depth}, {near, depth}});
-        }
-
-        return floor;
-    }
-
-    if (layer.kind == "battens") {
-        const double width = layer.width > 0.0 ? layer.width : 50.0;
-
-        for (size_t k = 0; k < 3; k++) {
-            const double start = (length - width) * 0.5 * static_cast<double>(k);
-            floor.parts.push_back({fmt::format("batten_{}", k), {{start, 0.0}, {start + width, 0.0}, {start + width, depth}, {start, depth}}, 0.0, WIDTH, 1, {}});
         }
 
         return floor;
@@ -115,7 +124,7 @@ FloorProduct FloorBuildUps::structure(const FloorLayer& layer, double length) co
         const size_t webs = layer.kind == "box" ? 8 : 5;
         const bool closed = layer.kind != "spaced";
         const double top = closed ? depth - shell : depth;
-        floor.add_box("lower", {0.0, 0.0, 0.0}, {length, WIDTH, shell});
+        floor.add_box("lower", {0.0, 0.0, 0.0}, {LENGTH, WIDTH, shell});
 
         for (size_t k = 0; k < webs; k++) {
             const double near = (WIDTH - web) * static_cast<double>(k) / static_cast<double>(webs - 1);
@@ -123,13 +132,13 @@ FloorProduct FloorBuildUps::structure(const FloorLayer& layer, double length) co
         }
 
         if (closed)
-            floor.add_box("upper", {0.0, 0.0, top}, {length, WIDTH, depth});
+            floor.add_box("upper", {0.0, 0.0, top}, {LENGTH, WIDTH, depth});
 
         return floor;
     }
 
     // plates
-    floor.add_box("plate", {0.0, 0.0, 0.0}, {length, WIDTH, depth});
+    floor.add_box("plate", {0.0, 0.0, 0.0}, {LENGTH, WIDTH, depth});
 
     return floor;
 }
@@ -138,92 +147,23 @@ void FloorBuildUps::add_sample(const FloorBuildUp& build_up, const Plane& base) 
 
     const std::string sample = fmt::format("floor_{}_{}", build_up.table, build_up.number);
     const std::shared_ptr<TreeNode> group = group_named(sample);
-    const auto at = [&](double x, double z) {
-        return Plane(base.origin() + base.x_axis() * x + base.z_axis() * z, base.x_axis(), base.y_axis());
-    };
+    const std::vector<FloorLayer> bearing = build_up.structure();
 
-    // from the lowest layer up, each on the one under it and ending before it
+    // structure: from the lowest layer up, all that lies on it as one
     double level = 0.0;
-    size_t placed = 0;
-    std::vector<AssemblyModule> pieces;
 
-    for (size_t k = build_up.layers.size(); k-- > 0;) {
-        const FloorLayer& layer = build_up.layers[k];
+    for (size_t k = bearing.size(); k-- > 0;) {
+        FloorProduct floor = structure(bearing[k]);
 
-        if (layer.kind == "membrane" || layer.inside)
-            continue;
+        if (k == 0)
+            floor = floor.layered(build_up.top());
 
-        if (layer.kind == "cavity") {
-            level += layer.thickness;
-            continue;
-        }
-
-        const double start = STEP * static_cast<double>(placed);
-        const double length = LENGTH - start;
-        const std::string name = fmt::format("{}_{}", sample, k);
-
-        // skins: one under the ribs, one on them
-        const bool ribs = layer.kind == "ribs" && k > 0 && build_up.layers[k - 1].kind == "skins";
-        FloorProduct floor = structure(layer, length);
-
-        if (ribs) {
-            const double skin = build_up.layers[k - 1].thickness;
-            FloorProduct lower;
-            lower.span = length;
-            lower.width = WIDTH;
-            lower.add_box("lower", {0.0, 0.0, 0.0}, {length, WIDTH, skin});
-            add_floor_product(*this, name, lower, at(start, level), group);
-            level += skin;
-        }
-
-        add_floor_product(*this, name, floor, at(start, level), group);
-
-        // inside: what lies between the joists or the battens of this layer, listed after it, the last the lowest
-        size_t end = k + 1;
-
-        while (end < build_up.layers.size() && build_up.layers[end].inside)
-            end++;
-
-        // a lining between joists is a third up them
-        double between = level;
-
-        for (size_t j = k + 1; j < end; j++)
-            if (layer.kind == "joists" && build_up.layers[j].name == "Particleboard")
-                between = level + 0.3 * layer.thickness;
-
-        for (size_t j = end; j-- > k + 1;) {
-            const FloorLayer& fill = build_up.layers[j];
-            const bool joists = layer.kind == "joists" || layer.kind == "ribs";
-
-            if (!joists && layer.kind != "battens")
-                continue;
-
-            FloorProduct filling;
-            filling.span = length - STEP;
-            filling.width = WIDTH;
-            const double low = between - level;
-            const double high = low + fill.thickness;
-
-            for (size_t b = 0; b < 2; b++) {
-                const double field = joists ? WIDTH : length;
-                const double near = (field - layer.width) * 0.5 * static_cast<double>(b) + layer.width;
-                const double far = (field - layer.width) * 0.5 * static_cast<double>(b + 1);
-                const FloorSection section = {{near, low}, {far, low}, {far, high}, {near, high}};
-                const std::string part = fmt::format("fill_{}_{}", j, b);
-
-                if (joists)
-                    filling.add_along(part, section);
-                else
-                    filling.parts.push_back({part, section, STEP, WIDTH, 1, {}});
-            }
-
-            add_floor_product(*this, name, filling, at(start + (joists ? STEP : 0.0), level), group);
-            between += fill.thickness;
-        }
-
-        level += layer.thickness;
-        placed++;
+        const Plane place(base.origin() + base.z_axis() * level, base.x_axis(), base.y_axis());
+        add_floor_product(*this, fmt::format("{}_{}", sample, k), floor, place, group);
+        level += bearing[k].thickness;
     }
+
+    std::vector<AssemblyModule> pieces;
 
     for (const std::shared_ptr<Element>& piece : get_elements_under<Element>(sample))
         pieces.push_back(AssemblyModule::part(piece));

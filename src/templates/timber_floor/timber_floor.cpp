@@ -24,6 +24,9 @@ TimberFloor::TimberFloor(
 
     // joints: along every joint between two panels
     add_joints();
+
+    // layers: one for all that lies on the structure
+    add_layers();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -355,6 +358,27 @@ void TimberFloor::add_joints() {
     }
 }
 
+void TimberFloor::add_layers() {
+
+    if (guide.layers <= 0.0)
+        return;
+
+    const std::array<double, 2> ends = reach();
+    const double back = 600.0;
+    _session.add(
+        FacePlanarElement::from_rectangle(
+            local(ends[0] + back, 0.0, guide.depth()),
+            base.x_axis(),
+            base.y_axis(),
+            ends[1] - ends[0] - back,
+            guide.width,
+            guide.layers,
+            name + "_layers"
+        ),
+        _session.group_named(name + "_layers", _group)
+    );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Steps
 // ═══════════════════════════════════════════════════════════════════════════
@@ -400,7 +424,7 @@ AssemblyModule TimberFloor::assembly() const {
     std::vector<AssemblyModule> pieces;
 
     // members: the beams, the ribs and boards, the panels in their order, then what joins them
-    for (const std::string part : {"beams", "ribs", "boards", "panels", "joints"})
+    for (const std::string part : {"beams", "ribs", "boards", "panels", "joints", "layers"})
         for (const std::shared_ptr<Element>& member : _session.get_elements_under<Element>(fmt::format("{}_{}", name, part)))
             if (!std::dynamic_pointer_cast<JointElement>(member))
                 pieces.push_back(AssemblyModule::part(member));

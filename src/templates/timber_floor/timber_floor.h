@@ -39,6 +39,9 @@ private:
     /// Adds a panel of boards on edge and the dowels through them.
     void add_lamellas(size_t panel, double start);
 
+    /// Adds all the layers on the structure as one, set back from the floor's front.
+    void add_layers();
+
     /// Adds the strips, the cover boards or the keys along the joints between panels.
     void add_joints();
 

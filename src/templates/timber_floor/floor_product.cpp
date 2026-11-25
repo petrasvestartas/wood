@@ -7,6 +7,9 @@ namespace wood_timber_floor {
 /// Length of a sample along its span.
 static constexpr double SAMPLE = 1200.0;
 
+/// The layers on a structure start this far behind its front.
+static constexpr double SET_BACK = 400.0;
+
 /// A rectangle as a section.
 static FloorSection rectangle(double left, double low, double right, double high) {
     return {{left, low}, {right, low}, {right, high}, {left, high}};
@@ -48,6 +51,27 @@ FloorProduct FloorProduct::spanning(double length) const {
     return floor;
 }
 
+FloorProduct FloorProduct::layered(double layers) const {
+
+    FloorProduct floor = *this;
+
+    if (layers <= 0.0)
+        return floor;
+
+    double high = 0.0;
+
+    for (const FloorPart& part : parts)
+        if (part.run == 2)
+            high = std::max(high, part.end);
+        else
+            for (const std::array<double, 2>& corner : part.section)
+                high = std::max(high, corner[1]);
+
+    floor.add_box("layers", {SET_BACK, 0.0, high}, {span, width, high + layers});
+
+    return floor;
+}
+
 FloorPart& FloorProduct::add_along(const std::string& name, const FloorSection& section) {
 
     parts.push_back({name, section, 0.0, span, 0, {}});
@@ -65,71 +89,19 @@ FloorPart& FloorProduct::add_box(const std::string& name, const std::array<doubl
 // ═══════════════════════════════════════════════════════════════════════════
 // Joists, ribs and boxes
 // ═══════════════════════════════════════════════════════════════════════════
-FloorProduct FloorProduct::joists(size_t lining, double width, double depth, double spacing) {
+FloorProduct FloorProduct::joists(double width, double depth, double spacing) {
 
     FloorProduct floor;
     floor.span = SAMPLE;
     floor.width = 3.0 * spacing + width;
-    const double batten = 30.0;
-    const double board = 16.0;
-    const double foot = lining == 2 ? board + batten : 0.0;
-
-    // lining: boards on battens, between the joists a third up or under them
-    if (lining == 2) {
-        floor.add_box("lining", {0.0, 0.0, 0.0}, {floor.span, floor.width, board});
-
-        for (size_t k = 0; k < 5; k++) {
-            const double x = (floor.span - 60.0) * static_cast<double>(k) / 4.0;
-            floor.parts.push_back({fmt::format("batten_{}", k), rectangle(x, board, x + 60.0, foot), 0.0, floor.width, 1, {}});
-        }
-    }
 
     for (size_t k = 0; k < 4; k++) {
         const double near = spacing * static_cast<double>(k);
-        floor.add_along(fmt::format("joist_{}", k), rectangle(near, foot, near + width, foot + depth));
-    }
-
-    for (size_t k = 0; lining == 1 && k < 3; k++) {
-        const double near = spacing * static_cast<double>(k) + width;
-        const double far = near + spacing - width;
-        const double level = depth / 3.0;
-        floor.add_along(fmt::format("batten_{}_0", k), rectangle(near, level, near + 40.0, level + 40.0));
-        floor.add_along(fmt::format("batten_{}_1", k), rectangle(far - 40.0, level, far, level + 40.0));
-        floor.add_along(fmt::format("lining_{}", k), rectangle(near, level + 40.0, far, level + 40.0 + board));
+        floor.add_along(fmt::format("joist_{}", k), rectangle(near, 0.0, near + width, depth));
     }
 
     // boards: along the joists' tops
-    floor.add_box("boards", {0.0, 0.0, foot + depth}, {floor.span, floor.width, foot + depth + 21.0});
-
-    return floor;
-}
-
-FloorProduct FloorProduct::trimmed(double width, double depth, double spacing) {
-
-    FloorProduct floor;
-    floor.span = 4000.0;
-    floor.width = 6.0 * spacing + width;
-    const double start = 1200.0;
-    const double end = 3000.0;
-
-    // joists: whole at both sides, those of the opening stopped by the trimmers, the two beside it doubled
-    for (size_t k = 0; k < 7; k++) {
-        const double near = spacing * static_cast<double>(k);
-        const bool stopped = k == 3;
-
-        if (!stopped) {
-            floor.add_along(fmt::format("joist_{}", k), rectangle(near, 0.0, near + width, depth));
-            continue;
-        }
-
-        floor.add_box(fmt::format("joist_{}_0", k), {0.0, near, 0.0}, {start - width, near + width, depth});
-        floor.add_box(fmt::format("joist_{}_1", k), {end + width, near, 0.0}, {floor.span, near + width, depth});
-    }
-
-    const double left = 2.0 * spacing + width;
-    const double right = 4.0 * spacing;
-    floor.parts.push_back({"trimmer_0", rectangle(start - width, 0.0, start, depth), left, right, 1, {}});
-    floor.parts.push_back({"trimmer_1", rectangle(end, 0.0, end + width, depth), left, right, 1, {}});
+    floor.add_box("boards", {0.0, 0.0, depth}, {floor.span, floor.width, depth + 21.0});
 
     return floor;
 }
@@ -351,7 +323,7 @@ FloorProduct FloorProduct::lignatur_box(double depth) {
     return floor;
 }
 
-FloorProduct FloorProduct::lignatur_surface(double depth, size_t kind) {
+FloorProduct FloorProduct::lignatur_surface(double depth) {
 
     FloorProduct floor;
     floor.span = SAMPLE;
@@ -381,23 +353,13 @@ FloorProduct FloorProduct::lignatur_surface(double depth, size_t kind) {
             floor.add_along(fmt::format("web_{}_{}", e, k), section);
         }
 
-        // boards: between the webs, below, and above unless the top is open; an absorber or blocks on the lower ones
+        // boards: between the webs, below and above
         for (size_t k = 0; k < 4; k++) {
             const double left = near + pitch * static_cast<double>(k) + web;
             const double right = near + pitch * static_cast<double>(k + 1);
             floor.add_along(fmt::format("lower_{}_{}", e, k), rectangle(left, 0.0, right, board));
 
-            if (kind == 1)
-                for (size_t block = 0; block < 2; block++) {
-                    const double x = 100.0 + 600.0 * static_cast<double>(block);
-                    floor.add_box(fmt::format("block_{}_{}_{}", e, k, block), {x, left + 45.0, board + 12.0}, {x + 400.0, right - 45.0, board + 72.0});
-                    floor.add_box(fmt::format("pad_{}_{}_{}", e, k, block), {x, left + 45.0, board}, {x + 400.0, right - 45.0, board + 12.0});
-                }
-
-            if (kind == 2)
-                floor.add_along(fmt::format("absorber_{}_{}", e, k), rectangle(left, board, right, board + 40.0));
-            else
-                floor.add_along(fmt::format("upper_{}_{}", e, k), rectangle(left, depth - board, right, depth));
+            floor.add_along(fmt::format("upper_{}_{}", e, k), rectangle(left, depth - board, right, depth));
         }
     }
 
@@ -513,54 +475,6 @@ FloorProduct FloorProduct::lignotrend_block(double depth) {
     }
 
     floor.add_box("splice", {0.0, cover - 47.5, depth - 25.0}, {floor.span, cover + 47.5, depth + 1.5});
-
-    return floor;
-}
-
-FloorProduct FloorProduct::kielsteg(double depth, double chord_depth, double chord_width, double web) {
-
-    FloorProduct floor;
-    floor.span = SAMPLE;
-    const double pitch = chord_width + 2.0 * web;
-    const size_t count = 10;
-    floor.width = pitch * static_cast<double>(count);
-    const double low = chord_depth;
-    const double high = depth - chord_depth;
-    const size_t sides = 16;
-
-    // chords: timbers side by side, the lower row half a pitch on
-    for (size_t k = 0; k < count; k++) {
-        const double near = pitch * static_cast<double>(k);
-        floor.add_along(fmt::format("upper_{}", k), rectangle(near + web, high, near + pitch - web, depth));
-
-        if (k > 0)
-            floor.add_along(fmt::format("lower_{}", k), rectangle(near - 0.5 * pitch + web, 0.0, near + 0.5 * pitch - web, chord_depth));
-    }
-
-    // webs: from a joint above to the joints beside it below, upright in both and an s between them
-    for (size_t k = 0; k <= count; k++)
-        for (const double way : {-1.0, 1.0}) {
-            if ((k == 0 && way < 0.0) || (k == count && way > 0.0))
-                continue;
-
-            const double top = pitch * static_cast<double>(k) + (way < 0.0 ? -web : 0.0);
-            const double shift = way * (0.5 * pitch - web);
-            FloorSection left = {{top, depth}};
-            FloorSection right = {{top + web, depth}};
-
-            for (size_t s = 0; s <= sides; s++) {
-                const double t = static_cast<double>(s) / static_cast<double>(sides);
-                const double x = top + shift * t * t * (3.0 - 2.0 * t);
-                left.push_back({x, high + (low - high) * t});
-                right.push_back({x + web, high + (low - high) * t});
-            }
-
-            left.push_back({top + shift, 0.0});
-            right.push_back({top + shift + web, 0.0});
-            FloorSection section = left;
-            section.insert(section.end(), right.rbegin(), right.rend());
-            floor.add_along(fmt::format("web_{}_{}", k, way < 0.0 ? 0 : 1), section);
-        }
 
     return floor;
 }
@@ -689,17 +603,6 @@ FloorProduct FloorProduct::clt_box_spanning(double span, double g, double q) {
         for (const double rib : {80.0, 100.0, 120.0})
             if (rule.span(rule.clt_box_section(depth, rib, span), 1200.0, g, q) >= span)
                 return clt_box(0, depth, rib).spanning(span);
-
-    throw std::invalid_argument("no element spans that far");
-}
-
-FloorProduct FloorProduct::kielsteg_spanning(double span, double q) {
-
-    const SizingRule rule = SizingRule::kielsteg();
-
-    for (const KielstegType& type : KielstegType::all())
-        if (rule.span(SizingRule::kielsteg_section(type), 1000.0, 0.0, q) >= span)
-            return kielsteg(type.depth, type.chord_depth, type.chord_width, type.depth < 400.0 ? 4.0 : 8.0).spanning(span);
 
     throw std::invalid_argument("no element spans that far");
 }
@@ -1120,37 +1023,6 @@ FloorProduct FloorProduct::composite_lugs() {
     return floor;
 }
 
-FloorProduct FloorProduct::composite_wave() {
-
-    FloorProduct floor;
-    floor.span = 2.0 * SAMPLE;
-    floor.width = 1200.0;
-    const double depth = 90.0;
-    const double concrete = 100.0;
-    floor.add_box("panel", {0.0, 0.0, 0.0}, {floor.span, floor.width, depth});
-
-    // waves: recesses of one width along a curve across the floor, the concrete in them
-    for (size_t w = 0; w < 4; w++) {
-        FloorSection near;
-        FloorSection far;
-
-        for (size_t k = 0; k <= 24; k++) {
-            const double y = floor.width * static_cast<double>(k) / 24.0;
-            const double x = 300.0 + 600.0 * static_cast<double>(w) + 60.0 * std::sin(Tolerance::TWO_PI * y / 600.0);
-            near.push_back({x - 40.0, y});
-            far.push_back({x + 40.0, y});
-        }
-
-        FloorSection wave = near;
-        wave.insert(wave.end(), far.rbegin(), far.rend());
-        floor.parts.push_back({fmt::format("wave_{}", w), wave, depth - 25.0, depth, 2, {"panel"}});
-    }
-
-    floor.add_box("concrete", {0.0, 0.0, depth}, {floor.span, floor.width, depth + concrete});
-
-    return floor;
-}
-
 FloorProduct FloorProduct::composite_crossed() {
 
     FloorProduct floor;
@@ -1229,27 +1101,6 @@ FloorProduct FloorProduct::composite_bars() {
     return floor;
 }
 
-FloorProduct FloorProduct::composite_plates() {
-
-    FloorProduct floor = cross_laminated({40.0, 30.0, 40.0, 30.0, 40.0});
-    const double depth = 180.0;
-    std::vector<std::string> layers;
-
-    for (const FloorPart& part : floor.parts)
-        layers.push_back(part.name);
-
-    // plates: on edge along the span, half in the timber and half in the concrete
-    for (size_t k = 0; k < 3; k++) {
-        const double y = 300.0 + 600.0 * static_cast<double>(k);
-        FloorPart& plate = floor.add_box(fmt::format("plate_{}", k), {0.0, y - 1.25, depth - 45.0}, {floor.span, y + 1.25, depth + 45.0});
-        plate.pockets = {layers[3], layers[4], "concrete"};
-    }
-
-    floor.add_box("concrete", {0.0, 0.0, depth}, {floor.span, floor.width, depth + 100.0});
-
-    return floor;
-}
-
 FloorProduct FloorProduct::composite_glued() {
 
     FloorProduct floor = cross_laminated({40.0, 30.0, 40.0, 30.0, 40.0});
@@ -1302,12 +1153,12 @@ void add_floor_product(
         return base.origin() + base.x_axis() * x + base.y_axis() * y + base.z_axis() * z;
     };
 
-    // parts: each drawn at its start and swept along its run, concrete in a group of its own
+    // parts: each drawn at its start and swept along its run, concrete and layers in groups of their own
     const std::shared_ptr<TreeNode> timber = session.group_named(name + "_timber", group);
 
     for (const FloorPart& part : product.parts) {
-        const std::shared_ptr<TreeNode> place =
-            part.name == "concrete" ? session.group_named(name + "_concrete", group) : timber;
+        const bool over = part.name == "concrete" || part.name == "layers";
+        const std::shared_ptr<TreeNode> place = over ? session.group_named(fmt::format("{}_{}", name, part.name), group) : timber;
         std::vector<Point> loop;
 
         for (const std::array<double, 2>& at : part.section)
@@ -1361,9 +1212,9 @@ void add_floor_product(
 }
 
 FloorProducts::FloorProducts(
-    const std::vector<std::pair<std::string, FloorProduct>>& products, const std::string& name, size_t count
+    const std::vector<std::pair<std::string, FloorProduct>>& products, const std::string& name, size_t count, double layers
 )
-    : WoodSession(name), products(products) {
+    : WoodSession(name), products(products), layers(layers) {
 
     // products: in rows, each in its group
     double along = 0.0;
@@ -1379,7 +1230,7 @@ FloorProducts::FloorProducts(
 
         across += products[k].second.width;
         const Plane base(Point(across, along, 0.0), Vector::y_axis(), Vector::x_axis() * -1.0);
-        add_product(products[k].first, products[k].second, base);
+        add_product(products[k].first, products[k].second.layered(layers), base);
         across += GAP;
         deepest = std::max(deepest, products[k].second.span);
     }

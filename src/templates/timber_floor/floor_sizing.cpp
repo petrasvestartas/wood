@@ -456,51 +456,6 @@ SizingSection SizingRule::novatop_section(double depth) const {
     return section;
 }
 
-SizingRule SizingRule::kielsteg(double hertz) {
-
-    SizingRule rule;
-    rule.name = "Kielsteg";
-    rule.frequency = hertz;
-    rule.mass_imposed = 0.6;
-
-    return rule;
-}
-
-const std::vector<KielstegType>& KielstegType::all() {
-
-    static const std::vector<KielstegType> types = {
-        {280.0, 35.0, 102.0, 11.3, 42.9},
-        {280.0, 40.0, 102.0, 12.3, 46.7},
-        {330.0, 40.0, 93.0, 18.7, 51.4},
-        {330.0, 50.0, 93.0, 21.1, 58.9},
-        {370.0, 40.0, 85.0, 24.9, 55.9},
-        {370.0, 60.0, 85.0, 31.2, 70.7},
-        {485.0, 40.0, 96.0, 40.5, 77.6},
-        {485.0, 50.0, 87.0, 47.1, 89.1},
-        {560.0, 50.0, 107.0, 65.0, 87.1},
-        {560.0, 60.0, 107.0, 73.4, 94.2},
-        {610.0, 50.0, 103.0, 79.5, 104.4},
-        {610.0, 60.0, 103.0, 90.2, 111.2},
-        {730.0, 70.0, 117.0, 149.4, 123.7},
-        {730.0, 80.0, 134.0, 162.1, 122.4},
-        {800.0, 70.0, 113.0, 185.9, 145.6},
-        {800.0, 80.0, 113.0, 201.9, 152.3},
-    };
-
-    return types;
-}
-
-SizingSection SizingRule::kielsteg_section(const KielstegType& type) {
-
-    SizingSection section;
-    section.width = 1000.0;
-    section.depth = type.depth;
-    section.stiffness = type.stiffness * 1e12;
-    section.weight = type.weight * 9.81e-3;
-
-    return section;
-}
-
 SizingRule SizingRule::clt_rib() {
 
     SizingRule rule;

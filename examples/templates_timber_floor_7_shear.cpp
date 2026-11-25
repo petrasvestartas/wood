@@ -18,11 +18,9 @@ int main() {
         {"concrete_micro", FloorProduct::composite_micro()},
         {"concrete_notched", FloorProduct::composite_notched()},
         {"concrete_lugs", FloorProduct::composite_lugs()},
-        {"concrete_wave", FloorProduct::composite_wave()},
         {"concrete_crossed", FloorProduct::composite_crossed()},
         {"concrete_locks", FloorProduct::composite_locks()},
         {"concrete_bars", FloorProduct::composite_bars()},
-        {"concrete_plates", FloorProduct::composite_plates()},
         {"concrete_glued", FloorProduct::composite_glued()},
     }, "timber_floor_shear");
     std::cout << floors << std::endl;
@@ -32,7 +30,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 7 of the timber floors: the joints between two cross-laminated panels, a cover board and a strip, grout, wedge keys and steel shear blocks, and ten ways to hold concrete to a timber floor: boards of two depths, small notches, deep notches with pins, lugs in pockets of the joists, a wave-shaped recess in veneer lumber, crossed pins, flat steel locks, V-shaped bars, perforated plates on edge, and glue alone.
+Step 7 of the timber floors: the joints between two cross-laminated panels, a cover board and a strip, grout, wedge keys and steel shear blocks, and eight ways to hold concrete to a timber floor: boards of two depths, small notches, deep notches with pins, lugs in pockets of the joists, crossed pins, flat steel locks, V-shaped bars, and glue alone.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

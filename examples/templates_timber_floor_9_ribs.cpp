@@ -1,5 +1,6 @@
 #include "wood_session.h"
 #include "src/templates/timber_floor/floor_product.h"
+#include "src/templates/timber_floor/timber_floor_guide.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -16,7 +17,7 @@ int main() {
         {"lvl_rib_strips", FloorProduct::lvl_rib(true)},
         {"dowelled_layers", FloorProduct::dowelled_layers()},
         {"concrete_ribs", FloorProduct::composite_ribs()},
-    }, "timber_floor_ribs");
+    }, "timber_floor_ribs", 4, LAYERS_HEAVY);
     std::cout << floors << std::endl;
     floors.pb_dump(pb_path("live"));
     return 0;

@@ -5,18 +5,30 @@ using namespace session_cpp;
 using namespace wood_session;
 using namespace wood_timber_floor;
 
-/// Every floor build-up of the book's tables, 62 samples, a table a row of at most eight, their layers cut back one after the other.
+/// Structures of the book's tables and all the layers on each as one, as thick as the tables have them.
 int main() {
 
-    FloorBuildUps floors(FloorBuildUp::library(), "timber_floor_build_ups", 8);
-    std::cout << floors.build_ups.size() << " build-ups" << std::endl;
+    std::vector<FloorBuildUp> build_ups;
+
+    for (const std::array<size_t, 2>& place : std::vector<std::array<size_t, 2>>{
+             {12, 1}, {12, 2}, {13, 4}, {24, 6},
+             {24, 1}, {24, 4}, {24, 10}, {23, 1},
+             {18, 1}, {22, 1}, {19, 4}, {22, 2},
+         })
+        build_ups.push_back(FloorBuildUp::find(place[0], place[1]));
+
+    FloorBuildUps floors(build_ups);
+
+    for (const FloorBuildUp& build_up : build_ups)
+        std::cout << fmt::format("{} {}: {} on {}", build_up.table, build_up.number, build_up.top(), build_up.structure().front().name) << std::endl;
+
     floors.pb_dump(pb_path("live"));
     return 0;
 }
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 8 of the timber floors: the 62 build-ups of tables 11 to 24 of the floor chapter, data/timber_floors/build_ups.json, each a sample 1400 x 1340 of its layers as printed, every layer ending 90 before the one under it: structural floors alone, joist floors exposed, partly exposed, clad and ballasted, solid floors with their insulation, boards, screeds, linings and fills, timber and concrete, and the systems of Lignatur, Lignotrend and Novatop. Membranes have no thickness and are not drawn.
+Step 8 of the timber floors: twelve structures of tables 12 to 24 of the floor chapter, data/timber_floors/build_ups.json, samples 1200 x 1340, all the layers on each as one layer as thick as they are together: joists under 88 of dry layers, 75 of screed and insulation and 110 of screed and fill, ribs on a cross-laminated plate under 105; box elements under 58 and 160, a grid under 88, boards on edge and concrete under 120; planks under 35 and 95, boards on edge under 80 and 120.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

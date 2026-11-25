@@ -22,12 +22,14 @@ int main() {
     planks.panel = 180.0;
     planks.panel_width = 200.0;
     planks.edge = 1;
+    planks.layers = LAYERS_HEAVY;
 
     TimberFloorGuide cross_laminated;
     cross_laminated.span = span;
     cross_laminated.panel = 180.0;
     cross_laminated.panel_width = 1200.0;
     cross_laminated.edge = 3;
+    cross_laminated.layers = LAYERS_HEAVY;
 
     TimberFloors floors({
         {"joists", TimberFloorGuide::joists(homes, span, heavy)},
@@ -46,7 +48,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the timber floors: one bay of every floor system over 5000, 2400 wide, for a home (2 kN/m2) under a heavy build-up (1.8 kN/m2), sized by the table where it has the system. joists: 160 x 280 at 600 under a 27 board. ribbed: 100 x 240 ribs at 500 under a glued 27 board. box: 80 x 180 ribs at 500 between two 27 boards. hollow: 200 deep box panels 1200 wide of 31 shells and webs. planks: glulam planks 180 x 200, tongue in groove. dowelled: 180 panels 600 wide of 40 boards on edge, 20 dowels through them. cross_laminated: 180 panels 1200 wide, a 27 x 160 board in their rebates over the joint. composite: 100 timber notched into 80 concrete.
+Step 1 of the timber floors: one bay of every floor system over 5000, 2400 wide, for a home (2 kN/m2) under a heavy build-up (1.8 kN/m2), sized by the table where it has the system, all the layers on it as one of 110. joists: 160 x 280 at 600 under a 27 board. ribbed: 100 x 240 ribs at 500 under a glued 27 board. box: 80 x 180 ribs at 500 between two 27 boards. hollow: 200 deep box panels 1200 wide of 31 shells and webs. planks: glulam planks 180 x 200, tongue in groove. dowelled: 180 panels 600 wide of 40 boards on edge, 20 dowels through them. cross_laminated: 180 panels 1200 wide, a 27 x 160 board in their rebates over the joint. composite: 100 timber notched into 80 concrete.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -49,11 +49,8 @@ struct FloorProduct {
     // Joists, ribs and boxes
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Joists under boards; lining 0 none, 1 boards between the joists on battens, 2 battens and boards under them.
-    static FloorProduct joists(size_t lining = 0, double width = 140.0, double depth = 200.0, double spacing = 600.0);
-
-    /// Joists trimmed round an opening.
-    static FloorProduct trimmed(double width = 140.0, double depth = 200.0, double spacing = 600.0);
+    /// Joists under boards.
+    static FloorProduct joists(double width = 140.0, double depth = 200.0, double spacing = 600.0);
 
     /// Ribs glued to one panel, over them or under them.
     static FloorProduct ribbed(bool below = false, double width = 80.0, double depth = 220.0, double spacing = 625.0, double panel = 27.0);
@@ -76,17 +73,14 @@ struct FloorProduct {
     /// Lignatur box element LKE: a hollow box per 200, tongue in groove.
     static FloorProduct lignatur_box(double depth = 200.0);
 
-    /// Lignatur surface element LFE: four cells per 1000; kind 1 with blocks on pads in the cells, 2 open above with an absorber (the shell LSE).
-    static FloorProduct lignatur_surface(double depth = 200.0, size_t kind = 0);
+    /// Lignatur surface element LFE: four cells per 1000.
+    static FloorProduct lignatur_surface(double depth = 200.0);
 
     /// Lignotrend Rippe Q3: ribs of boards lying on each other, crossed now and then, on a closed layer.
     static FloorProduct lignotrend_rib(double depth = 190.0);
 
     /// Lignotrend Block Q3: a closed box of the same boards.
     static FloorProduct lignotrend_block(double depth = 190.0);
-
-    /// Kielsteg: timbers side by side above and below, webs bent between them.
-    static FloorProduct kielsteg(double depth = 280.0, double chord_depth = 40.0, double chord_width = 102.0, double web = 4.0);
 
     /// Stora Enso LVL rib: veneer lumber ribs 51 every 735 under a panel 27, a strip 300 x 36 under each when semi-open.
     static FloorProduct lvl_rib(bool strips, double depth = 357.0);
@@ -110,9 +104,6 @@ struct FloorProduct {
 
     /// Schneider CLT BOX, the least depth and then the least rib.
     static FloorProduct clt_box_spanning(double span, double g = 2.5, double q = 3.0);
-
-    /// The lightest Kielsteg that stays over 8 Hz.
-    static FloorProduct kielsteg_spanning(double span, double q = 4.5);
 
     /// VMG Lignum beams of a grade every metre under boards 25, the lightest of the stock.
     static FloorProduct vmg_beams(double span, size_t grade = 48, double g = 1.0, double q = 2.0);
@@ -161,9 +152,6 @@ struct FloorProduct {
     /// Joists with pockets for the lugs of a precast slab.
     static FloorProduct composite_lugs();
 
-    /// Veneer lumber with a wave-shaped recess.
-    static FloorProduct composite_wave();
-
     /// Joists and boards with crossed pins.
     static FloorProduct composite_crossed();
 
@@ -173,14 +161,14 @@ struct FloorProduct {
     /// Joists with bars let in along them.
     static FloorProduct composite_bars();
 
-    /// Cross-laminated timber with perforated plates glued in along the span.
-    static FloorProduct composite_plates();
-
     /// Cross-laminated timber with concrete glued on.
     static FloorProduct composite_glued();
 
     /// Cree, ZECH: glulam ribs 240 x 280, paired in the middle, under concrete 100 let into their notches.
     static FloorProduct composite_ribs();
+
+    /// The floor with all the layers on it as one, set back from the front, 0 for none.
+    FloorProduct layered(double layers) const;
 
     /// The floor with its parts along the whole span as long as a new one.
     FloorProduct spanning(double length) const;
@@ -202,12 +190,14 @@ public:
     static constexpr double GAP = 900.0; // Between two products.
 
     const std::vector<std::pair<std::string, FloorProduct>> products; // Every product's name and pieces.
+    const double layers; // All the layers on every product together, as one.
 
     /// Every product as the session named name, in rows of count.
     explicit FloorProducts(
         const std::vector<std::pair<std::string, FloorProduct>>& products,
         const std::string& name = "floor_products",
-        size_t count = 4
+        size_t count = 4,
+        double layers = 0.0
     );
 
 private:
