@@ -11,7 +11,6 @@ html {
     --wood-mark: #99cbbb; /* light green: the tab under the pointer */
     --wood-green: #007c55; /* Blumer Lehmann's green, from their logo: links, what is current, fills, what pops out */
     --wood-accent: var(--wood-green);
-    --wood-title: var(--wood-green); /* the marked word of the title */
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;
     --wood-sunken: #f5f6f6;
@@ -299,7 +298,13 @@ div.header .title .wood-icon {
     border-color: var(--wood-mark);
 }
 
+/* the field says Search: no magnifier, no filter under it */
+#MSearchSelect, #MSearchSelectExt {
+    display: none !important;
+}
+
 #MSearchField {
+    margin-left: 14px;
     width: calc(var(--searchbar-width) - 70px);
     color: var(--wood-bar-fg);
     font-size: 15px;
@@ -1161,10 +1166,6 @@ div.contents:has(.wood-hero) {
     line-height: 1.02;
     letter-spacing: -.035em;
     text-wrap: balance;
-}
-
-.wood-hero-title .wood-mark {
-    color: var(--wood-title);
 }
 
 .wood-hero-links {
