@@ -7,11 +7,11 @@
 
 html {
     --wood-ink: #16181a; /* the frame of what pops out under the pointer */
-    --wood-pop: #7fa973; /* and what it leaves below */
-    --wood-mark: #cfdfc6; /* light green: the tab under the pointer */
-    --wood-green: #7fa973; /* Blumer Lehmann's may green: fills, rules, what pops out */
-    --wood-accent: #527f3f; /* the same hue dark enough to read: links and what is current */
-    --wood-title: #7fa973; /* the marked word of the title */
+    --wood-pop: var(--wood-green); /* and what it leaves below */
+    --wood-mark: #99cbbb; /* light green: the tab under the pointer */
+    --wood-green: #007c55; /* Blumer Lehmann's green, from their logo: links, what is current, fills, what pops out */
+    --wood-accent: var(--wood-green);
+    --wood-title: var(--wood-green); /* the marked word of the title */
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;
     --wood-sunken: #f5f6f6;
@@ -21,7 +21,7 @@ html {
     --wood-line: #dadad6;
     --wood-code-bg: #f5f6f6;
     --wood-code-fg: #26292b;
-    --wood-hl-keyword: #527f3f;
+    --wood-hl-keyword: var(--wood-green);
     --wood-hl-string: #6b6b2c;
     --wood-hl-function: #16181a;
     --wood-hl-special: #6b6b2c;
@@ -97,8 +97,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --fragment-linenumber-color: var(--wood-fg-lighter);
     --fragment-linenumber-background: var(--wood-code-bg);
     --fragment-linenumber-border: transparent;
-    --note-color: rgba(127, 169, 115, .16);
-    --note-color-dark: #527f3f;
+    --note-color: rgba(0, 124, 85, .1);
+    --note-color-dark: #007c55;
     --note-color-darker: var(--wood-fg);
     --warning-color: rgba(217, 148, 15, .14);
     --warning-color-dark: #d9940f;
@@ -106,8 +106,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --bug-color: rgba(196, 59, 59, .12);
     --bug-color-dark: #c43b3b;
     --bug-color-darker: var(--wood-fg);
-    --todo-color: rgba(127, 169, 115, .16);
-    --todo-color-dark: #527f3f;
+    --todo-color: rgba(0, 124, 85, .1);
+    --todo-color-dark: #007c55;
     --todo-color-darker: var(--wood-fg);
     --deprecated-color: rgba(152, 161, 167, .16);
     --deprecated-color-dark: #98a1a7;
@@ -1189,7 +1189,7 @@ a.wood-button, a.wood-button:visited {
 a.wood-button.main, a.wood-button.main:visited {
     border-color: var(--wood-green);
     background: var(--wood-green);
-    color: var(--wood-fg) !important;
+    color: #ffffff !important;
 }
 
 a.wood-button:hover {
