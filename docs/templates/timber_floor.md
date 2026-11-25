@@ -45,6 +45,10 @@ One bay of every timber floor system on two beams, sized for a use, a span and a
     <img src="templates_timber_floor_3_joints_all.webp" alt="Joints">
     <span class="wood-card-title">Joints</span>
   </a>
+  <a class="wood-card" href="#timber_floor_earth">
+    <img src="templates_timber_floor_4_earth_arch.webp" alt="Timber and Earth">
+    <span class="wood-card-title">Timber and Earth</span>
+  </a>
   <a class="wood-card" href="#timber_floor_assembly_sequence">
     <img src="assembly_templates_timber_floor_1_systems_ribbed.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
@@ -217,10 +221,71 @@ Along the joint of two panels: a tongue in a groove, a strip in two grooves, a b
 
 \include{lineno} templates_timber_floor_3_joints.cpp
 
+---
+
+## Timber and Earth {#timber_floor_earth}
+
+The prefabricated floor of [Rematter](https://www.rematter.earth): solid beams without glue, earth rammed between them by robots, a three-layer panel pinned on both (`earth_floor.h`). The beams are wider at the foot, so the earth rests on their flanks; it weighs the floor down against sound, keeps the fire from the timber and stores heat. Everything is dry and comes apart.
+
+| arch | straight |
+| --- | --- |
+| ![](templates/templates_timber_floor_4_earth_arch_section.webp) | ![](templates/templates_timber_floor_4_earth_straight_section.webp) |
+| **flush** | **concealed** |
+| ![](templates/templates_timber_floor_4_earth_flush_section.webp) | ![](templates/templates_timber_floor_4_earth_concealed_section.webp) |
+
+| the element | without its panel |
+| --- | --- |
+| ![](templates/templates_timber_floor_4_earth_arch.webp) | ![](templates/templates_timber_floor_4_earth_open.webp) |
+
+```cpp
+EarthFloors floors({
+    {"arch", EarthFloorGuide::arch()},
+    {"straight", EarthFloorGuide::straight()},
+    {"flush", EarthFloorGuide::flush()},
+    {"concealed", EarthFloorGuide::concealed()},
+});
+```
+
+### Earth floor parameters {#timber_floor_earth_parameters}
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `length`, `width`, `pitch` | `4200.0`, `2100.0`, `700.0` | The element, and from beam to beam; `500` clear |
+| `depth`, `panel` | `200.0`, `27.0` | Beams and panel, `227` in all |
+| `half_top`, `half_bottom`, `flank` | `75.0`, `100.0`, `120.0` | Half a beam at its top and foot, the height it widens over |
+| `rise`, `chords` | `18.0`, `24` | The arch under the earth and its sides |
+| `lining` | `0.0` | Board that hides the earth |
+| `pin_spacing` | `300.0` | Pins of the panel along every half beam |
+| `ties` | `0` | Rods across all beams that press the earth, as the patent has them |
+| `bearing_width`, `bearing_depth` | `160.0`, `280.0` | The two beams under the element |
+
+### What it carries {#timber_floor_earth_values}
+
+| | Value |
+| --- | --- |
+| Load | to 5 kN/m², build-up to 0.75 kN/m² |
+| Fire | REI 60, REI 90 on request |
+| Sound | R'w 50 dB bare; with the build-up Ln,w 42 dB |
+| Heat stored | 235 kJ/m²K |
+| Greenhouse gas, grey energy | 0.27 kg CO2-eq, 1.16 kWh per m² and year |
+| Build-up | 40 soft fibreboard, oil paper, 30 granulate or sand, 20 floorboards |
+| Earth in the patent | 50 to 200 deep, rammed at 1 to 9 N/mm², the element upside down |
+
+| Element | Depth mm | Earth depth mm | Earth m³/m² | Timber m³/m² | Weight kg/m² |
+| --- | --- | --- | --- | --- | --- |
+| `arch` | 227 | 120 at the beams, 102 at the crown | 0.081 | 0.080 | 199 |
+| `straight` | 227 | 120 | 0.090 | 0.080 | 216 |
+| `flush` | 227 | 200 | 0.139 | 0.088 | 318 |
+| `concealed` | 247 | 200 | 0.139 | 0.108 | 327 |
+
+Element sizes, `227` and the values: Rematter, [factsheet](https://www.rematter.earth/user/data/flex-objects/documents/8859462c7d5425fbaf729ef8c0f285c4/RematterAG_FactsheetDE_EN_2603.pdf), 2026; the earth: [EP4015730B1](https://patents.google.com/patent/EP4015730B1). The beams' and the earth's widths are measured off the factsheet's drawing of the four elements; the last three columns are computed from the model, with 2000 kg/m³ of earth and 450 of timber. Spans and beams are Rematter's engineers' to size.
+
+\include{lineno} templates_timber_floor_4_earth.cpp
+
 <!-- assembly:begin -->
 ## Assembly Sequence {#timber_floor_assembly_sequence}
 
-The beams, then the ribs and the boards or the panels in their order, what joins them last; a dowel-laminated panel's boards one by one. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+The beams, then the ribs and the boards or the panels in their order, what joins them last, the earth rammed between its beams; a dowel-laminated panel's boards one by one. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
@@ -233,5 +298,7 @@ The beams, then the ribs and the boards or the panels in their order, what joins
 | **Joints**, 18 elements, 14 moves | | |
 | ![board, 5 pieces](assembly/assembly_templates_timber_floor_3_joints_board.gif) board, 5 pieces | ![keys, 4 pieces](assembly/assembly_templates_timber_floor_3_joints_keys.gif) keys, 4 pieces | ![strip, 5 pieces](assembly/assembly_templates_timber_floor_3_joints_strip.gif) strip, 5 pieces |
 | ![tongue, 4 pieces](assembly/assembly_templates_timber_floor_3_joints_tongue.gif) tongue, 4 pieces |  |  |
+| **Timber and earth**, 409 elements, 69 moves | | |
+| ![arch, 18 pieces](assembly/assembly_templates_timber_floor_4_earth_arch.gif) arch, 18 pieces | ![flush, 18 pieces](assembly/assembly_templates_timber_floor_4_earth_flush.gif) flush, 18 pieces |  |
 
 <!-- assembly:end -->

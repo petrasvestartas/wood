@@ -187,6 +187,12 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = timber_floor ]; then
     "${RENDER[@]}" --view right --aspect 3 --name tongue_section templates_timber_floor_3_joints tongue
     "${RENDER[@]}" --view right --aspect 3 --name strip_section templates_timber_floor_3_joints strip
     "${RENDER[@]}" --view right --aspect 3 --name board_section templates_timber_floor_3_joints board
+    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_4_earth arch
+    "${RENDER[@]}" --aspect 1.5 --name open templates_timber_floor_4_earth arch_bearings+arch_beams+arch_earth
+    "${RENDER[@]}" --view right --aspect 4 --name arch_section templates_timber_floor_4_earth arch_beams+arch_earth+arch_top
+    "${RENDER[@]}" --view right --aspect 4 --name straight_section templates_timber_floor_4_earth straight_beams+straight_earth+straight_top
+    "${RENDER[@]}" --view right --aspect 4 --name flush_section templates_timber_floor_4_earth flush_beams+flush_earth+flush_top
+    "${RENDER[@]}" --view right --aspect 4 --name concealed_section templates_timber_floor_4_earth concealed_beams+concealed_earth+concealed_top
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
