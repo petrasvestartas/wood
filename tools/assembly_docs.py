@@ -150,7 +150,7 @@ PAGES = {
     ),
     "plaited": (
         "The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the "
-        "reciprocal arch its frame and its bars, then every joint's two pins, leaning, down through the bar's top.",
+        "reciprocal arch its frame and its bars, then every joint's two pins, leaning in through the bar's cheek.",
         [
             ("templates_plaited_1_flat_floor", "Flat floor"),
             ("templates_plaited_2_arch", "Arch"),

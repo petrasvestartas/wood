@@ -110,7 +110,7 @@ Passing `circular_rim = true` to `spherical_cap_hex_mesh` with `flat_base = true
 
 ## Pinned Leonardo Reciprocal Barrel Arch {#plaited_reciprocal_arch}
 
-`PlaitedReciprocal` turns each plaited cell axis into a straight timber bar enclosed by continuous straight springing sills and radially aligned arch ribs, cutting every bar end face-to-face against its crossing neighbours and boring exact cylindrical BRep pins (`pin_diameter > 0`) that lean through every bar's top into the cheek its end stands on (`JointBeamElement::skewed_pins`), driven once the bars stand.
+`PlaitedReciprocal` turns each plaited cell axis into a straight timber bar enclosed by continuous straight springing sills and radially aligned arch ribs, cutting every bar end face-to-face against its crossing neighbours and boring exact cylindrical BRep pins (`pin_diameter > 0`) that lean from every bar's cheek through its end into the bar it stands on (`JointBeamElement::skewed_pins`), driven once the bars stand.
 
 <div class="wood-pair-grid">
   <img src="templates_plaited_5_reciprocal_arch_arch_pinned.webp" alt="Finely subdivided pinned Leonardo reciprocal barrel arch">
@@ -122,7 +122,7 @@ Passing `circular_rim = true` to `spherical_cap_hex_mesh` with `flat_base = true
 <!-- assembly:begin -->
 ## Assembly Sequence {#plaited_assembly_sequence}
 
-The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the reciprocal arch its frame and its bars, then every joint's two pins, leaning, down through the bar's top. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the reciprocal arch its frame and its bars, then every joint's two pins, leaning in through the bar's cheek. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|

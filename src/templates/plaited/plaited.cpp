@@ -659,13 +659,13 @@ PlaitedReciprocal::PlaitedReciprocal(
     _beams = compute_beams();
     draw();
 
-    // T-butt contacts and leaning cylindrical pins, driven from the bars' tops
+    // T-butt contacts and leaning cylindrical pins, driven from the bars' cheeks
     if (this->with_contacts || this->pin_diameter > 0.0)
         compute_face_contacts(0);
     if (this->pin_diameter > 0.0)
         _pins = compute_pins();
 
-    // assembly: the frame, then the bars raised from the ground, then every joint's pins down through the bar's top
+    // assembly: the frame, then the bars raised from the ground, then every joint's pins in through the bar's cheek
     std::vector<AssemblyModule> whole = AssemblyModule::parts_of(_frame_beams);
     const std::vector<AssemblyModule> bars = AssemblyModule::parts_of(_beams);
     whole.insert(whole.end(), bars.begin(), bars.end());
