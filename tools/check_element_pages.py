@@ -13,7 +13,7 @@ import urllib.parse
 root = pathlib.Path(__file__).resolve().parent.parent
 tools = root / "tools"
 targets = set(re.findall(r"ADD_EXE\((\w+)", (root / "CMakeLists.txt").read_text(encoding="utf-8")))
-TEXT_ONLY = {"Constructors", "Parameters", "Families", "Contact Parameters", "Assembly"}
+TEXT_ONLY = {"Constructors", "Parameters", "Families", "Contact Parameters", "Assembly", "Typical Dimensions"}
 IMAGE = r"[\w./%@\-]+\.(?:png|webp|gif|jpg)"
 # pictures no recipe line makes yet (made by hand or by a tool outside tools/); each must go when its recipe lands
 UNRECIPED = {
@@ -31,10 +31,14 @@ failures = []
 def check_element_page(page: pathlib.Path) -> None:
     text = page.read_text(encoding="utf-8")
     parts = re.split(r"(?m)^(##+ .+)$", text)
+    section = ""
     for i in range(1, len(parts), 2):
         heading = parts[i].lstrip("#").strip()
         body = parts[i + 1]
-        if heading in TEXT_ONLY:
+        if parts[i].startswith("## "):
+            section = heading
+        # a section of text alone, and what is under it
+        if heading in TEXT_ONLY or section == "Typical Dimensions":
             continue
         includes = re.findall(r"[\\@]include(?:\{lineno\})?\s+elements/(\w+)\.cpp", body)
         has_children = i + 2 < len(parts) and parts[i + 2].count("#") and parts[i].count("#") < parts[i + 2].split(" ")[0].count("#")

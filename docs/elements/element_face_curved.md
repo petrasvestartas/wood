@@ -45,3 +45,11 @@ Two strips side by side, pins centred across their contact.
 | ![](joint_library/assembly_element_face_curved_joints.gif) | ![](elements/element_face_curved_joints.png) |  |
 
 \include{lineno} elements/element_face_curved_joints.cpp
+
+## Typical Dimensions
+
+| Curved panel | Thickness mm | Width x length m | Area m² | Radius m | Source |
+| --- | --- | --- | --- | --- | --- |
+| Cross-laminated, Unterrainer | 60 to 280 | 2.95 x 13.50 | 39.8 | from 2 | [Unterrainer](https://www.holzbau-unterrainer.at/brettsperrholz), [Timber-Online](https://www.timber-online.net/wood_products/2021/07/cross-laminated-timber-reinvented.html) |
+| Veneer lumber bent along the face grain | t | | | from 450 t | [Kerto](https://www.metsagroup.com/globalassets/metsa-wood/attachments/kerto-lvl-manual/en/kerto-manual-lvl-curved-structures.pdf) |
+| Veneer lumber with cross plies bent across the face grain | t | | | from 350 t | [Kerto](https://www.metsagroup.com/globalassets/metsa-wood/attachments/kerto-lvl-manual/en/kerto-manual-lvl-curved-structures.pdf) |
