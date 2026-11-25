@@ -21,19 +21,19 @@ PAGES = {
         [("templates_shells_1_translation_shell", "Translation shell"), ("templates_shells_2_custom_curves", "Custom curves")],
     ),
     "folding": (
-        "Plates meeting in miters, no joint: the plates under one fold, over one side of the plan or in one half arch go together first, "
-        "then these modules lean on each other. A module moves straight off the one other it touches; between two it slides down its miters.",
+        "Plates meeting in miters, no joint. A row along the length goes together first, plate by plate, then the rows go in one after another "
+        "from one foot over the crown to the other, each straight off the row before it; over a centred plan the modules are its sides and sectors.",
         [
-            ("templates_folding_1_reflex_fold", "Reflex fold: one corrugated panel per segment of the section, raised to the crown"),
-            ("templates_folding_2_diamond_mesh", "Diamond mesh: plate by plate from both supports"),
-            ("templates_folding_3_prismatic_fold", "Prismatic fold: the plates lowered on the diaphragms"),
-            ("templates_folding_4_folded_barrel", "Folded barrel: the plates lowered on the two ends"),
-            ("templates_folding_5_counter_fold", "Counter fold: one ridge with its flanks at a time"),
+            ("templates_folding_1_reflex_fold", "Reflex fold: a row per segment of the section, foot to foot"),
+            ("templates_folding_2_diamond_mesh", "Diamond mesh: four rows, foot to foot"),
+            ("templates_folding_3_prismatic_fold", "Prismatic fold: the diaphragms, then plate after plate from one side to the other"),
+            ("templates_folding_4_folded_barrel", "Folded barrel: the two ends, then plate after plate from one foot to the other"),
+            ("templates_folding_5_counter_fold", "Counter fold: a row per ridge with its flanks"),
             ("templates_folding_6_elevated_fold", "Elevated fold"),
             ("templates_folding_7_conical_fold", "Conical fold"),
-            ("templates_folding_8_two_hinged_frame", "Two-hinged frame: half arches, bays"),
-            ("templates_folding_10_three_hinged_arch", "Three-hinged arch: half arches, the crown plates, bays"),
-            ("templates_folding_34_a_frame", "A-frame: half arches, bays"),
+            ("templates_folding_8_two_hinged_frame", "Two-hinged frame: four rows, foot to foot"),
+            ("templates_folding_10_three_hinged_arch", "Three-hinged arch: four rows, foot to foot"),
+            ("templates_folding_34_a_frame", "A-frame: two rows"),
             ("templates_folding_12_square_fold", "Square fold: the plan's four sides"),
             ("templates_folding_14_pyramid", "Pyramid"),
             ("templates_folding_15_truncated_pyramid", "Truncated pyramid"),
@@ -44,11 +44,11 @@ PAGES = {
         ],
     ),
     "cylindrical_folding": (
-        "The lamellas one sheet is folded into by its reflections make one strip, raised from its feet; the strips go side by side. "
+        "The lamellas of one segment make one row along the profile; the rows go in one after another from one foot over the crown to the other. "
         "Curved plates are swept as closed polyhedra through their four meridians.",
         [
             ("templates_cylindrical_folding_1_reflection", "Reflection"),
-            ("templates_cylindrical_folding_2_curved_folded_plate", "Curved folded plate arch: strips of five lamellas"),
+            ("templates_cylindrical_folding_2_curved_folded_plate", "Curved folded plate arch: five rows of six lamellas"),
             ("templates_cylindrical_folding_3_mendrisio_pavilion", "Mendrisio pavilion"),
             ("templates_cylindrical_folding_5_two_hinged_arch", "Two-hinged arch"),
             ("templates_cylindrical_folding_7_a_frame", "A-frame"),
@@ -149,10 +149,12 @@ PAGES = {
         [("templates_floor_7_contacts_cantilevers", "Square floor"), ("templates_floor_8_rectangle", "Rectangular floor")],
     ),
     "vidy": (
-        "A bay is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate "
-        "along its one insertion vector where that is free. The roof is lowered on the walls, and the bays slide one after another along the hall.",
+        "A row is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate "
+        "along its one insertion vector where that is free. First the two walls go up, along the hall against the walls before them, then the roof is "
+        "lowered on them, then the next row's walls and its roof, row after row. One corner of one roof grazes the next (46 mm3), so the whole is swept "
+        "with 0.9 mm of play.",
         [
-            ("templates_vidy_4_section_joints", "Pavilion: wall, roof, bay, eleven bays"),
+            ("templates_vidy_4_section_joints", "Pavilion: wall, roof, eleven rows"),
             ("templates_vidy_5_parametric", "Parametric family"),
             ("templates_vidy_6_origami_shapes", "Deep folded halls"),
         ],

@@ -1360,13 +1360,16 @@ void VidyPavilion::compute_border_plates() {
 
 AssemblyModule VidyPavilion::compute_assembly() const {
 
-    std::vector<AssemblyModule> bays;
+    // bay after bay, its two walls stand first, then its roof
+    std::vector<AssemblyModule> rows;
     for (size_t b = 0; b < guide.bays; b++) {
-        std::vector<AssemblyModule> bay;
 
         // walls: the two pleats' room-side plates, the boards that close their cavities, their outer plates
-        for (const size_t first : {size_t{0}, size_t{2}})
-            bay.push_back(facets_module(first == 0 ? fmt::format("wall_left_{}", b) : fmt::format("wall_right_{}", b), {14 * b + first, 14 * b + first + 1}));
+        for (const size_t first : {size_t{0}, size_t{2}}) {
+            AssemblyModule wall = facets_module(first == 0 ? fmt::format("wall_left_{}", b) : fmt::format("wall_right_{}", b), {14 * b + first, 14 * b + first + 1});
+            wall.ways = {Vector(0.0, -1.0, 0.0)};
+            rows.push_back(wall);
+        }
 
         // roof: the haunch pairs, the crowns, then the eaves
         std::vector<size_t> roof;
@@ -1374,11 +1377,14 @@ AssemblyModule VidyPavilion::compute_assembly() const {
             roof.push_back(14 * b + facet);
         AssemblyModule whole_roof = facets_module(fmt::format("roof_{}", b), roof);
         whole_roof.ways = {Vector(0.0, 0.0, -1.0)};
-        bay.push_back(whole_roof);
-        bays.push_back(AssemblyModule::module(fmt::format("bay_{}", b), bay));
+        rows.push_back(whole_roof);
     }
 
-    return AssemblyModule::module(name, bays);
+    AssemblyModule whole = AssemblyModule::module(name, rows);
+    whole.one_by_one = true;
+    whole.play = 0.9; // a plate's corner grazes the next roof's at one seam of the eleven, 46 mm3 of it
+
+    return whole;
 }
 
 AssemblyModule VidyPavilion::facets_module(const std::string& module, const std::vector<size_t>& facets) const {

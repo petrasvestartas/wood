@@ -15,6 +15,7 @@ struct AssemblyModule {
     std::vector<Vector> ways; // Unit directions the piece is tried to go in along before any other.
     bool raised = false; // The module's pieces go in lowest first, whatever their order.
     double play = 0.1; // mm, of a whole: the mean thickness of shared wood under which two solids only touch; more where a design is known to bind.
+    bool one_by_one = false; // The module's pieces go in one at a time, never two that are clear of each other at once.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Static constructors

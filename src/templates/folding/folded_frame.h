@@ -108,24 +108,31 @@ inline FoldedFrame::FoldedFrame(
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
 
-    // assembly: per bay its two half arches, each folded from its plates foot to crown, leaned on each other, the crown plates
-    // over both after them, the bays one after another
+    // assembly: the lower and the upper half of the zigzag's triangles make a row each along the bays, one row when they are three,
+    // the crown plates with the first side; the rows put one after another from one foot over the crown to the other
+    const std::vector<std::array<Point, 3>> triangles = compute_triangles();
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    const size_t rows = triangles.size() < 4 ? 1 : 2;
     const double middle = zigzag[zigzag.point_count() - 1][0];
-    std::vector<std::array<std::vector<AssemblyModule>, 3>> halves(bays);
-    for (const std::shared_ptr<FacePlanarElement>& plate : get_elements_numbered<FacePlanarElement>("plate")) {
-        const Point centre = AABB::from_polyline(plate->polylines[0]).center();
-        const size_t b = std::min(static_cast<size_t>(std::max(centre[1] / bay, 0.0)), bays - 1);
-        halves[b][std::abs(centre[0] - middle) < 1.0 ? 2 : centre[0] < middle ? 0 : 1].push_back(AssemblyModule::part(plate));
+    std::vector<size_t> keys;
+    for (const std::shared_ptr<FacePlanarElement>& plate : placed) {
+        const Point centre = plate->polylines[0].center();
+        const double across = middle - std::abs(centre[0] - middle);
+        size_t nearest = 0;
+        double nearest_distance = std::numeric_limits<double>::max();
+        for (size_t t = 0; t < triangles.size(); t++) {
+            const double x = (triangles[t][0][0] + triangles[t][1][0] + triangles[t][2][0]) / 3.0;
+            const double z = (triangles[t][0][2] + triangles[t][1][2] + triangles[t][2][2]) / 3.0;
+            const double distance = std::hypot(across - x, centre[2] - z);
+            if (distance < nearest_distance) {
+                nearest = t;
+                nearest_distance = distance;
+            }
+        }
+        const size_t row = nearest * rows / triangles.size();
+        keys.push_back(centre[0] < middle + 1.0 ? row : 2 * rows - 1 - row);
     }
-    std::vector<AssemblyModule> bay_modules;
-    for (size_t b = 0; b < bays; b++) {
-        std::vector<AssemblyModule> pieces;
-        for (size_t side = 0; side < 2; side++)
-            pieces.push_back(AssemblyModule::raise(fmt::format("half_arch_{}_{}", b, side), halves[b][side]));
-        pieces.insert(pieces.end(), halves[b][2].begin(), halves[b][2].end());
-        bay_modules.push_back(AssemblyModule::module(fmt::format("bay_{}", b), pieces));
-    }
-    assemblies = {AssemblyModule::module(name, bay_modules)};
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("row", placed, keys))};
 }
 
 inline const Mesh& FoldedFrame::mesh() const {

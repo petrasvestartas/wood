@@ -260,17 +260,16 @@ inline ReflectionFold::ReflectionFold(
     // contacts: every two lamellas that share a face, found by the session's contact detection
     compute_face_contacts(0);
 
-    // assembly: the lamellas one sheet is folded into by its reflections make one strip, raised from its feet, the strips put side by side
-    std::vector<AssemblyModule> strips;
-    const std::vector<std::shared_ptr<FaceCurvedElement>> placed = get_elements_placed<FaceCurvedElement>("lamella");
-    for (size_t i = 0; i < profile.size(); i++) {
-        std::vector<AssemblyModule> strip;
-        for (const std::shared_ptr<FaceCurvedElement>& lamella : placed)
-            if (lamella->name.ends_with(fmt::format("_{}", i)))
-                strip.push_back(AssemblyModule::part(lamella));
-        strips.push_back(AssemblyModule::raise(fmt::format("strip_{}", i), strip));
+    // assembly: the lamellas of one segment make one row along the profile, the rows put one after another from one foot over the crown to the other
+    std::vector<AssemblyModule> rows;
+    const size_t segment_count = get_elements_placed<FaceCurvedElement>("lamella").size() / profile.size();
+    for (size_t j = 0; j < segment_count; j++) {
+        std::vector<AssemblyModule> row;
+        for (size_t i = 0; i < profile.size(); i++)
+            row.push_back(AssemblyModule::part(get_element_by_name<FaceCurvedElement>(fmt::format("lamella_{}_{}", j, i))));
+        rows.push_back(row.size() == 1 ? row.front() : AssemblyModule::module(fmt::format("row_{}", j), row));
     }
-    assemblies = {profile.size() == 1 ? AssemblyModule::raise(name, strips[0].parts) : AssemblyModule::module(name, strips)};
+    assemblies = {AssemblyModule::module(name, rows)};
 }
 
 inline double ReflectionFold::parameter(const NurbsCurve& curve, size_t k) const {

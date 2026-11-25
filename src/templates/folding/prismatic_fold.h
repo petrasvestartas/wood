@@ -116,11 +116,10 @@ inline PrismaticFold::PrismaticFold(
         add(std::make_shared<FacePlanarElement>(bottom, top, fmt::format("diaphragm_{}", k)), stiffeners);
     }
 
-    // assembly: the diaphragms stand, the plates lowered on them from the edges to the top
+    // assembly: the diaphragms stand, the plates, each a row along the length, put on them one after another from one side to the other
     std::vector<AssemblyModule> whole = AssemblyModule::parts_of(get_elements_numbered<FacePlanarElement>("diaphragm"));
-    std::vector<AssemblyModule> lowered = AssemblyModule::parts_of(fold_plates, {Vector(0.0, 0.0, -1.0)});
-    for (size_t i = 0; i < lowered.size(); i++)
-        whole.push_back(lowered[i % 2 == 0 ? i / 2 : lowered.size() - 1 - i / 2]);
+    const std::vector<AssemblyModule> rows = AssemblyModule::parts_of(fold_plates, {Vector(0.0, 0.0, -1.0)});
+    whole.insert(whole.end(), rows.begin(), rows.end());
     assemblies = {AssemblyModule::module(name, whole)};
 }
 

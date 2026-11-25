@@ -75,8 +75,12 @@ inline DiamondMesh::DiamondMesh(
     for (const std::shared_ptr<FacePlanarElement>& plate : triangles)
         add(plate, plates);
 
-    // assembly: the plates raised ring by ring from both supports to the crown
-    assemblies = {AssemblyModule::raise(name, AssemblyModule::parts_of(triangles))};
+    // assembly: the plates of every cell across u make one row along the length, the rows put one after another from one foot over the crown to the other
+    std::vector<size_t> keys;
+    for (int i = 0; i < u_divisions; i++)
+        for (int j = 0; j < v_divisions; j++)
+            keys.insert(keys.end(), j == 0 ? 6 : 4, static_cast<size_t>(j));
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("row", triangles, keys))};
 }
 
 inline const Mesh& DiamondMesh::mesh() const {

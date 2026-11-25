@@ -101,18 +101,21 @@ int main() {
 
     blocks();
 
-    // a pavilion bay: two walls of plates and a roof lowered on them
+    // a pavilion of two rows: a row's two walls of plates, its roof lowered on them, then the next row's
     const wood_vidy::VidyPavilion pavilion(wood_vidy::VidyGuide(2));
-    check_template(pavilion, 2);
-    const ModuleSequence bays(pavilion, pavilion.assemblies[0]);
-    for (const ModuleSteps& steps : bays.modules())
-        if (steps.name == "bay_0") {
-            check(steps.moves.size() == 3 && steps.moves[2].piece == "roof_0", "vidy: the roof goes on last");
-            check(steps.moves[2].insertion.dot(Vector::z_axis()) < -0.999, "vidy: the roof is lowered on the walls");
-        }
+    check_template(pavilion, 6);
+    const std::vector<ModuleMove> rows = ModuleSequence(pavilion, pavilion.assemblies[0]).modules().back().moves;
+    check(rows[2].piece == "roof_0" && rows[5].piece == "roof_1", "vidy: a row's roof goes on after its walls, before the next row's");
+    check(rows[2].insertion.dot(Vector::z_axis()) < -0.999, "vidy: the roof is lowered on the walls");
 
     check_template(CounterFold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_ridge, 120.0), 4);
-    check_template(FoldedFrame(), 4);
+
+    // a folded frame: four rows along its bays, one after another from one foot over the crown to the other
+    const FoldedFrame frame;
+    check_template(frame, 4);
+    const std::vector<ModuleMove> along = ModuleSequence(frame, frame.assemblies[0]).modules().back().moves;
+    for (size_t i = 0; i < along.size(); i++)
+        check(along[i].piece == fmt::format("row_{}", i) && along[i].wave == i, "folded frame: the rows go in one by one from foot to foot");
     check_template(wood_module::CassetteShell(), 15);
     check_template(wood_plaited::PlaitedStereotomy(wood_plaited::flat_quad_mesh(3600.0, 3600.0, 6, 6, 0.0, 220.0), wood_plaited::PlaitedPattern::Abeille, 220.0, 0.48), 36);
 

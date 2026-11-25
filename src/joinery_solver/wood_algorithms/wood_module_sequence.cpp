@@ -229,8 +229,12 @@ void ModuleSequence::add_module(const AssemblyModule& module) {
     const std::vector<ModuleMove> removal = compute_removal(pieces, steps);
     steps.moves.assign(removal.rbegin(), removal.rend());
 
-    // the pieces that can go in at the same time
-    compute_waves(steps);
+    // the pieces that can go in at the same time, or one at a time
+    if (module.one_by_one)
+        for (size_t k = 0; k < steps.moves.size(); k++)
+            steps.moves[k].wave = k;
+    else
+        compute_waves(steps);
 
     for (const std::string& name : steps.locked)
         stuck.push_back(fmt::format("{}: {}", module.name, name));
