@@ -5,6 +5,66 @@
   if (matchMedia("(prefers-reduced-motion: reduce)").matches)
     document.querySelectorAll("video.wood-film").forEach(film => { film.removeAttribute("autoplay"); film.load(); });
 
+  // the icons (icons.svg, tools/make_icons.py): a page's by the longest of these its address starts with
+  const ICONS = {
+    architecture: "architecture", elements: "elements", templates: "diamond_mesh", examples: "install", annotated: "classes", class: "classes", struct: "classes", namespace: "classes",
+    elements_node_block: "block", elements_node_support: "support", elements_edge_straight: "edge_straight", elements_edge_curved: "edge_curved",
+    elements_edge_variable: "edge_variable", elements_face_planar: "face_planar", elements_face_curved: "face_curved", elements_joint: "insertion_direction",
+    elements_joint_cut_plane: "cut_plane", elements_joint_pin: "pin", elements_joint_plate: "joint_type", elements_joint_plate_top_side: "plate_top_side",
+    elements_joint_plate_side_side_inplane: "plate_side_side_inplane", elements_joint_plate_side_side_outplane: "plate_side_side_outplane",
+    elements_joint_plate_side_side_rotated: "plate_side_side_rotated", elements_joint_plate_cross: "plate_cross", elements_joint_plate_top_top: "plate_top_top",
+    elements_joint_plate_border: "plate_border", elements_joint_beam: "beam", elements_joint_beam_cross: "beam_cross", elements_joint_beam_top_side: "beam_top_side",
+    elements_joint_beam_top_side_bridle: "beam_bridle", elements_joint_beam_column_head: "beam_column_head", elements_joint_beam_compendium: "beam_compendium",
+    elements_joint_library_todo: "beam_todo", elements_joint_beam_keyed_box: "beam_keyed_box", elements_joint_beam_end_to_end: "beam_end_to_end",
+    elements_joint_beam_butt: "beam_butt", elements_joint_beam_connectors: "connectors", elements_joint_beam_pins: "beam_pins",
+    templates_shells: "translation_shell", templates_folding: "reflex_fold", templates_cylindrical_folding: "cylindrical_folding",
+    templates_developable_folding: "developable_folding", templates_chevron: "chevron", templates_cross: "cross", templates_module: "module",
+    templates_reciprocal: "reciprocal_rotation", templates_grid: "grid", templates_floor: "floor", templates_truss: "truss", templates_vault: "vault",
+    templates_plaited: "plaited", templates_vidy: "vidy",
+    "#assembly_sequence": "insertion_direction", "#reflex_fold": "reflex_fold", "#diamond_mesh": "diamond_mesh", "#reciprocal_move": "reciprocal_move", "#reciprocal_rotation": "reciprocal_rotation",
+    "#ex_two_plates": "plate_top_side", "#ex_2_contacts": "joint_type", "#ex_3_features": "solver", "#ex_4_traversal": "architecture", "#ex_5_settings": "diamond_mesh",
+    "#ex_6_custom_joint": "plate_side_side_inplane", "#ex_7_assignment": "insertion_direction", "#ex_8_beams": "beam_cross", "#ex_9_cross_joints": "plate_cross",
+    "#ex_10_profile_cuts": "cut_plane", "#ex_11_drill_solids": "pin", "#ex_12_solid_features": "block",
+  };
+  const iconOf = address => {
+    const last = (address || "").split("/").pop().replace(/\.html$/, "").replace(/^#.*_assembly_sequence$/, "#assembly_sequence");
+    const key = Object.keys(ICONS).filter(name => last === name || (!name.startsWith("#") && !last.includes("#") && last.startsWith(name))).sort((x, y) => y.length - x.length)[0];
+    if (!key)
+      return null;
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    icon.setAttribute("class", "wood-icon");
+    icon.setAttribute("aria-hidden", "true");
+    use.setAttribute("href", "icons.svg#" + ICONS[key]);
+    icon.append(use);
+    return icon;
+  };
+  const give = (element, address) => {
+    const icon = element && !element.querySelector(".wood-icon") && iconOf(address);
+    if (icon)
+      element.prepend(icon);
+  };
+
+  // in the bar, beside the page's title and on the cards; in the tree as it is built, its own pages only
+  for (const link of document.querySelectorAll("#chapters a"))
+    give(link, link.getAttribute("href"));
+  if (!/^(class|struct|namespace)/.test(location.pathname.split("/").pop()))
+    give(document.querySelector("div.header .title"), location.pathname);
+  for (const card of document.querySelectorAll("a.wood-card")) {
+    const title = card.querySelector(".wood-card-title");
+    title.textContent = title.textContent.trim().replace(/^./, letter => letter.toUpperCase());
+    give(title, card.getAttribute("href"));
+  }
+  const tree = document.getElementById("nav-tree-contents");
+  if (tree) {
+    const dress = () => tree.querySelectorAll(".label a[href]").forEach(link => {
+      if (/^(architecture|elements|templates|examples|annotated)/.test(link.getAttribute("href")))
+        give(link, link.getAttribute("href"));
+    });
+    new MutationObserver(dress).observe(tree, { childList: true, subtree: true });
+    dress();
+  }
+
   // the chapter this page belongs to, in the bar
   const page = location.pathname.split("/").pop();
   for (const link of document.querySelectorAll("#chapters a")) {

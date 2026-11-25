@@ -236,6 +236,54 @@ a:hover, .contents a:hover, a.el:hover {
 }
 
 /* ==================================================================
+ * Icons (icons.svg): the fills are the joinery's brown in three shades
+ * ================================================================== */
+
+html {
+    --icon-a: #d09a67;
+    --icon-b: #b27c4a;
+    --icon-c: #8a5a31;
+}
+
+.wood-icon {
+    flex: none;
+    width: 1.35em;
+    height: 1.35em;
+    vertical-align: -.32em;
+    overflow: visible;
+}
+
+#chapters a .wood-icon {
+    margin-right: 9px;
+}
+
+#nav-tree .label a .wood-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 9px;
+    vertical-align: -4px;
+}
+
+div.header .title .wood-icon {
+    width: 1.25em;
+    height: 1.25em;
+    margin-right: .38em;
+    vertical-align: -.26em;
+}
+
+.wood-card .wood-card-title:has(.wood-icon) {
+    padding-left: 56px;
+}
+
+.wood-card-title .wood-icon {
+    position: absolute;
+    left: 20px;
+    top: 9px;
+    width: 25px;
+    height: 25px;
+}
+
+/* ==================================================================
  * Search
  * ================================================================== */
 
