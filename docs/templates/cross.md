@@ -113,12 +113,12 @@ for (int k = 1; k <= divisions; k++) {
 <!-- assembly:begin -->
 ## Assembly Sequence {#cross_assembly_sequence}
 
-`VdaMesh::assembly_order` peels the mesh face by face, always the face its remaining neighbours leave the widest way out of in its own plane; the assembly is that order reversed. The connectors to a later plate are put on the earlier one first, then the later plate slides onto all of them at once: `VdaMesh::assembly_lines` turns every edge's connectors along that slide. Square to their edges, as without insertion lines, they lock every plate. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+From one foot ring by ring up over the crown and down to the other foot, breadth first as the cardboard shell was built: a set is a plate with its connectors to the plates after it plugged in, and slides in its own plane onto the connectors of all the plates before it at once. `VdaMesh::assembly_order` gives the order and the slides, `VdaMesh::assembly_lines` turns every edge's connectors along the slide of its later plate. The last foot goes in from below, so the shell stands on props until then. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
-| **VDA mesh**, 73 elements, 72 moves | | |
-| ![vda mesh, 73 pieces](assembly/assembly_templates_cross_2_assembly.gif) vda mesh, 73 pieces |  |  |
+| **VDA mesh: set, whole shell**, 73 elements, 72 moves | | |
+| ![set, 5 pieces](assembly/assembly_templates_cross_2_assembly_set.gif) set, 5 pieces | ![vda mesh, 15 pieces](assembly/assembly_templates_cross_2_assembly.gif) vda mesh, 15 pieces |  |
 
 <!-- assembly:end -->
 
@@ -132,6 +132,6 @@ The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 
 
 ### 2 Assembly {#cross_example_2}
 
-The same dome made to go together: the connectors of every edge turned along the slide of its later face (`VdaMesh::assembly_lines`), so a plate slides onto all of its connectors at once, in the order of `VdaMesh::assembly_order`.
+The same dome made to go together: the connectors of every edge turned along the slide of its later face (`VdaMesh::assembly_lines`), so a plate, its connectors to the plates after it plugged in, slides onto all the connectors before it at once, in the order of `VdaMesh::assembly_order`: from one foot over the crown to the other.
 
 \include{lineno} templates_cross_2_assembly.cpp

@@ -85,11 +85,11 @@ PAGES = {
         ],
     ),
     "cross": (
-        "`VdaMesh::assembly_order` peels the mesh face by face, always the face its remaining neighbours leave the widest way out of in its "
-        "own plane; the assembly is that order reversed. The connectors to a later plate are put on the earlier one first, then the later "
-        "plate slides onto all of them at once: `VdaMesh::assembly_lines` turns every edge's connectors along that slide. Square to their "
-        "edges, as without insertion lines, they lock every plate.",
-        [("templates_cross_2_assembly", "VDA mesh")],
+        "From one foot ring by ring up over the crown and down to the other foot, breadth first as the cardboard shell was built: a set is a "
+        "plate with its connectors to the plates after it plugged in, and slides in its own plane onto the connectors of all the plates before "
+        "it at once. `VdaMesh::assembly_order` gives the order and the slides, `VdaMesh::assembly_lines` turns every edge's connectors along "
+        "the slide of its later plate. The last foot goes in from below, so the shell stands on props until then.",
+        [("templates_cross_2_assembly", "VDA mesh: set, whole shell")],
     ),
     "module": (
         "Panels, cassettes and rooms as they leave the shop: every frame member by member, the sheets on it, then the panels into a module "

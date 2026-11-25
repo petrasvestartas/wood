@@ -69,8 +69,8 @@ public:
     /// A fifteen-face dome of hexagons and pentagons.
     static Mesh default_mesh();
 
-    /// The faces in an order that goes together: the mesh peeled face by face, always the one its remaining neighbours leave the
-    /// widest way out of in its own plane, then reversed.
+    /// The faces in an order that goes together: from a foot on the ground ring by ring over the mesh, breadth first, every ring
+    /// peeled by the face its remaining neighbours leave the widest way out of in its own plane, and reversed.
     static std::vector<FaceSlide> assembly_order(const Mesh& mesh);
 
     /// The insertion lines that let every plate slide onto all its connectors at once: per interior edge the slide of its later face.
@@ -238,22 +238,29 @@ inline VdaMesh::VdaMesh(
         add_interaction(lap.joint, lap.plate, lap.joint->interaction(1));
     }
 
-    // assembly: face by face in the order that goes together, the connectors to the later face put on the earlier one first
+    // assembly: set by set in the order that goes together, a set the plates of a face with its connectors to the faces after it
     std::vector<AssemblyModule> whole;
     std::set<size_t> placed;
 
     for (const FaceSlide& slide : assembly_order(this->mesh)) {
+        placed.insert(slide.face);
+        std::vector<AssemblyModule> pieces;
+        for (size_t layer = 0; layer < _face_outlines[slide.face].size(); layer++)
+            pieces.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("plate_{}_{}", slide.face, layer))));
         for (size_t e = 0; e < _edge_faces.size(); e++) {
             if (_edge_faces[e].size() < 2 || (_edge_faces[e][0] != slide.face && _edge_faces[e][1] != slide.face))
                 continue;
-            if (!placed.count(_edge_faces[e][0] == slide.face ? _edge_faces[e][1] : _edge_faces[e][0]))
+            if (placed.count(_edge_faces[e][0]) && placed.count(_edge_faces[e][1]))
                 continue;
-            for (size_t k = 0; k < _connector_outlines[e].size(); k++)
-                whole.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k))));
+            for (size_t k = 0; k < _connector_outlines[e].size(); k++) {
+                Vector slot = _connector_frames[e][k].z_axis().cross(_face_planes[slide.face].z_axis());
+                if (slot.dot(_face_planes[slide.face].origin() - _connector_frames[e][k].origin()) < 0.0)
+                    slot = slot * -1.0;
+                pieces.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k)), {slot.normalized()}));
+            }
         }
-        for (size_t layer = 0; layer < _face_outlines[slide.face].size(); layer++)
-            whole.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("plate_{}_{}", slide.face, layer)), slide.in.is_zero() ? std::vector<Vector>{} : std::vector<Vector>{slide.in}));
-        placed.insert(slide.face);
+        const std::vector<Vector> ways = slide.in.is_zero() ? std::vector<Vector>{} : std::vector<Vector>{slide.in};
+        whole.push_back(AssemblyModule::module(fmt::format("set_{}", slide.face), pieces, ways));
     }
     assemblies = {AssemblyModule::module(name, whole)};
 }
@@ -288,36 +295,60 @@ inline std::vector<FaceSlide> VdaMesh::assembly_order(const Mesh& mesh) {
             neighbours[f].emplace_back(index.at(halfedge_faces.at(across)), inward);
         }
     }
-    const Point middle = Point::centroid(centres);
+    // the foot the assembly starts from: the faces on the ground that hang together with the lowest one
+    std::vector<double> lowest;
+    for (const size_t face : faces) {
+        double z = 1e300;
+        for (const size_t vertex : *welded.face_vertices(face))
+            z = std::min(z, (*welded.vertex_point(vertex))[2]);
+        lowest.push_back(z);
+    }
+    const size_t first = std::min_element(lowest.begin(), lowest.end()) - lowest.begin();
+    const double ground = lowest[first] + 1.0;
+    std::vector<std::vector<size_t>> rings = {{first}};
+    std::set<size_t> reached = {first};
+    for (size_t i = 0; i < rings[0].size(); i++)
+        for (const std::pair<size_t, Vector>& neighbour : neighbours[rings[0][i]])
+            if (lowest[neighbour.first] <= ground && reached.insert(neighbour.first).second)
+                rings[0].push_back(neighbour.first);
 
-    // the peeling: the face its remaining neighbours leave the widest way out, the farthest from the middle when several are as wide
-    std::set<size_t> remaining;
-    for (size_t f = 0; f < faces.size(); f++)
-        remaining.insert(f);
+    // the rings: breadth first away from the foot
+    while (!rings.back().empty()) {
+        std::vector<size_t> further;
+        for (const size_t f : rings.back())
+            for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
+                if (reached.insert(neighbour.first).second)
+                    further.push_back(neighbour.first);
+        rings.push_back(further);
+    }
+
+    // the peeling: from the last ring back, always the face of the ring its remaining neighbours leave the widest way out
     std::vector<FaceSlide> order;
-    while (!remaining.empty()) {
-        double best = -1e300;
-        FaceSlide next{*remaining.begin(), Vector(0.0, 0.0, 0.0)};
-        for (const size_t f : remaining) {
-            Vector out(0.0, 0.0, 0.0);
-            for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
-                if (remaining.count(neighbour.first))
-                    out += neighbour.second;
-            if (out.magnitude() < 1e-6)
-                continue;
-            out = out.normalized();
-            double width = 1.0;
-            for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
-                if (remaining.count(neighbour.first))
-                    width = std::min(width, out.dot(neighbour.second));
-            const double score = width + 1e-5 * centres[f].distance(middle);
-            if (score > best) {
-                best = score;
-                next = {f, out * -1.0};
+    for (std::vector<std::vector<size_t>>::reverse_iterator ring = rings.rbegin(); ring != rings.rend(); ++ring) {
+        std::set<size_t> remaining(ring->begin(), ring->end());
+        while (!remaining.empty()) {
+            double widest = -1e300;
+            FaceSlide next{*remaining.begin(), Vector(0.0, 0.0, 0.0)};
+            for (const size_t f : remaining) {
+                Vector out(0.0, 0.0, 0.0);
+                for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
+                    if (reached.count(neighbour.first))
+                        out += neighbour.second;
+                if (!out.normalize_self())
+                    continue;
+                double width = 1.0;
+                for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
+                    if (reached.count(neighbour.first))
+                        width = std::min(width, out.dot(neighbour.second));
+                if (width > widest) {
+                    widest = width;
+                    next = {f, out * -1.0};
+                }
             }
+            remaining.erase(next.face);
+            reached.erase(next.face);
+            order.push_back(next);
         }
-        remaining.erase(next.face);
-        order.push_back(next);
     }
     std::reverse(order.begin(), order.end());
 

@@ -9,7 +9,7 @@ int main() {
 
     const Mesh mesh = wood_cross::VdaMesh::default_mesh();
     wood_cross::VdaMesh vda(
-        mesh, 40.0, {0.0}, {2}, {}, wood_cross::VdaMesh::assembly_lines(mesh), 300.0, 300.0, 40.0
+        mesh, 40.0, {0.0}, {2}, {}, wood_cross::VdaMesh::assembly_lines(mesh), 260.0, 260.0, 40.0
     );
     std::cout << vda << std::endl;
     vda.pb_dump(pb_path("live"));
@@ -18,7 +18,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-The vda mesh template on its default fifteen-face dome, made to go together: VdaMesh::assembly_order peels the mesh face by face, always the face its remaining neighbours leave the widest way out of in its own plane, and the assembly is that order reversed; VdaMesh::assembly_lines turns the connectors of every edge along the slide of its later face, so a plate slides onto the connectors of all its earlier neighbours along one vector. 40 thick plates, 300 x 300 x 40 connectors, two per edge, cross slots where they pass through the plates.
+The vda mesh template on its default fifteen-face dome, made to go together: VdaMesh::assembly_order goes from one foot ring by ring, breadth first, up over the crown and down to the other foot; a set is a plate with its connectors to the plates after it plugged in, and VdaMesh::assembly_lines turns the connectors of every edge along the slide of its later plate, so a set slides onto the connectors of all its earlier neighbours along one vector. 40 thick plates, 260 x 260 x 40 connectors, two per edge, cross slots where they pass through the plates.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
