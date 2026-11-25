@@ -121,6 +121,13 @@ inline DiagonalFold::DiagonalFold(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
+
+    // assembly: the four sectors of four plates, each folded on its diagonal, leaned on each other
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    std::vector<size_t> keys;
+    for (size_t i = 0; i < placed.size(); i++)
+        keys.push_back(i / 4);
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("sector", placed, keys))};
 }
 
 inline const Mesh& DiagonalFold::mesh() const {

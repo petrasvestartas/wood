@@ -491,6 +491,9 @@ PlaitedStereotomy::PlaitedStereotomy(const PlaitedGuide& guide, bool with_contac
     // seam contacts across all shared bevel planes
     if (with_contacts)
         compute_face_contacts(0);
+
+    // assembly: the blocks raised from the ground
+    assemblies = {AssemblyModule::raise(name, AssemblyModule::parts_of(_blocks))};
 }
 
 PlaitedStereotomy::PlaitedStereotomy(
@@ -661,6 +664,13 @@ PlaitedReciprocal::PlaitedReciprocal(
         compute_face_contacts(0);
     if (this->pin_diameter > 0.0)
         _pins = compute_pins();
+
+    // assembly: the frame, then the bars raised from the ground; the pins hidden at both ends of every bar are not part of it,
+    // four bars pinned round a cell along their own axes lock each other
+    std::vector<AssemblyModule> whole = AssemblyModule::parts_of(_frame_beams);
+    const std::vector<AssemblyModule> bars = AssemblyModule::parts_of(_beams);
+    whole.insert(whole.end(), bars.begin(), bars.end());
+    assemblies = {AssemblyModule::raise(name, whole)};
 }
 
 const std::vector<std::shared_ptr<FacePlanarElement>>& PlaitedReciprocal::beams() const {

@@ -88,6 +88,12 @@ inline ReflexFold::ReflexFold(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : folds)
         add(plate, plates);
+
+    // assembly: the plates of every cross section segment folded into one corrugated panel, the panels raised from the supports to the crown
+    std::vector<size_t> keys;
+    for (size_t i = 0; i < folds.size(); i++)
+        keys.push_back(i / (profile.point_count() - 1));
+    assemblies = {AssemblyModule::raise(name, AssemblyModule::modules_of("panel", folds, keys))};
 }
 
 inline const Mesh& ReflexFold::mesh() const {

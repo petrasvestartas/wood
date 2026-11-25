@@ -1904,6 +1904,21 @@ GothicRibbedVault::GothicRibbedVault(
         else
             add(elem, ribs_group);
     }
+
+    // assembly: blocks, ribs, panels
+    assemblies = {gothic_assembly(name, get_elements<Element>())};
+}
+
+wood_session::AssemblyModule gothic_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements) {
+
+    std::array<std::vector<wood_session::AssemblyModule>, 3> stages;
+    for (const std::shared_ptr<Element>& element : elements)
+        stages[element->name == "support_block" ? 0 : element->name == "vault_panel" ? 2 : 1].push_back(wood_session::AssemblyModule::part(element));
+    std::vector<wood_session::AssemblyModule> whole = stages[0];
+    whole.insert(whole.end(), stages[1].begin(), stages[1].end());
+    whole.insert(whole.end(), stages[2].begin(), stages[2].end());
+
+    return wood_session::AssemblyModule::module(name, whole);
 }
 
 }

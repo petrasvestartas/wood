@@ -19,6 +19,12 @@ struct CrossLap {
     std::shared_ptr<FacePlanarElement> plate; // plate_<face>_<layer>, the joint's target 1.
 };
 
+/// A face's turn in the assembly: the unit direction its plate slides in along, in its own plane, onto the connectors of the faces before it.
+struct FaceSlide {
+    size_t face;
+    Vector in; // Zero for the first face.
+};
+
 // ═══════════════════════════════════════════════════════════════════════════
 // VdaMesh
 // ═══════════════════════════════════════════════════════════════════════════
@@ -62,6 +68,13 @@ public:
 
     /// A fifteen-face dome of hexagons and pentagons.
     static Mesh default_mesh();
+
+    /// The faces in an order that goes together: the mesh peeled face by face, always the one its remaining neighbours leave the
+    /// widest way out of in its own plane, then reversed.
+    static std::vector<FaceSlide> assembly_order(const Mesh& mesh);
+
+    /// The insertion lines that let every plate slide onto all its connectors at once: per interior edge the slide of its later face.
+    static std::vector<Line> assembly_lines(const Mesh& mesh);
 
     /// The faces either side of every edge, by index in Mesh::faces order, edges in Mesh::edges order.
     const std::vector<std::vector<size_t>>& edge_faces() const;
@@ -224,6 +237,115 @@ inline VdaMesh::VdaMesh(
         add_interaction(lap.joint, lap.connector, lap.joint->interaction(0));
         add_interaction(lap.joint, lap.plate, lap.joint->interaction(1));
     }
+
+    // assembly: face by face in the order that goes together, the connectors to the later face put on the earlier one first
+    std::vector<AssemblyModule> whole;
+    std::set<size_t> placed;
+
+    for (const FaceSlide& slide : assembly_order(this->mesh)) {
+        for (size_t e = 0; e < _edge_faces.size(); e++) {
+            if (_edge_faces[e].size() < 2 || (_edge_faces[e][0] != slide.face && _edge_faces[e][1] != slide.face))
+                continue;
+            if (!placed.count(_edge_faces[e][0] == slide.face ? _edge_faces[e][1] : _edge_faces[e][0]))
+                continue;
+            for (size_t k = 0; k < _connector_outlines[e].size(); k++)
+                whole.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("connector_{}_{}_{}", _edge_faces[e][0], _edge_faces[e][1], k))));
+        }
+        for (size_t layer = 0; layer < _face_outlines[slide.face].size(); layer++)
+            whole.push_back(AssemblyModule::part(get_element_by_name<FacePlanarElement>(fmt::format("plate_{}_{}", slide.face, layer)), slide.in.is_zero() ? std::vector<Vector>{} : std::vector<Vector>{slide.in}));
+        placed.insert(slide.face);
+    }
+    assemblies = {AssemblyModule::module(name, whole)};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Assembly
+// ═══════════════════════════════════════════════════════════════════════════
+inline std::vector<FaceSlide> VdaMesh::assembly_order(const Mesh& mesh) {
+
+    // per face its neighbours, each with the unit direction in the face's plane away from their shared edge
+    const Mesh welded = mesh.weld(0.01);
+    const std::vector<size_t> faces = welded.faces();
+    const std::map<std::pair<size_t, size_t>, size_t> halfedge_faces = welded.edge_face_map();
+    std::map<size_t, size_t> index;
+    for (size_t f = 0; f < faces.size(); f++)
+        index[faces[f]] = f;
+    std::vector<std::vector<std::pair<size_t, Vector>>> neighbours(faces.size());
+    std::vector<Point> centres;
+    for (size_t f = 0; f < faces.size(); f++) {
+        const std::vector<size_t> ring = *welded.face_vertices(faces[f]);
+        const Vector normal = welded.face_normal(faces[f])->normalized();
+        centres.push_back(*welded.face_centroid(faces[f]));
+        for (size_t i = 0; i < ring.size(); i++) {
+            const std::pair<size_t, size_t> across = {ring[(i + 1) % ring.size()], ring[i]};
+            if (!halfedge_faces.count(across))
+                continue;
+            const Point start = *welded.vertex_point(ring[i]);
+            const Vector along = (*welded.vertex_point(across.first) - start).normalized();
+            Vector inward = normal.cross(along).normalized();
+            if (inward.dot(centres[f] - start) < 0.0)
+                inward = inward * -1.0;
+            neighbours[f].emplace_back(index.at(halfedge_faces.at(across)), inward);
+        }
+    }
+    const Point middle = Point::centroid(centres);
+
+    // the peeling: the face its remaining neighbours leave the widest way out, the farthest from the middle when several are as wide
+    std::set<size_t> remaining;
+    for (size_t f = 0; f < faces.size(); f++)
+        remaining.insert(f);
+    std::vector<FaceSlide> order;
+    while (!remaining.empty()) {
+        double best = -1e300;
+        FaceSlide next{*remaining.begin(), Vector(0.0, 0.0, 0.0)};
+        for (const size_t f : remaining) {
+            Vector out(0.0, 0.0, 0.0);
+            for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
+                if (remaining.count(neighbour.first))
+                    out += neighbour.second;
+            if (out.magnitude() < 1e-6)
+                continue;
+            out = out.normalized();
+            double width = 1.0;
+            for (const std::pair<size_t, Vector>& neighbour : neighbours[f])
+                if (remaining.count(neighbour.first))
+                    width = std::min(width, out.dot(neighbour.second));
+            const double score = width + 1e-5 * centres[f].distance(middle);
+            if (score > best) {
+                best = score;
+                next = {f, out * -1.0};
+            }
+        }
+        remaining.erase(next.face);
+        order.push_back(next);
+    }
+    std::reverse(order.begin(), order.end());
+
+    return order;
+}
+
+inline std::vector<Line> VdaMesh::assembly_lines(const Mesh& mesh) {
+
+    const Mesh welded = mesh.weld(0.01);
+    const std::vector<size_t> faces = welded.faces();
+    const std::map<std::pair<size_t, size_t>, size_t> halfedge_faces = welded.edge_face_map();
+    std::map<size_t, std::pair<size_t, Vector>> turns;
+    const std::vector<FaceSlide> order = assembly_order(mesh);
+    for (size_t turn = 0; turn < order.size(); turn++)
+        turns[faces[order[turn].face]] = {turn, order[turn].in};
+
+    std::vector<Line> lines;
+    for (const std::pair<size_t, size_t>& edge : welded.edges()) {
+        const std::pair<size_t, size_t> back = {edge.second, edge.first};
+        if (!halfedge_faces.count(edge) || !halfedge_faces.count(back))
+            continue;
+        const std::pair<size_t, Vector>& a = turns.at(halfedge_faces.at(edge));
+        const std::pair<size_t, Vector>& b = turns.at(halfedge_faces.at(back));
+        const Point centre = Line::from_points(*welded.vertex_point(edge.first), *welded.vertex_point(edge.second)).center();
+        lines.push_back(Line::from_points(centre, centre + (a.first > b.first ? a.second : b.second) * 100.0));
+    }
+
+    return lines;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

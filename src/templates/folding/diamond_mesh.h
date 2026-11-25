@@ -74,6 +74,9 @@ inline DiamondMesh::DiamondMesh(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : triangles)
         add(plate, plates);
+
+    // assembly: the plates raised ring by ring from both supports to the crown
+    assemblies = {AssemblyModule::raise(name, AssemblyModule::parts_of(triangles))};
 }
 
 inline const Mesh& DiamondMesh::mesh() const {

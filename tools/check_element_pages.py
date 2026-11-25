@@ -91,6 +91,8 @@ def is_made(path: pathlib.PurePosixPath, recipes: dict) -> bool:
             or (name.endswith("_assembly.gif") and name[:-4] in targets)
             or name == "templates_truss_1_pratt.png"
         )
+    if folder == "assembly":
+        return any(name.startswith(f"assembly_{target}") for target in targets)
     if folder == "elements":
         return name in recipes["elements"]
     if folder == "joint_library":

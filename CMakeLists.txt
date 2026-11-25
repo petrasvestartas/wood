@@ -136,6 +136,8 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_joint_library.cpp
     src/joinery_solver/wood_elements/wood_joint_move.cpp
     src/joinery_solver/wood_algorithms/wood_assembly_sequence.cpp
+    src/joinery_solver/wood_algorithms/wood_assembly_module.cpp
+    src/joinery_solver/wood_algorithms/wood_module_sequence.cpp
 )
 
 # The wood protobuf messages (src/proto/*.proto), generated into generated/ by tools/regen_proto.sh
@@ -301,6 +303,7 @@ ADD_EXE(element_tags                     tests/element_tags.cpp)
 target_compile_definitions(element_tags PRIVATE WOOD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 ADD_EXE(plaited_elements                 tests/plaited_elements.cpp)
 ADD_EXE(vidy_elements                    tests/vidy_elements.cpp)
+ADD_EXE(template_assembly                tests/template_assembly.cpp)
 
 enable_testing()
 set(WOOD_TEST_TARGETS
@@ -320,6 +323,7 @@ set(WOOD_TEST_TARGETS
     element_tags
     plaited_elements
     vidy_elements
+    template_assembly
     joint_library
     reference_datasets
     main_session_round_trip
@@ -385,6 +389,7 @@ ADD_EXE(templates_developable_folding_9_alternating_unfolding          examples/
 ADD_EXE(templates_developable_folding_11_corrugated_dome               examples/templates_developable_folding_11_corrugated_dome.cpp)
 ADD_EXE(templates_developable_folding_12_corrugated_funnel             examples/templates_developable_folding_12_corrugated_funnel.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
+ADD_EXE(templates_cross_2_assembly               examples/templates_cross_2_assembly.cpp)
 ADD_EXE(templates_module_1_wall                  examples/templates_module_1_wall.cpp)
 ADD_EXE(templates_module_2_cassette_shell         examples/templates_module_2_cassette_shell.cpp)
 ADD_EXE(templates_module_3_cassette_house         examples/templates_module_3_cassette_house.cpp)

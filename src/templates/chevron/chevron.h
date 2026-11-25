@@ -336,6 +336,28 @@ inline Chevron::Chevron(
     }
 
     compute_features();
+
+    // assembly: every box from its two walls and its two plates, the boxes one after another along their one insertion vector
+    std::vector<AssemblyModule> boxes;
+    for (size_t face = 0; face < plates.size() / 4; face++) {
+        const Vector along = plates[face * 4]->insertion_vectors()[2].normalized();
+        boxes.push_back(AssemblyModule::module(
+            fmt::format("box_{}", face),
+            {AssemblyModule::part(plates[face * 4 + 2]), AssemblyModule::part(plates[face * 4 + 3]), AssemblyModule::part(plates[face * 4], {along}), AssemblyModule::part(plates[face * 4 + 1], {along})},
+            {along, along * -1.0}
+        ));
+    }
+    AssemblyModule whole = AssemblyModule::module(name, boxes);
+    whole.play = 1.0;
+
+    // the 4 x 4 block at the crown on its own, swept without that play: the faces run foot to foot in 2 u_divisions rows of boxes
+    const size_t runs = 2 * static_cast<size_t>(u_divisions);
+    const size_t length = boxes.size() / runs;
+    std::vector<AssemblyModule> crown;
+    for (size_t run = runs / 2 - 2; run < runs / 2 + 2; run++)
+        for (size_t position = length / 2 - 1; position < length / 2 + 3; position++)
+            crown.push_back(boxes[run * length + position]);
+    assemblies = {whole, AssemblyModule::module(name + "_crown", crown)};
 }
 
 inline const Mesh& Chevron::mesh() const {

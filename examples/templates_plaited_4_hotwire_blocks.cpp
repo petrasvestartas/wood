@@ -46,6 +46,8 @@ int main() {
     );
     scene.graft(sphera_open.get_branch("blocks"), scene.add_group("sphera_open"));
 
+    scene.assemblies[0].name = "abeille_open";
+    scene.assemblies[1].name = "sphera_open";
     std::cout << fmt::format(
         "hot-wire reciprocal blocks: abeille_open {} blocks ({} contacts), sphera_open {} blocks ({} contacts)\n",
         abeille_open.blocks().size(),

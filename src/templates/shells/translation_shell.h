@@ -76,6 +76,17 @@ inline TranslationShell::TranslationShell(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : plates)
         add(plate, plates_group);
+
+    // assembly: the plates between two profile points make one arch strip, raised from its ends, the strips put side by side
+    const size_t across = cross_section.point_count() - 1;
+    std::vector<AssemblyModule> strips;
+    for (size_t i = 0; i + 1 < profile.point_count(); i++) {
+        const std::vector<std::shared_ptr<FacePlanarElement>>::const_iterator from = plates.begin() + static_cast<std::ptrdiff_t>(i * across);
+        strips.push_back(AssemblyModule::raise(
+            fmt::format("strip_{}", i), AssemblyModule::parts_of(std::vector<std::shared_ptr<FacePlanarElement>>(from, from + static_cast<std::ptrdiff_t>(across)))
+        ));
+    }
+    assemblies = {AssemblyModule::module(name, strips)};
 }
 
 inline std::vector<Polyline> TranslationShell::compute_sections() const {

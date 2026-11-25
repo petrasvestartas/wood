@@ -18,6 +18,7 @@
 #include "wood_config.h"
 #include "wood_feature_construction.h"
 #include "wood_instance.h"
+#include "wood_assembly_module.h"
 #include "wood_interaction.h"
 #include "wood_io.h"
 #include "wood_view.h"
@@ -63,6 +64,7 @@ public:
         adjacency; // Plate pairs by position that compute_features classifies.
     std::vector<std::array<int, 2>> borders; // Plate and side face of every boundary joint.
     std::vector<std::vector<int>> three_valence; // Three-valence groups.
+    std::vector<AssemblyModule> assemblies; // How the models in it go together, one whole each, written by pb_dump under WOOD_ASSEMBLY.
     std::unordered_map<std::string, std::string>
         definition_keys; // Class key -> definition guid; rebuilt from the element definitions on first use, never written.
 
@@ -159,7 +161,7 @@ public:
     /// Session::merge, with both sides' plate adjacency and three-valence groups renumbered to the merged order.
     void merge(const WoodSession& other);
 
-    /// Session::graft, the adjacency and three-valence groups appended as merge appends them.
+    /// Session::graft, the adjacency and three-valence groups appended as merge appends them, and other's assemblies.
     void graft(const WoodSession& other, std::shared_ptr<TreeNode> parent);
 
     /// Session::get_branch as a WoodSession, with its settings, adjacency and the pre-drill connectors drilling its members.
@@ -284,6 +286,20 @@ public:
                 return std::dynamic_pointer_cast<T>(element);
 
         return nullptr;
+    }
+
+    /// Every element of type T under the group of that name, in tree order; empty when there is no such group.
+    template <class T> std::vector<std::shared_ptr<T>> get_elements_under(const std::string& group) const {
+
+        std::vector<std::shared_ptr<T>> out;
+        const std::shared_ptr<TreeNode> node = tree.get_node_by_name(group);
+        if (!node)
+            return out;
+        for (const TreeNode* below : node->descendants())
+            if (const std::shared_ptr<T> object = get_element<T>(below->name))
+                out.push_back(object);
+
+        return out;
     }
 
     /// Every element of type T, in objects.elements order.

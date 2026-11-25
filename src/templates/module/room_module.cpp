@@ -16,6 +16,24 @@ RoomModule::RoomModule(const RoomModuleGuide& guide, const std::string& name)
 
     // contacts: every two members and sheets that touch, in a module, side by side and stacked
     add_module_contacts(*this);
+
+    // assembly: per module its floor, walls, posts and ceiling, each framed on its own, the modules side by side and storey on storey
+    std::vector<AssemblyModule> modules;
+    for (size_t storey = 0; storey < guide.storeys; storey++)
+        for (size_t column = 0; column < columns(); column++) {
+            const std::string module = fmt::format("module_{}_{}", storey, column);
+            std::vector<AssemblyModule> pieces = {panel_assembly(module + "_floor", get_elements_under<Element>(module + "_floor"))};
+            for (const std::shared_ptr<Element>& post : get_elements_under<Element>(module + "_posts"))
+                pieces.push_back(AssemblyModule::part(post));
+            for (const std::string wall : {"_wall_front", "_wall_back", "_wall_start", "_wall_end"}) {
+                const std::vector<std::shared_ptr<Element>> members = get_elements_under<Element>(module + wall);
+                if (!members.empty())
+                    pieces.push_back(panel_assembly(module + wall, members));
+            }
+            pieces.push_back(panel_assembly(module + "_ceiling", get_elements_under<Element>(module + "_ceiling")));
+            modules.push_back(AssemblyModule::module(module, pieces));
+        }
+    assemblies = {AssemblyModule::module(name, modules)};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

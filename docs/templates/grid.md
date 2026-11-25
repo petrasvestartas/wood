@@ -25,6 +25,10 @@ Planar, facade, and multi-storey timber grid generator in `src/templates/grid/gr
     <img src="templates_grid_5_multistorey_twisted_tower.webp" alt="Multi-Storey Topologies">
     <span class="wood-card-title">5 Multi-Storey Topologies</span>
   </a>
+  <a class="wood-card" href="#grid_assembly_sequence">
+    <img src="assembly_templates_grid_1_bay_framing_slab_head.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ---
@@ -51,6 +55,31 @@ flowchart LR
    - **Multi-storey topologies (`Stack`)**: `from_footprint`, `from_levels` (stepped terraces and shifted cantilevers over plumb column grids), `morph` (`Xform(t)` scaling/twisting towers with inclined or helicoidal columns), and `add_facades`.
 
 ---
+
+<!-- assembly:begin -->
+## Assembly Sequence {#grid_assembly_sequence}
+
+Storey by storey, in each the columns and walls, their heads, girders, beams, purlins, braces and decks. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Bay framing**, 113 elements, 105 moves | | |
+| ![beam head, 19 pieces](assembly/assembly_templates_grid_1_bay_framing_beam_head.gif) beam head, 19 pieces | ![floor l plan, 31 pieces](assembly/assembly_templates_grid_1_bay_framing_floor_l_plan.gif) floor l plan, 31 pieces | ![isolated bay, 9 pieces](assembly/assembly_templates_grid_1_bay_framing_isolated_bay.gif) isolated bay, 9 pieces |
+| ![node flush, 13 pieces](assembly/assembly_templates_grid_1_bay_framing_node_flush.gif) node flush, 13 pieces | ![node through, 10 pieces](assembly/assembly_templates_grid_1_bay_framing_node_through.gif) node through, 10 pieces | ![purlin stacked, 10 pieces](assembly/assembly_templates_grid_1_bay_framing_purlin_stacked.gif) purlin stacked, 10 pieces |
+| ![round columns, 11 pieces](assembly/assembly_templates_grid_1_bay_framing_round_columns.gif) round columns, 11 pieces | ![slab head, 10 pieces](assembly/assembly_templates_grid_1_bay_framing_slab_head.gif) slab head, 10 pieces |  |
+| **Footprints**, 457 elements, 450 moves | | |
+| ![courtyard, 70 pieces](assembly/assembly_templates_grid_2_footprints_courtyard.gif) courtyard, 70 pieces | ![hexagonal, 49 pieces](assembly/assembly_templates_grid_2_footprints_hexagonal.gif) hexagonal, 49 pieces | ![irregular, 53 pieces](assembly/assembly_templates_grid_2_footprints_irregular.gif) irregular, 53 pieces |
+| ![orthogonal, 51 pieces](assembly/assembly_templates_grid_2_footprints_orthogonal.gif) orthogonal, 51 pieces | ![radial, 96 pieces](assembly/assembly_templates_grid_2_footprints_radial.gif) radial, 96 pieces | ![skewed, 75 pieces](assembly/assembly_templates_grid_2_footprints_skewed.gif) skewed, 75 pieces |
+| ![triangular, 63 pieces](assembly/assembly_templates_grid_2_footprints_triangular.gif) triangular, 63 pieces |  |  |
+| **Facades**, 224 elements, 220 moves | | |
+| ![braced facade, 49 pieces](assembly/assembly_templates_grid_3_facades_braced_facade.gif) braced facade, 49 pieces | ![curtain mullion, 31 pieces](assembly/assembly_templates_grid_3_facades_curtain_mullion.gif) curtain mullion, 31 pieces | ![gable facade, 66 pieces](assembly/assembly_templates_grid_3_facades_gable_facade.gif) gable facade, 66 pieces |
+| ![punched openings, 78 pieces](assembly/assembly_templates_grid_3_facades_punched_openings.gif) punched openings, 78 pieces |  |  |
+| **Multi-storey**, 4101 elements, 4093 moves | | |
+| ![core and facade, 504 pieces](assembly/assembly_templates_grid_5_multistorey_core_and_facade.gif) core and facade, 504 pieces | ![cylindrical rotunda, 640 pieces](assembly/assembly_templates_grid_5_multistorey_cylindrical_rotunda.gif) cylindrical rotunda, 640 pieces | ![five bay, 84 pieces](assembly/assembly_templates_grid_5_multistorey_five_bay.gif) five bay, 84 pieces |
+| ![oblique flatiron, 424 pieces](assembly/assembly_templates_grid_5_multistorey_oblique_flatiron.gif) oblique flatiron, 424 pieces | ![setback tower, 948 pieces](assembly/assembly_templates_grid_5_multistorey_setback_tower.gif) setback tower, 948 pieces | ![shifted floors, 666 pieces](assembly/assembly_templates_grid_5_multistorey_shifted_floors.gif) shifted floors, 666 pieces |
+| ![tapered tower, 429 pieces](assembly/assembly_templates_grid_5_multistorey_tapered_tower.gif) tapered tower, 429 pieces | ![twisted tower, 406 pieces](assembly/assembly_templates_grid_5_multistorey_twisted_tower.gif) twisted tower, 406 pieces |  |
+
+<!-- assembly:end -->
 
 ## Examples {#grid_examples}
 

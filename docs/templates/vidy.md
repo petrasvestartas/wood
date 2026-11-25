@@ -29,6 +29,10 @@
     <img src="templates_vidy_6_origami_shapes_counter_fold.webp" alt="6. Deep Folded Halls">
     <span class="wood-card-title">6. Deep Folded Halls</span>
   </a>
+  <a class="wood-card" href="#vidy_assembly_sequence">
+    <img src="assembly_templates_vidy_4_section_joints.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -157,3 +161,21 @@
 </div>
 
 \include{lineno} templates_vidy_6_origami_shapes.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#vidy_assembly_sequence}
+
+A bay is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate along its one insertion vector where that is free. The roof is lowered on the walls, and the bays slide one after another along the hall. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Pavilion: wall, roof, bay, eleven bays**, 462 elements, 461 moves | | |
+| ![wall left, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_left.gif) wall left, 8 pieces | ![wall right, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_right.gif) wall right, 8 pieces | ![roof, 26 pieces](assembly/assembly_templates_vidy_4_section_joints_roof.gif) roof, 26 pieces |
+| ![bay, 3 pieces](assembly/assembly_templates_vidy_4_section_joints_bay.gif) bay, 3 pieces | ![vidy pavilion, 11 pieces](assembly/assembly_templates_vidy_4_section_joints.gif) vidy pavilion, 11 pieces |  |
+| **Parametric family**, 504 elements, 501 moves | | |
+| ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric_bay.gif) bay, 3 pieces | ![compact symmetric, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric.gif) compact symmetric, 3 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall_bay.gif) bay, 3 pieces |
+| ![tapered hall, 5 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall.gif) tapered hall, 5 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow_bay.gif) bay, 3 pieces | ![wide shallow, 4 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow.gif) wide shallow, 4 pieces |
+| **Deep folded halls**, 76 elements, 74 moves | | |
+| ![counter fold, 50 pieces](assembly/assembly_templates_vidy_6_origami_shapes_counter_fold.gif) counter fold, 50 pieces | ![prismatic fold, 26 pieces](assembly/assembly_templates_vidy_6_origami_shapes_prismatic_fold.gif) prismatic fold, 26 pieces |  |
+
+<!-- assembly:end -->

@@ -13,6 +13,9 @@ Wall::Wall(const WallGuide& guide, const std::string& name) : WoodSession(name),
 
     // contacts: every member end on the member it stands on, every sheet on every member under it, each drawn
     add_module_contacts(*this);
+
+    // assembly: the rails, the studs between them, the openings' headers and sills, then a sheet on each face
+    assemblies = {panel_assembly(name, get_elements<Element>())};
 }
 
 }

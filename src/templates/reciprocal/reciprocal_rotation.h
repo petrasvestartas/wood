@@ -139,6 +139,12 @@ inline ReciprocalRotation::ReciprocalRotation(
     for (size_t i = 0; i < _beams.size(); i++)
         add(std::make_shared<FacePlanarElement>(_beams[i].bottom, _beams[i].top, fmt::format("beam_{}", i)),
             beams);
+
+    // assembly: the frame beam by beam one module, then the beams from the frame to the middle, each slid in past the ones that bear on it
+    std::vector<AssemblyModule> whole = {AssemblyModule::module("frame", AssemblyModule::parts_of(get_elements_numbered<FacePlanarElement>("frame")))};
+    const std::vector<AssemblyModule> bars = AssemblyModule::parts_of(get_elements_numbered<FacePlanarElement>("beam"));
+    whole.insert(whole.end(), bars.begin(), bars.end());
+    assemblies = {AssemblyModule::raise(name, whole)};
 }
 
 inline const std::vector<wood_reciprocal::ReciprocalBeam>& ReciprocalRotation::beams() const {

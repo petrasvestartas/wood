@@ -1870,10 +1870,47 @@ void populate_plan_unit(
 // Grid Constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// The rank a member goes in at within its storey: columns and walls, their heads, girders, beams, purlins, braces, decks.
+static size_t erection_rank(const std::string& family) {
+
+    const std::vector<std::string> order = {"column", "wall", "head", "girder", "beam", "purlin", "brace", "deck"};
+
+    return static_cast<size_t>(std::find(order.begin(), order.end(), family) - order.begin());
+}
+
+/// Whether the lower end of left is below right's.
+static bool lower_member(const std::shared_ptr<Element>& left, const std::shared_ptr<Element>& right) {
+
+    const AABB a = AABB::from_mesh(left->model_geometry_mesh());
+    const AABB b = AABB::from_mesh(right->model_geometry_mesh());
+
+    return a.cz - a.hz < b.cz - b.hz - 1.0;
+}
+
+/// The members in erection order: storey by storey (the groups, the whole session when there are none), within a storey by
+/// family, the lowest of each first.
+static wood_session::AssemblyModule erection(const wood_session::WoodSession& session, const std::vector<std::string>& groups) {
+
+    std::vector<wood_session::AssemblyModule> whole;
+    for (const std::string& group : groups.empty() ? std::vector<std::string>{""} : groups) {
+        std::vector<std::shared_ptr<Element>> members = group.empty() ? session.get_elements<Element>() : session.get_elements_under<Element>(group);
+        std::stable_sort(members.begin(), members.end(), lower_member);
+        for (size_t rank = 0; rank <= 8; rank++)
+            for (const std::shared_ptr<Element>& member : members)
+                if (erection_rank(member->name) == rank)
+                    whole.push_back(wood_session::AssemblyModule::part(member));
+    }
+
+    return wood_session::AssemblyModule::module(session.name, whole);
+}
+
 Grid::Grid(const Plan& plan, const Framing& framing, std::string name)
     : WoodSession(std::move(name)) {
     populate_plan_unit(*this, nullptr, plan, framing, "");
     compute_face_contacts();
+
+    // assembly: columns, heads, girders, beams, purlins, braces, decks
+    assemblies = {erection(*this, {})};
 }
 
 Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) {
@@ -1953,6 +1990,14 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
     }
 
     compute_face_contacts();
+
+    // assembly: storey by storey, then the facades
+    std::vector<std::string> groups;
+    for (size_t i = 0; i < stack.levels.size(); ++i)
+        groups.push_back(fmt::format("level_{}", i + 1));
+    for (size_t i = 0; i < stack.facades.size(); ++i)
+        groups.push_back(fmt::format("facade_{}", i + 1));
+    assemblies = {erection(*this, groups)};
 }
 
 } // namespace wood_grid

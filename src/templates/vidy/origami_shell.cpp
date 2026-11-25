@@ -1184,6 +1184,17 @@ OrigamiShell::OrigamiShell(
         compute_border_plates();
 
     populate_scene();
+
+    // assembly: facet by facet in the order the insertion vectors were found for, the inner plate, its cavity boards, the outer plate
+    std::vector<AssemblyModule> parts;
+    for (size_t layer = 0; layer < 2; layer++) {
+        for (const size_t facet : _assembly_order)
+            parts.push_back(AssemblyModule::part(layer == 0 ? _inner_plates[facet] : _outer_plates[facet], {_insertion_vectors[layer][facet]}));
+        if (layer == 0)
+            for (const std::shared_ptr<FacePlanarElement>& board : _border_plates)
+                parts.push_back(AssemblyModule::part(board));
+    }
+    assemblies = {AssemblyModule::module(name, parts)};
 }
 
 const std::vector<Point>& OrigamiShell::vertices() const {
@@ -1297,15 +1308,21 @@ void OrigamiShell::copy_plates_to(
 
     const std::shared_ptr<TreeNode> grp = target.add_group(group_name);
 
+    std::map<std::string, std::string> copies;
+
     for (const std::shared_ptr<FacePlanarElement>& plate : _all_plates) {
         std::shared_ptr<FacePlanarElement> copy =
             std::dynamic_pointer_cast<FacePlanarElement>(plate->clone());
+        copies[plate->guid()] = copy->guid();
 
         if (!delta.is_zero())
             copy->place(Xform::translation(delta[0], delta[1], delta[2]));
 
         target.add(copy, grp);
     }
+
+    for (const AssemblyModule& whole : assemblies)
+        target.assemblies.push_back(whole.of_copies(copies));
 }
 
 void OrigamiShell::extract_oriented_facets(const Mesh& input_mesh) {

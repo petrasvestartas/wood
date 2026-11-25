@@ -125,6 +125,19 @@ inline FoldComposition::FoldComposition(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
+
+    // assembly: the star of sixteen plates from its four sectors, then the pyramids of four plates around it
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    std::vector<size_t> keys;
+    for (size_t i = 0; i < placed.size(); i++)
+        keys.push_back(i / 4);
+    const std::vector<AssemblyModule> cells = AssemblyModule::modules_of("pyramid", placed, keys);
+    std::vector<AssemblyModule> sectors(cells.end() - 4, cells.end());
+    for (size_t i = 0; i < sectors.size(); i++)
+        sectors[i].name = fmt::format("sector_{}", i);
+    std::vector<AssemblyModule> whole = {AssemblyModule::module("star", sectors)};
+    whole.insert(whole.end(), cells.begin(), cells.end() - 4);
+    assemblies = {AssemblyModule::module(name, whole)};
 }
 
 inline const Mesh& FoldComposition::mesh() const {

@@ -137,6 +137,19 @@ inline TruncatedPyramid::TruncatedPyramid(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
         add(plate, plates);
+
+    // assembly: the plates of every side of the plan make one side, the sides leaned on each other and the top put on them
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    const size_t per_side = placed.size() / 4;
+    std::vector<AssemblyModule> whole;
+    for (size_t i = 0; i < 4; i++) {
+        const std::vector<std::shared_ptr<FacePlanarElement>>::const_iterator from = placed.begin() + static_cast<std::ptrdiff_t>(i * per_side);
+        const std::vector<AssemblyModule> parts = AssemblyModule::parts_of(std::vector<std::shared_ptr<FacePlanarElement>>(from, from + static_cast<std::ptrdiff_t>(per_side)));
+        whole.push_back(per_side == 1 ? parts.front() : AssemblyModule::raise(fmt::format("side_{}", i), parts));
+    }
+    for (size_t i = 4 * per_side; i < placed.size(); i++)
+        whole.push_back(AssemblyModule::part(placed[i]));
+    assemblies = {AssemblyModule::module(name, whole)};
 }
 
 inline const Mesh& TruncatedPyramid::mesh() const {

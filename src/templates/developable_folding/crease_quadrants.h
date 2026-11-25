@@ -92,6 +92,10 @@ inline CreaseQuadrants::CreaseQuadrants(
 
     // contacts: every two strips that share a face, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: every quadrant on its own, its two strips on its crease
+    for (size_t quadrant = 1; quadrant <= 4; quadrant++)
+        assemblies.push_back(AssemblyModule::module(fmt::format("quadrant_{}", quadrant), AssemblyModule::parts_of(get_elements_numbered<FaceCurvedElement>(fmt::format("quadrant_{}", quadrant)))));
 }
 
 inline CreaseQuadrants::Frame CreaseQuadrants::compute_frame() const {

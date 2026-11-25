@@ -83,6 +83,15 @@ inline CurvedFold::CurvedFold(
 
     // contacts: every two lamellas that share a face, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: two neighbours on their crease make one fold, the folds put side by side
+    std::vector<std::shared_ptr<FaceCurvedElement>> placed;
+    for (size_t i = 0; i < get_elements_numbered<FaceCurvedElement>("lamella").size(); i++)
+        placed.push_back(get_element_by_name<FaceCurvedElement>(fmt::format("lamella_{}", i)));
+    std::vector<size_t> keys;
+    for (size_t i = 0; i < placed.size(); i++)
+        keys.push_back(i / 2);
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("fold", placed, keys))};
 }
 
 inline std::vector<std::vector<Point>> CurvedFold::compute_rings() const {

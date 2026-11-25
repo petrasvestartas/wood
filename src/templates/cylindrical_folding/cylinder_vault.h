@@ -154,6 +154,12 @@ inline CylinderVault::CylinderVault(
 
     // contacts: every two panels that share a face, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: the walls stand, the lamellas lowered on them
+    std::vector<AssemblyModule> whole = AssemblyModule::parts_of(get_elements_numbered<FaceCurvedElement>("wall"));
+    const std::vector<AssemblyModule> lamellas = AssemblyModule::parts_of(get_elements_numbered<FaceCurvedElement>("lamella"));
+    whole.insert(whole.end(), lamellas.begin(), lamellas.end());
+    assemblies = {AssemblyModule::module(name, whole)};
 }
 
 inline Point CylinderVault::corner(size_t i) const {

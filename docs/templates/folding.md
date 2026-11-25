@@ -49,6 +49,10 @@ Planar folded-plate timber structures in `src/templates/folding/*.h`. Each templ
     <img src="templates_folding_20_triangle_square_plates.webp" alt="Triangle Fold">
     <span class="wood-card-title">Triangle Fold</span>
   </a>
+  <a class="wood-card" href="#folding_assembly_sequence">
+    <img src="assembly_templates_folding_1_reflex_fold.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Reflex Fold {#reflex_fold}
@@ -269,6 +273,51 @@ Perimeter gables rising to `5.0 m` and central apex at `6.5 m` (`12` plates).
 ```cpp
 TriangleFold fold;
 ```
+
+<!-- assembly:begin -->
+## Assembly Sequence {#folding_assembly_sequence}
+
+Plates meeting in miters, no joint: the plates under one fold, over one side of the plan or in one half arch go together first, then these modules lean on each other. A module moves straight off the one other it touches; between two it slides down its miters. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Reflex fold: one corrugated panel per segment of the section, raised to the crown**, 72 elements, 71 moves | | |
+| ![panel, 18 pieces](assembly/assembly_templates_folding_1_reflex_fold_panel.gif) panel, 18 pieces | ![reflex fold, 4 pieces](assembly/assembly_templates_folding_1_reflex_fold.gif) reflex fold, 4 pieces |  |
+| **Diamond mesh: plate by plate from both supports**, 144 elements, 143 moves | | |
+| ![diamond mesh, 144 pieces](assembly/assembly_templates_folding_2_diamond_mesh.gif) diamond mesh, 144 pieces |  |  |
+| **Prismatic fold: the plates lowered on the diaphragms**, 13 elements, 12 moves | | |
+| ![prismatic fold, 13 pieces](assembly/assembly_templates_folding_3_prismatic_fold.gif) prismatic fold, 13 pieces |  |  |
+| **Folded barrel: the plates lowered on the two ends**, 10 elements, 9 moves | | |
+| ![folded barrel, 10 pieces](assembly/assembly_templates_folding_4_folded_barrel.gif) folded barrel, 10 pieces |  |  |
+| **Counter fold: one ridge with its flanks at a time**, 16 elements, 15 moves | | |
+| ![fold, 4 pieces](assembly/assembly_templates_folding_5_counter_fold_fold.gif) fold, 4 pieces | ![counter fold, 4 pieces](assembly/assembly_templates_folding_5_counter_fold.gif) counter fold, 4 pieces |  |
+| **Elevated fold**, 24 elements, 23 moves | | |
+| ![fold, 6 pieces](assembly/assembly_templates_folding_6_elevated_fold_fold.gif) fold, 6 pieces | ![elevated fold, 4 pieces](assembly/assembly_templates_folding_6_elevated_fold.gif) elevated fold, 4 pieces |  |
+| **Conical fold**, 16 elements, 15 moves | | |
+| ![fold, 4 pieces](assembly/assembly_templates_folding_7_conical_fold_fold.gif) fold, 4 pieces | ![conical fold, 4 pieces](assembly/assembly_templates_folding_7_conical_fold.gif) conical fold, 4 pieces |  |
+| **Two-hinged frame: half arches, bays**, 56 elements, 55 moves | | |
+| ![half arch, 7 pieces](assembly/assembly_templates_folding_8_two_hinged_frame_half_arch.gif) half arch, 7 pieces | ![bay, 2 pieces](assembly/assembly_templates_folding_8_two_hinged_frame_bay.gif) bay, 2 pieces | ![folded frame, 4 pieces](assembly/assembly_templates_folding_8_two_hinged_frame.gif) folded frame, 4 pieces |
+| **Three-hinged arch: half arches, the crown plates, bays**, 125 elements, 124 moves | | |
+| ![half arch, 12 pieces](assembly/assembly_templates_folding_10_three_hinged_arch_half_arch.gif) half arch, 12 pieces | ![bay, 3 pieces](assembly/assembly_templates_folding_10_three_hinged_arch_bay.gif) bay, 3 pieces | ![three hinged arch, 5 pieces](assembly/assembly_templates_folding_10_three_hinged_arch.gif) three hinged arch, 5 pieces |
+| **A-frame: half arches, bays**, 48 elements, 47 moves | | |
+| ![half arch, 6 pieces](assembly/assembly_templates_folding_34_a_frame_half_arch.gif) half arch, 6 pieces | ![bay, 2 pieces](assembly/assembly_templates_folding_34_a_frame_bay.gif) bay, 2 pieces | ![a frame, 4 pieces](assembly/assembly_templates_folding_34_a_frame.gif) a frame, 4 pieces |
+| **Square fold: the plan's four sides**, 12 elements, 11 moves | | |
+| ![side, 3 pieces](assembly/assembly_templates_folding_12_square_fold_side.gif) side, 3 pieces | ![single fold, 4 pieces](assembly/assembly_templates_folding_12_square_fold.gif) single fold, 4 pieces |  |
+| **Pyramid**, 4 elements, 3 moves | | |
+| ![pyramid, 4 pieces](assembly/assembly_templates_folding_14_pyramid.gif) pyramid, 4 pieces |  |  |
+| **Truncated pyramid**, 5 elements, 4 moves | | |
+| ![truncated pyramid, 5 pieces](assembly/assembly_templates_folding_15_truncated_pyramid.gif) truncated pyramid, 5 pieces |  |  |
+| **Folded truncated pyramid: four sides and the top**, 17 elements, 16 moves | | |
+| ![side, 4 pieces](assembly/assembly_templates_folding_36_folded_truncated_pyramid_side.gif) side, 4 pieces | ![folded truncated pyramid, 5 pieces](assembly/assembly_templates_folding_36_folded_truncated_pyramid.gif) folded truncated pyramid, 5 pieces |  |
+| **Triangles over a square: gables, corners, the top one module**, 12 elements, 11 moves | | |
+| ![top, 4 pieces](assembly/assembly_templates_folding_20_triangle_square_top.gif) top, 4 pieces | ![triangle fold, 9 pieces](assembly/assembly_templates_folding_20_triangle_square.gif) triangle fold, 9 pieces |  |
+| **Cross fold: four sectors**, 16 elements, 15 moves | | |
+| ![sector, 4 pieces](assembly/assembly_templates_folding_16_cross_fold_sector.gif) sector, 4 pieces | ![diagonal fold, 4 pieces](assembly/assembly_templates_folding_16_cross_fold.gif) diagonal fold, 4 pieces |  |
+| **Fold composition: the star from its sectors, the pyramids around it**, 96 elements, 95 moves | | |
+| ![sector, 4 pieces](assembly/assembly_templates_folding_19_fold_composition_sector.gif) sector, 4 pieces | ![star, 4 pieces](assembly/assembly_templates_folding_19_fold_composition_star.gif) star, 4 pieces | ![pyramid, 4 pieces](assembly/assembly_templates_folding_19_fold_composition_pyramid.gif) pyramid, 4 pieces |
+| ![fold composition, 21 pieces](assembly/assembly_templates_folding_19_fold_composition.gif) fold composition, 21 pieces |  |  |
+
+<!-- assembly:end -->
 
 ## Examples {#folding_examples}
 

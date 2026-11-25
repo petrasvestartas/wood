@@ -57,6 +57,20 @@ CassetteShell::CassetteShell(
         patch.set_objectcolor(Color::red());
         add_mesh(patch, contact_group);
     }
+
+    // assembly: every cassette on its bottom plate, its beams and studs, its top plate last; the cassettes raised from the ground
+    std::vector<AssemblyModule> cassettes;
+    for (size_t f = 0; f < this->mesh.number_of_faces(); f++) {
+        std::vector<AssemblyModule> bottom;
+        std::vector<AssemblyModule> frame;
+        std::vector<AssemblyModule> top;
+        for (const std::shared_ptr<Element>& element : get_elements_under<Element>(fmt::format("cassette_{}", f)))
+            (element->name.starts_with("bottom_plate") ? bottom : element->name.starts_with("top_plate") ? top : frame).push_back(AssemblyModule::part(element));
+        bottom.insert(bottom.end(), frame.begin(), frame.end());
+        bottom.insert(bottom.end(), top.begin(), top.end());
+        cassettes.push_back(AssemblyModule::module(fmt::format("cassette_{}", f), bottom));
+    }
+    assemblies = {AssemblyModule::raise(this->name, cassettes)};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -40,6 +40,9 @@ public:
     /// The closed solid of six patches.
     const BRep& element_geometry_brep() const override;
 
+    /// The cut solid as one closed polyhedron, every meridian at the same divisions of its domain, for a solid boolean or a sweep.
+    Mesh closed_mesh(size_t divisions = 32) const;
+
     /// The cut solid as an exact BRep: plane cuts and solid features as exact booleans on the six patches.
     const BRep& model_geometry_brep() const override;
 

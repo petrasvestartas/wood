@@ -94,6 +94,13 @@ inline ConicalFold::ConicalFold(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
+
+    // assembly: the plates under every fold make one fold, a ridge with its two flanks, the folds put side by side
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    std::vector<size_t> keys;
+    for (const std::shared_ptr<FacePlanarElement>& plate : placed)
+        keys.push_back(static_cast<size_t>(plate->polylines[0].center()[1] / (2.0 * fold_width)));
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("fold", placed, keys))};
 }
 
 inline const Mesh& ConicalFold::mesh() const {

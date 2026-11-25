@@ -304,4 +304,15 @@ std::shared_ptr<EdgeStraightElement> FramedPanel::member(
     return std::make_shared<EdgeStraightElement>(axis, profile, std::vector<Vector>{up}, named(part));
 }
 
+AssemblyModule panel_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements) {
+
+    std::vector<AssemblyModule> frame;
+    std::vector<AssemblyModule> sheets;
+    for (const std::shared_ptr<Element>& element : elements)
+        (std::dynamic_pointer_cast<FacePlanarElement>(element) ? sheets : frame).push_back(AssemblyModule::part(element));
+    frame.insert(frame.end(), sheets.begin(), sheets.end());
+
+    return AssemblyModule::module(name, frame);
+}
+
 }

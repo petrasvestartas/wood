@@ -166,6 +166,12 @@ Two chords and five webs given as polylines with their half sections.
 
 ![](examples/templates_truss_4_custom_wireframe.png)
 
+The members, then every plate along its slot.
+
+![templates_truss_4_custom_wireframe](joint_library/assembly_templates_truss_4_custom_wireframe.gif)
+
+![templates_truss_4_custom_wireframe](joint_library/assembly_templates_truss_4_custom_wireframe.png)
+
 \include{lineno} templates_truss_4_custom_wireframe.cpp
 
 ### Pratt Roof Truss {#truss_ex_pratt}

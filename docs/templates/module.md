@@ -29,6 +29,10 @@ Framed timber walls, hollow cassette shells, and multi-storey room modules in `s
     <img src="templates_module_6_bank_pavilion_all.webp" alt="Bank Pavilion">
     <span class="wood-card-title">Bank Pavilion</span>
   </a>
+  <a class="wood-card" href="#module_assembly_sequence">
+    <img src="assembly_templates_module_1_wall.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ---
@@ -254,3 +258,26 @@ Four modules on a `3000 × 10270 mm` grid (`rooms = {1, 2, 1}`: closed meeting r
 ![](templates/templates_module_6_bank_pavilion_open.webp)
 
 \include{lineno} templates_module_6_bank_pavilion.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#module_assembly_sequence}
+
+Panels, cassettes and rooms as they leave the shop: every frame member by member, the sheets on it, then the panels into a module and the modules side by side and storey on storey. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Framed wall: rails, studs, headers and sills, a sheet on each face**, 18 elements, 17 moves | | |
+| ![wall, 18 pieces](assembly/assembly_templates_module_1_wall.gif) wall, 18 pieces |  |  |
+| **Cassette shell: bottom plate, edge beams, top plate**, 107 elements, 106 moves | | |
+| ![cassette, 7 pieces](assembly/assembly_templates_module_2_cassette_shell_cassette.gif) cassette, 7 pieces | ![cassette shell, 15 pieces](assembly/assembly_templates_module_2_cassette_shell.gif) cassette shell, 15 pieces |  |
+| **Cassette house**, 109 elements, 108 moves | | |
+| ![cassette, 23 pieces](assembly/assembly_templates_module_3_cassette_house_cassette.gif) cassette, 23 pieces | ![cassette house, 6 pieces](assembly/assembly_templates_module_3_cassette_house.gif) cassette house, 6 pieces |  |
+| **Room module: floor, walls, posts, ceiling**, 182 elements, 181 moves | | |
+| ![module floor, 20 pieces](assembly/assembly_templates_module_4_room_module_module_floor.gif) module floor, 20 pieces | ![module wall front, 19 pieces](assembly/assembly_templates_module_4_room_module_module_wall_front.gif) module wall front, 19 pieces | ![module wall start, 16 pieces](assembly/assembly_templates_module_4_room_module_module_wall_start.gif) module wall start, 16 pieces |
+| ![module ceiling, 20 pieces](assembly/assembly_templates_module_4_room_module_module_ceiling.gif) module ceiling, 20 pieces | ![module, 10 pieces](assembly/assembly_templates_module_4_room_module_module.gif) module, 10 pieces | ![room module, 2 pieces](assembly/assembly_templates_module_4_room_module.gif) room module, 2 pieces |
+| **Module block**, 1038 elements, 1037 moves | | |
+| ![module, 10 pieces](assembly/assembly_templates_module_5_module_block_module.gif) module, 10 pieces | ![module block, 12 pieces](assembly/assembly_templates_module_5_module_block.gif) module block, 12 pieces |  |
+| **Bank pavilion**, 421 elements, 420 moves | | |
+| ![module, 10 pieces](assembly/assembly_templates_module_6_bank_pavilion_module.gif) module, 10 pieces | ![bank pavilion, 4 pieces](assembly/assembly_templates_module_6_bank_pavilion.gif) bank pavilion, 4 pieces |  |
+
+<!-- assembly:end -->

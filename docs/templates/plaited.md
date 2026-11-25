@@ -29,6 +29,10 @@ Interlocking plaited stereotomy (`PlaitedStereotomy`) and Leonardo da Vinci reci
     <img src="templates_plaited_5_reciprocal_arch_arch_pinned.webp" alt="Pinned Reciprocal Arch">
     <span class="wood-card-title">Pinned Reciprocal Arch</span>
   </a>
+  <a class="wood-card" href="#plaited_assembly_sequence">
+    <img src="assembly_templates_plaited_1_flat_floor.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -114,3 +118,23 @@ Passing `circular_rim = true` to `spherical_cap_hex_mesh` with `flat_base = true
 </div>
 
 \include{lineno} templates_plaited_5_reciprocal_arch.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#plaited_assembly_sequence}
+
+The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the reciprocal arch its frame and its bars, without the pins hidden at both ends of every bar: four bars pinned round a cell along their own axes lock each other. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Flat floor**, 36 elements, 35 moves | | |
+| ![plaited stereotomy, 36 pieces](assembly/assembly_templates_plaited_1_flat_floor.gif) plaited stereotomy, 36 pieces |  |  |
+| **Arch**, 72 elements, 71 moves | | |
+| ![plaited stereotomy, 72 pieces](assembly/assembly_templates_plaited_2_arch.gif) plaited stereotomy, 72 pieces |  |  |
+| **Dome**, 255 elements, 254 moves | | |
+| ![plaited stereotomy, 255 pieces](assembly/assembly_templates_plaited_3_dome.gif) plaited stereotomy, 255 pieces |  |  |
+| **Hot-wire blocks**, 180 elements, 178 moves | | |
+| ![abeille open, 36 pieces](assembly/assembly_templates_plaited_4_hotwire_blocks_abeille_open.gif) abeille open, 36 pieces | ![sphera open, 144 pieces](assembly/assembly_templates_plaited_4_hotwire_blocks_sphera_open.gif) sphera open, 144 pieces |  |
+| **Reciprocal arch**, 130 elements, 129 moves | | |
+| ![plaited reciprocal, 130 pieces](assembly/assembly_templates_plaited_5_reciprocal_arch.gif) plaited reciprocal, 130 pieces |  |  |
+
+<!-- assembly:end -->

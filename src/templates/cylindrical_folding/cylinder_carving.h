@@ -138,6 +138,9 @@ inline CylinderCarving::CylinderCarving(
 
     // contacts: every two plates that meet on a crease, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: the carved plates round the stock one after another
+    assemblies = {AssemblyModule::module(name, AssemblyModule::parts_of(get_elements_placed<FaceCurvedElement>("plate")))};
 }
 
 inline std::optional<std::pair<double, double>> CylinderCarving::inside(const Cylinder& cylinder, double offset, const Point& point, const Vector& direction) {

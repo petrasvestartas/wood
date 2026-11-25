@@ -1142,6 +1142,9 @@ VidyPavilion::VidyPavilion(
 
     // scene: inner and outer walls, inner and outer roof, and cavity border boards
     add_plates();
+
+    // assembly: per bay its two walls and its roof, each plate by plate, the roof lowered on the walls, the bays one after another
+    assemblies = {compute_assembly()};
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1354,6 +1357,43 @@ void VidyPavilion::compute_border_plates() {
 // ═══════════════════════════════════════════════════════════════════════════
 // Module assembly and scene
 // ═══════════════════════════════════════════════════════════════════════════
+
+AssemblyModule VidyPavilion::compute_assembly() const {
+
+    std::vector<AssemblyModule> bays;
+    for (size_t b = 0; b < guide.bays; b++) {
+        std::vector<AssemblyModule> bay;
+
+        // walls: the two pleats' room-side plates, the boards that close their cavities, their outer plates
+        for (const size_t first : {size_t{0}, size_t{2}})
+            bay.push_back(facets_module(first == 0 ? fmt::format("wall_left_{}", b) : fmt::format("wall_right_{}", b), {14 * b + first, 14 * b + first + 1}));
+
+        // roof: the haunch pairs, the crowns, then the eaves
+        std::vector<size_t> roof;
+        for (const size_t facet : {5, 10, 7, 12, 6, 11, 4, 9, 8, 13})
+            roof.push_back(14 * b + facet);
+        AssemblyModule whole_roof = facets_module(fmt::format("roof_{}", b), roof);
+        whole_roof.ways = {Vector(0.0, 0.0, -1.0)};
+        bay.push_back(whole_roof);
+        bays.push_back(AssemblyModule::module(fmt::format("bay_{}", b), bay));
+    }
+
+    return AssemblyModule::module(name, bays);
+}
+
+AssemblyModule VidyPavilion::facets_module(const std::string& module, const std::vector<size_t>& facets) const {
+
+    std::vector<AssemblyModule> parts;
+    for (const size_t facet : facets)
+        parts.push_back(AssemblyModule::part(_inner_plates[facet], {_insertion_vectors[0][facet]}));
+    for (const size_t facet : facets)
+        for (const std::shared_ptr<FacePlanarElement>& board : _facet_border_plates[facet])
+            parts.push_back(AssemblyModule::part(board));
+    for (const size_t facet : facets)
+        parts.push_back(AssemblyModule::part(_outer_plates[facet], {_insertion_vectors[1][facet]}));
+
+    return AssemblyModule::module(module, parts);
+}
 
 void VidyPavilion::add_module_assembly_groups(size_t bay_idx, double roof_lift) {
 

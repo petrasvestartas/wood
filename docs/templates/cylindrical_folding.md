@@ -37,6 +37,10 @@ Folded structures of exact cylindrical [Curved Plate](@ref elements_face_curved)
     <img src="templates_cylindrical_folding_17_cylinder_carving_rings_ring_8.webp" alt="Cylinder Carving">
     <span class="wood-card-title">Cylinder Carving</span>
   </a>
+  <a class="wood-card" href="#cylindrical_folding_assembly_sequence">
+    <img src="assembly_templates_cylindrical_folding_1_reflection.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Cylindrical Crease Invariants {#why_cylinders}
@@ -217,3 +221,37 @@ Progressive carving stages `a - b`, `(a - b) - c`, and `((a - b) - c) - d` on a 
 Closed fluted columns (`closed = true`) carved all round by `4`, `6`, and `8` alternating-tilt cylinders.
 
 \include{lineno} templates_cylindrical_folding_17_cylinder_carving_rings.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#cylindrical_folding_assembly_sequence}
+
+The lamellas one sheet is folded into by its reflections make one strip, raised from its feet; the strips go side by side. Curved plates are swept as closed polyhedra through their four meridians. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Reflection**, 2 elements, 1 moves | | |
+| ![reflection fold, 2 pieces](assembly/assembly_templates_cylindrical_folding_1_reflection.gif) reflection fold, 2 pieces |  |  |
+| **Curved folded plate arch: strips of five lamellas**, 30 elements, 29 moves | | |
+| ![strip, 5 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate_strip.gif) strip, 5 pieces | ![reflection fold, 6 pieces](assembly/assembly_templates_cylindrical_folding_2_curved_folded_plate.gif) reflection fold, 6 pieces |  |
+| **Mendrisio pavilion**, 5 elements, 4 moves | | |
+| ![reflection fold, 5 pieces](assembly/assembly_templates_cylindrical_folding_3_mendrisio_pavilion.gif) reflection fold, 5 pieces |  |  |
+| **Two-hinged arch**, 24 elements, 23 moves | | |
+| ![strip, 6 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch_strip.gif) strip, 6 pieces | ![reflection fold, 4 pieces](assembly/assembly_templates_cylindrical_folding_5_two_hinged_arch.gif) reflection fold, 4 pieces |  |
+| **A-frame**, 16 elements, 15 moves | | |
+| ![strip, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame_strip.gif) strip, 4 pieces | ![reflection fold, 4 pieces](assembly/assembly_templates_cylindrical_folding_7_a_frame.gif) reflection fold, 4 pieces |  |
+| **Groin vault**, 4 elements, 3 moves | | |
+| ![cylinder vault, 4 pieces](assembly/assembly_templates_cylindrical_folding_8_groin_vault.gif) cylinder vault, 4 pieces |  |  |
+| **Pavilion vault: the walls stand, the lamellas lowered on them**, 8 elements, 7 moves | | |
+| ![cylinder vault, 8 pieces](assembly/assembly_templates_cylindrical_folding_9_pavilion_vault.gif) cylinder vault, 8 pieces |  |  |
+| **Octagon vault**, 8 elements, 7 moves | | |
+| ![cylinder vault, 8 pieces](assembly/assembly_templates_cylindrical_folding_12_octagon_vault.gif) cylinder vault, 8 pieces |  |  |
+| **Curved folded beam: bottom, webs and sides, top**, 54 elements, 53 moves | | |
+| ![beam, 9 pieces](assembly/assembly_templates_cylindrical_folding_13_curved_folded_beam_beam.gif) beam, 9 pieces | ![curved folded beam, 6 pieces](assembly/assembly_templates_cylindrical_folding_13_curved_folded_beam.gif) curved folded beam, 6 pieces |  |
+| **Corner fan**, 6 elements, 5 moves | | |
+| ![corner fan, 6 pieces](assembly/assembly_templates_cylindrical_folding_14_corner_fan.gif) corner fan, 6 pieces |  |  |
+| **Cylinder carving: two and three carvers**, 6 elements, 3 moves | | |
+| ![carving 2, 2 pieces](assembly/assembly_templates_cylindrical_folding_16_cylinder_carving_carving_2.gif) carving 2, 2 pieces | ![carving 3, 3 pieces](assembly/assembly_templates_cylindrical_folding_16_cylinder_carving_carving_3.gif) carving 3, 3 pieces |  |
+| **Carving rings**, 18 elements, 15 moves | | |
+| ![ring 4, 4 pieces](assembly/assembly_templates_cylindrical_folding_17_cylinder_carving_rings_ring_4.gif) ring 4, 4 pieces | ![ring 6, 6 pieces](assembly/assembly_templates_cylindrical_folding_17_cylinder_carving_rings_ring_6.gif) ring 6, 6 pieces | ![ring 8, 8 pieces](assembly/assembly_templates_cylindrical_folding_17_cylinder_carving_rings_ring_8.gif) ring 8, 8 pieces |
+
+<!-- assembly:end -->

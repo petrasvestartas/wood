@@ -99,6 +99,12 @@ inline TriangleFold::TriangleFold(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
         add(plate, plates);
+
+    // assembly: the gables and the corners between them raised, the plates over the middle one module put on them last
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    std::vector<AssemblyModule> whole = AssemblyModule::parts_of(std::vector<std::shared_ptr<FacePlanarElement>>(placed.begin(), placed.begin() + static_cast<std::ptrdiff_t>(2 * sides)));
+    whole.push_back(AssemblyModule::module("top", AssemblyModule::parts_of(std::vector<std::shared_ptr<FacePlanarElement>>(placed.begin() + static_cast<std::ptrdiff_t>(2 * sides), placed.end()))));
+    assemblies = {AssemblyModule::module(name, whole)};
 }
 
 inline const Mesh& TriangleFold::mesh() const {

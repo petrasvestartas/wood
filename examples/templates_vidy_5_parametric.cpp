@@ -14,15 +14,21 @@ void append_pavilion_copy(
     const Vector& delta = {0.0, 0.0, 0.0}
 ) {
 
+    std::map<std::string, std::string> copies;
     for (const std::shared_ptr<FacePlanarElement>& plate : pavilion.all_plates()) {
         std::shared_ptr<FacePlanarElement> copy =
             std::dynamic_pointer_cast<FacePlanarElement>(plate->clone());
+        copies[plate->guid()] = copy->guid();
 
         if (!delta.is_zero())
             copy->place(Xform::translation(delta[0], delta[1], delta[2]));
 
         session.add(copy, grp);
     }
+
+    // the pavilion's own assembly, on its copies where they stand
+    if (delta.is_zero() && grp->name == pavilion.name)
+        session.assemblies.push_back(pavilion.assemblies[0].of_copies(copies));
 }
 
 }

@@ -41,19 +41,14 @@ int main() {
         const double offset_y = (0.5 - static_cast<double>(row)) * pitch_y;
         const Xform shift = Xform::translation(offset_x, offset_y, 0.0);
 
-        for (const std::shared_ptr<Element>& elem : wood_vault::gothic_ribbed_vault(
-                 SPAN_X,
-                 SPAN_Y,
-                 RISE,
-                 RIB_WIDTH,
-                 RIB_HEIGHT,
-                 bays[i].pattern,
-                 bays[i].surface,
-                 SUBDIVISIONS
-             )) {
+        const std::vector<std::shared_ptr<Element>> elements = wood_vault::gothic_ribbed_vault(
+            SPAN_X, SPAN_Y, RISE, RIB_WIDTH, RIB_HEIGHT, bays[i].pattern, bays[i].surface, SUBDIVISIONS
+        );
+        for (const std::shared_ptr<Element>& elem : elements) {
             elem->place(shift);
             wood_session.add(elem, group);
         }
+        wood_session.assemblies.push_back(wood_vault::gothic_assembly(bays[i].name, elements));
 
         if (std::getenv("DUMP_SINGLE_BAYS") != nullptr) {
             wood_vault::GothicRibbedVault single_bay(

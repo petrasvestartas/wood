@@ -13,6 +13,10 @@ Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. 
     <img src="templates_reciprocal_2_move_assembly.webp" alt="Half-Edge Translation">
     <span class="wood-card-title">Half-Edge Translation</span>
   </a>
+  <a class="wood-card" href="#reciprocal_assembly_sequence">
+    <img src="assembly_templates_reciprocal_1_rotation.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -72,6 +76,20 @@ axes[i][j].line += bisector * shift;
 ![](templates/templates_reciprocal_2_move_frame.webp)
 
 ![](templates/templates_reciprocal_2_move_beams.webp)
+
+<!-- assembly:begin -->
+## Assembly Sequence {#reciprocal_assembly_sequence}
+
+The frame beam by beam, then the beams from the frame to the middle. A beam slides in along the direction nearest to straight down that its neighbours' side faces leave it, and would turn first where no slide is left: no beam of the two needs to. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Rotation**, 262 elements, 261 moves | | |
+| ![frame, 44 pieces](assembly/assembly_templates_reciprocal_1_rotation_frame.gif) frame, 44 pieces | ![reciprocal rotation, 219 pieces](assembly/assembly_templates_reciprocal_1_rotation.gif) reciprocal rotation, 219 pieces |  |
+| **Move**, 43 elements, 42 moves | | |
+| ![frame, 15 pieces](assembly/assembly_templates_reciprocal_2_move_frame.gif) frame, 15 pieces | ![reciprocal move, 29 pieces](assembly/assembly_templates_reciprocal_2_move.gif) reciprocal move, 29 pieces |  |
+
+<!-- assembly:end -->
 
 ## Examples {#reciprocal_examples}
 

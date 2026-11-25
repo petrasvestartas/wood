@@ -6,6 +6,9 @@ using namespace wood_session;
 
 namespace wood_module {
 
+/// How a panel of elements goes together: its frame members in the order they were made, then its sheets.
+AssemblyModule panel_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements);
+
 // ═══════════════════════════════════════════════════════════════════════════
 // FramedPanel
 // ═══════════════════════════════════════════════════════════════════════════

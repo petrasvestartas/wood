@@ -27,6 +27,11 @@ int main() {
         {1, 1, 1, 1},
         {132000.0, 126000.0, 3520.0}
     );
+
+    // the prototype's edge planes make some boxes bind, at the crown by under half a millimetre
+    chevron.assemblies[0].play = 2.5;
+    chevron.assemblies[1].play = 0.5;
+
     const std::vector<std::shared_ptr<FacePlanarElement>> plates =
         chevron.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << chevron << std::endl;

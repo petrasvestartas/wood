@@ -99,6 +99,14 @@ inline SingleFold::SingleFold(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, {Plane::xy_plane()}))
         add(plate, plates);
+
+    // assembly: the plates of every side of the plan make one side, the sides leaned on each other
+    const std::vector<std::shared_ptr<FacePlanarElement>> placed = get_elements_numbered<FacePlanarElement>("plate");
+    const size_t per_side = placed.size() / sides;
+    std::vector<size_t> keys;
+    for (size_t i = 0; i < placed.size(); i++)
+        keys.push_back(i / per_side);
+    assemblies = {AssemblyModule::module(name, AssemblyModule::modules_of("side", placed, keys))};
 }
 
 inline const Mesh& SingleFold::mesh() const {

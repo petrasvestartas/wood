@@ -1,0 +1,242 @@
+"""Write the Assembly section of every template page, docs/templates/<page>.md, between the assembly markers: how the templates
+of the page go together, and per example its modules' GIFs and the whole's (tools/render_template_assembly.py), with what its
+ModuleSequence found (the elements, modules, moves and turns of build/assembly_scenes/<example>*.txt).
+    python3 tools/assembly_docs.py
+"""
+
+import json
+import os
+import pathlib
+import re
+
+WOOD = pathlib.Path(__file__).resolve().parents[1]
+SCENES = pathlib.Path(os.environ.get("WOOD_BUILD", WOOD / "build")) / "assembly_scenes"
+IMAGES = WOOD / "docs/images/assembly"
+
+# Per page: how its templates go together, then per example its title and what its modules are.
+PAGES = {
+    "shells": (
+        "The plates between two profile points are raised from their two ends into one arch strip; every strip then moves straight off "
+        "the strip beside it, opening all its miters at once.",
+        [("templates_shells_1_translation_shell", "Translation shell"), ("templates_shells_2_custom_curves", "Custom curves")],
+    ),
+    "folding": (
+        "Plates meeting in miters, no joint: the plates under one fold, over one side of the plan or in one half arch go together first, "
+        "then these modules lean on each other. A module moves straight off the one other it touches; between two it slides down its miters.",
+        [
+            ("templates_folding_1_reflex_fold", "Reflex fold: one corrugated panel per segment of the section, raised to the crown"),
+            ("templates_folding_2_diamond_mesh", "Diamond mesh: plate by plate from both supports"),
+            ("templates_folding_3_prismatic_fold", "Prismatic fold: the plates lowered on the diaphragms"),
+            ("templates_folding_4_folded_barrel", "Folded barrel: the plates lowered on the two ends"),
+            ("templates_folding_5_counter_fold", "Counter fold: one ridge with its flanks at a time"),
+            ("templates_folding_6_elevated_fold", "Elevated fold"),
+            ("templates_folding_7_conical_fold", "Conical fold"),
+            ("templates_folding_8_two_hinged_frame", "Two-hinged frame: half arches, bays"),
+            ("templates_folding_10_three_hinged_arch", "Three-hinged arch: half arches, the crown plates, bays"),
+            ("templates_folding_34_a_frame", "A-frame: half arches, bays"),
+            ("templates_folding_12_square_fold", "Square fold: the plan's four sides"),
+            ("templates_folding_14_pyramid", "Pyramid"),
+            ("templates_folding_15_truncated_pyramid", "Truncated pyramid"),
+            ("templates_folding_36_folded_truncated_pyramid", "Folded truncated pyramid: four sides and the top"),
+            ("templates_folding_20_triangle_square", "Triangles over a square: gables, corners, the top one module"),
+            ("templates_folding_16_cross_fold", "Cross fold: four sectors"),
+            ("templates_folding_19_fold_composition", "Fold composition: the star from its sectors, the pyramids around it"),
+        ],
+    ),
+    "cylindrical_folding": (
+        "The lamellas one sheet is folded into by its reflections make one strip, raised from its feet; the strips go side by side. "
+        "Curved plates are swept as closed polyhedra through their four meridians.",
+        [
+            ("templates_cylindrical_folding_1_reflection", "Reflection"),
+            ("templates_cylindrical_folding_2_curved_folded_plate", "Curved folded plate arch: strips of five lamellas"),
+            ("templates_cylindrical_folding_3_mendrisio_pavilion", "Mendrisio pavilion"),
+            ("templates_cylindrical_folding_5_two_hinged_arch", "Two-hinged arch"),
+            ("templates_cylindrical_folding_7_a_frame", "A-frame"),
+            ("templates_cylindrical_folding_8_groin_vault", "Groin vault"),
+            ("templates_cylindrical_folding_9_pavilion_vault", "Pavilion vault: the walls stand, the lamellas lowered on them"),
+            ("templates_cylindrical_folding_12_octagon_vault", "Octagon vault"),
+            ("templates_cylindrical_folding_13_curved_folded_beam", "Curved folded beam: bottom, webs and sides, top"),
+            ("templates_cylindrical_folding_14_corner_fan", "Corner fan"),
+            ("templates_cylindrical_folding_16_cylinder_carving", "Cylinder carving: two and three carvers"),
+            ("templates_cylindrical_folding_17_cylinder_carving_rings", "Carving rings"),
+        ],
+    ),
+    "developable_folding": (
+        "Two neighbours on their curved crease make one fold; the folds go round or side by side.",
+        [
+            ("templates_developable_folding_1_curved_fold", "Curved fold tent roof"),
+            ("templates_developable_folding_2_curved_crease_unfolding", "Curved crease arch"),
+            ("templates_developable_folding_5_synclastic_unfolding", "Synclastic vault"),
+            ("templates_developable_folding_9_alternating_unfolding", "Alternating vault"),
+            ("templates_developable_folding_11_corrugated_dome", "Corrugated dome"),
+            ("templates_developable_folding_12_corrugated_funnel", "Corrugated funnel"),
+            ("templates_developable_folding_4_crease_quadrants", "Crease quadrants"),
+        ],
+    ),
+    "chevron": (
+        "Every box goes together from four plates: the two walls on their corner fingers along the box's up, then the two plates "
+        "along the box's insertion vector, their tenons into the walls. The boxes go in one after another along that one vector each. "
+        "The 4 x 4 crown block is swept like everything else, the whole shell with 1 mm of play where the turned and moved edge planes make "
+        "boxes bind; the MAX2 arch with 2.5 mm, its crown with 0.5 mm. The shifted chevron has no such sequence: its boxes' "
+        "plates enter their own two long walls along two different vectors (see below).",
+        [
+            ("templates_chevron_1_chevron", "Chevron: box, crown block, whole shell"),
+            ("templates_chevron_3_max2_arch", "MAX2 arch: box, crown block, whole shell"),
+        ],
+    ),
+    "cross": (
+        "`VdaMesh::assembly_order` peels the mesh face by face, always the face its remaining neighbours leave the widest way out of in its "
+        "own plane; the assembly is that order reversed. The connectors to a later plate are put on the earlier one first, then the later "
+        "plate slides onto all of them at once: `VdaMesh::assembly_lines` turns every edge's connectors along that slide. Square to their "
+        "edges, as without insertion lines, they lock every plate.",
+        [("templates_cross_2_assembly", "VDA mesh")],
+    ),
+    "module": (
+        "Panels, cassettes and rooms as they leave the shop: every frame member by member, the sheets on it, then the panels into a module "
+        "and the modules side by side and storey on storey.",
+        [
+            ("templates_module_1_wall", "Framed wall: rails, studs, headers and sills, a sheet on each face"),
+            ("templates_module_2_cassette_shell", "Cassette shell: bottom plate, edge beams, top plate"),
+            ("templates_module_3_cassette_house", "Cassette house"),
+            ("templates_module_4_room_module", "Room module: floor, walls, posts, ceiling"),
+            ("templates_module_5_module_block", "Module block"),
+            ("templates_module_6_bank_pavilion", "Bank pavilion"),
+        ],
+    ),
+    "reciprocal": (
+        "The frame beam by beam, then the beams from the frame to the middle. A beam slides in along the direction nearest to straight "
+        "down that its neighbours' side faces leave it, and would turn first where no slide is left: no beam of the two needs to.",
+        [("templates_reciprocal_1_rotation", "Rotation"), ("templates_reciprocal_2_move", "Move")],
+    ),
+    "grid": (
+        "Storey by storey, in each the columns and walls, their heads, girders, beams, purlins, braces and decks.",
+        [
+            ("templates_grid_1_bay_framing", "Bay framing"),
+            ("templates_grid_2_footprints", "Footprints"),
+            ("templates_grid_3_facades", "Facades"),
+            ("templates_grid_5_multistorey", "Multi-storey"),
+        ],
+    ),
+    "vault": (
+        "Block by block from the springings to the crown; the Gothic bays their support blocks, the ribs on them, the web panels on the "
+        "ribs. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, are "
+        "let down on the ribs unswept.",
+        [
+            ("templates_vault_1_arch", "Arch"),
+            ("templates_vault_2_barrel", "Barrel"),
+            ("templates_vault_4_dome", "Dome"),
+            ("templates_vault_5_wall", "Wall"),
+            ("templates_vault_6_cross_vault", "Cross vault"),
+            ("templates_vault_7_cloister_vault", "Cloister vault"),
+            ("templates_vault_9_gothic_ribbed_vault", "Gothic ribbed vaults"),
+        ],
+    ),
+    "plaited": (
+        "The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the "
+        "reciprocal arch its frame and its bars, without the pins hidden at both ends of every bar: four bars pinned round a cell along "
+        "their own axes lock each other.",
+        [
+            ("templates_plaited_1_flat_floor", "Flat floor"),
+            ("templates_plaited_2_arch", "Arch"),
+            ("templates_plaited_3_dome", "Dome"),
+            ("templates_plaited_4_hotwire_blocks", "Hot-wire blocks"),
+            ("templates_plaited_5_reciprocal_arch", "Reciprocal arch"),
+        ],
+    ),
+    "floor": (
+        "Every quarter on its column: the ribs fanned around the head, the blocks between them, the beams, the sections; the "
+        "oculus its ring beams, wedges and plate; then the wedges between the quarters, every pin along its own axis, and the beds over them.",
+        [("templates_floor_7_contacts_cantilevers", "Square floor"), ("templates_floor_8_rectangle", "Rectangular floor")],
+    ),
+    "vidy": (
+        "A bay is two walls and one roof. Each of the three goes together plate by plate, its tenons into the plates before it, a shell plate "
+        "along its one insertion vector where that is free. The roof is lowered on the walls, and the bays slide one after another along the hall.",
+        [
+            ("templates_vidy_4_section_joints", "Pavilion: wall, roof, bay, eleven bays"),
+            ("templates_vidy_5_parametric", "Parametric family"),
+            ("templates_vidy_6_origami_shapes", "Deep folded halls"),
+        ],
+    ),
+}
+COLUMNS = 3
+
+
+def words(kind: str) -> str:
+    """A module kind as its caption."""
+    return kind.replace("_", " ")
+
+
+def rows(example: str, title: str) -> list:
+    """The example's line, what was found and its GIFs, COLUMNS to a row."""
+    # the pictures there are, every assembly's modules in the order they go together, its whole last
+    names = []
+    for path in sorted(SCENES.glob(f"{example}.json")) + sorted(SCENES.glob(f"{example}_*.json")):
+        assembly = json.loads(path.read_text())
+        for module in assembly["modules"]:
+            whole = module["name"] == assembly["root"]
+            name = f"assembly_{path.stem}.gif" if whole else f"assembly_{path.stem}_{module['kind']}.gif"
+            caption = words(module["name"] if whole else module["kind"])
+            if (IMAGES / name).exists() and name not in [known for known, _ in names]:
+                names.append((name, f"{caption}, {len(module['moves'])} pieces"))
+    if not names:
+        return []
+    text = (SCENES / f"{example}.txt").read_text()
+    counts = re.findall(r"^\S+: (\d+) elements, (\d+) modules, (\d+) moves \((\d+) with a turn\)", text, re.M)
+    elements, _, moves, turns = [sum(int(count[k]) for count in counts) for k in range(4)]
+    said = f"{elements} elements, {moves} moves" + (f", {turns} with a turn" if turns else "")
+    lines = [f"| **{title}**, {said} |" + " |" * (COLUMNS - 1)]
+    for start in range(0, len(names), COLUMNS):
+        row = names[start:start + COLUMNS]
+        cells = [f"![{caption}](assembly/{name}) {caption}" for name, caption in row]
+        lines.append("| " + " | ".join(cells + [""] * (COLUMNS - len(row))) + " |")
+    return lines
+
+
+def main() -> None:
+    """Writes the section of every page, in place of the one between the markers, else before its examples or at its end."""
+    for page, (intro, examples) in PAGES.items():
+        path = WOOD / f"docs/templates/{page}.md"
+        text = path.read_text()
+        table = [line for example, title in examples for line in rows(example, title)]
+        anchor = f"{{#{page}_assembly_sequence}}"
+        section = "\n".join(
+            [
+                "<!-- assembly:begin -->",
+                f"## Assembly Sequence {anchor}",
+                "",
+                intro + " Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every "
+                "piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.",
+                "",
+                "| assembly |" + " |" * (COLUMNS - 1),
+                "|---" * COLUMNS + "|",
+                *table,
+                "",
+                "<!-- assembly:end -->",
+                "",
+            ]
+        )
+        if "<!-- assembly:begin -->" in text:
+            text = re.sub(r"<!-- assembly:begin -->.*?<!-- assembly:end -->\n", lambda match: section, text, flags=re.S)
+        else:
+            place = re.search(r"^## Examples \{#", text, re.M)
+            text = text[: place.start()] + section + "\n" + text[place.start():] if place else text.rstrip() + "\n\n" + section
+        # a card for it in the page's first card grid, its picture the first example's last: the whole
+        picture = []
+        for line in table[1:]:
+            if "](assembly/" not in line:
+                break
+            picture += re.findall(r"assembly/(assembly_\w+\.gif)", line)
+        text = re.sub(r'  <a class="wood-card" href="#\w+_assembly_sequence">.*?</a>\n', "", text, flags=re.S)
+        grid = re.search(r'<div class="wood-card-grid.*?\n</div>', text, re.S)
+        if picture and grid and grid.start() < text.index("<!-- assembly:begin -->"):
+            made = (
+                f'  <a class="wood-card" href="#{page}_assembly_sequence">\n    <img src="{picture[-1]}" alt="Assembly Sequence">\n'
+                '    <span class="wood-card-title">Assembly Sequence</span>\n  </a>\n'
+            )
+            text = text[: grid.end() - 6] + made + text[grid.end() - 6 :]
+        path.write_text(text)
+        print(path.relative_to(WOOD), len(table), "rows")
+
+
+if __name__ == "__main__":
+    main()

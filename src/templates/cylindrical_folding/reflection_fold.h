@@ -259,6 +259,18 @@ inline ReflectionFold::ReflectionFold(
 
     // contacts: every two lamellas that share a face, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: the lamellas one sheet is folded into by its reflections make one strip, raised from its feet, the strips put side by side
+    std::vector<AssemblyModule> strips;
+    const std::vector<std::shared_ptr<FaceCurvedElement>> placed = get_elements_placed<FaceCurvedElement>("lamella");
+    for (size_t i = 0; i < profile.size(); i++) {
+        std::vector<AssemblyModule> strip;
+        for (const std::shared_ptr<FaceCurvedElement>& lamella : placed)
+            if (lamella->name.ends_with(fmt::format("_{}", i)))
+                strip.push_back(AssemblyModule::part(lamella));
+        strips.push_back(AssemblyModule::raise(fmt::format("strip_{}", i), strip));
+    }
+    assemblies = {profile.size() == 1 ? AssemblyModule::raise(name, strips[0].parts) : AssemblyModule::module(name, strips)};
 }
 
 inline double ReflectionFold::parameter(const NurbsCurve& curve, size_t k) const {

@@ -100,6 +100,9 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     int subdivisions = 16
 );
 
+/// How a Gothic bay goes together: the support blocks stand, the ribs raised on them, the web panels laid on the ribs.
+wood_session::AssemblyModule gothic_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements);
+
 /// A WoodSession template wrapping a Gothic ribbed vault bay of mitered EdgeCurvedElement ribs, corner support blocks, and cylindrical web panels.
 class GothicRibbedVault : public wood_session::WoodSession {
 public:

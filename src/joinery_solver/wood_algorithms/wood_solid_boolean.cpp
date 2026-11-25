@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "wood_solid_body.h"
 #include "wood_element_geometry.h"
 #include "remesh_cdt.h"
 #include <manifold/manifold.h>
@@ -720,6 +721,68 @@ Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {
     return from_manifold(
         largest_piece(manifold::Manifold::BatchBoolean(solids, manifold::OpType::Subtract))
     );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SolidBody
+// ═══════════════════════════════════════════════════════════════════════════
+
+SolidBody::SolidBody(const Mesh& mesh) {
+
+    if (!mesh.number_of_faces())
+        return;
+
+    bounds = AABB::from_mesh(mesh);
+    const manifold::Manifold built = build_manifold(mesh, 0);
+    if (built.Status() != manifold::Manifold::Error::NoError || built.IsEmpty())
+        return;
+
+    // one body: overlapping shells of one element are one solid, a cavity stays one
+    const std::vector<manifold::Manifold> bodies = built.Decompose();
+    bool cavity = false;
+    for (const manifold::Manifold& body : bodies)
+        cavity = cavity || body.Volume() < 0.0;
+    solid = std::make_shared<const manifold::Manifold>(bodies.size() > 1 && !cavity ? manifold::Manifold::BatchBoolean(bodies, manifold::OpType::Add) : built);
+}
+
+bool SolidBody::is_solid() const {
+    return solid != nullptr;
+}
+
+const AABB& SolidBody::box() const {
+    return bounds;
+}
+
+AABB SolidBody::box_at(const Xform& placed) const {
+
+    std::vector<Point> corners;
+    for (const Point& corner : bounds.get_corners())
+        corners.push_back(corner.transformed(placed));
+
+    return AABB::from_points(corners);
+}
+
+/// The Manifold placed by placed.
+static manifold::Manifold placed_manifold(const manifold::Manifold& solid, const Xform& placed) {
+
+    manifold::mat3x4 matrix;
+    for (int row = 0; row < 3; row++)
+        for (int column = 0; column < 4; column++)
+            matrix[column][row] = placed(row, column);
+
+    return solid.Transform(matrix);
+}
+
+SharedWood SolidBody::shared_with(const SolidBody& other, const Xform& placed, const Xform& other_placed) const {
+
+    if (!solid || !other.solid)
+        return {};
+
+    const manifold::Manifold common = placed_manifold(*solid, placed) ^ placed_manifold(*other.solid, other_placed);
+    const double volume = common.Volume();
+    const double area = common.SurfaceArea();
+
+    return {volume, area > 0.0 ? 2.0 * volume / area : 0.0};
 }
 
 }

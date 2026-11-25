@@ -21,6 +21,10 @@ Translational plate shells in `src/templates/shells/translation_shell.h`. `Trans
     <img src="templates_shells_1_translation_shell_plates.webp" alt="Mitered Plates">
     <span class="wood-card-title">Mitered Plates</span>
   </a>
+  <a class="wood-card" href="#shells_assembly_sequence">
+    <img src="assembly_templates_shells_1_translation_shell.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -97,6 +101,20 @@ The same shell from a cross section and a profile you give: the section swept al
 ![](examples/templates_shells_2_custom_curves.png)
 
 \include{lineno} templates_shells_2_custom_curves.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#shells_assembly_sequence}
+
+The plates between two profile points are raised from their two ends into one arch strip; every strip then moves straight off the strip beside it, opening all its miters at once. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Translation shell**, 110 elements, 109 moves | | |
+| ![strip, 10 pieces](assembly/assembly_templates_shells_1_translation_shell_strip.gif) strip, 10 pieces | ![translation shell, 11 pieces](assembly/assembly_templates_shells_1_translation_shell.gif) translation shell, 11 pieces |  |
+| **Custom curves**, 16 elements, 15 moves | | |
+| ![strip, 4 pieces](assembly/assembly_templates_shells_2_custom_curves_strip.gif) strip, 4 pieces | ![custom translation shell, 4 pieces](assembly/assembly_templates_shells_2_custom_curves.gif) custom translation shell, 4 pieces |  |
+
+<!-- assembly:end -->
 
 ## Examples {#shells_examples}
 

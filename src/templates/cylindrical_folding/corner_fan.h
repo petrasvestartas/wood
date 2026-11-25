@@ -117,6 +117,9 @@ inline CornerFan::CornerFan(
 
     // contacts: every two strips that share a fold, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: the strips from one side of the square to the other
+    assemblies = {AssemblyModule::module(name, AssemblyModule::parts_of(get_elements_numbered<FaceCurvedElement>("strip")))};
 }
 
 inline std::vector<Point> CornerFan::compute_tops() const {

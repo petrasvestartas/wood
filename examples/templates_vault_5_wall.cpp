@@ -19,6 +19,7 @@ int main() {
         wood_session.add(element);
 
     wood_session.compute_face_contacts(0);
+    wood_session.assemblies = {AssemblyModule::raise(wood_session.name, AssemblyModule::parts_of(wood_session.get_elements<Element>()))};
 
     std::cout << fmt::format(
         "wall: {} bricks, {} contacts\n",

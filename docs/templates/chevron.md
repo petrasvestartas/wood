@@ -29,6 +29,10 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
     <img src="templates_chevron_3_max2_arch_joints.webp" alt="MAX2 Arch">
     <span class="wood-card-title">MAX2 Arch</span>
   </a>
+  <a class="wood-card" href="#chevron_assembly_sequence">
+    <img src="assembly_templates_chevron_1_chevron_chevron_crown.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -270,6 +274,21 @@ for (size_t k = 0; k < edges.size(); k++) {
 ![Shifted assembly](images/templates/templates_chevron_5_shifted_assembly.gif)
 
 Christopher's chevron tenons are prisms along their own box's vector, and the chevron and MAX2 shells assemble as rigid boxes: on the first Annen surface 184 boxes in order, 22 plate pairs meeting along the way, 18 of them deeper than 1 mm and the deepest 6.67 mm, all but one at the end of the way with points inside each other in place, the overlaps the turned and moved edge planes give neighbouring plates; the MAX2 arch 200 boxes, 27 pairs, the deepest 7.67 mm, 23 of them in place and four binding by up to 2.1 mm over the last 20 mm. The shifted cells do not. A plate's tenons into the wall of a neighbouring cell are cut along that cell's insertion vector, which lies in the neighbour's plane; the surface turns between the two cells, so in the plate's own plane the tenon axis is off by that turn, about 3 degrees at the feet, and a box slid in along one vector binds by a couple of millimetres across the wall. `Annen2.3dm` has exactly the same tenons, so the template reproduces them rather than correcting them. An even cell's outward long wall takes its own plates' tenons along the odd neighbour's vector, which is right for the order: that wall is in place before the odd plates slide their tenons into it. What blocked the boxes was the steps of the odd plates where the long walls of two cells of a column meet end to end: a step of up to 100 mm into the slab the lower wall sweeps through on its last 50 mm of travel, 20 mm deep, the full half thickness, at every such junction. With the steps cut along the movers' vectors and the first quads' plates stepped in under their neighbours' walls, which the definition left overlapping them by a thickness, the sweep finds 849 plate pairs meeting, 668 deeper than 1 mm, 39 deeper than 5 mm and none deeper than 8.3 mm: the tenons' lean, and the left steps of two columns the rule leaves uncut. The picture shows the order the tenons dictate. The odd cells cannot be made 4-plate modules by giving each the right wall of the even cell beside it: that wall serves the odd cells above and below it, so whichever carries it sweeps it through the other's plates along the column or through the even cell's plates across it, as the sweep showed when it was tried; the shelves stay 3 plates held by their neighbours' walls.
+
+<!-- assembly:begin -->
+## Assembly Sequence {#chevron_assembly_sequence}
+
+Every box goes together from four plates: the two walls on their corner fingers along the box's up, then the two plates along the box's insertion vector, their tenons into the walls. The boxes go in one after another along that one vector each. The 4 x 4 crown block is swept like everything else, the whole shell with 1 mm of play where the turned and moved edge planes make boxes bind; the MAX2 arch with 2.5 mm, its crown with 0.5 mm. The shifted chevron has no such sequence: its boxes' plates enter their own two long walls along two different vectors (see below). Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Chevron: box, crown block, whole shell**, 800 elements, 798 moves | | |
+| ![box, 4 pieces](assembly/assembly_templates_chevron_1_chevron_chevron_box.gif) box, 4 pieces | ![chevron, 184 pieces](assembly/assembly_templates_chevron_1_chevron_chevron.gif) chevron, 184 pieces | ![chevron crown, 16 pieces](assembly/assembly_templates_chevron_1_chevron_chevron_crown.gif) chevron crown, 16 pieces |
+| **MAX2 arch: box, crown block, whole shell**, 864 elements, 862 moves | | |
+| ![box, 4 pieces](assembly/assembly_templates_chevron_3_max2_arch_chevron_box.gif) box, 4 pieces | ![chevron, 200 pieces](assembly/assembly_templates_chevron_3_max2_arch_chevron.gif) chevron, 200 pieces | ![box, 4 pieces](assembly/assembly_templates_chevron_3_max2_arch_chevron_crown_box.gif) box, 4 pieces |
+| ![chevron crown, 16 pieces](assembly/assembly_templates_chevron_3_max2_arch_chevron_crown.gif) chevron crown, 16 pieces |  |  |
+
+<!-- assembly:end -->
 
 ## Examples {#chevron_examples}
 

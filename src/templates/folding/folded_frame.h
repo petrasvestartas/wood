@@ -107,6 +107,25 @@ inline FoldedFrame::FoldedFrame(
 
     for (const std::shared_ptr<FacePlanarElement>& plate : offset_plates(_mesh, thickness, sides))
         add(plate, plates);
+
+    // assembly: per bay its two half arches, each folded from its plates foot to crown, leaned on each other, the crown plates
+    // over both after them, the bays one after another
+    const double middle = zigzag[zigzag.point_count() - 1][0];
+    std::vector<std::array<std::vector<AssemblyModule>, 3>> halves(bays);
+    for (const std::shared_ptr<FacePlanarElement>& plate : get_elements_numbered<FacePlanarElement>("plate")) {
+        const Point centre = AABB::from_polyline(plate->polylines[0]).center();
+        const size_t b = std::min(static_cast<size_t>(std::max(centre[1] / bay, 0.0)), bays - 1);
+        halves[b][std::abs(centre[0] - middle) < 1.0 ? 2 : centre[0] < middle ? 0 : 1].push_back(AssemblyModule::part(plate));
+    }
+    std::vector<AssemblyModule> bay_modules;
+    for (size_t b = 0; b < bays; b++) {
+        std::vector<AssemblyModule> pieces;
+        for (size_t side = 0; side < 2; side++)
+            pieces.push_back(AssemblyModule::raise(fmt::format("half_arch_{}_{}", b, side), halves[b][side]));
+        pieces.insert(pieces.end(), halves[b][2].begin(), halves[b][2].end());
+        bay_modules.push_back(AssemblyModule::module(fmt::format("bay_{}", b), pieces));
+    }
+    assemblies = {AssemblyModule::module(name, bay_modules)};
 }
 
 inline const Mesh& FoldedFrame::mesh() const {
@@ -233,5 +252,9 @@ inline Mesh FoldedFrame::compute_mesh() const {
                 }
             }
 
-    return Mesh::from_vertices_and_faces(fold.points(), faces);
+    // neighbours wound alike: the first face's side, where a fold is so sharp that the inside tells its two faces apart
+    Mesh mesh = Mesh::from_vertices_and_faces(fold.points(), faces);
+    mesh.unify_winding();
+
+    return mesh;
 }

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "wood_session.h"
 #include "wood_assembly_sequence.h"
+#include "wood_module_sequence.h"
 #include "wood_contact_detection.h"
 #include "wood_feature_detection_beam.h"
 #include "wood_session.pb.h"
@@ -1232,6 +1233,17 @@ void WoodSession::pb_dump(const std::string& filename) {
     const char* assembly = std::getenv("WOOD_ASSEMBLY");
     if (!assembly)
         return;
+
+    // a template's modules: a file per assembly, named after it when there are several, for tools/render_template_assembly.py
+    for (const AssemblyModule& whole : assemblies) {
+        const ModuleSequence sequence(*this, whole, 10.0, whole.play);
+        const std::filesystem::path path(assembly);
+        sequence.json_dump(assemblies.size() == 1 ? path.string() : (path.parent_path() / fmt::format("{}_{}.json", path.stem().string(), whole.name)).string());
+        std::cout << sequence;
+    }
+    if (!assemblies.empty())
+        return;
+
     const std::vector<std::shared_ptr<JointElement>> joints = get_elements<JointElement>();
     for (const std::shared_ptr<Element>& element : elements()) {
         const bool joint = std::dynamic_pointer_cast<JointElement>(element) && !std::dynamic_pointer_cast<JointConnectorPartElement>(element);
@@ -1496,6 +1508,8 @@ void WoodSession::graft(const WoodSession& other, std::shared_ptr<TreeNode> pare
 
     if (search)
         adjacency.clear();
+
+    assemblies.insert(assemblies.end(), other.assemblies.begin(), other.assemblies.end());
 }
 
 WoodSession WoodSession::get_branch(const std::string& name) const {
@@ -1504,6 +1518,14 @@ WoodSession WoodSession::get_branch(const std::string& name) const {
     static_cast<Session&>(part) = Session::get_branch(name);
     part.settings = settings;
     append_plate_lists(part, plate_guids(*this), adjacency, three_valence);
+
+    for (const AssemblyModule& whole : assemblies) {
+        bool inside = true;
+        for (const std::string& guid : whole.every_element())
+            inside = inside && part.get_element<Element>(guid) != nullptr;
+        if (inside)
+            part.assemblies.push_back(whole);
+    }
 
     for (const std::shared_ptr<JointBeamElement>& connector : get_elements<JointBeamElement>()) {
         if (!connector->pre_drill || part.get_element<JointBeamElement>(connector->guid()))

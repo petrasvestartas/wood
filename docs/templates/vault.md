@@ -53,6 +53,10 @@ Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates
     <img src="templates_vault_7_cloister_vault_all.webp" alt="Cloister Vault">
     <span class="wood-card-title">Cloister Vault</span>
   </a>
+  <a class="wood-card" href="#vault_assembly_sequence">
+    <img src="assembly_templates_vault_1_arch.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ---
@@ -192,3 +196,28 @@ Six symmetric shallow (1:10 rise-to-span, 10 m x 10 m span, 1 m rise) Gothic cat
 6. fan_conoid_gloucester  — Radiating fan vault with straight horizontal collar ribs along cylinder rulings (compas_tno / Gloucester, 4 blocks + 50 ribs + 48 cylindrical web panels = 102 elements)
 
 \include{lineno} templates_vault_9_gothic_ribbed_vault.cpp
+
+<!-- assembly:begin -->
+## Assembly Sequence {#vault_assembly_sequence}
+
+Block by block from the springings to the crown; the Gothic bays their support blocks, the ribs on them, the web panels on the ribs. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, are let down on the ribs unswept. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Arch**, 25 elements, 24 moves | | |
+| ![vault arch, 25 pieces](assembly/assembly_templates_vault_1_arch.gif) vault arch, 25 pieces |  |  |
+| **Barrel**, 58 elements, 57 moves | | |
+| ![vault barrel, 58 pieces](assembly/assembly_templates_vault_2_barrel.gif) vault barrel, 58 pieces |  |  |
+| **Dome**, 800 elements, 799 moves | | |
+| ![vault dome, 800 pieces](assembly/assembly_templates_vault_4_dome.gif) vault dome, 800 pieces |  |  |
+| **Wall**, 105 elements, 104 moves | | |
+| ![vault wall, 105 pieces](assembly/assembly_templates_vault_5_wall.gif) vault wall, 105 pieces |  |  |
+| **Cross vault**, 184 elements, 183 moves | | |
+| ![vault cross vault, 184 pieces](assembly/assembly_templates_vault_6_cross_vault.gif) vault cross vault, 184 pieces |  |  |
+| **Cloister vault**, 304 elements, 303 moves | | |
+| ![vault cloister vault, 304 pieces](assembly/assembly_templates_vault_7_cloister_vault.gif) vault cloister vault, 304 pieces |  |  |
+| **Gothic ribbed vaults**, 352 elements, 346 moves | | |
+| ![fan conoid gloucester, 102 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_fan_conoid_gloucester.gif) fan conoid gloucester, 102 pieces | ![lierne star ely, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_lierne_star_ely.gif) lierne star ely, 70 pieces | ![net reticulated parler, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_net_reticulated_parler.gif) net reticulated parler, 70 pieces |
+| ![quadripartite wells, 22 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_quadripartite_wells.gif) quadripartite wells, 22 pieces | ![star stellar burgos, 50 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_star_stellar_burgos.gif) star stellar burgos, 50 pieces | ![tierceron exeter, 38 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_tierceron_exeter.gif) tierceron exeter, 38 pieces |
+
+<!-- assembly:end -->

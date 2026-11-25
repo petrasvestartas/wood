@@ -21,6 +21,10 @@ Segmented plate shells joined across interior edges by cross-slotted connector p
     <img src="templates_cross_1_vda_mesh_all.webp" alt="Cross-Lap Assembly">
     <span class="wood-card-title">Cross-Lap Assembly</span>
   </a>
+  <a class="wood-card" href="#cross_assembly_sequence">
+    <img src="assembly_templates_cross_2_assembly.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Parameters
@@ -88,6 +92,18 @@ for (int k = 1; k <= divisions; k++) {
 
 ![](templates/templates_cross_1_vda_mesh_all.webp)
 
+<!-- assembly:begin -->
+## Assembly Sequence {#cross_assembly_sequence}
+
+`VdaMesh::assembly_order` peels the mesh face by face, always the face its remaining neighbours leave the widest way out of in its own plane; the assembly is that order reversed. The connectors to a later plate are put on the earlier one first, then the later plate slides onto all of them at once: `VdaMesh::assembly_lines` turns every edge's connectors along that slide. Square to their edges, as without insertion lines, they lock every plate. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **VDA mesh**, 73 elements, 72 moves | | |
+| ![vda mesh, 73 pieces](assembly/assembly_templates_cross_2_assembly.gif) vda mesh, 73 pieces |  |  |
+
+<!-- assembly:end -->
+
 ## Examples {#cross_examples}
 
 ### 1 VDA Mesh {#cross_example_1}
@@ -95,3 +111,9 @@ for (int k = 1; k <= divisions; k++) {
 The vda mesh template on its default fifteen-face dome, 40 thick plates and 300 x 300 x 40 connectors: the welded mesh, the face, edge and bisector planes, one plate per face cut back by its edge planes so neighbours meet in miters, two connector frames and plates across every interior edge, and a cross slot (JointPlate::cross_slot) where every connector passes through each of its two face plates, merged into both outlines; each step in its group.
 
 \include{lineno} templates_cross_1_vda_mesh.cpp
+
+### 2 Assembly {#cross_example_2}
+
+The same dome made to go together: the connectors of every edge turned along the slide of its later face (`VdaMesh::assembly_lines`), so a plate slides onto all of its connectors at once, in the order of `VdaMesh::assembly_order`.
+
+\include{lineno} templates_cross_2_assembly.cpp

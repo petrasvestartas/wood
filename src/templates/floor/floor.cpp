@@ -26,6 +26,90 @@ Floor::Floor(const FloorGuide& guide, const std::string& name) : WoodSession(nam
     // connectors: per quarter its wedges, column plates with their cross lap, centred and headed pins, all built on uncut members
     const std::array<QuarterConnectors, 4> connectors = compute_connectors(contacts);
     add_connectors(connectors, contacts);
+
+    // assembly: per quarter its column, the column plates, ribs, blocks, beams, sections and beds; the oculus; the wedges between them, the pins
+    assemblies = {compute_assembly()};
+}
+
+AssemblyModule Floor::compute_assembly() const {
+
+    std::vector<AssemblyModule> whole;
+    std::set<std::string> pinned;
+
+    // quarters: each on its column, its ribs, blocks, beams and sections, the pins between them
+    for (size_t q = 0; q < 4; q++) {
+        std::vector<std::shared_ptr<Element>> members = {get_element_by_name<Element>(fmt::format("support_{}", q)), get_element_by_name<Element>(fmt::format("column_{}", q))};
+        for (const std::string family : {"outer_ribs", "wedges", "inner_ribs", "inner_beams", "tsections"})
+            for (const std::shared_ptr<Element>& member : get_elements_under<Element>(fmt::format("{}_{}", family, q)))
+                members.push_back(member);
+        for (size_t k = 0; k < 2; k++)
+            if (const std::shared_ptr<Element> plate = get_element_by_name<FacePlanarElement>(fmt::format("column_plate_{}_{}", q, k)))
+                members.push_back(plate);
+        std::vector<AssemblyModule> quarter = AssemblyModule::parts_of(members);
+        const std::vector<AssemblyModule> pins = pin_parts(members, pinned);
+        quarter.insert(quarter.end(), pins.begin(), pins.end());
+        whole.push_back(AssemblyModule::module(fmt::format("quarter_{}", q), quarter));
+    }
+
+    // oculus: the ring beams, the wedges under the plate, the plate, the pins between them
+    std::vector<std::shared_ptr<Element>> members;
+    for (const std::string family : {"ring_beams", "bottom_wedges", "central_plate"})
+        for (const std::shared_ptr<Element>& member : get_elements_under<Element>(family))
+            members.push_back(member);
+    std::vector<AssemblyModule> oculus = AssemblyModule::parts_of(members);
+    const std::vector<AssemblyModule> oculus_pins = pin_parts(members, pinned);
+    oculus.insert(oculus.end(), oculus_pins.begin(), oculus_pins.end());
+    whole.push_back(AssemblyModule::module("oculus", oculus));
+
+    // connectors: the wedges between the quarters and to the oculus, then every pin left
+    for (const std::shared_ptr<JointConnectorPartElement>& part : get_elements<JointConnectorPartElement>()) {
+        whole.push_back(AssemblyModule::part(part));
+        members.push_back(part);
+    }
+    const std::vector<AssemblyModule> pins = pin_parts({}, pinned);
+    whole.insert(whole.end(), pins.begin(), pins.end());
+
+    // beds: laid last, the pins' ends under them
+    for (size_t q = 0; q < 4; q++)
+        for (const std::shared_ptr<Element>& bed : get_elements_under<Element>(fmt::format("beds_{}", q)))
+            whole.push_back(AssemblyModule::part(bed));
+
+    return AssemblyModule::module(name, whole);
+}
+
+std::vector<AssemblyModule> Floor::pin_parts(const std::vector<std::shared_ptr<Element>>& members, std::set<std::string>& pinned) const {
+
+    std::set<std::string> inside;
+    for (const std::shared_ptr<Element>& member : members)
+        inside.insert(member->guid());
+
+    std::vector<AssemblyModule> parts;
+    for (const std::shared_ptr<JointBeamElement>& connector : get_elements<JointBeamElement>()) {
+        bool between = !pinned.count(connector->guid());
+        for (const std::string& target : connector->targets)
+            between = between && (inside.empty() || inside.count(target));
+        if (!between)
+            continue;
+        pinned.insert(connector->guid());
+
+        // the pins of one connector along one line go in together
+        std::vector<std::pair<Vector, std::vector<std::shared_ptr<Element>>>> parallel;
+        for (const std::shared_ptr<JointPinElement>& pin : get_elements_under<JointPinElement>(connector->guid())) {
+            const Vector along = pin->axis().to_vector().normalized();
+            bool placed = false;
+            for (std::pair<Vector, std::vector<std::shared_ptr<Element>>>& group : parallel)
+                if (!placed && std::abs(group.first.dot(along)) > 0.999) {
+                    group.second.push_back(pin);
+                    placed = true;
+                }
+            if (!placed)
+                parallel.push_back({along, {pin}});
+        }
+        for (const std::pair<Vector, std::vector<std::shared_ptr<Element>>>& group : parallel)
+            parts.push_back(AssemblyModule::part(connector->name + "_pins", group.second, {group.first, group.first * -1.0}));
+    }
+
+    return parts;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

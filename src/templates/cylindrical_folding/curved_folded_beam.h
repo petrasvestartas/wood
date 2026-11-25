@@ -99,6 +99,12 @@ inline CurvedFoldedBeam::CurvedFoldedBeam(
 
     // contacts: every two plates that share a face, found by the session's contact detection
     compute_face_contacts(0);
+
+    // assembly: every beam from its bottom, its webs and sides and its top, the beams put side by side
+    std::vector<AssemblyModule> beams;
+    for (size_t b = 0; b < count; b++)
+        beams.push_back(AssemblyModule::raise(fmt::format("beam_{}", b), AssemblyModule::parts_of(get_elements_numbered<FaceCurvedElement>(fmt::format("beam_{}", b)))));
+    assemblies = {AssemblyModule::module(name, beams)};
 }
 
 inline std::array<std::vector<Point>, 2> CurvedFoldedBeam::compute_corner() const {

@@ -220,6 +220,34 @@ const BRep& FaceCurvedElement::element_geometry_brep() const {
     return *_element_geometry_brep;
 }
 
+Mesh FaceCurvedElement::closed_mesh(size_t divisions) const {
+
+    // per station its four corners, outer a, outer b, inner b, inner a
+    const std::array<const NurbsCurve*, 4> meridians = {&outer_a, &outer_b, &inner_b, &inner_a};
+    std::vector<Point> points;
+    for (size_t k = 0; k <= divisions; k++)
+        for (const NurbsCurve* meridian : meridians) {
+            const double share = static_cast<double>(k) / static_cast<double>(divisions);
+            points.push_back(meridian->point_at(meridian->domain_start() + (meridian->domain_end() - meridian->domain_start()) * share));
+        }
+
+    // two triangles per patch and division, both sides of a shared crease along the same diagonal, then the caps
+    std::vector<std::vector<size_t>> faces = {{0, 2, 1}, {0, 3, 2}};
+    for (size_t k = 0; k < divisions; k++)
+        for (size_t side = 0; side < 4; side++) {
+            const size_t a = 4 * k + side;
+            const size_t b = 4 * k + (side + 1) % 4;
+            faces.push_back({a, b, b + 4});
+            faces.push_back({a, b + 4, a + 4});
+        }
+    const size_t last = 4 * divisions;
+    faces.push_back({last, last + 1, last + 2});
+    faces.push_back({last, last + 2, last + 3});
+    const Mesh solid = Mesh::from_vertices_and_faces(points, faces);
+
+    return cut_mesh(solid, feature_planes());
+}
+
 void FaceCurvedElement::place(const Xform& xform) {
 
     Element::place(xform);

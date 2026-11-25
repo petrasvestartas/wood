@@ -29,6 +29,10 @@ Developable [Curved Plate](@ref elements_face_curved) structures including ruled
     <img src="templates_developable_folding_4_crease_quadrants_quadrant_1.webp" alt="Crease Quadrants">
     <span class="wood-card-title">Crease Quadrants</span>
   </a>
+  <a class="wood-card" href="#developable_folding_assembly_sequence">
+    <img src="assembly_templates_developable_folding_1_curved_fold.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
 
 ## Flat Unfolding Check {#development}
@@ -128,6 +132,31 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 ```cpp
 CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
 ```
+
+<!-- assembly:begin -->
+## Assembly Sequence {#developable_folding_assembly_sequence}
+
+Two neighbours on their curved crease make one fold; the folds go round or side by side. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Curved fold tent roof**, 24 elements, 23 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_1_curved_fold_fold.gif) fold, 2 pieces | ![curved fold, 12 pieces](assembly/assembly_templates_developable_folding_1_curved_fold.gif) curved fold, 12 pieces |  |
+| **Curved crease arch**, 4 elements, 3 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_2_curved_crease_unfolding_fold.gif) fold, 2 pieces | ![curved crease unfolding, 2 pieces](assembly/assembly_templates_developable_folding_2_curved_crease_unfolding.gif) curved crease unfolding, 2 pieces |  |
+| **Synclastic vault**, 4 elements, 3 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_5_synclastic_unfolding_fold.gif) fold, 2 pieces | ![curved crease unfolding, 2 pieces](assembly/assembly_templates_developable_folding_5_synclastic_unfolding.gif) curved crease unfolding, 2 pieces |  |
+| **Alternating vault**, 4 elements, 3 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_9_alternating_unfolding_fold.gif) fold, 2 pieces | ![curved crease unfolding, 2 pieces](assembly/assembly_templates_developable_folding_9_alternating_unfolding.gif) curved crease unfolding, 2 pieces |  |
+| **Corrugated dome**, 24 elements, 23 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_11_corrugated_dome_fold.gif) fold, 2 pieces | ![curved crease unfolding, 12 pieces](assembly/assembly_templates_developable_folding_11_corrugated_dome.gif) curved crease unfolding, 12 pieces |  |
+| **Corrugated funnel**, 32 elements, 31 moves | | |
+| ![fold, 2 pieces](assembly/assembly_templates_developable_folding_12_corrugated_funnel_fold.gif) fold, 2 pieces | ![curved crease unfolding, 16 pieces](assembly/assembly_templates_developable_folding_12_corrugated_funnel.gif) curved crease unfolding, 16 pieces |  |
+| **Crease quadrants**, 8 elements, 4 moves | | |
+| ![quadrant 1, 2 pieces](assembly/assembly_templates_developable_folding_4_crease_quadrants_quadrant_1.gif) quadrant 1, 2 pieces | ![quadrant 2, 2 pieces](assembly/assembly_templates_developable_folding_4_crease_quadrants_quadrant_2.gif) quadrant 2, 2 pieces | ![quadrant 3, 2 pieces](assembly/assembly_templates_developable_folding_4_crease_quadrants_quadrant_3.gif) quadrant 3, 2 pieces |
+| ![quadrant 4, 2 pieces](assembly/assembly_templates_developable_folding_4_crease_quadrants_quadrant_4.gif) quadrant 4, 2 pieces |  |  |
+
+<!-- assembly:end -->
 
 ## Examples {#developable_folding_examples}
 

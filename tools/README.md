@@ -14,6 +14,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | `images/templates/truss_*.png`, `templates_truss_1_pratt.png` | `bash tools/render_template_pictures.sh truss` (each library truss and the joinery's nodes close up, drawn by `render_element_pictures.py --scenes` / `--close` like the joint library: see-through, as dark as solid; native renderer) |
 | `images/templates/truss_bow_*.webp` | `bash tools/render_template_pictures.sh bow` |
 | `images/templates/*_assembly.gif` | `python tools/render_assembly_gif.py <example>` (the one tool that does not use the browser: it needs the viewer crate's native renderer for a fixed camera) |
+| `images/assembly/` | `python3 tools/render_template_assembly.py <example> ...` (every template's assembly, run with `WOOD_ASSEMBLY` for its `ModuleSequence`: a GIF per kind of module and one of the whole; native renderer), then `python3 tools/assembly_docs.py` for the pages' sections |
 | `images/joint_library/assembly_*.png`, `.gif` | `python3 tools/render_family_gifs.py [example ...]` (every example of the plate and beam joint pages, run with `WOOD_ASSEMBLY` for its assembly order, drawn apart and taken in one by one like the library's joints) |
 | `images/joint_library/beam_*.png` | `python3 tools/render_joint_library.py [design ...]` (every record of data/joints/*.yaml on a square and an inclined corner; native renderer) |
 | `images/templates/templates_truss_5_carpentry_assembly.gif` | `python3 tools/render_joint_assembly_gif.py templates_truss_5_carpentry_assembly` (an AssemblySequence's order and directions, apart, in one by one, out in reverse; native renderer) |
@@ -36,6 +37,7 @@ Not yet made by a recipe (listed in `UNRECIPED` in `check_element_pages.py`): `t
 - `render_scene_picture.py`: one written scene file as one picture.
 - `render_element_pictures.py`: draws a scene the way the joint library draws its joints (see-through, as dark as solid, one
   isometric camera, 960 x 640): an example's scene, scene files (`--scenes`), or one point close up (`--close`).
+- `assembly_docs.py`: writes the Assembly Sequence section of every template page from the GIFs above and what the runs reported.
 - `truss_docs.py`: writes the truss galleries of `docs/templates/truss.md` from the truss data and the pictures above.
 
 ## Everything else

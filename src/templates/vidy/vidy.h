@@ -109,6 +109,12 @@ private:
 
     /// Adds all inner and outer shell plates and cavity border boards to their session groups.
     void add_plates();
+
+    /// How the pavilion goes together: per bay two walls and a roof of plates.
+    AssemblyModule compute_assembly() const;
+
+    /// The module of the facets' inner plates, their cavity boards and their outer plates, in that order.
+    AssemblyModule facets_module(const std::string& module, const std::vector<size_t>& facets) const;
 };
 
 }

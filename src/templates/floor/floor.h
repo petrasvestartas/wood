@@ -107,6 +107,12 @@ private:
         const std::array<QuarterContacts, 4>& contacts
     );
 
+    /// How the floor goes together: the quarters each on its column, the oculus, the wedges and the pins.
+    AssemblyModule compute_assembly() const;
+
+    /// The pins of every connector not in pinned whose targets all are members (any, when members is empty), the parallel ones of a connector one part; adds the connectors to pinned.
+    std::vector<AssemblyModule> pin_parts(const std::vector<std::shared_ptr<Element>>& members, std::set<std::string>& pinned) const;
+
     /// The quarter's group, made the first time.
     std::shared_ptr<TreeNode> quarter_group(size_t q);
 

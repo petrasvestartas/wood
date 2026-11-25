@@ -13,7 +13,25 @@ Vaulted timber floor bay supported on four carved columns with a central interlo
     <img src="floor_viewer.webp" alt="Floor Model">
     <span class="wood-card-title">Floor Model</span>
   </a>
+  <a class="wood-card" href="#floor_assembly_sequence">
+    <img src="assembly_templates_floor_7_contacts_cantilevers.gif" alt="Assembly Sequence">
+    <span class="wood-card-title">Assembly Sequence</span>
+  </a>
 </div>
+
+<!-- assembly:begin -->
+## Assembly Sequence {#floor_assembly_sequence}
+
+Every quarter on its column: the ribs fanned around the head, the blocks between them, the beams, the sections; the oculus its ring beams, wedges and plate; then the wedges between the quarters, every pin along its own axis, and the beds over them. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+
+| assembly | | |
+|---|---|---|
+| **Square floor**, 385 elements, 236 moves, 1 with a turn | | |
+| ![quarter, 34 pieces](assembly/assembly_templates_floor_7_contacts_cantilevers_quarter.gif) quarter, 34 pieces | ![oculus, 13 pieces](assembly/assembly_templates_floor_7_contacts_cantilevers_oculus.gif) oculus, 13 pieces | ![floor, 93 pieces](assembly/assembly_templates_floor_7_contacts_cantilevers.gif) floor, 93 pieces |
+| **Rectangular floor**, 383 elements, 236 moves, 1 with a turn | | |
+| ![floor, 93 pieces](assembly/assembly_templates_floor_8_rectangle.gif) floor, 93 pieces |  |  |
+
+<!-- assembly:end -->
 
 ## Examples {#floor_examples}
 
