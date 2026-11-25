@@ -5,9 +5,10 @@
   if (matchMedia("(prefers-reduced-motion: reduce)").matches)
     document.querySelectorAll("video.wood-film").forEach(film => { film.removeAttribute("autoplay"); film.load(); });
 
-  // the icons (icons.svg, tools/make_icons.py): a page's by the longest of these its address starts with
+  const ORDER = "architecture beam beam_bridle beam_butt beam_column_head beam_compendium beam_cross beam_end_to_end beam_keyed_box beam_pins beam_todo beam_top_side block chevron classes connectors cross cut_plane cylindrical_folding developable_folding edge_curved edge_straight edge_variable elements examples face_curved face_planar floor grid insertion_direction joint_type module pin plaited plate_border plate_cross plate_side_side_inplane plate_side_side_outplane plate_side_side_rotated plate_top_side plate_top_top reciprocal_move reciprocal_rotation reflex_fold solver support templates translation_shell truss vault vidy".split(" "); // of icons.webp, 8 a row, written by make_icons.py
+  // the icons (icons.webp, tools/make_icons.py): a page's by the longest of these its address starts with
   const ICONS = {
-    architecture: "architecture", elements: "elements", templates: "diamond_mesh", examples: "install", annotated: "classes", class: "classes", struct: "classes", namespace: "classes",
+    architecture: "architecture", elements: "elements", templates: "templates", examples: "examples", annotated: "classes", class: "classes", struct: "classes", namespace: "classes",
     elements_node_block: "block", elements_node_support: "support", elements_edge_straight: "edge_straight", elements_edge_curved: "edge_curved",
     elements_edge_variable: "edge_variable", elements_face_planar: "face_planar", elements_face_curved: "face_curved", elements_joint: "insertion_direction",
     elements_joint_cut_plane: "cut_plane", elements_joint_pin: "pin", elements_joint_plate: "joint_type", elements_joint_plate_top_side: "plate_top_side",
@@ -21,8 +22,8 @@
     templates_developable_folding: "developable_folding", templates_chevron: "chevron", templates_cross: "cross", templates_module: "module",
     templates_reciprocal: "reciprocal_rotation", templates_grid: "grid", templates_floor: "floor", templates_truss: "truss", templates_vault: "vault",
     templates_plaited: "plaited", templates_vidy: "vidy",
-    "#assembly_sequence": "insertion_direction", "#reflex_fold": "reflex_fold", "#diamond_mesh": "diamond_mesh", "#reciprocal_move": "reciprocal_move", "#reciprocal_rotation": "reciprocal_rotation",
-    "#ex_two_plates": "plate_top_side", "#ex_2_contacts": "joint_type", "#ex_3_features": "solver", "#ex_4_traversal": "architecture", "#ex_5_settings": "diamond_mesh",
+    "#assembly_sequence": "insertion_direction", "#reflex_fold": "reflex_fold", "#diamond_mesh": "templates", "#reciprocal_move": "reciprocal_move", "#reciprocal_rotation": "reciprocal_rotation",
+    "#ex_two_plates": "plate_top_side", "#ex_2_contacts": "joint_type", "#ex_3_features": "solver", "#ex_4_traversal": "architecture", "#ex_5_settings": "beam_todo",
     "#ex_6_custom_joint": "plate_side_side_inplane", "#ex_7_assignment": "insertion_direction", "#ex_8_beams": "beam_cross", "#ex_9_cross_joints": "plate_cross",
     "#ex_10_profile_cuts": "cut_plane", "#ex_11_drill_solids": "pin", "#ex_12_solid_features": "block",
   };
@@ -31,12 +32,12 @@
     const key = Object.keys(ICONS).filter(name => last === name || (!name.startsWith("#") && !last.includes("#") && last.startsWith(name))).sort((x, y) => y.length - x.length)[0];
     if (!key)
       return null;
-    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    icon.setAttribute("class", "wood-icon");
+    const icon = document.createElement("span");
+    const place = ORDER.indexOf(ICONS[key]);
+    icon.className = "wood-icon";
     icon.setAttribute("aria-hidden", "true");
-    use.setAttribute("href", "icons.svg#" + ICONS[key]);
-    icon.append(use);
+    icon.style.backgroundPosition = `${place % 8 * 100 / 7}% ${Math.floor(place / 8) * 100 / (Math.ceil(ORDER.length / 8) - 1)}%`;
+    icon.style.backgroundSize = `800% ${Math.ceil(ORDER.length / 8) * 100}%`;
     return icon;
   };
   const give = (element, address) => {

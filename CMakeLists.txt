@@ -587,7 +587,7 @@ if(DOXYGEN_FOUND)
     )
     set(DOXYGEN_HTML_EXTRA_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/app.js
-        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/icons.svg
+        ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/icons.webp
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero.mp4
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero_2x.mp4
         ${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/hero_small.mp4

@@ -1,259 +1,272 @@
-"""The icons of the docs, docs/doxygen/icons.svg, one symbol each: the Rhino plugin's own (wood_nano/plugin_rhino/plugin/icons),
-their points as they are, and the ones drawn after them for the pages without one: a 24 grid, a black outline one unit wide with
-round joins, flat faces in three browns. The fills are custom properties, so wood.css colours them.
+"""The icons of the docs, docs/doxygen/icons.webp: small models of what each page is about, drawn by icon_ink.py, the parts that join
+green. The Rhino plugin's icons (wood_nano/plugin_rhino/plugin/icons) are among them, drawn again as models; a template whose own
+model reads at this size is that model, written by its example. One picture of all, in the order it writes into app.js.
 
-    python3 tools/make_icons.py"""
+    uv run --with moderngl --with numpy --with pillow --with manifold3d tools/make_icons.py [--sheet file.png]"""
 
+import json
 import math
 import pathlib
+import re
+import subprocess
+import sys
+
+import icon_ink
+import manifold3d as m3
+import numpy as np
+from PIL import Image, ImageDraw
 
 WOOD = pathlib.Path(__file__).resolve().parents[1]
-FILLS = {"a": "var(--icon-a, #d09a67)", "b": "var(--icon-b, #b27c4a)", "c": "var(--icon-c, #8a5a31)", "g": "#dbdbdb", "n": "none", "w": "#ffffff"}
-ISO = (math.cos(math.radians(30.0)), 0.5)
+PYTHON = WOOD.parent / "session/session_py/.venv/bin/python"
+WORK = WOOD / "build/icons"
+CELL, COLUMNS = 160, 8
+THIN = {"floor": 0.42, "vidy": 0.42, "developable_folding": 0.42, "reflex_fold": 0.62, "cylindrical_folding": 0.62, "vault": 0.6, "grid": 0.75, "plaited": 0.8, "truss": 0.85}
+
+# The pieces of a scene: names, groups, points and faces where they stand.
+PIECES = r"""
+import json, sys
+from session_py.session import Session
+scene = Session.pb_load(sys.argv[1])
+paths = {}
+def walk(node, path):
+    for child in node.children:
+        paths[child.name] = path
+        walk(child, path + [child.name])
+walk(scene.tree.root, [])
+pieces = []
+for element in scene.objects.elements:
+    mesh = element.geometry.mesh() if type(element.geometry).__name__ == "BRep" else element.geometry
+    if mesh is None or mesh.number_of_faces() == 0:
+        continue
+    world = scene.world_xform(element.guid)
+    points, faces = mesh.to_vertices_and_faces()
+    points = [point.transformed(world) for point in points] if world is not None else points
+    pieces.append({"name": element.name, "path": paths.get(element.guid, []), "v": [[p[0], p[1], p[2]] for p in points], "f": [list(face) for face in faces]})
+json.dump(pieces, open(sys.argv[2], "w"))
+"""
 
 
-# ------------------------------------------------------------------ shapes: a fill, then 2D points; "line" is open, "dot" black
+def model(example: str) -> list:
+    """The pieces an example writes, kept in build/icons."""
+    WORK.mkdir(parents=True, exist_ok=True)
+    kept = WORK / f"{example}.json"
+    if not kept.exists():
+        live = WOOD / "data/output/pb/live.pb"
+        before = live.read_bytes() if live.exists() else None
+        subprocess.run([str(WOOD / "build" / example)], cwd=WOOD, check=True, capture_output=True)
+        subprocess.run([str(PYTHON), "-c", PIECES, str(live), str(kept)], check=True)
+        if before is not None:
+            live.write_bytes(before)
+    return json.loads(kept.read_text())
 
 
-def at(x: float, y: float, z: float) -> tuple:
-    """A 3D point on the paper, seen from (+, +, +)."""
-    return ((x - y) * ISO[0], (x + y) * ISO[1] - z)
+# ------------------------------------------------------------------ the solids the models are made of
 
 
-def face(fill: str, *points: tuple) -> tuple:
-    """A face of 3D points."""
-    return (fill, [at(*point) for point in points])
+def T(colour: str) -> list:
+    """A hex colour as 0..1."""
+    return [int(colour[i : i + 2], 16) / 255 for i in (1, 3, 5)]
 
 
-def line(*points: tuple) -> tuple:
-    """An open line of 3D points."""
-    return ("line", [at(*point) for point in points])
+A, B, C_, G, G2, P_ = T("#efc48d"), T("#e4ae72"), T("#f7dcb2"), T("#4db389"), T("#86d0ad"), T("#fdf0d8")  # three woods, two greens, paper
 
 
-def dot(x: float, y: float, z: float, radius: float) -> tuple:
-    """A black dot at a 3D point, its radius on the 24 grid."""
-    return ("dot", [at(x, y, z)], radius)
+def box(x0: float, x1: float, y0: float, y1: float, z0: float, z1: float) -> m3.Manifold:
+    """A box by its bounds."""
+    return m3.Manifold.cube((x1 - x0, y1 - y0, z1 - z0)).translate((x0, y0, z0))
 
 
-def box(x0: float, x1: float, y0: float, y1: float, z0: float, z1: float) -> list:
-    """The three faces seen of a box: the top light, the one towards y mid, the one towards x dark."""
-    return [
-        face("c", (x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1)),
-        face("b", (x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)),
-        face("a", (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)),
-    ]
+def cyl(a: tuple, b: tuple, r: float, n: int = 20) -> m3.Manifold:
+    """A cylinder from a to b."""
+    a, b = np.array(a, float), np.array(b, float)
+    length = np.linalg.norm(b - a)
+    along = (b - a) / length
+    across = np.cross((0.0, 0.0, 1.0) if abs(along[2]) < 0.9 else (1.0, 0.0, 0.0), along)
+    across /= np.linalg.norm(across)
+    return m3.Manifold.cylinder(length, r, r, n).transform(np.c_[across, np.cross(along, across), along, a])
 
 
-def extruded(loop: list, y0: float, y1: float, fill: str = "a", sides: tuple = ()) -> list:
-    """A loop of (x, z) drawn at y1, with the sides between the given consecutive corners running back to y0."""
-    shapes = []
-    for i, shade in sides:
-        (xa, za), (xb, zb) = loop[i], loop[(i + 1) % len(loop)]
-        shapes.append(face(shade, (xa, y0, za), (xb, y0, zb), (xb, y1, zb), (xa, y1, za)))
-    return shapes + [face(fill, *((x, y1, z) for x, z in loop))]
+def ext(loop: list, y0: float, y1: float) -> m3.Manifold:
+    """A loop in (x, z) extruded along y."""
+    solid = m3.CrossSection([np.array(loop, float)], m3.FillRule.EvenOdd).extrude(y1 - y0)
+    return solid.transform(np.array([[1, 0, 0, 0], [0, 0, -1, y1], [0, 1, 0, 0]], float))
 
 
-def arc(x: float, z: float, radius: float, start: float, end: float, count: int) -> list:
-    """Points of an arc in (x, z), degrees."""
-    angles = [math.radians(start + (end - start) * k / count) for k in range(count + 1)]
-    return [(x + radius * math.cos(angle), z + radius * math.sin(angle)) for angle in angles]
+def flat(loop: list, z0: float, z1: float) -> m3.Manifold:
+    """A loop in (x, y) extruded along z."""
+    return m3.CrossSection([np.array(loop, float)], m3.FillRule.EvenOdd).extrude(z1 - z0).translate((0, 0, z0))
 
 
-def strip(outer: list, y0: float, y1: float, shades: str) -> list:
-    """A strip of faces over a polyline in (x, z), from y0 to y1, its shades in turn."""
-    return [
-        face(shades[k % len(shades)], (xa, y0, za), (xb, y0, zb), (xb, y1, zb), (xa, y1, za))
-        for k, ((xa, za), (xb, zb)) in enumerate(zip(outer, outer[1:]))
-    ]
+def hull(points: list) -> m3.Manifold:
+    """The convex solid of points."""
+    return m3.Manifold.hull_points(np.array(points, float))
 
 
-# ------------------------------------------------------------------ the plugin's icons, their points as they are
+def plate(corners: list, thickness: float) -> m3.Manifold:
+    """A plate on four corners, along their normal."""
+    corners = np.array(corners, float)
+    normal = np.cross(corners[1] - corners[0], corners[2] - corners[0])
+    return hull(np.r_[corners, corners + normal / np.linalg.norm(normal) * thickness])
 
 
-PLUGIN = {
-    "chevron": [("b", "10.2 22.24 2.91 17.57 3.99 2.43 11.86 5.01"), ("a", "19.48 19.89 10.2 22.24 11.86 5.01 21.09 4.08")],
-    "connectors": [
-        ("line", "2.25 4.52 21 21.86"), ("a", "11.15 16.31 11.72 22.72 18.65 15.06 18.63 7.86"), ("a", "4.52 10.76 5.09 17.17 12.36 9.18 12.14 2.13"),
-        ("line", "20.32 21.23 15.08 15.99"), ("line", "11.63 13.19 8.76 10.32"),
-    ],
-    "diamond_mesh": [
-        ("c", "11.98 11.88 12.06 3.06 22.6 1.06"), ("a", "12.07 11.9 11.99 3.09 1.45 1.09"), ("a", "12.1 12.02 11.94 20.84 1.4 22.76"),
-        ("c", "12 12 12.01 20.81 22.55 22.89"), ("c", "1.45 1.09 1.4 22.76 11.98 11.88"), ("a", "22.6 1.06 22.55 22.89 12.1 12.02"),
-    ],
-    "insertion_direction": [
-        ("thick", "21.41 8.5 16.42 8.5"), ("thick", "7.91 17.94 2.91 17.94"), ("g", "12.3 4.4 21.06 13.16 12.3 21.92 3.54 13.16"),
-        ("dot", "15.83 8.5", 2.19), ("dot", "8.3 17.94", 2.19),
-    ],
-    "install": [
-        ("line", "12.11 3.4 12.11 17.93"), ("line", "7.69 12.08 12.11 17.93 16.59 12.08"),
-        ("line", "21.35 15.71 21.35 17.74 20.9 19.3 19.9 20.2 18.5 20.59 5.5 20.59 4.1 20.2 3.1 19.3 2.65 17.74 2.65 15.71"),
-    ],
-    "joint_type": [
-        ("g", "12 3.24 20.76 12 12 20.76 3.24 12"), ("dot", "16.66 7.34", 2.19), ("dot", "7.34 7.34", 2.19), ("dot", "7.34 16.78", 2.19), ("dot", "16.66 16.78", 2.19),
-    ],
-    "reciprocal_move": [
-        ("a", "19.92 3.99 19.96 9.54 2.72 11.86 2.53 6.24"), ("a", "18.75 11.91 18.78 19.37 15.14 9.07 14.96 1.56"),
-        ("a", "10.65 12.83 10.68 20.28 7.05 9.99 6.86 2.47"), ("a", "22.17 14.68 22.2 20.23 4.97 22.55 4.78 16.93"),
-    ],
-    "reciprocal_rotation": [
-        ("b", "14.52 8.56 14.4 15.65 3.78 8.23 3.75 1.07"), ("a", "1.39 15.83 1.26 22.93 9.15 12.41 9.12 5.25"), ("a", "22.79 7.29 22.67 14.38 5.51 16.93 5.48 9.77"),
-    ],
-    "reflex_fold": [("c", "14.38 4.02 8.33 2.06 15.99 16.79 22.5 18.24"), ("a", "9.85 21.94 3.19 20.25 8.11 2.06 14.38 4.02")],
-    "solver": [("solid", "0 6.63 6.01 12.73 11.94 6.77 18.01 12.73 24 6.61 24 0 0 0"), ("solid", "0 12.74 6 18.72 12.07 12.78 18 18.71 24 12.73 24 24 0 24")],
-    "translation_shell": [
-        ("b", "10.91 11.57 2.76 11.09 5.91 2.18 13.9 2.49"), ("a", "20.71 13.14 10.91 11.57 13.9 2.49 23.14 4.39"),
-        ("c", "9.36 21.21 1.49 19.83 2.76 11.09 10.91 11.35"), ("a", "19.32 21.71 9.36 21.21 10.91 11.57 20.71 13.14"),
-    ],
-}
+def rot(solid: m3.Manifold, x: float = 0, y: float = 0, z: float = 0, at: tuple = (0, 0, 0)) -> m3.Manifold:
+    """A solid turned about a point, degrees."""
+    return solid.translate(tuple(-np.array(at, float))).rotate((x, y, z)).translate(tuple(at))
 
 
-# ------------------------------------------------------------------ the new ones
+def piece(solid: m3.Manifold, colour: list, grain: tuple = None) -> dict:
+    """A solid as a piece of icon_ink."""
+    mesh = solid.to_mesh()
+    return {"v": np.array(mesh.vert_properties)[:, :3].tolist(), "f": np.array(mesh.tri_verts).tolist(), "c": colour, "ax": grain}
 
 
-def flat(*shapes: tuple) -> list:
-    """Shapes given in 2D."""
-    return list(shapes)
+# ------------------------------------------------------------------ the models: solids, each with its colour and its grain, and the view
 
 
-def new_icons() -> dict:
-    """Every icon drawn after the plugin's, back to front."""
-    icons = {}
-
+def icons() -> dict:
+    """Every icon: its pieces, and the azimuth and elevation it is seen from."""
+    I={}
+    def add(n,*S,az=-52,el=27): I[n]=([piece(m,c,ax) for m,c,ax in [(s+(None,))[:3] for s in S]],az,el)
+    X,Y,Z=(1,0,0),(0,1,0),(0,0,1)
     # chapters
-    icons["architecture"] = flat(
-        ("line", [(12, 8), (12, 12), (5.5, 12), (5.5, 15)]), ("line", [(12, 12), (18.5, 12), (18.5, 15)]),
-        ("a", [(8.5, 2), (15.5, 2), (15.5, 8), (8.5, 8)]), ("g", [(2, 15), (9, 15), (9, 21), (2, 21)]), ("g", [(15, 15), (22, 15), (22, 21), (15, 21)]),
-    )
-    icons["elements"] = box(0, 10, 0, 10, 0, 3) + box(1, 4, 6, 9, 3, 11) + box(5.5, 9, 1, 4.5, 3, 7)
-    icons["classes"] = flat(
-        ("line", [(8.5, 3), (6.5, 3.4), (5.8, 5), (5.8, 9.6), (5, 11.2), (2.8, 12), (5, 12.8), (5.8, 14.4), (5.8, 19), (6.5, 20.6), (8.5, 21)]),
-        ("line", [(15.5, 3), (17.5, 3.4), (18.2, 5), (18.2, 9.6), (19, 11.2), (21.2, 12), (19, 12.8), (18.2, 14.4), (18.2, 19), (17.5, 20.6), (15.5, 21)]),
-        ("a", [(12, 8.6), (15.4, 12), (12, 15.4), (8.6, 12)]),
-    )
-
-    # nodes, edges, faces
-    icons["block"] = box(0, 10, 0, 10, 0, 9)
-    icons["support"] = box(0, 10, 0, 10, 0, 1.6) + box(3.8, 6.2, 3.8, 6.2, 1.6, 8) + box(1.5, 8.5, 1.5, 8.5, 8, 9.8)
-    icons["edge_straight"] = box(0, 18, 0, 4, 0, 5)
-    outer, inner = arc(0, 0, 13, 165, 15, 5), arc(0, 0, 8.6, 15, 165, 5)
-    icons["edge_curved"] = [face("c", *((x, z_, y) for x, z_, y in ((inner[0][0], 0, inner[0][1]), (outer[-1][0], 0, outer[-1][1]), (outer[-1][0], 5, outer[-1][1]), (inner[0][0], 5, inner[0][1]))))]
-    icons["edge_curved"] += strip(outer, 0, 5, "aaabb") + [face("b", *((x, 5, z) for x, z in outer + inner))]
-    icons["edge_variable"] = extruded([(0, 0), (18, 3.5), (18, 7), (0, 9)], 0, 3.5, "b", ((1, "c"), (2, "a")))
-    icons["face_planar"] = box(0, 14, 0, 14, 0, 1.6)
-    icons["face_curved"] = strip(arc(0, 0, 12, 180, 20, 4), 0, 11, "ccab")
-    icons["cut_plane"] = box(0, 12, 0, 4, 0, 5) + [face("g", (9, -4, -4), (9, 8, -4), (15, 8, 9), (15, -4, 9))]
-    icons["pin"] = flat(
-        ("a", [(3.2, 15.6), (15.4, 3.4), (20.6, 8.6), (8.4, 20.8)]), ("c", [(3.2, 15.6), (2.6, 17.6), (3.6, 19.8), (5.8, 21.2), (8.4, 20.8), (8.8, 19), (7.6, 17), (5.4, 15.6)]),
-    )
-
+    r=lambda a,b:(cyl(a,b,.45),G)
+    add('architecture',r((5,2,9),(5,2,4)),r((1,2,4),(9,2,4)),r((1,2,4),(1,2,3)),r((9,2,4),(9,2,3)),(box(3,7,0,4,8,12),A),(box(-1.6,2.6,0,4,-1,3),B),(box(7.4,11.6,0,4,-1,3),C_),az=-65,el=20)
+    add('elements',(box(0,12,0,12,0,1.6),A,X),(box(1.5,4.7,7,10.2,1.6,11.5),B,Z),(box(6.5,10.5,1.5,5.5,1.6,6),C_,X),(cyl((8.5,9,1.6),(8.5,9,5.5),1.3),G))
+    d=[(0,0),(12,0),(12,12),(0,12)]; z=[0,0,0,0]
+    q=lambda x,y,zz:(x,y,zz); m=(6,6,5)
+    add('templates',*[(plate([a,b,m],.55),c) for a,b,c in((q(0,0,0),q(6,0,2.6),A),(q(6,0,2.6),q(12,0,0),B),(q(12,0,0),q(12,6,2.6),C_),(q(12,6,2.6),q(12,12,0),A),(q(12,12,0),q(6,12,2.6),B),(q(6,12,2.6),q(0,12,0),C_),(q(0,12,0),q(0,6,2.6),A),(q(0,6,2.6),q(0,0,0),B))],el=34)
+    add('examples',(box(-1,13,0,7,0,1.4)+box(-1,.6,0,7,1.4,5)+box(11.4,13,0,7,1.4,5),A,X),(ext([(4.7,13),(7.3,13),(7.3,7.4),(10,7.4),(6,2.4),(2,7.4),(4.7,7.4)],2.2,4.8),G),az=-68,el=18)
+    br=[(4,12),(1.6,12),(.6,11),(.6,7.4),(-.8,6),(.6,4.6),(.6,1),(1.6,0),(4,0),(4,1.8),(2.6,1.8),(2.4,2.1),(2.4,5),(1.5,6),(2.4,7),(2.4,9.9),(2.6,10.2),(4,10.2)]
+    add('classes',(ext(br,0,2.2),A,Z),(ext([(14-x,zz) for x,zz in br][::-1],0,2.2),A,Z),(ext([(7,3.6),(9.4,6),(7,8.4),(4.6,6)],0,2.2),G),az=-76,el=12)
+    # elements
+    add('block',(hull([(0,0,0),(10,0,0),(10,10,0),(0,10,0),(1.2,1.2,9),(8.8,1.2,9),(8.8,8.8,9),(1.2,8.8,9)]),A,X))
+    add('support',(box(0,10,0,10,0,1.3),B),(cyl((5,5,1.3),(5,5,7),1.5),C_),(box(1.2,8.8,1.2,8.8,7,8.3),A),*[(cyl((x,y,1.3),(x,y,2),.7),G) for x in(1.6,8.4) for y in(1.6,8.4)])
+    add('edge_straight',(box(0,17,0,4,0,5),A,X),az=-58)
+    arc=lambda r,a0,a1,n:[(r*math.cos(math.radians(a0+(a1-a0)*k/n)),r*math.sin(math.radians(a0+(a1-a0)*k/n))) for k in range(n+1)]
+    add('edge_curved',*[(ext(arc(r1,155,25,24)+arc(r0,25,155,24),0,4),c) for r0,r1,c in((8,9.4,A),(9.4,10.8,B),(10.8,12.2,C_))],az=-62,el=20)
+    add('edge_variable',(ext([(0,0),(17,3.6),(17,7),(0,10)],0,3.4),A,X),az=-58,el=22)
+    add('face_planar',(box(0,14,0,14,0,1.6),A,X),el=30)
+    add('face_curved',*[(ext(arc(12,160-k*30,130-k*30,6)+arc(10.9,130-k*30,160-k*30,6),0,12),c,Y) for k,c in enumerate((A,C_,B,A))],az=-58,el=26)
+    add('cut_plane',(box(0,9,0,4,0,5).trim_by_plane((-1,0,-.55),-9.2),A,X),(box(11.5,17,0,4,0,5).trim_by_plane((1,0,.55),12.2),B,X),(plate([(8.1,-3,9),(8.1,7,9),(14.2,7,-2.2),(14.2,-3,-2.2)],.35),G2),az=-60,el=22)
+    add('pin',(cyl((0,0,0),(13,0,0),2,28),A,X),(cyl((-.6,0,0),(0,0,0),1.7,28),C_,X),(cyl((13,0,0),(13.6,0,0),1.7,28),C_,X),az=-52,el=26)
     # joints of plates
-    tenon = [(0, 0), (2.5, 0), (2.5, -2.6), (5, -2.6), (5, 0), (8, 0), (8, -2.6), (10.5, -2.6), (10.5, 0), (13, 0), (13, 9), (0, 9)]
-    icons["plate_top_side"] = box(-2, 15, -4, 8, -8.5, -6.2) + [
-        face("g", (2.5, 0.6, -6.2), (5, 0.6, -6.2), (5, 3, -6.2), (2.5, 3, -6.2)), face("g", (8, 0.6, -6.2), (10.5, 0.6, -6.2), (10.5, 3, -6.2), (8, 3, -6.2)),
-    ] + extruded(tenon, 0.6, 3, "a", ((9, "c"), (10, "b")))
-    icons["plate_side_side_inplane"] = flat(
-        ("b", [(2, 4), (10, 4), (10, 7.2), (14, 7.2), (14, 10.4), (10, 10.4), (10, 13.6), (14, 13.6), (14, 16.8), (10, 16.8), (10, 20), (2, 20)]),
-        ("a", [(22, 4), (10, 4), (10, 7.2), (14, 7.2), (14, 10.4), (10, 10.4), (10, 13.6), (14, 13.6), (14, 16.8), (10, 16.8), (10, 20), (22, 20)]),
-    )
-    icons["plate_side_side_outplane"] = flat(
-        ("a", [(2, 6), (12, 9.5), (12, 12), (14.4, 11.2), (14.4, 14), (12, 14.8), (12, 17.2), (14.4, 16.4), (14.4, 19.2), (12, 22), (2, 18)]),
-        ("c", [(22, 6), (12, 9.5), (12, 12), (14.4, 11.2), (14.4, 14), (12, 14.8), (12, 17.2), (14.4, 16.4), (14.4, 19.2), (12, 22), (22, 18)]),
-        ("b", [(2, 6), (12, 2), (22, 6), (12, 9.5)]),
-    )
-    icons["plate_side_side_rotated"] = flat(("b", [(2, 9), (12, 12.6), (12, 21.6), (2, 18)]), ("a", [(8, 3), (21, 2), (22, 12), (12, 12.6)]), ("line", [(12, 12.6), (12, 21.6)]), ("g", [(10.4, 10.2), (13.6, 10.2), (13.6, 15), (10.4, 15)]))
-    icons["plate_cross"] = [face("c", (7, -1, 0), (7, 15, 0), (7, 15, 11), (7, -1, 11)), face("a", (0, 7, 0), (7, 7, 0), (7, 7, 11), (0, 7, 11)), face("a", (7, 7, 0), (14, 7, 0), (14, 7, 11), (7, 7, 11)), face("c", (7, 7, 0), (7, 15, 0), (7, 15, 11), (7, 7, 11))]
-    icons["plate_top_top"] = box(0, 12, 0, 12, 0, 2) + [line((6, 6, 2), (6, 6, 7))] + box(0, 12, 0, 12, 7, 9) + [dot(3.5, 3.5, 9, 1.1), dot(8.5, 3.5, 9, 1.1), dot(3.5, 8.5, 9, 1.1), dot(8.5, 8.5, 9, 1.1)]
-    icons["plate_border"] = [face("c", (0, 0, 0), (13, 0, 0), (13, 13, 0), (0, 13, 0)), face("a", (3, 3, 0), (10, 3, 0), (10, 10, 0), (3, 10, 0)), line((0, 0, 0), (3, 3, 0)), line((13, 0, 0), (10, 3, 0)), line((13, 13, 0), (10, 10, 0)), line((0, 13, 0), (3, 10, 0))]
-
+    base=box(-2,14,-3,7,0,2.2)-box(1.9,5.1,.9,3.1,-1,3)-box(6.9,10.1,.9,3.1,-1,3)
+    add('plate_top_side',(base,A,X),(box(0,12,1,3,6.6,14),C_,X),(box(2,5,1,3,4.3,6.6),G),(box(7,10,1,3,4.3,6.6),G),az=-56,el=26)
+    tail=lambda y:[(5.8,y-1.05),(9.4,y-1.9),(9.4,y+1.9),(5.8,y+1.05)]
+    lft=flat([(0,0),(6,0),(6,13),(0,13)],0,1.8); tl=[flat(tail(y),0,1.8) for y in(3.2,9.8)]; rgt=flat([(6,0),(14,0),(14,13),(6,13)],0,1.8)
+    for t_ in tl: rgt=rgt-t_
+    add('plate_side_side_inplane',(lft,A,X),*[(t_,G) for t_ in tl],(rgt.translate((4.2,0,0)),C_,X),az=-60,el=38)
+    fl=box(0,10,0,1.6,0,12); fr=box(0,1.6,0,11,0,12)
+    pl=box(0,1.6,0,10,0,12); 
+    s1=box(1.6,11,0,1.6,0,12); s2=box(0,1.6,1.6,11,0,12); fA=[box(0,1.6,0,1.6,k*2.4,(k+1)*2.4) for k in(0,2,4)]; fB=[box(0,1.6,0,1.6,k*2.4,(k+1)*2.4) for k in(1,3)]
+    add('plate_side_side_outplane',(s1.translate((2.6,0,0)),A,Z),*[(f.translate((2.6,0,0)),G) for f in fA],(s2,C_,Z),*[(f,G) for f in fB],az=-132,el=24)
+    a=box(0,4,0,1.6,0,12); 
+    add('plate_side_side_rotated',(box(-9,0,0,1.8,0,12),A,X),(rot(box(0,9,0,1.8,0,12),y=0,z=0).translate((1.2,0,0)).rotate((0,0,38)),C_,X),(box(-2.2,3.2,-.8,2.6,4.4,7.6),G),az=-82,el=22)
+    v1=box(0,12,5.2,6.8,0,11)-box(5.1,6.9,5,7,5.5,12); v2=box(5.2,6.8,0,12,0,11)-box(5,7,5.1,6.9,-1,5.5)
+    add('plate_cross',(v1,A,X),(v2.translate((0,0,7.2)),C_,Y),az=-40,el=30)
+    add('plate_top_top',(box(0,12,0,12,0,1.8),A,X),*[(cyl((x,y,1.8),(x,y,6),.9),G) for x in(3,9) for y in(3,9)],(box(0,12,0,12,7.4,9.2)-m3.Manifold.batch_boolean([cyl((x,y,7),(x,y,10),.9) for x in(3,9) for y in(3,9)],m3.OpType.Add),C_,X))
+    add('plate_border',(box(2.4,11.6,2.4,11.6,0,1.6),A,X),*[(flat(P,0,2.6),G) for P in([(0,0),(14,0),(11.6,2.4),(2.4,2.4)],[(14,0),(14,14),(11.6,11.6),(11.6,2.4)],[(14,14),(0,14),(2.4,11.6),(11.6,11.6)],[(0,14),(0,0),(2.4,2.4),(2.4,11.6)])],el=36)
     # joints of beams
-    icons["beam"] = box(0, 4, -9, 4, 0, 4.5) + box(4, 13, 0, 4, 0, 4.5)
-    icons["beam_cross"] = box(6, 10, -6, 6, 0, 4) + box(-2, 18, 6, 10, 0, 4) + box(6, 10, 10, 18, 0, 4)
-    icons["beam_cross"] = box(-2, 6, 6, 10, 0, 4) + box(6, 10, -2, 18, 0, 4) + box(10, 18, 6, 10, 0, 4)
-    icons["beam_top_side"] = box(0, 17, 0, 4.5, 0, 4.5) + box(6, 10, 0.2, 4.3, 4.5, 14)
-    icons["beam_bridle"] = box(0, 17, 0, 4.5, 0, 4.5) + box(6, 10, 0.2, 1.4, 4.5, 14) + box(6, 10, 3.1, 4.4, 1.5, 14)
-    icons["beam_column_head"] = box(4, 8, 4, 8, -13, -3) + box(-3, 6, 4, 8, -3, 1.5) + box(4, 8, -3, 15, -3, 1.5) + box(8, 15, 4, 8, -3, 1.5)
-    icons["beam_compendium"] = flat(
-        ("b", [(12, 6), (9, 4), (3, 4), (2, 5), (2, 19.5), (9, 19.5), (12, 21.5)]), ("a", [(12, 6), (15, 4), (21, 4), (22, 5), (22, 19.5), (15, 19.5), (12, 21.5)]),
-        ("line", [(5, 8.4), (9, 8.4)]), ("line", [(5, 11.6), (9, 11.6)]), ("line", [(5, 14.8), (9, 14.8)]), ("line", [(14.4, 9.2), (15.9, 13), (17.1, 10.4), (18.3, 13), (19.8, 9.2)]),
-    )
-    icons["beam_todo"] = flat(("a", [(4, 2.5), (20, 2.5), (20, 21.5), (4, 21.5)]), ("line", [(7, 8), (8.2, 9.3), (10.2, 6.6)]), ("line", [(12.6, 8), (17, 8)]), ("line", [(7, 15.5), (8.2, 16.8), (10.2, 14.1)]), ("line", [(12.6, 15.5), (17, 15.5)]))
-    icons["beam_keyed_box"] = box(0, 2, -2, 12, 0, 13) + box(2, 9, 3, 8, 4, 9) + box(9, 11, -2, 12, 0, 13)
-    icons["beam_keyed_box"] = box(-5, -3, -1, 11, 0, 12) + box(-3, 3, 3, 8, 3.5, 8.5) + [face("g", (3, 4.4, 8.5), (3, 6.6, 8.5), (3, 6.6, 10.2), (3, 4.4, 10.2))]
-    icons["beam_end_to_end"] = extruded([(0, 0), (6.5, 0), (12.5, 5), (0, 5)], 0, 4.5, "b", ((2, "a"),)) + extruded([(7.8, 0), (19, 0), (19, 5), (13.8, 5)], 0, 4.5, "b", ((1, "c"), (2, "a")))
-    icons["beam_butt"] = box(0, 4, -7, 11, 0, 5) + box(4, 15, 0, 4, 0, 5)
-    icons["beam_pins"] = box(0, 17, 0, 5, 0, 5) + [dot(4, 5, 2.5, 1.2), dot(8.5, 5, 2.5, 1.2), dot(13, 5, 2.5, 1.2)]
-
+    low=box(0,16,0,4,0,4)-box(6,10,-1,5,2,5); upb=(box(6,10,-6,10,0,4)-box(5,11,0,4,-1,2)).translate((0,0,5.2))
+    add('beam_cross',(low,A,X),(upb,C_,Y),az=-52,el=25)
+    add('beam',(box(0,4,0,4,-9,0),A,Z),(box(-5,12,0,4,0,4),C_,X),(cyl((2,-.6,2),(2,0,2),.9),G),az=-58,el=18)
+    add('beam_top_side',(box(0,16,0,4.4,0,4.4)-box(6.4,9.6,1.2,3.2,1,5),A,X),(box(5.8,10.2,0,4.4,8.6,15),C_,Z),(box(6.5,9.5,1.3,3.1,5.4,8.6),G),az=-58,el=22)
+    add('beam_bridle',(box(0,16,0,4.4,0,4.4)-box(6,10,-1,1.3,-1,5)-box(6,10,3.1,5,-1,5),A,X),(box(6,10,0,4.4,9,15),C_,Z),(box(6,10,0,1.3,5,9),G),(box(6,10,3.1,4.4,5,9),G),az=-58,el=22)
+    add('beam_column_head',(box(4,8,4,8,-12,0),A,Z),(box(-3,15,4.4,7.6,0,3.2),C_,X),(box(4.4,7.6,-3,4.4,0,3.2),B,Y),(box(4.4,7.6,7.6,15,0,3.2),B,Y),*[(hull([(6+sx*2,5,0),(6+sx*2,7,0),(6+sx*6,5,0),(6+sx*6,7,0),(6+sx*2,5,-4.5),(6+sx*2,7,-4.5)]),G) for sx in(1,-1)],az=-58,el=14)
+    pg=lambda s:hull([(0,0,0),(s*7.2,0,1.3),(s*7.2,10,1.3),(0,10,0),(0,0,1.2),(s*7.2,0,3),(s*7.2,10,3),(0,10,1.2)])
+    add('beam_compendium',(box(-7.8,7.8,-.6,10.6,-.9,-.2),G),(pg(-1),C_,Y),(pg(1),P_,Y),*[(hull([(x,y,1.62+abs(x)*.25),(x+2.6,y,1.62+abs(x+2.6)*.25),(x+2.6,y+.55,1.62+abs(x+2.6)*.25),(x,y+.55,1.62+abs(x)*.25),(x,y,1.2),(x+2.6,y+.55,1.2)]),B) for x in(-5.6,) for y in(2.4,4.6,6.8)],az=-90,el=44)
+    add('beam_todo',(box(0,10,0,1.4,0,13),A,Z),(box(3,7,-.5,1,12.2,14),G),*[(box(4.2,8.4,-.35,0,z_,z_+.9),B) for z_ in(9.2,6.2,3.2)],*[(box(1.4,2.9,-.4,0,z_-.2,z_+1.2),G) for z_ in(9.2,6.2,3.2)],az=-74,el=10)
+    add('beam_keyed_box',(box(0,2.4,-4,9,-4,9)-box(-1,3,.9,4.1,.9,4.1),A,Z),(box(-8,0,0,5,0,5),C_,X),(box(0,7.4,1,4,1,4)-box(3,4.6,1.8,3.2,-1,6),B,X),(hull([(3,1.8,-2),(4.4,1.8,-2),(4.8,1.8,6.6),(3,1.8,6.6),(3,3.2,-2),(4.4,3.2,-2),(4.8,3.2,6.6),(3,3.2,6.6)]),G),az=-40,el=22)
+    add('beam_end_to_end',(ext([(0,0),(5.4,0),(5.4,1.4),(12.2,3.4),(12.2,5),(0,5)],0,4),A,X),(ext([(5.4,0),(17.6,0),(17.6,5),(12.2,5),(12.2,3.4),(5.4,1.4)],0,4).translate((3,0,-2.4)),C_,X),(box(8.6,10.2,-2.4,0,1.3,2.9).translate((.9,0,-.6)),G),az=-60,el=20)
+    add('beam_butt',(box(0,4,-7,11,0,5),A,Y),(box(4,15,0,4,0,5),C_,X),(cyl((-3.4,2,1.4),(0,2,1.4),.55),G),(cyl((-3.4,2,3.6),(0,2,3.6),.55),G),az=-128,el=26)
+    add('connectors',(cyl((-6,0,0),(16,0,0),.7),G),(plate([(0,-5,-5),(0,5,-5),(0,5,5),(0,-5,5)],1.5),A,Z),(plate([(9,-5,-5),(9,5,-5),(9,5,5),(9,-5,5)],1.5),C_,Z),az=-38,el=22)
+    add('beam_pins',(box(0,16,0,4.6,0,5),A,X),*[(cyl((x,-3.4,2.5),(x,0,2.5),.8),G) for x in(3,8,13)],az=-60,el=24)
     # templates
-    icons["cylindrical_folding"] = strip([(-11, 0), (-9, 6), (-4.5, 10), (0, 11), (4.5, 10), (9, 6), (11, 0)], 0, 5.5, "cb") + strip([(-11, 0), (-9, 6), (-4.5, 10), (0, 11), (4.5, 10), (9, 6), (11, 0)], 5.5, 11, "ba")
-    icons["developable_folding"] = flat(
-        ("c", [(12, 2.5), (14.5, 7), (15, 12), (14, 17), (12, 21.5), (21.5, 18), (22.5, 12), (21, 6)]), ("a", [(12, 2.5), (14.5, 7), (15, 12), (14, 17), (12, 21.5), (3, 19.5), (5.6, 15), (6.4, 11), (5.4, 7.6), (3, 4.5)]),
-    )
-    icons["cross"] = flat(
-        ("c", [(3, 6), (9, 2.5), (21.5, 16.4), (15.5, 20)]), ("a", [(15, 2), (21, 5.6), (9, 21.6), (3, 18)]), ("b", [(12.2, 5.8), (17.4, 10.4), (12, 17.6), (6.8, 12.9)]),
-    )
-    icons["module"] = [face("b", (0, 12, 0), (12, 12, 0), (12, 12, 8), (6, 12, 13.5), (0, 12, 8)), face("c", (12, 0, 0), (12, 12, 0), (12, 12, 8), (12, 0, 8)), face("a", (6, 0, 13.5), (6, 12, 13.5), (12, 12, 8), (12, 0, 8)), face("g", (4.2, 12, 0), (7.8, 12, 0), (7.8, 12, 5.6), (4.2, 12, 5.6))]
-    frame = []
-    for y in (0, 10):
-        for x in (0, 10):
-            frame += box(x, x + 1.8, y, y + 1.8, 0, 8)
-    icons["grid"] = frame[:3] + box(0, 1.8, 1.8, 10, 8, 10) + frame[3:6] + frame[6:] + box(0, 11.8, 0, 1.8, 8, 10)[2:] + box(0, 11.8, 10, 11.8, 8, 10) + box(10, 11.8, 0, 10, 8, 10)
-    legs = box(0, 1.8, 0, 1.8, 0, 9) + box(12, 13.8, 0, 1.8, 0, 9) + box(0, 1.8, 12, 13.8, 0, 9) + box(12, 13.8, 12, 13.8, 0, 9)
-    icons["floor"] = legs + box(0, 13.8, 0, 13.8, 9, 11) + [face("c", (6.9, 3.9, 11), (9.9, 6.9, 11), (6.9, 9.9, 11), (3.9, 6.9, 11)), line((0, 0, 11), (5.4, 5.4, 11)), line((13.8, 13.8, 11), (8.4, 8.4, 11)), line((13.8, 0, 11), (8.4, 5.4, 11)), line((0, 13.8, 11), (5.4, 8.4, 11))]
-    icons["truss"] = flat(
-        ("a", [(1.5, 18), (22.5, 18), (22.5, 20.8), (1.5, 20.8)]), ("b", [(1.5, 18), (12, 4.2), (12, 8.2), (4.6, 18)]), ("c", [(22.5, 18), (12, 4.2), (12, 8.2), (19.4, 18)]),
-        ("a", [(10.9, 8.6), (13.1, 8.6), (13.1, 18), (10.9, 18)]), ("line", [(11, 18), (7.6, 13.6)]), ("line", [(13, 18), (16.4, 13.6)]),
-    )
-    ring, hole = arc(12, -20, 10.5, 0, 180, 5), arc(12, -20, 5.6, 0, 180, 5)
-    stones = [("abcba"[k], [(ring[k][0], -ring[k][1]), (ring[k + 1][0], -ring[k + 1][1]), (hole[k + 1][0], -hole[k + 1][1]), (hole[k][0], -hole[k][1])]) for k in range(5)]
-    icons["vault"] = stones + [("c", [(1.5, 20), (6.4, 20), (6.4, 27), (1.5, 27)]), ("b", [(17.6, 20), (22.5, 20), (22.5, 27), (17.6, 27)])]
-    icons["plaited"] = flat(
-        ("b", [(2, 5), (22, 5), (22, 9.4), (2, 9.4)]), ("b", [(2, 14.6), (22, 14.6), (22, 19), (2, 19)]), ("a", [(5, 2), (9.4, 2), (9.4, 22), (5, 22)]), ("a", [(14.6, 2), (19, 2), (19, 22), (14.6, 22)]),
-        ("b", [(12, 5), (22, 5), (22, 9.4), (12, 9.4)]), ("b", [(2, 14.6), (12, 14.6), (12, 19), (2, 19)]),
-    )
-    icons["vidy"] = strip([(-9, 0), (-10, 7), (0, 12), (10, 7), (9, 0)], 0, 4, "cbac") + strip([(-9, 0), (-10, 7), (0, 12), (10, 7), (9, 0)], 4, 8, "cbab") + [face("a", (-9, 8, 0), (-10, 8, 7), (0, 8, 12), (10, 8, 7), (9, 8, 0), (7, 8, 0), (7.8, 8, 5.8), (0, 8, 9.6), (-7.8, 8, 5.8), (-7, 8, 0))]
-    return icons
+    add('translation_shell',*[(plate([(x*4,y*4,f(x,y)),((x+1)*4,y*4,f(x+1,y)),((x+1)*4,(y+1)*4,f(x+1,y+1)),(x*4,(y+1)*4,f(x,y+1))],.6),(A,C_,B)[(x+2*y)%3]) for f in[lambda x,y:6-.95*(x-2)**2-.75*(y-1.5)**2] for x in range(4) for y in range(3)],el=26)
+    zz=[(0,0),(2.4,3.4)]
+    def folded(prof,n,w,t=.5,amp=1.2):
+        S=[]
+        for k in range(n):
+            for i in range(len(prof)-1):
+                o=lambda j,yy,hi:(prof[j][0]+(prof[j][2]*amp if hi else 0),yy,prof[j][1]+(prof[j][3]*amp if hi else 0))
+                S.append((plate([o(i,k*w,0),o(i+1,k*w,0),o(i+1,(k+.5)*w,1),o(i,(k+.5)*w,1)],t),A)); S.append((plate([o(i,(k+.5)*w,1),o(i+1,(k+.5)*w,1),o(i+1,(k+1)*w,0),o(i,(k+1)*w,0)],t),C_))
+        return S
+    add('reflex_fold',*folded([(0,0,-.9,0),(2,8,-.7,.7),(12,8,.7,.7),(14,0,.9,0)],4,2.6),az=-66,el=24)
+    pr=[(7-9*math.cos(math.radians(a_)),9*math.sin(math.radians(a_)),-math.cos(math.radians(a_)),math.sin(math.radians(a_))) for a_ in(0,36,72,108,144,180)]
+    add('cylindrical_folding',*folded(pr,3,3.8,amp=1.3),az=-64,el=22)
+    F=model('templates_developable_folding_12_corrugated_funnel')
+    I['developable_folding']=([{**p,'c':(A,C_)[k%2],'ax':Z} for k,p in enumerate(F)],-60,8)
+    ch=[]; n=5
+    for k in range(n):
+        a0,a1,a2=[math.radians(175-170*(k+j*.5)/n) for j in(0,1,2)]; R_=9
+        pt=lambda a_,y:(R_*math.cos(a_),y,R_*math.sin(a_)); dl=math.radians(170*.32/n)
+        for y0,y1,s0,s1,c in((0,4,0,1,A),(4,8,1,0,C_)):
+            ch.append((plate([pt(a0-dl*s0,y0),pt(a2-dl*s0,y0),pt(a2-dl*s1,y1),pt(a0-dl*s1,y1)],-.9),c))
+    add('chevron',*ch,az=-60,el=24)
+    add('cross',(plate([(0,0,0),(9,0,0),(9,11,0),(0,11,0)],1.4),A,X),(rot(plate([(9,0,0),(18,0,0),(18,11,0),(9,11,0)],1.4),y=34,at=(9,0,0)),C_,X),*[(rot(box(7,11,y,y+1,-2.2,3.6),y=17,at=(9,0,.7)),G) for y in(2.5,7.5)],az=-64,el=30)
+    house=ext([(0,0),(12,0),(12,7),(6,12.2),(0,7)],0,10)-box(4.2,7.8,-1,1.2,-1,5.6)-box(11,13,3.4,6.8,2.4,5.4)
+    add('module',(house,A,Z),(plate([(-1,-.8,6.4),(6,-.8,12.5),(6,10.8,12.5),(-1,10.8,6.4)],-.9),C_,Y),(plate([(6,-.8,12.5),(13,-.8,6.4),(13,10.8,6.4),(6,10.8,12.5)],-.9),B,Y),(box(4.2,7.8,.4,1.2,0,5.6),G),az=-56,el=18)
+    pw=[]
+    for k in range(4): pw.append((rot(box(-3,10,2.2,4.2,0,4.4),z=90*k),(A,C_)[k%2],(X,Y)[k%2]))
+    add('reciprocal_rotation',*pw,el=30)
+    add('reciprocal_move',(box(-2,14,-5,-3,0,4.6),A,X),(box(-2,14,7,9,0,4.6),A,X),(box(1,3,-3,11,.0,4.6).translate((0,-4,0))-box(0,4,-9,-3,-1,6),C_,Y),(box(8.6,10.6,-3,7,0,4.6),C_,Y),(box(2.4,4.4,-3,7,0,4.6),C_,Y),el=32)
+    gr=[]
+    for x in(0,7,14):
+        for y in(0,7): gr.append((box(x,x+1.5,y,y+1.5,0,12),A,Z))
+    for zc in(5,12):
+        for y in(0,7): gr.append((box(-.4,15.9,y,y+1.5,zc,zc+1.6),C_,X))
+        for x in(0,7,14): gr.append((box(x,x+1.5,1.5,7,zc,zc+1.6),B,Y))
+    add('grid',*gr,(box(0,15.5,0,8.5,6.6,7.1),C_,X),az=-58,el=18)
+    H=[p for p in model('templates_floor_7_contacts_cantilevers') if not re.search('_head_|pin|cutters', p['name']) and p['name'] != 'support']
+    I['floor']=([{**p,'c':G if p['name'].startswith(('connector','column_plate')) else (C_ if p['name'].startswith('beds') else A)} for p in H],-60,24)
+    bm=lambda a_,b_,w,c,yy=0:(hull([(a_[0]+s*nx*w+0,y,a_[1]+s*nz*w) for nx,nz in[(-(b_[1]-a_[1])/math.hypot(b_[0]-a_[0],b_[1]-a_[1]),(b_[0]-a_[0])/math.hypot(b_[0]-a_[0],b_[1]-a_[1]))] for s in(-1,1) for y in(yy,yy+1.8)]+[(b_[0]+s*nx*w,y,b_[1]+s*nz*w) for nx,nz in[(-(b_[1]-a_[1])/math.hypot(b_[0]-a_[0],b_[1]-a_[1]),(b_[0]-a_[0])/math.hypot(b_[0]-a_[0],b_[1]-a_[1]))] for s in(-1,1) for y in(yy,yy+1.8)]),c)
+    add('truss',bm((0,0),(20,0),.7,A),bm((0,0),(10,8.4),.7,A),bm((20,0),(10,8.4),.7,A),bm((10,0),(10,8.4),.6,C_),bm((5,4.2),(10,0),.55,C_),bm((15,4.2),(10,0),.55,C_),*[(cyl((x,-.5,z_),(x,2.3,z_),.95),G) for x,z_ in((1,.2),(19,.2),(10,8),(10,0),(5,4.2),(15,4.2))],az=-72,el=12)
+    V_=model('templates_vault_9_gothic_ribbed_vault'); I['vault']=([{**p,'c':(A,C_,B)[k%3]} for k,p in enumerate([p for p in V_ if p['path'] and p['path'][0]=='star_stellar_burgos'])],-58,18)
+    pl_=[]
+    for k,y in enumerate((0,5,10)): pl_.append((box(-2,14,y,y+2.6,0,2),A,X))
+    for i,x in enumerate((0,5,10)):
+        for k,y in enumerate((0,5,10)):
+            up=(i+k)%2==0; pl_.append((box(x,x+2.6,y-1.2,y+3.8,2 if up else -2,4 if up else 0),C_,Y))
+    add('plaited',*pl_,el=40)
+    VD=model('templates_vidy_4_section_joints'); sel=[p for p in VD if p['path'] and p['path'][0] in('outer_walls','outer_roof','inner_walls','inner_roof')]
+    cy=[np.array(p['v'])[:,:].mean(0) for p in sel]; ax_=int(np.argmax(np.ptp(np.array(cy),axis=0))); lo_=min(c[ax_] for c in cy); ran=np.ptp(np.array(cy)[:,ax_])
+    I['vidy']=([{**p,'c':(A,C_,B)[k%3]} for k,(p,c) in enumerate(zip(sel,cy)) if c[ax_]<lo_+ran*.36],-118 if ax_==1 else -58,16)
+    # what the solver does
+    add('joint_type',(rot(box(-6,6,-6,6,0,1.8),z=45),A,X),*[(cyl((x,y,1.8),(x,y,2.9),1.5),G) for x,y in((4.3,4.3),(-4.3,4.3),(4.3,-4.3),(-4.3,-4.3))],az=-90,el=42)
+    arw=lambda:flat([(0,-.7),(5,-.7),(5,-2),(8,0),(5,2),(5,.7),(0,.7)],0,1.2)
+    add('insertion_direction',(box(0,11,0,11,0,1.8),A,X),(arw().rotate((0,0,180)).translate((20,3,.3)),G),(arw().translate((-9,8,.3)),G),el=40)
+    zig=[(0,6.6),(6,12.7),(12,6.8),(18,12.7),(24,6.6),(24,0),(0,0)]
+    up_=[(x,24-zz_) for x,zz_ in zig]; dn=[(x,24-zz_) for x,zz_ in [(0,12.7),(6,18.7),(12,12.8),(18,18.7),(24,12.7),(24,24),(0,24)]]
+    add('solver',(ext(up_,0,5),C_,X),(ext(dn,0,5),A,X),az=-74,el=14)
+    return I
 
 
-# ------------------------------------------------------------------ the sprite
+def picture(name: str, pieces: list, azimuth: float, elevation: float) -> Image.Image:
+    """An icon drawn, the sun always over the left shoulder."""
+    side = math.radians(azimuth - 48.0)
+    return icon_ink.draw(pieces, CELL, azimuth, elevation, CELL / 74.0 * THIN.get(name, 1.0), (math.cos(side), math.sin(side), 1.25))
 
 
-def fitted(shapes: list) -> list:
-    """Shapes scaled and centred into the grid, a unit and a half clear of its edge."""
-    points = [point for shape in shapes for point in shape[1]]
-    low = [min(point[k] for point in points) for k in (0, 1)]
-    high = [max(point[k] for point in points) for k in (0, 1)]
-    scale = 21.0 / max(high[0] - low[0], high[1] - low[1])
-    return [(shape[0], [tuple(12.0 + (point[k] - (low[k] + high[k]) / 2.0) * scale for k in (0, 1)) for point in shape[1]], *shape[2:]) for shape in shapes]
-
-
-def drawn(shape: tuple) -> str:
-    """A shape as SVG."""
-    points = shape[1]
-    if isinstance(points, str):
-        numbers = [float(value) for value in points.split()]
-        points = list(zip(numbers[::2], numbers[1::2]))
-    if shape[0] == "dot":
-        return f'<circle cx="{points[0][0]:.2f}" cy="{points[0][1]:.2f}" r="{shape[2]}" fill="#000" stroke="none"/>'
-    listed = " ".join(f"{x:.2f} {y:.2f}" for x, y in points)
-    if shape[0] == "line":
-        return f'<polyline fill="none" points="{listed}"/>'
-    if shape[0] == "thick":
-        return f'<polyline fill="none" stroke-width="2" points="{listed}"/>'
-    if shape[0] == "solid":
-        return f'<polygon fill="#000" stroke="none" points="{listed}"/>'
-    return f'<polygon fill="{FILLS[shape[0]]}" points="{listed}"/>'
-
-
-def main() -> None:
-    """Writes the sprite."""
-    icons = {**PLUGIN, **{name: fitted(shapes) for name, shapes in new_icons().items()}}
-    symbols = []
-    for name, shapes in sorted(icons.items()):
-        inside = "".join(drawn(shape) for shape in shapes)
-        symbols.append(f'<symbol id="{name}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">{inside}</g></symbol>')
-    (WOOD / "docs/doxygen/icons.svg").write_text('<svg xmlns="http://www.w3.org/2000/svg">\n' + "\n".join(symbols) + "\n</svg>\n")
-    print(len(icons), "icons")
+def main(arguments: list) -> None:
+    """Draws every icon into one picture and writes their order into app.js."""
+    drawn = {name: picture(name, *spec) for name, spec in icons().items()}
+    names = sorted(drawn)
+    atlas = Image.new("RGBA", (COLUMNS * CELL, math.ceil(len(names) / COLUMNS) * CELL), (0, 0, 0, 0))
+    for k, name in enumerate(names):
+        atlas.paste(drawn[name], (k % COLUMNS * CELL, k // COLUMNS * CELL))
+    atlas.save(WOOD / "docs/doxygen/icons.webp", quality=88, method=6, exact=False)
+    script = WOOD / "docs/doxygen/app.js"
+    order = f'  const ORDER = "{" ".join(names)}".split(" "); // of icons.webp, {COLUMNS} a row, written by make_icons.py'
+    script.write_text(re.sub(r"  const ORDER = .*", lambda _: order, script.read_text()))
+    print(len(names), "icons", (WOOD / "docs/doxygen/icons.webp").stat().st_size)
+    if "--sheet" in arguments:
+        sheet = Image.new("RGB", (9 * 190, math.ceil(len(names) / 9) * 200), "white")
+        for k, name in enumerate(names):
+            x, y = k % 9 * 190, k // 9 * 200
+            sheet.paste(drawn[name], (x + 15, y + 8), drawn[name])
+            ImageDraw.Draw(sheet).text((x + 15, y + 176), name, fill=(70, 70, 70))
+        sheet.save(arguments[arguments.index("--sheet") + 1])
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

@@ -6,17 +6,19 @@
  * ================================================================== */
 
 html {
+    --wood-ink: #4a2e1a; /* the frame of what pops out under the pointer */
+    --wood-pop: #e4ae72; /* and what it leaves below */
     --wood-mark: #d09a67; /* brown: rules, hovers, the tab under the pointer */
     --wood-accent: #007c56; /* green: links and what is current */
     --wood-brown: #96754e; /* the pictures' brown as text */
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;
-    --wood-sunken: #f8f8f4;
+    --wood-sunken: #f5f6f6;
     --wood-fg: #16181a;
     --wood-fg-light: #5d5f58;
     --wood-fg-lighter: #a3a59d;
     --wood-line: #dadad6;
-    --wood-code-bg: #f8f8f4;
+    --wood-code-bg: #f5f6f6;
     --wood-code-fg: #26292b;
     --wood-hl-keyword: #007c56;
     --wood-hl-string: #96602c;
@@ -236,51 +238,49 @@ a:hover, .contents a:hover, a.el:hover {
 }
 
 /* ==================================================================
- * Icons (icons.svg): the fills are the joinery's brown in three shades
+ * Icons (icons.webp, one picture of all): app.js sets which
  * ================================================================== */
 
-html {
-    --icon-a: #d09a67;
-    --icon-b: #b27c4a;
-    --icon-c: #8a5a31;
-}
-
 .wood-icon {
+    display: inline-block;
     flex: none;
-    width: 1.35em;
-    height: 1.35em;
-    vertical-align: -.32em;
-    overflow: visible;
+    width: 1.6em;
+    height: 1.6em;
+    vertical-align: -.5em;
+    background: url(icons.webp) no-repeat;
 }
 
 #chapters a .wood-icon {
-    margin-right: 9px;
+    width: 30px;
+    height: 30px;
+    margin: -8px 8px -8px 0;
+    vertical-align: middle;
 }
 
 #nav-tree .label a .wood-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 9px;
-    vertical-align: -4px;
+    width: 24px;
+    height: 24px;
+    margin: -3px 8px -3px 0;
+    vertical-align: -7px;
 }
 
 div.header .title .wood-icon {
-    width: 1.25em;
-    height: 1.25em;
-    margin-right: .38em;
-    vertical-align: -.26em;
+    width: 1.9em;
+    height: 1.9em;
+    margin: -.3em .3em -.3em 0;
+    vertical-align: -.6em;
 }
 
 .wood-card .wood-card-title:has(.wood-icon) {
-    padding-left: 56px;
+    padding-left: 64px;
 }
 
 .wood-card-title .wood-icon {
     position: absolute;
-    left: 20px;
-    top: 9px;
-    width: 25px;
-    height: 25px;
+    left: 14px;
+    top: 1px;
+    width: 40px;
+    height: 40px;
 }
 
 /* ==================================================================
@@ -1061,11 +1061,16 @@ a.wood-card, a.wood-card:visited {
     line-height: 1.25;
     color: var(--wood-fg) !important;
     text-decoration: none !important;
-    transition: background .15s ease;
+    transition: transform .14s ease, box-shadow .14s ease, outline-color .14s ease;
 }
 
+/* the card pops out, its frame left below it */
 a.wood-card:hover, a.wood-card:focus-visible {
-    background: var(--wood-sunken);
+    z-index: 2;
+    outline: 2px solid var(--wood-ink);
+    border-radius: 3px;
+    box-shadow: 7px 7px 0 1px var(--wood-pop), 7px 7px 0 3px var(--wood-ink);
+    transform: translate(-5px, -5px);
 }
 
 div.contents .wood-card img {
@@ -1180,8 +1185,9 @@ a.wood-button.main, a.wood-button.main:visited {
 }
 
 a.wood-button:hover {
-    border-color: var(--wood-mark);
-    transform: translateY(-2px);
+    border-color: var(--wood-ink);
+    box-shadow: 4px 4px 0 var(--wood-pop), 4px 4px 0 1.5px var(--wood-ink);
+    transform: translate(-3px, -3px);
 }
 
 .wood-landing {
@@ -1224,7 +1230,10 @@ div.contents .wood-landing img {
 
 .wood-landing a.wood-chapter:hover .wood-chapter-picture,
 .wood-landing a.wood-chapter:focus-visible .wood-chapter-picture {
-    background: var(--wood-sunken);
+    border-color: var(--wood-ink);
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px var(--wood-ink), 10px 10px 0 1px var(--wood-pop), 10px 10px 0 3px var(--wood-ink);
+    transform: translate(-6px, -6px);
 }
 
 .wood-landing .wood-chapter-title::after {
