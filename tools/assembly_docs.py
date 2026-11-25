@@ -16,8 +16,8 @@ IMAGES = WOOD / "docs/images/assembly"
 # Per page: how its templates go together, then per example its title and what its modules are.
 PAGES = {
     "shells": (
-        "The plates between two profile points are raised from their two ends into one arch strip; every strip then moves straight off "
-        "the strip beside it, opening all its miters at once.",
+        "Two by two plates go together into one patch of four (three where a row is odd), plate by plate; the patches then go in one by one along "
+        "the cross section, pair of rows after pair of rows, each down its miters against the patches beside it.",
         [("templates_shells_1_translation_shell", "Translation shell"), ("templates_shells_2_custom_curves", "Custom curves")],
     ),
     "folding": (

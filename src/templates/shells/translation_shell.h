@@ -77,16 +77,36 @@ inline TranslationShell::TranslationShell(
     for (const std::shared_ptr<FacePlanarElement>& plate : plates)
         add(plate, plates_group);
 
-    // assembly: the plates between two profile points make one arch strip, raised from its ends, the strips put side by side
+    // assembly: two by two plates make one patch of four, an odd last column and row patches of three and four; the patches put one
+    // after another along the cross section, pair of rows after pair of rows
     const size_t across = cross_section.point_count() - 1;
-    std::vector<AssemblyModule> strips;
-    for (size_t i = 0; i + 1 < profile.point_count(); i++) {
-        const std::vector<std::shared_ptr<FacePlanarElement>>::const_iterator from = plates.begin() + static_cast<std::ptrdiff_t>(i * across);
-        strips.push_back(AssemblyModule::raise(
-            fmt::format("strip_{}", i), AssemblyModule::parts_of(std::vector<std::shared_ptr<FacePlanarElement>>(from, from + static_cast<std::ptrdiff_t>(across)))
-        ));
+    const size_t along = profile.point_count() - 1;
+    std::vector<std::vector<size_t>> patches;
+    for (size_t i = 0; i + 1 < along; i += 2)
+        for (size_t j = 0; j + 1 < across; j += 2)
+            patches.push_back({i * across + j, i * across + j + 1, (i + 1) * across + j, (i + 1) * across + j + 1});
+
+    std::array<std::vector<size_t>, 2> odd;
+    for (size_t i = 0; across % 2 == 1 && i + along % 2 < along; i++)
+        odd[0].push_back(i * across + across - 1);
+    for (size_t j = 0; along % 2 == 1 && j < across; j++)
+        odd[1].push_back((along - 1) * across + j);
+    for (const std::vector<size_t>& run : odd) {
+        const size_t pieces = (run.size() + 3) / 4;
+        for (size_t k = 0; k < pieces; k++)
+            patches.emplace_back(run.begin() + static_cast<std::ptrdiff_t>(run.size() * k / pieces), run.begin() + static_cast<std::ptrdiff_t>(run.size() * (k + 1) / pieces));
     }
-    assemblies = {AssemblyModule::module(name, strips)};
+
+    std::vector<AssemblyModule> modules;
+    for (size_t k = 0; k < patches.size(); k++) {
+        std::vector<AssemblyModule> patch;
+        for (const size_t plate : patches[k])
+            patch.push_back(AssemblyModule::part(plates[plate]));
+        modules.push_back(AssemblyModule::module(fmt::format("patch_{}", k), patch));
+    }
+    AssemblyModule whole = AssemblyModule::module(name, modules);
+    whole.one_by_one = true;
+    assemblies = {whole};
 }
 
 inline std::vector<Polyline> TranslationShell::compute_sections() const {
