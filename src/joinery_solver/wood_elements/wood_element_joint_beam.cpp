@@ -2803,7 +2803,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::skewed_pins(
     double lean,
     double offset,
     double overshoot,
-    int pin_sides
+    int pin_sides,
+    bool highest
 ) {
 
     const std::vector<Point> points = merge_collinear(contact.polygon);
@@ -2813,8 +2814,16 @@ std::shared_ptr<JointBeamElement> JointBeamElement::skewed_pins(
     if ((b.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
         normal = -normal;
 
-    // x along the contact's top edge, y from the contact's middle to that edge
-    const Line top = top_edge(points);
+    // x along the contact's top edge, or its highest one on a contact taller than wide, y from the contact's middle to that edge
+    Line top = top_edge(points);
+
+    for (size_t i = 0; highest && i < points.size(); i++) {
+        const Line edge = Line::from_points(points[i], points[(i + 1) % points.size()]);
+
+        if (edge.center()[2] > top.center()[2] + 1e-6)
+            top = edge;
+    }
+
     const Vector x = top.to_vector().normalized();
     Vector y = normal.cross(x).normalized();
 

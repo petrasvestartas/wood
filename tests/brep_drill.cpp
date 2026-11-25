@@ -222,10 +222,22 @@ int main() {
         "a line beside the block runs inside nothing"
     );
 
+    const Polyline long_foot(
+        {Point(0, 0, 0), Point(100, 0, 0), Point(100, 100, 0), Point(0, 100, 0), Point(0, 0, 0)}
+    );
+    const Mesh long_member = Mesh::loft({long_foot}, {long_foot.translated(Vector(0, 0, 12000))}, true);
+    const std::vector<std::array<double, 2>> across =
+        inside_stretches(long_member, Line::from_points(Point(-10, 50, 6000), Point(110, 50, 6000)));
+    check(
+        planar_faces(long_member).size() == 6 && across.size() == 1 && std::abs(across[0][0] - 10.0) < 1e-9 &&
+            std::abs(across[0][1] - 110.0) < 1e-9,
+        "a member 12 m long keeps its six faces and is bored across from 10 to 110"
+    );
+
     std::cout
         << "brep_drill: through, tilted, blind and two holes exact and solid; edge and touching "
            "drills fall back; T-vertices of merged neighbours split so every edge is shared; two "
-           "blind holes meeting one through bore; inside stretches through, from inside and beside"
+           "blind holes meeting one through bore; inside stretches through, from inside and beside; a member over 10 m keeps its faces"
         << std::endl;
 
     return 0;

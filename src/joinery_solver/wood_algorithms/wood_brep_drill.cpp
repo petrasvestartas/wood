@@ -284,14 +284,18 @@ static std::vector<FacePlane> mesh_planes(const Mesh& mesh) {
             return {};
 
         // a sliver thinner than 1e-4 mm has no plane to build a face on: the faces around it close without it
-        const Vector newell = compute_newell(points);
+        const Vector normal = compute_newell(points);
         double longest = 0.0;
-        for (size_t k = 0; k < points.size(); k++)
-            longest = std::max(longest, Point::distance(points[k], points[(k + 1) % points.size()]));
-        if (newell.magnitude() < 1e-4 * longest)
+        double doubled_area = 0.0;
+        for (size_t k = 0; k < points.size(); k++) {
+            const Point& next = points[(k + 1) % points.size()];
+            longest = std::max(longest, Point::distance(points[k], next));
+            doubled_area += (points[k] - points[0]).cross(next - points[0]).dot(normal);
+        }
+        if (doubled_area < 1e-4 * longest)
             continue;
 
-        plane.normal = newell.normalized();
+        plane.normal = normal;
         plane.points = points;
 
         for (const Point& point : points)

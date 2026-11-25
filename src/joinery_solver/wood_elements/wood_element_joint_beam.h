@@ -278,6 +278,7 @@ public:
 
     /// Two pins beside each other leaning lean degrees from the face contact, driven once both members stand: from a's face over
     /// the contact's top edge down across the middle of the contact, into b by depth; bored into both, null when the inset leaves nothing.
+    /// The top edge is the longest of the upper ones, or the highest, for a contact taller than wide.
     static std::shared_ptr<JointBeamElement> skewed_pins(
         const Element& a,
         const Element& b,
@@ -287,7 +288,8 @@ public:
         double lean = 45.0,
         double offset = 20.0,
         double overshoot = 10.0,
-        int pin_sides = 16
+        int pin_sides = 16,
+        bool highest = false
     );
 
     /// Headed pins laid out on the face contact of a and b, pre-drilled into both.
