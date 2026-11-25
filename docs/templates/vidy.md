@@ -173,8 +173,7 @@ A row is two walls and one roof. Each of the three goes together plate by plate,
 | ![wall left, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_left.gif) wall left, 8 pieces | ![wall right, 8 pieces](assembly/assembly_templates_vidy_4_section_joints_wall_right.gif) wall right, 8 pieces | ![roof, 26 pieces](assembly/assembly_templates_vidy_4_section_joints_roof.gif) roof, 26 pieces |
 | ![vidy pavilion, 33 pieces](assembly/assembly_templates_vidy_4_section_joints.gif) vidy pavilion, 33 pieces |  |  |
 | **Parametric family**, 504 elements, 501 moves | | |
-| ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric_bay.gif) bay, 3 pieces | ![compact symmetric, 3 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric.gif) compact symmetric, 3 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall_bay.gif) bay, 3 pieces |
-| ![tapered hall, 5 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall.gif) tapered hall, 5 pieces | ![bay, 3 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow_bay.gif) bay, 3 pieces | ![wide shallow, 4 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow.gif) wide shallow, 4 pieces |
+| ![compact symmetric, 9 pieces](assembly/assembly_templates_vidy_5_parametric_compact_symmetric.gif) compact symmetric, 9 pieces | ![tapered hall, 15 pieces](assembly/assembly_templates_vidy_5_parametric_tapered_hall.gif) tapered hall, 15 pieces | ![wide shallow, 12 pieces](assembly/assembly_templates_vidy_5_parametric_wide_shallow.gif) wide shallow, 12 pieces |
 | **Deep folded halls**, 76 elements, 74 moves | | |
 | ![counter fold, 50 pieces](assembly/assembly_templates_vidy_6_origami_shapes_counter_fold.gif) counter fold, 50 pieces | ![prismatic fold, 26 pieces](assembly/assembly_templates_vidy_6_origami_shapes_prismatic_fold.gif) prismatic fold, 26 pieces |  |
 
