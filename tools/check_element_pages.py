@@ -100,7 +100,7 @@ def is_made(path: pathlib.PurePosixPath, recipes: dict) -> bool:
     if folder == "examples" and name.startswith("ex_"):
         return name[3:].rsplit(".", 1)[0] in recipes["examples"]
     # diagrams, landing and the rest: the name is written in a picture script
-    return path.stem in recipes["scripts"] or name.startswith("wood_elements_sheet_")
+    return path.stem in recipes["scripts"]
 
 
 def check_pictures() -> None:

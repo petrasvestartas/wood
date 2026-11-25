@@ -214,12 +214,14 @@
   const section = nodes => {
     const out = make("section", "wood-section");
     const figures = [], codes = [], wide = [], notes = [], links = [], kept = [];
-    let first = null;
+    let first = null, beside = null;
     for (const node of nodes) {
       if (node.nodeType !== Node.ELEMENT_NODE) {
         if (!textless(node)) kept.push(node);
       } else if (heading(node)) {
         out.append(node);
+      } else if (node.matches("div.wood-links")) {
+        beside = node;
       } else if (node.matches("div.fragment, pre.fragment, pre:not(.mermaid)")) {
         codes.push(node);
       } else if (node.matches("div.wood-card-grid, div[style*='display:none']")) {
@@ -258,7 +260,9 @@
     const shown = make("div", "wood-figures", ...figures);
     if (figures.length > 1)
       shown.classList.add("many");
-    if (figures.length && codes.length)
+    if (beside)
+      out.append(make("div", "wood-step", make("div", "wood-codes", ...codes.map(source)), beside));
+    else if (figures.length && codes.length)
       out.append(make("div", "wood-panes", shown, make("div", "wood-codes", ...codes.map(source))));
     else if (figures.length)
       out.append(shown);
@@ -293,7 +297,7 @@
 
   // the tabs: the page's main sections, the one in view marked
   const titles = [...block.querySelectorAll("h1.doxsection, .wood-section > h1")];
-  if (titles.length > 1 && page !== "elements.html") {
+  if (titles.length > 1 && !["elements.html", "architecture.html"].includes(page)) {
     const tabs = make("nav", "wood-tabs");
     tabs.setAttribute("aria-label", "Sections");
     const tab = new Map(titles.map(title => {

@@ -1367,6 +1367,32 @@ div.contents .wood-lead {
     min-width: 0;
 }
 
+/* a step of the program and where it leads */
+.wood-step {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 40px;
+    align-items: start;
+}
+
+.wood-links a, .wood-links a:visited {
+    display: block;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--wood-line);
+    color: var(--wood-fg);
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.wood-links a:first-child {
+    border-top: 1px solid var(--wood-line);
+}
+
+.wood-links a:hover {
+    color: var(--wood-green);
+    text-decoration: none;
+}
+
 .wood-figures {
     display: grid;
     gap: 16px;
@@ -1514,8 +1540,9 @@ div.contents .wood-legend, div.contents .wood-code-link {
 }
 
 @media screen and (max-width: 1100px) {
-    .wood-panes {
+    .wood-panes, .wood-step {
         grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
     }
 
     .wood-panes > .wood-codes {

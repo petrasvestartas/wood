@@ -1,13 +1,12 @@
 """The pictures of the docs' architecture and examples pages, every one a viewer screenshot cropped only (tools/render_template_docs.py):
 a contact, a joint or an inside shown through the x-ray view or through transparent elements, an uncut or a cut member solid.
 
-    python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]
+    python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [sheets]
 
 examples   docs/images/examples/ex_<n>_<name>.webp, the twelve numbered examples
 pipeline   diagrams/wood_architecture.webp, one model through plates, contacts, joints and cut plates
 landing    landing/landing_architecture.webp, the same model cut, at the landing page's 16:9
 wiring     diagrams/wood_joint_unit_box.webp, three joints by three rows: the joint, the joint on its contact, the members it cut
-cutting    diagrams/wood_boolean_cutting.webp, stock, cutter and result of four cuts
 sheets     diagrams/wood_beam_joints_connectors.webp, tiled from the element pictures
 """
 
@@ -79,12 +78,6 @@ WIRING = [
         "element_joint_beam_cross_slot",
         "all",
     ),
-]
-CUTS = [
-    ("10_profile_cuts", "Through slot / two separate pieces", "through cut"),
-    ("10_profile_cuts", "Concave pocket / solid split", "blind pocket"),
-    ("element_joint_drill", "all", "drill holes"),
-    ("12_solid_features", "Difference / sloped solids", "solid pocket"),
 ]
 BEAM_SHEET = ["cross", "top_side", "end_to_end", "butt", "wedge", "centred_pins"]
 
@@ -258,23 +251,6 @@ def wiring(tmp: pathlib.Path) -> None:
     sheet(rows[0] + rows[1] + rows[2], 3, 3600, DIAGRAMS / "wood_joint_unit_box.webp")
 
 
-def cutting(tmp: pathlib.Path) -> None:
-    """Stock, cutter and result of four cuts, the groups of the cutting examples."""
-    tiles = []
-    scenes = {}
-    for example, group, caption in CUTS:
-        scenes.setdefault(example, scene_of(example, tmp))
-        tiles.append(
-            (
-                shot(
-                    scenes[example], group, "", tmp / f"{caption.replace(' ', '_')}.pb"
-                ),
-                caption,
-            )
-        )
-    sheet(tiles, 2, 2664, DIAGRAMS / "wood_boolean_cutting.webp")
-
-
 def sheets(tmp: pathlib.Path) -> None:
     """The beam joints' sheet, tiled from the element pictures."""
     tiles = [
@@ -290,7 +266,7 @@ def sheets(tmp: pathlib.Path) -> None:
 
 
 if __name__ == "__main__":
-    wanted = sys.argv[1:] or ["examples", "pipeline", "landing", "wiring", "cutting", "sheets"]
+    wanted = sys.argv[1:] or ["examples", "pipeline", "landing", "wiring", "sheets"]
     with tempfile.TemporaryDirectory() as folder:
         tmp = pathlib.Path(folder)
         for step in wanted:

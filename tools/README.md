@@ -18,8 +18,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | `images/joint_library/assembly_*.png`, `.gif` | `python3 tools/render_family_gifs.py [example ...]` (every example of the plate and beam joint pages, run with `WOOD_ASSEMBLY` for its assembly order, drawn apart and taken in one by one like the library's joints) |
 | `images/joint_library/beam_*.png` | `python3 tools/render_joint_library.py [design ...]` (every record of data/joints/*.yaml on a square and an inclined corner; native renderer) |
 | `images/templates/templates_truss_5_carpentry_assembly.gif` | `python3 tools/render_joint_assembly_gif.py templates_truss_5_carpentry_assembly` (an AssemblySequence's order and directions, apart, in one by one, out in reverse; native renderer) |
-| `images/examples/ex_*.webp`, `images/diagrams/wood_architecture`, `wood_joint_unit_box`, `wood_boolean_cutting`, `wood_beam_joints_connectors`, `images/landing/landing_architecture` | `python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]` |
-| `images/diagrams/wood_elements_sheet_1_elements.webp` | `python tools/render_element_sheets.py` (after the element pictures) |
+| `images/examples/ex_*.webp`, `images/diagrams/wood_architecture`, `wood_joint_unit_box`, `wood_beam_joints_connectors`, `images/landing/landing_architecture` | `python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [sheets]` |
 | `images/joint_library/` | `bash tools/joint_library_figures/make.sh` (the other native-renderer pipeline: labelled tiles, trimmed and scaled; not yet on the viewer tool) |
 | `images/joint_library/card_*.gif` (the template cards) | `python3 tools/card_gifs.py` (after the assembly GIFs) |
 | `doxygen/icons.svg` (the icons, the Rhino plugin's and those drawn after them) | `python3 tools/make_icons.py` |

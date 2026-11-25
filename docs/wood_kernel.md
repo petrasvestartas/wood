@@ -1,80 +1,76 @@
 # Architecture {#architecture}
 
-[TOC]
-
-Wood is a C++23 timber joinery solver and parametric structure library built on [session_cpp](https://github.com/petrasvestartas/session_cpp). Elements store their uncut stock geometry alongside directed cutting interactions in WoodSession, evaluating boolean-cut meshes and exact NURBS BReps on demand.
-
-\include{lineno} two_plates.cpp
-
-## Scene Graph {#arch_scene_graph}
-
-![](diagrams/wood_architecture.webp)
-
-WoodSession wraps a session containing a visual tree hierarchy and a directed interaction graph.
-
-| Structure | Representation | Role |
-| --- | --- | --- |
-| Session::tree | TreeNode hierarchy | Scene layers and parent-child ownership |
-| Session::graph | Directed Element and Interaction graph | Contact edges and boolean cutting dependencies |
+## 1 Session {#arch_session}
 
 ```cpp
-class WoodSession : public Session {
-public:
-    Settings settings;
-
-    void add(const std::shared_ptr<Element>& element, const std::shared_ptr<TreeNode>& parent = nullptr);
-    std::shared_ptr<Interaction> add_interaction(const std::shared_ptr<Element>& source, const std::shared_ptr<Element>& target, const std::shared_ptr<Interaction>& interaction);
-    WoodSession get_branch(const std::string& group_name) const;
-    void graft(const WoodSession& other, const std::shared_ptr<TreeNode>& parent = nullptr);
-    void compute_breps();
-    void pb_dump(const std::string& filename);
-};
+WoodSession scene("two_plates");
 ```
 
-## Stock and Cut Geometry {#arch_stock_vs_cut}
+<div class="wood-links">
+  <a href="classwood__session_1_1WoodSession.html">WoodSession</a>
+  <a href="examples.html#ex_4_traversal">Graph traversal</a>
+  <a href="examples.html#ex_5_settings">Settings</a>
+</div>
 
-![](diagrams/wood_elements_sheet_1_elements.webp)
+## 2 Elements {#arch_elements}
 
-Every WoodElement caches two lazy geometric states in both Mesh and BRep form: uncut stock (`element_geometry_mesh()`, `element_geometry_brep()`) built once and placed via scene transforms, and cut solids (`model_geometry_mesh()`, `model_geometry_brep()`) recomputed when interactions invalidate the element.
+```cpp
+const std::array<std::shared_ptr<FacePlanarElement>, 2> pair = FacePlanarElement::pair_top_side(90.0, 400.0);
+const std::shared_ptr<FacePlanarElement> base = pair[0];
+const std::shared_ptr<FacePlanarElement> upright = pair[1];
+scene.add(base);
+scene.add(upright);
+```
 
-| Element | Defining Geometry | Stock Representation |
-| --- | --- | --- |
-| FacePlanarElement | Planar bottom and top Polyline loops | Bottom face 0, top face 1, side faces j + 2 |
-| FaceCurvedElement | Four boundary NurbsCurve rails | Exact 6-patch ruled NURBS solid |
-| EdgeStraightElement | Polyline axis, section radii or profile, up vectors | Beam or column: rectangular, profiled or round swept timber prism |
-| EdgeCurvedElement | Centreline NurbsCurve, width, height, lamellae | Curved glulam with RMF frames and 6-patch NURBS BRep |
-| EdgeVariableElement | Axis Line, station Polylines | Multi-section lofted prism or parabolic rib |
-| NodeSupportElement | Plane, base_width, head_diameter, pin_length | Two steel base plates and three anchor pins |
-| NodeBlockElement / JointPinElement / JointConnectorPartElement | Mesh / cylinder axis and radius / connector plate | Connector solids and dowels nested under joints |
-| JointCutPlaneElement | Plane | Half-space clip plane |
+<div class="wood-links">
+  <a href="elements.html">Elements</a>
+  <a href="elements_face_planar.html">Plates</a>
+  <a href="elements_edge_straight.html">Beams</a>
+  <a href="templates.html">Templates</a>
+</div>
 
-## Contact Detection {#arch_contact_detection}
+## 3 Contacts {#arch_contacts}
 
-![](diagrams/wood_joint_unit_box.webp)
+```cpp
+const std::shared_ptr<InteractionContactFace> contact = scene.compute_face_contact(base, upright);
+scene.add_interaction(base, upright, contact);
+```
 
-All contact queries operate on uncut stock so joint geometry does not depend on cutting order.
+<div class="wood-links">
+  <a href="examples.html#ex_2_contacts">Plate contacts</a>
+  <a href="examples.html#ex_8_beams">Beam contacts</a>
+  <a href="examples.html#ex_9_cross_joints">Cross contacts</a>
+</div>
 
-| Query | Return Type | Construction |
-| --- | --- | --- |
-| compute_face_contact(a, b, min_area) | InteractionContactFace | Coplanar opposing faces clipped to 2D intersection polygon and local frame |
-| compute_face_contacts(min_area) | void | BVH broad-phase + pairwise face contact search across session elements |
-| compute_cross_contact(a, b) | InteractionContactCross | 4-plane intersection volume along the crossing line of two plates |
-| compute_axis_contact(a, b) | InteractionContactAxis | Closest segment between element axes and oriented feature boxes |
+## 4 Joints {#arch_joints}
 
-## Boolean and BRep Cutting {#arch_boolean_cutting}
+```cpp
+const std::shared_ptr<JointPlateElement> joint = JointPlateElement::top_side_tenons();
+joint->orient(contact, {base, upright});
 
-![](diagrams/wood_boolean_cutting.webp)
+scene.add(joint);
+scene.add_interaction(joint, upright, joint->interaction(0));
+scene.add_interaction(joint, base, joint->interaction(1));
+```
 
-Hosted features are evaluated lazily in `WoodElement::model_geometry_mesh()` for closed Manifold meshes and `WoodElement::model_geometry_brep()` for exact NURBS BReps.
+<div class="wood-links">
+  <a href="elements_joint_plate.html">Plate joints</a>
+  <a href="elements_joint_beam.html">Beam joints</a>
+  <a href="elements_joint_beam_compendium.html">Joint library</a>
+  <a href="examples.html#ex_6_custom_joint">Custom joint</a>
+</div>
 
-| Feature | Plate Action | Beam / Column / Block Action | Exact BRep |
-| --- | --- | --- | --- |
-| InteractionFeaturePlane | Clips body by half-space plane | Clips mesh by half-space plane | `BRep::cut_by_plane` |
-| InteractionFeatureSolid | Manifold boolean subtract or add + `drills` | Manifold boolean subtract or add + `drills` | Merged planar faces + analytical NURBS bores (`drilled_brep`) |
-| InteractionFeaturePlate | 2D outline merge, mortise holes, solid cutters, and `drill_lines` | Oriented unit-box joinery transferred to beam faces | Planar `brep_between_loops` or `solid_features_brep` |
-| InteractionFeatureBeam | — | Axis-contact solid cutter meshes, butt planes, and `drill_lines` | Exact planar faces and cylindrical NURBS bores |
+## 5 Geometry {#arch_geometry}
 
-## Serialization {#arch_serialization}
+```cpp
+const Mesh& stock = upright->element_geometry_mesh(); // the member uncut
+const Mesh& cut = upright->model_geometry_mesh();     // with its joints
 
-- Mesh mode: `session.pb_dump(pb_path("live"))` writes cut meshes, BReps for round/drilled members, polyline overlays, and the scene tree hierarchy.
-- Exact BRep mode: `session.compute_breps()` evaluates `compute_geometry_brep()` on every cut member, connector part, pin, curved member, and support so cylindrical bores and curved surfaces serialize as exact NURBS BReps.
+scene.pb_dump(pb_path("live"));
+```
+
+<div class="wood-links">
+  <a href="examples.html#ex_12_solid_features">Solid cuts</a>
+  <a href="examples.html#ex_11_drill_solids">Drills</a>
+  <a href="https://petrasvestartas.github.io/session/">Viewer</a>
+</div>
