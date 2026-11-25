@@ -166,15 +166,10 @@ a:hover, .contents a:hover, a.el:hover {
     color: var(--wood-bar-fg);
 }
 
-/* the COMPAS mark is white on blue: here black on white */
 #projectlogo, #projectlogo img {
     display: block;
     width: 28px;
     height: 28px;
-}
-
-#projectlogo img {
-    filter: grayscale(1) brightness(.55);
 }
 
 #projectname, #projectname:visited, #projectname:hover {
