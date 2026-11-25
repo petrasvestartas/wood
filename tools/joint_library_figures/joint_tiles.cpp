@@ -11,7 +11,7 @@ using namespace wood_session;
 static const double BOX = 200.0; // mm, the unit box
 static const double APART = 250.0; // mm, the second plate moved off the first
 static const Color MALE = Color(0.631f, 0.323f, 0.136f); // brown #D09A67, linear: the viewer encodes line colours to sRGB
-static const Color FEMALE = Color(0.0f, 0.202f, 0.093f); // green #007C56, linear
+static const Color FEMALE = Color(0.212f, 0.397f, 0.171f); // green #7FA973, linear
 static const Color EDGE = Color(0.6f, 0.6f, 0.6f);
 static const std::map<std::string, std::string> SHIFT_MEANING = { // What the shift does in each family, for the snippet.
     {"ip", "the dovetail lean: straight at 0.5, one way at 0, the other at 1"},

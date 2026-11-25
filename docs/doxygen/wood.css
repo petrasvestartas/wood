@@ -7,10 +7,11 @@
 
 html {
     --wood-ink: #16181a; /* the frame of what pops out under the pointer */
-    --wood-pop: #4db389; /* and what it leaves below */
-    --wood-mark: #8fd3b3; /* light green: the tab under the pointer */
-    --wood-accent: #007c56; /* green: links and what is current */
-    --wood-title: #007c56; /* the marked word of the title */
+    --wood-pop: #7fa973; /* and what it leaves below */
+    --wood-mark: #cfdfc6; /* light green: the tab under the pointer */
+    --wood-green: #7fa973; /* Blumer Lehmann's may green: fills, rules, what pops out */
+    --wood-accent: #527f3f; /* the same hue dark enough to read: links and what is current */
+    --wood-title: #7fa973; /* the marked word of the title */
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;
     --wood-sunken: #f5f6f6;
@@ -20,10 +21,10 @@ html {
     --wood-line: #dadad6;
     --wood-code-bg: #f5f6f6;
     --wood-code-fg: #26292b;
-    --wood-hl-keyword: #007c56;
-    --wood-hl-string: #4c7a34;
+    --wood-hl-keyword: #527f3f;
+    --wood-hl-string: #6b6b2c;
     --wood-hl-function: #16181a;
-    --wood-hl-special: #4c7a34;
+    --wood-hl-special: #6b6b2c;
     --wood-picture-filter: brightness(1.07);
     --wood-picture-blend: multiply;
     --wood-bar: #ffffff;
@@ -96,8 +97,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --fragment-linenumber-color: var(--wood-fg-lighter);
     --fragment-linenumber-background: var(--wood-code-bg);
     --fragment-linenumber-border: transparent;
-    --note-color: rgba(0, 124, 86, .1);
-    --note-color-dark: #007c56;
+    --note-color: rgba(127, 169, 115, .16);
+    --note-color-dark: #527f3f;
     --note-color-darker: var(--wood-fg);
     --warning-color: rgba(217, 148, 15, .14);
     --warning-color-dark: #d9940f;
@@ -105,8 +106,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --bug-color: rgba(196, 59, 59, .12);
     --bug-color-dark: #c43b3b;
     --bug-color-darker: var(--wood-fg);
-    --todo-color: rgba(0, 124, 86, .1);
-    --todo-color-dark: #007c56;
+    --todo-color: rgba(127, 169, 115, .16);
+    --todo-color-dark: #527f3f;
     --todo-color-darker: var(--wood-fg);
     --deprecated-color: rgba(152, 161, 167, .16);
     --deprecated-color-dark: #98a1a7;
@@ -212,7 +213,7 @@ a:hover, .contents a:hover, a.el:hover {
 }
 
 #chapters a.on {
-    border-bottom-color: var(--wood-accent);
+    border-bottom-color: var(--wood-green);
     color: var(--wood-accent) !important;
 }
 
@@ -262,8 +263,8 @@ div.header .title:has(.wood-icon) {
 }
 
 div.header .title .wood-icon {
-    width: 1.25em;
-    height: 1.25em;
+    width: 48px;
+    height: 48px;
 }
 
 .wood-card .wood-card-title:has(.wood-icon) {
@@ -273,9 +274,9 @@ div.header .title .wood-icon {
 .wood-card-title .wood-icon {
     position: absolute;
     left: 20px;
-    top: 8px;
-    width: 26px;
-    height: 26px;
+    top: 9px;
+    width: 24px;
+    height: 24px;
 }
 
 /* ==================================================================
@@ -394,8 +395,8 @@ html:not(.wood-sided) .wood-side, .wood-side a.wood-side-chapter {
 }
 
 .wood-side a .wood-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     margin: 0;
 }
 
@@ -1186,9 +1187,9 @@ a.wood-button, a.wood-button:visited {
 }
 
 a.wood-button.main, a.wood-button.main:visited {
-    border-color: var(--wood-accent);
-    background: var(--wood-accent);
-    color: #ffffff !important;
+    border-color: var(--wood-green);
+    background: var(--wood-green);
+    color: var(--wood-fg) !important;
 }
 
 a.wood-button:hover {
@@ -1292,7 +1293,7 @@ html.wood-app #container {
 }
 
 .wood-tabs a.on {
-    border-bottom-color: var(--wood-accent);
+    border-bottom-color: var(--wood-green);
     color: var(--wood-accent) !important;
 }
 
