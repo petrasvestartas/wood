@@ -506,6 +506,7 @@ ADD_EXE(element_joint_beam_butterfly_key     examples/elements/element_joint_bea
 ADD_EXE(element_joint_beam_library            examples/elements/element_joint_beam_library.cpp)
 ADD_EXE(element_joint_beam_library_tiles      examples/elements/element_joint_beam_library_tiles.cpp)
 ADD_EXE(element_joint_beam_centred_pins      examples/elements/element_joint_beam_centred_pins.cpp)
+ADD_EXE(element_joint_beam_skewed_pins       examples/elements/element_joint_beam_skewed_pins.cpp)
 ADD_EXE(element_joint_beam_headed_pins       examples/elements/element_joint_beam_headed_pins.cpp)
 ADD_EXE(element_joint_pin                          examples/elements/element_joint_pin.cpp)
 ADD_EXE(element_edge_straight_sections                      examples/elements/element_edge_straight_sections.cpp)

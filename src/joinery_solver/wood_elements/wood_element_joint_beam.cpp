@@ -2794,6 +2794,70 @@ static std::optional<Vector> level_axis(const Element& element) {
     return axis.normalized();
 }
 
+std::shared_ptr<JointBeamElement> JointBeamElement::skewed_pins(
+    const Element& a,
+    const Element& b,
+    const InteractionContactFace& contact,
+    double radius,
+    double depth,
+    double lean,
+    double offset,
+    double overshoot,
+    int pin_sides
+) {
+
+    const std::vector<Point> points = merge_collinear(contact.polygon);
+    const Point origin = Point::centroid(points);
+    Vector normal = compute_newell(points).normalized();
+
+    if ((b.model_geometry_mesh().centroid() - origin).dot(normal) < 0.0)
+        normal = -normal;
+
+    // x along the contact's top edge, y from the contact's middle to that edge
+    const Line top = top_edge(points);
+    const Vector x = top.to_vector().normalized();
+    Vector y = normal.cross(x).normalized();
+
+    if ((top.center() - origin).dot(y) < 0.0)
+        y = -y;
+
+    const std::vector<std::array<double, 2>> ring = inset_polygon(points, origin, x, y, offset);
+
+    if (ring.size() < 3)
+        return nullptr;
+
+    double x_min = 1e300;
+    double x_max = -1e300;
+
+    for (const std::array<double, 2>& corner : ring) {
+        x_min = std::min(x_min, corner[0]);
+        x_max = std::max(x_max, corner[0]);
+    }
+
+    const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
+    joint->name = connector_name(contact, "pins");
+    joint->is_visible = true;
+    joint->targets = {a.guid(), b.guid()};
+    joint->insertions = pulled_apart(a, b, contact);
+    joint->cutters = {{}, {}};
+
+    // every pin from where its line comes out of a's top down across the contact into b
+    const double radians = lean * Tolerance::TO_RADIANS;
+    const Vector direction = normal * std::cos(radians) - y * std::sin(radians);
+    const double reach = AABB::from_mesh(a.element_geometry_mesh()).diagonal();
+
+    for (const double side : {x_min, x_max}) {
+        const Point station = origin + x * side;
+        joint->drill_lines.push_back(Line::from_points(pin_head(a, station, direction, reach), station + direction * depth));
+    }
+
+    joint->line_radius = radius;
+    joint->chord_tolerance = sides_tolerance(radius, pin_sides);
+    joint->drill_overshoot = overshoot;
+
+    return joint;
+}
+
 std::shared_ptr<JointBeamElement> JointBeamElement::headed_pins(
     const Element& a,
     const Element& b,

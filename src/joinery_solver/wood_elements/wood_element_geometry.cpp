@@ -936,6 +936,17 @@ BRep solid_features_brep(const Mesh& mesh, const std::vector<InteractionFeatureS
     if (std::optional<BRep> planar = drilled_brep(cut, {}))
         return *planar;
 
+    // a plate's faces around its slots are triangles of one plane: one face each again
+    const Mesh merged = manifold_solid(cut) ? solid_merged(cut) : cut;
+
+    if (merged.number_of_faces() < cut.number_of_faces()) {
+        const BRep solid = mesh_brep(merged);
+        const double volume = compute_volume(cut);
+
+        if (std::abs(solid.volume() - volume) <= 1e-4 * volume)
+            return solid;
+    }
+
     return mesh_brep(cut);
 }
 

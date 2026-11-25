@@ -14,6 +14,12 @@ Mesh solid_boolean(
     const Mesh& source, const Mesh& cutter, SolidOperation operation, double tolerance = 1e-7
 );
 
+/// The closed solid with every two faces of one plane that meet made one.
+Mesh solid_merged(const Mesh& mesh);
+
+/// The convex solid around the points.
+Mesh solid_hull(const std::vector<Point>& points);
+
 /// The source minus every cutter in one Manifold batch, keeping only the largest solid when the cuts split it.
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters);
 

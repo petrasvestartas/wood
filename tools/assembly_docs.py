@@ -77,10 +77,11 @@ PAGES = {
         "Every box goes together from four plates: the two walls on their corner fingers along the box's up, then the two plates "
         "along the box's insertion vector, their tenons into the walls. The boxes go in one after another along that one vector each. "
         "The 4 x 4 crown block is swept like everything else, the whole shell with 1 mm of play where the turned and moved edge planes make "
-        "boxes bind; the MAX2 arch with 2.5 mm, its crown with 0.5 mm. The shifted chevron has no such sequence: its boxes' "
-        "plates enter their own two long walls along two different vectors (see below).",
+        "boxes bind; the MAX2 arch with 2.5 mm, its crown with 0.5 mm. The shifted chevron's even cells are boxes of five "
+        "plates, the outward wall last, its odd cells shelves of three; its slots are opened along the boxes' ways in (`closed_boxes`).",
         [
             ("templates_chevron_1_chevron", "Chevron: box, crown block, whole shell"),
+            ("templates_chevron_2_shifted", "Shifted: box, shelf, whole shell"),
             ("templates_chevron_3_max2_arch", "MAX2 arch: box, crown block, whole shell"),
         ],
     ),
@@ -133,8 +134,7 @@ PAGES = {
     ),
     "plaited": (
         "The blocks interlock, so every one goes in along a direction of its own, leaning with its bevels, and some with a turn; the "
-        "reciprocal arch its frame and its bars, without the pins hidden at both ends of every bar: four bars pinned round a cell along "
-        "their own axes lock each other.",
+        "reciprocal arch its frame and its bars, then every joint's two pins, leaning, down through the bar's top.",
         [
             ("templates_plaited_1_flat_floor", "Flat floor"),
             ("templates_plaited_2_arch", "Arch"),

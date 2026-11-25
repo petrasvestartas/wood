@@ -90,10 +90,11 @@ private:
         bool pin = false; // A pin, driven into the wood it stands in.
     };
 
-    /// Where two solids touch: the normal out of the other solid, and the corners of the area they share.
+    /// Where two solids touch: the normal out of the other solid, and the corners and the size of the area they share.
     struct Touch {
         Vector normal;
         std::vector<Point> points;
+        double area = 0.0;
     };
 
     /// A way out of a module: the slide's unit direction after the moves legs, and how far it clears everything.
@@ -152,6 +153,13 @@ private:
 
     /// A way out of others for piece, downwards only when it may, false when none is found; tried remembers what blocked each direction.
     bool find_way(const Piece& piece, const std::vector<size_t>& others, bool downwards, std::map<std::string, size_t>& tried, Way& found);
+
+    /// The thickest wood piece shares with others on its first steps along direction.
+    double bound_by(const std::vector<size_t>& piece, const std::vector<size_t>& others, const Vector& direction);
+
+    /// The direction near one of the directions, turned by ever smaller angles to share less and less, that piece leaves others
+    /// along without sharing more than play; zero when there is none.
+    Vector refined_direction(const std::vector<size_t>& piece, const std::vector<size_t>& others, const std::vector<Vector>& directions);
 
     /// The unit directions piece is tried to leave others along, the best first.
     std::vector<Vector> candidate_directions(const Piece& piece, const std::vector<size_t>& others, const std::vector<Touch>& touching) const;

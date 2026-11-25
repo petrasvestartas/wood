@@ -51,6 +51,7 @@ static std::shared_ptr<FacePlanarElement> node_plate(const std::vector<const Edg
 static std::shared_ptr<JointBeamElement> slotted_plate(const std::vector<const EdgeStraightElement*>& members, const FacePlanarElement& plate, const Point& node, const Vector& way, const std::vector<double>& clear, double pin_radius = 6.0, int pin_sides = 16);
 static std::shared_ptr<JointBeamElement> butterfly_key(const Element& a, const Element& b, const InteractionContactFace& contact, ...);
 static std::shared_ptr<JointBeamElement> centred_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double length = 30.0, double offset = 50.0, ...);
+static std::shared_ptr<JointBeamElement> skewed_pins(const Element& a, const Element& b, const InteractionContactFace& contact, double radius = 4.0, double depth = 60.0, double lean = 45.0, double offset = 20.0, ...);
 static std::shared_ptr<JointBeamElement> headed_pins(const Element& through, const Element& into, const InteractionContactFace& contact, PinLayout layout, size_t count = 2, double offset = 20.0, double shift = 0.0, double radius = 2.0, double length = 200.0, int sides = 16);
 
 std::shared_ptr<Interaction> interaction(size_t target) const;

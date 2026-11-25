@@ -22,6 +22,23 @@ Four dowel pins placed at the inset corners of the contact face between two stac
 | `offset` | `50` | Inset distance from the contact polygon corners |
 | `overshoot`, `pin_sides` | `10`, `16` | Extra bore depth past each pin end and cylindrical facet count |
 
+## Skewed pins
+
+Two pins beside each other driven through a joist's top, 45 degrees down across the contact into the beam its end stands on, once both stand.
+
+| assembly | joint | tile |
+|---|---|---|
+| ![](joint_library/assembly_element_joint_beam_skewed_pins.gif) | ![](joint_library/assembly_element_joint_beam_skewed_pins.png) |  |
+
+\include{lineno} elements/element_joint_beam_skewed_pins.cpp
+
+| Parameter | Default | Role |
+| --- | --- | --- |
+| `radius`, `depth` | `4`, `60` | Pin radius and its length in the second member |
+| `lean` | `45` | Degrees from the contact's normal |
+| `offset` | `20` | Edge inset distance from the contact boundary |
+| `overshoot`, `pin_sides` | `10`, `16` | Extra bore depth past each pin end and cylindrical facet count |
+
 ## Headed pins
 
 Long screws driven from a header beam's outer face through into an abutting joist across all three `PinLayout` modes: four `corners`, a `vertical` column, and a `horizontal` row.

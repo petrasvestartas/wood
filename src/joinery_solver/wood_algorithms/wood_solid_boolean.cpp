@@ -693,6 +693,19 @@ Mesh shells_side_by_side(const std::vector<Mesh>& pieces) {
     return Mesh::from_vertices_and_faces(points, faces);
 }
 
+Mesh solid_merged(const Mesh& mesh) {
+    return from_manifold(to_manifold(mesh, 0), true);
+}
+
+Mesh solid_hull(const std::vector<Point>& points) {
+
+    std::vector<manifold::vec3> corners;
+    for (const Point& point : points)
+        corners.push_back({point[0], point[1], point[2]});
+
+    return from_manifold(manifold::Manifold::Hull(corners), true);
+}
+
 Mesh solid_difference(const Mesh& source, const std::vector<Mesh>& cutters) {
 
     if (!source.number_of_faces() || cutters.empty())

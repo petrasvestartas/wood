@@ -7,6 +7,7 @@ namespace wood_session {
 
 const double TOUCH_GAP = 1.5; // mm two faces may stand apart and still touch.
 const double TOUCH_AREA = 4.0; // mm2 of shared area under which two faces do not touch.
+const double BINDING = 12.0; // mm of shared wood over which a direction is blocked, not one that only just binds.
 const double TURNS[] = {2.0, 5.0, 10.0, 15.0, 25.0, 40.0}; // Degrees a piece is turned out before it slides.
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -141,7 +142,7 @@ std::vector<ModuleSequence::Touch> ModuleSequence::compute_touches(size_t first,
             );
             if (std::abs(Clipper2Lib::Area(common)) < TOUCH_AREA)
                 continue;
-            Touch touch{b.normal, {}};
+            Touch touch{b.normal, {}, std::abs(Clipper2Lib::Area(common))};
             for (const Clipper2Lib::PathD& path : common)
                 for (const Clipper2Lib::PointD& point : path)
                     touch.points.push_back(b.origin + x * point.x + y * point.y);
@@ -327,9 +328,12 @@ std::vector<Vector> ModuleSequence::candidate_directions(const Piece& piece, con
     const Point centre = bounds_of(piece.bodies).center();
     Vector away(0.0, 0.0, 0.0);
     Vector mean(0.0, 0.0, 0.0);
+    Vector weighted(0.0, 0.0, 0.0);
     std::set<size_t> touched;
-    for (const Touch& touch : touching)
+    for (const Touch& touch : touching) {
         mean += touch.normal;
+        weighted += touch.normal * touch.area;
+    }
     for (const size_t i : piece.bodies)
         for (const size_t j : others) {
             const std::map<std::pair<size_t, size_t>, std::vector<Touch>>::const_iterator pair = touches.find({std::min(i, j), std::max(i, j)});
@@ -347,7 +351,7 @@ std::vector<Vector> ModuleSequence::candidate_directions(const Piece& piece, con
     const Vector up = Vector::z_axis();
     if (opens)
         hints.push_back(mean.normalized());
-    for (const Vector& hint : {up, away, mean, up + away, up + mean, away + mean})
+    for (const Vector& hint : {up, away, mean, up + away, up + mean, away + mean, weighted})
         if (hint.magnitude() > 1e-6)
             hints.push_back(hint.normalized());
 
@@ -525,6 +529,67 @@ bool ModuleSequence::slides_out(const std::vector<size_t>& piece, const std::vec
     return true;
 }
 
+double ModuleSequence::bound_by(const std::vector<size_t>& piece, const std::vector<size_t>& others, const Vector& direction) {
+
+    double thickest = 0.0;
+    for (const double distance : {2.0, 6.0, 12.0, 20.0, 30.0, 45.0}) {
+        const Xform placed = Xform::translation(direction[0] * distance, direction[1] * distance, direction[2] * distance);
+        for (const size_t i : piece) {
+            const AABB box = bodies[i].solid->box_at(placed);
+            for (const size_t j : others) {
+                if (!bodies[i].solid->is_solid() || !bodies[j].solid->is_solid() || !box.intersects(bodies[j].solid->box()))
+                    continue;
+                const SharedWood shared = bodies[i].solid->shared_with(*bodies[j].solid, placed);
+                if (shared.volume > 10.0 && standing_wood(i, j).thickness <= play)
+                    thickest = std::max(thickest, shared.thickness);
+            }
+        }
+    }
+
+    return thickest;
+}
+
+/// Whether left binds less than right.
+static bool looser(const std::pair<double, Vector>& left, const std::pair<double, Vector>& right) {
+    return left.first < right.first;
+}
+
+Vector ModuleSequence::refined_direction(const std::vector<size_t>& piece, const std::vector<size_t>& others, const std::vector<Vector>& directions) {
+
+    // the three directions that bind least, none that is blocked outright
+    std::vector<std::pair<double, Vector>> starts;
+    for (const Vector& direction : directions)
+        starts.emplace_back(bound_by(piece, others, direction), direction);
+    std::stable_sort(starts.begin(), starts.end(), looser);
+
+    for (size_t k = 0; k < starts.size() && k < 3 && starts[k].first < BINDING; k++) {
+        double least = starts[k].first;
+        Vector direction = starts[k].second;
+
+        // turned either way about two axes across it, by half the angle whenever no turn is better
+        for (double angle = 6.0; angle > 0.05 && least > 0.5 * play;) {
+            const Vector across = (std::abs(direction[2]) < 0.9 ? Vector::z_axis() : Vector::x_axis()).cross(direction).normalized();
+            bool better = false;
+            for (const Vector& turn : {across, across * -1.0, direction.cross(across), direction.cross(across) * -1.0}) {
+                const Vector tried = (direction + turn * std::tan(angle * Tolerance::TO_RADIANS)).normalized();
+                const double bound = bound_by(piece, others, tried);
+                if (bound < least) {
+                    least = bound;
+                    direction = tried;
+                    better = true;
+                    break;
+                }
+            }
+            if (!better)
+                angle *= 0.5;
+        }
+        if (least <= play)
+            return direction;
+    }
+
+    return Vector(0.0, 0.0, 0.0);
+}
+
 bool ModuleSequence::find_way(const Piece& piece, const std::vector<size_t>& others, bool downwards, std::map<std::string, size_t>& tried, Way& found) {
 
     const std::set<size_t> in(others.begin(), others.end());
@@ -551,9 +616,20 @@ bool ModuleSequence::find_way(const Piece& piece, const std::vector<size_t>& oth
         tried[key] = blocker;
     }
 
-    // a turn, then a slide, once no plain slide frees any piece
+    // a slide close to one that only just binds, then a turn and a slide, once no plain slide frees any piece
     if (!downwards)
         return false;
+    const std::map<std::string, size_t>::const_iterator refined = tried.find("refined");
+    if (refined == tried.end() || !in.count(refined->second)) {
+        const Vector direction = refined_direction(piece.bodies, others, directions);
+        size_t blocker = others.front();
+        if (direction.magnitude() > 0.5 && slides_out(piece.bodies, others, Xform(), direction, found, blocker)) {
+            found.out = direction;
+            found.legs.clear();
+            return true;
+        }
+        tried["refined"] = blocker;
+    }
     for (const Line& axis : candidate_turns(piece, directions, touching)) {
         const std::string key = fmt::format("turn {:.3f} {:.3f} {:.3f} {:.4f} {:.4f} {:.4f}", axis.start()[0], axis.start()[1], axis.start()[2], axis.to_vector()[0], axis.to_vector()[1], axis.to_vector()[2]);
         const std::map<std::string, size_t>::const_iterator known = tried.find(key);

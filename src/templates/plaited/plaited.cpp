@@ -659,18 +659,25 @@ PlaitedReciprocal::PlaitedReciprocal(
     _beams = compute_beams();
     draw();
 
-    // T-butt contacts and centred cylindrical pins
+    // T-butt contacts and leaning cylindrical pins, driven from the bars' tops
     if (this->with_contacts || this->pin_diameter > 0.0)
         compute_face_contacts(0);
     if (this->pin_diameter > 0.0)
         _pins = compute_pins();
 
-    // assembly: the frame, then the bars raised from the ground; the pins hidden at both ends of every bar are not part of it,
-    // four bars pinned round a cell along their own axes lock each other
+    // assembly: the frame, then the bars raised from the ground, then every joint's pins down through the bar's top
     std::vector<AssemblyModule> whole = AssemblyModule::parts_of(_frame_beams);
     const std::vector<AssemblyModule> bars = AssemblyModule::parts_of(_beams);
     whole.insert(whole.end(), bars.begin(), bars.end());
-    assemblies = {AssemblyModule::raise(name, whole)};
+    whole = {AssemblyModule::raise("bars", whole)};
+    for (const std::shared_ptr<JointBeamElement>& connector : _pins) {
+        const std::vector<std::shared_ptr<JointPinElement>> pins = get_elements_under<JointPinElement>(connector->guid());
+        if (pins.empty())
+            continue;
+        const Vector along = pins.front()->axis().to_vector().normalized();
+        whole.push_back(AssemblyModule::part(connector->name, std::vector<std::shared_ptr<Element>>(pins.begin(), pins.end()), {along, along * -1.0}));
+    }
+    assemblies = {AssemblyModule::module(name, whole)};
 }
 
 const std::vector<std::shared_ptr<FacePlanarElement>>& PlaitedReciprocal::beams() const {
@@ -806,7 +813,7 @@ std::vector<std::shared_ptr<FacePlanarElement>> PlaitedReciprocal::compute_beams
 std::vector<std::shared_ptr<JointBeamElement>> PlaitedReciprocal::compute_pins() {
 
     const double radius = 0.5 * pin_diameter;
-    const double pin_length = 1.4 * beam_width;
+    const double depth = 0.6 * beam_width;
     const double inset = 0.22 * std::min(beam_width, beam_height);
     const std::shared_ptr<TreeNode> pin_group = group_named("pins");
 
@@ -829,12 +836,13 @@ std::vector<std::shared_ptr<JointBeamElement>> PlaitedReciprocal::compute_pins()
             compute_face_contact(pair.first, pair.second);
         if (!contact)
             continue;
-        const std::shared_ptr<JointBeamElement> pin = JointBeamElement::centred_pins(
+        const std::shared_ptr<JointBeamElement> pin = JointBeamElement::skewed_pins(
             *pair.first,
             *pair.second,
             *contact,
             radius,
-            pin_length,
+            depth,
+            45.0,
             inset
         );
         if (!pin)

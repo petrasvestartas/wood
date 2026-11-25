@@ -14,12 +14,14 @@ const [out, ...commands] = process.argv.slice(2);
 const port = Number(process.env.SHOT_PORT ?? 9333); // SHOT_PORT lets several shots run at once, each Chrome on its own port
 // a profile of its own per run, some 60 MB Chrome writes, removed once Chrome has left it
 const profile = mkdtempSync(join(tmpdir(), "shot-"));
-// the browser and its GPU flags per platform: Linux the radeon Vulkan env of the user's launcher, Windows and macOS their own backends
+// the browser and its GPU flags per platform: on Linux those of the user's own launcher (google-chrome.desktop: x11, ANGLE on Vulkan,
+// the NVIDIA driver where there is one), which WebGPU needs; Windows and macOS their own backends
 const windows_chrome = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe", `${process.env.LOCALAPPDATA}/Google/Chrome/Application/chrome.exe`];
 const browser = process.env.CHROME ?? (process.platform === "win32" ? windows_chrome.find((path) => existsSync(path)) : process.platform === "darwin" ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" : "google-chrome");
 const linux = process.platform === "linux";
-const gpu_flags = linux ? ["--ozone-platform=wayland", "--use-angle=vulkan", "--enable-features=Vulkan"] : [];
-const gpu_env = linux ? { VK_DRIVER_FILES: "/usr/share/vulkan/icd.d/radeon_icd.json", __EGL_VENDOR_LIBRARY_FILENAMES: "/usr/share/glvnd/egl_vendor.d/50_mesa.json" } : {};
+const gpu_flags = linux ? ["--ozone-platform=x11", "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"] : [];
+const nvidia = existsSync("/proc/driver/nvidia/version");
+const gpu_env = linux && nvidia ? { VK_DRIVER_FILES: "/usr/share/vulkan/icd.d/nvidia_icd.json", __NV_PRIME_RENDER_OFFLOAD: "1", __GLX_VENDOR_LIBRARY_NAME: "nvidia" } : {};
 const chrome = spawn(browser, [
   `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
   "--window-size=1600,1000", "--enable-unsafe-webgpu", ...gpu_flags,

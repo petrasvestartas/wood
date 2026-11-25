@@ -276,6 +276,20 @@ public:
         int pin_sides = 16
     );
 
+    /// Two pins beside each other leaning lean degrees from the face contact, driven once both members stand: from a's face over
+    /// the contact's top edge down across the middle of the contact, into b by depth; bored into both, null when the inset leaves nothing.
+    static std::shared_ptr<JointBeamElement> skewed_pins(
+        const Element& a,
+        const Element& b,
+        const InteractionContactFace& contact,
+        double radius = 4.0,
+        double depth = 60.0,
+        double lean = 45.0,
+        double offset = 20.0,
+        double overshoot = 10.0,
+        int pin_sides = 16
+    );
+
     /// Headed pins laid out on the face contact of a and b, pre-drilled into both.
     static std::shared_ptr<JointBeamElement> headed_pins(
         const Element& a,

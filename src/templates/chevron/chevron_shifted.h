@@ -1,5 +1,7 @@
 #pragma once
 #include "chevron.h"
+#include "wood_element_geometry.h"
+#include "wood_solid_body.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -34,6 +36,7 @@ struct ShiftedPlates {
         edges; // Per plate the cell edge under every side of its first outline, -1 for none.
     std::vector<std::array<int, 2>> boxes; // Per cell its top and bottom plate.
     std::vector<std::array<int, 2>> walls; // Per wall its plate and its cell.
+    std::set<int> outward; // The walls standing outward of their cell, on the sides it gives to the neighbouring column.
     std::vector<std::vector<std::pair<size_t, size_t>>>
         wall_edges; // Per wall the mesh edges it stands on, both halves of a merged long side.
     std::vector<std::array<int, 3>>
@@ -45,6 +48,8 @@ struct ShiftedPlates {
 /// The shifted chevron shell: hexagonal cells in staggered columns on a surface, a box of plates per cell, the 2018 Annen pattern.
 class ChevronShifted : public WoodSession {
 public:
+    static constexpr double OPEN_REACH = 160.0; // mm of every box's way in its slots are opened over.
+    static constexpr double OPEN_STEP = 2.0; // mm between two looks at what it shares there.
     const NurbsSurface surface; // The surface the cells are laid on, its u running along the shell.
     const int iso_count; // Iso curves across the surface, the rows of the point grid.
     const int point_count; // Points on every iso curve, one more than the columns.
@@ -62,6 +67,8 @@ public:
     const double long_edge; // mm; an edge longer than this takes twice the steps.
     const double short_edge; // mm; an edge shorter than this takes no tenons.
     const int finger_divisions; // Parts every box corner's Annen fingers cut it in.
+    const bool
+        closed_boxes; // A cell's plates enter its own walls along its own vector and its outward walls' corners are plain, so every box goes together on its own; false for the definition's joints as they were.
 
     /// The shifted chevron shell on surface as the session named name.
     explicit ChevronShifted(
@@ -78,6 +85,7 @@ public:
         double long_edge = 700.0,
         double short_edge = 200.0,
         int finger_divisions = 7,
+        bool closed_boxes = true,
         const std::string& name = "chevron_shifted"
     );
 
@@ -153,6 +161,9 @@ private:
 
     /// The insertion vectors, feature axes, joint types, divisions, adjacency and three-valence groups of the plates, and an insertion line per cell.
     std::vector<Line> compute_joinery(const wood_chevron::ShiftedPlates& plates);
+
+    /// Opens the walls where the boxes, going in cell by cell along their own vectors, share wood with the ones before: the tenons lean out of their plate's plane by the turn between two cells.
+    void open_slots(const wood_chevron::ShiftedPlates& plates, const std::vector<Line>& insertion_lines);
 
     /// The grid point of a vertex key.
     const Point& point(size_t key) const;
@@ -234,6 +245,7 @@ inline ChevronShifted::ChevronShifted(
     double long_edge,
     double short_edge,
     int finger_divisions,
+    bool closed_boxes,
     const std::string& name
 )
     : WoodSession(name), surface(surface), iso_count(std::max(iso_count, 4)),
@@ -241,7 +253,7 @@ inline ChevronShifted::ChevronShifted(
       plate_offset(plate_offset), plate_thickness(std::max(plate_thickness, 1.0)),
       wall_extend(wall_extend), average_planes(average_planes), divisions(std::max(divisions, 1)),
       long_edge(long_edge), short_edge(short_edge),
-      finger_divisions(std::max(finger_divisions, 1)) {
+      finger_divisions(std::max(finger_divisions, 1)), closed_boxes(closed_boxes) {
 
     // surface: the NURBS surface the cells are laid on, turned so its u runs across the shell as the 2018 definition read it
     add_nurbssurface(surface, add_group("surface"));
@@ -285,8 +297,9 @@ inline ChevronShifted::ChevronShifted(
 
     // joinery: insertion vectors, joint types, divisions, adjacency and three-valence groups for the solver, an insertion line per cell
     const std::shared_ptr<TreeNode> insertion = add_group("insertion");
+    const std::vector<Line> insertion_lines = compute_joinery(plates);
 
-    for (Line line : compute_joinery(plates)) {
+    for (Line line : insertion_lines) {
         line.width = 2.5;
         line.linecolor = Color(206, 16, 66, 255);
         line.arrowhead = Arrowhead::END;
@@ -312,6 +325,111 @@ inline ChevronShifted::ChevronShifted(
     }
 
     compute_features();
+
+    // slots: the plates across a wall slide into it along their mover's vector, which leaves their own plane by the turn between two cells
+    if (closed_boxes)
+        open_slots(plates, insertion_lines);
+
+    // assembly: every even cell's box from its inward walls on their corner fingers, its two plates along its one vector, its outward
+    // wall last, every odd cell's shelf of three plates; the boxes and shelves cell by cell along their vectors
+    std::vector<AssemblyModule> boxes;
+    for (size_t cell = 0; cell < plates.boxes.size(); cell++) {
+        const Vector along = insertion_lines[cell].to_vector().normalized();
+
+        // a wall comes on its fingers in the plane of the wall it meets: its own normal laid into that plane, or square to the box's up
+        std::vector<Vector> square = {along, along * -1.0};
+        for (const std::array<int, 2>& wall : plates.walls)
+            for (const std::array<int, 2>& met : plates.walls) {
+                if (wall[0] == met[0] || wall[1] != static_cast<int>(cell) || met[1] != static_cast<int>(cell))
+                    continue;
+                const Vector normal = plates.plates[wall[0]]->planes[0].z_axis();
+                const Vector other = plates.plates[met[0]]->planes[0].z_axis();
+                const Vector laid = normal - other * normal.dot(other);
+                if (laid.magnitude() < 1e-3)
+                    continue;
+                square.push_back(laid.normalized());
+                square.push_back(laid.normalized() * -1.0);
+                square.push_back(other.cross(_face_planes[cell].z_axis()).normalized());
+                square.push_back(square.back() * -1.0);
+            }
+        std::vector<AssemblyModule> walls;
+        std::vector<AssemblyModule> outward;
+        for (const std::array<int, 2>& wall : plates.walls)
+            if (wall[1] == static_cast<int>(cell))
+                (plates.outward.count(wall[0]) ? outward : walls).push_back(AssemblyModule::part(plates.plates[wall[0]], square));
+        for (const int plate : plates.boxes[cell])
+            walls.push_back(AssemblyModule::part(plates.plates[plate], {along, along * -1.0}));
+        walls.insert(walls.end(), outward.begin(), outward.end());
+        boxes.push_back(AssemblyModule::module(fmt::format("{}_{}", walls.size() > 3 ? "box" : "shelf", cell), walls, {along, along * -1.0}));
+    }
+    AssemblyModule whole = AssemblyModule::module(name, boxes);
+    whole.play = 0.15;
+    assemblies = {whole};
+}
+
+inline void ChevronShifted::open_slots(const wood_chevron::ShiftedPlates& plates, const std::vector<Line>& insertion_lines) {
+
+    // every plate's solid, its cell and whether it is a wall
+    std::vector<std::shared_ptr<SolidBody>> bodies;
+    for (const std::shared_ptr<FacePlanarElement>& plate : plates.plates)
+        bodies.push_back(std::make_shared<SolidBody>(plate->model_geometry_mesh()));
+    std::vector<std::vector<int>> boxes(plates.boxes.size());
+    std::set<int> walls;
+    for (size_t cell = 0; cell < plates.boxes.size(); cell++)
+        boxes[cell].assign(plates.boxes[cell].begin(), plates.boxes[cell].end());
+    for (const std::array<int, 2>& wall : plates.walls) {
+        boxes[wall[1]].push_back(wall[0]);
+        walls.insert(wall[0]);
+    }
+
+    // per pair what a box shares, on its way in, with the plates of the boxes before it, where it lies in the plate that loses it
+    std::map<std::pair<int, int>, std::vector<Mesh>> shared;
+    for (size_t cell = 0; cell < boxes.size(); cell++) {
+        const Vector along = insertion_lines[cell].to_vector().normalized();
+
+        for (const int moving : boxes[cell]) {
+            const AABB way = AABB::merge(bodies[moving]->box(), bodies[moving]->box_at(Xform::translation(-along[0] * OPEN_REACH, -along[1] * OPEN_REACH, -along[2] * OPEN_REACH)));
+
+            for (size_t before = 0; before < cell; before++)
+                for (const int standing : boxes[before]) {
+                    if (!way.intersects(bodies[standing]->box()))
+                        continue;
+                    const bool cut_moving = walls.count(moving) && !walls.count(standing);
+
+                    for (double distance = 0.0; distance <= OPEN_REACH; distance += OPEN_STEP) {
+                        const Xform back = Xform::translation(-along[0] * distance, -along[1] * distance, -along[2] * distance);
+                        if (!bodies[moving]->box_at(back).intersects(bodies[standing]->box()) || bodies[moving]->shared_with(*bodies[standing], back).volume < 1.0)
+                            continue;
+                        const Mesh common = solid_boolean(plates.plates[moving]->model_geometry_mesh().transformed(back), plates.plates[standing]->model_geometry_mesh(), SolidOperation::intersect);
+                        for (const Mesh& piece : solid_pieces(common))
+                            shared[{cut_moving ? moving : standing, cut_moving ? standing : moving}].push_back(
+                                cut_moving ? piece.transformed(Xform::translation(along[0] * distance, along[1] * distance, along[2] * distance)) : piece
+                            );
+                    }
+                }
+        }
+    }
+
+    // each pair's pieces that run on from each other one hull, the pair's hulls one cut
+    for (const std::pair<const std::pair<int, int>, std::vector<Mesh>>& pair : shared) {
+        // a run's box is that of its last piece
+        std::vector<std::pair<AABB, std::vector<Point>>> runs;
+        for (const Mesh& piece : pair.second) {
+            const std::vector<Point> points = piece.to_vertices_and_faces().first;
+            const AABB box = AABB::from_points(points, 1.0);
+            size_t run = 0;
+            while (run < runs.size() && !runs[run].first.intersects(box))
+                run++;
+            if (run == runs.size())
+                runs.push_back({box, {}});
+            runs[run].first = box;
+            runs[run].second.insert(runs[run].second.end(), points.begin(), points.end());
+        }
+        std::vector<Mesh> hulls;
+        for (const std::pair<AABB, std::vector<Point>>& run : runs)
+            hulls.push_back(solid_hull(run.second));
+        add_interaction(plates.plates[pair.first.second], plates.plates[pair.first.first], std::make_shared<InteractionFeatureSolid>(shells_side_by_side(hulls), SolidOperation::subtract));
+    }
 }
 
 inline const Mesh& ChevronShifted::mesh() const {
@@ -1037,6 +1155,8 @@ inline wood_chevron::ShiftedPlates ChevronShifted::compute_plates() const {
                 {static_cast<int>(plates.plates.size()), static_cast<int>(cell)}
             );
             plates.wall_edges.push_back(keys);
+            if (runs[r].outward)
+                plates.outward.insert(static_cast<int>(plates.plates.size()));
             plates.plates.push_back(
                 std::make_shared<FacePlanarElement>(
                     Polyline::from_planes(loop, plane),
@@ -1123,6 +1243,8 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
     _divisions_per_face.assign(plates.plates.size(), {});
     std::map<std::pair<size_t, size_t>, Vector> directions;
     std::map<std::pair<size_t, size_t>, Vector> axes;
+    std::vector<Vector> cell_directions;
+    std::vector<Vector> cell_axes;
     std::vector<Line> lines;
 
     // per cell its direction, the bisector of two of its own sides on its outline, and its axis, the mean of those sides' surface normals, which the definition's cut planes follow, both on the edges whose walls it slides into
@@ -1141,6 +1263,8 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
         }
 
         const Vector direction = direction_of(sides, _face_planes[cell], mask);
+        cell_directions.push_back(direction);
+        cell_axes.push_back(axis);
 
         for (const int edge : owned_edges(mask)) {
             directions[edge_key(static_cast<int>(cell), edge)] = direction;
@@ -1150,6 +1274,15 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
         const Point centre = _face_planes[cell].translate_by_normal(plate_offset).origin();
         lines.push_back(Line::from_points(centre, centre + direction * 300.0));
     }
+
+    // a cell's own walls: its plates enter them along its own direction, so its box closes along one vector; the plates across an
+    // outward wall still along the direction of the cell that slides into it
+    std::map<std::pair<int, std::pair<size_t, size_t>>, std::pair<Vector, Vector>> own;
+
+    if (closed_boxes)
+        for (size_t w = 0; w < plates.walls.size(); w++)
+            for (const std::pair<size_t, size_t>& key : plates.wall_edges[w])
+                own[{plates.walls[w][1], key}] = {cell_directions[plates.walls[w][1]], cell_axes[plates.walls[w][1]]};
 
     // top and bottom plates: the tenon type on every side the definition's outer loop moved out by a wall, with the direction and axis of its edge where the edge has them; the first quad's side under its neighbour's wall, which the definition left degenerate, gets neither
     for (size_t cell = 0; cell < _cells.masks.size(); cell++)
@@ -1166,6 +1299,15 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
                 types[2 + k] = 23;
                 const std::map<std::pair<size_t, size_t>, Vector>::const_iterator found =
                     directions.find(edge_key(static_cast<int>(cell), edges[k]));
+
+                const std::map<std::pair<int, std::pair<size_t, size_t>>, std::pair<Vector, Vector>>::const_iterator mine =
+                    own.find({static_cast<int>(cell), edge_key(static_cast<int>(cell), edges[k])});
+
+                if (mine != own.end()) {
+                    vectors[2 + k] = mine->second.first;
+                    plate_axes[2 + k] = mine->second.second;
+                    continue;
+                }
 
                 if (found == directions.end())
                     continue;
@@ -1219,6 +1361,11 @@ ChevronShifted::compute_joinery(const wood_chevron::ShiftedPlates& plates) {
 
     // corners: the Annen fingers on the two mitre faces of every box corner, the wall ending on the mitre the axis wall with 17 on its end face, the wall starting there 10 on its start face, both inserted along the box's up, cut in finger_divisions parts
     for (const std::array<int, 3>& corner : plates.corners) {
+
+        // an outward wall goes on last, along the cell's own direction: its corners are plain mitres
+        if (closed_boxes && (plates.outward.count(corner[0]) || plates.outward.count(corner[1])))
+            continue;
+
         const Vector up = -_face_planes[corner[2]].z_axis();
         _joints_per_face[corner[0]][2] = 17;
         _joints_per_face[corner[1]][4] = 10;
