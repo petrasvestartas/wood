@@ -5,8 +5,7 @@
   if (matchMedia("(prefers-reduced-motion: reduce)").matches)
     document.querySelectorAll("video.wood-film").forEach(film => { film.removeAttribute("autoplay"); film.load(); });
 
-  const ORDER = "architecture beam beam_bridle beam_butt beam_column_head beam_compendium beam_cross beam_end_to_end beam_keyed_box beam_pins beam_todo beam_top_side block chevron classes connectors cross cut_plane cylindrical_folding developable_folding edge_curved edge_straight edge_variable elements examples face_curved face_planar floor grid insertion_direction joint_type module pin plaited plate_border plate_cross plate_side_side_inplane plate_side_side_outplane plate_side_side_rotated plate_top_side plate_top_top reciprocal_move reciprocal_rotation reflex_fold solver support templates translation_shell truss vault vidy".split(" "); // of icons.webp, 8 a row, written by make_icons.py
-  // the icons (icons.webp, tools/make_icons.py): a page's by the longest of these its address starts with
+  // the icons (icons.svg, tools/make_icons.py): a page's by the longest of these its address starts with
   const ICONS = {
     architecture: "architecture", elements: "elements", templates: "templates", examples: "examples", annotated: "classes", class: "classes", struct: "classes", namespace: "classes",
     elements_node_block: "block", elements_node_support: "support", elements_edge_straight: "edge_straight", elements_edge_curved: "edge_curved",
@@ -32,12 +31,12 @@
     const key = Object.keys(ICONS).filter(name => last === name || (!name.startsWith("#") && !last.includes("#") && last.startsWith(name))).sort((x, y) => y.length - x.length)[0];
     if (!key)
       return null;
-    const icon = document.createElement("span");
-    const place = ORDER.indexOf(ICONS[key]);
-    icon.className = "wood-icon";
+    const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    icon.setAttribute("class", "wood-icon");
     icon.setAttribute("aria-hidden", "true");
-    icon.style.backgroundPosition = `${place % 8 * 100 / 7}% ${Math.floor(place / 8) * 100 / (Math.ceil(ORDER.length / 8) - 1)}%`;
-    icon.style.backgroundSize = `800% ${Math.ceil(ORDER.length / 8) * 100}%`;
+    use.setAttribute("href", "icons.svg#" + ICONS[key]);
+    icon.append(use);
     return icon;
   };
   const give = (element, address) => {

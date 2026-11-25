@@ -1,4 +1,4 @@
-/* The wood look over doxygen-awesome: white, hairlines, green for what is current and brown for marks, Outfit for text.
+/* The wood look over doxygen-awesome: white, hairlines, green for what is current, square corners, Outfit for text.
  * One scheme. Everything below reads the palette. */
 
 /* ==================================================================
@@ -6,11 +6,11 @@
  * ================================================================== */
 
 html {
-    --wood-ink: #4a2e1a; /* the frame of what pops out under the pointer */
-    --wood-pop: #e4ae72; /* and what it leaves below */
-    --wood-mark: #d09a67; /* brown: rules, hovers, the tab under the pointer */
+    --wood-ink: #16181a; /* the frame of what pops out under the pointer */
+    --wood-pop: #4db389; /* and what it leaves below */
+    --wood-mark: #8fd3b3; /* light green: the tab under the pointer */
     --wood-accent: #007c56; /* green: links and what is current */
-    --wood-brown: #96754e; /* the pictures' brown as text */
+    --wood-title: #007c56; /* the marked word of the title */
     --wood-bg: #ffffff;
     --wood-panel: #ffffff;
     --wood-sunken: #f5f6f6;
@@ -21,9 +21,9 @@ html {
     --wood-code-bg: #f5f6f6;
     --wood-code-fg: #26292b;
     --wood-hl-keyword: #007c56;
-    --wood-hl-string: #96602c;
+    --wood-hl-string: #4c7a34;
     --wood-hl-function: #16181a;
-    --wood-hl-special: #96602c;
+    --wood-hl-special: #4c7a34;
     --wood-picture-filter: brightness(1.07);
     --wood-picture-blend: multiply;
     --wood-bar: #ffffff;
@@ -96,8 +96,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --fragment-linenumber-color: var(--wood-fg-lighter);
     --fragment-linenumber-background: var(--wood-code-bg);
     --fragment-linenumber-border: transparent;
-    --note-color: rgba(107, 68, 35, .12);
-    --note-color-dark: #8a5d36;
+    --note-color: rgba(0, 124, 86, .1);
+    --note-color-dark: #007c56;
     --note-color-darker: var(--wood-fg);
     --warning-color: rgba(217, 148, 15, .14);
     --warning-color-dark: #d9940f;
@@ -105,8 +105,8 @@ html, html.dark-mode, html:not(.dark-mode) {
     --bug-color: rgba(196, 59, 59, .12);
     --bug-color-dark: #c43b3b;
     --bug-color-darker: var(--wood-fg);
-    --todo-color: rgba(240, 180, 41, .16);
-    --todo-color-dark: #f0b429;
+    --todo-color: rgba(0, 124, 86, .1);
+    --todo-color-dark: #007c56;
     --todo-color-darker: var(--wood-fg);
     --deprecated-color: rgba(152, 161, 167, .16);
     --deprecated-color-dark: #98a1a7;
@@ -114,6 +114,11 @@ html, html.dark-mode, html:not(.dark-mode) {
     --invariant-color: rgba(63, 154, 91, .14);
     --invariant-color-dark: #3f9a5b;
     --invariant-color-darker: var(--wood-fg);
+}
+
+/* square corners everywhere */
+*, *::before, *::after {
+    border-radius: 0 !important;
 }
 
 body {
@@ -238,16 +243,16 @@ a:hover, .contents a:hover, a.el:hover {
 }
 
 /* ==================================================================
- * Icons (icons.webp, one picture of all): app.js sets which
+ * Icons (icons.svg): app.js sets which
  * ================================================================== */
 
 .wood-icon {
     display: inline-block;
     flex: none;
-    width: 1.6em;
-    height: 1.6em;
-    vertical-align: -.5em;
-    background: url(icons.webp) no-repeat;
+    width: 1.4em;
+    height: 1.4em;
+    vertical-align: -.35em;
+    overflow: visible;
 }
 
 div.header .title:has(.wood-icon) {
@@ -257,21 +262,20 @@ div.header .title:has(.wood-icon) {
 }
 
 div.header .title .wood-icon {
-    width: 1.75em;
-    height: 1.75em;
-    margin: -.2em 0;
+    width: 1.25em;
+    height: 1.25em;
 }
 
 .wood-card .wood-card-title:has(.wood-icon) {
-    padding-left: 64px;
+    padding-left: 58px;
 }
 
 .wood-card-title .wood-icon {
     position: absolute;
-    left: 14px;
-    top: 1px;
-    width: 40px;
-    height: 40px;
+    left: 20px;
+    top: 8px;
+    width: 26px;
+    height: 26px;
 }
 
 /* ==================================================================
@@ -390,8 +394,8 @@ html:not(.wood-sided) .wood-side, .wood-side a.wood-side-chapter {
 }
 
 .wood-side a .wood-icon {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
     margin: 0;
 }
 
@@ -1085,7 +1089,6 @@ a.wood-card, a.wood-card:visited {
 a.wood-card:hover, a.wood-card:focus-visible {
     z-index: 2;
     outline: 2px solid var(--wood-ink);
-    border-radius: 3px;
     box-shadow: 7px 7px 0 1px var(--wood-pop), 7px 7px 0 3px var(--wood-ink);
     transform: translate(-5px, -5px);
 }
@@ -1160,7 +1163,7 @@ div.contents:has(.wood-hero) {
 }
 
 .wood-hero-title .wood-mark {
-    color: var(--wood-brown);
+    color: var(--wood-title);
 }
 
 .wood-hero-links {
@@ -1235,7 +1238,6 @@ div.contents .wood-landing img {
 .wood-landing a.wood-chapter:hover .wood-chapter-picture,
 .wood-landing a.wood-chapter:focus-visible .wood-chapter-picture {
     border-color: var(--wood-ink);
-    border-radius: 3px;
     box-shadow: 0 0 0 1px var(--wood-ink), 10px 10px 0 1px var(--wood-pop), 10px 10px 0 3px var(--wood-ink);
     transform: translate(-6px, -6px);
 }
