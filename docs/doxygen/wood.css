@@ -16,7 +16,6 @@ html {
     --wood-fg-light: #5d5f58;
     --wood-fg-lighter: #a3a59d;
     --wood-line: #dadad6;
-    --wood-dot: rgba(22, 24, 26, .12);
     --wood-code-bg: #f8f8f4;
     --wood-code-fg: #26292b;
     --wood-hl-keyword: #007c56;
@@ -517,16 +516,6 @@ div.header {
     position: relative;
     background: none;
     border-bottom: none;
-}
-
-.wood-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle, var(--wood-dot) 1.1px, transparent 1.6px) 0 0 / 12px 12px;
-    -webkit-mask-image: linear-gradient(100deg, transparent 30%, #000 100%);
-    mask-image: linear-gradient(100deg, transparent 30%, #000 100%);
-    pointer-events: none;
 }
 
 div.header .title {

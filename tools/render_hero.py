@@ -1,7 +1,7 @@
 """The film of the landing page: the timber floor of templates_floor_7_contacts_cantilevers coming apart piece by piece, its
 connectors brown, and going together again, a loop. The moves are hero_moves.py's, checked there for collisions. Every frame is
 drawn by the viewer's native renderer from one isometric camera and cropped alike; written as docs/doxygen/hero.mp4,
-hero_small.mp4 for phones and hero.webp, its still apart (the poster).
+hero_2x.mp4 for dense screens, hero_small.mp4 for phones and hero.webp, its still apart (the poster).
 
     uv run --with av --with pillow --with numpy --with manifold3d tools/render_hero.py [--check [mm] | --frames n]"""
 
@@ -23,7 +23,7 @@ RENDERER = SESSION / "session_viewer/target/x86_64-unknown-linux-gnu/release/exa
 EXAMPLE = "templates_floor_7_contacts_cantilevers"
 WORK = WOOD / "build/hero"  # The scenes and the frames: too many for a temporary folder in memory.
 RENDERED = (8000, 6400)  # What is drawn, before the crop.
-WIDTHS = {"hero.mp4": 2160, "hero_small.mp4": 900}  # Of the film and of its copy for phones, whose thin lines a browser would break up.
+WIDTHS = {"hero_2x.mp4": 2160, "hero.mp4": 1080, "hero_small.mp4": 760}  # For dense screens, for others and for phones: a browser that shrinks one a lot breaks its thin lines up.
 RATE = 30
 BOUNDS = ((-4300.0, -4300.0, -500.0), (4300.0, 4300.0, 7000.0))  # Of every frame, so one camera frames them all.
 
@@ -98,7 +98,7 @@ def write_film(path: pathlib.Path, images: list) -> None:
     with av.open(str(path), "w", options={"movflags": "faststart"}) as film:
         stream = film.add_stream("libx264", rate=RATE)
         stream.width, stream.height, stream.pix_fmt = *images[0].size, "yuv420p"
-        stream.options = {"crf": "22", "preset": "veryslow", "tune": "animation"}
+        stream.options = {"crf": "21", "preset": "veryslow", "tune": "animation"}
         for image in images:
             film.mux(stream.encode(av.VideoFrame.from_image(image)))
         film.mux(stream.encode())
@@ -164,7 +164,7 @@ def main(arguments: list) -> None:
         size = (width, round((box[3] - box[1]) * width / (box[2] - box[0]) / 2) * 2)
         scaled = [Image.open(path).crop(box).resize(size, Image.Resampling.LANCZOS) for path in paths]
         write_film(folder / name, [scaled[-1]] * 45 + scaled[::-1] + [scaled[0]] * 40 + scaled)
-        if name == "hero.mp4":
+        if name == "hero_2x.mp4":
             scaled[-1].save(folder / "hero.webp", quality=88, method=6)
         print(name, size, (folder / name).stat().st_size)
     print("cropped", box)
