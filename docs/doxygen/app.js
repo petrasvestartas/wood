@@ -46,29 +46,88 @@
       element.prepend(icon);
   };
 
-  // in the bar, beside the page's title and on the cards; in the tree as it is built, its own pages only
-  for (const link of document.querySelectorAll("#chapters a"))
-    give(link, link.getAttribute("href"));
-  if (!/^(class|struct|namespace)/.test(location.pathname.split("/").pop()))
+  // beside the page's title and on the cards
+  const page = location.pathname.split("/").pop() || "index.html";
+  if (!/^(class|struct|namespace)/.test(page))
     give(document.querySelector("div.header .title"), location.pathname);
   for (const card of document.querySelectorAll("a.wood-card")) {
     const title = card.querySelector(".wood-card-title");
     title.textContent = title.textContent.trim().replace(/^./, letter => letter.toUpperCase());
     give(title, card.getAttribute("href"));
   }
-  const tree = document.getElementById("nav-tree-contents");
-  if (tree) {
-    const dress = () => tree.querySelectorAll(".label a[href]").forEach(link => {
-      if (/^(architecture|elements|templates|examples|annotated)/.test(link.getAttribute("href")))
-        give(link, link.getAttribute("href"));
-    });
-    new MutationObserver(dress).observe(tree, { childList: true, subtree: true });
-    dress();
+
+  // the list at the side: the pages of the chapter, the Elements by what they are, from the data of doxygen's own tree; a
+  // chapter of one page has none. On a phone the button in the bar opens it, the chapters over it.
+  const side = document.createElement("nav");
+  side.className = "wood-side";
+  side.setAttribute("aria-label", "Pages");
+  for (const link of document.querySelectorAll("#chapters a")) {
+    const chapter = link.cloneNode(true);
+    chapter.className = "wood-side-chapter";
+    side.append(chapter);
+  }
+  document.body.append(side);
+  const GROUPS = [["elements_node", "Node"], ["elements_edge", "Edge"], ["elements_face", "Face"], ["elements_joint_plate", "Plate joints"], ["elements_joint_beam", "Beam joints"], ["elements_joint_library", "Beam joints"], ["elements_joint", "Joint"]];
+  const SHORT = /^(Node|Edge|Face|Plate|Beam|Joint) (?=.)/;
+  const load = name => new Promise(done => {
+    const script = document.createElement("script");
+    script.src = name + ".js";
+    script.onload = () => done(window[name]);
+    script.onerror = () => done([]);
+    document.head.append(script);
+  });
+  const entry = ([name, address], inner) => {
+    const link = document.createElement("a");
+    link.href = address;
+    link.textContent = address.startsWith("elements_") ? name.replace(SHORT, "").replace(/ Joints$/, name === "Plate Joints" || name === "Beam Joints" ? "" : "$&").replace(/^(Joints|Joint)$/, "Overview").replace("Joint library: what is left", "Library, what is left") : name;
+    if (inner)
+      link.className = "inner";
+    else
+      give(link, address);
+    if (address === page)
+      link.classList.add("on");
+    return link;
+  };
+  const isPage = ([, address]) => address && !address.includes("#");
+  const list = async chapter => {
+    const pages = (await load(chapter)).filter(isPage);
+    if (chapter === "elements") {
+      const named = new Map();
+      for (const item of pages) {
+        const group = GROUPS.find(([start]) => item[1].startsWith(start));
+        if (group)
+          named.set(group[1], [...(named.get(group[1]) || []), item]);
+      }
+      for (const name of ["Node", "Edge", "Face", "Joint", "Plate joints", "Beam joints"]) {
+        const label = document.createElement("span");
+        label.textContent = name;
+        const links = (named.get(name) || []).map(item => entry(item));
+        side.append(label, ...links.filter(link => link.textContent === "Overview"), ...links.filter(link => link.textContent !== "Overview"));
+      }
+    } else {
+      for (const item of pages) {
+        side.append(entry(item));
+        // the pages under the one that is open
+        let under = item;
+        while (page.startsWith(item[1].replace(".html", "")) && typeof under[2] === "string") {
+          const deeper = (await load(under[2])).filter(isPage);
+          side.append(...deeper.map(child => entry(child, true)));
+          under = deeper.find(child => typeof child[2] === "string") || [];
+        }
+      }
+    }
+    const here = side.querySelector("a.on:not(.wood-side-chapter)");
+    if (here && here.offsetTop > side.clientHeight - 80)
+      side.scrollTop = here.offsetTop - side.clientHeight / 2;
+  };
+  const chapter = ["elements", "templates"].find(name => page.startsWith(name));
+  if (chapter) {
+    document.documentElement.classList.add("wood-sided");
+    list(chapter);
   }
 
   // the chapter this page belongs to, in the bar
-  const page = location.pathname.split("/").pop();
-  for (const link of document.querySelectorAll("#chapters a")) {
+  for (const link of document.querySelectorAll("#chapters a, .wood-side-chapter")) {
     const chapter = link.getAttribute("href").split("/").pop().replace(".html", "");
     if (page.startsWith(chapter) || (chapter === "annotated" && /^(class|struct|namespace|hierarchy|functions)/.test(page)))
       link.classList.add("on");
@@ -84,7 +143,7 @@
     element.append(...children);
     return element;
   };
-  const heading = node => node.matches && node.matches("h1.doxsection, h2.doxsection, h3.doxsection, h4.doxsection");
+  const heading = node => node.matches && node.matches("h1, h2, h3, h4");
   const textless = node => !node.textContent.trim();
 
   // where the first sentence of a paragraph ends: a full stop before a capital letter or the end, never inside code
@@ -100,10 +159,11 @@
     return null;
   };
 
-  // a paragraph's first sentence, the rest handed to the notes; a long one is cut at two lines and kept whole in the notes
+  // a paragraph's first sentence, the paragraph itself handed to the notes when it says more; a sentence of more than two
+  // lines goes to the notes whole
   const lead = (paragraph, notes) => {
-    const end = sentenceEnd(paragraph);
     const whole = paragraph.cloneNode(true);
+    const end = sentenceEnd(paragraph);
     if (end) {
       const rest = document.createRange();
       rest.setStart(end[0], end[1] + (end[0].data[end[1]] === ":" ? 0 : 1));
@@ -112,14 +172,14 @@
       if (end[0].data.endsWith(":"))
         end[0].data = end[0].data.replace(/\s*:\s*$/, ".");
       if (more.textContent.replace(/[.:\s]/g, ""))
-        notes.unshift(whole.textContent.length > 0 ? whole : more);
-    }
-    paragraph.classList.add("wood-lead");
-    if (paragraph.textContent.length > 170) {
-      paragraph.classList.add("wood-cut");
-      if (!notes.includes(whole))
         notes.unshift(whole);
     }
+    if (paragraph.textContent.trim().length > 150) {
+      if (!notes.includes(whole))
+        notes.unshift(whole);
+      return null;
+    }
+    paragraph.classList.add("wood-lead");
     return paragraph;
   };
 
@@ -171,10 +231,12 @@
         wide.push(cards(node));
       } else if (node.querySelector && node.querySelector("img.inline")) {
         (nodes.some(other => other.matches && other.matches("div.fragment")) ? figures : wide).push(node);
+      } else if (node.matches("p") && /^Step \d+ of/.test(node.textContent.trim())) {
+        continue; // the list at the side leads on
       } else if (node.matches("p") && node.querySelector("span[style^='color:']")) {
         node.classList.add("wood-legend");
         links.push(node);
-      } else if (node.matches("p") && /^(Code|Example|Step \d+)\b/.test(node.textContent.trim())) {
+      } else if (node.matches("p") && node.querySelector("a") && node.textContent.length < 220 && /^(Code|Example)\b/.test(node.textContent.trim())) {
         node.classList.add("wood-code-link");
         links.push(node);
       } else if (node.matches("p") && textless(node)) {
@@ -187,10 +249,13 @@
         kept.push(node);
       }
     }
-    if (first)
-      out.append(lead(first, notes));
+    const said = first && lead(first, notes);
+    if (said)
+      out.append(said);
     out.append(...kept.filter(node => node.nodeType !== Node.ELEMENT_NODE || !node.matches("hr")));
 
+    if (out.children.length === 1 && heading(out.firstChild) && !figures.length && !codes.length && !wide.length && !notes.length && !links.length)
+      out.classList.add("wood-title-only");
     const shown = make("div", "wood-figures", ...figures);
     if (figures.length > 1)
       shown.classList.add("many");
@@ -216,12 +281,20 @@
       groups.push([]);
     groups[groups.length - 1].push(node);
   }
+  if (groups.length > 1 && groups[0].every(node => textless(node) && !(node.querySelector && node.querySelector("img"))))
+    groups[1].push(...groups.shift());
   block.replaceChildren(...groups.filter(nodes => nodes.length).map(section));
   document.documentElement.classList.add("wood-app");
 
+  // the floor film's frame numbers stay in the sources
+  for (const title of block.querySelectorAll("h1, h2"))
+    for (const text of title.childNodes)
+      if (text.nodeType === Node.TEXT_NODE)
+        text.data = text.data.replace(/^(\s*)\d{3}\. /, "$1");
+
   // the tabs: the page's main sections, the one in view marked
-  const titles = [...block.querySelectorAll("h1.doxsection")];
-  if (titles.length > 1) {
+  const titles = [...block.querySelectorAll("h1.doxsection, .wood-section > h1")];
+  if (titles.length > 1 && page !== "elements.html") {
     const tabs = make("nav", "wood-tabs");
     tabs.setAttribute("aria-label", "Sections");
     const tab = new Map(titles.map(title => {

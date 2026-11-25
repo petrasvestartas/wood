@@ -21,6 +21,7 @@ page shows exists, that every file under `docs/images` is shown by a page, and t
 | `images/examples/ex_*.webp`, `images/diagrams/wood_architecture`, `wood_joint_unit_box`, `wood_boolean_cutting`, `wood_beam_joints_connectors`, `images/landing/landing_architecture` | `python tools/render_architecture_pictures.py [examples] [pipeline] [landing] [wiring] [cutting] [sheets]` |
 | `images/diagrams/wood_elements_sheet_1_elements.webp` | `python tools/render_element_sheets.py` (after the element pictures) |
 | `images/joint_library/` | `bash tools/joint_library_figures/make.sh` (the other native-renderer pipeline: labelled tiles, trimmed and scaled; not yet on the viewer tool) |
+| `images/joint_library/card_*.gif` (the template cards) | `python3 tools/card_gifs.py` (after the assembly GIFs) |
 | `doxygen/icons.webp` (the icons: small models, drawn by `icon_ink.py`) | `uv run --with moderngl --with numpy --with pillow --with manifold3d tools/make_icons.py` (four templates' examples built; a GPU) |
 | `doxygen/hero.mp4`, `hero_2x.mp4`, `hero_small.mp4`, `hero.webp` (the landing page's film and its poster) | `uv run --with av --with pillow --with numpy --with manifold3d tools/render_hero.py` (`templates_floor_7_contacts_cantilevers` built; native renderer; the moves are `hero_moves.py`, `--check` proves that nothing runs into anything) |
 | `templates/floor/` | the `wood-film-docs` skill |

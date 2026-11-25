@@ -250,25 +250,16 @@ a:hover, .contents a:hover, a.el:hover {
     background: url(icons.webp) no-repeat;
 }
 
-#chapters a .wood-icon {
-    width: 30px;
-    height: 30px;
-    margin: -8px 8px -8px 0;
-    vertical-align: middle;
-}
-
-#nav-tree .label a .wood-icon {
-    width: 24px;
-    height: 24px;
-    margin: -3px 8px -3px 0;
-    vertical-align: -7px;
+div.header .title:has(.wood-icon) {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 div.header .title .wood-icon {
-    width: 1.9em;
-    height: 1.9em;
-    margin: -.3em .3em -.3em 0;
-    vertical-align: -.6em;
+    width: 1.75em;
+    height: 1.75em;
+    margin: -.2em 0;
 }
 
 .wood-card .wood-card-title:has(.wood-icon) {
@@ -345,78 +336,79 @@ div.header .title .wood-icon {
  * Navigation tree, the left column
  * ================================================================== */
 
-/* the 6 px of padding are doxygen's: it subtracts them from the width it saves, so without them the tree lost 6 px a page */
+/* doxygen's tree is not shown: app.js lists the chapter's pages at the side, where it has more than one */
 #side-nav {
-    box-sizing: content-box;
-    padding-right: 6px !important;
+    display: none !important;
+}
+
+#doc-content {
+    margin-left: 0 !important;
+}
+
+html.wood-sided #container {
+    margin-left: 248px;
+}
+
+.wood-side {
+    position: fixed;
+    top: calc(var(--wood-header-height) + 1px);
+    bottom: 0;
+    left: 0;
+    width: 248px;
+    box-sizing: border-box;
+    padding: 34px 12px 40px 24px;
+    overflow-y: auto;
     background: var(--wood-bg);
-    border-right: none;
-    box-shadow: inset -1px 0 var(--wood-line);
+    scrollbar-width: none;
 }
 
-#nav-tree, #nav-tree-contents {
-    background: var(--wood-bg);
-    border-right: none;
+html:not(.wood-sided) .wood-side, .wood-side a.wood-side-chapter {
+    display: none;
 }
 
-#nav-tree-contents {
-    margin-top: 16px;
+.wood-side span:not(.wood-icon) {
+    display: block;
+    margin: 22px 0 6px;
+    color: var(--wood-fg-light);
+    font-size: 13px;
 }
 
-#nav-tree .label {
-    font-size: 14px;
-    line-height: var(--tree-item-height);
+.wood-side span:not(.wood-icon):first-of-type {
+    margin-top: 0;
 }
 
-#nav-tree .label a, #nav-tree a {
+.wood-side a, .wood-side a:visited {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
     color: var(--wood-fg) !important;
+    font-size: 15px;
     font-weight: 400;
+    line-height: 1.2;
     text-decoration: none;
 }
 
-#nav-tree .item:hover .label a,
-#nav-tree a:hover {
+.wood-side a .wood-icon {
+    width: 28px;
+    height: 28px;
+    margin: 0;
+}
+
+.wood-side a.inner {
+    min-height: 30px;
+    padding-left: 38px;
+    color: var(--wood-fg-light) !important;
+    font-size: 14px;
+}
+
+.wood-side a:hover, .wood-side a.on {
     color: var(--wood-accent) !important;
+    text-decoration: none;
 }
 
-#nav-tree .selected {
-    background: none;
-    border-radius: 0;
-    box-shadow: inset 3px 0 0 var(--wood-mark);
-    text-shadow: none;
-}
-
-#nav-tree .selected::after {
-    display: none;
-}
-
-#nav-tree .selected .label a,
-#nav-tree .selected a {
-    color: var(--wood-accent) !important;
+.wood-side a.on {
     font-weight: 500;
-}
-
-/* the chapters */
-#nav-tree-contents > ul > li > ul > li > .item .label a {
-    font-weight: 500;
-}
-
-/* where a page has subpages the tree lists only them: its own sections are in the outline on the right */
-#nav-tree ul:has(> li > .item .label a:not([href*="#"])) > li:has(> .item .label a[href*="#"]) {
-    display: none;
-}
-
-#nav-tree .arrow {
-    color: var(--wood-fg-lighter);
-}
-
-#nav-sync, .ui-resizable-handle, #splitbar {
-    background: transparent !important;
-    box-shadow: none !important;
-}
-
-#nav-sync {
-    display: none;
 }
 
 /* ==================================================================
@@ -587,7 +579,7 @@ div.contents h1, div.contents h2, div.contents h3, div.contents h4 {
 
 /* doxygen writes a page's ## as h1 and its ### as h2 */
 div.contents h1, div.contents h2, h2.groupheader {
-    margin: 64px 0 20px;
+    margin: 52px 0 16px;
     padding: 0;
     font-size: 26px;
     font-weight: 600;
@@ -614,14 +606,39 @@ div.contents .textblock > p:first-child:has(> a.anchor:only-child) + h1 {
     margin-top: 8px;
 }
 
-/* the mark over a section title */
-div.contents h1::before, div.contents h2.groupheader::before {
-    content: "";
-    display: block;
-    width: 28px;
-    height: 3px;
-    margin-bottom: 14px;
-    background: var(--wood-mark);
+div.contents h3, div.contents h4 {
+    color: var(--wood-fg);
+    letter-spacing: -.01em;
+    text-wrap: balance;
+}
+
+/* doxygen writes a page's ## as h1 and its ### as h2 */
+div.contents h1, div.contents h2, h2.groupheader {
+    margin: 52px 0 16px;
+    padding: 0;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.25;
+    box-shadow: none !important;
+    border-bottom: none;
+}
+
+div.contents h1 {
+    font-size: 28px;
+}
+
+div.contents h2:not(.groupheader) {
+    margin: 44px 0 14px;
+    font-size: 21px;
+}
+
+/* a page that opens with a section: the empty paragraph holds doxygen's anchor only */
+div.contents .textblock > p:first-child:has(> a.anchor:only-child) {
+    margin: 0;
+}
+
+div.contents .textblock > p:first-child:has(> a.anchor:only-child) + h1 {
+    margin-top: 8px;
 }
 
 div.contents h3, div.contents h4 {
@@ -1082,28 +1099,15 @@ div.contents .wood-card img {
     box-sizing: border-box;
 }
 
-/* a card's name, always starting with a capital, its arrow on the right */
+/* a card's name */
 .wood-card .wood-card-title {
     position: relative;
     display: block;
-    padding: 10px 48px 20px 20px;
+    padding: 10px 20px 20px 20px;
 }
 
 .wood-card .wood-card-title::first-letter {
     text-transform: uppercase;
-}
-
-a.wood-card .wood-card-title::after {
-    content: "\2192";
-    position: absolute;
-    right: 20px;
-    top: 10px;
-    color: var(--wood-accent);
-    transition: transform .15s ease;
-}
-
-a.wood-card:hover .wood-card-title::after {
-    transform: translateX(5px);
 }
 
 /* ==================================================================
@@ -1236,21 +1240,6 @@ div.contents .wood-landing img {
     transform: translate(-6px, -6px);
 }
 
-.wood-landing .wood-chapter-title::after {
-    content: "\2192";
-    margin-left: .4em;
-    color: var(--wood-accent);
-}
-
-/* the landing page is the film's: no tree */
-body:has(.wood-hero) #side-nav {
-    display: none !important;
-}
-
-body:has(.wood-hero) #doc-content {
-    margin-left: 0 !important;
-}
-
 /* ==================================================================
  * Pages (app.js): tabs, then per section its figures beside its source
  * ================================================================== */
@@ -1277,9 +1266,8 @@ html.wood-app #container {
     z-index: 5;
     display: flex;
     gap: 26px;
-    margin: 0 calc(-1 * var(--wood-gutter)) 8px;
-    padding: 0 var(--wood-gutter);
-    border-bottom: 1px solid var(--wood-line);
+    margin: 0 0 28px;
+    box-shadow: inset 0 -1px 0 var(--wood-line);
     background: var(--wood-bg);
     overflow-x: auto;
     scrollbar-width: none;
@@ -1310,12 +1298,41 @@ html.wood-app #container {
     margin: 0 0 8px;
 }
 
-.wood-tabs + .wood-section {
-    padding-top: 12px;
+div.contents .wood-tabs + .wood-section > h1:first-child, div.contents .wood-section:first-child > h1:first-child {
+    margin-top: 0;
 }
 
-div.contents .wood-tabs + .wood-section > h1:first-child {
-    margin-top: 20px;
+div.contents .wood-section:first-child:has(> h1:first-child) {
+    padding-top: 16px;
+}
+
+/* the first thing shown carries the top of the page, whatever it is */
+.wood-tabs + .wood-section:has(> .wood-card-grid:first-child) .wood-card-grid {
+    margin-top: 0;
+}
+
+div.contents .wood-title-only > :is(h1, h2, h3) {
+    margin-bottom: 0;
+}
+
+/* the assembly tables: pictures with their names, no rules */
+table.markdownTable:has(td img[src$=".gif"]):not(:has(td:nth-child(2) img[src$=".png"])) {
+    border: none;
+}
+
+table.markdownTable:has(td img[src$=".gif"]) tr.markdownTableHead {
+    display: none;
+}
+
+table.markdownTable:has(td img[src$=".gif"]) td {
+    border: none;
+    color: var(--wood-fg-light);
+}
+
+table.markdownTable:has(td img[src$=".gif"]) tr:not(:has(img)) td {
+    padding-top: 28px;
+    color: var(--wood-fg);
+    font-size: 16px;
 }
 
 .wood-section .doxsection .anchor {
@@ -1326,15 +1343,8 @@ div.contents .wood-lead {
     max-width: 92ch;
     margin: 0 0 18px;
     color: var(--wood-fg-light);
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.5;
-}
-
-.wood-cut {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
 }
 
 .wood-panes {
@@ -1578,14 +1588,6 @@ div.contents .wood-legend, div.contents .wood-code-link {
         margin: 0;
     }
 
-    body:has(.wood-hero) #side-nav {
-        display: none !important;
-    }
-
-    html.nav-open body:has(.wood-hero) #side-nav {
-        display: block !important;
-    }
-
     #projectname {
         min-width: 0;
     }
@@ -1606,19 +1608,28 @@ div.contents .wood-legend, div.contents .wood-code-link {
         gap: 56px;
     }
 
-    html.nav-open #side-nav {
-        display: block;
-        position: fixed;
-        top: var(--wood-header-height);
-        left: 0;
+    html.wood-sided #container {
+        margin-left: 0;
+    }
+
+    .wood-side {
+        display: none !important;
         z-index: 20;
-        width: 280px !important;
-        height: calc(100vh - var(--wood-header-height)) !important;
+        width: 280px;
         box-shadow: var(--wood-shadow);
     }
 
-    html.nav-open #nav-tree {
-        width: 100% !important;
-        height: 100% !important;
+    html.nav-open .wood-side {
+        display: block !important;
+    }
+
+    .wood-side a.wood-side-chapter {
+        display: flex !important;
+        font-size: 17px;
+        font-weight: 500;
+    }
+
+    .wood-side-chapter + :not(.wood-side-chapter) {
+        margin-top: 22px;
     }
 }
