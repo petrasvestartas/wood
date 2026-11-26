@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// The octagon groin vault: eight half barrels of 6 m span over a regular octagon, level, the crown at the arches' top.
 int main() {
 
-    CylinderVault vault(8, 6000.0, 3000.0, CylinderVault::Kind::Groin);
+    CylinderVault vault(CylinderVaultGuide::octagon());
     std::cout << vault << std::endl;
 
     size_t solids = 0;

@@ -3,29 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
-
-/// Rulings per curve: enough for a smooth barrel, the curves within 0.05 mm of the default 24, the scene a fraction of the size.
-const size_t SAMPLES = 6;
+using namespace wood_cylindrical_folding;
 
 /// two-hinged arch of folded cylindrical surfaces.
 int main() {
 
-    const double climb = 105.0 * Tolerance::TO_RADIANS;
-    const Vector along(std::cos(climb), 0.0, std::sin(climb));
-    const Vector up(-std::sin(climb), 0.0, std::cos(climb));
-    const Point foot(0.0, 12000.0, 0.0);
-    ReflectionFold fold(
-        ReflectionFold::arcs(foot, Vector(0.0, -1.0, 0.0), up, 4, 6000.0, 2400.0),
-        along,
-        Vector(0.0, -1.0, 0.0),
-        40000.0,
-        {{11000.0, -50.0 * Tolerance::TO_RADIANS, false},
-         {22000.0, -50.0 * Tolerance::TO_RADIANS, false}},
-        Plane::from_point_normal(Point(11000.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),
-        120.0,
-        "reflection_fold",
-        SAMPLES
-    );
+    ReflectionFold fold(ReflectionFoldGuide::two_hinged_arch());
     std::cout << fold << std::endl;
 
     size_t solids = 0;

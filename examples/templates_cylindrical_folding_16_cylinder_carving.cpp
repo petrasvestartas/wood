@@ -3,37 +3,17 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// A cylinder carved by tilted cylinders in sequence: a - b, then - c, then - d, side by side, only the carved patches.
 int main() {
 
     WoodSession stages("cylinder_carving");
-    const std::array<double, 3> radii = {1500.0, 1800.0, 1300.0};
-    const std::array<double, 3> tilts = {0.06, -0.05, 0.04};
 
     for (size_t count = 1; count <= 3; count++) {
-        // every stage moved along x; the stock a standing on z, every carver 40 degrees apart round one side, cutting 700 mm deep, turned off its axis
+        // every stage moved along x, the stock carved by its first count carvers
         const Vector shift(9000.0 * static_cast<double>(count - 1), 0.0, 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
-        std::vector<CylinderCarving::Cylinder> carvers;
-
-        for (size_t i = 0; i < count; i++) {
-            const double around = (130.0 - 40.0 * static_cast<double>(i)) * Tolerance::TO_RADIANS;
-            const Vector out(std::cos(around), std::sin(around), 0.0);
-            const Vector across(-std::sin(around), std::cos(around), 0.0);
-            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[i] - 700.0);
-            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilts[i], radii[i]});
-        }
-
-        CylinderCarving carving(
-            stock,
-            carvers,
-            12000.0,
-            60.0,
-            10.0 * Tolerance::TO_RADIANS,
-            false,
-            fmt::format("carving_{}", count)
-        );
+        CylinderCarving carving(CylinderCarvingGuide::column(count, shift), fmt::format("carving_{}", count));
         const size_t plates = carving.get_elements_placed<FaceCurvedElement>("plate").size();
         std::cout << fmt::format("{} carvers: {} plates, {} contacts, development distortion {:.2e}\n", count, plates, carving.get_contacts().size(), carving.distortion());
         stages.graft(carving, stages.add_group(fmt::format("stage_{}", count)));

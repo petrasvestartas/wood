@@ -121,6 +121,11 @@ set(WOOD_SOURCES
     src/templates/vidy/origami_shell.cpp
     src/templates/vidy/vidy_guide.cpp
     src/templates/vidy/vidy.cpp
+    src/templates/cylindrical_folding/reflection_fold.cpp
+    src/templates/cylindrical_folding/cylinder_vault.cpp
+    src/templates/cylindrical_folding/curved_folded_beam.cpp
+    src/templates/cylindrical_folding/corner_fan.cpp
+    src/templates/cylindrical_folding/cylinder_carving.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp

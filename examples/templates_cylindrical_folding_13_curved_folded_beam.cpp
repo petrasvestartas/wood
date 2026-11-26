@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// Six closed curved-folded beams side by side.
 int main() {
 
-    CurvedFoldedBeam beams;
+    CurvedFoldedBeam beams(CurvedFoldedBeamGuide::six_beams());
     std::cout << beams << std::endl;
 
     size_t solids = 0;

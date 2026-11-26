@@ -3,6 +3,7 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// Closed rings of carved patches: a cylinder carved all round by 4, 6 and 8 cylinders, their axes tilted in turn, side by side.
 int main() {
@@ -13,29 +14,9 @@ int main() {
     const std::array<double, 3> depths = {1600.0, 1000.0, 800.0};
 
     for (size_t r = 0; r < counts.size(); r++) {
-        // the stock standing on z, every carver at an equal step round it, cutting depth deep, turned off its axis one way and the other in turn
+        // every ring moved along x, the stock carved all round by counts[r] carvers
         const Vector shift(9000.0 * static_cast<double>(r), 0.0, 0.0);
-        const CylinderCarving::Cylinder stock = {Point(0.0, 0.0, 0.0) + shift, Vector(0.0, 0.0, 1.0), 2000.0};
-        std::vector<CylinderCarving::Cylinder> carvers;
-
-        for (size_t i = 0; i < counts[r]; i++) {
-            const double around = 2.0 * Tolerance::PI * static_cast<double>(i) / static_cast<double>(counts[r]);
-            const Vector out(std::cos(around), std::sin(around), 0.0);
-            const Vector across(-std::sin(around), std::cos(around), 0.0);
-            const double tilt = i % 2 == 0 ? 0.05 : -0.05;
-            const Point axis = Point(0.0, 0.0, 6000.0) + shift + out * (stock.radius + radii[r] - depths[r]);
-            carvers.push_back({axis, Vector(0.0, 0.0, 1.0) + across * tilt, radii[r]});
-        }
-
-        CylinderCarving carving(
-            stock,
-            carvers,
-            12000.0,
-            60.0,
-            10.0 * Tolerance::TO_RADIANS,
-            true,
-            fmt::format("ring_{}", counts[r])
-        );
+        CylinderCarving carving(CylinderCarvingGuide::ring(counts[r], radii[r], depths[r], shift), fmt::format("ring_{}", counts[r]));
         const size_t plates = carving.get_elements_placed<FaceCurvedElement>("plate").size();
         std::cout << fmt::format("ring of {}: {} plates, {} contacts, development distortion {:.2e}\n", counts[r], plates, carving.get_contacts().size(), carving.distortion());
         rings.graft(carving, rings.add_group(fmt::format("ring_{}", counts[r])));

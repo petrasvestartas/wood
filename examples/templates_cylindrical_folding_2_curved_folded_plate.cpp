@@ -3,32 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
-
-/// Rulings per wave: 30 lamellas at the default 24 take the viewer over 25 minutes; at 6 under a minute, the curves within 0.03 mm.
-const size_t SAMPLES = 6;
+using namespace wood_cylindrical_folding;
 
 /// A curved folded plate.
 int main() {
 
-    const double climb = 60.0 * Tolerance::TO_RADIANS;
-    const Vector along(0.0, std::cos(climb), std::sin(climb));
-    const Vector up(0.0, -std::sin(climb), std::cos(climb));
-    ReflectionFold fold(
-        ReflectionFold::waves(
-            Point(-4500.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), up, 6, 1500.0, 400.0
-        ),
-        along,
-        Vector(1.0, 0.0, 0.0),
-        18100.0,
-        {{3620.0, -30.0 * Tolerance::TO_RADIANS},
-         {7240.0, -30.0 * Tolerance::TO_RADIANS},
-         {10860.0, -30.0 * Tolerance::TO_RADIANS},
-         {14480.0, -30.0 * Tolerance::TO_RADIANS}},
-        std::nullopt,
-        120.0,
-        "reflection_fold",
-        SAMPLES
-    );
+    ReflectionFold fold(ReflectionFoldGuide::curved_folded_plate());
     std::cout << fold << std::endl;
 
     size_t solids = 0;

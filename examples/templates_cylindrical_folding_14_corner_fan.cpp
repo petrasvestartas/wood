@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// A corner fan: six developable strips folded from one corner of a 6 m square on parabolic creases to its two far sides.
 int main() {
 
-    CornerFan fan;
+    CornerFan fan(CornerFanGuide::six_strips());
     std::cout << fan << std::endl;
 
     size_t solids = 0;

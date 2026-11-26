@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// The pavilion vault: four cylinder segments on four walls, rising along the walls to the peak over the centre.
 int main() {
 
-    CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Cloister, 4000.0);
+    CylinderVault vault(CylinderVaultGuide::pavilion());
     std::cout << vault << std::endl;
 
     size_t solids = 0;

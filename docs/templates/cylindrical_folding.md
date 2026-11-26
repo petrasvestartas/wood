@@ -52,6 +52,12 @@ Folded structures of exact cylindrical [Curved Plate](@ref elements_face_curved)
 
 ## Reflection Fold {#reflection_fold}
 
+`ReflectionFold(ReflectionFoldGuide)`: the guide holds `profile, direction, axis, length, folds, symmetry, thickness, samples`; its presets are the examples below (`reflection`, `curved_folded_plate`, `mendrisio_pavilion`, `two_hinged_arch`, `a_frame`), and `ReflectionFoldGuide::arcs` and `waves` draw a profile.
+
+```cpp
+ReflectionFold fold(ReflectionFoldGuide::mendrisio_pavilion());
+```
+
 | `Fold::reflected` | Ruling Update | Curvature / Bulge | Unfolded Development |
 | --- | --- | --- | --- |
 | `true` (Reflection) | Sheet beyond fold plane `R` is mirrored across `R` (`normal` parallel to `r_prev - r_next`) | Flips: vault ↔ trough | Single continuous flat sheet |
@@ -125,12 +131,18 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Cylinder Vault {#cylinder_vault}
 
-`CylinderVault(sides, edge, radius, kind, wall, thickness)`: `sides` equal cylinder sectors over a regular polygon meeting on vertical corner-to-centre planes.
+`CylinderVault(CylinderVaultGuide)` with `sides, edge, radius, cloister, wall, thickness`: `sides` equal cylinder sectors over a regular polygon meeting on vertical corner-to-centre planes.
 
-| `Kind` | Generatrices | Profile | Creases |
+| `cloister` | Generatrices | Profile | Creases |
 | --- | --- | --- | --- |
-| `Groin` | Radial (side → centre) | Arch over polygon side, springing at corners | Half-ellipses from corners to crown |
-| `Cloister` | Tangential (parallel to polygon side, on `wall`) | Arc from wall top to central peak | Quarter-ellipses from corners to peak |
+| `false` (groin) | Radial (side → centre) | Arch over polygon side, springing at corners | Half-ellipses from corners to crown |
+| `true` (cloister) | Tangential (parallel to polygon side, on `wall`) | Arc from wall top to central peak | Quarter-ellipses from corners to peak |
+
+```cpp
+CylinderVault vault(CylinderVaultGuide::pavilion());
+```
+
+Presets: `groin()` (the defaults), `pavilion()`, `octagon()`.
 
 ### Groin Vault (4 Sides) {#groin_vault}
 
@@ -154,7 +166,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Curved Folded Beam {#curved_folded_beam}
 
-`CurvedFoldedBeam(span, width, rise, sag, thickness, webs, count)`: closed box girder of `4` cylindrical `FaceCurvedElement` flanges and webs (`top` and `bottom` arched outward by `rise`, `sides` dished inward by `sag`) stiffened by `webs` planar cross-diaphragms (`54` plates, `144` contacts across `6` beams).
+`CurvedFoldedBeam(CurvedFoldedBeamGuide)` with `span, width, rise, sag, thickness, webs, count, samples` (preset `six_beams()`, the defaults): closed box girder of `4` cylindrical `FaceCurvedElement` flanges and webs (`top` and `bottom` arched outward by `rise`, `sides` dished inward by `sag`) stiffened by `webs` planar cross-diaphragms (`54` plates, `144` contacts across `6` beams).
 
 ![](templates/templates_cylindrical_folding_13_curved_folded_beam_all.webp)
 
@@ -164,7 +176,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Corner Fan {#corner_fan}
 
-`CornerFan(size, height, strips, lift, drop, foot, thickness, corner)`: `strips` cylindrical `FaceCurvedElement` bands radiating from one corner of a `size × size` square to its two far sides along 3-point parabolic creases (`lift` mid-chord rise, alternating `drop` height modulation).
+`CornerFan(CornerFanGuide)` with `size, height, strips, lift, drop, foot, thickness, corner, samples` (preset `six_strips()`, the defaults): `strips` cylindrical `FaceCurvedElement` bands radiating from one corner of a `size × size` square to its two far sides along 3-point parabolic creases (`lift` mid-chord rise, alternating `drop` height modulation).
 
 ### Six-Strip Corner Fan
 
@@ -178,7 +190,7 @@ Four-barrel rows (`4 × 6000 mm` width, `120 mm` thick) folded into halls and ar
 
 ## Cylinder Carving {#cylinder_carving}
 
-`CylinderCarving(stock, carvers, length, thickness, min_angle, closed)`: sequential boolean subtraction `((a - b) - c) - d` of cylindrical `carvers` from a `stock` cylinder, converting each concave carved patch into a `FaceCurvedElement` shell of `thickness`.
+`CylinderCarving(CylinderCarvingGuide)` with `stock, carvers, length, thickness, min_angle, closed, samples`, every cylinder a `Cylinder {point, direction, radius}` (presets `column(count, shift)` and `ring(count, radius, depth, shift)`): sequential boolean subtraction `((a - b) - c) - d` of cylindrical `carvers` from a `stock` cylinder, converting each concave carved patch into a `FaceCurvedElement` shell of `thickness`.
 
 ### Sequential Three-Carver Column
 

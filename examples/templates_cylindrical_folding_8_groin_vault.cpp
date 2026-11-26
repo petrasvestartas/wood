@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_cylindrical_folding;
 
 /// The groin vault: two half barrels of 12 m span crossing over a square, every quarter one cylindrical panel.
 int main() {
 
-    CylinderVault vault(4, 12000.0, 6000.0, CylinderVault::Kind::Groin);
+    CylinderVault vault(CylinderVaultGuide::groin());
     std::cout << vault << std::endl;
 
     size_t solids = 0;
