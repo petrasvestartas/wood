@@ -3,29 +3,17 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_developable_folding;
 
 /// A curved folded tent roof.
 int main() {
 
-    CurvedFold fold;
+    CurvedFold fold(CurvedFoldGuide::tent_roof());
     std::cout << fold << std::endl;
-
-    for (const std::shared_ptr<FaceCurvedElement>& lamella :
-         fold.get_elements_numbered<FaceCurvedElement>("lamella")) {
-        const BRep& solid = lamella->element_geometry_brep();
-        std::cout << fmt::format(
-            "{}: {} faces, solid {}, volume {:.3f} m3\n",
-            lamella->name,
-            solid.face_count(),
-            solid.is_solid(),
-            lamella->element_geometry_mesh().volume() * 1e-9
-        );
-    }
-
     std::cout << fmt::format(
-        "curved fold: {} sectors, {} lamellas, {} contacts, development distortion {:.2e}\n",
-        fold.sectors,
-        2 * fold.sectors,
+        "curved fold: {} lamellas, {} flat pieces, {} contacts, development distortion {:.2e}\n",
+        fold.get_elements_numbered<FaceCurvedElement>("lamella").size(),
+        fold.get_elements_numbered<FaceCurvedElement>("flat").size(),
         fold.get_contacts().size(),
         fold.distortion()
     );
@@ -35,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 1 of the developable folding templates: a curved folded roof, a freestanding folded shell roof of 32 m diameter rising into a tower 26 m high with a round top of 7 m. Twelve sectors, their valleys running down to the columns at 4000 and their ridges ending in a gable 4000 over the eaves, the folds following a trumpet curve, flat at the eaves and vertical at the tower, their depth shrinking with the radius into the tower, the top cut level at 26 m. Every ridge and valley is a NURBS curve interpolated through fourteen rings, each the same star scaled, and every fold strip between two of them one lamella, a FaceCurvedElement: a closed curved solid of six exact NURBS patches, its outer face the ruled surface between the two meridians, its inner face 120 mm in between the inner meridians, where the neighbouring strips offset by the thickness meet, its side faces along the folds shared with the neighbours as miters, and a cap at the eaves and at the top: 24 curved solids, no facets, with their 2D unrolled outlines in flat. Groups: meridians, lamellas, flat.
+Step 1 of the developable folding templates: a curved folded roof, a freestanding folded shell roof of 32 m diameter rising into a tower 26 m high with a round top of 7 m (CurvedFoldGuide::tent_roof). Twelve sectors, their valleys running down to the columns at 4000 and their ridges ending in a gable 4000 over the eaves, the folds following a trumpet curve, flat at the eaves and vertical at the tower. Every ridge and valley is a NURBS curve interpolated through fourteen rings, and every fold strip between two of them first a surface without thickness: a quad mesh of its rulings in strips, developed flat into the crease pattern in pattern. The thickness comes last: every strip becomes one lamella, a FaceCurvedElement of six exact NURBS patches, its outer face the strip, its inner face 120 mm in where the neighbouring strips offset by the thickness meet, its side faces shared with the neighbours as miters, and its flat piece for cutting in flat. With thickness 0 only the meridians, strips and pattern are drawn. Groups: meridians, strips, pattern, lamellas, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

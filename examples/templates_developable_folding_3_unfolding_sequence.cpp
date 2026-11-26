@@ -3,34 +3,19 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_developable_folding;
 
-/// Kinematic deployment of a flat-foldable catenary CCU vault from closed stack (w = 0) to locked 3D shell (w = 1).
+/// Kinematic deployment of a flat-foldable catenary CCU vault from the closed stack (w = 0) to the locked shell (w = 1).
 int main() {
 
     CurvedCreaseUnfolding sequence(
-        CurvedCreaseUnfolding::catenary(6000.0, 2800.0),
-        55.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::vault(
-            Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 8, 420.0, 0.0
-        ),
-        {0.0, 0.35, 0.70, 1.0},
-        30.0
+        CurvedCreaseUnfoldingGuide::unfolding_sequence(), "unfolding_sequence"
     );
     std::cout << sequence << std::endl;
-
-    size_t solids = 0;
-    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
-        sequence.get_elements_placed<FaceCurvedElement>("stage");
-
-    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
-        solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
-
     std::cout << fmt::format(
-        "unfolding sequence: {} stages, {} plates, {} closed solids, {} contacts in locked stage, "
-        "development distortion {:.2e}, drift {:.3f} mm\n",
-        sequence.deployments.size(),
-        plates.size(),
-        solids,
+        "unfolding sequence: {} stages, {} plates, {} contacts in locked stage, development distortion {:.2e}, drift {:.3f} mm\n",
+        sequence.guide.deployments.size(),
+        sequence.get_elements_placed<FaceCurvedElement>("stage").size(),
         sequence.get_contacts().size(),
         sequence.distortion(),
         sequence.drift()
@@ -41,7 +26,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the developable folding templates: one-degree-of-freedom accordion deployment of a curved-crease unfoldable (CCU) catenary shell from its closed flat-packed stack (w = 0, stack thickness 8 x 30 = 240 mm, planar unbent strips of curvature k_2d = k_3d cos 55 deg) through intermediate active-bending stages (w = 0.35, 0.70) to the miter-locked 3D corrugated vault (w = 1.0, 6 m span, 2.8 m rise). Axis-shift hinges alternate between intrados-to-intrados and extrados-to-extrados across the eight plates so the stack closes flat without collision while preserving zero neutral-surface strain. Groups: stage_0..stage_3, creases, flat.
+Step 3 of the developable folding templates: one-degree-of-freedom accordion deployment of a curved-crease unfoldable (CCU) catenary shell, CurvedCreaseUnfoldingGuide::unfolding_sequence. The mid-surface strips deploy without thickness from the closed stack (w = 0, planar strips of curvature k_2d = k_3d cos 55 deg, all in one plane) through active-bending stages (w = 0.35, 0.70) to the target vault (w = 1.0, 6 m span, 2.8 m rise), side by side in stage_<s>_strips. The thickness comes last: every stage's strips become 30 mm plates hinged on their faces, the axis shift alternating intrados to intrados and extrados to extrados, so the closed stack is 8 x 30 = 240 mm thick and the target stage miter-locked. Groups: stage_0_strips..stage_3_strips, creases, pattern, stage_0..stage_3, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -146,6 +146,13 @@ set(WOOD_SOURCES
     src/templates/chevron/chevron_assembly.cpp
     src/templates/shells/translation_shell.cpp
     src/templates/cross/vda_mesh.cpp
+    src/templates/development.cpp
+    src/templates/folding/fold_unfolding.cpp
+    src/templates/developable_folding/developable_folding_guide.cpp
+    src/templates/developable_folding/curved_fold.cpp
+    src/templates/developable_folding/curved_crease_unfolding.cpp
+    src/templates/developable_folding/crease_quadrants.cpp
+    src/templates/developable_folding/curved_crease_tube.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp

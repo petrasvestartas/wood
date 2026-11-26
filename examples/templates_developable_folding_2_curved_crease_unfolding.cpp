@@ -3,40 +3,17 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_developable_folding;
 
-/// Monoclastic corrugated arch by curved-crease unfolding on parallel osculating planes.
+/// Monoclastic corrugated arch by curved-crease unfolding on parallel planes.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(
-        Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
-        55.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::vault(
-            Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 12, 450.0, 0.0
-        ),
-        30.0
-    );
+    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::monoclastic());
     std::cout << unfolding << std::endl;
-
-    size_t solids = 0;
-    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
-        unfolding.get_elements_placed<FaceCurvedElement>("plate");
-    const std::vector<std::shared_ptr<FaceCurvedElement>> flat_pieces =
-        unfolding.get_elements_placed<FaceCurvedElement>("flat");
-
-    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
-        solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
-
-    size_t flat_solids = 0;
-    for (const std::shared_ptr<FaceCurvedElement>& piece : flat_pieces)
-        flat_solids += piece->element_geometry_brep().is_solid() ? 1 : 0;
-
     std::cout << fmt::format(
-        "curved-crease unfolding: {} plates ({} solids), {} unfolded flat pieces ({} solids), {} contacts, "
-        "development distortion {:.2e}, drift {:.3f} mm\n",
-        plates.size(),
-        solids,
-        flat_pieces.size(),
-        flat_solids,
+        "curved-crease unfolding: {} plates, {} flat pieces, {} contacts, development distortion {:.2e}, drift {:.3f} mm\n",
+        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
+        unfolding.get_elements_placed<FaceCurvedElement>("flat").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()
@@ -47,7 +24,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 2 of the developable folding templates: monoclastic corrugated vault by curved-crease unfolding (CCU). Twelve 30 mm bending-active plates with alternating intrados/extrados axis-shift hinges and locking miters across thirteen parallel osculating planes 450 mm apart over a 9 m semicircular span (4.5 m rise, 55-degree reflection angle). Every plate is an exact developable cone solid (FaceCurvedElement) sharing miter contacts with its neighbours and unfolding flat into its 2D cutting pattern in group flat. Groups: plates, creases, flat.
+Step 2 of the developable folding templates: monoclastic corrugated vault by curved-crease unfolding (CCU), CurvedCreaseUnfoldingGuide::monoclastic. A 9 m semicircle (4.5 m rise, 55-degree reflection angle) is mirrored across thirteen parallel planes 450 mm apart: twelve mid-surface strips without thickness in strips, their creases in creases and their 2D crease pattern in pattern. The thickness comes last: every strip becomes a 30 mm plate hinged on its faces (axis shift, intrados to intrados and extrados to extrados) and mitered on the planes, an exact developable FaceCurvedElement sharing miter contacts with its neighbours, and its flat piece for cutting in flat. Groups: strips, creases, pattern, plates, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

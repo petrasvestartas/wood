@@ -3,40 +3,16 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_developable_folding;
 
 /// A corrugated dome of curved-crease unfolding: a meridian arc mirrored in 24 meridian planes around the vertical axis.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(
-        Primitives::arc(
-            Point(6000.0, 0.0, 0.0),
-            Point(6000.0 * std::cos(0.7), 0.0, 6000.0 * std::sin(0.7)),
-            Point(6000.0 * std::cos(1.4), 0.0, 6000.0 * std::sin(1.4))
-        ),
-        60.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::fan(
-            Point(0.0, 0.0, 0.0),
-            Vector(0.0, 0.0, 1.0),
-            Vector(1.0, 0.0, 0.0),
-            24,
-            15.0 * Tolerance::TO_RADIANS
-        ),
-        40.0
-    );
+    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::dome());
     std::cout << unfolding << std::endl;
-
-    size_t solids = 0;
-    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
-        unfolding.get_elements_placed<FaceCurvedElement>("plate");
-
-    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
-        solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
-
     std::cout << fmt::format(
-        "corrugated dome: {} plates, {} closed solids, {} contacts, development distortion {:.2e}, "
-        "support drift {:.0f} mm\n",
-        plates.size(),
-        solids,
+        "corrugated dome: {} plates, {} contacts, development distortion {:.2e}, support drift {:.0f} mm\n",
+        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()
@@ -47,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 11 of the developable folding templates: a corrugated dome by consecutive radial plane inclinations perpendicular to the actuation rotation axis. The crease is a meridian arc of a 6 m sphere rising to 80 degrees around a 2.1 m oculus; 25 radial meridian planes 15 degrees apart mirror 24 axis-shifted 40 mm developable plates into a closed 360-degree star dome that folds compactly into a flat meridian stack at w = 0. Groups: plates, creases, flat.
+Step 11 of the developable folding templates: a corrugated dome by consecutive radial plane inclinations perpendicular to the actuation axis, CurvedCreaseUnfoldingGuide::dome. The crease is a meridian arc of a 6 m sphere rising to 80 degrees around a 2.1 m oculus; 25 radial meridian planes 15 degrees apart mirror 24 strips into a closed 360-degree star dome that folds into a flat meridian stack at w = 0. The thickness comes last: 40 mm plates hinged on their faces. Groups: strips, creases, pattern, plates, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

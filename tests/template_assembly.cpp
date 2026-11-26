@@ -128,12 +128,10 @@ int main() {
     // the connectors turned along the slides: every plate, its connectors to the plates after it on it, onto all of its own at once
     check_template(wood_cross::VdaMesh(wood_cross::VdaMeshGuide::dome_assembly()), 15);
 
-    // curved-crease unfolding: target mitered vault, closed flat-packed stack (w = 0), leaning planes and four crease quadrants
-    const NurbsCurve ccu_arc = Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0));
-    const std::vector<Plane> ccu_planes = CurvedCreaseUnfolding::vault(
-        Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 8, 450.0, 60.0
-    );
-    const CurvedCreaseUnfolding unfolded(ccu_arc, 55.0 * Tolerance::TO_RADIANS, ccu_planes, 30.0);
+    // curved-crease unfolding: target mitered vault, closed flat-packed stack (w = 0), level crown and four crease quadrants
+    wood_developable_folding::CurvedCreaseUnfoldingGuide ccu = wood_developable_folding::CurvedCreaseUnfoldingGuide::monoclastic();
+    ccu.planes = wood_developable_folding::CurvedCreaseUnfoldingGuide::vault(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 8, 450.0, 60.0);
+    const wood_developable_folding::CurvedCreaseUnfolding unfolded(ccu);
     check(unfolded.distortion() < 1e-4 && unfolded.drift() < 1e-3, "ccu: zero distortion and floor drift on synclastic vault");
     check(unfolded.get_contacts().size() == 7, "ccu: 7 shared miter contacts across 8 plates");
     const std::shared_ptr<FaceCurvedElement> folded_plate = unfolded.get_element_by_name<FaceCurvedElement>("plate_4");
@@ -144,15 +142,14 @@ int main() {
     check(flat_dev.distortion < 1e-4, "ccu unfold: sector-angle unfolding has zero distortion");
     check_template(unfolded, 4);
 
-    const CurvedCreaseUnfolding closed_stack(
-        ccu_arc, 55.0 * Tolerance::TO_RADIANS, ccu_planes, 30.0, "closed_stack", 48, 0.0
-    );
+    wood_developable_folding::CurvedCreaseUnfoldingGuide stack = ccu;
+    stack.deployments = {0.0};
+    const wood_developable_folding::CurvedCreaseUnfolding closed_stack(stack, "closed_stack");
     check(closed_stack.distortion() < 1e-4, "ccu closed: planar strips remain developable");
     double min_stack_y = std::numeric_limits<double>::infinity();
     double max_stack_y = -std::numeric_limits<double>::infinity();
     for (size_t i = 0; i < 8; i++) {
-        const std::shared_ptr<FaceCurvedElement> plate =
-            closed_stack.get_element_by_name<FaceCurvedElement>(fmt::format("plate_{}", i));
+        const std::shared_ptr<FaceCurvedElement> plate = closed_stack.get_element_by_name<FaceCurvedElement>(fmt::format("plate_{}", i));
         check(plate && plate->element_geometry_brep().is_solid(), "ccu closed: every flat-packed plate is a closed solid");
         for (const Point& corner : plate->aabb().corners()) {
             min_stack_y = std::min(min_stack_y, corner[1]);
@@ -162,31 +159,31 @@ int main() {
     check(std::abs((max_stack_y - min_stack_y) - 8.0 * 30.0) < 1.0, "ccu closed: flat-folded stack thickness equals n * t (240 mm)");
     check_template(closed_stack, 8);
 
-    const CurvedCreaseUnfolding leaned(
-        ccu_arc,
-        55.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::leaning(
-            Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 6, 450.0, -3.0 * Tolerance::TO_RADIANS
-        ),
-        30.0
-    );
+    // without thickness: the strips, creases and crease pattern alone, no plate, the same development
+    wood_developable_folding::CurvedCreaseUnfoldingGuide bare = ccu;
+    bare.thickness = 0.0;
+    const wood_developable_folding::CurvedCreaseUnfolding surfaces(bare, "surfaces");
+    check(surfaces.elements().size() == 0 && surfaces.assemblies.empty(), "ccu thickness 0: no plate is made");
+    check(surfaces.distortion() == unfolded.distortion() && surfaces.drift() == unfolded.drift(), "ccu thickness 0: the same strips as with plates");
+
+    const wood_developable_folding::CurvedCreaseUnfolding leaned(wood_developable_folding::CurvedCreaseUnfoldingGuide::level_crown());
     check(leaned.distortion() < 1e-4 && leaned.get_contacts().size() == 5, "ccu leaning: developable with 5 miter contacts");
 
-    const CreaseQuadrants quadrants(
-        Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)),
-        40.0 * Tolerance::TO_RADIANS,
-        1200.0,
-        40.0
-    );
+    const wood_developable_folding::CreaseQuadrants quadrants(wood_developable_folding::CreaseQuadrantsGuide::arc_crease());
     const std::array<double, 4>& sums = quadrants.sector_sums();
     check(std::abs(sums[0] - 2.0 * Tolerance::PI) < 1e-6 && std::abs(sums[2] - 2.0 * Tolerance::PI) < 1e-6, "quadrants: Q1 and Q3 sum to 2*pi");
     check(sums[1] < 2.0 * Tolerance::PI - 1e-3 && sums[3] > 2.0 * Tolerance::PI + 1e-3, "quadrants: Q2 synclastic (< 2*pi) and Q4 anticlastic (> 2*pi)");
 
-    check_template(CurvedCreaseTube(8000.0, 0.30, 45.0 * Tolerance::TO_RADIANS, 480.0, 360.0, 4, 24.0), 4);
-    const CurvedCreaseTube tube_check(8000.0, 0.30, 45.0 * Tolerance::TO_RADIANS, 480.0, 360.0, 2, 24.0, "tube_check", 48, 0.45);
+    wood_developable_folding::CurvedCreaseTubeGuide tubes = wood_developable_folding::CurvedCreaseTubeGuide::cellular_vault();
+    tubes.tubes = 4;
+    check_template(wood_developable_folding::CurvedCreaseTube(tubes), 4);
+    wood_developable_folding::CurvedCreaseTubeGuide deployed = tubes;
+    deployed.tubes = 2;
+    deployed.deployments = {0.45};
+    const wood_developable_folding::CurvedCreaseTube tube_check(deployed, "tube_check");
     check(tube_check.distortion() < 1e-3 && tube_check.min_speed() > 0.1, "tachi tube: rigid 1-DOF space-curve deployment stays developable");
 
-    check_template(CurvedFold(), 12);
+    check_template(wood_developable_folding::CurvedFold(), 12);
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

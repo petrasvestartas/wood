@@ -3,32 +3,16 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_developable_folding;
 
-/// Doubly-curved synclastic CCU vault by modulated parallel osculating plane distances.
+/// Doubly-curved synclastic CCU vault by modulated distances of parallel planes.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(
-        Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
-        55.0 * Tolerance::TO_RADIANS,
-        CurvedCreaseUnfolding::vault(
-            Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 12, 450.0, 95.0
-        ),
-        30.0
-    );
+    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::synclastic());
     std::cout << unfolding << std::endl;
-
-    size_t solids = 0;
-    const std::vector<std::shared_ptr<FaceCurvedElement>> plates =
-        unfolding.get_elements_placed<FaceCurvedElement>("plate");
-
-    for (const std::shared_ptr<FaceCurvedElement>& plate : plates)
-        solids += plate->element_geometry_brep().is_solid() ? 1 : 0;
-
     std::cout << fmt::format(
-        "synclastic unfolding: {} plates, {} closed solids, {} contacts, development distortion "
-        "{:.2e}, support drift {:.3f} mm\n",
-        plates.size(),
-        solids,
+        "synclastic unfolding: {} plates, {} contacts, development distortion {:.2e}, support drift {:.3f} mm\n",
+        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()
@@ -39,7 +23,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 5 of the developable folding templates: doubly-curved synclastic corrugated vault by plane-distance modulation. Twelve 30 mm plates across thirteen parallel osculating planes whose inward valley-to-ridge distances step down away from the mid-span crease (450 mm base spacing, 95 mm step, 55-degree reflection angle): both the apex profile and the support plan curve smoothly inward along a barrel dome while every support foot remains flush on the horizontal floor (0 mm drift) and every crease remains planar throughout deployment. Groups: plates, creases, flat.
+Step 5 of the developable folding templates: doubly-curved synclastic corrugated vault by plane distances, CurvedCreaseUnfoldingGuide::synclastic. Twelve strips across thirteen parallel planes whose distances step down towards the mid-span crease (450 mm base spacing, 95 mm step, 55-degree reflection angle): the apex profile and the support plan curve inward along a barrel dome while every support foot stays on the floor (0 mm drift) and every crease stays planar. The thickness comes last: 30 mm plates hinged on their faces and mitered on the planes. Groups: strips, creases, pattern, plates, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood
