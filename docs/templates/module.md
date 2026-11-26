@@ -90,15 +90,11 @@ A framed wall in the `XZ`-plane with openings and two sheathing panels (`module/
 
 1. Frame (`frame`): Bottom and top rails (bottom rail interrupted across door openings), full-height jamb studs on either side of every opening with headers and window sills between them, and grid studs every `stud_spacing` (omitting any grid stud within `0.5 * stud_spacing` of a jamb or end stud and splitting studs inside openings into top and bottom cripples):
 
-![](templates/templates_module_1_wall_frame.webp)
-
 ```cpp
 for (double x = guide.stud_spacing; x + half < guide.length - w; x += guide.stud_spacing) { ... }
 ```
 
 2. Sheathing (`sheathing`): One `15 mm` `FacePlanarElement` on each face of the wall, with doors cut as bottom boundary notches and windows cut as interior polygon holes (`FacePlanarElement(bottom, top, inner_bottoms, inner_tops)`):
-
-![](templates/templates_module_1_wall_sheathing.webp)
 
 ```cpp
 for (const std::pair<double, size_t>& entry : doors) {
@@ -109,8 +105,6 @@ for (const std::pair<double, size_t>& entry : doors) {
     corners.push_back(Point(door.x + door.width, levels[k], 0.0));
 }
 ```
-
-![](templates/templates_module_1_wall_inside.webp)
 
 3. Contacts (`contacts_frame`, `contacts_sheathing`): `add_module_contacts` (`module/module_contact.h`) detects all `26` frame-to-frame and `32` sheet-to-frame `InteractionContactFace` regions (`<target>_on_<source>` or `<target>_beside_<source>`):
 
@@ -158,8 +152,6 @@ if (ranks.empty()) {
 
 2. Hollow Cassette Lofting: Each cell consists of top and bottom face `FacePlanarElement` panels clipped by the edge planes plus perimeter beams lofted between `bottom` and `top` (`outer` edge plane to `inner = outer.translate_by_normal(-beam_width)`):
 
-![](templates/templates_module_2_cassette_shell_cassette_4.webp)
-
 ```cpp
 const Plane& outer = _edge_planes[f][j];
 const Plane inner = outer.translate_by_normal(-beam_width);
@@ -169,8 +161,6 @@ const Polyline top_loop = Polyline::from_planes(sides, top);
 ```
 
 3. Intra- and Inter-Cassette Contacts: `compute_face_contact` verifies every internal part-to-part contact and all `104` inter-cassette contacts across the `29` interior edges (throwing if any shared edge lacks contact):
-
-![](templates/templates_module_2_cassette_shell_two_cassettes.webp)
 
 ```cpp
 for (const std::shared_ptr<FacePlanarElement>& a : parts[f])
@@ -200,19 +190,11 @@ const Point surface = other.origin() + other.z_axis() * (reach * 0.5 * depth);
 planes[f].push_back(Plane::from_point_normal(surface, other.z_axis() * -side));
 ```
 
-![](templates/templates_module_3_cassette_house_inside.webp)
-
-![](templates/templates_module_3_cassette_house_front.webp)
-
 ```cpp
 for (double u = stud_spacing; u < length; u += stud_spacing) { ... }
 ```
 
-![](templates/templates_module_3_cassette_house_gable.webp)
-
 ![](templates/templates_module_3_cassette_house_section.webp)
-
-![](templates/templates_module_3_cassette_house_eave.webp) ![](templates/templates_module_3_cassette_house_ridge.webp)
 
 \include{lineno} templates_module_3_cassette_house.cpp
 
@@ -242,8 +224,6 @@ Volumetric timber room modules (`module/room_module.h`, examples `templates_modu
 
 1. Open-Sided Module Logic: Long sides between modules belonging to the same room are left open (supported by corner posts and `side_posts` at mid-span); between adjacent rooms, a single partition wall is placed inside the smaller room's module:
 
-![](templates/templates_module_4_room_module_single.webp)
-
 ```cpp
 const bool front_inside = column > 0 && previous[0] == room[0];
 const bool back_inside = column + 1 < columns() && next[0] == room[0];
@@ -253,15 +233,7 @@ const bool back_wall = column + 1 == columns() || (!back_inside && room[1] <= ne
 
 2. Floor, Ceiling, and Wall Assemblies: Vertical load paths align in a `190 mm` strip along each long side (ceiling `190 × 470` edge beam → `190 × 190` corner and mid posts and `2400 mm` long walls → floor `190 × 280` edge beam):
 
-![](templates/templates_module_4_room_module_floor.webp)
-
-![](templates/templates_module_4_room_module_ceiling.webp)
-
 ![](templates/templates_module_4_room_module_section.webp)
-
-![](templates/templates_module_4_room_module_wall.webp)
-
-![](templates/templates_module_4_room_module_inside.webp)
 
 3. Contacts (`contacts_frame`, `contacts_sheathing`): `add_module_contacts` registers all `333` frame-to-frame and `378` sheet-to-frame face contacts across both modules.
 
@@ -284,10 +256,6 @@ Twelve modules (`rooms = {2, 2}`, `storeys = 3`) arranged as two 2-module rooms 
 Four modules on a `3000 × 10270 mm` grid (`rooms = {1, 2, 1}`: closed meeting room, 2-module `6000 mm` clear open office, and entrance module with a `2730 mm` inset porch, `examples/templates_module_6_bank_pavilion.cpp`):
 
 ![](templates/templates_module_6_bank_pavilion_all.webp)
-
-![](templates/templates_module_6_bank_pavilion_plan.webp)
-
-![](templates/templates_module_6_bank_pavilion_open.webp)
 
 \include{lineno} templates_module_6_bank_pavilion.cpp
 
@@ -336,10 +304,6 @@ To 4.00 m high and 40 t without a permit of its own; Switzerland, 2023. The stra
 Timber frame, solid plates, and a timber frame under a solid ceiling. The walls stand on the floor and carry the ceiling along their whole length.
 
 ![](templates/templates_module_7_module_types_all.webp)
-
-| framed | solid | mixed |
-| --- | --- | --- |
-| ![](templates/templates_module_7_module_types_framed_bones.webp) | ![](templates/templates_module_7_module_types_solid_inside.webp) | ![](templates/templates_module_7_module_types_mixed.webp) |
 
 ```cpp
 // floor: one plate, or ribs across between two edge ribs, a board on each face
@@ -392,8 +356,6 @@ Modules that carry each other: the usual case, built to eight storeys, every mod
 
 A module stands on two battens along its long walls with an elastic strip on each, which keeps sound from passing; under an open side on short ones, a post's width each.
 
-![](templates/templates_module_9_stacked_modules_bearings.webp)
-
 ### Couplers {#module_couplers}
 
 A plate over every joint at the modules' ends, pinned into the two ceilings and the two floors that meet there, holds the storeys together against wind and lift and comes off again.
@@ -418,9 +380,7 @@ The skeleton carries, the modules less or only themselves, so they are alike and
 
 `deck = 0`: a post in every joint, a beam per storey, ledgers on its faces; a module slides in lengthwise onto two of them.
 
-| whole | skeleton |
-| --- | --- |
-| ![](templates/templates_module_10_module_rack_all.webp) | ![](templates/templates_module_10_module_rack_skeleton.webp) |
+![](templates/templates_module_10_module_rack_all.webp)
 
 \include{lineno} templates_module_10_module_rack.cpp
 
@@ -428,9 +388,7 @@ The skeleton carries, the modules less or only themselves, so they are alike and
 
 `bay = 2`, `level = 1`: a deck per storey, two modules open to each other on it, as when an old frame is used again.
 
-| whole | skeleton |
-| --- | --- |
-| ![](templates/templates_module_11_module_frame_all.webp) | ![](templates/templates_module_11_module_frame_skeleton.webp) |
+![](templates/templates_module_11_module_frame_all.webp)
 
 \include{lineno} templates_module_11_module_frame.cpp
 
@@ -438,9 +396,7 @@ The skeleton carries, the modules less or only themselves, so they are alike and
 
 `bay = 2`, `level = 2`: modules carry each other between two decks, the skeleton takes the load of every second storey.
 
-| whole | skeleton |
-| --- | --- |
-| ![](templates/templates_module_12_module_levels_all.webp) | ![](templates/templates_module_12_module_levels_skeleton.webp) |
+![](templates/templates_module_12_module_levels_all.webp)
 
 \include{lineno} templates_module_12_module_levels.cpp
 
@@ -450,9 +406,8 @@ The skeleton carries, the modules less or only themselves, so they are alike and
 
 Two rows of modules face each other over a corridor of planar panels on ledgers on their ends: modules where rooms repeat, panels where they do not.
 
-| whole | one storey |
-| --- | --- |
-| ![](templates/templates_module_13_module_corridor_all.webp) | ![](templates/templates_module_13_module_corridor_plan.webp) |
+![](templates/templates_module_13_module_corridor_all.webp)
+![](templates/templates_module_13_module_corridor_plan.webp)
 
 \include{lineno} templates_module_13_module_corridor.cpp
 
@@ -475,34 +430,17 @@ Panels, cassettes and rooms as they leave the shop: every frame member by member
 |---|---|---|
 | **Framed wall: rails, studs, headers and sills, a sheet on each face**, 18 elements, 17 moves | | |
 | ![wall, 18 pieces](assembly/assembly_templates_module_1_wall.gif) wall, 18 pieces |  |  |
-| **Cassette shell: bottom plate, edge beams, top plate**, 107 elements, 106 moves | | |
-| ![cassette, 7 pieces](assembly/assembly_templates_module_2_cassette_shell_cassette.gif) cassette, 7 pieces | ![cassette shell, 15 pieces](assembly/assembly_templates_module_2_cassette_shell.gif) cassette shell, 15 pieces |  |
 | **Cassette house**, 109 elements, 108 moves | | |
-| ![cassette, 23 pieces](assembly/assembly_templates_module_3_cassette_house_cassette.gif) cassette, 23 pieces | ![cassette house, 6 pieces](assembly/assembly_templates_module_3_cassette_house.gif) cassette house, 6 pieces |  |
+| ![cassette house, 6 pieces](assembly/assembly_templates_module_3_cassette_house.gif) cassette house, 6 pieces |  |  |
 | **Room module: floor, walls, posts, ceiling**, 182 elements, 181 moves | | |
-| ![module floor, 20 pieces](assembly/assembly_templates_module_4_room_module_module_floor.gif) module floor, 20 pieces | ![module wall front, 19 pieces](assembly/assembly_templates_module_4_room_module_module_wall_front.gif) module wall front, 19 pieces | ![module wall start, 16 pieces](assembly/assembly_templates_module_4_room_module_module_wall_start.gif) module wall start, 16 pieces |
-| ![module ceiling, 20 pieces](assembly/assembly_templates_module_4_room_module_module_ceiling.gif) module ceiling, 20 pieces | ![module, 10 pieces](assembly/assembly_templates_module_4_room_module_module.gif) module, 10 pieces | ![room module, 2 pieces](assembly/assembly_templates_module_4_room_module.gif) room module, 2 pieces |
-| **Module block**, 1038 elements, 1037 moves | | |
-| ![module, 10 pieces](assembly/assembly_templates_module_5_module_block_module.gif) module, 10 pieces | ![module block, 12 pieces](assembly/assembly_templates_module_5_module_block.gif) module block, 12 pieces |  |
-| **Bank pavilion**, 421 elements, 420 moves | | |
-| ![module, 10 pieces](assembly/assembly_templates_module_6_bank_pavilion_module.gif) module, 10 pieces | ![bank pavilion, 4 pieces](assembly/assembly_templates_module_6_bank_pavilion.gif) bank pavilion, 4 pieces |  |
-| **Module types: framed, solid, mixed**, 279 elements, 195 moves | | |
-| ![framed floor, 15 pieces](assembly/assembly_templates_module_7_module_types_framed_framed_floor.gif) framed floor, 15 pieces | ![framed wall front, 25 pieces](assembly/assembly_templates_module_7_module_types_framed_framed_wall_front.gif) framed wall front, 25 pieces | ![framed ceiling, 15 pieces](assembly/assembly_templates_module_7_module_types_framed_framed_ceiling.gif) framed ceiling, 15 pieces |
-| ![framed, 6 pieces](assembly/assembly_templates_module_7_module_types_framed.gif) framed, 6 pieces | ![mixed, 6 pieces](assembly/assembly_templates_module_7_module_types_mixed.gif) mixed, 6 pieces | ![solid, 18 pieces](assembly/assembly_templates_module_7_module_types_solid.gif) solid, 18 pieces |
-| **Open modules: frame, braced**, 106 elements, 104 moves | | |
-| ![braced frame, 3 pieces](assembly/assembly_templates_module_8_open_module_braced_braced_frame.gif) braced frame, 3 pieces | ![braced, 7 pieces](assembly/assembly_templates_module_8_open_module_braced.gif) braced, 7 pieces | ![frame floor, 19 pieces](assembly/assembly_templates_module_8_open_module_frame_frame_floor.gif) frame floor, 19 pieces |
-| ![frame frame, 4 pieces](assembly/assembly_templates_module_8_open_module_frame_frame_frame.gif) frame frame, 4 pieces | ![frame ceiling, 19 pieces](assembly/assembly_templates_module_8_open_module_frame_frame_ceiling.gif) frame ceiling, 19 pieces | ![frame, 6 pieces](assembly/assembly_templates_module_8_open_module_frame.gif) frame, 6 pieces |
+| ![room module, 2 pieces](assembly/assembly_templates_module_4_room_module.gif) room module, 2 pieces |  |  |
 | **Stacked modules: bearings, modules, couplers**, 899 elements, 763 moves | | |
-| ![module, 6 pieces](assembly/assembly_templates_module_9_stacked_modules_module.gif) module, 6 pieces | ![stacked modules, 56 pieces](assembly/assembly_templates_module_9_stacked_modules.gif) stacked modules, 56 pieces |  |
+| ![stacked modules, 56 pieces](assembly/assembly_templates_module_9_stacked_modules.gif) stacked modules, 56 pieces |  |  |
 | **Rack: the skeleton, the modules slid in**, 410 elements, 376 moves | | |
-| ![skeleton, 62 pieces](assembly/assembly_templates_module_10_module_rack_skeleton.gif) skeleton, 62 pieces | ![module, 6 pieces](assembly/assembly_templates_module_10_module_rack_module.gif) module, 6 pieces | ![module rack, 19 pieces](assembly/assembly_templates_module_10_module_rack.gif) module rack, 19 pieces |
-| **Frame: a deck per storey, the modules on it**, 621 elements, 518 moves | | |
-| ![skeleton, 75 pieces](assembly/assembly_templates_module_11_module_frame_skeleton.gif) skeleton, 75 pieces | ![module, 6 pieces](assembly/assembly_templates_module_11_module_frame_module.gif) module, 6 pieces | ![module frame, 25 pieces](assembly/assembly_templates_module_11_module_frame.gif) module frame, 25 pieces |
-| **Levels: a deck every second storey**, 1604 elements, 1479 moves | | |
-| ![skeleton, 52 pieces](assembly/assembly_templates_module_12_module_levels_skeleton.gif) skeleton, 52 pieces | ![module, 6 pieces](assembly/assembly_templates_module_12_module_levels_module.gif) module, 6 pieces | ![module levels, 53 pieces](assembly/assembly_templates_module_12_module_levels.gif) module levels, 53 pieces |
+| ![module rack, 19 pieces](assembly/assembly_templates_module_10_module_rack.gif) module rack, 19 pieces |  |  |
 | **Corridor between two rows**, 1628 elements, 1415 moves | | |
-| ![module, 6 pieces](assembly/assembly_templates_module_13_module_corridor_module.gif) module, 6 pieces | ![module corridor, 128 pieces](assembly/assembly_templates_module_13_module_corridor.gif) module corridor, 128 pieces |  |
+| ![module corridor, 128 pieces](assembly/assembly_templates_module_13_module_corridor.gif) module corridor, 128 pieces |  |  |
 | **Wet room set in before the ceiling**, 200 elements, 193 moves | | |
-| ![module pod, 6 pieces](assembly/assembly_templates_module_14_wet_room_module_pod.gif) module pod, 6 pieces | ![module, 7 pieces](assembly/assembly_templates_module_14_wet_room_module.gif) module, 7 pieces | ![wet room, 4 pieces](assembly/assembly_templates_module_14_wet_room.gif) wet room, 4 pieces |
+| ![wet room, 4 pieces](assembly/assembly_templates_module_14_wet_room.gif) wet room, 4 pieces |  |  |
 
 <!-- assembly:end -->

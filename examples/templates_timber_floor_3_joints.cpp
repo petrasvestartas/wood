@@ -5,13 +5,21 @@ using namespace session_cpp;
 using namespace wood_session;
 using namespace wood_timber_floor;
 
-/// Solid panels side by side, joined by a tongue, a strip, a cover board and a key.
+/// How a floor sits on its beams, how its panels join, and how concrete is held to it.
 int main() {
 
-    TimberFloorGuide tongue;
-    tongue.span = 3000.0;
-    tongue.width = 2000.0;
-    tongue.panel = 160.0;
+    TimberFloorGuide resting;
+    resting.span = 3000.0;
+    resting.width = 2000.0;
+    resting.panel = 160.0;
+
+    TimberFloorGuide rebated = resting;
+    rebated.seat = 1;
+
+    TimberFloorGuide battens = resting;
+    battens.seat = 2;
+
+    TimberFloorGuide tongue = resting;
     tongue.panel_width = 1000.0;
     tongue.edge = 1;
 
@@ -24,7 +32,38 @@ int main() {
     TimberFloorGuide keys = tongue;
     keys.edge = 4;
 
-    TimberFloors floors({{"tongue", tongue}, {"strip", strip}, {"board", board}, {"keys", keys}}, "timber_floor_joints");
+    TimberFloorGuide glued = resting;
+    glued.panel = 120.0;
+    glued.panel_width = 1000.0;
+    glued.concrete = 80.0;
+    glued.connector = 0;
+
+    TimberFloorGuide notched = glued;
+    notched.connector = 1;
+
+    TimberFloorGuide pinned = TimberFloorGuide::joists(0, 3000.0, false);
+    pinned.width = 2000.0;
+    pinned.concrete = 80.0;
+    pinned.connector = 2;
+    pinned.layers = 0.0;
+
+    TimberFloorGuide locked = glued;
+    locked.lamella = 40.0;
+    locked.connector = 3;
+
+    TimberFloors floors({
+        {"tongue", tongue},
+        {"strip", strip},
+        {"board", board},
+        {"keys", keys},
+        {"glued", glued},
+        {"notched", notched},
+        {"pinned", pinned},
+        {"locked", locked},
+        {"resting", resting},
+        {"rebated", rebated},
+        {"battens", battens},
+    }, "timber_floor_joints", 4);
     std::cout << floors << std::endl;
     floors.pb_dump(pb_path("live"));
     return 0;
@@ -32,7 +71,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 3 of the timber floors: two solid panels 160 thick and 1000 wide over 3000, their joint along the span. tongue: a tongue a third of the thickness in a groove. strip: a 27 x 120 strip in a groove in both. board: a 27 x 160 board in a rebate in the top of both, pinned into each every 400. keys: a butterfly key across the joint, which takes tension across it.
+Step 3 of the timber floors: on the beams, in their rebates and on battens glued to their faces; panels joined by a tongue in a groove, a strip in two grooves, a board in two rebates with its pins and keys across; and concrete held to the timber by glue, by notches, by crossed pins over joists and by flat steel locks across boards on edge.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

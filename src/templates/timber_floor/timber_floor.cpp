@@ -87,21 +87,35 @@ void TimberFloor::add_ribs() {
     const std::shared_ptr<TreeNode> ribs = _session.group_named(name + "_ribs", _group);
     const std::shared_ptr<TreeNode> boards = _session.group_named(name + "_boards", _group);
     const std::array<double, 2> ends = reach();
-    const double inner = guide.width - guide.rib_width;
-    const size_t bays = static_cast<size_t>(std::ceil(inner / guide.rib_spacing - 1e-6));
+    const double outer = std::max(guide.rib_width, guide.flange_width);
+    const std::vector<double> middles = rib_middles();
     const double foot = guide.bottom;
+    const double top = foot + guide.rib_depth;
+    const double flange = guide.flange_width > 0.0 ? guide.flange_depth : 0.0;
 
-    // ribs: the first and last at the floor's sides, the rest dividing the width evenly
-    for (size_t i = 0; i <= bays; i++) {
-        const double near = inner * static_cast<double>(i) / static_cast<double>(bays);
-        const double far = near + guide.rib_width;
-        const double top = foot + guide.rib_depth;
-        _session.add(along({{near, foot}, {far, foot}, {far, top}, {near, top}}, fmt::format("rib_{}", i)), ribs);
+    // ribs: the first and last at the floor's sides, the rest dividing the width evenly; an I-joist's flanges and web
+    for (size_t i = 0; i < middles.size(); i++) {
+        const double middle = middles[i];
+        const double near = middle - 0.5 * outer;
+        const double half = 0.5 * guide.rib_width;
+        _session.add(along({{middle - half, foot + flange}, {middle + half, foot + flange}, {middle + half, top - flange}, {middle - half, top - flange}}, fmt::format("rib_{}", i)), ribs);
+
+        for (size_t k = 0; flange > 0.0 && k < 2; k++) {
+            const double low = k == 0 ? foot : top - flange;
+            _session.add(along({{near, low}, {near + outer, low}, {near + outer, low + flange}, {near, low + flange}}, fmt::format("flange_{}_{}", i, k)), ribs);
+        }
+
+        // strips: one under every rib instead of a board
+        if (guide.bottom > 0.0 && guide.bottom_width > 0.0) {
+            const double left = std::max(0.0, middle - 0.5 * guide.bottom_width);
+            const double right = std::min(guide.width, middle + 0.5 * guide.bottom_width);
+            _session.add(along({{left, 0.0}, {right, 0.0}, {right, foot}, {left, foot}}, fmt::format("strip_{}", i)), boards);
+        }
     }
 
     // boards: under and on the ribs over the whole floor
-    const std::array<double, 2> thicknesses = {guide.bottom, guide.top};
-    const std::array<double, 2> levels = {0.0, foot + guide.rib_depth};
+    const std::array<double, 2> thicknesses = {guide.bottom_width > 0.0 ? 0.0 : guide.bottom, guide.top};
+    const std::array<double, 2> levels = {0.0, top};
     const std::array<std::string, 2> names = {"bottom", "top"};
 
     for (size_t k = 0; k < 2; k++) {
@@ -125,7 +139,7 @@ void TimberFloor::add_ribs() {
 
 void TimberFloor::add_panels() {
 
-    if (guide.panel <= 0.0 || guide.concrete > 0.0)
+    if (guide.panel <= 0.0 || (guide.concrete > 0.0 && guide.connector == 1))
         return;
 
     const std::shared_ptr<TreeNode> group = _session.group_named(name + "_panels", _group);
@@ -185,6 +199,18 @@ void TimberFloor::add_panels() {
         std::vector<std::array<double, 2>> section = left;
         section.insert(section.end(), right.begin(), right.end());
 
+        // cross-laminated: its layers one on the other
+        if (guide.plies > 0) {
+            const double ply = guide.panel / static_cast<double>(guide.plies);
+
+            for (size_t k = 0; k < guide.plies; k++) {
+                const double low = foot + ply * static_cast<double>(k);
+                _session.add(along({{near, low}, {far, low}, {far, low + ply}, {near, low + ply}}, fmt::format("panel_{}_ply_{}", i, k)), group);
+            }
+
+            continue;
+        }
+
         if (guide.skin <= 0.0) {
             _session.add(along(section, fmt::format("panel_{}", i)), group);
             continue;
@@ -193,7 +219,7 @@ void TimberFloor::add_panels() {
         // hollow: a lower and an upper shell, webs between them at the edges and evenly between
         const double skin = guide.skin;
         _session.add(along({{near, foot}, {far, foot}, {far, foot + skin}, {near, foot + skin}}, fmt::format("panel_{}_lower", i)), group);
-        const size_t webs = static_cast<size_t>(std::round(divided.second / 200.0));
+        const size_t webs = static_cast<size_t>(std::round(divided.second / guide.web_spacing));
 
         for (size_t w = 0; w <= webs; w++) {
             const double start = near + (divided.second - skin) * static_cast<double>(w) / static_cast<double>(webs);
@@ -258,14 +284,14 @@ void TimberFloor::add_composite() {
         return;
 
     const std::shared_ptr<TreeNode> group = _session.group_named(name + "_panels", _group);
+    const std::shared_ptr<TreeNode> poured = _session.group_named(name + "_concrete", _group);
     const std::array<double, 2> ends = reach();
-    const double head = guide.panel;
+    const double head = guide.depth() - guide.concrete;
     const double length = 150.0;
     const double flank = 10.0;
     const double pitch = 450.0;
-    std::vector<Point> seam = {local(ends[0], 0.0, head)};
 
-    // seam: the top of the panel, the notches of each half from its end towards mid-span
+    // places: from both ends towards mid-span
     std::vector<double> starts;
 
     for (size_t k = 0; k < guide.notches; k++) {
@@ -275,26 +301,92 @@ void TimberFloor::add_composite() {
     }
 
     std::sort(starts.begin(), starts.end());
+    const Line across = Line::from_points(local(0.0, 0.0, 0.0), local(0.0, guide.width, 0.0));
 
-    for (const double start : starts) {
-        seam.push_back(local(start, 0.0, head));
-        seam.push_back(local(start + flank, 0.0, head - guide.notch));
-        seam.push_back(local(start + length - flank, 0.0, head - guide.notch));
-        seam.push_back(local(start + length, 0.0, head));
+    // notches: the seam of a panel and its concrete drawn along the span, both as wide as the floor
+    if (guide.connector == 1 && guide.rib_depth <= 0.0) {
+        std::vector<Point> seam = {local(ends[0], 0.0, head)};
+
+        for (const double start : starts) {
+            seam.push_back(local(start, 0.0, head));
+            seam.push_back(local(start + flank, 0.0, head - guide.notch));
+            seam.push_back(local(start + length - flank, 0.0, head - guide.notch));
+            seam.push_back(local(start + length, 0.0, head));
+        }
+
+        seam.push_back(local(ends[1], 0.0, head));
+        std::vector<Point> timber = seam;
+        timber.push_back(local(ends[1], 0.0, 0.0));
+        timber.push_back(local(ends[0], 0.0, 0.0));
+        std::vector<Point> topping(seam.rbegin(), seam.rend());
+        topping.push_back(local(ends[0], 0.0, guide.depth()));
+        topping.push_back(local(ends[1], 0.0, guide.depth()));
+        _session.add(EdgeStraightElement::from_section(across, Polyline(timber).closed(), name + "_panel"), group);
+        _session.add(EdgeStraightElement::from_section(across, Polyline(topping).closed(), name + "_concrete"), poured);
+        return;
     }
 
-    seam.push_back(local(ends[1], 0.0, head));
+    // otherwise the timber is drawn by itself, the concrete one plate on it
+    const std::shared_ptr<EdgeStraightElement> concrete = EdgeStraightElement::from_section(
+        across,
+        Polyline({local(ends[0], 0.0, head), local(ends[1], 0.0, head), local(ends[1], 0.0, guide.depth()), local(ends[0], 0.0, guide.depth())}).closed(),
+        name + "_concrete"
+    );
+    _session.add(concrete, poured);
+    std::vector<std::shared_ptr<Element>> timber;
 
-    // plates: under and over the seam, drawn along the span, as wide as the floor
-    std::vector<Point> timber = seam;
-    timber.push_back(local(ends[1], 0.0, 0.0));
-    timber.push_back(local(ends[0], 0.0, 0.0));
-    std::vector<Point> topping(seam.rbegin(), seam.rend());
-    topping.push_back(local(ends[0], 0.0, head + guide.concrete));
-    topping.push_back(local(ends[1], 0.0, head + guide.concrete));
-    const Line across = Line::from_points(local(0.0, 0.0, 0.0), local(0.0, guide.width, 0.0));
-    _session.add(EdgeStraightElement::from_section(across, Polyline(timber).closed(), name + "_panel"), group);
-    _session.add(EdgeStraightElement::from_section(across, Polyline(topping).closed(), name + "_concrete"), group);
+    for (const std::string part : {"ribs", "boards", "panels"})
+        for (const std::shared_ptr<Element>& member : _session.get_elements_under<Element>(fmt::format("{}_{}", name, part)))
+            if (member != concrete && !std::dynamic_pointer_cast<JointElement>(member))
+                timber.push_back(member);
+
+    const std::shared_ptr<TreeNode> joints = _session.group_named(name + "_joints", _group);
+
+    // pins: crossed pairs over every rib, or every 600 across a panel, into the timber and the concrete
+    if (guide.connector == 2) {
+        std::vector<double> lines = rib_middles();
+
+        for (double y = 300.0; lines.empty() && y < guide.width; y += 600.0)
+            lines.push_back(y);
+
+        for (size_t k = 0; k < starts.size(); k++)
+            for (size_t j = 0; j < lines.size(); j++)
+                for (const double way : {-1.0, 1.0}) {
+                    const double x = starts[k] + 0.5 * length;
+                    const double y = lines[j] + way * 20.0;
+                    const Line axis = Line::from_points(local(x - way * 60.0, y, head - 90.0), local(x + way * 60.0, y, head + 0.6 * guide.concrete));
+                    const std::shared_ptr<JointPinElement> pin = std::make_shared<JointPinElement>(axis, 5.0, 0.2);
+                    pin->name = fmt::format("{}_pin_{}_{}_{}", name, k, j, way < 0.0 ? 0 : 1);
+                    std::vector<std::shared_ptr<Element>> hosts = {concrete};
+
+                    for (const std::shared_ptr<Element>& member : timber)
+                        hosts.push_back(member);
+
+                    for (const std::shared_ptr<Element>& host : hosts)
+                        pin->targets.push_back(host->guid());
+
+                    _session.add(pin, joints);
+
+                    for (const std::shared_ptr<Element>& host : hosts)
+                        _session.add_interaction(pin, host, std::make_shared<InteractionFeatureSolid>(std::vector<Line>{axis}, 5.0));
+                }
+    }
+
+    // locks: flat steel on edge across the floor, half in the timber and half in the concrete
+    for (size_t k = 0; guide.connector == 3 && k < starts.size(); k++) {
+        const double x = starts[k] + 0.5 * length;
+        const std::shared_ptr<EdgeStraightElement> lock = EdgeStraightElement::from_section(
+            across,
+            Polyline({local(x - 5.0, 0.0, head - 40.0), local(x + 5.0, 0.0, head - 40.0), local(x + 5.0, 0.0, head + 30.0), local(x - 5.0, 0.0, head + 30.0)}).closed(),
+            fmt::format("{}_lock_{}", name, k)
+        );
+        _session.add(lock, joints);
+
+        for (const std::shared_ptr<Element>& host : timber)
+            _session.add_interaction(lock, host, std::make_shared<InteractionFeatureSolid>(lock->element_geometry_mesh(), SolidOperation::subtract));
+
+        _session.add_interaction(lock, concrete, std::make_shared<InteractionFeatureSolid>(lock->element_geometry_mesh(), SolidOperation::subtract));
+    }
 }
 
 void TimberFloor::add_joints() {
@@ -401,6 +493,23 @@ Point TimberFloor::local(double x, double y, double z) const {
     return base.origin() + base.x_axis() * x + base.y_axis() * y + base.z_axis() * z;
 }
 
+std::vector<double> TimberFloor::rib_middles() const {
+
+    std::vector<double> middles;
+
+    if (guide.rib_depth <= 0.0)
+        return middles;
+
+    const double outer = std::max(guide.rib_width, guide.flange_width);
+    const double inner = guide.width - outer;
+    const size_t bays = static_cast<size_t>(std::ceil(inner / guide.rib_spacing - 1e-6));
+
+    for (size_t i = 0; i <= bays; i++)
+        middles.push_back(inner * static_cast<double>(i) / static_cast<double>(bays) + 0.5 * outer);
+
+    return middles;
+}
+
 std::array<double, 2> TimberFloor::reach() const {
 
     const double half = 0.5 * guide.beam_width;
@@ -424,7 +533,7 @@ AssemblyModule TimberFloor::assembly() const {
     std::vector<AssemblyModule> pieces;
 
     // members: the beams, the ribs and boards, the panels in their order, then what joins them
-    for (const std::string part : {"beams", "ribs", "boards", "panels", "joints", "layers"})
+    for (const std::string part : {"beams", "ribs", "boards", "panels", "concrete", "joints", "layers"})
         for (const std::shared_ptr<Element>& member : _session.get_elements_under<Element>(fmt::format("{}_{}", name, part)))
             if (!std::dynamic_pointer_cast<JointElement>(member))
                 pieces.push_back(AssemblyModule::part(member));
@@ -436,19 +545,29 @@ AssemblyModule TimberFloor::assembly() const {
 // TimberFloors
 // ═══════════════════════════════════════════════════════════════════════════
 TimberFloors::TimberFloors(
-    const std::vector<std::pair<std::string, TimberFloorGuide>>& floors, const std::string& name
+    const std::vector<std::pair<std::string, TimberFloorGuide>>& floors, const std::string& name, size_t count
 )
     : WoodSession(name), floors(floors) {
 
-    // floors: side by side across, each assembled on its own
+    // floors: side by side across, in rows of count, each assembled on its own; the sections to the front
     double across = 0.0;
+    double along = 0.0;
+    double longest = 0.0;
 
-    for (const std::pair<std::string, TimberFloorGuide>& floor : floors) {
-        across += floor.second.width;
-        const Plane base(Point(across, 0.0, 0.0), Vector::y_axis(), Vector::x_axis() * -1.0);
-        const TimberFloor bay(*this, floor.second, base, floor.first);
+    for (size_t k = 0; k < floors.size(); k++) {
+        if (k > 0 && k % count == 0) {
+            along += longest + GAP;
+            across = 0.0;
+            longest = 0.0;
+        }
+
+        const TimberFloorGuide& guide = floors[k].second;
+        across += guide.width;
+        const Plane base(Point(across, along, 0.0), Vector::y_axis(), Vector::x_axis() * -1.0);
+        const TimberFloor bay(*this, guide, base, floors[k].first);
         assemblies.push_back(bay.assembly());
         across += GAP;
+        longest = std::max(longest, guide.span + guide.beam_width);
     }
 
     // contacts: every two members and boards that touch

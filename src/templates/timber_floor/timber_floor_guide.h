@@ -65,8 +65,11 @@ struct TimberFloorGuide {
     double rib_width = 0.0; // Joist or rib width, 0 for none.
     double rib_depth = 0.0; // Joist or rib depth.
     double rib_spacing = 600.0; // Largest spacing of the ribs, dividing the width evenly.
+    double flange_width = 0.0; // Flanges of an I-joist, the rib its web; 0 for a plain rib.
+    double flange_depth = 0.0;
     double top = 0.0; // Board on the ribs, 0 for none.
     double bottom = 0.0; // Board under the ribs, 0 for none.
+    double bottom_width = 0.0; // A strip this wide under every rib instead of the board, 0 for the board.
 
     double panel = 0.0; // Thickness of the panels, 0 for none.
     double panel_width = 0.0; // Width of a panel, dividing the width evenly; 0 for one panel.
@@ -75,9 +78,12 @@ struct TimberFloorGuide {
     double dowel = 20.0; // Diameter of the dowels through the boards of a panel.
     double dowel_spacing = 600.0; // Dowel spacing along the span.
     double skin = 0.0; // Shell thickness of a hollow panel, its webs too, 0 for a full one.
-    double concrete = 0.0; // Thickness of the concrete on the panels, 0 for none.
+    double web_spacing = 200.0; // Webs of a hollow panel.
+    size_t plies = 0; // Cross-laminated: the panel's layers, 0 for one piece.
+    double concrete = 0.0; // Thickness of the concrete on the timber, 0 for none.
+    size_t connector = 1; // Of the concrete: 0 glue, 1 notches in a panel, 2 crossed pins, 3 flat steel locks.
     double notch = 20.0; // Depth of the notches the concrete fills.
-    size_t notches = 3; // Notches in each half of the span.
+    size_t notches = 3; // Notches, pins or locks in each half of the span.
 
     double layers = 0.0; // All the layers on the structure together, as one, 0 for none.
 
@@ -90,6 +96,31 @@ struct TimberFloorGuide {
     double depth() const {
         return bottom + rib_depth + top + panel + concrete;
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Producers, as deep as a span and the loads in kN/m2 ask (floor_sizing.cpp)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Pollmeier BauBuche: GL75 joists 120 every 850 under BauBuche Q 40, 8 Hz under the permanent load.
+    static TimberFloorGuide baubuche(double span, double g = 3.0, double q = 3.0);
+
+    /// Metsa Kerto-Ripa: veneer ribs every 612 under 25, a strip 300 x 43 under each when boxed, 8 Hz.
+    static TimberFloorGuide kerto_ripa(double span, bool boxed, double g = 1.9, double q = 2.0);
+
+    /// VMG Lignum joists: flanges 45, 60 or 90 x 39, a web 10, under a deck 22, span / 250 with creep and 8 Hz.
+    static TimberFloorGuide vmg_joists(double span, double spacing = 600.0, double g = 1.0, double q = 2.0);
+
+    /// Lignatur surface elements LFE, 1000 wide, span / 475 under the whole load.
+    static TimberFloorGuide lignatur(double span, double g = 1.0, double q = 2.8);
+
+    /// Schneider CLT BOX: glulam ribs between cross-laminated flanges 60, span / 300 of the lasting deflection.
+    static TimberFloorGuide clt_box(double span, double g = 2.5, double q = 3.0);
+
+    /// Novatop Element: ribs 27 every 340 between panels 27, span / 300.
+    static TimberFloorGuide novatop(double span, double g = 2.0, double q = 3.0);
+
+    /// Hasslacher: glulam ribs 160 every 625 under cross-laminated 120, 8 Hz under the permanent load.
+    static TimberFloorGuide clt_ribs(double span, double g = 1.5, double q = 3.0);
 
     /// The smallest row of a use (0 homes, 1 offices, 2 assembly rooms) over at least a span.
     static FloorSize size_of(size_t use, double span, bool heavy) {

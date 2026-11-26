@@ -113,16 +113,12 @@ PAGES = {
         ],
     ),
     "timber_floor": (
-        "The beams, then the ribs and the boards or the panels in their order, what joins them last, the earth rammed between its beams; a dowel-laminated panel's boards one by one.",
+        "The beams, then the ribs and the boards or the panels in their order, the concrete, what joins them last, all the layers on them as one; the earth rammed between its beams.",
         [
-            ("templates_timber_floor_1_systems", "Systems"),
-            ("templates_timber_floor_2_bearings", "Bearings"),
-            ("templates_timber_floor_3_joints", "Joints"),
+            ("templates_timber_floor_1_structures", "Structures"),
+            ("templates_timber_floor_2_spans", "Sections from the span"),
+            ("templates_timber_floor_3_joints", "Bearings and joints"),
             ("templates_timber_floor_4_earth", "Timber and earth"),
-            ("templates_timber_floor_5_systems", "Floors of the book"),
-            ("templates_timber_floor_6_producers", "Producers"),
-            ("templates_timber_floor_7_shear", "Joints and concrete"),
-            ("templates_timber_floor_9_ribs", "Ribs, voids, dowels"),
         ],
     ),
     "reciprocal": (

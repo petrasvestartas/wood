@@ -111,8 +111,6 @@ set(WOOD_SOURCES
     src/templates/module/module_building.cpp
     src/templates/timber_floor/timber_floor.cpp
     src/templates/timber_floor/earth_floor.cpp
-    src/templates/timber_floor/floor_product.cpp
-    src/templates/timber_floor/floor_build_up.cpp
     src/templates/timber_floor/floor_sizing.cpp
     src/templates/module/room_module.cpp
     src/templates/module/cassette_shell.cpp
@@ -412,16 +410,10 @@ ADD_EXE(templates_module_11_module_frame          examples/templates_module_11_m
 ADD_EXE(templates_module_12_module_levels         examples/templates_module_12_module_levels.cpp)
 ADD_EXE(templates_module_13_module_corridor       examples/templates_module_13_module_corridor.cpp)
 ADD_EXE(templates_module_14_wet_room              examples/templates_module_14_wet_room.cpp)
-ADD_EXE(templates_timber_floor_1_systems          examples/templates_timber_floor_1_systems.cpp)
-ADD_EXE(templates_timber_floor_2_bearings         examples/templates_timber_floor_2_bearings.cpp)
-ADD_EXE(templates_timber_floor_3_joints           examples/templates_timber_floor_3_joints.cpp)
-ADD_EXE(templates_timber_floor_4_earth            examples/templates_timber_floor_4_earth.cpp)
-ADD_EXE(templates_timber_floor_5_systems          examples/templates_timber_floor_5_systems.cpp)
-ADD_EXE(templates_timber_floor_6_producers        examples/templates_timber_floor_6_producers.cpp)
-ADD_EXE(templates_timber_floor_7_shear            examples/templates_timber_floor_7_shear.cpp)
-ADD_EXE(templates_timber_floor_8_build_ups        examples/templates_timber_floor_8_build_ups.cpp)
-ADD_EXE(templates_timber_floor_9_ribs             examples/templates_timber_floor_9_ribs.cpp)
-ADD_EXE(templates_timber_floor_10_spans           examples/templates_timber_floor_10_spans.cpp)
+ADD_EXE(templates_timber_floor_1_structures          examples/templates_timber_floor_1_structures.cpp)
+ADD_EXE(templates_timber_floor_2_spans               examples/templates_timber_floor_2_spans.cpp)
+ADD_EXE(templates_timber_floor_3_joints              examples/templates_timber_floor_3_joints.cpp)
+ADD_EXE(templates_timber_floor_4_earth               examples/templates_timber_floor_4_earth.cpp)
 ADD_EXE(templates_grid_1_bay_framing       examples/templates_grid_1_bay_framing.cpp)
 ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.cpp)
 ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)

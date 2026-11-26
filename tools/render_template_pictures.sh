@@ -119,47 +119,24 @@ fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
     "${RENDER[@]}" templates_module_1_wall all
-    "${RENDER[@]}" --name frame templates_module_1_wall rails+studs+opening_0+opening_1
-    "${RENDER[@]}" --name sheathing templates_module_1_wall sheathing_0+sheathing_1
-    "${RENDER[@]}" --opacity 0.95 --name inside templates_module_1_wall all
-    "${RENDER[@]}" templates_module_2_cassette_shell all cassette_4
-    "${RENDER[@]}" --name two_cassettes templates_module_2_cassette_shell cassette_4+cassette_8
+    "${RENDER[@]}" templates_module_2_cassette_shell all
     "${RENDER[@]}" templates_module_3_cassette_house all
-    "${RENDER[@]}" --opacity 0.95 --name inside templates_module_3_cassette_house all
-    "${RENDER[@]}" --name front templates_module_3_cassette_house cassette_0
-    "${RENDER[@]}" --opacity 0.95 --name gable templates_module_3_cassette_house cassette_3
     "${RENDER[@]}" --view right --name section templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --wheel 12,0.355,0.445 --name eave templates_module_3_cassette_house all
-    "${RENDER[@]}" --view right --wheel 12,0.5,0.225 --name ridge templates_module_3_cassette_house all
     "${RENDER[@]}" templates_module_4_room_module all
-    "${RENDER[@]}" --opacity 0.95 --name inside templates_module_4_room_module all
-    "${RENDER[@]}" --name floor templates_module_4_room_module module_0_0_floor_beams
-    "${RENDER[@]}" --name ceiling templates_module_4_room_module module_0_1_ceiling_beams+module_0_1_posts
     "${RENDER[@]}" --view right --name section templates_module_4_room_module all
-    "${RENDER[@]}" --name single templates_module_4_room_module module_0_1
-    "${RENDER[@]}" --name wall templates_module_4_room_module module_0_0_wall_start_rails+module_0_0_wall_start_studs+module_0_0_wall_start_opening_0
     "${RENDER[@]}" templates_module_5_module_block all
     "${RENDER[@]}" templates_module_6_bank_pavilion all
     PAVILION=module_0_0_floor+module_0_0_posts+module_0_0_wall_front+module_0_0_wall_back+module_0_0_wall_start+module_0_0_wall_end
     PAVILION+=+module_0_1_floor+module_0_1_posts+module_0_1_wall_start+module_0_1_wall_end
     PAVILION+=+module_0_2_floor+module_0_2_posts+module_0_2_wall_start+module_0_2_wall_end
     PAVILION+=+module_0_3_floor+module_0_3_posts+module_0_3_wall_front+module_0_3_wall_back+module_0_3_wall_start+module_0_3_wall_end
-    "${RENDER[@]}" --view top --name plan templates_module_6_bank_pavilion "$PAVILION"
-    "${RENDER[@]}" --name open templates_module_6_bank_pavilion "$PAVILION+module_0_1_ceiling_beams+module_0_2_ceiling_beams"
     "${RENDER[@]}" templates_module_7_module_types all
-    "${RENDER[@]}" --aspect 1.5 templates_module_7_module_types mixed
-    "${RENDER[@]}" --aspect 1.5 --name framed_bones templates_module_7_module_types framed_floor_rails+framed_floor_studs+framed_wall_back_rails+framed_wall_back_studs+framed_wall_front_rails+framed_wall_front_studs+framed_wall_front_opening_0+framed_wall_front_opening_1+framed_wall_start_rails+framed_wall_start_studs+framed_wall_start_opening_0+framed_wall_end_rails+framed_wall_end_studs+framed_wall_end_opening_0+framed_ceiling_rails+framed_ceiling_studs
-    "${RENDER[@]}" --aspect 1.5 --name solid_inside templates_module_7_module_types solid_floor_panel+solid_wall_back_panel+solid_wall_end_panel+solid_wall_start_panel
     "${RENDER[@]}" templates_module_8_open_module all
     "${RENDER[@]}" templates_module_9_stacked_modules all
     "${RENDER[@]}" --view right --turn 180 --name front templates_module_9_stacked_modules all
-    "${RENDER[@]}" --name bearings templates_module_9_stacked_modules bearings_1+module_0_0_0_ceiling+module_0_0_1_ceiling+module_0_0_2_ceiling
     "${RENDER[@]}" templates_module_10_module_rack all
-    "${RENDER[@]}" templates_module_10_module_rack skeleton
     "${RENDER[@]}" templates_module_11_module_frame all
-    "${RENDER[@]}" templates_module_11_module_frame skeleton
     "${RENDER[@]}" templates_module_12_module_levels all
-    "${RENDER[@]}" templates_module_12_module_levels skeleton
     "${RENDER[@]}" templates_module_13_module_corridor all
     CORRIDOR=corridor_0
     CORRIDOR+=+module_0_0_0_floor+module_0_0_0_wall_front+module_0_0_0_wall_back+module_0_0_0_wall_start+module_0_0_0_wall_end+module_0_0_1_floor
@@ -177,29 +154,17 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = module ]; then
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = timber_floor ]; then
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_1_systems box dowelled cross_laminated composite
-    "${RENDER[@]}" --view front --name section_ribs templates_timber_floor_1_systems joists+ribbed+box+hollow
-    "${RENDER[@]}" --view front --name section_solid templates_timber_floor_1_systems planks+dowelled+cross_laminated+composite
-    "${RENDER[@]}" --view right --aspect 2.5 --name resting_section templates_timber_floor_2_bearings resting
-    "${RENDER[@]}" --view right --aspect 2.5 --name rebated_section templates_timber_floor_2_bearings rebated
-    "${RENDER[@]}" --view right --aspect 2.5 --name battens_section templates_timber_floor_2_bearings battens
-    "${RENDER[@]}" --view front --aspect 3 --name tongue_section templates_timber_floor_3_joints tongue
-    "${RENDER[@]}" --view front --aspect 3 --name strip_section templates_timber_floor_3_joints strip
-    "${RENDER[@]}" --view front --aspect 3 --name board_section templates_timber_floor_3_joints board
+    "${RENDER[@]}" templates_timber_floor_1_structures all
+    "${RENDER[@]}" --view front --name section_a templates_timber_floor_1_structures joists+ribbed+box+hollow
+    "${RENDER[@]}" --view front --name section_b templates_timber_floor_1_structures dowelled+cross_laminated+composite
+    "${RENDER[@]}" templates_timber_floor_2_spans all
+    "${RENDER[@]}" --view front --name section_a templates_timber_floor_2_spans baubuche_6+vmg_6+kerto_ripa_6+kerto_box_6
+    "${RENDER[@]}" --view front --name section_b templates_timber_floor_2_spans clt_ribs_6+clt_box_6+novatop_6+lignatur_6
+    "${RENDER[@]}" --aspect 2.5 --name bearings templates_timber_floor_3_joints resting+rebated+battens
+    "${RENDER[@]}" --view front --aspect 4 --name edges templates_timber_floor_3_joints tongue+strip+board+keys
+    "${RENDER[@]}" --aspect 2 --name concrete templates_timber_floor_3_joints glued_beams+glued_panels+notched_beams+notched_panels+pinned_beams+pinned_ribs+pinned_boards+pinned_joints+locked_beams+locked_panels+locked_joints
     "${RENDER[@]}" --aspect 1.5 --name open templates_timber_floor_4_earth arch_bearings+arch_beams+arch_earth
-    "${RENDER[@]}" --view front --aspect 4 --name arch_section templates_timber_floor_4_earth arch_beams+arch_earth+arch_top
-    "${RENDER[@]}" --view front --aspect 4 --name concealed_section templates_timber_floor_4_earth concealed_beams+concealed_earth+concealed_top
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_5_systems joists ribbed_above box beams_comb boards_dowelled cross_laminated_5
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_6_producers clt_box_closed lignatur_surface lignotrend_rib novatop_element
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_9_ribs clt_rib_box lvl_rib_strips
-    "${RENDER[@]}" --aspect 1.5 --name concrete_ribs_open templates_timber_floor_9_ribs concrete_ribs_timber+concrete_ribs_pins
-    "${RENDER[@]}" templates_timber_floor_10_spans all
-    "${RENDER[@]}" --view front --name section templates_timber_floor_10_spans baubuche_7+kerto_rib_7+kerto_box_7+clt_box_7
-    "${RENDER[@]}" --view front --name section_2 templates_timber_floor_10_spans lignatur_7+vmg_beam_7+vmg_joist_7
-    "${RENDER[@]}" --aspect 1.5 templates_timber_floor_7_shear joint_cover joint_keys
-    "${RENDER[@]}" --aspect 1.5 --name concrete_notched_open templates_timber_floor_7_shear concrete_notched_timber+concrete_notched_pins
-    "${RENDER[@]}" --aspect 1.5 --name concrete_crossed_open templates_timber_floor_7_shear concrete_crossed_timber+concrete_crossed_pins
-    "${RENDER[@]}" templates_timber_floor_8_build_ups all
+    "${RENDER[@]}" --view front --aspect 4 --name section templates_timber_floor_4_earth all
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then

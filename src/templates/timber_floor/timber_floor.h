@@ -45,7 +45,7 @@ private:
     /// Adds the strips, the cover boards or the keys along the joints between panels.
     void add_joints();
 
-    /// Adds one notched plate over the whole width and the concrete on it, its lugs in the notches.
+    /// Adds the concrete on the timber and what holds it: a notched panel, crossed pins or flat steel locks.
     void add_composite();
 
     /// A member along the span with a section drawn across it, from the point at 0 along the span.
@@ -53,6 +53,9 @@ private:
 
     /// The point at x along the span, y across it and z up from the underside.
     Point local(double x, double y, double z) const;
+
+    /// Where the middles of the ribs are across the floor.
+    std::vector<double> rib_middles() const;
 
     /// Where the floor's members start and end along the span.
     std::array<double, 2> reach() const;
@@ -72,9 +75,9 @@ public:
 
     const std::vector<std::pair<std::string, TimberFloorGuide>> floors; // Every floor's name and guide.
 
-    /// One bay per floor as the session named name.
+    /// One bay per floor as the session named name, in rows of count.
     explicit TimberFloors(
-        const std::vector<std::pair<std::string, TimberFloorGuide>>& floors, const std::string& name = "timber_floors"
+        const std::vector<std::pair<std::string, TimberFloorGuide>>& floors, const std::string& name = "timber_floors", size_t count = 8
     );
 };
 

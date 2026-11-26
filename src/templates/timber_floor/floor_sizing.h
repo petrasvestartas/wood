@@ -1,5 +1,5 @@
 #pragma once
-#include "wood_session.h"
+#include "src/templates/timber_floor/timber_floor_guide.h"
 
 using namespace session_cpp;
 using namespace wood_session;

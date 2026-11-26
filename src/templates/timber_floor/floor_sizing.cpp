@@ -541,4 +541,169 @@ SizingStock SizingStock::glulam() {
     return {steps(80.0, 240.0, 20.0), steps(120.0, 600.0, 40.0)};
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Producers' floors
+// ═══════════════════════════════════════════════════════════════════════════
+TimberFloorGuide TimberFloorGuide::baubuche(double span, double g, double q) {
+
+    const SizingRule rule = SizingRule::baubuche_joist();
+    SizingStock stock = SizingStock::baubuche();
+    stock.widths = {120.0};
+    const SizingSection joist = rule.pick(stock.sections(rule), span, 850.0, g, q);
+    TimberFloorGuide guide;
+    guide.span = span;
+    guide.rib_width = joist.width;
+    guide.rib_depth = joist.depth;
+    guide.rib_spacing = 850.0;
+    guide.top = 40.0;
+
+    return guide;
+}
+
+TimberFloorGuide TimberFloorGuide::kerto_ripa(double span, bool boxed, double g, double q) {
+
+    const SizingRule rule = SizingRule::kerto_ripa();
+    const double spacing = 612.0;
+    const SizingLayer top = {spacing, 25.0, 10500.0, 5.1};
+    const SizingLayer strip = boxed ? SizingLayer{300.0, 43.0, 13800.0, 5.1} : SizingLayer{};
+
+    for (const double depth : SizingStock::kerto().depths) {
+        const SizingSection rib = rule.rectangle(boxed ? 45.0 : 51.0, depth);
+
+        if (rule.span_ribs(rib, spacing, top, strip, g, q) < span)
+            continue;
+
+        TimberFloorGuide guide;
+        guide.span = span;
+        guide.rib_width = rib.width;
+        guide.rib_depth = depth;
+        guide.rib_spacing = spacing;
+        guide.top = top.depth;
+        guide.bottom = strip.depth;
+        guide.bottom_width = strip.width;
+
+        return guide;
+    }
+
+    throw std::invalid_argument("no rib in stock spans that far");
+}
+
+TimberFloorGuide TimberFloorGuide::vmg_joists(double span, double spacing, double g, double q) {
+
+    // two checks: the joist alone bends, the deck swings with it
+    SizingRule bends = SizingRule::i_joist();
+    SizingRule swings = bends;
+    bends.frequency = 0.0;
+    swings.deflection_end = 0.0;
+
+    for (const double depth : {200.0, 220.0, 240.0, 250.0, 300.0, 360.0, 400.0})
+        for (const double width : {45.0, 60.0, 90.0}) {
+            if (bends.span(SizingRule::i_section(width, depth), spacing, g, q) < span
+                || swings.span(SizingRule::i_section(width, depth, spacing), spacing, g, q) < span)
+                continue;
+
+            TimberFloorGuide guide;
+            guide.span = span;
+            guide.rib_width = 10.0;
+            guide.rib_depth = depth;
+            guide.rib_spacing = spacing;
+            guide.flange_width = width;
+            guide.flange_depth = 39.0;
+            guide.top = 22.0;
+
+            return guide;
+        }
+
+    throw std::invalid_argument("no joist in stock spans that far");
+}
+
+TimberFloorGuide TimberFloorGuide::lignatur(double span, double g, double q) {
+
+    const SizingRule rule = SizingRule::lignatur();
+
+    for (const double depth : {120.0, 140.0, 160.0, 180.0, 200.0, 220.0, 240.0, 280.0, 320.0, 360.0}) {
+        if (rule.span(rule.lignatur_section(depth), 1000.0, g, q) < span)
+            continue;
+
+        TimberFloorGuide guide;
+        guide.span = span;
+        guide.width = 2000.0;
+        guide.panel = depth;
+        guide.panel_width = 1000.0;
+        guide.skin = depth > 320.0 ? 40.0 : 31.0;
+        guide.web_spacing = 240.0;
+
+        return guide;
+    }
+
+    throw std::invalid_argument("no element spans that far");
+}
+
+TimberFloorGuide TimberFloorGuide::clt_box(double span, double g, double q) {
+
+    const SizingRule rule = SizingRule::clt_box();
+
+    for (double depth = 220.0; depth <= 480.0; depth += 20.0)
+        for (const double rib : {80.0, 100.0, 120.0}) {
+            if (rule.span(rule.clt_box_section(depth, rib, span), 1200.0, g, q) < span)
+                continue;
+
+            TimberFloorGuide guide;
+            guide.span = span;
+            guide.rib_width = rib;
+            guide.rib_depth = depth - 120.0;
+            guide.rib_spacing = 560.0;
+            guide.top = 60.0;
+            guide.bottom = 60.0;
+
+            return guide;
+        }
+
+    throw std::invalid_argument("no element spans that far");
+}
+
+TimberFloorGuide TimberFloorGuide::novatop(double span, double g, double q) {
+
+    const SizingRule rule = SizingRule::novatop();
+
+    for (double depth = 160.0; depth <= 400.0; depth += 20.0) {
+        if (rule.span(rule.novatop_section(depth), 1000.0, g, q) < span)
+            continue;
+
+        TimberFloorGuide guide;
+        guide.span = span;
+        guide.rib_width = 27.0;
+        guide.rib_depth = depth - 54.0;
+        guide.rib_spacing = 340.0;
+        guide.top = 27.0;
+        guide.bottom = 27.0;
+
+        return guide;
+    }
+
+    throw std::invalid_argument("no element spans that far");
+}
+
+TimberFloorGuide TimberFloorGuide::clt_ribs(double span, double g, double q) {
+
+    const SizingRule rule = SizingRule::clt_rib();
+
+    for (double depth = 160.0; depth <= 640.0; depth += 40.0) {
+        if (rule.span(rule.clt_rib_section(160.0, depth), 625.0, g, q) < span)
+            continue;
+
+        TimberFloorGuide guide;
+        guide.span = span;
+        guide.width = 2500.0;
+        guide.rib_width = 160.0;
+        guide.rib_depth = depth;
+        guide.rib_spacing = 625.0;
+        guide.top = 120.0;
+
+        return guide;
+    }
+
+    throw std::invalid_argument("no rib spans that far");
+}
+
 }
