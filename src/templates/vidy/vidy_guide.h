@@ -54,6 +54,30 @@ struct VidyEdge {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
+// OrigamiShellGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The inputs of a double-layer CLT origami shell: the planar folded mesh, the two layers and the joinery.
+struct OrigamiShellGuide {
+    Mesh mesh; // Planar origami mesh of the inner face, welded and oriented by the shell.
+    double plate_thickness = 45.0; // Single-layer CLT plate thickness in mm.
+    double total_offset = 300.0; // Total double-layer shell depth from inner to outer face in mm.
+    bool with_joints = true; // Generates stepped tenons, rabbet lips and through-mortises when true.
+    bool with_borders = true; // Generates full-corner perpendicular cavity border boards when true.
+    double pin_pitch = 500.0; // Centre-to-centre pitch of stepped tenon pins along creases in mm.
+    double corner_scale = 1.0; // Scale multiplier on multi-valent saddle chamfers (1.0 = exact).
+
+    /// The defaults on the mesh, the settings of the deep folded halls: 45 mm plates, 300 mm deep, 500 mm pitch, joints and borders.
+    static OrigamiShellGuide defaults(const Mesh& mesh) {
+
+        OrigamiShellGuide guide;
+        guide.mesh = mesh;
+
+        return guide;
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
 // VidyGuide
 // ═══════════════════════════════════════════════════════════════════════════
 

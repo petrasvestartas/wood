@@ -1,31 +1,16 @@
 #include "wood_session.h"
-#include "src/templates/vault/vault.h"
+#include "src/templates/vault/arch.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN = 6000.0;
-const double RISE = 3000.0;
-const double THICKNESS = 500.0;
-const double DEPTH = 500.0;
-const int VOUSSOIRS = 25;
-
+/// The semicircular arch of the defaults, its voussoirs in contact.
 int main() {
 
-    WoodSession wood_session("vault_arch");
-    for (const std::shared_ptr<Element>& element :
-         wood_vault::arch(SPAN, RISE, THICKNESS, DEPTH, VOUSSOIRS))
-        wood_session.add(element);
+    wood_vault::Arch arch;
 
-    wood_session.compute_face_contacts(0);
-    wood_session.assemblies = {AssemblyModule::raise(wood_session.name, AssemblyModule::parts_of(wood_session.get_elements<Element>()))};
-
-    std::cout << fmt::format(
-        "arch: {} voussoirs, {} contacts\n",
-        wood_session.objects.elements->size(),
-        wood_session.graph.number_of_edges()
-    );
-    wood_session.pb_dump(pb_path("live"));
+    std::cout << fmt::format("arch: {} voussoirs, {} contacts\n", arch.objects.elements->size(), arch.graph.number_of_edges());
+    arch.pb_dump(pb_path("live"));
 
     return 0;
 }
@@ -46,9 +31,10 @@ cmake --build build --target templates_vault_1_arch --parallel 6 && ./build/temp
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_1_arch.cpp
  |
- |-- wood_vault::arch(SPAN, RISE, THICKNESS, DEPTH, VOUSSOIRS)                                      src/templates/vault/vault.cpp
- |-- add(element) for every voussoir
- |-- compute_face_contacts(0)                    coplanar face overlaps between every pair
+ |-- wood_vault::Arch(guide)                       src/templates/vault/arch.cpp
+ |    |-- wood_vault::arch(guide)                  src/templates/vault/vault.cpp
+ |    |-- add(voussoir) for every voussoir
+ |    '-- compute_face_contacts(0)              coplanar face overlaps between every pair
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||

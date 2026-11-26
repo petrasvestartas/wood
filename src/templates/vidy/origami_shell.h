@@ -1,5 +1,5 @@
 #pragma once
-#include "wood_session.h"
+#include "src/templates/vidy/vidy_guide.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -45,24 +45,10 @@ struct OrigamiEdge {
 /// Double-layer CLT origami shell with selective chamfers, corner borders and stepped Vidy tenons.
 class OrigamiShell : public WoodSession {
 public:
-    const double plate_thickness; // Single-layer CLT plate thickness in mm.
-    const double total_offset; // Total double-layer shell depth from inner to outer face in mm.
-    const bool with_joints; // Generates stepped tenons, rabbet lips and through-mortises when true.
-    const bool with_borders; // Generates full-corner perpendicular cavity border boards when true.
-    const double pin_pitch; // Centre-to-centre pitch of stepped tenon pins along creases in mm.
-    const double corner_scale; // Scale multiplier on multi-valent saddle chamfers (1.0 = exact).
+    const OrigamiShellGuide guide;
 
-    /// Builds four miter shells, selective chamfers, border boards and Vidy joinery from input_mesh.
-    explicit OrigamiShell(
-        const Mesh& input_mesh,
-        double plate_thickness = 45.0,
-        double total_offset = 300.0,
-        bool with_joints = true,
-        bool with_borders = true,
-        double pin_pitch = 500.0,
-        double corner_scale = 1.0,
-        const std::string& name = "origami_shell"
-    );
+    /// Builds four miter shells, selective chamfers, border boards and Vidy joinery from the guide's mesh.
+    explicit OrigamiShell(const OrigamiShellGuide& guide, const std::string& name = "origami_shell");
 
     /// Not copied, as a session is not.
     OrigamiShell(const OrigamiShell&) = delete;

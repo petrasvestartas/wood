@@ -11,14 +11,10 @@ using namespace wood_folding;
 int main() {
 
     const PrismaticFold pf_base(PrismaticFoldGuide::vidy_hall(), "prismatic_base");
-    const wood_vidy::OrigamiShell prismatic_fold(
-        pf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "prismatic_fold"
-    );
+    const wood_vidy::OrigamiShell prismatic_fold(wood_vidy::OrigamiShellGuide::defaults(pf_base.mesh()), "prismatic_fold");
 
     const CounterFold cf_base(CounterFoldGuide::vidy_hall());
-    const wood_vidy::OrigamiShell counter_fold(
-        cf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_fold"
-    );
+    const wood_vidy::OrigamiShell counter_fold(wood_vidy::OrigamiShellGuide::defaults(cf_base.mesh()), "counter_fold");
 
     WoodSession scene("vidy_origami_shapes");
     prismatic_fold.copy_plates_to(scene, "prismatic_fold");

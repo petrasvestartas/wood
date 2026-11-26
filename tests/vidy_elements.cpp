@@ -650,8 +650,8 @@ size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::str
     check(shell.total_jointed_seams() > 0 && shell.total_double_pins() > 0, label + ": pins built");
     check(shell.unjoined_interior_creases() == 0, label + ": all interior creases jointed");
     check(shell.max_insertion_skew_deg() <= 35.0, label + ": Robeller |theta| <= 35 deg");
-    check_plates(shell.shell_plates(), shell.plate_thickness, true, label + "_shell");
-    check_border_plates(shell.border_plates(), shell.plate_thickness, label + "_borders");
+    check_plates(shell.shell_plates(), shell.guide.plate_thickness, true, label + "_shell");
+    check_border_plates(shell.border_plates(), shell.guide.plate_thickness, label + "_borders");
     const size_t col_hits = report_plate_collisions(shell.all_plates(), label);
 
     // Sequential rigid-body sliding kinematics along each facet's single insertion vector.
@@ -723,23 +723,17 @@ void test_origami_shapes() {
 
     size_t issues = 0;
     const PrismaticFold pf_base(PrismaticFoldGuide::vidy_hall(), "prismatic_base");
-    const wood_vidy::OrigamiShell prismatic_fold(
-        pf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "prismatic_fold"
-    );
+    const wood_vidy::OrigamiShell prismatic_fold(wood_vidy::OrigamiShellGuide::defaults(pf_base.mesh()), "prismatic_fold");
     issues += verify_origami_shell(prismatic_fold, "origami_prismatic_fold");
 
     CounterFoldGuide running = CounterFoldGuide::vidy_hall();
     running.stations = CounterFoldGuide::counter_running(3, 2200.0, 2200.0, 14000.0);
     const CounterFold cr_base(running);
-    const wood_vidy::OrigamiShell counter_running(
-        cr_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_running"
-    );
+    const wood_vidy::OrigamiShell counter_running(wood_vidy::OrigamiShellGuide::defaults(cr_base.mesh()), "counter_running");
     issues += verify_origami_shell(counter_running, "origami_counter_running");
 
     const CounterFold cf_base(CounterFoldGuide::vidy_hall());
-    const wood_vidy::OrigamiShell counter_fold(
-        cf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_fold"
-    );
+    const wood_vidy::OrigamiShell counter_fold(wood_vidy::OrigamiShellGuide::defaults(cf_base.mesh()), "counter_fold");
     issues += verify_origami_shell(counter_fold, "origami_counter_fold");
     check(issues == 0, "all assemblable origami shapes must have 0 collisions and 0 slide hits");
 
@@ -748,9 +742,7 @@ void test_origami_shapes() {
     cross.size = 16000.0;
     cross.thickness = 45.0;
     const DiagonalFold df_base(cross);
-    const wood_vidy::OrigamiShell locked_cross(
-        df_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "locked_cross"
-    );
+    const wood_vidy::OrigamiShell locked_cross(wood_vidy::OrigamiShellGuide::defaults(df_base.mesh()), "locked_cross");
     check(
         locked_cross.unjoined_interior_creases() > 0,
         "closed acute-triangle radial dome must flag unjoined creases exceeding Robeller skew limit"

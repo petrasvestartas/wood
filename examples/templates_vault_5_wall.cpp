@@ -1,32 +1,16 @@
 #include "wood_session.h"
-#include "src/templates/vault/vault.h"
+#include "src/templates/vault/wall.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const double LENGTH = 4000.0;
-const double HEIGHT = 2000.0;
-const double THICKNESS = 200.0;
-const double BRICK = 400.0;
-const double COURSE = 200.0;
-const double STAGGER = 0.5;
-
+/// The brick wall of the defaults, its bricks in contact.
 int main() {
 
-    WoodSession wood_session("vault_wall");
-    for (const std::shared_ptr<Element>& element :
-         wood_vault::wall(LENGTH, HEIGHT, THICKNESS, BRICK, COURSE, STAGGER))
-        wood_session.add(element);
+    wood_vault::Wall wall;
 
-    wood_session.compute_face_contacts(0);
-    wood_session.assemblies = {AssemblyModule::raise(wood_session.name, AssemblyModule::parts_of(wood_session.get_elements<Element>()))};
-
-    std::cout << fmt::format(
-        "wall: {} bricks, {} contacts\n",
-        wood_session.objects.elements->size(),
-        wood_session.graph.number_of_edges()
-    );
-    wood_session.pb_dump(pb_path("live"));
+    std::cout << fmt::format("wall: {} bricks, {} contacts\n", wall.objects.elements->size(), wall.graph.number_of_edges());
+    wall.pb_dump(pb_path("live"));
 
     return 0;
 }
@@ -47,9 +31,10 @@ cmake --build build --target templates_vault_5_wall --parallel 6 && ./build/temp
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_5_wall.cpp
  |
- |-- wood_vault::wall(LENGTH, HEIGHT, THICKNESS, BRICK, COURSE, STAGGER)                            src/templates/vault/vault.cpp
- |-- add(element) for every voussoir
- |-- compute_face_contacts(0)                    coplanar face overlaps between every pair
+ |-- wood_vault::Wall(guide)                       src/templates/vault/wall.cpp
+ |    |-- wood_vault::wall(guide)                  src/templates/vault/vault.cpp
+ |    |-- add(brick) for every brick
+ |    '-- compute_face_contacts(0)              coplanar face overlaps between every pair
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||

@@ -130,49 +130,39 @@ to_ring(const Arc& arc, double thickness, double from, double to, double near, d
     return to_voussoir(intrados, extrados, "voussoir");
 }
 
-std::vector<std::shared_ptr<Element>>
-arch(double span, double rise, double thickness, double depth, int voussoirs) {
+std::vector<std::shared_ptr<Element>> arch(const ArchGuide& guide) {
 
-    const Arc arc = compute_arc(span, rise);
-    const double step = 2.0 * arc.sector / voussoirs;
+    const Arc arc = compute_arc(guide.span, guide.rise);
+    const double step = 2.0 * arc.sector / guide.voussoirs;
 
     std::vector<std::shared_ptr<Element>> blocks;
-    for (int k = 0; k < voussoirs; k++)
+    for (int k = 0; k < guide.voussoirs; k++)
         blocks.push_back(to_ring(
-            arc, thickness, -arc.sector + k * step, -arc.sector + (k + 1) * step, 0.0, depth
+            arc, guide.thickness, -arc.sector + k * step, -arc.sector + (k + 1) * step, 0.0, guide.depth
         ));
 
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>> barrel(
-    double span,
-    double rise,
-    double thickness,
-    double length,
-    int courses,
-    int rings,
-    double stagger,
-    bool closed
-) {
+std::vector<std::shared_ptr<Element>> barrel(const BarrelGuide& guide) {
 
-    const Arc arc = compute_arc(span, rise);
-    const double step = 2.0 * arc.sector / courses;
-    const double ring = length / rings;
+    const Arc arc = compute_arc(guide.span, guide.rise);
+    const double step = 2.0 * arc.sector / guide.courses;
+    const double ring = guide.length / guide.rings;
 
     std::vector<std::shared_ptr<Element>> blocks;
-    for (int k = 0; k < courses; k++) {
+    for (int k = 0; k < guide.courses; k++) {
         std::vector<std::pair<double, double>> pieces =
-            compute_pieces(length, ring, k % 2 == 1 ? stagger * ring : 0.0);
-        if (closed) {
+            compute_pieces(guide.length, ring, k % 2 == 1 ? guide.stagger * ring : 0.0);
+        if (guide.closed) {
             pieces.insert(pieces.begin(), {-ring, 0.0});
-            pieces.emplace_back(length, length + ring);
+            pieces.emplace_back(guide.length, guide.length + ring);
         }
 
         for (const std::pair<double, double>& piece : pieces)
             blocks.push_back(to_ring(
                 arc,
-                thickness,
+                guide.thickness,
                 -arc.sector + k * step,
                 -arc.sector + (k + 1) * step,
                 piece.first,
@@ -196,42 +186,34 @@ Point compute_sphere(double radius, double theta, double phi, double drop) {
     );
 }
 
-std::vector<std::shared_ptr<Element>> dome(
-    double radius,
-    double bottom,
-    double top,
-    int meridians,
-    int hoops,
-    double oculus,
-    double springing
-) {
+std::vector<std::shared_ptr<Element>> dome(const DomeGuide& guide) {
 
-    const double first = oculus * Tolerance::TO_RADIANS;
-    const double last = springing * Tolerance::TO_RADIANS;
-    const double drop = radius * std::cos(last);
-    const double around = Tolerance::TWO_PI / meridians;
-    const double down = (last - first) / hoops;
+    const double first = guide.oculus * Tolerance::TO_RADIANS;
+    const double last = guide.springing * Tolerance::TO_RADIANS;
+    const double drop = guide.radius * std::cos(last);
+    const double around = Tolerance::TWO_PI / guide.meridians;
+    const double down = (last - first) / guide.hoops;
 
     std::vector<std::shared_ptr<Element>> blocks;
-    for (int i = 0; i < hoops; i++) {
+    for (int i = 0; i < guide.hoops; i++) {
         const double upper = first + i * down;
         const double lower = upper + down;
-        const double outer_upper = radius + top + (bottom - top) * (upper - first) / (last - first);
-        const double outer_lower = radius + top + (bottom - top) * (lower - first) / (last - first);
+        const double outer_upper = guide.radius + guide.top + (guide.bottom - guide.top) * (upper - first) / (last - first);
+        const double outer_lower = guide.radius + guide.top + (guide.bottom - guide.top) * (lower - first) / (last - first);
         const double shift = i % 2 == 1 ? around / 2.0 : 0.0;
 
         // six corners: the hoops above and below joint at the middle of this voussoir, so its edges bend there and every face is shared
-        for (int j = 0; j < meridians; j++) {
+        for (int j = 0; j < guide.meridians; j++) {
             const double left = j * around + shift;
             const std::vector<double> phis = {left, left + around / 2.0, left + around};
             std::vector<Point> intrados;
             std::vector<Point> extrados;
             for (const double phi : phis) {
-                intrados.push_back(compute_sphere(radius, upper, phi, drop));
+                intrados.push_back(compute_sphere(guide.radius, upper, phi, drop));
                 extrados.push_back(compute_sphere(outer_upper, upper, phi, drop));
             }
             for (auto phi = phis.rbegin(); phi != phis.rend(); ++phi) {
-                intrados.push_back(compute_sphere(radius, lower, *phi, drop));
+                intrados.push_back(compute_sphere(guide.radius, lower, *phi, drop));
                 extrados.push_back(compute_sphere(outer_lower, lower, *phi, drop));
             }
             blocks.push_back(to_voussoir(intrados, extrados, "voussoir"));
@@ -241,20 +223,19 @@ std::vector<std::shared_ptr<Element>> dome(
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>>
-wall(double length, double height, double thickness, double brick, double course, double stagger) {
+std::vector<std::shared_ptr<Element>> wall(const WallGuide& guide) {
 
     std::vector<std::shared_ptr<Element>> blocks;
-    const std::vector<std::pair<double, double>> rows = compute_pieces(height, course, 0.0);
+    const std::vector<std::pair<double, double>> rows = compute_pieces(guide.height, guide.course, 0.0);
     for (size_t row = 0; row < rows.size(); row++) {
         for (const std::pair<double, double>& piece :
-             compute_pieces(length, brick, row % 2 == 1 ? stagger * brick : 0.0)) {
+             compute_pieces(guide.length, guide.brick, row % 2 == 1 ? guide.stagger * guide.brick : 0.0)) {
             const double bottom = rows[row].first;
             const std::vector<Point> base = {
                 Point(piece.first, 0.0, bottom),
                 Point(piece.second, 0.0, bottom),
-                Point(piece.second, thickness, bottom),
-                Point(piece.first, thickness, bottom)
+                Point(piece.second, guide.thickness, bottom),
+                Point(piece.first, guide.thickness, bottom)
             };
             std::vector<Point> lid;
             for (const Point& point : base)
@@ -384,20 +365,19 @@ Point compute_web(
     return Point(plan[0], plan[1], arc.centre + radius * std::cos(angle));
 }
 
-std::vector<std::shared_ptr<Element>>
-cross_vault(double span, double rise, double thickness, int courses, int rings) {
+std::vector<std::shared_ptr<Element>> cross_vault(const CrossVaultGuide& guide) {
 
-    const Arc arc = compute_arc(span, rise);
-    const double outer = arc.radius + thickness;
+    const Arc arc = compute_arc(guide.span, guide.rise);
+    const double outer = arc.radius + guide.thickness;
     const double end = outer * std::sin(arc.sector);
-    const double ring = 2.0 * end / rings;
-    const double step = arc.sector / courses;
+    const double ring = 2.0 * end / guide.rings;
+    const double step = arc.sector / guide.courses;
     const std::vector<Vector> sides = {
         Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, -1.0, 0.0)
     };
 
     std::vector<std::shared_ptr<Element>> blocks;
-    for (int m = 0; m < courses; m++) {
+    for (int m = 0; m < guide.courses; m++) {
         const double up = m * step;
         const double down = up + step;
 
@@ -460,9 +440,8 @@ cross_vault(double span, double rise, double thickness, int courses, int rings) 
     return blocks;
 }
 
-std::vector<std::shared_ptr<Element>>
-cloister_vault(double span, double rise, double thickness, int courses, int rings) {
-    return to_bay(span, rise, thickness, courses, rings, false);
+std::vector<std::shared_ptr<Element>> cloister_vault(const CloisterVaultGuide& guide) {
+    return to_bay(guide.span, guide.rise, guide.thickness, guide.courses, guide.rings, false);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -502,7 +481,6 @@ std::pair<Point, Vector> eval_vault_surface(
     double hx,
     double hy,
     double rise,
-    ArchMethod /*method*/,
     const Point& ref_mid
 ) {
 
@@ -647,7 +625,6 @@ NurbsSurface compute_vault_web_surface(
     double hx,
     double hy,
     double rise,
-    ArchMethod surface_method,
     const Point& ref_mid,
     int count
 ) {
@@ -693,7 +670,6 @@ NurbsSurface compute_vault_web_surface(
             hx,
             hy,
             rise,
-            surface_method,
             ref_mid
         ).first[2];
     }
@@ -1146,7 +1122,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
     double rib_height,
     double panel_thickness,
     int n_sub,
-    ArchMethod surface_method,
     const RibGraph& graph,
     const std::string& panel_name
 ) {
@@ -1166,7 +1141,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             hx,
             hy,
             rise,
-            surface_method,
             Point(0.0, 0.5 * hy, 0.0),
             surf_cv_count
         ),
@@ -1174,7 +1148,6 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
             hx,
             hy,
             rise,
-            surface_method,
             Point(0.5 * hx, 0.0, 0.0),
             surf_cv_count
         )
@@ -1615,20 +1588,11 @@ std::vector<std::shared_ptr<Element>> build_cylindrical_ribbed_vault_from_graph(
 
 } // namespace
 
-std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
-    double span_x,
-    double span_y,
-    double rise,
-    double rib_width,
-    double rib_height,
-    GothicPattern pattern,
-    ArchMethod surface_method,
-    int subdivisions
-) {
+std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(const GothicRibbedVaultGuide& guide) {
 
-    const double hx = 0.5 * span_x;
-    const double hy = 0.5 * span_y;
-    const int n_sub = std::max(8, subdivisions);
+    const double hx = 0.5 * guide.span_x;
+    const double hy = 0.5 * guide.span_y;
+    const int n_sub = std::max(8, guide.subdivisions);
     const double panel_thickness = 35.0;
 
     RibGraph graph;
@@ -1644,7 +1608,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
         Point(0.0, 0.0, 0.0) // 8: Central crown boss
     };
 
-    if (pattern != GothicPattern::fan_conoid) {
+    if (guide.pattern != GothicRibbedVaultGuide::FAN_CONOID) {
         for (int i = 0; i < 4; ++i) {
             const int c_curr = i;
             const int c_next = (i + 1) % 4;
@@ -1653,14 +1617,14 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
         }
     }
 
-    if (pattern == GothicPattern::quadripartite) {
+    if (guide.pattern == GothicRibbedVaultGuide::QUADRIPARTITE) {
         // Bern Cathedral / Wells classic quadripartite cross vault
         graph.add_rib_path({0, 8, 2}, 1.0, "diagonal_rib");
         graph.add_rib_path({1, 8, 3}, 1.0, "diagonal_rib");
 
         for (int i = 0; i < 4; ++i)
             graph.add_rib_path({4 + i, 8}, 1.0, "ridge_rib");
-    } else if (pattern == GothicPattern::tierceron) {
+    } else if (guide.pattern == GothicRibbedVaultGuide::TIERCERON) {
         // Bern Cathedral / Exeter tierceron star vault
         const std::array<int, 4> r_nodes = {
             graph.add_node(0.0, -0.5 * hy),
@@ -1677,7 +1641,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             graph.add_rib_path({i, r_nodes[i]}, 1.0, "tierceron_rib");
             graph.add_rib_path({c_next, r_nodes[i]}, 1.0, "tierceron_rib");
         }
-    } else if (pattern == GothicPattern::star_stellar) {
+    } else if (guide.pattern == GothicRibbedVaultGuide::STAR_STELLAR) {
         // Bern Cathedral 4-lozenge stellar star vault (4 central diamond lozenges meeting at crown 8)
         const double s = 0.62;
         const double d = 0.36;
@@ -1705,7 +1669,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             graph.add_rib_path({d_nodes[i], s_nodes[i]}, 1.0, "lierne_rib");
             graph.add_rib_path({d_nodes[i], s_nodes[prev]}, 1.0, "lierne_rib");
         }
-    } else if (pattern == GothicPattern::lierne_star) {
+    } else if (guide.pattern == GothicRibbedVaultGuide::LIERNE_STAR) {
         // Bern Cathedral / Ely Choir double-star lierne vault
         const double r_out = 0.68;
         const double r_in = 0.34;
@@ -1742,7 +1706,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             graph.add_rib_path({dn[i], ro[i]}, 1.0, "lierne_rib");
             graph.add_rib_path({dn[i], ro[prev]}, 1.0, "lierne_rib");
         }
-    } else if (pattern == GothicPattern::net_reticulated) {
+    } else if (guide.pattern == GothicRibbedVaultGuide::NET_RETICULATED) {
         // Bern Cathedral Choir / Parler reticulated diamond-lattice net vault (collinear crossing net chords: 2*0.525*0.21/(0.525+0.21) == 0.30)
         const std::array<int, 4> q_nodes = {
             graph.add_node(0.0, -0.62 * hy),
@@ -1786,7 +1750,7 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
             graph.add_rib_path({d_outer[i], r_inner[i], d_inner[next]}, 1.0, "net_rib");
             graph.add_rib_path({d_outer[next], r_inner[i], d_inner[i]}, 1.0, "net_rib");
         }
-    } else if (pattern == GothicPattern::fan_conoid) {
+    } else if (guide.pattern == GothicRibbedVaultGuide::FAN_CONOID) {
         // Polygonal fan vault on intersecting circular barrel cylinders (straight radiating fan ribs + straight polygonal collar ribs)
         const double r_col = 0.68 * std::min(hx, hy);
         const std::array<int, 4> r_out = {
@@ -1859,54 +1823,14 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(
     return build_cylindrical_ribbed_vault_from_graph(
         hx,
         hy,
-        rise,
-        rib_width,
-        rib_height,
+        guide.rise,
+        guide.rib_width,
+        guide.rib_height,
         panel_thickness,
         n_sub,
-        surface_method,
         graph,
         "vault_panel"
     );
-}
-
-GothicRibbedVault::GothicRibbedVault(
-    double span_x,
-    double span_y,
-    double rise,
-    double rib_width,
-    double rib_height,
-    GothicPattern pattern,
-    ArchMethod arch_method,
-    int subdivisions,
-    const std::string& name
-)
-    : WoodSession(name),
-      span_x(span_x),
-      span_y(span_y),
-      rise(rise),
-      rib_width(rib_width),
-      rib_height(rib_height),
-      pattern(pattern),
-      arch_method(arch_method),
-      subdivisions(subdivisions) {
-
-    const std::shared_ptr<TreeNode> supports_group = add_group("supports");
-    const std::shared_ptr<TreeNode> ribs_group = add_group("ribs");
-    const std::shared_ptr<TreeNode> panels_group = add_group("panels");
-    for (const std::shared_ptr<Element>& elem : gothic_ribbed_vault(
-             span_x, span_y, rise, rib_width, rib_height, pattern, arch_method, subdivisions
-         )) {
-        if (elem->name == "support_block")
-            add(elem, supports_group);
-        else if (elem->name == "vault_panel")
-            add(elem, panels_group);
-        else
-            add(elem, ribs_group);
-    }
-
-    // assembly: blocks, ribs, panels
-    assemblies = {gothic_assembly(name, get_elements<Element>())};
 }
 
 wood_session::AssemblyModule gothic_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements) {

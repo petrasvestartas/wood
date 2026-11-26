@@ -56,7 +56,7 @@ public:
     const double beam_height; // Cross-section depth normal to the surface.
     const bool add_boundary_frame; // Surrounds naked mesh edges with straight perimeter frame beams.
     const double pin_diameter; // Pin diameter bored across butt contacts when positive.
-    const wood_reciprocal::CornerJoint corner_joint; // Perimeter frame corner joint: Butt or Miter.
+    const bool butt; // Perimeter frame butted at its corners, else mitered.
     const bool with_contacts; // Computes coplanar face-to-face contacts when true.
 
     /// Builds the reciprocal bars, continuous perimeter frame, optional centred pins, and face contacts.
@@ -66,7 +66,7 @@ public:
         double beam_height = 0.0,
         bool add_boundary_frame = true,
         double pin_diameter = 0.0,
-        wood_reciprocal::CornerJoint corner_joint = wood_reciprocal::CornerJoint::Butt,
+        bool butt = true,
         bool with_contacts = true
     );
 

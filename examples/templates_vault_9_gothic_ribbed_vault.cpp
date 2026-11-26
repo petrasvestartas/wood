@@ -1,37 +1,31 @@
 #include "wood_session.h"
-#include "src/templates/vault/vault.h"
+#include "src/templates/vault/gothic_ribbed_vault.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN_X = 10000.0;
-const double SPAN_Y = 10000.0;
-const double RISE = 1000.0;
-const double RIB_WIDTH = 120.0;
-const double RIB_HEIGHT = 360.0;
-const int SUBDIVISIONS = 16;
-
-struct GothicBayConfig {
+struct GothicBay {
     std::string name;
-    wood_vault::GothicPattern pattern;
-    wood_vault::ArchMethod surface;
+    int pattern;
 };
 
+/// Six Gothic ribbed vault bays side by side, one per historical rib pattern.
 int main() {
 
     WoodSession wood_session("vault_gothic_ribbed_vault");
 
-    const std::vector<GothicBayConfig> bays = {
-        {"quadripartite_wells",   wood_vault::GothicPattern::quadripartite,   wood_vault::ArchMethod::groin_cylinders},
-        {"tierceron_exeter",      wood_vault::GothicPattern::tierceron,       wood_vault::ArchMethod::groin_cylinders},
-        {"star_stellar_burgos",   wood_vault::GothicPattern::star_stellar,    wood_vault::ArchMethod::groin_cylinders},
-        {"lierne_star_ely",       wood_vault::GothicPattern::lierne_star,     wood_vault::ArchMethod::groin_cylinders},
-        {"net_reticulated_parler",wood_vault::GothicPattern::net_reticulated, wood_vault::ArchMethod::groin_cylinders},
-        {"fan_conoid_gloucester", wood_vault::GothicPattern::fan_conoid,      wood_vault::ArchMethod::groin_cylinders}
+    const std::vector<GothicBay> bays = {
+        {"quadripartite_wells",   wood_vault::GothicRibbedVaultGuide::QUADRIPARTITE},
+        {"tierceron_exeter",      wood_vault::GothicRibbedVaultGuide::TIERCERON},
+        {"star_stellar_burgos",   wood_vault::GothicRibbedVaultGuide::STAR_STELLAR},
+        {"lierne_star_ely",       wood_vault::GothicRibbedVaultGuide::LIERNE_STAR},
+        {"net_reticulated_parler",wood_vault::GothicRibbedVaultGuide::NET_RETICULATED},
+        {"fan_conoid_gloucester", wood_vault::GothicRibbedVaultGuide::FAN_CONOID}
     };
 
-    const double pitch_x = SPAN_X + 1800.0;
-    const double pitch_y = SPAN_Y + 1800.0;
+    const wood_vault::GothicRibbedVaultGuide bay;
+    const double pitch_x = bay.span_x + 1800.0;
+    const double pitch_y = bay.span_y + 1800.0;
 
     for (size_t i = 0; i < bays.size(); ++i) {
         const std::shared_ptr<TreeNode> group = wood_session.add_group(bays[i].name);
@@ -41,9 +35,8 @@ int main() {
         const double offset_y = (0.5 - static_cast<double>(row)) * pitch_y;
         const Xform shift = Xform::translation(offset_x, offset_y, 0.0);
 
-        const std::vector<std::shared_ptr<Element>> elements = wood_vault::gothic_ribbed_vault(
-            SPAN_X, SPAN_Y, RISE, RIB_WIDTH, RIB_HEIGHT, bays[i].pattern, bays[i].surface, SUBDIVISIONS
-        );
+        const wood_vault::GothicRibbedVaultGuide guide = wood_vault::GothicRibbedVaultGuide::of_pattern(bays[i].pattern);
+        const std::vector<std::shared_ptr<Element>> elements = wood_vault::gothic_ribbed_vault(guide);
         for (const std::shared_ptr<Element>& elem : elements) {
             elem->place(shift);
             wood_session.add(elem, group);
@@ -51,17 +44,7 @@ int main() {
         wood_session.assemblies.push_back(wood_vault::gothic_assembly(bays[i].name, elements));
 
         if (std::getenv("DUMP_SINGLE_BAYS") != nullptr) {
-            wood_vault::GothicRibbedVault single_bay(
-                SPAN_X,
-                SPAN_Y,
-                RISE,
-                RIB_WIDTH,
-                RIB_HEIGHT,
-                bays[i].pattern,
-                bays[i].surface,
-                SUBDIVISIONS,
-                bays[i].name
-            );
+            wood_vault::GothicRibbedVault single_bay(guide, bays[i].name);
             single_bay.pb_dump(fmt::format("/tmp/{}.pb", bays[i].name));
         }
     }
@@ -98,7 +81,7 @@ cmake --build build --target templates_vault_9_gothic_ribbed_vault --parallel 6 
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_9_gothic_ribbed_vault.cpp
  |
- |-- wood_vault::gothic_ribbed_vault(SPAN_X, SPAN_Y, RISE, RIB_WIDTH, RIB_HEIGHT, pattern, surface, ...)   src/templates/vault/vault.cpp
+ |-- wood_vault::gothic_ribbed_vault(GothicRibbedVaultGuide::of_pattern(pattern))          src/templates/vault/vault.cpp
  |-- add(elem, group) for every corner support NodeBlockElement and mitered EdgeCurvedElement rib
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 

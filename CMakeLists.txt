@@ -101,6 +101,13 @@ set(WOOD_SOURCES
     src/templates/grid/grid_designs.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
+    src/templates/vault/arch.cpp
+    src/templates/vault/barrel.cpp
+    src/templates/vault/dome.cpp
+    src/templates/vault/wall.cpp
+    src/templates/vault/cross_vault.cpp
+    src/templates/vault/cloister_vault.cpp
+    src/templates/vault/gothic_ribbed_vault.cpp
     src/templates/floor/floor_guide.cpp
     src/templates/floor/floor.cpp
     src/templates/truss/truss_guide.cpp
@@ -156,6 +163,12 @@ set(WOOD_SOURCES
     src/templates/developable_folding/space_curve_ridge.cpp
     src/templates/developable_folding/space_curve_fold.cpp
     src/templates/developable_folding/curved_miura.cpp
+    src/templates/vidy/vidy_joint_kernel.cpp
+    src/templates/reciprocal/reciprocal_boundary.cpp
+    src/templates/reciprocal/reciprocal_surface.cpp
+    src/templates/reciprocal/reciprocal_guide.cpp
+    src/templates/reciprocal/reciprocal_rotation.cpp
+    src/templates/reciprocal/reciprocal_move.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp

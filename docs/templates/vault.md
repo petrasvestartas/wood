@@ -2,7 +2,7 @@
 
 [TOC]
 
-Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates/vault/vault.h`. Every ribbed vault uses straight 2D plan lines rising as planar arches in 3D and simple circular barrel cylinder webs (`K = 0`) whose top and bottom edges follow the supporting beam centerlines.
+Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates/vault/`: every template is a session built from its guide in `vault_guide.h` (`Arch(ArchGuide)`, `Barrel(BarrelGuide)`, `Dome(DomeGuide)`, `Wall(WallGuide)`, `CrossVault(CrossVaultGuide)`, `CloisterVault(CloisterVaultGuide)`, `GothicRibbedVault(GothicRibbedVaultGuide)`), the defaults being the examples' settings. Every ribbed vault uses straight 2D plan lines rising as planar arches in 3D and simple circular barrel cylinder webs (`K = 0`) whose top and bottom edges follow the supporting beam centerlines.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#vault_quadripartite">

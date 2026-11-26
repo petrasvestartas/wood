@@ -37,9 +37,11 @@
 
 ## Parameters
 
-| Parameter | `VidyGuide` / `VidyPavilion` | `OrigamiShell` | Dimensions |
+`OrigamiShell` takes an `OrigamiShellGuide` (`src/templates/vidy/vidy_guide.h`) holding every input below; `OrigamiShellGuide::defaults(mesh)` is the deep folded halls' setting.
+
+| Parameter | `VidyGuide` / `VidyPavilion` | `OrigamiShellGuide` | Dimensions |
 | --- | --- | --- | --- |
-| `input_mesh` | `guide` (`11` × `2609.62`) | `Mesh` | Base planar origami mesh (`mm`) |
+| `mesh` | `guide` (`11` × `2609.62`) | `Mesh` | Base planar origami mesh (`mm`) |
 | `span_mid`, `span_end` | `19115.80`, `16285.82` | — | Mid span, end span (`mm`) |
 | `wall_pleat` | `656.0` | — | Wall V-pleat (`mm`) |
 | `eave_height_mid`, `eave_height_end` | `7482.78`, `6512.31` | — | Mid eave, end eave (`mm`) |

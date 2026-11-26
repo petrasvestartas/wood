@@ -1,33 +1,16 @@
 #include "wood_session.h"
-#include "src/templates/vault/vault.h"
+#include "src/templates/vault/dome.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const double RADIUS = 4000.0;
-const double BOTTOM = 400.0;
-const double TOP = 250.0;
-const int MERIDIANS = 40;
-const int HOOPS = 20;
-const double OCULUS = 6.0;
-const double SPRINGING = 90.0;
-
+/// The dome of the defaults, its staggered hoops in contact.
 int main() {
 
-    WoodSession wood_session("vault_dome");
-    for (const std::shared_ptr<Element>& element :
-         wood_vault::dome(RADIUS, BOTTOM, TOP, MERIDIANS, HOOPS, OCULUS, SPRINGING))
-        wood_session.add(element);
+    wood_vault::Dome dome;
 
-    wood_session.compute_face_contacts(0);
-    wood_session.assemblies = {AssemblyModule::raise(wood_session.name, AssemblyModule::parts_of(wood_session.get_elements<Element>()))};
-
-    std::cout << fmt::format(
-        "dome: {} voussoirs, {} contacts\n",
-        wood_session.objects.elements->size(),
-        wood_session.graph.number_of_edges()
-    );
-    wood_session.pb_dump(pb_path("live"));
+    std::cout << fmt::format("dome: {} voussoirs, {} contacts\n", dome.objects.elements->size(), dome.graph.number_of_edges());
+    dome.pb_dump(pb_path("live"));
 
     return 0;
 }
@@ -48,9 +31,10 @@ cmake --build build --target templates_vault_4_dome --parallel 6 && ./build/temp
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_4_dome.cpp
  |
- |-- wood_vault::dome(RADIUS, BOTTOM, TOP, MERIDIANS, HOOPS, OCULUS, SPRINGING)                     src/templates/vault/vault.cpp
- |-- add(element) for every voussoir
- |-- compute_face_contacts(0)                    coplanar face overlaps between every pair
+ |-- wood_vault::Dome(guide)                       src/templates/vault/dome.cpp
+ |    |-- wood_vault::dome(guide)                  src/templates/vault/vault.cpp
+ |    |-- add(voussoir) for every voussoir
+ |    '-- compute_face_contacts(0)              coplanar face overlaps between every pair
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||

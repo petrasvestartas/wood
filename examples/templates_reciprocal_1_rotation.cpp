@@ -56,28 +56,7 @@ int main() {
 
     const std::optional<NurbsSurface> surface = case_surface();
     const Mesh mesh = case_mesh(surface);
-    const std::vector<Vector> upright(4, Vector(0, 0, 1));
-    const std::map<std::pair<size_t, size_t>, Vector> frame_ups =
-        surface ? wood_reciprocal::side_tilt_boundary_ups(mesh, *surface)
-                : wood_reciprocal::side_tilt_boundary_ups(
-                      mesh, 45.0, FRAME_VERTICAL ? upright : std::vector<Vector>{}
-                  );
-    const std::map<std::pair<size_t, size_t>, int> through =
-        surface ? wood_reciprocal::through_side_priority(mesh, *surface)
-                : wood_reciprocal::through_side_priority(mesh, 45.0);
-
-    ReciprocalRotation rotation(
-        mesh,
-        0.35,
-        1.4,
-        100.0,
-        400.0,
-        5.0,
-        1.0,
-        frame_ups,
-        wood_reciprocal::CornerJoint::Butt,
-        through
-    );
+    wood_reciprocal::ReciprocalRotation rotation(wood_reciprocal::ReciprocalRotationGuide::butted(mesh, surface, FRAME_VERTICAL));
 
     if (surface)
         rotation.add_nurbssurface(

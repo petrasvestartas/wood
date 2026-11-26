@@ -1147,29 +1147,10 @@ void apply_origami_crease_joinery(
 
 }
 
-OrigamiShell::OrigamiShell(
-    const Mesh& input_mesh,
-    double plate_thickness,
-    double total_offset,
-    bool with_joints,
-    bool with_borders,
-    double pin_pitch,
-    double corner_scale,
-    const std::string& name
-)
-    : WoodSession(name), plate_thickness(std::max(12.0, plate_thickness)),
-      total_offset(std::max(2.4 * std::max(12.0, plate_thickness), total_offset)),
-      with_joints(with_joints), with_borders(with_borders),
-      pin_pitch(
-          std::clamp(
-              pin_pitch,
-              450.0 * std::clamp(std::max(12.0, plate_thickness) / 45.0, 0.80, 1.25),
-              1200.0
-          )
-      ),
-      corner_scale(std::clamp(corner_scale, 0.0, 2.0)) {
+OrigamiShell::OrigamiShell(const OrigamiShellGuide& guide, const std::string& name)
+    : WoodSession(name), guide(guide) {
 
-    extract_oriented_facets(input_mesh);
+    extract_oriented_facets(guide.mesh);
     compute_edges();
     compute_miter_rings();
     _inner_cavity_mesh = compute_offset_mesh(1);
@@ -1180,7 +1161,7 @@ OrigamiShell::OrigamiShell(
     compute_assembly_and_vectors();
     compute_shell_plates();
 
-    if (this->with_borders)
+    if (guide.with_borders)
         compute_border_plates();
 
     populate_scene();
@@ -1206,11 +1187,11 @@ const std::vector<size_t>& OrigamiShell::vertex_valences() const {
 }
 
 std::array<double, 4> OrigamiShell::layer_heights() const {
-    return {0.0, plate_thickness, total_offset - plate_thickness, total_offset};
+    return {0.0, guide.plate_thickness, guide.total_offset - guide.plate_thickness, guide.total_offset};
 }
 
 double OrigamiShell::cavity_gap() const {
-    return total_offset - 2.0 * plate_thickness;
+    return guide.total_offset - 2.0 * guide.plate_thickness;
 }
 
 const Mesh& OrigamiShell::base_mesh() const {
@@ -1449,7 +1430,7 @@ void OrigamiShell::compute_edges() {
 void OrigamiShell::compute_miter_rings() {
 
     const std::array<double, 4> heights = layer_heights();
-    const double max_drift = 4.5 * total_offset;
+    const double max_drift = 4.5 * guide.total_offset;
 
     for (size_t f = 0; f < _facets.size(); f++) {
         OrigamiFacet& facet = _facets[f];
@@ -1681,10 +1662,10 @@ void OrigamiShell::compute_shell_plates() {
                 _insertion_vectors[layer][f],
                 2 * layer,
                 2 * layer + 1,
-                plate_thickness,
-                total_offset,
-                with_borders,
-                corner_scale,
+                guide.plate_thickness,
+                guide.total_offset,
+                guide.with_borders,
+                guide.corner_scale,
                 empty_sides,
                 empty_sides
             );
@@ -1702,12 +1683,12 @@ void OrigamiShell::compute_shell_plates() {
             tables.edge_polys[hi][f].resize(_facets[f].vertices.size());
     }
 
-    if (with_joints) {
+    if (guide.with_joints) {
         std::vector<OrigamiCreaseFrame> creases;
 
         for (const OrigamiEdge& edge : _edges) {
             const std::optional<OrigamiCreaseFrame> cf = compute_origami_crease_frame(
-                _facets, edge, _insertion_vectors[0], plate_thickness, total_offset
+                _facets, edge, _insertion_vectors[0], guide.plate_thickness, guide.total_offset
             );
 
             if (cf)
@@ -1734,9 +1715,9 @@ void OrigamiShell::compute_shell_plates() {
                 cf,
                 heights,
                 stock_rings,
-                plate_thickness,
-                total_offset,
-                pin_pitch,
+                guide.plate_thickness,
+                guide.total_offset,
+                guide.pin_pitch,
                 tables
             );
     }
@@ -1752,7 +1733,7 @@ void OrigamiShell::compute_shell_plates() {
     _total_single_pins = tables.single_pins;
     _max_insertion_skew_deg = tables.max_skew_deg;
     _unjoined_interior_creases =
-        (with_joints && interior_creases >= tables.seams) ? (interior_creases - tables.seams) : 0;
+        (guide.with_joints && interior_creases >= tables.seams) ? (interior_creases - tables.seams) : 0;
 
     for (size_t f = 0; f < fcount; f++) {
         const OrigamiFacet& facet = _facets[f];
@@ -1766,7 +1747,7 @@ void OrigamiShell::compute_shell_plates() {
                 fmt::format("{}_plate_f{}", layer == 0 ? "inner" : "outer", f)
             );
 
-            if (with_joints) {
+            if (guide.with_joints) {
                 const std::pair<Polyline, Polyline> jointed = compute_origami_layer_rings(
                     _vertices,
                     _vertex_valences,
@@ -1776,10 +1757,10 @@ void OrigamiShell::compute_shell_plates() {
                     _insertion_vectors[layer][f],
                     h_b,
                     h_t,
-                    plate_thickness,
-                    total_offset,
-                    with_borders,
-                    corner_scale,
+                    guide.plate_thickness,
+                    guide.total_offset,
+                    guide.with_borders,
+                    guide.corner_scale,
                     tables.edge_polys[h_b][f],
                     tables.edge_polys[h_t][f]
                 );
@@ -1831,15 +1812,15 @@ void OrigamiShell::compute_border_plates() {
             spec.boundary_plane = bp;
             spec.start_plane = sp;
             spec.end_plane = ep;
-            spec.inner_level = plate_thickness + 0.4;
-            spec.outer_level = total_offset - plate_thickness - 0.4;
-            spec.thickness = plate_thickness;
+            spec.inner_level = guide.plate_thickness + 0.4;
+            spec.outer_level = guide.total_offset - guide.plate_thickness - 0.4;
+            spec.thickness = guide.plate_thickness;
             spec.miter_start =
                 prev_edge.is_boundary && bp.z_axis().cross(sp.z_axis()).magnitude() > 0.15;
-            spec.start_neighbor_thickness = plate_thickness;
+            spec.start_neighbor_thickness = guide.plate_thickness;
             spec.miter_end =
                 next_edge.is_boundary && bp.z_axis().cross(ep.z_axis()).magnitude() > 0.15;
-            spec.end_neighbor_thickness = plate_thickness;
+            spec.end_neighbor_thickness = guide.plate_thickness;
             spec.start_setback = 0.5;
             spec.end_setback = 0.5;
 

@@ -640,7 +640,7 @@ PlaitedReciprocal::PlaitedReciprocal(
     double beam_height,
     bool add_boundary_frame,
     double pin_diameter,
-    wood_reciprocal::CornerJoint corner_joint,
+    bool butt,
     bool with_contacts
 )
     : WoodSession("plaited_reciprocal"),
@@ -649,7 +649,7 @@ PlaitedReciprocal::PlaitedReciprocal(
       beam_height(beam_height > 0.0 ? beam_height : guide.thickness),
       add_boundary_frame(add_boundary_frame),
       pin_diameter(std::max(0.0, pin_diameter)),
-      corner_joint(corner_joint),
+      butt(butt),
       with_contacts(with_contacts) {
 
     // radial perimeter frame and reciprocal bars
@@ -707,7 +707,7 @@ std::vector<std::shared_ptr<FacePlanarElement>> PlaitedReciprocal::compute_frame
         beam_width,
         beam_height,
         boundary_ups,
-        corner_joint,
+        butt,
         priority
     );
 

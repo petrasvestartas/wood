@@ -21,14 +21,20 @@ Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. 
 
 ## Parameters
 
-| Parameter | Rotation | Translation | Description |
+Every input is a field of the guide in `src/templates/reciprocal/reciprocal_guide.h`: `ReciprocalRotation(ReciprocalRotationGuide)` and `ReciprocalMove(ReciprocalMoveGuide)`. `defaults(mesh)` is the guide below on a mesh; `butted(mesh, surface, vertical)` is the examples' frame: `100 x 400` beams, a butted frame, its ups tilted per side.
+
+| Field | `ReciprocalRotationGuide` | `ReciprocalMoveGuide` | Description |
 | --- | --- | --- | --- |
-| `mesh` | `const Mesh&` | `const Mesh&` | Input polygon mesh |
+| `mesh` | `Mesh` | `Mesh` | Input polygon mesh |
 | `angle`, `scale` | `0.35 rad`, `1.4` | — | Midpoint rotation around average face normal and axial scale |
+| `extend_factor` | `5.0` | — | Beam widths a beam may run past its ends to reach the beam it bears on |
 | `shift` | — | `50.0` | Sideways translation along corner bisectors in mm |
-| `width`, `height` | `100.0`, `400.0` | `100.0`, `400.0` | Beam cross-section width and depth in mm |
+| `width`, `height` | `100.0`, `0.0` | `100.0`, `0.0` | Beam cross-section width and depth in mm, the depth twice the width when `0` |
 | `cut_offset_factor` | `1.0` | `1.0` | End-cut offset from crossing neighbour axis (`1.0` = flush side face) |
-| `corner_joint` | `Miter` / `Butt` | `Miter` / `Butt` | Perimeter frame corner joint rule |
+| `edge_up` | — | `false` | Beam up from the faces of its edge, else from its own face |
+| `frame_ups` | `{}` | `{}` | Up per naked edge, the others transported |
+| `butt` | `false` | `false` | Perimeter frame butted at its corners, else mitered |
+| `through_priority` | `{}` | `{}` | Per naked edge, the higher runs through a butt corner |
 
 ---
 
@@ -43,8 +49,8 @@ Reciprocal timber beam frames on polygon meshes in `src/templates/reciprocal/`. 
 ![](templates/templates_reciprocal_1_rotation_axes.webp)
 
 ```cpp
-const Vector dir = along.normalized().transformed(Xform::rotation(up, angle));
-const double half = along.magnitude() * 0.5 * scale;
+const Vector dir = along.normalized().transformed(Xform::rotation(up, guide.angle));
+const double half = along.magnitude() * 0.5 * guide.scale;
 axes.push_back(Axis{{edge.first, edge.second}, Line::from_points(mid - dir * half, mid + dir * half), up});
 ```
 
@@ -68,7 +74,7 @@ axes.push_back(Axis{{edge.first, edge.second}, Line::from_points(mid - dir * hal
 
 ```cpp
 const Vector bisector = (axes[i][(j + 1) % n].dir - axes[i][(j - 1 + n) % n].dir) * 0.5;
-axes[i][j].line += bisector * shift;
+axes[i][j].line += bisector * guide.shift;
 ```
 
 ### Perimeter Frame and Trimmed Beams

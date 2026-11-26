@@ -1,31 +1,16 @@
 #include "wood_session.h"
-#include "src/templates/vault/vault.h"
+#include "src/templates/vault/cloister_vault.h"
 
 using namespace session_cpp;
 using namespace wood_session;
 
-const double SPAN = 6000.0;
-const double RISE = 3000.0;
-const double THICKNESS = 300.0;
-const int COURSES = 8;
-const int RINGS = 12;
-
+/// The cloister vault of the defaults, its voussoirs in contact.
 int main() {
 
-    WoodSession wood_session("vault_cloister_vault");
-    for (const std::shared_ptr<Element>& element :
-         wood_vault::cloister_vault(SPAN, RISE, THICKNESS, COURSES, RINGS))
-        wood_session.add(element);
+    wood_vault::CloisterVault cloister_vault;
 
-    wood_session.compute_face_contacts(0);
-    wood_session.assemblies = {AssemblyModule::raise(wood_session.name, AssemblyModule::parts_of(wood_session.get_elements<Element>()))};
-
-    std::cout << fmt::format(
-        "cloister vault: {} voussoirs, {} contacts\n",
-        wood_session.objects.elements->size(),
-        wood_session.graph.number_of_edges()
-    );
-    wood_session.pb_dump(pb_path("live"));
+    std::cout << fmt::format("cloister vault: {} voussoirs, {} contacts\n", cloister_vault.objects.elements->size(), cloister_vault.graph.number_of_edges());
+    cloister_vault.pb_dump(pb_path("live"));
 
     return 0;
 }
@@ -46,9 +31,10 @@ cmake --build build --target templates_vault_7_cloister_vault --parallel 6 && ./
 |||||||| WORKFLOW ||||||||
 examples/templates_vault_7_cloister_vault.cpp
  |
- |-- wood_vault::cloister_vault(SPAN, RISE, THICKNESS, COURSES, RINGS)                              src/templates/vault/vault.cpp
- |-- add(element) for every voussoir
- |-- compute_face_contacts(0)                    coplanar face overlaps between every pair
+ |-- wood_vault::CloisterVault(guide)                       src/templates/vault/cloister_vault.cpp
+ |    |-- wood_vault::cloister_vault(guide)                  src/templates/vault/vault.cpp
+ |    |-- add(voussoir) for every voussoir
+ |    '-- compute_face_contacts(0)              coplanar face overlaps between every pair
  '-- pb_dump(pb_path("live"))                    data/output/pb/live.pb, the file the viewer watches
 
 |||||||| VIEW ||||||||
