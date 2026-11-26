@@ -339,13 +339,6 @@ std::vector<Line> VdaMesh::assembly_lines(const Mesh& mesh) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Default mesh
-// ═══════════════════════════════════════════════════════════════════════════
-Mesh VdaMesh::default_mesh() {
-    return VdaMeshGuide::default_mesh();
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // Accessors
 // ═══════════════════════════════════════════════════════════════════════════
 const std::vector<std::vector<size_t>>& VdaMesh::edge_faces() const {

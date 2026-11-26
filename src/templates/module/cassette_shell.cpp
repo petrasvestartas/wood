@@ -77,7 +77,7 @@ CassetteShell::CassetteShell(
 // Default mesh
 // ═══════════════════════════════════════════════════════════════════════════
 Mesh CassetteShell::default_mesh() {
-    return wood_cross::VdaMesh::default_mesh();
+    return wood_cross::VdaMeshGuide::default_mesh();
 }
 
 Mesh CassetteShell::house_mesh(double length, double width, double height, double ridge) {

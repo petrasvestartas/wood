@@ -27,8 +27,8 @@ struct ReflectionFoldGuide {
     std::vector<NurbsCurve> profile = {Primitives::arc(
         Point(500.0, -866.0, 3000.0), Point(1000.0, 0.0, 3000.0), Point(500.0, 866.0, 3000.0)
     )}; // The sheet's section: planar curves end to end, each a row of lamellas.
-    Vector direction = Vector(0.0, 0.0, -1.0); // The rulings' unit direction before the first fold.
-    Vector axis = Vector(0.0, -1.0, 0.0); // The folds' unit axis, in every fold plane.
+    Vector direction = Vector(0.0, 0.0, -1.0); // The rulings' direction before the first fold.
+    Vector axis = Vector(0.0, -1.0, 0.0); // The folds' axis, in every fold plane.
     double length = 3500.0; // The sheet along the rulings, when no symmetry plane ends it.
     std::vector<Fold> folds = {
         {1500.0, 60.0 * Tolerance::TO_RADIANS}

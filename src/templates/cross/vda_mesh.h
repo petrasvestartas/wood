@@ -44,8 +44,6 @@ public:
     /// Not assigned, as it is not copied.
     VdaMesh& operator=(const VdaMesh&) = delete;
 
-    /// The guide's fifteen-face dome, for the templates that start from it.
-    static Mesh default_mesh();
 
     /// The faces in an order that goes together: from a foot on the ground ring by ring over the mesh, breadth first, every ring
     /// peeled by the face its remaining neighbours leave the widest way out of in its own plane, and reversed.

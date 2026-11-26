@@ -2,11 +2,20 @@
 
 namespace wood_cylindrical_folding {
 
+/// The guide with its direction and axis of unit length.
+static ReflectionFoldGuide with_units(ReflectionFoldGuide guide) {
+
+    guide.direction = guide.direction.normalized();
+    guide.axis = guide.axis.normalized();
+
+    return guide;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Constructor
 // ═══════════════════════════════════════════════════════════════════════════
 ReflectionFold::ReflectionFold(const ReflectionFoldGuide& guide, const std::string& name)
-    : WoodSession(name), guide(guide) {
+    : WoodSession(name), guide(with_units(guide)) {
 
     // segments: the sheet's straight runs between the folds, each with its rulings and its two planes
     const Plane first = compute_profile_plane();
