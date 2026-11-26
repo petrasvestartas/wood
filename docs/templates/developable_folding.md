@@ -2,7 +2,7 @@
 
 [TOC]
 
-Developable [Curved Plate](@ref elements_face_curved) structures: a ruled tent roof, flat-foldable curved-crease unfolding (CCU) with one-degree-of-freedom deployment, composite space-curve tube vaults with harmonic torsion, and the four CCF/CCU quadrants of a single crease (`src/templates/developable_folding/`, after Tachi, *Transformables 2013*).
+Developable [Curved Plate](@ref elements_face_curved) structures: a ruled tent roof, flat-foldable curved-crease unfolding (CCU) with one-degree-of-freedom deployment, composite space-curve tube vaults with harmonic torsion, the four CCF/CCU quadrants of a single crease (`src/templates/developable_folding/`, after Tachi, *Transformables 2013*), and one-DOF rigid foldable curved folds and Miura tessellations from a space curve (after Tachi, *IASS 2011*).
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#curved_fold_roof">
@@ -41,6 +41,14 @@ Developable [Curved Plate](@ref elements_face_curved) structures: a ruled tent r
     <img src="templates_developable_folding_4_crease_quadrants_quadrant_1.webp" alt="Crease Quadrants">
     <span class="wood-card-title">Crease Quadrants</span>
   </a>
+  <a class="wood-card" href="#space_curve_fold">
+    <img src="templates_developable_folding_13_space_curve_fold_stages.webp" alt="Space Curve Fold">
+    <span class="wood-card-title">Space Curve Fold</span>
+  </a>
+  <a class="wood-card" href="#curved_miura">
+    <img src="templates_developable_folding_14_curved_miura_stages.webp" alt="Curved Miura">
+    <span class="wood-card-title">Curved Miura</span>
+  </a>
   <a class="wood-card" href="#developable_folding_assembly_sequence">
     <img src="assembly_templates_developable_folding_1_curved_fold.gif" alt="Assembly Sequence">
     <span class="wood-card-title">Assembly Sequence</span>
@@ -55,6 +63,7 @@ Folding needs no thickness. Every template builds its geometry on the surface fi
 - `CurvedCreaseUnfolding`: the mid-surface strips are traced at the target and deployed hinged on their shared creases (`compute_target`, `compute_stages` with `compute_reaches(target, 0)`, `add_strips`); the plates are deployed again with their hinges moved onto the faces, the axis shift of paper 5.3, so a closed stack is `n * t` thick (`compute_reaches(target, t)`, `add_plates`, `add_flat`). At `w = 1` the plates' mid-surface is the strips'.
 - `CreaseQuadrants`: the surface is every strip's hinge face (`compute_frame`, `compute_strips`, `add_strips`); the body goes `t` to its side, mitered at the crease (`add_plates`, `add_flat`).
 - `CurvedCreaseTube`: the walls run between spine, ridge and keel (`compute_profile`, `compute_stage`, `add_walls`); every plate is `t` thick centred on its wall, mitered where the walls meet (`add_plates`, `add_flat`).
+- `SpaceCurveFold` and `CurvedMiura`: the quads are folded from their crease pattern (`SpaceCurveRidge`, `folded`, `add_quads`); every quad of every stage becomes a plate last, mitered at its folds (`add_plates`).
 
 Every template is a `WoodSession` built from its guide in `developable_folding_guide.h`, a struct of fields with defaults and named presets:
 
@@ -242,6 +251,51 @@ Every strip is first its hinge face, rulings of `width` from the crease (group `
 </div>
 
 \include{lineno} templates_developable_folding_4_crease_quadrants.cpp
+
+---
+
+## Curved Folds from Space Curves {#space_curve_folds}
+
+A space curve is the folded crease of a curved fold of constant angle; discretized, the fold is a strip of planar quads that folds rigidly with one degree of freedom (Tachi, *One-DOF Rigid Foldable Structures from Space Curves*, IASS 2011, after the equations of Fuchs and Tabachnikov, *More on Paperfolding*, 1999). `SpaceCurveRidge` builds it in three steps, without thickness:
+
+- ribbon: a strip `w` wide whose centre line is the polyline, quad `Q_i` normal to `N_i`; the ruling at the next vertex is normal to `N_i`, at equal angles to `T_i` and `T_i+1`, and `w / 2` along `B_i` (Eq. 6); the next frame is `N_i+1 = r_i+1 x T_i+1`, `B_i+1 = T_i+1 x N_i+1`, started at the middle edge from its neighbours' tangents.
+- ridge: per edge two half-planes at `rho / 2` to `Q_i`, one on either side, trimmed where neighbouring half-planes meet into a continuous V; every quad is planar and every vertex satisfies Kawasaki (alternating sum of its sector angles 0), so the ridge is developable and flat-foldable.
+- folding: the ridge developed flat is the crease pattern; folded with its rulings fixed, every quad stays rigid, each vertex's crease ray solved from its two rulings and its flat sector angles, and the crease keeps one opening `w * rho` per stage, `w = 0` folded flat.
+
+### Space Curve Fold {#space_curve_fold}
+
+One crease, a `2 x n` strip. A smooth curve rolls up as it folds and its quads collide before it is flat; the zig-zagged curve, every other vertex moved along its curvature vector, folds flat without a crossing. `SpaceCurveFoldGuide::helix_fold()` is the default:
+
+| Field | Default | Description |
+| --- | --- | --- |
+| `curve` | `helix(2000.0, 3000.0, 1.5, 36)` | The space curve the crease follows, a ruling at every vertex |
+| `width` | `600.0` | The ribbon across, `w`, each arm `w / 2` from the crease |
+| `angle` | `60°` | `rho`, the opening between the arms, `0°` folded flat to `180°` a flat sheet |
+| `zigzag` | `0.0` | Every other vertex moved this far along its curvature vector, the others against it |
+| `deployments` | `{1.0}` | Per stage the opening as a fraction of `angle`; two or more side by side in `stage_<s>` |
+| `thickness` | `18.0` | Every plate, mitered at its folds, `0` for the quads alone |
+
+| Preset | Curve |
+| --- | --- |
+| `helix_fold()` | A helix of `2 m` radius rising `3 m` per turn, `1.5` turns |
+| `wave_fold()` | An arc of `3 m` radius over `172°` rising `0.8 m` and falling again, `wave(3000.0, 3.0, 800.0, 1.0, 40)` |
+| `zigzag_fold()` | The helix zig-zagged by `150`, from `60°` to `1.2°`, all but flat, without plates |
+
+| at its design angle | folded nearly flat in five stages |
+| --- | --- |
+| ![](templates/templates_developable_folding_13_space_curve_fold_design.webp) | ![](templates/templates_developable_folding_13_space_curve_fold_stages.webp) |
+
+\include{lineno} templates_developable_folding_13_space_curve_fold.cpp
+
+### Curved Miura Tessellation {#curved_miura}
+
+The ridge's arms trimmed so that every far edge is parallel to its crease edge, then strips added across, every other strip on the same arm's rulings: a generalized Miura-ori bent and twisted along the curve. Every vertex copies the ridge's, so the `m x n` quads fold with the same one degree of freedom. `CurvedMiuraGuide::helix_miura()` is the default, the fields of `SpaceCurveFoldGuide` with `width = 300.0` every strip across at the middle of the curve and `strips = 6`; `wave_miura()` and `zigzag_miura()` are the other presets.
+
+| at its design angle | three stages |
+| --- | --- |
+| ![](templates/templates_developable_folding_14_curved_miura_design.webp) | ![](templates/templates_developable_folding_14_curved_miura_stages.webp) |
+
+\include{lineno} templates_developable_folding_14_curved_miura.cpp
 
 <!-- assembly:begin -->
 ## Assembly Sequence {#developable_folding_assembly_sequence}

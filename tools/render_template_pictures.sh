@@ -91,6 +91,10 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
     "${RENDER[@]}" --name closed templates_developable_folding_11_corrugated_dome stage_0
     "${RENDER[@]}" --name plates templates_developable_folding_12_corrugated_funnel stage_1
     "${RENDER[@]}" --name closed templates_developable_folding_12_corrugated_funnel stage_0
+    "${RENDER[@]}" --name design templates_developable_folding_13_space_curve_fold stage_0_quads
+    "${RENDER[@]}" --name stages templates_developable_folding_13_space_curve_fold stage_0_quads+stage_1_quads+stage_2_quads+stage_3_quads+stage_4_quads
+    "${RENDER[@]}" --name design templates_developable_folding_14_curved_miura stage_0
+    "${RENDER[@]}" --name stages templates_developable_folding_14_curved_miura stage_0+stage_1+stage_2
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

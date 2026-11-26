@@ -276,4 +276,77 @@ CurvedCreaseTubeGuide CurvedCreaseTubeGuide::cellular_vault() {
     return CurvedCreaseTubeGuide();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SpaceCurveFoldGuide
+// ═══════════════════════════════════════════════════════════════════════════
+Polyline SpaceCurveFoldGuide::helix(double radius, double pitch, double turns, size_t points) {
+
+    std::vector<Point> sampled;
+
+    for (size_t i = 0; i <= points; i++) {
+        const double turn = turns * static_cast<double>(i) / static_cast<double>(points);
+        const double t = 2.0 * Tolerance::PI * turn;
+        sampled.push_back(Point(radius * std::cos(t), radius * std::sin(t), pitch * turn));
+    }
+
+    return Polyline(sampled);
+}
+
+Polyline SpaceCurveFoldGuide::wave(double radius, double sweep, double rise, double waves, size_t points) {
+
+    std::vector<Point> sampled;
+
+    for (size_t i = 0; i <= points; i++) {
+        const double along = static_cast<double>(i) / static_cast<double>(points);
+        const double t = sweep * (along - 0.5);
+        const double z = 0.5 * rise * (1.0 - std::cos(2.0 * Tolerance::PI * waves * along));
+        sampled.push_back(Point(radius * std::sin(t), radius * (std::cos(t) - 1.0), z));
+    }
+
+    return Polyline(sampled);
+}
+
+SpaceCurveFoldGuide SpaceCurveFoldGuide::helix_fold() {
+    return SpaceCurveFoldGuide();
+}
+
+SpaceCurveFoldGuide SpaceCurveFoldGuide::wave_fold() {
+
+    SpaceCurveFoldGuide guide;
+    guide.curve = wave(3000.0, 3.0, 800.0, 1.0, 40);
+    return guide;
+}
+
+SpaceCurveFoldGuide SpaceCurveFoldGuide::zigzag_fold() {
+
+    SpaceCurveFoldGuide guide;
+    guide.zigzag = 150.0;
+    guide.deployments = {1.0, 0.5, 0.2, 0.05, 0.02};
+    guide.thickness = 0.0;
+    return guide;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CurvedMiuraGuide
+// ═══════════════════════════════════════════════════════════════════════════
+CurvedMiuraGuide CurvedMiuraGuide::helix_miura() {
+    return CurvedMiuraGuide();
+}
+
+CurvedMiuraGuide CurvedMiuraGuide::wave_miura() {
+
+    CurvedMiuraGuide guide;
+    guide.curve = SpaceCurveFoldGuide::wave(3000.0, 3.0, 800.0, 1.0, 40);
+    return guide;
+}
+
+CurvedMiuraGuide CurvedMiuraGuide::zigzag_miura() {
+
+    CurvedMiuraGuide guide;
+    guide.zigzag = 150.0;
+    guide.deployments = {1.0, 0.5, 0.2, 0.05, 0.02};
+    guide.thickness = 0.0;
+    return guide;
+}
+
 }

@@ -6,6 +6,8 @@
 #include "src/templates/developable_folding/curved_crease_tube.h"
 #include "src/templates/developable_folding/curved_crease_unfolding.h"
 #include "src/templates/developable_folding/curved_fold.h"
+#include "src/templates/developable_folding/curved_miura.h"
+#include "src/templates/developable_folding/space_curve_fold.h"
 #include "src/templates/folding/counter_fold.h"
 #include "src/templates/folding/folded_frame.h"
 #include "src/templates/module/cassette_shell.h"
@@ -184,6 +186,36 @@ int main() {
     check(tube_check.distortion() < 1e-3 && tube_check.min_speed() > 0.1, "tachi tube: rigid 1-DOF space-curve deployment stays developable");
 
     check_template(wood_developable_folding::CurvedFold(), 12);
+
+    // a fold along a space curve: planar quads, flat-foldable vertices, one opening along the crease, its plates put in one by one
+    wood_developable_folding::SpaceCurveFoldGuide arc = wood_developable_folding::SpaceCurveFoldGuide::helix_fold();
+    arc.curve = wood_developable_folding::SpaceCurveFoldGuide::helix(2000.0, 3000.0, 0.4, 8);
+    const wood_developable_folding::SpaceCurveFold fold(arc);
+    const wood_developable_folding::FoldMeasures& folded = fold.measures();
+    check(folded.planarity < 1e-9 && folded.kawasaki < 1e-9 && folded.developability < 1e-9, "space curve fold: planar quads, developable and flat-foldable vertices");
+    check(std::abs(folded.openings[0] - arc.angle) < 1e-9 && std::abs(folded.openings[1] - arc.angle) < 1e-9, "space curve fold: one opening along the crease");
+    check_template(fold, 16);
+    const wood_developable_folding::SpaceCurveFold zigzag(wood_developable_folding::SpaceCurveFoldGuide::zigzag_fold(), "zigzag");
+    check(zigzag.measures().openings[0] < 0.021 * arc.angle && zigzag.measures().crossings == 0 && zigzag.measures().stretch < 1e-6, "space curve fold: the zig-zag folds flat, every edge kept, no quads crossing");
+
+    // a Miura-ori along the curve: the same checks over four strips, its plates put in one by one
+    wood_developable_folding::CurvedMiuraGuide strips = wood_developable_folding::CurvedMiuraGuide::helix_miura();
+    strips.curve = arc.curve;
+    strips.strips = 4;
+    strips.deployments = {1.0, 0.5};
+    const wood_developable_folding::CurvedMiura miura(strips);
+    const wood_developable_folding::FoldMeasures& tessellated = miura.measures();
+    check(tessellated.planarity < 1e-9 && tessellated.kawasaki < 1e-9 && tessellated.developability < 1e-9 && tessellated.stretch < 1e-6, "curved miura: planar quads, flat-foldable vertices, every edge kept");
+    check(std::abs(tessellated.openings[0] - 0.5 * strips.angle) < 1e-9 && std::abs(tessellated.openings[1] - strips.angle) < 1e-9, "curved miura: every crease at the stage's opening");
+    check_template(miura, 32);
+
+    // the other presets as bare quads: planar, flat-foldable and crossing nowhere
+    wood_developable_folding::SpaceCurveFoldGuide wave = wood_developable_folding::SpaceCurveFoldGuide::wave_fold();
+    wave.thickness = 0.0;
+    wood_developable_folding::CurvedMiuraGuide wavy = wood_developable_folding::CurvedMiuraGuide::wave_miura();
+    wavy.thickness = 0.0;
+    for (const wood_developable_folding::FoldMeasures& preset : {wood_developable_folding::SpaceCurveFold(wave).measures(), wood_developable_folding::CurvedMiura(wavy).measures(), wood_developable_folding::CurvedMiura(wood_developable_folding::CurvedMiuraGuide::zigzag_miura()).measures()})
+        check(preset.planarity < 1e-9 && preset.kawasaki < 1e-9 && preset.crossings == 0, "space curve presets: planar, flat-foldable, no quads crossing");
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

@@ -74,6 +74,7 @@ PAGES = {
             ("templates_developable_folding_11_corrugated_dome", "Corrugated dome"),
             ("templates_developable_folding_12_corrugated_funnel", "Corrugated funnel"),
             ("templates_developable_folding_4_crease_quadrants", "Crease quadrants"),
+            ("templates_developable_folding_14_curved_miura", "Curved Miura along a helix"),
         ],
     ),
     "chevron": (

@@ -160,4 +160,65 @@ struct CurvedCreaseTubeGuide {
     static CurvedCreaseTubeGuide cellular_vault();
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SpaceCurveFoldGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The geometry of one constant-angle curved fold along a space polyline in mm (Tachi 2011): a V ridge of planar quads, a ruling per vertex.
+struct SpaceCurveFoldGuide {
+    Polyline curve = helix(2000.0, 3000.0, 1.5, 36); // The space curve the crease follows, a ruling at every vertex.
+    double width = 600.0; // The ribbon across, w, each arm w / 2 from the crease.
+    double angle = 60.0 * Tolerance::TO_RADIANS; // rho, the opening between the arms, 0 folded flat to 180 a flat sheet.
+    double zigzag = 0.0; // mm, every other vertex moved along its curvature vector and the others against it, 0 for the curve itself.
+    std::vector<double> deployments = {1.0}; // Per stage the opening as a fraction of angle, 0 folded flat.
+    double thickness = 18.0; // Every plate, 0 for the quads alone.
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Curves
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// Helix of radius around z rising pitch per turn, turns long, in points segments.
+    static Polyline helix(double radius, double pitch, double turns, size_t points);
+
+    /// Arc of radius in plan sweeping sweep radians, rising rise and falling again waves times, in points segments.
+    static Polyline wave(double radius, double sweep, double rise, double waves, size_t points);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Presets
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// A helix of 2 m radius rising 3 m per turn, 1.5 turns in 36 segments, opened 60 degrees: the defaults.
+    static SpaceCurveFoldGuide helix_fold();
+
+    /// An arc of 3 m radius over 172 degrees rising 0.8 m and falling again, in 40 segments.
+    static SpaceCurveFoldGuide wave_fold();
+
+    /// The helix zig-zagged by 150 along its curvature vectors, folding from 60 degrees to 1.2, all but flat, without plates.
+    static SpaceCurveFoldGuide zigzag_fold();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CurvedMiuraGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The geometry of a generalized Miura-ori bent and twisted along a space polyline in mm (Tachi 2011): strips of the V ridge repeated across.
+struct CurvedMiuraGuide {
+    Polyline curve = SpaceCurveFoldGuide::helix(2000.0, 3000.0, 1.5, 36); // The space curve the middle crease follows.
+    double width = 300.0; // Every strip across at the middle of the curve.
+    double angle = 60.0 * Tolerance::TO_RADIANS; // rho, the opening at every crease, 0 folded flat to 180 a flat sheet.
+    double zigzag = 0.0; // mm, every other vertex moved along its curvature vector and the others against it, 0 for the curve itself.
+    size_t strips = 6; // Strips across, half on either side of the middle crease.
+    std::vector<double> deployments = {1.0}; // Per stage the opening as a fraction of angle, 0 folded flat.
+    double thickness = 18.0; // Every plate, 0 for the quads alone.
+
+    /// Six strips 300 wide along the helix of SpaceCurveFoldGuide, opened 60 degrees: the defaults.
+    static CurvedMiuraGuide helix_miura();
+
+    /// Six strips along the wave of SpaceCurveFoldGuide::wave_fold.
+    static CurvedMiuraGuide wave_miura();
+
+    /// Six strips along the zig-zagged helix, folding from 60 degrees to 1.2, all but flat, without plates.
+    static CurvedMiuraGuide zigzag_miura();
+};
+
 }
