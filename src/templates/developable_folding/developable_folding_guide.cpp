@@ -326,6 +326,15 @@ SpaceCurveFoldGuide SpaceCurveFoldGuide::zigzag_fold() {
     return guide;
 }
 
+SpaceCurveFoldGuide SpaceCurveFoldGuide::smooth_helix_fold() {
+
+    SpaceCurveFoldGuide guide;
+    guide.curve = helix(2000.0, 3000.0, 1.5, 180);
+    guide.deployments = {1.0, 0.5, 0.25, 0.1};
+    guide.smooth = true;
+    return guide;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CurvedMiuraGuide
 // ═══════════════════════════════════════════════════════════════════════════

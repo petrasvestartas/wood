@@ -434,6 +434,7 @@ ADD_EXE(templates_developable_folding_11_corrugated_dome               examples/
 ADD_EXE(templates_developable_folding_12_corrugated_funnel             examples/templates_developable_folding_12_corrugated_funnel.cpp)
 ADD_EXE(templates_developable_folding_13_space_curve_fold             examples/templates_developable_folding_13_space_curve_fold.cpp)
 ADD_EXE(templates_developable_folding_14_curved_miura                 examples/templates_developable_folding_14_curved_miura.cpp)
+ADD_EXE(templates_developable_folding_15_smooth_space_curve_fold      examples/templates_developable_folding_15_smooth_space_curve_fold.cpp)
 ADD_EXE(templates_cross_1_vda_mesh               examples/templates_cross_1_vda_mesh.cpp)
 ADD_EXE(templates_cross_2_assembly               examples/templates_cross_2_assembly.cpp)
 ADD_EXE(templates_cross_3_cardboard_shell        examples/templates_cross_3_cardboard_shell.cpp)

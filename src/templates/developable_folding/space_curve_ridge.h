@@ -26,6 +26,7 @@ struct FoldMeasures {
         0.0, 0.0
     }; // Radians, the smallest and largest opening at any crease of any stage.
     size_t crossings = 0; // Pairs of quads of a stage crossing each other, neighbours aside.
+    double distortion = 0.0; // Largest relative length error of a curved plate's flat development, 0 without curved plates.
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -70,6 +71,14 @@ public:
 
     /// Adds a mitered plate thickness thick on every quad of every stage moved by its shift, the first stage's put in one by one.
     static void add_plates(
+        WoodSession& session,
+        const std::vector<QuadGrid>& stages,
+        const std::vector<Vector>& shifts,
+        double thickness
+    );
+
+    /// Adds every arm of every stage moved by its shift as one curved plate thickness thick off its outer side, the first stage's put in one by one, and returns their largest development distortion.
+    static double add_arms(
         WoodSession& session,
         const std::vector<QuadGrid>& stages,
         const std::vector<Vector>& shifts,

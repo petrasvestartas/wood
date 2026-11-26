@@ -27,8 +27,11 @@ SpaceCurveFold::SpaceCurveFold(const SpaceCurveFoldGuide& guide, const std::stri
     if (guide.thickness == 0.0)
         return;
 
-    // plates: every quad of every stage a mitered plate, the first stage's put in one by one
-    SpaceCurveRidge::add_plates(*this, stages, shifts, guide.thickness);
+    // plates: smooth, every arm of every stage one curved plate checked by its development; else every quad a mitered plate
+    if (guide.smooth)
+        _measures.distortion = SpaceCurveRidge::add_arms(*this, stages, shifts, guide.thickness);
+    else
+        SpaceCurveRidge::add_plates(*this, stages, shifts, guide.thickness);
 }
 
 }

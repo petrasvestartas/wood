@@ -1,5 +1,6 @@
 #include "src/templates/developable_folding/space_curve_ridge.h"
 #include "src/templates/template_chamfer.h"
+#include "src/templates/development.h"
 
 namespace wood_developable_folding {
 
@@ -482,6 +483,84 @@ void SpaceCurveRidge::add_plates(
     session.assemblies.push_back(
         AssemblyModule::module(session.name, AssemblyModule::parts_of(first))
     );
+}
+
+double SpaceCurveRidge::add_arms(
+    WoodSession& session,
+    const std::vector<QuadGrid>& stages,
+    const std::vector<Vector>& shifts,
+    double thickness
+) {
+
+    const bool sequence = stages.size() > 1;
+    double distortion = 0.0;
+    std::vector<std::shared_ptr<FaceCurvedElement>> first;
+
+    for (size_t s = 0; s < stages.size(); s++) {
+        const std::shared_ptr<TreeNode> group =
+            session.group_named(sequence ? fmt::format("stage_{}", s) : "plates");
+        const std::string prefix = sequence ? fmt::format("stage_{}_plate", s) : "plate";
+        const Vector& shift = shifts[s];
+        const QuadGrid& grid = stages[s];
+        const size_t count = grid[1].size();
+
+        for (size_t arm = 0; arm < 2; arm++) {
+            const std::vector<Point>& crease = grid[1];
+            const std::vector<Point>& edge = grid[2 * arm];
+            const std::vector<Point>& other = grid[2 - 2 * arm];
+
+            // faces: the arm's surface, and the surface moved thickness along every ruling's normal away from the other arm
+            std::vector<Point> surface_crease;
+            std::vector<Point> surface_edge;
+            std::vector<Point> offset_crease;
+            std::vector<Point> offset_edge;
+
+            for (size_t i = 0; i < count; i++) {
+                Vector normal(0.0, 0.0, 0.0);
+                for (size_t quad = i == 0 ? 0 : i - 1; quad <= std::min(i, count - 2); quad++)
+                    normal += (crease[quad + 1] - crease[quad]).cross(edge[quad] - crease[quad]).normalized();
+                normal = normal.normalized();
+                if (normal.dot(other[i] - crease[i]) > 0.0)
+                    normal = normal * -1.0;
+
+                surface_crease.push_back(crease[i] + shift);
+                surface_edge.push_back(edge[i] + shift);
+                offset_crease.push_back(crease[i] + shift + normal * thickness);
+                offset_edge.push_back(edge[i] + shift + normal * thickness);
+            }
+
+            NurbsCurve outer_a = NurbsCurve::create_interpolated(offset_crease, CurveNurbsKnotStyle::Uniform);
+            NurbsCurve outer_b = NurbsCurve::create_interpolated(offset_edge, CurveNurbsKnotStyle::Uniform);
+            NurbsCurve inner_a = NurbsCurve::create_interpolated(surface_crease, CurveNurbsKnotStyle::Uniform);
+            NurbsCurve inner_b = NurbsCurve::create_interpolated(surface_edge, CurveNurbsKnotStyle::Uniform);
+
+            // outward closed_mesh winding: ((outer_b - outer_a) x tangent) . (outer_a - inner_a) > 0
+            const size_t middle = count / 2;
+            const Vector tangent = offset_crease[middle + 1] - offset_crease[middle];
+            const Vector across = offset_edge[middle] - offset_crease[middle];
+            const Vector up = offset_crease[middle] - surface_crease[middle];
+            if (across.cross(tangent).dot(up) < 0.0) {
+                std::swap(outer_a, outer_b);
+                std::swap(inner_a, inner_b);
+            }
+
+            // plate: the curved plate and its flat development's error
+            const std::shared_ptr<FaceCurvedElement> plate = std::make_shared<FaceCurvedElement>(
+                outer_a, outer_b, inner_a, inner_b, fmt::format("{}_{}", prefix, arm)
+            );
+            distortion = std::max(distortion, Development(*plate, count - 1).distortion);
+            session.add(plate, group);
+            if (s == 0)
+                first.push_back(plate);
+        }
+    }
+
+    // assembly: the first stage's two arms put in one after the other
+    session.assemblies.push_back(
+        AssemblyModule::module(session.name, AssemblyModule::parts_of(first))
+    );
+
+    return distortion;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

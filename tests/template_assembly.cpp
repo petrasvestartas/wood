@@ -198,6 +198,15 @@ int main() {
     const wood_developable_folding::SpaceCurveFold zigzag(wood_developable_folding::SpaceCurveFoldGuide::zigzag_fold(), "zigzag");
     check(zigzag.measures().openings[0] < 0.021 * arc.angle && zigzag.measures().crossings == 0 && zigzag.measures().stretch < 1e-6, "space curve fold: the zig-zag folds flat, every edge kept, no quads crossing");
 
+    // the smooth fold: every arm one curved plate, its development exact, both put in one after the other
+    wood_developable_folding::SpaceCurveFoldGuide smooth = wood_developable_folding::SpaceCurveFoldGuide::smooth_helix_fold();
+    smooth.curve = wood_developable_folding::SpaceCurveFoldGuide::helix(2000.0, 3000.0, 0.4, 48);
+    smooth.deployments = {1.0};
+    const wood_developable_folding::SpaceCurveFold curved(smooth, "smooth_fold");
+    check(curved.measures().distortion < 1e-3 && curved.get_elements<FaceCurvedElement>().size() == 2, "smooth space curve fold: two curved plates that develop flat");
+    check_template(curved, 2);
+    check(wood_developable_folding::SpaceCurveFold(wood_developable_folding::SpaceCurveFoldGuide::smooth_helix_fold(), "smooth_stages").measures().crossings == 0, "smooth space curve fold: no quads crossing down to 6 degrees");
+
     // a Miura-ori along the curve: the same checks over four strips, its plates put in one by one
     wood_developable_folding::CurvedMiuraGuide strips = wood_developable_folding::CurvedMiuraGuide::helix_miura();
     strips.curve = arc.curve;

@@ -95,6 +95,8 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
     "${RENDER[@]}" --name stages templates_developable_folding_13_space_curve_fold stage_0_quads+stage_1_quads+stage_2_quads+stage_3_quads+stage_4_quads
     "${RENDER[@]}" --name design templates_developable_folding_14_curved_miura stage_0
     "${RENDER[@]}" --name stages templates_developable_folding_14_curved_miura stage_0+stage_1+stage_2
+    "${RENDER[@]}" --name design templates_developable_folding_15_smooth_space_curve_fold stage_0
+    "${RENDER[@]}" --name stages templates_developable_folding_15_smooth_space_curve_fold stage_0+stage_1+stage_2+stage_3
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = chevron ]; then

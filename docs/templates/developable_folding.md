@@ -274,18 +274,28 @@ One crease, a `2 x n` strip. A smooth curve rolls up as it folds and its quads c
 | `zigzag` | `0.0` | Every other vertex moved this far along its curvature vector, the others against it |
 | `deployments` | `{1.0}` | Per stage the opening as a fraction of `angle`; two or more side by side in `stage_<s>` |
 | `thickness` | `18.0` | Every plate, mitered at its folds, `0` for the quads alone |
+| `smooth` | `false` | Every arm one curved plate over its interpolated crease and edge, offset away from the other arm, not a mitered plate per quad |
 
 | Preset | Curve |
 | --- | --- |
 | `helix_fold()` | A helix of `2 m` radius rising `3 m` per turn, `1.5` turns |
 | `wave_fold()` | An arc of `3 m` radius over `172°` rising `0.8 m` and falling again, `wave(3000.0, 3.0, 800.0, 1.0, 40)` |
 | `zigzag_fold()` | The helix zig-zagged by `150`, from `60°` to `1.2°`, all but flat, without plates |
+| `smooth_helix_fold()` | The helix in `180` segments, from `60°` to `6°`, one curved plate per arm |
 
 | at its design angle | folded nearly flat in five stages |
 | --- | --- |
 | ![](templates/templates_developable_folding_13_space_curve_fold_design.webp) | ![](templates/templates_developable_folding_13_space_curve_fold_stages.webp) |
 
 \include{lineno} templates_developable_folding_13_space_curve_fold.cpp
+
+The zig-zag is polygonal on purpose: its alternating curvature is what lets it fold flat (Tachi 2011, 4.1). The same helix sampled densely and not zig-zagged is the smooth curved fold, its arms one curved plate each; folding raises its curvature and torsion until it rolls into itself, here a little below `6°`.
+
+| smooth, at its design angle | folded from `60°` to `6°` |
+| --- | --- |
+| ![](templates/templates_developable_folding_15_smooth_space_curve_fold_design.webp) | ![](templates/templates_developable_folding_15_smooth_space_curve_fold_stages.webp) |
+
+\include{lineno} templates_developable_folding_15_smooth_space_curve_fold.cpp
 
 ### Curved Miura Tessellation {#curved_miura}
 

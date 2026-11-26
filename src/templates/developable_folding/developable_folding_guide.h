@@ -172,6 +172,7 @@ struct SpaceCurveFoldGuide {
     double zigzag = 0.0; // mm, every other vertex moved along its curvature vector and the others against it, 0 for the curve itself.
     std::vector<double> deployments = {1.0}; // Per stage the opening as a fraction of angle, 0 folded flat.
     double thickness = 18.0; // Every plate, 0 for the quads alone.
+    bool smooth = false; // Every arm one curved plate over its crease and edge, not a mitered plate per quad.
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Curves
@@ -195,6 +196,9 @@ struct SpaceCurveFoldGuide {
 
     /// The helix zig-zagged by 150 along its curvature vectors, folding from 60 degrees to 1.2, all but flat, without plates.
     static SpaceCurveFoldGuide zigzag_fold();
+
+    /// The helix in 180 segments, every arm one curved plate, folding from 60 to 6 degrees before its arms collide.
+    static SpaceCurveFoldGuide smooth_helix_fold();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
