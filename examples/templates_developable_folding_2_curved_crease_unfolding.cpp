@@ -8,11 +8,13 @@ using namespace wood_developable_folding;
 /// Monoclastic corrugated arch by curved-crease unfolding on parallel planes.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::monoclastic());
+    CurvedCreaseUnfoldingGuide guide = CurvedCreaseUnfoldingGuide::monoclastic();
+    guide.deployments = {0.0, 1.0};
+    CurvedCreaseUnfolding unfolding(guide);
     std::cout << unfolding << std::endl;
     std::cout << fmt::format(
         "curved-crease unfolding: {} plates, {} flat pieces, {} contacts, development distortion {:.2e}, drift {:.3f} mm\n",
-        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
+        unfolding.get_elements_placed<FaceCurvedElement>("stage").size(),
         unfolding.get_elements_placed<FaceCurvedElement>("flat").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),

@@ -8,11 +8,13 @@ using namespace wood_developable_folding;
 /// Corrugated CCU vault with alternating plane inclinations around the actuation axis at mid-height.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::alternating());
+    CurvedCreaseUnfoldingGuide guide = CurvedCreaseUnfoldingGuide::alternating();
+    guide.deployments = {0.0, 1.0};
+    CurvedCreaseUnfolding unfolding(guide);
     std::cout << unfolding << std::endl;
     std::cout << fmt::format(
         "alternating unfolding: {} plates, {} contacts, development distortion {:.2e}, support drift {:.0f} mm\n",
-        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
+        unfolding.get_elements_placed<FaceCurvedElement>("stage").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()

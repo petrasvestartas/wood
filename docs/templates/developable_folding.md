@@ -139,9 +139,13 @@ The presets follow the paper's catalog of rules (5.4 and 5.5):
 
 The arc and catenary profiles of Fig. 9 are there; the Elastica, the funicular under asymmetric loads and the freeform crease with inflection points are not (no factory solves them; a freeform crease can be passed as any planar `NurbsCurve`, untested).
 
+Every unfolding is shown at its design angle, the shape it is designed for and fixed in (the formwork's or the vault's), and closed: the plates stacked flat, n x t thick, as they are cut, joined and transported (Scheder-Bieschin et al. 2023, Sec. 5.4; 2022, Fig. 2). Its examples build both with `guide.deployments = {0.0, 1.0}`.
+
 ### Monoclastic Corrugated Arch on Parallel Planes {#curved_crease_arch}
 
-![](templates/templates_developable_folding_2_curved_crease_unfolding_plates.webp)
+| unfolded to its design angle | closed for transport |
+| --- | --- |
+| ![](templates/templates_developable_folding_2_curved_crease_unfolding_plates.webp) | ![](templates/templates_developable_folding_2_curved_crease_unfolding_closed.webp) |
 
 \include{lineno} templates_developable_folding_2_curved_crease_unfolding.cpp
 
@@ -153,25 +157,33 @@ The arc and catenary profiles of Fig. 9 are there; the Elastica, the funicular u
 
 ### Doubly-Curved Synclastic Vault by Plane Spacing {#synclastic_unfolding}
 
-![](templates/templates_developable_folding_5_synclastic_unfolding_plates.webp)
+| unfolded to its design angle | closed for transport |
+| --- | --- |
+| ![](templates/templates_developable_folding_5_synclastic_unfolding_plates.webp) | ![](templates/templates_developable_folding_5_synclastic_unfolding_closed.webp) |
 
 \include{lineno} templates_developable_folding_5_synclastic_unfolding.cpp
 
 ### Alternating Inclination About the Actuation Axis {#alternating_unfolding}
 
-![](templates/templates_developable_folding_9_alternating_unfolding_plates.webp)
+| unfolded to its design angle | closed for transport |
+| --- | --- |
+| ![](templates/templates_developable_folding_9_alternating_unfolding_plates.webp) | ![](templates/templates_developable_folding_9_alternating_unfolding_closed.webp) |
 
 \include{lineno} templates_developable_folding_9_alternating_unfolding.cpp
 
 ### Corrugated Rotational Dome (24 Sectors) {#corrugated_dome}
 
-![](templates/templates_developable_folding_11_corrugated_dome_plates.webp)
+| unfolded to its design angle | closed for transport |
+| --- | --- |
+| ![](templates/templates_developable_folding_11_corrugated_dome_plates.webp) | ![](templates/templates_developable_folding_11_corrugated_dome_closed.webp) |
 
 \include{lineno} templates_developable_folding_11_corrugated_dome.cpp
 
 ### Corrugated Funnel Column (32 Sectors) {#corrugated_funnel}
 
-![](templates/templates_developable_folding_12_corrugated_funnel_plates.webp)
+| unfolded to its design angle | closed for transport |
+| --- | --- |
+| ![](templates/templates_developable_folding_12_corrugated_funnel_plates.webp) | ![](templates/templates_developable_folding_12_corrugated_funnel_closed.webp) |
 
 \include{lineno} templates_developable_folding_12_corrugated_funnel.cpp
 

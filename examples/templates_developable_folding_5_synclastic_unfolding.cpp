@@ -8,11 +8,13 @@ using namespace wood_developable_folding;
 /// Doubly-curved synclastic CCU vault by modulated distances of parallel planes.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::synclastic());
+    CurvedCreaseUnfoldingGuide guide = CurvedCreaseUnfoldingGuide::synclastic();
+    guide.deployments = {0.0, 1.0};
+    CurvedCreaseUnfolding unfolding(guide);
     std::cout << unfolding << std::endl;
     std::cout << fmt::format(
         "synclastic unfolding: {} plates, {} contacts, development distortion {:.2e}, support drift {:.3f} mm\n",
-        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
+        unfolding.get_elements_placed<FaceCurvedElement>("stage").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()

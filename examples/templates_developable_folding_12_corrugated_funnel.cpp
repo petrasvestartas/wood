@@ -8,11 +8,13 @@ using namespace wood_developable_folding;
 /// A corrugated funnel column of curved-crease unfolding: a flaring arc mirrored in 32 meridian planes around the vertical axis.
 int main() {
 
-    CurvedCreaseUnfolding unfolding(CurvedCreaseUnfoldingGuide::funnel());
+    CurvedCreaseUnfoldingGuide guide = CurvedCreaseUnfoldingGuide::funnel();
+    guide.deployments = {0.0, 1.0};
+    CurvedCreaseUnfolding unfolding(guide);
     std::cout << unfolding << std::endl;
     std::cout << fmt::format(
         "corrugated funnel: {} plates, {} contacts, development distortion {:.2e}, support drift {:.0f} mm\n",
-        unfolding.get_elements_placed<FaceCurvedElement>("plate").size(),
+        unfolding.get_elements_placed<FaceCurvedElement>("stage").size(),
         unfolding.get_contacts().size(),
         unfolding.distortion(),
         unfolding.drift()
