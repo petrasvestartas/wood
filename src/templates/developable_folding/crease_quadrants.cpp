@@ -89,7 +89,7 @@ CreaseQuadrants::Frame CreaseQuadrants::compute_frame() const {
         frame.points = target_points;
         frame.tangents = target_tangents;
     } else {
-        // uncurl the crease by cos(alpha) = k_2d / k_3d (Eq. 5 and 8)
+        // uncurl the crease by cos(alpha) = k_2d / k_3d (Fuchs and Tabachnikov 1999), on the crease's polyline
         const Vector u = frame.plane.x_axis().normalized();
         const Vector v = frame.plane.y_axis().normalized();
         std::vector<std::array<double, 2>> xy_target(samples + 1);

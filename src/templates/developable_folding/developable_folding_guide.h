@@ -87,37 +87,37 @@ struct CurvedCreaseUnfoldingGuide {
     );
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // Presets: the paper's rules (Scheder-Bieschin, Van Mele and Block, AAG 2023, 5.4 and 5.5)
+    // Presets: the shape set by the crease's profile, the planes' distance and their inclination
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Monoclastic corrugated arch: a 9 m semicircle on thirteen parallel planes 450 apart (Fig. 10a), the defaults.
+    /// Monoclastic corrugated arch: a 9 m semicircle on thirteen parallel planes 450 apart, the defaults.
     static CurvedCreaseUnfoldingGuide monoclastic();
 
-    /// Synclastic vault: the plane distances stepping by 95 towards the middle (Fig. 10b).
+    /// Synclastic vault: the plane distances stepping by 95 towards the middle.
     static CurvedCreaseUnfoldingGuide synclastic();
 
-    /// Anticlastic vault: the plane distances stepping by 95 away from the middle (Fig. 10c).
+    /// Anticlastic vault: the plane distances stepping by 95 away from the middle.
     static CurvedCreaseUnfoldingGuide anticlastic();
 
-    /// Catenary crease of 6 m span and 2.8 m rise on nine parallel planes 420 apart (Fig. 9c).
+    /// Catenary crease of 6 m span and 2.8 m rise on nine parallel planes 420 apart.
     static CurvedCreaseUnfoldingGuide catenary_vault();
 
     /// The catenary vault unfolding from its closed stack through w = 0.35 and 0.70 to the target.
     static CurvedCreaseUnfoldingGuide unfolding_sequence();
 
-    /// Every other plane pair inclined by 5 degrees around the actuation axis at mid-height (Fig. 11).
+    /// Every other plane pair inclined by 5 degrees around the actuation axis at mid-height.
     static CurvedCreaseUnfoldingGuide alternating();
 
-    /// The planes inclined progressively by 3 degrees around the actuation axis at the crown, the crown kept level (Fig. 11).
+    /// The planes inclined progressively by 3 degrees around the actuation axis at the crown, the crown kept level.
     static CurvedCreaseUnfoldingGuide level_crown();
 
-    /// Every other plane pair inclined by 3 degrees perpendicular to the actuation axis, articulating to the sides (Fig. 12a).
+    /// Every other plane pair inclined by 3 degrees perpendicular to the actuation axis, articulating to the sides.
     static CurvedCreaseUnfoldingGuide asymmetric();
 
-    /// Corrugated dome: a meridian arc of a 6 m sphere in 25 radial planes 15 degrees apart (Fig. 12b).
+    /// Corrugated dome: a meridian arc of a 6 m sphere in 25 radial planes 15 degrees apart.
     static CurvedCreaseUnfoldingGuide dome();
 
-    /// Corrugated funnel column: a flaring quarter circle of 5 m in 33 radial planes 11.25 degrees apart (Fig. 12c).
+    /// Corrugated funnel column: a flaring quarter circle of 5 m in 33 radial planes 11.25 degrees apart.
     static CurvedCreaseUnfoldingGuide funnel();
 };
 

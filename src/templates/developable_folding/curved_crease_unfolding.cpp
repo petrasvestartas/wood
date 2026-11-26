@@ -38,7 +38,7 @@ CurvedCreaseUnfolding::CurvedCreaseUnfolding(
     if (guide.thickness == 0.0)
         return;
 
-    // plates: every strip a plate, hinged on its faces (the axis shift of paper 5.3) and mitered on the planes
+    // plates: every strip a plate, hinged on its faces (an axis shift, Shimoda, Tachi and Sato 2020) and mitered on the planes
     const std::vector<DeployedStage> plates =
         compute_stages(start, target, compute_reaches(target, guide.thickness));
     add_plates(plates, shifts);

@@ -2,7 +2,7 @@
 
 [TOC]
 
-Developable [Curved Plate](@ref elements_face_curved) structures: a ruled tent roof, flat-foldable curved-crease unfolding (CCU) with one-degree-of-freedom deployment, composite space-curve tube vaults with harmonic torsion, and the four CCF/CCU quadrants of a single crease (`src/templates/developable_folding/`, after Scheder-Bieschin, Van Mele and Block, *ACADIA 2022* and *AAG 2023*, and Tachi, *Transformables 2013*).
+Developable [Curved Plate](@ref elements_face_curved) structures: a ruled tent roof, flat-foldable curved-crease unfolding (CCU) with one-degree-of-freedom deployment, composite space-curve tube vaults with harmonic torsion, and the four CCF/CCU quadrants of a single crease (`src/templates/developable_folding/`, after Tachi, *Transformables 2013*).
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#curved_fold_roof">
@@ -122,24 +122,24 @@ Curved-crease unfolding (CCU) joins stacked planar bending-active strips along c
 | `leaning(origin, along, axis, count, spacing, lean)` | Progressive `i * lean` inclination about `axis` | Level-crown curved-plan or saddle-crown linear-plan vaults |
 | `fan(origin, axis, first, count, angle)` | Radial meridian planes rotated by `angle` around `axis` | Closed `360°` corrugated dome or funnel column |
 
-The presets follow the paper's catalog of rules (5.4 and 5.5):
+The presets shape the vault by the crease's profile, the distance between the planes and their inclination:
 
 | Preset | Rule | Example |
 | --- | --- | --- |
-| `monoclastic()` | Constant plane distance (Fig. 10a), the default | 2 |
-| `synclastic()` | Plane distance decreasing towards the middle (Fig. 10b) | 5 |
-| `anticlastic()` | Plane distance decreasing away from the middle (Fig. 10c) | |
-| `catenary_vault()` | Catenary crease profile (Fig. 9c) | |
+| `monoclastic()` | Constant plane distance, the default | 2 |
+| `synclastic()` | Plane distance decreasing towards the middle | 5 |
+| `anticlastic()` | Plane distance decreasing away from the middle | |
+| `catenary_vault()` | Catenary crease profile | |
 | `unfolding_sequence()` | The catenary vault at `w = 0, 0.35, 0.70, 1` | 3 |
-| `alternating()` | Inclination around the actuation axis, alternating (Fig. 11) | 9 |
-| `level_crown()` | Inclination around the actuation axis, progressive, the crown level (Fig. 11) | |
-| `asymmetric()` | Inclination perpendicular to the actuation axis, sideways (Fig. 12a) | |
-| `dome()` | Consecutive radial inclinations, a dome (Fig. 12b) | 11 |
-| `funnel()` | Consecutive radial inclinations, a funnel column (Fig. 12c) | 12 |
+| `alternating()` | Inclination around the actuation axis, alternating | 9 |
+| `level_crown()` | Inclination around the actuation axis, progressive, the crown level | |
+| `asymmetric()` | Inclination perpendicular to the actuation axis, sideways | |
+| `dome()` | Consecutive radial inclinations, a dome | 11 |
+| `funnel()` | Consecutive radial inclinations, a funnel column | 12 |
 
-The arc and catenary profiles of Fig. 9 are there; the Elastica, the funicular under asymmetric loads and the freeform crease with inflection points are not (no factory solves them; a freeform crease can be passed as any planar `NurbsCurve`, untested).
+Arc and catenary creases are there; the Elastica, the funicular under asymmetric loads and the freeform crease with inflection points are not (no factory solves them; a freeform crease can be passed as any planar `NurbsCurve`, untested).
 
-Every unfolding is shown at its design angle, the shape it is designed for and fixed in (the formwork's or the vault's), and closed: the plates stacked flat, n x t thick, as they are cut, joined and transported (Scheder-Bieschin et al. 2023, Sec. 5.4; 2022, Fig. 2). Its examples build both with `guide.deployments = {0.0, 1.0}`.
+Every unfolding is shown at its design angle, the shape it is designed for and fixed in (the formwork's or the vault's), and closed: the plates stacked flat, n x t thick, as they are cut, joined and transported. Its examples build both with `guide.deployments = {0.0, 1.0}`.
 
 ### Monoclastic Corrugated Arch on Parallel Planes {#curved_crease_arch}
 

@@ -118,7 +118,7 @@ private:
         double fraction
     ) const;
 
-    /// Uncurls a planar crease on plane for reflection angle alpha = fraction * opening (Eq. 5 and 8).
+    /// Uncurls a planar crease on plane for reflection angle alpha = fraction * opening (Fuchs and Tabachnikov 1999).
     std::vector<Point>
     uncurl_crease(const std::vector<Point>& points, const Plane& plane, double fraction) const;
 
