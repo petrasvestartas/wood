@@ -620,30 +620,14 @@ void CurvedCreaseUnfolding::add_plates(
 
 void CurvedCreaseUnfolding::add_flat() {
 
-    const std::shared_ptr<TreeNode> flat = group_named("flat");
-    double max_x = -std::numeric_limits<double>::infinity();
-    for (const std::shared_ptr<Element>& element : elements())
-        for (const Point& corner : element->aabb().corners())
-            max_x = std::max(max_x, corner[0]);
+    std::vector<Development> developments;
 
-    double cursor_x = max_x + 1200.0;
+    for (size_t i = 0; i + 1 < guide.planes.size(); i++)
+        developments.emplace_back(
+            *get_element_by_name<FaceCurvedElement>(fmt::format("{}_{}", stage_names(0)[1], i)), guide.samples, fmt::format("flat_{}", i)
+        );
 
-    for (size_t i = 0; i + 1 < guide.planes.size(); i++) {
-        const std::shared_ptr<FaceCurvedElement> plate =
-            get_element_by_name<FaceCurvedElement>(fmt::format("{}_{}", stage_names(0)[1], i));
-        const Development development(*plate, guide.samples, fmt::format("flat_{}", i));
-        const AABB bounds = AABB::merge(
-            AABB::from_polyline(development.bottom), AABB::from_polyline(development.top)
-        );
-        const std::shared_ptr<FaceCurvedElement> piece =
-            std::make_shared<FaceCurvedElement>(*development.piece);
-        piece->name = fmt::format("flat_{}", i);
-        piece->place(
-            Xform::translation(cursor_x - bounds.min_point()[0], -bounds.min_point()[1], 0.0)
-        );
-        add(piece, flat);
-        cursor_x += bounds.max_point()[0] - bounds.min_point()[0] + 300.0;
-    }
+    Development::add_flat(*this, developments, 4, 300.0);
 }
 
 void CurvedCreaseUnfolding::add_assembly() {

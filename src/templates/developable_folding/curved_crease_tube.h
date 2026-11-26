@@ -138,7 +138,7 @@ private:
     /// Adds every stage's walls as plates of the thickness, centred on the walls and mitered on the creases.
     void add_plates(const std::vector<DeployedVault>& stages, const std::vector<Vector>& shifts);
 
-    /// Adds the plates of the first stage unrolled into flat pieces in a tubes x 4 layout, group flat.
+    /// Adds every plate unrolled into its flat piece on a cutting sheet, group flat.
     void add_flat();
 
     /// The assembly: four walls per tube, then the tubes side by side.

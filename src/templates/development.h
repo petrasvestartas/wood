@@ -53,9 +53,10 @@ public:
     // Scene export
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /// Place flat 2D cutting outlines side by side in group "flat" beside session's 3D elements.
+    /// Every development's piece on a cutting sheet beside the session's model, group flat: turned so its longest chord runs along x and
+    /// its arc bulges the same way, in rows of count, gap apart.
     static void add_flat(
-        WoodSession& session, const std::vector<Development>& developments, double gap = 400.0
+        WoodSession& session, const std::vector<Development>& developments, size_t count = 4, double gap = 300.0
     );
 
     /// Lay the outlines of developments flat in group "pattern" under box, in rows of columns gap apart, named pattern_i.

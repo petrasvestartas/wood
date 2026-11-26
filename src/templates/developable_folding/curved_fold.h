@@ -54,7 +54,7 @@ private:
         const std::vector<NurbsCurve>& meridians, const std::vector<std::vector<Point>>& inner_stars
     );
 
-    /// Adds every lamella unrolled into its flat piece side by side in the xy plane, group flat.
+    /// Adds every plate unrolled into its flat piece on a cutting sheet, group flat.
     void add_flat();
 };
 

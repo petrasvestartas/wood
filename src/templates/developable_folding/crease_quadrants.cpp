@@ -310,31 +310,14 @@ void CreaseQuadrants::add_plates(const std::array<std::array<Strip, 2>, 4>& stri
 
 void CreaseQuadrants::add_flat() {
 
-    const std::shared_ptr<TreeNode> flat = group_named("flat");
-    double max_x = -std::numeric_limits<double>::infinity();
-    for (const std::shared_ptr<Element>& element : elements())
-        for (const Point& corner : element->aabb().corners())
-            max_x = std::max(max_x, corner[0]);
-
-    double cursor_x = max_x + 1200.0;
+    std::vector<Development> developments;
 
     for (size_t i = 0; i < 8; i++) {
         const std::string suffix = fmt::format("quadrant_{}_{}", i / 2 + 1, i % 2);
-        const Development development(
-            *get_element_by_name<FaceCurvedElement>(suffix), guide.samples, "flat_" + suffix
-        );
-        const AABB bounds = AABB::merge(
-            AABB::from_polyline(development.bottom), AABB::from_polyline(development.top)
-        );
-        const std::shared_ptr<FaceCurvedElement> piece =
-            std::make_shared<FaceCurvedElement>(*development.piece);
-        piece->name = "flat_" + suffix;
-        piece->place(
-            Xform::translation(cursor_x - bounds.min_point()[0], -bounds.min_point()[1], 0.0)
-        );
-        add(piece, flat);
-        cursor_x += bounds.max_point()[0] - bounds.min_point()[0] + 300.0;
+        developments.emplace_back(*get_element_by_name<FaceCurvedElement>(suffix), guide.samples, "flat_" + suffix);
     }
+
+    Development::add_flat(*this, developments, 4, 300.0);
 }
 
 }

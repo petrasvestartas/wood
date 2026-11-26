@@ -88,7 +88,7 @@ private:
     /// Adds every strip as a plate of the thickness on its body side, the hinge face on the strip and the miter at the crease.
     void add_plates(const std::array<std::array<Strip, 2>, 4>& strips);
 
-    /// Adds every plate unrolled into its flat piece side by side in the xy plane, group flat.
+    /// Adds every plate unrolled into its flat piece on a cutting sheet, group flat.
     void add_flat();
 };
 

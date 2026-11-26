@@ -518,55 +518,18 @@ void CurvedCreaseTube::add_plates(
 
 void CurvedCreaseTube::add_flat() {
 
-    const std::array<const char*, 4> order = {
-        "bottom_left", "top_left", "bottom_right", "top_right"
-    };
-    double low_x = std::numeric_limits<double>::infinity();
-    double low_y = std::numeric_limits<double>::infinity();
-    double high_y = -std::numeric_limits<double>::infinity();
-    for (const std::shared_ptr<Element>& element : elements())
-        for (const Point& corner : element->aabb().corners()) {
-            low_x = std::min(low_x, corner[0]);
-            low_y = std::min(low_y, corner[1]);
-            high_y = std::max(high_y, corner[1]);
-        }
+    const std::array<const char*, 4> order = {"bottom_left", "top_left", "bottom_right", "top_right"};
+    std::vector<Development> developments;
 
-    std::vector<std::shared_ptr<FaceCurvedElement>> pieces;
-    double max_dx = 0.0;
-    double max_dy = 0.0;
     for (size_t b = 0; b < guide.tubes; b++)
-        for (const char* suffix : order) {
-            const std::shared_ptr<FaceCurvedElement> plate = get_element_by_name<FaceCurvedElement>(
-                fmt::format("{}_{}_{}", prefix(0), b, suffix)
+        for (const char* suffix : order)
+            developments.emplace_back(
+                *get_element_by_name<FaceCurvedElement>(fmt::format("{}_{}_{}", prefix(0), b, suffix)),
+                guide.samples,
+                fmt::format("flat_{}_{}", b, suffix)
             );
-            const Development development(
-                *plate, guide.samples, fmt::format("flat_{}_{}", b, suffix)
-            );
-            pieces.push_back(development.piece);
-            const OBB bounds = development.piece->aabb();
-            max_dx = std::max(max_dx, bounds.max_point()[0] - bounds.min_point()[0]);
-            max_dy = std::max(max_dy, bounds.max_point()[1] - bounds.min_point()[1]);
-        }
 
-    const std::shared_ptr<TreeNode> flat = group_named("flat");
-    const double start_y = high_y + 0.35 * guide.span;
-    const double pitch_x = max_dx + 0.08 * guide.span;
-    const double pitch_y = max_dy + 0.06 * guide.span;
-
-    for (size_t i = 0; i < pieces.size(); i++) {
-        const OBB bounds = pieces[i]->aabb();
-        const std::shared_ptr<FaceCurvedElement> piece =
-            std::make_shared<FaceCurvedElement>(*pieces[i]);
-        piece->name = pieces[i]->name;
-        piece->place(
-            Xform::translation(
-                low_x + static_cast<double>(i % 4) * pitch_x - bounds.min_point()[0],
-                start_y + static_cast<double>(i / 4) * pitch_y - bounds.min_point()[1],
-                0.0
-            )
-        );
-        add(piece, flat);
-    }
+    Development::add_flat(*this, developments, 4, 0.05 * guide.span);
 }
 
 void CurvedCreaseTube::add_assembly() {

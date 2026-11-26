@@ -274,51 +274,73 @@ Development::Development(const std::vector<NurbsCurve>& meridians, size_t sample
 }
 
 void Development::add_flat(
-    WoodSession& session, const std::vector<Development>& developments, double gap
+    WoodSession& session, const std::vector<Development>& developments, size_t count, double gap
 ) {
 
-    if (developments.empty())
-        return;
+    // the sheet starts right of the model, level with its front
+    AABB model = AABB::from_points({Point(0.0, 0.0, 0.0)});
+    bool found = false;
 
-    double max_x = -std::numeric_limits<double>::infinity();
-    double min_x = std::numeric_limits<double>::infinity();
-    double min_y = std::numeric_limits<double>::infinity();
+    for (const std::shared_ptr<Element>& element : session.elements()) {
+        const std::array<Point, 8> corners = element->aabb().corners();
+        const AABB box = AABB::from_points(std::vector<Point>(corners.begin(), corners.end()));
+        model = found ? AABB::merge(model, box) : box;
+        found = true;
+    }
 
-    for (const std::shared_ptr<Element>& element : session.elements())
-        for (const Point& corner : element->aabb().corners()) {
-            min_x = std::min(min_x, corner[0]);
-            max_x = std::max(max_x, corner[0]);
-            min_y = std::min(min_y, corner[1]);
-        }
-
-    const double base_y = std::isfinite(min_y) ? min_y : 0.0;
-    const double margin = std::isfinite(max_x) ? std::max(gap, 0.12 * (max_x - min_x)) : 0.0;
-    double cursor_x = (std::isfinite(max_x) ? max_x : 0.0) + margin;
+    const double start_x = model.max_point()[0] + std::max(gap, 0.1 * (model.max_point()[0] - model.min_point()[0]));
     const std::shared_ptr<TreeNode> group = session.group_named("flat");
+    double cursor_x = start_x;
+    double row_y = model.min_point()[1];
+    double row_height = 0.0;
 
     for (size_t i = 0; i < developments.size(); i++) {
-        double low_x = std::numeric_limits<double>::infinity();
-        double high_x = -std::numeric_limits<double>::infinity();
-        double low_y = std::numeric_limits<double>::infinity();
+        if (!developments[i].piece)
+            continue;
 
-        for (const Point& pt : developments[i].outline.get_points()) {
-            low_x = std::min(low_x, pt[0]);
-            high_x = std::max(high_x, pt[0]);
-            low_y = std::min(low_y, pt[1]);
+        // the longest chord of the piece's outline along x
+        const std::vector<Point> points = developments[i].bottom.get_points();
+        std::array<Point, 2> chord = {points.front(), points.front()};
+
+        for (size_t j = 0; j < points.size(); j++)
+            for (size_t k = j + 1; k < points.size(); k++)
+                if (points[j].distance(points[k]) > chord[0].distance(chord[1]))
+                    chord = {points[j], points[k]};
+
+        const double angle = std::atan2(chord[1][1] - chord[0][1], chord[1][0] - chord[0][0]);
+        Xform turn = Xform::rotation_z(-angle);
+
+        // its arc bulging up: the outline's middle above the chord
+        double above = 0.0;
+        const double chord_y = chord[0].transformed(turn)[1];
+
+        for (const Point& point : points)
+            above += point.transformed(turn)[1] - chord_y;
+
+        if (above < 0.0)
+            turn = Xform::rotation_z(Tolerance::PI) * turn;
+
+        // its place in the row, a new row after count pieces
+        if (i > 0 && i % count == 0) {
+            cursor_x = start_x;
+            row_y += row_height + gap;
+            row_height = 0.0;
         }
 
-        const Xform shift = Xform::translation(cursor_x - low_x, base_y - low_y, 0.0);
-        Polyline placed = developments[i].outline.transformed(shift);
-        placed.name = fmt::format("flat_{}", i);
-        session.add_polyline(placed, group);
+        std::vector<Point> turned;
 
-        for (size_t c = 0; c < developments[i].creases.size(); c++) {
-            Polyline crease = developments[i].creases[c].transformed(shift);
-            crease.name = fmt::format("flat_crease_{}_{}", i, c);
-            session.add_polyline(crease, group);
-        }
+        for (const Polyline* loop : {&developments[i].bottom, &developments[i].top})
+            for (const Point& point : loop->get_points())
+                turned.push_back(point.transformed(turn));
 
-        cursor_x += (high_x - low_x) + gap;
+        const AABB bounds = AABB::from_points(turned);
+        const Xform place = Xform::translation(cursor_x - bounds.min_point()[0], row_y - bounds.min_point()[1], 0.0) * turn;
+        const std::shared_ptr<FaceCurvedElement> piece = std::make_shared<FaceCurvedElement>(*developments[i].piece);
+        piece->name = developments[i].piece->name;
+        piece->place(place);
+        session.add(piece, group);
+        cursor_x += bounds.max_point()[0] - bounds.min_point()[0] + gap;
+        row_height = std::max(row_height, bounds.max_point()[1] - bounds.min_point()[1]);
     }
 }
 

@@ -208,28 +208,14 @@ void CurvedFold::add_lamellas(
 
 void CurvedFold::add_flat() {
 
-    const std::shared_ptr<TreeNode> flat = add_group("flat");
-    double cursor_x = guide.radius + 2000.0;
+    std::vector<Development> developments;
 
-    for (size_t j = 0; j < 2 * guide.sectors; j++) {
-        const std::string piece_name = fmt::format("flat_{}", j);
-        const Development development(
-            *get_element_by_name<FaceCurvedElement>(fmt::format("lamella_{}", j)),
-            guide.samples,
-            piece_name
+    for (size_t j = 0; j < 2 * guide.sectors; j++)
+        developments.emplace_back(
+            *get_element_by_name<FaceCurvedElement>(fmt::format("lamella_{}", j)), guide.samples, fmt::format("flat_{}", j)
         );
-        const AABB bounds = AABB::merge(
-            AABB::from_polyline(development.bottom), AABB::from_polyline(development.top)
-        );
-        const std::shared_ptr<FaceCurvedElement> piece =
-            std::make_shared<FaceCurvedElement>(*development.piece);
-        piece->name = piece_name;
-        piece->place(
-            Xform::translation(cursor_x - bounds.min_point()[0], -bounds.min_point()[1], 0.0)
-        );
-        add(piece, flat);
-        cursor_x += bounds.max_point()[0] - bounds.min_point()[0] + 400.0;
-    }
+
+    Development::add_flat(*this, developments, 6, 400.0);
 }
 
 }
