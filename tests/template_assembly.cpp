@@ -60,8 +60,10 @@ static void blocks() {
 static void check_swept(const WoodSession& session, const ModuleSequence& sequence) {
 
     std::map<std::string, Mesh> meshes;
-    for (const std::shared_ptr<Element>& element : session.elements())
-        meshes[element->guid()] = element->model_geometry_mesh();
+    for (const std::shared_ptr<Element>& element : session.elements()) {
+        const std::shared_ptr<FaceCurvedElement> curved = std::dynamic_pointer_cast<FaceCurvedElement>(element);
+        meshes[element->guid()] = curved ? curved->closed_mesh() : element->model_geometry_mesh();
+    }
     for (const ModuleSteps& steps : sequence.modules()) {
         std::vector<std::string> placed;
         for (const ModuleMove& move : steps.moves) {
