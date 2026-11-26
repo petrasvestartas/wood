@@ -4,7 +4,7 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// A corrugated funnel column of curved-crease unfolding: a flaring arc mirrored in 24 meridian planes around the vertical axis.
+/// A corrugated funnel column of curved-crease unfolding: a flaring arc mirrored in 32 meridian planes around the vertical axis.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
@@ -51,7 +51,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 12 of the developable folding templates: a corrugated funnel column by consecutive plane inclinations in a radial layout. The crease is a quarter circle of 5 m radius flaring from a stem 0.8 m off the axis, vertical on the floor, to a rim 5.8 m out and 5 m up, horizontal there; the 33 crease planes are the meridian planes 11.25 degrees apart. The rulings leave the arc square to it at 75 degrees to its plane toward its concave side, outward and down; every plate is the mirror image of its neighbour in their meridian plane, a star in plan at the rim. 32 plates 40 mm thick, each a developable mitred on its two meridian planes. Groups: plates (plate_<k>), creases.
+Step 12 of the developable folding templates: a corrugated funnel column by consecutive radial plane inclinations. The crease is a concave quarter-circle of 5 m radius flaring from a 0.8 m base stem to a 5.8 m rim at 5 m height; 33 radial meridian planes 11.25 degrees apart mirror 32 axis-shifted 40 mm anticlastic CCU plates into a closed 360-degree funnel shell that folds flat into a compact radial stack at w = 0. Groups: plates, creases, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

@@ -25,6 +25,7 @@ bool register_factories() {
     NodeSupportElement::register_type();
     NodeBlockElement::register_type();
     EdgeStraightElement::register_type();
+    EdgeRawElement::register_type();
     JointElement::register_type();
     InteractionContactFace::register_type();
     InteractionContactAxis::register_type();
@@ -1285,13 +1286,38 @@ void WoodSession::sync_attributes() {
             plane.is_visible = drawn->is_visible;
             plane.is_locked = drawn->is_locked;
 
-            if (*drawn == plane)
-                continue;
-
-            remove_object(drawn->guid());
+            if (*drawn != plane) {
+                remove_object(drawn->guid());
+                add_plane(std::make_shared<Plane>(plane), attributes);
+            }
+        } else {
+            add_plane(std::make_shared<Plane>(plane), attributes);
         }
 
-        add_plane(std::make_shared<Plane>(plane), attributes);
+        const EdgeRawElement* raw = dynamic_cast<const EdgeRawElement*>(element.get());
+        if (!raw || !raw->has_raw_pointcloud())
+            continue;
+
+        PointCloud cloud = raw->placed_raw_pointcloud();
+        cloud.name = "raw_pointcloud";
+        cloud.is_visible = raw->show_pointcloud;
+        std::shared_ptr<PointCloud> drawn_cloud;
+
+        for (TreeNode* child : attributes->children())
+            if (const std::shared_ptr<PointCloud> found = get_object<PointCloud>(child->name))
+                drawn_cloud = found;
+
+        if (drawn_cloud) {
+            cloud.is_visible = drawn_cloud->is_visible;
+            cloud.is_locked = drawn_cloud->is_locked;
+
+            if (*drawn_cloud == cloud)
+                continue;
+
+            remove_object(drawn_cloud->guid());
+        }
+
+        add_pointcloud(std::make_shared<PointCloud>(cloud), attributes);
     }
 }
 
@@ -1405,10 +1431,14 @@ WoodSession::add(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> par
 
     const bool member = !std::dynamic_pointer_cast<JointElement>(element) ||
                         std::dynamic_pointer_cast<JointCutPlaneElement>(element);
+    const std::shared_ptr<JointBeamElement> owner = parent ? get_element<JointBeamElement>(parent->name) : nullptr;
     const std::shared_ptr<TreeNode> node = add_element(std::move(element), std::move(parent));
 
-    // a member's node light grey, and a cutting plane's; a joint keeps the viewer's default, a connector paints its own when its parts are nested
-    if (member)
+    // a member's node light grey, and a cutting plane's; a joint keeps the viewer's default, a connector paints its own when its
+    // parts are nested, and an element added under a connector (a node plate under its pins) is one of its parts: its blue
+    if (owner && owner->is_connector())
+        set_node_color(node, JointBeamElement::CONNECTOR_COLOR, false);
+    else if (member)
         set_node_color(node, WoodElement::MEMBER_COLOR, false);
 
     return node;
@@ -1900,6 +1930,7 @@ void WoodSession::compute_breps() {
         const bool round = std::dynamic_pointer_cast<NodeSupportElement>(element) ||
                            std::dynamic_pointer_cast<FaceCurvedElement>(element) ||
                            std::dynamic_pointer_cast<EdgeCurvedElement>(element) ||
+                           std::dynamic_pointer_cast<EdgeRawElement>(element) ||
                            round_edge(element);
         const WoodElement* wood = dynamic_cast<const WoodElement*>(element.get());
 

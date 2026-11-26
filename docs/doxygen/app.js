@@ -9,7 +9,7 @@
   const ICONS = {
     architecture: "architecture", elements: "elements", templates: "templates", examples: "examples", annotated: "classes", class: "classes", struct: "classes", namespace: "classes",
     elements_node_block: "block", elements_node_support: "support", elements_edge_straight: "edge_straight", elements_edge_curved: "edge_curved",
-    elements_edge_variable: "edge_variable", elements_face_planar: "face_planar", elements_face_curved: "face_curved", elements_joint: "insertion_direction",
+    elements_edge_variable: "edge_variable", elements_edge_raw: "edge_raw", elements_face_planar: "face_planar", elements_face_curved: "face_curved", elements_joint: "insertion_direction",
     elements_joint_cut_plane: "cut_plane", elements_joint_pin: "pin", elements_joint_plate: "joint_type", elements_joint_plate_top_side: "plate_top_side",
     elements_joint_plate_side_side_inplane: "plate_side_side_inplane", elements_joint_plate_side_side_outplane: "plate_side_side_outplane",
     elements_joint_plate_side_side_rotated: "plate_side_side_rotated", elements_joint_plate_cross: "plate_cross", elements_joint_plate_top_top: "plate_top_top",

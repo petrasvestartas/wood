@@ -35,7 +35,7 @@ from session_py.session import Session
 scene = Session.pb_load(sys.argv[1])
 for edge in list(scene.interactions):
     scene.interactions[edge] = []
-for line in list(scene.objects.lines) + list(scene.objects.planes) + list(scene.objects.polylines):
+for line in list(scene.objects.lines) + list(scene.objects.planes) + list(scene.objects.polylines) + [pc for pc in scene.objects.pointclouds if not pc.is_visible]:
     scene.remove_object(line.guid)
 scene.pb_dump(sys.argv[2])
 """

@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include "wood_element_edge_straight.h"
+#include "wood_element_edge_raw.h"
 #include "wood_element_joint.h"
 #include "wood_element_joint_plate.h"
 #include "wood_element_joint_beam.h"

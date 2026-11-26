@@ -170,6 +170,10 @@ std::optional<std::pair<std::string, Xform>> plate_key(const FacePlanarElement& 
 /// T::transformed for a wood type, else a clone placed by xform, guids kept; nullptr for a mirror.
 std::shared_ptr<Element> transformed(const std::shared_ptr<Element>& element, const Xform& xform) {
 
+    if (const std::shared_ptr<EdgeRawElement> raw =
+            std::dynamic_pointer_cast<EdgeRawElement>(element))
+        return raw->transformed(xform);
+
     if (const std::shared_ptr<EdgeStraightElement> beam = std::dynamic_pointer_cast<EdgeStraightElement>(element))
         return beam->transformed(xform);
 

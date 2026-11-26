@@ -2,6 +2,10 @@
 #include "wood_element_geometry.h"
 #include "wood_module_sequence.h"
 #include "src/templates/cross/vda_mesh.h"
+#include "src/templates/developable_folding/crease_quadrants.h"
+#include "src/templates/developable_folding/curved_crease_tube.h"
+#include "src/templates/developable_folding/curved_crease_unfolding.h"
+#include "src/templates/developable_folding/curved_fold.h"
 #include "src/templates/folding/counter_fold.h"
 #include "src/templates/folding/folded_frame.h"
 #include "src/templates/module/cassette_shell.h"
@@ -122,6 +126,66 @@ int main() {
     // the connectors turned along the slides: every plate, its connectors to the plates after it on it, onto all of its own at once
     const Mesh mesh = wood_cross::VdaMesh::default_mesh();
     check_template(wood_cross::VdaMesh(mesh, 40.0, {0.0}, {2}, {}, wood_cross::VdaMesh::assembly_lines(mesh), 260.0, 260.0, 40.0), 15);
+
+    // curved-crease unfolding: target mitered vault, closed flat-packed stack (w = 0), leaning planes and four crease quadrants
+    const NurbsCurve ccu_arc = Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0));
+    const std::vector<Plane> ccu_planes = CurvedCreaseUnfolding::vault(
+        Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 8, 450.0, 60.0
+    );
+    const CurvedCreaseUnfolding unfolded(ccu_arc, 55.0 * Tolerance::TO_RADIANS, ccu_planes, 30.0);
+    check(unfolded.distortion() < 1e-4 && unfolded.drift() < 1e-3, "ccu: zero distortion and floor drift on synclastic vault");
+    check(unfolded.get_contacts().size() == 7, "ccu: 7 shared miter contacts across 8 plates");
+    const std::shared_ptr<FaceCurvedElement> folded_plate = unfolded.get_element_by_name<FaceCurvedElement>("plate_4");
+    const Development flat_dev(*folded_plate, 48);
+    check(flat_dev.piece && flat_dev.piece->element_geometry_brep().is_solid(), "ccu unfold: flat piece is a closed 6-patch BRep solid");
+    check(std::abs(flat_dev.thickness - 30.0) < 1e-3, "ccu unfold: flat piece preserves 30 mm thickness");
+    check(std::abs(flat_dev.bevel_a - 30.0 / std::tan(55.0 * Tolerance::TO_RADIANS)) < 0.1, "ccu unfold: flat piece preserves t * cot(alpha) miter bevel");
+    check(flat_dev.distortion < 1e-4, "ccu unfold: sector-angle unfolding has zero distortion");
+    check_template(unfolded, 4);
+
+    const CurvedCreaseUnfolding closed_stack(
+        ccu_arc, 55.0 * Tolerance::TO_RADIANS, ccu_planes, 30.0, "closed_stack", 48, 0.0
+    );
+    check(closed_stack.distortion() < 1e-4, "ccu closed: planar strips remain developable");
+    double min_stack_y = std::numeric_limits<double>::infinity();
+    double max_stack_y = -std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < 8; i++) {
+        const std::shared_ptr<FaceCurvedElement> plate =
+            closed_stack.get_element_by_name<FaceCurvedElement>(fmt::format("plate_{}", i));
+        check(plate && plate->element_geometry_brep().is_solid(), "ccu closed: every flat-packed plate is a closed solid");
+        for (const Point& corner : plate->aabb().corners()) {
+            min_stack_y = std::min(min_stack_y, corner[1]);
+            max_stack_y = std::max(max_stack_y, corner[1]);
+        }
+    }
+    check(std::abs((max_stack_y - min_stack_y) - 8.0 * 30.0) < 1.0, "ccu closed: flat-folded stack thickness equals n * t (240 mm)");
+    check_template(closed_stack, 8);
+
+    const CurvedCreaseUnfolding leaned(
+        ccu_arc,
+        55.0 * Tolerance::TO_RADIANS,
+        CurvedCreaseUnfolding::leaning(
+            Point(0.0, 0.0, 4500.0), Vector(0.0, 1.0, 0.0), Vector(1.0, 0.0, 0.0), 6, 450.0, -3.0 * Tolerance::TO_RADIANS
+        ),
+        30.0
+    );
+    check(leaned.distortion() < 1e-4 && leaned.get_contacts().size() == 5, "ccu leaning: developable with 5 miter contacts");
+
+    const CreaseQuadrants quadrants(
+        Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)),
+        40.0 * Tolerance::TO_RADIANS,
+        1200.0,
+        40.0
+    );
+    const std::array<double, 4>& sums = quadrants.sector_sums();
+    check(std::abs(sums[0] - 2.0 * Tolerance::PI) < 1e-6 && std::abs(sums[2] - 2.0 * Tolerance::PI) < 1e-6, "quadrants: Q1 and Q3 sum to 2*pi");
+    check(sums[1] < 2.0 * Tolerance::PI - 1e-3 && sums[3] > 2.0 * Tolerance::PI + 1e-3, "quadrants: Q2 synclastic (< 2*pi) and Q4 anticlastic (> 2*pi)");
+
+    check_template(CurvedCreaseTube(8000.0, 0.30, 45.0 * Tolerance::TO_RADIANS, 480.0, 360.0, 4, 24.0), 4);
+    const CurvedCreaseTube tube_check(8000.0, 0.30, 45.0 * Tolerance::TO_RADIANS, 480.0, 360.0, 2, 24.0, "tube_check", 48, 0.45);
+    check(tube_check.distortion() < 1e-3 && tube_check.min_speed() > 0.1, "tachi tube: rigid 1-DOF space-curve deployment stays developable");
+
+    check_template(CurvedFold(), 12);
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

@@ -26,7 +26,7 @@ Truss::Truss(const TrussGuide& guide, const std::string& name) : WoodSession(nam
     // webs: on the chords, lapped where they cross, mitered with their neighbours at every node
     add_web_butts();
 
-    // joinery: every end on a side the book's joint in place of its butt, all able to go in across the plane
+    // joinery: every member split at every node, each node one slotted plate with pins in place of the butts
     add_joinery();
 }
 
@@ -632,10 +632,11 @@ void Truss::add_node_plate(const std::vector<std::shared_ptr<EdgeStraightElement
     const Vector way = x * std::cos(chosen) + y * std::sin(chosen);
     const std::shared_ptr<FacePlanarElement> flush_plate = JointBeamElement::node_plate(raw, node, plane_normal(), reaches, 2.0 * half_thickness() / 3.0, PLATE_INSET, plate->name, 0.0, way, 1500.0);
     const std::shared_ptr<JointBeamElement> pins = JointBeamElement::slotted_plate(raw, *flush_plate, node, way, clear, PIN_RADIUS);
-    add(flush_plate, group_named("joinery"));
-    add(pins, group_named("joinery"));
+    // the pins in their members first, then the plate a part of the connector, nested under it (blue like its pins)
+    const std::shared_ptr<TreeNode> connector = add(pins, group_named("joinery"));
     for (size_t m = 0; m < members.size(); m++)
         add_interaction(pins, members[m], pins->interaction(m));
+    add(flush_plate, connector);
     add_interaction(pins, flush_plate, pins->interaction(members.size()));
 }
 

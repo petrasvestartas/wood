@@ -2,7 +2,7 @@
 
 [TOC]
 
-Developable [Curved Plate](@ref elements_face_curved) structures including ruled tent shells, curved-crease accordion unfoldings, and quad-diagonal flat development checks.
+Developable [Curved Plate](@ref elements_face_curved) structures including ruled tent shells, flat-foldable curved-crease unfolding (CCU) systems with axis-shift thickness and one-degree-of-freedom kinematic deployment, composite space-curve tubular vaults with harmonic torsion, and single-crease CCF/CCU quadrant analysis.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#curved_fold_roof">
@@ -10,12 +10,24 @@ Developable [Curved Plate](@ref elements_face_curved) structures including ruled
     <span class="wood-card-title">Tent Roof</span>
   </a>
   <a class="wood-card" href="#curved_crease_arch">
-    <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Semicircular Arch">
-    <span class="wood-card-title">Semicircular Arch</span>
+    <img src="templates_developable_folding_2_curved_crease_unfolding_plates.webp" alt="Corrugated Arch">
+    <span class="wood-card-title">Corrugated Arch</span>
+  </a>
+  <a class="wood-card" href="#unfolding_sequence">
+    <img src="templates_developable_folding_3_unfolding_sequence_stages.webp" alt="Accordion Unfolding">
+    <span class="wood-card-title">Accordion Unfolding</span>
   </a>
   <a class="wood-card" href="#synclastic_unfolding">
     <img src="templates_developable_folding_5_synclastic_unfolding_plates.webp" alt="Synclastic Vault">
     <span class="wood-card-title">Synclastic Vault</span>
+  </a>
+  <a class="wood-card" href="#cellular_tube_vault">
+    <img src="templates_developable_folding_6_cellular_tube_vault_plates.webp" alt="Cellular Tube Vault">
+    <span class="wood-card-title">Cellular Tube Vault</span>
+  </a>
+  <a class="wood-card" href="#alternating_unfolding">
+    <img src="templates_developable_folding_9_alternating_unfolding_plates.webp" alt="Alternating Vault">
+    <span class="wood-card-title">Alternating Vault</span>
   </a>
   <a class="wood-card" href="#corrugated_dome">
     <img src="templates_developable_folding_11_corrugated_dome_plates.webp" alt="Corrugated Dome">
@@ -35,15 +47,20 @@ Developable [Curved Plate](@ref elements_face_curved) structures including ruled
   </a>
 </div>
 
-## Flat Unfolding Check {#development}
+## Unfolding a Curved Plate to a Flat Piece {#development}
 
-`Development(a, b, samples)` unfolds the ruled strip between curves `a` and `b` into the `xy`-plane triangle-by-triangle and measures the relative length change of each quad's second diagonal (`distortion = 0` on exact cylinders and cones).
+`Development(element, samples)` extracts the zero-strain neutral mid-surface (`ε_0 = 0`), uniform plate thickness `t`, and angled miter bevel offsets (`bevel_a`, `bevel_b`) of a 3D `FaceCurvedElement`, unfolds the strip into the `xy`-plane by integrating its intrinsic quad sector angles `Δθ_2d = π - (β_back + β_fwd)` (`cos α = k_2d / k_3d`), and reconstructs `piece`: a closed 6-patch BRep flat solid timber piece on `z ∈ [0, t]` carrying the exact 3D curved miter bevels on both edges, placed side by side in group `flat`.
 
 ```cpp
-const Development development(lamella->outer_a, lamella->outer_b, 32);
-development.distortion; // 0 (~1e-14) on exact cylinders/cones; relative diagonal error on twisted strips
-development.outline;    // 2D cutting pattern in the xy-plane (placed in group "flat")
+const Development development(*plate, 48);
+development.distortion; // ~1e-15 on exact cones/cylinders; relative isometric error on twisted strips
+development.thickness;  // recovered plate thickness t (mm)
+development.bevel_a;    // unfolded miter bevel offset t * cot(alpha) on crease a (mm)
+development.piece;      // closed 6-patch BRep flat solid piece on z in [0, t] (placed in group "flat")
+development.rulings;    // 2D straight ruling lines (plywood stiff-grain direction)
 ```
+
+![](templates/templates_developable_folding_2_curved_crease_unfolding_flat.webp)
 
 ---
 
@@ -59,27 +76,35 @@ Twelve-sector freestanding folded shell (`32 m` eaves diameter, `26 m` tower hei
 
 ## Curved Crease Unfolding {#curved_crease_unfolding}
 
-Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(opening)` generates developable strips whose rulings leave perpendicular to the crease at angle `opening` and mirror successively across a sequence of crease `planes`:
+Curved-crease unfolding (CCU) joins stacked planar bending-active strips along common curved creases so that a compact flat-folded stack (`deployment = 0`, thickness `n * t`, 2D crease curvature `k_2d = k_3d * cos(opening)`) unfolds with a one-degree-of-freedom accordion mechanism into a globally doubly-curved corrugated shell (`deployment = 1`, folding angle `2 * opening`). Rotation axes shift across uniform plate thickness `t` to connect intrados-to-intrados at convex synclastic creases (`Q2`) and extrados-to-extrados at concave anticlastic creases (`Q4`), with wrapped miters locking the target angle (Scheder-Bieschin, Van Mele & Block, *ACADIA 2022*; *AAG 2023*).
 
-| Plane Factory | Plane Sequence Geometry | Resulting Shell |
+| Factory | Geometry | Global Shape Control |
 | --- | --- | --- |
-| `zigzag(origin, along, axis, count, spacing, tilt)` | `spacing` apart, alternating `±tilt` about `axis` (`tilt = 0` → parallel planes) | Straight corrugated arch / articulated vault |
-| `leaning(origin, along, axis, count, spacing, lean)` | Progressive `i * lean` rotation about span axis | Synclastic (`lean > 0`) or anticlastic saddle (`lean < 0`) |
-| `fan(origin, axis, first, count, angle)` | Radial planes rotated by `angle` around `axis` | Corrugated rotational dome or funnel column |
+| `catenary(span, rise, points)` | Funicular arch in the `xz`-plane | Compression-only corrugated vault / shell formwork profile |
+| `vault(origin, along, axis, count, spacing, step)` | Parallel osculating planes; pair step `±(m + 0.5) * step` | Monoclastic (`step = 0`), synclastic dome-vault (`step > 0`), anticlastic saddle (`step < 0`), `0 mm` floor drift |
+| `zigzag(origin, along, axis, count, spacing, tilt)` | Osculating planes `spacing` apart, alternating `±tilt` about `axis` | Alternating crown/support corrugation depth (`axis = x`) or sideways articulation (`axis = z`) |
+| `leaning(origin, along, axis, count, spacing, lean)` | Progressive `i * lean` inclination about `axis` | Level-crown curved-plan or saddle-crown linear-plan vaults |
+| `fan(origin, axis, first, count, angle)` | Radial meridian planes rotated by `angle` around `axis` | Closed `360°` corrugated rotational dome or funnel column |
 
-### Semicircular Arch on Parallel Planes {#curved_crease_arch}
+### Monoclastic Corrugated Arch on Parallel Planes {#curved_crease_arch}
 
 ![](templates/templates_developable_folding_2_curved_crease_unfolding_plates.webp)
 
 \include{lineno} templates_developable_folding_2_curved_crease_unfolding.cpp
 
-### Synclastic Vault (Leaning +5 Degrees) {#synclastic_unfolding}
+### Accordion Unfolding Sequence from Closed Stack {#unfolding_sequence}
+
+![](templates/templates_developable_folding_3_unfolding_sequence_stages.webp)
+
+\include{lineno} templates_developable_folding_3_unfolding_sequence.cpp
+
+### Doubly-Curved Synclastic Vault by Plane Spacing {#synclastic_unfolding}
 
 ![](templates/templates_developable_folding_5_synclastic_unfolding_plates.webp)
 
 \include{lineno} templates_developable_folding_5_synclastic_unfolding.cpp
 
-### Zigzag Inclined About Mid-Height {#alternating_unfolding}
+### Alternating Inclination About the Actuation Axis {#alternating_unfolding}
 
 ![](templates/templates_developable_folding_9_alternating_unfolding_plates.webp)
 
@@ -99,16 +124,26 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
 
 ---
 
+## Composite Space-Curve Tubular Vault {#cellular_tube_vault}
+
+`CurvedCreaseTube` generalizes curved-crease folding and unfolding from planar curves to non-planar 3D space curves with constant curvature `k_0` and harmonic torsion `τ_0(s) = a * k_0 * sin(2πs / s_0)` (Tachi, *Transformables 2013*). Solving `T(0.5 * s_0) · T(0) = 0` places all support quads coplanar on the horizontal ground plane at target opening `2 * opening`. Combining all four crease quadrants (`Q1` and `Q3` single-sheet CCF knees with `Q2` and `Q4` two-sheet CCU ridge/keel creases) around a parallelogram tube stabilizes single-crease ruling drift and preserves 1-DOF rigid-foldability across `2α ∈ (0°, 180°)` via `k(s; α) = k_0 * cos(α_0) / cos(α)` and `τ(s; α) = τ_0(s) * tan(α) / tan(α_0)`, while strip widths taper inversely (`w_R(s) * w_L(s) = const`) between supports and mid-span.
+
+![](templates/templates_developable_folding_6_cellular_tube_vault_plates.webp)
+
+![](templates/templates_developable_folding_6_cellular_tube_vault_flat.webp)
+
+\include{lineno} templates_developable_folding_6_cellular_tube_vault.cpp
+
+---
+
 ## Four Quadrants of a Curved Crease {#crease_quadrants}
 
-| Quadrant | Strip Rulings | Mechanism Type | Curvature Behavior |
+| Quadrant | Strip Rulings | Mechanism & Initial State (`deployment = 0`) | Vertex Sector Sum & Gaussian Curvature |
 | --- | --- | --- | --- |
-| `Q1` | `(+r, -Mr)` | Single-sheet folding (both strips in front of crease plane) | Convex + concave; sector angles sum to `360°` |
-| `Q2` | `(+r, +Mr)` | Two-sheet mirror unfolding | Both convex (synclastic); sector angles `< 360°` |
-| `Q3` | `(+Mr, -r)` | Single-sheet folding (both strips behind crease plane) | Convex + concave; sector angles sum to `360°` |
-| `Q4` | `(-r, -Mr)` | Two-sheet mirror unfolding | Both concave (anticlastic); sector angles `> 360°` |
-
-### Q1–Q4 {#crease_quadrants_example}
+| `Q1` | `(+r, -Mr)` | Classic CCF single-sheet folding (opens flat into one plane, angle `180° - 2α`) | `Σβ = 360°` — developable (convex + concave crease) |
+| `Q2` | `(+r, +Mr)` | CCU two-sheet mirror unfolding (closes into `2t` stack, angle `2α`, intrados-to-intrados) | `Σβ < 360°` — synclastic (convex crease on both plates) |
+| `Q3` | `(+Mr, -r)` | Classic CCF single-sheet folding (opens flat into one plane, angle `180° - 2α`) | `Σβ = 360°` — developable (convex + concave crease) |
+| `Q4` | `(-r, -Mr)` | CCU two-sheet mirror unfolding (closes into `2t` stack, angle `2α`, extrados-to-extrados) | `Σβ > 360°` — anticlastic (concave crease on both plates) |
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="templates_developable_folding_4_crease_quadrants_quadrant_1.webp">
@@ -129,14 +164,12 @@ Curved-crease mechanism: a planar crease with 3D curvature `k_3d = k_2d / cos(op
   </a>
 </div>
 
-```cpp
-CreaseQuadrants quadrants(Primitives::arc(Point(-2000.0, 0.0, 0.0), Point(0.0, 0.0, 1500.0), Point(2000.0, 0.0, 0.0)), 40.0 * Tolerance::TO_RADIANS, 1200.0, 40.0);
-```
+\include{lineno} templates_developable_folding_4_crease_quadrants.cpp
 
 <!-- assembly:begin -->
 ## Assembly Sequence {#developable_folding_assembly_sequence}
 
-Two neighbours on their curved crease make one fold; the folds go round or side by side. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+Two neighbours on their curved crease make one fold; the folds go round or side by side, and a flat-packed stack lifts off plate by plate. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
@@ -157,12 +190,3 @@ Two neighbours on their curved crease make one fold; the folds go round or side 
 | ![quadrant 4, 2 pieces](assembly/assembly_templates_developable_folding_4_crease_quadrants_quadrant_4.gif) quadrant 4, 2 pieces |  |  |
 
 <!-- assembly:end -->
-
-## Examples {#developable_folding_examples}
-
-### 4 Crease Quadrants {#developable_folding_example_4}
-
-Step 4 of the developable folding templates: the four quadrants of a planar curved crease. An arc 4 m wide and 1.5 m high is the crease; a developable through it has its rulings r on one side of the arc's plane and -r on the other, and their mirror images Mr and -Mr. Two strips 1200 mm wide and 40 mm thick, each a PlateCurved cone, take one ruling each: Q1 (r, -Mr) and Q3 (Mr, -r) are one sheet folded along the crease, the crease convex for one strip and concave for the other; Q2 (r, Mr) are two mirror sheets unfolded, the crease convex for both, synclastic; Q4 (-r, -Mr) the same with the crease concave for both, anticlastic. The rulings stand 40 degrees off the crease plane, square to the crease; an unfolding is mitred on the crease plane, a folding on the plane through the crease square to it. Groups: quadrant_\<q\> (quadrant_\<q\>_\<k\>), creases.
-
-\include{lineno} templates_developable_folding_4_crease_quadrants.cpp
-

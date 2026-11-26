@@ -2,7 +2,8 @@
 
 [TOC]
 
-Timber trusses in `src/templates/truss/*.h`. Every truss is a `TrussGuide`, made by one constructor and its overloads: from its members, or from a design by its parameters, `TrussGuide(Pratt{})` or `TrussGuide(Bow{"64"})`. `wood_truss::Truss` makes each member a `EdgeStraightElement` and joins them by a member hierarchy: T joints with run-on ends, butts on the members' real surfaces, miters at gentle bends and ridges, half laps where members cross. The 68 designs of the library and the 326 roof trusses and framed bridges of Bow's 1873 catalogue are at the end of this page.
+Timber trusses: a `TrussGuide` draws the members, `wood_truss::Truss` splits them at every node and joins each node with one
+plate and pins (brown). The 68 designs of the library and Bow's 326 trusses of 1873 are at the end of the page.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#truss_ex_pratt">
@@ -43,9 +44,9 @@ Timber trusses in `src/templates/truss/*.h`. Every truss is a `TrussGuide`, made
   </a>
 </div>
 
-## Primary Inputs
+## Inputs
 
-A truss is two lists of members, the chords and the webs (a post is a web), each a `TrussMember`:
+A truss is its chords and its webs (a post is a web), each a `TrussMember`:
 
 | `TrussMember` | Type | Default | Role |
 | --- | --- | --- | --- |
@@ -54,55 +55,15 @@ A truss is two lists of members, the chords and the webs (a post is a web), each
 | `level` | `int` | `0` | 1 primary, 2 secondary, 3 tertiary; `0`: read from the drawing |
 | `runs_on` | `std::array<bool, 2>` | `{false, false}` | A chord's start and end running on where chord ends meet, in place of the automatic choice |
 
-Every truss is a `TrussGuide`, made from its members or from a design by its parameters, an overload per design:
-
 ```cpp
 TrussGuide(const std::vector<TrussMember>& chords, const std::vector<TrussMember>& webs);
 TrussGuide(const Pratt& design);  // and so on: an overload per design of the library
 TrussGuide(const Bow& design);    // a truss of Bow's catalogue by its number
 ```
 
-A design is a struct of its parameters, lengths in mm, each with its default: `TrussGuide(Pratt{})` is the Pratt of the
-[library](#truss_library), `TrussGuide(Pratt{.span = 15000.0, .panels = 8})` a longer one. Every design also takes
-`chord_radius` and `web_radius`, the half sections of the chords and posts and of the webs; it draws its chords and webs
-and reads the hierarchy from the drawing. `TrussGuide(Bow{"64"})` is Bow's No. 64, its graph read from
-`data/templates/truss_bow_1873.json` and drawn at its span with a section and a level per member
-([Bow 1873](#truss_graph)).
+A design is a struct of its parameters with their defaults: `TrussGuide(Pratt{.span = 15000.0, .panels = 8})`.
 
-## Geometry Generation & Joint Rules
-
-Every node is solved by six rules:
-
-1. Hierarchy: Each member has a level: 1 primary (chords, posts), 2 secondary (webs), 3 tertiary (sub-struts); where
-   `level` is 0 it is read from the drawing, the outer boundary first, by pruning the line graph layer by layer. At its node
-   a member stops on every higher member there, in a T: it loses that member's cut solid swept along its own axis (its
-   shadow), so it butts on the real surface, a kink or a corner, and keeps nothing behind it.
-2. One end runs on: Where chord ends meet, one runs on past the node and the others are seated on its side
-   (`TrussGuide::runs_on_at`): the one marked `runs_on`, else the higher level, else the more level, so the tie runs past
-   the rafter foot and a chord past an end post. A lone chord end runs on over webs that are all lower than it.
-3. Clean ends, node in wood: An end that runs on reaches to its end cut (`TrussGuide::end_cut`): through the outer
-   corners of the members it carries on both its sides, so the contour runs on clean; flush with the outer face of a member
-   met at 40 degrees or more; else square, past the node by at least its half section. The node and the axes always lie in
-   wood.
-4. Miters only within one piece: A chord's kinks, two ends of one slope (a ridge) and bends of under 35 degrees are
-   mitered; every other meeting is a T, easier to cut than a sharp miter.
-5. Laps where members cross: Members of one level crossing share the depth in half laps; two chords bending at one node
-   are half-lapped; a chord ending at another's bend butts on its surface.
-6. The lower never cuts the higher: A lower member passing a higher member's end leaves it whole.
-
-| Node / Crossing Configuration | Automatic Joint Rule (`Truss::add_chord_butts` / `add_web_butts`) |
-| --- | --- |
-| Chord kink (interior polyline vertex) | Adjacent chord runs mitered `side_side` on the angle bisector |
-| Chord heel (two chords ending at one node) | A T: the one running on (`runs_on_at`) reaches past the node to its `end_cut`, the other seated on its side (`top_side`); one slope (ridge) or a gentle bend: mitered, `JointBeamElement::butt_side_side` |
-| Chord end on another chord's run | Stopped `top_side` against the continuous chord |
-| Web / post end on a chord run | Let into the chord: loses the chord's shadow along its axis |
-| Web / post end at a chord's lone end | Outer member runs over the inner member (`top_side`); inner member let in |
-| Web end on another web's middle (K-joint) | Let into the continuous web |
-| Chord end on a post's middle (tie on column) | Let into the post |
-| Crossing chords, webs, or posts (X-joint) | `JointBeamElement::butt_cross` half/multi-laps dividing member depth equally across `N` crossing bars |
-| Multiple webs ending at one node | Inner webs let into outer chords; same-rank webs mitered `side_side` with angular neighbours |
-
-## Constructor Pipeline
+## Constructor
 
 ```cpp
 Truss::Truss(const TrussGuide& guide, const std::string& name) : WoodSession(name), guide(guide) {
@@ -120,33 +81,22 @@ Truss::Truss(const TrussGuide& guide, const std::string& name) : WoodSession(nam
     // webs: on the chords, lapped where they cross, mitered with their neighbours at every node
     add_web_butts();
 
-    // joinery: every end on a side the book's joint in place of its butt, all able to go in across the plane
+    // joinery: every member split at every node, each node one slotted plate with pins in place of the butts
     add_joinery();
 }
 ```
 
-The butts are the first draft of every node; `add_joinery` replaces each with a joint of the beam library or a node plate, so
-no butt is left.
-
 ## Joinery {#truss_joinery}
-
-Every member is as thick across the truss as the deepest chord, so all faces are flush, and is split at every node on it (the
-ends of the others and the points where members cross), so each piece runs from node to node; a short piece hanging past a node
-goes. Every node is then joined the same way:
 
 | At a node | How |
 | --- | --- |
-| Chords | mitered on their bisector; meeting sharp (a heel) the steeper bears on the flatter and one plane cuts both, so the heel ends in one face |
-| Webs | flush on the chords' faces, mitered with each other (bearing where they meet under 35°) |
-| All of them | one plate in the middle of the thickness, the convex hull of their strips run on along its way in to their outer surface and kept inside them, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
+| Chords | mitered on their bisector; a sharp heel: the steeper bears on the flatter, one plane cuts both |
+| Webs | flush on the chords, mitered with each other, bearing under 35° |
+| All | one plate in the middle of the thickness, flush with the members' surface, one row of two pins in each (`JointBeamElement::node_plate`, `slotted_plate`) |
 
-The members go in from the face, as a truss is laid out flat; each plate drops in last along its slot in the truss's plane, square
-to the node's chord when its path is clear and keeps 60° off the node's members, else the clear way farthest off them, else the
-way past the fewest others (the first chord, the base, last), never within 25° of one. The plate fills the wood its slot passes, so its edge is flush with
-the members' surface and nothing is cut but the middle of the thickness. Each truss is checked whole (no member overlaps another or loses wood
-no member fills) and taken apart by an `AssemblySequence`, nothing locked. Six are still being finished: crescent with verticals,
-cantilever, three-hinged arch, Pegram, Bollman, braced arch rib. The carpentry king post below is the truss jointed with the book's
-joints alone.
+The members go in from the face, each plate last along its slot in the truss's plane; every truss is checked whole and taken
+apart by an `AssemblySequence`. Unfinished: crescent with verticals, cantilever, three-hinged arch, Pegram, Bollman, braced arch
+rib.
 
 | Heel | Apex | Post foot |
 | --- | --- | --- |
@@ -156,13 +106,21 @@ joints alone.
 | **Crossing** | | |
 | ![](templates/truss_node_crossing.png) | | |
 
----
+## Examples {#truss_examples}
 
-## Full C++ Examples
+### Pratt Roof Truss {#truss_ex_pratt}
+
+The Pratt truss jointed and taken apart, the plates last.
+
+![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.gif)
+
+![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.png)
+
+\include{lineno} templates_truss_1_pratt.cpp
 
 ### Custom Wireframe Truss {#truss_ex_custom}
 
-Two chords and five webs given as polylines with their half sections.
+Two chords and five webs given as polylines.
 
 ![](examples/templates_truss_4_custom_wireframe.png)
 
@@ -174,30 +132,31 @@ The members, then every plate along its slot.
 
 \include{lineno} templates_truss_4_custom_wireframe.cpp
 
-### Pratt Roof Truss {#truss_ex_pratt}
-
-The Pratt roof truss jointed and taken apart: its heels notched, every node where several members end a plate with pins, the
-members going in from the face and the plates dropping in last.
-
-![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.gif)
-
-![templates_truss_1_pratt](joint_library/assembly_templates_truss_1_pratt.png)
-
-\include{lineno} templates_truss_1_pratt.cpp
-
 ### Carpentry King Post {#truss_ex_carpentry}
 
-`CarpentryTruss` builds a truss of carpentry joints instead of butts: a member per chord segment and per web, all `thickness` deep across the plane, and for every pair the joint `classify_joint` reads from their axes, a notched oblique thrust joint where an end meets a side at an angle and a blind mortise and tenon where it meets it square; two ends at a node another member runs past bear on that member. `KingPostCarpentry` draws the king post truss so every end lands on a side: the tie runs past the heels, the king post past the ridge, the struts sit on the king post. `AssemblySequence` then takes the truss apart member by member, each sliding out along a direction its joints give and swept clear of the members still in, and reverses that into the assembly: the tie, the king post down into its mortise, then the rafters and the struts across the plane into their notches. Brown is the member going in, light brown the members its joints engage.
+The king post jointed with the book's carpentry joints alone (`CarpentryTruss`) and assembled; brown is the member going in.
 
 ![](templates/templates_truss_5_carpentry_assembly.gif)
 
 \include{lineno} templates_truss_5_carpentry_assembly.cpp
 
+### Library {#truss_ex_library}
+
+Every design of the library, each its own scene `truss_<name>.pb`.
+
+\include{lineno} templates_truss_2_library.cpp
+
+### Bow 1873 {#truss_example_3}
+
+Every truss of Bow's tables, each its own scene `truss_bow_<number>.pb`.
+
+\include{lineno} templates_truss_3_bow.cpp
+
 ## Truss Library {#truss_library}
 
 <!-- library-gallery -->
 
-The 68 designs of the library, each a struct of its parameters and its own `TrussGuide` overload, pictured with their defaults as `templates_truss_2_library` builds them, each its own scene `truss_<name>.pb`. Every design also takes `.chord_radius = 80` and `.web_radius = 60`, the half sections of the chords and posts and of the webs.
+The 68 designs with their defaults; every design also takes `.chord_radius = 80` and `.web_radius = 60`.
 
 <div class="wood-card-grid cols-2">
   <div class="wood-card">
@@ -478,33 +437,9 @@ The 68 designs of the library, each a struct of its parameters and its own `Trus
 
 ## Bow 1873 {#truss_graph}
 
-A truss is one topology: nodes, chords through them, webs and posts between them. Bow's catalogue stores exactly that, in
-spans, with each truss's span, a section per member, each member's level in the hierarchy (1 primary, 2 secondary, 3
-tertiary) and the chord ends that run on where chords end together; `TrussGuide(Bow{number})` draws one at its span for
-the one `Truss` template, so the catalogue is data, not a function per design. The roof trusses and framed bridges of
-Bow's *Economics of Construction in relation to Framed Structures* (1873) are kept this way in
-`data/templates/truss_bow_1873.json` and built by `templates_truss_3_bow`.
-
 <!-- bow-gallery -->
 
-The 326 roof trusses and framed bridges of R. H. Bow, *Economics of Construction in relation to Framed Structures* (London: Spon, 1873), Part I, redrawn from the drawings of its classification tables. Each truss is stored as a graph in `data/templates/truss_bow_1873.json` (nodes in spans from the left support, x along the span and z up; chords as node sequences, webs and posts as node pairs) and built by the one `Truss` template: `TrussGuide(Bow{number})` draws its graph at its span with a section per member, and `Truss` makes the members and their butts and laps.
-
-```cpp
-for (const wood_truss::Bow& design : wood_truss::Bow::all()) {
-    wood_truss::Truss truss(wood_truss::TrussGuide(design), "truss_" + design.name());
-    truss.pb_dump(pb_path("truss_" + design.name()));
-}
-```
-
-Each design was redrawn by hand from Bow's printed drawing as an exact construction: the few dimensions that define it read off the print (rise, collar height, camber, panel count), everything else constructed — equal panel points, members meeting at exact intersections, curved ribs on true circles or parabolas, a bar Bow draws through a joint kept as one member, symmetric designs mirrored exactly — and each checked over its scanned drawing. The numbers are Bow's; the page is that of his table. The book is transcribed in the BRG library (`framed-structures-bow`), where every table row links to its scan.
-
-### Joints {#truss_bow_joints}
-
-Every node is solved as carpentry by a hierarchy stored with the graph: each member is primary, secondary or tertiary (`chord_levels`, `web_levels`, `post_levels`), and at a node a member stops on every member of a higher level, butting on its surface. Joints are T joints wherever possible: a member that is continuous runs through, and at the ends of a truss the tie runs on past the rafter foot, the chords past the end posts, the rafters past a straining beam (`runs_on`), each cut flush with the far side of the member it carries, or square at shallow angles, and where a member carries others on both its sides its end is cut through their outer corners, so the outline of the truss runs on clean; the node where the axes meet always lies in wood. Miters are kept only for the gentle bends of one continuous member and for symmetric ridges.
-
-### Scale and sections {#truss_bow_sizing}
-
-Bow gives the span of only a few designs (Nos. 130, 137, 192, 195, 293, 332); his diagrams of forces are drawn to no absolute scale. Every other design is drawn at its number of sub-spans times 8 ft (2.44 m), the sub-span of his stated examples (No. 130: 86 1/4 ft over 12 sub-spans; No. 137: 97 1/2 ft over 12; No. 332: 204 ft over 24); the arched roofs whose sub-spans he calls irregular (Nos. 193, 194, 197) are taken at 100 ft. Each member's section is then sized, per truss, for timber trusses 3 m apart: roofs 1.5 kN/m2 on the roof outline (the upper chords), bridges 5 kN/m2 on the deck, both x 1.4. The forces are those of truss action, as Bow's diagrams of forces give them: the pin-jointed frame, a curved or bent chord drawn through nodes where nothing else meets it being one bar between the joints where others do; such a bar also carries the bending of the loads between its joints and of its axial force on the sagitta of its curve. A member that the carpentry lands on another's face just beside a joint, to keep it from running alongside, meets that joint in the force model, the member landed on bending under the landing force on its eccentricity. Only designs that are mechanisms when pin-jointed (Bow's deficient Class II, most of Class IV) are analysed as frames with stiff joints, carrying by bending. Sections are square GL24h, N/A + M/W within the design strength, struts with a buckling factor, at least 100 mm for chords and 60 mm for webs, one section per member. The span, the load and the largest forces are stored with each graph; the cards show the span.
+The 326 roof trusses and framed bridges of R. H. Bow, *Economics of Construction in relation to Framed Structures* (1873), redrawn from his tables, each a graph in `data/templates/truss_bow_1873.json` built by `TrussGuide(Bow{number})` and `Truss`. Bow gives few spans: the rest are drawn at 8 ft (2.44 m) per sub-span, and every member is sized for trusses 3 m apart (roofs 1.5 kN/m2, bridges 5 kN/m2, x 1.4, square GL24h, chords at least 100 mm, webs 60 mm). The cards show the span.
 
 ### Roof trusses, Class I {#truss_bow_roof_i}
 
@@ -1867,15 +1802,3 @@ Class IV: the defects of both Classes II and III: redundant in one region, defic
 </div>
 
 <!-- /bow-gallery -->
-
-## Library Runner
-
-\include{lineno} templates_truss_2_library.cpp
-
-## Examples {#truss_examples}
-
-### 3 Bow {#truss_example_3}
-
-Every roof truss and bridge frame of Bow's tables (1873), stored as graphs in wood_truss::Bow and built by the one Truss template from a TrussGuide on each graph, every design written as its own scene truss_bow_\<number\> with its members and joints.
-
-\include{lineno} templates_truss_3_bow.cpp

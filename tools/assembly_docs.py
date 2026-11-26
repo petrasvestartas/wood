@@ -62,11 +62,14 @@ PAGES = {
         ],
     ),
     "developable_folding": (
-        "Two neighbours on their curved crease make one fold; the folds go round or side by side.",
+        "Two neighbours on their curved crease make one fold, and four walls around a space-curve parallelogram make one tube; "
+        "the folds and tubes go round or side by side, and a flat-packed stack lifts off plate by plate.",
         [
             ("templates_developable_folding_1_curved_fold", "Curved fold tent roof"),
             ("templates_developable_folding_2_curved_crease_unfolding", "Curved crease arch"),
+            ("templates_developable_folding_3_unfolding_sequence", "Accordion unfolding sequence"),
             ("templates_developable_folding_5_synclastic_unfolding", "Synclastic vault"),
+            ("templates_developable_folding_6_cellular_tube_vault", "Cellular tube vault"),
             ("templates_developable_folding_9_alternating_unfolding", "Alternating vault"),
             ("templates_developable_folding_11_corrugated_dome", "Corrugated dome"),
             ("templates_developable_folding_12_corrugated_funnel", "Corrugated funnel"),

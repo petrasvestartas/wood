@@ -29,11 +29,11 @@ int main() {
     const std::vector<double> clear = {0.0, 80.0, 194.0};
     const std::shared_ptr<FacePlanarElement> plate = JointBeamElement::node_plate(members, Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), {48.0, 128.0, 242.0}, 160.0 / 3.0);
     const std::shared_ptr<JointBeamElement> pins = JointBeamElement::slotted_plate(members, *plate, Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, -1.0), clear);
-    scene.add(plate);
-    scene.add(pins);
+    const std::shared_ptr<TreeNode> connector = scene.add(pins);
     scene.add_interaction(pins, chord, pins->interaction(0));
     scene.add_interaction(pins, post, pins->interaction(1));
     scene.add_interaction(pins, diagonal, pins->interaction(2));
+    scene.add(plate, connector);
     scene.add_interaction(pins, plate, pins->interaction(3));
 
     std::cout << scene << std::endl;

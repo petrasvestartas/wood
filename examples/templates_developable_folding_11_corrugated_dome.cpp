@@ -47,7 +47,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 11 of the developable folding templates: a corrugated dome by consecutive plane inclinations in a radial layout. The crease is a meridian arc of a 6 m sphere from the floor up to 80 degrees, an oculus of 2.1 m left open; the 25 crease planes are the meridian planes 15 degrees apart around the vertical axis. The rulings leave the arc square to it at 60 degrees to its plane toward the centre; every plate is the mirror image of its neighbour in their meridian plane, so the ridges are the arc turned by 30 degrees and the valleys its mirror images, a star in plan. 24 plates 40 mm thick, each a developable mitred on its two meridian planes. Groups: plates (plate_<k>), creases.
+Step 11 of the developable folding templates: a corrugated dome by consecutive radial plane inclinations perpendicular to the actuation rotation axis. The crease is a meridian arc of a 6 m sphere rising to 80 degrees around a 2.1 m oculus; 25 radial meridian planes 15 degrees apart mirror 24 axis-shifted 40 mm developable plates into a closed 360-degree star dome that folds compactly into a flat meridian stack at w = 0. Groups: plates, creases, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

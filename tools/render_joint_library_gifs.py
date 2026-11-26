@@ -67,8 +67,13 @@ def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
         branch.interactions[edge] = []
     # no arrows, no base planes and no joint element: undrawn, they would still widen the camera's framing (the joint's empty
     # box sits at the origin); the joint's parts, which hang under it, go back in at the root
-    for line in list(branch.objects.lines) + list(branch.objects.planes) + list(branch.objects.polylines):
+    for line in list(branch.objects.lines) + list(branch.objects.planes) + list(branch.objects.polylines) + [pc for pc in branch.objects.pointclouds if not pc.is_visible]:
         branch.remove_object(line.guid)
+    for pc in list(branch.objects.pointclouds):
+        if design != "-" or not pc.name.startswith(variant):
+            branch.remove_object(pc.guid)
+        else:
+            pc.transform(Xform.translation(*shift))
     for element in list(branch.objects.elements):
         if element.name in joints:
             branch.remove_object(element.guid)
@@ -96,11 +101,18 @@ def frame_branch(frame, solid, shift=(0.0, 0.0, 0.0)):
 # the bounds of every frame, so all are drawn from one camera
 low, high = [1e18] * 3, [-1e18] * 3
 for frame in plan["frames"]:
-    for element in frame_branch(frame, False).objects.elements:
+    drawn = frame_branch(frame, False)
+    for element in drawn.objects.elements:
         for corner in element.aabb.get_corners():
             for k in range(3):
                 low[k] = min(low[k], corner[k])
                 high[k] = max(high[k], corner[k])
+    for pc in drawn.objects.pointclouds:
+        coords = pc.coords()
+        for i in range(0, len(coords), 3):
+            for k in range(3):
+                low[k] = min(low[k], coords[i + k])
+                high[k] = max(high[k], coords[i + k])
 shift = [-(a + b) / 2 for a, b in zip(low, high)]
 low = [a + d for a, d in zip(low, shift)]
 high = [b + d for b, d in zip(high, shift)]

@@ -4,21 +4,21 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Curved-crease unfolding with every second crease plane turned about the span at half height: articulated at the apex and at the supports.
+/// Corrugated CCU vault with alternating plane inclinations around the mid-height span axis.
 int main() {
 
     CurvedCreaseUnfolding unfolding(
         Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0)),
-        50.0 * Tolerance::TO_RADIANS,
+        55.0 * Tolerance::TO_RADIANS,
         CurvedCreaseUnfolding::zigzag(
             Point(0.0, 0.0, 2250.0),
             Vector(0.0, 1.0, 0.0),
             Vector(1.0, 0.0, 0.0),
-            4,
-            1000.0,
-            8.0 * Tolerance::TO_RADIANS
+            12,
+            450.0,
+            5.0 * Tolerance::TO_RADIANS
         ),
-        40.0
+        30.0
     );
     std::cout << unfolding << std::endl;
 
@@ -44,7 +44,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Step 9 of the developable folding templates: plane inclination about the span at half height. Five planes 1000 mm apart, every second one turned 8 degrees, alternately each way, about a line along the span at half height, the crease a semicircle 9 m wide and 4.5 m high, the plates opened 50 degrees: each plate wide at one end and narrow at the other. Each plate is a FaceCurvedElement mitred on its two crease planes, sharing one face with its neighbour, its development checked flat. Groups: plates, creases.
+Step 9 of the developable folding templates: corrugated CCU vault with alternating osculating-plane inclinations about the actuation axis at mid-height. Thirteen planes 450 mm apart over a 9 m semicircle (4.5 m rise, 55-degree opening, 30 mm plates), every odd plane inclined +-5 degrees about the horizontal span axis at z = 2250 mm so corrugation depth and width articulate alternatingly at the crown and supports across three full waves while keeping every crease planar during deployment. Groups: plates, creases, flat.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

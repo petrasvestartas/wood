@@ -1,5 +1,6 @@
 #pragma once
 #include "wood_session.h"
+#include "../development.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -17,6 +18,10 @@ public:
     const size_t rings; // Rings from the eaves to the top the meridians are interpolated through.
     const double thickness; // mm, every lamella.
 
+private:
+    double _distortion = 0.0; // Largest relative diagonal error of any lamella's flat development.
+
+public:
     /// The curved fold as the session named name.
     explicit CurvedFold(
         size_t sectors = 12,
@@ -37,6 +42,11 @@ public:
     /// Not assigned, as it is not copied.
     CurvedFold& operator=(const CurvedFold&) = delete;
 
+    /// Largest relative length error of any lamella's flat development.
+    double distortion() const {
+        return _distortion;
+    }
+
 private:
     /// Per ring from the eaves up its star of ridge and valley points, on the trumpet curve.
     std::vector<std::vector<Point>> compute_rings() const;
@@ -51,7 +61,7 @@ private:
         const std::vector<std::vector<Point>>& inner_stars
     );
 
-    /// Every fold strip, lamella_<j>, in the group lamellas: one curved plate between two meridians.
+    /// Every fold strip, lamella_<j>, in the group lamellas: one curved plate between two meridians, plus its flat pattern.
     void add_lamellas(const std::array<std::vector<NurbsCurve>, 2>& meridians);
 };
 
@@ -190,12 +200,48 @@ inline void CurvedFold::add_lamellas(const std::array<std::vector<NurbsCurve>, 2
     const std::vector<NurbsCurve>& outer = meridians[0];
     const std::vector<NurbsCurve>& inner = meridians[1];
     const std::shared_ptr<TreeNode> lamellas = add_group("lamellas");
+    const std::shared_ptr<TreeNode> flat = add_group("flat");
+    double cursor_x = radius + 2000.0;
 
     for (size_t j = 0; j < count; j++) {
         const size_t next = (j + 1) % count;
+        NurbsCurve outer_a = outer[j];
+        NurbsCurve outer_b = outer[next];
+        NurbsCurve inner_a = inner[j];
+        NurbsCurve inner_b = inner[next];
+
+        const double mid_t = 0.5 * (outer_a.domain_start() + outer_a.domain_end());
+        const Vector tangent = outer_a.tangent_at(mid_t);
+        const Vector across = outer_b.point_at(0.5 * (outer_b.domain_start() + outer_b.domain_end())) - outer_a.point_at(mid_t);
+        const Vector up = outer_a.point_at(mid_t) - inner_a.point_at(0.5 * (inner_a.domain_start() + inner_a.domain_end()));
+        if (across.cross(tangent).dot(up) < 0.0) {
+            std::swap(outer_a, outer_b);
+            std::swap(inner_a, inner_b);
+        }
+
         const std::shared_ptr<FaceCurvedElement> lamella = std::make_shared<FaceCurvedElement>(
-            outer[j], outer[next], inner[j], inner[next], fmt::format("lamella_{}", j)
+            outer_a, outer_b, inner_a, inner_b, fmt::format("lamella_{}", j)
         );
         add(lamella, lamellas);
+
+        const Development development(*lamella, 32, fmt::format("flat_{}", j));
+        _distortion = std::max(_distortion, development.distortion);
+        double low_x = std::numeric_limits<double>::infinity();
+        double high_x = -std::numeric_limits<double>::infinity();
+        double low_y = std::numeric_limits<double>::infinity();
+        for (const Polyline* loop : {&development.bottom, &development.top})
+            for (const Point& point : loop->get_points()) {
+                low_x = std::min(low_x, point[0]);
+                high_x = std::max(high_x, point[0]);
+                low_y = std::min(low_y, point[1]);
+            }
+        if (development.piece) {
+            const std::shared_ptr<FaceCurvedElement> flat_piece =
+                std::make_shared<FaceCurvedElement>(*development.piece);
+            flat_piece->name = fmt::format("flat_{}", j);
+            flat_piece->place(Xform::translation(cursor_x - low_x, -low_y, 0.0));
+            add(flat_piece, flat);
+        }
+        cursor_x += (high_x - low_x) + 400.0;
     }
 }

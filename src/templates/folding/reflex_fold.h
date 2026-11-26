@@ -1,6 +1,6 @@
 #pragma once
 #include "wood_session.h"
-#include "src/templates/template_chamfer.h"
+#include "src/templates/folding/fold_unfolding.h"
 
 using namespace session_cpp;
 using namespace wood_session;
@@ -17,6 +17,7 @@ public:
 
 private:
     Mesh _mesh; // The folded mesh, the plates' outer faces.
+    FoldUnfolding _unfolding; // The flat unfolding of the folded mesh.
 
 public:
     /// The fold of profile along cross_section as the session named name.
@@ -38,6 +39,9 @@ public:
 
     /// The folded quad mesh, one face per plate.
     const Mesh& mesh() const;
+
+    /// The flat 2D unfolding of the folded quad mesh.
+    const FoldUnfolding& unfolding() const;
 
     /// A 2 m arch of five points in the xz plane.
     static Polyline default_cross_section();
@@ -89,6 +93,10 @@ inline ReflexFold::ReflexFold(
     for (const std::shared_ptr<FacePlanarElement>& plate : folds)
         add(plate, plates);
 
+    // flat: the folded mesh unfolded into one flat crease pattern beside the model
+    _unfolding = FoldUnfolding(_mesh);
+    _unfolding.add_to(*this);
+
     // assembly: the plates of every cross section segment make one row along the profile, the rows put one after another from one foot over the crown to the other
     std::vector<size_t> keys;
     for (size_t i = 0; i < folds.size(); i++)
@@ -98,6 +106,10 @@ inline ReflexFold::ReflexFold(
 
 inline const Mesh& ReflexFold::mesh() const {
     return _mesh;
+}
+
+inline const FoldUnfolding& ReflexFold::unfolding() const {
+    return _unfolding;
 }
 
 inline Polyline ReflexFold::default_cross_section() {

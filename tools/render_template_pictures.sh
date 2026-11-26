@@ -76,9 +76,11 @@ fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = developable_folding ]; then
     "${RENDER[@]}" templates_developable_folding_1_curved_fold lamellas
-    "${RENDER[@]}" templates_developable_folding_2_curved_crease_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_2_curved_crease_unfolding plates flat
+    "${RENDER[@]}" --name stages templates_developable_folding_3_unfolding_sequence stage_0+stage_1+stage_2+stage_3
     "${RENDER[@]}" --aspect 1.5 templates_developable_folding_4_crease_quadrants quadrant_1 quadrant_2 quadrant_3 quadrant_4
     "${RENDER[@]}" templates_developable_folding_5_synclastic_unfolding plates
+    "${RENDER[@]}" templates_developable_folding_6_cellular_tube_vault plates flat
     "${RENDER[@]}" templates_developable_folding_9_alternating_unfolding plates
     "${RENDER[@]}" templates_developable_folding_11_corrugated_dome plates
     "${RENDER[@]}" templates_developable_folding_12_corrugated_funnel plates

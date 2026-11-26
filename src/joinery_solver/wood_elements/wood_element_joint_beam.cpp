@@ -2998,13 +2998,31 @@ static Mesh frame_solid(
     return Mesh::loft({loops[0]}, {loops[1]}, true);
 }
 
+/// Radial cutter clearance of a member: `overshoot` for milled stock, widened past bark and knots for an EdgeRawElement.
+static double member_overshoot(const EdgeStraightElement& member, double overshoot) {
+
+    const EdgeRawElement* raw = dynamic_cast<const EdgeRawElement*>(&member);
+
+    return raw && raw->has_raw_mesh() ? std::max(overshoot, raw->raw_overshoot(overshoot + 15.0))
+                                      : overshoot;
+}
+
+/// Axial end extension of a member: `member.extension`, or the full overhanging log end of an EdgeRawElement.
+static double member_end_extension(const EdgeStraightElement& member, double overshoot) {
+
+    const EdgeRawElement* raw = dynamic_cast<const EdgeRawElement*>(&member);
+
+    return raw && raw->has_raw_mesh() ? std::max(member.extension, raw->raw_end_extension(overshoot))
+                                      : member.extension;
+}
+
 /// How far along up the member's axis reaches back past node, its extension and overshoot included: where its end box starts.
 static double end_reach(const EdgeStraightElement& member, const Point& node, const Vector& up, double overshoot) {
 
     const double start = (member.axis.get_point(0) - node).dot(up);
     const double end = (member.axis.get_point(1) - node).dot(up);
 
-    return std::min(start, end) - member.extension - overshoot;
+    return std::min(start, end) - member_end_extension(member, overshoot) - overshoot;
 }
 
 /// The parts of text between commas outside brackets, spaces trimmed.
@@ -3062,7 +3080,12 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const Point b_near = Point::distance(b_first, a_middle) < Point::distance(b_last, a_middle) ? b_first : b_last;
         const Point centre = a_near + (b_near - a_near) * 0.5;
         const Vector u = (a_far - a_near).normalized();
-        const std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        if (a.round_radius > 0.0) {
+            const Vector ref = std::abs(u.dot(Vector::z_axis())) < 0.99 ? Vector::z_axis() : Vector::x_axis();
+            const Vector up = (ref - u * ref.dot(u)).normalized();
+            a_section = {{up, u.cross(up).normalized()}, {a.round_radius, a.round_radius}};
+        }
         const size_t j = std::abs(a_section.first[0].dot(Vector::z_axis())) >= std::abs(a_section.first[1].dot(Vector::z_axis())) ? 0 : 1;
         const Vector p = a_section.first[j] * (a_section.first[j].dot(Vector::z_axis()) < 0.0 ? -1.0 : 1.0);
         const Vector w = u.cross(p).normalized();
@@ -3080,13 +3103,15 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         }
         // a repeat writes the record's braced lines once per unit, as many as the joint's size gives
         library_repeat(record, names);
-        double reach = half_lap + ah + aw;
+        const double over_ab = std::max(member_overshoot(a, overshoot), member_overshoot(b, overshoot));
+        const double end_ext = std::max(member_end_extension(a, overshoot), member_end_extension(b, overshoot));
+        double reach = half_lap + ah + aw + end_ext;
         for (const std::string& line : record.lists["points"]) {
             const std::vector<std::string> pair = split_top(line, '=');
             names[pair[0]] = evaluate(pair[1], names);
             reach = std::max(reach, std::abs((origin + names[pair[0]].vector - centre).dot(u)) + ah);
         }
-        boxes["a_end"] = frame_solid(centre, {u, w, p}, {-reach - overshoot, reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+        boxes["a_end"] = frame_solid(centre, {u, w, p}, {-reach - over_ab, reach + over_ab}, {-aw - over_ab, aw + over_ab}, {-ah - over_ab, ah + over_ab});
         boxes["b_end"] = boxes["a_end"];
     }
     else {
@@ -3116,6 +3141,12 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     const Vector toward = !crossing ? u : Point::distance(on_a, node) > 1e-6 ? (on_a - node).normalized() : common;
         std::pair<std::array<Vector, 2>, std::array<double, 2>> b_section = section_axes(b);
         std::pair<std::array<Vector, 2>, std::array<double, 2>> a_section = section_axes(a);
+        if (b.round_radius > 0.0) {
+            const Vector b_dir = b_axis.to_vector().normalized();
+            const Vector b_perp = toward - b_dir * toward.dot(b_dir);
+            const Vector b_up = b_perp.magnitude() > 1e-6 ? b_perp.normalized() : Plane::from_point_normal(node, b_dir).x_axis();
+            b_section = {{b_up, b_dir.cross(b_up).normalized()}, {b.round_radius, b.round_radius}};
+        }
         // a record's roll turned both sections about their axes (a diagonal puzzle): the frame is taken from them turned back
         for (const std::string& line : record.lists["parameters"]) {
             const std::vector<std::string> pair = split_top(line, '=');
@@ -3140,6 +3171,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const Vector t = lean.magnitude() > 1e-6 ? lean.normalized() : along_b;
         const Vector w = n.cross(t).normalized();
         const Vector p = w.cross(u).normalized();
+        if (a.round_radius > 0.0)
+            a_section = {{w, p}, {a.round_radius, a.round_radius}};
         const size_t j = std::abs(a_section.first[0].dot(w)) >= std::abs(a_section.first[1].dot(w)) ? 0 : 1;
         // a record's member_turn turns a's square section on purpose (a post set diagonally under a beam)
         bool member_turned = false;
@@ -3182,16 +3215,18 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         }
 
         // the boxes the steps cut from: the end of a or a around the crossing, b around the node through its width or as wide as a
-        const double lateral = aw >= bw - 1e-6 ? bw + overshoot : aw;
+        const double over_a = member_overshoot(a, overshoot);
+        const double over_b = member_overshoot(b, overshoot);
+        const double lateral = aw >= bw - 1e-6 ? bw + over_b : aw;
         // across b the box reaches over the footprint of a on b, measured along t: longer where a crosses b obliquely in plan
     const double sine = std::max(t.cross(along_b).magnitude(), 0.2);
-    const double t_extent = along ? span + ah + aw + overshoot : (bt + aw * std::abs(t.dot(along_b))) / sine + overshoot;
-        const double around = 4.0 * (ah + bh) + 2.0 * bt + overshoot;
-        boxes["b_node"] = frame_solid(node, {t, w, n}, {-t_extent, t_extent}, {-lateral, lateral}, {-bh - overshoot, bh + overshoot});
+    const double t_extent = along ? span + ah + aw + over_b : (bt + aw * std::abs(t.dot(along_b))) / sine + over_b;
+        const double around = 4.0 * (ah + bh) + 2.0 * bt + over_a;
+        boxes["b_node"] = frame_solid(node, {t, w, n}, {-t_extent, t_extent}, {-lateral, lateral}, {-bh - over_b, bh + over_b});
         if (crossing)
-            boxes["a_node"] = frame_solid(on_a, {u, w, p}, {-around, around}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+            boxes["a_node"] = frame_solid(on_a, {u, w, p}, {-around, around}, {-aw - over_a, aw + over_a}, {-ah - over_a, ah + over_a});
         else
-            boxes["a_end"] = frame_solid(beside, {u, w, p}, {end_reach(a, beside, u, overshoot), reach + overshoot}, {-aw - overshoot, aw + overshoot}, {-ah - overshoot, ah + overshoot});
+            boxes["a_end"] = frame_solid(beside, {u, w, p}, {end_reach(a, beside, u, over_a), reach + over_a}, {-aw - over_a, aw + over_a}, {-ah - over_a, ah + over_a});
     }
 
     // more members: each a box over its whole length, named by its letter after b (c, d, ...), its axis named by its letter and u (cu);
@@ -3200,15 +3235,16 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     whole.insert(whole.end(), more.begin(), more.end());
     for (size_t k = 0; k < whole.size(); k++) {
         const EdgeStraightElement& member = *whole[k];
+        const double over_m = member_overshoot(member, overshoot);
         const std::pair<std::array<Vector, 2>, std::array<double, 2>> section = section_axes(member);
         const Point start = member.axis.get_point(0);
         const Point end = member.axis.get_point(member.axis.point_count() - 1);
         const Vector along = (end - start).normalized();
-        const double half_length = 0.5 * Point::distance(start, end) + member.extension + overshoot;
+        const double half_length = 0.5 * Point::distance(start, end) + member_end_extension(member, over_m) + over_m;
         const std::string letter(1, static_cast<char>('a' + k));
         if (k >= 2)
             names[letter + "u"] = {0.0, along, true};
-        boxes[k < 2 ? letter + "_all" : letter] = frame_solid(start + (end - start) * 0.5, {along, section.first[0], section.first[1]}, {-half_length, half_length}, {-section.second[0] - overshoot, section.second[0] + overshoot}, {-section.second[1] - overshoot, section.second[1] + overshoot});
+        boxes[k < 2 ? letter + "_all" : letter] = frame_solid(start + (end - start) * 0.5, {along, section.first[0], section.first[1]}, {-half_length, half_length}, {-section.second[0] - over_m, section.second[0] + over_m}, {-section.second[1] - over_m, section.second[1] + over_m});
     }
 
     // planes through a point, their normals turned away from the kept point
@@ -3228,6 +3264,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
     // each also a box the steps cut its hole with, the hole past the ends that leave the wood by its own size, so an end
     // that leaves through a face at a slant leaves no sliver
     const std::shared_ptr<JointBeamElement> joint = std::make_shared<JointBeamElement>();
+    const double part_over = std::max(member_overshoot(a, overshoot), member_overshoot(b, overshoot));
     std::vector<Vector> part_axes;
     for (const std::string& line : record.lists["parts"]) {
         const std::vector<std::string> pair = split_top(line, '=');
@@ -3249,8 +3286,8 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             if (compute_newell(section).dot(axis) < 0.0)
                 std::reverse(section.begin(), section.end());
             const std::string through = terms.size() > 2 ? terms[2] : "both";
-            const double before = through == "both" || through == "start" ? overshoot + 1.0 : 0.0;
-            const double after = through == "both" || through == "end" ? overshoot + 1.0 : 0.0;
+            const double before = through == "both" || through == "start" ? part_over + 1.0 : 0.0;
+            const double after = through == "both" || through == "end" ? part_over + 1.0 : 0.0;
             const Polyline start_section = Polyline(section).closed();
             const Polyline end_section = start_section.transformed(Xform::translation(sweep[0], sweep[1], sweep[2]));
             joint->parts.push_back({start_section, end_section});
@@ -3270,7 +3307,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
         const double side_end = tapered ? evaluate(terms[5], names).number : half_up;
         const Vector axis = (end - start).normalized();
         const std::string through = terms.size() > (tapered ? 6 : 4) ? terms[tapered ? 6 : 4] : "both";
-        const double reach_out = overshoot + std::max({half_up, side_start, side_end});
+        const double reach_out = part_over + std::max({half_up, side_start, side_end});
         const double before = through == "both" || through == "start" ? reach_out : 0.0;
         const double after = through == "both" || through == "end" ? reach_out : 0.0;
         // a folding wedge keeps the face looking along its last term flat: each section moves by what it narrows

@@ -24,6 +24,7 @@ data/snap_fit_sources/
 # ...but data/*.obj are Wavefront OBJ geometry, not MSVC object files. This rule once excluded all 46
 # dataset meshes, so CI cloned the adjacency .txt files without the geometry they index into. 2.5 MB total.
 !data/*.obj
+!data/raw/*.obj
 *.slo
 *.lo
 *.gch

@@ -30,6 +30,10 @@
     <img src="assembly_element_edge_variable_session.gif" alt="variable">
     <span class="wood-card-title">variable</span>
   </a>
+  <a class="wood-card" href="elements_edge_raw.html">
+    <img src="assembly_element_edge_raw_session.gif" alt="raw">
+    <span class="wood-card-title">raw</span>
+  </a>
 </div>
 
 ## Face
@@ -159,6 +163,7 @@ A joint is an element: it is added, then handed to each member it cuts.
 - @subpage elements_edge_straight
 - @subpage elements_edge_curved
 - @subpage elements_edge_variable
+- @subpage elements_edge_raw
 - @subpage elements_face_planar
 - @subpage elements_face_curved
 - @subpage elements_joint_cut_plane

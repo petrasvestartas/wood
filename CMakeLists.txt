@@ -85,6 +85,7 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_elements/wood_element_node_support.cpp
     src/joinery_solver/wood_elements/wood_element_edge.cpp
     src/joinery_solver/wood_elements/wood_element_edge_straight.cpp
+    src/joinery_solver/wood_elements/wood_element_edge_raw.cpp
     src/joinery_solver/wood_elements/wood_element_node_block.cpp
     src/joinery_solver/wood_elements/wood_element_joint.cpp
     src/joinery_solver/wood_elements/wood_element_joint_plate.cpp
@@ -388,8 +389,10 @@ ADD_EXE(templates_cylindrical_folding_16_cylinder_carving              examples/
 ADD_EXE(templates_cylindrical_folding_17_cylinder_carving_rings        examples/templates_cylindrical_folding_17_cylinder_carving_rings.cpp)
 ADD_EXE(templates_developable_folding_1_curved_fold                    examples/templates_developable_folding_1_curved_fold.cpp)
 ADD_EXE(templates_developable_folding_2_curved_crease_unfolding        examples/templates_developable_folding_2_curved_crease_unfolding.cpp)
+ADD_EXE(templates_developable_folding_3_unfolding_sequence             examples/templates_developable_folding_3_unfolding_sequence.cpp)
 ADD_EXE(templates_developable_folding_4_crease_quadrants               examples/templates_developable_folding_4_crease_quadrants.cpp)
 ADD_EXE(templates_developable_folding_5_synclastic_unfolding           examples/templates_developable_folding_5_synclastic_unfolding.cpp)
+ADD_EXE(templates_developable_folding_6_cellular_tube_vault            examples/templates_developable_folding_6_cellular_tube_vault.cpp)
 ADD_EXE(templates_developable_folding_9_alternating_unfolding          examples/templates_developable_folding_9_alternating_unfolding.cpp)
 ADD_EXE(templates_developable_folding_11_corrugated_dome               examples/templates_developable_folding_11_corrugated_dome.cpp)
 ADD_EXE(templates_developable_folding_12_corrugated_funnel             examples/templates_developable_folding_12_corrugated_funnel.cpp)
@@ -444,6 +447,12 @@ ADD_EXE(element_edge_curved_cut_plane    examples/elements/element_edge_curved_c
 ADD_EXE(element_edge_curved_joints       examples/elements/element_edge_curved_joints.cpp)
 ADD_EXE(element_edge_variable_session    examples/elements/element_edge_variable_session.cpp)
 ADD_EXE(element_edge_variable_holes      examples/elements/element_edge_variable_holes.cpp)
+ADD_EXE(element_edge_raw                 examples/elements/element_edge_raw.cpp)
+ADD_EXE(element_edge_raw_proxy           examples/elements/element_edge_raw_proxy.cpp)
+ADD_EXE(element_edge_raw_session         examples/elements/element_edge_raw_session.cpp)
+ADD_EXE(element_edge_raw_holes           examples/elements/element_edge_raw_holes.cpp)
+ADD_EXE(element_edge_raw_cut_plane       examples/elements/element_edge_raw_cut_plane.cpp)
+ADD_EXE(element_edge_raw_joints          examples/elements/element_edge_raw_joints.cpp)
 ADD_EXE(element_face_planar_cut_plane    examples/elements/element_face_planar_cut_plane.cpp)
 ADD_EXE(element_face_curved_session      examples/elements/element_face_curved_session.cpp)
 ADD_EXE(element_face_curved_holes        examples/elements/element_face_curved_holes.cpp)

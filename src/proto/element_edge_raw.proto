@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package wood_proto;
+import "element_edge_straight.proto";
+import "mesh.proto";
+import "pointcloud.proto";
+import "polyline.proto";
+import "xform.proto";
+
+// The state of an EdgeRawElement: its round/polygonal EdgeStraightElement base, plus its unprocessed stock mesh, point cloud, branch axes and placement matrix.
+message EdgeRawElement {
+  EdgeStraightElement base = 1;                       // Axis, radii, profile, cuts and solid/plane features
+  session_proto.Mesh raw_mesh = 2;                    // Unprocessed closed mesh in stock coordinates
+  session_proto.PointCloud raw_pointcloud = 3;        // Unprocessed scanned point cloud in stock coordinates
+  session_proto.Xform raw_xform = 4;                  // Stock-to-world placement matrix of the attached raw data
+  repeated session_proto.Polyline branch_axes = 5;    // Secondary skeleton axes in stock coordinates (tree forks)
+  bool use_raw_mesh = 6;                              // True when the solid is the placed raw mesh rather than the low-poly proxy
+  bool show_pointcloud = 7;                           // True when the synced attribute point cloud is visible
+}

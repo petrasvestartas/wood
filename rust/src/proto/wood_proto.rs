@@ -103,6 +103,31 @@ pub struct EdgeStraightElement {
     #[prost(double, tag = "9")]
     pub extension: f64,
 }
+/// The state of an EdgeRawElement: its round/polygonal EdgeStraightElement base, plus its unprocessed stock mesh, point cloud, branch axes and placement matrix.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EdgeRawElement {
+    /// Axis, radii, profile, cuts and solid/plane features
+    #[prost(message, optional, tag = "1")]
+    pub base: ::core::option::Option<EdgeStraightElement>,
+    /// Unprocessed closed mesh in stock coordinates
+    #[prost(message, optional, tag = "2")]
+    pub raw_mesh: ::core::option::Option<::session_rust::proto::Mesh>,
+    /// Unprocessed scanned point cloud in stock coordinates
+    #[prost(message, optional, tag = "3")]
+    pub raw_pointcloud: ::core::option::Option<::session_rust::proto::PointCloud>,
+    /// Stock-to-world placement matrix of the attached raw data
+    #[prost(message, optional, tag = "4")]
+    pub raw_xform: ::core::option::Option<::session_rust::proto::Xform>,
+    /// Secondary skeleton axes in stock coordinates (tree forks)
+    #[prost(message, repeated, tag = "5")]
+    pub branch_axes: ::prost::alloc::vec::Vec<::session_rust::proto::Polyline>,
+    /// True when the solid is the placed raw mesh rather than the low-poly proxy
+    #[prost(bool, tag = "6")]
+    pub use_raw_mesh: bool,
+    /// True when the synced attribute point cloud is visible
+    #[prost(bool, tag = "7")]
+    pub show_pointcloud: bool,
+}
 /// The state of an EdgeVariableElement beyond the kernel Element: its straight axis, the sections lofted along it and its cuts.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EdgeVariableElement {
