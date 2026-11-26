@@ -97,7 +97,8 @@ set(WOOD_SOURCES
     src/joinery_solver/wood_algorithms/wood_brep_drill.cpp
     src/joinery_solver/wood_algorithms/wood_profile_boolean.cpp
     src/joinery_solver/wood_elements/wood_profile.cpp
-    src/templates/grid/grid_plan.cpp
+    src/templates/grid/grid_guide.cpp
+    src/templates/grid/grid_designs.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
     src/templates/floor/floor_guide.cpp

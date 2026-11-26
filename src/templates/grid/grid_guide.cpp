@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "src/templates/grid/grid.h"
+#include "src/templates/grid/grid_guide.h"
 
 using namespace session_cpp;
 
@@ -897,16 +897,16 @@ void Stack::add_facades(double target_bay, const Framing& framing, double base_z
             const auto [u, v] = ccw_dir.count(key) ? ccw_dir.at(key) : std::make_pair(edge.a, edge.b);
 
             const bool is_primary =
-                (lvl.framing.system == System::PostAndBeam && lvl.framing.span < 0) ||
+                (lvl.framing.system == 1 && lvl.framing.span < 0) ||
                 edge.family == std::max(0, lvl.framing.span);
             double beam_w = col_w;
             double soffit_d = 0.0;
-            if (lvl.framing.system == System::PostAndBeam) {
+            if (lvl.framing.system == 1) {
                 beam_w = is_primary ? girder_w : sec_w;
                 soffit_d = is_primary ? girder_d : sec_d;
-            } else if (lvl.framing.system == System::GirderPurlin ||
-                       lvl.framing.system == System::StackedPurlin) {
-                const bool stacked = (lvl.framing.system == System::StackedPurlin);
+            } else if (lvl.framing.system == 2 ||
+                       lvl.framing.system == 3) {
+                const bool stacked = (lvl.framing.system == 3);
                 if (is_primary) {
                     beam_w = girder_w;
                     soffit_d = stacked ? (purlin_d + girder_d) : girder_d;
@@ -941,7 +941,7 @@ void Stack::add_facades(double target_bay, const Framing& framing, double base_z
 
             Framing ff = framing;
             ff.height = 0.0;
-            if (ff.brace != Brace::None && !wall_plan.cells.empty()) {
+            if (ff.brace != 0 && !wall_plan.cells.empty()) {
                 const bool at_start = is_bldg_corner(u);
                 const bool at_end = is_bldg_corner(v);
                 size_t min_ci = 0;
@@ -969,11 +969,28 @@ void Stack::add_facades(double target_bay, const Framing& framing, double base_z
                 if (at_end && max_ci != min_ci)
                     ff.braced_bays.push_back(max_ci);
                 if (ff.braced_bays.empty())
-                    ff.brace = Brace::None;
+                    ff.brace = 0;
             }
             facades.push_back(Level{wall_plan, ff});
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Design
+// ═══════════════════════════════════════════════════════════════════════════
+
+Design::Design(const std::string& name, const Plan& plan, const Framing& framing, double width)
+    : name(name),
+      plan(plan),
+      framing(framing),
+      width(width) {
+}
+
+Design::Design(const std::string& name, const std::function<Stack(double)>& stack, double width)
+    : name(name),
+      stack(stack),
+      width(width) {
 }
 
 } // namespace wood_grid

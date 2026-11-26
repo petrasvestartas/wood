@@ -171,10 +171,10 @@ const std::vector<Polyline>& secondary_beam_profile(const Profiles& p) {
 
 EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
     EdgeSpec spec;
-    if (edge.core || framing.system == System::Slab)
+    if (edge.core || framing.system == 0)
         return spec;
 
-    if (framing.system == System::PostAndBeam) {
+    if (framing.system == 1) {
         const bool is_primary = (framing.span < 0) || (edge.family == framing.span);
         spec.role = is_primary ? Role::Girder : Role::Beam;
         spec.profile = is_primary ? framing.profiles.girder : secondary_beam_profile(framing.profiles);
@@ -190,8 +190,8 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         return spec;
     }
 
-    // System::GirderPurlin / System::StackedPurlin
-    const bool stacked = (framing.system == System::StackedPurlin);
+    // girders with flush purlins, or purlins on lowered girders
+    const bool stacked = (framing.system == 3);
     const int primary_fam = std::max(0, framing.span);
     const auto [gw, gd] = wood_session::compute_size(framing.profiles.girder);
     const auto [pw, pd] = wood_session::compute_size(framing.profiles.purlin);
@@ -213,7 +213,7 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         return spec;
     }
 
-    // Non-primary boundary/rim edge in `System::GirderPurlin` carries a full edge beam (`beam` or `girder`)
+    // Non-primary boundary/rim edge with flush purlins carries a full edge beam (`beam` or `girder`)
     // at tier 2 so primary girders run flush to the corner face and secondary rim beams T-butt cleanly!
     // (Oblique silhouette edges `edge.family < 0` get tier 3 so continuous diagonal/rake walls aren't chopped.)
     if (!stacked && edge.boundary) {
@@ -228,7 +228,7 @@ EdgeSpec classify_edge(const PlanEdge& edge, const Framing& framing) {
         return spec;
     }
 
-    // Interior non-primary grid line (or `System::StackedPurlin` upper layer) carries a purlin.
+    // Interior non-primary grid line (or the upper layer of purlins on lowered girders) carries a purlin.
     spec.role = Role::Purlin;
     spec.profile = framing.profiles.purlin;
     spec.width = pw;
@@ -249,7 +249,7 @@ bool layers_overlap(const EdgeSpec& a, const EdgeSpec& b) {
 
 struct ColumnFootprint {
     std::vector<Point> raw_uv;         // Unclipped CCW polygon in (u, v)
-    std::vector<Point> inline_head_uv; // Non-empty when `NodeMode::Head` sits in-line with beams!
+    std::vector<Point> inline_head_uv; // Non-empty when a head node sits in-line with beams!
     std::vector<Plane> facade_clips;   // Exterior boundary planes clipping oblique corner columns/heads
     Vector up_uv = Vector(0.0, 1.0, 0.0);
     double seat_w = 0.0;               // Underside of supported beams/slab at this node
@@ -323,7 +323,7 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
             std::reverse(cf.raw_uv.begin(), cf.raw_uv.end());
 
         // Seat elevation under highest-priority supported member at v.
-        if (framing.system == System::Slab) {
+        if (framing.system == 0) {
             cf.seat_w = framing.deck_flush ? -framing.deck : 0.0;
         } else {
             double lowest = 0.0;
@@ -332,7 +332,7 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
                 const EdgeSpec& es = edge_specs[ei];
                 if (es.role == Role::None)
                     continue;
-                if (framing.system == System::StackedPurlin && es.role == Role::Girder) {
+                if (framing.system == 3 && es.role == Role::Girder) {
                     lowest = std::min(lowest, es.w_bot);
                     best_tier = 100;
                 } else if (best_tier < 100) {
@@ -373,8 +373,8 @@ std::map<size_t, ColumnFootprint> compute_column_footprints(
             }
         }
 
-        // Build chamfered IN-LINE head polygon (`[-beam_depth, 0]`) when `Node::Head` frames beams!
-        if (framing.node == Node::Head && framing.system != System::Slab &&
+        // Build chamfered IN-LINE head polygon (`[-beam_depth, 0]`) when a head node frames beams!
+        if (framing.node == 2 && framing.system != 0 &&
             framing.reach > TOL) {
             const double col_hw = 0.5 * wood_session::compute_size(framing.profiles.column).first;
             double reach = col_hw + framing.reach;
@@ -543,9 +543,9 @@ EndTrim compute_node_trim(
     const double span_len = origin_uv.distance(plan.nodes[other_v]);
     const double max_overrun = std::min(target_s.width * 2.5, span_len * 0.4);
 
-    // 1. Continuous column (`Node::Through`) or in-line head (`Node::Head`) cuts beams at its exit face!
+    // 1. Continuous column (node 1) or in-line head (node 2) cuts beams at its exit face!
     const bool has_inline_head =
-        framing.node == Node::Head && columns.count(node_v) > 0 &&
+        framing.node == 2 && columns.count(node_v) > 0 &&
         !columns.at(node_v).inline_head_uv.empty() &&
         target_s.w_bot <= columns.at(node_v).seat_w + 0.5 * target_s.depth;
     if (has_inline_head) {
@@ -560,7 +560,7 @@ EndTrim compute_node_trim(
     }
 
     const bool has_through_col =
-        framing.node == Node::Through && columns.count(node_v) > 0;
+        framing.node == 1 && columns.count(node_v) > 0;
     double through_overrun = 0.0;
     if (has_through_col) {
         const std::optional<Point> col_foot_w =
@@ -1046,7 +1046,7 @@ std::vector<std::pair<Line, std::vector<Plane>>> split_outside_cores_uv(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Subdivided Bay Purlins (`System::GirderPurlin`)
+// Subdivided Bay Purlins (system 2 and 3)
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::vector<std::shared_ptr<Element>> build_bay_purlins(
@@ -1056,7 +1056,7 @@ std::vector<std::shared_ptr<Element>> build_bay_purlins(
     const std::vector<Polyline>& outer_cores
 ) {
     std::vector<std::shared_ptr<Element>> purlins;
-    if ((framing.system != System::GirderPurlin && framing.system != System::StackedPurlin) ||
+    if ((framing.system != 2 && framing.system != 3) ||
         framing.spacing <= TOL)
         return purlins;
 
@@ -1183,7 +1183,7 @@ std::vector<std::shared_ptr<Element>> build_bay_purlins(
                 Point ext0 = p0;
                 Point ext1 = p1;
                 std::vector<Plane> base_cuts;
-                if (framing.system == System::StackedPurlin) {
+                if (framing.system == 3) {
                     ext0 = p0 - purlin_dir * s0.stacked_overhang;
                     ext1 = p1 + purlin_dir * s1.stacked_overhang;
                     base_cuts.push_back(lift_plane_uv(plan, ext0, purlin_dir));
@@ -1220,19 +1220,19 @@ std::vector<std::shared_ptr<Element>> build_bay_purlins(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// In-Plane Timber Braces (`BraceMode`: Diagonal, Cross, Chevron)
+// In-Plane Timber Braces (diagonal, cross, chevron)
 // ═══════════════════════════════════════════════════════════════════════════
 
 std::vector<std::shared_ptr<Element>> build_bay_braces(
     const Plan& plan, const Framing& framing, const std::vector<EdgeSpec>& edge_specs
 ) {
     std::vector<std::shared_ptr<Element>> braces;
-    if (framing.brace == Brace::None || framing.profiles.brace.empty())
+    if (framing.brace == 0 || framing.profiles.brace.empty())
         return braces;
 
     const auto [bw, bd] = wood_session::compute_size(framing.profiles.brace);
     // Center braces inside the primary framing depth (or centered in [-bd, 0] on Slab).
-    const double frame_d = framing.system == System::Slab
+    const double frame_d = framing.system == 0
                                ? bd
                                : wood_session::compute_size(framing.profiles.girder).second;
     const double w_mid = -0.5 * std::max(bd, frame_d);
@@ -1287,9 +1287,9 @@ std::vector<std::shared_ptr<Element>> build_bay_braces(
             }
         };
 
-        if (framing.brace == Brace::Diagonal) {
+        if (framing.brace == 1) {
             add_brace_seg(q[0], q[2], {});
-        } else if (framing.brace == Brace::Cross) {
+        } else if (framing.brace == 2) {
             // Primary continuous diagonal Q0 -> Q2; secondary Q1 -> Q3 split cleanly against its sides.
             add_brace_seg(q[0], q[2], {});
             const Vector d_main = (q[2] - q[0]).normalized();
@@ -1301,7 +1301,7 @@ std::vector<std::shared_ptr<Element>> build_bay_braces(
             add_brace_seg(
                 mid, q[3], {lift_plane_uv(plan, q[0] + n_left * (0.5 * bw), n_left)}
             );
-        } else if (framing.brace == Brace::Chevron) {
+        } else if (framing.brace == 3) {
             // Order bottom edge as lowest v-coordinate edge of the quad.
             size_t bot_i = 0;
             double best_v = std::numeric_limits<double>::max();
@@ -1339,11 +1339,11 @@ BuiltSupport build_column_and_head(
     BuiltSupport out;
     const double w_foot = -framing.height;
     const bool has_inline_head =
-        framing.node == Node::Head && !cf.inline_head_uv.empty();
+        framing.node == 2 && !cf.inline_head_uv.empty();
     const bool has_slab_head =
-        framing.node == Node::Head && framing.system == System::Slab &&
+        framing.node == 2 && framing.system == 0 &&
         framing.head > TOL && framing.reach > TOL;
-    const double w_col_top = framing.node == Node::Through
+    const double w_col_top = framing.node == 1
                                  ? 0.0
                                  : (has_slab_head ? cf.seat_w - framing.head : cf.seat_w);
 
@@ -1523,7 +1523,7 @@ std::vector<std::shared_ptr<Element>> build_decks(
         for (const auto& [_, cf] : columns) {
             if (!cf.inline_head_uv.empty())
                 global_cutters.push_back(close_ring(cf.inline_head_uv));
-            else if (framing.node == Node::Through && !cf.raw_uv.empty())
+            else if (framing.node == 1 && !cf.raw_uv.empty())
                 global_cutters.push_back(close_ring(cf.raw_uv));
         }
     }
@@ -1767,8 +1767,8 @@ void populate_plan_unit(
         EndTrim trim_b = compute_node_trim(plan, framing, edge_specs, columns, node_adj, e.b, ei);
 
         // In `StackedPurlin` mode, extend terminal upper-layer purlins across the full top width of girders!
-        if (framing.system == System::StackedPurlin && es.role == Role::Purlin &&
-            framing.node != Node::Through) {
+        if (framing.system == 3 && es.role == Role::Purlin &&
+            framing.node != 1) {
             const double gw_half = 0.5 * wood_session::compute_size(framing.profiles.girder).first;
             auto is_terminal_over_girder = [&](size_t nv) {
                 bool has_girder = false;
@@ -1822,7 +1822,7 @@ void populate_plan_unit(
     for (const auto& p : build_bay_purlins(plan, framing, edge_specs, outer_cores))
         purlin_elems.push_back(p);
 
-    if (framing.system == System::PostAndBeam) {
+    if (framing.system == 1) {
         std::vector<std::shared_ptr<Element>> all_beams = girder_elems;
         all_beams.insert(all_beams.end(), beam_elems.begin(), beam_elems.end());
         if (!all_beams.empty()) {
@@ -1920,12 +1920,12 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
         Framing lvl_framing = lvl.framing;
 
         // When the storey below has a top-mounted CLT deck (`!deck_flush && deck > 0`),
-        // either notch that deck around continuous columns (`Through`) or stand upper columns on the deck!
+        // either notch that deck around continuous columns (node 1) or stand upper columns on the deck!
         std::vector<Polyline> upper_col_notches_uv;
         if (i > 0) {
             const Stack::Level& below = stack.levels[i - 1];
             if (below.framing.deck > TOL && !below.framing.deck_flush &&
-                lvl.framing.node != Node::Through) {
+                lvl.framing.node != 1) {
                 lvl_framing.height = std::max(0.0, lvl_framing.height - below.framing.deck);
                 for (size_t v = 0; v < lvl_plan.column_feet.size(); ++v) {
                     if (!lvl_plan.column_feet[v].has_value())
@@ -1941,7 +1941,7 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
         }
         if (i + 1 < stack.levels.size() && lvl.framing.deck > TOL && !lvl.framing.deck_flush) {
             const Stack::Level& above = stack.levels[i + 1];
-            if (above.framing.node == Node::Through && above.framing.height > TOL) {
+            if (above.framing.node == 1 && above.framing.height > TOL) {
                 std::vector<EdgeSpec> above_specs(above.plan.edges.size());
                 for (size_t ei = 0; ei < above.plan.edges.size(); ++ei)
                     above_specs[ei] = classify_edge(above.plan.edges[ei], above.framing);
@@ -1998,6 +1998,45 @@ Grid::Grid(const Stack& stack, std::string name) : WoodSession(std::move(name)) 
     for (size_t i = 0; i < stack.facades.size(); ++i)
         groups.push_back(fmt::format("facade_{}", i + 1));
     assemblies = {erection(*this, groups)};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Grids
+// ═══════════════════════════════════════════════════════════════════════════
+
+Grids::Grids(const std::vector<Design>& designs, double gap, const std::string& name)
+    : WoodSession(name) {
+
+    double cursor = 0.0;
+    for (const Design& design : designs) {
+
+        // stack: made at the cursor, its width given
+        if (design.stack) {
+            graft(Grid(design.stack(cursor), design.name), add_group(design.name));
+            cursor += design.width + gap;
+            continue;
+        }
+
+        // room: the plan's width, or the extent of its nodes along x, its start moved to the cursor
+        double start = 0.0;
+        double width = design.width;
+        if (width <= 0.0) {
+            double low = std::numeric_limits<double>::max();
+            double high = -low;
+            for (const Point& node : design.plan.nodes) {
+                const Point world = design.plan.to_world(node[0], node[1], 0.0);
+                low = std::min(low, world[0]);
+                high = std::max(high, world[0]);
+            }
+            start = low;
+            width = high - low;
+        }
+
+        // plan: moved to the cursor and framed
+        const Plan placed = design.plan.transformed(Xform::translation(cursor - start, 0.0, 0.0));
+        graft(Grid(placed, design.framing, design.name), add_group(design.name));
+        cursor += width + gap;
+    }
 }
 
 } // namespace wood_grid

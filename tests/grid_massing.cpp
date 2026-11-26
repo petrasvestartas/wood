@@ -133,30 +133,30 @@ int main() {
     check(sub_bay.edges.size() == 4, "isolated rectangular bay must have 4 boundary edges");
     verify_grid(
         "isolated_bay",
-        Grid(sub_bay, Framing{.system = System::PostAndBeam, .node = Node::Flush, .span = 0, .deck = 160.0})
+        Grid(sub_bay, Framing{.system = 1, .node = 0, .span = 0, .deck = 160.0})
     );
 
     // 2. Single-bay framing modes (Slab+Head, PostAndBeam+Head, Flush, Through, StackedPurlin).
     const Plan one = Plan::from_pattern(Pattern::orthogonal({6000.0}, {6000.0}), FLOOR);
     verify_grid(
         "slab_head",
-        Grid(one, Framing{.system = System::Slab, .node = Node::Head, .deck = 240.0, .panel = 3000.0})
+        Grid(one, Framing{.system = 0, .node = 2, .deck = 240.0, .panel = 3000.0})
     );
     verify_grid(
         "beam_head",
-        Grid(one, Framing{.system = System::PostAndBeam, .node = Node::Head, .span = -1})
+        Grid(one, Framing{.system = 1, .node = 2, .span = -1})
     );
     verify_grid(
         "purlin_flush",
-        Grid(one, Framing{.system = System::GirderPurlin, .node = Node::Flush, .spacing = 2000.0, .deck = 140.0})
+        Grid(one, Framing{.system = 2, .node = 0, .spacing = 2000.0, .deck = 140.0})
     );
     verify_grid(
         "node_through",
-        Grid(one, Framing{.system = System::GirderPurlin, .node = Node::Through, .spacing = 2000.0})
+        Grid(one, Framing{.system = 2, .node = 1, .spacing = 2000.0})
     );
     verify_grid(
         "purlin_stacked",
-        Grid(one, Framing{.system = System::StackedPurlin, .node = Node::Flush, .spacing = 2000.0})
+        Grid(one, Framing{.system = 3, .node = 0, .spacing = 2000.0})
     );
 
     // 3. Non-orthogonal footprints: skewed, radial (with overhang check), triangular, hexagonal, irregular.
@@ -164,7 +164,7 @@ int main() {
         "skewed",
         Grid(
             Plan::from_pattern(Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0}, 30.0), FLOOR),
-            Framing{.system = System::GirderPurlin, .node = Node::Flush, .spacing = 2000.0}
+            Framing{.system = 2, .node = 0, .spacing = 2000.0}
         )
     );
 
@@ -174,8 +174,8 @@ int main() {
     const Grid radial_grid(
         radial_plan,
         Framing{
-            .system = System::PostAndBeam,
-            .node = Node::Flush,
+            .system = 1,
+            .node = 0,
             .span = 0,
             .profiles = {.column = profile_round(280.0)},
         }
@@ -193,8 +193,8 @@ int main() {
         Grid(
             Plan::from_pattern(Pattern::triangular(6000.0, 3, 2), FLOOR),
             Framing{
-                .system = System::PostAndBeam,
-                .node = Node::Flush,
+                .system = 1,
+                .node = 0,
                 .span = -1,
                 .profiles = {.column = profile_round(280.0)},
             }
@@ -205,8 +205,8 @@ int main() {
         Grid(
             Plan::from_pattern(Pattern::hexagonal(4000.0, 3, 2), FLOOR),
             Framing{
-                .system = System::PostAndBeam,
-                .node = Node::Flush,
+                .system = 1,
+                .node = 0,
                 .span = -1,
                 .profiles = {.column = profile_round(220.0), .girder = profile_rectangle(220.0, 420.0)},
             }
@@ -235,8 +235,8 @@ int main() {
                 FLOOR
             ),
             Framing{
-                .system = System::PostAndBeam,
-                .node = Node::Flush,
+                .system = 1,
+                .node = 0,
                 .span = 0,
                 .profiles =
                     {.column = profile_rectangle(240.0, 240.0),
@@ -257,8 +257,8 @@ int main() {
         Grid(
             facade_plan,
             Framing{
-                .system = System::PostAndBeam,
-                .brace = Brace::Cross,
+                .system = 1,
+                .brace = 2,
                 .braced_bays = {0, 2},
                 .span = 1,
                 .height = 0.0,
@@ -271,7 +271,7 @@ int main() {
         {l_ring},
         {0.0, 3600.0, 7200.0},
         Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
-        Framing{.system = System::PostAndBeam, .node = Node::Through, .span = -1, .deck = 160.0}
+        Framing{.system = 1, .node = 1, .span = -1, .deck = 160.0}
     );
     verify_grid("multistorey_stack", Grid(stack));
 
@@ -283,8 +283,8 @@ int main() {
         {0.0, 3800.0, 7600.0},
         Pattern::orthogonal({8000.0, 8000.0}, {6000.0, 6000.0}),
         Framing{
-            .system = System::GirderPurlin,
-            .node = Node::Flush,
+            .system = 2,
+            .node = 0,
             .spacing = 2000.0,
             .deck = 160.0,
             .wall = 240.0,
@@ -294,8 +294,8 @@ int main() {
     core_stack.add_facades(
         3800.0,
         Framing{
-            .system = System::PostAndBeam,
-            .brace = Brace::Cross,
+            .system = 1,
+            .brace = 2,
             .span = 1,
             .profiles =
                 {.girder = profile_rectangle(140.0, 180.0),
@@ -311,8 +311,8 @@ int main() {
         {0.0, 3400.0, 6800.0},
         Pattern::orthogonal({4000.0, 4000.0, 4000.0}, {4000.0, 4000.0}),
         Framing{
-            .system = System::PostAndBeam,
-            .node = Node::Head,
+            .system = 1,
+            .node = 2,
             .span = -1,
             .deck = 180.0,
             .deck_flush = true,
@@ -327,7 +327,7 @@ int main() {
     const Pattern sq_pat = Pattern::orthogonal({6000.0, 6000.0}, {6000.0, 6000.0});
     const Pattern shift_pat =
         Pattern::orthogonal(std::vector<double>(6, 3000.0), std::vector<double>(6, 3000.0));
-    const Framing shift_frm{.system = System::PostAndBeam, .deck = 160.0};
+    const Framing shift_frm{.system = 1, .deck = 160.0};
     auto shift_lvl = [&](double z, double dx, double dy) {
         return Stack::Level{
             Plan::from_footprint(
@@ -358,8 +358,8 @@ int main() {
                 return Xform::scale_non_uniform(sq_pivot, s, s, 1.0);
             },
             Framing{
-                .system = System::GirderPurlin,
-                .node = Node::Through,
+                .system = 2,
+                .node = 1,
                 .spacing = 2200.0,
                 .deck = 160.0,
             }
@@ -377,8 +377,8 @@ int main() {
                        Xform::translation(-sq_pivot[0], -sq_pivot[1], 0.0);
             },
             Framing{
-                .system = System::PostAndBeam,
-                .node = Node::Through,
+                .system = 1,
+                .node = 1,
                 .deck = 160.0,
                 .profiles = {.column = profile_round(300.0)},
             }
@@ -399,15 +399,15 @@ int main() {
             {0.0, 3800.0, 7600.0},
             Pattern::orthogonal({6000.0, 6000.0, 6000.0}, {6000.0, 6000.0}),
             Framing{
-                .system = System::GirderPurlin,
-                .node = Node::Flush,
+                .system = 2,
+                .node = 0,
                 .spacing = 2000.0,
                 .deck = 160.0,
             }
         ))
     );
 
-    // 9. Developed two-layer modulated fin screen (`System::StackedPurlin` on vertical Plane).
+    // 9. Developed two-layer modulated fin screen (stacked purlins on a vertical plane).
     const Plan fin_plan = Plan::facade(
         Line::from_points(Point(0.0, 0.0, 0.0), Point(9000.0, 0.0, 0.0)),
         7200.0,
@@ -419,7 +419,7 @@ int main() {
         Grid(
             fin_plan,
             Framing{
-                .system = System::StackedPurlin,
+                .system = 3,
                 .span = 0,
                 .height = 0.0,
                 .spacing = 100000.0,
