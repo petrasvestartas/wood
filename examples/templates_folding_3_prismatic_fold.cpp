@@ -3,14 +3,15 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The singly folded plate.
 int main() {
 
-    PrismaticFold fold;
+    PrismaticFold fold(PrismaticFoldGuide::prismatic_fold());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("prismatic fold: {} plates over {} mm\n", plates.size(), fold.span);
+    std::cout << fmt::format("prismatic fold: {} plates over {} mm\n", plates.size(), fold.guide.span);
     fold.pb_dump(pb_path("live"));
     return 0;
 }

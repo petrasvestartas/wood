@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The reflex fold on its default arch and zigzag: the curves, the fold planes, the folded mesh and one plate per fold.
 int main() {
 
-    ReflexFold fold;
+    ReflexFold fold(ReflexFoldGuide::reflex_fold());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("reflex fold: {} plates\n", plates.size());

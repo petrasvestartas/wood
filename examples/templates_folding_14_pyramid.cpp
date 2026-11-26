@@ -1,16 +1,18 @@
 #include "wood_session.h"
 #include "src/templates/folding/truncated_pyramid.h"
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The pyramidal folded plate .
 int main() {
 
-    TruncatedPyramid fold(9000.0, 0.0, 6000.0, std::nullopt, std::nullopt, 120.0, "pyramid");
+    TruncatedPyramid fold(TruncatedPyramidGuide::pyramid(), "pyramid");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("pyramid: {}\n", plate_report(plates, fold.thickness));
+    std::cout << fmt::format("pyramid: {}\n", plate_report(plates, fold.guide.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }

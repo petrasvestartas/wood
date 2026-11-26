@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The diamond mesh on its default arch: the surface, the rhombus mesh and one 40 mm plate per triangle.
 int main() {
 
-    DiamondMesh diamond(DiamondMesh::default_surface(), 8, 4, 40.0, 10.0, 180.0);
+    DiamondMesh diamond(DiamondMeshGuide::diamond_mesh());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates =
         diamond.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << diamond << std::endl;

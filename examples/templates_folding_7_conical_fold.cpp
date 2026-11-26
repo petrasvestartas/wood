@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// Conical folding.
 int main() {
 
-    ConicalFold fold;
+    ConicalFold fold(ConicalFoldGuide::conical_fold());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("conical fold: {} plates\n", plates.size());

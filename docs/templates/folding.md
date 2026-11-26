@@ -2,7 +2,7 @@
 
 [TOC]
 
-Planar folded-plate timber structures in `src/templates/folding/*.h`. Each template builds a planar-faced mid-surface mesh and offsets it into mitered `FacePlanarElement` solids.
+Planar folded-plate timber structures in `src/templates/folding/`, namespace `wood_folding`. Every template is built from its guide in `folding_guide.h` (`ReflexFoldGuide`, `DiamondMeshGuide`, ...: every input a field with its default, the examples' settings as static presets) and the session name. Each template builds a planar-faced mid-surface mesh and offsets it into mitered `FacePlanarElement` solids.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#reflex_fold">
@@ -57,7 +57,7 @@ Planar folded-plate timber structures in `src/templates/folding/*.h`. Each templ
 
 ## Reflex Fold {#reflex_fold}
 
-`ReflexFold(cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle)` (`folding/reflex_fold.h`): sweeps a zigzag `profile` along an arch `cross_section` (two profile curves), folding at each arch vertex bisector plane (`mitered_plates`).
+`ReflexFold(guide, name)` (`folding/reflex_fold.h`), `ReflexFoldGuide {cross_section, profile, thickness, chamfer_bottom, chamfer_top, chamfer_angle}`: sweeps a zigzag `profile` along an arch `cross_section` (two profile curves), folding at each arch vertex bisector plane (`mitered_plates`).
 
 ### Default arch and zigzag {#folding_reflex_fold}
 
@@ -66,12 +66,12 @@ Default reflex fold arch from two profile curves (`cross_section` and `profile`)
 ![](templates/templates_folding_1_reflex_fold_plates.webp)
 
 ```cpp
-ReflexFold fold;
+ReflexFold fold(ReflexFoldGuide::reflex_fold());
 ```
 
 ## Diamond Mesh {#diamond_mesh}
 
-`DiamondMesh(surface, u_divisions, v_divisions, thickness, chamfer, chamfer_angle)` (`folding/diamond_mesh.h`): divides a NURBS surface into `u_divisions × v_divisions` cells and connects each cell's corners to adjacent cell centres to form triangulated diamond rhombi (`mitered_plates`).
+`DiamondMesh(guide, name)` (`folding/diamond_mesh.h`), `DiamondMeshGuide {surface, u_divisions, v_divisions, thickness, chamfer, chamfer_angle}`: divides a NURBS surface into `u_divisions × v_divisions` cells and connects each cell's corners to adjacent cell centres to form triangulated diamond rhombi (`mitered_plates`).
 
 ### Rhombi on the default arch {#folding_diamond_mesh}
 
@@ -80,19 +80,12 @@ An `8 × 4` diamond mesh on the default bicubic arch (`3000 × 5000 × 1500 mm`)
 ![](templates/templates_folding_2_diamond_mesh_plates.webp)
 
 ```cpp
-DiamondMesh diamond(
-    DiamondMesh::default_surface(),
-    8,
-    4,
-    40.0,
-    10.0,
-    180.0
-);
+DiamondMesh diamond(DiamondMeshGuide::diamond_mesh());
 ```
 
 ## Prismatic Fold {#prismatic_fold}
 
-`PrismaticFold(profile, span, thickness, diaphragms, edge_flange)` (`folding/prismatic_fold.h`): sweeps `zigzag(ridges, fold_width, depth)` or `polygon(folds, width, rise)` along `x` over `span` with transverse `diaphragms` and free-edge buckling flanges (`edge_flange`).
+`PrismaticFold(guide, name)` (`folding/prismatic_fold.h`), `PrismaticFoldGuide {profile, span, thickness, diaphragms, edge_flange}`: sweeps `PrismaticFoldGuide::zigzag(ridges, fold_width, depth)` or `PrismaticFoldGuide::polygon(folds, width, rise)` along `x` over `span` with transverse `diaphragms` and free-edge buckling flanges (`edge_flange`).
 
 ### Zigzag with diaphragms and edge flanges {#folding_prismatic_fold}
 
@@ -101,7 +94,7 @@ Four ridges and eight plates (`1500 mm` wide, `1200 mm` deep) over a `12 m` span
 ![](templates/templates_folding_3_prismatic_fold_all.webp)
 
 ```cpp
-PrismaticFold fold;
+PrismaticFold fold(PrismaticFoldGuide::prismatic_fold());
 ```
 
 ### Many folds: the folded barrel {#folding_folded_barrel}
@@ -111,12 +104,12 @@ Seven folds inscribed on a circular arc `12 m` wide and `4 m` high, approaching 
 ![](templates/templates_folding_4_folded_barrel_all.webp)
 
 ```cpp
-PrismaticFold barrel(PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel");
+PrismaticFold barrel(PrismaticFoldGuide::folded_barrel(), "folded_barrel");
 ```
 
 ## Counter Fold {#counter_fold}
 
-`CounterFold(stations, folding, thickness)` (`folding/counter_fold.h`): triangulates non-planar strips between station profiles via `Folding::ridge_to_ridge`, `Folding::ridge_to_valley`, or `Folding::alternate`, merging coplanar triangles (`merged_coplanar`). Station generators: `counter_running`, `elevated_centre`.
+`CounterFold(guide, name)` (`folding/counter_fold.h`), `CounterFoldGuide {stations, folding, thickness}`: triangulates non-planar strips between station profiles ridge to ridge (`folding = 0`), ridge to valley (`1`) or alternating (`2`), merging coplanar triangles (`merge_coplanar`). Station generators: `CounterFoldGuide::counter_running`, `CounterFoldGuide::elevated_centre`.
 
 ### Counter-running, ridge to ridge {#folding_counter_fold}
 
@@ -125,7 +118,7 @@ A four-ridge zigzag at the start of a `13.5 m` span paired with its inverted cou
 ![](templates/templates_folding_5_counter_fold_plates.webp)
 
 ```cpp
-CounterFold fold;
+CounterFold fold(CounterFoldGuide::counter_fold());
 ```
 
 ### Elevated centre, ridge to ridge {#folding_elevated_fold}
@@ -135,12 +128,12 @@ Counter-profile at mid-span lifted by the fold depth (`1500 mm`) over a `15 m` s
 ![](templates/templates_folding_6_elevated_fold_plates.webp)
 
 ```cpp
-CounterFold fold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_ridge, 120.0, "elevated_fold");
+CounterFold fold(CounterFoldGuide::elevated_fold(), "elevated_fold");
 ```
 
 ## Conical Fold {#conical_fold}
 
-`ConicalFold(folds, fold_width, depth, end_depth, span, thickness)` (`folding/conical_fold.h`): clips a continuous zigzag of height `depth` by two planes sloping from `end_depth` at the supports to full `depth` at mid-span.
+`ConicalFold(guide, name)` (`folding/conical_fold.h`), `ConicalFoldGuide {folds, fold_width, depth, end_depth, span, thickness}`: clips a continuous zigzag of height `depth` by two planes sloping from `end_depth` at the supports to full `depth` at mid-span.
 
 ### Conical fold {#folding_conical_fold}
 
@@ -149,12 +142,12 @@ Four folds over a `14.4 m` span with ridges rising from `600 mm` at the supports
 ![](templates/templates_folding_7_conical_fold_plates.webp)
 
 ```cpp
-ConicalFold fold;
+ConicalFold fold(ConicalFoldGuide::conical_fold());
 ```
 
 ## Folded Frame {#folded_frame}
 
-`FoldedFrame(zigzag, bay, bays, thickness)` (`folding/folded_frame.h`): triangulated portal frames and arches with moment-scaled knee depth (`two_hinged_frame`, `a_frame`, `three_hinged_arch`).
+`FoldedFrame(guide, name)` (`folding/folded_frame.h`), `FoldedFrameGuide {zigzag, bay, bays, thickness}`: triangulated portal frames and arches with moment-scaled knee depth (zigzags `two_hinged_zigzag`, `a_frame_zigzag`, `three_hinged_zigzag`; presets `two_hinged_frame`, `a_frame`, `three_hinged_arch`).
 
 ### Two-hinged frame, ridge to ridge {#folding_two_hinged_frame}
 
@@ -163,7 +156,7 @@ A `30 m` portal of four `4.5 m` bays on line feet with deepened knees and ridge-
 ![](templates/templates_folding_8_two_hinged_frame_plates.webp)
 
 ```cpp
-FoldedFrame frame;
+FoldedFrame frame(FoldedFrameGuide::two_hinged_frame());
 ```
 
 ### A-frame {#folding_a_frame}
@@ -173,7 +166,7 @@ Two-hinged A-frame with ridge-to-valley folding: legs `21 m` apart meeting at an
 ![](templates/templates_folding_34_a_frame_plates.webp)
 
 ```cpp
-FoldedFrame frame(FoldedFrame::a_frame(), 3850.0, 4, 120.0, "a_frame");
+FoldedFrame frame(FoldedFrameGuide::a_frame(), "a_frame");
 ```
 
 ### Three-hinged arch {#folding_three_hinged_arch}
@@ -183,12 +176,12 @@ Octagonal three-hinged arch (`21.5 m` span, `20.5 m` rise) on point feet across 
 ![](templates/templates_folding_10_three_hinged_arch_plates.webp)
 
 ```cpp
-FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
+FoldedFrame frame(FoldedFrameGuide::three_hinged_arch(), "three_hinged_arch");
 ```
 
 ## Single Fold {#single_fold}
 
-`SingleFold(sides, radius, overhang, eaves, centre, thickness)` (`folding/single_fold.h`): over a regular polygon plan supported at its corners, each sector is folded along the radial ridge from the mid-edge gable peak (`eaves`) to the central apex (`centre`), with the perimeter gable leaning outward (`overhang > 0`), standing vertical (`overhang = 0`), or leaning inward (`overhang < 0`).
+`SingleFold(guide, name)` (`folding/single_fold.h`), `SingleFoldGuide {sides, radius, overhang, gable, apex, thickness}`: over a regular polygon plan supported at its corners, each sector is folded along the radial ridge from the mid-edge gable peak (`gable`) to the central apex (`apex`), with the perimeter gable leaning outward (`overhang > 0`), standing vertical (`overhang = 0`), or leaning inward (`overhang < 0`).
 
 ### Square plan, ridges rising toward the centre {#folding_square_fold}
 
@@ -197,12 +190,12 @@ Vertical perimeter gables rising to `5.4 m` with radial ridges climbing to `6.9 
 ![](templates/templates_folding_12_square_fold_plates.webp)
 
 ```cpp
-SingleFold fold;
+SingleFold fold(SingleFoldGuide::square_fold());
 ```
 
 ## Diagonal Fold {#diagonal_fold}
 
-`DiagonalFold(span, heights, thickness)` (`folding/diagonal_fold.h`): a square plan supported at the four edge midpoints and quartered by chevron folds along both diagonals. `DiagonalHeights` sets the corner height, edge-middle height, intermediate diagonal fold height and position, and central apex height.
+`DiagonalFold(guide, name)` (`folding/diagonal_fold.h`), `DiagonalFoldGuide {size, heights, thickness}`: a square plan supported at the four edge midpoints and quartered by chevron folds along both diagonals. `DiagonalHeights` sets the corner height, edge-middle height, intermediate diagonal fold height and position, and central apex height.
 
 ### Ridges folded upwardly {#folding_cross_fold}
 
@@ -211,24 +204,24 @@ Diagonal ridges folded upward to `6.2 m` at their midpoints, with corners and ce
 ![](templates/templates_folding_16_cross_fold_plates.webp)
 
 ```cpp
-DiagonalFold fold;
+DiagonalFold fold(DiagonalFoldGuide::cross_fold());
 ```
 
 ## Fold Composition {#fold_composition}
 
-`FoldComposition` (`folding/fold_composition.h`): a `6 × 4` grid of `12 m` square cells folded on their diagonals over alternating ground and `4.6 m` nodes, with the central `2 × 2` bay carrying an elevated `15 m` 8-pointed star vault (`96` plates).
+`FoldComposition(guide, name)` (`folding/fold_composition.h`), `FoldCompositionGuide {columns, rows, cell, low, high, peak, star, thickness}`: a `6 × 4` grid of `12 m` square cells folded on their diagonals over alternating ground and `4.6 m` nodes, with the central `2 × 2` bay carrying an elevated `15 m` 8-pointed star vault (`96` plates).
 
 ### Composition with a central star {#folding_fold_composition}
 
 ![](templates/templates_folding_19_fold_composition_plates.webp)
 
 ```cpp
-FoldComposition fold;
+FoldComposition fold(FoldCompositionGuide::fold_composition());
 ```
 
 ## Truncated Pyramid {#truncated_pyramid}
 
-`TruncatedPyramid(half_base, half_top, height, edge_fold, corner_fold, thickness)` (`folding/truncated_pyramid.h`): a pyramid or truncated pyramid over a square plan, optionally creased along its side faces (`edge_fold`) and corner ridges (`corner_fold`) via `FoldPoint{along, rise}`.
+`TruncatedPyramid(guide, name)` (`folding/truncated_pyramid.h`), `TruncatedPyramidGuide {half, top, height, edge_fold, corner_fold, thickness}`: a pyramid or truncated pyramid over a square plan, optionally creased along its side faces (`edge_fold`) and corner ridges (`corner_fold`) via `FoldPoint{along, rise}`.
 
 ### Pyramid {#folding_pyramid}
 
@@ -237,7 +230,7 @@ Four triangular plates over an `18 m` square base rising to a `6 m` apex (`4` pl
 ![](templates/templates_folding_14_pyramid_plates.webp)
 
 ```cpp
-TruncatedPyramid fold(9000.0, 0.0, 6000.0, std::nullopt, std::nullopt, 120.0, "pyramid");
+TruncatedPyramid fold(TruncatedPyramidGuide::pyramid(), "pyramid");
 ```
 
 ### Truncated pyramid, the basic form {#folding_truncated_pyramid}
@@ -247,7 +240,7 @@ Four trapezoidal side plates and a flat `6 m` top cap at `6.8 m` height over an 
 ![](templates/templates_folding_15_truncated_pyramid_plates.webp)
 
 ```cpp
-TruncatedPyramid fold;
+TruncatedPyramid fold(TruncatedPyramidGuide::truncated_pyramid());
 ```
 
 ### Variation 1: folded edges {#folding_folded_truncated_pyramid}
@@ -257,12 +250,12 @@ Each base edge midpoint pulled inward by `21%` and raised to `54%` of the height
 ![](templates/templates_folding_36_folded_truncated_pyramid_plates.webp)
 
 ```cpp
-TruncatedPyramid fold(9000.0, 3000.0, 6800.0, FoldPoint{0.21, 0.54}, std::nullopt, 120.0, "folded_truncated_pyramid");
+TruncatedPyramid fold(TruncatedPyramidGuide::folded_truncated_pyramid(), "folded_truncated_pyramid");
 ```
 
 ## Triangle Fold {#triangle_fold}
 
-`TriangleFold(sides, radius, middle, centre, thickness)` (`folding/triangle_fold.h`): a regular polygon plan with vertical perimeter gables rising to `middle`, corner triangles folding down to the ground supports, and an inner ring of roof triangles meeting at `centre` (or a single flat roof plate when `centre == middle`).
+`TriangleFold(guide, name)` (`folding/triangle_fold.h`), `TriangleFoldGuide {sides, radius, middle, centre, thickness}`: a regular polygon plan with vertical perimeter gables rising to `middle`, corner triangles folding down to the ground supports, and an inner ring of roof triangles meeting at `centre` (or a single flat roof plate when `centre == middle`).
 
 ### Square plan {#folding_triangle_square}
 
@@ -271,7 +264,7 @@ Perimeter gables rising to `5.0 m` and central apex at `6.5 m` (`12` plates).
 ![](templates/templates_folding_20_triangle_square_plates.webp)
 
 ```cpp
-TriangleFold fold;
+TriangleFold fold(TriangleFoldGuide::triangle_square());
 ```
 
 <!-- assembly:begin -->

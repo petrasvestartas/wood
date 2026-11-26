@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The two-hinged A-frame, ridge-to-valley folding .
 int main() {
 
-    FoldedFrame frame(FoldedFrame::a_frame(), 3850.0, 4, 120.0, "a_frame");
+    FoldedFrame frame(FoldedFrameGuide::a_frame(), "a_frame");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = frame.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << frame << std::endl;
     std::cout << fmt::format("a frame: {} plates\n", plates.size());

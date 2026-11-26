@@ -3,11 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The three-hinged arch.
 int main() {
 
-    FoldedFrame frame(FoldedFrame::three_hinged_arch(), 5000.0, 5, 120.0, "three_hinged_arch");
+    FoldedFrame frame(FoldedFrameGuide::three_hinged_arch(), "three_hinged_arch");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = frame.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << frame << std::endl;
     std::cout << fmt::format("three hinged arch: {} plates\n", plates.size());

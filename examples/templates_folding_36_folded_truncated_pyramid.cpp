@@ -1,26 +1,18 @@
 #include "wood_session.h"
 #include "src/templates/folding/truncated_pyramid.h"
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The first variation of the doubly folded truncated pyramid .
 int main() {
 
-    TruncatedPyramid fold(
-        9000.0,
-        3000.0,
-        6800.0,
-        FoldPoint{0.21, 0.54},
-        std::nullopt,
-        120.0,
-        "folded_truncated_pyramid"
-    );
+    TruncatedPyramid fold(TruncatedPyramidGuide::folded_truncated_pyramid(), "folded_truncated_pyramid");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format(
-        "folded truncated pyramid: {}\n", plate_report(plates, fold.thickness)
-    );
+    std::cout << fmt::format("folded truncated pyramid: {}\n", plate_report(plates, fold.guide.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }

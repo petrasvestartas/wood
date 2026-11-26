@@ -126,6 +126,19 @@ set(WOOD_SOURCES
     src/templates/cylindrical_folding/curved_folded_beam.cpp
     src/templates/cylindrical_folding/corner_fan.cpp
     src/templates/cylindrical_folding/cylinder_carving.cpp
+    src/templates/folding/fold_mesh.cpp
+    src/templates/folding/fold_strips.cpp
+    src/templates/folding/reflex_fold.cpp
+    src/templates/folding/diamond_mesh.cpp
+    src/templates/folding/prismatic_fold.cpp
+    src/templates/folding/counter_fold.cpp
+    src/templates/folding/conical_fold.cpp
+    src/templates/folding/folded_frame.cpp
+    src/templates/folding/single_fold.cpp
+    src/templates/folding/diagonal_fold.cpp
+    src/templates/folding/fold_composition.cpp
+    src/templates/folding/truncated_pyramid.cpp
+    src/templates/folding/triangle_fold.cpp
     src/templates/template_chamfer.cpp
     src/templates/cavity_border.cpp
     src/templates/chevron/chevron.cpp

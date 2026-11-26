@@ -114,10 +114,10 @@ int main() {
     check(rows[2].piece == "roof_0" && rows[5].piece == "roof_1", "vidy: a row's roof goes on after its walls, before the next row's");
     check(rows[2].insertion.dot(Vector::z_axis()) < -0.999, "vidy: the roof is lowered on the walls");
 
-    check_template(CounterFold(CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0), Folding::ridge_to_ridge, 120.0), 4);
+    check_template(wood_folding::CounterFold(wood_folding::CounterFoldGuide::elevated_fold()), 4);
 
     // a folded frame: four rows along its bays, one after another from one foot over the crown to the other
-    const FoldedFrame frame;
+    const wood_folding::FoldedFrame frame;
     check_template(frame, 4);
     const std::vector<ModuleMove> along = ModuleSequence(frame, frame.assemblies[0]).modules().back().moves;
     for (size_t i = 0; i < along.size(); i++)

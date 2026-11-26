@@ -8,6 +8,7 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 namespace {
 
@@ -721,27 +722,21 @@ size_t verify_origami_shell(const wood_vidy::OrigamiShell& shell, const std::str
 void test_origami_shapes() {
 
     size_t issues = 0;
-    const PrismaticFold pf_base(
-        PrismaticFold::zigzag(3, 2200.0, 2200.0), 14000.0, 45.0, 0, 0.0, "prismatic_base"
-    );
+    const PrismaticFold pf_base(PrismaticFoldGuide::vidy_hall(), "prismatic_base");
     const wood_vidy::OrigamiShell prismatic_fold(
         pf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "prismatic_fold"
     );
     issues += verify_origami_shell(prismatic_fold, "origami_prismatic_fold");
 
-    const CounterFold cr_base(
-        CounterFold::counter_running(3, 2200.0, 2200.0, 14000.0), Folding::ridge_to_ridge, 45.0
-    );
+    CounterFoldGuide running = CounterFoldGuide::vidy_hall();
+    running.stations = CounterFoldGuide::counter_running(3, 2200.0, 2200.0, 14000.0);
+    const CounterFold cr_base(running);
     const wood_vidy::OrigamiShell counter_running(
         cr_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_running"
     );
     issues += verify_origami_shell(counter_running, "origami_counter_running");
 
-    const CounterFold cf_base(
-        CounterFold::elevated_centre(3, 2200.0, 2200.0, 14000.0, 2200.0),
-        Folding::ridge_to_ridge,
-        45.0
-    );
+    const CounterFold cf_base(CounterFoldGuide::vidy_hall());
     const wood_vidy::OrigamiShell counter_fold(
         cf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_fold"
     );
@@ -749,7 +744,10 @@ void test_origami_shapes() {
     check(issues == 0, "all assemblable origami shapes must have 0 collisions and 0 slide hits");
 
     // Robeller (EPFL Thesis 6564, 2015): closed acute-triangle stars exceed |theta| <= 36.8 deg.
-    const DiagonalFold df_base(16000.0, {3300.0, 0.0, 6200.0, 0.5, 3300.0}, 45.0);
+    DiagonalFoldGuide cross = DiagonalFoldGuide::cross_fold();
+    cross.size = 16000.0;
+    cross.thickness = 45.0;
+    const DiagonalFold df_base(cross);
     const wood_vidy::OrigamiShell locked_cross(
         df_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "locked_cross"
     );

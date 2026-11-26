@@ -1,16 +1,18 @@
 #include "wood_session.h"
 #include "src/templates/folding/diagonal_fold.h"
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// Cross-folded surfaces spanned diagonally over a square plan, ridges folded upwardly .
 int main() {
 
-    DiagonalFold fold;
+    DiagonalFold fold(DiagonalFoldGuide::cross_fold());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("cross fold: {}\n", plate_report(plates, fold.thickness));
+    std::cout << fmt::format("cross fold: {}\n", plate_report(plates, fold.guide.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }

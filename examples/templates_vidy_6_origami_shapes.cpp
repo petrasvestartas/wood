@@ -5,22 +5,17 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// Long deep double-layer CLT folded-plate halls with staggered Vidy tenons and corner borders.
 int main() {
 
-    const PrismaticFold pf_base(
-        PrismaticFold::zigzag(3, 2200.0, 2200.0), 14000.0, 45.0, 0, 0.0, "prismatic_base"
-    );
+    const PrismaticFold pf_base(PrismaticFoldGuide::vidy_hall(), "prismatic_base");
     const wood_vidy::OrigamiShell prismatic_fold(
         pf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "prismatic_fold"
     );
 
-    const CounterFold cf_base(
-        CounterFold::elevated_centre(3, 2200.0, 2200.0, 14000.0, 2200.0),
-        Folding::ridge_to_ridge,
-        45.0
-    );
+    const CounterFold cf_base(CounterFoldGuide::vidy_hall());
     const wood_vidy::OrigamiShell counter_fold(
         cf_base.mesh(), 45.0, 300.0, true, true, 500.0, 1.0, "counter_fold"
     );

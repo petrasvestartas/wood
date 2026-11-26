@@ -3,16 +3,12 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The centre fold elevated over the edge folds, identical depth, ridge to ridge .
 int main() {
 
-    CounterFold fold(
-        CounterFold::elevated_centre(4, 1500.0, 1500.0, 15000.0, 1500.0),
-        Folding::ridge_to_ridge,
-        120.0,
-        "elevated_fold"
-    );
+    CounterFold fold(CounterFoldGuide::elevated_fold(), "elevated_fold");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
     std::cout << fmt::format("elevated fold: {} plates\n", plates.size());

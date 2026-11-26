@@ -1,16 +1,18 @@
 #include "wood_session.h"
 #include "src/templates/folding/fold_composition.h"
+#include "src/templates/template_chamfer.h"
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// A composition of surfaces folded crosswise over square plans .
 int main() {
 
-    FoldComposition fold;
+    FoldComposition fold(FoldCompositionGuide::fold_composition());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = fold.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fold << std::endl;
-    std::cout << fmt::format("fold composition: {}\n", plate_report(plates, fold.thickness));
+    std::cout << fmt::format("fold composition: {}\n", plate_report(plates, fold.guide.thickness));
     fold.pb_dump(pb_path("live"));
     return 0;
 }

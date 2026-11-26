@@ -3,16 +3,15 @@
 
 using namespace session_cpp;
 using namespace wood_session;
+using namespace wood_folding;
 
 /// The system with many folds.
 int main() {
 
-    PrismaticFold barrel(
-        PrismaticFold::polygon(7, 12000.0, 4000.0), 12000.0, 120.0, 2, 0.0, "folded_barrel"
-    );
+    PrismaticFold barrel(PrismaticFoldGuide::folded_barrel(), "folded_barrel");
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = barrel.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << barrel << std::endl;
-    std::cout << fmt::format("folded barrel: {} plates over {} mm\n", plates.size(), barrel.span);
+    std::cout << fmt::format("folded barrel: {} plates over {} mm\n", plates.size(), barrel.guide.span);
     barrel.pb_dump(pb_path("live"));
     return 0;
 }
