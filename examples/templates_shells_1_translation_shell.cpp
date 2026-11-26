@@ -7,7 +7,7 @@ using namespace wood_session;
 /// The translation shell with its default cross section and profile: curves, sections, mesh and plates, each in its group.
 int main() {
 
-    TranslationShell shell;
+    TranslationShell shell(TranslationShellGuide::arch());
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = shell.get_elements_numbered<FacePlanarElement>("plate");
     std::cout << fmt::format("translation shell: {} plates\n", plates.size());
     shell.pb_dump(pb_path("live"));

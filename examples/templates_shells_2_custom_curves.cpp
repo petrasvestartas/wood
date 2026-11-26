@@ -7,22 +7,25 @@ using namespace wood_session;
 /// A translation shell from a cross section and a profile of your own: the section swept along the profile, one mitered plate per quad.
 int main() {
 
-    const Polyline cross_section({
+    TranslationShellGuide guide;
+    guide.cross_section = Polyline({
         {1200.0, 0.0,   0.0},
         { 900.0, 0.0, 260.0},
         { 600.0, 0.0, 360.0},
         { 300.0, 0.0, 260.0},
         {   0.0, 0.0,   0.0},
     });
-    const Polyline profile({
+    guide.profile = Polyline({
         {0.0,     0.0,   0.0},
         {0.0,  -500.0, 240.0},
         {0.0, -1000.0, 340.0},
         {0.0, -1500.0, 240.0},
         {0.0, -2000.0,   0.0},
     });
+    guide.thickness = 12.0;
+    guide.chamfer = 1.5;
 
-    TranslationShell shell(cross_section, profile, 12.0, 1.5, 180.0, "custom_translation_shell");
+    TranslationShell shell(guide, "custom_translation_shell");
     shell.pb_dump(pb_path("live"));
     return 0;
 }

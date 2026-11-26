@@ -325,7 +325,7 @@ static void write_template_scene(const std::string& id, const std::string& dir) 
     const std::vector<std::string> parts = split(id, '/');
     const std::string& design = parts.at(2);
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces((config::session_data_dir() / "annen_surfaces.json").string());
-    const Chevron chevron(surfaces.at(0));
+    const Chevron chevron(ChevronGuide::annen(surfaces.at(0)));
     const std::vector<std::shared_ptr<FacePlanarElement>> plates = chevron.get_elements_numbered<FacePlanarElement>("plate");
 
     // the first two plates that meet side to side at a fold, rebuilt from their outlines without the joints the template cut into them

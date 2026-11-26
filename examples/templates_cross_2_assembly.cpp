@@ -7,10 +7,7 @@ using namespace wood_session;
 /// The vda mesh on its default dome, its connectors turned so every plate slides onto all of them at once.
 int main() {
 
-    const Mesh mesh = wood_cross::VdaMesh::default_mesh();
-    wood_cross::VdaMesh vda(
-        mesh, 40.0, {0.0}, {2}, {}, wood_cross::VdaMesh::assembly_lines(mesh), 260.0, 260.0, 40.0
-    );
+    wood_cross::VdaMesh vda(wood_cross::VdaMeshGuide::dome_assembly());
     std::cout << vda << std::endl;
     vda.pb_dump(pb_path("live"));
     return 0;

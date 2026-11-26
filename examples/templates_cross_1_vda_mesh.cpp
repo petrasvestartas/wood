@@ -7,9 +7,7 @@ using namespace wood_session;
 /// The vda mesh on its default dome.
 int main() {
 
-    wood_cross::VdaMesh vda(
-        wood_cross::VdaMesh::default_mesh(), 40.0, {0.0}, {2}, {}, {}, 300.0, 300.0, 40.0
-    );
+    wood_cross::VdaMesh vda(wood_cross::VdaMeshGuide::dome());
     std::cout << vda << std::endl;
 
     size_t corners = 0;

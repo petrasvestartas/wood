@@ -10,28 +10,11 @@ int main() {
 
     const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
-    Chevron chevron(
-        surfaces[1],
-        4,
-        900.0,
-        0.5,
-        0.04993,
-        760.0,
-        80.0,
-        40.0,
-        1.1,
-        0.45,
-        80.0,
-        15.0,
-        7,
-        2000.0,
-        {1, 1, 1, 1},
-        {132000.0, 126000.0, 3520.0}
-    );
+    Chevron chevron(ChevronGuide::max2_arch(surfaces[1]));
     const wood_chevron::Assembly assembly(chevron);
 
     // the 4 x 4 block at the crown: the faces run foot to foot in 2 u_divisions rows of boxes, so the four middle rows, the four boxes about the crown of each
-    const int runs = 2 * chevron.u_divisions;
+    const int runs = 2 * chevron.guide.u_divisions;
     const int length = static_cast<int>(chevron.mesh().number_of_faces()) / runs;
     std::vector<int> block;
 

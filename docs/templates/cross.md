@@ -2,7 +2,7 @@
 
 [TOC]
 
-Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlateElement::cross_slot()` half-laps.
+Segmented plate shells joined across interior edges by cross-slotted connector plates in `src/templates/cross/`: the inputs in `cross_guide.h`, the builder in `vda_mesh.h`. `wood_cross::VdaMesh` takes a polygon `Mesh` and builds mitered face plates, edge connector plates, and `JointPlateElement::cross_slot()` half-laps.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#cross_cardboard_shell">
@@ -47,9 +47,11 @@ The dataset `cross_vda_shell`: 1516 cardboard plates about 3.5 mm thick, two lay
 
 ## Parameters
 
+`VdaMeshGuide` holds every input with its default; `VdaMeshGuide::dome()` is the dome with 40 mm plates and 300 mm connectors, `VdaMeshGuide::dome_assembly()` the dome made to go together, its 260 mm connectors turned by `VdaMesh::assembly_lines`.
+
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `mesh` | `Mesh` | `default_mesh()` | Input polygon mesh welded at `0.01 mm` |
+| `mesh` | `Mesh` | `VdaMeshGuide::default_mesh()` | Input polygon mesh welded at `0.01 mm` |
 | `face_thickness` | `double` | `20.0` | Face plate layer thickness in mm |
 | `face_positions` | `std::vector<double>` | `{0.0}` | Signed normal offsets of plate layers per face |
 | `edge_divisions` | `std::vector<int>` | `{2}` | Number of connectors per interior edge |
@@ -80,8 +82,8 @@ Each face plane is offset by `±0.5 * face_thickness` per layer in `face_positio
 ![](templates/templates_cross_1_vda_mesh_plates.webp)
 
 ```cpp
-const Plane bottom = _face_planes[f].translate_by_normal(layer - 0.5 * face_thickness);
-const Plane top = _face_planes[f].translate_by_normal(layer + 0.5 * face_thickness);
+const Plane bottom = _face_planes[f].translate_by_normal(layer - 0.5 * guide.face_thickness);
+const Plane top = _face_planes[f].translate_by_normal(layer + 0.5 * guide.face_thickness);
 const Polyline bottom_loop = outline(bottom, _edge_planes[f], _bisector_planes[f]);
 const Polyline top_loop = outline(top, _edge_planes[f], _bisector_planes[f]);
 outlines[f].push_back({bottom_loop, top_loop});

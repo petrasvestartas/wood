@@ -2,7 +2,7 @@
 
 [TOC]
 
-Translational plate shells in `src/templates/shells/translation_shell.h`. `TranslationShell` sweeps a generator cross-section along a directrix profile without rotation, producing planar quad faces and mitered, corner-chamfered `FacePlanarElement` solids.
+Translational plate shells in `src/templates/shells/`: the inputs in `shells_guide.h`, the builder in `translation_shell.h`. `TranslationShell` sweeps a generator cross-section along a directrix profile without rotation, producing planar quad faces and mitered, corner-chamfered `FacePlanarElement` solids.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#shells_curves">
@@ -29,10 +29,12 @@ Translational plate shells in `src/templates/shells/translation_shell.h`. `Trans
 
 ## Parameters
 
+`TranslationShellGuide` holds every input with its default; `TranslationShellGuide::arch()` is the defaults, the arch swept along the arch.
+
 | Parameter | Type | Default | Role |
 | --- | --- | --- | --- |
-| `cross_section` | `Polyline` | `default_cross_section()` | Generator arch curve in the XZ plane |
-| `profile` | `Polyline` | `default_profile()` | Directrix trajectory in the YZ plane |
+| `cross_section` | `Polyline` | `TranslationShellGuide::default_cross_section()` | Generator arch curve in the XZ plane |
+| `profile` | `Polyline` | `TranslationShellGuide::default_profile()` | Directrix trajectory in the YZ plane |
 | `thickness` | `double` | `10.0` | Plate thickness in mm |
 | `chamfer` | `double` | `1.0` | Corner relief setback in mm |
 | `chamfer_angle` | `double` | `180.0` | Interior corner angle threshold in degrees |
@@ -45,8 +47,8 @@ Generator `cross_section` and directrix `profile` polylines stored in the `curve
 
 ```cpp
 const std::shared_ptr<TreeNode> curves = add_group("curves");
-add_polyline(cross_section, curves);
-add_polyline(profile, curves);
+add_polyline(guide.cross_section, curves);
+add_polyline(guide.profile, curves);
 ```
 
 ## Translated Sections {#shells_sections}
@@ -56,9 +58,9 @@ add_polyline(profile, curves);
 ![](templates/templates_shells_1_translation_shell_sections.webp)
 
 ```cpp
-for (size_t i = 0; i < profile.point_count(); i++) {
-    const Vector step = profile[i] - profile[0];
-    sections.push_back(cross_section.translated(step));
+for (size_t i = 0; i < guide.profile.point_count(); i++) {
+    const Vector step = guide.profile[i] - guide.profile[0];
+    sections.push_back(guide.cross_section.translated(step));
 }
 ```
 
@@ -87,7 +89,7 @@ return Mesh::from_vertices_and_faces(points, faces);
 
 ```cpp
 const std::vector<std::shared_ptr<FacePlanarElement>> plates = mitered_plates(
-    mesh, thickness, chamfer, chamfer, chamfer_angle
+    mesh, guide.thickness, guide.chamfer, guide.chamfer, guide.chamfer_angle
 );
 
 for (const std::shared_ptr<FacePlanarElement>& plate : plates)

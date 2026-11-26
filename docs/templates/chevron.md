@@ -2,7 +2,7 @@
 
 [TOC]
 
-Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/chevron.h`. `Chevron` subdivides an input `NurbsSurface` into herringbone quad strips and builds a four-plate hollow box per cell.
+Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/`: the inputs in `chevron_guide.h`, the builders in `chevron.h` and `chevron_shifted.h`. `Chevron` subdivides an input `NurbsSurface` into herringbone quad strips and builds a four-plate hollow box per cell.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#chevron_surface">
@@ -37,9 +37,11 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
 
 ## Parameters
 
+`ChevronGuide` holds every input with its default; `ChevronGuide::annen(surface)` is the defaults on an Annen surface and `ChevronGuide::max2_arch(surface)` the sliders of the 2017 MAX2 prototype.
+
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `surface` | `NurbsSurface` | `default_surface()` | Free-form NURBS reference surface |
+| `surface` | `NurbsSurface` | `ChevronGuide::default_surface()` | Free-form NURBS reference surface |
 | `u_divisions` | `int` | `4` | Number of longitudinal chevron strips |
 | `v_division_dist` | `double` | `900.0` | Initial row step at strip supports in mm |
 | `shift` | `double` | `0.5` | Chevron apex advance as a fraction of row height |
@@ -64,7 +66,8 @@ Free-form chevron box-plate shells on NURBS surfaces in `src/templates/chevron/c
 
 ```cpp
 const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
-add_nurbssurface(surface, add_group("surface"));
+Chevron chevron(ChevronGuide::annen(surfaces[0]));
+add_nurbssurface(guide.surface, add_group("surface"));
 ```
 
 ## Herringbone Quad Mesh {#chevron_mesh}
@@ -77,8 +80,8 @@ Each strip steps from the support toward mid-span with geometric growth `1 + sca
 const std::array<Point, 3> lower = row == 0 ? chevron_row(transposed, u, v, v) : upper;
 upper = chevron_row(
     transposed, u,
-    v + step * (1.0 - shift / 2.0),
-    v + step * (1.0 + shift / 2.0)
+    v + step * (1.0 - guide.shift / 2.0),
+    v + step * (1.0 + guide.shift / 2.0)
 );
 polygons.push_back({lower[0], upper[0], upper[1], lower[1]});
 polygons.push_back({lower[1], upper[1], upper[2], lower[2]});
@@ -138,17 +141,23 @@ _joints_per_face[pair + 3] = {0, 0, 17, 0, 0, 0};
 
 ## MAX2 Arch {#chevron_max2}
 
-`examples/templates_chevron_3_max2_arch.cpp` builds the second Annen surface with the slider values of the Grasshopper definition that drove the plugin for the 2017 MAX2 prototype of arches 21 and 22 (`2017_08_08_MAX2_22.gh`): rows from 900 growing by 0.04993 and stopping 2000 before the middle, 760 mm boxes with 40 mm plates 80 mm in from the box faces, the chevron edge planes turned 1.1 degrees and moved 18 mm, 80 mm tabs, corner fingers turned 15 degrees in seven parts, and the boundary planes of the prototype: the sides closed at y 132000 and 126000, the ground at z 3520. Its ground truth is the prototype's Rhino file, layer `solids_22`, the 800 jointed solids of arch 22 as the plugin cut them. Every one of the 800 plates built here has the vertex count of its solid; the two-way vertex distance per plate has a median of 0.77 mm, 739 plates lie within 2 mm and all but the plates of box 150 and four plates of its neighbours 101 and 151 within 2.71 mm, the rest a drift of the mesh itself, under 1 mm at the crown and up to 2.7 mm at the feet, carried by the raw plate corners: against its own outline every plate's tenons and fingers agree with the file's within 0.6 mm. Box 150 is the quirk of the definition: its ground edge is missing from its ground list, so the file's plates there stand up to 51 mm off the ground plane, and the four plates that meet them through its walls follow by up to 17 mm. The pictures show the arch and a 4 x 4 block at its crown, `box_61` to `box_64`, `box_86` to `box_89`, `box_111` to `box_114` and `box_136` to `box_139`, four neighbouring boxes of each of the four middle rows of boxes.
+`examples/templates_chevron_3_max2_arch.cpp` builds `Chevron(ChevronGuide::max2_arch(surfaces[1]))`, the second Annen surface with the slider values of the Grasshopper definition that drove the plugin for the 2017 MAX2 prototype of arches 21 and 22 (`2017_08_08_MAX2_22.gh`): rows from 900 growing by 0.04993 and stopping 2000 before the middle, 760 mm boxes with 40 mm plates 80 mm in from the box faces, the chevron edge planes turned 1.1 degrees and moved 18 mm, 80 mm tabs, corner fingers turned 15 degrees in seven parts, and the boundary planes of the prototype: the sides closed at y 132000 and 126000, the ground at z 3520. Its ground truth is the prototype's Rhino file, layer `solids_22`, the 800 jointed solids of arch 22 as the plugin cut them. Every one of the 800 plates built here has the vertex count of its solid; the two-way vertex distance per plate has a median of 0.77 mm, 739 plates lie within 2 mm and all but the plates of box 150 and four plates of its neighbours 101 and 151 within 2.71 mm, the rest a drift of the mesh itself, under 1 mm at the crown and up to 2.7 mm at the feet, carried by the raw plate corners: against its own outline every plate's tenons and fingers agree with the file's within 0.6 mm. Box 150 is the quirk of the definition: its ground edge is missing from its ground list, so the file's plates there stand up to 51 mm off the ground plane, and the four plates that meet them through its walls follow by up to 17 mm. The pictures show the arch and a 4 x 4 block at its crown, `box_61` to `box_64`, `box_86` to `box_89`, `box_111` to `box_114` and `box_136` to `box_139`, four neighbouring boxes of each of the four middle rows of boxes.
 
 ![](templates/templates_chevron_3_max2_arch_plates.webp)
 
 ![](templates/templates_chevron_3_max2_arch_joints.webp)
 
 ```cpp
-Chevron chevron(
-    surfaces[1], 4, 900.0, 0.5, 0.04993, 760.0, 80.0, 40.0, 1.1, 0.45, 80.0, 15.0, 7, 2000.0,
-    {1, 1, 1, 1}, {132000.0, 126000.0, 3520.0}
-);
+static ChevronGuide max2_arch(const NurbsSurface& surface) {
+
+    ChevronGuide guide = annen(surface);
+    guide.scale = 0.04993;
+    guide.edge_rotation = 1.1;
+    guide.edge_offset = 0.45;
+    guide.boundary_planes = {132000.0, 126000.0, 3520.0};
+
+    return guide;
+}
 ```
 
 ## Shifted Pattern {#chevron_shifted}
@@ -176,11 +185,11 @@ Chevron chevron(
 
 ### Parameters
 
-The defaults are the slider values of the Grasshopper definition, read in millimetres.
+`ChevronShiftedGuide` holds every input; its defaults are the slider values of the Grasshopper definition, read in millimetres. `ChevronShiftedGuide::annen(surface)` is the defaults on an Annen surface, `ChevronShiftedGuide::definition(surface)` the same with the definition's joints as they were (`closed_boxes` off).
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `surface` | `NurbsSurface` | `Chevron::default_surface()` | Reference surface, its u running along the shell as the Annen surfaces do |
+| `surface` | `NurbsSurface` | `ChevronGuide::default_surface()` | Reference surface, its u running along the shell as the Annen surfaces do |
 | `iso_count` | `int` | `54` | Iso curves across the surface, the rows of the point grid (`DivIso`) |
 | `point_count` | `int` | `9` | Points on every iso curve, one more than the columns (`DivIsoPts`) |
 | `shift` | `double` | `0.4` | Share of the row spacing the interior points move along the rows |
@@ -205,8 +214,8 @@ The definition rebuilt its surface before taking iso curves, which spaces them b
 const std::pair<double, double>& here = parameters[i][j];
 const std::pair<double, double>& there = parameters[j % 2 == 0 ? i + 1 : i - 1][j];
 points[i][j] = _across.point_at(
-    here.first + (there.first - here.first) * shift,
-    here.second + (there.second - here.second) * shift
+    here.first + (there.first - here.first) * guide.shift,
+    here.second + (there.second - here.second) * guide.shift
 );
 ```
 
@@ -236,7 +245,7 @@ The face plane of a cell is the surface frame at the point nearest the length-we
 loop.push_back(
     flags[k] == 0
         ? sides[k].plane
-        : stepped(sides[k].plane, plate_thickness, near.origin(), flags[k] < 0)
+        : stepped(sides[k].plane, guide.plate_thickness, near.origin(), flags[k] < 0)
 );
 ```
 

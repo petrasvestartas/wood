@@ -1,0 +1,761 @@
+#include "src/templates/chevron/chevron.h"
+#include "json.h"
+
+#include <fstream>
+
+namespace wood_chevron {
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Annen surfaces
+// ═══════════════════════════════════════════════════════════════════════════
+std::vector<NurbsSurface> annen_surfaces(const std::string& json_path) {
+
+    std::ifstream file(json_path);
+
+    if (!file)
+        return {};
+
+    nlohmann::json entries;
+    file >> entries;
+    std::vector<NurbsSurface> surfaces;
+
+    for (const nlohmann::json& entry : entries) {
+        const int count_u = entry["n_u"];
+        const int count_v = entry["n_v"];
+        std::array<std::vector<double>, 2> knots;
+        const std::array<std::string, 2> multiplicity_keys = {"u_mults", "v_mults"};
+        const std::array<std::string, 2> value_keys = {"u_nurbsknots", "v_nurbsknots"};
+
+        // OpenNURBS knots: every value repeated by its multiplicity, without the first and the last
+        for (size_t dir = 0; dir < 2; dir++) {
+            const std::vector<int> multiplicities =
+                entry[multiplicity_keys[dir]].get<std::vector<int>>();
+            const std::vector<double> values = entry[value_keys[dir]].get<std::vector<double>>();
+
+            for (size_t i = 0; i < values.size(); i++)
+                for (int k = 0; k < multiplicities[i]; k++)
+                    knots[dir].push_back(values[i]);
+
+            knots[dir] = std::vector<double>(knots[dir].begin() + 1, knots[dir].end() - 1);
+        }
+
+        NurbsSurface surface;
+        const int degree_u = entry["degree_u"];
+        const int degree_v = entry["degree_v"];
+        surface.create_raw(3, false, degree_u + 1, degree_v + 1, count_u, count_v);
+
+        for (size_t dir = 0; dir < 2; dir++)
+            for (size_t i = 0; i < knots[dir].size(); i++)
+                surface.set_nurbsknot(dir, i, knots[dir][i]);
+
+        const nlohmann::json& points = entry["points"];
+
+        for (int i = 0; i < count_u; i++)
+            for (int j = 0; j < count_v; j++)
+                surface.set_cv(i, j, {points[i][j][0], points[i][j][1], points[i][j][2]});
+
+        if (surface.is_valid())
+            surfaces.push_back(surface);
+    }
+
+    return surfaces;
+}
+
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Constructor
+// ═══════════════════════════════════════════════════════════════════════════
+Chevron::Chevron(const ChevronGuide& guide, const std::string& name)
+    : WoodSession(name), guide(guide) {
+
+    // surface: the NURBS surface the chevrons are laid on
+    add_nurbssurface(guide.surface, add_group("surface"));
+
+    // mesh: strips across u, chevron rows growing from both ends to the middle
+    _mesh = compute_mesh();
+    add_mesh(_mesh, add_group("mesh"));
+
+    // strips: the faces grown into strips along v, each face's two chevron edges against the next strip
+    _faces = compute_faces();
+    _strips = compute_strips();
+    const std::shared_ptr<TreeNode> strips = add_group("strips");
+
+    for (size_t face = 0; face < _faces.vertices.size(); face++) {
+        const std::vector<size_t>& vertices = _faces.vertices[face];
+
+        for (const int edge : _strips.chevron_edges[face]) {
+            const std::optional<Point> start = _mesh.vertex_point(vertices[edge]);
+            const std::optional<Point> end = _mesh.vertex_point(vertices[(edge + 1) % 4]);
+            add_line(Line::from_points(*start, *end), strips);
+        }
+    }
+
+    // edge_planes: a plane on every face edge, the inner chevron edges offset or rotated, the boundary ones snapped
+    _face_planes = compute_face_planes();
+    const std::vector<std::array<Plane, 4>> edge_planes = compute_edge_planes();
+    _edge_planes = compute_turned_edge_planes(edge_planes);
+    const std::shared_ptr<TreeNode> planes = add_group("edge_planes");
+
+    for (const std::array<Plane, 4>& face_edges : _edge_planes)
+        for (const Plane& plane : face_edges)
+            add_plane(plane, planes);
+
+    // bisectors: the dihedral plane at every face corner, where two side plates meet
+    _bisectors = compute_bisectors();
+    const std::shared_ptr<TreeNode> bisectors = add_group("bisectors");
+
+    for (const std::array<std::optional<Plane>, 4>& corners : _bisectors)
+        for (const std::optional<Plane>& bisector : corners)
+            if (bisector)
+                add_plane(*bisector, bisectors);
+
+    // plates: per face a box of a top and a bottom plate inset in it and a side plate on each chevron edge, plate_<4 face + role> in box_<face>
+    const std::shared_ptr<TreeNode> plates_group = add_group("plates");
+    const std::vector<std::shared_ptr<FacePlanarElement>> plates = compute_plates();
+
+    for (size_t face = 0; face < plates.size() / 4; face++) {
+        const std::shared_ptr<TreeNode> box = add_group(fmt::format("box_{}", face), plates_group);
+
+        for (size_t role = 0; role < 4; role++)
+            add(plates[face * 4 + role], box);
+    }
+
+    // joinery: insertion vectors, joint types, three-valence groups and adjacency for the solver, an insertion line per face
+    const std::shared_ptr<TreeNode> insertion = add_group("insertion");
+
+    for (Line line : compute_joinery()) {
+        line.width = 2.5;
+        line.linecolor = Color(206, 16, 66, 255);
+        line.arrowhead = Arrowhead::END;
+        add_line(line, insertion);
+    }
+    set_node_color(insertion, Color(206, 16, 66, 255), true);
+
+    // joints: the wood solver reads the tables and cuts Christopher's through-tenons, their slots and the corner fingers into the plates
+    settings.joint_parameters[6] = guide.tab_length;
+    WoodSession::adjacency = _adjacency;
+    WoodSession::three_valence = {{0}};
+
+    for (const std::array<int, 4>& group : _three_valence)
+        WoodSession::three_valence.push_back(std::vector<int>(group.begin(), group.end()));
+
+    for (size_t i = 0; i < plates.size(); i++) {
+        const std::array<double, 18>& numbers = _insertion_vectors[i];
+        std::vector<Vector>& vectors = plates[i]->insertion_vectors();
+        vectors.clear();
+
+        for (size_t face = 0; face < 6; face++)
+            vectors.push_back(
+                Vector(numbers[face * 3], numbers[face * 3 + 1], numbers[face * 3 + 2])
+            );
+
+        plates[i]->feature_types =
+            std::vector<int>(_joints_per_face[i].begin(), _joints_per_face[i].end());
+        plates[i]->feature_divisions =
+            std::vector<int>(_divisions_per_face[i].begin(), _divisions_per_face[i].end());
+    }
+
+    compute_features();
+
+    // assembly: every box from its two walls and its two plates, the boxes one after another along their one insertion vector
+    std::vector<AssemblyModule> boxes;
+    for (size_t face = 0; face < plates.size() / 4; face++) {
+        const Vector along = plates[face * 4]->insertion_vectors()[2].normalized();
+        boxes.push_back(AssemblyModule::module(
+            fmt::format("box_{}", face),
+            {AssemblyModule::part(plates[face * 4 + 2]), AssemblyModule::part(plates[face * 4 + 3]), AssemblyModule::part(plates[face * 4], {along}), AssemblyModule::part(plates[face * 4 + 1], {along})},
+            {along, along * -1.0}
+        ));
+    }
+    AssemblyModule whole = AssemblyModule::module(name, boxes);
+    whole.play = 1.0;
+
+    // the 4 x 4 block at the crown on its own, swept without that play: the faces run foot to foot in 2 u_divisions rows of boxes
+    const size_t runs = 2 * static_cast<size_t>(guide.u_divisions);
+    const size_t length = boxes.size() / runs;
+    std::vector<AssemblyModule> crown;
+    for (size_t run = runs / 2 - 2; run < runs / 2 + 2; run++)
+        for (size_t position = length / 2 - 1; position < length / 2 + 3; position++)
+            crown.push_back(boxes[run * length + position]);
+    assemblies = {whole, AssemblyModule::module(name + "_crown", crown)};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Accessors
+// ═══════════════════════════════════════════════════════════════════════════
+const Mesh& Chevron::mesh() const {
+    return _mesh;
+}
+
+const std::vector<std::array<double, 18>>& Chevron::insertion_vectors() const {
+    return _insertion_vectors;
+}
+
+const std::vector<std::array<int, 6>>& Chevron::joints_per_face() const {
+    return _joints_per_face;
+}
+
+const std::vector<std::array<int, 6>>& Chevron::divisions_per_face() const {
+    return _divisions_per_face;
+}
+
+const std::vector<std::array<int, 4>>& Chevron::three_valence() const {
+    return _three_valence;
+}
+
+const std::vector<std::pair<int, int>>& Chevron::adjacency() const {
+    return _adjacency;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Mesh
+// ═══════════════════════════════════════════════════════════════════════════
+std::array<Point, 3> Chevron::chevron_row(
+    const NurbsSurface& transposed, double u, double v_side, double v_middle
+) const {
+
+    const double step_u = (transposed.domain(0).second - transposed.domain(0).first) / guide.u_divisions;
+    return {
+        transposed.point_at(u, v_side),
+        transposed.point_at(u + step_u * 0.5, v_middle),
+        transposed.point_at(u + step_u, v_side),
+    };
+}
+
+Mesh Chevron::compute_mesh() const {
+
+    NurbsSurface transposed = guide.surface;
+    transposed.transpose();
+    const std::pair<double, double> domain_u = transposed.domain(0);
+    const std::pair<double, double> domain_v = transposed.domain(1);
+    const double middle = (domain_v.first + domain_v.second) * 0.5;
+    const double step_u = (domain_u.second - domain_u.first) / guide.u_divisions;
+    std::vector<std::vector<Point>> polygons;
+    double u = domain_u.first;
+
+    for (int strip = 0; strip < guide.u_divisions; strip++) {
+        double v = domain_v.first;
+        double rest = (domain_v.second - domain_v.first) / 2.0;
+        double step = guide.v_division_dist;
+        std::vector<double> steps;
+        std::array<Point, 3> upper;
+        bool running = true;
+
+        for (int row = 0; row < 1000 && running; row++) {
+            steps.push_back(step);
+
+            // the first half: each row from the last row's chevron to the next, the first from a straight row
+            const std::array<Point, 3> lower = row == 0 ? chevron_row(transposed, u, v, v) : upper;
+            upper = chevron_row(
+                transposed, u, v + step * (1.0 - guide.shift / 2.0), v + step * (1.0 + guide.shift / 2.0)
+            );
+            polygons.push_back({lower[0], upper[0], upper[1], lower[1]});
+            polygons.push_back({lower[1], upper[1], upper[2], lower[2]});
+
+            v += step;
+            rest -= step;
+            step += step * guide.scale;
+
+            if (rest >= guide.stop_threshold)
+                continue;
+
+            // the second half: the same rows mirrored from the middle, the chevron turned, the last row straight
+            steps.push_back(rest);
+            std::reverse(steps.begin(), steps.end());
+            double mirrored = middle;
+            std::array<Point, 3> mirrored_lower;
+
+            for (size_t i = 0; i + 1 < steps.size(); i++) {
+                mirrored += steps[i];
+                const double next = steps[i + 1];
+
+                if (i == 0) {
+                    mirrored_lower = chevron_row(
+                        transposed, u, mirrored - next * guide.shift / 2.0, mirrored + next * guide.shift / 2.0
+                    );
+                    polygons.push_back({upper[0], mirrored_lower[0], mirrored_lower[1], upper[1]});
+                    polygons.push_back({upper[1], mirrored_lower[1], mirrored_lower[2], upper[2]});
+                } else {
+                    mirrored_lower = upper;
+                }
+
+                if (i + 2 == steps.size()) {
+                    upper = chevron_row(transposed, u, mirrored + next, mirrored + next);
+                } else {
+                    upper = chevron_row(
+                        transposed,
+                        u,
+                        mirrored + next * (1.0 - guide.shift / 2.0),
+                        mirrored + next * (1.0 + guide.shift / 2.0)
+                    );
+                }
+
+                polygons.push_back({mirrored_lower[1], upper[1], upper[2], mirrored_lower[2]});
+                polygons.push_back({mirrored_lower[0], upper[0], upper[1], mirrored_lower[1]});
+            }
+
+            running = false;
+        }
+
+        u += step_u;
+    }
+
+    std::vector<Polyline> loops;
+
+    for (const std::vector<Point>& polygon : polygons)
+        loops.push_back(Polyline(polygon));
+
+    return Mesh::from_polylines(loops, 0.01);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Strips
+// ═══════════════════════════════════════════════════════════════════════════
+wood_chevron::ChevronFaces Chevron::compute_faces() const {
+
+    wood_chevron::ChevronFaces faces;
+
+    for (const std::pair<const size_t, std::vector<size_t>>& face : _mesh.face) {
+        std::vector<size_t> vertices =
+            _mesh.face_vertices(face.first).value_or(std::vector<size_t>{});
+        std::reverse(vertices.begin(), vertices.end());
+        faces.vertices.push_back(vertices);
+    }
+
+    for (size_t i = 0; i < faces.vertices.size(); i++) {
+        const std::vector<size_t>& vertices = faces.vertices[i];
+
+        for (size_t j = 0; j < vertices.size(); j++) {
+            const size_t a = vertices[j];
+            const size_t b = vertices[(j + 1) % vertices.size()];
+            faces.edge_faces[{std::min(a, b), std::max(a, b)}].push_back(static_cast<int>(i));
+        }
+    }
+
+    return faces;
+}
+
+wood_chevron::ChevronStrips Chevron::compute_strips() const {
+
+    const std::vector<std::vector<size_t>>& vertices = _faces.vertices;
+    const size_t count = vertices.size();
+    wood_chevron::ChevronStrips strips;
+    strips.chevron_edges.assign(count, {0, 0});
+    strips.flips.assign(count, false);
+    std::vector<bool> taken(count, false);
+
+    for (int strip_index = 0;; strip_index++) {
+        const std::vector<bool>::iterator free = std::find(taken.begin(), taken.end(), false);
+
+        if (free == taken.end())
+            break;
+
+        const bool flip = strip_index % 2 == 0;
+        const std::array<int, 2> edges = flip ? std::array<int, 2>{3, 0} : std::array<int, 2>{0, 1};
+        std::vector<int> strip = {static_cast<int>(free - taken.begin())};
+        taken[strip[0]] = true;
+
+        // grow along v: a face joins its strip through its edge 1-2 or 3-0
+        for (size_t k = 0; k < strip.size(); k++) {
+            const std::vector<size_t>& f = vertices[strip[k]];
+
+            for (size_t other = 0; other < count; other++) {
+                if (taken[other])
+                    continue;
+
+                const std::vector<size_t>& g = vertices[other];
+                const bool shared =
+                    (f[1] == g[2] && f[2] == g[1]) || (f[3] == g[0] && f[0] == g[3]) ||
+                    (f[1] == g[0] && f[2] == g[3]) || (f[3] == g[2] && f[0] == g[1]);
+
+                if (!shared)
+                    continue;
+
+                taken[other] = true;
+                strip.push_back(static_cast<int>(other));
+            }
+        }
+
+        for (const int face : strip) {
+            strips.chevron_edges[face] = edges;
+            strips.flips[face] = flip;
+            strips.order.push_back(face);
+        }
+    }
+
+    return strips;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Planes
+// ═══════════════════════════════════════════════════════════════════════════
+const std::vector<int>& Chevron::edge_faces(size_t a, size_t b) const {
+    return _faces.edge_faces.at({std::min(a, b), std::max(a, b)});
+}
+
+Vector Chevron::face_normal(int face) const {
+
+    const std::vector<size_t>& vertices = _faces.vertices[face];
+    const Point a = _mesh.vertex_point(vertices[0]).value();
+    const Point b = _mesh.vertex_point(vertices[1]).value();
+    const Point c = _mesh.vertex_point(vertices[2]).value();
+    const Point d = _mesh.vertex_point(vertices[3]).value();
+    return (c - a).cross(d - b).normalized();
+}
+
+std::vector<Plane> Chevron::compute_face_planes() const {
+
+    std::vector<Plane> planes;
+
+    for (size_t face = 0; face < _faces.vertices.size(); face++) {
+        const Vector normal = face_normal(static_cast<int>(face));
+        std::vector<Point> corners;
+
+        for (const size_t vertex : _faces.vertices[face])
+            corners.push_back(_mesh.vertex_point(vertex).value());
+
+        const Vector reference =
+            std::abs(normal[0]) < 0.9 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
+        const Vector x = reference.cross(normal).normalized();
+        planes.push_back(Plane::from_frame(Point::centroid(corners), x, normal.cross(x), normal));
+    }
+
+    return planes;
+}
+
+std::vector<std::array<Plane, 4>> Chevron::compute_edge_planes() const {
+
+    std::vector<std::array<Plane, 4>> planes(_faces.vertices.size());
+
+    for (size_t face = 0; face < _faces.vertices.size(); face++) {
+        const std::vector<size_t>& vertices = _faces.vertices[face];
+
+        for (size_t j = 0; j < 4; j++) {
+            const Point start = _mesh.vertex_point(vertices[j]).value();
+            const Point end = _mesh.vertex_point(vertices[(j + 1) % 4]).value();
+            Vector mean(0.0, 0.0, 0.0);
+
+            for (const int other : edge_faces(vertices[j], vertices[(j + 1) % 4]))
+                mean = mean + face_normal(other);
+
+            const Vector x = (start - end).normalized();
+            const Vector y = mean.normalized();
+            planes[face][j] =
+                Plane::from_frame(Point::mid_point(start, end), x, y, x.cross(y).normalized());
+        }
+    }
+
+    return planes;
+}
+
+std::vector<std::array<Plane, 4>>
+Chevron::compute_turned_edge_planes(std::vector<std::array<Plane, 4>> planes) const {
+
+    const double angle = guide.edge_rotation * Tolerance::TO_RADIANS;
+
+    for (size_t face = 0; face < _faces.vertices.size(); face++) {
+        const std::vector<size_t>& vertices = _faces.vertices[face];
+        const std::array<int, 2>& chevron = _strips.chevron_edges[face];
+
+        for (int j = 0; j < 4; j++) {
+            const size_t a = vertices[j];
+            const size_t b = vertices[(j + 1) % 4];
+            const std::vector<int>& faces = edge_faces(a, b);
+
+            if (faces.size() != 2) {
+                if (guide.ortho_edges[j] != 0)
+                    planes[face][j] =
+                        snapped_to_axis(planes[face][j], guide.ortho_edges[j], guide.boundary_planes);
+
+                continue;
+            }
+
+            if (j != chevron[0] && j != chevron[1])
+                continue;
+
+            Plane& plane = planes[face][j];
+
+            if (j % 2 == 1) {
+                plane = plane.translate_by_normal(guide.plate_thickness * guide.edge_offset);
+            } else {
+                const double turn = _strips.flips[face] ? angle : -angle;
+                const Vector x = (plane.x_axis() * std::cos(turn) - plane.z_axis() * std::sin(turn))
+                                     .normalized();
+                const Vector z = (plane.x_axis() * std::sin(turn) + plane.z_axis() * std::cos(turn))
+                                     .normalized();
+                plane = Plane::from_frame(plane.origin(), x, z.cross(x), z);
+            }
+
+            const int neighbour = faces[0] != static_cast<int>(face) ? faces[0] : faces[1];
+            const std::vector<size_t>& other = _faces.vertices[neighbour];
+
+            for (size_t k = 0; k < 4; k++) {
+                const size_t c = other[k];
+                const size_t d = other[(k + 1) % 4];
+
+                if (std::min(c, d) != std::min(a, b) || std::max(c, d) != std::max(a, b))
+                    continue;
+
+                planes[neighbour][k] = Plane::from_frame(
+                    plane.origin(), -plane.x_axis(), plane.y_axis(), -plane.z_axis()
+                );
+                break;
+            }
+        }
+    }
+
+    return planes;
+}
+
+std::vector<std::array<std::optional<Plane>, 4>> Chevron::compute_bisectors() const {
+
+    std::vector<std::array<std::optional<Plane>, 4>> bisectors(_edge_planes.size());
+
+    for (size_t face = 0; face < _edge_planes.size(); face++)
+        for (size_t j = 0; j < 4; j++)
+            bisectors[face][j] =
+                dihedral_plane(_edge_planes[face][(j + 1) % 4], _edge_planes[face][j]);
+
+    return bisectors;
+}
+
+std::optional<Plane> Chevron::dihedral_plane(const Plane& p0, const Plane& p1) {
+
+    const std::optional<Line> seam = Intersection::plane_plane(p1, p0);
+
+    if (!seam || p0.z_axis().dot(p1.z_axis()) > 0.99 ||
+        (p0.origin() - p1.origin()).magnitude() < 0.001)
+        return std::nullopt;
+
+    const Line axis0 = Line::from_points(p0.origin(), p0.origin() + p0.z_axis());
+    const Line axis1 = Line::from_points(p1.origin(), p1.origin() + p1.z_axis());
+    double t0 = 0.0;
+    double t1 = 0.0;
+    Point centre = p0.origin();
+
+    const bool crossed =
+        Intersection::line_line_parameters(axis0, axis1, t0, t1, 0.0, false, false);
+
+    if (crossed)
+        centre = axis0.point_at(t0);
+
+    const Vector half = (p0.origin() - centre).normalized() + (p1.origin() - centre).normalized();
+
+    if (half.magnitude() < 1e-12)
+        return std::nullopt;
+
+    const Vector y = half.normalized();
+    const Vector x = seam->to_vector().normalized();
+    return Plane::from_frame(seam->start(), x, y, x.cross(y).normalized());
+}
+
+Plane
+Chevron::snapped_to_axis(const Plane& plane, int axis, const std::array<double, 3>& boundary) {
+
+    const Vector normal = plane.z_axis();
+    int index = 0;
+
+    if (axis >= 2 && axis <= 4) {
+        index = axis - 2;
+    } else {
+        for (int i = 1; i < 3; i++)
+            if (std::abs(normal[i]) > std::abs(normal[index]))
+                index = i;
+    }
+
+    Vector z(0.0, 0.0, 0.0);
+    z[index] = normal[index] >= 0.0 ? 1.0 : -1.0;
+    const Vector reference = index != 0 ? Vector(1.0, 0.0, 0.0) : Vector(0.0, 1.0, 0.0);
+    const Vector x = reference.cross(z).normalized();
+
+    // the given boundary on that axis: for y the front or the back, whichever is nearer
+    std::array<double, 3> origin = {plane.origin()[0], plane.origin()[1], plane.origin()[2]};
+    std::vector<double> given;
+
+    for (const double value : index == 1 ? std::vector<double>{boundary[0], boundary[1]}
+                                         : std::vector<double>{boundary[2]})
+        if (index != 0 && !std::isnan(value))
+            given.push_back(value);
+
+    for (const double value : given)
+        if (std::abs(value - plane.origin()[index]) <=
+                std::abs(origin[index] - plane.origin()[index]) ||
+            origin[index] == plane.origin()[index])
+            origin[index] = value;
+
+    return Plane::from_frame(Point(origin[0], origin[1], origin[2]), x, z.cross(x), z);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Plates
+// ═══════════════════════════════════════════════════════════════════════════
+std::array<int, 2> Chevron::sorted_chevron_edges(int face) const {
+
+    std::array<int, 2> edges = _strips.chevron_edges[face];
+
+    if (edges[0] > edges[1])
+        std::swap(edges[0], edges[1]);
+
+    if (edges[0] == 0 && edges[1] == 3)
+        std::swap(edges[0], edges[1]);
+
+    return edges;
+}
+
+std::vector<std::shared_ptr<FacePlanarElement>> Chevron::compute_plates() const {
+
+    const double half = guide.box_height * 0.5;
+    const double t = guide.plate_thickness;
+    std::vector<Polyline> outlines;
+
+    for (const int face : _strips.order) {
+        const Plane& face_plane = _face_planes[face];
+        const std::array<Plane, 4>& edges = _edge_planes[face];
+        const std::array<std::optional<Plane>, 4>& bisectors = _bisectors[face];
+        // top and bottom: the face plane moved into the box, cut by the box sides, the outline run the way Christopher's contours run from its first corner, so side 2 + j lies on mesh edge (4 - j) % 4
+        const std::vector<Plane> sides = box_sides(face);
+
+        const std::array<double, 4> levels = {
+            half - guide.top_plate_inlet - t * 0.5,
+            half - guide.top_plate_inlet + t * 0.5,
+            -half + guide.top_plate_inlet - t * 0.5,
+            -half + guide.top_plate_inlet + t * 0.5,
+        };
+
+        for (const double level : levels)
+            outlines.push_back(
+                Polyline::from_planes(sides, face_plane.translate_by_normal(level)).reversed()
+            );
+
+        // sides: each chevron edge plane cut by the box faces, its neighbour edge and the corner bisector
+        const std::array<int, 2> sorted = sorted_chevron_edges(face);
+
+        for (size_t k = 0; k < 2; k++) {
+            const int edge = sorted[k];
+            const int previous = (edge + 3) % 4;
+            const int next = (edge + 1) % 4;
+            const Plane top = face_plane.translate_by_normal(half);
+            const Plane bottom = face_plane.translate_by_normal(-half);
+            const Plane before =
+                k == 0 ? edges[previous] : bisectors[previous].value_or(edges[previous]);
+            const Plane after = k == 0 ? bisectors[edge].value_or(edges[next]) : edges[next];
+            const std::vector<Plane> box = {top, before, bottom, after};
+            outlines.push_back(Polyline::from_planes(box, edges[edge]));
+            outlines.push_back(Polyline::from_planes(box, edges[edge].translate_by_normal(t)));
+        }
+    }
+
+    std::vector<std::shared_ptr<FacePlanarElement>> plates;
+
+    for (size_t i = 0; i + 1 < outlines.size(); i += 2) {
+        const std::string name = fmt::format("plate_{}", i / 2);
+        plates.push_back(std::make_shared<FacePlanarElement>(outlines[i], outlines[i + 1], name));
+    }
+
+    return plates;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Joinery
+// ═══════════════════════════════════════════════════════════════════════════
+std::vector<Plane> Chevron::box_sides(int face) const {
+
+    std::vector<Plane> sides(_edge_planes[face].begin(), _edge_planes[face].end());
+
+    for (const int j : _strips.chevron_edges[face])
+        sides[j] = sides[j].translate_by_normal(guide.plate_thickness);
+
+    return sides;
+}
+
+std::vector<Line> Chevron::compute_joinery() {
+
+    const size_t count = _strips.order.size();
+    std::vector<int> place(_faces.vertices.size(), -1);
+    std::vector<Line> lines;
+    _insertion_vectors.assign(count * 4, {});
+    _joints_per_face.assign(count * 4, {0, 0, 0, 0, 0, 0});
+    _divisions_per_face.assign(count * 4, {0, 0, 0, 0, 0, 0});
+
+    for (size_t c = 0; c < count; c++)
+        place[_strips.order[c]] = static_cast<int>(c);
+
+    for (size_t c = 0; c < count; c++) {
+        const int face = _strips.order[c];
+        const int pair = static_cast<int>(c) * 4;
+        // the insertion vector, Christopher's: the box slides along the bisector at the corner opposite the one its walls share, in the box plane, the same line on every side
+        const std::array<int, 2> sorted = sorted_chevron_edges(face);
+        const Polyline corners = Polyline::from_planes(box_sides(face), _face_planes[face]);
+        const int a = (sorted[0] + 2) % 4;
+        const Vector diagonal = ((corners[(a + 1) % 4] - corners[a]).normalized() +
+                                 (corners[(a + 3) % 4] - corners[a]).normalized()) *
+                                -1.0;
+
+        std::array<double, 18> vectors = {};
+
+        for (int side = 2; side < 6; side++)
+            for (int k = 0; k < 3; k++)
+                vectors[side * 3 + k] = diagonal[k];
+
+        _insertion_vectors[pair + 0] = vectors;
+        _insertion_vectors[pair + 1] = vectors;
+
+        _joints_per_face[pair + 0] = {0, 0, 22, 22, 22, 22};
+        _joints_per_face[pair + 1] = {0, 0, 22, 22, 22, 22};
+        _joints_per_face[pair + 2] = {0, 0, 0, 0, 10, 0};
+        _joints_per_face[pair + 3] = {0, 0, 17, 0, 0, 0};
+
+        // divisions: Christopher's round(0.8 mesh edge / tab length) on every plate side, side 2 + j on mesh edge (4 - j) % 4; the corner parts on the walls' mitre faces
+        const std::vector<size_t>& keys = _faces.vertices[face];
+
+        for (int side = 2; side < 6; side++) {
+            const int edge = (6 - side) % 4;
+            const double length = Point::distance(
+                _mesh.vertex_point(keys[edge]).value(),
+                _mesh.vertex_point(keys[(edge + 1) % 4]).value()
+            );
+            const int divisions = static_cast<int>(std::nearbyint(0.8 * length / guide.tab_length));
+            _divisions_per_face[pair + 0][side] = divisions;
+            _divisions_per_face[pair + 1][side] = divisions;
+        }
+
+        _divisions_per_face[pair + 2][4] = guide.finger_divisions;
+        _divisions_per_face[pair + 3][2] = guide.finger_divisions;
+
+        // the walls' mitre faces take the box's up, Christopher's, towards the plate the solver calls the bottom, so his corner cuts count from his bottom face
+        for (int k = 0; k < 3; k++) {
+            _insertion_vectors[pair + 2][4 * 3 + k] = -_face_planes[face].z_axis()[k];
+            _insertion_vectors[pair + 3][2 * 3 + k] = -_face_planes[face].z_axis()[k];
+        }
+
+        for (const int role_a : {0, 1})
+            for (const int role_b : {2, 3})
+                _adjacency.emplace_back(pair + role_a, pair + role_b);
+
+        _adjacency.emplace_back(pair + 2, pair + 3);
+
+        for (int k = 0; k < 2; k++) {
+            const std::vector<size_t>& vertices = _faces.vertices[face];
+            const std::vector<int>& faces =
+                edge_faces(vertices[sorted[k]], vertices[(sorted[k] + 1) % 4]);
+
+            if (faces.size() != 2)
+                continue;
+
+            const int neighbour = faces[0] != face ? faces[0] : faces[1];
+            const int across = place[neighbour] * 4;
+            _adjacency.emplace_back(across + 0, pair + 2 + k);
+            _adjacency.emplace_back(across + 1, pair + 2 + k);
+            _three_valence.push_back({pair + 0, pair + 2 + k, across + 0, pair + 2 + k});
+            _three_valence.push_back({pair + 1, pair + 2 + k, across + 1, pair + 2 + k});
+        }
+
+        const std::shared_ptr<FacePlanarElement> top =
+            get_element_by_name<FacePlanarElement>(fmt::format("plate_{}", pair));
+        const Point centre = top->polylines[1].center();
+        lines.push_back(Line::from_points(centre, centre + diagonal * 300.0));
+    }
+
+    return lines;
+}

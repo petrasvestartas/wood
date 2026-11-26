@@ -124,8 +124,7 @@ int main() {
     check_template(wood_plaited::PlaitedStereotomy(wood_plaited::flat_quad_mesh(3600.0, 3600.0, 6, 6, 0.0, 220.0), wood_plaited::PlaitedPattern::Abeille, 220.0, 0.48), 36);
 
     // the connectors turned along the slides: every plate, its connectors to the plates after it on it, onto all of its own at once
-    const Mesh mesh = wood_cross::VdaMesh::default_mesh();
-    check_template(wood_cross::VdaMesh(mesh, 40.0, {0.0}, {2}, {}, wood_cross::VdaMesh::assembly_lines(mesh), 260.0, 260.0, 40.0), 15);
+    check_template(wood_cross::VdaMesh(wood_cross::VdaMeshGuide::dome_assembly()), 15);
 
     // curved-crease unfolding: target mitered vault, closed flat-packed stack (w = 0), leaning planes and four crease quadrants
     const NurbsCurve ccu_arc = Primitives::arc(Point(-4500.0, 0.0, 0.0), Point(0.0, 0.0, 4500.0), Point(4500.0, 0.0, 0.0));

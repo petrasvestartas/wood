@@ -126,6 +126,13 @@ set(WOOD_SOURCES
     src/templates/cylindrical_folding/curved_folded_beam.cpp
     src/templates/cylindrical_folding/corner_fan.cpp
     src/templates/cylindrical_folding/cylinder_carving.cpp
+    src/templates/template_chamfer.cpp
+    src/templates/cavity_border.cpp
+    src/templates/chevron/chevron.cpp
+    src/templates/chevron/chevron_shifted.cpp
+    src/templates/chevron/chevron_assembly.cpp
+    src/templates/shells/translation_shell.cpp
+    src/templates/cross/vda_mesh.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_face.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_axis.cpp
     src/joinery_solver/wood_interaction/wood_interaction_contact/wood_interaction_contact_cross.cpp

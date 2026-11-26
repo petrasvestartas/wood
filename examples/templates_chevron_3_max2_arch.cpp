@@ -9,24 +9,7 @@ int main() {
 
     const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
-    Chevron chevron(
-        surfaces[1],
-        4,
-        900.0,
-        0.5,
-        0.04993,
-        760.0,
-        80.0,
-        40.0,
-        1.1,
-        0.45,
-        80.0,
-        15.0,
-        7,
-        2000.0,
-        {1, 1, 1, 1},
-        {132000.0, 126000.0, 3520.0}
-    );
+    Chevron chevron(ChevronGuide::max2_arch(surfaces[1]));
 
     // the prototype's edge planes make some boxes bind, at the crown by under half a millimetre
     chevron.assemblies[0].play = 2.5;

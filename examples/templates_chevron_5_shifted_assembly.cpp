@@ -10,13 +10,12 @@ int main() {
 
     const std::filesystem::path path = config::session_data_dir() / "annen_surfaces.json";
     const std::vector<NurbsSurface> surfaces = wood_chevron::annen_surfaces(path.string());
-    // the definition's joints as they were, closed_boxes off
-    ChevronShifted shifted(surfaces[0], 54, 9, 0.4, 0.05 * Tolerance::TO_DEGREES, 300.0, 40.0, 80.0, true, 1, 700.0, 200.0, 7, false);
+    ChevronShifted shifted(ChevronShiftedGuide::definition(surfaces[0]));
     const wood_chevron::Assembly assembly(shifted);
 
     // the 4 x 4 block at the crown: the four middle columns, four cells about the middle of each, the odd columns stored from their far end
     const std::vector<int>& columns = shifted.cells().columns;
-    const int column_count = shifted.point_count - 1;
+    const int column_count = shifted.guide.point_count - 1;
     std::vector<std::vector<int>> per_column(column_count);
 
     for (size_t cell = 0; cell < columns.size(); cell++)
