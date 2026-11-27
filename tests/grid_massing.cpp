@@ -71,7 +71,7 @@ bool boxes_near(const Mesh& a, const Mesh& b) {
     return true;
 }
 
-double largest_clash(const WoodSession& session) {
+double largest_clash(const WoodSession& session, std::string& pair_out) {
     double worst = 0.0;
     const auto& elems = session.elements();
     for (size_t i = 0; i < elems.size(); ++i) {
@@ -84,9 +84,18 @@ double largest_clash(const WoodSession& session) {
                 continue;
             const auto pb = outward_planes(b);
             const bool cb = is_convex_mesh(b, pb);
-            if (!ca && !cb)
-                continue;
-            worst = std::max(worst, ca ? convex_overlap(a, b) : convex_overlap(b, a));
+            double ov = 0.0;
+            if (!ca && !cb) {
+                const Mesh common = solid_boolean(a, b, SolidOperation::intersect);
+                const double vol = common.number_of_faces() ? compute_volume(common) : 0.0;
+                ov = vol > CLEARANCE * 5.0 ? vol : 0.0;
+            } else {
+                ov = ca ? convex_overlap(a, b) : convex_overlap(b, a);
+            }
+            if (ov > worst) {
+                worst = ov;
+                pair_out = fmt::format("{}#{} vs {}#{}", elems[i]->name, i, elems[j]->name, j);
+            }
         }
     }
     return worst;
@@ -95,7 +104,8 @@ double largest_clash(const WoodSession& session) {
 void verify_grid(const std::string& label, const Grid& grid) {
     check(!grid.elements().empty(), label + ": produced zero elements");
     check(grid.objects.meshes->empty(), label + ": plan must not emit triangulated meshes");
-    const double clash = largest_clash(grid);
+    std::string pair_info;
+    const double clash = largest_clash(grid, pair_info);
     std::cout << fmt::format(
         "{}: {} elements, {} contacts, largest clash {:.3f} mm3\n",
         label,
@@ -103,7 +113,10 @@ void verify_grid(const std::string& label, const Grid& grid) {
         grid.graph.number_of_edges(),
         clash
     );
-    check(clash <= CLEARANCE, fmt::format("{}: overlap {:.3f} mm3 exceeds tolerance", label, clash));
+    check(
+        clash <= CLEARANCE,
+        fmt::format("{}: overlap {:.3f} mm3 ({}) exceeds tolerance", label, clash, pair_info)
+    );
 }
 
 } // namespace
@@ -429,6 +442,23 @@ int main() {
             }
         )
     );
+
+    // 10. Engel section-active beam, grillage, portal frame, Vierendeel, and slab systems.
+    verify_grid("built_up_profiles", Grid(Plan::double_bay(), Framing::built_up_profiles()));
+    verify_grid("belly_spans", Grid(Plan::five_span_beams(), Framing::belly_beams()));
+    verify_grid("haunched_cantilever", Grid(Plan::cantilever_hall(), Framing::haunched_cantilever()));
+    verify_grid("gerber_hall", Grid(Plan::gerber_hall(), Framing::gerber_hall()));
+    verify_grid("diagonal_grillage", Grid(Plan::diagonal_floor(), Framing::diagonal_floor()));
+    verify_grid("concentric_lantern", Grid(Plan::concentric_floor(), Framing::concentric_floor()));
+    verify_grid("ramified_floor", Grid(Plan::ramified_floor(), Framing::ramified_floor()));
+    verify_grid("mushroom_drop_slab", Grid(Plan::mushroom_floor(), Framing::mushroom_drop_slab()));
+    verify_grid("ribbed_cantilever_slab", Grid(Plan::ribbed_floor(), Framing::ribbed_cantilever_slab()));
+    verify_grid("waffle_coffered_slab", Grid(Plan::waffle_floor(), Framing::waffle_coffered_slab()));
+    verify_grid("shear_vierendeel", Grid(Plan::shear_vierendeel(), Framing::shear_vierendeel()));
+    verify_grid("umbrella_canopies", Grid(Stack::umbrella_canopies()));
+    verify_grid("tapered_portal_hall", Grid(Stack::tapered_portal_hall()));
+    verify_grid("concentric_vierendeel", Grid(Stack::concentric_vierendeel()));
+    verify_grid("mega_transfer_tower", Grid(Stack::mega_transfer_tower()));
 
     std::cout << "grid checks passed" << std::endl;
     return 0;

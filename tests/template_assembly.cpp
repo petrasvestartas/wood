@@ -10,6 +10,7 @@
 #include "src/templates/developable_folding/space_curve_fold.h"
 #include "src/templates/folding/counter_fold.h"
 #include "src/templates/folding/folded_frame.h"
+#include "src/templates/grid/grid.h"
 #include "src/templates/module/cassette_shell.h"
 #include "src/templates/plaited/plaited.h"
 #include "src/templates/vidy/vidy.h"
@@ -225,6 +226,18 @@ int main() {
     wavy.thickness = 0.0;
     for (const wood_developable_folding::FoldMeasures& preset : {wood_developable_folding::SpaceCurveFold(wave).measures(), wood_developable_folding::CurvedMiura(wavy).measures(), wood_developable_folding::CurvedMiura(wood_developable_folding::CurvedMiuraGuide::zigzag_miura()).measures()})
         check(preset.planarity < 1e-9 && preset.kawasaki < 1e-9 && preset.crossings == 0, "space curve presets: planar, flat-foldable, no quads crossing");
+
+    // section-active grid systems: haunched cantilevers, concentric grillage, mushroom & waffle drop-panel slabs, and tapered hinged portal frames
+    const wood_grid::Grid haunched_grid(wood_grid::Plan::cantilever_hall(), wood_grid::Framing::haunched_cantilever(), "haunched_cantilever");
+    check_template(haunched_grid, haunched_grid.elements().size());
+    const wood_grid::Grid concentric_grid(wood_grid::Plan::concentric_floor(), wood_grid::Framing::concentric_floor(), "concentric_lantern");
+    check_template(concentric_grid, concentric_grid.elements().size());
+    const wood_grid::Grid mushroom_grid(wood_grid::Plan::mushroom_floor(), wood_grid::Framing::mushroom_drop_slab(), "mushroom_drop_slab");
+    check_template(mushroom_grid, mushroom_grid.elements().size());
+    const wood_grid::Grid waffle_grid(wood_grid::Plan::waffle_floor(), wood_grid::Framing::waffle_coffered_slab(), "waffle_coffered_slab");
+    check_template(waffle_grid, waffle_grid.elements().size());
+    const wood_grid::Grid umbrella_grid(wood_grid::Stack::umbrella_canopies(), "umbrella_canopies");
+    check_template(umbrella_grid, umbrella_grid.elements().size());
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

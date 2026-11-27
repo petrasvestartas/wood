@@ -51,6 +51,15 @@ Profiles Profiles::mullions() {
     };
 }
 
+Profiles Profiles::built_up() {
+    return Profiles{
+        .column = profile_rectangle(260.0, 260.0),
+        .girder = profile_rectangle(260.0, 560.0),
+        .beam = profile_hss(240.0, 460.0, 55.0),
+        .purlin = profile_w(180.0, 380.0, 65.0, 65.0),
+    };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Framing of bays
 // ═══════════════════════════════════════════════════════════════════════════
@@ -302,6 +311,178 @@ Framing Framing::fin_screen() {
     };
 }
 
+Framing Framing::built_up_profiles() {
+    return Framing{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .height = 4200.0,
+        .spacing = 1500.0,
+        .profiles = Profiles::built_up(),
+    };
+}
+
+Framing Framing::belly_beams() {
+    return Framing{
+        .system = 3,
+        .node = 0,
+        .span = 0,
+        .height = 4000.0,
+        .spacing = 1500.0,
+        .belly = 220.0,
+        .profiles = {
+            .column = profile_rectangle(240.0, 240.0),
+            .girder = profile_rectangle(240.0, 300.0),
+            .purlin = profile_rectangle(140.0, 240.0),
+        },
+    };
+}
+
+Framing Framing::haunched_cantilever() {
+    return Framing{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .height = 4200.0,
+        .spacing = 1500.0,
+        .deck = 140.0,
+        .panel = 3000.0,
+        .haunch = 240.0,
+        .profiles = {
+            .column = profile_rectangle(260.0, 260.0),
+            .girder = profile_rectangle(260.0, 440.0),
+            .beam = profile_rectangle(220.0, 250.0),
+            .purlin = profile_rectangle(150.0, 250.0),
+        },
+    };
+}
+
+Framing Framing::gerber_hall() {
+    return Framing{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .height = 4200.0,
+        .spacing = 1400.0,
+        .haunch = 220.0,
+        .belly = 180.0,
+        .profiles = {
+            .column = profile_rectangle(260.0, 260.0),
+            .girder = profile_rectangle(260.0, 440.0),
+            .beam = profile_rectangle(220.0, 250.0),
+            .purlin = profile_rectangle(150.0, 250.0),
+        },
+    };
+}
+
+Framing Framing::diagonal_floor() {
+    return Framing{
+        .system = 1,
+        .node = 0,
+        .span = -1,
+        .height = 4200.0,
+        .profiles = {
+            .column = profile_rectangle(260.0, 260.0),
+            .girder = profile_rectangle(220.0, 480.0),
+        },
+    };
+}
+
+Framing Framing::concentric_floor() {
+    return Framing{
+        .system = 1,
+        .node = 0,
+        .span = -2,
+        .height = 4400.0,
+        .profiles = {
+            .column = profile_rectangle(280.0, 520.0),
+            .girder = profile_rectangle(280.0, 580.0),
+            .beam = profile_rectangle(240.0, 480.0),
+            .purlin = profile_rectangle(200.0, 380.0),
+        },
+    };
+}
+
+Framing Framing::ramified_floor() {
+    return Framing{
+        .system = 1,
+        .node = 0,
+        .span = -1,
+        .height = 4200.0,
+        .profiles = {
+            .column = profile_round(260.0),
+            .girder = profile_rectangle(240.0, 480.0),
+        },
+    };
+}
+
+Framing Framing::mushroom_drop_slab() {
+    return Framing{
+        .system = 0,
+        .node = 2,
+        .height = 4200.0,
+        .deck = 220.0,
+        .panel = 4000.0,
+        .head = 280.0,
+        .reach = 260.0,
+        .drop_width = 2200.0,
+        .drop_depth = 180.0,
+        .profiles = {
+            .column = profile_rectangle(300.0, 300.0),
+        },
+    };
+}
+
+Framing Framing::ribbed_cantilever_slab() {
+    return Framing{
+        .system = 3,
+        .node = 0,
+        .span = 0,
+        .height = 4200.0,
+        .spacing = 900.0,
+        .deck = 110.0,
+        .panel = 2400.0,
+        .profiles = {
+            .column = profile_rectangle(280.0, 280.0),
+            .girder = profile_rectangle(280.0, 460.0),
+            .purlin = profile_rectangle(140.0, 260.0),
+        },
+    };
+}
+
+Framing Framing::waffle_coffered_slab() {
+    return Framing{
+        .system = 4,
+        .node = 2,
+        .span = 0,
+        .height = 4200.0,
+        .deck = 110.0,
+        .panel = 3000.0,
+        .head = 220.0,
+        .reach = 180.0,
+        .drop_width = 2560.0,
+        .drop_depth = 340.0,
+        .profiles = {
+            .column = profile_rectangle(300.0, 300.0),
+            .beam = profile_rectangle(200.0, 340.0),
+            .purlin = profile_rectangle(160.0, 340.0),
+        },
+    };
+}
+
+Framing Framing::shear_vierendeel() {
+    return Framing{
+        .system = 1,
+        .node = 0,
+        .span = 0,
+        .height = 0.0,
+        .profiles = {
+            .girder = profile_rectangle(280.0, 420.0),
+            .beam = profile_rectangle(260.0, 420.0),
+        },
+    };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Plans of bays and floors
 // ═══════════════════════════════════════════════════════════════════════════
@@ -478,6 +659,108 @@ Plan Plan::gable_wall() {
 Plan Plan::fin_screen() {
     return fin_screen_between(
         Point(0.0, 0.0, 3600.0), Point(OFFICE_LENGTH + 3080.0, 0.0, 3600.0), 9
+    );
+}
+
+Plan Plan::five_span_beams() {
+    return Plan::from_pattern(
+        Pattern::orthogonal(std::vector<double>(5, 4800.0), {6000.0}),
+        Plane(Point(0.0, 0.0, 4000.0), X, Y)
+    );
+}
+
+Plan Plan::cantilever_hall() {
+    return Plan::from_pattern(
+               Pattern::orthogonal({2100.0, 6000.0, 6000.0, 6000.0, 2100.0}, {6000.0}),
+               Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+        .with_cantilever(1800.0, 0.0);
+}
+
+Plan Plan::gerber_hall() {
+    Plan plan = Plan::from_pattern(
+        Pattern::orthogonal(
+            {1800.0, 5400.0, 1900.0, 3800.0, 1900.0, 5400.0, 1800.0}, {5600.0, 5600.0}
+        ),
+        Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    );
+    for (size_t i = 0; i < plan.nodes.size(); ++i) {
+        const double u = plan.nodes[i][0];
+        const bool on_pier = std::abs(u - 1800.0) < 20.0 || std::abs(u - 7200.0) < 20.0 ||
+                             std::abs(u - 14800.0) < 20.0 || std::abs(u - 20200.0) < 20.0;
+        plan.standing[i] = on_pier;
+    }
+    return plan;
+}
+
+Plan Plan::diagonal_floor() {
+    return Plan::from_pattern(
+               Pattern::diagonal(16000.0, 16000.0, 2800.0), Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+        .perimeter_columns_only();
+}
+
+Plan Plan::concentric_floor() {
+    Plan plan = Plan::from_pattern(
+                    Pattern::concentric(18000.0, 18000.0, 3, 0.35),
+                    Plane(Point(0.0, 0.0, 4400.0), X, Y)
+    )
+                    .perimeter_columns_only();
+    for (size_t i = 0; i < plan.nodes.size(); ++i) {
+        const Point& n = plan.nodes[i];
+        if ((n[0] < 100.0 || n[0] > 17900.0) && (n[1] < 100.0 || n[1] > 17900.0))
+            plan.standing[i] = false;
+    }
+    return plan;
+}
+
+Plan Plan::ramified_floor() {
+    Plan plan = Plan::from_pattern(
+                    Pattern::ramified(18000.0, 12000.0, 2), Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+                    .perimeter_columns_only();
+    for (size_t i = 0; i < plan.nodes.size(); ++i) {
+        const Point& n = plan.nodes[i];
+        if ((n[0] < 100.0 || n[0] > 17900.0) && (n[1] < 100.0 || n[1] > 11900.0))
+            plan.standing[i] = false;
+    }
+    return plan;
+}
+
+Plan Plan::mushroom_floor() {
+    return Plan::from_pattern(
+               Pattern::orthogonal(
+                   {2000.0, 6000.0, 6000.0, 2000.0}, {2000.0, 6000.0, 6000.0, 2000.0}
+               ),
+               Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+        .with_cantilever(1500.0);
+}
+
+Plan Plan::ribbed_floor() {
+    return Plan::from_pattern(
+               Pattern::orthogonal({4800.0, 4800.0, 4800.0}, {1800.0, 7200.0, 1800.0}),
+               Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+        .with_cantilever(0.0, 1500.0);
+}
+
+Plan Plan::waffle_floor() {
+    return Plan::from_pattern(
+               Pattern::orthogonal(std::vector<double>(10, 1200.0), std::vector<double>(10, 1200.0)),
+               Plane(Point(0.0, 0.0, 4200.0), X, Y)
+    )
+        .with_cantilever(2000.0)
+        .with_column_stride(6);
+}
+
+Plan Plan::shear_vierendeel() {
+    const std::vector<double> bays = compute_gradated_bays(24000.0, 8, 1.85);
+    return Plan::facade(
+        Line::from_points(Point(0.0, 0.0, 3600.0), Point(24000.0, 0.0, 3600.0)),
+        3600.0,
+        bays,
+        {3600.0}
     );
 }
 
@@ -901,6 +1184,225 @@ Stack Stack::screened_office(double x) {
     }
 
     return stack;
+}
+
+Stack Stack::umbrella_canopies(double x) {
+    const Framing canopy_framing{
+        .system = 1,
+        .node = 2,
+        .span = -1,
+        .deck = 140.0,
+        .deck_flush = true,
+        .reach = 220.0,
+        .haunch = 240.0,
+        .foot_scale = 0.72,
+        .pinned_feet = true,
+        .profiles = {
+            .column = profile_rectangle(360.0, 360.0),
+            .girder = profile_rectangle(240.0, 400.0),
+            .beam = profile_rectangle(200.0, 220.0),
+        },
+    };
+
+    const std::array<std::tuple<double, double, double>, 4> placements = {{
+        {x, 0.0, 3800.0},
+        {x + 7600.0, 0.0, 5000.0},
+        {x, 7600.0, 5000.0},
+        {x + 7600.0, 7600.0, 3800.0},
+    }};
+
+    Stack stack;
+    for (const std::tuple<double, double, double>& item : placements) {
+        const double px = std::get<0>(item);
+        const double py = std::get<1>(item);
+        const double pz = std::get<2>(item);
+        const Plan plan = Plan::from_pattern(
+                              Pattern::orthogonal({3600.0, 3600.0}, {3600.0, 3600.0}),
+                              Plane(Point(px, py, pz), X, Y)
+        )
+                              .with_cantilever(1800.0);
+        Framing frm = canopy_framing;
+        frm.height = pz;
+        stack.levels.push_back(Level{plan, frm});
+    }
+    return stack;
+}
+
+Stack Stack::tapered_portal_hall(double x) {
+    const Polyline outline = Polyline::rectangle(Point(x, 0.0, 0.0), X, Y, 19200.0, 11200.0);
+    const Pattern pattern = Pattern::orthogonal(
+                                {7800.0, 1800.0, 1800.0, 7800.0}, {5600.0, 5600.0}
+    )
+                                .transformed(Xform::translation(x, 0.0, 0.0));
+    const Framing base_framing{
+        .system = 2,
+        .node = 1,
+        .span = 0,
+        .spacing = 1866.7,
+        .deck = 140.0,
+        .panel = 2800.0,
+        .haunch = 240.0,
+        .foot_scale = 0.54,
+        .pinned_feet = false,
+        .profiles = {
+            .column = profile_rectangle(280.0, 380.0),
+            .girder = profile_rectangle(280.0, 420.0),
+            .beam = profile_rectangle(220.0, 240.0),
+            .purlin = profile_rectangle(150.0, 240.0),
+        },
+    };
+
+    Stack stack = Stack::from_footprint({outline}, {0.0, 4200.0, 8000.0, 11800.0}, pattern, base_framing);
+    for (size_t li = 0; li < stack.levels.size(); ++li) {
+        if (li == 0)
+            stack.levels[li].framing.pinned_feet = true;
+        Plan& plan = stack.levels[li].plan;
+        for (size_t v = 0; v < plan.nodes.size(); ++v) {
+            const Point world = plan.to_world(plan.nodes[v][0], plan.nodes[v][1], 0.0);
+            if (std::abs((world[0] - x) - 9600.0) < 20.0)
+                plan.standing[v] = false;
+        }
+    }
+    return stack;
+}
+
+Stack Stack::concentric_vierendeel(double x) {
+    const Polyline outline = Polyline::rectangle(Point(x, 0.0, 0.0), X, Y, 24000.0, 24000.0);
+    const std::vector<double> panel_bays(6, 4000.0);
+    const Pattern panel_pat =
+        Pattern::orthogonal(panel_bays, panel_bays).transformed(Xform::translation(x, 0.0, 0.0));
+
+    Plan lvl1_plan =
+        Plan::from_footprint({outline}, panel_pat, {}, Plane(Point(0.0, 0.0, 4800.0), X, Y));
+    for (size_t i = 0; i < lvl1_plan.nodes.size(); ++i) {
+        const Point w = lvl1_plan.to_world(lvl1_plan.nodes[i][0], lvl1_plan.nodes[i][1], 0.0);
+        const double lx = w[0] - x;
+        const double ly = w[1];
+        const bool on_perim = lx < 20.0 || lx > 23980.0 || ly < 20.0 || ly > 23980.0;
+        const bool on_truss_x = std::abs(lx - 8000.0) < 20.0 || std::abs(lx - 16000.0) < 20.0;
+        const bool on_truss_y = std::abs(ly - 8000.0) < 20.0 || std::abs(ly - 16000.0) < 20.0;
+        lvl1_plan.standing[i] = on_perim && (on_truss_x || on_truss_y);
+    }
+
+    Plan lvl2_plan =
+        Plan::from_footprint({outline}, panel_pat, {}, Plane(Point(0.0, 0.0, 8200.0), X, Y));
+    for (size_t i = 0; i < lvl2_plan.nodes.size(); ++i) {
+        const Point w = lvl2_plan.to_world(lvl2_plan.nodes[i][0], lvl2_plan.nodes[i][1], 0.0);
+        const double lx = w[0] - x;
+        const double ly = w[1];
+        const bool on_perim = lx < 20.0 || lx > 23980.0 || ly < 20.0 || ly > 23980.0;
+        const bool on_truss_x = std::abs(lx - 8000.0) < 20.0 || std::abs(lx - 16000.0) < 20.0;
+        const bool on_truss_y = std::abs(ly - 8000.0) < 20.0 || std::abs(ly - 16000.0) < 20.0;
+        lvl2_plan.standing[i] = on_perim || on_truss_x || on_truss_y;
+    }
+
+    const Framing lower_frm{
+        .system = 1,
+        .node = 0,
+        .span = 0,
+        .height = 4800.0,
+        .profiles = {
+            .column = profile_rectangle(440.0, 440.0),
+            .girder = profile_rectangle(280.0, 460.0),
+            .beam = profile_rectangle(240.0, 420.0),
+        },
+    };
+    const Framing upper_frm{
+        .system = 1,
+        .node = 0,
+        .span = 0,
+        .height = 3400.0,
+        .deck = 160.0,
+        .panel = 4000.0,
+        .profiles = {
+            .column = profile_rectangle(280.0, 280.0),
+            .girder = profile_rectangle(280.0, 460.0),
+            .beam = profile_rectangle(240.0, 420.0),
+        },
+    };
+
+    return Stack::from_levels({Level{lvl1_plan, lower_frm}, Level{lvl2_plan, upper_frm}}, 0.0, false);
+}
+
+Stack Stack::mega_transfer_tower(double x) {
+    const Polyline outline = Polyline::rectangle(Point(x, 0.0, 0.0), X, Y, 20000.0, 12000.0);
+    const std::vector<double> u_bays = compute_gradated_bays(20000.0, 5, 0.62);
+    const Pattern pattern =
+        Pattern::orthogonal(u_bays, {6000.0, 6000.0}).transformed(Xform::translation(x, 0.0, 0.0));
+
+    const Framing hall_frm{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .spacing = 2000.0,
+        .deck = 180.0,
+        .panel = 3000.0,
+        .profiles = {
+            .column = profile_rectangle(420.0, 420.0),
+            .girder = profile_rectangle(340.0, 560.0),
+            .beam = profile_rectangle(280.0, 480.0),
+            .purlin = profile_rectangle(160.0, 320.0),
+        },
+    };
+    const Framing vierendeel_frm{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .spacing = 2000.0,
+        .deck = 180.0,
+        .panel = 3000.0,
+        .profiles = {
+            .column = profile_rectangle(320.0, 320.0),
+            .girder = profile_rectangle(340.0, 520.0),
+            .beam = profile_rectangle(280.0, 460.0),
+            .purlin = profile_rectangle(160.0, 300.0),
+        },
+    };
+    const Framing office_frm{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .spacing = 2000.0,
+        .deck = 150.0,
+        .panel = 3000.0,
+        .profiles = {
+            .column = profile_rectangle(220.0, 220.0),
+            .girder = profile_rectangle(220.0, 380.0),
+            .beam = profile_rectangle(200.0, 360.0),
+            .purlin = profile_rectangle(140.0, 260.0),
+        },
+    };
+
+    const Plan hall_1 =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 4600.0), X, Y))
+            .with_cantilever(0.0, 0.0)
+            .perimeter_columns_only();
+    const Plan tr_1 =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 8000.0), X, Y));
+    const Plan off_1 =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 11400.0), X, Y))
+            .perimeter_columns_only();
+    const Plan off_2 =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 14800.0), X, Y))
+            .perimeter_columns_only();
+    const Plan tr_2 =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 18200.0), X, Y));
+    const Plan roof =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 21600.0), X, Y))
+            .perimeter_columns_only();
+
+    return Stack::from_levels(
+        {
+            Level{hall_1, hall_frm},
+            Level{tr_1, vierendeel_frm},
+            Level{off_1, office_frm},
+            Level{off_2, office_frm},
+            Level{tr_2, vierendeel_frm},
+            Level{roof, office_frm},
+        },
+        0.0,
+        false
+    );
 }
 
 } // namespace wood_grid

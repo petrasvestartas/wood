@@ -356,6 +356,24 @@ std::vector<double> compute_bays(double length, double target) {
     return std::vector<double>(count, length / count);
 }
 
+std::vector<double> compute_gradated_bays(double length, int count, double end_ratio) {
+    const int n = std::max(1, count);
+    if (n == 1)
+        return {length};
+
+    std::vector<double> weights(static_cast<size_t>(n), 1.0);
+    double sum = 0.0;
+    const double mid = 0.5 * (n - 1);
+    for (int i = 0; i < n; ++i) {
+        const double dist = mid > 0.0 ? std::abs(i - mid) / mid : 0.0;
+        weights[static_cast<size_t>(i)] = 1.0 + (end_ratio - 1.0) * dist;
+        sum += weights[static_cast<size_t>(i)];
+    }
+    for (double& w : weights)
+        w *= length / std::max(1e-6, sum);
+    return weights;
+}
+
 Pattern Pattern::orthogonal(
     const std::vector<double>& u_bays, const std::vector<double>& v_bays, double skew_degrees
 ) {
@@ -504,6 +522,135 @@ Pattern Pattern::hexagonal(double side, int nu, int nv) {
     return pat;
 }
 
+Pattern Pattern::diagonal(double width, double depth, double pitch) {
+    Pattern pat;
+    if (width <= PLAN_TOL || depth <= PLAN_TOL || pitch <= PLAN_TOL)
+        return pat;
+
+    const double step = pitch * std::sqrt(2.0);
+    const double reach = width + depth + step;
+
+    // Family 0: +45 deg axes (u - v = const), half-step shifted so corners form stiff triangles.
+    const int k0_min = static_cast<int>(std::floor(-depth / step)) - 1;
+    const int k0_max = static_cast<int>(std::ceil(width / step)) + 1;
+    for (int k = k0_min; k <= k0_max; ++k) {
+        const double c = (k + 0.5) * step;
+        pat.lines.push_back(Line::from_points(Point(c - reach, -reach, 0.0), Point(c + reach, reach, 0.0)));
+        pat.families.push_back(0);
+    }
+
+    // Family 1: -45 deg axes (u + v = const), half-step shifted symmetrically.
+    const int k1_max = static_cast<int>(std::ceil((width + depth) / step)) + 1;
+    for (int k = -1; k <= k1_max; ++k) {
+        const double c = (k + 0.5) * step;
+        pat.lines.push_back(Line::from_points(Point(c + reach, -reach, 0.0), Point(c - reach, reach, 0.0)));
+        pat.families.push_back(1);
+    }
+
+    pat.boundary.push_back(
+        Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), width, depth)
+    );
+    return pat;
+}
+
+Pattern Pattern::concentric(double width, double depth, int rings, double ratio) {
+    Pattern pat;
+    if (width <= PLAN_TOL || depth <= PLAN_TOL || rings < 1)
+        return pat;
+
+    const double alpha = std::clamp(ratio, 0.15, 0.85);
+    std::array<Point, 4> quad = {
+        Point(0.0, 0.0, 0.0),
+        Point(width, 0.0, 0.0),
+        Point(width, depth, 0.0),
+        Point(0.0, depth, 0.0),
+    };
+    pat.boundary.push_back(close_loop({quad[0], quad[1], quad[2], quad[3]}));
+
+    for (int r = 0; r <= rings; ++r) {
+        for (size_t k = 0; k < 4; ++k) {
+            const Point& a = quad[k];
+            const Point& b = quad[(k + 1) % 4];
+            if (a.distance(b) > PLAN_TOL) {
+                pat.lines.push_back(Line::from_points(a, b));
+                pat.families.push_back(r);
+            }
+        }
+        std::array<Point, 4> next_quad;
+        for (size_t k = 0; k < 4; ++k) {
+            const Point& a = quad[k];
+            const Point& b = quad[(k + 1) % 4];
+            next_quad[k] = Point(
+                (1.0 - alpha) * a[0] + alpha * b[0],
+                (1.0 - alpha) * a[1] + alpha * b[1],
+                0.0
+            );
+        }
+        quad = next_quad;
+    }
+    return pat;
+}
+
+Pattern Pattern::ramified(double width, double depth, int bays) {
+    Pattern pat;
+    if (width <= PLAN_TOL || depth <= PLAN_TOL || bays < 1)
+        return pat;
+
+    const int n = std::max(1, bays);
+    const double bay_u = width / (n + 1);
+    const double y_lo = 0.27 * depth;
+    const double y_hi = 0.73 * depth;
+    const double y_mid = 0.5 * depth;
+
+    // Family 0: short primary trunks stepping inward from perimeter supports to Y-fork nodes.
+    for (int i = 1; i <= n; ++i) {
+        const double u = i * bay_u;
+        pat.lines.push_back(Line::from_points(Point(u, 0.0, 0.0), Point(u, y_lo, 0.0)));
+        pat.families.push_back(0);
+        pat.lines.push_back(Line::from_points(Point(u, depth, 0.0), Point(u, y_hi, 0.0)));
+        pat.families.push_back(0);
+    }
+    const double u_end_l = 0.5 * bay_u;
+    const double u_end_r = width - 0.5 * bay_u;
+    pat.lines.push_back(Line::from_points(Point(0.0, y_mid, 0.0), Point(u_end_l, y_mid, 0.0)));
+    pat.families.push_back(0);
+    pat.lines.push_back(Line::from_points(Point(width, y_mid, 0.0), Point(u_end_r, y_mid, 0.0)));
+    pat.families.push_back(0);
+
+    // Family 1: interior branching Y-arms and central hexagonal/diamond rings.
+    pat.lines.push_back(Line::from_points(Point(u_end_l, y_mid, 0.0), Point(bay_u, y_lo, 0.0)));
+    pat.families.push_back(1);
+    pat.lines.push_back(Line::from_points(Point(u_end_l, y_mid, 0.0), Point(bay_u, y_hi, 0.0)));
+    pat.families.push_back(1);
+    pat.lines.push_back(Line::from_points(Point(u_end_r, y_mid, 0.0), Point(n * bay_u, y_lo, 0.0)));
+    pat.families.push_back(1);
+    pat.lines.push_back(Line::from_points(Point(u_end_r, y_mid, 0.0), Point(n * bay_u, y_hi, 0.0)));
+    pat.families.push_back(1);
+
+    for (int i = 1; i < n; ++i) {
+        const double u0 = i * bay_u;
+        const double u1 = (i + 1) * bay_u;
+        const double um = 0.5 * (u0 + u1);
+        pat.lines.push_back(Line::from_points(Point(u0, y_lo, 0.0), Point(u1, y_lo, 0.0)));
+        pat.families.push_back(1);
+        pat.lines.push_back(Line::from_points(Point(u0, y_hi, 0.0), Point(u1, y_hi, 0.0)));
+        pat.families.push_back(1);
+        pat.lines.push_back(Line::from_points(Point(u0, y_lo, 0.0), Point(um, y_mid, 0.0)));
+        pat.families.push_back(2);
+        pat.lines.push_back(Line::from_points(Point(u1, y_lo, 0.0), Point(um, y_mid, 0.0)));
+        pat.families.push_back(2);
+        pat.lines.push_back(Line::from_points(Point(u0, y_hi, 0.0), Point(um, y_mid, 0.0)));
+        pat.families.push_back(2);
+        pat.lines.push_back(Line::from_points(Point(u1, y_hi, 0.0), Point(um, y_mid, 0.0)));
+        pat.families.push_back(2);
+    }
+
+    pat.boundary.push_back(
+        Polyline::rectangle(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), width, depth)
+    );
+    return pat;
+}
+
 Pattern Pattern::from_lines(const std::vector<Line>& lines, const std::vector<int>& families) {
     Pattern pat;
     pat.lines = lines;
@@ -628,6 +775,89 @@ Plan Plan::transformed(const Xform& xform) const {
     for (std::optional<Point>& foot : copy.column_feet)
         if (foot.has_value())
             foot = foot->transformed(xform);
+    return copy;
+}
+
+Plan Plan::with_cantilever(double overhang_u, double overhang_v) const {
+    Plan copy = *this;
+    if (copy.nodes.empty())
+        return copy;
+
+    const double ov_u = std::max(0.0, overhang_u);
+    const double ov_v = overhang_v < 0.0 ? ov_u : std::max(0.0, overhang_v);
+    double min_u = std::numeric_limits<double>::max();
+    double max_u = -min_u;
+    double min_v = min_u;
+    double max_v = -min_u;
+    for (const Point& n : copy.nodes) {
+        min_u = std::min(min_u, n[0]);
+        max_u = std::max(max_u, n[0]);
+        min_v = std::min(min_v, n[1]);
+        max_v = std::max(max_v, n[1]);
+    }
+    copy.standing.resize(copy.nodes.size(), false);
+    for (size_t i = 0; i < copy.nodes.size(); ++i) {
+        const Point& n = copy.nodes[i];
+        if ((ov_u > PLAN_TOL && (n[0] < min_u + ov_u - PLAN_TOL || n[0] > max_u - ov_u + PLAN_TOL)) ||
+            (ov_v > PLAN_TOL && (n[1] < min_v + ov_v - PLAN_TOL || n[1] > max_v - ov_v + PLAN_TOL))) {
+            copy.standing[i] = false;
+        }
+    }
+    return copy;
+}
+
+Plan Plan::with_column_stride(int stride_u, int stride_v) const {
+    Plan copy = *this;
+    const int su = std::max(1, stride_u);
+    const int sv = stride_v <= 0 ? su : stride_v;
+    if (copy.nodes.empty() || (su == 1 && sv == 1))
+        return copy;
+
+    const std::function<std::vector<double>(int)> collect_unique = [&](int coord) -> std::vector<double> {
+        std::vector<double> vals;
+        for (size_t i = 0; i < copy.nodes.size(); ++i)
+            if (i < copy.standing.size() && copy.standing[i])
+                vals.push_back(copy.nodes[i][coord]);
+        std::sort(vals.begin(), vals.end());
+        std::vector<double> uniq;
+        for (double val : vals)
+            if (uniq.empty() || std::abs(val - uniq.back()) > PLAN_MERGE)
+                uniq.push_back(val);
+        return uniq;
+    };
+    const std::vector<double> us = collect_unique(0);
+    const std::vector<double> vs = collect_unique(1);
+    const std::function<int(const std::vector<double>&, double)> index_of =
+        [](const std::vector<double>& uniq, double val) -> int {
+        for (size_t k = 0; k < uniq.size(); ++k)
+            if (std::abs(uniq[k] - val) <= PLAN_MERGE)
+                return static_cast<int>(k);
+        return -1;
+    };
+
+    for (size_t i = 0; i < copy.nodes.size(); ++i) {
+        if (i >= copy.standing.size() || !copy.standing[i])
+            continue;
+        const int iu = index_of(us, copy.nodes[i][0]);
+        const int iv = index_of(vs, copy.nodes[i][1]);
+        if (iu < 0 || iv < 0 || (iu % su) != 0 || (iv % sv) != 0)
+            copy.standing[i] = false;
+    }
+    return copy;
+}
+
+Plan Plan::perimeter_columns_only() const {
+    Plan copy = *this;
+    std::vector<bool> on_bnd(copy.nodes.size(), false);
+    for (const PlanEdge& e : copy.edges) {
+        if (e.boundary) {
+            on_bnd[e.a] = true;
+            on_bnd[e.b] = true;
+        }
+    }
+    for (size_t i = 0; i < copy.standing.size(); ++i)
+        if (!on_bnd[i])
+            copy.standing[i] = false;
     return copy;
 }
 
@@ -917,6 +1147,9 @@ void Stack::add_facades(double target_bay, const Framing& framing, double base_z
                     beam_w = purlin_w;
                     soffit_d = purlin_d;
                 }
+            } else if (lvl.framing.system == 4) {
+                beam_w = lvl.framing.profiles.beam.empty() ? purlin_w : sec_w;
+                soffit_d = lvl.framing.profiles.beam.empty() ? purlin_d : sec_d;
             }
             const double clear_h = (z_top_datum - soffit_d) - z_lo - 2.0 * ft_hw;
             if (clear_h <= ft_hw * 2.0)

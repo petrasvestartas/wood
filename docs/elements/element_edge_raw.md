@@ -69,18 +69,3 @@ Two crossing members modelled first as round-section beams, connected to scanned
 | ![](joint_library/assembly_element_edge_raw_joints.gif) | ![](elements/element_edge_raw_joints.png) |  |
 
 \include{lineno} elements/element_edge_raw_joints.cpp
-
-## Typical Dimensions
-
-Diameters D, tapers and branch angles of debarked roundwood logs and structural tree forks; bark and knot swell add 15 to 40 mm radially over the fitted proxy cylinder.
-
-| Member | Species | Diameter D mm | Length m | Taper / fork angle |
-| --- | --- | --- | --- | --- |
-| Small-diameter thinnings (`data/raw/raw_log_*`) | Norway spruce (*Picea abies*) | 95 to 175 | 0.9 to 4.5 | 5 to 12 mm / m, sweep to 35 mm |
-| Structural roundwood columns and chords | Spruce, pine, Douglas fir, larch | 140 to 360 | 3.0 to 12.0 | 6 to 10 mm / m |
-| Truss web forks (`data/raw/raw_fork_*`) | Norway spruce (*Picea abies*) | 110 to 180 stem, 80 to 140 branch | 1.0 to 2.4 | 18° to 45° between branches |
-| Heavy Y-columns and arch forks | Beech, oak, ash, Douglas fir | 220 to 500 stem, 150 to 350 branch | 2.5 to 6.5 | 25° to 60° between branches |
-
-Boolean joinery cutters extend radially past the nominal proxy radius by `raw_overshoot` (typically 20 to 45 mm) and axially past the chord ends by `raw_end_extension`, so no bark sliver remains after fabrication cuts.
-
-Sources: [Vestartas (2021)](https://raw.githubusercontent.com/petrasvestartas/storage/refs/heads/main/images/papers/2021_phd_thesis.pdf), chapters 5.3, 6.4 and appendix A.3 (Rossiniere spruce truss); Mollica & Self (2016), *Advances in Architectural Geometry* (Hooke Park Wood Chip Barn); Bukauskas et al. (2019), *Form-Fitting Strategies for Diversity-Tolerant Design*.

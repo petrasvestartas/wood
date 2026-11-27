@@ -12,25 +12,25 @@ int main() {
     const std::shared_ptr<TreeNode> logs = scene.group_named("logs");
 
     const std::shared_ptr<EdgeRawElement> left = EdgeRawElement::from_stock(
-        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}), 65.0, "raw_fork_0", -90.0, false, "fork_left"
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1100.0}), 65.0, "raw_fork_0", 0.0, false, "fork_left"
     );
     left->cuts = {
         Plane::from_point_normal({0.0, 0.0, 40.0}, {0.0, 0.0, 1.0}),
-        Plane::from_point_normal({0.0, 0.0, 960.0}, {0.0, 0.0, -1.0}),
+        Plane::from_point_normal({0.0, 0.0, 1000.0}, {0.0, 0.0, -1.0}),
     };
     scene.add(left, forks);
 
     const std::shared_ptr<EdgeRawElement> right = EdgeRawElement::from_stock(
-        Line::from_points({1450.0, 0.0, 0.0}, {1450.0, 0.0, 1200.0}), 65.0, "raw_fork_2", 90.0, false, "fork_right"
+        Line::from_points({1450.0, 0.0, 0.0}, {1450.0, 0.0, 1200.0}), 65.0, "raw_fork_2", 180.0, false, "fork_right"
     );
     right->cuts = {
         Plane::from_point_normal({1450.0, 0.0, 40.0}, {0.0, 0.0, 1.0}),
-        Plane::from_point_normal({1450.0, 0.0, 960.0}, {0.0, 0.0, -1.0}),
+        Plane::from_point_normal({1450.0, 0.0, 1000.0}, {0.0, 0.0, -1.0}),
     };
     scene.add(right, forks);
 
     const std::shared_ptr<EdgeRawElement> girder = EdgeRawElement::from_stock(
-        Line::from_points({-200.0, 0.0, 1015.0}, {1650.0, 0.0, 1015.0}), 55.0, "raw_log_1", 90.0, true, "girder"
+        Line::from_points({-200.0, 0.0, 1055.0}, {1650.0, 0.0, 1055.0}), 55.0, "raw_log_1", 90.0, true, "girder"
     );
     scene.add(girder, logs);
 

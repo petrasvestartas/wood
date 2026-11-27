@@ -32,6 +32,9 @@ struct Profiles {
 
     /// Facade members: mullions 160 x 280, transoms 140 x 280, braces 140 x 180.
     static Profiles mullions();
+
+    /// Built-up section-active timber: glulam columns 260, girders 260 x 560, I-beam purlins 180 x 380, hollow box edge beams 240 x 460.
+    static Profiles built_up();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -41,12 +44,12 @@ struct Profiles {
 /// Timber framing of a planar `Plan` or of every storey of a `Stack`.
 struct Framing {
     int system =
-        1; // 0 a CLT slab on the columns, 1 girders and beams, 2 girders with flush purlins, 3 purlins on lowered girders.
+        1; // 0 a CLT slab on the columns, 1 girders and beams, 2 girders with flush purlins, 3 purlins on lowered girders, 4 a two-way waffle slab.
     int node =
         0; // Columns: 0 stop under the framing, 1 run through to the datum, 2 carry a chamfered head.
     int brace = 0; // Braces in the bays: 0 none, 1 a diagonal, 2 a cross, 3 a chevron.
     std::vector<size_t> braced_bays; // Bays braced, empty for every quad bay.
-    int span = 0; // Axis family of the girders, 0 or 1; -1 makes every axis a girder.
+    int span = 0; // Axis family of the girders, 0 or 1; -1 makes every axis equal, -2 gradates by family 0 > 1 > 2.
     double height = 3600.0; // Column length below the plan, 0 for none.
     double spacing = 2000.0; // Target purlin spacing.
     double deck = 0.0; // CLT deck thickness, 0 for none.
@@ -55,6 +58,12 @@ struct Framing {
     double wall = 0.0; // CLT shear wall thickness around the plan's cores.
     double head = 240.0; // Height of a chamfered head under a slab.
     double reach = 180.0; // Outward projection of a head's chamfer.
+    double haunch = 0.0; // Extra girder depth over standing columns, tapering into spans and along cantilevers.
+    double belly = 0.0; // Parabolic extra girder depth at the midspan of simple spans.
+    double drop_width = 0.0; // Square solid shear drop-panel side over standing columns under a slab or waffle grid.
+    double drop_depth = 0.0; // Drop-panel thickness, 0 for head height under slabs or rib depth in waffle grids.
+    double foot_scale = 1.0; // Scale of a standing column's foot section, below 1 for tapered hinged frame legs.
+    bool pinned_feet = false; // Base support shoe under each standing column foot.
     Profiles profiles; // Member sections.
 
     /// Girders and beams of 240 columns under a 160 deck, for the L-shaped floor.
@@ -113,6 +122,39 @@ struct Framing {
 
     /// Spandrel bands 760 x 180 behind vertical fins 95 x 320, for the fin screen.
     static Framing fin_screen();
+
+    /// Rectangular girders carrying built-up timber I-beam purlins and hollow box edge beams.
+    static Framing built_up_profiles();
+
+    /// Simple-span girders with parabolic midspan belly depth under stacked purlins.
+    static Framing belly_beams();
+
+    /// Continuous girders with haunches over inset columns and tapered end cantilevers.
+    static Framing haunched_cantilever();
+
+    /// Articulated Gerber girders tapering to hinge tips with a drop-in midspan belly beam.
+    static Framing gerber_hall();
+
+    /// Homogeneous 45-degree diagonal square grillage inside a continuous perimeter rim.
+    static Framing diagonal_floor();
+
+    /// Gradated concentric nested-ring grillage on perimeter fin columns.
+    static Framing concentric_floor();
+
+    /// Branching three-way ramified beam layout on perimeter columns.
+    static Framing ramified_floor();
+
+    /// Point-supported CLT mushroom slab on two-stage flared capitals and square drop-panels.
+    static Framing mushroom_drop_slab();
+
+    /// Closely spaced one-way ribs cantilevering over inset primary girders under a thin top deck.
+    static Framing ribbed_cantilever_slab();
+
+    /// Two-way coffered waffle slab with solid column shear drop-panels under a thin top deck.
+    static Framing waffle_coffered_slab();
+
+    /// Double-cantilevered multi-panel Vierendeel frame with shear-gradated bays.
+    static Framing shear_vierendeel();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -121,6 +163,9 @@ struct Framing {
 
 /// Divides length into equal bays closest to target.
 std::vector<double> compute_bays(double length, double target);
+
+/// Divides length into count symmetric bays scaled by end_ratio at both ends relative to midspan.
+std::vector<double> compute_gradated_bays(double length, int count, double end_ratio = 0.55);
 
 /// Axis lines in a plan's (u, v) and the boundary rings they come with.
 struct Pattern {
@@ -143,6 +188,15 @@ struct Pattern {
 
     /// Hexagons of side, nu by nv.
     static Pattern hexagonal(double side, int nu, int nv);
+
+    /// Two families at +/-45 degrees of pitch, half-module shifted inside width by depth.
+    static Pattern diagonal(double width, double depth, double pitch);
+
+    /// Nested inscribed quadrangles from width by depth inward, each corner at ratio along the enclosing side.
+    static Pattern concentric(double width, double depth, int rings = 3, double ratio = 0.35);
+
+    /// Branching primary trunks from the perimeter forking at Y-nodes into an interior spine.
+    static Pattern ramified(double width, double depth, int bays = 2);
 
     /// Any lines, their families from their direction when not given.
     static Pattern
@@ -199,6 +253,15 @@ struct Plan {
 
     /// The plan moved by xform.
     Plan transformed(const Xform& xform) const;
+
+    /// The plan with columns suppressed within overhang_u of the u-ends and overhang_v of the v-ends.
+    Plan with_cantilever(double overhang_u, double overhang_v = -1.0) const;
+
+    /// The plan keeping standing columns only every stride_u and stride_v standing grid lines.
+    Plan with_column_stride(int stride_u, int stride_v = 0) const;
+
+    /// The plan keeping standing columns only on the exterior boundary.
+    Plan perimeter_columns_only() const;
 
     /// The pattern's bays within its own boundary, on frame.
     static Plan from_pattern(const Pattern& pattern, const Plane& frame = Plane::xy_plane());
@@ -265,6 +328,36 @@ struct Plan {
 
     /// A screen 39080 x 14400 in nine bays of five fins and four storeys, from 3600.
     static Plan fin_screen();
+
+    /// Five equal spans of 4800 x 6000 at 4000, for simple-span belly girders.
+    static Plan five_span_beams();
+
+    /// Three interior spans of 6000 with 2100 cantilevered ends across 6000 depth, at 4200.
+    static Plan cantilever_hall();
+
+    /// Paired column bays of 5400 with 1900 inward cantilevers carrying a 3800 drop-in central span, at 4200.
+    static Plan gerber_hall();
+
+    /// A 16000 x 16000 hall on a 45-degree diagonal square grillage of 2800 pitch, columns on the perimeter, at 4200.
+    static Plan diagonal_floor();
+
+    /// An 18000 x 18000 hall of four concentric rotated rings on eight inset perimeter columns, at 4400.
+    static Plan concentric_floor();
+
+    /// An 18000 x 12000 hall of branching three-way tree girders on perimeter columns, at 4200.
+    static Plan ramified_floor();
+
+    /// A 16000 x 16000 mushroom slab cantilevered 2000 on all sides over 3 x 3 inset columns, at 4200.
+    static Plan mushroom_floor();
+
+    /// A 14400 x 10800 one-way ribbed floor cantilevering 1800 past two inset girder lines, at 4200.
+    static Plan ribbed_floor();
+
+    /// A 14400 x 14400 coffered waffle grid of 1200 pitch cantilevered 2400 over four inset columns, at 4200.
+    static Plan waffle_floor();
+
+    /// A 24000-wide double-cantilevered eight-panel Vierendeel elevation with shear-gradated bays on central columns.
+    static Plan shear_vierendeel();
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -341,6 +434,18 @@ struct Stack {
 
     /// The glazed office with fin screens on its four sides, starting at x.
     static Stack screened_office(double x = 0.0);
+
+    /// Four staggered single-column cantilevered umbrella canopies at alternating heights, starting at x.
+    static Stack umbrella_canopies(double x = 0.0);
+
+    /// Three storeys of coupled two-hinged portal frames with tapered legs, base shoes and corridor cantilevers, starting at x.
+    static Stack tapered_portal_hall(double x = 0.0);
+
+    /// Four intersecting story-deep Vierendeel frames spanning a 24000 x 24000 column-free hall on eight perimeter columns, starting at x.
+    static Stack concentric_vierendeel(double x = 0.0);
+
+    /// Six-storey mega-frame alternating full-span five-panel Vierendeel transfer storeys with lighter office floors, starting at x.
+    static Stack mega_transfer_tower(double x = 0.0);
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
