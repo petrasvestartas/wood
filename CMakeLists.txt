@@ -477,6 +477,8 @@ ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.
 ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)
 ADD_EXE(templates_grid_4_developed_facade  examples/templates_grid_4_developed_facade.cpp)
 ADD_EXE(templates_grid_5_multistorey       examples/templates_grid_5_multistorey.cpp)
+ADD_EXE(templates_grid_6_beam_grids        examples/templates_grid_6_beam_grids.cpp)
+ADD_EXE(templates_grid_7_frames_and_slabs  examples/templates_grid_7_frames_and_slabs.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_truss_5_carpentry_assembly examples/templates_truss_5_carpentry_assembly.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)
@@ -714,4 +716,3 @@ if(DOXYGEN_FOUND)
         VERBATIM
     )
 endif()
-
