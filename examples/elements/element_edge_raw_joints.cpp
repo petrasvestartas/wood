@@ -10,15 +10,15 @@ int main() {
 
     // 1. Model the crossing pair as round-section beams along their axes
     const std::shared_ptr<EdgeRawElement> member = EdgeRawElement::round(
-        Line::from_points({-850.0, 0.0, 0.0}, {850.0, 0.0, 0.0}), 52.0, 0.2, "member"
+        Line::from_points({-410.0, 0.0, 0.0}, {410.0, 0.0, 0.0}), 60.0, 0.2, "member"
     );
     const std::shared_ptr<EdgeRawElement> carrier = EdgeRawElement::round(
-        Line::from_points({0.0, -850.0, 0.0}, {0.0, 850.0, 0.0}), 52.0, 0.2, "carrier"
+        Line::from_points({0.0, -440.0, 0.0}, {0.0, 440.0, 0.0}), 60.0, 0.2, "carrier"
     );
 
     // 2. Attach scanned trunks from the stock database by transformation matrix
-    member->attach_stock("raw_log_1", 0.0, true);
-    carrier->attach_stock("raw_log_0", 0.0, true);
+    member->attach_stock("raw_log_2", 0.0, true);
+    carrier->attach_stock("raw_log_3", 0.0, true);
     scene.add(member);
     scene.add(carrier);
 

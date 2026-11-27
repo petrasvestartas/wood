@@ -318,7 +318,8 @@ const Mesh& EdgeRawElement::element_geometry_mesh() const {
         return EdgeStraightElement::element_geometry_mesh();
 
     if (!_element_geometry_mesh)
-        _element_geometry_mesh = placed_raw_mesh();
+        _element_geometry_mesh =
+            cuts.empty() ? placed_raw_mesh() : cut_mesh(placed_raw_mesh(), cuts);
 
     return *_element_geometry_mesh;
 }
