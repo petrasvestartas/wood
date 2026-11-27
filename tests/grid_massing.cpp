@@ -455,6 +455,7 @@ int main() {
     verify_grid("ribbed_cantilever_slab", Grid(Plan::ribbed_floor(), Framing::ribbed_cantilever_slab()));
     verify_grid("waffle_coffered_slab", Grid(Plan::waffle_floor(), Framing::waffle_coffered_slab()));
     verify_grid("shear_vierendeel", Grid(Plan::shear_vierendeel(), Framing::shear_vierendeel()));
+    verify_grid("shear_vierendeel_bridge", Grid(Stack::shear_vierendeel()));
     verify_grid("umbrella_canopies", Grid(Stack::umbrella_canopies()));
     verify_grid("tapered_portal_hall", Grid(Stack::tapered_portal_hall()));
     verify_grid("concentric_vierendeel", Grid(Stack::concentric_vierendeel()));

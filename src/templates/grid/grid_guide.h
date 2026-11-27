@@ -441,6 +441,9 @@ struct Stack {
     /// Three storeys of coupled two-hinged portal frames with tapered legs, base shoes and corridor cantilevers, starting at x.
     static Stack tapered_portal_hall(double x = 0.0);
 
+    /// Double-cantilevered eight-panel Vierendeel bridge with shear-gradated bays on central tapered piers, starting at x.
+    static Stack shear_vierendeel(double x = 0.0);
+
     /// Four intersecting story-deep Vierendeel frames spanning a 24000 x 24000 column-free hall on eight perimeter columns, starting at x.
     static Stack concentric_vierendeel(double x = 0.0);
 

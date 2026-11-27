@@ -193,6 +193,9 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = grid ]; then
     "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --view front --aspect 1.5 --name stammhaus_elevation templates_grid_4_developed_facade stammhaus_headquarters
     "${RENDER[@]}" --scene "$GRID_SCENES/stammhaus.pb" --wheel 8,0.26,0.58 --aspect 1.5 --name stammhaus_detail templates_grid_4_developed_facade stammhaus_headquarters
     "${RENDER[@]}" --scene "$GRID_SCENES/multistorey.pb" --aspect 1.5 templates_grid_5_multistorey five_bay shifted_floors tapered_tower twisted_tower setback_tower cylindrical_rotunda oblique_flatiron core_and_facade
+    "${RENDER[@]}" --scene "$GRID_SCENES/beam_grids.pb" --aspect 1.5 templates_grid_6_beam_grids built_up_profiles belly_spans haunched_cantilever gerber_hall diagonal_grillage concentric_lantern ramified_floor
+    "${RENDER[@]}" --scene "$GRID_SCENES/frames_slabs.pb" --opacity 0.52 --aspect 1.5 templates_grid_7_frames_and_slabs mushroom_drop_slab ribbed_cantilever_slab waffle_coffered_slab
+    "${RENDER[@]}" --scene "$GRID_SCENES/frames_slabs.pb" --aspect 1.5 templates_grid_7_frames_and_slabs umbrella_canopies tapered_portal_hall shear_vierendeel concentric_vierendeel mega_transfer_tower
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then

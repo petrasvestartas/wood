@@ -755,7 +755,7 @@ Plan Plan::waffle_floor() {
 }
 
 Plan Plan::shear_vierendeel() {
-    const std::vector<double> bays = compute_gradated_bays(24000.0, 8, 1.85);
+    const std::vector<double> bays = compute_gradated_bays(24000.0, 8, 2.4);
     return Plan::facade(
         Line::from_points(Point(0.0, 0.0, 3600.0), Point(24000.0, 0.0, 3600.0)),
         3600.0,
@@ -1266,6 +1266,54 @@ Stack Stack::tapered_portal_hall(double x) {
     return stack;
 }
 
+Stack Stack::shear_vierendeel(double x) {
+    const Polyline outline = Polyline::rectangle(Point(x, 0.0, 0.0), X, Y, 24000.0, 4400.0);
+    const std::vector<double> u_bays = compute_gradated_bays(24000.0, 8, 2.4);
+    const Pattern pattern =
+        Pattern::orthogonal(u_bays, {4400.0}).transformed(Xform::translation(x, 0.0, 0.0));
+
+    Plan pier_plan =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 3800.0), X, Y));
+    for (size_t i = 0; i < pier_plan.nodes.size(); ++i) {
+        const Point w = pier_plan.to_world(pier_plan.nodes[i][0], pier_plan.nodes[i][1], 0.0);
+        pier_plan.standing[i] = std::abs((w[0] - x) - 12000.0) < 25.0;
+    }
+
+    const Plan truss_plan =
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 7000.0), X, Y));
+
+    const Framing pier_frm{
+        .system = 1,
+        .node = 0,
+        .span = 0,
+        .height = 3800.0,
+        .foot_scale = 0.56,
+        .pinned_feet = true,
+        .profiles = {
+            .column = profile_rectangle(460.0, 460.0),
+            .girder = profile_rectangle(280.0, 440.0),
+            .beam = profile_rectangle(240.0, 400.0),
+        },
+    };
+    const Framing truss_frm{
+        .system = 2,
+        .node = 0,
+        .span = 0,
+        .height = 3200.0,
+        .spacing = 1600.0,
+        .deck = 140.0,
+        .panel = 4000.0,
+        .profiles = {
+            .column = profile_rectangle(260.0, 260.0),
+            .girder = profile_rectangle(280.0, 440.0),
+            .beam = profile_rectangle(240.0, 400.0),
+            .purlin = profile_rectangle(150.0, 260.0),
+        },
+    };
+
+    return Stack::from_levels({Level{pier_plan, pier_frm}, Level{truss_plan, truss_frm}}, 0.0, false);
+}
+
 Stack Stack::concentric_vierendeel(double x) {
     const Polyline outline = Polyline::rectangle(Point(x, 0.0, 0.0), X, Y, 24000.0, 24000.0);
     const std::vector<double> panel_bays(6, 4000.0);
@@ -1338,9 +1386,9 @@ Stack Stack::mega_transfer_tower(double x) {
         .deck = 180.0,
         .panel = 3000.0,
         .profiles = {
-            .column = profile_rectangle(420.0, 420.0),
-            .girder = profile_rectangle(340.0, 560.0),
-            .beam = profile_rectangle(280.0, 480.0),
+            .column = profile_rectangle(500.0, 500.0),
+            .girder = profile_rectangle(360.0, 600.0),
+            .beam = profile_rectangle(300.0, 520.0),
             .purlin = profile_rectangle(160.0, 320.0),
         },
     };
@@ -1352,9 +1400,9 @@ Stack Stack::mega_transfer_tower(double x) {
         .deck = 180.0,
         .panel = 3000.0,
         .profiles = {
-            .column = profile_rectangle(320.0, 320.0),
-            .girder = profile_rectangle(340.0, 520.0),
-            .beam = profile_rectangle(280.0, 460.0),
+            .column = profile_rectangle(340.0, 340.0),
+            .girder = profile_rectangle(360.0, 580.0),
+            .beam = profile_rectangle(300.0, 500.0),
             .purlin = profile_rectangle(160.0, 300.0),
         },
     };
@@ -1363,33 +1411,41 @@ Stack Stack::mega_transfer_tower(double x) {
         .node = 0,
         .span = 0,
         .spacing = 2000.0,
-        .deck = 150.0,
+        .deck = 140.0,
         .panel = 3000.0,
         .profiles = {
-            .column = profile_rectangle(220.0, 220.0),
-            .girder = profile_rectangle(220.0, 380.0),
-            .beam = profile_rectangle(200.0, 360.0),
+            .column = profile_rectangle(240.0, 240.0),
+            .girder = profile_rectangle(240.0, 380.0),
+            .beam = profile_rectangle(220.0, 360.0),
             .purlin = profile_rectangle(140.0, 260.0),
         },
     };
 
-    const Plan hall_1 =
-        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 4600.0), X, Y))
-            .with_cantilever(0.0, 0.0)
-            .perimeter_columns_only();
+    const std::function<Plan(double, bool)> make_open_storey = [&](double z, bool with_spine) -> Plan {
+        Plan plan = Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, z), X, Y));
+        for (size_t i = 0; i < plan.nodes.size(); ++i) {
+            const Point w = plan.to_world(plan.nodes[i][0], plan.nodes[i][1], 0.0);
+            const double lx = w[0] - x;
+            const double ly = w[1];
+            const bool is_corner =
+                (lx < 25.0 || lx > 19975.0) && (ly < 25.0 || ly > 11975.0);
+            const bool is_end_mid =
+                (lx < 25.0 || lx > 19975.0) && std::abs(ly - 6000.0) < 25.0;
+            const bool is_spine =
+                with_spine && lx > 25.0 && lx < 19975.0 && std::abs(ly - 6000.0) < 25.0;
+            plan.standing[i] = is_corner || is_end_mid || is_spine;
+        }
+        return plan;
+    };
+
+    const Plan hall_1 = make_open_storey(4800.0, false);
     const Plan tr_1 =
-        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 8000.0), X, Y));
-    const Plan off_1 =
-        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 11400.0), X, Y))
-            .perimeter_columns_only();
-    const Plan off_2 =
-        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 14800.0), X, Y))
-            .perimeter_columns_only();
+        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 8200.0), X, Y));
+    const Plan off_1 = make_open_storey(11500.0, true);
+    const Plan off_2 = make_open_storey(14800.0, true);
     const Plan tr_2 =
         Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 18200.0), X, Y));
-    const Plan roof =
-        Plan::from_footprint({outline}, pattern, {}, Plane(Point(0.0, 0.0, 21600.0), X, Y))
-            .perimeter_columns_only();
+    const Plan roof = make_open_storey(21500.0, false);
 
     return Stack::from_levels(
         {

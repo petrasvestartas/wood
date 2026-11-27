@@ -132,12 +132,14 @@ PAGES = {
         [("templates_reciprocal_1_rotation", "Rotation"), ("templates_reciprocal_2_move", "Move")],
     ),
     "grid": (
-        "Storey by storey, in each the columns and walls, their heads, girders, beams, purlins, braces and decks.",
+        "Storey by storey, in each the base supports, columns and walls, their heads and shear drop-panels, girders, beams, purlins, braces and decks.",
         [
             ("templates_grid_1_bay_framing", "Bay framing"),
             ("templates_grid_2_footprints", "Footprints"),
             ("templates_grid_3_facades", "Facades"),
             ("templates_grid_5_multistorey", "Multi-storey"),
+            ("templates_grid_6_beam_grids", "Beam and grillage systems"),
+            ("templates_grid_7_frames_and_slabs", "Slabs, portal and Vierendeel frames"),
         ],
     ),
     "vault": (
@@ -222,6 +224,8 @@ def main() -> None:
         path = WOOD / f"docs/templates/{page}.md"
         text = path.read_text()
         table = [line for example, title in examples for line in rows(example, title)]
+        if not table:
+            continue
         anchor = f"{{#{page}_assembly_sequence}}"
         section = "\n".join(
             [
