@@ -2,7 +2,7 @@
 
 [TOC]
 
-Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates/vault/`: every template is a session built from its guide in `vault_guide.h` (`Arch(ArchGuide)`, `Barrel(BarrelGuide)`, `Dome(DomeGuide)`, `Wall(WallGuide)`, `CrossVault(CrossVaultGuide)`, `CloisterVault(CloisterVaultGuide)`, `GothicRibbedVault(GothicRibbedVaultGuide)`), the defaults being the examples' settings. Every ribbed vault uses straight 2D plan lines rising as planar arches in 3D and simple circular barrel cylinder webs (`K = 0`) whose top and bottom edges follow the supporting beam centerlines.
+Parametric ribbed timber vaults, stereotomic masonry vaults, and subdivided NURBS / sewn-BRep NGon block shells in `src/templates/vault/`: every template is a session built from its guide in `vault_guide.h` (`Arch(ArchGuide)`, `Barrel(BarrelGuide)`, `Dome(DomeGuide)`, `Wall(WallGuide)`, `CrossVault(CrossVaultGuide)`, `CloisterVault(CloisterVaultGuide)`, `GothicRibbedVault(GothicRibbedVaultGuide)`, `SurfaceVault(SurfaceVaultGuide)`), the defaults being the examples' settings. `SurfaceDivision` subdivides single NURBS patches or multi-patch sewn BRep shells across shared seams (`quads`, `diamonds`, `hexagons`, `dual_hexagons`, `bricks`, `chebyshev`), and `ngon_solids` extrudes planar-sided blocks (`planarized`) with planar projected caps (`flatten_caps`) and optional tangential or alternating-bevel shifts between top and bottom facets.
 
 <div class="wood-card-grid cols-4">
   <a class="wood-card" href="#vault_quadripartite">
@@ -52,6 +52,46 @@ Parametric ribbed timber vaults and stereotomic masonry vaults in `src/templates
   <a class="wood-card" href="#vault_cloister">
     <img src="templates_vault_7_cloister_vault_all.webp" alt="Cloister Vault">
     <span class="wood-card-title">Cloister Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_hex_saddle">
+    <img src="templates_vault_10_surface_subdivisions_hex_saddle.webp" alt="Hexagonal Saddle Vault">
+    <span class="wood-card-title">Hexagonal Saddle Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_diamond_torus">
+    <img src="templates_vault_10_surface_subdivisions_diamond_torus.webp" alt="Diamond Torus Vault">
+    <span class="wood-card-title">Diamond Torus Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_sewn_groin">
+    <img src="templates_vault_10_surface_subdivisions_sewn_groin.webp" alt="Sewn Groin Vault">
+    <span class="wood-card-title">Sewn Groin Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_sewn_funnel">
+    <img src="templates_vault_10_surface_subdivisions_sewn_funnel.webp" alt="Sewn Funnel Vault">
+    <span class="wood-card-title">Sewn Funnel Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_courses_funnel">
+    <img src="templates_vault_10_surface_subdivisions_courses_funnel.webp" alt="Courses Funnel Vault">
+    <span class="wood-card-title">Courses Funnel Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_chebyshev_dome">
+    <img src="templates_vault_10_surface_subdivisions_chebyshev_dome.webp" alt="Chebyshev Dome">
+    <span class="wood-card-title">Chebyshev Dome</span>
+  </a>
+  <a class="wood-card" href="#vault_shifted_hex">
+    <img src="templates_vault_11_shifted_facets_shifted_hex.webp" alt="Shifted Hexagonal Vault">
+    <span class="wood-card-title">Shifted Hexagonal Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_bevelled_hex_dome">
+    <img src="templates_vault_11_shifted_facets_bevelled_hex_dome.webp" alt="Bevelled Hexagonal Dome">
+    <span class="wood-card-title">Bevelled Hexagonal Dome</span>
+  </a>
+  <a class="wood-card" href="#vault_shifted_groin">
+    <img src="templates_vault_11_shifted_facets_shifted_groin.webp" alt="Shifted Groin Vault">
+    <span class="wood-card-title">Shifted Groin Vault</span>
+  </a>
+  <a class="wood-card" href="#vault_shifted_chebyshev">
+    <img src="templates_vault_11_shifted_facets_shifted_chebyshev.webp" alt="Shifted Chebyshev Dome">
+    <span class="wood-card-title">Shifted Chebyshev Dome</span>
   </a>
   <a class="wood-card" href="#vault_assembly_sequence">
     <img src="assembly_templates_vault_1_arch.gif" alt="Assembly Sequence">
@@ -197,10 +237,116 @@ Six symmetric shallow (1:10 rise-to-span, 10 m x 10 m span, 1 m rise) Gothic cat
 
 \include{lineno} templates_vault_9_gothic_ribbed_vault.cpp
 
+---
+
+## Surface Subdivisions {#vault_surface_subdivisions}
+
+`SurfaceDivision` maps arc-length-matched UV strips across single NURBS patches or multi-surface sewn BRep shells, welding seam vertices and merging split cells across patch boundaries before `ngon_solids` planarizes all shared side quads via tangent-constrained Gauss-Newton conjugate gradients and projects intrados and extrados caps onto planes along corner rulings.
+
+### Hexagonal Saddle Vault {#vault_hex_saddle}
+
+Anticlastic saddle-arch NURBS shell subdivided into running-bond hexagons (`SurfaceDivision::hexagons`) with planarized side joints and planar projected top and bottom caps.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_hex_saddle.webp" alt="Hexagonal Saddle Vault 3D view">
+  <img src="templates_vault_10_surface_subdivisions_hex_saddle_bottom.webp" alt="Hexagonal Saddle Vault intrados view">
+</div>
+
+### Diamond Torus Vault {#vault_diamond_torus}
+
+Segmental 270-degree toroidal tunnel vault subdivided into diagonal diamond blocks (`SurfaceDivision::diamonds`) across synclastic outer and anticlastic inner curvature zones.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_diamond_torus.webp" alt="Diamond Torus Vault 3D view">
+  <img src="templates_vault_10_surface_subdivisions_diamond_torus_bottom.webp" alt="Diamond Torus Vault intrados view">
+</div>
+
+### Sewn Groin Vault {#vault_sewn_groin}
+
+Four NURBS groin patches sewn along shared ridge seams so diamond stones span continuously across the four groin creases without seam splits.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_sewn_groin.webp" alt="Sewn Groin Vault 3D view">
+  <img src="templates_vault_10_surface_subdivisions_sewn_groin_bottom.webp" alt="Sewn Groin Vault intrados view">
+</div>
+
+### Sewn Funnel Vault {#vault_sewn_funnel}
+
+Four-lobed flaring funnel shell sewn across radial patch seams and dualized (`SurfaceDivision::dual_hexagons`) into trivalent hexagonal voussoirs from throat to rim.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_sewn_funnel.webp" alt="Sewn Funnel Vault 3D view">
+  <img src="templates_vault_10_surface_subdivisions_sewn_funnel_bottom.webp" alt="Sewn Funnel Vault intrados view">
+</div>
+
+### Courses Funnel Vault {#vault_courses_funnel}
+
+Funnel vault laid in staggered masonry courses (`SurfaceDivision::bricks`) whose stone count adapts per hoop to keep arc-length block widths uniform from throat to flare, splitting shared bed edges at T-joints.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_courses_funnel.webp" alt="Courses Funnel Vault 3D view">
+  <img src="templates_vault_10_surface_subdivisions_courses_funnel_bottom.webp" alt="Courses Funnel Vault intrados view">
+</div>
+
+### Chebyshev Dome {#vault_chebyshev_dome}
+
+Pendentive sail dome tiled by a 45-degree equal-edge-length Chebyshev compass net (`SurfaceDivision::chebyshev`) clipped cleanly along the four perimeter arches.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_10_surface_subdivisions_chebyshev_dome.webp" alt="Chebyshev Dome 3D view">
+  <img src="templates_vault_10_surface_subdivisions_chebyshev_dome_bottom.webp" alt="Chebyshev Dome intrados view">
+</div>
+
+\include{lineno} templates_vault_10_surface_subdivisions.cpp
+
+---
+
+## Shifted Facets {#vault_shifted_facets}
+
+Extrados and intrados facets shift relative to each other either by tangential surface offset (`facet_shift`) prior to side-quad planarization and ruling-line cap projection, or by alternating outward/inward side-plane bevels (`bevel_degrees`) around trivalent hexagonal cells while every side joint and cap remains strictly planar.
+
+### Shifted Hexagonal Vault {#vault_shifted_hex}
+
+Thick hexagonal saddle-arch vault whose extrados and intrados facets shift obliquely in tangent planes while shared side quads planarize to machine precision.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_11_shifted_facets_shifted_hex.webp" alt="Shifted Hexagonal Vault 3D view">
+  <img src="templates_vault_11_shifted_facets_shifted_hex_bottom.webp" alt="Shifted Hexagonal Vault intrados view">
+</div>
+
+### Bevelled Hexagonal Dome {#vault_bevelled_hex_dome}
+
+Pendentive hexagonal dome with alternating 16.5-degree side-plane bevels shifting extrados and intrados hexagons into reciprocal wide-and-narrow bevelled facets.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_11_shifted_facets_bevelled_hex_dome.webp" alt="Bevelled Hexagonal Dome 3D view">
+  <img src="templates_vault_11_shifted_facets_bevelled_hex_dome_bottom.webp" alt="Bevelled Hexagonal Dome intrados view">
+</div>
+
+### Shifted Groin Vault {#vault_shifted_groin}
+
+Four-patch sewn diamond groin vault with diagonal tangential offset between top and bottom rhombic facets and planarized leaning side joints.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_11_shifted_facets_shifted_groin.webp" alt="Shifted Groin Vault 3D view">
+  <img src="templates_vault_11_shifted_facets_shifted_groin_bottom.webp" alt="Shifted Groin Vault intrados view">
+</div>
+
+### Shifted Chebyshev Dome {#vault_shifted_chebyshev}
+
+Equal-edge Chebyshev pendentive dome with tangential extrados-intrados shift and planarized side quads.
+
+<div class="wood-pair-grid">
+  <img src="templates_vault_11_shifted_facets_shifted_chebyshev.webp" alt="Shifted Chebyshev Dome 3D view">
+  <img src="templates_vault_11_shifted_facets_shifted_chebyshev_bottom.webp" alt="Shifted Chebyshev Dome intrados view">
+</div>
+
+\include{lineno} templates_vault_11_shifted_facets.cpp
+
 <!-- assembly:begin -->
 ## Assembly Sequence {#vault_assembly_sequence}
 
-Block by block from the springings to the crown; the Gothic bays their support blocks, the ribs on them, the web panels on the ribs. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, are let down on the ribs unswept. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
+Block by block from the springings to the crown; the Gothic bays their support blocks, the ribs on them, the web panels on the ribs; the subdivided NURBS and sewn multi-surface NGon shells along their planarized side joints, including shifted and bevelled facets. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, are let down on the ribs unswept. Every move is a `ModuleSequence` move: the module taken apart piece by piece, each piece swept as a solid against every piece still in, the moving ones drawn brown, a GIF per kind of module and one of the whole.
 
 | assembly | | |
 |---|---|---|
@@ -219,5 +365,11 @@ Block by block from the springings to the crown; the Gothic bays their support b
 | **Gothic ribbed vaults**, 352 elements, 346 moves | | |
 | ![fan conoid gloucester, 102 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_fan_conoid_gloucester.gif) fan conoid gloucester, 102 pieces | ![lierne star ely, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_lierne_star_ely.gif) lierne star ely, 70 pieces | ![net reticulated parler, 70 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_net_reticulated_parler.gif) net reticulated parler, 70 pieces |
 | ![quadripartite wells, 22 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_quadripartite_wells.gif) quadripartite wells, 22 pieces | ![star stellar burgos, 50 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_star_stellar_burgos.gif) star stellar burgos, 50 pieces | ![tierceron exeter, 38 pieces](assembly/assembly_templates_vault_9_gothic_ribbed_vault_tierceron_exeter.gif) tierceron exeter, 38 pieces |
+| **Surface subdivisions**, 1352 elements, 1346 moves | | |
+| ![chebyshev dome, 196 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_chebyshev_dome.gif) chebyshev dome, 196 pieces | ![courses funnel, 292 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_courses_funnel.gif) courses funnel, 292 pieces | ![diamond torus, 189 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_diamond_torus.gif) diamond torus, 189 pieces |
+| ![hex saddle, 242 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_hex_saddle.gif) hex saddle, 242 pieces | ![sewn funnel, 288 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_funnel.gif) sewn funnel, 288 pieces | ![sewn groin, 145 pieces](assembly/assembly_templates_vault_10_surface_subdivisions_sewn_groin.gif) sewn groin, 145 pieces |
+| **Shifted facets**, 576 elements, 572 moves | | |
+| ![bevelled hex dome, 98 pieces](assembly/assembly_templates_vault_11_shifted_facets_bevelled_hex_dome.gif) bevelled hex dome, 98 pieces | ![shifted chebyshev, 188 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_chebyshev.gif) shifted chebyshev, 188 pieces | ![shifted groin, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_groin.gif) shifted groin, 145 pieces |
+| ![shifted hex, 145 pieces](assembly/assembly_templates_vault_11_shifted_facets_shifted_hex.gif) shifted hex, 145 pieces |  |  |
 
 <!-- assembly:end -->

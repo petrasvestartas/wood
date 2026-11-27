@@ -211,6 +211,20 @@ if [ "$FAMILY" = all ] || [ "$FAMILY" = vault ]; then
         "${RENDER[@]}" --scene "$VAULT_SCENE" --name "${bay#*:}" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
         "${RENDER[@]}" --scene "$VAULT_SCENE" --view bottom --name "${bay#*:}_bottom" templates_vault_9_gothic_ribbed_vault "${bay%:*}"
     done
+    VAULT10_SCENE="$(mktemp -d)/vault10.pb"
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" templates_vault_10_surface_subdivisions hex_saddle diamond_torus sewn_groin sewn_funnel courses_funnel chebyshev_dome
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name hex_saddle_bottom templates_vault_10_surface_subdivisions hex_saddle
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name diamond_torus_bottom templates_vault_10_surface_subdivisions diamond_torus
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name sewn_groin_bottom templates_vault_10_surface_subdivisions sewn_groin
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name sewn_funnel_bottom templates_vault_10_surface_subdivisions sewn_funnel
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name courses_funnel_bottom templates_vault_10_surface_subdivisions courses_funnel
+    "${RENDER[@]}" --scene "$VAULT10_SCENE" --view bottom --name chebyshev_dome_bottom templates_vault_10_surface_subdivisions chebyshev_dome
+    VAULT11_SCENE="$(mktemp -d)/vault11.pb"
+    "${RENDER[@]}" --scene "$VAULT11_SCENE" --opacity 0.78 templates_vault_11_shifted_facets shifted_hex bevelled_hex_dome shifted_groin shifted_chebyshev
+    "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name shifted_hex_bottom templates_vault_11_shifted_facets shifted_hex
+    "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name bevelled_hex_dome_bottom templates_vault_11_shifted_facets bevelled_hex_dome
+    "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name shifted_groin_bottom templates_vault_11_shifted_facets shifted_groin
+    "${RENDER[@]}" --scene "$VAULT11_SCENE" --view bottom --name shifted_chebyshev_bottom templates_vault_11_shifted_facets shifted_chebyshev
 fi
 
 if [ "$FAMILY" = all ] || [ "$FAMILY" = plaited ]; then

@@ -144,8 +144,9 @@ PAGES = {
     ),
     "vault": (
         "Block by block from the springings to the crown; the Gothic bays their support blocks, the ribs on them, the web panels on the "
-        "ribs. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, are "
-        "let down on the ribs unswept.",
+        "ribs; the subdivided NURBS and sewn multi-surface NGon shells along their planarized side joints, including shifted and bevelled "
+        "facets. A block is let down along the direction nearest to straight down its neighbours leave it. The web panels, trimmed surfaces, "
+        "are let down on the ribs unswept.",
         [
             ("templates_vault_1_arch", "Arch"),
             ("templates_vault_2_barrel", "Barrel"),
@@ -154,6 +155,8 @@ PAGES = {
             ("templates_vault_6_cross_vault", "Cross vault"),
             ("templates_vault_7_cloister_vault", "Cloister vault"),
             ("templates_vault_9_gothic_ribbed_vault", "Gothic ribbed vaults"),
+            ("templates_vault_10_surface_subdivisions", "Surface subdivisions"),
+            ("templates_vault_11_shifted_facets", "Shifted facets"),
         ],
     ),
     "plaited": (
