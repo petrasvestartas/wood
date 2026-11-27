@@ -13,6 +13,7 @@
 #include "src/templates/grid/grid.h"
 #include "src/templates/module/cassette_shell.h"
 #include "src/templates/plaited/plaited.h"
+#include "src/templates/vault/surface_vault.h"
 #include "src/templates/vidy/vidy.h"
 
 using namespace session_cpp;
@@ -238,6 +239,31 @@ int main() {
     check_template(waffle_grid, waffle_grid.elements().size());
     const wood_grid::Grid umbrella_grid(wood_grid::Stack::umbrella_canopies(), "umbrella_canopies");
     check_template(umbrella_grid, umbrella_grid.elements().size());
+
+    // NURBS and sewn multi-surface NGon vaults: planarized side joints, planar caps, shifted and bevelled facets
+    wood_vault::SurfaceVaultGuide groin_guide = wood_vault::SurfaceVaultGuide::sewn_groin_vault();
+    groin_guide.size_u = 1100.0;
+    groin_guide.size_v = 1100.0;
+    const wood_vault::SurfaceVault sewn_groin(groin_guide, "sewn_groin");
+    check(sewn_groin.side_planarity() < 1e-6 && sewn_groin.cap_planarity() < 1e-6, "sewn groin vault: planar side joints and planar caps");
+    check(!sewn_groin.get_contacts().empty(), "sewn groin vault: coplanar side-joint contacts across seams");
+    check_template(sewn_groin, sewn_groin.elements().size());
+
+    wood_vault::SurfaceVaultGuide shifted_guide = wood_vault::SurfaceVaultGuide::shifted_hex_vault();
+    shifted_guide.size_u = 1100.0;
+    shifted_guide.size_v = 800.0;
+    const wood_vault::SurfaceVault shifted_hex(shifted_guide, "shifted_hex");
+    check(shifted_hex.side_planarity() < 1e-6 && shifted_hex.cap_planarity() < 1e-6, "shifted hex vault: planar side joints and caps under tangential shift");
+    check(!shifted_hex.get_contacts().empty(), "shifted hex vault: coplanar side-joint contacts");
+    check_template(shifted_hex, shifted_hex.elements().size());
+
+    wood_vault::SurfaceVaultGuide bevel_guide = wood_vault::SurfaceVaultGuide::bevelled_hex_dome();
+    bevel_guide.size_u = 1100.0;
+    bevel_guide.size_v = 950.0;
+    const wood_vault::SurfaceVault bevelled_hex(bevel_guide, "bevelled_hex");
+    check(bevelled_hex.side_planarity() < 1e-6 && bevelled_hex.cap_planarity() < 1e-6, "bevelled hex dome: planar bevelled side joints and caps");
+    check(!bevelled_hex.get_contacts().empty(), "bevelled hex dome: coplanar bevelled contacts");
+    check_template(bevelled_hex, bevelled_hex.elements().size());
 
     std::cout << "template_assembly: passed" << std::endl;
     return 0;

@@ -1,10 +1,12 @@
 #pragma once
+#include "src/templates/vault/planarity.h"
+#include "src/templates/vault/surface_division.h"
 #include "src/templates/vault/vault_guide.h"
 #include "wood_profile.h"
 
 using namespace session_cpp;
 
-/// Masonry vault templates.
+/// Masonry and timber vault templates.
 namespace wood_vault {
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -46,5 +48,18 @@ std::vector<std::shared_ptr<Element>> gothic_ribbed_vault(const GothicRibbedVaul
 
 /// How a Gothic bay goes together: the support blocks stand, the ribs raised on them, the web panels laid on the ribs.
 AssemblyModule gothic_assembly(const std::string& name, const std::vector<std::shared_ptr<Element>>& elements);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NURBS & Sewn Multi-Surface NGon Block Vaults
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Subdivides the guide's sewn NURBS surfaces according to its subdivision mode.
+Mesh surface_vault_mesh(const SurfaceVaultGuide& guide);
+
+/// Builds the extruded planar-sided / shifted-facet NGon blocks of the surface vault guide.
+std::vector<std::shared_ptr<Element>> surface_vault(
+    const SurfaceVaultGuide& guide,
+    NgonSolidMetrics* metrics = nullptr
+);
 
 }

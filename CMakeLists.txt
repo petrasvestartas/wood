@@ -101,6 +101,9 @@ set(WOOD_SOURCES
     src/templates/grid/grid_designs.cpp
     src/templates/grid/grid.cpp
     src/templates/vault/vault.cpp
+    src/templates/vault/planarity.cpp
+    src/templates/vault/surface_division.cpp
+    src/templates/vault/surface_vault.cpp
     src/templates/vault/arch.cpp
     src/templates/vault/barrel.cpp
     src/templates/vault/dome.cpp
@@ -474,8 +477,6 @@ ADD_EXE(templates_grid_2_footprints        examples/templates_grid_2_footprints.
 ADD_EXE(templates_grid_3_facades           examples/templates_grid_3_facades.cpp)
 ADD_EXE(templates_grid_4_developed_facade  examples/templates_grid_4_developed_facade.cpp)
 ADD_EXE(templates_grid_5_multistorey       examples/templates_grid_5_multistorey.cpp)
-ADD_EXE(templates_grid_6_beam_grids        examples/templates_grid_6_beam_grids.cpp)
-ADD_EXE(templates_grid_7_frames_and_slabs  examples/templates_grid_7_frames_and_slabs.cpp)
 ADD_EXE(templates_truss_1_pratt               examples/templates_truss_1_pratt.cpp)
 ADD_EXE(templates_truss_5_carpentry_assembly examples/templates_truss_5_carpentry_assembly.cpp)
 ADD_EXE(templates_truss_2_library             examples/templates_truss_2_library.cpp)
@@ -605,6 +606,8 @@ ADD_EXE(templates_vault_5_wall           examples/templates_vault_5_wall.cpp)
 ADD_EXE(templates_vault_6_cross_vault    examples/templates_vault_6_cross_vault.cpp)
 ADD_EXE(templates_vault_7_cloister_vault examples/templates_vault_7_cloister_vault.cpp)
 ADD_EXE(templates_vault_9_gothic_ribbed_vault examples/templates_vault_9_gothic_ribbed_vault.cpp)
+ADD_EXE(templates_vault_10_surface_subdivisions examples/templates_vault_10_surface_subdivisions.cpp)
+ADD_EXE(templates_vault_11_shifted_facets examples/templates_vault_11_shifted_facets.cpp)
 
 ADD_EXE(templates_plaited_1_flat_floor   examples/templates_plaited_1_flat_floor.cpp)
 ADD_EXE(templates_plaited_2_arch         examples/templates_plaited_2_arch.cpp)
@@ -711,3 +714,4 @@ if(DOXYGEN_FOUND)
         VERBATIM
     )
 endif()
+

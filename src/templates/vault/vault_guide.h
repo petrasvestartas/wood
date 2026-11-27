@@ -121,4 +121,61 @@ struct GothicRibbedVaultGuide {
     }
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SurfaceVaultGuide
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Inputs of a NURBS / sewn-BRep NGon block vault with planarized side joints and optional shifted top/bottom facets.
+struct SurfaceVaultGuide {
+    static constexpr int QUADS = 0; // Quad grid (staggered when parameter > 0).
+    static constexpr int DIAMONDS = 1; // Rhombic diamond grid merged across surface seams.
+    static constexpr int HEXAGONS = 2; // Running-bond hexagonal NGon grid merged across surface seams.
+    static constexpr int DUAL_HEXAGONS = 3; // Trivalent dual hexagonal grid across multi-patch singularities.
+    static constexpr int BRICKS = 4; // Variable-count staggered courses sized by arc length.
+    static constexpr int CHEBYSHEV = 5; // Equal-edge-length Chebyshev compass net.
+
+    std::vector<NurbsSurface> surfaces; // One or multiple four-sided NURBS patches sewn along shared seams.
+    int subdivision = HEXAGONS; // Subdivision pattern constant above.
+    double size_u = 600.0; // Target cell step along u in mm (or edge length for Chebyshev / Bricks).
+    double size_v = 600.0; // Target cell step along v in mm.
+    double parameter = 0.28; // Pattern parameter: hex side ratio, quad/brick stagger, or Chebyshev angle (deg).
+    double thickness = 240.0; // Block extrusion thickness in mm.
+    bool planar_sides = true; // Planarizes all shared side-joint quads when true.
+    double flatten_caps = 1.0; // Projects top/bottom caps onto block planes along planarized corner lines (0..1).
+    Vector facet_shift = Vector(0.0, 0.0, 0.0); // Tangential shift between extrados and intrados facets in mm.
+    double bevel_degrees = 0.0; // Alternating side-plane bevel angle in degrees for interlocking shifted facets.
+    bool trim_base = false; // Cuts springing blocks flush along z = base_z when true.
+    double base_z = 0.0; // Horizontal springing datum plane z in mm.
+
+    /// Hexagonal planar-sided saddle-arch vault (NGon running-bond hex extrusion + planarization + ProjectPairs).
+    static SurfaceVaultGuide hex_saddle_vault();
+
+    /// Diamond planar-sided annular / toroidal arch vault.
+    static SurfaceVaultGuide diamond_torus_vault();
+
+    /// Four-patch sewn groin vault with diamonds/hexagons merged seamlessly across the four groin seams.
+    static SurfaceVaultGuide sewn_groin_vault();
+
+    /// Multi-patch sewn funnel canopy vault subdivided into isotropic dual hexagonal blocks across radial seams.
+    static SurfaceVaultGuide sewn_funnel_vault();
+
+    /// Variable-course staggered masonry funnel / catenoid vault adapting brick counts to hoop perimeter.
+    static SurfaceVaultGuide courses_funnel_vault();
+
+    /// Equal-edge Chebyshev compass-net vault over a doubly-curved pillow dome at 45 degrees.
+    static SurfaceVaultGuide chebyshev_dome_vault();
+
+    /// Hexagonal arch vault with tangentially shifted top and bottom facets and planarized side joints.
+    static SurfaceVaultGuide shifted_hex_vault();
+
+    /// Interlocking hexagonal dome with alternating bevelled side planes shifting top vs bottom facets.
+    static SurfaceVaultGuide bevelled_hex_dome();
+
+    /// Sewn groin vault with tangentially shifted diamond extrados and intrados facets.
+    static SurfaceVaultGuide shifted_diamond_groin();
+
+    /// Chebyshev equal-edge dome vault with tangentially shifted top and bottom facets.
+    static SurfaceVaultGuide shifted_chebyshev_dome();
+};
+
 }
