@@ -100,6 +100,22 @@ SurfaceVaultGuide SurfaceVaultGuide::chebyshev_dome_vault() {
     return guide;
 }
 
+SurfaceVaultGuide SurfaceVaultGuide::geodesic_dome_vault() {
+
+    SurfaceVaultGuide guide;
+    guide.surfaces = {pillow_dome_surface(6400.0, 6400.0, 2400.0)};
+    guide.subdivision = GEODESIC_BRICKS;
+    guide.size_u = 620.0;
+    guide.size_v = 310.0;
+    guide.parameter = 35.0;
+    guide.thickness = 220.0;
+    guide.planar_sides = true;
+    guide.flatten_caps = 1.0;
+    guide.trim_base = true;
+
+    return guide;
+}
+
 SurfaceVaultGuide SurfaceVaultGuide::shifted_hex_vault() {
 
     // Thick saddle-arch hexagonal shell with large oblique tangential extrados-intrados shift.
@@ -188,6 +204,8 @@ Mesh surface_vault_mesh(const SurfaceVaultGuide& guide) {
         return division.dual_hexagons();
     if (guide.subdivision == SurfaceVaultGuide::BRICKS)
         return division.bricks(guide.size_u, guide.parameter);
+    if (guide.subdivision == SurfaceVaultGuide::GEODESIC_BRICKS)
+        return division.geodesic_bricks(guide.size_u, guide.size_v, guide.parameter);
 
     return division.chebyshev(guide.size_u, guide.parameter);
 }

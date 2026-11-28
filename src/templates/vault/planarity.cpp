@@ -291,6 +291,97 @@ Vector rotate_vector(const Vector& vec, const Vector& unit_axis, double angle_ra
     return vec * c + unit_axis.cross(vec) * s + unit_axis * (unit_axis.dot(vec) * (1.0 - c));
 }
 
+/// Triangulates a simple 3D polygon ring (projected onto plane_up) into CCW index triples via 2D ear clipping.
+std::vector<std::array<size_t, 3>> ear_clip_ring(
+    const std::vector<Point>& ring,
+    const Vector& plane_up
+) {
+
+    std::vector<std::array<size_t, 3>> tris;
+    const size_t n = ring.size();
+    if (n < 3) {
+        return tris;
+    }
+    if (n == 3) {
+        tris.push_back({0, 1, 2});
+        return tris;
+    }
+
+    const Plane pl = oriented_plane(ring, plane_up);
+    std::vector<std::pair<double, double>> uv(n);
+    for (size_t i = 0; i < n; i++) {
+        const Vector d = ring[i] - pl.origin();
+        uv[i] = {d.dot(pl.x_axis()), d.dot(pl.y_axis())};
+    }
+
+    double signed_area2 = 0.0;
+    for (size_t i = 0; i < n; i++) {
+        const size_t j = (i + 1) % n;
+        signed_area2 += uv[i].first * uv[j].second - uv[j].first * uv[i].second;
+    }
+    const double orient = (signed_area2 >= 0.0) ? 1.0 : -1.0;
+
+    std::vector<size_t> poly(n);
+    for (size_t i = 0; i < n; i++) {
+        poly[i] = i;
+    }
+
+    int guard = static_cast<int>(n * n) + 8;
+    while (poly.size() > 3 && guard-- > 0) {
+        const size_t m = poly.size();
+        int best_ear = -1;
+        double best_cross = -1.0;
+
+        for (size_t k = 0; k < m; k++) {
+            const size_t ia = poly[(k + m - 1) % m];
+            const size_t ib = poly[k];
+            const size_t ic = poly[(k + 1) % m];
+            const double ax = uv[ia].first;
+            const double ay = uv[ia].second;
+            const double bx = uv[ib].first;
+            const double by = uv[ib].second;
+            const double cx = uv[ic].first;
+            const double cy = uv[ic].second;
+            const double cross = orient * ((bx - ax) * (cy - ay) - (by - ay) * (cx - ax));
+            if (cross <= 1e-9) {
+                continue;
+            }
+            bool inside_any = false;
+            for (size_t j = 0; j < m; j++) {
+                const size_t ip = poly[j];
+                if (ip == ia || ip == ib || ip == ic) {
+                    continue;
+                }
+                const double px = uv[ip].first;
+                const double py = uv[ip].second;
+                const double c0 = orient * ((bx - ax) * (py - ay) - (by - ay) * (px - ax));
+                const double c1 = orient * ((cx - bx) * (py - by) - (cy - by) * (px - bx));
+                const double c2 = orient * ((ax - cx) * (py - cy) - (ay - cy) * (px - cx));
+                if (c0 >= -1e-7 && c1 >= -1e-7 && c2 >= -1e-7) {
+                    inside_any = true;
+                    break;
+                }
+            }
+            if (!inside_any && cross > best_cross) {
+                best_cross = cross;
+                best_ear = static_cast<int>(k);
+            }
+        }
+
+        if (best_ear < 0) {
+            best_ear = 0;
+        }
+        const size_t k = static_cast<size_t>(best_ear);
+        tris.push_back({poly[(k + m - 1) % m], poly[k], poly[(k + 1) % m]});
+        poly.erase(poly.begin() + best_ear);
+    }
+    if (poly.size() == 3) {
+        tris.push_back({poly[0], poly[1], poly[2]});
+    }
+
+    return tris;
+}
+
 /// Builds a closed NodeBlockElement from matched intrados and extrados rings, splitting non-planar caps cleanly.
 std::shared_ptr<wood_session::NodeBlockElement> build_stone_element(
     std::vector<Point> intrados,
@@ -335,6 +426,13 @@ std::shared_ptr<wood_session::NodeBlockElement> build_stone_element(
     if ((planar_cap && !has_reflex_or_collinear) || intrados.size() == 3) {
         faces.emplace_back(intrados.rbegin(), intrados.rend());
         faces.push_back(extrados);
+    } else if (planar_cap) {
+        const Vector cap_dir = (Point::centroid(extrados) - centre).normalized();
+        const std::vector<std::array<size_t, 3>> cap_tris = ear_clip_ring(intrados, cap_dir);
+        for (const std::array<size_t, 3>& t : cap_tris) {
+            faces.push_back({intrados[t[2]], intrados[t[1]], intrados[t[0]]});
+            faces.push_back({extrados[t[0]], extrados[t[1]], extrados[t[2]]});
+        }
     } else {
         const Point bot_mid = Point::centroid(intrados);
         const Point top_mid = Point::centroid(extrados);

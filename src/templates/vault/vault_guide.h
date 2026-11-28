@@ -133,6 +133,7 @@ struct SurfaceVaultGuide {
     static constexpr int DUAL_HEXAGONS = 3; // Trivalent dual hexagonal grid across multi-patch singularities.
     static constexpr int BRICKS = 4; // Variable-count staggered courses sized by arc length.
     static constexpr int CHEBYSHEV = 5; // Equal-edge-length Chebyshev compass net.
+    static constexpr int GEODESIC_BRICKS = 6; // Constant-bed-height geodesic coordinate running-bond bricks (Adiels et al. 2017).
 
     std::vector<NurbsSurface> surfaces; // One or multiple four-sided NURBS patches sewn along shared seams.
     int subdivision = HEXAGONS; // Subdivision pattern constant above.
@@ -164,6 +165,9 @@ struct SurfaceVaultGuide {
 
     /// Equal-edge Chebyshev compass-net vault over a doubly-curved pillow dome at 45 degrees.
     static SurfaceVaultGuide chebyshev_dome_vault();
+
+    /// Constant-bed-height geodesic-coordinate running-bond brick vault over a doubly-curved pillow dome (Adiels et al. 2017).
+    static SurfaceVaultGuide geodesic_dome_vault();
 
     /// Hexagonal arch vault with tangentially shifted top and bottom facets and planarized side joints.
     static SurfaceVaultGuide shifted_hex_vault();

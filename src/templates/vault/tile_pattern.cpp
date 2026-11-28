@@ -4823,6 +4823,1167 @@ Mesh merge_matched_brick_mesh(const Mesh& quad_mesh, const BrickMatchingResult& 
     return out;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Chalmers Geodesic Coordinate Brick Courses (Adiels, Ander & Williams, IASS 2017)
+// Geodesics-in-Heat Bed Trajectories (a22 = const) + Orthogonal Running Bond (a12 = 0)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Mesh geodesic_brick_pattern(
+    const Mesh& shell_mesh,
+    double bed_height,
+    double brick_length,
+    bool polar_from_holes
+) {
+
+    const double h_bed = std::max(10.0, bed_height);
+    const double l_brick = std::max(h_bed, brick_length);
+
+    std::vector<Point> base_verts;
+    std::vector<std::array<size_t, 3>> base_tris;
+    extract_welded_triangles(shell_mesh, base_verts, base_tris, 1e-2);
+    if (base_verts.empty() || base_tris.empty()) {
+        return Mesh();
+    }
+
+    double signed_z = 0.0;
+    for (const std::array<size_t, 3>& t : base_tris) {
+        signed_z += (base_verts[t[1]] - base_verts[t[0]]).cross(base_verts[t[2]] - base_verts[t[0]])[2];
+    }
+    if (signed_z < 0.0) {
+        for (std::array<size_t, 3>& t : base_tris) {
+            std::swap(t[1], t[2]);
+        }
+    }
+
+    std::vector<Vector> base_norms;
+    std::vector<double> base_areas;
+    compute_normals_and_areas(base_verts, base_tris, base_norms, base_areas);
+
+    SurfaceProjector projector;
+    projector.build(base_verts, base_norms, base_tris);
+
+    // Subdivide mesh to <= 0.36 * h_bed and project interior vertices onto smooth shell
+    std::vector<Point> verts = base_verts;
+    std::vector<std::array<size_t, 3>> tris = base_tris;
+    subdivide_triangles_to_length(verts, tris, 0.36 * h_bed, 8500);
+
+    const size_t nv = verts.size();
+    const size_t nf = tris.size();
+    std::map<std::pair<size_t, size_t>, int> dir_he;
+    for (size_t f = 0; f < nf; f++) {
+        for (size_t k = 0; k < 3; k++) {
+            dir_he[{tris[f][k], tris[f][(k + 1) % 3]}] = static_cast<int>(3 * f + k);
+        }
+    }
+
+    std::vector<bool> is_bnd_v(nv, false);
+    std::map<size_t, size_t> bnd_next;
+    for (size_t f = 0; f < nf; f++) {
+        for (size_t k = 0; k < 3; k++) {
+            const size_t u = tris[f][k];
+            const size_t w = tris[f][(k + 1) % 3];
+            if (!dir_he.count({w, u})) {
+                is_bnd_v[u] = true;
+                is_bnd_v[w] = true;
+                bnd_next[u] = w;
+            }
+        }
+    }
+    for (size_t v = 0; v < nv; v++) {
+        if (!is_bnd_v[v]) {
+            verts[v] = projector.project(verts[v]).first;
+        }
+    }
+
+    // Extract closed boundary loops, sharp corners, and select geodesic starting curve Gamma_0
+    std::vector<std::vector<size_t>> bnd_loops;
+    std::vector<double> loop_perims;
+    {
+        std::set<size_t> vis;
+        for (const std::pair<const size_t, size_t>& kv : bnd_next) {
+            if (vis.count(kv.first)) {
+                continue;
+            }
+            std::vector<size_t> lp;
+            double perim = 0.0;
+            size_t cur = kv.first;
+            for (size_t step = 0; step <= bnd_next.size(); step++) {
+                if (vis.count(cur)) {
+                    break;
+                }
+                vis.insert(cur);
+                lp.push_back(cur);
+                const std::map<size_t, size_t>::const_iterator it = bnd_next.find(cur);
+                if (it == bnd_next.end()) {
+                    break;
+                }
+                perim += verts[cur].distance(verts[it->second]);
+                cur = it->second;
+            }
+            if (lp.size() >= 3) {
+                bnd_loops.push_back(std::move(lp));
+                loop_perims.push_back(perim);
+            }
+        }
+    }
+
+    std::vector<bool> is_sharp_v(nv, false);
+    for (const std::vector<size_t>& lp : bnd_loops) {
+        const size_t m = lp.size();
+        if (m < 4) {
+            continue;
+        }
+        std::vector<double> tcos(m, 1.0);
+        for (size_t i = 0; i < m; i++) {
+            const Point& pv = verts[lp[i]];
+            size_t ip = (i + m - 1) % m;
+            for (size_t s = 1; s < m / 3 && pv.distance(verts[lp[ip]]) < 0.42 * h_bed; s++) {
+                ip = (i + m - 1 - s) % m;
+            }
+            size_t in = (i + 1) % m;
+            for (size_t s = 1; s < m / 3 && pv.distance(verts[lp[in]]) < 0.42 * h_bed; s++) {
+                in = (i + 1 + s) % m;
+            }
+            Vector vin = pv - verts[lp[ip]];
+            Vector vout = verts[lp[in]] - pv;
+            if (vin.normalize_self() && vout.normalize_self()) {
+                tcos[i] = vin.dot(vout);
+            }
+        }
+        for (size_t i = 0; i < m; i++) {
+            if (tcos[i] < 0.72 && tcos[i] <= tcos[(i + m - 1) % m] + 1e-6 &&
+                tcos[i] <= tcos[(i + 1) % m] + 1e-6) {
+                is_sharp_v[lp[i]] = true;
+            }
+        }
+    }
+
+    std::vector<bool> is_seed(nv, false);
+    if (polar_from_holes && bnd_loops.size() >= 2) {
+        // Polar geodesic coordinates from the inner oculus loop (Adiels et al. 2017, Fig. 6 top)
+        size_t min_li = 0;
+        for (size_t li = 1; li < bnd_loops.size(); li++) {
+            if (loop_perims[li] < loop_perims[min_li]) {
+                min_li = li;
+            }
+        }
+        for (const size_t vid : bnd_loops[min_li]) {
+            is_seed[vid] = true;
+        }
+    } else if (!bnd_loops.empty()) {
+        // Select longest smooth arch chain of outer loop as starting curve Gamma_0 (Adiels et al. 2017, Section 5)
+        size_t max_li = 0;
+        for (size_t li = 1; li < bnd_loops.size(); li++) {
+            if (loop_perims[li] > loop_perims[max_li]) {
+                max_li = li;
+            }
+        }
+        const std::vector<size_t>& outer = bnd_loops[max_li];
+        std::vector<size_t> corners;
+        for (size_t i = 0; i < outer.size(); i++) {
+            if (is_sharp_v[outer[i]]) {
+                corners.push_back(i);
+            }
+        }
+        if (corners.size() >= 2) {
+            double best_chain_len = -1.0;
+            std::vector<size_t> best_chain;
+            for (size_t ci = 0; ci < corners.size(); ci++) {
+                const size_t i0 = corners[ci];
+                const size_t i1 = corners[(ci + 1) % corners.size()];
+                std::vector<size_t> ch;
+                double clen = 0.0;
+                size_t cur = i0;
+                while (true) {
+                    ch.push_back(outer[cur]);
+                    if (cur == i1) {
+                        break;
+                    }
+                    const size_t nxt = (cur + 1) % outer.size();
+                    clen += verts[outer[cur]].distance(verts[outer[nxt]]);
+                    cur = nxt;
+                }
+                if (clen > best_chain_len) {
+                    best_chain_len = clen;
+                    best_chain = std::move(ch);
+                }
+            }
+            for (const size_t vid : best_chain) {
+                is_seed[vid] = true;
+            }
+        } else {
+            Point ctr = Point::centroid(verts);
+            size_t best_v = 0;
+            double best_d = 1e30;
+            for (size_t v = 0; v < nv; v++) {
+                const double d = verts[v].distance(ctr);
+                if (d < best_d) {
+                    best_d = d;
+                    best_v = v;
+                }
+            }
+            is_seed[best_v] = true;
+        }
+    }
+
+    // Build undirected edge lookup + Geodesics-in-Heat operators (Crane, Weischedel & Wardetzky 2013)
+    std::vector<std::pair<size_t, size_t>> ev_list;
+    std::vector<std::array<size_t, 3>> fe_table(nf, {0, 0, 0});
+    std::map<std::pair<size_t, size_t>, size_t> edge_lookup;
+    double edge_len_sum = 0.0;
+    for (size_t f = 0; f < nf; f++) {
+        for (size_t k = 0; k < 3; k++) {
+            const size_t u = tris[f][k];
+            const size_t w = tris[f][(k + 1) % 3];
+            const std::pair<size_t, size_t> ek = ordered_pair(u, w);
+            const std::map<std::pair<size_t, size_t>, size_t>::const_iterator it = edge_lookup.find(ek);
+            if (it == edge_lookup.end()) {
+                const size_t eid = ev_list.size();
+                edge_lookup[ek] = eid;
+                ev_list.push_back(ek);
+                fe_table[f][k] = eid;
+                edge_len_sum += verts[u].distance(verts[w]);
+            } else {
+                fe_table[f][k] = it->second;
+            }
+        }
+    }
+    const size_t ne = ev_list.size();
+    const double mean_elen = ne > 0 ? (edge_len_sum / static_cast<double>(ne)) : (0.3 * h_bed);
+
+    std::vector<Vector> fnrm(nf);
+    std::vector<double> farea(nf, 0.0);
+    std::vector<std::array<Vector, 3>> b_grad(nf);
+    std::vector<std::map<size_t, double>> lap_rows(nv);
+    std::vector<double> v_mass(nv, 0.0);
+
+    for (size_t f = 0; f < nf; f++) {
+        const Point& p0 = verts[tris[f][0]];
+        const Point& p1 = verts[tris[f][1]];
+        const Point& p2 = verts[tris[f][2]];
+        const Vector cr = (p1 - p0).cross(p2 - p0);
+        const double area = std::max(1e-12, 0.5 * cr.magnitude());
+        farea[f] = area;
+        fnrm[f] = (cr.magnitude_squared() > 1e-20) ? cr.normalized() : Vector(0.0, 0.0, 1.0);
+        const double inv_2a = 1.0 / (2.0 * area);
+        b_grad[f][0] = fnrm[f].cross(p1 - p2) * inv_2a;
+        b_grad[f][1] = fnrm[f].cross(p2 - p0) * inv_2a;
+        b_grad[f][2] = fnrm[f].cross(p0 - p1) * inv_2a;
+        for (size_t a = 0; a < 3; a++) {
+            v_mass[tris[f][a]] += area / 3.0;
+            for (size_t b = 0; b < 3; b++) {
+                lap_rows[tris[f][a]][tris[f][b]] += area * b_grad[f][a].dot(b_grad[f][b]);
+            }
+        }
+    }
+
+    // Step I: short-time heat diffusion (M + t * L) u_heat = delta_seed
+    const double heat_t = 6.0 * mean_elen * mean_elen;
+    std::vector<std::map<size_t, double>> heat_rows = lap_rows;
+    std::vector<double> heat_rhs(nv, 0.0);
+    for (size_t i = 0; i < nv; i++) {
+        for (std::pair<const size_t, double>& kv : heat_rows[i]) {
+            kv.second *= heat_t;
+        }
+        heat_rows[i][i] += v_mass[i];
+        if (is_seed[i]) {
+            heat_rows[i][i] += 1e8;
+            heat_rhs[i] = 1e8;
+        }
+    }
+    const CsrMatrix heat_csr = CsrMatrix::from_maps(heat_rows);
+    std::vector<double> u_heat(nv, 0.0);
+    solve_pcg_scalar(heat_csr, heat_rhs, u_heat, 1500, 1e-13);
+
+    // Step II: normalized unit geodesic gradient X_f and orthogonal bed-course tangent course_dir[f]
+    std::vector<Vector> geod_dir(nf, Vector(1.0, 0.0, 0.0));
+    std::vector<Vector> course_dir(nf, Vector(0.0, 1.0, 0.0));
+    std::vector<double> div_rhs(nv, 0.0);
+    for (size_t f = 0; f < nf; f++) {
+        Vector g = b_grad[f][0] * u_heat[tris[f][0]] + b_grad[f][1] * u_heat[tris[f][1]] +
+                   b_grad[f][2] * u_heat[tris[f][2]];
+        Vector xf = -g;
+        if (!xf.normalize_self()) {
+            xf = (verts[tris[f][1]] - verts[tris[f][0]]).normalized();
+        }
+        geod_dir[f] = xf;
+        course_dir[f] = fnrm[f].cross(xf).normalized();
+        for (size_t c = 0; c < 3; c++) {
+            div_rhs[tris[f][c]] += farea[f] * b_grad[f][c].dot(xf);
+        }
+    }
+
+    // Step III: Poisson distance recovery L * phi = div(X), phi|_seed = 0
+    std::vector<std::map<size_t, double>> pois_rows = lap_rows;
+    for (size_t i = 0; i < nv; i++) {
+        pois_rows[i][i] += 1e-12;
+        if (is_seed[i]) {
+            pois_rows[i][i] += 1e9;
+            div_rhs[i] = 0.0;
+        }
+    }
+    const CsrMatrix pois_csr = CsrMatrix::from_maps(pois_rows);
+    std::vector<double> phi(nv, 0.0);
+    solve_pcg_scalar(pois_csr, div_rhs, phi, 3500, 1e-13);
+
+    for (size_t v = 0; v < nv; v++) {
+        phi[v] = is_seed[v] ? 0.0 : std::max(0.0, phi[v]);
+    }
+    double grad_norm_area = 0.0;
+    double area_tot = 0.0;
+    for (size_t f = 0; f < nf; f++) {
+        const Vector gp = b_grad[f][0] * phi[tris[f][0]] + b_grad[f][1] * phi[tris[f][1]] +
+                          b_grad[f][2] * phi[tris[f][2]];
+        const double gn = gp.magnitude();
+        if (gn > 1e-6) {
+            grad_norm_area += farea[f] * gn;
+            area_tot += farea[f];
+        }
+    }
+    const double mean_gn = (area_tot > 0.0) ? (grad_norm_area / area_tot) : 1.0;
+    std::vector<double> tau(nv, 0.0);
+    for (size_t v = 0; v < nv; v++) {
+        tau[v] = (phi[v] / std::max(0.2, mean_gn)) / h_bed;
+        if (!is_seed[v] && std::abs(tau[v] - std::round(tau[v])) < 3e-4) {
+            tau[v] += 4.5e-4;
+        }
+    }
+
+    // Slice mesh along exact integer geodesic bed isolines tau = 1, 2, ...
+    std::vector<int> orig_to_sv(nv, -1);
+    std::vector<std::vector<std::pair<double, size_t>>> edge_iso_pts(ne);
+    std::vector<Point> strip_pts;
+    std::vector<bool> strip_v_bnd;
+    std::vector<bool> strip_v_sharp;
+
+    struct SubPiece {
+        std::vector<size_t> vids;
+        int course_k = 0;
+        size_t parent_f = 0;
+        double area = 0.0;
+    };
+    std::vector<SubPiece> sub_pieces;
+
+    for (size_t f = 0; f < nf; f++) {
+        const double t0 = tau[tris[f][0]];
+        const double t1 = tau[tris[f][1]];
+        const double t2 = tau[tris[f][2]];
+        const double dt_da = t1 - t0;
+        const double dt_db = t2 - t0;
+
+        const int m_min = static_cast<int>(std::floor(std::min({t0, t1, t2}) + 1e-9)) + 1;
+        const int m_max = static_cast<int>(std::ceil(std::max({t0, t1, t2}) - 1e-9)) - 1;
+
+        std::vector<std::vector<BaryVert>> pieces = {{{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}}};
+        if (m_max - m_min <= 64) {
+            for (int m = m_min; m <= m_max; m++) {
+                std::vector<std::vector<BaryVert>> next_p;
+                for (const std::vector<BaryVert>& poly : pieces) {
+                    std::vector<BaryVert> le;
+                    std::vector<BaryVert> ge;
+                    split_bary_poly_line(poly, t0, dt_da, dt_db, static_cast<double>(m), le, ge);
+                    if (le.size() >= 3) {
+                        next_p.push_back(std::move(le));
+                    }
+                    if (ge.size() >= 3) {
+                        next_p.push_back(std::move(ge));
+                    }
+                }
+                pieces = std::move(next_p);
+            }
+        }
+
+        for (const std::vector<BaryVert>& poly : pieces) {
+            std::vector<size_t> vids;
+            double tau_sum = 0.0;
+            for (const BaryVert& bv : poly) {
+                const double l1 = bv.a;
+                const double l2 = bv.b;
+                const double l0 = 1.0 - l1 - l2;
+                tau_sum += t0 + dt_da * l1 + dt_db * l2;
+
+                size_t vid = strip_pts.size();
+                if (l0 > 1.0 - 1e-5 || l1 > 1.0 - 1e-5 || l2 > 1.0 - 1e-5) {
+                    size_t ov = tris[f][0];
+                    if (l1 > l0 && l1 >= l2) {
+                        ov = tris[f][1];
+                    } else if (l2 > l0 && l2 > l1) {
+                        ov = tris[f][2];
+                    }
+                    if (orig_to_sv[ov] < 0) {
+                        orig_to_sv[ov] = static_cast<int>(strip_pts.size());
+                        strip_pts.push_back(verts[ov]);
+                        strip_v_bnd.push_back(is_bnd_v[ov]);
+                        strip_v_sharp.push_back(is_sharp_v[ov]);
+                    }
+                    vid = static_cast<size_t>(orig_to_sv[ov]);
+                } else {
+                    size_t k_edge = 0;
+                    double t_loc = l1;
+                    if (l0 <= l1 && l0 <= l2) {
+                        k_edge = 1;
+                        t_loc = l2 / std::max(1e-12, l1 + l2);
+                    } else if (l1 <= l0 && l1 <= l2) {
+                        k_edge = 2;
+                        t_loc = l0 / std::max(1e-12, l2 + l0);
+                    } else {
+                        k_edge = 0;
+                        t_loc = l1 / std::max(1e-12, l0 + l1);
+                    }
+                    const size_t eid = fe_table[f][k_edge];
+                    const double s_can =
+                        (ev_list[eid].first == tris[f][k_edge]) ? t_loc : (1.0 - t_loc);
+                    const bool on_bnd = !dir_he.count(
+                        {tris[f][(k_edge + 1) % 3], tris[f][k_edge]}
+                    );
+                    bool found = false;
+                    for (const std::pair<double, size_t>& ec : edge_iso_pts[eid]) {
+                        if (std::abs(ec.first - s_can) < 1e-3) {
+                            vid = ec.second;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        vid = strip_pts.size();
+                        edge_iso_pts[eid].emplace_back(s_can, vid);
+                        const Point& ea = verts[ev_list[eid].first];
+                        const Point& eb = verts[ev_list[eid].second];
+                        strip_pts.emplace_back(
+                            (1.0 - s_can) * ea[0] + s_can * eb[0],
+                            (1.0 - s_can) * ea[1] + s_can * eb[1],
+                            (1.0 - s_can) * ea[2] + s_can * eb[2]
+                        );
+                        strip_v_bnd.push_back(on_bnd);
+                        strip_v_sharp.push_back(false);
+                    } else if (on_bnd) {
+                        strip_v_bnd[vid] = true;
+                    }
+                }
+                if (vids.empty() || vids.back() != vid) {
+                    vids.push_back(vid);
+                }
+            }
+            if (vids.size() >= 2 && vids.front() == vids.back()) {
+                vids.pop_back();
+            }
+            if (vids.size() < 3) {
+                continue;
+            }
+            Vector avec(0.0, 0.0, 0.0);
+            for (size_t k = 1; k + 1 < vids.size(); k++) {
+                avec = avec + (strip_pts[vids[k]] - strip_pts[vids[0]])
+                                  .cross(strip_pts[vids[k + 1]] - strip_pts[vids[0]]);
+            }
+            SubPiece sp;
+            sp.vids = std::move(vids);
+            sp.course_k = std::max(0, static_cast<int>(std::floor(tau_sum / static_cast<double>(poly.size()))));
+            sp.parent_f = f;
+            sp.area = 0.5 * avec.magnitude();
+            sub_pieces.push_back(std::move(sp));
+        }
+    }
+
+    // Group sub_pieces into connected geodesic strip components within each course_k
+    const size_t n_sp = sub_pieces.size();
+    DisjointSet strip_dsu(n_sp);
+    {
+        std::map<std::pair<size_t, size_t>, std::vector<size_t>> sp_edges;
+        for (size_t i = 0; i < n_sp; i++) {
+            const std::vector<size_t>& v = sub_pieces[i].vids;
+            for (size_t k = 0; k < v.size(); k++) {
+                sp_edges[ordered_pair(v[k], v[(k + 1) % v.size()])].push_back(i);
+            }
+        }
+        for (const std::pair<const std::pair<size_t, size_t>, std::vector<size_t>>& kv : sp_edges) {
+            if (kv.second.size() == 2) {
+                const size_t a = kv.second[0];
+                const size_t b = kv.second[1];
+                if (sub_pieces[a].course_k == sub_pieces[b].course_k) {
+                    strip_dsu.unite(a, b);
+                }
+            }
+        }
+    }
+
+    std::map<int, std::vector<std::vector<size_t>>> strips_by_course;
+    {
+        std::map<size_t, std::vector<size_t>> comp_map;
+        for (size_t i = 0; i < n_sp; i++) {
+            comp_map[strip_dsu.find(i)].push_back(i);
+        }
+        for (std::pair<const size_t, std::vector<size_t>>& kv : comp_map) {
+            const int ck = sub_pieces[kv.second[0]].course_k;
+            strips_by_course[ck].push_back(std::move(kv.second));
+        }
+    }
+
+    // Slice each geodesic strip orthogonally into constant-length running-bond bricks
+    std::vector<Point> brick_pts = strip_pts;
+    std::vector<bool> brick_v_bnd = strip_v_bnd;
+    std::vector<bool> brick_v_sharp = strip_v_sharp;
+    std::vector<std::vector<size_t>> raw_bricks;
+    std::map<std::pair<size_t, size_t>, std::vector<std::pair<double, size_t>>> head_edge_pts;
+
+    std::vector<double> prev_ring_fracs;
+    double ring_spiral_phase = 0.0;
+    Vector ref_ring_tx(1.0, 0.0, 0.0);
+    Vector ref_ring_ty(0.0, 1.0, 0.0);
+    bool has_ref_ring_frame = false;
+
+    for (const std::pair<const int, std::vector<std::vector<size_t>>>& c_entry : strips_by_course) {
+        const int course_k = c_entry.first;
+        for (const std::vector<size_t>& comp : c_entry.second) {
+            double strip_area = 0.0;
+            std::map<size_t, size_t> g2l;
+            std::vector<size_t> l2g;
+            std::set<std::pair<size_t, size_t>> comp_edges;
+            for (const size_t spi : comp) {
+                strip_area += sub_pieces[spi].area;
+                const std::vector<size_t>& lv = sub_pieces[spi].vids;
+                for (size_t k = 0; k < lv.size(); k++) {
+                    if (!g2l.count(lv[k])) {
+                        g2l[lv[k]] = l2g.size();
+                        l2g.push_back(lv[k]);
+                    }
+                    comp_edges.insert(ordered_pair(lv[k], lv[(k + 1) % lv.size()]));
+                }
+            }
+            if (strip_area < 0.08 * h_bed * h_bed || l2g.size() < 3) {
+                continue;
+            }
+
+            const int chi = static_cast<int>(l2g.size()) - static_cast<int>(comp_edges.size()) +
+                            static_cast<int>(comp.size());
+
+            // Sub-polygon triangles inside this strip component with scalar coordinate s_val at corners
+            struct StripTri {
+                std::array<size_t, 3> g_vids;
+                std::array<double, 3> s_vals;
+            };
+            std::vector<StripTri> s_tris;
+            std::vector<double> cut_stations;
+            std::vector<double> ring_fracs;
+            bool is_closed_ring = (chi <= 0);
+            int n_ring = 4;
+
+            if (is_closed_ring) {
+                // Closed 360-degree polar geodesic ring around oculus with Popescu half-brick stagger equalization
+                Point r_ctr(0.0, 0.0, 0.0);
+                Vector r_nrm(0.0, 0.0, 0.0);
+                for (const size_t gv : l2g) {
+                    r_ctr = r_ctr + Vector(strip_pts[gv][0], strip_pts[gv][1], strip_pts[gv][2]);
+                }
+                r_ctr = Point(
+                    r_ctr[0] / static_cast<double>(l2g.size()),
+                    r_ctr[1] / static_cast<double>(l2g.size()),
+                    r_ctr[2] / static_cast<double>(l2g.size())
+                );
+                for (const size_t spi : comp) {
+                    r_nrm = r_nrm + fnrm[sub_pieces[spi].parent_f] * sub_pieces[spi].area;
+                }
+                if (!r_nrm.normalize_self()) {
+                    r_nrm = Vector(0.0, 0.0, 1.0);
+                }
+                if (!has_ref_ring_frame) {
+                    build_tangent_frame(r_nrm, ref_ring_tx, ref_ring_ty);
+                    has_ref_ring_frame = true;
+                }
+                Vector tx = ref_ring_tx - r_nrm * ref_ring_tx.dot(r_nrm);
+                if (!tx.normalize_self()) {
+                    build_tangent_frame(r_nrm, tx, ref_ring_ty);
+                }
+                const Vector ty = r_nrm.cross(tx).normalized();
+
+                const double perim = strip_area / h_bed;
+                n_ring = std::max(6, static_cast<int>(std::llround(perim / l_brick)));
+                if (!prev_ring_fracs.empty()) {
+                    const int b0 = static_cast<int>(prev_ring_fracs.size());
+                    n_ring = std::clamp(n_ring, std::max(6, (b0 + 1) / 2), 2 * b0);
+                    std::vector<double> span_lo(static_cast<size_t>(b0));
+                    std::vector<double> span_hi(static_cast<size_t>(b0));
+                    for (int k = 0; k < b0; k++) {
+                        span_lo[static_cast<size_t>(k)] = prev_ring_fracs[static_cast<size_t>(k)];
+                        double hi = prev_ring_fracs[static_cast<size_t>((k + 1) % b0)];
+                        if (k + 1 == b0) {
+                            hi += 1.0;
+                        }
+                        span_hi[static_cast<size_t>(k)] = hi;
+                    }
+                    std::vector<double> joints;
+                    std::vector<double> lo_b;
+                    std::vector<double> hi_b;
+                    const double min_clear = 0.22;
+                    if (n_ring >= b0) {
+                        const int inc = std::min(b0, n_ring - b0);
+                        std::vector<bool> split_sp(static_cast<size_t>(b0), false);
+                        if (inc > 0) {
+                            ring_spiral_phase = std::fmod(ring_spiral_phase + 0.38196601125, 1.0);
+                            std::vector<std::pair<double, int>> ranked;
+                            for (int k = 0; k < b0; k++) {
+                                const double w = span_hi[static_cast<size_t>(k)] - span_lo[static_cast<size_t>(k)];
+                                const double mid = std::fmod(0.5 * (span_lo[static_cast<size_t>(k)] + span_hi[static_cast<size_t>(k)]), 1.0);
+                                double best_d = 1.0;
+                                for (int g_idx = 0; g_idx < inc; g_idx++) {
+                                    const double tgt = std::fmod(ring_spiral_phase + static_cast<double>(g_idx) / static_cast<double>(inc), 1.0);
+                                    const double d = std::abs(mid - tgt);
+                                    best_d = std::min(best_d, std::min(d, 1.0 - d));
+                                }
+                                ranked.emplace_back(-(w * static_cast<double>(b0) - 0.85 * best_d), k);
+                            }
+                            std::sort(ranked.begin(), ranked.end());
+                            for (int g_idx = 0; g_idx < inc; g_idx++) {
+                                split_sp[static_cast<size_t>(ranked[static_cast<size_t>(g_idx)].second)] = true;
+                            }
+                        }
+                        for (int k = 0; k < b0; k++) {
+                            const double a = span_lo[static_cast<size_t>(k)];
+                            const double b = span_hi[static_cast<size_t>(k)];
+                            const double w = b - a;
+                            if (!split_sp[static_cast<size_t>(k)]) {
+                                joints.push_back(a + 0.5 * w);
+                                lo_b.push_back(a + min_clear * w);
+                                hi_b.push_back(b - min_clear * w);
+                            } else {
+                                joints.push_back(a + 0.30 * w);
+                                lo_b.push_back(a + 0.18 * w);
+                                hi_b.push_back(a + 0.44 * w);
+                                joints.push_back(a + 0.70 * w);
+                                lo_b.push_back(a + 0.56 * w);
+                                hi_b.push_back(b - 0.18 * w);
+                            }
+                        }
+                    } else {
+                        const int dec = std::min(b0 / 2, b0 - n_ring);
+                        std::vector<bool> skip_sp(static_cast<size_t>(b0), false);
+                        ring_spiral_phase = std::fmod(ring_spiral_phase + 0.38196601125, 1.0);
+                        const int sk = static_cast<int>(std::floor(ring_spiral_phase * static_cast<double>(b0))) % b0;
+                        for (int g_idx = 0; g_idx < dec; g_idx++) {
+                            skip_sp[static_cast<size_t>((sk + (g_idx * b0) / std::max(1, dec)) % b0)] = true;
+                        }
+                        for (int k = 0; k < b0; k++) {
+                            if (skip_sp[static_cast<size_t>(k)]) {
+                                continue;
+                            }
+                            const double a = span_lo[static_cast<size_t>(k)];
+                            const double b = span_hi[static_cast<size_t>(k)];
+                            const double w = b - a;
+                            joints.push_back(a + 0.5 * w);
+                            lo_b.push_back(a + min_clear * w);
+                            hi_b.push_back(b - min_clear * w);
+                        }
+                    }
+                    const int mj = static_cast<int>(joints.size());
+                    for (int iter = 0; iter < 36 && mj >= 3; iter++) {
+                        std::vector<double> nxt = joints;
+                        for (int i = 0; i < mj; i++) {
+                            const double pv = (i == 0) ? (joints[static_cast<size_t>(mj - 1)] - 1.0) : joints[static_cast<size_t>(i - 1)];
+                            const double nv_j = (i + 1 == mj) ? (joints[0] + 1.0) : joints[static_cast<size_t>(i + 1)];
+                            nxt[static_cast<size_t>(i)] = std::clamp(
+                                joints[static_cast<size_t>(i)] + 0.45 * (0.5 * (pv + nv_j) - joints[static_cast<size_t>(i)]),
+                                lo_b[static_cast<size_t>(i)],
+                                hi_b[static_cast<size_t>(i)]
+                            );
+                        }
+                        joints = std::move(nxt);
+                    }
+                    for (double jf : joints) {
+                        double wf = std::fmod(jf, 1.0);
+                        if (wf < 0.0) {
+                            wf += 1.0;
+                        }
+                        ring_fracs.push_back(wf);
+                    }
+                    std::sort(ring_fracs.begin(), ring_fracs.end());
+                    n_ring = static_cast<int>(ring_fracs.size());
+                } else {
+                    for (int k = 0; k < n_ring; k++) {
+                        ring_fracs.push_back(
+                            (static_cast<double>(k) + 0.125) / static_cast<double>(n_ring)
+                        );
+                    }
+                }
+                prev_ring_fracs = ring_fracs;
+
+                for (int wrap = -1; wrap <= 1; wrap++) {
+                    for (const double rf : ring_fracs) {
+                        cut_stations.push_back(rf + static_cast<double>(wrap));
+                    }
+                }
+                std::sort(cut_stations.begin(), cut_stations.end());
+
+                std::vector<double> v_ang(l2g.size(), 0.0);
+                for (size_t li = 0; li < l2g.size(); li++) {
+                    const Vector dp = strip_pts[l2g[li]] - r_ctr;
+                    double frac = std::atan2(dp.dot(ty), dp.dot(tx)) / Tolerance::TWO_PI;
+                    frac = frac - std::floor(frac);
+                    for (const double rf : ring_fracs) {
+                        if (std::abs(frac - rf) < 4e-4) {
+                            frac = std::fmod(frac + 6e-4, 1.0);
+                        }
+                    }
+                    v_ang[li] = frac;
+                }
+
+                for (const size_t spi : comp) {
+                    const std::vector<size_t>& lv = sub_pieces[spi].vids;
+                    const double base_u = v_ang[g2l[lv[0]]];
+                    std::vector<double> uw(lv.size(), base_u);
+                    for (size_t k = 1; k < lv.size(); k++) {
+                        double u = v_ang[g2l[lv[k]]];
+                        while (u - base_u > 0.5) {
+                            u -= 1.0;
+                        }
+                        while (u - base_u < -0.5) {
+                            u += 1.0;
+                        }
+                        uw[k] = u;
+                    }
+                    for (size_t k = 1; k + 1 < lv.size(); k++) {
+                        s_tris.push_back({{lv[0], lv[k], lv[k + 1]}, {uw[0], uw[k], uw[k + 1]}});
+                    }
+                }
+            } else {
+                // Open arch-to-arch geodesic strip: integrate orthogonal arc length along course_dir (a12 = 0)
+                const size_t n_lv = l2g.size();
+                std::vector<std::map<size_t, double>> s_rows(n_lv);
+                std::vector<double> s_rhs(n_lv, 0.0);
+                for (const size_t spi : comp) {
+                    const Vector& cdir = course_dir[sub_pieces[spi].parent_f];
+                    const std::vector<size_t>& lv = sub_pieces[spi].vids;
+                    for (size_t k = 0; k < lv.size(); k++) {
+                        const size_t la = g2l[lv[k]];
+                        const size_t lb = g2l[lv[(k + 1) % lv.size()]];
+                        const Vector dp = strip_pts[lv[(k + 1) % lv.size()]] - strip_pts[lv[k]];
+                        const double w = 1.0 / std::max(1.0, dp.magnitude());
+                        const double ds = cdir.dot(dp);
+                        s_rows[la][la] += w;
+                        s_rows[lb][lb] += w;
+                        s_rows[la][lb] -= w;
+                        s_rows[lb][la] -= w;
+                        s_rhs[la] -= w * ds;
+                        s_rhs[lb] += w * ds;
+                    }
+                }
+                s_rows[0][0] += 1e6;
+                const CsrMatrix s_csr = CsrMatrix::from_maps(s_rows);
+                std::vector<double> s_loc(n_lv, 0.0);
+                solve_pcg_scalar(s_csr, s_rhs, s_loc, 600, 1e-12);
+
+                double s_min = s_loc[0];
+                double s_max = s_loc[0];
+                for (const double val : s_loc) {
+                    s_min = std::min(s_min, val);
+                    s_max = std::max(s_max, val);
+                }
+                for (double& val : s_loc) {
+                    val -= s_min;
+                }
+                const double s_span = s_max - s_min;
+                if (s_span > 1.28 * l_brick) {
+                    const double stag = (course_k % 2 == 1) ? (0.5 * l_brick) : 0.0;
+                    const int m_lo = -static_cast<int>(std::ceil(s_span / l_brick)) - 1;
+                    const int m_hi = static_cast<int>(std::ceil(s_span / l_brick)) + 1;
+                    for (int m = m_lo; m <= m_hi; m++) {
+                        const double sc = 0.5 * s_span + stag + static_cast<double>(m) * l_brick;
+                        if (sc >= 0.34 * l_brick && sc <= s_span - 0.34 * l_brick) {
+                            cut_stations.push_back(sc);
+                        }
+                    }
+                    std::sort(cut_stations.begin(), cut_stations.end());
+                }
+                if (cut_stations.empty() && (course_k % 2 == 1) && s_span >= 0.88 * l_brick) {
+                    cut_stations.push_back(0.5 * s_span);
+                }
+                if (!cut_stations.empty()) {
+                    for (double& val : s_loc) {
+                        for (const double sc : cut_stations) {
+                            if (std::abs(val - sc) < 3e-3) {
+                                val += 5e-3;
+                            }
+                        }
+                    }
+                }
+                for (const size_t spi : comp) {
+                    const std::vector<size_t>& lv = sub_pieces[spi].vids;
+                    for (size_t k = 1; k + 1 < lv.size(); k++) {
+                        s_tris.push_back({
+                            {lv[0], lv[k], lv[k + 1]},
+                            {s_loc[g2l[lv[0]]], s_loc[g2l[lv[k]]], s_loc[g2l[lv[k + 1]]]}
+                        });
+                    }
+                }
+            }
+
+            // Slice s_tris along head-joint cut_stations and group by brick slot
+            std::map<int, std::vector<std::vector<size_t>>> slot_polys;
+
+            for (const StripTri& st_tri : s_tris) {
+                const double s0 = st_tri.s_vals[0];
+                const double ds_da = st_tri.s_vals[1] - s0;
+                const double ds_db = st_tri.s_vals[2] - s0;
+                const double tri_s_lo = std::min({s0, st_tri.s_vals[1], st_tri.s_vals[2]});
+                const double tri_s_hi = std::max({s0, st_tri.s_vals[1], st_tri.s_vals[2]});
+
+                std::vector<std::vector<BaryVert>> h_pieces = {{{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}}};
+                for (const double sc : cut_stations) {
+                    if (sc <= tri_s_lo + 1e-7 || sc >= tri_s_hi - 1e-7) {
+                        continue;
+                    }
+                    std::vector<std::vector<BaryVert>> next_hp;
+                    for (const std::vector<BaryVert>& poly : h_pieces) {
+                        std::vector<BaryVert> le;
+                        std::vector<BaryVert> ge;
+                        split_bary_poly_line(poly, s0, ds_da, ds_db, sc, le, ge);
+                        if (le.size() >= 3) {
+                            next_hp.push_back(std::move(le));
+                        }
+                        if (ge.size() >= 3) {
+                            next_hp.push_back(std::move(ge));
+                        }
+                    }
+                    h_pieces = std::move(next_hp);
+                }
+
+                for (const std::vector<BaryVert>& poly : h_pieces) {
+                    std::vector<size_t> vids;
+                    double s_sum = 0.0;
+                    for (const BaryVert& bv : poly) {
+                        const double l1 = bv.a;
+                        const double l2 = bv.b;
+                        const double l0 = 1.0 - l1 - l2;
+                        s_sum += s0 + ds_da * l1 + ds_db * l2;
+
+                        size_t vid = brick_pts.size();
+                        if (l0 > 1.0 - 1e-5 || l1 > 1.0 - 1e-5 || l2 > 1.0 - 1e-5) {
+                            if (l0 >= l1 && l0 >= l2) {
+                                vid = st_tri.g_vids[0];
+                            } else if (l1 >= l0 && l1 >= l2) {
+                                vid = st_tri.g_vids[1];
+                            } else {
+                                vid = st_tri.g_vids[2];
+                            }
+                        } else {
+                            size_t ke = 0;
+                            double tl = l1;
+                            if (l0 <= l1 && l0 <= l2) {
+                                ke = 1;
+                                tl = l2 / std::max(1e-12, l1 + l2);
+                            } else if (l1 <= l0 && l1 <= l2) {
+                                ke = 2;
+                                tl = l0 / std::max(1e-12, l2 + l0);
+                            } else {
+                                ke = 0;
+                                tl = l1 / std::max(1e-12, l0 + l1);
+                            }
+                            const size_t va = st_tri.g_vids[ke];
+                            const size_t vb = st_tri.g_vids[(ke + 1) % 3];
+                            const std::pair<size_t, size_t> ek = ordered_pair(va, vb);
+                            const double sc_param = (ek.first == va) ? tl : (1.0 - tl);
+                            const bool on_bnd = brick_v_bnd[va] && brick_v_bnd[vb];
+                            bool found = false;
+                            for (const std::pair<double, size_t>& ep : head_edge_pts[ek]) {
+                                if (std::abs(ep.first - sc_param) < 1e-3) {
+                                    vid = ep.second;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                vid = brick_pts.size();
+                                head_edge_pts[ek].emplace_back(sc_param, vid);
+                                const Point& ea = brick_pts[ek.first];
+                                const Point& eb = brick_pts[ek.second];
+                                brick_pts.emplace_back(
+                                    (1.0 - sc_param) * ea[0] + sc_param * eb[0],
+                                    (1.0 - sc_param) * ea[1] + sc_param * eb[1],
+                                    (1.0 - sc_param) * ea[2] + sc_param * eb[2]
+                                );
+                                brick_v_bnd.push_back(on_bnd);
+                                brick_v_sharp.push_back(false);
+                            }
+                        }
+                        if (vids.empty() || vids.back() != vid) {
+                            vids.push_back(vid);
+                        }
+                    }
+                    if (vids.size() >= 2 && vids.front() == vids.back()) {
+                        vids.pop_back();
+                    }
+                    if (vids.size() < 3) {
+                        continue;
+                    }
+                    const double s_avg = s_sum / static_cast<double>(poly.size());
+                    int slot = 0;
+                    if (is_closed_ring) {
+                        const double w_s = s_avg - std::floor(s_avg);
+                        for (size_t ci = 0; ci < ring_fracs.size(); ci++) {
+                            if (w_s >= ring_fracs[ci]) {
+                                slot = static_cast<int>((ci + 1) % ring_fracs.size());
+                            }
+                        }
+                    } else {
+                        for (size_t ci = 0; ci < cut_stations.size(); ci++) {
+                            if (s_avg > cut_stations[ci]) {
+                                slot = static_cast<int>(ci + 1);
+                            }
+                        }
+                    }
+                    slot_polys[slot].push_back(std::move(vids));
+                }
+            }
+
+            // Dissolve internal sub-edges within each brick slot to extract outer brick boundary loops
+            for (const std::pair<const int, std::vector<std::vector<size_t>>>& skv : slot_polys) {
+                std::set<std::pair<size_t, size_t>> hes;
+                for (const std::vector<size_t>& lp : skv.second) {
+                    const size_t pm = lp.size();
+                    for (size_t k = 0; k < pm; k++) {
+                        const std::pair<size_t, size_t> opp = {lp[(k + 1) % pm], lp[k]};
+                        if (hes.count(opp)) {
+                            hes.erase(opp);
+                        } else {
+                            hes.insert({lp[k], lp[(k + 1) % pm]});
+                        }
+                    }
+                }
+                std::map<size_t, std::vector<size_t>> out_adj;
+                for (const std::pair<size_t, size_t>& he : hes) {
+                    out_adj[he.first].push_back(he.second);
+                }
+                std::set<std::pair<size_t, size_t>> used_he;
+                for (const std::pair<size_t, size_t>& start_he : hes) {
+                    if (used_he.count(start_he)) {
+                        continue;
+                    }
+                    std::vector<size_t> cyc;
+                    std::pair<size_t, size_t> cur = start_he;
+                    for (size_t step = 0; step <= hes.size(); step++) {
+                        used_he.insert(cur);
+                        cyc.push_back(cur.first);
+                        const std::vector<size_t>& nbrs = out_adj[cur.second];
+                        if (nbrs.empty()) {
+                            cyc.clear();
+                            break;
+                        }
+                        size_t nxt_v = nbrs[0];
+                        for (const size_t cand : nbrs) {
+                            if (!used_he.count({cur.second, cand})) {
+                                nxt_v = cand;
+                                break;
+                            }
+                        }
+                        cur = {cur.second, nxt_v};
+                        if (cur == start_he) {
+                            break;
+                        }
+                    }
+                    if (cyc.size() >= 3) {
+                        raw_bricks.push_back(std::move(cyc));
+                    }
+                }
+            }
+        }
+    }
+
+    // Subdivide every uncut bed-isoline edge (u, w) in raw_bricks by all opposite-course head-joint splits!
+    for (std::pair<const std::pair<size_t, size_t>, std::vector<std::pair<double, size_t>>>& kv : head_edge_pts) {
+        std::sort(kv.second.begin(), kv.second.end());
+    }
+    for (std::vector<size_t>& rb : raw_bricks) {
+        std::vector<size_t> sub_rb;
+        for (size_t k = 0; k < rb.size(); k++) {
+            const size_t u = rb[k];
+            const size_t w = rb[(k + 1) % rb.size()];
+            sub_rb.push_back(u);
+            const std::pair<size_t, size_t> ek = ordered_pair(u, w);
+            const std::map<std::pair<size_t, size_t>, std::vector<std::pair<double, size_t>>>::const_iterator it =
+                head_edge_pts.find(ek);
+            if (it != head_edge_pts.end() && !it->second.empty()) {
+                if (u == ek.first) {
+                    for (const std::pair<double, size_t>& sp : it->second) {
+                        if (sp.second != u && sp.second != w && sub_rb.back() != sp.second) {
+                            sub_rb.push_back(sp.second);
+                        }
+                    }
+                } else {
+                    for (int si = static_cast<int>(it->second.size()) - 1; si >= 0; si--) {
+                        const size_t sv = it->second[static_cast<size_t>(si)].second;
+                        if (sv != u && sv != w && sub_rb.back() != sv) {
+                            sub_rb.push_back(sv);
+                        }
+                    }
+                }
+            }
+        }
+        rb = std::move(sub_rb);
+    }
+
+    // Weld close vertices across shared bed courses so head-joint T-vertices match identically across courses!
+    std::vector<Point> w_pts;
+    std::vector<bool> w_bnd;
+    std::vector<bool> w_sharp;
+    std::vector<size_t> pt_remap(brick_pts.size(), 0);
+    const double weld_tol = std::max(1.5, 0.045 * h_bed);
+    const double weld_sq = weld_tol * weld_tol;
+    for (size_t i = 0; i < brick_pts.size(); i++) {
+        size_t found = w_pts.size();
+        for (size_t j = 0; j < w_pts.size(); j++) {
+            if ((w_pts[j] - brick_pts[i]).magnitude_squared() <= weld_sq) {
+                found = j;
+                break;
+            }
+        }
+        if (found == w_pts.size()) {
+            w_pts.push_back(brick_pts[i]);
+            w_bnd.push_back(brick_v_bnd[i]);
+            w_sharp.push_back(brick_v_sharp[i]);
+        } else {
+            if (brick_v_bnd[i]) {
+                w_bnd[found] = true;
+            }
+            if (brick_v_sharp[i]) {
+                w_sharp[found] = true;
+            }
+        }
+        pt_remap[i] = found;
+    }
+
+    std::vector<std::vector<size_t>> welded_bricks;
+    for (const std::vector<size_t>& rb : raw_bricks) {
+        std::vector<size_t> wb;
+        for (const size_t idx : rb) {
+            const size_t m = pt_remap[idx];
+            if (wb.empty() || wb.back() != m) {
+                wb.push_back(m);
+            }
+        }
+        while (wb.size() >= 2 && wb.front() == wb.back()) {
+            wb.pop_back();
+        }
+        if (wb.size() >= 3) {
+            welded_bricks.push_back(std::move(wb));
+        }
+    }
+
+    // Simplify degree-2 pass-through vertices along straight/smooth shared edges so each shared brick overlap
+    // is a single clean planar side face while ALL T-joint & corner vertices (inc >= 3) stay 100% conformal!
+    std::vector<std::set<size_t>> v_brick_inc(w_pts.size());
+    std::vector<std::set<size_t>> v_edge_nbrs(w_pts.size());
+    for (size_t bi = 0; bi < welded_bricks.size(); bi++) {
+        const std::vector<size_t>& b = welded_bricks[bi];
+        for (size_t k = 0; k < b.size(); k++) {
+            v_brick_inc[b[k]].insert(bi);
+            v_edge_nbrs[b[k]].insert(b[(k + 1) % b.size()]);
+            v_edge_nbrs[b[(k + 1) % b.size()]].insert(b[k]);
+        }
+    }
+
+    std::vector<std::vector<size_t>> clean_bricks;
+    for (const std::vector<size_t>& b : welded_bricks) {
+        std::vector<size_t> cb;
+        for (size_t k = 0; k < b.size(); k++) {
+            const size_t vid = b[k];
+            const size_t n_inc = v_brick_inc[vid].size();
+            const size_t deg = v_edge_nbrs[vid].size();
+            if (w_sharp[vid] || n_inc >= 3 || deg != 2) {
+                cb.push_back(vid);
+                continue;
+            }
+            if (!w_bnd[vid] && n_inc == 2) {
+                continue; // Interior pass-through vertex on shared bed/head joint -> simplify!
+            }
+            if (w_bnd[vid] && n_inc == 1) {
+                const Point& prev_p = w_pts[b[(k + b.size() - 1) % b.size()]];
+                const Point& next_p = w_pts[b[(k + 1) % b.size()]];
+                Vector d0 = w_pts[vid] - prev_p;
+                Vector d1 = next_p - w_pts[vid];
+                if (d0.normalize_self() && d1.normalize_self() && d0.dot(d1) > 0.94) {
+                    continue;
+                }
+            }
+            cb.push_back(vid);
+        }
+        if (cb.size() >= 3) {
+            clean_bricks.push_back(std::move(cb));
+        }
+    }
+
+    // Insert any T-joint corner vertex that lies within 2.0 mm of another brick's simplified bed-joint chord
+    std::set<size_t> active_corners;
+    for (const std::vector<size_t>& b : clean_bricks) {
+        for (const size_t vid : b) {
+            active_corners.insert(vid);
+        }
+    }
+    for (std::vector<size_t>& b : clean_bricks) {
+        std::vector<size_t> expanded;
+        for (size_t k = 0; k < b.size(); k++) {
+            const size_t u = b[k];
+            const size_t w = b[(k + 1) % b.size()];
+            expanded.push_back(u);
+            const Vector ab = w_pts[w] - w_pts[u];
+            const double len2 = ab.magnitude_squared();
+            if (len2 <= 4.0) {
+                continue;
+            }
+            std::vector<std::pair<double, size_t>> mids;
+            for (const size_t cv : active_corners) {
+                if (std::find(b.begin(), b.end(), cv) != b.end() ||
+                    std::find(expanded.begin(), expanded.end(), cv) != expanded.end()) {
+                    continue;
+                }
+                const double t = (w_pts[cv] - w_pts[u]).dot(ab) / len2;
+                if (t > 0.04 && t < 0.96) {
+                    const Point proj_p = w_pts[u] + ab * t;
+                    if ((w_pts[cv] - proj_p).magnitude_squared() < 9.0) {
+                        mids.emplace_back(t, cv);
+                    }
+                }
+            }
+            std::sort(mids.begin(), mids.end());
+            for (const std::pair<double, size_t>& mp : mids) {
+                if (expanded.back() != mp.second) {
+                    expanded.push_back(mp.second);
+                }
+            }
+        }
+        b = std::move(expanded);
+    }
+
+    std::vector<std::vector<Point>> out_rings;
+    std::vector<std::vector<Vector>> out_norms;
+    for (const std::vector<size_t>& b : clean_bricks) {
+        Point ctr(0.0, 0.0, 0.0);
+        for (const size_t vid : b) {
+            ctr = ctr + Vector(w_pts[vid][0], w_pts[vid][1], w_pts[vid][2]);
+        }
+        ctr = Point(
+            ctr[0] / static_cast<double>(b.size()),
+            ctr[1] / static_cast<double>(b.size()),
+            ctr[2] / static_cast<double>(b.size())
+        );
+        Vector avec(0.0, 0.0, 0.0);
+        for (size_t k = 0; k < b.size(); k++) {
+            avec = avec + (w_pts[b[k]] - ctr).cross(w_pts[b[(k + 1) % b.size()]] - ctr);
+        }
+        if (0.5 * avec.magnitude() < 0.04 * h_bed * h_bed) {
+            continue;
+        }
+        std::vector<Point> r;
+        std::vector<Vector> rn;
+        for (const size_t vid : b) {
+            const std::pair<Point, Vector> pr = projector.project(w_pts[vid]);
+            r.push_back(w_bnd[vid] ? w_pts[vid] : pr.first);
+            rn.push_back(pr.second);
+        }
+        out_rings.push_back(std::move(r));
+        out_norms.push_back(std::move(rn));
+    }
+
+    return weld_polygon_mesh(out_rings, out_norms, 1e-2);
+}
+
 std::vector<std::shared_ptr<Element>> tile_vault(
     const TileVaultGuide& guide,
     TilePatternMetrics* metrics,
@@ -4831,141 +5992,201 @@ std::vector<std::shared_ptr<Element>> tile_vault(
 ) {
 
     TilePatternMetrics local_m;
-    const Mesh raw_quads = quadriflow_remesh(
-        guide.shell,
-        guide.tile_width,
-        guide.orientation_degrees,
-        guide.align_boundary
-    );
+    Mesh reg_quads;
+    BrickMatchingResult matching;
+    Mesh brick_mesh;
 
-    double dummy_max_e = 0.0;
-    double dummy_max_a = 0.0;
-    evaluate_quad_distortion(
-        raw_quads,
-        guide.tile_width,
-        local_m.raw_edge_error,
-        dummy_max_e,
-        local_m.raw_angle_error_deg,
-        dummy_max_a,
-        local_m.singularities
-    );
-
-    Mesh reg_quads = raw_quads;
-
-    // Two-stage surface-guided ShapeUp regularization keeping squares tight to the curved shell (< 10 mm drift)
-    if (guide.shapeup_iterations > 0) {
-        std::vector<Point> sv;
-        std::vector<std::array<size_t, 3>> st;
-        extract_welded_triangles(guide.shell, sv, st, 1e-2);
-        if (!sv.empty() && !st.empty()) {
-            std::vector<Vector> sn;
-            std::vector<double> sa;
-            compute_normals_and_areas(sv, st, sn, sa);
-            SurfaceProjector sproj;
-            sproj.build(sv, sn, st);
-
-            // Collect naked shell boundary segments so arch & oculus borders stay crisp during ShapeUp
-            std::map<std::pair<size_t, size_t>, int> sh_uses;
-            for (const std::array<size_t, 3>& t : st) {
-                for (size_t k = 0; k < 3; k++) {
-                    sh_uses[ordered_pair(t[k], t[(k + 1) % 3])]++;
+    if (guide.pattern == TileVaultGuide::GEODESIC_COURSES) {
+        brick_mesh = geodesic_brick_pattern(
+            guide.shell,
+            guide.tile_width,
+            2.0 * guide.tile_width,
+            guide.polar_geodesics
+        );
+        reg_quads = brick_mesh;
+        const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> gvf =
+            brick_mesh.to_vertices_and_faces();
+        local_m.quad_faces = gvf.second.size();
+        for (size_t fi = 0; fi < gvf.second.size(); fi++) {
+            matching.unmatched_faces.push_back(fi);
+            double max_diag = 0.0;
+            for (size_t a = 0; a < gvf.second[fi].size(); a++) {
+                for (size_t b = a + 1; b < gvf.second[fi].size(); b++) {
+                    max_diag = std::max(
+                        max_diag,
+                        gvf.first[gvf.second[fi][a]].distance(gvf.first[gvf.second[fi][b]])
+                    );
                 }
             }
-            std::vector<std::pair<Point, Point>> bnd_segs;
-            for (const std::pair<const std::pair<size_t, size_t>, int>& kv : sh_uses) {
-                if (kv.second == 1) {
-                    bnd_segs.emplace_back(sv[kv.first.first], sv[kv.first.second]);
-                }
+            if (max_diag >= 1.55 * guide.tile_width) {
+                local_m.full_bricks++;
+            } else {
+                local_m.half_tiles++;
             }
+        }
+        // Count staggered T-joint running-bond contacts (shared edges at degree-3 T-vertices)
+        std::vector<size_t> v_deg(gvf.first.size(), 0);
+        for (const std::vector<size_t>& f : gvf.second) {
+            for (const size_t vid : f) {
+                v_deg[vid]++;
+            }
+        }
+        for (const size_t d : v_deg) {
+            if (d == 3) {
+                local_m.running_pairs++;
+            }
+        }
+    } else {
+        const Mesh raw_quads = quadriflow_remesh(
+            guide.shell,
+            guide.tile_width,
+            guide.orientation_degrees,
+            guide.align_boundary
+        );
 
-            const int half_iters = std::max(10, guide.shapeup_iterations / 2);
-            for (int stage = 0; stage < 2; stage++) {
+        double dummy_max_e = 0.0;
+        double dummy_max_a = 0.0;
+        evaluate_quad_distortion(
+            raw_quads,
+            guide.tile_width,
+            local_m.raw_edge_error,
+            dummy_max_e,
+            local_m.raw_angle_error_deg,
+            dummy_max_a,
+            local_m.singularities
+        );
+
+        reg_quads = raw_quads;
+
+        // Two-stage surface-guided ShapeUp regularization keeping squares tight to the curved shell (< 12 mm drift)
+        if (guide.shapeup_iterations > 0) {
+            std::vector<Point> sv;
+            std::vector<std::array<size_t, 3>> st;
+            extract_welded_triangles(guide.shell, sv, st, 1e-2);
+            if (!sv.empty() && !st.empty()) {
+                std::vector<Vector> sn;
+                std::vector<double> sa;
+                compute_normals_and_areas(sv, st, sn, sa);
+                SurfaceProjector sproj;
+                sproj.build(sv, sn, st);
+
+                std::map<std::pair<size_t, size_t>, int> sh_uses;
+                for (const std::array<size_t, 3>& t : st) {
+                    for (size_t k = 0; k < 3; k++) {
+                        sh_uses[ordered_pair(t[k], t[(k + 1) % 3])]++;
+                    }
+                }
+                std::vector<std::pair<Point, Point>> bnd_segs;
+                for (const std::pair<const std::pair<size_t, size_t>, int>& kv : sh_uses) {
+                    if (kv.second == 1) {
+                        bnd_segs.emplace_back(sv[kv.first.first], sv[kv.first.second]);
+                    }
+                }
+
+                const int half_iters = std::max(10, guide.shapeup_iterations / 2);
+                for (int stage = 0; stage < 3; stage++) {
+                    const int iters_s = (stage < 2) ? half_iters : 10;
+                    const double cw_s = (stage == 0)
+                                            ? guide.shapeup_closeness
+                                            : ((stage == 1) ? std::max(0.16, guide.shapeup_closeness * 2.5)
+                                                            : std::max(0.35, guide.shapeup_closeness * 6.0));
+                    reg_quads = shapeup_regularize(
+                        reg_quads,
+                        guide.tile_width,
+                        iters_s,
+                        1.0,
+                        cw_s,
+                        guide.shapeup_smoothness
+                    );
+                    const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> rvf =
+                        reg_quads.to_vertices_and_faces();
+                    std::map<std::pair<size_t, size_t>, int> q_uses;
+                    for (const std::vector<size_t>& f : rvf.second) {
+                        for (size_t k = 0; k < f.size(); k++) {
+                            q_uses[ordered_pair(f[k], f[(k + 1) % f.size()])]++;
+                        }
+                    }
+                    std::vector<bool> q_bnd(rvf.first.size(), false);
+                    for (const std::pair<const std::pair<size_t, size_t>, int>& kv : q_uses) {
+                        if (kv.second == 1) {
+                            q_bnd[kv.first.first] = true;
+                            q_bnd[kv.first.second] = true;
+                        }
+                    }
+                    const double pull_alpha = (stage < 2) ? 0.85 : 0.65;
+                    std::vector<Point> pulled = rvf.first;
+                    for (size_t vi = 0; vi < pulled.size(); vi++) {
+                        if (q_bnd[vi] && !bnd_segs.empty()) {
+                            Point best_bp = pulled[vi];
+                            double best_d2 = 1e30;
+                            for (const std::pair<Point, Point>& seg : bnd_segs) {
+                                const Point cp = closest_point_on_segment(pulled[vi], seg.first, seg.second);
+                                const double d2 = (cp - pulled[vi]).magnitude_squared();
+                                if (d2 < best_d2) {
+                                    best_d2 = d2;
+                                    best_bp = cp;
+                                }
+                            }
+                            if (best_d2 < (0.45 * guide.tile_width) * (0.45 * guide.tile_width)) {
+                                pulled[vi] = pulled[vi] + (best_bp - pulled[vi]) * (0.75 * pull_alpha);
+                            }
+                        } else {
+                            const std::pair<Point, Vector> pr = sproj.project(pulled[vi]);
+                            const double normal_dist = (pr.first - pulled[vi]).dot(pr.second);
+                            pulled[vi] = pulled[vi] + pr.second * (normal_dist * pull_alpha);
+                        }
+                    }
+                    std::vector<std::vector<Vector>> pnorms(rvf.second.size());
+                    std::vector<std::vector<Point>> prings(rvf.second.size());
+                    for (size_t fi = 0; fi < rvf.second.size(); fi++) {
+                        for (const size_t vid : rvf.second[fi]) {
+                            prings[fi].push_back(pulled[vid]);
+                            pnorms[fi].push_back(sproj.project(pulled[vid]).second);
+                        }
+                    }
+                    reg_quads = weld_polygon_mesh(prings, pnorms, 1e-2);
+                }
+            } else {
                 reg_quads = shapeup_regularize(
-                    reg_quads,
+                    raw_quads,
                     guide.tile_width,
-                    half_iters,
+                    guide.shapeup_iterations,
                     1.0,
-                    (stage == 0) ? guide.shapeup_closeness : std::max(0.14, guide.shapeup_closeness * 2.2),
+                    guide.shapeup_closeness,
                     guide.shapeup_smoothness
                 );
-                const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> rvf =
-                    reg_quads.to_vertices_and_faces();
-                std::map<std::pair<size_t, size_t>, int> q_uses;
-                for (const std::vector<size_t>& f : rvf.second) {
-                    for (size_t k = 0; k < f.size(); k++) {
-                        q_uses[ordered_pair(f[k], f[(k + 1) % f.size()])]++;
-                    }
-                }
-                std::vector<bool> q_bnd(rvf.first.size(), false);
-                for (const std::pair<const std::pair<size_t, size_t>, int>& kv : q_uses) {
-                    if (kv.second == 1) {
-                        q_bnd[kv.first.first] = true;
-                        q_bnd[kv.first.second] = true;
-                    }
-                }
-                std::vector<Point> pulled = rvf.first;
-                for (size_t vi = 0; vi < pulled.size(); vi++) {
-                    if (q_bnd[vi] && !bnd_segs.empty()) {
-                        Point best_bp = pulled[vi];
-                        double best_d2 = 1e30;
-                        for (const std::pair<Point, Point>& seg : bnd_segs) {
-                            const Point cp = closest_point_on_segment(pulled[vi], seg.first, seg.second);
-                            const double d2 = (cp - pulled[vi]).magnitude_squared();
-                            if (d2 < best_d2) {
-                                best_d2 = d2;
-                                best_bp = cp;
-                            }
-                        }
-                        if (best_d2 < (0.45 * guide.tile_width) * (0.45 * guide.tile_width)) {
-                            pulled[vi] = pulled[vi] + (best_bp - pulled[vi]) * 0.75;
-                        }
-                    } else {
-                        const std::pair<Point, Vector> pr = sproj.project(pulled[vi]);
-                        const double normal_dist = (pr.first - pulled[vi]).dot(pr.second);
-                        pulled[vi] = pulled[vi] + pr.second * (normal_dist * 0.85);
-                    }
-                }
-                std::vector<std::vector<Vector>> pnorms(rvf.second.size());
-                std::vector<std::vector<Point>> prings(rvf.second.size());
-                for (size_t fi = 0; fi < rvf.second.size(); fi++) {
-                    for (const size_t vid : rvf.second[fi]) {
-                        prings[fi].push_back(pulled[vid]);
-                        pnorms[fi].push_back(sproj.project(pulled[vid]).second);
-                    }
-                }
-                reg_quads = weld_polygon_mesh(prings, pnorms, 1e-2);
             }
-            reg_quads = shapeup_regularize(
-                reg_quads,
-                guide.tile_width,
-                12,
-                1.0,
-                std::max(0.26, guide.shapeup_closeness * 4.5),
-                guide.shapeup_smoothness
-            );
-        } else {
-            reg_quads = shapeup_regularize(
-                raw_quads,
-                guide.tile_width,
-                guide.shapeup_iterations,
-                1.0,
-                guide.shapeup_closeness,
-                guide.shapeup_smoothness
-            );
         }
+
+        evaluate_quad_distortion(
+            reg_quads,
+            guide.tile_width,
+            local_m.mean_edge_error,
+            local_m.max_edge_error,
+            local_m.mean_angle_error_deg,
+            local_m.max_angle_error_deg,
+            local_m.singularities
+        );
+
+        matching = match_brick_tiles(
+            reg_quads,
+            guide.pattern,
+            guide.penalty_weight,
+            guide.reward_weight,
+            guide.border_weight
+        );
+        local_m.full_bricks = matching.matched_pairs.size();
+        local_m.half_tiles = matching.unmatched_faces.size();
+        local_m.unmatched_interior = matching.unmatched_interior;
+        local_m.parallel_pairs = matching.parallel_pairs;
+        local_m.running_pairs = matching.running_pairs;
+        local_m.herringbone_pairs = matching.herringbone_pairs;
+        local_m.bip_objective = matching.objective;
+
+        brick_mesh = merge_matched_brick_mesh(reg_quads, matching);
     }
 
-    evaluate_quad_distortion(
-        reg_quads,
-        guide.tile_width,
-        local_m.mean_edge_error,
-        local_m.max_edge_error,
-        local_m.mean_angle_error_deg,
-        local_m.max_angle_error_deg,
-        local_m.singularities
-    );
-
-    // Measure surface drift from regularized vertices to input shell
+    // Measure surface drift from vertices to input shell
     {
         std::vector<Point> sv;
         std::vector<std::array<size_t, 3>> st;
@@ -4991,22 +6212,6 @@ std::vector<std::shared_ptr<Element>> tile_vault(
         }
     }
 
-    const BrickMatchingResult matching = match_brick_tiles(
-        reg_quads,
-        guide.pattern,
-        guide.penalty_weight,
-        guide.reward_weight,
-        guide.border_weight
-    );
-    local_m.full_bricks = matching.matched_pairs.size();
-    local_m.half_tiles = matching.unmatched_faces.size();
-    local_m.unmatched_interior = matching.unmatched_interior;
-    local_m.parallel_pairs = matching.parallel_pairs;
-    local_m.running_pairs = matching.running_pairs;
-    local_m.herringbone_pairs = matching.herringbone_pairs;
-    local_m.bip_objective = matching.objective;
-
-    const Mesh brick_mesh = merge_matched_brick_mesh(reg_quads, matching);
     if (out_quad_mesh) {
         *out_quad_mesh = reg_quads;
     }
@@ -5141,6 +6346,79 @@ std::vector<std::shared_ptr<Element>> tile_vault(
                 );
             }
         }
+    } else if (guide.pattern == TileVaultGuide::GEODESIC_COURSES) {
+        // Extrude conformal T-jointed geodesic-coordinate brick polygons (including concave polar oculus rings)
+        NgonSolidMetrics ngon_m;
+        const std::vector<std::shared_ptr<NodeBlockElement>> solids = ngon_solids(
+            brick_mesh,
+            guide.thickness,
+            guide.planar_sides,
+            1.0,
+            Vector(0.0, 0.0, 0.0),
+            0.0,
+            guide.trim_base,
+            guide.base_z,
+            &ngon_m
+        );
+        for (const std::shared_ptr<NodeBlockElement>& blk : solids) {
+            if (!blk) {
+                continue;
+            }
+            Mesh gm = blk->model_geometry_mesh();
+            if (manifold_solid(gm)) {
+                elements.push_back(blk);
+                continue;
+            }
+            Mesh wm = gm.weld(0.1);
+            if (wm.number_of_faces() >= 4 && manifold_solid(wm)) {
+                elements.push_back(std::make_shared<NodeBlockElement>(wm, blk->name));
+                continue;
+            }
+            // Convex planar half-space fallback when a curved boundary sliver twists under offset
+            const std::vector<Point> pts_b = gm.to_vertices_and_faces().first;
+            if (pts_b.size() < 4) {
+                continue;
+            }
+            const Point cb = Point::centroid(pts_b);
+            const Plane pca_b = Plane::from_points_pca(pts_b);
+            std::vector<Plane> fcuts;
+            for (const Polyline& ol : gm.face_outlines()) {
+                std::vector<Point> op = ol.get_points();
+                if (op.size() < 4) {
+                    continue;
+                }
+                op.pop_back();
+                const Plane fp = Plane::from_points_pca(op);
+                const Point oc = Point::centroid(op);
+                Vector in_n = fp.z_axis();
+                if ((cb - oc).dot(in_n) < 0.0) {
+                    in_n = -in_n;
+                }
+                fcuts.push_back(plane_with_normal(oc, in_n));
+            }
+            const std::shared_ptr<NodeBlockElement> fbox = make_box_tile_element(
+                cb,
+                pca_b.x_axis(),
+                pca_b.y_axis(),
+                pca_b.z_axis(),
+                6.0 * guide.tile_width,
+                6.0 * guide.tile_width,
+                4.0 * guide.thickness,
+                false,
+                0.0,
+                blk->name
+            );
+            if (fbox) {
+                const Mesh csolid = cut_mesh(fbox->element_geometry_mesh(), fcuts);
+                if (csolid.number_of_faces() >= 4 && manifold_solid(csolid) &&
+                    compute_volume(csolid) > 50.0) {
+                    elements.push_back(std::make_shared<NodeBlockElement>(csolid, blk->name));
+                }
+            }
+        }
+        resolve_planar_block_overlaps(elements);
+        local_m.side_planarity = ngon_m.side_planarity;
+        local_m.cap_planarity = ngon_m.cap_planarity;
     } else {
         // Exact shared-plane halfspace stereotomic bricks: zero overlaps, watertight Manifold solids, exact planar faces
         const std::pair<std::vector<Point>, std::vector<std::vector<size_t>>> qvf =
@@ -5235,7 +6513,7 @@ std::vector<std::shared_ptr<Element>> tile_vault(
         const Plane base_cut_plane(
             Point(0.0, 0.0, guide.base_z), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0)
         );
-        const double box_span = 4.0 * guide.tile_width;
+        const double box_span = 6.0 * guide.tile_width;
         const double box_thick = 3.5 * guide.thickness;
 
         // 1. Matched 2-quad full bricks: cut convex half-bricks Ha and Hb against shared outer planes & union seamlessly
@@ -5443,7 +6721,7 @@ std::vector<std::shared_ptr<Element>> tile_vault(
             if (!box_u) {
                 continue;
             }
-            const Mesh solid = solid_merged(cut_mesh(box_u->element_geometry_mesh(), cuts_u));
+            const Mesh solid = cut_mesh(box_u->element_geometry_mesh(), cuts_u);
             if (solid.number_of_faces() >= 4 && manifold_solid(solid) &&
                 compute_volume(solid) > 100.0) {
                 elements.push_back(

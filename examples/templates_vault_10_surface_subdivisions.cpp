@@ -9,7 +9,7 @@ struct SurfaceCase {
     wood_vault::SurfaceVaultGuide guide;
 };
 
-/// Six NURBS and multi-surface BRep NGon vaults with planarized side joints and planar caps.
+/// Seven NURBS and multi-surface BRep NGon vaults with planarized side joints and planar caps.
 int main() {
 
     WoodSession wood_session("vault_surface_subdivisions");
@@ -20,7 +20,8 @@ int main() {
         {"sewn_groin",     wood_vault::SurfaceVaultGuide::sewn_groin_vault()},
         {"sewn_funnel",    wood_vault::SurfaceVaultGuide::sewn_funnel_vault()},
         {"courses_funnel", wood_vault::SurfaceVaultGuide::courses_funnel_vault()},
-        {"chebyshev_dome", wood_vault::SurfaceVaultGuide::chebyshev_dome_vault()}
+        {"chebyshev_dome", wood_vault::SurfaceVaultGuide::chebyshev_dome_vault()},
+        {"geodesic_dome",  wood_vault::SurfaceVaultGuide::geodesic_dome_vault()}
     };
 
     const double pitch_x = 9200.0;
@@ -28,9 +29,9 @@ int main() {
 
     for (size_t i = 0; i < cases.size(); ++i) {
         const std::shared_ptr<TreeNode> group = wood_session.add_group(cases[i].name);
-        const int col = static_cast<int>(i % 3);
-        const int row = static_cast<int>(i / 3);
-        const double offset_x = (static_cast<double>(col) - 1.0) * pitch_x;
+        const int col = static_cast<int>(i % 4);
+        const int row = static_cast<int>(i / 4);
+        const double offset_x = (static_cast<double>(col) - 1.5) * pitch_x;
         const double offset_y = (0.5 - static_cast<double>(row)) * pitch_y;
         const Xform shift = Xform::translation(offset_x, offset_y, 0.0);
 
@@ -67,7 +68,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Six NURBS and sewn multi-surface BRep block vaults subdivided by SurfaceDivision (running-bond hexagons, diamonds, sewn groin seams, dual hexagons across multi-patch funnels, variable-count staggered brick courses, and 45-degree equal-edge Chebyshev compass nets) and extruded into planar-sided stereotomic blocks via conjugate-gradient side planarization and ProjectPairs cap projection.
+Seven NURBS and sewn multi-surface BRep block vaults subdivided by SurfaceDivision (running-bond hexagons, diamonds, sewn groin seams, dual hexagons across multi-patch funnels, Popescu knit-increase/decrease staggered brick courses, 45-degree equal-edge Chebyshev compass nets, and Chalmers constant-bed-height geodesic-coordinate brick courses) and extruded into planar-sided stereotomic blocks via conjugate-gradient side planarization and ProjectPairs cap projection.
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

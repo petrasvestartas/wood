@@ -76,6 +76,9 @@ public:
     /// Equal-edge-length Chebyshev compass net walked from the surface centre at angle_degrees.
     Mesh chebyshev(double edge, double angle_degrees = 0.0) const;
 
+    /// Constant-bed-height geodesic-coordinate running-bond bricks marched orthogonally on the NURBS surface (Adiels et al. 2017).
+    Mesh geodesic_bricks(double brick_length, double bed_height, double angle_degrees = 0.0) const;
+
 private:
     /// Cumulative arc-length table along a boundary curve of a NURBS surface.
     struct ArcTable {

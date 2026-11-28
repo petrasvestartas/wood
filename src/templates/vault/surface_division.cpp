@@ -2186,4 +2186,356 @@ Mesh SurfaceDivision::chebyshev(double edge, double angle_degrees) const {
     return build_welded_mesh(polys, norms, 1e-2 * edge);
 }
 
+Mesh SurfaceDivision::geodesic_bricks(double brick_length, double bed_height, double angle_degrees) const {
+
+    if (surfaces.empty() || brick_length <= 1.0 || bed_height <= 1.0) {
+        return Mesh();
+    }
+
+    NurbsSurface surf = surfaces[0];
+    surf.set_domain(0, 0.0, 1.0);
+    surf.set_domain(1, 0.0, 1.0);
+    const bool flip = _grids[0].flip_normal;
+
+    const Plane mid_frame = surf.frame_at(0.5, 0.5);
+    Vector mid_n = surf.normal_at(0.5, 0.5);
+    if (!mid_n.normalize_self()) {
+        mid_n = Vector(0.0, 0.0, 1.0);
+    }
+    if (flip) {
+        mid_n = -mid_n;
+    }
+
+    Vector ax0 = mid_frame.x_axis() - mid_n * mid_frame.x_axis().dot(mid_n);
+    if (!ax0.normalize_self()) {
+        ax0 = Vector(1.0, 0.0, 0.0);
+    }
+    const double rad = angle_degrees * Tolerance::TO_RADIANS;
+    const Vector e0 = (ax0 * std::cos(rad) + mid_n.cross(ax0) * std::sin(rad)).normalized();
+
+    // Step 1: March starting geodesic curve C_0 through (0.5, 0.5) in +/-e0 (Adiels et al. 2017, Fig. 7)
+    const double ds_seed = 0.25 * bed_height;
+    const int max_seed_steps = 140;
+    std::vector<std::pair<double, double>> bwd_uv;
+    {
+        double cu = 0.5;
+        double cv = 0.5;
+        Vector dir = -e0;
+        for (int s = 0; s < max_seed_steps; s++) {
+            double nu = 0.0;
+            double nv = 0.0;
+            if (!chebyshev_axis_step(surf, flip, ds_seed, cu, cv, dir, nu, nv)) {
+                break;
+            }
+            bwd_uv.emplace_back(nu, nv);
+            cu = nu;
+            cv = nv;
+            if (cu < -0.22 || cu > 1.22 || cv < -0.22 || cv > 1.22) {
+                break;
+            }
+        }
+    }
+    std::vector<std::pair<double, double>> seed_uv;
+    for (int i = static_cast<int>(bwd_uv.size()) - 1; i >= 0; i--) {
+        seed_uv.push_back(bwd_uv[static_cast<size_t>(i)]);
+    }
+    seed_uv.emplace_back(0.5, 0.5);
+    {
+        double cu = 0.5;
+        double cv = 0.5;
+        Vector dir = e0;
+        for (int s = 0; s < max_seed_steps; s++) {
+            double nu = 0.0;
+            double nv = 0.0;
+            if (!chebyshev_axis_step(surf, flip, ds_seed, cu, cv, dir, nu, nv)) {
+                break;
+            }
+            seed_uv.emplace_back(nu, nv);
+            cu = nu;
+            cv = nv;
+            if (cu < -0.22 || cu > 1.22 || cv < -0.22 || cv > 1.22) {
+                break;
+            }
+        }
+    }
+
+    const size_t n_rays = seed_uv.size();
+    if (n_rays < 3) {
+        return Mesh();
+    }
+
+    // Step 2: Shoot orthogonal surface geodesics of constant step bed_height (a22 = const, a12 = 0 by Gauss's Lemma)
+    const int k_half = 32;
+    const int n_bed_curves = 2 * k_half + 1;
+    std::vector<std::vector<std::pair<double, double>>> bed_uv(
+        static_cast<size_t>(n_bed_curves),
+        std::vector<std::pair<double, double>>(n_rays, {-10.0, -10.0})
+    );
+    std::vector<std::vector<Point>> bed_pt(
+        static_cast<size_t>(n_bed_curves),
+        std::vector<Point>(n_rays, Point(0.0, 0.0, 0.0))
+    );
+    std::vector<std::vector<bool>> bed_valid(
+        static_cast<size_t>(n_bed_curves),
+        std::vector<bool>(n_rays, false)
+    );
+    std::vector<Vector> seed_tan(n_rays, e0);
+
+    for (size_t i = 0; i < n_rays; i++) {
+        bed_uv[static_cast<size_t>(k_half)][i] = seed_uv[i];
+        bed_pt[static_cast<size_t>(k_half)][i] = surf.point_at(seed_uv[i].first, seed_uv[i].second);
+        bed_valid[static_cast<size_t>(k_half)][i] = true;
+    }
+
+    for (size_t i = 0; i < n_rays; i++) {
+        const size_t i_prev = (i > 0) ? (i - 1) : 0;
+        const size_t i_next = (i + 1 < n_rays) ? (i + 1) : (n_rays - 1);
+        Vector n0 = surf.normal_at(seed_uv[i].first, seed_uv[i].second);
+        if (!n0.normalize_self()) {
+            n0 = Vector(0.0, 0.0, 1.0);
+        }
+        if (flip) {
+            n0 = -n0;
+        }
+        Vector t0 = bed_pt[static_cast<size_t>(k_half)][i_next] - bed_pt[static_cast<size_t>(k_half)][i_prev];
+        t0 = t0 - n0 * t0.dot(n0);
+        if (!t0.normalize_self()) {
+            t0 = e0;
+        }
+        seed_tan[i] = t0;
+        const Vector ortho_pos = n0.cross(t0).normalized();
+
+        for (int sign = -1; sign <= 1; sign += 2) {
+            double cu = seed_uv[i].first;
+            double cv = seed_uv[i].second;
+            Vector dir = ortho_pos * static_cast<double>(sign);
+            for (int step = 1; step <= k_half; step++) {
+                double nu = 0.0;
+                double nv = 0.0;
+                if (!chebyshev_axis_step(surf, flip, bed_height, cu, cv, dir, nu, nv)) {
+                    break;
+                }
+                const int row = k_half + sign * step;
+                bed_uv[static_cast<size_t>(row)][i] = {nu, nv};
+                bed_pt[static_cast<size_t>(row)][i] = surf.point_at(nu, nv);
+                bed_valid[static_cast<size_t>(row)][i] = true;
+                cu = nu;
+                cv = nv;
+                if (cu < -0.20 || cu > 1.20 || cv < -0.20 || cv > 1.20) {
+                    break;
+                }
+            }
+        }
+    }
+
+    // Step 3: Place constant-length running-bond head joints along each valid geodesic course [row, row + 1]
+    const int n_courses = n_bed_curves - 1;
+    std::vector<std::vector<double>> course_taus(static_cast<size_t>(n_courses));
+
+    for (int c = 0; c < n_courses; c++) {
+        const size_t r0 = static_cast<size_t>(c);
+        const size_t r1 = static_cast<size_t>(c + 1);
+
+        // Find longest contiguous non-folding ray span [best_lo, best_hi] overlapping [-0.10, 1.10]^2
+        size_t best_lo = 0;
+        size_t best_hi = 0;
+        size_t cur_lo = 0;
+        bool in_run = false;
+        for (size_t i = 0; i + 1 < n_rays; i++) {
+            bool seg_ok = bed_valid[r0][i] && bed_valid[r0][i + 1] &&
+                          bed_valid[r1][i] && bed_valid[r1][i + 1];
+            if (seg_ok) {
+                const Vector d0 = bed_pt[r0][i + 1] - bed_pt[r0][i];
+                const Vector d1 = bed_pt[r1][i + 1] - bed_pt[r1][i];
+                if (d0.dot(seed_tan[i]) <= 0.05 * ds_seed || d1.dot(seed_tan[i]) <= 0.05 * ds_seed) {
+                    seg_ok = false;
+                }
+            }
+            if (seg_ok) {
+                if (!in_run) {
+                    cur_lo = i;
+                    in_run = true;
+                }
+                if ((i + 1 - cur_lo) > (best_hi - best_lo)) {
+                    best_lo = cur_lo;
+                    best_hi = i + 1;
+                }
+            } else {
+                in_run = false;
+            }
+        }
+        if (best_hi <= best_lo) {
+            continue;
+        }
+
+        const size_t m_pts = best_hi - best_lo + 1;
+        std::vector<double> s_mid(m_pts, 0.0);
+        for (size_t k = 1; k < m_pts; k++) {
+            const size_t i0 = best_lo + k - 1;
+            const size_t i1 = best_lo + k;
+            const Point mid0(
+                0.5 * (bed_pt[r0][i0][0] + bed_pt[r1][i0][0]),
+                0.5 * (bed_pt[r0][i0][1] + bed_pt[r1][i0][1]),
+                0.5 * (bed_pt[r0][i0][2] + bed_pt[r1][i0][2])
+            );
+            const Point mid1(
+                0.5 * (bed_pt[r0][i1][0] + bed_pt[r1][i1][0]),
+                0.5 * (bed_pt[r0][i1][1] + bed_pt[r1][i1][1]),
+                0.5 * (bed_pt[r0][i1][2] + bed_pt[r1][i1][2])
+            );
+            s_mid[k] = s_mid[k - 1] + mid0.distance(mid1);
+        }
+        const double s_tot = s_mid.back();
+        if (s_tot < 0.25 * brick_length) {
+            continue;
+        }
+
+        std::vector<double> taus;
+        taus.push_back(static_cast<double>(best_lo));
+        const int course_parity = ((c - k_half) % 2 + 2) % 2;
+        const double stag = (course_parity == 1) ? (0.5 * brick_length) : 0.0;
+        const int m_lo = -static_cast<int>(std::ceil(s_tot / brick_length)) - 1;
+        const int m_hi = static_cast<int>(std::ceil(s_tot / brick_length)) + 1;
+        for (int m = m_lo; m <= m_hi; m++) {
+            const double sc = 0.5 * s_tot + stag + static_cast<double>(m) * brick_length;
+            if (sc <= 0.25 * brick_length || sc >= s_tot - 0.25 * brick_length) {
+                continue;
+            }
+            // Invert piecewise-linear s_mid -> continuous ray index tau
+            size_t seg = 0;
+            while (seg + 2 < m_pts && s_mid[seg + 1] < sc) {
+                seg++;
+            }
+            const double denom = std::max(1e-9, s_mid[seg + 1] - s_mid[seg]);
+            const double alpha = std::clamp((sc - s_mid[seg]) / denom, 0.0, 1.0);
+            taus.push_back(static_cast<double>(best_lo + seg) + alpha);
+        }
+        taus.push_back(static_cast<double>(best_hi));
+        std::sort(taus.begin(), taus.end());
+        course_taus[static_cast<size_t>(c)] = std::move(taus);
+    }
+
+    // Step 4: Emit conformal T-jointed running-bond brick polygons clipped cleanly to [0, 1]^2
+    std::vector<std::vector<Point>> polys;
+    std::vector<std::vector<Vector>> norms;
+
+    for (int c = 0; c < n_courses; c++) {
+        const std::vector<double>& ct = course_taus[static_cast<size_t>(c)];
+        if (ct.size() < 2) {
+            continue;
+        }
+        const size_t r0 = static_cast<size_t>(c);
+        const size_t r1 = static_cast<size_t>(c + 1);
+
+        for (size_t b = 0; b + 1 < ct.size(); b++) {
+            const double ta = ct[b];
+            const double tb = ct[b + 1];
+            if (tb - ta <= 1e-4) {
+                continue;
+            }
+
+            std::array<std::vector<double>, 2> seam_t;
+            const std::array<int, 2> adj_c = {c - 1, c + 1};
+            for (int side = 0; side < 2; side++) {
+                seam_t[static_cast<size_t>(side)] = {ta, tb};
+                const int oc = adj_c[static_cast<size_t>(side)];
+                if (oc >= 0 && oc < n_courses) {
+                    for (const double ot : course_taus[static_cast<size_t>(oc)]) {
+                        if (ot > ta + 1e-3 && ot < tb - 1e-3) {
+                            seam_t[static_cast<size_t>(side)].push_back(ot);
+                        }
+                    }
+                }
+                std::sort(
+                    seam_t[static_cast<size_t>(side)].begin(),
+                    seam_t[static_cast<size_t>(side)].end()
+                );
+            }
+
+            std::vector<std::pair<double, double>> raw_uv;
+            for (const double t_val : seam_t[0]) {
+                const size_t idx = std::min(n_rays - 2, static_cast<size_t>(std::max(0.0, std::floor(t_val))));
+                const double a = std::clamp(t_val - static_cast<double>(idx), 0.0, 1.0);
+                raw_uv.emplace_back(
+                    (1.0 - a) * bed_uv[r0][idx].first + a * bed_uv[r0][idx + 1].first,
+                    (1.0 - a) * bed_uv[r0][idx].second + a * bed_uv[r0][idx + 1].second
+                );
+            }
+            for (int m = static_cast<int>(seam_t[1].size()) - 1; m >= 0; m--) {
+                const double t_val = seam_t[1][static_cast<size_t>(m)];
+                const size_t idx = std::min(n_rays - 2, static_cast<size_t>(std::max(0.0, std::floor(t_val))));
+                const double a = std::clamp(t_val - static_cast<double>(idx), 0.0, 1.0);
+                raw_uv.emplace_back(
+                    (1.0 - a) * bed_uv[r1][idx].first + a * bed_uv[r1][idx + 1].first,
+                    (1.0 - a) * bed_uv[r1][idx].second + a * bed_uv[r1][idx + 1].second
+                );
+            }
+
+            bool any_in = false;
+            for (const std::pair<double, double>& uv : raw_uv) {
+                if (uv.first >= -1e-4 && uv.first <= 1.0 + 1e-4 &&
+                    uv.second >= -1e-4 && uv.second <= 1.0 + 1e-4) {
+                    any_in = true;
+                }
+            }
+            if (!any_in) {
+                continue;
+            }
+
+            const std::vector<std::pair<double, double>> clipped = clip_uv_unit_square(raw_uv);
+            if (clipped.size() < 3) {
+                continue;
+            }
+
+            std::vector<Point> ring;
+            std::vector<Vector> rn;
+            for (const std::pair<double, double>& uv : clipped) {
+                const double cu = std::clamp(uv.first, 0.0, 1.0);
+                const double cv = std::clamp(uv.second, 0.0, 1.0);
+                const Point pt = surf.point_at(cu, cv);
+                Vector nrm = surf.normal_at(cu, cv);
+                if (!nrm.normalize_self()) {
+                    nrm = Vector(0.0, 0.0, 1.0);
+                }
+                if (flip) {
+                    nrm = -nrm;
+                }
+                if (ring.empty() || ring.back().distance(pt) > 6e-3 * bed_height) {
+                    ring.push_back(pt);
+                    rn.push_back(nrm);
+                }
+            }
+            while (ring.size() > 1 && ring.back().distance(ring.front()) <= 6e-3 * bed_height) {
+                ring.pop_back();
+                rn.pop_back();
+            }
+            if (ring.size() < 3) {
+                continue;
+            }
+
+            Point ctr(0.0, 0.0, 0.0);
+            for (const Point& p : ring) {
+                ctr = ctr + Vector(p[0], p[1], p[2]);
+            }
+            ctr = Point(
+                ctr[0] / static_cast<double>(ring.size()),
+                ctr[1] / static_cast<double>(ring.size()),
+                ctr[2] / static_cast<double>(ring.size())
+            );
+            Vector area(0.0, 0.0, 0.0);
+            for (size_t k = 0; k < ring.size(); k++) {
+                area = area + (ring[k] - ctr).cross(ring[(k + 1) % ring.size()] - ctr);
+            }
+            if (0.5 * area.magnitude() < 0.015 * brick_length * bed_height) {
+                continue;
+            }
+
+            polys.push_back(std::move(ring));
+            norms.push_back(std::move(rn));
+        }
+    }
+
+    return build_welded_mesh(polys, norms, 1e-2 * bed_height);
+}
+
 }
