@@ -66,6 +66,37 @@ double mesh_span_along(const Mesh& mesh, const Point& origin, const Vector& z_ax
     return high > low ? high - low : 0.0;
 }
 
+struct StockData {
+    Mesh mesh;
+    PointCloud cloud;
+    std::vector<Polyline> axes;
+};
+
+/// Loads `<stock_name>.obj`, optional `_cloud.pb` / `.xyz` and optional `_axes.txt` from `data/raw/`.
+StockData load_stock_data(const std::string& stock_name) {
+
+    const std::filesystem::path raw_dir = config::session_data_dir() / "raw";
+    const std::filesystem::path mesh_path = raw_dir / (stock_name + ".obj");
+    if (!std::filesystem::exists(mesh_path))
+        throw std::runtime_error("EdgeRawElement: missing " + mesh_path.string());
+
+    StockData stock;
+    stock.mesh = file_obj::read_file_obj(mesh_path.string());
+
+    const std::filesystem::path pb_cloud = raw_dir / (stock_name + "_cloud.pb");
+    const std::filesystem::path xyz_cloud = raw_dir / (stock_name + ".xyz");
+    if (std::filesystem::exists(pb_cloud))
+        stock.cloud = PointCloud::pb_load(pb_cloud.string());
+    else if (std::filesystem::exists(xyz_cloud))
+        stock.cloud = file_xyz::read_xyz(xyz_cloud.string());
+    if (!stock.cloud.is_empty() && stock.cloud.point_size <= 1.0)
+        stock.cloud.point_size = 3.5;
+
+    stock.axes = read_axes_file(raw_dir / (stock_name + "_axes.txt"));
+
+    return stock;
+}
+
 } // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -124,6 +155,35 @@ std::shared_ptr<EdgeRawElement> EdgeRawElement::from_stock(
 
     std::shared_ptr<EdgeRawElement> edge = round(axis_line, radius, 0.2, name);
     edge->attach_stock(stock_name, roll_degrees, center_along_axis);
+
+    return edge;
+}
+
+std::shared_ptr<EdgeRawElement> EdgeRawElement::from_registered_stock(
+    const std::string& stock_name,
+    const Xform& xform,
+    double radius,
+    const std::optional<Line>& proxy_axis,
+    const std::string& name
+) {
+
+    const StockData stock = load_stock_data(stock_name);
+    Line axis_line = Line::from_points(
+        Point(0.0, 0.0, 0.0).transformed(xform), Point(0.0, 0.0, 1000.0).transformed(xform)
+    );
+    if (proxy_axis) {
+        axis_line = *proxy_axis;
+    } else if (!stock.axes.empty()) {
+        const Point start = stock.axes.front().get_point(0).transformed(xform);
+        const std::vector<Point> upper =
+            (stock.axes.size() > 1 ? stock.axes[1] : stock.axes[0]).get_points();
+        axis_line = Line::from_points(start, upper.back().transformed(xform));
+    }
+
+    std::shared_ptr<EdgeRawElement> edge = round(axis_line, radius, 0.2, name);
+    if (stock.axes.size() > 1)
+        edge->branch_axes.assign(stock.axes.begin() + 1, stock.axes.end());
+    edge->attach_raw(stock.mesh, stock.cloud, xform);
 
     return edge;
 }
@@ -201,6 +261,32 @@ std::vector<Polyline> EdgeRawElement::placed_branch_axes() const {
     return raw_xform.is_identity() ? branch_axes : transformed_list(branch_axes, raw_xform);
 }
 
+std::shared_ptr<EdgeRawElement> EdgeRawElement::branch_proxy(
+    double branch_radius, const std::optional<Line>& proxy_axis, size_t branch_index
+) const {
+
+    Line line;
+    if (proxy_axis) {
+        line = *proxy_axis;
+    } else {
+        const std::vector<Polyline> branches = placed_branch_axes();
+        if (branches.empty())
+            throw std::out_of_range(name + ": has no secondary branch_axes");
+        const std::vector<Point> points =
+            branches[std::min(branch_index, branches.size() - 1)].get_points();
+        line = Line::from_points(points.front(), points.back());
+    }
+
+    const double limb_radius = branch_radius > 0.0 ? branch_radius : 0.85 * radius(0);
+    std::shared_ptr<EdgeRawElement> proxy = round(line, limb_radius, 0.2, name);
+    proxy->guid() = guid();
+    proxy->raw_mesh = raw_mesh;
+    proxy->raw_xform = raw_xform;
+    proxy->use_raw_mesh = false;
+
+    return proxy;
+}
+
 Xform EdgeRawElement::align_stock(
     const Plane& stock_plane, double stock_length, double roll_degrees
 ) const {
@@ -241,34 +327,16 @@ void EdgeRawElement::attach_stock(
     const std::string& stock_name, double roll_degrees, bool center_along_axis
 ) {
 
-    const std::filesystem::path raw_dir = config::session_data_dir() / "raw";
-    const std::filesystem::path mesh_path = raw_dir / (stock_name + ".obj");
-    if (!std::filesystem::exists(mesh_path))
-        throw std::runtime_error("EdgeRawElement::attach_stock: missing " + mesh_path.string());
-
-    const Mesh loaded_mesh = file_obj::read_file_obj(mesh_path.string());
-
-    PointCloud loaded_cloud;
-    const std::filesystem::path pb_cloud = raw_dir / (stock_name + "_cloud.pb");
-    const std::filesystem::path xyz_cloud = raw_dir / (stock_name + ".xyz");
-    if (std::filesystem::exists(pb_cloud))
-        loaded_cloud = PointCloud::pb_load(pb_cloud.string());
-    else if (std::filesystem::exists(xyz_cloud))
-        loaded_cloud = file_xyz::read_xyz(xyz_cloud.string());
-    if (!loaded_cloud.is_empty() && loaded_cloud.point_size <= 1.0)
-        loaded_cloud.point_size = 3.5;
-
-    const std::vector<Polyline> axes_in_stock =
-        read_axes_file(raw_dir / (stock_name + "_axes.txt"));
+    const StockData stock = load_stock_data(stock_name);
     branch_axes.clear();
-    if (axes_in_stock.size() > 1)
-        branch_axes.assign(axes_in_stock.begin() + 1, axes_in_stock.end());
+    if (stock.axes.size() > 1)
+        branch_axes.assign(stock.axes.begin() + 1, stock.axes.end());
 
     const double span =
-        center_along_axis ? mesh_span_along(loaded_mesh, Point(0.0, 0.0, 0.0), Vector::z_axis())
+        center_along_axis ? mesh_span_along(stock.mesh, Point(0.0, 0.0, 0.0), Vector::z_axis())
                           : 0.0;
     const Xform placement = align_stock(Plane::xy_plane(), span, roll_degrees);
-    attach_raw(loaded_mesh, loaded_cloud, placement);
+    attach_raw(stock.mesh, stock.cloud, placement);
 }
 
 double EdgeRawElement::raw_overshoot(double margin) const {
@@ -277,15 +345,22 @@ double EdgeRawElement::raw_overshoot(double margin) const {
         return margin;
 
     const Line line = chord();
+    const double span = line.length();
     const Vector along = line.to_vector().normalized();
+    const double nominal = radius(0);
+    const double limb_cap = std::max(nominal * 2.5, nominal + 95.0);
     double max_radial = 0.0;
     for (const Point& point : placed_raw_mesh().to_vertices_and_faces().first) {
         const Vector offset = point - line.start();
-        const Vector radial = offset - along * offset.dot(along);
-        max_radial = std::max(max_radial, radial.magnitude());
+        const double z = offset.dot(along);
+        if (z < -limb_cap || z > span + limb_cap)
+            continue;
+        const double radial = (offset - along * z).magnitude();
+        if (radial <= limb_cap)
+            max_radial = std::max(max_radial, radial);
     }
 
-    return std::max(0.0, max_radial - radius(0)) + margin;
+    return std::max(0.0, max_radial - nominal) + margin;
 }
 
 double EdgeRawElement::raw_end_extension(double margin) const {
@@ -296,10 +371,15 @@ double EdgeRawElement::raw_end_extension(double margin) const {
     const Line line = chord();
     const double span = line.length();
     const Vector along = line.to_vector().normalized();
+    const double nominal = radius(0);
+    const double limb_cap = std::max(nominal * 2.5, nominal + 95.0);
     double before = 0.0;
     double after = 0.0;
     for (const Point& point : placed_raw_mesh().to_vertices_and_faces().first) {
-        const double z = (point - line.start()).dot(along);
+        const Vector offset = point - line.start();
+        if ((offset - along * offset.dot(along)).magnitude() > limb_cap)
+            continue;
+        const double z = offset.dot(along);
         if (z < 0.0)
             before = std::max(before, -z);
         if (z > span)
@@ -318,7 +398,8 @@ const Mesh& EdgeRawElement::element_geometry_mesh() const {
         return EdgeStraightElement::element_geometry_mesh();
 
     if (!_element_geometry_mesh)
-        _element_geometry_mesh = placed_raw_mesh();
+        _element_geometry_mesh =
+            cuts.empty() ? placed_raw_mesh() : cut_mesh(placed_raw_mesh(), cuts);
 
     return *_element_geometry_mesh;
 }
@@ -336,7 +417,7 @@ const BRep& EdgeRawElement::element_geometry_brep() const {
 
 const BRep& EdgeRawElement::model_geometry_brep() const {
 
-    if (!using_raw_mesh())
+    if (!using_raw_mesh() && solid_features.empty() && cuts.empty())
         return EdgeStraightElement::model_geometry_brep();
 
     return WoodElement::model_geometry_brep();

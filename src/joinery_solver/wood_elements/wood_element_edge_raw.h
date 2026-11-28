@@ -59,6 +59,15 @@ public:
         const std::string& name = "edge_raw"
     );
 
+    /// A raw member whose stock `data/raw/<stock_name>` is placed in world space by `xform`, using `proxy_axis` when given else the placed trunk axis from `_axes.txt`.
+    static std::shared_ptr<EdgeRawElement> from_registered_stock(
+        const std::string& stock_name,
+        const Xform& xform,
+        double radius,
+        const std::optional<Line>& proxy_axis = std::nullopt,
+        const std::string& name = "edge_raw"
+    );
+
     /// The raw member an Element tagged "EdgeRawElement" describes, same guid.
     static std::shared_ptr<EdgeRawElement> from_element(Element element);
 
@@ -83,6 +92,13 @@ public:
 
     /// The secondary branch skeleton axes placed into world space by `raw_xform`.
     std::vector<Polyline> placed_branch_axes() const;
+
+    /// A round proxy member along a placed secondary branch axis (the last branch by default, or `proxy_axis`), sharing this member's guid, name, `raw_mesh` and `raw_xform` so branch joints size their cutters over the fork's bark and target this fork.
+    std::shared_ptr<EdgeRawElement> branch_proxy(
+        double branch_radius = 0.0,
+        const std::optional<Line>& proxy_axis = std::nullopt,
+        size_t branch_index = std::numeric_limits<size_t>::max()
+    ) const;
 
     /// The matrix mapping `stock_plane` (origin at stock start, +z along stock axis) onto this member's `base_plane()`, rolled by `roll_degrees` and optionally centred for `stock_length` > 0.
     Xform align_stock(

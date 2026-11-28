@@ -58,8 +58,42 @@ JointBeamElement::JointBeamElement(
 // Static constructors
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Local radial bark overhang of a raw member within `half_span` of `centre` along its chord.
+static double local_raw_overhang(
+    const EdgeStraightElement& member, const Point& centre, double half_span
+) {
+
+    const EdgeRawElement* raw = dynamic_cast<const EdgeRawElement*>(&member);
+    if (!raw || !raw->has_raw_mesh() || raw->axis.point_count() < 2)
+        return 0.0;
+
+    const Line line = raw->chord();
+    const Vector along = line.to_vector().normalized();
+    const double z_centre = (centre - line.start()).dot(along);
+    const double nominal = raw->radius(0);
+    const double cap = std::max(nominal * 2.4, nominal + 90.0);
+    double max_radial = nominal;
+    for (const Point& point : raw->placed_raw_mesh().to_vertices_and_faces().first) {
+        const Vector offset = point - line.start();
+        const double z = offset.dot(along);
+        if (std::abs(z - z_centre) > half_span)
+            continue;
+        const double radial = (offset - along * z).magnitude();
+        if (radial <= cap)
+            max_radial = std::max(max_radial, radial);
+    }
+
+    return std::max(0.0, max_radial - nominal);
+}
+
 /// The plate joint 2024 built on a beam pair.
-static void compute_joinery(JointBeamElement& joint, const Settings& settings, bool end_to_end) {
+static void compute_joinery(
+    JointBeamElement& joint,
+    const Settings& settings,
+    bool end_to_end,
+    const EdgeStraightElement* source = nullptr,
+    const EdgeStraightElement* target = nullptr
+) {
 
     WoodSession boxes("beam_joint_boxes");
     boxes.settings = settings;
@@ -147,13 +181,48 @@ static void compute_joinery(JointBeamElement& joint, const Settings& settings, b
             outside[i].number_of_faces() > 0 && !pockets[1 - i].empty())
             outside[i] = solid_difference(outside[i], pockets[1 - i]);
 
+        const EdgeStraightElement* member = i == 0 ? source : target;
+        Vector pocket_stretch(0.0, 0.0, 0.0);
+        Vector out_dir(0.0, 0.0, 0.0);
+        Point box_centre(0.0, 0.0, 0.0);
+        if (joint.feature.end_type == 2 && member && joint.feature.normal.magnitude() > 1e-9) {
+            box_centre = box[i]->element_geometry_mesh().centroid();
+            const Point other_centre = box[1 - i]->element_geometry_mesh().centroid();
+            const double over = local_raw_overhang(*member, box_centre, 180.0) +
+                                (member->round_radius > 0.0 ? 2.0 : 0.0);
+            if (over > 0.0) {
+                const Vector unit_n = joint.feature.normal.normalized();
+                const double sign = (other_centre - box_centre).dot(unit_n) >= 0.0 ? 1.0 : -1.0;
+                out_dir = unit_n * sign;
+                pocket_stretch = out_dir * (over + 12.0);
+            }
+        }
+
         Mesh cut = outside[i];
-        for (const Mesh& pocket : pockets[i])
+        for (Mesh pocket : pockets[i]) {
+            if (pocket_stretch.magnitude() > 0.0 && pocket.number_of_faces() > 0) {
+                auto [verts, faces] = pocket.to_vertices_and_faces();
+                double high = std::numeric_limits<double>::lowest();
+                for (const Point& vertex : verts)
+                    high = std::max(high, (vertex - box_centre).dot(out_dir));
+                for (Point& vertex : verts)
+                    if ((vertex - box_centre).dot(out_dir) >= high - 0.5)
+                        vertex = vertex + pocket_stretch;
+                pocket = Mesh::from_vertices_and_faces(verts, faces);
+            }
             cut = cut.number_of_faces() == 0 ? pocket
                                              : solid_boolean(cut, pocket, SolidOperation::add);
+        }
         if (cut.number_of_faces() > 0 && compute_volume(cut) > 1e-9 * compute_volume(zone))
             joint.member_cuts[i] = cut;
         joint.member_drills[i] = JointPlateElement::side_drills(joint.joinery, joint.joinery_sides[i]);
+        if (member && dynamic_cast<const EdgeRawElement*>(member) && !joint.member_drills[i].empty()) {
+            const double extra = member->radius(0) +
+                                 local_raw_overhang(*member, box[i]->element_geometry_mesh().centroid(), 180.0) +
+                                 25.0;
+            for (Line& drill : joint.member_drills[i])
+                drill.extend_equally(extra);
+        }
     }
 }
 
@@ -218,7 +287,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_contact(
         return joint;
     }
 
-    compute_joinery(*joint, settings, end_to_end);
+    compute_joinery(*joint, settings, end_to_end, &source, &target);
 
     // a beam ending on another has room for one tenon: where the design severs a beam or leaves the two overlapping inside the joint, cut the single milled
     if (joint->feature.end_type == 1 && joint->joinery.joint_type == 20) {
@@ -270,7 +339,7 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_contact(
                 joint->feature
             );
             joint->targets = {source.guid(), target.guid()};
-            compute_joinery(*joint, single, false);
+            compute_joinery(*joint, single, false, &source, &target);
         }
     }
 
@@ -3367,6 +3436,25 @@ std::shared_ptr<JointBeamElement> JointBeamElement::from_library(
             continue;
         }
         joint->steps.push_back(step);
+    }
+
+    // raw roundwood shoulder surfacing (PhD Fig. A.6): shave irregular bark protruding past the shoulder plane within a's footprint
+    if (!crossing && planes.count("shoulder") &&
+        (dynamic_cast<const EdgeRawElement*>(&a) != nullptr || dynamic_cast<const EdgeRawElement*>(&b) != nullptr)) {
+        const Plane& sh = planes.at("shoulder");
+        const Plane neg_sh = Plane::from_point_normal(sh.origin(), sh.z_axis() * -1.0);
+        const Vector n_out = neg_sh.z_axis().normalized();
+        const Vector t_sh = Plane::from_point_normal(sh.origin(), n_out).x_axis();
+        const Vector w_sh = n_out.cross(t_sh).normalized();
+        const double ah_val = names.count("ah") ? names.at("ah").number : aw;
+        const double foot = std::max(aw, ah_val) * 1.45 + part_over;
+        Mesh bark_box = frame_solid(sh.origin(), {t_sh, w_sh, n_out}, {-foot, foot}, {-foot, foot}, {0.0, part_over + 25.0});
+        JointCutStep surf;
+        surf.label = "B_raw_shoulder";
+        surf.target = 1;
+        surf.planes = {neg_sh};
+        surf.removal = bark_box;
+        joint->steps.push_back(surf);
     }
 
     // the ways a goes in, across only when it is as wide as b; b the opposite ways; "v; m1; m2" approaches along v, then makes

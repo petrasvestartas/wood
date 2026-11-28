@@ -3,37 +3,138 @@
 using namespace session_cpp;
 using namespace wood_session;
 
-/// Round proxy, registered laser-scanned point cloud, reconstructed log mesh and bifurcated tree fork.
+/// Three stages left to right: scanned RGB point clouds + axes, octagonal beam proxies, and attached raw trunks with identical joinery.
 int main() {
 
     WoodSession scene("element_edge_raw_proxy");
 
-    // 1. Low-poly round proxy beam before stock attachment
-    const std::shared_ptr<EdgeRawElement> proxy = EdgeRawElement::round(
-        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 1000.0}), 62.0, 0.2, "proxy"
-    );
-    scene.add(proxy);
+    // Stage 0 (left): 3D laser-scanned RGB point clouds of all four raw trunks aligned onto the portal node axes via raw_xform
+    {
+        const std::shared_ptr<TreeNode> scan_group = scene.group_named("scan");
+        const std::shared_ptr<EdgeRawElement> scan_girder = EdgeRawElement::from_stock(
+            Line::from_points({-240.0, 0.0, 680.0}, {740.0, 0.0, 680.0}), 54.0, "raw_log_0", 180.0, true, "scan_girder"
+        );
+        const std::shared_ptr<EdgeRawElement> scan_post = EdgeRawElement::from_stock(
+            Line::from_points({0.0, 0.0, 50.0}, {0.0, 0.0, 680.0}), 56.0, "raw_log_3", 45.0, true, "scan_post"
+        );
+        const std::shared_ptr<EdgeRawElement> scan_brace = EdgeRawElement::from_stock(
+            Line::from_points({180.0, 0.0, 180.0}, {540.0, 0.0, 680.0}), 52.0, "raw_log_2", 20.0, true, "scan_brace"
+        );
+        const std::shared_ptr<EdgeRawElement> scan_rafter = EdgeRawElement::from_stock(
+            Line::from_points({270.0, -320.0, 728.0}, {270.0, 320.0, 728.0}), 54.0, "raw_log_1", 90.0, true, "scan_rafter"
+        );
+        for (const std::shared_ptr<EdgeRawElement>& item : {scan_girder, scan_post, scan_brace, scan_rafter}) {
+            if (item->has_raw_pointcloud()) {
+                PointCloud cloud = item->placed_raw_pointcloud();
+                cloud.name = item->name + "_cloud";
+                scene.add_pointcloud(std::make_shared<PointCloud>(cloud), scan_group);
+            }
+            scene.add_line(std::make_shared<Line>(item->chord()), scan_group);
+        }
+    }
 
-    // 2. Same round proxy with its scanned RGB point cloud attached by raw_xform
-    const std::shared_ptr<EdgeRawElement> scanned = EdgeRawElement::round(
-        Line::from_points({420.0, 0.0, 0.0}, {420.0, 0.0, 1000.0}), 62.0, 0.2, "scanned"
-    );
-    scanned->attach_stock("raw_log_3");
-    scanned->use_raw_mesh = false;
-    scanned->show_pointcloud = true;
-    scene.add(scanned);
+    // Stage 1 (middle): fast octagonal round-section beam proxies (use_raw_mesh = false)
+    // Stage 2 (right): scanned raw spruce meshes attached onto the identical axes via attach_stock (raw_xform)
+    for (int attached : {0, 1}) {
+        const std::string tag = attached ? "raw" : "proxy";
+        const std::shared_ptr<TreeNode> group = scene.group_named(tag);
+        const Vector shift(attached ? 2360.0 : 1180.0, attached ? -1362.0 : -681.0, 0.0);
 
-    // 3. Reconstructed raw trunk mesh active on the same axis
-    const std::shared_ptr<EdgeRawElement> log = EdgeRawElement::from_stock(
-        Line::from_points({840.0, 0.0, 0.0}, {840.0, 0.0, 1000.0}), 62.0, "raw_log_3", 0.0, true, "log"
-    );
-    scene.add(log);
+        const std::shared_ptr<EdgeRawElement> girder = EdgeRawElement::round(
+            Line::from_points(Point(-240.0, 0.0, 680.0) + shift, Point(740.0, 0.0, 680.0) + shift),
+            54.0,
+            4.2,
+            "girder_" + tag
+        );
+        const std::shared_ptr<EdgeRawElement> post = EdgeRawElement::round(
+            Line::from_points(Point(0.0, 0.0, 50.0) + shift, Point(0.0, 0.0, 680.0) + shift),
+            56.0,
+            4.2,
+            "post_" + tag
+        );
+        const std::shared_ptr<EdgeRawElement> brace = EdgeRawElement::round(
+            Line::from_points(Point(180.0, 0.0, 180.0) + shift, Point(540.0, 0.0, 680.0) + shift),
+            52.0,
+            4.2,
+            "brace_" + tag
+        );
+        const std::shared_ptr<EdgeRawElement> rafter = EdgeRawElement::round(
+            Line::from_points(Point(270.0, -320.0, 728.0) + shift, Point(270.0, 320.0, 728.0) + shift),
+            54.0,
+            4.2,
+            "rafter_" + tag
+        );
 
-    // 4. Bifurcated Rossiniere spruce tree fork with stem and secondary branch axes
-    const std::shared_ptr<EdgeRawElement> fork = EdgeRawElement::from_stock(
-        Line::from_points({1260.0, 0.0, 0.0}, {1260.0, 0.0, 1100.0}), 65.0, "raw_fork_0", 0.0, false, "fork"
-    );
-    scene.add(fork);
+        if (attached) {
+            girder->attach_stock("raw_log_0", 180.0, true);
+            post->attach_stock("raw_log_3", 45.0, true);
+            brace->attach_stock("raw_log_2", 20.0, true);
+            rafter->attach_stock("raw_log_1", 90.0, true);
+            girder->cuts = {
+                Plane::from_point_normal(Point(-220.0, 0.0, 680.0) + shift, {1.0, 0.0, 0.0}),
+                Plane::from_point_normal(Point(720.0, 0.0, 680.0) + shift, {-1.0, 0.0, 0.0}),
+            };
+            post->cuts = {Plane::from_point_normal(Point(0.0, 0.0, 60.0) + shift, {0.0, 0.0, 1.0})};
+            brace->cuts = {
+                Plane::from_point_normal(
+                    Point(180.0, 0.0, 180.0) + shift, Vector(360.0, 0.0, 500.0).normalized()
+                )
+            };
+            rafter->cuts = {
+                Plane::from_point_normal(Point(270.0, -300.0, 728.0) + shift, {0.0, 1.0, 0.0}),
+                Plane::from_point_normal(Point(270.0, 300.0, 728.0) + shift, {0.0, -1.0, 0.0}),
+            };
+        }
+
+        scene.add(girder, group);
+        scene.add(post, group);
+        scene.add(brace, group);
+        scene.add(rafter, group);
+
+        const std::shared_ptr<JointBeamElement> mortise = JointBeamElement::from_library(
+            "fully_shouldered_blind_mortise_tenon", *post, *girder, {{"depth", 0.45}}
+        );
+        mortise->name = "mortise_" + tag;
+        scene.add(mortise, group);
+        scene.add_interaction(mortise, post, mortise->interaction(0));
+        scene.add_interaction(mortise, girder, mortise->interaction(1));
+
+        const std::shared_ptr<JointBeamElement> thrust =
+            JointBeamElement::from_library("notched_oblique_thrust", *brace, *girder);
+        thrust->name = "thrust_" + tag;
+        scene.add(thrust, group);
+        scene.add_interaction(thrust, brace, thrust->interaction(0));
+        scene.add_interaction(thrust, girder, thrust->interaction(1));
+
+        Settings conical = scene.settings;
+        conical.joint_parameters[10] = 0.55;
+        conical.joint_parameters[11] = JointPlateElement::cross_half_lap_id(CrossDrills::one);
+        const InteractionContactAxis cross_contact(
+            Line::from_points(Point(270.0, 0.0, 728.0) + shift, Point(270.0, 0.0, 680.0) + shift),
+            0.5,
+            0.5,
+            0,
+            0,
+            0,
+            0
+        );
+        const std::shared_ptr<JointBeamElement> cross =
+            JointBeamElement::from_contact(*rafter, *girder, cross_contact, 250.0, 0.91, 1, conical);
+        cross->name = "conical_" + tag;
+        cross->line_radius = 9.0;
+        cross->target_insertions = {{{0.0, 0.0, -1.0}}, {{0.0, 0.0, 1.0}}};
+        scene.add(cross, group);
+        scene.add_interaction(cross, rafter, cross->interaction(0));
+        scene.add_interaction(cross, girder, cross->interaction(1));
+
+        const std::shared_ptr<JointPinElement> pin = std::make_shared<JointPinElement>(
+            Line::from_points(Point(270.0, 0.0, 640.0) + shift, Point(270.0, 0.0, 768.0) + shift),
+            9.0,
+            0.05
+        );
+        pin->name = "pin_" + tag;
+        scene.add(pin, group);
+    }
 
     std::cout << scene << std::endl;
     scene.pb_dump(pb_path("live"));
@@ -42,7 +143,7 @@ int main() {
 
 /*
 |||||||| DESCRIPTION ||||||||
-Four stages of a raw timber member side by side: a round proxy beam, the proxy with its laser-scanned RGB point cloud registered by raw_xform, the closed trunk mesh, and a bifurcated tree fork carrying its secondary branch axis.
+Three stages of the raw-timber workflow side by side: co-registered RGB laser-scan point clouds aligned onto structural axes (left), a four-member portal node solved on fast octagonal round-section beam proxies (`use_raw_mesh = false`, middle), and the identical mortise-and-tenon, notched oblique thrust and conical cross-lap joints carved cleanly through the attached spruce trunks (`use_raw_mesh = true`, right).
 
 |||||||| DIRECTORY ||||||||
 cd wood_research/wood

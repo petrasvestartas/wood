@@ -150,8 +150,12 @@ bool beam_to_beam(
     if (!type_allowed(sum, beam0.allowed_type) || !type_allowed(sum, beam1.allowed_type))
         return false;
 
-    const Vector sn0 = beam0.has_direction(sid0) ? beam0.directions[sid0] : normal;
-    const Vector sn1 = beam1.has_direction(sid1) ? beam1.directions[sid1] : normal;
+    const Vector sn0 = (beam0.round_radius > 0.0 && has_valid_frame(v0, normal))
+                           ? normal
+                           : (beam0.has_direction(sid0) ? beam0.directions[sid0] : normal);
+    const Vector sn1 = (beam1.round_radius > 0.0 && has_valid_frame(v1, normal))
+                           ? normal
+                           : (beam1.has_direction(sid1) ? beam1.directions[sid1] : normal);
     const double r0 = beam0.radius(sid0);
     const double r1 = beam1.radius(sid1);
     if (!(r0 > 0.0) || !(r1 > 0.0) || !std::isfinite(r0) || !std::isfinite(r1) ||

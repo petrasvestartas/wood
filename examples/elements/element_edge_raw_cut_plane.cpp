@@ -9,14 +9,18 @@ int main() {
     WoodSession scene("element_edge_raw_cut_plane");
 
     const std::shared_ptr<EdgeRawElement> fork = EdgeRawElement::from_stock(
-        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 960.0}), 65.0, "raw_fork_1", 0.0, false, "fork"
+        Line::from_points({0.0, 0.0, 0.0}, {0.0, 0.0, 960.0}), 65.0, "raw_fork_1", 150.0, false, "fork"
     );
     scene.add(fork);
+
+    const std::vector<Point> branch = fork->placed_branch_axes().back().get_points();
+    const Vector along_branch = (branch.back() - branch[branch.size() - 2]).normalized();
+    const Point on_branch = branch.back() - along_branch * 130.0;
 
     const std::array<Plane, 3> planes = {
         Plane::from_point_normal({0.0, 0.0, 70.0}, {0.0, 0.0, 1.0}),
         Plane::from_point_normal({0.0, 0.0, 880.0}, {0.0, 0.0, -1.0}),
-        Plane::from_point_normal({310.0, 0.0, 710.0}, {-0.8, 0.0, -0.6}),
+        Plane::from_point_normal(on_branch, along_branch * -1.0),
     };
     for (size_t i = 0; i < planes.size(); i++) {
         const std::shared_ptr<JointCutPlaneElement> cut =
