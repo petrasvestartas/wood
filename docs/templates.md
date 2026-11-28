@@ -65,6 +65,10 @@
     <img src="card_vidy.gif" alt="Vidy">
     <span class="wood-card-title">Vidy</span>
   </a>
+  <a class="wood-card" href="templates_delorme.html">
+    <img src="card_delorme.gif" alt="Delorme">
+    <span class="wood-card-title">Delorme</span>
+  </a>
 </div>
 
 <div style="display:none">
@@ -84,4 +88,5 @@
 - @subpage templates_vault
 - @subpage templates_plaited
 - @subpage templates_vidy
+- @subpage templates_delorme
 </div>
