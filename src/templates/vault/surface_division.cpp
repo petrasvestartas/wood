@@ -1638,6 +1638,12 @@ Mesh SurfaceDivision::bricks(double length, double stagger) const {
     if (surfaces.empty())
         return Mesh();
 
+    // Knit-course increase/decrease topology with half-brick running-bond overlay
+    // (Popescu, Rippmann, Van Mele & Block, DMSP 2017):
+    // 1. Sample courses at uniform meridian surface arc-length spacing size_v.
+    // 2. Sample each contour i in {0..courses} into N_i = 2 * B_i evenly-spaced half-brick knit loops.
+    // 3. Connect adjacent contours with 2-stitch running-bond bricks and symmetric 5-vertex knit
+    //    increase/decrease pairs (Fig. 1a/b) whose head joints preserve exact 1-stitch half-brick parity.
     const double target_len = std::max(20.0, length);
     const double shift_frac = std::clamp(stagger, 0.0, 0.9);
     std::vector<std::vector<Point>> polys;
@@ -1646,142 +1652,371 @@ Mesh SurfaceDivision::bricks(double length, double stagger) const {
     for (size_t s = 0; s < surfaces.size(); s++) {
         const NurbsSurface& surf = surfaces[s];
         const Grid& g = _grids[s];
-        const int courses = std::max(4, g.v);
         const bool closed_u = surf.is_closed(0) ||
                               (eval_unit(surf, 0.0, 0.5).distance(eval_unit(surf, 1.0, 0.5)) < 1e-1);
-        const int min_bricks = closed_u ? 10 : 3;
 
-        std::vector<std::vector<double>> course_joints(static_cast<size_t>(courses));
-        double prev_off = 0.0;
-        int prev_count = 0;
-        for (int j = 0; j < courses; j++) {
-            const double gj_mid = static_cast<double>(j) + 0.5;
-            double hoop_len = 0.0;
-            const int samples = 64;
-            Point prev = evaluate(s, 0.0, gj_mid).first;
-            for (int k = 1; k <= samples; k++) {
-                const Point cur =
-                    evaluate(s, static_cast<double>(g.u) * k / samples, gj_mid).first;
-                hoop_len += prev.distance(cur);
-                prev = cur;
+        // 1. Build average meridian arc-length table so courses have uniform physical height size_v.
+        const int m_samples = 128;
+        const int u_probes = 8;
+        std::vector<double> mer_arc(static_cast<size_t>(m_samples + 1), 0.0);
+        for (int k = 1; k <= m_samples; k++) {
+            const double gj0 = static_cast<double>(g.v) * static_cast<double>(k - 1) / m_samples;
+            const double gj1 = static_cast<double>(g.v) * static_cast<double>(k) / m_samples;
+            double avg_ds = 0.0;
+            for (int p = 0; p < u_probes; p++) {
+                const double gu = static_cast<double>(g.u) * (static_cast<double>(p) + 0.5) / u_probes;
+                const Point p0 = evaluate(s, gu, gj0).first;
+                const Point p1 = evaluate(s, gu, gj1).first;
+                avg_ds += p0.distance(p1);
             }
-            const int count =
-                std::max(min_bricks, static_cast<int>(std::lround(hoop_len / target_len)));
-            const double step = static_cast<double>(g.u) / count;
-            double off = (j % 2 == 1) ? shift_frac * step : 0.0;
+            mer_arc[static_cast<size_t>(k)] =
+                mer_arc[static_cast<size_t>(k - 1)] + avg_ds / static_cast<double>(u_probes);
+        }
+        const double total_mer = mer_arc.back();
+        const int courses = std::max(4, static_cast<int>(std::lround(total_mer / size_v)));
 
-            if (closed_u) {
-                if (j == 0) {
-                    off = 0.0;
-                } else if (count == prev_count) {
-                    off = std::fmod(prev_off + shift_frac * step, step);
-                } else {
-                    // Maximize minimum circular joint separation from the previous course so head joints never align.
-                    const double span_u = static_cast<double>(g.u);
-                    const double desired = std::fmod(prev_off + shift_frac * step, step);
-                    double best_score = -1.0;
-                    double best_off = desired;
-                    const int candidates = 120;
-                    for (int c = 0; c < candidates; c++) {
-                        const double cand = step * static_cast<double>(c) / static_cast<double>(candidates);
-                        double min_sep = span_u;
-                        for (int k = 0; k < count; k++) {
-                            const double j_pos = cand + k * step;
-                            for (size_t m = 0; m + 1 < course_joints[static_cast<size_t>(j - 1)].size(); m++) {
-                                double diff = std::abs(j_pos - course_joints[static_cast<size_t>(j - 1)][m]);
-                                diff = std::fmod(diff, span_u);
-                                diff = std::min(diff, span_u - diff);
-                                min_sep = std::min(min_sep, diff);
-                            }
-                        }
-                        double phase_bias = std::abs(cand - desired);
-                        phase_bias = std::min(phase_bias, step - phase_bias);
-                        const double score = min_sep - 1e-3 * phase_bias;
-                        if (score > best_score) {
-                            best_score = score;
-                            best_off = cand;
-                        }
-                    }
-                    off = best_off;
+        std::vector<double> contour_gj(static_cast<size_t>(courses + 1), 0.0);
+        for (int c = 0; c <= courses; c++) {
+            const double target_s = total_mer * static_cast<double>(c) / static_cast<double>(courses);
+            for (int k = 0; k < m_samples; k++) {
+                if (target_s <= mer_arc[static_cast<size_t>(k + 1)] + 1e-9) {
+                    const double seg = mer_arc[static_cast<size_t>(k + 1)] - mer_arc[static_cast<size_t>(k)];
+                    const double alpha = seg > 1e-12 ? (target_s - mer_arc[static_cast<size_t>(k)]) / seg : 0.0;
+                    contour_gj[static_cast<size_t>(c)] =
+                        static_cast<double>(g.v) * (static_cast<double>(k) + std::clamp(alpha, 0.0, 1.0)) /
+                        static_cast<double>(m_samples);
+                    break;
                 }
-                prev_off = off;
-                prev_count = count;
-                for (int k = 0; k <= count; k++)
-                    course_joints[j].push_back(off + k * step);
-            } else {
+            }
+        }
+        contour_gj.front() = 0.0;
+        contour_gj.back() = static_cast<double>(g.v);
+
+        if (!closed_u) {
+            // Open patch: arc-length contoured courses with half-brick stagger and clean T-joint splits
+            std::vector<std::vector<double>> course_joints(static_cast<size_t>(courses));
+            for (int j = 0; j < courses; j++) {
+                const double gj_mid = 0.5 * (contour_gj[static_cast<size_t>(j)] + contour_gj[static_cast<size_t>(j + 1)]);
+                double hoop_len = 0.0;
+                const int samples = 64;
+                Point prev = evaluate(s, 0.0, gj_mid).first;
+                for (int k = 1; k <= samples; k++) {
+                    const Point cur =
+                        evaluate(s, static_cast<double>(g.u) * k / samples, gj_mid).first;
+                    hoop_len += prev.distance(cur);
+                    prev = cur;
+                }
+                const int count = std::max(3, static_cast<int>(std::lround(hoop_len / target_len)));
+                const double step = static_cast<double>(g.u) / count;
+                const double off = (j % 2 == 1) ? shift_frac * step : 0.0;
                 if (off > 1e-6)
-                    course_joints[j].push_back(0.0);
+                    course_joints[static_cast<size_t>(j)].push_back(0.0);
                 for (int k = 0; k < count; k++) {
                     const double pos = off + k * step;
                     if (pos <= g.u + 1e-6)
-                        course_joints[j].push_back(std::min(static_cast<double>(g.u), pos));
+                        course_joints[static_cast<size_t>(j)].push_back(std::min(static_cast<double>(g.u), pos));
                 }
-                if (course_joints[j].back() < g.u - 1e-6)
-                    course_joints[j].push_back(static_cast<double>(g.u));
+                if (course_joints[static_cast<size_t>(j)].back() < g.u - 1e-6)
+                    course_joints[static_cast<size_t>(j)].push_back(static_cast<double>(g.u));
+            }
+
+            for (int j = 0; j < courses; j++) {
+                const std::vector<double>& joints = course_joints[static_cast<size_t>(j)];
+                const double gj_lo = contour_gj[static_cast<size_t>(j)];
+                const double gj_hi = contour_gj[static_cast<size_t>(j + 1)];
+                for (size_t k = 0; k + 1 < joints.size(); k++) {
+                    const double a0 = joints[k];
+                    const double a1 = joints[k + 1];
+                    if (a1 - a0 <= 1e-4)
+                        continue;
+                    std::array<std::vector<double>, 2> seam_splits;
+                    const std::array<int, 2> adj_rows = {j - 1, j + 1};
+                    for (int side = 0; side < 2; side++) {
+                        seam_splits[static_cast<size_t>(side)] = {a0, a1};
+                        const int other_j = adj_rows[static_cast<size_t>(side)];
+                        if (other_j >= 0 && other_j < courses) {
+                            for (const double ox : course_joints[static_cast<size_t>(other_j)]) {
+                                if (ox > a0 + 1e-4 && ox < a1 - 1e-4)
+                                    seam_splits[static_cast<size_t>(side)].push_back(ox);
+                            }
+                        }
+                        std::sort(
+                            seam_splits[static_cast<size_t>(side)].begin(),
+                            seam_splits[static_cast<size_t>(side)].end()
+                        );
+                    }
+                    std::vector<Point> ring;
+                    std::vector<Vector> rn;
+                    for (const double x : seam_splits[0]) {
+                        const std::pair<Point, Vector> ev =
+                            evaluate(s, std::clamp(x, 0.0, static_cast<double>(g.u)), gj_lo);
+                        if (ring.empty() || ring.back().distance(ev.first) > 1e-3) {
+                            ring.push_back(ev.first);
+                            rn.push_back(ev.second);
+                        }
+                    }
+                    for (int m = static_cast<int>(seam_splits[1].size()) - 1; m >= 0; m--) {
+                        const std::pair<Point, Vector> ev = evaluate(
+                            s, std::clamp(seam_splits[1][static_cast<size_t>(m)], 0.0, static_cast<double>(g.u)), gj_hi
+                        );
+                        if (ring.empty() || ring.back().distance(ev.first) > 1e-3) {
+                            ring.push_back(ev.first);
+                            rn.push_back(ev.second);
+                        }
+                    }
+                    if (ring.size() >= 3) {
+                        polys.push_back(ring);
+                        norms.push_back(rn);
+                    }
+                }
+            }
+            continue;
+        }
+
+        // 2. Closed enlarging/narrowing funnel/tubular surface: Popescu (2017) knit-increase/decrease
+        //    course branching with meridian head joints (u_top == u_bot on every course) and constrained
+        //    half-brick running-bond equalization so radial joints are twist-free with zero sawteeth.
+        const int c_samples = 256;
+        std::vector<ArcTable> hoop_arcs(static_cast<size_t>(courses));
+        std::vector<int> course_counts(static_cast<size_t>(courses), 10);
+
+        for (int j = 0; j < courses; j++) {
+            const double gj_mid =
+                0.5 * (contour_gj[static_cast<size_t>(j)] + contour_gj[static_cast<size_t>(j + 1)]);
+            ArcTable arc;
+            arc.fractions.resize(static_cast<size_t>(c_samples + 1), 0.0);
+            arc.lengths.resize(static_cast<size_t>(c_samples + 1), 0.0);
+            Point prev = evaluate(s, 0.0, gj_mid).first;
+            for (int k = 1; k <= c_samples; k++) {
+                const double f = static_cast<double>(k) / static_cast<double>(c_samples);
+                const Point cur = evaluate(s, f * static_cast<double>(g.u), gj_mid).first;
+                arc.fractions[static_cast<size_t>(k)] = f;
+                arc.lengths[static_cast<size_t>(k)] =
+                    arc.lengths[static_cast<size_t>(k - 1)] + prev.distance(cur);
+                prev = cur;
+            }
+            arc.total = arc.lengths.back();
+            hoop_arcs[static_cast<size_t>(j)] = arc;
+            course_counts[static_cast<size_t>(j)] =
+                std::max(10, static_cast<int>(std::lround(arc.total / target_len)));
+        }
+
+        // Clamp adjacent course brick ratio to [1/2, 2] so knit increases/decreases branch cleanly
+        for (int j = 0; j + 1 < courses; j++) {
+            const int b0 = course_counts[static_cast<size_t>(j)];
+            int& b1 = course_counts[static_cast<size_t>(j + 1)];
+            b1 = std::clamp(b1, std::max(8, (b0 + 1) / 2), 2 * b0);
+        }
+
+        // Sorted arc-length fractions in [0, 1) of meridian head joints for each course j
+        std::vector<std::vector<double>> course_fracs(static_cast<size_t>(courses));
+        {
+            const int b_first = course_counts[0];
+            course_fracs[0].resize(static_cast<size_t>(b_first));
+            for (int k = 0; k < b_first; k++) {
+                course_fracs[0][static_cast<size_t>(k)] =
+                    static_cast<double>(k) / static_cast<double>(b_first);
             }
         }
 
-        for (int j = 0; j < courses; j++) {
-            const std::vector<double>& joints = course_joints[j];
-            for (size_t k = 0; k + 1 < joints.size(); k++) {
-                const double a0 = joints[k];
-                const double a1 = joints[k + 1];
-                if (a1 - a0 <= 1e-4)
-                    continue;
+        double spiral_phase = 0.0;
+        for (int j = 0; j + 1 < courses; j++) {
+            const std::vector<double>& prev_f = course_fracs[static_cast<size_t>(j)];
+            const int b0 = static_cast<int>(prev_f.size());
+            const int b1 = course_counts[static_cast<size_t>(j + 1)];
 
-                std::array<std::vector<double>, 2> seam_splits;
-                const std::array<int, 2> adj_rows = {j - 1, j + 1};
+            // Unwrapped monotonically increasing span boundaries [a_k, b_k] of course j
+            std::vector<double> span_lo(static_cast<size_t>(b0));
+            std::vector<double> span_hi(static_cast<size_t>(b0));
+            for (int k = 0; k < b0; k++) {
+                span_lo[static_cast<size_t>(k)] = prev_f[static_cast<size_t>(k)];
+                double hi = prev_f[static_cast<size_t>((k + 1) % b0)];
+                if (k + 1 == b0) {
+                    hi += 1.0;
+                }
+                span_hi[static_cast<size_t>(k)] = hi;
+            }
+
+            std::vector<double> joints;
+            std::vector<double> lo_bound;
+            std::vector<double> hi_bound;
+            const double min_clear = 0.22; // Minimum stagger clearance fraction from parent head joints
+
+            if (b1 >= b0) {
+                const int inc = std::min(b0, b1 - b0);
+                // Select inc spans combining wide angular span + evenly distributed golden-angle phase
+                std::vector<bool> split_span(static_cast<size_t>(b0), false);
+                if (inc > 0) {
+                    spiral_phase = std::fmod(spiral_phase + 0.38196601125, 1.0);
+                    std::vector<std::pair<double, int>> ranked;
+                    for (int k = 0; k < b0; k++) {
+                        const double width = span_hi[static_cast<size_t>(k)] - span_lo[static_cast<size_t>(k)];
+                        const double mid = std::fmod(0.5 * (span_lo[static_cast<size_t>(k)] + span_hi[static_cast<size_t>(k)]), 1.0);
+                        // Distance to nearest ideal evenly-spaced gore slot
+                        double best_slot_dist = 1.0;
+                        for (int g_idx = 0; g_idx < inc; g_idx++) {
+                            const double target_mid =
+                                std::fmod(spiral_phase + static_cast<double>(g_idx) / static_cast<double>(inc), 1.0);
+                            double d = std::abs(mid - target_mid);
+                            d = std::min(d, 1.0 - d);
+                            best_slot_dist = std::min(best_slot_dist, d);
+                        }
+                        const double score = width * static_cast<double>(b0) - 0.85 * best_slot_dist;
+                        ranked.emplace_back(-score, k);
+                    }
+                    std::sort(ranked.begin(), ranked.end());
+                    for (int g_idx = 0; g_idx < inc; g_idx++) {
+                        split_span[static_cast<size_t>(ranked[static_cast<size_t>(g_idx)].second)] = true;
+                    }
+                }
+
+                for (int k = 0; k < b0; k++) {
+                    const double a = span_lo[static_cast<size_t>(k)];
+                    const double b = span_hi[static_cast<size_t>(k)];
+                    const double w = b - a;
+                    if (!split_span[static_cast<size_t>(k)]) {
+                        joints.push_back(a + 0.5 * w);
+                        lo_bound.push_back(a + min_clear * w);
+                        hi_bound.push_back(b - min_clear * w);
+                    } else {
+                        // Popescu knit-increase: 2 meridian joints inside parent span [a, b]
+                        joints.push_back(a + 0.30 * w);
+                        lo_bound.push_back(a + 0.18 * w);
+                        hi_bound.push_back(a + 0.44 * w);
+
+                        joints.push_back(a + 0.70 * w);
+                        lo_bound.push_back(a + 0.56 * w);
+                        hi_bound.push_back(b - 0.18 * w);
+                    }
+                }
+            } else {
+                const int dec = std::min(b0 / 2, b0 - b1);
+                // Mark dec evenly-spaced non-adjacent parent spans to skip (knit-decrease 2->1)
+                std::vector<bool> skip_span(static_cast<size_t>(b0), false);
+                spiral_phase = std::fmod(spiral_phase + 0.38196601125, 1.0);
+                const int start_k = static_cast<int>(std::floor(spiral_phase * static_cast<double>(b0))) % b0;
+                for (int g_idx = 0; g_idx < dec; g_idx++) {
+                    const int slot = (start_k + (g_idx * b0) / std::max(1, dec)) % b0;
+                    skip_span[static_cast<size_t>(slot)] = true;
+                }
+                for (int k = 0; k < b0; k++) {
+                    if (skip_span[static_cast<size_t>(k)]) {
+                        continue;
+                    }
+                    const double a = span_lo[static_cast<size_t>(k)];
+                    const double b = span_hi[static_cast<size_t>(k)];
+                    const double w = b - a;
+                    joints.push_back(a + 0.5 * w);
+                    lo_bound.push_back(a + min_clear * w);
+                    hi_bound.push_back(b - min_clear * w);
+                }
+            }
+
+            // Equalize brick widths around the 360-degree ring while preserving hard half-brick stagger bounds!
+            const int m = static_cast<int>(joints.size());
+            for (int iter = 0; iter < 36 && m >= 3; iter++) {
+                std::vector<double> next_j = joints;
+                for (int i = 0; i < m; i++) {
+                    const double prev_v =
+                        (i == 0) ? (joints[static_cast<size_t>(m - 1)] - 1.0) : joints[static_cast<size_t>(i - 1)];
+                    const double next_v =
+                        (i + 1 == m) ? (joints[0] + 1.0) : joints[static_cast<size_t>(i + 1)];
+                    const double target = 0.5 * (prev_v + next_v);
+                    next_j[static_cast<size_t>(i)] = std::clamp(
+                        joints[static_cast<size_t>(i)] + 0.45 * (target - joints[static_cast<size_t>(i)]),
+                        lo_bound[static_cast<size_t>(i)],
+                        hi_bound[static_cast<size_t>(i)]
+                    );
+                }
+                joints = std::move(next_j);
+            }
+
+            // Wrap into sorted [0, 1) fractions
+            std::vector<double> wrapped(static_cast<size_t>(m));
+            for (int i = 0; i < m; i++) {
+                double f = std::fmod(joints[static_cast<size_t>(i)], 1.0);
+                if (f < 0.0) {
+                    f += 1.0;
+                }
+                wrapped[static_cast<size_t>(i)] = f;
+            }
+            std::sort(wrapped.begin(), wrapped.end());
+            course_fracs[static_cast<size_t>(j + 1)] = std::move(wrapped);
+        }
+
+        // Convert each course's hoop arc-length fractions to exact surface u parameters in [0, g.u)
+        std::vector<std::vector<double>> course_u(static_cast<size_t>(courses));
+        for (int j = 0; j < courses; j++) {
+            const std::vector<double>& fr = course_fracs[static_cast<size_t>(j)];
+            course_u[static_cast<size_t>(j)].resize(fr.size());
+            for (size_t k = 0; k < fr.size(); k++) {
+                course_u[static_cast<size_t>(j)][k] =
+                    hoop_arcs[static_cast<size_t>(j)].at_fraction(fr[k]) * static_cast<double>(g.u);
+            }
+            std::sort(course_u[static_cast<size_t>(j)].begin(), course_u[static_cast<size_t>(j)].end());
+        }
+
+        // Emit conformal meridian-jointed bricks with exact T-joint vertices on top and bottom bed seams
+        const double u_period = static_cast<double>(g.u);
+        for (int j = 0; j < courses; j++) {
+            const std::vector<double>& cu = course_u[static_cast<size_t>(j)];
+            const size_t nb = cu.size();
+            const double gj_lo = contour_gj[static_cast<size_t>(j)];
+            const double gj_hi = contour_gj[static_cast<size_t>(j + 1)];
+
+            for (size_t k = 0; k < nb; k++) {
+                const double u0 = cu[k];
+                const double u1 = (k + 1 < nb) ? cu[k + 1] : (cu[0] + u_period);
+                if (u1 - u0 <= 1e-5) {
+                    continue;
+                }
+
+                std::array<std::vector<double>, 2> seam_u;
+                const std::array<int, 2> adj_j = {j - 1, j + 1};
                 for (int side = 0; side < 2; side++) {
-                    seam_splits[side] = {a0, a1};
-                    const int other_j = adj_rows[side];
-                    if (other_j >= 0 && other_j < courses) {
-                        for (double ox : course_joints[other_j]) {
-                            if (closed_u) {
-                                while (ox < a0 - 1e-6)
-                                    ox += g.u;
-                                while (ox > a1 + 1e-6)
-                                    ox -= g.u;
+                    seam_u[static_cast<size_t>(side)] = {u0, u1};
+                    const int oj = adj_j[static_cast<size_t>(side)];
+                    if (oj >= 0 && oj < courses) {
+                        for (const double ox_base : course_u[static_cast<size_t>(oj)]) {
+                            for (int wrap = 0; wrap <= 1; wrap++) {
+                                const double ox = ox_base + static_cast<double>(wrap) * u_period;
+                                if (ox > u0 + 1e-4 && ox < u1 - 1e-4) {
+                                    seam_u[static_cast<size_t>(side)].push_back(ox);
+                                }
                             }
-                            if (ox > a0 + 1e-4 && ox < a1 - 1e-4)
-                                seam_splits[side].push_back(ox);
                         }
                     }
-                    std::sort(seam_splits[side].begin(), seam_splits[side].end());
+                    std::sort(
+                        seam_u[static_cast<size_t>(side)].begin(),
+                        seam_u[static_cast<size_t>(side)].end()
+                    );
                 }
 
                 std::vector<Point> ring;
                 std::vector<Vector> rn;
-                for (const double x : seam_splits[0]) {
-                    double wx = x;
-                    if (closed_u) {
-                        wx = std::fmod(x, static_cast<double>(g.u));
-                        if (wx < 0.0)
-                            wx += static_cast<double>(g.u);
-                    } else {
-                        wx = std::clamp(x, 0.0, static_cast<double>(g.u));
+                for (const double ux : seam_u[0]) {
+                    double wrapped_u = std::fmod(ux, u_period);
+                    if (wrapped_u < 0.0) {
+                        wrapped_u += u_period;
                     }
-                    const std::pair<Point, Vector> ev = evaluate(s, wx, j);
-                    if (ring.empty() || ring.back().distance(ev.first) > 1e-3) {
+                    const std::pair<Point, Vector> ev = evaluate(s, wrapped_u, gj_lo);
+                    if (ring.empty() || ring.back().distance(ev.first) > 1e-2) {
                         ring.push_back(ev.first);
                         rn.push_back(ev.second);
                     }
                 }
-                for (int m = static_cast<int>(seam_splits[1].size()) - 1; m >= 0; m--) {
-                    double wx = seam_splits[1][m];
-                    if (closed_u) {
-                        wx = std::fmod(wx, static_cast<double>(g.u));
-                        if (wx < 0.0)
-                            wx += static_cast<double>(g.u);
-                    } else {
-                        wx = std::clamp(wx, 0.0, static_cast<double>(g.u));
+                for (int m = static_cast<int>(seam_u[1].size()) - 1; m >= 0; m--) {
+                    double wrapped_u = std::fmod(seam_u[1][static_cast<size_t>(m)], u_period);
+                    if (wrapped_u < 0.0) {
+                        wrapped_u += u_period;
                     }
-                    const std::pair<Point, Vector> ev = evaluate(s, wx, j + 1);
-                    if (ring.empty() || ring.back().distance(ev.first) > 1e-3) {
+                    const std::pair<Point, Vector> ev = evaluate(s, wrapped_u, gj_hi);
+                    if (ring.empty() || ring.back().distance(ev.first) > 1e-2) {
                         ring.push_back(ev.first);
                         rn.push_back(ev.second);
                     }
                 }
-                if (ring.size() >= 3) {
+                if (ring.size() >= 4) {
                     polys.push_back(ring);
                     norms.push_back(rn);
                 }
